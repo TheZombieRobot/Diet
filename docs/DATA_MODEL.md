@@ -29,7 +29,8 @@ All data lives in the phone's IndexedDB in one database with versioned migration
 
 **Shared rules enforced in `packages/core`:**
 - Standard drinks: `ml * abv * 0.789 / 1000`, rounded to 2 decimals; label value wins if present.
-- Eating window length is computed from clock times, wrapping midnight correctly; fasting hours = 24 − window.
+- Eating window length is computed from clock times, wrapping midnight correctly; fasting hours = 24 − window. Presets: 16:8, 18:6, 20:4, 22:2, 23:1.
+- Single-meal check (23:1 days): planned dinner protein ≥ protein target and planned energy ≥ floor, else the snack suggestion is set for the day.
 - Net carbs = carbs − fibre, floored at zero.
 - Energy estimate = Mifflin-St Jeor × activity factor (1.2 sedentary, 1.55 moderate, 1.725 physically active job, 1.9 very active), labelled "rough guide".
 - Planned energy = estimate × (1 − deficit %), never below the 5,000 kJ floor; protein target is independent of the deficit.

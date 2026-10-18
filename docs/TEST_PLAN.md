@@ -160,6 +160,10 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | FL-09 | Eating window 22:00–02:00 (midnight wrap) | 4 h eating |
 | FL-10 | Low-protein planned day | Fasting card offers to widen window (HS-18) |
 | FL-11 | Reflux options on | Earlier-window and split-meal suggestions appear; symptom log available |
+| FL-12 | 23:1 preset, dinner planned at 95 g protein, target 140 g | Fasting card offers the 5 pm snack; no "broken fast" or streak-loss wording (HS-18) |
+| FL-13 | 23:1 preset, dinner planned at 140 g protein and above floor | No snack prompt; meal check line shows the protein figure |
+| FL-14 | 23:1 window 6 pm to 7 pm | Shows "1 h eating, 23 h fasting"; no over-24 h warning (HS-17) |
+| FL-15 | Reflux symptom logged on a 23:1 day | Earlier-dinner and split-meal options offered next day |
 
 ### 3.12 Non-negotiable cases from the handoff
 | ID | Case | Expected |

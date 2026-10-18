@@ -20,7 +20,7 @@ Plain-language descriptions of every MVP screen, written so you can picture them
 
 **Screen 1d: Profile.** Height, current weight, long-term goal weight (shown as "long-term", with the text "the four-week chart is not a promise"), Kickstart choice ("Strong start for 3 weeks: bigger deficit, protein protected, daily electrolytes", on by default), sex (for guidance figures and energy estimate), age, activity level (default "physically active job"), equipment toggles, household size, dislikes and allergens, gluten-free household toggle (off by default).
 
-**Screen 1e: Eating schedule.** Choose a preset (16:8, 18:6, 20:4, 22:2 "5 pm snack + dinner") or set clock times. The screen shows the computed window: "Eating 5:00 pm to 7:00 pm = 2 hours. Fasting 22 hours." Reflux option: "I get reflux; prefer earlier or split dinner" toggles.
+**Screen 1e: Eating schedule.** Choose a preset (16:8, 18:6, 20:4, 22:2 "5 pm snack + dinner", 23:1 "one meal") or set clock times. During Kickstart the preset defaults to 23:1 with a line: "One meal has to carry about 140 g protein. If a day's dinner can't, the app will offer the 5 pm snack. That's not a broken fast." The screen shows the computed window: "Eating 5:00 pm to 7:00 pm = 2 hours. Fasting 22 hours." Reflux option: "I get reflux; prefer earlier or split dinner" toggles.
 
 **Screen 1f: Garden.** Silverbeet is pre-listed as "available". Add other crops with amount, harvest-ready and perishability. Skip is allowed.
 
@@ -32,7 +32,7 @@ Top: date and a one-line status such as "Fasting 14 h 20 m. Snack window opens 5
 
 Cards, in order:
 1. **Weight.** Latest weight, 7-day average, long-term goal, phase chip ("Kickstart, week 2 of 3" or "Steady"). Four-week sparkline with a shaded front-loaded band labelled "typical range, not a promise". During Kickstart the note reads: "Kickstart: a fast drop is expected now, mostly water and glycogen with some fat." In Steady it reads: "About 0.5–1 kg a week is the pace that holds. A kilogram back after Kickstart is water, not failure."
-2. **Fast.** Big Start/End button, planned window, snack and dinner times. If today's planned food is short on protein or energy: "Protein is under target. It's fine to widen the window."
+2. **Fast.** Big Start/End button, planned window, snack and dinner times. On 23:1 days a one-line meal check: "Tonight's dinner carries 138 g protein" or "Tonight's dinner carries 95 g protein. Add the 5 pm snack?" with a one-tap Add. If protein or energy is short: "It's fine to widen the window."
 3. **Nutrition so far.** Energy, protein, fibre, net carbs (if keto mode) as bars with targets. Each logged entry shows a small badge: Label, Database, or Estimate.
 4. **Water and electrolytes.** Tap +250 mL; optional electrolyte tick.
 5. **Steps.** Manual entry, remembers yesterday's value for one-tap repeat.

@@ -53,7 +53,7 @@ The earlier assumptions (A1–A10) have been replaced by the handoff's requireme
 |---|---|---|
 | Garden | Long placeholder crop list | Silverbeet seeded as available; all other crops entered by you with amount, harvest-ready flag, perishability, optional photo |
 | Health context | Generic adult | Specifics held privately. Product defaults: cholesterol check-in on from day one; reflux-aware options on; alcohol safety onboarding mandatory on first run; activity level defaults to "physically active job" |
-| Fasting | 16:8 default, presets to 18:6 | Presets 16:8, 18:6, 20:4, **22:2 (5 pm snack + dinner)** and custom clock times. Window length is computed from clock times, so 5–7 pm is 2 hours. Fast never enforced when protein or energy is short |
+| Fasting | 16:8 default, presets to 18:6 | Presets 16:8, 18:6, 20:4, **22:2 (5 pm snack + dinner)**, **23:1 (one meal)** and custom clock times. **Owner decision: 23:1 for the three-week Kickstart.** Window length is computed from clock times. The planner checks daily that the single meal can carry the protein target and energy floor; if not, the 5 pm snack is offered with no penalty. Fast never enforced when protein or energy is short |
 | Keto targets | Net carbs 30 g, saturated fat ~10% | Same, plus **protein 120–140 g/day default**, energy estimate for an active job, fibre and micronutrient guides. Switchable diet modes: keto-preferred, moderate low-carb, balanced |
 | Exercise | Beach-only bodyweight | 2–3 full-body sessions a week, 20–35 minutes, bodyweight with optional bands/dumbbells; beach walking optional; jogging only as an opt-in progression; no compulsory running; pre-session check for pain, fatigue, sleep, heat, hydration |
 | Weight | Trend plus rapid-loss flag | **Owner decision: weight loss should be high to start.** A three-week Kickstart phase expects a fast drop, shows a front-loaded "typical range, not a promise" band, runs a stronger deficit with protein protected, and never shows a rapid-loss warning. From week 4, Steady pace guidance applies. Long-term goal shown separately; no celebration of speed, no punishment of water rebounds; still no "kilograms by a date" claims |
@@ -180,7 +180,7 @@ Week 3 is heaviest. If it slips, paste/CSV hand-off ships first and QR pairing m
 | Relay | **Cloudflare Worker + KV, free tier, your account** (decided) | Blind to content, no account for you to manage, no cost | n/a |
 | Cross-device sync | Grocery list only, end-to-end encrypted, opt-in | Health data never leaves the phone | Household sharing later |
 | Extension mode | Decided by Phase 0; B is the expected outcome | Terms and feasibility unverified until you look | Phase 0 shows A is permitted and reliable |
-| Eating windows | Presets 16:8, 18:6, 20:4, 22:2; custom clock times; length computed from times | Handoff; prevents the 20:4 vs 22:2 error | n/a |
+| Eating windows | Presets 16:8, 18:6, 20:4, 22:2, 23:1; custom clock times; length computed from times. Kickstart default 23:1 (owner's choice), with the 5 pm snack offered whenever one meal cannot carry the protein target | Handoff; owner decision; prevents the 20:4 vs 22:2 error | You change the preset any time |
 | Fast enforcement | Never enforced when planned protein or energy is below target | Handoff | n/a |
 | Protein | 120–140 g/day default, adjustable 80–200 | Handoff, pending clinician input | Clinician advises |
 | Energy estimate | Mifflin-St Jeor × activity factor; default activity "physically active job"; shown as a rough guide | A physically demanding job is not sedentary | Profile change |
