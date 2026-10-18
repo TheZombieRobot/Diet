@@ -15,4 +15,7 @@ An Android-first, offline-first web app (PWA) for one person: meal planning arou
 | [docs/IMPLEMENTATION_CHECKLIST.md](docs/IMPLEMENTATION_CHECKLIST.md) | Numbered build steps for the implementing model with acceptance tests and STOP points |
 
 ## Missing input
-The master requirements document `Personal_Fitness_Grocery_App_Claude_Handoff.md` was not available when the plan was written. Commit it to `docs/handoff/` so the assumptions in `docs/PLAN.md` section 3 can be reconciled (checklist items 1–2).
+The master requirements document `Personal_Fitness_Grocery_App_Claude_Handoff.md` was not available when the plan was written. This repository is public, so share it with the implementer directly (or commit a de-personalised copy to `docs/handoff/`) so the assumptions in `docs/PLAN.md` section 3 can be reconciled (checklist items 1–2).
+
+## Privacy note
+Nothing personal belongs in this repository: no health history, no logs, no backups. Your data lives only in the app on your phone. See `docs/DECISIONS.md`.

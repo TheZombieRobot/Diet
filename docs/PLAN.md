@@ -186,7 +186,7 @@ Week 3 is the heaviest. If it slips, the paste fallback ships first and QR/relay
 | Front-end stack | Vite + React + TypeScript | Mainstream, excellent tooling, easy for any model to maintain | Never for the MVP |
 | Local database | IndexedDB via Dexie | Robust offline storage, handles thousands of records easily | n/a |
 | Offline layer | Workbox via vite-plugin-pwa | Standard service-worker tooling | n/a |
-| Hosting (phone app) | GitHub Pages from this repo, or Cloudflare Pages if the repo is private | Free HTTPS static hosting; HTTPS is required for install | See Q2 |
+| Hosting (phone app) | GitHub Pages from this repo (repo confirmed public, 18 Oct 2026) | Free HTTPS static hosting; HTTPS is required for install | The repo is made private: switch to Cloudflare Pages, a one-hour change |
 | Relay for list transfer | Cloudflare Worker + KV, free tier, 15-minute expiry, 64 KB cap, encrypted blobs only | Cheapest reliable path; relay is blind to content | See Q1 |
 | Encryption | WebCrypto AES-GCM 256, key shared by QR at pairing, never sent to the relay | Browser-native, no libraries to trust | n/a |
 | Extension type | Chrome MV3 with side panel, loaded unpacked | No store review, no page-access permissions | You later want it on the Web Store |
@@ -235,9 +235,9 @@ Week 3 is the heaviest. If it slips, the paste fallback ships first and QR/relay
 
 **Q1. Relay hosting.** May the implementing model set up a free Cloudflare Workers account (or use one you create) for the blind, encrypted list relay? If you would rather have no third-party service at all, say so and the MVP ships with the paste fallback only, with QR-camera transfer as a later option. *Default if no answer: Cloudflare Worker.*
 
-**Q2. Repository visibility.** Is `TheZombieRobot/Diet` public or private? GitHub Pages is free for public repos; for a private repo the default becomes Cloudflare Pages (also free). *Default if no answer: Cloudflare Pages, since it works either way.*
+**Q2. Repository visibility.** *Answered 18 Oct 2026: the repo is public.* Hosting is GitHub Pages. Consequence: everything committed here is visible to anyone, so personal documents must not be committed (see Q3 and `docs/DECISIONS.md`). If you later make the repo private, hosting moves to Cloudflare Pages.
 
-**Q3. The handoff document.** Please commit it to `docs/handoff/` or paste it in your reply. Without it, assumptions A1 (garden list) and A2 (health context) in particular stay as placeholders.
+**Q3. The handoff document.** Because the repo is public, do **not** commit the handoff if it contains anything personal (health history, medications, address, drinking patterns). Instead paste it into the chat, or commit a version with personal details removed. The reconciled, de-personalised assumptions then live in `docs/PLAN.md`; your personal answers live only in the app on your phone. Without the handoff, assumptions A1 (garden list) and A2 (health context) stay as placeholders.
 
 Everything else proceeds on the defaults in section 7 unless you object.
 

@@ -13,8 +13,8 @@ Conventions for the implementing model:
 
 ## Week 0 — Reconcile and verify (owner and model)
 
-1. **OWNER: Commit the handoff document** to `docs/handoff/Personal_Fitness_Grocery_App_Claude_Handoff.md` (or paste it).
-   *Acceptance:* file present; model has read it.
+1. **OWNER: Provide the handoff document.** The repo is public, so paste it into the chat rather than committing it if it holds personal details. Commit only a de-personalised copy to `docs/handoff/` if you want one in the repo.
+   *Acceptance:* model has read it; nothing personal is in git history.
 
 2. **Reconcile assumptions.** Compare `PLAN.md` section 3 (A1–A10) with the handoff. Update the plan, the garden list fixture and the readiness defaults. List every change in `docs/CHANGELOG.md`.
    *Acceptance:* no row in section 3 still reads "ASSUMPTION" without an owner decision beside it.
@@ -150,8 +150,8 @@ Conventions for the implementing model:
 
 42. **STOP — before the field trial.** Confirm the owner has Club+ access and a shopping day planned; remind them the extension never adds to cart.
 
-43. **OWNER: Field trial** at PAK'nSAVE Pāpāmoa; fill in `TRIAL_LOG.md`.
-    *Acceptance:* log complete.
+43. **OWNER: Field trial** at PAK'nSAVE Pāpāmoa; fill in `TRIAL_LOG.md`. Keep the log to shopping observations (items found, search terms, timing); no health data, since the repo is public.
+    *Acceptance:* log complete; contains no personal health information.
 
 44. **Triage trial findings** into fix-now (this week) and later (`PLAN.md` "Later" list); fix the fix-now items; correct pack sizes and aisles in the ingredient data.
     *Acceptance:* each finding has a disposition; CI green after fixes.
