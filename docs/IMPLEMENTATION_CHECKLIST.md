@@ -3,7 +3,7 @@
 Numbered, in build order. Each item has a plain-language purpose, what to build, and an acceptance test (IDs refer to `TEST_PLAN.md`). **STOP** items end with a message to the owner and wait. **OWNER** items are for the owner. Do not start any item below a STOP until the owner has replied.
 
 Conventions for the implementing model:
-- Read `PLAN.md`, `HEALTH_SAFETY.md`, `INTEGRATION_FEASIBILITY.md`, `TEST_PLAN.md`, `UX_SCREENS.md`, `DATA_MODEL.md` and `DECISIONS.md` before item 1, and the handoff document the owner supplies.
+- Read `REQUIREMENTS.md`, `PLAN.md`, `DECISIONS.md`, `HEALTH_SAFETY.md`, `INTEGRATION_FEASIBILITY.md`, `TEST_PLAN.md`, `UX_SCREENS.md` and `DATA_MODEL.md` before item 1. `REQUIREMENTS.md` is the de-personalised handoff and is complete for implementation; the owner's original is not needed.
 - The repository is public. Never commit the handoff, backups, photos, logs or anything containing personal health information. Fixtures are generic. `.gitignore` covers `*.backup.json`, `docs/handoff/`, `docs/private/`.
 - All user-facing health text lives in `packages/core/src/copy/health.ts` so it can be scanned and reviewed in one place.
 - Every health-sensitive formula lives in `packages/core` behind unit tests.
@@ -15,8 +15,8 @@ Conventions for the implementing model:
 
 ## Phase 0 and Week 1 — Feasibility spike and foundations
 
-1. **OWNER: Supply the handoff document** to the model directly (paste or upload). Do not commit it.
-   *Acceptance:* model confirms it has read it; `git log -p` contains no personal health data.
+1. **Read the eight documents** listed above and report in plain English anything that conflicts between them. The owner's original handoff is held privately and is not required.
+   *Acceptance:* a short conflicts report (or "none") posted to the owner; `git log -p` contains no personal health data.
 
 2. **Repository scaffold.** pnpm workspace: `apps/mobile-web`, `apps/cart-extension`, `packages/core`, `packages/ui`, `packages/grocery`, `packages/test-fixtures`, `services/relay`. TypeScript strict, ESLint, Prettier, Vitest, Playwright. GitHub Actions: lint, unit tests, static scans on every push. `.gitignore` per conventions.
    *Acceptance:* `pnpm test` and `pnpm lint` pass; CI green.
