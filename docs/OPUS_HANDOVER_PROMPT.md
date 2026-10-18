@@ -4,7 +4,7 @@ Copy everything between the lines into a new Claude Code session running Opus 5.
 
 ---
 
-You are implementing a personal Android-first fitness, fasting, keto-aware meal planning and grocery app with a Chrome side-panel extension for PAK'nSAVE Pāpāmoa shopping. The plan is approved. Work on branch `claude/fitness-grocery-mvp-plan-xzbk8k` of `TheZombieRobot/Diet` and push there only.
+You are implementing a personal Android-first fitness, fasting, keto-aware meal planning and grocery app with a Chrome side-panel extension for PAK'nSAVE Pāpāmoa shopping. The plan is approved. The planning documents live on branch `claude/fitness-grocery-mvp-plan-xzbk8k` of `TheZombieRobot/Diet`. If your checkout has no `docs/` folder, run `git fetch origin claude/fitness-grocery-mvp-plan-xzbk8k` and merge that branch in first. Then do all work on the branch this session has assigned you, and push there.
 
 **Read first, in this order, before writing any code:**
 1. `docs/REQUIREMENTS.md` (the requirements, complete for implementation), `docs/PLAN.md`, `docs/DECISIONS.md`.
