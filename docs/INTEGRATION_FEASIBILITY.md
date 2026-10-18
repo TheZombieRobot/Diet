@@ -1,6 +1,6 @@
 # PAK'nSAVE Integration Feasibility
 
-**Verdict (18 October 2026):** Direct transfer of a grocery list into a PAK'nSAVE online cart is **unproven and must not be built in the MVP.** No public developer interface was found, the website and online-shopping terms could not be read in full from this environment, and the only "integration" paths available to a third party would involve automating Foodstuffs' website or impersonating its app, which this project rules out. The MVP ships a **guided manual-add** experience instead: the laptop side panel shows your list and opens a PAK'nSAVE search for each item; you add to cart yourself.
+**Verdict (19 October 2026):** Direct transfer of a grocery list into a PAK'nSAVE online cart is **unproven and must not be built until the Phase 0 spike (section 9) has been completed and you have approved a mode.** The expected outcome is mode B. No public developer interface was found, the website and online-shopping terms could not be read in full from this environment, and the only "integration" paths available to a third party would involve automating Foodstuffs' website or impersonating its app, which this project rules out. The MVP ships a **guided manual-add** experience instead: the laptop side panel shows your list and opens a PAK'nSAVE search for each item; you add to cart yourself.
 
 This document records what was checked, what was found, what could not be verified, and the conditions under which anything deeper could be reconsidered.
 
@@ -43,6 +43,7 @@ Checks were done with web search only. This execution environment's network poli
 | Finding | Status | Source |
 |---|---|---|
 | No public API, developer program or partner integration for consumers or third-party apps was found for PAK'nSAVE, New World or Foodstuffs | Verified absence in search results (absence of evidence, not proof) | Searches returned only supplier EDI material ([Sandfield case study](https://www.sandfield.co.nz/our-work/foodstuffs-new-exchange-is-leaping-ahead)) and corporate news |
+| A third-party product, ShopIt "Push to Cart", is listed on the Chrome Web Store claiming to push a ShopIt list into New World, PAK'nSAVE or Woolworths online carts; ShopIt's own site describes a Safari extension and a paid tier | Verified the listing and site exist; **not verified** that Foodstuffs permits it, how it works, or that it is reliable. The handoff is explicit: this is evidence of a claimed approach, not proof of permission. This project will not copy or inspect its code. | [ShopIt](https://shopit.co.nz/), [Chrome Web Store listing](https://chromewebstore.google.com/detail/lbfbafimikhkkjchilmgngkijopeocdn) |
 | Community scrapers exist (GitHub, PyPI) that pull product data from the site | Verified they exist | [pakn-scraper](https://github.com/Jason-nzd/pakn-scraper), [nz-supermarket-scraper](https://pypi.org/project/nz-supermarket-scraper/). Their existence does not make scraping permitted, and this project will not use or imitate them. |
 
 ### 3.3 Terms and conditions
@@ -124,3 +125,40 @@ Tier 2 or 3 work starts only if the answer is yes, or an official interface is p
 3. Read foodcomposition.co.nz terms clause 4; decide NZ vs USDA data.
 4. Observe, as a normal user, the URL that paknsave.co.nz uses for a product search and record it in `apps/extension/README.md`. If the site offers no stable search URL, Tier 1 degrades to copy-to-clipboard.
 5. Record whether the "developer mode extensions" warning is tolerable or whether a Web Store listing is wanted later.
+
+
+---
+
+## 9. Phase 0 feasibility spike (from the handoff; week 1, timeboxed)
+
+**Purpose:** decide, with evidence, between **A** authorised user-initiated cart insertion, **B** guided search plus manual addition, or **C** exported list only. Nothing in the extension is built until you approve the mode.
+
+**Who does what**
+- You, in your own Chrome, logged in with your own Club+ account. The model never sees or asks for a password, a session cookie, or a screenshot that shows account details.
+- The model reads what you record here and writes the recommendation.
+
+**Steps (about two hours of your time)**
+1. **Store flow.** Open paknsave.co.nz, select PAK'nSAVE Pāpāmoa, log in, search for one item, add it to the cart, open the cart, remove it. Write one line per screen in section 9.1 below: what the screen was, what you clicked, anything that looked like a bot check or a warning. No purchase.
+2. **Terms.** Open the Website Terms and the Online Shopping Terms. Copy into section 3.3 every clause that mentions: automated means, robots, scripts, scraping, crawling, reproduction of content, third-party tools or software, account sharing, and prices being indicative. If none exists, write "no such clause" with the date.
+3. **Search URL.** Search for "avocado" and copy the address-bar URL into `apps/cart-extension/README.md` under "Observed search URL" with the date. Note whether the store is encoded in the URL or held in your session.
+4. **Permission path.** Decide whether to send the permission email in section 7. If you do, record the date sent and any reply.
+5. **Model review.** The model reads sections 3.3 and 9.1 and writes a recommendation in section 9.2 with reasons, mapped to the gates below.
+6. **STOP for your approval.**
+
+**Gates**
+- **A** requires all of: written permission from Foodstuffs or an official interface; terms that do not prohibit it; a successful tiny test you run yourself (eggs ×1 maps to one carton, a chicken item maps to a sensible pack size, silverbeet is excluded as garden stock, a yoghurt with variants prompts you to choose) with correct store, no duplicates, visible progress, a working Stop, and no purchase. If any part fails, A is not chosen.
+- **B** requires only that opening a search URL in a new tab is not prohibited (an ordinary user navigation). If the search URL is unstable, B degrades to copy-to-clipboard.
+- **C** is always available.
+
+**Even in mode A, the extension must never:** check out, submit payment, store a username, password or session token, defeat anti-bot or security controls, change the store silently, or hide an error. Every batch is user-initiated and reviewable, and stops safely when the site changes.
+
+### 9.1 Observed store flow (owner fills in; no personal data)
+| Step | Screen | What you did | Notes (warnings, bot checks, store shown) |
+|---|---|---|---|
+| 1 | | | |
+
+### 9.2 Recommendation (model fills in after 9.1 and 3.3)
+*Pending.*
+
+### 9.3 Owner decision
+*Pending.* Mode: A / B / C. Date. Reason.

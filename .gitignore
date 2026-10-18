@@ -1,0 +1,8 @@
+# Never commit personal data
+*.backup.json
+docs/handoff/
+docs/private/
+node_modules/
+dist/
+.env
+.env.*

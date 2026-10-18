@@ -1,180 +1,172 @@
 # 4-Week MVP Plan — Personal Fitness, Fasting, Keto-Aware Meals and Grocery App
 
-**Status:** Planning complete, awaiting your approval. No code has been written.
-**Date:** 18 October 2026
+**Status:** Planning complete and reconciled against the handoff document. Awaiting your approval. No code has been written.
+**Date:** 19 October 2026 (NZ)
 **Audience:** You (the owner, non-coder) first; the implementing model (Opus 5.5) second.
-**Companion documents:** `INTEGRATION_FEASIBILITY.md`, `HEALTH_SAFETY.md`, `TEST_PLAN.md`, `IMPLEMENTATION_CHECKLIST.md`.
+**Companion documents:** `INTEGRATION_FEASIBILITY.md`, `HEALTH_SAFETY.md`, `TEST_PLAN.md`, `UX_SCREENS.md`, `DATA_MODEL.md`, `DECISIONS.md`, `IMPLEMENTATION_CHECKLIST.md`.
 
 ---
 
-## 0. Read this first: one gap and three questions
+## 0. Read this first
 
-**The handoff document was not available to me.** `Personal_Fitness_Grocery_App_Claude_Handoff.md` is not in this repository, not in the session's upload folder, and the GitHub repository is completely empty. I built this plan from the requirements in your message instead. Everywhere I had to guess a detail that the handoff probably settles, I have written **ASSUMPTION** and recorded it in section 3. Before coding starts, the handoff needs to be committed to `docs/handoff/` (or pasted to me) so the assumptions can be reconciled. That reconciliation is item 1 of the implementation checklist.
+**The handoff document has been read in full and this plan now follows it.** It is deliberately **not** committed to this repository, because the repository is public and the handoff contains personal health details. The implementing model receives it directly from you at the start of each session (checklist item 1). Where this plan needs a default that comes from your situation, it states the product default without attributing numbers to you. If you would rather the docs speak plainly, make the repo private and say so; the plan does not change.
 
-The three questions I genuinely cannot answer with a sensible default are in section 10. Everything else has a documented default you can simply accept.
+**Everything you asked in the handoff's "first approval questions" now has an answer:**
+
+| Question | Answer |
+|---|---|
+| Strictly personal use? | Yes. One health user; optional household scaling for dinners and grocery quantities. |
+| Desktop is Chrome; store is PAK'nSAVE Pāpāmoa? | Yes to both. Store is changeable in settings. |
+| Home weights, bands or bodyweight only? | **Default: bodyweight.** Settings has "I have bands" and "I have dumbbells" toggles that unlock variants. No decision needed now. |
+| Garden crops beyond silverbeet? | Silverbeet is pre-loaded as available. Everything else is entered by you in the inventory screen. |
+| Lipid panel and alcohol guidance from a clinician | Built in as standing reminders; the app never presents itself as medical clearance. |
+
+The only thing left is your approval (section 11).
 
 ---
 
 ## 1. What we are building, in one paragraph
 
-A private app that you install on your Android phone from the browser (a "PWA", a web app that behaves like an installed app and works with no internet). In it you plan keto-leaning, heart-conscious meals built around what your garden produces and what PAK'nSAVE sells; log your weight, fasting windows, exercise sessions and alcohol in New Zealand standard drinks; and generate a grocery list. The grocery list, and only the grocery list, can be sent securely to your laptop, where a small Chrome extension shows it in a side panel while you shop on paknsave.co.nz and ticks items off as you add them yourself. Your health data never leaves the phone.
+A private, fast app you install on your Android phone from Chrome (a "PWA", a web app that behaves like an installed app and works offline). It gives you a Today screen that needs almost no typing; a seven-day cholesterol-conscious low-carb meal plan built around your garden (silverbeet first) and affordable NZ proteins; adjustable eating windows including your 5 pm snack plus dinner routine; a weight trend that tells the difference between early water loss and fat loss; two to three short strength sessions a week that respect a physically demanding job with a high daily step count; honest alcohol logging in NZ standard drinks with a safety-first onboarding; and a grocery list that subtracts what the garden provides. The list, and only the list, can travel securely to your laptop, where a Chrome side-panel extension helps you shop on paknsave.co.nz. You always review the cart, choose replacements and check out yourself.
 
-**What "MVP" means here:** by the end of week 4 you can run a full real week with it: plan meals, shop at Pāpāmoa using the laptop side panel, train on the beach with the exercise plan, and see your weight, fasting and drinking trends. It will not yet be polished, and it will not put items into your PAK'nSAVE cart for you (see `INTEGRATION_FEASIBILITY.md` for why that is unproven).
-
----
-
-## 2. Guiding principles (the "why" behind every decision below)
-
-1. **Health data stays on the device.** Weight, fasting, alcohol and exercise records live only in the phone's local database. There is no account, no server-side health store, no analytics. You can export an encrypted backup file whenever you like.
-2. **Safety rules are built in, not bolted on.** The app has hard rules it will not break: it never produces an alcohol reduction schedule, never coaches fasts longer than 24 hours, never sets a weight goal below a healthy range, and always shows where to get real help. These are specified in `HEALTH_SAFETY.md` and tested in `TEST_PLAN.md`.
-3. **Honesty about what is unverified.** The app never shows a price, a stock level or a "added to cart" message that it has not actually confirmed. Where we do not know, the screen says so.
-4. **Offline first.** Everything except the grocery-list hand-off works with the phone in flight mode. Pāpāmoa reception is not the app's problem.
-5. **Boring, well-trodden technology.** A four-week solo build cannot afford novelty. Every component chosen is mainstream, free, and well documented.
-6. **Respect third parties' terms.** No credential handling, no reverse engineering of PAK'nSAVE systems, no scraping, no anti-bot bypass. The extension helps *you* shop; it does not shop for you.
+**What "MVP" means here:** by the end of week 4 you can run a full real week with it. It will not yet be polished, and whether it can place items into your PAK'nSAVE cart is decided by the Phase 0 feasibility spike (section 6), not assumed.
 
 ---
 
-## 3. Assumptions made because the handoff was unavailable
+## 2. Guiding principles
 
-| # | Assumption | Why this default | Replace with handoff content? |
-|---|-----------|------------------|-------------------------------|
-| A1 | Your garden produces typical Bay of Plenty home-garden crops: silverbeet, kale, spinach, lettuce, zucchini, tomatoes, capsicum, cucumber, green beans, broccoli, cauliflower, spring onion, parsley, basil, coriander, rosemary, lemons, avocado, feijoa, rhubarb. | Common in the region; most are keto-friendly. | **Yes, essential.** The real list drives recipe selection. |
-| A2 | You are an adult with no diagnosed condition that forbids fasting or keto, but with a cholesterol concern (hence "cholesterol-conscious"). | Your message says cholesterol-conscious keto. | Yes. If you take diabetes, blood-pressure or lipid medication, the safety screens in `HEALTH_SAFETY.md` change what the app allows. |
-| A3 | Default fasting pattern is 16:8 (16 hours fasting, 8 hours eating), with the app allowing you to log windows up to 24 hours and flagging anything longer. | The most studied, lowest-risk time-restricted pattern. | Yes if the handoff specifies a different protocol. |
-| A4 | Keto target is a configurable daily net-carbohydrate ceiling, default 30 g, with a saturated-fat budget of about 10% of energy. | Keeps you in the common "keto" band while honouring NZ guidance to limit saturated fat. | Yes. |
-| A5 | "Beach exercise" means Pāpāmoa Beach: sand walking/jogging, bodyweight circuits on the sand, wading and swimming only between the flags at patrolled times. No equipment beyond a mat and a towel. | Matches "safe bodyweight/beach exercise". | Yes if you have equipment (bands, kettlebell) or a different location. |
-| A6 | The laptop runs desktop Chrome and you are comfortable loading an "unpacked" extension in developer mode once (a two-minute, one-time step). | Avoids Chrome Web Store review for a personal tool. | Confirm. |
-| A7 | You shop at PAK'nSAVE Pāpāmoa using Click & Collect or in person, with a Club+ account you already hold. | PAK'nSAVE's own FAQ says online shopping is Click & Collect only and needs Club+ (sources in `INTEGRATION_FEASIBILITY.md`). | Confirm. |
-| A8 | One user, one phone, one laptop. No sharing with household members in the MVP. | Keeps the security model simple. | Yes if someone else needs the list. |
-| A9 | Units: kilograms, centimetres, millilitres, kilojoules shown with kilocalories alongside. | NZ convention. | Confirm. |
-| A10 | You drink alcohol at least occasionally and want trends against NZ low-risk guidance, not a quit programme. | Your message asks for logging with no unsupervised taper. | Confirm. |
+1. **Health data stays on the device.** No account is needed to meal-plan or log. Export and delete are one tap. Nothing is sent to any AI service.
+2. **Safety rules are built in, not bolted on.** The app never produces an alcohol taper, never converts leftover calories into permission to drink, never insists on a fast when protein or energy is short, never promises dramatic fat loss, and always shows where to get real help. Specified in `HEALTH_SAFETY.md`, tested in `TEST_PLAN.md`.
+3. **Honesty about what is unverified.** No invented prices, stock, or "added to cart" messages. Unknown is shown as unknown. Estimated nutrition is labelled estimated.
+4. **Offline first, deterministic.** Everything except the laptop hand-off works in flight mode. The plan engine is ordinary arithmetic over a seeded recipe set; no AI at runtime.
+5. **Very little daily typing.** Quick actions on the Today screen do the common things in one or two taps.
+6. **Boring, well-trodden technology.** Four weeks does not allow novelty.
+7. **Respect third parties' terms.** No credential handling, no reverse engineering, no scraping, no anti-bot bypass, no automatic orders.
+
+---
+
+## 3. Requirements reconciled with the handoff
+
+The earlier assumptions (A1–A10) have been replaced by the handoff's requirements. The table records what changed.
+
+| Area | Earlier assumption | Now, per handoff |
+|---|---|---|
+| Garden | Long placeholder crop list | Silverbeet seeded as available; all other crops entered by you with amount, harvest-ready flag, perishability, optional photo |
+| Health context | Generic adult | Specifics held privately. Product defaults: cholesterol check-in on from day one; reflux-aware options on; alcohol safety onboarding mandatory on first run; activity level defaults to "physically active job" |
+| Fasting | 16:8 default, presets to 18:6 | Presets 16:8, 18:6, 20:4, **22:2 (5 pm snack + dinner)** and custom clock times. Window length is computed from clock times, so 5–7 pm is 2 hours. Fast never enforced when protein or energy is short |
+| Keto targets | Net carbs 30 g, saturated fat ~10% | Same, plus **protein 120–140 g/day default**, energy estimate for an active job, fibre and micronutrient guides. Switchable diet modes: keto-preferred, moderate low-carb, balanced |
+| Exercise | Beach-only bodyweight | 2–3 full-body sessions a week, 20–35 minutes, bodyweight with optional bands/dumbbells; beach walking optional; jogging only as an opt-in progression; no compulsory running; pre-session check for pain, fatigue, sleep, heat, hydration |
+| Weight | Trend plus rapid-loss flag | Also: long-term goal shown separately from the four-week view; first-fortnight water/glycogen explanation; no celebration of speed, no punishment of water rebounds |
+| Alcohol | Standard drinks and guidance | Also: kcal per drink from the label (preset 330 mL, 5%, 94 kcal); cans, standard drinks and kcal per day/week; **clinician- or user-entered milestones allowed, app generates none**; no calories-to-drinks conversion; urgent-care prompts for seizures, confusion, hallucinations |
+| Food logging | Recipes only | Food log with source and confidence labels: verified label, reference database, estimated recipe. Raw vs cooked weights, per 100 g and per portion, package sizes |
+| Household | Single user | Household dinner scaling: your portion and macros are calculated independently of the total servings |
+| Allergies | Not covered | Dislikes and allergens are settings; allergens persist when a recipe is edited; gluten-free substitutions optional, never assumed |
+| Grocery | Copy as text | Copy text, **CSV and JSON export**; substitutes; store name always visible; prices "unknown" unless you type one (timestamped); garden deduction with audit trail and estimated savings only when prices are known |
+| Extension | Guided manual add assumed | **Phase 0 feasibility spike decides A/B/C** (section 6) before the extension is built. Hard rules: never checkout, never handle payment, never store retailer credentials or session tokens, never defeat security controls, never hide errors |
+| Sync | Encrypted relay | Confirmed: opt-in, end-to-end encrypted, no account. Supabase considered and rejected for the MVP (section 4) |
+| Repo layout | My names | Handoff names adopted: `apps/mobile-web`, `apps/cart-extension`, `packages/core`, `packages/ui`, `packages/grocery`, `packages/test-fixtures`, plus `services/relay` |
 
 ---
 
 ## 4. Architecture in plain language
 
-Three pieces, two of which you will touch and one that is invisible.
-
 ```
- PHONE (Android, Chrome)                 LAPTOP (Chrome)
- +---------------------------+           +-----------------------------+
- | Installed web app (PWA)   |           | Chrome extension, side panel|
- |  - meals & recipes        |           |  - shows today's list       |
- |  - garden & pantry        |  grocery  |  - "find" opens PAK'nSAVE   |
- |  - weight / fasting log   |  list     |     search for that item    |
- |  - exercise plan & log    |  only,    |  - you add to cart yourself |
- |  - alcohol log (std drinks|  encrypted|  - tick items off           |
- |  - grocery list builder   | ========> |                             |
- |  All health data stays    |     |     +-----------------------------+
- |  here, in the phone.      |     |
- +---------------------------+     |
-                                   v
-                        +----------------------+
-                        | Tiny relay (optional)|
-                        | holds ONLY encrypted |
-                        | blobs for 15 minutes |
-                        | cannot read them     |
-                        +----------------------+
+ PHONE (Android, Chrome)                     LAPTOP (Chrome)
+ +------------------------------+            +------------------------------+
+ | Installed web app (PWA)      |            | Chrome extension, side panel |
+ |  Today dashboard             |            |  pending list, item matcher  |
+ |  Meal plan, food log         |  grocery   |  guided search per item, or  |
+ |  Garden & pantry             |  list only,|  permitted push-to-cart if   |
+ |  Weight / fasting / water    |  encrypted |  Phase 0 says A              |
+ |  Strength & walks            | =========> |  You review, you check out   |
+ |  Alcohol log                 |     |      +------------------------------+
+ |  Grocery list + exports      |     |
+ |  All health data lives here. |     v
+ +------------------------------+  +---------------------------+
+                                   | Cloudflare Worker relay   |
+                                   | holds only encrypted blobs|
+                                   | for 15 min; cannot read   |
+                                   +---------------------------+
 ```
 
-**Phone app.** A single web app you open once in Chrome and tap "Install". After that it has its own icon and works with no signal. It stores everything in the phone's built-in database (IndexedDB). Built with Vite + React + TypeScript, Dexie for the database and Workbox for the offline layer. Hosted as static files (see question Q2).
+**Phone app.** Vite + React + TypeScript with a small mobile design system (`packages/ui`), IndexedDB via Dexie, Workbox service worker. Hosted on GitHub Pages from this public repo. Installable from Chrome; updates itself when reopened online.
 
-**Laptop extension.** A Chrome "Manifest V3" extension that adds a side panel (Chrome's built-in sidebar, available since Chrome 114). It needs only two permissions, `sidePanel` and `storage`, plus permission to talk to the relay. It needs **no** permission to read or change paknsave.co.nz pages in the MVP, which keeps it well inside both Chrome's rules and PAK'nSAVE's.
+**Shared logic.** `packages/core` holds the typed schemas and every health-sensitive formula (standard drinks, net carbs, energy and protein targets, eating-window length, weight trend) behind unit tests. `packages/grocery` holds list aggregation, unit conversion, garden deduction, product-name normalisation and import/export.
 
-**Relay.** When you tap "Send to laptop", the phone encrypts the list with a key that only your phone and your laptop know (established once by scanning a QR code shown on the laptop). The encrypted blob is posted to a tiny relay service, which stores it for 15 minutes and hands it to the extension. The relay cannot read the list. Default: a Cloudflare Worker on the free tier under your own account (question Q1). **Fallback if you prefer no relay at all:** the phone shows the list as a compact text code you share to yourself (email, Keep, Messages for Web) and paste into the extension. Grocery lists are low-sensitivity, but the encrypted path is still the default.
+**Laptop extension.** Chrome Manifest V3 side panel. Permissions: `sidePanel`, `storage`, and the relay origin. In mode B (guided) it has **no** access to paknsave.co.nz pages. In mode A (permitted push-to-cart) it would need a host permission for paknsave.co.nz only, and only if Phase 0 and the terms allow it.
 
-**Why not a "real" Android app?** A PWA installs from the browser, needs no Play Store account, updates by itself when you reload, and the same code runs on the laptop for testing. Native Android would roughly double the build time for no MVP benefit.
+**Relay.** Decided: Cloudflare Worker + KV on the free tier under your account. The phone encrypts the list with a key shared once by scanning a QR code on the laptop; the relay stores ciphertext for 15 minutes, hands it over once, and deletes it. It cannot read the list. If the relay is down, the phone offers the list as a paste code or a CSV/JSON file.
 
-**Why not one shared cloud database?** It would make health data leave the phone, require accounts and security work we do not need, and is the single largest source of scope creep in apps like this.
+**Why not Supabase or any account-based sync?** The handoff allows it only if needed. It is not: the only cross-device data is the grocery list, which the blind relay handles with no account, no row-level security to maintain, and no monthly cost. Threat model and trade-offs are in `DECISIONS.md`.
+
+**Why a PWA, not native Android?** Installs from the browser, no Play Store, one codebase, offline by design. Health Connect (steps) is the one feature a PWA cannot reach; steps are manual entry in the MVP and Health Connect is a later optional add-on via a thin wrapper if you want it.
 
 ---
 
 ## 5. Feature scope
 
 ### In the MVP (weeks 1–4)
-- Installable, offline Android PWA with backup export/import.
-- Profile and safety screens (one-time health readiness questions, see `HEALTH_SAFETY.md`).
-- Weight log with 7-day trend line and rate-of-change flag.
-- Fasting timer and log (start/stop, planned window, history, streak), with the 24-hour ceiling behaviour.
-- Ingredient database of roughly 150 NZ-relevant foods with energy, protein, fat, saturated fat, carbohydrate, sugars, fibre and sodium, sourced from the New Zealand Food Composition Database subject to its terms (see `INTEGRATION_FEASIBILITY.md` section 6).
-- Garden and pantry inventory (what you have, so it is not bought).
-- About 30 keto-leaning, heart-conscious recipes tagged by garden ingredients, with per-serve nutrition and a saturated-fat indicator.
-- Day and week meal planner with daily net-carb and saturated-fat totals against your targets.
-- Grocery list generation: planned recipes minus garden/pantry stock, grouped by supermarket aisle, with quantities in buyable units.
-- Exercise library (about 25 bodyweight and beach movements with easier/harder versions), three ready-made sessions, session logging, and beach-safety prompts.
-- Alcohol log in NZ standard drinks (10 g alcohol), with a drink picker, custom volume/ABV entry, daily and weekly totals against NZ low-risk guidance, alcohol-free-day tracking, and the "talk to a professional" card. No taper, no reduction schedule, no blood-alcohol estimates.
-- Secure phone-to-laptop list transfer with QR pairing and end-to-end encryption, plus the paste fallback.
-- Chrome side-panel extension: receive list, open PAK'nSAVE search per item, tick off, "not found/substituted" notes, clear list.
-- Automated tests and a real-world shopping trial at Pāpāmoa.
+**Today dashboard.** Weight now, goal and rolling trend; fast start/end with snack and dinner times, time-aware; energy, protein, fibre and optional net carbs so far with source and confidence; water and optional electrolytes; steps (manual); today's session or rest with exertion, soreness and energy rating; alcohol today and this week in cans, standard drinks and kcal, neutrally displayed. Quick actions: log weight, finish meal, swap recipe, complete workout, add harvest, add drink, open grocery list.
+
+**Meal planning.** Seven-day rotating plan honouring your eating window, servings, budget note, dislikes and allergens. Diet modes keto-preferred (default), moderate low-carb, balanced; switching never deletes data. Optional 5 pm protein snack plus dinner. Protein target 120–140 g default, adjustable. Recipes using silverbeet and leafy greens, affordable NZ proteins and seasonal produce, with substitutions and leftover reuse. Household dinner option computing your portion separately. Nutrition labelled by source: verified label, reference database, estimated.
+
+**Food log.** Quick-add from plan or recipe, custom items from a label (per 100 g or per serve), raw vs cooked weight toggle, confidence badge.
+
+**Weight and fasting.** Weight log, 7- and 14-day averages, long-term goal, four-week view with water-weight explanation in the first fortnight, rapid-loss check-in. Fasting timer with presets and custom clock times; window length computed correctly; symptoms log for reflux; "widen the window" prompt when protein or energy is short.
+
+**Strength and beach activity.** Library of bodyweight movements with band and dumbbell variants, three 20–35-minute sessions, weekly template with rest days, pre-session check, progression capped at about 10% a week, beach walk and optional jog progression with beach safety prompts, rest counted as success.
+
+**Garden inventory.** Crop, amount, harvest-ready, perishability, optional photo (stored on device). Deduction from the grocery list with an audit line ("silverbeet 300 g from garden, 21 Oct"). Estimated savings only when you have entered a price.
+
+**Alcohol.** Beverage presets you can edit (volume, ABV, kcal from label; default 330 mL, 5%, 94 kcal, about 1.30 standard drinks). Daily and weekly cans, standard drinks and kcal; rolling trend; optional clinician- or self-entered milestones; NZ guidance shown as context with "no alcohol use is risk-free"; mandatory first-run safety notice; urgent-care prompts. No taper generation, no calorie-to-alcohol conversion, no rewards.
+
+**Grocery list.** Aggregate by exact units and portions, merge duplicates, subtract pantry and garden, convert to sensible pack counts, show substitutes, store name visible, price unknown unless entered. Export: copy text, CSV, JSON. Send to laptop (encrypted) or paste code.
+
+**Chrome extension.** Mode decided by Phase 0: A (permitted, user-initiated, visibly batched push-to-cart with review), B (guided search and manual add, one item at a time, partial vs complete status), or C (export only). Never checkout, payment, credentials, session tokens, or hidden errors.
+
+**Testing.** Automated tests for every formula and safety rule; the handoff's nine non-negotiable test cases; a real shopping week with you.
 
 ### Later (after MVP, if wanted)
-- Fasting-window and training reminders (Android notifications from the PWA).
-- Barcode scanning to add pantry items.
-- Price memory (you type the price you paid; the app remembers it). No automated price capture.
-- Reading your PAK'nSAVE cart to auto-tick items ("Tier 2" in the feasibility document), only after the terms review passes.
-- Sharing a list with a household member.
-- Photo of meals, water intake, step count via Health Connect.
+Reminders (fasting window, training); Health Connect steps; barcode scanning for pantry; price memory from receipts you type; recipe photos; household member list sharing; optional AI suggestions with explicit opt-in.
 
 ### Not planned
-- Automated add-to-cart or checkout on PAK'nSAVE (unproven and possibly disallowed; see feasibility document).
-- Any handling of your PAK'nSAVE login or password.
-- Scraping prices or stock from any supermarket.
-- Blood-alcohol or "safe to drive" calculations.
-- Alcohol reduction/taper plans.
-- Extended-fast coaching (over 24 hours).
-- Cloud sync of health data, accounts, analytics, advertising.
-- iOS.
+Automatic checkout or orders; any retailer credential handling; scraping prices or stock; blood-alcohol or driving estimates; alcohol taper generation; extended-fast coaching beyond 24 hours; cloud health-data sync; iOS; copying any third-party extension's code.
 
 ---
 
 ## 6. Week-by-week plan
 
-Each week ends with something you can hold in your hand and try. Estimates assume one implementing model working in focused sessions with you reviewing at week ends.
+The handoff's five milestones map onto four weeks. Milestone 1 (design) is this document set.
 
-### Week 1 — Foundations you can install
-**Goal:** the app is on your phone, works offline, and already logs weight and fasting.
-- Repository structure (one repo, three parts: phone app, extension, shared code and data).
-- Installable PWA shell: icon, splash, offline caching, "Install" prompt, update banner.
-- Local database and backup export/import (JSON, optionally password-encrypted).
-- Profile and health-readiness screens with the safety rules wired in.
-- Weight log and trend chart. Fasting timer and history.
-- Your tasks this week: commit the handoff document; answer Q1–Q3; read the two PAK'nSAVE terms pages and paste the relevant clauses into `INTEGRATION_FEASIBILITY.md` (I could not fetch them from this environment).
+### Week 1 — Phase 0 spike and foundations (Milestone 2 begins)
+**Phase 0 feasibility spike, timeboxed to one owner session of about two hours plus half a model day.** You, in your own browser and your own Club+ session, with no passwords typed anywhere near the model:
+1. Walk through store selection, login and adding a single item to the cart on paknsave.co.nz for Pāpāmoa, as a normal customer. Note each screen in `docs/INTEGRATION_FEASIBILITY.md` section 9 (no screenshots containing personal data in the repo).
+2. Read the Website Terms and the Online Shopping Terms; paste the clauses on automated access, third-party tools and reproduction into the feasibility document.
+3. Record the search URL the site uses when you search for "avocado".
+4. The model reviews the recorded facts and recommends A, B or C with reasons.
+5. **STOP:** you approve the mode. Only B or C can be chosen without written permission from Foodstuffs or an official interface; A additionally requires a successful tiny test (eggs ×1, chicken pack size, silverbeet excluded as garden stock, yoghurt variant) with no purchase.
 
-**You can:** install it, log weight and a fast, turn off Wi-Fi and see it still work, export a backup.
+**Foundations, in parallel:** monorepo, installable PWA shell on GitHub Pages, database with migrations, backup export/import, profile and readiness screens, eating-window engine, weight log and trend, fasting timer, Today dashboard skeleton, About screen, static safety scans in CI.
 
-### Week 2 — Food
-**Goal:** plan a real week of meals and get a shopping list.
-- Ingredient database loaded, with source attribution.
-- Garden and pantry inventory screens (seasonal "in the garden now" toggles).
-- Recipe library with filters: garden-first, net carbs, saturated fat, time to cook.
-- Day/week planner with running totals and target indicators.
-- Grocery list builder with aisle grouping and buyable units.
+**You can:** install it, set your eating window, log weight and a fast, see it work offline, and know which extension mode we are building.
 
-**You can:** plan Monday to Sunday using what the garden has, see the daily carb and saturated-fat picture, and get a list grouped by aisle.
+### Week 2 — Food and garden (Milestone 2 completes, Milestone 3 begins)
+Ingredient data with source tags; garden and pantry inventory; recipe set with silverbeet-first week; diet modes; targets engine with protein 120–140 g; seven-day planner with household scaling; food log with confidence badges; grocery list builder with garden deduction audit trail and CSV/JSON export; reflux options.
 
-### Week 3 — Body, drinks, and the laptop hand-off
-**Goal:** train safely, log drinks honestly, and get the list onto the laptop.
-- Exercise library and three sessions (sand circuit, mobility/core, walk-wade recovery) with readiness and stop-rule prompts.
-- Alcohol log with NZ standard-drink maths and the guidance comparison.
-- Relay service, QR pairing, encryption, "Send to laptop".
-- Chrome extension side panel: pairing, receive, tick, per-item PAK'nSAVE search link.
-- Paste fallback.
+**You can:** plan a week that uses the garden, log a real food day, and export the list.
 
-**You can:** do a beach session from the app, log the weekend's drinks and see where you sit against NZ guidance, and watch your list appear on the laptop.
+### Week 3 — Body, drinks, hand-off and extension (Milestones 3 and 4)
+Strength library and sessions with pre-session check; beach activity with prompts; alcohol log with mandatory onboarding, presets, milestones and guidance; Cloudflare relay, QR pairing, encryption, "Send to laptop", paste fallback; Chrome extension in the mode approved in week 1.
 
-### Week 4 — Prove it works
-**Goal:** confidence, not features.
-- Full test pass (`TEST_PLAN.md`), including every safety rule.
-- Real shopping trial at PAK'nSAVE Pāpāmoa with the side panel: time it, note what was awkward.
-- Lighthouse PWA audit, accessibility pass (large touch targets, readable in sunlight, dark mode).
-- Bug fixing from the trial, data corrections, copy review of all health text.
-- Go/no-go review for the "later" items, especially Tier 2 cart reading.
-- Handover notes: how to update, back up, and re-pair.
+**You can:** train from the app, log a weekend honestly, and see the list arrive on the laptop.
+
+### Week 4 — Prove it (Milestone 5)
+Full test pass including the nine non-negotiable cases; one-handed and sunlight checks; offline state indicator; the real grocery week end to end with you; fixes from the trial; handover notes; go/no-go on anything deferred.
 
 **You can:** rely on it for a normal week.
 
 ### Schedule risk
-Week 3 is the heaviest. If it slips, the paste fallback ships first and QR/relay pairing moves to the start of week 4. Nothing in week 4 is sacrificed; the trial and tests are the point of the MVP.
+Week 3 is heaviest. If it slips, paste/CSV hand-off ships first and QR pairing moves into week 4. The week 4 trial is never cut.
 
 ---
 
@@ -182,67 +174,63 @@ Week 3 is the heaviest. If it slips, the paste fallback ships first and QR/relay
 
 | Decision | Default | Why | Change it if |
 |---|---|---|---|
-| App type | Installable PWA | No store account, offline, updates itself, one codebase | You need Health Connect or background sensors (then a thin Android wrapper later) |
-| Front-end stack | Vite + React + TypeScript | Mainstream, excellent tooling, easy for any model to maintain | Never for the MVP |
-| Local database | IndexedDB via Dexie | Robust offline storage, handles thousands of records easily | n/a |
-| Offline layer | Workbox via vite-plugin-pwa | Standard service-worker tooling | n/a |
-| Hosting (phone app) | GitHub Pages from this repo (repo confirmed public, 18 Oct 2026) | Free HTTPS static hosting; HTTPS is required for install | The repo is made private: switch to Cloudflare Pages, a one-hour change |
-| Relay for list transfer | Cloudflare Worker + KV, free tier, 15-minute expiry, 64 KB cap, encrypted blobs only | Cheapest reliable path; relay is blind to content | See Q1 |
-| Encryption | WebCrypto AES-GCM 256, key shared by QR at pairing, never sent to the relay | Browser-native, no libraries to trust | n/a |
-| Extension type | Chrome MV3 with side panel, loaded unpacked | No store review, no page-access permissions | You later want it on the Web Store |
-| PAK'nSAVE interaction | Tier 1 only: open a search for each item; you add to cart | Legal and technical status of anything deeper is unverified | Terms review and (if needed) written permission pass |
-| Nutrition data | NZ Food Composition Database (Concise tables), hand-curated subset, attribution shown in app | NZ-specific, authoritative | Its terms (clause 4) disallow app use; then switch to USDA FoodData Central, which is public domain, and note the NZ gaps |
-| Standard drink | 10 g pure alcohol; drinks = volume (mL) × ABV% × 0.789 ÷ 1000 | NZ definition and alcohol.org.nz formula | n/a |
-| Drinking guidance shown | NZ low-risk advice: women ≤2/day and ≤10/week, men ≤3/day and ≤15/week, ≥2 alcohol-free days, with a 4-per-occasion note flagged as secondary-sourced | Published NZ guidance | Guidance is updated |
-| Fasting ceiling | Log up to 24 h; longer shows a warning and no coaching | Safety | Your clinician advises otherwise |
-| Weight loss flag | More than 1 kg/week sustained for 3 weeks prompts a check-in message | Common clinical rule of thumb | Your clinician advises otherwise |
-| Energy estimate | Mifflin-St Jeor from profile, shown as a rough guide only | Standard, simple | n/a |
-| Units | kg, cm, mL, kJ with kcal | NZ convention | A9 |
-| Testing | Vitest (logic), Playwright (browser and extension), manual device checklist | Mainstream | n/a |
-| Licence | Private repository, no licence file needed for MVP | Personal project | You open-source it |
+| App type | Installable PWA | Handoff recommendation; no store account; offline | You want Health Connect: add a thin wrapper later |
+| Stack | Vite + React + TypeScript; Dexie; Workbox; small design system in `packages/ui` | Mainstream, fast, maintainable by any model | Never for the MVP |
+| Hosting | GitHub Pages (repo public) | Free HTTPS | Repo goes private: Cloudflare Pages |
+| Relay | **Cloudflare Worker + KV, free tier, your account** (decided) | Blind to content, no account for you to manage, no cost | n/a |
+| Cross-device sync | Grocery list only, end-to-end encrypted, opt-in | Health data never leaves the phone | Household sharing later |
+| Extension mode | Decided by Phase 0; B is the expected outcome | Terms and feasibility unverified until you look | Phase 0 shows A is permitted and reliable |
+| Eating windows | Presets 16:8, 18:6, 20:4, 22:2; custom clock times; length computed from times | Handoff; prevents the 20:4 vs 22:2 error | n/a |
+| Fast enforcement | Never enforced when planned protein or energy is below target | Handoff | n/a |
+| Protein | 120–140 g/day default, adjustable 80–200 | Handoff, pending clinician input | Clinician advises |
+| Energy estimate | Mifflin-St Jeor × activity factor; default activity "physically active job"; shown as a rough guide | A physically demanding job is not sedentary | Profile change |
+| Net carbs | 30 g default (20–50) in keto mode; wider in other modes | Common keto band | Mode switch |
+| Saturated fat | About 10% of energy budget, shown as a bar | NZ guidance to limit saturated fat; handoff asks for cholesterol-conscious defaults | Clinician advises |
+| Weight pace flag | More than 1 kg/week average for 3 weeks, after the first fortnight | CDC's gradual 0.5–1 kg/week guidance; first fortnight is largely water | Clinician advises |
+| Standard drink | 10 g alcohol; mL × ABV × 0.789 ÷ 1000 | NZ definition | n/a |
+| Alcohol kcal | From the label per beverage; preset 94 kcal for the default can | Handoff | You edit presets |
+| Guidance shown | Men: ≤3/day, ≤15/week, ≥2 alcohol-free days; women: ≤2/day, ≤10/week; "no alcohol use is risk-free" | alcohol.org.nz, Health NZ | Guidance updates |
+| Alcohol onboarding | Mandatory first-run notice about clinician advice before major reduction | Handoff: protection must come before any reduction, not after | n/a |
+| Units | kg, cm, mL, kJ with kcal shown | NZ | n/a |
+| Prices | "Unknown" unless typed, with timestamp | Handoff; no permitted live source | Permitted source appears |
+| Testing | Vitest, Playwright, static scans, device checklists, field week | Mainstream | n/a |
 
 ---
 
-## 8. Risks and how the plan handles them
+## 8. Risks
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
-| Handoff requirements differ from my assumptions | High | Medium | Reconcile in week 1 before food or exercise content is written; data files are easy to swap |
-| PAK'nSAVE terms forbid even opening search URLs from an extension | Low | Low | You read the terms in week 1; fall back to copy-to-clipboard, which no terms can object to |
-| Week 3 overload | Medium | Medium | Paste fallback first; QR/relay can slide into week 4 |
-| NZ food database terms disallow app embedding | Medium | Low | USDA fallback decided in advance |
-| Chrome "developer mode extension" warning annoys you | Medium | Low | One-time dismissal; Web Store listing is a later option |
-| Health copy drifts into medical advice | Medium | High | Every health string lives in one file reviewed against `HEALTH_SAFETY.md`; tests assert forbidden phrases are absent |
-| Phone storage loss | Low | High | Weekly backup reminder; export is one tap |
-| Over-engineering | High | High | The "Not planned" list is a contract; new ideas go to "Later" |
+| Phase 0 finds terms forbid even deep-linking searches | Low | Low | Mode C plus copy-to-clipboard; the list is still excellent |
+| Phase 0 tempts a mode-A build without permission | Medium | High | Hard gate: A requires written permission or official interface, plus the tiny test, plus your approval |
+| Health copy drifts into medical advice or taper language | Medium | High | All health strings in one file; banned-phrase scans in CI; your copy review in week 4 |
+| Eating-window arithmetic wrong | Low | Medium | Unit test on clock-time windows (5–7 pm = 2 h) |
+| Nutrition data licence disallows app use | Medium | Low | USDA fallback decided in advance; label-entered values always allowed |
+| Week 3 overload | Medium | Medium | Paste/CSV first; QR pairing can slide |
+| Personal data leaks into public repo | Medium | High | Handoff kept out of git; fixtures are generic; `.gitignore` for backups; review before each push |
+| Over-engineering | High | High | "Not planned" list is a contract |
 
 ---
 
 ## 9. Definition of done for the MVP
 
-1. The app installs on your Android phone from Chrome and passes Chrome's installability check.
-2. With the phone in flight mode you can log weight, a fast, a training session and drinks, plan a day of meals, and generate a list.
-3. Every rule in `HEALTH_SAFETY.md` section 8 has a passing automated test.
-4. A list of at least 25 items reaches the laptop extension within 30 seconds via the encrypted path, and via paste when the relay is unreachable.
-5. You complete one real Click & Collect or in-store shop at Pāpāmoa using the side panel and record the experience in `docs/TRIAL_LOG.md`.
-6. The app shows no price, stock, or cart status anywhere.
-7. Backup export and import round-trips all data.
-8. All items in `IMPLEMENTATION_CHECKLIST.md` marked "MVP" are ticked with their acceptance tests passing.
+1. Installs on your Android phone from Chrome and passes Chrome's installability check.
+2. In flight mode: edit profile, eating schedule and garden; see and edit the seven-day menu and workouts; log weight, fasting, food and alcohol; build and export a list.
+3. Every rule in `HEALTH_SAFETY.md` section 8 and every non-negotiable test in `TEST_PLAN.md` section 3.12 passes automatically.
+4. A 25-item list reaches the laptop within 30 seconds via the encrypted path, and via paste or file when the relay is unreachable.
+5. The extension works in the mode approved after Phase 0; it cannot check out, change store silently, or hide an error; partial vs complete status is always visible.
+6. No price, stock or cart status appears anywhere unless it came from you or a permitted source, and it is timestamped.
+7. Backup export and import round-trip all data; stop/restart of a transfer never duplicates list items.
+8. You complete one real grocery week end to end and the findings are triaged.
 
 ---
 
-## 10. Questions for you (only the ones I cannot default)
+## 10. Open items
 
-**Q1. Relay hosting.** May the implementing model set up a free Cloudflare Workers account (or use one you create) for the blind, encrypted list relay? If you would rather have no third-party service at all, say so and the MVP ships with the paste fallback only, with QR-camera transfer as a later option. *Default if no answer: Cloudflare Worker.*
-
-**Q2. Repository visibility.** *Answered 18 Oct 2026: the repo is public.* Hosting is GitHub Pages. Consequence: everything committed here is visible to anyone, so personal documents must not be committed (see Q3 and `docs/DECISIONS.md`). If you later make the repo private, hosting moves to Cloudflare Pages.
-
-**Q3. The handoff document.** Because the repo is public, do **not** commit the handoff if it contains anything personal (health history, medications, address, drinking patterns). Instead paste it into the chat, or commit a version with personal details removed. The reconciled, de-personalised assumptions then live in `docs/PLAN.md`; your personal answers live only in the app on your phone. Without the handoff, assumptions A1 (garden list) and A2 (health context) stay as placeholders.
-
-Everything else proceeds on the defaults in section 7 unless you object.
+None that block approval. Minor defaults you can change any time: equipment toggles (bands, dumbbells), protein range, saturated-fat budget, which guidance figures are shown.
 
 ---
 
 ## 11. What happens after you approve
 
-The implementing model follows `IMPLEMENTATION_CHECKLIST.md` in order, stopping at the marked STOP points: after week 1 (installable app in your hands), after the terms review, and before the shopping trial. Each stop is a short message to you with what to try and what to look at. No step touches PAK'nSAVE systems beyond opening ordinary web pages in your own browser.
+The implementing model follows `IMPLEMENTATION_CHECKLIST.md` in order, stopping at the STOP points: after the Phase 0 recommendation (mode A/B/C), after week 1 (app in your hands), after week 3 (extension in your hands), before the field week, and at acceptance. Each stop is a short plain-English message with what to try. No step touches PAK'nSAVE systems beyond what you do yourself in your own browser, unless Phase 0 and the terms permit otherwise.

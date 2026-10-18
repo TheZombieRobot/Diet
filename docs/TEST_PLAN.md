@@ -97,6 +97,9 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | GL-04 | Aisle grouping | Each item has an aisle; unknown → "Other" |
 | GL-05 | Edit, add manual item, delete | Persist across relaunch |
 | GL-06 | Copy as text | Plain text, one line per item, suitable for pasting into the PAK'nSAVE app |
+| GL-07 | Export CSV and JSON | Files open correctly; CSV columns per `DATA_MODEL.md`; store name and timestamps present |
+| GL-08 | Store name | Visible on the list header; changeable in settings; default PAK'nSAVE Pāpāmoa |
+| GL-09 | Substitutes | Each item with a known substitute shows it |
 
 ### 3.8 Alcohol
 | ID | Case | Expected |
@@ -138,10 +141,39 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | TR-10 | Unpair | Both sides forget key; next send requires pairing |
 | TR-11 | Network audit | No request from the phone app to any host other than the relay, and only on send (HS-14) |
 
-### 3.11 Chrome extension
+### 3.11 Food log, diet modes, household, allergens
 | ID | Case | Expected |
 |---|---|---|
-| CX-01 | Manifest | MV3; permissions exactly `sidePanel`, `storage`; host permission only the relay origin; no content scripts |
+| FL-01 | Add item from label per 100 g, log 150 g | Nutrients scaled; badge "Label" |
+| FL-02 | Log recipe portion | Badge "Estimate" if any ingredient is estimated, else "Database" |
+| FL-03 | Raw vs cooked | 200 g raw chicken and 150 g cooked are logged as distinct entries with the weight basis stored |
+| FL-04 | Switch diet mode keto → balanced → keto | No records deleted; targets change; suggestions re-rank |
+| FL-05 | Household dinner for 3, my portion 1/3 | My nutrition equals per-serve; changing household to 4 leaves my numbers unchanged (HS-23) |
+| FL-06 | Edit a recipe containing a listed allergen | Allergen still listed after edit and after scaling (HS-24) |
+| FL-07 | Gluten-free household toggle off | No gluten-free substitutions suggested |
+| FL-08 | Eating window 17:00–19:00 | Shows "2 h eating, 22 h fasting" (HS-17) |
+| FL-09 | Eating window 22:00–02:00 (midnight wrap) | 4 h eating |
+| FL-10 | Low-protein planned day | Fasting card offers to widen window (HS-18) |
+| FL-11 | Reflux options on | Earlier-window and split-meal suggestions appear; symptom log available |
+
+### 3.12 Non-negotiable cases from the handoff
+| ID | Case | Expected |
+|---|---|---|
+| NN-01 | 330 mL at 5% | About 1.30 standard drinks; 94 kcal shown **only** when the verified selected beverage preset carries that label value, never inferred for another drink |
+| NN-02 | 5 pm snack + 7 pm final meal | 2-hour eating window (22:2), not 4 hours |
+| NN-03 | Fixture profile 90 kg start, 70 kg long-term goal | Goal labelled long-term; four-week chart shows trend with "not a promise" line; no "kg in N days" text anywhere |
+| NN-04 | Raw/cooked weights and package quantities | Not conflated: 500 g raw mince recipe yields a "500 g pack" grocery line, and a cooked-weight log entry stays cooked |
+| NN-05 | Missing price or stock | Shown as "unknown"; never a fabricated live price; any price has an entered-at timestamp |
+| NN-06 | Silverbeet 300 g in garden, recipes need 500 g | List shows 200 g to buy and an audit line "300 g from garden" |
+| NN-07 | Stop a transfer midway, restart, send again | Laptop shows one copy of the list; no duplicated items; logs intact |
+| NN-08 | Extension cannot checkout or change store | No checkout control exists; in mode A a batch refuses to start if the site's selected store is not the configured store; a changed page structure produces a visible error and stops |
+| NN-09 | Alcohol tracker wording | Never implies that meeting a guideline is safe; never prescribes detox; "no alcohol use is risk-free" present |
+
+### 3.13 Chrome extension
+| ID | Case | Expected |
+|---|---|---|
+| CX-01 | Manifest | MV3; permissions exactly `sidePanel`, `storage`; host permission only the relay origin in mode B/C (plus paknsave.co.nz only in an approved mode A); no content scripts in mode B/C |
+| CX-00 | Mode gate | Extension build fails if mode A is configured without `docs/INTEGRATION_FEASIBILITY.md` section 9.3 recording owner approval of A |
 | CX-02 | Load unpacked | Loads without errors in Chrome 116+ |
 | CX-03 | Click icon | Side panel opens with list or pairing QR |
 | CX-04 | Tick/untick, note, progress bar | Persist across browser restart |
@@ -168,7 +200,13 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 - [ ] Do one beach session from the app; prompts appeared; log saved.
 - [ ] Log a weekend of drinks; weekly view and guidance make sense; no judgemental wording.
 
-### Week 4 field trial (record in `docs/TRIAL_LOG.md`)
+### Phase 0 spike (week 1, owner)
+- [ ] Store flow walked through and recorded in `INTEGRATION_FEASIBILITY.md` 9.1 (no personal data).
+- [ ] Both terms pages read; clauses pasted into 3.3.
+- [ ] Search URL recorded.
+- [ ] Mode A/B/C approved and recorded in 9.3.
+
+### Week 4 field trial (record in `docs/TRIAL_LOG.md`; shopping observations only, no health data)
 - [ ] Plan the week on the phone using garden stock.
 - [ ] Send list to laptop. Shop on paknsave.co.nz with the side panel.
 - [ ] Note per item: found first search / needed edit / not stocked / substituted.
@@ -185,4 +223,5 @@ The MVP is accepted when:
 2. Playwright suites for PWA, transfer and extension pass on the test deployment.
 3. Both manual checklists are complete.
 4. `TRIAL_LOG.md` records one completed shop and its findings have been triaged into fix/later.
-5. Every HS-xx rule maps to a passing test in the coverage table generated by CI.
+5. Every HS-xx rule and every NN-xx case maps to a passing test in the coverage table generated by CI.
+6. The extension mode in the build matches the owner's recorded Phase 0 decision.
