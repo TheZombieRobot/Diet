@@ -6,7 +6,7 @@ All data lives in the phone's IndexedDB in one database with versioned migration
 |---|---|---|
 | **profile** | You (one record) | height cm, sex, birth year, activity level, equipment toggles, household size, diet mode, units, store name, created, updated |
 | **readiness** | Your answers to the seven questions and the two confirmation toggles (prescriber agreed; GP discussed exercise) | question id, answer, answered at |
-| **targets** | Current numeric targets | protein g range, net carb ceiling, saturated-fat budget %, energy floor kJ, water mL, eating window preset, window start/end clock times, reflux options |
+| **targets** | Current numeric targets | protein g range, net carb ceiling, saturated-fat budget %, deficit % (Kickstart up to 30, Steady 15–20), phase (kickstart / steady), phase started at, kickstart extensions count, energy floor kJ, water mL, eating window preset, window start/end clock times, reflux options |
 | **weights** | One weigh-in | at, kg, note. *Derived:* 7- and 14-day averages, weekly rate |
 | **fasts** | One fast | started at, ended at (null while running), planned hours, snack time, dinner time, symptoms (reflux etc.), note. *Derived:* length, over-24 h flag |
 | **ingredients** | A food with nutrients per 100 g | name, aliases, aisle, pack sizes, nutrients (energy kJ, protein, fat, saturated fat, carbs, sugars, fibre, sodium), source (label / nz-fcdb / usda / estimate), source citation, allergens, garden flag, season months |
@@ -32,6 +32,8 @@ All data lives in the phone's IndexedDB in one database with versioned migration
 - Eating window length is computed from clock times, wrapping midnight correctly; fasting hours = 24 − window.
 - Net carbs = carbs − fibre, floored at zero.
 - Energy estimate = Mifflin-St Jeor × activity factor (1.2 sedentary, 1.55 moderate, 1.725 physically active job, 1.9 very active), labelled "rough guide".
+- Planned energy = estimate × (1 − deficit %), never below the 5,000 kJ floor; protein target is independent of the deficit.
+- Phase: Kickstart for 21 days from the phase start (plus any one-week extensions the user confirms), then Steady. The projection band is front-loaded in Kickstart and linear in Steady; it is a range, never a single target line.
 - Portion scaling: user portion = recipe per-serve × my portion fraction; household servings never change the user's numbers.
 - Confidence: label > nz-fcdb or usda > estimate; a recipe's confidence is the weakest of its ingredients.
 - Grocery aggregation: same ingredient merged across recipes, converted to grams first, then to pack counts rounded up; garden and pantry subtracted before pack rounding; each deduction writes an audit row.

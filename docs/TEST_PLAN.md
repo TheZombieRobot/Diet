@@ -62,8 +62,13 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 |---|---|---|
 | WT-01 | Goal below BMI 18.5 | Refused with reason (HS-01) |
 | WT-02 | Goal >20% below current | Refused with reason (HS-01) |
-| WT-03 | Synthetic series losing 1.2 kg/week for 2 weeks | No card |
-| WT-04 | Same series for 3 weeks | Rapid-loss card (HS-11) |
+| WT-03 | Synthetic series losing 2.5 kg/week in weeks 1–3 (Kickstart) | No rapid-loss card; Kickstart note shown (HS-11) |
+| WT-04 | Series losing 1.2 kg/week in weeks 4–6 (Steady) | Rapid-loss card after the third week (HS-11) |
+| WT-06 | Kickstart deficit with a low energy estimate | Planned energy clamps to the 5,000 kJ floor; protein target unchanged (HS-25) |
+| WT-07 | Kickstart deficit with a high estimate | Planned energy is exactly 30% below estimate (HS-25) |
+| WT-08 | Day 22 without extension | Phase flips to Steady; planner moves to 15–20% deficit; explanation shown |
+| WT-09 | Extend Kickstart | Asks how you feel first; extends 7 days; counter increments |
+| WT-10 | Projection band | Shaded range, front-loaded, labelled "not a promise"; no target line (HS-26) |
 | WT-05 | 7-day average chart | Matches hand calculation on fixture |
 
 ### 3.5 Fasting

@@ -32,14 +32,26 @@ The app never says "you are safe to fast/train/diet." It says "nothing you have 
 
 ## 2. Weight
 
-**What it does:** daily (or less often) weight entry, 7-day rolling average line, 30/90-day view, optional goal.
+**What it does:** daily (or less often) weight entry, 7-day rolling average line, 30/90-day view, optional goal, and a two-phase expectation: a **Kickstart** phase for the first three weeks where a fast drop is expected and normal, then a **Steady** phase.
+
+**Owner decision (19 Oct 2026): weight loss should be high to start.** The app is built to expect and support a strong first three weeks, not to warn about them. What it still will not do is promise a number of kilograms by a date, or push intake below the safety floor.
+
+**Kickstart phase (weeks 1–3 after starting or restarting the carb ceiling)**
+- The weight card says: "Kickstart: a fast drop is expected now. Most of it is water and glycogen, with some fat. Typical first weeks on a carb ceiling see several kilograms go." No upper figure is promised.
+- No rapid-loss card is shown in this phase, however fast the line falls.
+- The projected trend line shown on the four-week chart is front-loaded: steep for the first two to three weeks, then flattening to the steady pace. It is drawn as a shaded band labelled "typical range, not a promise", never as a target line.
+- Nutrition can run a **Kickstart deficit** (section 4): up to 30% below the estimated daily energy, with protein held at the top of the range, net carbs at the bottom of the keto range, electrolytes reminded daily, and the 5,000 kJ floor still enforced. You choose it; the app suggests it as the default when you start.
+- Stop-signs during Kickstart: dizziness on standing, palpitations, cramps that electrolytes do not settle, or feeling faint at work. The card says to eat, add salt and fluids, and talk to Healthline or a GP if it continues.
+
+**Steady phase (from week 4)**
+- Pace guidance shown: about 0.5–1 kg a week is the pace associated with keeping weight off; the rebound after Kickstart (a kilogram or two returning when carbs or salt go up) is explained as water, not failure.
+- Rapid-loss card: shown only if the rolling average falls faster than 1 kg per week for three consecutive weeks in the Steady phase: "You're still losing quickly. That's worth a check-in with your GP, especially on a low-carb plan."
 
 **Rules**
 - The long-term goal is always labelled "long-term". The four-week chart carries the line "this is a trend, not a promise". The app never states or targets a specific number of kilograms of fat loss in a number of days.
-- For the first fourteen days after starting or restarting a carb ceiling, a note explains that early loss is mostly water and glycogen and that the average line is what matters. Rebounds of a kilogram or two are described as normal, never as failure.
-- Pace guidance shown: gradual loss of about 0.5–1 kg a week is the pace associated with keeping weight off ([CDC, archived guidance on losing weight](https://webarchive.library.unt.edu/eot2008/20090116002322mp_/http:/www.cdc.gov/nccdphp/dnpa/healthyweight/losing_weight/index.htm); the implementing model should link the current CDC page once read).
+- The Kickstart and Steady phases above govern which notes and cards appear. Pace guidance in the Steady phase follows the gradual 0.5–1 kg a week figure ([CDC, archived guidance on losing weight](https://webarchive.library.unt.edu/eot2008/20090116002322mp_/http:/www.cdc.gov/nccdphp/dnpa/healthyweight/losing_weight/index.htm); the implementing model should link the current CDC page once read). Rebounds of a kilogram or two are described as normal, never as failure.
 - Goals cannot be set below a BMI of 18.5 for your height, or below your current weight by more than 20% at a time. Plain-language reason shown.
-- After the first fortnight, if the rolling average falls faster than 1 kg per week for three consecutive weeks, a card says: "You're losing weight quickly. That's worth a check-in with your GP, especially on a low-carb plan." Judgement call based on common clinical rules of thumb; adjustable in Settings only after reading the explanation.
+- The rapid-loss card never appears during Kickstart and appears in Steady only under the rule above. Judgement call based on common clinical rules of thumb; adjustable in Settings only after reading the explanation.
 - The app never shows "ideal weight" or body-fat estimates.
 - Daily fluctuations are explained once ("a litre of water is a kilogram") to discourage over-reaction.
 
@@ -74,7 +86,8 @@ The app never says "you are safe to fast/train/diet." It says "nothing you have 
 - Recipe scoring flags: butter, cream, coconut oil, bacon, salami and other processed meats, fatty cuts, cheese above about 40 g per serve. Flagged does not mean forbidden; it means the day's saturated-fat budget is consumed faster.
 - The saturated-fat budget is shown as a daily bar alongside net carbs. Exceeding it changes a colour; the app never says "bad".
 - A "Cholesterol check-in" card appears on day one (the handoff asks for cholesterol-conscious defaults and for a reminder to obtain actual lipid values) and again at 8 and 12 weeks: "Low-carb eating can move cholesterol in either direction. A lipid blood test before you start and again after 8–12 weeks is the only way to know. Your GP can arrange one." The app can export a summary of average daily saturated fat and net carbs for that visit.
-- Minimum energy floor: the planner warns if a planned day falls below 5,000 kJ (about 1,200 kcal) and will not generate automatic plans below it. For an active job the estimate will usually be far higher; the floor is a safety net, not a target.
+- **Kickstart deficit (default for the first three weeks, your choice).** Planned energy up to 30% below the estimated daily expenditure, protein at the top of the range (140 g), net carbs at the bottom of the keto range (20 g), a daily electrolyte reminder, and alcohol kcal counted in the day's total so the deficit is honest. After three weeks the planner moves to a Steady deficit of about 15–20% and says why. You can extend Kickstart one week at a time; the app asks how you feel first.
+- Minimum energy floor: the planner warns if a planned day falls below 5,000 kJ (about 1,200 kcal) and will not generate automatic plans below it, in either phase. For an active job the estimate will usually be far higher; the floor is a safety net, not a target.
 - Household dinners: your portion and its nutrition are computed separately from the total servings, so cooking for three never changes your numbers.
 - Allergens entered in settings are kept on a recipe when it is edited or scaled; substitutions never silently introduce a listed allergen.
 - Electrolyte reminder (sodium, potassium, magnesium) during the first two weeks of the carb ceiling, with food sources from the garden (silverbeet, spinach, avocado) rather than supplement advice.
@@ -178,7 +191,9 @@ Stop immediately and seek help for chest pain or pressure, severe shortness of b
 | HS-08 | No blood-alcohol or driving language ("BAC", "blood alcohol", "safe to drive", "legal limit") | Static scan |
 | HS-09 | Saturated-fat budget and net-carb ceiling computed from profile; day over budget changes indicator only, no "bad" wording | Fixture day |
 | HS-10 | Planner refuses to auto-generate days under 5,000 kJ | Request a 4,000 kJ day |
-| HS-11 | Rapid-loss card appears after 3 weeks of >1 kg/week average loss, not before | Synthetic weight series |
+| HS-11 | Rapid-loss card never appears during Kickstart (weeks 1–3), and in Steady appears only after 3 consecutive weeks over 1 kg/week | Synthetic series: 2.5 kg/week in weeks 1–3 shows no card; 1.2 kg/week in weeks 4–6 shows card |
+| HS-25 | Kickstart deficit never plans below the 5,000 kJ floor or below the protein target, and is capped at 30% below estimated expenditure | Fixtures with low and high estimates |
+| HS-26 | Projection on the four-week chart is a shaded "typical range, not a promise" band, front-loaded; no target line and no "kg by date" text | Snapshot and static scan |
 | HS-12 | Exercise stop rules and beach prompts render before any beach-tagged session | Snapshot test |
 | HS-13 | Emergency numbers 111, 0800 611 116, 0800 787 797 appear on the About screen and the alcohol screen | DOM query |
 | HS-14 | No network request leaves the phone app except to the relay host when "Send to laptop" is tapped | Playwright network log while using every screen offline |

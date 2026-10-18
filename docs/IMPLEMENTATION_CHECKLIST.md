@@ -53,8 +53,8 @@ Conventions for the implementing model:
 13. **First-run flow.** Welcome, mandatory alcohol safety notice, readiness questions with gate logic, profile, eating schedule with computed window display, garden with silverbeet pre-listed.
     *Acceptance:* HS-20; RD-01 to RD-06; HS-03; FL-08 in the UI.
 
-14. **Weight log and trend.** Entry, 7/14-day averages, long-term goal labelled, four-week view with "not a promise" line, first-fortnight water note, goal floors, rapid-loss card after the first fortnight.
-    *Acceptance:* WT-01 to WT-05; HS-01, HS-11, HS-21; NN-03.
+14. **Weight log, phases and trend.** Entry, 7/14-day averages, long-term goal labelled, Kickstart/Steady phase engine (21 days plus confirmed extensions), front-loaded "typical range, not a promise" band, Kickstart and Steady notes, goal floors, rapid-loss card only in Steady.
+    *Acceptance:* WT-01 to WT-10; HS-01, HS-11, HS-21, HS-26; NN-03.
 
 15. **Fasting timer and history.** Presets 16:8, 18:6, 20:4, 22:2, custom times; snack and dinner times; 24-hour ceiling behaviour; restart-safe; stop-signs; "widen the window" prompt; reflux symptom log and options.
     *Acceptance:* FS-01 to FS-05; FL-10, FL-11; HS-02, HS-18.
@@ -77,8 +77,8 @@ Conventions for the implementing model:
 20. **Recipe dataset.** About 30 recipes: silverbeet-first week, leafy greens, affordable NZ proteins (chicken, eggs, canned fish, mince, seasonal fish), seasonal produce, substitutions and leftover reuse; cholesterol-conscious scoring; allergens; raw and cooked weights.
     *Acceptance:* NU-02, NU-03, NU-04; FL-06 (HS-24).
 
-21. **Targets engine and diet modes.** Protein 120–140 g default (80–200 range), net-carb ceiling in keto mode, saturated-fat budget, fibre guide, energy estimate with "physically active job" default, 5,000 kJ floor; keto-preferred, moderate low-carb, balanced modes.
-    *Acceptance:* unit tests; HS-09, HS-10, HS-22; FL-04.
+21. **Targets engine, deficits and diet modes.** Protein 120–140 g default (80–200 range), net-carb ceiling in keto mode, saturated-fat budget, fibre guide, energy estimate with "physically active job" default, Kickstart deficit up to 30% with protein at 140 g and net carbs at 20 g, Steady deficit 15–20%, 5,000 kJ floor in both; keto-preferred, moderate low-carb, balanced modes.
+    *Acceptance:* unit tests; HS-09, HS-10, HS-22, HS-25; FL-04; WT-06, WT-07.
 
 22. **Seven-day planner.** Window-aware meal slots (snack plus dinner by default), swap with garden-first ranking, household scaling with independent user portion, dislikes and allergens respected, budget note, cholesterol check-in cards (day one, weeks 8 and 12), electrolyte reminder in the first fortnight, optional auto-fill respecting the floor.
     *Acceptance:* NU-05 to NU-08; FL-05 (HS-23).

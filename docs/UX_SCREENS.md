@@ -18,7 +18,7 @@ Plain-language descriptions of every MVP screen, written so you can picture them
 
 **Screen 1c: Readiness questions.** Seven yes/no questions from `HEALTH_SAFETY.md` section 1, one per card, swipe or tap. Final card explains what each "yes" changed.
 
-**Screen 1d: Profile.** Height, current weight, long-term goal weight (shown as "long-term", with the text "the four-week chart is not a promise"), sex (for guidance figures and energy estimate), age, activity level (default "physically active job"), equipment toggles, household size, dislikes and allergens, gluten-free household toggle (off by default).
+**Screen 1d: Profile.** Height, current weight, long-term goal weight (shown as "long-term", with the text "the four-week chart is not a promise"), Kickstart choice ("Strong start for 3 weeks: bigger deficit, protein protected, daily electrolytes", on by default), sex (for guidance figures and energy estimate), age, activity level (default "physically active job"), equipment toggles, household size, dislikes and allergens, gluten-free household toggle (off by default).
 
 **Screen 1e: Eating schedule.** Choose a preset (16:8, 18:6, 20:4, 22:2 "5 pm snack + dinner") or set clock times. The screen shows the computed window: "Eating 5:00 pm to 7:00 pm = 2 hours. Fasting 22 hours." Reflux option: "I get reflux; prefer earlier or split dinner" toggles.
 
@@ -31,7 +31,7 @@ Plain-language descriptions of every MVP screen, written so you can picture them
 Top: date and a one-line status such as "Fasting 14 h 20 m. Snack window opens 5:00 pm."
 
 Cards, in order:
-1. **Weight.** Latest weight, 7-day average, long-term goal. Small sparkline for four weeks. In the first fortnight after starting a carb ceiling, a one-line note: "Early loss is mostly water and glycogen. The average line is what matters."
+1. **Weight.** Latest weight, 7-day average, long-term goal, phase chip ("Kickstart, week 2 of 3" or "Steady"). Four-week sparkline with a shaded front-loaded band labelled "typical range, not a promise". During Kickstart the note reads: "Kickstart: a fast drop is expected now, mostly water and glycogen with some fat." In Steady it reads: "About 0.5–1 kg a week is the pace that holds. A kilogram back after Kickstart is water, not failure."
 2. **Fast.** Big Start/End button, planned window, snack and dinner times. If today's planned food is short on protein or energy: "Protein is under target. It's fine to widen the window."
 3. **Nutrition so far.** Energy, protein, fibre, net carbs (if keto mode) as bars with targets. Each logged entry shows a small badge: Label, Database, or Estimate.
 4. **Water and electrolytes.** Tap +250 mL; optional electrolyte tick.
