@@ -1,6 +1,6 @@
 # Diet — personal fitness, fasting, keto-aware meals and grocery app
 
-**Status: planning only. No application code yet. Awaiting owner approval of the plan.**
+**Status: plan approved 19 October 2026. Implementation not yet started; follow `docs/IMPLEMENTATION_CHECKLIST.md` from item 1.**
 
 An Android-first, offline-first web app (PWA) for one person: meal planning around a home garden and NZ groceries, weight and fasting logs, safe bodyweight and beach exercise, cholesterol-conscious keto targets, alcohol logging in NZ standard drinks, and a Chrome side-panel extension that helps with PAK'nSAVE Pāpāmoa shopping without automating the store's website.
 

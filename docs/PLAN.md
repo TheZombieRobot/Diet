@@ -1,6 +1,6 @@
 # 4-Week MVP Plan — Personal Fitness, Fasting, Keto-Aware Meals and Grocery App
 
-**Status:** Planning complete and reconciled against the handoff document. Awaiting your approval. No code has been written.
+**Status:** Approved by the owner on 19 October 2026. Milestone 1 complete. Implementation starts at `IMPLEMENTATION_CHECKLIST.md` item 1.
 **Date:** 19 October 2026 (NZ)
 **Audience:** You (the owner, non-coder) first; the implementing model (Opus 5.5) second.
 **Companion documents:** `INTEGRATION_FEASIBILITY.md`, `HEALTH_SAFETY.md`, `TEST_PLAN.md`, `UX_SCREENS.md`, `DATA_MODEL.md`, `DECISIONS.md`, `IMPLEMENTATION_CHECKLIST.md`.
