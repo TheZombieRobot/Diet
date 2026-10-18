@@ -20,6 +20,8 @@ You are implementing a personal Android-first fitness, fasting, keto-aware meal 
 - Never show a price, stock level or cart status that did not come from me (timestamped) or a permitted source.
 - No AI calls at runtime. No dependency that phones home. No account required to use the app.
 
+**How to use your capacity:** usage is not a constraint; correctness is. Run at maximum reasoning effort throughout. Ultracode is on: use multi-agent workflows for understanding, design options, test generation, adversarial review and verification, but have one agent at a time write the application code for each checklist item, in order, so the codebase stays coherent. After each item, fan out skeptics to try to break what was built against `docs/HEALTH_SAFETY.md` and `docs/TEST_PLAN.md` before you report to me. Before each STOP, run a full adversarial review of everything built so far.
+
 **How to work with me:** I do not read code. After each checklist item, tell me in two or three plain sentences what now works and what you tested. At each STOP, tell me exactly what to try on my phone or laptop and what to look for. If a site, licence or term blocks you, stop and ask rather than working around it. Commit after each item with the item number in the message, and push.
 
 Begin with checklist item 1: confirm you have read the eight documents, list anything in them that conflicts, then proceed to item 2.
