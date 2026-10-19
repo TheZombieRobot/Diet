@@ -580,4 +580,24 @@ describe('gateChangeEffects (U15; E17, E52, E65)', () => {
     ).toBe(true);
     expect(gateChangeEffects(open, q5, ctx({ targets })).resetSetupSchedule).toBe(false);
   });
+
+  it('during setup a default the app chose is cleared when answer 4 turns yes; a pattern the owner chose is kept (C07, E49)', () => {
+    const q4 = readinessGates(input({ q4: 'yes' }));
+    const during = { onboardingCompleted: false, kickstartOptIn: true };
+    const kickstartDefault = {
+      fastingPreset: '23:1',
+      presetChosenBy: 'kickstart-default',
+    } as const;
+    const user = { fastingPreset: '23:1', presetChosenBy: 'user' } as const;
+    expect(
+      gateChangeEffects(open, q4, ctx({ ...during, targets: kickstartDefault })).resetSetupSchedule,
+    ).toBe(true);
+    expect(
+      gateChangeEffects(open, open, ctx({ ...during, targets: kickstartDefault }))
+        .resetSetupSchedule,
+    ).toBe(false);
+    expect(gateChangeEffects(open, q4, ctx({ ...during, targets: user })).resetSetupSchedule).toBe(
+      false,
+    );
+  });
 });

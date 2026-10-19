@@ -7,8 +7,13 @@
  *   not from the rendered form, so a second tab or a stale screen cannot write past a gate.
  * - Marker last: within a step, the settings "step done" marker is written last and every earlier
  *   write can be repeated, so an interruption only shows the step again.
- * - Each repository call is its own transaction; the order and idempotence above are what make an
- *   interruption safe (section 6.2, Concurrency).
+ * - Each repository call is its own transaction (a scope holds only Dexie requests, section
+ *   8.5); the order and idempotence here are what make an interruption safe (section 6.2,
+ *   Concurrency). For a readiness answer or a profile save, the effects that compare the gates
+ *   before and after the change (the Kickstart choice off for a yes to answer 3, the carb-ceiling
+ *   clock restarted) are written first, from the gates the change will give; the change itself
+ *   next; then the effects that follow from the records as they stand, which run again on every
+ *   tap. So a failure at any point leaves nothing that a second tap does not finish.
  * - One rule for the gates' current weight (item 13 section 9.1 rule 2; HS-35): core
  *   weightGateInput, the lower of the 7-day average and the latest weigh-in, as on the weight
  *   screens. One rule for ending a Kickstart (C56): item 14's endKickstartIfConditionsFail, run in
@@ -16,10 +21,10 @@
  */
 import {
   canCompleteOnboarding,
-  defaultSchedule,
   type EatingWindow,
   type FastingPresetId,
   gateChangeEffects,
+  type GateEffectsContext,
   type GardenCropValue,
   type GardenRecord,
   type GateInput,
@@ -35,8 +40,10 @@ import {
   type ReadinessRecord,
   scheduleChosenBy,
   type ScheduleChoice,
+  scheduleDefaultFor,
   type SettingsRecord,
   setupScheduleReset,
+  storedSchedule,
   type TargetsRecord,
   weightGateInput,
   type WeightRecord,
@@ -96,37 +103,68 @@ async function clearSetupSchedule(storage: AppStorage): Promise<void> {
   });
 }
 
+/** The context gateChangeEffects reads, from fresh records. */
+const effectsContext = (fresh: Fresh, q3YesWritten: boolean): GateEffectsContext => ({
+  onboardingCompleted: fresh.settings.onboardingCompletedAt !== null,
+  dietMode: fresh.profile.dietMode,
+  firstLowCarbAt: fresh.profile.firstLowCarbAt,
+  q3YesWritten,
+  kickstartOptIn: fresh.profile.kickstartOptIn,
+  targets: fresh.targets,
+});
+
 /**
- * The writes a gate change calls for (section 4.1, gateChangeEffects; E17, E52), from the gates
- * before the change and the fresh records after it. First, in the same action, a Kickstart whose
- * conditions no longer hold is ended (running, or not started yet because its start is dated
- * ahead) by item 14's one rule, endKickstartIfConditionsFail: it latches the end, so a failed
- * write never lets Kickstart resume, and the app's reconciler retries it every minute.
+ * The profile fields a gate change sets that compare the gates before and after it (C72, D31,
+ * E52): the carb-ceiling clock restarted when the keto ceiling reopens, and the Kickstart choice
+ * off for a yes to answer 3. Written before the change itself (in its own write, or with it), from
+ * the gates the change will give, so a failure after them never loses them: the next tap's change
+ * finds them done, or writes them again (a later restart only moves a clock that drives the
+ * electrolyte reminder).
  */
-async function runGateEffects(
-  storage: AppStorage,
-  before: ReadinessGates,
+function transitionPatch(
+  before: Fresh,
+  after: ReadinessGates,
   q3YesWritten: boolean,
-): Promise<Fresh> {
-  await endKickstartIfConditionsFail(storage);
-  const after = await readFresh(storage);
-  const effects = gateChangeEffects(before, after.gates, {
-    onboardingCompleted: after.settings.onboardingCompletedAt !== null,
-    dietMode: after.profile.dietMode,
-    firstLowCarbAt: after.profile.firstLowCarbAt,
-    q3YesWritten,
-    kickstartOptIn: after.profile.kickstartOptIn,
-    targets: after.targets,
-  });
-  const now = storage.env.now();
-  const patch: UpdatePatch<'profile'> = {
+  now: string,
+): UpdatePatch<'profile'> {
+  const effects = gateChangeEffects(before.gates, after, effectsContext(before, q3YesWritten));
+  return {
     ...(effects.restartCarbCeilingClock ? { carbCeilingStartedAt: now } : {}),
-    ...(effects.setFirstLowCarb ? { firstLowCarbAt: now } : {}),
     ...(effects.clearKickstartOptIn ? { kickstartOptIn: false } : {}),
   };
-  if (Object.keys(patch).length > 0) await storage.repos.profile.update(patch);
+}
+
+/**
+ * The gates a readiness answer will give. The confirmation an answer to 3 or 6 lapses (D29) is left
+ * as stored: neither transitionPatch effect reads it.
+ */
+const gatesWithAnswer = (input: GateInput, id: ReadinessQuestionId, answer: YesNo) =>
+  readinessGates({ ...input, answers: { ...input.answers, [id]: answer } });
+
+/**
+ * The writes that follow from the records as they stand (section 4.1, gateChangeEffects; E17,
+ * E52), so running them again changes nothing more; every readiness and profile action runs them,
+ * also when its own write was already stored (a failure part-way through an earlier tap). First a
+ * Kickstart whose conditions no longer hold is ended (running, or not started yet because its
+ * start is dated ahead) by item 14's one rule, endKickstartIfConditionsFail: it latches the end, so
+ * a failed write never lets Kickstart resume, and the app's reconciler retries it every minute.
+ * Then firstLowCarbAt is set once (C109) and a schedule saved earlier in this setup that no longer
+ * applies is cleared (C07, C55). Returns the fresh records.
+ */
+async function settleGateEffects(storage: AppStorage): Promise<Fresh> {
+  await endKickstartIfConditionsFail(storage);
+  const fresh = await readFresh(storage);
+  const effects = gateChangeEffects(fresh.gates, fresh.gates, effectsContext(fresh, false));
+  if (effects.setFirstLowCarb) {
+    await storage.repos.profile.update({ firstLowCarbAt: storage.env.now() });
+  }
   if (effects.resetSetupSchedule) await clearSetupSchedule(storage);
-  return after;
+  return fresh;
+}
+
+/** Writes the transition fields first, when there are any. */
+async function writeTransition(storage: AppStorage, patch: UpdatePatch<'profile'>): Promise<void> {
+  if (Object.keys(patch).length > 0) await storage.repos.profile.update(patch);
 }
 
 /** "I understand" (HS-20): the acknowledgement, set once and never overwritten. */
@@ -138,8 +176,9 @@ export async function acknowledgeNotice(storage: AppStorage): Promise<void> {
 
 /**
  * A Yes or No tap (section 3.6). The answer already stored under the current wording writes
- * nothing, so a confirmation never lapses through an accidental tap (E6); a different answer is
- * written (lapsing the Q3 or Q6 confirmation in the same transaction, D29) and the gate effects run.
+ * nothing, so a confirmation never lapses through an accidental tap (E6), but its gate effects are
+ * settled again; a different answer is written (lapsing the Q3 or Q6 confirmation in the same
+ * transaction, D29) between its transition fields and the settled effects.
  */
 export async function answerReadiness(
   storage: AppStorage,
@@ -147,10 +186,15 @@ export async function answerReadiness(
   answer: YesNo,
 ): Promise<{ readonly written: boolean }> {
   const before = await readFresh(storage);
-  if (before.input.answers[id] === answer) return { written: false };
-  await storage.repos.readiness.answer(id, answer);
-  await runGateEffects(storage, before.gates, id === 'q3' && answer === 'yes');
-  return { written: true };
+  const written = before.input.answers[id] !== answer;
+  if (written) {
+    const after = gatesWithAnswer(before.input, id, answer);
+    const q3Yes = id === 'q3' && answer === 'yes';
+    await writeTransition(storage, transitionPatch(before, after, q3Yes, storage.env.now()));
+    await storage.repos.readiness.answer(id, answer);
+  }
+  await settleGateEffects(storage);
+  return { written };
 }
 
 /** The prescriber or GP confirmation switch (D29). The repository refuses it without a current answer. */
@@ -159,9 +203,8 @@ export async function setConfirmation(
   id: ReadinessConfirmationId,
   answer: YesNo,
 ): Promise<void> {
-  const before = await readFresh(storage);
   await storage.repos.readiness.answer(id, answer);
-  await runGateEffects(storage, before.gates, false);
+  await settleGateEffects(storage);
 }
 
 /**
@@ -170,8 +213,10 @@ export async function setConfirmation(
  */
 export async function reanswerAfterChange(storage: AppStorage, q: 'q3' | 'q6'): Promise<void> {
   const before = await readFresh(storage);
+  const after = gatesWithAnswer(before.input, q, 'yes');
+  await writeTransition(storage, transitionPatch(before, after, q === 'q3', storage.env.now()));
   await storage.repos.readiness.answer(q, 'yes');
-  await runGateEffects(storage, before.gates, q === 'q3');
+  await settleGateEffects(storage);
 }
 
 /**
@@ -185,7 +230,10 @@ export async function reanswerAfterChange(storage: AppStorage, q: 'q3' | 'q6'): 
 export async function writeWeighIn<T>(storage: AppStorage, write: () => Promise<T>): Promise<T> {
   const before = await readFresh(storage);
   const result = await write();
-  await runGateEffects(storage, before.gates, false).catch(() => undefined);
+  await (async () => {
+    const fresh = await settleGateEffects(storage);
+    await writeTransition(storage, transitionPatch(before, fresh.gates, false, storage.env.now()));
+  })().catch(() => undefined);
   return result;
 }
 
@@ -219,7 +267,7 @@ export async function saveProfile(
   mode: 'onboarding' | 'settings',
 ): Promise<{ readonly gates: ReadinessGates }> {
   const { repos, env } = storage;
-  const before = await readFresh(storage);
+  const now = env.now();
   const common: UpdatePatch<'profile'> = {
     heightCm: value.heightCm,
     birthYear: value.birthYear,
@@ -232,12 +280,24 @@ export async function saveProfile(
     dislikeTerms: [...value.dislikeTerms],
     glutenFreeHousehold: value.glutenFreeHousehold,
   };
+  const before = await readFresh(storage);
   if (mode === 'settings') {
-    await repos.profile.update(common);
-    const after = await runGateEffects(storage, before.gates, false);
-    return { gates: after.gates };
+    // The new height and birth year can move the gates (HS-32, HS-35): the transition fields are
+    // written with the profile, in the same write.
+    const after = readinessGates(
+      weightGateInput(
+        {
+          readiness: before.rows,
+          profile: { birthYear: value.birthYear, heightCm: value.heightCm },
+          weights: before.weights,
+          homeTimeZone: before.settings.homeTimeZone,
+        },
+        localDateOf(now, env.timeZone()),
+      ),
+    );
+    await repos.profile.update({ ...common, ...transitionPatch(before, after, false, now) });
+    return { gates: (await settleGateEffects(storage)).gates };
   }
-  const now = env.now();
   await saveOnboardingWeight(storage, value.weightKg);
   // Kickstart is stored on only if the fresh records, with this save's birth year, height and
   // weight, leave it available (E14, E63).
@@ -256,7 +316,7 @@ export async function saveProfile(
     kickstartOptIn,
     ...goalPatch(before.profile, value, now),
   });
-  const after = await runGateEffects(storage, before.gates, false);
+  const after = await settleGateEffects(storage);
   if (after.settings.profileConfirmedAt === null) {
     await repos.settings.update({ profileConfirmedAt: now });
   }
@@ -294,13 +354,11 @@ export interface ScheduleSave {
 
 /**
  * The eating schedule (section 3.9). Refused, writing nothing, when the fresh records gate fasting
- * (C07, E63). presetChosenBy keeps a default only while the saved schedule equals it (E19).
+ * (C07, E63). presetChosenBy keeps a default only while the saved schedule equals it (E19), and
+ * with answer 4 is always the owner's (E49). The step's marker is set the first time a schedule is
+ * saved, in Settings too (a setup that skipped the step), so "nothing saved yet" then stops.
  */
-export async function saveSchedule(
-  storage: AppStorage,
-  save: ScheduleSave,
-  mode: 'onboarding' | 'settings',
-): Promise<void> {
+export async function saveSchedule(storage: AppStorage, save: ScheduleSave): Promise<void> {
   const fresh = await readFresh(storage);
   if (fresh.gates.fastingGated) throw new FlowStaleError('fasting-gated');
   const { targets, profile } = fresh;
@@ -314,25 +372,22 @@ export async function saveSchedule(
     });
   } else {
     const preset: FastingPresetId | 'custom' = save.choice;
-    const stored =
-      targets.fastingPreset === null ||
-      targets.eatingWindow === null ||
-      targets.presetChosenBy === null
-        ? null
-        : {
-            preset: targets.fastingPreset,
-            window: targets.eatingWindow,
-            chosenBy: targets.presetChosenBy,
-          };
-    const defaults = defaultSchedule(profile.kickstartOptIn && fresh.gates.kickstartAvailable);
+    const defaults = scheduleDefaultFor({
+      pharmacistReminder: fresh.gates.pharmacistReminder,
+      kickstartChosen: profile.kickstartOptIn && fresh.gates.kickstartAvailable,
+    });
     await storage.repos.targets.update({
       fastingPreset: preset,
       eatingWindow: { start: save.window.start, end: save.window.end },
-      presetChosenBy: scheduleChosenBy({ preset, window: save.window }, defaults, stored),
+      presetChosenBy: scheduleChosenBy(
+        { preset, window: save.window },
+        defaults,
+        storedSchedule(targets),
+      ),
       ...reflux,
     });
   }
-  if (mode === 'onboarding' && fresh.settings.scheduleConfirmedAt === null) {
+  if (fresh.settings.scheduleConfirmedAt === null) {
     await storage.repos.settings.update({ scheduleConfirmedAt: storage.env.now() });
   }
 }
@@ -368,6 +423,7 @@ async function prepareCompletion(
   const reset = setupScheduleReset(fresh.targets, {
     onboardingCompleted: settings.onboardingCompletedAt !== null,
     fastingGated: fresh.gates.fastingGated,
+    pharmacistReminder: fresh.gates.pharmacistReminder,
     kickstartChosen: fresh.profile.kickstartOptIn && fresh.gates.kickstartAvailable,
   });
   if (reset) {

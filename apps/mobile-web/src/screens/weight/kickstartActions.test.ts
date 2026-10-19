@@ -113,6 +113,16 @@ describe('T2: the 22:2 → 23:1 move at a Kickstart start (C55, C07)', () => {
     expect(await startKickstart(db.storage)).toEqual({ ok: true, presetSet: false });
     expect(await db.repos.targets.get()).toMatchObject(UNTOUCHED_22);
   });
+
+  it('C07: a 23:1 Kickstart default stored before answer 4 turned yes is not reported as set at a start (it is read as 22:2)', async () => {
+    const targets = {
+      fastingPreset: '23:1',
+      eatingWindow: { start: '18:00', end: '19:00' },
+      presetChosenBy: 'kickstart-default',
+    } as const;
+    const db = await seed({ ...noPeriod, targets, readiness: { q4: 'yes' } }, 1);
+    expect(await startKickstart(db.storage)).toEqual({ ok: true, presetSet: false });
+  });
 });
 
 describe('T3, T4: the reconciler ends what is due and never starts anything (C56, W13, W14)', () => {

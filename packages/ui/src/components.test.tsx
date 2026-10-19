@@ -635,6 +635,41 @@ describe('first-run components (item 13; K19)', () => {
     expect(onRemove).toHaveBeenCalledWith('liver');
   });
 
+  it('DayBar sets each time under its own hour, and marks every other one to leave out when narrow', () => {
+    render(
+      <DayBar
+        segments={[{ startPct: 70.8, widthPct: 8.3 }]}
+        labels={['12 am', '6 am', '12 pm', '6 pm', '12 am']}
+      />,
+    );
+    const labels = Array.from(document.querySelectorAll<HTMLElement>('.ui-daybar__label'));
+    expect(labels.map((l) => l.style.left)).toEqual(['0%', '25%', '50%', '75%', '100%']);
+    expect(labels.map((l) => l.classList.contains('ui-daybar__label--minor'))).toEqual([
+      false,
+      true,
+      false,
+      true,
+      false,
+    ]);
+  });
+
+  it('TextField: an action sits on the input row, a shared error marks the field and describes it', () => {
+    render(
+      <>
+        <TextField label="Foods" hint="One at a time." action={<Button>Add</Button>} />
+        <TextField label="First bite" sharedErrorId="window-error" />
+        <p id="window-error">The first and last bite need different times.</p>
+      </>,
+    );
+    const row = screen.getByLabelText('Foods').parentElement;
+    expect(row?.className).toBe('ui-field__control');
+    expect(row?.contains(screen.getByRole('button', { name: 'Add' }))).toBe(true);
+    expect(row?.contains(screen.getByText('One at a time.'))).toBe(false);
+    const field = screen.getByLabelText('First bite');
+    expect(field.getAttribute('aria-invalid')).toBe('true');
+    expect(field.getAttribute('aria-describedby')).toBe('window-error');
+  });
+
   it('Switch with a hint ties it by aria-describedby; Switch and TextField forward their ref', () => {
     const switchRef = createRef<HTMLInputElement>();
     const fieldRef = createRef<HTMLInputElement>();

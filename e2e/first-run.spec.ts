@@ -121,6 +121,8 @@ test('P1 HS-20: every address, and the manifest start_url, opens on Welcome', as
 }) => {
   for (const url of DEEP_LINKS) {
     await page.goto(url);
+    // A hash change within the page (no reload) must not pass Welcome either.
+    await expect(heading(page), url).toHaveText(onboarding.welcome.title);
     await page.reload();
     await expect(heading(page), url).toHaveText(onboarding.welcome.title);
     await expect(page.getByText('Step 1 of 6')).toBeVisible();
@@ -158,6 +160,24 @@ test('P2 HS-20: reload and the back button stay in the flow; after the notice, b
   await expect(heading(page)).toHaveText('About');
   await page.goBack();
   await expect(heading(page)).toHaveText(readiness.questions.q1);
+});
+
+test('P2 E59: once setup ends, a single back gesture from Today leaves the app', async ({
+  page,
+}) => {
+  await page.goto('./');
+  await acknowledge(page);
+  await answerAll(page, { q5: 'yes' });
+  await button(page, onboarding.frame.continue).click();
+  await fillProfile(page);
+  await button(page, onboarding.frame.continue).click();
+  await expect(heading(page)).toHaveText(garden.title);
+  await button(page, garden.skip).click();
+  await expect(heading(page)).toHaveText('Today');
+  await expect(page).toHaveURL(/#\/today$/);
+  await expect(heading(page)).toBeFocused();
+  await page.goBack();
+  expect(page.url()).toBe('about:blank');
 });
 
 test('P3 HS-20: "I understand" is stored, and only then is restore offered', async ({ page }) => {
@@ -318,6 +338,23 @@ test('P9 E53: "My medication or dose has changed" in Settings turns fasting off 
   await expect(page.getByTestId('gate-notice-fasting')).toBeVisible();
 });
 
+test('P10: Save and the Yes and No buttons in Settings keep focus while they save', async ({
+  page,
+}) => {
+  await seedOnboarded(page, './#/eating-schedule');
+  await expect(heading(page)).toHaveText('Eating schedule');
+  const save = button(page, schedule.save);
+  await save.click();
+  await expect(page.getByText(schedule.saved)).toBeVisible();
+  await expect(save).toBeFocused();
+  await goTo(page, 'Readiness answers');
+  const q2 = page.getByTestId('readiness-q2');
+  const yes = q2.getByRole('button', { name: readiness.yes, exact: true });
+  await yes.click();
+  await expect(yes).toHaveAttribute('aria-pressed', 'true');
+  await expect(yes).toBeFocused();
+});
+
 /** What each onboarding view must pass (P8): wording, contrast in both themes, 48 px, no sideways scroll. */
 async function sweep(page: Page, where: string, found: string[]): Promise<void> {
   const text = await renderedText(page);
@@ -347,6 +384,92 @@ async function sweep(page: Page, where: string, found: string[]): Promise<void> 
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   if (overflow > 0) found.push(`${where}: scrolls sideways by ${overflow} px`);
+  found.push(
+    ...(await dayBarProblems(page, where)),
+    ...(await clippedTimeFields(page, where)),
+    ...(await headerLinkProblems(page, where)),
+  );
+}
+
+/** The header's "Help numbers and About" starts where the heading does. */
+function headerLinkProblems(page: Page, where: string): Promise<string[]> {
+  return page.evaluate((label) => {
+    const link = document.querySelector('.ui-steps__link .ui-button');
+    const title = document.querySelector('h1');
+    if (link === null || title === null) return [];
+    const text = document.createRange();
+    text.selectNodeContents(link);
+    const offset = text.getBoundingClientRect().left - title.getBoundingClientRect().left;
+    return Math.abs(offset) > 2
+      ? [`${label}: the header link is ${offset} px off the heading`]
+      : [];
+  }, where);
+}
+
+/** The day bar's times sit on one line, each under its own hour, the ends at the bar's ends. */
+function dayBarProblems(page: Page, where: string): Promise<string[]> {
+  return page.evaluate((label) => {
+    const problems: string[] = [];
+    for (const bar of document.querySelectorAll('.ui-daybar')) {
+      const track = bar.querySelector('.ui-daybar__track')?.getBoundingClientRect();
+      const all = Array.from(bar.querySelectorAll<HTMLElement>('.ui-daybar__label'));
+      if (track === undefined) continue;
+      all.forEach((element, i) => {
+        const box = element.getBoundingClientRect();
+        if (box.width === 0) return;
+        const hour = track.left + (track.width * i) / (all.length - 1);
+        const at =
+          i === 0 ? box.left : i === all.length - 1 ? box.right : (box.left + box.right) / 2;
+        if (Math.abs(at - hour) > 1)
+          problems.push(`${label}: "${element.textContent}" is off its hour`);
+        const first = all[0]?.getBoundingClientRect();
+        if (first !== undefined && Math.abs(box.top - first.top) > 1) {
+          problems.push(`${label}: the day bar's times wrap`);
+        }
+        const next = all.slice(i + 1).find((e) => e.getBoundingClientRect().width > 0);
+        if (next !== undefined && box.right > next.getBoundingClientRect().left) {
+          problems.push(`${label}: "${element.textContent}" overlaps the next time`);
+        }
+      });
+    }
+    return problems;
+  }, where);
+}
+
+/**
+ * Time fields whose hours, minutes and AM/PM do not all show: Chromium's own parts of the field,
+ * read through the DevTools protocol, are wider than the box they are drawn in.
+ */
+async function clippedTimeFields(page: Page, where: string): Promise<string[]> {
+  const cdp = await page.context().newCDPSession(page);
+  try {
+    const { root } = await cdp.send('DOM.getDocument', { depth: -1, pierce: true });
+    const pseudoOf = (node: typeof root) => {
+      const attributes = node.attributes ?? [];
+      return attributes[attributes.indexOf('pseudo') + 1];
+    };
+    const edits: (typeof root)[] = [];
+    const walk = (node: typeof root) => {
+      if (pseudoOf(node) === '-webkit-datetime-edit') edits.push(node);
+      for (const child of [...(node.children ?? []), ...(node.shadowRoots ?? [])]) walk(child);
+    };
+    walk(root);
+    const width = async (node: typeof root) =>
+      (await cdp.send('DOM.getBoxModel', { nodeId: node.nodeId })).model.width;
+    const problems: string[] = [];
+    for (const edit of edits) {
+      const fields = edit.children?.find(
+        (c) => pseudoOf(c) === '-webkit-datetime-edit-fields-wrapper',
+      );
+      if (fields === undefined) continue;
+      if ((await width(fields)) > (await width(edit)) + 0.5) {
+        problems.push(`${where}: a time field cuts off part of its time`);
+      }
+    }
+    return problems;
+  } finally {
+    await cdp.detach();
+  }
 }
 
 /** Walks every view of setup, sweeping each (P8). */
@@ -364,10 +487,16 @@ async function walkSetup(page: Page, found: string[]): Promise<void> {
   await answer(page, 'q2', 'no');
   await button(page, readiness.yes).click();
   await expect(page.getByTestId('consequence')).toBeVisible();
+  // The chosen answer's tick is drawn, not read: the button is still named "Yes".
+  await expect(page.getByRole('button', { name: readiness.yes, exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
   await page
     .getByRole('switch', { name: readiness.confirmations.prescriberAgreed })
     .click({ force: true });
-  await expect(page.getByText(readiness.confirmed.prescriberAgreed)).toBeVisible();
+  // Answer 1 keeps fasting off, so the confirmation is recorded without saying it can be chosen.
+  await expect(page.getByText(readiness.confirmedAlsoOff.prescriberAgreed)).toBeVisible();
   await sweep(page, 'a yes with its confirmation', found);
   await button(page, onboarding.frame.continue).click();
   await answer(page, 'q4', 'yes');
@@ -383,6 +512,17 @@ async function walkSetup(page: Page, found: string[]): Promise<void> {
   await expect(page.getByText(readiness.ageCheck.answeredUnder18)).toBeVisible();
   await expect(page.getByText(readiness.weightCheck.lowWeight)).toBeVisible();
   await sweep(page, 'the profile with an error and both cross-checks', found);
+  // "Add" sits beside the dislikes field itself (or, with no room, under it), not beside its hint.
+  const dislikes = await page.getByLabel(profile.dislikesLabel).boundingBox();
+  const add = await button(page, profile.dislikesAdd).boundingBox();
+  if (dislikes === null || add === null) {
+    found.push('the profile: no dislikes field or Add button');
+  } else if (add.x >= dislikes.x + dislikes.width) {
+    const middle = add.y + add.height / 2;
+    if (!(middle > dislikes.y && middle < dislikes.y + dislikes.height)) {
+      found.push(`the profile: "${profile.dislikesAdd}" is not beside the dislikes field`);
+    }
+  }
   await button(page, readiness.ageCheck.changeAnswer).click();
   await button(page, readiness.no).click();
   await expect(heading(page)).toHaveText(profile.title);
@@ -406,14 +546,15 @@ async function walkSetup(page: Page, found: string[]): Promise<void> {
   await sweep(page, 'restore inside setup', found);
 }
 
-test('P8: every view of setup passes the wording, contrast, 48 px and no-sideways-scroll checks, at 360 px too, with no request outside the app', async ({
+test('P8: every view of setup passes the wording, contrast, 48 px and layout checks, at 360 px and at 200% text on it, with no request outside the app', async ({
   browser,
   baseURL,
   request,
 }) => {
-  test.setTimeout(240_000);
+  test.setTimeout(420_000);
   const found: string[] = [];
-  for (const viewport of [undefined, { width: 360, height: 740 }]) {
+  // 180 px: a 360 px phone at 200% text (the repository's rule, as in shell.spec).
+  for (const viewport of [undefined, { width: 360, height: 740 }, { width: 180, height: 740 }]) {
     const context = await browser.newContext({
       ...(baseURL === undefined ? {} : { baseURL }),
       ...(viewport === undefined ? {} : { viewport }),

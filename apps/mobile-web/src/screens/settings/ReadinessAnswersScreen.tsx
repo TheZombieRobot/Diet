@@ -9,8 +9,9 @@ import { useStore } from '../../store';
 
 /**
  * Settings, Readiness answers (RD-06; item 13 design section 3.12): every answer can be changed,
- * and features elsewhere follow at once, with nothing recorded deleted. The confirmation switches
- * appear once, in the answers list (E67).
+ * and features elsewhere follow at once; logs and weigh-ins are kept (a changed answer 3 or 6 asks
+ * for its confirmation again). The confirmation switches appear once, in the answers list (E67).
+ * The birth-year and weight lines say where those are changed.
  */
 export function ReadinessAnswersScreen(): ReactElement | null {
   const storage = useStore(appStorageStore);
@@ -29,6 +30,7 @@ export function ReadinessAnswersScreen(): ReactElement | null {
           gates={view.gates}
           birthYear={view.state.profile.birthYear}
           showConfirmations={false}
+          showWhereToChange
         />
       </Card>
     </>

@@ -67,7 +67,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | RD-06 | Change answers later | Features appear/disappear immediately; no data lost |
 | RD-07 | Close the app after the notice and reopen | Setup resumes at the first unfinished step; fasting hidden while gated |
 | RD-08 | Import a backup with no readiness rows | Gates closed; readiness asked before anything else |
-| RD-09 | Medication with food, blood-pressure or cholesterol medication = yes | Fasting allowed; pharmacist reminder above the schedule choices with nothing preselected; salt wording flag on |
+| RD-09 | Medication with food, blood-pressure or cholesterol medication = yes | Fasting not switched off by this answer, and no line says it is allowed; pharmacist reminder above the schedule choices with nothing preselected, at setup and in Settings; a pattern the app chose before the answer is cleared at setup and the step asked again; a stored 23:1 Kickstart default is read as 22:2, even during Kickstart; whatever the owner picks is recorded as their own; salt wording flag on |
 
 ### 3.4 Weight
 | ID | Case | Expected |

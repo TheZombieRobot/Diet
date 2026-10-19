@@ -8,10 +8,11 @@ import {
   formatClockTime,
   presetForWindow,
   presetWindow,
+  windowProblemFields,
 } from '@diet/core';
 import { schedule } from '@diet/core/copy/health';
 import { Card, ChoiceList, DayBar, Notice, Switch, TextField } from '@diet/ui';
-import type { ReactElement, ReactNode, Ref } from 'react';
+import { type ReactElement, type ReactNode, type Ref, useId } from 'react';
 import type { ScheduleDraft } from '../drafts';
 
 const WINDOW_ERRORS = {
@@ -29,23 +30,31 @@ function presetDetail(id: FastingPresetId): string {
 }
 
 export interface ScheduleFormProps {
-  /** Settings: no Kickstart note, only the "3 weeks" line under a stored Kickstart default. */
+  /** Settings: no Kickstart note, only the "3 weeks" line under the untouched Kickstart default. */
   readonly mode: 'onboarding' | 'settings';
   readonly draft: ScheduleDraft;
   readonly onDraftChange: (draft: ScheduleDraft) => void;
-  /** Kickstart is chosen: 23:1 carries the Kickstart chip and the Kickstart note shows. */
+  /** Kickstart is chosen: 23:1 carries the Kickstart chip. */
   readonly kickstartChosen: boolean;
+  /**
+   * Who the draft would be recorded as chosen by if saved now (drafts.ts scheduleDraftSavedAs).
+   * The Kickstart note ("23:1 for the 3 weeks … 22:2 on any other day") shows only for the
+   * untouched Kickstart default, which is the only pattern it is true of (E19).
+   */
+  readonly savedAs: 'kickstart-default' | 'default' | 'user' | null;
   /** The protein figure in the Kickstart line (C65). */
   readonly proteinG: number;
   /** Answer 4: the pharmacist note above the choices (C07). */
   readonly pharmacistNote: boolean;
   /** Answer 3 yes with the prescriber's agreement (E53). */
   readonly diabetesNote: boolean;
-  /** Settings, under a stored Kickstart default: the "3 weeks count from the start" line (E51). */
-  readonly storedKickstartDefault?: boolean | undefined;
+  /** Settings: a Kickstart default stored before answer 4 turned yes, which is not used (C07). */
+  readonly kickstartDefaultSetAside?: boolean | undefined;
   /** After a refused Continue or Save. */
   readonly showErrors: boolean;
   readonly listRef?: Ref<HTMLInputElement> | undefined;
+  /** The first time field with a problem, for focus after a refused Continue or Save. */
+  readonly windowRef?: Ref<HTMLInputElement> | undefined;
   readonly top?: ReactNode;
 }
 
@@ -59,18 +68,30 @@ export function ScheduleForm({
   draft,
   onDraftChange,
   kickstartChosen,
+  savedAs,
   proteinG,
   pharmacistNote,
   diabetesNote,
-  storedKickstartDefault = false,
+  kickstartDefaultSetAside = false,
   showErrors,
   listRef,
+  windowRef,
   top,
 }: ScheduleFormProps): ReactElement {
+  const windowErrorId = useId();
   const set = (patch: Partial<ScheduleDraft>) => {
     onDraftChange({ ...draft, ...patch });
   };
   const window = checkEatingWindowForm(draft.start, draft.end);
+  // The time fields the window's message belongs to: marked invalid and described by it.
+  const faulty = window.ok ? [] : windowProblemFields(draft.start, draft.end, window.problem);
+  const timeField = (field: 'start' | 'end') => {
+    const at = faulty.indexOf(field);
+    return {
+      sharedErrorId: at === -1 ? undefined : windowErrorId,
+      ref: at === 0 ? windowRef : undefined,
+    };
+  };
   const showsTimes = draft.choice !== null && draft.choice !== 'none';
   const options = [
     ...FASTING_PRESETS.map((p) => ({
@@ -115,15 +136,23 @@ export function ScheduleForm({
   return (
     <div className="ui-card__body">
       {top}
-      {mode === 'onboarding' && kickstartChosen ? (
+      {mode === 'onboarding' && savedAs === 'kickstart-default' ? (
         <Notice tone="info">
           <p className="ui-text-strong">{schedule.kickstartTitle}</p>
           <p>{schedule.kickstartWhen}</p>
           <p>{fillTemplate(schedule.kickstartLine, { proteinG })}</p>
         </Notice>
       ) : null}
-      {mode === 'settings' && storedKickstartDefault ? (
+      {mode === 'onboarding' && kickstartChosen && savedAs === 'user' ? (
+        <Notice tone="info">
+          <p data-testid="schedule-own-pattern">{schedule.ownPattern}</p>
+        </Notice>
+      ) : null}
+      {mode === 'settings' && savedAs === 'kickstart-default' ? (
         <p className="ui-text-muted">{schedule.kickstartWhen}</p>
+      ) : null}
+      {mode === 'settings' && kickstartDefaultSetAside ? (
+        <p className="ui-text-muted">{schedule.kickstartDefaultSetAside}</p>
       ) : null}
       {pharmacistNote ? (
         <Notice>
@@ -149,6 +178,7 @@ export function ScheduleForm({
         <Card label={schedule.windowTitle}>
           <div className="ui-field-pair">
             <TextField
+              {...timeField('start')}
               label={schedule.startLabel}
               type="time"
               step={60}
@@ -158,6 +188,7 @@ export function ScheduleForm({
               }}
             />
             <TextField
+              {...timeField('end')}
               label={schedule.endLabel}
               type="time"
               step={60}
@@ -175,7 +206,7 @@ export function ScheduleForm({
               </p>
             </>
           ) : (
-            <p className="ui-field__error" role="alert">
+            <p id={windowErrorId} className="ui-field__error" role="alert">
               {WINDOW_ERRORS[window.problem]}
             </p>
           )}

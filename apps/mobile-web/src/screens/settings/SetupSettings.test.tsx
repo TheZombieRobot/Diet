@@ -52,8 +52,16 @@ const featureOff = (feature: string) => screen.queryByTestId(`gate-notice-${feat
 
 describe('Settings, Readiness answers (RD-06; K13, K21)', () => {
   it('K13: answer 5 changed in Settings hides fasting everywhere at once and changes no other record', async () => {
+    const lowCarbSince = '2000-01-15T00:00:00.000Z';
     await setUp('readiness', {
-      profile: { goalKg: 70, goalSetAt: '2000-03-01T00:00:00.000Z', goalReferenceKg: 90 },
+      profile: {
+        goalKg: 70,
+        goalSetAt: '2000-03-01T00:00:00.000Z',
+        goalReferenceKg: 90,
+        kickstartOptIn: true,
+        firstLowCarbAt: lowCarbSince,
+        carbCeilingStartedAt: lowCarbSince,
+      },
     });
     await test.repos.targets.update({
       fastingPreset: '23:1',
@@ -79,19 +87,22 @@ describe('Settings, Readiness answers (RD-06; K13, K21)', () => {
       if (table === 'readiness' || table === 'profile') continue;
       expect(after[table], table).toEqual(before[table]);
     }
-    const [p0, p1] = [before.profile[0], after.profile[0]];
-    // Only the gate-effect fields and the update time may change (named, everything else compared).
-    const CHANGEABLE = ['carbCeilingStartedAt', 'firstLowCarbAt', 'kickstartOptIn', 'updatedAt'];
-    const omit = (p: object) =>
-      Object.fromEntries(Object.entries(p).filter(([key]) => !CHANGEABLE.includes(key)));
-    expect(omit(p1 ?? {})).toEqual(omit(p0 ?? {}));
+    // A closure changes no profile field at all: the Kickstart choice and both clocks are kept.
+    expect(after.profile).toEqual(before.profile);
     await go('readiness');
     await screen.findByTestId('readiness-q5');
     fireEvent.click(row('q5').getByRole('button', { name: readiness.no }));
     await go('eating-schedule');
     await screen.findByRole('radiogroup', { name: schedule.presetsLegend });
     expect(screen.getByRole<HTMLInputElement>('radio', { name: /^23:1/ }).checked).toBe(true);
-    expect((await test.repos.profile.get()).goalKg).toBe(70);
+    // Reopening in keto mode restarts only the carb-ceiling clock (C72); nothing else changes.
+    const reopened = await test.repos.profile.get();
+    expect(reopened.carbCeilingStartedAt).not.toBe(lowCarbSince);
+    const keep = (p: object) =>
+      Object.fromEntries(
+        Object.entries(p).filter(([key]) => !['carbCeilingStartedAt', 'updatedAt'].includes(key)),
+      );
+    expect(keep(reopened)).toEqual(keep(before.profile[0] ?? {}));
   });
 
   it('K21 E53: the prescriber switch shows once; "has changed" lapses it and fasting goes off', async () => {
@@ -110,6 +121,109 @@ describe('Settings, Readiness answers (RD-06; K13, K21)', () => {
     ).toBe(false);
     await go('eating-schedule');
     expect(await screen.findByTestId('gate-notice-fasting')).toBeDefined();
+  });
+
+  it('K21 HS-33: "My symptoms have changed" lapses the GP confirmation and exercise planning goes off', async () => {
+    await setUp('readiness', { answers: { q6: 'yes' }, confirmations: ['gpExerciseDiscussed'] });
+    test.env.advanceDays(1);
+    fireEvent.click(await screen.findByRole('button', { name: readiness.changed.q6 }));
+    expect(await screen.findByText(readiness.changedDone.q6)).toBeDefined();
+    expect(
+      screen.getByRole<HTMLInputElement>('switch', {
+        name: readiness.confirmations.gpExerciseDiscussed,
+      }).checked,
+    ).toBe(false);
+    await go('move');
+    expect((await screen.findByTestId('gate-notice-exercisePlans')).textContent).toBe(
+      'Exercise planning is off because of what you told the app about exercise warning signs.',
+    );
+  });
+
+  it('K13b: with another answer keeping fasting off, nothing says fasting is allowed, can be chosen or comes on with the confirmation', async () => {
+    await setUp('readiness', {
+      answers: { q3: 'yes', q4: 'yes', q5: 'yes' },
+      confirmations: ['prescriberAgreed'],
+    });
+    const summary = (q: string) => screen.getByTestId(`summary-${q}`).textContent;
+    await screen.findByTestId('summary-q5');
+    expect(summary('q4')).toBe(readiness.ifYes.q4);
+    expect(summary('q3')).toBe(readiness.confirmedAlsoOff.prescriberAgreed);
+    expect(document.body.textContent).not.toMatch(/\ballowed\b|can be chosen/);
+    await go('eating-schedule');
+    await screen.findByTestId('gate-notice-fasting');
+    expect(screen.queryByTestId('gate-hint-fasting')).toBeNull();
+  });
+
+  it('K13b: the confirmation hint shows when answer 3 is the one reason, and not beside answer 2', async () => {
+    await setUp('eating-schedule', { answers: { q3: 'yes' } });
+    expect((await screen.findByTestId('gate-hint-fasting')).textContent).toBe(
+      readiness.confirmationHints.prescriberAgreed,
+    );
+    cleanup();
+    test.db.shutDown();
+    await setUp('eating-schedule', { answers: { q2: 'yes', q3: 'yes' } });
+    await screen.findByTestId('gate-notice-fasting');
+    expect(screen.queryByTestId('gate-hint-fasting')).toBeNull();
+    expect(document.body.textContent).not.toContain('become available');
+  });
+});
+
+describe('the birth year and the current weight in the app (HS-32, HS-35)', () => {
+  it('HS-32: a birth year that may be under 18 with answer 1 "no" closes fasting and alcohol logging, and says where to change it', async () => {
+    await setUp('eating-schedule', { profile: { birthYear: 1990 } });
+    expect(await screen.findByTestId('gate-notice-fasting')).toBeDefined();
+    expect(screen.queryByRole('radiogroup')).toBeNull();
+    await go('drinks');
+    expect(await screen.findByTestId('gate-notice-alcoholLogging')).toBeDefined();
+    await go('readiness');
+    expect((await screen.findByTestId('summary-birth-year')).textContent).toBe(
+      'Your birth year means you may be under 18, so the app keeps to its under-18 settings until 1 January 2009.',
+    );
+    expect(screen.getByText(readiness.ageCheck.whereToChange)).toBeDefined();
+    expect(
+      screen.getByRole('link', { name: readiness.ageCheck.profileLink }).getAttribute('href'),
+    ).toBe('#/profile');
+  });
+
+  it('HS-32: with answer 1 yes the birth-year line, whose date would not hold, is left out', async () => {
+    await setUp('readiness', { answers: { q1: 'yes' }, profile: { birthYear: 1990 } });
+    await screen.findByTestId('summary-q1');
+    expect(screen.queryByTestId('summary-birth-year')).toBeNull();
+  });
+
+  it('HS-35: the latest of several weigh-ins (a restored file) decides low weight', async () => {
+    await setUp('eating-schedule');
+    expect(await screen.findByRole('radiogroup', { name: schedule.presetsLegend })).toBeDefined();
+    test.env.advanceDays(10);
+    await test.repos.weights.create({
+      at: test.env.now(),
+      timeZone: 'Pacific/Auckland',
+      kg: 55,
+      source: 'manual',
+      note: null,
+    });
+    cleanup();
+    await openApp('#/eating-schedule');
+    expect(await screen.findByTestId('gate-notice-fasting')).toBeDefined();
+  });
+
+  it('HS-35: Settings, Profile says when a new height makes the stored weight low, without "correct the weight above"', async () => {
+    await setUp('profile', { weightKg: 60 });
+    fireEvent.change(await screen.findByLabelText(profile.heightLabel), {
+      target: { value: '185' },
+    });
+    expect(await screen.findByText(readiness.weightCheck.lowWeightStored)).toBeDefined();
+    expect(screen.queryByLabelText(profile.weightLabel)).toBeNull();
+  });
+
+  it('HS-32: a typed birth year the form refuses never names a lift year', async () => {
+    await setUp('profile', { profile: { birthYear: 1990 } });
+    const year = await screen.findByLabelText(profile.birthYearLabel);
+    expect(screen.getByText(/Until 1 January 2009/)).toBeDefined();
+    fireEvent.change(year, { target: { value: '1899' } });
+    expect(screen.queryByText(/This birth year means you may be under 18/)).toBeNull();
+    fireEvent.change(year, { target: { value: '1985' } });
+    expect(screen.getByText(/Until 1 January 2004/)).toBeDefined();
   });
 });
 
@@ -158,20 +272,64 @@ describe('gate notices on the placeholders (RD-01, RD-02, RD-05; K14)', () => {
 });
 
 describe('Settings, Eating schedule and Profile (K27, K20)', () => {
-  it('K27: with no pattern stored, the screen says so and "No fasting plan for now" is chosen', async () => {
+  it('K27: with no schedule ever saved, the screen says so until "No fasting plan for now" is saved', async () => {
     await setUp('eating-schedule');
+    // A setup that left out the schedule step (fasting was off then).
     await test.repos.targets.update({
       fastingPreset: null,
       eatingWindow: null,
       presetChosenBy: null,
     });
+    await test.repos.settings.update({ scheduleConfirmedAt: null });
     cleanup();
     await openApp('#/eating-schedule');
     expect(await screen.findByText(schedule.noneSaved)).toBeDefined();
-    expect(
-      screen.getByRole<HTMLInputElement>('radio', { name: new RegExp(`^${schedule.none}`) })
-        .checked,
-    ).toBe(true);
+    const none = screen.getByRole<HTMLInputElement>('radio', {
+      name: new RegExp(`^${schedule.none}`),
+    });
+    expect(none.checked).toBe(true);
+    const save = screen.getByRole('button', { name: schedule.save });
+    save.focus();
+    tap(schedule.save);
+    expect(await screen.findByText(schedule.saved)).toBeDefined();
+    await waitFor(() => {
+      expect(screen.queryByText(schedule.noneSaved)).toBeNull();
+    });
+    // The Save button keeps focus through the write (aria-disabled, not disabled).
+    expect(document.activeElement).toBe(save);
+  });
+
+  it('RD-09: Settings, Eating schedule shows the pharmacist note above the choices', async () => {
+    await setUp('eating-schedule', { answers: { q4: 'yes' } });
+    const list = await screen.findByRole('radiogroup', { name: schedule.presetsLegend });
+    const note = screen.getByText(schedule.pharmacistNote);
+    expect(note.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('C07: a Kickstart default stored before answer 4 turned yes is not offered as chosen, and says so; without answer 4 it shows the 3-week line', async () => {
+    // A Kickstart running (so the 23:1 default is not moved back to 22:2), keto since its start.
+    await setUp('eating-schedule', {
+      profile: { kickstartOptIn: true, carbCeilingStartedAt: '2000-03-01T00:00:00.000Z' },
+    });
+    await test.repos.kickstart.startPeriod();
+    await test.repos.targets.update({
+      fastingPreset: '23:1',
+      eatingWindow: { start: '18:00', end: '19:00' },
+      presetChosenBy: 'kickstart-default',
+    });
+    cleanup();
+    await openApp('#/eating-schedule');
+    await screen.findByRole('radiogroup', { name: schedule.presetsLegend });
+    expect(screen.getByText(schedule.kickstartWhen)).toBeDefined();
+    fireEvent.click(screen.getByRole<HTMLInputElement>('radio', { name: /^18:6/ }));
+    expect(screen.queryByText(schedule.kickstartWhen)).toBeNull();
+    cleanup();
+    await test.repos.readiness.answer('q4', 'yes');
+    await openApp('#/eating-schedule');
+    await screen.findByRole('radiogroup', { name: schedule.presetsLegend });
+    expect(screen.getAllByRole<HTMLInputElement>('radio').some((r) => r.checked)).toBe(false);
+    expect(screen.getByText(schedule.kickstartDefaultSetAside)).toBeDefined();
+    expect(screen.queryByText(schedule.kickstartWhen)).toBeNull();
   });
 
   it('K20: a failed profile save shows the message at the top of the form and keeps the screen', async () => {
