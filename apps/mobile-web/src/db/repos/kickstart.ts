@@ -21,12 +21,12 @@ import {
   KICKSTART_MAX_EXTENSIONS,
   type KickstartCheckRecord,
   kickstartCheckOutcome,
+  kickstartRunningAt,
   type KickstartEndReason,
   type KickstartPeriodRecord,
   kickstartUsage,
   type LocalDate,
   localDateOf,
-  scheduledLastDay,
   type SettingsRecord,
   type StopSignAnswers,
   StorageInvariantError,
@@ -66,12 +66,17 @@ const homeOf = (history: History): string =>
 
 const today = (env: StorageEnv): LocalDate => localDateOf(env.now(), env.timeZone());
 
-/** The latest period, if it is still running today (not ended early, scheduled phase not over). */
+/**
+ * The latest period, if it is still running now: not ended early, and its scheduled phase not over
+ * in the device zone nor in its own start zone (kickstartRunningAt; D27).
+ */
 function currentPeriod(history: History, env: StorageEnv): KickstartPeriodRecord | undefined {
   const latest = [...history.periods].sort((a, b) => (a.startedAt < b.startedAt ? -1 : 1)).at(-1);
-  if (latest === undefined || latest.endedAt !== null) return undefined;
+  if (latest === undefined) return undefined;
   const extensions = extensionsOf(latest.id, history.checks);
-  return today(env) <= scheduledLastDay(latest, extensions, homeOf(history)) ? latest : undefined;
+  return kickstartRunningAt(latest, extensions, env.now(), env.timeZone(), homeOf(history))
+    ? latest
+    : undefined;
 }
 
 /** Throws the first section 5 rule the history would break. */

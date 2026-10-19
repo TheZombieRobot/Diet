@@ -8,7 +8,7 @@
  */
 import { addDays, localWallClockOf, zonedWallTimeToInstant } from '../util/time';
 import { DEFAULT_HOME_TIME_ZONE, resolveZone } from './dates';
-import { type Instant, isId, isLocalDate, type TimeZone } from './primitives';
+import { type Instant, instantMs, isId, isLocalDate, type TimeZone } from './primitives';
 
 /** Where a "collapsed for the day" dismissal ends (section 3.5). */
 export type CardBoundary = 'calendar-midnight' | 'drinking-day-cutover';
@@ -154,4 +154,61 @@ export function collapsedUntil(
   const zone = resolveZone(dismissedTimeZone, DEFAULT_HOME_TIME_ZONE).timeZone;
   const { date, minutes } = localWallClockOf(dismissedAt, zone);
   return zonedWallTimeToInstant(minutes < boundary ? date : addDays(date, 1), boundary, zone);
+}
+
+/** The card_state fields that decide whether a card is hidden. */
+export interface CardStateTimes {
+  readonly dismissedAt: Instant | null;
+  readonly dismissedTimeZone: TimeZone | null;
+  readonly doneAt: Instant | null;
+}
+
+export interface CardVisibilityInput {
+  readonly now: Instant;
+  /** The card_state row of this card and trigger, if any. */
+  readonly row: CardStateTimes | null | undefined;
+  readonly dismissal: CardDismissal;
+  /** settings.drinkingDayCutoverMinutes, for the alcohol-help boundary. */
+  readonly drinkingDayCutoverMinutes: number;
+  /** The backup reminder's snooze, in milliseconds (only for 'backup-snooze'). */
+  readonly snoozeMs?: number;
+}
+
+/**
+ * Whether a card is hidden by its own dismissal rule at `now` (section 4.12; C44, C46; D26). Every
+ * card that is shown while its condition holds asks this one helper.
+ * - A dismissal or done time dated after now is ignored: it never hides anything until that moment
+ *   comes, so a phone clock that ran ahead, or an imported file dated ahead, cannot silence the
+ *   rapid-loss card, the alcohol help card or the backup reminder (health-rules review).
+ * - 'collapsed' hides only while dismissedAt <= now < collapsedUntil(...); 'returns-after' and the
+ *   backup snooze only while dismissedAt <= now < dismissedAt + their length.
+ * - doneAt counts only for 'final' cards. The cards that can never be turned off (rapid-loss and
+ *   alcohol-help) cannot be finished, so a doneAt on them is ignored here as well as refused by
+ *   the card_state validator.
+ */
+export function cardHidden(input: CardVisibilityInput): boolean {
+  const { row, dismissal } = input;
+  if (row === null || row === undefined) return false;
+  const now = instantMs(input.now);
+  const dismissed = row.dismissedAt === null ? null : instantMs(row.dismissedAt);
+  const fromPast = dismissed !== null && dismissed <= now;
+  switch (dismissal.kind) {
+    case 'final': {
+      const done = row.doneAt === null ? null : instantMs(row.doneAt);
+      return fromPast || (done !== null && done <= now);
+    }
+    case 'returns-after':
+      return fromPast && now < dismissed + dismissal.hours * 3_600_000;
+    case 'backup-snooze':
+      return fromPast && now < dismissed + (input.snoozeMs ?? 0);
+    case 'collapsed': {
+      if (!fromPast || row.dismissedAt === null) return false;
+      const end = collapsedUntil(
+        row.dismissedAt,
+        row.dismissedTimeZone ?? DEFAULT_HOME_TIME_ZONE,
+        boundaryMinutes(dismissal.boundary, input.drinkingDayCutoverMinutes),
+      );
+      return now < end;
+    }
+  }
 }

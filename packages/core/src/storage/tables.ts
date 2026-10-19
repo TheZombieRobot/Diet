@@ -23,6 +23,7 @@ import { CARB_BASES, KJ_PER_KCAL, NUTRIENT_KEYS } from '../nutrition/nutrients';
 import { HOUSEHOLD_SERVES_LIMITS, MAX_MY_SERVES } from '../nutrition/portion';
 import { WEIGHT_LIMITS_KG } from '../weight/trend';
 import { ALLERGENS, USER_ALLERGENS } from './allergens';
+import { BOOKKEEPING_INSTANT_FIELDS } from './bookkeeping';
 import { sha256Hex } from './backup/crypto';
 import { CARD_REGISTRY } from './cards';
 import * as limits from './limits';
@@ -142,8 +143,10 @@ export function stableStringify(value: unknown): string {
 
 /**
  * The stable description a fingerprint is taken of (section 9.2): every table's key, indexes,
- * backup flag, allowed operations and field validators; the backed-up and device-only lists; the
- * card registry; the readiness wording versions; and the validator constants with their values.
+ * backup flag, allowed operations and field validators (with each format's pattern and bounds);
+ * the backed-up and device-only lists; the card registry; the readiness wording versions; the
+ * bookkeeping instants that may not lie ahead (bookkeeping.ts); and the validator constants with
+ * their values. How the rules and predicates behave is pinned by GOLDEN_VECTORS.
  */
 export function specDescription(
   version: number = SCHEMA_VERSION,
@@ -172,6 +175,7 @@ export function specDescription(
     deviceOnlyTables: chainData.deviceOnlyTablesByVersion[version],
     cardRegistry: CARD_REGISTRY,
     readinessWording: READINESS_WORDING,
+    bookkeepingInstants: BOOKKEEPING_INSTANT_FIELDS,
     validatorConstants: constants,
   });
 }

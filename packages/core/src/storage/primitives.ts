@@ -23,7 +23,11 @@ export type RefId = string;
 export type YesNo = 'yes' | 'no';
 export const YES_NO = Object.freeze(['yes', 'no'] as const satisfies readonly YesNo[]);
 
-/** Rule ids carried by StorageValidationError (section 2.3). The last two are write-time only. */
+/**
+ * Rule ids carried by StorageValidationError (section 2.3). 'zone-unknown' and 'future-year' are
+ * write-time only; 'future' (a bookkeeping instant dated after the moment of writing, or after a
+ * file's exportedAt) is checked at write and on import (bookkeeping.ts).
+ */
 export const STORAGE_RULES = Object.freeze([
   'type',
   'missing',
@@ -40,6 +44,7 @@ export const STORAGE_RULES = Object.freeze([
   'pattern',
   'zone-unknown',
   'future-year',
+  'future',
 ] as const);
 export type StorageRule = (typeof STORAGE_RULES)[number];
 
@@ -346,7 +351,7 @@ export function normalizeNote(value: unknown): unknown {
 
 export function text(min: number, max: number): Validator<string> {
   return leaf(
-    { type: 'text', min, max },
+    { type: 'text', min, max, control: TEXT_CONTROL_RE.source },
     (v, path) => {
       if (typeof v !== 'string') return fail(path, 'type');
       if (v.length < min || v.length > max) return fail(path, 'length', `${min}–${max} characters`);
@@ -359,7 +364,7 @@ export function text(min: number, max: number): Validator<string> {
 
 export function note(max: number): Validator<string> {
   return leaf(
-    { type: 'note', max },
+    { type: 'note', max, control: NOTE_CONTROL_RE.source },
     (v, path) => {
       if (typeof v !== 'string') return fail(path, 'type');
       if (v.length < 1 || v.length > max) return fail(path, 'length', `1–${max} characters`);
@@ -370,21 +375,51 @@ export function note(max: number): Validator<string> {
   );
 }
 
-/** A string checked by a format predicate ('format' rule). */
-function formatted<T extends string>(name: string, test: (v: unknown) => v is T): Validator<T> {
-  return leaf({ type: name }, (v, path) => {
+/**
+ * A string checked by a format predicate ('format' rule). The description carries the
+ * predicate's pattern and bounds, so changing one changes the spec fingerprint (section 9.2); the
+ * golden vectors pin how the predicate behaves on its edges.
+ */
+function formatted<T extends string>(
+  name: string,
+  test: (v: unknown) => v is T,
+  rules: { readonly [key: string]: Desc },
+): Validator<T> {
+  return leaf({ type: name, ...rules }, (v, path) => {
     if (typeof v !== 'string') return fail(path, 'type');
     return test(v) ? v : fail(path, 'format');
   });
 }
 
-export const instant: Validator<Instant> = formatted('instant', isInstant);
-export const localDate: Validator<LocalDate> = formatted('local-date', isLocalDate);
-export const clockTime: Validator<ClockTime> = formatted('clock-time', isClockTime);
-export const timeZone: Validator<TimeZone> = formatted('time-zone', isTimeZoneName);
-export const id: Validator<Id> = formatted('id', isId);
-export const seedId: Validator<SeedId> = formatted('seed-id', isSeedId);
-export const refId: Validator<RefId> = formatted('ref-id', isRefId);
+export const instant: Validator<Instant> = formatted('instant', isInstant, {
+  pattern: INSTANT_RE.source,
+  min: INSTANT_MIN,
+  end: INSTANT_END,
+  canonical: 'toISOString',
+});
+export const localDate: Validator<LocalDate> = formatted('local-date', isLocalDate, {
+  pattern: LOCAL_DATE_RE.source,
+  min: LOCAL_DATE_MIN,
+  max: LOCAL_DATE_MAX,
+  calendar: true,
+});
+export const clockTime: Validator<ClockTime> = formatted('clock-time', isClockTime, {
+  pattern: CLOCK_TIME_RE.source,
+});
+export const timeZone: Validator<TimeZone> = formatted('time-zone', isTimeZoneName, {
+  pattern: TIME_ZONE_RE.source,
+  maxLength: TIME_ZONE_MAX_LENGTH,
+  refused: ['Etc/Unknown'],
+});
+export const id: Validator<Id> = formatted('id', isId, { pattern: ID_RE.source });
+export const seedId: Validator<SeedId> = formatted('seed-id', isSeedId, {
+  pattern: SEED_ID_RE.source,
+  maxLength: SEED_ID_MAX_LENGTH,
+});
+export const refId: Validator<RefId> = formatted('ref-id', isRefId, {
+  either: [ID_RE.source, SEED_ID_RE.source],
+  seedMaxLength: SEED_ID_MAX_LENGTH,
+});
 
 /** A string matching a regular expression ('pattern' rule), with a length range. */
 export function pattern(name: string, re: RegExp, min: number, max: number): Validator<string> {

@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { defaultSnapshot } from './defaults';
 import {
   chainInfo,
+  checkMigrationResult,
   computeGoldenVectors,
   GOLDEN_VECTORS,
   type Migration,
+  MigrationError,
   MIGRATIONS,
   migrateSnapshot,
   SCHEMA_VERSION,
@@ -12,7 +14,8 @@ import {
 } from './migrations';
 import type { Desc } from './primitives';
 import { STORES_V1 } from './specs/v1';
-import { specDescription, specFingerprint, VALIDATOR_CONSTANTS } from './tables';
+import { specDescription, specFingerprint, TABLES_BY_VERSION, VALIDATOR_CONSTANTS } from './tables';
+import { computeValidatorVectors } from './validate';
 
 const env = {
   now: '2000-01-01T00:00:00.000Z',
@@ -123,10 +126,33 @@ describe('the guards against an unversioned schema change (section 9.2; D12)', (
     expect(description.tables['garden_photos']).toMatchObject({ backup: false, ops: [] });
   });
 
+  it('the description carries the pattern and bounds of every format, so changing one changes the fingerprint', () => {
+    const description = specDescription();
+    for (const part of [
+      String.raw`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$`,
+      '2100-01-01T00:00:00.000Z',
+      '2099-12-31',
+      'Etc/Unknown',
+      String.raw`[\u0000-\u0009\u000b-\u001f\u007f]`,
+      String.raw`[\u0000-\u001f\u007f]`,
+      'done-only-for-final-cards',
+      'bookkeepingInstants',
+    ]) {
+      // The description is JSON text, so a backslash in a pattern appears escaped.
+      expect(description, part).toContain(JSON.stringify(part).slice(1, -1));
+    }
+  });
+
   it('GOLDEN_VECTORS[SCHEMA_VERSION] matches the live outputs of the core functions the validators rely on', () => {
     const pinned = GOLDEN_VECTORS[SCHEMA_VERSION];
     if (pinned === undefined) throw new Error('no golden vectors');
     expect(computeGoldenVectors(pinned)).toEqual(pinned);
+    // The rules inside one record and the formats, on their edges (validatorVectors.ts).
+    expect(computeValidatorVectors(pinned.validator, TABLES_BY_VERSION[SCHEMA_VERSION])).toEqual(
+      pinned.validator,
+    );
+    expect(pinned.validator.length).toBeGreaterThanOrEqual(50);
+    expect(pinned.formats.length).toBeGreaterThanOrEqual(50);
     expect(pinned.windowLength.length).toBeGreaterThanOrEqual(5 + 2);
     expect(pinned.drinkLabel.map((v) => v.name)).toEqual([
       'label applies',
@@ -134,5 +160,70 @@ describe('the guards against an unversioned schema change (section 9.2; D12)', (
       'ABV edited',
       'printed figure null',
     ]);
+  });
+});
+
+describe('the migration step contract (section 9.3; data-loss review)', () => {
+  const v1 = MIGRATIONS[0] as Migration;
+  const step = (patch: Partial<Migration>): Migration => ({
+    ...v1,
+    version: 2,
+    stores: {},
+    backup: { added: [], removed: [], deviceOnly: [] },
+    reads: ['weights', 'fasts'],
+    rewrites: ['weights'],
+    removesRows: [],
+    upgrade: (s) => ({ snapshot: s, changes: [] }),
+    ...patch,
+  });
+  const given = { weights: [{ id: 'a' }, { id: 'b' }], fasts: [{ id: 'c' }] };
+  const refusal = (fn: () => void) => {
+    try {
+      fn();
+    } catch (error) {
+      return error instanceof MigrationError ? error.rule : 'other';
+    }
+    return null;
+  };
+
+  /** The rule checkMigrationResult refuses `snapshot` with, or null when it accepts it. */
+  const check = (
+    patch: Partial<Migration>,
+    snapshot: Record<string, unknown[]>,
+    required: readonly string[] = [],
+  ) =>
+    refusal(() => {
+      checkMigrationResult(step(patch), given, { snapshot, changes: [] }, required);
+    });
+
+  it('accepts a step that returns what it was given, and one that removes rows it declares', () => {
+    expect(check({}, given)).toBeNull();
+    expect(check({ removesRows: ['weights'] }, { ...given, weights: [{ id: 'a' }] })).toBeNull();
+  });
+
+  it('refuses a step that leaves out a store it rewrites, or a backed-up store it was given', () => {
+    expect(check({}, { fasts: given.fasts })).toBe('missing-store');
+    expect(check({}, { weights: given.weights }, ['weights', 'fasts'])).toBe('missing-store');
+  });
+
+  it('refuses rows lost without being declared, and a change to a store it does not rewrite', () => {
+    expect(check({}, { ...given, weights: [{ id: 'a' }] })).toBe('rows-lost');
+    expect(check({}, { ...given, fasts: [] })).toBe('unexpected-change');
+    expect(check({}, { ...given, audit: [{ id: 'x' }] })).toBe('unexpected-change');
+  });
+
+  it('migrateSnapshot runs the check: a step that drops a backed-up store throws instead of emptying it', () => {
+    const chain: Migration[] = [
+      v1,
+      step({
+        upgrade: (s) => {
+          const rest = { ...s };
+          delete rest['weights'];
+          return { snapshot: rest, changes: [] };
+        },
+      }),
+    ];
+    const snapshot = defaultSnapshot(env) as unknown as Record<string, unknown[]>;
+    expect(() => migrateSnapshot(1, snapshot, env, chain)).toThrow(MigrationError);
   });
 });

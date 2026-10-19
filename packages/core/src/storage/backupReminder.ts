@@ -10,7 +10,11 @@
  *   counts as protected: it lasts milliseconds and must not flash a warning.
  * - Days are 24 h of elapsed time. A confirmed export clears it through lastBackupAt; an
  *   unconfirmed one does not (D21).
+ * - A last backup or onboarding time dated after now makes it due at once, and a dismissal dated
+ *   after now is ignored (cardHidden), so a clock that ran ahead, or an imported file dated ahead,
+ *   never silences it (health-rules review).
  */
+import { cardHidden } from './cards';
 import { type Instant, instantMs } from './primitives';
 
 /** The persistent-storage status (PWA-06 as reworded by C98). Never stored (D24). */
@@ -47,9 +51,18 @@ export function backupReminder(input: BackupReminderInput): BackupReminderState 
   const { dueAfter, snooze } = weak ? BACKUP_REMINDER_DAYS.weak : BACKUP_REMINDER_DAYS.protected;
   const now = instantMs(input.now);
   const reference = instantMs(input.lastBackupAt ?? input.onboardingCompletedAt);
-  const dismissed = input.dismissedAt === null ? null : instantMs(input.dismissedAt);
-  const visible =
-    now - reference >= dueAfter * DAY_MS &&
-    (dismissed === null || dismissed < reference || now - dismissed >= snooze * DAY_MS);
+  const due = reference > now || now - reference >= dueAfter * DAY_MS;
+  // A dismissal made before the last backup (or onboarding) no longer counts.
+  const snoozed =
+    input.dismissedAt !== null &&
+    instantMs(input.dismissedAt) >= reference &&
+    cardHidden({
+      now: input.now,
+      row: { dismissedAt: input.dismissedAt, dismissedTimeZone: null, doneAt: null },
+      dismissal: { kind: 'backup-snooze' },
+      drinkingDayCutoverMinutes: 0,
+      snoozeMs: snooze * DAY_MS,
+    });
+  const visible = due && !snoozed;
   return { visible, prominent: visible && weak };
 }

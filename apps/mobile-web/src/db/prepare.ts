@@ -5,14 +5,19 @@
  * on import, upgrade or export:
  * - every TimeZone field written with a new value is one this device's Intl recognises
  *   ('zone-unknown');
- * - profile.birthYear is not after the current year in the device zone ('future-year').
+ * - profile.birthYear is not after the current year in the device zone ('future-year');
+ * - no bookkeeping instant (a card dismissal or done time, a backup confirmation, an onboarding
+ *   confirmation, createdAt or updatedAt; core bookkeeping.ts) is dated more than a few minutes
+ *   after now ('future'), so nothing can hide a card or the backup reminder for a time ahead.
  * Values carried over unchanged from the stored row are not re-checked, so editing an old entry
  * recorded in a zone this browser does not know still saves.
  */
 import {
   type Desc,
+  futureBookkeepingField,
   isPlainObject,
   isValidTimeZone,
+  latestBookkeepingMs,
   localDateOf,
   normalizeRow,
   StorageValidationError,
@@ -64,6 +69,10 @@ export function checkEnvironment(
       throw new StorageValidationError(table, 'birthYear', 'future-year');
     }
   }
+  const future = futureBookkeepingField(table, row, latestBookkeepingMs(env.now()), (field) =>
+    changed(row, previous, field),
+  );
+  if (future !== null) throw new StorageValidationError(table, future, 'future');
 }
 
 /** Normalise, check the environment, validate. Returns the new row in spec order. */

@@ -12,7 +12,18 @@ import {
 import { describe, expect, it } from 'vitest';
 import { fixtureEnv } from './env';
 import { SNAPSHOT_V1_APP_VERSION, snapshotV1 } from './snapshotV1';
-import { chainA, chainB, chainC, type ProfileV2, type Rows, type SettingsV2 } from './testChains';
+import {
+  chainA,
+  chainB,
+  chainC,
+  chainDropsStore,
+  chainInvariant,
+  chainKickstartCap,
+  chainLosesRows,
+  type ProfileV2,
+  type Rows,
+  type SettingsV2,
+} from './testChains';
 
 async function v1File(
   patch: (tables: Record<string, Rows>) => void = () => undefined,
@@ -102,6 +113,20 @@ describe('test-only version-2 chains (section 9.6; section 16 test 17)', () => {
       { marker: 1 },
     ]);
   });
+
+  it.each([
+    ['leaves out a store it rewrites', chainDropsStore, 'invalid-record'],
+    ['loses rows it does not declare it removes', chainLosesRows, 'invalid-record'],
+    ['makes valid rows that break the cross-record rules', chainInvariant, 'inconsistent'],
+    ['takes the Kickstart history past 42 days', chainKickstartCap, 'inconsistent'],
+  ] as const)(
+    'a version-1 file through a step that %s is refused, never imported with records missing (data-loss review)',
+    async (_, chain, code) => {
+      await expect(
+        decodeBackupText(await v1File(), { env: fixtureEnv(), chain }),
+      ).rejects.toMatchObject({ code });
+    },
+  );
 
   it('a newer file than the chain is refused as newer-version', async () => {
     const text = (await v1File()).replace('"schemaVersion":1', '"schemaVersion":2');

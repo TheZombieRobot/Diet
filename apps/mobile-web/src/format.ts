@@ -6,16 +6,16 @@ import { DEFAULT_HOME_TIME_ZONE, type Instant, resolveZone, type TimeZone } from
 
 const formatters = new Map<string, Intl.DateTimeFormat>();
 
-function formatter(zone: TimeZone, withTime: boolean): Intl.DateTimeFormat {
-  const key = `${zone}|${String(withTime)}`;
+type Parts = 'date' | 'date-time' | 'time';
+
+function formatter(zone: TimeZone, parts: Parts): Intl.DateTimeFormat {
+  const key = `${zone}|${parts}`;
   let f = formatters.get(key);
   if (f === undefined) {
     f = new Intl.DateTimeFormat('en-NZ', {
       timeZone: zone,
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      ...(withTime ? { hour: 'numeric', minute: '2-digit' } : {}),
+      ...(parts === 'time' ? {} : { day: 'numeric', month: 'long', year: 'numeric' }),
+      ...(parts === 'date' ? {} : { hour: 'numeric', minute: '2-digit' }),
     });
     formatters.set(key, f);
   }
@@ -24,12 +24,21 @@ function formatter(zone: TimeZone, withTime: boolean): Intl.DateTimeFormat {
 
 /** "19 October 2026" in `zone` (falling back to the home zone, then UTC). */
 export function formatLocalDate(at: Instant, zone: TimeZone): string {
-  return formatter(resolveZone(zone, DEFAULT_HOME_TIME_ZONE).timeZone, false).format(
+  return formatter(resolveZone(zone, DEFAULT_HOME_TIME_ZONE).timeZone, 'date').format(
     Date.parse(at),
   );
 }
 
 /** "19 October 2026 at 8:05 pm" in `zone`. */
 export function formatLocalDateTime(at: Instant, zone: TimeZone): string {
-  return formatter(resolveZone(zone, DEFAULT_HOME_TIME_ZONE).timeZone, true).format(Date.parse(at));
+  return formatter(resolveZone(zone, DEFAULT_HOME_TIME_ZONE).timeZone, 'date-time').format(
+    Date.parse(at),
+  );
+}
+
+/** "8:05 pm" in `zone`. */
+export function formatLocalTime(at: Instant, zone: TimeZone): string {
+  return formatter(resolveZone(zone, DEFAULT_HOME_TIME_ZONE).timeZone, 'time').format(
+    Date.parse(at),
+  );
 }

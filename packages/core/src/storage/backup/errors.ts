@@ -30,18 +30,49 @@ export interface BackupErrorDetail {
   readonly allowed?: string | null;
 }
 
-function describe(detail: BackupErrorDetail): string {
-  const table = detail.table ?? null;
-  const index = detail.index ?? null;
-  const field = detail.field ?? '';
+const lastSegment = (field: string): string => {
+  const parts = field.replace(/\[\d+\]/g, '').split('.');
+  return parts[parts.length - 1] ?? '';
+};
+
+const lookup = <T extends Readonly<Record<string, string>>>(map: T, key: string | null) =>
+  key !== null && Object.hasOwn(map, key) ? map[key as keyof T] : undefined;
+
+/**
+ * A record problem in plain words (ux review): the store's plain name, the position, the field's
+ * plain name and what is wrong with it, with the allowed range from the spec, for example
+ * "Targets, record 1: the Steady-phase deficit is outside the allowed range (15–20)". A
+ * cross-record rule reads as a sentence ("two fasts overlap"). Never a value or a record key, and
+ * never a code name such as a field, store or rule id.
+ */
+export function describeRecordProblem(detail: BackupErrorDetail): string {
+  const copy = privacy.recordProblem;
+  const ruleId = detail.rule ?? null;
+  const invariant = lookup(copy.invariants, ruleId);
+  if (invariant !== undefined) {
+    // A row a rescue import set aside for a cross-record rule is named by store and position.
+    const store = lookup(privacy.storeNames, detail.table ?? null);
+    const at = detail.index ?? null;
+    return store === undefined || at === null
+      ? invariant
+      : fillTemplate(copy.crossRecord, { table: store, position: at + 1, rule: invariant });
+  }
+  const ruleText = lookup(copy.rules, ruleId) ?? copy.rules.notAccepted;
   const allowed = detail.allowed ?? null;
-  const parts: string[] = [];
-  if (table !== null) parts.push(table);
-  if (index !== null) parts.push(`record ${index + 1}`);
-  if (field !== '') parts.push(field);
-  const where = parts.join(' ');
-  const rule = `${detail.rule ?? 'not accepted'}${allowed === null ? '' : `, allowed ${allowed}`}`;
-  return where === '' ? rule : `${where}: ${rule}`;
+  const rule =
+    allowed === null ? ruleText : fillTemplate(copy.allowed, { rule: ruleText, allowed });
+  const tableId = detail.table ?? null;
+  const index = detail.index ?? null;
+  if (index === null && ruleId === 'extra-key') return copy.unknownList;
+  if (tableId === null) return fillTemplate(copy.file, { rule });
+  const table = lookup(privacy.storeNames, tableId) ?? copy.someList;
+  if (index === null) return fillTemplate(copy.list, { table, rule });
+  const position = index + 1;
+  const fieldId = lastSegment(detail.field ?? '');
+  const field = lookup(copy.fields, fieldId === '' ? null : fieldId);
+  return field === undefined
+    ? fillTemplate(copy.withoutField, { table, position, rule })
+    : fillTemplate(copy.withField, { table, position, field, rule });
 }
 
 /** Why an import was refused. Nothing in the database is touched until the write step. */
@@ -51,14 +82,17 @@ export class BackupError extends Error {
   readonly index: number | null;
   readonly field: string | null;
   readonly rule: string | null;
+  /** The allowed range, from spec constants. */
+  readonly allowed: string | null;
 
   constructor(code: BackupErrorCode, detail: BackupErrorDetail = {}) {
-    super(fillTemplate(privacy.backupErrors[code], { detail: describe(detail) }));
+    super(fillTemplate(privacy.backupErrors[code], { detail: describeRecordProblem(detail) }));
     this.code = code;
     this.table = detail.table ?? null;
     this.index = detail.index ?? null;
     this.field = detail.field ?? null;
     this.rule = detail.rule ?? null;
+    this.allowed = detail.allowed ?? null;
   }
 }
 BackupError.prototype.name = 'BackupError';
@@ -85,11 +119,7 @@ export class BackupExportError extends Error {
     const copy = privacy.exportBackup;
     const message =
       code === 'self-check-failed'
-        ? fillTemplate(copy.selfCheckFailed, {
-            table: detail.table ?? '(file)',
-            field: (detail.field ?? '') === '' ? '(record)' : (detail.field ?? ''),
-            rule: detail.rule ?? 'not accepted',
-          })
+        ? fillTemplate(copy.selfCheckFailed, { detail: describeRecordProblem(detail) })
         : code === 'lock-check-failed'
           ? copy.lockCheckFailed
           : code === 'password-too-short'

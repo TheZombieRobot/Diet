@@ -18,7 +18,7 @@ import {
   SAT_FAT_BUDGET_PCT,
   STEADY_DEFICIT_PCT,
 } from './limits';
-import type { Id, Instant } from './primitives';
+import { type Id, type Instant, INSTANT_MIN } from './primitives';
 import type {
   BackupTableName,
   BeverageRecord,
@@ -29,7 +29,7 @@ import type {
   StoreRecords,
   TargetsRecord,
 } from './records';
-import { BACKUP_TABLES } from './tables';
+import { BACKUP_TABLES, stableStringify } from './tables';
 
 /** What seeding needs: the creation time and fresh ids. */
 export interface SeedEnv {
@@ -187,6 +187,35 @@ export function defaultSingleton(
     : table === 'targets'
       ? defaultTargets(now)
       : defaultSettings();
+}
+
+const without = (row: unknown, fields: readonly string[]): string | null => {
+  if (typeof row !== 'object' || row === null || Array.isArray(row)) return null;
+  const kept = Object.entries(row as Record<string, unknown>).filter(([k]) => !fields.includes(k));
+  return stableStringify(Object.fromEntries(kept));
+};
+
+const SEED_EQUAL_APART_FROM: Readonly<Partial<Record<string, readonly string[]>>> = {
+  profile: ['createdAt', 'updatedAt'],
+  targets: ['updatedAt'],
+  settings: [],
+  beverages: ['id', 'createdAt', 'updatedAt'],
+  garden: ['id', 'updatedAt'],
+};
+
+/**
+ * Whether a row is still exactly as a new database seeds it (section 6), apart from its id and
+ * timestamps: the default profile, targets and settings, the default drink preset and the
+ * silverbeet garden row. The import confirmation does not count such rows as the owner's records,
+ * so restoring onto a new phone, or after delete-all, warns of no loss (data-loss and ux reviews).
+ */
+export function isUntouchedSeedRow(table: string, row: unknown): boolean {
+  const ignored = SEED_EQUAL_APART_FROM[table];
+  if (ignored === undefined) return false;
+  const env: SeedEnv = { now: INSTANT_MIN, randomId: () => '' };
+  const seeded = (populateRows(env) as unknown as Record<string, readonly unknown[]>)[table] ?? [];
+  const actual = without(row, ignored);
+  return actual !== null && seeded.some((seed) => without(seed, ignored) === actual);
 }
 
 /** A fresh database's backed-up stores: the seed rows, and every other store empty. */

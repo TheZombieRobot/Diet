@@ -27,6 +27,10 @@ const NUMBERS = [
   helpNumbers.needToTalk.number,
 ];
 
+function browserLikeActions(): StorageFailureActions {
+  return { reload: vi.fn(), makeRescueCopy: vi.fn(() => Promise.resolve(null)), download: vi.fn() };
+}
+
 describe('storage failure screens (HS-13; section 16 test 41)', () => {
   it.each(FAILURES)(
     '%s replaces the app and carries the not-a-medical-device line and every help number',
@@ -42,6 +46,12 @@ describe('storage failure screens (HS-13; section 16 test 41)', () => {
       for (const number of NUMBERS) expect(text).toContain(number);
       expect(screen.getByRole('link', { name: /111$/ }).getAttribute('href')).toBe('tel:111');
       expect(screen.getByRole('button', { name: privacy.storageFailure.reload })).toBeDefined();
+      // The card under the "Your records" heading has its own name.
+      expect(
+        screen
+          .getByRole('region', { name: privacy.storageFailure.cardLabel })
+          .contains(screen.getByTestId('storage-failure')),
+      ).toBe(true);
       // Settings, the tabs and delete-all are not reachable from a failure screen.
       expect(screen.queryByRole('navigation', { name: 'Main' })).toBeNull();
       expect(screen.queryByRole('link', { name: 'Settings' })).toBeNull();
@@ -51,6 +61,17 @@ describe('storage failure screens (HS-13; section 16 test 41)', () => {
       ).toBe(status === 'upgrade-failed');
     },
   );
+
+  it('upgrade-failed: saving the rescue copy is the main button and Reload comes after it', () => {
+    render(<StorageFailureScreen status="upgrade-failed" actions={browserLikeActions()} />);
+    const card = screen.getByRole('region', { name: privacy.storageFailure.cardLabel });
+    const buttons = within(card).getAllByRole('button');
+    const save = within(card).getByRole('button', { name: privacy.storageFailure.saveRescueCopy });
+    const reload = within(card).getByRole('button', { name: privacy.storageFailure.reload });
+    expect(buttons.indexOf(save)).toBeLessThan(buttons.indexOf(reload));
+    expect(save.className).toContain('ui-button--primary');
+    expect(reload.className).toContain('ui-button--secondary');
+  });
 
   it('upgrade-failed: the rescue copy is locked by default and is offered as a download', async () => {
     const makeRescueCopy = vi.fn((password: string | null) =>
@@ -84,6 +105,16 @@ describe('storage failure screens (HS-13; section 16 test 41)', () => {
       );
     });
     expect(makeRescueCopy).toHaveBeenCalledWith(phrase);
+    // Where the file went, and a way to save another copy.
+    const saved = await screen.findByTestId('rescue-saved');
+    expect(saved.textContent).toContain(
+      'look in Downloads for diet-backup-2000-03-01-rescue-locked.json, saved at',
+    );
+    expect(saved.textContent).toContain(privacy.rescue.note);
+    fireEvent.click(within(saved).getByRole('button', { name: privacy.rescue.saveAnother }));
+    expect(
+      screen.getByRole('button', { name: privacy.storageFailure.saveRescueCopy }),
+    ).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: privacy.storageFailure.reload }));
     expect(actions.reload).toHaveBeenCalledOnce();
     expect(

@@ -1,10 +1,14 @@
 import type { ButtonHTMLAttributes, ReactElement } from 'react';
 import { classNames } from '../classNames';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'tint' | 'quiet';
+export type ButtonVariant = 'primary' | 'secondary' | 'tint' | 'quiet' | 'caution';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  /** primary: the one main action; secondary: outlined; tint: soft teal; quiet: text only. */
+  /**
+   * primary: the one main action; secondary: outlined; tint: soft teal; quiet: text only;
+   * caution: outlined in amber, for an action that cannot be undone (deleting or replacing
+   * records). Red stays for emergencies only (UX_SCREENS design rules).
+   */
   variant?: ButtonVariant;
   /** Full width of its container. */
   block?: boolean;

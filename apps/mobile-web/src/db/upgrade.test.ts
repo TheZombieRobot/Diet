@@ -6,8 +6,12 @@ import {
   chainA,
   chainB,
   chainC,
+  chainDropsStore,
   chainFailing,
   chainIdentity,
+  chainInvariant,
+  chainKickstartCap,
+  chainLosesRows,
   type ProfileV2,
   type SettingsV2,
   snapshotV1,
@@ -142,6 +146,28 @@ describe('upgrades through Dexie (section 16 test 32)', () => {
     expect(decoded.setAside).toEqual([]);
     expect(decoded.snapshot.weights).toEqual(before.weights);
   });
+
+  it.each([
+    ['leaves out a store it rewrites', chainDropsStore],
+    ['loses rows it does not declare it removes', chainLosesRows],
+    ['makes valid rows that break the cross-record rules', chainInvariant],
+    ['takes the Kickstart history past 42 days', chainKickstartCap],
+  ] as const)(
+    'a version-2 step that %s reports upgrade-failed and leaves version 1 exactly as it was (data-loss review)',
+    async (_, chain) => {
+      const v1 = await v1Database();
+      const again = await openTestDb({ deps: v1.deps, env: v1.env });
+      const before = await backupSnapshot(again.db);
+      again.db.shutDown();
+      const status = createStore<OpenStatus>('opening');
+      const result = await openDietDb(v1.env, v1.deps, { chain, status });
+      expect(result).toEqual({ status: 'upgrade-failed', db: null });
+      expect(await installedNativeVersion(v1.deps.indexedDB)).toBe(10);
+      const unchanged = await openTestDb({ deps: v1.deps, env: v1.env });
+      expect(await backupSnapshot(unchanged.db)).toStrictEqual(before);
+      unchanged.db.shutDown();
+    },
+  );
 
   it('a device-only row that fails the last-step check (a photo 5,000 px wide) is deleted, and the upgrade succeeds', async () => {
     const v1 = await v1Database();

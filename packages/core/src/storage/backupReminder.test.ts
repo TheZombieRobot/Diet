@@ -62,4 +62,15 @@ describe('BK-03: the weekly backup reminder (section 12.2; D25; section 16 test 
       prominent: false,
     });
   });
+
+  it('a last backup, onboarding time or dismissal dated after now never silences it (a clock that ran ahead, or an imported file)', () => {
+    // A backup confirmation one year ahead: due now, not hidden for a year.
+    expect(state({ lastBackupAt: at(365 * DAY), now: at(10 * DAY) }).visible).toBe(true);
+    expect(state({ onboardingCompletedAt: at(365 * DAY), now: at(1 * DAY) }).visible).toBe(true);
+    // A dismissal dated a year ahead is ignored until that moment comes.
+    const dismissedAt = at(365 * DAY);
+    expect(state({ dismissedAt, now: at(8 * DAY) }).visible).toBe(true);
+    expect(state({ dismissedAt, now: at(365 * DAY + HOUR) }).visible).toBe(false);
+    expect(state({ dismissedAt, now: at(372 * DAY) }).visible).toBe(true);
+  });
 });

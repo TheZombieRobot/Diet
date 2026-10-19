@@ -1,3 +1,4 @@
+import { fillTemplate } from '@diet/core';
 import { privacy } from '@diet/core/copy/health';
 import { Button, Card, Notice } from '@diet/ui';
 import { useState, type ReactElement } from 'react';
@@ -5,9 +6,12 @@ import type { FailureStatus } from '../db/db';
 import { browserEnv } from '../db/env';
 import { createUpgradeRescueCopy, type SavedFile } from '../db/exportBackup';
 import { offerDownload } from '../files';
+import { formatLocalTime } from '../format';
 import { HelpNumberList } from './HelpNumbers';
+import { useStepFocus } from './backup/focus';
 import { LockFields } from './backup/LockFields';
 import { LOCKED_BY_DEFAULT, type LockChoice, lockProblem, passwordOf } from './backup/lockChoice';
+import { Progress } from './backup/Progress';
 
 export interface StorageFailureActions {
   readonly reload: () => void;
@@ -31,6 +35,8 @@ const browserActions: StorageFailureActions = {
  * so Settings and delete-all are not reachable from them. Every one also shows, from static copy
  * with no dependence on the database, the not-a-medical-device line and the help numbers: these
  * screens appear exactly when the rest of the app is unusable, for example during a running fast.
+ * On upgrade-failed, saving the rescue copy is the main button and Reload comes after it; once
+ * saved, the screen says where the file went and offers another copy (ux review).
  */
 export function StorageFailureScreen({
   status,
@@ -46,12 +52,16 @@ export function StorageFailureScreen({
         <h1 className="ui-topbar__title">{copy.title}</h1>
       </header>
       <main id="main" className="ui-shell__main" tabIndex={-1}>
-        <Card label={copy.title}>
+        <Card label={copy.cardLabel}>
           <p className="ui-text-lead" data-testid="storage-failure">
             {copy[status]}
           </p>
           {status === 'upgrade-failed' ? <RescueCopy actions={actions} /> : null}
-          <Button variant="primary" block onClick={actions.reload}>
+          <Button
+            variant={status === 'upgrade-failed' ? 'secondary' : 'primary'}
+            block
+            onClick={actions.reload}
+          >
             {copy.reload}
           </Button>
         </Card>
@@ -69,13 +79,14 @@ function RescueCopy({ actions }: { readonly actions: StorageFailureActions }): R
   const [choice, setChoice] = useState<LockChoice>(LOCKED_BY_DEFAULT);
   const [problem, setProblem] = useState<string | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
-  const [saved, setSaved] = useState<string | null>(null);
-  const [working, setWorking] = useState(false);
+  const [saved, setSaved] = useState<SavedFile | null>(null);
+  const [working, setWorking] = useState<'locked' | 'plain' | null>(null);
+  const stepStart = useStepFocus<HTMLParagraphElement>(saved === null ? 'form' : 'saved');
   const save = async (): Promise<void> => {
     const refused = lockProblem(choice);
     setProblem(refused);
     if (refused !== null) return;
-    setWorking(true);
+    setWorking(choice.locked ? 'locked' : 'plain');
     try {
       const file = await actions.makeRescueCopy(passwordOf(choice));
       setChoice(LOCKED_BY_DEFAULT);
@@ -83,18 +94,35 @@ function RescueCopy({ actions }: { readonly actions: StorageFailureActions }): R
         setFailure(privacy.rescue.failed);
       } else {
         actions.download(file.file.text, file.fileName);
-        setSaved(file.fileName);
+        setFailure(null);
+        setSaved(file);
       }
     } catch {
       setFailure(privacy.rescue.failed);
     }
-    setWorking(false);
+    setWorking(null);
   };
   if (saved !== null) {
     return (
-      <Notice role="status">
-        <p>{privacy.rescue.note}</p>
-      </Notice>
+      <div className="ui-card__body" data-testid="rescue-saved">
+        <Notice role="status">
+          <p ref={stepStart} tabIndex={-1} className="ui-step-start">
+            {fillTemplate(privacy.exportBackup.checkDownloads, {
+              fileName: saved.fileName,
+              time: formatLocalTime(saved.file.exportedAt, browserEnv().timeZone()),
+            })}
+          </p>
+          <p>{privacy.rescue.note}</p>
+        </Notice>
+        <Button
+          block
+          onClick={() => {
+            setSaved(null);
+          }}
+        >
+          {privacy.rescue.saveAnother}
+        </Button>
+      </div>
     );
   }
   return (
@@ -106,18 +134,23 @@ function RescueCopy({ actions }: { readonly actions: StorageFailureActions }): R
         void save();
       }}
     >
-      <p>{privacy.rescue.note}</p>
+      <p ref={stepStart} tabIndex={-1} className="ui-step-start">
+        {privacy.rescue.note}
+      </p>
       <LockFields
         value={choice}
         onChange={setChoice}
         problem={problem}
         failure={failure}
-        disabled={working}
+        disabled={working !== null}
       />
-      <Button type="submit" block disabled={working}>
-        {working && choice.locked
-          ? privacy.exportBackup.locking
-          : privacy.storageFailure.saveRescueCopy}
+      {working === null ? null : (
+        <Progress
+          text={working === 'locked' ? privacy.exportBackup.locking : privacy.exportBackup.working}
+        />
+      )}
+      <Button type="submit" variant="primary" block disabled={working !== null}>
+        {privacy.storageFailure.saveRescueCopy}
       </Button>
     </form>
   );

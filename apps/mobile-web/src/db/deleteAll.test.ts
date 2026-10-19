@@ -49,6 +49,7 @@ function depsFor(
     db: test.db,
     gate: test.db.gate,
     postGate: vi.fn(),
+    locks: null,
     indexedDB: test.deps.indexedDB,
     caches: undefined,
     localStorage: () => memoryStorage(),
@@ -150,15 +151,41 @@ describe('delete all (HS-30; section 16 test 31)', () => {
     const result = await deleteAllData(deps);
     expect(result.ok).toBe(true);
     expect(await autosave.result).toBeInstanceOf(StorageClosedError);
-    // A live query re-running after step 1 fails rather than reopening.
+    // A query on the old connection fails rather than reopening.
     await expect(test.db.weights.count()).rejects.toMatchObject({ name: 'DatabaseClosedError' });
-    expect(query.mock.calls.length).toBe(callsBefore);
     expect(await test.deps.indexedDB.databases()).toEqual([]);
-    stop();
 
+    // The reload: a fresh database, populated, and a weigh-in written through it. Each write
+    // tells every live query on 'diet' in this process; the old tab's must not run again.
     const fresh = await openTestDb({ deps: test.deps, env: test.env });
+    const control = liveStore(() => fresh.db.weights.count(), fresh.db.gate);
+    const stopControl = control.subscribe(() => undefined);
+    await fresh.repos.weights.create({ kg: 80, source: 'manual', note: null });
+    await vi.waitFor(() => {
+      expect(control.get()).toBe(1);
+    });
+    expect(query.mock.calls.length).toBe(callsBefore);
+    stop();
+    stopControl();
     expect(await fresh.db.water_log.count()).toBe(0);
-    expect((await counts(fresh.db))['weights']).toBe(0);
+    expect((await counts(fresh.db))['weights']).toBe(1);
+  });
+
+  it('when the list of databases cannot be read, still deletes the records and says the list failed (privacy review)', async () => {
+    const test = await openTestDb();
+    await replaceAll(test.db, snapshotV1);
+    const real = test.deps.indexedDB;
+    const unlistable = {
+      databases: () => Promise.reject(new Error('example listing failure')),
+      deleteDatabase: (name: string) => real.deleteDatabase(name),
+      open: (name: string, version?: number) => real.open(name, version),
+      cmp: (a: unknown, b: unknown) => real.cmp(a, b),
+    } as unknown as IDBFactory;
+    const deps = depsFor(test, { indexedDB: unlistable });
+    const result = await deleteAllData(deps);
+    expect(result).toEqual({ ok: false, failed: ['list-databases'], blocked: false });
+    expect(await real.databases()).toEqual([]);
+    expect(deps.reload).not.toHaveBeenCalled();
   });
 
   it('every step is idempotent: running it again after a success still succeeds', async () => {

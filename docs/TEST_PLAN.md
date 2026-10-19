@@ -62,7 +62,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | RD-01 | Under 18 = yes | Fasting, carb ceiling, alcohol hidden with explanation |
 | RD-02 | Pregnant/breastfeeding = yes | Fasting hidden; ceiling off; midwife/GP message |
 | RD-03 | Diabetes medication = yes | Fasting hidden until prescriber confirmation toggled; hypoglycaemia text shown |
-| RD-04 | Eating-disorder history = yes | Fasting hidden; goal setting hidden; trend still visible |
+| RD-04 | Eating-disorder history = yes | Fasting hidden; goal setting hidden; keto carb ceiling off (meals still planned) and no Kickstart; trend still visible |
 | RD-05 | Exercise red flag = yes | Sessions hidden until GP-discussion toggle |
 | RD-06 | Change answers later | Features appear/disappear immediately; no data lost |
 

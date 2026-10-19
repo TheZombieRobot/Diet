@@ -25,6 +25,7 @@ import Dexie, { type DBCore, type Middleware, type Table } from 'dexie';
 import { createStore, type Store } from '../store';
 import { migrationEnv, type StorageEnv } from './env';
 import { createWriteGate, type WriteGate } from './gate';
+import type { OpenLock } from './locks';
 import { validationMiddleware } from './middleware';
 import { populate, runUpgrade } from './upgrade';
 
@@ -94,6 +95,8 @@ export class DietDb extends Dexie {
   /** Set once the open sequence has finished and every check passed. */
   ready = false;
   private shut = false;
+  /** This tab's shared 'diet-db-open' lock (locks.ts), held while the database is open. */
+  private openLock: OpenLock | null = null;
 
   constructor(options: DietDbOptions) {
     super(options.name ?? DB_NAME, {
@@ -147,6 +150,29 @@ export class DietDb extends Dexie {
     this.ready = false;
     this.gate.close();
     this.close({ disableAutoOpen: true });
+    // Only now, with the gate and the connection closed, may a restore or delete-all in another
+    // tab go ahead (section 7.5).
+    this.releaseOpenLock();
+  }
+
+  /** Keeps this tab's shared lock until shutDown (released at once if already shut down). */
+  attachOpenLock(lock: OpenLock): void {
+    if (this.shut) {
+      lock.release();
+      return;
+    }
+    this.releaseOpenLock();
+    this.openLock = lock;
+  }
+
+  /**
+   * Gives up this tab's shared lock. A restore or delete-all in this tab does this after closing
+   * its own write gate, just before it asks for the lock in exclusive mode.
+   */
+  releaseOpenLock(): void {
+    const lock = this.openLock;
+    this.openLock = null;
+    lock?.release();
   }
 
   /** shutDown, then the storage failure screen for `status` (section 7.2). */
@@ -197,6 +223,7 @@ const UPGRADE_ERRORS = new Set([
   'AbortError',
   'StorageValidationError',
   'StorageInvariantError',
+  'MigrationError',
 ]);
 
 /** The status for an error from db.open() (section 7.4). */

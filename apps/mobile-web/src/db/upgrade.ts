@@ -9,6 +9,7 @@
 import {
   chainInfo,
   checkInvariants,
+  checkMigrationResult,
   checkRow,
   type InvariantSnapshot,
   type LooseSnapshot,
@@ -49,8 +50,12 @@ export interface UpgradeOptions {
 /**
  * One migration step inside Dexie's upgrade transaction (section 9.3):
  * 1. Read the step's reads and rewrites (on the last step, every store of the new version).
- * 2. Apply the pure, synchronous step. Each MigrationChange becomes an audit row (kind
- *    'migration'), and the update-notice card is marked shown for the new version.
+ * 2. Apply the pure, synchronous step, and check its result (checkMigrationResult): every store
+ *    it rewrites, and on the last step every backed-up store, must come back; no store may lose
+ *    rows the step does not declare it removes; a store it does not rewrite must come back as it
+ *    was. A step that breaks this throws, so a bug can never empty a store (upgrade-failed). Each
+ *    MigrationChange becomes an audit row (kind 'migration'), and the update-notice card is
+ *    marked shown for the new version.
  * 3. On the last step only: validate every backed-up row against the current specs and check the
  *    invariants; a failing backed-up row throws, so the upgrade fails and nothing changes
  *    (upgrade-failed). A failing device-only row is deleted instead: the pairing or photo can be
@@ -70,6 +75,12 @@ export function runUpgrade(tx: Transaction, options: UpgradeOptions): Promise<un
     const read: LooseSnapshot = Object.fromEntries(names.map((name, i) => [name, lists[i] ?? []]));
     const result =
       step.upgrade === null ? { snapshot: read, changes: [] } : step.upgrade(read, env);
+    checkMigrationResult(
+      step,
+      read,
+      result,
+      isLast ? (info.backupTablesByVersion[step.version] ?? []) : [],
+    );
     const auditRows = result.changes.map((change) => migrationAuditRow(change, env));
     const noticeRows = result.changes.length > 0 ? [updateNoticeRow(info.schemaVersion, env)] : [];
     const deviceOnlyDeletes = isLast
@@ -86,7 +97,10 @@ export function runUpgrade(tx: Transaction, options: UpgradeOptions): Promise<un
       : [];
     const writes: Promise<unknown>[] = [];
     for (const name of step.rewrites) {
-      writes.push(tx.table(name).clear(), tx.table(name).bulkAdd(result.snapshot[name] ?? []));
+      writes.push(
+        tx.table(name).clear(),
+        tx.table(name).bulkAdd(result.snapshot[name] as unknown[]),
+      );
     }
     if (auditRows.length > 0) writes.push(tx.table('audit').bulkAdd(auditRows));
     if (noticeRows.length > 0) writes.push(tx.table('card_state').bulkPut(noticeRows));

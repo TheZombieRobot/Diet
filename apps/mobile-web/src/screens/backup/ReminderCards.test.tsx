@@ -7,7 +7,9 @@ import { appStorageStore } from '../../db/runtime';
 import { openTestDb, type TestDb } from '../../db/testKit';
 import { storageStore } from '../../pwa/storage';
 import { routeHref } from '../../routes';
+import { formatLocalTime } from '../../format';
 import { TodayScreen } from '../TodayScreen';
+import { setPendingCheck } from './pendingCheck';
 import { exportRequestStore } from './reminder';
 
 let test: TestDb;
@@ -23,6 +25,7 @@ afterEach(() => {
   appStorageStore.set(null);
   storageStore.set('checking');
   exportRequestStore.set(false);
+  setPendingCheck(null);
   window.location.hash = '';
   test.db.shutDown();
 });
@@ -91,6 +94,28 @@ describe('BK-03 backup reminder on Today (section 16 test 40)', () => {
     expect(exportRequestStore.get()).toBe(true);
   });
 
+  it('a "Not now" made while the phone clock was ahead does not hide it once the clock is right (health-rules review)', async () => {
+    await onboardedDaysAgo(8);
+    const now = test.env.now();
+    test.env.advanceDays(365);
+    await test.repos.cardState.dismiss('backup-reminder', 'weekly');
+    test.env.set(now);
+    render(<TodayScreen />);
+    expect(await screen.findByTestId('backup-reminder')).toBeDefined();
+  });
+
+  it('says when an exported file is still waiting for "Can you see the file?"', async () => {
+    await onboardedDaysAgo(8);
+    setPendingCheck({ fileName: 'diet-backup-2000-03-01.json', exportedAt: test.env.now() });
+    render(<TodayScreen />);
+    const line = await screen.findByTestId('backup-reminder-pending');
+    expect(line.textContent).toBe(
+      privacy.exportBackup.pendingCheck
+        .replace('{fileName}', 'diet-backup-2000-03-01.json')
+        .replace('{time}', formatLocalTime(test.env.now(), test.env.timeZone())),
+    );
+  });
+
   it('a confirmed backup clears it', async () => {
     await onboardedDaysAgo(8);
     render(<TodayScreen />);
@@ -116,8 +141,16 @@ describe('the update-notice card (section 9.2; D13)', () => {
     render(<TodayScreen />);
     const card = await screen.findByTestId('update-notice');
     expect(card.textContent).toContain(privacy.updateNotice);
+    // Its own name, not a second "Reminders" card.
+    expect(
+      screen.getByRole('region', { name: privacy.backupReminder.updateCardLabel }).contains(card),
+    ).toBe(true);
     fireEvent.click(screen.getByRole('button', { name: privacy.updateNoticeLink }));
     expect(card.textContent).toContain(
+      'Steady deficit was changed to fit the limits of app version 2.',
+    );
+    // The list replaces the button, so focus moves to its first line.
+    expect(document.activeElement?.textContent).toBe(
       'Steady deficit was changed to fit the limits of app version 2.',
     );
     fireEvent.click(screen.getByRole('button', { name: privacy.updateNoticeClose }));

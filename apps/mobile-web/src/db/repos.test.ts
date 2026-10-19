@@ -2,7 +2,12 @@
 // Repositories and the validation middleware (storage spec sections 7.3 and 8; section 16 tests
 // 23, 24 and 25; table CRUD for item 12's acceptance). Real Dexie over fake-indexeddb.
 import {
+  addDays,
+  FUTURE_INSTANT_TOLERANCE_MS,
   type GenericOp,
+  isInstant,
+  isLocalDate,
+  kickstartUsage,
   primaryKeyOf,
   type StoreName,
   StorageInvariantError,
@@ -77,6 +82,18 @@ function inputFor(table: StoreName): Record<string, unknown> {
   return sample;
 }
 
+const DAY_MS = 86_400_000;
+
+/** A value the index query for `value` must leave out (a day later, the next number, another name). */
+function outside(index: string, value: unknown): unknown {
+  if (typeof value === 'number') return value + 1;
+  if (typeof value !== 'string') return value;
+  if (isInstant(value)) return new Date(Date.parse(value) + DAY_MS).toISOString();
+  if (isLocalDate(value)) return addDays(value, 1);
+  if (index === 'seedId' || index === 'ingredientId') return 'seed:example-other';
+  return `${String(value)} other`;
+}
+
 describe('generic repositories (section 8.2; section 16 test 23; table CRUD)', () => {
   it('covers every store whose generic column allows create, update and remove', () => {
     expect([...FULL_CRUD].sort()).toEqual(
@@ -111,7 +128,29 @@ describe('generic repositories (section 8.2; section 16 test 23; table CRUD)', (
         ? spec.indexes[0]
         : (spec.key[0] ?? '');
     const value = created[index] as string;
-    expect(await repo.listByIndex(index, value, value)).toContainEqual(created);
+    // A second row whose index value lies outside [value, value]: the query must leave it out.
+    const second = inputFor(table);
+    if (Object.hasOwn(second, 'id')) delete second['id'];
+    if (table === 'weights') second['source'] = 'manual';
+    if (index === 'createdAt') test.env.advanceDays(1);
+    else if (index !== 'id') second[index] = outside(index, value);
+    for (const keyField of spec.key) {
+      if (keyField !== 'id' && keyField !== index)
+        second[keyField] = outside(keyField, second[keyField]);
+    }
+    const other = (await repo.create(second as never)) as unknown as Record<string, unknown>;
+    expect(other[index], index).not.toEqual(value);
+    const keyOf = (row: unknown) => JSON.stringify(primaryKeyOf(spec, row));
+    const inRange = await repo.listByIndex(index, value, value);
+    expect(inRange.map(keyOf)).toContain(keyOf(created));
+    expect(inRange.map(keyOf)).not.toContain(keyOf(other));
+    for (const row of inRange)
+      expect((row as unknown as Record<string, unknown>)[index]).toEqual(value);
+    await repo.remove(
+      (primaryKeyOf(spec, other).length === 1
+        ? primaryKeyOf(spec, other)[0]
+        : primaryKeyOf(spec, other)) as string,
+    );
 
     test.env.advanceDays(1);
     const updated = (await repo.update(keyArg, PATCHES[table] as never)) as unknown as Record<
@@ -126,6 +165,31 @@ describe('generic repositories (section 8.2; section 16 test 23; table CRUD)', (
 
     await repo.remove(keyArg);
     expect(await repo.get(keyArg)).toBeUndefined();
+  });
+
+  it('an index range with a lower and an upper bound returns exactly the rows inside it, in index order', async () => {
+    const test = await openTestDb();
+    const days = ['2000-02-01', '2000-02-02', '2000-02-03', '2000-02-04'];
+    const rows = [];
+    for (const [i, day] of days.entries()) {
+      rows.push(
+        await test.repos.weights.create({
+          at: `${day}T08:00:00.000Z`,
+          kg: 80 + i,
+          source: 'manual',
+          note: null,
+        }),
+      );
+    }
+    const between = await test.repos.weights.listByIndex(
+      'at',
+      '2000-02-02T00:00:00.000Z',
+      '2000-02-03T23:59:59.999Z',
+    );
+    expect(between.map((w) => w.kg)).toEqual([81, 82]);
+    // Bounds are inclusive.
+    const edges = await test.repos.weights.listByIndex('at', rows[0]?.at ?? '', rows[2]?.at ?? '');
+    expect(edges.map((w) => w.kg)).toEqual([80, 81, 82]);
   });
 
   it('an invalid write is refused and the store is unchanged', async () => {
@@ -360,6 +424,46 @@ describe('special repositories (section 8.2; section 16 test 24)', () => {
       });
     });
 
+    it('switching the phone between UTC+14 and UTC−11 counts every Kickstart day: 21 one-minute periods use 21 days, so one more period fills the 42 and nothing more starts or extends', async () => {
+      // Each period starts at local midnight in Kiritimati and ends a minute later in Pago Pago,
+      // where it is still the evening before (the health-rules review's zone-toggle loop).
+      const test = await openTestDb({ env: testEnv('2000-01-01T10:00:00.000Z', 'UTC') });
+      const kiritimatiMidnight = (n: number) =>
+        new Date(Date.parse('2000-01-01T10:00:00.000Z') + n * 86_400_000).toISOString();
+      for (let n = 0; n < 21; n++) {
+        test.env.set(kiritimatiMidnight(n));
+        test.env.setZone('Pacific/Kiritimati');
+        await test.repos.kickstart.startPeriod();
+        test.env.set(new Date(Date.parse(kiritimatiMidnight(n)) + 60_000).toISOString());
+        test.env.setZone('Pacific/Pago_Pago');
+        await test.repos.kickstart.endPeriod('user-ended');
+      }
+      const usage = kickstartUsage(
+        await test.repos.kickstart.listPeriods(),
+        await test.repos.kickstart.listChecks(),
+      );
+      expect(usage).toEqual({ days: 21, extensions: 0 });
+      test.env.setZone('Pacific/Kiritimati');
+      test.env.set(kiritimatiMidnight(21));
+      await test.repos.kickstart.startPeriod();
+      // Day 19 of that period: an extension would pass 42 days.
+      test.env.set(kiritimatiMidnight(21 + 18));
+      await expect(test.repos.kickstart.recordCheck(yes)).rejects.toMatchObject({
+        rule: 'kickstart-days',
+      });
+      // Flying west on the last scheduled day cannot stretch the period: it is over in its own zone.
+      test.env.set(new Date(Date.parse(kiritimatiMidnight(21 + 21)) + 3_600_000).toISOString());
+      test.env.setZone('Pacific/Pago_Pago');
+      await expect(test.repos.kickstart.endPeriod('user-ended')).rejects.toMatchObject({
+        rule: 'kickstart-end',
+      });
+      test.env.setZone('Pacific/Kiritimati');
+      test.env.set(kiritimatiMidnight(21 + 22));
+      await expect(test.repos.kickstart.startPeriod()).rejects.toMatchObject({
+        rule: 'kickstart-days',
+      });
+    });
+
     it('a second period cannot start while one is running', async () => {
       const test = await open();
       await test.repos.kickstart.startPeriod();
@@ -561,6 +665,58 @@ describe('normalisation and write-time checks (section 8.3; section 16 test 25)'
       rule: 'future-year',
     });
     expect((await test.repos.profile.update({ birthYear: 1970 })).birthYear).toBe(1970);
+  });
+});
+
+describe('bookkeeping times are never ahead of the moment of writing (health-rules review)', () => {
+  const ahead = (test: TestDb, ms: number) =>
+    new Date(Date.parse(test.env.now()) + ms).toISOString();
+
+  it('a backup confirmation or a confirmation time dated ahead is refused with future; a few minutes is allowed', async () => {
+    const test = await openTestDb();
+    await expect(test.repos.settings.recordBackup(ahead(test, 86_400_000))).rejects.toMatchObject({
+      table: 'settings',
+      field: 'lastBackupAt',
+      rule: 'future',
+    });
+    await expect(
+      test.repos.settings.update({ onboardingCompletedAt: ahead(test, 86_400_000) }),
+    ).rejects.toMatchObject({ field: 'onboardingCompletedAt', rule: 'future' });
+    await expect(
+      test.repos.settings.update({ lastBackupAt: ahead(test, FUTURE_INSTANT_TOLERANCE_MS + 1) }),
+    ).rejects.toMatchObject({ rule: 'future' });
+    expect((await test.repos.settings.get()).lastBackupAt).toBeNull();
+    const within = ahead(test, FUTURE_INSTANT_TOLERANCE_MS);
+    expect((await test.repos.settings.recordBackup(within)).lastBackupAt).toBe(within);
+  });
+
+  it('the rapid-loss and alcohol help cards cannot be marked done; a final card can (C46)', async () => {
+    const test = await openTestDb();
+    for (const [cardId, trigger] of [
+      ['rapid-loss', 'steady'],
+      ['alcohol-help', 'readiness-q7'],
+      ['backup-reminder', 'weekly'],
+    ] as const) {
+      await expect(test.repos.cardState.done(cardId, trigger)).rejects.toMatchObject({
+        table: 'card_state',
+        rule: 'not-final',
+      });
+      expect(await test.repos.cardState.get(cardId, trigger)).toBeUndefined();
+    }
+    expect((await test.repos.cardState.done('cholesterol-checkin', 'day-1')).doneAt).toBe(
+      test.env.now(),
+    );
+    // The stored-row rule refuses it too, whatever writes it.
+    await expect(
+      test.db.card_state.put({
+        cardId: 'rapid-loss',
+        trigger: 'steady',
+        firstShownAt: null,
+        dismissedAt: null,
+        dismissedTimeZone: null,
+        doneAt: test.env.now(),
+      }),
+    ).rejects.toMatchObject({ rule: 'iff' });
   });
 });
 

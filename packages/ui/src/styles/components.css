@@ -232,8 +232,55 @@
   font-weight: 800;
 }
 
+.ui-button--caution {
+  border-color: var(--color-amber-strong);
+  background: var(--color-card);
+  color: var(--color-amber);
+  font-weight: 800;
+}
+
 .ui-button--block {
   width: 100%;
+}
+
+/* A line that says something is under way (announced as a status), with a small spinner */
+.ui-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+.ui-spinner {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid var(--color-border-strong);
+  border-top-color: var(--color-teal);
+  border-radius: var(--radius-pill);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ui-spinner {
+    animation: ui-spin 0.9s linear infinite;
+  }
+}
+
+@keyframes ui-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* A paragraph that receives focus when a step of a panel changes */
+.ui-step-start:focus {
+  outline: none;
+}
+
+.ui-step-start:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
 }
 
 /* Banners (update available, install) */

@@ -1,6 +1,6 @@
 import { privacy } from '@diet/core/copy/health';
 import { Notice, Switch, TextField } from '@diet/ui';
-import type { ReactElement } from 'react';
+import type { ReactElement, RefObject } from 'react';
 import type { LockChoice } from './lockChoice';
 
 export interface LockFieldsProps {
@@ -11,6 +11,8 @@ export interface LockFieldsProps {
   /** Why saving the file failed, shown above the fields whether or not the file is locked. */
   readonly failure?: string | null;
   readonly disabled?: boolean;
+  /** The lock switch, so another part of the card can move focus to it. */
+  readonly switchRef?: RefObject<HTMLInputElement | null> | undefined;
 }
 
 /** The lock switch, the two password fields and the warnings (see lockChoice.ts). */
@@ -20,6 +22,7 @@ export function LockFields({
   problem,
   failure = null,
   disabled = false,
+  switchRef,
 }: LockFieldsProps): ReactElement {
   const copy = privacy.exportBackup;
   const differs = problem === copy.passwordsDiffer;
@@ -31,6 +34,7 @@ export function LockFields({
         </Notice>
       )}
       <Switch
+        ref={switchRef}
         label={copy.lockLabel}
         checked={value.locked}
         disabled={disabled}

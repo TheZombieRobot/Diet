@@ -8,7 +8,8 @@
  * - scheduledLastDay(P) = day1 + 21 + 7 × extensions − 1 days. A natural end is derived from it and
  *   never written, so the WT-08 flip happens even with no launch on day 22.
  * - effectiveLastDay(P) = the earlier of the scheduled last day and the local date of an early
- *   endedAt; the day of an early end counts as used. A running period counts its full scheduled length.
+ *   endedAt (the later of its date in the end zone and in the start zone), never before day 1; the
+ *   day of an early end counts as used. A running period counts its full scheduled length.
  * - extensionWindow(P, e) = the last KICKSTART_OFFER_DAYS local dates of the scheduled phase with e extensions.
  *
  * The restart rule (D27): Kickstart days over all periods total at most 42 and extensions at most 3.
@@ -70,6 +71,13 @@ export function scheduledLastDay(
   );
 }
 
+/**
+ * The last Kickstart day of a period. An early end counts as used on the later of its local date
+ * in the zone it ended in and its local date in the period's own start zone, so a period ended in
+ * a zone behind its start zone (Kiritimati to Pago Pago) can never count fewer calendar days than
+ * really passed in the start zone. The result lies between day 1 and the scheduled last day, so
+ * effectiveDays is always at least 1 and at most the scheduled length, whatever the zones.
+ */
 export function effectiveLastDay(
   period: PeriodTimes,
   extensions: number,
@@ -77,8 +85,12 @@ export function effectiveLastDay(
 ): LocalDate {
   const scheduled = scheduledLastDay(period, extensions, homeTimeZone);
   if (period.endedAt === null) return scheduled;
-  const ended = recordLocalDate(period.endedAt, period.endedTimeZone, homeTimeZone);
-  return ended < scheduled ? ended : scheduled;
+  const day1 = periodDay1(period, homeTimeZone);
+  const inEndZone = recordLocalDate(period.endedAt, period.endedTimeZone, homeTimeZone);
+  const inStartZone = recordLocalDate(period.endedAt, period.timeZone, homeTimeZone);
+  const ended = inEndZone > inStartZone ? inEndZone : inStartZone;
+  const capped = ended < scheduled ? ended : scheduled;
+  return capped > day1 ? capped : day1;
 }
 
 export function effectiveDays(
@@ -91,6 +103,27 @@ export function effectiveDays(
       periodDay1(period, homeTimeZone),
       effectiveLastDay(period, extensions, homeTimeZone),
     ) + 1
+  );
+}
+
+/**
+ * Whether a period that has not ended early is still in its scheduled phase at `at`: the date is
+ * on or before the scheduled last day both in the device zone and in the period's own start zone.
+ * Requiring both means travelling west cannot stretch a phase past its scheduled last day in the
+ * zone it started in, so the counted days always cover the real time (D27).
+ */
+export function kickstartRunningAt(
+  period: PeriodTimes,
+  extensions: number,
+  at: Instant,
+  deviceZone: TimeZone,
+  homeTimeZone?: TimeZone,
+): boolean {
+  if (period.endedAt !== null) return false;
+  const last = scheduledLastDay(period, extensions, homeTimeZone);
+  return (
+    recordLocalDate(at, deviceZone, homeTimeZone) <= last &&
+    recordLocalDate(at, period.timeZone, homeTimeZone) <= last
   );
 }
 

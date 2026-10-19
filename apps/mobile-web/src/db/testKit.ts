@@ -19,6 +19,7 @@ import { createStore, type Store } from '../store';
 import { type DbDeps, type DietDb, openDietDb, type OpenStatus } from './db';
 import type { StorageEnv } from './env';
 import { createWriteGate, type GateReason } from './gate';
+import type { LockManagerLike } from './locks';
 import { createRepos, type Repos, type RepoHooks } from './repos';
 import { type AppStorage, type Platform } from './runtime';
 import { readBackupSnapshot } from './snapshot';
@@ -72,6 +73,93 @@ export interface TestPlatform extends Platform {
   persistRequests: number;
 }
 
+/**
+ * Web Locks as the browser grants them (locks.ts), for Node: one lock name, shared or exclusive,
+ * granted first come first served, and an AbortSignal that withdraws a request still waiting.
+ */
+export class FakeLockManager implements LockManagerLike {
+  private readonly held: ('shared' | 'exclusive')[] = [];
+  private readonly queue: { mode: 'shared' | 'exclusive'; grant: () => void }[] = [];
+
+  /** How many tabs hold the lock now, in each mode. */
+  get holders(): { shared: number; exclusive: number } {
+    return {
+      shared: this.held.filter((m) => m === 'shared').length,
+      exclusive: this.held.filter((m) => m === 'exclusive').length,
+    };
+  }
+
+  request(
+    _name: string,
+    options: { mode: 'shared' | 'exclusive'; signal?: AbortSignal },
+    callback: (lock: unknown) => Promise<unknown>,
+  ): Promise<unknown> {
+    return new Promise((resolve, reject) => {
+      const waiter = {
+        mode: options.mode,
+        grant: () => {
+          this.held.push(options.mode);
+          const release = () => {
+            const at = this.held.indexOf(options.mode);
+            if (at >= 0) this.held.splice(at, 1);
+            this.pump();
+          };
+          Promise.resolve()
+            .then(() => callback({ name: _name, mode: options.mode }))
+            .then(
+              (value) => {
+                release();
+                resolve(value);
+              },
+              (error: unknown) => {
+                release();
+                reject(error instanceof Error ? error : new Error('lock callback failed'));
+              },
+            );
+        },
+      };
+      const { signal } = options;
+      if (signal?.aborted === true) {
+        reject(new DOMException('The request was aborted.', 'AbortError'));
+        return;
+      }
+      signal?.addEventListener('abort', () => {
+        const at = this.queue.indexOf(waiter);
+        if (at < 0) return;
+        this.queue.splice(at, 1);
+        reject(new DOMException('The request was aborted.', 'AbortError'));
+        this.pump();
+      });
+      this.queue.push(waiter);
+      this.pump();
+    });
+  }
+
+  private pump(): void {
+    for (;;) {
+      const next = this.queue[0];
+      if (next === undefined) return;
+      const free =
+        next.mode === 'exclusive' ? this.held.length === 0 : !this.held.includes('exclusive');
+      if (!free) return;
+      this.queue.shift();
+      next.grant();
+    }
+  }
+}
+
+const locksByFactory = new WeakMap<IDBFactory, FakeLockManager>();
+
+/** The fake lock manager of one fake IndexedDB, shared by every "tab" that opens it. */
+export function locksFor(factory: IDBFactory): FakeLockManager {
+  let locks = locksByFactory.get(factory);
+  if (locks === undefined) {
+    locks = new FakeLockManager();
+    locksByFactory.set(factory, locks);
+  }
+  return locks;
+}
+
 /** A platform that records what the app asked the browser to do. */
 export function testPlatform(overrides: Partial<Platform> = {}): TestPlatform {
   const platform: TestPlatform = {
@@ -88,6 +176,7 @@ export function testPlatform(overrides: Partial<Platform> = {}): TestPlatform {
     postGate: (reason) => {
       platform.posted.push(reason);
     },
+    locks: () => null,
     requestPersistentStorage: () => {
       platform.persistRequests += 1;
       return Promise.resolve('protected');
@@ -166,7 +255,7 @@ export async function openTestDb(options: OpenTestOptions = {}): Promise<TestDb>
   if (result.db === null) throw new Error(`The test database did not open: ${result.status}`);
   const { db } = result;
   const repos = createRepos({ db, env, gate: db.gate, hooks: options.hooks ?? {} });
-  const platform = options.platform ?? testPlatform();
+  const platform = options.platform ?? testPlatform({ locks: () => locksFor(deps.indexedDB) });
   return {
     db,
     env,

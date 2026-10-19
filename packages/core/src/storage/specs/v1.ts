@@ -1178,6 +1178,17 @@ const cardState = object<CardStateRecord>(
         ? fail(fieldPath(path, 'firstShownAt'), 'missing')
         : null,
     ),
+    // Only a card whose dismissal is final can be done: the rapid-loss and alcohol-help cards can
+    // never be turned off (C46, C44; section 4.12).
+    rule<CardStateRecord>(
+      'done-only-for-final-cards',
+      (c, path) =>
+        c.doneAt !== null &&
+        cardTrigger(c.cardId, c.trigger, CARD_REGISTRY_V1)?.dismissal.kind !== 'final'
+          ? fail(fieldPath(path, 'doneAt'), 'iff')
+          : null,
+      { doneOnly: 'final' },
+    ),
   ],
 );
 

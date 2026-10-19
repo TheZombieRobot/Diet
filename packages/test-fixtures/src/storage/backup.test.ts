@@ -307,6 +307,52 @@ describe('BK-06 / C50: an out-of-range value refuses the whole file; nothing is 
     expect(extensions.rule).toBe('kickstart-extensions');
   });
 
+  it('refuses a history whose periods were ended in a zone behind their start zone: 21 one-minute periods still count 21 days (D27)', async () => {
+    // 21 periods started at local midnight in Kiritimati (UTC+14) and ended a minute later in
+    // Pago Pago (UTC−11), then a 42-day period with 3 extensions, then a running 21-day period:
+    // 63 real Kickstart days. Counting each short period as a day refuses the file.
+    const tables = clone(snapshotV1);
+    const day = (n: number) =>
+      new Date(Date.parse('2000-04-01T10:00:00.000Z') + n * 86_400_000).toISOString();
+    const short = Array.from({ length: 21 }, (_, n) => ({
+      id: fixtureId(4000 + n),
+      startedAt: day(n),
+      timeZone: 'Pacific/Kiritimati',
+      endedAt: new Date(Date.parse(day(n)) + 60_000).toISOString(),
+      endedTimeZone: 'Pacific/Pago_Pago',
+      endReason: 'user-ended',
+    }));
+    const long = {
+      id: fixtureId(4100),
+      startedAt: '2000-05-01T00:00:00.000Z',
+      timeZone: 'UTC',
+      endedAt: null,
+      endedTimeZone: null,
+      endReason: null,
+    };
+    const running = { ...long, id: fixtureId(4200), startedAt: '2000-07-01T00:00:00.000Z' };
+    tables.kickstart_periods = [...short, long, running];
+    tables.kickstart_checks = ['2000-05-19', '2000-05-26', '2000-06-02'].map((date, e) => ({
+      id: fixtureId(4110 + e),
+      periodId: fixtureId(4100),
+      askedAt: `${date}T12:00:00.000Z`,
+      timeZone: 'UTC',
+      dizzyOnStanding: 'no',
+      palpitations: 'no',
+      crampsNotSettling: 'no',
+      faintAtWork: 'no',
+      energyRating: null,
+      sleepRating: null,
+      outcome: 'extended',
+    }));
+    tables.card_state = (tables.card_state ?? []).filter(
+      (c) => !(c as { trigger: string }).trigger.startsWith('period:'),
+    );
+    const error = await refusal(decodeBackupText(plainText(tables), { env: fixtureEnv() }));
+    expect(error.code).toBe('inconsistent');
+    expect(error.rule).toBe('kickstart-days');
+  });
+
   it('the floor and cap constants are bounds, never fields of any store', () => {
     const fieldNames = Object.values(TABLES).flatMap((spec) =>
       Object.keys((spec.row.desc as { fields?: object }).fields ?? {}),

@@ -46,6 +46,7 @@ Node 22.18 or later and pnpm (version pinned in `package.json`; run `corepack en
 | `pnpm check` | Lint, format check, type check (browser tests included), unit tests and safety scans |
 | `pnpm scan` | Safety scans only: banned health wording, price and cart-status wording, personal data and secrets (in the current files and in the whole git history), network and AI calls, telemetry, licences, skipped tests, the extension guard, backup file names, and database transactions that could commit halfway |
 | `pnpm test` | Unit tests (Vitest) |
+| `pnpm --filter @diet/mobile-web test` | One package's unit tests (each workspace package has a `test` script for its own Vitest project) |
 | `pnpm e2e` | Browser tests (Playwright, Chromium): builds the phone app, serves the production build on port 4317 (set `DIET_E2E_PORT` to use another) and tests it |
 | `pnpm icons` | Redraws the app icons into `apps/mobile-web/public/` (after changing the mark or the teal colour) |
 | `pnpm format` | Reformat code |

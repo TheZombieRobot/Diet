@@ -4,6 +4,8 @@ import { Button, ButtonRow, Notice } from '@diet/ui';
 import { useState, type ReactElement } from 'react';
 import { type DeleteAllResult, deleteAllData } from '../../db/deleteAll';
 import type { AppStorage } from '../../db/runtime';
+import { useStepFocus } from './focus';
+import { Progress } from './Progress';
 
 type Step =
   | { readonly kind: 'first' }
@@ -13,6 +15,8 @@ type Step =
 
 export interface DeleteAllPanelProps {
   readonly storage: AppStorage;
+  /** Whether a backup has ever been confirmed (settings.lastBackupAt), for the final warning. */
+  readonly hasBackup: boolean;
   /** "Export a backup first": opens the export panel. */
   readonly onExportFirst: () => void;
   readonly onCancel: () => void;
@@ -20,17 +24,21 @@ export interface DeleteAllPanelProps {
 
 /**
  * Delete all data (storage spec section 11; HS-30; D45). A first confirmation lists what goes and
- * what stays and offers "Export a backup first"; a second, explicit one follows. On success the
- * page reloads into a fresh start; otherwise the steps that failed are named and it can be tried
- * again (every step is idempotent).
+ * what stays and offers "Export a backup first"; a second, explicit one follows, with Cancel as
+ * the main button and the deletion drawn in amber; it says so when there is no backup to bring
+ * the records back. On success the page reloads into a fresh start. Otherwise it names what
+ * failed (or that the app is open somewhere else), says that nothing more will be saved until the
+ * app reloads, and offers Try again and Reload (every step is idempotent).
  */
 export function DeleteAllPanel({
   storage,
+  hasBackup,
   onExportFirst,
   onCancel,
 }: DeleteAllPanelProps): ReactElement {
   const copy = privacy.deleteAll;
   const [step, setStep] = useState<Step>({ kind: 'first' });
+  const stepStart = useStepFocus<HTMLParagraphElement>(step.kind);
 
   const run = async (): Promise<void> => {
     setStep({ kind: 'deleting' });
@@ -39,6 +47,7 @@ export function DeleteAllPanel({
       db: storage.db,
       gate: storage.gate,
       postGate: platform.postGate,
+      locks: platform.locks(),
       indexedDB: storage.deps.indexedDB,
       caches: platform.caches(),
       localStorage: platform.localStorage,
@@ -53,7 +62,9 @@ export function DeleteAllPanel({
     case 'first':
       return (
         <div className="ui-card__body" data-testid="delete-first">
-          <p>{copy.goes}</p>
+          <p ref={stepStart} tabIndex={-1} className="ui-step-start">
+            {copy.goes}
+          </p>
           <p className="ui-text-strong">{copy.staysTitle}</p>
           <ul className="ui-plain-list">
             {copy.stays.map((line) => (
@@ -81,14 +92,16 @@ export function DeleteAllPanel({
       return (
         <div className="ui-card__body" data-testid="delete-second">
           <Notice>
-            <p>{copy.finalWarning}</p>
+            <p ref={stepStart} tabIndex={-1} className="ui-step-start">
+              {hasBackup ? copy.finalWarning : copy.finalWarningNoBackup}
+            </p>
           </Notice>
           <ButtonRow>
-            <Button variant="primary" onClick={() => void run()}>
-              {copy.confirm}
-            </Button>
-            <Button variant="quiet" onClick={onCancel}>
+            <Button variant="primary" onClick={onCancel}>
               {copy.cancel}
+            </Button>
+            <Button variant="caution" onClick={() => void run()}>
+              {copy.confirm}
             </Button>
           </ButtonRow>
         </div>
@@ -96,20 +109,28 @@ export function DeleteAllPanel({
     case 'deleting':
       return (
         <div className="ui-card__body">
-          <p role="status">{copy.deleting}</p>
+          <Progress text={copy.deleting} />
         </div>
       );
     case 'failed': {
       const { result } = step;
       const steps = result.failed.map((s) => copy.steps[s]).join(', ');
       return (
-        <div className="ui-card__body">
+        <div className="ui-card__body" data-testid="delete-failed">
           <Notice role="alert">
-            <p>{result.blocked ? copy.blocked : fillTemplate(copy.stepsFailed, { steps })}</p>
+            <p ref={stepStart} tabIndex={-1} className="ui-step-start">
+              {result.blocked ? privacy.otherTabs : fillTemplate(copy.stepsFailed, { steps })}
+            </p>
+            <p>{privacy.backupCard.closed}</p>
           </Notice>
-          <Button variant="primary" onClick={() => void run()}>
-            {copy.confirm}
-          </Button>
+          <ButtonRow>
+            <Button variant="primary" onClick={storage.platform.reload}>
+              {privacy.backupCard.reload}
+            </Button>
+            <Button variant="caution" onClick={() => void run()}>
+              {copy.tryAgain}
+            </Button>
+          </ButtonRow>
         </div>
       );
     }

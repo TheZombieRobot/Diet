@@ -157,10 +157,19 @@ export function mutateBackupText(random: () => number): string {
         text = `${text.slice(0, at + 1)}"__proto__":{"polluted":1},${text.slice(at + 1)}`;
       }
       break;
-    case 9: // truncate the JSON text
+    case 9: {
+      // truncate the JSON text: a quarter of the cuts fall before the format marker is complete
+      // (not a backup), the rest after it (a damaged backup)
       text = JSON.stringify({ format: MARKER, version: 1, encrypted: false, payload });
-      text = text.slice(0, Math.floor(random() * text.length));
+      const markerEnd = text.indexOf(MARKER) + MARKER.length + 1;
+      text = text.slice(
+        0,
+        random() < 0.25
+          ? Math.floor(random() * markerEnd)
+          : markerEnd + Math.floor(random() * (text.length - markerEnd)),
+      );
       break;
+    }
     case 10: {
       // change the store names
       const tables = payload['tables'] as { [key: string]: Json };

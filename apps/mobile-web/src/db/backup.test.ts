@@ -16,6 +16,7 @@ import {
 import {
   chainB,
   fixtureEnv,
+  fixtureId,
   lockedReferenceEnvelopeV1,
   mulberry32,
   mutateBackupText,
@@ -61,6 +62,7 @@ const writeDeps = (): WriteDeps & { reloads: number } => {
   const deps = {
     reloads: 0,
     postGate: () => undefined,
+    locks: null,
     requestPersistentStorage: () => Promise.resolve(),
     reload: () => {
       deps.reloads += 1;
@@ -79,6 +81,7 @@ async function deleteEverything(test: TestDb): Promise<void> {
     db: test.db,
     gate: test.db.gate,
     postGate: () => undefined,
+    locks: null,
     indexedDB: test.deps.indexedDB,
     caches: undefined,
     localStorage: () => memoryStorage(),
@@ -202,7 +205,7 @@ describe('all or nothing (BK-07; section 16 test 28)', () => {
       const deps = writeDeps();
       const outcome = await writeImport(test.db, plan, test.env, deps);
       expect(outcome.ok).toBe(false);
-      if (outcome.ok) return;
+      if (outcome.ok || outcome.blocked) throw new Error('expected a failed write');
       expect(outcome.error).toBeInstanceOf(BackupError);
       expect(outcome.error.code).toBe('write-failed');
       expect(outcome.error.message).toBe(
@@ -254,9 +257,10 @@ describe('replace semantics and the confirmation (D17; section 16 test 29)', () 
     const plan = await planImport(test.db, decoded);
     expect(plan.confirmation).toEqual({
       missingFromFile: 2,
-      changedAfterExport: 1,
+      differFromFile: 1,
       phoneNewest: test.env.now(),
       fileNewest: expect.any(String) as string,
+      phoneHasOwnRecords: true,
       exportFirst: true,
     });
     expect((plan.confirmation.fileNewest ?? '') < test.env.now()).toBe(true);
@@ -272,21 +276,95 @@ describe('replace semantics and the confirmation (D17; section 16 test 29)', () 
     expect((await after.db.garden_photos.toArray()).map((p) => p.gardenId)).toEqual([keptGarden]);
   });
 
-  it('when the phone is no newer than the file, Replace comes first', async () => {
-    const test = await openTestDb();
+  it('a brand-new phone, or one just cleared by delete-all, holds nothing of the owner\u2019s: no loss is counted and Replace is the default', async () => {
+    const test = await openTestDb({ env: testEnv('2026-10-19T00:00:00.000Z') });
     const decoded = await decodeImport(asFile(plainReferenceEnvelopeV1()), null, test.env);
-    const empty = await openTestDb({ env: testEnv('2000-01-01T00:00:00.000Z') });
-    const plan = await planImport(empty.db, { ...decoded, exportedAt: '2000-03-01T00:00:00.000Z' });
-    expect(plan.confirmation.exportFirst).toBe(true); // the seed rows are not in the file
+    const fresh = await planImport(test.db, decoded);
+    expect(fresh.confirmation).toEqual({
+      missingFromFile: 0,
+      differFromFile: 0,
+      phoneNewest: null,
+      fileNewest: expect.any(String) as string,
+      phoneHasOwnRecords: false,
+      exportFirst: false,
+    });
+    await replaceAll(test.db, decoded.snapshot);
+    await deleteEverything(test);
+    const cleared = await openTestDb({ deps: test.deps, env: test.env });
+    expect((await planImport(cleared.db, decoded)).confirmation).toMatchObject({
+      missingFromFile: 0,
+      differFromFile: 0,
+      phoneHasOwnRecords: false,
+      exportFirst: false,
+    });
+    // Once the owner changes a seed row, it is theirs.
+    const [drink] = await cleared.repos.beverages.list();
+    if (drink === undefined) throw new Error('no seeded drink');
+    await cleared.repos.beverages.update(drink.id, { name: 'Example lager' });
+    expect((await planImport(cleared.db, decoded)).confirmation).toMatchObject({
+      missingFromFile: 1,
+      phoneHasOwnRecords: true,
+      exportFirst: true,
+    });
+  });
+
+  it('a phone that matches the file makes Replace the default', async () => {
+    const decoded = await decodeImport(
+      asFile(plainReferenceEnvelopeV1()),
+      null,
+      (await openTestDb()).env,
+    );
     const same = await openTestDb();
     await replaceAll(same.db, decoded.snapshot);
-    const samePlan = await planImport(same.db, decoded);
-    expect(samePlan.confirmation).toMatchObject({
+    // A backup confirmed since is bookkeeping, not a change to the records.
+    await same.repos.settings.recordBackup('2000-03-01T00:00:00.000Z');
+    expect((await planImport(same.db, decoded)).confirmation).toMatchObject({
       missingFromFile: 0,
-      changedAfterExport: 0,
+      differFromFile: 0,
       exportFirst: false,
     });
   });
+
+  it.each([
+    [
+      'an edited weigh-in (no updatedAt)',
+      async (t: TestDb) => {
+        const weight = snapshotV1.weights[1];
+        if (weight === undefined) throw new Error('fixture');
+        await t.repos.weights.update(weight.id, { kg: 88.8 });
+      },
+    ],
+    [
+      'an edited fast note',
+      async (t: TestDb) => {
+        const fast = snapshotV1.fasts.find((f) => f.endedAt !== null);
+        if (fast === undefined) throw new Error('fixture');
+        await t.repos.fasts.update(fast.id, { note: 'Example changed note' });
+      },
+    ],
+    [
+      'a changed setting',
+      async (t: TestDb) => {
+        await t.repos.settings.update({ drinkingDayCutoverMinutes: 0 });
+      },
+    ],
+  ] as const)(
+    '%s after the export counts as a record that differs, and exporting first becomes the default (data-loss review)',
+    async (_name, edit) => {
+      const test = await openTestDb();
+      await fillWithFixture(test);
+      const exported = await createExport(test.db, test.env, null);
+      if (!exported.ok) throw exported.error;
+      test.env.advanceDays(7);
+      await edit(test);
+      const decoded = await decodeImport(asFile(exported.file.text), null, test.env);
+      expect((await planImport(test.db, decoded)).confirmation).toMatchObject({
+        missingFromFile: 0,
+        differFromFile: 1,
+        exportFirst: true,
+      });
+    },
+  );
 });
 
 describe('an import whose migration changed values (section 9.2; D13)', () => {
@@ -408,12 +486,120 @@ describe('BK-10: the rescue copy (section 9.5; section 16 test 34)', () => {
     const test = await openTestDb();
     const decoded = await decodeImport(asFile(file.text), null, test.env);
     expect(decoded.kind).toBe('rescue');
-    expect(decoded.setAside).toEqual([{ table: 'weights', index: 1, field: 'kg', rule: 'range' }]);
+    expect(decoded.setAside).toEqual([
+      { table: 'weights', index: 1, field: 'kg', rule: 'range', allowed: '20–400' },
+    ]);
     const after = await importAndReload(test, file.text, null);
     const imported = await backupSnapshot(after.db);
     expect(imported.weights).toHaveLength(snapshotV1.weights.length - 1);
     expect(imported.weights.some((w) => w.kg === 5)).toBe(false);
     expect(imported.settings[0]?.lastBackupAt).toBe(snapshotV1.settings[0]?.lastBackupAt);
+  });
+});
+
+describe('rescue imports through the app (data-loss and health-rules reviews)', () => {
+  /** The fixture on the phone, with `rows` written raw (rows the app itself would refuse). */
+  async function phoneWithRaw(rows: Record<string, unknown[]>): Promise<TestDb> {
+    const test = await openTestDb();
+    await fillWithFixture(test);
+    test.db.shutDown();
+    const raw = await rawWriter(test.deps, STORES_V1);
+    for (const [table, list] of Object.entries(rows)) await raw.table(table).bulkPut(list);
+    raw.close();
+    return openTestDb({ deps: test.deps, env: test.env });
+  }
+
+  async function uncheckedCopy(test: TestDb): Promise<string> {
+    const outcome = await createExport(test.db, test.env, null);
+    if (outcome.ok || outcome.unchecked === null) throw new Error('expected a failed self-check');
+    return (await createRescueCopy(outcome.unchecked, test.env, null)).file.text;
+  }
+
+  it('an unchecked copy of a phone with two running fasts imports with the earlier one set aside', async () => {
+    const running = snapshotV1.fasts.find((f) => f.endedAt === null);
+    if (running === undefined) throw new Error('fixture has no running fast');
+    const extra = { ...running, id: fixtureId(3901), startedAt: '2000-02-27T00:00:00.000Z' };
+    const test = await phoneWithRaw({ fasts: [extra] });
+    const text = await uncheckedCopy(test);
+    const decoded = await decodeImport(asFile(text), null, test.env);
+    expect(decoded.setAside.map((r) => [r.table, r.rule])).toEqual([['fasts', 'fast-running']]);
+    const after = await importAndReload(test, text, null);
+    const fasts = (await backupSnapshot(after.db)).fasts;
+    expect(fasts.map((f) => f.id).sort()).toEqual(snapshotV1.fasts.map((f) => f.id).sort());
+  });
+
+  it('an unchecked copy whose Kickstart history fails is refused whole, in plain words, and changes nothing', async () => {
+    const period = snapshotV1.kickstart_periods[0];
+    if (period === undefined) throw new Error('fixture has no Kickstart period');
+    const test = await phoneWithRaw({
+      kickstart_periods: [{ ...period, endReason: 'example-unknown-reason' }],
+    });
+    const before = await backupSnapshot(test.db);
+    const text = await uncheckedCopy(test);
+    const error = await decodeImport(asFile(text), null, test.env).then(
+      () => null,
+      (e: unknown) => e,
+    );
+    expect(error).toBeInstanceOf(BackupError);
+    expect(error).toMatchObject({ code: 'inconsistent', rule: 'kickstart-history' });
+    expect((error as BackupError).message).not.toMatch(/kickstart_|endReason|-history/);
+    expect(await backupSnapshot(test.db)).toEqual(before);
+  });
+
+  it('keeps the more cautious safety setting of the phone and the file, lists what it kept from the phone, and resets a bad theme', async () => {
+    const tables = structuredClone(snapshotV1) as unknown as Record<
+      string,
+      Record<string, unknown>[]
+    >;
+    Object.assign(tables['targets']?.[0] ?? {}, { energyFloorKj: 6000, kickstartDeficitPct: 25 });
+    Object.assign(tables['settings']?.[0] ?? {}, {
+      theme: 'neon',
+      rapidLossThresholdGPerWeek: 1000,
+      rapidLossConsecutiveWeeks: 3,
+    });
+    const file = await createRescueFile({
+      tables,
+      schemaVersion: 1,
+      exportedAt: '2000-03-01T00:00:00.000Z',
+      appVersion: '0.1.0',
+      password: null,
+    });
+    const test = await openTestDb();
+    await test.repos.targets.update({ energyFloorKj: 8000, steadyDeficitPct: 20 });
+    await test.repos.settings.update({
+      rapidLossThresholdGPerWeek: 800,
+      rapidLossConsecutiveWeeks: 2,
+      rapidLossExplanationReadAt: test.env.now(),
+    });
+    const decoded = await decodeImport(asFile(file.text), null, test.env);
+    expect(decoded.replacedFields).toEqual([{ table: 'settings', field: 'theme' }]);
+    const plan = await planImport(test.db, decoded);
+    expect(plan.keptStricter).toEqual([
+      { table: 'targets', field: 'energyFloorKj' },
+      { table: 'settings', field: 'rapidLossThresholdGPerWeek' },
+      { table: 'settings', field: 'rapidLossConsecutiveWeeks' },
+    ]);
+    const after = await importAndReload(test, file.text, null);
+    const written = await backupSnapshot(after.db);
+    expect(written.targets[0]).toMatchObject({
+      energyFloorKj: 8000,
+      kickstartDeficitPct: 25,
+      steadyDeficitPct: 15,
+    });
+    expect(written.settings[0]).toMatchObject({
+      theme: 'system',
+      rapidLossThresholdGPerWeek: 800,
+      rapidLossConsecutiveWeeks: 2,
+      rapidLossExplanationReadAt: test.env.now(),
+      alcoholGuidanceSet: 'nz-women',
+    });
+  });
+
+  it('a plain backup is never merged: its own values are restored as they are', async () => {
+    const test = await openTestDb();
+    await test.repos.targets.update({ energyFloorKj: 8000 });
+    const after = await importAndReload(test, plainReferenceEnvelopeV1(), null);
+    expect((await backupSnapshot(after.db)).targets).toEqual(snapshotV1.targets);
   });
 });
 
@@ -451,7 +637,9 @@ describe('the export self-check (D19, D22; section 16 test 35)', () => {
     expect(outcome.ok).toBe(false);
     if (outcome.ok) return;
     expect(outcome.error.code).toBe('self-check-failed');
-    expect(outcome.error.message).toBe('The backup could not be checked: weights kg failed range');
+    expect(outcome.error.message).toBe(
+      'The backup could not be checked: Weigh-ins, record 1: the weight is outside the allowed range (20–400).',
+    );
     expect(outcome.unchecked).not.toBeNull();
     if (outcome.unchecked === null) return;
     const copy = await createRescueCopy(outcome.unchecked, reopened.env, null);

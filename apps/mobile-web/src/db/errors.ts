@@ -26,8 +26,12 @@ export class StorageOperationError extends Error {
 }
 StorageOperationError.prototype.name = 'StorageOperationError';
 
-/** Repository rules that are not record invariants: a missing record, a fast already ended, or a confirmation with no answer. */
-export type StorageRule = 'not-found' | 'already-ended' | 'confirmation-without-answer';
+/**
+ * Repository rules that are not record invariants: a missing record, a fast already ended, a
+ * confirmation with no answer, or "done" on a card that can never be turned off.
+ */
+export type StorageRule =
+  'not-found' | 'already-ended' | 'confirmation-without-answer' | 'not-final';
 
 export class StorageRuleError extends Error {
   readonly table: string;

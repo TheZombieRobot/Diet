@@ -5,8 +5,10 @@
  * (b) narrows a safety range, mapping 20 to 18 and recording the change;
  * (c) adds a backed-up store and a device-only store;
  * (d) removes an index that version 1 declares (for the newer-database tests);
- * and two more for the database upgrade tests: an identity step that changes nothing, and a step
- * whose result fails validation (the upgrade must then leave version 1 untouched).
+ * and more for the database upgrade and import tests: an identity step that changes nothing; a step
+ * whose result fails validation; steps that break the migration contract (a rewritten store left
+ * out, rows lost); and steps whose valid rows break the cross-record rules. Each of these must leave
+ * version 1 untouched.
  */
 import {
   fillTemplate,
@@ -60,6 +62,7 @@ export const chainA: readonly Migration[] = [
     },
     reads: ['profile', 'settings'],
     rewrites: ['profile', 'settings'],
+    removesRows: [],
     upgrade: (s) => ({
       snapshot: {
         ...s,
@@ -95,6 +98,7 @@ export const chainB: readonly Migration[] = [
     },
     reads: ['targets'],
     rewrites: ['targets'],
+    removesRows: [],
     upgrade: (s) => {
       const changes = (s.targets as Rows)
         .filter((t) => (t.steadyDeficitPct as number) > 18)
@@ -132,6 +136,7 @@ export const chainC: readonly Migration[] = [
     },
     reads: [],
     rewrites: [],
+    removesRows: [],
     upgrade: (s) => ({ snapshot: s, changes: [] }),
   },
 ];
@@ -147,6 +152,7 @@ export const chainD: readonly Migration[] = [
     specs: TABLES_V1,
     reads: [],
     rewrites: [],
+    removesRows: [],
     upgrade: (s) => ({ snapshot: s, changes: [] }),
   },
 ];
@@ -161,6 +167,7 @@ export const chainIdentity: readonly Migration[] = [
     specs: TABLES_V1,
     reads: [],
     rewrites: [],
+    removesRows: [],
     upgrade: (s) => ({ snapshot: s, changes: [] }),
   },
 ];
@@ -175,9 +182,102 @@ export const chainFailing: readonly Migration[] = [
     specs: TABLES_V1,
     reads: ['profile'],
     rewrites: ['profile'],
+    removesRows: [],
     upgrade: (s: LooseSnapshot) => ({
       snapshot: { ...s, profile: (s.profile as Rows).map((p) => ({ ...p, heightCm: 999 })) },
       changes: [],
     }),
   },
 ];
+
+/** A version 2 that leaves out a store it rewrites (a bug): it must be refused, never written as an empty store. */
+export const chainDropsStore: readonly Migration[] = [
+  V1,
+  {
+    version: 2,
+    stores: {},
+    backup: { added: [], removed: [], deviceOnly: [] },
+    specs: TABLES_V1,
+    reads: ['weights'],
+    rewrites: ['weights'],
+    removesRows: [],
+    upgrade: (s: LooseSnapshot) => {
+      const rest: LooseSnapshot = { ...s };
+      delete rest['weights'];
+      return { snapshot: rest, changes: [] };
+    },
+  },
+];
+
+/** A version 2 that drops a weigh-in without declaring that it removes rows (a bug). */
+export const chainLosesRows: readonly Migration[] = [
+  V1,
+  {
+    version: 2,
+    stores: {},
+    backup: { added: [], removed: [], deviceOnly: [] },
+    specs: TABLES_V1,
+    reads: ['weights'],
+    rewrites: ['weights'],
+    removesRows: [],
+    upgrade: (s: LooseSnapshot) => ({
+      snapshot: { ...s, weights: (s.weights as Rows).slice(1) },
+      changes: [],
+    }),
+  },
+];
+
+/**
+ * A version 2 whose rows each pass the validators but together break section 5: every fast is
+ * running (rule 3), and the stop-sign check becomes another extension, taking the Kickstart
+ * history to 49 days (rule 5g). The upgrade must fail with nothing changed.
+ */
+export const chainInvariant: readonly Migration[] = [
+  V1,
+  {
+    version: 2,
+    stores: {},
+    backup: { added: [], removed: [], deviceOnly: [] },
+    specs: TABLES_V1,
+    reads: ['fasts', 'kickstart_checks'],
+    rewrites: ['fasts', 'kickstart_checks'],
+    removesRows: [],
+    upgrade: (s: LooseSnapshot) => ({
+      snapshot: {
+        ...s,
+        fasts: (s.fasts as Rows).map((f) => ({ ...f, endedAt: null, endedTimeZone: null })),
+        kickstart_checks: (s.kickstart_checks as Rows).map(toExtension),
+      },
+      changes: [],
+    }),
+  },
+];
+
+/** As chainInvariant, but only the Kickstart history breaks a rule (49 days in all). */
+export const chainKickstartCap: readonly Migration[] = [
+  V1,
+  {
+    version: 2,
+    stores: {},
+    backup: { added: [], removed: [], deviceOnly: [] },
+    specs: TABLES_V1,
+    reads: ['kickstart_checks'],
+    rewrites: ['kickstart_checks'],
+    removesRows: [],
+    upgrade: (s: LooseSnapshot) => ({
+      snapshot: { ...s, kickstart_checks: (s.kickstart_checks as Rows).map(toExtension) },
+      changes: [],
+    }),
+  },
+];
+
+function toExtension(check: Record<string, unknown>): Record<string, unknown> {
+  return {
+    ...check,
+    dizzyOnStanding: 'no',
+    palpitations: 'no',
+    crampsNotSettling: 'no',
+    faintAtWork: 'no',
+    outcome: 'extended',
+  };
+}

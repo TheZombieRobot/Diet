@@ -2,7 +2,9 @@ import {
   type AuditRecord,
   backupReminder,
   type BackupReminderState,
+  cardHidden,
   type CardStateRecord,
+  cardTrigger,
   type SettingsRecord,
 } from '@diet/core';
 import { useLiveQuery } from '../../db/liveQuery';
@@ -63,14 +65,25 @@ export interface UpdateNotices {
   readonly reasons: readonly string[];
 }
 
-/** Update-notice cards still to show (section 9.2), with the migration audit lines behind them. */
+/**
+ * Update-notice cards still to show (section 9.2), with the migration audit lines behind them.
+ * Each card's own dismissal rule decides (cardHidden), so a done time dated ahead hides nothing.
+ */
 export async function readUpdateNotices(storage: AppStorage): Promise<UpdateNotices> {
   const [cards, audit] = await Promise.all([
     storage.db.card_state.toArray(),
     storage.db.audit.toArray(),
   ]);
+  const now = storage.env.now();
   const triggers = cards
-    .filter((c) => c.cardId === 'update-notice' && c.doneAt === null && c.dismissedAt === null)
+    .filter((c) => {
+      const rule = cardTrigger(c.cardId, c.trigger);
+      return (
+        c.cardId === 'update-notice' &&
+        rule !== null &&
+        !cardHidden({ now, row: c, dismissal: rule.dismissal, drinkingDayCutoverMinutes: 0 })
+      );
+    })
     .map((c) => c.trigger);
   const reasons = audit.filter((a: AuditRecord) => a.kind === 'migration').map((a) => a.reason);
   return { triggers, reasons };

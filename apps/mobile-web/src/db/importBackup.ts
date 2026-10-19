@@ -6,19 +6,24 @@
  *      decodeBackupText). Every refusal is a BackupError with one plain message from health.ts.
  * 9.   The confirmation: the phone's backed-up stores are read in one transaction and kept in
  *      memory (section 8.5 rule 3), and the counts are worked out (importConfirmation).
- * 10.  The write: tell the other tabs, close this tab's write gate, then replace everything in one
- *      transaction. If it fails, the snapshot from step 9 is offered at once as a rescue file
- *      ("Save what was on this phone"). On success, ask again for persistent storage, then reload.
+ * 10.  The write: tell the other tabs, close this tab's write gate, give up this tab's shared lock,
+ *      then replace everything in one transaction inside the lock in exclusive mode (locks.ts), so
+ *      no other tab's write can land on top of the restored records. If the other tabs do not let
+ *      go within 3 seconds, nothing is written ("Close the app's other tabs, then try again"). If
+ *      the write fails, the snapshot from step 9 is offered at once as a rescue file ("Save what
+ *      was on this phone"). On success, ask again for persistent storage, then reload.
  * No audit row is written for an import itself; only migration changes from an older file add any.
  */
 import {
   BACKUP_TABLES,
   BackupError,
   type CardStateRecord,
+  cautiousSafetyMerge,
   type DecodedBackup,
   decodeBackupText,
   type ImportConfirmation,
   importConfirmation,
+  type KeptStricter,
   MAX_BACKUP_FILE_BYTES,
   type Migration,
   parseBackupText,
@@ -27,6 +32,7 @@ import {
 import type { DietDb } from './db';
 import { migrationEnv, type StorageEnv } from './env';
 import type { GateReason } from './gate';
+import { type LockManagerLike, withExclusiveLock } from './locks';
 import { readBackupSnapshot, replaceAll } from './snapshot';
 
 export interface ImportFile {
@@ -67,24 +73,56 @@ export interface ImportPlan {
   readonly confirmation: ImportConfirmation;
   /** Records per store in the file, in section 4.1 order. */
   readonly counts: readonly { readonly table: string; readonly count: number }[];
+  /**
+   * The records to write: the file's, except that a rescue copy never makes a safety setting
+   * less cautious than this phone had (cautiousSafetyMerge; orchestrator ruling).
+   */
+  readonly snapshot: Snapshot;
+  /** Rescue copies: the safety settings kept from this phone, listed on the confirmation. */
+  readonly keptStricter: readonly KeptStricter[];
 }
 
 /** Step 9. */
 export async function planImport(db: DietDb, decoded: DecodedBackup): Promise<ImportPlan> {
   const phone = await readBackupSnapshot(db);
+  let snapshot = decoded.snapshot;
+  let keptStricter: KeptStricter[] = [];
+  const fileTargets = decoded.snapshot.targets[0];
+  const fileSettings = decoded.snapshot.settings[0];
+  const phoneTargets = phone.targets[0];
+  const phoneSettings = phone.settings[0];
+  if (
+    decoded.kind === 'rescue' &&
+    fileTargets !== undefined &&
+    fileSettings !== undefined &&
+    phoneTargets !== undefined &&
+    phoneSettings !== undefined
+  ) {
+    const merged = cautiousSafetyMerge(
+      { targets: fileTargets, settings: fileSettings },
+      { targets: phoneTargets, settings: phoneSettings },
+    );
+    snapshot = { ...snapshot, targets: [merged.targets], settings: [merged.settings] };
+    keptStricter = merged.kept;
+  }
   return {
     decoded,
     phone,
     confirmation: importConfirmation(phone, decoded),
     counts: BACKUP_TABLES.map((table) => ({ table, count: decoded.snapshot[table].length })),
+    snapshot,
+    keptStricter,
   };
 }
 
 /**
- * The rows to write: the file's, plus the update-notice card when migration changed values
- * (section 9.2), so the owner sees what changed after the reload.
+ * The rows to write: the plan's (the file's records), plus the update-notice card when migration
+ * changed values (section 9.2), so the owner sees what changed after the reload.
  */
-export function rowsToWrite(decoded: DecodedBackup, env: StorageEnv): Snapshot {
+export function rowsToWrite(
+  decoded: Pick<DecodedBackup, 'snapshot' | 'updateNotice'>,
+  env: StorageEnv,
+): Snapshot {
   const trigger = decoded.updateNotice;
   if (trigger === null) return decoded.snapshot;
   const cards = decoded.snapshot.card_state;
@@ -105,6 +143,10 @@ export function rowsToWrite(decoded: DecodedBackup, env: StorageEnv): Snapshot {
 export interface WriteDeps {
   /** Posts { type: 'gate', reason } on the diet-db channel (gate.ts). */
   readonly postGate: (reason: GateReason) => void;
+  /** Web Locks (locks.ts), or null where the browser has none. */
+  readonly locks: LockManagerLike | null;
+  /** How long to wait for the other tabs to let go (3 s). */
+  readonly lockWaitMs?: number;
   /** pwa/storage.ts requestPersistentStorage. */
   readonly requestPersistentStorage: () => Promise<unknown>;
   readonly reload: () => void;
@@ -112,23 +154,41 @@ export interface WriteDeps {
 
 export type WriteOutcome =
   | { readonly ok: true }
-  | { readonly ok: false; readonly error: BackupError; readonly phone: Snapshot };
+  /** Another tab did not let go of the records within 3 s: nothing was written. */
+  | { readonly ok: false; readonly blocked: true; readonly phone: Snapshot }
+  | {
+      readonly ok: false;
+      readonly blocked: false;
+      readonly error: BackupError;
+      readonly phone: Snapshot;
+    };
 
-/** Step 10. */
+/** Step 10. It can be tried again after a blocked or failed attempt (nothing was written). */
 export async function writeImport(
   db: DietDb,
   plan: ImportPlan,
   env: StorageEnv,
   deps: WriteDeps,
 ): Promise<WriteOutcome> {
-  const rows = rowsToWrite(plan.decoded, env);
+  const rows = rowsToWrite(
+    { snapshot: plan.snapshot, updateNotice: plan.decoded.updateNotice },
+    env,
+  );
   deps.postGate('import');
   db.gate.close();
+  db.releaseOpenLock();
+  let written;
   try {
-    await replaceAll(db, rows);
+    written = await withExclusiveLock(deps.locks, () => replaceAll(db, rows), deps.lockWaitMs);
   } catch {
-    return { ok: false, error: new BackupError('write-failed'), phone: plan.phone };
+    return {
+      ok: false,
+      blocked: false,
+      error: new BackupError('write-failed'),
+      phone: plan.phone,
+    };
   }
+  if (!written.granted) return { ok: false, blocked: true, phone: plan.phone };
   await deps.requestPersistentStorage();
   deps.reload();
   return { ok: true };

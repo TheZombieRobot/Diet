@@ -9,7 +9,8 @@
     "./styles.css": "./src/styles/index.css"
   },
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --root ../.. --project ui"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "5.3.0"

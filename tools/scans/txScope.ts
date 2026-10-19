@@ -7,14 +7,18 @@
  * .catch() that swallows a failed bulkAdd commits a partial write the same way.
  *
  * A scope is the function passed to `.transaction(...)` (its last argument), to `.upgrade(...)`
- * and to `.on('populate', ...)`, any function whose doc comment carries `@transactionScope`, and
- * every function nested in one. A scope passed by name is followed to its declaration in the same
- * file. Inside a scope this reports:
+ * and to `.on('populate', ...)`, any function whose doc comment carries `@transactionScope`, every
+ * function nested in one, and every helper a scope calls or passes on: a function declared in the
+ * same file, a function property of an object literal declared there, or (when the scan is given
+ * the project's files) a function imported by name from a relative module, transitively. A scope
+ * passed by name is followed to its declaration in the same file. Inside a scope this reports:
  * - an `async` function, an `await`, a `try` statement, a `.catch(` or `.finally(` call;
  * - a `.then(` whose receiver is not a call rooted at `db`, `tx` or `Dexie.Promise`;
  * - any reference to crypto, setTimeout, setInterval, queueMicrotask, fetch, navigator, window,
  *   confirm or requestPersistentStorage.
- * It runs on the phone app's source (apps/mobile-web/src, tests excluded) in `pnpm scan`.
+ * It runs on the phone app's source (apps/mobile-web/src, tests excluded) in `pnpm scan`. Helpers
+ * reached only through a value chosen at run time (for example a store's rules picked from a map)
+ * cannot be followed, so those functions carry `@transactionScope` themselves.
  */
 import ts from 'typescript';
 
@@ -106,9 +110,74 @@ function forbiddenReference(node: ts.Identifier): boolean {
   return true;
 }
 
-/** Every transaction scope in a source file. */
+/** A function in a source file, by the name it is called by. */
+interface Declared {
+  /** Functions declared by name: function declarations and consts holding a function. */
+  readonly functions: Map<string, FunctionNode>;
+  /** Consts holding an object literal: their function-valued properties, by property name. */
+  readonly objects: Map<string, Map<string, FunctionNode>>;
+  /** Names imported by name from a relative module: the module specifier and the exported name. */
+  readonly imports: Map<string, { readonly specifier: string; readonly name: string }>;
+}
+
+function declarationsOf(source: ts.SourceFile): Declared {
+  const functions = new Map<string, FunctionNode>();
+  const objects = new Map<string, Map<string, FunctionNode>>();
+  const imports = new Map<string, { specifier: string; name: string }>();
+  const visit = (node: ts.Node): void => {
+    if (ts.isFunctionDeclaration(node) && node.name !== undefined) {
+      functions.set(node.name.text, node);
+    }
+    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer) {
+      let init: ts.Expression = node.initializer;
+      while (
+        ts.isAsExpression(init) ||
+        ts.isSatisfiesExpression(init) ||
+        ts.isParenthesizedExpression(init)
+      ) {
+        init = init.expression;
+      }
+      if (isFunctionNode(init)) functions.set(node.name.text, init);
+      if (ts.isObjectLiteralExpression(init)) {
+        const members = new Map<string, FunctionNode>();
+        for (const property of init.properties) {
+          if (ts.isMethodDeclaration(property) && ts.isIdentifier(property.name)) {
+            members.set(property.name.text, property);
+          } else if (
+            ts.isPropertyAssignment(property) &&
+            ts.isIdentifier(property.name) &&
+            isFunctionNode(property.initializer)
+          ) {
+            members.set(property.name.text, property.initializer);
+          }
+        }
+        objects.set(node.name.text, members);
+      }
+    }
+    if (
+      ts.isImportDeclaration(node) &&
+      ts.isStringLiteral(node.moduleSpecifier) &&
+      node.moduleSpecifier.text.startsWith('.') &&
+      node.importClause?.namedBindings !== undefined &&
+      ts.isNamedImports(node.importClause.namedBindings)
+    ) {
+      for (const element of node.importClause.namedBindings.elements) {
+        if (element.isTypeOnly) continue;
+        imports.set(element.name.text, {
+          specifier: node.moduleSpecifier.text,
+          name: (element.propertyName ?? element.name).text,
+        });
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(source);
+  return { functions, objects, imports };
+}
+
+/** Every transaction scope a source file declares: the roots, before helpers are followed. */
 export function findScopes(source: ts.SourceFile): FunctionNode[] {
-  const declared = new Map<string, FunctionNode>();
+  const declared = declarationsOf(source).functions;
   const scopes = new Set<FunctionNode>();
   const byName: ts.Identifier[] = [];
 
@@ -119,20 +188,12 @@ export function findScopes(source: ts.SourceFile): FunctionNode[] {
   };
 
   const visit = (node: ts.Node): void => {
-    if (ts.isFunctionDeclaration(node) && node.name !== undefined) {
-      declared.set(node.name.text, node);
-      if (hasScopeTag(node)) scopes.add(node);
+    if (ts.isFunctionDeclaration(node) && node.name !== undefined && hasScopeTag(node)) {
+      scopes.add(node);
     }
-    if (ts.isVariableStatement(node)) {
+    if (ts.isVariableStatement(node) && hasScopeTag(node)) {
       for (const d of node.declarationList.declarations) {
-        if (
-          ts.isIdentifier(d.name) &&
-          d.initializer !== undefined &&
-          isFunctionNode(d.initializer)
-        ) {
-          declared.set(d.name.text, d.initializer);
-          if (hasScopeTag(node)) scopes.add(d.initializer);
-        }
+        if (d.initializer !== undefined && isFunctionNode(d.initializer)) scopes.add(d.initializer);
       }
     }
     if (ts.isPropertyAssignment(node) && isFunctionNode(node.initializer) && hasScopeTag(node)) {
@@ -164,42 +225,140 @@ export function findScopes(source: ts.SourceFile): FunctionNode[] {
   return [...scopes];
 }
 
-/** Problems inside the transaction scopes of one file. */
-export function scanTransactionScopes(file: string, text: string): ScopeProblem[] {
+/** A file the scan reads helpers from (another file of the same project). */
+export interface ScannedFile {
+  readonly file: string;
+  readonly text: string;
+}
+
+/**
+ * Finds a relative import's file (`.ts`, `.tsx` or `index.ts`), or null when it is not part of the
+ * scanned project. scanTransactionScopes follows helpers into it only when given one.
+ */
+export type ModuleResolver = (fromFile: string, specifier: string) => ScannedFile | null;
+
+interface Parsed {
+  readonly file: string;
+  readonly source: ts.SourceFile;
+  readonly declared: Declared;
+}
+
+function parse(file: string, text: string): Parsed {
   const kind = /\.tsx$/.test(file) ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
   const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, kind);
+  return { file, source, declared: declarationsOf(source) };
+}
+
+/**
+ * Problems inside the transaction scopes of one file. Every function a scope calls, or passes on
+ * (`.then(helper)`), is checked as part of the scope too, transitively: a function declared in the
+ * same file, a function property of an object literal declared there (`rules.check(...)`), and,
+ * when `resolve` is given, a function imported by name from another file of the project. So an
+ * await, a try, a timer or WebCrypto hidden in a helper is reported like one written in the scope
+ * itself (data-loss and tests reviews).
+ */
+export function scanTransactionScopes(
+  file: string,
+  text: string,
+  resolve: ModuleResolver | null = null,
+): ScopeProblem[] {
+  const root = parse(file, text);
+  const parsedFiles = new Map<string, Parsed>([[file, root]]);
   const problems: ScopeProblem[] = [];
   const seen = new Set<string>();
-  const report = (node: ts.Node, rule: ScopeProblem['rule'], detail: string): void => {
-    const { line, character } = source.getLineAndCharacterOfPosition(node.getStart(source));
-    const key = `${String(line)}:${String(character)}:${rule}`;
+  const report = (
+    where: Parsed,
+    node: ts.Node,
+    rule: ScopeProblem['rule'],
+    detail: string,
+  ): void => {
+    const { line, character } = where.source.getLineAndCharacterOfPosition(
+      node.getStart(where.source),
+    );
+    const key = `${where.file}:${String(line)}:${String(character)}:${rule}`;
     if (seen.has(key)) return;
     seen.add(key);
-    problems.push({ file, line: line + 1, column: character + 1, rule, detail });
+    problems.push({ file: where.file, line: line + 1, column: character + 1, rule, detail });
   };
-  const check = (node: ts.Node): void => {
+
+  const queue: { readonly where: Parsed; readonly fn: FunctionNode }[] = findScopes(
+    root.source,
+  ).map((fn) => ({ where: root, fn }));
+  const visited = new Set<FunctionNode>();
+
+  const imported = (where: Parsed, name: string): { where: Parsed; fn: FunctionNode } | null => {
+    const link = where.declared.imports.get(name);
+    if (link === undefined || resolve === null) return null;
+    const target = resolve(where.file, link.specifier);
+    if (target === null) return null;
+    let parsed = parsedFiles.get(target.file);
+    if (parsed === undefined) {
+      parsed = parse(target.file, target.text);
+      parsedFiles.set(target.file, parsed);
+    }
+    const fn = parsed.declared.functions.get(link.name);
+    return fn === undefined ? null : { where: parsed, fn };
+  };
+
+  /** The function an identifier or `object.property` in a scope refers to, if the scan can see it. */
+  const helperOf = (
+    where: Parsed,
+    node: ts.Expression,
+  ): { where: Parsed; fn: FunctionNode } | null => {
+    if (ts.isIdentifier(node)) {
+      const local = where.declared.functions.get(node.text);
+      if (local !== undefined) return { where, fn: local };
+      return imported(where, node.text);
+    }
+    if (ts.isPropertyAccessExpression(node) && ts.isIdentifier(node.expression)) {
+      const member = where.declared.objects.get(node.expression.text)?.get(node.name.text);
+      if (member !== undefined) return { where, fn: member };
+    }
+    return null;
+  };
+
+  const check = (where: Parsed, node: ts.Node): void => {
     if (
       isFunctionNode(node) &&
       node.modifiers?.some((m) => m.kind === ts.SyntaxKind.AsyncKeyword)
     ) {
-      report(node, 'async', 'an async function in a transaction scope');
+      report(where, node, 'async', 'an async function in a transaction scope');
     }
-    if (ts.isAwaitExpression(node)) report(node, 'await', 'an await in a transaction scope');
-    if (ts.isTryStatement(node)) report(node, 'try', 'a try statement in a transaction scope');
-    if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression)) {
-      const method = node.expression.name.text;
-      if (method === 'catch') report(node, 'catch', '.catch() in a transaction scope');
-      if (method === 'finally') report(node, 'finally', '.finally() in a transaction scope');
-      if (method === 'then' && !isDexieReceiver(node.expression.expression)) {
-        report(node, 'then-receiver', '.then() on something that is not a Dexie request');
+    if (ts.isAwaitExpression(node)) report(where, node, 'await', 'an await in a transaction scope');
+    if (ts.isTryStatement(node))
+      report(where, node, 'try', 'a try statement in a transaction scope');
+    if (ts.isCallExpression(node)) {
+      if (ts.isPropertyAccessExpression(node.expression)) {
+        const method = node.expression.name.text;
+        if (method === 'catch') report(where, node, 'catch', '.catch() in a transaction scope');
+        if (method === 'finally')
+          report(where, node, 'finally', '.finally() in a transaction scope');
+        if (method === 'then' && !isDexieReceiver(node.expression.expression)) {
+          report(where, node, 'then-receiver', '.then() on something that is not a Dexie request');
+        }
+      }
+      // A helper called from the scope runs inside the transaction: check it as a scope too.
+      const callee = helperOf(where, node.expression);
+      if (callee !== null) queue.push(callee);
+      // So does a helper passed on, as in `.then(helper)` or `Dexie.Promise.all(list.map(helper))`.
+      for (const argument of node.arguments) {
+        const passed = helperOf(where, argument);
+        if (passed !== null) queue.push(passed);
       }
     }
     if (ts.isIdentifier(node) && forbiddenReference(node)) {
-      report(node, 'forbidden-name', `${node.text} in a transaction scope`);
+      report(where, node, 'forbidden-name', `${node.text} in a transaction scope`);
     }
-    ts.forEachChild(node, check);
+    ts.forEachChild(node, (child) => {
+      check(where, child);
+    });
   };
-  for (const scope of findScopes(source)) check(scope);
+
+  for (let next = queue.shift(); next !== undefined; next = queue.shift()) {
+    if (visited.has(next.fn)) continue;
+    visited.add(next.fn);
+    check(next.where, next.fn);
+  }
   return problems;
 }
 

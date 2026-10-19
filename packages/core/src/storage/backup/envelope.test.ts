@@ -115,6 +115,25 @@ describe('the plain envelope (sections 10.2 and 10.6; section 16 test 15)', () =
     }
   });
 
+  it('a newer file whose payload has a new shape is still newer-version, so it is kept, not thrown away as damaged (data-loss review)', async () => {
+    const reshaped = envelope({}, { schemaVersion: SCHEMA_VERSION + 1, laterKey: 1 });
+    expect(await codeOf(reshaped)).toBe('newer-version');
+    const noTables = JSON.parse(envelope({}, { schemaVersion: SCHEMA_VERSION + 1 })) as {
+      payload: Record<string, unknown>;
+    };
+    delete noTables.payload['tables'];
+    expect(await codeOf(JSON.stringify(noTables))).toBe('newer-version');
+  });
+
+  it('a backup cut short (it starts like one but does not parse) is damaged, not "not a backup" (data-loss review)', async () => {
+    const whole = envelope();
+    for (const keep of [30, Math.floor(whole.length / 2), whole.length - 1]) {
+      expect(await codeOf(whole.slice(0, keep)), String(keep)).toBe('damaged');
+    }
+    expect(await codeOf('{"example":')).toBe('not-a-backup');
+    expect(await codeOf('not json')).toBe('not-a-backup');
+  });
+
   it('refuses a missing or unknown kind, a non-canonical exportedAt and a bad appVersion as damaged', async () => {
     const withoutKind: Record<string, unknown> = { ...payload };
     Reflect.deleteProperty(withoutKind, 'kind');
@@ -185,7 +204,7 @@ describe('the plain envelope (sections 10.2 and 10.6; section 16 test 15)', () =
       'range',
     ]);
     expect(error.message).toBe(
-      'The backup has a record this app cannot accept (weights record 1 kg: range, allowed 20–400). Nothing was imported.',
+      'The backup has a record this app cannot accept: Weigh-ins, record 1: the weight is outside the allowed range (20–400). Nothing was imported.',
     );
   });
 
@@ -231,7 +250,9 @@ describe('the export self-check and the unchecked copy (section 10.5; D22)', () 
       'kg',
       'range',
     ]);
-    expect(e.message).toBe('The backup could not be checked: weights kg failed range');
+    expect(e.message).toBe(
+      'The backup could not be checked: Weigh-ins, record 1: the weight is outside the allowed range (20–400).',
+    );
 
     const rescue = await createRescueFile({
       tables: corrupted,
@@ -246,7 +267,9 @@ describe('the export self-check and the unchecked copy (section 10.5; D22)', () 
     );
     const decoded = await decodeBackupText(rescue.text, { password: PHRASE, env });
     expect(decoded.kind).toBe('rescue');
-    expect(decoded.setAside).toEqual([{ table: 'weights', index: 0, field: 'kg', rule: 'range' }]);
+    expect(decoded.setAside).toEqual([
+      { table: 'weights', index: 0, field: 'kg', rule: 'range', allowed: '20–400' },
+    ]);
     expect(decoded.snapshot.weights).toEqual([]);
     expect(decoded.snapshot.settings[0]?.lastBackupAt).toBeNull(); // a rescue copy never records a backup
   });
@@ -290,14 +313,18 @@ describe('the rescue copy (section 9.5; D23)', () => {
     expect(decoded.setAside).toEqual([]);
   });
 
-  it('replaces a singleton that cannot be kept with its default and lists it', () => {
-    const tables = { ...payload.tables, profile: [{ id: 'singleton', heightCm: 'tall' }] };
+  it('puts back to their defaults only the singleton fields it cannot keep, and lists them', () => {
+    const profile = {
+      ...(payload.tables.profile?.[0] as object),
+      heightCm: 'tall',
+      householdSize: 3,
+    };
+    const tables = { ...payload.tables, profile: [profile] };
     const decoded = checkBackupPayload({ ...payload, kind: 'rescue', tables }, env);
-    expect(decoded.replacedSingletons).toEqual(['profile']);
-    expect(decoded.setAside).toEqual([
-      { table: 'profile', index: 0, field: 'heightCm', rule: 'type' },
-    ]);
+    expect(decoded.replacedFields).toEqual([{ table: 'profile', field: 'heightCm' }]);
+    expect(decoded.setAside).toEqual([]);
     expect(decoded.snapshot.profile[0]?.heightCm).toBeNull();
+    expect(decoded.snapshot.profile[0]?.householdSize).toBe(3);
   });
 });
 
@@ -373,9 +400,10 @@ describe('the import confirmation (section 10.6 step 9; D17)', () => {
     };
     expect(importConfirmation(phone, file)).toEqual({
       missingFromFile: 1,
-      changedAfterExport: 1,
+      differFromFile: 1,
       phoneNewest: '2000-01-03T06:00:00.000Z',
       fileNewest: '2000-01-01T06:00:00.000Z',
+      phoneHasOwnRecords: true,
       exportFirst: true,
     });
   });
@@ -390,7 +418,7 @@ describe('the import confirmation (section 10.6 step 9; D17)', () => {
       importConfirmation(settingsWithBackup, { snapshot: tables, exportedAt: EXPORTED_AT }),
     ).toMatchObject({
       missingFromFile: 0,
-      changedAfterExport: 0,
+      differFromFile: 0,
       exportFirst: false,
     });
     expect(newestInstantOf({ lastBackupAt: '2000-02-01T00:00:00.000Z' })).toBeNull();

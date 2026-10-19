@@ -1,4 +1,4 @@
-import { useId, type InputHTMLAttributes, type ReactElement } from 'react';
+import { useId, type InputHTMLAttributes, type ReactElement, type Ref } from 'react';
 import { classNames } from '../classNames';
 
 export interface TextFieldProps extends Omit<
@@ -11,10 +11,12 @@ export interface TextFieldProps extends Omit<
   hint?: string | undefined;
   /** Why the value is not accepted; shown under the field and announced. */
   error?: string | undefined;
+  /** The input element, for moving focus back to it (for example after a wrong password). */
+  ref?: Ref<HTMLInputElement> | undefined;
 }
 
 /** A labelled text input at least 48 px high, with an optional hint and error. */
-export function TextField({ label, hint, error, ...input }: TextFieldProps): ReactElement {
+export function TextField({ label, hint, error, ref, ...input }: TextFieldProps): ReactElement {
   const id = useId();
   const hintId = `${id}-hint`;
   const errorId = `${id}-error`;
@@ -27,6 +29,7 @@ export function TextField({ label, hint, error, ...input }: TextFieldProps): Rea
         {label}
       </label>
       <input
+        ref={ref}
         id={id}
         className={classNames('ui-field__input', error !== undefined && 'ui-field__input--error')}
         aria-invalid={error === undefined ? undefined : true}

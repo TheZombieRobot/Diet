@@ -128,8 +128,12 @@ export function findInvariantViolation(snapshot: InvariantSnapshot): InvariantRu
       if (!(periodDay1(period, home) > previousLast)) return 'kickstart-overlap';
     }
     if (period.endedAt !== null) {
-      const ended = recordLocalDate(period.endedAt, period.endedTimeZone, home);
-      if (ended > scheduledLastDay(period, extensions, home)) return 'kickstart-end';
+      // On or before the scheduled last day, read both where it ended and in its start zone, so
+      // an end written after the natural end in either zone is refused (D27).
+      const last = scheduledLastDay(period, extensions, home);
+      const endedThere = recordLocalDate(period.endedAt, period.endedTimeZone, home);
+      const endedAtStart = recordLocalDate(period.endedAt, period.timeZone, home);
+      if (endedThere > last || endedAtStart > last) return 'kickstart-end';
     }
     const checks = [...(checksByPeriod.get(period.id) ?? [])].sort(byStart((c) => c.askedAt));
     let earlierExtensions = 0;

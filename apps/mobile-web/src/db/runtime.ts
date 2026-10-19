@@ -9,7 +9,16 @@ import { onOnboardingCompleted, requestPersistentStorage } from '../pwa/storage'
 import { revokeAllObjectUrls, offerDownload } from '../files';
 import { type DbDeps, type DietDb, openDietDb, openStatusStore, type OpenStatus } from './db';
 import { browserEnv, type StorageEnv } from './env';
-import { type GateReason, openTabChannel, type WriteGate, writeGate } from './gate';
+import {
+  browserChannel,
+  type ChannelFactory,
+  type GateReason,
+  openTabChannel,
+  type TabChannel,
+  type WriteGate,
+  writeGate,
+} from './gate';
+import { browserLocks, holdOpenLock, type LockManagerLike } from './locks';
 import { createRepos, type Repos } from './repos';
 
 /** The browser features the storage flows use, injectable for tests. */
@@ -19,6 +28,8 @@ export interface Platform {
   /** Loads the app again, on Today. */
   readonly reload: () => void;
   readonly postGate: (reason: GateReason) => void;
+  /** Web Locks (locks.ts), or null where the browser has none. */
+  readonly locks: () => LockManagerLike | null;
   readonly requestPersistentStorage: () => Promise<unknown>;
   readonly caches: () => CacheStorage | undefined;
   readonly localStorage: () => Storage;
@@ -36,7 +47,7 @@ export interface AppStorage {
 }
 
 /** This tab's end of the 'diet-db' channel, once the database is open. */
-let tabChannel: { post: (reason: GateReason) => void } | null = null;
+let tabChannel: TabChannel | null = null;
 
 export const browserPlatform: Platform = {
   download: (text, fileName) => {
@@ -49,6 +60,7 @@ export const browserPlatform: Platform = {
   postGate: (reason) => {
     tabChannel?.post(reason);
   },
+  locks: browserLocks,
   requestPersistentStorage: () => requestPersistentStorage(),
   caches: () => ('caches' in window ? window.caches : undefined),
   localStorage: () => window.localStorage,
@@ -74,24 +86,56 @@ const browserDeps = (): DbDeps | null =>
     ? null
     : { indexedDB, IDBKeyRange };
 
+/** What startStorage uses; each defaults to the browser's (tests pass fakes). */
+export interface StartOptions {
+  readonly env?: StorageEnv;
+  /** IndexedDB; null when the browser has none. */
+  readonly deps?: DbDeps | null;
+  readonly channels?: ChannelFactory;
+  readonly locks?: LockManagerLike | null;
+  readonly gate?: WriteGate;
+  readonly status?: Store<OpenStatus>;
+  readonly platform?: Platform;
+  readonly store?: Store<AppStorage | null>;
+}
+
+export interface StartedStorage {
+  readonly status: OpenStatus;
+  readonly storage: AppStorage | null;
+  /** This tab's end of the 'diet-db' channel (null when the database did not open). */
+  readonly channel: TabChannel | null;
+}
+
 /**
- * Opens the database (section 7.1) and starts listening for other tabs' gate messages. The open
- * status store says what happened; a failure shows a storage failure screen (section 7.4).
+ * Opens the database (section 7.1) holding this tab's shared lock (locks.ts), and starts
+ * listening for other tabs' gate messages: a restore or delete-all in another tab closes this
+ * tab's database for good, which also lets go of the lock. The open status store says what
+ * happened; a failure shows a storage failure screen (section 7.4).
  */
-export async function startStorage(env: StorageEnv = browserEnv()): Promise<OpenStatus> {
-  const deps = browserDeps();
+export async function startStorage(options: StartOptions = {}): Promise<StartedStorage> {
+  const status = options.status ?? openStatusStore;
+  const deps = options.deps === undefined ? browserDeps() : options.deps;
   if (deps === null) {
-    openStatusStore.set('unavailable');
-    return 'unavailable';
+    status.set('unavailable');
+    return { status: 'unavailable', storage: null, channel: null };
   }
-  const { status, db } = await openDietDb(env, deps, { gate: writeGate, status: openStatusStore });
-  if (db === null) return status;
-  tabChannel = openTabChannel(() => {
+  const env = options.env ?? browserEnv();
+  const locks = options.locks === undefined ? browserLocks() : options.locks;
+  const lock = await holdOpenLock(locks).catch(() => holdOpenLock(null));
+  const opened = await openDietDb(env, deps, { gate: options.gate ?? writeGate, status });
+  const { db } = opened;
+  if (db === null) {
+    lock.release();
+    return { status: opened.status, storage: null, channel: null };
+  }
+  db.attachOpenLock(lock);
+  const channel = openTabChannel(() => {
     db.closeForGood('reload-needed');
-  });
-  const storage = createAppStorage(db, deps);
-  appStorageStore.set(storage);
+  }, options.channels ?? browserChannel);
+  if (options.store === undefined) tabChannel = channel;
+  const storage = createAppStorage(db, deps, options.platform ?? browserPlatform);
+  (options.store ?? appStorageStore).set(storage);
   // Remembers the home zone for new records (section 3.4).
   await storage.repos.settings.get().catch(() => undefined);
-  return status;
+  return { status: opened.status, storage, channel };
 }

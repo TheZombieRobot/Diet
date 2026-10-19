@@ -471,8 +471,27 @@ describe('form controls (the Backup and data card)', () => {
     expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual(['One', 'Two']);
   });
 
+  it('a caution button (an action that cannot be undone) is drawn apart from primary and secondary buttons', () => {
+    render(
+      <ButtonRow>
+        <Button variant="primary">Cancel</Button>
+        <Button variant="caution">Delete everything</Button>
+      </ButtonRow>,
+    );
+    const [primary, caution] = screen.getAllByRole('button');
+    expect(caution?.className).toContain('ui-button--caution');
+    expect(caution?.className).not.toContain('ui-button--primary');
+    expect(primary?.className).toContain('ui-button--primary');
+  });
+
   it('the new controls use only colour tokens', () => {
-    for (const selector of ['.ui-field__input', '.ui-switch__track', '.ui-notice--amber']) {
+    for (const selector of [
+      '.ui-field__input',
+      '.ui-switch__track',
+      '.ui-notice--amber',
+      '.ui-button--caution',
+      '.ui-progress',
+    ]) {
       const rule = componentsCss.slice(componentsCss.indexOf(`${selector} {`));
       const body = rule.slice(0, rule.indexOf('}'));
       expect(body, selector).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(/i);

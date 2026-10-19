@@ -79,6 +79,12 @@ describe('colour tokens (styles/tokens.css)', () => {
       );
     });
 
+    it(`${theme}: the caution button's amber outline stands out from the card (at least 3:1)`, () => {
+      expect(
+        contrastRatio(colour('--color-amber-strong', theme), colour('--color-card', theme)),
+      ).toBeGreaterThanOrEqual(3);
+    });
+
     it(`${theme}: tab labels on the translucent tab bar have at least 4.5:1 contrast`, () => {
       const bar = over(colour('--color-tabbar', theme), colour('--color-ground', theme));
       expect(contrastRatio(colour('--color-secondary', theme), bar)).toBeGreaterThanOrEqual(4.5);

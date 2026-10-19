@@ -4,10 +4,13 @@
  *
  * 0. Close this tab's write gate and tell the other tabs, so no autosave, live query or other tab
  *    can write to, or reopen, the database from here on.
- * 1. Close the connection with reopening off.
- * 2. Delete every IndexedDB database on the origin (always including 'diet'). That covers every
- *    store, the laptop pairing (its key) and every photo. Other connections close on versionchange;
- *    if the deletion is still blocked after 3 s, this reports it and claims no success.
+ * 1. Close the connection with reopening off, and give up this tab's shared lock (locks.ts).
+ * 2. Inside the lock in exclusive mode (granted once every other tab has closed its records; not
+ *    granted within 3 s means another tab is not answering), delete every IndexedDB database on the
+ *    origin, always including 'diet', even when the list of databases cannot be read. That covers
+ *    every store, the laptop pairing (its key) and every photo. Other connections close on
+ *    versionchange; if the deletion is still blocked after 3 s, this reports it and claims no
+ *    success.
  * 3. Delete every cache except the app's own precache, so the app still opens offline.
  * 4. Clear localStorage and sessionStorage.
  * 5. Revoke every object URL the app made.
@@ -17,21 +20,30 @@
 import { DB_NAME } from '@diet/core';
 import type { DietDb } from './db';
 import type { GateReason, WriteGate } from './gate';
+import { type LockManagerLike, withExclusiveLock } from './locks';
 
 export type DeleteStep =
-  'gate' | 'databases' | 'caches' | 'local-storage' | 'session-storage' | 'files';
+  | 'gate'
+  | 'list-databases'
+  | 'databases'
+  | 'caches'
+  | 'local-storage'
+  | 'session-storage'
+  | 'files';
 
 export interface DeleteAllDeps {
   readonly db: DietDb | null;
   readonly gate: WriteGate;
   readonly postGate: (reason: GateReason) => void;
+  /** Web Locks (locks.ts), or null where the browser has none. */
+  readonly locks: LockManagerLike | null;
   readonly indexedDB: IDBFactory;
   readonly caches: CacheStorage | undefined;
   readonly localStorage: () => Storage;
   readonly sessionStorage: () => Storage;
   readonly revokeObjectUrls: () => void;
   readonly reload: () => void;
-  /** How long a blocked deletion may wait before it is reported (3 s). */
+  /** How long a blocked deletion, or the wait for the lock, may take before it is reported (3 s). */
   readonly blockedTimeoutMs?: number;
 }
 
@@ -73,12 +85,16 @@ function deleteDatabase(
   });
 }
 
-async function databaseNames(factory: IDBFactory): Promise<string[]> {
+/** Every database name on the origin, always including 'diet'; listed is false when the list could not be read. */
+async function databaseNames(factory: IDBFactory): Promise<{ names: string[]; listed: boolean }> {
   const names = new Set<string>([DB_NAME]);
-  if (typeof factory.databases === 'function') {
+  if (typeof factory.databases !== 'function') return { names: [...names], listed: true };
+  try {
     for (const info of await factory.databases()) if (info.name !== undefined) names.add(info.name);
+    return { names: [...names], listed: true };
+  } catch {
+    return { names: [...names], listed: false };
   }
-  return [...names];
 }
 
 export async function deleteAllData(deps: DeleteAllDeps): Promise<DeleteAllResult> {
@@ -95,13 +111,27 @@ export async function deleteAllData(deps: DeleteAllDeps): Promise<DeleteAllResul
   }
 
   // 2.
+  const waitMs = deps.blockedTimeoutMs ?? 3000;
   try {
-    const names = await databaseNames(deps.indexedDB);
-    const results = await Promise.all(
-      names.map((name) => deleteDatabase(deps.indexedDB, name, deps.blockedTimeoutMs ?? 3000)),
+    const outcome = await withExclusiveLock(
+      deps.locks,
+      async () => {
+        const { names, listed } = await databaseNames(deps.indexedDB);
+        const results = await Promise.all(
+          names.map((name) => deleteDatabase(deps.indexedDB, name, waitMs)),
+        );
+        return { listed, results };
+      },
+      waitMs,
     );
-    if (results.includes('blocked')) blocked = true;
-    if (results.some((r) => r !== 'deleted')) failed.push('databases');
+    if (!outcome.granted) {
+      blocked = true;
+      failed.push('databases');
+    } else {
+      if (!outcome.value.listed) failed.push('list-databases');
+      if (outcome.value.results.includes('blocked')) blocked = true;
+      if (outcome.value.results.some((r) => r !== 'deleted')) failed.push('databases');
+    }
   } catch {
     failed.push('databases');
   }

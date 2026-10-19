@@ -1,19 +1,18 @@
 /**
  * The drinks log (storage spec sections 4.10 and 8.2; C21, C94, AL-02, NN-01). The generic
  * repository allows only get and list; logging, editing and removing go through here, because the
- * per-serve figures are a snapshot the repository computes with core standardDrinks() and
- * drinkEnergy(): callers never pass them. Figures are stored unrounded (C94).
+ * per-serve figures are a snapshot the repository computes with core drinkFigures()
+ * (standardDrinks() and drinkEnergy()): callers never pass them. Figures are stored unrounded (C94).
  */
 import {
   DEFAULT_HOME_TIME_ZONE,
+  drinkFigures,
   type DrinkLogRecord,
-  drinkEnergy,
   drinkingDayOf,
   type Instant,
   type LocalDate,
   type RefId,
   resolveZone,
-  standardDrinks,
   type StoredBeverage,
   utcRangeCovering,
 } from '@diet/core';
@@ -43,26 +42,6 @@ export interface DrinksRepo {
   readonly remove: (id: string) => Promise<void>;
   /** Drinks whose drinking day (section 3.3), in their own recorded zone, lies in [from, to]. */
   readonly forDrinkingDays: (from: LocalDate, to: LocalDate) => Promise<DrinkLogRecord[]>;
-}
-
-type Figures = Pick<DrinkLogRecord, 'stdDrinksPerServe' | 'stdSource' | 'kcalPerServe'>;
-
-/**
- * The per-serve figures of a beverage. A beverage the core functions refuse gets placeholder
- * figures, so the validator then names the beverage field that is out of range (and no message
- * ever carries the value).
- */
-export function drinkFigures(beverage: StoredBeverage): Figures {
-  try {
-    const std = standardDrinks(beverage);
-    return {
-      stdDrinksPerServe: std.exact,
-      stdSource: std.source,
-      kcalPerServe: drinkEnergy(beverage).kcal,
-    };
-  } catch {
-    return { stdDrinksPerServe: 0, stdSource: 'calculated', kcalPerServe: null };
-  }
 }
 
 export function drinksRepo(ctx: RepoContext): DrinksRepo {

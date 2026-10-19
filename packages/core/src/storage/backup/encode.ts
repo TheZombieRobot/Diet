@@ -221,8 +221,10 @@ export async function createBackupFile(input: CreateBackupInput): Promise<Backup
     if (!(error instanceof BackupError)) throw error;
     throw new BackupExportError('self-check-failed', {
       table: error.table,
+      index: error.index,
       field: error.field,
       rule: error.rule,
+      allowed: error.allowed,
     });
   }
   const locked = input.password !== null;

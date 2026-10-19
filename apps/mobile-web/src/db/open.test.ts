@@ -147,6 +147,72 @@ describe('open (section 16 test 22; BK-11)', () => {
     await expect(db.weights.count()).rejects.toMatchObject({ name: 'DatabaseClosedError' });
   });
 
+  /** A raw native-10 'diet' database with the version-1 stores, changed by `adjust`. */
+  async function rawVersion10(
+    factory: IDBFactory,
+    adjust: (db: IDBDatabase, name: string, store: IDBObjectStore) => void,
+    extra: (db: IDBDatabase) => void = () => undefined,
+  ): Promise<void> {
+    await new Promise<void>((resolve, reject) => {
+      const request = factory.open(DB_NAME, 10);
+      request.onupgradeneeded = () => {
+        const idb = request.result;
+        for (const [name, schema] of Object.entries(STORES_V1)) {
+          const [key = 'id', ...indexes] = schema.split(',').map((p) => p.trim());
+          const compound = /^\[(.+)\]$/.exec(key);
+          const store = idb.createObjectStore(name, {
+            keyPath: compound?.[1] === undefined ? key : compound[1].split('+'),
+          });
+          for (const index of indexes) {
+            const multi = /^\[(.+)\]$/.exec(index);
+            store.createIndex(index, multi?.[1] === undefined ? index : multi[1].split('+'));
+          }
+          adjust(idb, name, store);
+        }
+        extra(idb);
+      };
+      request.onsuccess = () => {
+        request.result.close();
+        resolve();
+      };
+      request.onerror = () => {
+        reject(request.error ?? new Error('open failed'));
+      };
+    });
+  }
+
+  it('the post-open check refuses a native-10 database missing an index (Dexie would patch it to 11): not ready, gate closed', async () => {
+    const deps = freshDeps();
+    await rawVersion10(deps.indexedDB, (_db, name, store) => {
+      if (name === 'weights') store.deleteIndex('at');
+    });
+    const status = createStore<OpenStatus>('opening');
+    const gate = createWriteGate();
+    const result = await openDietDb(testEnv(), deps, { status, gate });
+    expect(result.db).toBeNull();
+    expect(result.status).not.toBe('ready');
+    expect(status.get()).toBe(result.status);
+    expect(gate.isOpen()).toBe(false);
+  });
+
+  it('the post-open check refuses a native-10 database with an extra store (such as a Dexie $meta store): not ready, gate closed', async () => {
+    for (const extraStore of ['$meta', 'example_extra']) {
+      const deps = freshDeps();
+      await rawVersion10(
+        deps.indexedDB,
+        () => undefined,
+        (idb) => {
+          idb.createObjectStore(extraStore);
+        },
+      );
+      const status = createStore<OpenStatus>('opening');
+      const gate = createWriteGate();
+      const result = await openDietDb(testEnv(), deps, { status, gate });
+      expect(result, extraStore).toEqual({ status: 'unavailable', db: null });
+      expect(gate.isOpen(), extraStore).toBe(false);
+    }
+  });
+
   it('maps open errors to the section 7.4 statuses', () => {
     const named = (name: string) => Object.assign(new Error('x'), { name });
     expect(mapOpenError(named('VersionError'), false)).toBe('newer-version');
@@ -251,6 +317,7 @@ describe('other tabs (section 7.5; section 16 test 36)', () => {
     const plan = await planImport(b.db, decoded);
     const outcome = await writeImport(b.db, plan, b.env, {
       postGate: tabB.post,
+      locks: null,
       requestPersistentStorage: () => Promise.resolve(),
       reload: () => undefined,
     });

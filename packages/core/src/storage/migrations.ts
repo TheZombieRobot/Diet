@@ -26,7 +26,23 @@ import {
 } from '../nutrition/confidence';
 import { kjToKcal } from '../nutrition/nutrients';
 import { updateNoticeTrigger } from './cards';
-import type { FieldTree, Id, Instant, TableSpecs, TimeZone } from './primitives';
+import {
+  type FieldTree,
+  type Id,
+  type Instant,
+  isClockTime,
+  isId,
+  isInstant,
+  isLocalDate,
+  isNote,
+  isRefId,
+  isSeedId,
+  isText,
+  isTimeZoneName,
+  type TableSpecs,
+  type TimeZone,
+} from './primitives';
+import { VALIDATOR_VECTORS_V1, type ValidatorVector } from './validatorVectors';
 import { BACKUP_TABLES_V1, DEVICE_ONLY_TABLES_V1, STORES_V1, TABLES_V1 } from './specs/v1';
 
 /** Every store as plain arrays; device-only stores may be absent (a backup). */
@@ -69,6 +85,11 @@ export interface Migration {
   readonly reads: readonly string[];
   /** Stores whose rows the step may change ([] for version 1). runUpgrade rewrites only these. */
   readonly rewrites: readonly string[];
+  /**
+   * Stores (among the rewrites) in which the step may leave fewer rows than it was given. Any other
+   * store that loses rows is a bug in the step, and checkMigrationResult refuses it.
+   */
+  readonly removesRows: readonly string[];
   /** Pure and synchronous; null only for version 1; identity when no rows change. */
   readonly upgrade: ((snapshot: LooseSnapshot, env: MigrationEnv) => MigrationResult) | null;
 }
@@ -82,6 +103,7 @@ export const MIGRATIONS: readonly Migration[] = Object.freeze([
     specs: TABLES_V1,
     reads: [],
     rewrites: [],
+    removesRows: [],
     upgrade: null,
   }),
 ]);
@@ -172,6 +194,79 @@ export function chainInfo(chain: readonly Migration[] = MIGRATIONS): ChainInfo {
   return info;
 }
 
+/** Why a migration step's result was refused: it broke the contract of section 9.3. */
+export type MigrationContractRule = 'missing-store' | 'rows-lost' | 'unexpected-change';
+
+/**
+ * A migration step whose result breaks its contract (data-loss review): a store it rewrites, or a
+ * backed-up store it was given, is missing from its result; a store lost rows the step did not
+ * declare it removes; or a store it does not rewrite came back changed. Thrown before anything is
+ * written, so an upgrade fails (upgrade-failed, nothing changed) and an import is refused
+ * (invalid-record), instead of a store being emptied without a word. No values, no cause.
+ */
+export class MigrationError extends Error {
+  readonly rule: MigrationContractRule;
+
+  constructor(rule: MigrationContractRule, version: number) {
+    super(`Migration to version ${String(version)} broke its contract: ${rule}`);
+    this.rule = rule;
+  }
+}
+MigrationError.prototype.name = 'MigrationError';
+
+const sameRows = (a: unknown, b: unknown): boolean => {
+  if (a === b) return true;
+  // Compared as JSON: rows of backed-up stores are plain JSON values (section 2.1).
+  try {
+    return JSON.stringify(a) === JSON.stringify(b);
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Checks a step's result against what it was given (both consumers: runUpgrade and
+ * migrateSnapshot). `required` lists the stores that must come back as arrays besides the
+ * rewrites (every backed-up store the step was given, for an import or the last upgrade step).
+ */
+export function checkMigrationResult(
+  step: Migration,
+  given: Readonly<LooseSnapshot>,
+  result: MigrationResult,
+  required: readonly string[] = [],
+): void {
+  const snapshot: unknown = result.snapshot;
+  if (typeof snapshot !== 'object' || snapshot === null || Array.isArray(snapshot)) {
+    throw new MigrationError('missing-store', step.version);
+  }
+  const out = snapshot as Readonly<Record<string, unknown>>;
+  for (const name of new Set([...step.rewrites, ...required])) {
+    if (!Object.hasOwn(out, name) || !Array.isArray(out[name])) {
+      throw new MigrationError('missing-store', step.version);
+    }
+  }
+  for (const [name, before] of Object.entries(given)) {
+    if (!Array.isArray(before)) continue;
+    const after = Object.hasOwn(out, name) ? out[name] : undefined;
+    if (!step.rewrites.includes(name)) {
+      if (after !== undefined && !sameRows(after, before)) {
+        throw new MigrationError('unexpected-change', step.version);
+      }
+      continue;
+    }
+    if (Array.isArray(after) && after.length < before.length && !step.removesRows.includes(name)) {
+      throw new MigrationError('rows-lost', step.version);
+    }
+  }
+  for (const name of Object.keys(out)) {
+    const after = out[name];
+    if (Object.hasOwn(given, name) || step.rewrites.includes(name)) continue;
+    if (Array.isArray(after) && after.length > 0) {
+      throw new MigrationError('unexpected-change', step.version);
+    }
+  }
+}
+
 /** The audit row a migration change becomes (kind 'migration'; D13, D44). */
 export function migrationAuditRow(
   change: MigrationChange,
@@ -209,12 +304,19 @@ export function migrateSnapshot(
   if (!Number.isInteger(fromVersion) || fromVersion < 1 || fromVersion > schemaVersion) {
     throw new RangeError(`Cannot migrate from version ${fromVersion}`);
   }
+  const info = chainInfo(chain);
   let tables: LooseSnapshot = { ...snapshot };
   const changes: MigrationChange[] = [];
   for (const step of chain) {
     if (step.version <= fromVersion) continue;
     if (step.upgrade !== null) {
-      const result = step.upgrade(tables, env);
+      const given = tables;
+      const result = step.upgrade(given, env);
+      // Every backed-up store of the version before this step must come back.
+      const required = (info.backupTablesByVersion[step.version - 1] ?? []).filter(
+        (name) => !step.backup.removed.includes(name),
+      );
+      checkMigrationResult(step, given, result, required);
       tables = { ...result.snapshot };
       changes.push(...result.changes);
     }
@@ -241,7 +343,7 @@ export function migrateSnapshot(
  * the current version's; older ones stay as history.
  */
 export const SPEC_FINGERPRINTS: Readonly<Record<number, string>> = Object.freeze({
-  1: '9d291c4f17e47164d382beefd5e98e1d362eadcff1d38b5541133ddb76984ef5',
+  1: '131c6db5e4047a728f6dbc64aea0149064329f9b8b3bafbd8f33cf4f57ff7d16',
 });
 
 export type WindowLengthOutput =
@@ -266,7 +368,42 @@ export interface GoldenVectors {
     readonly input: readonly NutritionSource[];
     readonly output: Confidence;
   }[];
+  /** The format predicates on their edges (primitives.ts). */
+  readonly formats: readonly {
+    readonly format: FormatName;
+    readonly input: string;
+    readonly output: boolean;
+  }[];
+  /**
+   * Rows on the edges of the rules inside one record and of the formats, with their outcome
+   * (validatorVectors.ts). Passed through by computeGoldenVectors and computed by
+   * computeValidatorVectors (validate.ts), which needs the specs.
+   */
+  readonly validator: readonly ValidatorVector[];
 }
+
+export type FormatName =
+  | 'instant'
+  | 'local-date'
+  | 'clock-time'
+  | 'time-zone'
+  | 'id'
+  | 'seed-id'
+  | 'ref-id'
+  | 'text-1-40'
+  | 'note-280';
+
+const FORMAT_PREDICATES: Readonly<Record<FormatName, (value: string) => boolean>> = {
+  instant: isInstant,
+  'local-date': isLocalDate,
+  'clock-time': isClockTime,
+  'time-zone': isTimeZoneName,
+  id: isId,
+  'seed-id': isSeedId,
+  'ref-id': isRefId,
+  'text-1-40': (v) => isText(v, 1, 40),
+  'note-280': (v) => isNote(v, 280),
+};
 
 /** The live outputs of the core functions validators call or restate, for the inputs of `vectors`. */
 export function computeGoldenVectors(vectors: GoldenVectors): GoldenVectors {
@@ -298,8 +435,16 @@ export function computeGoldenVectors(vectors: GoldenVectors): GoldenVectors {
       input,
       output: recipeConfidence(input),
     })),
+    formats: vectors.formats.map(({ format, input }) => ({
+      format,
+      input,
+      output: FORMAT_PREDICATES[format](input),
+    })),
+    validator: vectors.validator,
   };
 }
+
+const f = (format: FormatName, input: string, output: boolean) => ({ format, input, output });
 
 const LABEL_330_5 = { volumeMl: 330, abvPercent: 5, standardDrinks: 1.3, kcal: 94 };
 
@@ -390,5 +535,66 @@ export const GOLDEN_VECTORS: Readonly<Record<number, GoldenVectors>> = Object.fr
       { input: ['label', 'estimate'], output: 'estimate' },
       { input: ['usda', 'estimate', 'nz-fcdb'], output: 'estimate' },
     ],
+    formats: [
+      f('instant', '2000-01-01T00:00:00.000Z', true),
+      f('instant', '1999-12-31T23:59:59.999Z', false),
+      f('instant', '2099-12-31T23:59:59.999Z', true),
+      f('instant', '2100-01-01T00:00:00.000Z', false),
+      f('instant', '2000-01-01T00:00:00Z', false),
+      f('instant', '2000-01-01T00:00:00.000+00:00', false),
+      f('instant', '2000-02-30T00:00:00.000Z', false),
+      f('instant', '2000-01-01t00:00:00.000z', false),
+      f('local-date', '2000-01-01', true),
+      f('local-date', '1999-12-31', false),
+      f('local-date', '2099-12-31', true),
+      f('local-date', '2100-01-01', false),
+      f('local-date', '2000-02-29', true),
+      f('local-date', '2001-02-29', false),
+      f('local-date', '2000-1-01', false),
+      f('clock-time', '00:00', true),
+      f('clock-time', '23:59', true),
+      f('clock-time', '24:00', false),
+      f('clock-time', '9:00', false),
+      f('clock-time', '12:60', false),
+      f('time-zone', 'Pacific/Auckland', true),
+      f('time-zone', 'America/Argentina/Buenos_Aires', true),
+      f('time-zone', 'Etc/GMT+10', true),
+      f('time-zone', 'UTC', true),
+      f('time-zone', 'Etc/Unknown', false),
+      f('time-zone', '', false),
+      f('time-zone', 'A/B/C/D', false),
+      f('time-zone', `A/${'b'.repeat(62)}`, true),
+      f('time-zone', `A/${'b'.repeat(63)}`, false),
+      f('time-zone', '1Pacific/Auckland', false),
+      f('id', '00000000-0000-4000-8000-000000000001', true),
+      f('id', '00000000-0000-4000-b000-000000000001', true),
+      f('id', '00000000-0000-4000-c000-000000000001', false),
+      f('id', '00000000-0000-5000-8000-000000000001', false),
+      f('id', '00000000-0000-4000-8000-00000000000A', false),
+      f('seed-id', 'seed:silverbeet', true),
+      f('seed-id', 'seed:example-food-2', true),
+      f('seed-id', 'seed:Example', false),
+      f('seed-id', 'seed:example--food', false),
+      f('seed-id', `seed:${'a'.repeat(59)}`, true),
+      f('seed-id', `seed:${'a'.repeat(60)}`, false),
+      f('ref-id', 'seed:silverbeet', true),
+      f('ref-id', '00000000-0000-4000-8000-000000000001', true),
+      f('ref-id', 'silverbeet', false),
+      f('text-1-40', 'Example', true),
+      f('text-1-40', '', false),
+      f('text-1-40', ' Example', false),
+      f('text-1-40', 'Example\tfood', false),
+      f('text-1-40', 'Example\nfood', false),
+      f('text-1-40', 'Example\u007ffood', false),
+      f('text-1-40', 'e'.repeat(40), true),
+      f('text-1-40', 'e'.repeat(41), false),
+      f('note-280', 'Example\nnote', true),
+      f('note-280', 'Example\tnote', false),
+      f('note-280', 'Example\rnote', false),
+      f('note-280', 'Example\u0085note', true),
+      f('note-280', 'Example\u007fnote', false),
+      f('note-280', '', false),
+    ],
+    validator: VALIDATOR_VECTORS_V1,
   },
 });

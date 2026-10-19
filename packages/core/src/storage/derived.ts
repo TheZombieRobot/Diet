@@ -2,11 +2,34 @@
  * Small read-time derivations over stored rows (storage spec sections 4.7, 4.10 and 4.11; D4, D35,
  * D41, D42). Derived values are never stored.
  */
-import { standardDrinks } from '../alcohol/standardDrinks';
+import { drinkEnergy, standardDrinks } from '../alcohol/standardDrinks';
 import { NUTRIENT_KEYS } from '../nutrition/nutrients';
 import { RELAY_TTL_MS } from './limits';
-import { type Instant, instantMs } from './primitives';
-import type { DrinkLogRecord, GroceryListRecord, NutrientKey } from './records';
+import { type Instant, instantMs, isFailure, type ObjectValidator } from './primitives';
+import type { DrinkLogRecord, GroceryListRecord, NutrientKey, StoredBeverage } from './records';
+import { TABLES } from './tables';
+
+export type DrinkFigures = Pick<DrinkLogRecord, 'stdDrinksPerServe' | 'stdSource' | 'kcalPerServe'>;
+
+/**
+ * The per-serve figures the drinks repository stores with a logged drink (section 4.10; C94,
+ * AL-02, NN-01): core standardDrinks() and drinkEnergy(), unrounded. A beverage the stored
+ * beverage validator refuses gets placeholder figures instead, so the row's validator then names
+ * the beverage field that is out of range (and no message carries the value). Nothing here
+ * throws, so it can run inside a write transaction.
+ */
+export function drinkFigures(beverage: StoredBeverage): DrinkFigures {
+  const row = TABLES.drinks_log.row as unknown as ObjectValidator<DrinkLogRecord>;
+  if (isFailure(row.fields.beverage.check(beverage, 'beverage'))) {
+    return { stdDrinksPerServe: 0, stdSource: 'calculated', kcalPerServe: null };
+  }
+  const std = standardDrinks(beverage);
+  return {
+    stdDrinksPerServe: std.exact,
+    stdSource: std.source,
+    kcalPerServe: drinkEnergy(beverage).kcal,
+  };
+}
 
 /**
  * The standard-drinks figure per serve that is shown AND compared with the HS-05/HS-06 thresholds

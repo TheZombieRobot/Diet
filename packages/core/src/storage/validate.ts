@@ -14,6 +14,7 @@
 import { isFailure, isPlainObject, type StorageRule, type TableSpecs } from './primitives';
 import type { StoreName, StoreRecords } from './records';
 import { TABLES } from './tables';
+import type { ValidatorVector } from './validatorVectors';
 
 export class StorageValidationError extends Error {
   readonly table: string;
@@ -93,4 +94,21 @@ export function validateSnapshot(
 export function normalizeRow(table: string, value: unknown, specs: TableSpecs = TABLES): unknown {
   const spec = Object.hasOwn(specs, table) ? specs[table] : undefined;
   return spec === undefined ? value : spec.row.normalize(value);
+}
+
+/**
+ * The live outcome of every validator vector (validatorVectors.ts) under `specs`: 'ok', or the
+ * failing field and rule. Compared with GOLDEN_VECTORS[n].validator by the migrations test.
+ */
+export function computeValidatorVectors(
+  vectors: readonly ValidatorVector[],
+  specs: TableSpecs = TABLES,
+): ValidatorVector[] {
+  return vectors.map((v) => {
+    const result = checkRow(v.table, v.row, specs);
+    return {
+      ...v,
+      output: result.ok ? 'ok' : { field: result.field, rule: result.rule },
+    };
+  });
 }

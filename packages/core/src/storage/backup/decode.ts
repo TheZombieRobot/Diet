@@ -3,17 +3,21 @@
  * Nothing in the database is touched here: import keeps everything in memory until its write step.
  *
  * Steps: 1 size; 2 parse; 3 envelope; 4 unlock (locked files); 5 payload shape; 6 validate against
- * the file's own version; 7 migrate; 8 validate against the current version, then the
- * cross-record invariants. A 'backup' file with any failure is refused whole, and an out-of-range
- * value is never clamped (C50). A 'rescue' file has failing rows set aside and listed instead.
- * Environment checks (a zone this browser does not know) are never applied (section 3.4).
+ * the file's own version; 7 migrate; 8 validate against the current version (and no bookkeeping
+ * instant dated after the export, bookkeeping.ts), then the cross-record invariants. A 'backup'
+ * file with any failure is refused whole, and an out-of-range value is never clamped (C50). A
+ * 'rescue' file is read as far as it safely can (rescueImport.ts): failing rows are set aside and
+ * listed, failing singleton fields are put back to their defaults, but a failing Kickstart history
+ * or safety setting refuses it. Environment checks (a zone this browser does not know) are never
+ * applied (section 3.4).
  */
 import {
   MAX_BACKUP_FILE_BYTES,
   PBKDF2_IMPORT_MIN_ITERATIONS,
   PBKDF2_MAX_ITERATIONS,
 } from '../limits';
-import { defaultSingleton } from '../defaults';
+import { latestBookkeepingMs, futureBookkeepingField } from '../bookkeeping';
+import { defaultSingleton, isUntouchedSeedRow } from '../defaults';
 import { findInvariantViolation } from '../invariants';
 import {
   chainInfo,
@@ -47,6 +51,7 @@ import {
   utf8Decode,
 } from './crypto';
 import { BackupError } from './errors';
+import { KICKSTART_HISTORY_TABLES, repairSingleton, resolveRescueInvariants } from './rescueImport';
 
 export type BackupKind = 'backup' | 'rescue';
 
@@ -73,6 +78,16 @@ const PLAIN_KEYS = ['format', 'version', 'encrypted', 'payload'];
 const LOCKED_KEYS = ['format', 'version', 'encrypted', 'kdf', 'cipher', 'ciphertext'];
 const PAYLOAD_KEYS = ['schemaVersion', 'kind', 'exportedAt', 'appVersion', 'tables'];
 const APP_VERSION_RE = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
+
+/** The first characters of every envelope the app writes, built at run time (section 10.1). */
+const BACKUP_TEXT_START = JSON.stringify({ format: BACKUP_FORMAT }).slice(0, -1);
+
+function startsLikeBackup(text: string): boolean {
+  return text
+    .replace(/^\uFEFF/, '')
+    .trimStart()
+    .startsWith(BACKUP_TEXT_START);
+}
 
 function hasExactKeys(value: Record<string, unknown>, keys: readonly string[]): boolean {
   const own = Reflect.ownKeys(value);
@@ -113,7 +128,9 @@ export function parseBackupText(text: string, sizeBytes: number | null = null): 
   try {
     file = JSON.parse(text);
   } catch {
-    throw new BackupError('not-a-backup');
+    // A file that starts like a backup but does not parse (cut short, or edited) is a damaged
+    // backup, not some other file: the owner should keep it rather than throw it away.
+    throw new BackupError(startsLikeBackup(text) ? 'damaged' : 'not-a-backup');
   }
   if (!isPlainObject(file) || !Object.hasOwn(file, 'format') || file.format !== BACKUP_FORMAT) {
     throw new BackupError('not-a-backup');
@@ -201,10 +218,22 @@ export async function unlockBackup(locked: LockedBackup, password: string): Prom
 /** A row a rescue file could not keep, listed by store, position and rule only (never values). */
 export interface SetAsideRow {
   readonly table: string;
-  /** Position in the file's table (step 6) or in the migrated table (step 8). */
+  /**
+   * Position in the file's table (for a file of the current version, or step 6), or in the
+   * migrated table (step 8 of an older file).
+   */
   readonly index: number;
+  /** The failing field ('' for a cross-record rule). */
   readonly field: string;
   readonly rule: string;
+  /** The allowed range, from spec constants (for the plain message). */
+  readonly allowed: string | null;
+}
+
+/** A singleton field a rescue file could not keep, put back to the app's default ('' for the whole row). */
+export interface ReplacedField {
+  readonly table: 'profile' | 'targets' | 'settings';
+  readonly field: string;
 }
 
 export interface DecodedBackup {
@@ -222,8 +251,8 @@ export interface DecodedBackup {
   readonly updateNotice: string | null;
   /** Rescue files only: rows set aside. */
   readonly setAside: readonly SetAsideRow[];
-  /** Rescue files only: singletons replaced by their defaults. */
-  readonly replacedSingletons: readonly ('profile' | 'targets' | 'settings')[];
+  /** Rescue files only: singleton fields put back to their defaults. */
+  readonly replacedFields: readonly ReplacedField[];
 }
 
 export interface CheckPayloadOptions {
@@ -233,6 +262,13 @@ export interface CheckPayloadOptions {
 }
 
 const SINGLETONS = ['profile', 'targets', 'settings'] as const;
+type SingletonName = (typeof SINGLETONS)[number];
+const isSingleton = (name: string): name is SingletonName =>
+  (SINGLETONS as readonly string[]).includes(name);
+
+/** A rescue copy's Kickstart history must be imported whole or not at all (D27, D28). */
+const kickstartHistoryRefused = (): BackupError =>
+  new BackupError('inconsistent', { rule: 'kickstart-history' });
 
 /**
  * Steps 5 to 8 on a parsed payload: shape, own-version validation, migration, current-version
@@ -246,17 +282,19 @@ export function checkBackupPayload(
   const chain = options.chain ?? MIGRATIONS;
   const info = chainInfo(chain);
 
+  // A file from a newer version is reported as such even when its shape has changed, so the
+  // owner keeps it for the newer app instead of thinking it is damaged.
+  if (isPlainObject(payload) && Object.hasOwn(payload, 'schemaVersion')) {
+    const version = payload.schemaVersion;
+    if (typeof version === 'number' && Number.isInteger(version) && version > info.schemaVersion) {
+      throw new BackupError('newer-version');
+    }
+  }
+
   // Step 5: payload shape.
   if (!isPlainObject(payload) || !hasExactKeys(payload, PAYLOAD_KEYS))
     throw new BackupError('damaged');
   const { schemaVersion, kind, exportedAt, appVersion, tables } = payload;
-  if (
-    typeof schemaVersion === 'number' &&
-    Number.isInteger(schemaVersion) &&
-    schemaVersion > info.schemaVersion
-  ) {
-    throw new BackupError('newer-version');
-  }
   if (typeof schemaVersion !== 'number' || !Number.isInteger(schemaVersion) || schemaVersion < 1) {
     throw new BackupError('unsupported-version');
   }
@@ -284,19 +322,67 @@ export function checkBackupPayload(
 
   const rescue = kind === 'rescue';
   const setAside: SetAsideRow[] = [];
+  const replacedFields: ReplacedField[] = [];
+  const futureLimit = latestBookkeepingMs(exportedAt);
+  /** A rescue singleton, repaired field by field, or the file refused for a safety setting. */
+  const repaired = (
+    name: SingletonName,
+    row: unknown,
+    specs: (typeof info.specsByVersion)[number],
+    index: number,
+    future: number | null,
+  ): unknown => {
+    const repair = repairSingleton(
+      name,
+      row,
+      specs,
+      defaultSingleton(name, exportedAt) as never,
+      future,
+    );
+    if (!repair.ok) {
+      throw new BackupError('invalid-record', {
+        table: name,
+        index,
+        field: repair.field,
+        rule: repair.rule,
+        allowed: repair.allowed,
+      });
+    }
+    for (const field of repair.replaced) {
+      if (!replacedFields.some((r) => r.table === name && r.field === field)) {
+        replacedFields.push({ table: name, field });
+      }
+    }
+    return repair.row;
+  };
 
   // Step 6: every row against the file's own version.
   const ownSpecs = info.specsByVersion[schemaVersion] ?? {};
   const ownRows: Record<string, unknown[]> = {};
+  const ownIndex: Record<string, number[]> = {};
   for (const name of expected) {
     const kept: unknown[] = [];
+    const positions: number[] = [];
     (tables[name] as unknown[]).forEach((row, index) => {
       const result = checkRow(name, row, ownSpecs);
-      if (result.ok) kept.push(result.row);
-      else if (rescue)
-        setAside.push({ table: name, index, field: result.field, rule: result.rule });
-      else {
+      if (result.ok) {
+        kept.push(result.row);
+        positions.push(index);
+      } else if (!rescue) {
         throw new BackupError('invalid-record', {
+          table: name,
+          index,
+          field: result.field,
+          rule: result.rule,
+          allowed: result.allowed,
+        });
+      } else if (KICKSTART_HISTORY_TABLES.includes(name)) {
+        throw kickstartHistoryRefused();
+      } else if (isSingleton(name)) {
+        kept.push(repaired(name, row, ownSpecs, index, null));
+        positions.push(index);
+      } else {
+        setAside.push({
           table: name,
           index,
           field: result.field,
@@ -306,47 +392,79 @@ export function checkBackupPayload(
       }
     });
     ownRows[name] = kept;
+    ownIndex[name] = positions;
   }
 
-  // Step 7: migrate to the current version.
+  // Step 7: migrate to the current version (a step that breaks its contract throws).
   let migrated: ReturnType<typeof migrateSnapshot>;
   try {
     migrated = migrateSnapshot(schemaVersion, ownRows, env, chain);
   } catch {
     throw new BackupError('invalid-record');
   }
+  // Positions in the file, when no migration step ran (the rows are then the same rows).
+  const sameRows = schemaVersion === info.schemaVersion;
+  const position = (name: string, i: number): number => (sameRows ? (ownIndex[name]?.[i] ?? i) : i);
 
-  // Step 8: every row against the current version, then the invariants.
+  // Step 8: every row against the current version, no bookkeeping time after the export, then
+  // the invariants.
   const currentSpecs = info.specsByVersion[info.schemaVersion] ?? {};
   const current = info.backupTablesByVersion[info.schemaVersion] ?? [];
   const out: Record<string, unknown[]> = {};
-  const replacedSingletons: ('profile' | 'targets' | 'settings')[] = [];
+  const outIndex: Record<string, number[]> = {};
   for (const name of current) {
     const kept: unknown[] = [];
-    (migrated.snapshot[name] ?? []).forEach((row, index) => {
+    const positions: number[] = [];
+    (migrated.snapshot[name] ?? []).forEach((row, i) => {
+      const index = position(name, i);
       const result = checkRow(name, row, currentSpecs);
-      if (result.ok) kept.push(result.row);
-      else if (rescue)
-        setAside.push({ table: name, index, field: result.field, rule: result.rule });
-      else {
-        throw new BackupError('invalid-record', {
-          table: name,
-          index,
-          field: result.field,
-          rule: result.rule,
-          allowed: result.allowed,
-        });
+      const future = result.ok ? futureBookkeepingField(name, result.row, futureLimit) : null;
+      if (result.ok && future === null) {
+        kept.push(result.row);
+        positions.push(index);
+        return;
       }
+      const failure = result.ok
+        ? { field: future ?? '', rule: 'future', allowed: null }
+        : { field: result.field, rule: result.rule, allowed: result.allowed };
+      if (!rescue) throw new BackupError('invalid-record', { table: name, index, ...failure });
+      if (KICKSTART_HISTORY_TABLES.includes(name)) throw kickstartHistoryRefused();
+      if (isSingleton(name)) {
+        kept.push(repaired(name, row, currentSpecs, index, futureLimit));
+        positions.push(index);
+        return;
+      }
+      setAside.push({ table: name, index, ...failure });
     });
     out[name] = kept;
+    outIndex[name] = positions;
   }
   if (rescue) {
     for (const name of SINGLETONS) {
       if (out[name]?.length === 0) {
-        out[name] = [defaultSingleton(name, env.now)];
-        replacedSingletons.push(name);
+        out[name] = [defaultSingleton(name, exportedAt)];
+        outIndex[name] = [0];
+        replacedFields.push({ table: name, field: '' });
       }
     }
+    // Cross-record rules other than Kickstart's: set the offending rows aside, then check again.
+    // A duplicate key in the Kickstart history refuses the file instead (D27).
+    for (const name of KICKSTART_HISTORY_TABLES) {
+      const rows = out[name] ?? [];
+      const ids = new Set(rows.map((row) => JSON.stringify((row as { id?: unknown }).id)));
+      if (ids.size !== rows.length) throw kickstartHistoryRefused();
+    }
+    const resolved = resolveRescueInvariants(out);
+    for (const row of resolved.setAside) {
+      setAside.push({
+        table: row.table,
+        index: outIndex[row.table]?.[row.position] ?? row.position,
+        field: '',
+        rule: row.rule,
+        allowed: null,
+      });
+    }
+    Object.assign(out, resolved.tables);
   }
   const snapshot = out as unknown as Snapshot;
   const rule = findInvariantViolation(snapshot);
@@ -362,7 +480,7 @@ export function checkBackupPayload(
     changes: migrated.changes,
     updateNotice: migrated.updateNotice,
     setAside,
-    replacedSingletons,
+    replacedFields,
   };
 }
 
@@ -426,33 +544,51 @@ export function newestInstantOf(row: unknown): Instant | null {
 }
 
 export interface ImportConfirmation {
-  /** N: records on this phone that are not in the file. */
+  /** N: records on this phone that are not in the file (untouched seed rows not counted). */
   readonly missingFromFile: number;
-  /** M: records in both, changed on this phone after the file was made, and different from the file's copy. */
-  readonly changedAfterExport: number;
-  /** The newest record on this phone, and in the file (null when there are none). */
+  /**
+   * M: records in both whose content differs from the file's copy, whatever their timestamps
+   * (settings.lastBackupAt is left out of the comparison; untouched seed rows are not counted).
+   */
+  readonly differFromFile: number;
+  /** The newest record on this phone (seed rows left out), and in the file; null when there are none. */
   readonly phoneNewest: Instant | null;
   readonly fileNewest: Instant | null;
+  /** Whether the phone holds anything of the owner's (anything but untouched seed rows). */
+  readonly phoneHasOwnRecords: boolean;
   /** Whether "Export what is on this phone first" is the first and default button (D17). */
   readonly exportFirst: boolean;
 }
 
+/** A row as compared on the confirmation: settings.lastBackupAt is bookkeeping, not a record change. */
+function comparable(table: string, row: unknown): string {
+  if (table === 'settings' && isPlainObject(row)) {
+    const copy: Record<string, unknown> = { ...row };
+    delete copy['lastBackupAt'];
+    return stableStringify(copy);
+  }
+  return stableStringify(row);
+}
+
 /**
- * The counts on the import confirmation (section 10.6 step 9; D17): "This replaces everything on
- * this phone. N records on this phone are not in the file. M records on this phone were changed
- * after the file was made. Newest record on this phone: …; in the file: …". When N or M is above
- * zero, or the phone's newest record is later than the file's export time, the default button is
- * "Export what is on this phone first". `phone` is the snapshot read for the confirmation and kept
- * in memory (section 8.5 rule 3).
+ * The counts on the import confirmation (section 10.6 step 9; D17; data-loss and ux reviews):
+ * N records on this phone are not in the file; M records differ from their copy in the file, by
+ * content (an edit to a weigh-in, a fast or a setting counts, whatever its timestamps). Rows
+ * still exactly as a new database seeds them (the default drink, silverbeet and the default
+ * profile, targets and settings) are not the owner's records, so a brand-new phone, or one just
+ * cleared by delete-all, shows no loss. "Export what is on this phone first" is the default when
+ * N or M is above zero. `phone` is the snapshot read for the confirmation and kept in memory
+ * (section 8.5 rule 3).
  */
 export function importConfirmation(
   phone: Snapshot,
   file: Pick<DecodedBackup, 'snapshot' | 'exportedAt'>,
 ): ImportConfirmation {
   let missingFromFile = 0;
-  let changedAfterExport = 0;
+  let differFromFile = 0;
   let phoneNewest: Instant | null = null;
   let fileNewest: Instant | null = null;
+  let phoneHasOwnRecords = false;
   const later = (a: Instant | null, b: Instant | null) =>
     b !== null && (a === null || b > a) ? b : a;
   for (const name of BACKUP_TABLES) {
@@ -463,22 +599,21 @@ export function importConfirmation(
       fileNewest = later(fileNewest, newestInstantOf(row));
     }
     for (const row of phone[name]) {
-      const newest = newestInstantOf(row);
-      phoneNewest = later(phoneNewest, newest);
+      if (isUntouchedSeedRow(name, row)) continue;
+      phoneHasOwnRecords = true;
+      phoneNewest = later(phoneNewest, newestInstantOf(row));
       const key = primaryKeyString(spec, row);
       if (!fileRows.has(key)) missingFromFile += 1;
-      else if (
-        newest !== null &&
-        newest > file.exportedAt &&
-        stableStringify(row) !== stableStringify(fileRows.get(key))
-      ) {
-        changedAfterExport += 1;
-      }
+      else if (comparable(name, row) !== comparable(name, fileRows.get(key))) differFromFile += 1;
     }
   }
-  const exportFirst =
-    missingFromFile > 0 ||
-    changedAfterExport > 0 ||
-    (phoneNewest !== null && phoneNewest > file.exportedAt);
-  return { missingFromFile, changedAfterExport, phoneNewest, fileNewest, exportFirst };
+  const exportFirst = missingFromFile > 0 || differFromFile > 0;
+  return {
+    missingFromFile,
+    differFromFile,
+    phoneNewest,
+    fileNewest,
+    phoneHasOwnRecords,
+    exportFirst,
+  };
 }

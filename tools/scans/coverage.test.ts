@@ -28,6 +28,16 @@ describe('every workspace package is tested and type-checked', () => {
     expect(read(`${dir}/vitest.config.ts`)).toContain(WORKSPACE_INCLUDE);
   });
 
+  it.each(packages)(
+    '%s has a test script that runs its own vitest project (pnpm --filter <package> test)',
+    (dir) => {
+      const pkg = JSON.parse(read(`${dir}/package.json`)) as { scripts?: Record<string, string> };
+      const project = /\bname:\s*'([^']+)'/.exec(read(`${dir}/vitest.config.ts`))?.[1];
+      expect(project, `${dir}/vitest.config.ts names its project`).toBeDefined();
+      expect(pkg.scripts?.['test']).toBe(`vitest run --root ../.. --project ${project ?? ''}`);
+    },
+  );
+
   it('the root vitest config runs every workspace project', () => {
     const config = read('vitest.config.ts');
     for (const top of ['apps', 'packages', 'services']) {

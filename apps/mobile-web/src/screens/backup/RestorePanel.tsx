@@ -1,7 +1,13 @@
-import { BackupError, fillTemplate, type Instant, type Snapshot } from '@diet/core';
+import {
+  BackupError,
+  describeRecordProblem,
+  fillTemplate,
+  type Instant,
+  type Snapshot,
+} from '@diet/core';
 import { privacy } from '@diet/core/copy/health';
 import { Button, ButtonRow, Notice, TextField } from '@diet/ui';
-import { useRef, useState, type ReactElement } from 'react';
+import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { createRescueCopy } from '../../db/exportBackup';
 import {
   decodeImport,
@@ -13,9 +19,12 @@ import {
   writeImport,
 } from '../../db/importBackup';
 import type { AppStorage } from '../../db/runtime';
-import { formatLocalDateTime } from '../../format';
+import { formatLocalDateTime, formatLocalTime } from '../../format';
+import { useStepFocus } from './focus';
 import { LockFields } from './LockFields';
 import { LOCKED_BY_DEFAULT, type LockChoice, lockProblem, passwordOf } from './lockChoice';
+import { setPendingCheck } from './pendingCheck';
+import { Progress } from './Progress';
 
 type Step =
   | { readonly kind: 'choose'; readonly error: string | null }
@@ -24,8 +33,10 @@ type Step =
   | { readonly kind: 'unlocking'; readonly file: ImportFile }
   | { readonly kind: 'confirm'; readonly plan: ImportPlan }
   | { readonly kind: 'writing' }
+  /** Another tab did not let go of the records: nothing was written, and it can be tried again. */
+  | { readonly kind: 'blocked'; readonly plan: ImportPlan }
   | { readonly kind: 'failed'; readonly message: string; readonly phone: Snapshot }
-  | { readonly kind: 'saved-phone'; readonly fileName: string };
+  | { readonly kind: 'saved-phone'; readonly fileName: string; readonly at: Instant };
 
 export interface RestorePanelProps {
   readonly storage: AppStorage;
@@ -37,18 +48,26 @@ export interface RestorePanelProps {
 const storeName = (table: string): string =>
   Object.hasOwn(privacy.storeNames, table)
     ? privacy.storeNames[table as keyof typeof privacy.storeNames]
-    : table;
+    : privacy.recordProblem.someList;
+
+const fieldName = (field: string): string =>
+  Object.hasOwn(privacy.recordProblem.fields, field)
+    ? privacy.recordProblem.fields[field as keyof typeof privacy.recordProblem.fields]
+    : field === ''
+      ? privacy.importBackup.wholeRecord
+      : privacy.recordProblem.fields.value;
 
 const messageOf = (error: unknown): string =>
   error instanceof BackupError ? error.message : privacy.backupErrors.damaged;
 
 /**
  * Restore from a backup (storage spec sections 10.6 and 10.7; BK-01, BK-02, BK-10; D17, D49).
- * Nothing on the phone changes until Replace. A locked file asks for its password
- * (autocomplete="current-password"); a wrong password says so, imports nothing and can be tried
- * again. The confirmation shows the file's date, its counts, any values changed to fit this
- * version, any rows a rescue copy could not keep, and what would be lost; when the phone has
- * newer records, "Export what is on this phone first" comes first.
+ * Nothing on the phone changes until "Replace everything on this phone". A locked file asks for
+ * its password (autocomplete="current-password"); a wrong password says so next to the field,
+ * imports nothing and can be tried again. The confirmation shows the file's date, its counts, any
+ * values changed to fit this version, any rows a rescue copy could not keep, and what would be
+ * lost; when the phone holds records the file does not, "Export what is on this phone first" comes
+ * first. Focus moves to the start of each new step.
  */
 export function RestorePanel({
   storage,
@@ -57,11 +76,21 @@ export function RestorePanel({
 }: RestorePanelProps): ReactElement {
   const copy = privacy.importBackup;
   const input = useRef<HTMLInputElement>(null);
+  const passwordField = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState<Step>({ kind: 'choose', error: null });
   const [password, setPassword] = useState('');
   const [rescueChoice, setRescueChoice] = useState<LockChoice>(LOCKED_BY_DEFAULT);
   const [rescueProblem, setRescueProblem] = useState<string | null>(null);
   const [rescueFailure, setRescueFailure] = useState<string | null>(null);
+  // Unlocking is part of the password step: after a wrong password, focus goes back to the
+  // cleared field, which now carries the error, not to the start of the step.
+  const stepStart = useStepFocus<HTMLParagraphElement>(
+    step.kind === 'unlocking' ? 'password' : step.kind,
+  );
+  const wrongPassword = step.kind === 'password' && step.error !== null ? step : null;
+  useEffect(() => {
+    if (wrongPassword !== null) passwordField.current?.focus();
+  }, [wrongPassword]);
 
   const decode = async (file: ImportFile, pass: string | null): Promise<void> => {
     try {
@@ -93,11 +122,17 @@ export function RestorePanel({
     setStep({ kind: 'writing' });
     const outcome = await writeImport(storage.db, plan, storage.env, {
       postGate: storage.platform.postGate,
+      locks: storage.platform.locks(),
       requestPersistentStorage: storage.platform.requestPersistentStorage,
-      reload: storage.platform.reload,
+      reload: () => {
+        // A backup file of the records just replaced no longer matches them.
+        setPendingCheck(null);
+        storage.platform.reload();
+      },
     });
-    if (!outcome.ok)
-      setStep({ kind: 'failed', message: outcome.error.message, phone: outcome.phone });
+    if (outcome.ok) return;
+    if (outcome.blocked) setStep({ kind: 'blocked', plan });
+    else setStep({ kind: 'failed', message: outcome.error.message, phone: outcome.phone });
   };
 
   const savePhone = async (phone: Snapshot): Promise<void> => {
@@ -113,7 +148,7 @@ export function RestorePanel({
       );
       storage.platform.download(saved.file.text, saved.fileName);
       setRescueChoice(LOCKED_BY_DEFAULT);
-      setStep({ kind: 'saved-phone', fileName: saved.fileName });
+      setStep({ kind: 'saved-phone', fileName: saved.fileName, at: exportedAt });
     } catch {
       setRescueFailure(privacy.rescue.failed);
     }
@@ -134,16 +169,26 @@ export function RestorePanel({
     />
   );
 
+  const reloadButton = (
+    <Button variant="primary" block onClick={storage.platform.reload}>
+      {privacy.storageFailure.reload}
+    </Button>
+  );
+
   switch (step.kind) {
     case 'choose':
     case 'reading':
       return (
         <div className="ui-card__body">
+          <p ref={stepStart} tabIndex={-1} className="ui-step-start">
+            {copy.intro}
+          </p>
           {step.kind === 'choose' && step.error !== null ? (
             <Notice role="alert">
               <p>{step.error}</p>
             </Notice>
           ) : null}
+          {step.kind === 'reading' ? <Progress text={copy.reading} /> : null}
           {fileInput}
           <ButtonRow>
             <Button
@@ -151,7 +196,7 @@ export function RestorePanel({
               disabled={step.kind === 'reading'}
               onClick={() => input.current?.click()}
             >
-              {step.kind === 'reading' ? copy.reading : copy.chooseFile}
+              {copy.chooseFile}
             </Button>
             <Button variant="quiet" onClick={onCancel}>
               {copy.cancel}
@@ -172,26 +217,26 @@ export function RestorePanel({
             void decode(step.file, password);
           }}
         >
-          <p>{copy.fileLocked}</p>
-          {step.kind === 'password' && step.error !== null ? (
-            <Notice role="alert">
-              <p>{step.error}</p>
-            </Notice>
-          ) : null}
+          <p ref={stepStart} tabIndex={-1} className="ui-step-start">
+            {copy.fileLocked}
+          </p>
           <TextField
+            ref={passwordField}
             label={copy.passwordLabel}
             type="password"
             autoComplete="current-password"
             spellCheck={false}
             value={password}
-            disabled={step.kind === 'unlocking'}
+            readOnly={step.kind === 'unlocking'}
+            error={step.kind === 'password' && step.error !== null ? step.error : undefined}
             onChange={(event) => {
               setPassword(event.currentTarget.value);
             }}
           />
+          {step.kind === 'unlocking' ? <Progress text={copy.unlocking} /> : null}
           <ButtonRow>
             <Button type="submit" variant="primary" disabled={step.kind === 'unlocking'}>
-              {step.kind === 'unlocking' ? copy.unlocking : copy.unlock}
+              {copy.unlock}
             </Button>
             <Button variant="quiet" onClick={onCancel}>
               {copy.cancel}
@@ -204,6 +249,13 @@ export function RestorePanel({
         <Confirmation
           plan={step.plan}
           zone={storage.env.timeZone()}
+          firstLine={
+            <p ref={stepStart} tabIndex={-1} className="ui-step-start">
+              {fillTemplate(copy.fileMade, {
+                date: formatLocalDateTime(step.plan.decoded.exportedAt, storage.env.timeZone()),
+              })}
+            </p>
+          }
           onReplace={() => void replace(step.plan)}
           onExportFirst={onExportFirst}
           onCancel={onCancel}
@@ -212,7 +264,24 @@ export function RestorePanel({
     case 'writing':
       return (
         <div className="ui-card__body">
-          <p role="status">{copy.replacing}</p>
+          <Progress text={copy.replacing} />
+        </div>
+      );
+    case 'blocked':
+      return (
+        <div className="ui-card__body" data-testid="restore-blocked">
+          <Notice role="alert">
+            <p ref={stepStart} tabIndex={-1} className="ui-step-start">
+              {privacy.otherTabs}
+            </p>
+            <p>{privacy.backupCard.closed}</p>
+          </Notice>
+          <ButtonRow>
+            <Button variant="caution" onClick={() => void replace(step.plan)}>
+              {copy.tryAgain}
+            </Button>
+          </ButtonRow>
+          {reloadButton}
         </div>
       );
     case 'failed':
@@ -226,7 +295,9 @@ export function RestorePanel({
           }}
         >
           <Notice role="alert">
-            <p>{step.message}</p>
+            <p ref={stepStart} tabIndex={-1} className="ui-step-start">
+              {step.message}
+            </p>
             <p>{copy.writeFailedNext}</p>
           </Notice>
           <LockFields
@@ -246,32 +317,60 @@ export function RestorePanel({
     case 'saved-phone':
       return (
         <div className="ui-card__body">
-          <p>{fillTemplate(privacy.exportBackup.checkDownloads, { fileName: step.fileName })}</p>
+          <p ref={stepStart} tabIndex={-1} className="ui-step-start">
+            {fillTemplate(privacy.exportBackup.checkDownloads, {
+              fileName: step.fileName,
+              time: formatLocalTime(step.at, storage.env.timeZone()),
+            })}
+          </p>
           <p>{privacy.rescue.note}</p>
-          <Button block onClick={storage.platform.reload}>
-            {privacy.storageFailure.reload}
-          </Button>
+          {reloadButton}
         </div>
       );
   }
 }
 
+function summaryOf(plan: ImportPlan, when: (at: Instant | null) => string): string[] {
+  const copy = privacy.importBackup;
+  const { confirmation } = plan;
+  const count = (n: number, none: string, one: string, many: string) =>
+    n === 0 ? none : n === 1 ? one : fillTemplate(many, { count: n });
+  const lines: string[] = [copy.replaceIntro];
+  if (confirmation.phoneHasOwnRecords) {
+    lines.push(
+      count(confirmation.missingFromFile, copy.missingNone, copy.missingOne, copy.missingMany),
+      count(confirmation.differFromFile, copy.differNone, copy.differOne, copy.differMany),
+      fillTemplate(copy.newest, {
+        phoneNewest: when(confirmation.phoneNewest),
+        fileNewest: when(confirmation.fileNewest),
+      }),
+    );
+  } else {
+    lines.push(copy.freshPhone);
+  }
+  lines.push(copy.pairingRemoved);
+  return lines;
+}
+
 function Confirmation(props: {
   readonly plan: ImportPlan;
   readonly zone: string;
+  readonly firstLine: ReactElement;
   readonly onReplace: () => void;
   readonly onExportFirst: () => void;
   readonly onCancel: () => void;
 }): ReactElement {
   const copy = privacy.importBackup;
-  const { decoded, confirmation, counts } = props.plan;
+  const { decoded, confirmation, counts, keptStricter } = props.plan;
   const when = (at: Instant | null): string =>
     at === null ? copy.noRecords : formatLocalDateTime(at, props.zone);
   const rescueWithGaps = decoded.kind === 'rescue' && decoded.setAside.length > 0;
+  // Replacing loses records only when the phone holds some the file does not: then the action
+  // that cannot be undone is drawn in amber and exporting first is the default.
   const replace = (
     <Button
       key="replace"
-      variant={confirmation.exportFirst ? 'secondary' : 'primary'}
+      variant={confirmation.exportFirst ? 'caution' : 'primary'}
       onClick={props.onReplace}
     >
       {rescueWithGaps ? copy.importRest : copy.replace}
@@ -288,7 +387,7 @@ function Confirmation(props: {
   );
   return (
     <div className="ui-card__body" data-testid="restore-confirm">
-      <p>{fillTemplate(copy.fileMade, { date: when(decoded.exportedAt) })}</p>
+      {props.firstLine}
       <p>{decoded.locked ? copy.fileLocked : copy.filePlain}</p>
       {decoded.kind === 'rescue' ? (
         <Notice>
@@ -317,25 +416,42 @@ function Confirmation(props: {
           <ul className="ui-plain-list" data-testid="restore-set-aside">
             {decoded.setAside.map((row, i) => (
               <li key={`${row.table}-${String(row.index)}-${String(i)}`}>
-                {fillTemplate(copy.setAsideRow, {
-                  table: storeName(row.table),
-                  position: row.index + 1,
-                  rule: row.rule,
-                })}
+                {describeRecordProblem(row)}
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+      {decoded.replacedFields.length > 0 ? (
+        <>
+          <p className="ui-text-strong">{copy.resetToDefault}</p>
+          <ul className="ui-plain-list" data-testid="restore-reset">
+            {decoded.replacedFields.map(({ table, field }) => (
+              <li key={`${table}-${field}`}>
+                {fillTemplate(copy.resetRow, { table: storeName(table), field: fieldName(field) })}
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+      {keptStricter.length > 0 ? (
+        <>
+          <p className="ui-text-strong">{copy.keptStricter}</p>
+          <ul className="ui-plain-list" data-testid="restore-kept">
+            {keptStricter.map(({ table, field }) => (
+              <li key={`${table}-${field}`}>
+                {fillTemplate(copy.resetRow, { table: storeName(table), field: fieldName(field) })}
               </li>
             ))}
           </ul>
         </>
       ) : null}
       <Notice role="status">
-        <p data-testid="restore-summary">
-          {fillTemplate(copy.replaceSummary, {
-            missing: confirmation.missingFromFile,
-            changed: confirmation.changedAfterExport,
-            phoneNewest: when(confirmation.phoneNewest),
-            fileNewest: when(confirmation.fileNewest),
-          })}
-        </p>
+        <div data-testid="restore-summary">
+          {summaryOf(props.plan, when).map((line) => (
+            <p key={line}>{line}</p>
+          ))}
+        </div>
       </Notice>
       <ButtonRow>
         {confirmation.exportFirst ? [exportFirst, replace] : [replace, exportFirst]}

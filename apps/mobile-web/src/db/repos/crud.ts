@@ -240,7 +240,11 @@ export function stampUpdate(table: StoreName, previous: Row, patch: Row, env: St
   return row;
 }
 
-/** Store-specific rules for the generic repository. */
+/**
+ * Store-specific rules for the generic repository. Their check and onRemove run inside the write
+ * transaction, reached through STORE_RULES at run time, so each carries @transactionScope for the
+ * transaction-scope scan (tools/scans/txScope.ts).
+ */
 export interface StoreRules {
   /** Other stores the write transactions must include. */
   readonly with?: readonly StoreName[];
@@ -252,6 +256,7 @@ export interface StoreRules {
 
 /** Section 5 rule 4: at most one onboarding weight. */
 const weightRules: StoreRules = {
+  /** @transactionScope */
   check: ({ db }, row) =>
     db.weights.toArray().then((rows) => {
       if (row['source'] !== 'onboarding') return;
@@ -263,6 +268,7 @@ const weightRules: StoreRules = {
 
 /** Section 5 rule 3: at most one running fast, the latest, and no overlap. */
 const fastRules: StoreRules = {
+  /** @transactionScope */
   check: ({ db }, row) =>
     db.fasts.toArray().then((rows) => {
       const fasts = [
@@ -277,6 +283,7 @@ const fastRules: StoreRules = {
 /** Removing a garden row removes its photo in the same transaction (section 8.2). */
 const gardenRules: StoreRules = {
   with: ['garden_photos'],
+  /** @transactionScope */
   onRemove: ({ db }, key) => db.garden_photos.delete(String(key)),
 };
 
