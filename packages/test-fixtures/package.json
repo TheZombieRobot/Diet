@@ -1,0 +1,16 @@
+{
+  "name": "@diet/test-fixtures",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Generic test fixtures. Never real personal data.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@diet/core": "workspace:*"
+  }
+}

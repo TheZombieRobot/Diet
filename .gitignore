@@ -1,8 +1,26 @@
 # Never commit personal data
 *.backup.json
+*.backup.*.json
 docs/handoff/
 docs/private/
-node_modules/
-dist/
 .env
 .env.*
+
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.vite/
+.wrangler/
+
+# Test output
+playwright-report/
+test-results/
+blob-report/
+
+# Editors and OS
+.DS_Store
+Thumbs.db
+.idea/
+*.swp

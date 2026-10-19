@@ -1,0 +1,12 @@
+packages:
+  - apps/*
+  - packages/*
+  - services/*
+
+# Only these packages may run install scripts (pnpm blocks all others by default).
+onlyBuiltDependencies:
+  - esbuild
+
+# Supply-chain guard: refuse package versions published less than 7 days ago.
+# A security patch that must be taken sooner is listed in minimumReleaseAgeExclude with a reason.
+minimumReleaseAge: 10080

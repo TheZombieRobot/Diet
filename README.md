@@ -22,5 +22,29 @@ An Android-first, offline-first web app (PWA) for one person: meal planning arou
 ## The handoff document
 The owner's original handoff has been read and the plan reconciled with it. A de-personalised version is `docs/REQUIREMENTS.md`, which is complete for implementation. The original is intentionally not committed because this repository is public and it contains personal details.
 
+## Repository layout
+
+| Folder | What lives there |
+|---|---|
+| `apps/mobile-web` | The phone app (installable web app) |
+| `apps/cart-extension` | The laptop Chrome side panel. Empty until the Phase 0 mode decision is recorded |
+| `packages/core` | Shared types and every health-sensitive formula, with tests; all health wording in one file |
+| `packages/ui` | The small mobile design system |
+| `packages/grocery` | Grocery list building, unit conversion, garden deduction, exports |
+| `packages/test-fixtures` | Generic test data (never real personal data) |
+| `services/relay` | The blind relay that briefly holds the encrypted list |
+
+## For developers
+
+Node 22.18 or later and pnpm (version pinned in `package.json`; run `corepack enable`).
+
+| Command | What it does |
+|---|---|
+| `pnpm install` | Install dependencies |
+| `pnpm check` | Lint, format check, type check and unit tests: what CI runs |
+| `pnpm test` | Unit tests (Vitest) |
+| `pnpm e2e` | Browser tests (Playwright, Chromium) |
+| `pnpm format` | Reformat code |
+
 ## Privacy note
 Nothing personal belongs in this repository: no health history, no logs, no backups. Your data lives only in the app on your phone. See `docs/DECISIONS.md`.

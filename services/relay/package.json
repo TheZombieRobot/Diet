@@ -1,0 +1,13 @@
+{
+  "name": "@diet/relay",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Blind relay: holds encrypted grocery lists briefly. Built at checklist item 29.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  }
+}

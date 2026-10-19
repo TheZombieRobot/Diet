@@ -1,0 +1,13 @@
+{
+  "name": "@diet/core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Typed schemas and every health-sensitive formula, behind unit tests.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  }
+}
