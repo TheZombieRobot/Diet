@@ -99,16 +99,17 @@ function deploymentProblems(config: Json, deployment: Deployment): string[] {
     if (!same(settings[key], value))
       problems.push(`${where}: ${key} must be ${JSON.stringify(value)}`);
   }
+  // The allowlist is exactly the app's origin in both deployments, so no other site can use the
+  // relay from a browser. Item 32 adds the extension's origin here and in wrangler.jsonc together.
   const vars = settings['vars'];
   if (
     !isObject(vars) ||
     sorted(Object.keys(vars)) !== 'ALLOWED_ORIGINS, RELAY_TTL_SECONDS' ||
     vars['RELAY_TTL_SECONDS'] !== EXPECTED[deployment].ttl ||
-    typeof vars['ALLOWED_ORIGINS'] !== 'string' ||
-    !vars['ALLOWED_ORIGINS'].split(',').some((origin) => origin.trim() === APP_ORIGIN)
+    vars['ALLOWED_ORIGINS'] !== APP_ORIGIN
   ) {
     problems.push(
-      `${where}: vars must be exactly RELAY_TTL_SECONDS "${EXPECTED[deployment].ttl}" and ALLOWED_ORIGINS including ${APP_ORIGIN}`,
+      `${where}: vars must be exactly RELAY_TTL_SECONDS "${EXPECTED[deployment].ttl}" and ALLOWED_ORIGINS "${APP_ORIGIN}"`,
     );
   }
   const kv = settings['kv_namespaces'];

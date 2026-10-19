@@ -1,9 +1,11 @@
 import { APP_ORIGIN } from '@diet/core/relay';
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 import { parseRelayConfig, type RelayEnv } from './config';
 import { createRelayHandler } from './handler';
 import {
   createClock,
+  exchangeProblems,
+  exchanges,
   KvModel,
   relayEnv,
   type RelayRequestInit,
@@ -23,6 +25,12 @@ const problemOf = (env: RelayEnv, allowLoopbackOrigins = false) => {
   const config = parseRelayConfig(env, { allowLoopbackOrigins });
   return config.ok ? null : config.problem;
 };
+
+// The misconfigured answers carry the common headers too, and repeat nothing (R26, R27).
+afterAll(() => {
+  expect(exchanges.length).toBeGreaterThan(0);
+  expect(exchangeProblems(exchanges)).toEqual([]);
+});
 
 describe('W14. Configuration (R7, R10, R25)', () => {
   it.each([

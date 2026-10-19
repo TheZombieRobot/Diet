@@ -7,10 +7,11 @@ import {
 } from '@diet/core/relay';
 import { groceryList300 } from '@diet/test-fixtures';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createRelayHandler } from './handler';
-import { roomHash, slotKey } from './kv';
+import { createRelayHandler, readCappedText } from './handler';
+import { clientLimitKey, roomHash, slotKey } from './kv';
 import {
   createClock,
+  exchangeProblems,
   exchanges,
   KvModel,
   LimiterModel,
@@ -20,6 +21,7 @@ import {
   ROOM_A,
   ROOM_B,
   send,
+  SENTINEL,
   syntheticBody,
   T0,
   TEST_IP,
@@ -29,17 +31,7 @@ import {
 // 2-minute expiry unless a test says otherwise. Checks that hold for every exchange run once, after
 // each test and after the file, instead of in every test (design 5.3).
 
-/** Seeded into bodies and error messages; no response may ever repeat it (R26). */
-const SENTINEL = 'zzsentinel';
 const EXTENSION_ORIGIN = 'chrome-extension://abcdefghijklmnopabcdefghijklmnop';
-const KNOWN_PATHS = ['/v1/list', '/v1/ack'];
-const COMMON_HEADERS = {
-  'cache-control': 'no-store',
-  'x-content-type-options': 'nosniff',
-  'referrer-policy': 'no-referrer',
-  'content-security-policy': "default-src 'none'; frame-ancestors 'none'",
-  vary: 'Origin',
-};
 const CONSOLE_METHODS = ['log', 'info', 'warn', 'error', 'debug', 'trace'] as const;
 
 const models: KvModel[] = [];
@@ -91,37 +83,9 @@ afterEach(() => {
 });
 
 afterAll(() => {
+  // Common and CORS headers, and no echo of the request (R26, R27), over every exchange.
   expect(exchanges.length).toBeGreaterThan(100);
-  for (const { init, env, response, text } of exchanges) {
-    const where = `${init.method} ${init.path ?? '/v1/list'} from ${String(init.origin)}: ${response.status}`;
-    const headers: [string, string][] = [];
-    response.headers.forEach((value, name) => headers.push([name, value]));
-    const headerOf = (name: string) => response.headers.get(name);
-
-    for (const [name, value] of Object.entries(COMMON_HEADERS)) {
-      expect(headerOf(name), where).toBe(value);
-    }
-    const origin = init.origin === undefined ? APP_ORIGIN : init.origin;
-    const allowed = (env.ALLOWED_ORIGINS ?? '').split(',').map((o) => o.trim());
-    const path = (init.path ?? '/v1/list').split('?')[0] ?? '';
-    if (origin !== null && allowed.includes(origin) && KNOWN_PATHS.includes(path)) {
-      expect(headerOf('Access-Control-Allow-Origin'), where).toBe(origin);
-      if (init.method !== 'OPTIONS') {
-        expect(headerOf('Access-Control-Expose-Headers'), where).toBe('Retry-After');
-      }
-    }
-    expect(headerOf('Access-Control-Allow-Credentials'), where).toBeNull();
-    expect(
-      headers.filter(([, value]) => value.trim() === '*'),
-      where,
-    ).toEqual([]);
-
-    // No response repeats any part of a request (R26).
-    const shown = `${text}\n${headers.map(([name, value]) => `${name}: ${value}`).join('\n')}`;
-    for (const part of [init.room ?? ROOM_A, init.ip ?? TEST_IP, SENTINEL]) {
-      expect(shown, where).not.toContain(part);
-    }
-  }
+  expect(exchangeProblems(exchanges)).toEqual([]);
 });
 
 describe('W1. TR-02: the relay stores only the body, under a hashed key', () => {
@@ -161,6 +125,14 @@ describe('W2. TR-02: raw text is refused before KV', () => {
     expect(exchange.response.status).toBe(400);
     expect(errorCode(exchange)).toBe('bad-body');
     expect(kv.puts).toEqual([]);
+  });
+
+  it('reads strictly: bytes that are not UTF-8 are an encoding fault, never replaced', async () => {
+    const body = new Response(Uint8Array.of(...new TextEncoder().encode('rl1.'), 0xff, 0xfe)).body;
+    expect(await readCappedText(body, MAX_RELAY_BODY_BYTES)).toEqual({
+      ok: false,
+      reason: 'bad-encoding',
+    });
   });
 });
 
@@ -252,28 +224,33 @@ describe('W5. TR-05a (relay half): a sealed 300-item list fits with room to spar
   });
 });
 
-describe('W6. TR-06: expiry is exact and does not depend on KV', () => {
+// W6 to W8 run for both slots: the acknowledgement has the list's expiry and take-once rule (R30).
+const SLOTS = ['list', 'ack'] as const;
+
+describe.each(SLOTS)('W6. TR-06: expiry is exact and does not depend on KV (%s)', (slot) => {
+  const path = `/v1/${slot}`;
+
   it('hands a body out until its expiry, and never after, even while KV still holds it', async () => {
     const { clock, kv, relay } = setup({ purgeLagMs: 60_000 });
     for (const room of [ROOM_A, ROOM_B])
-      await relay({ method: 'POST', room, body: syntheticBody(100) });
+      await relay({ method: 'POST', path, room, body: syntheticBody(100) });
     expect(kv.puts.map((p) => p.options)).toEqual([
       { expirationTtl: 120, metadata: { expiresAt: T0 + 120_000 } },
       { expirationTtl: 120, metadata: { expiresAt: T0 + 120_000 } },
     ]);
 
     clock.advance(119_999);
-    expect((await relay({ method: 'GET', room: ROOM_A })).response.status).toBe(200);
+    expect((await relay({ method: 'GET', path, room: ROOM_A })).response.status).toBe(200);
     clock.advance(1);
-    expect((await relay({ method: 'GET', room: ROOM_B })).response.status).toBe(204);
-    const roomB = await keyOf('list', ROOM_B);
+    expect((await relay({ method: 'GET', path, room: ROOM_B })).response.status).toBe(204);
+    const roomB = await keyOf(slot, ROOM_B);
     expect(kv.stored().map((e) => e.key)).toEqual([roomB]);
-    expect(kv.deletes).toEqual([await keyOf('list', ROOM_A)]);
+    expect(kv.deletes).toEqual([await keyOf(slot, ROOM_A)]);
   });
 
   it('uses the production expiry of 15 minutes when configured with 900', async () => {
     const { kv, relay } = setup({ ttl: '900' });
-    await relay({ method: 'POST', body: syntheticBody(100) });
+    await relay({ method: 'POST', path, body: syntheticBody(100) });
     expect(kv.puts[0]?.options).toEqual({
       expirationTtl: 900,
       metadata: { expiresAt: T0 + 900_000 },
@@ -281,29 +258,38 @@ describe('W6. TR-06: expiry is exact and does not depend on KV', () => {
   });
 });
 
-describe('W7. TR-06: a stored value that fails the checks is never served', () => {
-  it.each<[string, string, unknown]>([
-    ['a body with no expiry', syntheticBody(100), undefined],
-    ['a body whose expiry is not a number', syntheticBody(100), { expiresAt: 'soon' }],
-    ['text the relay would never store', 'hello', { expiresAt: T0 + 60_000 }],
-  ])('%s: nothing waiting, and left for KV to purge', async (_name, value, metadata) => {
-    const { kv, relay } = setup();
-    const key = await keyOf('list');
-    kv.seed(key, value, metadata);
-    expect((await relay({ method: 'GET' })).response.status).toBe(204);
-    expect(kv.deletes).toEqual([]);
-    expect(kv.stored().map((e) => [e.key, e.value])).toEqual([[key, value]]);
-  });
-});
+describe.each(SLOTS)(
+  'W7. TR-06: a stored value that fails the checks is never served (%s)',
+  (slot) => {
+    it.each<[string, string, unknown]>([
+      ['a body with no expiry', syntheticBody(100), undefined],
+      ['a body whose expiry is not a number', syntheticBody(100), { expiresAt: 'soon' }],
+      ['an extra metadata key', syntheticBody(100), { expiresAt: T0 + 60_000, extra: 1 }],
+      ['text the relay would never store', 'hello', { expiresAt: T0 + 60_000 }],
+    ])('%s: nothing waiting, and left for KV to purge', async (_name, value, metadata) => {
+      const { kv, relay } = setup();
+      const key = await keyOf(slot);
+      kv.seed(key, value, metadata);
+      expect((await relay({ method: 'GET', path: `/v1/${slot}` })).response.status).toBe(204);
+      expect(kv.deletes).toEqual([]);
+      expect(kv.stored().map((e) => [e.key, e.value])).toEqual([[key, value]]);
+    });
+  },
+);
 
-describe('W8. TR-09a: one-time delivery at one place', () => {
+describe.each(SLOTS)('W8. TR-09a: one-time delivery at one place (%s)', (slot) => {
   it('a second GET finds nothing; the delivery deleted the key once', async () => {
     const { kv, relay } = setup();
-    await relay({ method: 'POST', body: syntheticBody(100) });
-    expect((await relay({ method: 'GET' })).response.status).toBe(200);
-    expect((await relay({ method: 'GET' })).response.status).toBe(204);
-    expect(kv.deletes).toEqual([await keyOf('list')]);
-    expect(kv.reads).toHaveLength(2);
+    const path = `/v1/${slot}`;
+    await relay({ method: 'POST', path, body: syntheticBody(100) });
+    expect((await relay({ method: 'GET', path })).response.status).toBe(200);
+    expect((await relay({ method: 'GET', path })).response.status).toBe(204);
+    expect(kv.deletes).toEqual([await keyOf(slot)]);
+    // Both GETs read KV, with KV's shortest read cache (C79: "usually within 30 s").
+    expect(kv.reads.map((r) => r.options)).toEqual([
+      { type: 'text', cacheTtl: 30 },
+      { type: 'text', cacheTtl: 30 },
+    ]);
   });
 });
 
@@ -353,6 +339,7 @@ describe('W10. CORS is limited to the app and the extension (checklist item 29)'
     ['POST', 'https://thezombierobot.github.io:443'],
     ['POST', 'null'],
     ['POST', 'https://example.com'],
+    ['POST', `https://${SENTINEL}.example`],
     ['POST', EXTENSION_ORIGIN],
     ['GET', 'https://example.com'],
     ['OPTIONS', 'https://example.com'],
@@ -395,15 +382,21 @@ describe('W11. Routing, methods and headers (C113)', () => {
     ['a trailing slash', 404, 'not-found', { method: 'GET', path: '/v1/list/' }],
     ['upper case', 404, 'not-found', { method: 'GET', path: '/V1/LIST' }],
     ['another version', 404, 'not-found', { method: 'GET', path: '/v2/list' }],
+    ['an unknown path', 404, 'not-found', { method: 'GET', path: `/${SENTINEL}` }],
     ['HEAD', 405, 'method-not-allowed', { method: 'HEAD' }],
     ['PUT', 405, 'method-not-allowed', { ...post, method: 'PUT' }],
     ['DELETE', 405, 'method-not-allowed', { method: 'DELETE' }],
     ['the room in the URL', 400, 'bad-request', { method: 'GET', path: `/v1/list?room=${ROOM_A}` }],
+    ['any other query', 400, 'bad-request', { method: 'POST', path: '/v1/ack?r=x' }],
     ['no room header', 400, 'bad-room', { method: 'GET', room: null }],
     ['a 21-character room', 400, 'bad-room', { method: 'GET', room: ROOM_A.slice(1) }],
     ['JSON', 415, 'unsupported-type', { ...post, contentType: 'application/json' }],
     ['latin1', 415, 'unsupported-type', { ...post, contentType: 'text/plain;charset=latin1' }],
+    ['another media type', 415, 'unsupported-type', { ...post, contentType: `text/${SENTINEL}` }],
     ['gzip', 415, 'unsupported-type', { ...post, contentEncoding: 'gzip' }],
+    ['br', 415, 'unsupported-type', { ...post, contentEncoding: 'br' }],
+    ['deflate', 415, 'unsupported-type', { ...post, contentEncoding: 'deflate' }],
+    ['another encoding', 415, 'unsupported-type', { ...post, contentEncoding: SENTINEL }],
   ])('%s: %i %s', async (_name, status, code, init) => {
     const { kv, relay } = setup();
     const exchange = await relay(init);
@@ -411,6 +404,16 @@ describe('W11. Routing, methods and headers (C113)', () => {
     expect(errorCode(exchange)).toBe(code);
     if (status === 405) expect(exchange.response.headers.get('Allow')).toBe('GET, POST, OPTIONS');
     expect([kv.puts, kv.reads]).toEqual([[], []]);
+  });
+
+  it('accepts Content-Encoding identity and the charset in capitals', async () => {
+    const { relay } = setup();
+    const exchange = await relay({
+      ...post,
+      contentType: 'text/plain; charset=UTF-8',
+      contentEncoding: 'identity',
+    });
+    expect(exchange.response.status).toBe(204);
   });
 });
 
@@ -448,11 +451,61 @@ describe('W12. Rate limits (C80)', () => {
     expect(write.refusedKeys).toEqual([`room:${await roomHash(ROOM_A)}`]);
   });
 
-  it('the 61st GET from one IP within a minute is refused; the next minute is allowed again', async () => {
-    const { clock, limited } = setup();
+  it('junk bodies count, and a POST over the limit is refused before its body or KV', async () => {
+    const { kv, write, limited } = setup();
+    for (let n = 1; n <= 10; n++) {
+      const junk = await limited({ method: 'POST', room: room(n), body: 'hello' });
+      expect([junk.response.status, errorCode(junk)]).toEqual([400, 'bad-body']);
+    }
+    const refused = await limited({
+      method: 'POST',
+      room: room(11),
+      body: syntheticBody(MAX_RELAY_BODY_BYTES + 4),
+      contentType: 'application/json',
+      contentLength: null,
+    });
+    expect([refused.response.status, errorCode(refused)]).toEqual([429, 'rate-limited']);
+    expect(refused.request.pulls).toBe(0);
+    expect([kv.puts, kv.reads]).toEqual([[], []]);
+    expect(write.refusedKeys).toEqual([`ip:${TEST_IP}`]);
+  });
+
+  it('counts IPv6 clients by their /64 network', async () => {
+    const { write, limited } = setup();
     const statuses: number[] = [];
-    for (let n = 1; n <= 61; n++) statuses.push((await limited({ method: 'GET' })).response.status);
+    for (let n = 1; n <= 11; n++) {
+      const ip = `2001:db8::${n.toString(16)}`;
+      const post = { method: 'POST', ip, room: room(n), body: syntheticBody(100) };
+      statuses.push((await limited(post)).response.status);
+    }
+    expect(statuses).toEqual([...Array<number>(10).fill(204), 429]);
+    expect(write.refusedKeys).toEqual(['ip:2001:db8:0:0::/64']);
+    const otherNetwork = { ip: '2001:db8:0:1::1', room: room(12), body: syntheticBody(100) };
+    expect((await limited({ method: 'POST', ...otherNetwork })).response.status).toBe(204);
+  });
+
+  it.each<[string | null, string]>([
+    ['192.0.2.1', 'ip:192.0.2.1'],
+    ['2001:db8:1:2:3:4:5:6', 'ip:2001:db8:1:2::/64'],
+    ['2001:DB8:0001:0002::1', 'ip:2001:db8:1:2::/64'],
+    ['::ffff:192.0.2.1', 'ip:192.0.2.1'],
+    [null, 'ip:unknown'],
+    ['2001:db8::1::2', 'ip:unknown'],
+    ['192.0.2.256', 'ip:unknown'],
+    ['example', 'ip:unknown'],
+  ])('the limit key for the address %j is %j', (address, key) => {
+    expect(clientLimitKey(address)).toBe(key);
+  });
+
+  it('the 61st GET from one IP in a minute is refused before KV, whatever the room; a new minute is not', async () => {
+    const { clock, kv, read, limited } = setup();
+    const statuses: number[] = [];
+    for (let n = 1; n <= 61; n++) {
+      statuses.push((await limited({ method: 'GET', room: room(n) })).response.status);
+    }
     expect(statuses).toEqual([...Array<number>(60).fill(204), 429]);
+    expect(read.refusedKeys).toEqual([`ip:${TEST_IP}`]);
+    expect(kv.reads).toHaveLength(60);
     clock.advance(60_000);
     expect((await limited({ method: 'GET' })).response.status).toBe(204);
   });

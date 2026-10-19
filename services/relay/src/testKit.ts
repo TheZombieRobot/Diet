@@ -1,7 +1,7 @@
 /**
  * Offline stand-ins for the relay's tests (design section 5.2): a shared clock, a single-location
- * KV that enforces KV's real option limits, a fixed-window rate limiter, and request builders.
- * Not a test file, so the relay scan rules cover it too.
+ * KV that enforces KV's real option limits, a fixed-window rate limiter, request builders, and the
+ * checks every recorded exchange must pass. Not a test file, so the relay scan rules cover it too.
  *
  * The KV stand-in does not model propagation between Cloudflare locations or cached "not found"
  * answers: a test of those would test the stand-in, not the relay (design 1.6, R28). The owner's
@@ -182,6 +182,8 @@ export class LimiterModel implements RateLimiterSubset {
   }
 }
 
+/** Placed in paths, headers, bodies and error messages; no answer may ever repeat it (R26). */
+export const SENTINEL = 'zzsentinel';
 export const ROOM_A = 'ExampleRoomId00000000A';
 export const ROOM_B = 'ExampleRoomId00000000Q';
 /** A documentation-only address (RFC 5737). */
@@ -317,4 +319,64 @@ export async function send(
   const exchange = { init, env, request, response, text: await response.text() };
   exchanges.push(exchange);
   return exchange;
+}
+
+/** The headers every answer carries (design 1.3, R27). */
+const EXPECTED_HEADERS: Readonly<Record<string, string>> = Object.freeze({
+  'cache-control': 'no-store',
+  'x-content-type-options': 'nosniff',
+  'referrer-policy': 'no-referrer',
+  'content-security-policy': "default-src 'none'; frame-ancestors 'none'",
+  vary: 'Origin',
+});
+const KNOWN_PATHS = ['/v1/list', '/v1/ack'];
+
+/**
+ * What the checks that hold for every exchange (design 5.3) find wrong; each test file asserts
+ * after all its tests that this is empty. Every answer carries the common headers. Every answer to
+ * an allowed origin on a known path carries the CORS headers, except 500 `misconfigured`, when the
+ * allowlist is unknown. No answer allows credentials or carries a `*`. No answer repeats any part
+ * of the request (R26): the room id, the address, a refused origin, or the sentinel wherever a
+ * test placed it.
+ */
+export function exchangeProblems(recorded: readonly RecordedExchange[]): string[] {
+  const problems: string[] = [];
+  for (const { init, env, response, text } of recorded) {
+    const path = init.path ?? '/v1/list';
+    const where = `${init.method} ${path} from ${String(init.origin)}: ${String(response.status)}`;
+    const headers: [string, string][] = [];
+    response.headers.forEach((value, name) => headers.push([name, value]));
+    const headerOf = (name: string) => response.headers.get(name);
+
+    for (const [name, value] of Object.entries(EXPECTED_HEADERS)) {
+      if (headerOf(name) !== value) problems.push(`${where}: ${name} missing or changed`);
+    }
+    const origin = init.origin === undefined ? APP_ORIGIN : init.origin;
+    const allowed = (env.ALLOWED_ORIGINS ?? '').split(',').map((o) => o.trim());
+    const isAllowed = origin !== null && allowed.includes(origin);
+    const misconfigured = response.status === 500 && text === '{"error":"misconfigured"}';
+    if (isAllowed && KNOWN_PATHS.includes(path.split('?')[0] ?? '') && !misconfigured) {
+      if (headerOf('Access-Control-Allow-Origin') !== origin) {
+        problems.push(`${where}: no Access-Control-Allow-Origin`);
+      }
+      if (
+        init.method !== 'OPTIONS' &&
+        headerOf('Access-Control-Expose-Headers') !== 'Retry-After'
+      ) {
+        problems.push(`${where}: no Access-Control-Expose-Headers`);
+      }
+    }
+    if (headerOf('Access-Control-Allow-Credentials') !== null) {
+      problems.push(`${where}: credentials allowed`);
+    }
+    if (headers.some(([, value]) => value.trim() === '*')) problems.push(`${where}: a * header`);
+
+    const shown = `${text}\n${headers.map(([name, value]) => `${name}: ${value}`).join('\n')}`;
+    const parts = [init.room ?? ROOM_A, init.ip ?? TEST_IP, SENTINEL];
+    if (origin !== null && !isAllowed) parts.push(origin);
+    for (const part of parts) {
+      if (shown.includes(part)) problems.push(`${where}: the answer repeats part of the request`);
+    }
+  }
+  return problems;
 }

@@ -19,7 +19,13 @@ import {
   type RelaySlot,
 } from '@diet/core/relay';
 import { parseRelayConfig, type RelayConfig, type RelayEnv } from './config';
-import { KV_READ_CACHE_TTL_SECONDS, roomHash, slotKey, type RateLimiterSubset } from './kv';
+import {
+  clientLimitKey,
+  KV_READ_CACHE_TTL_SECONDS,
+  roomHash,
+  slotKey,
+  type RateLimiterSubset,
+} from './kv';
 
 /** What the relay reads of a request; the Workers runtime passes a real Request. */
 export type RelayRequest = Pick<Request, 'method' | 'url' | 'headers' | 'body'>;
@@ -127,9 +133,10 @@ type ReadResult =
 /**
  * Reads the body while counting bytes, and cancels the stream at the first byte over the cap, so
  * an oversized body is never held whole. Strict UTF-8, with a byte-order mark kept (and so
- * refused by the format check), so the stored text is exactly the bytes sent.
+ * refused by the format check), so the stored text is exactly the bytes sent. Exported for its
+ * own tests: every reason but `too-large` answers the same 400 `bad-body`.
  */
-async function readCappedText(
+export async function readCappedText(
   body: ReadableStream<Uint8Array> | null,
   cap: number,
 ): Promise<ReadResult> {
@@ -169,8 +176,8 @@ async function readCappedText(
 
 /**
  * True when the limiter lets the request through. No binding means no limit (R11). A limiter that
- * fails counts as allowing: it protects only the free KV quota, never anyone's data, and the paste
- * code is the fallback when the quota runs out.
+ * fails counts as allowing: it only slows the use of the free KV quota (it cannot stop a determined
+ * client), never guards anyone's data, and the paste code is the fallback when the quota runs out.
  */
 async function allowed(limiter: RateLimiterSubset | undefined, key: string): Promise<boolean> {
   if (limiter === undefined) return true;
@@ -207,9 +214,9 @@ interface SlotRequest {
 
 async function store({ request, env, config, slot, hash, cors }: SlotRequest, now: () => number) {
   // Both limits are checked before the body is read, so junk bodies count too (C80).
-  const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown';
+  const client = clientLimitKey(request.headers.get('CF-Connecting-IP'));
   if (
-    !(await allowed(env.RELAY_WRITE_LIMIT, `ip:${ip}`)) ||
+    !(await allowed(env.RELAY_WRITE_LIMIT, client)) ||
     !(await allowed(env.RELAY_WRITE_LIMIT, `room:${hash}`))
   ) {
     return refuse(429, 'rate-limited', cors, { 'Retry-After': RETRY_AFTER.rateLimited });
@@ -249,8 +256,8 @@ async function store({ request, env, config, slot, hash, cors }: SlotRequest, no
 }
 
 async function collect({ request, env, config, slot, hash, cors }: SlotRequest, now: () => number) {
-  const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown';
-  if (!(await allowed(env.RELAY_READ_LIMIT, `ip:${ip}`))) {
+  const client = clientLimitKey(request.headers.get('CF-Connecting-IP'));
+  if (!(await allowed(env.RELAY_READ_LIMIT, client))) {
     return refuse(429, 'rate-limited', cors, { 'Retry-After': RETRY_AFTER.rateLimited });
   }
   const key = slotKey(slot, hash);

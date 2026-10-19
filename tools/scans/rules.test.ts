@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   aiAndTelemetryRules,
@@ -16,8 +17,7 @@ import {
 } from './rules';
 import {
   formatViolations,
-  RELAY_BLIND,
-  RULE_SETS,
+  ruleSetsFor,
   scanPath,
   scanSource,
   scanText,
@@ -752,8 +752,10 @@ describe('reports (CI logs are public)', () => {
 });
 
 describe('S1. The blind relay rules (checklist item 29; TR-02, HS-14)', () => {
+  // The rule sets the repository scan runs, so a merge that drops the relay rules fails here.
+  const repoRuleSets = ruleSetsFor(resolve(import.meta.dirname, '../..'));
   const relayHits = (code: string, file = 'services/relay/src/x.ts') =>
-    scanSource(file, code, [...RULE_SETS, RELAY_BLIND]).map((v) => v.ruleId);
+    scanSource(file, code, repoRuleSets).map((v) => v.ruleId);
   const flagged: [string, string][] = [
     ['const plain = await crypto.subtle.decrypt(params, key, data);', 'relay-crypto'],
     ['const plain = await subtle.decrypt(params, key, data);', 'relay-subtle'],

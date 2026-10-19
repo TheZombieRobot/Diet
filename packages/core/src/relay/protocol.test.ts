@@ -142,6 +142,15 @@ describe('T4. Relay endpoints and outcomes (C80, C81, C114, TR-06, R32)', () => 
     ['POST', 500, 'unavailable'],
     ['POST', 503, 'unavailable'],
     ['POST', null, 'unavailable'],
+    // The laptop's and the phone's polls: only 204 means nothing is waiting (TR-06, TR-07).
+    ['GET', 415, 'refused'],
+    ['GET', 403, 'unavailable'],
+    ['GET', 404, 'unavailable'],
+    ['GET', 405, 'unavailable'],
+    ['GET', 429, 'unavailable'],
+    ['GET', 500, 'unavailable'],
+    ['GET', 503, 'unavailable'],
+    ['GET', null, 'unavailable'],
   ])('relayOutcome(%s, %j) is %s', (method, status, outcome) => {
     expect(relayOutcome(method, status)).toBe(outcome);
   });

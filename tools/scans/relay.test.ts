@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join, posix, resolve } from 'node:path';
 import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
@@ -21,24 +21,50 @@ import { isTestFile, listRepoFiles } from './scan';
 const root = resolve(import.meta.dirname, '../..');
 const files = listRepoFiles(root);
 const read = (path: string) => readFileSync(join(root, path), 'utf8');
-const importsOf = (path: string) =>
-  ts.preProcessFile(read(path), true, true).importedFiles.map((f) => f.fileName);
+const importsIn = (code: string) =>
+  ts.preProcessFile(code, true, true).importedFiles.map((f) => f.fileName);
+const importsOf = (path: string) => importsIn(read(path));
 const PROTOCOL = 'packages/core/src/relay/protocol.ts';
 const WRANGLER = 'pnpm dlx wrangler@4.147.0';
 const CONFIG = '--config services/relay/wrangler.jsonc';
 
 describe('S2. The relay imports only the relay protocol (TR-02)', () => {
-  const relaySource = files.filter(
-    (f) => f.startsWith('services/relay/src/') && f.endsWith('.ts') && !isTestFile(f),
-  );
+  const RELAY_SRC = 'services/relay/src/';
+  /** Every code file, whatever its extension, except tests. */
+  const isRelaySource = (f: string) =>
+    f.startsWith(RELAY_SRC) && /\.[cm]?[jt]sx?$/.test(f) && !isTestFile(f);
+  const relaySource = files.filter(isRelaySource);
+  /** Inside the relay's folder, once resolved, and not a test file (tests import anything). */
+  const isOwnFile = (file: string, specifier: string) => {
+    const target = posix.join(posix.dirname(file), specifier);
+    return target.startsWith(RELAY_SRC) && !/\.(?:test|spec)(?:\.[cm]?[jt]sx?)?$/.test(target);
+  };
+  /** The specifiers other than the protocol and the relay's own files. */
+  const outsideOf = (file: string, code: string) =>
+    importsIn(code).filter(
+      (s) => s !== '@diet/core/relay' && !(s.startsWith('.') && isOwnFile(file, s)),
+    );
 
-  it('finds the relay source', () => {
+  it('finds the relay source, in every code file', () => {
     expect(relaySource).toContain('services/relay/src/handler.ts');
+    expect(isRelaySource('services/relay/src/x.mts')).toBe(true);
+    expect(isRelaySource('services/relay/src/x.test.ts')).toBe(false);
   });
 
   it.each(relaySource)('%s imports only its own files and @diet/core/relay', (file) => {
-    const outside = importsOf(file).filter((s) => !s.startsWith('./') && s !== '@diet/core/relay');
-    expect(outside).toEqual([]);
+    expect(outsideOf(file, read(file))).toEqual([]);
+  });
+
+  it.each([
+    "export { webCrypto } from './../../../packages/core/src/storage/backup/crypto';",
+    "import { unlockBackup } from '../../../packages/core/src/storage/backup/decode.ts';",
+    "import { x } from './../src/../../config';",
+    "import { x } from '..';",
+    "import { x } from '@diet/core';",
+    "const m = await import('./../../../tools/relay/smoke.ts');",
+    "import { exchanges } from './handler.test';",
+  ])('refuses %s', (code) => {
+    expect(outsideOf('services/relay/src/x.ts', code)).toHaveLength(1);
   });
 
   it('the protocol imports nothing, and @diet/core/relay is exactly that file', () => {
@@ -84,7 +110,7 @@ describe('S3. Deployment config, telemetry and dependencies (TR-06, C80, C81)', 
     (deployment) => {
       const vars = deploymentOf(config, deployment)['vars'] as Record<string, string>;
       const parsed = parseRelayConfig({ ...vars, RELAY_KV: KV }, { allowLoopbackOrigins: false });
-      expect(parsed.ok && parsed.allowedOrigins.has(APP_ORIGIN)).toBe(true);
+      expect(parsed.ok && [...parsed.allowedOrigins]).toEqual([APP_ORIGIN]);
       expect(vars['RELAY_TTL_SECONDS']).toBe(
         String(deployment === 'production' ? RELAY_TTL_MS / 1000 : RELAY_TEST_TTL_SECONDS),
       );
@@ -111,6 +137,14 @@ describe('S3. Deployment config, telemetry and dependencies (TR-06, C80, C81)', 
     ['with a route', changed((c) => (testOf(c)['routes'] = ['relay.example.com/*']))],
     ['with a secret variable', changed((c) => (varsOf(c)['API_TOKEN'] = 'y'))],
     ['with a longer expiry', changed((c) => (varsOf(c)['RELAY_TTL_SECONDS'] = '901'))],
+    [
+      'with another origin',
+      changed((c) => (varsOf(c)['ALLOWED_ORIGINS'] = `${APP_ORIGIN},https://example.github.io`)),
+    ],
+    [
+      'with another origin in test',
+      changed((c) => (varsOf(testOf(c))['ALLOWED_ORIGINS'] = `https://example.com, ${APP_ORIGIN}`)),
+    ],
     ['with no storage id', changed((c) => (c['kv_namespaces'] = [{ binding: 'RELAY_KV' }]))],
     [
       'with one storage for both',
@@ -196,15 +230,47 @@ describe('S4. The owner tools stay out of CI and out of the app (C81)', () => {
     expect(importers).toEqual([]);
   });
 
-  it('no workflow runs wrangler or a relay script', () => {
-    const dir = join(root, '.github/workflows');
-    const workflows = readdirSync(dir).filter((f) => f.endsWith('.yml'));
-    expect(workflows.length).toBeGreaterThan(0);
-    for (const workflow of workflows) {
-      const text = readFileSync(join(dir, workflow), 'utf8');
-      for (const banned of ['wrangler@', 'wrangler ', 'relay:', 'tools/relay']) {
-        expect(text.includes(banned), `${workflow}: ${banned}`).toBe(false);
-      }
-    }
+  // Every file under .github/ (workflows in .yml or .yaml, and actions), so CI can neither deploy
+  // the relay nor reach Cloudflare: C81's route b, a token in GitHub, is not used (R24).
+  const isCiFile = (f: string) => f.startsWith('.github/');
+  const CI_BANNED = [/wrangler/i, /cloudflare/i, /workers\.dev/i, /relay:/, /tools\/relay/];
+  /** The one line CI may have: it switches wrangler's usage reports off, should it ever run. */
+  const METRICS_OFF = "WRANGLER_SEND_METRICS: 'false'";
+  const ciProblems = (text: string) =>
+    text
+      .split('\n')
+      .filter((line) => line.trim() !== METRICS_OFF && CI_BANNED.some((re) => re.test(line)));
+
+  it('nothing under .github runs wrangler or a relay tool, or names Cloudflare', () => {
+    const ci = files.filter(isCiFile);
+    expect(ci).toContain('.github/workflows/ci.yml');
+    for (const file of ci) expect(ciProblems(read(file)), file).toEqual([]);
+  });
+
+  it.each([
+    ['.github/workflows/relay.yaml', '      - run: pnpm relay:deploy'],
+    ['.github/workflows/relay.yml', '      - uses: cloudflare/wrangler-action@v3'],
+    ['.github/workflows/relay.yml', '          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}'],
+    ['.github/workflows/ci.yml', '      - run: npx wrangler deploy'],
+    ['.github/actions/check/action.yml', '      run: curl https://list-relay.example.workers.dev'],
+    ['.github/actions/check/action.yml', '      run: node tools/relay/smoke.ts'],
+  ])('refuses %s with %j', (file, line) => {
+    expect(isCiFile(file)).toBe(true);
+    expect(ciProblems(`name: Example\n  ${METRICS_OFF}\n${line}\n`)).toEqual([line]);
+  });
+});
+
+describe('S5. The relay README says what the relay sees and what its limits cannot do', () => {
+  const readme = read('services/relay/README.md');
+
+  it('the Worker sees the room id and the addresses, and stores neither', () => {
+    expect(readme).toContain(
+      'The relay sees the sealed body, the room id (KV stores only a hash of it), timing, and the IP addresses.',
+    );
+  });
+
+  it('the rate limits cannot stop a determined client, and IPv6 counts by its /64 network', () => {
+    expect(readme).toContain('An IPv6 address counts by its /64 network');
+    expect(readme).toContain('cannot stop a determined one');
   });
 });
