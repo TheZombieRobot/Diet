@@ -63,7 +63,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | RD-02 | Pregnant/breastfeeding = yes | Fasting hidden; ceiling off; midwife/GP message; no weight goal; Kickstart unavailable, deficit 0 |
 | RD-03 | Diabetes medication = yes | Fasting hidden until prescriber confirmation toggled; hypoglycaemia text shown; carb ceilings under 50 g and Kickstart off until then |
 | RD-04 | Eating-disorder history = yes | Fasting hidden; goal setting hidden; keto carb ceiling off (meals still planned) and no Kickstart; trend still visible |
-| RD-05 | Exercise red flag = yes | Sessions hidden until GP-discussion toggle |
+| RD-05 | Exercise red flag = yes | Sessions hidden on the Move tab, the Today Movement card and Complete workout until GP-discussion toggle |
 | RD-06 | Change answers later | Features appear/disappear immediately; no data lost |
 | RD-07 | Close the app after the notice and reopen | Setup resumes at the first unfinished step; fasting hidden while gated |
 | RD-08 | Import a backup with no readiness rows | Gates closed; readiness asked before anything else |
@@ -142,9 +142,9 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 ### 3.9 Exercise
 | ID | Case | Expected |
 |---|---|---|
-| EX-01 | Every movement has easier and harder variants and a stop-rule link | Data validation |
+| EX-01 | Every exercise in the dataset has easier and harder variants and a stop-rule link | Data validation |
 | EX-02 | Beach-tagged session | Flags, patrol, rip, sun, hydration prompts render before start (HS-12) |
-| EX-03 | Progression suggestion | Never more than ~10% more volume than last session |
+| EX-03 | Progression suggestion | Never more than about 10% more volume per movement than the last completed week (C76), nor than the last session |
 | EX-04 | Session log | Saves movement, reps/time, effort, notes; visible in history |
 | EX-05 | Rest day scheduled | Weekly view shows at least two rest days |
 

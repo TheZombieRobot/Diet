@@ -60,13 +60,13 @@ Cards, in order:
 
 ## 4. Move
 
-**4a: This week.** Seven-day strip with planned sessions and rest days. Default: two or three strength sessions, optional beach walk, rest days marked "counts as success".
+**4a: This week.** Seven-day strip with planned sessions and rest days. Default: two strength sessions (A and B), an optional beach walk and four rest days; a third session (C) can be added with Change weekly plan, here in Move. Rest days marked "counts as success".
 
-**4b: Pre-session check (every session).** Five quick toggles: pain or injury, back or leg symptoms, very tired or poor sleep, hot day or sun exposure, not well hydrated. Any "yes" offers the lighter version or rest. Stop rules shown in one line with "Call 111 for chest pain that does not settle."
+**4b: Pre-session check (every session).** Six questions, each answered Yes or No (adding a heavy physical work day): pain or injury, back or leg symptoms, very tired or poor sleep, hot day or sun exposure, not well hydrated, a heavy physical work day. Any "yes" offers the lighter version or rest. Stop rules (all five red flags) with "Call 111 for chest pain that does not settle within a few minutes."
 
-**4c: Session.** Movement list with easier/harder variant switch, band or dumbbell variant if enabled, sets and reps or time, big tick per set, optional demonstration text. Progression suggestion at the top, capped at about 10% more than last time. Finish asks exertion, soreness, energy.
+**4c: Session.** Movement list with easier/harder variant switch, band or dumbbell variant if enabled, sets and reps or time, big tick per set, optional demonstration text. Progression suggestion at the top, capped at about 10% more than last week. Finish asks exertion, soreness, energy.
 
-**4d: Beach.** Walk or optional jog with duration. Prompts before start: between the flags when patrolled (Bay of Plenty surf beaches patrolled roughly October to March, hours on Safeswim), rips, sun before 10 am or after 4 pm in summer, water, firm sand first. Jogging unlocks only after four tolerated walks.
+**4d: Beach.** Walk or optional jog with duration. Prompts before start: between the flags when patrolled (Bay of Plenty surf beaches patrolled roughly October to March, hours on Safeswim), rips, sun before 10 am or after 4 pm in summer, water, firm sand first. Jogging unlocks only after four tolerated walks; a tolerated walk is defined in HEALTH_SAFETY section 6.
 
 ---
 
@@ -95,7 +95,7 @@ What is deliberately absent: streaks, badges, "calories left", "you've earned", 
 ## 7. Settings
 A "Your setup" card leads to **Readiness answers** (every answer, the confirmation switches and what the answers switch off; a change applies at once and deletes nothing), **Profile** (the setup fields except current weight, goal and Kickstart) and **Eating schedule** (only the reason while fasting is unavailable).
 
-Profile, eating schedule, readiness answers, diet mode, targets (protein, net carbs, saturated-fat budget), the drinking-day cut-over (drinks before 5 am count toward the previous evening; adjustable from midnight to 6 am, C21), the Weight check-in card (the rapid-loss bounds, only after reading their explanation, C46), the alcohol guidance set (C46), equipment, household, allergens, dislikes (C43), hidden recipes and foods, store, pairing, Backup and data, About (not a medical device, emergency numbers, data sources and attribution, version). Units are fixed metric, so there is no units setting.
+Profile, eating schedule, readiness answers, diet mode, targets (protein, net carbs, saturated-fat budget), the drinking-day cut-over (drinks before 5 am count toward the previous evening; adjustable from midnight to 6 am, C21), the Weight check-in card (the rapid-loss bounds, only after reading their explanation, C46), the alcohol guidance set (C46), equipment (bands, dumbbells and the beach-jogging opt-in), household, allergens, dislikes (C43), hidden recipes and foods, store, pairing, Backup and data, About (not a medical device, emergency numbers, data sources and attribution, version). Units are fixed metric, so there is no units setting.
 
 **Backup and data** (built at checklist item 12):
 - **Storage status line**, checked at every launch and never stored: "Protected from automatic clearing. A backup is still your only copy if the phone is lost or Chrome's data is cleared.", "Not protected yet: the phone may clear the app's records when space runs low. A backup is your only other copy.", "This browser cannot protect the app's records from clearing. A backup is your only other copy." or "Checking…". About shows the same line.

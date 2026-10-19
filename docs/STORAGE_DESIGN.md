@@ -910,7 +910,7 @@ Rules inside one record (the "iff" and "equals" rules of section 4) are part of 
 
 Ids are fresh UUIDs; tests find the seeded rows by name. Nothing else is seeded: no readiness rows (unanswered means gated), no card state, no milestones, ever.
 
-**Datasets in code, not in the database:** ingredients (item 18), recipes (item 20), exercises and session templates (item 26), and the NZ drink-picker serves (item 28), all with SeedIds. Item 18 MUST define `seed:silverbeet`. A dataset change in an app update needs no migration, and backups stay small; owner corrections reach the new data through patches (section 4.7).
+**Datasets in code, not in the database:** ingredients (item 18), recipes (item 20), exercises and session templates (item 26), and the NZ drink-picker serves (item 28), all with SeedIds. The exercises, session templates and default week are `packages/core/data/exercises.json`, checked by the core validator `exerciseDataProblems` on every test run. Item 18 MUST define `seed:silverbeet`. A dataset change in an app update needs no migration, and backups stay small; owner corrections reach the new data through patches (section 4.7).
 
 ---
 

@@ -138,7 +138,7 @@ Card text: "If you've been drinking most days or heavily at weekends for a while
 
 **What it does:** two to three full-body resistance sessions a week of about 20–35 minutes, bodyweight by default with band and dumbbell variants if you have them, rest days scheduled, gradual progression, optional beach walking, beach jogging only as a progressive opt-in, a pre-session check, a session logger, and beach safety prompts. **No compulsory running** on top of a physically demanding job with a high daily step count; the app treats that work as real activity.
 
-**Pre-session check (every session):** pain or injury, back or leg symptoms, fatigue or poor sleep, heat exposure, hydration. Any "yes" offers the lighter variant or rest. Rest and recovery are counted as success in the week view. The app does not diagnose injury or promise that exercise is safe.
+**Pre-session check (every session):** pain or injury, back or leg symptoms, fatigue or poor sleep, heat exposure, hydration, and a heavy physical work day (section 3). Any "yes" offers the lighter variant or rest. Rest and recovery are counted as success in the week view. The app does not diagnose injury or promise that exercise is safe. While a fast is running (and fasting is not switched off by a readiness answer), the check suggests the lighter session first and notes that eating first is fine too.
 
 **Movement library (bodyweight by default; band and dumbbell variants unlock with the Settings toggles)**
 Lower body: sit-to-stand or supported squat, bodyweight squat, split squat, reverse lunge, glute bridge, single-leg bridge, calf raise, step-up; light hinge (hip hinge to a box) only if pain-free.
@@ -147,11 +147,14 @@ Core: dead bug, bird-dog, side plank, front plank, hollow hold.
 Beach-specific: soft-sand walking, firm-sand brisk walk/jog near the waterline, knee-deep wading, sand sprints (later progression only), swimming between the flags.
 Mobility: hip flexor stretch, calf stretch, thoracic rotations, ankle circles.
 
+The MVP dataset (`packages/core/data/exercises.json`) plans every movement above except hollow hold, knee-deep wading, sand sprints, swimming and push-ups on the toes (kneeling push-ups are the top push-up level for now). The beach prompts still cover the water. Band and dumbbell variants are only the ones listed here: band row, band pull-apart, and dumbbell row and press. March on the spot and an easy walk are added for warm-ups and cool-downs.
+
 **Programming rules**
 - Weekly structure aims for the NZ adult guidance: at least 2.5 hours of moderate activity across the week plus two muscle-strengthening sessions ([Eating and Activity Guidelines for New Zealand Adults](https://www.health.govt.nz/publication/eating-and-activity-guidelines-new-zealand-adults); the implementing model should confirm the exact strength wording in the 2020 PDF).
-- Progression is one step at a time: add reps before adding the harder version; the app never adds volume more than about 10% week to week.
+- Progression is one step at a time: add reps before adding the harder version. For each movement (one exercise, all its versions together), the app never suggests more than about 10% above the last completed week, or above the last session (DOC_REVIEW C76). After a week with only lighter sessions or rest, the next week holds at the week before with no increase; after two weeks or more without the movement, it starts again from the first amount. A change of version starts at the bottom of the range.
 - Rest days are scheduled, not optional.
 - Sessions start with a 5-minute warm-up and end with a cool-down.
+- Beach jogging (judgement call, DOC_REVIEW C51): jogging needs the owner's opt-in and four tolerated walks. A tolerated walk is a beach walk of at least 15 minutes (the walk's shortest planned length), with every check before it answered no, effort and soreness each rated 3 or less out of 5, and no pain or back or leg symptoms at the next check, on a later day; at most one walk a day counts. Jogging pauses after a jog whose effort or soreness was above 3 or not rated, or whose next check showed pain or back or leg symptoms, until one more tolerated walk.
 
 **Stop rules shown before every session**
 Stop immediately and seek help for chest pain or pressure, severe shortness of breath, fainting or near-fainting, sudden severe headache, or pain that changes how you move. "Call 111 for chest pain that does not settle within a few minutes."
@@ -163,7 +166,6 @@ Stop immediately and seek help for chest pain or pressure, severe shortness of b
 - Heat and hydration: carry water; 500 mL per hour of activity in the heat is the in-app default, with electrolytes noted if also on the carb ceiling.
 - Sand: start barefoot work on firm, wet sand; soft sand is harder on calves and Achilles. Check for glass and shells. Do not jump from dunes.
 - Never swim alone, never after drinking (the app does not compute this; it just says it).
-- Exercising while fasted is allowed; the app suggests the lighter sessions and reminds you to break the fast afterwards if the plan says so.
 
 ---
 
@@ -198,6 +200,8 @@ Stop immediately and seek help for chest pain or pressure, severe shortness of b
 | HS-26 | Projection on the four-week chart is a shaded "typical range, not a promise" band, front-loaded; no target line and no "kg by date" text | Snapshot and static scan; no band edge as a number or date; no band under readiness 5 or below BMI 18.5 |
 | HS-27 | The Kickstart stop-sign card shows on every Kickstart day with the eat, salt and fluids line, Healthline or a GP, and 111 (the blood-pressure wording when readiness answer 4 is yes or unanswered); it can be hidden only for the day, and after a stop-sign answer it cannot be hidden until that Kickstart's last day ends | Fixtures for each Kickstart day and each answer-4 state; hide the card, then report a stop-sign |
 | HS-12 | Exercise stop rules and beach prompts render before any beach-tagged session | Snapshot test |
+| HS-28 | Exercise stop rules render before every session, not only beach ones, on every route into a session (DOC_REVIEW C17; checklist items 26 and 27) | Unit (core) at item 26; component at item 27 |
+| HS-29 | Any yes on the pre-session check offers only the lighter session or rest, and a lighter session cannot be switched to a harder or equipment version (DOC_REVIEW C17; checklist items 26 and 27) | Unit (core) at item 26; component at item 27 |
 | HS-13 | Emergency numbers 111, 0800 611 116, 0800 787 797 (and 1737 and text 8681, per DOC_REVIEW C17) appear on the About screen, the alcohol screen and every storage failure screen; the storage failure screens, shown when the records cannot be opened, also carry the not-a-medical-device line, from static copy that needs no database (extended at checklist item 12) | DOM query, including each storage failure screen with the database unavailable |
 | HS-14 | The phone app makes only (a) GET requests to its own origin for app files and update checks, with no query string or body built from user data, and (b) requests to the relay host, only after "Send to laptop" is tapped and until that transfer is received or expires. For the page, the Content Security Policy enforces this; for the service worker, which that policy does not cover, the build-output check does: the built service worker may load scripts and keep offline files only by relative URL, at the app's own address (reworded per DOC_REVIEW C03 and the item 5 review; the intent is unchanged) | Playwright network log, service worker included, while visiting every screen online and offline; any request outside the allowlist, and any policy violation, fails; relay requests appear only after a Send tap. The build-output check (e2e/build-output.spec.ts) fails on any absolute URL in the built service worker and on any absolute URL in the built files that is not on its list of inert strings |
 | HS-15 | Every record round-trips exactly through a backup, except the documented device-only data (the laptop pairing and garden photos), which is absent from the file (reworded per DOC_REVIEW C49) | Export, answer Yes to "Can you see the file?", delete all, import, compare every store; the pairing and photos are empty afterwards and the file contains none of their data |
