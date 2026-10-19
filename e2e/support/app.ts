@@ -168,6 +168,58 @@ export async function seedOnboarded(
   if (path !== appUrl) await page.goto(path);
 }
 
+/**
+ * Item 16: changes a finished setup's synthetic records with raw IndexedDB (readiness answers and
+ * settings fields), then reloads, so the app reads them at launch.
+ */
+export async function patchRecords(
+  page: Page,
+  patch: {
+    readonly readiness?: Readonly<Record<string, 'yes' | 'no'>>;
+    readonly settings?: Readonly<Record<string, unknown>>;
+  },
+): Promise<void> {
+  await page.evaluate(
+    (p) =>
+      new Promise<void>((resolve, reject) => {
+        const request = indexedDB.open('diet');
+        request.onerror = () => {
+          reject(new Error('open failed'));
+        };
+        request.onsuccess = () => {
+          const db = request.result;
+          const tx = db.transaction(['settings', 'readiness'], 'readwrite');
+          const now = new Date().toISOString();
+          for (const [questionId, answer] of Object.entries(p.readiness ?? {})) {
+            tx.objectStore('readiness').put({
+              questionId,
+              answer,
+              wordingVersion: 1,
+              answeredAt: now,
+            });
+          }
+          const settings = p.settings;
+          if (settings !== undefined) {
+            const get = tx.objectStore('settings').get('singleton');
+            get.onsuccess = () => {
+              tx.objectStore('settings').put({ ...(get.result as object), ...settings });
+            };
+          }
+          tx.oncomplete = () => {
+            db.close();
+            resolve();
+          };
+          tx.onerror = () => {
+            reject(new Error('write failed'));
+          };
+        };
+      }),
+    patch,
+  );
+  await page.reload();
+  await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
+}
+
 /** Visits every screen in turn, calling `onScreen` on each. */
 export async function visitEveryScreen(
   page: Page,

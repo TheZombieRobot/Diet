@@ -8,7 +8,7 @@ import { onboardForTests, openTestDb, type TestDb } from '../../db/testKit';
 import { storageStore } from '../../pwa/storage';
 import { routeHref } from '../../routes';
 import { formatLocalTime } from '../../format';
-import { TodayScreen } from '../TodayScreen';
+import { TodayScreen } from '../today/TodayScreen';
 import { setPendingCheck } from './pendingCheck';
 import { exportRequestStore } from './reminder';
 
@@ -81,8 +81,9 @@ describe('BK-03 backup reminder on Today (section 16 test 40)', () => {
     render(<TodayScreen />);
     const card = await screen.findByTestId('backup-reminder');
     expect(card.textContent).toContain(privacy.backupReminder.weakStorage);
+    // The first card on Today (item 16: after the date and status line; no Talk card here).
     const section = card.closest('section');
-    expect(section?.parentElement?.firstElementChild).toBe(section);
+    expect(section?.parentElement?.querySelector('section')).toBe(section);
   });
 
   it('Back up now opens Settings with the export panel ready', async () => {
@@ -159,6 +160,11 @@ describe('BK-03 backup reminder on Today (section 16 test 40)', () => {
 });
 
 describe('the update-notice card (section 9.2; D13)', () => {
+  // Today shows its cards only after setup (item 16, T23).
+  beforeEach(async () => {
+    await onboardForTests(test);
+  });
+
   it('shows after a migration changed values, lists the changes, and Close hides it for good', async () => {
     await test.repos.audit.create({
       kind: 'migration',

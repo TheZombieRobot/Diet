@@ -60,7 +60,7 @@ Conventions for the implementing model:
     *Acceptance:* FS-01 to FS-08; FL-10 to FL-16; HS-02, HS-17, HS-18.
 
 16. **Today dashboard skeleton and About screen.** Cards per `UX_SCREENS.md` section 2 wired to weight and fasting; quick actions; About with not-a-medical-device text, emergency numbers, data attribution placeholder, version.
-    *Acceptance:* HS-13 (About portion); snapshot of Today.
+    *Acceptance:* HS-13 (About portion); TD-01 to TD-07 (TD-01 is the Today snapshot).
 
 17. **STOP — week 1 review.** Send the owner the install URL and the end-of-week-1 checklist from `TEST_PLAN.md` section 4.
 
@@ -80,7 +80,7 @@ Conventions for the implementing model:
 21. **Targets engine, deficits and diet modes.** Protein 120–140 g default (80–200 range), net-carb ceiling in keto mode, saturated-fat budget, fibre guide, energy estimate with "physically active job" default, Kickstart deficit up to 30% with protein at 140 g and net carbs at 20 g, Steady deficit 15–20%, 5,000 kJ floor in both; keto-preferred, moderate low-carb, balanced modes.
     *Acceptance:* unit tests; HS-09, HS-10, HS-22, HS-25; FL-04; WT-06, WT-07.
 
-22. **Seven-day planner.** Window-aware meal slots (snack plus dinner by default), swap with garden-first ranking, household scaling with independent user portion, dislikes and allergens respected, budget note, cholesterol check-in cards (day one, weeks 8 and 12), electrolyte reminder in the first fortnight, optional auto-fill respecting the floor.
+22. **Seven-day planner.** Window-aware meal slots (snack plus dinner by default), swap with garden-first ranking, household scaling with independent user portion, dislikes and allergens respected, budget note, cholesterol check-in cards (day one, weeks 8 and 12), electrolyte reminder in the first fortnight, optional auto-fill respecting the floor (the Today cholesterol and electrolyte reminders were built at item 16; item 22 adds the planner side and reuses `cholesterolCheckinDue` and `electrolyteReminderDue`).
     *Acceptance:* NU-05 to NU-08; FL-05 (HS-23).
 
 23. **Food log.** Quick-add from plan or recipe, add from label (per 100 g or per serve), raw/cooked toggle, confidence badges, water and electrolyte log, manual steps.

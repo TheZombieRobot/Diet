@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { fasting } from '../packages/core/src/copy/health';
+import { alcohol, privacy, today, weight } from '../packages/core/src/copy/health';
 import { commerceRules, healthPhraseRules } from '../tools/scans/rules';
 import { scanText } from '../tools/scans/scan';
 import {
@@ -7,6 +7,7 @@ import {
   heading,
   offerInstall,
   openBackupPanels,
+  patchRecords,
   renderedText,
   type ScreenName,
   SCREENS,
@@ -21,6 +22,9 @@ import {
 // (HS-07, HS-08, HS-19, HS-21, HS-26) and the price, stock and cart-status wording rules (HS-16).
 
 const RULES = [...healthPhraseRules, ...commerceRules];
+
+const region = (page: Page, name: string) => page.getByRole('region', { name, exact: true });
+const quickActionsPanel = (page: Page) => page.locator('.ui-fab-panel');
 
 async function violations(page: Page, where: string): Promise<string[]> {
   return scanText(where, await renderedText(page), RULES).map((v) => `${where}: ${v.ruleId}`);
@@ -37,7 +41,9 @@ async function visitWithEverythingOpen(
     if (screen === 'Today') {
       await expect(page.getByText('Install this app')).toBeVisible();
       await page.getByRole('button', { name: 'Quick actions' }).click();
-      await expect(page.getByText(/^Quick ways to log weight/)).toBeVisible();
+      await expect(
+        quickActionsPanel(page).getByRole('button', { name: 'Log weight' }),
+      ).toBeVisible();
     }
     if (screen === 'Settings') {
       await expect(page.getByRole('button', { name: 'Install app' })).toBeVisible();
@@ -64,7 +70,7 @@ test('no screen shows banned health, price, stock or cart wording', async ({ pag
   expect(found).toEqual([]);
 });
 
-test('no screen but About, Weight and Fasting shows a number or a price, even with every banner and panel open', async ({
+test('no screen but About, Today, Weight and Fasting shows a number or a price, even with every banner and panel open', async ({
   page,
 }) => {
   // Screens must not look like they hold records they do not have (no sample data). The fresh
@@ -72,39 +78,78 @@ test('no screen but About, Weight and Fasting shows a number or a price, even wi
   // out: its numbers are the help lines and the version; so are the setup screens, which show the
   // owner's own entries, the question about being under 18 and the pattern names such as 16:8, the
   // Weight screen, whose labels carry digits by design ("7-day average", "Less 0.1 kg"), and the
-  // Fasting screen, which shows the owner's eating pattern and its clock times (item 15). On Today
-  // only the Fast card may carry digits, for the same pattern ("22:2", "Eat 5:00 pm – 7:00 pm").
+  // Fasting screen, which shows the owner's eating pattern and its clock times (item 15). Today
+  // shows the date, the pattern's times, the guidance line and the lipid-test wording, so it is
+  // checked where nothing is built yet (item 16, TD-02): Nutrition so far, Movement, the
+  // later-step lines and the "Later" rows of the "+" panel.
   await seedOnboarded(page, './', './', { weightKg: null });
   const found: string[] = [];
   const check = async (where: string, screen: ScreenName) => {
     if (screen === 'Today' || screen === 'Weight') {
       // With no weigh-ins, no record value or sample figure is drawn (item 14).
+      const weightFigures = screen === 'Today' ? region(page, weight.card.label) : page;
       await expect(
-        page.locator('.ui-stat__value, .ui-trend-chart, [data-weigh-in-row]'),
+        weightFigures.locator('.ui-stat__value, .ui-trend-chart, [data-weigh-in-row]'),
       ).toHaveCount(0);
+    }
+    if (screen === 'Today') {
+      await expect(region(page, today.cards.movement)).toBeVisible();
+      const unbuilt = [
+        region(page, today.cards.nutrition),
+        region(page, today.cards.movement),
+        page.getByTestId('later-step'),
+        page.locator('.ui-fab-panel [aria-disabled="true"]'),
+      ];
+      for (const part of unbuilt) {
+        for (const text of await part.allInnerTexts()) {
+          if (/\d|[$€£]/.test(text)) found.push(`${where}: a figure in ${JSON.stringify(text)}`);
+        }
+      }
     }
     if (
       screen === 'About' ||
+      screen === 'Today' ||
       screen === 'Weight' ||
       screen === 'Fasting and reflux' ||
       (SETUP_SCREENS as readonly string[]).includes(screen)
     ) {
+      if (/[$€£]/.test(await renderedText(page))) found.push(`${where}: a currency sign`);
       return;
     }
-    const fastCard =
-      screen === 'Today'
-        ? await page.getByRole('region', { name: fasting.card.label, exact: true }).innerText()
-        : '';
-    const text = (await renderedText(page))
-      .split('\n')
-      .filter((line) => line.trim() === '' || !fastCard.includes(line.trim()))
-      .join('\n');
+    const text = await renderedText(page);
     if (/\d/.test(text))
       found.push(`${where}: a digit in ${JSON.stringify(text.match(/.*\d.*/)?.[0])}`);
     if (/[$€£]/.test(text)) found.push(`${where}: a currency sign`);
   };
   await visitEveryScreen(page, (screen) => check(screen, screen));
   await visitWithEverythingOpen(page, check);
+  expect(found).toEqual([]);
+});
+
+test('Today filled in, with the steps editor and the "+" panel open, and with fasting switched off: no banned wording', async ({
+  page,
+}) => {
+  // Item 16 design section 5.3 E4 (HS-07, HS-08, HS-16, HS-19, HS-21, HS-26, C11).
+  await seedOnboarded(page);
+  await expect(region(page, today.cards.movement)).toBeVisible();
+  await page.getByRole('button', { name: today.water.add }).click();
+  await expect(page.getByTestId('water-total')).toHaveText('250 mL');
+  await page.getByRole('switch', { name: today.water.electrolytes }).check();
+  await page.getByRole('button', { name: today.steps.enter }).click();
+  await page.getByLabel(today.steps.field).fill('9000');
+  await page.getByLabel(today.steps.field).press('Enter');
+  await expect(page.getByTestId('steps-today')).toHaveText('9,000');
+  await page.getByRole('button', { name: today.steps.edit }).click();
+  await expect(region(page, privacy.backupReminder.cardLabel)).toBeVisible();
+  await page.getByRole('button', { name: today.quickActions.title }).click();
+  await expect(quickActionsPanel(page).getByText(today.quickActions.laterNote)).toBeVisible();
+  const found = await violations(page, 'Today filled in');
+
+  await patchRecords(page, { readiness: { q5: 'yes', q7: 'yes' } });
+  await expect(region(page, alcohol.helpCardLabel)).toBeVisible();
+  await page.getByRole('button', { name: today.quickActions.title }).click();
+  await expect(quickActionsPanel(page).getByText(today.quickActions.laterNote)).toBeVisible();
+  found.push(...(await violations(page, 'Today with fasting switched off and the help card')));
   expect(found).toEqual([]);
 });
 

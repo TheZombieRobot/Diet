@@ -94,7 +94,7 @@ The app never says "you are safe to fast/train/diet." It says "nothing you have 
 - Minimum energy floor: the planner warns if a planned day falls below 5,000 kJ (about 1,200 kcal) and will not generate automatic plans below it, in either phase. For an active job the estimate will usually be far higher; the floor is a safety net, not a target.
 - Household dinners: your portion and its nutrition are computed separately from the total servings, so cooking for three never changes your numbers.
 - Allergens entered in settings are kept on a recipe when it is edited or scaled; substitutions never silently introduce a listed allergen.
-- Electrolyte reminder (sodium, potassium, magnesium) during the first two weeks of the carb ceiling, with food sources from the garden (silverbeet, spinach, avocado) rather than supplement advice.
+- Electrolyte reminder (sodium, potassium, magnesium) daily during Kickstart, and for the first two weeks of any keto carb-ceiling period, with food sources from the garden (silverbeet, spinach, avocado) rather than supplement advice.
 - No supplement recommendations, no claims about ketosis measurements, no "fat-burning" language.
 - Nutrition figures carry a footer: "Values are averages from the New Zealand Food Composition Database (or USDA where noted). Your plate will differ."
 
