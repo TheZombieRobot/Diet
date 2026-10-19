@@ -349,7 +349,7 @@ A label with both `standardDrinks` and `kcal` null is refused; store `label: nul
 | jogOptIn | Bool | no | false | — | C51 |
 | householdSize | Int, people | no | 1 | 1–20 (grocery quantities only) | HS-23 |
 | dietMode | DietMode | no | `'keto'` | enum | HS section 4, FL-04 |
-| carbCeilingStartedAt | Instant | yes | null | set on each switch into keto and at Kickstart start; counted in elapsed time (section 3.1) | C72 |
+| carbCeilingStartedAt | Instant | yes | null | set on each switch into keto and at Kickstart start; counted in elapsed time (section 3.1). It drives only the C72 electrolyte reminder; never the Kickstart phase, notes, band or rapid-loss suppression, which come only from kickstart_periods (D27) | C72 |
 | firstLowCarbAt | Instant | yes | null | set once, never reset; counted in elapsed time | C109 |
 | kickstartOptIn | Bool | no | true | the onboarding choice; it does not start a period by itself. Item 13 preselects `false` while Q3 is gated (C06: "Kickstart defaults off") | C42, C45, C06 |
 | goalKg | Num, kg | yes | null | 20–400. The BMI 18.5 floor is checked when the goal is entered (item 14) and again whenever it is used, not here (section 5) | C04, C42 |
@@ -1250,7 +1250,7 @@ Import is reachable only after the alcohol notice has been acknowledged (C53). N
    - **The Kickstart history is never lowered (D27; orchestrator ruling).** When the phone's history records more than the file's (`recordsMoreKickstart`: more days, then more extensions, then a later stop-sign check), for a backup or a rescue copy alike, the phone's `kickstart_periods` and `kickstart_checks` are written instead of the file's, and the summary says so before Replace: "Kickstart history kept from this phone, because it records more Kickstart days, extensions or stop-sign checks than the file." After delete-all the phone has none, so the file's history is restored (HS-15). N and M are counted against what will be written.
    - The confirmation's first line reads "Backup made <date>." or, for a rescue file, "Rescue copy made <date>."; "The laptop pairing will be removed." appears only when the phone is paired; when nothing of the owner's on the phone carries a date (only settings changed), the newest line reads "Newest record in the file: <date>."
    - When N or M is above zero, the first and default button is **"Export what is on this phone first"** and the replace button comes second, drawn in amber as an action that cannot be undone. Otherwise the replace button is first and the export offer second. The replace button reads **"Replace everything on this phone"**; a rescue file with rows set aside shows "Import the rest" in its place. Rescue files also list what was put back to a default and what was kept from the phone (section 9.5). Nothing happens without an explicit tap. "Export what is on this phone first" opens the export panel above, scrolled into view with focus on its lock switch, and leaves the confirmation where it is.
-10. **Write.** Post the cross-tab gate message, close this tab's write gate and give up its shared lock (section 7.5), then run the all-or-nothing write (section 10.7) inside the lock in exclusive mode. If the lock is not granted within 3 seconds, nothing is written and the panel says the app is open somewhere else, that nothing was changed, and that Reload cancels the restore; "Try the restore again" counts the phone's records again and shows the confirmation again before anything is replaced. The Backup and data card's "Nothing more will be saved until the app reloads." and its Reload appear only once a restore or delete-all has stopped without finishing, never while one runs. On success, a new records generation is started (section 10.5 step 6). If the write fails for any other reason, offer "Save what was on this phone" at once: the step-9 snapshot as a rescue file (section 9.5), locked by default. On success, `await requestPersistentStorage()` (outside the transaction), then reload the page, which opens on Today. Readiness reopens by itself: missing answers are computed at run time (section 13), so nothing extra is written (C41).
+10. **Write.** Post the cross-tab gate message, close this tab's write gate and give up its shared lock (section 7.5), then run the all-or-nothing write (section 10.7) inside the lock in exclusive mode. If the lock is not granted within 3 seconds, nothing is written and the panel says the app is open somewhere else, that nothing was changed, and that Reload cancels the restore; "Try the restore again" counts the phone's records again and shows the confirmation again before anything is replaced. The Backup and data card's "Nothing more will be saved until the app reloads." and its Reload appear only once a restore or delete-all has stopped without finishing, never while one runs. On success, a new records generation is started (section 10.5 step 6). If the write fails for any other reason, offer "Save what was on this phone" at once: the step-9 snapshot as a rescue file (section 9.5), locked by default. On success, `await requestPersistentStorage()` (outside the transaction), then reload the page, which opens on Today. A restore made during setup (offered only after the alcohol notice is acknowledged, C53) reloads onto Settings, Readiness answers instead, so the restored answers are checked first, and the first-run guard shows setup again when the file's setup is not finished (item 13, E64). Readiness reopens by itself: missing answers are computed at run time (section 13), so nothing extra is written (C41).
 
 No audit row is written for an import itself, because that would break round-trip equality. Migration changes from an older file are the only audit rows import adds.
 
@@ -1358,31 +1358,39 @@ export interface ReadinessInput {
 export function readinessInputFromRows(rows: readonly ReadinessRecord[], birthYear: number | null, today: LocalDate): ReadinessInput;
 /** Questions with no current answer, in order (drives "resume onboarding" and the after-import prompt). */
 export function missingReadinessAnswers(input: ReadinessInput): ReadinessQuestionId[];
+
+/** Item 13: the gate function's input is ReadinessInput plus the current weight check (HS-35). */
+export interface GateInput extends ReadinessInput {
+  /** isLowWeight(current weight, stored height): below BMI 18.5. Anything but exactly false gates. */
+  lowWeight: boolean;
+}
+/** The only way to build a GateInput from records (readinessInputFromRows plus lowWeight). */
+export function gateInputFromRecords(args: { rows; birthYear; heightCm; currentWeightKg; today }): GateInput;
 ```
 - The rule is `gated(q) = answers[q] !== 'no'`. An unanswered question counts as yes (C41).
 - **Confirmation rule (D29).** `confirmations.prescriberAgreed` is true only when its row says `yes` under the current wording, the `q3` row exists under the current wording, and the confirmation's `answeredAt` is at or after the `q3` row's `answeredAt`. `gpExerciseDiscussed` is the same with `q6`. Re-answering Q3 or Q6 (for example after starting insulin) therefore needs a fresh confirmation; the repository also deletes the old one (section 8.2), and this read-time rule covers imported data.
 
 ### 13.3 The gate function (built and tested at item 13; outputs fixed here so items 13–15, 21, 22 and 28 agree)
-`readinessGates(input: ReadinessInput): ReadinessGates`, a pure function in core, used everywhere a feature is shown or a target is computed (C54: one gate function):
+`readinessGates(input: GateInput): ReadinessGates`, a pure function in core, with its input built only by `gateInputFromRecords`, used everywhere a feature is shown or a target is computed (C54: one gate function):
 
 | Output | True when | Source |
 |---|---|---|
 | `under18` | `gated(q1)` or `minimumAgeYears < 18` | HS section 1, C24 point 3 |
-| `fastingGated` | under18 or gated(q2) or gated(q5) or (gated(q3) and not prescriberAgreed) | HS-03 as reworded per C54, C07 |
-| `kickstartAvailable` | not (under18 or gated(q2) or gated(q5)) and not (gated(q3) and not prescriberAgreed) | DECISIONS (C06/C07/C41 row) |
-| `deficitAllowed` (Kickstart and Steady) | not (under18 or gated(q2) or gated(q5)) | same; plan at the estimate, never below the floor |
-| `ketoCeilingAvailable` | not (under18 or gated(q2) or gated(q5)) | HS section 1; Q5 per D30 |
+| `fastingGated` | under18 or gated(q2) or gated(q5) or lowWeight or (gated(q3) and not prescriberAgreed) | HS-03 as reworded per C54, C07; HS-35 |
+| `kickstartAvailable` | not (under18 or gated(q2) or gated(q5) or lowWeight) and not (gated(q3) and not prescriberAgreed) | DECISIONS (C06/C07/C41 row) |
+| `deficitAllowed` (Kickstart and Steady) | not (under18 or gated(q2) or gated(q5) or lowWeight) | same; plan at the estimate, never below the floor |
+| `ketoCeilingAvailable` | not (under18 or gated(q2) or gated(q5) or lowWeight) | HS section 1; Q5 per D30 |
 | `carbCeilingBelow50Allowed` | ketoCeilingAvailable and not (gated(q3) and not prescriberAgreed) | DECISIONS, C06 |
 | `projectionBandAvailable` | deficitAllowed (and, at use, an active carb ceiling) | DECISIONS, C27 |
-| `goalSettingAvailable` | not (under18 or gated(q5)) | HS section 1 (Q5, and "planner only" for Q1) |
+| `goalSettingAvailable` | not (under18 or gated(q2) or gated(q5) or lowWeight) | HS section 1 (Q5, and "planner only" for Q1); Q2 and low weight at item 13 |
 | `energyEstimateAvailable` | not under18 | DECISIONS (C06/C07/C41 row) |
 | `alcoholLoggingAvailable` | not under18 | HS section 1 |
 | `exercisePlansAvailable` | not gated(q6) or gpExerciseDiscussed | HS section 1, RD-05 |
 | `pharmacistReminder`, `bloodPressureSaltWording` | gated(q4) | C41, C102 |
 | `alcoholHelpCardFromDayOne` | gated(q7) | C58, AL-09 |
-| `reasons` | the plain-language reason ids for each closed gate | RD-01–RD-05 |
+| `reasons` | the reason ids of the closed gates, in this order: `under-18`, `under-18-birth-year`, `pregnant-or-breastfeeding`, `diabetes-medication`, `eating-disorder-or-low-weight`, `low-current-weight`, `exercise-warning` (Q4 and Q7 close nothing) | RD-01–RD-05 |
 
-**Q5 and the carb ceiling (D30, as changed by the orchestrator).** HEALTH_SAFETY's Q5 says "trend shown without targets", and Q1 and Q2 switch keto off explicitly. Readiness answer 5 switches the keto carb ceiling off entirely (`ketoCeilingAvailable` is false, so no ceiling below 50 g either; meals are still planned), and, through `kickstartAvailable`, the 20 g Kickstart ceiling with it. RD-04 at item 13 asserts both.
+**Q5 and the carb ceiling (D30, as changed by the orchestrator).** HEALTH_SAFETY's Q5 says "trend shown without targets", and Q1 and Q2 switch keto off explicitly. Readiness answer 5 switches the keto carb ceiling off entirely (`ketoCeilingAvailable` is false, so no ceiling below 50 g either; meals are still planned), and, through `kickstartAvailable`, the 20 g Kickstart ceiling with it. RD-04 at item 13 asserts both. A current weight below BMI 18.5 for the height (`lowWeight`, HS-35) closes the same gates as answer 5.
 
 At item 12, `readinessInputFromRows` and `missingReadinessAnswers` are built and unit-tested. Backup import and migrations rely on "missing = gated" only through these functions, and they write nothing.
 

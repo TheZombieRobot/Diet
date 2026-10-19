@@ -154,3 +154,21 @@ export function ChevronIcon({ size = 20 }: IconProps): ReactElement {
     </Svg>
   );
 }
+
+export function MinusIcon({ size = 22 }: IconProps): ReactElement {
+  return (
+    <Svg size={size} strokeWidth={2.4}>
+      <path d="M5 12h14" />
+    </Svg>
+  );
+}
+
+/** The shield with a tick on the first-run safety note (mock-up Notice). */
+export function ShieldIcon({ size = 32 }: IconProps): ReactElement {
+  return (
+    <Svg size={size} strokeWidth={2}>
+      <path d="M12 21s-7-4.4-7-10.2V5.2L12 2.5l7 2.7v5.6C19 16.6 12 21 12 21z" />
+      <path d="M9 11.5l2.2 2.2L15.5 9.4" />
+    </Svg>
+  );
+}

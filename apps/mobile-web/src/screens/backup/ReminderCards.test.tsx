@@ -4,7 +4,7 @@ import { privacy } from '@diet/core/copy/health';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { appStorageStore } from '../../db/runtime';
-import { openTestDb, type TestDb } from '../../db/testKit';
+import { onboardForTests, openTestDb, type TestDb } from '../../db/testKit';
 import { storageStore } from '../../pwa/storage';
 import { routeHref } from '../../routes';
 import { formatLocalTime } from '../../format';
@@ -33,7 +33,7 @@ afterEach(() => {
 /** Onboarding finished `days` days before the test clock (1 March 2000). */
 async function onboardedDaysAgo(days: number): Promise<void> {
   const at = new Date(Date.parse(test.env.now()) - days * 86_400_000).toISOString();
-  await test.repos.settings.update({ onboardingCompletedAt: at });
+  await onboardForTests(test, { completedAt: at });
 }
 
 const reminder = () => screen.queryByTestId('backup-reminder');

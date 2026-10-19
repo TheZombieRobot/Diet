@@ -1,7 +1,16 @@
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { alcohol, general, helpNumbers } from '../../packages/core/src/copy/health';
+import {
+  alcohol,
+  general,
+  helpNumbers,
+  profile,
+  readiness,
+  schedule,
+} from '../../packages/core/src/copy/health';
+import { fillTemplate } from '../../packages/core/src/copy/template';
+import { KETO_CEILING_CLOSED_BY } from '../../packages/core/src/storage/readiness';
 
 // health.ts must say exactly what the docs say (checklist conventions and item 42): each string
 // is looked up in the document that defines it, so changing one without the other fails.
@@ -10,6 +19,7 @@ const doc = (name: string) => readFileSync(join(root, 'docs', name), 'utf8');
 const HEALTH_SAFETY = doc('HEALTH_SAFETY.md');
 const UX_SCREENS = doc('UX_SCREENS.md');
 const TEST_PLAN = doc('TEST_PLAN.md');
+const STORAGE_DESIGN = doc('STORAGE_DESIGN.md');
 
 /** From the heading that matches to the next heading of the same or a higher level. */
 function section(markdown: string, heading: RegExp): string {
@@ -30,6 +40,7 @@ function quoteAfter(text: string, label: string): string | undefined {
 
 const firstRun = section(HEALTH_SAFETY, /^## 1\. /);
 const alcoholSection = section(HEALTH_SAFETY, /^## 5\. /);
+const fastingSection = section(HEALTH_SAFETY, /^## 3\. /);
 
 describe('health copy matches the docs word for word', () => {
   it('general.welcome is the UX_SCREENS.md Screen 1a quote', () => {
@@ -90,5 +101,44 @@ describe('health copy matches the docs word for word', () => {
       expect(line, service.name).toMatch(/\btext\b/);
       expect(line, service.name).toContain(service.text);
     }
+  });
+});
+
+describe('first-run copy matches the docs word for word (item 13)', () => {
+  it('the seven readiness questions are HEALTH_SAFETY.md section 1, in order', () => {
+    const listed = [...firstRun.matchAll(/^\d\. (.+?) →/gm)].map((m) => m[1]);
+    expect(listed).toEqual(Object.values(readiness.questions));
+  });
+
+  it('general.welcome is the bold not-a-medical-device sentence, shown on the first-run screen', () => {
+    expect(general.welcome).toBe(general.about);
+  });
+
+  it('the Kickstart label, the Kickstart line with 140 g and the reflux label are the UX 1d and 1e quotes', () => {
+    const profileScreen = UX_SCREENS.slice(UX_SCREENS.indexOf('**Screen 1d: Profile.**'));
+    expect(quoteAfter(profileScreen, 'Kickstart choice (')).toBe(profile.kickstartLabel);
+    const scheduleScreen = UX_SCREENS.slice(UX_SCREENS.indexOf('**Screen 1e: Eating schedule.**'));
+    expect(quoteAfter(scheduleScreen, 'with a line:')).toBe(
+      fillTemplate(schedule.kickstartLine, { proteinG: 140 }),
+    );
+    expect(quoteAfter(scheduleScreen, 'Reflux option:')).toBe(schedule.refluxLabel);
+  });
+
+  it('the 22:2 and 23:1 names are the HEALTH_SAFETY.md section 3 preset names', () => {
+    for (const [id, name] of Object.entries(schedule.presetNames)) {
+      const quoted =
+        quoteAfter(fastingSection, `${id} (`) ?? quoteAfter(fastingSection, `**${id} (`);
+      expect(quoted?.toLowerCase(), id).toBe(name.toLowerCase());
+    }
+  });
+
+  it('STORAGE_DESIGN.md 13.3 closes the keto ceiling and goal setting with the same answers as the code', () => {
+    const rowOf = (output: string) =>
+      STORAGE_DESIGN.split('\n').find((l) => l.startsWith(`| \`${output}\` |`)) ?? '';
+    // under18 is gated(q1) or a birth year that may be under 18 (13.3, first row).
+    const questions = (row: string) =>
+      [...row.matchAll(/gated\((q\d)\)|\bunder18\b/g)].map((m) => m[1] ?? 'q1');
+    expect(questions(rowOf('ketoCeilingAvailable'))).toEqual([...KETO_CEILING_CLOSED_BY]);
+    expect(questions(rowOf('goalSettingAvailable'))).toEqual(['q1', 'q2', 'q5']);
   });
 });

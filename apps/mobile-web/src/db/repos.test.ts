@@ -25,7 +25,14 @@ import {
   StorageRuleError,
 } from './errors';
 import { crudRepo, type CrudRepo, type RepoContext } from './repos';
-import { failingWrite, openTestDb, photoRow, type TestDb, testEnv } from './testKit';
+import {
+  failingWrite,
+  onboardForTests,
+  openTestDb,
+  photoRow,
+  type TestDb,
+  testEnv,
+} from './testKit';
 
 const contextOf = ({ db, env }: TestDb): RepoContext => ({ db, env, gate: db.gate, hooks: {} });
 
@@ -834,7 +841,7 @@ describe('storage edge cases', () => {
     const test = await openTestDb({ hooks: { onOnboardingCompleted } });
     await test.repos.settings.update({ theme: 'dark' });
     expect(onOnboardingCompleted).not.toHaveBeenCalled();
-    await test.repos.settings.update({ onboardingCompletedAt: test.env.now() });
+    await onboardForTests(test);
     expect(onOnboardingCompleted).toHaveBeenCalledOnce();
     test.env.advanceDays(1);
     await test.repos.settings.update({ onboardingCompletedAt: test.env.now() });

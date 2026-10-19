@@ -51,7 +51,7 @@ Conventions for the implementing model:
     *Acceptance:* table CRUD unit tests; BK-01 to BK-11; HS-15; HS-30; PWA-06.
 
 13. **First-run flow.** Welcome, mandatory alcohol safety notice, readiness questions with gate logic, profile, eating schedule with computed window display, garden with silverbeet pre-listed.
-    *Acceptance:* HS-20; RD-01 to RD-06; HS-03; FL-08 in the UI.
+    *Acceptance:* HS-20; RD-01 to RD-09; HS-03; HS-32 to HS-35; FL-08 in the UI; AL-09b (day one).
 
 14. **Weight log, phases and trend.** Entry, 7/14-day averages, long-term goal labelled, Kickstart/Steady phase engine (21 days plus confirmed extensions), front-loaded "typical range, not a promise" band, Kickstart and Steady notes, goal floors, rapid-loss card only in Steady.
     *Acceptance:* WT-01 to WT-10; HS-01, HS-11, HS-21, HS-26; NN-03.

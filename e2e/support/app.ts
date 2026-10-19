@@ -1,13 +1,18 @@
 import { expect, type BrowserContext, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { privacy } from '../../packages/core/src/copy/health';
+import { onboarding, privacy } from '../../packages/core/src/copy/health';
 import { parseColourTokens, requireToken } from '../../packages/ui/src/tokens';
 
 /** Every screen of the phone app, in the order a person reaches them. */
 export const TABS = ['Today', 'Food', 'Move', 'Drinks', 'List'] as const;
-export const SCREENS = [...TABS, 'Settings', 'About'] as const;
+/** The Settings screens for the setup answers (item 13), reached from Settings, "Your setup". */
+export const SETUP_SCREENS = ['Readiness answers', 'Profile', 'Eating schedule'] as const;
+export const SCREENS = [...TABS, 'Settings', 'About', ...SETUP_SCREENS] as const;
 export type ScreenName = (typeof SCREENS)[number];
+
+/** Screens reached from Settings, which mark the settings gear as their section. */
+export const UNDER_SETTINGS: readonly ScreenName[] = ['About', ...SETUP_SCREENS];
 
 /** The app's base path, the same as on GitHub Pages. */
 export const BASE_PATH = '/Diet/';
@@ -41,9 +46,93 @@ export async function goTo(page: Page, screen: ScreenName): Promise<void> {
     if (screen === 'About') {
       await expect(heading(page)).toHaveText('Settings');
       await page.getByRole('link', { name: /^About this app/ }).click();
+    } else if (screen !== 'Settings') {
+      await expect(heading(page)).toHaveText('Settings');
+      await page.getByRole('link', { name: new RegExp(`^${screen}`) }).click();
     }
   }
   await expect(heading(page)).toHaveText(screen);
+}
+
+/**
+ * A finished setup (item 13): the shell opens only after it, so specs about the shell start here.
+ * Opens the app (a fresh database shows Welcome), writes the five settings markers, seven "no"
+ * answers, a synthetic profile (175 cm, born 1970, female), an onboarding weight of 90 kg and a
+ * 22:2 schedule with raw IndexedDB, reloads, and waits for Today. Then opens `path` if given.
+ * `appUrl` is the app's address when it is not the configured base (update.spec.ts's own server).
+ */
+export async function seedOnboarded(page: Page, path = './', appUrl = './'): Promise<void> {
+  await page.goto(appUrl);
+  await expect(heading(page)).toHaveText(onboarding.welcome.title);
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve, reject) => {
+        const request = indexedDB.open('diet');
+        request.onerror = () => {
+          reject(new Error('open failed'));
+        };
+        request.onsuccess = () => {
+          const db = request.result;
+          const now = new Date().toISOString();
+          const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          const stores = ['settings', 'readiness', 'profile', 'weights', 'targets'];
+          const tx = db.transaction(stores, 'readwrite');
+          const merge = (store: string, patch: Record<string, unknown>) => {
+            const get = tx.objectStore(store).get('singleton');
+            get.onsuccess = () => {
+              tx.objectStore(store).put({ ...(get.result as object), ...patch });
+            };
+          };
+          merge('settings', {
+            alcoholNoticeAckAt: now,
+            profileConfirmedAt: now,
+            scheduleConfirmedAt: now,
+            gardenConfirmedAt: now,
+            onboardingCompletedAt: now,
+          });
+          for (const q of ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7']) {
+            tx.objectStore('readiness').put({
+              questionId: q,
+              answer: 'no',
+              wordingVersion: 1,
+              answeredAt: now,
+            });
+          }
+          merge('profile', {
+            heightCm: 175,
+            birthYear: 1970,
+            sex: 'female',
+            kickstartOptIn: false,
+            updatedAt: now,
+          });
+          tx.objectStore('weights').put({
+            id: crypto.randomUUID(),
+            at: now,
+            timeZone: zone,
+            kg: 90,
+            source: 'onboarding',
+            note: null,
+          });
+          merge('targets', {
+            fastingPreset: '22:2',
+            eatingWindow: { start: '17:00', end: '19:00' },
+            presetChosenBy: 'default',
+            updatedAt: now,
+          });
+          tx.oncomplete = () => {
+            db.close();
+            resolve();
+          };
+          tx.onerror = () => {
+            reject(new Error('write failed'));
+          };
+        };
+      }),
+  );
+  await page.reload();
+  await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
+  await expect(heading(page)).toHaveText('Today');
+  if (path !== appUrl) await page.goto(path);
 }
 
 /** Visits every screen in turn, calling `onScreen` on each. */

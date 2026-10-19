@@ -5,7 +5,7 @@ import {
   type Page,
   test,
 } from '@playwright/test';
-import { visitEveryScreen, waitForServiceWorkerControl } from './support/app';
+import { seedOnboarded, visitEveryScreen, waitForServiceWorkerControl } from './support/app';
 import { startAudit } from './support/network';
 
 // HS-14 / TR-11, as reworded by DOC_REVIEW C03: the phone app makes only GET requests to its own
@@ -24,7 +24,7 @@ test('online, every screen: requests go only to the app’s own files', async ({
   request,
 }) => {
   const audit = await startAudit(context, request, baseURL);
-  await page.goto('./');
+  await seedOnboarded(page);
   await waitForServiceWorkerControl(page);
   await visitEveryScreen(page);
   await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Today' }).click();
@@ -46,7 +46,7 @@ test('offline, every screen: no request reaches the network at all', async ({
   request,
 }) => {
   const audit = await startAudit(context, request, baseURL);
-  await page.goto('./');
+  await seedOnboarded(page);
   await waitForServiceWorkerControl(page);
   await context.setOffline(true);
   const failed: string[] = [];
@@ -74,7 +74,7 @@ async function caught(
   message: RegExp,
 ): Promise<void> {
   const audit = await startAudit(context, request, baseURL);
-  await page.goto('./');
+  await seedOnboarded(page);
   await waitForServiceWorkerControl(page);
   await page.evaluate(plant);
   await expect(audit.verify()).rejects.toThrow(message);

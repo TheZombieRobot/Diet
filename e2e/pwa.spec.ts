@@ -9,6 +9,7 @@ import {
   heading,
   pngSize,
   SCREENS,
+  seedOnboarded,
   visitEveryScreen,
   waitForServiceWorkerControl,
 } from './support/app';
@@ -76,7 +77,7 @@ test('Chrome finds nothing stopping installation (Page.getInstallabilityErrors)'
     await page.goto(control);
     expect(await installabilityErrors(context, page)).toContain('no-manifest');
 
-    await page.goto('./');
+    await seedOnboarded(page);
     await waitForServiceWorkerControl(page);
     expect(await installabilityErrors(context, page)).toEqual([]);
     const cdp = await context.newCDPSession(page);
@@ -92,7 +93,7 @@ test('the manifest has every field installation needs, and every icon it lists e
   page,
   request,
 }) => {
-  await page.goto('./');
+  await seedOnboarded(page);
   const href = await page.locator('link[rel="manifest"]').getAttribute('href');
   expect(href).toBe(`${BASE_PATH}manifest.webmanifest`);
   const manifestUrl = new URL(href ?? '', page.url());
@@ -132,7 +133,7 @@ test('the manifest has every field installation needs, and every icon it lists e
 });
 
 test('the service worker controls the app after a reload, scoped to /Diet/', async ({ page }) => {
-  await page.goto('./');
+  await seedOnboarded(page);
   const script = await waitForServiceWorkerControl(page);
   expect(new URL(script).pathname).toBe(`${BASE_PATH}sw.js`);
   const scope = await page.evaluate(
@@ -145,7 +146,7 @@ test('offline: the app reloads and every screen opens from the offline copy (PWA
   page,
   context,
 }) => {
-  await page.goto('./');
+  await seedOnboarded(page);
   await waitForServiceWorkerControl(page);
 
   await context.setOffline(true);
@@ -171,7 +172,7 @@ test('offline: the app reloads and every screen opens from the offline copy (PWA
   await goTo(second, 'About');
 
   expect(fromNetwork).toEqual([]);
-  expect(SCREENS).toHaveLength(7);
+  expect(SCREENS).toHaveLength(10);
 });
 
 test('until the offline copy is saved, About says so and the pill does not say "all saved"', async ({
@@ -185,7 +186,7 @@ test('until the offline copy is saved, About says so and the pill does not say "
   });
   try {
     const page = await context.newPage();
-    await page.goto('./#/about');
+    await seedOnboarded(page, './#/about');
     await expect(heading(page)).toHaveText('About');
     await expect(page.getByTestId('offline-copy')).toHaveText(
       'This browser could not save an offline copy',
@@ -198,7 +199,7 @@ test('until the offline copy is saved, About says so and the pill does not say "
 });
 
 test('About says when the offline copy is ready', async ({ page }) => {
-  await page.goto('./#/about');
+  await seedOnboarded(page, './#/about');
   await waitForServiceWorkerControl(page);
   await expect(page.getByTestId('offline-copy')).toHaveText('Ready to use offline');
 });

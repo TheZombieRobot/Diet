@@ -7,9 +7,11 @@ import {
   offerInstall,
   openBackupPanels,
   renderedText,
-  SCREENS,
-  visitEveryScreen,
   type ScreenName,
+  SCREENS,
+  seedOnboarded,
+  SETUP_SCREENS,
+  visitEveryScreen,
 } from './support/app';
 
 // The rendered-text scan promised in tools/scans/rules.ts: the static scans read the source, this
@@ -44,7 +46,7 @@ async function visitWithEverythingOpen(
 }
 
 test('no screen shows banned health, price, stock or cart wording', async ({ page }) => {
-  await page.goto('./');
+  await seedOnboarded(page);
   await expect(heading(page)).toHaveText('Today');
   const found: string[] = [];
 
@@ -65,11 +67,12 @@ test('no screen but About shows a number or a price, even with every banner and 
   page,
 }) => {
   // Placeholder screens must not look like they hold records (no sample data). About is left out:
-  // its numbers are the help lines and the version.
-  await page.goto('./');
+  // its numbers are the help lines and the version; so are the setup screens, which show the
+  // owner's own entries, the question about being under 18 and the pattern names such as 16:8.
+  await seedOnboarded(page);
   const found: string[] = [];
   const check = async (where: string, screen: ScreenName) => {
-    if (screen === 'About') return;
+    if (screen === 'About' || (SETUP_SCREENS as readonly string[]).includes(screen)) return;
     const text = await renderedText(page);
     if (/\d/.test(text))
       found.push(`${where}: a digit in ${JSON.stringify(text.match(/.*\d.*/)?.[0])}`);
@@ -81,7 +84,7 @@ test('no screen but About shows a number or a price, even with every banner and 
 });
 
 test('the rendered-text scan catches wording that slips into a screen', async ({ page }) => {
-  await page.goto('./#/drinks');
+  await seedOnboarded(page, './#/drinks');
   await expect(heading(page)).toHaveText('Drinks');
   await page.evaluate(() => {
     const seeded = document.createElement('p');

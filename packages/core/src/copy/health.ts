@@ -15,6 +15,7 @@
  * Sections are scanned with their own extra rules in `health.test.ts`: for example, alcohol copy
  * may never mention streaks, targets or limits. Sections are added as each screen is built.
  */
+import { FLOOR_KJ, KICKSTART_MAX_DEFICIT_PCT, KICKSTART_NET_CARBS_G } from '../storage/limits';
 
 /**
  * New Zealand help numbers (HEALTH_SAFETY.md, top; HS-13), with the wording of their rows on the
@@ -40,25 +41,52 @@ export const helpNumbers = {
   },
 } as const;
 
+/**
+ * The not-a-medical-device sentence (HEALTH_SAFETY.md, top: "That sentence ... appears on the
+ * first-run screen and on the About screen"; UX 1a quotes it; C101). Defined once for both places.
+ */
+const NOT_A_MEDICAL_DEVICE =
+  'The app is a personal logbook and planner. It is not a medical device, does not diagnose, and does not replace your GP, a dietitian, or an addiction service.';
+
 /** Statements shown on first run and on the About screen (HEALTH_SAFETY.md, top; UX 1a). */
 export const general = {
-  welcome:
-    'This is a private logbook and planner. It is not a medical device and does not replace your GP.',
-  about:
-    'The app is a personal logbook and planner. It is not a medical device, does not diagnose, and does not replace your GP, a dietitian, or an addiction service.',
+  welcome: NOT_A_MEDICAL_DEVICE,
+  about: NOT_A_MEDICAL_DEVICE,
   readinessOutcome: 'Nothing you have told the app rules this out; your GP knows more.',
   /** The Privacy card on About (DOC_REVIEW C34; item 5 review). */
   privacy:
     'Your records stay on this phone, and the app sends nothing anywhere. Later, when you tap Send to laptop, it will send the grocery list only, encrypted. There is no account and no analytics.',
 } as const;
 
-/** Alcohol wording (HEALTH_SAFETY.md section 5; UX 1b, 5c). */
+/** Alcohol wording (HEALTH_SAFETY.md sections 1 and 5; UX 1b, 5c; C58). */
 export const alcohol = {
   firstRunNotice:
     'If you drink most days or heavily at weekends, cutting down suddenly can be dangerous. Talk to your GP or the Alcohol Drug Helpline (0800 787 797, text 8681) before making a big change. Call 111 for seizures, confusion or hallucinations.',
+  /** The "talk to someone" card (HEALTH_SAFETY.md section 5, with the C58 opening). */
   helpCard:
-    "If you've been drinking most days for a while and are thinking about changing that, the safest first step is a conversation, not a sudden stop. Alcohol Drug Helpline 0800 787 797 (call or text 8681), free and 24/7, or your GP. If someone is very unwell, shaking badly, confused or having a seizure, call 111.",
+    "If you've been drinking most days or heavily at weekends for a while and are thinking about changing that, the safest first step is a conversation, not a sudden stop. Alcohol Drug Helpline 0800 787 797 (call or text 8681), free and 24/7, or your GP. If someone is very unwell, shaking badly, confused or having a seizure, call 111.",
+  helpCardLabel: 'Talk to someone',
+  helpCardNotNow: 'Not now',
+  /** The card returns 720 hours after "Not now" while readiness answer 7 still gates (storage spec 4.12). */
+  helpCardReturns: 'This card shows again after 30 days.',
   noRiskFreeLevel: 'No alcohol use is risk-free.',
+  /**
+   * The first-run notice screen (UX 1b; mock-up Notice.dc.html). It cannot be put off: no string
+   * here offers to skip it or come back later (health.test.ts).
+   */
+  notice: {
+    title: 'A safety note we show everyone',
+    why: 'Why am I seeing this?',
+    whyText: [
+      'Everyone sees this note before using the app, whatever they drink and however they answer the questions that follow.',
+      `After drinking most days or heavily at weekends, a sudden big change can bring on withdrawal, which can be dangerous. Talk to someone before a big change. If you have already cut down or stopped and feel unwell, get help now: call ${helpNumbers.emergency.number} for seizures, confusion or hallucinations, or call the Alcohol Drug Helpline on ${helpNumbers.alcoholDrugHelpline.number}.`,
+      'The app records what you drink and shows the New Zealand guidance. It never makes a plan to change your drinking. That is a conversation for you and your GP or the helpline.',
+    ],
+    acknowledge: 'I understand',
+    helplineDetail: `${helpNumbers.alcoholDrugHelpline.number} · free, 24/7, confidential`,
+    emergencyTitle: `Emergency: call ${helpNumbers.emergency.number}`,
+    emergencyDetail: 'Seizures, confusion or hallucinations',
+  },
 } as const;
 
 /**
@@ -663,5 +691,364 @@ export const privacy = {
   },
 } as const;
 
+// ---- First-run flow, readiness, profile, eating schedule and garden (checklist item 13) ----
+
+/** A whole number with a thousands comma, such as 5,000 (no Intl, so it never follows the device locale). */
+const withThousands = (n: number): string => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+/** The setup frame and its steps (UX section 1; C41, C53; item 13 design section 5.3). */
+export const onboarding = {
+  frame: {
+    stepOf: 'Step {step} of {count}',
+    back: 'Back',
+    continue: 'Continue',
+    helpLink: 'Help numbers and About',
+    backToSetup: 'Back to setup',
+    opening: 'Opening your records…',
+    openingSlow:
+      'Opening your records is taking longer than usual. If nothing changes, reload the app.',
+    openingFailed:
+      'The app could not read your records. Reload to try again. Nothing has been changed.',
+    restoreLink: 'Restore from a backup instead',
+    restoreTitle: 'Restore from a backup',
+    restoreIntro:
+      'If you used this app before and kept a backup file, you can put those records back now. The file replaces everything entered during setup, including your answers to the questions. The app then opens on the answers from the file, so you can check they still apply.',
+    saveFailed: 'That could not be saved. Try again.',
+    fixBelow: 'Some details need a look before you continue.',
+  },
+  welcome: {
+    title: 'Welcome',
+    next: 'First comes a safety note we show everyone. Then a few questions, so the app can switch off parts that may not fit your situation, and some details about you, your eating times and your garden. You can change your answers later in Settings.',
+    helpTitle: 'Help numbers',
+  },
+  finish: {
+    title: 'Setup is finished',
+    body: 'Your answers are saved on this phone. You can change them any time in Settings.',
+    start: 'Go to Today',
+  },
+  settingsCardLabel: 'Your setup',
+} as const;
+
+/**
+ * The readiness questions and what each answer switches off (HEALTH_SAFETY.md section 1; C06,
+ * C24, C41, C58, C102; D29). The answers only ever switch features off; nothing here says a
+ * feature suits the person or that they are cleared for it.
+ */
+export const readiness = {
+  title: 'A few questions first',
+  intro:
+    'Your answers decide which parts of the app are switched on. They stay on this phone. If you are not sure, answer Yes: the app then takes the more careful option.',
+  questionOf: 'Question {n} of {count}',
+  yes: 'Yes',
+  no: 'No',
+  /** HEALTH_SAFETY.md section 1, word for word (docFidelity.test.ts). */
+  questions: {
+    q1: 'Are you under 18?',
+    q2: 'Are you pregnant or breastfeeding?',
+    q3: 'Do you take insulin, a sulfonylurea or any medication for diabetes?',
+    q4: 'Do you take medication that must be taken with food, or blood-pressure or cholesterol medication?',
+    q5: 'Have you ever been treated for an eating disorder, or is your weight currently low?',
+    q6: 'Has a doctor ever told you not to exercise, or do you get chest pain, dizziness or faint during activity?',
+    q7: 'Do you drink alcohol most days, or heavily at weekends?',
+  },
+  /** What a yes (or no answer) switches off or on. */
+  ifYes: {
+    q1: 'Fasting, keto carb targets, Kickstart, any energy deficit, weight goals, the energy estimate and alcohol logging are switched off. The app works as a food and exercise planner only.',
+    q2: 'Fasting, the keto carb ceiling, Kickstart, any energy deficit and weight goals are switched off. Meals are still planned. Please talk to your midwife or GP about what to eat.',
+    q3: 'Low-carb eating and fasting can change how diabetes medicines act, and can cause low blood sugar (hypoglycaemia). Check with your prescriber first. Fasting, Kickstart and carb ceilings under 50 g stay off until you confirm your prescriber has agreed. Meals are still planned low-carb, with a carb ceiling of at least 50 g and a smaller energy deficit, so talk to your prescriber before you start using the meal plans.',
+    q4: 'Fasting is allowed. Check the timing of your medicines with your pharmacist or GP before you change when you eat. If you take blood-pressure medication, check with your pharmacist or GP before adding salt or using salt substitutes.',
+    q5: 'Fasting, weight goals, Kickstart, any energy deficit and the keto carb ceiling are switched off. Your weight trend is still shown, without targets.',
+    q6: 'Exercise plans stay hidden until you confirm you have discussed exercise with a GP.',
+    q7: 'A card with help contacts is shown on Today from the first day. You can put it away for 30 days at a time.',
+  },
+  confirmations: {
+    prescriberAgreed:
+      'My prescriber has agreed to fasting, a bigger energy deficit (Kickstart) and carbs under 50 g with my diabetes medication',
+    gpExerciseDiscussed: 'I have discussed exercise with a GP',
+  },
+  confirmationHints: {
+    prescriberAgreed:
+      'Fasting, Kickstart and carb ceilings under 50 g become available when you confirm your prescriber has agreed to fasting, a bigger energy deficit and carbs under 50 g with your diabetes medication.',
+    gpExerciseDiscussed:
+      'Exercise plans become available when you confirm you have discussed exercise with a GP.',
+  },
+  confirmationLapses: 'If you change this answer, the app asks for this confirmation again.',
+  confirmed: {
+    prescriberAgreed:
+      'You have confirmed your prescriber agreed, so fasting, Kickstart and carb ceilings under 50 g can be chosen. If your medication or dose changes, tap "My medication or dose has changed" until you have checked again.',
+    gpExerciseDiscussed:
+      'You have confirmed you discussed exercise with a GP, so exercise plans can be shown. If your symptoms change, tap "My symptoms have changed".',
+  },
+  changed: {
+    q3: 'My medication or dose has changed',
+    q6: 'My symptoms have changed',
+  },
+  changedDone: {
+    q3: 'Saved. Fasting, Kickstart and carb ceilings under 50 g are off until you confirm your prescriber has agreed again.',
+    q6: 'Saved. Exercise plans are off until you confirm you have discussed exercise with a GP again.',
+  },
+  summaryTitle: 'What your answers change',
+  summaryNone: 'Your answers did not switch anything off.',
+  summarySome: 'Your GP knows more about your health than this app does.',
+  changeLater: 'You can change these answers any time in Settings, under Readiness answers.',
+  unanswered: 'Not answered yet. Until you answer, the app treats this as Yes.',
+  /** A feature hidden with its reason (RD-01 to RD-05). */
+  featureOff: '{feature} is off because of what you told the app about {reasons}.',
+  /** In GATED_FEATURES order (readiness/gates.ts). */
+  featureNames: {
+    fasting: 'Fasting',
+    kickstart: 'Kickstart',
+    deficit: 'The energy deficit',
+    ketoCeiling: 'The keto carb ceiling',
+    carbCeilingBelow50: 'A carb ceiling under 50 g',
+    projectionBand: 'The four-week range',
+    goalSetting: 'Weight goal setting',
+    energyEstimate: 'The energy estimate',
+    alcoholLogging: 'Alcohol logging',
+    exercisePlans: 'Exercise plans',
+  },
+  /** In READINESS_REASON_IDS order (storage/readiness.ts). */
+  reasonPhrases: {
+    'under-18': 'being under 18',
+    'under-18-birth-year': 'your birth year',
+    'pregnant-or-breastfeeding': 'pregnancy or breastfeeding',
+    'diabetes-medication': 'diabetes medication',
+    'eating-disorder-or-low-weight': 'an eating disorder or low weight',
+    'low-current-weight': 'your current weight',
+    'exercise-warning': 'exercise warning signs',
+  },
+  listComma: ', ',
+  listAnd: ' and ',
+  changeAnswersLink: 'Change your answers',
+  /** The birth year and answer 1 disagree (C24 point 3); {year} is when the under-18 settings lift. */
+  ageCheck: {
+    birthYearUnder18:
+      'This birth year means you may be under 18. Until 1 January {year}, the app keeps to its under-18 settings: no fasting, no keto carb targets, no Kickstart, no weight goals, no energy estimate and no alcohol logging.',
+    answeredUnder18:
+      'You answered that you are under 18, but this birth year says you are at least 18. The app keeps to its under-18 settings until you change that answer.',
+    changeAnswer: 'Change my answer',
+    summaryLine:
+      'Your birth year means you may be under 18, so the app keeps to its under-18 settings until 1 January {year}.',
+  },
+  /** A current weight below BMI 18.5 for the height counts as a yes to question 5 (HS-35). The BMI figure is never shown. */
+  weightCheck: {
+    lowWeight:
+      'The weight you entered is low for your height. The app keeps to the same settings as a Yes to question 5: no fasting, no Kickstart, no energy deficit, no keto carb ceiling and no weight goals. If the weight or height is a typing slip, correct it above.',
+    changeAnswer: 'Change answer 5',
+    summaryLine:
+      'Your latest weight is low for your height, so the app keeps to the same settings as a Yes to question 5.',
+  },
+  settingsRow: { title: 'Readiness answers', detail: 'What the app switches on and off' },
+  settingsAnswersLabel: 'Your answers',
+  settingsIntro:
+    'These answers decide which parts of the app are switched on. A change applies at once, and nothing you have recorded is deleted.',
+  /** Held here for item 14's stop-sign card and item 22's electrolyte reminder (C102). */
+  bloodPressure: {
+    stopSign: `Eat and drink fluids. If you take blood-pressure medication, check with your pharmacist or GP before adding salt. Talk to Healthline (${helpNumbers.healthline.number}) or your GP if it continues.`,
+    electrolyte:
+      'If you take blood-pressure medication, check with your pharmacist or GP before adding salt or using salt substitutes.',
+  },
+} as const;
+
+/** The profile step and the Settings profile screen (UX 1d; C04, C24, C25, C42, C43). */
+export const profile = {
+  title: 'About you',
+  intro:
+    'These details set your energy estimate, the guidance figures and shopping amounts. They stay on this phone.',
+  cards: {
+    body: 'You',
+    goal: 'Goal',
+    activity: 'Activity and equipment',
+    household: 'Household and food',
+  },
+  heightLabel: 'Height (cm)',
+  weightLabel: 'Current weight (kg)',
+  weightOptionalHint: 'Optional. You can add weigh-ins later, or not at all.',
+  birthYearLabel: 'Year you were born',
+  birthYearHint: 'Only the year is kept.',
+  sexLegend: 'Sex',
+  sexHint: 'Used only for the energy estimate and the NZ guidance figures.',
+  sexOptions: { female: 'Female', male: 'Male' },
+  goalLabel: 'Long-term goal weight (kg)',
+  goalHint:
+    'Optional. This goal is long-term: the app never sets a date for it, and the four-week chart is not a promise.',
+  /** UX 1d, word for word (docFidelity.test.ts). */
+  kickstartLabel: 'Strong start for 3 weeks: bigger deficit, protein protected, daily electrolytes',
+  /** HEALTH_SAFETY.md sections 2 and 4, with the figures taken from the core constants. */
+  kickstartHint: `Kickstart plans up to ${KICKSTART_MAX_DEFICIT_PCT}% below your estimated energy needs for three weeks, with net carbs at ${KICKSTART_NET_CARBS_G} g, protein at the top of its range and a daily electrolyte reminder. The app never plans a day below ${withThousands(FLOOR_KJ)} kJ. Most of the fast drop expected in these weeks is water and glycogen, with some fat.`,
+  activityLegend: 'Activity',
+  activityHint: 'A physically demanding job with lots of steps counts as active.',
+  activity: {
+    sedentary: 'Mostly sitting',
+    moderate: 'Moderately active',
+    'active-job': 'Physically active job',
+    'very-active': 'Very active job and training',
+  },
+  bandsLabel: 'I have resistance bands',
+  dumbbellsLabel: 'I have dumbbells',
+  householdLabel: 'People eating dinner at home',
+  householdHint: 'Used for shared dinners and grocery amounts. Your own portion stays the same.',
+  householdFewer: 'One fewer person',
+  householdMore: 'One more person',
+  allergensLegend: 'Allergens to avoid',
+  allergensHint:
+    'Recipes and swaps with these are flagged. A food whose allergens are not known is never shown as free of them.',
+  /** In USER_ALLERGENS order (storage/allergens.ts). */
+  allergenNames: {
+    peanut: 'Peanuts',
+    'tree-nut': 'Tree nuts',
+    milk: 'Milk',
+    egg: 'Egg',
+    fish: 'Fish',
+    crustacea: 'Crustacea (prawns, crab, crayfish)',
+    mollusc: 'Molluscs (mussels, oysters, squid)',
+    sesame: 'Sesame',
+    soy: 'Soy',
+    lupin: 'Lupin',
+    wheat: 'Wheat',
+    barley: 'Barley',
+    oats: 'Oats',
+    rye: 'Rye',
+    sulphites: 'Sulphites',
+    gluten: 'Gluten (wheat, barley, oats and rye)',
+  },
+  dislikesLabel: 'Foods you do not want suggested',
+  dislikesHint: 'Add one food at a time, such as liver.',
+  dislikesAdd: 'Add',
+  dislikeRemove: 'Remove {term}',
+  glutenFreeLabel: 'Gluten-free household',
+  glutenFreeHint: 'When this is on, gluten-free swaps are suggested for shared meals.',
+  save: 'Save',
+  saved: 'Saved.',
+  goalHiddenAfterHeight:
+    'Your long-term goal is below a BMI of 18.5 for this height, so it is hidden until you change it.',
+  settingsRow: {
+    title: 'Profile',
+    detail: 'Height, sex, birth year, activity, household and food',
+  },
+  errors: {
+    required: 'Enter this to continue.',
+    notANumber: 'Enter a plain number, such as 175 or 82.5.',
+    oneDecimal: 'Use at most one decimal place.',
+    heightRange: 'Enter a height from 120 to 230 cm.',
+    weightRange: 'Enter a weight from 20 to 400 kg.',
+    birthYearRange: 'Enter a year from 1900 to {year}.',
+    sexRequired: 'Choose one. It is used only for the energy estimate and the guidance figures.',
+    goalRange: 'Enter a goal from 20 to 400 kg.',
+    goalNeedsWeight: 'Enter your current weight to set a long-term goal.',
+    goalNeedsHeight: 'Enter your height to set a long-term goal.',
+    goalNotBelow:
+      'A long-term goal is a weight below your current weight. Leave it empty if you do not want one.',
+    goalBelowFloor:
+      'This goal is below a BMI of 18.5 for your height, so the app cannot use it. Choose a higher goal, or leave it empty.',
+    householdRange: 'Choose from 1 to 20 people.',
+    dislikeTooLong: 'Use at most 40 characters.',
+    dislikeDuplicate: 'That food is already on the list.',
+    dislikeTooMany: 'The list holds up to 50 foods.',
+  },
+} as const;
+
+/** The eating schedule (UX 1e; HEALTH_SAFETY.md section 3; C07, C55, C101; mock-up Schedule.dc.html). */
+export const schedule = {
+  title: 'Eating schedule',
+  kickstartTitle: 'Kickstart: 23:1 for the 3 weeks of Kickstart',
+  kickstartWhen:
+    'The 3 weeks count from the day you start Kickstart. On any other day, the app uses 22:2 (5 pm snack + dinner) instead.',
+  /** UX 1e, word for word with 140 filled (docFidelity.test.ts); {proteinG} follows the protein range (C65). */
+  kickstartLine:
+    "One meal has to carry about {proteinG} g protein. If a day's dinner can't, the app will offer the 5 pm snack. That's not a broken fast.",
+  presetsLegend: 'Choose a pattern',
+  /** HEALTH_SAFETY.md section 3 preset names. */
+  presetNames: { '22:2': '5 pm snack + dinner', '23:1': 'One meal' },
+  presetDetail: 'Eat {start} – {end}',
+  presetDetailNamed: '{name} · Eat {start} – {end}',
+  kickstartChip: 'Kickstart',
+  custom: 'Custom times',
+  none: 'No fasting plan for now',
+  noneDetail: 'Meals at ordinary times. You can choose a pattern later in Settings.',
+  chooseFirst: 'Choose a pattern to see its times.',
+  windowTitle: 'Your window',
+  startLabel: 'First bite',
+  endLabel: 'Last bite',
+  /** Screen 1e (FL-08): "Eating 5:00 pm to 7:00 pm = 2 hours. Fasting 22 hours." */
+  windowSummary: 'Eating {start} to {end} = {eating}. Fasting {fasting}.',
+  /** The Fast card (FL-08, FL-14): "2 h eating, 22 h fasting". */
+  windowShort: '{eating} eating, {fasting} fasting',
+  hourOne: '1 hour',
+  hours: '{n} hours',
+  minuteOne: '1 minute',
+  minutes: '{n} minutes',
+  hoursShort: '{n} h',
+  minutesShort: '{n} m',
+  dayBarLabels: ['12 am', '6 am', '12 pm', '6 pm', '12 am'],
+  neverInsist:
+    'The app never insists on a fast. On a day when food or energy runs short, it is fine to widen the window.',
+  /** UX 1e, word for word (docFidelity.test.ts). */
+  refluxLabel: 'I get reflux; prefer earlier or split dinner',
+  refluxHint:
+    'Very large late dinners can make reflux worse. The app will suggest an earlier dinner, or a snack plus a smaller dinner.',
+  pharmacistNote:
+    'If you take medicine that must be taken with food, or blood-pressure or cholesterol medication, check the timing with your pharmacist or GP before you choose when you eat.',
+  diabetesNote:
+    'You confirmed your prescriber agreed to fasting with your diabetes medication. If your medication or dose changes, go to Settings, Readiness answers and tap "My medication or dose has changed".',
+  noneSaved:
+    'No eating schedule is saved yet. Meals are planned at ordinary times until you choose one.',
+  settingsRow: { title: 'Eating schedule', detail: 'Your eating window' },
+  save: 'Save',
+  saved: 'Saved.',
+  errors: {
+    invalidTime: 'Enter a time such as 6:00 pm.',
+    sameTime: 'The first and last bite need different times.',
+    tooShort: 'The eating window must be at least 1 hour.',
+    choosePattern: 'Choose a pattern, or No fasting plan for now.',
+  },
+} as const;
+
+/** The garden step (UX 1f; C57). Fixed copy never claims a homegrown weight. */
+export const garden = {
+  title: 'Your garden',
+  intro: 'Crops you grow are used first in meal plans and taken off the shopping list.',
+  silverbeetListed: 'Silverbeet is listed already.',
+  empty: 'No crops listed yet.',
+  available: 'Available, amount not entered',
+  amount: '{amount} {unit}',
+  unitNames: { g: 'g', each: 'each', bunchOne: 'bunch', bunch: 'bunches' },
+  ready: 'Ready to harvest',
+  notReady: 'Not ready yet',
+  keepsForOne: 'Keeps about 1 day',
+  keepsFor: 'Keeps about {days} days',
+  remove: 'Remove {name}',
+  addTitle: 'Add a crop',
+  nameLabel: 'Crop',
+  nameHint: 'For example, spinach or lettuce.',
+  amountLabel: 'Amount (optional)',
+  amountHint: 'Leave it empty if you have not weighed or counted it.',
+  unitLegend: 'Unit',
+  unitOptions: { g: 'Grams', each: 'Each', bunch: 'Bunches' },
+  readyLabel: 'Ready to harvest',
+  keepsLabel: 'Keeps for (days, optional)',
+  add: 'Add to garden',
+  continue: 'Continue',
+  skip: 'Skip for now',
+  skipHint: 'You can add crops later.',
+  errors: {
+    nameRequired: 'Enter the crop name.',
+    nameLength: 'Use at most 60 characters.',
+    amount: 'Enter an amount above 0, such as 300.',
+    unitRequired: 'Choose a unit for the amount.',
+    keeps: 'Enter whole days from 0 to 365.',
+  },
+} as const;
+
 /** All sections, for scanning and review. */
-export const healthCopy = { helpNumbers, general, alcohol, privacy } as const;
+export const healthCopy = {
+  helpNumbers,
+  general,
+  alcohol,
+  privacy,
+  onboarding,
+  readiness,
+  profile,
+  schedule,
+  garden,
+} as const;

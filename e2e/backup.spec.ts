@@ -1,13 +1,19 @@
 import { readFileSync } from 'node:fs';
 import { test as base, expect, type Page } from '@playwright/test';
-import { privacy } from '../packages/core/src/copy/health';
+import { alcohol, onboarding, privacy } from '../packages/core/src/copy/health';
 import {
   lockedReferenceEnvelopeV1,
   plainReferenceEnvelopeV1,
   REFERENCE_PHRASE_V1,
   snapshotV1,
 } from '../packages/test-fixtures/src/index';
-import { goTo, heading, renderedText, waitForServiceWorkerControl } from './support/app';
+import {
+  goTo,
+  heading,
+  renderedText,
+  seedOnboarded,
+  waitForServiceWorkerControl,
+} from './support/app';
 import { type Audit, startAudit } from './support/network';
 
 // Backup in the real browser (storage spec sections 10 to 12; section 16 tests 43 to 45; BK-01,
@@ -86,15 +92,37 @@ async function chooseBackup(page: Page, name: string, text: string): Promise<voi
   await chooser.setFiles({ name, mimeType: 'application/json', buffer: Buffer.from(text) });
 }
 
-/** Replace, then wait for the app to load again on Today. */
-async function replaceAndReload(page: Page): Promise<void> {
-  const confirm = card(page).getByTestId('restore-confirm');
+/**
+ * Replace, then wait for the app to load again: on Today from Settings, or, from setup, on
+ * Settings, Readiness answers, so the restored answers are checked first (item 13, E64).
+ */
+async function replaceAndReload(page: Page, opensOn = 'Today'): Promise<void> {
+  const confirm = page.getByTestId('restore-confirm');
   await expect(confirm).toBeVisible();
   await Promise.all([
     page.waitForEvent('load'),
     confirm.getByRole('button', { name: privacy.importBackup.replace }).click(),
   ]);
-  await expect(heading(page)).toHaveText('Today');
+  await expect(heading(page)).toHaveText(opensOn);
+}
+
+/**
+ * A fresh phone, or one after delete-all, shows the first-run flow. Restore is reachable there
+ * only after the alcohol notice is acknowledged (DOC_REVIEW C53; HS-20), from "Restore from a
+ * backup instead".
+ */
+async function chooseBackupInSetup(page: Page, name: string, text: string): Promise<void> {
+  await expect(heading(page)).toHaveText(onboarding.welcome.title);
+  await expect(page.getByRole('button', { name: onboarding.frame.restoreLink })).toHaveCount(0);
+  await page.getByRole('button', { name: onboarding.frame.continue }).click();
+  await page.getByRole('button', { name: alcohol.notice.acknowledge }).click();
+  await page.getByRole('button', { name: onboarding.frame.restoreLink }).click();
+  await expect(heading(page)).toHaveText(onboarding.frame.restoreTitle);
+  const [chooser] = await Promise.all([
+    page.waitForEvent('filechooser'),
+    page.getByRole('button', { name: privacy.importBackup.chooseFile }).click(),
+  ]);
+  await chooser.setFiles({ name, mimeType: 'application/json', buffer: Buffer.from(text) });
 }
 
 /** Seeds every backed-up store from the synthetic fixture by restoring it. */
@@ -172,7 +200,8 @@ async function deleteAll(page: Page): Promise<void> {
     page.waitForEvent('load'),
     card(page).getByRole('button', { name: privacy.deleteAll.confirm }).click(),
   ]);
-  await expect(heading(page)).toHaveText('Today');
+  // A fresh start: the first-run flow (item 13).
+  await expect(heading(page)).toHaveText(onboarding.welcome.title);
 }
 
 /** Writes rows with raw IndexedDB, as a row the app itself would never write. */
@@ -201,7 +230,7 @@ function writeRaw(page: Page, store: string, rows: readonly unknown[]): Promise<
 test('BK-01 / HS-14: restore, export, delete all and restore again, with every record back and no request outside the app', async ({
   page,
 }) => {
-  await page.goto('./');
+  await seedOnboarded(page);
   await waitForServiceWorkerControl(page);
   await seedFromFixture(page);
 
@@ -211,19 +240,18 @@ test('BK-01 / HS-14: restore, export, delete all and restore again, with every r
   expect(before['grocery_lists']).toEqual(snapshotV1.grocery_lists);
 
   await deleteAll(page);
-  await openSettings(page);
   expect(await count(page, 'weights')).toBe(0);
   expect(await count(page, 'beverages')).toBe(1);
 
-  await chooseBackup(page, 'diet-backup-2000-03-01.json', exported);
-  await replaceAndReload(page);
+  await chooseBackupInSetup(page, 'diet-backup-2000-03-01.json', exported);
+  await replaceAndReload(page, 'Readiness answers');
   expect(await readDatabase(page)).toEqual(before);
 });
 
 test('BK-01, locked: the default locked export round-trips in Chromium, with the right header, no password left behind and no request outside the app', async ({
   page,
 }) => {
-  await page.goto('./');
+  await seedOnboarded(page);
   await waitForServiceWorkerControl(page);
   await seedFromFixture(page);
 
@@ -257,15 +285,13 @@ test('BK-01, locked: the default locked export round-trips in Chromium, with the
 
   await deleteAll(page);
   expect(await count(page, 'weights')).toBe(0);
-  await chooseBackup(page, name, text);
-  const field = card(page).getByLabel(privacy.importBackup.passwordLabel);
+  await chooseBackupInSetup(page, name, text);
+  const field = page.getByLabel(privacy.importBackup.passwordLabel);
   await expect(field).toHaveAttribute('autocomplete', 'current-password');
   await field.fill(phrase);
-  await card(page).getByRole('button', { name: privacy.importBackup.unlock }).click();
-  await expect(card(page).getByTestId('restore-confirm')).toContainText(
-    privacy.importBackup.fileLocked,
-  );
-  await replaceAndReload(page);
+  await page.getByRole('button', { name: privacy.importBackup.unlock }).click();
+  await expect(page.getByTestId('restore-confirm')).toContainText(privacy.importBackup.fileLocked);
+  await replaceAndReload(page, 'Readiness answers');
   expect(await readDatabase(page)).toEqual(before);
   expect(page.url()).not.toContain(phrase);
 
@@ -283,12 +309,16 @@ test('BK-02: a wrong password says so and imports nothing; the right one restore
   page,
 }) => {
   await page.goto('./');
-  await chooseBackup(page, 'diet-backup-2000-03-01-locked.json', lockedReferenceEnvelopeV1());
-  const field = card(page).getByLabel(privacy.importBackup.passwordLabel);
+  await chooseBackupInSetup(
+    page,
+    'diet-backup-2000-03-01-locked.json',
+    lockedReferenceEnvelopeV1(),
+  );
+  const field = page.getByLabel(privacy.importBackup.passwordLabel);
   await expect(field).toHaveAttribute('autocomplete', 'current-password');
   await field.fill('not the reference phrase');
-  await card(page).getByRole('button', { name: privacy.importBackup.unlock }).click();
-  await expect(card(page).getByRole('alert')).toHaveText(
+  await page.getByRole('button', { name: privacy.importBackup.unlock }).click();
+  await expect(page.getByRole('main').getByRole('alert')).toHaveText(
     privacy.backupErrors['wrong-password-or-damaged'],
   );
   // The error is linked to the cleared field, which has focus again.
@@ -298,8 +328,8 @@ test('BK-02: a wrong password says so and imports nothing; the right one restore
   expect(await count(page, 'weights')).toBe(0);
   const phrase = REFERENCE_PHRASE_V1;
   await field.fill(phrase);
-  await card(page).getByRole('button', { name: privacy.importBackup.unlock }).click();
-  await replaceAndReload(page);
+  await page.getByRole('button', { name: privacy.importBackup.unlock }).click();
+  await replaceAndReload(page, 'Readiness answers');
   expect(await count(page, 'weights')).toBe(snapshotV1.weights.length);
   expect(page.url()).not.toContain(phrase);
 });
@@ -308,7 +338,7 @@ test('offline: export, delete all and restore work with no network at all', asyn
   page,
   context,
 }) => {
-  await page.goto('./');
+  await seedOnboarded(page);
   await waitForServiceWorkerControl(page);
   await seedFromFixture(page);
 
@@ -326,8 +356,8 @@ test('offline: export, delete all and restore work with no network at all', asyn
   const before = await readDatabase(page);
   await deleteAll(page);
   expect(await count(page, 'weights')).toBe(0);
-  await chooseBackup(page, 'diet-backup-2000-03-01.json', exported);
-  await replaceAndReload(page);
+  await chooseBackupInSetup(page, 'diet-backup-2000-03-01.json', exported);
+  await replaceAndReload(page, 'Readiness answers');
   expect(await readDatabase(page)).toEqual(before);
 
   expect(fromNetwork).toEqual([]);
@@ -337,7 +367,7 @@ test('offline: export, delete all and restore work with no network at all', asyn
 test('HS-14: an unchecked rescue copy after a failed self-check makes no request either', async ({
   page,
 }) => {
-  await page.goto('./');
+  await seedOnboarded(page);
   await openSettings(page);
   await writeRaw(page, 'weights', [{ ...snapshotV1.weights[0], kg: 5 }]);
 
@@ -362,7 +392,7 @@ test('HS-14: an unchecked rescue copy after a failed self-check makes no request
 test('HS-14, locked: "Save an unchecked copy" with the lock left on gives a locked rescue copy with no record in clear text, which opens with its password', async ({
   page,
 }) => {
-  await page.goto('./');
+  await seedOnboarded(page);
   await openSettings(page);
   const broken = snapshotV1.weights[0];
   await writeRaw(page, 'weights', [{ ...broken, kg: 5 }]);
@@ -412,7 +442,7 @@ test('two tabs: an unanswered "Can you see the file?" is dropped when another ta
   context,
 }) => {
   const a = await context.newPage();
-  await a.goto('./');
+  await seedOnboarded(a);
   await waitForServiceWorkerControl(a);
   await seedFromFixture(a);
   await openSettings(a);
@@ -434,7 +464,10 @@ test('two tabs: an unanswered "Can you see the file?" is dropped when another ta
     privacy.storageFailure['reload-needed'],
   );
   expect(await a.evaluate(() => sessionStorage.getItem('diet-pending-backup-check'))).toBeNull();
+  // After delete-all the phone starts setup again (item 13); a finished setup reaches Settings.
   await a.reload();
+  await expect(heading(a)).toHaveText(onboarding.welcome.title);
+  await seedOnboarded(a);
   await openSettings(a);
   await expect(card(a).getByTestId('export-ask')).toHaveCount(0);
   await expect(card(a).getByTestId('last-backup')).toHaveText(privacy.backupCard.noBackup);
@@ -456,7 +489,7 @@ test('two tabs: an unanswered "Can you see the file?" is dropped when another ta
 test('a newer database: the open tab says its records were closed, and after a reload the newer-version screen shows, with no request outside the app', async ({
   page,
 }) => {
-  await page.goto('./');
+  await seedOnboarded(page);
   await openSettings(page);
   // A newer version of the app upgraded the database (another tab, after an update).
   await page.evaluate(
@@ -487,7 +520,7 @@ test('a newer database: the open tab says its records were closed, and after a r
 test('HS-30: delete all empties every database, cache and storage of the origin except the offline copy, in real Chromium', async ({
   page,
 }) => {
-  await page.goto('./');
+  await seedOnboarded(page);
   await waitForServiceWorkerControl(page);
   await seedFromFixture(page);
   await page.evaluate(async () => {
@@ -523,7 +556,6 @@ test('HS-30: delete all empties every database, cache and storage of the origin 
   expect(before.caches).toContain('example-runtime-cache');
 
   await deleteAll(page);
-  await openSettings(page);
   const after = await probe();
   expect(after.databases).toEqual(['diet']);
   expect(after.caches.length).toBeGreaterThan(0);
@@ -543,7 +575,7 @@ test('HS-30, two tabs: delete all in one tab closes the records in the other, wh
   context,
 }) => {
   const a = await context.newPage();
-  await a.goto('./');
+  await seedOnboarded(a);
   await waitForServiceWorkerControl(a);
   await seedFromFixture(a);
   const b = await context.newPage();
@@ -556,14 +588,14 @@ test('HS-30, two tabs: delete all in one tab closes the records in the other, wh
   );
   expect(await count(a, 'weights')).toBe(0);
   await b.reload();
-  await expect(heading(b)).toHaveText('Today');
+  await expect(heading(b)).toHaveText(onboarding.welcome.title);
 });
 
 test('two tabs: a restore waits for a busy second tab to stop writing, so nothing is written on top of the restored records (section 7.5)', async ({
   context,
 }) => {
   const a = await context.newPage();
-  await a.goto('./');
+  await seedOnboarded(a);
   await waitForServiceWorkerControl(a);
   await openSettings(a);
 
@@ -648,7 +680,7 @@ test('two tabs: a restore waits for a busy second tab to stop writing, so nothin
 test('"Export what is on this phone first", "Export a backup first" and "Back up now" bring the export panel into view with focus on the lock switch', async ({
   page,
 }) => {
-  await page.goto('./');
+  await seedOnboarded(page);
   await seedFromFixture(page);
   const lock = card(page).getByRole('switch', { name: privacy.exportBackup.lockLabel });
 
@@ -681,7 +713,7 @@ test('"Export what is on this phone first", "Export a backup first" and "Back up
 });
 
 test('PWA-06: Settings shows the result of navigator.storage.persisted()', async ({ page }) => {
-  await page.goto('./');
+  await seedOnboarded(page);
   await openSettings(page);
   const status = card(page).getByTestId('backup-storage-status');
   await expect(status).not.toHaveText(privacy.storageStatus.checking);

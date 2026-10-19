@@ -9,8 +9,12 @@ import {
   type GardenPhotoRecord,
   type Instant,
   type Migration,
+  READINESS_QUESTION_IDS,
+  type ReadinessConfirmationId,
+  type ReadinessQuestionId,
   type Snapshot,
   type TransferPairingRecord,
+  type YesNo,
 } from '@diet/core';
 import { fixtureId } from '@diet/test-fixtures';
 import Dexie, { type DBCore, type Middleware } from 'dexie';
@@ -20,7 +24,7 @@ import { type DbDeps, type DietDb, openDietDb, type OpenStatus } from './db';
 import type { StorageEnv } from './env';
 import { createWriteGate, type GateReason } from './gate';
 import type { LockManagerLike } from './locks';
-import { createRepos, type Repos, type RepoHooks } from './repos';
+import { createRepos, type Repos, type RepoHooks, type UpdatePatch } from './repos';
 import { type AppStorage, type Platform } from './runtime';
 import { readBackupSnapshot } from './snapshot';
 
@@ -266,6 +270,54 @@ export async function openTestDb(options: OpenTestOptions = {}): Promise<TestDb>
     status,
     storage: { db, repos, env, gate: db.gate, deps, platform },
   };
+}
+
+export interface OnboardOptions {
+  /** Answers other than the default "no" (q1 to q7). */
+  readonly answers?: Partial<Record<ReadinessQuestionId, YesNo>>;
+  /** Confirmations to record after the answers. */
+  readonly confirmations?: readonly ReadinessConfirmationId[];
+  /** When setup was finished (default: now). */
+  readonly completedAt?: Instant;
+  /** Profile fields over the default synthetic profile (175 cm, born 1970, female). */
+  readonly profile?: UpdatePatch<'profile'>;
+  /** The onboarding weight (default 90 kg); null for none. */
+  readonly weightKg?: number | null;
+}
+
+/**
+ * A finished setup, written through the repositories in the order the first-run guard allows
+ * (item 13): the alcohol notice acknowledged, seven answers (all "no" unless given), a synthetic
+ * profile, an onboarding weight, a 22:2 schedule (17:00–19:00), the garden step and the completion
+ * time. The shell appears only after setup, so screen tests call this first.
+ */
+export async function onboardForTests(test: TestDb, options: OnboardOptions = {}): Promise<void> {
+  const { repos, env } = test;
+  await repos.settings.update({ alcoholNoticeAckAt: env.now() });
+  for (const q of READINESS_QUESTION_IDS)
+    await repos.readiness.answer(q, options.answers?.[q] ?? 'no');
+  for (const c of options.confirmations ?? []) await repos.readiness.answer(c, 'yes');
+  await repos.profile.update({
+    heightCm: 175,
+    birthYear: 1970,
+    sex: 'female',
+    kickstartOptIn: false,
+    ...options.profile,
+  });
+  const weightKg = options.weightKg === undefined ? 90 : options.weightKg;
+  if (weightKg !== null) await repos.weights.addOnboardingWeight({ kg: weightKg, note: null });
+  await repos.targets.update({
+    fastingPreset: '22:2',
+    eatingWindow: { start: '17:00', end: '19:00' },
+    presetChosenBy: 'default',
+  });
+  const now = env.now();
+  await repos.settings.update({
+    profileConfirmedAt: now,
+    scheduleConfirmedAt: now,
+    gardenConfirmedAt: now,
+    onboardingCompletedAt: options.completedAt ?? now,
+  });
 }
 
 /** S(db) of section 10.8. */

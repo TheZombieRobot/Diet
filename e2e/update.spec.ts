@@ -10,6 +10,7 @@ import {
   DIST_DIR,
   heading,
   returnToApp,
+  seedOnboarded,
   waitForServiceWorkerControl,
 } from './support/app';
 import { lowContrastText } from './support/contrast';
@@ -54,7 +55,7 @@ test('a new version shows "Update available"; Reload switches to it and keeps sa
   page,
 }) => {
   await page.setViewportSize({ width: 360, height: 780 });
-  await page.goto(`${server.origin}${BASE_PATH}#/about`);
+  await seedOnboarded(page, `${server.origin}${BASE_PATH}#/about`, `${server.origin}${BASE_PATH}`);
   await waitForServiceWorkerControl(page);
   await expect(heading(page)).toHaveText('About');
   const versionA = await page.getByTestId('app-version').textContent();
@@ -102,7 +103,7 @@ test('coming back to the app finds a new version by itself (an installed app res
 }) => {
   const start = server.requests.length;
   const swChecks = () => swChecksSince(start);
-  await page.goto(`${server.origin}${BASE_PATH}#/about`);
+  await seedOnboarded(page, `${server.origin}${BASE_PATH}#/about`, `${server.origin}${BASE_PATH}`);
   await waitForServiceWorkerControl(page);
 
   // Chrome looks for a new sw.js by itself about a second after each navigation: here, after the

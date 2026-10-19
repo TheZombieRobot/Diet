@@ -51,6 +51,7 @@ import {
   failingWrite,
   freshDeps,
   memoryStorage,
+  onboardForTests,
   openTestDb,
   pairingRow,
   PHOTO_BYTES,
@@ -702,7 +703,9 @@ describe('a phone clock that was wrong never blocks a backup or a restore (orche
     const test = await openTestDb();
     const corrected = test.env.now();
     test.env.advanceDays(30);
-    await test.repos.settings.update({ onboardingCompletedAt: test.env.now() });
+    // Setup finished with the clock ahead (item 13 refuses a completion without the notice and
+    // the seven answers): every setup time, answers included, is dated ahead.
+    await onboardForTests(test, { weightKg: null });
     await test.repos.recipes.create(structuredClone(snapshotV1.recipes[0]) as never);
     await test.repos.cardState.dismiss('rapid-loss', 'steady');
     test.env.set(corrected);
@@ -717,6 +720,7 @@ describe('a phone clock that was wrong never blocks a backup or a restore (orche
     ).payload.tables;
     expect(written['settings']?.[0]?.['onboardingCompletedAt']).toBe(limit);
     expect(written['card_state']?.every((c) => (c['dismissedAt'] as string) <= limit)).toBe(true);
+    expect(written['readiness']?.every((r) => (r['answeredAt'] as string) === limit)).toBe(true);
     const decoded = await decodeImport(asFile(outcome.file.text), null, test.env);
     expect(decoded.snapshot.settings[0]?.onboardingCompletedAt).toBe(limit);
     expect(decoded.snapshot.recipes.every((r) => r.updatedAt <= limit)).toBe(true);

@@ -1,6 +1,6 @@
 # Diet — personal fitness, fasting, keto-aware meals and grocery app
 
-**Status: checklist items 1–5 and 12 are built (conflicts report, repository scaffold, static safety scans, core health formulas, the installable phone app shell, and the local database with backup, restore and delete-all). The app works offline and passes its browser tests, but it is not online yet. One owner step remains: on GitHub, Settings → Environments → github-pages → Deployment branches and tags → add the deployment branch rule `ccr-*`. After that, a commit marked "[deploy]" publishes it at https://thezombierobot.github.io/Diet/ (see [Phone app](#phone-app)). See `docs/IMPLEMENTATION_CHECKLIST.md`.**
+**Status: checklist items 1–5, 12 and 13 are built (conflicts report, repository scaffold, static safety scans, core health formulas, the installable phone app shell, the local database with backup, restore and delete-all, and the first-run flow with the readiness questions). The app works offline and passes its browser tests, but it is not online yet. One owner step remains: on GitHub, Settings → Environments → github-pages → Deployment branches and tags → add the deployment branch rule `ccr-*`. After that, a commit marked "[deploy]" publishes it at https://thezombierobot.github.io/Diet/ (see [Phone app](#phone-app)). See `docs/IMPLEMENTATION_CHECKLIST.md`.**
 
 An Android-first, offline-first web app (PWA) for one person: meal planning around a home garden and NZ groceries, weight and fasting logs, safe bodyweight and beach exercise, cholesterol-conscious keto targets, alcohol logging in NZ standard drinks, and a Chrome side-panel extension that helps with PAK'nSAVE Pāpāmoa shopping without automating the store's website.
 
@@ -65,6 +65,11 @@ Checklist item 12 added the local database (IndexedDB through Dexie, `apps/mobil
 - **Today:** a backup reminder 7 days after the last confirmed backup (3 days if the phone has not promised to keep the records), which "Not now" snoozes.
 - If the records cannot be opened (a newer version in another tab, a failed update, private mode), a plain screen with the help numbers replaces the app; a failed update offers a rescue copy of the records first.
 - The repository scan `tools/scans/txScope.ts` checks that every database transaction holds only database requests, so a restore can never commit halfway.
+
+Checklist item 13 added the first-run flow (`apps/mobile-web/src/onboarding`):
+- Nothing in the app opens until the alcohol safety note is acknowledged, not even About or a restore. Then come the seven readiness questions, the profile, the eating schedule (left out while fasting is switched off) and the garden; a reload resumes at the first unfinished step. Once the note is acknowledged, setup also offers "Restore from a backup instead". After delete-all the app starts this flow again.
+- One gate function in core (`packages/core/src/readiness/gates.ts`) decides from the answers, the birth year and the current weight what is switched off; an unanswered question counts as yes.
+- **Settings:** Readiness answers, Profile and Eating schedule. **Today:** the "talk to someone" card from day one when answer 7 is yes or unanswered.
 
 How it is built:
 - Vite and React. The look comes from the owner's mock-up; every colour lives in one file, `packages/ui/src/styles/tokens.css`, with a light and a dark value each, so feedback on the look is an edit there. The launch screen and the task switcher use the icon's teal, which suits both themes. The Manrope font is bundled with the app, never fetched.
