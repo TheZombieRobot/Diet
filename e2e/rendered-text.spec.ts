@@ -73,7 +73,9 @@ test('no screen but About, Weight and Fasting shows a number or a price, even wi
   // owner's own entries, the question about being under 18 and the pattern names such as 16:8, the
   // Weight screen, whose labels carry digits by design ("7-day average", "Less 0.1 kg"), and the
   // Fasting screen, which shows the owner's eating pattern and its clock times (item 15). On Today
-  // only the Fast card may carry digits, for the same pattern ("22:2", "Eat 5:00 pm – 7:00 pm").
+  // only the Fast card may carry digits, for the same pattern ("22:2", "Eat 5:00 pm – 7:00 pm"):
+  // that card is left out by element, so a digit anywhere else on Today still fails (item 15
+  // review).
   await seedOnboarded(page, './', './', { weightKg: null });
   const found: string[] = [];
   const check = async (where: string, screen: ScreenName) => {
@@ -91,14 +93,12 @@ test('no screen but About, Weight and Fasting shows a number or a price, even wi
     ) {
       return;
     }
-    const fastCard =
+    const text = await renderedText(
+      page,
       screen === 'Today'
-        ? await page.getByRole('region', { name: fasting.card.label, exact: true }).innerText()
-        : '';
-    const text = (await renderedText(page))
-      .split('\n')
-      .filter((line) => line.trim() === '' || !fastCard.includes(line.trim()))
-      .join('\n');
+        ? page.getByRole('region', { name: fasting.card.label, exact: true })
+        : undefined,
+    );
     if (/\d/.test(text))
       found.push(`${where}: a digit in ${JSON.stringify(text.match(/.*\d.*/)?.[0])}`);
     if (/[$€£]/.test(text)) found.push(`${where}: a currency sign`);

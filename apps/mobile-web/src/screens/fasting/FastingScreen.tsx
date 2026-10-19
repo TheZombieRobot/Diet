@@ -1,13 +1,11 @@
-import { featureGateOf, reasonStates } from '@diet/core';
 import { fasting, privacy } from '@diet/core/copy/health';
 import { Card } from '@diet/ui';
 import { type ReactElement, useEffect, useRef, useState } from 'react';
 import { appStorageStore, type AppStorage } from '../../db/runtime';
 import { GateNotice } from '../../onboarding/GateNotice';
-import { consequenceText } from '../../onboarding/readinessText';
 import { type FastingSublink, fastingSublink, routeHref } from '../../routes';
 import { useStore } from '../../store';
-import { FastCard, FastingReadError } from './FastCard';
+import { AnswerThreeLine, FastCard, FastingReadError } from './FastCard';
 import { FastingErrorBoundary } from './FastingErrorBoundary';
 import { FastHistory } from './FastHistory';
 import { PatternCard } from './PatternCard';
@@ -28,20 +26,11 @@ function OpeningCard(): ReactElement {
 
 /** Why fasting is off, with item 13's reasons, and that nothing logged is deleted (RD-06). */
 function GatedCard({ state }: { readonly state: FastingState }): ReactElement {
-  const { gateView } = state;
-  const { stated } = reasonStates(gateView.input, featureGateOf(gateView.gates, 'fasting').reasons);
   return (
     <Card label={fasting.card.gatedLabel}>
       <p className="ui-text-strong">{gated.title}</p>
       <GateNotice feature="fasting" link linkWhen="actionable" />
-      {/*
-        The prescriber's agreement is confirmed in Settings, Readiness answers (F44; RD-03). The
-        answer-3 line follows the gates, so it never says meals keep a deficit another answer
-        closes (item 13 review).
-      */}
-      {stated.includes('diabetes-medication') ? (
-        <p>{consequenceText('q3', gateView.input, gateView.gates)}</p>
-      ) : null}
+      <AnswerThreeLine state={state} />
       <p className="ui-text-muted">{gated.kept}</p>
     </Card>
   );
@@ -134,7 +123,9 @@ function FastingScreenBody({ storage }: { readonly storage: AppStorage }): React
         state={read}
         open={patternOpen}
         onOpen={() => {
+          // The form's legend takes focus, as on arrival by #/fasting/pattern (item 15 review).
           setPatternOpen(true);
+          setTarget('pattern');
         }}
         onClose={closePattern}
         containerRef={patternRef}
