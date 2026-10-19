@@ -7,3 +7,4 @@ test-results/
 .wrangler/
 docs/
 README.md
+.claude/worktrees/

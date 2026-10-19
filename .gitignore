@@ -43,3 +43,6 @@ __screenshots__/
 Thumbs.db
 .idea/
 *.swp
+
+# Working copies made by build agents (never committed)
+.claude/worktrees/

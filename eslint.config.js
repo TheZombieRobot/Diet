@@ -19,6 +19,7 @@ export default defineConfig(
       'playwright-report/**',
       'test-results/**',
       'blob-report/**',
+      '.claude/worktrees/**',
     ],
   },
   js.configs.recommended,
