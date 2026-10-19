@@ -128,8 +128,9 @@ export function missingReadinessAnswers(input: ReadinessInput): ReadinessQuestio
 }
 
 /**
- * The answers that switch the keto carb ceiling off entirely: Q1 (or a birth year that could be
- * under 18), Q2 and Q5. D30 as changed by the orchestrator on 19 Oct 2026: question 5
+ * The answers that switch the keto carb ceiling off entirely: Q1, Q2 and Q5, plus two closers that
+ * are not questions: a birth year that may be under 18, and a low current weight
+ * (`GateInput.lowWeight`, readiness/gates.ts). D30 as changed by the orchestrator on 19 Oct 2026: question 5
  * (eating-disorder history or low weight) switches the keto carb ceiling off entirely, like
  * questions 1 and 2, in addition to its existing rules (no Kickstart, no deficit, no fasting, no
  * projection band, no goal setting; DECISIONS C06/C07/C41 row). Meals are still planned, with no
@@ -143,6 +144,22 @@ export const KETO_CEILING_CLOSED_BY = Object.freeze([
 ] as const satisfies readonly ReadinessQuestionId[]);
 
 /**
+ * The plain-language reason ids of closed gates, in display order (RD-01 to RD-05; item 13 design
+ * section 4.1). Q4 and Q7 close nothing, so they have no reason. Kept here, beside ReadinessGates,
+ * so the gate module and this one do not import each other; readiness/gates.ts re-exports it.
+ */
+export const READINESS_REASON_IDS = Object.freeze([
+  'under-18',
+  'under-18-birth-year',
+  'pregnant-or-breastfeeding',
+  'diabetes-medication',
+  'eating-disorder-or-low-weight',
+  'low-current-weight',
+  'exercise-warning',
+] as const);
+export type ReadinessReasonId = (typeof READINESS_REASON_IDS)[number];
+
+/**
  * Outputs of the single gate function `readinessGates(input)` (section 13.3; C54), built and
  * tested at item 13 and fixed here so items 13–15, 21, 22 and 28 agree. gated(q) is
  * `answers[q] !== 'no'`, so an unanswered question counts as yes (C41). "Q3 open" below means
@@ -151,14 +168,14 @@ export const KETO_CEILING_CLOSED_BY = Object.freeze([
 export interface ReadinessGates {
   /** gated(q1), or minimumAgeYears < 18 (HS section 1; C24 point 3). */
   readonly under18: boolean;
-  /** under18, gated(q2), gated(q5) or Q3 open (HS-03 as reworded per C54; C07). */
+  /** under18, gated(q2), gated(q5), a low current weight, or Q3 open (HS-03 as reworded per C54; C07). */
   readonly fastingGated: boolean;
-  /** not (under18, gated(q2) or gated(q5)) and not Q3 open (DECISIONS C06/C07/C41 row). */
+  /** not (under18, gated(q2), gated(q5) or a low current weight) and not Q3 open (DECISIONS C06/C07/C41 row). */
   readonly kickstartAvailable: boolean;
-  /** Kickstart and Steady deficits: not (under18, gated(q2) or gated(q5)). Otherwise plan at the estimate, never below the floor. */
+  /** Kickstart and Steady deficits: not (under18, gated(q2), gated(q5) or a low current weight). Otherwise plan at the estimate, never below the floor. */
   readonly deficitAllowed: boolean;
   /**
-   * Any keto carb ceiling: not (under18, gated(q2) or gated(q5)); see KETO_CEILING_CLOSED_BY
+   * Any keto carb ceiling: not (under18, gated(q2), gated(q5) or a low current weight); see KETO_CEILING_CLOSED_BY
    * (HS section 1; D30 as changed: Q5 switches the keto ceiling off entirely). When false there is
    * no carb ceiling and meals are still planned.
    */
@@ -167,7 +184,7 @@ export interface ReadinessGates {
   readonly carbCeilingBelow50Allowed: boolean;
   /** deficitAllowed (and, at use, an active carb ceiling) (DECISIONS; C27). */
   readonly projectionBandAvailable: boolean;
-  /** not (under18 or gated(q5)) (HS section 1: Q5, and "planner only" for Q1). */
+  /** not (under18, gated(q2), gated(q5) or a low current weight) (HS section 1; item 13 E47, E48). */
   readonly goalSettingAvailable: boolean;
   /** not under18 (DECISIONS C06/C07/C41 row). */
   readonly energyEstimateAvailable: boolean;
@@ -181,6 +198,6 @@ export interface ReadinessGates {
   readonly bloodPressureSaltWording: boolean;
   /** gated(q7) (C58; AL-09). */
   readonly alcoholHelpCardFromDayOne: boolean;
-  /** Plain-language reason ids for each closed gate (RD-01 to RD-05), defined at item 13. */
-  readonly reasons: readonly string[];
+  /** Plain-language reason ids for each closed gate (RD-01 to RD-05), in READINESS_REASON_IDS order. */
+  readonly reasons: readonly ReadinessReasonId[];
 }

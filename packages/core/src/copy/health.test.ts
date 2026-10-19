@@ -1,8 +1,23 @@
 import { describe, expect, it } from 'vitest';
 import { BACKUP_ERROR_CODES } from '../storage/backup/errors';
 import { BACKUP_TABLES } from '../storage/tables';
-import { alcohol, general, healthCopy, helpNumbers, privacy } from './health';
-import { fillTemplate } from './template';
+import { ACTIVITY_FACTORS } from '../energy/energyEstimate';
+import { GATED_FEATURES, READINESS_REASON_IDS } from '../readiness/gates';
+import { USER_ALLERGENS } from '../storage/allergens';
+import { FLOOR_KJ, KICKSTART_MAX_DEFICIT_PCT, KICKSTART_NET_CARBS_G } from '../storage/limits';
+import { READINESS_QUESTION_IDS } from '../storage/readiness';
+import {
+  alcohol,
+  general,
+  healthCopy,
+  helpNumbers,
+  onboarding,
+  privacy,
+  profile,
+  readiness,
+  schedule,
+} from './health';
+import { fillTemplate, joinList } from './template';
 
 /** Every string inside a copy section, with its path for readable failures. */
 function strings(value: unknown, path: string): [string, string][] {
@@ -39,6 +54,8 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
     /\bproud\b/i,
     /\bsafe\s+(?:level|amount|limit)\b/i,
     /\byou\s+should\s+stop\b/i,
+    // Item 13: help after a change is never played down (the notice's "Why am I seeing this?").
+    /\b(?:too\s+late|works\s+best\s+before|only\s+before|no\s+point)\b/i,
   ],
   // HEALTH_SAFETY.md section 7 (privacy as a safety feature); storage spec sections 10–12.
   privacy: [
@@ -56,6 +73,30 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
     /\breset\s+(?:your|the)\s+password\b/i,
     /\b(?:cannot|can't|never)\s+(?:be\s+)?lost\b/i,
   ],
+  // Item 13 (design section 5.8): the readiness answers only switch features off, so nothing in
+  // the first-run copy says a feature is safe, suits the person, or that they are cleared for it.
+  onboarding: [/\bsafe(?:ly)?\b/i, /\bsuits?\s+you\b/i],
+  readiness: [
+    /\bsafe(?:ly)?\b/i,
+    /\bsuits?\s+you\b/i,
+    /\bcleared\b/i,
+    /\bdiagnos\w*/i,
+    /\byou\s+can\s+(?:fast|diet|train)\b/i,
+    /\brisk[\s-]+free\b/i,
+  ],
+  profile: [
+    /\bsafe(?:ly)?\b/i,
+    /\b(?:ideal|target|dream|perfect|normal|healthy)\s+weight\b/i,
+    /\blos(?:e|es|ing)\b/i,
+  ],
+  schedule: [
+    /\bsafe(?:ly)?\b/i,
+    /\bstreak\w*/i,
+    /\b(?:penalt\w*|fail\w*|cheat\w*)\b/i,
+    /\bmust\s+fast\b/i,
+  ],
+  // C57: fixed copy never claims a homegrown weight.
+  garden: [/\d\s*g\b/i],
 };
 
 describe('health copy', () => {
@@ -194,5 +235,102 @@ describe('health copy', () => {
     expect(stays).toContain('Backup files');
     expect(stays).toContain('unpair on your laptop');
     expect(privacy.deleteAll.confirm).toBe('Delete everything on this phone');
+  });
+});
+
+describe('first-run copy (item 13; U30)', () => {
+  it('the notice offers no way to put it off', () => {
+    const notice = strings(alcohol.notice, 'alcohol.notice');
+    expect(notice.length).toBeGreaterThan(5);
+    for (const [path, text] of notice) {
+      expect(text, path).not.toMatch(/\b(?:skip|later|not\s+now|dismiss)\b/i);
+    }
+    expect(alcohol.notice.whyText).toHaveLength(3);
+  });
+
+  it('the help card and question 7 carry the weekend wording (C58; AL-09b)', () => {
+    expect(alcohol.helpCard).toContain('drinking most days or heavily at weekends');
+    expect(readiness.questions.q7).toBe('Do you drink alcohol most days, or heavily at weekends?');
+  });
+
+  it('asks exactly the seven questions, with the consequences the tests name (RD-02 to RD-04, C06)', () => {
+    expect(Object.keys(readiness.questions)).toEqual([...READINESS_QUESTION_IDS]);
+    expect(Object.keys(readiness.ifYes)).toEqual([...READINESS_QUESTION_IDS]);
+    for (const part of [
+      'hypoglycaemia',
+      'can change how diabetes medicines act',
+      'Check with your prescriber first',
+      'at least 50 g',
+    ]) {
+      expect(readiness.ifYes.q3).toContain(part);
+    }
+    expect(readiness.ifYes.q2).toContain('midwife or GP');
+    expect(readiness.ifYes.q2).toContain('weight goals');
+    expect(readiness.ifYes.q5).toContain('trend is still shown');
+  });
+
+  it('the under-18 notice says "may be under 18" and names no fixed age (C24)', () => {
+    expect(readiness.ageCheck.birthYearUnder18).toContain('may be under 18');
+    expect(readiness.ageCheck.birthYearUnder18).not.toMatch(/\b17\b|\bstill\b/);
+  });
+
+  it('the prescriber switch names everything it unlocks, and a confirmation never says features "are on" (C06, E53)', () => {
+    for (const part of ['fasting', 'bigger energy deficit (Kickstart)', 'carbs under 50 g']) {
+      expect(readiness.confirmations.prescriberAgreed).toContain(part);
+    }
+    for (const text of Object.values(readiness.confirmed)) expect(text).not.toContain(' are on');
+    expect(readiness.confirmed.prescriberAgreed).toContain(`"${readiness.changed.q3}"`);
+    expect(schedule.diabetesNote).toContain(`"${readiness.changed.q3}"`);
+    expect(readiness.confirmed.gpExerciseDiscussed).toContain(`"${readiness.changed.q6}"`);
+  });
+
+  it('the Kickstart hint takes its figures from the core constants', () => {
+    expect(profile.kickstartHint).toContain(`${KICKSTART_MAX_DEFICIT_PCT}%`);
+    expect(profile.kickstartHint).toContain(`${KICKSTART_NET_CARBS_G} g`);
+    expect(FLOOR_KJ).toBe(5000);
+    expect(profile.kickstartHint).toContain('5,000 kJ');
+  });
+
+  it('the Kickstart line filled with 140 is the UX 1e sentence; the goal hint is long-term and not a promise (HS-21)', () => {
+    expect(fillTemplate(schedule.kickstartLine, { proteinG: 140 })).toBe(
+      "One meal has to carry about 140 g protein. If a day's dinner can't, the app will offer the 5 pm snack. That's not a broken fast.",
+    );
+    expect(profile.goalHint).toContain('long-term');
+    expect(profile.goalHint).toContain('the four-week chart is not a promise');
+  });
+
+  it('the blood-pressure lines use the C102 words; Welcome only says what is switched off', () => {
+    for (const text of [...Object.values(readiness.bloodPressure), readiness.ifYes.q4]) {
+      expect(text).toContain('blood-pressure medication');
+      expect(text).toContain('check with your pharmacist or GP before adding salt');
+    }
+    expect(readiness.ifYes.q4.endsWith(readiness.bloodPressure.electrolyte)).toBe(true);
+    expect(readiness.bloodPressure.stopSign).toContain(helpNumbers.healthline.number);
+    expect(onboarding.welcome.next).toContain('switch off');
+    expect(onboarding.welcome.next).not.toMatch(/suits you/i);
+    expect(general.welcome).toBe(general.about);
+  });
+
+  it('every gated feature, reason, activity level and allergen has its words, in order', () => {
+    expect(Object.keys(readiness.featureNames)).toEqual([...GATED_FEATURES]);
+    expect(Object.keys(readiness.reasonPhrases)).toEqual([...READINESS_REASON_IDS]);
+    expect(Object.keys(profile.activity).sort()).toEqual(Object.keys(ACTIVITY_FACTORS).sort());
+    expect(Object.keys(profile.allergenNames)).toEqual([...USER_ALLERGENS]);
+  });
+
+  it('a feature-off line reads as one sentence with its reasons joined', () => {
+    const reasons = joinList(
+      [readiness.reasonPhrases['under-18'], readiness.reasonPhrases['under-18-birth-year']],
+      readiness.listComma,
+      readiness.listAnd,
+    );
+    expect(
+      fillTemplate(readiness.featureOff, { feature: readiness.featureNames.goalSetting, reasons }),
+    ).toBe(
+      'Weight goal setting is off because of what you told the app about being under 18 and your birth year.',
+    );
+    expect(joinList([], ', ', ' and ')).toBe('');
+    expect(joinList(['a'], ', ', ' and ')).toBe('a');
+    expect(joinList(['a', 'b', 'c'], ', ', ' and ')).toBe('a, b and c');
   });
 });

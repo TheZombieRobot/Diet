@@ -1,3 +1,4 @@
+import { onboarding, profile, readiness, schedule } from '@diet/core/copy/health';
 import { ActionRow, Button, Card, ChevronIcon, InstallIcon } from '@diet/ui';
 import type { ReactElement } from 'react';
 import { installStore, promptInstall } from '../pwa/install';
@@ -32,10 +33,36 @@ function InstallCard(): ReactElement {
   );
 }
 
+/** The setup answers, the profile and the eating schedule (item 13; RD-06). */
+function SetupCard(): ReactElement {
+  const rows = [
+    { route: 'readiness', row: readiness.settingsRow },
+    { route: 'profile', row: profile.settingsRow },
+    { route: 'eating-schedule', row: schedule.settingsRow },
+  ] as const;
+  return (
+    <Card label={onboarding.settingsCardLabel}>
+      <ul className="ui-action-list">
+        {rows.map(({ route, row }) => (
+          <li key={route}>
+            <ActionRow
+              href={routeHref(route)}
+              title={row.title}
+              detail={row.detail}
+              badge={<ChevronIcon />}
+            />
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
 export function SettingsScreen(): ReactElement {
   return (
     <>
       <InstallCard />
+      <SetupCard />
       <BackupCard />
       <Card label="More">
         <ul className="ui-action-list">
@@ -49,7 +76,7 @@ export function SettingsScreen(): ReactElement {
           </li>
         </ul>
       </Card>
-      <Placeholder coming="Settings for the profile, eating schedule, targets, household, store and pairing arrive with the steps that use them." />
+      <Placeholder coming="Settings for targets, the store and laptop pairing arrive with the steps that use them." />
     </>
   );
 }

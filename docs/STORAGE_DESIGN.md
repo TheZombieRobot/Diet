@@ -348,7 +348,7 @@ A label with both `standardDrinks` and `kcal` null is refused; store `label: nul
 | jogOptIn | Bool | no | false | — | C51 |
 | householdSize | Int, people | no | 1 | 1–20 (grocery quantities only) | HS-23 |
 | dietMode | DietMode | no | `'keto'` | enum | HS section 4, FL-04 |
-| carbCeilingStartedAt | Instant | yes | null | set on each switch into keto and at Kickstart start; counted in elapsed time (section 3.1) | C72 |
+| carbCeilingStartedAt | Instant | yes | null | set on each switch into keto and at Kickstart start; counted in elapsed time (section 3.1). It drives only the C72 electrolyte reminder; never the Kickstart phase, notes, band or rapid-loss suppression, which come only from kickstart_periods (D27) | C72 |
 | firstLowCarbAt | Instant | yes | null | set once, never reset; counted in elapsed time | C109 |
 | kickstartOptIn | Bool | no | true | the onboarding choice; it does not start a period by itself. Item 13 preselects `false` while Q3 is gated (C06: "Kickstart defaults off") | C42, C45, C06 |
 | goalKg | Num, kg | yes | null | 20–400. The BMI 18.5 floor is checked when the goal is entered (item 14) and again whenever it is used, not here (section 5) | C04, C42 |
@@ -1351,31 +1351,39 @@ export interface ReadinessInput {
 export function readinessInputFromRows(rows: readonly ReadinessRecord[], birthYear: number | null, today: LocalDate): ReadinessInput;
 /** Questions with no current answer, in order (drives "resume onboarding" and the after-import prompt). */
 export function missingReadinessAnswers(input: ReadinessInput): ReadinessQuestionId[];
+
+/** Item 13: the gate function's input is ReadinessInput plus the current weight check (HS-35). */
+export interface GateInput extends ReadinessInput {
+  /** isLowWeight(current weight, stored height): below BMI 18.5. Anything but exactly false gates. */
+  lowWeight: boolean;
+}
+/** The only way to build a GateInput from records (readinessInputFromRows plus lowWeight). */
+export function gateInputFromRecords(args: { rows; birthYear; heightCm; currentWeightKg; today }): GateInput;
 ```
 - The rule is `gated(q) = answers[q] !== 'no'`. An unanswered question counts as yes (C41).
 - **Confirmation rule (D29).** `confirmations.prescriberAgreed` is true only when its row says `yes` under the current wording, the `q3` row exists under the current wording, and the confirmation's `answeredAt` is at or after the `q3` row's `answeredAt`. `gpExerciseDiscussed` is the same with `q6`. Re-answering Q3 or Q6 (for example after starting insulin) therefore needs a fresh confirmation; the repository also deletes the old one (section 8.2), and this read-time rule covers imported data.
 
 ### 13.3 The gate function (built and tested at item 13; outputs fixed here so items 13–15, 21, 22 and 28 agree)
-`readinessGates(input: ReadinessInput): ReadinessGates`, a pure function in core, used everywhere a feature is shown or a target is computed (C54: one gate function):
+`readinessGates(input: GateInput): ReadinessGates`, a pure function in core, with its input built only by `gateInputFromRecords`, used everywhere a feature is shown or a target is computed (C54: one gate function):
 
 | Output | True when | Source |
 |---|---|---|
 | `under18` | `gated(q1)` or `minimumAgeYears < 18` | HS section 1, C24 point 3 |
-| `fastingGated` | under18 or gated(q2) or gated(q5) or (gated(q3) and not prescriberAgreed) | HS-03 as reworded per C54, C07 |
-| `kickstartAvailable` | not (under18 or gated(q2) or gated(q5)) and not (gated(q3) and not prescriberAgreed) | DECISIONS (C06/C07/C41 row) |
-| `deficitAllowed` (Kickstart and Steady) | not (under18 or gated(q2) or gated(q5)) | same; plan at the estimate, never below the floor |
-| `ketoCeilingAvailable` | not (under18 or gated(q2) or gated(q5)) | HS section 1; Q5 per D30 |
+| `fastingGated` | under18 or gated(q2) or gated(q5) or lowWeight or (gated(q3) and not prescriberAgreed) | HS-03 as reworded per C54, C07; HS-35 |
+| `kickstartAvailable` | not (under18 or gated(q2) or gated(q5) or lowWeight) and not (gated(q3) and not prescriberAgreed) | DECISIONS (C06/C07/C41 row) |
+| `deficitAllowed` (Kickstart and Steady) | not (under18 or gated(q2) or gated(q5) or lowWeight) | same; plan at the estimate, never below the floor |
+| `ketoCeilingAvailable` | not (under18 or gated(q2) or gated(q5) or lowWeight) | HS section 1; Q5 per D30 |
 | `carbCeilingBelow50Allowed` | ketoCeilingAvailable and not (gated(q3) and not prescriberAgreed) | DECISIONS, C06 |
 | `projectionBandAvailable` | deficitAllowed (and, at use, an active carb ceiling) | DECISIONS, C27 |
-| `goalSettingAvailable` | not (under18 or gated(q5)) | HS section 1 (Q5, and "planner only" for Q1) |
+| `goalSettingAvailable` | not (under18 or gated(q2) or gated(q5) or lowWeight) | HS section 1 (Q5, and "planner only" for Q1); Q2 and low weight at item 13 |
 | `energyEstimateAvailable` | not under18 | DECISIONS (C06/C07/C41 row) |
 | `alcoholLoggingAvailable` | not under18 | HS section 1 |
 | `exercisePlansAvailable` | not gated(q6) or gpExerciseDiscussed | HS section 1, RD-05 |
 | `pharmacistReminder`, `bloodPressureSaltWording` | gated(q4) | C41, C102 |
 | `alcoholHelpCardFromDayOne` | gated(q7) | C58, AL-09 |
-| `reasons` | the plain-language reason ids for each closed gate | RD-01–RD-05 |
+| `reasons` | the reason ids of the closed gates, in this order: `under-18`, `under-18-birth-year`, `pregnant-or-breastfeeding`, `diabetes-medication`, `eating-disorder-or-low-weight`, `low-current-weight`, `exercise-warning` (Q4 and Q7 close nothing) | RD-01–RD-05 |
 
-**Q5 and the carb ceiling (D30, as changed by the orchestrator).** HEALTH_SAFETY's Q5 says "trend shown without targets", and Q1 and Q2 switch keto off explicitly. Readiness answer 5 switches the keto carb ceiling off entirely (`ketoCeilingAvailable` is false, so no ceiling below 50 g either; meals are still planned), and, through `kickstartAvailable`, the 20 g Kickstart ceiling with it. RD-04 at item 13 asserts both.
+**Q5 and the carb ceiling (D30, as changed by the orchestrator).** HEALTH_SAFETY's Q5 says "trend shown without targets", and Q1 and Q2 switch keto off explicitly. Readiness answer 5 switches the keto carb ceiling off entirely (`ketoCeilingAvailable` is false, so no ceiling below 50 g either; meals are still planned), and, through `kickstartAvailable`, the 20 g Kickstart ceiling with it. RD-04 at item 13 asserts both. A current weight below BMI 18.5 for the height (`lowWeight`, HS-35) closes the same gates as answer 5.
 
 At item 12, `readinessInputFromRows` and `missingReadinessAnswers` are built and unit-tested. Backup import and migrations rely on "missing = gated" only through these functions, and they write nothing.
 

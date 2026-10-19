@@ -41,8 +41,11 @@ export interface ProfileRecord {
   dietMode: DietMode;
   /**
    * Set whenever the keto ceiling becomes active: each switch into keto, Kickstart start, and a
-   * readiness gate that had closed the keto ceiling (Q1, Q2, Q5; D30 as changed) opening again
-   * while in keto mode. Counted in elapsed time (C72).
+   * readiness gate that had closed the keto ceiling (Q1, Q2, Q5, a birth year that may be under 18
+   * or a low current weight; D30 as changed) opening again while in keto mode after setup. Counted
+   * in elapsed time (C72). It drives only the C72 electrolyte reminder; never the Kickstart phase,
+   * notes, band or rapid-loss suppression, which come only from kickstart_periods (D27; item 13
+   * E65), so changing an answer can never grant another rapid-loss-free window.
    */
   carbCeilingStartedAt: Instant | null;
   /** Set once, never reset; counted in elapsed time (C109). */

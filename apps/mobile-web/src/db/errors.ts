@@ -28,10 +28,12 @@ StorageOperationError.prototype.name = 'StorageOperationError';
 
 /**
  * Repository rules that are not record invariants: a missing record, a fast already ended, a
- * confirmation with no answer, or "done" on a card that can never be turned off.
+ * confirmation with no answer, "done" on a card that can never be turned off, or a setup step out
+ * of order (the alcohol notice un-acknowledged, or setup completed before the notice and all seven
+ * readiness answers; item 13, E62).
  */
 export type StorageRule =
-  'not-found' | 'already-ended' | 'confirmation-without-answer' | 'not-final';
+  'not-found' | 'already-ended' | 'confirmation-without-answer' | 'not-final' | 'onboarding-order';
 
 export class StorageRuleError extends Error {
   readonly table: string;

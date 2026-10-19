@@ -16,15 +16,15 @@ This document sets the rules the app must obey when it touches health. It is wri
 
 **Mandatory alcohol safety notice, shown to everyone before anything else and not skippable.** "If you drink most days or heavily at weekends, cutting down suddenly can be dangerous. Talk to your GP or the Alcohol Drug Helpline (0800 787 797, text 8681) before making a big change. Call 111 for seizures, confusion or hallucinations." The handoff requires that this protection comes **before** any reduction happens, not as a warning that appears afterwards. Basis: NZ Drug Foundation and Te Whatu Ora CADS guidance cited in section 5, and NICE guidance that people drinking heavily (CG115 uses over 15 UK units a day or an AUDIT score of 20 or more) should be offered a structured, assisted withdrawal rather than stopping alone ([NICE CG115](https://www.nice.org.uk/guidance/cg115); the handoff's CG100 reference covers hospital management of acute withdrawal, [NICE CG100](https://www.nice.org.uk/guidance/cg100)).
 
-**Readiness questions.** Asked once, editable later in Settings. Answers change what the app allows; they are stored only on the phone.
+**Readiness questions.** Asked once, editable later in Settings. Answers change what the app allows; they are stored only on the phone. An unanswered question counts as yes.
 
-1. Are you under 18? → If yes: fasting, keto targets and alcohol logging are disabled; the app works as a food and exercise planner only.
-2. Are you pregnant or breastfeeding? → If yes: fasting features disabled, keto carb ceiling disabled (meals still planned), message to discuss diet with a midwife or GP.
-3. Do you take insulin, a sulfonylurea or any medication for diabetes? → If yes: fasting disabled until you confirm your prescriber has agreed; message explains the hypoglycaemia risk. Basis: a review in BMJ Open Diabetes Research & Care notes intermittent fasting "has the potential for hypoglycemia in patients receiving antidiabetic medications such as sulfonylureas and insulin" and should be medically supervised ([BMJ Open DRC 2020](https://drc.bmj.com/content/8/1/e001248)).
+1. Are you under 18? → If yes, or if the birth year means you may be under 18: fasting, keto targets and alcohol logging are disabled; no Kickstart, no deficit (plan at the estimate, never below the floor), no projection band, no energy estimate, no weight goals; the app works as a food and exercise planner only.
+2. Are you pregnant or breastfeeding? → If yes: fasting features disabled, keto carb ceiling disabled (meals still planned), weight-goal setting disabled; no Kickstart, no deficit (plan at the estimate, never below the floor), no projection band; message to discuss diet with a midwife or GP.
+3. Do you take insulin, a sulfonylurea or any medication for diabetes? → If yes: low-carb eating and fasting can change how diabetes medicines act, so the message says to check with your prescriber first and explains the hypoglycaemia risk; fasting, Kickstart and carb ceilings under 50 g stay off until you confirm your prescriber has agreed. A changed answer, or "My medication or dose has changed", needs a fresh confirmation. Basis: a review in BMJ Open Diabetes Research & Care notes intermittent fasting "has the potential for hypoglycemia in patients receiving antidiabetic medications such as sulfonylureas and insulin" and should be medically supervised ([BMJ Open DRC 2020](https://drc.bmj.com/content/8/1/e001248)).
 4. Do you take medication that must be taken with food, or blood-pressure or cholesterol medication? → If yes: fasting allowed, with a standing reminder to check timing with your pharmacist or GP; the cholesterol section adds a "share with your GP" export.
-5. Have you ever been treated for an eating disorder, or is your weight currently low? → If yes: fasting disabled, weight-goal setting disabled, keto carb ceiling disabled (meals still planned), trend shown without targets.
+5. Have you ever been treated for an eating disorder, or is your weight currently low? → If yes: fasting disabled, weight-goal setting disabled, keto carb ceiling disabled (meals still planned), trend shown without targets; no Kickstart, no deficit (plan at the estimate, never below the floor), no projection band. A current weight below BMI 18.5 for your height counts as a yes.
 6. Has a doctor ever told you not to exercise, or do you get chest pain, dizziness or faint during activity? → If yes: exercise plans shown only after you confirm you have discussed exercise with a GP. Based on standard pre-exercise screening practice.
-7. Do you drink alcohol most days? → Used only to decide whether the "talk to a professional before changing your drinking" card is shown prominently from day one (section 5).
+7. Do you drink alcohol most days, or heavily at weekends? → Used only to decide whether the "talk to a professional before changing your drinking" card is shown prominently from day one (section 5). Yes, or no answer, shows the card from day one.
 
 The app never says "you are safe to fast/train/diet." It says "nothing you have told the app rules this out; your GP knows more."
 
@@ -36,7 +36,7 @@ The app never says "you are safe to fast/train/diet." It says "nothing you have 
 
 **Owner decision (19 Oct 2026): weight loss should be high to start.** The app is built to expect and support a strong first three weeks, not to warn about them. What it still will not do is promise a number of kilograms by a date, or push intake below the safety floor.
 
-**Kickstart phase (weeks 1–3 after starting or restarting the carb ceiling)**
+**Kickstart phase (weeks 1–3 of a Kickstart period)**
 - The weight card says: "Kickstart: a fast drop is expected now. Most of it is water and glycogen, with some fat. Typical first weeks on a carb ceiling see several kilograms go." No upper figure is promised.
 - No rapid-loss card is shown in this phase, however fast the line falls.
 - The projected trend line shown on the four-week chart is front-loaded: steep for the first two to three weeks, then flattening to the steady pace. It is drawn as a shaded band labelled "typical range, not a promise", never as a target line.
@@ -59,7 +59,7 @@ The app never says "you are safe to fast/train/diet." It says "nothing you have 
 
 ## 3. Fasting
 
-**What it does:** start/stop timer, planned window (default 16 hours), history, streak, notes for how you felt.
+**What it does:** start/stop timer, planned window (Kickstart default 23:1, 18:00–19:00, used only while a Kickstart period runs; otherwise 22:2, 17:00–19:00; or no fasting plan), history, streak, notes for how you felt.
 
 **Rules**
 - Presets: 16:8, 18:6, 20:4, 22:2 ("5 pm snack + dinner") and **23:1 ("one meal")**, plus custom clock times.
@@ -69,7 +69,7 @@ The app never says "you are safe to fast/train/diet." It says "nothing you have 
 - If a running fast passes 24 hours, the timer keeps counting (logging must stay honest) but shows: "Fasts over 24 hours are outside what this app supports. Break the fast if you feel unwell, and talk to a GP before fasting this long again." No streak credit beyond 24 hours.
 - The app never recommends extended fasting, dry fasting, or fasting as a way to "compensate" for eating or drinking.
 - Stop-signs listed on the fasting screen: dizziness, fainting, heart palpitations, confusion, severe weakness. "Break your fast and, if it doesn't settle, call Healthline 0800 611 116 or 111."
-- Fasting is disabled by readiness answers 1, 2, 3 and 5.
+- Fasting is unavailable when answer 1, 2 or 5 is yes or unanswered (or the birth year means you may be under 18, or the current weight is below BMI 18.5 for the height), or when answer 3 is yes or unanswered and the prescriber's agreement is not confirmed.
 - Alcohol logged during a fasting window shows a neutral note: "Alcohol on an empty stomach hits harder and affects blood sugar." No judgement, no streak penalty beyond what the user chooses.
 
 ---
@@ -127,9 +127,9 @@ Shown, without judgement, when any of these is true:
 - 7 or more consecutive days with alcohol logged, or
 - weekly total at or above double the guidance figure for your sex, or
 - you tick "I felt shaky, sweaty, anxious or sick when I hadn't had a drink" in the next-day note, or
-- readiness answer 7 is "most days" (shown from day one, dismissible but returns monthly).
+- readiness answer 7 is yes or unanswered (shown from day one, dismissible but returns monthly).
 
-Card text: "If you've been drinking most days for a while and are thinking about changing that, the safest first step is a conversation, not a sudden stop. Alcohol Drug Helpline 0800 787 797 (call or text 8681), free and 24/7, or your GP. If someone is very unwell, shaking badly, confused or having a seizure, call 111." alcohol.org.nz's advice that daily drinkers should "discuss your plan on how to do this safely with a health professional" is the basis ([alcohol.org.nz, withdrawal](https://alcohol.org.nz/wellbeing/hinengaro-mental-health/withdrawal)).
+Card text: "If you've been drinking most days or heavily at weekends for a while and are thinking about changing that, the safest first step is a conversation, not a sudden stop. Alcohol Drug Helpline 0800 787 797 (call or text 8681), free and 24/7, or your GP. If someone is very unwell, shaking badly, confused or having a seizure, call 111." alcohol.org.nz's advice that daily drinkers should "discuss your plan on how to do this safely with a health professional" is the basis ([alcohol.org.nz, withdrawal](https://alcohol.org.nz/wellbeing/hinengaro-mental-health/withdrawal)).
 
 ---
 
@@ -184,7 +184,7 @@ Stop immediately and seek help for chest pain or pressure, severe shortness of b
 |---|---|---|
 | HS-01 | No weight goal below BMI 18.5 or more than 20% below current weight | Attempt both; expect refusal with explanation |
 | HS-02 | Fast past 24 h shows warning and stops streak credit | Simulate a 25-hour fast |
-| HS-03 | Fasting unavailable when readiness answers 1, 2, 3 or 5 are "yes" | Set each; expect feature hidden with reason |
+| HS-03 | Fasting unavailable when readiness answer 1, 2 or 5 is yes or unanswered (or the birth year means you may be under 18, or the current weight is below BMI 18.5 for the height), or answer 3 is yes or unanswered without a confirmed prescriber agreement | Set each; expect feature hidden with reason |
 | HS-04 | Standard-drink maths matches the alcohol.org.nz formula to 0.05 | Table of 10 known drinks |
 | HS-05 | Weekly totals compare against the correct guidance for the user's sex; thresholds configurable only within published values | Men/women fixtures |
 | HS-06 | "Talk to someone" card triggers on each of its four conditions and never on none of them | Four fixtures plus a control |
@@ -203,11 +203,15 @@ Stop immediately and seek help for chest pain or pressure, severe shortness of b
 | HS-17 | Eating window length computed from clock times: 5 pm snack and 7 pm final meal = 2 h (22:2), not 4 h | Unit test with several windows including midnight wrap |
 | HS-18 | Fast is never enforced: when protein or energy is below target the fasting card offers to widen the window | Fixture day with low protein |
 | HS-19 | Alcohol screens contain no "calories left", "earned", "allowance" or similar phrasing; milestones labelled "your milestone" | Static scan plus snapshot |
-| HS-20 | Mandatory alcohol safety notice appears on first run before any logging and cannot be skipped | Playwright first-run flow |
+| HS-20 | Mandatory alcohol safety notice appears on first run before any logging and cannot be skipped | Playwright first-run flow: every route and an unknown one, a reload on each step, the back button and the manifest start_url all show the flow; restore is reachable only after the acknowledgement; the acknowledgement time is stored; the notice shows whatever the other answers (DOC_REVIEW C53) |
 | HS-21 | Long-term goal labelled "long-term"; four-week chart carries the "not a promise" line; no "kg in N days" claim anywhere | Snapshot and static scan |
 | HS-22 | Protein and energy targets unchanged by eating window | Unit test across presets |
 | HS-23 | Household servings never change the user's portion numbers | Unit test |
 | HS-24 | Allergens retained on recipe edit or scale | Unit test |
+| HS-32 | Answers 1, 2 or 5, or a birth year that means you may be under 18, switch off Kickstart, every deficit, fasting, the projection band, the keto carb ceiling and weight goals. Answer 1, or a birth year that means you may be under 18, also switches off the energy estimate and alcohol logging (checklist item 13) | Unit test of the gate function over every combination of answers |
+| HS-33 | Answer 3 without a confirmed prescriber agreement switches off fasting, Kickstart and carb ceilings under 50 g; re-answering 3 or 6, or tapping the "has changed" button, needs a fresh confirmation (checklist item 13) | Confirm, re-answer, expect the features off again |
+| HS-34 | An unanswered readiness question counts as yes everywhere: during setup, after an import, after a rewording (checklist item 13) | Each question unanswered gives the same gates as a yes |
+| HS-35 | A current weight below BMI 18.5 for the height applies answer 5's settings even when answer 5 is no; the BMI figure is never shown (checklist item 13) | Weights either side of the floor; the page shows no BMI figure |
 | HS-30 | Delete-all empties every store, removes the laptop pairing and every garden photo, deletes every other IndexedDB database and every cache except the app's own files, and clears local and session storage; nothing the app was doing beforehand can write to the fresh database; only the app's files and a fresh database's seed rows remain (new per DOC_REVIEW C17, built at checklist item 12) | Fill every store, a pairing, a photo, an extra database, caches and both storages; delete all; reopen; only the seed rows remain; an autosave or live query afterwards writes nothing; a blocked deletion claims no success |
 
 ---

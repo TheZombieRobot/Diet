@@ -657,3 +657,415 @@
     transform: scale(0.97);
   }
 }
+
+/* ---- First-run steps and their form controls (checklist item 13) ---- */
+
+/* The setup frame: no tab bar, so the page needs room only for the footer's own padding. */
+.ui-steps {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.ui-steps__header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 4px 20px;
+}
+
+/* Bars and step text on the left, the offline pill on the right; the pill drops below on a narrow screen. */
+.ui-steps__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.ui-steps__progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ui-steps__bars {
+  display: flex;
+  gap: 6px;
+}
+
+.ui-steps__bar {
+  width: 18px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-border-strong);
+}
+
+.ui-steps__bar--done,
+.ui-steps__bar--current {
+  background: var(--color-teal);
+}
+
+.ui-steps__bar--current {
+  height: 8px;
+  margin-top: -1px;
+}
+
+.ui-steps__label {
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-steps__link {
+  display: flex;
+  align-items: center;
+  min-height: var(--size-tap);
+}
+
+.ui-steps__main {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+  gap: 14px;
+  padding: 10px 16px 24px;
+}
+
+.ui-steps__main:focus {
+  outline: none;
+}
+
+.ui-steps__title {
+  font-size: var(--text-title);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * The step's buttons, after its content. Not sticky: with up to four controls it would cover a
+ * third of a small screen and could hide the field that has focus.
+ */
+.ui-steps__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--color-border);
+  background: var(--color-ground);
+}
+
+/* The 64 px tint square holding the shield on the safety note. */
+.ui-steps__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 22px;
+  background: var(--color-teal-tint);
+  color: var(--color-teal);
+}
+
+/* A chosen Yes or No: teal border, tint fill and a tick, so it does not rely on colour alone. */
+.ui-button[aria-pressed='true'] {
+  border-color: var(--color-teal);
+  background: var(--color-teal-tint);
+  color: var(--color-on-teal-tint);
+}
+
+.ui-button[aria-pressed='true']::before {
+  content: '✓';
+  font-weight: 800;
+}
+
+.ui-button--tall {
+  min-height: 58px;
+  min-width: 96px;
+}
+
+/* A small tinted pill, such as "Kickstart" on a choice row. */
+.ui-chip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-teal-tint);
+  color: var(--color-on-teal-tint);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* Choice and check lists: a fieldset of rows, the native input over the whole row. */
+.ui-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ui-choices__legend {
+  padding: 0 0 6px;
+  color: var(--color-secondary);
+  font-size: var(--text-label);
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.ui-choice,
+.ui-check {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-card);
+  cursor: pointer;
+}
+
+.ui-choice {
+  min-height: 58px;
+}
+
+/* The box inside the 1 px border, which the input fills, is still 48 px high. */
+.ui-check {
+  min-height: calc(var(--size-tap) + 2px);
+}
+
+.ui-choice--checked {
+  border: 2px solid var(--color-teal);
+  padding: 7px 15px;
+}
+
+.ui-choice__input,
+.ui-check__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.ui-choice__mark,
+.ui-check__mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--color-border-strong);
+  background: var(--color-inset);
+}
+
+.ui-choice__mark {
+  border-radius: var(--radius-pill);
+}
+
+.ui-check__mark {
+  border-radius: 6px;
+}
+
+.ui-choice__input:checked + .ui-choice__mark {
+  border: 7px solid var(--color-teal);
+  background: var(--color-on-teal);
+}
+
+.ui-check__input:checked + .ui-check__mark {
+  border-color: var(--color-teal);
+  background: var(--color-teal);
+  color: var(--color-on-teal);
+}
+
+.ui-check__input:checked + .ui-check__mark::after {
+  content: '✓';
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.ui-choice__input:focus-visible + .ui-choice__mark,
+.ui-check__input:focus-visible + .ui-check__mark {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.ui-choice__text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ui-choice__label,
+.ui-check__label {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ui-check__label {
+  font-weight: 700;
+}
+
+.ui-choice__detail {
+  color: var(--color-secondary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* A switch with a note under it. */
+.ui-switch-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Stepper: minus, the value, plus. */
+.ui-stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ui-stepper__controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ui-stepper__button {
+  border: 1.5px solid var(--color-border-strong);
+  background: var(--color-card);
+}
+
+.ui-stepper__button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.ui-stepper__value {
+  min-width: 40px;
+  font-size: 20px;
+  font-weight: 800;
+  text-align: center;
+}
+
+/* The 24-hour bar of the eating window. */
+.ui-daybar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ui-daybar__track {
+  position: relative;
+  height: 18px;
+  overflow: hidden;
+  border-radius: 9px;
+  background: var(--color-teal-tint);
+}
+
+.ui-daybar__segment {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--color-amber-strong);
+}
+
+.ui-daybar__labels {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: 4px;
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Two time fields side by side, stacking on a very narrow screen. */
+.ui-field-pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(130px, 100%), 1fr));
+  gap: 10px;
+}
+
+/* Removable chips (dislikes). */
+.ui-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+}
+
+.ui-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  max-width: 100%;
+  padding-left: 14px;
+  border-radius: var(--radius-pill);
+  background: var(--color-chip);
+  color: var(--color-ink);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.ui-tag__label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* A field with its button on the same row (dislikes and Add). */
+.ui-field-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.ui-field-row > .ui-field {
+  flex: 1 1 180px;
+}
+
+/* A plain list of rows inside a card (the garden list). */
+.ui-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+}
+
+.ui-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: var(--size-tap);
+  padding: 8px 8px 8px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-card);
+}
+
+.ui-row__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

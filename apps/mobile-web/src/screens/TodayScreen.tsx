@@ -5,6 +5,7 @@ import { BackupReminderCard, UpdateNoticeCard } from './backup/ReminderCards';
 import { useBackupReminder } from './backup/reminder';
 import { InstallBanner } from './InstallBanner';
 import { Placeholder } from './Placeholder';
+import { AlcoholHelpCard } from './today/AlcoholHelpCard';
 
 export function TodayScreen(): ReactElement {
   const storage = useStore(appStorageStore);
@@ -17,6 +18,8 @@ export function TodayScreen(): ReactElement {
     ) : null;
   return (
     <>
+      {/* The "talk to someone" card goes first, above the prominent backup reminder (item 13). */}
+      {storage === null ? null : <AlcoholHelpCard storage={storage} />}
       {reminder.prominent ? card : null}
       <InstallBanner />
       {storage === null ? null : <UpdateNoticeCard storage={storage} />}

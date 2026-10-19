@@ -59,12 +59,15 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 ### 3.3 Profile and readiness gates
 | ID | Case | Expected |
 |---|---|---|
-| RD-01 | Under 18 = yes | Fasting, carb ceiling, alcohol hidden with explanation |
-| RD-02 | Pregnant/breastfeeding = yes | Fasting hidden; ceiling off; midwife/GP message |
-| RD-03 | Diabetes medication = yes | Fasting hidden until prescriber confirmation toggled; hypoglycaemia text shown |
+| RD-01 | Under 18 = yes | Fasting, carb ceiling, alcohol hidden with explanation; Kickstart unavailable, deficit 0 (plan at the estimate), no window text |
+| RD-02 | Pregnant/breastfeeding = yes | Fasting hidden; ceiling off; midwife/GP message; no weight goal; Kickstart unavailable, deficit 0 |
+| RD-03 | Diabetes medication = yes | Fasting hidden until prescriber confirmation toggled; hypoglycaemia text shown; carb ceilings under 50 g and Kickstart off until then |
 | RD-04 | Eating-disorder history = yes | Fasting hidden; goal setting hidden; keto carb ceiling off (meals still planned) and no Kickstart; trend still visible |
 | RD-05 | Exercise red flag = yes | Sessions hidden until GP-discussion toggle |
 | RD-06 | Change answers later | Features appear/disappear immediately; no data lost |
+| RD-07 | Close the app after the notice and reopen | Setup resumes at the first unfinished step; fasting hidden while gated |
+| RD-08 | Import a backup with no readiness rows | Gates closed; readiness asked before anything else |
+| RD-09 | Medication with food, blood-pressure or cholesterol medication = yes | Fasting allowed; pharmacist reminder above the schedule choices with nothing preselected; salt wording flag on |
 
 ### 3.4 Weight
 | ID | Case | Expected |
@@ -127,6 +130,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | AL-07 | Card trigger: double weekly guidance | Card shown |
 | AL-08 | Card trigger: withdrawal symptoms note | Card shown |
 | AL-09 | Card trigger: readiness "most days" | Card shown from day one |
+| AL-09b | Readiness Q7 answered yes to the weekend wording | Card shown from day one |
 | AL-10 | Control: 3 drinks across a week | No card |
 | AL-11 | Banned phrases scan | None of: "cut down by", "reduce by", "taper", "quit date", "stop drinking", "wean", "BAC", "blood alcohol", "safe to drive", "legal limit" (HS-07, HS-08) |
 | AL-12 | Helpline numbers present | 0800 787 797 and 8681 on alcohol screen (HS-13) |
@@ -165,13 +169,13 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | FL-05 | Household dinner for 3, my portion 1/3 | My nutrition equals per-serve; changing household to 4 leaves my numbers unchanged (HS-23) |
 | FL-06 | Edit a recipe containing a listed allergen | Allergen still listed after edit and after scaling (HS-24) |
 | FL-07 | Gluten-free household toggle off | No gluten-free substitutions suggested |
-| FL-08 | Eating window 17:00–19:00 | Shows "2 h eating, 22 h fasting" (HS-17) |
+| FL-08 | Eating window 17:00–19:00 | 2 h eating and 22 h fasting, from the core window formatter: screen 1e shows "Eating 5:00 pm to 7:00 pm = 2 hours. Fasting 22 hours." and the Fast card "2 h eating, 22 h fasting" (HS-17, C101) |
 | FL-09 | Eating window 22:00–02:00 (midnight wrap) | 4 h eating |
 | FL-10 | Low-protein planned day | Fasting card offers to widen window (HS-18) |
 | FL-11 | Reflux options on | Earlier-window and split-meal suggestions appear; symptom log available |
 | FL-12 | 23:1 preset, dinner planned at 95 g protein, target 140 g | Fasting card offers the 5 pm snack; no "broken fast" or streak-loss wording (HS-18) |
 | FL-13 | 23:1 preset, dinner planned at 140 g protein and above floor | No snack prompt; meal check line shows the protein figure |
-| FL-14 | 23:1 window 6 pm to 7 pm | Shows "1 h eating, 23 h fasting"; no over-24 h warning (HS-17) |
+| FL-14 | 23:1 window 6 pm to 7 pm | 1 h eating and 23 h fasting, from the core window formatter: screen 1e shows "Eating 6:00 pm to 7:00 pm = 1 hour. Fasting 23 hours." and the Fast card "1 h eating, 23 h fasting"; no over-24 h warning (HS-17, C101) |
 | FL-15 | Reflux symptom logged on a 23:1 day | Earlier-dinner and split-meal options offered next day |
 
 ### 3.12 Non-negotiable cases from the handoff

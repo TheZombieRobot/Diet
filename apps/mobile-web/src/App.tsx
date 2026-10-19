@@ -8,8 +8,10 @@ import {
   type TabItem,
 } from '@diet/ui';
 import { useEffect, useRef, type ReactElement } from 'react';
+import { APP_NAME } from './appName';
 import { type FailureStatus, type OpenStatus, openStatusStore } from './db/db';
 import { goToTab, markEntryAboveToday } from './navigation';
+import { OnboardingGate } from './onboarding/OnboardingGate';
 import { offlineCopyStore } from './pwa/offline';
 import {
   isTabRoute,
@@ -26,15 +28,15 @@ import { FoodScreen } from './screens/FoodScreen';
 import { ListScreen } from './screens/ListScreen';
 import { MoveScreen } from './screens/MoveScreen';
 import { QuickActions } from './screens/QuickActions';
+import { EatingScheduleScreen } from './screens/settings/EatingScheduleScreen';
+import { ProfileScreen } from './screens/settings/ProfileScreen';
+import { ReadinessAnswersScreen } from './screens/settings/ReadinessAnswersScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { StorageFailureScreen } from './screens/StorageFailureScreen';
 import { TodayScreen } from './screens/TodayScreen';
 import { UpdateBanner } from './screens/UpdateBanner';
 import { useStore } from './store';
 import { useRoute } from './useRoute';
-
-/** The name in the browser tab and the app switcher (the manifest's short_name). */
-export const APP_NAME = 'Diet';
 
 const TAB_ICONS: Readonly<Record<TabRouteId, ReactElement>> = {
   today: <TodayIcon />,
@@ -69,6 +71,12 @@ function screenFor(route: RouteId): ReactElement {
       return <SettingsScreen />;
     case 'about':
       return <AboutScreen />;
+    case 'readiness':
+      return <ReadinessAnswersScreen />;
+    case 'profile':
+      return <ProfileScreen />;
+    case 'eating-schedule':
+      return <EatingScheduleScreen />;
   }
 }
 
@@ -77,11 +85,17 @@ const isFailure = (status: OpenStatus): status is FailureStatus =>
 
 /**
  * The app. When the database cannot be used (section 7.4 of the storage spec), a storage failure
- * screen replaces everything, so Settings and delete-all cannot be reached from it.
+ * screen replaces everything, so Settings and delete-all cannot be reached from it. Until setup is
+ * finished, the first-run flow replaces the shell (item 13; HS-20).
  */
 export function App(): ReactElement {
   const status = useStore(openStatusStore);
-  return isFailure(status) ? <StorageFailureScreen status={status} /> : <Shell />;
+  if (isFailure(status)) return <StorageFailureScreen status={status} />;
+  return (
+    <OnboardingGate>
+      <Shell />
+    </OnboardingGate>
+  );
 }
 
 function Shell(): ReactElement {

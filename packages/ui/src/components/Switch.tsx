@@ -1,4 +1,4 @@
-import type { ReactElement, Ref } from 'react';
+import { type ReactElement, type Ref, useId } from 'react';
 
 export interface SwitchProps {
   /** The label beside the switch, which also names it for screen readers. */
@@ -6,6 +6,8 @@ export interface SwitchProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
   disabled?: boolean;
+  /** A short note under the switch, announced with it (aria-describedby). */
+  hint?: string | undefined;
   /** The checkbox, for moving focus to it. */
   ref?: Ref<HTMLInputElement> | undefined;
 }
@@ -16,9 +18,11 @@ export function Switch({
   checked,
   onChange,
   disabled = false,
+  hint,
   ref,
 }: SwitchProps): ReactElement {
-  return (
+  const hintId = `${useId()}-hint`;
+  const control = (
     <label className="ui-switch">
       <input
         ref={ref}
@@ -27,6 +31,7 @@ export function Switch({
         className="ui-switch__input"
         checked={checked}
         disabled={disabled}
+        aria-describedby={hint === undefined ? undefined : hintId}
         onChange={(event) => {
           onChange(event.currentTarget.checked);
         }}
@@ -36,5 +41,14 @@ export function Switch({
       </span>
       <span className="ui-switch__label">{label}</span>
     </label>
+  );
+  if (hint === undefined) return control;
+  return (
+    <div className="ui-switch-field">
+      {control}
+      <p id={hintId} className="ui-field__hint">
+        {hint}
+      </p>
+    </div>
   );
 }

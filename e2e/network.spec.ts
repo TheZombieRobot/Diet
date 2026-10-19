@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import {
   recordPolicyViolations,
+  seedOnboarded,
   visitEveryScreen,
   waitForServiceWorkerControl,
 } from './support/app';
@@ -24,7 +25,7 @@ test('online, every screen: requests go only to the app’s own files', async ({
   const seen: Seen[] = [];
   context.on('request', record(seen));
   const violations = await recordPolicyViolations(context);
-  await page.goto('./');
+  await seedOnboarded(page);
   await waitForServiceWorkerControl(page);
   await visitEveryScreen(page);
   await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Today' }).click();
@@ -48,7 +49,7 @@ test('offline, every screen: no request reaches the network at all', async ({
 }) => {
   const files = await appFiles(request, baseURL);
   const violations = await recordPolicyViolations(context);
-  await page.goto('./');
+  await seedOnboarded(page);
   await waitForServiceWorkerControl(page);
   await context.setOffline(true);
   const seen: Seen[] = [];
@@ -71,7 +72,7 @@ test('the audit fails a same-origin request outside the app’s own files, such 
   const files = await appFiles(request, baseURL);
   const seen: Seen[] = [];
   context.on('request', record(seen));
-  await page.goto('./');
+  await seedOnboarded(page);
   expectOnlyOwnOrigin(seen, appOrigin(baseURL), files);
   // The policy allows a same-origin image, so only the path allowlist can catch this one.
   await page.evaluate(() => {
@@ -87,7 +88,7 @@ test('the audit fails a same-origin request outside the app’s own files, such 
 
 test('the audit sees a request the policy blocks', async ({ page, context }) => {
   const violations = await recordPolicyViolations(context);
-  await page.goto('./');
+  await seedOnboarded(page);
   await page.evaluate(() => {
     const image = document.createElement('img');
     image.src = 'https://example.com/diet-audit-probe.png';

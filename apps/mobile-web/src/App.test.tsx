@@ -2,6 +2,8 @@ import { alcohol, general, helpNumbers, privacy } from '@diet/core/copy/health';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
+import { appStorageStore } from './db/runtime';
+import { onboardForTests, openTestDb, type TestDb } from './db/testKit';
 import {
   installBannerDismissedStore,
   installStore,
@@ -16,24 +18,39 @@ import {
   storageStore,
 } from './pwa/storage';
 import { markUpdateWaiting, setUpdateActivator, updateStore } from './pwa/update';
-import { ROUTE_TITLES, ROUTES, routeHref, TAB_ROUTES, type RouteId } from './routes';
+import {
+  isUnderSettings,
+  ROUTE_TITLES,
+  ROUTES,
+  routeHref,
+  TAB_ROUTES,
+  type RouteId,
+} from './routes';
 import { versionLabel } from './version';
 
-function show(route: RouteId): void {
+/** Opens a screen of a finished setup: the shell shows only after setup (item 13). */
+async function show(route: RouteId): Promise<void> {
   window.location.hash = routeHref(route);
   render(<App />);
+  await screen.findByRole('navigation', { name: 'Main' });
 }
 
 const main = (): HTMLElement => screen.getByRole('main');
 
 let stopListening: (() => void) | undefined;
-beforeEach(() => {
+let test: TestDb;
+beforeEach(async () => {
   window.matchMedia = vi.fn(
     (query: string) => ({ matches: false, media: query }) as MediaQueryList,
   );
+  test = await openTestDb();
+  await onboardForTests(test);
+  appStorageStore.set(test.storage);
 });
 afterEach(() => {
   cleanup();
+  appStorageStore.set(null);
+  test.db.shutDown();
   stopListening?.();
   stopListening = undefined;
   vi.restoreAllMocks();
@@ -46,8 +63,8 @@ afterEach(() => {
 });
 
 describe('every screen', () => {
-  it.each(ROUTES)('%s shows its name in the top bar and the five tabs', (route) => {
-    show(route);
+  it.each(ROUTES)('%s shows its name in the top bar and the five tabs', async (route) => {
+    await show(route);
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(ROUTE_TITLES[route]);
     const tabs = within(screen.getByRole('navigation', { name: 'Main' })).getAllByRole('link');
     expect(tabs.map((t) => t.textContent)).toEqual(TAB_ROUTES.map((r) => ROUTE_TITLES[r]));
@@ -57,7 +74,7 @@ describe('every screen', () => {
     const gear = screen.getByRole('link', { name: 'Settings' });
     // "page" only on Settings itself; About, reached from Settings, marks it as its section.
     expect(gear.getAttribute('aria-current')).toBe(
-      route === 'settings' ? 'page' : route === 'about' ? 'true' : null,
+      route === 'settings' ? 'page' : isUnderSettings(route) ? 'true' : null,
     );
     expect(within(screen.getByRole('banner')).getByRole('status').textContent).toMatch(
       /^(Online|Offline, all saved|Offline)$/,
@@ -65,7 +82,7 @@ describe('every screen', () => {
   });
 
   it('follows the tab links', async () => {
-    show('today');
+    await show('today');
     await act(async () => {
       window.location.hash = routeHref('drinks');
       window.dispatchEvent(new HashChangeEvent('hashchange'));
@@ -76,7 +93,7 @@ describe('every screen', () => {
   });
 
   it('moves focus to the new screen heading after a screen change, not on first render', async () => {
-    show('today');
+    await show('today');
     const heading = () => screen.getByRole('heading', { level: 1 });
     expect(document.activeElement).not.toBe(heading());
     await act(async () => {
@@ -89,7 +106,7 @@ describe('every screen', () => {
   });
 
   it('a tab tap switches screens through the app, not the plain link', async () => {
-    show('today');
+    await show('today');
     const food = within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', {
       name: 'Food',
     });
@@ -101,9 +118,9 @@ describe('every screen', () => {
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Food');
   });
 
-  it('says "all saved" in the offline pill only once the offline copy is saved', () => {
+  it('says "all saved" in the offline pill only once the offline copy is saved', async () => {
     vi.spyOn(window.navigator, 'onLine', 'get').mockReturnValue(false);
-    show('food');
+    await show('food');
     const pill = () => within(screen.getByRole('banner')).getByRole('status').textContent;
     expect(pill()).toBe('Offline');
     act(() => {
@@ -114,21 +131,26 @@ describe('every screen', () => {
 });
 
 describe('placeholder screens (no sample data)', () => {
-  const placeholders = ROUTES.filter((r) => r !== 'about');
+  const placeholders = ROUTES.filter(
+    (r) => r !== 'about' && r !== 'readiness' && r !== 'profile' && r !== 'eating-schedule',
+  );
 
-  it.each(placeholders)('%s says it arrives later and shows no numbers or prices', (route) => {
-    show(route);
-    const text = main().textContent;
-    expect(text).toContain('This screen arrives at a later step of the build checklist.');
-    expect(text).not.toMatch(/\d/);
-    expect(text).not.toMatch(/[$€£]/);
-  });
+  it.each(placeholders)(
+    '%s says it arrives later and shows no numbers or prices',
+    async (route) => {
+      await show(route);
+      const text = main().textContent;
+      expect(text).toContain('This screen arrives at a later step of the build checklist.');
+      expect(text).not.toMatch(/\d/);
+      expect(text).not.toMatch(/[$€£]/);
+    },
+  );
 
   it.each(['today', 'settings'] as const)(
     '%s shows no numbers or prices with the install offer and the "+" panel open',
-    (route) => {
+    async (route) => {
       stopListening = listenForInstallPrompt(window);
-      show(route);
+      await show(route);
       act(() => {
         window.dispatchEvent(installPromptEvent('dismissed'));
       });
@@ -145,8 +167,8 @@ describe('placeholder screens (no sample data)', () => {
     },
   );
 
-  it('the "+" on Today opens and closes the quick actions note', () => {
-    show('today');
+  it('the "+" on Today opens and closes the quick actions note', async () => {
+    await show('today');
     const plus = screen.getByRole('button', { name: 'Quick actions' });
     expect(plus.getAttribute('aria-expanded')).toBe('false');
     fireEvent.click(plus);
@@ -157,20 +179,20 @@ describe('placeholder screens (no sample data)', () => {
     expect(plus.getAttribute('aria-expanded')).toBe('false');
   });
 
-  it('the "+" is only on Today', () => {
-    show('food');
+  it('the "+" is only on Today', async () => {
+    await show('food');
     expect(screen.queryByRole('button', { name: 'Quick actions' })).toBeNull();
   });
 });
 
 describe('About (HS-13, About portion)', () => {
-  it('says the app is not a medical device, in the words of health.ts', () => {
-    show('about');
+  it('says the app is not a medical device, in the words of health.ts', async () => {
+    await show('about');
     expect(main().textContent).toContain(general.about);
   });
 
-  it('lists every help number as a link to call or text, in the words of health.ts', () => {
-    show('about');
+  it('lists every help number as a link to call or text, in the words of health.ts', async () => {
+    await show('about');
     const { intro, emergency, healthline, alcoholDrugHelpline, needToTalk } = helpNumbers;
     expect(main().textContent).toContain(intro);
     const links = within(main())
@@ -190,14 +212,14 @@ describe('About (HS-13, About portion)', () => {
     expect(alcohol.firstRunNotice).toContain(helpNumbers.alcoholDrugHelpline.number);
   });
 
-  it('has a Privacy card in the words of health.ts', () => {
-    show('about');
+  it('has a Privacy card in the words of health.ts', async () => {
+    await show('about');
     const card = within(main()).getByRole('region', { name: 'Privacy' });
     expect(within(card).getByText(general.privacy).tagName).toBe('P');
   });
 
-  it('says whether the offline copy is saved yet', () => {
-    show('about');
+  it('says whether the offline copy is saved yet', async () => {
+    await show('about');
     const fact = () => screen.getByTestId('offline-copy').textContent;
     expect(fact()).toBe('Still saving the offline copy');
     act(() => {
@@ -206,15 +228,15 @@ describe('About (HS-13, About portion)', () => {
     expect(fact()).toBe('Ready to use offline');
   });
 
-  it('marks only the 111 row as an emergency', () => {
-    show('about');
+  it('marks only the 111 row as an emergency', async () => {
+    await show('about');
     const emergencyRows = main().querySelectorAll('.ui-action-row--emergency');
     expect(emergencyRows).toHaveLength(1);
     expect(emergencyRows[0]?.getAttribute('href')).toBe('tel:111');
   });
 
-  it('has a data sources placeholder and the app version', () => {
-    show('about');
+  it('has a data sources placeholder and the app version', async () => {
+    await show('about');
     expect(within(main()).getByRole('region', { name: 'Data sources' }).textContent).toContain(
       'attribution',
     );
@@ -232,7 +254,7 @@ describe('About (HS-13, About portion)', () => {
     async (state, alreadyPersisted, granted, shown) => {
       const persist = vi.fn(() => Promise.resolve(granted));
       const persisted = vi.fn(() => Promise.resolve(alreadyPersisted));
-      show('about');
+      await show('about');
       expect(screen.getByTestId('storage-protection').textContent).toBe('Checking…');
       await act(async () => {
         expect(await requestPersistentStorage({ persist, persisted })).toBe(state);
@@ -275,8 +297,8 @@ describe('About (HS-13, About portion)', () => {
     stop();
   });
 
-  it('PWA-06: shows the same storage status wording as the Backup and data card', () => {
-    show('about');
+  it('PWA-06: shows the same storage status wording as the Backup and data card', async () => {
+    await show('about');
     for (const [state, text] of [
       ['protected', privacy.storageStatus.protected],
       ['not-protected', privacy.storageStatus.notProtected],
@@ -311,7 +333,7 @@ describe('update banner (PWA-05)', () => {
   it('shows "Update available" on any screen when a new version waits, and Reload activates it', async () => {
     const activate = vi.fn(() => Promise.resolve());
     setUpdateActivator(activate);
-    show('food');
+    await show('food');
     expect(screen.queryByText('Update available')).toBeNull();
 
     act(() => {
@@ -341,7 +363,7 @@ function installPromptEvent(outcome: 'accepted' | 'dismissed'): BeforeInstallPro
 describe('install prompt', () => {
   it('offers "Install app" on Today and Settings once Chrome allows it', async () => {
     stopListening = listenForInstallPrompt(window);
-    show('today');
+    await show('today');
     expect(screen.queryByText('Install this app')).toBeNull();
 
     const event = installPromptEvent('accepted');
@@ -362,7 +384,7 @@ describe('install prompt', () => {
 
   it('"Not now" hides the Today banner; Settings still offers the button', async () => {
     stopListening = listenForInstallPrompt(window);
-    show('today');
+    await show('today');
     act(() => {
       window.dispatchEvent(installPromptEvent('dismissed'));
     });
@@ -382,20 +404,20 @@ describe('install prompt', () => {
     expect(installStore.get().installed).toBe(false);
   });
 
-  it('without a prompt, says to open the installed app or use the browser menu', () => {
+  it('without a prompt, says to open the installed app or use the browser menu', async () => {
     stopListening = listenForInstallPrompt(window);
-    show('settings');
+    await show('settings');
     expect(screen.getByRole('region', { name: 'Install' }).textContent).toContain(
       'If the app is already on your home screen, open it from there. Otherwise use the browser menu and choose Install app.',
     );
   });
 
-  it('says so when the app is already installed', () => {
+  it('says so when the app is already installed', async () => {
     window.matchMedia = vi.fn(
       (query: string) => ({ matches: true, media: query }) as MediaQueryList,
     );
     stopListening = listenForInstallPrompt(window);
-    show('settings');
+    await show('settings');
     expect(screen.getByRole('region', { name: 'Install' }).textContent).toContain(
       'installed on this device',
     );

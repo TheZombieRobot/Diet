@@ -8,7 +8,9 @@ import {
   offerInstall,
   openBackupPanels,
   SCREENS,
+  seedOnboarded,
   TABS,
+  UNDER_SETTINGS,
   visitEveryScreen,
   waitForServiceWorkerControl,
 } from './support/app';
@@ -49,7 +51,7 @@ test('the live page applies the policy and nothing breaks it on any screen', asy
   });
   page.on('pageerror', (error) => problems.push(`page error: ${error.message}`));
 
-  await page.goto('./');
+  await seedOnboarded(page);
   await expect(heading(page)).toHaveText('Today');
   expect(
     await page.evaluate(() => {
@@ -72,7 +74,7 @@ test('the live page applies the policy and nothing breaks it on any screen', asy
 });
 
 test('the bundled Manrope font loads from the app itself', async ({ page }) => {
-  await page.goto('./#/about');
+  await seedOnboarded(page, './#/about');
   await expect(heading(page)).toHaveText('About');
   const loaded = await page.evaluate(async () => {
     await document.fonts.ready;
@@ -87,7 +89,7 @@ test('the bundled Manrope font loads from the app itself', async ({ page }) => {
 test('the tab bar marks the current tab by more than colour; the gear marks Settings', async ({
   page,
 }) => {
-  await page.goto('./');
+  await seedOnboarded(page);
   const nav = page.getByRole('navigation', { name: 'Main' });
   const gear = page.getByRole('banner').getByRole('link', { name: 'Settings' });
   const pill = (tab: string) =>
@@ -106,16 +108,16 @@ test('the tab bar marks the current tab by more than colour; the gear marks Sett
       if (current) expect(await pill(tab)).not.toBe('rgba(0, 0, 0, 0)');
       else expect(await pill(tab)).toBe('rgba(0, 0, 0, 0)');
     }
-    // "page" only on Settings itself; About, reached from Settings, marks it as its section.
+    // "page" only on Settings itself; a screen reached from Settings marks it as its section.
     expect(await gear.getAttribute('aria-current')).toBe(
-      screen === 'Settings' ? 'page' : screen === 'About' ? 'true' : null,
+      screen === 'Settings' ? 'page' : UNDER_SETTINGS.includes(screen) ? 'true' : null,
     );
   }
 });
 
 test('every control on every screen is at least 48 px by 48 px on a phone', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 780 });
-  await page.goto('./');
+  await seedOnboarded(page);
   const measure = async (where: string) => {
     const sizes = await page.locator('a:visible, button:visible').evaluateAll((controls) =>
       controls.map((c) => {
@@ -152,7 +154,7 @@ test('every control on every screen is at least 48 px by 48 px on a phone', asyn
 });
 
 test('the offline pill flips with the connection', async ({ page, context }) => {
-  await page.goto('./');
+  await seedOnboarded(page);
   await waitForServiceWorkerControl(page);
   const pill = page.getByRole('banner').getByRole('status');
   await expect(pill).toHaveText('Online');
@@ -203,7 +205,7 @@ test('nothing scrolls sideways or runs off a narrow or zoomed screen, online or 
   page,
   context,
 }) => {
-  await page.goto('./');
+  await seedOnboarded(page);
   await waitForServiceWorkerControl(page);
   const problems: string[] = [];
   // 320 px: a small phone. 195 px: a 390 px phone at 200% zoom.
@@ -230,7 +232,7 @@ test('nothing scrolls sideways or runs off a narrow or zoomed screen, online or 
 });
 
 test('a new screen moves focus to its heading', async ({ page }) => {
-  await page.goto('./');
+  await seedOnboarded(page);
   await expect(heading(page)).not.toBeFocused();
   for (const screen of ['Food', 'Settings', 'About', 'Today'] as const) {
     await goTo(page, screen);
@@ -241,7 +243,7 @@ test('a new screen moves focus to its heading', async ({ page }) => {
 test('the "+" panel follows the "+", and closes on Escape, an outside tap or a screen change', async ({
   page,
 }) => {
-  await page.goto('./');
+  await seedOnboarded(page);
   const plus = page.getByRole('button', { name: 'Quick actions' });
   const panel = page.locator('.ui-fab-panel');
 
@@ -275,7 +277,7 @@ test('the "+" panel follows the "+", and closes on Escape, an outside tap or a s
 test('back from any tab goes to Today, then leaves the app; back from About returns to Settings', async ({
   page,
 }) => {
-  await page.goto('./');
+  await seedOnboarded(page);
   const entries = () => page.evaluate(() => history.length);
   const start = await entries();
   for (const tab of ['Food', 'Move', 'Drinks', 'List', 'Food'] as const) await goTo(page, tab);
@@ -296,7 +298,7 @@ test('back from any tab goes to Today, then leaves the app; back from About retu
 
 test('on Today the "+" never covers the last card', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 420 });
-  await page.goto('./');
+  await seedOnboarded(page);
   await offerInstall(page);
   await expect(page.getByText('Install this app')).toBeVisible();
   const scrolls = await page.evaluate(
@@ -318,7 +320,7 @@ test('on Today the "+" never covers the last card', async ({ page }) => {
 
 test('a focused row is scrolled clear of the top bar and the tab bar', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 600 });
-  await page.goto('./#/about');
+  await seedOnboarded(page, './#/about');
   await expect(heading(page)).toHaveText('About');
   const hidden: string[] = [];
   for (let i = 0; i < 12; i++) {
@@ -373,14 +375,14 @@ test('inside a frame on another site, the app shows only a note to open it direc
   }
 
   // Opened directly, the same address runs the app.
-  await page.goto('./#/settings');
+  await seedOnboarded(page, './#/settings');
   await expect(heading(page)).toHaveText('Settings');
 });
 
 test('a pressed control darkens and, unless motion is reduced, shrinks slightly', async ({
   page,
 }) => {
-  await page.goto('./');
+  await seedOnboarded(page);
   const food = page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Food' });
   const pressed = async () => {
     const box = await food.boundingBox();

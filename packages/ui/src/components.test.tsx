@@ -1,4 +1,5 @@
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { createRef } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   ActionRow,
@@ -8,7 +9,10 @@ import {
   Button,
   ButtonRow,
   Card,
+  CheckList,
+  ChoiceList,
   currentThemePreference,
+  DayBar,
   FloatingActionButton,
   FloatingActionPanel,
   IconButton,
@@ -18,8 +22,11 @@ import {
   Notice,
   OfflineIndicator,
   ONLINE_LABEL,
+  StepFrame,
+  Stepper,
   Switch,
   TabBar,
+  TagList,
   TextField,
   TodayIcon,
   type TabItem,
@@ -497,5 +504,202 @@ describe('form controls (the Backup and data card)', () => {
       expect(body, selector).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(/i);
       expect(body, selector).toMatch(/var\(--color-/);
     }
+  });
+});
+
+describe('first-run components (item 13; K19)', () => {
+  beforeEach(() => {
+    const style = document.createElement('style');
+    style.textContent = `${tokensCss}\n${componentsCss}`;
+    document.head.append(style);
+  });
+
+  it('StepFrame: one h1, the step text, and the help link on its own row; no tab bar or gear', () => {
+    render(
+      <StepFrame
+        stepLabel="Step 2 of 6"
+        bars={['done', 'current', 'todo', 'todo', 'todo', 'todo']}
+        heading="A safety note"
+        offlineReady
+        headerLink={<a href="#/about">Help numbers and About</a>}
+        footer={<Button variant="primary">I understand</Button>}
+      >
+        <p>Body</p>
+      </StepFrame>,
+    );
+    expect(screen.getAllByRole('heading', { level: 1 }).map((h) => h.textContent)).toEqual([
+      'A safety note',
+    ]);
+    const header = screen.getByRole('banner');
+    expect(within(header).getByText('Step 2 of 6')).toBeDefined();
+    expect(header.querySelector('.ui-steps__bars')?.getAttribute('aria-hidden')).toBe('true');
+    expect(header.querySelectorAll('.ui-steps__bar--done')).toHaveLength(1);
+    const link = within(header).getByRole('link', { name: 'Help numbers and About' });
+    expect(link.closest('.ui-steps__link')).not.toBeNull();
+    expect(link.closest('.ui-steps__row')).toBeNull();
+    expect(screen.queryByRole('navigation')).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Settings' })).toBeNull();
+    expect(screen.getByRole('main').textContent).toContain('Body');
+  });
+
+  it('ChoiceList: a radio group named by its legend; nothing chosen for null; arrows move; the error is announced', () => {
+    const onChange = vi.fn();
+    const first = createRef<HTMLInputElement>();
+    const options = [
+      { value: '22:2', label: '22:2', detail: 'Eat 5:00 pm – 7:00 pm' },
+      { value: '23:1', label: '23:1', chip: 'Kickstart' },
+    ];
+    const { rerender } = render(
+      <ChoiceList
+        legend="Choose a pattern"
+        name="pattern"
+        options={options}
+        value={null}
+        onChange={onChange}
+        error="Choose a pattern, or No fasting plan for now."
+        firstInputRef={first}
+      />,
+    );
+    const group = screen.getByRole('radiogroup', { name: 'Choose a pattern' });
+    const radios = within(group).getAllByRole<HTMLInputElement>('radio');
+    expect(radios.map((r) => r.checked)).toEqual([false, false]);
+    expect(first.current).toBe(radios[0]);
+    expect(radios[1]?.closest('label')?.textContent).toContain('Kickstart');
+    const alert = screen.getByRole('alert');
+    expect(alert.textContent).toBe('Choose a pattern, or No fasting plan for now.');
+    expect(group.getAttribute('aria-describedby')).toBe(alert.id);
+    fireEvent.click(radios[1] as HTMLInputElement);
+    expect(onChange).toHaveBeenLastCalledWith('23:1');
+    rerender(
+      <ChoiceList
+        legend="Choose a pattern"
+        name="pattern"
+        options={options}
+        value="23:1"
+        onChange={onChange}
+        firstInputRef={first}
+      />,
+    );
+    expect(first.current?.value).toBe('23:1');
+    fireEvent.keyDown(first.current as HTMLInputElement, { key: 'ArrowDown' });
+    expect(onChange).toHaveBeenLastCalledWith('22:2');
+    fireEvent.keyDown(first.current as HTMLInputElement, { key: 'ArrowUp' });
+    expect(onChange).toHaveBeenLastCalledWith('22:2');
+  });
+
+  it('CheckList, Stepper, DayBar and TagList', () => {
+    const onTicks = vi.fn();
+    const onCount = vi.fn();
+    const onRemove = vi.fn();
+    render(
+      <>
+        <CheckList
+          legend="Allergens to avoid"
+          options={[
+            { value: 'milk', label: 'Milk' },
+            { value: 'egg', label: 'Egg' },
+          ]}
+          values={['egg']}
+          onChange={onTicks}
+        />
+        <Stepper
+          label="People"
+          value={1}
+          min={1}
+          max={20}
+          onChange={onCount}
+          decreaseLabel="One fewer person"
+          increaseLabel="One more person"
+        />
+        <DayBar segments={[{ startPct: 75, widthPct: 4.17 }]} labels={['12 am', '12 pm']} />
+        <TagList
+          items={[{ key: 'liver', label: 'liver', removeLabel: 'Remove liver' }]}
+          onRemove={onRemove}
+        />
+      </>,
+    );
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Milk' }));
+    expect(onTicks).toHaveBeenCalledWith(['milk', 'egg']);
+    expect(screen.getByRole('button', { name: 'One fewer person' }).hasAttribute('disabled')).toBe(
+      true,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'One more person' }));
+    expect(onCount).toHaveBeenCalledWith(2);
+    const output = screen.getByRole('group', { name: 'People' }).querySelector('output');
+    expect(output?.getAttribute('aria-live')).toBe('polite');
+    expect(output?.textContent).toBe('1');
+    expect(document.querySelector('.ui-daybar')?.getAttribute('aria-hidden')).toBe('true');
+    fireEvent.click(screen.getByRole('button', { name: 'Remove liver' }));
+    expect(onRemove).toHaveBeenCalledWith('liver');
+  });
+
+  it('Switch with a hint ties it by aria-describedby; Switch and TextField forward their ref', () => {
+    const switchRef = createRef<HTMLInputElement>();
+    const fieldRef = createRef<HTMLInputElement>();
+    render(
+      <>
+        <Switch
+          label="I get reflux"
+          hint="The app will suggest an earlier dinner."
+          checked={false}
+          onChange={() => undefined}
+          ref={switchRef}
+        />
+        <TextField label="Height (cm)" value="" onChange={() => undefined} ref={fieldRef} />
+      </>,
+    );
+    const control = screen.getByRole('switch', { name: 'I get reflux' });
+    const hintId = control.getAttribute('aria-describedby') ?? '';
+    expect(document.getElementById(hintId)?.textContent).toBe(
+      'The app will suggest an earlier dinner.',
+    );
+    expect(switchRef.current).toBe(control);
+    expect(fieldRef.current).toBe(screen.getByLabelText('Height (cm)'));
+  });
+
+  it('every new control is at least 48 px (choice rows 58 px), using only colour tokens', () => {
+    render(
+      <>
+        <ChoiceList
+          legend="L"
+          name="n"
+          options={[{ value: 'a', label: 'A' }]}
+          value="a"
+          onChange={() => undefined}
+        />
+        <CheckList
+          legend="C"
+          options={[{ value: 'b', label: 'B' }]}
+          values={[]}
+          onChange={() => undefined}
+        />
+        <Stepper
+          label="S"
+          value={2}
+          min={1}
+          max={3}
+          onChange={() => undefined}
+          decreaseLabel="Less"
+          increaseLabel="More"
+        />
+        <TagList
+          items={[{ key: 'k', label: 'k', removeLabel: 'Remove k' }]}
+          onRemove={() => undefined}
+        />
+      </>,
+    );
+    const choice = document.querySelector('.ui-choice') as Element;
+    expect(resolvedPx(choice, 'min-height')).toBeGreaterThanOrEqual(58);
+    const check = document.querySelector('.ui-check') as Element;
+    expect(resolvedPx(check, 'min-height')).toBeGreaterThanOrEqual(48);
+    for (const button of screen.getAllByRole('button')) {
+      expect(resolvedPx(button, 'min-height')).toBeGreaterThanOrEqual(48);
+      expect(resolvedPx(button, 'min-width')).toBeGreaterThanOrEqual(48);
+    }
+    // A pressed Yes or No is drawn with a border, a fill and a tick, not colour alone.
+    expect(componentsCss).toContain(".ui-button[aria-pressed='true']::before");
+    const block = componentsCss.slice(componentsCss.indexOf('/* ---- First-run steps'));
+    expect(block.length).toBeGreaterThan(100);
+    expect(block).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(/i);
   });
 });
