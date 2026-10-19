@@ -192,10 +192,21 @@ describe('Move copy matches the docs word for word (item 26)', () => {
     expect(exerciseSection).toContain(`"${move.safety.stopRules.emergency}"`);
   });
 
-  it('each beach prompt is a HEALTH_SAFETY.md section 6 bullet, its source links aside (HS-12)', () => {
+  it('the beach prompts are the six HEALTH_SAFETY.md section 6 bullets, in order, their source links aside (HS-12)', () => {
     const withoutLinks = exerciseSection.replace(/ \(\[[^\]]+\]\([^)]+\)\)/g, '');
-    for (const item of move.safety.beachPrompts.items) {
-      expect(withoutLinks).toContain(item.replace(/\.$/, ''));
-    }
+    // The bullet list right under the "**Beach prompts" line.
+    const list = /\*\*Beach prompts[^\n]*\n((?:- [^\n]*\n)+)/.exec(withoutLinks)?.[1] ?? '';
+    const bullets = list.trimEnd().split('\n');
+    expect(bullets).toHaveLength(6);
+    expect(move.safety.beachPrompts.items).toHaveLength(bullets.length);
+    move.safety.beachPrompts.items.forEach((item, i) => {
+      expect(bullets[i]).toContain(item.replace(/\.$/, ''));
+    });
+  });
+
+  it('the over-24-hours line is the HEALTH_SAFETY.md section 3 quote, then "It is fine to eat now" (ruling 9)', () => {
+    expect(move.preCheck.overCeiling).toBe(
+      `${quoteAfter(fastingSection, 'If a running fast passes 24 hours') ?? ''} It's fine to eat now.`,
+    );
   });
 });

@@ -25,7 +25,14 @@ export interface VolumeHistory {
   readonly lastSessionVolume: number | null;
   /** The version in the latest baseline session of this exercise, in the window. */
   readonly lastVariant: VariantKey | null;
+  /** This week, the row being re-planned left out. */
   readonly doneThisWeek: number;
+  /**
+   * The row being re-planned (excludeSessionId): its ticked volume and ticked sets of this
+   * exercise, which count toward this session's amount. 0 for a new row.
+   */
+  readonly doneThisSession: number;
+  readonly setsDoneThisSession: number;
   readonly recentAtTop: 0 | 1 | 2;
   /** A baseline session of this exercise before the window, and none inside it. */
   readonly olderHistory: boolean;
@@ -54,11 +61,15 @@ export type DoseReason =
   | 'capped'
   | 'top'
   | 'week-reached'
+  | 'session-done'
   | 'new-variant'
   | 'lighter';
 
 export interface DoseSuggestion {
-  /** Non-increasing, multiples of the step, each at most the top of the range; may be empty. */
+  /**
+   * Non-increasing, multiples of the step, each at most the top of the range; may be empty. With
+   * sets already ticked in this session, only the sets still to do.
+   */
   readonly perSet: readonly number[];
   readonly weeklyCap: number | null;
   readonly reason: DoseReason;
@@ -91,7 +102,8 @@ export function compareSessions(a: SessionRecord, b: SessionRecord): number {
 
 /**
  * The history one suggestion needs. The window is this ISO week and the two before it, up to
- * today. Sessions after today and the row being planned (`excludeSessionId`) are left out.
+ * today. Sessions after today and the row being re-planned (`excludeSessionId`) are left out; that
+ * row's own ticks come back as doneThisSession and setsDoneThisSession.
  */
 export function weeklyVolumes(
   sessions: readonly SessionRecord[],
@@ -149,11 +161,19 @@ export function weeklyVolumes(
   }
 
   const lastSessionVolume = latest === undefined ? null : movementVolume(latest, exerciseId);
+  const thisSession = sessions.find(
+    (s) => opts.excludeSessionId !== null && s.id === opts.excludeSessionId && s.date <= today,
+  );
   return Object.freeze({
     lastWeek: lastWeek === null ? null : Object.freeze(lastWeek),
     lastSessionVolume,
     lastVariant: latest === undefined ? null : (ticked(latest).at(-1)?.variant ?? null),
     doneThisWeek,
+    doneThisSession: thisSession === undefined ? 0 : movementVolume(thisSession, exerciseId),
+    setsDoneThisSession:
+      thisSession === undefined
+        ? 0
+        : ticked(thisSession).reduce((total, m) => total + m.done.length, 0),
     recentAtTop,
     olderHistory:
       lastWeek === null &&
@@ -182,7 +202,9 @@ export function weeklyCap(lastVolume: number, step: number): number {
  * the bottom of the range (C76 "2 → 3 sessions") and is never above the top of the range, this
  * week's remaining share of the weekly cap, or the cap against the last session. A lighter session
  * has one set fewer at the bottom of the range; a change of version starts at the bottom of the
- * range. Stored volumes of 0 or less are read as no history, so stored data never throws.
+ * range. Sets already ticked in this session (a version switch part-way) count toward all of
+ * these, and only the sets still to do are suggested. Stored volumes of 0 or less are read as no
+ * history, so stored data never throws.
  */
 export function suggestDose(input: DoseInput): DoseSuggestion {
   const { mode, min, max, step, variant, history, remainingOccurrences } = input;
@@ -221,21 +243,28 @@ export function suggestDose(input: DoseInput): DoseSuggestion {
   const newVariant = history.lastVariant !== null && history.lastVariant !== variant;
   if (newVariant || mode === 'lighter') budget = Math.min(budget, sets * units(min));
 
-  const count = budget > 0 ? Math.min(sets, budget) : 0;
-  const base = count > 0 ? Math.floor(budget / count) : 0;
+  // What is left of this session's amount for the sets still to do.
+  const setsLeft = Math.max(0, sets - Math.max(0, history.setsDoneThisSession));
+  let left = Math.max(0, budget - Math.ceil(Math.max(0, history.doneThisSession) / step));
+  left = Math.min(left, setsLeft * units(max));
+  if (newVariant || mode === 'lighter') left = Math.min(left, setsLeft * units(min));
+
+  const count = left > 0 ? Math.min(setsLeft, left) : 0;
+  const base = count > 0 ? Math.floor(left / count) : 0;
   const perSet = Array.from(
     { length: count },
-    (_, i) => (base + (i < budget - base * count ? 1 : 0)) * step,
+    (_, i) => (base + (i < left - base * count ? 1 : 0)) * step,
   );
 
   let reason: DoseReason;
   if (budget === 0) reason = 'week-reached';
+  else if (left === 0) reason = 'session-done';
   else if (mode === 'lighter') reason = 'lighter';
   else if (newVariant) reason = 'new-variant';
   else if (lastWeek === null && history.olderHistory) reason = 'restart';
   else if (lastWeek?.weeksAgo === 2) reason = 'hold';
   else if (budget < sets * units(min)) reason = 'capped';
-  else if (count === sets && perSet.every((v) => v === units(max) * step)) reason = 'top';
+  else if (count === setsLeft && perSet.every((v) => v === units(max) * step)) reason = 'top';
   else if (lastWeek === null) reason = 'start';
   else reason = 'progress';
 

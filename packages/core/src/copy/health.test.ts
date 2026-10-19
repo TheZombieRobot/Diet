@@ -382,6 +382,16 @@ describe('Move copy (item 26)', () => {
       expect(move.safety.stopRules.body).toContain(flag);
     }
     expect(move.safety.stopRules.emergency).toContain(helpNumbers.emergency.number);
+    expect(move.safety.stopRules.title).toBe('Stop signs');
+  });
+
+  it('ruling 9: the recent stop-sign line names the day, Healthline and 111; the jog switch never claims to change the plan', () => {
+    expect(move.preCheck.recentStopSign).toContain('On {day} ');
+    expect(move.preCheck.recentStopSign).toContain(helpNumbers.healthline.number);
+    expect(move.preCheck.recentStopSign).toContain(`Call ${helpNumbers.emergency.number}`);
+    expect(move.jog.toggle.hint).toContain('with Change weekly plan');
+    expect(move.jog.toggle.hint).not.toMatch(/^Adds/);
+    expect(move.jog.toggle.hint).toContain('never required');
   });
 
   it('every check question, week problem and start problem has its words, in order; required sentences are kept', () => {

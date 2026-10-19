@@ -7,7 +7,7 @@
 import type { PreCheck, SessionRecord } from '../storage/records';
 import type { LocalDate } from '../util/time';
 import { MOVE_LIMITS } from './constants';
-import { templateById } from './lookup';
+import { exerciseById, templateById } from './lookup';
 import { anyYes } from './preCheck';
 import { compareSessions, movementVolume } from './progression';
 import type { ExerciseData, TemplateKind } from './types';
@@ -82,13 +82,28 @@ export function toleratedWalkCount(
   return new Set(toleratedWalkDates(data, ordered(sessions, today))).size;
 }
 
+/** Ticked seconds of jog-tagged exercises (the beach jog), whatever the row's template. */
+function jogSeconds(data: ExerciseData, row: SessionRecord): number {
+  const jogIds = new Set(
+    row.movements
+      .map((m) => m.exerciseId)
+      .filter((id) => exerciseById(data, id)?.tags.includes('jog') === true),
+  );
+  return [...jogIds].reduce((total, id) => total + movementVolume(row, id), 0);
+}
+
 /**
  * Off: 'off-few' below four tolerated walks, 'off-ready' from four (jogging is never switched on
- * for the owner). On: 'on-few' below four; from four, 'paused' when the latest real jog was not
- * tolerated and no tolerated walk is dated after it, otherwise 'unlocked'. A real jog is a done
- * jog session after an all-no check with jog seconds ticked. It was not tolerated when effort or
- * soreness is above 3 or not rated, or the next check shows pain or back or leg symptoms; with no
- * later check yet it is judged on its ratings alone.
+ * for the owner). On: 'on-few' below four; from four, 'paused' when a jog was not tolerated and
+ * no tolerated walk is dated after it, otherwise 'unlocked'.
+ *
+ * A jog is any row with beach-jog seconds ticked, whatever its status, template or check (a
+ * lighter jog included; cross-item ruling 10). It was not tolerated when effort or soreness is
+ * above 3 or not rated, or the next check shows pain or back or leg symptoms; with no later check
+ * yet it is judged on its ratings alone. A jog never finished on an earlier day has no ratings,
+ * so it was not tolerated: stopping part-way pauses jogging. Only an unfinished jog dated today
+ * is left out, so it can still be resumed and rated. A later tolerated jog never clears an
+ * earlier one that was not: only a tolerated walk does.
  */
 export function jogStatus(
   data: ExerciseData,
@@ -106,21 +121,23 @@ export function jogStatus(
   if (!input.jogOptIn) return result(enough ? 'off-ready' : 'off-few');
   if (!enough) return result('on-few');
 
-  const lastJog = rows
+  const tolerated = (jog: SessionRecord) => {
+    const next = nextCheck(rows, jog);
+    return (
+      jog.status === 'done' &&
+      ratedEasy(jog.exertion) &&
+      ratedEasy(jog.soreness) &&
+      (next === null || noPainNext(next))
+    );
+  };
+  const lastBadJog = rows
     .filter(
       (s) =>
-        s.status === 'done' &&
-        s.preCheck !== null &&
-        !anyYes(s.preCheck) &&
-        (mainSeconds(data, s, 'jog') ?? 0) > 0,
+        jogSeconds(data, s) > 0 && (s.status === 'done' || s.date < input.today) && !tolerated(s),
     )
     .at(-1);
-  if (lastJog === undefined) return result('unlocked');
-  const next = nextCheck(rows, lastJog);
-  const tolerated =
-    ratedEasy(lastJog.exertion) &&
-    ratedEasy(lastJog.soreness) &&
-    (next === null || noPainNext(next));
-  if (tolerated || walkDates.some((date) => date > lastJog.date)) return result('unlocked');
+  if (lastBadJog === undefined || walkDates.some((date) => date > lastBadJog.date)) {
+    return result('unlocked');
+  }
   return result('paused');
 }

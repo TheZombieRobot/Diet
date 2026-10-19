@@ -1,9 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import type { SessionRecord, WeeklyPatternDay } from '../storage/records';
+import type { ReadinessGates } from '../storage/readiness';
+import type {
+  PreCheck,
+  SessionMovement,
+  SessionRecord,
+  WeeklyPatternDay,
+} from '../storage/records';
 import type { LocalDate } from '../util/time';
 import { getExerciseData } from './dataset';
 import { sessionStartGate, sessionWriteProblem, type StartGate } from './start';
-import { movement, session } from './testSessions';
+import { ALL_NO, check, movement, session } from './testSessions';
 import {
   checkWeeklyPattern,
   type DayState,
@@ -59,6 +65,18 @@ describe('the weekly plan (EX-05)', () => {
       { ...DEFAULT, 1: [JOG], 2: [A, JOG] },
       true,
       ['jog-limit', 'jog-on-strength-day'],
+    ],
+    [
+      'jogs on Monday, Wednesday and Saturday, none beside another, unlocked',
+      { 1: [JOG], 2: [A], 3: [JOG], 5: [B], 6: [JOG] },
+      true,
+      ['jog-limit'],
+    ],
+    [
+      'a walk and a jog on Saturday, unlocked',
+      { ...DEFAULT, 6: [WALK, JOG] },
+      true,
+      ['day-too-full'],
     ],
     [
       'the default week with an unknown session on Monday',
@@ -149,15 +167,43 @@ describe('the week view: rest is never a failure', () => {
 
 describe('the start gate: every way into a session (RD-05, EX-05)', () => {
   const threeSessions = resolveWeeklyPattern(data, week({ 2: [A], 4: [C], 6: [B] }), locked);
-  const workMonToFri = ['2000-01-17', '2000-01-18', '2000-01-19', '2000-01-20', '2000-01-21'].map(
-    (date, i) => done(10 + i, date, WALK),
-  );
-  it.each<[string, Partial<Parameters<typeof sessionStartGate>[1]>, StartGate]>([
-    [
-      'RD-05: readiness answer 6 without the GP confirmation',
-      { gates: { exercisePlansAvailable: false } },
-      { kind: 'blocked' },
-    ],
+  const jogWeek = resolveWeeklyPattern(data, week({ ...DEFAULT, 3: [JOG], 7: [JOG] }), {
+    jogUnlocked: true,
+  });
+  const walkDays = (dates: LocalDate[]) => dates.map((date, i) => done(10 + i, date, WALK));
+  const workMonToFri = walkDays([
+    '2000-01-17',
+    '2000-01-18',
+    '2000-01-19',
+    '2000-01-20',
+    '2000-01-21',
+  ]);
+  const jog = (n: number, date: LocalDate) =>
+    session(n, {
+      date,
+      templateId: JOG,
+      movements: [movement('seed:ex-beach-jog', 'standard', [30], { unit: 'seconds' })],
+    });
+  const today = (n: number, more: Partial<SessionRecord>) =>
+    session(n, { date: '2000-01-18', templateId: A, status: 'planned', ...more });
+  const restedWithPain = today(1, { status: 'rested', preCheck: check('painOrInjury') });
+  const lighterNoTicks = today(2, { preCheck: check('heavyWorkDay') });
+  type Change = Partial<Parameters<typeof sessionStartGate>[1]>;
+  const ready = { kind: 'ready', steps: ['stopRules', 'preCheck'] } as const;
+  const gate = (change: Change) =>
+    sessionStartGate(data, {
+      gates: { exercisePlansAvailable: true },
+      templateId: A,
+      today: '2000-01-18',
+      week: defaultWeek,
+      jogUnlocked: false,
+      sessions: [],
+      equipment: BODYWEIGHT,
+      sessionId: null,
+      ...change,
+    });
+
+  it.each<[string, Change, StartGate]>([
     [
       'B on Tuesday, not planned that day',
       { templateId: B },
@@ -172,8 +218,51 @@ describe('the start gate: every way into a session (RD-05, EX-05)', () => {
       { kind: 'refused', problem: 'jog-locked' },
     ],
     [
+      'A again after resting with a pain answer this morning',
+      { sessions: [restedWithPain] },
+      { kind: 'refused', problem: 'earlier-yes' },
+    ],
+    [
+      'A again after a lighter heavy-work-day row with no ticks',
+      { sessions: [lighterNoTicks] },
+      { kind: 'refused', problem: 'earlier-yes' },
+    ],
+    [
+      'resuming that rested row itself',
+      { sessions: [restedWithPain], sessionId: restedWithPain.id },
+      ready,
+    ],
+    [
+      "resuming today's own row with ticked sets",
+      {
+        sessions: [today(3, { movements: [movement('seed:ex-squat', 'standard', [8])] })],
+        sessionId: today(3, {}).id,
+      },
+      ready,
+    ],
+    [
       'A on Tuesday after C on Monday',
       { sessions: [done(1, '2000-01-17', C)] },
+      { kind: 'refused', problem: 'back-to-back' },
+    ],
+    [
+      "A on Tuesday with Monday's C row passed as the row being resumed",
+      { sessions: [done(1, '2000-01-17', C)], sessionId: done(1, '2000-01-17', C).id },
+      { kind: 'refused', problem: 'back-to-back' },
+    ],
+    [
+      "A on Tuesday with B's row from earlier that day passed as the row being resumed",
+      { sessions: [done(1, '2000-01-18', B)], sessionId: done(1, '2000-01-18', B).id },
+      { kind: 'refused', problem: 'already-today' },
+    ],
+    [
+      'A on Tuesday with strength already logged on Wednesday',
+      { sessions: [done(1, '2000-01-19', B)] },
+      { kind: 'refused', problem: 'back-to-back' },
+    ],
+    [
+      'A on Tuesday after a session the dataset no longer holds, with squats, on Monday',
+      { sessions: [done(1, '2000-01-17', 'seed:session-gone')] },
       { kind: 'refused', problem: 'back-to-back' },
     ],
     [
@@ -182,9 +271,47 @@ describe('the start gate: every way into a session (RD-05, EX-05)', () => {
       { kind: 'refused', problem: 'already-today' },
     ],
     [
-      'the Saturday walk after work Monday to Friday',
-      { templateId: WALK, today: '2000-01-22', sessions: workMonToFri },
-      { kind: 'refused', problem: 'rest-days' },
+      'the Saturday walk after a walk earlier that day',
+      { templateId: WALK, today: '2000-01-22', sessions: walkDays(['2000-01-22']) },
+      { kind: 'refused', problem: 'already-today' },
+    ],
+    [
+      'the Wednesday jog after a jog on Tuesday',
+      {
+        templateId: JOG,
+        today: '2000-01-19',
+        week: jogWeek,
+        jogUnlocked: true,
+        sessions: [jog(1, '2000-01-18')],
+      },
+      { kind: 'refused', problem: 'jog-limit' },
+    ],
+    [
+      'the Sunday jog after jogs on Monday and Thursday',
+      {
+        templateId: JOG,
+        today: '2000-01-23',
+        week: jogWeek,
+        jogUnlocked: true,
+        sessions: [jog(1, '2000-01-17'), jog(2, '2000-01-20')],
+      },
+      { kind: 'refused', problem: 'jog-limit' },
+    ],
+    [
+      'the Wednesday jog after strength earlier that day',
+      {
+        templateId: JOG,
+        today: '2000-01-19',
+        week: jogWeek,
+        jogUnlocked: true,
+        sessions: [done(1, '2000-01-19', C)],
+      },
+      { kind: 'refused', problem: 'jog-on-strength-day' },
+    ],
+    [
+      'A on Tuesday after a jog earlier that day',
+      { jogUnlocked: true, sessions: [jog(1, '2000-01-18')] },
+      { kind: 'refused', problem: 'jog-on-strength-day' },
     ],
     [
       'B on Saturday after strength on Monday, Wednesday and Thursday',
@@ -196,28 +323,56 @@ describe('the start gate: every way into a session (RD-05, EX-05)', () => {
       },
       { kind: 'refused', problem: 'strength-count' },
     ],
-    ['A on Tuesday with nothing else', {}, { kind: 'ready', steps: ['stopRules', 'preCheck'] }],
-  ])('%s', (_label, change, gate) => {
-    expect(
-      sessionStartGate(data, {
-        gates: { exercisePlansAvailable: true },
-        templateId: A,
-        today: '2000-01-18',
-        week: defaultWeek,
-        jogUnlocked: false,
-        sessions: [],
-        equipment: BODYWEIGHT,
-        sessionId: null,
-        ...change,
-      }),
-    ).toEqual(gate);
+    [
+      'B on Monday after strength on Tuesday, Thursday and Saturday the week before (the ISO week)',
+      {
+        templateId: B,
+        today: '2000-01-24',
+        week: resolveWeeklyPattern(data, week({ 1: [B], 3: [A], 5: [C] }), locked),
+        sessions: [done(1, '2000-01-18', A), done(2, '2000-01-20', B), done(3, '2000-01-22', C)],
+      },
+      { kind: 'ready', steps: ['stopRules', 'painFreeOnly', 'preCheck'] },
+    ],
+    [
+      'the Saturday walk after work Monday to Friday',
+      { templateId: WALK, today: '2000-01-22', sessions: workMonToFri },
+      { kind: 'refused', problem: 'rest-days' },
+    ],
+    [
+      'ruling 11: A on Tuesday after walks Thursday to Monday, across two ISO weeks',
+      {
+        sessions: walkDays(['2000-01-13', '2000-01-14', '2000-01-15', '2000-01-16', '2000-01-17']),
+      },
+      { kind: 'refused', problem: 'rest-days' },
+    ],
+    ['A on Tuesday with nothing else', {}, ready],
+  ])('%s', (_label, change, expected) => {
+    expect(gate(change)).toEqual(expected);
   });
 
-  it('nothing with work is written without a pre-session check; resting without it is fine', () => {
+  it.each<[string, Change]>([
+    ['A on Tuesday', {}],
+    ['B on Tuesday, not planned', { templateId: B }],
+    ['a session the dataset does not hold', { templateId: 'seed:session-gone' }],
+    ['a jog while locked', { templateId: JOG }],
+    ['A after a pain answer today', { sessions: [restedWithPain] }],
+    ['A after C on Monday', { sessions: [done(1, '2000-01-17', C)] }],
+    ['A after B earlier that day', { sessions: [done(1, '2000-01-18', B)] }],
+    ['resuming a row', { sessions: [restedWithPain], sessionId: restedWithPain.id }],
+  ])('RD-05: readiness answer 6 without the GP confirmation blocks first: %s', (_label, change) => {
+    expect(gate({ ...change, gates: { exercisePlansAvailable: false } })).toEqual({
+      kind: 'blocked',
+    });
+    const missing = {} as Pick<ReadinessGates, 'exercisePlansAvailable'>;
+    expect(gate({ ...change, gates: missing })).toEqual({ kind: 'blocked' });
+  });
+
+  it('nothing with work is written without a pre-session check, and a row after a yes holds only the lighter session', () => {
     const base = { date: '2000-01-18', templateId: A, preCheck: null };
-    expect(sessionWriteProblem(session(1, { ...base, status: 'done' }))).toBe('no-pre-check');
+    expect(sessionWriteProblem(data, session(1, { ...base, status: 'done' }))).toBe('no-pre-check');
     expect(
       sessionWriteProblem(
+        data,
         session(2, {
           ...base,
           status: 'planned',
@@ -225,6 +380,23 @@ describe('the start gate: every way into a session (RD-05, EX-05)', () => {
         }),
       ),
     ).toBe('no-pre-check');
-    expect(sessionWriteProblem(session(3, { ...base, status: 'rested' }))).toBeNull();
+    expect(sessionWriteProblem(data, session(3, { ...base, status: 'rested' }))).toBeNull();
+
+    const afterYes = (preCheck: PreCheck, ...movements: SessionMovement[]) =>
+      sessionWriteProblem(data, session(4, { ...base, templateId: B, preCheck, movements }));
+    const march = movement('seed:ex-march', 'standard', [150], { unit: 'seconds' });
+    expect(
+      afterYes(check('heatOrSun'), march, movement('seed:ex-squat', 'easier', [8])),
+    ).toBeNull();
+    expect(afterYes(check('heatOrSun'), movement('seed:ex-squat', 'harder', [12, 12]))).toBe(
+      'lighter-only',
+    );
+    expect(afterYes(check('heavyWorkDay'), movement('seed:ex-row', 'dumbbell', [12]))).toBe(
+      'lighter-only',
+    );
+    expect(afterYes(check('backOrLegSymptoms'), movement('seed:ex-hip-hinge', 'easier', [8]))).toBe(
+      'lighter-only',
+    );
+    expect(afterYes(ALL_NO, movement('seed:ex-squat', 'harder', [12, 12]))).toBeNull();
   });
 });

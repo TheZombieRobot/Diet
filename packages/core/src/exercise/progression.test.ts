@@ -19,6 +19,8 @@ const NO_HISTORY: VolumeHistory = {
   lastSessionVolume: null,
   lastVariant: null,
   doneThisWeek: 0,
+  doneThisSession: 0,
+  setsDoneThisSession: 0,
   recentAtTop: 0,
   olderHistory: false,
 };
@@ -118,6 +120,63 @@ describe('EX-03, C76: a suggestion never adds more than about 10% a week', () =>
         history: { lastVariant: 'standard', lastWeek: week1(24), lastSessionVolume: 24 },
       },
       { perSet: [8], weeklyCap: 26, reason: 'lighter', next: null },
+    ],
+    [
+      'HS-29: a lighter session at the same version stays at the bottom of the range, with no next version',
+      {
+        mode: 'lighter',
+        variant: 'easier',
+        nextCandidate: 'standard',
+        history: {
+          lastVariant: 'easier',
+          lastWeek: week1(24),
+          lastSessionVolume: 24,
+          recentAtTop: 2,
+        },
+      },
+      { perSet: [8], weeklyCap: 26, reason: 'lighter', next: null },
+    ],
+    [
+      'a version switch after one ticked set of 9: the session stays within 17',
+      {
+        variant: 'easier',
+        history: {
+          lastVariant: 'standard',
+          lastWeek: week1(16),
+          lastSessionVolume: 16,
+          doneThisSession: 9,
+          setsDoneThisSession: 1,
+        },
+      },
+      { perSet: [7], weeklyCap: 17, reason: 'new-variant', next: null },
+    ],
+    [
+      'a version switch after one ticked set of 5: the set left starts at the bottom of the range',
+      {
+        variant: 'easier',
+        history: {
+          lastVariant: 'standard',
+          lastWeek: week1(16),
+          lastSessionVolume: 16,
+          doneThisSession: 5,
+          setsDoneThisSession: 1,
+        },
+      },
+      { perSet: [8], weeklyCap: 17, reason: 'new-variant', next: null },
+    ],
+    [
+      "a switch once this session's amount is ticked",
+      {
+        variant: 'easier',
+        history: {
+          lastVariant: 'standard',
+          lastWeek: week1(16),
+          lastSessionVolume: 16,
+          doneThisSession: 17,
+          setsDoneThisSession: 2,
+        },
+      },
+      { perSet: [], weeklyCap: 17, reason: 'session-done', next: null },
     ],
   ])('%s', (_label, input, expected) => {
     expect(dose(input)).toEqual(expected);
@@ -276,10 +335,39 @@ describe('the history behind a suggestion (squat, 2 × 8–12, today Wednesday 2
       { reason: 'hold', perSet: [8, 8] },
     ],
     [
-      'the row being planned is left out',
-      [squat(1, '2000-01-19', [12, 12])],
+      'the row being re-planned is left out of the history, and its ticks are this session',
+      [squat(1, '2000-01-19', [12, 12], { status: 'planned' })],
       { exclude: '00000000-0000-4000-8000-000000000001' },
-      { doneThisWeek: 0 },
+      { doneThisWeek: 0, lastSessionVolume: null, doneThisSession: 24, setsDoneThisSession: 2 },
+      null,
+    ],
+    [
+      'sessions dated after today are left out',
+      [squat(1, '2000-01-20', [12, 12])],
+      {},
+      { doneThisWeek: 0, lastSessionVolume: null },
+      null,
+    ],
+    [
+      'a harder squat 2000-01-04, read on Sunday 2000-01-23: still in the window',
+      [
+        squat(1, '2000-01-04', [8, 8], {
+          movements: [movement('seed:ex-squat', 'harder', [8, 8])],
+        }),
+      ],
+      { today: '2000-01-23' },
+      { lastWeek: { volume: 16, weeksAgo: 2 }, lastVariant: 'harder', olderHistory: false },
+      null,
+    ],
+    [
+      'the same squat read on Monday 2000-01-24: restarts, version included',
+      [
+        squat(1, '2000-01-04', [8, 8], {
+          movements: [movement('seed:ex-squat', 'harder', [8, 8])],
+        }),
+      ],
+      { today: '2000-01-24' },
+      { lastWeek: null, lastSessionVolume: null, lastVariant: null, olderHistory: true },
       null,
     ],
     [
@@ -306,6 +394,31 @@ describe('the history behind a suggestion (squat, 2 × 8–12, today Wednesday 2
     [
       'one set below the top breaks the run',
       [squat(1, '2000-01-11', [12, 12]), squat(2, '2000-01-13', [12, 11])],
+      {},
+      { recentAtTop: 0 },
+      null,
+    ],
+    [
+      'an unfinished session at the top does not count',
+      [squat(1, '2000-01-11', [12, 12]), squat(2, '2000-01-13', [12, 12], { status: 'planned' })],
+      {},
+      { recentAtTop: 0 },
+      null,
+    ],
+    [
+      'the top at another version does not count',
+      [1, 2].map((n) =>
+        squat(n, `2000-01-1${n + 1}`, [], {
+          movements: [movement('seed:ex-squat', 'harder', [12, 12])],
+        }),
+      ),
+      {},
+      { recentAtTop: 0 },
+      null,
+    ],
+    [
+      'one set at the top is not the whole session',
+      [squat(1, '2000-01-11', [12]), squat(2, '2000-01-13', [12])],
       {},
       { recentAtTop: 0 },
       null,

@@ -7,7 +7,7 @@
  * imported or out-of-date plan cannot bypass them), and at every Start on the week actually done
  * (start.ts). A rest day is a day with no session; a walk day is not a rest day.
  */
-import type { SeedId } from '../storage/primitives';
+import type { Id, SeedId } from '../storage/primitives';
 import type { SessionRecord, WeeklyPatternDay } from '../storage/records';
 import { addDays, type IsoWeekday, isoWeekdayOf, type LocalDate, weekStartOf } from '../util/time';
 import { MOVE_LIMITS } from './constants';
@@ -63,6 +63,22 @@ const hasTicks = (row: SessionRecord): boolean => row.movements.some((m) => m.do
 /** "Work" on a session row: status done, or at least one ticked set. */
 export function sessionHasWork(row: SessionRecord): boolean {
   return row.status === 'done' || hasTicks(row);
+}
+
+/**
+ * The row being resumed or re-planned: the stored row with this id, only when it is dated today
+ * and holds this template. Anything else (a row from before midnight, another session, a missing
+ * id) gives null, so a wrong id never takes a row out of the weekly counts or the history.
+ */
+export function resumedRow(
+  sessions: readonly SessionRecord[],
+  sessionId: Id | null,
+  today: LocalDate,
+  templateId: string,
+): SessionRecord | null {
+  if (sessionId === null) return null;
+  const row = sessions.find((s) => s.id === sessionId);
+  return row !== undefined && row.date === today && row.templateId === templateId ? row : null;
 }
 
 /** The days Monday first, or null unless there are 7 with weekdays 1–7 once each. */

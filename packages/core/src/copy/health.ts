@@ -1341,6 +1341,8 @@ export const move = {
     painFreeOnly: {
       title: 'Only if pain-free',
       body: 'Do this movement only if it is pain-free. If it hurts at all, leave it out today.',
+      /** Before Start: {names} are painFreeOnlyExercises(...) names (start.ts), so the note names its movements. */
+      inSession: 'In this session: {names}.',
     },
     beachPrompts: {
       title: 'At the beach',
@@ -1376,12 +1378,24 @@ export const move = {
     allNo: `${general.readinessOutcome} You can start the planned session, or choose the lighter session or rest.`,
     anyYes: 'You answered yes, so today it is the lighter session or rest. Both count.',
     painFirst:
-      'With pain or back or leg symptoms, rest comes first. The lighter session also leaves out the hip hinge; leave out anything that hurts.',
+      'With pain or back or leg symptoms, rest comes first. The lighter session also leaves out any movement marked "Only if pain-free"; leave out anything that hurts.',
     heavyWork:
       'On a heavy physical work day, the lighter session is the plan, not a fallback, and it counts in full.',
     fasted:
       'Exercising while fasted is allowed; choose a lighter session and break the fast afterwards if the plan says so.',
     eatFirst: "You can also eat first. It's fine to widen the window.",
+    /**
+     * A Kickstart stop-sign answer in the last 336 hours (cross-item ruling 9); in place of allNo.
+     * {day} is that answer's local day.
+     */
+    recentStopSign: `On {day} you told the app about dizziness, palpitations, cramps or feeling faint, so today it is the lighter session or rest. Talk to Healthline (${helpNumbers.healthline.number}) or your GP if it continues. Call ${helpNumbers.emergency.number} if you faint or feel very unwell.`,
+    /**
+     * A running fast past 24 hours (ruling 9): the HEALTH_SAFETY.md section 3 sentence, word for
+     * word, then "It's fine to eat now.", in place of allNo and fasted. When item 15 lands, its
+     * fasting.card.overCeiling and fineToEat hold the same words.
+     */
+    overCeiling:
+      "Fasts over 24 hours are outside what this app supports. Break the fast if you feel unwell, and talk to a GP before fasting this long again. It's fine to eat now.",
     notDiagnosis:
       'The app does not diagnose injuries and cannot tell you that exercise is right for you. If pain or symptoms keep coming back, talk to your GP.',
   },
@@ -1392,7 +1406,7 @@ export const move = {
     skip: 'Rest instead',
   },
   lighter:
-    'Lighter session: the easier version of each movement and one set fewer. The warm-up and cool-down stay.',
+    'Lighter session: the easier version of each movement, at the bottom of its range, with one set fewer where there is more than one. The warm-up and cool-down stay.',
   structure: {
     warmUp: 'Warm-up, 5 minutes',
     main: 'Main part',
@@ -1419,6 +1433,9 @@ export const move = {
     hold: 'Last week had only lighter sessions or rest for this movement, so this week stays at the amount of the week before, with no increase.',
     weekReached:
       "This week's amount for this movement is done. You can still log it if you do more.",
+    /** After a version change part-way through a session, when its ticked sets already hold this session's amount. */
+    sessionDone:
+      "This session's amount for this movement is done. You can still log it if you do more.",
     newVariant: 'New version, so it starts at the bottom of the range.',
     tryNext:
       'Top of the range in your last two sessions. Next time you could try {variant}, starting again at the bottom of the range.',
@@ -1438,10 +1455,12 @@ export const move = {
       'After your last jog, effort or soreness was above 3 or not rated, or the next check showed pain or back or leg symptoms. The beach walk is shown again until one more tolerated walk.',
     tolerated:
       'A tolerated walk is a beach walk of at least {minutes} minutes, with every check before it answered no, effort and soreness rated 3 or less, and no pain or back or leg symptoms at your next check. At most one walk a day counts.',
+    /** With jog.optional when jogging is unlocked: turning it on never adds a jog by itself. */
+    addToPlan: 'To add a beach jog, use Change weekly plan.',
     shownAsWalk: 'Jogging is not on right now, so this day shows the beach walk.',
     toggle: {
       label: 'Beach jogging (optional)',
-      hint: 'Adds jog and walk intervals to the weekly plan once four tolerated walks are logged. Jogging is never required.',
+      hint: 'Once four tolerated walks are logged, you can add jog and walk intervals with Change weekly plan. Jogging is never required.',
     },
   },
   /** The weekly plan (HS section 6 programming rules; EX-05). In WEEK_PROBLEM_CODES order. */
@@ -1462,7 +1481,8 @@ export const move = {
       'strength-count': 'Plan 2 or 3 strength sessions a week.',
       'rest-days': 'Keep at least 2 rest days a week. Rest days are part of the plan.',
       'strength-back-to-back': 'Leave a day between strength sessions, Sunday to Monday included.',
-      'jog-locked': 'Jogging unlocks after four tolerated walks.',
+      'jog-locked':
+        'Jogging is not on right now. It needs your opt-in and four tolerated walks, and it pauses after a jog that was not tolerated.',
       'jog-limit': 'Jog on 2 days a week at most, and not two days in a row.',
       'jog-on-strength-day': 'Keep jog days and strength days apart.',
     },
@@ -1478,13 +1498,19 @@ export const move = {
         'Jogging is not on right now, so this jog cannot start. The beach walk is shown instead.',
       'not-planned-today':
         'This session is not planned for today. To change your training days, use Change weekly plan.',
+      'earlier-yes':
+        'Earlier today you answered yes on the check, so no other session starts today. You can still do the lighter session from that check, or rest. Both count.',
       'already-today':
         'Today already has a session like this one. The plan has at most one strength session and one beach session a day.',
       'back-to-back':
-        'Strength sessions need a rest day between them, so this one waits for another day.',
+        'Strength sessions need a day without strength between them, so this one cannot start today. To change your training days, use Change weekly plan.',
+      'jog-limit':
+        'Jogging is on 2 days a week at most, and not two days in a row, so this jog cannot start today.',
+      'jog-on-strength-day':
+        'Jog days and strength days stay apart, and today already has the other kind of session.',
       'strength-count': 'This week already has 3 strength sessions, the most the plan has.',
       'rest-days':
-        'This week already has 5 active days. The other 2 are rest days, and rest counts.',
+        'Today would be a sixth active day in 7 days in a row. At least 2 days in every 7 are rest days, and rest counts.',
     },
   },
   /** Card header chip (mock-up "Bodyweight"). */

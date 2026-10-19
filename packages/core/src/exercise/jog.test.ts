@@ -44,11 +44,25 @@ describe('C51: a tolerated walk', () => {
     expect(isToleratedWalk(data, walk(1, '2000-01-08', change), next)).toBe(tolerated);
   });
 
-  it('at most one walk a day counts', () => {
+  it('at most one walk a day counts; the next check is on a later day; a walk after today is not counted', () => {
     const sameDay = [1, 2, 3, 4].map((n) => walk(n, '2000-01-08'));
     expect(
       toleratedWalkCount(data, [...sameDay, restAfterCheck(5, '2000-01-11')], '2000-01-19'),
     ).toBe(1);
+    expect(
+      toleratedWalkCount(
+        data,
+        [walk(1, '2000-01-08'), restAfterCheck(2, '2000-01-08')],
+        '2000-01-19',
+      ),
+    ).toBe(0);
+    expect(
+      toleratedWalkCount(
+        data,
+        [walk(1, '2000-01-20'), restAfterCheck(2, '2000-01-21')],
+        '2000-01-19',
+      ),
+    ).toBe(0);
   });
 });
 
@@ -58,12 +72,20 @@ describe('UX 4d: beach jogging needs the opt-in and four tolerated walks', () =>
     ...Array.from({ length: k }, (_, i) => walk(i + 1, addDays('2000-01-03', i))),
     restAfterCheck(50, addDays('2000-01-03', k)),
   ];
-  const hardJog = session(60, {
-    date: '2000-01-09',
-    templateId: JOG,
-    movements: [movement('seed:ex-beach-jog', 'standard', [30, 30, 30], { unit: 'seconds' })],
-    exertion: 5,
-    soreness: 2,
+  const jogOn = (n: number, date: LocalDate, more: Partial<SessionRecord> = {}) =>
+    session(n, {
+      date,
+      templateId: JOG,
+      movements: [movement('seed:ex-beach-jog', 'standard', [30, 30, 30], { unit: 'seconds' })],
+      exertion: 2,
+      soreness: 2,
+      ...more,
+    });
+  const hardJog = jogOn(60, '2000-01-09', { exertion: 5 });
+  const unfinishedJog = jogOn(61, '2000-01-09', {
+    status: 'planned',
+    exertion: null,
+    soreness: null,
   });
   const walkAfter = [walk(70, '2000-01-10'), restAfterCheck(71, '2000-01-11')];
 
@@ -72,7 +94,109 @@ describe('UX 4d: beach jogging needs the opt-in and four tolerated walks', () =>
     ['opt-in off with 2', false, walks(2), 'off-few'],
     ['opt-in on with 3', true, walks(3), 'on-few'],
     ['opt-in on with 4', true, walks(4), 'unlocked'],
+    [
+      'then a jog rated effort 2 and soreness 2',
+      true,
+      [...walks(4), jogOn(60, '2000-01-09')],
+      'unlocked',
+    ],
     ['then a jog rated effort 5', true, [...walks(4), hardJog], 'paused'],
+    [
+      'then a jog rated soreness 5',
+      true,
+      [...walks(4), jogOn(60, '2000-01-09', { soreness: 5 })],
+      'paused',
+    ],
+    [
+      'then a jog rated 2 and 2 with pain at the next check',
+      true,
+      [
+        ...walks(4),
+        jogOn(60, '2000-01-09'),
+        session(62, {
+          date: '2000-01-10',
+          templateId: WALK,
+          status: 'rested',
+          preCheck: check('painOrInjury'),
+        }),
+      ],
+      'paused',
+    ],
+    [
+      'then a jog rated 2 and 2 with back or leg symptoms at the next check',
+      true,
+      [
+        ...walks(4),
+        jogOn(60, '2000-01-09'),
+        session(62, {
+          date: '2000-01-10',
+          templateId: WALK,
+          status: 'rested',
+          preCheck: check('backOrLegSymptoms'),
+        }),
+      ],
+      'paused',
+    ],
+    [
+      'ruling 10: then a jog stopped part-way on an earlier day, never rated, with a clear next check',
+      true,
+      [...walks(4), unfinishedJog, restAfterCheck(62, '2000-01-10')],
+      'paused',
+    ],
+    [
+      'ruling 10: an unfinished jog is unrated, whatever its rating fields hold',
+      true,
+      [
+        ...walks(4),
+        jogOn(61, '2000-01-09', { status: 'planned' }),
+        restAfterCheck(62, '2000-01-10'),
+      ],
+      'paused',
+    ],
+    [
+      'ruling 10: the same jog with pain at the next check',
+      true,
+      [
+        ...walks(4),
+        unfinishedJog,
+        session(62, {
+          date: '2000-01-10',
+          templateId: WALK,
+          status: 'rested',
+          preCheck: check('painOrInjury'),
+        }),
+      ],
+      'paused',
+    ],
+    [
+      'ruling 10: a jog in progress today can still be resumed',
+      true,
+      [...walks(4), jogOn(61, '2000-01-19', { status: 'planned', exertion: null, soreness: null })],
+      'unlocked',
+    ],
+    [
+      'then a tolerated walk on the same day as the hard jog',
+      true,
+      [...walks(4), hardJog, walk(70, '2000-01-09'), restAfterCheck(71, '2000-01-11')],
+      'paused',
+    ],
+    [
+      'then a lighter jog after a yes, rated 2 and 2: only a walk clears the pause',
+      true,
+      [
+        ...walks(4),
+        hardJog,
+        jogOn(63, '2000-01-12', { preCheck: check('heatOrSun') }),
+        restAfterCheck(64, '2000-01-13'),
+      ],
+      'paused',
+    ],
+    [
+      'then a lighter jog after a yes, rated effort 5',
+      true,
+      [...walks(4), jogOn(63, '2000-01-12', { preCheck: check('heatOrSun'), exertion: 5 })],
+      'paused',
+    ],
     [
       'then one more tolerated walk after it',
       true,

@@ -61,3 +61,12 @@ export function nextVariantFor(exercise: Exercise, key: VariantKey): VariantKey 
 export function variantOf(exercise: Exercise, key: VariantKey): Variant | null {
   return exercise.variants[key];
 }
+
+/**
+ * The form cues to show with a version: its own when it has them (the dumbbell shoulder press is
+ * not a pike push-up), otherwise the exercise's. The movement row always shows these, never
+ * exercise.cues directly.
+ */
+export function cuesFor(exercise: Exercise, key: VariantKey): readonly string[] {
+  return exercise.variants[key]?.cues ?? exercise.cues;
+}

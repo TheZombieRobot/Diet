@@ -66,8 +66,9 @@ ExerciseDataError.prototype.name = 'ExerciseDataError';
  * Wording the dataset's visible text may not use (item 26 design M3, M4). Safety wording (pain,
  * stopping, symptoms, professionals) belongs in health.ts `move`; marketing words and the names of
  * well-known programmes stay out because the content is written in-house. Checked only against
- * the exercise name and cues, each variant's name and how-to line, and the template name, short
- * label and summary: never against ids or keys, so `stopRules` and `painFreeOnly` do not trip it.
+ * the exercise name and cues, each variant's name, how-to line and cues, and the template name,
+ * short label and summary: never against ids or keys, so `stopRules` and `painFreeOnly` do not
+ * trip it.
  * The repository scan (`pnpm scan`) already runs the health and commerce phrase rules on the file.
  */
 export const DATASET_WORDING_BANS: readonly RegExp[] = Object.freeze([
@@ -77,7 +78,8 @@ export const DATASET_WORDING_BANS: readonly RegExp[] = Object.freeze([
   /\bshortness\s+of\s+breath\b/i,
   /\b(?:stop\w*|warning|caution|careful|danger\w*|risk\w*)\b/i,
   /\b(?:burn\w*|fat|calories?|kcal|kilojoules?|tone|toning|sculpt\w*|detox\w*|blast\w*|punish\w*|no\s+excuses|beast)\b/i,
-  /\b(?:couch\s+to\s+5k|c25k|5\s*x\s*5|tabata|crossfit|p90x|starting\s+strength|7[\s-]minute\s+workout)\b/i,
+  // Spaces or hyphens between words: "Couch-to-5K" is the usual written form.
+  /\b(?:couch[\s-]+to[\s-]+5k|c25k|5\s*x\s*5|tabata|crossfit|p90x|starting[\s-]+strength|7[\s-]+minute[\s-]+workout|stronglifts)\b/i,
 ]);
 
 // ---- The shapes after pass 1. Value domains not yet checked stay wide (strings, numbers). ----
@@ -86,6 +88,7 @@ interface ParsedVariant {
   readonly name: string;
   readonly how: string;
   readonly perSide: boolean;
+  readonly cues: readonly string[] | null;
 }
 
 interface ParsedExercise {
@@ -143,7 +146,7 @@ const EXERCISE_KEYS = [
   'cues',
   'variants',
 ] as const;
-const VARIANT_FIELDS = ['name', 'how', 'perSide'] as const;
+const VARIANT_FIELDS = ['name', 'how', 'perSide', 'cues'] as const;
 const TEMPLATE_KEYS = [
   'id',
   'name',
@@ -257,6 +260,7 @@ function parseVariant(value: unknown, path: string, problems: Problems): void {
       expect(isString(v['name']), 'name');
       expect(isString(v['how']), 'how');
       expect(typeof v['perSide'] === 'boolean', 'perSide');
+      expect(v['cues'] === null || isStringArray(v['cues']), 'cues');
     },
     VARIANT_FIELDS,
   );
@@ -362,17 +366,22 @@ function wording(text: string, path: string, problems: Problems): void {
   if (DATASET_WORDING_BANS.some((ban) => ban.test(text))) problems.add(path, 'wording');
 }
 
+/** 2–3 form cues, each Text 1–90 ending in ".", with no banned wording. */
+function cueRules(cues: readonly string[], path: string, problems: Problems): void {
+  if (cues.length < 2 || cues.length > 3) problems.add(path, 'text');
+  cues.forEach((cue, i) => {
+    if (!isText(cue, 1, 90) || !cue.endsWith('.')) problems.add(at(path, i), 'text');
+    wording(cue, at(path, i), problems);
+  });
+}
+
 function exerciseRules(e: ParsedExercise, path: string, problems: Problems): void {
   if (!EXERCISE_ID_RE.test(e.id) || !isSeedId(e.id)) problems.add(at(path, 'id'), 'id');
 
   // text and wording
   if (!isText(e.name, 1, 40)) problems.add(at(path, 'name'), 'text');
   wording(e.name, at(path, 'name'), problems);
-  if (e.cues.length < 2 || e.cues.length > 3) problems.add(at(path, 'cues'), 'text');
-  e.cues.forEach((cue, i) => {
-    if (!isText(cue, 1, 90) || !cue.endsWith('.')) problems.add(at(at(path, 'cues'), i), 'text');
-    wording(cue, at(at(path, 'cues'), i), problems);
-  });
+  cueRules(e.cues, at(path, 'cues'), problems);
   const variantNames = new Set<string>();
   for (const key of VARIANT_KEYS) {
     const variant = e.variants[key];
@@ -390,6 +399,7 @@ function exerciseRules(e: ParsedExercise, path: string, problems: Problems): voi
     if (!isText(variant.how, 1, 140)) problems.add(at(variantPath, 'how'), 'text');
     wording(variant.name, at(variantPath, 'name'), problems);
     wording(variant.how, at(variantPath, 'how'), problems);
+    if (variant.cues !== null) cueRules(variant.cues, at(variantPath, 'cues'), problems);
   }
 
   // variants: equipment versions only where the movement itself needs no equipment (C112)
@@ -476,7 +486,8 @@ const sameDose = (a: ParsedSlot, b: ParsedSlot): boolean =>
   a.sets === b.sets &&
   a.min === b.min &&
   a.max === b.max &&
-  a.restSeconds === b.restSeconds;
+  a.restSeconds === b.restSeconds &&
+  a.onlyWith === b.onlyWith;
 
 const startVariantOf = (e: ParsedExercise, slot: ParsedSlot): ParsedVariant | null =>
   slot.startVariant === 'easier' || slot.startVariant === 'standard'
@@ -584,16 +595,15 @@ function crossRules(data: ParsedData, problems: Problems): void {
       }
     }
 
-    // full-body: lower, upper and core, and a lighter session never empty
+    // full-body: lower, upper and core with bodyweight only (the default; the toggles only add
+    // slots), and a lighter session never empty
     if (t.kind === 'strength') {
       const main = t.main.flatMap((slot) => {
         const e = byId.get(slot.exerciseId);
-        return e === undefined ? [] : [{ slot, e }];
+        return e === undefined || slot.onlyWith !== null ? [] : [e];
       });
-      const groups = new Set(main.map(({ e }) => e.group));
-      const always = main.filter(
-        ({ slot, e }) => slot.onlyWith === null && !e.safetyKeys.includes('painFreeOnly'),
-      );
+      const groups = new Set(main.map((e) => e.group));
+      const always = main.filter((e) => !e.safetyKeys.includes('painFreeOnly'));
       if (
         !groups.has('lower') ||
         !groups.has('upper') ||
@@ -630,14 +640,11 @@ function crossRules(data: ParsedData, problems: Problems): void {
     problems.add('templates', 'template-set');
   }
 
-  // default-week (EX-05): seven days, the plan rules, two strength sessions and no jog
+  // default-week (EX-05): seven days, the plan rules (an unknown id is their 'unknown-template'),
+  // two strength sessions and no jog. The plan rules run as if jogging were unlocked, so the
+  // no-jog check below is the one that keeps jogs out.
   const weekdays = defaultWeek.map((d) => d.weekday).sort((a, b) => a - b);
-  const templateIds = new Set(templates.map((t) => t.id));
-  if (
-    weekdays.length !== 7 ||
-    weekdays.some((d, i) => d !== i + 1) ||
-    defaultWeek.some((d) => d.templateIds.some((id) => !templateIds.has(id)))
-  ) {
+  if (weekdays.length !== 7 || weekdays.some((d, i) => d !== i + 1)) {
     problems.add('defaultWeek', 'default-week');
     return;
   }
@@ -645,8 +652,8 @@ function crossRules(data: ParsedData, problems: Problems): void {
     d.templateIds.map((id) => templates.find((t) => t.id === id)?.kind),
   );
   if (
-    checkWeeklyPattern(data as unknown as ExerciseData, defaultWeek, { jogUnlocked: false })
-      .length > 0 ||
+    checkWeeklyPattern(data as unknown as ExerciseData, defaultWeek, { jogUnlocked: true }).length >
+      0 ||
     kinds.filter((k) => k === 'strength').length !== MOVE_LIMITS.strengthPerWeek.min ||
     kinds.includes('jog')
   ) {

@@ -18,17 +18,20 @@
         "easier": {
           "name": "Slow march with support",
           "how": "Hold a chair back or bench and march slowly with low knees.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "standard": {
           "name": "March on the spot",
           "how": "Lift your knees to a comfortable height and swing your arms.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "harder": {
           "name": "High-knee march",
           "how": "Lift each knee toward hip height and swing your arms with it.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "band": null,
         "dumbbell": null
@@ -51,17 +54,20 @@
         "easier": {
           "name": "Slow walk",
           "how": "Walk slowly with short, relaxed steps.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "standard": {
           "name": "Easy walk",
           "how": "Walk at a relaxed pace on firm, level ground or firm sand.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "harder": {
           "name": "Easy walk with arm swings",
           "how": "Walk at a relaxed pace and swing your arms a little wider.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "band": null,
         "dumbbell": null
@@ -84,17 +90,20 @@
         "easier": {
           "name": "Seated ankle circles",
           "how": "Sit on a chair, lift one foot a little and circle the ankle.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "standard": {
           "name": "Standing ankle circles",
           "how": "Hold a support, lift one foot a little and circle the ankle.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "harder": {
           "name": "Ankle circles, light support",
           "how": "Stand on one leg with fingertips on a wall and circle the other ankle.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "band": null,
         "dumbbell": null
@@ -110,24 +119,27 @@
       "tags": [],
       "safetyKeys": ["stopRules"],
       "cues": [
-        "Turn from the middle of your back and let your head follow your hand.",
+        "Turn from the middle of your back and let your head turn with you.",
         "Breathe out as you turn, and keep the movement slow."
       ],
       "variants": {
         "easier": {
           "name": "Seated rotation",
           "how": "Sit tall with arms crossed over your chest and turn gently to one side.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "standard": {
           "name": "Side-lying open book",
           "how": "Lie on your side, knees bent and arms out in front, and open the top arm across to the other side.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "harder": {
           "name": "Open book with a hold",
           "how": "Do the open book and hold the open position for 3 seconds each time.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "band": null,
         "dumbbell": null
@@ -150,17 +162,20 @@
         "easier": {
           "name": "Bent-knee calf stretch",
           "how": "Hands on a wall, one foot a short step back, and bend the back knee a little.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "standard": {
           "name": "Wall calf stretch",
           "how": "Hands on a wall, one foot back with the leg straight, and lean forward.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "harder": {
           "name": "Long-stance calf stretch",
           "how": "As the wall calf stretch, with the back foot further from the wall.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "band": null,
         "dumbbell": null
@@ -183,17 +198,20 @@
         "easier": {
           "name": "Standing hip flexor stretch",
           "how": "Hold a chair in a split stance, bend the front knee and tuck your tailbone.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "standard": {
           "name": "Half-kneeling hip flexor stretch",
           "how": "Kneel on one knee on a cushion, other foot in front, and shift your hips forward.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "harder": {
           "name": "Half-kneeling stretch with reach",
           "how": "In the half-kneeling stretch, reach the arm on the kneeling side up overhead.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "band": null,
         "dumbbell": null
@@ -217,17 +235,20 @@
         "easier": {
           "name": "Sit-to-stand",
           "how": "Sit fully on a sturdy chair, then stand up; press on your thighs with your hands if you need to.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "standard": {
           "name": "Squat to a chair",
           "how": "Lower until you lightly touch the chair seat, then stand without sitting down.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "harder": {
           "name": "Bodyweight squat",
           "how": "Squat without the chair, taking 3 seconds to lower.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "band": null,
         "dumbbell": null
@@ -251,17 +272,20 @@
         "easier": {
           "name": "Supported split squat",
           "how": "Hold a wall or chair back and lower only part of the way.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "standard": {
           "name": "Split squat",
           "how": "Stand in a split stance and lower your back knee toward the floor, then rise.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "harder": {
           "name": "Reverse lunge",
           "how": "Step one foot back into the split squat, then step it forward again to stand.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "band": null,
         "dumbbell": null
@@ -285,17 +309,20 @@
         "easier": {
           "name": "Short bridge",
           "how": "Lift your hips only part of the way, then lower.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "standard": {
           "name": "Glute bridge",
           "how": "Lift your hips until your shoulders, hips and knees are in a line.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "harder": {
           "name": "Single-leg bridge",
           "how": "Lift with one foot on the floor and the other leg straight out; do both sides.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "band": null,
         "dumbbell": null
@@ -313,23 +340,26 @@
       "cues": [
         "Rise onto the balls of your feet, then lower slowly.",
         "Keep your ankles straight, not rolling out.",
-        "Hold a wall or rail lightly for balance."
+        "If standing, hold a wall or rail lightly for balance."
       ],
       "variants": {
         "easier": {
           "name": "Seated calf raise",
           "how": "Sit on a chair and lift your heels as high as you can.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "standard": {
           "name": "Calf raise",
           "how": "Stand on level ground, lightly holding a wall, and rise on both feet.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "harder": {
           "name": "Single-leg calf raise",
           "how": "Rise on one foot while holding a wall; do both sides.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "band": null,
         "dumbbell": null
@@ -353,17 +383,20 @@
         "easier": {
           "name": "Low step-up",
           "how": "Use the bottom stair or a low step and hold the rail.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "standard": {
           "name": "Step-up",
           "how": "Step onto a stair or sturdy step about shin height, holding a rail if there is one.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "harder": {
           "name": "Step-up with slow lowering",
           "how": "Step up, then take 3 seconds to step back down.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "band": null,
         "dumbbell": null
@@ -387,17 +420,20 @@
         "easier": {
           "name": "Hands-on-thighs hinge",
           "how": "Slide your hands down your thighs to just above your knees, then stand tall.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "standard": {
           "name": "Hip hinge to a box",
-          "how": "Stand in front of a box or chair seat and hinge until your hands touch it, then stand tall.",
-          "perSide": false
+          "how": "Stand in front of a box or chair seat and hinge toward it, only as far as your back stays long, then stand tall.",
+          "perSide": false,
+          "cues": null
         },
         "harder": {
           "name": "Slow hip hinge",
-          "how": "Hinge to the box, taking 3 seconds on the way down.",
-          "perSide": false
+          "how": "Hinge toward the box, only as far as your back stays long, taking 3 seconds on the way down.",
+          "perSide": false,
+          "cues": null
         },
         "band": null,
         "dumbbell": null
@@ -421,17 +457,20 @@
         "easier": {
           "name": "Wall push-up",
           "how": "Hands on a wall at shoulder height, feet a step back.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "standard": {
           "name": "Incline push-up",
           "how": "Hands on a sturdy bench, bench top or rail about hip height.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "harder": {
           "name": "Kneeling push-up",
           "how": "Hands on the floor and knees down, with your body straight from head to knees.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "band": null,
         "dumbbell": null
@@ -453,25 +492,33 @@
       ],
       "variants": {
         "easier": {
-          "name": "Incline pike push-up",
-          "how": "Hands on a sturdy bench or step, feet on the floor, hips high.",
-          "perSide": false
+          "name": "Benchtop pike push-up",
+          "how": "Hands on a kitchen benchtop or table edge at about hip height, feet back and hips high.",
+          "perSide": false,
+          "cues": null
         },
         "standard": {
-          "name": "Pike push-up",
-          "how": "Hands and feet on the floor, hips high.",
-          "perSide": false
+          "name": "Incline pike push-up",
+          "how": "Hands on a sturdy bench, or a chair seat with its back to a wall, feet on the floor and hips high.",
+          "perSide": false,
+          "cues": null
         },
         "harder": {
-          "name": "Slow pike push-up",
-          "how": "As the pike push-up, taking 3 seconds to lower.",
-          "perSide": false
+          "name": "Slow incline pike push-up",
+          "how": "As the incline pike push-up, taking 3 seconds to lower.",
+          "perSide": false,
+          "cues": null
         },
         "band": null,
         "dumbbell": {
           "name": "Dumbbell shoulder press",
           "how": "Sit tall and press two dumbbells from shoulder height to overhead.",
-          "perSide": false
+          "perSide": false,
+          "cues": [
+            "Sit tall with your feet flat and your back against the chair.",
+            "Keep your ribs down so your lower back stays still.",
+            "Press up, not forward, then lower to shoulder height slowly."
+          ]
         }
       }
     },
@@ -492,28 +539,33 @@
       "variants": {
         "easier": {
           "name": "High-rail row",
-          "how": "Use a strong, firmly fixed rail at chest height, so your body is nearly upright.",
-          "perSide": false
+          "how": "Use a strong rail fixed to a wall or post at chest height (not a table, chair or broom), so you are nearly upright.",
+          "perSide": false,
+          "cues": null
         },
         "standard": {
           "name": "Inverted row on a rail",
-          "how": "Hold a strong, firmly fixed bar or rail at waist height that will hold your full weight, lean back and pull yourself in.",
-          "perSide": false
+          "how": "Hold a rail fixed to a wall or post at waist height that holds your full weight (not a table, chair or broom), lean back and pull in.",
+          "perSide": false,
+          "cues": null
         },
         "harder": {
           "name": "Low-rail row",
-          "how": "Use a strong, firmly fixed rail at hip height or lower, with your feet further forward.",
-          "perSide": false
+          "how": "Use a strong rail fixed to a wall or post at hip height or lower (not a table, chair or broom), feet further forward.",
+          "perSide": false,
+          "cues": null
         },
         "band": {
           "name": "Band row",
           "how": "Loop a band around a strong, fixed post at chest height and pull the ends toward you.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "dumbbell": {
           "name": "One-arm dumbbell row",
           "how": "One hand and knee on a bench, pull the dumbbell toward your hip; do both sides.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         }
       }
     },
@@ -535,17 +587,20 @@
         "easier": {
           "name": "Wide-grip pull-apart",
           "how": "Hold the band with your hands further apart, so it pulls less.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "standard": {
           "name": "Band pull-apart",
           "how": "Hold the band with your hands shoulder-width apart.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "harder": {
           "name": "Pull-apart with a pause",
           "how": "Hold the band apart for 2 seconds before you return.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "band": null,
         "dumbbell": null
@@ -569,17 +624,20 @@
         "easier": {
           "name": "Heel taps",
           "how": "Keep your arms still and lower one heel to tap the floor, then the other.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "standard": {
           "name": "Dead bug",
           "how": "Lower the opposite arm and leg toward the floor, then return; alternate sides.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "harder": {
           "name": "Slow dead bug",
           "how": "As the dead bug, taking 3 seconds to reach out.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "band": null,
         "dumbbell": null
@@ -603,17 +661,20 @@
         "easier": {
           "name": "One-limb bird-dog",
           "how": "Reach out one arm or one leg at a time.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "standard": {
           "name": "Bird-dog",
           "how": "Reach the opposite arm and leg out straight, then return; alternate sides.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "harder": {
           "name": "Bird-dog with a hold",
           "how": "Hold each reach for 3 seconds.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "band": null,
         "dumbbell": null
@@ -629,7 +690,7 @@
       "tags": [],
       "safetyKeys": ["stopRules"],
       "cues": [
-        "Elbows under your shoulders.",
+        "Elbows under or just in front of your shoulders.",
         "Keep one straight line from your head to your heels or knees.",
         "Breathe steadily the whole time."
       ],
@@ -637,17 +698,20 @@
         "easier": {
           "name": "Kneeling plank",
           "how": "Forearms and knees on the floor.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "standard": {
           "name": "Front plank",
           "how": "Forearms and toes on the floor.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "harder": {
           "name": "Long plank",
           "how": "As the front plank, with your elbows a little in front of your shoulders.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "band": null,
         "dumbbell": null
@@ -671,17 +735,20 @@
         "easier": {
           "name": "Kneeling side plank",
           "how": "Forearm and knees on the floor, knees bent behind you.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "standard": {
           "name": "Side plank",
           "how": "Forearm and the sides of your feet on the floor, one foot in front of the other.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "harder": {
           "name": "Stacked side plank",
           "how": "As the side plank, with one foot on top of the other.",
-          "perSide": true
+          "perSide": true,
+          "cues": null
         },
         "band": null,
         "dumbbell": null
@@ -704,17 +771,20 @@
         "easier": {
           "name": "Easy walk on firm sand",
           "how": "Walk at a relaxed pace on firm sand.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "standard": {
           "name": "Brisk walk on firm sand",
           "how": "Walk briskly on firm, wet sand near the waterline.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "harder": {
-          "name": "Soft-sand walk",
-          "how": "Walk on softer, dry sand, which works your calves harder.",
-          "perSide": false
+          "name": "Walk with soft-sand stretches",
+          "how": "Walk on firm sand and spend 2 to 3 minutes on softer sand near the middle of the walk.",
+          "perSide": false,
+          "cues": null
         },
         "band": null,
         "dumbbell": null
@@ -737,17 +807,20 @@
         "easier": {
           "name": "Brisk walk intervals",
           "how": "Walk briskly instead of jogging, with easy walking in between.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "standard": {
           "name": "Easy jog on firm sand",
           "how": "Jog gently on firm, wet sand, then walk until the next jog.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "harder": {
           "name": "Steady jog on firm sand",
           "how": "Jog a little quicker while you can still talk.",
-          "perSide": false
+          "perSide": false,
+          "cues": null
         },
         "band": null,
         "dumbbell": null
@@ -1074,7 +1147,7 @@
         },
         {
           "exerciseId": "seed:ex-front-plank",
-          "startVariant": "standard",
+          "startVariant": "easier",
           "sets": 2,
           "min": 20,
           "max": 40,
@@ -1083,7 +1156,7 @@
         },
         {
           "exerciseId": "seed:ex-side-plank",
-          "startVariant": "standard",
+          "startVariant": "easier",
           "sets": 2,
           "min": 15,
           "max": 30,

@@ -33,6 +33,12 @@ export interface Variant {
   readonly how: string;
   /** Reps or seconds are per side. */
   readonly perSide: boolean;
+  /**
+   * This version's own 2–3 form cues, in place of the exercise's, or null to use the exercise's.
+   * Set where the version is a different movement (the dumbbell shoulder press). Read through
+   * cuesFor (variants.ts).
+   */
+  readonly cues: readonly string[] | null;
 }
 
 export interface Exercise {
@@ -48,7 +54,7 @@ export interface Exercise {
   readonly tags: readonly ExerciseTag[];
   /** The first is always 'stopRules' (EX-01 "stop-rule link"). */
   readonly safetyKeys: readonly MoveSafetyKey[];
-  /** 2–3 form cues, each Text 1–90 ending in ".". */
+  /** 2–3 form cues, each Text 1–90 ending in "."; they fit every version without its own cues. */
   readonly cues: readonly string[];
   readonly variants: {
     readonly easier: Variant;
