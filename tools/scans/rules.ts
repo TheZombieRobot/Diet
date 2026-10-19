@@ -655,6 +655,61 @@ export const networkRules: readonly ContentRule[] = [
 export const NETWORK_ALLOWED_FILES: readonly string[] = [];
 
 /**
+ * The service worker's build settings (HS-14, TR-11). The page's Content Security Policy does not
+ * cover the service worker, and GitHub Pages cannot send it one, so its settings in
+ * apps/<app>/vite.config.ts must not make it load code or fetch files from anywhere else: no
+ * extra scripts, no absolute URLs in the offline copy, and no caching of requests at run time.
+ * e2e/build-output.spec.ts checks the built sw.js as well.
+ */
+export const serviceWorkerConfigRules: readonly ContentRule[] = [
+  rule(
+    'sw-import-scripts',
+    ['HS-14', 'TR-11'],
+    'importScripts in the service worker settings (it loads code the page policy cannot see)',
+    /\bimportScripts\b/,
+  ),
+  rule(
+    'sw-absolute-manifest-entry',
+    ['HS-14', 'TR-11'],
+    'an absolute or protocol-relative URL in additionalManifestEntries (the offline copy would fetch it)',
+    /\badditionalManifestEntries\s*:\s*\[[^\]]*?(?:[a-z][a-z\d+.-]*:)?\/\//i,
+  ),
+  rule(
+    'sw-runtime-caching',
+    ['HS-14', 'TR-11'],
+    'runtimeCaching other than [] (the service worker would fetch and cache requests at run time)',
+    /\bruntimeCaching\s*:(?!\s*\[\s*\])/,
+  ),
+];
+
+/**
+ * Health text lives only in packages/core/src/copy/health.ts (checklist conventions), where it is
+ * scanned and reviewed in one place. Screens and the design system import it from there, so their
+ * own visible text (string literals and JSX text, not comments) never writes a help number, names
+ * a help line or names a health professional.
+ */
+export const healthTextHomeRules: readonly ContentRule[] = [
+  rule(
+    'health-text-help-number',
+    ['conventions', 'HS-13'],
+    'a help-line number written outside health.ts (111, 0800 611 116, 0800 787 797, 8681, 1737)',
+    /(?<![\d.,])(?:111|1737|8681|0800[\s-]?611[\s-]?116|0800[\s-]?787[\s-]?797)(?![\d]|[.,]\d)/,
+  ),
+  rule(
+    'health-text-service',
+    ['conventions', 'HS-13'],
+    'a help line or health professional named outside health.ts',
+    /\b(?:help[\s-]?lines?|healthline|clinicians?|dieti[ct]ians?|midwi(?:fe|ves)|pharmacists?)\b/i,
+  ),
+  rule(
+    'health-text-gp',
+    ['conventions', 'HS-13'],
+    '"GP" written outside health.ts (case-sensitive)',
+    /\bGPs?\b/,
+  ),
+];
+
+/**
  * AI SDKs: banned in the dependency tree and in imports (no AI calls at runtime). Entries ending
  * in "/" or "-" are prefixes (a whole npm scope, or a family of packages); anything else must
  * match the package name exactly.
@@ -708,7 +763,7 @@ export const aiAndTelemetryRules: readonly ContentRule[] = [
     'remote-asset',
     ['HEALTH_SAFETY-7'],
     'fonts, icons or scripts fetched from a CDN (they must be bundled)',
-    /https?:\/\/(?:fonts\.googleapis\.com|fonts\.gstatic\.com|cdn\.jsdelivr\.net|unpkg\.com|cdnjs\.cloudflare\.com|use\.typekit\.net|kit\.fontawesome\.com|www\.googletagmanager\.com|www\.google-analytics\.com)/i,
+    /https?:\/\/(?:fonts\.googleapis\.com|fonts\.gstatic\.com|cdn\.jsdelivr\.net|unpkg\.com|cdnjs\.cloudflare\.com|use\.typekit\.net|kit\.fontawesome\.com|www\.googletagmanager\.com|www\.google-analytics\.com|storage\.googleapis\.com\/workbox-cdn)/i,
   ),
 ];
 

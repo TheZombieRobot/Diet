@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { alcohol, healthCopy, helpNumbers } from './health';
+import { alcohol, general, healthCopy, helpNumbers } from './health';
 
 /** Every string inside a copy section, with its path for readable failures. */
 function strings(value: unknown, path: string): [string, string][] {
@@ -16,7 +16,13 @@ function strings(value: unknown, path: string): [string, string][] {
  */
 const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
   helpNumbers: [],
-  general: [/\byou(?:'re|\s+are)\s+safe\b/i],
+  general: [
+    /\byou(?:'re|\s+are)\s+safe\b/i,
+    // The privacy note says plainly what happens to the records, with no blanket promises.
+    /\b(?:100\s*%|completely|totally|fully|perfectly)\s+(?:private|secure|safe|anonymous)\b/i,
+    /\banonymous(?:ly)?\b/i,
+    /\bsecure\b/i,
+  ],
   // HEALTH_SAFETY.md section 5, HS-19, NN-09, UX 5 "deliberately absent".
   alcohol: [
     /\bstreaks?\b/i,
@@ -62,14 +68,37 @@ describe('health copy', () => {
 
   it('help numbers match HEALTH_SAFETY.md exactly', () => {
     expect(helpNumbers).toEqual({
+      intro: 'Tap a number to call or text it.',
       emergency: { name: 'Emergency', number: '111' },
       healthline: { name: 'Healthline (24/7 health advice)', number: '0800 611 116' },
       alcoholDrugHelpline: {
         name: 'Alcohol Drug Helpline (24/7, free, confidential)',
         number: '0800 787 797',
         text: '8681',
+        textName: 'Alcohol Drug Helpline by text',
+        textDetail: 'Text 8681',
       },
-      needToTalk: { name: 'Need to Talk (free call or text)', number: '1737' },
+      needToTalk: {
+        name: 'Need to Talk (free call or text)',
+        number: '1737',
+        text: '1737',
+        textName: 'Need to Talk by text',
+        textDetail: 'Text 1737',
+      },
     });
+  });
+
+  it('each tap-to-text row names its service and shows its own text number', () => {
+    for (const service of [helpNumbers.alcoholDrugHelpline, helpNumbers.needToTalk]) {
+      expect(service.textDetail).toBe(`Text ${service.text}`);
+      expect(service.textName).toBe(`${service.name.replace(/\s*\(.*$/, '')} by text`);
+    }
+  });
+
+  it('the privacy note says records stay on the phone, with no account and no analytics', () => {
+    expect(general.privacy).toContain('stay on this phone');
+    expect(general.privacy).toContain('Send to laptop');
+    expect(general.privacy).toContain('encrypted');
+    expect(general.privacy).toContain('no account and no analytics');
   });
 });

@@ -1,10 +1,17 @@
 import { expect, test, type Request } from '@playwright/test';
-import { BASE_PATH, visitEveryScreen, waitForServiceWorkerControl } from './support/app';
+import {
+  BASE_PATH,
+  recordPolicyViolations,
+  visitEveryScreen,
+  waitForServiceWorkerControl,
+} from './support/app';
 
 // HS-14 / TR-11, as reworded by DOC_REVIEW C03: the phone app makes only GET requests to its own
 // origin for app files and update checks, with no query string or body built from user data.
 // (The relay origin, after "Send to laptop", arrives at checklist item 31.) context.on('request')
-// also sees the service worker's own requests, such as the offline copy being downloaded.
+// also sees the service worker's own requests, such as the offline copy being downloaded. A
+// request the Content Security Policy blocks never reaches the network log, so every policy
+// violation is recorded as well, and any one fails the audit.
 
 interface Seen {
   url: string;
@@ -52,6 +59,7 @@ test('online, every screen: requests go only to the app’s own origin', async (
 }) => {
   const seen: Seen[] = [];
   context.on('request', record(seen));
+  const violations = await recordPolicyViolations(context);
   await page.goto('./');
   await waitForServiceWorkerControl(page);
   await visitEveryScreen(page);
@@ -65,6 +73,7 @@ test('online, every screen: requests go only to the app’s own origin', async (
   // The audit sees the service worker's own downloads, not just the page's.
   expect(seen.some((s) => s.fromServiceWorker)).toBe(true);
   expectOnlyOwnOrigin(seen, appOrigin(baseURL));
+  expect(violations).toEqual([]);
 });
 
 test('offline, every screen: no request reaches the network at all', async ({
@@ -72,6 +81,7 @@ test('offline, every screen: no request reaches the network at all', async ({
   context,
   baseURL,
 }) => {
+  const violations = await recordPolicyViolations(context);
   await page.goto('./');
   await waitForServiceWorkerControl(page);
   await context.setOffline(true);
@@ -83,4 +93,25 @@ test('offline, every screen: no request reaches the network at all', async ({
   await visitEveryScreen(page);
   expectOnlyOwnOrigin(seen, appOrigin(baseURL));
   expect(failed).toEqual([]);
+  expect(violations).toEqual([]);
+});
+
+test('the audit sees a request the policy blocks', async ({ page, context }) => {
+  const violations = await recordPolicyViolations(context);
+  await page.goto('./');
+  await page.evaluate(() => {
+    const image = document.createElement('img');
+    image.src = 'https://example.com/diet-audit-probe.png';
+    document.body.append(image);
+  });
+  await expect
+    .poll(() => violations)
+    .toEqual([expect.stringMatching(/^img-src https:\/\/example\.com\b/)]);
+  await page.reload();
+  await page.evaluate(() => {
+    const image = document.createElement('img');
+    image.src = 'https://example.org/after-reload.png';
+    document.body.append(image);
+  });
+  await expect.poll(() => violations.length).toBe(2);
 });

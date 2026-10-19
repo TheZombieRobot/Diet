@@ -23,8 +23,8 @@ function InstallCard(): ReactElement {
         </>
       ) : (
         <p>
-          To install, open the browser menu and choose Install app or Add to Home screen. Chrome
-          offers this once the app has fully loaded.
+          If the app is already on your home screen, open it from there. Otherwise use the browser
+          menu and choose Install app.
         </p>
       )}
     </Card>

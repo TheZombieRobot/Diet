@@ -19,6 +19,12 @@ const tokens = parseColourTokens(
   readFileSync(new URL('../../packages/ui/src/styles/tokens.css', import.meta.url), 'utf8'),
 );
 const ground = requireToken(tokens, '--color-ground');
+/**
+ * The manifest has one colour for both themes (Android paints the launch screen and the task
+ * switcher from it before the app runs), so it uses the brand teal of the icon, which suits light
+ * and dark alike. The page's own theme-color tags still follow the phone's setting.
+ */
+const brandTeal = requireToken(tokens, '--color-teal').light;
 
 const DESCRIPTION =
   'A private logbook and planner for meals, fasting, movement, drinks and the grocery list. It works offline and keeps records on this device.';
@@ -100,8 +106,8 @@ export default defineConfig({
         start_url: base,
         scope: base,
         display: 'standalone',
-        theme_color: ground.light,
-        background_color: ground.light,
+        theme_color: brandTeal,
+        background_color: brandTeal,
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
@@ -115,7 +121,9 @@ export default defineConfig({
         // Hash routing means every navigation is index.html.
         navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,
-        // Nothing from any other origin is cached or fetched, and no Google Analytics.
+        // Nothing from any other origin is cached or fetched, and no Google Analytics. The scans
+        // (tools/scans/rules.ts, serviceWorkerConfigRules) keep this empty and allow no extra
+        // scripts or absolute URLs here; e2e/build-output.spec.ts checks the built sw.js.
         runtimeCaching: [],
         offlineGoogleAnalytics: false,
         sourcemap: false,

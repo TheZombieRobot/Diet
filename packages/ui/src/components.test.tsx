@@ -9,9 +9,11 @@ import {
   Card,
   currentThemePreference,
   FloatingActionButton,
+  FloatingActionPanel,
   IconButton,
   IconLink,
   OFFLINE_LABEL,
+  OFFLINE_NOT_READY_LABEL,
   OfflineIndicator,
   ONLINE_LABEL,
   TabBar,
@@ -57,7 +59,7 @@ function goOnline(): void {
 
 describe('OfflineIndicator', () => {
   it('flips between "Online" and "Offline, all saved" with the online and offline events', () => {
-    render(<OfflineIndicator />);
+    render(<OfflineIndicator offlineReady />);
     const pill = screen.getByRole('status');
     expect(pill).toHaveProperty('textContent', ONLINE_LABEL);
 
@@ -71,7 +73,16 @@ describe('OfflineIndicator', () => {
 
   it('starts offline when the browser already reports no connection', () => {
     online = false;
-    render(<OfflineIndicator />);
+    render(<OfflineIndicator offlineReady />);
+    expect(screen.getByRole('status').textContent).toBe(OFFLINE_LABEL);
+  });
+
+  it('says only "Offline" while the offline copy of the app is not saved yet', () => {
+    online = false;
+    const { rerender } = render(<OfflineIndicator offlineReady={false} />);
+    expect(screen.getByRole('status').textContent).toBe(OFFLINE_NOT_READY_LABEL);
+    expect(OFFLINE_NOT_READY_LABEL).toBe('Offline');
+    rerender(<OfflineIndicator offlineReady />);
     expect(screen.getByRole('status').textContent).toBe(OFFLINE_LABEL);
   });
 });
@@ -98,6 +109,16 @@ describe('TabBar', () => {
       expect(link.hasAttribute('aria-current')).toBe(false);
     }
   });
+
+  it('hands a plain tap to onSelect instead of following the link; a modified click follows it', () => {
+    const onSelect = vi.fn();
+    render(<TabBar items={TABS} current="today" onSelect={onSelect} />);
+    const food = screen.getByRole('link', { name: 'Food' });
+    expect(fireEvent.click(food)).toBe(false);
+    expect(onSelect).toHaveBeenCalledWith('food');
+    expect(fireEvent.click(food, { ctrlKey: true })).toBe(true);
+    expect(onSelect).toHaveBeenCalledOnce();
+  });
 });
 
 describe('icon-only controls carry an accessible name', () => {
@@ -106,7 +127,7 @@ describe('icon-only controls carry an accessible name', () => {
     render(
       <>
         <IconButton label="Dismiss" icon={<TodayIcon />} onClick={onClick} />
-        <IconLink label="Settings" href="#/settings" icon={<TodayIcon />} current />
+        <IconLink label="Settings" href="#/settings" icon={<TodayIcon />} current="page" />
         <FloatingActionButton label="Quick actions" />
       </>,
     );
@@ -144,7 +165,7 @@ describe('AppShell', () => {
         tabs={TABS}
         currentTab="food"
         settingsHref="#/settings"
-        settingsCurrent={false}
+        offlineReady
         banners={<Banner title="Update available" />}
         floatingAction={<FloatingActionButton label="Quick actions" />}
       >
@@ -158,6 +179,49 @@ describe('AppShell', () => {
     expect(within(screen.getByRole('main')).getByText('Update available')).toBeDefined();
     expect(screen.getByRole('link', { name: 'Food' }).getAttribute('aria-current')).toBe('page');
     expect(screen.getByRole('button', { name: 'Quick actions' })).toBeDefined();
+    expect(document.querySelector('.ui-shell')?.classList.contains('ui-shell--with-fab')).toBe(
+      true,
+    );
+    expect(screen.getByRole('heading', { level: 1 }).getAttribute('tabindex')).toBe('-1');
+  });
+
+  it('leaves no extra room at the bottom without a floating button', () => {
+    render(
+      <AppShell title="Food" tabs={TABS} currentTab="food" settingsHref="#/s" offlineReady>
+        <p>Screen</p>
+      </AppShell>,
+    );
+    expect(document.querySelector('.ui-shell')?.className).toBe('ui-shell');
+  });
+
+  it('marks the gear as the current page on Settings, and only as its section below it', () => {
+    const { rerender } = render(
+      <AppShell
+        title="Settings"
+        tabs={TABS}
+        currentTab={undefined}
+        settingsHref="#/settings"
+        settingsCurrent="page"
+        offlineReady
+      >
+        <p>Screen</p>
+      </AppShell>,
+    );
+    const gear = () => screen.getByRole('link', { name: 'Settings' });
+    expect(gear().getAttribute('aria-current')).toBe('page');
+    rerender(
+      <AppShell
+        title="About"
+        tabs={TABS}
+        currentTab={undefined}
+        settingsHref="#/settings"
+        settingsCurrent="section"
+        offlineReady
+      >
+        <p>Screen</p>
+      </AppShell>,
+    );
+    expect(gear().getAttribute('aria-current')).toBe('true');
   });
 
   it('flips the top-bar pill when the connection drops', () => {
@@ -167,16 +231,72 @@ describe('AppShell', () => {
         tabs={TABS}
         currentTab="today"
         settingsHref="#/settings"
-        settingsCurrent
+        offlineReady={false}
       >
         <p>Screen</p>
       </AppShell>,
     );
     goOffline();
-    expect(screen.getByRole('banner').textContent).toContain(OFFLINE_LABEL);
-    expect(screen.getByRole('link', { name: 'Settings' }).getAttribute('aria-current')).toBe(
-      'page',
+    expect(screen.getByRole('banner').textContent).toContain(OFFLINE_NOT_READY_LABEL);
+    expect(screen.getByRole('banner').textContent).not.toContain(OFFLINE_LABEL);
+    expect(screen.getByRole('link', { name: 'Settings' }).hasAttribute('aria-current')).toBe(false);
+  });
+});
+
+describe('FloatingActionPanel', () => {
+  function renderPanel() {
+    render(
+      <>
+        <p>Outside</p>
+        <FloatingActionPanel label="Quick actions">
+          <p>Panel text</p>
+          <button type="button">Inside</button>
+        </FloatingActionPanel>
+      </>,
     );
+    return screen.getByRole('button', { name: 'Quick actions' });
+  }
+
+  it('opens the panel after the "+" in the page and closes it again on a second tap', () => {
+    const plus = renderPanel();
+    expect(plus.getAttribute('aria-expanded')).toBe('false');
+    fireEvent.click(plus);
+    expect(plus.getAttribute('aria-expanded')).toBe('true');
+    const panel = document.getElementById(plus.getAttribute('aria-controls') ?? '');
+    expect(panel?.textContent).toContain('Panel text');
+    expect(plus.compareDocumentPosition(panel as Node) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    fireEvent.click(plus);
+    expect(plus.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('closes on Escape and returns focus to the "+"', () => {
+    const plus = renderPanel();
+    fireEvent.click(plus);
+    screen.getByRole('button', { name: 'Inside' }).focus();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(plus.getAttribute('aria-expanded')).toBe('false');
+    expect(document.activeElement).toBe(plus);
+  });
+
+  it('closes on a tap outside, but not on a tap inside the panel', () => {
+    const plus = renderPanel();
+    fireEvent.click(plus);
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'Inside' }));
+    expect(plus.getAttribute('aria-expanded')).toBe('true');
+    fireEvent.pointerDown(screen.getByText('Outside'));
+    expect(plus.getAttribute('aria-expanded')).toBe('false');
+    expect(document.activeElement).toBe(plus);
+  });
+
+  it('closes when the screen changes', () => {
+    const plus = renderPanel();
+    fireEvent.click(plus);
+    act(() => {
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    });
+    expect(plus.getAttribute('aria-expanded')).toBe('false');
   });
 });
 

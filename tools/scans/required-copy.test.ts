@@ -6,7 +6,8 @@ import { extensionRuleSets, RULE_SETS, scanSource, scanText } from './scan';
 // Sentences that HEALTH_SAFETY.md, UX_SCREENS.md, TEST_PLAN.md and INTEGRATION_FEASIBILITY.md
 // require the app to show, collected by a reviewer. The rules are strict, but they must never
 // block copy the docs require: each sentence is checked against every rule set, as plain text,
-// as JSX text in a screen and as a string in health.ts.
+// as JSX text in a screen and as a string in health.ts. (HEALTH_TEXT_HOME in scan.ts is not a
+// wording rule: it requires these sentences to live in health.ts, which it does not cover.)
 const required = JSON.parse(
   readFileSync(join(import.meta.dirname, 'required-copy.json'), 'utf8'),
 ) as string[];

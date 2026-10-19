@@ -14,12 +14,14 @@ import {
   extensionModeARules,
   extensionPendingPathRule,
   healthPhraseRules,
+  healthTextHomeRules,
   NETWORK_ALLOWED_FILES,
   networkRules,
   personalDataRules,
   personalPathRules,
   PRICE_FORMATTER_FILES,
   priceFormatRules,
+  serviceWorkerConfigRules,
   SSH_REMOTE_USERS,
   stockAndCartRules,
   type ContentRule,
@@ -59,6 +61,10 @@ const isWorkspace = (f: string) => /^(?:apps|packages|services)\//.test(f);
 const isCode = (f: string) => /\.(?:[cm]?[jt]sx?|html)$/.test(f);
 const isManifest = (f: string) => /(?:^|\/)manifest[^/]*\.json$/.test(f);
 const isPriceFormatter = (f: string) => PRICE_FORMATTER_FILES.includes(f);
+const isAppBuildConfig = (f: string) => /^apps\/[^/]+\/vite\.config\.[cm]?[jt]s$/.test(f);
+/** Screen and design-system source: the app's own code that a person sees the text of. */
+const isScreenSource = (f: string) =>
+  /^(?:apps\/[^/]+\/src|packages\/ui\/src)\/.+\.[cm]?[jt]sx?$/.test(f) && !isTestFile(f);
 
 /** Phrase rules cover everything a person could read, except the docs that define them and tests. */
 const wordingScope = (f: string) => !isDoc(f) && !isExempt(f) && !isTestData(f) && !isLockfile(f);
@@ -101,6 +107,12 @@ export const RULE_SETS: readonly RuleSet[] = [
       isWorkspace(f) && isCode(f) && !isTestFile(f) && !NETWORK_ALLOWED_FILES.includes(f),
   },
   {
+    name: 'service worker settings',
+    rules: serviceWorkerConfigRules,
+    text: 'raw',
+    appliesTo: isAppBuildConfig,
+  },
+  {
     name: 'AI services and remote assets',
     rules: aiAndTelemetryRules,
     text: 'raw',
@@ -113,6 +125,18 @@ export const RULE_SETS: readonly RuleSet[] = [
     appliesTo: (f) => isTestFile(f) && !DISABLED_TEST_EXEMPT_FILES.includes(f),
   },
 ];
+
+/**
+ * Health text stays in health.ts. Kept out of RULE_SETS, which holds the wording rules that
+ * required-copy.test.ts runs over the docs' required sentences: those sentences name help lines
+ * and the GP by design, and belong in health.ts, which this set does not cover.
+ */
+export const HEALTH_TEXT_HOME: RuleSet = {
+  name: 'health text outside health.ts',
+  rules: healthTextHomeRules,
+  text: 'visible',
+  appliesTo: (f) => isScreenSource(f) && !isExempt(f),
+};
 
 export const FEASIBILITY_DOC = 'docs/INTEGRATION_FEASIBILITY.md';
 
@@ -167,7 +191,7 @@ export function extensionPathRules(decision: ExtensionDecision): PathRule[] {
 }
 
 export function ruleSetsFor(root: string): RuleSet[] {
-  return [...RULE_SETS, ...extensionRuleSets(readExtensionDecision(root))];
+  return [...RULE_SETS, HEALTH_TEXT_HOME, ...extensionRuleSets(readExtensionDecision(root))];
 }
 
 export function pathRulesFor(root: string): PathRule[] {

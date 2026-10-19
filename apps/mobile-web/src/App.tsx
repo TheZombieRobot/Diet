@@ -7,7 +7,9 @@ import {
   TodayIcon,
   type TabItem,
 } from '@diet/ui';
-import { useEffect, type ReactElement } from 'react';
+import { useEffect, useRef, type ReactElement } from 'react';
+import { goToTab, markEntryAboveToday } from './navigation';
+import { offlineCopyStore } from './pwa/offline';
 import {
   isTabRoute,
   isUnderSettings,
@@ -26,6 +28,7 @@ import { QuickActions } from './screens/QuickActions';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { TodayScreen } from './screens/TodayScreen';
 import { UpdateBanner } from './screens/UpdateBanner';
+import { useStore } from './store';
 import { useRoute } from './useRoute';
 
 /** The name in the browser tab and the app switcher (the manifest's short_name). */
@@ -45,6 +48,8 @@ const TABS: readonly TabItem[] = TAB_ROUTES.map((id) => ({
   href: routeHref(id),
   icon: TAB_ICONS[id],
 }));
+
+const isTabId = (id: string): id is TabRouteId => (TAB_ROUTES as readonly string[]).includes(id);
 
 function screenFor(route: RouteId): ReactElement {
   switch (route) {
@@ -67,19 +72,36 @@ function screenFor(route: RouteId): ReactElement {
 
 export function App(): ReactElement {
   const route = useRoute();
+  const offlineCopy = useStore(offlineCopyStore);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const previousRoute = useRef<RouteId | undefined>(undefined);
 
   useEffect(() => {
     document.title = route === 'today' ? APP_NAME : `${ROUTE_TITLES[route]} · ${APP_NAME}`;
     document.documentElement.scrollTop = 0;
+    const previous = previousRoute.current;
+    previousRoute.current = route;
+    // On first render the browser decides where focus starts; after that, a new screen moves
+    // focus to its heading, so a screen reader announces it and Tab starts from the top.
+    if (previous === undefined || previous === route) return;
+    markEntryAboveToday(previous, route);
+    titleRef.current?.focus({ preventScroll: true });
   }, [route]);
 
   return (
     <AppShell
       title={ROUTE_TITLES[route]}
+      titleRef={titleRef}
       tabs={TABS}
       currentTab={isTabRoute(route) ? route : undefined}
+      onTabSelect={(id) => {
+        if (isTabId(id)) goToTab(id, route);
+      }}
       settingsHref={routeHref('settings')}
-      settingsCurrent={isUnderSettings(route)}
+      settingsCurrent={
+        route === 'settings' ? 'page' : isUnderSettings(route) ? 'section' : undefined
+      }
+      offlineReady={offlineCopy === 'ready'}
       banners={<UpdateBanner />}
       floatingAction={route === 'today' ? <QuickActions /> : undefined}
     >

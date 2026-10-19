@@ -41,6 +41,16 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   background: var(--color-ground);
+  /* A focused control is scrolled clear of the sticky top bar and the fixed tab bar. */
+  scroll-padding-top: calc(72px + env(safe-area-inset-top, 0px));
+  scroll-padding-bottom: calc(var(--size-tabbar) + env(safe-area-inset-bottom, 0px) + 16px);
+}
+
+/* Today: clear of the floating "+" as well. */
+html:has(.ui-shell--with-fab) {
+  scroll-padding-bottom: calc(
+    var(--size-tabbar) + env(safe-area-inset-bottom, 0px) + var(--size-fab) + 36px
+  );
 }
 
 body {

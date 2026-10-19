@@ -8,7 +8,8 @@ import {
   listenForInstallPrompt,
   type BeforeInstallPromptEvent,
 } from './pwa/install';
-import { requestPersistentStorage, storageStore } from './pwa/storage';
+import { markOfflineReady, offlineCopyStore } from './pwa/offline';
+import { askAgainWhenItMayHelp, requestPersistentStorage, storageStore } from './pwa/storage';
 import { markUpdateWaiting, setUpdateActivator, updateStore } from './pwa/update';
 import { ROUTE_TITLES, ROUTES, routeHref, TAB_ROUTES, type RouteId } from './routes';
 import { versionLabel } from './version';
@@ -35,6 +36,7 @@ afterEach(() => {
   installStore.set({ canPrompt: false, installed: false });
   installBannerDismissedStore.set(false);
   storageStore.set('checking');
+  offlineCopyStore.set('saving');
   window.location.hash = '';
 });
 
@@ -48,11 +50,12 @@ describe('every screen', () => {
       tabs.filter((t) => t.getAttribute('aria-current') === 'page').map((t) => t.textContent),
     ).toEqual((TAB_ROUTES as readonly string[]).includes(route) ? [ROUTE_TITLES[route]] : []);
     const gear = screen.getByRole('link', { name: 'Settings' });
+    // "page" only on Settings itself; About, reached from Settings, marks it as its section.
     expect(gear.getAttribute('aria-current')).toBe(
-      route === 'settings' || route === 'about' ? 'page' : null,
+      route === 'settings' ? 'page' : route === 'about' ? 'true' : null,
     );
     expect(within(screen.getByRole('banner')).getByRole('status').textContent).toMatch(
-      /^(Online|Offline, all saved)$/,
+      /^(Online|Offline, all saved|Offline)$/,
     );
   });
 
@@ -66,6 +69,43 @@ describe('every screen', () => {
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Drinks');
     expect(document.title).toBe('Drinks · Diet');
   });
+
+  it('moves focus to the new screen heading after a screen change, not on first render', async () => {
+    show('today');
+    const heading = () => screen.getByRole('heading', { level: 1 });
+    expect(document.activeElement).not.toBe(heading());
+    await act(async () => {
+      window.location.hash = routeHref('food');
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+      await Promise.resolve();
+    });
+    expect(heading().textContent).toBe('Food');
+    expect(document.activeElement).toBe(heading());
+  });
+
+  it('a tab tap switches screens through the app, not the plain link', async () => {
+    show('today');
+    const food = within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', {
+      name: 'Food',
+    });
+    await act(async () => {
+      expect(fireEvent.click(food)).toBe(false);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(window.location.hash).toBe(routeHref('food'));
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Food');
+  });
+
+  it('says "all saved" in the offline pill only once the offline copy is saved', () => {
+    vi.spyOn(window.navigator, 'onLine', 'get').mockReturnValue(false);
+    show('food');
+    const pill = () => within(screen.getByRole('banner')).getByRole('status').textContent;
+    expect(pill()).toBe('Offline');
+    act(() => {
+      markOfflineReady();
+    });
+    expect(pill()).toBe('Offline, all saved');
+  });
 });
 
 describe('placeholder screens (no sample data)', () => {
@@ -78,6 +118,27 @@ describe('placeholder screens (no sample data)', () => {
     expect(text).not.toMatch(/\d/);
     expect(text).not.toMatch(/[$€£]/);
   });
+
+  it.each(['today', 'settings'] as const)(
+    '%s shows no numbers or prices with the install offer and the "+" panel open',
+    (route) => {
+      stopListening = listenForInstallPrompt(window);
+      show(route);
+      act(() => {
+        window.dispatchEvent(installPromptEvent('dismissed'));
+      });
+      const plus = screen.queryByRole('button', { name: 'Quick actions' });
+      if (plus !== null) fireEvent.click(plus);
+      expect(screen.getAllByRole('button', { name: /Install app/ }).length).toBeGreaterThan(0);
+      expect(plus === null || plus.getAttribute('aria-expanded') === 'true').toBe(true);
+      expect(route === 'settings' || plus !== null).toBe(true);
+      // The "+" panel sits outside <main> (it floats over the screen), so read the whole page.
+      const text = document.body.textContent;
+      expect(text).toContain(route === 'today' ? 'Install this app' : 'Install app');
+      expect(text).not.toMatch(/\d/);
+      expect(text).not.toMatch(/[$€£]/);
+    },
+  );
 
   it('the "+" on Today opens and closes the quick actions note', () => {
     show('today');
@@ -103,24 +164,41 @@ describe('About (HS-13, About portion)', () => {
     expect(main().textContent).toContain(general.about);
   });
 
-  it('lists every help number as a link to call or text', () => {
+  it('lists every help number as a link to call or text, in the words of health.ts', () => {
     show('about');
-    const calls = [
-      helpNumbers.emergency.number,
-      helpNumbers.healthline.number,
-      helpNumbers.alcoholDrugHelpline.number,
-      helpNumbers.needToTalk.number,
-    ];
-    for (const number of calls) {
-      const link = within(main()).getByRole('link', { name: new RegExp(`${number}$`) });
-      expect(link.getAttribute('href')).toBe(`tel:${number.replace(/\s/g, '')}`);
-    }
-    const text = within(main()).getByRole('link', { name: /Text 8681$/ });
-    expect(text.getAttribute('href')).toBe(`sms:${helpNumbers.alcoholDrugHelpline.text}`);
-    for (const required of ['111', '0800 611 116', '0800 787 797']) {
+    const { intro, emergency, healthline, alcoholDrugHelpline, needToTalk } = helpNumbers;
+    expect(main().textContent).toContain(intro);
+    const links = within(main())
+      .getAllByRole('link')
+      .map((l) => [l.textContent, l.getAttribute('href')]);
+    expect(links).toEqual([
+      [`${emergency.number}${emergency.name} ${emergency.number}`, 'tel:111'],
+      [`${healthline.name} ${healthline.number}`, 'tel:0800611116'],
+      [`${alcoholDrugHelpline.name} ${alcoholDrugHelpline.number}`, 'tel:0800787797'],
+      [`${alcoholDrugHelpline.textName} ${alcoholDrugHelpline.textDetail}`, 'sms:8681'],
+      [`${needToTalk.name} ${needToTalk.number}`, 'tel:1737'],
+      [`${needToTalk.textName} ${needToTalk.textDetail}`, 'sms:1737'],
+    ]);
+    for (const required of ['111', '0800 611 116', '0800 787 797', 'Text 8681', 'Text 1737']) {
       expect(main().textContent).toContain(required);
     }
     expect(alcohol.firstRunNotice).toContain(helpNumbers.alcoholDrugHelpline.number);
+  });
+
+  it('has a Privacy card in the words of health.ts', () => {
+    show('about');
+    const card = within(main()).getByRole('region', { name: 'Privacy' });
+    expect(within(card).getByText(general.privacy).tagName).toBe('P');
+  });
+
+  it('says whether the offline copy is saved yet', () => {
+    show('about');
+    const fact = () => screen.getByTestId('offline-copy').textContent;
+    expect(fact()).toBe('Still saving the offline copy');
+    act(() => {
+      markOfflineReady();
+    });
+    expect(fact()).toBe('Ready to use offline');
   });
 
   it('marks only the 111 row as an emergency', () => {
@@ -158,6 +236,39 @@ describe('About (HS-13, About portion)', () => {
       expect(screen.getByTestId('storage-protection').textContent).toContain(shown);
     },
   );
+
+  it('asks again after the app is installed and on return while not protected', async () => {
+    const ask = vi.fn(() => Promise.resolve());
+    const page = Object.assign(new EventTarget(), { visibilityState: 'visible' as const });
+    const stop = askAgainWhenItMayHelp(page, ask);
+    storageStore.set('not-protected');
+    page.dispatchEvent(new Event('visibilitychange'));
+    expect(ask).toHaveBeenCalledTimes(1);
+    installStore.set({ canPrompt: false, installed: true });
+    expect(ask).toHaveBeenCalledTimes(2);
+    installStore.set({ canPrompt: false, installed: true });
+    expect(ask).toHaveBeenCalledTimes(2);
+    storageStore.set('protected');
+    page.dispatchEvent(new Event('visibilitychange'));
+    expect(ask).toHaveBeenCalledTimes(2);
+    stop();
+    storageStore.set('not-protected');
+    page.dispatchEvent(new Event('visibilitychange'));
+    expect(ask).toHaveBeenCalledTimes(2);
+    await Promise.resolve();
+  });
+
+  it('does not ask again while hidden, or when the browser has no storage API', () => {
+    const ask = vi.fn(() => Promise.resolve());
+    const page = Object.assign(new EventTarget(), { visibilityState: 'hidden' as const });
+    const stop = askAgainWhenItMayHelp(page, ask);
+    storageStore.set('not-protected');
+    page.dispatchEvent(new Event('visibilitychange'));
+    storageStore.set('unsupported');
+    installStore.set({ canPrompt: false, installed: true });
+    expect(ask).not.toHaveBeenCalled();
+    stop();
+  });
 
   it('reports a browser without the storage API', async () => {
     expect(await requestPersistentStorage({})).toBe('unsupported');
@@ -243,6 +354,14 @@ describe('install prompt', () => {
       await Promise.resolve();
     });
     expect(installStore.get().installed).toBe(false);
+  });
+
+  it('without a prompt, says to open the installed app or use the browser menu', () => {
+    stopListening = listenForInstallPrompt(window);
+    show('settings');
+    expect(screen.getByRole('region', { name: 'Install' }).textContent).toContain(
+      'If the app is already on your home screen, open it from there. Otherwise use the browser menu and choose Install app.',
+    );
   });
 
   it('says so when the app is already installed', () => {

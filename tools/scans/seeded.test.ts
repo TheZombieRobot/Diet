@@ -152,6 +152,48 @@ describe('seeded violations in a throwaway repository', () => {
     ['privacy UTF-16 text', 'packages/test-fixtures/src/notes.csv', utf16, 'first-person-health'],
     ['secrets .dev.vars', 'services/relay/.dev.vars', 'X=1\n', 'secret-file'],
     [
+      'HS-14 importScripts in the service worker settings',
+      'apps/mobile-web/vite.config.ts',
+      "export default { workbox: { importScripts: ['./extra-sw.js'], runtimeCaching: [] } };\n",
+      'sw-import-scripts',
+    ],
+    [
+      'HS-14 absolute URL in the offline copy',
+      'apps/mobile-web/vite.config.ts',
+      "export default {\n  workbox: {\n    additionalManifestEntries: [{ url: 'https://example.org/beacon.gif', revision: '1' }],\n  },\n};\n",
+      'sw-absolute-manifest-entry',
+    ],
+    [
+      'HS-14 run-time caching in the service worker',
+      'apps/mobile-web/vite.config.ts',
+      "export default { workbox: { runtimeCaching: [{ urlPattern: /x/, handler: 'CacheFirst' }] } };\n",
+      'sw-runtime-caching',
+    ],
+    [
+      'HEALTH_SAFETY-7 Workbox from its CDN',
+      'apps/mobile-web/index.html',
+      '<script src="https://storage.googleapis.com/workbox-cdn/releases/7.4.0/workbox-sw.js"></script>\n',
+      'remote-asset',
+    ],
+    [
+      'conventions help number in a screen',
+      'apps/mobile-web/src/screens/MoveScreen.tsx',
+      'export const t = <p>Stop and call 111 if it does not settle.</p>;\n',
+      'health-text-help-number',
+    ],
+    [
+      'conventions help line named in a screen',
+      'apps/mobile-web/src/screens/AboutScreen.tsx',
+      "export const t = 'Alcohol Drug Helpline by text';\n",
+      'health-text-service',
+    ],
+    [
+      'conventions GP named in the design system',
+      'packages/ui/src/components/Note.tsx',
+      'export const t = <p>Ask your GP first.</p>;\n',
+      'health-text-gp',
+    ],
+    [
       'TEST_PLAN-5 skipped test',
       'packages/core/src/x.test.ts',
       "it.skip('x', () => {});\n",
@@ -161,6 +203,26 @@ describe('seeded violations in a throwaway repository', () => {
     write(file, content);
     expect(ruleIds()).toContain(ruleId);
     rmSync(join(root, file));
+    expect(scanRepo(root)).toEqual([]);
+  });
+
+  it('conventions: health text in health.ts, tests and comments is allowed', () => {
+    write(
+      'packages/core/src/copy/health.ts',
+      "export const help = { name: 'Healthline (24/7 health advice)', number: '0800 611 116' };\nexport const gp = 'Talk to your GP; call 111.';\n",
+    );
+    write(
+      'apps/mobile-web/src/App.test.tsx',
+      "export const expected = ['tel:111', 'sms:8681', 'Healthline', 'GP'];\n",
+    );
+    write(
+      'apps/mobile-web/src/screens/AboutScreen.tsx',
+      '// The 111 row comes from health.ts.\nexport const n = 1;\n',
+    );
+    write(
+      'apps/mobile-web/vite.config.ts',
+      'export default { workbox: { runtimeCaching: [] } };\n',
+    );
     expect(scanRepo(root)).toEqual([]);
   });
 

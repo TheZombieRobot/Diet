@@ -1,6 +1,7 @@
 /*
  * Shell and component styles. Colours and sizes are tokens (tokens.css); nothing here sets a colour
- * directly. Every control is at least --size-tap (48 px) high and wide.
+ * directly. Every control is at least --size-tap (48 px) high and wide, except that below 260 px
+ * of screen width each tab takes its fifth of the tab bar (still 60 px high).
  */
 
 /* App shell: one centred column, so a laptop shows the same layout as the phone. */
@@ -9,6 +10,13 @@
   max-width: 640px;
   margin: 0 auto;
   padding-bottom: calc(var(--size-tabbar) + env(safe-area-inset-bottom, 0px) + 32px);
+}
+
+/* Today: room below the last card for the floating "+", so it never covers it. */
+.ui-shell--with-fab {
+  padding-bottom: calc(
+    var(--size-tabbar) + env(safe-area-inset-bottom, 0px) + var(--size-fab) + 40px
+  );
 }
 
 .ui-shell__main {
@@ -92,8 +100,35 @@
   text-decoration: none;
 }
 
-.ui-icon-button[aria-current='page'] {
+.ui-icon-button[aria-current] {
   background: var(--color-chip);
+}
+
+/*
+ * Narrow screens (a small phone, or a larger one zoomed in): the top bar wraps instead of pushing
+ * the pill and the gear off the screen. The gear stays next to the title; the pill moves to a
+ * second line and may wrap its own text.
+ */
+@media (max-width: 359.98px) {
+  .ui-topbar {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+
+  .ui-topbar__actions {
+    display: contents;
+  }
+
+  .ui-topbar__title {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .ui-topbar .ui-pill {
+    order: 1;
+    white-space: normal;
+  }
 }
 
 /* Cards */
@@ -267,6 +302,8 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .ui-action-row__title {
@@ -339,19 +376,48 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 2px;
   min-width: var(--size-tap);
   min-height: calc(var(--size-tabbar) - 12px);
   border-radius: 16px;
   color: var(--color-secondary);
   font-size: 13px;
   font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
   text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+/* The icon sits in a pill; the current tab's pill is tinted, so it is not marked by colour alone. */
+.ui-tabbar__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 56px;
+  height: 30px;
+  border-radius: var(--radius-pill);
 }
 
 .ui-tabbar__link[aria-current='page'] {
   color: var(--color-teal);
   font-weight: 800;
+}
+
+.ui-tabbar__link[aria-current='page'] .ui-tabbar__icon {
+  background: var(--color-teal-tint);
+}
+
+/*
+ * Below 260 px each of the five columns is narrower than 48 px, so a 48 px minimum would make the
+ * tabs overlap. Each tab then takes exactly its column, and the labels get smaller.
+ */
+@media (max-width: 259.98px) {
+  .ui-tabbar__link {
+    min-width: 0;
+    font-size: 11px;
+  }
 }
 
 /* Floating "+" on Today */
@@ -382,4 +448,26 @@
   bottom: calc(var(--size-tabbar) + env(safe-area-inset-bottom, 0px) + var(--size-fab) + 32px);
   z-index: 11;
   width: min(340px, calc(100vw - 32px));
+}
+
+/*
+ * Pressed feedback, so a tap visibly lands (there is no tap highlight). Rows, tabs, the gear and
+ * the quiet button darken to the chip colour; everything shrinks slightly unless the phone asks
+ * for reduced motion.
+ */
+.ui-action-row:not(.ui-action-row--emergency):active,
+.ui-tabbar__link:active,
+.ui-icon-button:active,
+.ui-button--quiet:active {
+  background: var(--color-chip);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ui-button:not(:disabled):active,
+  .ui-action-row:active,
+  .ui-tabbar__link:active,
+  .ui-icon-button:active,
+  .ui-fab:active {
+    transform: scale(0.97);
+  }
 }

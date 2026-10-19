@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactElement } from 'react';
+import type { ButtonHTMLAttributes, ReactElement, Ref } from 'react';
 import { classNames } from '../classNames';
 import { PlusIcon } from '../icons';
 
@@ -8,6 +8,7 @@ export interface FloatingActionButtonProps extends Omit<
 > {
   /** The accessible name, read out instead of the "+" icon. */
   label: string;
+  ref?: Ref<HTMLButtonElement> | undefined;
 }
 
 /** The round "+" button that floats above the tab bar on Today. */

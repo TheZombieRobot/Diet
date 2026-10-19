@@ -15,12 +15,22 @@ export {
   type FloatingActionButtonProps,
 } from './components/FloatingActionButton';
 export {
+  FloatingActionPanel,
+  type FloatingActionPanelProps,
+} from './components/FloatingActionPanel';
+export {
   IconButton,
   IconLink,
   type IconButtonProps,
   type IconLinkProps,
 } from './components/IconButton';
-export { OFFLINE_LABEL, ONLINE_LABEL, OfflineIndicator } from './components/OfflineIndicator';
+export {
+  OFFLINE_LABEL,
+  OFFLINE_NOT_READY_LABEL,
+  ONLINE_LABEL,
+  OfflineIndicator,
+  type OfflineIndicatorProps,
+} from './components/OfflineIndicator';
 export { TabBar, type TabBarProps, type TabItem } from './components/TabBar';
 export { TopBar, type TopBarProps } from './components/TopBar';
 export * from './icons';

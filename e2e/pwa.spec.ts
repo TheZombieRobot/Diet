@@ -1,7 +1,10 @@
-import { expect, test } from '@playwright/test';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 import {
   BASE_PATH,
-  GROUND_LIGHT,
+  BRAND_TEAL,
   goTo,
   heading,
   pngSize,
@@ -13,7 +16,7 @@ import {
 // PWA-01 as replaced by DOC_REVIEW C35 (Lighthouse 12 has no PWA audit): Chrome's own
 // installability check, a manifest check that fetches every icon, and service-worker control.
 // PWA-03 (offline part): with the network off, the app reloads and every screen opens.
-// The same checks run against the deployed HTTPS URL once GitHub Pages is on (README).
+// The same checks run against the deployed HTTPS URL after each deploy (pages.yml, verify).
 
 interface ManifestIcon {
   src: string;
@@ -34,16 +37,55 @@ interface Manifest {
   icons: ManifestIcon[];
 }
 
+/** Chrome's installability error ids for the page, from the DevTools protocol. */
+async function installabilityErrors(context: BrowserContext, page: Page): Promise<string[]> {
+  const cdp = await context.newCDPSession(page);
+  try {
+    const { installabilityErrors: errors } = await cdp.send('Page.getInstallabilityErrors');
+    return errors.map((e) => e.errorId);
+  } finally {
+    await cdp.detach();
+  }
+}
+
 test('Chrome finds nothing stopping installation (Page.getInstallabilityErrors)', async ({
-  page,
+  playwright,
+  baseURL,
 }) => {
-  await page.goto('./');
-  await waitForServiceWorkerControl(page);
-  const cdp = await page.context().newCDPSession(page);
-  const { installabilityErrors } = await cdp.send('Page.getInstallabilityErrors');
-  expect(installabilityErrors).toEqual([]);
-  const { errors } = await cdp.send('Page.getAppManifest');
-  expect(errors).toEqual([]);
+  // Playwright's default headless shell reports no errors whatever the page holds, and a fresh
+  // context counts as incognito ("in-incognito"). So this runs the full Chromium build with a
+  // real, throwaway profile, where Chrome's own installability check runs (item 5 review).
+  const profile = mkdtempSync(join(tmpdir(), 'diet-install-check-'));
+  const context = await playwright.chromium.launchPersistentContext(profile, {
+    channel: 'chromium',
+    serviceWorkers: 'allow',
+    ...(baseURL === undefined ? {} : { baseURL }),
+  });
+  try {
+    const page = context.pages()[0] ?? (await context.newPage());
+
+    // The control: a page with no manifest, at the same origin, must be reported as such, so
+    // this check can never quietly turn into one that passes whatever it is given.
+    const control = new URL('/diet-installability-control.html', baseURL).href;
+    await context.route(control, (route) =>
+      route.fulfill({
+        contentType: 'text/html',
+        body: '<!doctype html><title>No manifest</title><p>A page with no manifest.</p>',
+      }),
+    );
+    await page.goto(control);
+    expect(await installabilityErrors(context, page)).toContain('no-manifest');
+
+    await page.goto('./');
+    await waitForServiceWorkerControl(page);
+    expect(await installabilityErrors(context, page)).toEqual([]);
+    const cdp = await context.newCDPSession(page);
+    const { errors } = await cdp.send('Page.getAppManifest');
+    expect(errors).toEqual([]);
+  } finally {
+    await context.close();
+    rmSync(profile, { recursive: true, force: true });
+  }
 });
 
 test('the manifest has every field installation needs, and every icon it lists exists', async ({
@@ -65,8 +107,9 @@ test('the manifest has every field installation needs, and every icon it lists e
     expect(new URL(manifest[field], manifestUrl).pathname, field).toBe(BASE_PATH);
   }
   expect(manifest.display).toBe('standalone');
-  expect(manifest.theme_color).toBe(GROUND_LIGHT);
-  expect(manifest.background_color).toBe(GROUND_LIGHT);
+  // One colour for the launch screen and task switcher in both themes: the icon's teal.
+  expect(manifest.theme_color).toBe(BRAND_TEAL);
+  expect(manifest.background_color).toBe(BRAND_TEAL);
 
   const has = (size: string, purpose: string) =>
     manifest.icons.some(
@@ -118,6 +161,7 @@ test('offline: the app reloads and every screen opens from the offline copy (PWA
     await expect(page.getByRole('main')).not.toBeEmpty();
     if (screen === 'About') {
       await expect(page.getByRole('link', { name: /111$/ })).toBeVisible();
+      await expect(page.getByTestId('offline-copy')).toHaveText('Ready to use offline');
     }
   });
   // A fresh tab straight to a deep link works offline too.
@@ -128,4 +172,33 @@ test('offline: the app reloads and every screen opens from the offline copy (PWA
 
   expect(fromNetwork).toEqual([]);
   expect(SCREENS).toHaveLength(7);
+});
+
+test('until the offline copy is saved, About says so and the pill does not say "all saved"', async ({
+  browser,
+  baseURL,
+}) => {
+  // With service workers blocked, the offline copy can never be saved.
+  const context = await browser.newContext({
+    serviceWorkers: 'block',
+    ...(baseURL === undefined ? {} : { baseURL }),
+  });
+  try {
+    const page = await context.newPage();
+    await page.goto('./#/about');
+    await expect(heading(page)).toHaveText('About');
+    await expect(page.getByTestId('offline-copy')).toHaveText(
+      'This browser could not save an offline copy',
+    );
+    await context.setOffline(true);
+    await expect(page.getByRole('banner').getByRole('status')).toHaveText('Offline');
+  } finally {
+    await context.close();
+  }
+});
+
+test('About says when the offline copy is ready', async ({ page }) => {
+  await page.goto('./#/about');
+  await waitForServiceWorkerControl(page);
+  await expect(page.getByTestId('offline-copy')).toHaveText('Ready to use offline');
 });

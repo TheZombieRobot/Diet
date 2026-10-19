@@ -9,8 +9,10 @@
  *
  * Values come from the owner's mock-up (Today, light and dark). Where the mock-up has no dark value,
  * the dark value is marked "chosen" and was picked to keep WCAG AA contrast. tokens.test.ts checks
- * the contrast of every text and background pair in both themes. The web app manifest and the
- * browser's theme colour read --color-ground from this file (apps/mobile-web/vite.config.ts).
+ * the contrast of the main text and background pairs in both themes, and e2e/contrast.spec.ts
+ * checks every piece of text on every screen as the browser draws it. The browser's theme colour
+ * reads --color-ground, and the web app manifest the light --color-teal, from this file
+ * (apps/mobile-web/vite.config.ts).
  */
 
 :root {

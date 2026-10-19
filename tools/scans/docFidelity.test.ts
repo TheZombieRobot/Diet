@@ -70,10 +70,25 @@ describe('health copy matches the docs word for word', () => {
     const start = HEALTH_SAFETY.indexOf('**Emergency and help numbers shown in the app');
     const list = HEALTH_SAFETY.slice(start, HEALTH_SAFETY.indexOf('\n\n', start));
     const listed = [...list.matchAll(/\*\*([\d ]+)\*\*/g)].map((m) => m[1]);
-    const numbers = Object.values(helpNumbers).flatMap((h) =>
-      'text' in h ? [h.number, h.text] : [h.number],
+    // Need to Talk uses one number for calls and texts, so the numbers are compared as sets.
+    const services = Object.values(helpNumbers).filter(
+      (h): h is Exclude<typeof h, string> => typeof h !== 'string',
     );
+    const numbers = services.flatMap((h) => ('text' in h ? [h.number, h.text] : [h.number]));
     expect(start).toBeGreaterThanOrEqual(0);
-    expect([...listed].sort()).toEqual([...numbers].sort());
+    expect(services.length).toBeGreaterThanOrEqual(4);
+    expect(listed).toHaveLength(new Set(listed).size);
+    expect(new Set(listed)).toEqual(new Set(numbers));
+  });
+
+  it('a service gets a tap-to-text row only where the help list says it takes texts', () => {
+    const start = HEALTH_SAFETY.indexOf('**Emergency and help numbers shown in the app');
+    const list = HEALTH_SAFETY.slice(start, HEALTH_SAFETY.indexOf('\n\n', start));
+    for (const service of Object.values(helpNumbers)) {
+      if (typeof service === 'string' || !('text' in service)) continue;
+      const line = list.split('\n').find((l) => l.includes(`**${service.number}**`)) ?? '';
+      expect(line, service.name).toMatch(/\btext\b/);
+      expect(line, service.name).toContain(service.text);
+    }
   });
 });

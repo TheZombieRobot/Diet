@@ -1,7 +1,13 @@
 import { defineConfig, devices } from '@playwright/test';
 
+/**
+ * The port `vite preview` serves the test build on. It is not the README's preview port (4173),
+ * so a preview left open does not stop the tests; set DIET_E2E_PORT to use another one.
+ */
+const PORT = process.env['DIET_E2E_PORT'] ?? '4317';
+if (!/^\d{2,5}$/.test(PORT)) throw new Error(`DIET_E2E_PORT must be a port number, not "${PORT}"`);
 /** Where `vite preview` serves the production build of the phone app (apps/mobile-web). */
-const PREVIEW_ORIGIN = 'http://127.0.0.1:4173';
+const PREVIEW_ORIGIN = `http://127.0.0.1:${PORT}`;
 /** The app's base path, the same as on GitHub Pages (https://thezombierobot.github.io/Diet/). */
 const APP_BASE = '/Diet/';
 
@@ -42,7 +48,8 @@ export default defineConfig({
   ...(deployedUrl === undefined
     ? {
         webServer: {
-          command: 'pnpm --filter @diet/mobile-web build && pnpm --filter @diet/mobile-web preview',
+          // --strictPort: fail rather than move to another port if this one is taken.
+          command: `pnpm --filter @diet/mobile-web build && pnpm --filter @diet/mobile-web preview --port ${PORT} --strictPort`,
           url: `${PREVIEW_ORIGIN}${APP_BASE}`,
           // Always a fresh production build, never a server left running from earlier.
           reuseExistingServer: false,

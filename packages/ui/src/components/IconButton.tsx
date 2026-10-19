@@ -38,22 +38,25 @@ export interface IconLinkProps extends Omit<
   /** The accessible name, read out instead of the icon. Required: an icon has no text. */
   label: string;
   icon: ReactNode;
-  /** Marks the link as the current page (aria-current="page"). */
-  current?: boolean;
+  /**
+   * aria-current: 'page' when the link is the current screen, 'true' when the current screen is
+   * one reached from it (the settings gear on About).
+   */
+  current?: 'page' | 'true' | undefined;
 }
 
 /** A 48 px round link that shows only an icon, such as the settings gear. */
 export function IconLink({
   label,
   icon,
-  current = false,
+  current,
   className,
   ...rest
 }: IconLinkProps): ReactElement {
   return (
     <a
       aria-label={label}
-      aria-current={current ? 'page' : undefined}
+      aria-current={current}
       className={classNames('ui-icon-button', className)}
       {...rest}
     >

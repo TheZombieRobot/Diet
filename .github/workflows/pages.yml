@@ -1,10 +1,20 @@
 name: Deploy phone app to GitHub Pages
 
 # Publishes apps/mobile-web to https://thezombierobot.github.io/Diet/ (checklist item 5).
-# Runs on every push to a work branch (session branches are named ccr-...), after the same checks
-# as CI, so the phone gets each finished checklist item. GitHub only offers "Run workflow" by hand for
-# workflows on the default branch, which holds the plan only. Pages was turned on by the owner on
-# 19 October 2026 (Settings > Pages > Source: GitHub Actions; see README.md, "Phone app").
+#
+# Publishing is deliberate. A push to a work branch (named ccr-...) publishes only when its head
+# commit message contains "[deploy]"; any other push skips every job. "Run workflow" by hand also
+# publishes, but GitHub offers it only for workflows on the default branch, which holds the plan.
+#
+# Nothing is published until the build job has passed the same checks as CI: `pnpm check` (safety
+# scans, lint, type check, unit tests) and the full browser suite, `pnpm e2e`, which includes the
+# network audit online and offline, the Content Security Policy checks, Chrome's installability
+# check, the offline tests and the check that the built service worker fetches nothing from any
+# other origin. After the deploy, the verify job runs the browser checks again on the live site.
+#
+# Pages was turned on by the owner on 19 October 2026 (Settings > Pages > Source: GitHub Actions).
+# The github-pages environment must also allow the work branch: Settings > Environments >
+# github-pages > Deployment branches and tags > add the rule ccr-* (see README.md, "Phone app").
 on:
   push:
     branches:
@@ -16,8 +26,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 # One deploy at a time; a deploy in progress is allowed to finish.
 concurrency:
@@ -31,9 +39,16 @@ env:
 
 jobs:
   build:
-    name: Check and build
+    name: Check, test and build
+    # The deploy and verify jobs need this one, so they are skipped with it.
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[deploy]')
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      # The address the app lives under on GitHub Pages (also the browser tests' default).
+      DIET_BASE: /Diet/
     steps:
       - uses: actions/checkout@v5
         with:
@@ -49,9 +64,22 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Safety scans, lint, type check and unit tests
         run: pnpm check
+      - name: Install Chromium for Playwright
+        run: pnpm exec playwright install --with-deps chromium
+      # The Playwright web server builds the app for /Diet/ and serves the production build. The
+      # same build label as the published build below, so the tests run on the same files.
+      - name: Browser tests (the full suite)
+        run: DIET_BUILD_ID="${GITHUB_SHA::7}" pnpm e2e
+      - name: Keep the browser test report when a test fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-build
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
       - name: Build the phone app for /Diet/
-        env:
-          DIET_BASE: /Diet/
         # The short commit is shown on the About screen next to the version.
         run: DIET_BUILD_ID="${GITHUB_SHA::7}" pnpm --filter @diet/mobile-web build
       - uses: actions/configure-pages@v6
@@ -64,6 +92,10 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Only this job can publish to Pages or ask GitHub for a deployment token.
+    permissions:
+      pages: write
+      id-token: write
     outputs:
       page_url: ${{ steps.deployment.outputs.page_url }}
     environment:
@@ -73,9 +105,10 @@ jobs:
       - id: deployment
         uses: actions/deploy-pages@v5
 
-  # PWA-01 as replaced by DOC_REVIEW C35, and the network audit (HS-14, TR-11), run against the
-  # deployed HTTPS address: Chrome's installability check, the manifest and its icons, service
-  # worker control, offline reload, and requests only to the app's own origin.
+  # PWA-01 as replaced by DOC_REVIEW C35, the network audit (HS-14, TR-11) and the shell checks,
+  # run against the deployed HTTPS address: Chrome's installability check, the manifest and its
+  # icons, service worker control, offline reload, requests only to the app's own origin, the
+  # Content Security Policy with nothing blocked, the rendered-text scan, and no running in a frame.
   verify:
     name: Check the deployed app
     needs: deploy
@@ -97,4 +130,13 @@ jobs:
       - name: Browser tests against https://thezombierobot.github.io/Diet/
         env:
           DIET_E2E_URL: ${{ needs.deploy.outputs.page_url }}
-        run: pnpm exec playwright test e2e/pwa.spec.ts e2e/network.spec.ts e2e/rendered-text.spec.ts
+        run: pnpm exec playwright test e2e/pwa.spec.ts e2e/network.spec.ts e2e/rendered-text.spec.ts e2e/shell.spec.ts
+      - name: Keep the browser test report when a test fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-deployed
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

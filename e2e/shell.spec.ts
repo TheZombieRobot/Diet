@@ -1,15 +1,20 @@
-import { expect, test } from '@playwright/test';
+import { createServer } from 'node:http';
+import { expect, test, type Page } from '@playwright/test';
 import {
+  BASE_PATH,
   CONTENT_SECURITY_POLICY,
   goTo,
   heading,
+  offerInstall,
   SCREENS,
   TABS,
   visitEveryScreen,
+  waitForServiceWorkerControl,
 } from './support/app';
 
 // The app shell (checklist item 5): every screen renders in the production build, the tab bar and
-// the offline pill work, and the Content Security Policy holds with nothing blocked.
+// the offline pill work, the layout holds on narrow screens, focus and the back gesture behave,
+// the Content Security Policy holds with nothing blocked, and the app will not run in a frame.
 
 test('the built index.html carries the Content Security Policy as the first element in <head>', async ({
   request,
@@ -78,21 +83,31 @@ test('the bundled Manrope font loads from the app itself', async ({ page }) => {
   );
 });
 
-test('the tab bar marks the current tab, and the gear marks Settings and About', async ({
+test('the tab bar marks the current tab by more than colour; the gear marks Settings', async ({
   page,
 }) => {
   await page.goto('./');
   const nav = page.getByRole('navigation', { name: 'Main' });
   const gear = page.getByRole('banner').getByRole('link', { name: 'Settings' });
+  const pill = (tab: string) =>
+    nav
+      .getByRole('link', { name: tab })
+      .locator('.ui-tabbar__icon')
+      .evaluate((e) => getComputedStyle(e).backgroundColor);
   for (const screen of SCREENS) {
     await goTo(page, screen);
     for (const tab of TABS) {
+      const current = tab === screen;
       expect(await nav.getByRole('link', { name: tab }).getAttribute('aria-current')).toBe(
-        tab === screen ? 'page' : null,
+        current ? 'page' : null,
       );
+      // A tinted pill behind the current tab's icon, so colour vision is not needed.
+      if (current) expect(await pill(tab)).not.toBe('rgba(0, 0, 0, 0)');
+      else expect(await pill(tab)).toBe('rgba(0, 0, 0, 0)');
     }
+    // "page" only on Settings itself; About, reached from Settings, marks it as its section.
     expect(await gear.getAttribute('aria-current')).toBe(
-      screen === 'Settings' || screen === 'About' ? 'page' : null,
+      screen === 'Settings' ? 'page' : screen === 'About' ? 'true' : null,
     );
   }
 });
@@ -100,23 +115,40 @@ test('the tab bar marks the current tab, and the gear marks Settings and About',
 test('every control on every screen is at least 48 px by 48 px on a phone', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 780 });
   await page.goto('./');
-  await visitEveryScreen(page, async (screen) => {
+  const measure = async (where: string) => {
     const sizes = await page.locator('a:visible, button:visible').evaluateAll((controls) =>
       controls.map((c) => {
         const box = c.getBoundingClientRect();
         return { name: c.getAttribute('aria-label') ?? c.textContent, w: box.width, h: box.height };
       }),
     );
-    expect(sizes.length, screen).toBeGreaterThan(5);
+    expect(sizes.length, where).toBeGreaterThan(5);
     for (const { name, w, h } of sizes) {
-      expect(h, `${screen}: ${name} height`).toBeGreaterThanOrEqual(48);
-      expect(w, `${screen}: ${name} width`).toBeGreaterThanOrEqual(48);
+      expect(h, `${where}: ${name} height`).toBeGreaterThanOrEqual(48);
+      expect(w, `${where}: ${name} width`).toBeGreaterThanOrEqual(48);
     }
+    return sizes.map((s) => s.name);
+  };
+  await visitEveryScreen(page, async (screen) => {
+    await measure(screen);
   });
+  // The conditional buttons: Install app and Not now on Today (with the "+" panel open), and
+  // Install app on Settings. Reload is measured in update.spec.ts once an update is waiting.
+  await offerInstall(page);
+  await goTo(page, 'Today');
+  await page.getByRole('button', { name: 'Quick actions' }).click();
+  expect(await measure('Today with the install banner')).toEqual(
+    expect.arrayContaining(['Install app', 'Not now', 'Quick actions']),
+  );
+  await goTo(page, 'Settings');
+  expect(await measure('Settings with the install button')).toEqual(
+    expect.arrayContaining(['Install app']),
+  );
 });
 
 test('the offline pill flips with the connection', async ({ page, context }) => {
   await page.goto('./');
+  await waitForServiceWorkerControl(page);
   const pill = page.getByRole('banner').getByRole('status');
   await expect(pill).toHaveText('Online');
   await context.setOffline(true);
@@ -125,13 +157,249 @@ test('the offline pill flips with the connection', async ({ page, context }) => 
   await expect(pill).toHaveText('Online');
 });
 
-test('there is no horizontal scrolling on a narrow phone', async ({ page }) => {
-  await page.setViewportSize({ width: 320, height: 640 });
+/** Where the layout breaks on a narrow screen, if anywhere. */
+async function narrowLayoutProblems(page: Page, where: string): Promise<string[]> {
+  return page.evaluate((label) => {
+    const problems: string[] = [];
+    const width = document.documentElement.clientWidth;
+    const overflow = document.documentElement.scrollWidth - width;
+    if (overflow > 0) problems.push(`${label}: scrolls sideways by ${overflow} px`);
+    const inside = (name: string, element: Element | null) => {
+      const box = element?.getBoundingClientRect();
+      if (box === undefined) problems.push(`${label}: no ${name}`);
+      else if (box.left < 0 || box.right > width + 0.5) {
+        problems.push(`${label}: ${name} at ${box.left}-${box.right} of ${width}`);
+      }
+    };
+    inside('pill', document.querySelector('.ui-topbar .ui-pill'));
+    inside('gear', document.querySelector('.ui-topbar a[aria-label="Settings"]'));
+    const overlapping = (selector: string) => {
+      const boxes = Array.from(document.querySelectorAll(selector), (e) =>
+        e.getBoundingClientRect(),
+      );
+      boxes.forEach((box, i) => {
+        const next = boxes[i + 1];
+        if (next !== undefined && box.right > next.left + 0.5) {
+          problems.push(
+            `${label}: ${selector} ${i} overlaps the next by ${box.right - next.left} px`,
+          );
+        }
+        if (box.right > width + 0.5)
+          problems.push(`${label}: ${selector} ${i} runs off the screen`);
+      });
+    };
+    overlapping('.ui-tabbar__link');
+    overlapping('.ui-tabbar__label');
+    return problems;
+  }, where);
+}
+
+test('nothing scrolls sideways or runs off a narrow or zoomed screen, online or offline', async ({
+  page,
+  context,
+}) => {
   await page.goto('./');
-  await visitEveryScreen(page, async (screen) => {
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-    );
-    expect(overflow, screen).toBeLessThanOrEqual(0);
+  await waitForServiceWorkerControl(page);
+  const problems: string[] = [];
+  // 320 px: a small phone. 195 px: a 390 px phone at 200% zoom.
+  for (const width of [320, 195]) {
+    await page.setViewportSize({ width, height: 640 });
+    for (const offline of [false, true]) {
+      await context.setOffline(offline);
+      await visitEveryScreen(page, async (screen) => {
+        problems.push(
+          ...(await narrowLayoutProblems(
+            page,
+            `${screen} at ${width} px${offline ? ', offline' : ''}`,
+          )),
+        );
+      });
+    }
+  }
+  expect(problems).toEqual([]);
+});
+
+test('a new screen moves focus to its heading', async ({ page }) => {
+  await page.goto('./');
+  await expect(heading(page)).not.toBeFocused();
+  for (const screen of ['Food', 'Settings', 'About', 'Today'] as const) {
+    await goTo(page, screen);
+    await expect(heading(page)).toBeFocused();
+  }
+});
+
+test('the "+" panel follows the "+", and closes on Escape, an outside tap or a screen change', async ({
+  page,
+}) => {
+  await page.goto('./');
+  const plus = page.getByRole('button', { name: 'Quick actions' });
+  const panel = page.locator('.ui-fab-panel');
+
+  await plus.click();
+  await expect(panel).toBeVisible();
+  expect(
+    await plus.evaluate(
+      (button) =>
+        (button.compareDocumentPosition(document.querySelector('.ui-fab-panel') as Node) &
+          Node.DOCUMENT_POSITION_FOLLOWING) !==
+        0,
+    ),
+  ).toBe(true);
+  await page.keyboard.press('Escape');
+  await expect(panel).toHaveCount(0);
+  await expect(plus).toHaveAttribute('aria-expanded', 'false');
+  await expect(plus).toBeFocused();
+
+  await plus.click();
+  await expect(panel).toBeVisible();
+  await page.getByRole('main').click({ position: { x: 20, y: 20 } });
+  await expect(panel).toHaveCount(0);
+
+  await plus.click();
+  await goTo(page, 'Food');
+  await goTo(page, 'Today');
+  await expect(plus).toHaveAttribute('aria-expanded', 'false');
+  await expect(panel).toHaveCount(0);
+});
+
+test('back from any tab goes to Today, then leaves the app; back from About returns to Settings', async ({
+  page,
+}) => {
+  await page.goto('./');
+  const entries = () => page.evaluate(() => history.length);
+  const start = await entries();
+  for (const tab of ['Food', 'Move', 'Drinks', 'List', 'Food'] as const) await goTo(page, tab);
+  expect(await entries()).toBe(start + 1);
+  await page.goBack();
+  await expect(heading(page)).toHaveText('Today');
+  await page.goBack();
+  expect(page.url().includes(BASE_PATH)).toBe(false);
+
+  await page.goForward();
+  await expect(heading(page)).toHaveText('Today');
+  await goTo(page, 'Settings');
+  await page.getByRole('link', { name: /^About this app/ }).click();
+  await expect(heading(page)).toHaveText('About');
+  await page.goBack();
+  await expect(heading(page)).toHaveText('Settings');
+});
+
+test('on Today the "+" never covers the last card', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 420 });
+  await page.goto('./');
+  await offerInstall(page);
+  await expect(page.getByText('Install this app')).toBeVisible();
+  const scrolls = await page.evaluate(
+    () => document.documentElement.scrollHeight > document.documentElement.clientHeight,
+  );
+  expect(scrolls, 'the screen is long enough to scroll').toBe(true);
+  await page.evaluate(() => {
+    window.scrollTo(0, document.documentElement.scrollHeight);
   });
+  const { lastBottom, fabTop } = await page.evaluate(() => {
+    const cards = document.querySelectorAll('main .ui-card');
+    return {
+      lastBottom: cards[cards.length - 1]?.getBoundingClientRect().bottom ?? Infinity,
+      fabTop: document.querySelector('.ui-fab')?.getBoundingClientRect().top ?? 0,
+    };
+  });
+  expect(lastBottom).toBeLessThanOrEqual(fabTop);
+});
+
+test('a focused row is scrolled clear of the top bar and the tab bar', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 600 });
+  await page.goto('./#/about');
+  await expect(heading(page)).toHaveText('About');
+  const hidden: string[] = [];
+  for (let i = 0; i < 12; i++) {
+    await page.keyboard.press('Tab');
+    const where = await page.evaluate(() => {
+      const focused = document.activeElement;
+      if (focused === null || !focused.closest('main')) return null;
+      const box = focused.getBoundingClientRect();
+      const top = document.querySelector('.ui-topbar')?.getBoundingClientRect().bottom ?? 0;
+      const bottom = document.querySelector('.ui-tabbar')?.getBoundingClientRect().top ?? 0;
+      return { name: focused.textContent, box: [box.top, box.bottom], clear: [top, bottom] };
+    });
+    if (where === null) continue;
+    const [boxTop = 0, boxBottom = 0] = where.box;
+    const [clearTop = 0, clearBottom = 0] = where.clear;
+    if (boxTop < clearTop - 0.5 || boxBottom > clearBottom + 0.5) hidden.push(where.name);
+  }
+  expect(hidden).toEqual([]);
+});
+
+test('inside a frame on another site, the app shows only a note to open it directly', async ({
+  page,
+  baseURL,
+}) => {
+  const app = new URL('#/settings', baseURL).href;
+  const framer = createServer((_request, response) => {
+    response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    response.end(
+      `<!doctype html><title>Another site</title><iframe src="${app}" width="400" height="600"></iframe>`,
+    );
+  });
+  await new Promise<void>((resolve) => framer.listen(0, '127.0.0.1', resolve));
+  try {
+    const address = framer.address();
+    if (address === null || typeof address === 'string') throw new Error('no port');
+    await page.goto(`http://127.0.0.1:${address.port}/`);
+    const framed = page.frameLocator('iframe');
+    await expect(framed.locator('#root')).toHaveText('Open this app directly at its own address.');
+    expect(await framed.locator('a, button, input, select, textarea, [tabindex]').count()).toBe(0);
+    const frame = page.frames().find((f) => f.url().startsWith(new URL(BASE_PATH, baseURL).href));
+    expect(frame).toBeDefined();
+    expect(
+      await frame?.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length),
+    ).toBe(0);
+  } finally {
+    framer.closeAllConnections();
+    await new Promise<void>((resolve) => {
+      framer.close(() => {
+        resolve();
+      });
+    });
+  }
+
+  // Opened directly, the same address runs the app.
+  await page.goto('./#/settings');
+  await expect(heading(page)).toHaveText('Settings');
+});
+
+test('a pressed control darkens and, unless motion is reduced, shrinks slightly', async ({
+  page,
+}) => {
+  await page.goto('./');
+  const food = page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Food' });
+  const pressed = async () => {
+    const box = await food.boundingBox();
+    if (box === null) throw new Error('no Food tab');
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    // Two frames: with reduced motion, base.css turns every change into a 0.01 ms transition.
+    const style = await food.evaluate(
+      (e) =>
+        new Promise<{ transform: string; background: string }>((resolve) => {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              const s = getComputedStyle(e);
+              resolve({ transform: s.transform, background: s.backgroundColor });
+            });
+          });
+        }),
+    );
+    // Released on the tab: a tap, which opens Food (and does nothing once Food is open).
+    await page.mouse.up();
+    await expect(heading(page)).toHaveText('Food');
+    return style;
+  };
+  const resting = await food.evaluate((e) => getComputedStyle(e).backgroundColor);
+  const normal = await pressed();
+  expect(normal.background).not.toBe(resting);
+  expect(normal.transform).not.toBe('none');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const reduced = await pressed();
+  expect(reduced.background).toBe(normal.background);
+  expect(reduced.transform).toBe('none');
 });

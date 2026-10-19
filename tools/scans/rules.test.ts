@@ -6,10 +6,12 @@ import {
   extensionAlwaysRules,
   extensionModeARules,
   healthPhraseRules,
+  healthTextHomeRules,
   networkRules,
   personalDataRules,
   personalPathRules,
   priceFormatRules,
+  serviceWorkerConfigRules,
   type ContentRule,
 } from './rules';
 import { formatViolations, scanPath, scanText, scanVisible, violationKeys } from './scan';
@@ -556,8 +558,48 @@ describe('network, AI and remote assets (HS-14, TR-11)', () => {
     ["import 'ollama';", 'ai-import'],
     ['<link href="https://fonts.googleapis.com/css2?family=Inter">', 'remote-asset'],
     ['https://www.googletagmanager.com/gtag/js', 'remote-asset'],
+    [
+      "importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.4.0/workbox-sw.js')",
+      'remote-asset',
+    ],
   ])('flags %j', (text, ruleId) => {
     expect(hits(text, aiAndTelemetryRules)).toContain(ruleId);
+  });
+
+  it.each([
+    ["workbox: { importScripts: ['./extra.js'] }", 'sw-import-scripts'],
+    ["workbox: { importScripts: ['https://cdn.example/x.js'] }", 'sw-import-scripts'],
+    [
+      "additionalManifestEntries: [{ url: 'https://example.org/beacon.gif', revision: '1' }]",
+      'sw-absolute-manifest-entry',
+    ],
+    [
+      "additionalManifestEntries: [\n  { url: 'index.html', revision: '1' },\n  { url: '//example.org/x.js', revision: '2' },\n]",
+      'sw-absolute-manifest-entry',
+    ],
+    [
+      "additionalManifestEntries: [{ url: 'HTTP://127.0.0.1:5555/sw-leak.js', revision: null }]",
+      'sw-absolute-manifest-entry',
+    ],
+    [
+      "runtimeCaching: [{ urlPattern: /^https:\\/\\/api\\./, handler: 'NetworkFirst' }]",
+      'sw-runtime-caching',
+    ],
+    ['runtimeCaching: CACHE_RULES,', 'sw-runtime-caching'],
+    ['runtimeCaching:[ {} ]', 'sw-runtime-caching'],
+  ])('flags %j in the service worker settings', (text, ruleId) => {
+    expect(hits(text, serviceWorkerConfigRules)).toContain(ruleId);
+  });
+
+  it.each([
+    'runtimeCaching: [],',
+    'runtimeCaching:[]',
+    'runtimeCaching: [ ],',
+    "additionalManifestEntries: [{ url: 'offline.html', revision: '1' }]",
+    "globPatterns: ['**/*.{html,js,css,woff2}'],",
+    '// Nothing at run time is cached (runtimeCaching stays empty).',
+  ])('does not flag %j in the service worker settings', (text) => {
+    expect(hits(text, serviceWorkerConfigRules)).toEqual([]);
   });
 
   it('does not flag ordinary code', () => {
@@ -571,6 +613,44 @@ describe('network, AI and remote assets (HS-14, TR-11)', () => {
         aiAndTelemetryRules,
       ),
     ).toEqual([]);
+  });
+});
+
+describe('health text stays in health.ts (conventions)', () => {
+  it.each([
+    ['<p>Call 111 if it does not settle.</p>', 'health-text-help-number'],
+    ['<p>Call 111.</p>', 'health-text-help-number'],
+    ["const n = '0800 611 116';", 'health-text-help-number'],
+    ["const href = 'tel:0800787797';", 'health-text-help-number'],
+    ['<p>Text 8681</p>', 'health-text-help-number'],
+    ["const s = 'sms:1737';", 'health-text-help-number'],
+    ['<p>Alcohol Drug Helpline by text</p>', 'health-text-service'],
+    ["const t = 'Call the help line';", 'health-text-service'],
+    ['<p>Healthline (24/7 health advice)</p>', 'health-text-service'],
+    ['<p>Ask a dietitian</p>', 'health-text-service'],
+    ['<p>Ask a dietician</p>', 'health-text-service'],
+    ['<p>Your clinician knows more</p>', 'health-text-service'],
+    ['<p>Talk to your midwife</p>', 'health-text-service'],
+    ['<p>Ask a pharmacist</p>', 'health-text-service'],
+    ['<p>Talk to your GP first</p>', 'health-text-gp'],
+    ["const t = 'Check with GPs';", 'health-text-gp'],
+  ])('flags %j in a screen file', (code, ruleId) => {
+    expect(visibleHits(code, healthTextHomeRules)).toContain(ruleId);
+  });
+
+  it.each([
+    '<p>Help numbers</p>',
+    '<p>Help numbers, data sources and version</p>',
+    "const version = '0.1.11';",
+    "const label = '1.111 kg';",
+    "const id = '81111';",
+    "className='ui-gp-row'",
+    "const s = 'gpu';",
+    '<p>Version 1.1.1</p>',
+    '// The 111 row comes from helpNumbers in health.ts; a comment is not visible text.\nexport const x = 1;',
+    'const { alcoholDrugHelpline, healthline } = helpNumbers;',
+  ])('does not flag %j in a screen file', (code) => {
+    expect(visibleHits(code, healthTextHomeRules)).toEqual([]);
   });
 });
 

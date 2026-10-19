@@ -10,6 +10,8 @@ export interface SwitchableServer {
   origin: string;
   /** Serve this build directory from now on. */
   serve: (root: string) => void;
+  /** The path of every request so far, in order (for counting the browser's sw.js checks). */
+  requests: readonly string[];
   close: () => Promise<void>;
 }
 
@@ -26,9 +28,11 @@ const TYPES: Readonly<Record<string, string>> = {
 
 export async function startStaticServer(root: string, base = '/Diet/'): Promise<SwitchableServer> {
   let current = root;
+  const requests: string[] = [];
   const server: Server = createServer((request, response) => {
     void (async () => {
       const path = new URL(request.url ?? '/', 'http://localhost').pathname;
+      requests.push(path);
       if (request.method !== 'GET' || !path.startsWith(base)) {
         response.writeHead(404).end();
         return;
@@ -61,6 +65,7 @@ export async function startStaticServer(root: string, base = '/Diet/'): Promise<
     serve: (next) => {
       current = next;
     },
+    requests,
     close: () =>
       new Promise<void>((resolve, reject) => {
         server.closeAllConnections();
