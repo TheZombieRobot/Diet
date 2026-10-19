@@ -10,5 +10,11 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run --root ../.. --project relay"
+  },
+  "dependencies": {
+    "@diet/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@diet/test-fixtures": "workspace:*"
   }
 }

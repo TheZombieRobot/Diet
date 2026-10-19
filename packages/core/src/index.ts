@@ -15,6 +15,7 @@ export * from './nutrition/confidence';
 export * from './nutrition/netCarbs';
 export * from './nutrition/nutrients';
 export * from './nutrition/portion';
+export * from './relay/protocol';
 export * from './storage';
 export * from './util/parse';
 export * from './util/round';

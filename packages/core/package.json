@@ -6,7 +6,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./copy/health": "./src/copy/health.ts"
+    "./copy/health": "./src/copy/health.ts",
+    "./relay": "./src/relay/protocol.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",

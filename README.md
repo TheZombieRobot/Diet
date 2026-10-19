@@ -1,6 +1,6 @@
 # Diet — personal fitness, fasting, keto-aware meals and grocery app
 
-**Status: checklist items 1–5 and 12 are built (conflicts report, repository scaffold, static safety scans, core health formulas, the installable phone app shell, and the local database with backup, restore and delete-all). The app works offline and passes its browser tests, but it is not online yet. One owner step remains: on GitHub, Settings → Environments → github-pages → Deployment branches and tags → add the deployment branch rule `ccr-*`. After that, a commit marked "[deploy]" publishes it at https://thezombierobot.github.io/Diet/ (see [Phone app](#phone-app)). See `docs/IMPLEMENTATION_CHECKLIST.md`.**
+**Status: checklist items 1–5, 12 and 29 are built (conflicts report, repository scaffold, static safety scans, core health formulas, the installable phone app shell, the local database with backup, restore and delete-all, and the relay that will carry the grocery list to the laptop, which is not online yet: see [The relay](#the-relay)). The app works offline and passes its browser tests, but it is not online yet. One owner step remains: on GitHub, Settings → Environments → github-pages → Deployment branches and tags → add the deployment branch rule `ccr-*`. After that, a commit marked "[deploy]" publishes it at https://thezombierobot.github.io/Diet/ (see [Phone app](#phone-app)). See `docs/IMPLEMENTATION_CHECKLIST.md`.**
 
 An Android-first, offline-first web app (PWA) for one person: meal planning around a home garden and NZ groceries, weight and fasting logs, safe bodyweight and beach exercise, cholesterol-conscious keto targets, alcohol logging in NZ standard drinks, and a Chrome side-panel extension that helps with PAK'nSAVE Pāpāmoa shopping without automating the store's website.
 
@@ -92,6 +92,35 @@ The app will live at **https://thezombierobot.github.io/Diet/**. Publishing happ
 A later version shows "Update available" in the app, also when the installed app is reopened from the background; tapping Reload switches to it, and records stay on the phone.
 
 Note: GitHub Pages sites of one account share one web origin (thezombierobot.github.io), so another Pages site on the same account could read this app's stored records. The decision (`docs/DECISIONS.md`, C34) is that this account publishes no other Pages site; if one is ever wanted, the app first moves to its own origin.
+
+## The relay
+
+The relay is a small program that runs on Cloudflare's free plan, under your own Cloudflare account. When you tap Send to laptop, the phone locks the grocery list with a key that only your phone and laptop have, and hands the locked copy to the relay. The laptop collects it, and the relay deletes it. The relay hands out a list for at most 15 minutes; Cloudflare deletes its copy soon after.
+
+Now and then, Cloudflare may offer the laptop a second copy of a list it already has, usually within a minute and never after the 15 minutes are up. Once checklist items 30 and 33 are built, the laptop recognises the copy and ignores it. If you send a corrected list within a minute or so of the first, the correction can occasionally be lost; the phone then never shows "Received on laptop" for it, so send it again.
+
+The relay cannot read the list. It writes no logs, its logging settings on Cloudflare are switched off, and it sends nothing anywhere else. It turns away plain text; the app's own tests check that every list is locked before it leaves the phone. What it can see is a locked block of text, a random room number your phone and laptop share, the internet addresses they connect from, and when they connect; Cloudflare can see the same. Anyone who photographs the pairing QR code on your laptop screen could read later lists until you unpair, so show it only when pairing.
+
+The technical details (addresses, answers, limits and tests) are in [services/relay/README.md](services/relay/README.md). Its tests run on every change without a Cloudflare account, and nothing in CI contacts Cloudflare.
+
+### Setting it up (about 30 minutes, once, at the start of week 3)
+
+If any step prints an error or the word FAILED, stop and paste its last lines into chat.
+
+You need Git and Node.js 22.18 or newer on your laptop (check with `node --version`). Ask in chat if either is missing.
+
+1. **Create a Cloudflare account** at dash.cloudflare.com, on the free plan, and turn on two-step sign-in in your profile. If the dashboard already shows a workers.dev subdomain (under Workers & Pages) that contains your name or email, change it to random words, or ask in chat how.
+2. **Get the code.** If this repository is not on your laptop yet, run `git clone https://github.com/TheZombieRobot/Diet.git`, then `cd Diet`. In the repository folder, switch to the branch the implementer names in chat: `git fetch`, then `git switch <branch name>`, then `git pull`. Then run `corepack enable` and `pnpm install`. If `corepack enable` says permission denied, ask in chat.
+3. **Switch off Wrangler's usage reports, then sign in.** Run `pnpm relay:telemetry-off`. This switches off Wrangler's usage reports on this laptop. Then run `pnpm relay:login`. A browser tab opens; approve it. The sign-in stays in your user folder on this laptop, never in the repository. If Wrangler asks to send error reports or to install anything, answer No.
+4. **Create the two storage spaces:** `pnpm relay:create-storage`, then `pnpm relay:create-test-storage`. Each prints an id, a long string of letters and digits. Copy everything both commands printed into chat (if it shows your email address, delete that part first). The ids are labels, not passwords. If one says the storage space already exists, run `pnpm relay:list-storage` and copy what it prints instead. Wait until the implementer says the ids are added, then run `git pull`.
+5. **Put the test relay online:** `pnpm relay:deploy-test`. It first checks the relay's settings on your laptop; if it says a storage id is not filled in yet, step 4 is not finished, so wait for the implementer and run `git pull` again. If Wrangler asks to register a workers.dev subdomain, answer Yes and type random words that say nothing about you. It ends with an address like https://list-relay-test.your-words.workers.dev.
+6. **Check it:** `pnpm relay:smoke <that address> --expiry 120`. It takes about four minutes, because it waits for a test list to expire. Then run `pnpm relay:smoke <that address> --limits` (about two minutes). Copy the last lines of both into chat.
+7. **Put the real relay online:** `pnpm relay:deploy`, then `pnpm relay:smoke <its address>` (about a minute). Send both addresses in chat. Before either address is saved in this public repository, the implementer shows it to you so you can confirm it says nothing about you.
+8. **Sign out:** `pnpm relay:logout`. Nothing that can change your Cloudflare account stays on the laptop.
+
+To update the relay later (the implementer will say when): steps 2, 3, 5, 6, 7 and 8.
+
+Wrangler is the Cloudflare tool these commands use. Step 3 switches off its usage reports for every Wrangler command on this laptop, and the commands also tell it not to send them. It may check the internet for a newer version of itself; that check carries nothing about you or the app.
 
 ## Privacy note
 Nothing personal belongs in this repository: no health history, no logs, no backups. Your data lives only in the app on your phone. See `docs/DECISIONS.md`.

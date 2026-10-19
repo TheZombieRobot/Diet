@@ -14,7 +14,16 @@ import {
   serviceWorkerConfigRules,
   type ContentRule,
 } from './rules';
-import { formatViolations, scanPath, scanText, scanVisible, violationKeys } from './scan';
+import {
+  formatViolations,
+  RELAY_BLIND,
+  RULE_SETS,
+  scanPath,
+  scanSource,
+  scanText,
+  scanVisible,
+  violationKeys,
+} from './scan';
 
 // Every string below is a synthetic probe. Most come from the item 2-3 reviews: each was shown to
 // slip past the first version of the rules, so each is now a must-flag case.
@@ -739,5 +748,47 @@ describe('reports (CI logs are public)', () => {
     expect(formatViolations(found)).toContain('docs/notes.md:2:1  [first-person-health; privacy]');
     vi.stubEnv('CI', '');
     expect(formatViolations(found)).toContain('I weigh 101 kg');
+  });
+});
+
+describe('S1. The blind relay rules (checklist item 29; TR-02, HS-14)', () => {
+  const relayHits = (code: string, file = 'services/relay/src/x.ts') =>
+    scanSource(file, code, [...RULE_SETS, RELAY_BLIND]).map((v) => v.ruleId);
+  const flagged: [string, string][] = [
+    ['const plain = await crypto.subtle.decrypt(params, key, data);', 'relay-crypto'],
+    ['const plain = await subtle.decrypt(params, key, data);', 'relay-subtle'],
+    ['const s = crypto.subtle; await s.decrypt(params, key, data);', 'relay-subtle'],
+    ['const { decrypt } = crypto.subtle;', 'relay-crypto'],
+    ['const key = await keys.unwrapKey(format, wrapped);', 'relay-crypto'],
+    ['const key = await keys.importKey(format, raw);', 'relay-crypto'],
+    ['const key = await keys.deriveKey(params, base);', 'relay-crypto'],
+    ['const bits = await keys.deriveBits(params, base);', 'relay-crypto'],
+    ['const sealed = await box.encrypt(params, key, data);', 'relay-crypto'],
+    ["const algorithm = 'AES-GCM';", 'relay-crypto'],
+    ["console.warn('stored');", 'relay-console'],
+    ["console['log'](body);", 'relay-console'],
+    ['await caches.default.put(request, response);', 'relay-cache-api'],
+    ["const cache = await caches.open('relay');", 'relay-cache-api'],
+    ['await fetch(url);', 'fetch'],
+  ];
+
+  it.each(flagged)('flags %j in the relay', (code, ruleId) => {
+    expect(relayHits(code)).toContain(ruleId);
+  });
+
+  it('covers the shared protocol in core too, and nothing outside the relay', () => {
+    expect(relayHits("console.log('x');", 'packages/core/src/relay/protocol.ts')).toEqual([
+      'relay-console',
+    ]);
+    expect(relayHits('await crypto.subtle.decrypt(p, k, d);', 'apps/mobile-web/src/x.ts')).toEqual(
+      [],
+    );
+  });
+
+  it('allows the room-id hash, and leaves the relay tests alone', () => {
+    expect(relayHits("await crypto.subtle.digest('SHA-256', bytes);")).toEqual([]);
+    for (const [code] of flagged) {
+      expect(relayHits(code, 'services/relay/src/x.test.ts')).toEqual([]);
+    }
   });
 });
