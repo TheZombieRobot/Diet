@@ -130,6 +130,23 @@ function offsetMs(instant: number, timeZone: string): number {
   return wallClockMs(wholeSecond, timeZone) - wholeSecond;
 }
 
+/**
+ * The local wall-clock date and the whole minutes after midnight of an instant in a time zone.
+ * Day boundaries other than midnight (the drinking-day cut-over, C21) are worked out from these
+ * wall-clock minutes, never by shifting the instant, so daylight-saving nights come out right.
+ */
+export function localWallClockOf(
+  at: string,
+  timeZone: string,
+): { date: LocalDate; minutes: number } {
+  const wall = wallClockMs(parseInstant(at), timeZone);
+  const sinceMidnight = ((wall % MS_PER_DAY) + MS_PER_DAY) % MS_PER_DAY;
+  return {
+    date: new Date(wall).toISOString().slice(0, 10),
+    minutes: Math.floor(sinceMidnight / MS_PER_MINUTE),
+  };
+}
+
 /** The local calendar date of an instant in a time zone. */
 export function localDateOf(at: string, timeZone: string): LocalDate {
   const instant = parseInstant(at);

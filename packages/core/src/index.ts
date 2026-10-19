@@ -6,6 +6,7 @@
 export const PACKAGE_NAME = '@diet/core' as const;
 
 export * from './alcohol/standardDrinks';
+export * from './copy/template';
 export * from './energy/age';
 export * from './energy/baseTargets';
 export * from './energy/energyEstimate';
@@ -14,6 +15,7 @@ export * from './nutrition/confidence';
 export * from './nutrition/netCarbs';
 export * from './nutrition/nutrients';
 export * from './nutrition/portion';
+export * from './storage';
 export * from './util/parse';
 export * from './util/round';
 export * from './util/time';

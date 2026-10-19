@@ -43,6 +43,12 @@ export const NUTRIENT_KEYS = [
  */
 export type CarbBasis = 'available' | 'total';
 
+/** Every CarbBasis. Storage validators read this list (storage spec 4.3). */
+export const CARB_BASES = Object.freeze([
+  'available',
+  'total',
+] as const satisfies readonly CarbBasis[]);
+
 export const KJ_PER_KCAL = 4.184;
 
 export function kjToKcal(kj: number): number {

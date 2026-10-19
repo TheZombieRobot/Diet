@@ -3,6 +3,10 @@
 *.backup.*.json
 *backup*.json
 *.backup*
+# Every file the phone app saves (storage spec section 10.1): GP summary and grocery-list exports
+diet-*.json
+diet-*.csv
+diet-*.txt
 exports/
 docs/handoff/
 docs/private/

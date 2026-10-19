@@ -117,6 +117,15 @@ export function withinFastCeiling(minutes: number): boolean {
 
 export type FastingPresetId = '16:8' | '18:6' | '20:4' | '22:2' | '23:1';
 
+/** Every FastingPresetId, in preset order. Storage validators read this list (storage spec 4.3). */
+export const FASTING_PRESET_IDS = Object.freeze([
+  '16:8',
+  '18:6',
+  '20:4',
+  '22:2',
+  '23:1',
+] as const satisfies readonly FastingPresetId[]);
+
 export interface FastingPreset {
   readonly id: FastingPresetId;
   /** Default clock times; the owner can move the window and the length is recomputed. */

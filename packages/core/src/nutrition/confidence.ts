@@ -1,8 +1,23 @@
 /** Where a nutrition figure came from (DATA_MODEL.md ingredients.source). */
 export type NutritionSource = 'label' | 'nz-fcdb' | 'usda' | 'estimate';
 
+/** Every NutritionSource. Storage validators read this list (storage spec 4.3). */
+export const NUTRITION_SOURCES = Object.freeze([
+  'label',
+  'nz-fcdb',
+  'usda',
+  'estimate',
+] as const satisfies readonly NutritionSource[]);
+
 /** The badge shown next to every nutrition number (HEALTH_SAFETY.md section 4). */
 export type Confidence = 'label' | 'database' | 'estimate';
+
+/** Every Confidence badge, strongest first. Storage validators read this list. */
+export const CONFIDENCES = Object.freeze([
+  'label',
+  'database',
+  'estimate',
+] as const satisfies readonly Confidence[]);
 
 const RANK: Readonly<Record<Confidence, number>> = { label: 3, database: 2, estimate: 1 };
 
