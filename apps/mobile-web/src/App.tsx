@@ -13,6 +13,7 @@ import { type FailureStatus, type OpenStatus, openStatusStore } from './db/db';
 import { appStorageStore } from './db/runtime';
 import { goToTab, markEntryAboveToday } from './navigation';
 import { OnboardingGate } from './onboarding/OnboardingGate';
+import { takeArrivedFromSetup } from './onboarding/navigation';
 import { offlineCopyStore } from './pwa/offline';
 import {
   isTabRoute,
@@ -123,9 +124,14 @@ function Shell(): ReactElement {
     document.documentElement.scrollTop = 0;
     const previous = previousRoute.current;
     previousRoute.current = route;
-    // On first render the browser decides where focus starts; after that, a new screen moves
-    // focus to its heading, so a screen reader announces it and Tab starts from the top.
-    if (previous === undefined || previous === route) return;
+    // On first render the browser decides where focus starts, except straight after setup, whose
+    // flow held focus; after that, a new screen moves focus to its heading, so a screen reader
+    // announces it and Tab starts from the top.
+    if (previous === undefined) {
+      if (takeArrivedFromSetup()) titleRef.current?.focus({ preventScroll: true });
+      return;
+    }
+    if (previous === route) return;
     markEntryAboveToday(previous, route);
     titleRef.current?.focus({ preventScroll: true });
   }, [route]);

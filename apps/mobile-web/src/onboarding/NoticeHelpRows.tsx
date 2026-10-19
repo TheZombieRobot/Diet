@@ -17,7 +17,7 @@ export function NoticeHelpRows(): ReactElement {
       <li>
         <ActionRow
           href={dial('tel', alcoholDrugHelpline.number)}
-          title={alcoholDrugHelpline.name}
+          title={alcohol.notice.helplineTitle}
           detail={alcohol.notice.helplineDetail}
           badge={<PhoneIcon />}
         />

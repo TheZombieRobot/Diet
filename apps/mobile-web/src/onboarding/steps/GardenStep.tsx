@@ -2,18 +2,21 @@ import {
   checkGardenCrop,
   fillTemplate,
   type GardenCropDraft,
+  gardenCropDraftEmpty,
   type GardenCropField,
   type GardenCropProblem,
+  type GardenCropValue,
   type GardenRecord,
 } from '@diet/core';
 import { garden, onboarding } from '@diet/core/copy/health';
 import { Button, Card, ChoiceList, CloseIcon, IconButton, Switch, TextField } from '@diet/ui';
-import { type ReactElement, useRef, useState } from 'react';
+import { type ReactElement, useEffect, useId, useRef, useState } from 'react';
 import { useLiveQuery } from '../../db/liveQuery';
 import type { AppStorage } from '../../db/runtime';
 import { addCrop, finishGarden, removeCrop } from '../actions';
 import { EMPTY_CROP } from '../drafts';
 import { type FlowFrame, FlowStepFrame } from '../FlowFrame';
+import { focusFirstInvalid } from '../forms/profileErrors';
 import { SaveError } from '../SaveError';
 import { useSave } from '../useSave';
 
@@ -67,7 +70,8 @@ function cropError(
 /**
  * The garden step (UX 1f; C57; item 13 design section 3.11). Silverbeet is listed already and is
  * not removed here; crops added here are written at once and can be removed. Continue and "Skip
- * for now" both finish setup (E24).
+ * for now" both finish setup (E24). Continue first adds a crop typed in "Add a crop" (or shows what
+ * it needs, and stays); only Skip leaves a typed crop unsaved.
  */
 export function GardenStep({
   frame,
@@ -87,12 +91,20 @@ export function GardenStep({
   const crops = useLiveQuery(storage, readGarden);
   const [problems, setProblems] = useState<Partial<Record<GardenCropField, GardenCropProblem>>>({});
   const nameField = useRef<HTMLInputElement>(null);
+  const addForm = useRef<HTMLDivElement>(null);
+  const [refused, setRefused] = useState(0);
+  const skipHintId = useId();
   const addSave = useSave();
   const removeSave = useSave();
   const finishSave = useSave();
   const set = (patch: Partial<GardenCropDraft>) => {
     onDraftChange({ ...draft, ...patch });
   };
+
+  // A refused Continue moves focus to the first field of the typed crop that needs a look.
+  useEffect(() => {
+    if (refused > 0) focusFirstInvalid(addForm.current);
+  }, [refused]);
   const add = () => {
     const checked = checkGardenCrop(draft);
     if (!checked.ok) {
@@ -108,10 +120,25 @@ export function GardenStep({
         nameField.current?.focus();
       });
   };
-  const finish = () => {
+  const finish = (addTyped: boolean) => {
+    let crop: GardenCropValue | null = null;
+    if (addTyped && !gardenCropDraftEmpty(draft)) {
+      const checked = checkGardenCrop(draft);
+      if (!checked.ok) {
+        setProblems(checked.problems);
+        setRefused((n) => n + 1);
+        return;
+      }
+      setProblems({});
+      crop = checked.value;
+    }
     let completed = false;
     void finishSave
       .run(async () => {
+        if (crop !== null) {
+          await addCrop(storage, crop);
+          onDraftChange(EMPTY_CROP);
+        }
         completed = (await finishGarden(storage)).completed;
       })
       .then((ok) => {
@@ -127,13 +154,29 @@ export function GardenStep({
       footer={
         <>
           <SaveError save={finishSave} />
-          <Button variant="primary" block disabled={finishSave.busy} onClick={finish}>
+          <Button
+            variant="primary"
+            block
+            disabled={finishSave.busy}
+            onClick={() => {
+              finish(true);
+            }}
+          >
             {garden.continue}
           </Button>
-          <Button variant="quiet" disabled={finishSave.busy} onClick={finish}>
+          <Button
+            variant="quiet"
+            disabled={finishSave.busy}
+            aria-describedby={skipHintId}
+            onClick={() => {
+              finish(false);
+            }}
+          >
             {garden.skip}
           </Button>
-          <p className="ui-text-muted">{garden.skipHint}</p>
+          <p id={skipHintId} className="ui-text-muted ui-text-center">
+            {garden.skipHint}
+          </p>
           <Button variant="quiet" onClick={onBack}>
             {onboarding.frame.back}
           </Button>
@@ -167,65 +210,67 @@ export function GardenStep({
         </ul>
       )}
       <SaveError save={removeSave} />
-      <Card label={garden.addTitle}>
-        <TextField
-          ref={nameField}
-          label={garden.nameLabel}
-          hint={garden.nameHint}
-          autoComplete="off"
-          value={draft.name}
-          error={cropError('name', problems.name)}
-          onChange={(event) => {
-            set({ name: event.currentTarget.value });
-          }}
-        />
-        <TextField
-          label={garden.amountLabel}
-          hint={garden.amountHint}
-          inputMode="decimal"
-          autoComplete="off"
-          value={draft.amount}
-          error={cropError('amount', problems.amount)}
-          onChange={(event) => {
-            set({ amount: event.currentTarget.value });
-          }}
-        />
-        <ChoiceList
-          legend={garden.unitLegend}
-          name="garden-unit"
-          options={[
-            { value: 'g', label: garden.unitOptions.g },
-            { value: 'each', label: garden.unitOptions.each },
-            { value: 'bunch', label: garden.unitOptions.bunch },
-          ]}
-          value={draft.unit}
-          error={cropError('unit', problems.unit)}
-          onChange={(value) => {
-            set({ unit: value === 'g' || value === 'each' || value === 'bunch' ? value : null });
-          }}
-        />
-        <Switch
-          label={garden.readyLabel}
-          checked={draft.harvestReady}
-          onChange={(on) => {
-            set({ harvestReady: on });
-          }}
-        />
-        <TextField
-          label={garden.keepsLabel}
-          inputMode="numeric"
-          autoComplete="off"
-          value={draft.keepsDays}
-          error={cropError('keepsDays', problems.keepsDays)}
-          onChange={(event) => {
-            set({ keepsDays: event.currentTarget.value });
-          }}
-        />
-        <SaveError save={addSave} />
-        <Button disabled={addSave.busy} onClick={add}>
-          {garden.add}
-        </Button>
-      </Card>
+      <div ref={addForm}>
+        <Card label={garden.addTitle}>
+          <TextField
+            ref={nameField}
+            label={garden.nameLabel}
+            hint={garden.nameHint}
+            autoComplete="off"
+            value={draft.name}
+            error={cropError('name', problems.name)}
+            onChange={(event) => {
+              set({ name: event.currentTarget.value });
+            }}
+          />
+          <TextField
+            label={garden.amountLabel}
+            hint={garden.amountHint}
+            inputMode="decimal"
+            autoComplete="off"
+            value={draft.amount}
+            error={cropError('amount', problems.amount)}
+            onChange={(event) => {
+              set({ amount: event.currentTarget.value });
+            }}
+          />
+          <ChoiceList
+            legend={garden.unitLegend}
+            name="garden-unit"
+            options={[
+              { value: 'g', label: garden.unitOptions.g },
+              { value: 'each', label: garden.unitOptions.each },
+              { value: 'bunch', label: garden.unitOptions.bunch },
+            ]}
+            value={draft.unit}
+            error={cropError('unit', problems.unit)}
+            onChange={(value) => {
+              set({ unit: value === 'g' || value === 'each' || value === 'bunch' ? value : null });
+            }}
+          />
+          <Switch
+            label={garden.readyLabel}
+            checked={draft.harvestReady}
+            onChange={(on) => {
+              set({ harvestReady: on });
+            }}
+          />
+          <TextField
+            label={garden.keepsLabel}
+            inputMode="numeric"
+            autoComplete="off"
+            value={draft.keepsDays}
+            error={cropError('keepsDays', problems.keepsDays)}
+            onChange={(event) => {
+              set({ keepsDays: event.currentTarget.value });
+            }}
+          />
+          <SaveError save={addSave} />
+          <Button disabled={addSave.busy} onClick={add}>
+            {garden.add}
+          </Button>
+        </Card>
+      </div>
     </FlowStepFrame>
   );
 }

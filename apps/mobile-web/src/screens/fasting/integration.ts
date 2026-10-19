@@ -5,8 +5,10 @@
  * - The gate and its reasons are item 13's (readinessGates through useReadinessGates, featureGate,
  *   reasonStates); a stated reason of the deficit group makes the gated card quiet (F41).
  * - Kickstart is item 14's: the phase from phaseInputFrom, and the preset every reader uses,
- *   effectiveFastingPreset(targets, isKickstartDay(...)) (cross-item ruling 2). While a Kickstart
- *   runs, the days after its last day already plan the preset as it reads outside Kickstart.
+ *   effectiveFastingPreset(targets, isKickstartDay(...), gates) (cross-item ruling 2), which reads
+ *   a stored 23:1 Kickstart default as 22:2 while answer 4 applies, even during Kickstart (C07).
+ *   While a Kickstart runs, the days after its last day already plan the preset as it reads
+ *   outside Kickstart.
  * - The protein target is item 13's effectiveProteinTargetG for the phase.
  * - The meal figures come from later items: the day's energy target from item 21
  *   (energyForMealChecks over dayTargets; null when there is no rough energy guide), the planned
@@ -82,13 +84,13 @@ export function fastingContext(args: {
       pharmacistReminder: gates.pharmacistReminder,
       quiet: stated.some(isDeficitGroupReason),
     },
-    preset: effectiveFastingPreset(inputs.targets, kickstartRunning),
+    preset: effectiveFastingPreset(inputs.targets, kickstartRunning, gates),
     kickstart:
       kickstartRunning && phase.kind === 'kickstart'
         ? {
             running: true,
             lastDay: phase.scheduledLastDay,
-            presetAfter: effectiveFastingPreset(inputs.targets, false),
+            presetAfter: effectiveFastingPreset(inputs.targets, false, gates),
           }
         : { running: false },
     proteinTargetG: effectiveProteinTargetG(

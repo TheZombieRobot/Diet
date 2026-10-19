@@ -90,6 +90,15 @@ async function completedFast(t: TestDb, startMs: number, endMs: number): Promise
   await t.repos.fasts.end(fast.id);
 }
 
+/** A Kickstart started today with its untouched 23:1 default stored, keto since before it. */
+const KICKSTART_DEFAULT: Omit<SetUp, 'now'> = {
+  profile: { kickstartOptIn: true, carbCeilingStartedAt: iso(at('2000-01-02', '00:00')) },
+  targets: { ...ONE_MEAL, presetChosenBy: 'kickstart-default' },
+  seed: async (s) => {
+    await s.repos.kickstart.startPeriod();
+  },
+};
+
 const region = (name: string) => screen.getByRole('region', { name });
 const fastCard = () => region(fasting.card.label);
 const tap = (container: HTMLElement, name: string | RegExp) => {
@@ -245,6 +254,27 @@ describe('the Fast card on Today (design 3.3; FS-02, FS-03, HS-02, HS-18)', () =
     const gated = await screen.findByRole('region', { name: fasting.card.gatedLabel });
     expect(within(gated).queryByText(fasting.pharmacist)).toBeNull();
   });
+
+  it('C07: with answer 4, a stored 23:1 Kickstart default reads as 22:2 on Today and the Fasting screen, even while Kickstart runs', async () => {
+    const t = await setUp('#/today', { now: at(D, '10:00'), ...KICKSTART_DEFAULT });
+    // Without answer 4 the running Kickstart uses its 23:1 default.
+    const card = await screen.findByRole('region', { name: fasting.card.label });
+    expect(within(card).getByText('23:1 · One meal')).toBeTruthy();
+    cleanup();
+    await t.repos.readiness.answer('q4', 'yes');
+    await openApp('#/today');
+    const today = await screen.findByRole('region', { name: fasting.card.label });
+    expect(within(today).getByText('22:2 · 5 pm snack + dinner')).toBeTruthy();
+    expect(today.textContent).not.toContain('One meal');
+    cleanup();
+    await openApp('#/fasting');
+    const pattern = await screen.findByRole('region', { name: fasting.pattern.label });
+    expect(within(pattern).getByText('2 h eating, 22 h fasting')).toBeTruthy();
+    expect(within(fastCard()).getByText('22:2 · 5 pm snack + dinner')).toBeTruthy();
+    expect(within(pattern).getByText(schedule.kickstartDefaultSetAside)).toBeTruthy();
+    expect(within(pattern).queryByText(schedule.kickstartWhen)).toBeNull();
+    expect((await t.repos.kickstart.listPeriods())[0]?.endedAt).toBeNull();
+  });
 });
 
 describe('while fasting is switched off (FS-08, HS-03, RD-03, RD-04, C41, F41)', () => {
@@ -287,6 +317,12 @@ describe('while fasting is switched off (FS-08, HS-03, RD-03, RD-04, C41, F41)',
     expect(await screen.findByText(readiness.ifYes.q3)).toBeTruthy();
   });
 
+  it('answer 3 beside an answer that closes the deficit: its line never says meals keep one (item 13 review)', async () => {
+    await setUp('#/fasting', { now: at(D, '10:00'), answers: { q3: 'yes', q5: 'yes' } });
+    expect(await screen.findByText(readiness.ifYesAlsoOff.q3)).toBeTruthy();
+    expect(screen.queryByText(readiness.ifYes.q3)).toBeNull();
+  });
+
   it('a question nobody answered is never stated as a fact, and the link asks for the answers (C41)', async () => {
     test = await openTestDb();
     appStorageStore.set(test.storage);
@@ -295,6 +331,8 @@ describe('while fasting is switched off (FS-08, HS-03, RD-03, RD-04, C41, F41)',
     expect(notice.textContent).toBe(
       'Fasting stays off until you answer the questions about being under 18, pregnancy or breastfeeding, diabetes medication and an eating disorder or low weight.',
     );
+    // Item 13 review: the prescriber hint only when that confirmation is the one reason left.
+    expect(screen.queryByTestId('gate-hint-fasting')).toBeNull();
     expect(screen.getByRole('link', { name: readiness.answerQuestionsLink })).toBeTruthy();
   });
 
@@ -380,6 +418,31 @@ describe('the Fasting screen (design 3.4 to 3.8)', () => {
     expect(within(region(fasting.pattern.label)).getByRole('radiogroup')).toBeTruthy();
     expect(window.history.length).toBe(entries);
     expect(window.location.hash).toBe('#/fasting');
+  });
+
+  it('with no pattern: "No fasting plan for now" once that is saved, never "No eating schedule is saved yet"', async () => {
+    const t = await setUp('#/fasting', {
+      now: at(D, '10:00'),
+      targets: { fastingPreset: null, eatingWindow: null, presetChosenBy: null },
+    });
+    const card = await screen.findByRole('region', { name: fasting.pattern.label });
+    expect(within(card).getByText(schedule.none)).toBeTruthy();
+    expect(within(card).queryByText(schedule.noneSaved)).toBeNull();
+    cleanup();
+    await t.repos.settings.update({ scheduleConfirmedAt: null });
+    await openApp('#/fasting');
+    const unsaved = await screen.findByRole('region', { name: fasting.pattern.label });
+    expect(within(unsaved).getByText(fasting.card.noPattern)).toBeTruthy();
+  });
+
+  it('E19: the open form carries the Kickstart line, once, and drops it when another pattern is picked', async () => {
+    await setUp('#/fasting', { now: at(D, '10:00'), ...KICKSTART_DEFAULT });
+    const card = await screen.findByRole('region', { name: fasting.pattern.label });
+    expect(within(card).getByText(schedule.kickstartWhen)).toBeTruthy();
+    tap(card, fasting.pattern.change);
+    expect(within(region(fasting.pattern.label)).getByText(schedule.kickstartWhen)).toBeTruthy();
+    fireEvent.click(within(region(fasting.pattern.label)).getByRole('radio', { name: /^18:6/ }));
+    expect(within(region(fasting.pattern.label)).queryByText(schedule.kickstartWhen)).toBeNull();
   });
 
   it('FL-14, HS-17: the 23:1 window is 1 h eating and 23 h fasting, with no over-24 text', async () => {

@@ -98,6 +98,11 @@ export interface ProfileFormCheck {
   /** From the draft's birth year, height and weight when valid. */
   readonly gates: ReadinessGates;
   readonly ageCheck: AgeCrossCheck;
+  /**
+   * The typed birth year when it is valid, else null. The under-18 notice names the year its
+   * settings lift from this, never from a year the form refuses (the gates then use the stored one).
+   */
+  readonly validBirthYear: number | null;
   readonly weightCheck: 'consistent' | 'low-weight-answered-no';
   readonly show: {
     readonly weight: boolean;
@@ -267,6 +272,7 @@ export function checkProfileForm(draft: ProfileDraft, ctx: ProfileFormContext): 
   return {
     gates,
     ageCheck: ageCrossCheck(ctx.readiness.answers.q1, minimumAgeYears),
+    validBirthYear: validYear,
     weightCheck:
       lowWeight && ctx.readiness.answers.q5 === 'no' ? 'low-weight-answered-no' : 'consistent',
     show,

@@ -90,7 +90,9 @@ export function PatternCard({
         }
       >
         {standing === null || described === null ? (
-          <p>{view.noPlanChosen ? schedule.noneSaved : fasting.card.noPattern}</p>
+          // "No eating schedule is saved yet" is item 13's line for nothing saved at all, so a
+          // stored "No fasting plan for now" is named as chosen (item 13 review).
+          <p>{view.noPlanChosen ? schedule.none : fasting.card.noPattern}</p>
         ) : (
           <>
             <DayBar segments={dayBarSegments(standing)} labels={schedule.dayBarLabels} />
@@ -103,8 +105,14 @@ export function PatternCard({
                 })}
               </p>
             )}
-            {inputs.targets.presetChosenBy === 'kickstart-default' ? (
-              <p className="ui-text-muted">{schedule.kickstartWhen}</p>
+            {/*
+              A Kickstart default stored before answer 4 turned yes reads as 22:2 (C07). The open
+              form carries its own line, for the pattern being chosen (E19).
+            */}
+            {inputs.targets.presetChosenBy === 'kickstart-default' && !open ? (
+              <p className="ui-text-muted">
+                {view.pharmacist ? schedule.kickstartDefaultSetAside : schedule.kickstartWhen}
+              </p>
             ) : null}
             {view.dayChanges.map((change) => (
               <DayChangeLine key={change.date} storage={storage} change={change} />

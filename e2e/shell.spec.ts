@@ -208,8 +208,8 @@ test('nothing scrolls sideways or runs off a narrow or zoomed screen, online or 
   await seedOnboarded(page);
   await waitForServiceWorkerControl(page);
   const problems: string[] = [];
-  // 320 px: a small phone. 195 px: a 390 px phone at 200% zoom.
-  for (const width of [320, 195]) {
+  // 320 px: a small phone. 195 and 180 px: a 390 px and a 360 px phone at 200% zoom.
+  for (const width of [320, 195, 180]) {
     await page.setViewportSize({ width, height: 640 });
     for (const offline of [false, true]) {
       await context.setOffline(offline);

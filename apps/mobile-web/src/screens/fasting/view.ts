@@ -78,7 +78,7 @@ export interface FastingContext {
     /** A stated reason in the deficit group (under 18, pregnancy, eating disorder, low weight; F41). */
     readonly quiet: boolean;
   };
-  /** effectiveFastingPreset(targets, isKickstartDay(...)) (item 14). */
+  /** effectiveFastingPreset(targets, isKickstartDay(...), gates) (item 14). */
   readonly preset: SchedulePreset;
   /** The running Kickstart period's last day and the preset after it (item 14), or not running. */
   readonly kickstart: ScheduleRecords['kickstart'];

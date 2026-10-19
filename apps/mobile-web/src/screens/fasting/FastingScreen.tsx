@@ -1,9 +1,10 @@
 import { featureGateOf, reasonStates } from '@diet/core';
-import { fasting, privacy, readiness } from '@diet/core/copy/health';
+import { fasting, privacy } from '@diet/core/copy/health';
 import { Card } from '@diet/ui';
 import { type ReactElement, useEffect, useRef, useState } from 'react';
 import { appStorageStore, type AppStorage } from '../../db/runtime';
 import { GateNotice } from '../../onboarding/GateNotice';
+import { consequenceText } from '../../onboarding/readinessText';
 import { type FastingSublink, fastingSublink, routeHref } from '../../routes';
 import { useStore } from '../../store';
 import { FastCard, FastingReadError } from './FastCard';
@@ -33,8 +34,14 @@ function GatedCard({ state }: { readonly state: FastingState }): ReactElement {
     <Card label={fasting.card.gatedLabel}>
       <p className="ui-text-strong">{gated.title}</p>
       <GateNotice feature="fasting" link linkWhen="actionable" />
-      {/* The prescriber's agreement is confirmed in Settings, Readiness answers (F44; RD-03). */}
-      {stated.includes('diabetes-medication') ? <p>{readiness.ifYes.q3}</p> : null}
+      {/*
+        The prescriber's agreement is confirmed in Settings, Readiness answers (F44; RD-03). The
+        answer-3 line follows the gates, so it never says meals keep a deficit another answer
+        closes (item 13 review).
+      */}
+      {stated.includes('diabetes-medication') ? (
+        <p>{consequenceText('q3', gateView.input, gateView.gates)}</p>
+      ) : null}
       <p className="ui-text-muted">{gated.kept}</p>
     </Card>
   );

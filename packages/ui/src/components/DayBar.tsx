@@ -1,9 +1,13 @@
 import type { ReactElement } from 'react';
+import { classNames } from '../classNames';
 
 export interface DayBarProps {
   /** The eating part of the day, in percent: one segment, or two across midnight. */
   segments: readonly { readonly startPct: number; readonly widthPct: number }[];
-  /** Times under the bar, evenly spaced from the left end to the right end. */
+  /**
+   * Times under the bar, evenly spaced from the left end to the right end, each under its own
+   * hour. On a narrow bar every other one is left out (the first and last always show).
+   */
   labels: readonly string[];
 }
 
@@ -26,7 +30,13 @@ export function DayBar({ segments, labels }: DayBarProps): ReactElement {
       </div>
       <div className="ui-daybar__labels">
         {labels.map((label, i) => (
-          <span key={i}>{label}</span>
+          <span
+            key={i}
+            className={classNames('ui-daybar__label', i % 2 === 1 && 'ui-daybar__label--minor')}
+            style={{ left: `${labels.length < 2 ? 0 : (i / (labels.length - 1)) * 100}%` }}
+          >
+            {label}
+          </span>
         ))}
       </div>
     </div>

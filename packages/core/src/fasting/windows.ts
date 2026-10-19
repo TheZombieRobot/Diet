@@ -101,13 +101,14 @@ export interface SchedulePreset {
 }
 
 export interface ScheduleRecords {
-  /** effectiveFastingPreset(targets, kickstartRunning) today. */
+  /** effectiveFastingPreset(targets, kickstartRunning, gates) today. */
   readonly preset: SchedulePreset;
   readonly planDays: readonly Pick<PlanDayRecord, 'date' | 'eatingWindow'>[];
   readonly fastingGated: boolean;
   /**
    * While a Kickstart period runs: its scheduled last day, and the preset for the days after it,
-   * effectiveFastingPreset(targets, false). Dates after the last day already plan that window.
+   * effectiveFastingPreset(targets, false, gates). Dates after the last day already plan that
+   * window.
    */
   readonly kickstart:
     | { readonly running: true; readonly lastDay: LocalDate; readonly presetAfter: SchedulePreset }

@@ -6,7 +6,6 @@ import {
   type ProfileDraft,
   type ProfileFieldId,
   type ProfileFormCheck,
-  parseOptionalNumber,
   type ReadinessQuestionId,
   under18LiftYear,
   USER_ALLERGENS,
@@ -31,16 +30,6 @@ import { profileProblemText } from './profileErrors';
 
 const ACTIVITY_LEVELS = Object.keys(ACTIVITY_FACTORS) as ActivityLevel[];
 const HOUSEHOLD = { min: 1, max: 20 } as const;
-
-/** The typed birth year, when it is a whole number. */
-function typedYear(text: string): number | null {
-  try {
-    const year = parseOptionalNumber(text);
-    return year !== undefined && Number.isInteger(year) ? year : null;
-  } catch {
-    return null;
-  }
-}
 
 export interface ProfileFormProps {
   readonly mode: 'onboarding' | 'settings';
@@ -118,7 +107,7 @@ export function ProfileForm({
             : profile.errors.dislikeTooMany,
     );
   };
-  const year = typedYear(draft.birthYear);
+  const year = check.validBirthYear;
 
   return (
     <form
@@ -156,7 +145,11 @@ export function ProfileForm({
         ) : null}
         {check.weightCheck === 'low-weight-answered-no' ? (
           <Notice>
-            <p>{readiness.weightCheck.lowWeight}</p>
+            <p>
+              {mode === 'onboarding'
+                ? readiness.weightCheck.lowWeight
+                : readiness.weightCheck.lowWeightStored}
+            </p>
             {changeAnswer('q5', readiness.weightCheck.changeAnswer)}
           </Notice>
         ) : null}
@@ -290,24 +283,22 @@ export function ProfileForm({
             set({ allergens: USER_ALLERGENS.filter((a: UserAllergen) => values.includes(a)) });
           }}
         />
-        <div className="ui-field-row">
-          <TextField
-            label={profile.dislikesLabel}
-            hint={profile.dislikesHint}
-            autoComplete="off"
-            value={dislike}
-            error={dislikeError}
-            onChange={(event) => {
-              setDislike(event.currentTarget.value);
-            }}
-            onKeyDown={(event) => {
-              if (event.key !== 'Enter') return;
-              event.preventDefault();
-              addDislike();
-            }}
-          />
-          <Button onClick={addDislike}>{profile.dislikesAdd}</Button>
-        </div>
+        <TextField
+          label={profile.dislikesLabel}
+          hint={profile.dislikesHint}
+          autoComplete="off"
+          value={dislike}
+          error={dislikeError}
+          action={<Button onClick={addDislike}>{profile.dislikesAdd}</Button>}
+          onChange={(event) => {
+            setDislike(event.currentTarget.value);
+          }}
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter') return;
+            event.preventDefault();
+            addDislike();
+          }}
+        />
         {draft.dislikeTerms.length === 0 ? null : (
           <TagList
             items={draft.dislikeTerms.map((term) => ({

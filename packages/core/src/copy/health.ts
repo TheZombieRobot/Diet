@@ -83,6 +83,8 @@ export const alcohol = {
       'The app records what you drink and shows the New Zealand guidance. It never makes a plan to change your drinking. That is a conversation for you and your GP or the helpline.',
     ],
     acknowledge: 'I understand',
+    /** The helpline row's title; its detail line carries "free, 24/7, confidential". */
+    helplineTitle: 'Alcohol Drug Helpline',
     helplineDetail: `${helpNumbers.alcoholDrugHelpline.number} · free, 24/7, confidential`,
     emergencyTitle: `Emergency: call ${helpNumbers.emergency.number}`,
     emergencyDetail: 'Seizures, confusion or hallucinations',
@@ -712,9 +714,9 @@ export const onboarding = {
     restoreLink: 'Restore from a backup instead',
     restoreTitle: 'Restore from a backup',
     restoreIntro:
-      'If you used this app before and kept a backup file, you can put those records back now. The file replaces everything entered during setup, including your answers to the questions. The app then opens on the answers from the file, so you can check they still apply.',
+      'If you used this app before and kept a backup file, you can put those records back now. The file replaces everything entered during setup, including your answers to the questions. If the file is from a finished setup, the app then opens on its answers, so you can check they still apply; otherwise setup carries on from where the file left off.',
     saveFailed: 'That could not be saved. Try again.',
-    fixBelow: 'Some details need a look before you continue.',
+    fixBelow: 'Some details below need a look.',
   },
   welcome: {
     title: 'Welcome',
@@ -751,15 +753,26 @@ export const readiness = {
     q6: 'Has a doctor ever told you not to exercise, or do you get chest pain, dizziness or faint during activity?',
     q7: 'Do you drink alcohol most days, or heavily at weekends?',
   },
-  /** What a yes (or no answer) switches off or on. */
+  /**
+   * What a yes (or no answer) switches off. Where something else keeps more off (another answer, a
+   * question not answered yet, the birth year or the weight), `ifYesAlsoOff` holds the line used
+   * instead, so no line says a feature is on or can be chosen while the gates keep it off
+   * (readinessText.ts consequenceText).
+   */
   ifYes: {
     q1: 'Fasting, keto carb targets, Kickstart, any energy deficit, weight goals, the energy estimate and alcohol logging are switched off. The app works as a food and exercise planner only.',
     q2: 'Fasting, the keto carb ceiling, Kickstart, any energy deficit and weight goals are switched off. Meals are still planned. Please talk to your midwife or GP about what to eat.',
     q3: 'Low-carb eating and fasting can change how diabetes medicines act, and can cause low blood sugar (hypoglycaemia). Check with your prescriber first. Fasting, Kickstart and carb ceilings under 50 g stay off until you confirm your prescriber has agreed. Meals are still planned low-carb, with a carb ceiling of at least 50 g and a smaller energy deficit, so talk to your prescriber before you start using the meal plans.',
-    q4: 'Fasting is allowed. Check the timing of your medicines with your pharmacist or GP before you change when you eat. If you take blood-pressure medication, check with your pharmacist or GP before adding salt or using salt substitutes.',
+    q4: 'This answer does not switch anything off. Check the timing of your medicines with your pharmacist or GP before you change when you eat. If you take blood-pressure medication, check with your pharmacist or GP before adding salt or using salt substitutes.',
     q5: 'Fasting, weight goals, Kickstart, any energy deficit and the keto carb ceiling are switched off. Your weight trend is still shown, without targets.',
     q6: 'Exercise plans stay hidden until you confirm you have discussed exercise with a GP.',
     q7: 'A card with help contacts is shown on Today from the first day. You can put it away for 30 days at a time.',
+  },
+  ifYesAlsoOff: {
+    /** Answer 1 while exercise plans are off too (answer 6, or not answered yet). */
+    q1: 'Fasting, keto carb targets, Kickstart, any energy deficit, weight goals, the energy estimate and alcohol logging are switched off. The app works as a food planner only.',
+    /** Answer 3 while something else keeps the energy deficit (and so these) off too. */
+    q3: 'Low-carb eating and fasting can change how diabetes medicines act, and can cause low blood sugar (hypoglycaemia). Check with your prescriber first. Fasting, Kickstart and carb ceilings under 50 g stay off until you confirm your prescriber has agreed, and for as long as anything else you tell the app keeps them off. Talk to your prescriber before you start using the meal plans.',
   },
   confirmations: {
     prescriberAgreed:
@@ -775,16 +788,21 @@ export const readiness = {
   confirmationLapses: 'If you change this answer, the app asks for this confirmation again.',
   confirmed: {
     prescriberAgreed:
-      'You have confirmed your prescriber agreed, so fasting, Kickstart and carb ceilings under 50 g can be chosen. If your medication or dose changes, tap "My medication or dose has changed" until you have checked again.',
+      'You have confirmed your prescriber agreed, so fasting, Kickstart and carb ceilings under 50 g can be chosen. If your medication or dose changes, tap "My medication or dose has changed": they then stay off until you confirm again.',
     gpExerciseDiscussed:
       'You have confirmed you discussed exercise with a GP, so exercise plans can be shown. If your symptoms change, tap "My symptoms have changed".',
+  },
+  /** The prescriber's agreement is recorded, but something else keeps the features off. */
+  confirmedAlsoOff: {
+    prescriberAgreed:
+      'You have confirmed your prescriber agreed. Fasting, Kickstart and carb ceilings under 50 g stay off for as long as anything else you tell the app keeps them off. If your medication or dose changes, tap "My medication or dose has changed".',
   },
   changed: {
     q3: 'My medication or dose has changed',
     q6: 'My symptoms have changed',
   },
   changedDone: {
-    q3: 'Saved. Fasting, Kickstart and carb ceilings under 50 g are off until you confirm your prescriber has agreed again.',
+    q3: "Saved. The app now needs your prescriber's agreement again before fasting, Kickstart or carb ceilings under 50 g can be chosen.",
     q6: 'Saved. Exercise plans are off until you confirm you have discussed exercise with a GP again.',
   },
   summaryTitle: 'What your answers change',
@@ -794,7 +812,7 @@ export const readiness = {
   unanswered: 'Not answered yet. Until you answer, the app treats this as Yes.',
   /** A feature hidden with its reason (RD-01 to RD-05). */
   featureOff: '{feature} is off because of what you told the app about {reasons}.',
-  /** In GATED_FEATURES order (readiness/gates.ts). */
+  /** In GATED_FEATURES order (readiness/gates.ts). Singular, for "{feature} is off". */
   featureNames: {
     fasting: 'Fasting',
     kickstart: 'Kickstart',
@@ -805,7 +823,7 @@ export const readiness = {
     goalSetting: 'Weight goal setting',
     energyEstimate: 'The energy estimate',
     alcoholLogging: 'Alcohol logging',
-    exercisePlans: 'Exercise plans',
+    exercisePlans: 'Exercise planning',
   },
   /** In READINESS_REASON_IDS order (storage/readiness.ts). */
   reasonPhrases: {
@@ -829,19 +847,29 @@ export const readiness = {
     changeAnswer: 'Change my answer',
     summaryLine:
       'Your birth year means you may be under 18, so the app keeps to its under-18 settings until 1 January {year}.',
+    /** Settings, Readiness answers: the birth year is not changed there. */
+    whereToChange: 'If the birth year is wrong, correct it in Settings, Profile.',
+    profileLink: 'Open Profile',
   },
   /** A current weight below BMI 18.5 for the height counts as a yes to question 5 (HS-35). The BMI figure is never shown. */
   weightCheck: {
     lowWeight:
       'The weight you entered is low for your height. The app keeps to the same settings as a Yes to question 5: no fasting, no Kickstart, no energy deficit, no keto carb ceiling and no weight goals. If the weight or height is a typing slip, correct it above.',
+    /** Settings, Profile, which has no weight field: the stored current weight. */
+    lowWeightStored:
+      'Your current weight is low for this height. The app keeps to the same settings as a Yes to question 5: no fasting, no Kickstart, no energy deficit, no keto carb ceiling and no weight goals. If the height is a typing slip, correct it above.',
     changeAnswer: 'Change answer 5',
     summaryLine:
       'Your latest weight is low for your height, so the app keeps to the same settings as a Yes to question 5.',
+    /** Settings, Readiness answers: neither the weight nor the height is changed there. */
+    whereToChange:
+      'If a weigh-in or your height is wrong, correct it on the Weight screen or in Settings, Profile.',
+    weightLink: 'Open Weight',
   },
   settingsRow: { title: 'Readiness answers', detail: 'What the app switches on and off' },
   settingsAnswersLabel: 'Your answers',
   settingsIntro:
-    'These answers decide which parts of the app are switched on. A change applies at once, and nothing you have recorded is deleted.',
+    'These answers decide which parts of the app are switched on. A change applies at once. Your logs and weigh-ins are kept. Changing answer 3 or 6 asks for its confirmation again, and a Yes to answer 3 turns your Kickstart choice off.',
   // Item 15 (design 5.2): a question nobody answered is never stated as a fact (C41).
   featureOffUnansweredOne: '{feature} stays off until you answer the question about {reasons}.',
   featureOffUnansweredMany: '{feature} stays off until you answer the questions about {reasons}.',
@@ -925,13 +953,13 @@ export const profile = {
   save: 'Save',
   saved: 'Saved.',
   goalHiddenAfterHeight:
-    'Your long-term goal is below a BMI of 18.5 for this height, so it is hidden until you change it.',
+    'Your long-term goal is below a BMI of 18.5 for this height, so the app does not use it at this height. The goal itself is kept.',
   settingsRow: {
     title: 'Profile',
     detail: 'Height, sex, birth year, activity, household and food',
   },
   errors: {
-    required: 'Enter this to continue.',
+    required: 'Fill this in.',
     notANumber: 'Enter a plain number, such as 175 or 82.5.',
     oneDecimal: 'Use at most one decimal place.',
     heightRange: 'Enter a height from 120 to 230 cm.',
@@ -961,6 +989,11 @@ export const schedule = {
   /** UX 1e, word for word with 140 filled (docFidelity.test.ts); {proteinG} follows the protein range (C65). */
   kickstartLine:
     "One meal has to carry about {proteinG} g protein. If a day's dinner can't, the app will offer the 5 pm snack. That's not a broken fast.",
+  /** With Kickstart chosen, any pattern other than the untouched 23:1 default (E19). */
+  ownPattern: 'You chose your own pattern. The app keeps it every day, during Kickstart and after.',
+  /** Settings: a Kickstart default stored before answer 4 turned yes is not used (C07). */
+  kickstartDefaultSetAside:
+    'The app had chosen 23:1 for Kickstart before your answer to question 4. It uses 22:2 (5 pm snack + dinner) instead, until you choose a pattern and save it.',
   presetsLegend: 'Choose a pattern',
   /** HEALTH_SAFETY.md section 3 preset names. */
   presetNames: { '22:2': '5 pm snack + dinner', '23:1': 'One meal' },

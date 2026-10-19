@@ -1,13 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { effectiveProteinTargetG } from '../energy/protein';
-import { checkGardenCrop, type GardenCropDraft } from '../garden/cropForm';
+import { checkGardenCrop, type GardenCropDraft, gardenCropDraftEmpty } from '../garden/cropForm';
 import {
   checkEatingWindowForm,
   defaultSchedule,
   presetForWindow,
   scheduleChosenBy,
+  scheduleDefaultFor,
   scheduleStart,
   setupScheduleReset,
+  windowProblemFields,
 } from './schedule';
 
 describe('the default pattern and who chose it (U27; C55, E19, E20)', () => {
@@ -46,6 +48,17 @@ describe('the default pattern and who chose it (U27; C55, E19, E20)', () => {
     expect(scheduleChosenBy(storedDefault, kick, storedDefault)).toBe('default');
   });
 
+  it('C07 / E49: with answer 4 there is no default, so whatever the owner saves is their own', () => {
+    expect(scheduleDefaultFor({ pharmacistReminder: false, kickstartChosen: true })).toEqual(
+      defaultSchedule(true),
+    );
+    expect(scheduleDefaultFor({ pharmacistReminder: true, kickstartChosen: true })).toBeNull();
+    const kick = defaultSchedule(true);
+    const storedKick = { ...kick, preset: '23:1' as const };
+    expect(scheduleChosenBy(kick, null, null)).toBe('user');
+    expect(scheduleChosenBy(storedKick, null, storedKick)).toBe('user');
+  });
+
   it('time field errors', () => {
     expect(checkEatingWindowForm('17:00', '19:00')).toEqual({
       ok: true,
@@ -55,16 +68,21 @@ describe('the default pattern and who chose it (U27; C55, E19, E20)', () => {
     expect(checkEatingWindowForm('', '19:00')).toEqual({ ok: false, problem: 'invalid-time' });
     expect(checkEatingWindowForm('18:00', '18:00')).toEqual({ ok: false, problem: 'same-time' });
     expect(checkEatingWindowForm('18:00', '18:30')).toEqual({ ok: false, problem: 'too-short' });
+    expect(windowProblemFields('', '19:00', 'invalid-time')).toEqual(['start']);
+    expect(windowProblemFields('17:00', '7pm', 'invalid-time')).toEqual(['end']);
+    expect(windowProblemFields('18:00', '18:00', 'same-time')).toEqual(['start', 'end']);
+    expect(windowProblemFields('18:00', '18:30', 'too-short')).toEqual(['start', 'end']);
   });
 });
 
 describe('where the schedule starts, and when setup clears it (U33; C07, C55, E49, E50, E52)', () => {
-  const none = { fastingPreset: null, eatingWindow: null } as const;
+  const none = { fastingPreset: null, eatingWindow: null, presetChosenBy: null } as const;
 
   it('scheduleStart: stored, "none" once confirmed with nothing, nothing chosen with answer 4, else the default', () => {
     const stored = {
       fastingPreset: '18:6',
       eatingWindow: { start: '13:00', end: '19:00' },
+      presetChosenBy: 'user',
     } as const;
     expect(
       scheduleStart({
@@ -110,10 +128,33 @@ describe('where the schedule starts, and when setup clears it (U33; C07, C55, E4
       choice: '23:1',
       window: { start: '18:00', end: '19:00' },
     });
+    // A Kickstart default the app chose before answer 4 turned yes is not offered as chosen.
+    const kickstartDefault = {
+      fastingPreset: '23:1',
+      eatingWindow: { start: '18:00', end: '19:00' },
+      presetChosenBy: 'kickstart-default',
+    } as const;
+    const fromKickstartDefault = (pharmacistReminder: boolean) =>
+      scheduleStart({
+        stored: kickstartDefault,
+        scheduleConfirmed: true,
+        pharmacistReminder,
+        kickstartChosen: true,
+      });
+    expect(fromKickstartDefault(true)).toEqual({ choice: null, window: null });
+    expect(fromKickstartDefault(false)).toEqual({
+      choice: '23:1',
+      window: { start: '18:00', end: '19:00' },
+    });
   });
 
   it('setupScheduleReset', () => {
-    const during = { onboardingCompleted: false, fastingGated: false, kickstartChosen: true };
+    const during = {
+      onboardingCompleted: false,
+      fastingGated: false,
+      pharmacistReminder: false,
+      kickstartChosen: true,
+    };
     const kick = { fastingPreset: '23:1', presetChosenBy: 'kickstart-default' } as const;
     const plain = { fastingPreset: '22:2', presetChosenBy: 'default' } as const;
     const user = { fastingPreset: '18:6', presetChosenBy: 'user' } as const;
@@ -122,6 +163,12 @@ describe('where the schedule starts, and when setup clears it (U33; C07, C55, E4
     expect(setupScheduleReset(kick, { ...during, kickstartChosen: false })).toBe(true);
     expect(setupScheduleReset(plain, during)).toBe(true);
     expect(setupScheduleReset(kick, during)).toBe(false);
+    // Answer 4 turned yes after the step: a default the app chose is asked for again (C07, E49).
+    const answer4 = { ...during, pharmacistReminder: true };
+    expect(setupScheduleReset(kick, answer4)).toBe(true);
+    expect(setupScheduleReset(plain, { ...answer4, kickstartChosen: false })).toBe(true);
+    expect(setupScheduleReset(user, answer4)).toBe(false);
+    expect(setupScheduleReset(kick, { ...answer4, onboardingCompleted: true })).toBe(false);
     expect(
       setupScheduleReset(kick, { ...during, onboardingCompleted: true, fastingGated: true }),
     ).toBe(false);
@@ -194,5 +241,13 @@ describe('the add-a-crop form (U29; C57)', () => {
     expect(checkGardenCrop({ ...draft, name: 'x'.repeat(61) })).toMatchObject({
       problems: { name: 'length' },
     });
+  });
+
+  it('a form counts as empty only with nothing typed and no unit chosen (E24)', () => {
+    const empty = { name: ' ', amount: '', unit: null, harvestReady: false, keepsDays: '' };
+    expect(gardenCropDraftEmpty(empty)).toBe(true);
+    for (const typed of [{ name: 'Kale' }, { amount: '2' }, { keepsDays: '3' }, { unit: 'g' }]) {
+      expect(gardenCropDraftEmpty({ ...empty, ...typed } as GardenCropDraft)).toBe(false);
+    }
   });
 });

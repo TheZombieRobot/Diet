@@ -11,5 +11,8 @@ export default defineProject({
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     // Screen tests render into a simulated browser page.
     environment: 'jsdom',
+    // The whole-app flow tests take 2–4 s alone; several builds share this machine's CPUs, so the
+    // 5 s default timed them out under load (item 13 review).
+    testTimeout: 20_000,
   },
 });

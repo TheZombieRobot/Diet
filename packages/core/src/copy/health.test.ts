@@ -493,3 +493,28 @@ describe('fasting and reflux copy (item 15)', () => {
     expect(reflux.chestPain).toContain(helpNumbers.emergency.number);
   });
 });
+
+// Item 13 review: wording that has to hold wherever it shows (setup and Settings) and whatever
+// the other answers are. The gate-dependent choice between lines is tested in the app
+// (onboarding/readinessText.test.ts); these pin the sentences the review found untrue.
+describe('first-run wording holds in every place it shows (item 13 review)', () => {
+  it('no readiness line says fasting is allowed, and the "has changed" lines promise nothing', () => {
+    for (const [path, text] of strings(readiness, 'readiness')) {
+      expect(text, path).not.toMatch(/\ballowed\b|until you have checked again/);
+    }
+    expect(readiness.changedDone.q3).not.toMatch(/\bare off until\b/);
+    expect(readiness.ifYesAlsoOff.q3).toContain('hypoglycaemia');
+    expect(readiness.confirmedAlsoOff.prescriberAgreed).toContain(`"${readiness.changed.q3}"`);
+  });
+
+  it('Settings wording says what Settings can do: no "continue", no field it lacks, nothing said to be kept that is not', () => {
+    expect(onboarding.frame.fixBelow).not.toMatch(/continue/i);
+    expect(profile.errors.required).not.toMatch(/continue/i);
+    expect(readiness.weightCheck.lowWeightStored).not.toMatch(/weight or height/);
+    expect(profile.goalHiddenAfterHeight).not.toMatch(/until you change it/);
+    expect(readiness.settingsIntro).toContain('asks for its confirmation again');
+    expect(readiness.settingsIntro).not.toMatch(/nothing .* deleted/);
+    expect(onboarding.frame.restoreIntro).toContain('otherwise setup carries on');
+    expect(alcohol.notice.helplineTitle).toBe('Alcohol Drug Helpline');
+  });
+});
