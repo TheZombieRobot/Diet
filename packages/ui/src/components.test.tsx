@@ -6,6 +6,7 @@ import {
   AppShell,
   applyTheme,
   Banner,
+  BowlIcon,
   Button,
   ButtonRow,
   Card,
@@ -13,6 +14,7 @@ import {
   ChoiceList,
   currentThemePreference,
   DayBar,
+  FastMeter,
   FloatingActionButton,
   FloatingActionPanel,
   IconButton,
@@ -500,6 +502,12 @@ describe('form controls (the Backup and data card)', () => {
       '.ui-notice--amber',
       '.ui-button--caution',
       '.ui-progress',
+      '.ui-button--on-amber',
+      '.ui-button--on-amber-outline',
+      '.ui-fast-meter',
+      '.ui-fast-meter__fill',
+      '.ui-fast-meter__window',
+      '.ui-split-row__amber',
     ]) {
       const rule = componentsCss.slice(componentsCss.indexOf(`${selector} {`));
       const body = rule.slice(0, rule.indexOf('}'));
@@ -834,5 +842,48 @@ describe('the weight chart and inline answers (item 14)', () => {
       expect(rule(selector), selector).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(/i);
       expect(rule(selector), selector).toMatch(/var\(--color-/);
     }
+  });
+});
+
+describe('the Fast card pieces (item 15; mock-up Main)', () => {
+  it('FastMeter is decorative: teal progress, the eating window at its place, all amber past 24 hours', () => {
+    const { container, rerender } = render(
+      <FastMeter progressPct={3.125} window={{ startPct: 95.833, widthPct: 4.167 }} over={false} />,
+    );
+    const meter = container.querySelector('.ui-fast-meter');
+    expect(meter?.getAttribute('aria-hidden')).toBe('true');
+    expect(meter?.className).toBe('ui-fast-meter');
+    expect(container.querySelector<HTMLElement>('.ui-fast-meter__fill')?.style.width).toBe(
+      '3.125%',
+    );
+    const window = container.querySelector<HTMLElement>('.ui-fast-meter__window');
+    expect([window?.style.left, window?.style.width]).toEqual(['95.833%', '4.167%']);
+    rerender(<FastMeter progressPct={100} window={{ startPct: 50, widthPct: 10 }} over />);
+    expect(container.querySelector('.ui-fast-meter')?.className).toContain('ui-fast-meter--over');
+    expect(container.querySelector('.ui-fast-meter__window')).toBeNull();
+    expect(componentsCss).toMatch(
+      /\.ui-fast-meter--over \.ui-fast-meter__fill \{\s*background: var\(--color-amber-strong\);/,
+    );
+  });
+
+  it('an amber notice can carry a decorative icon and its own amber buttons', () => {
+    render(
+      <Notice
+        icon={<BowlIcon />}
+        actions={
+          <ButtonRow>
+            <Button variant="on-amber">Add</Button>
+            <Button variant="on-amber-outline">Not now</Button>
+          </ButtonRow>
+        }
+      >
+        <p>Example meal check</p>
+      </Notice>,
+    );
+    const [add, notNow] = screen.getAllByRole('button');
+    expect(add?.className).toContain('ui-button--on-amber');
+    expect(notNow?.className).toContain('ui-button--on-amber-outline');
+    expect(document.querySelector('.ui-notice__icon')?.getAttribute('aria-hidden')).toBe('true');
+    expect(document.querySelector('.ui-notice__text')?.textContent).toBe('Example meal check');
   });
 });

@@ -321,6 +321,8 @@ describe('generic repositories (section 8.2; section 16 test 23; table CRUD)', (
 describe('special repositories (section 8.2; section 16 test 24)', () => {
   it('fasts: start refuses while one runs, running() finds it, a planned 1470 minutes stores null', async () => {
     const test = await openTestDb();
+    // Every readiness answer "no": fasting is open (item 15 refuses a start while it is gated).
+    await onboardForTests(test, { weightKg: null });
     const fast = await test.repos.fasts.start({ plannedFastMinutes: 1470 });
     expect(fast.plannedFastMinutes).toBeNull();
     expect(await test.repos.fasts.running()).toEqual(fast);

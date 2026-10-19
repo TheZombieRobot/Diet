@@ -25,6 +25,7 @@ import {
 } from './routes';
 import { AboutScreen } from './screens/AboutScreen';
 import { DrinksScreen } from './screens/DrinksScreen';
+import { FastingScreen } from './screens/fasting/FastingScreen';
 import { FoodScreen } from './screens/FoodScreen';
 import { ListScreen } from './screens/ListScreen';
 import { MoveScreen } from './screens/MoveScreen';
@@ -82,6 +83,8 @@ function screenFor(route: RouteId): ReactElement {
       return <EatingScheduleScreen />;
     case 'weight':
       return <WeightScreen />;
+    case 'fasting':
+      return <FastingScreen />;
   }
 }
 

@@ -842,6 +842,10 @@ export const readiness = {
   settingsAnswersLabel: 'Your answers',
   settingsIntro:
     'These answers decide which parts of the app are switched on. A change applies at once, and nothing you have recorded is deleted.',
+  // Item 15 (design 5.2): a question nobody answered is never stated as a fact (C41).
+  featureOffUnansweredOne: '{feature} stays off until you answer the question about {reasons}.',
+  featureOffUnansweredMany: '{feature} stays off until you answer the questions about {reasons}.',
+  answerQuestionsLink: 'Answer the questions',
   /** Held here for item 14's stop-sign card and item 22's electrolyte reminder (C102). */
   bloodPressure: {
     stopSign: `Eat and drink fluids. If you take blood-pressure medication, check with your pharmacist or GP before adding salt. Talk to Healthline (${helpNumbers.healthline.number}) or your GP if it continues.`,
@@ -960,8 +964,9 @@ export const schedule = {
   presetsLegend: 'Choose a pattern',
   /** HEALTH_SAFETY.md section 3 preset names. */
   presetNames: { '22:2': '5 pm snack + dinner', '23:1': 'One meal' },
-  presetDetail: 'Eat {start} – {end}',
-  presetDetailNamed: '{name} · Eat {start} – {end}',
+  /** {range} from formatClockRange, the one range style (item 15): "Eat 11:00 am – 7:00 pm". */
+  presetDetail: 'Eat {range}',
+  presetDetailNamed: '{name} · Eat {range}',
   kickstartChip: 'Kickstart',
   custom: 'Custom times',
   none: 'No fasting plan for now',
@@ -1320,6 +1325,252 @@ export const weight = {
   },
 } as const;
 
+// ---- Item 15: the fasting timer and history, and the reflux log ----
+
+/**
+ * Fasting wording (HEALTH_SAFETY.md section 3; UX_SCREENS.md 1e and section 2 card 2; DOC_REVIEW
+ * C09, C10, C29, C30, C54, C55, C62, C63, C64; item 15 design). The app never insists on a fast:
+ * every offer, after-window line and widen line says it is fine to eat or to widen the window,
+ * and nothing frames rest or food as losing a streak (HS-18).
+ */
+export const fasting = {
+  card: {
+    label: 'Fast',
+    gatedLabel: 'Fasting',
+    pill: '{ratio} · {name}',
+    detailsLink: 'Fasting and reflux',
+    refluxLink: 'Log a reflux symptom',
+    start: 'Start fast',
+    end: 'End fast',
+    undo: 'Undo',
+    started: 'Fast started.',
+    notRunning: 'No fast running.',
+    ofPlanned: 'of {planned}',
+    overCeilingUnit: 'in total (past 24 h)',
+    startedAt: 'Started {time}',
+    startedOn: 'Started {day} at {time}',
+    eatWindow: 'Eat {range}',
+    eatBy: 'Eat by {time}',
+    snackAndDinner: '5 pm snack, dinner by {end}',
+    windowOpenUntil: 'Eating window open until {end}.',
+    noPattern: 'No eating pattern chosen yet.',
+    choosePattern: 'Choose a pattern',
+    windowOpen: "Your eating window is open. It's fine to eat now.",
+    nearCeiling: "This fast is close to 24 hours. It's fine to eat now.",
+    fineToEat: "It's fine to eat now.",
+    // HEALTH_SAFETY.md section 3, word for word (HS-02).
+    overCeiling:
+      'Fasts over 24 hours are outside what this app supports. Break the fast if you feel unwell, and talk to a GP before fasting this long again.',
+    cappedPlan:
+      "Your next eating window opens more than 24 hours after this fast began. It's fine to eat earlier: eating by {time} keeps this fast within 24 hours.",
+    joined:
+      "You ended a fast {gap} ago, so this counts as the same fast. It's fine to eat before starting another.",
+    joinedJustNow:
+      "You ended a fast less than a minute ago, so this counts as the same fast. It's fine to eat before starting another.",
+    ended: 'Fast ended after {length}.',
+    noteLabel: 'How did you feel? (optional)',
+    noteHint: 'Up to 500 characters.',
+    addNote: 'Add a note',
+    saveNote: 'Save note',
+    cancel: 'Cancel',
+    noteSaved: 'Note saved.',
+    changeStart: 'Change start time',
+    clockBehind:
+      "The phone's clock reads earlier than this fast's start. Check the date and time in the phone's settings.",
+    alreadyRunning: 'A fast is already running.',
+    alreadyEnded: 'This fast was already ended on another screen.',
+    notLatest: 'Only the most recent fast can be reopened. You can change its times in History.',
+    notEnded: 'This fast is still running, so there is nothing to undo.',
+    undoExpired: 'It is too late to undo that. You can change the end time in History.',
+    notFound: 'This entry was removed on another screen. Nothing was changed.',
+    invalid:
+      'That could not be saved: a value is out of range, or the note has characters that cannot be stored. Nothing was changed.',
+    failed: 'That could not be saved. Nothing was changed. Try again.',
+    readFailed: `Your fasting records could not be read. Reload the app. If you feel unwell while fasting, eat something, and call Healthline or ${helpNumbers.emergency.number} if it doesn't settle.`,
+  },
+  day: { today: 'today', yesterday: 'yesterday', tomorrow: 'tomorrow' },
+  // HEALTH_SAFETY.md section 3, word for word (FS-05).
+  alcoholNote: 'Alcohol on an empty stomach hits harder and affects blood sugar.',
+  // HEALTH_SAFETY.md section 3 (FS-04); the action sentence word for word.
+  stopSigns: {
+    label: 'Stop-signs',
+    intro: 'While fasting, watch for:',
+    signs: ['Dizziness', 'Fainting', 'Heart palpitations', 'Confusion', 'Severe weakness'],
+    action: `Break your fast and, if it doesn't settle, call Healthline ${helpNumbers.healthline.number} or ${helpNumbers.emergency.number}.`,
+  },
+  // HEALTH_SAFETY.md section 1; C07, C54. The reasons are item 13's GateNotice.
+  gated: {
+    title: 'Fasting is switched off',
+    kept: 'Nothing you have logged is deleted.',
+    openFast: 'A fast you started is still open.',
+    endOpenFast: 'End it now',
+    refused: 'Fasting is switched off, so a fast cannot be started.',
+  },
+  // Readiness question 4 (HEALTH_SAFETY.md section 1; C07): item 13's sentence, one wording.
+  pharmacist: schedule.pharmacistNote,
+  // UX_SCREENS.md section 2 card 2 as live templates (C64). Protein figures are rounded down.
+  mealCheck: {
+    headline: {
+      tonightDinner: "Tonight's dinner carries {protein} g protein.",
+      tomorrowDinner: "Tomorrow's dinner carries {protein} g protein.",
+      todayMeal: "Today's meal carries {protein} g protein.",
+      tomorrowMeal: "Tomorrow's meal carries {protein} g protein.",
+    },
+    headlineAtLeast: {
+      tonightDinner: "Tonight's dinner carries at least {protein} g protein.",
+      tomorrowDinner: "Tomorrow's dinner carries at least {protein} g protein.",
+      todayMeal: "Today's meal carries at least {protein} g protein.",
+      tomorrowMeal: "Tomorrow's meal carries at least {protein} g protein.",
+    },
+    headlineUnknown: {
+      tonightDinner: "Tonight's dinner: protein unknown.",
+      tomorrowDinner: "Tomorrow's dinner: protein unknown.",
+      todayMeal: "Today's meal: protein unknown.",
+      tomorrowMeal: "Tomorrow's meal: protein unknown.",
+    },
+    proteinShort: 'One meal needs about {target} g.',
+    energyShort: "The day's planned food comes in under the day's energy target.",
+    // No energy target (no rough energy guide yet): energy is not shown to be met, so the snack
+    // and the widen line are offered (item 21's energyForMealChecks returns null then).
+    energyUnavailable:
+      "The day's energy target is not available yet, so the app cannot check that this day's food meets it.",
+    portionLarge:
+      'Carrying that much protein in one sitting would take more than about 600 g of meat, fish, eggs or other protein food.',
+    offerSnack: "Add the 5 pm snack? It's fine to widen the window.",
+    addSnack: 'Add 5 pm snack',
+    notNow: 'Not now',
+    // UX_SCREENS.md section 2 card 2, word for word (HS-18).
+    widen: "It's fine to widen the window.",
+    planShort: {
+      today: "Today's plan comes in under your protein or energy target.",
+      tomorrow: "Tomorrow's plan comes in under your protein or energy target.",
+    },
+    widenDetail: 'Eating earlier, or a little more, is fine.',
+    afterWindow:
+      "Today's food came in under your protein or energy target. It's fine to eat a bit more now.",
+    afterWindowTomorrow: 'Tomorrow, the 5 pm snack is there if you want it.',
+    afterWindowReflux:
+      "Today's food came in under your protein or energy target. It's fine to eat a bit more now; something small may sit better with reflux than a large late meal. Tomorrow, an earlier meal or the 5 pm snack may suit you better.",
+    afterWindowUnchecked:
+      "The day's energy target is not available yet, so the app cannot check today's food against it. It's fine to eat a bit more now.",
+    afterWindowUncheckedReflux:
+      "The day's energy target is not available yet, so the app cannot check today's food against it. It's fine to eat a bit more now; something small may sit better with reflux than a large late meal. Tomorrow, an earlier meal or the 5 pm snack may suit you better.",
+    addSnackTomorrow: 'Add 5 pm snack tomorrow',
+    snackAdded: {
+      today: '5 pm snack added for tonight. Eat {range}.',
+      tomorrow: '5 pm snack added for tomorrow. Eat {range}.',
+    },
+    undo: 'Undo',
+    unavailableOneMeal:
+      "There is no meal check until meals are planned in the app. One meal has to carry a whole day's protein, and it's fine to add the 5 pm snack.",
+  },
+  pattern: {
+    label: 'Eating pattern',
+    change: 'Change pattern',
+    nextToday: 'Next eating window: today at {time}.',
+    nextTomorrow: 'Next eating window: tomorrow at {time}.',
+    clearsChanges: 'Saving also removes the change made for {days}.',
+    refluxLink: 'Reflux options and symptom log',
+    fastingLink: 'Fasting timer, history and reflux log',
+  },
+  history: {
+    label: 'History',
+    // C63: shown from 2 days; there is never a message about losing or resetting it.
+    streak: '{days} days in a row with a completed fast.',
+    empty: 'No completed fasts yet.',
+    over24: 'Over 24 hours',
+    joined: 'Started {gap} after the fast before it, so the two count as one fast of {length}.',
+    showMore: 'Show more',
+    edit: 'Edit',
+    delete: 'Delete',
+    deleteConfirm: 'Delete this fast? This cannot be undone.',
+    deleteAction: 'Delete fast',
+    cancel: 'Cancel',
+    save: 'Save',
+    startDate: 'Start date',
+    startTime: 'Start time',
+    endDate: 'End date',
+    endTime: 'End time',
+    endBeforeStart: 'The end must be after the start.',
+    future: 'A fast cannot start or end later than now.',
+    overlap: 'These times overlap another fast.',
+  },
+  // The UX_SCREENS.md section 2 top line; item 16 builds the line from these.
+  status: {
+    fasting: 'Fasting {duration}.',
+    snackOpens: 'Snack window opens {time}.',
+    windowOpens: 'Eating window opens {time}.',
+    windowOpensTomorrow: "Tomorrow's eating window opens at {time}.",
+    windowOpenUntil: 'Eating window open until {time}.',
+  },
+} as const;
+
+/** Reflux wording (HEALTH_SAFETY.md section 3; DOC_REVIEW C47, C62, C104; item 15 design). */
+export const reflux = {
+  label: 'Reflux',
+  intro: 'Log a symptom when it happens.',
+  symptoms: {
+    heartburn: 'Heartburn',
+    'night-cough': 'Night cough',
+    regurgitation: 'Regurgitation',
+  },
+  logged: 'Logged: {symptom} at {time}.',
+  severityQuestion: 'How strong was it?',
+  severity: { '1': 'Mild', '2': 'Moderate', '3': 'Strong' },
+  notRated: 'Not rated',
+  noteLabel: 'Note (optional)',
+  noteHint: 'Up to 280 characters.',
+  addNote: 'Add a note',
+  save: 'Save',
+  cancel: 'Cancel',
+  undo: 'Undo',
+  edit: 'Edit',
+  delete: 'Delete',
+  deleteConfirm: 'Delete this entry? This cannot be undone.',
+  dateLabel: 'Date',
+  timeLabel: 'Time',
+  symptomLabel: 'Symptom',
+  severityLabel: 'How strong',
+  future: 'An entry cannot be later than now.',
+  recentTitle: 'Last 14 days',
+  recentRow: '{day}, {time} · {symptom} · {severity}',
+  recentRowUnrated: '{day}, {time} · {symptom}',
+  none: 'No symptoms logged in the last 14 days.',
+  // A judgement call for the owner's item-42 review (HEALTH_SAFETY.md section 3).
+  chestPain: `If chest pain spreads to your arm, jaw, neck or back, or comes with breathlessness, sweating or feeling faint, call ${helpNumbers.emergency.number} now rather than logging it.`,
+  // HEALTH_SAFETY.md section 3.
+  gpLine: 'See a GP if symptoms persist or worsen.',
+  noDiagnosis: 'The app does not diagnose.',
+  options: {
+    title: { today: 'Options for today', tomorrow: 'Options for tomorrow' },
+    why: 'A large meal late in the evening can make reflux worse.',
+    earlier: 'Eat an hour earlier: {range}.',
+    earlierNextDay:
+      "The next day's window then opens at {time}, so the fast in between stays under 24 hours.",
+    earlierAction: 'Eat 1 hour earlier',
+    split: 'Split the meal: the 5 pm snack, then a smaller dinner.',
+    splitAction: 'Add 5 pm snack',
+    splitAlready:
+      'Your eating window already starts by 5 pm, so a snack then and a smaller dinner fit in it.',
+    changed: {
+      today: 'Changed for today: eat {range}.',
+      tomorrow: 'Changed for tomorrow: eat {range}.',
+    },
+    undo: 'Undo',
+    keepsFastShort:
+      'This change keeps the fast next to it under 24 hours, so it cannot be undone on its own.',
+    preferEarlier: 'Prefer an earlier dinner',
+    preferSplit: 'Prefer a split meal (5 pm snack and a smaller dinner)',
+  },
+  // C47: a judgement call for the owner's item-42 review.
+  nudge: {
+    days: 'You have logged reflux symptoms on {days} days in the last 2 weeks.',
+    stronger: 'Your reflux symptoms were stronger this week than the week before.',
+    action: "It's worth seeing your GP about them.",
+    notNow: 'Not now',
+  },
+} as const;
+
 /** All sections, for scanning and review. */
 export const healthCopy = {
   helpNumbers,
@@ -1332,4 +1583,6 @@ export const healthCopy = {
   schedule,
   garden,
   weight,
+  fasting,
+  reflux,
 } as const;

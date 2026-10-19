@@ -11,6 +11,7 @@ import { type FastsRepo, fastsRepo } from './fasts';
 import { type GardenPhotosRepo, gardenPhotosRepo } from './gardenPhotos';
 import { type KickstartRepo, kickstartRepo } from './kickstart';
 import { type PhaseRepo, phaseRepo } from './phase';
+import { type PlanDaysRepo, planDaysRepo } from './planDays';
 import { type ReadinessRepo, readinessRepo } from './readiness';
 import { type SettingsRepo, type SingletonRepo, settingsRepo, singletonRepo } from './singletons';
 import { type WeightsRepo, weightsRepo } from './weights';
@@ -31,7 +32,7 @@ export interface Repos {
   readonly ingredients: CrudRepo<'ingredients'>;
   readonly ingredientOverrides: CrudRepo<'ingredient_overrides'>;
   readonly recipes: CrudRepo<'recipes'>;
-  readonly planDays: CrudRepo<'plan_days'>;
+  readonly planDays: PlanDaysRepo;
   readonly foodLog: CrudRepo<'food_log'>;
   readonly garden: CrudRepo<'garden'>;
   readonly gardenPhotos: GardenPhotosRepo;
@@ -62,7 +63,7 @@ export function createRepos(ctx: RepoContext): Repos {
     ingredients: crudRepo(ctx, 'ingredients'),
     ingredientOverrides: crudRepo(ctx, 'ingredient_overrides'),
     recipes: crudRepo(ctx, 'recipes'),
-    planDays: crudRepo(ctx, 'plan_days'),
+    planDays: planDaysRepo(ctx),
     foodLog: crudRepo(ctx, 'food_log'),
     garden: crudRepo(ctx, 'garden'),
     gardenPhotos: gardenPhotosRepo(ctx),

@@ -24,6 +24,36 @@ export function featureOffText(
   });
 }
 
+/**
+ * A hidden feature's reasons in words (item 15 design 1.1 item 2): the stated ones as
+ * featureOffText, then the unanswered ones as questions still to answer, so a question nobody
+ * answered is never put to the person as a fact (C41).
+ */
+export function featureOffReasonsText(
+  feature: GatedFeature,
+  stated: readonly ReadinessReasonId[],
+  unanswered: readonly ReadinessReasonId[],
+): string {
+  const lines = stated.length === 0 ? [] : [featureOffText(feature, stated)];
+  if (unanswered.length > 0) {
+    const template =
+      unanswered.length === 1
+        ? readiness.featureOffUnansweredOne
+        : readiness.featureOffUnansweredMany;
+    lines.push(
+      fillTemplate(template, {
+        feature: readiness.featureNames[feature],
+        reasons: joinList(
+          unanswered.map((r) => readiness.reasonPhrases[r]),
+          readiness.listComma,
+          readiness.listAnd,
+        ),
+      }),
+    );
+  }
+  return lines.join(' ');
+}
+
 /** The consequence of a yes to one question, or the confirmed wording for 3 and 6 (D29). */
 export function consequenceText(question: ReadinessQuestionId, input: GateInput): string {
   if (question === 'q3' && input.confirmations.prescriberAgreed) {

@@ -30,10 +30,22 @@ StorageOperationError.prototype.name = 'StorageOperationError';
  * Repository rules that are not record invariants: a missing record, a fast already ended, a
  * confirmation with no answer, "done" on a card that can never be turned off, or a setup step out
  * of order (the alcohol notice un-acknowledged, or setup completed before the notice and all seven
- * readiness answers; item 13, E62).
+ * readiness answers; item 13, E62). The fasting rules (item 15): a fast cannot be started or
+ * reopened while fasting is switched off; only the latest ended fast can be reopened, only through
+ * undoEnd and only within 5 minutes of its end; and a fast's times cannot be later than now.
  */
 export type StorageRule =
-  'not-found' | 'already-ended' | 'confirmation-without-answer' | 'not-final' | 'onboarding-order';
+  | 'not-found'
+  | 'already-ended'
+  | 'confirmation-without-answer'
+  | 'not-final'
+  | 'onboarding-order'
+  | 'fasting-gated'
+  | 'not-ended'
+  | 'not-latest'
+  | 'reopen'
+  | 'future-time'
+  | 'undo-expired';
 
 export class StorageRuleError extends Error {
   readonly table: string;

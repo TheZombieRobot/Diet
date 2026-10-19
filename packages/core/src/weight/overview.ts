@@ -194,8 +194,16 @@ function todayOf(
   return localDateOf(input.now, zone.timeZone);
 }
 
+/** The part of the overview's input the phase engine reads (items 15, 16 and 22 pass just this). */
+export type PhaseSource = Pick<
+  WeightOverviewInput,
+  'now' | 'deviceTimeZone' | 'homeTimeZone' | 'gates' | 'periods' | 'checks' | 'endsPending'
+> & {
+  readonly profile: Pick<WeightOverviewInput['profile'], 'dietMode' | 'carbCeilingStartedAt'>;
+};
+
 /** The phase engine's input from the overview's (items 15, 16 and 22 build theirs the same way). */
-export function phaseInputFrom(input: WeightOverviewInput, today = todayOf(input)): PhaseInput {
+export function phaseInputFrom(input: PhaseSource, today = todayOf(input)): PhaseInput {
   return {
     now: input.now,
     today,

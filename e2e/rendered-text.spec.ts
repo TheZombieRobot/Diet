@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { fasting } from '../packages/core/src/copy/health';
 import { commerceRules, healthPhraseRules } from '../tools/scans/rules';
 import { scanText } from '../tools/scans/scan';
 import {
@@ -63,14 +64,16 @@ test('no screen shows banned health, price, stock or cart wording', async ({ pag
   expect(found).toEqual([]);
 });
 
-test('no screen but About and Weight shows a number or a price, even with every banner and panel open', async ({
+test('no screen but About, Weight and Fasting shows a number or a price, even with every banner and panel open', async ({
   page,
 }) => {
   // Screens must not look like they hold records they do not have (no sample data). The fresh
   // state is a finished setup with no weigh-ins and no Kickstart choice (item 14). About is left
   // out: its numbers are the help lines and the version; so are the setup screens, which show the
-  // owner's own entries, the question about being under 18 and the pattern names such as 16:8, and
-  // the Weight screen, whose labels carry digits by design ("7-day average", "Less 0.1 kg").
+  // owner's own entries, the question about being under 18 and the pattern names such as 16:8, the
+  // Weight screen, whose labels carry digits by design ("7-day average", "Less 0.1 kg"), and the
+  // Fasting screen, which shows the owner's eating pattern and its clock times (item 15). On Today
+  // only the Fast card may carry digits, for the same pattern ("22:2", "Eat 5:00 pm – 7:00 pm").
   await seedOnboarded(page, './', './', { weightKg: null });
   const found: string[] = [];
   const check = async (where: string, screen: ScreenName) => {
@@ -83,11 +86,19 @@ test('no screen but About and Weight shows a number or a price, even with every 
     if (
       screen === 'About' ||
       screen === 'Weight' ||
+      screen === 'Fasting and reflux' ||
       (SETUP_SCREENS as readonly string[]).includes(screen)
     ) {
       return;
     }
-    const text = await renderedText(page);
+    const fastCard =
+      screen === 'Today'
+        ? await page.getByRole('region', { name: fasting.card.label, exact: true }).innerText()
+        : '';
+    const text = (await renderedText(page))
+      .split('\n')
+      .filter((line) => line.trim() === '' || !fastCard.includes(line.trim()))
+      .join('\n');
     if (/\d/.test(text))
       found.push(`${where}: a digit in ${JSON.stringify(text.match(/.*\d.*/)?.[0])}`);
     if (/[$€£]/.test(text)) found.push(`${where}: a currency sign`);

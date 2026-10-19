@@ -4,9 +4,10 @@
  * 22 of fasting, not 4. No Intl: the text never depends on the device locale. Wording is from
  * copy/health.ts (schedule).
  */
-import { schedule } from '../copy/health';
+import { fasting, schedule } from '../copy/health';
 import { fillTemplate } from '../copy/template';
 import { type ClockTime, type EatingWindow, parseClockTime, windowLength } from './eatingWindow';
+import { isOneMealWindow, SNACK_TIME } from './windows';
 
 const MINUTES_PER_DAY = 24 * 60;
 
@@ -23,12 +24,12 @@ export function formatClockTime(time: ClockTime): string {
 }
 
 /**
- * Whole minutes 1–1439 in words. long: '1 hour', '22 hours 30 minutes', '45 minutes';
- * short: '1 h', '1 h 30 m', '45 m'.
+ * Whole minutes 1–1440 in words (24 hours is a valid planned fast). long: '1 hour',
+ * '22 hours 30 minutes', '45 minutes', '24 hours'; short: '1 h', '1 h 30 m', '45 m', '24 h'.
  */
 export function formatDuration(minutes: number, style: 'long' | 'short'): string {
-  if (!Number.isInteger(minutes) || minutes < 1 || minutes >= MINUTES_PER_DAY) {
-    throw new RangeError(`minutes must be a whole number from 1 to 1439, got ${minutes}`);
+  if (!Number.isInteger(minutes) || minutes < 1 || minutes > MINUTES_PER_DAY) {
+    throw new RangeError(`minutes must be a whole number from 1 to 1440, got ${minutes}`);
   }
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
@@ -100,4 +101,48 @@ export function dayBarSegments(
     { startPct: pct(start), widthPct: pct(MINUTES_PER_DAY - start) },
     { startPct: 0, widthPct: pct(start + eatingMinutes - MINUTES_PER_DAY) },
   ];
+}
+
+// ---- Item 15: ranges, elapsed time and the pattern pill (item 15 design 4.1) ----
+
+/** Both ends in full with an en dash: '6:00 pm – 7:00 pm', '10:00 pm – 2:00 am'. */
+export function formatClockRange(start: ClockTime, end: ClockTime): string {
+  return `${formatClockTime(start)} – ${formatClockTime(end)}`;
+}
+
+/**
+ * Elapsed time in whole minutes, rounded down, of any length (a fast can run past 24 hours and the
+ * timer stays honest). figure: both parts always, '0 h 45 m', '25 h 3 m' (the Fast card); text: a
+ * zero part dropped, '45 m', '2 h', '19 h 20 m', and '0 m' for nothing yet.
+ */
+export function formatElapsed(ms: number, style: 'figure' | 'text'): string {
+  if (!Number.isFinite(ms) || ms < 0) {
+    throw new RangeError(`elapsed time must be a finite number from 0, got ${ms}`);
+  }
+  const minutes = Math.floor(ms / 60_000);
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  const h = fillTemplate(schedule.hoursShort, { n: hours });
+  const m = fillTemplate(schedule.minutesShort, { n: rest });
+  if (style === 'figure') return `${h} ${m}`;
+  if (hours === 0) return m;
+  return rest === 0 ? h : `${h} ${m}`;
+}
+
+/**
+ * The pill on the Fast and Eating pattern cards, from the window's clock times and never from the
+ * preset id (C55): '23:1 · One meal' for any one-meal window, '22:2 · 5 pm snack + dinner' for a
+ * window from 5 pm with room for the snack, otherwise the ratio alone ('22:2' at 18:00–20:00,
+ * '16:8'), and 'Custom times' when the lengths are not whole hours.
+ */
+export function patternPill(window: EatingWindow): string {
+  const { ratio } = windowLength(window);
+  if (ratio === null) return schedule.custom;
+  if (isOneMealWindow(window)) {
+    return fillTemplate(fasting.card.pill, { ratio, name: schedule.presetNames['23:1'] });
+  }
+  if (window.start === SNACK_TIME) {
+    return fillTemplate(fasting.card.pill, { ratio, name: schedule.presetNames['22:2'] });
+  }
+  return ratio;
 }

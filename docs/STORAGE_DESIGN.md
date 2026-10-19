@@ -215,7 +215,7 @@ Records are indexed by their instant. To read every record whose local date (or 
 | ingredients | `id` | `name` | yes | no (dataset in code) | 23 |
 | ingredient_overrides | `seedId` | — | yes | no | 41 (and any seed correction) |
 | recipes | `id` | `title` | yes | no (dataset in code) | 20, 22 |
-| plan_days | `date` | — | yes | no | 22 |
+| plan_days | `date` | — | yes | no | 15 (per-day eating windows, with no meals), 22 |
 | food_log | `id` | `at` | yes | no | 23 |
 | garden | `id` | `ingredientId` | yes | yes (silverbeet) | 13, 19 |
 | garden_photos | `gardenId` | — | **no (device only)** | no | 19 |

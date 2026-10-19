@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_ROUTE,
+  fastingHref,
+  fastingSublink,
   isTabRoute,
   isUnderSettings,
   parseRoute,
@@ -11,7 +13,7 @@ import {
 } from './routes';
 
 describe('hash routes', () => {
-  it('has the five tabs of UX_SCREENS.md in order, plus Settings, About, the setup screens and Weight', () => {
+  it('has the five tabs of UX_SCREENS.md in order, plus Settings, About, the setup screens, Weight and Fasting', () => {
     expect(TAB_ROUTES.map((r) => ROUTE_TITLES[r])).toEqual([
       'Today',
       'Food',
@@ -27,8 +29,17 @@ describe('hash routes', () => {
       'profile',
       'eating-schedule',
       'weight',
+      'fasting',
     ]);
     expect(ROUTE_TITLES.weight).toBe('Weight');
+    expect(ROUTE_TITLES.fasting).toBe('Fasting and reflux');
+  });
+
+  it("the Fasting screen's sub-links open the Fasting screen and name their card (item 15)", () => {
+    expect(parseRoute(fastingHref('reflux'))).toBe('fasting');
+    expect(fastingSublink(fastingHref('pattern'))).toBe('pattern');
+    expect(fastingSublink('#/fasting')).toBeNull();
+    expect(fastingSublink('#/fasting/elsewhere')).toBeNull();
   });
 
   it.each(ROUTES)('reads #/%s back from its own link', (route) => {

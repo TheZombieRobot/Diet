@@ -19,9 +19,12 @@ import {
   type GateInput,
   gateChangeEffects,
   gateInputFromRecords,
+  isDeficitGroupReason,
   isGated,
   READINESS_REASON_IDS,
+  READINESS_REASON_QUESTION,
   readinessGates,
+  reasonStates,
   under18LiftYear,
 } from './gates';
 
@@ -580,4 +583,55 @@ describe('gateChangeEffects (U15; E17, E52, E65)', () => {
     ).toBe(true);
     expect(gateChangeEffects(open, q5, ctx({ targets })).resetSetupSchedule).toBe(false);
   });
+});
+
+describe('reasonStates: stated and unanswered fasting reasons (item 15; HS-03, FS-08, C41, C54)', () => {
+  const fasting = (i: GateInput) => reasonStates(i, featureGate(i, 'fasting').reasons);
+
+  it('before any answer, every fasting reason is unanswered, so none is put as a fact', () => {
+    const none = input({ q1: null, q2: null, q3: null, q4: null, q5: null, q6: null, q7: null });
+    expect(fasting(none)).toEqual({
+      stated: [],
+      unanswered: [
+        'under-18',
+        'pregnant-or-breastfeeding',
+        'diabetes-medication',
+        'eating-disorder-or-low-weight',
+      ],
+    });
+  });
+
+  it('a yes, a birth year under 18 and a low current weight are stated; only the deficit group is quiet', () => {
+    expect(fasting(input({ q2: 'yes' })).stated).toEqual(['pregnant-or-breastfeeding']);
+    expect(fasting(input({}, { minimumAgeYears: 17 })).stated).toEqual(['under-18-birth-year']);
+    expect(fasting(input({}, { lowWeight: true })).stated).toEqual(['low-current-weight']);
+    expect(fasting(input({ q3: 'yes' })).stated).toEqual(['diabetes-medication']);
+    expect(isDeficitGroupReason('diabetes-medication')).toBe(false);
+    expect(isDeficitGroupReason('exercise-warning')).toBe(false);
+    for (const reason of [
+      'under-18',
+      'under-18-birth-year',
+      'pregnant-or-breastfeeding',
+    ] as const) {
+      expect(isDeficitGroupReason(reason), reason).toBe(true);
+    }
+  });
+
+  it('over every combination: the two lists split featureGate exactly, and are empty exactly when fasting is open', () => {
+    const failures: string[] = [];
+    for (const i of everyInput()) {
+      const reasons = featureGate(i, 'fasting').reasons;
+      const { stated, unanswered } = reasonStates(i, reasons);
+      const split = reasons.every((r) => stated.includes(r) !== unanswered.includes(r));
+      const sizes = stated.length + unanswered.length === reasons.length;
+      const open = (reasons.length === 0) === !readinessGates(i).fastingGated;
+      const asked = unanswered.every((r) => {
+        const question = READINESS_REASON_QUESTION[r];
+        return question !== null && i.answers[question] === null;
+      });
+      if (!split || !sizes || !open || !asked) failures.push(JSON.stringify(i));
+      if (failures.length > 5) break;
+    }
+    expect(failures).toEqual([]);
+  }, 60_000);
 });

@@ -57,7 +57,7 @@ Conventions for the implementing model:
     *Acceptance:* WT-01 to WT-14; HS-01, HS-11, HS-21, HS-26, HS-27; NN-03.
 
 15. **Fasting timer and history.** Presets 16:8, 18:6, 20:4, 22:2, 23:1 (Kickstart default), custom times; snack and dinner times; single-meal protein and energy check on 23:1 days with one-tap snack add; 24-hour ceiling behaviour; restart-safe; stop-signs; "widen the window" prompt; reflux symptom log and options.
-    *Acceptance:* FS-01 to FS-05; FL-10 to FL-15; HS-02, HS-17, HS-18.
+    *Acceptance:* FS-01 to FS-08; FL-10 to FL-16; HS-02, HS-17, HS-18.
 
 16. **Today dashboard skeleton and About screen.** Cards per `UX_SCREENS.md` section 2 wired to weight and fasting; quick actions; About with not-a-medical-device text, emergency numbers, data attribution placeholder, version.
     *Acceptance:* HS-13 (About portion); snapshot of Today.

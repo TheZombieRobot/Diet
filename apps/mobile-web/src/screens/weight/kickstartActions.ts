@@ -26,6 +26,7 @@ import {
 } from '@diet/core';
 import { StorageRuleError } from '../../db/errors';
 import type { AppStorage } from '../../db/runtime';
+import { clearStaleDayWindows } from '../fasting/dayWindows';
 import { clearEndLatch, latchEnd, presetMovedStore } from './stores';
 import { currentWeightEnv, overviewInputFrom, readWeightInputs } from './useWeightView';
 
@@ -52,7 +53,10 @@ export async function startKickstart(storage: AppStorage): Promise<StartResult> 
   const period = await repos.kickstart.startPeriod();
   try {
     await repos.profile.update({ carbCeilingStartedAt: period.startedAt });
-    await repos.phase.applyKickstartStartPreset();
+    // Item 15: a moved preset takes the per-day windows it no longer fits with it (C30).
+    if ((await repos.phase.applyKickstartStartPreset()) !== null) {
+      await clearStaleDayWindows(storage);
+    }
   } catch {
     // The period stands; see above.
   }
@@ -134,8 +138,10 @@ export async function reconcileKickstart(
     overview.cards.steadyExplainer?.windowLine === true || overview.cards.pendingStart !== null;
   moving ??= storage.repos.phase
     .applyPresetMove()
-    .then((change) => {
+    .then(async (change) => {
       if (change !== null && !explained) presetMovedStore.set(change);
+      // Item 15: the per-day windows the 22:2 window no longer fits go with the move (C30).
+      if (change !== null) await clearStaleDayWindows(storage);
     })
     .catch(() => undefined)
     .finally(() => {

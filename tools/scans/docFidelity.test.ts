@@ -3,10 +3,12 @@ import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   alcohol,
+  fasting,
   general,
   helpNumbers,
   profile,
   readiness,
+  reflux,
   schedule,
   weight,
 } from '../../packages/core/src/copy/health';
@@ -44,6 +46,10 @@ const weightSection = section(HEALTH_SAFETY, /^## 2\. /);
 const DECISIONS = doc('DECISIONS.md');
 const alcoholSection = section(HEALTH_SAFETY, /^## 5\. /);
 const fastingSection = section(HEALTH_SAFETY, /^## 3\. /);
+const today = section(UX_SCREENS, /^## 2\. Today/);
+const REQUIRED_COPY = JSON.parse(
+  readFileSync(join(root, 'tools', 'scans', 'required-copy.json'), 'utf8'),
+) as string[];
 
 describe('health copy matches the docs word for word', () => {
   it('general.welcome is the UX_SCREENS.md Screen 1a quote', () => {
@@ -180,5 +186,30 @@ describe('first-run copy matches the docs word for word (item 13)', () => {
       [...row.matchAll(/gated\((q\d)\)|\bunder18\b/g)].map((m) => m[1] ?? 'q1');
     expect(questions(rowOf('ketoCeilingAvailable'))).toEqual([...KETO_CEILING_CLOSED_BY]);
     expect(questions(rowOf('goalSettingAvailable'))).toEqual(['q1', 'q2', 'q5']);
+  });
+});
+
+describe('fasting copy matches the docs word for word (item 15)', () => {
+  it('the over-24 warning, the stop-sign action and the alcohol note are the HEALTH_SAFETY.md section 3 quotes', () => {
+    expect(quoteAfter(fastingSection, 'shows:')).toBe(fasting.card.overCeiling);
+    expect(quoteAfter(fastingSection, 'severe weakness.')).toBe(fasting.stopSigns.action);
+    expect(quoteAfter(fastingSection, 'shows a neutral note:')).toBe(fasting.alcoholNote);
+  });
+
+  it('the widen line and the Today status line are the UX_SCREENS.md section 2 quotes', () => {
+    expect(quoteAfter(today, 'If protein or energy is short:')).toBe(fasting.mealCheck.widen);
+    const status = `${fillTemplate(fasting.status.fasting, { duration: '14 h 20 m' })} ${fillTemplate(
+      fasting.status.snackOpens,
+      { time: '5:00 pm' },
+    )}`;
+    expect(quoteAfter(today, 'one-line status such as')).toBe(status);
+  });
+
+  it('the reflux GP line is the reviewed required sentence', () => {
+    expect(REQUIRED_COPY).toContain(reflux.gpLine);
+  });
+
+  it("the fasting pharmacist line is item 13's schedule sentence, one wording (C07)", () => {
+    expect(fasting.pharmacist).toBe(schedule.pharmacistNote);
   });
 });

@@ -213,6 +213,12 @@ describe('health wording (HS-07, HS-08, HS-19, HS-21, AL-11)', () => {
     // HEALTH_SAFETY.md section 3.
     ['Try an extended fast', 'extended-fast'],
     ['Fast tomorrow to compensate', 'compensate'],
+    // HS-18, C63: no streak-loss wording.
+    ['You lost your streak', 'streak-loss'],
+    ['Streak reset', 'streak-loss'],
+    ["Don't break your streak", 'streak-loss'],
+    ['Your streak is over', 'streak-loss'],
+    ['This ends the streak', 'streak-loss'],
   ])('flags %j', (text, ruleId) => {
     expect(hits(text, healthPhraseRules)).toContain(ruleId);
   });
@@ -302,6 +308,9 @@ describe('health wording (HS-07, HS-08, HS-19, HS-21, AL-11)', () => {
     'webdriver',
     'Electrolytes: sodium, potassium, magnesium. Garden sources: silverbeet, spinach, avocado.',
     'Heat and hydration: carry water; 500 mL per hour of activity in the heat is the in-app default.',
+    '3 days in a row with a completed fast.',
+    'End fast',
+    "Break your fast and, if it doesn't settle, call Healthline 0800 611 116 or 111.",
   ])('does not flag %j', (text) => {
     expect(hits(text, healthPhraseRules)).toEqual([]);
   });

@@ -16,6 +16,7 @@ import {
   type ReadinessGates,
   type ReadinessInput,
   readinessInputFromRows,
+  type ReadinessQuestionId,
   type ReadinessReasonId,
 } from '../storage/readiness';
 import { setupScheduleReset } from '../fasting/schedule';
@@ -233,4 +234,48 @@ export function gateChangeEffects(
       kickstartChosen: ctx.kickstartOptIn && !clearKickstartOptIn && after.kickstartAvailable,
     }),
   };
+}
+
+// ---- Item 15: stated and unanswered reasons (item 15 design 1.1 item 1 and 4.9) ----
+
+/** The readiness question behind each reason; null for a reason no question states (C41). */
+export const READINESS_REASON_QUESTION: Readonly<
+  Record<ReadinessReasonId, ReadinessQuestionId | null>
+> = Object.freeze({
+  'under-18': 'q1',
+  'under-18-birth-year': null,
+  'pregnant-or-breastfeeding': 'q2',
+  'diabetes-medication': 'q3',
+  'eating-disorder-or-low-weight': 'q5',
+  'low-current-weight': null,
+  'exercise-warning': 'q6',
+});
+
+/**
+ * Splits a feature's reasons (featureGate's output, in its order) into those the person stated
+ * and those that close it only because the question is not answered yet, so a question nobody
+ * answered is never put to them as a fact (C41). It decides nothing: every reason lands in exactly
+ * one of the two lists. A reason with no question (a birth year, a low current weight) is stated.
+ */
+export function reasonStates(
+  input: Pick<GateInput, 'answers'>,
+  reasons: readonly ReadinessReasonId[],
+): { stated: ReadinessReasonId[]; unanswered: ReadinessReasonId[] } {
+  const unanswered = (reason: ReadinessReasonId): boolean => {
+    const question = READINESS_REASON_QUESTION[reason];
+    return question !== null && input.answers[question] === null;
+  };
+  return {
+    stated: reasons.filter((r) => !unanswered(r)),
+    unanswered: reasons.filter(unanswered),
+  };
+}
+
+/**
+ * A reason of the deficit group (under 18 by answer or birth year, pregnancy or breastfeeding, an
+ * eating disorder or low weight, a low current weight). Stated, it closes fasting whatever else is
+ * answered, so the fasting screens never invite a change of answers for it (item 15, F41).
+ */
+export function isDeficitGroupReason(reason: ReadinessReasonId): boolean {
+  return DEFICIT_GROUP.includes(reason);
 }

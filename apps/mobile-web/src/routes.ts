@@ -16,6 +16,8 @@ export const ROUTES = [
   'eating-schedule',
   // Item 14: the Weight screen, opened from Today's Weight card.
   'weight',
+  // Item 15: the Fasting screen, opened from Today's Fast card and Settings, Eating schedule.
+  'fasting',
 ] as const;
 export type RouteId = (typeof ROUTES)[number];
 
@@ -38,6 +40,7 @@ export const ROUTE_TITLES: Readonly<Record<RouteId, string>> = {
   profile: 'Profile',
   'eating-schedule': 'Eating schedule',
   weight: 'Weight',
+  fasting: 'Fasting and reflux',
 };
 
 const isRoute = (value: string): value is RouteId => (ROUTES as readonly string[]).includes(value);
@@ -46,6 +49,23 @@ export const isTabRoute = (route: RouteId): route is TabRouteId =>
   (TAB_ROUTES as readonly string[]).includes(route);
 
 export const routeHref = (route: RouteId): `#/${RouteId}` => `#/${route}`;
+
+/**
+ * The Fasting screen's sub-links (item 15 design 3.1): #/fasting/reflux focuses the Reflux card,
+ * #/fasting/pattern opens the pattern form. The route is still 'fasting'.
+ */
+export const FASTING_SUBLINKS = ['reflux', 'pattern'] as const;
+export type FastingSublink = (typeof FASTING_SUBLINKS)[number];
+
+export const fastingHref = (sub: FastingSublink): string => `${routeHref('fasting')}/${sub}`;
+
+/** The sub-link a hash names, if it is one of the Fasting screen's. */
+export function fastingSublink(hash: string): FastingSublink | null {
+  const sub = /^#\/fasting\/([a-z]+)$/.exec(hash)?.[1];
+  return (FASTING_SUBLINKS as readonly string[]).includes(sub ?? '')
+    ? (sub as FastingSublink)
+    : null;
+}
 
 /** The route for a location hash; anything unknown (or empty) opens Today. */
 export function parseRoute(hash: string): RouteId {

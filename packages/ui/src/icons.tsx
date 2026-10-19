@@ -172,3 +172,14 @@ export function ShieldIcon({ size = 32 }: IconProps): ReactElement {
     </Svg>
   );
 }
+
+/** The bowl on the Fast card's meal check (mock-up Main). */
+export function BowlIcon({ size = 22 }: IconProps): ReactElement {
+  return (
+    <Svg size={size} strokeWidth={2}>
+      <path d="M4 11h16a8 8 0 0 1-16 0z" />
+      <path d="M9 3c-1 1.5-1 3 0 4.5" />
+      <path d="M14 3c-1 1.5-1 3 0 4.5" />
+    </Svg>
+  );
+}

@@ -3,6 +3,8 @@ import { appStorageStore } from '../db/runtime';
 import { useStore } from '../store';
 import { BackupReminderCard, UpdateNoticeCard } from './backup/ReminderCards';
 import { useBackupReminder } from './backup/reminder';
+import { TodayFastCard } from './fasting/FastCard';
+import { FastingErrorBoundary } from './fasting/FastingErrorBoundary';
 import { InstallBanner } from './InstallBanner';
 import { Placeholder } from './Placeholder';
 import { AlcoholHelpCard } from './today/AlcoholHelpCard';
@@ -25,7 +27,13 @@ export function TodayScreen(): ReactElement {
       <InstallBanner />
       {storage === null ? null : <UpdateNoticeCard storage={storage} />}
       {storage === null ? null : <WeightCard storage={storage} />}
-      <Placeholder coming="Today will show the rest of the day at a glance: the current fast, food so far, water, steps, movement and drinks, with quick ways to log each." />
+      {/* Item 15: the Fast card (UX section 2, card 2); item 16 sets Today's final order. */}
+      {storage === null ? null : (
+        <FastingErrorBoundary>
+          <TodayFastCard storage={storage} />
+        </FastingErrorBoundary>
+      )}
+      <Placeholder coming="Today will show the rest of the day at a glance: food so far, water, steps, movement and drinks, with quick ways to log each." />
       {reminder.prominent ? null : card}
     </>
   );

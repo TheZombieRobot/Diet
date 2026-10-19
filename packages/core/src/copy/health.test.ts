@@ -8,6 +8,7 @@ import { FLOOR_KJ, KICKSTART_MAX_DEFICIT_PCT, KICKSTART_NET_CARBS_G } from '../s
 import { READINESS_QUESTION_IDS } from '../storage/readiness';
 import {
   alcohol,
+  fasting,
   general,
   healthCopy,
   helpNumbers,
@@ -15,6 +16,7 @@ import {
   privacy,
   profile,
   readiness,
+  reflux,
   schedule,
 } from './health';
 import { fillTemplate, joinList } from './template';
@@ -111,6 +113,27 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
     /\bunderweight\b/i, // the low-weight line names the BMI, not a label
     /\bdeadline\b/i,
     /\byou\s+(?:should|must)\b/i,
+  ],
+  // HEALTH_SAFETY.md section 3, HS-02, HS-18, C16, C63: no streak loss, no penalty or reward, no
+  // insisting on a fast. "broken fast" is not banned here: the required 1e line ("That's not a
+  // broken fast.") lives in item 13's schedule section, and FL-12 is checked on the rendered card.
+  fasting: [
+    /\b(?:los(?:e|es|t|ing)|break(?:s|ing)?|broke|broken|reset(?:s|ting)?|end(?:s|ed|ing)?|ruin\w*|kill\w*)\s+(?:your\s+|the\s+|a\s+|this\s+)?streak\b|\bstreak\s+(?:is\s+|was\s+|has\s+been\s+)?(?:lost|broken|reset|ended|over|gone)\b/i,
+    /\b(?:cheat\w*|fail\w*|guilt\w*|penalt\w*|slip(?:s|ped|ping)?|willpower|disciplin\w*|badges?|reward\w*|perfect\w*|well\s+done|congrat\w*|proud)\b/i,
+    /\b(?:must|have\s+to|need\s+to|should)\s+(?:keep\s+)?fast\w*\b/i,
+    /\b(?:don['’]t|do\s+not|never)\s+eat\b/i,
+    /\b(?:keep|stay)\s+(?:fasting|on\s+(?:your|the)\s+fast)\b/i,
+    /\b(?:push|power|tough\s+it)\s+(?:through|on|out)\b/i,
+    /\b(?:extend|lengthen|longer)\s+(?:your\s+|the\s+|this\s+)?fast\b/i,
+    /\bmake\s+up\s+for\b/i,
+    /\byou(?:['’]re|\s+are)\s+safe\b/i,
+  ],
+  // HEALTH_SAFETY.md section 3: the app does not diagnose and recommends no medicine (C47).
+  reflux: [
+    /\byou\s+(?:have|may\s+have|probably\s+have|might\s+have)\s+(?:reflux|GERD|GORD|oesophagitis|esophagitis|an?\s+ulcer|a\s+hernia|angina|a\s+heart\s+attack)\b/i,
+    /\b(?:antacids?|omeprazole|pantoprazole|lansoprazole|esomeprazole|PPIs?|gaviscon|ranitidine|famotidine)\b/i,
+    /\bcur(?:e|es|ed|ing)\b/i,
+    /\byou(?:['’]re|\s+are)\s+safe\b/i,
   ],
 };
 
@@ -347,5 +370,60 @@ describe('first-run copy (item 13; U30)', () => {
     expect(joinList([], ', ', ' and ')).toBe('');
     expect(joinList(['a'], ', ', ' and ')).toBe('a');
     expect(joinList(['a', 'b', 'c'], ', ', ' and ')).toBe('a, b and c');
+  });
+});
+
+describe('fasting and reflux copy (item 15)', () => {
+  it('every template fills with its named placeholders and no others', () => {
+    const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1] ?? '');
+    for (const [path, text] of [...strings(fasting, 'fasting'), ...strings(reflux, 'reflux')]) {
+      const values = Object.fromEntries(placeholders(text).map((name) => [name, 'x']));
+      expect(fillTemplate(text, values), path).not.toMatch(/[{}]/);
+    }
+  });
+
+  it('every offer, after-window and widen line says it is fine to eat or widen (HS-18, C62)', () => {
+    const m = fasting.mealCheck;
+    for (const text of [
+      m.offerSnack,
+      m.widen,
+      m.afterWindow,
+      m.afterWindowReflux,
+      m.afterWindowUnchecked,
+      m.afterWindowUncheckedReflux,
+      m.unavailableOneMeal,
+      fasting.card.windowOpen,
+      fasting.card.nearCeiling,
+      fasting.card.fineToEat,
+      fasting.card.cappedPlan,
+      fasting.card.joined,
+      fasting.card.joinedJustNow,
+    ]) {
+      expect(text).toMatch(/\bfine to\b/);
+    }
+  });
+
+  it('the meal-check and streak lines never say "broken fast" or anything about losing a streak (FL-12, C63)', () => {
+    const lines = [
+      ...strings(fasting.mealCheck, 'mealCheck'),
+      ['history.streak', fasting.history.streak],
+    ];
+    for (const [path, text] of lines) {
+      expect(text, path).not.toMatch(/broken\s+fast|\bstreak\b.*\b(?:lost|reset|broken|over)\b/i);
+    }
+    expect(fasting.history.streak).toBe('{days} days in a row with a completed fast.');
+  });
+
+  it('the stop-signs and the chest-pain line carry Healthline and 111 from the help numbers (FS-04)', () => {
+    expect(fasting.stopSigns.action).toContain(helpNumbers.healthline.number);
+    expect(fasting.stopSigns.action).toContain(helpNumbers.emergency.number);
+    expect(fasting.stopSigns.signs).toEqual([
+      'Dizziness',
+      'Fainting',
+      'Heart palpitations',
+      'Confusion',
+      'Severe weakness',
+    ]);
+    expect(reflux.chestPain).toContain(helpNumbers.emergency.number);
   });
 });
