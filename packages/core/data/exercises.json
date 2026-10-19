@@ -1,0 +1,1255 @@
+{
+  "datasetVersion": 1,
+  "exercises": [
+    {
+      "id": "seed:ex-march",
+      "name": "March on the spot",
+      "group": "warm-up",
+      "unit": "seconds",
+      "step": 30,
+      "requires": null,
+      "tags": [],
+      "safetyKeys": ["stopRules"],
+      "cues": [
+        "Stand tall and lift one knee, then the other, at an easy rhythm.",
+        "Let your arms swing loosely by your sides."
+      ],
+      "variants": {
+        "easier": {
+          "name": "Slow march with support",
+          "how": "Hold a chair back or bench and march slowly with low knees.",
+          "perSide": false
+        },
+        "standard": {
+          "name": "March on the spot",
+          "how": "Lift your knees to a comfortable height and swing your arms.",
+          "perSide": false
+        },
+        "harder": {
+          "name": "High-knee march",
+          "how": "Lift each knee toward hip height and swing your arms with it.",
+          "perSide": false
+        },
+        "band": null,
+        "dumbbell": null
+      }
+    },
+    {
+      "id": "seed:ex-easy-walk",
+      "name": "Easy walk",
+      "group": "warm-up",
+      "unit": "seconds",
+      "step": 60,
+      "requires": null,
+      "tags": [],
+      "safetyKeys": ["stopRules"],
+      "cues": [
+        "Walk at a pace where you could talk in full sentences.",
+        "Relax your shoulders and let your arms swing."
+      ],
+      "variants": {
+        "easier": {
+          "name": "Slow walk",
+          "how": "Walk slowly with short, relaxed steps.",
+          "perSide": false
+        },
+        "standard": {
+          "name": "Easy walk",
+          "how": "Walk at a relaxed pace on firm, level ground or firm sand.",
+          "perSide": false
+        },
+        "harder": {
+          "name": "Easy walk with arm swings",
+          "how": "Walk at a relaxed pace and swing your arms a little wider.",
+          "perSide": false
+        },
+        "band": null,
+        "dumbbell": null
+      }
+    },
+    {
+      "id": "seed:ex-ankle-circles",
+      "name": "Ankle circles",
+      "group": "mobility",
+      "unit": "seconds",
+      "step": 5,
+      "requires": null,
+      "tags": [],
+      "safetyKeys": ["stopRules"],
+      "cues": [
+        "Draw slow, full circles with your toes.",
+        "Circle both ways, about half the time each."
+      ],
+      "variants": {
+        "easier": {
+          "name": "Seated ankle circles",
+          "how": "Sit on a chair, lift one foot a little and circle the ankle.",
+          "perSide": true
+        },
+        "standard": {
+          "name": "Standing ankle circles",
+          "how": "Hold a support, lift one foot a little and circle the ankle.",
+          "perSide": true
+        },
+        "harder": {
+          "name": "Ankle circles, light support",
+          "how": "Stand on one leg with fingertips on a wall and circle the other ankle.",
+          "perSide": true
+        },
+        "band": null,
+        "dumbbell": null
+      }
+    },
+    {
+      "id": "seed:ex-upper-back-rotation",
+      "name": "Upper-back rotation",
+      "group": "mobility",
+      "unit": "seconds",
+      "step": 5,
+      "requires": null,
+      "tags": [],
+      "safetyKeys": ["stopRules"],
+      "cues": [
+        "Turn from the middle of your back and let your head follow your hand.",
+        "Breathe out as you turn, and keep the movement slow."
+      ],
+      "variants": {
+        "easier": {
+          "name": "Seated rotation",
+          "how": "Sit tall with arms crossed over your chest and turn gently to one side.",
+          "perSide": true
+        },
+        "standard": {
+          "name": "Side-lying open book",
+          "how": "Lie on your side, knees bent and arms out in front, and open the top arm across to the other side.",
+          "perSide": true
+        },
+        "harder": {
+          "name": "Open book with a hold",
+          "how": "Do the open book and hold the open position for 3 seconds each time.",
+          "perSide": true
+        },
+        "band": null,
+        "dumbbell": null
+      }
+    },
+    {
+      "id": "seed:ex-calf-stretch",
+      "name": "Calf stretch",
+      "group": "mobility",
+      "unit": "seconds",
+      "step": 5,
+      "requires": null,
+      "tags": [],
+      "safetyKeys": ["stopRules"],
+      "cues": [
+        "Keep the back heel on the ground.",
+        "Lean until you feel a gentle stretch, then hold still."
+      ],
+      "variants": {
+        "easier": {
+          "name": "Bent-knee calf stretch",
+          "how": "Hands on a wall, one foot a short step back, and bend the back knee a little.",
+          "perSide": true
+        },
+        "standard": {
+          "name": "Wall calf stretch",
+          "how": "Hands on a wall, one foot back with the leg straight, and lean forward.",
+          "perSide": true
+        },
+        "harder": {
+          "name": "Long-stance calf stretch",
+          "how": "As the wall calf stretch, with the back foot further from the wall.",
+          "perSide": true
+        },
+        "band": null,
+        "dumbbell": null
+      }
+    },
+    {
+      "id": "seed:ex-hip-flexor-stretch",
+      "name": "Hip flexor stretch",
+      "group": "mobility",
+      "unit": "seconds",
+      "step": 5,
+      "requires": null,
+      "tags": [],
+      "safetyKeys": ["stopRules"],
+      "cues": [
+        "Tuck your tailbone under a little before you lean.",
+        "Stay upright; the stretch is at the front of the back hip."
+      ],
+      "variants": {
+        "easier": {
+          "name": "Standing hip flexor stretch",
+          "how": "Hold a chair in a split stance, bend the front knee and tuck your tailbone.",
+          "perSide": true
+        },
+        "standard": {
+          "name": "Half-kneeling hip flexor stretch",
+          "how": "Kneel on one knee on a cushion, other foot in front, and shift your hips forward.",
+          "perSide": true
+        },
+        "harder": {
+          "name": "Half-kneeling stretch with reach",
+          "how": "In the half-kneeling stretch, reach the arm on the kneeling side up overhead.",
+          "perSide": true
+        },
+        "band": null,
+        "dumbbell": null
+      }
+    },
+    {
+      "id": "seed:ex-squat",
+      "name": "Squat",
+      "group": "lower",
+      "unit": "reps",
+      "step": 1,
+      "requires": null,
+      "tags": [],
+      "safetyKeys": ["stopRules"],
+      "cues": [
+        "Feet about shoulder-width apart, toes turned out a little.",
+        "Sit your hips back and keep your knees in line with your toes.",
+        "Press the floor away to stand up tall."
+      ],
+      "variants": {
+        "easier": {
+          "name": "Sit-to-stand",
+          "how": "Sit fully on a sturdy chair, then stand up; press on your thighs with your hands if you need to.",
+          "perSide": false
+        },
+        "standard": {
+          "name": "Squat to a chair",
+          "how": "Lower until you lightly touch the chair seat, then stand without sitting down.",
+          "perSide": false
+        },
+        "harder": {
+          "name": "Bodyweight squat",
+          "how": "Squat without the chair, taking 3 seconds to lower.",
+          "perSide": false
+        },
+        "band": null,
+        "dumbbell": null
+      }
+    },
+    {
+      "id": "seed:ex-split-squat",
+      "name": "Split squat",
+      "group": "lower",
+      "unit": "reps",
+      "step": 1,
+      "requires": null,
+      "tags": [],
+      "safetyKeys": ["stopRules"],
+      "cues": [
+        "Take a long enough step that both knees can bend to about a right angle.",
+        "Lower straight down with your front heel on the floor.",
+        "Do all the reps on one side, then switch."
+      ],
+      "variants": {
+        "easier": {
+          "name": "Supported split squat",
+          "how": "Hold a wall or chair back and lower only part of the way.",
+          "perSide": true
+        },
+        "standard": {
+          "name": "Split squat",
+          "how": "Stand in a split stance and lower your back knee toward the floor, then rise.",
+          "perSide": true
+        },
+        "harder": {
+          "name": "Reverse lunge",
+          "how": "Step one foot back into the split squat, then step it forward again to stand.",
+          "perSide": true
+        },
+        "band": null,
+        "dumbbell": null
+      }
+    },
+    {
+      "id": "seed:ex-glute-bridge",
+      "name": "Glute bridge",
+      "group": "lower",
+      "unit": "reps",
+      "step": 1,
+      "requires": null,
+      "tags": [],
+      "safetyKeys": ["stopRules"],
+      "cues": [
+        "Lie on your back, knees bent, feet flat and hip-width apart.",
+        "Squeeze your buttocks to lift your hips, then lower slowly.",
+        "Keep your ribs down so the lift comes from your hips."
+      ],
+      "variants": {
+        "easier": {
+          "name": "Short bridge",
+          "how": "Lift your hips only part of the way, then lower.",
+          "perSide": false
+        },
+        "standard": {
+          "name": "Glute bridge",
+          "how": "Lift your hips until your shoulders, hips and knees are in a line.",
+          "perSide": false
+        },
+        "harder": {
+          "name": "Single-leg bridge",
+          "how": "Lift with one foot on the floor and the other leg straight out; do both sides.",
+          "perSide": true
+        },
+        "band": null,
+        "dumbbell": null
+      }
+    },
+    {
+      "id": "seed:ex-calf-raise",
+      "name": "Calf raise",
+      "group": "lower",
+      "unit": "reps",
+      "step": 1,
+      "requires": null,
+      "tags": [],
+      "safetyKeys": ["stopRules"],
+      "cues": [
+        "Rise onto the balls of your feet, then lower slowly.",
+        "Keep your ankles straight, not rolling out.",
+        "Hold a wall or rail lightly for balance."
+      ],
+      "variants": {
+        "easier": {
+          "name": "Seated calf raise",
+          "how": "Sit on a chair and lift your heels as high as you can.",
+          "perSide": false
+        },
+        "standard": {
+          "name": "Calf raise",
+          "how": "Stand on level ground, lightly holding a wall, and rise on both feet.",
+          "perSide": false
+        },
+        "harder": {
+          "name": "Single-leg calf raise",
+          "how": "Rise on one foot while holding a wall; do both sides.",
+          "perSide": true
+        },
+        "band": null,
+        "dumbbell": null
+      }
+    },
+    {
+      "id": "seed:ex-step-up",
+      "name": "Step-up",
+      "group": "lower",
+      "unit": "reps",
+      "step": 1,
+      "requires": null,
+      "tags": [],
+      "safetyKeys": ["stopRules"],
+      "cues": [
+        "Put your whole foot on the step.",
+        "Press through the heel of the top foot to stand up.",
+        "Step down slowly; do all the reps on one side, then switch."
+      ],
+      "variants": {
+        "easier": {
+          "name": "Low step-up",
+          "how": "Use the bottom stair or a low step and hold the rail.",
+          "perSide": true
+        },
+        "standard": {
+          "name": "Step-up",
+          "how": "Step onto a stair or sturdy step about shin height, holding a rail if there is one.",
+          "perSide": true
+        },
+        "harder": {
+          "name": "Step-up with slow lowering",
+          "how": "Step up, then take 3 seconds to step back down.",
+          "perSide": true
+        },
+        "band": null,
+        "dumbbell": null
+      }
+    },
+    {
+      "id": "seed:ex-hip-hinge",
+      "name": "Hip hinge to a box",
+      "group": "lower",
+      "unit": "reps",
+      "step": 1,
+      "requires": null,
+      "tags": [],
+      "safetyKeys": ["stopRules", "painFreeOnly"],
+      "cues": [
+        "Soften your knees, then push your hips back as if closing a drawer behind you.",
+        "Keep your back long from head to hips.",
+        "Squeeze your buttocks to stand tall."
+      ],
+      "variants": {
+        "easier": {
+          "name": "Hands-on-thighs hinge",
+          "how": "Slide your hands down your thighs to just above your knees, then stand tall.",
+          "perSide": false
+        },
+        "standard": {
+          "name": "Hip hinge to a box",
+          "how": "Stand in front of a box or chair seat and hinge until your hands touch it, then stand tall.",
+          "perSide": false
+        },
+        "harder": {
+          "name": "Slow hip hinge",
+          "how": "Hinge to the box, taking 3 seconds on the way down.",
+          "perSide": false
+        },
+        "band": null,
+        "dumbbell": null
+      }
+    },
+    {
+      "id": "seed:ex-push-up",
+      "name": "Push-up",
+      "group": "upper",
+      "unit": "reps",
+      "step": 1,
+      "requires": null,
+      "tags": [],
+      "safetyKeys": ["stopRules"],
+      "cues": [
+        "Hands a little wider than your shoulders.",
+        "Keep your body in one straight line.",
+        "Lower under control, then press the surface away."
+      ],
+      "variants": {
+        "easier": {
+          "name": "Wall push-up",
+          "how": "Hands on a wall at shoulder height, feet a step back.",
+          "perSide": false
+        },
+        "standard": {
+          "name": "Incline push-up",
+          "how": "Hands on a sturdy bench, bench top or rail about hip height.",
+          "perSide": false
+        },
+        "harder": {
+          "name": "Kneeling push-up",
+          "how": "Hands on the floor and knees down, with your body straight from head to knees.",
+          "perSide": false
+        },
+        "band": null,
+        "dumbbell": null
+      }
+    },
+    {
+      "id": "seed:ex-pike-push-up",
+      "name": "Pike push-up",
+      "group": "upper",
+      "unit": "reps",
+      "step": 1,
+      "requires": null,
+      "tags": [],
+      "safetyKeys": ["stopRules"],
+      "cues": [
+        "Lift your hips high so your body makes an upside-down V.",
+        "Bend your elbows to bring your head toward your hands, then press back up.",
+        "Keep your neck relaxed and look back toward your feet."
+      ],
+      "variants": {
+        "easier": {
+          "name": "Incline pike push-up",
+          "how": "Hands on a sturdy bench or step, feet on the floor, hips high.",
+          "perSide": false
+        },
+        "standard": {
+          "name": "Pike push-up",
+          "how": "Hands and feet on the floor, hips high.",
+          "perSide": false
+        },
+        "harder": {
+          "name": "Slow pike push-up",
+          "how": "As the pike push-up, taking 3 seconds to lower.",
+          "perSide": false
+        },
+        "band": null,
+        "dumbbell": {
+          "name": "Dumbbell shoulder press",
+          "how": "Sit tall and press two dumbbells from shoulder height to overhead.",
+          "perSide": false
+        }
+      }
+    },
+    {
+      "id": "seed:ex-row",
+      "name": "Row",
+      "group": "upper",
+      "unit": "reps",
+      "step": 1,
+      "requires": null,
+      "tags": [],
+      "safetyKeys": ["stopRules"],
+      "cues": [
+        "Pull your elbows back and squeeze your shoulder blades together.",
+        "Keep your neck long and your shoulders away from your ears.",
+        "Return to straight arms slowly."
+      ],
+      "variants": {
+        "easier": {
+          "name": "High-rail row",
+          "how": "Use a strong, firmly fixed rail at chest height, so your body is nearly upright.",
+          "perSide": false
+        },
+        "standard": {
+          "name": "Inverted row on a rail",
+          "how": "Hold a strong, firmly fixed bar or rail at waist height that will hold your full weight, lean back and pull yourself in.",
+          "perSide": false
+        },
+        "harder": {
+          "name": "Low-rail row",
+          "how": "Use a strong, firmly fixed rail at hip height or lower, with your feet further forward.",
+          "perSide": false
+        },
+        "band": {
+          "name": "Band row",
+          "how": "Loop a band around a strong, fixed post at chest height and pull the ends toward you.",
+          "perSide": false
+        },
+        "dumbbell": {
+          "name": "One-arm dumbbell row",
+          "how": "One hand and knee on a bench, pull the dumbbell toward your hip; do both sides.",
+          "perSide": true
+        }
+      }
+    },
+    {
+      "id": "seed:ex-band-pull-apart",
+      "name": "Band pull-apart",
+      "group": "upper",
+      "unit": "reps",
+      "step": 1,
+      "requires": "band",
+      "tags": [],
+      "safetyKeys": ["stopRules"],
+      "cues": [
+        "Hold the band in front at shoulder height with straight arms.",
+        "Pull the band apart toward your chest, then return slowly.",
+        "Keep your shoulders down."
+      ],
+      "variants": {
+        "easier": {
+          "name": "Wide-grip pull-apart",
+          "how": "Hold the band with your hands further apart, so it pulls less.",
+          "perSide": false
+        },
+        "standard": {
+          "name": "Band pull-apart",
+          "how": "Hold the band with your hands shoulder-width apart.",
+          "perSide": false
+        },
+        "harder": {
+          "name": "Pull-apart with a pause",
+          "how": "Hold the band apart for 2 seconds before you return.",
+          "perSide": false
+        },
+        "band": null,
+        "dumbbell": null
+      }
+    },
+    {
+      "id": "seed:ex-dead-bug",
+      "name": "Dead bug",
+      "group": "core",
+      "unit": "reps",
+      "step": 1,
+      "requires": null,
+      "tags": [],
+      "safetyKeys": ["stopRules"],
+      "cues": [
+        "Lie on your back, knees bent over your hips and arms pointing up.",
+        "Press your lower back gently into the floor and keep it there.",
+        "Breathe out as you reach."
+      ],
+      "variants": {
+        "easier": {
+          "name": "Heel taps",
+          "how": "Keep your arms still and lower one heel to tap the floor, then the other.",
+          "perSide": true
+        },
+        "standard": {
+          "name": "Dead bug",
+          "how": "Lower the opposite arm and leg toward the floor, then return; alternate sides.",
+          "perSide": true
+        },
+        "harder": {
+          "name": "Slow dead bug",
+          "how": "As the dead bug, taking 3 seconds to reach out.",
+          "perSide": true
+        },
+        "band": null,
+        "dumbbell": null
+      }
+    },
+    {
+      "id": "seed:ex-bird-dog",
+      "name": "Bird-dog",
+      "group": "core",
+      "unit": "reps",
+      "step": 1,
+      "requires": null,
+      "tags": [],
+      "safetyKeys": ["stopRules"],
+      "cues": [
+        "Hands under your shoulders, knees under your hips.",
+        "Reach long without letting your back sag or twist.",
+        "Move slowly enough to keep your hips level."
+      ],
+      "variants": {
+        "easier": {
+          "name": "One-limb bird-dog",
+          "how": "Reach out one arm or one leg at a time.",
+          "perSide": true
+        },
+        "standard": {
+          "name": "Bird-dog",
+          "how": "Reach the opposite arm and leg out straight, then return; alternate sides.",
+          "perSide": true
+        },
+        "harder": {
+          "name": "Bird-dog with a hold",
+          "how": "Hold each reach for 3 seconds.",
+          "perSide": true
+        },
+        "band": null,
+        "dumbbell": null
+      }
+    },
+    {
+      "id": "seed:ex-front-plank",
+      "name": "Front plank",
+      "group": "core",
+      "unit": "seconds",
+      "step": 5,
+      "requires": null,
+      "tags": [],
+      "safetyKeys": ["stopRules"],
+      "cues": [
+        "Elbows under your shoulders.",
+        "Keep one straight line from your head to your heels or knees.",
+        "Breathe steadily the whole time."
+      ],
+      "variants": {
+        "easier": {
+          "name": "Kneeling plank",
+          "how": "Forearms and knees on the floor.",
+          "perSide": false
+        },
+        "standard": {
+          "name": "Front plank",
+          "how": "Forearms and toes on the floor.",
+          "perSide": false
+        },
+        "harder": {
+          "name": "Long plank",
+          "how": "As the front plank, with your elbows a little in front of your shoulders.",
+          "perSide": false
+        },
+        "band": null,
+        "dumbbell": null
+      }
+    },
+    {
+      "id": "seed:ex-side-plank",
+      "name": "Side plank",
+      "group": "core",
+      "unit": "seconds",
+      "step": 5,
+      "requires": null,
+      "tags": [],
+      "safetyKeys": ["stopRules"],
+      "cues": [
+        "Elbow under your shoulder.",
+        "Lift your hips so your body is in one line.",
+        "Hold each side for the same time."
+      ],
+      "variants": {
+        "easier": {
+          "name": "Kneeling side plank",
+          "how": "Forearm and knees on the floor, knees bent behind you.",
+          "perSide": true
+        },
+        "standard": {
+          "name": "Side plank",
+          "how": "Forearm and the sides of your feet on the floor, one foot in front of the other.",
+          "perSide": true
+        },
+        "harder": {
+          "name": "Stacked side plank",
+          "how": "As the side plank, with one foot on top of the other.",
+          "perSide": true
+        },
+        "band": null,
+        "dumbbell": null
+      }
+    },
+    {
+      "id": "seed:ex-beach-walk",
+      "name": "Beach walk",
+      "group": "beach",
+      "unit": "seconds",
+      "step": 60,
+      "requires": null,
+      "tags": ["beach"],
+      "safetyKeys": ["stopRules", "beachPrompts"],
+      "cues": [
+        "Walk tall with relaxed shoulders.",
+        "Brisk means you can still talk, but would rather not sing."
+      ],
+      "variants": {
+        "easier": {
+          "name": "Easy walk on firm sand",
+          "how": "Walk at a relaxed pace on firm sand.",
+          "perSide": false
+        },
+        "standard": {
+          "name": "Brisk walk on firm sand",
+          "how": "Walk briskly on firm, wet sand near the waterline.",
+          "perSide": false
+        },
+        "harder": {
+          "name": "Soft-sand walk",
+          "how": "Walk on softer, dry sand, which works your calves harder.",
+          "perSide": false
+        },
+        "band": null,
+        "dumbbell": null
+      }
+    },
+    {
+      "id": "seed:ex-beach-jog",
+      "name": "Beach jog intervals",
+      "group": "beach",
+      "unit": "seconds",
+      "step": 10,
+      "requires": null,
+      "tags": ["beach", "jog"],
+      "safetyKeys": ["stopRules", "beachPrompts"],
+      "cues": [
+        "Jog slowly enough to talk, with short, light steps.",
+        "Walk between jogs for the full break."
+      ],
+      "variants": {
+        "easier": {
+          "name": "Brisk walk intervals",
+          "how": "Walk briskly instead of jogging, with easy walking in between.",
+          "perSide": false
+        },
+        "standard": {
+          "name": "Easy jog on firm sand",
+          "how": "Jog gently on firm, wet sand, then walk until the next jog.",
+          "perSide": false
+        },
+        "harder": {
+          "name": "Steady jog on firm sand",
+          "how": "Jog a little quicker while you can still talk.",
+          "perSide": false
+        },
+        "band": null,
+        "dumbbell": null
+      }
+    }
+  ],
+  "templates": [
+    {
+      "id": "seed:session-a",
+      "name": "Session A",
+      "shortLabel": "A",
+      "kind": "strength",
+      "tags": [],
+      "summary": "Full body: squat, push-up, bridge, row and core.",
+      "warmUp": [
+        {
+          "exerciseId": "seed:ex-march",
+          "startVariant": "standard",
+          "sets": 1,
+          "min": 150,
+          "max": 150,
+          "restSeconds": 0,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-ankle-circles",
+          "startVariant": "standard",
+          "sets": 1,
+          "min": 30,
+          "max": 30,
+          "restSeconds": 0,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-upper-back-rotation",
+          "startVariant": "standard",
+          "sets": 1,
+          "min": 45,
+          "max": 45,
+          "restSeconds": 0,
+          "onlyWith": null
+        }
+      ],
+      "main": [
+        {
+          "exerciseId": "seed:ex-squat",
+          "startVariant": "standard",
+          "sets": 2,
+          "min": 8,
+          "max": 12,
+          "restSeconds": 60,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-push-up",
+          "startVariant": "standard",
+          "sets": 2,
+          "min": 6,
+          "max": 10,
+          "restSeconds": 60,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-glute-bridge",
+          "startVariant": "standard",
+          "sets": 2,
+          "min": 10,
+          "max": 12,
+          "restSeconds": 60,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-row",
+          "startVariant": "standard",
+          "sets": 2,
+          "min": 8,
+          "max": 12,
+          "restSeconds": 60,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-dead-bug",
+          "startVariant": "standard",
+          "sets": 2,
+          "min": 6,
+          "max": 10,
+          "restSeconds": 45,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-band-pull-apart",
+          "startVariant": "standard",
+          "sets": 2,
+          "min": 10,
+          "max": 15,
+          "restSeconds": 45,
+          "onlyWith": "band"
+        }
+      ],
+      "coolDown": [
+        {
+          "exerciseId": "seed:ex-march",
+          "startVariant": "easier",
+          "sets": 1,
+          "min": 60,
+          "max": 60,
+          "restSeconds": 0,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-calf-stretch",
+          "startVariant": "standard",
+          "sets": 1,
+          "min": 45,
+          "max": 45,
+          "restSeconds": 0,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-hip-flexor-stretch",
+          "startVariant": "standard",
+          "sets": 1,
+          "min": 45,
+          "max": 45,
+          "restSeconds": 0,
+          "onlyWith": null
+        }
+      ]
+    },
+    {
+      "id": "seed:session-b",
+      "name": "Session B",
+      "shortLabel": "B",
+      "kind": "strength",
+      "tags": [],
+      "summary": "Full body: step-up, press, hip hinge, row and core.",
+      "warmUp": [
+        {
+          "exerciseId": "seed:ex-march",
+          "startVariant": "standard",
+          "sets": 1,
+          "min": 150,
+          "max": 150,
+          "restSeconds": 0,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-ankle-circles",
+          "startVariant": "standard",
+          "sets": 1,
+          "min": 30,
+          "max": 30,
+          "restSeconds": 0,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-upper-back-rotation",
+          "startVariant": "standard",
+          "sets": 1,
+          "min": 45,
+          "max": 45,
+          "restSeconds": 0,
+          "onlyWith": null
+        }
+      ],
+      "main": [
+        {
+          "exerciseId": "seed:ex-step-up",
+          "startVariant": "standard",
+          "sets": 2,
+          "min": 6,
+          "max": 10,
+          "restSeconds": 60,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-pike-push-up",
+          "startVariant": "easier",
+          "sets": 2,
+          "min": 5,
+          "max": 8,
+          "restSeconds": 60,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-hip-hinge",
+          "startVariant": "standard",
+          "sets": 2,
+          "min": 8,
+          "max": 12,
+          "restSeconds": 60,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-row",
+          "startVariant": "standard",
+          "sets": 2,
+          "min": 8,
+          "max": 12,
+          "restSeconds": 60,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-bird-dog",
+          "startVariant": "standard",
+          "sets": 2,
+          "min": 5,
+          "max": 8,
+          "restSeconds": 45,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-calf-raise",
+          "startVariant": "standard",
+          "sets": 2,
+          "min": 8,
+          "max": 12,
+          "restSeconds": 45,
+          "onlyWith": null
+        }
+      ],
+      "coolDown": [
+        {
+          "exerciseId": "seed:ex-march",
+          "startVariant": "easier",
+          "sets": 1,
+          "min": 60,
+          "max": 60,
+          "restSeconds": 0,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-calf-stretch",
+          "startVariant": "standard",
+          "sets": 1,
+          "min": 45,
+          "max": 45,
+          "restSeconds": 0,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-hip-flexor-stretch",
+          "startVariant": "standard",
+          "sets": 1,
+          "min": 45,
+          "max": 45,
+          "restSeconds": 0,
+          "onlyWith": null
+        }
+      ]
+    },
+    {
+      "id": "seed:session-c",
+      "name": "Session C",
+      "shortLabel": "C",
+      "kind": "strength",
+      "tags": [],
+      "summary": "Full body: squat, split squat, push-up, row and planks.",
+      "warmUp": [
+        {
+          "exerciseId": "seed:ex-march",
+          "startVariant": "standard",
+          "sets": 1,
+          "min": 150,
+          "max": 150,
+          "restSeconds": 0,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-ankle-circles",
+          "startVariant": "standard",
+          "sets": 1,
+          "min": 30,
+          "max": 30,
+          "restSeconds": 0,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-upper-back-rotation",
+          "startVariant": "standard",
+          "sets": 1,
+          "min": 45,
+          "max": 45,
+          "restSeconds": 0,
+          "onlyWith": null
+        }
+      ],
+      "main": [
+        {
+          "exerciseId": "seed:ex-squat",
+          "startVariant": "standard",
+          "sets": 2,
+          "min": 8,
+          "max": 12,
+          "restSeconds": 60,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-split-squat",
+          "startVariant": "easier",
+          "sets": 2,
+          "min": 6,
+          "max": 10,
+          "restSeconds": 60,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-push-up",
+          "startVariant": "standard",
+          "sets": 2,
+          "min": 6,
+          "max": 10,
+          "restSeconds": 60,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-row",
+          "startVariant": "standard",
+          "sets": 2,
+          "min": 8,
+          "max": 12,
+          "restSeconds": 60,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-front-plank",
+          "startVariant": "standard",
+          "sets": 2,
+          "min": 20,
+          "max": 40,
+          "restSeconds": 45,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-side-plank",
+          "startVariant": "standard",
+          "sets": 2,
+          "min": 15,
+          "max": 30,
+          "restSeconds": 45,
+          "onlyWith": null
+        }
+      ],
+      "coolDown": [
+        {
+          "exerciseId": "seed:ex-march",
+          "startVariant": "easier",
+          "sets": 1,
+          "min": 60,
+          "max": 60,
+          "restSeconds": 0,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-calf-stretch",
+          "startVariant": "standard",
+          "sets": 1,
+          "min": 45,
+          "max": 45,
+          "restSeconds": 0,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-hip-flexor-stretch",
+          "startVariant": "standard",
+          "sets": 1,
+          "min": 45,
+          "max": 45,
+          "restSeconds": 0,
+          "onlyWith": null
+        }
+      ]
+    },
+    {
+      "id": "seed:session-beach-walk",
+      "name": "Beach walk",
+      "shortLabel": "Walk",
+      "kind": "walk",
+      "tags": ["beach"],
+      "summary": "Optional brisk walk on firm sand.",
+      "warmUp": [
+        {
+          "exerciseId": "seed:ex-easy-walk",
+          "startVariant": "standard",
+          "sets": 1,
+          "min": 300,
+          "max": 300,
+          "restSeconds": 0,
+          "onlyWith": null
+        }
+      ],
+      "main": [
+        {
+          "exerciseId": "seed:ex-beach-walk",
+          "startVariant": "standard",
+          "sets": 1,
+          "min": 900,
+          "max": 1440,
+          "restSeconds": 0,
+          "onlyWith": null
+        }
+      ],
+      "coolDown": [
+        {
+          "exerciseId": "seed:ex-easy-walk",
+          "startVariant": "easier",
+          "sets": 1,
+          "min": 120,
+          "max": 120,
+          "restSeconds": 0,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-calf-stretch",
+          "startVariant": "standard",
+          "sets": 1,
+          "min": 30,
+          "max": 30,
+          "restSeconds": 0,
+          "onlyWith": null
+        }
+      ]
+    },
+    {
+      "id": "seed:session-beach-jog",
+      "name": "Beach jog",
+      "shortLabel": "Jog",
+      "kind": "jog",
+      "tags": ["beach"],
+      "summary": "Optional jog and walk intervals on firm sand.",
+      "warmUp": [
+        {
+          "exerciseId": "seed:ex-easy-walk",
+          "startVariant": "standard",
+          "sets": 1,
+          "min": 300,
+          "max": 300,
+          "restSeconds": 0,
+          "onlyWith": null
+        }
+      ],
+      "main": [
+        {
+          "exerciseId": "seed:ex-beach-jog",
+          "startVariant": "standard",
+          "sets": 8,
+          "min": 30,
+          "max": 90,
+          "restSeconds": 90,
+          "onlyWith": null
+        }
+      ],
+      "coolDown": [
+        {
+          "exerciseId": "seed:ex-easy-walk",
+          "startVariant": "easier",
+          "sets": 1,
+          "min": 120,
+          "max": 120,
+          "restSeconds": 0,
+          "onlyWith": null
+        },
+        {
+          "exerciseId": "seed:ex-calf-stretch",
+          "startVariant": "standard",
+          "sets": 1,
+          "min": 30,
+          "max": 30,
+          "restSeconds": 0,
+          "onlyWith": null
+        }
+      ]
+    }
+  ],
+  "defaultWeek": [
+    {
+      "weekday": 1,
+      "templateIds": []
+    },
+    {
+      "weekday": 2,
+      "templateIds": ["seed:session-a"]
+    },
+    {
+      "weekday": 3,
+      "templateIds": []
+    },
+    {
+      "weekday": 4,
+      "templateIds": []
+    },
+    {
+      "weekday": 5,
+      "templateIds": ["seed:session-b"]
+    },
+    {
+      "weekday": 6,
+      "templateIds": ["seed:session-beach-walk"]
+    },
+    {
+      "weekday": 7,
+      "templateIds": []
+    }
+  ]
+}

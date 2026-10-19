@@ -1040,6 +1040,185 @@ export const garden = {
   },
 } as const;
 
+// ---- Move: exercise safety, the pre-session check, the week and the jog (checklist item 26) ----
+
+/**
+ * Move wording (HEALTH_SAFETY.md section 6; UX_SCREENS.md 4a–4d; checklist items 26 and 27). The
+ * stop rules and the beach prompts are HEALTH_SAFETY.md section 6 word for word (DOC_REVIEW C77;
+ * tools/scans/docFidelity.test.ts checks them). Movement names, how-to lines and form cues live in
+ * packages/core/data/exercises.json and may not carry safety wording (DATASET_WORDING_BANS):
+ * everything about pain, stopping, symptoms, rest or the beach is here. Placeholders in braces
+ * are filled with fillTemplate.
+ */
+export const move = {
+  /** The keys exercises link to (Exercise.safetyKeys), shown before Start (HS-12, HS-28). */
+  safety: {
+    stopRules: {
+      title: 'Stop signs',
+      body: 'Stop immediately and seek help for chest pain or pressure, severe shortness of breath, fainting or near-fainting, sudden severe headache, or pain that changes how you move.',
+      emergency: `Call ${helpNumbers.emergency.number} for chest pain that does not settle within a few minutes.`,
+    },
+    painFreeOnly: {
+      title: 'Only if pain-free',
+      body: 'Do this movement only if it is pain-free. If it hurts at all, leave it out today.',
+    },
+    beachPrompts: {
+      title: 'At the beach',
+      /** Always shown through beachPromptLines (exercise/safety.ts), never from this list directly. */
+      items: [
+        'Swim only between the red and yellow flags when lifeguards are on patrol; Bay of Plenty surf beaches are usually patrolled from October to the end of March, with hours on Safeswim. Outside patrol, wade no deeper than knee height. Rips: relax and float, raise a hand, do not fight the current.',
+        'Local lifeguards warn that an outgoing afternoon tide with rising swell is a risky combination.',
+        'Sun: in the warmer months, train before 10 am or after 4 pm where possible; hat, sunscreen reapplied after sweating or swimming, long sleeves.',
+        'Heat and hydration: carry water; 500 mL per hour of activity in the heat is the in-app default.',
+        'Sand: start barefoot work on firm, wet sand; soft sand is harder on calves and Achilles. Check for glass and shells. Do not jump from dunes.',
+        'Never swim alone, never after drinking.',
+      ],
+      /** Shown after the hydration line only when keto is on and the keto ceiling is available (beachPromptLines). */
+      electrolytes:
+        "On the carb ceiling, sweat takes salt and other electrolytes with it, so keep up today's electrolytes as well as water.",
+    },
+  },
+  /** The pre-session check, before every session (HS section 6; UX 4b; storage PreCheck). */
+  preCheck: {
+    title: 'Quick check before you start',
+    intro: 'Answer all six. Any yes means a lighter session or rest today, and both count.',
+    questions: {
+      painOrInjury: 'Pain or injury',
+      backOrLegSymptoms: 'Back or leg symptoms',
+      tiredOrPoorSleep: 'Very tired or poor sleep',
+      heatOrSun: 'Hot day or sun exposure',
+      notHydrated: 'Not well hydrated',
+      heavyWorkDay: 'A heavy physical work day',
+    },
+    yes: 'Yes',
+    no: 'No',
+    mustAnswer: 'Answer all six to continue.',
+    allNo: `${general.readinessOutcome} You can start the planned session, or choose the lighter session or rest.`,
+    anyYes: 'You answered yes, so today it is the lighter session or rest. Both count.',
+    painFirst:
+      'With pain or back or leg symptoms, rest comes first. The lighter session also leaves out the hip hinge; leave out anything that hurts.',
+    heavyWork:
+      'On a heavy physical work day, the lighter session is the plan, not a fallback, and it counts in full.',
+    fasted:
+      'Exercising while fasted is allowed; choose a lighter session and break the fast afterwards if the plan says so.',
+    eatFirst: "You can also eat first. It's fine to widen the window.",
+    notDiagnosis:
+      'The app does not diagnose injuries and cannot tell you that exercise is right for you. If pain or symptoms keep coming back, talk to your GP.',
+  },
+  choices: {
+    planned: 'Planned session',
+    lighter: 'Lighter session',
+    rest: 'Rest today',
+    skip: 'Rest instead',
+  },
+  lighter:
+    'Lighter session: the easier version of each movement and one set fewer. The warm-up and cool-down stay.',
+  structure: {
+    warmUp: 'Warm-up, 5 minutes',
+    main: 'Main part',
+    coolDown: 'Cool-down',
+  },
+  /** Finish ratings, 1–5 (UX 4c). The direction is fixed here; C51's tolerated walk relies on it. */
+  finish: {
+    title: 'How did it go?',
+    exertion: { label: 'Effort', low: '1 = very easy', high: '5 = very hard' },
+    soreness: { label: 'Soreness', low: '1 = none', high: '5 = very sore' },
+    energy: { label: 'Energy', low: '1 = very low', high: '5 = very high' },
+  },
+  /** Rest is never a failure (HS section 6; UX 2 card 6, 4a). */
+  rest: {
+    restDay: 'Rest day, that counts',
+    countsAsSuccess: 'counts as success',
+    general: 'Rest and recovery count as success.',
+    rested: 'Rested. That counts.',
+  },
+  /** The progression cap (HS section 6; DOC_REVIEW C76). */
+  progression: {
+    rule: 'Each movement goes up by about 10% a week at most, one small step at a time. Add reps before trying the harder version.',
+    capped: 'Set lower to keep this week within about 10% of last week.',
+    hold: 'Last week had only lighter sessions or rest for this movement, so this week stays at the amount of the week before, with no increase.',
+    weekReached:
+      "This week's amount for this movement is done. You can still log it if you do more.",
+    newVariant: 'New version, so it starts at the bottom of the range.',
+    tryNext:
+      'Top of the range in your last two sessions. Next time you could try {variant}, starting again at the bottom of the range.',
+    restart:
+      'It has been a few weeks since this movement, so it starts again from the first amount.',
+  },
+  /** Beach jogging, opt-in only (HS section 6; UX 4d; C51). */
+  jog: {
+    optional:
+      'Beach jogging is optional. Your work already counts as activity, so jogging is never required.',
+    locked: 'Jogging unlocks after four tolerated walks.',
+    progress: 'Tolerated walks so far: {count} of 4.',
+    needsOptIn: 'It also needs your opt-in in Settings, under Equipment.',
+    readyOptIn:
+      'You have four tolerated walks. Jogging stays off unless you turn it on in Settings, under Equipment.',
+    paused:
+      'After your last jog, effort or soreness was above 3 or not rated, or the next check showed pain or back or leg symptoms. The beach walk is shown again until one more tolerated walk.',
+    tolerated:
+      'A tolerated walk is a beach walk of at least {minutes} minutes, with every check before it answered no, effort and soreness rated 3 or less, and no pain or back or leg symptoms at your next check. At most one walk a day counts.',
+    shownAsWalk: 'Jogging is not on right now, so this day shows the beach walk.',
+    toggle: {
+      label: 'Beach jogging (optional)',
+      hint: 'Adds jog and walk intervals to the weekly plan once four tolerated walks are logged. Jogging is never required.',
+    },
+  },
+  /** The weekly plan (HS section 6 programming rules; EX-05). In WEEK_PROBLEM_CODES order. */
+  week: {
+    title: 'This week',
+    edit: 'Change weekly plan',
+    restChip: 'Rest',
+    dayDone: 'Done',
+    notDone: 'Not done. Rest counts too.',
+    stripStrength: '{labels}: full-body sessions of about {minutes} minutes.',
+    stripWalk: 'Walk: optional beach walk.',
+    stripJog: 'Jog: optional jog and walk intervals.',
+    fallback:
+      'Your weekly plan did not fit the plan rules, so the standard week is shown. You can change it with Change weekly plan.',
+    problems: {
+      'unknown-template': 'A session in this plan is no longer in the app. Choose another.',
+      'day-too-full': 'Plan at most one strength session and one beach session on a day.',
+      'strength-count': 'Plan 2 or 3 strength sessions a week.',
+      'rest-days': 'Keep at least 2 rest days a week. Rest days are part of the plan.',
+      'strength-back-to-back': 'Leave a day between strength sessions, Sunday to Monday included.',
+      'jog-locked': 'Jogging unlocks after four tolerated walks.',
+      'jog-limit': 'Jog on 2 days a week at most, and not two days in a row.',
+      'jog-on-strength-day': 'Keep jog days and strength days apart.',
+    },
+  },
+  /**
+   * Why a session cannot start (sessionStartGate), in START_PROBLEM_CODES order. RD-05 uses
+   * readiness.featureOff instead.
+   */
+  start: {
+    problems: {
+      'unknown-template': 'This session is no longer in the app.',
+      'jog-locked':
+        'Jogging is not on right now, so this jog cannot start. The beach walk is shown instead.',
+      'not-planned-today':
+        'This session is not planned for today. To change your training days, use Change weekly plan.',
+      'already-today':
+        'Today already has a session like this one. The plan has at most one strength session and one beach session a day.',
+      'back-to-back':
+        'Strength sessions need a rest day between them, so this one waits for another day.',
+      'strength-count': 'This week already has 3 strength sessions, the most the plan has.',
+      'rest-days':
+        'This week already has 5 active days. The other 2 are rest days, and rest counts.',
+    },
+  },
+  /** Card header chip (mock-up "Bodyweight"). */
+  equipment: {
+    none: 'Bodyweight',
+    bands: 'Bodyweight and bands',
+    dumbbells: 'Bodyweight and dumbbells',
+    both: 'Bodyweight, bands and dumbbells',
+  },
+  /** When getExerciseData() throws (never expected; CI checks the data). */
+  dataError:
+    'The exercise plans could not be loaded. Nothing was changed. Reload the app; if this keeps happening, the app needs an update.',
+} as const;
+
 /** All sections, for scanning and review. */
 export const healthCopy = {
   helpNumbers,
@@ -1051,4 +1230,5 @@ export const healthCopy = {
   profile,
   schedule,
   garden,
+  move,
 } as const;

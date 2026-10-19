@@ -97,10 +97,10 @@ Conventions for the implementing model:
 ## Week 3 — Body, drinks, hand-off and extension
 
 26. **Exercise dataset.** Movements with easier/harder/band/dumbbell variants and cues; three 20–35-minute full-body sessions; weekly template with two or three sessions and rest days; beach walk and opt-in jog progression.
-    *Acceptance:* EX-01, EX-05.
+    *Acceptance:* EX-01, EX-05; HS-28 and HS-29 at core level.
 
 27. **Move screens.** Week view, pre-session check, session view with progression cap, finish ratings, beach prompts, rest counted as success.
-    *Acceptance:* EX-02 to EX-04; HS-12.
+    *Acceptance:* EX-02 to EX-04; HS-12, HS-28, HS-29; RD-05 (Move tab, Today Movement card and Complete workout).
 
 28. **Alcohol engine and screens.** Beverage presets (default 330 mL, 5%, 94 kcal), log, daily/weekly cans/standard drinks/kcal, trends, alcohol-free days, milestones entered by user or clinician, guidance context, help card triggers, next-day note, no banned phrasing.
     *Acceptance:* AL-01 to AL-12; HS-05, HS-06, HS-07, HS-08, HS-19; NN-01, NN-09.
@@ -146,7 +146,7 @@ Conventions for the implementing model:
 41. **Triage and fix.** Dispositions for each finding; correct pack sizes and aisles; fix the fix-now items.
     *Acceptance:* each finding dispositioned; CI green.
 
-42. **Health copy review.** Owner reads every string in `health.ts` against `HEALTH_SAFETY.md`; model locates and links the Heart Foundation NZ page, current CDC page, SunSmart and the 2020 Eating and Activity Guidelines PDF, replacing secondary sources where found.
+42. **Health copy review.** Owner reads every string in `health.ts` against `HEALTH_SAFETY.md`, and the exercise dataset's names, how-to lines and cues (`packages/core/data/exercises.json`); model locates and links the Heart Foundation NZ page, current CDC page, SunSmart and the 2020 Eating and Activity Guidelines PDF, replacing secondary sources where found.
     *Acceptance:* no secondary-source note remains where a primary page was found; scans pass.
 
 43. **Handover notes** in `README.md`: update, re-pair, back up, restore, delete all, reload extension after Chrome updates, redeploy the relay.

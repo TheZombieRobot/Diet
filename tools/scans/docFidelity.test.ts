@@ -5,6 +5,7 @@ import {
   alcohol,
   general,
   helpNumbers,
+  move,
   profile,
   readiness,
   schedule,
@@ -140,5 +141,21 @@ describe('first-run copy matches the docs word for word (item 13)', () => {
       [...row.matchAll(/gated\((q\d)\)|\bunder18\b/g)].map((m) => m[1] ?? 'q1');
     expect(questions(rowOf('ketoCeilingAvailable'))).toEqual([...KETO_CEILING_CLOSED_BY]);
     expect(questions(rowOf('goalSettingAvailable'))).toEqual(['q1', 'q2', 'q5']);
+  });
+});
+
+describe('Move copy matches the docs word for word (item 26)', () => {
+  const exerciseSection = section(HEALTH_SAFETY, /^## 6\. /);
+
+  it('the stop rules are HEALTH_SAFETY.md section 6, with the quoted 111 line (HS-28, C77)', () => {
+    expect(exerciseSection).toContain(move.safety.stopRules.body);
+    expect(exerciseSection).toContain(`"${move.safety.stopRules.emergency}"`);
+  });
+
+  it('each beach prompt is a HEALTH_SAFETY.md section 6 bullet, its source links aside (HS-12)', () => {
+    const withoutLinks = exerciseSection.replace(/ \(\[[^\]]+\]\([^)]+\)\)/g, '');
+    for (const item of move.safety.beachPrompts.items) {
+      expect(withoutLinks).toContain(item.replace(/\.$/, ''));
+    }
   });
 });

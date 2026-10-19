@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { BACKUP_ERROR_CODES } from '../storage/backup/errors';
 import { BACKUP_TABLES } from '../storage/tables';
 import { ACTIVITY_FACTORS } from '../energy/energyEstimate';
+import { PRE_CHECK_KEYS } from '../exercise/preCheck';
+import { START_PROBLEM_CODES } from '../exercise/start';
+import { WEEK_PROBLEM_CODES } from '../exercise/week';
 import { GATED_FEATURES, READINESS_REASON_IDS } from '../readiness/gates';
 import { USER_ALLERGENS } from '../storage/allergens';
 import { FLOOR_KJ, KICKSTART_MAX_DEFICIT_PCT, KICKSTART_NET_CARBS_G } from '../storage/limits';
@@ -11,6 +14,7 @@ import {
   general,
   healthCopy,
   helpNumbers,
+  move,
   onboarding,
   privacy,
   profile,
@@ -99,6 +103,22 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
   ],
   // C57: fixed copy never claims a homegrown weight.
   garden: [/\d\s*g\b/i],
+  // Item 26 (HEALTH_SAFETY.md sections 1 and 6): nothing is promised safe, rest is never a failure,
+  // running is never required, nothing is "made up" or "caught up", and no energy-burned figure.
+  move: [
+    /\bsafe\b/i,
+    /\bstreaks?\b/i,
+    /\bmissed\b/i,
+    /\bfail(?:ed|s|ing|ure)?\b/i,
+    /\bbehind\b/i,
+    /\blazy\b/i,
+    /\bpush\s+through\b/i,
+    /\bno\s+pain,?\s+no\s+gain\b/i,
+    /\b(?:must|have\s+to|should)\s+(?:run|jog)\b/i,
+    /\bcatch(?:ing)?\s+up\b/i,
+    /\bmake\s+up\s+for\b/i,
+    /\bburn(?:s|ed|ing)?\b/i,
+  ],
 };
 
 describe('health copy', () => {
@@ -334,5 +354,41 @@ describe('first-run copy (item 13; U30)', () => {
     expect(joinList([], ', ', ' and ')).toBe('');
     expect(joinList(['a'], ', ', ' and ')).toBe('a');
     expect(joinList(['a', 'b', 'c'], ', ', ' and ')).toBe('a, b and c');
+  });
+});
+
+describe('Move copy (item 26)', () => {
+  it('HS-28: the stop signs name all five red flags, with 111 for chest pain', () => {
+    for (const flag of [
+      'chest pain or pressure',
+      'severe shortness of breath',
+      'fainting or near-fainting',
+      'sudden severe headache',
+      'pain that changes how you move',
+    ]) {
+      expect(move.safety.stopRules.body).toContain(flag);
+    }
+    expect(move.safety.stopRules.emergency).toContain(helpNumbers.emergency.number);
+  });
+
+  it('every check question, week problem and start problem has its words, in order; required sentences are kept', () => {
+    expect(Object.keys(move.preCheck.questions)).toEqual([...PRE_CHECK_KEYS]);
+    expect(Object.keys(move.week.problems)).toEqual([...WEEK_PROBLEM_CODES]);
+    expect(Object.keys(move.start.problems)).toEqual([...START_PROBLEM_CODES]);
+    expect(move.jog.locked).toBe('Jogging unlocks after four tolerated walks.');
+    expect(move.preCheck.fasted).toBe(
+      'Exercising while fasted is allowed; choose a lighter session and break the fast afterwards if the plan says so.',
+    );
+    expect(move.rest.restDay).toBe('Rest day, that counts');
+  });
+
+  it('the check never diagnoses, puts rest first with pain, never insists on a fast, and fixes the rating direction', () => {
+    expect(move.preCheck.allNo).toContain(general.readinessOutcome);
+    expect(move.preCheck.notDiagnosis).toContain('does not diagnose');
+    expect(move.preCheck.notDiagnosis).toContain('cannot tell you that exercise is right for you');
+    expect(move.preCheck.painFirst).toContain('leave out anything that hurts');
+    expect(move.preCheck.eatFirst).toContain("It's fine to widen the window.");
+    expect(move.finish.exertion.low).toMatch(/^1 = .*easy/);
+    expect(move.finish.exertion.high).toMatch(/^5 = .*hard/);
   });
 });

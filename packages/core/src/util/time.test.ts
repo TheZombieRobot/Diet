@@ -2,10 +2,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   assertValidTimeZone,
   deviceTimeZone,
+  isoWeekdayOf,
   isValidTimeZone,
   localDateOf,
   parseInstant,
   parseLocalDate,
+  weekStartOf,
   zonedWallTimeToInstant,
 } from './time';
 
@@ -47,6 +49,17 @@ describe('strict ISO 8601 instants', () => {
   it('refuses dates that do not exist', () => {
     expect(() => parseLocalDate('2026-02-29')).toThrow(RangeError);
     expect(parseLocalDate('2028-02-29')).toBe(Date.UTC(2028, 1, 29));
+  });
+});
+
+describe('ISO weeks (Monday first)', () => {
+  it.each([
+    ['2000-01-03', 1, '2000-01-03'],
+    ['2000-01-09', 7, '2000-01-03'],
+    ['2000-01-17', 1, '2000-01-17'],
+  ])('%s is ISO weekday %i in the week starting %s', (date, weekday, monday) => {
+    expect(isoWeekdayOf(date)).toBe(weekday);
+    expect(weekStartOf(date)).toBe(monday);
   });
 });
 

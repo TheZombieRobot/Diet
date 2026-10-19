@@ -211,3 +211,19 @@ export function addDays(date: LocalDate, days: number): LocalDate {
 export function daysBetween(from: LocalDate, to: LocalDate): number {
   return Math.round((parseLocalDate(to) - parseLocalDate(from)) / MS_PER_DAY);
 }
+
+/** ISO weekday, Monday = 1 to Sunday = 7 (the stored WeeklyPatternDay.weekday). */
+export type IsoWeekday = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+/** The ISO weekday of a local date, read at UTC midnight so no time zone can shift it. */
+export function isoWeekdayOf(date: LocalDate): IsoWeekday {
+  return (((new Date(parseLocalDate(date)).getUTCDay() + 6) % 7) + 1) as IsoWeekday;
+}
+
+/**
+ * The Monday that starts the date's week (storage spec section 3.2: the display week starts on
+ * Monday). Shared by the exercise week (item 26) and the alcohol week totals (item 28).
+ */
+export function weekStartOf(date: LocalDate): LocalDate {
+  return addDays(date, 1 - isoWeekdayOf(date));
+}

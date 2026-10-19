@@ -11,6 +11,7 @@ export * from './energy/age';
 export * from './energy/baseTargets';
 export * from './energy/energyEstimate';
 export * from './energy/protein';
+export * from './exercise';
 export * from './fasting/eatingWindow';
 export * from './fasting/schedule';
 export * from './fasting/windowText';
