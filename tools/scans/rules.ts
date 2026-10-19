@@ -285,6 +285,13 @@ export const healthPhraseRules: readonly ContentRule[] = [
     'fasting to compensate',
     /\bcompensat(?:e|es|ed|ing|ion)\b/i,
   ),
+  // HEALTH_SAFETY.md section 3, HS-18, C63: rest and food are never framed as breaking a streak.
+  rule(
+    'streak-loss',
+    ['HS-18', 'C63'],
+    'streak-loss wording ("lost your streak", "streak reset")',
+    /\b(?:los(?:e|es|t|ing)|break(?:s|ing)?|broke|broken|reset(?:s|ting)?|end(?:s|ed|ing)?|ruin\w*|kill\w*)\s+(?:your\s+|the\s+|a\s+|this\s+)?streak\b|\bstreak\s+(?:is\s+|was\s+|has\s+been\s+)?(?:lost|broken|reset|ended|over|gone)\b/i,
+  ),
 ];
 
 /**

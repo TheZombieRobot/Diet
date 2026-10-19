@@ -5,13 +5,23 @@ import {
   FASTING_PRESETS,
   type FastingPresetId,
   fillTemplate,
-  formatClockTime,
+  formatClockRange,
   presetForWindow,
   presetWindow,
 } from '@diet/core';
-import { schedule } from '@diet/core/copy/health';
-import { Card, ChoiceList, DayBar, Notice, Switch, TextField } from '@diet/ui';
+import { fasting, schedule } from '@diet/core/copy/health';
+import {
+  ActionRow,
+  Card,
+  ChevronIcon,
+  ChoiceList,
+  DayBar,
+  Notice,
+  Switch,
+  TextField,
+} from '@diet/ui';
 import type { ReactElement, ReactNode, Ref } from 'react';
+import { fastingHref } from '../../routes';
 import type { ScheduleDraft } from '../drafts';
 
 const WINDOW_ERRORS = {
@@ -22,10 +32,10 @@ const WINDOW_ERRORS = {
 
 function presetDetail(id: FastingPresetId): string {
   const window = presetWindow(id);
-  const times = { start: formatClockTime(window.start), end: formatClockTime(window.end) };
+  const range = formatClockRange(window.start, window.end);
   return id === '22:2' || id === '23:1'
-    ? fillTemplate(schedule.presetDetailNamed, { name: schedule.presetNames[id], ...times })
-    : fillTemplate(schedule.presetDetail, times);
+    ? fillTemplate(schedule.presetDetailNamed, { name: schedule.presetNames[id], range })
+    : fillTemplate(schedule.presetDetail, { range });
 }
 
 export interface ScheduleFormProps {
@@ -85,8 +95,7 @@ export function ScheduleForm({
       detail:
         draft.choice === 'custom' && window.ok
           ? fillTemplate(schedule.presetDetail, {
-              start: formatClockTime(window.window.start),
-              end: formatClockTime(window.window.end),
+              range: formatClockRange(window.window.start, window.window.end),
             })
           : undefined,
     },
@@ -182,14 +191,28 @@ export function ScheduleForm({
           <p className="ui-text-muted">{schedule.neverInsist}</p>
         </Card>
       ) : null}
-      <Switch
-        label={schedule.refluxLabel}
-        hint={schedule.refluxHint}
-        checked={draft.reflux}
-        onChange={(on) => {
-          set({ reflux: on });
-        }}
-      />
+      {mode === 'settings' ? (
+        // Item 15 (F8): in Settings the two reflux switches live on the Fasting screen's Reflux
+        // card, with the symptom log; setup keeps the one switch, which sets both.
+        <ul className="ui-action-list">
+          <li>
+            <ActionRow
+              href={fastingHref('reflux')}
+              title={fasting.pattern.refluxLink}
+              badge={<ChevronIcon />}
+            />
+          </li>
+        </ul>
+      ) : (
+        <Switch
+          label={schedule.refluxLabel}
+          hint={schedule.refluxHint}
+          checked={draft.reflux}
+          onChange={(on) => {
+            set({ reflux: on });
+          }}
+        />
+      )}
     </div>
   );
 }

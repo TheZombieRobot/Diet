@@ -32,7 +32,7 @@ Top: date and a one-line status such as "Fasting 14 h 20 m. Snack window opens 5
 
 Cards, in order:
 1. **Weight.** Latest weight, 7-day average, long-term goal, phase chip ("Kickstart, week 2 of 3" or "Steady"). Four-week sparkline with a shaded front-loaded band labelled "typical range, not a promise". During Kickstart the note reads: "Kickstart: a fast drop is expected now, mostly water and glycogen with some fat." In Steady it reads: "About 0.5–1 kg a week is the pace that holds. A kilogram back after Kickstart is water, not failure." Under the long-term goal, "Next milestone" (never more than 20% below the current weight, worked out by the app). **Log weight** opens the entry in place; **Weigh-ins and trend** opens the Weight screen. Someone who chose Kickstart during setup and has not started one sees a **Start Kickstart today** card here, which asks the four stop-sign questions first.
-2. **Fast.** Big Start/End button, planned window, snack and dinner times. On 23:1 days a one-line meal check: "Tonight's dinner carries 138 g protein" or "Tonight's dinner carries 95 g protein. Add the 5 pm snack?" with a one-tap Add. If protein or energy is short: "It's fine to widen the window."
+2. **Fast.** Big Start/End button, planned window, snack and dinner times. On 23:1 days a one-line meal check with the live figures from the day's plan: "Tonight's dinner carries 140 g protein" or "Tonight's dinner carries 95 g protein. Add the 5 pm snack?" with a one-tap Add. If protein or energy is short: "It's fine to widen the window."
 3. **Nutrition so far.** Energy, protein, fibre, net carbs (if keto mode) as bars with targets. Each logged entry shows a small badge: Label, Database, or Estimate.
 4. **Water and electrolytes.** Tap +250 mL; optional electrolyte tick.
 5. **Steps.** Manual entry, remembers yesterday's value for one-tap repeat.
@@ -43,6 +43,8 @@ Cards, in order:
 "+" quick actions: Log weight, Finish meal, Swap recipe, Complete workout, Add harvest, Add drink, Open grocery list.
 
 **2a: Weight** (`#/weight`, from the Weight card; not a tab). Log weight (empty field with the last weigh-in as its hint, −/+ 0.1 kg, "Same as last time", an optional date, time and note); Trend (7- and 14-day averages, weekly change in plain words, the chart over 4 weeks, 30 days or 90 days); Long-term goal (entry, the next milestone, removal); Phase (week of Kickstart, its due date and extensions used, **End Kickstart now**; in Steady, **Start a Kickstart** or the reason one cannot start; a Kickstart whose first day has not come by the phone's date, because the clock was ahead when it was started, says so with that day and **End Kickstart now**; when readiness answers or a weight below BMI 18.5 switch the phase off, the reason with a link to Settings, Readiness answers); Weigh-ins (newest first, edit and delete); How to read this. The weight check-in, Kickstart stop-signs, extension offer, "Kickstart has finished" and daily-changes cards show here as on Today.
+
+**2b: Fasting and reflux** (`#/fasting`, opened from the Fast card, and from Settings, Eating schedule). The current fast with its start time (which can be corrected), the stop-signs with the Healthline and 111 rows, the eating pattern (the same editor as Settings, Eating schedule), the reflux card (log heartburn, night cough or regurgitation with one tap, rate it, add a note; the earlier-dinner and split-meal options; the chest-pain line with 111; the "see a GP" line; the last 14 days) and the history of completed fasts with the streak ("3 days in a row with a completed fast", shown from 2 days, never as something lost). While fasting is switched off by the readiness answers, only the reflux card and the reason show, and a fast still open can be ended.
 
 ---
 
@@ -93,7 +95,7 @@ What is deliberately absent: streaks, badges, "calories left", "you've earned", 
 ---
 
 ## 7. Settings
-A "Your setup" card leads to **Readiness answers** (every answer, the confirmation switches and what the answers switch off; a change applies at once and deletes nothing), **Profile** (the setup fields except current weight, goal and Kickstart) and **Eating schedule** (only the reason while fasting is unavailable).
+A "Your setup" card leads to **Readiness answers** (every answer, the confirmation switches and what the answers switch off; a change applies at once and deletes nothing), **Profile** (the setup fields except current weight, goal and Kickstart) and **Eating schedule** (only the reason while fasting is unavailable; with a link to "Fasting timer, history and reflux log").
 
 Profile, eating schedule, readiness answers, diet mode, targets (protein, net carbs, saturated-fat budget), the drinking-day cut-over (drinks before 5 am count toward the previous evening; adjustable from midnight to 6 am, C21), the Weight check-in card (the rapid-loss bounds, only after reading their explanation, C46), the alcohol guidance set (C46), equipment (bands, dumbbells and the beach-jogging opt-in), household, allergens, dislikes (C43), hidden recipes and foods, store, pairing, Backup and data, About (not a medical device, emergency numbers, data sources and attribution, version). Units are fixed metric, so there is no units setting.
 

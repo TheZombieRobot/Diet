@@ -71,6 +71,11 @@ Checklist item 13 added the first-run flow (`apps/mobile-web/src/onboarding`):
 - One gate function in core (`packages/core/src/readiness/gates.ts`) decides from the answers, the birth year and the current weight what is switched off; an unanswered question counts as yes.
 - **Settings:** Readiness answers, Profile and Eating schedule. **Today:** the "talk to someone" card from day one when answer 7 is yes or unanswered.
 
+Checklist item 15 added fasting (`apps/mobile-web/src/screens/fasting`; the rules are in `packages/core/src/fasting`):
+- **Today:** the Fast card: Start and End (End is always there, with no confirmation step), the time counted from the stored start so it survives a restart, the planned eating window, the 5 pm snack offer when one meal would carry the day, and past 24 hours a warning with the stop-signs and the help numbers. Fasts less than an hour apart count as one fast for the 24-hour rule.
+- **Fasting and reflux** (from the Fast card, or Settings, Eating schedule): the stop-signs, the eating pattern (the same editor as Settings), a one-tap reflux symptom log with the earlier-dinner and split-meal options, and the history of completed fasts with the streak.
+- While the readiness answers switch fasting off, only the reason and the reflux log show, and a fast still open can be ended; nothing is deleted.
+
 How it is built:
 - Vite and React. The look comes from the owner's mock-up; every colour lives in one file, `packages/ui/src/styles/tokens.css`, with a light and a dark value each, so feedback on the look is an edit there. The launch screen and the task switcher use the icon's teal, which suits both themes. The Manrope font is bundled with the app, never fetched.
 - A Workbox service worker keeps a copy of the whole app on the phone, so every screen opens offline. It only ever fetches the app's own files, and there is no analytics of any kind. When the app comes back into view, it checks for a new version (at most once a minute) and offers "Update available".

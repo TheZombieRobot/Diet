@@ -85,6 +85,16 @@ describe('colour tokens (styles/tokens.css)', () => {
       ).toBeGreaterThanOrEqual(3);
     });
 
+    it(`${theme}: the buttons inside an amber notice are readable, and the outline stands out (item 15)`, () => {
+      // on-amber: amber-tint text on an on-amber-tint fill; on-amber-outline: on-amber-tint text.
+      expect(
+        contrastRatio(colour('--color-amber-tint', theme), colour('--color-on-amber-tint', theme)),
+      ).toBeGreaterThanOrEqual(4.5);
+      expect(
+        contrastRatio(colour('--color-amber-strong', theme), colour('--color-amber-tint', theme)),
+      ).toBeGreaterThanOrEqual(3);
+    });
+
     it(`${theme}: tab labels on the translucent tab bar have at least 4.5:1 contrast`, () => {
       const bar = over(colour('--color-tabbar', theme), colour('--color-ground', theme));
       expect(contrastRatio(colour('--color-secondary', theme), bar)).toBeGreaterThanOrEqual(4.5);

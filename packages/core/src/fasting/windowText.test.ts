@@ -3,8 +3,11 @@ import { MAX_PLANNED_FAST_HOURS } from './eatingWindow';
 import {
   dayBarSegments,
   describeEatingWindow,
+  formatClockRange,
   formatClockTime,
   formatDuration,
+  formatElapsed,
+  patternPill,
 } from './windowText';
 
 describe('window text from the formatter (U26; FL-08, FL-09, FL-14, NN-02, HS-17, C101)', () => {
@@ -54,13 +57,14 @@ describe('window text from the formatter (U26; FL-08, FL-09, FL-14, NN-02, HS-17
       [60, '1 hour', '1 h'],
       [90, '1 hour 30 minutes', '1 h 30 m'],
       [1439, '23 hours 59 minutes', '23 h 59 m'],
+      [1440, '24 hours', '24 h'],
     ];
     for (const [minutes, long, short] of cases) {
       expect(formatDuration(minutes, 'long')).toBe(long);
       expect(formatDuration(minutes, 'short')).toBe(short);
     }
     expect(() => formatDuration(0, 'long')).toThrow(RangeError);
-    expect(() => formatDuration(1440, 'short')).toThrow(RangeError);
+    expect(() => formatDuration(1441, 'short')).toThrow(RangeError);
   });
 
   it('the day bar: one segment, or two when the window wraps midnight', () => {
@@ -72,5 +76,43 @@ describe('window text from the formatter (U26; FL-08, FL-09, FL-14, NN-02, HS-17
     expect(wrapped[0]?.startPct).toBeCloseTo(91.6667, 3);
     expect(wrapped[0]?.widthPct).toBeCloseTo(8.3333, 3);
     expect(wrapped[1]).toEqual({ startPct: 0, widthPct: (120 / 1440) * 100 });
+  });
+});
+
+describe('ranges, elapsed time and the pattern pill (item 15 design 4.1; HS-17, C55)', () => {
+  it('a range is both ends in full with an en dash', () => {
+    expect(formatClockRange('18:00', '19:00')).toBe('6:00 pm – 7:00 pm');
+    expect(formatClockRange('11:00', '19:00')).toBe('11:00 am – 7:00 pm');
+    expect(formatClockRange('22:00', '02:00')).toBe('10:00 pm – 2:00 am');
+  });
+
+  it('elapsed time in whole minutes, rounded down, of any length, in both styles', () => {
+    const MIN = 60_000;
+    const cases: [number, string, string][] = [
+      [0, '0 h 0 m', '0 m'],
+      [45 * MIN + 59_999, '0 h 45 m', '45 m'],
+      [120 * MIN, '2 h 0 m', '2 h'],
+      [(19 * 60 + 20) * MIN, '19 h 20 m', '19 h 20 m'],
+      [(24 * 60 + 1) * MIN, '24 h 1 m', '24 h 1 m'],
+      [(49 * 60 + 10) * MIN, '49 h 10 m', '49 h 10 m'],
+    ];
+    for (const [ms, figure, text] of cases) {
+      expect(formatElapsed(ms, 'figure')).toBe(figure);
+      expect(formatElapsed(ms, 'text')).toBe(text);
+    }
+    expect(() => formatElapsed(-1, 'text')).toThrow(RangeError);
+    expect(() => formatElapsed(Number.NaN, 'figure')).toThrow(RangeError);
+  });
+
+  it('the pill comes from the clock times, never the preset id (C55)', () => {
+    const table: [string, string, string][] = [
+      ['18:00', '19:00', '23:1 · One meal'],
+      ['17:30', '18:30', '23:1 · One meal'],
+      ['17:00', '19:00', '22:2 · 5 pm snack + dinner'],
+      ['18:00', '20:00', '22:2'],
+      ['11:00', '19:00', '16:8'],
+      ['17:30', '19:00', 'Custom times'],
+    ];
+    for (const [start, end, pill] of table) expect(patternPill({ start, end }), start).toBe(pill);
   });
 });

@@ -90,11 +90,14 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 ### 3.5 Fasting
 | ID | Case | Expected |
 |---|---|---|
-| FS-01 | Presets available | 12:12, 14:10, 16:8, 18:6, nothing longer than 24 h selectable |
-| FS-02 | Fast reaches 24 h 1 min | Warning shown; streak not incremented (HS-02) |
+| FS-01 | Presets available | Presets exactly 16:8, 18:6, 20:4, 22:2 and 23:1, plus custom clock times and no fasting plan; 23:1 preselected while Kickstart is chosen and fasting is not gated, 22:2 otherwise, and no pattern preselected when readiness answer 4 is yes or unanswered (nothing at setup; "No fasting plan for now" in Settings when nothing is stored); a custom start equal to its end is refused; no selection can plan a fast over 24 h (reworded per DOC_REVIEW C09) |
+| FS-02 | Fast (or fasts less than an hour apart) reaches 24 h 1 min | Warning shown; streak neither incremented nor reset (HS-02) |
 | FS-03 | Fast crosses midnight and device restarts | Timer continues from stored start time |
 | FS-04 | Stop-signs text present on fasting screen | Snapshot |
-| FS-05 | Drink logged during fast | Neutral note; no penalty text |
+| FS-05 | Drink logged during fast | Neutral note; no penalty text; the food figures, the meal check and the streak are unchanged |
+| FS-06 | Planned fast would pass 24 h (a later window tomorrow, a start inside the window on the April daylight-saving night, a fast restarted within the hour) | Plan ends at 24 h from the start of the fast (or of the fasts less than an hour apart), eat-by time shown, stored planned minutes never over 1,440 (C30) |
+| FS-07 | Streak counter | A completed fast of 24 h or less counts for the day it ends; one over 24 h, or still running, neither adds nor resets; a day without one ends the count with no message (C63) |
+| FS-08 | Fasting gated by readiness | No Start anywhere, no timer, pattern or history; the repository refuses to start or reopen a fast; a fast already open can still be ended, with "It's fine to eat now." and the stop-signs (HS-03) |
 
 ### 3.6 Nutrition, recipes, planner
 | ID | Case | Expected |
@@ -177,12 +180,13 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | FL-07 | Gluten-free household toggle off | No gluten-free substitutions suggested |
 | FL-08 | Eating window 17:00–19:00 | 2 h eating and 22 h fasting, from the core window formatter: screen 1e shows "Eating 5:00 pm to 7:00 pm = 2 hours. Fasting 22 hours." and the Fast card "2 h eating, 22 h fasting" (HS-17, C101) |
 | FL-09 | Eating window 22:00–02:00 (midnight wrap) | 4 h eating |
-| FL-10 | Low-protein planned day | Fasting card offers to widen window (HS-18) |
+| FL-10 | Low-protein planned day; also a day with enough protein but planned food energy under the day's energy target (C10) | Fasting card offers to widen window (HS-18). Core and card level at item 15, plan wiring at item 22 (C23) |
 | FL-11 | Reflux options on | Earlier-window and split-meal suggestions appear; symptom log available |
-| FL-12 | 23:1 preset, dinner planned at 95 g protein, target 140 g | Fasting card offers the 5 pm snack; no "broken fast" or streak-loss wording (HS-18) |
-| FL-13 | 23:1 preset, dinner planned at 140 g protein and above floor | No snack prompt; meal check line shows the protein figure |
+| FL-12 | 23:1 preset, dinner planned at 95 g protein, target 140 g | Fasting card offers the 5 pm snack; no "broken fast" or streak-loss wording (HS-18). Core and card level at item 15, plan wiring at item 22 (C23) |
+| FL-13 | 23:1 preset, dinner planned at the protein target, at or above the day's energy target, under 600 g of protein food | No snack prompt; meal check line shows the protein figure. Core and card level at item 15, plan wiring at item 22 (C23) |
 | FL-14 | 23:1 window 6 pm to 7 pm | 1 h eating and 23 h fasting, from the core window formatter: screen 1e shows "Eating 6:00 pm to 7:00 pm = 1 hour. Fasting 23 hours." and the Fast card "1 h eating, 23 h fasting"; no over-24 h warning (HS-17, C101) |
-| FL-15 | Reflux symptom logged on a 23:1 day | Earlier-dinner and split-meal options offered next day |
+| FL-15 | Reflux symptom logged on a 23:1 day; also on a 16:8 day | Earlier-dinner and split-meal options offered that day and the next day, not the day after |
+| FL-16 | Reflux symptoms on 3 days within 2 weeks, or rated stronger this week than last | The symptom log suggests seeing a GP; "Not now" hides it for 7 days (C47) |
 
 ### 3.12 Non-negotiable cases from the handoff
 | ID | Case | Expected |

@@ -131,9 +131,16 @@ describe('every screen', () => {
 });
 
 describe('placeholder screens (no sample data)', () => {
-  // About, the setup screens (item 13) and the Weight screen (item 14) are built; the rest still
-  // say they arrive later.
-  const built: readonly RouteId[] = ['about', 'readiness', 'profile', 'eating-schedule', 'weight'];
+  // About, the setup screens (item 13), the Weight screen (item 14) and the Fasting screen (item
+  // 15) are built; the rest still say they arrive later.
+  const built: readonly RouteId[] = [
+    'about',
+    'readiness',
+    'profile',
+    'eating-schedule',
+    'weight',
+    'fasting',
+  ];
   const placeholders = ROUTES.filter((r) => !built.includes(r));
 
   it.each(placeholders)(

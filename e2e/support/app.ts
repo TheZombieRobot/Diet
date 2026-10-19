@@ -1,14 +1,22 @@
 import { expect, type BrowserContext, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { onboarding, privacy, weight } from '../../packages/core/src/copy/health';
+import { fasting, onboarding, privacy, weight } from '../../packages/core/src/copy/health';
 import { parseColourTokens, requireToken } from '../../packages/ui/src/tokens';
 
 /** Every screen of the phone app, in the order a person reaches them. */
 export const TABS = ['Today', 'Food', 'Move', 'Drinks', 'List'] as const;
 /** The Settings screens for the setup answers (item 13), reached from Settings, "Your setup". */
 export const SETUP_SCREENS = ['Readiness answers', 'Profile', 'Eating schedule'] as const;
-export const SCREENS = [...TABS, 'Settings', 'About', ...SETUP_SCREENS, 'Weight'] as const;
+export const SCREENS = [
+  ...TABS,
+  'Settings',
+  'About',
+  ...SETUP_SCREENS,
+  'Weight',
+  // Item 15: reached from Today's Fast card.
+  'Fasting and reflux',
+] as const;
 export type ScreenName = (typeof SCREENS)[number];
 
 /** Screens reached from Settings, which mark the settings gear as their section. */
@@ -36,7 +44,7 @@ export const heading = (page: Page) => page.getByRole('heading', { level: 1 });
 
 /**
  * Goes to a screen the way a person would: a tab, the settings gear, then "About this app"; the
- * Weight screen through Today's Weight card.
+ * Weight screen through Today's Weight card, and the Fasting screen through Today's Fast card.
  */
 export async function goTo(page: Page, screen: ScreenName): Promise<void> {
   if ((TABS as readonly string[]).includes(screen)) {
@@ -50,6 +58,12 @@ export async function goTo(page: Page, screen: ScreenName): Promise<void> {
       .getByRole('link', { name: 'Today' })
       .click();
     await page.getByRole('link', { name: weight.card.details }).click();
+  } else if (screen === 'Fasting and reflux') {
+    await page
+      .getByRole('navigation', { name: 'Main' })
+      .getByRole('link', { name: 'Today' })
+      .click();
+    await page.getByRole('link', { name: fasting.card.detailsLink }).click();
   } else {
     await page.getByRole('banner').getByRole('link', { name: 'Settings' }).click();
     if (screen === 'About') {

@@ -3,7 +3,13 @@
 // through item 13's gate function.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { type KickstartPeriodRecord, StorageInvariantError, weightOverview } from '@diet/core';
+import {
+  addDays,
+  type KickstartPeriodRecord,
+  localDateOf,
+  StorageInvariantError,
+  weightOverview,
+} from '@diet/core';
 import { privacy, weight } from '@diet/core/copy/health';
 import {
   onDay,
@@ -112,6 +118,25 @@ describe('T2: the 22:2 → 23:1 move at a Kickstart start (C55, C07)', () => {
     const db = await seed({ ...noPeriod, readiness: { q4: 'yes' } }, 1);
     expect(await startKickstart(db.storage)).toEqual({ ok: true, presetSet: false });
     expect(await db.repos.targets.get()).toMatchObject(UNTOUCHED_22);
+  });
+});
+
+describe('item 15: a preset move takes the per-day windows it no longer fits with it (C30)', () => {
+  it('the 23:1 → 22:2 move removes an earlier window that does not widen 22:2 and keeps one that does', async () => {
+    const db = await seed(WEIGHT_SCENARIOS.K42, 22);
+    const today = localDateOf(db.env.now(), db.env.timeZone());
+    const tomorrow = addDays(today, 1);
+    await db.repos.planDays.setWindows([
+      { date: today, window: { start: '16:00', end: '18:00' } },
+      { date: tomorrow, window: { start: '16:00', end: '19:00' } },
+    ]);
+    await reconcile(db.storage);
+    expect(await db.repos.targets.get()).toMatchObject(UNTOUCHED_22);
+    expect(await db.repos.planDays.get(today)).toBeUndefined();
+    expect((await db.repos.planDays.get(tomorrow))?.eatingWindow).toEqual({
+      start: '16:00',
+      end: '19:00',
+    });
   });
 });
 

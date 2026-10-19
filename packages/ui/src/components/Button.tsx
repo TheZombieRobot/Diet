@@ -1,13 +1,16 @@
 import type { ButtonHTMLAttributes, ReactElement } from 'react';
 import { classNames } from '../classNames';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'tint' | 'quiet' | 'caution';
+export type ButtonVariant =
+  'primary' | 'secondary' | 'tint' | 'quiet' | 'caution' | 'on-amber' | 'on-amber-outline';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /**
    * primary: the one main action; secondary: outlined; tint: soft teal; quiet: text only;
    * caution: outlined in amber, for an action that cannot be undone (deleting or replacing
-   * records). Red stays for emergencies only (UX_SCREENS design rules).
+   * records). on-amber and on-amber-outline: the actions inside an amber notice (the meal check's
+   * "Add 5 pm snack" and "Not now"), so the card keeps one teal primary. Red stays for
+   * emergencies only (UX_SCREENS design rules).
    */
   variant?: ButtonVariant;
   /** Full width of its container. */

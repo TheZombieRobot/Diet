@@ -44,6 +44,7 @@ import {
 } from '@diet/core';
 import type { UpdatePatch } from '../db/repos';
 import type { AppStorage } from '../db/runtime';
+import { clearStaleDayWindows } from '../screens/fasting/dayWindows';
 import { endKickstartIfConditionsFail } from '../screens/weight/kickstartActions';
 
 /** The records changed under the screen, so nothing was written; the view follows the live gates. */
@@ -293,8 +294,44 @@ export interface ScheduleSave {
 }
 
 /**
+ * The preset fields a schedule save writes. presetChosenBy keeps a default only while the saved
+ * schedule equals it (E19). Item 15's form shows, before Save, what this would clear.
+ */
+export function scheduleTargetsPatch(
+  save: ScheduleSave,
+  targets: Pick<TargetsRecord, 'fastingPreset' | 'eatingWindow' | 'presetChosenBy'>,
+  kickstartChosen: boolean,
+): Pick<TargetsRecord, 'fastingPreset' | 'eatingWindow' | 'presetChosenBy'> {
+  if (save.choice === 'none' || save.window === null) {
+    return { fastingPreset: null, eatingWindow: null, presetChosenBy: null };
+  }
+  const preset: FastingPresetId | 'custom' = save.choice;
+  const stored =
+    targets.fastingPreset === null ||
+    targets.eatingWindow === null ||
+    targets.presetChosenBy === null
+      ? null
+      : {
+          preset: targets.fastingPreset,
+          window: targets.eatingWindow,
+          chosenBy: targets.presetChosenBy,
+        };
+  return {
+    fastingPreset: preset,
+    eatingWindow: { start: save.window.start, end: save.window.end },
+    presetChosenBy: scheduleChosenBy(
+      { preset, window: save.window },
+      defaultSchedule(kickstartChosen),
+      stored,
+    ),
+  };
+}
+
+/**
  * The eating schedule (section 3.9). Refused, writing nothing, when the fresh records gate fasting
- * (C07, E63). presetChosenBy keeps a default only while the saved schedule equals it (E19).
+ * (C07, E63). In Settings the reflux preferences are left alone: there they are the Reflux card's
+ * two switches (item 15, F8), while the setup step's one switch sets both. After the targets
+ * write, the per-day windows the new pattern no longer fits are removed (item 15; C30).
  */
 export async function saveSchedule(
   storage: AppStorage,
@@ -303,35 +340,14 @@ export async function saveSchedule(
 ): Promise<void> {
   const fresh = await readFresh(storage);
   if (fresh.gates.fastingGated) throw new FlowStaleError('fasting-gated');
-  const { targets, profile } = fresh;
-  const reflux = { refluxPreferEarlier: save.reflux, refluxPreferSplit: save.reflux };
-  if (save.choice === 'none' || save.window === null) {
-    await storage.repos.targets.update({
-      fastingPreset: null,
-      eatingWindow: null,
-      presetChosenBy: null,
-      ...reflux,
-    });
-  } else {
-    const preset: FastingPresetId | 'custom' = save.choice;
-    const stored =
-      targets.fastingPreset === null ||
-      targets.eatingWindow === null ||
-      targets.presetChosenBy === null
-        ? null
-        : {
-            preset: targets.fastingPreset,
-            window: targets.eatingWindow,
-            chosenBy: targets.presetChosenBy,
-          };
-    const defaults = defaultSchedule(profile.kickstartOptIn && fresh.gates.kickstartAvailable);
-    await storage.repos.targets.update({
-      fastingPreset: preset,
-      eatingWindow: { start: save.window.start, end: save.window.end },
-      presetChosenBy: scheduleChosenBy({ preset, window: save.window }, defaults, stored),
-      ...reflux,
-    });
-  }
+  const kickstartChosen = fresh.profile.kickstartOptIn && fresh.gates.kickstartAvailable;
+  await storage.repos.targets.update({
+    ...scheduleTargetsPatch(save, fresh.targets, kickstartChosen),
+    ...(mode === 'onboarding'
+      ? { refluxPreferEarlier: save.reflux, refluxPreferSplit: save.reflux }
+      : {}),
+  });
+  await clearStaleDayWindows(storage);
   if (mode === 'onboarding' && fresh.settings.scheduleConfirmedAt === null) {
     await storage.repos.settings.update({ scheduleConfirmedAt: storage.env.now() });
   }

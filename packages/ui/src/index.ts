@@ -14,6 +14,7 @@ export { Card, type CardProps } from './components/Card';
 export { CheckList, type CheckListProps } from './components/CheckList';
 export { ChoiceList, type ChoiceListProps, type ChoiceOption } from './components/ChoiceList';
 export { DayBar, type DayBarProps } from './components/DayBar';
+export { FastMeter, type FastMeterProps } from './components/FastMeter';
 export {
   FloatingActionButton,
   type FloatingActionButtonProps,

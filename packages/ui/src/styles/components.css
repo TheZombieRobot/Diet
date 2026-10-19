@@ -239,6 +239,20 @@
   font-weight: 800;
 }
 
+/* Actions inside an amber notice (the meal check), so the card keeps one teal primary */
+.ui-button--on-amber {
+  background: var(--color-on-amber-tint);
+  color: var(--color-amber-tint);
+  font-weight: 800;
+}
+
+.ui-button--on-amber-outline {
+  border-color: var(--color-amber-strong);
+  background: transparent;
+  color: var(--color-on-amber-tint);
+  font-weight: 750;
+}
+
 .ui-button--block {
   width: 100%;
 }
@@ -340,6 +354,106 @@
 .ui-notice--info {
   background: var(--color-teal-tint);
   color: var(--color-on-teal-tint);
+}
+
+.ui-notice__with-icon {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.ui-notice__icon {
+  display: inline-flex;
+  flex: none;
+  margin-top: 1px;
+}
+
+.ui-notice--amber .ui-notice__icon {
+  color: var(--color-amber);
+}
+
+.ui-notice__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* The Fast card (mock-up Main): the big figure, the 24-hour meter and the line under it */
+.ui-figure-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.ui-figure {
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.ui-figure__unit {
+  color: var(--color-secondary);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.ui-fast-meter {
+  position: relative;
+  height: 16px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--color-teal-tint);
+}
+
+.ui-fast-meter__fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: var(--color-teal);
+}
+
+.ui-fast-meter__window {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--color-amber-strong);
+}
+
+.ui-fast-meter--over .ui-fast-meter__fill {
+  background: var(--color-amber-strong);
+}
+
+.ui-split-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-split-row__amber {
+  color: var(--color-amber);
+}
+
+/*
+ * A long card pill ("22:2 · 5 pm snack + dinner") on a narrow or zoomed screen: the header wraps
+ * and the pill may wrap its own text, as in the top bar, so nothing scrolls sideways.
+ */
+@media (max-width: 359.98px) {
+  .ui-card__header {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .ui-card__header .ui-pill {
+    white-space: normal;
+  }
 }
 
 /* Form fields: a label, the input, then a hint or an error */
