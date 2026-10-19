@@ -1,11 +1,17 @@
 name: Deploy phone app to GitHub Pages
 
 # Publishes apps/mobile-web to https://thezombierobot.github.io/Diet/ (checklist item 5).
-# Started by hand only (Actions tab, "Run workflow"), because GitHub Pages is not yet turned on for
-# this repository: a deploy on every push would fail and turn CI red. Before the first run the owner
-# sets Settings > Pages > Source to "GitHub Actions", and allows the branch to deploy under
-# Settings > Environments > github-pages (see README.md, "Phone app").
+# Runs on every push to a work branch (session branches are named ccr-...), after the same checks
+# as CI, so the phone gets each finished checklist item. GitHub only offers "Run workflow" by hand for
+# workflows on the default branch, which holds the plan only. Pages was turned on by the owner on
+# 19 October 2026 (Settings > Pages > Source: GitHub Actions; see README.md, "Phone app").
 on:
+  push:
+    branches:
+      - 'ccr-*'
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
   workflow_dispatch:
 
 permissions:

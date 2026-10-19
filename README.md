@@ -75,10 +75,10 @@ The app lives under `/Diet/` because that is its address on GitHub Pages. To bui
 
 ### Putting it online (GitHub Pages)
 
-The app will live at **https://thezombierobot.github.io/Diet/**. The deploy workflow (`.github/workflows/pages.yml`) runs only when started by hand, so a push never fails CI because of hosting. Steps:
+The app will live at **https://thezombierobot.github.io/Diet/**. The deploy workflow (`.github/workflows/pages.yml`) runs on every push to a work branch (named `ccr-...`) that changes more than documentation, after the same checks as CI. Steps:
 1. On GitHub: Settings → Pages → Build and deployment → Source: **GitHub Actions** (done by the owner on 19 October 2026).
 2. Settings → Environments → **github-pages** → Deployment branches and tags: add the branch to deploy from (the work branch), or merge the work into the default branch first. By default only the default branch may deploy.
-3. Actions → **Deploy phone app to GitHub Pages** → Run workflow, choosing that branch. It runs the safety scans and tests, builds the app, publishes it, then checks the live copy in Chrome: installable with no errors, manifest and icons present, works offline, and requests only to its own address. The same check can be run by hand: `DIET_E2E_URL=https://thezombierobot.github.io/Diet/ pnpm exec playwright test e2e/pwa.spec.ts e2e/network.spec.ts e2e/rendered-text.spec.ts`.
+3. Push to the work branch (or, once the workflow is on the default branch, Actions → **Deploy phone app to GitHub Pages** → Run workflow). It runs the safety scans and tests, builds the app, publishes it, then checks the live copy in Chrome: installable with no errors, manifest and icons present, works offline, and requests only to its own address. The same check can be run by hand: `DIET_E2E_URL=https://thezombierobot.github.io/Diet/ pnpm exec playwright test e2e/pwa.spec.ts e2e/network.spec.ts e2e/rendered-text.spec.ts`.
 4. On the phone, open the address in Chrome and tap **Install app** (Today or Settings), or use Chrome's menu → Install app (TEST_PLAN PWA-02).
 
 A later version shows "Update available" in the app; tapping Reload switches to it, and records stay on the phone.
