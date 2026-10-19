@@ -1,17 +1,17 @@
 # Document review (checklist item 1)
 
-**Date:** 19 October 2026. **Status:** findings recorded; owner decisions pending where marked.
+**Date:** 19 October 2026. **Status:** findings recorded. On 19 October the owner delegated the owner decisions to the implementer; each choice is recorded in `DECISIONS.md`.
 
 Checklist item 1 asks the implementer to read the eight planning documents and report anything that conflicts. Six independent readers each swept all the documents through a different lens (numbers and formulas; health wording against tests; fasting, weight and phases; data model completeness; technology and integration; process and file paths). Their 200 raw findings were merged into 118 distinct items, and every item was then checked by a separate skeptic who quoted the documents and tried to refute it. 113 were confirmed and 5 refuted.
 
 How to read this file:
-- **Needs the owner** items wait for the owner's decision. Each carries the implementer's recommendation; nothing is built on it until the owner answers.
+- **Owner decisions** were delegated to the implementer on 19 October. The recommendation shown was adopted unless `DECISIONS.md` says otherwise. Still with the owner: turning on GitHub Pages, the Phase 0 extension mode (section 9.3), any rewrite of public history, and creating the Cloudflare account.
 - **Safe default** items are settled by the implementer in the most conservative way that contradicts no document, applied at the checklist item named. The planning documents are corrected when that item is built, and the correction is noted in the commit.
 - Kinds: *conflict* (two statements cannot both be built), *gap* (unspecified but matters), *stale* (out-of-date reference), *technical* (conflicts with how the technology works today).
 
-## Needs the owner (22)
+## Owner decisions, delegated to the implementer (22)
 
-| ID | When | Issue | Recommendation | Checklist items |
+| ID | When | Issue | Adopted choice (see DECISIONS.md) | Checklist items |
 |---|---|---|---|---|
 | C02 | Now | GitHub Pages is not enabled and the default github-pages environment deploys only from the default branch (the plan branch), while all work goes to the session branch; item 5 has hidden owner steps | Treat this as a 'stop and ask' under the owner's instructions, sent in the plain-language message after item 5, and keep building the PWA in the meantime. The owner (1) goes to Settings, Pages and sets Source to 'GitHub Actions', and (2) either adds the session branch under Settings, Environments, github-pages, Deployment branches, or names one deploy branch (for example the current default branch) that session work is merged into by PR at each STOP. Split the workflows: CI on every branch; deploy (pages: write, id-token: write, environment github-pages) only on push to the allowed branch plus workflow_dispatch, so other branches stay green. The site will live at thezombierobot.github.io/Diet/, so set Vite base, the manifest start_url and scope, and the service-worker scope to /Diet/. The model runs PWA-01-equivalent installability checks and PWA-05 itself once the site is live. PWA-02 (the owner installs) moves into the acceptance for STOP 11 or STOP 17. Record the choice and the URL in README.md. | 5, 17 |
 | C34 | Now | GitHub Pages project sites share one origin (<user>.github.io), so health data in IndexedDB is readable by any other Pages site on the account; the /Diet/ sub-path also needs base, scope and routing settings | Keep GitHub Pages as decided. Add a DECISIONS.md row: 'This GitHub account publishes no other Pages site, including a <owner>.github.io user site. If one is ever wanted, this app first moves to its own origin.' Two ways to get a separate origin while staying on GitHub Pages: a free GitHub organization that owns the repo (its site is <org>.github.io, a separate origin, with no domain purchase), or a custom subdomain (needs a domain). The owner confirms the commitment or picks one of these. Either way: Vite base '/Diet/', manifest id/start_url/scope '/Diet/', service worker registered with scope '/Diet/', hash routing (Pages has no rewrites), relay key stored as a non-extractable CryptoKey, and the shared-origin caveat added to the About/privacy text and the README handover notes. For item 5, also have the owner allow the session branch in Settings → Environments → github-pages, or deploy from the default branch after a merge. | 5, 12 |
@@ -142,4 +142,4 @@ How to read this file:
 
 ## Personal-data check of the git history
 
-Every commit on every branch was read. No health numbers, measurements, photos, backups, logs, names or contact details of the owner were found, and every commit is attributed to Claude. One owner decision is raised in the item 1 report: `docs/REQUIREMENTS.md` section 2 describes the owner's situation in words (without numbers). Because the repository is public, the owner decides whether it stays as written, is reworded as neutral product defaults, or is also removed from history.
+Every commit on every branch was read. No health numbers, measurements, photos, backups, logs, names or contact details of the owner were found, and every commit is attributed to Claude. `docs/REQUIREMENTS.md` section 2 described the owner's situation in words (without numbers); it has been reworded as neutral product defaults. Earlier versions remain in history unless the owner explicitly asks for a history rewrite.

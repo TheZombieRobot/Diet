@@ -12,17 +12,19 @@ A private, practical tool for one person, not a social fitness app. Very little 
 
 **Hard requirement:** the grocery bridge is unproven. Prototype and assess it before depending on it (Phase 0 in `INTEGRATION_FEASIBILITY.md` section 9). Do not assume a public cart API exists, scrape in violation of terms, bypass authentication, reverse-engineer protected services, copy a third-party extension, store retailer credentials, or place orders automatically. If permitted one-click cart insertion cannot be achieved safely, ship an excellent assisted-shopping fallback, not a fake integration.
 
-## 2. Owner situation, in product terms
+## 2. Product defaults
 
-- New Zealand; shops mainly at PAK'nSAVE Pāpāmoa, 42 Domain Road. Club+ is required by PAK'nSAVE for online shopping. Store is changeable.
-- Has a long-term weight goal well below current weight, entered in-app. Wants a strong start and noticeable progress in about four weeks. The app must never claim or target a number of kilograms of fat loss in a number of days; a previous very-low-carb attempt produced a large early drop with a substantial water component, so the app distinguishes early glycogen and water loss from fat loss and avoids extreme prescriptions. (Approved design: Kickstart and Steady phases, `HEALTH_SAFETY.md` section 2.)
-- Physically demanding trade job with a high daily step count on work days. Do not treat as sedentary; do not prescribe extra long daily runs.
-- Prefers keto or very-low-carb eating. Has used roughly 16:8 fasting for years; now wants one dinner plus an optional 5 pm snack, and 23:1 during the three-week Kickstart. A 5–7 pm window is 22:2, not 20:4. Provide adjustable windows (16:8, 18:6, 20:4, 22:2, 23:1, custom). Never insist on a fast when energy or protein is inadequate.
-- A previous mildly raised cholesterol reading with no breakdown known. Default menu is cholesterol-conscious low-carb: olive oil, avocado, fish, poultry, lean meat, nuts, fibre-rich non-starchy plants; limit bacon, sausages, butter, cream and other high saturated-fat staples. Remind the owner to obtain actual lipid values and discuss monitoring with a GP.
-- History of reflux. Very large late dinners may aggravate it: permit an earlier window, a split main meal, and symptom logging.
-- Home garden; silverbeet is definitely available. Owner adds other crops and quantities; planned harvest is subtracted from grocery needs.
+These are the defaults the app is built around. They describe what the app must support, not facts about any person; the owner's own details are entered only inside the app.
+
+- New Zealand. Default store PAK'nSAVE Pāpāmoa, 42 Domain Road, changeable. Club+ is required by PAK'nSAVE for online shopping.
+- Weight: support a long-term goal well below current weight, entered in-app, and a strong, noticeable start over about four weeks. The app must never claim or target a number of kilograms of fat loss in a number of days. Very-low-carb starts typically produce a large early drop with a substantial water component, so the app distinguishes early glycogen and water loss from fat loss and avoids extreme prescriptions. (Approved design: Kickstart and Steady phases, `HEALTH_SAFETY.md` section 2.)
+- Activity: default to a physically demanding job with a high daily step count on work days. Never treat that as sedentary; never prescribe extra long daily runs.
+- Eating: keto or very-low-carb preferred. Support one dinner plus an optional 5 pm snack, and 23:1 during the three-week Kickstart. A 5–7 pm window is 22:2, not 20:4. Provide adjustable windows (16:8, 18:6, 20:4, 22:2, 23:1, custom). Never insist on a fast when energy or protein is inadequate.
+- Cholesterol-conscious by default: the menu is cholesterol-conscious low-carb (olive oil, avocado, fish, poultry, lean meat, nuts, fibre-rich non-starchy plants; limit bacon, sausages, butter, cream and other high saturated-fat staples). Remind the user to obtain actual lipid values and discuss monitoring with a GP.
+- Reflux-aware options: very large late dinners can aggravate reflux, so permit an earlier window, a split main meal, and symptom logging.
+- Home garden; silverbeet is pre-listed as available. The user adds other crops and quantities; planned harvest is subtracted from grocery needs.
 - Exercise: home bodyweight, bands or dumbbells if available (toggles), beach walks, optional progressive beach jogging. No gym. Sessions easy to modify or skip for pain, exhaustion or injury.
-- Alcohol: a regular pattern above NZ low-risk guidance, including heavier weekend evenings, switching to zero-sugar premixed cans. Default beverage preset 330 mL, 5%, 94 kcal from the label, about 1.3 NZ standard drinks. There is meaningful potential for dependence and withdrawal, so a GP or clinician must advise before any major sudden reduction. The app records alcohol and clinician-approved goals; it never calculates a personal "safe allowance" from leftover calories. Public lower-risk guidance is shown as context, never as a promise of safety.
+- Alcohol: design for a user who may drink regularly, including heavier weekend evenings, and whose usual drink may be a zero-sugar premixed can. Default beverage preset 330 mL, 5%, 94 kcal from the label, about 1.3 NZ standard drinks. Regular drinking can carry a real potential for dependence and withdrawal, so the app tells the user that a GP or clinician should advise before any major sudden reduction. The app records alcohol and clinician-approved goals; it never calculates a personal "safe allowance" from leftover calories. Public lower-risk guidance is shown as context, never as a promise of safety.
 - The owner does not read code. Explain progress, decisions and test outcomes in plain English.
 
 ## 3. Core modules
