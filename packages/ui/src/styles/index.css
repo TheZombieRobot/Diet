@@ -1,0 +1,4 @@
+/* The whole design system as one stylesheet; the app imports it once (`@diet/ui/styles.css`). */
+@import './tokens.css';
+@import './base.css';
+@import './components.css';

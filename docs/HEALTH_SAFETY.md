@@ -197,7 +197,7 @@ Stop immediately and seek help for chest pain or pressure, severe shortness of b
 | HS-26 | Projection on the four-week chart is a shaded "typical range, not a promise" band, front-loaded; no target line and no "kg by date" text | Snapshot and static scan |
 | HS-12 | Exercise stop rules and beach prompts render before any beach-tagged session | Snapshot test |
 | HS-13 | Emergency numbers 111, 0800 611 116, 0800 787 797 appear on the About screen and the alcohol screen | DOM query |
-| HS-14 | No network request leaves the phone app except to the relay host when "Send to laptop" is tapped | Playwright network log while using every screen offline |
+| HS-14 | The phone app makes only (a) GET requests to its own origin for app files and update checks, with no query string or body built from user data, and (b) requests to the relay host, only after "Send to laptop" is tapped and until that transfer is received or expires. A Content Security Policy enforces this (reworded per DOC_REVIEW C03; the intent is unchanged) | Playwright network log, service worker included, while visiting every screen online and offline; any request outside the allowlist fails, and relay requests appear only after a Send tap |
 | HS-15 | Backup round trip preserves every record exactly | Export, wipe, import, compare |
 | HS-16 | Price, stock and cart-status strings are absent from both apps unless user-entered with timestamp or from a permitted source | Static scan for "$", "in stock", "added to cart"; data check that every price has an entered-at time |
 | HS-17 | Eating window length computed from clock times: 5 pm snack and 7 pm final meal = 2 h (22:2), not 4 h | Unit test with several windows including midnight wrap |

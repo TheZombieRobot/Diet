@@ -33,7 +33,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 ### 3.1 Installability and offline (PWA)
 | ID | Case | Expected |
 |---|---|---|
-| PWA-01 | Lighthouse PWA audit on the deployed URL | Installable; no "missing manifest field" findings; icons 192 and 512 present; `display: standalone`; served over HTTPS (criteria per [web.dev install criteria](https://web.dev/install-criteria)) |
+| PWA-01 | Installability, checked by Chrome itself (replaces the Lighthouse PWA audit, which Lighthouse 12 removed; DOC_REVIEW C35). Runs on the production build in CI and on the deployed HTTPS URL once GitHub Pages is on | `Page.getInstallabilityErrors` (Chrome DevTools Protocol) returns an empty list once the service worker is ready; the manifest has name, short_name, id, start_url and scope under `/Diet/`, `display: standalone`, and 192 and 512 px icons plus a 512 px maskable one, each fetched with a 200 and the declared size; `navigator.serviceWorker.controller` is set after a reload (criteria per [web.dev install criteria](https://web.dev/articles/install-criteria)) |
 | PWA-02 | Open app, wait for install prompt, tap "Install" (manual) | Icon on home screen; opens without browser chrome |
 | PWA-03 | Flight mode, open installed app, visit every screen | All screens load; no network error dialogs |
 | PWA-04 | Flight mode: log weight, start fast, log a drink, plan a day, build list | All saved; visible after relaunch |
@@ -144,7 +144,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | TR-08 | Paste fallback | Pasting the code into the extension yields the same list |
 | TR-09 | Replay | Re-fetching an already-delivered blob returns nothing (one-time delivery) |
 | TR-10 | Unpair | Both sides forget key; next send requires pairing |
-| TR-11 | Network audit | No request from the phone app to any host other than the relay, and only on send (HS-14) |
+| TR-11 | Network audit (`context.on('request')`, so service-worker requests are seen too), online and offline, visiting every screen | The phone app makes only GET requests to its own origin for app files and update checks, with no query string or body built from user data, and requests to the relay origin only after "Send to laptop" is tapped and until that transfer is received or expires (HS-14; reworded per DOC_REVIEW C03) |
 
 ### 3.11 Food log, diet modes, household, allergens
 | ID | Case | Expected |

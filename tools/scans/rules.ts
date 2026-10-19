@@ -10,8 +10,9 @@
  * markup or data files with tags removed and HTML entities decoded. Privacy, secret, network and
  * AI rules read the raw text of every file.
  *
- * A browser scan of the rendered text of every screen, reusing these phrase lists, is added at
- * checklist item 5 (it does not exist yet).
+ * The rendered text of every screen is scanned too: e2e/rendered-text.spec.ts runs
+ * healthPhraseRules and commerceRules over what the built app shows in the browser (checklist
+ * item 5).
  */
 
 export interface ContentRule {
@@ -796,6 +797,8 @@ export const ALLOWED_LICENSES: readonly string[] = [
   'Unlicense',
   'Python-2.0',
   'MPL-2.0',
+  // The SIL Open Font Licence, for fonts bundled with the app (never fetched from a font service).
+  'OFL-1.1',
 ];
 
 /** Disabled tests hide failing safety checks (a skipped HS-xx test still "passes"). */

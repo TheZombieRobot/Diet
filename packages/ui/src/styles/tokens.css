@@ -1,0 +1,83 @@
+/*
+ * Design tokens. Every colour the app uses is defined here and nowhere else, so feedback on the
+ * look becomes an edit to this file.
+ *
+ * Each colour is written light-dark(<light value>, <dark value>). The phone's dark-mode setting
+ * picks one (prefers-color-scheme, through `color-scheme: light dark` below), unless the app sets
+ * data-theme="light" or data-theme="dark" on <html> (applyTheme in ../theme.ts, kept for a later
+ * in-app setting).
+ *
+ * Values come from the owner's mock-up (Today, light and dark). Where the mock-up has no dark value,
+ * the dark value is marked "chosen" and was picked to keep WCAG AA contrast. tokens.test.ts checks
+ * the contrast of every text and background pair in both themes. The web app manifest and the
+ * browser's theme colour read --color-ground from this file (apps/mobile-web/vite.config.ts).
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* Surfaces */
+  --color-ground: light-dark(#f2f4f3, #0a100e);
+  --color-card: light-dark(#ffffff, #131b18);
+  --color-inset: light-dark(#f2f4f3, #1a2420);
+  --color-chip: light-dark(#e3e8e6, #1e2925);
+  --color-border: light-dark(#e3e8e6, #22302b);
+  --color-border-strong: light-dark(#cbd3d0, #3a4a44); /* dark chosen */
+  --color-tabbar: light-dark(rgb(255 255 255 / 0.96), rgb(13 20 18 / 0.97));
+
+  /* Text */
+  --color-ink: light-dark(#0e1916, #edf2f0);
+  --color-ink-soft: light-dark(#2e3a36, #d3ddd9);
+  --color-secondary: light-dark(#4a5853, #a3b1ab);
+
+  /* Brand teal: primary actions, links, the current tab */
+  --color-teal: light-dark(#0b6e5b, #4cc9a6);
+  --color-on-teal: light-dark(#ffffff, #04130f);
+  --color-teal-tint: light-dark(#e2f1ec, #12352c);
+  --color-on-teal-tint: light-dark(#0b5e4e, #7ee0c3);
+
+  /* Amber: calm notes that need a look, never alarms */
+  --color-amber: light-dark(#8a4a00, #f0a84a);
+  --color-amber-strong: light-dark(#b76200, #f0a84a);
+  --color-amber-tint: light-dark(#fcefdc, #33240e); /* dark chosen */
+  --color-on-amber-tint: light-dark(#5c3200, #ffd29a);
+
+  /* Emergency red: only for emergency instructions such as "call 111" */
+  --color-emergency: light-dark(#b42318, #b42318);
+  --color-on-emergency: light-dark(#ffffff, #ffffff);
+  --color-emergency-tint: light-dark(#fdecea, #3a1411); /* dark chosen */
+  --color-emergency-border: light-dark(#f5c6c0, #6b2620); /* dark chosen */
+  --color-on-emergency-tint: light-dark(#7a1a10, #ffb4ab); /* dark chosen */
+
+  /* Floating action button */
+  --color-fab: light-dark(#0e1916, #4cc9a6);
+  --color-on-fab: light-dark(#ffffff, #04130f);
+
+  /* Focus ring and shadows */
+  --color-focus: light-dark(#0b6e5b, #7ee0c3);
+  --color-shadow: light-dark(rgb(14 25 22 / 0.05), rgb(0 0 0 / 0));
+  --color-shadow-near: light-dark(rgb(14 25 22 / 0.04), rgb(0 0 0 / 0));
+  --color-shadow-strong: light-dark(rgb(14 25 22 / 0.28), rgb(0 0 0 / 0.45));
+
+  /* Type */
+  --font-body: 'Manrope Variable', system-ui, sans-serif;
+  --text-label: 13px; /* uppercase section labels */
+  --text-body: 16px;
+  --text-title: 26px;
+
+  /* Shape and size */
+  --radius-card: 24px;
+  --radius-control: 14px;
+  --radius-pill: 999px;
+  --size-tap: 48px; /* smallest tap target (UX_SCREENS.md design rules) */
+  --size-fab: 64px;
+  --size-tabbar: 72px;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}

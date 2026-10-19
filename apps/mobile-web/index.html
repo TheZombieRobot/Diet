@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en-NZ">
+  <head>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'none'; object-src 'none'"
+    />
+    <meta charset="UTF-8" />
+    <!--
+      The Content Security Policy above is the first thing in <head>, so it applies before anything
+      loads. GitHub Pages cannot send headers, hence a meta tag. Everything comes from the app's own
+      origin: no remote scripts, styles, fonts or connections (HS-14, TR-11, DOC_REVIEW C03). The
+      relay origin joins connect-src at checklist item 31. e2e/shell.spec.ts checks the built copy.
+      The description and theme-color tags are added by vite.config.ts.
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Diet</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>This app needs JavaScript turned on.</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

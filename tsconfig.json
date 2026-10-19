@@ -1,7 +1,10 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "types": ["node"]
+    "types": ["node"],
+    // Scripts in tools/ run directly in Node (type stripping), which needs the .ts extension.
+    "allowImportingTsExtensions": true
   },
-  "include": ["*.ts", "tools/**/*.ts"]
+  // App build configs run in Node, so they are checked here rather than with the browser code.
+  "include": ["*.ts", "tools/**/*.ts", "apps/*/vite.config.ts"]
 }

@@ -1,0 +1,94 @@
+name: Deploy phone app to GitHub Pages
+
+# Publishes apps/mobile-web to https://thezombierobot.github.io/Diet/ (checklist item 5).
+# Started by hand only (Actions tab, "Run workflow"), because GitHub Pages is not yet turned on for
+# this repository: a deploy on every push would fail and turn CI red. Before the first run the owner
+# sets Settings > Pages > Source to "GitHub Actions", and allows the branch to deploy under
+# Settings > Environments > github-pages (see README.md, "Phone app").
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time; a deploy in progress is allowed to finish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  COREPACK_ENABLE_DOWNLOAD_PROMPT: '0'
+  # No tool may send usage telemetry from CI (HEALTH_SAFETY.md section 7).
+  DO_NOT_TRACK: '1'
+
+jobs:
+  build:
+    name: Check and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # Full history: the safety scan checks every commit before anything is published.
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          # pnpm is enabled by corepack in the next step, so it cannot be cached yet.
+          package-manager-cache: false
+      - name: Enable pnpm (version pinned in package.json)
+        run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - name: Safety scans, lint, type check and unit tests
+        run: pnpm check
+      - name: Build the phone app for /Diet/
+        env:
+          DIET_BASE: /Diet/
+        # The short commit is shown on the About screen next to the version.
+        run: DIET_BUILD_ID="${GITHUB_SHA::7}" pnpm --filter @diet/mobile-web build
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: apps/mobile-web/dist
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
+
+  # PWA-01 as replaced by DOC_REVIEW C35, and the network audit (HS-14, TR-11), run against the
+  # deployed HTTPS address: Chrome's installability check, the manifest and its icons, service
+  # worker control, offline reload, and requests only to the app's own origin.
+  verify:
+    name: Check the deployed app
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - name: Enable pnpm (version pinned in package.json)
+        run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - name: Install Chromium for Playwright
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Browser tests against https://thezombierobot.github.io/Diet/
+        env:
+          DIET_E2E_URL: ${{ needs.deploy.outputs.page_url }}
+        run: pnpm exec playwright test e2e/pwa.spec.ts e2e/network.spec.ts e2e/rendered-text.spec.ts

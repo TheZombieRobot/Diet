@@ -1,0 +1,385 @@
+/*
+ * Shell and component styles. Colours and sizes are tokens (tokens.css); nothing here sets a colour
+ * directly. Every control is at least --size-tap (48 px) high and wide.
+ */
+
+/* App shell: one centred column, so a laptop shows the same layout as the phone. */
+.ui-shell {
+  min-height: 100dvh;
+  max-width: 640px;
+  margin: 0 auto;
+  padding-bottom: calc(var(--size-tabbar) + env(safe-area-inset-bottom, 0px) + 32px);
+}
+
+.ui-shell__main {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 6px 16px 24px;
+}
+
+.ui-shell__main:focus {
+  outline: none;
+}
+
+.ui-shell__banners {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ui-shell__banners:empty {
+  display: none;
+}
+
+/* Top bar: screen name, offline pill, settings gear. */
+.ui-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 6px 20px;
+  background: var(--color-ground);
+}
+
+.ui-topbar__title {
+  font-size: var(--text-title);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.ui-topbar__actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+}
+
+.ui-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  background: var(--color-chip);
+  color: var(--color-ink-soft);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Icon-only controls (settings gear, dismiss). Always carry an aria-label. */
+.ui-icon-button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-tap);
+  height: var(--size-tap);
+  min-width: var(--size-tap);
+  min-height: var(--size-tap);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-ink);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.ui-icon-button[aria-current='page'] {
+  background: var(--color-chip);
+}
+
+/* Cards */
+.ui-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
+  box-shadow:
+    0 1px 2px var(--color-shadow-near),
+    0 10px 28px var(--color-shadow);
+}
+
+.ui-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ui-card__label {
+  color: var(--color-secondary);
+  font-size: var(--text-label);
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.ui-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ui-text-lead {
+  font-size: 21px;
+  font-weight: 750;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.ui-text-muted {
+  color: var(--color-secondary);
+  font-size: 15px;
+}
+
+/* Buttons */
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: var(--size-tap);
+  min-height: var(--size-tap);
+  padding: 0 18px;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-control);
+  font-size: 16px;
+  font-weight: 750;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ui-button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.ui-button--primary {
+  background: var(--color-teal);
+  color: var(--color-on-teal);
+  font-weight: 800;
+}
+
+.ui-button--secondary {
+  border-color: var(--color-border-strong);
+  background: var(--color-card);
+  color: var(--color-ink);
+}
+
+.ui-button--tint {
+  background: var(--color-teal-tint);
+  color: var(--color-on-teal-tint);
+  font-weight: 800;
+}
+
+.ui-button--quiet {
+  padding: 0 10px;
+  background: transparent;
+  color: var(--color-teal);
+  font-weight: 800;
+}
+
+.ui-button--block {
+  width: 100%;
+}
+
+/* Banners (update available, install) */
+.ui-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid transparent;
+  border-radius: 18px;
+}
+
+.ui-banner--info {
+  background: var(--color-teal-tint);
+  color: var(--color-on-teal-tint);
+}
+
+.ui-banner--neutral {
+  border-color: var(--color-border);
+  background: var(--color-card);
+  color: var(--color-ink);
+}
+
+.ui-banner__title {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ui-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Rows that are links: help numbers, settings entries */
+.ui-action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+}
+
+.ui-action-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+  padding: 10px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-card);
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.ui-action-row__badge {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-control);
+  background: var(--color-teal-tint);
+  color: var(--color-teal);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.ui-action-row__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ui-action-row__title {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ui-action-row__detail {
+  color: var(--color-secondary);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ui-action-row--emergency {
+  border-color: var(--color-emergency-border);
+  background: var(--color-emergency-tint);
+  color: var(--color-on-emergency-tint);
+}
+
+.ui-action-row--emergency .ui-action-row__badge {
+  background: var(--color-emergency);
+  color: var(--color-on-emergency);
+}
+
+.ui-action-row--emergency .ui-action-row__detail {
+  color: inherit;
+}
+
+/* Label and value pairs (About: version, storage) */
+.ui-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ui-facts__term {
+  color: var(--color-secondary);
+  font-size: var(--text-label);
+  font-weight: 800;
+}
+
+.ui-facts__value {
+  margin: 2px 0 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Bottom tab bar */
+.ui-tabbar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--color-border);
+  background: var(--color-tabbar);
+}
+
+.ui-tabbar__list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  max-width: 640px;
+  margin: 0 auto;
+  list-style: none;
+}
+
+.ui-tabbar__link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: var(--size-tap);
+  min-height: calc(var(--size-tabbar) - 12px);
+  border-radius: 16px;
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.ui-tabbar__link[aria-current='page'] {
+  color: var(--color-teal);
+  font-weight: 800;
+}
+
+/* Floating "+" on Today */
+.ui-fab {
+  position: fixed;
+  right: max(18px, calc((100vw - 640px) / 2 + 18px));
+  bottom: calc(var(--size-tabbar) + env(safe-area-inset-bottom, 0px) + 20px);
+  z-index: 11;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-fab);
+  height: var(--size-fab);
+  min-width: var(--size-tap);
+  min-height: var(--size-tap);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-fab);
+  color: var(--color-on-fab);
+  box-shadow: 0 10px 24px var(--color-shadow-strong);
+  cursor: pointer;
+}
+
+/* A small panel that opens above the floating button. */
+.ui-fab-panel {
+  position: fixed;
+  right: max(16px, calc((100vw - 640px) / 2 + 16px));
+  bottom: calc(var(--size-tabbar) + env(safe-area-inset-bottom, 0px) + var(--size-fab) + 32px);
+  z-index: 11;
+  width: min(340px, calc(100vw - 32px));
+}

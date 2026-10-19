@@ -5,7 +5,8 @@
   "description": "Typed schemas and every health-sensitive formula, behind unit tests.",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./copy/health": "./src/copy/health.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json"
