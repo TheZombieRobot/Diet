@@ -3,6 +3,7 @@ import type { ReactElement } from 'react';
 import { installStore, promptInstall } from '../pwa/install';
 import { routeHref } from '../routes';
 import { useStore } from '../store';
+import { BackupCard } from './backup/BackupCard';
 import { Placeholder } from './Placeholder';
 
 function InstallCard(): ReactElement {
@@ -35,6 +36,7 @@ export function SettingsScreen(): ReactElement {
   return (
     <>
       <InstallCard />
+      <BackupCard />
       <Card label="More">
         <ul className="ui-action-list">
           <li>
@@ -47,7 +49,7 @@ export function SettingsScreen(): ReactElement {
           </li>
         </ul>
       </Card>
-      <Placeholder coming="Settings for the profile, eating schedule, targets, household, store, pairing and backup arrive with the steps that use them." />
+      <Placeholder coming="Settings for the profile, eating schedule, targets, household, store and pairing arrive with the steps that use them." />
     </>
   );
 }

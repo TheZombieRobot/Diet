@@ -48,7 +48,7 @@ Conventions for the implementing model:
 11. **STOP — Phase 0 decision.** Message the owner with the recommendation. Owner records A/B/C in 9.3.
 
 12. **Local database and backup.** Dexie schema per `DATA_MODEL.md` with versioned migrations; persistent storage request; backup export/import with optional AES-GCM password; delete-all; weekly nag.
-    *Acceptance:* table CRUD unit tests; BK-01 to BK-03; HS-15; PWA-06.
+    *Acceptance:* table CRUD unit tests; BK-01 to BK-11; HS-15; HS-30; PWA-06.
 
 13. **First-run flow.** Welcome, mandatory alcohol safety notice, readiness questions with gate logic, profile, eating schedule with computed window display, garden with silverbeet pre-listed.
     *Acceptance:* HS-20; RD-01 to RD-06; HS-03; FL-08 in the UI.

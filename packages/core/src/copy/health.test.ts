@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BACKUP_ERROR_CODES } from '../storage/backup/errors';
+import { BACKUP_TABLES } from '../storage/tables';
 import { alcohol, general, healthCopy, helpNumbers, privacy } from './health';
 import { fillTemplate } from './template';
 
@@ -175,6 +176,16 @@ describe('health copy', () => {
       expect(storageFailure.helpLine).toContain(number);
     }
     expect(storageFailure['upgrade-failed']).toContain('Save a rescue copy');
+  });
+
+  it('every backed-up store has a plain name for the restore confirmation, and nothing else does', () => {
+    expect(Object.keys(privacy.storeNames)).toEqual([...BACKUP_TABLES]);
+  });
+
+  it('the export and restore steps never claim a backup was saved, and say what a rescue copy is (D21, D22)', () => {
+    expect(privacy.exportBackup.saveFile).toBe('Save the backup file');
+    expect(privacy.rescue.note).toContain('does not count as a backup');
+    expect(privacy.exportBackup.uncheckedNote).toContain('does not count as a backup');
   });
 
   it('delete-all lists what stays, including saved passwords, backup files and the laptop (HS-30)', () => {

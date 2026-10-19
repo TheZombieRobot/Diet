@@ -5,6 +5,7 @@ import {
   goTo,
   heading,
   offerInstall,
+  openBackupPanels,
   renderedText,
   SCREENS,
   visitEveryScreen,
@@ -53,6 +54,9 @@ test('no screen shows banned health, price, stock or cart wording', async ({ pag
   await visitWithEverythingOpen(page, async (where) => {
     found.push(...(await violations(page, where)));
   });
+  await goTo(page, 'Settings');
+  await openBackupPanels(page);
+  found.push(...(await violations(page, 'Settings with the backup panels open')));
 
   expect(found).toEqual([]);
 });

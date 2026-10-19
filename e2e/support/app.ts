@@ -1,6 +1,7 @@
 import { expect, type BrowserContext, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { privacy } from '../../packages/core/src/copy/health';
 import { parseColourTokens, requireToken } from '../../packages/ui/src/tokens';
 
 /** Every screen of the phone app, in the order a person reaches them. */
@@ -88,6 +89,19 @@ export function renderedText(page: Page): Promise<string> {
       '\n',
     );
   });
+}
+
+/**
+ * On Settings: opens the Backup and data card's export, restore and delete-all panels together,
+ * with the delete-all panel at its second confirmation, so sweeps see every new control and note.
+ */
+export async function openBackupPanels(page: Page): Promise<void> {
+  const card = page.getByRole('region', { name: privacy.backupCard.title });
+  await card.getByRole('button', { name: privacy.backupCard.exportAction }).click();
+  await expect(card.getByRole('switch', { name: privacy.exportBackup.lockLabel })).toBeChecked();
+  await card.getByRole('button', { name: privacy.backupCard.restoreAction }).click();
+  await card.getByRole('button', { name: privacy.backupCard.deleteAllAction }).click();
+  await expect(card.getByRole('button', { name: privacy.deleteAll.next })).toBeVisible();
 }
 
 /** Makes Chrome's install prompt available, so the install banner and button render too. */

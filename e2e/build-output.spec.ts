@@ -18,6 +18,10 @@ const ALLOWED_ABSOLUTE_URLS: Readonly<Record<string, string>> = {
   'http://www.w3.org/XML/1998/namespace': 'the XML namespace (React DOM)',
   'https://react.dev/errors/': "React's production error messages link to its error decoder",
   'https://bit.ly/wb-precache': 'a Workbox error message links to its precaching guide',
+  'https://tinyurl.com/y2uuvskb':
+    "Dexie's MissingAPI error message (no IndexedDB in this browser) links to its help page",
+  'http://bit.ly/2kdckMn':
+    "Dexie's PrematureCommit error message links to its explanation of early transaction commits",
 };
 
 const TEXT_FILES = new Set(['.js', '.mjs', '.css', '.html', '.webmanifest', '.json', '.svg']);

@@ -9,6 +9,7 @@ export { ActionRow, type ActionRowProps } from './components/ActionRow';
 export { AppShell, type AppShellProps } from './components/AppShell';
 export { Banner, type BannerProps } from './components/Banner';
 export { Button, type ButtonProps, type ButtonVariant } from './components/Button';
+export { ButtonRow } from './components/ButtonRow';
 export { Card, type CardProps } from './components/Card';
 export {
   FloatingActionButton,
@@ -31,7 +32,10 @@ export {
   OfflineIndicator,
   type OfflineIndicatorProps,
 } from './components/OfflineIndicator';
+export { Notice, type NoticeProps } from './components/Notice';
+export { Switch, type SwitchProps } from './components/Switch';
 export { TabBar, type TabBarProps, type TabItem } from './components/TabBar';
+export { TextField, type TextFieldProps } from './components/TextField';
 export { TopBar, type TopBarProps } from './components/TopBar';
 export * from './icons';
 export { applyTheme, currentThemePreference, type ThemePreference } from './theme';

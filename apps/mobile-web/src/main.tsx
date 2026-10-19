@@ -2,6 +2,7 @@ import '@diet/ui/styles.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
+import { startStorage } from './db/runtime';
 import { isFramed, refuseToRunFramed } from './framing';
 import { listenForInstallPrompt } from './pwa/install';
 import { startServiceWorker } from './pwa/registerServiceWorker';
@@ -18,6 +19,7 @@ if (isFramed()) {
   startServiceWorker();
   void requestPersistentStorage();
   askAgainWhenItMayHelp();
+  void startStorage();
   createRoot(container).render(
     <StrictMode>
       <App />

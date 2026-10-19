@@ -1,0 +1,264 @@
+/**
+ * Shared helpers for the database tests (storage spec section 16, tests 22 to 45): a controllable
+ * clock, a fresh fake-indexeddb factory per test (full isolation), a fake platform that records
+ * downloads and reloads, and synthetic device-only rows. Imported only by tests; nothing here
+ * describes anyone.
+ */
+import {
+  BACKUP_TABLES,
+  type GardenPhotoRecord,
+  type Instant,
+  type Migration,
+  type Snapshot,
+  type TransferPairingRecord,
+} from '@diet/core';
+import { fixtureId } from '@diet/test-fixtures';
+import Dexie, { type DBCore, type Middleware } from 'dexie';
+import { IDBFactory, IDBKeyRange } from 'fake-indexeddb';
+import { createStore, type Store } from '../store';
+import { type DbDeps, type DietDb, openDietDb, type OpenStatus } from './db';
+import type { StorageEnv } from './env';
+import { createWriteGate, type GateReason } from './gate';
+import { createRepos, type Repos, type RepoHooks } from './repos';
+import { type AppStorage, type Platform } from './runtime';
+import { readBackupSnapshot } from './snapshot';
+
+export interface TestEnv extends StorageEnv {
+  readonly set: (at: Instant) => void;
+  readonly advanceDays: (days: number) => void;
+  readonly setZone: (zone: string) => void;
+}
+
+const DAY_MS = 86_400_000;
+
+/** A clock that moves only when told to, a fixed zone, and numbered synthetic ids. */
+export function testEnv(
+  at: Instant = '2000-03-01T00:00:00.000Z',
+  zone = 'Pacific/Auckland',
+  firstId = 70_000,
+): TestEnv {
+  let now = Date.parse(at);
+  let timeZone = zone;
+  let next = firstId;
+  return {
+    now: () => new Date(now).toISOString(),
+    timeZone: () => timeZone,
+    randomId: () => fixtureId(next++),
+    randomBytes: (n) => crypto.getRandomValues(new Uint8Array(n)),
+    set: (instant) => {
+      now = Date.parse(instant);
+    },
+    advanceDays: (days) => {
+      now += days * DAY_MS;
+    },
+    setZone: (z) => {
+      timeZone = z;
+    },
+  };
+}
+
+/** A fresh, empty IndexedDB for one test. */
+export function freshDeps(): DbDeps {
+  return {
+    indexedDB: new IDBFactory(),
+    IDBKeyRange,
+  };
+}
+
+export interface TestPlatform extends Platform {
+  readonly downloads: { text: string; fileName: string }[];
+  readonly posted: GateReason[];
+  reloads: number;
+  persistRequests: number;
+}
+
+/** A platform that records what the app asked the browser to do. */
+export function testPlatform(overrides: Partial<Platform> = {}): TestPlatform {
+  const platform: TestPlatform = {
+    downloads: [],
+    posted: [],
+    reloads: 0,
+    persistRequests: 0,
+    download: (text, fileName) => {
+      platform.downloads.push({ text, fileName });
+    },
+    reload: () => {
+      platform.reloads += 1;
+    },
+    postGate: (reason) => {
+      platform.posted.push(reason);
+    },
+    requestPersistentStorage: () => {
+      platform.persistRequests += 1;
+      return Promise.resolve('protected');
+    },
+    caches: () => undefined,
+    localStorage: () => memoryStorage(),
+    sessionStorage: () => memoryStorage(),
+    revokeObjectUrls: () => undefined,
+    ...overrides,
+  };
+  return platform;
+}
+
+/** A Storage that keeps its keys in memory. */
+export function memoryStorage(initial: Record<string, string> = {}): Storage {
+  const map = new Map(Object.entries(initial));
+  return {
+    get length() {
+      return map.size;
+    },
+    clear: () => {
+      map.clear();
+    },
+    getItem: (key) => map.get(key) ?? null,
+    key: (index) => [...map.keys()][index] ?? null,
+    removeItem: (key) => {
+      map.delete(key);
+    },
+    setItem: (key, value) => {
+      map.set(key, value);
+    },
+  };
+}
+
+export interface TestDb {
+  readonly db: DietDb;
+  readonly env: TestEnv;
+  readonly deps: DbDeps;
+  readonly repos: Repos;
+  readonly status: Store<OpenStatus>;
+  readonly storage: AppStorage & { readonly platform: TestPlatform };
+}
+
+export interface OpenTestOptions {
+  readonly deps?: DbDeps;
+  readonly env?: TestEnv;
+  readonly chain?: readonly Migration[];
+  readonly extraMiddleware?: readonly Middleware<DBCore>[];
+  readonly hooks?: RepoHooks;
+  readonly platform?: TestPlatform;
+}
+
+/**
+ * Dexie's liveQuery runs only where a global IndexedDB exists (it checks Dexie.dependencies before
+ * each query). Node has none, so the tests lend it a fake one; every database here still opens on
+ * its own factory.
+ */
+export function enableLiveQueries(): void {
+  const dependencies = Dexie.dependencies as { indexedDB: unknown; IDBKeyRange: unknown };
+  dependencies.indexedDB ??= new IDBFactory();
+  dependencies.IDBKeyRange ??= IDBKeyRange;
+}
+
+/** Opens the real DietDb through the open sequence, over a fresh fake IndexedDB unless given one. */
+export async function openTestDb(options: OpenTestOptions = {}): Promise<TestDb> {
+  enableLiveQueries();
+  const deps = options.deps ?? freshDeps();
+  const env = options.env ?? testEnv();
+  const status = createStore<OpenStatus>('opening');
+  const result = await openDietDb(env, deps, {
+    gate: createWriteGate(),
+    status,
+    ...(options.chain === undefined ? {} : { chain: options.chain }),
+    ...(options.extraMiddleware === undefined ? {} : { extraMiddleware: options.extraMiddleware }),
+  });
+  if (result.db === null) throw new Error(`The test database did not open: ${result.status}`);
+  const { db } = result;
+  const repos = createRepos({ db, env, gate: db.gate, hooks: options.hooks ?? {} });
+  const platform = options.platform ?? testPlatform();
+  return {
+    db,
+    env,
+    deps,
+    repos,
+    status,
+    storage: { db, repos, env, gate: db.gate, deps, platform },
+  };
+}
+
+/** S(db) of section 10.8. */
+export function backupSnapshot(db: DietDb): Promise<Snapshot> {
+  return readBackupSnapshot(db);
+}
+
+/** Every backed-up store's row count. */
+export async function counts(db: DietDb): Promise<Record<string, number>> {
+  const snapshot = await readBackupSnapshot(db);
+  return Object.fromEntries(BACKUP_TABLES.map((name) => [name, snapshot[name].length]));
+}
+
+/** A real, non-extractable AES-GCM key and a synthetic pairing (C34; device only). */
+export async function pairingRow(): Promise<TransferPairingRecord> {
+  const key = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, false, [
+    'encrypt',
+    'decrypt',
+  ]);
+  return {
+    id: 'singleton',
+    relayUrl: 'https://relay.example.com/room',
+    roomId: 'ExampleRoomId00000000A',
+    key,
+    pairedAt: '2000-01-05T00:00:00.000Z',
+  };
+}
+
+/** Synthetic photo bytes: a recognisable byte pattern, never a real image. */
+export const PHOTO_BYTES = Uint8Array.from({ length: 64 }, (_, i) => (i * 7 + 3) % 256);
+
+export function photoRow(gardenId: string, width = 640): GardenPhotoRecord {
+  return {
+    gardenId,
+    mimeType: 'image/jpeg',
+    bytes: PHOTO_BYTES.slice().buffer,
+    width,
+    height: 480,
+    takenAt: '2000-01-05T00:00:00.000Z',
+  };
+}
+
+/**
+ * A plain Dexie connection with no validation middleware, for writing rows the app itself would
+ * refuse (a corrupted row, a photo 5,000 px wide) at the installed version.
+ */
+export async function rawWriter(
+  deps: DbDeps,
+  stores: Record<string, string>,
+  version = 1,
+): Promise<Dexie> {
+  const raw = new Dexie('diet', { indexedDB: deps.indexedDB, IDBKeyRange: deps.IDBKeyRange });
+  raw.version(version).stores(stores);
+  await raw.open();
+  return raw;
+}
+
+/** A middleware that fails the chosen write once armed (all-or-nothing tests). */
+export function failingWrite(
+  table: string,
+  type: 'add' | 'put' | 'delete' | 'deleteRange',
+  error: () => Error,
+): { middleware: Middleware<DBCore>; arm: () => void } {
+  let armed = false;
+  return {
+    arm: () => {
+      armed = true;
+    },
+    middleware: {
+      stack: 'dbcore',
+      name: 'test-failing-write',
+      create: (down) => ({
+        ...down,
+        table: (name) => {
+          const inner = down.table(name);
+          return {
+            ...inner,
+            mutate: (request) =>
+              armed && name === table && request.type === type
+                ? Promise.reject(error())
+                : inner.mutate(request),
+          };
+        },
+      }),
+    },
+  };
+}

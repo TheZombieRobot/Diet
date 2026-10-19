@@ -86,9 +86,12 @@ export const privacy = {
     exportAction: 'Export a backup',
     restoreAction: 'Restore from a backup',
     deleteAllAction: 'Delete all data',
+    notReady: 'The records are still opening.',
   },
   /** The weekly reminder on Today and on the Backup and data card (section 12.2; BK-03). */
   backupReminder: {
+    /** The label of the Reminders card on Today (UX_SCREENS section 2, card 8). */
+    cardLabel: 'Reminders',
     title: 'Back up your records',
     body: 'Your records are kept only on this phone. Export a backup and keep the file somewhere else too.',
     weakStorage:
@@ -99,6 +102,8 @@ export const privacy = {
   /** Export (sections 10.4 and 10.5; C99; D19, D21, D22). */
   exportBackup: {
     lockLabel: 'Lock the file with a password',
+    saveFile: 'Save the backup file',
+    tryAgain: 'Try again',
     passwordLabel: 'Password',
     passwordRepeatLabel: 'Type the password again',
     passwordRule: 'At least 10 characters.',
@@ -118,12 +123,21 @@ export const privacy = {
     saveUnchecked: 'Save an unchecked copy',
     uncheckedNote: 'This copy was not checked, so it does not count as a backup.',
     lockCheckFailed: 'The locked backup could not be checked, so it was not saved.',
+    exportFailed: 'The backup could not be made. Nothing was changed. Try again.',
   },
   /** Restore (section 10.6; BK-02; D17). */
   importBackup: {
     chooseFile: 'Choose a backup file',
     passwordLabel: 'Backup password',
+    unlock: 'Unlock the file',
     unlocking: 'Unlocking…',
+    reading: 'Reading the file…',
+    replacing: 'Replacing the records…',
+    countsTitle: 'Records in the file:',
+    storeCount: '{table}: {count}',
+    noRecords: 'none',
+    cancel: 'Cancel',
+    writeFailedNext: 'Reload the app before you try again.',
     fileMade: 'Backup made {date}.',
     fileLocked: 'The file was locked with a password.',
     filePlain: 'The file was not locked.',
@@ -157,6 +171,7 @@ export const privacy = {
   rescue: {
     saveRescueCopy: 'Save a rescue copy',
     note: 'A rescue copy keeps your records in a file. It does not count as a backup.',
+    failed: 'The rescue copy could not be made. Try again, or reload.',
   },
   /** Delete all data (section 11; HS-30; D45). */
   deleteAll: {
@@ -173,12 +188,28 @@ export const privacy = {
       'A list waiting to be sent expires within 15 minutes.',
     ],
     exportFirst: 'Export a backup first',
+    next: 'Continue',
+    finalWarning:
+      'Deleting cannot be undone. Only a backup file you saved can bring the records back.',
     confirm: 'Delete everything on this phone',
+    cancel: 'Cancel',
+    deleting: 'Deleting…',
     blocked: "Close the app's other tabs, then try again.",
     stepsFailed: 'Some data could not be deleted ({steps}). Try again.',
+    /** Plain names of the delete-all steps, for stepsFailed. */
+    steps: {
+      gate: 'closing the records',
+      databases: 'the records',
+      caches: 'stored app data',
+      'local-storage': 'saved preferences',
+      'session-storage': 'tab preferences',
+      files: 'open files',
+    },
   },
   /** The storage failure screens (section 7.4; D48), shown when the rest of the app is unusable. */
   storageFailure: {
+    title: 'Your records',
+    helpTitle: 'Help numbers',
     'newer-version': 'This phone has records from a newer version of the app. Reload to update.',
     'upgrade-failed':
       'The app could not update your records. Nothing was changed. Save a rescue copy, then reload; a later version will fix this.',
@@ -195,10 +226,40 @@ export const privacy = {
   /** The update-notice card (section 9.2; D13). */
   updateNotice: 'This update changed some of your settings to fit new limits.',
   updateNoticeLink: 'See what changed',
+  updateNoticeClose: 'Close',
   /** The reason of a migration audit row (MigrationChange.reason). */
   migrationChange: '{field} was changed to fit the limits of app version {version}.',
   /** Next to entries whose recorded time zone this browser does not know (section 3.4; D6). */
   zoneFallback: 'Times shown in your home time zone',
+  /** Plain names of the backed-up stores, for the import confirmation's counts and set-aside rows. */
+  storeNames: {
+    profile: 'Profile',
+    readiness: 'Readiness answers',
+    targets: 'Targets',
+    settings: 'Settings',
+    kickstart_periods: 'Kickstart periods',
+    kickstart_checks: 'Kickstart checks',
+    weights: 'Weigh-ins',
+    fasts: 'Fasts',
+    symptom_log: 'Symptoms',
+    water_log: 'Water',
+    steps_log: 'Steps',
+    ingredients: 'Your foods',
+    ingredient_overrides: 'Food corrections',
+    recipes: 'Recipes',
+    plan_days: 'Planned days',
+    food_log: 'Food log',
+    garden: 'Garden',
+    pantry: 'Pantry',
+    sessions: 'Sessions',
+    beverages: 'Drink presets',
+    drinks_log: 'Drinks log',
+    alcohol_day_notes: 'Drink day notes',
+    alcohol_milestones: 'Your milestones',
+    grocery_lists: 'Grocery lists',
+    card_state: 'Cards',
+    audit: 'Change notes',
+  },
 } as const;
 
 /** All sections, for scanning and review. */

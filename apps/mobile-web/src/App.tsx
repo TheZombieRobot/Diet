@@ -8,6 +8,7 @@ import {
   type TabItem,
 } from '@diet/ui';
 import { useEffect, useRef, type ReactElement } from 'react';
+import { type FailureStatus, type OpenStatus, openStatusStore } from './db/db';
 import { goToTab, markEntryAboveToday } from './navigation';
 import { offlineCopyStore } from './pwa/offline';
 import {
@@ -26,6 +27,7 @@ import { ListScreen } from './screens/ListScreen';
 import { MoveScreen } from './screens/MoveScreen';
 import { QuickActions } from './screens/QuickActions';
 import { SettingsScreen } from './screens/SettingsScreen';
+import { StorageFailureScreen } from './screens/StorageFailureScreen';
 import { TodayScreen } from './screens/TodayScreen';
 import { UpdateBanner } from './screens/UpdateBanner';
 import { useStore } from './store';
@@ -70,7 +72,19 @@ function screenFor(route: RouteId): ReactElement {
   }
 }
 
+const isFailure = (status: OpenStatus): status is FailureStatus =>
+  status !== 'opening' && status !== 'ready';
+
+/**
+ * The app. When the database cannot be used (section 7.4 of the storage spec), a storage failure
+ * screen replaces everything, so Settings and delete-all cannot be reached from it.
+ */
 export function App(): ReactElement {
+  const status = useStore(openStatusStore);
+  return isFailure(status) ? <StorageFailureScreen status={status} /> : <Shell />;
+}
+
+function Shell(): ReactElement {
   const route = useRoute();
   const offlineCopy = useStore(offlineCopyStore);
   const titleRef = useRef<HTMLHeadingElement>(null);

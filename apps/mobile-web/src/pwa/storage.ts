@@ -2,11 +2,14 @@ import { createStore } from '../store';
 import { installStore } from './install';
 
 /**
- * Persistent storage (PWA-06): asks the browser at startup not to clear the app's records when the
- * phone runs low on space. Chrome answers without showing the person anything; it says yes more
- * readily once the app is installed, but only when asked again, so the app asks again after it is
- * installed and when it comes back into view while not protected. The person never sees a prompt
- * in Chrome. The answer is shown on the About screen.
+ * Persistent storage (PWA-06, as reworded by C98; storage spec section 12.1): asks the browser at
+ * every launch not to clear the app's records when the phone runs low on space, while they are not
+ * already protected. Chrome answers without showing the person anything; it says yes more readily
+ * once the app is installed, but only when asked again, so the app asks again after it is
+ * installed, when it comes back into view while not protected, when onboarding first completes,
+ * and after a successful import. The person never sees a prompt in Chrome. The answer is held here,
+ * never stored in the database (D24, so no device-specific state reaches a backup), and shown on
+ * the Backup and data card and on About.
  */
 export type StorageProtection = 'checking' | 'protected' | 'not-protected' | 'unsupported';
 
@@ -34,6 +37,16 @@ export async function requestPersistentStorage(
   }
   storageStore.set(result);
   return result;
+}
+
+/**
+ * Called by the settings repository when settings.onboardingCompletedAt is first set (item 13 sets
+ * it): asks again, once, now that the person is using the app (section 12.1).
+ */
+export function onOnboardingCompleted(
+  ask: () => Promise<unknown> = () => requestPersistentStorage(),
+): void {
+  void ask();
 }
 
 /**

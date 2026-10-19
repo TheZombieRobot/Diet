@@ -178,6 +178,11 @@
   font-size: 15px;
 }
 
+.ui-text-strong {
+  font-size: 16px;
+  font-weight: 800;
+}
+
 /* Buttons */
 .ui-button {
   display: inline-flex;
@@ -261,6 +266,140 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+/* A row of buttons that wraps on a narrow screen */
+.ui-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Boxed messages inside a card: a refusal, a warning, a note that needs a look */
+.ui-notice {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: var(--radius-control);
+  font-size: 15px;
+}
+
+.ui-notice--amber {
+  background: var(--color-amber-tint);
+  color: var(--color-on-amber-tint);
+}
+
+.ui-notice--info {
+  background: var(--color-teal-tint);
+  color: var(--color-on-teal-tint);
+}
+
+/* Form fields: a label, the input, then a hint or an error */
+.ui-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ui-field__label {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.ui-field__input {
+  width: 100%;
+  min-height: var(--size-tap);
+  padding: 0 14px;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-inset);
+  color: var(--color-ink);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.ui-field__input--error {
+  border-color: var(--color-amber-strong);
+}
+
+.ui-field__hint {
+  color: var(--color-secondary);
+  font-size: 14px;
+}
+
+.ui-field__error {
+  color: var(--color-amber);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* On/off switch: a native checkbox, kept for keyboards and screen readers, drawn as a track */
+.ui-switch {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--size-tap);
+  cursor: pointer;
+}
+
+.ui-switch__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.ui-switch__track {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  width: 52px;
+  height: 32px;
+  padding: 3px;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-inset);
+}
+
+.ui-switch__thumb {
+  width: 23px;
+  height: 23px;
+  border-radius: var(--radius-pill);
+  background: var(--color-secondary);
+}
+
+.ui-switch__input:checked + .ui-switch__track {
+  justify-content: flex-end;
+  border-color: var(--color-teal);
+  background: var(--color-teal);
+}
+
+.ui-switch__input:checked + .ui-switch__track .ui-switch__thumb {
+  background: var(--color-on-teal);
+}
+
+.ui-switch__input:focus-visible + .ui-switch__track {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.ui-switch__label {
+  font-size: 16px;
+  font-weight: 750;
+}
+
+/* A plain list of short lines inside a card (counts, what stays after delete-all) */
+.ui-plain-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 20px;
+  list-style: disc;
 }
 
 /* Rows that are links: help numbers, settings entries */

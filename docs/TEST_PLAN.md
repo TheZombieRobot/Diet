@@ -38,14 +38,23 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | PWA-03 | Flight mode, open installed app, visit every screen | All screens load; no network error dialogs |
 | PWA-04 | Flight mode: log weight, start fast, log a drink, plan a day, build list | All saved; visible after relaunch |
 | PWA-05 | Deploy a new version, reopen app online | "Update available" banner; reload applies it; data intact |
-| PWA-06 | Storage persistence request | App asks for persistent storage once; records survive a week of normal use |
+| PWA-06 | Storage persistence request (reworded per DOC_REVIEW C98) | The request is made at every launch while storage is not already persisted, and the result is shown (unit test with a mocked StorageManager); it is asked again after install, when onboarding first completes and after a successful restore; Settings (Backup and data) and About show the result of `navigator.storage.persisted()`. "Records survive a week" moved to the end-of-week-1 checklist |
 
 ### 3.2 Backup
 | ID | Case | Expected |
 |---|---|---|
-| BK-01 | Export with no password, wipe, import | Every record identical (HS-15) |
-| BK-02 | Export with password, import with wrong password | Clear failure, nothing imported |
-| BK-03 | Weekly backup nag | Appears after 7 days without export; dismissible |
+| BK-01 | Export (plain, and again locked), answer Yes to "Can you see the file?", delete all, import (reworded per DOC_REVIEW C49) | Every record round-trips exactly, except the documented device-only data (the laptop pairing and garden photos), which is absent from the file and empty after the import; the file contains no pairing or photo data (HS-15). Runs through the real database in unit tests and in Chromium with a real download and file chooser |
+| BK-02 | Export with password, import with wrong password | "Wrong password, or the file is damaged. Nothing was imported."; the phone's records, including the last backup date, are unchanged; retrying with the right password imports |
+| BK-03 | Weekly backup reminder | Appears 7 days after the last backup the owner confirmed (Yes to "Can you see the file?"), or after onboarding; "Not now" hides it for 7 days; an export answered No does not count. When storage is not protected: due after 3 days, back 1 day after "Not now", shown first |
+| BK-04 | Tampered locked file: any header field (iterations, salt, IV, version, encrypted flag, cipher length) or one ciphertext bit changed | Refused before anything is imported (damaged, or wrong password or damaged) |
+| BK-05 | A file from a newer version, or of an unknown envelope or schema version | Refused with "This backup was made by a newer version of the app…" or "…a format this app cannot read"; nothing imported |
+| BK-06 | A file with a value outside the safety bounds (energy floor below 5,000 kJ, Kickstart deficit over 30%, Steady deficit outside 15–20%, protein, carb ceilings, saturated-fat budget, rapid-loss bounds, more than 3 Kickstart extensions or 42 Kickstart days) (DOC_REVIEW C50) | The whole file is refused with a clear message; nothing is clamped and nothing imported |
+| BK-07 | A failure during the import write (a bug, a refused row, a full phone) | Nothing on the phone changes ("Nothing was changed"), and "Save what was on this phone" offers the records shown on the confirmation as a rescue copy |
+| BK-08 | File names and the public repository (DOC_REVIEW C89) | Every name the app gives a saved file (diet-backup-…, rescue and locked variants, the browser's " (1)" copies, the GP summary and grocery exports) is ignored by git; a generated backup trips the backup-file and backup-marker scan rules |
+| BK-09 | The fixed version-1 reference files, plain and locked (DOC_REVIEW C99) | Decode, decrypt with the reference phrase and import in every later version |
+| BK-10 | Rescue copy after an upgrade fails | The upgrade-failed screen offers "Save a rescue copy", locked by default and named diet-backup-YYYY-MM-DD-rescue-locked.json; it is read with plain IndexedDB at the installed version from that version's allow-list, never reads the pairing or photos, and imports record by record, listing any record it could not keep by store and position; it never counts as a backup |
+| BK-11 | A database newer than the app (a stale tab, a rolled-back deploy) | "This phone has records from a newer version of the app. Reload to update."; the database's version, stores and indexes are left exactly as they were |
+| HS-30 | Delete all data (new per DOC_REVIEW C17, built at checklist item 12) | After two confirmations, every store is empty, the laptop pairing and every garden photo are gone, every other IndexedDB database and every cache except the app's own files are deleted, local and session storage are empty, and nothing the app was doing beforehand (an autosave, a live query, another tab) can write to the fresh database; only the app's files and a fresh database's seed rows remain. A deletion blocked by another tab says "Close the app's other tabs, then try again" and claims no success |
 
 ### 3.3 Profile and readiness gates
 | ID | Case | Expected |
@@ -199,7 +208,9 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 ### End of week 1
 - [ ] Install on phone from Chrome; icon appears.
 - [ ] Flight mode; open; log weight; start fast; close; reopen; data present.
+- [ ] Records survive a week of normal use (PWA-06, as reworded by DOC_REVIEW C98).
 - [ ] Export backup; file lands in Downloads; import on the laptop browser works.
+- [ ] Export a locked backup, then restore it in an Incognito tab on the same phone (DOC_REVIEW C48).
 - [ ] Text readable outdoors at midday; buttons tappable with a thumb.
 
 ### End of week 3

@@ -6,6 +6,7 @@ import {
   goTo,
   heading,
   offerInstall,
+  openBackupPanels,
   SCREENS,
   TABS,
   visitEveryScreen,
@@ -144,6 +145,10 @@ test('every control on every screen is at least 48 px by 48 px on a phone', asyn
   expect(await measure('Settings with the install button')).toEqual(
     expect.arrayContaining(['Install app']),
   );
+  await openBackupPanels(page);
+  expect(await measure('Settings with the backup panels open')).toEqual(
+    expect.arrayContaining(['Save the backup file', 'Choose a backup file', 'Continue']),
+  );
 });
 
 test('the offline pill flips with the connection', async ({ page, context }) => {
@@ -216,6 +221,11 @@ test('nothing scrolls sideways or runs off a narrow or zoomed screen, online or 
       });
     }
   }
+  // The Backup and data card's panels, with their fields and button rows, at 200% zoom.
+  await context.setOffline(false);
+  await goTo(page, 'Settings');
+  await openBackupPanels(page);
+  problems.push(...(await narrowLayoutProblems(page, 'Settings with the backup panels open')));
   expect(problems).toEqual([]);
 });
 

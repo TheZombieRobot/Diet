@@ -168,11 +168,11 @@ Stop immediately and seek help for chest pain or pressure, severe shortness of b
 
 ## 7. Privacy as a safety feature
 
-- Health records are stored only on the phone, in the browser's database for the app's origin. Clearing site data deletes them, so the app nags for a backup once a week.
-- Backup files are JSON; the user may set a password, which encrypts the file with AES-GCM via WebCrypto.
+- Health records are stored only on the phone, in the browser's database for the app's origin. Clearing site data deletes them, so the app reminds you to back up once a week (every 3 days while the phone has not promised to keep the app's records). A backup is recorded only when you confirm, after exporting, that you can see the file; the browser cannot tell the app whether a download really saved.
+- Backup files are JSON. Locking with a password is on by default: the password (at least 10 characters) is stretched with PBKDF2-SHA-256 (600,000 iterations) into an AES-256-GCM key with WebCrypto, the file's header is protected by the same encryption so a changed file is refused, and the app decrypts and checks a locked file before offering it. A forgotten password cannot be recovered. An unlocked file can be read by anyone who opens it, and the app says so. The laptop pairing and garden photos never go into a backup.
 - The only data that ever leaves the phone is the grocery list, encrypted end to end, and only when you tap "Send to laptop".
 - Nothing is sent to any AI service. If optional AI features are ever added, they require a separate, specific opt-in that names exactly what would be sent.
-- Delete-all is one action in Settings and removes every record, pairing and photo.
+- Delete-all is one action in Settings, after two confirmations, and removes every record, the laptop pairing and every garden photo, every other database and cache of the app except its own files, and its local and session storage (HS-30). It cannot reach backup files you saved or shared (delete them in Files), a backup password saved in Chrome (remove it in Chrome's settings), or the list and pairing on the laptop (unpair there too).
 - No analytics, crash reporting, advertising identifiers, or third-party scripts. Fonts and icons are bundled, not fetched.
 - The extension stores only the list and tick state in Chrome's extension storage.
 
@@ -196,9 +196,9 @@ Stop immediately and seek help for chest pain or pressure, severe shortness of b
 | HS-25 | Kickstart deficit never plans below the 5,000 kJ floor or below the protein target, and is capped at 30% below estimated expenditure | Fixtures with low and high estimates |
 | HS-26 | Projection on the four-week chart is a shaded "typical range, not a promise" band, front-loaded; no target line and no "kg by date" text | Snapshot and static scan |
 | HS-12 | Exercise stop rules and beach prompts render before any beach-tagged session | Snapshot test |
-| HS-13 | Emergency numbers 111, 0800 611 116, 0800 787 797 appear on the About screen and the alcohol screen | DOM query |
+| HS-13 | Emergency numbers 111, 0800 611 116, 0800 787 797 (and 1737 and text 8681, per DOC_REVIEW C17) appear on the About screen, the alcohol screen and every storage failure screen; the storage failure screens, shown when the records cannot be opened, also carry the not-a-medical-device line, from static copy that needs no database (extended at checklist item 12) | DOM query, including each storage failure screen with the database unavailable |
 | HS-14 | The phone app makes only (a) GET requests to its own origin for app files and update checks, with no query string or body built from user data, and (b) requests to the relay host, only after "Send to laptop" is tapped and until that transfer is received or expires. For the page, the Content Security Policy enforces this; for the service worker, which that policy does not cover, the build-output check does: the built service worker may load scripts and keep offline files only by relative URL, at the app's own address (reworded per DOC_REVIEW C03 and the item 5 review; the intent is unchanged) | Playwright network log, service worker included, while visiting every screen online and offline; any request outside the allowlist, and any policy violation, fails; relay requests appear only after a Send tap. The build-output check (e2e/build-output.spec.ts) fails on any absolute URL in the built service worker and on any absolute URL in the built files that is not on its list of inert strings |
-| HS-15 | Backup round trip preserves every record exactly | Export, wipe, import, compare |
+| HS-15 | Every record round-trips exactly through a backup, except the documented device-only data (the laptop pairing and garden photos), which is absent from the file (reworded per DOC_REVIEW C49) | Export, answer Yes to "Can you see the file?", delete all, import, compare every store; the pairing and photos are empty afterwards and the file contains none of their data |
 | HS-16 | Price, stock and cart-status strings are absent from both apps unless user-entered with timestamp or from a permitted source | Static scan for "$", "in stock", "added to cart"; data check that every price has an entered-at time |
 | HS-17 | Eating window length computed from clock times: 5 pm snack and 7 pm final meal = 2 h (22:2), not 4 h | Unit test with several windows including midnight wrap |
 | HS-18 | Fast is never enforced: when protein or energy is below target the fasting card offers to widen the window | Fixture day with low protein |
@@ -208,6 +208,7 @@ Stop immediately and seek help for chest pain or pressure, severe shortness of b
 | HS-22 | Protein and energy targets unchanged by eating window | Unit test across presets |
 | HS-23 | Household servings never change the user's portion numbers | Unit test |
 | HS-24 | Allergens retained on recipe edit or scale | Unit test |
+| HS-30 | Delete-all empties every store, removes the laptop pairing and every garden photo, deletes every other IndexedDB database and every cache except the app's own files, and clears local and session storage; nothing the app was doing beforehand can write to the fresh database; only the app's files and a fresh database's seed rows remain (new per DOC_REVIEW C17, built at checklist item 12) | Fill every store, a pairing, a photo, an extra database, caches and both storages; delete all; reopen; only the seed rows remain; an autosave or live query afterwards writes nothing; a blocked deletion claims no success |
 
 ---
 

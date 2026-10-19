@@ -6,136 +6,13 @@ import {
   chainInfo,
   createBackupFile,
   decodeBackupText,
-  fillTemplate,
   type LooseSnapshot,
-  type Migration,
-  MIGRATIONS,
   migrateSnapshot,
-  type ObjectRule,
-  type ProfileRecord,
-  ROWS_V1,
-  type SettingsRecord,
-  specKit,
-  STORES_V1,
-  TABLES_V1,
-  type TargetsRecord,
 } from '@diet/core';
-import { privacy } from '@diet/core/copy/health';
 import { describe, expect, it } from 'vitest';
 import { fixtureEnv } from './env';
-
-const { bool, enumOf, id, int, object, table } = specKit;
 import { SNAPSHOT_V1_APP_VERSION, snapshotV1 } from './snapshotV1';
-
-const V1 = MIGRATIONS[0] as Migration;
-type Rows = Record<string, unknown>[];
-
-// (a) profile gains compactView (default false); settings.textSize 'largest' becomes 'extra-large'.
-type ProfileV2 = ProfileRecord & { compactView: boolean };
-type SettingsV2 = Omit<SettingsRecord, 'textSize'> & {
-  textSize: 'standard' | 'large' | 'extra-large';
-};
-const chainA: readonly Migration[] = [
-  V1,
-  {
-    version: 2,
-    stores: {},
-    backup: { added: [], removed: [], deviceOnly: [] },
-    specs: {
-      ...TABLES_V1,
-      profile: table(
-        STORES_V1.profile,
-        true,
-        TABLES_V1.profile.ops,
-        object<ProfileV2>({ ...ROWS_V1.profile.fields, compactView: bool }, ROWS_V1.profile.rules),
-      ),
-      settings: table(
-        STORES_V1.settings,
-        true,
-        TABLES_V1.settings.ops,
-        object<SettingsV2>(
-          { ...ROWS_V1.settings.fields, textSize: enumOf(['standard', 'large', 'extra-large']) },
-          ROWS_V1.settings.rules as unknown as ObjectRule<SettingsV2>[],
-        ),
-      ),
-    },
-    reads: ['profile', 'settings'],
-    rewrites: ['profile', 'settings'],
-    upgrade: (s) => ({
-      snapshot: {
-        ...s,
-        profile: (s.profile as Rows).map((p) => ({ ...p, compactView: false })),
-        settings: (s.settings as Rows).map((x) => ({
-          ...x,
-          textSize: x.textSize === 'largest' ? 'extra-large' : x.textSize,
-        })),
-      },
-      changes: [],
-    }),
-  },
-];
-
-// (b) steadyDeficitPct narrows from 15–20 to 15–18: 19 and 20 move to 18, the nearest safe value.
-const chainB: readonly Migration[] = [
-  V1,
-  {
-    version: 2,
-    stores: {},
-    backup: { added: [], removed: [], deviceOnly: [] },
-    specs: {
-      ...TABLES_V1,
-      targets: table(
-        STORES_V1.targets,
-        true,
-        TABLES_V1.targets.ops,
-        object<TargetsRecord>(
-          { ...ROWS_V1.targets.fields, steadyDeficitPct: int(15, 18) },
-          ROWS_V1.targets.rules,
-        ),
-      ),
-    },
-    reads: ['targets'],
-    rewrites: ['targets'],
-    upgrade: (s) => {
-      const changes = (s.targets as Rows)
-        .filter((t) => (t.steadyDeficitPct as number) > 18)
-        .map(() => ({
-          table: 'targets',
-          recordId: 'singleton',
-          field: 'steadyDeficitPct',
-          reason: fillTemplate(privacy.migrationChange, { field: 'Steady deficit', version: 2 }),
-        }));
-      const targets = (s.targets as Rows).map((t) => ({
-        ...t,
-        steadyDeficitPct: Math.min(18, t.steadyDeficitPct as number),
-      }));
-      return { snapshot: { ...s, targets }, changes };
-    },
-  },
-];
-
-// (c) a new backed-up store and a new device-only store.
-const chainC: readonly Migration[] = [
-  V1,
-  {
-    version: 2,
-    stores: { example_notes: 'id', example_cache: 'id' },
-    backup: { added: ['example_notes'], removed: [], deviceOnly: ['example_cache'] },
-    specs: {
-      ...TABLES_V1,
-      example_notes: table(
-        'id',
-        true,
-        ['create', 'get', 'list', 'update', 'remove'],
-        object<{ id: string }>({ id }),
-      ),
-      example_cache: table('id', false, [], object<{ id: string }>({ id })),
-    },
-    reads: [],
-    rewrites: [],
-    upgrade: (s) => ({ snapshot: s, changes: [] }),
-  },
-];
+import { chainA, chainB, chainC, type ProfileV2, type Rows, type SettingsV2 } from './testChains';
 
 async function v1File(
   patch: (tables: Record<string, Rows>) => void = () => undefined,

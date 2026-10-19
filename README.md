@@ -1,6 +1,6 @@
 # Diet — personal fitness, fasting, keto-aware meals and grocery app
 
-**Status: checklist items 1–5 are built (conflicts report, repository scaffold, static safety scans, core health formulas, and the installable phone app shell). The app shell works offline and passes its browser tests, but it is not online yet. One owner step remains: on GitHub, Settings → Environments → github-pages → Deployment branches and tags → add the deployment branch rule `ccr-*`. After that, a commit marked "[deploy]" publishes it at https://thezombierobot.github.io/Diet/ (see [Phone app](#phone-app)). See `docs/IMPLEMENTATION_CHECKLIST.md`.**
+**Status: checklist items 1–5 and 12 are built (conflicts report, repository scaffold, static safety scans, core health formulas, the installable phone app shell, and the local database with backup, restore and delete-all). The app works offline and passes its browser tests, but it is not online yet. One owner step remains: on GitHub, Settings → Environments → github-pages → Deployment branches and tags → add the deployment branch rule `ccr-*`. After that, a commit marked "[deploy]" publishes it at https://thezombierobot.github.io/Diet/ (see [Phone app](#phone-app)). See `docs/IMPLEMENTATION_CHECKLIST.md`.**
 
 An Android-first, offline-first web app (PWA) for one person: meal planning around a home garden and NZ groceries, weight and fasting logs, safe bodyweight and beach exercise, cholesterol-conscious keto targets, alcohol logging in NZ standard drinks, and a Chrome side-panel extension that helps with PAK'nSAVE Pāpāmoa shopping without automating the store's website.
 
@@ -15,6 +15,7 @@ An Android-first, offline-first web app (PWA) for one person: meal planning arou
 | [docs/TEST_PLAN.md](docs/TEST_PLAN.md) | How we prove it works, including the real shopping trial |
 | [docs/UX_SCREENS.md](docs/UX_SCREENS.md) | Every screen described in plain language |
 | [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | What the app stores and the shared formulas |
+| [docs/STORAGE_DESIGN.md](docs/STORAGE_DESIGN.md) | The on-phone database, backup, restore and delete-all design (checklist item 12) |
 | [docs/DOC_REVIEW.md](docs/DOC_REVIEW.md) | Checklist item 1: every conflict and gap found in the planning documents, verified, with the decisions awaiting the owner |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | Decisions log, including why there is no server account |
 | [docs/IMPLEMENTATION_CHECKLIST.md](docs/IMPLEMENTATION_CHECKLIST.md) | Numbered build steps for the implementing model with acceptance tests and STOP points |
@@ -43,7 +44,7 @@ Node 22.18 or later and pnpm (version pinned in `package.json`; run `corepack en
 |---|---|
 | `pnpm install` | Install dependencies; also turns on the pre-commit hook (below) |
 | `pnpm check` | Lint, format check, type check (browser tests included), unit tests and safety scans |
-| `pnpm scan` | Safety scans only: banned health wording, price and cart-status wording, personal data and secrets (in the current files and in the whole git history), network and AI calls, telemetry, licences, skipped tests, and the extension guard |
+| `pnpm scan` | Safety scans only: banned health wording, price and cart-status wording, personal data and secrets (in the current files and in the whole git history), network and AI calls, telemetry, licences, skipped tests, the extension guard, backup file names, and database transactions that could commit halfway |
 | `pnpm test` | Unit tests (Vitest) |
 | `pnpm e2e` | Browser tests (Playwright, Chromium): builds the phone app, serves the production build on port 4317 (set `DIET_E2E_PORT` to use another) and tests it |
 | `pnpm icons` | Redraws the app icons into `apps/mobile-web/public/` (after changing the mark or the teal colour) |
@@ -56,7 +57,13 @@ CI runs `pnpm scan` first, then lint, type check and unit tests, and runs the br
 
 ## Phone app
 
-`apps/mobile-web` is the installable web app (a PWA) the owner adds to the Android home screen from Chrome. Checklist item 5 built its shell: the five tabs (Today, Food, Move, Drinks, List), Settings and About, the offline copy, the install button, the "Update available" banner and the offline pill. Every screen except About says honestly that it arrives at a later checklist step; About shows the not-a-medical-device statement, the New Zealand help numbers (tap to call or text), a privacy note, a placeholder for data sources, the version, and whether the offline copy is saved yet.
+`apps/mobile-web` is the installable web app (a PWA) the owner adds to the Android home screen from Chrome. Checklist item 5 built its shell: the five tabs (Today, Food, Move, Drinks, List), Settings and About, the offline copy, the install button, the "Update available" banner and the offline pill. Every screen except About says honestly that it arrives at a later checklist step; About shows the not-a-medical-device statement, the New Zealand help numbers (tap to call or text), a privacy note, a placeholder for data sources, the version, whether the offline copy is saved yet, and whether the phone protects the app's records from automatic clearing.
+
+Checklist item 12 added the local database (IndexedDB through Dexie, `apps/mobile-web/src/db`; the record rules and the backup format are in `packages/core/src/storage`):
+- **Settings, Backup and data:** export a backup (locked with a password by default; the app asks "Can you see the file?" and counts the backup only on Yes), restore from a backup (nothing changes until you tap Replace, after seeing what would be lost), delete all data (two confirmations; it lists what stays), the storage protection line and when the last backup was made.
+- **Today:** a backup reminder 7 days after the last confirmed backup (3 days if the phone has not promised to keep the records), which "Not now" snoozes.
+- If the records cannot be opened (a newer version in another tab, a failed update, private mode), a plain screen with the help numbers replaces the app; a failed update offers a rescue copy of the records first.
+- The repository scan `tools/scans/txScope.ts` checks that every database transaction holds only database requests, so a restore can never commit halfway.
 
 How it is built:
 - Vite and React. The look comes from the owner's mock-up; every colour lives in one file, `packages/ui/src/styles/tokens.css`, with a light and a dark value each, so feedback on the look is an edit there. The launch screen and the task switcher use the icon's teal, which suits both themes. The Manrope font is bundled with the app, never fetched.

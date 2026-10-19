@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { parseColour } from '../packages/ui/src/tokens';
-import { goTo, GROUND, offerInstall, visitEveryScreen } from './support/app';
+import { goTo, GROUND, offerInstall, openBackupPanels, visitEveryScreen } from './support/app';
 import { lowContrastText, MIN_CONTRAST } from './support/contrast';
 
 // Text must stay readable in sunlight (UX_SCREENS.md design rules; WCAG 2 AA). tokens.test.ts
@@ -37,6 +37,8 @@ for (const colorScheme of ['light', 'dark'] as const) {
     await goTo(page, 'Settings');
     await expect(page.getByRole('button', { name: 'Install app' })).toBeVisible();
     await sweep('Settings with the install button');
+    await openBackupPanels(page);
+    await sweep('Settings with the backup panels open');
     await context.setOffline(true);
     await expect(page.getByRole('banner').getByRole('status')).toHaveText(/^Offline/);
     await sweep('Settings offline');

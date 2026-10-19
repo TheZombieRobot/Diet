@@ -1,4 +1,4 @@
-import { alcohol, general, helpNumbers } from '@diet/core/copy/health';
+import { alcohol, general, helpNumbers, privacy } from '@diet/core/copy/health';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
@@ -9,7 +9,12 @@ import {
   type BeforeInstallPromptEvent,
 } from './pwa/install';
 import { markOfflineReady, offlineCopyStore } from './pwa/offline';
-import { askAgainWhenItMayHelp, requestPersistentStorage, storageStore } from './pwa/storage';
+import {
+  askAgainWhenItMayHelp,
+  onOnboardingCompleted,
+  requestPersistentStorage,
+  storageStore,
+} from './pwa/storage';
 import { markUpdateWaiting, setUpdateActivator, updateStore } from './pwa/update';
 import { ROUTE_TITLES, ROUTES, routeHref, TAB_ROUTES, type RouteId } from './routes';
 import { versionLabel } from './version';
@@ -268,6 +273,27 @@ describe('About (HS-13, About portion)', () => {
     installStore.set({ canPrompt: false, installed: true });
     expect(ask).not.toHaveBeenCalled();
     stop();
+  });
+
+  it('PWA-06: shows the same storage status wording as the Backup and data card', () => {
+    show('about');
+    for (const [state, text] of [
+      ['protected', privacy.storageStatus.protected],
+      ['not-protected', privacy.storageStatus.notProtected],
+      ['unsupported', privacy.storageStatus.unsupported],
+      ['checking', privacy.storageStatus.checking],
+    ] as const) {
+      act(() => {
+        storageStore.set(state);
+      });
+      expect(screen.getByTestId('storage-protection').textContent).toBe(text);
+    }
+  });
+
+  it('PWA-06: onOnboardingCompleted asks for persistent storage (the settings repository calls it once)', () => {
+    const ask = vi.fn(() => Promise.resolve('protected'));
+    onOnboardingCompleted(ask);
+    expect(ask).toHaveBeenCalledOnce();
   });
 
   it('reports a browser without the storage API', async () => {

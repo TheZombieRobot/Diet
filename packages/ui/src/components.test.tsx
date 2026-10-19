@@ -6,6 +6,7 @@ import {
   applyTheme,
   Banner,
   Button,
+  ButtonRow,
   Card,
   currentThemePreference,
   FloatingActionButton,
@@ -14,9 +15,12 @@ import {
   IconLink,
   OFFLINE_LABEL,
   OFFLINE_NOT_READY_LABEL,
+  Notice,
   OfflineIndicator,
   ONLINE_LABEL,
+  Switch,
   TabBar,
+  TextField,
   TodayIcon,
   type TabItem,
 } from './index';
@@ -404,5 +408,75 @@ describe('applyTheme', () => {
     expect(currentThemePreference()).toBe('light');
     applyTheme('system');
     expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
+  });
+});
+
+describe('form controls (the Backup and data card)', () => {
+  it('TextField labels its input and announces its hint and error', () => {
+    render(
+      <TextField
+        label="Password"
+        type="password"
+        autoComplete="new-password"
+        hint="At least 10 characters."
+        error="The password needs at least 10 characters."
+        value=""
+        onChange={() => undefined}
+      />,
+    );
+    const input = screen.getByLabelText('Password');
+    expect(input.getAttribute('autocomplete')).toBe('new-password');
+    expect(input.getAttribute('aria-invalid')).toBe('true');
+    const described = (input.getAttribute('aria-describedby') ?? '').split(' ');
+    expect(described).toHaveLength(2);
+    expect(described.map((id) => document.getElementById(id)?.textContent)).toEqual([
+      'At least 10 characters.',
+      'The password needs at least 10 characters.',
+    ]);
+    expect(screen.getByRole('alert').textContent).toBe(
+      'The password needs at least 10 characters.',
+    );
+  });
+
+  it('TextField without a hint or error has no description and is not marked invalid', () => {
+    render(<TextField label="Name" value="" onChange={() => undefined} />);
+    const input = screen.getByLabelText('Name');
+    expect(input.hasAttribute('aria-describedby')).toBe(false);
+    expect(input.hasAttribute('aria-invalid')).toBe(false);
+  });
+
+  it('Switch is a labelled checkbox with role="switch" that reports its new state', () => {
+    const onChange = vi.fn();
+    render(<Switch label="Lock the file with a password" checked onChange={onChange} />);
+    const control = screen.getByRole('switch', { name: 'Lock the file with a password' });
+    expect((control as HTMLInputElement).checked).toBe(true);
+    fireEvent.click(control);
+    expect(onChange).toHaveBeenCalledWith(false);
+  });
+
+  it('Notice and ButtonRow render their content, with the role asked for', () => {
+    render(
+      <>
+        <Notice role="alert">
+          <p>Example refusal</p>
+        </Notice>
+        <ButtonRow>
+          <Button>One</Button>
+          <Button>Two</Button>
+        </ButtonRow>
+      </>,
+    );
+    expect(screen.getByRole('alert').textContent).toBe('Example refusal');
+    expect(screen.getByRole('alert').className).toContain('ui-notice--amber');
+    expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual(['One', 'Two']);
+  });
+
+  it('the new controls use only colour tokens', () => {
+    for (const selector of ['.ui-field__input', '.ui-switch__track', '.ui-notice--amber']) {
+      const rule = componentsCss.slice(componentsCss.indexOf(`${selector} {`));
+      const body = rule.slice(0, rule.indexOf('}'));
+      expect(body, selector).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(/i);
+      expect(body, selector).toMatch(/var\(--color-/);
+    }
   });
 });
