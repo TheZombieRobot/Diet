@@ -24,6 +24,8 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
+          # pnpm is enabled by corepack in the next step, so it cannot be cached yet.
+          package-manager-cache: false
       - name: Enable pnpm (version pinned in package.json)
         run: corepack enable
       - run: pnpm install --frozen-lockfile
@@ -42,6 +44,8 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
+          # pnpm is enabled by corepack in the next step, so it cannot be cached yet.
+          package-manager-cache: false
       - name: Enable pnpm (version pinned in package.json)
         run: corepack enable
       - run: pnpm install --frozen-lockfile
