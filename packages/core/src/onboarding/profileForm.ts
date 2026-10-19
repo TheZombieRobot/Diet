@@ -18,6 +18,7 @@ import type { ProfileSex } from '../storage/records';
 import { parseOptionalNumber } from '../util/parse';
 import { type LocalDate, parseLocalDate } from '../util/time';
 import { isLowWeight, meetsBmiFloor } from '../weight/bmi';
+import { goalVisible } from '../weight/goal';
 import { WEIGHT_LIMITS_KG } from '../weight/trend';
 
 /** What the form holds while typing: number fields stay text until they are checked. */
@@ -41,7 +42,10 @@ export interface ProfileFormContext {
   readonly mode: 'onboarding' | 'settings';
   /** minimumAgeYears is replaced from the draft's birth year when it parses. */
   readonly readiness: ReadinessInput;
-  /** Settings mode: the latest stored weight, for the low-weight check. */
+  /**
+   * Settings mode: the current weight the gates read (item 14's gateCurrentWeightKg: the lower of
+   * the 7-day average and the latest weigh-in), for the low-weight check.
+   */
   readonly storedWeightKg: number | null;
   readonly today: LocalDate;
   /** Settings mode: for goalHiddenByHeight. */
@@ -201,7 +205,8 @@ export function checkProfileForm(draft: ProfileDraft, ctx: ProfileFormContext): 
     weight: onboarding,
     // A low weight is a weight that was entered, so it cannot make the field optional (E11).
     weightRequired: onboarding && gatesWithoutLowWeight.goalSettingAvailable,
-    goal: onboarding && gates.goalSettingAvailable,
+    // One visibility rule with the weight screens (item 14's goalVisible).
+    goal: onboarding && goalVisible(gates),
     kickstart: onboarding && gates.kickstartAvailable,
   };
 

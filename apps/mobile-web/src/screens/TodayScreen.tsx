@@ -6,6 +6,7 @@ import { useBackupReminder } from './backup/reminder';
 import { InstallBanner } from './InstallBanner';
 import { Placeholder } from './Placeholder';
 import { AlcoholHelpCard } from './today/AlcoholHelpCard';
+import { WeightCard } from './weight/WeightCard';
 
 export function TodayScreen(): ReactElement {
   const storage = useStore(appStorageStore);
@@ -23,7 +24,8 @@ export function TodayScreen(): ReactElement {
       {reminder.prominent ? card : null}
       <InstallBanner />
       {storage === null ? null : <UpdateNoticeCard storage={storage} />}
-      <Placeholder coming="Today will show the day at a glance: weight, the current fast, food so far, water, steps, movement and drinks, with quick ways to log each." />
+      {storage === null ? null : <WeightCard storage={storage} />}
+      <Placeholder coming="Today will show the rest of the day at a glance: the current fast, food so far, water, steps, movement and drinks, with quick ways to log each." />
       {reminder.prominent ? null : card}
     </>
   );

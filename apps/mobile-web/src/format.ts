@@ -2,7 +2,15 @@
  * Dates as the person reads them: in the device zone, in New Zealand English. Stored instants are
  * UTC (storage spec section 3.1); these are only for display.
  */
-import { DEFAULT_HOME_TIME_ZONE, type Instant, resolveZone, type TimeZone } from '@diet/core';
+import {
+  DEFAULT_HOME_TIME_ZONE,
+  type Instant,
+  type LocalDate,
+  parseLocalDate,
+  resolveZone,
+  roundTo,
+  type TimeZone,
+} from '@diet/core';
 
 const formatters = new Map<string, Intl.DateTimeFormat>();
 
@@ -41,4 +49,17 @@ export function formatLocalTime(at: Instant, zone: TimeZone): string {
   return formatter(resolveZone(zone, DEFAULT_HOME_TIME_ZONE).timeZone, 'time').format(
     Date.parse(at),
   );
+}
+
+/**
+ * A stored local date (such as a Kickstart's scheduled last day), "21 February 2000". It is a
+ * calendar date, not an instant, so it is formatted at noon UTC in UTC and never shifts a day.
+ */
+export function formatLocalDay(date: LocalDate): string {
+  return formatter('UTC', 'date').format(parseLocalDate(date) + 12 * 3_600_000);
+}
+
+/** A weight with one decimal: "96.8", "100.0". */
+export function formatKg(kg: number): string {
+  return roundTo(kg, 1).toFixed(1);
 }

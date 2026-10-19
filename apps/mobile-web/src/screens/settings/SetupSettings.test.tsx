@@ -297,7 +297,11 @@ describe('the "talk to someone" card from day one (AL-09, AL-09b, C58; K15)', ()
     await screen.findByTestId('alcohol-help-card');
     failure.arm();
     tap(alcohol.helpCardNotNow);
-    expect((await screen.findByRole('alert')).textContent).toBe(onboarding.frame.saveFailed);
+    // Today also holds the weight screens' own (empty) alert region (item 14), so look in the card.
+    const helpCard = screen.getByRole('region', { name: alcohol.helpCardLabel });
+    expect((await within(helpCard).findByRole('alert')).textContent).toBe(
+      onboarding.frame.saveFailed,
+    );
     expect(card()).not.toBeNull();
   });
 });

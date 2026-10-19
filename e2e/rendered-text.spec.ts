@@ -63,16 +63,30 @@ test('no screen shows banned health, price, stock or cart wording', async ({ pag
   expect(found).toEqual([]);
 });
 
-test('no screen but About shows a number or a price, even with every banner and panel open', async ({
+test('no screen but About and Weight shows a number or a price, even with every banner and panel open', async ({
   page,
 }) => {
-  // Placeholder screens must not look like they hold records (no sample data). About is left out:
-  // its numbers are the help lines and the version; so are the setup screens, which show the
-  // owner's own entries, the question about being under 18 and the pattern names such as 16:8.
-  await seedOnboarded(page);
+  // Screens must not look like they hold records they do not have (no sample data). The fresh
+  // state is a finished setup with no weigh-ins and no Kickstart choice (item 14). About is left
+  // out: its numbers are the help lines and the version; so are the setup screens, which show the
+  // owner's own entries, the question about being under 18 and the pattern names such as 16:8, and
+  // the Weight screen, whose labels carry digits by design ("7-day average", "Less 0.1 kg").
+  await seedOnboarded(page, './', './', { weightKg: null });
   const found: string[] = [];
   const check = async (where: string, screen: ScreenName) => {
-    if (screen === 'About' || (SETUP_SCREENS as readonly string[]).includes(screen)) return;
+    if (screen === 'Today' || screen === 'Weight') {
+      // With no weigh-ins, no record value or sample figure is drawn (item 14).
+      await expect(
+        page.locator('.ui-stat__value, .ui-trend-chart, [data-weigh-in-row]'),
+      ).toHaveCount(0);
+    }
+    if (
+      screen === 'About' ||
+      screen === 'Weight' ||
+      (SETUP_SCREENS as readonly string[]).includes(screen)
+    ) {
+      return;
+    }
     const text = await renderedText(page);
     if (/\d/.test(text))
       found.push(`${where}: a digit in ${JSON.stringify(text.match(/.*\d.*/)?.[0])}`);

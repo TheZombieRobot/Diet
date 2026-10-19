@@ -1,14 +1,14 @@
 import { expect, type BrowserContext, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { onboarding, privacy } from '../../packages/core/src/copy/health';
+import { onboarding, privacy, weight } from '../../packages/core/src/copy/health';
 import { parseColourTokens, requireToken } from '../../packages/ui/src/tokens';
 
 /** Every screen of the phone app, in the order a person reaches them. */
 export const TABS = ['Today', 'Food', 'Move', 'Drinks', 'List'] as const;
 /** The Settings screens for the setup answers (item 13), reached from Settings, "Your setup". */
 export const SETUP_SCREENS = ['Readiness answers', 'Profile', 'Eating schedule'] as const;
-export const SCREENS = [...TABS, 'Settings', 'About', ...SETUP_SCREENS] as const;
+export const SCREENS = [...TABS, 'Settings', 'About', ...SETUP_SCREENS, 'Weight'] as const;
 export type ScreenName = (typeof SCREENS)[number];
 
 /** Screens reached from Settings, which mark the settings gear as their section. */
@@ -34,13 +34,22 @@ export const GROUND = requireToken(tokens, '--color-ground');
 
 export const heading = (page: Page) => page.getByRole('heading', { level: 1 });
 
-/** Goes to a screen the way a person would: a tab, the settings gear, then "About this app". */
+/**
+ * Goes to a screen the way a person would: a tab, the settings gear, then "About this app"; the
+ * Weight screen through Today's Weight card.
+ */
 export async function goTo(page: Page, screen: ScreenName): Promise<void> {
   if ((TABS as readonly string[]).includes(screen)) {
     await page
       .getByRole('navigation', { name: 'Main' })
       .getByRole('link', { name: screen })
       .click();
+  } else if (screen === 'Weight') {
+    await page
+      .getByRole('navigation', { name: 'Main' })
+      .getByRole('link', { name: 'Today' })
+      .click();
+    await page.getByRole('link', { name: weight.card.details }).click();
   } else {
     await page.getByRole('banner').getByRole('link', { name: 'Settings' }).click();
     if (screen === 'About') {
@@ -57,15 +66,22 @@ export async function goTo(page: Page, screen: ScreenName): Promise<void> {
 /**
  * A finished setup (item 13): the shell opens only after it, so specs about the shell start here.
  * Opens the app (a fresh database shows Welcome), writes the five settings markers, seven "no"
- * answers, a synthetic profile (175 cm, born 1970, female), an onboarding weight of 90 kg and a
- * 22:2 schedule with raw IndexedDB, reloads, and waits for Today. Then opens `path` if given.
- * `appUrl` is the app's address when it is not the configured base (update.spec.ts's own server).
+ * answers, a synthetic profile (175 cm, born 1970, female, no Kickstart choice), an onboarding
+ * weight of 90 kg (or none, with `weightKg: null`) and a 22:2 schedule with raw IndexedDB,
+ * reloads, and waits for Today. Then opens `path` if given. `appUrl` is the app's address when it
+ * is not the configured base (update.spec.ts's own server).
  */
-export async function seedOnboarded(page: Page, path = './', appUrl = './'): Promise<void> {
+export async function seedOnboarded(
+  page: Page,
+  path = './',
+  appUrl = './',
+  options: { readonly weightKg?: number | null } = {},
+): Promise<void> {
+  const weightKg = options.weightKg === undefined ? 90 : options.weightKg;
   await page.goto(appUrl);
   await expect(heading(page)).toHaveText(onboarding.welcome.title);
   await page.evaluate(
-    () =>
+    (kg) =>
       new Promise<void>((resolve, reject) => {
         const request = indexedDB.open('diet');
         request.onerror = () => {
@@ -105,14 +121,16 @@ export async function seedOnboarded(page: Page, path = './', appUrl = './'): Pro
             kickstartOptIn: false,
             updatedAt: now,
           });
-          tx.objectStore('weights').put({
-            id: crypto.randomUUID(),
-            at: now,
-            timeZone: zone,
-            kg: 90,
-            source: 'onboarding',
-            note: null,
-          });
+          if (kg !== null) {
+            tx.objectStore('weights').put({
+              id: crypto.randomUUID(),
+              at: now,
+              timeZone: zone,
+              kg,
+              source: 'onboarding',
+              note: null,
+            });
+          }
           merge('targets', {
             fastingPreset: '22:2',
             eatingWindow: { start: '17:00', end: '19:00' },
@@ -128,6 +146,7 @@ export async function seedOnboarded(page: Page, path = './', appUrl = './'): Pro
           };
         };
       }),
+    weightKg,
   );
   await page.reload();
   await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();

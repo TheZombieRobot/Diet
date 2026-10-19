@@ -9,19 +9,21 @@
  *   write can be repeated, so an interruption only shows the step again.
  * - Each repository call is its own transaction; the order and idempotence above are what make an
  *   interruption safe (section 6.2, Concurrency).
+ * - One rule for the gates' current weight (item 13 section 9.1 rule 2; HS-35): core
+ *   weightGateInput, the lower of the 7-day average and the latest weigh-in, as on the weight
+ *   screens. One rule for ending a Kickstart (C56): item 14's endKickstartIfConditionsFail, run in
+ *   the same action after every readiness, profile or weigh-in write.
  */
 import {
   canCompleteOnboarding,
   defaultSchedule,
   type EatingWindow,
-  extensionsOf,
   type FastingPresetId,
   gateChangeEffects,
   type GardenCropValue,
   type GardenRecord,
   type GateInput,
-  gateInputFromRecords,
-  kickstartPeriodState,
+  type LocalDate,
   localDateOf,
   onboardingCompletionPatch,
   type ProfileFormValue,
@@ -36,11 +38,13 @@ import {
   type SettingsRecord,
   setupScheduleReset,
   type TargetsRecord,
+  weightGateInput,
+  type WeightRecord,
   type YesNo,
 } from '@diet/core';
 import type { UpdatePatch } from '../db/repos';
 import type { AppStorage } from '../db/runtime';
-import { latestWeightKg } from './state';
+import { endKickstartIfConditionsFail } from '../screens/weight/kickstartActions';
 
 /** The records changed under the screen, so nothing was written; the view follows the live gates. */
 export class FlowStaleError extends Error {
@@ -57,14 +61,17 @@ interface Fresh {
   readonly settings: SettingsRecord;
   readonly rows: readonly ReadinessRecord[];
   readonly profile: ProfileRecord;
-  readonly latestWeightKg: number | null;
+  readonly weights: readonly WeightRecord[];
   readonly targets: TargetsRecord;
   readonly input: GateInput;
   readonly gates: ReadinessGates;
 }
 
+const todayOf = (storage: AppStorage): LocalDate =>
+  localDateOf(storage.env.now(), storage.env.timeZone());
+
 async function readFresh(storage: AppStorage): Promise<Fresh> {
-  const { repos, env } = storage;
+  const { repos } = storage;
   const [settings, rows, profile, weights, targets] = await Promise.all([
     repos.settings.get(),
     repos.readiness.list(),
@@ -72,47 +79,11 @@ async function readFresh(storage: AppStorage): Promise<Fresh> {
     repos.weights.list(),
     repos.targets.get(),
   ]);
-  const latest = latestWeightKg(weights);
-  const input = gateInputFromRecords({
-    rows,
-    birthYear: profile.birthYear,
-    heightCm: profile.heightCm,
-    currentWeightKg: latest,
-    today: localDateOf(env.now(), env.timeZone()),
-  });
-  return {
-    settings,
-    rows,
-    profile,
-    latestWeightKg: latest,
-    targets,
-    input,
-    gates: readinessGates(input),
-  };
-}
-
-/**
- * Whether the latest Kickstart period can still be ended (kickstartPeriodState; section 0): it is
- * running, or not yet started because its start is dated ahead (the clock was ahead when it
- * started). kickstart.endPeriod ends either, so a gate that closes also stops a period dated ahead
- * from beginning once its day 1 arrives.
- */
-async function kickstartNotOver(storage: AppStorage, home: string): Promise<boolean> {
-  const [periods, checks] = await Promise.all([
-    storage.repos.kickstart.listPeriods(),
-    storage.repos.kickstart.listChecks(),
-  ]);
-  const latest = [...periods].sort((a, b) => (a.startedAt < b.startedAt ? -1 : 1)).at(-1);
-  if (latest === undefined) return false;
-  const { env } = storage;
-  const state = kickstartPeriodState(
-    latest,
-    extensionsOf(latest.id, checks),
-    env.now(),
-    env.timeZone(),
-    home,
+  const input = weightGateInput(
+    { readiness: rows, profile, weights, homeTimeZone: settings.homeTimeZone },
+    todayOf(storage),
   );
-  return state === 'running' || state === 'not-started';
+  return { settings, rows, profile, weights, targets, input, gates: readinessGates(input) };
 }
 
 /** Clears a schedule saved earlier in this setup: the marker first, so it is never left confirmed. */
@@ -127,25 +98,27 @@ async function clearSetupSchedule(storage: AppStorage): Promise<void> {
 
 /**
  * The writes a gate change calls for (section 4.1, gateChangeEffects; E17, E52), from the gates
- * before the change and the fresh records after it.
+ * before the change and the fresh records after it. First, in the same action, a Kickstart whose
+ * conditions no longer hold is ended (running, or not started yet because its start is dated
+ * ahead) by item 14's one rule, endKickstartIfConditionsFail: it latches the end, so a failed
+ * write never lets Kickstart resume, and the app's reconciler retries it every minute.
  */
 async function runGateEffects(
   storage: AppStorage,
   before: ReadinessGates,
   q3YesWritten: boolean,
 ): Promise<Fresh> {
+  await endKickstartIfConditionsFail(storage);
   const after = await readFresh(storage);
   const effects = gateChangeEffects(before, after.gates, {
     onboardingCompleted: after.settings.onboardingCompletedAt !== null,
     dietMode: after.profile.dietMode,
     firstLowCarbAt: after.profile.firstLowCarbAt,
-    kickstartRunning: await kickstartNotOver(storage, after.settings.homeTimeZone),
     q3YesWritten,
     kickstartOptIn: after.profile.kickstartOptIn,
     targets: after.targets,
   });
   const now = storage.env.now();
-  if (effects.endKickstart) await storage.repos.kickstart.endPeriod('readiness-gated');
   const patch: UpdatePatch<'profile'> = {
     ...(effects.restartCarbCeilingClock ? { carbCeilingStartedAt: now } : {}),
     ...(effects.setFirstLowCarb ? { firstLowCarbAt: now } : {}),
@@ -201,6 +174,21 @@ export async function reanswerAfterChange(storage: AppStorage, q: 'q3' | 'q6'): 
   await runGateEffects(storage, before.gates, q === 'q3');
 }
 
+/**
+ * A weigh-in written, edited or removed after setup (item 14's Log weight and Weigh-ins; item 13
+ * section 9.1 rule 2; HS-35). The gates' current weight can cross BMI 18.5, so the gate effects
+ * run in the same action, after the write: a running Kickstart ends at once when the weight turns
+ * low, and the carb-ceiling clocks restart when it no longer is. The weigh-in stands even if an
+ * effect cannot be written (the Kickstart end is latched and retried by the reconciler), so its
+ * own result is what the caller reports.
+ */
+export async function writeWeighIn<T>(storage: AppStorage, write: () => Promise<T>): Promise<T> {
+  const before = await readFresh(storage);
+  const result = await write();
+  await runGateEffects(storage, before.gates, false).catch(() => undefined);
+  return result;
+}
+
 /** The onboarding weigh-in: one row, updated in place, removed when cleared while optional (E36). */
 async function saveOnboardingWeight(storage: AppStorage, kg: number | null): Promise<void> {
   const { repos, env } = storage;
@@ -253,13 +241,15 @@ export async function saveProfile(
   await saveOnboardingWeight(storage, value.weightKg);
   // Kickstart is stored on only if the fresh records, with this save's birth year, height and
   // weight, leave it available (E14, E63).
-  const withValue = gateInputFromRecords({
-    rows: before.rows,
-    birthYear: value.birthYear,
-    heightCm: value.heightCm,
-    currentWeightKg: latestWeightKg(await repos.weights.list()),
-    today: localDateOf(now, env.timeZone()),
-  });
+  const withValue = weightGateInput(
+    {
+      readiness: before.rows,
+      profile: { birthYear: value.birthYear, heightCm: value.heightCm },
+      weights: await repos.weights.list(),
+      homeTimeZone: before.settings.homeTimeZone,
+    },
+    localDateOf(now, env.timeZone()),
+  );
   const kickstartOptIn = value.kickstartOptIn && readinessGates(withValue).kickstartAvailable;
   await repos.profile.update({
     ...common,

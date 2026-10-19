@@ -7,7 +7,7 @@ import { saveProfile } from '../../onboarding/actions';
 import { profileDraftFrom } from '../../onboarding/drafts';
 import { ProfileForm } from '../../onboarding/forms/ProfileForm';
 import { focusFirstInvalid } from '../../onboarding/forms/profileErrors';
-import { type ReadinessGateView, useReadinessGates } from '../../onboarding/state';
+import { gateWeightKgOf, type ReadinessGateView, useReadinessGates } from '../../onboarding/state';
 import { SaveError } from '../../onboarding/SaveError';
 import { useSave } from '../../onboarding/useSave';
 import { useStore } from '../../store';
@@ -45,7 +45,7 @@ function ProfileSettings({
   const check = checkProfileForm(draft, {
     mode: 'settings',
     readiness: view.input,
-    storedWeightKg: view.state.latestWeightKg,
+    storedWeightKg: gateWeightKgOf(view.state, env),
     today,
     storedGoalKg: view.state.profile.goalKg,
   });

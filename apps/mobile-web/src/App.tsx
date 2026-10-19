@@ -10,6 +10,7 @@ import {
 import { useEffect, useRef, type ReactElement } from 'react';
 import { APP_NAME } from './appName';
 import { type FailureStatus, type OpenStatus, openStatusStore } from './db/db';
+import { appStorageStore } from './db/runtime';
 import { goToTab, markEntryAboveToday } from './navigation';
 import { OnboardingGate } from './onboarding/OnboardingGate';
 import { offlineCopyStore } from './pwa/offline';
@@ -35,6 +36,8 @@ import { SettingsScreen } from './screens/SettingsScreen';
 import { StorageFailureScreen } from './screens/StorageFailureScreen';
 import { TodayScreen } from './screens/TodayScreen';
 import { UpdateBanner } from './screens/UpdateBanner';
+import { KickstartReconciler } from './screens/weight/KickstartReconciler';
+import { WeightScreen } from './screens/weight/WeightScreen';
 import { useStore } from './store';
 import { useRoute } from './useRoute';
 
@@ -77,6 +80,8 @@ function screenFor(route: RouteId): ReactElement {
       return <ProfileScreen />;
     case 'eating-schedule':
       return <EatingScheduleScreen />;
+    case 'weight':
+      return <WeightScreen />;
   }
 }
 
@@ -86,15 +91,21 @@ const isFailure = (status: OpenStatus): status is FailureStatus =>
 /**
  * The app. When the database cannot be used (section 7.4 of the storage spec), a storage failure
  * screen replaces everything, so Settings and delete-all cannot be reached from it. Until setup is
- * finished, the first-run flow replaces the shell (item 13; HS-20).
+ * finished, the first-run flow replaces the shell (item 13; HS-20). The Kickstart reconciler (item
+ * 14) runs beside it on every screen, so a Kickstart whose readiness answers went missing after
+ * setup (the repair questions) is still ended; it writes nothing until setup has been finished.
  */
 export function App(): ReactElement {
   const status = useStore(openStatusStore);
+  const storage = useStore(appStorageStore);
   if (isFailure(status)) return <StorageFailureScreen status={status} />;
   return (
-    <OnboardingGate>
-      <Shell />
-    </OnboardingGate>
+    <>
+      {storage === null ? null : <KickstartReconciler storage={storage} />}
+      <OnboardingGate>
+        <Shell />
+      </OnboardingGate>
+    </>
   );
 }
 

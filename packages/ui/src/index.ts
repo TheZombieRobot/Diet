@@ -43,6 +43,7 @@ export { TabBar, type TabBarProps, type TabItem } from './components/TabBar';
 export { TagList, type TagListProps } from './components/TagList';
 export { TextField, type TextFieldProps } from './components/TextField';
 export { TopBar, type TopBarProps } from './components/TopBar';
+export { CHART_MIN_SPAN_KG, TrendChart, type TrendChartProps } from './components/TrendChart';
 export * from './icons';
 export { applyTheme, currentThemePreference, type ThemePreference } from './theme';
 export {

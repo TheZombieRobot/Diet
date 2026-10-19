@@ -131,9 +131,10 @@ describe('every screen', () => {
 });
 
 describe('placeholder screens (no sample data)', () => {
-  const placeholders = ROUTES.filter(
-    (r) => r !== 'about' && r !== 'readiness' && r !== 'profile' && r !== 'eating-schedule',
-  );
+  // About, the setup screens (item 13) and the Weight screen (item 14) are built; the rest still
+  // say they arrive later.
+  const built: readonly RouteId[] = ['about', 'readiness', 'profile', 'eating-schedule', 'weight'];
+  const placeholders = ROUTES.filter((r) => !built.includes(r));
 
   it.each(placeholders)(
     '%s says it arrives later and shows no numbers or prices',

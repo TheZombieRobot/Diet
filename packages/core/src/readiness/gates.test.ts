@@ -8,7 +8,8 @@ import {
   READINESS_WORDING,
   readinessInputFromRows,
 } from '../storage/readiness';
-import type { ReadinessRecord } from '../storage/records';
+import type { KickstartPeriodRecord, ReadinessRecord } from '../storage/records';
+import { kickstartEndNeeded } from '../weight/phase';
 import {
   ageCrossCheck,
   featureGate,
@@ -488,7 +489,6 @@ describe('gateChangeEffects (U15; E17, E52, E65)', () => {
     onboardingCompleted: true,
     dietMode: 'keto',
     firstLowCarbAt: T1,
-    kickstartRunning: false,
     q3YesWritten: false,
     kickstartOptIn: false,
     targets: { fastingPreset: null, presetChosenBy: null },
@@ -496,12 +496,37 @@ describe('gateChangeEffects (U15; E17, E52, E65)', () => {
   });
   const closedBy2 = readinessGates(input({ q2: 'yes' }));
 
-  it('a running Kickstart ends when Kickstart closes, and only then', () => {
-    expect(gateChangeEffects(open, closedBy2, ctx({ kickstartRunning: true })).endKickstart).toBe(
-      true,
-    );
-    expect(gateChangeEffects(open, open, ctx({ kickstartRunning: true })).endKickstart).toBe(false);
-    expect(gateChangeEffects(open, closedBy2, ctx()).endKickstart).toBe(false);
+  it('a running or not yet started Kickstart ends when Kickstart closes, and only then, by one rule (item 14 kickstartEndNeeded)', () => {
+    // Day 1 is 1 March 2000 in Auckland; 21 days run to 21 March.
+    const period: KickstartPeriodRecord = {
+      id: 'period-1',
+      startedAt: '2000-03-01T00:00:00.000Z',
+      timeZone: 'Pacific/Auckland',
+      endedAt: null,
+      endedTimeZone: null,
+      endReason: null,
+    };
+    const endAt = (now: string, today: string, gates: ReadinessGates) =>
+      kickstartEndNeeded({
+        now,
+        today,
+        deviceTimeZone: 'Pacific/Auckland',
+        homeTimeZone: 'Pacific/Auckland',
+        dietMode: 'keto',
+        carbCeilingStartedAt: period.startedAt,
+        gates,
+        periods: [period],
+        checks: [],
+      });
+    const running = ['2000-03-05T00:00:00.000Z', '2000-03-05'] as const;
+    const notStarted = ['2000-02-28T00:00:00.000Z', '2000-02-28'] as const;
+    const over = ['2000-03-25T00:00:00.000Z', '2000-03-25'] as const;
+    expect(endAt(...running, closedBy2)).toBe('readiness-gated');
+    expect(endAt(...notStarted, closedBy2)).toBe('readiness-gated');
+    expect(endAt(...running, open)).toBeNull();
+    expect(endAt(...over, closedBy2)).toBeNull();
+    // The gate effects carry no second end rule of their own.
+    expect(Object.keys(gateChangeEffects(open, closedBy2, ctx()))).not.toContain('endKickstart');
   });
 
   it('the carb-ceiling clock restarts when the keto ceiling reopens in keto mode after setup only', () => {

@@ -11,7 +11,7 @@ import {
 } from './routes';
 
 describe('hash routes', () => {
-  it('has the five tabs of UX_SCREENS.md in order, plus Settings, About and the setup screens', () => {
+  it('has the five tabs of UX_SCREENS.md in order, plus Settings, About, the setup screens and Weight', () => {
     expect(TAB_ROUTES.map((r) => ROUTE_TITLES[r])).toEqual([
       'Today',
       'Food',
@@ -26,7 +26,9 @@ describe('hash routes', () => {
       'readiness',
       'profile',
       'eating-schedule',
+      'weight',
     ]);
+    expect(ROUTE_TITLES.weight).toBe('Weight');
   });
 
   it.each(ROUTES)('reads #/%s back from its own link', (route) => {

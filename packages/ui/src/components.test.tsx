@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { createRef } from 'react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import {
   ActionRow,
   AppShell,
@@ -29,7 +29,9 @@ import {
   TagList,
   TextField,
   TodayIcon,
+  TrendChart,
   type TabItem,
+  type TrendChartProps,
 } from './index';
 import componentsCss from './styles/components.css?raw';
 import tokensCss from './styles/tokens.css?raw';
@@ -701,5 +703,136 @@ describe('first-run components (item 13; K19)', () => {
     const block = componentsCss.slice(componentsCss.indexOf('/* ---- First-run steps'));
     expect(block.length).toBeGreaterThan(100);
     expect(block).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(/i);
+  });
+});
+
+describe('the weight chart and inline answers (item 14)', () => {
+  const week = Array.from({ length: 7 }, (_, index) => ({ index, value: 100 - index * 0.3 }));
+  const chart = (props: Partial<TrendChartProps> = {}) =>
+    render(
+      <TrendChart
+        days={28}
+        points={week}
+        line={week.slice(2)}
+        band={week.map(({ index, value }) => ({ index, low: value - 1, high: value }))}
+        todayIndex={6}
+        ariaLabel="Chart of your weight over four weeks."
+        xLabels={['Week 1', 'Week 2', 'Week 3', 'Week 4']}
+        {...props}
+      />,
+    );
+
+  it('HS-26, WT-10: the band is one unstroked filled path; the drawing holds no text, title or description', () => {
+    const { container } = chart();
+    const svg = screen.getByRole('img', { name: 'Chart of your weight over four weeks.' });
+    const bands = svg.querySelectorAll('.ui-trend-chart__band');
+    expect(bands).toHaveLength(1);
+    expect(bands[0]?.getAttribute('stroke')).toBe('none');
+    expect(svg.querySelectorAll('text, title, desc')).toHaveLength(0);
+    expect(svg.textContent).toBe('');
+    // The week labels are HTML under the drawing.
+    const labels = container.querySelector('.ui-trend-chart__labels');
+    expect(labels?.textContent).toBe('Week 1Week 2Week 3Week 4');
+    expect(svg.contains(labels)).toBe(false);
+  });
+
+  it('draws no band when there is none', () => {
+    chart({ band: null });
+    expect(screen.getByRole('img').querySelector('.ui-trend-chart__band')).toBeNull();
+  });
+
+  it('HS-26: nothing can draw a horizontal line, a target or an axis value', () => {
+    expectTypeOf<keyof TrendChartProps>().toEqualTypeOf<
+      'days' | 'points' | 'line' | 'band' | 'todayIndex' | 'ariaLabel' | 'xLabels' | 'legend'
+    >();
+  });
+
+  it('W20: a flat series is drawn on a 2 kg span, level across the middle', () => {
+    const flat = week.map(({ index }) => ({ index, value: 90 }));
+    chart({ points: flat, line: flat, band: null });
+    const d =
+      screen.getByRole('img').querySelector('.ui-trend-chart__line')?.getAttribute('d') ?? '';
+    const ys = [...d.matchAll(/[ML][\d.]+ ([\d.]+)/g)].map((m) => Number(m[1]));
+    expect(ys).toHaveLength(7);
+    expect(new Set(ys)).toEqual(new Set([52]));
+  });
+
+  it('ChoiceList inline: a question in sentence type with answers side by side, none chosen at first; disabled while saving', () => {
+    const onChange = vi.fn();
+    const options = [
+      { value: 'yes', label: 'Yes' },
+      { value: 'no', label: 'No' },
+    ];
+    const { rerender } = render(
+      <ChoiceList
+        layout="inline"
+        legend="Feeling faint?"
+        name="faint"
+        options={options}
+        value={null}
+        onChange={onChange}
+        hint="Answer each one."
+      />,
+    );
+    const group = screen.getByRole('radiogroup', { name: 'Feeling faint?' });
+    expect(group.tagName).toBe('FIELDSET');
+    expect(group.classList.contains('ui-choices--inline')).toBe(true);
+    expect(group.getAttribute('aria-describedby')).not.toBeNull();
+    const radios = within(group).getAllByRole('radio');
+    expect(radios.map((r) => (r as HTMLInputElement).checked)).toEqual([false, false]);
+    expect(new Set(radios.map((r) => r.getAttribute('name')))).toEqual(new Set(['faint']));
+    fireEvent.click(screen.getByRole('radio', { name: 'No' }));
+    expect(onChange).toHaveBeenCalledWith('no');
+    rerender(
+      <ChoiceList
+        layout="inline"
+        legend="Feeling faint?"
+        name="faint"
+        options={options}
+        value="no"
+        onChange={onChange}
+        disabled
+      />,
+    );
+    expect(screen.getByRole<HTMLInputElement>('radio', { name: 'No' }).checked).toBe(true);
+    for (const radio of screen.getAllByRole<HTMLInputElement>('radio')) {
+      expect(radio.matches(':disabled')).toBe(true);
+    }
+  });
+
+  it('answers are at least 48 px; a stat with no figure is smaller and in the secondary colour', () => {
+    const style = document.createElement('style');
+    style.textContent = `${tokensCss}\n${componentsCss}`;
+    document.head.append(style);
+    render(
+      <ChoiceList
+        layout="inline"
+        legend="Q"
+        name="q"
+        options={[{ value: 'a', label: 'A' }]}
+        value={null}
+        onChange={() => undefined}
+      />,
+    );
+    // Inside its 1 px border (2 px when chosen) the answer is still at least 48 px each way.
+    const answer = document.querySelector('.ui-choices--inline .ui-choice');
+    expect(answer === null ? 0 : resolvedPx(answer, 'min-height')).toBeGreaterThanOrEqual(52);
+    expect(answer === null ? 0 : resolvedPx(answer, 'min-width')).toBeGreaterThanOrEqual(52);
+    const rule = (selector: string) => {
+      const at = componentsCss.indexOf(`${selector} {`);
+      return componentsCss.slice(at, componentsCss.indexOf('}', at));
+    };
+    expect(rule('.ui-stat__value--empty')).toContain('font-size: 15px');
+    expect(rule('.ui-stat__value--empty')).toContain('var(--color-secondary)');
+    expect(rule('.ui-stat__value')).toContain('font-size: 24px');
+    for (const selector of [
+      '.ui-pill--teal',
+      '.ui-note',
+      '.ui-trend-chart__band',
+      '.ui-stat__label',
+    ]) {
+      expect(rule(selector), selector).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(/i);
+      expect(rule(selector), selector).toMatch(/var\(--color-/);
+    }
   });
 });

@@ -1040,6 +1040,286 @@ export const garden = {
   },
 } as const;
 
+/** Weight log, phases and trend (HEALTH_SAFETY section 2; UX_SCREENS section 2 card 1; item 14). */
+export const weight = {
+  card: {
+    label: 'Weight',
+    latest: 'Latest',
+    latestOn: 'Latest, {date}',
+    average7: '7-day average',
+    average14: '14-day average',
+    goalStat: 'Long-term goal',
+    milestoneStat: 'Next milestone {kg} kg',
+    needsShort: 'Needs more weigh-ins',
+    needs7: 'The 7-day average needs weigh-ins on at least 3 of the last 7 days.',
+    needs14: 'The 14-day average needs weigh-ins on at least 6 of the last 14 days.',
+    notSetShort: 'Not set',
+    needsUpdatingShort: 'Needs updating',
+    needsHeightShort: 'Needs your height',
+    kg: '{kg} kg',
+    noWeighIns: 'No weigh-ins yet. Log one to start your trend.',
+    noWeighInsBlock: 'No weigh-ins yet in these four weeks.',
+    logWeight: 'Log weight',
+    details: 'Weigh-ins and trend',
+  },
+  entry: {
+    fieldLabel: 'Weight (kg)',
+    lastHint: 'Last weigh-in: {kg} kg, {date}.',
+    sameAsLast: 'Same as last time',
+    less: 'Less 0.1 kg',
+    more: 'More 0.1 kg',
+    save: 'Save weigh-in',
+    cancel: 'Cancel',
+    saved: 'Saved {kg} kg at {time}.',
+    changeWhen: 'Change the date or time',
+    dateLabel: 'Date',
+    timeLabel: 'Time',
+    noteLabel: 'Note (optional)',
+    future: 'That time is still to come. Choose a time up to now.',
+    notANumber: 'Enter the weight as a number, such as 82.5.',
+    outOfRange: 'Enter a weight from 20 to 400 kg.',
+    bigChange: 'That is {diff} kg from your last weigh-in. Is the number right?',
+    saveAnyway: 'Save anyway',
+    checkAgain: 'Check the number',
+    saveFailed: 'The weigh-in could not be saved. Nothing was changed. Try again.',
+  },
+  list: {
+    label: 'Weigh-ins',
+    empty: 'No weigh-ins yet.',
+    row: '{date}, {time}: {kg} kg',
+    firstWeight: 'First weight',
+    edit: 'Edit',
+    delete: 'Delete',
+    deleteConfirm: 'Delete this weigh-in? This cannot be undone.',
+    deleteYes: 'Delete weigh-in',
+    cancel: 'Cancel',
+    saveChanges: 'Save changes',
+    showOlder: 'Show older weigh-ins',
+    deleteFailed: 'The weigh-in could not be deleted. Nothing was changed. Try again.',
+  },
+  trend: {
+    label: 'Trend',
+    weeklyChange: 'Weekly change',
+    down: 'Down {kg} kg a week',
+    up: 'Up {kg} kg a week',
+    level: 'About level',
+    notEnough: 'Not enough weigh-ins yet',
+    howToReadLabel: 'How to read this',
+    howToRead:
+      'Weight moves from day to day with water, salt and the food in your stomach: a litre of water is a kilogram. The 7-day average smooths that out, so it is the number to watch.',
+  },
+  chart: {
+    ariaWithBand:
+      'Chart of your weight over four weeks, with a shaded typical range. The range is not a promise.',
+    ariaNoBand: 'Chart of your weight over four weeks.',
+    ariaLong: 'Chart of your weight over the last {days} days.',
+    week: 'Week {n}',
+    bandLegend: 'Shaded: typical range, not a promise',
+    lineLegend: 'Dots: weigh-ins. Line: 7-day average.',
+    trendLine: 'This is a trend, not a promise.',
+    noAnchor: 'The shaded range shows once there is a weigh-in near the start of these four weeks.',
+    viewsLabel: 'Chart length',
+    fourWeeks: '4 weeks',
+    days30: '30 days',
+    days90: '90 days',
+    aboutBand:
+      'The shaded range is a rough typical range, not a promise and not a target. In Steady it follows about 0.5–1 kg a week, and never faster than your weight check-in setting. In your first Kickstart it is steeper for two weeks, mostly water and glycogen, then flattens.',
+  },
+  phase: {
+    label: 'Phase',
+    kickstartChip: 'Kickstart, week {week} of {weeks}',
+    steadyChip: 'Steady',
+    kickstartNote:
+      'Kickstart: a fast drop is expected now. Most of it is water and glycogen, with some fat. Typical first weeks on a carb ceiling see several kilograms go.',
+    kickstartExtendedNote:
+      'Extended Kickstart. The early drop, mostly water and glycogen, belongs to your first three Kickstart weeks; from here the pace is watched the same way as in Steady.',
+    kickstartLaterNote:
+      'Kickstart. The early drop, mostly water and glycogen, belongs to your first three Kickstart weeks; from here the pace is watched the same way as in Steady.',
+    kickstartDue: 'Kickstart is due to finish on {date}.',
+    // A start dated ahead (the phone's clock was ahead when it started; item 12's 'not-started').
+    notStartedNote:
+      "Your Kickstart has not started yet: by this phone's date, its first day has not come. Until it does, you are in Steady.",
+    notStartedDay1:
+      "By this phone's date, its first day is {date}. If the date was wrong when you started it, you can end it now.",
+    extensionsUsed: 'Extensions used: {used} of 3.',
+    steadyPace: 'About 0.5–1 kg a week is the pace associated with keeping weight off.',
+    steadyRebound:
+      'The rebound after Kickstart (a kilogram or two returning when carbs or salt go up) is water, not failure.',
+    gated:
+      'Kickstart, the typical range and the pace notes are switched off by your readiness answers or age. Your weigh-ins and trend still show.',
+    gatedUnanswered:
+      'Kickstart, the typical range and the pace notes stay off until the readiness questions are answered. Your weigh-ins and trend still show.',
+    lowWeight:
+      'Your recent weight is below a BMI of 18.5 for your height. Please check in with your GP, and look again at readiness question 5. Your weigh-ins and trend still show.',
+    readinessLink: 'See your readiness answers',
+  },
+  goal: {
+    label: 'Long-term goal',
+    none: 'No long-term goal set.',
+    set: 'Set a long-term goal',
+    change: 'Change the long-term goal',
+    milestoneLabel: 'Next milestone',
+    milestoneExplain:
+      'The long-term goal is approached a step at a time. Your next milestone is {kg} kg, no more than 20% below your current weight.',
+    milestoneIsGoal:
+      'Your long-term goal is within 20% of your current weight, so it is also your next milestone.',
+    milestoneNeedsWeighIn: 'Log a weigh-in to see your next milestone.',
+    fieldLabel: 'Long-term goal (kg)',
+    fieldHint:
+      'This is long-term. It never sets your daily amounts, your pace or the typical range.',
+    save: 'Save long-term goal',
+    remove: 'Remove long-term goal',
+    removeConfirm: 'Remove the long-term goal? Your weigh-ins stay.',
+    cancel: 'Cancel',
+    belowBmiFloor:
+      'A long-term goal cannot be set below a BMI of 18.5 for your height. Choose a higher one.',
+    notBelowWeight:
+      'A long-term goal is a weight below your current weight. Leave it empty if you do not want one.',
+    needsHeight:
+      'Enter your height in your profile first, so the app can check a long-term goal against a BMI of 18.5.',
+    needsWeighIn: 'Log a weigh-in first, then set the long-term goal.',
+    notANumber: 'Enter the weight as a number, such as 82.5.',
+    outOfRange: 'Enter a weight from 20 to 400 kg.',
+    needsUpdating: 'Your long-term goal needs updating for your height.',
+    gated:
+      'Setting a long-term goal is switched off by your readiness answers or age. Your weigh-ins and trend still show.',
+    saveFailed: 'The long-term goal could not be saved. Nothing was changed. Try again.',
+  },
+  fluctuation: {
+    label: 'About daily changes',
+    body: 'Day-to-day weight goes up and down with water, salt and the food in your stomach: a litre of water is a kilogram. Watch the 7-day average rather than any one morning.',
+    gotIt: 'Got it',
+  },
+  rapidLoss: {
+    label: 'Weight check-in',
+    body: "You're still losing quickly. That's worth a check-in with your GP, especially on a low-carb plan.",
+    detail:
+      'Your 7-day average has dropped by more than {threshold} kg a week, {weeks} weeks in a row.',
+    hideToday: 'Hide for today',
+    returns: 'It comes back tomorrow while the pattern continues.',
+  },
+  rapidLossSettings: {
+    label: 'Weight check-in card',
+    explain1:
+      'This card suggests a check-in with your GP when your weekly average keeps falling quickly. It never shows in your first three Kickstart weeks, when a fast drop is mostly water and glycogen.',
+    open: 'Read about this setting',
+    openAfterRead: 'Change this setting',
+    close: 'Close',
+    explain2: 'By default it shows after 3 weeks in a row of losing more than 1 kg a week.',
+    explain3:
+      'You can make it more sensitive: from 0.75 kg a week, or 2 weeks in a row instead of 3. You cannot make it less sensitive or turn it off.',
+    readIt: 'I have read this',
+    thresholdLabel: 'Show it when the 7-day average falls faster than',
+    thresholdOption: '{kg} kg a week',
+    weeksLabel: 'Weeks in a row',
+    weeksOption: '{n} weeks',
+    reset: 'Back to the default',
+    saved: 'Saved.',
+    saveFailed: 'The setting could not be saved. Nothing was changed. Try again.',
+  },
+  stopSigns: {
+    label: 'Kickstart stop-signs',
+    intro:
+      'Stop-signs during Kickstart: dizziness on standing, palpitations, cramps that electrolytes do not settle, or feeling faint at work.',
+    action: 'Eat, add salt and fluids, and talk to Healthline or a GP if it continues.',
+    // The blood-pressure variant is readiness.bloodPressure.stopSign (item 13's key; section 1 point 6).
+    emergency: 'Call 111 if you faint or feel very unwell.',
+    afterCheckRunning:
+      'You told the app about a stop-sign, so Kickstart will not be extended. Eating more today is fine, and you can end Kickstart now.',
+    afterCheckEnded:
+      'You told the app about a stop-sign. Kickstart has ended. Eating more today is fine.',
+    endNow: 'End Kickstart now',
+    hideToday: 'Hide for today',
+  },
+  extension: {
+    label: 'Kickstart',
+    offer: 'Kickstart is due to finish on {date}. You can extend it by one week if you feel well.',
+    extend: 'Extend by one week',
+    notNow: 'Not now',
+    extended: 'Kickstart extended by one week. It is now week {week} of {weeks}.',
+    stopSign:
+      'Thanks for telling the app. Kickstart will not be extended. Eating more today is fine, and you can end Kickstart now.',
+    refusedWindow: 'Kickstart could not be extended: the offer is open only in its last 3 days.',
+    refusedCap:
+      'Kickstart could not be extended: it can run for at most 6 weeks and 3 extensions in all.',
+    refusedStopSign:
+      'Kickstart could not be extended: a stop-sign was reported for this Kickstart.',
+    saveFailed: 'Your answers could not be saved. Nothing was changed. Try again.',
+  },
+  check: {
+    title: 'How do you feel?',
+    introExtend: 'Answer each one. Any yes means Kickstart is not extended this time.',
+    introStart: 'Answer each one. Any yes means Kickstart does not start this time.',
+    dizzyOnStanding: 'Dizziness when you stand up?',
+    palpitations: 'Palpitations (a racing, pounding or fluttering heartbeat)?',
+    crampsNotSettling: 'Cramps that electrolytes do not settle?',
+    faintAtWork: 'Feeling faint at work?',
+    yes: 'Yes',
+    no: 'No',
+    energyLabel: 'Energy (optional)',
+    sleepLabel: 'Sleep (optional)',
+    ratingScale: '1 is very low, 5 is very good.',
+    unanswered: 'Answer all four questions first.',
+    confirmExtend: 'Extend Kickstart',
+    confirmStart: 'Start Kickstart',
+    cancel: 'Cancel',
+  },
+  start: {
+    offer:
+      'You can start a Kickstart: three weeks with the bigger deficit, protein protected, net carbs at 20 g and daily electrolytes. The app asks how you feel first.',
+    offerWindow:
+      'Starting it also moves the eating window to 23:1 (one meal) while Kickstart runs.',
+    pendingLabel: 'Kickstart',
+    pendingIntro: 'You chose Kickstart during setup. It starts only when you confirm it here.',
+    pendingWindow: 'Until it starts, the eating window is 22:2 (5 pm snack + dinner).',
+    action: 'Start a Kickstart',
+    pendingAction: 'Start Kickstart today',
+    notNow: 'Not now',
+    declined: 'Kickstart was not started. You can start one later from the Weight screen.',
+    started: 'Kickstart started today. It runs for three weeks.',
+    presetSet:
+      'During Kickstart the eating window is 23:1 (one meal). You can change it in Settings, Eating schedule.',
+    stopSign: 'Because of that answer, Kickstart has not started.',
+    unavailableMode: 'Kickstart runs only in keto-preferred mode.',
+    unavailableGated: 'Kickstart is switched off by your readiness answers or age.',
+    unavailableLowWeight:
+      'Kickstart is not offered while your recent weight is below a BMI of 18.5 for your height.',
+    unavailableToday: 'A new Kickstart can start from tomorrow.',
+    unavailableRecentStopSign:
+      'A stop-sign was reported in the last two weeks, so a new Kickstart cannot start yet.',
+    unavailableCap:
+      'Kickstart can run for at most 6 weeks in all, and a new one needs a full three weeks, so another one cannot start.',
+    saveFailed: 'Kickstart could not be started. Nothing was changed. Try again.',
+  },
+  end: {
+    action: 'End Kickstart now',
+    confirm:
+      'End Kickstart today? A new one can start later only if a full three weeks still fit in the 6-week limit.',
+    yes: 'End Kickstart',
+    cancel: 'Cancel',
+    ended: 'Kickstart ended. You are in Steady now.',
+    alreadyEnded: 'Kickstart has already finished.',
+    saveFailed: 'Kickstart could not be ended. Nothing was changed. Try again.',
+  },
+  steadyExplainer: {
+    label: 'Kickstart has finished',
+    deficit:
+      'The app now plans with the smaller Steady deficit instead of the bigger Kickstart one.',
+    carbs: 'Net carbs go back to your own ceiling of {g} g.',
+    window:
+      '23:1 was for Kickstart. Outside Kickstart the eating window is 22:2 (5 pm snack + dinner).',
+    use231: 'Use 23:1 instead',
+    kept231: 'The eating window is 23:1. You can change it in Settings, Eating schedule.',
+    ok: 'OK',
+  },
+  presetMoved: {
+    label: 'Eating window',
+    body: 'The eating window is now 22:2 (5 pm snack + dinner). 23:1 (one meal) is the Kickstart default and is used only while Kickstart runs.',
+    use231: 'Use 23:1 instead',
+    ok: 'OK',
+  },
+} as const;
+
 /** All sections, for scanning and review. */
 export const healthCopy = {
   helpNumbers,
@@ -1051,4 +1331,5 @@ export const healthCopy = {
   profile,
   schedule,
   garden,
+  weight,
 } as const;
