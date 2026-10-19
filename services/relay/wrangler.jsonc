@@ -1,0 +1,50 @@
+{
+  "name": "list-relay",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-09-15",
+  "send_metrics": false,
+  "workers_dev": true,
+  "preview_urls": false,
+  "upload_source_maps": false,
+  "logpush": false,
+  "observability": { "enabled": false, "logs": { "enabled": false, "invocation_logs": false } },
+  "tail_consumers": [],
+  "vars": { "RELAY_TTL_SECONDS": "900", "ALLOWED_ORIGINS": "https://thezombierobot.github.io" },
+  "kv_namespaces": [{ "binding": "RELAY_KV", "id": "OWNER-FILLS-IN-production-storage-id" }],
+  "ratelimits": [
+    {
+      "name": "RELAY_WRITE_LIMIT",
+      "namespace_id": "2901",
+      "simple": { "limit": 10, "period": 60 }
+    },
+    { "name": "RELAY_READ_LIMIT", "namespace_id": "2902", "simple": { "limit": 60, "period": 60 } }
+  ],
+  "env": {
+    "test": {
+      "name": "list-relay-test",
+      "workers_dev": true,
+      "preview_urls": false,
+      "upload_source_maps": false,
+      "logpush": false,
+      "observability": {
+        "enabled": false,
+        "logs": { "enabled": false, "invocation_logs": false }
+      },
+      "tail_consumers": [],
+      "vars": { "RELAY_TTL_SECONDS": "120", "ALLOWED_ORIGINS": "https://thezombierobot.github.io" },
+      "kv_namespaces": [{ "binding": "RELAY_KV", "id": "OWNER-FILLS-IN-test-storage-id" }],
+      "ratelimits": [
+        {
+          "name": "RELAY_WRITE_LIMIT",
+          "namespace_id": "2903",
+          "simple": { "limit": 10, "period": 60 }
+        },
+        {
+          "name": "RELAY_READ_LIMIT",
+          "namespace_id": "2904",
+          "simple": { "limit": 60, "period": 60 }
+        }
+      ]
+    }
+  }
+}

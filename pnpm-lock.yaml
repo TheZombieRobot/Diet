@@ -136,7 +136,15 @@ importers:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
 
-  services/relay: {}
+  services/relay:
+    dependencies:
+      '@diet/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+    devDependencies:
+      '@diet/test-fixtures':
+        specifier: workspace:*
+        version: link:../../packages/test-fixtures
 
 packages:
 

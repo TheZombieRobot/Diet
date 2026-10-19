@@ -16,6 +16,16 @@
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm scan",
     "scan": "vitest run --config tools/vitest.config.ts",
     "icons": "node tools/icons/render-icons.ts",
+    "relay:telemetry-off": "pnpm dlx wrangler@4.147.0 telemetry disable --config services/relay/wrangler.jsonc",
+    "relay:login": "pnpm dlx wrangler@4.147.0 login --config services/relay/wrangler.jsonc",
+    "relay:create-storage": "pnpm dlx wrangler@4.147.0 kv namespace create RELAY_KV --config services/relay/wrangler.jsonc --no-update-config",
+    "relay:create-test-storage": "pnpm dlx wrangler@4.147.0 kv namespace create RELAY_KV --config services/relay/wrangler.jsonc --env test --no-update-config",
+    "relay:list-storage": "pnpm dlx wrangler@4.147.0 kv namespace list --config services/relay/wrangler.jsonc",
+    "relay:deploy-test": "node tools/relay/deploy-check.ts test && pnpm dlx wrangler@4.147.0 deploy --config services/relay/wrangler.jsonc --env test",
+    "relay:deploy": "node tools/relay/deploy-check.ts production && pnpm dlx wrangler@4.147.0 deploy --config services/relay/wrangler.jsonc --env=",
+    "relay:logout": "pnpm dlx wrangler@4.147.0 logout --config services/relay/wrangler.jsonc",
+    "relay:dry-run": "pnpm dlx wrangler@4.147.0 deploy --config services/relay/wrangler.jsonc --env= --dry-run --outdir services/relay/.wrangler/dry-run",
+    "relay:smoke": "node tools/relay/smoke.ts",
     "prepare": "git config core.hooksPath .githooks || true"
   },
   "devDependencies": {

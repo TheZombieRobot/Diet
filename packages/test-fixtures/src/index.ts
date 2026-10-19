@@ -8,3 +8,6 @@ export * from './storage/fuzzMutations';
 export * from './storage/referenceEnvelopesV1';
 export * from './storage/snapshotV1';
 export * from './storage/testChains';
+
+// Grocery (checklist item 29): the 300-item list for TR-05a, shared with items 24 and 31.
+export * from './grocery/list300';

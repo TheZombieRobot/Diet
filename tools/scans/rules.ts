@@ -922,6 +922,29 @@ export const extensionPendingPathRule: PathRule = {
 };
 
 /**
+ * The relay is blind (checklist item 29; TR-02, HS-14). Its code and the shared relay protocol hold
+ * no encryption or key handling (crypto.subtle only as crypto.subtle.digest, for the room-id hash),
+ * never log and never use the Cache API. Read as raw text, comments included; the network rules
+ * already cover outbound requests from services/.
+ */
+export const relayBlindRules: readonly ContentRule[] = [
+  rule(
+    'relay-crypto',
+    ['TR-02'],
+    'encryption, decryption or key handling in the relay',
+    /\b(?:encrypt|decrypt|wrapKey|unwrapKey|importKey|exportKey|generateKey|deriveKey|deriveBits)\b|AES-GCM/,
+  ),
+  rule(
+    'relay-subtle',
+    ['TR-02'],
+    'crypto.subtle in the relay, other than crypto.subtle.digest(',
+    /\bsubtle\b(?!\.digest\()/,
+  ),
+  rule('relay-console', ['TR-02', 'HS-14'], 'console in the relay (it never logs)', /\bconsole\b/),
+  rule('relay-cache-api', ['TR-02'], 'the Cache API in the relay', /\bcaches\b/),
+];
+
+/**
  * Files that intentionally contain violations (rule definitions and their test inputs). They are
  * exempt from every content rule set, never from the path rules. Add a file only with a reason.
  */

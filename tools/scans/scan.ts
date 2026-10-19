@@ -21,6 +21,7 @@ import {
   personalPathRules,
   PRICE_FORMATTER_FILES,
   priceFormatRules,
+  relayBlindRules,
   serviceWorkerConfigRules,
   SSH_REMOTE_USERS,
   stockAndCartRules,
@@ -138,6 +139,22 @@ export const HEALTH_TEXT_HOME: RuleSet = {
   appliesTo: (f) => isScreenSource(f) && !isExempt(f),
 };
 
+/** The relay's code and the protocol it shares with the clients (checklist item 29; TR-02). */
+const isRelaySource = (f: string) =>
+  /^(?:services\/relay\/src|packages\/core\/src\/relay)\//.test(f) && isCode(f) && !isTestFile(f);
+
+/**
+ * The relay holds no key handling, logging or caching (checklist item 29). Kept out of RULE_SETS
+ * like HEALTH_TEXT_HOME: these are code rules, not wording, so the docs' required sentences are not
+ * run through them.
+ */
+export const RELAY_BLIND: RuleSet = {
+  name: 'blind relay',
+  rules: relayBlindRules,
+  text: 'raw',
+  appliesTo: (f) => isRelaySource(f) && !isExempt(f),
+};
+
 export const FEASIBILITY_DOC = 'docs/INTEGRATION_FEASIBILITY.md';
 
 export interface ExtensionDecision {
@@ -191,7 +208,12 @@ export function extensionPathRules(decision: ExtensionDecision): PathRule[] {
 }
 
 export function ruleSetsFor(root: string): RuleSet[] {
-  return [...RULE_SETS, HEALTH_TEXT_HOME, ...extensionRuleSets(readExtensionDecision(root))];
+  return [
+    ...RULE_SETS,
+    HEALTH_TEXT_HOME,
+    RELAY_BLIND,
+    ...extensionRuleSets(readExtensionDecision(root)),
+  ];
 }
 
 export function pathRulesFor(root: string): PathRule[] {
