@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { targets } from '../packages/core/src/copy/health';
 import { commerceRules, healthPhraseRules } from '../tools/scans/rules';
 import { scanText } from '../tools/scans/scan';
 import {
@@ -80,14 +81,23 @@ test('no screen but About and Weight shows a number or a price, even with every 
         page.locator('.ui-stat__value, .ui-trend-chart, [data-weigh-in-row]'),
       ).toHaveCount(0);
     }
+    // Diet and targets shows the owner's own figures and the allowed ranges by design (item 21).
     if (
       screen === 'About' ||
       screen === 'Weight' ||
+      screen === 'Diet and targets' ||
       (SETUP_SCREENS as readonly string[]).includes(screen)
     ) {
       return;
     }
-    const text = await renderedText(page);
+    let text = await renderedText(page);
+    if (screen === 'Today') {
+      // The Nutrition today card shows today's intake (none: every figure 0) against the owner's
+      // own stored ranges and guides, never sample data (item 21; targets.spec.ts checks them).
+      const nutrition = page.getByRole('region', { name: targets.today.label });
+      await expect(nutrition.locator('.ui-meter__value').first()).toHaveText('0 kJ');
+      text = text.replace(await nutrition.innerText(), '');
+    }
     if (/\d/.test(text))
       found.push(`${where}: a digit in ${JSON.stringify(text.match(/.*\d.*/)?.[0])}`);
     if (/[$€£]/.test(text)) found.push(`${where}: a currency sign`);

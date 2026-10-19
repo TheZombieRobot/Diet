@@ -30,10 +30,17 @@ StorageOperationError.prototype.name = 'StorageOperationError';
  * Repository rules that are not record invariants: a missing record, a fast already ended, a
  * confirmation with no answer, "done" on a card that can never be turned off, or a setup step out
  * of order (the alcohol notice un-acknowledged, or setup completed before the notice and all seven
- * readiness answers; item 13, E62).
+ * readiness answers; item 13, E62). Item 21: the diet mode is written only by the diet-mode
+ * switch, and leaving keto while a Kickstart runs needs the owner's confirmation (C56, T14, T35).
  */
 export type StorageRule =
-  'not-found' | 'already-ended' | 'confirmation-without-answer' | 'not-final' | 'onboarding-order';
+  | 'not-found'
+  | 'already-ended'
+  | 'confirmation-without-answer'
+  | 'not-final'
+  | 'onboarding-order'
+  | 'diet-mode-switch-only'
+  | 'kickstart-confirm-needed';
 
 export class StorageRuleError extends Error {
   readonly table: string;

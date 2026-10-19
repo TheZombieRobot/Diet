@@ -10,6 +10,7 @@ import {
   ButtonRow,
   Card,
   CheckList,
+  Chip,
   ChoiceList,
   currentThemePreference,
   DayBar,
@@ -17,11 +18,14 @@ import {
   FloatingActionPanel,
   IconButton,
   IconLink,
+  MeterBar,
+  meterRects,
   OFFLINE_LABEL,
   OFFLINE_NOT_READY_LABEL,
   Notice,
   OfflineIndicator,
   ONLINE_LABEL,
+  SelectField,
   StepFrame,
   Stepper,
   Switch,
@@ -834,5 +838,95 @@ describe('the weight chart and inline answers (item 14)', () => {
       expect(rule(selector), selector).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(/i);
       expect(rule(selector), selector).toMatch(/var\(--color-/);
     }
+  });
+});
+
+describe('meters, the select field and chips (item 21; K1 to K3b)', () => {
+  const rule = (selector: string) => {
+    const at = componentsCss.indexOf(`${selector} {`);
+    return componentsCss.slice(at, componentsCss.indexOf('}', at));
+  };
+
+  it('K1: a meter reads as its label and value; the bar is decorative, clamped, with a gap between parts', () => {
+    const { container, rerender } = render(
+      <MeterBar
+        label="Energy"
+        value="9,500 of 9,100 kJ"
+        segments={[
+          { fraction: 0.6, tone: 'ink' },
+          { fraction: 0.5, tone: 'alcohol' },
+        ]}
+        state="over"
+        notes={['A note']}
+      />,
+    );
+    const meter = container.querySelector('.ui-meter');
+    expect(meter?.textContent).toBe('Energy 9,500 of 9,100 kJA note');
+    expect(meter?.getAttribute('data-state')).toBe('over');
+    const svg = container.querySelector('svg');
+    expect(svg?.getAttribute('aria-hidden')).toBe('true');
+    const rects = [...container.querySelectorAll('rect')].map((r) => [
+      r.getAttribute('x'),
+      r.getAttribute('width'),
+      r.getAttribute('class'),
+    ]);
+    expect(rects).toEqual([
+      ['0', '60', 'ui-meter__fill ui-meter__fill--ink'],
+      ['61', '39', 'ui-meter__fill ui-meter__fill--alcohol'],
+    ]);
+    expect(meterRects([{ fraction: 2, tone: 'soft' }])).toEqual([
+      { x: 0, width: 100, tone: 'soft' },
+    ]);
+    expect(meterRects([{ fraction: -1, tone: 'soft' }])).toEqual([]);
+    rerender(<MeterBar label="Energy" value="9,500 kJ" segments={null} state="over" />);
+    expect(container.querySelector('svg')).toBeNull();
+    expect(container.querySelector('.ui-meter')?.hasAttribute('data-state')).toBe(false);
+    // HS-09: over changes only the soft fill's colour, to the amber token.
+    expect(rule(".ui-meter[data-state='over'] .ui-meter__fill--soft")).toContain(
+      'var(--color-amber-strong)',
+    );
+  });
+
+  it('K2: SelectField labels its select, reports a change, and draws an inline chevron in the text colour', () => {
+    const onChange = vi.fn();
+    render(
+      <SelectField
+        label="Steady deficit"
+        hint="From 15% to 20%."
+        value="15"
+        options={[
+          { value: '15', label: '15%' },
+          { value: '20', label: '20%' },
+        ]}
+        onChange={onChange}
+      />,
+    );
+    const select = screen.getByRole('combobox', { name: 'Steady deficit' });
+    expect(
+      document.getElementById(select.getAttribute('aria-describedby') ?? '')?.textContent,
+    ).toBe('From 15% to 20%.');
+    fireEvent.change(select, { target: { value: '20' } });
+    expect(onChange).toHaveBeenCalledWith('20');
+    const chevron = document.querySelector('.ui-select__chevron');
+    expect(chevron?.getAttribute('aria-hidden')).toBe('true');
+    expect(chevron?.querySelector('svg')?.getAttribute('stroke')).toBe('currentColor');
+    expect(rule('.ui-select__chevron')).toContain('color: var(--color-ink-soft)');
+  });
+
+  it('K3b: a chip carries its word, with a class for each tone', () => {
+    const { container } = render(
+      <>
+        <Chip>Label</Chip>
+        <Chip tone="neutral">Database</Chip>
+        <Chip tone="amber">Estimate</Chip>
+      </>,
+    );
+    expect(
+      [...container.querySelectorAll('span')].map((s) => [s.className, s.textContent]),
+    ).toEqual([
+      ['ui-chip', 'Label'],
+      ['ui-chip ui-chip--neutral', 'Database'],
+      ['ui-chip ui-chip--amber', 'Estimate'],
+    ]);
   });
 });

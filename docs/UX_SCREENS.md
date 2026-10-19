@@ -33,7 +33,7 @@ Top: date and a one-line status such as "Fasting 14 h 20 m. Snack window opens 5
 Cards, in order:
 1. **Weight.** Latest weight, 7-day average, long-term goal, phase chip ("Kickstart, week 2 of 3" or "Steady"). Four-week sparkline with a shaded front-loaded band labelled "typical range, not a promise". During Kickstart the note reads: "Kickstart: a fast drop is expected now, mostly water and glycogen with some fat." In Steady it reads: "About 0.5–1 kg a week is the pace that holds. A kilogram back after Kickstart is water, not failure." Under the long-term goal, "Next milestone" (never more than 20% below the current weight, worked out by the app). **Log weight** opens the entry in place; **Weigh-ins and trend** opens the Weight screen. Someone who chose Kickstart during setup and has not started one sees a **Start Kickstart today** card here, which asks the four stop-sign questions first.
 2. **Fast.** Big Start/End button, planned window, snack and dinner times. On 23:1 days a one-line meal check: "Tonight's dinner carries 138 g protein" or "Tonight's dinner carries 95 g protein. Add the 5 pm snack?" with a one-tap Add. If protein or energy is short: "It's fine to widen the window."
-3. **Nutrition so far.** Energy, protein, fibre, net carbs (if keto mode) as bars with targets. Each logged entry shows a small badge: Label, Database, or Estimate.
+3. **Nutrition today.** Energy (food, with alcohol as its own part), protein, fibre, net carbs (with the mode's ceiling; no bar in balanced) and saturated fat as bars. Each logged entry shows its time, name and a small badge: Label, Database, or Estimate. With readiness answer 1 or 5, figures are shown without targets.
 4. **Water and electrolytes.** Tap +250 mL; optional electrolyte tick.
 5. **Steps.** Manual entry, remembers yesterday's value for one-tap repeat.
 6. **Movement.** Today's session or "Rest day, that counts" with Start. After a session: exertion, soreness, energy, each 1–5 taps.
@@ -94,6 +94,8 @@ What is deliberately absent: streaks, badges, "calories left", "you've earned", 
 
 ## 7. Settings
 A "Your setup" card leads to **Readiness answers** (every answer, the confirmation switches and what the answers switch off; a change applies at once and deletes nothing), **Profile** (the setup fields except current weight, goal and Kickstart) and **Eating schedule** (only the reason while fasting is unavailable).
+
+**Diet and targets** (`#/targets`, from Settings, More; built at checklist item 21): diet mode (pick, then "Change diet mode"; leaving keto during a Kickstart asks first and ends it), the energy rough guide and what it is based on, today's energy target, the Kickstart and Steady deficits, the energy floor, protein, the carb ceilings, the saturated-fat budget, and the fibre and water guides. Each figure shows the value in use; an entry outside its range is refused with a message, never changed.
 
 Profile, eating schedule, readiness answers, diet mode, targets (protein, net carbs, saturated-fat budget), the drinking-day cut-over (drinks before 5 am count toward the previous evening; adjustable from midnight to 6 am, C21), the Weight check-in card (the rapid-loss bounds, only after reading their explanation, C46), the alcohol guidance set (C46), equipment (bands, dumbbells and the beach-jogging opt-in), household, allergens, dislikes (C43), hidden recipes and foods, store, pairing, Backup and data, About (not a medical device, emergency numbers, data sources and attribution, version). Units are fixed metric, so there is no units setting.
 

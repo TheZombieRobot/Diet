@@ -87,6 +87,19 @@ export const alcohol = {
     emergencyTitle: `Emergency: call ${helpNumbers.emergency.number}`,
     emergencyDetail: 'Seizures, confusion or hallucinations',
   },
+  /**
+   * Item 21: alcohol energy on the Nutrition today card and the Diet and targets screen, as its own
+   * part of the day's total (C11). Never shown while alcohol logging is unavailable (under 18), and
+   * an unknown drink is never shown as 0 (NN-01, C92).
+   */
+  dayEnergy: {
+    segment: 'Alcohol {kj} kJ',
+    segmentUnknown: 'Alcohol: energy unknown',
+    unknownOne: 'Energy is unknown for 1 drink, so the day total is incomplete.',
+    unknownMany: 'Energy is unknown for {count} drinks, so the day total is incomplete.',
+    foodOnly:
+      "Today's energy total includes alcohol as its own part. The floor and the meal checks count food only.",
+  },
 } as const;
 
 /**
@@ -1525,6 +1538,246 @@ export const move = {
     'The exercise plans could not be loaded. Nothing was changed. Reload the app; if this keeps happening, the app needs an update.',
 } as const;
 
+// ---- Diet and targets, and the Nutrition today card (checklist item 21) ----
+
+/**
+ * The Diet and targets screen, the Nutrition today card and the planner's floor lines
+ * (HEALTH_SAFETY section 4; UX 2 card 3, UX 3a and UX 7; C10, C11, C61, C65, C70, C71; item 21
+ * design section 4.2). Neutral indicator wording: going over a ceiling or budget changes a colour
+ * and nothing is judged (HS-09). Every number stated here is checked against the core constants
+ * (TARGET_COPY_FACTS; health.test.ts). The blood-pressure stop-sign and electrolyte lines are item
+ * 13's readiness.bloodPressure keys (cross-item ruling 5); the activity labels are item 13's
+ * profile.activity. The badge words (today.confidence) move to item 18's foods.badges when it
+ * lands, and its nutritionFooter supplies the attribution footer (item 18-20 contract 5 and 6).
+ */
+export const targets = {
+  settingsRow: {
+    title: 'Diet and targets',
+    detail: 'Diet mode, energy, protein, carbs, saturated fat and fibre',
+  },
+  screen: {
+    title: 'Diet and targets',
+    intro:
+      'These figures guide the planner and the Nutrition card on Today. They are guides, not medical advice: your GP or a dietitian can tailor them to you.',
+    missingAnswers:
+      'Some readiness questions have no answer yet, so the app treats them as yes. Answer them to see your figures.',
+    readFailed: 'These figures could not be read. Reload the app to try again.',
+  },
+  links: {
+    profile: { title: 'Profile', detail: 'Add or check your height and birth year' },
+    weight: { title: 'Weight', detail: 'Log a weigh-in' },
+  },
+  dietMode: {
+    label: 'Diet mode',
+    legend: 'Choose a mode',
+    names: {
+      keto: 'Keto-preferred',
+      'moderate-low-carb': 'Moderate low-carb',
+      balanced: 'Balanced',
+    },
+    details: {
+      keto: 'Net carbs under your keto ceiling.',
+      'moderate-low-carb': 'Net carbs under a wider ceiling.',
+      balanced: 'No carb ceiling. Net carbs are still shown.',
+      ceilingOff: 'No carb ceiling for now, because of your readiness answers.',
+    },
+    change: 'Change diet mode',
+    switchNote:
+      'Switching never deletes anything. Your plans and logs stay as they are, and suggestions are put in a new order for the mode you choose.',
+    saving: 'Changing the diet mode…',
+    switched: 'Diet mode is now {mode}.',
+    failed: 'The diet mode could not be changed. Nothing was changed.',
+    leaveKickstart: {
+      title: 'Leaving keto ends Kickstart',
+      body: 'Kickstart runs only with the keto carb ceiling. If you switch now, Kickstart ends today. It does not start again by itself if you come back to keto.',
+      confirm: 'Switch and end Kickstart',
+      cancel: 'Keep keto',
+    },
+  },
+  energy: {
+    label: 'Energy',
+    roughGuideTerm: 'Rough guide',
+    roughGuide: '{kj} kJ a day (about {kcal} kcal)',
+    basisTerm: 'Based on',
+    basisAverage: 'Your 7-day average weight, {kg} kg, and your activity',
+    basisHighestRecent:
+      'Your highest weigh-in in the last 7 days, {kg} kg on {date}, and your activity',
+    basisLatestOlder: 'Your last weigh-in, {kg} kg on {date}, and your activity',
+    staleWeight:
+      'That weigh-in is more than 14 days old. Log a weight to bring the guide up to date.',
+    how: 'The rough guide uses the Mifflin-St Jeor equation and an activity factor. It is an estimate, not a measurement.',
+    unavailable: {
+      unanswered:
+        'The app does not estimate energy until the under-18 readiness question is answered.',
+      under18Answer:
+        'The app does not estimate energy because your readiness answers say you are under 18.',
+      under18BirthYear:
+        'The app does not estimate energy because your birth year means you may be under 18.',
+      missingHeight: 'A rough guide needs your height.',
+      missingBirthYear: 'A rough guide needs your birth year.',
+      missingWeight: 'A rough guide needs a weigh-in.',
+      ageOutOfRange:
+        'The rough guide works only for ages from 18 to 110. Check your birth year in your profile.',
+      heightOutOfRange:
+        'The rough guide works only for heights from 120 to 230 cm. Check your height in your profile.',
+      weightOutOfRange:
+        'The rough guide works only for weights from 30 to 350 kg. Check your weigh-ins.',
+    },
+    targetTerm: "Today's energy target",
+    target: '{kj} kJ (about {kcal} kcal)',
+    noTarget: 'None',
+    kickstart:
+      'Kickstart: {pct}% below the rough guide, with protein held at {protein} g and net carbs at {carbs} g.',
+    kickstartNoDeficit:
+      'Kickstart with no deficit, because you set the Kickstart deficit to 0%. Protein is held at {protein} g and net carbs at {carbs} g.',
+    kickstartSuspended: {
+      readiness:
+        'Kickstart figures are not in use because of an answer in your readiness questions.',
+      'diet-mode': 'Kickstart figures are used only in keto mode.',
+      'mode-changed':
+        'Kickstart figures are not in use, because the app cannot confirm keto mode has run without a break since this Kickstart began. A Kickstart does not start again by itself.',
+      'stop-sign':
+        'Kickstart figures are paused for the rest of this Kickstart, because your last check reported a stop-sign. No deficit is planned.',
+      'no-estimate': 'Kickstart figures are not in use until there is a rough guide.',
+    },
+    steady: 'Steady: {pct}% below the rough guide.',
+    readinessNoDeficit:
+      'No deficit is planned because of an answer in your readiness questions. Meals are planned at the rough guide.',
+    pregnancyNote:
+      'The rough guide does not include the extra energy needed in pregnancy or while breastfeeding. A midwife or your GP can give you a figure.',
+    floorBinds:
+      'This is the energy floor. The planner never plans a day below {floorKj} kJ (about {floorKcal} kcal). The floor is a safety net, not a target.',
+    estimateBelowFloor:
+      'Your rough guide is below the {floorKj} kJ floor, so meals are planned at the floor with no deficit. Your GP or a dietitian can give you a better figure.',
+    noTargetNeedsGuide:
+      'With no rough guide there is no energy target, so the planner does not fill days by itself and Kickstart figures are not used. The {floorKj} kJ floor (about {floorKcal} kcal) still applies to every plan.',
+    noTargetNotEstimated: 'There is no energy target. The planner plans ordinary portions.',
+    kickstartDeficitLabel: 'Kickstart deficit',
+    kickstartDeficitHint:
+      'Used only while a Kickstart is running. Up to 30% below the rough guide; you can choose less, never more.',
+    kickstartUnavailable:
+      'Kickstart is not available because of an answer in your readiness questions.',
+    steadyDeficitLabel: 'Steady deficit',
+    steadyDeficitHint: 'From 15% to 20% below the rough guide; 15% unless you change it.',
+    deficitOption: '{pct}%',
+    deficitNotInUse: 'Not in use today: the energy floor applies.',
+    deficitOff: 'There is no deficit because of an answer in your readiness questions.',
+    floorLabel: 'Energy floor, kJ',
+    floorHint:
+      'Never below 5,000 kJ (about 1,200 kcal). You can set a higher floor, up to 20,000 kJ.',
+    floorTooLow: 'The floor cannot go below 5,000 kJ.',
+    floorTooHigh: 'The floor can be at most 20,000 kJ.',
+  },
+  /** HEALTH_SAFETY section 2; the blood-pressure variant is readiness.bloodPressure.stopSign. */
+  stopSign: {
+    action: `Eat, add salt and fluids, and talk to Healthline (${helpNumbers.healthline.number}) or your GP if it continues.`,
+    emergency: `In an emergency, call ${helpNumbers.emergency.number}.`,
+  },
+  protein: {
+    label: 'Protein',
+    minLabel: 'Lowest, g a day',
+    maxLabel: 'Highest, g a day',
+    hint: 'From 80 to 200 g a day; 120 to 140 g unless you change it.',
+    minAboveMax: 'The lowest figure cannot be above the highest.',
+    kickstart: 'During Kickstart, meals are checked against the top of your range: {max} g.',
+    steady:
+      'Outside Kickstart, meals are checked against the bottom of your range ({min} g) and planned inside it.',
+    unchanged: 'Protein does not change with the deficit or with your eating window.',
+    review: 'Worth reviewing with your GP or a dietitian, who can tailor it to you.',
+    plainNote: 'Shown as information only. Your GP or a dietitian can tailor protein to you.',
+  },
+  carbs: {
+    label: 'Carbs',
+    ketoLabel: 'Keto net-carb ceiling, g a day',
+    ketoHint: 'From 20 to 50 g; 30 g unless you change it.',
+    moderateLabel: 'Moderate low-carb ceiling, g a day',
+    moderateHint: 'From 50 to 130 g; 100 g unless you change it.',
+    kickstart:
+      'During Kickstart net carbs are {carbs} g. Your own ceiling applies again after Kickstart.',
+    balanced: 'Balanced mode has no carb ceiling. Net carbs are still shown.',
+    heldAt50:
+      'Your keto ceiling stays at 50 g until you confirm your prescriber has agreed. Low-carb eating and fasting can change how diabetes medicines act; check with your prescriber first.',
+    off: 'Carb ceilings are off because of an answer in your readiness questions. Net carbs are still shown, without a ceiling.',
+    meaning: 'Net carbs are carbohydrate without the fibre.',
+  },
+  saturatedFat: {
+    label: 'Saturated fat',
+    budgetLabel: "Budget, % of the day's planned energy",
+    budgetHint: 'From 5% to 10%; 10% unless you change it.',
+    percentOption: '{pct}%',
+    today: "Today's budget: {g} g, from {pct}% of {kj} kJ.",
+    noBudget: 'A budget needs an energy target, so saturated fat is shown without one.',
+    plainNote: 'Saturated fat is shown on Today without a budget.',
+    why: 'Keeping saturated fat down is part of the cholesterol-conscious default. Going over only changes the colour of the bar.',
+  },
+  guides: {
+    label: 'Fibre and water',
+    fibreLabel: 'Fibre guide, g a day',
+    fibreDefault:
+      'Default: {g} g a day, from the Nutrient Reference Values for Australia and New Zealand.',
+    fibreHint: 'From 10 to 70 g. Leave it empty to use the default.',
+    waterLabel: 'Water guide, mL a day',
+    waterDefault:
+      'Default: {ml} mL a day, from the Nutrient Reference Values for Australia and New Zealand. Drink more on hot days and when you are active.',
+    waterHint: 'From 1,000 to 6,000 mL. Leave it empty to use the default.',
+  },
+  form: {
+    save: 'Save',
+    saving: 'Saving…',
+    saved: 'Saved.',
+    failed: 'This could not be saved. Nothing was changed.',
+    wholeNumber: 'Enter a whole number.',
+    range: 'Enter a number from {min} to {max}.',
+    storedDiffers:
+      'The stored value, {stored}, is outside the allowed range, so {used} is used instead.',
+  },
+  today: {
+    label: 'Nutrition today',
+    energy: 'Energy',
+    energyOf: '{eaten} of {target} kJ',
+    energyOnly: '{eaten} kJ',
+    food: 'Food {kj} kJ',
+    protein: 'Protein',
+    proteinOf: '{eaten} of {target} g',
+    proteinOfRange: '{eaten} of {min}–{max} g',
+    fibre: 'Fibre',
+    fibreOf: '{eaten} of {guide} g guide',
+    netCarbs: 'Net carbs',
+    satFat: 'Saturated fat',
+    ofCeiling: '{eaten} / {ceiling} g',
+    gramsOnly: '{eaten} g',
+    atLeast: 'at least {eaten}',
+    nothingLogged: 'Nothing logged yet today.',
+    missingOne: '1 entry has no {nutrient} figure, so the total is at least what is shown.',
+    missingMany:
+      '{count} entries have no {nutrient} figure, so the total is at least what is shown.',
+    nutrientNames: {
+      energyKj: 'energy',
+      proteinG: 'protein',
+      carbsG: 'carbohydrate',
+      saturatedFatG: 'saturated fat',
+      fibreG: 'fibre',
+    },
+    floorDay: "Today's energy figure is the {floorKj} kJ floor: a safety net, not a target.",
+    plainNote: 'Shown without targets. Your GP or a dietitian can tell you what suits you.',
+    confidence: { label: 'Label', database: 'Database', estimate: 'Estimate' },
+  },
+  /** The planner's floor lines (item 22 shows them; HS-10, NU-06, C108, T3). */
+  plannerFloor: {
+    refused:
+      'The planner did not fill this day: it would come to under {floorKj} kJ (about {floorKcal} kcal), and it never plans a day below that floor.',
+    manualBelow:
+      'This day comes to under {floorKj} kJ (about {floorKcal} kcal), the floor the planner never goes below. Add food if you can.',
+    noGuide:
+      'The planner does not fill days by itself without a rough guide of your energy needs. Diet and targets shows what is missing.',
+  },
+  /** The electrolyte card (item 22); its blood-pressure line is readiness.bloodPressure.electrolyte. */
+  electrolytes: {
+    title: 'Electrolytes',
+    body: 'Electrolytes: sodium, potassium, magnesium. Garden sources: silverbeet, spinach, avocado.',
+  },
+} as const;
+
 /** All sections, for scanning and review. */
 export const healthCopy = {
   helpNumbers,
@@ -1538,4 +1791,5 @@ export const healthCopy = {
   garden,
   weight,
   move,
+  targets,
 } as const;

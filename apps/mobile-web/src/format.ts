@@ -5,6 +5,7 @@
 import {
   DEFAULT_HOME_TIME_ZONE,
   type Instant,
+  kjToKcal,
   type LocalDate,
   parseLocalDate,
   resolveZone,
@@ -62,4 +63,19 @@ export function formatLocalDay(date: LocalDate): string {
 /** A weight with one decimal: "96.8", "100.0". */
 export function formatKg(kg: number): string {
   return roundTo(kg, 1).toFixed(1);
+}
+
+/** A weight with one decimal, dropping a trailing ".0": "96.8", "100" (item 21). */
+export function formatKgShort(kg: number): string {
+  return String(roundTo(kg, 1));
+}
+
+/** A whole number with thousands commas, as New Zealand English writes it: "9,100" (item 21). */
+export function formatWhole(n: number): string {
+  return roundTo(n, 0).toLocaleString('en-NZ');
+}
+
+/** kJ as "about N kcal", to the nearest 10: 5,000 kJ reads "1,200", as HEALTH_SAFETY writes it (T15). */
+export function formatAboutKcal(kj: number): string {
+  return formatWhole(roundTo(kjToKcal(kj) / 10, 0) * 10);
 }

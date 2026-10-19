@@ -89,7 +89,8 @@ describe('the first-run guard (HS-20, C41, C53)', () => {
     }
     tap(onboarding.frame.continue);
     await headingIs(alcohol.notice.title);
-  });
+    // One app render per route, and the route list grows with the build (item 21 added one).
+  }, 15_000);
 
   it('K2: the notice has no way past it but "I understand", which is stored once', async () => {
     await openApp();

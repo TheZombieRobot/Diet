@@ -8,11 +8,23 @@ import { parseColourTokens, requireToken } from '../../packages/ui/src/tokens';
 export const TABS = ['Today', 'Food', 'Move', 'Drinks', 'List'] as const;
 /** The Settings screens for the setup answers (item 13), reached from Settings, "Your setup". */
 export const SETUP_SCREENS = ['Readiness answers', 'Profile', 'Eating schedule'] as const;
-export const SCREENS = [...TABS, 'Settings', 'About', ...SETUP_SCREENS, 'Weight'] as const;
+export const SCREENS = [
+  ...TABS,
+  'Settings',
+  'About',
+  ...SETUP_SCREENS,
+  'Weight',
+  // Item 21: reached from Settings, More.
+  'Diet and targets',
+] as const;
 export type ScreenName = (typeof SCREENS)[number];
 
 /** Screens reached from Settings, which mark the settings gear as their section. */
-export const UNDER_SETTINGS: readonly ScreenName[] = ['About', ...SETUP_SCREENS];
+export const UNDER_SETTINGS: readonly ScreenName[] = [
+  'About',
+  ...SETUP_SCREENS,
+  'Diet and targets',
+];
 
 /** The app's base path, the same as on GitHub Pages. */
 export const BASE_PATH = '/Diet/';

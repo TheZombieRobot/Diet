@@ -1,3 +1,5 @@
+import { targets } from '@diet/core/copy/health';
+
 /**
  * Hash routes (#/today, #/food, ...). GitHub Pages has no server-side rewrites, so the route lives
  * after the '#' and every screen is served by the same index.html, online or offline.
@@ -16,6 +18,8 @@ export const ROUTES = [
   'eating-schedule',
   // Item 14: the Weight screen, opened from Today's Weight card.
   'weight',
+  // Item 21: Diet and targets, reached from Settings.
+  'targets',
 ] as const;
 export type RouteId = (typeof ROUTES)[number];
 
@@ -38,6 +42,7 @@ export const ROUTE_TITLES: Readonly<Record<RouteId, string>> = {
   profile: 'Profile',
   'eating-schedule': 'Eating schedule',
   weight: 'Weight',
+  targets: targets.screen.title,
 };
 
 const isRoute = (value: string): value is RouteId => (ROUTES as readonly string[]).includes(value);
@@ -54,7 +59,13 @@ export function parseRoute(hash: string): RouteId {
 }
 
 /** The screens reached from Settings, which light up the settings gear with it. */
-const UNDER_SETTINGS: readonly RouteId[] = ['about', 'readiness', 'profile', 'eating-schedule'];
+const UNDER_SETTINGS: readonly RouteId[] = [
+  'about',
+  'readiness',
+  'profile',
+  'eating-schedule',
+  'targets',
+];
 
 /** Settings and the screens reached from it light up the settings gear. */
 export const isUnderSettings = (route: RouteId): boolean =>

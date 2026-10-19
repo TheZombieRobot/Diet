@@ -9,6 +9,7 @@ import {
   profile,
   readiness,
   schedule,
+  targets,
   weight,
 } from '../../packages/core/src/copy/health';
 import { fillTemplate } from '../../packages/core/src/copy/template';
@@ -208,5 +209,18 @@ describe('Move copy matches the docs word for word (item 26)', () => {
     expect(move.preCheck.overCeiling).toBe(
       `${quoteAfter(fastingSection, 'If a running fast passes 24 hours') ?? ''} It's fine to eat now.`,
     );
+  });
+});
+
+describe('Diet and targets copy matches the docs word for word (item 21)', () => {
+  const nutritionSection = section(HEALTH_SAFETY, /^## 4\. /);
+
+  it('the diet-mode names are UX_SCREENS.md screen 3a, in order (C-3)', () => {
+    expect(UX_SCREENS).toContain(`(${Object.values(targets.dietMode.names).join(' / ')})`);
+  });
+
+  it('"the floor is a safety net, not a target" is HEALTH_SAFETY.md section 4', () => {
+    expect(nutritionSection).toContain('the floor is a safety net, not a target');
+    expect(targets.energy.floorBinds).toContain('The floor is a safety net, not a target.');
   });
 });
