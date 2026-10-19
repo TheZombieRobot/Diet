@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { FEASIBILITY_DOC, scanHistory, scanRepo } from './scan';
+import { FEASIBILITY_DOC, gitEnv, listRepoFiles, scanHistory, scanRepo } from './scan';
 
 // Checklist item 3 acceptance: a seeded violation fails the scan; removing it passes again.
 // Runs against throwaway git repositories so the real repository is never touched. Every seed is
@@ -30,7 +30,7 @@ describe('seeded violations in a throwaway repository', () => {
         'core.hooksPath=/dev/null',
         ...args,
       ],
-      { cwd: root, stdio: 'pipe' },
+      { cwd: root, stdio: 'pipe', env: gitEnv() },
     );
   const commitAll = (message: string) => {
     git('add', '-A');
@@ -57,6 +57,33 @@ describe('seeded violations in a throwaway repository', () => {
     expect(scanRepo(root)).toEqual([]);
     commitAll('Clean start');
     expect(scanHistory(root)).toEqual([]);
+  });
+
+  // The pre-commit hook runs these tests. Inside a hook, git exports GIT_DIR, GIT_INDEX_FILE and
+  // GIT_WORK_TREE, which in a linked worktree point at the real repository; the throwaway
+  // repository must still be the one that is read and written.
+  it('git variables exported by a hook never redirect the throwaway repository', () => {
+    const other = mkdtempSync(join(tmpdir(), 'diet-scan-other-'));
+    const saved = { ...process.env };
+    try {
+      execFileSync('git', ['init', '-q'], { cwd: other, stdio: 'pipe', env: gitEnv() });
+      process.env.GIT_DIR = join(other, '.git');
+      process.env.GIT_INDEX_FILE = join(other, '.git', 'index');
+      process.env.GIT_WORK_TREE = other;
+      write('src/a.ts', 'export const a = 1;\n');
+      expect(listRepoFiles(root)).toContain('src/a.ts');
+      commitAll('Clean start');
+      expect(scanHistory(root)).toEqual([]);
+      const head = (cwd: string) =>
+        execFileSync('git', ['rev-list', '--all', '--count'], { cwd, env: gitEnv() })
+          .toString()
+          .trim();
+      expect(head(root)).toBe('1');
+      expect(head(other)).toBe('0');
+    } finally {
+      process.env = saved;
+      rmSync(other, { recursive: true, force: true });
+    }
   });
 
   const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46, 0]);

@@ -334,6 +334,17 @@ export function scanPath(
 }
 
 /**
+ * The environment for git commands run by the scans: this process's environment without any GIT_*
+ * variable, so git finds the repository from the working directory it is given. Inside a git hook
+ * (the pre-commit hook runs these scans) git exports GIT_DIR, GIT_INDEX_FILE and others; in a
+ * linked worktree they are absolute paths, and a command meant for a throwaway test repository
+ * would act on the real one instead.
+ */
+export function gitEnv(): NodeJS.ProcessEnv {
+  return Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
+}
+
+/**
  * Every file that is committed or would be committed (tracked, plus untracked files that are not
  * ignored). Ignored files such as backups in docs/private/ are already kept out of git.
  */
@@ -341,7 +352,7 @@ export function listRepoFiles(root: string): string[] {
   const out = execFileSync(
     'git',
     ['ls-files', '-z', '--cached', '--others', '--exclude-standard'],
-    { cwd: root, encoding: 'utf8' },
+    { cwd: root, encoding: 'utf8', env: gitEnv() },
   );
   return [...new Set(out.split('\0').filter(Boolean))]
     .filter((f) => existsSync(join(root, f)))
@@ -374,6 +385,7 @@ export function scanRepo(root: string): Violation[] {
 const git = (root: string, args: readonly string[], input?: string): Buffer =>
   execFileSync('git', args, {
     cwd: root,
+    env: gitEnv(),
     maxBuffer: 1024 * 1024 * 1024,
     ...(input === undefined ? {} : { input }),
   });

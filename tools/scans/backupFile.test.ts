@@ -12,7 +12,7 @@ import {
 } from '../../packages/core/src/storage/backup/fileName';
 import { defaultSnapshot } from '../../packages/core/src/storage/defaults';
 import { personalDataRules, personalPathRules } from './rules';
-import { scanPath, scanText } from './scan';
+import { gitEnv, scanPath, scanText } from './scan';
 
 // BK-08 / C89 (storage spec section 16 test 46): every name the app gives a saved file is ignored
 // by git, a generated backup (plain and locked) trips the backup-marker content rule, and backup
@@ -41,7 +41,7 @@ const exportNames = exportKinds.map((kind) => exportFileName(kind, '2000-01-01')
 
 function ignored(path: string): boolean {
   try {
-    execFileSync('git', ['check-ignore', '--no-index', '-q', path], { cwd: root });
+    execFileSync('git', ['check-ignore', '--no-index', '-q', path], { cwd: root, env: gitEnv() });
     return true;
   } catch {
     return false;
