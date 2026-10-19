@@ -1,4 +1,4 @@
-import { onboarding, profile, readiness, schedule } from '@diet/core/copy/health';
+import { onboarding, profile, readiness, schedule, targets } from '@diet/core/copy/health';
 import { ActionRow, Button, Card, ChevronIcon, InstallIcon } from '@diet/ui';
 import type { ReactElement } from 'react';
 import { installStore, promptInstall } from '../pwa/install';
@@ -68,6 +68,15 @@ export function SettingsScreen(): ReactElement {
       <WeightCheckInSettings />
       <Card label="More">
         <ul className="ui-action-list">
+          {/* Item 21: diet mode and the targets (UX 7). */}
+          <li>
+            <ActionRow
+              href={routeHref('targets')}
+              title={targets.settingsRow.title}
+              detail={targets.settingsRow.detail}
+              badge={<ChevronIcon />}
+            />
+          </li>
           <li>
             <ActionRow
               href={routeHref('about')}
@@ -78,7 +87,7 @@ export function SettingsScreen(): ReactElement {
           </li>
         </ul>
       </Card>
-      <Placeholder coming="Settings for targets, the store and laptop pairing arrive with the steps that use them." />
+      <Placeholder coming="Settings for the store and laptop pairing arrive with the steps that use them." />
     </>
   );
 }

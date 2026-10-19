@@ -9,6 +9,8 @@ import { GATED_FEATURES, READINESS_REASON_IDS } from '../readiness/gates';
 import { USER_ALLERGENS } from '../storage/allergens';
 import { FLOOR_KJ, KICKSTART_MAX_DEFICIT_PCT, KICKSTART_NET_CARBS_G } from '../storage/limits';
 import { READINESS_QUESTION_IDS } from '../storage/readiness';
+import { TARGET_COPY_FACTS } from '../targets/copyFacts';
+import { DIET_MODES } from '../targets/dietModes';
 import {
   alcohol,
   fasting,
@@ -22,6 +24,7 @@ import {
   readiness,
   reflux,
   schedule,
+  targets,
 } from './health';
 import { fillTemplate, joinList } from './template';
 
@@ -62,6 +65,10 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
     /\byou\s+should\s+stop\b/i,
     // Item 13: help after a change is never played down (the notice's "Why am I seeing this?").
     /\b(?:too\s+late|works\s+best\s+before|only\s+before|no\s+point)\b/i,
+    // Item 21 (C11): alcohol energy is never a budget, and nothing is "left" or "remaining".
+    /\bbudget\b/i,
+    /\bleft\b/i,
+    /\bremaining\b/i,
   ],
   // HEALTH_SAFETY.md section 7 (privacy as a safety feature); storage spec sections 10–12.
   privacy: [
@@ -154,6 +161,28 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
     /\b(?:antacids?|omeprazole|pantoprazole|lansoprazole|esomeprazole|PPIs?|gaviscon|ranitidine|famotidine)\b/i,
     /\bcur(?:e|es|ed|ing)\b/i,
     /\byou(?:['’]re|\s+are)\s+safe\b/i,
+  ],
+  // Item 21 (HEALTH_SAFETY section 4, HS-09, NU-05, C11, C16): neutral indicator wording; no
+  // "left" or "remaining" energy, and nothing that judges intake.
+  targets: [
+    /\bbad\b/i,
+    /\bfail\w*/i,
+    /\bcheat\w*/i,
+    /\bnaughty\b/i,
+    /\bguilt\w*/i,
+    /\bsinful\b/i,
+    /\bblew\b|\bblown\b/i,
+    /\bexceed\w*/i,
+    /\bwarning\b/i,
+    /\bdanger\w*/i,
+    /\bleft\b/i,
+    /\bremaining\b/i,
+    /\bspare\b/i,
+    /\bideal\b/i,
+    /\bstarv\w*/i,
+    /\bpunish\w*/i,
+    /\bstrict\w*/i,
+    /\bmust\b/i,
   ],
 };
 
@@ -516,5 +545,94 @@ describe('first-run wording holds in every place it shows (item 13 review)', () 
     expect(readiness.settingsIntro).not.toMatch(/nothing .* deleted/);
     expect(onboarding.frame.restoreIntro).toContain('otherwise setup carries on');
     expect(alcohol.notice.helplineTitle).toBe('Alcohol Drug Helpline');
+  });
+});
+
+describe('Diet and targets copy (item 21; C-1 to C-7)', () => {
+  /** "5,000" from 5000, as the copy writes it. */
+  const n = (x: number) => String(x).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const facts = TARGET_COPY_FACTS;
+
+  it('C-2: every number the copy states equals the core constants', () => {
+    const cases: [string, readonly string[]][] = [
+      [targets.energy.floorHint, [`${n(facts.floorKj)} kJ`, `${n(facts.maxFloorKj)} kJ`]],
+      [targets.energy.floorTooLow, [`${n(facts.floorKj)} kJ`]],
+      [targets.energy.floorTooHigh, [`${n(facts.maxFloorKj)} kJ`]],
+      [targets.energy.kickstartDeficitHint, [`${facts.kickstartMaxPct}%`]],
+      [targets.energy.steadyDeficitHint, [`${facts.steady.min}% to ${facts.steady.max}%`]],
+      [
+        targets.carbs.ketoHint,
+        [`${facts.keto.min} to ${facts.keto.max} g`, `${facts.keto.default} g`],
+      ],
+      [
+        targets.carbs.moderateHint,
+        [`${facts.moderate.min} to ${facts.moderate.max} g`, `${facts.moderate.default} g`],
+      ],
+      [targets.carbs.heldAt50, [`${facts.keto.max} g`]],
+      [
+        targets.protein.hint,
+        [
+          `${facts.protein.limits.min} to ${facts.protein.limits.max} g`,
+          `${facts.protein.defaults.min} to ${facts.protein.defaults.max} g`,
+        ],
+      ],
+      [
+        targets.saturatedFat.budgetHint,
+        [`${facts.satFat.min}% to ${facts.satFat.max}%`, `${facts.satFat.default}%`],
+      ],
+      [targets.guides.fibreHint, [`${facts.fibre.min} to ${facts.fibre.max} g`]],
+      [targets.guides.waterHint, [`${n(facts.water.min)} to ${n(facts.water.max)} mL`]],
+      [targets.energy.staleWeight, [`${facts.staleWeightDays} days`]],
+      [targets.energy.unavailable.ageOutOfRange, [facts.estimateLimits.ageYears.join(' to ')]],
+      [
+        targets.energy.unavailable.heightOutOfRange,
+        [`${facts.estimateLimits.heightCm.join(' to ')} cm`],
+      ],
+      [
+        targets.energy.unavailable.weightOutOfRange,
+        [`${facts.estimateLimits.weightKg.join(' to ')} kg`],
+      ],
+    ];
+    for (const [text, parts] of cases) for (const part of parts) expect(text).toContain(part);
+  });
+
+  it('C-3: the diet-mode names read as UX 3a, in the order of DIET_MODES', () => {
+    expect(Object.keys(targets.dietMode.names)).toEqual([...DIET_MODES]);
+    expect(Object.values(targets.dietMode.names).join(' / ')).toBe(
+      'Keto-preferred / Moderate low-carb / Balanced',
+    );
+  });
+
+  it('C-4, C-5: the electrolyte line is the required sentence; the floor is a safety net, not a target', () => {
+    expect(targets.electrolytes.body).toBe(
+      'Electrolytes: sodium, potassium, magnesium. Garden sources: silverbeet, spinach, avocado.',
+    );
+    for (const text of [targets.energy.floorBinds, targets.today.floorDay]) {
+      expect(text.toLowerCase()).toContain('safety net, not a target');
+    }
+  });
+
+  it('C-6: every template fills from its own placeholders', () => {
+    const values = Object.fromEntries(
+      [
+        ...['kj', 'kcal', 'kg', 'date', 'pct', 'protein', 'carbs', 'floorKj', 'floorKcal'],
+        ...['max', 'min', 'g', 'ml', 'stored', 'used', 'eaten', 'target', 'guide', 'ceiling'],
+        ...['count', 'nutrient', 'mode'],
+      ].map((name) => [name, 1]),
+    );
+    for (const [path, text] of [
+      ...strings(targets, 'targets'),
+      ...strings(alcohol.dayEnergy, 'alcohol.dayEnergy'),
+    ]) {
+      expect(fillTemplate(text, values), path).not.toMatch(/[{}]/);
+    }
+    expect(() => fillTemplate(targets.energy.floorBinds, { floorKj: 5000 })).toThrow(RangeError);
+  });
+
+  it('C-7: the pregnancy note names a midwife and GP; the stop-sign lines carry Healthline and 111', () => {
+    expect(targets.energy.pregnancyNote).toContain('midwife');
+    expect(targets.energy.pregnancyNote).toContain('GP');
+    expect(targets.stopSign.action).toContain(helpNumbers.healthline.number);
+    expect(targets.stopSign.emergency).toContain(helpNumbers.emergency.number);
   });
 });

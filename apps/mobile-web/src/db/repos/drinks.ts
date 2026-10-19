@@ -11,6 +11,7 @@ import {
   drinkingDayOf,
   type Instant,
   type LocalDate,
+  localDateOf,
   type RefId,
   resolveZone,
   type StoredBeverage,
@@ -42,6 +43,34 @@ export interface DrinksRepo {
   readonly remove: (id: string) => Promise<void>;
   /** Drinks whose drinking day (section 3.3), in their own recorded zone, lies in [from, to]. */
   readonly forDrinkingDays: (from: LocalDate, to: LocalDate) => Promise<DrinkLogRecord[]>;
+  /**
+   * Drinks whose calendar date, in their own recorded zone, lies in [from, to], with no cut-over:
+   * the day the energy target is for (item 21 T16). The Drinks card keeps its drinking days.
+   */
+  readonly forLocalDates: (from: LocalDate, to: LocalDate) => Promise<DrinkLogRecord[]>;
+}
+
+/** The drinks in [from, to] by a per-drink day rule, with the settings read in the same transaction. */
+async function drinksByDay(
+  ctx: RepoContext,
+  from: LocalDate,
+  to: LocalDate,
+  dayOf: (row: DrinkLogRecord, zone: string, cutoverMinutes: number) => LocalDate,
+): Promise<DrinkLogRecord[]> {
+  const { db } = ctx;
+  const { lower, upper } = utcRangeCovering(from, to);
+  const [rows, settings] = await db.transaction('r', ['drinks_log', 'settings'], () =>
+    Dexie.Promise.all([
+      db.drinks_log.where('at').between(lower, upper, true, false).toArray(),
+      db.settings.get('singleton'),
+    ]),
+  );
+  const home = settings?.homeTimeZone ?? DEFAULT_HOME_TIME_ZONE;
+  const cutover = settings?.drinkingDayCutoverMinutes ?? 300;
+  return rows.filter((d) => {
+    const day = dayOf(d, resolveZone(d.timeZone, home, DEFAULT_HOME_TIME_ZONE).timeZone, cutover);
+    return day >= from && day <= to;
+  });
 }
 
 export function drinksRepo(ctx: RepoContext): DrinksRepo {
@@ -94,21 +123,8 @@ export function drinksRepo(ctx: RepoContext): DrinksRepo {
       ),
     remove: (id) =>
       guardedWrite(ctx, () => db.transaction('rw', ['drinks_log'], () => db.drinks_log.delete(id))),
-    forDrinkingDays: async (from, to) => {
-      const { lower, upper } = utcRangeCovering(from, to);
-      const [rows, settings] = await db.transaction('r', ['drinks_log', 'settings'], () =>
-        Dexie.Promise.all([
-          db.drinks_log.where('at').between(lower, upper, true, false).toArray(),
-          db.settings.get('singleton'),
-        ]),
-      );
-      const home = settings?.homeTimeZone ?? DEFAULT_HOME_TIME_ZONE;
-      const cutover = settings?.drinkingDayCutoverMinutes ?? 300;
-      return rows.filter((d) => {
-        const zone = resolveZone(d.timeZone, home, DEFAULT_HOME_TIME_ZONE).timeZone;
-        const day = drinkingDayOf(d.at, zone, cutover);
-        return day >= from && day <= to;
-      });
-    },
+    forDrinkingDays: (from, to) =>
+      drinksByDay(ctx, from, to, (d, zone, cutover) => drinkingDayOf(d.at, zone, cutover)),
+    forLocalDates: (from, to) => drinksByDay(ctx, from, to, (d, zone) => localDateOf(d.at, zone)),
   };
 }

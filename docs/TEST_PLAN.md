@@ -107,7 +107,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | NU-03 | Net carbs = carbs − fibre, never negative | Unit test |
 | NU-04 | Heart-smart badge logic | Fixtures: avocado salad = badge; bacon-cream carbonara = flagged |
 | NU-05 | Day over saturated-fat budget | Indicator changes; no "bad"/"fail" wording (HS-09) |
-| NU-06 | Auto-plan under 5,000 kJ | Refused (HS-10) |
+| NU-06 | Auto-plan under 5,000 kJ | Refused (HS-10): the core refusal (floorCheck, every app-made write kind) at item 21; the planner's refusal at item 22 |
 | NU-07 | Garden-first filter | Recipes using ≥2 in-season garden items rank first |
 | NU-08 | Cholesterol check-in cards | Appear at ceiling start, week 8, week 12 |
 | NU-09 | Attribution footer | Present on every nutrition screen |
@@ -174,7 +174,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | FL-01 | Add item from label per 100 g, log 150 g | Nutrients scaled; badge "Label" |
 | FL-02 | Log recipe portion | Badge "Estimate" if any ingredient is estimated, else "Database" |
 | FL-03 | Raw vs cooked | 200 g raw chicken and 150 g cooked are logged as distinct entries with the weight basis stored |
-| FL-04 | Switch diet mode keto → balanced → keto | No records deleted; targets change; suggestions re-rank |
+| FL-04 | Switch diet mode keto → balanced → keto | No records deleted; targets change; suggestions re-rank (the ranking in core at item 21; the suggestion list UI at item 22, C23) |
 | FL-05 | Household dinner for 3, my portion 1/3 | My nutrition equals per-serve; changing household to 4 leaves my numbers unchanged (HS-23) |
 | FL-06 | Edit a recipe containing a listed allergen | Allergen still listed after edit and after scaling (HS-24) |
 | FL-07 | Gluten-free household toggle off | No gluten-free substitutions suggested |
@@ -187,6 +187,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | FL-14 | 23:1 window 6 pm to 7 pm | 1 h eating and 23 h fasting, from the core window formatter: screen 1e shows "Eating 6:00 pm to 7:00 pm = 1 hour. Fasting 23 hours." and the Fast card "1 h eating, 23 h fasting"; no over-24 h warning (HS-17, C101) |
 | FL-15 | Reflux symptom logged on a 23:1 day; also on a 16:8 day | Earlier-dinner and split-meal options offered that day and the next day, not the day after |
 | FL-16 | Reflux symptoms on 3 days within 2 weeks, or rated stronger this week than last | The symptom log suggests seeing a GP; "Not now" hides it for 7 days (C47) |
+| FL-17 | Six cans logged on a day | Food energy, protein and the floor result unchanged; alcohol shown as its own part of the day's energy; an unknown drink marks the total "at least" and never shows as 0 (HS-36, C11) |
 
 ### 3.12 Non-negotiable cases from the handoff
 | ID | Case | Expected |

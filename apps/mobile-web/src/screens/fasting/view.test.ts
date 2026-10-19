@@ -64,6 +64,8 @@ function inputs(today: string, more: Partial<FastingInputs> = {}): FastingInputs
     profile: defaultProfile(T0),
     periods: [],
     checks: [],
+    readiness: [],
+    weights: [],
     fasts: [],
     planDays: [],
     symptoms: [],
@@ -82,7 +84,8 @@ function context(
     gate: { fastingGated: false, pharmacistReminder: false, quiet: false },
     preset: { fastingPreset: window === null ? null : 'custom', eatingWindow: window },
     kickstart: { running: false },
-    proteinTargetG: 140,
+    // Item 21's figures for the day (mealTargets.ts): 140 g of protein and a 9,100 kJ target.
+    mealTargets: () => ({ proteinTargetG: 140, energyTargetKj: 9_100 }),
     mealSources: itemFifteenSources,
     ...more,
   };
@@ -96,12 +99,11 @@ const dinner = (proteinG: number): PlannedMealFigures => ({
   proteinFoodCookedG: 450,
   incomplete: false,
 });
-/** Sources with a planned dinner on `dates`, a 9,100 kJ target and, optionally, a food log. */
+/** Sources with a planned dinner on `dates` and, optionally, a food log. */
 const sources = (
   dates: Record<string, number>,
   logged: Record<string, LoggedIntake> = {},
 ): MealSources => ({
-  energyTargetFor: () => 9_100,
   plannedMeals: (date) => (dates[date] === undefined ? null : [dinner(dates[date])]),
   loggedIntake: (date) => logged[date] ?? null,
 });
@@ -228,10 +230,11 @@ describe('the meal-check decision table (design 3.7; HS-18, C62)', () => {
   });
 
   it('with no energy target the check never passes: the snack and the widen line are offered (item 21)', () => {
-    const noTarget: MealSources = { ...sources({ [D]: 160 }), energyTargetFor: () => null };
-    const view = open(
-      fastingView(inputs(D), context({ mealSources: noTarget }), at(D, '10:00'), NZ),
-    );
+    const noTarget = context({
+      mealSources: sources({ [D]: 160 }),
+      mealTargets: () => ({ proteinTargetG: 140, energyTargetKj: null }),
+    });
+    const view = open(fastingView(inputs(D), noTarget, at(D, '10:00'), NZ));
     expect(view.upcoming).toMatchObject({
       kind: 'offer',
       reasons: ['energy-unknown'],
@@ -285,7 +288,6 @@ describe('the meal-check decision table (design 3.7; HS-18, C62)', () => {
   it('a plan row with no meals is not a plan: unavailable, never "plan short" (C73)', () => {
     const rows = [windowDay(D, null)];
     const fromRows: MealSources = {
-      energyTargetFor: () => 9_100,
       plannedMeals: (date) =>
         plannedMealsOf(rows.find((r) => r.date === date)) === null ? null : [dinner(0)],
       loggedIntake: () => null,

@@ -243,7 +243,7 @@ function MealChecks({
           key={`${check.region}-${check.date}`}
           storage={storage}
           check={check}
-          proteinTargetG={view.proteinTargetG}
+          proteinTargetG={state.context.mealTargets(check.date).proteinTargetG}
         />
       ))}
     </>

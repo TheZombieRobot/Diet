@@ -8,6 +8,7 @@ import { FastingErrorBoundary } from './fasting/FastingErrorBoundary';
 import { InstallBanner } from './InstallBanner';
 import { Placeholder } from './Placeholder';
 import { AlcoholHelpCard } from './today/AlcoholHelpCard';
+import { NutritionTodayCard } from './today/NutritionTodayCard';
 import { WeightCard } from './weight/WeightCard';
 
 export function TodayScreen(): ReactElement {
@@ -33,7 +34,9 @@ export function TodayScreen(): ReactElement {
           <TodayFastCard storage={storage} />
         </FastingErrorBoundary>
       )}
-      <Placeholder coming="Today will show the rest of the day at a glance: food so far, water, steps, movement and drinks, with quick ways to log each." />
+      {/* Item 21: the Nutrition today card, third after Weight and Fast (UX 2). */}
+      {storage === null ? null : <NutritionTodayCard storage={storage} />}
+      <Placeholder coming="Today will show the rest of the day at a glance: water, steps, movement and drinks, with quick ways to log each." />
       {reminder.prominent ? null : card}
     </>
   );

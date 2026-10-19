@@ -16,11 +16,17 @@ export const SCREENS = [
   'Weight',
   // Item 15: reached from Today's Fast card.
   'Fasting and reflux',
+  // Item 21: reached from Settings, More.
+  'Diet and targets',
 ] as const;
 export type ScreenName = (typeof SCREENS)[number];
 
 /** Screens reached from Settings, which mark the settings gear as their section. */
-export const UNDER_SETTINGS: readonly ScreenName[] = ['About', ...SETUP_SCREENS];
+export const UNDER_SETTINGS: readonly ScreenName[] = [
+  'About',
+  ...SETUP_SCREENS,
+  'Diet and targets',
+];
 
 /** The app's base path, the same as on GitHub Pages. */
 export const BASE_PATH = '/Diet/';

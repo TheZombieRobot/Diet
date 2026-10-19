@@ -67,6 +67,7 @@ import {
 } from '@diet/core';
 import type { FastingInputs } from './inputs';
 import type { MealSources } from './integration';
+import type { MealTargets } from './mealTargets';
 
 /** The decisions items 13, 14 and 21 to 23 make, as values (integration.ts builds them). */
 export interface FastingContext {
@@ -82,8 +83,8 @@ export interface FastingContext {
   readonly preset: SchedulePreset;
   /** The running Kickstart period's last day and the preset after it (item 14), or not running. */
   readonly kickstart: ScheduleRecords['kickstart'];
-  /** effectiveProteinTargetG for the phase (item 13). */
-  readonly proteinTargetG: number;
+  /** Item 21's protein and energy for a date's meal check (mealTargets.ts), never the phase alone. */
+  readonly mealTargets: (date: LocalDate) => MealTargets;
   readonly mealSources: MealSources;
 }
 
@@ -210,7 +211,6 @@ export type FastingView =
       readonly history: { readonly streakDays: number; readonly rows: readonly HistoryRow[] };
       readonly pharmacist: boolean;
       readonly kickstartActive: boolean;
-      readonly proteinTargetG: number;
       readonly startVariant: 'primary' | 'secondary';
     };
 
@@ -325,9 +325,9 @@ function mealCheckView(
 ): MealCheckView {
   const window = windowOn(date, schedule);
   const { mealSources } = context;
-  const energyTargetKj = mealSources.energyTargetFor(date);
+  const { proteinTargetG, energyTargetKj } = context.mealTargets(date);
   const result = mealCheck({
-    proteinTargetG: context.proteinTargetG,
+    proteinTargetG,
     dayEnergyTargetKj: energyTargetKj,
     planned: mealSources.plannedMeals(date),
     logged: mealSources.loggedIntake(date),
@@ -534,7 +534,6 @@ export function fastingView(
     history: { streakDays: fastingStreak(inputs.fasts, today, home), rows },
     pharmacist: context.gate.pharmacistReminder,
     kickstartActive: context.kickstart.running,
-    proteinTargetG: context.proteinTargetG,
     startVariant: !noPattern && open === null && !showsReasons ? 'primary' : 'secondary',
   };
 }

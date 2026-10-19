@@ -36,6 +36,7 @@ import { ProfileScreen } from './screens/settings/ProfileScreen';
 import { ReadinessAnswersScreen } from './screens/settings/ReadinessAnswersScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { StorageFailureScreen } from './screens/StorageFailureScreen';
+import { TargetsScreen } from './screens/targets/TargetsScreen';
 import { TodayScreen } from './screens/TodayScreen';
 import { UpdateBanner } from './screens/UpdateBanner';
 import { KickstartReconciler } from './screens/weight/KickstartReconciler';
@@ -86,6 +87,8 @@ function screenFor(route: RouteId): ReactElement {
       return <WeightScreen />;
     case 'fasting':
       return <FastingScreen />;
+    case 'targets':
+      return <TargetsScreen />;
   }
 }
 

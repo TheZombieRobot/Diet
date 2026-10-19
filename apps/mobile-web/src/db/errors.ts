@@ -33,6 +33,8 @@ StorageOperationError.prototype.name = 'StorageOperationError';
  * readiness answers; item 13, E62). The fasting rules (item 15): a fast cannot be started or
  * reopened while fasting is switched off; only the latest ended fast can be reopened, only through
  * undoEnd and only within 5 minutes of its end; and a fast's times cannot be later than now.
+ * Item 21: the diet mode is written only by the diet-mode switch, and leaving keto while a
+ * Kickstart runs needs the owner's confirmation (C56, T14, T35).
  */
 export type StorageRule =
   | 'not-found'
@@ -45,7 +47,9 @@ export type StorageRule =
   | 'not-latest'
   | 'reopen'
   | 'future-time'
-  | 'undo-expired';
+  | 'undo-expired'
+  | 'diet-mode-switch-only'
+  | 'kickstart-confirm-needed';
 
 export class StorageRuleError extends Error {
   readonly table: string;

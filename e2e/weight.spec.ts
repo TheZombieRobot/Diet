@@ -1,6 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
-import { buildBackupPayload, plainBackupText, type Snapshot } from '../packages/core/src/index';
-import { alcohol, onboarding, privacy, weight } from '../packages/core/src/copy/health';
+import { weight } from '../packages/core/src/copy/health';
 import {
   onDay,
   WEIGHT_SCENARIOS,
@@ -9,13 +8,8 @@ import {
 } from '../packages/test-fixtures/src/index';
 import { commerceRules, healthPhraseRules } from '../tools/scans/rules';
 import { scanText } from '../tools/scans/scan';
-import {
-  goTo,
-  heading,
-  renderedText,
-  returnToApp,
-  waitForServiceWorkerControl,
-} from './support/app';
+import { goTo, renderedText, returnToApp, waitForServiceWorkerControl } from './support/app';
+import { restoreSnapshot } from './support/scenario';
 
 // The weight log, phases and trend in the production build (item 14 design section 6.6): NN-03,
 // WT-03, WT-04, WT-08, WT-09, WT-10, HS-21, HS-26, HS-27, W14 and logging offline. Each test
@@ -29,40 +23,6 @@ test.use({ timezoneId: 'Pacific/Auckland' });
 const region = (page: Page, name: string) => page.getByRole('region', { name, exact: true });
 const weightCard = (page: Page) => region(page, weight.card.label);
 
-/**
- * Restores `snapshot` the way a new phone does (item 13; C53): Welcome, the alcohol notice, then
- * "Restore from a backup instead". The file holds a finished setup, so the reload opens Settings,
- * Readiness answers (E64); then Today.
- */
-async function restore(page: Page, snapshot: Snapshot, exportedAt: string): Promise<void> {
-  const text = plainBackupText(
-    buildBackupPayload(snapshot, { kind: 'backup', exportedAt, appVersion: '0.1.0' }),
-  );
-  await expect(heading(page)).toHaveText(onboarding.welcome.title);
-  await page.getByRole('button', { name: onboarding.frame.continue }).click();
-  await page.getByRole('button', { name: alcohol.notice.acknowledge }).click();
-  await page.getByRole('button', { name: onboarding.frame.restoreLink }).click();
-  await expect(heading(page)).toHaveText(onboarding.frame.restoreTitle);
-  const [chooser] = await Promise.all([
-    page.waitForEvent('filechooser'),
-    page.getByRole('button', { name: privacy.importBackup.chooseFile }).click(),
-  ]);
-  await chooser.setFiles({
-    name: 'diet-backup-2000-02-01.json',
-    mimeType: 'application/json',
-    buffer: Buffer.from(text),
-  });
-  const confirm = page.getByTestId('restore-confirm');
-  await expect(confirm).toBeVisible();
-  await Promise.all([
-    page.waitForEvent('load'),
-    confirm.getByRole('button', { name: privacy.importBackup.replace }).click(),
-  ]);
-  await expect(heading(page)).toHaveText('Readiness answers');
-  await goTo(page, 'Today');
-  await expect(weightCard(page)).toBeVisible();
-}
-
 /** Opens the app with the clock fixed at a scenario's day `day` (09:00 local) and restores it. */
 async function scenario(
   page: Page,
@@ -73,7 +33,7 @@ async function scenario(
   const seen = onDay(options, day, time);
   await page.clock.setFixedTime(new Date(seen.now));
   await page.goto('./');
-  await restore(page, weightScenario(seen), seen.now);
+  await restoreSnapshot(page, weightScenario(seen), seen.now);
 }
 
 /** The stored targets row, read with raw IndexedDB. */

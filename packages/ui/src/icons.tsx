@@ -155,6 +155,15 @@ export function ChevronIcon({ size = 20 }: IconProps): ReactElement {
   );
 }
 
+/** The drop-down chevron of a SelectField (item 21). */
+export function ChevronDownIcon({ size = 20 }: IconProps): ReactElement {
+  return (
+    <Svg size={size} strokeWidth={2.2}>
+      <path d="M6 9l6 6 6-6" />
+    </Svg>
+  );
+}
+
 export function MinusIcon({ size = 22 }: IconProps): ReactElement {
   return (
     <Svg size={size} strokeWidth={2.4}>

@@ -11,6 +11,7 @@ import {
   readiness,
   reflux,
   schedule,
+  targets,
   weight,
 } from '../../packages/core/src/copy/health';
 import { fillTemplate } from '../../packages/core/src/copy/template';
@@ -239,5 +240,18 @@ describe('fasting copy matches the docs word for word (item 15)', () => {
 
   it("the fasting pharmacist line is item 13's schedule sentence, one wording (C07)", () => {
     expect(fasting.pharmacist).toBe(schedule.pharmacistNote);
+  });
+});
+
+describe('Diet and targets copy matches the docs word for word (item 21)', () => {
+  const nutritionSection = section(HEALTH_SAFETY, /^## 4\. /);
+
+  it('the diet-mode names are UX_SCREENS.md screen 3a, in order (C-3)', () => {
+    expect(UX_SCREENS).toContain(`(${Object.values(targets.dietMode.names).join(' / ')})`);
+  });
+
+  it('"the floor is a safety net, not a target" is HEALTH_SAFETY.md section 4', () => {
+    expect(nutritionSection).toContain('the floor is a safety net, not a target');
+    expect(targets.energy.floorBinds).toContain('The floor is a safety net, not a target.');
   });
 });

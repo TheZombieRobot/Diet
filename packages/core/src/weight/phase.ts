@@ -42,7 +42,7 @@ import type {
   KickstartEndReason,
   KickstartPeriodRecord,
 } from '../storage/records';
-import { ketoUnbrokenSince } from '../targets/dayTargets';
+import { ketoUnbrokenSince } from '../targets/ketoRun';
 import { addDays, type LocalDate, parseInstant } from '../util/time';
 
 export type PhaseGates = Pick<
