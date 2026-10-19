@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { FASTING_PRESETS } from '../fasting/eatingWindow';
+import { maximumAgeFromBirthYear, minimumAgeFromBirthYear } from './age';
 import { baseTargets, DEFAULT_PROTEIN_RANGE_G, type BaseTargetsInput } from './baseTargets';
 import {
   ACTIVITY_FACTORS,
   DEFAULT_ACTIVITY_LEVEL,
+  type EnergyInputs,
   estimatedDailyEnergy,
   restingEnergyKcal,
 } from './energyEstimate';
@@ -68,6 +70,55 @@ describe('energy estimate: Mifflin-St Jeor × activity factor', () => {
       ...patch,
     } as const;
     expect(() => estimatedDailyEnergy(inputs)).toThrow(RangeError);
+  });
+
+  it.each([
+    [{ sex: 'toString' }],
+    [{ sex: 'constructor' }],
+    [{ sex: undefined }],
+    [{ sex: 'Male' }],
+    [{ activity: 'active_job' }],
+    [{ activity: 'toString' }],
+    [{ activity: undefined }],
+  ])('refuses an unknown sex or activity %j instead of returning NaN', (patch) => {
+    const inputs = {
+      weightKg: 90,
+      heightCm: 180,
+      ageYears: 40,
+      sex: 'male',
+      activity: 'moderate',
+      ...patch,
+    } as unknown as EnergyInputs;
+    expect(() => estimatedDailyEnergy(inputs)).toThrow(RangeError);
+    if ('sex' in patch) expect(() => restingEnergyKcal(inputs)).toThrow(RangeError);
+  });
+});
+
+describe('age from the stored birth year (DATA_MODEL.md profile)', () => {
+  it('is known only to within a year: youngest before the birthday, oldest after it', () => {
+    expect(minimumAgeFromBirthYear(1981, '2026-10-19')).toBe(44);
+    expect(maximumAgeFromBirthYear(1981, '2026-10-19')).toBe(45);
+    expect(minimumAgeFromBirthYear(1981, '2026-01-01')).toBe(44);
+    expect(maximumAgeFromBirthYear(1981, '2026-12-31')).toBe(45);
+  });
+
+  it('someone born 18 years ago this year may still be 17, so the minimum is 17 (under-18 rule)', () => {
+    expect(minimumAgeFromBirthYear(2008, '2026-10-19')).toBe(17);
+    expect(maximumAgeFromBirthYear(2008, '2026-10-19')).toBe(18);
+    expect(minimumAgeFromBirthYear(2007, '2026-10-19')).toBe(18);
+  });
+
+  it('is never negative for a baby born this year', () => {
+    expect(minimumAgeFromBirthYear(2026, '2026-10-19')).toBe(0);
+    expect(maximumAgeFromBirthYear(2026, '2026-10-19')).toBe(0);
+  });
+
+  it('refuses a future, fractional or implausible birth year, and a malformed date', () => {
+    for (const birthYear of [2027, 1980.5, 1899, Number.NaN]) {
+      expect(() => minimumAgeFromBirthYear(birthYear, '2026-10-19')).toThrow(RangeError);
+      expect(() => maximumAgeFromBirthYear(birthYear, '2026-10-19')).toThrow(RangeError);
+    }
+    expect(() => minimumAgeFromBirthYear(1981, '19/10/2026')).toThrow(RangeError);
   });
 });
 

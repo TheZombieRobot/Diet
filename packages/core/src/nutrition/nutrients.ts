@@ -9,6 +9,13 @@ export interface Nutrients {
   proteinG: number;
   fatG: number;
   saturatedFatG: number;
+  /**
+   * ALWAYS available carbohydrate: fibre excluded, as NZ labels and the NZ Food Composition
+   * Database report it. A figure that includes fibre (USDA "carbohydrate, by difference",
+   * US-style labels) is converted with toAvailableCarbsG when the ingredient or label record is
+   * created, so sums and scaled portions never mix the two, and net carbs of any Nutrients is
+   * simply this field (netCarbsOf).
+   */
   carbsG: number;
   sugarsG: number;
   fibreG: number;
@@ -51,13 +58,28 @@ export function assertValidNutrients(n: Nutrients): void {
   for (const key of NUTRIENT_KEYS) assertInRange(key, n[key], 0, Number.MAX_SAFE_INTEGER);
 }
 
-/** Multiplies every field by `factor`. */
+/**
+ * Largest multiplier scaleNutrients accepts. Ten serves, or 5 kg of a per-100 g food, fits; a
+ * typical gram weight passed by mistake as the factor (150 rather than 1.5) is refused.
+ */
+export const MAX_SCALE_FACTOR = 50;
+
+/** Multiplies every field by `factor` (0 to MAX_SCALE_FACTOR). For grams use nutrientsForGrams. */
 export function scaleNutrients(n: Nutrients, factor: number): Nutrients {
   assertValidNutrients(n);
-  assertInRange('factor', factor, 0, 1000);
+  assertInRange('factor', factor, 0, MAX_SCALE_FACTOR);
   const out = {} as Nutrients;
   for (const key of NUTRIENT_KEYS) out[key] = n[key] * factor;
   return out;
+}
+
+/**
+ * Nutrients in `grams` of a food described per 100 g (FL-01: a label per 100 g, 150 g logged).
+ * Divides by 100 itself, so a gram weight can never be passed as a multiplier by mistake.
+ */
+export function nutrientsForGrams(per100g: Nutrients, grams: number): Nutrients {
+  assertInRange('grams', grams, 0, MAX_SCALE_FACTOR * 100);
+  return scaleNutrients(per100g, grams / 100);
 }
 
 export function sumNutrients(items: readonly Nutrients[]): Nutrients {

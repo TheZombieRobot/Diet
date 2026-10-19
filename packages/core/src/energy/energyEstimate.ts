@@ -22,11 +22,36 @@ export const DEFAULT_ACTIVITY_LEVEL: ActivityLevel = 'active-job';
  */
 export type EstimateSex = 'male' | 'female' | 'unspecified';
 
-const SEX_CONSTANT_KCAL: Record<EstimateSex, number> = {
+const SEX_CONSTANT_KCAL: Readonly<Record<EstimateSex, number>> = {
   male: 5,
   female: -161,
   unspecified: -78,
 };
+
+/**
+ * Own-property lookups, so a value from storage or a form that is not one of the listed keys
+ * ('active_job', undefined, or an inherited name such as 'toString') is refused instead of
+ * turning the estimate into NaN, which passes every energy-floor comparison.
+ */
+function sexConstantKcal(sex: EstimateSex): number {
+  if (!Object.hasOwn(SEX_CONSTANT_KCAL, sex)) {
+    throw new RangeError(`sex must be male, female or unspecified, got ${JSON.stringify(sex)}`);
+  }
+  return SEX_CONSTANT_KCAL[sex];
+}
+
+function activityFactor(activity: ActivityLevel): number {
+  if (!Object.hasOwn(ACTIVITY_FACTORS, activity)) {
+    const known = Object.keys(ACTIVITY_FACTORS).join(', ');
+    throw new RangeError(`activity must be one of ${known}, got ${JSON.stringify(activity)}`);
+  }
+  return ACTIVITY_FACTORS[activity];
+}
+
+function assertFiniteKcal(name: string, kcal: number): number {
+  if (!Number.isFinite(kcal)) throw new RangeError(`${name} is not a finite number`);
+  return kcal;
+}
 
 export interface EnergyInputs {
   weightKg: number;
@@ -45,7 +70,8 @@ export function restingEnergyKcal({ weightKg, heightCm, ageYears, sex }: EnergyI
   assertInRange('weightKg', weightKg, 30, 350);
   assertInRange('heightCm', heightCm, 120, 230);
   assertInRange('ageYears', ageYears, 18, 110);
-  return 10 * weightKg + 6.25 * heightCm - 5 * ageYears + SEX_CONSTANT_KCAL[sex];
+  const kcal = 10 * weightKg + 6.25 * heightCm - 5 * ageYears + sexConstantKcal(sex);
+  return assertFiniteKcal('resting energy', kcal);
 }
 
 export interface EnergyEstimate {
@@ -57,6 +83,9 @@ export interface EnergyEstimate {
 
 /** Estimated daily energy = resting energy × activity factor, rounded to whole units. */
 export function estimatedDailyEnergy(inputs: EnergyInputs): EnergyEstimate {
-  const kcal = restingEnergyKcal(inputs) * ACTIVITY_FACTORS[inputs.activity];
+  const kcal = assertFiniteKcal(
+    'daily energy',
+    restingEnergyKcal(inputs) * activityFactor(inputs.activity),
+  );
   return { kcal: Math.round(kcal), kj: Math.round(kcal * KJ_PER_KCAL), label: 'rough guide' };
 }
