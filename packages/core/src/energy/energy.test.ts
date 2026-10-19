@@ -11,17 +11,17 @@ import {
 } from './energyEstimate';
 
 describe('energy estimate: Mifflin-St Jeor × activity factor', () => {
-  it('matches a hand calculation (male, 90 kg, 180 cm, 40 y, active job)', () => {
-    // 10 × 90 + 6.25 × 180 − 5 × 40 + 5 = 1830 kcal; × 1.725 = 3156.75; × 4.184 = 13207.84 kJ
+  it('matches a hand calculation (synthetic: male, 100 kg, 185 cm, 30 y, active job)', () => {
+    // 10 × 100 + 6.25 × 185 − 5 × 30 + 5 = 2011.25 kcal; × 1.725 = 3469.41; × 4.184 = 14516.0 kJ
     const inputs = {
-      weightKg: 90,
-      heightCm: 180,
-      ageYears: 40,
+      weightKg: 100,
+      heightCm: 185,
+      ageYears: 30,
       sex: 'male',
       activity: 'active-job',
     } as const;
-    expect(restingEnergyKcal(inputs)).toBe(1830);
-    expect(estimatedDailyEnergy(inputs)).toEqual({ kcal: 3157, kj: 13208, label: 'rough guide' });
+    expect(restingEnergyKcal(inputs)).toBe(2011.25);
+    expect(estimatedDailyEnergy(inputs)).toEqual({ kcal: 3469, kj: 14516, label: 'rough guide' });
   });
 
   it('matches a hand calculation (female, 70 kg, 165 cm, 35 y, moderate)', () => {
@@ -62,9 +62,9 @@ describe('energy estimate: Mifflin-St Jeor × activity factor', () => {
     [{ weightKg: Number.POSITIVE_INFINITY }],
   ])('rejects out-of-range input %j (no estimate under 18)', (patch) => {
     const inputs = {
-      weightKg: 90,
-      heightCm: 180,
-      ageYears: 40,
+      weightKg: 100,
+      heightCm: 185,
+      ageYears: 30,
       sex: 'male',
       activity: 'moderate',
       ...patch,
@@ -82,9 +82,9 @@ describe('energy estimate: Mifflin-St Jeor × activity factor', () => {
     [{ activity: undefined }],
   ])('refuses an unknown sex or activity %j instead of returning NaN', (patch) => {
     const inputs = {
-      weightKg: 90,
-      heightCm: 180,
-      ageYears: 40,
+      weightKg: 100,
+      heightCm: 185,
+      ageYears: 30,
       sex: 'male',
       activity: 'moderate',
       ...patch,
@@ -124,9 +124,9 @@ describe('age from the stored birth year (DATA_MODEL.md profile)', () => {
 
 describe('protein and energy targets are unchanged by the eating window (HS-22)', () => {
   const profile: BaseTargetsInput = {
-    weightKg: 90,
-    heightCm: 178,
-    ageYears: 45,
+    weightKg: 100,
+    heightCm: 185,
+    ageYears: 30,
     sex: 'male',
     activity: 'active-job',
     proteinRangeG: { ...DEFAULT_PROTEIN_RANGE_G },
