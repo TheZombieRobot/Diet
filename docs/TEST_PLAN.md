@@ -73,15 +73,19 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | ID | Case | Expected |
 |---|---|---|
 | WT-01 | Goal below BMI 18.5 | Refused with reason (HS-01) |
-| WT-02 | Goal >20% below current | Refused with reason (HS-01) |
+| WT-02 | Goal >20% below current | Long-term goal accepted and labelled long-term; the next milestone shown is never more than 20% below the current weight (rounded up to 0.1 kg) (HS-01) |
 | WT-03 | Synthetic series losing 2.5 kg/week in weeks 1–3 (Kickstart) | No rapid-loss card; Kickstart note shown (HS-11) |
 | WT-04 | Series losing 1.2 kg/week in weeks 4–6 (Steady) | Rapid-loss card after the third week (HS-11) |
 | WT-06 | Kickstart deficit with a low energy estimate | Planned energy clamps to the 5,000 kJ floor; protein target unchanged (HS-25) |
 | WT-07 | Kickstart deficit with a high estimate | Planned energy is exactly 30% below estimate (HS-25) |
-| WT-08 | Day 22 without extension | Phase flips to Steady; planner moves to 15–20% deficit; explanation shown |
-| WT-09 | Extend Kickstart | Asks how you feel first; extends 7 days; counter increments |
-| WT-10 | Projection band | Shaded range, front-loaded, labelled "not a promise"; no target line (HS-26) |
-| WT-05 | 7-day average chart | Matches hand calculation on fixture |
+| WT-08 | Day 22 without extension | Phase flips to Steady; planner moves to 15–20% deficit; explanation shown; with the clock moved past day 22 and no launch on day 22; the Steady deficit lies in [15, 20]; an untouched 23:1 Kickstart default reads and is stored as 22:2 with the explanation; a user-chosen preset stays |
+| WT-09 | Extend Kickstart | Asks how you feel first; extends 7 days; counter increments; a palpitations yes gives no extension, shows the stop-sign card, and leaves the counter unchanged |
+| WT-10 | Projection band | Shaded range, front-loaded, labelled "not a promise"; no target line (HS-26); no band edge appears as a number or a date; the band is absent when readiness gates the deficit, no carb ceiling is active, or weight is below BMI 18.5 |
+| WT-05 | 7-day average chart | 7-day average: the mean of each day's mean weigh-in over the 7 local dates ending today, shown when at least 3 of those days have one; matches the hand calculation |
+| WT-11 | Kickstart stop-sign card | Shown on every Kickstart day with the eat, salt and fluids line, Healthline or a GP and 111 (the blood-pressure wording under readiness answer 4); hidden only for the day; after a stop-sign answer forced back, expanded and unhideable through that Kickstart's last day (HS-27) |
+| WT-12 | Cumulative exemption and restart | Only the first 21 Kickstart days ever are free of the rapid-loss card; extension weeks and a Kickstart restarted after 21 days used show it (D27) |
+| WT-13 | Readiness gating of the weight card | Readiness answer 5 (or 1 or 2): no goal, milestone, chip, band or pace notes; weigh-ins, averages, the line and the rapid-loss card still show; the stored goal comes back when the answer changes (RD-04, RD-06) |
+| WT-14 | Fluctuation explained once | "About daily changes" shows once weigh-ins exist on two dates, until "Got it" |
 
 ### 3.5 Fasting
 | ID | Case | Expected |
@@ -183,7 +187,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 |---|---|---|
 | NN-01 | 330 mL at 5% | About 1.30 standard drinks; 94 kcal shown **only** when the verified selected beverage preset carries that label value, never inferred for another drink |
 | NN-02 | 5 pm snack + 7 pm final meal | 2-hour eating window (22:2), not 4 hours |
-| NN-03 | Fixture profile 90 kg start, 70 kg long-term goal | Goal labelled long-term; four-week chart shows trend with "not a promise" line; no "kg in N days" text anywhere |
+| NN-03 | Fixture profile 90 kg start, 70 kg long-term goal | Goal labelled long-term; four-week chart shows trend with "not a promise" line; no "kg in N days" text anywhere (the item 14 fixture uses synthetic values instead: 180 cm, 100 kg, a 78 kg long-term goal, per C103) |
 | NN-04 | Raw/cooked weights and package quantities | Not conflated: 500 g raw mince recipe yields a "500 g pack" grocery line, and a cooked-weight log entry stays cooked |
 | NN-05 | Missing price or stock | Shown as "unknown"; never a fabricated live price; any price has an entered-at timestamp |
 | NN-06 | Silverbeet 300 g in garden, recipes need 500 g | List shows 200 g to buy and an audit line "300 g from garden" |

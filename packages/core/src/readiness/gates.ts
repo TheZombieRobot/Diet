@@ -181,11 +181,6 @@ export interface GateEffectsContext {
   readonly onboardingCompleted: boolean;
   readonly dietMode: DietMode;
   readonly firstLowCarbAt: Instant | null;
-  /**
-   * The latest period is running, or not yet started because its start is dated ahead
-   * (kickstartPeriodState 'running' or 'not-started'): either can still be ended.
-   */
-  readonly kickstartRunning: boolean;
   /** This change wrote a Q3 'yes' row (a changed answer or reanswerAfterChange). */
   readonly q3YesWritten: boolean;
   /** profile.kickstartOptIn as stored when the effects run (after saveProfile's own profile write). */
@@ -193,9 +188,13 @@ export interface GateEffectsContext {
   readonly targets: Pick<TargetsRecord, 'fastingPreset' | 'presetChosenBy'>;
 }
 
+/**
+ * The profile and schedule writes a gate change calls for. Ending a Kickstart is not one of them:
+ * the one rule for that is item 14's kickstartEndNeeded (weight/phase.ts), which the app's
+ * endKickstartIfConditionsFail writes in the same action, after every readiness, profile or
+ * weigh-in write (C56).
+ */
 export interface GateEffects {
-  /** kickstart.endPeriod('readiness-gated') (C56). */
-  readonly endKickstart: boolean;
   /** profile.carbCeilingStartedAt = now (C72; it drives only the electrolyte reminder, E65). */
   readonly restartCarbCeilingClock: boolean;
   /** profile.firstLowCarbAt = now (C109). */
@@ -217,7 +216,6 @@ export function gateChangeEffects(
 ): GateEffects {
   const clearKickstartOptIn = ctx.q3YesWritten && ctx.kickstartOptIn;
   return {
-    endKickstart: ctx.kickstartRunning && !after.kickstartAvailable,
     restartCarbCeilingClock:
       ctx.onboardingCompleted &&
       ctx.dietMode === 'keto' &&

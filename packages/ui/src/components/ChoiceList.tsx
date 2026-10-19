@@ -24,16 +24,26 @@ export interface ChoiceListProps {
   error?: string | undefined;
   /** The chosen radio, or the first one when none is chosen, for moving focus to the group. */
   firstInputRef?: Ref<HTMLInputElement> | undefined;
+  /**
+   * 'rows' (default): one full-width row per option, under a card-label legend. 'inline': a
+   * question in ordinary sentence type with short answers side by side (Yes / No, 1 to 5), each
+   * at least 48 px, wrapping on a narrow screen.
+   */
+  layout?: 'rows' | 'inline' | undefined;
+  /** Every option is unavailable, for example while an answer is being saved. */
+  disabled?: boolean | undefined;
 }
 
 const NEXT_KEYS = new Set(['ArrowDown', 'ArrowRight']);
 const PREVIOUS_KEYS = new Set(['ArrowUp', 'ArrowLeft']);
 
 /**
- * One choice from a list (a radio group): each row is at least 58 px high, and the native radio
- * covers the whole row (the Switch pattern) so the row is the tap target while keyboards and
- * screen readers get a real radio. The chosen row has a teal border and a filled mark, so it is
- * not marked by colour alone. The arrow keys move the choice, as in any radio group.
+ * One choice from a list (a radio group): each row is at least 58 px high (an inline answer at
+ * least 48 px inside its border), and the native radio covers the whole row (the Switch pattern)
+ * so the row is the tap target while keyboards and screen readers get a real radio. The chosen row
+ * has a teal border and a filled mark, so it is not marked by colour alone. The arrow keys move the
+ * choice, as in any radio group. The one radio group of the app (yes/no questions, ratings,
+ * settings options and lists alike).
  */
 export function ChoiceList({
   legend,
@@ -44,6 +54,8 @@ export function ChoiceList({
   hint,
   error,
   firstInputRef,
+  layout = 'rows',
+  disabled = false,
 }: ChoiceListProps): ReactElement {
   const id = useId();
   const hintId = `${id}-hint`;
@@ -66,12 +78,54 @@ export function ChoiceList({
     group?.querySelectorAll<HTMLInputElement>('.ui-choice__input')[target]?.focus();
   };
 
+  const rows = options.map((option, at) => {
+    const checked = option.value === value;
+    return (
+      <label
+        key={option.value}
+        className={classNames('ui-choice', checked && 'ui-choice--checked')}
+      >
+        <input
+          ref={at === focusAt ? firstInputRef : undefined}
+          type="radio"
+          className="ui-choice__input"
+          name={name}
+          value={option.value}
+          checked={checked}
+          onChange={() => {
+            onChange(option.value);
+          }}
+          onKeyDown={(event) => {
+            onKeyDown(event, at);
+          }}
+        />
+        <span className="ui-choice__mark" aria-hidden="true" />
+        <span className="ui-choice__text">
+          <span className="ui-choice__label">{option.label}</span>
+          {option.detail === undefined ? null : (
+            <>
+              {' '}
+              <span className="ui-choice__detail">{option.detail}</span>
+            </>
+          )}
+        </span>
+        {option.chip === undefined ? null : (
+          <>
+            {' '}
+            <span className="ui-chip">{option.chip}</span>
+          </>
+        )}
+      </label>
+    );
+  });
+
   return (
     <fieldset
-      className="ui-choices"
+      className={classNames('ui-choices', layout === 'inline' && 'ui-choices--inline')}
       role="radiogroup"
       aria-describedby={describedBy === '' ? undefined : describedBy}
       aria-invalid={error === undefined ? undefined : true}
+      disabled={disabled}
     >
       <legend className="ui-choices__legend">{legend}</legend>
       {hint === undefined ? null : (
@@ -79,46 +133,7 @@ export function ChoiceList({
           {hint}
         </p>
       )}
-      {options.map((option, at) => {
-        const checked = option.value === value;
-        return (
-          <label
-            key={option.value}
-            className={classNames('ui-choice', checked && 'ui-choice--checked')}
-          >
-            <input
-              ref={at === focusAt ? firstInputRef : undefined}
-              type="radio"
-              className="ui-choice__input"
-              name={name}
-              value={option.value}
-              checked={checked}
-              onChange={() => {
-                onChange(option.value);
-              }}
-              onKeyDown={(event) => {
-                onKeyDown(event, at);
-              }}
-            />
-            <span className="ui-choice__mark" aria-hidden="true" />
-            <span className="ui-choice__text">
-              <span className="ui-choice__label">{option.label}</span>
-              {option.detail === undefined ? null : (
-                <>
-                  {' '}
-                  <span className="ui-choice__detail">{option.detail}</span>
-                </>
-              )}
-            </span>
-            {option.chip === undefined ? null : (
-              <>
-                {' '}
-                <span className="ui-chip">{option.chip}</span>
-              </>
-            )}
-          </label>
-        );
-      })}
+      {layout === 'inline' ? <div className="ui-choices__row">{rows}</div> : rows}
       {error === undefined ? null : (
         <p id={errorId} className="ui-field__error" role="alert">
           {error}

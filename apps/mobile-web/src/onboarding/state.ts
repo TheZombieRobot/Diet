@@ -1,12 +1,14 @@
 /**
  * What the first-run guard and every gated screen read (item 13 design sections 3.1 and 6.1):
- * the settings row, the readiness rows, the profile and the latest weight, live. The gates come
- * only from core readinessGates through gateInputFromRecords, so the whole app agrees with the
- * guard (C54; section 9.1 rule 1).
+ * the settings row, the readiness rows, the profile and the weigh-ins, live. The gates come only
+ * from core readinessGates through weightGateInput (gateInputFromRecords fed item 14's current
+ * weight: the lower of the 7-day average and the latest weigh-in), so the guard, every gated
+ * screen and the weight screens agree (C54; section 9.1 rules 1 and 2; HS-35).
  */
 import {
+  gateCurrentWeightKg,
   type GateInput,
-  gateInputFromRecords,
+  type LocalDate,
   localDateOf,
   type OnboardingStep,
   onboardingResumeStep,
@@ -15,6 +17,7 @@ import {
   readinessGates,
   type ReadinessRecord,
   type SettingsRecord,
+  weightGateInput,
   type WeightRecord,
 } from '@diet/core';
 import { useLiveQuery } from '../db/liveQuery';
@@ -25,8 +28,10 @@ export interface OnboardingState {
   readonly settings: SettingsRecord;
   readonly readinessRows: readonly ReadinessRecord[];
   readonly profile: ProfileRecord;
-  /** The weight the gates use (HS-35). Item 14 replaces this rule (section 9.1 rule 2). */
+  /** The latest weigh-in, which prefills the setup form's weight field (not the gates' weight). */
   readonly latestWeightKg: number | null;
+  /** Every weigh-in, for the gates' current weight (gateWeightKgOf; HS-35). */
+  readonly weights: readonly WeightRecord[];
 }
 
 export type OnboardingRead =
@@ -53,7 +58,7 @@ export async function readOnboardingState(storage: AppStorage): Promise<Onboardi
     ]);
     return {
       ok: true,
-      state: { settings, readinessRows, profile, latestWeightKg: latestWeightKg(weights) },
+      state: { settings, readinessRows, profile, latestWeightKg: latestWeightKg(weights), weights },
     };
   } catch {
     return { ok: false };
@@ -73,15 +78,24 @@ export interface OnboardingDerived {
   readonly mode: 'setup' | 'repair';
 }
 
+const todayOf = (env: StorageEnv): LocalDate => localDateOf(env.now(), env.timeZone());
+
 /** The gate input from the stored records, read at today's date in the device zone. */
 export function gateInputOf(state: OnboardingState, env: StorageEnv): GateInput {
-  return gateInputFromRecords({
-    rows: state.readinessRows,
-    birthYear: state.profile.birthYear,
-    heightCm: state.profile.heightCm,
-    currentWeightKg: state.latestWeightKg,
-    today: localDateOf(env.now(), env.timeZone()),
-  });
+  return weightGateInput(
+    {
+      readiness: state.readinessRows,
+      profile: state.profile,
+      weights: state.weights,
+      homeTimeZone: state.settings.homeTimeZone,
+    },
+    todayOf(env),
+  );
+}
+
+/** The current weight the gates read (item 14's rule; HS-35), for a form's own low-weight check. */
+export function gateWeightKgOf(state: OnboardingState, env: StorageEnv): number | null {
+  return gateCurrentWeightKg(state.weights, todayOf(env), state.settings.homeTimeZone);
 }
 
 export function deriveOnboarding(state: OnboardingState, env: StorageEnv): OnboardingDerived {

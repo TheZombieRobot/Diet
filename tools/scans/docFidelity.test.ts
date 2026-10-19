@@ -8,6 +8,7 @@ import {
   profile,
   readiness,
   schedule,
+  weight,
 } from '../../packages/core/src/copy/health';
 import { fillTemplate } from '../../packages/core/src/copy/template';
 import { KETO_CEILING_CLOSED_BY } from '../../packages/core/src/storage/readiness';
@@ -39,6 +40,8 @@ function quoteAfter(text: string, label: string): string | undefined {
 }
 
 const firstRun = section(HEALTH_SAFETY, /^## 1\. /);
+const weightSection = section(HEALTH_SAFETY, /^## 2\. /);
+const DECISIONS = doc('DECISIONS.md');
 const alcoholSection = section(HEALTH_SAFETY, /^## 5\. /);
 const fastingSection = section(HEALTH_SAFETY, /^## 3\. /);
 
@@ -101,6 +104,43 @@ describe('health copy matches the docs word for word', () => {
       expect(line, service.name).toMatch(/\btext\b/);
       expect(line, service.name).toContain(service.text);
     }
+  });
+
+  // Item 14: the weight copy (HEALTH_SAFETY section 2; DECISIONS C102 row).
+  it('weight.phase.kickstartNote is the weight card quote in HEALTH_SAFETY.md section 2', () => {
+    expect(quoteAfter(weightSection, 'The weight card says:')).toBe(weight.phase.kickstartNote);
+  });
+
+  it('weight.rapidLoss.body is the rapid-loss card quote in HEALTH_SAFETY.md section 2', () => {
+    expect(quoteAfter(weightSection, 'Rapid-loss card:')).toBe(weight.rapidLoss.body);
+  });
+
+  it('the chart lines are the "trend, not a promise" and "typical range, not a promise" quotes', () => {
+    expect(quoteAfter(weightSection, 'carries the line')).toBe(
+      weight.chart.trendLine.replace(/\.$/, '').replace(/^T/, 't'),
+    );
+    expect(weightSection).toContain('"typical range, not a promise"');
+    expect(weight.chart.bandLegend).toContain('typical range, not a promise');
+  });
+
+  it('weight.phase.steadyPace and the stop-sign action line are the HEALTH_SAFETY.md section 2 sentences', () => {
+    const pace = weight.phase.steadyPace.replace(/\.$/, '');
+    expect(weightSection).toContain(pace.charAt(0).toLowerCase() + pace.slice(1));
+    const action = /The card says to ([^.]+)\./.exec(weightSection)?.[1] ?? '';
+    expect(weight.stopSigns.action).toBe(`${action.charAt(0).toUpperCase()}${action.slice(1)}.`);
+  });
+
+  it('the blood-pressure stop-sign line carries the DECISIONS C102 wording', () => {
+    const wording = 'check with your pharmacist or GP before adding salt';
+    expect(readiness.bloodPressure.stopSign).toContain(wording);
+    expect(DECISIONS).toContain(wording);
+  });
+
+  it('the daily-change lines say a litre of water is a kilogram, and the goal refusal names BMI 18.5 for the height', () => {
+    expect(weightSection).toContain('"a litre of water is a kilogram"');
+    expect(weight.fluctuation.body).toContain('a litre of water is a kilogram');
+    expect(weight.trend.howToRead).toContain('a litre of water is a kilogram');
+    expect(weight.goal.belowBmiFloor).toContain('below a BMI of 18.5 for your height');
   });
 });
 

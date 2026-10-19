@@ -36,22 +36,23 @@ The app never says "you are safe to fast/train/diet." It says "nothing you have 
 
 **Owner decision (19 Oct 2026): weight loss should be high to start.** The app is built to expect and support a strong first three weeks, not to warn about them. What it still will not do is promise a number of kilograms by a date, or push intake below the safety floor.
 
-**Kickstart phase (weeks 1–3 of a Kickstart period)**
-- The weight card says: "Kickstart: a fast drop is expected now. Most of it is water and glycogen, with some fat. Typical first weeks on a carb ceiling see several kilograms go." No upper figure is promised.
-- No rapid-loss card is shown in this phase, however fast the line falls.
+**Kickstart phase (three weeks from the day you start it; extendable a week at a time, at most six weeks in all)**
+- The weight card says: "Kickstart: a fast drop is expected now. Most of it is water and glycogen, with some fat. Typical first weeks on a carb ceiling see several kilograms go." No upper figure is promised. On later Kickstart days (extension weeks, or a Kickstart started after 21 Kickstart days were used) the card says instead that the early drop belongs to the first three Kickstart weeks.
+- No rapid-loss card is shown in the first three Kickstart weeks (the first 21 Kickstart days ever, counted across every Kickstart), however fast the line falls.
 - The projected trend line shown on the four-week chart is front-loaded: steep for the first two to three weeks, then flattening to the steady pace. It is drawn as a shaded band labelled "typical range, not a promise", never as a target line.
 - Nutrition can run a **Kickstart deficit** (section 4): up to 30% below the estimated daily energy, with protein held at the top of the range, net carbs at the bottom of the keto range, electrolytes reminded daily, and the 5,000 kJ floor still enforced. You choose it; the app suggests it as the default when you start.
 - Stop-signs during Kickstart: dizziness on standing, palpitations, cramps that electrolytes do not settle, or feeling faint at work. The card says to eat, add salt and fluids, and talk to Healthline or a GP if it continues.
 
 **Steady phase (from week 4)**
 - Pace guidance shown: about 0.5–1 kg a week is the pace associated with keeping weight off; the rebound after Kickstart (a kilogram or two returning when carbs or salt go up) is explained as water, not failure.
-- Rapid-loss card: shown only if the rolling average falls faster than 1 kg per week for three consecutive weeks in the Steady phase: "You're still losing quickly. That's worth a check-in with your GP, especially on a low-carb plan."
+- Rapid-loss card: shown only if the rolling average falls faster than 1 kg per week for three consecutive weeks, counting Steady weeks and any Kickstart week after the first 21 Kickstart days ever: "You're still losing quickly. That's worth a check-in with your GP, especially on a low-carb plan."
 
 **Rules**
 - The long-term goal is always labelled "long-term". The four-week chart carries the line "this is a trend, not a promise". The app never states or targets a specific number of kilograms of fat loss in a number of days.
 - The Kickstart and Steady phases above govern which notes and cards appear. Pace guidance in the Steady phase follows the gradual 0.5–1 kg a week figure ([CDC, archived guidance on losing weight](https://webarchive.library.unt.edu/eot2008/20090116002322mp_/http:/www.cdc.gov/nccdphp/dnpa/healthyweight/losing_weight/index.htm); the implementing model should link the current CDC page once read). Rebounds of a kilogram or two are described as normal, never as failure.
-- Goals cannot be set below a BMI of 18.5 for your height, or below your current weight by more than 20% at a time. Plain-language reason shown.
-- The rapid-loss card never appears during Kickstart and appears in Steady only under the rule above. Judgement call based on common clinical rules of thumb; adjustable in Settings only after reading the explanation.
+- The long-term goal cannot be set below a BMI of 18.5 for your height. The app also shows a next milestone, never more than 20% below your current weight, so the long-term goal is approached a step at a time; the milestone is worked out by the app, never entered. Plain-language reason shown.
+- The rapid-loss card never appears on one of the first 21 Kickstart days ever (counted across every Kickstart); on any other day it appears only under the rule above. Judgement call based on common clinical rules of thumb; adjustable in Settings only after reading the explanation.
+- A current weight below a BMI of 18.5 for your height (the lower of the 7-day average and the latest weigh-in) applies readiness answer 5's settings (HS-35): a running Kickstart ends, and the projection band, the long-term goal and the milestone are hidden; the weight card asks for a check-in with your GP and points to readiness question 5. Weigh-ins and the trend still show.
 - The app never shows "ideal weight" or body-fat estimates.
 - Daily fluctuations are explained once ("a litre of water is a kilogram") to discourage over-reaction.
 
@@ -182,7 +183,7 @@ Stop immediately and seek help for chest pain or pressure, severe shortness of b
 
 | ID | Rule | Test idea |
 |---|---|---|
-| HS-01 | No weight goal below BMI 18.5 or more than 20% below current weight | Attempt both; expect refusal with explanation |
+| HS-01 | No long-term goal below BMI 18.5; no next milestone more than 20% below the current weight (rounded up to 0.1 kg) | Attempt both; expect refusal with explanation |
 | HS-02 | Fast past 24 h shows warning and stops streak credit | Simulate a 25-hour fast |
 | HS-03 | Fasting unavailable when readiness answer 1, 2 or 5 is yes or unanswered (or the birth year means you may be under 18, or the current weight is below BMI 18.5 for the height), or answer 3 is yes or unanswered without a confirmed prescriber agreement | Set each; expect feature hidden with reason |
 | HS-04 | Standard-drink maths matches the alcohol.org.nz formula to 0.05 | Table of 10 known drinks |
@@ -192,9 +193,10 @@ Stop immediately and seek help for chest pain or pressure, severe shortness of b
 | HS-08 | No blood-alcohol or driving language ("BAC", "blood alcohol", "safe to drive", "legal limit") | Static scan |
 | HS-09 | Saturated-fat budget and net-carb ceiling computed from profile; day over budget changes indicator only, no "bad" wording | Fixture day |
 | HS-10 | Planner refuses to auto-generate days under 5,000 kJ | Request a 4,000 kJ day |
-| HS-11 | Rapid-loss card never appears during Kickstart (weeks 1–3), and in Steady appears only after 3 consecutive weeks over 1 kg/week | Synthetic series: 2.5 kg/week in weeks 1–3 shows no card; 1.2 kg/week in weeks 4–6 shows card |
+| HS-11 | Rapid-loss card never appears on one of the first 21 Kickstart days ever (counted across every Kickstart), and otherwise appears only after 3 consecutive weeks over 1 kg/week (adjustable only to be more sensitive: 0.75–1 kg/week, 2 or 3 weeks) | Synthetic series: 2.5 kg/week in weeks 1–3 shows no card; 1.2 kg/week in weeks 4–6 shows card; a restarted Kickstart after 21 days used shows the card |
 | HS-25 | Kickstart deficit never plans below the 5,000 kJ floor or below the protein target, and is capped at 30% below estimated expenditure | Fixtures with low and high estimates |
-| HS-26 | Projection on the four-week chart is a shaded "typical range, not a promise" band, front-loaded; no target line and no "kg by date" text | Snapshot and static scan |
+| HS-26 | Projection on the four-week chart is a shaded "typical range, not a promise" band, front-loaded; no target line and no "kg by date" text | Snapshot and static scan; no band edge as a number or date; no band under readiness 5 or below BMI 18.5 |
+| HS-27 | The Kickstart stop-sign card shows on every Kickstart day with the eat, salt and fluids line, Healthline or a GP, and 111 (the blood-pressure wording when readiness answer 4 is yes or unanswered); it can be hidden only for the day, and after a stop-sign answer it cannot be hidden until that Kickstart's last day ends | Fixtures for each Kickstart day and each answer-4 state; hide the card, then report a stop-sign |
 | HS-12 | Exercise stop rules and beach prompts render before any beach-tagged session | Snapshot test |
 | HS-13 | Emergency numbers 111, 0800 611 116, 0800 787 797 (and 1737 and text 8681, per DOC_REVIEW C17) appear on the About screen, the alcohol screen and every storage failure screen; the storage failure screens, shown when the records cannot be opened, also carry the not-a-medical-device line, from static copy that needs no database (extended at checklist item 12) | DOM query, including each storage failure screen with the database unavailable |
 | HS-14 | The phone app makes only (a) GET requests to its own origin for app files and update checks, with no query string or body built from user data, and (b) requests to the relay host, only after "Send to laptop" is tapped and until that transfer is received or expires. For the page, the Content Security Policy enforces this; for the service worker, which that policy does not cover, the build-output check does: the built service worker may load scripts and keep offline files only by relative URL, at the app's own address (reworded per DOC_REVIEW C03 and the item 5 review; the intent is unchanged) | Playwright network log, service worker included, while visiting every screen online and offline; any request outside the allowlist, and any policy violation, fails; relay requests appear only after a Send tap. The build-output check (e2e/build-output.spec.ts) fails on any absolute URL in the built service worker and on any absolute URL in the built files that is not on its list of inert strings |
@@ -211,7 +213,7 @@ Stop immediately and seek help for chest pain or pressure, severe shortness of b
 | HS-32 | Answers 1, 2 or 5, or a birth year that means you may be under 18, switch off Kickstart, every deficit, fasting, the projection band, the keto carb ceiling and weight goals. Answer 1, or a birth year that means you may be under 18, also switches off the energy estimate and alcohol logging (checklist item 13) | Unit test of the gate function over every combination of answers |
 | HS-33 | Answer 3 without a confirmed prescriber agreement switches off fasting, Kickstart and carb ceilings under 50 g; re-answering 3 or 6, or tapping the "has changed" button, needs a fresh confirmation (checklist item 13) | Confirm, re-answer, expect the features off again |
 | HS-34 | An unanswered readiness question counts as yes everywhere: during setup, after an import, after a rewording (checklist item 13) | Each question unanswered gives the same gates as a yes |
-| HS-35 | A current weight below BMI 18.5 for the height applies answer 5's settings even when answer 5 is no; the BMI figure is never shown (checklist item 13) | Weights either side of the floor; the page shows no BMI figure |
+| HS-35 | A current weight below BMI 18.5 for the height applies answer 5's settings even when answer 5 is no, and ends a running Kickstart; the current weight is the lower of the 7-day average and the latest weigh-in; the BMI figure is never shown (checklist items 13 and 14) | Weights either side of the floor; the page shows no BMI figure |
 | HS-30 | Delete-all empties every store, removes the laptop pairing and every garden photo, deletes every other IndexedDB database and every cache except the app's own files, and clears local and session storage; nothing the app was doing beforehand can write to the fresh database; only the app's files and a fresh database's seed rows remain (new per DOC_REVIEW C17, built at checklist item 12) | Fill every store, a pairing, a photo, an extra database, caches and both storages; delete all; reopen; only the seed rows remain; an autosave or live query afterwards writes nothing; a blocked deletion claims no success |
 
 ---

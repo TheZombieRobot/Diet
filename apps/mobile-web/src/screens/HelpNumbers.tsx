@@ -1,10 +1,7 @@
 import { helpNumbers } from '@diet/core/copy/health';
 import { ActionRow, MessageIcon, PhoneIcon } from '@diet/ui';
 import type { ReactElement } from 'react';
-
-/** A tap-to-call (or text) address for a number written with spaces. */
-const dial = (scheme: 'tel' | 'sms', number: string): string =>
-  `${scheme}:${number.replace(/\s/g, '')}`;
+import { dial } from './dial';
 
 /** A help service as health.ts lists it: a number to call, and perhaps one to text. */
 type HelpService = { name: string; number: string } & (

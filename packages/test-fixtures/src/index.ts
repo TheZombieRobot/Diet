@@ -8,3 +8,6 @@ export * from './storage/fuzzMutations';
 export * from './storage/referenceEnvelopesV1';
 export * from './storage/snapshotV1';
 export * from './storage/testChains';
+
+// Weight (checklist item 14): synthetic weigh-in and Kickstart scenarios, and plain gate objects.
+export * from './weight/scenarios';

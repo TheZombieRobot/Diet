@@ -14,6 +14,8 @@ export const ROUTES = [
   'readiness',
   'profile',
   'eating-schedule',
+  // Item 14: the Weight screen, opened from Today's Weight card.
+  'weight',
 ] as const;
 export type RouteId = (typeof ROUTES)[number];
 
@@ -35,6 +37,7 @@ export const ROUTE_TITLES: Readonly<Record<RouteId, string>> = {
   readiness: 'Readiness answers',
   profile: 'Profile',
   'eating-schedule': 'Eating schedule',
+  weight: 'Weight',
 };
 
 const isRoute = (value: string): value is RouteId => (ROUTES as readonly string[]).includes(value);

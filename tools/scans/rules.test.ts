@@ -163,6 +163,9 @@ describe('health wording (HS-07, HS-08, HS-19, HS-21, AL-11)', () => {
     ['You lost 4 kg in 9 days', 'kg-in-time'],
     ['Lose {kg} kg in {weeks} weeks', 'kg-in-time'],
     ['Typical: 3–5 kg in the first three weeks', 'kg-in-time'],
+    // Item 14 (C18): a weight tied to a time span or a date, in any of its forms.
+    ['about 4 kg over Kickstart', 'kg-in-time'],
+    ['{kg} kg within {weeks} weeks', 'kg-in-time'],
     ['Lose 2–4 kg during Kickstart', 'kg-in-time'],
     ['Expect 4 kg down by week 3', 'kg-in-time'],
     ['about 5 kg in just 3 weeks', 'kg-in-time'],
@@ -174,6 +177,7 @@ describe('health wording (HS-07, HS-08, HS-19, HS-21, AL-11)', () => {
     ['Shed 5 kg', 'lose-n-kg'],
     ['Lose ten kilograms this month', 'lose-n-kg'],
     ['70 kg by Christmas', 'kg-by'],
+    ['84 kg by 12 Nov', 'kg-by'],
     ['${goalKg} kg by ${d}', 'kg-by'],
     ['Results guaranteed', 'guarantee'],
     // HEALTH_SAFETY.md section 2.
@@ -272,6 +276,11 @@ describe('health wording (HS-07, HS-08, HS-19, HS-21, AL-11)', () => {
     'Fixture profile 90 kg start, 70 kg long-term goal',
     'Typical first weeks on a carb ceiling see several kilograms go.',
     'a litre of water is a kilogram',
+    // Item 14 (C18): the weight screens' own figures and pace lines.
+    'Down {kg} kg a week',
+    'Kickstart, week 2 of 3',
+    'Your 7-day average has dropped by more than 1 kg a week, 3 weeks in a row.',
+    'Next milestone 78.3 kg',
     'No alcohol use is risk-free.',
     'At least 2 alcohol-free days every week.',
     'Simmer until thickened',

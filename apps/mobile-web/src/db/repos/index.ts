@@ -10,6 +10,7 @@ import { type DrinksRepo, drinksRepo } from './drinks';
 import { type FastsRepo, fastsRepo } from './fasts';
 import { type GardenPhotosRepo, gardenPhotosRepo } from './gardenPhotos';
 import { type KickstartRepo, kickstartRepo } from './kickstart';
+import { type PhaseRepo, phaseRepo } from './phase';
 import { type ReadinessRepo, readinessRepo } from './readiness';
 import { type SettingsRepo, type SingletonRepo, settingsRepo, singletonRepo } from './singletons';
 import { type WeightsRepo, weightsRepo } from './weights';
@@ -20,6 +21,8 @@ export interface Repos {
   readonly settings: SettingsRepo;
   readonly readiness: ReadinessRepo;
   readonly kickstart: KickstartRepo;
+  /** The fasting-preset moves tied to Kickstart (item 14). */
+  readonly phase: PhaseRepo;
   readonly weights: WeightsRepo;
   readonly fasts: FastsRepo;
   readonly symptoms: CrudRepo<'symptom_log'>;
@@ -50,6 +53,7 @@ export function createRepos(ctx: RepoContext): Repos {
     settings: settingsRepo(ctx),
     readiness: readinessRepo(ctx),
     kickstart: kickstartRepo(ctx),
+    phase: phaseRepo(ctx),
     weights: weightsRepo(ctx),
     fasts: fastsRepo(ctx),
     symptoms: crudRepo(ctx, 'symptom_log'),

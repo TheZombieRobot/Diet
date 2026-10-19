@@ -53,8 +53,8 @@ Conventions for the implementing model:
 13. **First-run flow.** Welcome, mandatory alcohol safety notice, readiness questions with gate logic, profile, eating schedule with computed window display, garden with silverbeet pre-listed.
     *Acceptance:* HS-20; RD-01 to RD-09; HS-03; HS-32 to HS-35; FL-08 in the UI; AL-09b (day one).
 
-14. **Weight log, phases and trend.** Entry, 7/14-day averages, long-term goal labelled, Kickstart/Steady phase engine (21 days plus confirmed extensions), front-loaded "typical range, not a promise" band, Kickstart and Steady notes, goal floors, rapid-loss card only in Steady.
-    *Acceptance:* WT-01 to WT-10; HS-01, HS-11, HS-21, HS-26; NN-03.
+14. **Weight log, phases and trend.** Entry, 7/14-day averages, long-term goal labelled, Kickstart/Steady phase engine (21 days plus confirmed extensions), front-loaded "typical range, not a promise" band, Kickstart and Steady notes, goal floors, rapid-loss card never on the first 21 cumulative Kickstart days.
+    *Acceptance:* WT-01 to WT-14; HS-01, HS-11, HS-21, HS-26, HS-27; NN-03.
 
 15. **Fasting timer and history.** Presets 16:8, 18:6, 20:4, 22:2, 23:1 (Kickstart default), custom times; snack and dinner times; single-meal protein and energy check on 23:1 days with one-tap snack add; 24-hour ceiling behaviour; restart-safe; stop-signs; "widen the window" prompt; reflux symptom log and options.
     *Acceptance:* FS-01 to FS-05; FL-10 to FL-15; HS-02, HS-17, HS-18.

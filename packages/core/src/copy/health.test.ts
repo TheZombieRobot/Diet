@@ -99,6 +99,19 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
   ],
   // C57: fixed copy never claims a homegrown weight.
   garden: [/\d\s*g\b/i],
+  // HEALTH_SAFETY.md section 2 (weight); REQUIREMENTS 3A; HS-21, HS-26.
+  weight: [
+    // No celebration of speed and no punishment of rebounds.
+    /\b(?:great\s+(?:job|work|progress)|well\s+done|congrat\w*|amazing|awesome|keep\s+it\s+up|on\s+track|ahead\s+of|behind\s+(?:schedule|plan)|cheat\w*|bad\s+day|proud)\b/i,
+    /(?<!\bnot\s)\bfail(?:s|ed|ing|ure|ures)?\b/i, // "not failure" only
+    /(?<!\bnot\s(?:a\s)?)\bpromise[sd]?\b/i, // "not a promise" only (HS-21, HS-26)
+    /(?<!\bnot\s(?:a\s)?)\btargets?\b/i, // never a target (HS-26)
+    /(?<!long-term\s)\bgoals?\b/i, // every goal is labelled long-term (HS-21)
+    /\bideal\b/i, // no "ideal weight"
+    /\bunderweight\b/i, // the low-weight line names the BMI, not a label
+    /\bdeadline\b/i,
+    /\byou\s+(?:should|must)\b/i,
+  ],
 };
 
 describe('health copy', () => {

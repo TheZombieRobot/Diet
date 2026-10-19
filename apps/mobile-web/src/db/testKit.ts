@@ -26,7 +26,7 @@ import { createWriteGate, type GateReason } from './gate';
 import type { LockManagerLike } from './locks';
 import { createRepos, type Repos, type RepoHooks, type UpdatePatch } from './repos';
 import { type AppStorage, type Platform } from './runtime';
-import { readBackupSnapshot } from './snapshot';
+import { readBackupSnapshot, replaceAll } from './snapshot';
 
 export interface TestEnv extends StorageEnv {
   readonly set: (at: Instant) => void;
@@ -318,6 +318,17 @@ export async function onboardForTests(test: TestDb, options: OnboardOptions = {}
     gardenConfirmedAt: now,
     onboardingCompletedAt: options.completedAt ?? now,
   });
+}
+
+/** A test database holding `snapshot` (for example a weight scenario), with the clock at `now`. */
+export async function openSnapshotDb(
+  snapshot: Snapshot,
+  now: Instant,
+  zone = 'Pacific/Auckland',
+): Promise<TestDb> {
+  const test = await openTestDb({ env: testEnv(now, zone) });
+  await replaceAll(test.db, snapshot);
+  return test;
 }
 
 /** S(db) of section 10.8. */

@@ -6,6 +6,7 @@ import { routeHref } from '../routes';
 import { useStore } from '../store';
 import { BackupCard } from './backup/BackupCard';
 import { Placeholder } from './Placeholder';
+import { WeightCheckInSettings } from './weight/WeightCheckInSettings';
 
 function InstallCard(): ReactElement {
   const { canPrompt, installed } = useStore(installStore);
@@ -64,6 +65,7 @@ export function SettingsScreen(): ReactElement {
       <InstallCard />
       <SetupCard />
       <BackupCard />
+      <WeightCheckInSettings />
       <Card label="More">
         <ul className="ui-action-list">
           <li>

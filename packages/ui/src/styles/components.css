@@ -537,6 +537,164 @@
   font-weight: 700;
 }
 
+/* A live status line takes no room until it has something to say; it stays in the page, so it is announced. */
+.ui-status-line:empty {
+  position: absolute;
+}
+
+/* The phase chip (Today's Weight card; UX_SCREENS section 2, card 1) */
+.ui-pill--teal {
+  background: var(--color-teal-tint);
+  color: var(--color-on-teal-tint);
+  font-weight: 800;
+}
+
+/*
+ * A row of up to three figures with their labels (the Weight card). A slot with no figure holds a
+ * short phrase at a smaller size (--empty); its full sentence goes under the row. Later cards add
+ * modifiers rather than redefine these.
+ */
+.ui-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: 10px;
+}
+
+.ui-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ui-stat__label {
+  color: var(--color-secondary);
+  font-size: var(--text-label);
+  font-weight: 700;
+}
+
+.ui-stat__value {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.ui-stat__value--lead {
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.ui-stat__value--empty {
+  color: var(--color-secondary);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: normal;
+  overflow-wrap: anywhere;
+}
+
+/* The unit follows its figure after a space, so screen readers hear "96.8 kg". */
+.ui-stat__unit {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: normal;
+}
+
+/* An inset note inside a card (the phase note) */
+.ui-note {
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--color-inset);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+/* The weight chart: no text inside the drawing; labels and the key are HTML under it */
+.ui-trend-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+
+.ui-trend-chart__svg {
+  display: block;
+  width: 100%;
+  height: 104px;
+  overflow: visible;
+}
+
+.ui-trend-chart__grid {
+  stroke: var(--color-border);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* A typical range, never a target: filled, with no edge line (HS-26). */
+.ui-trend-chart__band {
+  fill: var(--color-teal);
+  fill-opacity: 0.13;
+  stroke: none;
+}
+
+.ui-trend-chart__line {
+  fill: none;
+  stroke: var(--color-ink);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.ui-trend-chart__dot {
+  fill: var(--color-secondary);
+}
+
+.ui-trend-chart__halo {
+  fill: var(--color-ink);
+  fill-opacity: 0.12;
+}
+
+.ui-trend-chart__today {
+  fill: var(--color-ink);
+}
+
+.ui-trend-chart__labels {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-trend-chart__legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-trend-chart__key {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ui-trend-chart__swatch {
+  flex: none;
+  width: 22px;
+  height: 12px;
+  border-radius: 4px;
+  background: var(--color-teal);
+  opacity: 0.18;
+}
+
 /* Bottom tab bar */
 .ui-tabbar {
   position: fixed;
@@ -926,6 +1084,40 @@
   color: var(--color-secondary);
   font-size: 14px;
   font-weight: 600;
+}
+
+/*
+ * Inline answers (ChoiceList layout 'inline'): the question in ordinary sentence type and short
+ * answers side by side, wrapping on a narrow screen. Each answer's box inside its border is still
+ * at least 48 px, chosen or not.
+ */
+.ui-choices--inline .ui-choices__legend {
+  color: var(--color-ink);
+  font-size: 15px;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.ui-choices__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ui-choices--inline .ui-choice {
+  gap: 10px;
+  min-width: calc(var(--size-tap) + 4px);
+  min-height: calc(var(--size-tap) + 4px);
+  padding: 0 16px;
+}
+
+.ui-choices--inline .ui-choice--checked {
+  padding: 0 15px;
+}
+
+.ui-choices:disabled .ui-choice {
+  opacity: 0.6;
+  cursor: default;
 }
 
 /* A switch with a note under it. */
