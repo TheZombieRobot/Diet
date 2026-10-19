@@ -139,7 +139,7 @@ Card text: "If you've been drinking most days for a while and are thinking about
 
 **Pre-session check (every session):** pain or injury, back or leg symptoms, fatigue or poor sleep, heat exposure, hydration. Any "yes" offers the lighter variant or rest. Rest and recovery are counted as success in the week view. The app does not diagnose injury or promise that exercise is safe.
 
-**Movement library (ASSUMPTION A5: no equipment)**
+**Movement library (bodyweight by default; band and dumbbell variants unlock with the Settings toggles)**
 Lower body: sit-to-stand or supported squat, bodyweight squat, split squat, reverse lunge, glute bridge, single-leg bridge, calf raise, step-up; light hinge (hip hinge to a box) only if pain-free.
 Upper body: wall push-up, incline push-up (bench or rail), push-up, pike push-up, band row or inverted row on a sturdy rail, band pull-apart; dumbbell variants of row and press when enabled.
 Core: dead bug, bird-dog, side plank, front plank, hollow hold.

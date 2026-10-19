@@ -104,7 +104,7 @@ The New Zealand Food Composition Database (foodcomposition.co.nz) is the preferr
 | FOODfiles is licensed under "a worldwide, non-exclusive, non-transferable, royalty free, right to access and use the FOODfiles Data subject to the following conditions", including not modifying the data and limits on reproduction; a clause 4 covers use in "any product or service" | Partially verified; **clause 4 wording not read** | [Terms of use](https://www.foodcomposition.co.nz/terms/) |
 | Current release is FOODfiles 2024; download requires agreeing to the terms; a recommended citation exists in the data manual | Verified from search extract | [FOODfiles page](https://www.foodcomposition.co.nz/foodfiles/), [2024 data manual](https://www.foodcomposition.co.nz/downloads/new-zealand-food-composition-database-2024-data-manual.pdf) |
 
-**Decision:** read clause 4 before loading data (checklist item 8). If it permits non-commercial use within a personal app with attribution, use a hand-curated subset of roughly 150 items with the recommended citation on the app's "About data" screen. If it does not, use the USDA FoodData Central (public domain), which is less NZ-specific but unencumbered, and note the gap for NZ-only items such as feijoa.
+**Decision:** read clause 4 before loading data (checklist item 10). If it permits non-commercial use within a personal app with attribution, use a hand-curated subset of roughly 150 items with the recommended citation on the app's "About data" screen. If it does not, use the USDA FoodData Central (public domain), which is less NZ-specific but unencumbered, and note the gap for NZ-only items such as feijoa.
 
 ---
 
@@ -123,7 +123,7 @@ Tier 2 or 3 work starts only if the answer is yes, or an official interface is p
 1. Read the Website Terms and Conditions in full; paste the automation/reproduction clauses here.
 2. Read the Online Shopping Terms in full; paste clauses on third-party tools and prices.
 3. Read foodcomposition.co.nz terms clause 4; decide NZ vs USDA data.
-4. Observe, as a normal user, the URL that paknsave.co.nz uses for a product search and record it in `apps/extension/README.md`. If the site offers no stable search URL, Tier 1 degrades to copy-to-clipboard.
+4. Observe, as a normal user, the URL that paknsave.co.nz uses for a product search and record it in `apps/cart-extension/README.md`. If the site offers no stable search URL, Tier 1 degrades to copy-to-clipboard.
 5. Record whether the "developer mode extensions" warning is tolerable or whether a Web Store listing is wanted later.
 
 

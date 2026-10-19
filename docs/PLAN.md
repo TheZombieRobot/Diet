@@ -3,13 +3,13 @@
 **Status:** Approved by the owner on 19 October 2026. Milestone 1 complete. Implementation starts at `IMPLEMENTATION_CHECKLIST.md` item 1.
 **Date:** 19 October 2026 (NZ)
 **Audience:** You (the owner, non-coder) first; the implementing model (Opus 5.5) second.
-**Companion documents:** `INTEGRATION_FEASIBILITY.md`, `HEALTH_SAFETY.md`, `TEST_PLAN.md`, `UX_SCREENS.md`, `DATA_MODEL.md`, `DECISIONS.md`, `IMPLEMENTATION_CHECKLIST.md`.
+**Companion documents:** `REQUIREMENTS.md`, `INTEGRATION_FEASIBILITY.md`, `HEALTH_SAFETY.md`, `TEST_PLAN.md`, `UX_SCREENS.md`, `DATA_MODEL.md`, `DECISIONS.md`, `IMPLEMENTATION_CHECKLIST.md`.
 
 ---
 
 ## 0. Read this first
 
-**The handoff document has been read in full and this plan now follows it.** It is deliberately **not** committed to this repository, because the repository is public and the handoff contains personal health details. The implementing model receives it directly from you at the start of each session (checklist item 1). Where this plan needs a default that comes from your situation, it states the product default without attributing numbers to you. If you would rather the docs speak plainly, make the repo private and say so; the plan does not change.
+**The handoff document has been read in full and this plan now follows it.** It is deliberately **not** committed to this repository, because the repository is public and the handoff contains personal health details. `REQUIREMENTS.md` replaces it for implementation; the original stays private and is never needed or requested (see `DECISIONS.md`, 19 October, de-personalised requirements). Where this plan needs a default that comes from your situation, it states the product default without attributing numbers to you. If you would rather the docs speak plainly, make the repo private and say so; the plan does not change.
 
 **Everything you asked in the handoff's "first approval questions" now has an answer:**
 
@@ -21,7 +21,7 @@
 | Garden crops beyond silverbeet? | Silverbeet is pre-loaded as available. Everything else is entered by you in the inventory screen. |
 | Lipid panel and alcohol guidance from a clinician | Built in as standing reminders; the app never presents itself as medical clearance. |
 
-The only thing left is your approval (section 11).
+Approved on 19 October 2026; see `DECISIONS.md`.
 
 ---
 

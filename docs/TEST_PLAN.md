@@ -24,7 +24,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 - **Phone:** your Android device, Chrome stable (record version and Android version in `TRIAL_LOG.md`). Also tested in Chrome's Android emulation in Playwright for automation.
 - **Laptop:** Chrome stable, version 116 or later (needed for `sidePanel.open()`); record version.
 - **Relay:** a test deployment separate from the one you use, with a 2-minute expiry so expiry tests run quickly.
-- **Data:** fixtures live in `packages/data/fixtures`. No real health data is ever committed.
+- **Data:** fixtures live in `packages/test-fixtures` (generic only); seeded app data lives in `packages/core/data`. No real health data is ever committed.
 
 ---
 

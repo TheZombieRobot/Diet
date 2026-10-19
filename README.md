@@ -15,6 +15,7 @@ An Android-first, offline-first web app (PWA) for one person: meal planning arou
 | [docs/TEST_PLAN.md](docs/TEST_PLAN.md) | How we prove it works, including the real shopping trial |
 | [docs/UX_SCREENS.md](docs/UX_SCREENS.md) | Every screen described in plain language |
 | [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | What the app stores and the shared formulas |
+| [docs/DOC_REVIEW.md](docs/DOC_REVIEW.md) | Checklist item 1: every conflict and gap found in the planning documents, verified, with the decisions awaiting the owner |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | Decisions log, including why there is no server account |
 | [docs/IMPLEMENTATION_CHECKLIST.md](docs/IMPLEMENTATION_CHECKLIST.md) | Numbered build steps for the implementing model with acceptance tests and STOP points |
 | [docs/OPUS_HANDOVER_PROMPT.md](docs/OPUS_HANDOVER_PROMPT.md) | The prompt to paste into the implementing session |
