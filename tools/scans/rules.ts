@@ -3,7 +3,15 @@
  *
  * Each rule names the HEALTH_SAFETY.md / TEST_PLAN.md IDs it enforces. Patterns are deliberately
  * strict: if a legitimate sentence trips one, reword the sentence rather than weakening the rule.
- * The same phrase lists are reused by browser tests that scan rendered text on every screen.
+ * Every apostrophe in a pattern is written ['’] so the typographic apostrophe is caught too.
+ *
+ * Health and commerce wording is checked against the text a person would see (extract.ts): string
+ * literals, template literals, `+` concatenations and JSX text in code (comments are skipped), and
+ * markup or data files with tags removed and HTML entities decoded. Privacy, secret, network and
+ * AI rules read the raw text of every file.
+ *
+ * A browser scan of the rendered text of every screen, reusing these phrase lists, is added at
+ * checklist item 5 (it does not exist yet).
  */
 
 export interface ContentRule {
@@ -18,7 +26,8 @@ export interface PathRule {
   id: string;
   enforces: readonly string[];
   description: string;
-  test: (path: string, sizeBytes: number) => boolean;
+  /** `bytes` is the file content when it is available (used for image metadata checks). */
+  test: (path: string, sizeBytes: number, bytes?: Uint8Array) => boolean;
 }
 
 const rule = (
@@ -28,80 +37,173 @@ const rule = (
   pattern: RegExp,
 ): ContentRule => ({ id, enforces, description, pattern });
 
+const re = (source: string, flags = 'i') => new RegExp(source, flags);
+
+// Building blocks for the weight-claim rules (HS-21, HS-26, NN-03). `{}` is how extract.ts writes
+// an interpolated value, so `Lose {kg} kg in {weeks} weeks` is caught as well as `Lose 5 kg`.
+const PLACEHOLDER = String.raw`\$?\{[^}]*\}`;
+const NUM = String.raw`(?:\d+(?:[.,]\d+)?(?:\s*[–—-]\s*\d+(?:[.,]\d+)?)?|${PLACEHOLDER}|a|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|half\s+a|a\s+few|a\s+couple\s+of|several)`;
+const NUM_START = String.raw`(?:\b|(?=[$\{]))`;
+const KG = String.raw`(?:kgs?|kilos?|kilogram(?:me)?s?)`;
+const WEIGHT_UNIT = String.raw`(?:kgs?|kilos?|kilogram(?:me)?s?|lbs?|pounds?)`;
+/** Up to three words between a preposition and a time unit: "in the first three weeks". */
+const FEW_WORDS = String.raw`(?:(?:[\w’'-]+|${PLACEHOLDER})\s+){0,3}?`;
+const TIME_UNIT = String.raw`(?:days?|weeks?|months?|fortnights?|Kickstart)`;
+const ENERGY_UNIT = String.raw`(?:calories|calorie|cals?|kcals?|kilojoules?|kjs?|energy)`;
+
 /**
  * Health wording that must never appear in anything the app or extension can show.
- * Sources: HEALTH_SAFETY.md sections 1, 2, 4, 5 and the HS-07, HS-08, HS-19, HS-21 rows.
+ * Sources: HEALTH_SAFETY.md sections 1 to 5 and the HS-07, HS-08, HS-19, HS-21 rows.
  */
 export const healthPhraseRules: readonly ContentRule[] = [
-  // HS-07: no taper, reduction schedule or quit instruction.
-  rule('taper-cut-down-by', ['HS-07', 'AL-11'], '"cut down by"', /\bcut(?:ting|s)?\s+down\s+by\b/i),
-  rule('taper-reduce-by', ['HS-07', 'AL-11'], '"reduce by"', /\breduc(?:e|es|ed|ing)\s+by\b/i),
+  // HS-07: no taper, reduction schedule or quit instruction; section 5: never says stop drinking.
+  rule(
+    'taper-cut-down-by',
+    ['HS-07', 'AL-11'],
+    '"cut down by" / "cut back to" and similar',
+    /\bcut(?:ting|s)?\s+(?:[\w’'-]+\s+){0,3}?(?:down|back)\s+(?:by|to)\b/i,
+  ),
+  rule(
+    'taper-reduce-by',
+    ['HS-07', 'AL-11'],
+    '"reduce ... by"',
+    /\breduc\w*\s+(?:[\w’'-]+\s+){0,3}?by\b/i,
+  ),
+  rule(
+    'taper-ease-off',
+    ['HS-07'],
+    '"ease off by" and similar',
+    /\b(?:ease|wind)\s+(?:off|back|down)\s+(?:by|to)\b/i,
+  ),
   rule('taper-taper', ['HS-07', 'AL-11'], '"taper"', /\btaper(?:s|ed|ing)?\b/i),
-  rule('taper-quit-date', ['HS-07', 'AL-11'], '"quit date"', /\bquit(?:ting)?\s+dates?\b/i),
+  rule(
+    'taper-quit-date',
+    ['HS-07', 'AL-11'],
+    '"quit date" / "quit day" / "stop date"',
+    /\bquit(?:ting)?[\s-]+(?:dates?|days?)\b|\b(?:date|day)\s+to\s+(?:quit|stop)\b|\bstop[\s-]+dates?\b/i,
+  ),
   rule(
     'taper-stop-drinking',
     ['HS-07', 'AL-11'],
-    '"stop drinking"',
-    /\bstop(?:s|ped|ping)?\s+drinking\b/i,
+    '"stop drinking" / "quit alcohol" / "give up drinking" and similar',
+    /\b(?:quit(?:s|ting)?|stop(?:s|ped|ping)?|give\s+up|giving\s+up|gave\s+up|cut(?:ting)?\s+out)\s+(?:your\s+|all\s+)?(?:drinking|alcohol)\b/i,
   ),
   rule('taper-wean', ['HS-07', 'AL-11'], '"wean"', /\bwean(?:s|ed|ing)?\b/i),
   rule(
     'taper-schedule',
     ['HS-07'],
-    'reduction schedule or plan',
-    /\breduction\s+(?:schedule|plan)s?\b/i,
+    'a reduction schedule or step-down plan',
+    /\breduction\s+(?:schedule|plan)s?\b|\b(?:step|cut|wind|taper)[\s-]+down\s+plans?\b|\b(?:weekly|daily)\s+reductions?\b/i,
+  ),
+  rule(
+    'taper-fewer-drinks',
+    ['HS-07'],
+    '"one fewer drink" and similar reduction steps',
+    /\bone\s+fewer\s+drinks?\b|\bhalve\s+your\s+(?:drinking|drinks|alcohol)\b|\bdrop\s+to\s+\S+\s+(?:drinks?|cans?|beers?|glasses)\b/i,
   ),
   rule('detox', ['NN-09'], '"detox"', /\bdetox\w*/i),
 
   // HS-08: no blood-alcohol or driving language.
   rule('bac', ['HS-08', 'AL-11'], '"BAC" (case-sensitive, so "bacon" is fine)', /\bBAC\b/),
-  rule('blood-alcohol', ['HS-08', 'AL-11'], '"blood alcohol"', /\bblood[\s-]+alcohol\b/i),
-  rule('safe-to-drive', ['HS-08', 'AL-11'], '"safe to drive"', /\bsafe\s+to\s+drive\b/i),
-  rule('legal-limit', ['HS-08', 'AL-11'], '"legal limit"', /\blegal\s+limits?\b/i),
-  rule('driving', ['HS-08'], 'anything about driving', /\bdriv(?:e|es|ing|er|ers|en)\b/i),
-  rule('sober-up', ['HS-08'], '"sober up"', /\bsober(?:ing)?\s+up\b/i),
+  rule(
+    'blood-alcohol',
+    ['HS-08', 'AL-11'],
+    '"blood alcohol" and similar',
+    /\bblood[\s-]+alcohol\b|\balcohol\s+(?:level|content|concentration)s?\s+in\s+(?:your\s+|the\s+)?blood\b/i,
+  ),
+  rule(
+    'breath-alcohol',
+    ['HS-08'],
+    'breath alcohol, breathalysers, BrAC',
+    /\bbreath(?:[\s-]+alcohol|alys[ei]rs?|alyz[ei]rs?)\b|\bBrAC\b/i,
+  ),
+  rule('safe-to-drive', ['HS-08', 'AL-11'], '"safe to drive"', /\bsafe[\s-]+to[\s-]+drive\b/i),
+  rule('legal-limit', ['HS-08', 'AL-11'], '"legal limit"', /\blegal[\s-]+limits?\b/i),
+  rule(
+    'the-limit',
+    ['HS-08'],
+    '"over / under the limit"',
+    /\b(?:over|under|below)\s+the\s+limit\b/i,
+  ),
+  rule('behind-the-wheel', ['HS-08'], '"behind the wheel"', /\bbehind\s+the\s+wheel\b/i),
+  rule(
+    'operate-vehicle',
+    ['HS-08'],
+    '"operate a vehicle / machinery"',
+    /\boperat\w*\s+(?:a\s+|any\s+|heavy\s+)?(?:vehicles?|cars?|machinery)\b/i,
+  ),
+  rule(
+    'driving',
+    ['HS-08'],
+    'anything about driving (exercise cues say "push", not "drive")',
+    /\bdriv(?:e|es|ing|er|ers|en)\b/i,
+  ),
+  rule('sober-up', ['HS-08'], '"sober up"', /\bsober(?:s|ed|ing)?\s+up\b/i),
+  rule(
+    'clearance-rate',
+    ['HS-08'],
+    '"one drink an hour" (a blood-alcohol estimate in disguise)',
+    /\bdrinks?\s+(?:an|per|each|every)\s+hour\b/i,
+  ),
+  rule('out-of-system', ['HS-08'], '"out of your system"', /\bout\s+of\s+your\s+system\b/i),
 
   // HS-19: never converts energy into permission to drink; no rewards.
   rule(
     'energy-left',
     ['HS-19'],
     '"calories left" and similar',
-    /\b(?:calories|kcal|kilojoules|kj|energy)\s+(?:left|remaining|to\s+spare)\b/i,
+    re(
+      String.raw`(?:\b${ENERGY_UNIT}|${PLACEHOLDER})\s+(?:left|remaining|to\s+spare|to\s+go|left\s+over|spare)\b`,
+    ),
   ),
   rule(
     'remaining-energy',
     ['HS-19'],
     '"remaining calories" and similar',
-    /\bremaining\s+(?:calories|kcal|kilojoules|kj|energy)\b/i,
+    re(String.raw`\bremaining\s+${ENERGY_UNIT}\b`),
   ),
-  rule('earned', ['HS-19'], '"earned" / "earn"', /\bearn(?:s|ed|ing)?\b/i),
+  rule('earned', ['HS-19'], '"earned" / "earnt" / "earn"', /\bearn(?:s|ed|t|ing)?\b/i),
   rule('allowance', ['HS-19'], '"allowance"', /\ballowances?\b/i),
   rule(
-    'drinks-budget',
+    'drinks-left',
     ['HS-19'],
-    'drinks as a budget',
-    /\bdrinks?\s+(?:budget|left|remaining|allowed|to\s+spare)\b/i,
+    'drinks, cans or standard drinks "left" / "to go" / "allowed"',
+    /\b(?:std|standard\s+drinks?|units?|cans?|beers?|glasses|wines?|drinks?)\s+(?:left|remaining|to\s+go|to\s+spare|allowed|budget|spare)\b/i,
+  ),
+  rule(
+    'drink-budget',
+    ['HS-19'],
+    'drinks as a budget ("room for", "budget for drinks", "can still have")',
+    re(
+      String.raw`\b(?:alcohol|drinks?|drinking)\s+(?:budget|allowance|credits?)\b|\bbudget\s+for\s+(?:drinks?|alcohol|a\s+drink|beers?|wine)\b|\broom\s+for\b|\b(?:spare|leftover|left-over|bank(?:ed)?)\s+${ENERGY_UNIT}\b|\ballowed\s+drinks?\b|\bcan\s+still\s+have\b|\bbonus\s+drinks?\b`,
+    ),
   ),
   rule('reward', ['HS-19'], 'rewards', /\breward(?:s|ed|ing)?\b/i),
   rule(
     'treat-yourself',
     ['HS-19'],
-    '"treat yourself" / "you deserve"',
-    /\b(?:treat\s+yourself|you\s+deserve)\b/i,
+    '"treat yourself" / "you deserve" / "well deserved"',
+    /\b(?:treat\s+yourself|you\s+deserve|well[\s-]+deserved)\b/i,
   ),
   rule(
     'safe-amount',
     ['NN-09'],
     'implying an amount of alcohol is safe',
-    /\bsafe\s+(?:amount|level|limit|number|allowance)s?\b/i,
+    /\b(?:safe|healthy|low[\s-]+risk)\s+(?:amount|level|limit|number|allowance|drinking)s?\b/i,
+  ),
+  rule(
+    'alcohol-reward-label',
+    ['HEALTH_SAFETY-5', 'AL-05'],
+    'alcohol-free streaks or badges, or a drinks "limit" / "target"',
+    /\balcohol[\s-]free\b[^.\n]{0,40}\b(?:streaks?|in\s+a\s+row|badges?)\b|\b(?:streaks?|badges?)\b[^.\n]{0,40}\balcohol[\s-]free\b|\b(?:weekly|daily|drinks?|drinking|alcohol)\s+(?:limits?|targets?)\b/i,
   ),
 
-  // HEALTH_SAFETY.md section 1: never "you are safe to fast/train/diet".
+  // HEALTH_SAFETY.md sections 1 and 6, NN-09: never "you are safe to fast/train/diet".
   rule(
     'safe-to',
-    ['HS-safety-1'],
-    '"safe to fast/train/diet/..."',
-    /\bsafe\s+to\s+(?:fast|train|diet|exercise|drink|stop|lose)\b/i,
+    ['HEALTH_SAFETY-1', 'NN-09'],
+    'telling the user something is safe for them',
+    /\bsafe[\s-]+to[\s-]+(?:fast|train|diet|exercise|drink|stop|lose|start|begin|keep|continue)\b|\b(?:fasting|exercise|exercising|training|this\s+plan|the\s+plan|keto|it|this|that)\s+is\s+(?:completely\s+|perfectly\s+|totally\s+|quite\s+)?safe\b|\bsafe\s+for\s+you\b|\bsafely\s+(?:fast|train|diet|exercise|drink|lose)\b|\bsafe\s+drinking\b|\byou(?:['’]re|\s+are)\s+(?:completely\s+|perfectly\s+|totally\s+)?safe\b/i,
   ),
 
   // HS-21 / HS-26: no "kilograms in N days" claims, no target-by-date.
@@ -109,90 +211,163 @@ export const healthPhraseRules: readonly ContentRule[] = [
     'kg-in-time',
     ['HS-21', 'HS-26', 'NN-03'],
     'a weight amount tied to a time span',
-    /\b\d+(?:[.,]\d+)?\s*(?:kg|kgs|kilos?|kilograms?|lbs?|pounds?)\b[^.\n]{0,40}?\b(?:in|by|within|over|per)\s+(?:\d+|a|one|two|three|four|five|six|seven|eight|nine|ten|twelve)\s*(?:days?|weeks?|months?|fortnights?)\b/i,
+    re(
+      String.raw`${NUM_START}${NUM}\s*${WEIGHT_UNIT}\b[^.\n]{0,40}?\b(?:in|by|within|over|during|across)\s+${FEW_WORDS}${TIME_UNIT}\b`,
+    ),
   ),
   rule(
     'lose-n-kg',
     ['HS-21', 'NN-03'],
-    '"lose N kg"',
-    /\blos(?:e|ing)\s+(?:up\s+to\s+)?\d+(?:[.,]\d+)?\s*(?:kg|kgs|kilos?|kilograms?)\b/i,
+    '"lose N kg" / "drop N kg" / "shed N kg"',
+    re(
+      String.raw`\b(?:los(?:e|es|ing|t)|drop(?:s|ped|ping)?|shed(?:s|ding)?)\s+(?:up\s+to\s+|around\s+|about\s+|another\s+|over\s+|roughly\s+|at\s+least\s+)?${NUM}\s*${KG}\b`,
+    ),
   ),
   rule(
     'kg-by',
     ['HS-21', 'HS-26'],
     '"N kg by <date>"',
-    /\b\d+(?:[.,]\d+)?\s*(?:kg|kgs|kilos?|kilograms?)\s+by\s+/i,
+    re(String.raw`${NUM_START}${NUM}\s*${KG}\s+by\s+`),
   ),
   rule('guarantee', ['HS-21'], 'guarantees about results', /\bguarantee(?:s|d)?\b/i),
 
   // HEALTH_SAFETY.md section 2: no "ideal weight", no body-fat estimates.
-  rule('ideal-weight', ['HS-safety-2'], '"ideal weight"', /\bideal\s+(?:body\s+)?weight\b/i),
-  rule('body-fat', ['HS-safety-2'], 'body-fat estimates', /\bbody[\s-]?fat\b/i),
+  rule(
+    'ideal-weight',
+    ['HEALTH_SAFETY-2'],
+    '"ideal weight" and similar',
+    /\b(?:ideal|healthy|perfect)\s+(?:body\s+)?weight\b/i,
+  ),
+  rule('body-fat', ['HEALTH_SAFETY-2'], 'body-fat estimates', /\bbody[\s-]?fat\b/i),
+  rule('fat-mass', ['HEALTH_SAFETY-2'], '"fat mass"', /\bfat[\s-]+mass\b/i),
 
-  // HEALTH_SAFETY.md section 4: no supplements, no ketosis-measurement claims, no "fat-burning".
-  rule('fat-burning', ['HS-safety-4'], '"fat-burning"', /\bfat[\s-]?burn\w*/i),
+  // HEALTH_SAFETY.md section 4: no supplements, no ketosis-measurement claims, no fat burning.
+  rule('fat-burning', ['HEALTH_SAFETY-4'], '"fat-burning"', /\bfat[\s-]?burn\w*/i),
+  rule(
+    'burns-fat',
+    ['HEALTH_SAFETY-4'],
+    '"burns fat"',
+    /\bburn(?:s|ing|ed|t)?\s+(?:body\s+|more\s+|extra\s+)?fat\b/i,
+  ),
   rule(
     'supplement',
-    ['HS-safety-4'],
+    ['HEALTH_SAFETY-4'],
     'supplement recommendations',
     /\bsupplement(?:s|ed|ing|ation)?\b/i,
   ),
   rule(
-    'ketone-measure',
-    ['HS-safety-4'],
-    'ketosis measurement claims',
-    /\bketones?\s+(?:strips?|meters?|levels?|readings?|tests?)\b/i,
+    'supplement-form',
+    ['HEALTH_SAFETY-4'],
+    'mineral tablets, pills or powders',
+    /\b(?:magnesium|potassium|electrolytes?|zinc|sodium|salt|calcium|iron|minerals?)\s+(?:tablets?|pills?|capsules?|powders?|sachets?)\b/i,
   ),
+  rule('mct', ['HEALTH_SAFETY-4'], 'MCT oil', /\bMCT\b/i),
+  rule('exogenous-ketones', ['HEALTH_SAFETY-4'], 'exogenous ketones', /\bexogenous\s+ketones?\b/i),
+  rule(
+    'ketone-measure',
+    ['HEALTH_SAFETY-4'],
+    'ketosis measurement claims',
+    /\bketones?\s+(?:strips?|meters?|levels?|readings?|test\w*)\b|\b(?:blood|urine|breath)\s+ketones?\b/i,
+  ),
+  rule('ketosis-claim', ['HEALTH_SAFETY-4'], '"in ketosis"', /\bin\s+ketosis\b/i),
 
   // HEALTH_SAFETY.md section 3: no extended or compensatory fasting.
   rule(
     'extended-fast',
-    ['HS-safety-3'],
+    ['HEALTH_SAFETY-3'],
     'extended or dry fasting',
     /\b(?:extended|dry|water)\s+fast(?:s|ing)?\b/i,
   ),
-  rule('compensate', ['HS-safety-3'], 'fasting to compensate', /\bcompensat(?:e|es|ed|ing|ion)\b/i),
+  rule(
+    'compensate',
+    ['HEALTH_SAFETY-3'],
+    'fasting to compensate',
+    /\bcompensat(?:e|es|ed|ing|ion)\b/i,
+  ),
 ];
 
 /**
- * Price, stock and cart-status wording (HS-16, NN-05, CX-08). Prices may only ever come from the
- * owner (timestamped) through one formatting function, so no literal currency appears in source.
+ * Currency wording (HS-16, NN-05). Prices may only ever come from the owner (timestamped) through
+ * one formatting function, listed in PRICE_FORMATTER_FILES, so no literal currency appears in
+ * source. `{}` is an interpolated value, so `$${price}` and `'$' + price` are caught.
  */
-export const commerceRules: readonly ContentRule[] = [
+export const currencyRules: readonly ContentRule[] = [
   rule('currency-literal', ['HS-16', 'NN-05'], 'a literal "$" amount', /\$\s?\d|\$\$\{/),
-  rule('currency-code', ['HS-16', 'NN-05'], 'a literal NZ$ / NZD amount', /\bNZ\$|\bNZD\s?\d/),
+  rule('currency-placeholder', ['HS-16', 'NN-05'], 'a "$" before a value', /\$\s?\{\}/),
+  rule(
+    'currency-code',
+    ['HS-16', 'NN-05'],
+    'a literal NZ$ / NZD amount',
+    /\bNZ\$|\bNZD\s?(?:\d|\{\})/,
+  ),
   rule(
     'currency-words',
     ['HS-16'],
     'an amount in dollars or cents',
-    /\b\d+(?:\.\d{1,2})?\s?(?:dollars?|cents?)\b/i,
+    /(?:\b\d+(?:\.\d{1,2})?|\{\})\s?(?:dollars?|cents?)\b/i,
   ),
+];
+
+/** Stock, cart-status and promotion wording (HS-16, NN-05, CX-08). */
+export const stockAndCartRules: readonly ContentRule[] = [
   rule(
     'stock-status',
     ['HS-16', 'CX-08'],
-    '"in stock" / "out of stock" / "low stock"',
-    /\b(?:in|out\s+of|low|no)\s+stock\b/i,
+    '"in stock" / "out-of-stock" / "low stock"',
+    /\b(?:in|out[\s_-]*of|low|no)[\s_-]*stock\b/i,
   ),
-  rule('stock-level', ['HS-16'], '"stock level"', /\bstock\s+(?:levels?|status)\b/i),
+  rule('sold-out', ['HS-16', 'CX-08'], '"sold out"', /\bsold[\s-]+out\b/i),
+  rule(
+    'stock-level',
+    ['HS-16'],
+    '"stock level", "limited stock", "only N left"',
+    /\bstock\s+(?:levels?|status)\b|\blimited\s+stock\b|\bstock\s*:\s*\d|\bonly\s+(?:\d+|\{\})\s+left\b/i,
+  ),
   rule(
     'cart-status',
     ['HS-16', 'CX-08'],
-    '"added to cart" and similar',
-    /\badded\s+to\s+(?:your\s+)?(?:cart|trolley)\b/i,
+    '"added to cart", "cart updated" and similar',
+    /\b(?:added|adding)\s+to\s+(?:[\w’'-]+\s+){0,3}?(?:cart|trolley|basket)\b|\b(?:cart|trolley|basket)\s+(?:updated|has|contains|total)\b/i,
   ),
   rule(
     'in-cart',
     ['HS-16', 'CX-08'],
     '"in your cart" and similar',
-    /\bin\s+(?:your\s+|the\s+)?(?:cart|trolley)\b/i,
+    /\bin\s+(?:your\s+|the\s+)?(?:[\w’'-]+\s+)?(?:cart|trolley|basket)\b/i,
   ),
   rule(
     'specials',
     ['HS-16'],
-    'promotions',
-    /\b(?:on\s+special|on\s+sale|price\s+drop|cheapest)\b/i,
+    'promotions and price comparisons',
+    /\b(?:on\s+special|on\s+sale|price\s+drop|cheapest|cheaper|lowest\s+price|best\s+price|club\s+deals?)\b|(?:\b\d+|\{\})\s?%\s+off\b/i,
   ),
 ];
+
+/** Every price, stock and cart wording rule. */
+export const commerceRules: readonly ContentRule[] = [...currencyRules, ...stockAndCartRules];
+
+/** Currency formatting in code, which never shows a "$" in source (HS-16, NN-05). */
+export const priceFormatRules: readonly ContentRule[] = [
+  rule(
+    'intl-currency-style',
+    ['HS-16', 'NN-05'],
+    "currency formatting (style: 'currency') outside the price formatter",
+    /\bstyle\s*:\s*['"`]currency['"`]/,
+  ),
+  rule(
+    'intl-currency-code',
+    ['HS-16', 'NN-05'],
+    "currency formatting (currency: 'NZD') outside the price formatter",
+    /\bcurrency\s*:\s*['"`]NZD['"`]/,
+  ),
+];
+
+/**
+ * The one file (once it exists) that formats owner-entered, timestamped prices. It is exempt
+ * from the currency rules and must have its own test that refuses a price with no entered-at
+ * time (NN-05). Empty until prices are built.
+ */
+export const PRICE_FORMATTER_FILES: readonly string[] = [];
 
 /** Personal data must never be committed (DECISIONS.md, 2026-10-18). */
 export const personalDataRules: readonly ContentRule[] = [
@@ -201,6 +376,12 @@ export const personalDataRules: readonly ContentRule[] = [
     ['privacy'],
     'a lipid or cholesterol result',
     /\b(?:LDL|HDL|non-HDL|triglycerides?|total\s+cholesterol)\b[^\n]{0,30}?\d+(?:[.,]\d+)?\s*(?:mmol|mg\/dl)/i,
+  ),
+  rule(
+    'lab-result',
+    ['privacy'],
+    'a labelled lab result or blood pressure (the app never stores these)',
+    /\b(?:cholesterol|LDL|HDL|non-HDL|triglycerides?|HbA1c|blood[\s-]+pressure)\W{0,4}\d/i,
   ),
   rule(
     'mmol',
@@ -218,20 +399,20 @@ export const personalDataRules: readonly ContentRule[] = [
     'date-of-birth',
     ['privacy'],
     'a date of birth',
-    /\b(?:DOB|date\s+of\s+birth)\b\s*[:=-]?\s*\d/i,
+    /(?<![0-9])(?:dob|date[\s_-]*of[\s_-]*birth|birth[\s_-]*date|birthday)\W{0,4}\d/i,
   ),
   rule('nhi', ['privacy'], 'an NHI (National Health Index) reference', /\bNHI\b/),
   rule(
     'nz-mobile',
     ['privacy'],
     'a personal NZ mobile number',
-    /(?:\+64\s?|\b0)2[0-9][\s-]?\d{3,4}[\s-]?\d{3,4}\b/,
+    /(?:\+64|\b0)\s?2\d(?:[\s-]?\d){6,8}\b/,
   ),
   rule(
     'email',
     ['privacy'],
-    'an email address that is not a known no-reply or example address',
-    /\b[A-Z0-9._%+-]+@(?!(?:example\.(?:com|org|net)|users\.noreply\.github\.com)\b)(?!anthropic\.com\b)[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
+    'an email address (only no-reply and example addresses are allowed)',
+    /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
   ),
   rule(
     'backup-marker',
@@ -240,19 +421,106 @@ export const personalDataRules: readonly ContentRule[] = [
     /"format"\s*:\s*"diet-backup/,
   ),
   rule('private-key', ['secrets'], 'a private key', /-----BEGIN [A-Z ]*PRIVATE KEY-----/),
-  rule('github-token', ['secrets'], 'a GitHub token', /\bgh[pousr]_[A-Za-z0-9]{30,}\b/),
+  rule(
+    'github-token',
+    ['secrets'],
+    'a GitHub token',
+    /\bgh[pousr]_[A-Za-z0-9]{30,}\b|\bgithub_pat_[A-Za-z0-9_]{22,}/,
+  ),
   rule('aws-key', ['secrets'], 'an AWS access key', /\bAKIA[0-9A-Z]{16}\b/),
+  rule('npm-token', ['secrets'], 'an npm token', /\bnpm_[A-Za-z0-9]{36}\b|_authToken\s*=/),
   rule(
     'assigned-secret',
     ['secrets'],
     'a hard-coded secret',
-    /\b(?:api[_-]?key|secret|token|password|passwd)\s*[:=]\s*['"][^'"\s]{12,}['"]/i,
+    /(?:api[_-]?key|secret|token|password|passwd)\w*["']?\s*[:=]\s*(?:["'`][^"'`\s]{12,}["'`]|(?=[^\s"'`]*\d)[A-Za-z0-9_\-./+]{16,})/i,
+  ),
+  rule(
+    'env-secret',
+    ['secrets'],
+    'an unquoted KEY=VALUE secret',
+    /^[A-Z0-9_]*(?:TOKEN|SECRET|API_KEY|APIKEY|PASSWORD|PASSWD)\s*=\s*\S{12,}$/m,
   ),
 ];
 
+/** Addresses that may appear: commit attribution and reserved example domains. */
+export const ALLOWED_EMAILS: readonly string[] = ['noreply@anthropic.com'];
+export const ALLOWED_EMAIL_PATTERNS: readonly RegExp[] = [
+  /@users\.noreply\.github\.com$/,
+  /@example\.(?:com|org|net)$/,
+];
+/** SSH remotes such as git@github.com:owner/repo.git look like addresses but are not. */
+export const SSH_REMOTE_USERS: readonly string[] = ['git@github.com'];
+
+const basename = (p: string) => p.slice(p.lastIndexOf('/') + 1);
+const extension = (p: string) => {
+  const b = basename(p);
+  const dot = b.lastIndexOf('.');
+  return dot > 0 ? b.slice(dot + 1).toLowerCase() : '';
+};
+
 const MEDIA =
-  /\.(?:jpe?g|heic|heif|png|gif|webp|bmp|tiff?|avif|mp4|mov|m4v|webm|m4a|mp3|wav|aac)$/i;
+  /\.(?:jpe?g|heic|heif|png|gif|webp|bmp|tiff?|avif|ico|mp4|mov|m4v|webm|m4a|mp3|wav|aac)$/i;
+const IMAGE = /\.(?:jpe?g|heic|heif|png|gif|webp|bmp|tiff?|avif|ico|svg)$/i;
 const ICON_DIRS = /^(?:apps\/[^/]+\/public\/|packages\/ui\/src\/assets\/)/;
+const ICON_FILE = /^(?:icon|maskable|apple-touch-icon|favicon|logo|badge)/i;
+const ICON_MAX_BYTES = 64 * 1024;
+const DATA_DIRS = /^(?:packages\/test-fixtures\/|packages\/core\/data\/)/;
+const DOCUMENT_EXTENSIONS = new Set([
+  'pdf',
+  'doc',
+  'docx',
+  'odt',
+  'rtf',
+  'xls',
+  'xlsx',
+  'ods',
+  'numbers',
+  'pages',
+  'zip',
+  '7z',
+  'gz',
+  'tar',
+  'eml',
+  'msg',
+  'bak',
+  'enc',
+  'log',
+  'txt',
+  'csv',
+  'tsv',
+]);
+const JSON_ALLOWED: readonly RegExp[] = [
+  /(?:^|\/)package\.json$/,
+  /(?:^|\/)tsconfig[^/]*\.json$/,
+  /^\.prettierrc\.json$/,
+  /(?:^|\/)manifest[^/]*\.json$/,
+  DATA_DIRS,
+  /^tools\/scans\/required-copy\.json$/,
+  /^\.vscode\/[^/]+\.json$/,
+];
+
+function indexOfBytes(haystack: Uint8Array, needle: readonly number[]): number {
+  outer: for (let i = 0; i + needle.length <= haystack.length; i++) {
+    for (let j = 0; j < needle.length; j++) if (haystack[i + j] !== needle[j]) continue outer;
+    return i;
+  }
+  return -1;
+}
+const ascii = (s: string) => Array.from({ length: s.length }, (_, i) => s.charCodeAt(i));
+const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47];
+const startsWith = (bytes: Uint8Array, prefix: readonly number[]) =>
+  prefix.every((b, i) => bytes[i] === b);
+
+/** True for a JPEG or PNG (by content or name) that carries an EXIF block (camera, GPS, time). */
+export function hasExifMetadata(path: string, bytes: Uint8Array): boolean {
+  const png = startsWith(bytes, PNG_SIGNATURE) || /\.png$/i.test(path);
+  const jpeg = startsWith(bytes, [0xff, 0xd8, 0xff]) || /\.jpe?g$/i.test(path);
+  if (!png && !jpeg) return false;
+  return (
+    indexOfBytes(bytes, ascii('Exif\0\0')) >= 0 || (png && indexOfBytes(bytes, ascii('eXIf')) >= 0)
+  );
+}
 
 export const personalPathRules: readonly PathRule[] = [
   {
@@ -265,19 +533,42 @@ export const personalPathRules: readonly PathRule[] = [
     id: 'handoff-file',
     enforces: ['privacy'],
     description: "the owner's original handoff document is never committed",
-    test: (p) => /handoff/i.test(p.split('/').pop() ?? ''),
+    test: (p) => /handoff/i.test(basename(p)),
   },
   {
     id: 'backup-file',
     enforces: ['privacy', 'HS-15'],
     description: 'app backup files live only on the phone',
-    test: (p) => /\.backup(?:\.[^/]*)?\.json$/i.test(p),
+    test: (p) => /backup[^/]*\.json$/i.test(basename(p)) || /\.backup(?:\.|$)/i.test(basename(p)),
   },
   {
     id: 'data-dump',
     enforces: ['privacy'],
-    description: 'database files or exports',
+    description: 'database files, exports or browser network logs',
     test: (p) => /\.(?:sqlite3?|db|idb|leveldb|har)$/i.test(p),
+  },
+  {
+    id: 'document-or-data-file',
+    enforces: ['privacy'],
+    description:
+      'documents, spreadsheets, archives, logs and CSV/text exports (allowed only as generic data in packages/test-fixtures/ or packages/core/data/)',
+    test: (p) =>
+      DOCUMENT_EXTENSIONS.has(extension(p)) &&
+      !DATA_DIRS.test(p) &&
+      !/^apps\/[^/]+\/public\/robots\.txt$/.test(p),
+  },
+  {
+    id: 'json-file',
+    enforces: ['privacy', 'HS-15'],
+    description:
+      'a JSON file outside the allowlist (package, tsconfig and manifest files, fixtures, core data)',
+    test: (p) => extension(p) === 'json' && !JSON_ALLOWED.some((r) => r.test(p)),
+  },
+  {
+    id: 'photo-format',
+    enforces: ['privacy'],
+    description: 'JPEG and HEIC files are camera photos; icons are PNG, SVG, WebP or ICO',
+    test: (p) => /\.(?:jpe?g|heic|heif)$/i.test(p),
   },
   {
     id: 'media-outside-icons',
@@ -287,10 +578,56 @@ export const personalPathRules: readonly PathRule[] = [
     test: (p) => MEDIA.test(p) && !ICON_DIRS.test(p),
   },
   {
+    id: 'icon-folder-image',
+    enforces: ['privacy'],
+    description:
+      'images in public/ and ui assets must be PNG, SVG, WebP or ICO icons named icon*, maskable*, apple-touch-icon*, favicon*, logo* or badge*, at most 64 KB',
+    test: (p, size) =>
+      ICON_DIRS.test(p) &&
+      IMAGE.test(p) &&
+      !(
+        /\.(?:png|svg|webp|ico)$/i.test(p) &&
+        ICON_FILE.test(basename(p)) &&
+        size <= ICON_MAX_BYTES
+      ),
+  },
+  {
     id: 'large-media',
     enforces: ['privacy'],
     description: 'an image over 300 KB is probably a photo, not an icon',
     test: (p, size) => MEDIA.test(p) && size > 300 * 1024,
+  },
+  {
+    id: 'image-metadata',
+    enforces: ['privacy'],
+    description: 'an image with EXIF metadata (camera, location, time) is a photo, not an icon',
+    test: (p, _size, bytes) => bytes !== undefined && hasExifMetadata(p, bytes),
+  },
+  {
+    id: 'camera-file-name',
+    enforces: ['privacy'],
+    description: 'a camera, screenshot or messaging-app file name',
+    test: (p) => /^(?:IMG_|PXL_|DSC|Screenshot|signal-)/.test(basename(p)),
+  },
+  {
+    id: 'secret-file',
+    enforces: ['secrets'],
+    description: 'secrets files (.dev.vars, .env other than .env.example, keys and certificates)',
+    test: (p) => {
+      const b = basename(p);
+      return (
+        b.startsWith('.dev.vars') ||
+        (b.startsWith('.env') && b !== '.env.example') ||
+        /\.(?:pem|key)$/i.test(b) ||
+        /^id_(?:rsa|ed25519)/.test(b)
+      );
+    },
+  },
+  {
+    id: 'javascript-source',
+    enforces: ['conventions'],
+    description: 'workspace source is TypeScript (.js/.jsx files skip lint and type checks)',
+    test: (p) => /^(?:apps|packages|services)\/[^/]+\/src\/.*\.(?:js|jsx|mjs|cjs)$/i.test(p),
   },
 ];
 
@@ -316,6 +653,42 @@ export const networkRules: readonly ContentRule[] = [
 /** Files that may use network APIs. Added deliberately, one at a time, with a reason. */
 export const NETWORK_ALLOWED_FILES: readonly string[] = [];
 
+/**
+ * AI SDKs: banned in the dependency tree and in imports (no AI calls at runtime). Entries ending
+ * in "/" or "-" are prefixes (a whole npm scope, or a family of packages); anything else must
+ * match the package name exactly.
+ */
+export const AI_PACKAGES: readonly string[] = [
+  'openai',
+  'ai',
+  'cohere-ai',
+  'ollama',
+  'langchain',
+  'llamaindex',
+  'groq-sdk',
+  'replicate',
+  '@anthropic-ai/',
+  '@ai-sdk/',
+  '@google/genai',
+  '@google/generative-ai',
+  '@google-cloud/vertexai',
+  '@mistralai/',
+  '@huggingface/',
+  '@langchain/',
+  '@mlc-ai/',
+  '@xenova/',
+  '@azure/openai',
+  '@aws-sdk/client-bedrock',
+  '@aws-sdk/client-bedrock-',
+];
+
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
+const AI_SPECIFIER = AI_PACKAGES.map((p) =>
+  p.endsWith('/') || p.endsWith('-')
+    ? `${escapeRegExp(p)}[^'"\`\\s]*`
+    : `${escapeRegExp(p)}(?:\\/[^'"\`\\s]*)?`,
+).join('|');
+
 /** AI services and telemetry: banned in source and in the dependency tree. */
 export const aiAndTelemetryRules: readonly ContentRule[] = [
   rule(
@@ -325,6 +698,12 @@ export const aiAndTelemetryRules: readonly ContentRule[] = [
     /api\.anthropic\.com|api\.openai\.com|generativelanguage\.googleapis\.com|@anthropic-ai\/sdk|['"]openai['"]|@google\/generative-ai|@google\/genai|\blangchain\b|api\.mistral\.ai|api\.cohere\.ai/i,
   ),
   rule(
+    'ai-import',
+    ['no-ai-runtime'],
+    'an import or require of an AI SDK',
+    new RegExp(`(?:\\bfrom|\\bimport|\\brequire)\\s*\\(?\\s*['"\`](?:${AI_SPECIFIER})['"\`]`),
+  ),
+  rule(
     'remote-asset',
     ['HEALTH_SAFETY-7'],
     'fonts, icons or scripts fetched from a CDN (they must be bundled)',
@@ -332,9 +711,10 @@ export const aiAndTelemetryRules: readonly ContentRule[] = [
   ),
 ];
 
-/** Package names (or prefixes) that collect telemetry or analytics. */
+/** Package names (or prefixes, ending in "/" or "-") that collect telemetry or analytics. */
 export const TELEMETRY_PACKAGES: readonly string[] = [
   '@sentry/',
+  '@sentry-internal/',
   'posthog',
   'posthog-',
   'mixpanel',
@@ -370,6 +750,35 @@ export const TELEMETRY_PACKAGES: readonly string[] = [
   '@opentelemetry/exporter-',
   'universal-analytics',
   'insight',
+  '@storybook/telemetry',
+  'update-notifier',
+  'checkpoint-client',
+  '@rudderstack/',
+  'rudder-sdk-js',
+  'statsig-',
+  'launchdarkly-',
+];
+
+/**
+ * Tools that send telemetry unless configured off. If the package is in the lockfile, one of the
+ * listed config files must exist and contain the setting (the CI env also sets DO_NOT_TRACK).
+ */
+export const MUST_CONFIGURE_OFF: readonly {
+  package: string;
+  files: readonly string[];
+  setting: RegExp;
+  description: string;
+}[] = [
+  {
+    package: 'wrangler',
+    files: [
+      'services/relay/wrangler.toml',
+      'services/relay/wrangler.jsonc',
+      'services/relay/wrangler.json',
+    ],
+    setting: /^\s*send_metrics\s*=\s*false\b|"send_metrics"\s*:\s*false\b/m,
+    description: 'Wrangler usage metrics must be off: send_metrics = false',
+  },
 ];
 
 /** Licences allowed anywhere in the dependency tree (SPDX identifiers). */
@@ -387,4 +796,86 @@ export const ALLOWED_LICENSES: readonly string[] = [
   'Unlicense',
   'Python-2.0',
   'MPL-2.0',
+];
+
+/** Disabled tests hide failing safety checks (a skipped HS-xx test still "passes"). */
+export const disabledTestRules: readonly ContentRule[] = [
+  rule(
+    'disabled-test',
+    ['TEST_PLAN-5'],
+    'a skipped, todo or conditional test',
+    /\b(?:it|test|describe|suite|bench)(?:\.\w+)*\.(?:skip|todo|skipIf|runIf|fixme)\b|\.(?:todo|skipIf|runIf)\s*\(|\bx(?:it|describe|test)\s*\(/,
+  ),
+];
+
+/** The only test files allowed to contain those patterns: they prove the rule fires. */
+export const DISABLED_TEST_EXEMPT_FILES: readonly string[] = [
+  'tools/scans/rules.test.ts',
+  'tools/scans/seeded.test.ts',
+];
+
+/**
+ * Extension guard (IMPLEMENTATION_CHECKLIST conventions; CX-00, CX-01). Nothing may read or change
+ * paknsave.co.nz pages, cookies, storage or network unless INTEGRATION_FEASIBILITY.md 9.3 records
+ * mode A as approved. `document.cookie` is never allowed.
+ */
+export const extensionAlwaysRules: readonly ContentRule[] = [
+  rule(
+    'document-cookie',
+    ['CX-01', 'conventions'],
+    'document.cookie (never read or write site cookies)',
+    /\bdocument\s*\.\s*cookie\b/,
+  ),
+];
+
+export const extensionModeARules: readonly ContentRule[] = [
+  rule(
+    'extension-content-scripts',
+    ['CX-00', 'CX-01'],
+    'content scripts (only in an approved mode A)',
+    /\bcontent_scripts\b/,
+  ),
+  rule(
+    'extension-page-api',
+    ['CX-00', 'CX-01'],
+    'chrome.cookies, chrome.scripting or chrome.webRequest (only in an approved mode A)',
+    /\b(?:chrome|browser)\s*\.\s*(?:cookies|scripting|webRequest\w*)\b/,
+  ),
+  rule(
+    'extension-permission',
+    ['CX-00', 'CX-01'],
+    'a cookies, scripting or webRequest permission (only in an approved mode A)',
+    /permissions['"]?\s*:\s*\[[^\]]*?['"](?:cookies|scripting|webRequest\w*)['"]/,
+  ),
+  rule(
+    'extension-store-host',
+    ['CX-00', 'CX-01'],
+    'paknsave.co.nz in host_permissions or matches (only in an approved mode A)',
+    /\b(?:host_permissions|matches)['"]?\s*:\s*\[[^\]]*?paknsave\.co\.nz/,
+  ),
+];
+
+/** Fails every extension file except its README while the Phase 0 decision is pending. */
+export const extensionPendingPathRule: PathRule = {
+  id: 'extension-before-decision',
+  enforces: ['CX-00', 'checklist-11'],
+  description: 'no extension code until INTEGRATION_FEASIBILITY.md 9.3 records the owner decision',
+  test: (p) => p.startsWith('apps/cart-extension/') && p !== 'apps/cart-extension/README.md',
+};
+
+/**
+ * Files that intentionally contain violations (rule definitions and their test inputs). They are
+ * exempt from every content rule set, never from the path rules. Add a file only with a reason.
+ */
+export const CONTENT_EXEMPT_FILES: readonly string[] = [
+  // The rules themselves and the strings that prove each rule fires.
+  'tools/scans/rules.ts',
+  'tools/scans/rules.test.ts',
+  'tools/scans/extract.test.ts',
+  // Seeds violations into throwaway repositories.
+  'tools/scans/seeded.test.ts',
+  // Fake lockfiles that list telemetry and AI packages.
+  'tools/scans/deps.test.ts',
+  // The docs' required sentences, including "Review in cart", which stays blocked until mode A.
+  'tools/scans/required-copy.json',
 ];

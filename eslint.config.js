@@ -26,7 +26,17 @@ export default defineConfig(
       globals: { ...globals.node },
     },
     rules: {
-      '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }],
+      '@typescript-eslint/restrict-template-expressions': [
+        'error',
+        {
+          allowNumber: true,
+          allowAny: false,
+          allowBoolean: false,
+          allowNullish: false,
+          allowRegExp: false,
+          allowNever: false,
+        },
+      ],
       '@typescript-eslint/consistent-type-imports': 'error',
       eqeqeq: ['error', 'always'],
       'no-console': ['error', { allow: ['warn', 'error'] }],

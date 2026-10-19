@@ -26,7 +26,7 @@ export const general = {
   welcome:
     'This is a private logbook and planner. It is not a medical device and does not replace your GP.',
   about:
-    'This app is a personal logbook and planner. It is not a medical device, does not diagnose, and does not replace your GP, a dietitian, or an addiction service.',
+    'The app is a personal logbook and planner. It is not a medical device, does not diagnose, and does not replace your GP, a dietitian, or an addiction service.',
   readinessOutcome: 'Nothing you have told the app rules this out; your GP knows more.',
 } as const;
 

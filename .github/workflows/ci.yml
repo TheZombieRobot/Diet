@@ -13,14 +13,20 @@ concurrency:
 
 env:
   COREPACK_ENABLE_DOWNLOAD_PROMPT: '0'
+  # No tool may send usage telemetry from CI (HEALTH_SAFETY.md section 7).
+  DO_NOT_TRACK: '1'
+  WRANGLER_SEND_METRICS: 'false'
 
 jobs:
   check:
-    name: Lint, typecheck, unit tests, safety scans
+    name: Safety scans, lint, typecheck, unit tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
+        with:
+          # Full history: the safety scan checks every commit, not just the latest one.
+          fetch-depth: 0
       - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
@@ -29,17 +35,19 @@ jobs:
       - name: Enable pnpm (version pinned in package.json)
         run: corepack enable
       - run: pnpm install --frozen-lockfile
+      # First, so a privacy failure is reported even if a later step would fail.
+      - name: Static safety scans (health wording, prices, personal data and history, network, licences)
+        run: pnpm scan
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
-      - name: Static safety scans (health wording, prices, personal data, network, licences)
-        run: pnpm scan
 
   e2e:
     name: Browser tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      # Default shallow checkout: browser tests do not need history.
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:

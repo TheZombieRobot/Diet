@@ -1,0 +1,10 @@
+#!/bin/sh
+# Runs the static safety scans before every commit, so personal data, secrets and banned health
+# wording are caught before they reach the public history (CI runs the same scans after a push).
+# Enabled by `pnpm install` (the prepare script sets core.hooksPath to .githooks).
+set -e
+if ! command -v pnpm >/dev/null 2>&1; then
+  echo "pre-commit: pnpm not found; run 'corepack enable', then commit again." >&2
+  exit 1
+fi
+exec pnpm scan

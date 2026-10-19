@@ -1,14 +1,27 @@
-# Never commit personal data
+# Never commit personal data or secrets (the safety scan also rejects these if force-added)
 *.backup.json
 *.backup.*.json
+*backup*.json
+*.backup*
+exports/
 docs/handoff/
 docs/private/
 .env
 .env.*
+!.env.example
+.dev.vars*
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+*.har
+*.log
+logs/
 
 # Dependencies and build output
 node_modules/
 dist/
+dev-dist/
 coverage/
 *.tsbuildinfo
 .vite/
@@ -18,6 +31,8 @@ coverage/
 playwright-report/
 test-results/
 blob-report/
+playwright/.auth/
+__screenshots__/
 
 # Editors and OS
 .DS_Store

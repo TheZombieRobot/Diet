@@ -9,12 +9,13 @@
   "scripts": {
     "lint": "eslint . --max-warnings=0 && prettier --check .",
     "format": "prettier --write .",
-    "typecheck": "tsc -p tsconfig.json && pnpm -r --no-bail typecheck",
+    "typecheck": "tsc -p tsconfig.json && tsc -p e2e/tsconfig.json && pnpm -r --no-bail typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm scan",
-    "scan": "vitest run --config tools/vitest.config.ts"
+    "scan": "vitest run --config tools/vitest.config.ts",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
