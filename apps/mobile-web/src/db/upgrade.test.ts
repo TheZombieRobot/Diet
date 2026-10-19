@@ -15,6 +15,7 @@ import {
   type ProfileV2,
   type SettingsV2,
   snapshotV1,
+  SYNTHETIC_PHRASE,
 } from '@diet/test-fixtures';
 import type { DBCore, Middleware } from 'dexie';
 import { describe, expect, it } from 'vitest';
@@ -130,8 +131,10 @@ describe('upgrades through Dexie (section 16 test 32)', () => {
     const rows = await readRescueRows(v1.deps.indexedDB);
     expect(rows?.schemaVersion).toBe(1);
     expect(Object.keys(rows?.tables ?? {})).toEqual(BACKUP_TABLES_BY_VERSION[1]);
-    const rescue = await createUpgradeRescueCopy(v1.deps.indexedDB, v1.env, null);
-    expect(rescue?.fileName).toBe('diet-backup-2000-03-01-rescue.json');
+    // Locked, as the screen makes it by default, with real WebCrypto.
+    const rescue = await createUpgradeRescueCopy(v1.deps.indexedDB, v1.env, SYNTHETIC_PHRASE);
+    expect(rescue?.fileName).toBe('diet-backup-2000-03-01-rescue-locked.json');
+    expect(rescue?.file.text).not.toContain(snapshotV1.weights[1]?.note ?? 'Example note');
 
     const unchanged = await openTestDb({ deps: v1.deps, env: v1.env });
     expect(await backupSnapshot(unchanged.db)).toStrictEqual(before);
@@ -139,10 +142,11 @@ describe('upgrades through Dexie (section 16 test 32)', () => {
     const elsewhere = await openTestDb();
     const decoded = await decodeImport(
       { text: rescue?.file.text ?? '', sizeBytes: rescue?.file.text.length ?? 0 },
-      null,
+      SYNTHETIC_PHRASE,
       elsewhere.env,
     );
     expect(decoded.kind).toBe('rescue');
+    expect(decoded.locked).toBe(true);
     expect(decoded.setAside).toEqual([]);
     expect(decoded.snapshot.weights).toEqual(before.weights);
   });

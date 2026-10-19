@@ -20,6 +20,8 @@ import { fixtureEnv, SYNTHETIC_PHRASE } from './env';
 import { fixtureId, SNAPSHOT_V1_APP_VERSION, snapshotV1 } from './snapshotV1';
 
 const EXPORTED_AT = '2000-03-02T00:00:00.000Z';
+/** After every Kickstart history the cap tests build, so none of it is dated after the export. */
+const LATER = '2000-12-01T00:00:00.000Z';
 const ROOM_ID = 'AAAAAAAAAAAAAAAAAAAAAA';
 const RELAY_URL = 'https://relay.example.com/room';
 
@@ -101,7 +103,7 @@ describe('HS-15 / BK-01: every record round-trips exactly, except the device-onl
 
       const decoded = await decodeBackupText(file.text, {
         password: locked ? SYNTHETIC_PHRASE : null,
-        env: fixtureEnv(),
+        env: fixtureEnv(EXPORTED_AT),
       });
       expect(stores(decoded.snapshot)).toStrictEqual(stores(before));
       expect(decoded.locked).toBe(locked);
@@ -302,7 +304,9 @@ describe('BK-06 / C50: an out-of-range value refuses the whole file; nothing is 
     many.card_state = (many.card_state ?? []).filter(
       (c) => !(c as { trigger: string }).trigger.startsWith('period:'),
     );
-    const extensions = await refusal(decodeBackupText(plainText(many), { env: fixtureEnv() }));
+    const extensions = await refusal(
+      decodeBackupText(plainText(many, { exportedAt: LATER }), { env: fixtureEnv(LATER) }),
+    );
     expect(extensions.code).toBe('inconsistent');
     expect(extensions.rule).toBe('kickstart-extensions');
   });
@@ -348,7 +352,9 @@ describe('BK-06 / C50: an out-of-range value refuses the whole file; nothing is 
     tables.card_state = (tables.card_state ?? []).filter(
       (c) => !(c as { trigger: string }).trigger.startsWith('period:'),
     );
-    const error = await refusal(decodeBackupText(plainText(tables), { env: fixtureEnv() }));
+    const error = await refusal(
+      decodeBackupText(plainText(tables, { exportedAt: LATER }), { env: fixtureEnv(LATER) }),
+    );
     expect(error.code).toBe('inconsistent');
     expect(error.rule).toBe('kickstart-days');
   });

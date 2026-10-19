@@ -1,5 +1,13 @@
 import { useEffect, useRef, useSyncExternalStore, type RefObject } from 'react';
 import type { WriteGate } from '../../db/gate';
+import { createStore } from '../../store';
+
+/**
+ * True while a restore or delete-all runs in this tab (wording review). Both close the write gate
+ * before they wait for the other tabs, so the Backup and data card shows "Nothing more will be
+ * saved until the app reloads" and its Reload only once one has stopped without finishing.
+ */
+export const recordsBusyStore = createStore(false);
 
 /**
  * Moves focus to the start of a panel's new step whenever the step changes (not on the first

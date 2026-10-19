@@ -162,6 +162,8 @@ export function locksFor(factory: IDBFactory): FakeLockManager {
 
 /** A platform that records what the app asked the browser to do. */
 export function testPlatform(overrides: Partial<Platform> = {}): TestPlatform {
+  // One localStorage per platform, as one per origin in the browser (generation.ts).
+  const local = memoryStorage();
   const platform: TestPlatform = {
     downloads: [],
     posted: [],
@@ -182,7 +184,7 @@ export function testPlatform(overrides: Partial<Platform> = {}): TestPlatform {
       return Promise.resolve('protected');
     },
     caches: () => undefined,
-    localStorage: () => memoryStorage(),
+    localStorage: () => local,
     sessionStorage: () => memoryStorage(),
     revokeObjectUrls: () => undefined,
     ...overrides,

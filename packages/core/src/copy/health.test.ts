@@ -51,6 +51,8 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
     /\bbackups?\s+(?:was\s+|is\s+|has\s+been\s+)?(?:saved|complete|successful|done)\b/i,
     /\bbacked\s+up\b/i,
     /\bsaved\s+successfully\b/i,
+    // The browser cannot tell whether a download saved, so no file is said to be saved (wording review).
+    /\byou\s+saved\b|\bsaved\s+at\b/i,
     // A forgotten backup password cannot be recovered, and a backup is the only other copy.
     /\b(?:we|support|the\s+app)\s+can\s+(?:recover|reset)\b/i,
     /\breset\s+(?:your|the)\s+password\b/i,

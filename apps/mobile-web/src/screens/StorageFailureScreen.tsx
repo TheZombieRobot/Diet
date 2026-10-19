@@ -7,11 +7,13 @@ import { browserEnv } from '../db/env';
 import { createUpgradeRescueCopy, type SavedFile } from '../db/exportBackup';
 import { offerDownload } from '../files';
 import { formatLocalTime } from '../format';
+import { applyUpdate, updateStore } from '../pwa/update';
 import { HelpNumberList } from './HelpNumbers';
 import { useStepFocus } from './backup/focus';
 import { LockFields } from './backup/LockFields';
 import { LOCKED_BY_DEFAULT, type LockChoice, lockProblem, passwordOf } from './backup/lockChoice';
 import { Progress } from './backup/Progress';
+import { UpdateBanner } from './UpdateBanner';
 
 export interface StorageFailureActions {
   readonly reload: () => void;
@@ -21,8 +23,11 @@ export interface StorageFailureActions {
 }
 
 const browserActions: StorageFailureActions = {
+  // A new version waiting to take over is applied first: a plain reload keeps the old one in
+  // control (registerType 'prompt'), so the screen would come back (wording review).
   reload: () => {
-    window.location.reload();
+    if (updateStore.get().waiting) void applyUpdate();
+    else window.location.reload();
   },
   makeRescueCopy: (password) => createUpgradeRescueCopy(indexedDB, browserEnv(), password),
   download: (text, fileName) => {
@@ -36,7 +41,8 @@ const browserActions: StorageFailureActions = {
  * with no dependence on the database, the not-a-medical-device line and the help numbers: these
  * screens appear exactly when the rest of the app is unusable, for example during a running fast.
  * On upgrade-failed, saving the rescue copy is the main button and Reload comes after it; once
- * saved, the screen says where the file went and offers another copy (ux review).
+ * saved, the screen says where the file went and offers another copy (ux review). A new version
+ * waiting to take over shows its Update banner here too, and Reload applies it.
  */
 export function StorageFailureScreen({
   status,
@@ -52,6 +58,7 @@ export function StorageFailureScreen({
         <h1 className="ui-topbar__title">{copy.title}</h1>
       </header>
       <main id="main" className="ui-shell__main" tabIndex={-1}>
+        <UpdateBanner />
         <Card label={copy.cardLabel}>
           <p className="ui-text-lead" data-testid="storage-failure">
             {copy[status]}

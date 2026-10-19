@@ -107,11 +107,38 @@ export function effectiveDays(
 }
 
 /**
- * Whether a period that has not ended early is still in its scheduled phase at `at`: the date is
- * on or before the scheduled last day both in the device zone and in the period's own start zone.
- * Requiring both means travelling west cannot stretch a phase past its scheduled last day in the
- * zone it started in, so the counted days always cover the real time (D27).
+ * Where a period stands at instant `at` (storage spec section 4.5; D27; the health-rules review).
+ * Item 14's phase engine reads the period through this one function.
+ * - 'ended': it was ended early (endedAt is set), whatever `at` is.
+ * - 'not-started': not ended, and day 1 has not yet arrived at `at` in the device zone or in the
+ *   period's own start zone (a start dated ahead: the clock was ahead when it started, or a file
+ *   carried it). No Kickstart figures and no rapid-loss exemption before the period really starts.
+ * - 'past-last-day': not ended, and `at` is after the scheduled last day in the device zone or in
+ *   the start zone (the natural end; never written).
+ * - 'running': otherwise. Both zones must agree, so travelling cannot start a period early or
+ *   stretch it past its scheduled last day in the zone it started in, and the counted days always
+ *   cover the real time.
  */
+export type KickstartPeriodState = 'not-started' | 'running' | 'past-last-day' | 'ended';
+
+export function kickstartPeriodState(
+  period: PeriodTimes,
+  extensions: number,
+  at: Instant,
+  deviceZone: TimeZone,
+  homeTimeZone?: TimeZone,
+): KickstartPeriodState {
+  if (period.endedAt !== null) return 'ended';
+  const day1 = periodDay1(period, homeTimeZone);
+  const last = scheduledLastDay(period, extensions, homeTimeZone);
+  const here = recordLocalDate(at, deviceZone, homeTimeZone);
+  const there = recordLocalDate(at, period.timeZone, homeTimeZone);
+  if (here < day1 || there < day1) return 'not-started';
+  if (here > last || there > last) return 'past-last-day';
+  return 'running';
+}
+
+/** Whether a period is running at `at`: kickstartPeriodState(...) is 'running'. */
 export function kickstartRunningAt(
   period: PeriodTimes,
   extensions: number,
@@ -119,12 +146,7 @@ export function kickstartRunningAt(
   deviceZone: TimeZone,
   homeTimeZone?: TimeZone,
 ): boolean {
-  if (period.endedAt !== null) return false;
-  const last = scheduledLastDay(period, extensions, homeTimeZone);
-  return (
-    recordLocalDate(at, deviceZone, homeTimeZone) <= last &&
-    recordLocalDate(at, period.timeZone, homeTimeZone) <= last
-  );
+  return kickstartPeriodState(period, extensions, at, deviceZone, homeTimeZone) === 'running';
 }
 
 /** The local dates (inclusive) in which the extension check may be asked, with e extensions so far (C59; D28). */
@@ -167,6 +189,33 @@ export function kickstartUsage(
     days += effectiveDays(p, e, homeTimeZone);
   }
   return { days, extensions };
+}
+
+/** A Kickstart history: every period and check, read in its own home zone. */
+export interface KickstartHistory {
+  readonly periods: readonly (PeriodTimes & { readonly id: string })[];
+  readonly checks: readonly (CheckOutcome & { readonly askedAt: Instant })[];
+  readonly homeTimeZone?: TimeZone | undefined;
+}
+
+/**
+ * Whether history `a` records more Kickstart than history `b` (D27; the data-loss review): more
+ * days, or as many days and more extensions, or as many of both and a later stop-sign check (one
+ * where `b` has none counts as later). A restore never replaces a history with one that records
+ * less, so it can never reopen the 42-day or 3-extension cap, or an offer after a stop sign.
+ */
+export function recordsMoreKickstart(a: KickstartHistory, b: KickstartHistory): boolean {
+  const ua = kickstartUsage(a.periods, a.checks, a.homeTimeZone);
+  const ub = kickstartUsage(b.periods, b.checks, b.homeTimeZone);
+  if (ua.days !== ub.days) return ua.days > ub.days;
+  if (ua.extensions !== ub.extensions) return ua.extensions > ub.extensions;
+  const lastStopSign = (h: KickstartHistory): string =>
+    h.checks
+      .filter((c) => c.outcome === 'stop-sign')
+      .map((c) => c.askedAt)
+      .sort()
+      .at(-1) ?? '';
+  return lastStopSign(a) > lastStopSign(b);
 }
 
 /** A new period starts only if a full 21 days still fit under the 42-day cap (D27). */

@@ -4,7 +4,7 @@ import { Button, ButtonRow, Notice } from '@diet/ui';
 import { useState, type ReactElement } from 'react';
 import { type DeleteAllResult, deleteAllData } from '../../db/deleteAll';
 import type { AppStorage } from '../../db/runtime';
-import { useStepFocus } from './focus';
+import { recordsBusyStore, useStepFocus } from './focus';
 import { Progress } from './Progress';
 
 type Step =
@@ -27,8 +27,10 @@ export interface DeleteAllPanelProps {
  * what stays and offers "Export a backup first"; a second, explicit one follows, with Cancel as
  * the main button and the deletion drawn in amber; it says so when there is no backup to bring
  * the records back. On success the page reloads into a fresh start. Otherwise it names what
- * failed (or that the app is open somewhere else), says that nothing more will be saved until the
- * app reloads, and offers Try again and Reload (every step is idempotent).
+ * failed (or that the app is open somewhere else, and that the records are still on the phone),
+ * says that nothing more will be saved until the app reloads, and offers Try again and Reload
+ * (every step is idempotent). When only the list of other stored data could not be read, it says
+ * the records were deleted and to reload.
  */
 export function DeleteAllPanel({
   storage,
@@ -42,6 +44,7 @@ export function DeleteAllPanel({
 
   const run = async (): Promise<void> => {
     setStep({ kind: 'deleting' });
+    recordsBusyStore.set(true);
     const { platform } = storage;
     const result = await deleteAllData({
       db: storage.db,
@@ -55,7 +58,10 @@ export function DeleteAllPanel({
       revokeObjectUrls: platform.revokeObjectUrls,
       reload: platform.reload,
     });
-    if (!result.ok) setStep({ kind: 'failed', result });
+    if (!result.ok) {
+      recordsBusyStore.set(false);
+      setStep({ kind: 'failed', result });
+    }
   };
 
   switch (step.kind) {
@@ -115,12 +121,21 @@ export function DeleteAllPanel({
     case 'failed': {
       const { result } = step;
       const steps = result.failed.map((s) => copy.steps[s]).join(', ');
+      const listOnly =
+        result.recordsDeleted &&
+        result.failed.length === 1 &&
+        result.failed[0] === 'list-databases';
       return (
         <div className="ui-card__body" data-testid="delete-failed">
           <Notice role="alert">
             <p ref={stepStart} tabIndex={-1} className="ui-step-start">
-              {result.blocked ? privacy.otherTabs : fillTemplate(copy.stepsFailed, { steps })}
+              {listOnly
+                ? copy.listFailedOnly
+                : result.blocked
+                  ? privacy.otherTabs
+                  : fillTemplate(copy.stepsFailed, { steps })}
             </p>
+            {result.recordsDeleted ? null : <p>{copy.recordsKept}</p>}
             <p>{privacy.backupCard.closed}</p>
           </Notice>
           <ButtonRow>

@@ -75,6 +75,42 @@ export function describeRecordProblem(detail: BackupErrorDetail): string {
     : fillTemplate(copy.withField, { table, position, field, rule });
 }
 
+/** The rule of a rescue copy's Kickstart history that cannot be imported whole (section 9.5; D27). */
+export const KICKSTART_HISTORY_RULE = 'kickstart-history';
+
+/**
+ * The plain message of a BackupError (ux and wording reviews). A problem with one record names the
+ * store, position, field and rule; a problem with a whole list or with the file itself says so
+ * instead of speaking of "a record"; a rescue copy's Kickstart history has its own message.
+ */
+function backupErrorMessage(code: BackupErrorCode, detail: BackupErrorDetail): string {
+  const table = lookup(privacy.storeNames, detail.table ?? null);
+  const index = detail.index ?? null;
+  if (detail.rule === KICKSTART_HISTORY_RULE) {
+    const store = table ?? privacy.storeNames.kickstart_periods;
+    const record =
+      index === null
+        ? store
+        : fillTemplate(privacy.recordProblem.position, { table: store, position: index + 1 });
+    return fillTemplate(privacy.kickstartHistory, { record });
+  }
+  if (code === 'invalid-record' && index === null) {
+    const lists = privacy.backupListErrors;
+    const rule = detail.rule ?? null;
+    if (rule === 'migration') return lists.migration;
+    if (rule === 'extra-key') {
+      const deviceOnly = lookup(privacy.deviceOnlyNames, detail.table ?? null);
+      return deviceOnly === undefined
+        ? lists.unknown
+        : fillTemplate(lists.deviceOnly, { table: deviceOnly });
+    }
+    if (table !== undefined) {
+      return fillTemplate(rule === 'missing' ? lists.missing : lists.unreadable, { table });
+    }
+  }
+  return fillTemplate(privacy.backupErrors[code], { detail: describeRecordProblem(detail) });
+}
+
 /** Why an import was refused. Nothing in the database is touched until the write step. */
 export class BackupError extends Error {
   readonly code: BackupErrorCode;
@@ -86,7 +122,7 @@ export class BackupError extends Error {
   readonly allowed: string | null;
 
   constructor(code: BackupErrorCode, detail: BackupErrorDetail = {}) {
-    super(fillTemplate(privacy.backupErrors[code], { detail: describeRecordProblem(detail) }));
+    super(backupErrorMessage(code, detail));
     this.code = code;
     this.table = detail.table ?? null;
     this.index = detail.index ?? null;

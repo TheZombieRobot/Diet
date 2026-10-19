@@ -2,8 +2,9 @@ import { fillTemplate } from '@diet/core';
 import { privacy } from '@diet/core/copy/health';
 import { Button, ButtonRow, Notice } from '@diet/ui';
 import { useState, type ReactElement, type RefObject } from 'react';
+import { StorageClosedError, StorageFullError } from '../../db/errors';
 import { createExport, createRescueCopy, type UncheckedSource } from '../../db/exportBackup';
-import { StorageFullError } from '../../db/errors';
+import { readGeneration } from '../../db/generation';
 import type { AppStorage } from '../../db/runtime';
 import { formatLocalTime } from '../../format';
 import { useStore } from '../../store';
@@ -18,8 +19,10 @@ type Step =
   | { readonly kind: 'working'; readonly locked: boolean }
   /** "Can you see the file?" — `resumed` when the owner came back to it unanswered. */
   | { readonly kind: 'ask'; readonly resumed: boolean }
-  | { readonly kind: 'recorded' }
+  | { readonly kind: 'recorded'; readonly locked: boolean }
   | { readonly kind: 'not-confirmed' }
+  /** Yes, but this tab's records are closed: the question is kept for after the reload. */
+  | { readonly kind: 'closed' }
   | {
       readonly kind: 'refused';
       readonly message: string;
@@ -39,9 +42,12 @@ export interface ExportPanelProps {
  * Export a backup (storage spec section 10.5; BK-01, BK-03; D19, D21, D22). The lock is on by
  * default. After the download, the owner is asked "Can you see the file?" (with where to look on
  * Android, and the "(1)" a second file of the day gets): only Yes records the backup, and then the
- * panel says to copy the file off the phone too. No records nothing. Leaving without answering
- * keeps the question (pendingCheck.ts), so it is asked again when the owner comes back. When the
- * self-check fails, an unchecked copy can still be saved, and it does not count as a backup.
+ * panel says to copy a locked file off the phone too, or that a plain file should not be sent as
+ * it is. No records nothing. Leaving without answering keeps the question (pendingCheck.ts), so
+ * it is asked again when the owner comes back. Yes counts only while the records are the ones the
+ * file was made from (generation.ts); while this tab's records are closed it asks to reload and
+ * answer again. When the self-check fails, an unchecked copy can still be saved, and it does not
+ * count as a backup.
  */
 export function ExportPanel({ storage, onDone, switchRef }: ExportPanelProps): ReactElement {
   const copy = privacy.exportBackup;
@@ -65,7 +71,11 @@ export function ExportPanel({ storage, onDone, switchRef }: ExportPanelProps): R
       if (outcome.ok) {
         storage.platform.download(outcome.file.text, outcome.fileName);
         setChoice(LOCKED_BY_DEFAULT);
-        setPendingCheck({ fileName: outcome.fileName, exportedAt: outcome.file.exportedAt });
+        setPendingCheck({
+          fileName: outcome.fileName,
+          exportedAt: outcome.file.exportedAt,
+          generation: readGeneration(storage.platform.localStorage),
+        });
         setStep({ kind: 'ask', resumed: false });
         return;
       }
@@ -92,12 +102,29 @@ export function ExportPanel({ storage, onDone, switchRef }: ExportPanelProps): R
   };
 
   const confirmSeen = async (check: PendingCheck): Promise<void> => {
+    // The records were replaced or deleted after the file was made (in another tab, or before a
+    // reload): the file does not hold them, so it is not recorded as their backup.
+    if (check.generation !== readGeneration(storage.platform.localStorage)) {
+      setPendingCheck(null);
+      setStep({
+        kind: 'refused',
+        message: fillTemplate(copy.notRecordedChanged, { fileName: check.fileName }),
+        unchecked: null,
+      });
+      return;
+    }
     try {
       await storage.repos.settings.recordBackup(check.exportedAt);
       setPendingCheck(null);
-      setStep({ kind: 'recorded' });
+      setStep({ kind: 'recorded', locked: /-locked\.json$/.test(check.fileName) });
     } catch (error) {
-      // Recording failed (a full phone, or another tab restored): the backup is not counted.
+      if (error instanceof StorageClosedError) {
+        // A restore or delete-all here did not finish: the file is there, and the question is
+        // kept, so it can be answered after the reload.
+        setStep({ kind: 'closed' });
+        return;
+      }
+      // Recording failed (a full phone): the backup is not counted.
       setPendingCheck(null);
       const message = error instanceof StorageFullError ? error.message : copy.notConfirmed;
       setStep({ kind: 'refused', message, unchecked: null });
@@ -144,9 +171,22 @@ export function ExportPanel({ storage, onDone, switchRef }: ExportPanelProps): R
       return (
         <div className="ui-card__body" data-testid="export-recorded">
           <p ref={stepStart} tabIndex={-1} className="ui-step-start">
-            {copy.recorded}
+            {step.locked ? copy.recorded : copy.recordedPlain}
           </p>
           <Button onClick={onDone}>{copy.close}</Button>
+        </div>
+      );
+    case 'closed':
+      return (
+        <div className="ui-card__body" data-testid="export-closed">
+          <Notice role="status">
+            <p ref={stepStart} tabIndex={-1} className="ui-step-start">
+              {copy.notRecordedClosed}
+            </p>
+          </Notice>
+          <Button variant="primary" onClick={storage.platform.reload}>
+            {privacy.backupCard.reload}
+          </Button>
         </div>
       );
     case 'not-confirmed':

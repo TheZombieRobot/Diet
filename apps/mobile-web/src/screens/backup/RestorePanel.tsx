@@ -9,6 +9,7 @@ import { privacy } from '@diet/core/copy/health';
 import { Button, ButtonRow, Notice, TextField } from '@diet/ui';
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { createRescueCopy } from '../../db/exportBackup';
+import { newGeneration } from '../../db/generation';
 import {
   decodeImport,
   type ImportFile,
@@ -20,7 +21,7 @@ import {
 } from '../../db/importBackup';
 import type { AppStorage } from '../../db/runtime';
 import { formatLocalDateTime, formatLocalTime } from '../../format';
-import { useStepFocus } from './focus';
+import { recordsBusyStore, useStepFocus } from './focus';
 import { LockFields } from './LockFields';
 import { LOCKED_BY_DEFAULT, type LockChoice, lockProblem, passwordOf } from './lockChoice';
 import { setPendingCheck } from './pendingCheck';
@@ -64,10 +65,13 @@ const messageOf = (error: unknown): string =>
  * Restore from a backup (storage spec sections 10.6 and 10.7; BK-01, BK-02, BK-10; D17, D49).
  * Nothing on the phone changes until "Replace everything on this phone". A locked file asks for
  * its password (autocomplete="current-password"); a wrong password says so next to the field,
- * imports nothing and can be tried again. The confirmation shows the file's date, its counts, any
- * values changed to fit this version, any rows a rescue copy could not keep, and what would be
- * lost; when the phone holds records the file does not, "Export what is on this phone first" comes
- * first. Focus moves to the start of each new step.
+ * imports nothing and can be tried again. The confirmation shows the file's date (a backup's or a
+ * rescue copy's), its counts, any values changed to fit this version, any rows a rescue copy
+ * could not keep, what was kept from this phone (safety settings, allergens, a Kickstart history
+ * that records more), and what would be lost; when the phone holds records the file does not,
+ * "Export what is on this phone first" comes first. When other tabs do not let go, nothing is
+ * changed: "Try the restore again" counts the records again and shows the confirmation again.
+ * Focus moves to the start of each new step.
  */
 export function RestorePanel({
   storage,
@@ -120,10 +124,14 @@ export function RestorePanel({
 
   const replace = async (plan: ImportPlan): Promise<void> => {
     setStep({ kind: 'writing' });
+    recordsBusyStore.set(true);
     const outcome = await writeImport(storage.db, plan, storage.env, {
       postGate: storage.platform.postGate,
       locks: storage.platform.locks(),
       requestPersistentStorage: storage.platform.requestPersistentStorage,
+      markReplaced: () => {
+        newGeneration(storage.platform.localStorage, () => storage.env.randomId());
+      },
       reload: () => {
         // A backup file of the records just replaced no longer matches them.
         setPendingCheck(null);
@@ -131,8 +139,19 @@ export function RestorePanel({
       },
     });
     if (outcome.ok) return;
+    recordsBusyStore.set(false);
     if (outcome.blocked) setStep({ kind: 'blocked', plan });
     else setStep({ kind: 'failed', message: outcome.error.message, phone: outcome.phone });
+  };
+
+  /** After a blocked attempt: count the phone's records again and confirm again. */
+  const replan = async (plan: ImportPlan): Promise<void> => {
+    setStep({ kind: 'reading' });
+    try {
+      setStep({ kind: 'confirm', plan: await planImport(storage.db, plan.decoded) });
+    } catch (error) {
+      setStep({ kind: 'choose', error: messageOf(error) });
+    }
   };
 
   const savePhone = async (phone: Snapshot): Promise<void> => {
@@ -251,7 +270,7 @@ export function RestorePanel({
           zone={storage.env.timeZone()}
           firstLine={
             <p ref={stepStart} tabIndex={-1} className="ui-step-start">
-              {fillTemplate(copy.fileMade, {
+              {fillTemplate(step.plan.decoded.kind === 'rescue' ? copy.rescueMade : copy.fileMade, {
                 date: formatLocalDateTime(step.plan.decoded.exportedAt, storage.env.timeZone()),
               })}
             </p>
@@ -274,12 +293,12 @@ export function RestorePanel({
             <p ref={stepStart} tabIndex={-1} className="ui-step-start">
               {privacy.otherTabs}
             </p>
+            <p>{copy.blockedNothingChanged}</p>
             <p>{privacy.backupCard.closed}</p>
+            <p>{copy.reloadCancels}</p>
           </Notice>
           <ButtonRow>
-            <Button variant="caution" onClick={() => void replace(step.plan)}>
-              {copy.tryAgain}
-            </Button>
+            <Button onClick={() => void replan(step.plan)}>{copy.tryRestoreAgain}</Button>
           </ButtonRow>
           {reloadButton}
         </div>
@@ -340,15 +359,18 @@ function summaryOf(plan: ImportPlan, when: (at: Instant | null) => string): stri
     lines.push(
       count(confirmation.missingFromFile, copy.missingNone, copy.missingOne, copy.missingMany),
       count(confirmation.differFromFile, copy.differNone, copy.differOne, copy.differMany),
-      fillTemplate(copy.newest, {
-        phoneNewest: when(confirmation.phoneNewest),
-        fileNewest: when(confirmation.fileNewest),
-      }),
+      confirmation.phoneNewest === null
+        ? fillTemplate(copy.newestFileOnly, { fileNewest: when(confirmation.fileNewest) })
+        : fillTemplate(copy.newest, {
+            phoneNewest: when(confirmation.phoneNewest),
+            fileNewest: when(confirmation.fileNewest),
+          }),
     );
   } else {
     lines.push(copy.freshPhone);
   }
-  lines.push(copy.pairingRemoved);
+  if (plan.keptKickstart) lines.push(copy.kickstartKept);
+  if (plan.paired) lines.push(copy.pairingRemoved);
   return lines;
 }
 

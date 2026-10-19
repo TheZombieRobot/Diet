@@ -7,11 +7,15 @@ import {
   type DecodedBackup,
   describeRecordProblem,
   FUTURE_INSTANT_TOLERANCE_MS,
+  type LooseSnapshot,
+  type Migration,
+  TABLES_V1,
 } from '@diet/core';
 import { privacy } from '@diet/core/copy/health';
 import { describe, expect, it } from 'vitest';
 import { fixtureEnv } from './env';
 import { fixtureId, snapshotV1 } from './snapshotV1';
+import { V1 } from './testChains';
 
 const EXPORTED_AT = '2000-03-02T00:00:00.000Z';
 const EXPORTED_MS = Date.parse(EXPORTED_AT);
@@ -27,16 +31,28 @@ const first = (tables: Tables, name: string): Row => {
 };
 const at = (ms: number) => new Date(ms).toISOString();
 
-function decode(tables: Tables, kind: 'backup' | 'rescue' = 'rescue'): DecodedBackup {
+/** This phone's clock: a day after the export, so the limit is the export time plus 5 minutes. */
+const NOW = '2000-03-03T00:00:00.000Z';
+
+function decode(
+  tables: Tables,
+  kind: 'backup' | 'rescue' = 'rescue',
+  options: { now?: string; chain?: readonly Migration[] } = {},
+): DecodedBackup {
   return checkBackupPayload(
     { schemaVersion: 1, kind, exportedAt: EXPORTED_AT, appVersion: '0.1.0', tables },
-    fixtureEnv(),
+    fixtureEnv(options.now ?? NOW),
+    options.chain === undefined ? {} : { chain: options.chain },
   );
 }
 
-function refusal(tables: Tables, kind: 'backup' | 'rescue' = 'rescue'): BackupError {
+function refusal(
+  tables: Tables,
+  kind: 'backup' | 'rescue' = 'rescue',
+  options: { now?: string; chain?: readonly Migration[] } = {},
+): BackupError {
   try {
-    decode(tables, kind);
+    decode(tables, kind, options);
   } catch (error) {
     if (error instanceof BackupError) return error;
     throw error;
@@ -55,15 +71,49 @@ describe('a rescue copy never sets Kickstart history aside (D27, D28)', () => {
     const tables = clone();
     Object.assign(first(tables, table), patch);
     const error = refusal(tables);
-    expect(error.code).toBe('inconsistent');
+    expect(error.code).toBe('invalid-record');
     expect(error.rule).toBe('kickstart-history');
     expect(error.message).toBe(
-      privacy.backupErrors.inconsistent.replace(
-        '{detail}',
-        privacy.recordProblem.invariants['kickstart-history'],
-      ),
+      privacy.kickstartHistory.replace('{record}', `${privacy.storeNames[table]}, record 1`),
     );
     expect(error.message).not.toMatch(CODE_NAME);
+  });
+
+  it('a Kickstart row that fails only after migration (step 8) refuses the copy too; a backup is refused as a record', () => {
+    // A test-only version 2 whose step leaves every check with an energy rating of 99.
+    const chain: readonly Migration[] = [
+      V1,
+      {
+        version: 2,
+        stores: {},
+        backup: { added: [], removed: [], deviceOnly: [] },
+        specs: TABLES_V1,
+        reads: ['kickstart_checks'],
+        rewrites: ['kickstart_checks'],
+        removesRows: [],
+        upgrade: (snapshot: LooseSnapshot) => ({
+          snapshot: {
+            ...snapshot,
+            kickstart_checks: (snapshot['kickstart_checks'] ?? []).map((c) => ({
+              ...(c as Row),
+              energyRating: 99,
+            })),
+          },
+          changes: [],
+        }),
+      },
+    ];
+    const rescue = refusal(clone(), 'rescue', { chain });
+    expect(rescue.code).toBe('invalid-record');
+    expect(rescue.rule).toBe('kickstart-history');
+    expect(rescue.table).toBe('kickstart_checks');
+    const backup = refusal(clone(), 'backup', { chain });
+    expect([backup.code, backup.table, backup.field, backup.rule]).toEqual([
+      'invalid-record',
+      'kickstart_checks',
+      'energyRating',
+      'range',
+    ]);
   });
 
   it('a duplicate id in the Kickstart history refuses the copy instead of dropping a period', () => {
@@ -73,6 +123,44 @@ describe('a rescue copy never sets Kickstart history aside (D27, D28)', () => {
       { ...first(tables, 'kickstart_periods') },
     ];
     expect(refusal(tables).rule).toBe('kickstart-history');
+  });
+
+  it('a Kickstart start or check dated after the export (or after this phone\u2019s clock) refuses the whole history; a fast is set aside', () => {
+    const late = at(EXPORTED_MS + FUTURE_INSTANT_TOLERANCE_MS + 1);
+    for (const [table, field] of [
+      ['kickstart_periods', 'startedAt'],
+      ['kickstart_checks', 'askedAt'],
+    ] as const) {
+      const tables = clone();
+      const row = rows(tables, table).at(-1);
+      if (row === undefined) throw new Error('fixture');
+      row[field] = late;
+      if (table === 'kickstart_periods') {
+        // A start dated ahead, on its own: no checks, no end.
+        tables['kickstart_checks'] = [];
+      }
+      expect(refusal(tables).rule).toBe('kickstart-history');
+      const backup = refusal(tables, 'backup');
+      expect([backup.code, backup.field, backup.rule]).toEqual(['invalid-record', field, 'future']);
+    }
+    // The phone's clock is the limit when it is behind the export time.
+    const behind = clone();
+    const period = rows(behind, 'kickstart_periods').at(-1);
+    if (period === undefined) throw new Error('fixture');
+    period['startedAt'] = '2000-02-20T00:00:00.000Z';
+    behind['kickstart_checks'] = [];
+    expect(refusal(behind, 'rescue', { now: '2000-02-10T00:00:00.000Z' }).rule).toBe(
+      'kickstart-history',
+    );
+    const fasts = clone();
+    const fast = rows(fasts, 'fasts').find((f) => f['endedAt'] === null);
+    if (fast === undefined) throw new Error('fixture');
+    fast['startedAt'] = late;
+    const decoded = decode(fasts);
+    expect(decoded.setAside.map((r) => [r.table, r.field, r.rule])).toEqual([
+      ['fasts', 'startedAt', 'future'],
+    ]);
+    expect(refusal(fasts, 'backup').field).toBe('startedAt');
   });
 
   it('the Kickstart caps still refuse a rescue copy (49 Kickstart days)', () => {
@@ -157,18 +245,63 @@ describe('profile, targets and settings in a rescue copy (data-loss and health-r
     expect(decoded.setAside).toEqual([]);
   });
 
-  it('a missing singleton row is replaced by the default row and listed as the whole record', () => {
+  it.each(['profile', 'targets', 'settings'] as const)(
+    'a %s store that is empty, holds two rows or a row that is not an object refuses the copy (no default row)',
+    (table) => {
+      for (const list of [[], [first(clone(), table), first(clone(), table)], [null]]) {
+        const tables = clone();
+        tables[table] = list as Row[];
+        const error = refusal(tables);
+        expect(error.message).toMatch(/Nothing was imported\.$/);
+        expect(error.message).not.toMatch(CODE_NAME);
+      }
+    },
+  );
+
+  it.each([
+    ['targets', 'kickstartDeficitPct'],
+    ['targets', 'energyFloorKj'],
+    ['settings', 'rapidLossThresholdGPerWeek'],
+    ['settings', 'alcoholGuidanceSet'],
+    ['profile', 'dietMode'],
+  ] as const)(
+    'a missing safety setting (%s %s) refuses the copy instead of the default',
+    (table, field) => {
+      const tables = clone();
+      Reflect.deleteProperty(first(tables, table), field);
+      const error = refusal(tables);
+      expect([error.code, error.table, error.field, error.rule]).toEqual([
+        'invalid-record',
+        table,
+        field,
+        'missing',
+      ]);
+    },
+  );
+
+  it('a failing Kickstart choice becomes "no", and a failing allergen list keeps every entry it can read', () => {
     const tables = clone();
-    tables['profile'] = [];
+    Object.assign(first(tables, 'profile'), {
+      kickstartOptIn: 'false',
+      allergens: ['peanut', 'gluten', 'example-unknown', 'peanut'],
+    });
     const decoded = decode(tables);
-    expect(decoded.replacedFields).toEqual([{ table: 'profile', field: '' }]);
-    expect(decoded.snapshot.profile).toHaveLength(1);
+    expect(decoded.snapshot.profile[0]).toMatchObject({
+      kickstartOptIn: false,
+      allergens: ['peanut', 'gluten'],
+    });
+    expect(decoded.replacedFields).toEqual([
+      { table: 'profile', field: 'kickstartOptIn' },
+      { table: 'profile', field: 'allergens' },
+    ]);
   });
 
   it.each([
     ['targets', { energyFloorKj: 3000 }, 'energyFloorKj'],
     ['targets', { steadyDeficitPct: 25 }, 'steadyDeficitPct'],
     ['settings', { rapidLossThresholdGPerWeek: 1200 }, 'rapidLossThresholdGPerWeek'],
+    ['settings', { alcoholGuidanceSet: 'nz-woman' }, 'alcoholGuidanceSet'],
+    ['profile', { dietMode: 'Balanced' }, 'dietMode'],
   ] as const)(
     'a failing safety setting (%s %o) refuses the copy instead of a default',
     (table, patch, field) => {
@@ -177,61 +310,73 @@ describe('profile, targets and settings in a rescue copy (data-loss and health-r
       const error = refusal(tables);
       expect(error.code).toBe('invalid-record');
       expect(error.field).toBe(field);
-      expect(error.rule).toBe('range');
+      expect(error.rule).toBe(
+        table === 'targets' || field === 'rapidLossThresholdGPerWeek' ? 'range' : 'enum',
+      );
       expect(error.message).toMatch(/Nothing was imported\.$/);
       expect(error.message).not.toMatch(CODE_NAME);
     },
   );
 });
 
-describe('bookkeeping instants dated after the export (health-rules review)', () => {
+describe('bookkeeping instants dated after the export or this phone\u2019s clock are put back, not refused (health-rules review)', () => {
   const dismissedAt = (tables: Tables, value: string): void => {
     const card = rows(tables, 'card_state').find((c) => c['cardId'] === 'backup-reminder');
     if (card === undefined) throw new Error('fixture');
     card['dismissedAt'] = value;
   };
+  const limit = at(EXPORTED_MS + FUTURE_INSTANT_TOLERANCE_MS);
 
-  it('a backup with a dismissal after its export time is refused, in plain words', () => {
+  it('a backup with a dismissal after its export time imports, with the dismissal at the limit', () => {
     const tables = clone();
     dismissedAt(tables, '2001-03-02T00:00:00.000Z');
-    const error = refusal(tables, 'backup');
-    expect(error.code).toBe('invalid-record');
-    expect(error.rule).toBe('future');
-    expect(error.field).toBe('dismissedAt');
-    expect(error.message).toContain(privacy.recordProblem.rules.future);
-    expect(error.message).not.toMatch(CODE_NAME);
+    const decoded = decode(tables, 'backup');
+    const card = decoded.snapshot.card_state.find((c) => c.cardId === 'backup-reminder');
+    expect(card?.dismissedAt).toBe(limit);
+    expect(decoded.setAside).toEqual([]);
   });
 
-  it('the tolerance is a few minutes: just inside it imports, one millisecond past it is refused', () => {
+  it('the tolerance is a few minutes: just inside it is kept as it is, one millisecond past it is put back', () => {
     const inside = clone();
-    dismissedAt(inside, at(EXPORTED_MS + FUTURE_INSTANT_TOLERANCE_MS));
-    expect(decode(inside, 'backup').setAside).toEqual([]);
+    dismissedAt(inside, limit);
+    const kept = decode(inside, 'backup').snapshot.card_state;
+    expect(kept.find((c) => c.cardId === 'backup-reminder')?.dismissedAt).toBe(limit);
     const outside = clone();
     dismissedAt(outside, at(EXPORTED_MS + FUTURE_INSTANT_TOLERANCE_MS + 1));
-    expect(refusal(outside, 'backup').rule).toBe('future');
+    const back = decode(outside, 'backup').snapshot.card_state;
+    expect(back.find((c) => c.cardId === 'backup-reminder')?.dismissedAt).toBe(limit);
   });
 
-  it('a rescue copy sets the row aside, and puts a future backup confirmation back to "none"', () => {
+  it('this phone\u2019s clock is the limit when it is behind the export time', () => {
+    const tables = clone();
+    dismissedAt(tables, '2000-03-01T12:00:00.000Z');
+    const decoded = decode(tables, 'backup', { now: '2000-03-01T00:00:00.000Z' });
+    expect(
+      decoded.snapshot.card_state.find((c) => c.cardId === 'backup-reminder')?.dismissedAt,
+    ).toBe(at(Date.parse('2000-03-01T00:00:00.000Z') + FUTURE_INSTANT_TOLERANCE_MS));
+  });
+
+  it('a rescue copy keeps every row: a future dismissal, backup confirmation, explanation time and carb-ceiling start are put back to the limit, never to "none"', () => {
     const tables = clone();
     dismissedAt(tables, '2001-03-02T00:00:00.000Z');
-    Object.assign(first(tables, 'settings'), { lastBackupAt: '2001-03-02T00:00:00.000Z' });
-    const decoded = decode(tables);
-    expect(decoded.setAside.map((r) => [r.table, r.field, r.rule])).toEqual([
-      ['card_state', 'dismissedAt', 'future'],
-    ]);
-    expect(decoded.replacedFields).toEqual([{ table: 'settings', field: 'lastBackupAt' }]);
-    expect(decoded.snapshot.settings[0]?.lastBackupAt).toBeNull();
-  });
-
-  it('a rescue copy whose rapid-loss explanation time is after the export is refused (a safety setting)', () => {
-    const tables = clone();
     Object.assign(first(tables, 'settings'), {
+      lastBackupAt: '2001-03-02T00:00:00.000Z',
       rapidLossThresholdGPerWeek: 800,
       rapidLossExplanationReadAt: '2001-03-02T00:00:00.000Z',
     });
-    const error = refusal(tables);
-    expect(error.code).toBe('invalid-record');
-    expect(error.rule).toBe('future');
+    Object.assign(first(tables, 'profile'), {
+      carbCeilingStartedAt: '2001-03-02T00:00:00.000Z',
+      updatedAt: '2001-03-02T00:00:00.000Z',
+    });
+    const decoded = decode(tables);
+    expect(decoded.setAside).toEqual([]);
+    expect(decoded.replacedFields).toEqual([]);
+    expect(decoded.snapshot.settings[0]).toMatchObject({
+      lastBackupAt: limit,
+      rapidLossThresholdGPerWeek: 800,
+      rapidLossExplanationReadAt: limit,
+    });
+    expect(decoded.snapshot.profile[0]?.carbCeilingStartedAt).toBe(limit);
   });
 
   it('times that date a record, not bookkeeping, are not checked: a transfer sent "later" still imports', () => {

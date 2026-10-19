@@ -82,7 +82,7 @@ describe('delete all (HS-30; section 16 test 31)', () => {
     });
 
     const result = await deleteAllData(deps);
-    expect(result).toEqual({ ok: true, failed: [], blocked: false });
+    expect(result).toEqual({ ok: true, failed: [], blocked: false, recordsDeleted: true });
     expect(deps.postGate).toHaveBeenCalledWith('delete-all');
     expect(deps.revokeObjectUrls).toHaveBeenCalledOnce();
     expect(deps.reload).toHaveBeenCalledOnce();
@@ -183,7 +183,12 @@ describe('delete all (HS-30; section 16 test 31)', () => {
     } as unknown as IDBFactory;
     const deps = depsFor(test, { indexedDB: unlistable });
     const result = await deleteAllData(deps);
-    expect(result).toEqual({ ok: false, failed: ['list-databases'], blocked: false });
+    expect(result).toEqual({
+      ok: false,
+      failed: ['list-databases'],
+      blocked: false,
+      recordsDeleted: true,
+    });
     expect(await real.databases()).toEqual([]);
     expect(deps.reload).not.toHaveBeenCalled();
   });

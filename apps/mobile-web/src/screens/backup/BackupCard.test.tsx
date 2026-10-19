@@ -1,7 +1,7 @@
 // The Backup and data card (storage spec sections 10 to 12; section 16 test 39; BK-01, BK-02,
 // BK-03, PWA-06, HS-30; D19, D21, D49). Rendered in jsdom over the real repositories on a fresh
 // fake-indexeddb database, with a fake platform that records downloads and reloads.
-import { createRescueFile, STORES_V1 } from '@diet/core';
+import { createBackupFile, createRescueFile, decodeBackupText, STORES_V1 } from '@diet/core';
 import { privacy } from '@diet/core/copy/health';
 import {
   lockedReferenceEnvelopeV1,
@@ -13,7 +13,17 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testi
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { LockManagerLike } from '../../db/locks';
 import { appStorageStore } from '../../db/runtime';
-import { locksFor, openTestDb, rawWriter, type TestDb, testPlatform } from '../../db/testKit';
+import { newGeneration, readGeneration } from '../../db/generation';
+import { replaceAll } from '../../db/snapshot';
+import {
+  failingWrite,
+  locksFor,
+  openTestDb,
+  pairingRow,
+  rawWriter,
+  type TestDb,
+  testPlatform,
+} from '../../db/testKit';
 import { formatLocalTime } from '../../format';
 import { storageStore } from '../../pwa/storage';
 import { BackupCard } from './BackupCard';
@@ -163,7 +173,8 @@ describe('Backup and data card (section 16 test 39)', () => {
     fireEvent.click(button(exportCopy.saveFile));
     fireEvent.click(await within(card()).findByRole('button', { name: exportCopy.yes }));
     const recorded = await within(card()).findByTestId('export-recorded');
-    expect(recorded.textContent).toContain(exportCopy.recorded);
+    // A plain file is not to be sent anywhere as it is.
+    expect(recorded.textContent).toContain(exportCopy.recordedPlain);
     expect((await test.repos.settings.get()).lastBackupAt).toBe(AT);
     await waitFor(() => {
       expect(screen.getByTestId('last-backup').textContent).toBe('Last backup made 1 March 2000');
@@ -190,7 +201,7 @@ describe('Backup and data card (section 16 test 39)', () => {
     // A reload of the same tab: the question comes back from sessionStorage, with only the name
     // and the time in it.
     const kept = sessionStorage.getItem(PENDING_CHECK_KEY) ?? '';
-    expect(JSON.parse(kept)).toEqual({ fileName: PLAIN_NAME, exportedAt: AT });
+    expect(JSON.parse(kept)).toEqual({ fileName: PLAIN_NAME, exportedAt: AT, generation: null });
     pendingCheckStore.set(null);
     reloadPendingCheck();
     render(<BackupCard />);
@@ -230,6 +241,14 @@ describe('Backup and data card (section 16 test 39)', () => {
     fireEvent.click(button(exportCopy.tryAgain));
     expect(within(card()).getByLabelText<HTMLInputElement>(exportCopy.passwordLabel).value).toBe(
       '',
+    );
+    // Yes on a locked file says to send that file off the phone.
+    cleanup();
+    setPendingCheck({ fileName: file?.fileName ?? '', exportedAt: AT, generation: null });
+    render(<BackupCard />);
+    fireEvent.click(await within(card()).findByRole('button', { name: exportCopy.yes }));
+    expect((await within(card()).findByTestId('export-recorded')).textContent).toContain(
+      exportCopy.recorded,
     );
   });
 
@@ -274,6 +293,8 @@ describe('Backup and data card (section 16 test 39)', () => {
     expect(test.storage.platform.posted).toEqual(['import']);
     expect(test.storage.platform.persistRequests).toBe(1);
     expect(await test.db.weights.count()).toBe(snapshotV1.weights.length);
+    // The records were replaced: a new generation, so an older "Can you see the file?" no longer counts.
+    expect(readGeneration(test.storage.platform.localStorage)).not.toBeNull();
   });
 
   it('restore over records the file lacks: counts them, puts "Export what is on this phone first" first and draws Replace in amber', async () => {
@@ -300,6 +321,129 @@ describe('Backup and data card (section 16 test 39)', () => {
     });
     // The restore confirmation is still there to come back to.
     expect(within(card()).getByTestId('restore-confirm')).toBeDefined();
+  });
+
+  it('restore: the summary names the laptop pairing only when there is one, and says nothing false about the newest record', async () => {
+    render(<BackupCard />);
+    await chooseFile(plainReferenceEnvelopeV1());
+    let summary = within(await within(card()).findByTestId('restore-confirm')).getByTestId(
+      'restore-summary',
+    ).textContent;
+    expect(summary).not.toContain(importCopy.pairingRemoved);
+    cleanup();
+    // Only a setting changed, and the phone is paired: no "Newest record on this phone: none".
+    await test.repos.settings.update({ theme: 'dark' });
+    await test.db.transfer_pairings.put(await pairingRow());
+    render(<BackupCard />);
+    await chooseFile(plainReferenceEnvelopeV1());
+    summary = within(await within(card()).findByTestId('restore-confirm')).getByTestId(
+      'restore-summary',
+    ).textContent;
+    expect(summary).toContain(importCopy.pairingRemoved);
+    expect(summary).toContain('Newest record in the file: ');
+    expect(summary).not.toContain('Newest record on this phone');
+  });
+
+  it('restore: a file whose Kickstart history records less keeps the phone’s, and the confirmation says so before Replace', async () => {
+    await replaceAll(test.db, snapshotV1);
+    const older = await createBackupFile({
+      tables: { ...structuredClone(snapshotV1), kickstart_periods: [], kickstart_checks: [] },
+      exportedAt: AT,
+      appVersion: '0.1.0',
+      password: null,
+    });
+    render(<BackupCard />);
+    await chooseFile(older.text);
+    const confirm = await within(card()).findByTestId('restore-confirm');
+    expect(within(confirm).getByTestId('restore-summary').textContent).toContain(
+      importCopy.kickstartKept,
+    );
+    fireEvent.click(within(confirm).getByRole('button', { name: importCopy.exportFirst }));
+    expect(await test.db.kickstart_periods.count()).toBe(snapshotV1.kickstart_periods.length);
+  });
+
+  it('restore: a rescue copy is called a rescue copy, not a backup', async () => {
+    const rescue = await createRescueFile({
+      tables: snapshotV1,
+      schemaVersion: 1,
+      exportedAt: AT,
+      appVersion: '0.1.0',
+      password: null,
+    });
+    render(<BackupCard />);
+    await chooseFile(rescue.text, 'diet-backup-2000-03-01-rescue.json');
+    const confirm = await within(card()).findByTestId('restore-confirm');
+    expect(confirm.textContent).toContain('Rescue copy made 1 March 2000');
+    expect(confirm.textContent).not.toContain('Backup made');
+  });
+
+  it('restore: when the write fails, "Save what was on this phone" saves a locked rescue copy that opens with its password (lock on by default)', async () => {
+    const failing = failingWrite('audit', 'add', () => new Error('Example failure'));
+    test.db.shutDown();
+    test = await openTestDb({
+      deps: test.deps,
+      env: test.env,
+      extraMiddleware: [failing.middleware],
+    });
+    appStorageStore.set(test.storage);
+    await test.repos.weights.create({ kg: 81, source: 'manual', note: null });
+    render(<BackupCard />);
+    await chooseFile(plainReferenceEnvelopeV1());
+    const confirm = await within(card()).findByTestId('restore-confirm');
+    failing.arm();
+    fireEvent.click(within(confirm).getByRole('button', { name: importCopy.replace }));
+    await within(card()).findByText(privacy.backupErrors['write-failed']);
+    const lock = within(card()).getByRole('switch', { name: exportCopy.lockLabel });
+    expect((lock as HTMLInputElement).checked).toBe(true);
+    const phrase = 'example phrase for the saved phone';
+    type(exportCopy.passwordLabel, phrase);
+    type(exportCopy.passwordRepeatLabel, phrase);
+    fireEvent.click(button(importCopy.saveWhatWasHere));
+    await waitFor(
+      () => {
+        expect(test.storage.platform.downloads).toHaveLength(1);
+      },
+      { timeout: 10_000 },
+    );
+    const [file] = test.storage.platform.downloads;
+    expect(file?.fileName).toBe('diet-backup-2000-03-01-rescue-locked.json');
+    expect(file?.text).not.toContain('"weights"');
+    const decoded = await decodeBackupText(file?.text ?? '', {
+      password: phrase,
+      env: { now: AT, timeZone: 'UTC', randomId: () => 'unused' },
+    });
+    expect(decoded.kind).toBe('rescue');
+    expect(decoded.locked).toBe(true);
+    expect(decoded.snapshot.weights.map((w) => w.kg)).toEqual([81]);
+  });
+
+  it('export: Yes counts only for the records the file was made from, and while this tab’s records are closed it asks to reload and answer again', async () => {
+    newGeneration(test.storage.platform.localStorage, () => 'example-generation-1');
+    render(<BackupCard />);
+    await exportPlain();
+    // Another tab restored (or a reload after one): a new generation of the records.
+    newGeneration(test.storage.platform.localStorage, () => 'example-generation-2');
+    fireEvent.click(button(exportCopy.yes));
+    expect((await within(card()).findByRole('alert')).textContent).toBe(
+      exportCopy.notRecordedChanged.replace('{fileName}', PLAIN_NAME),
+    );
+    expect((await test.repos.settings.get()).lastBackupAt).toBeNull();
+    expect(pendingCheckStore.get()).toBeNull();
+
+    // A restore here that did not finish closed this tab's records: the question is kept.
+    fireEvent.click(button(exportCopy.tryAgain));
+    fireEvent.click(within(card()).getByRole('switch', { name: exportCopy.lockLabel }));
+    fireEvent.click(button(exportCopy.saveFile));
+    await within(card()).findByText(exportCopy.canYouSeeIt);
+    act(() => {
+      test.db.gate.close();
+    });
+    fireEvent.click(button(exportCopy.yes));
+    const closed = await within(card()).findByTestId('export-closed');
+    expect(closed.textContent).toContain(exportCopy.notRecordedClosed);
+    expect(pendingCheckStore.get()?.fileName).toBe(PLAIN_NAME);
+    fireEvent.click(within(closed).getByRole('button', { name: privacy.backupCard.reload }));
+    expect(test.storage.platform.reloads).toBe(1);
   });
 
   it('restore: focus moves to the start of each new step', async () => {
@@ -374,12 +518,18 @@ describe('Backup and data card (section 16 test 39)', () => {
     expect(await test.db.weights.count()).toBe(snapshotV1.weights.length - 1);
   });
 
-  it('restore: when another tab does not let go, nothing is written, the card says the app is open elsewhere, and Reload and Try again are offered', async () => {
+  it('restore: when another tab does not let go, nothing is written, the card says so (not while it waits), and "Try the restore again" counts the records again before replacing', async () => {
     let refuse = true;
+    let letGo: () => void = () => undefined;
     await reopenWith(() => ({
       request: (name, options, callback) =>
         refuse
-          ? refusingLocks.request(name, options, callback)
+          ? // Waits, as the 3-second request does, until the test lets it fail.
+            new Promise((_, reject) => {
+              letGo = () => {
+                reject(new DOMException('The request was aborted.', 'AbortError'));
+              };
+            })
           : locksFor(test.deps.indexedDB).request(name, options, callback),
     }));
     await test.repos.weights.create({ kg: 81, source: 'manual', note: null });
@@ -387,16 +537,37 @@ describe('Backup and data card (section 16 test 39)', () => {
     await chooseFile(plainReferenceEnvelopeV1());
     const confirm = await within(card()).findByTestId('restore-confirm');
     fireEvent.click(within(confirm).getByRole('button', { name: importCopy.replace }));
+    // While the restore waits, the card does not say that nothing more will be saved.
+    await within(card()).findByText(importCopy.replacing);
+    expect(within(card()).queryByTestId('backup-closed')).toBeNull();
+    act(() => {
+      letGo();
+    });
     const blocked = await within(card()).findByTestId('restore-blocked');
-    expect(blocked.textContent).toContain(privacy.otherTabs);
-    expect(blocked.textContent).toContain(privacy.backupCard.closed);
+    for (const line of [
+      privacy.otherTabs,
+      importCopy.blockedNothingChanged,
+      privacy.backupCard.closed,
+      importCopy.reloadCancels,
+    ]) {
+      expect(blocked.textContent).toContain(line);
+    }
     expect(test.storage.platform.reloads).toBe(0);
     // This tab's records are closed: the card says so and offers Reload.
     expect(within(card()).getByTestId('backup-closed').textContent).toBe(privacy.backupCard.closed);
     expect(await test.db.weights.count()).toBe(1);
+    expect(within(blocked).queryByRole('button', { name: importCopy.tryAgain })).toBeNull();
 
+    // Meanwhile another weigh-in arrived (the other tab): the counts are made again.
+    const extra = snapshotV1.weights[3];
+    if (extra === undefined) throw new Error('fixture');
+    await test.db.weights.add({ ...extra, id: '00000000-0000-4000-8000-000000009998' });
     refuse = false;
-    fireEvent.click(within(blocked).getByRole('button', { name: importCopy.tryAgain }));
+    fireEvent.click(within(blocked).getByRole('button', { name: importCopy.tryRestoreAgain }));
+    const again = await within(card()).findByTestId('restore-confirm');
+    expect(again.textContent).toContain(importCopy.missingMany.replace('{count}', '2'));
+    expect(test.storage.platform.reloads).toBe(0);
+    fireEvent.click(within(again).getByRole('button', { name: importCopy.replace }));
     await waitFor(() => {
       expect(test.storage.platform.reloads).toBe(1);
     });
@@ -484,6 +655,7 @@ describe('Backup and data card (section 16 test 39)', () => {
     fireEvent.click(button(privacy.deleteAll.confirm));
     const failed = await within(card()).findByTestId('delete-failed');
     expect(failed.textContent).toContain(privacy.otherTabs);
+    expect(failed.textContent).toContain(privacy.deleteAll.recordsKept);
     expect(failed.textContent).toContain(privacy.backupCard.closed);
     expect((await test.deps.indexedDB.databases()).map((d) => d.name)).toEqual(['diet']);
     expect(test.storage.platform.reloads).toBe(0);
@@ -496,6 +668,19 @@ describe('Backup and data card (section 16 test 39)', () => {
       expect(test.storage.platform.reloads).toBe(2);
     });
     expect(await test.deps.indexedDB.databases()).toEqual([]);
+  });
+
+  it('delete all, when only the list of other stored data cannot be read: says the records were deleted and to reload, never to try again forever', async () => {
+    vi.spyOn(test.deps.indexedDB, 'databases').mockRejectedValue(new Error('Example failure'));
+    render(<BackupCard />);
+    fireEvent.click(button(privacy.backupCard.deleteAllAction));
+    fireEvent.click(button(privacy.deleteAll.next));
+    fireEvent.click(button(privacy.deleteAll.confirm));
+    const failed = await within(card()).findByTestId('delete-failed');
+    expect(failed.textContent).toContain(privacy.deleteAll.listFailedOnly);
+    expect(failed.textContent).not.toContain(privacy.deleteAll.recordsKept);
+    expect(failed.textContent).not.toMatch(/Some data could not be deleted/);
+    vi.restoreAllMocks();
   });
 
   it('without an open database, says the records are still opening and offers no actions', () => {

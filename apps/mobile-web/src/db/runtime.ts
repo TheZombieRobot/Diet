@@ -8,7 +8,9 @@ import { createStore, type Store } from '../store';
 import { onOnboardingCompleted, requestPersistentStorage } from '../pwa/storage';
 import { revokeAllObjectUrls, offerDownload } from '../files';
 import { type DbDeps, type DietDb, openDietDb, openStatusStore, type OpenStatus } from './db';
+import { setPendingCheck } from '../screens/backup/pendingCheck';
 import { browserEnv, type StorageEnv } from './env';
+import { ensureGeneration } from './generation';
 import {
   browserChannel,
   type ChannelFactory,
@@ -109,8 +111,10 @@ export interface StartedStorage {
 /**
  * Opens the database (section 7.1) holding this tab's shared lock (locks.ts), and starts
  * listening for other tabs' gate messages: a restore or delete-all in another tab closes this
- * tab's database for good, which also lets go of the lock. The open status store says what
- * happened; a failure shows a storage failure screen (section 7.4).
+ * tab's database for good, which also lets go of the lock, and drops an unanswered "Can you see
+ * the file?" (its file no longer matches the records). The records' generation is started when
+ * the database was just created (generation.ts). The open status store says what happened; a
+ * failure shows a storage failure screen (section 7.4).
  */
 export async function startStorage(options: StartOptions = {}): Promise<StartedStorage> {
   const status = options.status ?? openStatusStore;
@@ -131,9 +135,11 @@ export async function startStorage(options: StartOptions = {}): Promise<StartedS
   db.attachOpenLock(lock);
   const channel = openTabChannel(() => {
     db.closeForGood('reload-needed');
+    setPendingCheck(null);
   }, options.channels ?? browserChannel);
   if (options.store === undefined) tabChannel = channel;
   const storage = createAppStorage(db, deps, options.platform ?? browserPlatform);
+  ensureGeneration(storage.platform.localStorage, () => env.randomId(), db.populated);
   (options.store ?? appStorageStore).set(storage);
   // Remembers the home zone for new records (section 3.4).
   await storage.repos.settings.get().catch(() => undefined);

@@ -167,6 +167,35 @@ test('every absolute URL in the built files is an inert string on the allowlist'
   expect([...found.keys()].sort()).toEqual(Object.keys(ALLOWED_ABSOLUTE_URLS).sort());
 });
 
+/**
+ * Browser APIs that reach the network outside the audit's request log, so no built script may
+ * name them: a WebSocket and a server-sent event stream appear only as page events, and WebRTC
+ * (STUN or TURN over UDP) never appears at all (privacy review).
+ */
+const UNSEEN_NETWORK_APIS =
+  /\b(?:webkitRTCPeerConnection|RTCPeerConnection|WebSocket|EventSource)\b/g;
+
+/** Every such name in some text. */
+export const unseenNetworkApis = (text: string): string[] =>
+  [...text.matchAll(UNSEEN_NETWORK_APIS)].map((m) => m[0]);
+
+test('no built script names a WebSocket, an event stream or WebRTC, which the network audit cannot see', () => {
+  const found: string[] = [];
+  for (const file of filesUnder(DIST_DIR)) {
+    if (!['.js', '.mjs', '.html'].includes(extname(file))) continue;
+    for (const name of unseenNetworkApis(readFileSync(file, 'utf8'))) {
+      found.push(`${name} in ${relative(DIST_DIR, file)}`);
+    }
+  }
+  expect(found).toEqual([]);
+  // The check itself catches each of them, however it is written.
+  expect(
+    unseenNetworkApis(
+      'new WebSocket(u);new window.RTCPeerConnection(c);webkitRTCPeerConnection;new EventSource(s)',
+    ),
+  ).toEqual(['WebSocket', 'RTCPeerConnection', 'webkitRTCPeerConnection', 'EventSource']);
+});
+
 test('the build-output check catches a service worker that reaches another origin', () => {
   const generated = (body: string) =>
     `if(!self.define){let e;const s=(s,i)=>(s=new URL(s+".js",i).href,importScripts(s));self.define=(i,r)=>{}}define(["./workbox-1234"],function(e){"use strict";${body}});`;

@@ -212,3 +212,36 @@ export function cardHidden(input: CardVisibilityInput): boolean {
     }
   }
 }
+
+/**
+ * The next instant after `now`, in milliseconds since the epoch, at which cardHidden(input) can
+ * change its answer for the same row (a snooze or collapse ends, a dismissal or done time dated
+ * ahead comes due), or null when only a new write can change it. Screens set a timer for it, so a
+ * card comes back, or goes, without waiting for something else to redraw them.
+ */
+export function cardNextChange(input: CardVisibilityInput): number | null {
+  const { row, dismissal } = input;
+  if (row === null || row === undefined) return null;
+  const now = instantMs(input.now);
+  const candidates: number[] = [];
+  if (row.dismissedAt !== null) {
+    const dismissed = instantMs(row.dismissedAt);
+    candidates.push(dismissed);
+    if (dismissal.kind === 'returns-after') {
+      candidates.push(dismissed + dismissal.hours * 3_600_000);
+    } else if (dismissal.kind === 'backup-snooze') {
+      candidates.push(dismissed + (input.snoozeMs ?? 0));
+    } else if (dismissal.kind === 'collapsed') {
+      candidates.push(
+        collapsedUntil(
+          row.dismissedAt,
+          row.dismissedTimeZone ?? DEFAULT_HOME_TIME_ZONE,
+          boundaryMinutes(dismissal.boundary, input.drinkingDayCutoverMinutes),
+        ),
+      );
+    }
+  }
+  if (dismissal.kind === 'final' && row.doneAt !== null) candidates.push(instantMs(row.doneAt));
+  const next = Math.min(...candidates.filter((ms) => ms > now));
+  return Number.isFinite(next) ? next : null;
+}

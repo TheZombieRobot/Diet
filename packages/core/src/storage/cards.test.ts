@@ -4,6 +4,7 @@ import {
   CARD_IDS,
   CARD_REGISTRY,
   cardHidden,
+  cardNextChange,
   type CardStateTimes,
   cardTrigger,
   collapsedUntil,
@@ -187,5 +188,47 @@ describe('cardHidden: each card follows its own dismissal rule, never fooled by 
     expect(input('2000-01-01T12:00:00.000Z', '2000-01-01T00:00:00.000Z')).toBe(true);
     expect(input('2000-01-02T00:00:00.000Z', '2000-01-01T00:00:00.000Z')).toBe(false);
     expect(input('2000-01-01T12:00:00.000Z', '2000-06-01T00:00:00.000Z')).toBe(false);
+  });
+
+  it('cardNextChange names the next moment a card can come back or go, and nothing changes before it', () => {
+    const next = (dismissal: typeof once.dismissal, r: CardStateTimes, now: string) =>
+      cardNextChange({ now, row: r, dismissal, drinkingDayCutoverMinutes: 300 });
+    const iso = (ms: number | null) => (ms === null ? null : new Date(ms).toISOString());
+    // Collapsed until the next Auckland midnight; back 30 days later; a done time dated ahead.
+    expect(iso(next(rapidLoss.dismissal, evening, '2000-01-10T09:30:00.000Z'))).toBe(
+      '2000-01-10T11:00:00.000Z',
+    );
+    expect(iso(next(helpQ7.dismissal, evening, '2000-01-10T09:30:00.000Z'))).toBe(
+      '2000-02-09T09:00:00.000Z',
+    );
+    const doneAhead = row({ doneAt: '2000-06-01T00:00:00.000Z' });
+    expect(iso(next(once.dismissal, doneAhead, '2000-03-01T00:00:00.000Z'))).toBe(
+      '2000-06-01T00:00:00.000Z',
+    );
+    expect(
+      next(once.dismissal, row({ doneAt: '2000-01-01T00:00:00.000Z' }), '2000-03-01T00:00:00.000Z'),
+    ).toBeNull();
+    expect(next(rapidLoss.dismissal, null as never, '2000-03-01T00:00:00.000Z')).toBeNull();
+    // Between now and the next change, the answer stays the same.
+    const rows = [evening, doneAhead, row({ dismissedAt: '2000-01-12T00:00:00.000Z' })];
+    for (const dismissal of [
+      rapidLoss.dismissal,
+      helpQ7.dismissal,
+      helpDays.dismissal,
+      once.dismissal,
+    ]) {
+      for (const r of rows) {
+        let now = Date.parse('2000-01-09T00:00:00.000Z');
+        const end = Date.parse('2000-07-01T00:00:00.000Z');
+        while (now < end) {
+          const change = next(dismissal, r, new Date(now).toISOString()) ?? end;
+          const shown = hidden(dismissal, r, new Date(now).toISOString());
+          for (let t = now; t < change && t < end; t += 3_600_000 * 7) {
+            expect(hidden(dismissal, r, new Date(t).toISOString())).toBe(shown);
+          }
+          now = change;
+        }
+      }
+    }
   });
 });

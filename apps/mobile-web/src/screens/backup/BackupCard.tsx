@@ -8,7 +8,7 @@ import { storageStore } from '../../pwa/storage';
 import { useStore } from '../../store';
 import { DeleteAllPanel } from './DeleteAllPanel';
 import { ExportPanel } from './ExportPanel';
-import { useGateOpen } from './focus';
+import { recordsBusyStore, useGateOpen } from './focus';
 import { pendingCheckStore } from './pendingCheck';
 import { exportRequestStore, useBackupReminder } from './reminder';
 import { RestorePanel } from './RestorePanel';
@@ -20,8 +20,9 @@ import { storageStatusText } from './storageStatus';
  * export, restore and delete all. "Export what is on this phone first", "Export a backup first"
  * and "Back up now" open the export panel, scroll it into view and put focus on its lock switch,
  * so the tap visibly does something (ux review). An unanswered "Can you see the file?" opens the
- * export panel at that question. After a restore or delete-all that did not finish, the card says
- * nothing more will be saved until the app reloads, and offers Reload.
+ * export panel at that question. After a restore or delete-all that did not finish (not while one
+ * is still running), the card says nothing more will be saved until the app reloads, and offers
+ * Reload.
  */
 export function BackupCard(): ReactElement {
   const copy = privacy.backupCard;
@@ -30,6 +31,7 @@ export function BackupCard(): ReactElement {
   const pending = useStore(pendingCheckStore);
   const reminder = useBackupReminder(storage);
   const gateOpen = useGateOpen(storage?.gate ?? null);
+  const busy = useStore(recordsBusyStore);
   const [exportOpen, setExportOpen] = useState(
     () => exportRequestStore.get() || pendingCheckStore.get() !== null,
   );
@@ -87,7 +89,7 @@ export function BackupCard(): ReactElement {
   return (
     <Card label={copy.title}>
       <p data-testid="backup-storage-status">{storageStatusText(protection)}</p>
-      {storage !== null && !gateOpen ? (
+      {storage !== null && !gateOpen && !busy ? (
         <Notice role="status">
           <p data-testid="backup-closed">{copy.closed}</p>
           <Button variant="primary" onClick={storage.platform.reload}>

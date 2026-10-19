@@ -10,6 +10,7 @@
  * - The rescue copy is built from a version's allow-list without validation, locked by default,
  *   and never counts as a backup.
  */
+import { clampFutureBookkeeping, latestAcceptedMs } from '../bookkeeping';
 import { PBKDF2_EXPORT_ITERATIONS } from '../limits';
 import { chainInfo, type Migration, type MigrationEnv, MIGRATIONS } from '../migrations';
 import { type Instant, isPlainObject, pickByTree } from '../primitives';
@@ -180,23 +181,34 @@ export interface CreateBackupInput {
   readonly chain?: readonly Migration[];
 }
 
-/** settings.lastBackupAt = exportedAt in a copy, and nothing else (section 10.5 step 2). */
-function withBackupRecorded(tables: BackupTablesInput, exportedAt: Instant): BackupTablesInput {
+/**
+ * The snapshot copy a backup is made from (section 10.5 step 2): settings.lastBackupAt =
+ * exportedAt, and any bookkeeping time dated after the export (a clock that ran ahead and was
+ * then corrected) put back to the import limit (bookkeeping.ts), so the file always passes its
+ * own self-check and import. The database itself is not changed.
+ */
+function exportSnapshot(tables: BackupTablesInput, exportedAt: Instant): BackupTablesInput {
+  const limitMs = latestAcceptedMs(exportedAt, exportedAt);
+  const out: Record<string, readonly unknown[] | undefined> = {};
+  for (const [name, rows] of Object.entries(tables)) {
+    out[name] = rows?.map((row) => clampFutureBookkeeping(name, row, limitMs).row);
+  }
   return {
-    ...tables,
-    settings: (tables.settings ?? []).map((row) =>
+    ...out,
+    settings: (out['settings'] ?? []).map((row) =>
       isPlainObject(row) ? { ...row, lastBackupAt: exportedAt } : row,
     ),
   };
 }
 
-const SELF_CHECK_ENV: MigrationEnv = {
-  now: '2000-01-01T00:00:00.000Z',
+/** The import steps the self-check runs, with the export time as now. */
+const selfCheckEnv = (exportedAt: Instant): MigrationEnv => ({
+  now: exportedAt,
   timeZone: 'UTC',
   randomId: () => {
     throw new RangeError('The export self-check never creates records');
   },
-};
+});
 
 /**
  * A backup file (section 10.5 steps 2–4). The snapshot copy records lastBackupAt = exportedAt, so
@@ -207,7 +219,7 @@ const SELF_CHECK_ENV: MigrationEnv = {
  */
 export async function createBackupFile(input: CreateBackupInput): Promise<BackupFile> {
   const chainOption = input.chain === undefined ? {} : { chain: input.chain };
-  const payload = buildBackupPayload(withBackupRecorded(input.tables, input.exportedAt), {
+  const payload = buildBackupPayload(exportSnapshot(input.tables, input.exportedAt), {
     kind: 'backup',
     exportedAt: input.exportedAt,
     appVersion: input.appVersion,
@@ -216,7 +228,11 @@ export async function createBackupFile(input: CreateBackupInput): Promise<Backup
   const plain = plainBackupText(payload);
   try {
     const parsed = parseBackupText(plain);
-    checkBackupPayload(parsed.encrypted ? null : parsed.payload, SELF_CHECK_ENV, chainOption);
+    checkBackupPayload(
+      parsed.encrypted ? null : parsed.payload,
+      selfCheckEnv(input.exportedAt),
+      chainOption,
+    );
   } catch (error) {
     if (!(error instanceof BackupError)) throw error;
     throw new BackupExportError('self-check-failed', {

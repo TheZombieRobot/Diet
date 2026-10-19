@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { backupReminder, type BackupReminderInput } from './backupReminder';
+import {
+  backupReminder,
+  type BackupReminderInput,
+  backupReminderNextChange,
+} from './backupReminder';
 
 const T0 = Date.parse('2000-01-01T00:00:00.000Z');
 const MIN = 60_000;
@@ -72,5 +76,55 @@ describe('BK-03: the weekly backup reminder (section 12.2; D25; section 16 test 
     expect(state({ dismissedAt, now: at(8 * DAY) }).visible).toBe(true);
     expect(state({ dismissedAt, now: at(365 * DAY + HOUR) }).visible).toBe(false);
     expect(state({ dismissedAt, now: at(372 * DAY) }).visible).toBe(true);
+  });
+
+  it('while the reference is dated ahead, a "Not now" made at the correct time still snoozes it', () => {
+    // Onboarding finished with the clock a year ahead, then the clock was corrected.
+    const ahead = { onboardingCompletedAt: at(365 * DAY) };
+    expect(state({ ...ahead, now: at(10 * DAY) }).visible).toBe(true);
+    const dismissedAt = at(10 * DAY);
+    expect(state({ ...ahead, dismissedAt, now: at(10 * DAY + HOUR) }).visible).toBe(false);
+    expect(state({ ...ahead, dismissedAt, now: at(17 * DAY) }).visible).toBe(true);
+  });
+});
+
+describe('backupReminderNextChange: when Today must look again (health-rules review)', () => {
+  const next = (patch: Partial<BackupReminderInput>) =>
+    backupReminderNextChange({ ...base, ...patch });
+
+  it('is the moment the reminder comes due, or a snooze ends', () => {
+    expect(next({ now: at(DAY) })).toBe(at(7 * DAY));
+    expect(next({ dismissedAt: at(7 * DAY), now: at(8 * DAY) })).toBe(at(14 * DAY));
+    expect(next({ storage: 'unsupported', dismissedAt: at(3 * DAY), now: at(3 * DAY) })).toBe(
+      at(4 * DAY),
+    );
+  });
+
+  it('is the moment a dismissal or reference dated ahead comes due, and nothing before onboarding', () => {
+    expect(next({ dismissedAt: at(30 * DAY), now: at(8 * DAY) })).toBe(at(30 * DAY));
+    expect(next({ lastBackupAt: at(30 * DAY), now: at(8 * DAY) })).toBe(at(30 * DAY));
+    expect(next({ onboardingCompletedAt: null })).toBeNull();
+  });
+
+  it('the reminder can change only at those moments', () => {
+    const inputs: Partial<BackupReminderInput>[] = [
+      { dismissedAt: at(9 * DAY) },
+      { lastBackupAt: at(20 * DAY), dismissedAt: at(2 * DAY) },
+      { storage: 'not-protected', dismissedAt: at(5 * DAY) },
+    ];
+    for (const patch of inputs) {
+      let now = 0;
+      while (now < 40 * DAY) {
+        const change = next({ ...patch, now: at(now) });
+        const until = change === null ? 40 * DAY : Date.parse(change) - T0;
+        const shown = state({ ...patch, now: at(now) }).visible;
+        for (let t = now; t < until && t < 40 * DAY; t += HOUR) {
+          expect(state({ ...patch, now: at(t) }).visible, `${JSON.stringify(patch)} at ${t}`).toBe(
+            shown,
+          );
+        }
+        now = until;
+      }
+    }
   });
 });

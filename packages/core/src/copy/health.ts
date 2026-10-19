@@ -87,7 +87,7 @@ export const privacy = {
     restoreAction: 'Restore from a backup',
     deleteAllAction: 'Delete all data',
     notReady: 'The records are still opening.',
-    /** After a restore or delete-all that did not finish: this tab's records are closed. */
+    /** After a restore or delete-all that did not finish (never while one runs): this tab's records are closed. */
     closed: 'Nothing more will be saved until the app reloads.',
     reload: 'Reload',
   },
@@ -122,18 +122,28 @@ export const privacy = {
     /** Shown, and announced, while a locked file is made (the key takes a moment on a phone). */
     locking: 'Locking the file… this takes a few seconds.',
     working: 'Making the file…',
+    /** The browser cannot say whether a download really saved (D21), so this names what was made. */
     checkDownloads:
-      'Open the Files app and look in Downloads for {fileName}, saved at {time}. If a file of that name was already there, the new one ends in (1).',
+      'Open the Files app and look in Downloads for {fileName} (made at {time}). If a file of that name was already there, the new one has a number such as (1) before .json.',
     canYouSeeIt: 'Can you see the file?',
     yes: 'Yes',
     no: 'No',
-    /** After Yes: the backup counts, and the file should leave the phone too. */
+    /** After Yes on a locked file: the backup counts, and the file should leave the phone too. */
     recorded:
-      'Backup recorded. A copy kept only in Downloads is lost with the phone: in Files, share it to your email or cloud storage (a locked file is better to send).',
+      'Backup recorded. A copy kept only in Downloads is lost with the phone: in Files, share this locked file to your email or cloud storage.',
+    /** After Yes on a file that is not locked: it should not be sent anywhere as it is. */
+    recordedPlain:
+      'Backup recorded. This file is not locked: anyone who opens it can read your records. To keep a copy off the phone, export a locked one and share that.',
     close: 'Close',
     notConfirmed: 'The backup may not have saved. Try again.',
+    /** Yes, but this tab's records are closed (a restore or delete-all that did not finish): the question is kept. */
+    notRecordedClosed:
+      'The file is there, but the app cannot record the backup until it reloads. Reload, then answer again.',
+    /** Yes, but the records were replaced or deleted after the file was made (in another tab, or before a reload). */
+    notRecordedChanged:
+      'The records on this phone were replaced or deleted after {fileName} was made, so that file was not recorded as a backup. Export a new one.',
     /** On the Backup and data card when the owner left the "Can you see the file?" step unanswered. */
-    pendingCheck: 'You saved {fileName} at {time} but have not said whether you can see it.',
+    pendingCheck: 'You made {fileName} at {time} but have not said whether it is in Downloads.',
     selfCheckFailed: 'The backup could not be checked: {detail}.',
     saveUnchecked: 'Save an unchecked copy',
     uncheckedNote: 'This copy was not checked, so it does not count as a backup.',
@@ -143,7 +153,7 @@ export const privacy = {
   /** Restore (section 10.6; BK-02; D17). */
   importBackup: {
     intro:
-      'Pick a diet-backup file from Downloads or wherever you keep it. Nothing on this phone changes until you confirm on the next step.',
+      'Pick a diet-backup file from Downloads or wherever you keep it. Nothing on this phone changes until you confirm.',
     chooseFile: 'Choose a backup file',
     passwordLabel: 'Backup password',
     unlock: 'Unlock the file',
@@ -156,6 +166,8 @@ export const privacy = {
     cancel: 'Cancel',
     writeFailedNext: 'Reload the app before you try again.',
     fileMade: 'Backup made {date}.',
+    /** A rescue copy is not a backup (D22, D23). */
+    rescueMade: 'Rescue copy made {date}.',
     fileLocked: 'The file was locked with a password.',
     filePlain: 'The file was not locked.',
     /** The summary, sentence by sentence, with the counts worded for 0, 1 and more (D17). */
@@ -168,14 +180,24 @@ export const privacy = {
     differOne: '1 record on this phone differs from its copy in the file.',
     differMany: '{count} records on this phone differ from their copies in the file.',
     newest: 'Newest record on this phone: {phoneNewest}; in the file: {fileNewest}.',
+    /** When nothing of the owner's on this phone carries a date (only settings were changed). */
+    newestFileOnly: 'Newest record in the file: {fileNewest}.',
+    /** Only when this phone is paired with a laptop. */
     pairingRemoved: 'The laptop pairing will be removed.',
+    /**
+     * A file whose Kickstart history records less than this phone's never lowers it (D27; the
+     * data-loss review): the phone's periods and checks are kept, and this says so before Replace.
+     */
+    kickstartKept:
+      'Kickstart history kept from this phone, because it records more Kickstart days, extensions or stop-sign checks than the file.',
     exportFirst: 'Export what is on this phone first',
     replace: 'Replace everything on this phone',
     importRest: 'Import the rest',
     migrationChanges: 'Changed to fit this version of the app:',
     setAside: 'Records that could not be imported:',
-    /** Rescue files: singleton settings put back to the app's default because the copy could not keep them. */
-    resetToDefault: "Put back to the app's default because the rescue copy could not keep them:",
+    /** Rescue files: singleton fields the copy could not keep, set to the default or the more cautious value. */
+    resetToDefault:
+      "Could not be read from the rescue copy, so set to the app's default or the more cautious choice:",
     resetRow: '{table}: the {field}',
     wholeRecord: 'whole record',
     /** Rescue files: a safety setting kept from this phone because it is the more cautious one. */
@@ -184,7 +206,28 @@ export const privacy = {
       'This rescue copy may need a later version of the app to open completely. Keep the file.',
     saveWhatWasHere: 'Save what was on this phone',
     tryAgain: 'Try again',
+    /** After a restore the other tabs did not let go of: nothing was written. */
+    blockedNothingChanged: 'Nothing was changed.',
+    reloadCancels: 'Reload cancels the restore: you will need to choose the file again.',
+    /** Counts the phone's records again and shows the confirmation again before anything is replaced. */
+    tryRestoreAgain: 'Try the restore again',
   },
+  /**
+   * An import refused for a whole list or for the file itself rather than for one record (section
+   * 10.6 steps 5 and 7), so the message does not speak of "a record".
+   */
+  backupListErrors: {
+    missing: 'The backup is missing a list this app needs ({table}). Nothing was imported.',
+    unknown: 'The backup has a list this app does not know. Nothing was imported.',
+    deviceOnly:
+      'The backup has a list that belongs only on the phone, never in a backup ({table}). Nothing was imported.',
+    unreadable: 'The backup has a list this app cannot read ({table}). Nothing was imported.',
+    migration:
+      'The backup could not be updated to fit this version of the app. Nothing was imported. Keep the file: a later version of the app may read it.',
+  },
+  /** A rescue copy whose Kickstart history cannot be imported whole (section 9.5; D27, D28). */
+  kickstartHistory:
+    'This rescue copy has a Kickstart record that could not be imported ({record}), and the Kickstart history is imported whole or not at all. Nothing was imported. Keep the file: a later version of the app may read it.',
   /** One message per BackupError code (section 10.9). {detail} names a store, a field and a rule, never a value. */
   backupErrors: {
     'too-large': 'This file is too big to be a backup from this app. Nothing was imported.',
@@ -222,20 +265,26 @@ export const privacy = {
       'A fresh start with the default drink preset and silverbeet in the garden.',
       'The home-screen icon and the storage protection setting.',
       "If Chrome saved a backup password, remove it in Chrome's settings.",
-      'Backup files you saved or shared: delete them in Files.',
+      'Backup files you made or shared: delete them in Files, and in your email or cloud storage if you sent them there.',
       'The list on your laptop and its pairing: also unpair on your laptop.',
       'A list waiting to be sent expires within 15 minutes.',
     ],
     exportFirst: 'Export a backup first',
     next: 'Continue',
     finalWarning:
-      'Deleting cannot be undone. Only a backup file you saved can bring the records back.',
+      'Deleting cannot be undone. Only a backup file you kept can bring the records back.',
+    /** No backup confirmed on this phone (settings.lastBackupAt is null); a file may still exist. */
     finalWarningNoBackup:
-      'Deleting cannot be undone. You have not made a backup, so nothing can bring these records back.',
+      'Deleting cannot be undone. No backup has been recorded on this phone, so unless you kept a backup or rescue file, nothing can bring these records back.',
     confirm: 'Delete everything on this phone',
     cancel: 'Cancel',
     deleting: 'Deleting…',
     stepsFailed: 'Some data could not be deleted ({steps}). Try again.',
+    /** The records were not deleted because the app is open somewhere else. */
+    recordsKept: 'Your records are still on this phone.',
+    /** Only the list of other stored databases could not be read: the records themselves are gone. */
+    listFailedOnly:
+      'Your records were deleted, but the app could not check for other stored data. Reload to start fresh.',
     tryAgain: 'Try again',
     /** Plain names of the delete-all steps, for stepsFailed. */
     steps: {
@@ -255,12 +304,12 @@ export const privacy = {
     cardLabel: 'What happened',
     helpTitle: 'Help numbers',
     'newer-version':
-      'This phone has records from a newer version of the app. Reload. If this screen comes back, connect to the internet and reload again; nothing has been changed.',
+      'This phone has records from a newer version of the app. Nothing has been changed. Connect to the internet and reload. If this screen comes back, close the app in every Chrome tab and in Recent apps, then open it again.',
     'upgrade-failed':
-      'The app could not update your records. Nothing was changed. Save a rescue copy, then reload. A later version of the app should be able to read it.',
+      'The app could not update your records. Nothing was changed. Save a rescue copy, then reload. A later version of the app should be able to read it. If this screen comes back after an update, close the app in every Chrome tab and in Recent apps, then open it again.',
     unavailable: "This browser cannot store the app's records (private mode or storage blocked).",
     'reload-needed':
-      'The app was updated, reset or restored in another window or tab of the app. Reload.',
+      "The app's records were closed in this window. Another window or tab of the app may have updated, restored or reset them, or the browser closed them. Reload.",
     reload: 'Reload',
     saveRescueCopy: 'Save a rescue copy',
     /** Static safety block: the not-a-medical-device line and the help numbers (HS-13 as extended by C17). */
@@ -269,6 +318,12 @@ export const privacy = {
   },
   /** A write refused for lack of space (section 7.6). */
   storageFull: 'Phone storage is full. Nothing was saved. Free some space or export a backup.',
+  /**
+   * A Kickstart write refused because now is earlier than the newest saved record (section 8.2;
+   * clock.ts isClockBehind): a clock set back must never make lived Kickstart days count as fewer.
+   */
+  clockBehind:
+    "The phone's date and time look earlier than the last saved record. Check them in the phone's settings, then try again.",
   /** The update-notice card (section 9.2; D13). */
   updateNotice: 'This update changed some of your settings to fit new limits.',
   updateNoticeLink: 'See what changed',
@@ -277,6 +332,11 @@ export const privacy = {
   migrationChange: '{field} was changed to fit the limits of app version {version}.',
   /** Next to entries whose recorded time zone this browser does not know (section 3.4; D6). */
   zoneFallback: 'Times shown in your home time zone',
+  /** Plain names of the device-only stores, named when a file wrongly holds one (never backed up). */
+  deviceOnlyNames: {
+    transfer_pairings: 'Laptop pairing',
+    garden_photos: 'Garden photos',
+  },
   /** Plain names of the backed-up stores, for the import confirmation's counts and set-aside rows. */
   storeNames: {
     profile: 'Profile',
@@ -314,6 +374,8 @@ export const privacy = {
   recordProblem: {
     withField: '{table}, record {position}: the {field} {rule}',
     withoutField: '{table}, record {position}: the record {rule}',
+    /** A record named by store and position only. */
+    position: '{table}, record {position}',
     /** A row set aside for a rule across records: the rule reads as a sentence. */
     crossRecord: '{table}, record {position}: {rule}',
     list: '{table}: the list {rule}',
@@ -338,10 +400,10 @@ export const privacy = {
       pattern: 'is not in the form this app expects',
       'zone-unknown': 'names a time zone this phone does not know',
       'future-year': 'is a year still to come',
-      future: 'is dated after the backup was made',
+      future: 'is dated after the backup was made or after the time on this phone',
       notAccepted: 'is not accepted',
     },
-    /** Cross-record rules (section 5), and the rescue copy's Kickstart rule. */
+    /** Cross-record rules (section 5). */
     invariants: {
       singleton: 'the profile, targets or settings do not have exactly one record',
       'unique-key': 'two records have the same key',
@@ -357,8 +419,6 @@ export const privacy = {
       'kickstart-days': 'there are more than 42 Kickstart days in all',
       'card-trigger': 'a reminder card is one this app does not know',
       'garden-photo': 'a garden photo has no garden record',
-      'kickstart-history':
-        'the Kickstart history in this rescue copy could not be read in full, so none of it can be imported (keep the file: a later version of the app may read it)',
     },
     /** Plain names of stored fields (any store), for the messages above. */
     fields: {

@@ -3,20 +3,22 @@
  * Nothing in the database is touched here: import keeps everything in memory until its write step.
  *
  * Steps: 1 size; 2 parse; 3 envelope; 4 unlock (locked files); 5 payload shape; 6 validate against
- * the file's own version; 7 migrate; 8 validate against the current version (and no bookkeeping
- * instant dated after the export, bookkeeping.ts), then the cross-record invariants. A 'backup'
- * file with any failure is refused whole, and an out-of-range value is never clamped (C50). A
- * 'rescue' file is read as far as it safely can (rescueImport.ts): failing rows are set aside and
- * listed, failing singleton fields are put back to their defaults, but a failing Kickstart history
- * or safety setting refuses it. Environment checks (a zone this browser does not know) are never
- * applied (section 3.4).
+ * the file's own version; 7 migrate; 8 validate against the current version, then the
+ * cross-record invariants. In step 8 a bookkeeping time dated after latestAcceptedMs (the earlier
+ * of the export and this phone's now, plus 5 minutes) is put back to that limit and the row kept,
+ * and a Kickstart start, a Kickstart check or a fast start dated after it is refused
+ * (bookkeeping.ts). A 'backup' file with any failure is refused whole, and an out-of-range value
+ * is never clamped (C50). A 'rescue' file is read as far as it safely can (rescueImport.ts):
+ * failing rows are set aside and listed, failing singleton fields are repaired, but a failing
+ * Kickstart history or safety setting refuses it. Environment checks (a zone this browser does
+ * not know) are never applied (section 3.4).
  */
 import {
   MAX_BACKUP_FILE_BYTES,
   PBKDF2_IMPORT_MIN_ITERATIONS,
   PBKDF2_MAX_ITERATIONS,
 } from '../limits';
-import { latestBookkeepingMs, futureBookkeepingField } from '../bookkeeping';
+import { clampFutureBookkeeping, futureStartField, latestAcceptedMs } from '../bookkeeping';
 import { defaultSingleton, isUntouchedSeedRow } from '../defaults';
 import { findInvariantViolation } from '../invariants';
 import {
@@ -50,7 +52,7 @@ import {
   TAG_BITS,
   utf8Decode,
 } from './crypto';
-import { BackupError } from './errors';
+import { BackupError, type BackupErrorDetail, KICKSTART_HISTORY_RULE } from './errors';
 import { KICKSTART_HISTORY_TABLES, repairSingleton, resolveRescueInvariants } from './rescueImport';
 
 export type BackupKind = 'backup' | 'rescue';
@@ -230,7 +232,7 @@ export interface SetAsideRow {
   readonly allowed: string | null;
 }
 
-/** A singleton field a rescue file could not keep, put back to the app's default ('' for the whole row). */
+/** A singleton field a rescue file could not keep, repaired (rescueImport.ts repairedValue). */
 export interface ReplacedField {
   readonly table: 'profile' | 'targets' | 'settings';
   readonly field: string;
@@ -251,7 +253,7 @@ export interface DecodedBackup {
   readonly updateNotice: string | null;
   /** Rescue files only: rows set aside. */
   readonly setAside: readonly SetAsideRow[];
-  /** Rescue files only: singleton fields put back to their defaults. */
+  /** Rescue files only: singleton fields repaired. */
   readonly replacedFields: readonly ReplacedField[];
 }
 
@@ -267,8 +269,13 @@ const isSingleton = (name: string): name is SingletonName =>
   (SINGLETONS as readonly string[]).includes(name);
 
 /** A rescue copy's Kickstart history must be imported whole or not at all (D27, D28). */
-const kickstartHistoryRefused = (): BackupError =>
-  new BackupError('inconsistent', { rule: 'kickstart-history' });
+const kickstartHistoryRefused = (where: BackupErrorDetail): BackupError =>
+  new BackupError('invalid-record', {
+    table: where.table ?? null,
+    index: where.index ?? null,
+    field: where.field ?? null,
+    rule: KICKSTART_HISTORY_RULE,
+  });
 
 /**
  * Steps 5 to 8 on a parsed payload: shape, own-version validation, migration, current-version
@@ -321,24 +328,22 @@ export function checkBackupPayload(
   }
 
   const rescue = kind === 'rescue';
+  // A rescue copy is never given a default profile, targets or settings row: the defaults are
+  // the least cautious values (health-rules review). A backup is refused by the invariants.
+  if (rescue && SINGLETONS.some((name) => (tables[name] as unknown[]).length !== 1)) {
+    throw new BackupError('inconsistent', { rule: 'singleton' });
+  }
   const setAside: SetAsideRow[] = [];
   const replacedFields: ReplacedField[] = [];
-  const futureLimit = latestBookkeepingMs(exportedAt);
+  const limitMs = latestAcceptedMs(exportedAt, env.now);
   /** A rescue singleton, repaired field by field, or the file refused for a safety setting. */
   const repaired = (
     name: SingletonName,
     row: unknown,
     specs: (typeof info.specsByVersion)[number],
     index: number,
-    future: number | null,
   ): unknown => {
-    const repair = repairSingleton(
-      name,
-      row,
-      specs,
-      defaultSingleton(name, exportedAt) as never,
-      future,
-    );
+    const repair = repairSingleton(name, row, specs, defaultSingleton(name, exportedAt) as never);
     if (!repair.ok) {
       throw new BackupError('invalid-record', {
         table: name,
@@ -377,9 +382,9 @@ export function checkBackupPayload(
           allowed: result.allowed,
         });
       } else if (KICKSTART_HISTORY_TABLES.includes(name)) {
-        throw kickstartHistoryRefused();
+        throw kickstartHistoryRefused({ table: name, index, field: result.field });
       } else if (isSingleton(name)) {
-        kept.push(repaired(name, row, ownSpecs, index, null));
+        kept.push(repaired(name, row, ownSpecs, index));
         positions.push(index);
       } else {
         setAside.push({
@@ -400,14 +405,14 @@ export function checkBackupPayload(
   try {
     migrated = migrateSnapshot(schemaVersion, ownRows, env, chain);
   } catch {
-    throw new BackupError('invalid-record');
+    throw new BackupError('invalid-record', { rule: 'migration' });
   }
   // Positions in the file, when no migration step ran (the rows are then the same rows).
   const sameRows = schemaVersion === info.schemaVersion;
   const position = (name: string, i: number): number => (sameRows ? (ownIndex[name]?.[i] ?? i) : i);
 
-  // Step 8: every row against the current version, no bookkeeping time after the export, then
-  // the invariants.
+  // Step 8: every row against the current version, with bookkeeping times dated ahead put back to
+  // the limit and event starts dated ahead refused, then the invariants.
   const currentSpecs = info.specsByVersion[info.schemaVersion] ?? {};
   const current = info.backupTablesByVersion[info.schemaVersion] ?? [];
   const out: Record<string, unknown[]> = {};
@@ -417,20 +422,23 @@ export function checkBackupPayload(
     const positions: number[] = [];
     (migrated.snapshot[name] ?? []).forEach((row, i) => {
       const index = position(name, i);
-      const result = checkRow(name, row, currentSpecs);
-      const future = result.ok ? futureBookkeepingField(name, result.row, futureLimit) : null;
-      if (result.ok && future === null) {
+      const clamped = clampFutureBookkeeping(name, row, limitMs).row;
+      const result = checkRow(name, clamped, currentSpecs);
+      const start = result.ok ? futureStartField(name, result.row, limitMs) : null;
+      if (result.ok && start === null) {
         kept.push(result.row);
         positions.push(index);
         return;
       }
       const failure = result.ok
-        ? { field: future ?? '', rule: 'future', allowed: null }
+        ? { field: start ?? '', rule: 'future', allowed: null }
         : { field: result.field, rule: result.rule, allowed: result.allowed };
       if (!rescue) throw new BackupError('invalid-record', { table: name, index, ...failure });
-      if (KICKSTART_HISTORY_TABLES.includes(name)) throw kickstartHistoryRefused();
+      if (KICKSTART_HISTORY_TABLES.includes(name)) {
+        throw kickstartHistoryRefused({ table: name, index, field: failure.field });
+      }
       if (isSingleton(name)) {
-        kept.push(repaired(name, row, currentSpecs, index, futureLimit));
+        kept.push(repaired(name, clamped, currentSpecs, index));
         positions.push(index);
         return;
       }
@@ -440,19 +448,12 @@ export function checkBackupPayload(
     outIndex[name] = positions;
   }
   if (rescue) {
-    for (const name of SINGLETONS) {
-      if (out[name]?.length === 0) {
-        out[name] = [defaultSingleton(name, exportedAt)];
-        outIndex[name] = [0];
-        replacedFields.push({ table: name, field: '' });
-      }
-    }
     // Cross-record rules other than Kickstart's: set the offending rows aside, then check again.
     // A duplicate key in the Kickstart history refuses the file instead (D27).
     for (const name of KICKSTART_HISTORY_TABLES) {
       const rows = out[name] ?? [];
       const ids = new Set(rows.map((row) => JSON.stringify((row as { id?: unknown }).id)));
-      if (ids.size !== rows.length) throw kickstartHistoryRefused();
+      if (ids.size !== rows.length) throw kickstartHistoryRefused({ table: name });
     }
     const resolved = resolveRescueInvariants(out);
     for (const row of resolved.setAside) {

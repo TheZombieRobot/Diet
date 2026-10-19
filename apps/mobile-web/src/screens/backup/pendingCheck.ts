@@ -2,10 +2,12 @@
  * An unanswered "Can you see the file?" (storage spec section 10.5 step 6; ux review). On a phone,
  * checking Downloads means leaving the app, and Android may reload it in the meantime, so the
  * question is kept outside the export panel: in memory, so it survives moving between screens,
- * and in sessionStorage, so it survives a reload of the same tab. It holds only the file name and
- * the export time, never a record. While it is set, the Backup and data card asks again; Yes or No
- * clears it. Leaving it unanswered records nothing (D21). Delete-all clears sessionStorage, and a
- * restore clears it before the reload.
+ * and in sessionStorage, so it survives a reload of the same tab. It holds only the file name, the
+ * export time and the records' generation (db/generation.ts), never a record. While it is set, the
+ * Backup and data card asks again; Yes or No clears it, and Yes records the backup only while the
+ * generation is unchanged. Leaving it unanswered records nothing (D21). Delete-all clears
+ * sessionStorage, a restore clears it before the reload, and a restore or delete-all in another
+ * tab clears it through the gate message (db/runtime.ts).
  */
 import { type Instant, isInstant, isPlainObject } from '@diet/core';
 import { createStore, type Store } from '../../store';
@@ -13,6 +15,8 @@ import { createStore, type Store } from '../../store';
 export interface PendingCheck {
   readonly fileName: string;
   readonly exportedAt: Instant;
+  /** The records' generation the file was made from (null where localStorage is blocked). */
+  readonly generation: string | null;
 }
 
 export const PENDING_CHECK_KEY = 'diet-pending-backup-check';
@@ -34,9 +38,14 @@ function read(): PendingCheck | null {
       isPlainObject(value) &&
       typeof value.fileName === 'string' &&
       /^diet-backup-[\w.-]+\.json$/.test(value.fileName) &&
-      isInstant(value.exportedAt)
+      isInstant(value.exportedAt) &&
+      (value.generation === null || typeof value.generation === 'string')
     ) {
-      return { fileName: value.fileName, exportedAt: value.exportedAt };
+      return {
+        fileName: value.fileName,
+        exportedAt: value.exportedAt,
+        generation: value.generation,
+      };
     }
   } catch {
     // Unreadable storage or text: nothing is pending.

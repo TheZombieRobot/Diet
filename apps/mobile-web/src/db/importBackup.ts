@@ -5,13 +5,18 @@
  *      migration, validation against the current version and the invariants (core
  *      decodeBackupText). Every refusal is a BackupError with one plain message from health.ts.
  * 9.   The confirmation: the phone's backed-up stores are read in one transaction and kept in
- *      memory (section 8.5 rule 3), and the counts are worked out (importConfirmation).
+ *      memory (section 8.5 rule 3), and the counts are worked out (importConfirmation) against
+ *      what would be written. A file whose Kickstart history records less than the phone's
+ *      never lowers it: the phone's periods and checks are kept, and the confirmation says so
+ *      (recordsMoreKickstart; D27; orchestrator ruling). A rescue copy is merged with the phone's
+ *      safety settings and allergens (cautiousSafetyMerge).
  * 10.  The write: tell the other tabs, close this tab's write gate, give up this tab's shared lock,
  *      then replace everything in one transaction inside the lock in exclusive mode (locks.ts), so
  *      no other tab's write can land on top of the restored records. If the other tabs do not let
  *      go within 3 seconds, nothing is written ("Close the app's other tabs, then try again"). If
  *      the write fails, the snapshot from step 9 is offered at once as a rescue file ("Save what
- *      was on this phone"). On success, ask again for persistent storage, then reload.
+ *      was on this phone"). On success, mark the records as replaced (generation.ts), ask again
+ *      for persistent storage, then reload.
  * No audit row is written for an import itself; only migration changes from an older file add any.
  */
 import {
@@ -27,6 +32,7 @@ import {
   MAX_BACKUP_FILE_BYTES,
   type Migration,
   parseBackupText,
+  recordsMoreKickstart,
   type Snapshot,
 } from '@diet/core';
 import type { DietDb } from './db';
@@ -75,43 +81,90 @@ export interface ImportPlan {
   readonly counts: readonly { readonly table: string; readonly count: number }[];
   /**
    * The records to write: the file's, except that a rescue copy never makes a safety setting
-   * less cautious than this phone had (cautiousSafetyMerge; orchestrator ruling).
+   * less cautious than this phone had (cautiousSafetyMerge; orchestrator ruling), and that a
+   * Kickstart history recording less than the phone's is replaced by the phone's (keptKickstart).
    */
   readonly snapshot: Snapshot;
   /** Rescue copies: the safety settings kept from this phone, listed on the confirmation. */
   readonly keptStricter: readonly KeptStricter[];
+  /** The phone's Kickstart history is kept, because the file's records less (D27). */
+  readonly keptKickstart: boolean;
+  /** Whether this phone is paired with a laptop (the restore removes the pairing). */
+  readonly paired: boolean;
+}
+
+/**
+ * Whether the phone's Kickstart history records more than the file's. A phone history that cannot
+ * even be counted is treated as recording more: keeping it never reopens a cap (and a damaged
+ * row then fails the write, which changes nothing).
+ */
+function phoneRecordsMoreKickstart(phone: Snapshot, file: Snapshot): boolean {
+  const history = (s: Snapshot) => ({
+    periods: s.kickstart_periods,
+    checks: s.kickstart_checks,
+    homeTimeZone: s.settings[0]?.homeTimeZone,
+  });
+  try {
+    return recordsMoreKickstart(history(phone), history(file));
+  } catch {
+    return true;
+  }
 }
 
 /** Step 9. */
 export async function planImport(db: DietDb, decoded: DecodedBackup): Promise<ImportPlan> {
   const phone = await readBackupSnapshot(db);
+  const paired = (await db.transfer_pairings.count()) > 0;
   let snapshot = decoded.snapshot;
   let keptStricter: KeptStricter[] = [];
-  const fileTargets = decoded.snapshot.targets[0];
-  const fileSettings = decoded.snapshot.settings[0];
-  const phoneTargets = phone.targets[0];
-  const phoneSettings = phone.settings[0];
+  const [fileProfile, fileTargets, fileSettings] = [
+    decoded.snapshot.profile[0],
+    decoded.snapshot.targets[0],
+    decoded.snapshot.settings[0],
+  ];
+  const [phoneProfile, phoneTargets, phoneSettings] = [
+    phone.profile[0],
+    phone.targets[0],
+    phone.settings[0],
+  ];
   if (
     decoded.kind === 'rescue' &&
+    fileProfile !== undefined &&
     fileTargets !== undefined &&
     fileSettings !== undefined &&
+    phoneProfile !== undefined &&
     phoneTargets !== undefined &&
     phoneSettings !== undefined
   ) {
     const merged = cautiousSafetyMerge(
-      { targets: fileTargets, settings: fileSettings },
-      { targets: phoneTargets, settings: phoneSettings },
+      { profile: fileProfile, targets: fileTargets, settings: fileSettings },
+      { profile: phoneProfile, targets: phoneTargets, settings: phoneSettings },
     );
-    snapshot = { ...snapshot, targets: [merged.targets], settings: [merged.settings] };
+    snapshot = {
+      ...snapshot,
+      profile: [merged.profile],
+      targets: [merged.targets],
+      settings: [merged.settings],
+    };
     keptStricter = merged.kept;
+  }
+  const keptKickstart = phoneRecordsMoreKickstart(phone, decoded.snapshot);
+  if (keptKickstart) {
+    snapshot = {
+      ...snapshot,
+      kickstart_periods: phone.kickstart_periods,
+      kickstart_checks: phone.kickstart_checks,
+    };
   }
   return {
     decoded,
     phone,
-    confirmation: importConfirmation(phone, decoded),
+    confirmation: importConfirmation(phone, { snapshot, exportedAt: decoded.exportedAt }),
     counts: BACKUP_TABLES.map((table) => ({ table, count: decoded.snapshot[table].length })),
     snapshot,
     keptStricter,
+    keptKickstart,
+    paired,
   };
 }
 
@@ -149,6 +202,8 @@ export interface WriteDeps {
   readonly lockWaitMs?: number;
   /** pwa/storage.ts requestPersistentStorage. */
   readonly requestPersistentStorage: () => Promise<unknown>;
+  /** Marks the records as replaced (generation.ts), so an older "Can you see the file?" no longer counts. */
+  readonly markReplaced?: () => void;
   readonly reload: () => void;
 }
 
@@ -189,6 +244,7 @@ export async function writeImport(
     };
   }
   if (!written.granted) return { ok: false, blocked: true, phone: plan.phone };
+  deps.markReplaced?.();
   await deps.requestPersistentStorage();
   deps.reload();
   return { ok: true };

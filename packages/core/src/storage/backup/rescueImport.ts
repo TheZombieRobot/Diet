@@ -6,21 +6,31 @@
  * - Kickstart history (kickstart_periods, kickstart_checks) is never set aside: an incomplete
  *   history would count as less Kickstart and reopen the 42-day and 3-extension caps or an offer
  *   after a stop sign (D27, D28). A rescue copy whose Kickstart history fails is refused whole.
- * - A profile, targets or settings row that fails has only its failing fields put back to the
- *   app's defaults, and they are listed. A failing safety setting (the C50 bounds: energy floor,
- *   deficits, carb ceilings, protein, saturated-fat budget, rapid-loss bounds) refuses the file.
+ * - A profile, targets or settings row that fails has only its failing fields repaired, and they
+ *   are listed: put back to the app's default, or to the cautious value where the default would
+ *   loosen something (Kickstart choice off; allergens keep every entry that can be read). A
+ *   missing or failing safety setting (the C50 bounds: energy floor, deficits, carb ceilings,
+ *   protein, saturated-fat budget, rapid-loss bounds; and the diet mode and alcohol figures), a row
+ *   that is not an object, or a store without exactly one row refuses the file.
  * - Other cross-record rules set aside the offending rows in a fixed order and list them; the
  *   Kickstart rules still refuse.
  * - On the phone, a rescue import never makes a safety setting less cautious than the phone or the
- *   file had (cautiousSafetyMerge, applied by the app when it plans the write).
+ *   file had, and keeps every allergen either side lists (cautiousSafetyMerge, applied by the app
+ *   when it plans the write). A phone value that fails its own validator is ignored.
  */
 import { cardTrigger } from '../cards';
 import type { InvariantRule } from '../invariants';
-import { isPlainObject, type TableSpecs } from '../primitives';
-import type { SettingsRecord, TargetsRecord } from '../records';
+import { RAPID_LOSS_THRESHOLD_G_PER_WEEK, RAPID_LOSS_WEEKS } from '../limits';
+import {
+  isFailure,
+  isPlainObject,
+  type ObjectValidator,
+  type TableSpecs,
+  type Validator,
+} from '../primitives';
+import type { ProfileRecord, SettingsRecord, TargetsRecord } from '../records';
 import { primaryKeyString, stableStringify, TABLES } from '../tables';
 import { checkRow } from '../validate';
-import { futureBookkeepingField } from '../bookkeeping';
 
 /** Stores a rescue import never sets a row aside from (D27, D28). */
 export const KICKSTART_HISTORY_TABLES: readonly string[] = Object.freeze([
@@ -28,12 +38,16 @@ export const KICKSTART_HISTORY_TABLES: readonly string[] = Object.freeze([
   'kickstart_checks',
 ]);
 
+export type SingletonTable = 'profile' | 'targets' | 'settings';
+
 /**
- * The safety settings of section 10.6 step 8 (C50). In a rescue copy a failing one refuses the
- * file instead of being put back to its default.
+ * The safety settings of section 10.6 step 8 (C50), with the diet mode and the alcohol guidance
+ * figures (health-rules review). In a rescue copy a missing or failing one refuses the file
+ * instead of being put back to its default, which is the least cautious value.
  */
-export const SAFETY_SETTING_FIELDS: Readonly<Record<'targets' | 'settings', readonly string[]>> =
+export const SAFETY_SETTING_FIELDS: Readonly<Record<SingletonTable, readonly string[]>> =
   Object.freeze({
+    profile: Object.freeze(['dietMode']),
     targets: Object.freeze([
       'proteinRangeG',
       'netCarbCeilingG',
@@ -47,11 +61,65 @@ export const SAFETY_SETTING_FIELDS: Readonly<Record<'targets' | 'settings', read
       'rapidLossThresholdGPerWeek',
       'rapidLossConsecutiveWeeks',
       'rapidLossExplanationReadAt',
+      'alcoholGuidanceSet',
     ]),
   });
 
 const isSafetyField = (table: string, field: string): boolean =>
-  (table === 'targets' || table === 'settings') && SAFETY_SETTING_FIELDS[table].includes(field);
+  (table === 'profile' || table === 'targets' || table === 'settings') &&
+  SAFETY_SETTING_FIELDS[table].includes(field);
+
+/** The validator of one top-level field of a store, if the spec has it. */
+function fieldValidator(
+  specs: TableSpecs,
+  table: string,
+  field: string,
+): Validator<unknown> | null {
+  const row = specs[table]?.row as ObjectValidator<Record<string, unknown>> | undefined;
+  const fields = row?.fields as Readonly<Record<string, Validator<unknown>>> | undefined;
+  return fields !== undefined && Object.hasOwn(fields, field) ? (fields[field] ?? null) : null;
+}
+
+/** Whether `value` passes the field validator of `table.field` on its own. */
+export function fieldValid(
+  table: string,
+  field: string,
+  value: unknown,
+  specs: TableSpecs = TABLES,
+): boolean {
+  const validator = fieldValidator(specs, table, field);
+  return validator !== null && !isFailure(validator.check(value, field));
+}
+
+/** The entries of an allergen list that can be read, each once, in order (HS-24). */
+function readableAllergens(value: unknown, specs: TableSpecs): unknown[] {
+  if (!Array.isArray(value)) return [];
+  const out: unknown[] = [];
+  for (const item of value as unknown[]) {
+    if (!out.includes(item) && fieldValid('profile', 'allergens', [...out, item], specs)) {
+      out.push(item);
+    }
+  }
+  return out;
+}
+
+/**
+ * What a failing singleton field of a rescue copy becomes (health-rules review): the app's
+ * default, except where the default would loosen something. A failing Kickstart choice becomes
+ * "no" (the default is "yes"), and a failing allergen list keeps every entry that can be read,
+ * never [] (HS-24).
+ */
+function repairedValue(
+  table: string,
+  field: string,
+  value: unknown,
+  fallback: unknown,
+  specs: TableSpecs,
+): unknown {
+  if (table === 'profile' && field === 'kickstartOptIn') return false;
+  if (table === 'profile' && field === 'allergens') return readableAllergens(value, specs);
+  return fallback;
+}
 
 export type SingletonRepair =
   | { readonly ok: true; readonly row: unknown; readonly replaced: readonly string[] }
@@ -65,29 +133,30 @@ export type SingletonRepair =
 const topField = (path: string): string => path.split(/[.[]/)[0] ?? '';
 
 /**
- * A singleton row of a rescue copy, with each failing field put back to its default (`defaults`,
- * stamped at the file's export time). Refused when a safety setting fails, or when the row still
- * fails after every other field is back to its default. `futureLimitMs` is the latest acceptable
- * bookkeeping instant (bookkeeping.ts), or null to skip that check.
+ * A singleton row of a rescue copy, with each failing field repaired (repairedValue; `defaults`
+ * stamped at the file's export time). Refused when the row is not an object, when a safety
+ * setting is missing or fails, or when the row still fails after every other field is repaired.
+ * Bookkeeping times dated ahead were already put back to the import limit (bookkeeping.ts).
  */
 export function repairSingleton(
   table: string,
   value: unknown,
   specs: TableSpecs,
   defaults: Readonly<Record<string, unknown>>,
-  futureLimitMs: number | null,
 ): SingletonRepair {
   const spec = specs[table];
   const fields = Object.keys(
     ((spec?.row.desc ?? {}) as { fields?: Record<string, unknown> }).fields ?? {},
   );
+  if (!isPlainObject(value)) return { ok: false, field: '', rule: 'type', allowed: null };
+  const missing = fields.find((f) => isSafetyField(table, f) && !Object.hasOwn(value, f));
+  if (missing !== undefined) return { ok: false, field: missing, rule: 'missing', allowed: null };
   const replaced = new Set<string>();
   const candidate: Record<string, unknown> = {};
-  const source = isPlainObject(value) ? value : null;
   for (const field of fields) {
-    if (source !== null && Object.hasOwn(source, field)) candidate[field] = source[field];
+    if (Object.hasOwn(value, field)) candidate[field] = value[field];
     else {
-      candidate[field] = defaults[field];
+      candidate[field] = repairedValue(table, field, undefined, defaults[field], specs);
       replaced.add(field);
     }
   }
@@ -95,32 +164,30 @@ export function repairSingleton(
   let resetAll = false;
   for (let attempt = 0; attempt <= fields.length + 1; attempt++) {
     const result = checkRow(table, candidate, specs);
-    const future =
-      result.ok && futureLimitMs !== null
-        ? futureBookkeepingField(table, result.row, futureLimitMs)
-        : null;
-    if (result.ok && future === null) {
+    if (result.ok) {
       return { ok: true, row: result.row, replaced: fields.filter((f) => replaced.has(f)) };
     }
-    const failing = result.ok ? (future ?? '') : topField(result.field);
-    const rule = result.ok ? 'future' : result.rule;
-    const allowed = result.ok ? null : result.allowed;
+    const failing = topField(result.field);
     if (failing === '' || isSafetyField(table, failing)) {
-      return { ok: false, field: result.ok ? failing : result.field, rule, allowed };
+      return { ok: false, field: result.field, rule: result.rule, allowed: result.allowed };
     }
-    if (stableStringify(candidate[failing]) !== stableStringify(defaults[failing])) {
-      candidate[failing] = defaults[failing];
+    const repair = repairedValue(table, failing, candidate[failing], defaults[failing], specs);
+    if (stableStringify(candidate[failing]) !== stableStringify(repair)) {
+      candidate[failing] = repair;
       replaced.add(failing);
       continue;
     }
-    // A rule across fields still fails with this field at its default: put every field that is
-    // not a safety setting back to its default once, then give up.
-    if (resetAll) return { ok: false, field: result.ok ? failing : result.field, rule, allowed };
+    // A rule across fields still fails with this field repaired: repair every field that is not
+    // a safety setting once, then give up.
+    if (resetAll) {
+      return { ok: false, field: result.field, rule: result.rule, allowed: result.allowed };
+    }
     resetAll = true;
     for (const field of fields) {
       if (isSafetyField(table, field)) continue;
-      if (stableStringify(candidate[field]) !== stableStringify(defaults[field])) {
-        candidate[field] = defaults[field];
+      const next = repairedValue(table, field, candidate[field], defaults[field], specs);
+      if (stableStringify(candidate[field]) !== stableStringify(next)) {
+        candidate[field] = next;
         replaced.add(field);
       }
     }
@@ -231,8 +298,15 @@ export function resolveRescueInvariants(tables: Readonly<Record<string, Rows>>):
 
 /** A safety setting the merge kept from the phone because it was the more cautious one. */
 export interface KeptStricter {
-  readonly table: 'targets' | 'settings';
+  readonly table: SingletonTable;
   readonly field: string;
+}
+
+/** The singletons of one side of a rescue import. */
+export interface SafetySide {
+  readonly profile: ProfileRecord;
+  readonly targets: TargetsRecord;
+  readonly settings: SettingsRecord;
 }
 
 const lower = (a: number, b: number) => Math.min(a, b);
@@ -240,24 +314,36 @@ const higher = (a: number, b: number) => Math.max(a, b);
 
 /**
  * The safety settings a rescue import writes: for each one, the more cautious of the file's value
- * (already put back to the default if the copy could not keep it) and the phone's (health-rules
- * review; orchestrator ruling). Higher energy floor; lower Kickstart and Steady deficits; lower
+ * (already repaired if the copy could not keep it) and the phone's (health-rules review;
+ * orchestrator ruling). Higher energy floor; lower Kickstart and Steady deficits; lower
  * saturated-fat budget; lower rapid-loss threshold and fewer weeks (more sensitive), with the
- * explanation time that allows them; the women's alcohol figures if either side chose them.
- * Carb ceilings and protein have no one safe direction, so the file's values stay.
+ * explanation time that allows them; the women's alcohol figures if either side chose them; and
+ * every allergen either side lists (HS-24). Carb ceilings, protein and the diet mode have no one
+ * safe direction, so the file's values stay.
+ *
+ * `phone` is read straight from the phone's database, which may itself be damaged (that is when
+ * a rescue copy is made), so each phone value is checked with its own field validator first, and
+ * a value that fails is ignored: the file's value is used, never a stand-in such as 0. The
+ * phone's rapid-loss bounds count only as a valid set, with an explanation time that allows them.
  */
 export function cautiousSafetyMerge(
-  file: { readonly targets: TargetsRecord; readonly settings: SettingsRecord },
-  phone: { readonly targets: TargetsRecord; readonly settings: SettingsRecord },
-): { targets: TargetsRecord; settings: SettingsRecord; kept: KeptStricter[] } {
+  file: SafetySide,
+  phone: SafetySide,
+): SafetySide & { kept: KeptStricter[] } {
   const kept: KeptStricter[] = [];
+  const phoneValue = (table: SingletonTable, name: string): unknown => {
+    const value = (phone[table] as unknown as Record<string, unknown>)[name];
+    return fieldValid(table, name, value) ? value : undefined;
+  };
   const pick = (
     table: 'targets' | 'settings',
     name: string,
     choose: (a: number, b: number) => number,
+    usable = true,
   ): number => {
-    const a = (file[table] as unknown as Record<string, number>)[name] ?? 0;
-    const b = (phone[table] as unknown as Record<string, number>)[name] ?? 0;
+    const a = (file[table] as unknown as Record<string, number>)[name] as number;
+    const b = usable ? phoneValue(table, name) : undefined;
+    if (typeof b !== 'number') return a;
     const chosen = choose(a, b);
     if (chosen !== a) kept.push({ table, field: name });
     return chosen;
@@ -269,20 +355,28 @@ export function cautiousSafetyMerge(
     steadyDeficitPct: pick('targets', 'steadyDeficitPct', lower),
     saturatedFatBudgetPct: pick('targets', 'saturatedFatBudgetPct', lower),
   };
-  const threshold = pick('settings', 'rapidLossThresholdGPerWeek', lower);
-  const weeks = pick('settings', 'rapidLossConsecutiveWeeks', lower) as 2 | 3;
+  // The phone's rapid-loss bounds are usable only as a valid set (the C46 "read first" rule).
+  const phoneThreshold = phoneValue('settings', 'rapidLossThresholdGPerWeek');
+  const phoneWeeks = phoneValue('settings', 'rapidLossConsecutiveWeeks');
+  const phoneRead = phoneValue('settings', 'rapidLossExplanationReadAt');
+  const phoneBoundsUsable =
+    phoneThreshold !== undefined &&
+    phoneWeeks !== undefined &&
+    phoneRead !== undefined &&
+    (phoneRead !== null ||
+      (phoneThreshold === RAPID_LOSS_THRESHOLD_G_PER_WEEK.default &&
+        phoneWeeks === RAPID_LOSS_WEEKS.default));
+  const threshold = pick('settings', 'rapidLossThresholdGPerWeek', lower, phoneBoundsUsable);
+  const weeks = pick('settings', 'rapidLossConsecutiveWeeks', lower, phoneBoundsUsable) as 2 | 3;
   const tookFromPhone = kept.some(
     (k) => k.field === 'rapidLossThresholdGPerWeek' || k.field === 'rapidLossConsecutiveWeeks',
   );
-  const readTimes = [
-    file.settings.rapidLossExplanationReadAt,
-    phone.settings.rapidLossExplanationReadAt,
-  ]
-    .filter((t): t is string => t !== null)
+  const readTimes = [file.settings.rapidLossExplanationReadAt, phoneRead]
+    .filter((t): t is string => typeof t === 'string')
     .sort();
   const guidanceStricter =
     file.settings.alcoholGuidanceSet !== 'nz-women' &&
-    phone.settings.alcoholGuidanceSet === 'nz-women';
+    phoneValue('settings', 'alcoholGuidanceSet') === 'nz-women';
   if (guidanceStricter) kept.push({ table: 'settings', field: 'alcoholGuidanceSet' });
   const settings: SettingsRecord = {
     ...file.settings,
@@ -293,5 +387,15 @@ export function cautiousSafetyMerge(
       : file.settings.rapidLossExplanationReadAt,
     alcoholGuidanceSet: guidanceStricter ? 'nz-women' : file.settings.alcoholGuidanceSet,
   };
-  return { targets, settings, kept };
+  const fileAllergens: readonly unknown[] = file.profile.allergens;
+  const added = readableAllergens(
+    (phone.profile as unknown as Record<string, unknown>)['allergens'],
+    TABLES,
+  ).filter((a) => !fileAllergens.includes(a));
+  if (added.length > 0) kept.push({ table: 'profile', field: 'allergens' });
+  const profile: ProfileRecord = {
+    ...file.profile,
+    allergens: [...fileAllergens, ...added] as ProfileRecord['allergens'],
+  };
+  return { profile, targets, settings, kept };
 }

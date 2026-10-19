@@ -106,7 +106,11 @@ describe('BK-03 backup reminder on Today (section 16 test 40)', () => {
 
   it('says when an exported file is still waiting for "Can you see the file?"', async () => {
     await onboardedDaysAgo(8);
-    setPendingCheck({ fileName: 'diet-backup-2000-03-01.json', exportedAt: test.env.now() });
+    setPendingCheck({
+      fileName: 'diet-backup-2000-03-01.json',
+      exportedAt: test.env.now(),
+      generation: null,
+    });
     render(<TodayScreen />);
     const line = await screen.findByTestId('backup-reminder-pending');
     expect(line.textContent).toBe(
@@ -114,6 +118,31 @@ describe('BK-03 backup reminder on Today (section 16 test 40)', () => {
         .replace('{fileName}', 'diet-backup-2000-03-01.json')
         .replace('{time}', formatLocalTime(test.env.now(), test.env.timeZone())),
     );
+  });
+
+  it('Today looks again when the app comes back into view: a snooze that ended shows the card at once (visibilitychange, pageshow)', async () => {
+    await onboardedDaysAgo(8);
+    render(<TodayScreen />);
+    await screen.findByTestId('backup-reminder');
+    fireEvent.click(screen.getByRole('button', { name: privacy.backupReminder.notNow }));
+    await waitFor(() => {
+      expect(reminder()).toBeNull();
+    });
+    // A week later the app is resumed from the background: nothing in the records changed.
+    test.env.advanceDays(7);
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    expect(await screen.findByTestId('backup-reminder')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: privacy.backupReminder.notNow }));
+    await waitFor(() => {
+      expect(reminder()).toBeNull();
+    });
+    test.env.advanceDays(7);
+    act(() => {
+      window.dispatchEvent(new Event('pageshow'));
+    });
+    expect(await screen.findByTestId('backup-reminder')).toBeDefined();
   });
 
   it('a confirmed backup clears it', async () => {
@@ -158,5 +187,41 @@ describe('the update-notice card (section 9.2; D13)', () => {
       expect(screen.queryByTestId('update-notice')).toBeNull();
     });
     expect((await test.repos.cardState.get('update-notice', 'v2'))?.doneAt).toBe(test.env.now());
+  });
+
+  it.each(['doneAt', 'dismissedAt'] as const)(
+    'a %s dated a year ahead hides nothing: the notice shows (health-rules review)',
+    async (field) => {
+      const ahead = new Date(Date.parse(test.env.now()) + 365 * 86_400_000).toISOString();
+      await test.db.card_state.put({
+        cardId: 'update-notice',
+        trigger: 'v2',
+        firstShownAt: test.env.now(),
+        dismissedAt: field === 'dismissedAt' ? ahead : null,
+        dismissedTimeZone: field === 'dismissedAt' ? 'Pacific/Auckland' : null,
+        doneAt: field === 'doneAt' ? ahead : null,
+      });
+      render(<TodayScreen />);
+      expect(await screen.findByTestId('update-notice')).toBeDefined();
+    },
+  );
+
+  it('goes when a done time dated ahead comes due, without anything else redrawing Today', async () => {
+    const soon = new Date(Date.parse(test.env.now()) + 50).toISOString();
+    await test.db.card_state.put({
+      cardId: 'update-notice',
+      trigger: 'v2',
+      firstShownAt: test.env.now(),
+      dismissedAt: null,
+      dismissedTimeZone: null,
+      doneAt: soon,
+    });
+    render(<TodayScreen />);
+    await screen.findByTestId('update-notice');
+    // The clock moves on; only the timer set for that moment can draw Today again.
+    test.env.set(new Date(Date.parse(soon) + 10).toISOString());
+    await waitFor(() => {
+      expect(screen.queryByTestId('update-notice')).toBeNull();
+    });
   });
 });

@@ -1,4 +1,4 @@
-import { fillTemplate } from '@diet/core';
+import { fillTemplate, instantMs } from '@diet/core';
 import { privacy } from '@diet/core/copy/health';
 import { Button, ButtonRow, Card, Notice } from '@diet/ui';
 import { useEffect, useRef, useState, type ReactElement } from 'react';
@@ -7,7 +7,8 @@ import type { AppStorage } from '../../db/runtime';
 import { formatLocalTime } from '../../format';
 import { useStore } from '../../store';
 import { pendingCheckStore } from './pendingCheck';
-import { readUpdateNotices, startBackupFromToday } from './reminder';
+import { useRedrawAt } from './redraw';
+import { readUpdateNotices, startBackupFromToday, visibleUpdateNotices } from './reminder';
 
 export interface BackupReminderCardProps {
   readonly storage: AppStorage;
@@ -73,7 +74,10 @@ export function UpdateNoticeCard({
     // The list replaces the button that opened it, so focus moves to its first line.
     if (open) firstReason.current?.focus();
   }, [open]);
-  const trigger = notices?.triggers[0];
+  const now = storage.env.now();
+  const shown = visibleUpdateNotices(notices?.cards ?? [], now);
+  useRedrawAt(shown.wakeAt, instantMs(now));
+  const trigger = shown.triggers[0];
   if (notices === undefined || trigger === undefined) return null;
   return (
     <Card label={privacy.backupReminder.updateCardLabel}>

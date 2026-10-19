@@ -53,6 +53,8 @@ export interface DeleteAllResult {
   readonly failed: readonly DeleteStep[];
   /** Another tab kept the database open: "Close the app's other tabs, then try again." */
   readonly blocked: boolean;
+  /** Whether the app's own database ('diet') was deleted: false means the records are still here. */
+  readonly recordsDeleted: boolean;
 }
 
 /** The app's precache, kept so the app still opens offline (vite.config.ts: Workbox). */
@@ -100,6 +102,7 @@ async function databaseNames(factory: IDBFactory): Promise<{ names: string[]; li
 export async function deleteAllData(deps: DeleteAllDeps): Promise<DeleteAllResult> {
   const failed: DeleteStep[] = [];
   let blocked = false;
+  let recordsDeleted = false;
 
   // 0 and 1.
   try {
@@ -120,7 +123,7 @@ export async function deleteAllData(deps: DeleteAllDeps): Promise<DeleteAllResul
         const results = await Promise.all(
           names.map((name) => deleteDatabase(deps.indexedDB, name, waitMs)),
         );
-        return { listed, results };
+        return { listed, results, ownDeleted: results[names.indexOf(DB_NAME)] === 'deleted' };
       },
       waitMs,
     );
@@ -128,6 +131,7 @@ export async function deleteAllData(deps: DeleteAllDeps): Promise<DeleteAllResul
       blocked = true;
       failed.push('databases');
     } else {
+      recordsDeleted = outcome.value.ownDeleted;
       if (!outcome.value.listed) failed.push('list-databases');
       if (outcome.value.results.includes('blocked')) blocked = true;
       if (outcome.value.results.some((r) => r !== 'deleted')) failed.push('databases');
@@ -171,5 +175,5 @@ export async function deleteAllData(deps: DeleteAllDeps): Promise<DeleteAllResul
   // 6.
   const ok = failed.length === 0;
   if (ok) deps.reload();
-  return { ok, failed, blocked };
+  return { ok, failed, blocked, recordsDeleted };
 }

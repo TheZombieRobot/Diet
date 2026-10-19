@@ -4,11 +4,19 @@
 // HS-15, RD-08). Real Dexie over fake-indexeddb.
 import {
   BackupError,
+  backupReminder,
+  buildBackupPayload,
   bytesToBase64,
+  canStartKickstart,
   checkInvariants,
+  createBackupFile,
   createRescueFile,
+  elapsedDaysSince,
+  FUTURE_INSTANT_TOLERANCE_MS,
+  kickstartUsage,
   missingReadinessAnswers,
   migrateSnapshot,
+  plainBackupText,
   readinessInputFromRows,
   type Snapshot,
   validateSnapshot,
@@ -89,7 +97,7 @@ async function deleteEverything(test: TestDb): Promise<void> {
     revokeObjectUrls: () => undefined,
     reload: () => undefined,
   });
-  expect(result).toEqual({ ok: true, failed: [], blocked: false });
+  expect(result).toEqual({ ok: true, failed: [], blocked: false, recordsDeleted: true });
 }
 
 /** Imports a file into the database of `test`, then opens it again as the reload would. */
@@ -541,7 +549,7 @@ describe('rescue imports through the app (data-loss and health-rules reviews)', 
       (e: unknown) => e,
     );
     expect(error).toBeInstanceOf(BackupError);
-    expect(error).toMatchObject({ code: 'inconsistent', rule: 'kickstart-history' });
+    expect(error).toMatchObject({ code: 'invalid-record', rule: 'kickstart-history' });
     expect((error as BackupError).message).not.toMatch(/kickstart_|endReason|-history/);
     expect(await backupSnapshot(test.db)).toEqual(before);
   });
@@ -600,6 +608,206 @@ describe('rescue imports through the app (data-loss and health-rules reviews)', 
     await test.repos.targets.update({ energyFloorKj: 8000 });
     const after = await importAndReload(test, plainReferenceEnvelopeV1(), null);
     expect((await backupSnapshot(after.db)).targets).toEqual(snapshotV1.targets);
+  });
+
+  it('a phone whose own safety settings are damaged: a good rescue copy imports with the file’s values (never 0), and the copy of that same phone is refused in plain words', async () => {
+    const settings = { ...snapshotV1.settings[0] } as Record<string, unknown>;
+    delete settings['rapidLossThresholdGPerWeek'];
+    const targets = { ...snapshotV1.targets[0] } as Record<string, unknown>;
+    delete targets['steadyDeficitPct'];
+    const weight = { ...snapshotV1.weights[0], kg: 5 };
+    const test = await phoneWithRaw({
+      settings: [settings],
+      targets: [targets],
+      weights: [weight],
+    });
+    // That phone's own unchecked copy lacks a safety setting: refused, nothing changed.
+    const before = await backupSnapshot(test.db);
+    const own = await decodeImport(asFile(await uncheckedCopy(test)), null, test.env).then(
+      () => null,
+      (e: unknown) => e,
+    );
+    expect(own).toMatchObject({ code: 'invalid-record', rule: 'missing' });
+    expect((own as BackupError).message).toMatch(/Nothing was imported\.$/);
+    expect(await backupSnapshot(test.db)).toEqual(before);
+    // A good rescue copy: the damaged phone values are ignored, so the write succeeds.
+    const file = await createRescueFile({
+      tables: snapshotV1,
+      schemaVersion: 1,
+      exportedAt: '2000-03-01T00:00:00.000Z',
+      appVersion: '0.1.0',
+      password: null,
+    });
+    const plan = await planImport(test.db, await decodeImport(asFile(file.text), null, test.env));
+    expect(plan.keptStricter).toEqual([]);
+    const after = await importAndReload(test, file.text, null);
+    const written = await backupSnapshot(after.db);
+    expect(written.settings[0]?.rapidLossThresholdGPerWeek).toBe(
+      snapshotV1.settings[0]?.rapidLossThresholdGPerWeek,
+    );
+    expect(written.targets[0]?.steadyDeficitPct).toBe(snapshotV1.targets[0]?.steadyDeficitPct);
+  });
+});
+
+describe('restoring never lowers the Kickstart history (D27; orchestrator ruling A)', () => {
+  /** The fixture without any Kickstart: an older file made before the periods. */
+  const withoutKickstart = () => ({
+    ...structuredClone(snapshotV1),
+    kickstart_periods: [],
+    kickstart_checks: [],
+  });
+
+  it.each(['backup', 'rescue'] as const)(
+    'a phone at 42 Kickstart days keeps its periods and checks when an older %s has none: the plan says so, and no new period can start',
+    async (kind) => {
+      const test = await openTestDb();
+      await fillWithFixture(test);
+      const usage = async (t: TestDb) =>
+        kickstartUsage(await t.repos.kickstart.listPeriods(), await t.repos.kickstart.listChecks());
+      expect(canStartKickstart(await usage(test))).toBe(false);
+      const input = {
+        tables: withoutKickstart(),
+        exportedAt: '2000-03-01T00:00:00.000Z',
+        appVersion: '0.1.0',
+        password: null,
+      };
+      const file =
+        kind === 'backup'
+          ? await createBackupFile(input)
+          : await createRescueFile({ ...input, schemaVersion: 1 });
+      const plan = await planImport(test.db, await decodeImport(asFile(file.text), null, test.env));
+      expect(plan.keptKickstart).toBe(true);
+      expect(plan.snapshot.kickstart_periods).toEqual(snapshotV1.kickstart_periods);
+      const after = await importAndReload(test, file.text, null);
+      expect(await usage(after)).toEqual({ days: 42, extensions: 1 });
+      expect(canStartKickstart(await usage(after))).toBe(false);
+      after.env.advanceDays(30);
+      await expect(after.repos.kickstart.startPeriod()).rejects.toMatchObject({
+        rule: 'kickstart-days',
+      });
+    },
+  );
+
+  it('after delete-all the phone has none, so the file’s history is restored (HS-15)', async () => {
+    const test = await openTestDb();
+    const decoded = await decodeImport(asFile(plainReferenceEnvelopeV1()), null, test.env);
+    const plan = await planImport(test.db, decoded);
+    expect(plan.keptKickstart).toBe(false);
+    expect(plan.snapshot.kickstart_periods).toEqual(snapshotV1.kickstart_periods);
+  });
+});
+
+describe('a phone clock that was wrong never blocks a backup or a restore (orchestrator rulings C and D)', () => {
+  it('times written with the clock ahead, then the clock corrected: the export passes its own check, and the reminder can still be snoozed', async () => {
+    const test = await openTestDb();
+    const corrected = test.env.now();
+    test.env.advanceDays(30);
+    await test.repos.settings.update({ onboardingCompletedAt: test.env.now() });
+    await test.repos.recipes.create(structuredClone(snapshotV1.recipes[0]) as never);
+    await test.repos.cardState.dismiss('rapid-loss', 'steady');
+    test.env.set(corrected);
+    const outcome = await createExport(test.db, test.env, null);
+    if (!outcome.ok) throw outcome.error;
+    const limit = new Date(Date.parse(corrected) + FUTURE_INSTANT_TOLERANCE_MS).toISOString();
+    // The file itself holds the times put back to the limit (the snapshot the self-check checks).
+    const written = (
+      JSON.parse(outcome.file.text) as {
+        payload: { tables: Record<string, Record<string, unknown>[]> };
+      }
+    ).payload.tables;
+    expect(written['settings']?.[0]?.['onboardingCompletedAt']).toBe(limit);
+    expect(written['card_state']?.every((c) => (c['dismissedAt'] as string) <= limit)).toBe(true);
+    const decoded = await decodeImport(asFile(outcome.file.text), null, test.env);
+    expect(decoded.snapshot.settings[0]?.onboardingCompletedAt).toBe(limit);
+    expect(decoded.snapshot.recipes.every((r) => r.updatedAt <= limit)).toBe(true);
+    // The phone's own records are not changed by the export.
+    expect((await test.repos.settings.get()).onboardingCompletedAt).not.toBe(limit);
+    // "Not now" at the correct time snoozes the reminder whose reference is dated ahead.
+    await test.repos.cardState.dismiss('backup-reminder', 'weekly');
+    const settings = await test.repos.settings.get();
+    const card = await test.repos.cardState.get('backup-reminder', 'weekly');
+    expect(
+      backupReminder({
+        lastBackupAt: settings.lastBackupAt,
+        onboardingCompletedAt: settings.onboardingCompletedAt,
+        dismissedAt: card?.dismissedAt ?? null,
+        storage: 'protected',
+        now: test.env.now(),
+      }).visible,
+    ).toBe(false);
+  });
+
+  it('an unchecked copy made after a clock correction always imports, with the times put back', async () => {
+    const test = await openTestDb();
+    await fillWithFixture(test);
+    const corrected = test.env.now();
+    test.env.set(new Date(Date.parse(corrected) + 3_600_000).toISOString());
+    await test.repos.settings.update({
+      rapidLossThresholdGPerWeek: 800,
+      rapidLossExplanationReadAt: test.env.now(),
+    });
+    test.env.set(corrected);
+    test.db.shutDown();
+    const raw = await rawWriter(test.deps, STORES_V1);
+    await raw.table('weights').put({ ...snapshotV1.weights[0], kg: 5 });
+    raw.close();
+    const phone = await openTestDb({ deps: test.deps, env: test.env });
+    const outcome = await createExport(phone.db, phone.env, null);
+    if (outcome.ok || outcome.unchecked === null) throw new Error('expected a failed self-check');
+    const copy = await createRescueCopy(outcome.unchecked, phone.env, null);
+    // A day later, on any phone, it still imports.
+    phone.env.advanceDays(1);
+    const decoded = await decodeImport(asFile(copy.file.text), null, phone.env);
+    expect(decoded.setAside.map((r) => [r.table, r.rule])).toEqual([['weights', 'range']]);
+    expect(decoded.snapshot.settings[0]).toMatchObject({
+      rapidLossThresholdGPerWeek: 800,
+      rapidLossExplanationReadAt: new Date(
+        Date.parse(corrected) + FUTURE_INSTANT_TOLERANCE_MS,
+      ).toISOString(),
+    });
+    await importAndReload(phone, copy.file.text, null);
+  });
+
+  it('a backup with a far-future low-carb start imports, and the check-in timing counts from now', async () => {
+    const tables = structuredClone(snapshotV1);
+    Object.assign(tables.profile[0] ?? {}, { firstLowCarbAt: '2099-01-01T00:00:00.000Z' });
+    const text = plainBackupText(
+      buildBackupPayload(tables, {
+        kind: 'backup',
+        exportedAt: '2000-03-01T00:00:00.000Z',
+        appVersion: '0.1.0',
+      }),
+    );
+    const test = await openTestDb();
+    const after = await importAndReload(test, text, null);
+    const { firstLowCarbAt } = await after.repos.profile.get();
+    expect(elapsedDaysSince(firstLowCarbAt, after.env.now())).toBe(0);
+    // Put back to the import time (plus the 5-minute tolerance), so day 56 is 56 days from now.
+    after.env.set(
+      new Date(
+        Date.parse(after.env.now()) + 56 * 86_400_000 + FUTURE_INSTANT_TOLERANCE_MS,
+      ).toISOString(),
+    );
+    expect(elapsedDaysSince(firstLowCarbAt, after.env.now())).toBe(56);
+  });
+
+  it('a backup holding a Kickstart start dated after it was made is refused in plain words', async () => {
+    const tables = structuredClone(snapshotV1);
+    Object.assign(tables.kickstart_periods.at(-1) ?? {}, { startedAt: '2099-01-01T00:00:00.000Z' });
+    const text = plainBackupText(
+      buildBackupPayload(tables, {
+        kind: 'backup',
+        exportedAt: '2000-03-01T00:00:00.000Z',
+        appVersion: '0.1.0',
+      }),
+    );
+    const test = await openTestDb();
+    await expect(decodeImport(asFile(text), null, test.env)).rejects.toMatchObject({
+      code: 'invalid-record',
+      table: 'kickstart_periods',
+      field: 'startedAt',
+      rule: 'future',
+    });
   });
 });
 

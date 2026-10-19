@@ -94,6 +94,8 @@ export class DietDb extends Dexie {
   readonly chain: readonly Migration[];
   /** Set once the open sequence has finished and every check passed. */
   ready = false;
+  /** Set when this open created the database (populate ran): a new generation (generation.ts). */
+  populated = false;
   private shut = false;
   /** This tab's shared 'diet-db-open' lock (locks.ts), held while the database is open. */
   private openLock: OpenLock | null = null;
@@ -118,7 +120,10 @@ export class DietDb extends Dexie {
         );
       }
     }
-    this.on('populate', (tx) => populate(tx, options.env, specs));
+    this.on('populate', (tx) => {
+      this.populated = true;
+      return populate(tx, options.env, specs);
+    });
     // Runs before Dexie's own handler; returning false stops that one, which would close with
     // reopening left on.
     this.on('versionchange', () => {

@@ -46,7 +46,7 @@ async function codeOf(promise: Promise<unknown>): Promise<string> {
 }
 
 const decode = (text: string, password: string = PHRASE) =>
-  decodeBackupText(text, { password, env });
+  decodeBackupText(text, { password, env: { ...env, now: EXPORTED_AT } });
 
 type Envelope = Record<string, unknown> & {
   kdf: Record<string, unknown>;

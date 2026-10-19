@@ -53,6 +53,17 @@ export class StorageFullError extends Error {
 }
 StorageFullError.prototype.name = 'StorageFullError';
 
+/**
+ * A Kickstart write that depends on today, refused because the phone's clock reads earlier than
+ * the newest saved record (section 8.2; clock.ts isClockBehind; health-rules review).
+ */
+export class StorageClockError extends Error {
+  constructor() {
+    super(privacy.clockBehind);
+  }
+}
+StorageClockError.prototype.name = 'StorageClockError';
+
 /** True for a QuotaExceededError, as IndexedDB or Dexie reports it (also as the inner error of an abort). */
 export function isQuotaError(error: unknown): boolean {
   if (typeof error !== 'object' || error === null) return false;

@@ -6,7 +6,12 @@ import { privacy } from '../../copy/health';
 import { INVARIANT_RULES } from '../invariants';
 import { STORAGE_RULES } from '../primitives';
 import { BACKUP_TABLES, TABLES } from '../tables';
-import { BACKUP_ERROR_CODES, BackupError, describeRecordProblem } from './errors';
+import {
+  BACKUP_ERROR_CODES,
+  BackupError,
+  describeRecordProblem,
+  KICKSTART_HISTORY_RULE,
+} from './errors';
 
 /** Every field name in a spec description, at any depth (objects inside arrays and nullables). */
 function fieldNames(desc: unknown, into: Set<string> = new Set()): Set<string> {
@@ -26,7 +31,7 @@ function fieldNames(desc: unknown, into: Set<string> = new Set()): Set<string> {
 const ALL_FIELDS = [
   ...new Set(Object.values(TABLES).flatMap((spec) => [...fieldNames(spec.row.desc)])),
 ].sort();
-const RULE_IDS = [...STORAGE_RULES, ...INVARIANT_RULES, 'kickstart-history'];
+const RULE_IDS = [...STORAGE_RULES, ...INVARIANT_RULES, KICKSTART_HISTORY_RULE, 'migration'];
 
 /** A code name: camelCase, snake_case, or a hyphenated rule id. */
 const codeName = (text: string): string | null => {
@@ -54,9 +59,7 @@ describe('record problems in plain words (ux review)', () => {
     const rules = privacy.recordProblem.rules as Readonly<Record<string, string>>;
     const invariants = privacy.recordProblem.invariants as Readonly<Record<string, string>>;
     expect(STORAGE_RULES.filter((rule) => !Object.hasOwn(rules, rule))).toEqual([]);
-    expect(
-      [...INVARIANT_RULES, 'kickstart-history'].filter((rule) => !Object.hasOwn(invariants, rule)),
-    ).toEqual([]);
+    expect(INVARIANT_RULES.filter((rule) => !Object.hasOwn(invariants, rule))).toEqual([]);
   });
 
   it('no description of any store, field and rule contains a code name', () => {
@@ -99,17 +102,51 @@ describe('record problems in plain words (ux review)', () => {
     );
   });
 
+  it('a problem with a whole list, or with the file, is not called a record (wording review)', () => {
+    expect(new BackupError('invalid-record', { table: 'weights', rule: 'missing' }).message).toBe(
+      'The backup is missing a list this app needs (Weigh-ins). Nothing was imported.',
+    );
+    expect(new BackupError('invalid-record', { table: 'weights', rule: 'type' }).message).toBe(
+      'The backup has a list this app cannot read (Weigh-ins). Nothing was imported.',
+    );
+    expect(new BackupError('invalid-record', { table: null, rule: 'extra-key' }).message).toBe(
+      privacy.backupListErrors.unknown,
+    );
+    expect(
+      new BackupError('invalid-record', { table: 'garden_photos', rule: 'extra-key' }).message,
+    ).toBe(
+      'The backup has a list that belongs only on the phone, never in a backup (Garden photos). Nothing was imported.',
+    );
+    expect(new BackupError('invalid-record', { rule: 'migration' }).message).toBe(
+      privacy.backupListErrors.migration,
+    );
+  });
+
+  it('a rescue copy\u2019s Kickstart history refusal has its own message, naming the record', () => {
+    const message = new BackupError('invalid-record', {
+      table: 'kickstart_checks',
+      index: 1,
+      field: 'outcome',
+      rule: KICKSTART_HISTORY_RULE,
+    }).message;
+    expect(message).toBe(
+      'This rescue copy has a Kickstart record that could not be imported (Kickstart checks, record 2), and the Kickstart history is imported whole or not at all. Nothing was imported. Keep the file: a later version of the app may read it.',
+    );
+    expect(message).not.toMatch(/do not fit together|cannot accept/);
+  });
+
   it('every BackupError message is plain, whatever detail it carries', () => {
     for (const code of BACKUP_ERROR_CODES) {
       for (const rule of [null, ...RULE_IDS]) {
-        const error = new BackupError(code, {
-          table: 'kickstart_periods',
-          index: 2,
-          field: 'endedTimeZone',
-          rule,
-        });
-        expect(codeName(error.message), `${code} ${String(rule)}`).toBeNull();
-        expect(error.message).not.toMatch(/\{\w+\}/);
+        for (const [table, index] of [
+          ['kickstart_periods', 2],
+          ['weights', null],
+          [null, null],
+        ] as const) {
+          const error = new BackupError(code, { table, index, field: 'endedTimeZone', rule });
+          expect(codeName(error.message), `${code} ${String(rule)}`).toBeNull();
+          expect(error.message).not.toMatch(/\{\w+\}/);
+        }
       }
     }
   });

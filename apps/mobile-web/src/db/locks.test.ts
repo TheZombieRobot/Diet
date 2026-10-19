@@ -11,7 +11,9 @@ import { createStore } from '../store';
 import type { OpenStatus } from './db';
 import { deleteAllData } from './deleteAll';
 import { StorageClosedError } from './errors';
+import { pendingCheckStore, setPendingCheck } from '../screens/backup/pendingCheck';
 import { createWriteGate, openTabChannel } from './gate';
+import { readGeneration } from './generation';
 import { decodeImport, type ImportPlan, planImport, writeImport } from './importBackup';
 import { holdOpenLock, type LockManagerLike, type OpenLock, withExclusiveLock } from './locks';
 import { type AppStorage, startStorage } from './runtime';
@@ -47,33 +49,41 @@ async function planFor(test: TestDb): Promise<ImportPlan> {
 /**
  * Another tab, busy writing: a raw connection that holds the shared lock and writes weigh-ins in
  * a tight loop. Told about the restore, it takes `noticeMs` to notice, then closes its connection
- * and lets go of the lock, as a tab does on the gate message.
+ * and lets go of the lock, as a tab does on the gate message; with `noticeMs` null it never
+ * notices, and only `stop` ends it. `writes` counts the weigh-ins written so far.
  */
 async function busyTab(
   test: TestDb,
   locks: LockManagerLike | null,
-  noticeMs: number,
-): Promise<{ readonly tell: () => void; readonly done: Promise<number> }> {
+  noticeMs: number | null,
+): Promise<{
+  readonly tell: () => void;
+  readonly stop: () => void;
+  readonly writes: () => number;
+  readonly done: Promise<number>;
+}> {
   const lock: OpenLock = await holdOpenLock(locks);
   const raw: Dexie = await rawWriter(test.deps, STORES_V1);
   const weight = snapshotV1.weights[3];
-  const state = { stop: false };
+  const state = { stop: false, n: 0 };
   const done = (async () => {
-    let n = 0;
     while (!state.stop) {
-      await raw.table('weights').put({ ...weight, id: fixtureId(9000 + n), kg: 70 });
-      n += 1;
+      await raw.table('weights').put({ ...weight, id: fixtureId(9000 + state.n), kg: 70 });
+      state.n += 1;
     }
     raw.close();
     lock.release();
-    return n;
+    return state.n;
   })();
+  const stop = () => {
+    state.stop = true;
+  };
   return {
     tell: () => {
-      setTimeout(() => {
-        state.stop = true;
-      }, noticeMs);
+      if (noticeMs !== null) setTimeout(stop, noticeMs);
     },
+    stop,
+    writes: () => state.n,
     done,
   };
 }
@@ -153,7 +163,9 @@ describe('restore and delete-all against another tab (section 7.5; data-loss rev
   it('control: without the lock, the same busy tab writes on top of the restored records', async () => {
     const test = await openTestDb();
     const plan = await planFor(test);
-    const other = await busyTab(test, null, 30);
+    // A tab that has not noticed yet: it is stopped only once it has written after the restore,
+    // so the control does not depend on how fast the machine is.
+    const other = await busyTab(test, null, null);
     const outcome = await writeImport(test.db, plan, test.env, {
       postGate: other.tell,
       locks: null,
@@ -161,6 +173,11 @@ describe('restore and delete-all against another tab (section 7.5; data-loss rev
       reload: () => undefined,
     });
     expect(outcome).toEqual({ ok: true });
+    const afterRestore = other.writes();
+    await vi.waitFor(() => {
+      expect(other.writes()).toBeGreaterThan(afterRestore + 1);
+    });
+    other.stop();
     await other.done;
     expect((await backupSnapshot(test.db)).weights.length).toBeGreaterThan(
       plan.snapshot.weights.length,
@@ -214,7 +231,12 @@ describe('restore and delete-all against another tab (section 7.5; data-loss rev
       reload,
       blockedTimeoutMs: 50,
     });
-    expect(result).toEqual({ ok: false, failed: ['databases'], blocked: true });
+    expect(result).toEqual({
+      ok: false,
+      failed: ['databases'],
+      blocked: true,
+      recordsDeleted: false,
+    });
     expect(reload).not.toHaveBeenCalled();
     expect((await test.deps.indexedDB.databases()).map((d) => d.name)).toEqual([DB_NAME]);
   });
@@ -279,6 +301,47 @@ describe('startStorage holds the lock and listens for other tabs (runtime.ts)', 
     expect(outcome).toEqual({ ok: true });
     expect(await backupSnapshot(storage.db)).toEqual(plan.snapshot);
     storage.db.shutDown();
+  });
+
+  it('a gate message from another tab drops an unanswered "Can you see the file?", whose file no longer matches the records', async () => {
+    const tab = await start();
+    setPendingCheck({
+      fileName: 'diet-backup-2000-03-01.json',
+      exportedAt: '2000-03-01T00:00:00.000Z',
+      generation: null,
+    });
+    const other = openTabChannel(() => undefined);
+    cleanups.push(other.stop);
+    other.post('delete-all');
+    await vi.waitFor(() => {
+      expect(tab.status.get()).toBe('reload-needed');
+    });
+    expect(pendingCheckStore.get()).toBeNull();
+  });
+
+  it('starting a new database starts a new generation of the records; reopening it keeps it (generation.ts)', async () => {
+    const deps = freshDeps();
+    const platform = testPlatform();
+    const open = async () => {
+      const started = await startStorage({
+        env: testEnv(),
+        deps,
+        locks: locksFor(deps.indexedDB),
+        gate: createWriteGate(),
+        status: createStore<OpenStatus>('opening'),
+        platform,
+        store: createStore<AppStorage | null>(null),
+      });
+      cleanups.push(() => started.channel?.stop());
+      return started;
+    };
+    const first = await open();
+    const generation = readGeneration(platform.localStorage);
+    expect(generation).not.toBeNull();
+    first.storage?.db.shutDown();
+    const second = await open();
+    expect(readGeneration(platform.localStorage)).toBe(generation);
+    second.storage?.db.shutDown();
   });
 
   it('a database that does not open lets go of the lock', async () => {

@@ -1,11 +1,5 @@
 import { readFileSync } from 'node:fs';
-import {
-  type APIRequestContext,
-  type BrowserContext,
-  expect,
-  type Page,
-  test,
-} from '@playwright/test';
+import { test as base, expect, type Page } from '@playwright/test';
 import { privacy } from '../packages/core/src/copy/health';
 import {
   lockedReferenceEnvelopeV1,
@@ -13,20 +7,29 @@ import {
   REFERENCE_PHRASE_V1,
   snapshotV1,
 } from '../packages/test-fixtures/src/index';
-import {
-  goTo,
-  heading,
-  recordPolicyViolations,
-  renderedText,
-  waitForServiceWorkerControl,
-} from './support/app';
-import { appFiles, appOrigin, expectOnlyOwnOrigin, record, type Seen } from './support/network';
+import { goTo, heading, renderedText, waitForServiceWorkerControl } from './support/app';
+import { type Audit, startAudit } from './support/network';
 
 // Backup in the real browser (storage spec sections 10 to 12; section 16 tests 43 to 45; BK-01,
 // BK-02, HS-14, HS-15, HS-30, PWA-06): a real download, the real file chooser, the locked file,
-// delete-all and restore, online and offline, in one tab and against a second tab, with every
-// request audited from the first page load. The files are synthetic (the version-1 fixture) and
-// live only in Playwright's temporary download folder.
+// delete-all and restore, online and offline, in one tab and against a second tab. The files are
+// synthetic (the version-1 fixture) and live only in Playwright's temporary download folder.
+
+/**
+ * Every test here is audited (HS-14, TR-11; support/network.ts): the audit starts before any page
+ * of the context opens, the second tab's included, and is verified after the test, once the
+ * network has been quiet for a moment.
+ */
+const test = base.extend<{ audit: Audit }>({
+  audit: [
+    async ({ context, request, baseURL }, use) => {
+      const audit = await startAudit(context, request, baseURL);
+      await use(audit);
+      await audit.verify();
+    },
+    { auto: true },
+  ],
+});
 
 const BACKED_UP = Object.keys(snapshotV1);
 const SEEDED = ['profile', 'targets', 'settings', 'beverages', 'garden'];
@@ -63,29 +66,6 @@ function readDatabase(page: Page): Promise<Record<string, unknown[]>> {
 const count = async (page: Page, store: string) => (await readDatabase(page))[store]?.length ?? 0;
 
 const card = (page: Page) => page.getByRole('region', { name: privacy.backupCard.title });
-
-/**
- * The network audit, started before the first page load: every request of the context (the
- * service worker's included) and every policy violation, checked against the app's own files.
- */
-async function startAudit(
-  context: BrowserContext,
-  request: APIRequestContext,
-  baseURL: string | undefined,
-): Promise<{ readonly seen: Seen[]; readonly verify: () => void }> {
-  const files = await appFiles(request, baseURL);
-  const seen: Seen[] = [];
-  context.on('request', record(seen));
-  const violations = await recordPolicyViolations(context);
-  return {
-    seen,
-    verify: () => {
-      expect(seen.length).toBeGreaterThan(0);
-      expectOnlyOwnOrigin(seen, appOrigin(baseURL), files);
-      expect(violations).toEqual([]);
-    },
-  };
-}
 
 /** Waits until the app has opened its database (the Backup and data card offers its actions). */
 async function openSettings(page: Page): Promise<void> {
@@ -125,11 +105,11 @@ async function seedFromFixture(page: Page): Promise<void> {
 }
 
 /** After a download: answer "Can you see the file?" with Yes, and see the backup recorded. */
-async function confirmSeen(page: Page): Promise<void> {
+async function confirmSeen(page: Page, locked: boolean): Promise<void> {
   await expect(card(page).getByText(privacy.exportBackup.canYouSeeIt)).toBeVisible();
   await card(page).getByRole('button', { name: privacy.exportBackup.yes }).click();
   await expect(card(page).getByTestId('export-recorded')).toContainText(
-    privacy.exportBackup.recorded,
+    locked ? privacy.exportBackup.recorded : privacy.exportBackup.recordedPlain,
   );
   await expect(card(page).getByTestId('last-backup')).toHaveText(
     /^Last backup made \d{1,2} \w+ \d{4}$/,
@@ -149,8 +129,39 @@ async function exportPlain(page: Page): Promise<string> {
   expect(download.suggestedFilename()).toMatch(/^diet-backup-\d{4}-\d{2}-\d{2}\.json$/);
   const text = readFileSync(await download.path(), 'utf8');
   await expect(card(page).getByTestId('export-ask')).toContainText(download.suggestedFilename());
-  await confirmSeen(page);
+  await confirmSeen(page, false);
   return text;
+}
+
+/** Export a locked backup with `phrase`, catch the download, and leave the question unanswered. */
+async function exportLocked(
+  page: Page,
+  phrase: string,
+): Promise<{ readonly name: string; readonly text: string }> {
+  await openSettings(page);
+  if (!(await card(page).getByTestId('export-panel').isVisible())) {
+    await card(page).getByRole('button', { name: privacy.backupCard.exportAction }).click();
+  }
+  await expect(
+    card(page).getByRole('switch', { name: privacy.exportBackup.lockLabel }),
+  ).toBeChecked();
+  await card(page).getByLabel(privacy.exportBackup.passwordLabel, { exact: true }).fill(phrase);
+  await card(page).getByLabel(privacy.exportBackup.passwordRepeatLabel).fill(phrase);
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    card(page).getByRole('button', { name: privacy.exportBackup.saveFile }).click(),
+  ]);
+  return {
+    name: download.suggestedFilename(),
+    text: readFileSync(await download.path(), 'utf8'),
+  };
+}
+
+/** The locked envelope's header, as written. */
+interface LockedEnvelope {
+  kdf: { iterations: number; salt: string };
+  cipher: { iv: string };
+  payload?: unknown;
 }
 
 async function deleteAll(page: Page): Promise<void> {
@@ -189,11 +200,7 @@ function writeRaw(page: Page, store: string, rows: readonly unknown[]): Promise<
 
 test('BK-01 / HS-14: restore, export, delete all and restore again, with every record back and no request outside the app', async ({
   page,
-  context,
-  baseURL,
-  request,
 }) => {
-  const audit = await startAudit(context, request, baseURL);
   await page.goto('./');
   await waitForServiceWorkerControl(page);
   await seedFromFixture(page);
@@ -211,38 +218,19 @@ test('BK-01 / HS-14: restore, export, delete all and restore again, with every r
   await chooseBackup(page, 'diet-backup-2000-03-01.json', exported);
   await replaceAndReload(page);
   expect(await readDatabase(page)).toEqual(before);
-  audit.verify();
 });
 
 test('BK-01, locked: the default locked export round-trips in Chromium, with the right header, no password left behind and no request outside the app', async ({
   page,
-  context,
-  baseURL,
-  request,
 }) => {
-  const audit = await startAudit(context, request, baseURL);
   await page.goto('./');
   await waitForServiceWorkerControl(page);
   await seedFromFixture(page);
 
   const phrase = 'synthetic example phrase for the locked test';
-  await openSettings(page);
-  await card(page).getByRole('button', { name: privacy.backupCard.exportAction }).click();
-  await expect(
-    card(page).getByRole('switch', { name: privacy.exportBackup.lockLabel }),
-  ).toBeChecked();
-  await card(page).getByLabel(privacy.exportBackup.passwordLabel, { exact: true }).fill(phrase);
-  await card(page).getByLabel(privacy.exportBackup.passwordRepeatLabel).fill(phrase);
-  const [download] = await Promise.all([
-    page.waitForEvent('download'),
-    card(page).getByRole('button', { name: privacy.exportBackup.saveFile }).click(),
-  ]);
-  expect(download.suggestedFilename()).toMatch(/^diet-backup-\d{4}-\d{2}-\d{2}-locked\.json$/);
-  const text = readFileSync(await download.path(), 'utf8');
-  const file = JSON.parse(text) as {
-    kdf: { iterations: number; salt: string };
-    cipher: { iv: string };
-  };
+  const { name, text } = await exportLocked(page, phrase);
+  expect(name).toMatch(/^diet-backup-\d{4}-\d{2}-\d{2}-locked\.json$/);
+  const file = JSON.parse(text) as LockedEnvelope;
   expect(Object.keys(file)).toEqual([
     'format',
     'version',
@@ -263,13 +251,13 @@ test('BK-01, locked: the default locked export round-trips in Chromium, with the
   expect(page.url()).not.toContain(encodeURIComponent(phrase));
   expect(page.url()).not.toContain(phrase);
   expect(await renderedText(page)).not.toContain(phrase);
-  await confirmSeen(page);
+  await confirmSeen(page, true);
   const before = await readDatabase(page);
   expect(before['weights']).toHaveLength(snapshotV1.weights.length);
 
   await deleteAll(page);
   expect(await count(page, 'weights')).toBe(0);
-  await chooseBackup(page, download.suggestedFilename(), text);
+  await chooseBackup(page, name, text);
   const field = card(page).getByLabel(privacy.importBackup.passwordLabel);
   await expect(field).toHaveAttribute('autocomplete', 'current-password');
   await field.fill(phrase);
@@ -280,16 +268,20 @@ test('BK-01, locked: the default locked export round-trips in Chromium, with the
   await replaceAndReload(page);
   expect(await readDatabase(page)).toEqual(before);
   expect(page.url()).not.toContain(phrase);
-  audit.verify();
+
+  // A second locked file of the same records, with the same password, has a fresh salt and IV
+  // (AES-GCM must never reuse an IV under one key), each of real random bytes.
+  const second = JSON.parse((await exportLocked(page, phrase)).text) as LockedEnvelope;
+  expect(second.kdf.salt).not.toBe(file.kdf.salt);
+  expect(second.cipher.iv).not.toBe(file.cipher.iv);
+  for (const bytes of [second.kdf.salt, second.cipher.iv, file.kdf.salt, file.cipher.iv]) {
+    expect(new Set(Buffer.from(bytes, 'base64')).size).toBeGreaterThan(1);
+  }
 });
 
 test('BK-02: a wrong password says so and imports nothing; the right one restores the file, with no request outside the app', async ({
   page,
-  context,
-  baseURL,
-  request,
 }) => {
-  const audit = await startAudit(context, request, baseURL);
   await page.goto('./');
   await chooseBackup(page, 'diet-backup-2000-03-01-locked.json', lockedReferenceEnvelopeV1());
   const field = card(page).getByLabel(privacy.importBackup.passwordLabel);
@@ -310,16 +302,12 @@ test('BK-02: a wrong password says so and imports nothing; the right one restore
   await replaceAndReload(page);
   expect(await count(page, 'weights')).toBe(snapshotV1.weights.length);
   expect(page.url()).not.toContain(phrase);
-  audit.verify();
 });
 
 test('offline: export, delete all and restore work with no network at all', async ({
   page,
   context,
-  baseURL,
-  request,
 }) => {
-  const audit = await startAudit(context, request, baseURL);
   await page.goto('./');
   await waitForServiceWorkerControl(page);
   await seedFromFixture(page);
@@ -344,16 +332,11 @@ test('offline: export, delete all and restore work with no network at all', asyn
 
   expect(fromNetwork).toEqual([]);
   expect(failed).toEqual([]);
-  audit.verify();
 });
 
 test('HS-14: an unchecked rescue copy after a failed self-check makes no request either', async ({
   page,
-  context,
-  baseURL,
-  request,
 }) => {
-  const audit = await startAudit(context, request, baseURL);
   await page.goto('./');
   await openSettings(page);
   await writeRaw(page, 'weights', [{ ...snapshotV1.weights[0], kg: 5 }]);
@@ -374,7 +357,131 @@ test('HS-14: an unchecked rescue copy after a failed self-check makes no request
     payload: { kind: 'rescue' },
   });
   await expect(card(page)).toContainText(download.suggestedFilename());
-  audit.verify();
+});
+
+test('HS-14, locked: "Save an unchecked copy" with the lock left on gives a locked rescue copy with no record in clear text, which opens with its password', async ({
+  page,
+}) => {
+  await page.goto('./');
+  await openSettings(page);
+  const broken = snapshotV1.weights[0];
+  await writeRaw(page, 'weights', [{ ...broken, kg: 5 }]);
+  const phrase = 'synthetic example phrase for the rescue test';
+  await card(page).getByRole('button', { name: privacy.backupCard.exportAction }).click();
+  await card(page).getByLabel(privacy.exportBackup.passwordLabel, { exact: true }).fill(phrase);
+  await card(page).getByLabel(privacy.exportBackup.passwordRepeatLabel).fill(phrase);
+  await card(page).getByRole('button', { name: privacy.exportBackup.saveFile }).click();
+  await expect(card(page).getByRole('alert')).toContainText('Weigh-ins, record 1');
+  // The lock is still on, with the password typed for the export.
+  await expect(
+    card(page).getByRole('switch', { name: privacy.exportBackup.lockLabel }),
+  ).toBeChecked();
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    card(page).getByRole('button', { name: privacy.exportBackup.saveUnchecked }).click(),
+  ]);
+  const name = download.suggestedFilename();
+  expect(name).toMatch(/^diet-backup-\d{4}-\d{2}-\d{2}-rescue-locked\.json$/);
+  const text = readFileSync(await download.path(), 'utf8');
+  const file = JSON.parse(text) as LockedEnvelope;
+  expect(Object.keys(file)).toEqual([
+    'format',
+    'version',
+    'encrypted',
+    'kdf',
+    'cipher',
+    'ciphertext',
+  ]);
+  expect(file.kdf.iterations).toBe(600_000);
+  expect(Buffer.from(file.kdf.salt, 'base64')).toHaveLength(16);
+  expect(Buffer.from(file.cipher.iv, 'base64')).toHaveLength(12);
+  expect(text).not.toContain(broken?.id ?? 'missing fixture');
+  expect(text).not.toContain(phrase);
+  expect(text).not.toContain('"kind"');
+
+  await chooseBackup(page, name, text);
+  await card(page).getByLabel(privacy.importBackup.passwordLabel).fill(phrase);
+  await card(page).getByRole('button', { name: privacy.importBackup.unlock }).click();
+  const confirm = card(page).getByTestId('restore-confirm');
+  await expect(confirm).toContainText(privacy.importBackup.rescueNote);
+  await expect(confirm).toContainText('Rescue copy made');
+  await expect(confirm.getByTestId('restore-set-aside')).toContainText('Weigh-ins, record 1');
+});
+
+test('two tabs: an unanswered "Can you see the file?" is dropped when another tab deletes everything, and a copy of it left in a discarded tab cannot record a backup', async ({
+  context,
+}) => {
+  const a = await context.newPage();
+  await a.goto('./');
+  await waitForServiceWorkerControl(a);
+  await seedFromFixture(a);
+  await openSettings(a);
+  await card(a).getByRole('button', { name: privacy.backupCard.exportAction }).click();
+  await card(a).getByRole('switch', { name: privacy.exportBackup.lockLabel }).uncheck();
+  await Promise.all([
+    a.waitForEvent('download'),
+    card(a).getByRole('button', { name: privacy.exportBackup.saveFile }).click(),
+  ]);
+  await expect(card(a).getByTestId('export-ask')).toBeVisible();
+  const pending = await a.evaluate(() => sessionStorage.getItem('diet-pending-backup-check'));
+  expect(pending).not.toBeNull();
+
+  const b = await context.newPage();
+  await b.goto('./');
+  await expect(heading(b)).toHaveText('Today');
+  await deleteAll(b);
+  await expect(a.getByTestId('storage-failure')).toHaveText(
+    privacy.storageFailure['reload-needed'],
+  );
+  expect(await a.evaluate(() => sessionStorage.getItem('diet-pending-backup-check'))).toBeNull();
+  await a.reload();
+  await openSettings(a);
+  await expect(card(a).getByTestId('export-ask')).toHaveCount(0);
+  await expect(card(a).getByTestId('last-backup')).toHaveText(privacy.backupCard.noBackup);
+
+  // A tab Chrome discarded keeps its sessionStorage and never got the message: its question
+  // comes back, but Yes cannot record the old file against the new records.
+  await a.evaluate((value) => {
+    sessionStorage.setItem('diet-pending-backup-check', value ?? '');
+  }, pending);
+  await a.reload();
+  await openSettings(a);
+  await card(a).getByRole('button', { name: privacy.exportBackup.yes }).click();
+  await expect(card(a).getByRole('alert')).toContainText(
+    'were replaced or deleted after diet-backup-',
+  );
+  await expect(card(a).getByTestId('last-backup')).toHaveText(privacy.backupCard.noBackup);
+});
+
+test('a newer database: the open tab says its records were closed, and after a reload the newer-version screen shows, with no request outside the app', async ({
+  page,
+}) => {
+  await page.goto('./');
+  await openSettings(page);
+  // A newer version of the app upgraded the database (another tab, after an update).
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve, reject) => {
+        const request = indexedDB.open('diet', 990);
+        request.onupgradeneeded = () => {
+          request.result.createObjectStore('example_newer');
+        };
+        request.onsuccess = () => {
+          request.result.close();
+          resolve();
+        };
+        request.onerror = () => {
+          reject(new Error('upgrade failed'));
+        };
+      }),
+  );
+  await expect(page.getByTestId('storage-failure')).toHaveText(
+    privacy.storageFailure['reload-needed'],
+  );
+  await page.reload();
+  await expect(page.getByTestId('storage-failure')).toHaveText(
+    privacy.storageFailure['newer-version'],
+  );
 });
 
 test('HS-30: delete all empties every database, cache and storage of the origin except the offline copy, in real Chromium', async ({
@@ -406,7 +513,8 @@ test('HS-30: delete all empties every database, cache and storage of the origin 
     page.evaluate(async () => ({
       databases: (await indexedDB.databases()).map((d) => d.name).sort(),
       caches: await caches.keys(),
-      local: localStorage.length,
+      local: Object.keys(localStorage),
+      generation: localStorage.getItem('diet-db-generation'),
       session: sessionStorage.length,
       worker: (await navigator.serviceWorker.getRegistration())?.active?.scriptURL ?? null,
     }));
@@ -420,7 +528,9 @@ test('HS-30: delete all empties every database, cache and storage of the origin 
   expect(after.databases).toEqual(['diet']);
   expect(after.caches.length).toBeGreaterThan(0);
   for (const name of after.caches) expect(name).toMatch(/^workbox-precache/);
-  expect(after.local).toBe(0);
+  // Only the fresh app's new random records generation (db/generation.ts) is in localStorage.
+  expect(after.local).toEqual(['diet-db-generation']);
+  expect(after.generation).not.toBe(before.generation);
   expect(after.session).toBe(0);
   expect(after.worker).toMatch(/\/Diet\/sw\.js$/);
   const records = await readDatabase(page);

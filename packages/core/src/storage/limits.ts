@@ -68,10 +68,11 @@ export const PBKDF2_MAX_ITERATIONS = 10_000_000;
 /** 50 MiB (section 10.6). */
 export const MAX_BACKUP_FILE_BYTES = 52_428_800;
 /**
- * How far after the moment of writing (a repository write) or after a file's exportedAt (import) a
- * bookkeeping instant may lie: a card dismissal, a backup confirmation or an onboarding time dated
- * later than this is refused, so a phone clock that ran ahead, or a doctored file, cannot silence
- * a card or the backup reminder (bookkeeping.ts).
+ * How far after the moment of writing (a repository write) or after the earlier of a file's
+ * exportedAt and now (export and import) a bookkeeping instant may lie: a later one is refused on
+ * write and put back to that limit on export and import, so a phone clock that ran ahead, or a
+ * doctored file, cannot silence a card or the backup reminder (bookkeeping.ts). The same margin
+ * tells a clock set back from the newest saved record (clock.ts isClockBehind).
  */
 export const FUTURE_INSTANT_TOLERANCE_MS = 300_000;
 

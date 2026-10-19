@@ -5,6 +5,7 @@ import { findInvariantViolation } from './invariants';
 import {
   canStartKickstart,
   effectiveDays,
+  kickstartPeriodState,
   kickstartRunningAt,
   kickstartUsage,
   periodDay1,
@@ -193,11 +194,13 @@ describe('Kickstart days over every pair of start and end zones (D27)', () => {
           22 * DAY,
         ]);
         const endAt = now + duration;
-        // The repository ends a period only while it is still running in the device zone (the
-        // end zone) and its own start zone; otherwise it ran to its natural end.
+        // The repository ends a period only before its scheduled last day ends in the device zone
+        // (the end zone) and in its own start zone (running there, or not yet started in the
+        // device zone); otherwise it ran to its natural end.
         const ended = endedPeriod(100 + step, iso(now), startZone, iso(endAt), endZone);
+        const state = kickstartPeriodState(candidate, 0, iso(endAt), endZone);
         const endable =
-          kickstartRunningAt(candidate, 0, iso(endAt), endZone) &&
+          (state === 'running' || state === 'not-started') &&
           findInvariantViolation({ ...base, kickstart_periods: [...periods, ended] }) === null;
         const kept = endable ? ended : candidate;
         periods.push(kept);
@@ -217,6 +220,57 @@ describe('Kickstart days over every pair of start and end zones (D27)', () => {
           KICKSTART_MAX_TOTAL_DAYS * DAY + periods.length * HOUR,
         );
       }
+    }
+  });
+});
+
+describe('kickstartPeriodState: where a period stands at an instant (item 14 reads this)', () => {
+  // Day 1 is 10 January in Auckland (UTC+13 in summer): 2000-01-09T19:00Z.
+  const start = endedPeriod(1, '2000-01-09T19:00:00.000Z', 'Pacific/Auckland', null, null);
+  const state = (at: string, zone = 'Pacific/Auckland') => kickstartPeriodState(start, 0, at, zone);
+
+  it('is not started before day 1, running from day 1 to the scheduled last day, then past it', () => {
+    expect(state('2000-01-09T10:00:00.000Z')).toBe('not-started');
+    expect(state('2000-01-09T11:00:00.000Z')).toBe('running');
+    // Day 21 is 30 January; its last minute in Auckland is 2000-01-30T10:59Z.
+    expect(state('2000-01-30T10:59:00.000Z')).toBe('running');
+    expect(state('2000-01-30T11:00:00.000Z')).toBe('past-last-day');
+    expect(kickstartRunningAt(start, 0, '2000-01-09T10:00:00.000Z', 'Pacific/Auckland')).toBe(
+      false,
+    );
+  });
+
+  it('a start dated ahead (a clock that ran ahead, or a file) is not running, so nothing is counted as Kickstart yet', () => {
+    const ahead = endedPeriod(2, '2000-06-01T00:00:00.000Z', 'UTC', null, null);
+    expect(kickstartPeriodState(ahead, 0, '2000-03-01T00:00:00.000Z', 'UTC')).toBe('not-started');
+    expect(kickstartRunningAt(ahead, 0, '2000-03-01T00:00:00.000Z', 'UTC')).toBe(false);
+  });
+
+  it('day 1 must have arrived both in the device zone and in the start zone', () => {
+    // Started at 00:30 on 10 January in Kiritimati (UTC+14): still 8 January in Pago Pago.
+    const east = endedPeriod(3, '2000-01-09T10:30:00.000Z', 'Pacific/Kiritimati', null, null);
+    expect(kickstartPeriodState(east, 0, '2000-01-09T11:00:00.000Z', 'Pacific/Pago_Pago')).toBe(
+      'not-started',
+    );
+    expect(kickstartPeriodState(east, 0, '2000-01-09T11:00:00.000Z', 'Pacific/Kiritimati')).toBe(
+      'running',
+    );
+  });
+
+  it('an early end is ended, whatever the instant', () => {
+    const ended = endedPeriod(
+      4,
+      '2000-01-09T19:00:00.000Z',
+      'Pacific/Auckland',
+      '2000-01-12T00:00:00.000Z',
+      'Pacific/Auckland',
+    );
+    for (const at of [
+      '2000-01-01T00:00:00.000Z',
+      '2000-01-10T00:00:00.000Z',
+      '2001-01-01T00:00:00.000Z',
+    ]) {
+      expect(kickstartPeriodState(ended, 0, at, 'UTC')).toBe('ended');
     }
   });
 });

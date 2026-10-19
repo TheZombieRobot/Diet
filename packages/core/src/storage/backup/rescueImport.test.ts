@@ -1,15 +1,17 @@
 // The safety settings a rescue import writes (health-rules review; orchestrator ruling): never
 // less cautious than the phone or the file had.
 import { describe, expect, it } from 'vitest';
-import { defaultSettings, defaultTargets } from '../defaults';
-import type { SettingsRecord, TargetsRecord } from '../records';
-import { cautiousSafetyMerge, SAFETY_SETTING_FIELDS } from './rescueImport';
+import { defaultProfile, defaultSettings, defaultTargets } from '../defaults';
+import type { ProfileRecord, SettingsRecord, TargetsRecord } from '../records';
+import { cautiousSafetyMerge, SAFETY_SETTING_FIELDS, type SafetySide } from './rescueImport';
 
 const AT = '2000-01-01T00:00:00.000Z';
 const side = (
   targets: Partial<TargetsRecord> = {},
   settings: Partial<SettingsRecord> = {},
-): { targets: TargetsRecord; settings: SettingsRecord } => ({
+  profile: Partial<ProfileRecord> = {},
+): SafetySide => ({
+  profile: { ...defaultProfile(AT), ...profile },
   targets: { ...defaultTargets(AT), ...targets },
   settings: { ...defaultSettings(), ...settings },
 });
@@ -107,8 +109,62 @@ describe('cautiousSafetyMerge (health-rules review)', () => {
     }
   });
 
-  it('names the safety settings of section 10.6 step 8', () => {
+  it('names the safety settings of section 10.6 step 8, with the diet mode and alcohol figures', () => {
     expect(SAFETY_SETTING_FIELDS.targets).toContain('energyFloorKj');
     expect(SAFETY_SETTING_FIELDS.settings).toContain('rapidLossThresholdGPerWeek');
+    expect(SAFETY_SETTING_FIELDS.settings).toContain('alcoholGuidanceSet');
+    expect(SAFETY_SETTING_FIELDS.profile).toEqual(['dietMode']);
+  });
+
+  it('a damaged phone value is ignored, never read as 0: the file\u2019s value stays and nothing is listed', () => {
+    const file = side(
+      { kickstartDeficitPct: 20, steadyDeficitPct: 18 },
+      {
+        rapidLossThresholdGPerWeek: 800,
+        rapidLossConsecutiveWeeks: 2,
+        rapidLossExplanationReadAt: AT,
+      },
+    );
+    const phone = side();
+    const damaged = {
+      targets: { ...phone.targets } as Record<string, unknown>,
+      settings: { ...phone.settings } as Record<string, unknown>,
+    };
+    delete damaged.targets['steadyDeficitPct'];
+    Object.assign(damaged.targets, { kickstartDeficitPct: -5, energyFloorKj: 25000 });
+    delete damaged.settings['rapidLossThresholdGPerWeek'];
+    Object.assign(damaged.settings, { alcoholGuidanceSet: 'nz-woman' });
+    const merged = cautiousSafetyMerge(file, {
+      ...phone,
+      targets: damaged.targets as unknown as TargetsRecord,
+      settings: damaged.settings as unknown as SettingsRecord,
+    });
+    expect(merged.targets).toEqual(file.targets);
+    expect(merged.settings).toEqual(file.settings);
+    expect(merged.kept).toEqual([]);
+  });
+
+  it('the phone\u2019s rapid-loss bounds count only with a valid explanation time that allows them', () => {
+    const file = side();
+    const phone = side(
+      {},
+      {
+        rapidLossThresholdGPerWeek: 750,
+        rapidLossConsecutiveWeeks: 2,
+        rapidLossExplanationReadAt: 'not a time',
+      },
+    );
+    const merged = cautiousSafetyMerge(file, phone);
+    expect(merged.settings).toEqual(file.settings);
+    expect(merged.kept).toEqual([]);
+  });
+
+  it('keeps every allergen either side lists (HS-24), and lists that when the phone added any', () => {
+    const file = side({}, {}, { allergens: ['peanut'] });
+    const phone = side({}, {}, { allergens: ['gluten', 'peanut', 'example-unknown' as never] });
+    const merged = cautiousSafetyMerge(file, phone);
+    expect(merged.profile.allergens).toEqual(['peanut', 'gluten']);
+    expect(merged.kept).toEqual([{ table: 'profile', field: 'allergens' }]);
+    expect(cautiousSafetyMerge(file, side()).kept).toEqual([]);
   });
 });

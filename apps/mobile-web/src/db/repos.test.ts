@@ -7,6 +7,7 @@ import {
   type GenericOp,
   isInstant,
   isLocalDate,
+  kickstartPeriodState,
   kickstartUsage,
   primaryKeyOf,
   type StoreName,
@@ -17,7 +18,12 @@ import {
 import { privacy } from '@diet/core/copy/health';
 import { snapshotV1 } from '@diet/test-fixtures';
 import { describe, expect, it, vi } from 'vitest';
-import { StorageFullError, StorageOperationError, StorageRuleError } from './errors';
+import {
+  StorageClockError,
+  StorageFullError,
+  StorageOperationError,
+  StorageRuleError,
+} from './errors';
 import { crudRepo, type CrudRepo, type RepoContext } from './repos';
 import { failingWrite, openTestDb, photoRow, type TestDb, testEnv } from './testKit';
 
@@ -169,13 +175,14 @@ describe('generic repositories (section 8.2; section 16 test 23; table CRUD)', (
 
   it('an index range with a lower and an upper bound returns exactly the rows inside it, in index order', async () => {
     const test = await openTestDb();
-    const days = ['2000-02-01', '2000-02-02', '2000-02-03', '2000-02-04'];
+    // Created out of index order, so the ids (numbered in creation order) are not in `at` order.
+    const days = ['2000-02-04', '2000-02-02', '2000-02-03', '2000-02-01'];
     const rows = [];
-    for (const [i, day] of days.entries()) {
+    for (const day of days) {
       rows.push(
         await test.repos.weights.create({
           at: `${day}T08:00:00.000Z`,
-          kg: 80 + i,
+          kg: 80 + Number(day.slice(-1)) - 1,
           source: 'manual',
           note: null,
         }),
@@ -187,8 +194,8 @@ describe('generic repositories (section 8.2; section 16 test 23; table CRUD)', (
       '2000-02-03T23:59:59.999Z',
     );
     expect(between.map((w) => w.kg)).toEqual([81, 82]);
-    // Bounds are inclusive.
-    const edges = await test.repos.weights.listByIndex('at', rows[0]?.at ?? '', rows[2]?.at ?? '');
+    // Bounds are inclusive, and the order is the index's, not the ids'.
+    const edges = await test.repos.weights.listByIndex('at', rows[3]?.at ?? '', rows[2]?.at ?? '');
     expect(edges.map((w) => w.kg)).toEqual([80, 81, 82]);
   });
 
@@ -464,6 +471,54 @@ describe('special repositories (section 8.2; section 16 test 24)', () => {
       });
     });
 
+    it('a clock set back never makes lived Kickstart days count as fewer: the end is no earlier than the newest saved record, and a start or check with the clock behind is refused (D27)', async () => {
+      const test = await open();
+      const period = await test.repos.kickstart.startPeriod();
+      // Twenty days of Kickstart, with a weigh-in on each.
+      for (let n = 2; n <= 20; n++) {
+        at(test, n);
+        await test.repos.weights.create({ kg: 100 - n / 10, source: 'manual', note: null });
+      }
+      // The phone's clock is set back to a minute after the start (a flat battery, or on purpose).
+      test.env.set(new Date(Date.parse(period.startedAt) + 60_000).toISOString());
+      await expect(test.repos.kickstart.recordCheck(yes)).rejects.toBeInstanceOf(StorageClockError);
+      const ended = await test.repos.kickstart.endPeriod('user-ended');
+      expect(ended.endedAt).toBe(day(20));
+      const usage = kickstartUsage(
+        await test.repos.kickstart.listPeriods(),
+        await test.repos.kickstart.listChecks(),
+      );
+      expect(usage.days).toBeGreaterThanOrEqual(20);
+      const refused = await test.repos.kickstart.startPeriod().then(
+        () => null,
+        (error: unknown) => error,
+      );
+      expect(refused).toBeInstanceOf(StorageClockError);
+      expect((refused as Error).message).toBe(privacy.clockBehind);
+      expect(await test.repos.kickstart.listPeriods()).toHaveLength(1);
+      // With the clock right again, the next period starts as usual.
+      at(test, 21);
+      await test.repos.kickstart.startPeriod();
+    });
+
+    it('a start dated ahead (the clock ran ahead, then was corrected) is not running, and End Kickstart closes it as 1 day', async () => {
+      const test = await open();
+      at(test, 31);
+      const ahead = await test.repos.kickstart.startPeriod();
+      at(test, 1);
+      expect(kickstartPeriodState(ahead, 0, test.env.now(), test.env.timeZone())).toBe(
+        'not-started',
+      );
+      const ended = await test.repos.kickstart.endPeriod('user-ended');
+      expect(ended.endedAt).toBe(new Date(Date.parse(ahead.startedAt) + 1).toISOString());
+      expect(
+        kickstartUsage(
+          await test.repos.kickstart.listPeriods(),
+          await test.repos.kickstart.listChecks(),
+        ),
+      ).toEqual({ days: 1, extensions: 0 });
+    });
+
     it('a second period cannot start while one is running', async () => {
       const test = await open();
       await test.repos.kickstart.startPeriod();
@@ -610,6 +665,45 @@ describe('special repositories (section 8.2; section 16 test 24)', () => {
     const kgs = (await test.repos.weights.between('2000-01-02', '2000-01-02')).map((w) => w.kg);
     expect(kgs.sort((a, b) => a - b)).toEqual([99, 100]);
     expect(await test.repos.weights.between('2000-01-01', '2000-01-01')).toEqual([]);
+  });
+
+  it('several days: between() and forDrinkingDays() return exactly the rows from the first to the last day, both included (section 3.6)', async () => {
+    const test = await openTestDb({ env: testEnv('2000-01-10T00:00:00.000Z', 'UTC') });
+    // Weigh-ins the day before, on the first day, inside, on the last day and the day after.
+    for (const [day, kg] of [
+      ['01', 81],
+      ['02', 82],
+      ['03', 83],
+      ['04', 84],
+      ['05', 85],
+    ] as const) {
+      await test.repos.weights.create({
+        kg,
+        source: 'manual',
+        note: null,
+        at: `2000-01-${day}T20:00:00.000Z`,
+      });
+    }
+    const kgs = (await test.repos.weights.between('2000-01-02', '2000-01-04')).map((w) => w.kg);
+    expect(kgs.sort((a, b) => a - b)).toEqual([82, 83, 84]);
+    // Drinks: the 03:00 drink on 5 January is before the 05:00 cut-over, so it belongs to the
+    // drinking day of 4 January, the last day asked for.
+    const beverage = { volumeMl: 330, abvPercent: 5, label: null };
+    const ids: Record<string, string> = {};
+    for (const at of ['01T20', '02T20', '03T20', '04T20', '05T03', '05T20']) {
+      const drink = await test.repos.drinks.log({
+        beverageId: null,
+        name: 'Example premix',
+        beverage,
+        count: 1,
+        at: `2000-01-${at}:00:00.000Z`,
+      });
+      ids[at] = drink.id;
+    }
+    const days = await test.repos.drinks.forDrinkingDays('2000-01-02', '2000-01-04');
+    expect(days.map((d) => d.id).sort()).toEqual(
+      [ids['02T20'], ids['03T20'], ids['04T20'], ids['05T03']].sort(),
+    );
   });
 });
 

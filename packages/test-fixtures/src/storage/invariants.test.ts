@@ -81,6 +81,37 @@ describe('cross-record invariants (section 5; section 16 test 4)', () => {
     expect(violation(late)).toBe('kickstart-end');
   });
 
+  it('an end after the scheduled last day is refused in the start zone as well as where it ended (rule 5c; D27)', () => {
+    const only = (period: Record<string, unknown>): Tables => ({
+      ...base(),
+      kickstart_periods: [period],
+      kickstart_checks: [],
+    });
+    // Day 1 is 2 January in Kiritimati, so the last day is 22 January. The end is still 22
+    // January in Pago Pago, where it was made, but already 23 January in Kiritimati.
+    const startZone = {
+      id: fixtureId(3801),
+      startedAt: '2000-01-01T10:00:00.000Z',
+      timeZone: 'Pacific/Kiritimati',
+      endedAt: '2000-01-22T11:00:00.000Z',
+      endedTimeZone: 'Pacific/Pago_Pago',
+      endReason: 'user-ended',
+    };
+    expect(violation(only(startZone))).toBe('kickstart-end');
+    expect(violation(only({ ...startZone, endedAt: '2000-01-22T09:59:00.000Z' }))).toBeNull();
+    // The mirror: day 1 is 1 January in Pago Pago, the last day 21 January; the end is still 21
+    // January there, but already 23 January in Kiritimati, where it was made.
+    const endZone = {
+      ...startZone,
+      startedAt: '2000-01-01T12:00:00.000Z',
+      timeZone: 'Pacific/Pago_Pago',
+      endedAt: '2000-01-22T10:00:00.000Z',
+      endedTimeZone: 'Pacific/Kiritimati',
+    };
+    expect(violation(only(endZone))).toBe('kickstart-end');
+    expect(violation(only({ ...endZone, endedAt: '2000-01-21T09:59:00.000Z' }))).toBeNull();
+  });
+
   it('card state: an unknown card or trigger is refused', () => {
     const t = base();
     t.card_state = [

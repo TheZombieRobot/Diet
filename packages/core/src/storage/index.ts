@@ -15,6 +15,7 @@ export * from './backup/rescueImport';
 export * from './backupReminder';
 export * from './bookkeeping';
 export * from './cards';
+export * from './clock';
 export * from './dates';
 export * from './defaults';
 export * from './derived';

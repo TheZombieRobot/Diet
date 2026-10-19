@@ -1,11 +1,22 @@
 // The storage failure screens (storage spec section 7.4; section 16 test 41; HS-13 as extended by
 // C17; D48), with the database mocked as unavailable through the open status.
+import { decodeBackupText } from '@diet/core';
 import { general, helpNumbers, privacy } from '@diet/core/copy/health';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../App';
 import { type FailureStatus, openStatusStore } from '../db/db';
+import { freshDeps, openTestDb } from '../db/testKit';
+import type * as files from '../files';
+import { offerDownload } from '../files';
+import { setUpdateActivator, updateStore } from '../pwa/update';
 import { StorageFailureScreen, type StorageFailureActions } from './StorageFailureScreen';
+
+// The browser's download is replaced, so the default screen actions can run in jsdom.
+vi.mock('../files', async (importOriginal) => ({
+  ...(await importOriginal<typeof files>()),
+  offerDownload: vi.fn(),
+}));
 
 afterEach(() => {
   cleanup();
@@ -32,6 +43,23 @@ function browserLikeActions(): StorageFailureActions {
 }
 
 describe('storage failure screens (HS-13; section 16 test 41)', () => {
+  it('a new version waiting to take over shows its Update banner here too, and Reload applies it (wording review)', () => {
+    updateStore.set({ waiting: true, applying: false });
+    const activate = vi.fn(() => Promise.resolve());
+    setUpdateActivator(activate);
+    openStatusStore.set('newer-version');
+    render(<App />);
+    expect(screen.getByText('Update available')).toBeDefined();
+    fireEvent.click(
+      within(screen.getByRole('region', { name: privacy.storageFailure.cardLabel })).getByRole(
+        'button',
+        { name: privacy.storageFailure.reload },
+      ),
+    );
+    expect(activate).toHaveBeenCalled();
+    updateStore.set({ waiting: false, applying: false });
+  });
+
   it.each(FAILURES)(
     '%s replaces the app and carries the not-a-medical-device line and every help number',
     (status) => {
@@ -73,6 +101,39 @@ describe('storage failure screens (HS-13; section 16 test 41)', () => {
     expect(reload.className).toContain('ui-button--secondary');
   });
 
+  it('upgrade-failed, as the browser runs it: the default rescue copy is locked with the password typed, with real WebCrypto, and opens with it', async () => {
+    const deps = freshDeps();
+    const phone = await openTestDb({ deps });
+    await phone.repos.weights.create({ kg: 81, source: 'manual', note: null });
+    phone.db.shutDown();
+    vi.stubGlobal('indexedDB', deps.indexedDB);
+    render(<StorageFailureScreen status="upgrade-failed" />);
+    const phrase = 'example phrase for the browser rescue';
+    for (const label of [
+      privacy.exportBackup.passwordLabel,
+      privacy.exportBackup.passwordRepeatLabel,
+    ]) {
+      fireEvent.change(screen.getByLabelText(label), { target: { value: phrase } });
+    }
+    fireEvent.click(screen.getByRole('button', { name: privacy.storageFailure.saveRescueCopy }));
+    await waitFor(
+      () => {
+        expect(offerDownload).toHaveBeenCalledOnce();
+      },
+      { timeout: 10_000 },
+    );
+    const [text, fileName] = vi.mocked(offerDownload).mock.calls[0] ?? ['', ''];
+    expect(fileName).toMatch(/^diet-backup-\d{4}-\d{2}-\d{2}-rescue-locked\.json$/);
+    expect(JSON.parse(text)).toMatchObject({ encrypted: true });
+    const decoded = await decodeBackupText(text, {
+      password: phrase,
+      env: { now: '2000-03-01T00:00:00.000Z', timeZone: 'UTC', randomId: () => 'unused' },
+    });
+    expect(decoded.kind).toBe('rescue');
+    expect(decoded.snapshot.weights.map((w) => w.kg)).toEqual([81]);
+    vi.unstubAllGlobals();
+  });
+
   it('upgrade-failed: the rescue copy is locked by default and is offered as a download', async () => {
     const makeRescueCopy = vi.fn((password: string | null) =>
       Promise.resolve({
@@ -108,7 +169,7 @@ describe('storage failure screens (HS-13; section 16 test 41)', () => {
     // Where the file went, and a way to save another copy.
     const saved = await screen.findByTestId('rescue-saved');
     expect(saved.textContent).toContain(
-      'look in Downloads for diet-backup-2000-03-01-rescue-locked.json, saved at',
+      'look in Downloads for diet-backup-2000-03-01-rescue-locked.json (made at',
     );
     expect(saved.textContent).toContain(privacy.rescue.note);
     fireEvent.click(within(saved).getByRole('button', { name: privacy.rescue.saveAnother }));
