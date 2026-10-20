@@ -12,6 +12,7 @@ import type { ReactElement, Ref } from 'react';
 import type { AppStorage } from '../../db/runtime';
 import { ScheduleSettings } from '../settings/EatingScheduleScreen';
 import { clearDayWindow } from './actions';
+import { kickstartWhenText } from './fastingText';
 import { ActionError } from './ActionError';
 import { useAction } from './useAction';
 import type { FastingState } from './useFasting';
@@ -111,7 +112,11 @@ export function PatternCard({
             */}
             {inputs.targets.presetChosenBy === 'kickstart-default' && !open ? (
               <p className="ui-text-muted">
-                {view.pharmacist ? schedule.kickstartDefaultSetAside : schedule.kickstartWhen}
+                {view.pharmacist
+                  ? schedule.kickstartDefaultSetAside
+                  : kickstartWhenText(
+                      state.context.kickstart.running ? state.context.kickstart.lastDay : null,
+                    )}
               </p>
             ) : null}
             {view.dayChanges.map((change) => (

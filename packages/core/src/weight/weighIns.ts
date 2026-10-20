@@ -126,9 +126,9 @@ export function goalReferenceKgFor(
 }
 
 /**
- * The current weight the readiness gates read (item 13 section 9.1 rule 2; HS-35): the lower of
- * the 7-day average and the latest daily weight on or before today, however old, so a low weight
- * is never missed for want of a recent weigh-in. Null with no weigh-in.
+ * The lower of the 7-day average and the mean weight on the latest local date on or before today
+ * with a weigh-in, however old. Null with no weigh-in. Part of the gates' current weight
+ * (gateCurrentWeightKg), which also reads the latest single weigh-in.
  */
 export function currentWeightFromDaily(
   daily: ReadonlyMap<LocalDate, number>,
@@ -144,25 +144,53 @@ export function currentWeightFromDaily(
   return average === null || latest === null ? latest : Math.min(average, latest);
 }
 
-/** currentWeightFromDaily from stored rows, for the gate input (items 13, 14 and 15 use this one rule). */
+/**
+ * The kg of the newest single weigh-in on a local date on or before today (ties: the lower kg).
+ * Null with none.
+ */
+function newestWeighInKg(weighIns: readonly WeighIn[], today: LocalDate): number | null {
+  let newest: { readonly ms: number; readonly kg: number } | null = null;
+  for (const w of weighIns) {
+    if (localDateOf(w.at, w.timeZone) > today) continue;
+    const ms = parseInstant(w.at);
+    if (newest === null || ms > newest.ms || (ms === newest.ms && w.kg < newest.kg)) {
+      newest = { ms, kg: w.kg };
+    }
+  }
+  return newest?.kg ?? null;
+}
+
+/**
+ * The current weight the readiness gates read (item 13 section 9.1 rule 2; HS-35; DECISIONS "The
+ * gates' current weight"): the lowest of the 7-day average, the latest day's mean and the latest
+ * single weigh-in, on or before today and however old, so a low weight is never missed for want
+ * of a recent weigh-in, and a low evening weigh-in is never averaged away by a higher morning one.
+ * Items 13, 14 and 15 use this one rule. Null with no weigh-in.
+ */
 export function gateCurrentWeightKg(
   rows: readonly WeighInRow[],
   today: LocalDate,
   homeTimeZone: TimeZone,
 ): number | null {
-  return currentWeightFromDaily(dailyWeightsFromRecords(rows, homeTimeZone), today);
+  const { weighIns } = weighInsFromRecords(rows, homeTimeZone);
+  const fromDaily = currentWeightFromDaily(dailyWeightsKg(weighIns), today);
+  const newest = newestWeighInKg(weighIns, today);
+  if (fromDaily === null || newest === null) return fromDaily ?? newest;
+  return Math.min(fromDaily, newest);
 }
 
 /**
- * Weight now below BMI 18.5 for the stored height (W32; HS-35): the gates' current weight fails
- * item 13's strict-side check. False without a height, a weigh-in, or a height in range.
+ * Weight now below BMI 18.5 for the stored height (W32; HS-35): the gates' current weight
+ * (gateCurrentWeightKg) fails item 13's strict-side check. False without a height, a weigh-in, or
+ * a height in range.
  */
 export function belowBmiFloorNow(
-  daily: ReadonlyMap<LocalDate, number>,
+  rows: readonly WeighInRow[],
   today: LocalDate,
+  homeTimeZone: TimeZone,
   heightCm: number | null,
 ): boolean {
-  return isLowWeight(currentWeightFromDaily(daily, today), heightCm);
+  return isLowWeight(gateCurrentWeightKg(rows, today, homeTimeZone), heightCm);
 }
 
 export type WeeklyChange = {

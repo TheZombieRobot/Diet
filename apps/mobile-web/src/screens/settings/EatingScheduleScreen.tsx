@@ -20,6 +20,7 @@ import { routeHref } from '../../routes';
 import { useStore } from '../../store';
 import { useStaleDays } from '../fasting/dayWindows';
 import { dayList } from '../fasting/fastingText';
+import { useWeightView } from '../weight/useWeightView';
 
 const readTargets = (storage: AppStorage): Promise<TargetsRecord> => storage.repos.targets.get();
 
@@ -136,6 +137,8 @@ export function ScheduleSettings({
   }, [draft, targets, pharmacistReminder, kickstartChosen]);
   const stale = useStaleDays(storage, patch);
   const today = localDateOf(storage.env.now(), storage.env.timeZone());
+  // Item 14's phase, for the due date of a running Kickstart (F39).
+  const phase = useWeightView(storage)?.overview.phase;
 
   return (
     <>
@@ -156,6 +159,13 @@ export function ScheduleSettings({
         diabetesNote={view.input.answers.q3 === 'yes' && view.input.confirmations.prescriberAgreed}
         kickstartDefaultSetAside={
           pharmacistReminder && (openedSetAside || targets.presetChosenBy === 'kickstart-default')
+        }
+        kickstartRunsUntil={
+          phase === undefined
+            ? undefined
+            : phase.kind === 'kickstart'
+              ? phase.scheduledLastDay
+              : null
         }
         showErrors={showErrors}
         listRef={list}

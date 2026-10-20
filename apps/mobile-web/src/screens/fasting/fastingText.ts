@@ -14,8 +14,8 @@ import {
   type TimeZone,
   type WindowInstance,
 } from '@diet/core';
-import { fasting, readiness } from '@diet/core/copy/health';
-import { formatDayPhrase, formatLocalTime } from '../../format';
+import { fasting, readiness, schedule } from '@diet/core/copy/health';
+import { formatDayPhrase, formatLocalDay, formatLocalTime } from '../../format';
 import type { RunningFastView } from './view';
 
 const MINUTE_MS = 60_000;
@@ -100,4 +100,14 @@ export function dayList(dates: readonly LocalDate[], today: LocalDate): string {
     readiness.listComma,
     readiness.listAnd,
   );
+}
+
+/**
+ * When the untouched 23:1 Kickstart default applies: from the day a Kickstart starts, or, while one
+ * runs, until its due date (F39), never as if it had not started.
+ */
+export function kickstartWhenText(runsUntil: LocalDate | null): string {
+  return runsUntil === null
+    ? schedule.kickstartWhen
+    : fillTemplate(schedule.kickstartRunsUntil, { date: formatLocalDay(runsUntil) });
 }
