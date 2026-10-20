@@ -706,11 +706,12 @@
 /*
  * A row of up to three figures with their labels (the Weight card). A slot with no figure holds a
  * short phrase at a smaller size (--empty); its full sentence goes under the row. Later cards add
- * modifiers rather than redefine these.
+ * modifiers rather than redefine these. On a narrow or zoomed screen (a 360 px phone at 200% text
+ * is 180 px wide) the figures go on to two rows or one column instead of running into each other.
  */
 .ui-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 5.5rem), 1fr));
   align-items: end;
   gap: 10px;
 }
@@ -757,6 +758,20 @@
   letter-spacing: normal;
 }
 
+/* A value in words ("Down 0.8 kg a week"): plain ink, never the placeholder grey of --empty. */
+.ui-stat__value--text {
+  font-size: 17px;
+  line-height: 1.3;
+  letter-spacing: normal;
+  overflow-wrap: anywhere;
+}
+
+/* An icon button that cannot be used now (the weight −/+ before there is a weight to step from). */
+.ui-icon-button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
 /* An inset note inside a card (the phase note) */
 .ui-note {
   padding: 12px 14px;
@@ -773,6 +788,7 @@
   flex-direction: column;
   gap: 8px;
   margin: 0;
+  container-type: inline-size;
 }
 
 .ui-trend-chart__svg {
@@ -824,6 +840,19 @@
   color: var(--color-secondary);
   font-size: 13px;
   font-weight: 700;
+}
+
+/* Too narrow for four week labels side by side: the first and the last, at the chart's ends. */
+@container (max-width: 200px) {
+  .ui-trend-chart__labels {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .ui-trend-chart__labels > :not(:first-child, :last-child) {
+    display: none;
+  }
 }
 
 .ui-trend-chart__legend {
@@ -1696,6 +1725,18 @@
   list-style: none;
 }
 
+/*
+ * Too narrow for the title beside its icon and marker (a phone at 200% zoom): the title takes the
+ * next line, rather than a column a letter or two wide.
+ */
+.ui-quick-actions .ui-action-row {
+  flex-wrap: wrap;
+}
+
+.ui-quick-actions .ui-action-row__text {
+  flex: 1 1 6em;
+}
+
 /* An action row that is a button: the whole width, text from the start. */
 .ui-action-row--button {
   width: 100%;
@@ -1726,6 +1767,25 @@
   );
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+/*
+ * A short screen (a phone at 200% zoom, or on its side) leaves that room too small for a whole
+ * row. The panel then takes the height from the top of the screen to the tab bar; the "+" stays
+ * drawn above it, so focus on it is never hidden, and the list scrolls clear of it.
+ */
+@media (max-height: 560px) {
+  .ui-fab-panel {
+    top: calc(env(safe-area-inset-top, 0px) + 8px);
+    bottom: calc(var(--size-tabbar) + env(safe-area-inset-bottom, 0px) + 8px);
+    max-height: none;
+    padding-bottom: calc(var(--size-fab) + 20px);
+    scroll-padding-bottom: calc(var(--size-fab) + 20px);
+  }
+
+  .ui-fab {
+    z-index: 12;
+  }
 }
 
 /* ---- Foods in the app (checklist item 18) ---- */
@@ -1848,4 +1908,41 @@
 .ui-nutrients td[data-known='false'] {
   color: var(--color-secondary);
   font-weight: 700;
+}
+
+/* ---- Laptop pairing (checklist item 30): the camera view and the numbered steps ---- */
+
+/* A square camera view with a guide square, drawn only while the stream shows. */
+.ui-camera {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 1;
+  margin-inline: auto;
+  overflow: hidden;
+  border-radius: var(--radius-control);
+  background: var(--color-inset);
+}
+
+.ui-camera__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ui-camera__guide {
+  position: absolute;
+  inset: 15%;
+  border: 3px solid var(--color-teal);
+  border-radius: var(--radius-control);
+  pointer-events: none;
+}
+
+.ui-camera[data-active='false'] .ui-camera__guide {
+  display: none;
+}
+
+.ui-plain-list--numbered {
+  list-style: decimal;
 }

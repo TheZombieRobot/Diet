@@ -1,7 +1,8 @@
 /**
- * One Today control's write (item 16 design sections 1.6, 1.7 and 1.14; T26): the control is
- * disabled while its own write runs; a failure says plainly that nothing was saved (WriteError,
- * an alert under the card's controls), and focus stays on the control that was used. Nothing is
+ * One Today control's write (item 16 design sections 1.6, 1.7 and 1.14; T26): while its own write
+ * runs the control is aria-disabled, never `disabled` (the browser would drop focus to the page),
+ * and a second tap is ignored here; a failure says plainly that nothing was saved (WriteError, an
+ * alert under the card's controls), and focus stays on the control that was used. Nothing is
  * shown as saved until the stored row comes back in the live read.
  */
 import { privacy, today } from '@diet/core/copy/health';

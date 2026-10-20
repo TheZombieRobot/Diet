@@ -145,8 +145,8 @@ describe('every screen', () => {
 
 describe('placeholder screens (no sample data)', () => {
   // Today (item 16), About, the setup screens (item 13), the Weight screen (item 14), the Fasting
-  // screen (item 15), Foods in the app (item 18) and Diet and targets (item 21) are built; the
-  // rest still say they arrive later.
+  // screen (item 15), Foods in the app (item 18), Diet and targets (item 21) and Laptop
+  // pairing (item 30) are built; the rest still say they arrive later.
   const built: readonly RouteId[] = [
     'today',
     'about',
@@ -157,6 +157,7 @@ describe('placeholder screens (no sample data)', () => {
     'fasting',
     'targets',
     'foods',
+    'pairing',
   ];
   const placeholders = ROUTES.filter((r) => !built.includes(r));
 
@@ -219,7 +220,7 @@ describe('placeholder screens (no sample data)', () => {
     expect(plus.getAttribute('aria-expanded')).toBe('true');
     const panelId = plus.getAttribute('aria-controls') ?? '';
     await screen.findByText(today.quickActions.laterNote);
-    expect(document.getElementById(panelId)?.textContent).toContain('later step');
+    expect(document.getElementById(panelId)?.textContent).toContain(today.quickActions.laterNote);
     fireEvent.click(plus);
     expect(plus.getAttribute('aria-expanded')).toBe('false');
   });

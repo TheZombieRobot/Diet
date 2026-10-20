@@ -6,6 +6,11 @@ export interface SwitchProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
   disabled?: boolean;
+  /**
+   * While its own write runs: the switch ignores taps and says it is unavailable (aria-disabled)
+   * but keeps focus, which `disabled` would drop (item 16).
+   */
+  busy?: boolean;
   /** A short note under the switch, announced with it (aria-describedby). */
   hint?: string | undefined;
   /** The checkbox, for moving focus to it. */
@@ -18,6 +23,7 @@ export function Switch({
   checked,
   onChange,
   disabled = false,
+  busy = false,
   hint,
   ref,
 }: SwitchProps): ReactElement {
@@ -31,9 +37,10 @@ export function Switch({
         className="ui-switch__input"
         checked={checked}
         disabled={disabled}
+        aria-disabled={busy || undefined}
         aria-describedby={hint === undefined ? undefined : hintId}
         onChange={(event) => {
-          onChange(event.currentTarget.checked);
+          if (!busy) onChange(event.currentTarget.checked);
         }}
       />
       <span className="ui-switch__track" aria-hidden="true">

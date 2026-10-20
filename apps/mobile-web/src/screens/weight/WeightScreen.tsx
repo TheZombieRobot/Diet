@@ -1,7 +1,7 @@
 import { carbCeilingActive } from '@diet/core';
 import { weight } from '@diet/core/copy/health';
 import { Card } from '@diet/ui';
-import { useState, type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { appStorageStore, type AppStorage } from '../../db/runtime';
 import { useStore } from '../../store';
 import { GoalCard } from './GoalCard';
@@ -16,7 +16,6 @@ import { WeighInsCard } from './WeighInsCard';
 
 function WeightScreenBody({ storage }: { storage: AppStorage }): ReactElement | null {
   const view = useWeightView(storage);
-  const [preStartStopSign, setPreStartStopSign] = useState(false);
   if (view === undefined) return null;
   const { overview, input } = view;
   const bandCanShow =
@@ -26,29 +25,21 @@ function WeightScreenBody({ storage }: { storage: AppStorage }): ReactElement | 
   return (
     <>
       <WeightStatus storage={storage} />
-      <WeightCards
-        storage={storage}
-        view={view}
-        showStartCard={false}
-        preStartStopSign={preStartStopSign}
-        onPreStartStopSign={setPreStartStopSign}
-      />
+      <WeightCards storage={storage} view={view} showStartCard={false} />
       <Card label={weight.card.logWeight}>
         <LogWeightPanel storage={storage} latest={overview.latest} onSaved={reportStatus} />
       </Card>
       {overview.latest === null ? null : <TrendCard view={view} />}
       <GoalCard storage={storage} view={view} />
-      <PhaseCard
-        storage={storage}
-        view={view}
-        onPreStartStopSign={() => {
-          setPreStartStopSign(true);
-        }}
-      />
+      <PhaseCard storage={storage} view={view} />
       <WeighInsCard storage={storage} view={view} />
       <Card label={weight.trend.howToReadLabel}>
         <p>{weight.trend.howToRead}</p>
         {bandCanShow ? <p>{weight.chart.aboutBand}</p> : null}
+        {/* Only while the chart draws the steeper first block, never as a promise of one. */}
+        {bandCanShow && overview.chart.shape === 'front-loaded' ? (
+          <p>{weight.chart.aboutBandKickstart}</p>
+        ) : null}
       </Card>
     </>
   );

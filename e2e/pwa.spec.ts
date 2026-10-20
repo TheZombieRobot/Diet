@@ -172,7 +172,7 @@ test('offline: the app reloads and every screen opens from the offline copy (PWA
   await goTo(second, 'About');
 
   expect(fromNetwork).toEqual([]);
-  expect(SCREENS).toHaveLength(14);
+  expect(SCREENS).toHaveLength(15);
 });
 
 test('until the offline copy is saved, About says so and the pill does not say "all saved"', async ({

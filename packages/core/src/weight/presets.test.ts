@@ -73,20 +73,28 @@ describe('the fasting preset and Kickstart (C55, C07, WT-08)', () => {
     expect(kickstartStartUses231(kickstartDefault, open)).toBe(true);
   });
 
+  const due = (over: Partial<Parameters<typeof presetMoveDue>[0]>) =>
+    presetMoveDue({
+      targets: kickstartDefault,
+      phase: steady,
+      fastingGated: false,
+      pharmacistReminder: false,
+      onboardingCompleted: true,
+      ...over,
+    });
+
   it('outside Kickstart the stored 23:1 Kickstart default moves to 22:2, whatever any card says', () => {
-    const due = (over: Partial<Parameters<typeof presetMoveDue>[0]>) =>
-      presetMoveDue({
-        targets: kickstartDefault,
-        phase: steady,
-        fastingGated: false,
-        onboardingCompleted: true,
-        ...over,
-      });
     expect(due({})).toEqual(untouched);
     expect(due({ phase: { kind: 'none' } })).toEqual(untouched);
     expect(due({ phase: kickstart })).toBeNull();
     expect(due({ fastingGated: true })).toBeNull();
     expect(due({ onboardingCompleted: false })).toBeNull();
     expect(due({ targets: user231 })).toBeNull();
+  });
+
+  it('C07: while answer 4 applies it moves during Kickstart too, so a later "no" never brings 23:1 back unasked', () => {
+    expect(due({ phase: kickstart, pharmacistReminder: true })).toEqual(untouched);
+    expect(due({ phase: kickstart, pharmacistReminder: true, targets: user231 })).toBeNull();
+    expect(due({ phase: kickstart, pharmacistReminder: true, fastingGated: true })).toBeNull();
   });
 });

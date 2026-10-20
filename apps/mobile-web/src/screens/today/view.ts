@@ -126,10 +126,15 @@ export interface TodayViewArgs {
   readonly endsPending: ReadonlyMap<Id, KickstartEndReason>;
 }
 
+/** The alcohol notice acknowledged and setup finished: until then nothing on Today writes. */
+export function setupFinished(settings: SettingsRecord): boolean {
+  return settings.alcoholNoticeAckAt !== null && settings.onboardingCompletedAt !== null;
+}
+
 export function todayView(args: TodayViewArgs): TodayView {
   const { inputs, gates, now } = args;
   const { settings, profile } = inputs;
-  const setupDone = settings.alcoholNoticeAckAt !== null && settings.onboardingCompletedAt !== null;
+  const setupDone = setupFinished(settings);
   const kickstartToday = isKickstartDay(
     phaseInputFrom({
       now,

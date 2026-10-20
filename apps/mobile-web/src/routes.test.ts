@@ -14,7 +14,7 @@ import {
 } from './routes';
 
 describe('hash routes', () => {
-  it('has the five tabs of UX_SCREENS.md in order, plus Settings, About, the setup screens, Weight, Fasting, Diet and targets, and Foods', () => {
+  it('has the five tabs of UX_SCREENS.md in order, plus Settings, About, the setup screens, Weight, Fasting, Diet and targets, Foods and Laptop pairing', () => {
     expect(TAB_ROUTES.map((r) => ROUTE_TITLES[r])).toEqual([
       'Today',
       'Food',
@@ -33,6 +33,7 @@ describe('hash routes', () => {
       'fasting',
       'targets',
       'foods',
+      'pairing',
     ]);
     expect(ROUTE_TITLES.weight).toBe('Weight');
     expect(ROUTE_TITLES.fasting).toBe('Fasting and reflux');
@@ -41,6 +42,7 @@ describe('hash routes', () => {
     expect(ROUTE_TITLES.foods).toBe('Foods in the app');
     expect(foods.screen.title).toBe('Foods in the app');
     expect(parseRoute('#/foods')).toBe('foods');
+    expect(ROUTE_TITLES.pairing).toBe('Laptop pairing');
   });
 
   it("the Fasting screen's sub-links open the Fasting screen and name their card (item 15)", () => {
@@ -78,6 +80,7 @@ describe('hash routes', () => {
       'eating-schedule',
       'targets',
       'foods',
+      'pairing',
     ]);
   });
 });

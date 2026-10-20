@@ -720,6 +720,104 @@ export const privacy = {
   },
 } as const;
 
+// ---- Laptop pairing and sending the grocery list (checklist items 30 and 31) ----
+
+/**
+ * Pairing with the laptop and, from item 31, sending the grocery list (item 30 design 3.1;
+ * UX_SCREENS 6c and 7; DECISIONS Q1 and the item-30 row; DOC_REVIEW C12, C83, C115;
+ * HEALTH_SAFETY section 7). Privacy wording: it says plainly what happens and makes no blanket
+ * promises (TRANSFER_SECTION_RULES in transferRules.ts). Item 31 adds its sending and status keys
+ * to this object; item 33 adds the side panel's.
+ */
+export const transfer = {
+  pairing: {
+    settingsCardLabel: 'Laptop',
+    settingsRowTitle: 'Laptop pairing',
+    settingsRowNotPaired: 'Not paired',
+    settingsRowPaired: 'Paired {date}',
+    settingsRowChecking: 'Checking…',
+    unpairedCardLabel: 'Pair with your laptop',
+    intro:
+      'Pairing lets this phone send the grocery list to the side panel on your laptop. The list is locked on this phone with a key your laptop makes and gives to this phone through the code you scan.',
+    steps: [
+      'On the laptop, open the side panel and choose Pair or Pair again. It shows a pairing code: a square barcode.',
+      "On this phone, tap Scan the laptop's code, and allow the camera when Chrome asks.",
+      "Hold the phone about a hand's length from the laptop screen until this screen says the pairing code is saved.",
+    ],
+    /** Until item 33 builds the side panel; item 33 removes it. */
+    laptopLaterStep:
+      'The laptop side panel arrives at a later step of the build checklist. Until then there is no code to scan.',
+    /** DECISIONS Q1, widened by the item-30 row: the accepted risk, said where the owner pairs. */
+    codeRisk:
+      'Show the code on the laptop only while you pair. Anyone who photographs it could read the lists you send, and could change the list the laptop shows, until you pair again.',
+    /** Q1 and C83: the key travels only from the laptop screen to this screen. */
+    scanOnlyHere:
+      'Scan the code only from this screen. Do not scan it with the camera app or copy it: that would put the key where other apps can read it.',
+    /** Quoted word for word in HEALTH_SAFETY section 7 (docFidelity.test.ts). */
+    cameraNote:
+      "The camera is used only while the pairing screen scans the laptop's code. The app keeps no picture and sends nothing.",
+    scan: "Scan the laptop's code",
+    optional:
+      'Pairing is optional. Without it, the list is sent nowhere unless you copy or export it.',
+    cameraCardLabel: 'Camera',
+    starting: 'Starting the camera…',
+    looking: 'Point the camera at the code on the laptop screen and hold the phone still.',
+    notAPairingCode:
+      "That code is not a pairing code. Point the camera at the code in the laptop's side panel.",
+    saving: 'Saving the pairing code…',
+    cancel: 'Cancel',
+    pairedCardLabel: 'Pairing',
+    /** Says only what the phone can know (as the backup wording does, D21). */
+    paired: 'This phone has the pairing code from your laptop.',
+    pairedOn: 'Paired {date}',
+    check: 'Pairing check: {check}',
+    checkHint:
+      "The laptop's side panel shows the same four letters. If it shows different ones, tap Unpair, then pair again on both.",
+    /** Only when pairingRelayStatus is 'pair-again' (never while RELAY_ORIGIN is null). */
+    relayPairAgain:
+      'This pairing was made for a different relay, or for none, so the list can reach the laptop only as a paste code. To use the relay, update the side panel on the laptop, then pair again on both.',
+    /** Until item 31 builds sending; item 31 removes it. */
+    laterStep: 'Sending the list from the List tab arrives at a later step of the build checklist.',
+    photographed:
+      'If you think someone photographed the pairing code, unpair here and on the laptop, then pair again.',
+    pairAgain: 'Pair again',
+    pairAgainTitle: 'Pair again?',
+    pairAgainBody:
+      'Pairing again replaces the pairing on this phone. On the laptop, choose Pair again in the side panel, so it shows a new code.',
+    pairAgainConfirm: 'Scan the new code',
+    unpair: 'Unpair',
+    unpairTitle: 'Unpair this phone?',
+    unpairBody:
+      'This phone forgets the pairing and cannot send the list to the laptop until you pair again.',
+    unpairing: 'Removing the pairing…',
+    pairedNow:
+      'Pairing code saved. Check that the side panel on the laptop shows the same pairing check.',
+    unpairedNow: 'This phone is no longer paired.',
+    stoppedTimeout: 'Scanning stopped after 2 minutes, to save the battery.',
+    stoppedHidden: 'Scanning stopped while the app was in the background.',
+    scanAgain: 'Scan again',
+    tryAgain: 'Try again',
+    errors: {
+      /** {site} is location.host, the name Chrome lists under Site settings. */
+      'camera-denied':
+        "The app is not allowed to use the camera. To allow it, open the Chrome app, tap ⋮ at the top right, then Settings, Site settings, Camera. Choose {site} and set it to Allow. If Chrome itself has no camera permission, open the phone's Settings, then Apps, Chrome, Permissions, Camera, and allow it. Then come back here and tap Scan again.",
+      'camera-unavailable':
+        'The camera could not be started, or it stopped. Close other apps that use the camera, then tap Scan again.',
+      'no-reader':
+        'The code reader could not start. Connect to the internet, tap Reload, then scan again.',
+      'newer-version':
+        'This pairing code comes from a newer version of the side panel than this app can read. Connect to the internet, tap Reload, then scan again. If this message comes back, close the app in every Chrome tab and in Recent apps, then open it again.',
+      damaged:
+        'This pairing code could not be read. On the laptop, choose Pair again to show a new code, then scan it.',
+      'save-failed': 'The pairing code could not be saved. Nothing was changed. Try again.',
+      'storage-full': privacy.storageFull,
+      'unpair-failed': 'The pairing could not be removed. Try again.',
+    },
+  },
+  /** Both devices' unpair confirmations (C115; item 29 design 3.2 proposed this key). */
+  unpairOther: 'Also unpair on your other device.',
+} as const;
+
 // ---- First-run flow, readiness, profile, eating schedule and garden (checklist item 13) ----
 
 /** A whole number with a thousands comma, such as 5,000 (no Intl, so it never follows the device locale). */
@@ -1188,7 +1286,10 @@ export const weight = {
     days30: '30 days',
     days90: '90 days',
     aboutBand:
-      'The shaded range is a rough typical range, not a promise and not a target. In Steady it follows about 0.5–1 kg a week, and never faster than your weight check-in setting. In your first Kickstart it is steeper for two weeks, mostly water and glycogen, then flattens.',
+      'The shaded range is a rough typical range, not a promise and not a target. In Steady it follows about 0.5–1 kg a week, and never faster than your weight check-in setting.',
+    // Only while the chart draws the steeper first block (item 14 review: never promised otherwise).
+    aboutBandKickstart:
+      'In your first Kickstart it is steeper for two weeks, mostly water and glycogen, then flattens.',
   },
   phase: {
     label: 'Phase',
@@ -1215,7 +1316,7 @@ export const weight = {
     gatedUnanswered:
       'Kickstart, the typical range and the pace notes stay off until the readiness questions are answered. Your weigh-ins and trend still show.',
     lowWeight:
-      'Your recent weight is below a BMI of 18.5 for your height. Please check in with your GP, and look again at readiness question 5. Your weigh-ins and trend still show.',
+      'Your recent weight is below a BMI of 18.5 for your height. Please check in with your GP, and look again at readiness question 5. Kickstart, the typical range and the long-term goal are switched off, and your weigh-ins and trend still show.',
     readinessLink: 'See your readiness answers',
   },
   goal: {
@@ -1302,8 +1403,8 @@ export const weight = {
     extend: 'Extend by one week',
     notNow: 'Not now',
     extended: 'Kickstart extended by one week. It is now week {week} of {weeks}.',
-    stopSign:
-      'Thanks for telling the app. Kickstart will not be extended. Eating more today is fine, and you can end Kickstart now.',
+    // The stop-sign card that takes focus says the rest (item 14 review: no repeated sentence).
+    stopSign: 'Thanks for telling the app. Kickstart will not be extended.',
     refusedWindow: 'Kickstart could not be extended: the offer is open only in its last 3 days.',
     refusedCap:
       'Kickstart could not be extended: it can run for at most 6 weeks and 3 extensions in all.',
@@ -1350,8 +1451,14 @@ export const weight = {
     unavailableLowWeight:
       'Kickstart is not offered while your recent weight is below a BMI of 18.5 for your height.',
     unavailableToday: 'A new Kickstart can start from tomorrow.',
+    // A Kickstart ended before its first day (the clock was ahead): its day 1 is still held.
+    unavailableEndedAhead:
+      "The Kickstart you ended was dated {date} by the phone's clock, so a new one can start the day after that.",
     unavailableRecentStopSign:
       'A stop-sign was reported in the last two weeks, so a new Kickstart cannot start yet.',
+    // A "yes" before a start is held for the rest of that day only (W31).
+    unavailableStopSignToday:
+      'You answered yes to a stop-sign question today, so a Kickstart cannot start today.',
     unavailableCap:
       'Kickstart can run for at most 6 weeks in all, and a new one needs a full three weeks, so another one cannot start.',
     saveFailed: 'Kickstart could not be started. Nothing was changed. Try again.',
@@ -1380,6 +1487,8 @@ export const weight = {
   presetMoved: {
     label: 'Eating window',
     body: 'The eating window is now 22:2 (5 pm snack + dinner). 23:1 (one meal) is the Kickstart default and is used only while Kickstart runs.',
+    /** While answer 4 is "yes" or unanswered, with no one-tap 23:1 (C07). */
+    answer4: schedule.kickstartDefaultSetAside,
     use231: 'Use 23:1 instead',
     ok: 'OK',
   },
@@ -2122,7 +2231,8 @@ export const today = {
   },
   steps: {
     none: 'Not entered today',
-    enteredAt: 'typed in at {time}',
+    // Typed in or copied by "Same as yesterday": "saved" is true of both (item 16 review).
+    enteredAt: 'saved at {time}',
     enter: 'Enter steps',
     edit: 'Edit',
     sameAsYesterday: 'Same as yesterday: {steps}',
@@ -2132,7 +2242,7 @@ export const today = {
     remove: "Remove today's entry",
     errors: {
       empty: 'Enter the number of steps.',
-      format: 'Use digits only, such as 12000 or 12,000.',
+      format: 'Use whole numbers only, such as 12000 or 12,000.',
       'too-many': 'That is more than 100,000 steps. Check the number.',
     },
   },
@@ -2149,8 +2259,8 @@ export const today = {
       'add-drink': 'Add drink',
       'open-grocery-list': 'Open grocery list',
     },
-    laterNote:
-      'Actions marked Later arrive at later steps of the build checklist and do nothing yet.',
+    // Short, so it stays in view above the list on a phone at 200% zoom (item 16 review).
+    laterNote: 'Actions marked Later are not built yet and do nothing.',
     markerLater: 'Later',
     markerOff: 'Off',
   },
@@ -2430,6 +2540,7 @@ export const healthCopy = {
   general,
   alcohol,
   privacy,
+  transfer,
   onboarding,
   readiness,
   profile,

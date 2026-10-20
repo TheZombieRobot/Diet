@@ -24,6 +24,8 @@ export const ROUTES = [
   'targets',
   // Item 18: the food catalogue, opened from About.
   'foods',
+  // Item 30: Settings, Laptop pairing.
+  'pairing',
 ] as const;
 export type RouteId = (typeof ROUTES)[number];
 
@@ -49,6 +51,7 @@ export const ROUTE_TITLES: Readonly<Record<RouteId, string>> = {
   fasting: 'Fasting and reflux',
   targets: targets.screen.title,
   foods: foods.screen.title,
+  pairing: 'Laptop pairing',
 };
 
 const isRoute = (value: string): value is RouteId => (ROUTES as readonly string[]).includes(value);
@@ -90,6 +93,7 @@ const UNDER_SETTINGS: readonly RouteId[] = [
   'targets',
   // Item 18: reached from About.
   'foods',
+  'pairing',
 ];
 
 /** Settings and the screens reached from it light up the settings gear. */

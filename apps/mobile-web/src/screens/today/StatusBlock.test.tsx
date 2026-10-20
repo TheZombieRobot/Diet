@@ -94,6 +94,15 @@ describe('the status line (C3; TD-07)', () => {
     await lineIs("Fasting 2 h. It's fine to widen the window.");
   });
 
+  it('C30: within an hour of 24 hours, with the window open, it is fine to eat now, as on the Fast card, and no time is named', async () => {
+    // Begun 6:30 pm yesterday; at 6:10 pm the 23:1 window is open until 7:00 pm, 24 h 30 m in.
+    test = await todayFixture({ fast: at('18:30', '2000-03-14'), now: at('18:10') });
+    await renderToday();
+    await lineIs("Fasting 23 h 40 m. It's fine to eat now.");
+    const card = screen.getByRole('region', { name: fasting.card.label });
+    expect(card.textContent).toContain(fasting.card.nearCeiling);
+  });
+
   it('no fast at 6:30 pm: "Eating window open until 7:00 pm."', async () => {
     test = await todayFixture({ fast: false, now: at('18:30') });
     await renderToday();

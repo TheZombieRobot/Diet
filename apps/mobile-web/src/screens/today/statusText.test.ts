@@ -21,15 +21,25 @@ describe('statusText (U12; TD-07, HS-02, HS-03, HS-18)', () => {
       'fasting, window open',
       {
         kind: 'fasting',
-        elapsedMinutes: 1390,
+        elapsedMinutes: 1300,
         window: { kind: 'open-until', at: '2000-03-15T06:00:00.000Z' },
       },
-      'Fasting 23 h 10 m. Eating window open until 7:00 pm.',
+      'Fasting 21 h 40 m. Eating window open until 7:00 pm.',
     ],
     [
       'fasting, past 24 hours by the window',
       { kind: 'fasting', elapsedMinutes: 120, window: { kind: 'widen' } },
       "Fasting 2 h. It's fine to widen the window.",
+    ],
+    [
+      'fasting, close to 24 hours (the Fast card says to eat now)',
+      { kind: 'fasting', elapsedMinutes: 1420, window: { kind: 'eat-now' } },
+      "Fasting 23 h 40 m. It's fine to eat now.",
+    ],
+    [
+      'fasting, a window open that ends past 24 hours',
+      { kind: 'fasting', elapsedMinutes: 1140, window: { kind: 'open-now' } },
+      "Fasting 19 h. Your eating window is open. It's fine to eat now.",
     ],
     [
       'fasting, the snack window later today',

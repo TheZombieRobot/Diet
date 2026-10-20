@@ -63,3 +63,13 @@ export async function applyUpdate(): Promise<void> {
   updateStore.set({ waiting: true, applying: true });
   await activateWaitingVersion();
 }
+
+/**
+ * Reloads the page, applying a waiting new version first: a plain reload keeps the old one in
+ * control (registerType 'prompt'), so a screen asking for the newer version would come back (the
+ * storage failure screens; the Laptop pairing screen's "newer version" and "no reader" notices).
+ */
+export function reloadApplyingUpdate(): void {
+  if (updateStore.get().waiting) void applyUpdate();
+  else window.location.reload();
+}

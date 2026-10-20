@@ -86,6 +86,9 @@ function WeightSummaryCard({
   const [opened, setOpened] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
   const fieldRef = useRef<HTMLInputElement>(null);
+  const logRef = useRef<HTMLButtonElement>(null);
+  // After Save or Cancel the panel goes: focus returns to Log weight, never to the page.
+  const returnFocus = useRef(false);
   const open = opened || request !== seenRequest;
   useEffect(() => {
     const field = fieldRef.current;
@@ -93,6 +96,16 @@ function WeightSummaryCard({
     field.focus();
     if (typeof field.scrollIntoView === 'function') field.scrollIntoView({ block: 'center' });
   }, [open, request]);
+  useEffect(() => {
+    if (open || !returnFocus.current) return;
+    returnFocus.current = false;
+    logRef.current?.focus();
+  }, [open]);
+  const close = () => {
+    returnFocus.current = true;
+    setOpened(false);
+    setSeenRequest(request);
+  };
   const chip = phaseChip(overview.phase);
 
   return (
@@ -149,12 +162,13 @@ function WeightSummaryCard({
           fieldRef={fieldRef}
           onSaved={(message) => {
             setSaved(message);
-            setOpened(false);
-            setSeenRequest(request);
+            close();
           }}
+          onCancel={close}
         />
       ) : (
         <Button
+          ref={logRef}
           block
           onClick={() => {
             setSaved(null);
@@ -175,19 +189,12 @@ function WeightSummaryCard({
  */
 export function WeightCard({ storage }: { readonly storage: AppStorage }): ReactElement | null {
   const view = useWeightView(storage);
-  const [preStartStopSign, setPreStartStopSign] = useState(false);
   if (view === undefined) return null;
   return (
     <>
       <WeightSummaryCard storage={storage} view={view} />
       <WeightStatus storage={storage} />
-      <WeightCards
-        storage={storage}
-        view={view}
-        showStartCard
-        preStartStopSign={preStartStopSign}
-        onPreStartStopSign={setPreStartStopSign}
-      />
+      <WeightCards storage={storage} view={view} showStartCard />
     </>
   );
 }

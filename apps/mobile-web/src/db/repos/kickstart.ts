@@ -8,7 +8,8 @@
  * - endPeriod(reason) ends the latest period early, once, only before its scheduled last day ends
  *   (running, or not yet started because its start is dated ahead). It is ended at the latest of
  *   now, the clock high-water mark and 1 ms after its start, so a clock set back never makes the
- *   days already lived count as fewer, and a start dated ahead counts 1 day.
+ *   days already lived count as fewer; one whose first day has not come, with nothing saved after
+ *   its day 1, is ended 1 ms after its start: it never ran, and counts 1 day (core kickstartEndAt).
  * - recordCheck(answers) is called only from the Extend action. It refuses outside the current
  *   extension window (the last 3 local days of the scheduled phase) and after a stop-sign check in
  *   that period, derives the outcome, and refuses an extension that would pass 3 extensions or 42
@@ -26,12 +27,12 @@ import {
   extensionsOf,
   extensionWindow,
   type Instant,
-  instantMs,
   inWindow,
   isClockBehind,
   KICKSTART_MAX_EXTENSIONS,
   type KickstartCheckRecord,
   kickstartCheckOutcome,
+  kickstartEndAt,
   kickstartPeriodState,
   kickstartRunningAt,
   type KickstartEndReason,
@@ -39,7 +40,6 @@ import {
   kickstartUsage,
   type LocalDate,
   localDateOf,
-  notBeforeAny,
   type SettingsRecord,
   type Snapshot,
   type StopSignAnswers,
@@ -175,15 +175,20 @@ export function kickstartRepo(ctx: RepoContext): KickstartRepo {
                 .at(-1);
               if (latest === undefined)
                 throw new StorageRuleError('kickstart_periods', 'not-found');
-              // Never earlier than a record already saved, nor than the start itself.
-              const endedAt = notBeforeAny(
+              const extensions = extensionsOf(latest.id, history.checks);
+              // Never earlier than a record already saved, nor than the start itself; 1 ms after
+              // the start when its first day has not come (it never ran).
+              const endedAt = kickstartEndAt(
+                latest,
+                extensions,
                 env.now(),
                 history.highWater,
-                new Date(instantMs(latest.startedAt) + 1).toISOString(),
+                env.timeZone(),
+                homeOf(history),
               );
               const state = kickstartPeriodState(
                 latest,
-                extensionsOf(latest.id, history.checks),
+                extensions,
                 endedAt,
                 env.timeZone(),
                 homeOf(history),

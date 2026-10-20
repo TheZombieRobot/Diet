@@ -14,8 +14,13 @@
  *
  * The restart rule (D27): Kickstart days over all periods total at most 42 and extensions at most 3.
  * A new period starts only if a full 21 days still fit; an extension only if it passes neither cap.
+ *
+ * A period ended before its first day came (endedBeforeDay1; item 14 review) never ran: its end is
+ * 1 ms after its start. It still counts 1 day toward the 42-day cap and holds its day 1 against an
+ * overlap, but the phase engine gives it no Kickstart day.
  */
 import { addDays, daysBetween, type LocalDate, localDateOf } from '../util/time';
+import { notBeforeAny } from './clock';
 import { DEFAULT_HOME_TIME_ZONE, resolveZone } from './dates';
 import {
   KICKSTART_DAYS,
@@ -24,7 +29,7 @@ import {
   KICKSTART_MAX_TOTAL_DAYS,
   KICKSTART_OFFER_DAYS,
 } from './limits';
-import type { Instant, TimeZone, YesNo } from './primitives';
+import { type Instant, instantMs, type TimeZone, type YesNo } from './primitives';
 import type { KickstartCheckRecord, KickstartOutcome, KickstartPeriodRecord } from './records';
 
 type PeriodTimes = Pick<
@@ -136,6 +141,51 @@ export function kickstartPeriodState(
   if (here < day1 || there < day1) return 'not-started';
   if (here > last || there > last) return 'past-last-day';
   return 'running';
+}
+
+/** The end of a period that never ran: this long after its start. */
+export const NEVER_RAN_END_MS = 1;
+
+/** The instant `ms` after an instant. */
+const after = (at: Instant, ms: number): Instant => new Date(instantMs(at) + ms).toISOString();
+
+/**
+ * The period was ended before its first day came (item 14 review): endPeriod wrote its end 1 ms
+ * after its start. It never ran, so it has no Kickstart day, no rapid-loss exemption, no "Kickstart
+ * has finished" and no rebound note; it still counts 1 day toward the cap (effectiveDays).
+ */
+export function endedBeforeDay1(period: PeriodTimes): boolean {
+  return (
+    period.endedAt !== null &&
+    instantMs(period.endedAt) - instantMs(period.startedAt) <= NEVER_RAN_END_MS
+  );
+}
+
+/**
+ * Where endPeriod ends the latest period (D27; item 12's clock rules; item 14 review): at the latest
+ * of now, the clock high-water mark and 1 ms after its start, so a clock set back never makes the
+ * days already lived count as fewer. When its first day has not come by the phone's date now
+ * (kickstartPeriodState 'not-started') and nothing saved lies on a later date than day 1, it never
+ * ran: 1 ms after its start (endedBeforeDay1). Either way it counts 1 day toward the cap.
+ */
+export function kickstartEndAt(
+  period: PeriodTimes,
+  extensions: number,
+  now: Instant,
+  highWater: Instant | null,
+  deviceZone: TimeZone,
+  homeTimeZone?: TimeZone,
+): Instant {
+  const neverRan = after(period.startedAt, NEVER_RAN_END_MS);
+  const lifted = notBeforeAny(now, highWater, neverRan);
+  if (kickstartPeriodState(period, extensions, now, deviceZone, homeTimeZone) !== 'not-started') {
+    return lifted;
+  }
+  const day1 = periodDay1(period, homeTimeZone);
+  const livedPastDay1 =
+    recordLocalDate(lifted, deviceZone, homeTimeZone) > day1 ||
+    recordLocalDate(lifted, period.timeZone, homeTimeZone) > day1;
+  return livedPastDay1 ? lifted : neverRan;
 }
 
 /** Whether a period is running at `at`: kickstartPeriodState(...) is 'running'. */

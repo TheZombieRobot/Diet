@@ -1,7 +1,14 @@
 import { expect, type BrowserContext, type Locator, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { fasting, foods, onboarding, privacy, weight } from '../../packages/core/src/copy/health';
+import {
+  fasting,
+  foods,
+  onboarding,
+  privacy,
+  today,
+  weight,
+} from '../../packages/core/src/copy/health';
 import { parseColourTokens, requireToken } from '../../packages/ui/src/tokens';
 
 /** Every screen of the phone app, in the order a person reaches them. */
@@ -20,6 +27,8 @@ export const SCREENS = [
   'Diet and targets',
   // Item 18: reached from About, Data sources.
   'Foods in the app',
+  // Item 30: reached from Settings.
+  'Laptop pairing',
 ] as const;
 export type ScreenName = (typeof SCREENS)[number];
 
@@ -29,6 +38,7 @@ export const UNDER_SETTINGS: readonly ScreenName[] = [
   ...SETUP_SCREENS,
   'Diet and targets',
   'Foods in the app',
+  'Laptop pairing',
 ];
 
 /** The app's base path, the same as on GitHub Pages. */
@@ -88,6 +98,12 @@ export async function goTo(page: Page, screen: ScreenName): Promise<void> {
     }
   }
   await expect(heading(page)).toHaveText(screen);
+  // Today draws its cards after its own reads (item 16): wait for them, so a check measures them.
+  if (screen === 'Today') {
+    await expect(
+      page.getByRole('region', { name: today.cards.movement, exact: true }),
+    ).toBeVisible();
+  }
 }
 
 /**

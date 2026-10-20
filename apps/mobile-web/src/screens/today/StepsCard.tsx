@@ -39,6 +39,13 @@ export function StepsCard({
   const enterRef = useRef<HTMLButtonElement>(null);
   /** The button to focus once it is on screen (after the write has come back). */
   const focusNext = useRef<'edit' | 'enter' | null>(null);
+  /**
+   * The date "Same as yesterday" was saved for, until the stored row comes back: a second tap in
+   * between would try to add the same day again and fail, next to a count that was saved.
+   */
+  const [repeatSavedFor, setRepeatSavedFor] = useState<LocalDate | null>(null);
+  if (repeatSavedFor !== null && todayRow !== null) setRepeatSavedFor(null);
+  const repeatWaiting = write.busy || repeatSavedFor === date;
 
   useEffect(() => {
     const target = focusNext.current === 'edit' ? editRef.current : enterRef.current;
@@ -85,10 +92,13 @@ export function StepsCard({
       });
   };
   const sameAsYesterday = (count: number) => {
+    if (repeatSavedFor === date) return;
     void write
       .run(() => storage.repos.steps.create({ date, steps: count, source: 'manual' }))
       .then((done) => {
-        if (done !== null) focusNext.current = 'edit';
+        if (done === null) return;
+        focusNext.current = 'edit';
+        setRepeatSavedFor(date);
       });
   };
 
@@ -135,7 +145,7 @@ export function StepsCard({
             }}
           />
           <ButtonRow stacked>
-            <Button type="submit" variant="primary" disabled={write.busy}>
+            <Button type="submit" variant="primary" aria-disabled={write.busy}>
               {steps.save}
             </Button>
             <Button
@@ -147,7 +157,7 @@ export function StepsCard({
               {steps.cancel}
             </Button>
             {todayRow === null ? null : (
-              <Button variant="quiet" disabled={write.busy} onClick={remove}>
+              <Button variant="quiet" aria-disabled={write.busy} onClick={remove}>
                 {steps.remove}
               </Button>
             )}
@@ -165,7 +175,7 @@ export function StepsCard({
         <Button
           variant="quiet"
           block
-          disabled={write.busy}
+          aria-disabled={repeatWaiting}
           onClick={() => {
             sameAsYesterday(repeat);
           }}

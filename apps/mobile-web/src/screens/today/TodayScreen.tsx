@@ -23,7 +23,7 @@ import { NutritionTodayCard } from './NutritionTodayCard';
 import { RemindersCard } from './RemindersCard';
 import { LiveStatusBlock, StatusBlock } from './StatusBlock';
 import { StepsCard } from './StepsCard';
-import { readToday, type TodayInputs, type TodaySource, todayView } from './view';
+import { readToday, setupFinished, type TodayInputs, type TodaySource, todayView } from './view';
 import { WaterCard } from './WaterCard';
 
 /**
@@ -33,7 +33,8 @@ import { WaterCard } from './WaterCard';
  * own cards; Nutrition today (item 21); Water and Steps side by side; Movement; Drinks; and the
  * Reminders card in its normal place. A block not shown leaves no gap. Nothing can be written
  * until setup is finished (HS-20, C41), a second guard behind item 13's; while the read is pending
- * only the date shows, and a failed read offers a reload (T23, T24).
+ * only the date shows, and a failed read offers a reload under the status line and the Talk to
+ * someone card, which have reads of their own (T23, T24).
  */
 export function TodayScreen(): ReactElement {
   const storage = useStore(appStorageStore);
@@ -68,9 +69,14 @@ function TodayWithRecords({ storage }: { readonly storage: AppStorage }): ReactE
 
   const dateOnly = <StatusBlock ref={statusRef} now={now} zone={zone} line={null} />;
   if (read.status === 'error') {
+    // The status line and the Talk to someone card run their own reads, so this failure never
+    // hides the over-24-hours sentence or the withdrawal-safety card. Item 13's read of the
+    // settings says whether setup is finished, as nothing on Today writes before it is.
+    const setupDone = gateView !== undefined && setupFinished(gateView.state.settings);
     return (
       <>
-        {dateOnly}
+        {setupDone ? <LiveStatusBlock ref={statusRef} storage={storage} now={now} /> : dateOnly}
+        {setupDone ? <AlcoholHelpCard storage={storage} /> : null}
         <Notice role="alert">
           <p>{copy.readFailed}</p>
           <Button

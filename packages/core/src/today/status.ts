@@ -10,11 +10,13 @@
  *   switches a feature off, never a warning.
  * - While fasting is gated, a running fast gets only a neutral "still open" line, and with no fast
  *   there is no status line at all (HS-03, RD-06).
- * - No line names a window time that would carry a running fast past 24 hours (C30). When the
- *   next window opens more than 24 hours after the span began, or item 15's end hint says to eat
- *   now (close to 24 hours) or by the 24-hour point, the line says it is fine to widen the window.
+ * - No line names a time past the 24-hour point of a running fast (C30). Item 15's end hint comes
+ *   first, worked out as on the Fast card: close to 24 hours (from 23 hours) the line says it is
+ *   fine to eat now, and when the plan is capped at the 24-hour point it says it is fine to widen
+ *   the window. A window open now that ends past the 24-hour point is named without its end, and
+ *   a next window that opens past it is not named: the line says it is fine to widen the window.
  */
-import { FAST_CEILING_MS, planFast } from '../fasting/fastPlan';
+import { FAST_CEILING_MS, runningPlan } from '../fasting/fastPlan';
 import {
   fastEndHint,
   type FastTimes,
@@ -46,9 +48,13 @@ export type StatusWindow =
   | { readonly kind: 'opens-today'; readonly at: Instant }
   | { readonly kind: 'opens-tomorrow'; readonly at: Instant }
   /** A running fast whose next window would carry it past 24 hours: no time is named. */
-  | { readonly kind: 'widen' };
+  | { readonly kind: 'widen' }
+  /** A running fast close to 24 hours (item 15's eat-now hint): no time is named. */
+  | { readonly kind: 'eat-now' }
+  /** A window open now that ends past the running fast's 24-hour point: its end is not named. */
+  | { readonly kind: 'open-now' };
 
-type ClockWindow = Exclude<StatusWindow, { readonly kind: 'widen' }>;
+type ClockWindow = Exclude<StatusWindow, { readonly kind: 'widen' | 'eat-now' | 'open-now' }>;
 
 export type TodayStatus =
   | { readonly kind: 'none' }
@@ -95,18 +101,26 @@ function runningWindow(
   timeZone: TimeZone,
   schedule: Schedule,
 ): StatusWindow | null {
-  const open = openWindowAt(nowMs, timeZone, schedule);
-  if (open !== null) return { kind: 'open-until', at: iso(open.endMs) };
+  // Item 15's end hint first, from the same plan as the Fast card's, so the line never names a
+  // window while the card says to eat now or by the 24-hour point.
   const last = span.fasts.at(-1);
   const plan =
     last === undefined
       ? null
-      : planFast(instantMs(last.startedAt), timeZone, schedule, span.startMs);
+      : runningPlan(instantMs(last.startedAt), timeZone, schedule, span.startMs, nowMs);
   const hint = fastEndHint(runningPhase(elapsedMs, nowMs, plan), plan);
-  if (hint.kind === 'eat-now' || hint.kind === 'eat-by') return { kind: 'widen' };
+  if (hint.kind === 'eat-now') return { kind: 'eat-now' };
+  if (hint.kind === 'eat-by') return { kind: 'widen' };
+  const ceilingMs = span.startMs + FAST_CEILING_MS;
+  const open = openWindowAt(nowMs, timeZone, schedule);
+  if (open !== null) {
+    return open.endMs > ceilingMs
+      ? { kind: 'open-now' }
+      : { kind: 'open-until', at: iso(open.endMs) };
+  }
   const next = nextWindowStart(nowMs, timeZone, schedule);
   if (next === null) return null;
-  if (next.startMs - span.startMs > FAST_CEILING_MS) return { kind: 'widen' };
+  if (next.startMs > ceilingMs) return { kind: 'widen' };
   return classify(next, nowMs, timeZone);
 }
 

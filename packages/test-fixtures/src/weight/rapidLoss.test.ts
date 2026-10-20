@@ -103,6 +103,16 @@ describe('the rapid-loss card (HS-11, C08, C46, D27)', () => {
     expect(shows(WEIGHT_SCENARIOS['R2-alone'], 63)).toBe(false);
   });
 
+  it('WT-03, HS-11: four Steady weeks at 1.2 kg a week, then a first Kickstart from day 29: shown on day 28, never on its 21 days', () => {
+    const steadyFirst = {
+      ...K42,
+      ratesKgPerWeek: [1.2, 1.2, 1.2, 1.2, 2.5, 2.5, 2.5],
+      periods: [{ startDay: 29 }],
+    };
+    expect(shows(steadyFirst, 28)).toBe(true);
+    expect(showingDays(steadyFirst, 29, 49)).toEqual([]);
+  });
+
   it('never on an exempt day, however fast the line falls', () => {
     expect(showingDays({ ...K42, ratesKgPerWeek: [5] }, 1, 21)).toEqual([]);
   });

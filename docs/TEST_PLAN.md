@@ -74,7 +74,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 |---|---|---|
 | WT-01 | Goal below BMI 18.5 | Refused with reason (HS-01) |
 | WT-02 | Goal >20% below current | Long-term goal accepted and labelled long-term; the next milestone shown is never more than 20% below the current weight (rounded up to 0.1 kg) (HS-01) |
-| WT-03 | Synthetic series losing 2.5 kg/week in weeks 1–3 (Kickstart) | No rapid-loss card; Kickstart note shown (HS-11) |
+| WT-03 | Synthetic series losing 2.5 kg/week in weeks 1–3 (Kickstart); and four Steady weeks at 1.2 kg/week before a first Kickstart from day 29 | No rapid-loss card in the 21 Kickstart days (the second series shows it on day 28, so the check can fail); Kickstart note shown (HS-11) |
 | WT-04 | Series losing 1.2 kg/week in weeks 4–6 (Steady) | Rapid-loss card after the third week (HS-11) |
 | WT-06 | Kickstart deficit with a low energy estimate | Planned energy clamps to the 5,000 kJ floor; protein target unchanged (HS-25) |
 | WT-07 | Kickstart deficit with a high estimate | Planned energy is exactly 30% below estimate (HS-25) |
@@ -154,9 +154,10 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 ### 3.10 Phone-to-laptop transfer
 | ID | Case | Expected |
 |---|---|---|
-| TR-01 | Encrypt/decrypt round trip (unit) | Identical list; wrong key fails cleanly |
+| TR-01 | Encrypt/decrypt round trip (unit) | Identical list and acknowledgement; a wrong key, a changed byte or the wrong slot fails cleanly ('cannot open') and never throws; fixed vectors pin the pairing code, the body layout, the additional data and both payloads (item 30). |
 | TR-02 | Relay never sees plaintext | Relay half (item 29): the relay logs nothing, has no decrypt code and stores only the posted body, refusing raw text. End-to-end half (item 31): every stored body decodes to AES-GCM ciphertext under the pairing key that opens to the sent list, and shows no item name, compressed or not. |
-| TR-03 | Pairing by QR | Laptop shows QR; phone scans; both sides store the pairing; second scan not needed next time |
+| TR-03a | Pairing by QR, phone half (item 30) | A pairing code drawn into the camera is read by the bundled reader (Chrome's own reader is never asked); the phone stores the pairing with a key it cannot read back, keeps it after a reload, stops the camera and, from the tap on Scan until the pairing is saved, requests nothing but the bundled reader's own file. |
+| TR-03b | Pairing by QR, end to end (item 33) | Laptop shows QR; phone scans; both sides store the pairing and show the same pairing check; second scan not needed next time |
 | TR-04 | Send 25-item list | Appears in side panel within 30 s |
 | TR-05a | Send a 300-item list (`groceryList300()` fixture) | Succeeds (C114) |
 | TR-05b | A body over the cap (`MAX_RELAY_BODY_BYTES` = 65,536 bytes of the encoded request body, checked on Content-Length and on the bytes read), for example high-entropy notes | The relay answers 413 and stores nothing; the phone shows "too large", offers CSV or JSON, and never shows "Sent" (C114) |
@@ -164,8 +165,8 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | TR-07 | Relay down | Phone offers paste fallback immediately; text code produced |
 | TR-08 | Paste fallback | Pasting the code into the extension yields the same list |
 | TR-09a | Replay (relay, item 29) | Re-fetching an already-delivered blob at the same place returns nothing. A copy served elsewhere is byte-identical to a blob sent to that room and is never served after its expiry (C79, C113). |
-| TR-09b | Replay (extension, item 33) | Each of these is ignored, and leaves one copy with ticks and notes intact: a byte-identical duplicate; a duplicate arriving after Clear list (the list stays cleared); an older version of the same list; an earlier send of the same version arriving after a later one. A deliberate re-send of the same version is accepted and keeps ticks and notes. The acknowledgement always names the version the laptop holds (C79, NN-07). |
-| TR-10 | Unpair | Both sides forget key; next send requires pairing |
+| TR-09b | Replay (extension, item 33) | Each of these is ignored, and leaves one copy with ticks and notes intact: a byte-identical duplicate; a duplicate arriving after Clear list (the list stays cleared); an older version of the same list; an earlier send of the same version arriving after a later one. A deliberate re-send of the same version is accepted and keeps ticks and notes. The acknowledgement always names the version the laptop holds and the send that brought it (C79, NN-07). |
+| TR-10 | Unpair (C115) | Unpair on a device deletes that device's key and room id; the next send requires pairing; a list sealed after re-pairing cannot be opened with the old key; no network request is made on unpair (HS-14). Phone half at items 30 (unpair) and 31 (the next send requires pairing), laptop half at item 33. |
 | TR-11 | Network audit (`context.on('request')`, so service-worker requests are seen too), online and offline, visiting every screen | The phone app makes only GET requests to its own origin for app files and update checks, with no query string or body built from user data, and requests to the relay origin only after "Send to laptop" is tapped and until that transfer is received or expires (HS-14; reworded per DOC_REVIEW C03) |
 
 ### 3.11 Food log, diet modes, household, allergens
@@ -198,7 +199,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | NN-04 | Raw/cooked weights and package quantities | Not conflated: 500 g raw mince recipe yields a "500 g pack" grocery line, and a cooked-weight log entry stays cooked |
 | NN-05 | Missing price or stock | Shown as "unknown"; never a fabricated live price; any price has an entered-at timestamp |
 | NN-06 | Silverbeet 300 g in garden, recipes need 500 g | List shows 200 g to buy and an audit line "300 g from garden" |
-| NN-07 | Stop a transfer midway, restart, send again | Laptop shows one copy of the list; no duplicated items; logs intact |
+| NN-07 | Stop a transfer midway, restart, send again | Laptop shows one copy of the list; no duplicated items; logs intact (the duplicate rule, scoped to the pairing, is unit-tested at item 30; end to end at item 33) |
 | NN-08 | Extension cannot checkout or change store | No checkout control exists; in mode A a batch refuses to start if the site's selected store is not the configured store; a changed page structure produces a visible error and stops |
 | NN-09 | Alcohol tracker wording | Never implies that meeting a guideline is safe; never prescribes detox; "no alcohol use is risk-free" present |
 
@@ -220,12 +221,12 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | ID | Case | Expected |
 |---|---|---|
 | TD-01 | Card order and the Today snapshot | Status line, then the "talk to someone" card, then a prominent Reminders card, then the UX_SCREENS section 2 cards; the structural snapshot with its explicit assertions |
-| TD-02 | Unbuilt features | Movement and drink logging show no numbers (the Nutrition today card shows the day's own intake, item 21); unbuilt quick actions are shown with "Later", focusable and inert; nothing is written before setup; a failed read offers a reload |
-| TD-03 | Water and the electrolyte tick | Saved and still there after a reload offline, by local day; Undo removes only its own entry; the status total matches the stored total |
+| TD-02 | Unbuilt features | Movement and drink logging show no numbers (the Nutrition today card shows the day's own intake, item 21); unbuilt quick actions are shown with "Later", focusable and inert; nothing is written before setup; a failed read offers a reload and keeps the status line and the "talk to someone" card |
+| TD-03 | Water and the electrolyte tick | Saved and still there after a reload offline, by local day; Undo removes only its own entry; the status total matches the stored total; focus stays on the control used, after a save and after a failed one |
 | TD-04 | Steps | Manual entry within 0–100,000; Done saves; "Same as yesterday" only when yesterday has an entry and today none; never overwrites |
 | TD-05 | Drinks guidance | By stored sex and setting, the stricter wins, women's when sex is missing, never without "No alcohol use is risk-free."; under 18 shows the reason and no figures |
 | TD-06 | Reminders | Cholesterol per NU-08 (counted again once when low-carb eating first starts); electrolytes per C72, only with the keto ceiling on in keto mode; medication timing (RD-09) on the Fast card when fasting is available and in Reminders when it is switched off, never twice; backup per BK-03, with Reminders first when storage is not protected |
-| TD-07 | Status line | The over-24-hours sentence strictly over 24 h whether or not fasting is switched off; a neutral "still open" line when it is; no window time that would carry a running fast past 24 h; the day's window after the snack is added; no fasting words with no pattern |
+| TD-07 | Status line | The over-24-hours sentence strictly over 24 h whether or not fasting is switched off; a neutral "still open" line when it is; no time past the running fast's 24-hour point, and from 23 h "It's fine to eat now.", as on the Fast card; the day's window after the snack is added; no fasting words with no pattern |
 
 ### 3.15 Foods in the app (checklist item 18)
 | ID | Case | Expected |
@@ -248,7 +249,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 - [ ] Text readable outdoors at midday; buttons tappable with a thumb.
 
 ### End of week 3
-- [ ] Pair laptop and phone via QR in under one minute.
+- [ ] Pair laptop and phone via QR in under one minute; both show the same pairing check.
 - [ ] Send today's list; appears on laptop.
 - [ ] Turn off Wi-Fi on laptop; send again; use paste fallback.
 - [ ] Do one beach session from the app; prompts appeared; log saved.

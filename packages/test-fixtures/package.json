@@ -12,6 +12,7 @@
     "test": "vitest run --root ../.. --project test-fixtures"
   },
   "dependencies": {
-    "@diet/core": "workspace:*"
+    "@diet/core": "workspace:*",
+    "qrcode-generator": "2.0.4"
   }
 }

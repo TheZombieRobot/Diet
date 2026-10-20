@@ -54,6 +54,7 @@ import {
   onboardForTests,
   openTestDb,
   pairingRow,
+  savePairingForTests,
   PHOTO_BYTES,
   photoRow,
   rawWriter,
@@ -145,7 +146,7 @@ describe('BK-01 / HS-15: round trip through the real database (section 10.8; sec
       expect(
         snapshotV1.grocery_lists.some((l) => l.transferId !== null && l.receivedVersion !== null),
       ).toBe(true);
-      await test.db.transfer_pairings.put(await pairingRow());
+      await savePairingForTests(test);
       const gardenId = snapshotV1.garden[0]?.id ?? '';
       await test.db.garden_photos.put(photoRow(gardenId));
 
@@ -260,10 +261,12 @@ describe('replace semantics and the confirmation (D17; section 16 test 29)', () 
     await test.repos.recipes.update(recipe.id, { title: 'Example renamed recipe' });
     const keptGarden = snapshotV1.garden[0]?.id ?? '';
     await test.db.garden_photos.bulkPut([photoRow(keptGarden), photoRow(extraGarden.id)]);
-    await test.db.transfer_pairings.put(await pairingRow());
+    await savePairingForTests(test);
 
     const decoded = await decodeImport(asFile(exported.file.text), null, test.env);
     const plan = await planImport(test.db, decoded);
+    // The confirmation says "The laptop pairing will be removed." only for a paired phone (A2).
+    expect(plan.paired).toBe(true);
     expect(plan.confirmation).toEqual({
       missingFromFile: 2,
       differFromFile: 1,

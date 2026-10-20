@@ -141,9 +141,9 @@ test('every control on every screen is at least 48 px by 48 px on a phone', asyn
   // Install app on Settings. Reload is measured in update.spec.ts once an update is waiting.
   await offerInstall(page);
   await goTo(page, 'Today');
-  // Today draws its cards once its records open; measure only after the banner is there.
-  await expect(page.getByRole('button', { name: 'Not now' })).toBeVisible();
+  await expect(page.getByText('Install this app')).toBeVisible();
   await page.getByRole('button', { name: 'Quick actions' }).click();
+  await expect(page.locator('.ui-fab-panel .ui-action-row').first()).toBeVisible();
   expect(await measure('Today with the install banner')).toEqual(
     expect.arrayContaining(['Install app', 'Not now', 'Quick actions']),
   );
@@ -322,11 +322,12 @@ test('on Today the "+" never covers the last card', async ({ page }) => {
   expect(lastBottom).toBeLessThanOrEqual(fabTop);
 });
 
-test("Today's Water and Steps sit side by side, stack when narrow or editing, and keep 48 px controls; the panel scrolls", async ({
+test("Today's Water and Steps sit side by side, stack when narrow or editing, keep their content inside, and keep 48 px controls; the panel scrolls", async ({
   page,
 }) => {
-  // Item 16 design section 5.3 E6 (T25): 390 px side by side; 320 px and 195 px (a 390 px phone
-  // at 200% zoom) stacked, with no sideways scroll even with the steps editor open.
+  // Item 16 design section 5.3 E6 (T25): side by side from 360 px; 320 px, 195 px and 180 px (a
+  // 390 px and a 360 px phone at 200% zoom) stacked by the width alone, with nothing inside a card
+  // running out of it, and no sideways scroll even with the steps editor open.
   await page.setViewportSize({ width: 390, height: 600 });
   await seedOnboarded(page);
   const water = page.getByRole('region', { name: 'Water', exact: true });
@@ -337,7 +338,28 @@ test("Today's Water and Steps sit side by side, stack when narrow or editing, an
     if (a === null || b === null) throw new Error('no card pair');
     return Math.abs(a.y - b.y) < 1 && b.x >= a.x + a.width;
   };
-  expect(await sideBySide()).toBe(true);
+  const outsideTheirCard = () =>
+    page.evaluate(() =>
+      Array.from(document.querySelectorAll('.ui-card-pair > .ui-card')).flatMap((card) => {
+        const edge = card.getBoundingClientRect();
+        return Array.from(card.querySelectorAll('*'))
+          .filter((e) => !e.closest('.ui-visually-hidden'))
+          .map((e) => ({ e, box: e.getBoundingClientRect() }))
+          .filter(({ box }) => box.left < edge.left - 0.5 || box.right > edge.right + 0.5)
+          .map(({ e, box }) => `${e.textContent.slice(0, 24)} at ${box.left}-${box.right}`);
+      }),
+    );
+  const overflow = () =>
+    page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+  for (const width of [412, 390, 360, 320, 195, 180]) {
+    await page.setViewportSize({ width, height: 640 });
+    expect(await sideBySide(), `${width} px`).toBe(width >= 360);
+    expect(await outsideTheirCard(), `${width} px`).toEqual([]);
+    expect(await overflow(), `${width} px`).toBeLessThanOrEqual(0);
+  }
+  await page.setViewportSize({ width: 390, height: 600 });
   await steps.getByRole('button', { name: 'Enter steps' }).click();
   expect(await sideBySide()).toBe(false);
 
@@ -357,13 +379,12 @@ test("Today's Water and Steps sit side by side, stack when narrow or editing, an
   ).toBe(true);
   await page.keyboard.press('Escape');
 
-  for (const width of [320, 195]) {
+  // The steps editor open on a narrow or zoomed screen.
+  for (const width of [320, 195, 180]) {
     await page.setViewportSize({ width, height: 640 });
     expect(await sideBySide(), `${width} px`).toBe(false);
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-    );
-    expect(overflow, `${width} px`).toBeLessThanOrEqual(0);
+    expect(await outsideTheirCard(), `${width} px, editing`).toEqual([]);
+    expect(await overflow(), `${width} px, editing`).toBeLessThanOrEqual(0);
   }
 });
 
