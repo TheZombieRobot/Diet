@@ -8,9 +8,10 @@
  *   answer 4 is "yes" or unanswered it reads as 22:2 even during Kickstart: the app chose that
  *   default before the answer, and nothing is chosen for that owner (C07, E49).
  * - The two stored moves keep the records in line: at a Kickstart start an untouched default moves
- *   to the 23:1 Kickstart default (never for answer 4 "yes" or unanswered, C07); outside Kickstart
- *   an untouched 23:1 Kickstart default moves back to 22:2. A preset the owner chose is never moved,
- *   and nothing moves while fasting is gated (a hidden setting is not changed).
+ *   to the 23:1 Kickstart default (never for answer 4 "yes" or unanswered, C07); outside Kickstart,
+ *   and during it while answer 4 applies, an untouched 23:1 Kickstart default moves back to 22:2,
+ *   so a later "no" to answer 4 never brings one meal a day back unasked. A preset the owner chose
+ *   is never moved, and nothing moves while fasting is gated (a hidden setting is not changed).
  * Windows come from FASTING_PRESETS, never literals.
  */
 import { DEFAULT_HOME_TIME_ZONE, resolveZone } from '../storage/dates';
@@ -107,18 +108,19 @@ export function kickstartStartUses231(
 }
 
 /**
- * Outside Kickstart: a stored 23:1 Kickstart default becomes 22:2 'default'. Null while the phase
- * is Kickstart, fasting is gated or onboarding is incomplete. Never depends on a card's state.
+ * Outside Kickstart, or during it while answer 4 is "yes" or unanswered (C07): a stored 23:1
+ * Kickstart default becomes 22:2 'default'. Null during Kickstart otherwise, while fasting is gated
+ * or onboarding is incomplete. Never depends on a card's state.
  */
 export function presetMoveDue(input: {
   readonly targets: PresetFields;
   readonly phase: Phase;
   readonly fastingGated: boolean;
+  readonly pharmacistReminder: boolean;
   readonly onboardingCompleted: boolean;
 }): PresetChange | null {
-  if (!input.onboardingCompleted || input.fastingGated || input.phase.kind === 'kickstart') {
-    return null;
-  }
+  if (!input.onboardingCompleted || input.fastingGated) return null;
+  if (input.phase.kind === 'kickstart' && !input.pharmacistReminder) return null;
   return isKickstartDefault(input.targets) ? change('22:2', 'default') : null;
 }
 
@@ -177,6 +179,7 @@ export function presetMoveDueFromRecords(
     targets: records.targets,
     phase,
     fastingGated: gates.fastingGated,
+    pharmacistReminder: gates.pharmacistReminder,
     onboardingCompleted: records.settings.onboardingCompletedAt !== null,
   });
 }

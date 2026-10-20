@@ -6,7 +6,7 @@
 import { fillTemplate, type FourWeekChart, type WeightNote } from '@diet/core';
 import { helpNumbers, privacy, readiness, weight } from '@diet/core/copy/health';
 import { ActionRow, Button, Notice, PhoneIcon, TrendChart } from '@diet/ui';
-import { useEffect, type ReactElement, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactElement, type ReactNode } from 'react';
 import type { AppStorage } from '../../db/runtime';
 import { formatKg } from '../../format';
 import { routeHref } from '../../routes';
@@ -139,19 +139,24 @@ export function WriteFailure({
 
 /**
  * The weight screens' outcome line (W33): a polite status and an alert, both always present so a
- * message is announced; the last message stays until the next one or until the screen closes.
+ * message is announced; the last message stays until the next one or until the screen closes. A
+ * message whose control has gone (a finished check, a start, an end) takes focus.
  */
 export function WeightStatus({ storage }: { storage: AppStorage }): ReactElement {
   const message = useStore(weightStatusStore);
+  const statusRef = useRef<HTMLParagraphElement>(null);
   useEffect(
     () => () => {
       weightStatusStore.set(null);
     },
     [],
   );
+  useEffect(() => {
+    if (message?.focus === true) statusRef.current?.focus();
+  }, [message]);
   return (
     <>
-      <p role="status" className="ui-text-strong ui-status-line">
+      <p ref={statusRef} tabIndex={-1} role="status" className="ui-text-strong ui-status-line">
         {message?.tone === 'status' ? message.text : null}
       </p>
       <div role="alert" className="ui-status-line">

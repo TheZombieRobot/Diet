@@ -8,7 +8,7 @@ import { EndKickstart } from './EndKickstart';
 import { KickstartCheckPanel } from './KickstartCheckPanel';
 import { PhaseNotes } from './parts';
 import type { WeightView } from './useWeightView';
-import { phaseChip, START_UNAVAILABLE_TEXT } from './weightText';
+import { phaseChip, startUnavailableText } from './weightText';
 
 /**
  * The Phase card on the Weight screen (item 14 design section 2.4.1): during Kickstart its week,
@@ -20,16 +20,15 @@ import { phaseChip, START_UNAVAILABLE_TEXT } from './weightText';
 export function PhaseCard({
   storage,
   view,
-  onPreStartStopSign,
 }: {
   storage: AppStorage;
   view: WeightView;
-  onPreStartStopSign: () => void;
 }): ReactElement {
   const { overview } = view;
   const { phase, kickstart } = overview;
   const [checking, setChecking] = useState(false);
   const chip = phaseChip(phase);
+  const unavailable = kickstart.start.available ? null : startUnavailableText(kickstart.start);
   return (
     <Card label={weight.phase.label}>
       {chip === null ? null : <p className="ui-text-strong">{chip}</p>}
@@ -68,9 +67,9 @@ export function PhaseCard({
               onCancel={() => {
                 setChecking(false);
               }}
+              // The guidance card takes over (preStartCheck.ts).
               onPreStartStopSign={() => {
                 setChecking(false);
-                onPreStartStopSign();
               }}
             />
           ) : (
@@ -85,10 +84,8 @@ export function PhaseCard({
           )}
         </>
       ) : null}
-      {phase.kind === 'steady' &&
-      !kickstart.start.available &&
-      START_UNAVAILABLE_TEXT[kickstart.start.reason] !== null ? (
-        <p className="ui-text-muted">{START_UNAVAILABLE_TEXT[kickstart.start.reason]}</p>
+      {phase.kind === 'steady' && unavailable !== null ? (
+        <p className="ui-text-muted">{unavailable}</p>
       ) : null}
     </Card>
   );

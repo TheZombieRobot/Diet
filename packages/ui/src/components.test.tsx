@@ -783,6 +783,17 @@ describe('the weight chart and inline answers (item 14)', () => {
     expect(svg.contains(labels)).toBe(false);
   });
 
+  it('a disabled icon button is drawn as off (the weight − and + before there is a weight)', () => {
+    const style = document.createElement('style');
+    style.textContent = componentsCss;
+    document.head.append(style);
+    render(<IconButton label="More 0.1 kg" icon={<TodayIcon />} disabled />);
+    expect(getComputedStyle(screen.getByRole('button', { name: 'More 0.1 kg' })).opacity).toBe(
+      '0.5',
+    );
+    style.remove();
+  });
+
   it('draws no band when there is none', () => {
     chart({ band: null });
     expect(screen.getByRole('img').querySelector('.ui-trend-chart__band')).toBeNull();

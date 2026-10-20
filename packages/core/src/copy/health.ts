@@ -1187,7 +1187,10 @@ export const weight = {
     days30: '30 days',
     days90: '90 days',
     aboutBand:
-      'The shaded range is a rough typical range, not a promise and not a target. In Steady it follows about 0.5–1 kg a week, and never faster than your weight check-in setting. In your first Kickstart it is steeper for two weeks, mostly water and glycogen, then flattens.',
+      'The shaded range is a rough typical range, not a promise and not a target. In Steady it follows about 0.5–1 kg a week, and never faster than your weight check-in setting.',
+    // Only while the chart draws the steeper first block (item 14 review: never promised otherwise).
+    aboutBandKickstart:
+      'In your first Kickstart it is steeper for two weeks, mostly water and glycogen, then flattens.',
   },
   phase: {
     label: 'Phase',
@@ -1214,7 +1217,7 @@ export const weight = {
     gatedUnanswered:
       'Kickstart, the typical range and the pace notes stay off until the readiness questions are answered. Your weigh-ins and trend still show.',
     lowWeight:
-      'Your recent weight is below a BMI of 18.5 for your height. Please check in with your GP, and look again at readiness question 5. Your weigh-ins and trend still show.',
+      'Your recent weight is below a BMI of 18.5 for your height. Please check in with your GP, and look again at readiness question 5. Kickstart, the typical range and the long-term goal are switched off, and your weigh-ins and trend still show.',
     readinessLink: 'See your readiness answers',
   },
   goal: {
@@ -1301,8 +1304,8 @@ export const weight = {
     extend: 'Extend by one week',
     notNow: 'Not now',
     extended: 'Kickstart extended by one week. It is now week {week} of {weeks}.',
-    stopSign:
-      'Thanks for telling the app. Kickstart will not be extended. Eating more today is fine, and you can end Kickstart now.',
+    // The stop-sign card that takes focus says the rest (item 14 review: no repeated sentence).
+    stopSign: 'Thanks for telling the app. Kickstart will not be extended.',
     refusedWindow: 'Kickstart could not be extended: the offer is open only in its last 3 days.',
     refusedCap:
       'Kickstart could not be extended: it can run for at most 6 weeks and 3 extensions in all.',
@@ -1349,8 +1352,14 @@ export const weight = {
     unavailableLowWeight:
       'Kickstart is not offered while your recent weight is below a BMI of 18.5 for your height.',
     unavailableToday: 'A new Kickstart can start from tomorrow.',
+    // A Kickstart ended before its first day (the clock was ahead): its day 1 is still held.
+    unavailableEndedAhead:
+      "The Kickstart you ended was dated {date} by the phone's clock, so a new one can start the day after that.",
     unavailableRecentStopSign:
       'A stop-sign was reported in the last two weeks, so a new Kickstart cannot start yet.',
+    // A "yes" before a start is held for the rest of that day only (W31).
+    unavailableStopSignToday:
+      'You answered yes to a stop-sign question today, so a Kickstart cannot start today.',
     unavailableCap:
       'Kickstart can run for at most 6 weeks in all, and a new one needs a full three weeks, so another one cannot start.',
     saveFailed: 'Kickstart could not be started. Nothing was changed. Try again.',
@@ -1379,6 +1388,8 @@ export const weight = {
   presetMoved: {
     label: 'Eating window',
     body: 'The eating window is now 22:2 (5 pm snack + dinner). 23:1 (one meal) is the Kickstart default and is used only while Kickstart runs.',
+    /** While answer 4 is "yes" or unanswered, with no one-tap 23:1 (C07). */
+    answer4: schedule.kickstartDefaultSetAside,
     use231: 'Use 23:1 instead',
     ok: 'OK',
   },

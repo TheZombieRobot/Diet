@@ -6,7 +6,7 @@ import type { AppStorage } from '../../db/runtime';
 import { startKickstart } from './kickstartActions';
 import { recordPreStartStopSign } from './preStartCheck';
 import { reportStatus, stopSignFocusStore, weightStatusStore } from './stores';
-import { START_UNAVAILABLE_TEXT, useFocusWhen } from './weightText';
+import { startUnavailableText, useFocusWhen } from './weightText';
 import { weightWriteMessage } from './writeErrors';
 
 const QUESTIONS = ['dizzyOnStanding', 'palpitations', 'crampsNotSettling', 'faintAtWork'] as const;
@@ -77,6 +77,7 @@ export function KickstartCheckPanel({
               week: variant.week,
               weeks: variant.weeks + 1,
             }),
+            true,
           );
         } else {
           reportStatus(weight.extension.stopSign);
@@ -100,9 +101,10 @@ export function KickstartCheckPanel({
           result.presetSet
             ? `${weight.start.started} ${weight.start.presetSet}`
             : weight.start.started,
+          true,
         );
       } else {
-        reportStatus(START_UNAVAILABLE_TEXT[result.reason] ?? weight.start.saveFailed);
+        reportStatus(startUnavailableText(result.refusal) ?? weight.start.saveFailed);
         onCancel();
       }
     } catch (error) {

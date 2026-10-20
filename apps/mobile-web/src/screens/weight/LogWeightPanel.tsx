@@ -13,7 +13,7 @@ import {
 } from '@diet/core';
 import { weight } from '@diet/core/copy/health';
 import { Button, ButtonRow, IconButton, MinusIcon, Notice, PlusIcon, TextField } from '@diet/ui';
-import { useState, type ReactElement, type Ref } from 'react';
+import { useRef, useState, type ReactElement, type RefObject } from 'react';
 import type { AppStorage } from '../../db/runtime';
 import { formatKg, formatLocalDate, formatLocalTime } from '../../format';
 import { writeWeighIn } from '../../onboarding/actions';
@@ -31,7 +31,9 @@ export interface LogWeightPanelProps {
   readonly latest: LatestWeighIn | null;
   /** Called with the "Saved …" line after a save. */
   readonly onSaved: (message: string) => void;
-  readonly fieldRef?: Ref<HTMLInputElement>;
+  /** Today's panel: closes it without saving (a quiet Cancel). */
+  readonly onCancel?: () => void;
+  readonly fieldRef?: RefObject<HTMLInputElement | null>;
 }
 
 /**
@@ -45,9 +47,12 @@ export function LogWeightPanel({
   storage,
   latest,
   onSaved,
+  onCancel,
   fieldRef,
 }: LogWeightPanelProps): ReactElement {
   const zone = storage.env.timeZone();
+  const ownFieldRef = useRef<HTMLInputElement>(null);
+  const field = fieldRef ?? ownFieldRef;
   const [text, setText] = useState('');
   const [note, setNote] = useState('');
   const [when, setWhen] = useState<{ date: string; time: string } | null>(null);
@@ -114,6 +119,8 @@ export function LogWeightPanel({
       setNote('');
       setWhen(null);
       setBigChange(null);
+      // Save is now off (the field is empty): focus goes back to the field, not to the page.
+      field.current?.focus();
       onSaved(
         fillTemplate(weight.entry.saved, {
           kg: formatKg(parsed.kg),
@@ -132,7 +139,7 @@ export function LogWeightPanel({
   return (
     <div className="ui-card__body">
       <TextField
-        ref={fieldRef}
+        ref={field}
         label={weight.entry.fieldLabel}
         hint={
           latest === null
@@ -251,6 +258,11 @@ export function LogWeightPanel({
       >
         {weight.entry.save}
       </Button>
+      {onCancel === undefined ? null : (
+        <Button variant="quiet" block disabled={saving} onClick={onCancel}>
+          {weight.entry.cancel}
+        </Button>
+      )}
     </div>
   );
 }

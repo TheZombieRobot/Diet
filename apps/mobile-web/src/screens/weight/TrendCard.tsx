@@ -50,7 +50,13 @@ export function TrendCard({ view }: { view: WeightView }): ReactElement {
           )}
         </Stat>
         <Stat id={ids.change} label={weight.trend.weeklyChange}>
-          <span className="ui-stat__value ui-stat__value--empty">
+          <span
+            className={
+              overview.weeklyChange === null
+                ? 'ui-stat__value ui-stat__value--empty'
+                : 'ui-stat__value ui-stat__value--text'
+            }
+          >
             {changeText(overview.weeklyChange)}
           </span>
         </Stat>

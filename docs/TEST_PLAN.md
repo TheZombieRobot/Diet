@@ -74,7 +74,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 |---|---|---|
 | WT-01 | Goal below BMI 18.5 | Refused with reason (HS-01) |
 | WT-02 | Goal >20% below current | Long-term goal accepted and labelled long-term; the next milestone shown is never more than 20% below the current weight (rounded up to 0.1 kg) (HS-01) |
-| WT-03 | Synthetic series losing 2.5 kg/week in weeks 1–3 (Kickstart) | No rapid-loss card; Kickstart note shown (HS-11) |
+| WT-03 | Synthetic series losing 2.5 kg/week in weeks 1–3 (Kickstart); and four Steady weeks at 1.2 kg/week before a first Kickstart from day 29 | No rapid-loss card in the 21 Kickstart days (the second series shows it on day 28, so the check can fail); Kickstart note shown (HS-11) |
 | WT-04 | Series losing 1.2 kg/week in weeks 4–6 (Steady) | Rapid-loss card after the third week (HS-11) |
 | WT-06 | Kickstart deficit with a low energy estimate | Planned energy clamps to the 5,000 kJ floor; protein target unchanged (HS-25) |
 | WT-07 | Kickstart deficit with a high estimate | Planned energy is exactly 30% below estimate (HS-25) |

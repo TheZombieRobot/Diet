@@ -16,12 +16,17 @@
  * - Nothing here starts a Kickstart: a start is the owner's, after the four stop-sign questions.
  * - The first 21 Kickstart days ever, counted across every period, are the only days free of the
  *   rapid-loss card (D27).
+ * - A period ended before its first day came (endedBeforeDay1 in storage/kickstart.ts: the clock was
+ *   ahead when it started) never ran: no Kickstart day, no exemption, no rebound note and no
+ *   "Kickstart has finished". Only the cap still counts its 1 day, and a new start waits until
+ *   after its day 1.
  */
 import { extensionOfferTrigger } from '../storage/cards';
 import {
   canExtendKickstart,
   canStartKickstart,
   effectiveLastDay,
+  endedBeforeDay1,
   extensionsOf,
   extensionWindow,
   inWindow,
@@ -104,6 +109,11 @@ export function periodsInOrder(periods: readonly KickstartPeriodRecord[]): Kicks
   return [...periods].sort(startOrder);
 }
 
+/** The periods in start order, without those ended before their first day (they never ran). */
+export function periodsThatRan(periods: readonly KickstartPeriodRecord[]): KickstartPeriodRecord[] {
+  return periodsInOrder(periods).filter((p) => !endedBeforeDay1(p));
+}
+
 /** The latest period by start, or null when none was ever started. */
 export function latestKickstartPeriod(
   periods: readonly KickstartPeriodRecord[],
@@ -162,7 +172,8 @@ const endable = (state: KickstartPeriodState): boolean =>
 
 /**
  * Every Kickstart date up to `today`, in period order: day 1 to the effective last day, and for a
- * period still running by time up to today (a pending end counts as ending today).
+ * period still running by time up to today (a pending end counts as ending today). A period ended
+ * before its first day has none.
  */
 export function kickstartDates(
   periods: readonly KickstartPeriodRecord[],
@@ -171,7 +182,7 @@ export function kickstartDates(
   homeTimeZone: TimeZone,
 ): LocalDate[] {
   const dates: LocalDate[] = [];
-  for (const period of periodsInOrder(periods)) {
+  for (const period of periodsThatRan(periods)) {
     const last = effectiveLastDay(period, extensionsOf(period.id, checks), homeTimeZone);
     const end = last < today ? last : today;
     for (let d = periodDay1(period, homeTimeZone); d <= end; d = addDays(d, 1)) dates.push(d);
@@ -192,16 +203,20 @@ export function rapidLossExemptDates(
 /**
  * The phase now. 'none' while readiness closes the deficit; Kickstart for the latest period while
  * it runs and its conditions hold (and no end is latched); otherwise Steady, with the last date
- * the latest period counted (today for one running by time whose conditions fail).
+ * the latest period counted (today for one running by time whose conditions fail), or that of the
+ * Kickstart before it when it has not run.
  */
 export function phaseOn(input: PhaseInput): Phase {
   if (!input.gates.deficitAllowed) return { kind: 'none' };
   const latest = latestState(input);
   if (latest === null) return { kind: 'steady', lastKickstartEnd: null };
   const { period, extensions, state, holds } = latest;
-  if (state === 'not-started') {
-    // Its first day has not come (a start dated ahead): Steady, after any earlier Kickstart.
-    const previous = periodsInOrder(input.periods).at(-2);
+  if (state === 'not-started' || endedBeforeDay1(period)) {
+    // Its first day has not come, or it was ended before it came: Steady, after any earlier
+    // Kickstart that ran.
+    const previous = periodsThatRan(input.periods)
+      .filter((p) => p.id !== period.id)
+      .at(-1);
     return {
       kind: 'steady',
       lastKickstartEnd:
@@ -289,11 +304,20 @@ export type StartUnavailable =
   | 'not-keto'
   | 'running'
   | 'not-started'
-  | 'ended-today'
+  | 'cap'
   | 'recent-stop-sign'
-  | 'cap';
-export type StartAvailability =
-  { readonly available: true } | { readonly available: false; readonly reason: StartUnavailable };
+  | 'ended-ahead'
+  | 'ended-today'
+  | 'stop-sign-today';
+
+export interface StartRefusal {
+  readonly available: false;
+  readonly reason: StartUnavailable;
+  /** 'ended-ahead': the first day of the period that was ended before it came. */
+  readonly day1?: LocalDate;
+}
+
+export type StartAvailability = { readonly available: true } | StartRefusal;
 
 export interface StartContext {
   /** belowBmiFloorNow. */
@@ -303,10 +327,12 @@ export interface StartContext {
 }
 
 /**
- * Whether a new Kickstart may start now, or the first reason it may not: weight below BMI 18.5; a
- * Kickstart gate closed; not keto; the latest period still running, or not started yet; it ended
- * today (a new day 1 must come after it, invariant kickstart-overlap); a stop-sign in the last 336
- * hours or a pre-start "yes" today; or a full 21 days no longer fit (D27).
+ * Whether a new Kickstart may start now, or the reason it may not, the longest wait first (the
+ * line shown must stay true until the start is offered): weight below BMI 18.5; a Kickstart gate
+ * closed; not keto; the latest period still running, or not started yet; a full 21 days no longer
+ * fit (D27; never); a stored stop-sign in the last 336 hours; the latest period was ended before
+ * its first day, which is still to come or today (a new day 1 must come after it: invariant
+ * kickstart-overlap); it ended today (the same rule); a pre-start "yes" today.
  */
 export function kickstartStartAvailability(
   input: PhaseInput,
@@ -317,22 +343,25 @@ export function kickstartStartAvailability(
   if (!kickstartGatesOpen(input.gates)) return no('gated');
   if (input.dietMode !== 'keto') return no('not-keto');
   const latest = latestState(input);
-  if (latest !== null) {
-    if (latest.state === 'running') return no('running');
-    if (latest.state === 'not-started') return no('not-started');
-    if (effectiveLastDay(latest.period, latest.extensions, input.homeTimeZone) >= input.today) {
-      return no('ended-today');
-    }
+  if (latest?.state === 'running') return no('running');
+  if (latest?.state === 'not-started') return no('not-started');
+  if (!canStartKickstart(kickstartUsage(input.periods, input.checks, input.homeTimeZone))) {
+    return no('cap');
   }
   const now = parseInstant(input.now);
   const waitMs = KICKSTART_START_AFTER_STOP_SIGN_HOURS * 3_600_000;
   const recentStopSign = input.checks.some(
     (c) => c.outcome === 'stop-sign' && now - parseInstant(c.askedAt) < waitMs,
   );
-  if (recentStopSign || ctx.preStartStopSignToday) return no('recent-stop-sign');
-  if (!canStartKickstart(kickstartUsage(input.periods, input.checks, input.homeTimeZone))) {
-    return no('cap');
+  if (recentStopSign) return no('recent-stop-sign');
+  if (latest !== null) {
+    const last = effectiveLastDay(latest.period, latest.extensions, input.homeTimeZone);
+    if (endedBeforeDay1(latest.period) && last >= input.today) {
+      return { available: false, reason: 'ended-ahead', day1: last };
+    }
+    if (last >= input.today) return no('ended-today');
   }
+  if (ctx.preStartStopSignToday) return no('stop-sign-today');
   return { available: true };
 }
 
@@ -402,10 +431,11 @@ export interface StopSignsDue {
  * The Kickstart stop-sign card (HS-27; W22): (a) every Kickstart day of the latest period, which
  * its own dismissal can hide for the day; or (b) after a stop-sign check in that period, through
  * its last day (the scheduled last day while it runs by time, else the day it ended), forced and
- * expanded whatever the phase, so every dismissal is ignored. Ignores card state in (a).
+ * expanded whatever the phase, so every dismissal is ignored. Ignores card state in (a). A latest
+ * period that was ended before its first day is passed over for the one before it.
  */
 export function stopSignsDue(phase: Phase, input: PhaseInput): StopSignsDue | null {
-  const period = latestKickstartPeriod(input.periods);
+  const period = periodsThatRan(input.periods).at(-1) ?? null;
   if (period === null) return null;
   const extensions = extensionsOf(period.id, input.checks);
   const scheduled = scheduledLastDay(period, extensions, input.homeTimeZone);
