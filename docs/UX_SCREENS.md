@@ -54,7 +54,9 @@ Every action opens the screen that owns it; Log weight opens the Weight card's e
 
 **3a: Plan (week view).** Seven columns, each with snack and dinner (or the meals your window allows). Tap a meal to swap from suggestions ranked garden-first. A banner shows diet mode (Keto-preferred / Moderate low-carb / Balanced) with a switch; switching re-ranks suggestions and never deletes anything. Household toggle: "Dinner for 3; my portion shown separately."
 
-**3b: Recipe.** Photo-free, fast. Title, time, serves, ingredients with raw/cooked weights, method steps, nutrition per your portion and per 100 g with source badges, heart-smart badge or saturated-fat flag, allergens listed, garden items marked with a leaf. Buttons: Add to plan, Log as eaten, Scale servings, Substitute ingredient.
+**3b0: Recipes.** Silverbeet week (day 1 to 7), Dinners, Snacks, Breakfast and lunch; each row: title, serves and time, chips for the carb style ("Written for keto" until its carbs are worked out), heart-smart or more saturated fat, your version, allergens on your list, check labels.
+
+**3b: Recipe.** Photo-free, fast. Title, time, serves, ingredients with raw/cooked weights, method steps, nutrition per your portion and per 100 g with source badges, heart-smart badge or saturated-fat flag, allergens listed, garden items marked with a leaf. Buttons: Add to plan, Log as eaten, Scale servings, Substitute ingredient. Scale servings changes the amounts only; the nutrition card is one serve (or your planned portion when opened from the plan). Substitute ingredient saves your own version, which keeps the original's allergens. Figures read "not known" until the food data is added.
 
 **3c: Food log (day).** Chronological entries with badges. "Add from label" opens a form: name, per 100 g or per serve, energy, protein, fat, saturated fat, carbs, fibre, sodium, package size. "Add from recipe/plan" is one tap.
 

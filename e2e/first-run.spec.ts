@@ -115,6 +115,9 @@ const DEEP_LINKS = [
   // Item 18: the food catalogue.
   './#/foods',
   './#/pairing',
+  // Item 20: the recipes and a recipe's page (routes.ts RECIPE_DEEP_LINK).
+  './#/recipes',
+  './#/recipe/seed%3Arecipe-chicken-silverbeet-traybake',
   './#/nothing',
 ];
 
@@ -122,6 +125,8 @@ test('P1 HS-20: every address, and the manifest start_url, opens on Welcome', as
   page,
   request,
 }) => {
+  // Sixteen addresses, each loaded and reloaded.
+  test.setTimeout(120_000);
   for (const url of DEEP_LINKS) {
     await page.goto(url);
     // A hash change within the page (no reload) must not pass Welcome either.

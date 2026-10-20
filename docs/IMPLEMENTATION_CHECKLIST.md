@@ -75,7 +75,7 @@ Conventions for the implementing model:
     *Acceptance:* GL-02 fixture; PWA-04 offline persistence; photo never included in exports.
 
 20. **Recipe dataset.** About 30 recipes: silverbeet-first week, leafy greens, affordable NZ proteins (chicken, eggs, canned fish, mince, seasonal fish), seasonal produce, substitutions and leftover reuse; cholesterol-conscious scoring; allergens; raw and cooked weights.
-    *Acceptance:* NU-02, NU-03, NU-04; FL-06 (HS-24).
+    *Acceptance:* NU-02, NU-03, NU-04, NU-10, NU-11; FL-06 (HS-24); HS-39. *Built:* 30 recipes in `packages/core/data/recipes.json` (two tofu dinners), their rules in `packages/core/src/recipes/`, Food, Recipes and a recipe's page with Scale servings; Substitute ingredient saves a copy once its ingredients have figures (after step 18b), and Add to plan and Log as eaten arrive with items 22 and 23.
 
 21. **Targets engine, deficits and diet modes.** Protein 120–140 g default (80–200 range), net-carb ceiling in keto mode, saturated-fat budget, fibre guide, energy estimate with "physically active job" default, Kickstart deficit up to 30% with protein at the range maximum (140 g by default) and net carbs at 20 g, Steady deficit 15–20%, 5,000 kJ floor in both; keto-preferred, moderate low-carb, balanced modes. *Built:* the engine in `packages/core/src/targets/`, Settings, Diet and targets, the Nutrition today card on Today and the diet-mode switch (HS-36 and FL-17 for alcohol energy); the planner's own refusal (HS-10, NU-06) and the suggestion list (FL-04 UI) are item 22's.
     *Acceptance:* unit tests; HS-09, HS-10, HS-22, HS-25; FL-04; WT-06, WT-07.

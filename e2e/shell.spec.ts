@@ -7,10 +7,13 @@ import {
   heading,
   offerInstall,
   openBackupPanels,
+  openRecipe,
   SCREENS,
   seedOnboarded,
+  SWEPT_RECIPE,
   TABS,
   UNDER_SETTINGS,
+  UNDER_TABS,
   visitEveryScreen,
   waitForServiceWorkerControl,
 } from './support/app';
@@ -102,9 +105,11 @@ test('the tab bar marks the current tab by more than colour; the gear marks Sett
   for (const screen of SCREENS) {
     await goTo(page, screen);
     for (const tab of TABS) {
-      const current = tab === screen;
+      // A screen under a tab (item 20: Recipes under Food) marks it as its section.
+      const parent = UNDER_TABS[screen] === tab;
+      const current = tab === screen || parent;
       expect(await nav.getByRole('link', { name: tab }).getAttribute('aria-current')).toBe(
-        current ? 'page' : null,
+        tab === screen ? 'page' : parent ? 'true' : null,
       );
       // A tinted pill behind the current tab's icon, so colour vision is not needed.
       if (current) expect(await pill(tab)).not.toBe('rgba(0, 0, 0, 0)');
@@ -225,6 +230,14 @@ test('nothing scrolls sideways or runs off a narrow or zoomed screen, online or 
           )),
         );
       });
+      // Item 20: a recipe's page, with its ingredient lines and nutrition table.
+      await openRecipe(page, SWEPT_RECIPE);
+      problems.push(
+        ...(await narrowLayoutProblems(
+          page,
+          `A recipe page at ${width} px${offline ? ', offline' : ''}`,
+        )),
+      );
     }
   }
   // The Backup and data card's panels, with their fields and button rows, at 200% zoom.

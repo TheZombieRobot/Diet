@@ -5,15 +5,18 @@
 import {
   daysBetween,
   DEFAULT_HOME_TIME_ZONE,
+  fillTemplate,
+  formatNumber,
   type Instant,
   kjToKcal,
   type LocalDate,
   parseLocalDate,
   resolveZone,
+  roundRecipeGrams,
   roundTo,
   type TimeZone,
 } from '@diet/core';
-import { fasting, today } from '@diet/core/copy/health';
+import { fasting, recipes, today } from '@diet/core/copy/health';
 
 const formatters = new Map<string, Intl.DateTimeFormat>();
 
@@ -154,4 +157,15 @@ export function formatWaterText(ml: number): string {
 /** A step count with thousands separators: "12,000". */
 export function formatSteps(steps: number): string {
   return counts.format(steps);
+}
+
+/**
+ * An ingredient amount (item 20): "800 g", "2.5 g", and "under 1 g" for a pinch scaled down, so a
+ * small amount never reads "0 g". Amounts only: nutrient figures go through core's figureText.
+ */
+export function recipeGramsText(grams: number): string {
+  if (grams < 1) return recipes.ingredients.underOneGram;
+  return fillTemplate(recipes.ingredients.grams, {
+    grams: formatNumber(roundRecipeGrams(grams)),
+  });
 }

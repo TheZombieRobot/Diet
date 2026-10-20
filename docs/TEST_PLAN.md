@@ -103,14 +103,16 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | ID | Case | Expected |
 |---|---|---|
 | NU-01 | Every ingredient, as the app reads it from `packages/core/data`, has all eight nutrient fields, each either a figure with its source tag (database, field and unit) or explicitly not known (never a silent 0 and never filled in by the app); a carb basis; a food-level source tag (`not-loaded` until a database approved at checklist item 10 is imported, with a citation for every database figure); and names, aliases, aisle, typical pack sizes with count and container words, allergens and whether the list is complete, garden flag, season months, raw/cooked/as-sold basis and substitutes that pass the dataset rules | Data validation script (`pnpm foods:check`); with real figures at step 18b |
-| NU-02 | Recipe per-serve totals equal sum of ingredients ÷ serves | Unit test over all recipes |
-| NU-03 | Net carbs = carbs − fibre, never negative | Unit test |
-| NU-04 | Heart-smart badge logic | Fixtures: avocado salad = badge; bacon-cream carbonara = flagged |
+| NU-02 | Recipe per-serve totals equal sum of ingredients ÷ serves; a figure an ingredient lacks is a lower bound and listed as unknown | Unit test over all recipes, with the shipped (not loaded) figures, partly loaded figures and complete fixture figures |
+| NU-03 | Net carbs = available carbohydrate (fibre excluded), never negative; a USDA-style total figure is converted as total − fibre and floored at 0; a recipe's net carbs are its lines' available carbohydrate ÷ serves (C01) | Unit test with one 'available' and one 'total' fixture |
+| NU-04 | Heart-smart badge logic | Fixtures: avocado salad = badge; bacon-cream carbonara = flagged; plus boundary fixtures (saturated fat exactly a quarter of the fat; exactly the per-portion cap; 40 g of cheese in the portion) and incomplete figures (never a badge) |
 | NU-05 | Day over saturated-fat budget | Indicator changes; no "bad"/"fail" wording (HS-09) |
 | NU-06 | Auto-plan under 5,000 kJ | Refused (HS-10): the core refusal (floorCheck, every app-made write kind) at item 21; the planner's refusal at item 22 |
 | NU-07 | Garden-first filter | Recipes using ≥2 in-season garden items rank first |
 | NU-08 | Cholesterol check-in cards | Lipid test at first run; check-ins when 56 and 84 days have passed since the first low-carb day (or since the profile was made if there was none); boundaries 55/56 and 83/84 days; one case starting in balanced mode, where the lipid test and check-ins are counted again from the first low-carb day (C109) |
-| NU-09 | Attribution footer | Present on every nutrition screen; names only the databases recorded as approved in DECISIONS.md (none until checklist item 10); no NZ Food Composition Database wording when only USDA is approved (C97) |
+| NU-09 | Attribution footer | Present on every nutrition screen; names only the databases recorded as approved in DECISIONS.md (none until checklist item 10); no NZ Food Composition Database wording when only USDA is approved (C97); including the recipe page (item 18's footer) |
+| NU-10 | Recipe whose ingredients have no figures yet | Item 18's "not known" rows and no badge; no heart-smart label; no bare keto, moderate or balanced chip; Substitute explains why it is not available; counts as not met in every check (HS-37, HS-39) |
+| NU-11 | Recipe dataset validation | Every seed recipe passes the dataset validator against item 18's catalogue: ids, allergens, cooked weights, eggs, wording, the keto first week, coverage |
 
 ### 3.7 Grocery list
 | ID | Case | Expected |
@@ -177,7 +179,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | FL-03 | Raw vs cooked | 200 g raw chicken and 150 g cooked are logged as distinct entries with the weight basis stored |
 | FL-04 | Switch diet mode keto → balanced → keto | No records deleted; targets change; suggestions re-rank (the ranking in core at item 21; the suggestion list UI at item 22, C23) |
 | FL-05 | Household dinner for 3, my portion 1/3 | My nutrition equals per-serve; changing household to 4 leaves my numbers unchanged (HS-23) |
-| FL-06 | Edit a recipe containing a listed allergen | Allergen still listed after edit and after scaling (HS-24) |
+| FL-06 | Swap away the line that carries a listed allergen in a recipe | Allergen still listed after the swap, after scaling and after a reload, with the note that the original recipe contains it (HS-24) |
 | FL-07 | Gluten-free household toggle off | No gluten-free substitutions suggested |
 | FL-08 | Eating window 17:00–19:00 | 2 h eating and 22 h fasting, from the core window formatter: screen 1e shows "Eating 5:00 pm to 7:00 pm = 2 hours. Fasting 22 hours." and the Fasting screen's Eating pattern card "2 h eating, 22 h fasting" (HS-17, C101) |
 | FL-09 | Eating window 22:00–02:00 (midnight wrap) | 4 h eating |

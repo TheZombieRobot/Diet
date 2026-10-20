@@ -8,6 +8,8 @@ import { WEEK_PROBLEM_CODES } from '../exercise/week';
 import { GATED_FEATURES, READINESS_REASON_IDS } from '../readiness/gates';
 import { ALLERGENS, USER_ALLERGENS } from '../storage/allergens';
 import { FLOOR_KJ, KICKSTART_MAX_DEFICIT_PCT, KICKSTART_NET_CARBS_G } from '../storage/limits';
+import { RECIPE_ALCOHOL_WORDS } from '../recipes/constants';
+import { FLAG_REASONS } from '../recipes/foodKind';
 import { READINESS_QUESTION_IDS } from '../storage/readiness';
 import { TARGET_COPY_FACTS } from '../targets/copyFacts';
 import { DIET_MODES } from '../targets/dietModes';
@@ -24,6 +26,7 @@ import {
   privacy,
   profile,
   readiness,
+  recipes,
   reflux,
   reminders,
   schedule,
@@ -42,6 +45,36 @@ function strings(value: unknown, path: string): [string, string][] {
   }
   return [];
 }
+
+/** Item 20's recipes section rules (design 5.1), also seeded below. */
+const RECIPES_SECTION_RULES: readonly RegExp[] = [
+  /\bbad\b/i,
+  /\bfail\w*/i,
+  /\bcheat\w*/i,
+  /\bguilt\w*/i,
+  /\bnaughty\b/i,
+  /\bsinful\b/i,
+  /\bjunk\b/i,
+  /\bclean\s+eating\b/i,
+  /\bsuperfood\w*/i,
+  /\bhealthy\b/i,
+  /\bhealthier\b/i,
+  /\bnutritious\b/i,
+  /\bsafe(?:ly|r|st|ty)?\b/i,
+  /\b(?:allergy|allergen)[\s-]free\b/i,
+  /\bfree\s+from\b/i,
+  /\b(?:lower|lowers|lowering|reduce|reduces|cut|cuts|improve|improves|protect|protects)\s+(?:your\s+)?(?:cholesterol|blood\s+pressure|heart)\b/i,
+  /\bHeart\s+Foundation\b/i,
+  /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
+  /\bforbidden\b|\bbanned\b|\bnot\s+allowed\b/i,
+  /\bmust\b/i,
+  /\bshould\b/i,
+  /\bstreaks?\b/i,
+  /\breward\w*/i,
+  /\bfits?\s+your\b/i,
+  /\bwithin\s+your\b/i,
+  RECIPE_ALCOHOL_WORDS,
+];
 
 /**
  * Extra rules per section, on top of the repository-wide banned phrases (tools/scans/rules.ts).
@@ -237,6 +270,10 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
   ],
   // Items 30 and 31 (HEALTH_SAFETY.md section 7): one list, shared with the pairing-check scan.
   transfer: TRANSFER_SECTION_RULES,
+  // Item 20 (HEALTH_SAFETY section 4, HS-09, C43, C60, C97, C11): no moralising, no health or
+  // allergen-free claims, no named data source, no Heart Foundation attribution, no "fits your
+  // ceiling", no alcohol.
+  recipes: RECIPES_SECTION_RULES,
 };
 
 /**
@@ -832,5 +869,41 @@ describe('transfer copy (item 30)', () => {
     });
     expect(filled).toContain('Choose thezombierobot.github.io and set it to Allow.');
     expect(filled).not.toContain('{');
+  });
+});
+
+// Item 20 (U17; design 5.1): the recipes wording, its section rules and the keys other code reads.
+describe('recipes copy (item 20)', () => {
+  it('U17: the section rules catch moralising, claims, a named source, "fits your" and alcohol', () => {
+    for (const bad of [
+      'A bad choice.',
+      'A healthy dinner.',
+      'Safe for you.',
+      'Allergen-free.',
+      'Lowers your cholesterol.',
+      'As the Heart Foundation says.',
+      'Values from USDA.',
+      'It fits your ceiling.',
+      'Deglaze with white wine.',
+      'You must eat this.',
+    ])
+      expect(
+        RECIPES_SECTION_RULES.some((rule) => rule.test(bad)),
+        bad,
+      ).toBe(true);
+  });
+
+  it('U17: one key per flag reason and diet mode; no figure, badge or footer wording of its own (contract 4)', () => {
+    expect(Object.keys(recipes.heart.reasons)).toEqual([...FLAG_REASONS]);
+    for (const modes of [recipes.chips.style, recipes.chips.styleWritten, recipes.style.written])
+      expect(Object.keys(modes)).toEqual([...DIET_MODES]);
+    expect(Object.keys(recipes.nutrition.confidenceHelp)).toEqual(['database', 'estimate']);
+    for (const key of ['confidence', 'notYet', 'unknownValue', 'atLeast', 'footer'])
+      expect(Object.keys(recipes.nutrition)).not.toContain(key);
+    const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1] ?? '');
+    for (const [path, text] of strings(recipes, 'recipes')) {
+      const values = Object.fromEntries(placeholders(text).map((name) => [name, 'x']));
+      expect(fillTemplate(text, values), path).not.toMatch(/[{}]/);
+    }
   });
 });

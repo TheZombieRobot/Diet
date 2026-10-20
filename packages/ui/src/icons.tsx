@@ -192,3 +192,13 @@ export function BowlIcon({ size = 22 }: IconProps): ReactElement {
     </Svg>
   );
 }
+
+/** A leaf (the mock-up's garden leaf; item 19): garden rows, the "At home" link and Add harvest. */
+export function LeafIcon({ size = 22 }: IconProps): ReactElement {
+  return (
+    <Svg size={size} strokeWidth={2.2}>
+      <path d="M5 19C5 11 11 5 20 5c0 9-6 15-14 15" />
+      <path d="M5 19c3-4 6-6 10-8" />
+    </Svg>
+  );
+}

@@ -14,3 +14,8 @@ const currentHash = (): string => window.location.hash;
 export function useRoute(): RouteId {
   return parseRoute(useSyncExternalStore(subscribe, currentHash, () => ''));
 }
+
+/** Item 20: the whole location hash ('#/recipe/…?my=2'); re-renders when it changes. */
+export function useHash(): string {
+  return useSyncExternalStore(subscribe, currentHash, () => '');
+}

@@ -1,0 +1,2510 @@
+{
+  "datasetVersion": 1,
+  "recipes": [
+    {
+      "id": "seed:recipe-chicken-silverbeet-traybake",
+      "title": "Lemon chicken and silverbeet traybake",
+      "serves": 4,
+      "timeMinutes": 45,
+      "slots": ["dinner"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:chicken-thigh",
+          "rawG": 800,
+          "cookedG": 640,
+          "displayAs": "800 g skinless thigh fillets",
+          "swaps": ["seed:chicken-breast", "seed:firm-tofu"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:silverbeet",
+          "rawG": 400,
+          "cookedG": null,
+          "displayAs": "1 large bunch",
+          "swaps": ["seed:spinach", "seed:kale"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:red-onion",
+          "rawG": 150,
+          "cookedG": null,
+          "displayAs": "1 red onion",
+          "swaps": ["seed:onion"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:garlic",
+          "rawG": 15,
+          "cookedG": null,
+          "displayAs": "4 cloves",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:lemon",
+          "rawG": 120,
+          "cookedG": null,
+          "displayAs": "1 lemon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:olive-oil",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 tablespoons",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:smoked-paprika",
+          "rawG": 4,
+          "cookedG": null,
+          "displayAs": "2 teaspoons",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:black-pepper",
+          "rawG": 1,
+          "cookedG": null,
+          "displayAs": "a few grinds",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Heat the oven to 200 °C.",
+        "Slice the silverbeet stems thinly and roughly chop the leaves, keeping stems and leaves apart.",
+        "In a large roasting dish, toss the chicken, onion wedges, silverbeet stems, sliced garlic, paprika and pepper with half the oil and the juice of half the lemon.",
+        "Roast for 25 minutes. Stir in the silverbeet leaves with the rest of the oil and roast for 10 minutes more, until the chicken is cooked through and the leaves have wilted.",
+        "Squeeze over the rest of the lemon. To make the chicken soup or the chicken lettuce wraps tomorrow, roast extra thighs alongside (300 g for the soup, 150 g for the wraps), then cool them and keep them in the fridge."
+      ],
+      "allergens": [],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-silverbeet-lemon-chicken-soup",
+      "title": "Silverbeet and lemon chicken soup",
+      "serves": 4,
+      "timeMinutes": 35,
+      "slots": ["lunch", "dinner"],
+      "carbStyle": "keto",
+      "oneMealOk": false,
+      "lines": [
+        {
+          "ingredientId": "seed:chicken-thigh",
+          "rawG": 300,
+          "cookedG": 240,
+          "displayAs": "300 g, or leftover roast chicken",
+          "swaps": ["seed:chicken-breast"],
+          "leftover": true
+        },
+        {
+          "ingredientId": "seed:silverbeet",
+          "rawG": 300,
+          "cookedG": null,
+          "displayAs": "about half a bunch",
+          "swaps": ["seed:spinach", "seed:kale"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:leek",
+          "rawG": 150,
+          "cookedG": null,
+          "displayAs": "1 small leek",
+          "swaps": ["seed:onion"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:garlic",
+          "rawG": 10,
+          "cookedG": null,
+          "displayAs": "3 cloves",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:lemon",
+          "rawG": 120,
+          "cookedG": null,
+          "displayAs": "1 lemon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:olive-oil",
+          "rawG": 15,
+          "cookedG": null,
+          "displayAs": "1 tablespoon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:dried-oregano",
+          "rawG": 2,
+          "cookedG": null,
+          "displayAs": "1 teaspoon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:black-pepper",
+          "rawG": 1,
+          "cookedG": null,
+          "displayAs": "a few grinds",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Warm the oil in a large pot over medium heat. Add the sliced leek, garlic and chopped silverbeet stems and cook for 5 minutes, until soft.",
+        "Add 1.5 litres of water, the oregano and pepper, and bring to a gentle simmer.",
+        "If you have no leftover chicken, add the raw thighs now and simmer for 15 minutes, until cooked through, then lift them out and shred them.",
+        "Add the shredded chicken and the chopped silverbeet leaves and simmer for 5 minutes. Squeeze in the lemon juice just before serving."
+      ],
+      "allergens": [],
+      "usesLeftoversFrom": "seed:recipe-chicken-silverbeet-traybake"
+    },
+    {
+      "id": "seed:recipe-silverbeet-feta-frittata",
+      "title": "Silverbeet and feta frittata",
+      "serves": 4,
+      "timeMinutes": 35,
+      "slots": ["breakfast", "lunch", "dinner"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:eggs",
+          "rawG": 400,
+          "cookedG": 400,
+          "displayAs": "8 eggs",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:silverbeet",
+          "rawG": 300,
+          "cookedG": null,
+          "displayAs": "about half a bunch",
+          "swaps": ["seed:spinach", "seed:kale"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:spring-onion",
+          "rawG": 50,
+          "cookedG": null,
+          "displayAs": "3 spring onions",
+          "swaps": ["seed:leek"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:feta",
+          "rawG": 80,
+          "cookedG": null,
+          "displayAs": "80 g, crumbled",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:olive-oil",
+          "rawG": 15,
+          "cookedG": null,
+          "displayAs": "1 tablespoon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:dried-oregano",
+          "rawG": 2,
+          "cookedG": null,
+          "displayAs": "1 teaspoon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:black-pepper",
+          "rawG": 1,
+          "cookedG": null,
+          "displayAs": "a few grinds",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Heat the oven grill to medium-high.",
+        "Finely chop the silverbeet, stems included, and slice the spring onions.",
+        "Warm the oil in an ovenproof frying pan over medium heat and cook the silverbeet and spring onions for 5 minutes, until soft.",
+        "Beat the eggs with the oregano and pepper and pour them over the greens. Scatter over the feta and cook gently for 8 to 10 minutes, until the edges are set.",
+        "Put the pan under the grill for 3 to 5 minutes, until the top is set all the way through. Cut into 4 wedges. A wedge makes a good lunch the next day."
+      ],
+      "allergens": ["milk", "egg"],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-mince-tomato-silverbeet-skillet",
+      "title": "Beef mince, tomato and silverbeet skillet",
+      "serves": 4,
+      "timeMinutes": 30,
+      "slots": ["dinner"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:beef-mince-lean",
+          "rawG": 600,
+          "cookedG": 480,
+          "displayAs": "600 g lean mince",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:silverbeet",
+          "rawG": 300,
+          "cookedG": null,
+          "displayAs": "about half a bunch",
+          "swaps": ["seed:spinach", "seed:kale"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:onion",
+          "rawG": 120,
+          "cookedG": null,
+          "displayAs": "1 onion",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:garlic",
+          "rawG": 10,
+          "cookedG": null,
+          "displayAs": "3 cloves",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:canned-tomatoes",
+          "rawG": 400,
+          "cookedG": null,
+          "displayAs": "1 × 400 g can",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:smoked-paprika",
+          "rawG": 4,
+          "cookedG": null,
+          "displayAs": "2 teaspoons",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:ground-cumin",
+          "rawG": 2,
+          "cookedG": null,
+          "displayAs": "1 teaspoon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:olive-oil",
+          "rawG": 15,
+          "cookedG": null,
+          "displayAs": "1 tablespoon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:parsley",
+          "rawG": 10,
+          "cookedG": null,
+          "displayAs": "a small handful",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Warm the oil in a large frying pan over medium-high heat. Brown the mince for 6 to 8 minutes, breaking it up as it cooks.",
+        "Add the chopped onion, garlic, paprika and cumin and cook for 3 minutes.",
+        "Tip in the tomatoes and simmer for 10 minutes, until thick.",
+        "Stir in the shredded silverbeet and cook for 3 to 4 minutes, until wilted. Scatter over the chopped parsley."
+      ],
+      "allergens": [],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-fish-garlicky-silverbeet",
+      "title": "Pan-fried fish with garlicky silverbeet",
+      "serves": 4,
+      "timeMinutes": 25,
+      "slots": ["dinner"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:white-fish",
+          "rawG": 700,
+          "cookedG": 595,
+          "displayAs": "700 g fillets",
+          "swaps": ["seed:kahawai"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:silverbeet",
+          "rawG": 400,
+          "cookedG": null,
+          "displayAs": "1 large bunch",
+          "swaps": ["seed:spinach", "seed:bok-choy"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:garlic",
+          "rawG": 10,
+          "cookedG": null,
+          "displayAs": "3 cloves",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:lemon",
+          "rawG": 120,
+          "cookedG": null,
+          "displayAs": "1 lemon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:olive-oil",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 tablespoons",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:chilli",
+          "rawG": 5,
+          "cookedG": null,
+          "displayAs": "half a red chilli",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:black-pepper",
+          "rawG": 1,
+          "cookedG": null,
+          "displayAs": "a few grinds",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Any firm white fish works, such as tarakihi, gurnard or hoki. Pat the fillets dry and season with pepper.",
+        "Warm half the oil in a large frying pan over medium-high heat and cook the fish for 3 to 4 minutes a side, until it flakes easily. Lift it onto a warm plate.",
+        "Add the rest of the oil, the sliced garlic, the finely chopped chilli and the sliced silverbeet stems to the pan and cook for 2 minutes. Add the leaves and stir until wilted.",
+        "Serve the fish on the silverbeet with lemon wedges."
+      ],
+      "allergens": ["fish"],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-tofu-mushroom-silverbeet-stir-fry",
+      "title": "Tofu, mushroom and silverbeet stir-fry",
+      "serves": 4,
+      "timeMinutes": 30,
+      "slots": ["dinner"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:firm-tofu",
+          "rawG": 600,
+          "cookedG": 600,
+          "displayAs": "2 × 300 g blocks",
+          "swaps": ["seed:chicken-breast"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:mushrooms",
+          "rawG": 250,
+          "cookedG": null,
+          "displayAs": "250 g",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:silverbeet",
+          "rawG": 300,
+          "cookedG": null,
+          "displayAs": "about half a bunch",
+          "swaps": ["seed:bok-choy", "seed:spinach"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:garlic",
+          "rawG": 10,
+          "cookedG": null,
+          "displayAs": "3 cloves",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:ginger",
+          "rawG": 15,
+          "cookedG": null,
+          "displayAs": "a thumb-sized piece",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:soy-sauce",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 tablespoons",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:canola-oil",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 tablespoons",
+          "swaps": ["seed:olive-oil"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:spring-onion",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 spring onions",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:chilli",
+          "rawG": 5,
+          "cookedG": null,
+          "displayAs": "half a red chilli",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Press the tofu between clean tea towels under a heavy board for 10 minutes, then cut it into cubes.",
+        "Heat half the oil in a large frying pan or wok over high heat and fry the tofu for 8 to 10 minutes, turning, until golden on most sides. Lift it out.",
+        "Add the rest of the oil and the sliced mushrooms and cook for 4 minutes. Add the grated garlic and ginger and the sliced silverbeet stems and cook for 2 minutes.",
+        "Add the silverbeet leaves, the tofu and the soy sauce and toss until the leaves wilt. Top with sliced spring onions and finely chopped chilli."
+      ],
+      "allergens": ["soy", "wheat"],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-salmon-silverbeet-patties",
+      "title": "Salmon and silverbeet patties",
+      "serves": 4,
+      "timeMinutes": 30,
+      "slots": ["lunch", "dinner"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:canned-salmon",
+          "rawG": 340,
+          "cookedG": 340,
+          "displayAs": "2 × 210 g cans, drained",
+          "swaps": ["seed:tuna-in-water", "seed:sardines"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:eggs",
+          "rawG": 100,
+          "cookedG": 100,
+          "displayAs": "2 eggs",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:silverbeet",
+          "rawG": 200,
+          "cookedG": null,
+          "displayAs": "a few large leaves",
+          "swaps": ["seed:spinach"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:spring-onion",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 spring onions",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:almond-meal",
+          "rawG": 50,
+          "cookedG": null,
+          "displayAs": "half a cup",
+          "swaps": ["seed:sunflower-seeds"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:lemon",
+          "rawG": 60,
+          "cookedG": null,
+          "displayAs": "half a lemon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:olive-oil",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 tablespoons",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:black-pepper",
+          "rawG": 1,
+          "cookedG": null,
+          "displayAs": "a few grinds",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Cook the chopped silverbeet in boiling water for 1 minute, drain, cool a little and squeeze out as much water as you can.",
+        "Flake the salmon into a bowl. Add the silverbeet, eggs, sliced spring onions, ground almonds, grated lemon zest and pepper, and mix well.",
+        "Shape into 8 patties. Chill them for 10 minutes if you have time; they hold together better.",
+        "Warm the oil in a frying pan over medium heat and cook the patties for 3 to 4 minutes a side, until golden and hot in the middle. Serve with lemon wedges and a green salad."
+      ],
+      "allergens": ["tree-nut", "egg", "fish"],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-baked-tofu-spinach-avocado",
+      "title": "Lemon-pepper baked tofu with spinach and avocado",
+      "serves": 4,
+      "timeMinutes": 40,
+      "slots": ["dinner"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:firm-tofu",
+          "rawG": 600,
+          "cookedG": 600,
+          "displayAs": "2 × 300 g blocks",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:spinach",
+          "rawG": 200,
+          "cookedG": null,
+          "displayAs": "200 g",
+          "swaps": ["seed:silverbeet", "seed:salad-leaves"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:avocado",
+          "rawG": 300,
+          "cookedG": null,
+          "displayAs": "2 avocados",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:cherry-tomatoes",
+          "rawG": 200,
+          "cookedG": null,
+          "displayAs": "200 g",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:pumpkin-seeds",
+          "rawG": 40,
+          "cookedG": null,
+          "displayAs": "a small handful",
+          "swaps": ["seed:sunflower-seeds"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:lemon",
+          "rawG": 120,
+          "cookedG": null,
+          "displayAs": "1 lemon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:olive-oil",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 tablespoons",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:black-pepper",
+          "rawG": 2,
+          "cookedG": null,
+          "displayAs": "1 teaspoon, coarsely ground",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Heat the oven to 200 °C. Press the tofu between clean tea towels for 10 minutes, then cut it into thick slices.",
+        "Toss the tofu with half the oil, the grated lemon zest and plenty of pepper. Bake on a lined tray for 25 to 30 minutes, turning once, until golden at the edges.",
+        "Toast the pumpkin seeds in a dry pan for 2 to 3 minutes, shaking the pan.",
+        "Toss the spinach, halved tomatoes and sliced avocado with the lemon juice and the rest of the oil. Serve the tofu on top and scatter over the seeds."
+      ],
+      "allergens": ["soy"],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-chicken-kale-chickpeas",
+      "title": "Chicken with kale and chickpeas",
+      "serves": 4,
+      "timeMinutes": 35,
+      "slots": ["dinner"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:chicken-breast",
+          "rawG": 700,
+          "cookedG": 560,
+          "displayAs": "700 g, about 3 breasts",
+          "swaps": ["seed:chicken-thigh"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:kale",
+          "rawG": 200,
+          "cookedG": null,
+          "displayAs": "1 bunch, stalks removed",
+          "swaps": ["seed:silverbeet", "seed:spinach"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:chickpeas",
+          "rawG": 120,
+          "cookedG": 120,
+          "displayAs": "half a 400 g can, drained",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:onion",
+          "rawG": 100,
+          "cookedG": null,
+          "displayAs": "1 small onion",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:garlic",
+          "rawG": 10,
+          "cookedG": null,
+          "displayAs": "3 cloves",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:lemon",
+          "rawG": 60,
+          "cookedG": null,
+          "displayAs": "half a lemon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:olive-oil",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 tablespoons",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:dried-oregano",
+          "rawG": 2,
+          "cookedG": null,
+          "displayAs": "1 teaspoon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:chilli",
+          "rawG": 5,
+          "cookedG": null,
+          "displayAs": "half a red chilli",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:black-pepper",
+          "rawG": 1,
+          "cookedG": null,
+          "displayAs": "a few grinds",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Cut each chicken breast in half through the middle so it cooks evenly. Rub with half the oil, the oregano and pepper.",
+        "Cook in a large frying pan over medium-high heat for 5 to 6 minutes a side, until cooked through. Rest it on a board.",
+        "In the same pan, cook the chopped onion and garlic in the rest of the oil for 3 minutes. Add the shredded kale and a splash of water and cook for 5 minutes, until tender.",
+        "Stir in the drained chickpeas and the finely chopped chilli and warm through. Slice the chicken and serve it on the kale and chickpeas with a squeeze of lemon."
+      ],
+      "allergens": [],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-sardine-avocado-cucumber-salad",
+      "title": "Sardine, avocado and cucumber salad",
+      "serves": 2,
+      "timeMinutes": 10,
+      "slots": ["lunch", "dinner"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:sardines",
+          "rawG": 170,
+          "cookedG": 170,
+          "displayAs": "2 × 110 g cans, drained",
+          "swaps": ["seed:canned-salmon", "seed:tuna-in-water"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:salad-leaves",
+          "rawG": 120,
+          "cookedG": null,
+          "displayAs": "2 big handfuls",
+          "swaps": ["seed:cos-lettuce", "seed:spinach"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:avocado",
+          "rawG": 150,
+          "cookedG": null,
+          "displayAs": "1 avocado",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:cucumber",
+          "rawG": 150,
+          "cookedG": null,
+          "displayAs": "half a telegraph cucumber",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:red-onion",
+          "rawG": 40,
+          "cookedG": null,
+          "displayAs": "a quarter of a red onion",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:lemon",
+          "rawG": 60,
+          "cookedG": null,
+          "displayAs": "half a lemon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:olive-oil",
+          "rawG": 10,
+          "cookedG": null,
+          "displayAs": "2 teaspoons",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:black-pepper",
+          "rawG": 1,
+          "cookedG": null,
+          "displayAs": "a few grinds",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Arrange the leaves on two plates.",
+        "Top with sliced avocado, cucumber and finely sliced red onion.",
+        "Break the sardines into large pieces over the top. Squeeze over the lemon, drizzle with the oil and finish with pepper."
+      ],
+      "allergens": ["fish"],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-tuna-egg-green-bean-salad",
+      "title": "Tuna, egg and green bean salad",
+      "serves": 4,
+      "timeMinutes": 25,
+      "slots": ["lunch", "dinner"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:tuna-in-water",
+          "rawG": 390,
+          "cookedG": 390,
+          "displayAs": "3 × 185 g cans, drained",
+          "swaps": ["seed:canned-salmon"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:eggs",
+          "rawG": 200,
+          "cookedG": 200,
+          "displayAs": "4 eggs",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:green-beans",
+          "rawG": 300,
+          "cookedG": null,
+          "displayAs": "300 g, trimmed",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:cos-lettuce",
+          "rawG": 300,
+          "cookedG": null,
+          "displayAs": "1 large cos lettuce",
+          "swaps": ["seed:salad-leaves"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:cherry-tomatoes",
+          "rawG": 250,
+          "cookedG": null,
+          "displayAs": "250 g",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:red-onion",
+          "rawG": 50,
+          "cookedG": null,
+          "displayAs": "half a small red onion",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:lemon",
+          "rawG": 60,
+          "cookedG": null,
+          "displayAs": "half a lemon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:olive-oil",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 tablespoons",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:black-pepper",
+          "rawG": 1,
+          "cookedG": null,
+          "displayAs": "a few grinds",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Boil the eggs for 9 minutes, then cool them in cold water and peel.",
+        "Cook the beans in boiling water for 3 minutes, then rinse them under cold water.",
+        "Tear the lettuce into a large bowl and add the beans, halved tomatoes and finely sliced onion.",
+        "Whisk the lemon juice, oil and pepper, toss through the salad, then top with flaked tuna and quartered eggs."
+      ],
+      "allergens": ["egg", "fish"],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-ginger-beef-lettuce-cups",
+      "title": "Ginger beef mince lettuce cups",
+      "serves": 4,
+      "timeMinutes": 25,
+      "slots": ["dinner"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:beef-mince-lean",
+          "rawG": 600,
+          "cookedG": 480,
+          "displayAs": "600 g lean mince",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:cos-lettuce",
+          "rawG": 300,
+          "cookedG": null,
+          "displayAs": "1 large cos lettuce",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:carrot",
+          "rawG": 100,
+          "cookedG": null,
+          "displayAs": "1 carrot",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:cucumber",
+          "rawG": 150,
+          "cookedG": null,
+          "displayAs": "half a telegraph cucumber",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:spring-onion",
+          "rawG": 40,
+          "cookedG": null,
+          "displayAs": "3 spring onions",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:garlic",
+          "rawG": 10,
+          "cookedG": null,
+          "displayAs": "3 cloves",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:ginger",
+          "rawG": 15,
+          "cookedG": null,
+          "displayAs": "a thumb-sized piece",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:soy-sauce",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 tablespoons",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:canola-oil",
+          "rawG": 15,
+          "cookedG": null,
+          "displayAs": "1 tablespoon",
+          "swaps": ["seed:olive-oil"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:coriander",
+          "rawG": 10,
+          "cookedG": null,
+          "displayAs": "a small handful",
+          "swaps": ["seed:parsley"],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Warm the oil in a large frying pan over high heat and brown the mince for 6 to 8 minutes, breaking it up.",
+        "Add the grated garlic and ginger and cook for 1 minute, then stir in the soy sauce.",
+        "Separate the lettuce into cup-shaped leaves. Grate the carrot and cut the cucumber into thin sticks.",
+        "Spoon the mince into the lettuce cups and top with carrot, cucumber, sliced spring onions and coriander."
+      ],
+      "allergens": ["soy", "wheat"],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-garlic-chicken-courgette-broccoli",
+      "title": "Garlic chicken with courgette and broccoli",
+      "serves": 4,
+      "timeMinutes": 30,
+      "slots": ["dinner"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:chicken-thigh",
+          "rawG": 800,
+          "cookedG": 640,
+          "displayAs": "800 g skinless thigh fillets",
+          "swaps": ["seed:chicken-breast"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:courgette",
+          "rawG": 300,
+          "cookedG": null,
+          "displayAs": "2 courgettes",
+          "swaps": ["seed:green-beans", "seed:cauliflower"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:broccoli",
+          "rawG": 300,
+          "cookedG": null,
+          "displayAs": "1 head",
+          "swaps": ["seed:cauliflower", "seed:green-beans"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:garlic",
+          "rawG": 15,
+          "cookedG": null,
+          "displayAs": "4 cloves",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:lemon",
+          "rawG": 120,
+          "cookedG": null,
+          "displayAs": "1 lemon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:olive-oil",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 tablespoons",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:dried-oregano",
+          "rawG": 2,
+          "cookedG": null,
+          "displayAs": "1 teaspoon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:black-pepper",
+          "rawG": 1,
+          "cookedG": null,
+          "displayAs": "a few grinds",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Cut the chicken into strips and toss with half the oil, the crushed garlic, the oregano and pepper.",
+        "Cook in a large frying pan over medium-high heat for 8 to 10 minutes, until browned and cooked through. Lift it out.",
+        "Add the rest of the oil, the sliced courgettes, the small broccoli florets and 2 tablespoons of water. Cover and cook for 4 to 5 minutes, until just tender.",
+        "Return the chicken to the pan, squeeze over the lemon and toss together."
+      ],
+      "allergens": [],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-fish-spinach-tomato-curry",
+      "title": "Fish and spinach tomato curry",
+      "serves": 4,
+      "timeMinutes": 35,
+      "slots": ["dinner"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:white-fish",
+          "rawG": 600,
+          "cookedG": 510,
+          "displayAs": "600 g fillets",
+          "swaps": ["seed:kahawai"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:spinach",
+          "rawG": 200,
+          "cookedG": null,
+          "displayAs": "200 g",
+          "swaps": ["seed:silverbeet"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:canned-tomatoes",
+          "rawG": 400,
+          "cookedG": null,
+          "displayAs": "1 × 400 g can",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:onion",
+          "rawG": 120,
+          "cookedG": null,
+          "displayAs": "1 onion",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:garlic",
+          "rawG": 10,
+          "cookedG": null,
+          "displayAs": "3 cloves",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:ginger",
+          "rawG": 15,
+          "cookedG": null,
+          "displayAs": "a thumb-sized piece",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:curry-powder",
+          "rawG": 8,
+          "cookedG": null,
+          "displayAs": "1 tablespoon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:canola-oil",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 tablespoons",
+          "swaps": ["seed:olive-oil"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:cauliflower",
+          "rawG": 400,
+          "cookedG": null,
+          "displayAs": "half a cauliflower",
+          "swaps": ["seed:broccoli"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:coriander",
+          "rawG": 10,
+          "cookedG": null,
+          "displayAs": "a small handful",
+          "swaps": ["seed:parsley"],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Warm the oil in a large frying pan over medium heat and cook the chopped onion for 5 minutes. Add the grated garlic and ginger and the curry powder and cook for 1 minute.",
+        "Add the tomatoes and simmer for 10 minutes.",
+        "Cut the fish into large chunks, add it to the sauce and simmer gently for 5 to 6 minutes, until it flakes. Stir in the spinach until wilted.",
+        "Steam the cauliflower florets for 5 minutes and serve the curry over them, topped with coriander."
+      ],
+      "allergens": ["fish"],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-baked-kahawai-cabbage-slaw",
+      "title": "Baked kahawai with cabbage and lemon slaw",
+      "serves": 4,
+      "timeMinutes": 30,
+      "slots": ["dinner"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:kahawai",
+          "rawG": 700,
+          "cookedG": 595,
+          "displayAs": "700 g fillets",
+          "swaps": ["seed:white-fish"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:cabbage",
+          "rawG": 400,
+          "cookedG": null,
+          "displayAs": "a quarter of a cabbage",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:carrot",
+          "rawG": 100,
+          "cookedG": null,
+          "displayAs": "1 carrot",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:spring-onion",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 spring onions",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:parsley",
+          "rawG": 15,
+          "cookedG": null,
+          "displayAs": "a handful",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:lemon",
+          "rawG": 120,
+          "cookedG": null,
+          "displayAs": "1 lemon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:olive-oil",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 tablespoons",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:smoked-paprika",
+          "rawG": 2,
+          "cookedG": null,
+          "displayAs": "1 teaspoon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:black-pepper",
+          "rawG": 1,
+          "cookedG": null,
+          "displayAs": "a few grinds",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Heat the oven to 200 °C. Lay the fish skin side down on a lined tray, brush with half the oil and sprinkle with paprika and pepper.",
+        "Bake for 12 to 15 minutes, until the flesh flakes easily.",
+        "Finely shred the cabbage and grate the carrot. Toss with the sliced spring onions, chopped parsley, lemon juice and the rest of the oil.",
+        "Serve the fish with the slaw. Any oily fish fillet, such as trevally or mackerel, works in place of kahawai."
+      ],
+      "allergens": ["fish"],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-chicken-egg-cauliflower-fried-rice",
+      "title": "Chicken and egg cauliflower fried rice",
+      "serves": 4,
+      "timeMinutes": 30,
+      "slots": ["dinner"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:chicken-thigh",
+          "rawG": 500,
+          "cookedG": 400,
+          "displayAs": "500 g skinless thigh fillets",
+          "swaps": ["seed:chicken-breast", "seed:firm-tofu"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:cauliflower",
+          "rawG": 600,
+          "cookedG": null,
+          "displayAs": "1 small cauliflower",
+          "swaps": ["seed:broccoli"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:eggs",
+          "rawG": 150,
+          "cookedG": 150,
+          "displayAs": "3 eggs",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:frozen-peas",
+          "rawG": 80,
+          "cookedG": null,
+          "displayAs": "half a cup",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:spring-onion",
+          "rawG": 40,
+          "cookedG": null,
+          "displayAs": "3 spring onions",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:garlic",
+          "rawG": 10,
+          "cookedG": null,
+          "displayAs": "3 cloves",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:ginger",
+          "rawG": 10,
+          "cookedG": null,
+          "displayAs": "a small piece",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:soy-sauce",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 tablespoons",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:canola-oil",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 tablespoons",
+          "swaps": ["seed:olive-oil"],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Grate the cauliflower, or pulse it in a food processor, until it looks like rice.",
+        "Warm half the oil in a large frying pan or wok over high heat and cook the diced chicken for 6 to 8 minutes, until cooked through. Lift it out.",
+        "Add the rest of the oil, the grated garlic and ginger and the cauliflower and stir-fry for 5 minutes. Push it to one side, scramble the beaten eggs in the space, then mix them through.",
+        "Add the peas, the chicken and the soy sauce and toss until everything is hot. Top with sliced spring onions."
+      ],
+      "allergens": ["egg", "soy", "wheat"],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-beef-cabbage-stir-fry",
+      "title": "Beef mince and cabbage stir-fry",
+      "serves": 4,
+      "timeMinutes": 25,
+      "slots": ["dinner"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:beef-mince-lean",
+          "rawG": 500,
+          "cookedG": 400,
+          "displayAs": "500 g lean mince",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:cabbage",
+          "rawG": 500,
+          "cookedG": null,
+          "displayAs": "a third of a cabbage",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:carrot",
+          "rawG": 100,
+          "cookedG": null,
+          "displayAs": "1 carrot",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:spring-onion",
+          "rawG": 40,
+          "cookedG": null,
+          "displayAs": "3 spring onions",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:garlic",
+          "rawG": 10,
+          "cookedG": null,
+          "displayAs": "3 cloves",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:ginger",
+          "rawG": 10,
+          "cookedG": null,
+          "displayAs": "a small piece",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:soy-sauce",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 tablespoons",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:canola-oil",
+          "rawG": 15,
+          "cookedG": null,
+          "displayAs": "1 tablespoon",
+          "swaps": ["seed:olive-oil"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:chilli",
+          "rawG": 5,
+          "cookedG": null,
+          "displayAs": "half a red chilli",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Warm the oil in a large frying pan or wok over high heat and brown the mince for 6 to 8 minutes, breaking it up.",
+        "Add the grated garlic and ginger and cook for 1 minute.",
+        "Add the finely shredded cabbage and grated carrot and stir-fry for 5 to 6 minutes, until just tender.",
+        "Stir through the soy sauce and top with sliced spring onions and finely chopped chilli."
+      ],
+      "allergens": ["soy", "wheat"],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-beef-bean-pumpkin-chilli",
+      "title": "Beef, bean and pumpkin chilli",
+      "serves": 6,
+      "timeMinutes": 50,
+      "slots": ["dinner"],
+      "carbStyle": "moderate-low-carb",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:beef-mince-lean",
+          "rawG": 500,
+          "cookedG": 400,
+          "displayAs": "500 g lean mince",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:kidney-beans",
+          "rawG": 480,
+          "cookedG": 480,
+          "displayAs": "2 × 400 g cans, drained",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:pumpkin",
+          "rawG": 400,
+          "cookedG": null,
+          "displayAs": "a quarter of a small pumpkin",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:onion",
+          "rawG": 150,
+          "cookedG": null,
+          "displayAs": "1 large onion",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:capsicum",
+          "rawG": 150,
+          "cookedG": null,
+          "displayAs": "1 capsicum",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:garlic",
+          "rawG": 10,
+          "cookedG": null,
+          "displayAs": "3 cloves",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:canned-tomatoes",
+          "rawG": 800,
+          "cookedG": null,
+          "displayAs": "2 × 400 g cans",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:tomato-paste",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 tablespoons",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:ground-cumin",
+          "rawG": 4,
+          "cookedG": null,
+          "displayAs": "2 teaspoons",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:smoked-paprika",
+          "rawG": 4,
+          "cookedG": null,
+          "displayAs": "2 teaspoons",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:chilli",
+          "rawG": 10,
+          "cookedG": null,
+          "displayAs": "1 red chilli",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:olive-oil",
+          "rawG": 15,
+          "cookedG": null,
+          "displayAs": "1 tablespoon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:coriander",
+          "rawG": 10,
+          "cookedG": null,
+          "displayAs": "a small handful",
+          "swaps": ["seed:parsley"],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Warm the oil in a large pot over medium-high heat and brown the mince for 6 to 8 minutes.",
+        "Add the chopped onion, capsicum, garlic and chilli and the spices and cook for 4 minutes. Stir in the tomato paste.",
+        "Add the tomatoes, the pumpkin cut into 2 cm cubes and 250 mL of water. Simmer, partly covered, for 20 minutes.",
+        "Add the beans and simmer for 10 minutes more, until the pumpkin is tender. Top with coriander. It keeps well for the next day's lunch."
+      ],
+      "allergens": [],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-red-lentil-silverbeet-soup",
+      "title": "Red lentil, silverbeet and tomato soup",
+      "serves": 4,
+      "timeMinutes": 40,
+      "slots": ["lunch", "dinner"],
+      "carbStyle": "moderate-low-carb",
+      "oneMealOk": false,
+      "lines": [
+        {
+          "ingredientId": "seed:red-lentils",
+          "rawG": 200,
+          "cookedG": 500,
+          "displayAs": "1 cup",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:silverbeet",
+          "rawG": 300,
+          "cookedG": null,
+          "displayAs": "about half a bunch",
+          "swaps": ["seed:spinach", "seed:kale"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:onion",
+          "rawG": 120,
+          "cookedG": null,
+          "displayAs": "1 onion",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:carrot",
+          "rawG": 100,
+          "cookedG": null,
+          "displayAs": "1 carrot",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:garlic",
+          "rawG": 10,
+          "cookedG": null,
+          "displayAs": "3 cloves",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:canned-tomatoes",
+          "rawG": 400,
+          "cookedG": null,
+          "displayAs": "1 × 400 g can",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:ground-cumin",
+          "rawG": 4,
+          "cookedG": null,
+          "displayAs": "2 teaspoons",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:smoked-paprika",
+          "rawG": 2,
+          "cookedG": null,
+          "displayAs": "1 teaspoon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:olive-oil",
+          "rawG": 15,
+          "cookedG": null,
+          "displayAs": "1 tablespoon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:lemon",
+          "rawG": 60,
+          "cookedG": null,
+          "displayAs": "half a lemon",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Warm the oil in a large pot over medium heat and cook the chopped onion, carrot and silverbeet stems for 6 minutes.",
+        "Add the garlic and spices and cook for 1 minute, then add the rinsed lentils, the tomatoes and 1.2 litres of water.",
+        "Simmer for 20 minutes, stirring now and then, until the lentils are soft.",
+        "Stir in the shredded silverbeet leaves for the last 3 minutes and add a squeeze of lemon."
+      ],
+      "allergens": [],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-chicken-brown-rice-silverbeet-bowl",
+      "title": "Chicken, brown rice and silverbeet bowl",
+      "serves": 4,
+      "timeMinutes": 45,
+      "slots": ["lunch", "dinner"],
+      "carbStyle": "balanced",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:chicken-breast",
+          "rawG": 600,
+          "cookedG": 480,
+          "displayAs": "600 g, about 3 breasts",
+          "swaps": ["seed:chicken-thigh", "seed:firm-tofu"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:brown-rice",
+          "rawG": 250,
+          "cookedG": null,
+          "displayAs": "1¼ cups, uncooked",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:broccoli",
+          "rawG": 300,
+          "cookedG": null,
+          "displayAs": "1 head",
+          "swaps": ["seed:green-beans"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:silverbeet",
+          "rawG": 200,
+          "cookedG": null,
+          "displayAs": "a few large leaves",
+          "swaps": ["seed:spinach", "seed:kale"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:avocado",
+          "rawG": 150,
+          "cookedG": null,
+          "displayAs": "1 avocado",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:pumpkin-seeds",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 tablespoons",
+          "swaps": ["seed:sunflower-seeds"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:lemon",
+          "rawG": 60,
+          "cookedG": null,
+          "displayAs": "half a lemon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:olive-oil",
+          "rawG": 20,
+          "cookedG": null,
+          "displayAs": "4 teaspoons",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:black-pepper",
+          "rawG": 1,
+          "cookedG": null,
+          "displayAs": "a few grinds",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Cook the rice in plenty of boiling water for 25 to 30 minutes, until tender, then drain.",
+        "Season the chicken with pepper and cook it in a frying pan with half the oil over medium-high heat for 5 to 6 minutes a side, until cooked through. Slice it.",
+        "Steam the broccoli for 4 minutes and wilt the shredded silverbeet in the hot pan.",
+        "Divide the rice, greens, chicken and sliced avocado between bowls. Dress with the lemon juice and the rest of the oil and scatter over the seeds."
+      ],
+      "allergens": [],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-fish-potato-silverbeet-traybake",
+      "title": "Fish, potato and silverbeet traybake",
+      "serves": 4,
+      "timeMinutes": 45,
+      "slots": ["dinner"],
+      "carbStyle": "balanced",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:white-fish",
+          "rawG": 600,
+          "cookedG": 510,
+          "displayAs": "600 g fillets",
+          "swaps": ["seed:kahawai"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:potato",
+          "rawG": 600,
+          "cookedG": null,
+          "displayAs": "4 medium potatoes",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:green-beans",
+          "rawG": 300,
+          "cookedG": null,
+          "displayAs": "300 g, trimmed",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:silverbeet",
+          "rawG": 200,
+          "cookedG": null,
+          "displayAs": "a few large leaves",
+          "swaps": ["seed:spinach"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:cherry-tomatoes",
+          "rawG": 200,
+          "cookedG": null,
+          "displayAs": "200 g",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:garlic",
+          "rawG": 10,
+          "cookedG": null,
+          "displayAs": "3 cloves",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:lemon",
+          "rawG": 120,
+          "cookedG": null,
+          "displayAs": "1 lemon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:olive-oil",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 tablespoons",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:parsley",
+          "rawG": 10,
+          "cookedG": null,
+          "displayAs": "a small handful",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:black-pepper",
+          "rawG": 1,
+          "cookedG": null,
+          "displayAs": "a few grinds",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Heat the oven to 210 °C. Cut the potatoes into wedges, toss them with half the oil and roast for 25 minutes.",
+        "Add the beans, tomatoes and sliced garlic to the tray. Lay the fish on top, drizzle with the rest of the oil and add the lemon, sliced.",
+        "Roast for 12 to 15 minutes more, until the fish flakes easily and the potatoes are golden. For the last 5 minutes, tuck the shredded silverbeet in around the fish so it wilts.",
+        "Scatter over the chopped parsley and season with pepper."
+      ],
+      "allergens": ["fish"],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-snack-eggs-avocado-cucumber",
+      "title": "Boiled eggs with avocado and cucumber",
+      "serves": 1,
+      "timeMinutes": 12,
+      "slots": ["breakfast", "snack"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:eggs",
+          "rawG": 100,
+          "cookedG": 100,
+          "displayAs": "2 eggs",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:avocado",
+          "rawG": 75,
+          "cookedG": null,
+          "displayAs": "half an avocado",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:cucumber",
+          "rawG": 100,
+          "cookedG": null,
+          "displayAs": "a quarter of a telegraph cucumber",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:black-pepper",
+          "rawG": 1,
+          "cookedG": null,
+          "displayAs": "a pinch",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Boil the eggs for 9 minutes, then cool them in cold water and peel.",
+        "Halve the eggs and serve with sliced avocado and cucumber, finished with pepper."
+      ],
+      "allergens": ["egg"],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-snack-tuna-cucumber-lemon",
+      "title": "Tuna and cucumber with lemon",
+      "serves": 1,
+      "timeMinutes": 5,
+      "slots": ["snack"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:tuna-in-water",
+          "rawG": 130,
+          "cookedG": 130,
+          "displayAs": "1 × 185 g can, drained",
+          "swaps": ["seed:canned-salmon"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:cucumber",
+          "rawG": 150,
+          "cookedG": null,
+          "displayAs": "half a telegraph cucumber",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:lemon",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "a lemon wedge",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:olive-oil",
+          "rawG": 5,
+          "cookedG": null,
+          "displayAs": "1 teaspoon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:black-pepper",
+          "rawG": 1,
+          "cookedG": null,
+          "displayAs": "a pinch",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Flake the drained tuna into a bowl and mix it with the lemon juice, oil and pepper.",
+        "Eat it with thick slices of cucumber."
+      ],
+      "allergens": ["fish"],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-snack-yoghurt-walnuts-berries",
+      "title": "Greek yoghurt with walnuts and berries",
+      "serves": 1,
+      "timeMinutes": 3,
+      "slots": ["breakfast", "snack"],
+      "carbStyle": "moderate-low-carb",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:greek-yoghurt",
+          "rawG": 200,
+          "cookedG": null,
+          "displayAs": "about a cup",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:walnuts",
+          "rawG": 20,
+          "cookedG": null,
+          "displayAs": "a small handful",
+          "swaps": ["seed:pumpkin-seeds"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:frozen-berries",
+          "rawG": 50,
+          "cookedG": null,
+          "displayAs": "a few spoonfuls, thawed",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:ground-cinnamon",
+          "rawG": 1,
+          "cookedG": null,
+          "displayAs": "a pinch",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Spoon the yoghurt into a bowl.",
+        "Top with the berries, the chopped walnuts and a pinch of cinnamon."
+      ],
+      "allergens": ["tree-nut", "milk"],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-snack-chicken-lettuce-wraps",
+      "title": "Chicken lettuce wraps",
+      "serves": 1,
+      "timeMinutes": 10,
+      "slots": ["lunch", "snack"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:chicken-thigh",
+          "rawG": 150,
+          "cookedG": 120,
+          "displayAs": "150 g raw, or leftover roast chicken",
+          "swaps": ["seed:chicken-breast"],
+          "leftover": true
+        },
+        {
+          "ingredientId": "seed:cos-lettuce",
+          "rawG": 80,
+          "cookedG": null,
+          "displayAs": "4 large leaves",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:avocado",
+          "rawG": 50,
+          "cookedG": null,
+          "displayAs": "a third of an avocado",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:cherry-tomatoes",
+          "rawG": 60,
+          "cookedG": null,
+          "displayAs": "a few",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:lemon",
+          "rawG": 15,
+          "cookedG": null,
+          "displayAs": "a squeeze",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:black-pepper",
+          "rawG": 1,
+          "cookedG": null,
+          "displayAs": "a pinch",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Slice the cooked chicken. If you have no leftovers, pan-fry the raw thighs for 5 to 6 minutes a side, until cooked through, then slice.",
+        "Fill the lettuce leaves with the chicken, sliced avocado and halved tomatoes. Add a squeeze of lemon and some pepper, and roll up."
+      ],
+      "allergens": [],
+      "usesLeftoversFrom": "seed:recipe-chicken-silverbeet-traybake"
+    },
+    {
+      "id": "seed:recipe-snack-salmon-cucumber-bites",
+      "title": "Salmon and cucumber bites",
+      "serves": 1,
+      "timeMinutes": 5,
+      "slots": ["snack"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:canned-salmon",
+          "rawG": 85,
+          "cookedG": 85,
+          "displayAs": "half a 210 g can, drained",
+          "swaps": ["seed:tuna-in-water"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:greek-yoghurt",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 tablespoons",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:cucumber",
+          "rawG": 150,
+          "cookedG": null,
+          "displayAs": "half a telegraph cucumber",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:spring-onion",
+          "rawG": 10,
+          "cookedG": null,
+          "displayAs": "1 spring onion",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:lemon",
+          "rawG": 15,
+          "cookedG": null,
+          "displayAs": "a squeeze",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:black-pepper",
+          "rawG": 1,
+          "cookedG": null,
+          "displayAs": "a pinch",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Mash the salmon with the yoghurt, the lemon juice, the sliced spring onion and pepper.",
+        "Cut the cucumber into thick rounds and spoon the salmon on top."
+      ],
+      "allergens": ["milk", "fish"],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-snack-silverbeet-egg-muffins",
+      "title": "Silverbeet egg muffins",
+      "serves": 6,
+      "timeMinutes": 30,
+      "slots": ["breakfast", "snack"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:eggs",
+          "rawG": 400,
+          "cookedG": 400,
+          "displayAs": "8 eggs",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:silverbeet",
+          "rawG": 150,
+          "cookedG": null,
+          "displayAs": "a few large leaves",
+          "swaps": ["seed:spinach", "seed:kale"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:capsicum",
+          "rawG": 100,
+          "cookedG": null,
+          "displayAs": "half a capsicum",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:spring-onion",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "2 spring onions",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:feta",
+          "rawG": 60,
+          "cookedG": null,
+          "displayAs": "60 g, crumbled",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:olive-oil",
+          "rawG": 5,
+          "cookedG": null,
+          "displayAs": "1 teaspoon, for the tin",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:black-pepper",
+          "rawG": 1,
+          "cookedG": null,
+          "displayAs": "a pinch",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Heat the oven to 180 °C and oil a 12-hole muffin tin.",
+        "Finely chop the silverbeet, capsicum and spring onions and divide them between the holes with the crumbled feta.",
+        "Beat the eggs with pepper and pour them over.",
+        "Bake for 18 to 20 minutes, until set all the way through. Cool in the tin for 5 minutes. Two muffins make one serve; keep the rest in the fridge."
+      ],
+      "allergens": ["milk", "egg"],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-eggs-greens-tomatoes",
+      "title": "Eggs with garlicky greens and tomatoes",
+      "serves": 1,
+      "timeMinutes": 10,
+      "slots": ["breakfast", "lunch", "meal1"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:eggs",
+          "rawG": 100,
+          "cookedG": 100,
+          "displayAs": "2 eggs",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:spinach",
+          "rawG": 80,
+          "cookedG": null,
+          "displayAs": "2 handfuls",
+          "swaps": ["seed:silverbeet", "seed:kale"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:cherry-tomatoes",
+          "rawG": 80,
+          "cookedG": null,
+          "displayAs": "a handful",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:garlic",
+          "rawG": 3,
+          "cookedG": null,
+          "displayAs": "1 clove",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:olive-oil",
+          "rawG": 5,
+          "cookedG": null,
+          "displayAs": "1 teaspoon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:black-pepper",
+          "rawG": 1,
+          "cookedG": null,
+          "displayAs": "a pinch",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Warm the oil in a small frying pan and cook the sliced garlic and halved tomatoes for 2 minutes.",
+        "Add the spinach and stir until wilted.",
+        "Make two hollows, crack in the eggs, cover and cook for 3 to 4 minutes, until the eggs are set. Finish with pepper."
+      ],
+      "allergens": ["egg"],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-oats-yoghurt-berries",
+      "title": "Oats with yoghurt and berries",
+      "serves": 1,
+      "timeMinutes": 10,
+      "slots": ["breakfast"],
+      "carbStyle": "balanced",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:rolled-oats",
+          "rawG": 50,
+          "cookedG": null,
+          "displayAs": "half a cup",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:trim-milk",
+          "rawG": 250,
+          "cookedG": null,
+          "displayAs": "1 cup",
+          "swaps": ["seed:milk"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:greek-yoghurt",
+          "rawG": 100,
+          "cookedG": null,
+          "displayAs": "half a cup",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:frozen-berries",
+          "rawG": 75,
+          "cookedG": null,
+          "displayAs": "a handful",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:walnuts",
+          "rawG": 15,
+          "cookedG": null,
+          "displayAs": "a few",
+          "swaps": ["seed:pumpkin-seeds"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:ground-cinnamon",
+          "rawG": 1,
+          "cookedG": null,
+          "displayAs": "a pinch",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Simmer the oats in the milk for 4 to 5 minutes, stirring, until thick and creamy.",
+        "Top with the yoghurt, berries, chopped walnuts and cinnamon."
+      ],
+      "allergens": ["tree-nut", "milk", "oats"],
+      "usesLeftoversFrom": null
+    },
+    {
+      "id": "seed:recipe-chicken-avocado-green-salad",
+      "title": "Chicken, avocado and leafy green salad",
+      "serves": 2,
+      "timeMinutes": 20,
+      "slots": ["lunch", "meal1", "dinner"],
+      "carbStyle": "keto",
+      "oneMealOk": true,
+      "lines": [
+        {
+          "ingredientId": "seed:chicken-breast",
+          "rawG": 300,
+          "cookedG": 240,
+          "displayAs": "1 large breast",
+          "swaps": ["seed:chicken-thigh"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:salad-leaves",
+          "rawG": 120,
+          "cookedG": null,
+          "displayAs": "2 big handfuls",
+          "swaps": ["seed:spinach", "seed:cos-lettuce"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:avocado",
+          "rawG": 150,
+          "cookedG": null,
+          "displayAs": "1 avocado",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:cucumber",
+          "rawG": 100,
+          "cookedG": null,
+          "displayAs": "a quarter of a telegraph cucumber",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:cherry-tomatoes",
+          "rawG": 100,
+          "cookedG": null,
+          "displayAs": "a handful",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:sunflower-seeds",
+          "rawG": 20,
+          "cookedG": null,
+          "displayAs": "2 tablespoons",
+          "swaps": ["seed:pumpkin-seeds"],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:lemon",
+          "rawG": 30,
+          "cookedG": null,
+          "displayAs": "a quarter of a lemon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:olive-oil",
+          "rawG": 15,
+          "cookedG": null,
+          "displayAs": "1 tablespoon",
+          "swaps": [],
+          "leftover": false
+        },
+        {
+          "ingredientId": "seed:black-pepper",
+          "rawG": 1,
+          "cookedG": null,
+          "displayAs": "a few grinds",
+          "swaps": [],
+          "leftover": false
+        }
+      ],
+      "method": [
+        "Season the chicken with pepper and cook it in a frying pan with a little of the oil over medium heat for 5 to 6 minutes a side, until cooked through. Rest it, then slice.",
+        "Toss the leaves, sliced cucumber and halved tomatoes with the lemon juice and the rest of the oil.",
+        "Top with the chicken, sliced avocado and the seeds."
+      ],
+      "allergens": [],
+      "usesLeftoversFrom": null
+    }
+  ],
+  "ketoFirstWeek": {
+    "dinners": [
+      "seed:recipe-chicken-silverbeet-traybake",
+      "seed:recipe-silverbeet-lemon-chicken-soup",
+      "seed:recipe-silverbeet-feta-frittata",
+      "seed:recipe-mince-tomato-silverbeet-skillet",
+      "seed:recipe-fish-garlicky-silverbeet",
+      "seed:recipe-tofu-mushroom-silverbeet-stir-fry",
+      "seed:recipe-salmon-silverbeet-patties"
+    ],
+    "snacks": [
+      "seed:recipe-snack-tuna-cucumber-lemon",
+      "seed:recipe-snack-chicken-lettuce-wraps",
+      "seed:recipe-snack-salmon-cucumber-bites",
+      "seed:recipe-snack-silverbeet-egg-muffins",
+      "seed:recipe-snack-eggs-avocado-cucumber",
+      "seed:recipe-snack-salmon-cucumber-bites",
+      "seed:recipe-snack-tuna-cucumber-lemon"
+    ]
+  }
+}

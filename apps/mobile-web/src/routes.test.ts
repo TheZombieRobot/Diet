@@ -1,13 +1,18 @@
 import { foods } from '@diet/core/copy/health';
 import { describe, expect, it } from 'vitest';
 import {
+  DEEP_LINKS,
   DEFAULT_ROUTE,
   fastingHref,
   fastingSublink,
   isTabRoute,
   isUnderSettings,
+  PARENT_TAB,
   parseRoute,
+  recipeHref,
+  recipeRouteOf,
   ROUTE_TITLES,
+  routeDetail,
   routeHref,
   ROUTES,
   TAB_ROUTES,
@@ -34,6 +39,8 @@ describe('hash routes', () => {
       'targets',
       'foods',
       'pairing',
+      'recipes',
+      'recipe',
     ]);
     expect(ROUTE_TITLES.weight).toBe('Weight');
     expect(ROUTE_TITLES.fasting).toBe('Fasting and reflux');
@@ -43,6 +50,27 @@ describe('hash routes', () => {
     expect(foods.screen.title).toBe('Foods in the app');
     expect(parseRoute('#/foods')).toBe('foods');
     expect(ROUTE_TITLES.pairing).toBe('Laptop pairing');
+  });
+
+  it('U19 (item 20): the recipe screens sit under Food; a recipe link carries its id and a planned portion', () => {
+    expect(PARENT_TAB).toEqual({ recipes: 'food', recipe: 'food' });
+    expect(DEEP_LINKS).toEqual([
+      '#/fasting/reflux',
+      '#/fasting/pattern',
+      '#/recipe/seed%3Arecipe-chicken-silverbeet-traybake',
+    ]);
+    for (const link of DEEP_LINKS) expect(ROUTES.map(routeHref)).not.toContain(link);
+    const seed = 'seed:recipe-chicken-silverbeet-traybake';
+    expect(recipeRouteOf(recipeHref(seed))).toEqual({ id: seed, myServes: null });
+    expect(recipeRouteOf(recipeHref(seed, { myServes: 1.5 }))?.myServes).toBe(1.5);
+    for (const my of ['0', '11', 'abc', ''])
+      expect(recipeRouteOf(`${recipeHref(seed)}?my=${my}`)?.myServes).toBeNull();
+    const copy = '00000000-0000-4000-8000-000000000001';
+    expect(recipeRouteOf(recipeHref(copy))?.id).toBe(copy);
+    expect(recipeRouteOf('#/recipe/seed%3')).toBeNull();
+    expect(recipeRouteOf('#/recipe/not an id')).toBeNull();
+    expect(recipeRouteOf('#/recipe')).toBeNull();
+    expect(routeDetail('#/recipe/Seed%3Arecipe-x?my=2')).toBe('seed%3arecipe-x');
   });
 
   it("the Fasting screen's sub-links open the Fasting screen and name their card (item 15)", () => {

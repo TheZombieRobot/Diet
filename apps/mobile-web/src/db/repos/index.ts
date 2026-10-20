@@ -15,6 +15,7 @@ import { type KickstartRepo, kickstartRepo } from './kickstart';
 import { type PairingRepo, pairingRepo } from './pairing';
 import { type PhaseRepo, phaseRepo } from './phase';
 import { type PlanDaysRepo, planDaysRepo } from './planDays';
+import { type RecipesRepo, recipesRepo } from './recipes';
 import { type ReadinessRepo, readinessRepo } from './readiness';
 import { type SettingsRepo, type SingletonRepo, settingsRepo, singletonRepo } from './singletons';
 import { type WeightsRepo, weightsRepo } from './weights';
@@ -36,7 +37,8 @@ export interface Repos {
   readonly steps: CrudRepo<'steps_log'>;
   readonly ingredients: CrudRepo<'ingredients'>;
   readonly ingredientOverrides: CrudRepo<'ingredient_overrides'>;
-  readonly recipes: CrudRepo<'recipes'>;
+  /** Every write keeps every allergen (HS-24; item 20). */
+  readonly recipes: RecipesRepo;
   readonly planDays: PlanDaysRepo;
   readonly foodLog: FoodLogRepo;
   readonly garden: CrudRepo<'garden'>;
@@ -70,7 +72,7 @@ export function createRepos(ctx: RepoContext): Repos {
     steps: crudRepo(ctx, 'steps_log'),
     ingredients: crudRepo(ctx, 'ingredients'),
     ingredientOverrides: crudRepo(ctx, 'ingredient_overrides'),
-    recipes: crudRepo(ctx, 'recipes'),
+    recipes: recipesRepo(ctx),
     planDays: planDaysRepo(ctx),
     foodLog: foodLogRepo(ctx),
     garden: crudRepo(ctx, 'garden'),

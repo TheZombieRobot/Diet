@@ -16,12 +16,14 @@ import {
   offerInstall,
   openBackupPanels,
   openFoodPanel,
+  openRecipe,
   patchRecords,
   renderedText,
   type ScreenName,
   SCREENS,
   seedOnboarded,
   SETUP_SCREENS,
+  SWEPT_RECIPE,
   visitEveryScreen,
 } from './support/app';
 
@@ -79,6 +81,9 @@ test('no screen shows banned health, price, stock or cart wording', async ({ pag
   await goTo(page, 'Settings');
   await openBackupPanels(page);
   found.push(...(await violations(page, 'Settings with the backup panels open')));
+  // Item 20: a recipe's page (recipes.spec.ts E1 reads every one).
+  await openRecipe(page, SWEPT_RECIPE);
+  found.push(...(await violations(page, 'A recipe page')));
 
   expect(found).toEqual([]);
 });
@@ -101,6 +106,8 @@ test('no screen but About, Weight, Fasting, Diet and targets, and Foods shows a 
   // "Later" row of the "+" panel (TD-02), still fails.
   // Foods in the app is left out too: its numbers are the catalogue's (its count, typical pack
   // sizes), not records; that it never shows a nutrient figure as a number is E1 (foods.spec.ts).
+  // So are Recipes (serves, times and days are the dataset's; item 20's E1 checks its figures)
+  // and, on Food, the Meals link's count of shipped recipes.
   await seedOnboarded(page, './', './', { weightKg: null });
   const found: string[] = [];
   const check = async (where: string, screen: ScreenName) => {
@@ -118,6 +125,7 @@ test('no screen but About, Weight, Fasting, Diet and targets, and Foods shows a 
       screen === 'Fasting and reflux' ||
       screen === 'Diet and targets' ||
       screen === FOODS ||
+      screen === 'Recipes' ||
       (SETUP_SCREENS as readonly string[]).includes(screen)
     ) {
       if (/[$€£]/.test(await renderedText(page))) found.push(`${where}: a currency sign`);
@@ -127,6 +135,8 @@ test('no screen but About, Weight, Fasting, Diet and targets, and Foods shows a 
       page,
       screen === 'Today' ? region(page, fasting.card.label) : undefined,
     );
+    if (screen === 'Food')
+      text = text.replace(await page.getByTestId('food-recipes-link').innerText(), '');
     if (screen === 'Today') {
       // The Nutrition today card shows today's intake (none: every figure 0) against the owner's
       // own stored ranges and guides, never sample data (item 21; targets.spec.ts checks them).

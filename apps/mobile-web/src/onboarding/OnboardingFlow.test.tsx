@@ -18,7 +18,7 @@ import { App } from '../App';
 import { StorageRuleError } from '../db/errors';
 import { appStorageStore } from '../db/runtime';
 import { failingWrite, onboardForTests, openTestDb, rawWriter, type TestDb } from '../db/testKit';
-import { ROUTES } from '../routes';
+import { DEEP_LINKS, ROUTES } from '../routes';
 import {
   answer,
   answerAll,
@@ -74,7 +74,8 @@ async function settle(): Promise<void> {
 const buttons = () => screen.getAllByRole('button').map((b) => b.textContent);
 
 describe('the first-run guard (HS-20, C41, C53)', () => {
-  it.each([...ROUTES.map((r) => `#/${r}`), '#/unknown'])(
+  // Item 20 (and item 19): the deep links too (a recipe page, the Fasting sub-links).
+  it.each([...ROUTES.map((r) => `#/${r}`), ...DEEP_LINKS, '#/unknown'])(
     'K1: %s shows Welcome with only the help numbers to tap',
     async (hash) => {
       await openApp(hash);

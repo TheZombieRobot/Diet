@@ -2534,6 +2534,237 @@ export const foods = {
   attribution: FOOD_ATTRIBUTION,
 } as const;
 
+// ---- Item 20: recipes ----
+
+/**
+ * The recipe screens (checklist item 20; HS-24, HS-39; DOC_REVIEW C01, C32, C43, C70, C102,
+ * C107). Figures, badges, the footer and allergen words are item 18's (foods): a recipe adds no
+ * wording for an unknown figure, no badge word and no footer (item 18–20 contract 4). Nothing here
+ * names a data source or attributes anything to the Heart Foundation (C60, C97), and no string
+ * says a recipe is healthy, safe, allergen-free or fits a ceiling.
+ */
+export const recipes = {
+  routeTitles: {
+    recipes: 'Recipes',
+    recipe: 'Recipe',
+  },
+  foodLink: {
+    cardLabel: 'Meals',
+    title: 'Recipes',
+    detail: '{count} recipes, with a silverbeet week',
+  },
+  list: {
+    intro:
+      'Recipes written for this app: cholesterol-conscious, and built around silverbeet, other greens and everyday New Zealand proteins. Each recipe’s figures are worked out from its ingredients.',
+    sections: {
+      week: 'Silverbeet week',
+      dinners: 'Dinners',
+      snacks: 'Snacks',
+      other: 'Breakfast and lunch',
+      ownOther: 'Your other recipes',
+    },
+    weekHint:
+      'Seven dinners that put silverbeet first, one for each day of a week. Day 2 uses chicken cooked on day 1.',
+    weekMedicines:
+      'Eating a lot more leafy greens than usual can matter for some medicines. If you take regular medicine, ask your pharmacist or GP before a big change.',
+    dayLabel: 'Day {day}',
+    serves: 'Serves {serves}',
+    servesTime: 'Serves {serves} · About {minutes} min',
+    readFailed: 'The recipes could not be read. Reload the app to try again.',
+    dataFailed: 'The recipes could not be loaded. Reload the app to try again.',
+  },
+  chips: {
+    style: {
+      keto: 'Keto',
+      'moderate-low-carb': 'Moderate low-carb',
+      balanced: 'Balanced',
+    },
+    styleWritten: {
+      keto: 'Written for keto',
+      'moderate-low-carb': 'Written for moderate low-carb',
+      balanced: 'Written for balanced eating',
+    },
+    carbsNotWorkedOut: 'Carbs not worked out',
+    heartSmart: 'Heart-smart',
+    flagged: 'More saturated fat',
+    yourVersion: 'Your version',
+    allergenConflict: 'Contains {allergens}',
+    checkLabels: 'Check labels for allergens',
+    glutenHousehold: 'Contains a gluten cereal',
+    disliked: 'Has a food you do not want suggested',
+    hidden: 'Hidden from suggestions',
+  },
+  labels: {
+    off: 'Keto labels are not shown because of what you told the app about {reasons}.',
+    gatesFailed:
+      'Keto labels are not shown because your readiness answers could not be read. Reload the app to try again.',
+    prescriberCheck:
+      'Low-carb eating can change how diabetes medicines act and can cause low blood sugar. Check with your prescriber before you use these recipes for low-carb eating.',
+  },
+  detail: {
+    atAGlance: 'At a glance',
+    makesTerm: 'Makes',
+    timeTerm: 'Time',
+    notFound:
+      'This recipe is not in the app any more. It may have been taken out in an app update, or your version of it was removed.',
+    allRecipes: 'All recipes',
+    makes: '{serves} serves',
+    makesOne: '1 serve',
+    time: 'About {minutes} minutes',
+    yourVersionOf: 'Your version of {title}.',
+    seeOriginal: 'See the original recipe',
+    copyExists: 'You have your own version of this recipe.',
+    openVersion: 'Open your version',
+    methodNote:
+      'The method is the original recipe’s, so it may still name an ingredient you swapped.',
+    pregnancyNote:
+      'If you are pregnant or breastfeeding, ask your midwife or GP which foods to take care with, including leftovers and cold cooked meat.',
+  },
+  style: {
+    written: {
+      keto: 'Written for keto.',
+      'moderate-low-carb': 'Written for moderate low-carb.',
+      balanced: 'Written for balanced eating.',
+    },
+    notYet: 'Its carbs are not worked out yet.',
+    figures: '{style}: {amount} of net carbs a serve.',
+    unknown: 'Net carbs are not worked out yet.',
+  },
+  ingredients: {
+    label: 'Ingredients',
+    cookingFor: 'Cooking for',
+    cookingForHint: 'This changes the amounts only. The nutrition figures stay those of one serve.',
+    fewer: 'One fewer serve',
+    more: 'One more serve',
+    amountsFor: 'Amounts for {serves} serves, as raw weights unless a line says cooked.',
+    amountsForOne: 'Amounts for 1 serve, as raw weights unless a line says cooked.',
+    grams: '{grams} g',
+    underOneGram: 'under 1 g',
+    asWritten: 'As written for {serves} serves: {amount}',
+    eggCount: 'About {count} eggs',
+    eggCountOne: 'About 1 egg',
+    cooked: 'About {grams} g cooked',
+    inGarden: 'In your garden',
+    inSeason: 'In season now',
+    swapHint: 'Or use {names}',
+    leftoverLine: 'Usually left over from {title}',
+    notInApp: 'This ingredient is not in the app any more.',
+    nameMissing: 'Ingredient not in the app',
+    addsSalt: 'This adds salt.',
+  },
+  method: {
+    label: 'Method',
+  },
+  leftovers: {
+    uses: 'Made with leftovers from {title}. No leftovers? Cook the amounts listed fresh.',
+    makes: 'Cook extra for {title}.',
+  },
+  nutrition: {
+    label: 'One serve',
+    caption: 'Per serve',
+    caption100: 'Per 100 g of the raw ingredients as listed',
+    per100Switch: 'Show per 100 g of raw ingredients',
+    per100Note: 'Per 100 g of the raw ingredients as listed, not of the cooked dish.',
+    plannedLabel: 'Your planned portion',
+    plannedServes: 'You planned {serves} serves of this.',
+    confidenceHelp: {
+      database:
+        'Database: no ingredient’s figures are approximate; they come from a published table of food values or a label you entered.',
+      estimate: 'Estimate: at least one ingredient’s figures are approximate.',
+    },
+    neverLabel: 'A recipe is worked out from its ingredients, so it never shows Label.',
+  },
+  heart: {
+    heartSmart:
+      'Heart-smart: its fats are mainly unsaturated, and {portion} has at most {capG} g of saturated fat.',
+    capReference: 'That limit is a third of the 24 g saturated-fat reference used for food labels.',
+    capBudget: 'That limit is a third of today’s {budgetG} g saturated-fat budget.',
+    flagged:
+      'More saturated fat: {reasons}. That does not take it off the menu; it uses the day’s saturated-fat budget faster.',
+    reasons: {
+      'butter-cream': 'butter or cream',
+      'coconut-fat': 'coconut oil or coconut cream',
+      'processed-meat': 'processed meat',
+      'fatty-cut': 'a fatty cut of meat',
+      'cheese-over-40g': 'more than 40 g of cheese in {portion}',
+      'saturated-fat-high': 'more than {capG} g of saturated fat in {portion}',
+    },
+    portion: {
+      serve: 'a serve',
+      mine: 'your portion',
+    },
+    neither: 'No heart-smart label: more than a quarter of its fat is saturated.',
+    unknown: 'Heart-smart: not worked out yet, because some figures are missing.',
+    why: 'The cholesterol-conscious default favours olive oil, avocado, nuts and seeds, oily fish, chicken, eggs within six a week, legumes in small amounts, non-starchy vegetables and garden greens.',
+  },
+  allergens: {
+    label: 'Allergens',
+    contains: 'Contains {allergens}.',
+    noneRecorded: 'No allergens are recorded for its ingredients.',
+    checkLabels:
+      'Some of its packaged ingredients have allergens that depend on the brand: check their labels.',
+    inherited: 'Listed because the recipe this was made from contains {allergens}.',
+    conflict: 'This recipe contains {allergens}, which you listed as allergens to avoid.',
+    unknownForYou:
+      'Its allergens are not fully known, so it is never shown as free of {allergens}. Check the labels of its packaged ingredients.',
+    glutenHousehold:
+      'Gluten-free household is on in your profile, and this recipe contains {cereals}.',
+    source:
+      'The allergens shown are those the Food Standards Code requires on food labels, as recorded for each ingredient. Check the label of what you buy.',
+  },
+  actions: {
+    label: 'What next',
+    addToPlan: 'Add to plan',
+    logAsEaten: 'Log as eaten',
+    scale: 'Scale servings',
+    substitute: 'Substitute ingredient',
+    later: 'Later',
+    laterNote: 'This arrives at a later step of the build checklist.',
+    removeVersion: 'Go back to the original recipe',
+  },
+  swap: {
+    title: 'Substitute ingredient',
+    whichLegend: 'Which ingredient?',
+    forLegend: 'Swap {ingredient} for',
+    none: 'No swaps are listed for {ingredient}.',
+    hiddenAllergenOne: '1 other swap contains an allergen you listed, so it is not shown.',
+    hiddenAllergenMany:
+      '{count} other swaps contain an allergen you listed, so they are not shown.',
+    hiddenDislikeOne: '1 other swap is a food you do not want suggested, so it is not shown.',
+    hiddenDislikeMany:
+      '{count} other swaps are foods you do not want suggested, so they are not shown.',
+    hiddenGlutenFree:
+      'Gluten-free swaps are shown when Gluten-free household is on in your profile.',
+    candidateNone: 'No allergens recorded',
+    candidateGarden: 'In your garden',
+    amountNote: 'The new ingredient uses the same raw weight. Its cooked weight is not known.',
+    use: 'Use {ingredient}',
+    cancel: 'Cancel',
+    saving: 'Saving your version…',
+    done: 'Swapped {from} for {to}. This is your version now; the original recipe stays in the app.',
+    doneUpdate: 'Swapped {from} for {to} in your version.',
+    undo: 'Undo',
+    undone: 'Your version was removed. The original recipe is back.',
+    blockedFigures:
+      'Swapping an ingredient saves your own version of the recipe. The app can save one only when it has food values for every ingredient in it, and it does not have them yet.',
+    blockedMissing:
+      'One of this recipe’s ingredients is not in the app any more, so it cannot be changed. You can go back to the original recipe.',
+    notAllowed: 'That swap is no longer offered. Nothing was changed.',
+    failed: 'The swap could not be saved. Nothing was changed.',
+  },
+  remove: {
+    confirmTitle: 'Go back to the original recipe?',
+    confirmBody:
+      'Your version is removed and the original recipe takes its place, with its own ingredients, allergens and figures.',
+    confirm: 'Remove my version',
+    keep: 'Keep my version',
+    removing: 'Removing your version…',
+    done: 'Your version was removed. This is the original recipe.',
+    inPlan: 'Your version is in your meal plan. Change those meals first, then try again.',
+    failed: 'Your version could not be removed. Nothing was changed.',
+  },
+} as const;
+
 /** All sections, for scanning and review. */
 export const healthCopy = {
   helpNumbers,
@@ -2555,4 +2786,5 @@ export const healthCopy = {
   reminders,
   about,
   foods,
+  recipes,
 } as const;

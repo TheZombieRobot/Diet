@@ -64,6 +64,8 @@ describe('colour tokens (styles/tokens.css)', () => {
     ['--color-teal', '--color-card'],
     ['--color-on-teal', '--color-teal'],
     ['--color-on-teal-tint', '--color-teal-tint'],
+    // Item 20: a recipe line's "In your garden" leaf words on a card.
+    ['--color-on-teal-tint', '--color-card'],
     ['--color-teal', '--color-teal-tint'],
     ['--color-amber', '--color-card'],
     ['--color-on-amber-tint', '--color-amber-tint'],

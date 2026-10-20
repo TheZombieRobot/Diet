@@ -927,12 +927,13 @@
   border-radius: var(--radius-pill);
 }
 
-.ui-tabbar__link[aria-current='page'] {
+/* The current tab, and (item 19) the tab of a screen under it, marked aria-current="true". */
+.ui-tabbar__link[aria-current] {
   color: var(--color-teal);
   font-weight: 800;
 }
 
-.ui-tabbar__link[aria-current='page'] .ui-tabbar__icon {
+.ui-tabbar__link[aria-current] .ui-tabbar__icon {
   background: var(--color-teal-tint);
 }
 
@@ -1945,4 +1946,161 @@
 
 .ui-plain-list--numbered {
   list-style: decimal;
+}
+
+/* ---- Recipes (checklist item 20) ---- */
+
+/* Chips side by side, wrapping; each chip's word carries its meaning. */
+.ui-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* A long chip ("Written for moderate low-carb") wraps on a narrow or zoomed screen. */
+.ui-chip-row > .ui-chip {
+  flex: 0 1 auto;
+  max-width: 100%;
+  padding-block: 3px;
+  overflow-wrap: anywhere;
+}
+
+/* Link rows with a divider between them, as on the approved List board. */
+.ui-link-list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+}
+
+.ui-link-list > li + li {
+  border-top: 1px solid var(--color-border);
+}
+
+.ui-link-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 12px 0;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.ui-link-row:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.ui-link-row__text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ui-link-row__overline {
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.ui-link-row__title {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ui-link-row__detail {
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-link-row__chevron {
+  display: inline-flex;
+  flex: none;
+  color: var(--color-secondary);
+}
+
+/* Ingredient lines: name and amount, then short details; the garden leaf in teal words. */
+.ui-line-list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+}
+
+.ui-line {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 0;
+  overflow-wrap: anywhere;
+}
+
+.ui-line__name {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ui-line + .ui-line {
+  border-top: 1px solid var(--color-border);
+}
+
+.ui-line__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ui-line__amount {
+  flex: none;
+  text-align: end;
+}
+
+.ui-line__detail {
+  display: block;
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-line__leaf {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-on-teal-tint);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* A recipe's method: numbered steps. */
+.ui-method {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 22px;
+  list-style: decimal;
+}
+
+.ui-method li {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.ui-method li::marker {
+  font-weight: 800;
+}
+
+/* What "Scale servings" focuses: the Cooking for stepper's wrapper. */
+.ui-scale-target:focus {
+  outline: none;
+}
+
+.ui-scale-target:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 16px;
 }

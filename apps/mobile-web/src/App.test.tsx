@@ -145,8 +145,9 @@ describe('every screen', () => {
 
 describe('placeholder screens (no sample data)', () => {
   // Today (item 16), About, the setup screens (item 13), the Weight screen (item 14), the Fasting
-  // screen (item 15), Foods in the app (item 18), Diet and targets (item 21) and Laptop
-  // pairing (item 30) are built; the rest still say they arrive later.
+  // screen (item 15), Foods in the app (item 18), Diet and targets (item 21), Laptop
+  // pairing (item 30) and the recipe screens (item 20) are built; the rest still say they arrive
+  // later (Food in part: it links to the recipes).
   const built: readonly RouteId[] = [
     'today',
     'about',
@@ -158,6 +159,8 @@ describe('placeholder screens (no sample data)', () => {
     'targets',
     'foods',
     'pairing',
+    'recipes',
+    'recipe',
   ];
   const placeholders = ROUTES.filter((r) => !built.includes(r));
 
@@ -165,8 +168,15 @@ describe('placeholder screens (no sample data)', () => {
     '%s says it arrives later and shows no numbers or prices',
     async (route) => {
       await show(route);
-      const text = main().textContent;
-      expect(text).toContain('This screen arrives at a later step of the build checklist.');
+      let text = main().textContent;
+      // Item 20: Food's Meals card counts the shipped recipes, a dataset figure and not a record.
+      if (route === 'food')
+        text = text.replace(screen.getByTestId('food-recipes-link').textContent, '');
+      expect(text).toContain(
+        route === 'food'
+          ? 'More of this screen arrives at a later step of the build checklist.'
+          : 'This screen arrives at a later step of the build checklist.',
+      );
       expect(text).not.toMatch(/\d/);
       expect(text).not.toMatch(/[$€£]/);
     },
