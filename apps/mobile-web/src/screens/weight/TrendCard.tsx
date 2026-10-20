@@ -65,6 +65,9 @@ export function TrendCard({ view }: { view: WeightView }): ReactElement {
       {overview.average14Kg === null ? (
         <p className="ui-text-muted">{weight.card.needs14}</p>
       ) : null}
+      {overview.weeklyChange === null ? (
+        <p className="ui-text-muted">{weight.trend.needsWeekly}</p>
+      ) : null}
       <div role="group" aria-label={weight.chart.viewsLabel}>
         <ButtonRow>
           {views.map(([id, label]) => (

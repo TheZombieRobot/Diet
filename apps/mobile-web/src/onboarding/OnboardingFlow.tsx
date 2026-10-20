@@ -350,7 +350,7 @@ export function OnboardingFlow({
     : null;
   const frame: FlowFrame = {
     offlineReady: offlineCopy === 'ready',
-    banners: <UpdateBanner />,
+    banners: <UpdateBanner during="setup" />,
     headingRef,
     headerLink:
       acknowledged && !detour ? (

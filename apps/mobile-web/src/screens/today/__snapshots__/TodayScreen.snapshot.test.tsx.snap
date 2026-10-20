@@ -88,7 +88,7 @@ exports[`TD-01: the Today snapshot (C1) > (a) the full fixture 1`] = `
         "Fibre 0 of 25 g guide",
         "Net carbs 0 / 20 g",
         "Saturated fat 0 / 23 g",
-        "Nothing logged yet today.",
+        "Food logging arrives at a later step in the build checklist. Until then no food is counted here.",
       ],
     },
     {
@@ -194,7 +194,7 @@ exports[`TD-01: the Today snapshot (C1) > (b) fasting gated (q5 yes after the fa
         },
         {
           "href": "tel:111",
-          "name": "111 Emergency: call 111 Seizures, confusion or hallucinations",
+          "name": "111 Emergency: call 111 Very unwell, shaking badly, confused or having a seizure",
           "role": "link",
         },
         {
@@ -207,7 +207,7 @@ exports[`TD-01: the Today snapshot (C1) > (b) fasting gated (q5 yes after the fa
         "If you've been drinking most days or heavily at weekends for a while and are thinking about changing that, the safest first step is a conversation, not a sudden stop. Alcohol Drug Helpline 0800 787 797 (call or text 8681), free and 24/7, or your GP. If someone is very unwell, shaking badly, confused or having a seizure, call 111.",
         "Alcohol Drug Helpline 0800 787 797 · free, 24/7, confidential",
         "Alcohol Drug Helpline by text Text 8681",
-        "111 Emergency: call 111 Seizures, confusion or hallucinations",
+        "111 Emergency: call 111 Very unwell, shaking badly, confused or having a seizure",
         "This card shows again after 30 days.",
       ],
     },
@@ -288,7 +288,7 @@ exports[`TD-01: the Today snapshot (C1) > (b) fasting gated (q5 yes after the fa
         "Fibre 0 g",
         "Net carbs 0 g",
         "Saturated fat 0 g",
-        "Nothing logged yet today.",
+        "Food logging arrives at a later step in the build checklist. Until then no food is counted here.",
         "Shown without targets. Your GP or a dietitian can tell you what suits you.",
       ],
     },

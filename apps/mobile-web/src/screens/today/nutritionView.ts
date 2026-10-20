@@ -196,7 +196,8 @@ export function nutritionTodayView(
 
   const notes: NutritionNote[] = [];
   const drinksLogged = alcoholShown && (drinks.knownKj > 0 || drinks.unknownCount > 0);
-  if (intake.entryCount === 0 && !drinksLogged) notes.push({ text: copy.today.nothingLogged });
+  // Food logging is not built yet (item 23): say so rather than "nothing logged" (F24).
+  if (intake.entryCount === 0) notes.push({ text: copy.today.laterStep });
   for (const key of MISSING_ORDER) {
     const count = unknownCounts[key];
     if (count === 0) continue;

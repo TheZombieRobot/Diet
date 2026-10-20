@@ -32,6 +32,7 @@ import {
   throughProfile,
   type,
 } from './flowTestKit';
+import { markUpdateWaiting, updateStore } from '../pwa/update';
 import { restoreReloadTarget } from './navigation';
 import { OPENING_SLOW_MS } from './OpeningScreen';
 import { gateInputOf, readOnboardingState } from './state';
@@ -44,6 +45,7 @@ beforeEach(async () => {
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
+  updateStore.set({ waiting: false, applying: false });
   appStorageStore.set(null);
   test.db.shutDown();
   window.location.hash = '';
@@ -305,6 +307,21 @@ describe('readiness questions (C41, D29)', () => {
 });
 
 describe('the profile step (UX 1d; C24, C42, HS-35)', () => {
+  it('F27: an update waiting during setup says to finish the step first, never that nothing is lost', async () => {
+    await passNotice();
+    await answerAll();
+    tap(onboarding.frame.continue);
+    await headingIs(profile.title);
+    fillProfile();
+    act(() => {
+      markUpdateWaiting();
+    });
+    const banner = screen.getByText('Update available').closest('[role="status"]');
+    expect(banner?.textContent).toContain('Reload after you finish this step.');
+    expect(banner?.textContent).toContain('not yet saved with Continue is lost');
+    expect(banner?.textContent).not.toMatch(/records stay/);
+  });
+
   it.each(['q1', 'q2', 'q5'] as const)(
     'K8: with answer %s yes there is no goal or Kickstart, each with its reason, and the weight is optional',
     async (q) => {
@@ -362,7 +379,7 @@ describe('the profile step (UX 1d; C24, C42, HS-35)', () => {
     tap(onboarding.frame.continue);
     await headingIs(profile.title);
     type(profile.heightLabel, '175');
-    type(profile.weightLabel, '90');
+    type(profile.weightLabel, '100');
     type(profile.goalLabel, '56.6');
     tap(onboarding.frame.continue);
     expect(await screen.findByText(onboarding.frame.fixBelow)).toBeDefined();
@@ -380,7 +397,7 @@ describe('the profile step (UX 1d; C24, C42, HS-35)', () => {
     });
     expect(screen.getByRole('button', { name: 'Remove liver' })).toBeDefined();
     expect(h1().textContent).toBe(profile.title);
-    fillProfile({ goal: '70' });
+    fillProfile({ goal: '78' });
     tap(onboarding.frame.continue);
     await onSchedule();
     const stored = await test.repos.profile.get();
@@ -390,7 +407,7 @@ describe('the profile step (UX 1d; C24, C42, HS-35)', () => {
       stored.sex,
       stored.goalKg,
       stored.goalReferenceKg,
-    ]).toEqual([175, 1970, 'female', 70, 90]);
+    ]).toEqual([175, 1970, 'female', 78, 100]);
     expect(stored.dislikeTerms).toEqual(['liver']);
     expect((await settings()).profileConfirmedAt).not.toBeNull();
     tap(onboarding.frame.back);

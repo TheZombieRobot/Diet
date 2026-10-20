@@ -50,7 +50,7 @@ afterEach(() => {
 const K = () => importPairingKey(VECTOR_KEY_BYTES);
 
 describe('G4 C34 HS-38: importPairingKey', () => {
-  it('makes a non-extractable AES-GCM 256 key for encrypt and decrypt that storage accepts', async () => {
+  it('HS-38: makes a non-extractable AES-GCM 256 key for encrypt and decrypt that storage accepts', async () => {
     const key = await K();
     expect(key.extractable).toBe(false);
     expect(key.algorithm).toEqual({ name: 'AES-GCM', length: 256 });
