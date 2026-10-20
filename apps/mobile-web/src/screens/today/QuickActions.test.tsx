@@ -34,7 +34,7 @@ async function openPanel(answers: { q1?: 'yes' } = {}): Promise<HTMLElement> {
 }
 
 describe('the quick actions (C9)', () => {
-  it('seven rows in the UX order; the six not built are focusable, marked Later and described by the note', async () => {
+  it('seven rows in the UX order; the five not built are focusable, marked Later and described by the note; Complete workout is a link', async () => {
     const panel = await openPanel();
     const rows = within(panel).getAllByRole('listitem');
     expect(rows.map((li) => li.querySelector('.ui-action-row__title')?.textContent)).toEqual(
@@ -43,7 +43,13 @@ describe('the quick actions (C9)', () => {
     const later = within(panel)
       .getAllByRole('button')
       .filter((b) => b.getAttribute('aria-disabled') === 'true');
-    expect(later).toHaveLength(6);
+    expect(later).toHaveLength(5);
+    // Item 27: the session screen's resolver (RD-05 turns it Off; MovementCard.test.tsx).
+    expect(
+      within(panel)
+        .getByRole('link', { name: copy.labels['complete-workout'] })
+        .getAttribute('href'),
+    ).toBe('#/move-session');
     const note = screen.getByText(copy.laterNote);
     for (const row of later) {
       expect(row.hasAttribute('disabled')).toBe(false);

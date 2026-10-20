@@ -11,6 +11,8 @@ export interface AppShellProps {
   tabs: readonly TabItem[];
   /** The current tab's id, or undefined on a screen that is not a tab. */
   currentTab: string | undefined;
+  /** The screen is a sub-screen of `currentTab` (TabBar's currentIsParent). */
+  currentTabIsParent?: boolean | undefined;
   /** How a tab tap switches screens (see TabBar); without it the tabs are plain links. */
   onTabSelect?: ((id: string) => void) | undefined;
   settingsHref: string;
@@ -30,6 +32,7 @@ export function AppShell({
   titleRef,
   tabs,
   currentTab,
+  currentTabIsParent,
   onTabSelect,
   settingsHref,
   settingsCurrent,
@@ -56,7 +59,12 @@ export function AppShell({
         {children}
       </main>
       {floatingAction}
-      <TabBar items={tabs} current={currentTab} onSelect={onTabSelect} />
+      <TabBar
+        items={tabs}
+        current={currentTab}
+        currentIsParent={currentTabIsParent}
+        onSelect={onTabSelect}
+      />
     </div>
   );
 }

@@ -112,6 +112,11 @@ const DEEP_LINKS = [
   './#/readiness',
   './#/profile',
   './#/eating-schedule',
+  // Item 27: the session (with and without a slug, at its finish) and the weekly plan editor.
+  './#/move-session',
+  './#/move-session/a',
+  './#/move-session/a/finish',
+  './#/move-plan',
   './#/nothing',
 ];
 

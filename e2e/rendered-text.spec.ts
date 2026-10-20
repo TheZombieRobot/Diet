@@ -77,7 +77,7 @@ test('no screen shows banned health, price, stock or cart wording', async ({ pag
   expect(found).toEqual([]);
 });
 
-test('no screen but About, Weight, Fasting and Diet and targets shows a number or a price, even with every banner and panel open', async ({
+test('no screen but About, Weight, Fasting, Diet and targets and Move shows a number or a price, even with every banner and panel open', async ({
   page,
 }) => {
   // Screens must not look like they hold records they do not have (no sample data). The fresh
@@ -86,7 +86,8 @@ test('no screen but About, Weight, Fasting and Diet and targets shows a number o
   // owner's own entries, the question about being under 18 and the pattern names such as 16:8, the
   // Weight screen, whose labels carry digits by design ("7-day average", "Less 0.1 kg"), and the
   // Fasting screen, which shows the owner's eating pattern and its clock times (item 15), and Diet
-  // and targets, which shows the owner's own figures and the allowed ranges by design (item 21).
+  // and targets, which shows the owner's own figures and the allowed ranges by design (item 21),
+  // and Move, which shows the exercise dataset's session lengths and amounts (item 27).
   // On Today the Fast card may carry digits, for the same pattern ("22:2", "Eat 5:00 pm – 7:00 pm"),
   // and is left out by element (item 15 review); the Nutrition today card shows today's intake
   // (none: every figure 0; item 21); and item 16's own figures are removed one element at a time:
@@ -109,6 +110,7 @@ test('no screen but About, Weight, Fasting and Diet and targets shows a number o
       screen === 'Weight' ||
       screen === 'Fasting and reflux' ||
       screen === 'Diet and targets' ||
+      screen === 'Move' ||
       (SETUP_SCREENS as readonly string[]).includes(screen)
     ) {
       if (/[$€£]/.test(await renderedText(page))) found.push(`${where}: a currency sign`);
@@ -123,8 +125,10 @@ test('no screen but About, Weight, Fasting and Diet and targets shows a number o
       // own stored ranges and guides, never sample data (item 21; targets.spec.ts checks them).
       const nutrition = region(page, targets.today.label);
       await expect(nutrition.locator('.ui-meter__value').first()).toHaveText('0 kJ');
+      // Item 27's Movement card shows the dataset's session lengths ("about 25 to 27 minutes").
       const ownFigures = [
         nutrition,
+        region(page, today.cards.movement),
         page.getByTestId('today-status'),
         region(page, today.cards.water).getByRole('button', { name: today.water.add }),
         page.getByTestId('drinks-guidance'),

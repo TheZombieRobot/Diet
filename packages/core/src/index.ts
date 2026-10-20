@@ -25,6 +25,7 @@ export * from './fasting/streak';
 export * from './fasting/windowText';
 export * from './fasting/windows';
 export * from './garden/cropForm';
+export * from './move';
 export * from './nutrition/confidence';
 export * from './nutrition/netCarbs';
 export * from './nutrition/nutrients';

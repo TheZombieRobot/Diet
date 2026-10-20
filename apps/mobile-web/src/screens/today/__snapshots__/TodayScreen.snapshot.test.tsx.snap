@@ -126,10 +126,27 @@ exports[`TD-01: the Today snapshot (C1) > (a) the full fixture 1`] = `
       ],
     },
     {
-      "controls": [],
+      "controls": [
+        {
+          "href": "#/move",
+          "name": "See this week",
+          "role": "link",
+        },
+      ],
       "label": "Movement",
       "lines": [
-        "Sessions, walks and rest days arrive at a later step of the build checklist.",
+        "Rest day, that counts",
+        "Mon Rest Monday: rest day, counts as success",
+        "Tue A Tuesday: Session A",
+        "Wed Rest Wednesday: rest day, counts as success (today)",
+        "Thu Rest Thursday: rest day, counts as success",
+        "Fri B Friday: Session B",
+        "Sat Walk Saturday: Beach walk",
+        "Sun Rest Sunday: rest day, counts as success",
+        "A, B: full-body sessions of about 25 to 27 minutes.",
+        "Walk: optional beach walk.",
+        "Rest and recovery count as success.",
+        "See this week",
       ],
     },
     {
@@ -327,10 +344,27 @@ exports[`TD-01: the Today snapshot (C1) > (b) fasting gated (q5 yes after the fa
       ],
     },
     {
-      "controls": [],
+      "controls": [
+        {
+          "href": "#/move",
+          "name": "See this week",
+          "role": "link",
+        },
+      ],
       "label": "Movement",
       "lines": [
-        "Sessions, walks and rest days arrive at a later step of the build checklist.",
+        "Rest day, that counts",
+        "Mon Rest Monday: rest day, counts as success",
+        "Tue A Tuesday: Session A",
+        "Wed Rest Wednesday: rest day, counts as success (today)",
+        "Thu Rest Thursday: rest day, counts as success",
+        "Fri B Friday: Session B",
+        "Sat Walk Saturday: Beach walk",
+        "Sun Rest Sunday: rest day, counts as success",
+        "A, B: full-body sessions of about 25 to 27 minutes.",
+        "Walk: optional beach walk.",
+        "Rest and recovery count as success.",
+        "See this week",
       ],
     },
     {

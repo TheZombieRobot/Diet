@@ -898,12 +898,15 @@
   border-radius: var(--radius-pill);
 }
 
-.ui-tabbar__link[aria-current='page'] {
+/* The current tab, or the tab whose sub-screen is shown (aria-current="true"). */
+.ui-tabbar__link[aria-current='page'],
+.ui-tabbar__link[aria-current='true'] {
   color: var(--color-teal);
   font-weight: 800;
 }
 
-.ui-tabbar__link[aria-current='page'] .ui-tabbar__icon {
+.ui-tabbar__link[aria-current='page'] .ui-tabbar__icon,
+.ui-tabbar__link[aria-current='true'] .ui-tabbar__icon {
   background: var(--color-teal-tint);
 }
 
@@ -1757,4 +1760,188 @@
   .ui-fab {
     z-index: 12;
   }
+}
+
+/* ---- Item 27: the Move screens ---- */
+
+/* Text at the right of a card label, such as "Bodyweight" (the mock-up's Move card). */
+.ui-card__aside-text {
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* The week strip: seven read-only days, Monday first; today is bold and filled with ink. */
+.ui-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: center;
+}
+
+.ui-week__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ui-week__day {
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-week__item[aria-current='date'] .ui-week__day {
+  color: var(--color-ink);
+  font-weight: 800;
+}
+
+.ui-week__chip {
+  position: relative;
+  box-sizing: border-box;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 40px;
+  min-width: 0;
+  min-height: 40px;
+  padding: 4px 1px;
+  border: 2px solid transparent;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.ui-week__chip--strength {
+  background: var(--color-teal);
+  color: var(--color-on-teal);
+}
+
+.ui-week__chip--beach {
+  background: var(--color-teal-tint);
+  color: var(--color-on-teal-tint);
+}
+
+.ui-week__chip--rest {
+  border-color: var(--color-border-strong);
+  color: var(--color-secondary);
+}
+
+/* A past day with nothing logged: an outline only, never red, crossed or struck through (EX-08). */
+.ui-week__chip--outline {
+  border-color: var(--color-border-strong);
+  color: var(--color-ink-soft);
+}
+
+.ui-week__chip--done::after {
+  content: '✓' / '';
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--color-teal);
+  border-radius: 8px;
+  background: var(--color-card);
+  color: var(--color-teal);
+  font-size: 10px;
+  line-height: 13px;
+}
+
+.ui-week__item[aria-current='date'] .ui-week__chip {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-card);
+}
+
+@media (max-width: 359.98px) {
+  .ui-week__chip {
+    font-size: 11px;
+  }
+
+  .ui-week__day {
+    font-size: 12px;
+  }
+}
+
+/* Below 300 px the columns would be narrower than "Mon": the strip becomes seven rows. */
+@media (max-width: 299.98px) {
+  .ui-week {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    text-align: start;
+  }
+
+  .ui-week__item {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .ui-week__chip {
+    width: auto;
+    max-width: none;
+    min-width: 64px;
+  }
+}
+
+/* One of today's sessions, with its actions stacked under it. */
+.ui-move-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+}
+
+.ui-movement {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ui-movement + .ui-movement {
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border);
+}
+
+/* The sets of one movement: ticked, the next one with its stepper and tick, then the later ones. */
+.ui-sets {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ui-set {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: var(--size-tap);
+}
+
+.ui-set--next {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.ui-set--done {
+  font-weight: 750;
+}
+
+/* The session screen's views under the stop signs: a wrapper for focus that adds no box. */
+.ui-move-flow {
+  display: contents;
 }

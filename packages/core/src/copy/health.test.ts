@@ -5,6 +5,7 @@ import { ACTIVITY_FACTORS } from '../energy/energyEstimate';
 import { PRE_CHECK_KEYS } from '../exercise/preCheck';
 import { START_PROBLEM_CODES } from '../exercise/start';
 import { WEEK_PROBLEM_CODES } from '../exercise/week';
+import { HEAT_WATER_ML_PER_HOUR } from '../move/display';
 import { GATED_FEATURES, READINESS_REASON_IDS } from '../readiness/gates';
 import { USER_ALLERGENS } from '../storage/allergens';
 import { FLOOR_KJ, KICKSTART_MAX_DEFICIT_PCT, KICKSTART_NET_CARBS_G } from '../storage/limits';
@@ -19,6 +20,7 @@ import {
   healthCopy,
   helpNumbers,
   move,
+  moveScreen,
   onboarding,
   privacy,
   profile,
@@ -143,6 +145,29 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
     /\bcatch(?:ing)?\s+up\b/i,
     /\bmake\s+up\s+for\b/i,
     /\bburn(?:s|ed|ing)?\b/i,
+  ],
+  // Item 27 (HEALTH_SAFETY.md sections 1 and 6): nothing is promised safe, no day is missed or
+  // failed, rest is never skipping, nothing is made up or caught up, no running or training is
+  // required, and no scores, targets or goals.
+  moveScreen: [
+    /\bsafe(?:ly)?\b/i,
+    /\bstreaks?\b/i,
+    /\bmissed\b/i,
+    /\bfail(?:ed|s|ing|ure)?\b/i,
+    /\bbehind\b/i,
+    /\blazy\b/i,
+    /\bskip(?:s|ped|ping)?\b/i,
+    /\bcatch(?:ing)?\s+up\b/i,
+    /\bmake\s+up\s+for\b/i,
+    /\bburn(?:s|ed|ing)?\b/i,
+    /\b(?:must|have\s+to|should)\s+(?:run|jog|train|exercise)\b/i,
+    /\bpush\s+through\b/i,
+    /\bwell\s+done\b/i,
+    /\bcongrat\w*/i,
+    /\btargets?\b/i,
+    /\bgoals?\b/i,
+    /\byou\s+(?:didn['’]t|did\s+not|haven['’]t|have\s+not)\b/i,
+    /\bdiagnos\w*/i,
   ],
   // HEALTH_SAFETY.md section 3, HS-02, HS-18, C16, C63: no streak loss, no penalty or reward, no
   // insisting on a fast. "broken fast" is not banned here: the required 1e line ("That's not a
@@ -482,6 +507,13 @@ describe('Move copy (item 26)', () => {
     expect(move.jog.toggle.hint).toContain('with Change weekly plan');
     expect(move.jog.toggle.hint).not.toMatch(/^Adds/);
     expect(move.jog.toggle.hint).toContain('never required');
+  });
+
+  it('item 27: the jog lines point at the switch on Move, and the heat line keeps the per-hour figure', () => {
+    for (const text of [move.jog.needsOptIn, move.jog.readyOptIn, move.jog.toggle.hint]) {
+      expect(text).not.toMatch(/Settings|Equipment/);
+    }
+    expect(moveScreen.before.heatWater).toContain(`${HEAT_WATER_ML_PER_HOUR} mL for each hour`);
   });
 
   it('every check question, week problem and start problem has its words, in order; required sentences are kept', () => {

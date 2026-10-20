@@ -2,7 +2,8 @@
 // fake-indexeddb with the test clock. Imported only by tests; every value is synthetic.
 import { type Instant, READINESS_WORDING, type ReadinessQuestionId, type YesNo } from '@diet/core';
 import { today, weight } from '@diet/core/copy/health';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
+import { expect } from 'vitest';
 import { createElement } from 'react';
 import { appStorageStore } from '../../db/runtime';
 import type { UpdatePatch } from '../../db/repos';
@@ -118,6 +119,11 @@ const LOADED = { timeout: 5000 };
 export async function renderToday(): Promise<HTMLElement> {
   render(createElement('main', null, createElement(TodayScreen)));
   await screen.findByRole('region', { name: today.cards.movement }, LOADED);
+  // Item 27's Movement card is there at once and fills in after its own read.
+  await waitFor(() => {
+    const body = screen.getByRole('region', { name: today.cards.movement });
+    expect(body.querySelector('.ui-card__body')?.childElementCount ?? 0).toBeGreaterThan(0);
+  }, LOADED);
   await screen.findByRole('region', { name: weight.card.label }, LOADED);
   // Item 15's card: Fast, or Fasting while switched off, or only the reflux log (F41).
   await screen.findByRole('region', { name: /^(Fast|Fasting|Reflux)$/ }, LOADED);

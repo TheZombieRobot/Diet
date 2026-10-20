@@ -118,8 +118,24 @@ export interface ReadinessGateView {
  * re-renders every consumer at once (RD-06).
  */
 export function useReadinessGates(storage: AppStorage | null): ReadinessGateView | undefined {
+  const read = useReadinessGateRead(storage);
+  return read.status === 'ready' ? read.view : undefined;
+}
+
+export type ReadinessGateRead =
+  | { readonly status: 'pending' }
+  | { readonly status: 'error' }
+  | { readonly status: 'ready'; readonly view: ReadinessGateView };
+
+/**
+ * The same read with a failed read told apart from a pending one (item 27: Move shows a read
+ * error rather than waiting for ever). One live query and one gate function with
+ * useReadinessGates (C54).
+ */
+export function useReadinessGateRead(storage: AppStorage | null): ReadinessGateRead {
   const read = useOnboardingState(storage);
-  if (storage === null || read === undefined || !read.ok) return undefined;
+  if (storage === null || read === undefined) return { status: 'pending' };
+  if (!read.ok) return { status: 'error' };
   const input = gateInputOf(read.state, storage.env);
-  return { input, gates: readinessGates(input), state: read.state };
+  return { status: 'ready', view: { input, gates: readinessGates(input), state: read.state } };
 }

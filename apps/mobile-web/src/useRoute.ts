@@ -12,5 +12,10 @@ const currentHash = (): string => window.location.hash;
 
 /** The current screen, from the location hash; re-renders when the hash changes. */
 export function useRoute(): RouteId {
-  return parseRoute(useSyncExternalStore(subscribe, currentHash, () => ''));
+  return parseRoute(useLocationHash());
+}
+
+/** The whole location hash ('#/move-session/a/finish'); re-renders when it changes. */
+export function useLocationHash(): string {
+  return useSyncExternalStore(subscribe, currentHash, () => '');
 }
