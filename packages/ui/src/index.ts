@@ -10,6 +10,7 @@ export { AppShell, type AppShellProps } from './components/AppShell';
 export { Banner, type BannerProps } from './components/Banner';
 export { Button, type ButtonProps, type ButtonVariant } from './components/Button';
 export { ButtonRow } from './components/ButtonRow';
+export { CameraView, type CameraViewProps } from './components/CameraView';
 export { Card, type CardProps } from './components/Card';
 export { CheckList, type CheckListProps } from './components/CheckList';
 export { ChoiceList, type ChoiceListProps, type ChoiceOption } from './components/ChoiceList';

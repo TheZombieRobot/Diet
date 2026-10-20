@@ -5,7 +5,8 @@
   "description": "Grocery list aggregation, unit conversion, garden deduction and import/export.",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./transfer": "./src/transfer/index.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
@@ -13,5 +14,8 @@
   },
   "dependencies": {
     "@diet/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@diet/test-fixtures": "workspace:*"
   }
 }

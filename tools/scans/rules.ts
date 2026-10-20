@@ -952,6 +952,50 @@ export const relayBlindRules: readonly ContentRule[] = [
 ];
 
 /**
+ * Pairing and the transfer code (checklist item 30; TR-01, TR-02, HS-15, HS-(next), C83). Each
+ * rule has its own scope (scan.ts TRANSFER_GUARD): only sealForRelay makes a sealed body; the
+ * pairing code never touches web storage or the console; the QR decoder loads only on demand, from
+ * one file; the QR generator stays in the test fixtures. Read as raw text, comments included.
+ */
+export const sealedBodyCastRule = rule(
+  'sealed-body-cast',
+  ['TR-01', 'TR-02'],
+  'a cast to SealedRelayBody (only sealForRelay in envelope.ts makes one)',
+  /\bas\s+SealedRelayBody\b|<SealedRelayBody>/,
+);
+export const pairingWebStorageRule = rule(
+  'pairing-web-storage',
+  ['HS-15', 'HS-(next)', 'TR-10'],
+  'web storage or the console in the pairing and transfer code (the key is never kept there or logged)',
+  /\b(?:localStorage|sessionStorage|console)\b/,
+);
+export const qrDecoderImportRule = rule(
+  'qr-decoder-import',
+  ['C83'],
+  'a static import of jsqr (the bundled QR decoder loads only on demand, from qrDecoders.ts)',
+  /^\s*(?:import|export)\s+(?!type\s)[^;\n]*\bfrom\s+['"]jsqr['"]|\brequire\s*\(\s*['"]jsqr['"]/m,
+);
+export const qrDecoderLoadRule = rule(
+  'qr-decoder-import',
+  ['C83'],
+  'import("jsqr") outside qrDecoders.ts (it exports loadBundledJsQr for every other use)',
+  /\bimport\s*\(\s*['"]jsqr['"]\s*\)/,
+);
+export const qrGeneratorTestOnlyRule = rule(
+  'qr-generator-test-only',
+  ['conventions'],
+  'qrcode-generator outside packages/test-fixtures (it draws test images only)',
+  /['"]qrcode-generator['"]/,
+);
+export const transferGuardRules: readonly ContentRule[] = [
+  sealedBodyCastRule,
+  pairingWebStorageRule,
+  qrDecoderImportRule,
+  qrDecoderLoadRule,
+  qrGeneratorTestOnlyRule,
+];
+
+/**
  * Files that intentionally contain violations (rule definitions and their test inputs). They are
  * exempt from every content rule set, never from the path rules. Add a file only with a reason.
  */

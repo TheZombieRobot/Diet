@@ -90,14 +90,14 @@ What is deliberately absent: streaks, badges, "calories left", "you've earned", 
 
 **6b: Send and export.** Buttons: Send to laptop (encrypted), Copy as text, Export CSV, Export JSON, Paste code (shown when the relay is unreachable). Status line: "Sent 10:42, waiting for laptop" / "Received on laptop" / "Not sent".
 
-**6c: Pairing.** Camera view to scan the QR shown by the laptop extension. One-time. Unpair in settings.
+**6c: Pairing** (Settings, Laptop pairing). Says what pairing does, that the camera is used only while scanning, that anyone who photographs the laptop's code could read lists sent and change the list the laptop shows until you pair again, and to scan the code only from this screen, never with the camera app. **Scan the laptop's code** opens a camera view on this screen and reads the square code the laptop's side panel shows; there is no way to type the code. Once the code is saved, the screen shows the date and a four-letter pairing check that the laptop shows too, with **Pair again** and **Unpair**. Unpair works on this phone only and asks first; the laptop is unpaired in its own side panel.
 
 ---
 
 ## 7. Settings
 A "Your setup" card leads to **Readiness answers** (every answer, the confirmation switches and what the answers switch off; a change applies at once and deletes nothing), **Profile** (the setup fields except current weight, goal and Kickstart) and **Eating schedule** (only the reason while fasting is unavailable; with a link to "Fasting timer, history and reflux log").
 
-Profile, eating schedule, readiness answers, diet mode, targets (protein, net carbs, saturated-fat budget), the drinking-day cut-over (drinks before 5 am count toward the previous evening; adjustable from midnight to 6 am, C21), the Weight check-in card (the rapid-loss bounds, only after reading their explanation, C46), the alcohol guidance set (C46), equipment (bands, dumbbells and the beach-jogging opt-in), household, allergens, dislikes (C43), hidden recipes and foods, store, pairing, Backup and data, About (not a medical device, emergency numbers, data sources and attribution, version). Units are fixed metric, so there is no units setting.
+Profile, eating schedule, readiness answers, diet mode, targets (protein, net carbs, saturated-fat budget), the drinking-day cut-over (drinks before 5 am count toward the previous evening; adjustable from midnight to 6 am, C21), the Weight check-in card (the rapid-loss bounds, only after reading their explanation, C46), the alcohol guidance set (C46), equipment (bands, dumbbells and the beach-jogging opt-in), household, allergens, dislikes (C43), hidden recipes and foods, store, Laptop pairing, Backup and data, About (not a medical device, emergency numbers, data sources and attribution, version). Units are fixed metric, so there is no units setting.
 
 **Backup and data** (built at checklist item 12):
 - **Storage status line**, checked at every launch and never stored: "Protected from automatic clearing. A backup is still your only copy if the phone is lost or Chrome's data is cleared.", "Not protected yet: the phone may clear the app's records when space runs low. A backup is your only other copy.", "This browser cannot protect the app's records from clearing. A backup is your only other copy." or "Checking…". About shows the same line.
@@ -117,3 +117,5 @@ Profile, eating schedule, readiness answers, diet mode, targets (protein, net ca
 **Mode A (only if permitted):** Same, plus a "Push selected items" button that shows each item, the match found, the quantity, and requires one explicit click per batch; a visible progress log; a Stop button; a "Review in cart" link. Never a checkout button. Store check before every batch: if the site's selected store is not Pāpāmoa, the batch does not start.
 
 **Mode C:** The panel simply shows the list for reference, with copy per item.
+
+**Pairing:** Pair (or Pair again) makes a new key and room and shows them as a square code, black on white, only on demand and for at most 5 minutes, with the same pairing check the phone shows. Unpair forgets the key on the laptop only. The header shows when the phone sent the list, and the progress line how many lines it has; when the panel keeps its list instead of an older copy, it says so.

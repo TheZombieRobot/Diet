@@ -1375,3 +1375,40 @@
   min-width: 0;
   overflow-wrap: anywhere;
 }
+
+/* ---- Laptop pairing (checklist item 30): the camera view and the numbered steps ---- */
+
+/* A square camera view with a guide square, drawn only while the stream shows. */
+.ui-camera {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 1;
+  margin-inline: auto;
+  overflow: hidden;
+  border-radius: var(--radius-control);
+  background: var(--color-inset);
+}
+
+.ui-camera__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ui-camera__guide {
+  position: absolute;
+  inset: 15%;
+  border: 3px solid var(--color-teal);
+  border-radius: var(--radius-control);
+  pointer-events: none;
+}
+
+.ui-camera[data-active='false'] .ui-camera__guide {
+  display: none;
+}
+
+.ui-plain-list--numbered {
+  list-style: decimal;
+}

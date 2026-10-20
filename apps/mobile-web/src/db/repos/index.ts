@@ -10,6 +10,7 @@ import { type DrinksRepo, drinksRepo } from './drinks';
 import { type FastsRepo, fastsRepo } from './fasts';
 import { type GardenPhotosRepo, gardenPhotosRepo } from './gardenPhotos';
 import { type KickstartRepo, kickstartRepo } from './kickstart';
+import { type PairingRepo, pairingRepo } from './pairing';
 import { type PhaseRepo, phaseRepo } from './phase';
 import { type PlanDaysRepo, planDaysRepo } from './planDays';
 import { type ReadinessRepo, readinessRepo } from './readiness';
@@ -43,6 +44,8 @@ export interface Repos {
   readonly alcoholDayNotes: CrudRepo<'alcohol_day_notes'>;
   readonly alcoholMilestones: CrudRepo<'alcohol_milestones'>;
   readonly groceryLists: CrudRepo<'grocery_lists'>;
+  /** The laptop pairing (item 30). */
+  readonly pairing: PairingRepo;
   readonly cardState: CardStateRepo;
   readonly audit: CrudRepo<'audit'>;
 }
@@ -74,6 +77,7 @@ export function createRepos(ctx: RepoContext): Repos {
     alcoholDayNotes: crudRepo(ctx, 'alcohol_day_notes'),
     alcoholMilestones: crudRepo(ctx, 'alcohol_milestones'),
     groceryLists: crudRepo(ctx, 'grocery_lists'),
+    pairing: pairingRepo(ctx),
     cardState: cardStateRepo(ctx),
     audit: crudRepo(ctx, 'audit'),
   };

@@ -11,6 +11,7 @@ import {
   readiness,
   reflux,
   schedule,
+  transfer,
   weight,
 } from '../../packages/core/src/copy/health';
 import { fillTemplate } from '../../packages/core/src/copy/template';
@@ -239,5 +240,12 @@ describe('fasting copy matches the docs word for word (item 15)', () => {
 
   it("the fasting pharmacist line is item 13's schedule sentence, one wording (C07)", () => {
     expect(fasting.pharmacist).toBe(schedule.pharmacistNote);
+  });
+
+  it('D1: the pairing camera note is the HEALTH_SAFETY.md section 7 quote (item 30)', () => {
+    const privacySection = section(HEALTH_SAFETY, /^## 7\. /);
+    expect(quoteAfter(privacySection, 'Pairing with the laptop uses the camera:')).toBe(
+      transfer.pairing.cameraNote,
+    );
   });
 });

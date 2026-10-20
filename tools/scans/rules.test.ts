@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -810,5 +811,66 @@ describe('S1. The blind relay rules (checklist item 29; TR-02, HS-14)', () => {
     for (const [code] of flagged) {
       expect(relayHits(code, 'services/relay/src/x.test.ts')).toEqual([]);
     }
+  });
+});
+
+describe('S1–S4. The transfer guard (checklist item 30; TR-01, TR-02, HS-15, HS-(next), C83)', () => {
+  // The rule sets the repository scan runs, so a merge that drops these rules fails here.
+  const repoRuleSets = ruleSetsFor(resolve(import.meta.dirname, '../..'));
+  const GUARD_IDS = [
+    'sealed-body-cast',
+    'pairing-web-storage',
+    'qr-decoder-import',
+    'qr-generator-test-only',
+  ];
+  const guardHits = (code: string, file: string) =>
+    scanSource(file, code, repoRuleSets)
+      .map((v) => v.ruleId)
+      .filter((id) => GUARD_IDS.includes(id));
+  const ENVELOPE = 'packages/grocery/src/transfer/envelope.ts';
+  const DECODERS = 'apps/mobile-web/src/screens/pairing/qrDecoders.ts';
+  const DECODERS_TEST = 'apps/mobile-web/src/screens/pairing/qrDecoders.test.ts';
+
+  it.each([
+    ['const b = body as SealedRelayBody;', 'apps/mobile-web/src/x.ts', ['sealed-body-cast']],
+    ['const b = <SealedRelayBody>body;', 'packages/grocery/src/x.test.ts', ['sealed-body-cast']],
+    ['const b = body as SealedRelayBody;', ENVELOPE, []],
+    [
+      "localStorage.setItem('k', v);",
+      'apps/mobile-web/src/screens/pairing/x.ts',
+      ['pairing-web-storage'],
+    ],
+    ['console.warn(code);', 'packages/grocery/src/transfer/x.ts', ['pairing-web-storage']],
+    ['sessionStorage.clear();', 'apps/mobile-web/src/db/repos/pairing.ts', ['pairing-web-storage']],
+    ['console.warn(code);', 'apps/mobile-web/src/screens/pairing/x.test.ts', []],
+    ["import jsQR from 'jsqr';", DECODERS, ['qr-decoder-import']],
+    ["const j = require('jsqr');", 'apps/mobile-web/src/x.ts', ['qr-decoder-import']],
+    ["import type { QRCode } from 'jsqr';", 'apps/mobile-web/src/x.ts', []],
+    ["const m = await import('jsqr');", DECODERS_TEST, ['qr-decoder-import']],
+    ["const m = await import('jsqr');", DECODERS, []],
+    ["import { loadBundledJsQr } from './qrDecoders';", DECODERS_TEST, []],
+    [
+      "import qrcode from 'qrcode-generator';",
+      'apps/mobile-web/src/x.ts',
+      ['qr-generator-test-only'],
+    ],
+    ["import qrcode from 'qrcode-generator';", 'packages/test-fixtures/src/transfer/q.ts', []],
+  ] as const)('%j in %s gives %j', (code, file, expected) => {
+    expect(guardHits(code, file)).toEqual(expected);
+  });
+
+  it('pins the QR packages: jsqr 1.4.0 in the app only, qrcode-generator 2.0.4 in the fixtures only', () => {
+    const root = resolve(import.meta.dirname, '../..');
+    const deps = (pkg: string) => {
+      const json = JSON.parse(readFileSync(resolve(root, pkg, 'package.json'), 'utf8')) as {
+        dependencies?: Record<string, string>;
+        devDependencies?: Record<string, string>;
+      };
+      return { ...json.dependencies, ...json.devDependencies };
+    };
+    expect(deps('apps/mobile-web')['jsqr']).toBe('1.4.0');
+    expect(deps('apps/mobile-web')['qrcode-generator']).toBeUndefined();
+    expect(deps('packages/test-fixtures')['qrcode-generator']).toBe('2.0.4');
+    expect(deps('packages/test-fixtures')['jsqr']).toBeUndefined();
   });
 });

@@ -7,7 +7,7 @@ import { browserEnv } from '../db/env';
 import { createUpgradeRescueCopy, type SavedFile } from '../db/exportBackup';
 import { offerDownload } from '../files';
 import { formatLocalTime } from '../format';
-import { applyUpdate, updateStore } from '../pwa/update';
+import { reloadApplyingUpdate } from '../pwa/update';
 import { HelpNumberList } from './HelpNumbers';
 import { useStepFocus } from './backup/focus';
 import { LockFields } from './backup/LockFields';
@@ -23,12 +23,8 @@ export interface StorageFailureActions {
 }
 
 const browserActions: StorageFailureActions = {
-  // A new version waiting to take over is applied first: a plain reload keeps the old one in
-  // control (registerType 'prompt'), so the screen would come back (wording review).
-  reload: () => {
-    if (updateStore.get().waiting) void applyUpdate();
-    else window.location.reload();
-  },
+  // A new version waiting to take over is applied first, so the screen does not come back.
+  reload: reloadApplyingUpdate,
   makeRescueCopy: (password) => createUpgradeRescueCopy(indexedDB, browserEnv(), password),
   download: (text, fileName) => {
     offerDownload(text, fileName);

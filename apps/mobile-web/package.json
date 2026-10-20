@@ -19,6 +19,7 @@
     "@diet/grocery": "workspace:*",
     "@diet/ui": "workspace:*",
     "dexie": "4.4.6",
+    "jsqr": "1.4.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "workbox-window": "7.4.1"

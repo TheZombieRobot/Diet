@@ -18,6 +18,8 @@ export const ROUTES = [
   'weight',
   // Item 15: the Fasting screen, opened from Today's Fast card and Settings, Eating schedule.
   'fasting',
+  // Item 30: Settings, Laptop pairing.
+  'pairing',
 ] as const;
 export type RouteId = (typeof ROUTES)[number];
 
@@ -41,6 +43,7 @@ export const ROUTE_TITLES: Readonly<Record<RouteId, string>> = {
   'eating-schedule': 'Eating schedule',
   weight: 'Weight',
   fasting: 'Fasting and reflux',
+  pairing: 'Laptop pairing',
 };
 
 const isRoute = (value: string): value is RouteId => (ROUTES as readonly string[]).includes(value);
@@ -74,7 +77,13 @@ export function parseRoute(hash: string): RouteId {
 }
 
 /** The screens reached from Settings, which light up the settings gear with it. */
-const UNDER_SETTINGS: readonly RouteId[] = ['about', 'readiness', 'profile', 'eating-schedule'];
+const UNDER_SETTINGS: readonly RouteId[] = [
+  'about',
+  'readiness',
+  'profile',
+  'eating-schedule',
+  'pairing',
+];
 
 /** Settings and the screens reached from it light up the settings gear. */
 export const isUnderSettings = (route: RouteId): boolean =>

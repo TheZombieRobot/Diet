@@ -112,6 +112,7 @@ const DEEP_LINKS = [
   './#/readiness',
   './#/profile',
   './#/eating-schedule',
+  './#/pairing',
   './#/nothing',
 ];
 

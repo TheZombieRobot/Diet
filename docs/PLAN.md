@@ -166,7 +166,7 @@ Full test pass including the nine non-negotiable cases; one-handed and sunlight 
 **You can:** rely on it for a normal week.
 
 ### Schedule risk
-Week 3 is heaviest. If it slips, paste/CSV hand-off ships first and QR pairing moves into week 4. The week 4 trial is never cut.
+Week 3 is heaviest. If it slips, pairing and the paste code ship first (they need no network) and the relay moves into week 4. The week 4 trial is never cut.
 
 ---
 
@@ -206,7 +206,7 @@ Week 3 is heaviest. If it slips, paste/CSV hand-off ships first and QR pairing m
 | Health copy drifts into medical advice or taper language | Medium | High | All health strings in one file; banned-phrase scans in CI; your copy review in week 4 |
 | Eating-window arithmetic wrong | Low | Medium | Unit test on clock-time windows (5–7 pm = 2 h) |
 | Nutrition data licence disallows app use | Medium | Low | USDA fallback decided in advance; label-entered values always allowed |
-| Week 3 overload | Medium | Medium | Paste/CSV first; QR pairing can slide |
+| Week 3 overload | Medium | Medium | Pairing and paste first; the relay can slide |
 | Personal data leaks into public repo | Medium | High | Handoff kept out of git; fixtures are generic; `.gitignore` for backups; review before each push |
 | Over-engineering | High | High | "Not planned" list is a contract |
 
