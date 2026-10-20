@@ -73,6 +73,60 @@ describe('liveStateStore (item 16; T24, TD-02)', () => {
     for (const stop of stops) stop();
   });
 
+  it('after a failure, a later successful read is ready again', async () => {
+    const test = await openTestDb();
+    let fail = false;
+    const store = liveStateStore(async () => {
+      const count = await test.db.weights.count();
+      if (fail) throw new Error('synthetic read failure');
+      return count;
+    }, createWriteGate());
+    const stop = store.subscribe(() => undefined);
+    await vi.waitFor(() => {
+      expect(store.get()).toEqual({ status: 'ready', value: 0 });
+    });
+    fail = true;
+    await test.repos.weights.create({ kg: 80, source: 'manual', note: null });
+    await vi.waitFor(() => {
+      expect(store.get()).toEqual({ status: 'error' });
+    });
+    fail = false;
+    await test.repos.weights.create({ kg: 81, source: 'manual', note: null });
+    await vi.waitFor(() => {
+      expect(store.get()).toEqual({ status: 'ready', value: 2 });
+    });
+    stop();
+  });
+
+  it('a failure reported once the gate reads as closed keeps the last value', async () => {
+    // A gate that reads as closed before its close listeners run, so the subscription is still
+    // there when the read fails: only the check at the failure keeps the value.
+    const test = await openTestDb();
+    let open = true;
+    const gate = { ...createWriteGate(), isOpen: () => open };
+    let fail = false;
+    let failures = 0;
+    const store = liveStateStore(async () => {
+      const count = await test.db.weights.count();
+      if (!fail) return count;
+      failures += 1;
+      throw new Error('synthetic read failure');
+    }, gate);
+    const stop = store.subscribe(() => undefined);
+    await vi.waitFor(() => {
+      expect(store.get()).toEqual({ status: 'ready', value: 0 });
+    });
+    open = false;
+    fail = true;
+    await test.repos.weights.create({ kg: 80, source: 'manual', note: null });
+    await vi.waitFor(() => {
+      expect(failures).toBeGreaterThan(0);
+    });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(store.get()).toEqual({ status: 'ready', value: 0 });
+    stop();
+  });
+
   it('a failure after the gate closed keeps the last value', async () => {
     const test = await openTestDb();
     const gate = createWriteGate();

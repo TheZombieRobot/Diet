@@ -1,13 +1,14 @@
 // The Steps card (item 16 design section 5.2 C5; TD-04, T9, T25): real repositories on
 // fake-indexeddb; the fixture has 12,000 steps yesterday and none today.
 import { today } from '@diet/core/copy/health';
-import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { TestDb } from '../../db/testKit';
 import { renderToday, resetToday, todayFixture } from './todayTestKit';
 
 let test: TestDb | undefined;
 afterEach(() => {
+  vi.restoreAllMocks();
   cleanup();
   resetToday(test);
   test = undefined;
@@ -28,12 +29,37 @@ describe('the Steps card (C5; TD-04)', () => {
     await waitFor(() => {
       expect(screen.getByTestId('steps-today').textContent).toBe('12,000');
     });
-    expect(card().textContent).toContain('typed in at 2:20 pm');
+    expect(card().textContent).toContain('saved at 2:20 pm');
     expect(within(card()).queryByRole('button', { name: /Same as yesterday/ })).toBeNull();
     await waitFor(() => {
       expect(document.activeElement).toBe(button(steps.edit));
     });
     expect(await test.repos.steps.get(D)).toMatchObject({ steps: 12000, source: 'manual' });
+  });
+
+  it('a second "Same as yesterday" tap before the saved row comes back saves nothing more and reports no failure', async () => {
+    test = await todayFixture();
+    await renderToday();
+    // Today's read lags behind the write, as on a busy phone: today still reads as empty.
+    const read = test.repos.steps.get.bind(test.repos.steps);
+    vi.spyOn(test.repos.steps, 'get').mockImplementation((date) =>
+      date === D ? Promise.resolve(undefined) : read(date),
+    );
+    const create = vi.spyOn(test.repos.steps, 'create');
+    const repeat = button('Same as yesterday: 12,000');
+    fireEvent.click(repeat);
+    await act(async () => {
+      await create.mock.results[0]?.value;
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    fireEvent.click(repeat);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    });
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(within(card()).queryByRole('alert')).toBeNull();
+    expect(repeat.getAttribute('aria-disabled')).toBe('true');
+    expect(await read(D)).toMatchObject({ steps: 12000 });
   });
 
   it('Edit, type "16,400", Enter (the form submits): saved, editor closed, focus on Edit; the pair stacks only while editing', async () => {

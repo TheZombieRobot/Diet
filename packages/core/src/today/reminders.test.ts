@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import type { DietMode } from '../storage/records';
 import {
   type CholesterolCheckinInput,
   cholesterolCheckinDue,
@@ -164,7 +163,7 @@ describe('electrolyteReminderDue (U6; C72, TD-06)', () => {
         gates: { ketoCeilingAvailable: true, kickstartAvailable: false },
       }),
     ).toBe(false);
-    for (const dietMode of ['balanced', 'moderate'] as DietMode[]) {
+    for (const dietMode of ['balanced', 'moderate-low-carb'] as const) {
       expect(due({ ...running, dietMode })).toBe(false);
     }
   });

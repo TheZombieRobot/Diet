@@ -153,21 +153,88 @@ describe('todayStatus with a fast running (U2; HS-02, HS-03, RD-06, C30, HS-18, 
     });
   });
 
-  it('close to 24 hours names no time: item 15 says it is fine to eat now', () => {
-    // 16:8 from noon; started 12:50 pm, so 11:55 am the next day is 23 h 5 m, before the window.
-    const s = status({
-      now: at('2000-03-16', '11:55'),
-      schedule: schedule({ start: '12:00', end: '20:00' }),
-      fasts: [fast(at(D, '12:50'))],
-    });
-    expect(s).toEqual({ kind: 'fasting', elapsedMinutes: 23 * 60 + 5, window: { kind: 'widen' } });
+  it.each([
+    // 16:8 from noon, started 12:50 pm: 11:55 am the next day is 23 h 5 m, before the window.
+    ['before the window', '12:00', '20:00', '12:50', '11:55', 23 * 60 + 5],
+    // With the window open, whose end is past the 24-hour point (review finding, high): 23:1
+    // until 7:00 pm (24 h 30 m), 22:2 until 7:00 pm (25 h 30 m) and 16:8 until 8:00 pm (31 h 10 m).
+    ['in a 23:1 window', '18:00', '19:00', '18:30', '18:10', 23 * 60 + 40],
+    ['in a 22:2 window', '17:00', '19:00', '17:30', '17:05', 23 * 60 + 35],
+    ['in a 16:8 window', '12:00', '20:00', '12:50', '12:05', 23 * 60 + 15],
+    // Started at 7:00 pm, so the 23:1 window opens at 23 hours and ends at exactly 24.
+    [
+      'at the opening of a 23:1 window ending at 24 hours',
+      '18:00',
+      '19:00',
+      '19:00',
+      '18:10',
+      1390,
+    ],
+  ] as const)(
+    'from 23 hours, %s: it is fine to eat now, as the Fast card says, and no time is named',
+    (_, start, end, began, now, elapsedMinutes) => {
+      const s = status({
+        now: at('2000-03-16', now),
+        schedule: schedule({ start, end }),
+        fasts: [fast(at(D, began))],
+      });
+      expect(s).toEqual({ kind: 'fasting', elapsedMinutes, window: { kind: 'eat-now' } });
+    },
+  );
+
+  it('never names a time past the 24-hour point, and from 23 hours says to eat now (C30)', () => {
+    // 23:1, 22:2, 16:8 and a window over midnight; starts every 90 minutes, checked every 25.
+    const windows: EatingWindow[] = [
+      ONE_MEAL,
+      SNACK,
+      { start: '12:00', end: '20:00' },
+      { start: '22:00', end: '02:00' },
+    ];
+    for (const window of windows) {
+      for (let startMin = 0; startMin < 24 * 60; startMin += 90) {
+        const startMs = Date.parse(at(D, '00:00')) + startMin * MIN;
+        for (let elapsed = 0; elapsed <= 24 * 60; elapsed += 25) {
+          const s = status({
+            now: new Date(startMs + elapsed * MIN).toISOString(),
+            schedule: schedule(window),
+            fasts: [fast(new Date(startMs).toISOString())],
+          });
+          if (s.kind !== 'fasting' || s.window === null) continue;
+          const where = `${window.start}-${window.end}, ${startMin} + ${elapsed} min`;
+          if ('at' in s.window) {
+            expect(Date.parse(s.window.at) - startMs, where).toBeLessThanOrEqual(24 * HOUR);
+          }
+          if (elapsed >= 23 * 60) expect(s.window.kind, where).toBe('eat-now');
+        }
+      }
+    }
   });
 
-  it('a window open now; a start dated ahead counts as 0; no pattern gives no window', () => {
-    expect(status({ now: at(D, '18:10'), fasts: [fast(started)] })).toMatchObject({
+  it('a window open now names its end only when that is within 24 hours of the start', () => {
+    // 22:2 and started 7:30 pm: at 5:10 pm the window closes at 7:00 pm, 23 h 30 m after it.
+    expect(
+      status({
+        now: at(D, '17:10'),
+        schedule: schedule(SNACK),
+        fasts: [fast(at('2000-03-14', '19:30'))],
+      }),
+    ).toEqual({
       kind: 'fasting',
+      elapsedMinutes: 21 * 60 + 40,
       window: { kind: 'open-until', at: '2000-03-15T06:00:00.000Z' },
     });
+    // 16:8 and started 6:00 pm, inside the window: at 1:00 pm the window closes at 8:00 pm, 26 h
+    // after it, so its end is not named.
+    expect(
+      status({
+        now: at(D, '13:00'),
+        schedule: schedule({ start: '12:00', end: '20:00' }),
+        fasts: [fast(at('2000-03-14', '18:00'))],
+      }),
+    ).toEqual({ kind: 'fasting', elapsedMinutes: 19 * 60, window: { kind: 'open-now' } });
+  });
+
+  it('a start dated ahead counts as 0; no pattern gives no window', () => {
     expect(status({ now: at(D, '14:20'), fasts: [fast(at(D, '15:00'))] })).toMatchObject({
       kind: 'fasting',
       elapsedMinutes: 0,

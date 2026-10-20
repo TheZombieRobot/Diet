@@ -1,7 +1,7 @@
 // The Water card (item 16 design section 5.2 C4; TD-03, T7, T8, T26): real repositories on
 // fake-indexeddb; the fixture has 250 mL at 8:00 and 10:00 am and an electrolyte tick at 8:05 am.
 import { privacy, today } from '@diet/core/copy/health';
-import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { StorageClosedError, StorageFullError } from '../../db/errors';
 import type { TestDb } from '../../db/testKit';
@@ -26,10 +26,11 @@ describe('the Water card (C4; TD-03)', () => {
     await renderToday();
     expect(total()).toBe('500 mL');
     expect(status()).toBe('');
-    // Every text the line ever shows: never a total that is not yet stored (T26).
+    // Every text the line ever shows, through Undo: never a total that is not yet stored (T26).
     const shown: string[] = [];
     const observer = new MutationObserver(() => {
-      shown.push(status());
+      const text = status();
+      if (text !== '' && shown.at(-1) !== text) shown.push(text);
     });
     observer.observe(within(card()).getByRole('status'), {
       childList: true,
@@ -40,21 +41,37 @@ describe('the Water card (C4; TD-03)', () => {
     await waitFor(() => {
       expect(status()).toBe('Added 250 mL. Today: 750 mL.');
     });
-    observer.disconnect();
-    expect(shown.filter((text) => text !== '' && text !== 'Added 250 mL. Today: 750 mL.')).toEqual(
-      [],
-    );
     expect(total()).toBe('750 mL');
     const added = (await rows()).find((r) => r.at === test?.env.now() && r.ml === 250);
     expect(added).toMatchObject({ ml: 250, electrolyte: false, timeZone: 'Pacific/Auckland' });
+    // Another tab logs a glass a minute later: Undo still removes only the glass tapped here.
+    const other = await act(() =>
+      test?.repos.water.create({
+        ml: 250,
+        electrolyte: false,
+        at: '2000-03-15T01:21:00.000Z',
+        timeZone: 'Pacific/Auckland',
+      }),
+    );
+    await waitFor(() => {
+      expect(total()).toBe('1 L');
+    });
 
     fireEvent.click(within(card()).getByRole('button', { name: today.water.undo }));
     await waitFor(() => {
-      expect(status()).toBe('Removed. Today: 500 mL.');
+      expect(status()).toBe('Removed. Today: 750 mL.');
     });
-    expect(total()).toBe('500 mL');
-    expect((await rows()).map((r) => r.id)).not.toContain(added?.id);
-    expect(await rows()).toHaveLength(3);
+    observer.disconnect();
+    expect(shown).toEqual([
+      'Added 250 mL. Today: 750 mL.',
+      'Added 250 mL. Today: 1 L.',
+      'Removed. Today: 750 mL.',
+    ]);
+    expect(total()).toBe('750 mL');
+    const ids = (await rows()).map((r) => r.id);
+    expect(ids).not.toContain(added?.id);
+    expect(ids).toContain(other?.id);
+    expect(ids).toHaveLength(4);
     expect(document.activeElement?.textContent).toBe(today.water.add);
     expect(within(card()).queryByRole('button', { name: today.water.undo })).toBeNull();
   });
@@ -72,12 +89,17 @@ describe('the Water card (C4; TD-03)', () => {
     await renderToday();
     const toggle = () => within(card()).getByRole('switch', { name: today.water.electrolytes });
     expect(toggle()).toHaveProperty('checked', true);
+    const busy = () => toggle().getAttribute('aria-disabled') === 'true';
     fireEvent.click(toggle());
-    // It shows what was asked for at once, and is disabled until the writes are done.
+    // It shows what was asked for at once, and ignores taps until the stored truth is back; it is
+    // never `disabled`, which would drop focus to the page (design 1.14).
     expect(toggle()).toHaveProperty('checked', false);
-    expect(toggle()).toHaveProperty('disabled', true);
+    expect(busy()).toBe(true);
+    expect(toggle()).toHaveProperty('disabled', false);
+    fireEvent.click(toggle());
+    expect(toggle()).toHaveProperty('checked', false);
     await waitFor(() => {
-      expect(toggle()).toHaveProperty('disabled', false);
+      expect(busy()).toBe(false);
     });
     expect(toggle()).toHaveProperty('checked', false);
     expect((await rows()).map((r) => [r.ml, r.electrolyte])).toEqual(
@@ -91,7 +113,7 @@ describe('the Water card (C4; TD-03)', () => {
     expect(total()).toBe('500 mL');
     fireEvent.click(toggle());
     await waitFor(() => {
-      expect(toggle()).toHaveProperty('disabled', false);
+      expect(busy()).toBe(false);
     });
     expect(toggle()).toHaveProperty('checked', true);
     expect((await rows()).filter((r) => r.ml === 0 && r.electrolyte)).toHaveLength(2);
@@ -107,14 +129,20 @@ describe('the Water card (C4; TD-03)', () => {
     expect(toggle()).toHaveProperty('checked', true);
   });
 
-  it('at local midnight the card reads the new day', async () => {
+  it("at local midnight the card reads the new day and forgets yesterday's Undo (design 1.6, 1.11)", async () => {
     test = await todayFixture();
     await renderToday();
+    fireEvent.click(within(card()).getByRole('button', { name: today.water.add }));
+    await waitFor(() => {
+      expect(status()).toBe('Added 250 mL. Today: 750 mL.');
+    });
     await clockTo(test, '2000-03-15T11:00:00.000Z'); // 00:00 on 16 March in Auckland
     await waitFor(() => {
       expect(total()).toBe(today.water.none);
     });
     expect(within(card()).getByRole('switch')).toHaveProperty('checked', false);
+    expect(within(card()).queryByRole('button', { name: today.water.undo })).toBeNull();
+    expect(status()).toBe('');
   });
 
   it.each([

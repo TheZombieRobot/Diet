@@ -9,7 +9,7 @@ import {
   seedOnboarded,
   visitEveryScreen,
 } from './support/app';
-import { lowContrastText, MIN_CONTRAST } from './support/contrast';
+import { lowContrastText, MIN_CONTRAST, textSamples } from './support/contrast';
 
 // Text must stay readable in sunlight (UX_SCREENS.md design rules; WCAG 2 AA). tokens.test.ts
 // checks the main colour pairs from the token list; this sweep checks what the browser actually
@@ -47,11 +47,15 @@ for (const colorScheme of ['light', 'dark'] as const) {
     await page.getByRole('button', { name: 'Quick actions' }).click();
     await expect(page.locator('.ui-fab-panel [aria-disabled="true"]')).toHaveCount(6);
     await sweep('Today with the install banner, the steps editor and quick actions');
+    // The Later rows are aria-disabled but meant to be read at full contrast, so they are swept.
+    const swept = async () => (await textSamples(page)).map((sample) => sample.text);
+    expect(await swept()).toEqual(expect.arrayContaining(['Finish meal', 'Later']));
     // The Off row and its reason (under 18).
     await patchRecords(page, { readiness: { q1: 'yes' } });
     await page.getByRole('button', { name: 'Quick actions' }).click();
     await expect(page.locator('.ui-fab-panel').getByText('Off', { exact: true })).toBeVisible();
     await sweep('Today under 18, with the Off quick action');
+    expect(await swept()).toEqual(expect.arrayContaining(['Add drink', 'Off']));
     await patchRecords(page, { readiness: { q1: 'no' } });
     await offerInstall(page);
     await goTo(page, 'Settings');

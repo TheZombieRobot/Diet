@@ -2123,7 +2123,8 @@ export const today = {
   },
   steps: {
     none: 'Not entered today',
-    enteredAt: 'typed in at {time}',
+    // Typed in or copied by "Same as yesterday": "saved" is true of both (item 16 review).
+    enteredAt: 'saved at {time}',
     enter: 'Enter steps',
     edit: 'Edit',
     sameAsYesterday: 'Same as yesterday: {steps}',
@@ -2133,7 +2134,7 @@ export const today = {
     remove: "Remove today's entry",
     errors: {
       empty: 'Enter the number of steps.',
-      format: 'Use digits only, such as 12000 or 12,000.',
+      format: 'Use whole numbers only, such as 12000 or 12,000.',
       'too-many': 'That is more than 100,000 steps. Check the number.',
     },
   },
@@ -2150,8 +2151,8 @@ export const today = {
       'add-drink': 'Add drink',
       'open-grocery-list': 'Open grocery list',
     },
-    laterNote:
-      'Actions marked Later arrive at later steps of the build checklist and do nothing yet.',
+    // Short, so it stays in view above the list on a phone at 200% zoom (item 16 review).
+    laterNote: 'Actions marked Later are not built yet and do nothing.',
     markerLater: 'Later',
     markerOff: 'Off',
   },

@@ -1696,6 +1696,18 @@
   list-style: none;
 }
 
+/*
+ * Too narrow for the title beside its icon and marker (a phone at 200% zoom): the title takes the
+ * next line, rather than a column a letter or two wide.
+ */
+.ui-quick-actions .ui-action-row {
+  flex-wrap: wrap;
+}
+
+.ui-quick-actions .ui-action-row__text {
+  flex: 1 1 6em;
+}
+
 /* An action row that is a button: the whole width, text from the start. */
 .ui-action-row--button {
   width: 100%;
@@ -1726,4 +1738,23 @@
   );
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+/*
+ * A short screen (a phone at 200% zoom, or on its side) leaves that room too small for a whole
+ * row. The panel then takes the height from the top of the screen to the tab bar; the "+" stays
+ * drawn above it, so focus on it is never hidden, and the list scrolls clear of it.
+ */
+@media (max-height: 560px) {
+  .ui-fab-panel {
+    top: calc(env(safe-area-inset-top, 0px) + 8px);
+    bottom: calc(var(--size-tabbar) + env(safe-area-inset-bottom, 0px) + 8px);
+    max-height: none;
+    padding-bottom: calc(var(--size-fab) + 20px);
+    scroll-padding-bottom: calc(var(--size-fab) + 20px);
+  }
+
+  .ui-fab {
+    z-index: 12;
+  }
 }

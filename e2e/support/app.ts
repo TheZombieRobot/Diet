@@ -1,7 +1,7 @@
 import { expect, type BrowserContext, type Locator, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { fasting, onboarding, privacy, weight } from '../../packages/core/src/copy/health';
+import { fasting, onboarding, privacy, today, weight } from '../../packages/core/src/copy/health';
 import { parseColourTokens, requireToken } from '../../packages/ui/src/tokens';
 
 /** Every screen of the phone app, in the order a person reaches them. */
@@ -81,6 +81,12 @@ export async function goTo(page: Page, screen: ScreenName): Promise<void> {
     }
   }
   await expect(heading(page)).toHaveText(screen);
+  // Today draws its cards after its own reads (item 16): wait for them, so a check measures them.
+  if (screen === 'Today') {
+    await expect(
+      page.getByRole('region', { name: today.cards.movement, exact: true }),
+    ).toBeVisible();
+  }
 }
 
 /**

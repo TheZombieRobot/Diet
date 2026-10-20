@@ -1,6 +1,6 @@
 // Today's order and states (item 16 design section 5.2: C2, C7, C10, C12). The real
 // repositories on fake-indexeddb with the test clock; synthetic records only.
-import { alcohol, privacy, targets, today, weight } from '@diet/core/copy/health';
+import { alcohol, fasting, privacy, targets, today, weight } from '@diet/core/copy/health';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { counts, type TestDb } from '../../db/testKit';
@@ -179,8 +179,9 @@ describe('Today before setup, while reading, and when the read fails (C10, C12; 
     expect(within(main).queryAllByRole('button')).toHaveLength(0);
   });
 
-  it('a failed read says so and offers a reload (T24)', async () => {
-    test = await todayFixture();
+  it('a failed read says so and offers a reload, under the status line and the Talk to someone card, which have their own reads (T24; HS-02, AL-09)', async () => {
+    // A fast from 11:20 am on 14 March: 27 h at 2:20 pm.
+    test = await todayFixture({ answers: { q7: 'yes' }, fast: '2000-03-13T22:20:00.000Z' });
     vi.spyOn(test.repos.water, 'listByIndex').mockRejectedValue(new Error('synthetic failure'));
     render(
       <main>
@@ -189,9 +190,43 @@ describe('Today before setup, while reading, and when the read fails (C10, C12; 
     );
     const alert = await screen.findByRole('alert');
     expect(alert.textContent).toContain(today.readFailed);
-    expect(screen.getByRole('main').querySelectorAll('section')).toHaveLength(0);
+    await waitFor(() => {
+      expect(screen.getByTestId('today-status-line').textContent).toBe(
+        `Fasting 27 h. ${fasting.card.overCeiling}`,
+      );
+    });
+    await screen.findByRole('region', { name: alcohol.helpCardLabel });
+    expect(regionLabels(screen.getByRole('main'))).toEqual([alcohol.helpCardLabel]);
     fireEvent.click(within(alert).getByRole('button', { name: today.reload }));
     expect(test.storage.platform.reloads).toBe(1);
+  });
+
+  it('a failed read before setup is finished: only the date and the reload, nothing to write (HS-20)', async () => {
+    test = await todayFixture({
+      answers: { q7: 'yes' },
+      seed: async (t) => {
+        const settings = await t.repos.settings.get();
+        await t.db.settings.put({ ...settings, onboardingCompletedAt: null });
+      },
+    });
+    vi.spyOn(test.repos.water, 'listByIndex').mockRejectedValue(new Error('synthetic failure'));
+    render(
+      <main>
+        <TodayScreen />
+      </main>,
+    );
+    await screen.findByRole('alert');
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+    const main = screen.getByRole('main');
+    expect(main.querySelectorAll('section')).toHaveLength(0);
+    expect(screen.queryByTestId('today-status-line')).toBeNull();
+    expect(
+      within(main)
+        .getAllByRole('button')
+        .map((b) => b.textContent),
+    ).toEqual([today.reload]);
   });
 
   it("Movement: one later-step line, no figure and no button (Nutrition today is item 21's card)", async () => {
