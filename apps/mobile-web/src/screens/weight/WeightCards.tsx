@@ -8,6 +8,12 @@ import { useStore } from '../../store';
 import { EndKickstart } from './EndKickstart';
 import { KickstartCheckPanel } from './KickstartCheckPanel';
 import { StopSignLines } from './parts';
+import {
+  acknowledgePreStartStopSign,
+  preStartGuidanceShown,
+  preStartSeenStore,
+  preStartStopSignStore,
+} from './preStartCheck';
 import { presetMovedStore, reportStatus, stopSignFocusStore } from './stores';
 import type { WeightView } from './useWeightView';
 import { useFocusWhen } from './weightText';
@@ -157,12 +163,10 @@ export function PendingStartCard({
   storage,
   card,
   today,
-  onPreStartStopSign,
 }: {
   storage: AppStorage;
   card: NonNullable<Cards['pendingStart']>;
   today: string;
-  onPreStartStopSign: () => void;
 }): ReactElement {
   const [checking, setChecking] = useState(false);
   return (
@@ -182,7 +186,8 @@ export function PendingStartCard({
           onCancel={() => {
             setChecking(false);
           }}
-          onPreStartStopSign={onPreStartStopSign}
+          // The guidance card takes over (preStartCheck.ts).
+          onPreStartStopSign={() => undefined}
         />
       ) : (
         <ButtonRow>
@@ -199,7 +204,7 @@ export function PendingStartCard({
             onClick={() => {
               storage.repos.profile.update({ kickstartOptIn: false }).then(
                 () => {
-                  reportStatus(weight.start.declined);
+                  reportStatus(weight.start.declined, true);
                 },
                 () => undefined,
               );
@@ -225,24 +230,24 @@ function keepOneMeal(storage: AppStorage, then?: () => void): void {
     })
     .then(
       () => {
-        reportStatus(weight.steadyExplainer.kept231);
+        reportStatus(weight.steadyExplainer.kept231, true);
         then?.();
       },
       () => undefined,
     );
 }
 
-/** "Kickstart has finished" (WT-08, C55, C61, W17): no percentage, with the 22:2 line and "Use 23:1 instead". */
+/**
+ * "Kickstart has finished" (WT-08, C55, C61, W17): no percentage, with the 22:2 line and "Use 23:1
+ * instead". The pace and rebound sentences are the phase notes beside it (the Weight card on Today,
+ * the Phase card on the Weight screen), so they are not repeated here.
+ */
 export function SteadyExplainerCard({
   storage,
   card,
-  lowWeight,
-  rebound,
 }: {
   storage: AppStorage;
   card: NonNullable<Cards['steadyExplainer']>;
-  lowWeight: boolean;
-  rebound: boolean;
 }): ReactElement {
   return (
     <Card label={weight.steadyExplainer.label}>
@@ -250,8 +255,6 @@ export function SteadyExplainerCard({
       {card.carbCeilingG === null ? null : (
         <p>{fillTemplate(weight.steadyExplainer.carbs, { g: card.carbCeilingG })}</p>
       )}
-      <p>{lowWeight ? weight.phase.lowWeight : weight.phase.steadyPace}</p>
-      {rebound ? <p>{weight.phase.steadyRebound}</p> : null}
       {card.windowLine ? <p>{weight.steadyExplainer.window}</p> : null}
       <ButtonRow>
         {card.windowLine ? (
@@ -276,21 +279,33 @@ export function SteadyExplainerCard({
   );
 }
 
-/** The in-memory notice after the stored 23:1 → 22:2 move, when nothing else explains it (C55, W16). */
-export function PresetMovedCard({ storage }: { storage: AppStorage }): ReactElement {
+/**
+ * The in-memory notice after the stored 23:1 → 22:2 move, when nothing else explains it (C55, W16).
+ * While answer 4 is "yes" or unanswered it says why 23:1 is not used and offers no one-tap 23:1
+ * (C07): that owner chooses a pattern in Settings.
+ */
+export function PresetMovedCard({
+  storage,
+  answer4,
+}: {
+  storage: AppStorage;
+  answer4: boolean;
+}): ReactElement {
   return (
     <Card label={weight.presetMoved.label}>
-      <p>{weight.presetMoved.body}</p>
+      <p>{answer4 ? weight.presetMoved.answer4 : weight.presetMoved.body}</p>
       <ButtonRow>
-        <Button
-          onClick={() => {
-            keepOneMeal(storage, () => {
-              presetMovedStore.set(null);
-            });
-          }}
-        >
-          {weight.presetMoved.use231}
-        </Button>
+        {answer4 ? null : (
+          <Button
+            onClick={() => {
+              keepOneMeal(storage, () => {
+                presetMovedStore.set(null);
+              });
+            }}
+          >
+            {weight.presetMoved.use231}
+          </Button>
+        )}
         <Button
           variant="quiet"
           onClick={() => {
@@ -323,7 +338,10 @@ export function FluctuationCard({ storage }: { storage: AppStorage }): ReactElem
   );
 }
 
-/** After a "yes" before a start: nothing started, and what to do about it (W31). Stays until OK. */
+/**
+ * After a "yes" before a start: nothing started, and what to do about it (W31). Stays on Today and
+ * the Weight screen, through a reload and in every tab, until OK that day (preStartCheck.ts).
+ */
 export function PreStartStopSignCard({
   bloodPressure,
   onClose,
@@ -349,25 +367,29 @@ export function PreStartStopSignCard({
 
 /**
  * The weight cards, in order (item 14 design section 2.3): weight check-in, stop-signs, extension
- * offer, the start card (Today only), Kickstart has finished, the eating-window notice, daily
- * changes. A pre-start "yes" keeps its guidance on screen after the start card goes.
+ * offer, the guidance after a pre-start "yes", the start card (Today only), Kickstart has finished,
+ * the eating-window notice, daily changes.
  */
 export function WeightCards({
   storage,
   view,
   showStartCard,
-  preStartStopSign,
-  onPreStartStopSign,
 }: {
   storage: AppStorage;
   view: WeightView;
   showStartCard: boolean;
-  preStartStopSign: boolean;
-  onPreStartStopSign: (shown: boolean) => void;
 }): ReactElement {
   const { overview } = view;
-  const { cards, phase, notes } = overview;
+  const { cards, phase } = overview;
   const presetMoved = useStore(presetMovedStore);
+  const preStartHeld = useStore(preStartStopSignStore);
+  const preStartSeen = useStore(preStartSeenStore);
+  const preStartStopSign = preStartGuidanceShown(
+    view.inputs.cardStates,
+    { held: preStartHeld, seen: preStartSeen },
+    overview.today,
+    view.input.now,
+  );
   const explained = cards.steadyExplainer?.windowLine === true || cards.pendingStart !== null;
   return (
     <>
@@ -386,29 +408,20 @@ export function WeightCards({
         <PreStartStopSignCard
           bloodPressure={view.input.gates.bloodPressureSaltWording}
           onClose={() => {
-            onPreStartStopSign(false);
+            // OK holds in this page even if its record cannot be written.
+            void acknowledgePreStartStopSign(storage, overview.today).catch(() => undefined);
           }}
         />
       ) : null}
       {showStartCard && cards.pendingStart !== null && !preStartStopSign ? (
-        <PendingStartCard
-          storage={storage}
-          card={cards.pendingStart}
-          today={overview.today}
-          onPreStartStopSign={() => {
-            onPreStartStopSign(true);
-          }}
-        />
+        <PendingStartCard storage={storage} card={cards.pendingStart} today={overview.today} />
       ) : null}
       {cards.steadyExplainer === null ? null : (
-        <SteadyExplainerCard
-          storage={storage}
-          card={cards.steadyExplainer}
-          lowWeight={overview.lowWeight}
-          rebound={notes.includes('steady-rebound')}
-        />
+        <SteadyExplainerCard storage={storage} card={cards.steadyExplainer} />
       )}
-      {presetMoved === null || explained ? null : <PresetMovedCard storage={storage} />}
+      {presetMoved === null || explained ? null : (
+        <PresetMovedCard storage={storage} answer4={view.input.gates.pharmacistReminder} />
+      )}
       {cards.fluctuation ? <FluctuationCard storage={storage} /> : null}
     </>
   );

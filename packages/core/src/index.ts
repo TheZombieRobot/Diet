@@ -52,6 +52,7 @@ export * from './weight/goal';
 export * from './weight/overview';
 export * from './weight/phase';
 export * from './weight/presets';
+export * from './weight/preStart';
 export * from './weight/rapidLoss';
 export * from './weight/trend';
 export * from './weight/weighIns';

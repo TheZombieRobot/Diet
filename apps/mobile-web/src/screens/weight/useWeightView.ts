@@ -2,7 +2,7 @@
  * The weight picture from one consistent read of the records (item 14 design section 5.2). The
  * Weight card, the Weight screen, the reconciler and the Kickstart actions all decide from
  * overviewInputFrom, so they apply the same rule: item 13's readiness gates, fed item 14's current
- * weight, the end latch and today's pre-start answer. On screen the gates come from item 13's hook
+ * weight, the end latch and today's pre-start answer (its record, or this page's hold). On screen the gates come from item 13's hook
  * useReadinessGates (the one every gated screen uses); an action re-reads the records and builds
  * the same gates from them (weightGateInput), so a write always decides from fresh records.
  */
@@ -29,13 +29,13 @@ import {
   type WeightRecord,
 } from '@diet/core';
 import Dexie from 'dexie';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useLiveQuery } from '../../db/liveQuery';
 import type { AppStorage } from '../../db/runtime';
 import { gateInputOf, useReadinessGates } from '../../onboarding/state';
 import { useStore } from '../../store';
 import { useNow } from '../../useNow';
-import { loadPreStartStopSign, preStartStopSignStore } from './preStartCheck';
+import { preStartStopSignStore, preStartStopSignToday } from './preStartCheck';
 import { endLatchStore } from './stores';
 
 export interface WeightInputs {
@@ -87,7 +87,7 @@ export async function readWeightInputs(storage: AppStorage): Promise<WeightInput
 export interface WeightEnv {
   readonly now: Instant;
   readonly deviceTimeZone: TimeZone;
-  /** The local date of a pre-start stop-sign answer held in this tab, if any. */
+  /** The local date of a pre-start stop-sign answer held in this page until its record is written. */
   readonly preStartStopSignDate: string | null;
   readonly endsPending: WeightOverviewInput['endsPending'];
 }
@@ -138,7 +138,11 @@ export function overviewInputFrom(
     periods: inputs.periods,
     checks: inputs.checks,
     cardStates: inputs.cardStates,
-    preStartStopSignToday: env.preStartStopSignDate === today,
+    preStartStopSignToday: preStartStopSignToday(
+      inputs.cardStates,
+      env.preStartStopSignDate,
+      today,
+    ),
     endsPending: env.endsPending,
   };
 }
@@ -160,9 +164,6 @@ export function useWeightView(storage: AppStorage): WeightView | undefined {
   const now = useNow(storage.env);
   const preStart = useStore(preStartStopSignStore);
   const endsPending = useStore(endLatchStore);
-  useEffect(() => {
-    loadPreStartStopSign(storage.platform);
-  }, [storage]);
   return useMemo(() => {
     if (inputs === undefined || gateState === undefined) return undefined;
     const input = overviewInputFrom(

@@ -18,6 +18,8 @@ export const SCREENS = [
   'Fasting and reflux',
   // Item 21: reached from Settings, More.
   'Diet and targets',
+  // Item 30: reached from Settings.
+  'Laptop pairing',
 ] as const;
 export type ScreenName = (typeof SCREENS)[number];
 
@@ -26,6 +28,7 @@ export const UNDER_SETTINGS: readonly ScreenName[] = [
   'About',
   ...SETUP_SCREENS,
   'Diet and targets',
+  'Laptop pairing',
 ];
 
 /** The app's base path, the same as on GitHub Pages. */

@@ -544,11 +544,29 @@ export const privacy = {
     /** Only when this phone is paired with a laptop. */
     pairingRemoved: 'The laptop pairing will be removed.',
     /**
-     * A file whose Kickstart history records less than this phone's never lowers it (D27; the
-     * data-loss review): the phone's periods and checks are kept, and this says so before Replace.
+     * A restore never lowers the Kickstart history (D27; full review F1, F12): this phone's
+     * periods, checks and pre-start answers that the file lacks are kept with the file's, and this
+     * says so before Replace.
      */
     kickstartKept:
-      'Kickstart history kept from this phone, because it records more Kickstart days, extensions or stop-sign checks than the file.',
+      "Kickstart history: this phone's Kickstart days, extensions and stop-sign answers are kept with the file's, because a restore never removes them.",
+    /** While the phone's Kickstart runs, the settings it runs on are kept from the phone (F13). */
+    kickstartSettingsKept:
+      'The Kickstart running on this phone keeps going: its diet mode, keto start and Kickstart eating pattern are kept from this phone.',
+    /** The restored answers, profile or weigh-ins switch Kickstart off (the phase engine's own rule). */
+    kickstartEnds:
+      "The Kickstart running on this phone will end after the restore, because the file's readiness answers, profile or weigh-ins switch it off.",
+    /** The file holds a fast that was running when it was made (F3). */
+    fastRunning:
+      'A fast was running when this backup was made (started {start}). It comes back as still running, counted from that start.',
+    endFastAtBackup: 'End that fast at {time}, when the backup was made',
+    endFastHint: 'Turn this on if you have eaten since. You can correct its end time in History.',
+    /**
+     * The records changed between the confirmation and Replace (another tab saved something), so
+     * nothing was replaced and the confirmation is shown again with fresh counts (F12).
+     */
+    changedSinceConfirm:
+      'The records on this phone changed while this was open, perhaps in another tab, so nothing was replaced. Check what the restore will do again.',
     exportFirst: 'Export what is on this phone first',
     replace: 'Replace everything on this phone',
     importRest: 'Import the rest',
@@ -570,6 +588,13 @@ export const privacy = {
     reloadCancels: 'Reload cancels the restore: you will need to choose the file again.',
     /** Counts the phone's records again and shows the confirmation again before anything is replaced. */
     tryRestoreAgain: 'Try the restore again',
+    /**
+     * Once, on Readiness answers after a restore made during setup (F28): the records are back,
+     * and the restored answers are checked before Today.
+     */
+    restored:
+      'Your records from the backup are back on this phone. Check that these answers still apply, then go to Today.',
+    restoredContinue: 'These still apply',
   },
   /**
    * An import refused for a whole list or for the file itself rather than for one record (section
@@ -587,6 +612,9 @@ export const privacy = {
   /** A rescue copy whose Kickstart history cannot be imported whole (section 9.5; D27, D28). */
   kickstartHistory:
     'This rescue copy has a Kickstart record that could not be imported ({record}), and the Kickstart history is imported whole or not at all. Nothing was imported. Keep the file: a later version of the app may read it.',
+  /** A file whose Kickstart history cannot be combined with this phone's (restorePlan.ts; F1). */
+  kickstartMerge:
+    "This backup's Kickstart history cannot be combined with the Kickstart records on this phone: they overlap, or together they pass the six-week limit. A restore never removes Kickstart days, extensions or stop-sign answers from this phone, so nothing was imported. Keep the file.",
   /** One message per BackupError code (section 10.9). {detail} names a store, a field and a rule, never a value. */
   backupErrors: {
     'too-large': 'This file is too big to be a backup from this app. Nothing was imported.',
@@ -626,6 +654,7 @@ export const privacy = {
       "If Chrome saved a backup password, remove it in Chrome's settings.",
       'Backup files you made or shared: delete them in Files, and in your email or cloud storage if you sent them there.',
       'The list on your laptop and its pairing: also unpair on your laptop.',
+      'Copies of your records restored in another browser, such as on a laptop: delete all there too.',
       'A list waiting to be sent expires within 15 minutes.',
     ],
     exportFirst: 'Export a backup first',
@@ -1020,6 +1049,104 @@ export const privacy = {
       yieldCitation: 'yield reference',
     },
   },
+} as const;
+
+// ---- Laptop pairing and sending the grocery list (checklist items 30 and 31) ----
+
+/**
+ * Pairing with the laptop and, from item 31, sending the grocery list (item 30 design 3.1;
+ * UX_SCREENS 6c and 7; DECISIONS Q1 and the item-30 row; DOC_REVIEW C12, C83, C115;
+ * HEALTH_SAFETY section 7). Privacy wording: it says plainly what happens and makes no blanket
+ * promises (TRANSFER_SECTION_RULES in transferRules.ts). Item 31 adds its sending and status keys
+ * to this object; item 33 adds the side panel's.
+ */
+export const transfer = {
+  pairing: {
+    settingsCardLabel: 'Laptop',
+    settingsRowTitle: 'Laptop pairing',
+    settingsRowNotPaired: 'Not paired',
+    settingsRowPaired: 'Paired {date}',
+    settingsRowChecking: 'Checking…',
+    unpairedCardLabel: 'Pair with your laptop',
+    intro:
+      'Pairing lets this phone send the grocery list to the side panel on your laptop. The list is locked on this phone with a key your laptop makes and gives to this phone through the code you scan.',
+    steps: [
+      'On the laptop, open the side panel and choose Pair or Pair again. It shows a pairing code: a square barcode.',
+      "On this phone, tap Scan the laptop's code, and allow the camera when Chrome asks.",
+      "Hold the phone about a hand's length from the laptop screen until this screen says the pairing code is saved.",
+    ],
+    /** Until item 33 builds the side panel; item 33 removes it. */
+    laptopLaterStep:
+      'The laptop side panel arrives at a later step of the build checklist. Until then there is no code to scan.',
+    /** DECISIONS Q1, widened by the item-30 row: the accepted risk, said where the owner pairs. */
+    codeRisk:
+      'Show the code on the laptop only while you pair. Anyone who photographs it could read the lists you send, and could change the list the laptop shows, until you pair again.',
+    /** Q1 and C83: the key travels only from the laptop screen to this screen. */
+    scanOnlyHere:
+      'Scan the code only from this screen. Do not scan it with the camera app or copy it: that would put the key where other apps can read it.',
+    /** Quoted word for word in HEALTH_SAFETY section 7 (docFidelity.test.ts). */
+    cameraNote:
+      "The camera is used only while the pairing screen scans the laptop's code. The app keeps no picture and sends nothing.",
+    scan: "Scan the laptop's code",
+    optional:
+      'Pairing is optional. Without it, the list is sent nowhere unless you copy or export it.',
+    cameraCardLabel: 'Camera',
+    starting: 'Starting the camera…',
+    looking: 'Point the camera at the code on the laptop screen and hold the phone still.',
+    notAPairingCode:
+      "That code is not a pairing code. Point the camera at the code in the laptop's side panel.",
+    saving: 'Saving the pairing code…',
+    cancel: 'Cancel',
+    pairedCardLabel: 'Pairing',
+    /** Says only what the phone can know (as the backup wording does, D21). */
+    paired: 'This phone has the pairing code from your laptop.',
+    pairedOn: 'Paired {date}',
+    check: 'Pairing check: {check}',
+    checkHint:
+      "The laptop's side panel shows the same four letters. If it shows different ones, tap Unpair, then pair again on both.",
+    /** Only when pairingRelayStatus is 'pair-again' (never while RELAY_ORIGIN is null). */
+    relayPairAgain:
+      'This pairing was made for a different relay, or for none, so the list can reach the laptop only as a paste code. To use the relay, update the side panel on the laptop, then pair again on both.',
+    /** Until item 31 builds sending; item 31 removes it. */
+    laterStep: 'Sending the list from the List tab arrives at a later step of the build checklist.',
+    photographed:
+      'If you think someone photographed the pairing code, unpair here and on the laptop, then pair again.',
+    pairAgain: 'Pair again',
+    pairAgainTitle: 'Pair again?',
+    pairAgainBody:
+      'Pairing again replaces the pairing on this phone. On the laptop, choose Pair again in the side panel, so it shows a new code.',
+    pairAgainConfirm: 'Scan the new code',
+    unpair: 'Unpair',
+    unpairTitle: 'Unpair this phone?',
+    unpairBody:
+      'This phone forgets the pairing and cannot send the list to the laptop until you pair again.',
+    unpairing: 'Removing the pairing…',
+    pairedNow:
+      'Pairing code saved. Check that the side panel on the laptop shows the same pairing check.',
+    unpairedNow: 'This phone is no longer paired.',
+    stoppedTimeout: 'Scanning stopped after 2 minutes, to save the battery.',
+    stoppedHidden: 'Scanning stopped while the app was in the background.',
+    scanAgain: 'Scan again',
+    tryAgain: 'Try again',
+    errors: {
+      /** {site} is location.host, the name Chrome lists under Site settings. */
+      'camera-denied':
+        "The app is not allowed to use the camera. To allow it, open the Chrome app, tap ⋮ at the top right, then Settings, Site settings, Camera. Choose {site} and set it to Allow. If Chrome itself has no camera permission, open the phone's Settings, then Apps, Chrome, Permissions, Camera, and allow it. Then come back here and tap Scan again.",
+      'camera-unavailable':
+        'The camera could not be started, or it stopped. Close other apps that use the camera, then tap Scan again.',
+      'no-reader':
+        'The code reader could not start. Connect to the internet, tap Reload, then scan again.',
+      'newer-version':
+        'This pairing code comes from a newer version of the side panel than this app can read. Connect to the internet, tap Reload, then scan again. If this message comes back, close the app in every Chrome tab and in Recent apps, then open it again.',
+      damaged:
+        'This pairing code could not be read. On the laptop, choose Pair again to show a new code, then scan it.',
+      'save-failed': 'The pairing code could not be saved. Nothing was changed. Try again.',
+      'storage-full': privacy.storageFull,
+      'unpair-failed': 'The pairing could not be removed. Try again.',
+    },
+  },
+  /** Both devices' unpair confirmations (C115; item 29 design 3.2 proposed this key). */
+  unpairOther: 'Also unpair on your other device.',
 } as const;
 
 // ---- First-run flow, readiness, profile, eating schedule and garden (checklist item 13) ----
@@ -1490,7 +1617,10 @@ export const weight = {
     days30: '30 days',
     days90: '90 days',
     aboutBand:
-      'The shaded range is a rough typical range, not a promise and not a target. In Steady it follows about 0.5–1 kg a week, and never faster than your weight check-in setting. In your first Kickstart it is steeper for two weeks, mostly water and glycogen, then flattens.',
+      'The shaded range is a rough typical range, not a promise and not a target. In Steady it follows about 0.5–1 kg a week, and never faster than your weight check-in setting.',
+    // Only while the chart draws the steeper first block (item 14 review: never promised otherwise).
+    aboutBandKickstart:
+      'In your first Kickstart it is steeper for two weeks, mostly water and glycogen, then flattens.',
   },
   phase: {
     label: 'Phase',
@@ -1517,7 +1647,7 @@ export const weight = {
     gatedUnanswered:
       'Kickstart, the typical range and the pace notes stay off until the readiness questions are answered. Your weigh-ins and trend still show.',
     lowWeight:
-      'Your recent weight is below a BMI of 18.5 for your height. Please check in with your GP, and look again at readiness question 5. Your weigh-ins and trend still show.',
+      'Your recent weight is below a BMI of 18.5 for your height. Please check in with your GP, and look again at readiness question 5. Kickstart, the typical range and the long-term goal are switched off, and your weigh-ins and trend still show.',
     readinessLink: 'See your readiness answers',
   },
   goal: {
@@ -1604,8 +1734,8 @@ export const weight = {
     extend: 'Extend by one week',
     notNow: 'Not now',
     extended: 'Kickstart extended by one week. It is now week {week} of {weeks}.',
-    stopSign:
-      'Thanks for telling the app. Kickstart will not be extended. Eating more today is fine, and you can end Kickstart now.',
+    // The stop-sign card that takes focus says the rest (item 14 review: no repeated sentence).
+    stopSign: 'Thanks for telling the app. Kickstart will not be extended.',
     refusedWindow: 'Kickstart could not be extended: the offer is open only in its last 3 days.',
     refusedCap:
       'Kickstart could not be extended: it can run for at most 6 weeks and 3 extensions in all.',
@@ -1652,8 +1782,14 @@ export const weight = {
     unavailableLowWeight:
       'Kickstart is not offered while your recent weight is below a BMI of 18.5 for your height.',
     unavailableToday: 'A new Kickstart can start from tomorrow.',
+    // A Kickstart ended before its first day (the clock was ahead): its day 1 is still held.
+    unavailableEndedAhead:
+      "The Kickstart you ended was dated {date} by the phone's clock, so a new one can start the day after that.",
     unavailableRecentStopSign:
       'A stop-sign was reported in the last two weeks, so a new Kickstart cannot start yet.',
+    // A "yes" before a start is held for the rest of that day only (W31).
+    unavailableStopSignToday:
+      'You answered yes to a stop-sign question today, so a Kickstart cannot start today.',
     unavailableCap:
       'Kickstart can run for at most 6 weeks in all, and a new one needs a full three weeks, so another one cannot start.',
     saveFailed: 'Kickstart could not be started. Nothing was changed. Try again.',
@@ -1682,6 +1818,8 @@ export const weight = {
   presetMoved: {
     label: 'Eating window',
     body: 'The eating window is now 22:2 (5 pm snack + dinner). 23:1 (one meal) is the Kickstart default and is used only while Kickstart runs.',
+    /** While answer 4 is "yes" or unanswered, with no one-tap 23:1 (C07). */
+    answer4: schedule.kickstartDefaultSetAside,
     use231: 'Use 23:1 instead',
     ok: 'OK',
   },
@@ -2513,6 +2651,7 @@ export const healthCopy = {
   general,
   alcohol,
   privacy,
+  transfer,
   onboarding,
   readiness,
   profile,

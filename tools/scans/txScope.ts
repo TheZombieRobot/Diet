@@ -11,11 +11,21 @@
  * function nested in one, and every helper a scope calls or passes on: a function declared in the
  * same file, a function property of an object literal declared there, or (when the scan is given
  * the project's files) a function imported by name from a relative module, transitively. A scope
- * passed by name is followed to its declaration in the same file. Inside a scope this reports:
+ * passed by name is followed to its declaration in the same file, or through a relative import.
+ * Inside a scope this reports:
  * - an `async` function, an `await`, a `try` statement, a `.catch(` or `.finally(` call;
- * - a `.then(` whose receiver is not a call rooted at `db`, `tx` or `Dexie.Promise`;
+ * - a `.then(` whose receiver is not a call rooted at `tx` or `Dexie.Promise`, or at `db` as a
+ *   store request (`db.<store>.<request>(…)`, `db.table(…)` or `db.transaction(…)`), so a
+ *   method of the database object itself (`db.waitForPersist()`) is not taken for one;
+ * - an element given to `Dexie.Promise.all([…])` (or a `.map` callback's result given to it) that
+ *   is not such a request or a call of a helper the scan follows (or of a const tagged
+ *   `@transactionScope`, which holds a tagged rule chosen at run time), since a non-Dexie promise
+ *   there lets the transaction commit before the writes after it (full review F17);
+ * - `new Promise(…)` and the global `Promise.*`;
  * - any reference to crypto, setTimeout, setInterval, queueMicrotask, fetch, navigator, window,
- *   confirm or requestPersistentStorage.
+ *   confirm, requestPersistentStorage, caches, indexedDB, MessageChannel, requestAnimationFrame
+ *   or requestIdleCallback, also as a property of globalThis, self or window, and any element
+ *   of those three (`globalThis['caches']`).
  * It runs on the phone app's source (apps/mobile-web/src, tests excluded) in `pnpm scan`. Helpers
  * reached only through a value chosen at run time (for example a store's rules picked from a map)
  * cannot be followed, so those functions carry `@transactionScope` themselves.
@@ -27,7 +37,14 @@ export interface ScopeProblem {
   readonly line: number;
   readonly column: number;
   readonly rule:
-    'async' | 'await' | 'try' | 'catch' | 'finally' | 'then-receiver' | 'forbidden-name';
+    | 'async'
+    | 'await'
+    | 'try'
+    | 'catch'
+    | 'finally'
+    | 'then-receiver'
+    | 'non-dexie-promise'
+    | 'forbidden-name';
   readonly detail: string;
 }
 
@@ -42,7 +59,18 @@ export const FORBIDDEN_NAMES: readonly string[] = [
   'window',
   'confirm',
   'requestPersistentStorage',
+  'caches',
+  'indexedDB',
+  'MessageChannel',
+  'requestAnimationFrame',
+  'requestIdleCallback',
 ];
+
+/** The global objects a forbidden name may be reached through, as a property or an element. */
+const GLOBAL_OBJECTS: readonly string[] = ['globalThis', 'self', 'window'];
+
+/** Methods of the database object that give Dexie requests (anything else on `db` does not). */
+const DB_REQUEST_METHODS: readonly string[] = ['table', 'transaction'];
 
 /** Roots a `.then(` receiver may start from. */
 const DEXIE_ROOTS: readonly string[] = ['db', 'tx', 'Dexie.Promise'];
@@ -81,7 +109,11 @@ function chainNames(expression: ts.Expression): string[] | null {
   }
 }
 
-/** Whether a `.then(` receiver is a call rooted at db, tx or Dexie.Promise. */
+/**
+ * Whether an expression is a call rooted at tx or Dexie.Promise, or a store request rooted at db
+ * (db.<store>.<request>(…), db.table(…) or db.transaction(…)): never a method of the database
+ * object itself, such as db.waitForPersist().
+ */
 function isDexieReceiver(receiver: ts.Expression): boolean {
   let node = receiver;
   while (ts.isParenthesizedExpression(node) || ts.isNonNullExpression(node)) node = node.expression;
@@ -89,7 +121,26 @@ function isDexieReceiver(receiver: ts.Expression): boolean {
   const names = chainNames(node);
   if (names === null || names.length === 0) return false;
   const root = names[0] === 'Dexie' && names[1] === 'Promise' ? 'Dexie.Promise' : (names[0] ?? '');
-  return DEXIE_ROOTS.includes(root);
+  if (!DEXIE_ROOTS.includes(root)) return false;
+  return root !== 'db' || names.length >= 3 || DB_REQUEST_METHODS.includes(names[1] ?? '');
+}
+
+/** Whether a call is the global Promise's (`Promise.resolve(…)`), not Dexie's. */
+function isGlobalPromiseCall(node: ts.CallExpression): boolean {
+  const names = chainNames(node);
+  return names !== null && names.length >= 2 && names[0] === 'Promise';
+}
+
+/** Whether a call is `Dexie.Promise.all(…)` (or allSettled, or race). */
+function isDexiePromiseAll(node: ts.CallExpression): boolean {
+  const names = chainNames(node);
+  return (
+    names !== null &&
+    names.length === 3 &&
+    names[0] === 'Dexie' &&
+    names[1] === 'Promise' &&
+    ['all', 'allSettled', 'race'].includes(names[2] ?? '')
+  );
 }
 
 /** A forbidden name used as a value (not as a property name, except on globalThis, self or window). */
@@ -98,7 +149,7 @@ function forbiddenReference(node: ts.Identifier): boolean {
   const parent = node.parent;
   if (ts.isPropertyAccessExpression(parent) && parent.name === node) {
     const owner = parent.expression;
-    return ts.isIdentifier(owner) && ['globalThis', 'self', 'window'].includes(owner.text);
+    return ts.isIdentifier(owner) && GLOBAL_OBJECTS.includes(owner.text);
   }
   if (
     (ts.isPropertyAssignment(parent) || ts.isPropertyDeclaration(parent)) &&
@@ -118,15 +169,27 @@ interface Declared {
   readonly objects: Map<string, Map<string, FunctionNode>>;
   /** Names imported by name from a relative module: the module specifier and the exported name. */
   readonly imports: Map<string, { readonly specifier: string; readonly name: string }>;
+  /**
+   * Consts tagged `@transactionScope` that hold a function chosen at run time (a store's rule from
+   * a map): the functions themselves carry the tag where they are declared, so a call of one is
+   * taken as a followed helper's.
+   */
+  readonly tagged: Set<string>;
 }
 
 function declarationsOf(source: ts.SourceFile): Declared {
   const functions = new Map<string, FunctionNode>();
   const objects = new Map<string, Map<string, FunctionNode>>();
   const imports = new Map<string, { specifier: string; name: string }>();
+  const tagged = new Set<string>();
   const visit = (node: ts.Node): void => {
     if (ts.isFunctionDeclaration(node) && node.name !== undefined) {
       functions.set(node.name.text, node);
+    }
+    if (ts.isVariableStatement(node) && hasScopeTag(node)) {
+      for (const d of node.declarationList.declarations) {
+        if (ts.isIdentifier(d.name)) tagged.add(d.name.text);
+      }
     }
     if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer) {
       let init: ts.Expression = node.initializer;
@@ -172,12 +235,22 @@ function declarationsOf(source: ts.SourceFile): Declared {
     ts.forEachChild(node, visit);
   };
   visit(source);
-  return { functions, objects, imports };
+  return { functions, objects, imports, tagged };
 }
 
 /** Every transaction scope a source file declares: the roots, before helpers are followed. */
 export function findScopes(source: ts.SourceFile): FunctionNode[] {
   const declared = declarationsOf(source).functions;
+  const { scopes, byName } = scopeRoots(source);
+  for (const name of byName) {
+    const fn = declared.get(name.text);
+    if (fn !== undefined) scopes.push(fn);
+  }
+  return scopes;
+}
+
+/** The scopes written in place, and the names of those passed by name (resolved by the caller). */
+function scopeRoots(source: ts.SourceFile): { scopes: FunctionNode[]; byName: ts.Identifier[] } {
   const scopes = new Set<FunctionNode>();
   const byName: ts.Identifier[] = [];
 
@@ -218,11 +291,7 @@ export function findScopes(source: ts.SourceFile): FunctionNode[] {
     ts.forEachChild(node, visit);
   };
   visit(source);
-  for (const name of byName) {
-    const fn = declared.get(name.text);
-    if (fn !== undefined) scopes.add(fn);
-  }
-  return [...scopes];
+  return { scopes: [...scopes], byName };
 }
 
 /** A file the scan reads helpers from (another file of the same project). */
@@ -281,9 +350,11 @@ export function scanTransactionScopes(
     problems.push({ file: where.file, line: line + 1, column: character + 1, rule, detail });
   };
 
-  const queue: { readonly where: Parsed; readonly fn: FunctionNode }[] = findScopes(
-    root.source,
-  ).map((fn) => ({ where: root, fn }));
+  const roots = scopeRoots(root.source);
+  const queue: { readonly where: Parsed; readonly fn: FunctionNode }[] = roots.scopes.map((fn) => ({
+    where: root,
+    fn,
+  }));
   const visited = new Set<FunctionNode>();
 
   const imported = (where: Parsed, name: string): { where: Parsed; fn: FunctionNode } | null => {
@@ -317,6 +388,39 @@ export function scanTransactionScopes(
     return null;
   };
 
+  /** Whether an element given to Dexie.Promise.all is a Dexie request or a followed helper's call. */
+  const isRequest = (where: Parsed, element: ts.Expression): boolean => {
+    let node = element;
+    while (ts.isParenthesizedExpression(node) || ts.isNonNullExpression(node))
+      node = node.expression;
+    if (isDexieReceiver(node)) return true;
+    if (!ts.isCallExpression(node)) return false;
+    const callee = node.expression;
+    return (
+      helperOf(where, callee) !== null ||
+      (ts.isIdentifier(callee) && where.declared.tagged.has(callee.text))
+    );
+  };
+
+  /** What Dexie.Promise.all is given: an array literal's elements, or a `.map` callback's result. */
+  const allElements = (argument: ts.Expression | undefined): ts.Expression[] => {
+    if (argument === undefined) return [];
+    if (ts.isArrayLiteralExpression(argument)) {
+      return argument.elements.filter((e) => !ts.isSpreadElement(e));
+    }
+    if (
+      ts.isCallExpression(argument) &&
+      ts.isPropertyAccessExpression(argument.expression) &&
+      argument.expression.name.text === 'map'
+    ) {
+      const callback = argument.arguments[0];
+      if (callback !== undefined && ts.isArrowFunction(callback) && !ts.isBlock(callback.body)) {
+        return [callback.body];
+      }
+    }
+    return [];
+  };
+
   const check = (where: Parsed, node: ts.Node): void => {
     if (
       isFunctionNode(node) &&
@@ -337,6 +441,21 @@ export function scanTransactionScopes(
           report(where, node, 'then-receiver', '.then() on something that is not a Dexie request');
         }
       }
+      if (isGlobalPromiseCall(node)) {
+        report(where, node, 'non-dexie-promise', 'the global Promise in a transaction scope');
+      }
+      if (isDexiePromiseAll(node)) {
+        for (const element of allElements(node.arguments[0])) {
+          if (!isRequest(where, element)) {
+            report(
+              where,
+              element,
+              'non-dexie-promise',
+              'Dexie.Promise.all given something that is not a Dexie request',
+            );
+          }
+        }
+      }
       // A helper called from the scope runs inside the transaction: check it as a scope too.
       const callee = helperOf(where, node.expression);
       if (callee !== null) queue.push(callee);
@@ -346,14 +465,35 @@ export function scanTransactionScopes(
         if (passed !== null) queue.push(passed);
       }
     }
+    if (
+      ts.isNewExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      node.expression.text === 'Promise'
+    ) {
+      report(where, node, 'non-dexie-promise', 'new Promise in a transaction scope');
+    }
     if (ts.isIdentifier(node) && forbiddenReference(node)) {
       report(where, node, 'forbidden-name', `${node.text} in a transaction scope`);
+    }
+    // globalThis['caches'], self[name]: an element of a global object, whose name the scan cannot
+    // always read.
+    if (
+      ts.isElementAccessExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      GLOBAL_OBJECTS.includes(node.expression.text)
+    ) {
+      report(where, node, 'forbidden-name', `an element of ${node.expression.text} in a scope`);
     }
     ts.forEachChild(node, (child) => {
       check(where, child);
     });
   };
 
+  // A scope passed by name: declared in this file, or imported from another file of the project.
+  for (const name of roots.byName) {
+    const fn = helperOf(root, name);
+    if (fn !== null) queue.push(fn);
+  }
   for (let next = queue.shift(); next !== undefined; next = queue.shift()) {
     if (visited.has(next.fn)) continue;
     visited.add(next.fn);

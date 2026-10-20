@@ -19,7 +19,7 @@ import type { ReadinessGates } from '../storage/readiness';
 import type { DietMode, KickstartCheckRecord, KickstartPeriodRecord } from '../storage/records';
 import { addDays, daysBetween, type LocalDate, parseInstant } from '../util/time';
 import { latestDailyKg } from './weighIns';
-import { periodsInOrder } from './phase';
+import { periodsThatRan } from './phase';
 import { rollingAverageFromDaily } from './trend';
 
 /** Steady edges, kg a week (HEALTH_SAFETY section 2: "about 0.5–1 kg a week"). The fast edge is also capped at the check-in threshold in use. */
@@ -64,10 +64,10 @@ export interface PhaseSegment {
 
 /**
  * The phase segments the chart's blocks align to: Steady from the first weigh-in when that is
- * before the first Kickstart (or there is none); for each period, Kickstart from day 1 (none when
- * it ended on day 1), then Steady from the day after its scheduled last day, or from the day it
- * ended early. Only the first period's Kickstart can be front-loaded, and only when firstLowCarbAt
- * is within 24 hours of its start.
+ * before the first Kickstart (or there is none); for each period that ran, Kickstart from day 1
+ * (none when it ended on day 1), then Steady from the day after its scheduled last day, or from the
+ * day it ended early. A period ended before its first day is left out. Only the first period's
+ * Kickstart can be front-loaded, and only when firstLowCarbAt is within 24 hours of its start.
  */
 export function phaseSegments(
   periods: readonly KickstartPeriodRecord[],
@@ -76,7 +76,7 @@ export function phaseSegments(
   firstLowCarbAt: Instant | null,
   homeTimeZone: TimeZone,
 ): PhaseSegment[] {
-  const ordered = periodsInOrder(periods);
+  const ordered = periodsThatRan(periods);
   const segments: PhaseSegment[] = [];
   const firstDay1 = ordered[0] === undefined ? null : periodDay1(ordered[0], homeTimeZone);
   if (firstWeighInDate !== null && (firstDay1 === null || firstWeighInDate < firstDay1)) {

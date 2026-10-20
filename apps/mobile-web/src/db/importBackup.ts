@@ -6,17 +6,21 @@
  *      decodeBackupText). Every refusal is a BackupError with one plain message from health.ts.
  * 9.   The confirmation: the phone's backed-up stores are read in one transaction and kept in
  *      memory (section 8.5 rule 3), and the counts are worked out (importConfirmation) against
- *      what would be written. A file whose Kickstart history records less than the phone's
- *      never lowers it: the phone's periods and checks are kept, and the confirmation says so
- *      (recordsMoreKickstart; D27; orchestrator ruling). A rescue copy is merged with the phone's
- *      safety settings and allergens (cautiousSafetyMerge).
+ *      what would be written. The Kickstart history is never lowered: the phone's periods, checks
+ *      and pre-start answers are merged with the file's (core mergeKickstartHistory; D27), and
+ *      while the phone's Kickstart runs, the settings it runs on are kept too
+ *      (runningKickstartSettings). A rescue copy is merged with the phone's safety settings and
+ *      allergens (cautiousSafetyMerge), except where the phone still holds the untouched defaults.
+ *      A fast running when the file was made is named, with the choice to end it then.
  * 10.  The write: tell the other tabs, close this tab's write gate, give up this tab's shared lock,
  *      then replace everything in one transaction inside the lock in exclusive mode (locks.ts), so
- *      no other tab's write can land on top of the restored records. If the other tabs do not let
- *      go within 3 seconds, nothing is written ("Close the app's other tabs, then try again"). If
- *      the write fails, the snapshot from step 9 is offered at once as a rescue file ("Save what
- *      was on this phone"). On success, mark the records as replaced (generation.ts), ask again
- *      for persistent storage, then reload.
+ *      no other tab's write can land on top of the restored records. That transaction first checks
+ *      that the phone still holds what the confirmation was worked out from; if anything was saved
+ *      since (another tab), it writes nothing and the confirmation is worked out again (F12). If
+ *      the other tabs do not let go within 3 seconds, nothing is written ("Close the app's other
+ *      tabs, then try again"). If the write fails, the snapshot from step 9 is offered at once as a
+ *      rescue file ("Save what was on this phone"). On success, mark the records as replaced
+ *      (generation.ts), ask again for persistent storage, then reload.
  * No audit row is written for an import itself; only migration changes from an older file add any.
  */
 import {
@@ -26,14 +30,23 @@ import {
   cautiousSafetyMerge,
   type DecodedBackup,
   decodeBackupText,
+  endFastAtBackup,
+  type FastRecord,
+  fastRunningAtBackup,
   type ImportConfirmation,
   importConfirmation,
+  isUntouchedSeedRow,
   type KeptStricter,
+  kickstartEndsAfterRestore,
   MAX_BACKUP_FILE_BYTES,
+  mergeKickstartHistory,
   type Migration,
   parseBackupText,
-  recordsMoreKickstart,
+  type RestoreClock,
+  runningKickstartSettings,
   type Snapshot,
+  stableStringify,
+  withRunningKickstartSettings,
 } from '@diet/core';
 import type { DietDb } from './db';
 import { migrationEnv, type StorageEnv } from './env';
@@ -81,33 +94,52 @@ export interface ImportPlan {
   readonly counts: readonly { readonly table: string; readonly count: number }[];
   /**
    * The records to write: the file's, except that a rescue copy never makes a safety setting
-   * less cautious than this phone had (cautiousSafetyMerge; orchestrator ruling), and that a
-   * Kickstart history recording less than the phone's is replaced by the phone's (keptKickstart).
+   * less cautious than this phone had (cautiousSafetyMerge; orchestrator ruling), that the
+   * Kickstart history holds this phone's records too (keptKickstart), and that a Kickstart
+   * running on this phone keeps the settings it runs on (keptKickstartSettings).
    */
   readonly snapshot: Snapshot;
   /** Rescue copies: the safety settings kept from this phone, listed on the confirmation. */
   readonly keptStricter: readonly KeptStricter[];
-  /** The phone's Kickstart history is kept, because the file's records less (D27). */
+  /** The written Kickstart history holds records from this phone that the file lacks (D27). */
   readonly keptKickstart: boolean;
+  /** The diet mode, keto start or Kickstart eating pattern of a running Kickstart were kept (F13). */
+  readonly keptKickstartSettings: boolean;
+  /** The Kickstart running on this phone ends once these records are restored (F13). */
+  readonly kickstartEnds: boolean;
+  /** The file's fast that was running when it was made: it comes back as still running (F3). */
+  readonly runningFast: FastRecord | null;
   /** Whether this phone is paired with a laptop (the restore removes the pairing). */
   readonly paired: boolean;
 }
 
+/** The phone's singleton row for the rescue merge: the file's own row where the phone still holds the untouched default (F16). */
+function phoneSide<T>(table: 'profile' | 'targets' | 'settings', phone: T, file: T): T {
+  return isUntouchedSeedRow(table, phone) ? file : phone;
+}
+
 /**
- * Whether the phone's Kickstart history records more than the file's. A phone history that cannot
- * even be counted is treated as recording more: keeping it never reopens a cap (and a damaged
- * row then fails the write, which changes nothing).
+ * The Kickstart history to write (D27; full review F1, F12): the phone's and the file's merged.
+ * A phone history so damaged that it cannot even be merged is kept whole instead: keeping it never
+ * reopens a cap, and its damaged rows then fail the write, which changes nothing. A file whose
+ * history cannot be combined with the phone's is refused (a BackupError).
  */
-function phoneRecordsMoreKickstart(phone: Snapshot, file: Snapshot): boolean {
-  const history = (s: Snapshot) => ({
-    periods: s.kickstart_periods,
-    checks: s.kickstart_checks,
-    homeTimeZone: s.settings[0]?.homeTimeZone,
-  });
+function mergedKickstart(
+  phone: Snapshot,
+  file: Snapshot,
+): ReturnType<typeof mergeKickstartHistory> {
   try {
-    return recordsMoreKickstart(history(phone), history(file));
-  } catch {
-    return true;
+    return mergeKickstartHistory(phone, file);
+  } catch (error) {
+    if (error instanceof BackupError) throw error;
+    return {
+      snapshot: {
+        ...file,
+        kickstart_periods: phone.kickstart_periods,
+        kickstart_checks: phone.kickstart_checks,
+      },
+      keptFromPhone: true,
+    };
   }
 }
 
@@ -115,6 +147,7 @@ function phoneRecordsMoreKickstart(phone: Snapshot, file: Snapshot): boolean {
 export async function planImport(db: DietDb, decoded: DecodedBackup): Promise<ImportPlan> {
   const phone = await readBackupSnapshot(db);
   const paired = (await db.transfer_pairings.count()) > 0;
+  const clock: RestoreClock = { now: db.env.now(), deviceTimeZone: db.env.timeZone() };
   let snapshot = decoded.snapshot;
   let keptStricter: KeptStricter[] = [];
   const [fileProfile, fileTargets, fileSettings] = [
@@ -138,7 +171,11 @@ export async function planImport(db: DietDb, decoded: DecodedBackup): Promise<Im
   ) {
     const merged = cautiousSafetyMerge(
       { profile: fileProfile, targets: fileTargets, settings: fileSettings },
-      { profile: phoneProfile, targets: phoneTargets, settings: phoneSettings },
+      {
+        profile: phoneSide('profile', phoneProfile, fileProfile),
+        targets: phoneSide('targets', phoneTargets, fileTargets),
+        settings: phoneSide('settings', phoneSettings, fileSettings),
+      },
     );
     snapshot = {
       ...snapshot,
@@ -148,13 +185,21 @@ export async function planImport(db: DietDb, decoded: DecodedBackup): Promise<Im
     };
     keptStricter = merged.kept;
   }
-  const keptKickstart = phoneRecordsMoreKickstart(phone, decoded.snapshot);
-  if (keptKickstart) {
-    snapshot = {
-      ...snapshot,
-      kickstart_periods: phone.kickstart_periods,
-      kickstart_checks: phone.kickstart_checks,
-    };
+  const kickstart = mergedKickstart(phone, snapshot);
+  snapshot = kickstart.snapshot;
+  let running: ReturnType<typeof runningKickstartSettings> = null;
+  try {
+    running = runningKickstartSettings(phone, clock);
+  } catch {
+    // A phone history that cannot be read keeps nothing more.
+  }
+  let keptKickstartSettings = false;
+  let kickstartEnds = false;
+  if (running !== null) {
+    const before = stableStringify([snapshot.profile, snapshot.targets]);
+    snapshot = withRunningKickstartSettings(snapshot, running);
+    keptKickstartSettings = stableStringify([snapshot.profile, snapshot.targets]) !== before;
+    kickstartEnds = kickstartEndsAfterRestore(snapshot, clock);
   }
   return {
     decoded,
@@ -163,7 +208,10 @@ export async function planImport(db: DietDb, decoded: DecodedBackup): Promise<Im
     counts: BACKUP_TABLES.map((table) => ({ table, count: decoded.snapshot[table].length })),
     snapshot,
     keptStricter,
-    keptKickstart,
+    keptKickstart: kickstart.keptFromPhone,
+    keptKickstartSettings,
+    kickstartEnds,
+    runningFast: fastRunningAtBackup(snapshot, decoded.exportedAt),
     paired,
   };
 }
@@ -207,43 +255,67 @@ export interface WriteDeps {
   readonly reload: () => void;
 }
 
+/** The owner's choices on the confirmation. */
+export interface ImportChoices {
+  /** End the fast that was running when the backup was made, at that time (F3). */
+  readonly endRunningFast?: boolean;
+}
+
 export type WriteOutcome =
   | { readonly ok: true }
   /** Another tab did not let go of the records within 3 s: nothing was written. */
   | { readonly ok: false; readonly blocked: true; readonly phone: Snapshot }
+  /** The records changed after the confirmation was shown: nothing was written (F12). */
   | {
       readonly ok: false;
       readonly blocked: false;
+      readonly changed: true;
+      readonly phone: Snapshot;
+    }
+  | {
+      readonly ok: false;
+      readonly blocked: false;
+      readonly changed: false;
       readonly error: BackupError;
       readonly phone: Snapshot;
     };
 
-/** Step 10. It can be tried again after a blocked or failed attempt (nothing was written). */
+/** Step 10. It can be tried again after a blocked, changed or failed attempt (nothing was written). */
 export async function writeImport(
   db: DietDb,
   plan: ImportPlan,
   env: StorageEnv,
   deps: WriteDeps,
+  choices: ImportChoices = {},
 ): Promise<WriteOutcome> {
-  const rows = rowsToWrite(
-    { snapshot: plan.snapshot, updateNotice: plan.decoded.updateNotice },
-    env,
-  );
+  const snapshot =
+    choices.endRunningFast === true
+      ? endFastAtBackup(plan.snapshot, plan.decoded.exportedAt, env.now())
+      : plan.snapshot;
+  const rows = rowsToWrite({ snapshot, updateNotice: plan.decoded.updateNotice }, env);
   deps.postGate('import');
   db.gate.close();
   db.releaseOpenLock();
   let written;
   try {
-    written = await withExclusiveLock(deps.locks, () => replaceAll(db, rows), deps.lockWaitMs);
+    written = await withExclusiveLock(
+      deps.locks,
+      () => replaceAll(db, rows, { phone: plan.phone, paired: plan.paired }),
+      deps.lockWaitMs,
+    );
   } catch {
     return {
       ok: false,
       blocked: false,
+      changed: false,
       error: new BackupError('write-failed'),
       phone: plan.phone,
     };
   }
   if (!written.granted) return { ok: false, blocked: true, phone: plan.phone };
+  if (written.value === 'changed') {
+    return { ok: false, blocked: false, changed: true, phone: plan.phone };
+  }
   deps.markReplaced?.();
   await deps.requestPersistentStorage();
   deps.reload();

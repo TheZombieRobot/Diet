@@ -1,11 +1,22 @@
-import { onboarding, profile, readiness, schedule, targets } from '@diet/core/copy/health';
+import { fillTemplate } from '@diet/core';
+import {
+  onboarding,
+  profile,
+  readiness,
+  schedule,
+  targets,
+  transfer,
+} from '@diet/core/copy/health';
 import { ActionRow, Button, Card, ChevronIcon, InstallIcon } from '@diet/ui';
 import type { ReactElement } from 'react';
 import { installStore, promptInstall } from '../pwa/install';
+import { appStorageStore } from '../db/runtime';
+import { formatLocalDate } from '../format';
 import { routeHref } from '../routes';
 import { useStore } from '../store';
 import { BackupCard } from './backup/BackupCard';
 import { DrinksSettingsCard } from './drinks/DrinksSettingsCard';
+import { usePairing } from './pairing/usePairing';
 import { Placeholder } from './Placeholder';
 import { WeightCheckInSettings } from './weight/WeightCheckInSettings';
 
@@ -60,11 +71,41 @@ function SetupCard(): ReactElement {
   );
 }
 
+/** The Laptop pairing row, with whether this phone is paired (item 30 design 1.3). */
+function LaptopCard(): ReactElement {
+  const copy = transfer.pairing;
+  const storage = useStore(appStorageStore);
+  const pairing = usePairing();
+  const detail =
+    storage === null || pairing === undefined
+      ? copy.settingsRowChecking
+      : pairing === null
+        ? copy.settingsRowNotPaired
+        : fillTemplate(copy.settingsRowPaired, {
+            date: formatLocalDate(pairing.pairedAt, storage.env.timeZone()),
+          });
+  return (
+    <Card label={copy.settingsCardLabel}>
+      <ul className="ui-action-list">
+        <li>
+          <ActionRow
+            href={routeHref('pairing')}
+            title={copy.settingsRowTitle}
+            detail={detail}
+            badge={<ChevronIcon />}
+          />
+        </li>
+      </ul>
+    </Card>
+  );
+}
+
 export function SettingsScreen(): ReactElement {
   return (
     <>
       <InstallCard />
       <SetupCard />
+      <LaptopCard />
       <BackupCard />
       {/* Item 28: the drinking-day cut-over and the guidance figures (UX 7). */}
       <DrinksSettingsCard />
@@ -90,7 +131,7 @@ export function SettingsScreen(): ReactElement {
           </li>
         </ul>
       </Card>
-      <Placeholder coming="Settings for the store and laptop pairing arrive with the steps that use them." />
+      <Placeholder coming="Settings for the store arrive with the steps that use them." />
     </>
   );
 }

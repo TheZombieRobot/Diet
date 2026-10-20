@@ -24,6 +24,7 @@ import { StorageClosedError, StorageFullError, StorageRuleError } from '../../db
 import type { AppStorage } from '../../db/runtime';
 import { openSnapshotDb, type TestDb } from '../../db/testKit';
 import {
+  endKickstart,
   endKickstartIfConditionsFail,
   reconcileKickstart,
   startKickstart,
@@ -120,6 +121,28 @@ describe('T2: the 22:2 → 23:1 move at a Kickstart start (C55, C07)', () => {
     expect(await db.repos.targets.get()).toMatchObject(UNTOUCHED_22);
   });
 
+  it('C07: answer 4 turned "yes" during a Kickstart: 22:2 at once, and the stored 23:1 default moves, so a later "no" keeps 22:2', async () => {
+    const db = await seed(noPeriod, 1);
+    expect(await startKickstart(db.storage)).toEqual({ ok: true, presetSet: true });
+    await db.repos.readiness.answer('q4', 'yes');
+    expect((await overviewNow(db.storage)).kickstart.effectivePreset).toEqual(UNTOUCHED_22);
+    await reconcile(db.storage);
+    expect(await db.repos.targets.get()).toMatchObject(UNTOUCHED_22);
+    await db.repos.readiness.answer('q4', 'no');
+    const after = await overviewNow(db.storage);
+    expect(after.phase.kind).toBe('kickstart');
+    expect(after.kickstart.effectivePreset).toEqual(UNTOUCHED_22);
+  });
+
+  it('the start re-checks the records: with a gate closed it starts nothing and gives the reason', async () => {
+    const db = await seed({ ...noPeriod, readiness: { q3: 'yes' } }, 1);
+    expect(await startKickstart(db.storage)).toEqual({
+      ok: false,
+      refusal: { available: false, reason: 'gated' },
+    });
+    expect(await db.repos.kickstart.listPeriods()).toEqual([]);
+  });
+
   it('C07: a 23:1 Kickstart default stored before answer 4 turned yes is not reported as set at a start (it is read as 22:2)', async () => {
     const targets = {
       fastingPreset: '23:1',
@@ -128,6 +151,47 @@ describe('T2: the 22:2 → 23:1 move at a Kickstart start (C55, C07)', () => {
     } as const;
     const db = await seed({ ...noPeriod, targets, readiness: { q4: 'yes' } }, 1);
     expect(await startKickstart(db.storage)).toEqual({ ok: true, presetSet: false });
+  });
+});
+
+describe('a Kickstart started with the clock ahead and ended before its first day (item 14 review; D27)', () => {
+  const noPeriod = { ...WEIGHT_SCENARIOS.PENDING, targets: {} };
+  /** Day 4: the clock 3 days ahead of the scenario's day 1. */
+  const ahead = scenarioInstant(SCENARIO_DAY1, 4, '09:00');
+
+  it('never ran: ended 1 ms after its start though a record was saved after it on its day 1; 1 day in the cap, no "finished", a start from the day after', async () => {
+    const db = await seed(noPeriod, 1);
+    const right = db.env.now();
+    db.env.set(ahead);
+    expect(await startKickstart(db.storage)).toEqual({ ok: true, presetSet: true });
+    // A weigh-in later that same (ahead) day: saved after the start, still on its day 1.
+    db.env.set(scenarioInstant(SCENARIO_DAY1, 4, '10:00'));
+    await db.repos.weights.create({ kg: 99.8, source: 'manual', note: null });
+    db.env.set(right);
+    const ended = await endKickstart(db.storage, 'user-ended');
+    expect(ended.endedAt).toBe(new Date(Date.parse(ended.startedAt) + 1).toISOString());
+    const view = await overviewNow(db.storage);
+    expect(view.kickstart.usage).toEqual({ days: 1, extensions: 0 });
+    expect(view.phase).toEqual({ kind: 'steady', lastKickstartEnd: null });
+    expect(view.cards.steadyExplainer).toBeNull();
+    expect(view.kickstart.start).toEqual({
+      available: false,
+      reason: 'ended-ahead',
+      day1: '2000-02-04',
+    });
+  });
+
+  it('a weigh-in saved on a later day while the clock was ahead counts as lived: the end is at it', async () => {
+    const db = await seed(noPeriod, 1);
+    const right = db.env.now();
+    db.env.set(ahead);
+    await startKickstart(db.storage);
+    const day5 = scenarioInstant(SCENARIO_DAY1, 5, '07:00');
+    db.env.set(day5);
+    await db.repos.weights.create({ kg: 99.5, source: 'manual', note: null });
+    db.env.set(right);
+    expect((await endKickstart(db.storage, 'user-ended')).endedAt).toBe(day5);
+    expect((await overviewNow(db.storage)).kickstart.usage.days).toBe(2);
   });
 });
 

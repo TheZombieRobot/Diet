@@ -15,7 +15,7 @@ import {
 } from '@diet/core';
 import { weight } from '@diet/core/copy/health';
 import { Button, ButtonRow, Card, TextField } from '@diet/ui';
-import { useState, type ReactElement } from 'react';
+import { useId, useState, type ReactElement } from 'react';
 import type { AppStorage } from '../../db/runtime';
 import { formatKg, formatLocalDate, formatLocalTime } from '../../format';
 import { writeWeighIn } from '../../onboarding/actions';
@@ -32,9 +32,10 @@ const clockTime = (minutes: number): string =>
   `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
 
 /**
- * One weigh-in in its own recorded zone (resolved), with Edit and Delete. An edit sends a new time
- * only when the date or time was changed, and then always with the record's own stored zone, so a
- * kg-only or note-only edit never moves the record to the device zone (W6; storage spec 3.1).
+ * One weigh-in in its own recorded zone (resolved), with Edit and Delete, each described by the
+ * row's own line so a screen reader tells the rows apart. An edit sends a new time only when the
+ * date or time was changed, and then always with the record's own stored zone, so a kg-only or
+ * note-only edit never moves the record to the device zone (W6; storage spec 3.1).
  */
 function WeighInRow({
   storage,
@@ -55,6 +56,7 @@ function WeighInRow({
   const [when, setWhen] = useState(original);
   const [error, setError] = useState<string | undefined>(undefined);
   const [failure, setFailure] = useState<WeightStatusMessage | null>(null);
+  const lineId = useId();
 
   const saveEdit = () => {
     const parsed = parseWeightInput(kg);
@@ -101,7 +103,7 @@ function WeighInRow({
   const whenValid = isLocalDate(when.date) && isClockTime(when.time);
   return (
     <li data-weigh-in-row="" className="ui-card__body">
-      <p>
+      <p id={lineId}>
         {fillTemplate(weight.list.row, {
           date: formatLocalDate(row.at, zone),
           time: formatLocalTime(row.at, zone),
@@ -187,6 +189,7 @@ function WeighInRow({
       ) : (
         <ButtonRow>
           <Button
+            aria-describedby={lineId}
             onClick={() => {
               setKg(formatKg(row.kg));
               setNote(row.note ?? '');
@@ -198,6 +201,7 @@ function WeighInRow({
           </Button>
           <Button
             variant="quiet"
+            aria-describedby={lineId}
             onClick={() => {
               setDeleting(true);
             }}

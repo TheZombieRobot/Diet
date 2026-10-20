@@ -51,6 +51,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | BK-06 | A file with a value outside the safety bounds (energy floor below 5,000 kJ, Kickstart deficit over 30%, Steady deficit outside 15–20%, protein, carb ceilings, saturated-fat budget, rapid-loss bounds, more than 3 Kickstart extensions or 42 Kickstart days) (DOC_REVIEW C50) | The whole file is refused with a clear message; nothing is clamped and nothing imported |
 | BK-07 | A failure during the import write (a bug, a refused row, a full phone) | Nothing on the phone changes ("Nothing was changed"), and "Save what was on this phone" offers the records shown on the confirmation as a rescue copy |
 | BK-08 | File names and the public repository (DOC_REVIEW C89) | Every name the app gives a saved file (diet-backup-…, rescue and locked variants, the browser's " (1)" copies, the GP summary and grocery exports) is ignored by git; a generated backup trips the backup-file and backup-marker scan rules |
+| BK-12 | A restore never erases what the phone holds about Kickstart (full review F1, F3, F12, F13) | The Kickstart history written is the phone's and the file's merged: a stop-sign answer, an end, an extension or a pre-start "yes" on the phone is kept, and the start refusal, the stop-sign card and the extension offer are the same after the restore as before; two histories that cannot be combined refuse the file; a record saved in another tab after the confirmation stops Replace and the confirmation comes back with fresh counts; a Kickstart running on the phone keeps running; a fast running when the file was made is named, with a switch to end it at the time the file was made |
 | BK-09 | The fixed version-1 reference files, plain and locked (DOC_REVIEW C99) | Decode, decrypt with the reference phrase and import in every later version |
 | BK-10 | Rescue copy after an upgrade fails | The upgrade-failed screen offers "Save a rescue copy", locked by default and named diet-backup-YYYY-MM-DD-rescue-locked.json; it is read with plain IndexedDB at the installed version from that version's allow-list, never reads the pairing or photos, and imports record by record, listing any record it could not keep by store and position; it never counts as a backup |
 | BK-11 | A database newer than the app (a stale tab, a rolled-back deploy) | "This phone has records from a newer version of the app. Reload to update."; the database's version, stores and indexes are left exactly as they were |
@@ -74,7 +75,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 |---|---|---|
 | WT-01 | Goal below BMI 18.5 | Refused with reason (HS-01) |
 | WT-02 | Goal >20% below current | Long-term goal accepted and labelled long-term; the next milestone shown is never more than 20% below the current weight (rounded up to 0.1 kg) (HS-01) |
-| WT-03 | Synthetic series losing 2.5 kg/week in weeks 1–3 (Kickstart) | No rapid-loss card; Kickstart note shown (HS-11) |
+| WT-03 | Synthetic series losing 2.5 kg/week in weeks 1–3 (Kickstart); and four Steady weeks at 1.2 kg/week before a first Kickstart from day 29 | No rapid-loss card in the 21 Kickstart days (the second series shows it on day 28, so the check can fail); Kickstart note shown (HS-11) |
 | WT-04 | Series losing 1.2 kg/week in weeks 4–6 (Steady) | Rapid-loss card after the third week (HS-11) |
 | WT-06 | Kickstart deficit with a low energy estimate | Planned energy clamps to the 5,000 kJ floor; protein target unchanged (HS-25) |
 | WT-07 | Kickstart deficit with a high estimate | Planned energy is exactly 30% below estimate (HS-25) |
@@ -154,9 +155,10 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 ### 3.10 Phone-to-laptop transfer
 | ID | Case | Expected |
 |---|---|---|
-| TR-01 | Encrypt/decrypt round trip (unit) | Identical list; wrong key fails cleanly |
+| TR-01 | Encrypt/decrypt round trip (unit) | Identical list and acknowledgement; a wrong key, a changed byte or the wrong slot fails cleanly ('cannot open') and never throws; fixed vectors pin the pairing code, the body layout, the additional data and both payloads (item 30). |
 | TR-02 | Relay never sees plaintext | Relay half (item 29): the relay logs nothing, has no decrypt code and stores only the posted body, refusing raw text. End-to-end half (item 31): every stored body decodes to AES-GCM ciphertext under the pairing key that opens to the sent list, and shows no item name, compressed or not. |
-| TR-03 | Pairing by QR | Laptop shows QR; phone scans; both sides store the pairing; second scan not needed next time |
+| TR-03a | Pairing by QR, phone half (item 30) | A pairing code drawn into the camera is read by the bundled reader (Chrome's own reader is never asked); the phone stores the pairing with a key it cannot read back, keeps it after a reload, stops the camera and, from the tap on Scan until the pairing is saved, requests nothing but the bundled reader's own file. |
+| TR-03b | Pairing by QR, end to end (item 33) | Laptop shows QR; phone scans; both sides store the pairing and show the same pairing check; second scan not needed next time |
 | TR-04 | Send 25-item list | Appears in side panel within 30 s |
 | TR-05a | Send a 300-item list (`groceryList300()` fixture) | Succeeds (C114) |
 | TR-05b | A body over the cap (`MAX_RELAY_BODY_BYTES` = 65,536 bytes of the encoded request body, checked on Content-Length and on the bytes read), for example high-entropy notes | The relay answers 413 and stores nothing; the phone shows "too large", offers CSV or JSON, and never shows "Sent" (C114) |
@@ -164,8 +166,8 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | TR-07 | Relay down | Phone offers paste fallback immediately; text code produced |
 | TR-08 | Paste fallback | Pasting the code into the extension yields the same list |
 | TR-09a | Replay (relay, item 29) | Re-fetching an already-delivered blob at the same place returns nothing. A copy served elsewhere is byte-identical to a blob sent to that room and is never served after its expiry (C79, C113). |
-| TR-09b | Replay (extension, item 33) | Each of these is ignored, and leaves one copy with ticks and notes intact: a byte-identical duplicate; a duplicate arriving after Clear list (the list stays cleared); an older version of the same list; an earlier send of the same version arriving after a later one. A deliberate re-send of the same version is accepted and keeps ticks and notes. The acknowledgement always names the version the laptop holds (C79, NN-07). |
-| TR-10 | Unpair | Both sides forget key; next send requires pairing |
+| TR-09b | Replay (extension, item 33) | Each of these is ignored, and leaves one copy with ticks and notes intact: a byte-identical duplicate; a duplicate arriving after Clear list (the list stays cleared); an older version of the same list; an earlier send of the same version arriving after a later one. A deliberate re-send of the same version is accepted and keeps ticks and notes. The acknowledgement always names the version the laptop holds and the send that brought it (C79, NN-07). |
+| TR-10 | Unpair (C115) | Unpair on a device deletes that device's key and room id; the next send requires pairing; a list sealed after re-pairing cannot be opened with the old key; no network request is made on unpair (HS-14). Phone half at items 30 (unpair) and 31 (the next send requires pairing), laptop half at item 33. |
 | TR-11 | Network audit (`context.on('request')`, so service-worker requests are seen too), online and offline, visiting every screen | The phone app makes only GET requests to its own origin for app files and update checks, with no query string or body built from user data, and requests to the relay origin only after "Send to laptop" is tapped and until that transfer is received or expires (HS-14; reworded per DOC_REVIEW C03) |
 
 ### 3.11 Food log, diet modes, household, allergens
@@ -198,7 +200,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | NN-04 | Raw/cooked weights and package quantities | Not conflated: 500 g raw mince recipe yields a "500 g pack" grocery line, and a cooked-weight log entry stays cooked |
 | NN-05 | Missing price or stock | Shown as "unknown"; never a fabricated live price; any price has an entered-at timestamp |
 | NN-06 | Silverbeet 300 g in garden, recipes need 500 g | List shows 200 g to buy and an audit line "300 g from garden" |
-| NN-07 | Stop a transfer midway, restart, send again | Laptop shows one copy of the list; no duplicated items; logs intact |
+| NN-07 | Stop a transfer midway, restart, send again | Laptop shows one copy of the list; no duplicated items; logs intact (the duplicate rule, scoped to the pairing, is unit-tested at item 30; end to end at item 33) |
 | NN-08 | Extension cannot checkout or change store | No checkout control exists; in mode A a batch refuses to start if the site's selected store is not the configured store; a changed page structure produces a visible error and stops |
 | NN-09 | Alcohol tracker wording | Never implies that meeting a guideline is safe; never prescribes detox; "no alcohol use is risk-free" present |
 
@@ -235,12 +237,14 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 - [ ] Install on phone from Chrome; icon appears.
 - [ ] Flight mode; open; log weight; start fast; close; reopen; data present.
 - [ ] Records survive a week of normal use (PWA-06, as reworded by DOC_REVIEW C98).
-- [ ] Export backup; file lands in Downloads; import on the laptop browser works.
-- [ ] Export a locked backup, then restore it in an Incognito tab on the same phone (DOC_REVIEW C48).
+- [ ] Export a locked backup; the file lands in Downloads.
+- [ ] Restore that locked file in an Incognito tab on the same phone, check that the records appear, then close the Incognito tab, which discards that copy (DOC_REVIEW C48).
+- [ ] Optional, the laptop: copy the locked file to the laptop by USB cable, open the app in a Chrome Guest window, restore it there, check the records, then close the Guest window straight away, which discards that copy. Never restore into an ordinary laptop browser window: it would keep every record (HEALTH_SAFETY section 7, DOC_REVIEW C48).
+- [ ] Clean-up: if a restore was ever made in an ordinary browser window anywhere other than this phone's app, open the app in that window and use Settings, Backup and data, Delete all data, so no copy of the records stays there.
 - [ ] Text readable outdoors at midday; buttons tappable with a thumb.
 
 ### End of week 3
-- [ ] Pair laptop and phone via QR in under one minute.
+- [ ] Pair laptop and phone via QR in under one minute; both show the same pairing check.
 - [ ] Send today's list; appears on laptop.
 - [ ] Turn off Wi-Fi on laptop; send again; use paste fallback.
 - [ ] Do one beach session from the app; prompts appeared; log saved.

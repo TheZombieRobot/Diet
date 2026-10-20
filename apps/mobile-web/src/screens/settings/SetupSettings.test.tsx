@@ -1,11 +1,13 @@
 // Settings for the setup answers, gate notices and the day-one help card (item 13 design section
 // 7.2: K13, K14, K15, K15b, K20 (Settings and Today), K21, K27; RD-01, RD-02, RD-05, RD-06, AL-09,
 // AL-09b, C58). The whole app over the real repositories on fake-indexeddb; synthetic values.
-import { STORES_V1 } from '@diet/core';
+import { STORES_V1, type TargetsRecord } from '@diet/core';
 import { alcohol, onboarding, profile, readiness, schedule } from '@diet/core/copy/health';
-import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { appStorageStore } from '../../db/runtime';
+import type { ReactElement } from 'react';
+import { useLiveQuery } from '../../db/liveQuery';
+import { type AppStorage, appStorageStore } from '../../db/runtime';
 import {
   backupSnapshot,
   failingWrite,
@@ -18,6 +20,8 @@ import {
 import { go, headingIs, openApp, tap } from '../../onboarding/flowTestKit';
 import type { RouteId } from '../../routes';
 import { storageStore } from '../../pwa/storage';
+import { useStore } from '../../store';
+import { EatingScheduleScreen } from './EatingScheduleScreen';
 
 let test: TestDb;
 beforeEach(() => {
@@ -30,6 +34,16 @@ afterEach(() => {
   test.db.shutDown();
   window.location.hash = '';
 });
+
+/** What the targets row holds now, read live like the screens read it. */
+function StoredChoice(): ReactElement {
+  const storage = useStore(appStorageStore);
+  const targets = useLiveQuery(storage, readStoredTargets);
+  return <p>{`Stored: ${targets?.presetChosenBy ?? 'none'}`}</p>;
+}
+
+const readStoredTargets = (storage: AppStorage): Promise<TargetsRecord> =>
+  storage.repos.targets.get();
 
 /** A finished setup, then the app open at a route. */
 async function setUp(route: RouteId, options: OnboardOptions = {}): Promise<void> {
@@ -305,7 +319,7 @@ describe('Settings, Eating schedule and Profile (K27, K20)', () => {
     expect(note.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('C07: a Kickstart default stored before answer 4 turned yes is not offered as chosen, and says so; without answer 4 it shows the 3-week line', async () => {
+  it('C07: a Kickstart default stored before answer 4 turned yes is not offered as chosen, and says so, also once item 14 moves it to 22:2; without answer 4 it shows the 3-week line', async () => {
     // A Kickstart running (so the 23:1 default is not moved back to 22:2), keto since its start.
     await setUp('eating-schedule', {
       profile: { kickstartOptIn: true, carbCeilingStartedAt: '2000-03-01T00:00:00.000Z' },
@@ -324,11 +338,32 @@ describe('Settings, Eating schedule and Profile (K27, K20)', () => {
     expect(screen.queryByText(schedule.kickstartWhen)).toBeNull();
     cleanup();
     await test.repos.readiness.answer('q4', 'yes');
-    await openApp('#/eating-schedule');
+    // The screen alone (no app, so nothing moves the default yet), beside what is stored.
+    render(
+      <>
+        <EatingScheduleScreen />
+        <StoredChoice />
+      </>,
+    );
     await screen.findByRole('radiogroup', { name: schedule.presetsLegend });
-    expect(screen.getAllByRole<HTMLInputElement>('radio').some((r) => r.checked)).toBe(false);
+    const nothingChosen = () =>
+      !screen.getAllByRole<HTMLInputElement>('radio').some((r) => r.checked);
+    expect(nothingChosen()).toBe(true);
     expect(screen.getByText(schedule.kickstartDefaultSetAside)).toBeDefined();
     expect(screen.queryByText(schedule.kickstartWhen)).toBeNull();
+    // Item 14 moves the set-aside default to 22:2 (item 14 review): the open form keeps its reason.
+    await act(async () => {
+      expect(await test.repos.phase.applyPresetMove()).toMatchObject({ fastingPreset: '22:2' });
+    });
+    expect(await screen.findByText('Stored: default')).toBeDefined();
+    expect(screen.getByText(schedule.kickstartDefaultSetAside)).toBeDefined();
+    expect(nothingChosen()).toBe(true);
+    // Opened again, it shows the 22:2 in use; one meal is never offered as chosen.
+    cleanup();
+    await openApp('#/eating-schedule');
+    await screen.findByRole('radiogroup', { name: schedule.presetsLegend });
+    expect(screen.getByRole<HTMLInputElement>('radio', { name: /^22:2/ }).checked).toBe(true);
+    expect(screen.queryByText(schedule.kickstartDefaultSetAside)).toBeNull();
   });
 
   it('K20: a failed profile save shows the message at the top of the form and keeps the screen', async () => {

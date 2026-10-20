@@ -112,16 +112,16 @@ Conventions for the implementing model:
     *Follow-up, recorded in DECISIONS when run:* the smoke checks on both deployments, including `--limits`.
 
 30. **Pairing and encryption.** AES-GCM 256 key in a QR shown by the laptop, scanned by the phone; pairing stored both sides; unpair; list id and version in the payload so re-sends never duplicate.
-    *Acceptance:* TR-01, TR-03, TR-10; NN-07.
+    *Acceptance:* TR-01; TR-03a; TR-10 (phone half: unpair); NN-07's duplicate rule as unit tests in `packages/grocery` (C82); HS-38 (the camera and the key). No extension code.
 
 31. **Send to laptop and fallbacks.** Progress and status line; automatic paste-code offer when the relay is unreachable; CSV/JSON always available.
-    *Acceptance:* TR-04, TR-07, TR-08, TR-11; TR-02 (end-to-end half), TR-05a and TR-05b (phone half).
+    *Acceptance:* TR-04, TR-07, TR-08, TR-11; TR-02 (end-to-end half), TR-05a and TR-05b (phone half); TR-10 (phone half: the next send requires pairing).
 
 32. **Extension scaffold in the approved mode.** MV3, `sidePanel` and `storage`, relay host permission; mode gate that refuses to build mode A without 9.3 approval; no content scripts in B/C.
     *Acceptance:* CX-00, CX-01, CX-02, CX-03.
 
 33. **Side panel list UI.** Pairing QR, receive and decrypt, aisle groups, tick, note, progress, partial vs complete status, store name header, paste-code input, clear, unpair, footer disclaimer.
-    *Acceptance:* CX-04, CX-08, CX-09; TR-06 (extension half), TR-09b.
+    *Acceptance:* CX-04, CX-08, CX-09; TR-06 (extension half), TR-09b; TR-03b, TR-10 (laptop half), NN-07 (end to end).
 
 34. **Mode-specific behaviour.** Mode B: "Find" opens the observed search URL with an editable cleaned term, copy fallback. Mode C: copy per item only. Mode A (only if approved): visible batching with per-batch confirmation, store check before each batch, Stop button, error surfacing, tiny-test fixture; never a checkout control.
     *Acceptance:* CX-05 to CX-07; NN-08.

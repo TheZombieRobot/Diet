@@ -3,7 +3,9 @@
  * both, so a dismissal applies only to its own trigger. markShown, dismiss and done upsert the row;
  * dismiss also stores the zone the dismissal was made in (section 3.5). done is refused for a card
  * whose dismissal is not final: the rapid-loss and alcohol-help cards can never be turned off
- * (C46). Every time is the moment of writing, never a time ahead (prepare.ts).
+ * (C46). reopen shows a card again from now, for an event that happened again (a second pre-start
+ * stop-sign "yes" on the same day). Every time is the moment of writing, never a time ahead
+ * (prepare.ts).
  */
 import { type CardId, type CardStateRecord, cardTrigger } from '@diet/core';
 import { StorageRuleError } from '../errors';
@@ -16,6 +18,8 @@ export interface CardStateRepo {
   readonly markShown: (cardId: CardId, trigger: string) => Promise<CardStateRecord>;
   readonly dismiss: (cardId: CardId, trigger: string) => Promise<CardStateRecord>;
   readonly done: (cardId: CardId, trigger: string) => Promise<CardStateRecord>;
+  /** Shown again from now: firstShownAt is now, and any dismissal or done is cleared. */
+  readonly reopen: (cardId: CardId, trigger: string) => Promise<CardStateRecord>;
 }
 
 type Change = (existing: CardStateRecord | undefined) => Partial<CardStateRecord>;
@@ -69,5 +73,12 @@ export function cardStateRepo(ctx: RepoContext): CardStateRepo {
         return { firstShownAt: e?.firstShownAt ?? now, doneAt: now };
       });
     },
+    reopen: (cardId, trigger) =>
+      upsert(cardId, trigger, () => ({
+        firstShownAt: env.now(),
+        dismissedAt: null,
+        dismissedTimeZone: null,
+        doneAt: null,
+      })),
   };
 }

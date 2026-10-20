@@ -10,6 +10,7 @@ import {
   BowlIcon,
   Button,
   ButtonRow,
+  CameraView,
   Card,
   Checkbox,
   CheckList,
@@ -788,6 +789,17 @@ describe('the weight chart and inline answers (item 14)', () => {
     expect(svg.contains(labels)).toBe(false);
   });
 
+  it('a disabled icon button is drawn as off (the weight − and + before there is a weight)', () => {
+    const style = document.createElement('style');
+    style.textContent = componentsCss;
+    document.head.append(style);
+    render(<IconButton label="More 0.1 kg" icon={<TodayIcon />} disabled />);
+    expect(getComputedStyle(screen.getByRole('button', { name: 'More 0.1 kg' })).opacity).toBe(
+      '0.5',
+    );
+    style.remove();
+  });
+
   it('draws no band when there is none', () => {
     chart({ band: null });
     expect(screen.getByRole('img').querySelector('.ui-trend-chart__band')).toBeNull();
@@ -1165,5 +1177,30 @@ describe('the drinks pieces (item 28; K3)', () => {
     );
     const block = componentsCss.slice(componentsCss.indexOf('/* ---- Item 28'));
     expect(block).not.toMatch(/--color-(?:teal|amber|emergency)/);
+  });
+});
+
+// Item 30: the camera view of the Laptop pairing screen, and Button's ref for its focus rules.
+describe('CameraView and the Button ref (item 30)', () => {
+  it('U1: a muted, inline video hidden from screen readers, and a guide shown only while active', () => {
+    const videoRef = createRef<HTMLVideoElement>();
+    const { rerender } = render(<CameraView videoRef={videoRef} active={false} />);
+    const video = videoRef.current;
+    expect(video?.tagName).toBe('VIDEO');
+    expect(video?.muted).toBe(true);
+    expect(video?.hasAttribute('playsinline')).toBe(true);
+    expect(video?.getAttribute('aria-hidden')).toBe('true');
+    const view = document.querySelector('.ui-camera');
+    expect(view?.getAttribute('data-active')).toBe('false');
+    expect(componentsCss).toContain(".ui-camera[data-active='false'] .ui-camera__guide {");
+    expect(document.querySelector('.ui-camera__guide')?.getAttribute('aria-hidden')).toBe('true');
+    rerender(<CameraView videoRef={videoRef} active />);
+    expect(view?.getAttribute('data-active')).toBe('true');
+  });
+
+  it('U2: a ref passed to Button reaches the button element', () => {
+    const ref = createRef<HTMLButtonElement>();
+    render(<Button ref={ref}>Example</Button>);
+    expect(ref.current).toBe(screen.getByRole('button', { name: 'Example' }));
   });
 });

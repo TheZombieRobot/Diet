@@ -11,6 +11,7 @@ export { Banner, type BannerProps } from './components/Banner';
 export { Button, type ButtonProps, type ButtonVariant } from './components/Button';
 export { BarChart, type BarChartBar, type BarChartProps } from './components/BarChart';
 export { ButtonRow } from './components/ButtonRow';
+export { CameraView, type CameraViewProps } from './components/CameraView';
 export { Card, type CardProps } from './components/Card';
 export { Checkbox, type CheckboxProps } from './components/Checkbox';
 export { CheckList, type CheckListProps } from './components/CheckList';

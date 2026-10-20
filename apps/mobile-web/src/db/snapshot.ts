@@ -4,7 +4,7 @@
  * and hold only Dexie requests (section 8.5): everything else (parsing, decryption, migration,
  * validation, the confirmation) happens before the transaction opens.
  */
-import { BACKUP_TABLES, type Snapshot } from '@diet/core';
+import { BACKUP_TABLES, sameRecords, type Snapshot } from '@diet/core';
 import Dexie from 'dexie';
 import type { DietDb } from './db';
 
@@ -23,22 +23,49 @@ export function readBackupSnapshot(db: DietDb): Promise<Snapshot> {
   );
 }
 
+/** What the import confirmation was worked out from: the phone's records and its pairing. */
+export interface ConfirmedPhone {
+  readonly phone: Snapshot;
+  readonly paired: boolean;
+}
+
 /**
  * The import write (section 10.7): one read-write transaction over every store. Each backed-up
  * store is cleared and refilled in BACKUP_TABLES order; the laptop pairing is cleared, so a restore
  * always leaves the app unpaired; and a garden photo survives only when its garden row is in the
  * imported snapshot (a same-phone restore). The middleware validates every row again. If anything
  * fails (quota, a validation error, a bug), Dexie aborts and the database is exactly as it was.
+ *
+ * Given what the confirmation was worked out from, the same transaction first reads every
+ * backed-up store and the pairing, and writes nothing when they no longer match ('changed'):
+ * something was saved since, perhaps a Kickstart stop-sign answer in another tab, and replacing
+ * the records with a plan made before it would erase it (full review F12). The comparison is
+ * synchronous and pure (core sameRecords), so the scope still holds only Dexie requests.
  */
-export function replaceAll(db: DietDb, snapshot: Snapshot): Promise<unknown> {
+export function replaceAll(
+  db: DietDb,
+  snapshot: Snapshot,
+  confirmed: ConfirmedPhone | null = null,
+): Promise<'written' | 'changed'> {
   const gardenIds = snapshot.garden.map((g) => g.id);
-  return db.transaction('rw', db.expectedStoreNames, () => {
+  const write = (): Promise<'written'> => {
     const writes: Promise<unknown>[] = [];
     for (const name of BACKUP_TABLES) {
       writes.push(db.table(name).clear(), db.table(name).bulkAdd([...snapshot[name]]));
     }
     writes.push(db.transfer_pairings.clear());
     writes.push(db.garden_photos.where(':id').noneOf(gardenIds).delete());
-    return Dexie.Promise.all(writes);
+    return Dexie.Promise.all(writes).then(() => 'written' as const);
+  };
+  return db.transaction('rw', db.expectedStoreNames, () => {
+    if (confirmed === null) return write();
+    return Dexie.Promise.all([
+      Dexie.Promise.all(BACKUP_TABLES.map((name) => db.table(name).toArray())),
+      db.transfer_pairings.count(),
+    ]).then(([lists, pairings]) => {
+      const current = Object.fromEntries(BACKUP_TABLES.map((name, i) => [name, lists[i] ?? []]));
+      const unchanged = sameRecords(current, confirmed.phone) && pairings > 0 === confirmed.paired;
+      return unchanged ? write() : ('changed' as const);
+    });
   });
 }
