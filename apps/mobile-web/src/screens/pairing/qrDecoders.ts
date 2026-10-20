@@ -1,13 +1,13 @@
 /**
- * The QR readers for the Laptop pairing screen (checklist item 30 design 1.5; C83). The browser's
- * own BarcodeDetector when it reads QR codes, otherwise the bundled jsQR decoder, which is loaded
- * only then, as its own chunk that the service worker keeps for offline use. This is the only file
- * that may load jsqr (scan rule qr-decoder-import).
+ * The QR readers for the Laptop pairing screen (checklist item 30 design 1.5; C83). The bundled
+ * jsQR decoder, loaded only when a scan starts, as its own chunk that the service worker keeps for
+ * offline use. This is the only file that may load jsqr (scan rule qr-decoder-import).
  *
- * On Android, Chrome's BarcodeDetector comes from Google Play services and was not audited; jsQR
- * is the audited path, and the owner is asked at the item-35 STOP whether to use only it
- * (PREFER_BUNDLED_DECODER). Every stop releases the reader: the canvas is cleared and shrunk to
- * 0×0, and no frame or jsQR result is kept beyond one call.
+ * On Android, Chrome's BarcodeDetector comes from Google Play services and was not audited, and
+ * the decoded text (the key included) would pass through it, so it is not used
+ * (PREFER_BUNDLED_DECODER, the cautious option of the item-30 review): the owner is asked at the
+ * item-35 STOP whether to switch to it. Every stop releases the reader: the canvas is cleared and
+ * shrunk to 0×0, and no frame or jsQR result is kept beyond one call.
  */
 import type jsQR from 'jsqr';
 
@@ -43,8 +43,11 @@ export interface DecoderEnv {
   readonly preferBundled: boolean;
 }
 
-/** The owner's choice at the item-35 STOP (P52): true skips the browser's own reader. */
-export const PREFER_BUNDLED_DECODER = false;
+/**
+ * True skips the browser's own reader, so the key passes only through audited code. The owner may
+ * set it to false at the item-35 STOP (P52).
+ */
+export const PREFER_BUNDLED_DECODER = true;
 /** The longest side of a frame handed to jsQR. */
 export const MAX_DECODE_SIDE = 800;
 /** HTMLMediaElement.HAVE_CURRENT_DATA: a frame can be drawn. */
@@ -159,8 +162,9 @@ async function bundledDecoder(
 }
 
 /**
- * The reader for this browser: the native one unless `preferBundled`, when it reads QR codes;
- * otherwise the bundled one; null when neither can start (the import or the canvas failed).
+ * The reader for this browser: the bundled one while `preferBundled` (PREFER_BUNDLED_DECODER);
+ * otherwise the native one when it reads QR codes, then the bundled one; null when the bundled one
+ * is needed and cannot start (the import or the canvas failed).
  */
 export async function createQrDecoder(env: Partial<DecoderEnv> = {}): Promise<QrDecoder | null> {
   const Detector = 'BarcodeDetector' in env ? env.BarcodeDetector : browserDetector();

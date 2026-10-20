@@ -82,25 +82,37 @@ export async function deflateRaw(bytes: Uint8Array): Promise<Uint8Array> {
   return out;
 }
 
-/**
- * Inflates deflate-raw, or returns null when the bytes are not deflate, have data after the end, or
- * inflate to more than `cap` bytes (reading stops at once, so a deflate bomb costs at most the cap
- * and one chunk). The writer's promises are caught at once, so a cancel never becomes an unhandled
- * rejection.
- */
-export async function inflateRaw(
-  bytes: Uint8Array,
-  cap = MAX_TRANSFER_PLAINTEXT_BYTES,
-): Promise<Uint8Array | null> {
+/** One pass of DecompressionStream; null when it throws or more than `cap` bytes come out. */
+async function inflateOnce(bytes: Uint8Array, cap: number): Promise<Uint8Array | null> {
   try {
     const stream = new (compressionStreams().DecompressionStream)('deflate-raw');
     const writer = stream.writable.getWriter();
+    // Caught at once, so a cancel never becomes an unhandled rejection.
     writer.write(bytes).catch(() => undefined);
     writer.close().catch(() => undefined);
     return await readAll(stream.readable.getReader(), cap);
   } catch {
     return null;
   }
+}
+
+/**
+ * Inflates deflate-raw, or returns null when the bytes are not one whole deflate stream (not
+ * deflate, cut short, or with bytes after its end) or inflate to more than `cap` bytes (reading
+ * stops at once, so a deflate bomb costs at most the cap and one chunk).
+ *
+ * Bytes after the end: Chrome's DecompressionStream refuses them but Node 22's ignores them, so
+ * this checks them itself, the same in every runtime. Every runtime refuses a stream cut short,
+ * and a stream's last byte always holds its end, so a stream that still inflates without its last
+ * byte had bytes after its end.
+ */
+export async function inflateRaw(
+  bytes: Uint8Array,
+  cap = MAX_TRANSFER_PLAINTEXT_BYTES,
+): Promise<Uint8Array | null> {
+  const plaintext = await inflateOnce(bytes, cap);
+  if (plaintext === null) return null;
+  return (await inflateOnce(bytes.subarray(0, -1), cap)) === null ? plaintext : null;
 }
 
 /**

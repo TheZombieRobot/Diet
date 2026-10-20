@@ -8,6 +8,7 @@ import {
   decodeRgba,
   frameSize,
   loadBundledJsQr,
+  PREFER_BUNDLED_DECODER,
 } from './qrDecoders';
 
 describe('the bundled reader (jsQR)', () => {
@@ -55,37 +56,50 @@ const fakeContext = { clearRect: () => undefined };
 const loadJsQr = loadBundledJsQr;
 
 describe('choosing a reader', () => {
-  it('the browser’s own reader when it reads QR codes, unless the bundled one is preferred', async () => {
+  it('the bundled reader by default: the browser’s own reader is not even asked what it reads', async () => {
     const { create } = canvasOf(fakeContext);
-    const Native = detector(['qr_code']);
+    let asked = 0;
+    const Native = class extends detector(['qr_code']) {
+      static override getSupportedFormats(): Promise<readonly string[]> {
+        asked += 1;
+        return super.getSupportedFormats();
+      }
+    };
+    expect(PREFER_BUNDLED_DECODER).toBe(true);
     expect(
       (await createQrDecoder({ BarcodeDetector: Native, loadJsQr, createCanvas: create }))?.kind,
-    ).toBe('native');
+    ).toBe('bundled');
+    expect(asked).toBe(0);
+    // The owner's other choice at the item-35 STOP.
     expect(
       (
         await createQrDecoder({
           BarcodeDetector: Native,
           loadJsQr,
           createCanvas: create,
-          preferBundled: true,
+          preferBundled: false,
         })
       )?.kind,
-    ).toBe('bundled');
+    ).toBe('native');
   });
 
   it.each([
     ['reads no QR codes', detector(['ean_13'])],
     ['will not say what it reads', detector('rejects')],
     ['is missing', undefined],
-  ])('the bundled reader when the browser’s %s', async (_name, Detector) => {
-    const { create } = canvasOf(fakeContext);
-    const decoder = await createQrDecoder({
-      BarcodeDetector: Detector,
-      loadJsQr,
-      createCanvas: create,
-    });
-    expect(decoder?.kind).toBe('bundled');
-  });
+  ])(
+    'with the browser’s reader allowed, the bundled reader when the browser’s %s',
+    async (_name, Detector) => {
+      const { create } = canvasOf(fakeContext);
+      const decoder = await createQrDecoder({
+        BarcodeDetector: Detector,
+        loadJsQr,
+        createCanvas: create,
+        preferBundled: false,
+      });
+      expect(decoder?.kind).toBe('bundled');
+    },
+  );
 
   it('no reader when the bundled one cannot load or has no canvas', async () => {
     const failing = () => Promise.reject(new Error('offline'));
@@ -111,10 +125,12 @@ describe('choosing a reader', () => {
       BarcodeDetector: detector(['qr_code'], () =>
         Promise.resolve([{ rawValue: V1_CODE }, { rawValue: 7 }]),
       ),
+      preferBundled: false,
     });
     expect(await found?.detect(video)).toEqual([V1_CODE]);
     const failing = await createQrDecoder({
       BarcodeDetector: detector(['qr_code'], () => Promise.reject(new Error('busy'))),
+      preferBundled: false,
     });
     expect(await failing?.detect(video)).toEqual([]);
   });

@@ -197,6 +197,22 @@ describe('G18 NN-07 TR-09b C79: the relay duplicate rule', () => {
     expect(laptop.receive(send(LIST_A, 3, 3, at(7)), at(7))).toEqual(accepted('new-list'));
   });
 
+  it('(j′) another list is compared only with the last 20 minutes, so a clock that was ahead blocks nothing for good', () => {
+    // List B was sent while the phone's clock was an hour ahead, then deleted on the phone, so its
+    // send time no longer raises the next one (privacy review).
+    const laptop = new Laptop();
+    laptop.receive(send(LIST_B, 1, 1, at(59)), at(0, 5));
+    expect(laptop.receive(send(LIST_A, 1, 2, at(10)), at(10, 1))).toEqual(ignored('earlier-list'));
+    expect(laptop.receive(send(LIST_A, 1, 3, at(30)), at(30, 1))).toEqual(accepted('new-list'));
+  });
+
+  it('(j″) a send time equal to one already seen counts as earlier, for this list and another', () => {
+    const laptop = new Laptop();
+    laptop.receive(send(LIST_A, 3, 1, at(5)), at(5));
+    expect(laptop.receive(send(LIST_A, 3, 2, at(5)), at(6))).toEqual(ignored('earlier-send'));
+    expect(laptop.receive(send(LIST_B, 1, 3, at(5)), at(6))).toEqual(ignored('earlier-list'));
+  });
+
   it('(k) a restore, then pairing again: a lower version under the new room replaces the held list', () => {
     const laptop = new Laptop();
     laptop.receive(send(LIST_A, 7, 1, at(1)), at(1));
@@ -213,6 +229,15 @@ describe('G18 NN-07 TR-09b C79: the relay duplicate rule', () => {
     laptop.pairAgain(R2);
     expect(laptop.receive(send(LIST_A, 5, 3, at(3)), at(3))).toEqual(accepted('new-pairing'));
     expect(ackFor(laptop.held, R1)).toBeNull();
+  });
+
+  it('(l′) what was accepted under another room never counts, whether or not it is still held', () => {
+    const before = { ...transferRefOf(send(LIST_A, 7, 1, at(1)), R1), acceptedAt: at(1) };
+    const incoming = transferRefOf(send(LIST_A, 4, 2, at(0)), R2);
+    const decide = (held: typeof before | null) =>
+      decideTransfer({ incoming, held, recent: [before], source: 'relay', now: at(2) });
+    expect(decide(null)).toEqual(accepted('new-list'));
+    expect(decide(before)).toEqual(accepted('new-pairing'));
   });
 
   it('(m) applyDecision: ignored keeps the same object; what each acceptance keeps of the laptop’s marks', () => {
@@ -250,6 +275,20 @@ describe('G18 NN-07 TR-09b C79: the relay duplicate rule', () => {
       { id: id(0x101), ticked: false, note: 'Note 1' },
       { id: id(0x102), ticked: true, note: null },
       { id: id(0x103), ticked: false, note: 'Note 3' },
+    ]);
+    // A changed unit or pack suggestion alone is enough for the line to be looked at again.
+    const lookedAgain = [line(1, { unit: 'pack' }), line(2, { packSuggestion: 'Example pack' })];
+    expect(
+      applyDecision(
+        held,
+        send(LIST_A, 2, 4, at(4), [...lookedAgain, line(3)]),
+        R1,
+        accepted('newer-version') as TransferDecision,
+        at(5),
+      )?.laptop.slice(0, 2),
+    ).toEqual([
+      { id: id(0x101), ticked: false, note: 'Note 1' },
+      { id: id(0x102), ticked: false, note: null },
     ]);
     for (const kind of ['returned', 'new-list', 'new-pairing'] as const) {
       expect(applyDecision(held, T2, R1, { accept: true, kind }, at(6))?.laptop).toEqual([]);
@@ -328,6 +367,8 @@ describe('G20 R22 NN-07: bookkeeping', () => {
         { ...good, room: 'not a room' },
         { ...good, extra: 1 },
         { ...good, version: 0 },
+        { ...good, acceptedAt: 'yesterday' },
+        { ...good, acceptedAt: '2000-01-05T06:01:00Z' },
         null,
         'x',
       ]),

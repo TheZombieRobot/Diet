@@ -248,6 +248,19 @@ describe('G16 P8 TR-01: damaged after a verified tag', () => {
   });
 
   it.each([
+    ['one byte after its end', (d: Uint8Array) => Uint8Array.of(...d, 0)],
+    ['four bytes after its end', (d: Uint8Array) => Uint8Array.of(...d, 1, 2, 3, 4)],
+    ['its last byte cut off', (d: Uint8Array) => d.subarray(0, -1)],
+    ['no bytes at all', () => new Uint8Array(0)],
+  ])('deflate data with %s is damaged, in Node as in Chrome', async (_name, change) => {
+    // Node's own DecompressionStream ignores bytes after the end; Chrome's refuses them.
+    const deflated = change((await nodeZlib()).deflateRawSync(ascii('Example plaintext')));
+    expect(await inflateRaw(deflated)).toBeNull();
+    const body = await nodeSeal(VECTOR_KEY_BYTES, 'list', deflated);
+    expect(await openRelayBody(await K(), 'list', body)).toEqual({ ok: false, reason: 'damaged' });
+  });
+
+  it.each([
     ['invalid UTF-8', Uint8Array.of(0xff, 0xfe, 0x7b)],
     ['UTF-8 that is not JSON', ascii('Example plaintext')],
     ['JSON that fails the payload rules', ascii('{"kind":"diet-list","v":1}')],

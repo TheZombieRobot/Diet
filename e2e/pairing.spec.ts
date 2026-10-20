@@ -1,4 +1,4 @@
-import { expect, type Page, test } from '@playwright/test';
+import { expect, type Locator, type Page, test } from '@playwright/test';
 import { createDecipheriv } from 'node:crypto';
 import { rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -15,12 +15,12 @@ import {
   VECTOR_KEY_BYTES,
 } from '../packages/test-fixtures/src/transfer/vectors';
 import { goTo, seedOnboarded, waitForServiceWorkerControl } from './support/app';
-import { startAudit } from './support/network';
+import { type Audit, type Seen, startAudit } from './support/network';
 
-// Checklist item 30 (design 5.4; E1–E4): pairing the phone through its camera, in the production
+// Checklist item 30 (design 5.4; E1–E5): pairing the phone through its camera, in the production
 // build. Chrome's fake capture device plays a video of V1's code, drawn at run time (no image is
-// committed); the phone reads it, stores a key it cannot read back, stops the camera and makes no
-// request (TR-03a, TR-10 phone half, HS-14, HS-(next), C83, C115).
+// committed); the phone reads it with the bundled reader, stores a key it cannot read back, stops
+// the camera and makes no request (TR-03a, TR-10 phone half, HS-14, HS-(next), C83, C115).
 
 const copy = transfer.pairing;
 /** The bundled QR reader's own chunk of the build. */
@@ -135,6 +135,30 @@ function openWithV1Key(sealed: readonly number[]): string {
   ]).toString('utf8');
 }
 
+/**
+ * The requests made while `act` runs, from a quiet network until it is quiet again afterwards, so
+ * a request made a moment after the screen changed counts too (privacy review: the audit alone
+ * cannot tell an action's request for one of the app's own files from the page's own loads).
+ */
+async function requestsWhile(audit: Audit, act: () => Promise<void>): Promise<Seen[]> {
+  await audit.settle();
+  const from = audit.seen.length;
+  await act();
+  await audit.settle();
+  return audit.seen.slice(from);
+}
+
+/** Where an element is, and how much of it shows between the top bar and the tab bar. */
+async function inSight(page: Page, target: Locator) {
+  const box = await target.boundingBox();
+  const bar = await page.getByRole('banner').boundingBox();
+  const tabs = await page.getByRole('navigation', { name: 'Main' }).boundingBox();
+  if (box === null || bar === null || tabs === null) throw new Error('not laid out');
+  const barBottom = bar.y + bar.height;
+  const shown = Math.min(box.y + box.height, tabs.y) - Math.max(box.y, barBottom);
+  return { top: box.y, barBottom, shownShare: Math.max(0, shown) / box.height };
+}
+
 async function scanAndExpectPaired(page: Page): Promise<void> {
   await page.getByRole('button', { name: copy.scan }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Pairing code saved.' })).toBeVisible({
@@ -144,7 +168,7 @@ async function scanAndExpectPaired(page: Page): Promise<void> {
   await expect(page.getByText('Pairing check: PCMK', { exact: true })).toBeVisible();
 }
 
-// Every test here runs with the fake camera allowed (E2 and E3 replace it with their own stubs).
+// Every test here runs with the fake camera allowed (E3 and E5 replace it with their own stubs).
 test.use({
   permissions: ['camera'],
   launchOptions: {
@@ -166,9 +190,14 @@ test.describe('with a fake camera showing V1’s code', () => {
     const audit = await startAudit(context, request, baseURL);
     await watchCamera(page, { bundledReader: true });
     await seedOnboarded(page);
+    // The offline copy is saved first, so nothing else is loading while the actions are watched.
+    await waitForServiceWorkerControl(page);
     await goTo(page, 'Laptop pairing');
     expect((await cameraState(page)).requests).toBe(0);
-    await scanAndExpectPaired(page);
+    // Pairing asks for nothing but the bundled reader, one of the app's own files.
+    const pairing = await requestsWhile(audit, () => scanAndExpectPaired(page));
+    expect(pairing.filter((s) => !JS_QR_CHUNK.test(s.url)).map((s) => s.url)).toEqual([]);
+    expect(pairing.some((s) => !s.fromServiceWorker && JS_QR_CHUNK.test(s.url))).toBe(true);
 
     const stored = await storedPairing(page, [...VECTOR_IV_LIST]);
     expect(stored).toMatchObject({
@@ -199,13 +228,15 @@ test.describe('with a fake camera showing V1’s code', () => {
     await expect(page.getByText(copy.paired, { exact: true })).toBeVisible();
     expect((await cameraState(page)).requests).toBe(0);
 
-    await page.getByRole('button', { name: copy.unpair }).click();
-    await page.getByRole('button', { name: copy.unpair }).click();
-    await expect(page.getByText(copy.unpairedNow, { exact: true })).toBeVisible();
+    // Unpair, asked and confirmed, forgets the pairing here and asks for nothing at all (C115).
+    const unpairing = await requestsWhile(audit, async () => {
+      await page.getByRole('button', { name: copy.unpair }).click();
+      await page.getByRole('button', { name: copy.unpair }).click();
+      await expect(page.getByText(copy.unpairedNow, { exact: true })).toBeVisible();
+    });
+    expect(unpairing.map((s) => s.url)).toEqual([]);
     expect(await storedPairing(page, [...VECTOR_IV_LIST])).toBeNull();
     await audit.verify();
-    // The bundled reader is one of the app's own files, and the page loaded it.
-    expect(audit.seen.some((s) => !s.fromServiceWorker && JS_QR_CHUNK.test(s.url))).toBe(true);
   });
 
   test('E4: offline, the reader comes from the offline copy and pairing needs no network', async ({
@@ -225,40 +256,41 @@ test.describe('with a fake camera showing V1’s code', () => {
   });
 });
 
-test('E2: the browser’s own reader pairs, and the bundled reader is never loaded', async ({
+test('E2: Chrome’s own reader is never asked; the bundled reader pairs (the cautious choice until the owner decides)', async ({
   page,
   context,
   baseURL,
   request,
 }) => {
   const audit = await startAudit(context, request, baseURL);
-  await page.addInitScript((code) => {
-    // A canvas stream stands in for the camera, and a stub for Chrome's own QR reader.
-    const canvas = document.createElement('canvas');
-    canvas.width = 64;
-    canvas.height = 64;
-    const context2d = canvas.getContext('2d');
-    setInterval(() => {
-      context2d?.fillRect(0, 0, 64, 64);
-    }, 100);
-    navigator.mediaDevices.getUserMedia = () => Promise.resolve(canvas.captureStream(10));
-    (window as unknown as { BarcodeDetector: unknown }).BarcodeDetector = class {
+  await page.addInitScript(() => {
+    // A stand-in for Chrome's own QR reader that counts every use; the fake camera shows V1's code.
+    const w = window as unknown as { BarcodeDetector: unknown; __nativeReaderUses: number };
+    w.__nativeReaderUses = 0;
+    w.BarcodeDetector = class {
       static getSupportedFormats() {
+        w.__nativeReaderUses += 1;
         return Promise.resolve(['qr_code']);
       }
-      detect(video: HTMLVideoElement) {
-        return Promise.resolve(
-          video.readyState >= 2 ? [{ rawValue: code, format: 'qr_code' }] : [],
-        );
+      constructor() {
+        w.__nativeReaderUses += 1;
+      }
+      detect() {
+        w.__nativeReaderUses += 1;
+        return Promise.resolve([]);
       }
     };
-  }, V1_CODE);
+  });
   await seedOnboarded(page);
   await goTo(page, 'Laptop pairing');
   await scanAndExpectPaired(page);
+  expect(
+    await page.evaluate(
+      () => (window as unknown as { __nativeReaderUses: number }).__nativeReaderUses,
+    ),
+  ).toBe(0);
   await audit.verify();
-  // The service worker keeps a copy for offline use; the page itself never loads it.
-  expect(audit.seen.filter((s) => !s.fromServiceWorker && JS_QR_CHUNK.test(s.url))).toEqual([]);
+  expect(audit.seen.some((s) => !s.fromServiceWorker && JS_QR_CHUNK.test(s.url))).toBe(true);
 });
 
 test('E3: a denied camera gives the steps with this site’s name, stores nothing and sends nothing', async ({
@@ -280,4 +312,47 @@ test('E3: a denied camera gives the steps with this site’s name, stores nothin
   await expect(page.getByRole('button', { name: copy.scanAgain })).toBeVisible();
   expect(await storedPairing(page, [...VECTOR_IV_LIST])).toBeNull();
   await audit.verify();
+});
+
+// Design 1.4.1: the camera view sits above the fold, at 200% text too (ux review).
+test.describe('at 200% text on a 360 × 740 phone (180 × 370)', () => {
+  test.use({ viewport: { width: 180, height: 370 } });
+
+  test('E5: while scanning, the camera view is in sight below the top bar; a denied camera’s steps start below it', async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      // A blank canvas stands in for the camera the first time; the second time it is denied.
+      const canvas = document.createElement('canvas');
+      canvas.width = 480;
+      canvas.height = 480;
+      const context2d = canvas.getContext('2d');
+      setInterval(() => {
+        context2d?.fillRect(0, 0, 480, 480);
+      }, 100);
+      let calls = 0;
+      navigator.mediaDevices.getUserMedia = () => {
+        calls += 1;
+        return calls === 1
+          ? Promise.resolve(canvas.captureStream(10))
+          : Promise.reject(new DOMException('Permission denied', 'NotAllowedError'));
+      };
+    });
+    await seedOnboarded(page);
+    await goTo(page, 'Laptop pairing');
+    // The Scan button is at the end of a long card, so the page is scrolled down to it.
+    await page.getByRole('button', { name: copy.scan }).click();
+    await expect(page.getByRole('status').filter({ hasText: copy.looking })).toBeVisible();
+    const cancel = page.getByRole('button', { name: copy.cancel });
+    await expect(cancel).toBeFocused();
+    const camera = await inSight(page, page.locator('video'));
+    expect(camera.shownShare).toBeGreaterThanOrEqual(0.5);
+
+    await cancel.click();
+    await page.getByRole('button', { name: copy.scan }).click();
+    const steps = page.getByRole('alert').locator('.ui-step-start');
+    await expect(steps).toBeFocused();
+    const denied = await inSight(page, steps);
+    expect(denied.top).toBeGreaterThanOrEqual(denied.barBottom);
+  });
 });

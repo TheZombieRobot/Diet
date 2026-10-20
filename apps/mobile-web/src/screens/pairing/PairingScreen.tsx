@@ -43,8 +43,22 @@ function NoticeSlot({
   readonly focusTarget: FocusTarget;
 }): ReactElement {
   const devices = useStore(pairingDevicesStore);
+  const start = useRef<HTMLParagraphElement | null>(null);
+  const startRef = useCallback(
+    (element: HTMLParagraphElement | null) => {
+      start.current = element;
+      focusTarget(element);
+    },
+    [focusTarget],
+  );
+  // A notice is read from its first line: at 200% text it can be taller than the screen, and focus
+  // alone could leave that line under the top bar (ux review). Its focus does not scroll.
+  useEffect(() => {
+    const element = start.current;
+    if (typeof element?.scrollIntoView === 'function') element.scrollIntoView({ block: 'start' });
+  }, [notice]);
   const first = (text: string) => (
-    <p className="ui-step-start" tabIndex={-1} ref={focusTarget}>
+    <p className="ui-step-start" tabIndex={-1} ref={startRef}>
       {text}
     </p>
   );
@@ -164,8 +178,13 @@ export function PairingScreen(): ReactElement {
 
   const notice = view.step === 'idle' ? view.notice : null;
   const returnTo = view.step === 'idle' ? view.returnTo : null;
+  // These steps scroll themselves, so focus does not: the camera card keeps its view in sight, and
+  // a notice shows its first line.
   const focusRef = useStepFocus<HTMLElement>(
     `${view.step}:${notice ?? ''}:${returnTo ?? ''}:${String(paired)}:${String(closed)}`,
+    view.step === 'starting' ||
+      view.step === 'scanning' ||
+      (notice !== null && notice !== 'paired-now' && !closed),
   );
   const focusTarget = useCallback<FocusTarget>(
     (element) => {

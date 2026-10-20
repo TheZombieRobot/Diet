@@ -233,6 +233,8 @@ describe('G15 TR-01 C84: the decoders are strict and never throw', () => {
   it.each([
     ['an extra key', ackVariant((a) => (a['extra'] = 1))],
     ['no transfer id', ackVariant((a) => delete a['transferId'])],
+    ['a transfer id that is a number', ackVariant((a) => (a['transferId'] = 42))],
+    ['a transfer id that is not a UUID', ackVariant((a) => (a['transferId'] = 'x'))],
     ['kind diet-list', ackVariant((a) => (a['kind'] = 'diet-list'))],
     ['version 1.5', ackVariant((a) => (a['version'] = 1.5))],
     ['a bad received time', ackVariant((a) => (a['receivedAt'] = 'yesterday'))],

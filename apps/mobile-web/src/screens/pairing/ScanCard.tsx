@@ -53,6 +53,14 @@ export function ScanCard({ view, dispatch, onCode, focusTarget }: ScanCardProps)
   const [decoder, setDecoder] = useState<QrDecoder | null>(null);
   const cameraWanted = view.step === 'starting' || view.step === 'scanning';
 
+  // The camera view goes to the top of the screen, below the top bar, so the owner can aim with it
+  // even at 200% text, when the page was scrolled down to the Scan button (ux review). Cancel
+  // takes focus without scrolling (PairingScreen).
+  useEffect(() => {
+    const video = videoRef.current;
+    if (typeof video?.scrollIntoView === 'function') video.scrollIntoView({ block: 'start' });
+  }, []);
+
   useEffect(() => {
     if (!cameraWanted) return;
     const video = videoRef.current;

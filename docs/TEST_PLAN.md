@@ -156,7 +156,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 |---|---|---|
 | TR-01 | Encrypt/decrypt round trip (unit) | Identical list and acknowledgement; a wrong key, a changed byte or the wrong slot fails cleanly ('cannot open') and never throws; fixed vectors pin the pairing code, the body layout, the additional data and both payloads (item 30). |
 | TR-02 | Relay never sees plaintext | Relay half (item 29): the relay logs nothing, has no decrypt code and stores only the posted body, refusing raw text. End-to-end half (item 31): every stored body decodes to AES-GCM ciphertext under the pairing key that opens to the sent list, and shows no item name, compressed or not. |
-| TR-03a | Pairing by QR, phone half (item 30) | A pairing code drawn into the camera is read; the phone stores the pairing with a key it cannot read back, keeps it after a reload, stops the camera and makes no request. |
+| TR-03a | Pairing by QR, phone half (item 30) | A pairing code drawn into the camera is read by the bundled reader (Chrome's own reader is never asked); the phone stores the pairing with a key it cannot read back, keeps it after a reload, stops the camera and, from the tap on Scan until the pairing is saved, requests nothing but the bundled reader's own file. |
 | TR-03b | Pairing by QR, end to end (item 33) | Laptop shows QR; phone scans; both sides store the pairing and show the same pairing check; second scan not needed next time |
 | TR-04 | Send 25-item list | Appears in side panel within 30 s |
 | TR-05a | Send a 300-item list (`groceryList300()` fixture) | Succeeds (C114) |

@@ -6,9 +6,10 @@
  * Scoped to the pairing: a payload is compared only with what the laptop accepted under the same
  * room, so the first list after a new pairing always replaces the held one (after a restore the
  * version can go down). A relay delivery is automatic, so a known send id, a lower version, an
- * earlier send of the same version and a stale copy of another list are ignored. A paste (or C84's
- * file import) is the owner's own act, so it is refused only for a newer version held or recently
- * held, or the same version already shown. The laptop never drops a list silently (design 1.11).
+ * earlier send of the same version and, for 20 minutes, a stale copy of another list are ignored.
+ * A paste (or C84's file import) is the owner's own act, so it is refused only for a newer version
+ * held or recently held, or the same version already shown. The laptop never drops a list silently
+ * (design 1.11).
  */
 import {
   type Id,
@@ -130,7 +131,11 @@ export function decideTransfer(args: {
   ) {
     return { accept: false, reason: 'earlier-send' };
   }
-  if (relay && seen.some((e) => e.listId !== p.listId && e.sentAt >= p.sentAt)) {
+  // Another list is compared only with the last 20 minutes (the held list among them for that
+  // long after it was accepted): no stale relay copy is older. Against the held list for good, a
+  // phone clock that was ahead when it was sent would refuse every later list once the phone had
+  // deleted it, since its send time no longer raises the next one (contract section 7).
+  if (relay && live.some((e) => e.listId !== p.listId && e.sentAt >= p.sentAt)) {
     return { accept: false, reason: 'earlier-list' };
   }
 
