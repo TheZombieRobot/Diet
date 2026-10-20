@@ -303,6 +303,17 @@ test('back from any tab goes to Today, then leaves the app; back from About retu
   await expect(heading(page)).toHaveText('Settings');
 });
 
+// Item 19 review: Garden and pantry sits under Food, so Today from there steps back over both.
+test('Today from Garden and pantry, opened from Food, then back leaves the app', async ({
+  page,
+}) => {
+  await seedOnboarded(page);
+  await goTo(page, 'Garden and pantry');
+  await goTo(page, 'Today');
+  await page.goBack();
+  expect(page.url().includes(BASE_PATH)).toBe(false);
+});
+
 test('on Today the "+" never covers the last card', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 420 });
   await seedOnboarded(page);

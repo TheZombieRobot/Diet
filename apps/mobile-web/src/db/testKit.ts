@@ -357,13 +357,17 @@ export async function pairingRow(): Promise<TransferPairingRecord> {
   };
 }
 
-/** Synthetic photo bytes: a recognisable byte pattern, never a real image. */
-export const PHOTO_BYTES = Uint8Array.from({ length: 64 }, (_, i) => (i * 7 + 3) % 256);
+/**
+ * Synthetic photo bytes: a recognisable byte pattern, never a real image. No byte is FF, so the
+ * JPEG builder stores the run as it is (an FF would be stuffed as FF 00 and the run would vanish,
+ * leaving the leak checks nothing to find; item 19 review).
+ */
+export const PHOTO_BYTES = Uint8Array.from({ length: 64 }, (_, i) => (i * 7 + 3) % 255);
 
 /**
  * A synthetic garden photo: a clean JPEG built in code (item 19) whose frame is `width` × 480 and
- * whose scan data carries PHOTO_BYTES (each FF stuffed as FF 00), so the validation middleware's
- * photo check accepts it. Never a real image.
+ * whose scan data is PHOTO_BYTES, byte for byte, so the validation middleware's photo check accepts
+ * it. Never a real image.
  */
 export function photoRow(gardenId: string, width = 640): GardenPhotoRecord {
   return {

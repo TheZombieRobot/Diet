@@ -15,13 +15,38 @@ import { ALL_PHOTO_METADATA, cleanJpeg, hasTestMarker, withMetadata } from './jp
 
 const clean = cleanJpeg({ width: 300, height: 200 });
 const dirty = withMetadata(clean, ALL_PHOTO_METADATA);
-const record = (bytes: Uint8Array, over: Partial<{ mimeType: string; width: number }> = {}) => ({
+const record = (
+  bytes: Uint8Array,
+  over: Partial<{ mimeType: string; width: number; height: number }> = {},
+) => ({
   mimeType: 'image/jpeg',
   bytes: bytes.slice().buffer,
   width: 300,
   height: 200,
   ...over,
 });
+
+// Item 19 review: metadata is not only found straight after SOI. A comment and an Exif segment
+// after the frame header, and a comment between two scans (as in a progressive file).
+const ascii = (text: string) => [...new TextEncoder().encode(text)];
+const COMMENT = [0xff, 0xfe, 0, 6, ...ascii('NOTE')];
+const EXIF = [0xff, 0xe1, 0, 8, ...ascii('Exif'), 0, 0];
+/** `bytes` with `extra` straight after the segment that starts with FF `marker`. */
+function afterSegment(bytes: Uint8Array, marker: number, extra: readonly number[]): Uint8Array {
+  let at = 2;
+  while (!(bytes[at] === 0xff && bytes[at + 1] === marker)) at++;
+  const end = at + 2 + (((bytes[at + 2] ?? 0) << 8) | (bytes[at + 3] ?? 0));
+  return Uint8Array.from([...bytes.subarray(0, end), ...extra, ...bytes.subarray(end)]);
+}
+const SECOND_SCAN = [0xff, 0xda, 0, 8, 1, 1, 0, 0, 63, 0, 5, 6, 7];
+const twoScans = Uint8Array.from([...clean.subarray(0, -2), ...SECOND_SCAN, 0xff, 0xd9]);
+const betweenScans = Uint8Array.from([
+  ...clean.subarray(0, -2),
+  ...COMMENT,
+  ...SECOND_SCAN,
+  0xff,
+  0xd9,
+]);
 
 describe('stripJpegMetadata and jpegMetadataMarkers (A3; GD-01, G4)', () => {
   it('A3 GD-01: every metadata segment and the trailer go; the image segments stay byte for byte', () => {
@@ -71,6 +96,16 @@ describe('stripJpegMetadata and jpegMetadataMarkers (A3; GD-01, G4)', () => {
   });
 
   it.each([
+    ['a comment after the frame header', afterSegment(clean, 0xc0, COMMENT), ['COM'], clean],
+    ['Exif after the frame header', afterSegment(clean, 0xc0, EXIF), ['APP1:Exif'], clean],
+    ['a comment between two scans', betweenScans, ['COM'], twoScans],
+  ])('A3: %s is found and removed', (_name, bytes, markers, expected) => {
+    expect(jpegMetadataMarkers(bytes)).toEqual(markers);
+    expect(stripJpegMetadata(bytes)).toEqual(expected);
+    expect(jpegMetadataMarkers(expected)).toEqual([]);
+  });
+
+  it.each([
     ['not a JPEG', Uint8Array.of(0x89, 0x50, 0x4e, 0x47, 0, 0)],
     [
       'a length past the end',
@@ -101,11 +136,24 @@ describe('photoProblem: the write check (A3; GD-01, G2)', () => {
       'photo-metadata',
     ],
     ['a frame of another size', record(clean, { width: 301 }), 'photo-size'],
+    ['a frame of another height', record(clean, { height: 201 }), 'photo-size'],
     [
       'a long side over 1,024 px',
       { ...record(cleanJpeg({ width: 1025, height: 10 })), width: 1025, height: 10 },
       'photo-size',
     ],
+    [
+      'a portrait with a long side over 1,024 px',
+      { ...record(cleanJpeg({ width: 10, height: 1025 })), width: 10, height: 1025 },
+      'photo-size',
+    ],
+    [
+      'a comment after the frame header',
+      record(afterSegment(clean, 0xc0, COMMENT)),
+      'photo-metadata',
+    ],
+    ['a comment between two scans', record(betweenScans), 'photo-metadata'],
+    ['two clean scans', record(twoScans), null],
   ] as const)('%s → %s', (_name, photo, problem) => {
     expect(photoProblem(photo)).toBe(problem);
   });
@@ -122,6 +170,9 @@ describe('sizes and the encoding ladder (A3; G3)', () => {
     [3000, 2000, 1024, 683],
     [200, 300, 200, 300],
     [5000, 1, 1024, 1],
+    // Portraits, the usual shape of a phone camera photo: the long side is the height.
+    [3000, 4000, 768, 1024],
+    [683, 2000, 350, 1024],
   ])('fitWithin(%i × %i) → %i × %i', (w, h, ew, eh) => {
     expect(fitWithin(w, h, PHOTO_LIMITS.maxEdge)).toEqual({ width: ew, height: eh });
   });

@@ -1,4 +1,4 @@
-import { type PantryRecord, pantryRowView } from '@diet/core';
+import { type PantryRecord, pantryRowView, PLAN_AND_LIST_BUILT } from '@diet/core';
 import { gardenScreen } from '@diet/core/copy/health';
 import { Button, Card, ItemRow, Notice } from '@diet/ui';
 import type { ReactElement } from 'react';
@@ -28,7 +28,12 @@ export function PantryCard({
   readonly alert: string | null;
   readonly actions: InventoryActions;
 }): ReactElement {
-  const at = { today: ctx.today, zone: ctx.zone, hasDataset: ctx.catalogue.hasDataset };
+  const at = {
+    today: ctx.today,
+    zone: ctx.zone,
+    hasDataset: ctx.catalogue.hasDataset,
+    planAndListBuilt: PLAN_AND_LIST_BUILT,
+  };
   const addOpen = open?.kind === 'pantry' && open.id === null;
   const form = (row: PantryRecord | null) => (
     <PantryForm

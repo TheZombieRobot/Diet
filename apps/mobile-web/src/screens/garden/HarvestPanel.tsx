@@ -19,6 +19,7 @@ import {
   linkFor,
   listedNowText,
   LOCAL_DATE_MIN,
+  numberFieldText,
   provisionalHarvest,
   type RefId,
 } from '@diet/core';
@@ -30,7 +31,6 @@ import {
   byName,
   GARDEN_UNIT_OPTIONS,
   type InventoryContext,
-  numberText,
   type WriteProblem,
   writeProblemOf,
 } from './inventory';
@@ -84,7 +84,7 @@ export function HarvestPanel({
   const [draft, setDraft] = useState<HarvestDraft>({
     amount: '',
     unit: only?.unit ?? null,
-    gramsPerUnit: numberText(only?.gramsPerUnit ?? null),
+    gramsPerUnit: numberFieldText(only?.gramsPerUnit ?? null),
     pickedOn: ctx.today,
   });
   const [mode, setMode] = useState<HarvestMode | null>(null);
@@ -100,11 +100,19 @@ export function HarvestPanel({
     if (refused > 0) focusFirstInvalid(form.current);
   }, [refused]);
 
+  // The chosen crop was removed in the meantime (another tab): the choice is cleared and the panel
+  // says so, so a save can never go on as "Another crop" with no name (design 1.4, "gone").
+  const [gone, setGone] = useState(false);
+  if (choice !== null && choice !== ANOTHER && !rows.some((r) => r.id === choice)) {
+    setChoice(crops.length === 0 ? ANOTHER : null);
+    setMode(null);
+    setGone(true);
+  }
   const row =
     choice === null || choice === ANOTHER ? null : (rows.find((r) => r.id === choice) ?? null);
   const linked = linkFor(ctx.catalogue, { name, picked, stored: null });
-  const provisional = provisionalHarvest(draft, ctx.today);
-  const modes = row === null ? null : harvestModes(row, provisional);
+  const provisional = provisionalHarvest(draft, ctx.today, row);
+  const modes = row === null ? null : harvestModes(row, provisional, ctx.today);
   const notices = row === null ? [] : harvestNoticeText(row, provisional, mode, ctx.today);
   const countedUnit = draft.unit === 'each' || draft.unit === 'bunch' ? draft.unit : null;
 
@@ -113,6 +121,7 @@ export function HarvestPanel({
     setDuplicate(null);
     setProblem(null);
     setModeError(null);
+    setGone(false);
     onDirty();
   };
   const setField = (patch: Partial<HarvestDraft>) => {
@@ -129,7 +138,7 @@ export function HarvestPanel({
         setDraft((d) => ({
           ...d,
           unit: chosen.unit ?? d.unit,
-          gramsPerUnit: numberText(chosen.gramsPerUnit),
+          gramsPerUnit: numberFieldText(chosen.gramsPerUnit),
         }));
       }
     });
@@ -165,10 +174,11 @@ export function HarvestPanel({
     setProblem(null);
     setModeError(null);
     const found: Partial<Record<HarvestField, FormProblem>> = {};
-    if (choice === null) found.crop = 'required';
+    // A crop id with no row (removed in the meantime) is never taken as "Another crop".
+    if (choice === null || (choice !== ANOTHER && row === null)) found.crop = 'required';
     const nameCheck = choice === ANOTHER ? checkName(name) : null;
     if (nameCheck?.problem !== undefined) found.name = nameCheck.problem;
-    const checked = checkHarvest(draft, ctx.today);
+    const checked = checkHarvest(draft, ctx.today, row);
     if (!checked.ok) Object.assign(found, checked.problems);
     if (Object.keys(found).length > 0 || !checked.ok) {
       setProblems(found);
@@ -177,13 +187,13 @@ export function HarvestPanel({
     }
     setProblems({});
     if (row !== null) {
-      const allowed = harvestModes(row, checked.value).modes;
+      const allowed = harvestModes(row, checked.value, ctx.today).modes;
       const chosenMode = allowed.length === 1 ? 'replace' : mode;
       if (chosenMode === null) {
         setModeError(copy.modeRequired);
         return;
       }
-      const applied = applyHarvest(row, checked.value, chosenMode);
+      const applied = applyHarvest(row, checked.value, chosenMode, ctx.today);
       if (!applied.ok) {
         setModeError(
           applied.error === 'too-much'
@@ -358,6 +368,11 @@ export function HarvestPanel({
             ))}
           </Notice>
         )}
+        {gone ? (
+          <Notice role="alert">
+            <p>{gardenScreen.gone}</p>
+          </Notice>
+        ) : null}
         <WriteProblemNotice problem={problem} />
         <ButtonRow>
           <Button type="submit" variant="primary" disabled={saving || ctx.closed}>

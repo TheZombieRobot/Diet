@@ -6,9 +6,52 @@ import {
   searchCatalogue,
 } from '@diet/core';
 import { gardenScreen, privacy } from '@diet/core/copy/health';
-import { Button, Notice, TextField } from '@diet/ui';
-import type { ReactElement, Ref } from 'react';
+import { Button, ButtonRow, Notice, TextField } from '@diet/ui';
+import { type ReactElement, type Ref, useEffect, useId, useRef } from 'react';
 import type { WriteProblem } from './inventory';
+
+/**
+ * A remove confirmation in place of the buttons that asked for it (design 1.5, 1.7 and 1.8). Focus
+ * moves to "Keep it", the safe choice, which the question describes, so a screen reader reads the
+ * question where the owner is.
+ */
+export function RemoveConfirm({
+  question,
+  yes,
+  no,
+  disabled,
+  onYes,
+  onNo,
+}: {
+  readonly question: string;
+  readonly yes: string;
+  readonly no: string;
+  readonly disabled: boolean;
+  readonly onYes: () => void;
+  readonly onNo: () => void;
+}): ReactElement {
+  const questionId = useId();
+  const keep = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    keep.current?.focus();
+  }, []);
+  return (
+    <Notice
+      actions={
+        <ButtonRow>
+          <Button variant="caution" disabled={disabled} onClick={onYes}>
+            {yes}
+          </Button>
+          <Button ref={keep} aria-describedby={questionId} onClick={onNo}>
+            {no}
+          </Button>
+        </ButtonRow>
+      }
+    >
+      <p id={questionId}>{question}</p>
+    </Notice>
+  );
+}
 
 /**
  * A crop or pantry item name with the matching foods under it (design 1.5; G12): picking one fills

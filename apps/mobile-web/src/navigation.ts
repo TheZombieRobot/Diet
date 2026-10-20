@@ -11,7 +11,7 @@ const ABOVE_TODAY = 'dietAboveToday';
 
 export interface BrowserHistory {
   location: Pick<Location, 'assign' | 'replace'>;
-  history: Pick<History, 'state' | 'back' | 'replaceState'>;
+  history: Pick<History, 'state' | 'back' | 'go' | 'replaceState'>;
 }
 
 const browserHistory = (): BrowserHistory => ({
@@ -26,11 +26,21 @@ const isAboveToday = (state: unknown): boolean =>
 
 /** Item 19: the tab a sub-screen's entry was opened from (Garden and pantry from Food). */
 const PARENT = 'dietParentTab';
+/**
+ * Item 19 review: that tab's entry is itself above Today, so Today is two entries back. It stays
+ * when another tab replaces the entry, which is still two above Today.
+ */
+const TODAY_TWO_BACK = 'dietTodayTwoBack';
 
 const parentTabOf = (state: unknown): unknown =>
   typeof state === 'object' && state !== null
     ? (state as Readonly<Record<string, unknown>>)[PARENT]
     : undefined;
+
+const isTodayTwoBack = (state: unknown): boolean =>
+  typeof state === 'object' &&
+  state !== null &&
+  (state as Readonly<Record<string, unknown>>)[TODAY_TWO_BACK] === true;
 
 /** The entry's state without the sub-screen mark, for a tab switch that replaces the entry. */
 function withoutParentTab(state: unknown): unknown {
@@ -50,6 +60,9 @@ export function goToTab(
   const href = routeHref(target);
   if (target === 'today') {
     if (isAboveToday(history.state)) history.back();
+    // Item 19 review: Today, then Food, then Garden and pantry: step back over both, so Back from
+    // Today still leaves the app.
+    else if (isTodayTwoBack(history.state)) history.go(-2);
     else location.replace(href);
     return;
   }
@@ -85,15 +98,23 @@ export function markEntryAboveToday(
 /**
  * Item 19: called after every route change, next to markEntryAboveToday. A new entry for a
  * sub-screen opened from its parent tab (Garden and pantry from Food) is marked, so the tab's tap
- * steps back to the tab's own entry instead of stacking a second one.
+ * steps back to the tab's own entry instead of stacking a second one. `previousState` is the state
+ * of the entry it was opened from: when that entry is above Today, the mark says so, and Today
+ * steps back over both.
  */
 export function markSubScreenEntry(
   previous: RouteId,
   current: RouteId,
   history: Pick<History, 'state' | 'replaceState'> = window.history,
+  previousState: unknown = null,
 ): void {
   if (PARENT_TAB[current] === previous && history.state === null) {
-    history.replaceState({ [PARENT]: previous }, '');
+    history.replaceState(
+      isAboveToday(previousState)
+        ? { [PARENT]: previous, [TODAY_TWO_BACK]: true }
+        : { [PARENT]: previous },
+      '',
+    );
   }
 }
 

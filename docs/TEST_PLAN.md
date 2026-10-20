@@ -231,7 +231,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | ID | Case | Expected |
 |---|---|---|
 | GD-01 | A photo carrying EXIF location, XMP, a comment and trailing data is added to a crop | The stored photo is a JPEG at most 1,024 px on its long side, upright, with no APPn or comment segment and nothing after the end marker. Any write of a photo that still has one is refused, whichever code makes it |
-| GD-02 | A photo is stored, then every export the app can make is produced | No photo bytes, photo keys or photo text in any file. No file outside the named list mentions the photo store or reaches stores generically |
+| GD-02 | A photo is stored, then every export the app can make is produced | No photo bytes, photo keys or photo text in any file, in any encoding. No file outside the named list mentions the photo store, opens the database or reaches stores generically, read with the TypeScript compiler and its types (an alias, an escape, a template or `+` name, a cast, Dexie's own table lists), and no app file imports test data or a test helper |
 | GD-03 | A crop or pantry item with no amount entered | Shown as "Available, amount not entered" (a ready crop) or "Some, not measured" (pantry). Read by the plan and list with no weight; no gram figure is made up |
 | GD-04 | Garden and pantry wording | No food-safety, freshness, price, savings, stock or kilogram wording, and no gram figure in fixed copy |
 

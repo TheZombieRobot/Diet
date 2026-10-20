@@ -1,4 +1,4 @@
-import { fillTemplate, type GardenRecord, gardenRowView } from '@diet/core';
+import { fillTemplate, type GardenRecord, gardenRowView, PLAN_AND_LIST_BUILT } from '@diet/core';
 import { gardenScreen } from '@diet/core/copy/health';
 import { Button, Card, ItemRow, Notice, Switch, Thumbnail } from '@diet/ui';
 import { type ReactElement, type Ref, useState } from 'react';
@@ -95,7 +95,12 @@ export function GardenCard({
   actions,
   harvestFirstRef,
 }: GardenCardProps): ReactElement {
-  const at = { today: ctx.today, zone: ctx.zone, hasDataset: ctx.catalogue.hasDataset };
+  const at = {
+    today: ctx.today,
+    zone: ctx.zone,
+    hasDataset: ctx.catalogue.hasDataset,
+    planAndListBuilt: PLAN_AND_LIST_BUILT,
+  };
   const views =
     rows === null
       ? []

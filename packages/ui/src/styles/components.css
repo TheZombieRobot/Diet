@@ -1778,15 +1778,19 @@
   background: var(--color-card);
 }
 
+/* The switch moves under the row button when the button would be narrower than 12rem. */
 .ui-item-row__main {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 4px;
 }
 
+/* The text goes under the thumbnail when it would be narrower than 7rem beside it. */
 .ui-item-row__button {
   display: flex;
-  flex: 1 1 auto;
+  flex: 1 1 12rem;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: 12px;
   min-width: 0;
@@ -1801,19 +1805,22 @@
   cursor: pointer;
 }
 
+/* A word breaks only when it is longer than the whole line (break-word, not anywhere). */
 .ui-item-row__text {
   display: flex;
-  flex: 1 1 auto;
+  flex: 1 1 7rem;
   flex-direction: column;
   gap: 3px;
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
+/* The amount drops under the name, still at the right, when both do not fit on one line. */
 .ui-item-row__head {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
-  gap: 8px;
+  gap: 2px 8px;
 }
 
 .ui-item-row__title,
@@ -1823,7 +1830,7 @@
 }
 
 .ui-item-row__value {
-  max-width: 60%;
+  margin-inline-start: auto;
   text-align: end;
 }
 
@@ -1840,20 +1847,22 @@
   line-height: 1.45;
 }
 
-/* The Ready switch beside the row button: the track over its short label. */
+/* The Ready switch beside the row button (or under it, at the right): the track over its label. */
 .ui-item-row__trailing {
   flex: none;
-  padding-right: 12px;
+  margin-inline-start: auto;
+  padding: 0 12px 4px 4px;
 }
 
 .ui-item-row__trailing .ui-switch {
+  flex-direction: column;
   flex-wrap: nowrap;
-  gap: 8px;
+  gap: 2px;
 }
 
 .ui-item-row__trailing .ui-switch__label {
   flex: none;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 /* An open crop, harvest or pantry panel, under its row or button. */
@@ -1863,6 +1872,36 @@
   gap: 12px;
   padding: 12px;
   border-top: 1px solid var(--color-border);
+}
+
+/*
+ * A small phone, or a larger one zoomed in (item 19 review): the card, the row and the choices
+ * each add their own padding, so inside a panel the choices lose theirs to the words.
+ */
+@media (max-width: 359.98px) {
+  .ui-item-panel {
+    padding: 12px 6px;
+  }
+
+  .ui-card__body > .ui-item-panel {
+    padding-inline: 0;
+  }
+
+  .ui-item-panel .ui-choice {
+    gap: 10px;
+    padding-inline: 10px;
+  }
+
+  .ui-item-panel .ui-choice--checked {
+    padding-inline: 9px;
+  }
+}
+
+/* A choice too narrow for its words beside the mark (a phone at 200%): the words go under it. */
+@container (max-width: 180px) {
+  .ui-item-panel .ui-choice__text {
+    flex-basis: 100%;
+  }
 }
 
 .ui-item-panel h3,

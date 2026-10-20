@@ -1,10 +1,11 @@
 import {
   checkPantryItem,
+  duplicateOnSave,
   fillTemplate,
-  findDuplicate,
   type FormProblem,
   gardenProblemText,
   linkFor,
+  numberFieldText,
   type PantryField,
   type PantryRecord,
   type PantryUnit,
@@ -16,12 +17,12 @@ import { type ReactElement, useEffect, useId, useRef, useState } from 'react';
 import { focusFirstInvalid } from '../../onboarding/forms/profileErrors';
 import {
   type InventoryContext,
-  numberText,
   PANTRY_UNIT_OPTIONS,
   type WriteProblem,
   writeProblemOf,
 } from './inventory';
-import { NameField, WriteProblemNotice } from './parts';
+import { NameField, RemoveConfirm, WriteProblemNotice } from './parts';
+import { useRemoveConfirm } from './useRemoveConfirm';
 
 const copy = gardenScreen.pantryForm;
 
@@ -56,11 +57,11 @@ export function PantryForm({
   const unitName = useId();
   const [name, setName] = useState(row?.name ?? '');
   const [picked, setPicked] = useState<RefId | null>(null);
-  const [amount, setAmount] = useState(numberText(row?.amount ?? null));
+  const [amount, setAmount] = useState(numberFieldText(row?.amount ?? null));
   const [unit, setUnit] = useState<PantryUnit | null>(row?.unit ?? null);
   const [problems, setProblems] = useState<Partial<Record<PantryField, FormProblem>>>({});
   const [duplicate, setDuplicate] = useState<PantryRecord | null>(null);
-  const [confirmRemove, setConfirmRemove] = useState(false);
+  const { confirming, askRef, ask, keep } = useRemoveConfirm();
   const [saving, setSaving] = useState(false);
   const [problem, setProblem] = useState<WriteProblem | null>(null);
   const [refused, setRefused] = useState(0);
@@ -85,14 +86,14 @@ export function PantryForm({
 
   const save = async () => {
     setProblem(null);
-    const checked = checkPantryItem({ name, ingredientId: linked, amount, unit });
+    const checked = checkPantryItem({ name, ingredientId: linked, amount, unit }, row);
     if (!checked.ok) {
       setProblems(checked.problems);
       setRefused((n) => n + 1);
       return;
     }
     setProblems({});
-    const match = findDuplicate(rows, checked.value, row?.id ?? null);
+    const match = duplicateOnSave(rows, checked.value, row);
     if (match !== null) {
       setDuplicate(match);
       return;
@@ -203,29 +204,15 @@ export function PantryForm({
           </Notice>
         )}
         <WriteProblemNotice problem={problem} />
-        {confirmRemove && row !== null ? (
-          <Notice
-            actions={
-              <ButtonRow>
-                <Button
-                  variant="caution"
-                  disabled={saving || ctx.closed}
-                  onClick={() => void remove()}
-                >
-                  {copy.removeYes}
-                </Button>
-                <Button
-                  onClick={() => {
-                    setConfirmRemove(false);
-                  }}
-                >
-                  {copy.removeNo}
-                </Button>
-              </ButtonRow>
-            }
-          >
-            <p>{fillTemplate(copy.removeConfirm, { item: row.name })}</p>
-          </Notice>
+        {confirming && row !== null ? (
+          <RemoveConfirm
+            question={fillTemplate(copy.removeConfirm, { item: row.name })}
+            yes={copy.removeYes}
+            no={copy.removeNo}
+            disabled={saving || ctx.closed}
+            onYes={() => void remove()}
+            onNo={keep}
+          />
         ) : (
           <ButtonRow>
             <Button type="submit" variant="primary" disabled={saving || ctx.closed}>
@@ -235,12 +222,7 @@ export function PantryForm({
               {copy.cancel}
             </Button>
             {row === null ? null : (
-              <Button
-                variant="caution"
-                onClick={() => {
-                  setConfirmRemove(true);
-                }}
-              >
+              <Button ref={askRef} variant="caution" onClick={ask}>
                 {copy.remove}
               </Button>
             )}

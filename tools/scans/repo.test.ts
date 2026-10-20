@@ -9,7 +9,7 @@ import {
   repoFileReader,
   telemetryConfigProblems,
 } from './deps';
-import { DEVICE_ONLY_ALLOWED_FILES } from './rules';
+import { DEVICE_ONLY_ALLOWED_FILES, TEST_SUPPORT_FILES } from './rules';
 import { formatViolations, listRepoFiles, scanHistory, scanRepo, violationKeys } from './scan';
 
 // The real repository must stay clean. These run in CI on every push (`pnpm scan`), and in the
@@ -19,10 +19,12 @@ const root = resolve(import.meta.dirname, '../..');
 const lockfile = readFileSync(join(root, 'pnpm-lock.yaml'), 'utf8');
 
 describe('repository scan', () => {
+  // The device-only rules read the app's code with the TypeScript type checker (item 19), which
+  // takes most of a minute on a busy machine: the time limit is raised, never the scan cut.
   it('has no banned wording, personal data, secrets or network calls in the current files', () => {
     const violations = scanRepo(root);
     expect(violationKeys(violations), `\n${formatViolations(violations)}\n`).toEqual([]);
-  });
+  }, 240_000);
 
   it('has no personal data, secrets or private files anywhere in git history', () => {
     const violations = scanHistory(root);
@@ -33,6 +35,7 @@ describe('repository scan', () => {
   it('names only files that exist among those allowed to reach the device-only stores', () => {
     const files = new Set(listRepoFiles(root));
     expect(DEVICE_ONLY_ALLOWED_FILES.filter((f) => !files.has(f))).toEqual([]);
+    expect(TEST_SUPPORT_FILES.filter((f) => !files.has(f))).toEqual([]);
   });
 
   it('has no telemetry or analytics packages in the dependency tree', () => {

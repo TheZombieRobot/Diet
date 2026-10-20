@@ -52,6 +52,8 @@ export type StorageRule =
   | 'undo-expired'
   | 'diet-mode-switch-only'
   | 'kickstart-confirm-needed'
+  // Item 19: a second row for one crop or pantry item (G17).
+  | 'duplicate'
   // Item 19: core photoProblem.
   | 'photo-format'
   | 'photo-metadata'

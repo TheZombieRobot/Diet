@@ -19,9 +19,9 @@ import {
   type GardenFields,
   type GardenUnit,
   INVENTORY_LIMITS,
-  readNumber,
+  readFigure,
 } from './cropForm';
-import { amountText, calendarDateText } from './rows';
+import { amountText, calendarDateText, gardenDaysLeft } from './rows';
 
 export interface HarvestInput {
   readonly amount: number | null;
@@ -37,10 +37,15 @@ export interface HarvestDraft {
   readonly pickedOn: string;
 }
 
-/** The amount, unit and grams-per rules of checkGardenCrop; the picked date is required, from 2000 to today. */
+/**
+ * The amount, unit and grams-per rules of checkGardenCrop; the picked date is required, from 2000
+ * to today. `crop` is the crop chosen: its grams per item, prefilled in the field, keeps its value
+ * while unchanged.
+ */
 export function checkHarvest(
   draft: HarvestDraft,
   today: LocalDate,
+  crop: Pick<GardenRecord, 'gramsPerUnit'> | null = null,
 ):
   | { readonly ok: true; readonly value: HarvestInput }
   | {
@@ -48,7 +53,7 @@ export function checkHarvest(
       readonly problems: Readonly<Partial<Record<keyof HarvestDraft, FormProblem>>>;
     } {
   const problems: Partial<Record<keyof HarvestDraft, FormProblem>> = {};
-  const amount = readNumber(draft.amount);
+  const amount = readFigure(draft.amount);
   if (amount.problem !== undefined) problems.amount = amount.problem;
   else if (
     amount.value !== undefined &&
@@ -58,7 +63,12 @@ export function checkHarvest(
   }
   const amountEntered = draft.amount.trim() !== '';
   if (amountEntered && draft.unit === null) problems.unit = 'required';
-  const grams = checkGramsPerUnit(draft.gramsPerUnit, amountEntered, draft.unit);
+  const grams = checkGramsPerUnit(
+    draft.gramsPerUnit,
+    amountEntered,
+    draft.unit,
+    crop?.gramsPerUnit ?? null,
+  );
   if (grams.problem !== undefined) problems.gramsPerUnit = grams.problem;
   const picked = checkPickedDate(draft.pickedOn, today);
   if (picked.problem !== undefined) problems.pickedOn = picked.problem;
@@ -80,10 +90,14 @@ export function checkHarvest(
  * The harvest as typed so far, for showing the choices before Save: a figure that does not read
  * as a number counts as not entered, and a date that is not usable as today.
  */
-export function provisionalHarvest(draft: HarvestDraft, today: LocalDate): HarvestInput {
-  const amount = readNumber(draft.amount).value ?? null;
+export function provisionalHarvest(
+  draft: HarvestDraft,
+  today: LocalDate,
+  crop: Pick<GardenRecord, 'gramsPerUnit'> | null = null,
+): HarvestInput {
+  const amount = readFigure(draft.amount).value ?? null;
   const unit = amount === null ? null : draft.unit;
-  const grams = checkGramsPerUnit(draft.gramsPerUnit, amount !== null, unit);
+  const grams = checkGramsPerUnit(draft.gramsPerUnit, amount !== null, unit, crop?.gramsPerUnit);
   const picked = checkPickedDate(draft.pickedOn, today);
   return {
     amount,
@@ -95,34 +109,44 @@ export function provisionalHarvest(draft: HarvestDraft, today: LocalDate): Harve
 
 export type HarvestMode = 'add' | 'replace';
 export type ReplaceOnlyReason =
-  'nothing-listed' | 'not-ready-before' | 'no-amount-picked' | 'unit-differs' | 'weight-differs';
+  | 'nothing-listed'
+  | 'not-ready-before'
+  | 'past-keeps-before'
+  | 'no-amount-picked'
+  | 'unit-differs'
+  | 'weight-differs';
 
 const BOTH: readonly HarvestMode[] = Object.freeze(['add', 'replace']);
 const REPLACE_ONLY: readonly HarvestMode[] = Object.freeze(['replace']);
 
 /**
  * Whether a harvest may add to the amount listed, first reason that applies: nothing is listed;
- * the listed amount was not ready (an expected yield is not food in hand); the harvest has no
- * amount; the units differ; the weight for each one differs. Otherwise both.
+ * the listed amount was not ready (an expected yield is not food in hand); it is past the days
+ * the owner said it keeps (adding keeps its earlier date, so the new pick would be left out with
+ * it); the harvest has no amount; the units differ; the weight for each one differs. Otherwise
+ * both.
  */
 export function harvestModes(
   row: GardenRecord,
   harvest: HarvestInput,
+  today: LocalDate,
 ): { readonly modes: readonly HarvestMode[]; readonly replaceOnly: ReplaceOnlyReason | null } {
   const reason: ReplaceOnlyReason | null =
     row.amount === null
       ? 'nothing-listed'
       : !row.harvestReady
         ? 'not-ready-before'
-        : harvest.amount === null
-          ? 'no-amount-picked'
-          : row.unit !== harvest.unit
-            ? 'unit-differs'
-            : row.gramsPerUnit !== null &&
-                harvest.gramsPerUnit !== null &&
-                row.gramsPerUnit !== harvest.gramsPerUnit
-              ? 'weight-differs'
-              : null;
+        : (gardenDaysLeft(row, today) ?? 0) < 0
+          ? 'past-keeps-before'
+          : harvest.amount === null
+            ? 'no-amount-picked'
+            : row.unit !== harvest.unit
+              ? 'unit-differs'
+              : row.gramsPerUnit !== null &&
+                  harvest.gramsPerUnit !== null &&
+                  row.gramsPerUnit !== harvest.gramsPerUnit
+                ? 'weight-differs'
+                : null;
   return { modes: reason === null ? BOTH : REPLACE_ONLY, replaceOnly: reason };
 }
 
@@ -133,10 +157,11 @@ export function applyHarvest(
   row: GardenRecord,
   harvest: HarvestInput,
   mode: HarvestMode,
+  today: LocalDate,
 ):
   | { readonly ok: true; readonly fields: GardenFields }
   | { readonly ok: false; readonly error: 'mode-not-allowed' | 'too-much' } {
-  if (!harvestModes(row, harvest).modes.includes(mode)) {
+  if (!harvestModes(row, harvest, today).modes.includes(mode)) {
     return { ok: false, error: 'mode-not-allowed' };
   }
   const kept = {
@@ -221,7 +246,7 @@ export function harvestNoticeText(
   today: LocalDate,
 ): readonly string[] {
   const words = gardenScreen.harvest;
-  const { replaceOnly } = harvestModes(row, harvest);
+  const { replaceOnly } = harvestModes(row, harvest, today);
   const lines: string[] = [];
   if (replaceOnly === 'no-amount-picked') {
     lines.push(

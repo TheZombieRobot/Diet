@@ -1,12 +1,13 @@
 import { fillTemplate } from '@diet/core';
 import { gardenScreen } from '@diet/core/copy/health';
 import { Button, ButtonRow, CameraIcon, Notice, Thumbnail } from '@diet/ui';
-import { type ReactElement, useId, useRef, useState } from 'react';
+import { type ReactElement, useEffect, useId, useRef, useState } from 'react';
 import { StorageRuleError } from '../../db/errors';
 import { removePhoto, savePhoto, usePhotoUrl } from '../../garden/photoStore';
 import { type PhotoErrorCode, type PhotoPlatform, preparePhoto } from '../../garden/preparePhoto';
 import { type InventoryContext, type WriteProblem, writeProblemOf } from './inventory';
-import { WriteProblemNotice } from './parts';
+import { RemoveConfirm, WriteProblemNotice } from './parts';
+import { useRemoveConfirm } from './useRemoveConfirm';
 
 const copy = gardenScreen.photo;
 
@@ -42,7 +43,9 @@ export function PhotoField({
   const headingId = useId();
   const input = useRef<HTMLInputElement>(null);
   const [preparing, setPreparing] = useState(false);
-  const [confirmRemove, setConfirmRemove] = useState(false);
+  const { confirming, askRef, ask, keep, close } = useRemoveConfirm();
+  const addButton = useRef<HTMLButtonElement>(null);
+  const focusAdd = useRef(false);
   const [failure, setFailure] = useState<PhotoErrorCode | null>(null);
   const [problem, setProblem] = useState<WriteProblem | null>(null);
   const busy = preparing || waitForForm || ctx.closed;
@@ -74,12 +77,20 @@ export function PhotoField({
     setProblem(null);
     try {
       await removePhoto(storage, gardenId);
-      setConfirmRemove(false);
+      focusAdd.current = true;
+      close();
       onStatus(copy.removed);
     } catch (failed) {
       setProblem(writeProblemOf(failed));
     }
   };
+
+  // After a removal, focus goes to "Add a photo" once the thumbnail has gone.
+  useEffect(() => {
+    if (url !== null || confirming || !focusAdd.current) return;
+    focusAdd.current = false;
+    addButton.current?.focus();
+  }, [url, confirming]);
 
   const pick = () => {
     setFailure(null);
@@ -105,27 +116,17 @@ export function PhotoField({
       {url === null ? null : (
         <Thumbnail src={url} alt={fillTemplate(copy.alt, { crop: cropName })} size="large" />
       )}
-      {confirmRemove ? (
-        <Notice
-          actions={
-            <ButtonRow>
-              <Button variant="caution" disabled={ctx.closed} onClick={() => void remove()}>
-                {copy.removeYes}
-              </Button>
-              <Button
-                onClick={() => {
-                  setConfirmRemove(false);
-                }}
-              >
-                {copy.removeNo}
-              </Button>
-            </ButtonRow>
-          }
-        >
-          <p>{copy.removeConfirm}</p>
-        </Notice>
+      {confirming ? (
+        <RemoveConfirm
+          question={copy.removeConfirm}
+          yes={copy.removeYes}
+          no={copy.removeNo}
+          disabled={ctx.closed}
+          onYes={() => void remove()}
+          onNo={keep}
+        />
       ) : url === null ? (
-        <Button disabled={busy} onClick={pick}>
+        <Button ref={addButton} disabled={busy} onClick={pick}>
           <CameraIcon />
           {copy.add}
         </Button>
@@ -134,13 +135,7 @@ export function PhotoField({
           <Button disabled={busy} onClick={pick}>
             {copy.replace}
           </Button>
-          <Button
-            variant="caution"
-            disabled={busy}
-            onClick={() => {
-              setConfirmRemove(true);
-            }}
-          >
+          <Button ref={askRef} variant="caution" disabled={busy} onClick={ask}>
             {copy.remove}
           </Button>
         </ButtonRow>

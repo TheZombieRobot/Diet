@@ -118,6 +118,17 @@ function GardenWithRecords({
   const pendingFocus = useRef<FocusTarget | 'harvest' | null>(null);
 
   const rows = read.status === 'ready' ? read.value : null;
+  // A row removed in the meantime (another tab) takes its open form with it: the form closes and
+  // the card says so, so the screen never waits on a form it no longer shows (design 1.4, "gone").
+  if (rows !== null && open !== null && open.kind !== 'harvest' && open.id !== null) {
+    const openId = open.id;
+    const listed = open.kind === 'crop' ? rows.garden : rows.pantry;
+    if (!listed.some((r) => r.id === openId)) {
+      setOpen(null);
+      setDirty(false);
+      setMessages({ ...NO_MESSAGES, [cardOf(open)]: { status: '', alert: copy.gone } });
+    }
+  }
   if (detail === 'harvest' && rows !== null && !arrived) {
     setArrived(true);
     setOpen({ kind: 'harvest' });

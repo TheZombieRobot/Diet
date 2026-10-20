@@ -1,7 +1,7 @@
 import {
   checkGardenCrop,
+  duplicateOnSave,
   fillTemplate,
-  findDuplicate,
   type GardenCropField,
   type GardenCropProblem,
   type GardenRecord,
@@ -9,6 +9,7 @@ import {
   gardenProblemText,
   linkFor,
   LOCAL_DATE_MIN,
+  numberFieldText,
   type RefId,
 } from '@diet/core';
 import { garden, gardenScreen } from '@diet/core/copy/health';
@@ -19,11 +20,11 @@ import type { PhotoPlatform } from '../../garden/preparePhoto';
 import {
   GARDEN_UNIT_OPTIONS,
   type InventoryContext,
-  numberText,
   type WriteProblem,
   writeProblemOf,
 } from './inventory';
-import { NameField, WriteProblemNotice } from './parts';
+import { NameField, RemoveConfirm, WriteProblemNotice } from './parts';
+import { useRemoveConfirm } from './useRemoveConfirm';
 import { PhotoField } from './PhotoField';
 
 const copy = gardenScreen.cropForm;
@@ -76,15 +77,15 @@ export function CropPanel({
   const unitName = useId();
   const [name, setName] = useState(row?.name ?? '');
   const [picked, setPicked] = useState<RefId | null>(null);
-  const [amount, setAmount] = useState(numberText(row?.amount ?? null));
+  const [amount, setAmount] = useState(numberFieldText(row?.amount ?? null));
   const [unit, setUnit] = useState<GardenUnit | null>(row?.unit ?? null);
-  const [gramsPerUnit, setGramsPerUnit] = useState(numberText(row?.gramsPerUnit ?? null));
+  const [gramsPerUnit, setGramsPerUnit] = useState(numberFieldText(row?.gramsPerUnit ?? null));
   const [harvestReady, setHarvestReady] = useState(row?.harvestReady ?? false);
   const [harvestedAt, setHarvestedAt] = useState(row?.harvestedAt ?? '');
-  const [keepsDays, setKeepsDays] = useState(numberText(row?.perishabilityDays ?? null));
+  const [keepsDays, setKeepsDays] = useState(numberFieldText(row?.perishabilityDays ?? null));
   const [problems, setProblems] = useState<Partial<Record<GardenCropField, GardenCropProblem>>>({});
   const [duplicate, setDuplicate] = useState<GardenRecord | null>(null);
-  const [confirmRemove, setConfirmRemove] = useState(false);
+  const { confirming, askRef, ask, keep } = useRemoveConfirm();
   const [saving, setSaving] = useState(false);
   const [problem, setProblem] = useState<WriteProblem | null>(null);
   const [refused, setRefused] = useState(0);
@@ -130,7 +131,7 @@ export function CropPanel({
       return;
     }
     setProblems({});
-    const match = findDuplicate(rows, checked.value, row?.id ?? null);
+    const match = duplicateOnSave(rows, checked.value, row);
     if (match !== null) {
       setDuplicate(match);
       return;
@@ -294,33 +295,17 @@ export function CropPanel({
           </Notice>
         )}
         <WriteProblemNotice problem={problem} />
-        {confirmRemove && row !== null ? (
-          <Notice
-            actions={
-              <ButtonRow>
-                <Button
-                  variant="caution"
-                  disabled={saving || ctx.closed}
-                  onClick={() => void remove()}
-                >
-                  {copy.removeYes}
-                </Button>
-                <Button
-                  onClick={() => {
-                    setConfirmRemove(false);
-                  }}
-                >
-                  {copy.removeNo}
-                </Button>
-              </ButtonRow>
-            }
-          >
-            <p>
-              {fillTemplate(hasPhoto ? copy.removeConfirmWithPhoto : copy.removeConfirm, {
-                crop: row.name,
-              })}
-            </p>
-          </Notice>
+        {confirming && row !== null ? (
+          <RemoveConfirm
+            question={fillTemplate(hasPhoto ? copy.removeConfirmWithPhoto : copy.removeConfirm, {
+              crop: row.name,
+            })}
+            yes={copy.removeYes}
+            no={copy.removeNo}
+            disabled={saving || ctx.closed}
+            onYes={() => void remove()}
+            onNo={keep}
+          />
         ) : (
           <ButtonRow>
             <Button type="submit" variant="primary" disabled={saving || ctx.closed}>
@@ -330,12 +315,7 @@ export function CropPanel({
               {copy.cancel}
             </Button>
             {row === null ? null : (
-              <Button
-                variant="caution"
-                onClick={() => {
-                  setConfirmRemove(true);
-                }}
-              >
+              <Button ref={askRef} variant="caution" onClick={ask}>
                 {copy.remove}
               </Button>
             )}

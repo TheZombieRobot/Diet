@@ -133,3 +133,30 @@ export function findDuplicate<
     ) ?? null
   );
 }
+
+/**
+ * The row a save would duplicate (G17), or null: every new row is checked, and an edit only when
+ * it changes the name or the link. So a pair that exists already (from an old backup, or from setup
+ * before it checked) stays editable, and only a change into a duplicate is refused. The garden
+ * screen, the setup step and the repositories all use this rule.
+ */
+export function duplicateOnSave<
+  T extends { readonly id: string; readonly ingredientId: RefId | null; readonly name: string },
+>(
+  rows: readonly T[],
+  candidate: { readonly ingredientId: RefId | null; readonly name: string },
+  previous: {
+    readonly id: string;
+    readonly ingredientId: RefId | null;
+    readonly name: string;
+  } | null,
+): T | null {
+  if (
+    previous !== null &&
+    previous.ingredientId === candidate.ingredientId &&
+    matchKey(previous.name) === matchKey(candidate.name)
+  ) {
+    return null;
+  }
+  return findDuplicate(rows, candidate, previous?.id ?? null);
+}

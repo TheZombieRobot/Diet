@@ -755,12 +755,16 @@ describe('garden and pantry wording (item 19)', () => {
   it('A8 GD-04: the item 13 garden rules still hold after the edits, and no garden string nudges to "update it"', () => {
     expect(garden.ready).toBe('Ready to use');
     expect(garden.readyLabel).toBe(garden.ready);
+    // The garden screen shows item 13's garden strings too (available, ready, keeps for, the form
+    // labels), so every garden-screen rule applies to them as well (item 19 review): no food-safety,
+    // freshness, stock, kilogram or price wording, no gram figure and no "update it" there either.
     for (const [path, text] of [
       ...strings(garden, 'garden'),
       ...strings(gardenScreen, 'gardenScreen'),
     ]) {
-      expect(text, path).not.toMatch(/\d\s*g\b/i);
-      expect(text, path).not.toMatch(/\bupdate\s+it\b/i);
+      for (const rule of SECTION_RULES.gardenScreen) {
+        expect(text, `${path} ${rule.source}`).not.toMatch(rule);
+      }
     }
   });
 

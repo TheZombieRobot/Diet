@@ -125,6 +125,7 @@ function Shell(): ReactElement {
   const offlineCopy = useStore(offlineCopyStore);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const previousRoute = useRef<RouteId | undefined>(undefined);
+  const entryState = useRef<unknown>(null);
 
   useEffect(() => {
     document.title = route === 'today' ? APP_NAME : `${ROUTE_TITLES[route]} · ${APP_NAME}`;
@@ -140,8 +141,13 @@ function Shell(): ReactElement {
     }
     if (previous === route) return;
     markEntryAboveToday(previous, route);
-    markSubScreenEntry(previous, route);
+    markSubScreenEntry(previous, route, window.history, entryState.current);
     titleRef.current?.focus({ preventScroll: true });
+  }, [route]);
+  // The state of the entry now shown, marks included: the next route change reads it as the
+  // entry it came from (item 19 review: Today, Food, Garden and pantry, then Today).
+  useEffect(() => {
+    entryState.current = window.history.state;
   }, [route]);
 
   return (

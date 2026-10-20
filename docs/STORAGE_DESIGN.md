@@ -1020,6 +1020,7 @@ A `QuotaExceededError` on any write aborts that transaction. Nothing is half-wri
   - drinks: `log({ beverageId, beverage, count, at? })` computes the snapshot figures with core; `update(id, { count, at, beverage })` recomputes them; `remove(id)`; `forDrinkingDays(from, to)`;
   - card_state: `get(cardId, trigger)`, `markShown`, `dismiss` (stores `dismissedTimeZone`), `done` (upserts);
   - garden_photos: `put(gardenId, …)` refuses an unknown garden id; `remove(gardenId)`; removing a garden row removes its photo in the same transaction.
+  - garden and pantry (item 19 review, G17): one row per crop and one per pantry item, by food or by name (core `duplicateOnSave`). The generic repository refuses, inside the write transaction, a new row or an edit that changes the name or the link into a second row for one food (`StorageRuleError` rule `duplicate`); a pair that is already stored (an old backup) stays editable. Import does not apply the rule.
 - **Later items** add query helpers (planner, trends and so on), and MUST go through the same preparation and validators.
 - **No audit rows** for ordinary owner edits. Audit is for automatic changes (grocery deductions at item 24, migrations).
 

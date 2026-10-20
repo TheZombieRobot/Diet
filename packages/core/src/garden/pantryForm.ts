@@ -5,7 +5,7 @@
  */
 import type { RefId } from '../storage/primitives';
 import type { PantryRecord } from '../storage/records';
-import { checkName, type FormProblem, INVENTORY_LIMITS, readNumber } from './cropForm';
+import { checkName, type FormProblem, INVENTORY_LIMITS, readFigure } from './cropForm';
 
 export type PantryUnit = 'g' | 'ml' | 'each';
 
@@ -23,13 +23,15 @@ export type PantryFields = Pick<PantryRecord, 'ingredientId' | 'name' | 'amount'
 
 export function checkPantryItem(
   draft: PantryItemDraft,
+  /** The stored item being edited: an unchanged amount keeps its value (G31). */
+  previous: Pick<PantryRecord, 'amount'> | null = null,
 ):
   | { readonly ok: true; readonly value: PantryFields }
   | { readonly ok: false; readonly problems: Readonly<Partial<Record<PantryField, FormProblem>>> } {
   const problems: Partial<Record<PantryField, FormProblem>> = {};
   const name = checkName(draft.name);
   if (name.problem !== undefined) problems.name = name.problem;
-  const amount = readNumber(draft.amount);
+  const amount = readFigure(draft.amount, previous?.amount ?? null);
   if (amount.problem !== undefined) problems.amount = amount.problem;
   else if (
     amount.value !== undefined &&

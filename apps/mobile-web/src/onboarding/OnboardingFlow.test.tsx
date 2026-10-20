@@ -798,6 +798,15 @@ describe('the garden and the end of setup (C57, E24, PWA-06)', () => {
     tap(garden.add);
     // Item 19 (G16): a crop starts not ready, and the row reads as on the garden screen.
     await screen.findByText(/1 bunch · Not ready yet · Keeps about 1 day/);
+    // Item 19 review (G17): a crop listed already is refused here as on the garden screen.
+    type(garden.nameLabel, ' SILVERBEET');
+    tap(garden.add);
+    expect(await screen.findByText('Silverbeet is already in the garden.')).toBeDefined();
+    expect((await test.repos.garden.list()).map((c) => c.name).sort()).toEqual([
+      'Kale',
+      'Silverbeet',
+      'Spinach',
+    ]);
     tap('Remove Spinach');
     await waitFor(() => {
       expect(screen.getByTestId('garden-list').textContent).not.toContain('Spinach');
@@ -860,6 +869,13 @@ describe('the garden and the end of setup (C57, E24, PWA-06)', () => {
     await headingIs(garden.title);
     expect(await screen.findByText(garden.empty)).toBeDefined();
     expect(screen.queryByText(garden.silverbeetListed)).toBeNull();
+    // Item 19 review (G12): a crop named exactly as a food is linked to it, as on the garden screen.
+    type(garden.nameLabel, 'Silverbeet');
+    tap(garden.add);
+    expect(await screen.findByText(garden.silverbeetListed)).toBeDefined();
+    expect((await test.repos.garden.list()).map((c) => c.ingredientId)).toEqual([
+      'seed:silverbeet',
+    ]);
   });
 });
 

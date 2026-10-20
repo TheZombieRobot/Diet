@@ -35,9 +35,9 @@ export interface GardenCropContext {
 
 export type GardenCropField =
   'name' | 'amount' | 'unit' | 'keepsDays' | 'gramsPerUnit' | 'harvestedAt';
-/** Item 13's problems, then item 19's date problems. */
+/** Item 13's problems, then item 19's date problems and its two-decimal-places rule. */
 export type FormProblem =
-  'required' | 'length' | 'range' | 'not-a-number' | 'format' | 'future' | 'too-early';
+  'required' | 'length' | 'range' | 'not-a-number' | 'format' | 'future' | 'too-early' | 'decimals';
 export type GardenCropProblem = FormProblem;
 
 /** A checked crop: what the garden repository stores, less the id and updatedAt. */
@@ -71,6 +71,33 @@ export function readNumber(raw: string): { value?: number; problem?: 'not-a-numb
   } catch {
     return { problem: 'not-a-number' };
   }
+}
+
+/**
+ * A stored number as its field shows it: "1200", "2.5", never the display text ("1,200 g") and
+ * never an exponent ("1e-7"), so an unchanged field always saves (G31).
+ */
+export function numberFieldText(value: number | null): string {
+  if (value === null) return '';
+  const text = String(value);
+  return /e/i.test(text) ? value.toFixed(20).replace(/0+$/, '').replace(/\.$/, '') : text;
+}
+
+/**
+ * An amount or a weight per item (item 19 review): what the screens show has two decimal places,
+ * so a new figure may not have more, or "0.001 g" would read "0 g" and add up to 0. A stored
+ * figure the owner left unchanged keeps its value, whatever an import gave it (G31).
+ */
+export function readFigure(
+  raw: string,
+  stored: number | null = null,
+): { value?: number; problem?: 'not-a-number' | 'decimals' } {
+  if (stored !== null && raw.trim() === numberFieldText(stored)) return { value: stored };
+  const read = readNumber(raw);
+  const typed = raw.trim();
+  const decimals = typed.includes('.') ? (typed.replace(/0+$/, '').split('.')[1] ?? '') : '';
+  if (read.value !== undefined && decimals.length > 2) return { problem: 'decimals' };
+  return read;
 }
 
 /** A name field (item 13's rule): trimmed, 1–60 characters. */
@@ -112,9 +139,10 @@ export function checkGramsPerUnit(
   raw: string,
   amountEntered: boolean,
   unit: GardenUnit | null,
-): { value: number | null; problem?: 'not-a-number' | 'range' } {
+  stored: number | null = null,
+): { value: number | null; problem?: 'not-a-number' | 'decimals' | 'range' } {
   if (!amountEntered || (unit !== 'each' && unit !== 'bunch')) return { value: null };
-  const grams = readNumber(raw);
+  const grams = readFigure(raw, stored);
   if (grams.problem !== undefined) return { value: null, problem: grams.problem };
   if (grams.value === undefined) return { value: null };
   if (!(grams.value > 0 && grams.value <= INVENTORY_LIMITS.gramsPerUnitMax)) {
@@ -149,7 +177,8 @@ export function checkGardenCrop(
   const name = checkName(draft.name);
   if (name.problem !== undefined) problems.name = name.problem;
 
-  const amount = readNumber(draft.amount);
+  const previous = context?.previous ?? null;
+  const amount = readFigure(draft.amount, previous?.amount ?? null);
   if (amount.problem !== undefined) problems.amount = amount.problem;
   else if (
     amount.value !== undefined &&
@@ -160,13 +189,18 @@ export function checkGardenCrop(
   const amountEntered = draft.amount.trim() !== '';
   if (amountEntered && draft.unit === null) problems.unit = 'required';
 
-  const grams = checkGramsPerUnit(draft.gramsPerUnit ?? '', amountEntered, draft.unit);
+  const grams = checkGramsPerUnit(
+    draft.gramsPerUnit ?? '',
+    amountEntered,
+    draft.unit,
+    previous?.gramsPerUnit ?? null,
+  );
   if (grams.problem !== undefined) problems.gramsPerUnit = grams.problem;
 
   const picked = checkPickedDate(
     draft.harvestedAt ?? '',
     context?.today ?? null,
-    context?.previous?.harvestedAt ?? null,
+    previous?.harvestedAt ?? null,
   );
   if (picked.problem !== undefined) problems.harvestedAt = picked.problem;
 
@@ -214,6 +248,7 @@ export function gardenProblemText(
 ): string {
   const errors = gardenScreen.errors;
   if (problem === 'not-a-number') return errors.digitsOnly;
+  if (problem === 'decimals') return errors.decimals;
   if (problem === 'format') return errors.dateFormat;
   if (problem === 'future') return errors.dateFuture;
   if (problem === 'too-early') return errors.dateTooEarly;

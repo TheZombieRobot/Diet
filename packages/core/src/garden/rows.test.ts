@@ -7,6 +7,7 @@ import type { GardenRecord, PantryRecord } from '../storage/records';
 import {
   type Catalogue,
   exactMatch,
+  duplicateOnSave,
   findDuplicate,
   linkFor,
   PRE_DATASET_CATALOGUE,
@@ -19,7 +20,13 @@ import {
   harvestNoticeText,
   listedNowText,
 } from './harvest';
-import { amountText, gardenDaysLeft, gardenRowView, pantryRowView } from './rows';
+import {
+  amountText,
+  gardenDaysLeft,
+  gardenRowView,
+  pantryRowView,
+  PLAN_AND_LIST_BUILT,
+} from './rows';
 
 const TODAY = '2000-01-10';
 const ZONE = 'Pacific/Auckland';
@@ -73,17 +80,20 @@ describe('days left and amounts (A5; G15, G19, GD-03)', () => {
     ],
     [crop({ amount: 1200, unit: 'g' }), 'garden', '1,200 g'],
     [pantryItem({ amount: 5000, unit: 'ml' }), 'pantry', '5,000 mL'],
+    // Item 19 review: a figure under 0.005 (only from an imported file) never reads "0".
+    [crop({ amount: 0.001, unit: 'g' }), 'garden', '0.001 g'],
+    [pantryItem({ amount: 0.004, unit: 'each' }), 'pantry', '0.004 each'],
   ] as const)('A5 G19: amount text, case %#', (row, source, text) => {
     expect(amountText(row, source)).toBe(text);
     expect(amountText(row, source)).not.toMatch(/\bkg\b|kilo/i);
   });
 
+  // The notes describe the meal plan and the grocery list, so the tests that read them pretend
+  // both exist; the screens pass PLAN_AND_LIST_BUILT.
+  const built = { today: TODAY, zone: ZONE, hasDataset: false, planAndListBuilt: true };
+
   it('a row shows its ready state, days left or "Updated", and amber past its keep days', () => {
-    const seeded = gardenRowView(crop({ ingredientId: 'seed:silverbeet' }), {
-      today: TODAY,
-      zone: ZONE,
-      hasDataset: false,
-    });
+    const seeded = gardenRowView(crop({ ingredientId: 'seed:silverbeet' }), built);
     expect([seeded.value, seeded.detail, seeded.note]).toEqual([
       garden.available,
       'Ready to use · Updated today',
@@ -91,7 +101,7 @@ describe('days left and amounts (A5; G15, G19, GD-03)', () => {
     ]);
     const past = gardenRowView(
       crop({ amount: 150, unit: 'g', harvestedAt: '2000-01-04', perishabilityDays: 5 }),
-      { today: TODAY, zone: ZONE, hasDataset: false },
+      built,
     );
     expect([past.detail, past.detailTone, past.note, past.usable]).toEqual([
       'Ready to use · Past the 5 days you said it keeps',
@@ -101,12 +111,35 @@ describe('days left and amounts (A5; G15, G19, GD-03)', () => {
     ]);
   });
 
+  it('A5 item 19 review: no row says what the plan or the list counts until both exist', () => {
+    expect(PLAN_AND_LIST_BUILT).toBe(false);
+    const rows = [
+      crop({ ingredientId: 'seed:silverbeet' }),
+      crop({ harvestReady: false }),
+      crop({ amount: 150, unit: 'g', harvestedAt: '2000-01-04', perishabilityDays: 5 }),
+      crop({ ingredientId: null }),
+    ];
+    const items = [
+      pantryItem({ ingredientId: 'seed:example-eggs' }),
+      pantryItem({ amount: 0, unit: 'g' }),
+    ];
+    for (const hasDataset of [false, true]) {
+      const at = { ...built, hasDataset, planAndListBuilt: PLAN_AND_LIST_BUILT };
+      expect(rows.map((r) => gardenRowView(r, at).note)).toEqual([null, null, null, null]);
+      expect(items.map((r) => pantryRowView(r, at).note)).toEqual([null, null]);
+    }
+    // Once they exist, a row not changed for 8 days is not claimed as counted: the list asks
+    // "Still have this?" before counting it (design 2.5), so the note makes no such claim.
+    const old = crop({ ingredientId: 'seed:silverbeet', updatedAt: '2000-01-02T00:00:00.000Z' });
+    expect(gardenRowView(old, built).note).not.toMatch(/\bcount/i);
+  });
+
   it('A5 G12: before the dataset an unlinked row has no note; with it, the not-matched note', () => {
     const unlinked = crop({ ingredientId: null });
     const unlinkedNotReady = crop({ ingredientId: null, harvestReady: false });
     const item = pantryItem();
     for (const hasDataset of [false, true]) {
-      const at = { today: TODAY, zone: ZONE, hasDataset };
+      const at = { ...built, hasDataset };
       const note = hasDataset ? gardenScreen.notCounted['not-linked'] : null;
       expect(gardenRowView(unlinked, at).note).toBe(note);
       expect(pantryRowView(item, at).note).toBe(note);
@@ -135,6 +168,13 @@ describe('Add harvest (A6; G14)', () => {
       picked(),
       'not-ready-before',
     ],
+    // Item 19 review: adding keeps the earlier date, so a new pick would be left out with it.
+    [
+      'the listed amount is past its keep days',
+      { ...listed, harvestedAt: '2000-01-01' },
+      picked(),
+      'past-keeps-before',
+    ],
     ['no amount picked', listed, picked({ amount: null, unit: null }), 'no-amount-picked'],
     ['another unit', listed, picked({ unit: 'each' }), 'unit-differs'],
     [
@@ -145,14 +185,14 @@ describe('Add harvest (A6; G14)', () => {
     ],
     ['the same unit, ready', listed, picked(), null],
   ] as const)('%s', (_name, row, harvest, reason) => {
-    expect(harvestModes(row, harvest)).toEqual({
+    expect(harvestModes(row, harvest, TODAY)).toEqual({
       modes: reason === null ? ['add', 'replace'] : ['replace'],
       replaceOnly: reason,
     });
   });
 
   it('adding keeps the earlier date and sums exactly; replacing takes the new date', () => {
-    expect(applyHarvest(listed, picked(), 'add')).toEqual({
+    expect(applyHarvest(listed, picked(), 'add', TODAY)).toEqual({
       ok: true,
       fields: {
         ingredientId: listed.ingredientId,
@@ -166,28 +206,32 @@ describe('Add harvest (A6; G14)', () => {
       },
     });
     const tenth = crop({ amount: 0.1, unit: 'g' });
-    expect(applyHarvest(tenth, picked({ amount: 0.2 }), 'add')).toMatchObject({
+    expect(applyHarvest(tenth, picked({ amount: 0.2 }), 'add', TODAY)).toMatchObject({
       fields: { amount: 0.3 },
     });
-    expect(applyHarvest(listed, picked(), 'replace')).toMatchObject({
+    expect(applyHarvest(listed, picked(), 'replace', TODAY)).toMatchObject({
       fields: { amount: 200, harvestedAt: TODAY },
     });
   });
 
   it('a replace in another unit drops the old weight per item; too much and a disallowed mode are refused', () => {
     const counted = crop({ amount: 2, unit: 'each', gramsPerUnit: 250 });
-    expect(applyHarvest(counted, picked({ amount: 1, unit: 'bunch' }), 'replace')).toMatchObject({
+    expect(
+      applyHarvest(counted, picked({ amount: 1, unit: 'bunch' }), 'replace', TODAY),
+    ).toMatchObject({
       fields: { unit: 'bunch', gramsPerUnit: null },
     });
-    expect(applyHarvest(crop({ amount: 99_999, unit: 'g' }), picked({ amount: 2 }), 'add')).toEqual(
-      { ok: false, error: 'too-much' },
-    );
-    expect(applyHarvest(crop(), picked(), 'add')).toEqual({
+    expect(
+      applyHarvest(crop({ amount: 99_999, unit: 'g' }), picked({ amount: 2 }), 'add', TODAY),
+    ).toEqual({ ok: false, error: 'too-much' });
+    expect(applyHarvest(crop(), picked(), 'add', TODAY)).toEqual({
       ok: false,
       error: 'mode-not-allowed',
     });
     // No amount picked: available, amount not entered, never a weight (C57).
-    expect(applyHarvest(listed, picked({ amount: null, unit: null }), 'replace')).toMatchObject({
+    expect(
+      applyHarvest(listed, picked({ amount: null, unit: null }), 'replace', TODAY),
+    ).toMatchObject({
       fields: { amount: null, unit: null, gramsPerUnit: null, harvestReady: true },
     });
   });
@@ -200,6 +244,16 @@ describe('Add harvest (A6; G14)', () => {
     ]);
     expect(harvestNoticeText(listed, picked(), 'add', TODAY)).toEqual([]);
     expect(harvestNoticeText(crop(), picked(), null, TODAY)).toEqual([]);
+    const pastKeeps = { ...listed, harvestedAt: '2000-01-01' };
+    expect(harvestNoticeText(pastKeeps, picked(), null, TODAY)).toEqual([
+      'The amount listed is past the days you said it keeps, so this replaces it.',
+      'The earlier pick is treated as used up. Days left count from 10 January.',
+    ]);
+    // Replacing it makes the new pick count from today.
+    expect(applyHarvest(pastKeeps, picked(), 'add', TODAY)).toEqual({
+      ok: false,
+      error: 'mode-not-allowed',
+    });
   });
 });
 
@@ -259,6 +313,26 @@ describe('linking to a food (A7; G12, G13, G17)', () => {
     expect(findDuplicate(rows, { ingredientId: null, name: ' example HERB' }, null)?.id).toBe('b');
     expect(findDuplicate(rows, { ingredientId: null, name: 'Example herb' }, 'b')).toBeNull();
     expect(findDuplicate(rows, { ingredientId: null, name: 'Silverbeet stems' }, null)).toBeNull();
+  });
+
+  it('duplicateOnSave: a pair that exists stays editable; a new row or a change into a pair is refused', () => {
+    // The seeded silverbeet and an unlinked "Silverbeet" from an old backup.
+    const seeded = { id: 'a', ingredientId: 'seed:silverbeet', name: 'Silverbeet' };
+    const other = { id: 'b', ingredientId: null, name: 'silverbeet' };
+    const rows = [seeded, other];
+    expect(
+      duplicateOnSave(rows, { ingredientId: 'seed:silverbeet', name: 'Silverbeet' }, seeded),
+    ).toBeNull();
+    expect(duplicateOnSave(rows, { ingredientId: null, name: 'Silverbeet ' }, other)).toBeNull();
+    // Linking the other one to silverbeet, or adding a third, makes a pair.
+    expect(
+      duplicateOnSave(rows, { ingredientId: 'seed:silverbeet', name: 'silverbeet' }, other)?.id,
+    ).toBe('a');
+    expect(duplicateOnSave(rows, { ingredientId: null, name: 'SILVERBEET' }, null)?.id).toBe('a');
+    const herb = { id: 'c', ingredientId: null, name: 'Example herb' };
+    expect(
+      duplicateOnSave([...rows, herb], { ingredientId: null, name: 'Silverbeet' }, herb)?.id,
+    ).toBe('a');
   });
 
   it('G13: before the dataset, the catalogue is the seeded row: its id and its name', () => {

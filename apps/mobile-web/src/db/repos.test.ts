@@ -22,7 +22,6 @@ import {
   GL02_GARDEN,
   GL02_PANTRY,
   snapshotV1,
-  STOCK_NOW,
   STOCK_TODAY,
   withMetadata,
 } from '@diet/test-fixtures';
@@ -91,6 +90,10 @@ function inputFor(table: StoreName): Record<string, unknown> {
     snapshotV1[table as keyof typeof snapshotV1][0],
   ) as unknown as Record<string, unknown>;
   for (const field of ASSIGNED[table] ?? []) Reflect.deleteProperty(sample, field);
+  if (table === 'garden') {
+    // One row per crop (item 19, G17): the fixture's first crop is the silverbeet seeded already.
+    Object.assign(sample, { name: 'Example table crop', ingredientId: 'seed:example-table-crop' });
+  }
   if (table === 'grocery_lists') {
     // A new list has never been sent (version starts at 1).
     Object.assign(sample, {
@@ -155,6 +158,8 @@ describe('generic repositories (section 8.2; section 16 test 23; table CRUD)', (
     const second = inputFor(table);
     if (Object.hasOwn(second, 'id')) delete second['id'];
     if (table === 'weights') second['source'] = 'manual';
+    // A second crop or pantry item has its own name (G17).
+    if (table === 'garden' || table === 'pantry') second['name'] = `${String(second['name'])} two`;
     if (index === 'createdAt') test.env.advanceDays(1);
     else if (index !== 'id') second[index] = outside(index, value);
     for (const keyField of spec.key) {
@@ -663,6 +668,51 @@ describe('special repositories (section 8.2; section 16 test 24)', () => {
     expect(await test.db.garden_photos.count()).toBe(0);
   });
 
+  // Item 19 review (G17): the rule holds whoever writes, setup included, and a pair that came from
+  // an old backup can still be edited.
+  it('G17: one row per crop and per pantry item; a pair from an old backup stays editable', async () => {
+    const test = await openTestDb();
+    const [silverbeet] = await test.repos.garden.list();
+    if (silverbeet === undefined) throw new Error('no seeded garden row');
+    const crop = {
+      ingredientId: null,
+      name: ' SILVERBEET',
+      amount: null,
+      unit: null,
+      gramsPerUnit: null,
+      harvestReady: false,
+      harvestedAt: null,
+      perishabilityDays: null,
+    };
+    await expect(test.repos.garden.create(crop)).rejects.toMatchObject({
+      name: 'StorageRuleError',
+      rule: 'duplicate',
+    });
+    // The pair an old backup could hold, written past the repositories.
+    const other = {
+      ...silverbeet,
+      id: test.env.randomId(),
+      ingredientId: null,
+      name: 'silverbeet',
+    };
+    await test.db.garden.put(other);
+    await test.repos.garden.update(silverbeet.id, { amount: 300, unit: 'g' });
+    await test.repos.garden.update(other.id, { harvestReady: false });
+    await expect(
+      test.repos.garden.update(other.id, { ingredientId: 'seed:silverbeet' }),
+    ).rejects.toMatchObject({ rule: 'duplicate' });
+    await test.repos.pantry.create({
+      ingredientId: null,
+      name: 'Example rice',
+      amount: null,
+      unit: null,
+    });
+    await expect(
+      test.repos.pantry.create({ ingredientId: null, name: 'example rice', amount: 0, unit: 'g' }),
+    ).rejects.toMatchObject({ rule: 'duplicate' });
+    expect([await test.db.garden.count(), await test.db.pantry.count()]).toEqual([2, 1]);
+  });
+
   // Item 19 (B1; GD-01, G2, G4): every photo write, from any code, is checked by the middleware.
   it.each([
     [
@@ -695,10 +745,40 @@ describe('special repositories (section 8.2; section 16 test 24)', () => {
         name: 'StorageRuleError',
         rule,
       });
-      await expect(test.db.garden_photos.put(photo)).rejects.toBeInstanceOf(StorageRuleError);
+      await expect(test.db.garden_photos.put(photo)).rejects.toMatchObject({
+        name: 'StorageRuleError',
+        rule,
+      });
       expect(await test.db.garden_photos.count()).toBe(0);
     },
   );
+
+  it('B1 GD-01: an add and a bulk write on the app connection are checked too, every value', async () => {
+    const test = await openTestDb();
+    const [silverbeet] = await test.repos.garden.list();
+    if (silverbeet === undefined) throw new Error('no seeded garden row');
+    const lettuce = await test.repos.garden.create({
+      ingredientId: null,
+      name: 'Example lettuce',
+      amount: null,
+      unit: null,
+      gramsPerUnit: null,
+      harvestReady: false,
+      harvestedAt: null,
+      perishabilityDays: null,
+    });
+    const dirty = {
+      ...photoRow(lettuce.id),
+      bytes: withMetadata(cleanJpeg({ width: 640, height: 480 }), { gps: true }).slice().buffer,
+    };
+    await expect(test.db.garden_photos.add(dirty)).rejects.toMatchObject({
+      name: 'StorageRuleError',
+      rule: 'photo-metadata',
+    });
+    // A clean first value does not carry a dirty second one through.
+    await expect(test.db.garden_photos.bulkPut([photoRow(silverbeet.id), dirty])).rejects.toThrow();
+    expect(await test.db.garden_photos.count()).toBe(0);
+  });
 
   it('B1: ids() lists the crops with a photo, keys only', async () => {
     const test = await openTestDb();
@@ -710,7 +790,8 @@ describe('special repositories (section 8.2; section 16 test 24)', () => {
   });
 
   it('B2 GL-02: readStockNow reads both stores at once, for today in the device zone, and gives the fixture view', async () => {
-    const test = await openTestDb({ env: testEnv(STOCK_NOW) });
+    // 9 January in UTC, already 10 January (STOCK_TODAY) in Auckland: the device zone decides.
+    const test = await openTestDb({ env: testEnv('2000-01-09T12:00:00.000Z', 'Pacific/Auckland') });
     await test.db.garden.clear();
     await test.db.garden.bulkPut([...GL02_GARDEN]);
     await test.db.pantry.bulkPut([...GL02_PANTRY]);

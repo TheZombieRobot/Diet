@@ -103,3 +103,22 @@ export function bandOnRight(page: Page, base64: string): Promise<boolean> {
     return rightRed > 180 && leftRed < 80;
   }, base64);
 }
+
+/**
+ * Whether canvasJpeg's band is still the top quarter of a stored photo (a photo with no turn,
+ * scaled without being squeezed): yellow at a tenth of the height, green below the quarter.
+ */
+export function bandAtTop(page: Page, base64: string): Promise<boolean> {
+  return page.evaluate(async (data) => {
+    const bytes = Uint8Array.from(atob(data), (c) => c.charCodeAt(0));
+    const image = await createImageBitmap(new Blob([bytes], { type: 'image/jpeg' }));
+    const canvas = new OffscreenCanvas(image.width, image.height);
+    const context = canvas.getContext('2d');
+    if (context === null) throw new Error('no canvas');
+    context.drawImage(image, 0, 0);
+    const x = Math.floor(image.width / 2);
+    const [topRed = 0] = context.getImageData(x, Math.floor(image.height / 10), 1, 1).data;
+    const [lowRed = 0] = context.getImageData(x, Math.floor(image.height * 0.3), 1, 1).data;
+    return topRed > 180 && lowRed < 80;
+  }, base64);
+}

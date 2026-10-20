@@ -7,6 +7,7 @@ import { cleanJpeg, withMetadata } from '@diet/test-fixtures';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { appStorageStore } from '../../db/runtime';
+import { revokeAllObjectUrls } from '../../files';
 import { onboardForTests, openTestDb, photoRow, type TestDb, testEnv } from '../../db/testKit';
 import type { PhotoPlatform } from '../../garden/preparePhoto';
 import { GardenScreen } from './GardenScreen';
@@ -113,9 +114,10 @@ describe('the garden and pantry lists (C1; UX 3d, GD-03, G12, G28)', () => {
     const silverbeet = row('Silverbeet');
     expect(silverbeet.textContent).toContain(garden.available);
     expect(silverbeet.textContent).toContain('Ready to use · Updated today');
-    expect(silverbeet.textContent).toContain(copy.amountUnknownNote);
-    for (const unlinked of [row('Example lettuce'), row('Example tinned fish')]) {
-      expect(unlinked.textContent).not.toMatch(/count|match/i);
+    // The meal plan and the grocery list are not built yet (items 22 and 24), so no row says what
+    // they count (item 19 review).
+    for (const each of [silverbeet, row('Example lettuce'), row('Example tinned fish')]) {
+      expect(each.textContent).not.toMatch(/count|match|\bplan\b|\blist\b/i);
     }
     expect(row('Example tinned fish').textContent).toContain('Some, not measured');
     expect(screen.getByTestId('garden-ready-pill').textContent).toBe('2 ready');
@@ -130,7 +132,7 @@ describe('the garden and pantry lists (C1; UX 3d, GD-03, G12, G28)', () => {
       expect((await seededSilverbeet(t)).harvestReady).toBe(false);
     });
     await waitFor(() => {
-      expect(row('Silverbeet').textContent).toContain(copy.notCounted['not-ready']);
+      expect(row('Silverbeet').textContent).toContain(garden.notReady);
     });
     expect(screen.queryByTestId('garden-ready-pill')).toBeNull();
 
@@ -206,8 +208,21 @@ describe('the crop form (C2; G12, G17, G31)', () => {
     expect(await within(form).findByText('Silverbeet is already in the garden.')).toBeDefined();
     tap('Edit Silverbeet', form);
     form = await screen.findByRole('form', { name: 'Edit Silverbeet' });
+    // Item 19 review: focus goes to "Keep it", which reads the question, and back to Remove.
     tap(copy.cropForm.remove, form);
     expect(within(form).getByText('Remove Silverbeet from the garden?')).toBeDefined();
+    const keep = within(form).getByRole('button', { name: copy.cropForm.removeNo });
+    expect(document.activeElement).toBe(keep);
+    expect(keep.getAttribute('aria-describedby')).toBe(
+      within(form).getByText('Remove Silverbeet from the garden?').id,
+    );
+    fireEvent.click(keep);
+    await waitFor(() => {
+      expect(document.activeElement).toBe(
+        within(form).getByRole('button', { name: copy.cropForm.remove }),
+      );
+    });
+    tap(copy.cropForm.remove, form);
     tap(copy.cropForm.removeYes, form);
     await screen.findByText(copy.emptyGarden);
     expect(within(card(copy.gardenCard)).getByRole('status').textContent).toBe(copy.removed);
@@ -225,6 +240,45 @@ describe('the crop form (C2; G12, G17, G31)', () => {
     });
   });
 
+  it('C2 G17 item 19 review: a pair from an old backup can still be edited, but not linked into a pair', async () => {
+    const t = await open({
+      // Written past the repositories, as an old backup could hold it.
+      seed: (s) => s.db.garden.put({ ...crop('silverbeet'), id: s.env.randomId(), updatedAt: NOW }),
+    });
+    const pair = (await t.repos.garden.list()).filter((c) => c.name.toLowerCase() === 'silverbeet');
+    expect(pair).toHaveLength(2);
+    fireEvent.click(screen.getByRole('button', { name: /^Silverbeet\b/ }));
+    let form = await screen.findByRole('form', { name: 'Edit Silverbeet' });
+    type(form, garden.amountLabel, '300');
+    fireEvent.click(within(form).getByRole('radio', { name: garden.unitOptions.g }));
+    tap(copy.cropForm.save, form);
+    await waitFor(() => {
+      expect(screen.queryByRole('form')).toBeNull();
+    });
+    expect((await seededSilverbeet(t)).amount).toBe(300);
+
+    fireEvent.click(screen.getByRole('button', { name: /^silverbeet\b/ }));
+    form = await screen.findByRole('form', { name: 'Edit silverbeet' });
+    type(form, garden.keepsLabel, '3');
+    tap(copy.cropForm.save, form);
+    await waitFor(() => {
+      expect(screen.queryByRole('form')).toBeNull();
+    });
+    fireEvent.click(screen.getByRole('button', { name: /^silverbeet\b/ }));
+    form = await screen.findByRole('form', { name: 'Edit silverbeet' });
+    tap('Silverbeet', within(form).getByRole('group', { name: copy.suggestions }));
+    tap(copy.cropForm.save, form);
+    expect(await within(form).findByText('Silverbeet is already in the garden.')).toBeDefined();
+    expect(
+      (await t.repos.garden.list()).map((c) => [c.name, c.ingredientId, c.perishabilityDays]),
+    ).toEqual(
+      expect.arrayContaining([
+        ['Silverbeet', 'seed:silverbeet', null],
+        ['silverbeet', null, 3],
+      ]),
+    );
+  });
+
   it('G30: a form with unsaved typing stays open when another row is tapped', async () => {
     await open({ seed: (t) => t.repos.garden.create(crop('Example herb')) });
     fireEvent.click(row('Example herb'));
@@ -236,6 +290,47 @@ describe('the crop form (C2; G12, G17, G31)', () => {
       copy.saveOrCancelFirst,
     );
     expect(form.contains(document.activeElement)).toBe(true);
+  });
+});
+
+describe('a row removed in another tab (design 1.4, "gone"; item 19 review)', () => {
+  const herbOf = async (t: TestDb) => {
+    const herb = (await t.repos.garden.list()).find((c) => c.name === 'Example herb');
+    if (herb === undefined) throw new Error('no herb');
+    return herb;
+  };
+
+  it('C2: an open form with unsaved typing closes and says so, and the screen is not left stuck', async () => {
+    const t = await open({ seed: (s) => s.repos.garden.create(crop('Example herb')) });
+    fireEvent.click(row('Example herb'));
+    const form = await screen.findByRole('form', { name: 'Edit Example herb' });
+    type(form, garden.keepsLabel, '3');
+    const herb = await herbOf(t);
+    await act(async () => {
+      await t.repos.garden.remove(herb.id);
+    });
+    expect(await within(card(copy.gardenCard)).findByText(copy.gone)).toBeDefined();
+    expect(screen.queryByRole('form')).toBeNull();
+    tap(copy.addCrop);
+    expect(await screen.findByRole('form', { name: garden.addTitle })).toBeDefined();
+  });
+
+  it('C3: a crop chosen for a harvest and removed meanwhile is never saved as "Another crop"', async () => {
+    const t = await open({
+      hash: '#/garden/harvest',
+      seed: (s) => s.repos.garden.create(crop('Example herb')),
+    });
+    const form = await screen.findByRole('form', { name: copy.harvest.title });
+    fireEvent.click(within(form).getByRole('radio', { name: 'Example herb' }));
+    const create = vi.spyOn(t.repos.garden, 'create');
+    const herb = await herbOf(t);
+    await act(async () => {
+      await t.repos.garden.remove(herb.id);
+    });
+    expect(await within(form).findByText(copy.gone)).toBeDefined();
+    tap(copy.harvest.save, form);
+    expect(await within(form).findByText(copy.harvest.cropRequired)).toBeDefined();
+    expect(create).not.toHaveBeenCalled();
   });
 });
 
@@ -327,6 +422,16 @@ describe('the pantry (C4; G29)', () => {
     form = await screen.findByRole('form', { name: 'Edit Example rice' });
     tap(copy.pantryForm.remove, form);
     expect(within(form).getByText('Remove Example rice from the pantry?')).toBeDefined();
+    expect(document.activeElement).toBe(
+      within(form).getByRole('button', { name: copy.pantryForm.removeNo }),
+    );
+    tap(copy.pantryForm.removeNo, form);
+    await waitFor(() => {
+      expect(document.activeElement).toBe(
+        within(form).getByRole('button', { name: copy.pantryForm.remove }),
+      );
+    });
+    tap(copy.pantryForm.remove, form);
     tap(copy.pantryForm.removeYes, form);
     await waitFor(async () => {
       expect((await t.repos.pantry.list()).map((p) => p.name)).toEqual(['Example tinned fish']);
@@ -442,9 +547,42 @@ describe('the photo (C5; GD-01, HS-30, G7)', () => {
     await screen.findByRole('form', { name: 'Edit Silverbeet' });
     fireEvent.click(await screen.findByRole('button', { name: copy.photo.remove }));
     expect(screen.getByText(copy.photo.removeConfirm)).toBeDefined();
+    // Focus goes to "Keep it", back to Remove photo, and after removing to Add a photo.
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: copy.photo.removeNo }));
+    tap(copy.photo.removeNo);
+    await waitFor(() => {
+      expect(document.activeElement).toBe(screen.getByRole('button', { name: copy.photo.remove }));
+    });
+    tap(copy.photo.remove);
     tap(copy.photo.removeYes);
     expect(await screen.findByText(copy.photo.removed)).toBeDefined();
-    expect(screen.getByRole('button', { name: copy.photo.add })).toBeDefined();
+    await waitFor(() => {
+      expect(document.activeElement).toBe(screen.getByRole('button', { name: copy.photo.add }));
+    });
+  });
+
+  it('C5 G27: thumbnail URLs are tracked, so delete-all revokes them, and a closed panel revokes its own', async () => {
+    await openPhoto(undefined, async (s) =>
+      s.db.garden_photos.put(photoRow((await seededSilverbeet(s)).id)),
+    );
+    const large = await screen.findByRole('img', { name: 'Photo of Silverbeet' });
+    const largeUrl = large.getAttribute('src') ?? '';
+    const rowUrl =
+      screen
+        .getByRole('button', { name: /^Silverbeet\b/, expanded: true })
+        .querySelector('img')
+        ?.getAttribute('src') ?? 'no row thumbnail';
+    expect(made).toEqual(expect.arrayContaining([largeUrl, rowUrl]));
+    // Delete-all's step (files.ts): every tracked URL goes.
+    revokeAllObjectUrls();
+    expect(revoked).toEqual(expect.arrayContaining([largeUrl, rowUrl]));
+    revoked.length = 0;
+    tap(copy.cropForm.cancel, screen.getByRole('form', { name: 'Edit Silverbeet' }));
+    await waitFor(() => {
+      expect(screen.queryByRole('img', { name: 'Photo of Silverbeet' })).toBeNull();
+    });
+    expect(revoked).toContain(largeUrl);
+    expect(revoked).not.toContain(rowUrl);
   });
 
   it('C5 HS-30: a photo that finishes after delete-all closed the records is dropped: nothing stored, no URL made', async () => {

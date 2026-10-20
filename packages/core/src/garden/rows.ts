@@ -63,6 +63,14 @@ export function pantryRowStatus(row: PantryRecord): {
 }
 
 const numbers = new Intl.NumberFormat('en-NZ', { maximumFractionDigits: 2 });
+const small = new Intl.NumberFormat('en-NZ', { maximumSignificantDigits: 2 });
+
+/**
+ * "1,200", "2.5". New figures have at most two decimal places (cropForm readFigure); a smaller
+ * one from an imported file reads "0.001", never "0", since it is counted.
+ */
+const numberText = (value: number): string =>
+  value > 0 && value < 0.005 ? small.format(value) : numbers.format(value);
 
 /** An amount in the owner's own unit: "1,200 g", "2 each, about 250 g per item", "1 bunch". */
 export function amountText(
@@ -80,9 +88,9 @@ export function amountText(
     return row.harvestReady === true ? garden.available : words.notEnteredNotReady;
   }
   if (source === 'pantry' && row.amount === 0) return words.noneLeft;
-  const amount = numbers.format(row.amount);
+  const amount = numberText(row.amount);
   const grams = row.gramsPerUnit ?? null;
-  const values = { amount, grams: grams === null ? '' : numbers.format(grams) };
+  const values = { amount, grams: grams === null ? '' : numberText(grams) };
   switch (row.unit) {
     case 'g':
       return fillTemplate(words.grams, values);
@@ -171,25 +179,36 @@ export interface GardenRowView extends RowView {
   readonly usable: boolean;
 }
 
+/**
+ * Whether the meal plan (item 22) and the grocery list (item 24) exist. Until both do, no row says
+ * what they count or leave out (item 19 review): the notes would describe screens that are not
+ * built. Whichever of items 22 and 24 lands second sets this to true.
+ */
+export const PLAN_AND_LIST_BUILT = false;
+
 export interface RowContext {
   readonly today: LocalDate;
   readonly zone: string;
   /** False until the ingredient dataset exists (item 18). */
   readonly hasDataset: boolean;
+  /** PLAN_AND_LIST_BUILT on the screens; tests pass both. */
+  readonly planAndListBuilt: boolean;
 }
 
 /**
- * Why a row is or is not counted, in words. Before the dataset exists an unlinked row has no note
- * at all (G12): it cannot be counted yet, so no sentence may suggest the plan or the list counts
- * it, or would once it is ready.
+ * Why a row is or is not counted, in words. Every note is about the plan and the list, so none
+ * shows until they exist. Before the dataset exists an unlinked row has no note at all (G12): it
+ * cannot be counted yet, so no sentence may suggest the plan or the list counts it, or would once
+ * it is ready.
  */
 function noteFor(
   reason: NotCountedReason | null,
   linked: boolean,
-  hasDataset: boolean,
+  at: RowContext,
   countedNote: string | null,
 ): string | null {
-  if (!linked && !hasDataset) return null;
+  if (!at.planAndListBuilt) return null;
+  if (!linked && !at.hasDataset) return null;
   if (reason === null) return countedNote;
   return gardenScreen.notCounted[reason];
 }
@@ -207,7 +226,7 @@ export function gardenRowView(row: GardenRecord, at: RowContext): GardenRowView 
     note: noteFor(
       status.reason,
       row.ingredientId !== null,
-      at.hasDataset,
+      at,
       row.amount === null ? gardenScreen.amountUnknownNote : null,
     ),
     readyText,
@@ -227,7 +246,7 @@ export function pantryRowView(row: PantryRecord, at: RowContext): RowView {
     note: noteFor(
       status.reason,
       row.ingredientId !== null,
-      at.hasDataset,
+      at,
       row.amount === null ? gardenScreen.pantryUnmeasuredNote : null,
     ),
   };

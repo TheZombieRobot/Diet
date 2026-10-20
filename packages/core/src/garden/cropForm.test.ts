@@ -9,6 +9,7 @@ import {
   type GardenCropDraft,
   gardenProblemText,
   type InventoryField,
+  numberFieldText,
 } from './cropForm';
 import { checkHarvest } from './harvest';
 import { checkPantryItem } from './pantryForm';
@@ -70,8 +71,34 @@ describe('the item 19 crop, pantry and harvest fields (A4)', () => {
     ['a date that is not one', { harvestedAt: '2000-02-30' }, { harvestedAt: 'format' }],
     ['grams per item over 5,000', { gramsPerUnit: '5001' }, { gramsPerUnit: 'range' }],
     ['"1,200" for an amount (G31)', { amount: '1,200' }, { amount: 'not-a-number' }],
+    // Item 19 review: the screens show two decimal places, so "0.001" would read "0".
+    ['three decimal places in an amount', { amount: '0.001' }, { amount: 'decimals' }],
+    ['three decimal places per item', { gramsPerUnit: '250.125' }, { gramsPerUnit: 'decimals' }],
   ] as const)('refused: %s', (_name, patch, problems) => {
     expect(checkGardenCrop({ ...draft, ...patch }, context)).toEqual({ ok: false, problems });
+  });
+
+  it('G31: an unchanged stored figure saves as it is, however many decimal places it has', () => {
+    const previous = { ...stored(TODAY), amount: 1e-7, unit: 'g' as const };
+    const field = numberFieldText(previous.amount);
+    expect(field).toBe('0.0000001');
+    expect(
+      checkGardenCrop({ ...draft, unit: 'g', amount: field }, { today: TODAY, previous }),
+    ).toMatchObject({ ok: true, value: { amount: 1e-7 } });
+    expect(
+      checkGardenCrop({ ...draft, unit: 'g', amount: '0.0000002' }, { today: TODAY, previous }),
+    ).toMatchObject({ problems: { amount: 'decimals' } });
+    // "2.50" is two decimal places, "1200" none.
+    expect(checkGardenCrop({ ...draft, amount: '2.50' }, context)).toMatchObject({ ok: true });
+    expect(
+      checkPantryItem({ name: 'Example rice', ingredientId: null, amount: '0.005', unit: 'g' }),
+    ).toMatchObject({ problems: { amount: 'decimals' } });
+    expect(
+      checkPantryItem(
+        { name: 'Example rice', ingredientId: null, amount: '0.005', unit: 'g' },
+        { amount: 0.005 },
+      ),
+    ).toMatchObject({ ok: true, value: { amount: 0.005 } });
   });
 
   it('G15: a stored date after today is accepted while unchanged, and refused once changed', () => {
@@ -119,6 +146,15 @@ describe('the item 19 crop, pantry and harvest fields (A4)', () => {
     expect(checkHarvest({ ...harvest, amount: '2', unit: null }, TODAY)).toMatchObject({
       problems: { unit: 'required' },
     });
+    expect(checkHarvest({ ...harvest, amount: '0.001' }, TODAY)).toMatchObject({
+      problems: { amount: 'decimals' },
+    });
+    // The crop's own weight per item, prefilled, keeps its value while unchanged.
+    const each = { ...harvest, amount: '2', unit: 'each' as const, gramsPerUnit: '250.125' };
+    expect(checkHarvest(each, TODAY)).toMatchObject({ problems: { gramsPerUnit: 'decimals' } });
+    expect(checkHarvest(each, TODAY, { gramsPerUnit: 250.125 })).toMatchObject({
+      value: { gramsPerUnit: 250.125 },
+    });
   });
 
   it('every field and problem has words', () => {
@@ -139,6 +175,7 @@ describe('the item 19 crop, pantry and harvest fields (A4)', () => {
       'format',
       'future',
       'too-early',
+      'decimals',
     ];
     for (const field of fields) {
       for (const problem of problems) {

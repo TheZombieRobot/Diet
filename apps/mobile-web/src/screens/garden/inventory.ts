@@ -112,6 +112,3 @@ export function sortCrops(rows: readonly GardenRecord[], today: LocalDate): Gard
 }
 
 export const sortPantry = (rows: readonly PantryRecord[]): PantryRecord[] => [...rows].sort(byName);
-
-/** A stored number as the owner typed it ("1200", "2.5"), never the display text (G31). */
-export const numberText = (value: number | null): string => (value === null ? '' : String(value));

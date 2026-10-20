@@ -30,6 +30,9 @@ function fakeHistory(start = '#/today') {
       back: () => {
         index = Math.max(0, index - 1);
       },
+      go: (delta = 0) => {
+        index = Math.min(entries.length - 1, Math.max(0, index + delta));
+      },
       replaceState: (state: unknown, _unused: string, url?: string | URL | null) => {
         entries[index] = {
           hash: url === null || url === undefined ? current().hash : String(url),
@@ -39,23 +42,23 @@ function fakeHistory(start = '#/today') {
     },
   };
   const route = (): RouteId => parseRoute(current().hash);
-  /** What App does after the route changes. */
-  const marks = (before: RouteId) => {
+  /** What App does after the route changes, with the state of the entry it came from. */
+  const marks = (before: RouteId, stateBefore: unknown) => {
     if (route() === before) return;
     markEntryAboveToday(before, route(), browser.history);
-    markSubScreenEntry(before, route(), browser.history);
+    markSubScreenEntry(before, route(), browser.history, stateBefore);
   };
   /** A tab tap. */
   const tap = (target: TabRouteId) => {
-    const before = route();
+    const [before, stateBefore] = [route(), current().state];
     goToTab(target, before, browser);
-    marks(before);
+    marks(before, stateBefore);
   };
   /** A link in the page (Food's "Garden and pantry", Today's Add harvest). */
   const follow = (href: string) => {
-    const before = route();
+    const [before, stateBefore] = [route(), current().state];
     browser.location.assign(href);
-    marks(before);
+    marks(before, stateBefore);
   };
   /** Android's back gesture: true while it stays in the app, false when it would leave. */
   const back = (): boolean => {
@@ -138,4 +141,18 @@ describe('a screen under a tab: Garden and pantry under Food (item 19; C7, G21)'
     expect(app.route()).toBe('today');
     expect(app.back()).toBe(false);
   });
+
+  // Item 19 review: Today, Food, Garden and pantry, then Today: back from Today leaves the app.
+  it.each([[[]], [['move']], [['move', 'drinks']]] as const)(
+    'Today from a garden screen opened from Food (then tabs %j) steps back over both entries',
+    (tabs) => {
+      const app = fakeHistory();
+      app.tap('food');
+      app.follow('#/garden');
+      for (const tab of tabs) app.tap(tab);
+      app.tap('today');
+      expect([app.route(), app.length()]).toEqual(['today', 3]);
+      expect(app.back()).toBe(false);
+    },
+  );
 });

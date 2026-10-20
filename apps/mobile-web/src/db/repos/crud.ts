@@ -11,23 +11,28 @@
  * Every write prepares its row synchronously (prepare.ts) and goes through the write gate.
  */
 import {
+  duplicateOnSave,
   type GenericOp,
   StorageInvariantError,
   type StoreName,
   type StoreRecords,
   TABLES,
 } from '@diet/core';
-import Dexie, { type IndexableType } from 'dexie';
+import Dexie, { type IndexableType, type Table } from 'dexie';
+import type { DietDb } from '../db';
 import type { StorageEnv } from '../env';
 import { StorageOperationError, StorageRuleError } from '../errors';
 import { prepare } from '../prepare';
-import {
-  guardedWrite,
-  type KeyOfStore,
-  type RepoContext,
-  storesViolation,
-  tableOf,
-} from './context';
+import { guardedWrite, type KeyOfStore, type RepoContext, storesViolation } from './context';
+
+/**
+ * A store's table by its name. Kept in this file, which may reach any store (item 19's
+ * device-only scan, DEVICE_ONLY_ALLOWED_FILES), and not exported: every other file names its
+ * store through a repository.
+ */
+function tableOf<K extends StoreName>(db: DietDb, name: K): Table<StoreRecords[K], KeyOfStore<K>> {
+  return db.table<StoreRecords[K], KeyOfStore<K>>(name);
+}
 
 /** Fields the repository always sets itself (section 8.4); callers never pass them. */
 interface AssignedFields {
@@ -280,17 +285,49 @@ const fastRules: StoreRules = {
     }),
 };
 
+/**
+ * Item 19 (G17): one row per crop and one per pantry item, by food or by name, whoever writes. A
+ * new row, or an edit that changes the name or the link, is refused when it would make a pair; a
+ * pair that exists already (an old backup) stays editable. `rows` still holds the stored version
+ * of an edited row, since the check runs before the put.
+ */
+function refuseDuplicate(
+  table: 'garden' | 'pantry',
+  rows: readonly StoreRecords['garden' | 'pantry'][],
+  row: Row,
+): void {
+  const candidate = row as unknown as StoreRecords['garden' | 'pantry'];
+  const previous = rows.find((r) => r.id === candidate.id) ?? null;
+  if (duplicateOnSave(rows, candidate, previous) !== null) {
+    throw new StorageRuleError(table, 'duplicate');
+  }
+}
+
 /** Removing a garden row removes its photo in the same transaction (section 8.2). */
 const gardenRules: StoreRules = {
   with: ['garden_photos'],
   /** @transactionScope */
+  check: ({ db }, row) =>
+    db.garden.toArray().then((rows) => {
+      refuseDuplicate('garden', rows, row);
+    }),
+  /** @transactionScope */
   onRemove: ({ db }, key) => db.garden_photos.delete(String(key)),
+};
+
+const pantryRules: StoreRules = {
+  /** @transactionScope */
+  check: ({ db }, row) =>
+    db.pantry.toArray().then((rows) => {
+      refuseDuplicate('pantry', rows, row);
+    }),
 };
 
 export const STORE_RULES: Partial<Record<StoreName, StoreRules>> = {
   weights: weightRules,
   fasts: fastRules,
   garden: gardenRules,
+  pantry: pantryRules,
 };
 
 export function assertOp(table: StoreName, op: GenericOp): void {

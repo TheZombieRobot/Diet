@@ -1075,7 +1075,9 @@ export const schedule = {
  */
 export const garden = {
   title: 'Your garden',
-  intro: 'Crops you grow are used first in meal plans and taken off the shopping list.',
+  // Item 19 review: meal plans and the shopping list are not built yet, so this says so.
+  intro:
+    'List what you grow. Meal plans and the shopping list arrive at a later step of the build checklist, and will use this list.',
   silverbeetListed: 'Silverbeet is listed already.',
   empty: 'No crops listed yet.',
   available: 'Available, amount not entered',
@@ -2235,10 +2237,10 @@ export const gardenScreen = {
   readyPill: '{count} ready',
   addHarvest: 'Add harvest',
   addCrop: 'Add a crop',
-  emptyGarden: 'No crops listed. Add what you grow, and the plan and the grocery list can use it.',
+  emptyGarden: 'No crops listed. Add what you grow.',
   pantryCard: 'Pantry',
   addPantry: 'Add to pantry',
-  emptyPantry: 'Nothing listed. Add what is in the cupboard, and the grocery list can count it.',
+  emptyPantry: 'Nothing listed. Add what is in the cupboard.',
   readySwitch: 'Ready',
   readySwitchName: '{crop}: ready to use',
   amount: {
@@ -2269,17 +2271,19 @@ export const gardenScreen = {
     keepsForZero: 'Keeps less than a day after picking',
   },
   updated: { today: 'Updated today', yesterday: 'Updated yesterday', on: 'Updated {date}' },
+  // The notes below describe the meal plan (item 22) and the grocery list (item 24), so no row
+  // shows one until both exist (core rows.ts PLAN_AND_LIST_BUILT; item 19 review).
   notCounted: {
     'not-ready': 'The plan and the list leave it out until it is ready to use.',
     'past-keeps':
       'Past the days you said it keeps, so the plan and the list leave it out. Add a new harvest or remove it.',
-    // Shown only once the ingredient dataset exists (item 18); before it, an unlinked row has no note.
+    // And only once the ingredient dataset exists (item 18); before it, an unlinked row has no note.
     'not-linked':
       'Not matched to a food yet, so the plan and the list leave it out. Pick a matching food when you edit it.',
     'none-left': 'None left, so the list leaves it out.',
   },
-  amountUnknownNote:
-    'The plan and the list count it as available. Add an amount so the list can work out how much to buy.',
+  // No claim that the amount is counted: the list asks before counting a row not changed lately.
+  amountUnknownNote: 'Add an amount so the list can work out how much to buy.',
   pantryUnmeasuredNote: 'The list asks you before counting it. Add an amount to save that step.',
   suggestions: 'Matching foods',
   matchedTo: 'Matched to {food}',
@@ -2287,7 +2291,7 @@ export const gardenScreen = {
     editTitle: 'Edit {crop}',
     gramsPerUnit: { each: 'Grams per item (optional)', bunch: 'Grams per bunch (optional)' },
     gramsPerUnitHint:
-      'Weigh one if you can. Without it, the list asks you before counting this crop.',
+      'Weigh one if you can. Without it, the amount stays a count and is never turned into a weight.',
     pickedOn: 'Picked on (optional)',
     pickedOnHint: 'Leave it empty while it is still in the ground.',
     keepsHint: 'How many days it keeps after picking. Leave it empty if you are not sure.',
@@ -2324,6 +2328,8 @@ export const gardenScreen = {
     // Nothing listed needs no notice, so 'nothing-listed' has no line here.
     replaceOnly: {
       'not-ready-before': 'The amount listed was not ready yet, so this replaces it.',
+      'past-keeps-before':
+        'The amount listed is past the days you said it keeps, so this replaces it.',
       'no-amount-picked':
         'With no amount entered, this replaces the {amount} listed with "amount not entered".',
       'unit-differs': 'The amount listed is in a different unit, so this replaces it.',
@@ -2343,7 +2349,7 @@ export const gardenScreen = {
     nameHint: 'For example, rolled oats or tinned tomatoes.',
     amount: 'Amount (optional)',
     amountHint:
-      'Leave it empty if you have some but have not measured it; the list will ask before counting it. Enter 0 when it has run out.',
+      'Leave it empty if you have some but have not measured it. Enter 0 when it has run out.',
     unitLegend: 'Unit',
     save: 'Save',
     cancel: 'Cancel',
@@ -2356,6 +2362,7 @@ export const gardenScreen = {
   },
   errors: {
     digitsOnly: 'Type digits only, without commas, such as 1200 or 2.5.',
+    decimals: 'Use at most two decimal places, such as 2.5.',
     gramsPerUnitRange: 'Enter a weight above 0 and up to 5,000 grams, or leave it empty.',
     pantryAmountRange: 'Enter an amount from 0 to 100,000, or leave it empty.',
     dateFormat: 'Enter a date.',

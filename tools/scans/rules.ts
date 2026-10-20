@@ -953,11 +953,12 @@ export const relayBlindRules: readonly ContentRule[] = [
 
 /**
  * Device-only stores (checklist item 19; HEALTH_SAFETY section 7; HS-15, C49, GD-02, G8). Garden
- * photos never leave the phone: every export reads BACKUP_TABLES, which leaves them out. These raw
- * rules keep any other file from naming the photo store, or from reaching every store generically
- * (a loop over the store names, db.tables, db[name], .table(name) or .objectStore(name) would reach
- * the photos without naming them). Only the files in DEVICE_ONLY_ALLOWED_FILES may. The rules
- * check references, not behaviour: the exporters among the allowed files are proven at run time
+ * photos never leave the phone: every export reads BACKUP_TABLES, which leaves them out. Only the
+ * files in DEVICE_ONLY_ALLOWED_FILES may name the photo store or reach every store generically.
+ * This raw rule reads the whole text, comments included; the compiler-based scan (deviceOnly.ts,
+ * described by DEVICE_ONLY_CODE_RULES below) reads the code with its types, so an alias, an
+ * escape, a template, a `+`, a cast or Dexie's own internals cannot pass it. Both check
+ * references, not behaviour: the exporters among the allowed files are proven at run time
  * (apps/mobile-web/src/db/backup.test.ts B3, e2e/garden.spec.ts E1).
  */
 export const deviceOnlyRules: readonly ContentRule[] = [
@@ -967,12 +968,42 @@ export const deviceOnlyRules: readonly ContentRule[] = [
     'the garden photo store named outside the files allowed to (DEVICE_ONLY_ALLOWED_FILES)',
     /\bgarden_photos\b|\bgardenPhotos\b|\bGardenPhotoRecord\b/,
   ),
-  rule(
-    'generic-store-access',
-    ['HS-15', 'GD-02'],
-    'every store reached generically (db.tables, db[...], .table(name), .objectStore(name), objectStoreNames, a list of store names)',
-    /\b\w*[dD]b\s*\.\s*tables\b|\b\w*[dD]b\s*\[|\.table\(\s*(?!['"`])|\.objectStore\(\s*(?!['"`])|\bobjectStoreNames\b|\b(?:STORE_NAMES|STORES_V1|DEVICE_ONLY_TABLES\w*)\b/,
-  ),
+];
+
+/** What each rule of the compiler-based scan (deviceOnly.ts) enforces, for the report. */
+export const DEVICE_ONLY_CODE_RULES: Readonly<
+  Record<string, { readonly enforces: readonly string[]; readonly description: string }>
+> = {
+  'device-only-store-name': {
+    enforces: ['HS-15', 'GD-02'],
+    description:
+      'the garden photo store named (an identifier, or a string folded from literals and constants) outside the files allowed to',
+  },
+  'generic-store-access': {
+    enforces: ['HS-15', 'GD-02'],
+    description:
+      'every store reached generically (.table() or .objectStore() without one literal name, db.tables, core, idbdb, a computed member, a database object cast or passed where its type is lost, a list of every store)',
+  },
+  'database-opened': {
+    enforces: ['HS-15', 'GD-02'],
+    description: 'a database opened (IDBFactory.open, a new Dexie) outside the files allowed to',
+  },
+  'test-only-import': {
+    enforces: ['GD-02', 'conventions'],
+    description:
+      'test data or a test helper imported by a file that is not a test (TEST_SUPPORT_FILES)',
+  },
+};
+
+/**
+ * Files that are not tests but serve only tests (synthetic records written through the
+ * repositories, raw writers). Only tests, these files and packages/test-fixtures may import them
+ * or @diet/test-fixtures (test-only-import), so test data never reaches the app.
+ */
+export const TEST_SUPPORT_FILES: readonly string[] = [
+  'apps/mobile-web/src/db/testKit.ts',
+  'apps/mobile-web/src/screens/targets/targetsTestKit.ts',
+  'apps/mobile-web/src/screens/today/todayTestKit.ts',
 ];
 
 /**
@@ -995,7 +1026,7 @@ export const DEVICE_ONLY_ALLOWED_FILES: readonly string[] = [
   'apps/mobile-web/src/db/upgrade.ts',
   'apps/mobile-web/src/db/snapshot.ts',
   'apps/mobile-web/src/db/rescue.ts',
-  // Test helpers (synthetic photo rows, raw writers); imported only by tests.
+  // Test helpers (synthetic photo rows, raw writers); only tests import it (test-only-import).
   'apps/mobile-web/src/db/testKit.ts',
   // The repositories: the photo repository, its registration, removal with a garden row.
   'apps/mobile-web/src/db/repos/index.ts',
@@ -1005,6 +1036,13 @@ export const DEVICE_ONLY_ALLOWED_FILES: readonly string[] = [
   'apps/mobile-web/src/db/repos/kickstart.ts',
   // Item 19: the garden screen's only way to the photos.
   'apps/mobile-web/src/garden/photoStore.ts',
+  // Test data, which no app file may import (test-only-import): the released version-1 snapshot
+  // of every store (its hash is pinned, so it cannot change), the test migration chains built from
+  // the version-1 specs, and the backup mutations that put a device-only store into a file to prove
+  // that import refuses it.
+  'packages/test-fixtures/src/storage/snapshotV1.ts',
+  'packages/test-fixtures/src/storage/testChains.ts',
+  'packages/test-fixtures/src/storage/fuzzMutations.ts',
 ];
 
 /**

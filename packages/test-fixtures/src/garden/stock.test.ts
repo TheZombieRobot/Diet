@@ -8,6 +8,8 @@ import {
   readStock,
   readyGardenIngredientIds,
   stockByIngredient,
+  type StockLine,
+  type StockQuantity,
 } from '@diet/core';
 import { describe, expect, it } from 'vitest';
 import {
@@ -24,44 +26,143 @@ import {
 
 const view = readStock({ garden: GL02_GARDEN, pantry: GL02_PANTRY, today: STOCK_TODAY });
 
+/** A garden line as the design specifies it, every field written out. */
+const gardenLine = (
+  n: number,
+  ingredientId: string,
+  name: string,
+  quantity: StockQuantity,
+  asEntered: StockLine['asEntered'],
+  harvestedAt: string | null,
+  daysLeft: number | null,
+): StockLine => ({
+  source: 'garden',
+  recordId: stockId(n),
+  ingredientId,
+  name,
+  quantity,
+  asEntered,
+  harvestedAt,
+  daysLeft,
+  updatedAt: STOCK_UPDATED_AT,
+});
+const pantryLine = (
+  n: number,
+  ingredientId: string,
+  name: string,
+  quantity: StockQuantity,
+  asEntered: StockLine['asEntered'],
+  updatedAt: string = STOCK_UPDATED_AT,
+): StockLine => ({
+  source: 'pantry',
+  recordId: stockId(n),
+  ingredientId,
+  name,
+  quantity,
+  asEntered,
+  harvestedAt: null,
+  daysLeft: null,
+  updatedAt,
+});
+
 describe('readStock (A1; GL-02, C110, G9, G18)', () => {
-  it('A1 GL-02: counted lines in order with their quantities, and the rows left out with a reason', () => {
-    expect(view.lines.map((l) => [l.name, l.quantity, l.daysLeft])).toEqual([
-      ['Example spinach', { kind: 'grams', grams: 100, fromCount: null }, 0],
-      ['Silverbeet', { kind: 'grams', grams: 300, fromCount: null }, 4],
-      [
-        'Example courgette',
-        {
-          kind: 'grams',
-          grams: 500,
-          fromCount: { amount: 2, unit: 'each', gramsPerUnit: 250.4 },
-        },
-        null,
+  // The exact StockView (design A1): every line's ids, link, quantity, the owner's figures, dates
+  // and order, and every row left out with its id, reason and when it was changed.
+  it('A1 GL-02: the exact stock view of the GL-02 rows', () => {
+    expect(view).toEqual({
+      lines: [
+        gardenLine(
+          2,
+          'seed:example-spinach',
+          'Example spinach',
+          { kind: 'grams', grams: 100, fromCount: null },
+          { amount: 100, unit: 'g', gramsPerUnit: null },
+          '2000-01-05',
+          0,
+        ),
+        gardenLine(
+          1,
+          'seed:silverbeet',
+          'Silverbeet',
+          { kind: 'grams', grams: 300, fromCount: null },
+          { amount: 300, unit: 'g', gramsPerUnit: null },
+          '2000-01-09',
+          4,
+        ),
+        gardenLine(
+          3,
+          'seed:example-courgette',
+          'Example courgette',
+          {
+            kind: 'grams',
+            grams: 500,
+            fromCount: { amount: 2, unit: 'each', gramsPerUnit: 250.4 },
+          },
+          { amount: 2, unit: 'each', gramsPerUnit: 250.4 },
+          null,
+          null,
+        ),
+        gardenLine(
+          4,
+          'seed:example-lettuce',
+          'Example lettuce',
+          { kind: 'count', amount: 2, unit: 'each' },
+          { amount: 2, unit: 'each', gramsPerUnit: null },
+          null,
+          null,
+        ),
+        pantryLine(
+          12,
+          'seed:example-eggs',
+          'Eggs',
+          { kind: 'count', amount: 6, unit: 'each' },
+          { amount: 6, unit: 'each', gramsPerUnit: null },
+        ),
+        pantryLine(
+          13,
+          'seed:example-flour',
+          'Example flour',
+          { kind: 'grams', grams: 1000, fromCount: null },
+          { amount: 1000, unit: 'g', gramsPerUnit: null },
+          '2000-01-02T00:00:00.000Z',
+        ),
+        pantryLine(
+          14,
+          'seed:example-tinned-fish',
+          'Example tinned fish',
+          { kind: 'unmeasured' },
+          { amount: null, unit: null, gramsPerUnit: null },
+        ),
+        pantryLine(
+          11,
+          'seed:example-olive-oil',
+          'Olive oil',
+          { kind: 'count', amount: 500, unit: 'ml' },
+          { amount: 500, unit: 'ml', gramsPerUnit: null },
+        ),
       ],
-      ['Example lettuce', { kind: 'count', amount: 2, unit: 'each' }, null],
-      ['Eggs', { kind: 'count', amount: 6, unit: 'each' }, null],
-      ['Example flour', { kind: 'grams', grams: 1000, fromCount: null }, null],
-      ['Example tinned fish', { kind: 'unmeasured' }, null],
-      ['Olive oil', { kind: 'count', amount: 500, unit: 'ml' }, null],
-    ]);
-    expect(view.lines[1]).toEqual({
-      source: 'garden',
-      recordId: stockId(1),
-      ingredientId: 'seed:silverbeet',
-      name: 'Silverbeet',
-      quantity: { kind: 'grams', grams: 300, fromCount: null },
-      asEntered: { amount: 300, unit: 'g', gramsPerUnit: null },
-      harvestedAt: '2000-01-09',
-      daysLeft: 4,
-      updatedAt: STOCK_UPDATED_AT,
+      notCounted: [
+        ['garden', 5, 'Example beans', 'not-ready'],
+        ['garden', 7, 'Example herb', 'not-linked'],
+        ['garden', 6, 'Example kale', 'past-keeps'],
+        ['pantry', 15, 'Example rice', 'none-left'],
+        ['pantry', 16, 'Example spice', 'not-linked'],
+      ].map(([source, n, name, reason]) => ({
+        source,
+        recordId: stockId(n as number),
+        name,
+        reason,
+        updatedAt: STOCK_UPDATED_AT,
+      })),
     });
-    expect(view.notCounted.map((n) => [n.source, n.name, n.reason])).toEqual([
-      ['garden', 'Example beans', 'not-ready'],
-      ['garden', 'Example herb', 'not-linked'],
-      ['garden', 'Example kale', 'past-keeps'],
-      ['pantry', 'Example rice', 'none-left'],
-      ['pantry', 'Example spice', 'not-linked'],
-    ]);
+  });
+
+  it('A1 NN-06: the NN-06 silverbeet is 300 g, weighed', () => {
+    expect(
+      readStock({ garden: NN06_GARDEN, pantry: [], today: STOCK_TODAY }).lines.map(
+        (l) => l.quantity,
+      ),
+    ).toEqual([{ kind: 'grams', grams: 300, fromCount: null }]);
   });
 
   it('A1: the screen status and the stock read agree on every row', () => {
@@ -83,6 +184,10 @@ describe('readStock (A1; GL-02, C110, G9, G18)', () => {
     expect(
       needsRecheck(silverbeet, { now: STOCK_NOW, previousListAt: '2000-01-09T12:00:00.000Z' }),
     ).toBe(true);
+    // The boundary: exactly 7 days is still fresh; a millisecond more is checked again.
+    const at = { now: STOCK_NOW, previousListAt: null };
+    expect(needsRecheck({ updatedAt: '2000-01-03T00:00:00.000Z' }, at)).toBe(false);
+    expect(needsRecheck({ updatedAt: '2000-01-02T23:59:59.999Z' }, at)).toBe(true);
     // The planner's tie-break: counted garden lines only, none older than 7 days.
     expect([...readyGardenIngredientIds(view, STOCK_NOW)].sort()).toEqual([
       'seed:example-courgette',
