@@ -6,10 +6,12 @@ import {
   AppShell,
   applyTheme,
   Banner,
+  BarChart,
   BowlIcon,
   Button,
   ButtonRow,
   Card,
+  Checkbox,
   CheckList,
   Chip,
   ChoiceList,
@@ -27,12 +29,15 @@ import {
   Notice,
   OfflineIndicator,
   ONLINE_LABEL,
+  SegmentedControl,
   SelectField,
+  StatTile,
   StepFrame,
   Stepper,
   Switch,
   TabBar,
   TagList,
+  TextArea,
   TextField,
   TodayIcon,
   TrendChart,
@@ -1077,5 +1082,88 @@ describe('Today pieces (item 16; C13)', () => {
     expect(container.querySelector('.ui-button-row')?.className).toBe(
       'ui-button-row ui-button-row--stacked',
     );
+  });
+});
+
+describe('the drinks pieces (item 28; K3)', () => {
+  it('TextArea, Checkbox and SegmentedControl are labelled and report changes', () => {
+    const typed = vi.fn();
+    const ticked = vi.fn();
+    const chosen = vi.fn();
+    render(
+      <>
+        <TextArea
+          label="Note"
+          hint="Optional."
+          value=""
+          onChange={(e) => {
+            typed(e.target.value);
+          }}
+        />
+        <Checkbox label="I felt unwell" checked={false} onChange={ticked} />
+        <SegmentedControl
+          legend="When"
+          options={[
+            { value: 'now', label: 'Now' },
+            { value: 'earlier', label: 'Earlier' },
+          ]}
+          value="now"
+          onChange={chosen}
+        />
+      </>,
+    );
+    const note = screen.getByLabelText('Note');
+    expect(note.tagName).toBe('TEXTAREA');
+    expect(document.getElementById(note.getAttribute('aria-describedby') ?? '')?.textContent).toBe(
+      'Optional.',
+    );
+    fireEvent.change(note, { target: { value: 'x' } });
+    expect(typed).toHaveBeenCalledWith('x');
+    fireEvent.click(screen.getByRole('checkbox', { name: 'I felt unwell' }));
+    expect(ticked).toHaveBeenCalledWith(true);
+    const group = screen.getByRole('group', { name: 'When' });
+    expect(within(group).getByRole('radio', { name: 'Now' })).toHaveProperty('checked', true);
+    fireEvent.click(within(group).getByRole('radio', { name: 'Earlier' }));
+    expect(chosen).toHaveBeenCalledWith('earlier');
+  });
+
+  it('StatTile with a spoken value hides the visible figure from screen readers', () => {
+    const { container } = render(
+      <StatTile label="Today" value="1 drink · 1.30 std" spoken="1 drink, 1.30 standard drinks" />,
+    );
+    const shown = within(container).getByText('1 drink · 1.30 std');
+    expect(shown.getAttribute('aria-hidden')).toBe('true');
+    expect(within(container).getByText('1 drink, 1.30 standard drinks').className).toBe(
+      'ui-visually-hidden',
+    );
+  });
+
+  it('BarChart: one bar per value, the line and the dotted reference, and a labelled image; no colour but neutral', () => {
+    const { container } = render(
+      <BarChart
+        label="Standard drinks per week"
+        bars={[
+          { key: 'a', value: 2, tick: '21 Feb' },
+          { key: 'b', value: null },
+          { key: 'c', value: 3, partial: true, tick: 'This week' },
+        ]}
+        line={[null, 2.5, 2.5]}
+        lineLabel="4-week average"
+        reference={[4, 4, 4]}
+        referenceLabel="your milestone"
+      />,
+    );
+    expect(screen.getByRole('img', { name: 'Standard drinks per week' })).toBeDefined();
+    expect(container.querySelectorAll('rect')).toHaveLength(2);
+    expect(container.querySelectorAll('.ui-bar-chart__bar--partial')).toHaveLength(1);
+    expect(container.querySelectorAll('polyline')).toHaveLength(1);
+    const dots = container.querySelectorAll('.ui-bar-chart__reference');
+    expect(dots).toHaveLength(3);
+    expect(dots[0]?.getAttribute('stroke-dasharray')).toBe('0 6');
+    expect(container.querySelector('.ui-bar-chart__legend')?.textContent).toBe(
+      '4-week averageyour milestone',
+    );
+    const block = componentsCss.slice(componentsCss.indexOf('/* ---- Item 28'));
+    expect(block).not.toMatch(/--color-(?:teal|amber|emergency)/);
   });
 });

@@ -7,6 +7,7 @@ import {
   today,
   weight,
 } from '../packages/core/src/copy/health';
+import { ALCOHOL_SECTION_RULES } from '../packages/core/src/copy/alcoholRules';
 import { commerceRules, healthPhraseRules } from '../tools/scans/rules';
 import { scanText } from '../tools/scans/scan';
 import {
@@ -35,6 +36,28 @@ const quickActionsPanel = (page: Page) => page.locator('.ui-fab-panel');
 
 async function violations(page: Page, where: string): Promise<string[]> {
   return scanText(where, await renderedText(page), RULES).map((v) => `${where}: ${v.ruleId}`);
+}
+
+/**
+ * Item 28 (C16, C66, A34): the alcohol section's own rules, over the Drinks screen, Today's Drinks
+ * card and the Talk to someone card only. The rest of Today legitimately shows wording they would
+ * flag, such as the weight card's "long-term goal".
+ */
+async function alcoholViolations(page: Page, where: string): Promise<string[]> {
+  const regions = [
+    page.getByTestId('drinks-screen'),
+    region(page, today.cards.drinks),
+    region(page, alcohol.helpCardLabel),
+  ];
+  const found: string[] = [];
+  for (const part of regions) {
+    for (const text of await part.allInnerTexts()) {
+      for (const rule of ALCOHOL_SECTION_RULES) {
+        if (rule.test(text)) found.push(`${where}: ${String(rule)}`);
+      }
+    }
+  }
+  return found;
 }
 
 /** Every screen as it shows with the install offer, the Today banner and the "+" panel open. */
@@ -74,6 +97,32 @@ test('no screen shows banned health, price, stock or cart wording', async ({ pag
   await openBackupPanels(page);
   found.push(...(await violations(page, 'Settings with the backup panels open')));
 
+  // Item 28 (E2): Drinks with a logged drink, a milestone with no own words and a ticked note.
+  await goTo(page, 'Drinks');
+  const log = region(page, alcohol.log.cardLabel);
+  await log.getByRole('button', { name: /^Zero-sugar premix / }).click();
+  await expect(log.getByTestId('drinks-added')).toBeVisible();
+  const milestones = region(page, alcohol.milestones.cardLabel);
+  await milestones.getByRole('button', { name: alcohol.milestones.add }).click();
+  await milestones.getByLabel(alcohol.milestones.weeklyLabel).fill('8');
+  await milestones.getByLabel(alcohol.milestones.fromLabel).fill('2000-01-03');
+  await milestones.getByRole('radio', { name: alcohol.milestones.whoSelf }).check();
+  await milestones.getByRole('button', { name: alcohol.milestones.save }).click();
+  await expect(milestones.getByText(alcohol.milestones.rowTitle, { exact: true })).toBeVisible();
+  const note = region(page, alcohol.dayNote.cardLabel);
+  await note.getByRole('checkbox', { name: alcohol.dayNote.withdrawalTick }).check();
+  await note.getByRole('button', { name: alcohol.dayNote.save }).click();
+  await expect(region(page, alcohol.helpCardLabel)).toBeVisible();
+  await region(page, alcohol.trends.cardLabel)
+    .getByRole('button', { name: alcohol.trends.showList })
+    .click();
+  found.push(...(await violations(page, 'Drinks with records')));
+  found.push(...(await alcoholViolations(page, 'Drinks with records')));
+  await goTo(page, 'Today');
+  await expect(region(page, alcohol.helpCardLabel)).toBeVisible();
+  found.push(...(await violations(page, 'Today with drinks')));
+  found.push(...(await alcoholViolations(page, 'Today with drinks')));
+
   expect(found).toEqual([]);
 });
 
@@ -106,6 +155,8 @@ test('no screen but About, Weight, Fasting and Diet and targets shows a number o
     if (screen === 'Today') await expect(region(page, today.cards.movement)).toBeVisible();
     if (
       screen === 'About' ||
+      // Item 28: Drinks shows the help numbers, the guidance figures and the stored cut-over.
+      screen === 'Drinks' ||
       screen === 'Weight' ||
       screen === 'Fasting and reflux' ||
       screen === 'Diet and targets' ||
@@ -116,7 +167,13 @@ test('no screen but About, Weight, Fasting and Diet and targets shows a number o
     }
     let text = await renderedText(
       page,
-      screen === 'Today' ? region(page, fasting.card.label) : undefined,
+      screen === 'Today'
+        ? region(page, fasting.card.label)
+        : // Item 28: the Settings Drinks card shows the stored cut-over (its select's value, 300,
+          // and "5:00 am") and the guidance line.
+          screen === 'Settings'
+          ? region(page, alcohol.settings.cardLabel)
+          : undefined,
     );
     if (screen === 'Today') {
       // The Nutrition today card shows today's intake (none: every figure 0) against the owner's
@@ -127,7 +184,8 @@ test('no screen but About, Weight, Fasting and Diet and targets shows a number o
         nutrition,
         page.getByTestId('today-status'),
         region(page, today.cards.water).getByRole('button', { name: today.water.add }),
-        page.getByTestId('drinks-guidance'),
+        // Item 28: the Drinks card's tiles (alcohol-free days counted) and the guidance line.
+        region(page, today.cards.drinks),
         page.getByTestId('reminder-cholesterol'),
       ];
       for (const part of ownFigures) text = text.replace(await part.innerText(), '');
@@ -180,7 +238,14 @@ test('the rendered-text scan catches wording that slips into a screen', async ({
     input.placeholder = 'Calories left today';
     input.setAttribute('aria-description', 'Safe to drive in an hour');
     document.querySelector('main')?.append(seeded, input);
+    // Item 28: wording only the alcohol section's rules catch, inside the Drinks screen.
+    const praise = document.createElement('p');
+    praise.textContent = 'Great job, 3 days in a row';
+    document.querySelector('[data-testid="drinks-screen"]')?.append(praise);
   });
+  expect(await alcoholViolations(page, 'seeded')).toEqual(
+    expect.arrayContaining([expect.stringContaining('in\\s+a\\s+row')]),
+  );
   const ids = (await violations(page, 'seeded')).map((v) => v.replace('seeded: ', ''));
   expect(ids).toEqual(
     expect.arrayContaining([

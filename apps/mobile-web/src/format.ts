@@ -155,3 +155,50 @@ export function formatWaterText(ml: number): string {
 export function formatSteps(steps: number): string {
   return counts.format(steps);
 }
+
+// ---- Item 28: drinks ----
+
+const std2 = new Intl.NumberFormat('en-NZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const std1 = new Intl.NumberFormat('en-NZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const measure = new Intl.NumberFormat('en-NZ', { maximumFractionDigits: 1 });
+
+/** A standard-drinks total, always 2 decimals: "1.30" (C94). */
+export function formatStd2(n: number): string {
+  return std2.format(n);
+}
+
+/** A preset's per-serve standard drinks, 1 decimal: "1.3" (C94: preset labels only). */
+export function formatStd1(n: number): string {
+  return std1.format(n);
+}
+
+/** A size or strength as typed, up to 1 decimal with no trailing zero: "330", "4.5". */
+export function formatMeasure(n: number): string {
+  return measure.format(n);
+}
+
+/** A stored local date, "Mon 28 Feb", formatted at noon UTC so it never shifts a day. */
+export function formatShortDate(date: LocalDate): string {
+  return formatShortDay(new Date(parseLocalDate(date) + 12 * 3_600_000).toISOString(), 'UTC');
+}
+
+/** A local date's day of the month, "28" (the daily chart's Monday ticks). */
+export function formatDayNumber(date: LocalDate): string {
+  return String(Number(date.slice(8, 10)));
+}
+
+/** A local date as "21 Feb" (the weekly chart's ticks). */
+export function formatDayMonth(date: LocalDate): string {
+  const p = parts(parseLocalDate(date) + 12 * 3_600_000, 'UTC', { day: 'numeric', month: 'short' });
+  return `${p.day ?? ''} ${p.month ?? ''}`;
+}
+
+/** Minutes after midnight as a clock time, "5:00 am", "12:30 am" (the drinking-day cut-over). */
+export function formatClockMinutes(minutes: number): string {
+  const p = parts(Date.UTC(2000, 0, 1, 0, minutes), 'UTC', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+  return `${p.hour ?? ''}:${p.minute ?? ''} ${(p.dayPeriod ?? '').toLowerCase()}`;
+}

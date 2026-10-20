@@ -37,7 +37,7 @@ Cards, in order:
 4. **Water and electrolytes.** Tap Add 250 mL; optional electrolyte switch; no target until the water guide is wired (item 23).
 5. **Steps.** Manual entry, remembers yesterday's value for one-tap repeat.
 6. **Movement.** Today's session or "Rest day, that counts" with Start. After a session: exertion, soreness, energy, each 1–5 taps.
-7. **Drinks.** Today and this week: drinks, standard drinks, kcal. Neutral grey. Guidance line underneath: "NZ guidance for men: no more than 3 standard drinks a day and 15 a week, with at least 2 alcohol-free days. No alcohol use is risk-free." (women: 2 and 10). Under 18 the card shows the reason and no figures.
+7. **Drinks.** Today and this week (from Monday): drinks, standard drinks and kcal. Neutral grey. Guidance line underneath: "NZ guidance for men: no more than 3 standard drinks a day and 15 a week, with at least 2 alcohol-free days. No alcohol use is risk-free." (women: 2 and 10). Under 18 the card shows the reason and no figures.
 8. **Reminders.** Lipid test at first run (and again when low-carb eating first starts after a balanced start), then cholesterol check-ins when 56 and 84 days have passed since low-carb eating first started (C109); the electrolyte reminder daily during Kickstart and for the first two weeks of any keto carb-ceiling period (C72); a medication-timing reminder when readiness question 4 is yes or unanswered and fasting is switched off (otherwise it is on the Fast card); backup. The backup reminder reads "Back up your records. Your records are kept only on this phone. Export a backup and keep the file somewhere else too." with **Back up now** (opens Settings, Backup and data, with the export ready) and **Not now**. It appears 7 days after the last backup the owner confirmed (or after onboarding), and comes back 7 days after "Not now". When the phone has not promised to keep the app's records, it appears after 3 days, comes back after 1 day, goes first among Today's reminders, and adds "This phone has not promised to keep the app's records. A backup is your only other copy." A backup counts only once the owner answers Yes to "Can you see the file?" after exporting (storage design, section 12.2). After an update or a restore that had to change a stored value to fit new limits, a one-time note reads "This update changed some of your settings to fit new limits." with "See what changed".
 
 "+" quick actions: Log weight, Finish meal, Swap recipe, Complete workout, Add harvest, Add drink, Open grocery list.
@@ -76,11 +76,13 @@ Every action opens the screen that owns it; Log weight opens the Weight card's e
 
 ## 5. Drinks
 
-**5a: Log.** Beverage presets as large buttons (default: "Zero-sugar premix 330 mL, 5%, 94 kcal, 1.3 std"). Tap to add one; long-press for several. Edit presets: volume, ABV, kcal from label, optional label standard-drink value.
+Drinks is one scrolling screen (checklist item 28): the "talk to someone" card at the top while it shows, a row of buttons that jump to each part, then Log, Today and this week, Trends, Your milestones, How you felt, NZ guidance and Help, in that order. The Help card, with the safety notice and every help number, is there in every state, including while drink logging is off.
 
-**5b: Trends.** Daily bars for cans, standard drinks and kcal; weekly totals; alcohol-free days counted plainly; rolling four-week line. Optional milestones you or your clinician entered appear as a dotted line labelled "your milestone", never "target" or "limit".
+**5a: Log.** Beverage presets as large buttons (default: "Zero-sugar premix 330 mL, 5%, 94 kcal, 1.3 std"). Tap to add one; hold it, or tap More, for several or an earlier time. Edit presets: volume, ABV, kcal from label, optional label standard-drink value.
 
-**5c: Guidance and help.** The NZ guidance in context, the "no drinking is risk-free" line, and the help card with the helpline, GP advice and 111 instructions. Next-day note with a tick box: "Felt shaky, sweaty, anxious or sick without a drink" which surfaces the help card.
+**5b: Trends.** Daily bars for drinks, standard drinks and kcal; weekly totals on Monday-start weeks; alcohol-free days counted plainly; a 4-week average line. Optional milestones you or your clinician entered appear as a dotted line labelled "your milestone", never "target" or "limit".
+
+**5c: Guidance and help.** The NZ guidance in context, the "no drinking is risk-free" line, and the help card with the helpline, GP advice and 111 instructions. Next-day note with a tick box: "I felt shaky, sweaty, anxious or sick when I hadn't had a drink" which surfaces the help card.
 
 What is deliberately absent: streaks, badges, "calories left", "you've earned", blood-alcohol, driving.
 

@@ -102,7 +102,7 @@ The app never says "you are safe to fast/train/diet." It says "nothing you have 
 
 ## 5. Alcohol
 
-**What it does:** log drinks from editable presets (volume, ABV, kcal from the label; default preset 330 mL, 5%, 94 kcal, about 1.30 standard drinks), see daily and weekly cans, standard drinks and kcal, rolling trends, alcohol-free days, optional milestones entered by you or your clinician, and NZ guidance as context. Note how you felt the next day.
+**What it does:** log drinks from editable presets (volume, ABV, kcal from the label; default preset 330 mL, 5%, 94 kcal, about 1.30 standard drinks), see daily and weekly drinks, with a breakdown by preset, standard drinks and kcal, rolling trends, alcohol-free days, optional milestones entered by you or your clinician, and NZ guidance as context. Note how you felt the next day.
 
 **Why the defaults are safety-first:** the handoff asks the app to assume that daily or heavy weekend drinking patterns carry a real possibility of dependence and withdrawal. That is why the safety notice is mandatory on first run, why the help card can be shown from day one, and why the app never generates a reduction plan. The guidance figures are shown as public context with "no alcohol use is risk-free"; they are never presented as a safe allowance or as tailored medical advice.
 
@@ -115,8 +115,10 @@ The app never says "you are safe to fast/train/diet." It says "nothing you have 
 - Women: no more than 2 standard drinks a day and 10 a week.
 - Men: no more than 3 standard drinks a day and 15 a week.
 - At least 2 alcohol-free days every week.
-- Some NZ summaries add "no more than 4 on a single occasion"; this is shown with a note that it is from secondary sources, until the implementing model verifies it on an official page.
-- The app states that "no level of drinking is completely risk-free," which is Health NZ's framing.
+- Some NZ summaries add a single-occasion figure. Until it is verified on an official page, the app shows: "No more than 4 standard drinks on a single occasion (from secondary sources)." The owner is asked whether to keep it; it is context only, never a trigger or a per-occasion total.
+- The app states that no alcohol use is risk-free, in line with Health NZ's framing.
+- The guidance line on Today, the Drinks screen and Settings reads, for women: "NZ guidance for women: no more than 2 standard drinks a day and 10 a week, with at least 2 alcohol-free days. No alcohol use is risk-free." and for men: "NZ guidance for men: no more than 3 standard drinks a day and 15 a week, with at least 2 alcohol-free days. No alcohol use is risk-free."
+- Alcohol-free days are counted from the day the alcohol notice was read, up to yesterday; days with nothing logged count as alcohol-free.
 
 **Hard rules: what the app will never do**
 - It never produces a reduction schedule, taper, "cut down by one drink a day" plan, or a quit date. **Milestones you or your clinician enter are allowed** and are drawn as "your milestone", never as "target", "limit" or "allowance".
@@ -127,10 +129,12 @@ The app never says "you are safe to fast/train/diet." It says "nothing you have 
 
 **The "talk to someone" card**
 Shown, without judgement, when any of these is true:
-- 7 or more consecutive days with alcohol logged, or
-- weekly total at or above double the guidance figure for your sex, or
-- you tick "I felt shaky, sweaty, anxious or sick when I hadn't had a drink" in the next-day note, or
-- readiness answer 7 is yes or unanswered (shown from day one, dismissible but returns monthly).
+- drinks with alcohol logged on 7 or more consecutive drinking days, with that run ending within the last 7 drinking days, or
+- any 7 consecutive drinking days ending within the last 7 drinking days whose total is at or above double the weekly guidance figure (the stricter of the chosen set and the set for your sex), or
+- the tick "I felt shaky, sweaty, anxious or sick when I hadn't had a drink" in the next-day note, on a day within the last 30 days, or
+- readiness answer 7 is yes or unanswered (shown from day one, dismissible, returns after 30 days).
+
+The drinking triggers are worked out with your drinking-day setting and with the default 5:00 am start; either is enough. Where a label's standard-drinks figure differs from the calculation, the card uses the larger of the two, while the screens show the label figure with a note. The first three can be hidden for the rest of the drinking day only, and the card comes back while the condition holds.
 
 Card text: "If you've been drinking most days or heavily at weekends for a while and are thinking about changing that, the safest first step is a conversation, not a sudden stop. Alcohol Drug Helpline 0800 787 797 (call or text 8681), free and 24/7, or your GP. If someone is very unwell, shaking badly, confused or having a seizure, call 111." alcohol.org.nz's advice that daily drinkers should "discuss your plan on how to do this safely with a health professional" is the basis ([alcohol.org.nz, withdrawal](https://alcohol.org.nz/wellbeing/hinengaro-mental-health/withdrawal)).
 

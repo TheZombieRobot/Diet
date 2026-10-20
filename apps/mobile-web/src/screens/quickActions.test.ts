@@ -20,7 +20,7 @@ describe('quickActionStates (U12; TD-02, T17)', () => {
     );
   });
 
-  it("Log weight is ready and opens item 14's entry in place; the rest arrive later", () => {
+  it("Log weight opens item 14's entry in place and Add drink the Drinks screen (item 28); the rest arrive later", () => {
     const states = quickActionStates(readinessGates(answers('no')));
     expect(states.map((s) => s.state.kind)).toEqual([
       'ready',
@@ -28,13 +28,14 @@ describe('quickActionStates (U12; TD-02, T17)', () => {
       'later',
       'later',
       'later',
-      'later',
+      'ready',
       'later',
     ]);
     expect(BUILT_QUICK_ACTIONS['log-weight']).toEqual({
       label: 'Log weight',
       run: openWeightEntry,
     });
+    expect(BUILT_QUICK_ACTIONS['add-drink']).toEqual({ label: 'Add drink', href: '#/drinks' });
   });
 
   it('T11: under 18, Add drink is off for alcohol logging, not hidden', () => {

@@ -192,3 +192,12 @@ export function BowlIcon({ size = 22 }: IconProps): ReactElement {
     </Svg>
   );
 }
+
+/** Three dots: more options for one item (item 28's drink presets). */
+export function MoreIcon({ size = 22 }: IconProps): ReactElement {
+  return (
+    <Svg size={size} strokeWidth={3}>
+      <path d="M5 12h.01M12 12h.01M19 12h.01" />
+    </Svg>
+  );
+}

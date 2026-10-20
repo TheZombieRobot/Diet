@@ -25,13 +25,13 @@ const lines = (region: HTMLElement): string[] =>
 
 describe('the Drinks card (C6; TD-05)', () => {
   it.each(['nz-women', 'nz-men'] as const)(
-    'NN-09: the %s card is exactly its guidance line, ending "No alcohol use is risk-free.", and the later-step line',
+    'NN-09: before the drinks read arrives, the %s card is exactly its guidance line, ending "No alcohol use is risk-free.", and the alcohol-free note',
     (set) => {
-      render(<DrinksCard drinks={{ kind: 'guidance', set }} />);
+      render(<DrinksCard drinks={{ kind: 'guidance', set }} state={{ kind: 'opening' }} />);
       // Exactly these two lines, so no other line can carry figures without the sentence.
-      expect(lines(card())).toEqual([alcohol.guidance.line[set], today.laterStep.drinks]);
+      expect(lines(card())).toEqual([alcohol.guidance.line[set], alcohol.summary.freeNote]);
       expect(alcohol.guidance.line[set].endsWith(alcohol.noRiskFreeLevel)).toBe(true);
-      expect(today.laterStep.drinks).not.toMatch(/\d/);
+      expect(alcohol.summary.freeNote).not.toMatch(/\d/);
       expect(card().textContent).not.toMatch(/kcal|cans|\bleft\b|streak/i);
     },
   );

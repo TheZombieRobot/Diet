@@ -1758,3 +1758,323 @@
     z-index: 12;
   }
 }
+
+/* ---- Item 28: drinks (the neutral figures, the segmented control, tiles and the bar chart) ---- */
+
+/* A multi-line field keeps the field's look, tall enough for its lines. */
+.ui-field__input--multiline {
+  min-height: calc(var(--size-tap) * 2);
+  padding: 10px 14px;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+/* Two or three short choices side by side, joined; each segment's box is at least 48 px. */
+.ui-segmented {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ui-segmented__legend {
+  padding: 0 0 6px;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.ui-segmented__row {
+  display: flex;
+  flex-wrap: wrap;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-inset);
+  overflow: hidden;
+}
+
+.ui-segmented__option {
+  position: relative;
+  display: flex;
+  flex: 1 1 6em;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--size-tap);
+  min-height: var(--size-tap);
+  padding: 0 12px;
+  color: var(--color-ink);
+  font-size: 15px;
+  font-weight: 650;
+  text-align: center;
+  cursor: pointer;
+}
+
+.ui-segmented__option + .ui-segmented__option {
+  border-left: 1.5px solid var(--color-border-strong);
+}
+
+/* The chosen segment: filled, bold and outlined, so it is not marked by colour alone. */
+.ui-segmented__option--checked {
+  background: var(--color-card);
+  box-shadow: inset 0 0 0 2px var(--color-ink);
+  font-weight: 800;
+}
+
+.ui-segmented__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.ui-segmented__option:has(.ui-segmented__input:focus-visible) {
+  outline: 3px solid var(--color-focus);
+  outline-offset: -3px;
+}
+
+.ui-segmented:disabled .ui-segmented__option {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* The Drinks screen: one scrolling column of parts, each a column of cards (A1). */
+.ui-drinks-screen,
+.ui-drinks-part {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Drinks figures: a neutral colour, never success, warning or alarm (A28). */
+.ui-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 359.98px) {
+  .ui-stat-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.ui-stat-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--color-inset);
+  overflow-wrap: anywhere;
+}
+
+.ui-stat-tile__label,
+.ui-stat-tile__detail {
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-stat-tile__value {
+  color: var(--color-neutral);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+/* The guidance line under the drinks figures (mock-up Main). */
+.ui-drinks-guidance {
+  color: var(--color-neutral);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* A preset button: a long press opens its options, so the text is not selected on a hold. */
+.ui-preset-button {
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.ui-preset {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ui-preset__row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.ui-preset__row > .ui-button {
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 10px 16px;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.ui-preset__name {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ui-preset__summary {
+  font-size: 14px;
+  font-weight: 650;
+}
+
+/* Logged drinks: one row per entry, its Edit button at the end and its editor under it. */
+.ui-drinks-entries {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--color-border);
+  list-style: none;
+}
+
+.ui-drinks-entries > li {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ui-drinks-entries > li:last-child {
+  border-bottom: 0;
+}
+
+.ui-drinks-entry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.ui-drinks-entry > span {
+  flex: 1 1 12em;
+  min-width: 0;
+}
+
+/* The logging status line takes no room until it has something to say (it stays announced). */
+.ui-log-status {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-weight: 700;
+}
+
+.ui-log-status:empty {
+  position: absolute;
+}
+
+/* A panel opened inside a card (More, Other drink, an editor): set apart by a rule. */
+.ui-subpanel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+}
+
+/* The bar chart: no text inside the drawing; ticks and the key are HTML under it. */
+.ui-bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ui-bar-chart__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.ui-bar-chart__grid {
+  stroke: var(--color-border);
+  stroke-width: 1;
+}
+
+.ui-bar-chart__bar {
+  fill: var(--color-neutral);
+}
+
+.ui-bar-chart__bar--partial {
+  fill: var(--color-inset);
+  stroke: var(--color-neutral);
+  stroke-width: 2;
+}
+
+.ui-bar-chart__line {
+  fill: none;
+  stroke: var(--color-ink-soft);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ui-bar-chart__reference {
+  stroke: var(--color-secondary);
+  stroke-width: 2;
+}
+
+.ui-bar-chart__ticks {
+  display: grid;
+  color: var(--color-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ui-bar-chart__tick {
+  overflow: visible;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.ui-bar-chart__tick:last-child {
+  justify-self: end;
+}
+
+.ui-bar-chart__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  list-style: none;
+}
+
+.ui-bar-chart__key {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ui-bar-chart__swatch {
+  flex: none;
+  width: 22px;
+  height: 0;
+}
+
+.ui-bar-chart__swatch--line {
+  border-top: 2px solid var(--color-ink-soft);
+}
+
+.ui-bar-chart__swatch--reference {
+  border-top: 3px dotted var(--color-secondary);
+}

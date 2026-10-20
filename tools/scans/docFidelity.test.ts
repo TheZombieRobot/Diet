@@ -276,3 +276,23 @@ describe('Today copy matches the docs word for word (item 16; U8)', () => {
     expect(REQUIRED_COPY).toContain(reminders.electrolytes.body);
   });
 });
+
+describe('Drinks copy matches the docs word for word (item 28 C2; C66, C78, C101)', () => {
+  it('the single-occasion line is the HEALTH_SAFETY.md section 5 quote (A26: the interim wording, both sets)', () => {
+    for (const set of ['nz-women', 'nz-men'] as const) {
+      expect(quoteAfter(alcoholSection, 'the app shows:')).toBe(
+        alcohol.guidance.singleOccasion[set],
+      );
+    }
+    expect(REQUIRED_COPY).toContain(alcohol.guidance.singleOccasion['nz-women']);
+  });
+
+  it('the next-day tick is the HEALTH_SAFETY.md section 5 wording (C101)', () => {
+    expect(alcoholSection).toContain(`"${alcohol.dayNote.withdrawalTick}"`);
+  });
+
+  it('both guidance lines are quoted in HEALTH_SAFETY.md section 5 (C66)', () => {
+    expect(quoteAfter(alcoholSection, 'reads, for women:')).toBe(alcohol.guidance.line['nz-women']);
+    expect(quoteAfter(alcoholSection, 'and for men:')).toBe(alcohol.guidance.line['nz-men']);
+  });
+});

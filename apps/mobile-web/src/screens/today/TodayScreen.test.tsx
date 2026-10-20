@@ -236,6 +236,6 @@ describe('Today before setup, while reading, and when the read fails (C10, C12; 
     expect(within(card).getAllByTestId('later-step')).toHaveLength(1);
     expect(card.textContent).not.toMatch(/\d/);
     expect(within(card).queryAllByRole('button')).toHaveLength(0);
-    expect(screen.getAllByTestId('later-step')).toHaveLength(2); // Movement, and drink logging
+    expect(screen.getAllByTestId('later-step')).toHaveLength(1); // Movement (drinks: item 28)
   });
 });

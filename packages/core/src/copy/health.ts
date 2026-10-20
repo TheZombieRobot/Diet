@@ -82,6 +82,31 @@ export const alcohol = {
       'nz-men':
         'NZ guidance for men: no more than 3 standard drinks a day and 15 a week, with at least 2 alcohol-free days. No alcohol use is risk-free.',
     },
+    // Item 28: the NZ guidance card on the Drinks screen (HEALTH_SAFETY section 5; C25, C60, C66,
+    // C78; A13, A26). The figures stay inside `line`; nothing here is compared or drawn.
+    cardLabel: 'NZ guidance',
+    /**
+     * A26, the interim wording (HEALTH_SAFETY section 5): the single-occasion figure is from
+     * secondary sources until the owner confirms an official one, so both sets show the lower
+     * figure with that note. Context only: never a trigger or a per-occasion total (C78).
+     */
+    singleOccasion: {
+      'nz-women': 'No more than 4 standard drinks on a single occasion (from secondary sources).',
+      'nz-men': 'No more than 4 standard drinks on a single occasion (from secondary sources).',
+    },
+    notPersonal:
+      'This is general guidance for adults in New Zealand, not advice for you. Your GP can tell you what applies to you.',
+    basis: {
+      profile: {
+        'nz-women': "The app uses the women's figures, from your profile.",
+        'nz-men': "The app uses the men's figures, from your profile.",
+      },
+      noSex: "The app uses the women's figures, the lower set, until your profile says otherwise.",
+      chosen: "The app uses the women's figures, the lower set, as chosen in Settings.",
+    },
+    howWorkedOut:
+      'One NZ standard drink is 10 g of alcohol. Standard drinks are worked out from the size and strength: millilitres × alcohol % × 0.789 ÷ 1,000. When you enter the figure printed on a label, that figure is shown instead.',
+    sources: 'Sources: alcohol.org.nz, bpacnz and Health NZ.',
   },
   /**
    * The first-run notice screen (UX 1b; mock-up Notice.dc.html). It cannot be put off: no string
@@ -114,6 +139,284 @@ export const alcohol = {
     unknownMany: 'Energy is unknown for {count} drinks, so the day total is incomplete.',
     foodOnly:
       "Today's energy total includes alcohol as its own part. The floor and the meal checks count food only.",
+  },
+
+  // ---- Item 28: the Drinks screen, the Today Drinks card and the Settings Drinks card ----
+
+  /** The one write-failure line for every alcohol form (A48). */
+  notSaved: 'That was not saved. Try again.',
+
+  /** The help card, beside item 13's helpCardLabel, helpCardNotNow and helpCardReturns (A10, C44). */
+  // C58: wording awaits owner confirmation at the week-1 review
+  helpCardReturnsNextDay:
+    'If this still applies, the card shows again when the next drinking day starts.',
+  // C58: wording awaits owner confirmation at the week-1 review
+  helpCardWhyTitle: 'Why this card?',
+  // C58: wording awaits owner confirmation at the week-1 review
+  helpCardWhy:
+    'The app shows this card when the drinking question is answered yes or not yet answered, when drinks are logged on 7 or more days one after another, when 7 days one after another come to double the weekly guidance figure, or when the shaky or sick box is ticked. It stays for a while after the drinking that brought it up, because those days matter most. It is not a judgement.',
+
+  /** The Drinks screen as a whole (UX 5; A1). */
+  screen: {
+    cardLabel: 'Drinks',
+    jumpTo: 'Go to',
+    jumpLog: 'Log',
+    jumpTrends: 'Trends',
+    jumpGuidance: 'Guidance and help',
+    opening: 'Your records are still opening.',
+    readFailed: 'Your drinks records could not be read just now. The help below is always here.',
+  },
+
+  /**
+   * When logging is not open (HS-20, C53; RD-01, RD-06; A23). Under 18 the reason is item 13's
+   * gate notice for alcohol logging, which already says whether the question was answered.
+   */
+  access: {
+    noticeFirst: 'Drinks can be logged once the alcohol safety notice has been read.',
+    kept: 'Your earlier entries are kept.',
+  },
+
+  /** Log a drink (UX 5a; AL-01, AL-02, NN-01; A21, A43). */
+  log: {
+    cardLabel: 'Log a drink',
+    intro: 'Tap a drink to add one now. Hold it, or use More, to add several or an earlier time.',
+    noPresets: 'No drink presets yet. Add one under Edit drink presets, or use Other drink.',
+    /** "Zero-sugar premix 330 mL, 5%, 94 kcal, 1.3 std" (UX 5a, word for word for the default). */
+    presetSummary: '{name} {volume} mL, {abv}%, {energy}, {std} std',
+    kcal: '{kcal} kcal',
+    kcalUnknown: 'kcal unknown',
+    /** A39: under a preset or an entry whose label figure differs from the calculation. */
+    labelDiffers: 'Label figure used. The calculation gives {calculated} std.',
+    /** A40: under a preset or an entry whose label energy is implausibly low. */
+    kcalLooksLow:
+      'The label energy looks lower than the alcohol alone would give, so it is not counted.',
+    moreFor: 'More options for {name}',
+    countLabel: 'How many',
+    whenLabel: 'When',
+    now: 'Now',
+    earlier: 'Earlier',
+    dateLabel: 'Date',
+    timeLabel: 'Time',
+    add: 'Add',
+    cancel: 'Cancel',
+    /** {std} is the entry's own total, 2 dp (A43). */
+    added: 'Added {count} × {name} ({std} std) at {time}.',
+    addedOn: 'Added {count} × {name} ({std} std) on {date} at {time}.',
+    undo: 'Undo',
+    undone: 'The entry was removed.',
+    otherDrink: 'Other drink',
+    otherIntro: 'Pick the closest serve, then check the size and strength on the label.',
+    serveButton: '{name}, {volume} mL, {abv}%',
+    somethingElse: 'Something else',
+    volumeLabel: 'Size (mL)',
+    abvLabel: 'Alcohol (%)',
+    otherEnergyNote:
+      'Energy is shown only from a label. Save this drink as a preset to add the label figures.',
+    saveAsPreset: 'Also save as a drink preset',
+    presetNameLabel: 'Preset name',
+    editPresets: 'Edit drink presets',
+    loggedToday: 'Logged today',
+    nothingToday: 'Nothing logged today.',
+    /** {std} and {energy} are the entry's own totals (A43). */
+    entry: '{time}: {count} × {name}, {std} std, {energy}',
+    edit: 'Edit',
+    save: 'Save',
+    delete: 'Delete',
+    deleteConfirm: 'Delete this entry?',
+    errors: {
+      count: 'Enter a whole number from 1 to 100.',
+      volume: 'Enter a size from 1 to 3,000 mL.',
+      abv: 'Enter an alcohol percentage from 0 to 100.',
+      number: 'Enter a plain number such as 5 or 4.5.',
+      time: 'Choose a date and a time.',
+      future: 'That time has not come yet.',
+      off: 'Drinks logging is off.',
+    },
+  },
+
+  /** Drink presets (UX 5a "Edit presets"; AL-02, C31, C92, D42; A17–A19, A42). */
+  presets: {
+    cardLabel: 'Drink presets',
+    done: 'Done',
+    add: 'Add a drink preset',
+    nameLabel: 'Name',
+    volumeLabel: 'Size (mL)',
+    abvLabel: 'Alcohol (%)',
+    labelTitle: 'From the label (optional)',
+    labelIntro: 'Label figures count only for the size and strength they were read for.',
+    energyLabel: 'Energy per serve',
+    energyUnit: 'Energy unit',
+    kcal: 'kcal',
+    kj: 'kJ',
+    stdLabel: 'Standard drinks printed on the label',
+    labelWasFor:
+      'The label figures were for {volume} mL at {abv}%, so they no longer count. Enter the figures for this size and strength.',
+    /** D42: shown while the seeded preset's label is still origin 'preset-default'. */
+    presetDefault: "These figures came with the app. Check them against your can's label.",
+    matchesLabel: "They match my can's label",
+    confirmed: 'Marked as matching your label. Save to keep it.',
+    stdDisagrees:
+      'The label figure is different from the calculation ({calculated} std). Check what you typed.',
+    kcalImplausible:
+      'That energy figure looks lower than the alcohol alone would give. Check the label.',
+    saveAnyway: 'Save anyway',
+    save: 'Save preset',
+    cancel: 'Cancel',
+    edit: 'Edit',
+    hide: 'Hide',
+    hideFor: 'Hide {name}',
+    editFor: 'Edit {name}',
+    showHidden: 'Show hidden presets',
+    hiddenTitle: 'Hidden presets',
+    unhide: 'Show again',
+    hiddenNote: 'Drinks you have already logged keep their details.',
+    saved: 'Preset saved.',
+    errors: {
+      name: 'Enter a name of 60 characters or fewer.',
+      energyKcal: 'Enter an energy figure from 0 to 5,000 kcal.',
+      energyKj: 'Enter an energy figure from 0 to 20,920 kJ.',
+      std: 'Enter a standard-drinks figure from 0 to 100.',
+    },
+  },
+
+  /** Today and this week, on the Drinks screen and the Today card (UX 2 card 7; C21, C94, C105, C11). */
+  summary: {
+    cardLabel: 'Today and this week',
+    today: 'Today',
+    week: 'This week (from Monday)',
+    noneLogged: 'None logged',
+    oneDrink: '1 drink',
+    drinks: '{count} drinks',
+    totals: '{drinks} · {std} std',
+    /** Read by screen readers in place of `totals`. */
+    totalsSpoken: '{drinks}, {std} standard drinks',
+    kcal: '{kcal} kcal',
+    kcalKj: '{kcal} kcal ({kj} kJ)',
+    atLeast: 'at least {energy}',
+    unknownPart: '{energy}; {drinks} with kcal unknown',
+    allUnknown: 'kcal unknown',
+    freeOne: '1 alcohol-free day',
+    freeMany: '{count} alcohol-free days',
+    detail: '{energy} · {free}',
+    /** C21 point 4: the footnote that goes with every alcohol-free count. */
+    freeNote: 'Days with nothing logged count as alcohol-free.',
+    breakdown: '{count} × {name} {volume} mL',
+    breakdownMore: 'and {count} more',
+    /** A13: neutral, no figure (the guidance line beside it carries the figures). */
+    dayAbove: "Today's total is more than the daily NZ guidance figure.",
+    weekAbove: "This week's total is more than the weekly NZ guidance figure.",
+    drinkingDay:
+      'A drinking day runs from {time} to {time} the next day. You can change this in Settings.',
+  },
+
+  /** Trends (UX 5b; HS-19; A13–A15). */
+  trends: {
+    cardLabel: 'Trends',
+    dailyTitle: 'Last 28 days',
+    weeklyTitle: 'Weekly totals',
+    metric: 'Show',
+    metricStd: 'Standard drinks',
+    metricDrinks: 'Drinks',
+    metricKcal: 'kcal',
+    dailyChart: '{metric} per day for the last 28 days.',
+    weeklyChart: 'Standard drinks per week for the last 8 weeks.',
+    todayTick: 'Today',
+    thisWeekTick: 'This week',
+    showList: 'Show as a list',
+    hideList: 'Hide the list',
+    dayRow: '{date}: {value}',
+    dayToday: '{date} (so far): {value}',
+    /** The list value for the standard-drinks metric. */
+    valueStd: '{std} standard drinks',
+    notTracked: 'not tracked',
+    noneLogged: 'none logged',
+    weekRow: 'Week from {date}: {value}',
+    weekRowCurrent: 'This week so far: {value}',
+    weekValue: '{drinks} · {std} standard drinks · {energy}',
+    weekFree: '{value} · {free}',
+    rollingLine: '4-week average',
+    rollingNote: 'The 4-week average starts once there are 4 full weeks of records.',
+    outlinedToday: 'The outlined bar is today so far.',
+    kcalNote:
+      'kcal bars count only drinks with a label figure. An outlined bar is not complete: today so far, or some drinks with kcal unknown. A day with no bar has no known kcal.',
+    /** HS section 5 and HS-19: the only label a milestone ever has on a chart. */
+    milestoneLine: 'your milestone',
+    empty: 'Nothing logged yet.',
+  },
+
+  /** Your milestones (HEALTH_SAFETY section 5: entered by you or your clinician; A15, A16, A47). */
+  milestones: {
+    cardLabel: 'Your milestones',
+    intro:
+      'A milestone is a weekly figure that you, or your GP or another health professional, chose. The app never suggests one. It shows on the weekly chart as a dotted line labelled "your milestone".',
+    none: 'No milestones entered.',
+    add: 'Add a milestone',
+    /** The fixed heading of every row: the owner's words are never the milestone's name on screen. */
+    rowTitle: 'Your milestone',
+    ownWords: 'Your words: "{label}"',
+    weeklyLabel: 'Standard drinks a week',
+    fromLabel: 'From',
+    nameLabel: 'Your own words for it (optional)',
+    nameDefault: 'Your milestone',
+    whoLabel: 'Who chose this figure?',
+    whoSelf: 'Me',
+    whoClinician: 'My GP or another health professional',
+    noteLabel: 'Note (optional)',
+    save: 'Save milestone',
+    cancel: 'Cancel',
+    saved: 'Milestone saved.',
+    row: '{weekly} standard drinks a week, from {date}.',
+    bySelf: 'Chosen by you.',
+    byClinician: 'Chosen by your GP or another health professional.',
+    edit: 'Edit',
+    delete: 'Delete',
+    deleteConfirm: 'Delete this milestone?',
+    errors: {
+      weekly: 'Enter a figure from 0 to 200.',
+      from: 'Choose a start date.',
+      who: 'Say who chose this figure.',
+      name: 'Use 80 characters or fewer.',
+      note: 'Use 280 characters or fewer.',
+    },
+  },
+
+  /** How you felt: the next-day note (HEALTH_SAFETY section 5; UX 5c; C05; AL-08). */
+  dayNote: {
+    cardLabel: 'How you felt',
+    intro: 'A note about how you felt, for example on the day after drinking.',
+    dayLabel: 'Day',
+    noteLabel: 'Note (optional)',
+    /** HEALTH_SAFETY section 5, word for word (canonical per C101). */
+    withdrawalTick: "I felt shaky, sweaty, anxious or sick when I hadn't had a drink",
+    save: 'Save note',
+    remove: 'Remove note',
+    saved: 'Note saved.',
+    removed: 'Note removed.',
+    recentTitle: 'Notes from the last 30 days',
+    ticked: 'Shaky or sick: ticked',
+    open: 'Open the note for {date}',
+    errors: {
+      future: 'Choose today or an earlier day.',
+      empty: 'Write a note or tick the box.',
+      long: 'Use 1,000 characters or fewer.',
+    },
+  },
+
+  /** The Help card on the Drinks screen (HS-13, AL-12): firstRunNotice and the help numbers. */
+  help: {
+    cardLabel: 'Help',
+  },
+
+  /** The Drinks card in Settings (UX 7; C21, C46; A25). No figures in the options. */
+  settings: {
+    cardLabel: 'Drinks',
+    cutoverLabel: 'A new drinking day starts at',
+    cutoverHint: 'Drinks before this time count toward the evening before.',
+    midnight: 'midnight',
+    guidanceLabel: 'Guidance figures',
+    guidanceMen: "Men's figures",
+    guidanceWomen: "Women's figures (the lower set)",
+    saved: 'Saved.',
   },
 } as const;
 
@@ -2108,7 +2411,6 @@ export const today = {
   reload: 'Reload the app',
   laterStep: {
     movement: 'Sessions, walks and rest days arrive at a later step of the build checklist.',
-    drinks: 'Drink logging arrives at a later step of the build checklist.',
   },
   water: {
     none: 'None logged yet',

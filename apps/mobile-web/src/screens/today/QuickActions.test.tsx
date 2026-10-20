@@ -34,7 +34,7 @@ async function openPanel(answers: { q1?: 'yes' } = {}): Promise<HTMLElement> {
 }
 
 describe('the quick actions (C9)', () => {
-  it('seven rows in the UX order; the six not built are focusable, marked Later and described by the note', async () => {
+  it('seven rows in the UX order; the five not built are focusable, marked Later and described by the note', async () => {
     const panel = await openPanel();
     const rows = within(panel).getAllByRole('listitem');
     expect(rows.map((li) => li.querySelector('.ui-action-row__title')?.textContent)).toEqual(
@@ -43,7 +43,7 @@ describe('the quick actions (C9)', () => {
     const later = within(panel)
       .getAllByRole('button')
       .filter((b) => b.getAttribute('aria-disabled') === 'true');
-    expect(later).toHaveLength(6);
+    expect(later).toHaveLength(5);
     const note = screen.getByText(copy.laterNote);
     for (const row of later) {
       expect(row.hasAttribute('disabled')).toBe(false);
@@ -78,6 +78,16 @@ describe('the quick actions (C9)', () => {
       'false',
     );
     expect(window.location.hash).toBe('#/today');
+  });
+
+  it('item 28 (A32): Add drink opens the Drinks screen and logs nothing by itself', async () => {
+    const panel = await openPanel();
+    const drink = within(panel).getByRole('link', { name: copy.labels['add-drink'] });
+    expect(drink.getAttribute('href')).toBe('#/drinks');
+    expect(drink.getAttribute('aria-disabled')).toBeNull();
+    const before = await counts((test as TestDb).db);
+    fireEvent.click(drink);
+    expect(await counts((test as TestDb).db)).toEqual(before);
   });
 
   it('T11: under 18, Add drink is shown Off with the alcohol-logging reason, not the Later note', async () => {

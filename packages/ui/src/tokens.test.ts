@@ -70,6 +70,9 @@ describe('colour tokens (styles/tokens.css)', () => {
     ['--color-on-emergency', '--color-emergency'],
     ['--color-on-emergency-tint', '--color-emergency-tint'],
     ['--color-on-fab', '--color-fab'],
+    // Item 28: drinks figures and bars, on the card and in the inset tiles.
+    ['--color-neutral', '--color-card'],
+    ['--color-neutral', '--color-inset'],
   ];
 
   for (const theme of THEMES) {

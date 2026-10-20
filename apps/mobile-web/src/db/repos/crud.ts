@@ -21,6 +21,7 @@ import Dexie, { type IndexableType } from 'dexie';
 import type { StorageEnv } from '../env';
 import { StorageOperationError, StorageRuleError } from '../errors';
 import { prepare } from '../prepare';
+import { ALCOHOL_ACCESS_STORES, type AlcoholStore, checkAlcoholAccess } from './alcoholAccess';
 import {
   guardedWrite,
   type KeyOfStore,
@@ -287,10 +288,23 @@ const gardenRules: StoreRules = {
   onRemove: ({ db }, key) => db.garden_photos.delete(String(key)),
 };
 
+/**
+ * Item 28 (HS-20, RD-01; design 5.3): no milestone before the alcohol notice or while alcohol
+ * logging is off, and no preset or next-day note before the notice. Removing is never checked.
+ */
+const alcoholRules = (table: AlcoholStore, rule: 'notice' | 'notice-and-age'): StoreRules => ({
+  with: ALCOHOL_ACCESS_STORES,
+  /** @transactionScope */
+  check: (ctx) => checkAlcoholAccess(ctx, table, rule),
+});
+
 export const STORE_RULES: Partial<Record<StoreName, StoreRules>> = {
   weights: weightRules,
   fasts: fastRules,
   garden: gardenRules,
+  beverages: alcoholRules('beverages', 'notice'),
+  alcohol_day_notes: alcoholRules('alcohol_day_notes', 'notice'),
+  alcohol_milestones: alcoholRules('alcohol_milestones', 'notice-and-age'),
 };
 
 export function assertOp(table: StoreName, op: GenericOp): void {

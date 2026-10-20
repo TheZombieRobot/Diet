@@ -102,8 +102,9 @@ Conventions for the implementing model:
 27. **Move screens.** Week view, pre-session check, session view with progression cap, finish ratings, beach prompts, rest counted as success.
     *Acceptance:* EX-02 to EX-04; HS-12, HS-28, HS-29; RD-05 (Move tab, Today Movement card and Complete workout).
 
-28. **Alcohol engine and screens.** Beverage presets (default 330 mL, 5%, 94 kcal), log, daily/weekly cans/standard drinks/kcal, trends, alcohol-free days, milestones entered by user or clinician, guidance context, help card triggers, next-day note, no banned phrasing.
-    *Acceptance:* AL-01 to AL-12; HS-05, HS-06, HS-07, HS-08, HS-19; NN-01, NN-09.
+28. **Alcohol engine and screens.** Beverage presets (default 330 mL, 5%, 94 kcal), log, daily/weekly drinks/standard drinks/kcal, trends, alcohol-free days, milestones entered by user or clinician, guidance context, help card triggers, next-day note, no banned phrasing.
+    *Acceptance:* AL-01 to AL-12 and AL-09b; HS-05, HS-06, HS-07, HS-08, HS-19; NN-01, NN-09; PWA-04 (log a drink) and RD-01 (alcohol), per DOC_REVIEW C23.
+    No commit with item 28 copy is marked [deploy] until the owner has confirmed the C58 wording at STOP 17.
 
 29. **Relay service** on Cloudflare Worker + KV: POST ciphertext to a room, GET once then delete, 15-minute expiry, 64 KB cap, rate limit, no body logging. Test deployment with 2-minute expiry.
     *Acceptance:* TR-02 (relay half), TR-05a and TR-05b (relay half), TR-06 (relay half), TR-09a, in CI with no Cloudflare account.

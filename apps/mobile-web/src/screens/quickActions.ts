@@ -8,6 +8,7 @@
 import { featureGateOf, type GatedFeature, type ReadinessGates } from '@diet/core';
 import { today } from '@diet/core/copy/health';
 import type { ReactElement } from 'react';
+import { routeHref } from '../routes';
 import { openWeightEntry } from './weight/entryStore';
 
 /** UX_SCREENS section 2 order. */
@@ -36,6 +37,9 @@ export type QuickAction = {
 /** Built actions. Item 16 adds Log weight; items 19, 22, 23, 24, 27 and 28 each add their own. */
 export const BUILT_QUICK_ACTIONS: Readonly<Partial<Record<QuickActionId, QuickAction>>> = {
   'log-weight': { label: today.quickActions.labels['log-weight'], run: openWeightEntry },
+  // Item 28: opens the Drinks screen, and never logs a drink by itself (A32). Under 18 its gate
+  // below shows it Off with item 13's reason.
+  'add-drink': { label: today.quickActions.labels['add-drink'], href: routeHref('drinks') },
 };
 
 /**

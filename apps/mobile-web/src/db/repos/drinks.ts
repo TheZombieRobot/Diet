@@ -3,10 +3,17 @@
  * repository allows only get and list; logging, editing and removing go through here, because the
  * per-serve figures are a snapshot the repository computes with core drinkFigures()
  * (standardDrinks() and drinkEnergy()): callers never pass them. Figures are stored unrounded (C94).
+ *
+ * Item 28: log and update are refused before the alcohol notice is acknowledged and while alcohol
+ * logging is off (checkAlcoholAccess; HS-20, RD-01), and refuse a drink time more than 5 minutes
+ * after now ('future-time'), so an edit cannot move a drink out of today's totals or the help
+ * card's windows. remove is always allowed.
  */
 import {
   DEFAULT_HOME_TIME_ZONE,
   drinkFigures,
+  instantMs,
+  latestBookkeepingMs,
   type DrinkLogRecord,
   drinkingDayOf,
   type Instant,
@@ -20,6 +27,7 @@ import {
 import Dexie from 'dexie';
 import { StorageRuleError } from '../errors';
 import { prepare } from '../prepare';
+import { ALCOHOL_ACCESS_STORES, checkAlcoholAccess } from './alcoholAccess';
 import { guardedWrite, type RepoContext } from './context';
 import { crudRepo } from './crud';
 
@@ -73,14 +81,23 @@ async function drinksByDay(
   });
 }
 
+/** The stores a guarded drink write reads besides drinks_log (the access check). */
+const WRITE_STORES = ['drinks_log', ...ALCOHOL_ACCESS_STORES] as const;
+
 export function drinksRepo(ctx: RepoContext): DrinksRepo {
   const { db, env } = ctx;
   const crud = crudRepo(ctx, 'drinks_log');
+  const refuseFuture = (at: string): void => {
+    if (instantMs(at) > latestBookkeepingMs(env.now())) {
+      throw new StorageRuleError('drinks_log', 'future-time');
+    }
+  };
   return {
     get: crud.get,
     list: crud.list,
     log: (input) =>
       guardedWrite(ctx, () => {
+        if (input.at !== undefined) refuseFuture(input.at);
         const row = prepare(
           'drinks_log',
           {
@@ -95,12 +112,20 @@ export function drinksRepo(ctx: RepoContext): DrinksRepo {
           },
           env,
         );
-        return db.transaction('rw', ['drinks_log'], () => db.drinks_log.add(row).then(() => row));
+        return db.transaction('rw', WRITE_STORES, () =>
+          Dexie.Promise.all([checkAlcoholAccess(ctx, 'drinks_log', 'notice-and-age')])
+            .then(() => db.drinks_log.add(row))
+            .then(() => row),
+        );
       }),
     update: (id, changes) =>
-      guardedWrite(ctx, () =>
-        db.transaction('rw', ['drinks_log'], () =>
-          db.drinks_log.get(id).then((stored) => {
+      guardedWrite(ctx, () => {
+        if (changes.at !== undefined) refuseFuture(changes.at);
+        return db.transaction('rw', WRITE_STORES, () =>
+          Dexie.Promise.all([
+            db.drinks_log.get(id),
+            checkAlcoholAccess(ctx, 'drinks_log', 'notice-and-age'),
+          ]).then(([stored]) => {
             if (stored === undefined) throw new StorageRuleError('drinks_log', 'not-found');
             const beverage = changes.beverage ?? stored.beverage;
             const moved = changes.at !== undefined && changes.at !== stored.at;
@@ -119,8 +144,8 @@ export function drinksRepo(ctx: RepoContext): DrinksRepo {
             );
             return db.drinks_log.put(row).then(() => row);
           }),
-        ),
-      ),
+        );
+      }),
     remove: (id) =>
       guardedWrite(ctx, () => db.transaction('rw', ['drinks_log'], () => db.drinks_log.delete(id))),
     forDrinkingDays: (from, to) =>

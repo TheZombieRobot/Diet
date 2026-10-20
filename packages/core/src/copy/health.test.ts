@@ -7,6 +7,7 @@ import { START_PROBLEM_CODES } from '../exercise/start';
 import { WEEK_PROBLEM_CODES } from '../exercise/week';
 import { GATED_FEATURES, READINESS_REASON_IDS } from '../readiness/gates';
 import { USER_ALLERGENS } from '../storage/allergens';
+import { ALCOHOL_SECTION_RULES } from './alcoholRules';
 import { FLOOR_KJ, KICKSTART_MAX_DEFICIT_PCT, KICKSTART_NET_CARBS_G } from '../storage/limits';
 import { READINESS_QUESTION_IDS } from '../storage/readiness';
 import { TARGET_COPY_FACTS } from '../targets/copyFacts';
@@ -53,26 +54,8 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
     /\banonymous(?:ly)?\b/i,
     /\bsecure\b/i,
   ],
-  // HEALTH_SAFETY.md section 5, HS-19, NN-09, UX 5 "deliberately absent".
-  alcohol: [
-    /\bstreaks?\b/i,
-    /\bbadges?\b/i,
-    /\btargets?\b/i,
-    /\blimits?\b/i,
-    /\ballowance\b/i,
-    /\bgoals?\b/i,
-    /\bwell\s+done\b/i,
-    /\bcongrat\w*/i,
-    /\bproud\b/i,
-    /\bsafe\s+(?:level|amount|limit)\b/i,
-    /\byou\s+should\s+stop\b/i,
-    // Item 13: help after a change is never played down (the notice's "Why am I seeing this?").
-    /\b(?:too\s+late|works\s+best\s+before|only\s+before|no\s+point)\b/i,
-    // Item 21 (C11): alcohol energy is never a budget, and nothing is "left" or "remaining".
-    /\bbudget\b/i,
-    /\bleft\b/i,
-    /\bremaining\b/i,
-  ],
+  // HEALTH_SAFETY.md section 5, HS-19, NN-09, UX 5 "deliberately absent"; items 13, 21 and 28.
+  alcohol: ALCOHOL_SECTION_RULES,
   // HEALTH_SAFETY.md section 7 (privacy as a safety feature); storage spec sections 10–12.
   privacy: [
     // Say plainly what happens to the records, with no blanket promises.
@@ -730,5 +713,51 @@ describe('Today and About copy (item 16; U9)', () => {
       'Electrolytes: sodium, potassium, magnesium. Garden sources: silverbeet, spinach, avocado.',
     );
     expect(readiness.ifYes.q4.endsWith(readiness.bloodPressure.electrolyte)).toBe(true);
+  });
+});
+
+describe('the Drinks copy (item 28 C1; NN-09, HS-19, C58, C66, A34)', () => {
+  it('HS-19: a milestone is only ever "your milestone" on a chart', () => {
+    expect(alcohol.trends.milestoneLine).toBe('your milestone');
+    expect(alcohol.milestones.rowTitle).toBe('Your milestone');
+  });
+
+  it('UX 5a: the seeded preset reads word for word', () => {
+    expect(
+      fillTemplate(alcohol.log.presetSummary, {
+        name: 'Zero-sugar premix',
+        volume: '330',
+        abv: '5',
+        energy: fillTemplate(alcohol.log.kcal, { kcal: '94' }),
+        std: '1.3',
+      }),
+    ).toBe('Zero-sugar premix 330 mL, 5%, 94 kcal, 1.3 std');
+  });
+
+  it('C58: the card explains every trigger, the question first', () => {
+    expect(alcohol.helpCardWhy).toContain('answered yes or not yet answered');
+    expect(alcohol.helpCardReturnsNextDay).toContain('next drinking day');
+  });
+
+  it('NN-09, C66: the daily and weekly figures appear only in the guidance lines, which end "No alcohol use is risk-free."', () => {
+    const figures = strings(alcohol, 'alcohol').filter(([, text]) =>
+      /standard drinks a day|\b\d+ a week\b/.test(text),
+    );
+    expect(figures.map(([path]) => path).sort()).toEqual([
+      'alcohol.guidance.line.nz-men',
+      'alcohol.guidance.line.nz-women',
+    ]);
+    for (const [, text] of figures) expect(text.endsWith(alcohol.noRiskFreeLevel)).toBe(true);
+  });
+
+  it.each([
+    'Great job, 3 days in a row',
+    'You are within your guidance',
+    'Up to 2 drinks today',
+    'A safe week',
+    'You met your milestone',
+    'Keep it up',
+  ])('A34: the alcohol rules catch %j', (text) => {
+    expect(ALCOHOL_SECTION_RULES.some((rule) => rule.test(text))).toBe(true);
   });
 });

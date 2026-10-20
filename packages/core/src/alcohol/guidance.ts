@@ -37,3 +37,25 @@ export function guidanceFor(
     sex === null ? 'no-sex' : sex === 'male' && setting === 'nz-women' ? 'chosen' : 'profile';
   return { ...NZ_GUIDANCE[guidanceSetFor(sex, setting)], basis };
 }
+
+// ---- Item 28: the comparisons (HS-05, HS-06, C94, A13, A39) ----
+
+/**
+ * True only when the shown total is strictly greater than the figure: "no more than 3" includes 3.
+ * Given the shown 2-decimal total (C94), never the unrounded sum, so the figure compared is the
+ * figure shown.
+ */
+export function isAboveGuidance(shownTotalStd: number, figure: number): boolean {
+  return shownTotalStd > figure;
+}
+
+/** HEALTH_SAFETY section 5: the help card shows "at or above double the guidance figure". */
+export const HELP_DOUBLE_FACTOR = 2;
+
+/**
+ * The double-guidance help-card condition. Given the trigger total (totals.ts triggerStd), which is
+ * the shown total except where a label figure disagrees with the calculation, and never lower (A39).
+ */
+export function reachesDoubleGuidance(triggerStd: number, perWeek: number): boolean {
+  return triggerStd >= HELP_DOUBLE_FACTOR * perWeek;
+}

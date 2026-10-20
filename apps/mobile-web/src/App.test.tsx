@@ -137,9 +137,11 @@ describe('every screen', () => {
 
 describe('placeholder screens (no sample data)', () => {
   // Today (item 16), About, the setup screens (item 13), the Weight screen (item 14), the Fasting
-  // screen (item 15) and Diet and targets (item 21) are built; the rest still say they arrive later.
+  // screen (item 15), Diet and targets (item 21) and Drinks (item 28) are built; the rest still say
+  // they arrive later.
   const built: readonly RouteId[] = [
     'today',
+    'drinks',
     'about',
     'readiness',
     'profile',
@@ -169,7 +171,9 @@ describe('placeholder screens (no sample data)', () => {
     });
     expect(screen.getAllByRole('button', { name: /Install app/ }).length).toBeGreaterThan(0);
     expect(screen.queryByRole('button', { name: 'Quick actions' })).toBeNull();
-    const text = document.body.textContent;
+    // Item 28: the Drinks card shows the stored cut-over ("5:00 am") and the guidance figures.
+    const drinks = await screen.findByRole('region', { name: alcohol.settings.cardLabel });
+    const text = document.body.textContent.replace(drinks.textContent, '');
     expect(text).toContain('Install app');
     expect(text).not.toMatch(/\d/);
     expect(text).not.toMatch(/[$€£]/);
@@ -192,8 +196,8 @@ describe('placeholder screens (no sample data)', () => {
       ...screen.getAllByTestId('later-step'),
       ...document.querySelectorAll('.ui-fab-panel [aria-disabled="true"]'),
     ];
-    // One card, two later-step lines (Movement and drink logging) and six Later rows.
-    expect(scoped).toHaveLength(9);
+    // One card, its later-step line (Movement) and five Later rows (item 28 built Add drink).
+    expect(scoped).toHaveLength(7);
     for (const element of scoped) {
       expect(element.textContent).not.toMatch(/\d/);
       expect(element.textContent).not.toMatch(/[$€£]/);
