@@ -233,7 +233,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | FD-01 | Search the catalogue by name or another name ("chard") | The matching food is listed (Silverbeet); fewer than 2 letters lists every food by aisle |
 | FD-02 | Open a food whose figures are not loaded | Every per-100 g figure reads "not known", never 0; no badge; the footer says no figure is from a food database |
 | FD-03 | Allergens of a fresh single food, a packed single food, a brand-dependent food, and one the profile lists | "None of the 15 allergens", "check the label" (with "none by nature" for the single food), what it contains plus "check the label", and the conflict in the owner's own terms ("Has wheat (gluten), which you listed") |
-| FD-04 | Swaps on a food's details | Never a swap carrying a listed allergen; gluten-free swaps only with Gluten-free household on, whatever the profile lists; "(check the label)" on a swap whose allergens are not complete |
+| FD-04 | Swaps on a food's details | Never a swap carrying a listed allergen, nor a food the owner does not want suggested; gluten-free swaps only with Gluten-free household on, whatever the profile lists; "(check the label)" on a swap whose allergens are not complete |
 
 ---
 

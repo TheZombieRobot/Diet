@@ -187,7 +187,7 @@
     {
       "id": "seed:bok-choy",
       "name": "Bok choy",
-      "aliases": ["Pak choi", "Buk choy"],
+      "aliases": ["Pak choi", "Buk choy", "Bok choi"],
       "aisle": "Produce",
       "group": "leafy-green",
       "packs": {
@@ -291,7 +291,7 @@
     {
       "id": "seed:watercress",
       "name": "Watercress",
-      "aliases": ["Cress"],
+      "aliases": [],
       "aisle": "Produce",
       "group": "leafy-green",
       "packs": {
@@ -369,7 +369,7 @@
     {
       "id": "seed:brussels-sprouts",
       "name": "Brussels sprouts",
-      "aliases": ["Sprouts"],
+      "aliases": [],
       "aisle": "Produce",
       "group": "vegetable",
       "packs": {
@@ -531,7 +531,7 @@
     {
       "id": "seed:green-beans",
       "name": "Green beans",
-      "aliases": ["Runner beans", "Beans"],
+      "aliases": ["Runner beans"],
       "aisle": "Produce",
       "group": "vegetable",
       "packs": {
@@ -1821,7 +1821,7 @@
     {
       "id": "seed:lamb-leg-steaks",
       "name": "Lamb leg steaks",
-      "aliases": ["Lamb steaks"],
+      "aliases": [],
       "aisle": "Meat and fish",
       "group": "red-meat",
       "packs": {
@@ -1873,7 +1873,7 @@
     {
       "id": "seed:pork-loin-steaks",
       "name": "Pork loin steaks",
-      "aliases": ["Pork steaks"],
+      "aliases": [],
       "aisle": "Meat and fish",
       "group": "red-meat",
       "packs": {
@@ -1965,7 +1965,7 @@
       "loose": false,
       "gramsPerEach": null,
       "countWord": null,
-      "allergens": [],
+      "allergens": ["wheat", "sulphites"],
       "allergensComplete": false,
       "gardenFlag": false,
       "seasonMonths": [],
@@ -2029,7 +2029,7 @@
     {
       "id": "seed:corned-silverside",
       "name": "Corned silverside",
-      "aliases": ["Corned beef", "Silverside"],
+      "aliases": ["Silverside"],
       "aisle": "Meat and fish",
       "group": "processed-meat",
       "packs": {
@@ -2262,7 +2262,7 @@
     {
       "id": "seed:greek-yoghurt",
       "name": "Greek yoghurt, plain",
-      "aliases": ["Greek yoghurt", "Plain yoghurt", "Natural yoghurt"],
+      "aliases": ["Greek yoghurt"],
       "aisle": "Dairy and eggs",
       "group": "yoghurt",
       "packs": {
@@ -2340,7 +2340,7 @@
     {
       "id": "seed:parmesan",
       "name": "Parmesan",
-      "aliases": ["Parmesan cheese", "Grana"],
+      "aliases": ["Parmesan cheese"],
       "aisle": "Dairy and eggs",
       "group": "cheese",
       "packs": {
@@ -3264,7 +3264,7 @@
       "loose": false,
       "gramsPerEach": null,
       "countWord": null,
-      "allergens": [],
+      "allergens": ["sulphites"],
       "allergensComplete": false,
       "gardenFlag": false,
       "seasonMonths": [],
@@ -3368,7 +3368,7 @@
       "loose": false,
       "gramsPerEach": null,
       "countWord": null,
-      "allergens": [],
+      "allergens": ["fish", "crustacea"],
       "allergensComplete": false,
       "gardenFlag": false,
       "seasonMonths": [],
@@ -4151,7 +4151,7 @@
     {
       "id": "seed:frozen-peas",
       "name": "Frozen peas",
-      "aliases": ["Peas", "Garden peas"],
+      "aliases": [],
       "aisle": "Frozen",
       "group": "starchy-vegetable",
       "packs": {
@@ -4321,7 +4321,7 @@
       "loose": false,
       "gramsPerEach": null,
       "countWord": null,
-      "allergens": ["crustacea"],
+      "allergens": ["crustacea", "sulphites"],
       "allergensComplete": false,
       "gardenFlag": false,
       "seasonMonths": [],

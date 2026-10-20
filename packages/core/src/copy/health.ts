@@ -2272,7 +2272,8 @@ export const foods = {
     gardenYes: 'Often grown in home gardens',
     swaps: 'Swaps',
     swapCheckLabel: '{name} (check the label)',
-    swapsNoneShown: 'None to show with your allergen and gluten-free settings.',
+    swapsNoneShown:
+      'None to show with your allergen and gluten-free settings and the foods you do not want suggested.',
     cookedFormLabel: 'Cooked form',
     nutritionCaption: {
       raw: 'Nutrition per 100 g, raw',
@@ -2367,12 +2368,12 @@ export const foods = {
     label: 'Figures entered from a product label.',
     estimate: 'Figures entered as an estimate.',
   },
-  // HEALTH_SAFETY section 4: one footer that is true for whatever is on the screen (C97).
+  // HEALTH_SAFETY section 4: one footer that is true for whatever is on the screen (C97). A
+  // database figure from a source that is not approved is shown as Estimate, so it never needs a
+  // footer that cannot name its database.
   footer: {
     noDatabase:
       'Label figures are as you typed them, and Estimates are approximate. No figure here is from a food database. Your plate will differ.',
-    databaseUnnamed:
-      'Database figures are averages from a published table of food values. Label figures are as you typed them, and Estimates are approximate. Your plate will differ.',
     withDatabase:
       'Database figures are averages from {sources}. Label figures are as you typed them, and Estimates are approximate. Your plate will differ.',
   },

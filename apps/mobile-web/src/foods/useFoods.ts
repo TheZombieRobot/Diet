@@ -1,7 +1,7 @@
 /**
  * The live food catalogue (item 18 design 5.2 and 1.6): every seed as the owner's corrections
  * leave it, a resolver over seeds, corrections and the owner's own foods, and the profile's
- * allergens and gluten-free setting. It reads the profile, ingredient_overrides and ingredients
+ * allergens, gluten-free setting and dislikes. It reads the profile, ingredient_overrides and ingredients
  * stores and writes nothing. The list waits for all three, so it is never shown without the
  * owner's allergens; a missing profile is an error, never "no allergens" (fails closed, N21).
  */
@@ -48,6 +48,12 @@ export async function readFoodInputs(storage: AppStorage): Promise<FoodInputsRea
   }
 }
 
+/** What the food screens read from the profile: allergens, the gluten-free setting and dislikes. */
+export type FoodsProfile = Pick<
+  ProfileRecord,
+  'allergens' | 'glutenFreeHousehold' | 'dislikeIngredientIds' | 'dislikeTerms'
+>;
+
 export type FoodsState =
   | { readonly status: 'pending' }
   | { readonly status: 'error' }
@@ -58,7 +64,7 @@ export type FoodsState =
       readonly views: readonly IngredientView[];
       readonly viewById: ReadonlyMap<string, IngredientView>;
       readonly resolve: IngredientResolver;
-      readonly profile: Pick<ProfileRecord, 'allergens' | 'glutenFreeHousehold'>;
+      readonly profile: FoodsProfile;
       readonly own: readonly IngredientRecord[];
     };
 
@@ -77,7 +83,12 @@ export function foodsState(data: FoodDataOk | null, read: FoodInputsRead | undef
     views,
     viewById: new Map(views.map((v) => [v.id, v])),
     resolve: ingredientResolver(seeds, overrides, own),
-    profile: { allergens: profile.allergens, glutenFreeHousehold: profile.glutenFreeHousehold },
+    profile: {
+      allergens: profile.allergens,
+      glutenFreeHousehold: profile.glutenFreeHousehold,
+      dislikeIngredientIds: profile.dislikeIngredientIds,
+      dislikeTerms: profile.dislikeTerms,
+    },
     own,
   };
 }

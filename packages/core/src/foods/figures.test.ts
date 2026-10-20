@@ -18,6 +18,7 @@ import {
   totalRows,
 } from './figures';
 import { exampleAttribution, seedViewFixture } from './testData';
+import { entryConfidence } from './view';
 
 const ALL = [...NUTRIENT_KEYS];
 const zeros: Nutrients = {
@@ -85,6 +86,21 @@ describe('showing figures (HS-37; item 18 design 3.3)', () => {
         unknownNutrients: ALL,
       }),
     ).toBe('estimate');
+    // Known parts that round down to 0 read "not known" eight times, so no badge either.
+    const tiny: Nutrients = {
+      energyKj: 0.6,
+      proteinG: 0.04,
+      fatG: 0.03,
+      saturatedFatG: 0.01,
+      carbsG: 0.02,
+      sugarsG: 0.01,
+      fibreG: 0.02,
+      sodiumMg: 0.4,
+    };
+    expect(totalRows(tiny, ALL).map((r) => r.text)).toEqual(ALL.map(() => 'not known'));
+    expect(
+      foodBadge({ confidence: 'estimate', nutrients: tiny, unknownNutrients: ALL }),
+    ).toBeNull();
 
     const lacking = (...keys: NutrientKey[]) => ({ unknownNutrients: keys });
     expect(ingredientMissingLines([lacking('carbsG'), lacking('carbsG'), lacking()])).toEqual([
@@ -93,27 +109,53 @@ describe('showing figures (HS-37; item 18 design 3.3)', () => {
     expect(ingredientMissingLines([lacking(...ALL), lacking(...ALL)])).toEqual([
       foods.totals.noneLoaded,
     ]);
+    // One line loaded and one not: a line per figure, never "none loaded".
+    expect(ingredientMissingLines([lacking(...ALL), lacking()])).toHaveLength(8);
+    expect(ingredientMissingLines([lacking(...ALL), lacking()])).not.toContain(
+      foods.totals.noneLoaded,
+    );
 
     const none = nutritionFooter(footerForViews([seedViewFixture()]));
     expect(none).toBe(foods.footer.noDatabase);
     expect(none).not.toMatch(DATABASE_NAMES);
     expect(none).not.toMatch(/food composition/i);
-    expect(nutritionFooter({ sources: [], databaseShown: true })).toBe(
-      foods.footer.databaseUnnamed,
-    );
     const usda = seedViewFixture({ source: 'usda', unknownNutrients: [] });
     expect(footerForViews([usda])).toEqual({ sources: [], databaseShown: false });
     expect(nutritionFooter(footerForViews([usda], ['usda']), exampleAttribution)).toBe(
       'Database figures are averages from Example database. Label figures are as you typed them, and Estimates are approximate. Your plate will differ.',
     );
+    // An approved source is named only when a figure on the screen comes from it.
+    const label = seedViewFixture({ source: 'label', unknownNutrients: [] });
+    expect(footerForViews([seedViewFixture(), label], ['usda'])).toEqual({
+      sources: [],
+      databaseShown: false,
+    });
     expect(() => nutritionFooter({ sources: ['usda'], databaseShown: true }, {})).toThrow(
       RangeError,
     );
+    expect(() =>
+      nutritionFooter(
+        { sources: ['usda'], databaseShown: true },
+        { usda: { name: '', text: 'x' } },
+      ),
+    ).toThrow(RangeError);
+    expect(() => nutritionFooter({ sources: [], databaseShown: true })).toThrow(RangeError);
     expect(footerForEntries([{ confidence: 'database' }], ['usda', 'nz-fcdb'])).toEqual({
       sources: ['usda', 'nz-fcdb'],
       databaseShown: true,
     });
-    expect(footerForEntries([{ confidence: 'label' }])).toEqual({
+    expect(footerForEntries([{ confidence: 'label' }], ['usda'])).toEqual({
+      sources: [],
+      databaseShown: false,
+    });
+  });
+
+  it('C97 N43 HS-37: a Database log entry while no database is approved (a restored backup) is Estimate, with no database footer', () => {
+    expect(entryConfidence({ confidence: 'database' }, [])).toBe('estimate');
+    expect(entryConfidence({ confidence: 'database' })).toBe('estimate'); // nothing approved yet
+    expect(entryConfidence({ confidence: 'database' }, ['usda'])).toBe('database');
+    expect(entryConfidence({ confidence: 'label' }, [])).toBe('label');
+    expect(footerForEntries([{ confidence: 'database' }])).toEqual({
       sources: [],
       databaseShown: false,
     });
@@ -126,6 +168,7 @@ describe('showing figures (HS-37; item 18 design 3.3)', () => {
     expect(differenceShown(partial(9100), known(7000))).toEqual({ kind: 'not-known' });
     expect(differenceShown(known(9100), known(7000))).toEqual({ kind: 'value', value: 2100 });
     expect(ratioShown(partial(20), known(8000))).toEqual({ kind: 'not-known' });
+    expect(ratioShown(known(20), partial(8000))).toEqual({ kind: 'not-known' });
     expect(ratioShown(known(20), known(0))).toEqual({ kind: 'not-known' });
     expect(ratioShown(known(20), known(8000))).toEqual({ kind: 'value', value: 0.0025 });
     expect(averageShown([])).toEqual({ shown: { kind: 'not-known' }, daysMissing: 0 });

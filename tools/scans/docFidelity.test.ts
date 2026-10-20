@@ -316,13 +316,14 @@ function approvalProblems(
 describe('the nutrition footer and the food-database approval (item 18)', () => {
   const nutrition = section(HEALTH_SAFETY, /^## 4\. /);
 
-  it('S2 C97: the three footers are the HEALTH_SAFETY.md section 4 quotes, and required copy', () => {
+  it('S2 C97: the two footers are the HEALTH_SAFETY.md section 4 quotes, and required copy; an unapproved database figure is Estimate', () => {
     expect(quoteAfter(nutrition, 'With no Database figure shown it reads:')).toBe(
       foods.footer.noDatabase,
     );
     expect(quoteAfter(nutrition, 'With Database figures shown:')).toBe(foods.footer.withDatabase);
-    expect(quoteAfter(nutrition, 'while no database is approved:')).toBe(
-      foods.footer.databaseUnnamed,
+    expect(Object.keys(foods.footer)).toEqual(['noDatabase', 'withDatabase']);
+    expect(nutrition).toContain(
+      'A figure from a food database that is not approved (one restored from a backup) is shown and counted as Estimate, never as Database',
     );
     for (const footer of Object.values(foods.footer)) expect(REQUIRED_COPY).toContain(footer);
   });

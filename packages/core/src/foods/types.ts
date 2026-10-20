@@ -227,6 +227,98 @@ export const COMPLETE_ALLERGEN_GROUPS: readonly FoodGroup[] = Object.freeze([
 ]);
 
 /**
+ * The only foods whose allergen list may be complete (rule CR11, shipped): the fresh single foods
+ * of the catalogue, reviewed one by one. A complete list on any other id is refused, so moving a
+ * packed food to a fresh aisle or group in the data file never makes its list complete; adding a
+ * food here is a reviewed code change.
+ */
+export const FRESH_SINGLE_FOOD_IDS: readonly SeedId[] = Object.freeze([
+  'seed:silverbeet',
+  'seed:spinach',
+  'seed:kale',
+  'seed:cos-lettuce',
+  'seed:iceberg-lettuce',
+  'seed:salad-leaves',
+  'seed:rocket',
+  'seed:bok-choy',
+  'seed:chinese-cabbage',
+  'seed:cabbage',
+  'seed:red-cabbage',
+  'seed:watercress',
+  'seed:broccoli',
+  'seed:cauliflower',
+  'seed:brussels-sprouts',
+  'seed:courgette',
+  'seed:cucumber',
+  'seed:tomato',
+  'seed:cherry-tomatoes',
+  'seed:capsicum',
+  'seed:green-beans',
+  'seed:snow-peas',
+  'seed:celery',
+  'seed:spring-onion',
+  'seed:leek',
+  'seed:onion',
+  'seed:red-onion',
+  'seed:garlic',
+  'seed:ginger',
+  'seed:carrot',
+  'seed:beetroot',
+  'seed:pumpkin',
+  'seed:butternut',
+  'seed:kumara',
+  'seed:potato',
+  'seed:sweetcorn',
+  'seed:mushrooms',
+  'seed:eggplant',
+  'seed:asparagus',
+  'seed:radish',
+  'seed:chilli',
+  'seed:avocado',
+  'seed:parsley',
+  'seed:coriander',
+  'seed:basil',
+  'seed:mint',
+  'seed:chives',
+  'seed:lemon',
+  'seed:lime',
+  'seed:mandarin',
+  'seed:orange',
+  'seed:kiwifruit',
+  'seed:feijoa',
+  'seed:apple',
+  'seed:pear',
+  'seed:banana',
+  'seed:strawberries',
+  'seed:blueberries',
+  'seed:tamarillo',
+  'seed:passionfruit',
+  'seed:chicken-breast',
+  'seed:chicken-breast-cooked',
+  'seed:chicken-thigh',
+  'seed:chicken-thigh-cooked',
+  'seed:chicken-drumsticks',
+  'seed:beef-mince-lean',
+  'seed:beef-mince-lean-cooked',
+  'seed:beef-mince',
+  'seed:beef-steak',
+  'seed:beef-steak-cooked',
+  'seed:lamb-leg-steaks',
+  'seed:lamb-chops',
+  'seed:pork-loin-steaks',
+  'seed:pork-chops',
+  'seed:white-fish',
+  'seed:white-fish-cooked',
+  'seed:salmon',
+  'seed:salmon-cooked',
+  'seed:kahawai',
+  'seed:eggs',
+  'seed:egg-hard-boiled',
+  'seed:milk',
+  'seed:trim-milk',
+]);
+
+/**
  * Packed single foods with no FSANZ Standard 1.2.3 allergen by nature (rule CR11; contract 7.3).
  * Each has allergens [] and allergensComplete false: the label decides ("may contain" lines are
  * voluntary). The list selects their wording only (allergenSummary); it never makes a list complete.
@@ -278,33 +370,200 @@ export const INHERENT_ALLERGENS_BY_GROUP: Readonly<
   bread: ['wheat'],
 });
 
-/** Allergens particular foods always carry (rule CR13; tofu by owner request). */
+/**
+ * The allergens each shipped food is known to carry (rule CR13; tofu by owner request). Every food
+ * of the catalogue with a known allergen is listed, so no edit to the data file alone (a new group
+ * or aisle included) can drop one; an allergen leaves a food only through a reviewed code change.
+ * Curry paste, sausages, mustard and prawns list what most NZ packs carry (shrimp paste and fish
+ * sauce; wheat rusk and preservative 223; sulphite preservatives), since listing too many is the
+ * safe direction: the owner's corrections can only add.
+ */
 export const INHERENT_ALLERGENS_BY_ID: Readonly<Record<SeedId, readonly Allergen[]>> =
   Object.freeze({
-    'seed:pasta': ['wheat'],
-    'seed:plain-flour': ['wheat'],
-    'seed:rolled-oats': ['oats'],
-    'seed:peanuts': ['peanut'],
+    'seed:sausages': ['wheat', 'sulphites'],
+    'seed:white-fish': ['fish'],
+    'seed:white-fish-cooked': ['fish'],
+    'seed:salmon': ['fish'],
+    'seed:salmon-cooked': ['fish'],
+    'seed:kahawai': ['fish'],
+    'seed:eggs': ['egg'],
+    'seed:egg-hard-boiled': ['egg'],
+    'seed:milk': ['milk'],
+    'seed:trim-milk': ['milk'],
+    'seed:greek-yoghurt': ['milk'],
+    'seed:cheddar': ['milk'],
+    'seed:feta': ['milk'],
+    'seed:parmesan': ['milk'],
+    'seed:mozzarella': ['milk'],
+    'seed:cottage-cheese': ['milk'],
+    'seed:cream-cheese': ['milk'],
+    'seed:butter': ['milk'],
+    'seed:cream': ['milk'],
+    'seed:sour-cream': ['milk'],
+    'seed:firm-tofu': ['soy'],
+    'seed:silken-tofu': ['soy'],
+    'seed:hummus': ['sesame'],
+    'seed:wholemeal-bread': ['wheat'],
+    'seed:white-bread': ['wheat'],
+    'seed:wraps': ['wheat'],
+    'seed:tuna-in-water': ['fish'],
+    'seed:tuna-in-oil': ['fish'],
+    'seed:sardines': ['fish'],
+    'seed:canned-salmon': ['fish'],
+    'seed:canned-mackerel': ['fish'],
+    'seed:soy-sauce': ['soy', 'wheat'],
+    'seed:fish-sauce': ['fish'],
     'seed:peanut-butter': ['peanut'],
+    'seed:tahini': ['sesame'],
+    'seed:mustard': ['sulphites'],
+    'seed:mayonnaise': ['egg'],
+    'seed:curry-paste': ['fish', 'crustacea'],
+    'seed:pasta': ['wheat'],
+    'seed:pasta-cooked': ['wheat'],
+    'seed:rolled-oats': ['oats'],
+    'seed:plain-flour': ['wheat'],
+    'seed:almond-meal': ['tree-nut'],
     'seed:almonds': ['tree-nut'],
     'seed:walnuts': ['tree-nut'],
     'seed:cashews': ['tree-nut'],
     'seed:macadamias': ['tree-nut'],
-    'seed:almond-meal': ['tree-nut'],
-    'seed:tahini': ['sesame'],
+    'seed:peanuts': ['peanut'],
     'seed:sesame-seeds': ['sesame'],
-    'seed:hummus': ['sesame'],
-    'seed:soy-sauce': ['soy', 'wheat'],
-    'seed:fish-sauce': ['fish'],
-    'seed:mayonnaise': ['egg'],
-    'seed:prawns': ['crustacea'],
-    'seed:firm-tofu': ['soy'],
-    'seed:silken-tofu': ['soy'],
+    'seed:prawns': ['crustacea', 'sulphites'],
   });
 
 /**
+ * Words in a name or another name that say a food carries an allergen (rule CR27), matched as whole
+ * words (mentionsWords), so a food added to the data file cannot leave out an allergen its own name
+ * gives away ("Hazelnuts", "Mussels", "Couscous", "Pearl barley"). A word listed in `unless`, in
+ * the same name, means the allergen word does not apply ("Peanut butter", "Almond flour",
+ * "Coconut cream", "Rice noodles").
+ */
+export const ALLERGEN_NAME_WORDS: readonly {
+  readonly allergen: Allergen;
+  readonly words: readonly string[];
+  readonly unless: readonly string[];
+}[] = Object.freeze([
+  { allergen: 'peanut', words: ['peanut'], unless: [] },
+  {
+    allergen: 'tree-nut',
+    words: [
+      'almond',
+      'brazil nut',
+      'cashew',
+      'hazelnut',
+      'macadamia',
+      'pecan',
+      'pine nut',
+      'pistachio',
+      'walnut',
+    ],
+    unless: [],
+  },
+  {
+    allergen: 'milk',
+    words: ['milk', 'cheese', 'yoghurt', 'yogurt', 'butter', 'cream', 'whey'],
+    unless: [
+      'almond',
+      'bean',
+      'cashew',
+      'cocoa',
+      'coconut',
+      'oat',
+      'peanut',
+      'rice',
+      'soy',
+      'tartar',
+    ],
+  },
+  { allergen: 'egg', words: ['egg'], unless: [] },
+  {
+    allergen: 'fish',
+    words: [
+      'fish',
+      'anchovy',
+      'anchovies',
+      'cod',
+      'gurnard',
+      'hake',
+      'hoki',
+      'kahawai',
+      'kingfish',
+      'mackerel',
+      'salmon',
+      'sardine',
+      'snapper',
+      'tarakihi',
+      'trevally',
+      'trout',
+      'tuna',
+      'warehou',
+      'whitebait',
+    ],
+    unless: [],
+  },
+  {
+    allergen: 'crustacea',
+    words: ['crab', 'crayfish', 'koura', 'lobster', 'prawn', 'scampi', 'shrimp'],
+    unless: ['apple'],
+  },
+  {
+    allergen: 'mollusc',
+    words: [
+      'calamari',
+      'clam',
+      'cockle',
+      'mussel',
+      'octopus',
+      'oyster',
+      'paua',
+      'pipi',
+      'scallop',
+      'squid',
+      'tuatua',
+    ],
+    unless: ['mushroom'],
+  },
+  { allergen: 'sesame', words: ['sesame', 'tahini'], unless: [] },
+  { allergen: 'soy', words: ['soy', 'soya', 'tofu', 'edamame', 'miso', 'tempeh'], unless: [] },
+  { allergen: 'lupin', words: ['lupin'], unless: [] },
+  {
+    allergen: 'wheat',
+    words: [
+      'wheat',
+      'flour',
+      'bread',
+      'breadcrumb',
+      'pasta',
+      'couscous',
+      'semolina',
+      'bulgur',
+      'noodle',
+      'wrap',
+      'tortilla',
+    ],
+    unless: [
+      'almond',
+      'buckwheat',
+      'chickpea',
+      'coconut',
+      'corn',
+      'gluten free',
+      'lettuce',
+      'potato',
+      'rice',
+      'tapioca',
+    ],
+  },
+  { allergen: 'barley', words: ['barley'], unless: [] },
+  { allergen: 'oats', words: ['oat'], unless: [] },
+  { allergen: 'rye', words: ['rye'], unless: [] },
+]);
+
+/**
  * Names that mean the ordinary cut, already in matchKey form (rule CR20). A lean food never carries
- * one, so "mince" typed by the owner never takes the lean entry (HEALTH_SAFETY section 4).
+ * one, so "mince" typed by the owner never takes the lean entry (HEALTH_SAFETY section 4). Pork and
+ * lamb steaks are often shoulder or forequarter cuts, so they are generic too.
  */
 export const GENERIC_CUT_NAMES: readonly string[] = Object.freeze([
   'mince',
@@ -314,9 +573,11 @@ export const GENERIC_CUT_NAMES: readonly string[] = Object.freeze([
   'beef steak',
   'lamb',
   'lamb chops',
+  'lamb steaks',
   'chops',
   'pork',
   'pork chops',
+  'pork steaks',
 ]);
 
 /** Other datasets' and fixtures' id prefixes, refused in the shipped catalogue (rule CR25). */

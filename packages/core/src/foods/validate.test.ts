@@ -129,6 +129,22 @@ describe('NU-01: catalogue rules CR1–CR20 (item 18 design 2.4)', () => {
       ['foods[3].allergensComplete allergens-complete'],
     ],
     [
+      'CR11 a fresh aisle with a packed group',
+      broken((_, f) => {
+        Object.assign(food(f, 3), { aisle: 'Dairy and eggs', group: 'yoghurt' });
+        Object.assign(food(f, 3), { allergens: ['milk'], allergensComplete: true });
+      }),
+      ['foods[3].allergensComplete allergens-complete'],
+    ],
+    [
+      'CR11 a fresh group in a packed aisle',
+      broken((_, f) => {
+        Object.assign(food(f, 3), { group: 'lean-fish', allergens: ['fish'] });
+        food(f, 3)['allergensComplete'] = true;
+      }),
+      ['foods[3].allergensComplete allergens-complete'],
+    ],
+    [
       'CR11 nor a packed single food',
       broken((_, f) => {
         food(f, 3)['id'] = 'seed:olive-oil';
@@ -222,6 +238,107 @@ describe('NU-01: catalogue rules CR1–CR20 (item 18 design 2.4)', () => {
         food(f, 1)['aliases'] = ['Mince'];
       }),
       ['foods[1].aliases[0] lean-name'],
+    ],
+    [
+      'CR20 a lean food named "Pork steaks"',
+      broken((_, f) => {
+        food(f, 1)['importHint'] = 'raw, lean';
+        food(f, 1)['name'] = 'Pork steaks';
+      }),
+      ['foods[1].name lean-name'],
+    ],
+    [
+      'CR7 g and ml sizes up to 50,000',
+      broken((_, f) => (food(f, 3)['packs'] = { unit: 'ml', sizes: [60000], container: null })),
+      ['foods[3].packs.sizes[0] range'],
+    ],
+    [
+      'CR8 one weighs at most 5,000 g',
+      broken((_, f) => (food(f, 0)['gramsPerEach'] = 6000)),
+      ['foods[0].gramsPerEach range'],
+    ],
+    [
+      'CR8 no weight of one on a cooked form',
+      broken((_, f) => (food(f, 2)['gramsPerEach'] = 100)),
+      ['foods[2].gramsPerEach grams-per-each', 'foods[2].countWord count-word'],
+    ],
+    [
+      'CR10 an allergen listed twice',
+      broken((_, f) => (food(f, 3)['allergens'] = ['sesame', 'sesame'])),
+      ['foods[3].allergens unique'],
+    ],
+    [
+      'CR12 shellfish with neither shellfish allergen',
+      broken((_, f) => (food(f, 3)['group'] = 'shellfish')),
+      ['foods[3].allergens inherent-allergen'],
+    ],
+    [
+      'CR14 a garden food with no season',
+      broken((_, f) => (food(f, 0)['seasonMonths'] = [])),
+      ['foods[0].gardenFlag garden'],
+    ],
+    [
+      'CR15 months in order',
+      broken((_, f) => (food(f, 0)['seasonMonths'] = [3, 1])),
+      ['foods[0].seasonMonths order'],
+    ],
+    [
+      'CR17 a loose cooked form',
+      broken((_, f) => (food(f, 2)['loose'] = true)),
+      ['foods[2].cookedOf cooked-form'],
+    ],
+    [
+      'CR17 two cooked forms of one food',
+      broken((c, f) => {
+        c.foods.push({ ...food(f, 2), id: 'seed:example-protein-baked', name: 'Example baked' });
+      }),
+      ['foods[4].cookedOf cooked-form'],
+    ],
+    [
+      'CR17 the raw side is raw',
+      broken((_, f) => (food(f, 1)['basis'] = 'as-sold')),
+      ['foods[2].cookedOf cooked-form'],
+    ],
+    [
+      'CR17 a cooked form in another aisle',
+      broken((_, f) => (food(f, 2)['aisle'] = 'Produce')),
+      ['foods[2].cookedOf cooked-form'],
+    ],
+    [
+      'CR18 a substitute listed twice',
+      broken(
+        (_, f) => (food(f, 0)['substitutes'] = ['seed:example-protein', 'seed:example-protein']),
+      ),
+      ['foods[0].substitutes unique'],
+    ],
+    [
+      'CR27 a name that gives an allergen away: "Hazelnuts"',
+      broken((_, f) => (food(f, 3)['name'] = 'Hazelnuts')),
+      ['foods[3].allergens allergen-name'],
+    ],
+    [
+      'CR27 "Mussels" are molluscs, not crustacea',
+      broken((_, f) => {
+        Object.assign(food(f, 3), { aliases: ['Mussels'], allergens: ['crustacea'] });
+      }),
+      ['foods[3].allergens allergen-name'],
+    ],
+    [
+      'CR27 "Couscous" is wheat',
+      broken((_, f) => (food(f, 3)['aliases'] = ['Couscous'])),
+      ['foods[3].allergens allergen-name'],
+    ],
+    [
+      'CR27 "Pearl barley" is barley',
+      broken((_, f) => (food(f, 3)['name'] = 'Pearl barley')),
+      ['foods[3].allergens allergen-name'],
+    ],
+    [
+      'CR27 "Almond flour" is tree nut, not wheat',
+      broken((_, f) =>
+        Object.assign(food(f, 3), { name: 'Almond flour', allergens: ['tree-nut'] }),
+      ),
+      [],
     ],
   ])('%s', (_name, raw, expected) => {
     expect(problems(raw)).toEqual(expected);
@@ -319,6 +436,21 @@ describe('NU-01 HS-37: release rules R1–R12', () => {
       'nz-fcdb',
     ],
     [
+      'R6 the database food name',
+      release((r) => ((r['seed:example-green'] ?? {})['foodName'] = '')),
+      [`${G}.foodName format`],
+    ],
+    [
+      'R7 a negative value',
+      release((r) => ((values(r, 'seed:example-green')['fatG'] ?? {})['value'] = -5)),
+      [`${G}.values.fatG.value range`],
+    ],
+    [
+      'R7 the field code',
+      release((r) => ((values(r, 'seed:example-green')['fatG'] ?? {})['field'] = '')),
+      [`${G}.values.fatG.field format`],
+    ],
+    [
       'R7 -0',
       release((r) => ((values(r, 'seed:example-green')['fatG'] ?? {})['value'] = -0)),
       [`${G}.values.fatG.value range`],
@@ -342,12 +474,53 @@ describe('NU-01 HS-37: release rules R1–R12', () => {
       [`${G}.values.energyKj limit`],
     ],
     [
+      'R9 1,000 kcal is 4,184 kJ',
+      release((r) => {
+        Object.assign(values(r, 'seed:example-green')['energyKj'] ?? {}, {
+          value: 1000,
+          unit: 'kcal',
+        });
+      }),
+      [`${G}.values.energyKj limit`],
+    ],
+    [
+      'R9 150 g of protein per 100 g',
+      release((r) => ((values(r, 'seed:example-green')['proteinG'] ?? {})['value'] = 150)),
+      [`${G}.values.proteinG limit`],
+    ],
+    [
       'R11 two seeds matched to one database food',
       release((r) => ((r['seed:example-protein-cooked'] ?? {})['foodId'] = 'X2')),
       ['foods["seed:example-protein-cooked"].foodId unique'],
     ],
   ])('%s', (_name, raw, expected, source = 'usda') => {
     expect(check(raw, [source])).toEqual(expected);
+  });
+
+  it('R2 R4: a source with a bad title or date, listed twice, or with a blank attribution name', () => {
+    const withSources = (change: (sources: Record<string, unknown>[]) => void) => {
+      const r = JSON.parse(JSON.stringify(exampleRelease('usda'))) as {
+        sources: Record<string, unknown>[];
+      };
+      change(r.sources);
+      return r;
+    };
+    // A source that fails its own checks is not listed, so every row naming it is refused too.
+    const unlisted = Object.keys(exampleRelease('usda').foods).map(
+      (id) => `foods[${JSON.stringify(id)}].source value-source`,
+    );
+    expect(check(withSources((s) => ((s[0] ?? {})['title'] = 'T'.repeat(121))))).toEqual([
+      'sources[0].title format',
+      ...unlisted,
+    ]);
+    expect(check(withSources((s) => ((s[0] ?? {})['retrievedOn'] = '2000-13-01')))).toEqual([
+      'sources[0].retrievedOn format',
+      ...unlisted,
+    ]);
+    expect(check(withSources((s) => s.push({ ...s[0] })))).toEqual(['sources[1].id unique']);
+    expect(check(exampleRelease('usda'), ['usda'], { usda: { name: '', text: 'x' } })).toEqual([
+      'sources[0].id no-attribution',
+    ]);
   });
 
   it('R10: the citation must fit 200 characters', () => {

@@ -21,6 +21,8 @@ const food = (id: string): IngredientView => {
 const profile = (allergens: UserAllergen[], glutenFreeHousehold = false) => ({
   allergens,
   glutenFreeHousehold,
+  dislikeIngredientIds: [] as string[],
+  dislikeTerms: [] as string[],
 });
 const swapNames = (id: string, p: ReturnType<typeof profile>) =>
   allowedSwaps(food(id), resolve, p).swaps.map(
@@ -28,7 +30,7 @@ const swapNames = (id: string, p: ReturnType<typeof profile>) =>
   );
 
 describe('swaps and allergens (item 18 design 3.4)', () => {
-  it('F16 C107 FL-07 HS-24: a swap never carries a listed allergen; gluten-free swaps only for a gluten-free household', () => {
+  it('F16 FD-04 C107 FL-07 HS-24: a swap never carries a listed allergen; gluten-free swaps only for a gluten-free household', () => {
     expect(swapNames('tahini', profile(['peanut']))).toEqual([]);
     expect(swapNames('chicken-breast', profile(['fish']))).toEqual(['Chicken thigh']);
     expect(swapNames('prawns', profile(['fish']))).toEqual([]);
@@ -55,12 +57,30 @@ describe('swaps and allergens (item 18 design 3.4)', () => {
       offered: true,
       checkLabel: true,
     });
-    // The known lists decide, complete or not: soy sauce still carries wheat.
-    expect(isGlutenFreeSwap(food('fish-sauce'), food('soy-sauce'))).toBe(false);
+    // The known lists decide, complete or not: soy sauce (brand-dependent) still carries wheat.
+    expect(isGlutenFreeSwap(food('pasta'), food('soy-sauce'))).toBe(false);
+    expect(isGlutenFreeSwap(food('pasta'), food('white-rice'))).toBe(true);
+    // Red and green curry pastes usually hold shrimp paste: never a swap for a crustacea listing.
+    expect(swapNames('curry-powder', profile([]))).toEqual(['Curry paste (label)']);
+    expect(swapNames('curry-powder', profile(['crustacea']))).toEqual([]);
     expect(isGlutenFreeSwap(food('plain-flour'), food('almond-meal'))).toBe(true);
     expect(conflictText(['gluten'], ['wheat'])).toBe('wheat (gluten)');
     expect(conflictText(['wheat'], ['wheat'])).toBe('wheat');
     expect(conflictText(['gluten', 'fish'], ['fish', 'oats'])).toBe('fish and oats (gluten)');
+  });
+
+  it('C43 dislikes: a food the owner does not want suggested is never a swap, and is counted as hidden', () => {
+    const dislikes = (ids: string[], terms: string[]) => ({
+      ...profile([]),
+      dislikeIngredientIds: ids,
+      dislikeTerms: terms,
+    });
+    expect(swapNames('silverbeet', profile([]))).toEqual(['Spinach', 'Kale']);
+    expect(allowedSwaps(food('silverbeet'), resolve, dislikes([], ['kale']))).toMatchObject({
+      swaps: [{ view: { name: 'Spinach' } }],
+      hidden: 1,
+    });
+    expect(swapNames('silverbeet', dislikes(['seed:spinach'], []))).toEqual(['Kale']);
   });
 
   it('F12 C43 owner request: complete, single-food, brand-dependent and contained allergens read differently', () => {

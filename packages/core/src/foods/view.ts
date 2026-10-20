@@ -185,6 +185,21 @@ export function displaySource(
     : view.source;
 }
 
+/**
+ * The badge a log entry is shown and counted with, as displaySource is for a food (C97, N43): a
+ * Database entry while no database is approved (one that reached the app through a restored
+ * backup) is Estimate. An entry does not record which database it came from, and an approved
+ * source is never removed, so once one is approved a Database entry stays Database. Today's card,
+ * the food log and the GP summary (items 21 to 23) badge entries with it; footerForEntries counts
+ * with it.
+ */
+export function entryConfidence(
+  entry: { readonly confidence: Confidence },
+  approved: readonly DatabaseSource[] = APPROVED_NUTRIENT_SOURCES,
+): Confidence {
+  return entry.confidence === 'database' && approved.length === 0 ? 'estimate' : entry.confidence;
+}
+
 const allUnknown = (view: Pick<IngredientView, 'unknownNutrients'>): boolean =>
   NUTRIENT_KEYS.every((k) => view.unknownNutrients.includes(k));
 

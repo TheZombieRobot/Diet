@@ -24,8 +24,9 @@ import {
   isText,
 } from '../storage/primitives';
 import { NUTRIENT_KEYS } from '../nutrition/nutrients';
-import { matchKey } from './names';
+import { matchKey, mentionsWords } from './names';
 import {
+  ALLERGEN_NAME_WORDS,
   type AttributionMap,
   COMPLETE_ALLERGEN_AISLES,
   COMPLETE_ALLERGEN_GROUPS,
@@ -34,6 +35,7 @@ import {
   type FoodCatalogue,
   FOOD_COUNT_RANGE,
   FOOD_GROUPS,
+  FRESH_SINGLE_FOOD_IDS,
   GENERIC_CUT_NAMES,
   INHERENT_ALLERGENS_BY_GROUP,
   INHERENT_ALLERGENS_BY_ID,
@@ -72,6 +74,7 @@ export const FOOD_DATA_RULES = Object.freeze([
   'cooked-form',
   'substitute',
   'lean-name',
+  'allergen-name',
   'required-food',
   'leafy-greens',
   'count',
@@ -196,7 +199,8 @@ const LEAN_HINT_RE = /\blean\b(?! and fat)/i;
 
 /**
  * One catalogue food: its keys and each field's type, format and range, then the rules that read
- * only this food (CR7–CR17 in part, CR19, CR20). Returns the food when every field is well formed.
+ * only this food (CR7–CR17 in part, CR19, CR20, CR27). Returns the food when every field is well
+ * formed.
  */
 function checkFood(value: unknown, path: string, problems: Problems): SeedIngredient | null {
   const before = problems.count;
@@ -306,7 +310,8 @@ function checkFoodRules(food: SeedIngredient, path: string, problems: Problems):
   // CR9: a count word exactly when the food is counted.
   if ((food.countWord !== null) !== (unit === 'each' || food.gramsPerEach !== null))
     problems.add(p('countWord'), 'count-word');
-  // CR11: only a fresh single food may have a complete list; a packed single food never does.
+  // CR11: only a fresh aisle and group may have a complete list (and, shipped, only an id of
+  // FRESH_SINGLE_FOOD_IDS); a packed single food never does.
   const single = SINGLE_FOOD_IDS.includes(food.id);
   if (food.allergensComplete && (single || !isFreshSingleFood(food)))
     problems.add(p('allergensComplete'), 'allergens-complete');
@@ -319,6 +324,15 @@ function checkFoodRules(food: SeedIngredient, path: string, problems: Problems):
       : inherent.every((a) => food.allergens.includes(a));
   const byIdOk = (INHERENT_ALLERGENS_BY_ID[food.id] ?? []).every((a) => food.allergens.includes(a));
   if (!groupOk || !byIdOk) problems.add(p('allergens'), 'inherent-allergen');
+  // CR27: a name that gives an allergen away carries it ("Hazelnuts", "Mussels", "Couscous").
+  const names = [food.name, ...food.aliases];
+  const named = ALLERGEN_NAME_WORDS.filter(({ words, unless }) =>
+    names.some(
+      (n) => words.some((w) => mentionsWords(n, w)) && !unless.some((u) => mentionsWords(n, u)),
+    ),
+  );
+  if (named.some(({ allergen }) => !food.allergens.includes(allergen)))
+    problems.add(p('allergens'), 'allergen-name');
   // CR14, CR15: garden foods and seasons are produce.
   if (food.gardenFlag && (food.aisle !== 'Produce' || food.seasonMonths.length === 0))
     problems.add(p('gardenFlag'), 'garden');
@@ -347,8 +361,9 @@ function checkFoodRules(food: SeedIngredient, path: string, problems: Problems):
 }
 
 /**
- * Checks a catalogue against rules CR1–CR26 (item 18 design 2.4). The shipped checks (CR21–CR26)
- * run unless `shippedChecks` is false, which only the synthetic-fixture tests pass.
+ * Checks a catalogue against rules CR1–CR27 (item 18 design 2.4). The shipped checks (CR21–CR26,
+ * and CR11's list of fresh single foods) run unless `shippedChecks` is false, which only the
+ * synthetic-fixture tests pass.
  */
 export function validateFoodCatalogue(
   raw: unknown,
@@ -451,8 +466,18 @@ export function validateFoodCatalogue(
       if (RESERVED_ID_PREFIXES.some((prefix) => food.id.startsWith(prefix)))
         problems.add(at(at('foods', index), 'id'), 'reserved-id');
     }
+    // CR11, shipped: a complete list only on a reviewed fresh single food, whatever its aisle
+    // and group say, so a regrouped or re-aisled packed food stays "check the label".
+    for (const { food, index } of parsed) {
+      if (food.allergensComplete && !FRESH_SINGLE_FOOD_IDS.includes(food.id))
+        problems.add(at(at('foods', index), 'allergensComplete'), 'allergens-complete');
+    }
     // CR26: every food the allergen rules name is shipped.
-    for (const id of [...Object.keys(INHERENT_ALLERGENS_BY_ID), ...SINGLE_FOOD_IDS]) {
+    for (const id of [
+      ...Object.keys(INHERENT_ALLERGENS_BY_ID),
+      ...SINGLE_FOOD_IDS,
+      ...FRESH_SINGLE_FOOD_IDS,
+    ]) {
       if (!foodById.has(id)) problems.add(byId('foods', id), 'required-food');
     }
   }

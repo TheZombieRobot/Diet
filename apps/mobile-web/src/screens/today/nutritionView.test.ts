@@ -124,5 +124,37 @@ describe('the Nutrition today card when food figures are not known (item 18; HS-
       nutritionTodayView(viewOf(MALE), dayIntake(unknownFood, []), unknownFood, 'keto', loaded)
         .energyNote,
     ).toBeNull();
+    // A label-only day names no database, even with one approved.
+    const labelled = [foodEntry('12:00', 'Example', { energyKj: 900 }, { confidence: 'label' })];
+    expect(
+      nutritionTodayView(viewOf(MALE), dayIntake(labelled, []), labelled, 'keto', loaded).footer,
+    ).toBe(foods.footer.noDatabase);
+  });
+
+  it('C97 N43: a Database entry restored while no database is approved is tagged Estimate, under the no-database footer', () => {
+    const food = [foodEntry('12:00', 'Example', { energyKj: 900 }, { confidence: 'database' })];
+    const model = nutritionTodayView(viewOf(MALE), dayIntake(food, []), food, 'keto', NOT_LOADED);
+    expect(model.entries[0]?.tag).toEqual({ tone: 'amber', text: foods.badges.estimate });
+    expect(model.footer).toBe(foods.footer.noDatabase);
+    expect(allText(model)).not.toContain(foods.badges.database);
+  });
+
+  it('C11 D35: "Food: at least" never rounds up, and a fibre bar with a missing figure is incomplete', () => {
+    const food = [
+      foodEntry('12:00', 'Example lunch', { energyKj: 6999.6, fibreG: 4 }),
+      foodEntry('13:00', 'Example snack', {}, { unknown: ['energyKj', 'fibreG'] }),
+    ];
+    const drinks = [drink('2000-02-09T20:00:00.000Z', 1)];
+    const model = nutritionTodayView(
+      viewOf(MALE),
+      dayIntake(food, drinks),
+      food,
+      'keto',
+      NOT_LOADED,
+    );
+    expect(model.notes.find((n) => n.part === 'alcohol')?.text).toMatch(
+      /^Food: at least 6,999 kJ · /,
+    );
+    expect(model.rows[2]?.state).toBe('incomplete');
   });
 });

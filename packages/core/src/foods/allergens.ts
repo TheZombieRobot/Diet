@@ -19,6 +19,7 @@ import {
   type IngredientView,
 } from '../storage/overrides';
 import type { ProfileRecord } from '../storage/records';
+import { isDislikedFood } from './names';
 import { SINGLE_FOOD_IDS } from './types';
 
 export type AllergenSummary =
@@ -155,11 +156,18 @@ export interface AllowedSwap {
   readonly checkLabel: boolean;
 }
 
-/** The swaps a food's details may offer, in its own order, and how many were left out. */
+/**
+ * The swaps a food's details may offer, in its own order, and how many were left out: those
+ * swapDecision does not offer, and foods the owner does not want suggested (isDislikedFood, as
+ * item 20's swap panel leaves them out).
+ */
 export function allowedSwaps(
   view: IngredientView,
   resolve: IngredientResolver,
-  profile: Pick<ProfileRecord, 'allergens' | 'glutenFreeHousehold'>,
+  profile: Pick<
+    ProfileRecord,
+    'allergens' | 'glutenFreeHousehold' | 'dislikeIngredientIds' | 'dislikeTerms'
+  >,
 ): { readonly swaps: readonly AllowedSwap[]; readonly hidden: number } {
   const swaps: AllowedSwap[] = [];
   let hidden = 0;
@@ -167,7 +175,8 @@ export function allowedSwaps(
     const swap = resolve(id);
     if (swap === null) continue;
     const decision = swapDecision(view, swap, profile);
-    if (decision.offered) swaps.push({ view: swap, checkLabel: decision.checkLabel });
+    if (decision.offered && !isDislikedFood(swap, profile))
+      swaps.push({ view: swap, checkLabel: decision.checkLabel });
     else hidden += 1;
   }
   return { swaps, hidden };

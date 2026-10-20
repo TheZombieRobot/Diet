@@ -8,7 +8,7 @@
 import { DEFAULT_GARDEN_NAME } from '../storage/defaults';
 import type { RefId } from '../storage/primitives';
 import type { IngredientView } from '../storage/overrides';
-import type { IngredientRecord } from '../storage/records';
+import type { IngredientRecord, ProfileRecord } from '../storage/records';
 
 /** What linking needs from an ingredient: no nutrients, so it works under any licence. */
 export interface CatalogueEntry {
@@ -37,9 +37,54 @@ export const PRE_DATASET_CATALOGUE: Catalogue = Object.freeze({
   hasDataset: false,
 });
 
-/** NFKD, combining marks removed, lower case, runs of whitespace as one space, trimmed. */
+/**
+ * NFKD, combining marks removed, lower case, apostrophes dropped, hyphens and dashes as spaces,
+ * runs of whitespace as one space, trimmed. So "flat leaf parsley" finds "Flat-leaf parsley" and
+ * "kumara" finds "Kūmara": a phone keyboard rarely types a hyphen or a macron.
+ */
 export function matchKey(text: string): string {
-  return text.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase().replace(/\s+/g, ' ').trim();
+  return text
+    .normalize('NFKD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .replace(/['\u2018\u2019]/g, '')
+    .replace(/[-\u2010-\u2015\u2212]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** A text's words by matchKey, each between spaces (" sardines in olive oil "); punctuation splits words. */
+function wordsOf(text: string): string {
+  return ` ${matchKey(text)
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter((w) => w !== '')
+    .join(' ')} `;
+}
+
+/**
+ * True when `words` appears in `text` as whole words, compared by matchKey, with a plural "s" or
+ * "es" allowed on its last word: "Sardines in olive oil" mentions "sardine"; "Butternut" does not
+ * mention "butter", and "Eggplant" does not mention "egg".
+ */
+export function mentionsWords(text: string, words: string): boolean {
+  const phrase = wordsOf(words).trim();
+  if (phrase === '') return false;
+  const haystack = wordsOf(text);
+  return ['', 's', 'es'].some((end) => haystack.includes(` ${phrase}${end} `));
+}
+
+/**
+ * True when the owner does not want a food suggested (the profile's "Foods you do not want
+ * suggested"): its id is listed, or its name or another name mentions a listed word.
+ */
+export function isDislikedFood(
+  food: { readonly id: string; readonly name: string; readonly aliases: readonly string[] },
+  profile: Pick<ProfileRecord, 'dislikeIngredientIds' | 'dislikeTerms'>,
+): boolean {
+  if (profile.dislikeIngredientIds.includes(food.id)) return true;
+  return [food.name, ...food.aliases].some((name) =>
+    profile.dislikeTerms.some((term) => mentionsWords(name, term)),
+  );
 }
 
 /** The shortest query that searches (item 19's 2-character rule). */

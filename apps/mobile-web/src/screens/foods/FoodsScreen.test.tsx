@@ -42,6 +42,7 @@ afterEach(() => {
 interface Show {
   readonly allergens?: UserAllergen[];
   readonly glutenFreeHousehold?: boolean;
+  readonly dislikeTerms?: string[];
   readonly overrides?: Readonly<Record<string, IngredientChange[]>>;
   readonly value?: FoodDataValue;
 }
@@ -50,11 +51,12 @@ interface Show {
 async function show({
   allergens = [],
   glutenFreeHousehold = false,
+  dislikeTerms = [],
   overrides = {},
   value,
 }: Show = {}): Promise<TestDb> {
   test = await openTestDb();
-  await onboardForTests(test, { profile: { allergens, glutenFreeHousehold } });
+  await onboardForTests(test, { profile: { allergens, glutenFreeHousehold, dislikeTerms } });
   for (const [seedId, changes] of Object.entries(overrides))
     await test.repos.ingredientOverrides.create({ seedId, changes });
   appStorageStore.set(test.storage);
@@ -203,7 +205,7 @@ describe('Foods in the app (item 18; UX 7a)', () => {
     expect(row('Pasta').textContent).not.toContain('(gluten)');
   });
 
-  it('K8 C107 FL-07 HS-24: swaps never carry a listed allergen; gluten-free swaps only for a gluten-free household', async () => {
+  it('K8 FD-04 C107 FL-07 HS-24: swaps never carry a listed allergen; gluten-free swaps only for a gluten-free household; no disliked food', async () => {
     const swapsOf = (panel: HTMLElement) =>
       within(panel).getByText(foods.detail.swaps).nextElementSibling?.textContent ?? '';
     await show({ allergens: ['peanut', 'fish'] });
@@ -225,6 +227,11 @@ describe('Foods in the app (item 18; UX 7a)', () => {
     expect(swapsOf(open('spring water', 'Tuna in spring water'))).toBe(
       'Tuna in oil (check the label), Pink salmon (canned) (check the label)',
     );
+    cleanup();
+    test?.db.shutDown();
+
+    await show({ dislikeTerms: ['kale'] });
+    expect(swapsOf(open('chard', 'Silverbeet'))).toBe('Spinach');
   });
 
   it('K9 HEALTH_SAFETY section 4 C97 X4: a badge only with a number, and a footer naming only an approved database', async () => {
@@ -266,11 +273,13 @@ describe('Foods in the app (item 18; UX 7a)', () => {
     cleanup();
     test?.db.shutDown();
 
-    // A database correction from a restore while nothing is approved counts as Estimate.
+    // A database correction from a restore while nothing is approved counts as Estimate, with no
+    // source line: the owner did not enter those figures.
     const usda = correction('usda', []);
     await show({ value: value(exampleFoodData()), overrides: { 'seed:example-green': [usda] } });
     panel = open('leafy', 'Example leafy green');
     expect(panel.textContent).toContain('Badge: Estimate');
+    expect(panel.textContent).not.toContain(foods.sourceOwn.estimate);
     expect(panel.textContent).toContain(foods.footer.noDatabase);
     cleanup();
     test?.db.shutDown();
@@ -280,6 +289,18 @@ describe('Foods in the app (item 18; UX 7a)', () => {
     expect(panel.textContent).toContain('Badge: Database');
     expect(panel.textContent).toContain('From Example database: Example database food X1.');
     expect(panel.textContent).toContain('Database figures are averages from Example database.');
+    cleanup();
+    test?.db.shutDown();
+
+    // With a database approved, a food whose figures are the owner's label names none.
+    await show({
+      value: value(exampleFoodData('usda'), ['usda']),
+      overrides: { 'seed:example-green': [label] },
+    });
+    panel = open('leafy', 'Example leafy green');
+    expect(panel.textContent).toContain('Badge: Label');
+    expect(panel.textContent).toContain(foods.footer.noDatabase);
+    expect(panel.textContent).not.toContain('From Example database');
   });
 
   it("K5 C69 N17 N21: the screen's states, corrections and a release that cannot be read", async () => {

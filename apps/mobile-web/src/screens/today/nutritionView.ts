@@ -13,8 +13,9 @@
  * - Item 18 (HS-37; its design 1.4): every figure goes through item 18's display rules, so a total
  *   whose known part rounds to 0 reads "not known" (never "at least 0" or "Food 0 kJ"), grams show
  *   one decimal below 10 g, and a bar with a missing figure is never shown as complete. An entry
- *   whose every figure is unknown has no badge, the badge words are foods.badges, and the footer
- *   names a food database only when one is approved and shown.
+ *   whose every figure is unknown has no badge, the badge words are foods.badges, a Database
+ *   entry while no database is approved (a restored backup) is tagged Estimate (entryConfidence),
+ *   and the footer names a food database only when one is approved and shown.
  */
 import {
   APPROVED_NUTRIENT_SOURCES,
@@ -23,7 +24,9 @@ import {
   type DatabaseSource,
   type DayIntake,
   type DayTargetsView,
+  displayedFigure,
   type DietMode,
+  entryConfidence,
   type FoodLogRecord,
   fillTemplate,
   fillFraction,
@@ -101,16 +104,14 @@ const TAG_TONES: Readonly<Record<Confidence, 'teal' | 'neutral' | 'amber'>> = {
 
 /**
  * "9,360" or "17.5", "at least 17" for a lower bound (rounded down), or null when nothing is known
- * (a lower bound that rounds to 0): item 18's figureShown and roundForDisplay (HS-37, D35).
+ * (a lower bound that rounds to 0): item 18's figureShown and displayedFigure (HS-37, D35).
  */
 function figure(key: NutrientKey, value: number, complete: boolean): string | null {
-  const shown = figureShown(value, !complete);
+  const shown = displayedFigure(key, figureShown(value, !complete));
   if (shown.kind === 'not-known') return null;
-  const rounded = roundForDisplay(key, shown.value, shown.kind === 'value');
-  if (shown.kind === 'value') return formatNumber(rounded);
-  return rounded === 0
-    ? null
-    : fillTemplate(foods.figures.atLeast, { value: formatNumber(rounded) });
+  return shown.kind === 'value'
+    ? formatNumber(shown.value)
+    : fillTemplate(foods.figures.atLeast, { value: formatNumber(shown.value) });
 }
 
 /** A value template filled with the eaten figure, or "not known" alone, with no "of …" (item 18). */
@@ -319,7 +320,7 @@ export function nutritionTodayView(
     fixLink: fix?.link ?? null,
     entries: entries.map((entry) => {
       const badge = foodBadge({
-        confidence: entry.confidence,
+        confidence: entryConfidence(entry, foodFigures.approved),
         nutrients: entry.nutrients,
         unknownNutrients: entry.unknownNutrients,
       });

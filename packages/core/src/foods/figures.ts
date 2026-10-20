@@ -20,7 +20,7 @@ import type { IngredientView } from '../storage/overrides';
 import type { NutrientKey } from '../storage/records';
 import { APPROVED_NUTRIENT_SOURCES } from './approval';
 import type { AttributionMap, DatabaseSource } from './types';
-import { displaySource, sortSources } from './view';
+import { displaySource, entryConfidence, sortSources } from './view';
 
 export type NutrientUnit = 'kJ' | 'g' | 'mg';
 
@@ -83,19 +83,30 @@ export function formatNumber(n: number): string {
   return n < 0 ? `-${text}` : text;
 }
 
+/**
+ * A figure as it is shown, with its value rounded for display: a lower bound that rounds down to
+ * 0 is "not known". figureText, foodBadge and Today's card all decide from this, so a figure that
+ * reads "not known" never carries a badge.
+ */
+export function displayedFigure(key: NutrientKey, shown: FigureShown): FigureShown {
+  if (shown.kind === 'not-known') return shown;
+  const rounded = roundForDisplay(key, shown.value, shown.kind === 'value');
+  return shown.kind === 'at-least' && rounded === 0
+    ? { kind: 'not-known' }
+    : { kind: shown.kind, value: rounded };
+}
+
 /** "393 kJ", "at least 17 g", "not known". */
 export function figureText(key: NutrientKey, shown: FigureShown): string {
   const unit = UNIT_TEMPLATES[NUTRIENT_UNITS[key]];
-  switch (shown.kind) {
+  const displayed = displayedFigure(key, shown);
+  switch (displayed.kind) {
     case 'value':
-      return fillTemplate(unit, { value: formatNumber(roundForDisplay(key, shown.value, true)) });
-    case 'at-least': {
-      const rounded = roundForDisplay(key, shown.value, false);
-      if (rounded === 0) return foods.figures.notKnown;
+      return fillTemplate(unit, { value: formatNumber(displayed.value) });
+    case 'at-least':
       return fillTemplate(foods.figures.atLeast, {
-        value: fillTemplate(unit, { value: formatNumber(rounded) }),
+        value: fillTemplate(unit, { value: formatNumber(displayed.value) }),
       });
-    }
     case 'not-known':
       return foods.figures.notKnown;
   }
@@ -229,9 +240,10 @@ export function averageShown(days: readonly FigureInput[]): {
 // ---- Badges and the footer ----
 
 /**
- * The badge an entry shows: none when every figure it shows is "not known" (all eight unknown and
- * every value 0), since a badge belongs to a number (X4); otherwise its own confidence. A recipe
- * with some lines loaded keeps its Estimate badge beside its "at least" figures.
+ * The badge an entry shows: none when every figure it shows is "not known" (all eight unknown,
+ * each with nothing known or a known part that rounds down to 0), since a badge belongs to a
+ * number (X4); otherwise its own confidence. A recipe with some lines loaded keeps its Estimate
+ * badge beside its "at least" figures. A log entry's confidence goes through entryConfidence first.
  */
 export function foodBadge(entry: {
   readonly confidence: Confidence;
@@ -239,7 +251,9 @@ export function foodBadge(entry: {
   readonly unknownNutrients: readonly NutrientKey[];
 }): Confidence | null {
   const nothingShown = NUTRIENT_KEYS.every(
-    (k) => entry.unknownNutrients.includes(k) && entry.nutrients[k] === 0,
+    (k) =>
+      displayedFigure(k, figureShown(entry.nutrients[k], entry.unknownNutrients.includes(k)))
+        .kind === 'not-known',
   );
   return nothingShown ? null : entry.confidence;
 }
@@ -265,22 +279,28 @@ export function footerForViews(
 /**
  * The footer for a screen of log entries. An entry does not record which database it came from,
  * and an approved source is never removed, so every approved source is named when one is shown.
+ * An entry counts as Database only through entryConfidence, so while nothing is approved no
+ * footer says a figure is from a database.
  */
 export function footerForEntries(
   entries: readonly { readonly confidence: Confidence }[],
   approved: readonly DatabaseSource[] = APPROVED_NUTRIENT_SOURCES,
 ): FooterInput {
-  const databaseShown = entries.some((e) => e.confidence === 'database');
+  const databaseShown = entries.some((e) => entryConfidence(e, approved) === 'database');
   return { sources: databaseShown ? [...approved] : [], databaseShown };
 }
 
-/** The footer text (HEALTH_SAFETY section 4; C97): it names a database only when one is shown. */
+/**
+ * The footer text (HEALTH_SAFETY section 4; C97): it names a database only when one is shown. A
+ * database shown with no source to name is a programming error (footerForViews and
+ * footerForEntries never give one), as is an approved source with no attribution (R4 and S5).
+ */
 export function nutritionFooter(
   input: FooterInput,
   attributions: AttributionMap = foods.attribution,
 ): string {
   if (!input.databaseShown) return foods.footer.noDatabase;
-  if (input.sources.length === 0) return foods.footer.databaseUnnamed;
+  if (input.sources.length === 0) throw new RangeError('A database figure has no approved source');
   const names = input.sources.map((s) => {
     const name = attributions[s]?.name;
     if (name === undefined || name === '')

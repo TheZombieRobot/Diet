@@ -31,7 +31,6 @@ import {
   OTHER_AISLE,
   packsText,
   per100gRows,
-  type ProfileRecord,
   searchFoods,
   SEED_AISLES,
   seasonText,
@@ -39,6 +38,7 @@ import {
   twinOf,
 } from '@diet/core';
 import { foods } from '@diet/core/copy/health';
+import type { FoodsProfile } from '../../foods/useFoods';
 import { formatLocalDate } from '../../format';
 
 export interface FoodsModelInput {
@@ -48,7 +48,7 @@ export interface FoodsModelInput {
   /** Every seed with the owner's corrections. */
   readonly views: readonly IngredientView[];
   readonly resolve: IngredientResolver;
-  readonly profile: Pick<ProfileRecord, 'allergens' | 'glutenFreeHousehold'>;
+  readonly profile: FoodsProfile;
   readonly query: string;
   readonly openId: string | null;
   readonly timeZone: TimeZone;
@@ -211,6 +211,9 @@ function panelOf(input: FoodsModelInput, view: IngredientView): FoodPanelModel {
       list: list(unknown.map((k) => foods.nutrientNamesLower[k])),
     });
 
+  // Where the figures came from: an approved database's own row, or the owner's label or
+  // estimate. A database source that is not approved (a restored correction) has no line: its
+  // badge already says Estimate, and the owner did not enter those figures (design 1.3).
   const source = displaySource(view, approved);
   const row = data.release.foods[view.id];
   let sourceLine: string | null = null;
@@ -218,8 +221,8 @@ function panelOf(input: FoodsModelInput, view: IngredientView): FoodPanelModel {
     const name = attributions[source]?.name;
     if (name !== undefined)
       sourceLine = fillTemplate(foods.sourceLine, { source: name, foodName: row.foodName });
-  } else if (source === 'label' || source === 'estimate') {
-    sourceLine = foods.sourceOwn[source];
+  } else if (view.source === 'label' || view.source === 'estimate') {
+    sourceLine = foods.sourceOwn[view.source];
   }
 
   return {
