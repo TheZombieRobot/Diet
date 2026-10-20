@@ -17,7 +17,9 @@ import { ActionRow, Button, Card, ChevronIcon, SelectField, TextField } from '@d
 import { type ReactElement, useState } from 'react';
 import type { AppStorage } from '../../db/runtime';
 import { formatAboutKcal, formatKgShort, formatLocalDate, formatWhole } from '../../format';
+import { featureOffReasonsFor } from '../../onboarding/readinessText';
 import { routeHref } from '../../routes';
+import { SafetyRows } from '../weight/parts';
 import { energyExplanation } from './energyExplanation';
 import { editMessage, hintWith, optionsWith, useCardWrite } from './form';
 import { ReadinessLink, WriteStatus } from './parts';
@@ -170,6 +172,7 @@ export function EnergyCard({
       {explanation.lines.map((line) => (
         <p key={line}>{line}</p>
       ))}
+      {explanation.stopSignRows ? <SafetyRows /> : null}
       {gates.energyEstimateAvailable ? (
         <SelectField
           label={profileCopy.activityLegend}
@@ -227,7 +230,7 @@ export function EnergyCard({
           }}
         />
       ) : (
-        <p>{copy.energy.deficitOff}</p>
+        <p>{featureOffReasonsFor('deficit', view.gateInput, gates)}</p>
       )}
       <TextField
         label={copy.energy.floorLabel}

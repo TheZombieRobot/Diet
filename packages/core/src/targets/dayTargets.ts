@@ -27,7 +27,7 @@ import type {
 } from '../storage/records';
 import type { LocalDate } from '../util/time';
 import { weightGateInput } from '../weight/gateInput';
-import { runningKickstartPeriod } from '../weight/phase';
+import { runningKickstartPeriod, stopSignPauseUntil } from '../weight/phase';
 import { weighInsFromRecords } from '../weight/weighIns';
 import { effectiveNetCarbCeiling, type NetCarbCeiling } from './carbs';
 import { type TargetDisplay, targetDisplay } from './display';
@@ -61,7 +61,14 @@ export type TargetGates = Pick<
 
 /** A Kickstart running by time now (item 14's runningKickstartPeriod), whatever the mode and gates. */
 export type KickstartState =
-  | { readonly running: false }
+  | {
+      readonly running: false;
+      /**
+       * A stop-sign answer's pause still holds for a Kickstart that was ended early (item 14's
+       * stopSignPauseUntil): no deficit through this day, its scheduled last day. Absent otherwise.
+       */
+      readonly stopSignPauseUntil?: LocalDate;
+    }
   | {
       readonly running: true;
       readonly periodId: Id;
@@ -152,11 +159,13 @@ export function dayTargets(input: DayTargetsInput): DayTargets {
               : null;
   const figures: TargetFigures =
     kickstart.running && kickstartSuspended === null ? 'kickstart' : 'steady';
+  // Ending a paused Kickstart early never brings a deficit back before its scheduled last day.
+  const pausedAfterEnd = !kickstart.running && kickstart.stopSignPauseUntil !== undefined;
   const deficit = effectiveDeficit({
     figures,
     dietMode,
     gates,
-    stopSignPause: kickstartSuspended === 'stop-sign',
+    stopSignPause: kickstartSuspended === 'stop-sign' || pausedAfterEnd,
     kickstartDeficitPct: targets.kickstartDeficitPct,
     steadyDeficitPct: targets.steadyDeficitPct,
   });
@@ -188,18 +197,23 @@ export function dayTargets(input: DayTargetsInput): DayTargets {
  * The Kickstart now: item 14's one "running now" rule (the latest period, not ended early, day 1
  * arrived and its scheduled phase not over in the device zone nor its own start zone). A period
  * whose end is latched by the app (due but not yet written) reads as not running, as the phase
- * engine reads it (W13), so a failed end never lets Kickstart figures return.
+ * engine reads it (W13), so a failed end never lets Kickstart figures return. One that is not
+ * running carries a stop-sign pause that still holds after an early end (stopSignPauseUntil).
  */
 export function kickstartStateFrom(
   periods: readonly KickstartPeriodRecord[],
   checks: readonly KickstartCheckRecord[],
   at: Instant,
+  today: LocalDate,
   deviceZone: TimeZone,
   homeTimeZone: TimeZone,
   endsPending?: ReadonlyMap<Id, KickstartEndReason>,
 ): KickstartState {
   const period = runningKickstartPeriod(periods, checks, at, deviceZone, homeTimeZone);
-  if (period === null || endsPending?.has(period.id) === true) return { running: false };
+  if (period === null || endsPending?.has(period.id) === true) {
+    const until = stopSignPauseUntil(periods, checks, today, homeTimeZone);
+    return until === null ? { running: false } : { running: false, stopSignPauseUntil: until };
+  }
   return {
     running: true,
     periodId: period.id,
@@ -263,6 +277,7 @@ export function dayTargetsFromRecords(
     records.periods,
     records.checks,
     clock.at,
+    today,
     clock.deviceZone,
     home,
     clock.endsPending,

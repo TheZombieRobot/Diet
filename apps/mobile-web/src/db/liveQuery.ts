@@ -3,13 +3,27 @@
  * useSyncExternalStore, like the plain stores in store.ts. It re-renders when the records it read
  * change, and unsubscribes for good when the write gate closes (an import, delete-all, or another
  * tab), so a closed database is never queried again from here.
+ *
+ * A component can switch to a new store between renders (a query built for a new date at
+ * midnight). React reads such a switch only when the snapshot changes: with two stores that both
+ * started empty, a render the old store's own result caused could look unchanged, so React bailed
+ * out of it and dropped the new store's subscription, leaving the screen on the old day for good
+ * (review F46). Each store's snapshot is therefore its own cell, new for every store and every
+ * value, so a switch of store always reads as a change.
  */
 import { liveQuery } from 'dexie';
 import { useMemo, useSyncExternalStore } from 'react';
 import type { WriteGate } from './gate';
 
+/** A value in a cell of its own: a new cell for every store and every value set (F46). */
+interface Cell<V> {
+  readonly value: V;
+}
+
 interface LiveStore<V> {
   get: () => V;
+  /** The value in its cell, for useSyncExternalStore. */
+  snapshot: () => Cell<V>;
   subscribe: (listener: () => void) => () => void;
 }
 
@@ -18,15 +32,16 @@ function startedStore<V>(
   initial: V,
   start: (set: (next: V) => void) => (() => void) | null,
 ): LiveStore<V> {
-  let value = initial;
+  let cell: Cell<V> = { value: initial };
   const listeners = new Set<() => void>();
   let stop: (() => void) | null = null;
   const set = (next: V): void => {
-    value = next;
+    cell = { value: next };
     for (const listener of [...listeners]) listener();
   };
   return {
-    get: () => value,
+    get: () => cell.value,
+    snapshot: () => cell,
     subscribe: (listener) => {
       listeners.add(listener);
       if (listeners.size === 1) stop = start(set);
@@ -118,9 +133,9 @@ export function useLiveQuery<S extends { readonly gate: WriteGate }, T>(
   );
   return useSyncExternalStore(
     store?.subscribe ?? noSubscribe,
-    store?.get ?? noValue,
-    store?.get ?? noValue,
-  );
+    store?.snapshot ?? noCell,
+    store?.snapshot ?? noCell,
+  ).value;
 }
 
 /**
@@ -132,8 +147,9 @@ export function useLiveQueryState<S extends { readonly gate: WriteGate }, T>(
   query: (source: S) => Promise<T>,
 ): LiveQueryState<T> {
   const store = useMemo(() => liveStateStore(() => query(source), source.gate), [source, query]);
-  return useSyncExternalStore(store.subscribe, store.get, store.get);
+  return useSyncExternalStore(store.subscribe, store.snapshot, store.snapshot).value;
 }
 
 const noSubscribe = (): (() => void) => () => undefined;
-const noValue = (): undefined => undefined;
+const NO_CELL: Cell<undefined> = { value: undefined };
+const noCell = (): Cell<undefined> => NO_CELL;

@@ -29,7 +29,7 @@ describe('standard drinks (HS-04, AL-01)', () => {
     { volumeMl: 100, abvPercent: 0.5, expected: 0.04 },
     { volumeMl: 1000, abvPercent: 0, expected: 0 },
   ])(
-    '$volumeMl mL at $abvPercent percent ABV is $expected standard drinks',
+    'HS-04: $volumeMl mL at $abvPercent percent ABV is $expected standard drinks',
     ({ volumeMl, abvPercent, expected }) => {
       const result = standardDrinks({ volumeMl, abvPercent });
       expect(result.source).toBe('calculated');
@@ -165,7 +165,7 @@ describe('weekly totals sum unrounded figures and round once (HS-05, HS-06)', ()
     { count: 21, volumeMl: 121, abvPercent: 10, threshold: 20 },
     { count: 34, volumeMl: 30, abvPercent: 37.3, threshold: 30 },
   ])(
-    '$count × $volumeMl mL at $abvPercent percent reaches $threshold',
+    'HS-05: $count × $volumeMl mL at $abvPercent percent reaches $threshold',
     ({ count, volumeMl, abvPercent, threshold }) => {
       const drink = perDrink(volumeMl, abvPercent);
       expect(drink.exact * count).toBeGreaterThanOrEqual(threshold);

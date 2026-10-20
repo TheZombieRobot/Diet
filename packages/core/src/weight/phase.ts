@@ -295,8 +295,49 @@ export function kickstartNotStarted(
   return { periodId: latest.period.id, day1: periodDay1(latest.period, input.homeTimeZone) };
 }
 
+/**
+ * The last day a Kickstart stop-sign answer's pause holds (HEALTH_SAFETY sections 2 to 4; T27):
+ * the latest period that ran has a stop-sign check and today is on or before its scheduled last
+ * day, whether it still runs or was ended early, so ending it early never brings the deficit back
+ * sooner. While it holds no deficit is planned, no fast is timed to the eating window ("the app
+ * never insists on a fast") and no note says a fast drop is expected. Null otherwise.
+ */
+export function stopSignPauseUntil(
+  periods: readonly KickstartPeriodRecord[],
+  checks: readonly Pick<KickstartCheckRecord, 'periodId' | 'outcome'>[],
+  today: LocalDate,
+  homeTimeZone: TimeZone,
+): LocalDate | null {
+  const period = periodsThatRan(periods).at(-1);
+  if (period === undefined) return null;
+  if (!checks.some((c) => c.periodId === period.id && c.outcome === 'stop-sign')) return null;
+  const last = scheduledLastDay(period, extensionsOf(period.id, checks), homeTimeZone);
+  return today <= last ? last : null;
+}
+
+/**
+ * The end of a Kickstart would be due only because of `after`, the gates a readiness answer or a
+ * profile save would give (F23, F32): nothing is due to end now, and with those gates the one end
+ * rule (kickstartEndNeeded) ends the period. The app asks before it saves such a change.
+ */
+export function kickstartEndsWithGates(input: PhaseInput, after: PhaseGates): boolean {
+  return (
+    kickstartEndNeeded(input) === null && kickstartEndNeeded({ ...input, gates: after }) !== null
+  );
+}
+
 /** A new Kickstart waits this long (elapsed) after any stored stop-sign check (W31). */
 export const KICKSTART_START_AFTER_STOP_SIGN_HOURS = 336;
+
+/** A stored stop-sign check in the last 336 hours (elapsed), in any period. */
+export function recentStopSignCheck(
+  checks: readonly Pick<KickstartCheckRecord, 'outcome' | 'askedAt'>[],
+  now: Instant,
+): boolean {
+  const nowMs = parseInstant(now);
+  const waitMs = KICKSTART_START_AFTER_STOP_SIGN_HOURS * 3_600_000;
+  return checks.some((c) => c.outcome === 'stop-sign' && nowMs - parseInstant(c.askedAt) < waitMs);
+}
 
 export type StartUnavailable =
   | 'low-weight'
@@ -348,12 +389,7 @@ export function kickstartStartAvailability(
   if (!canStartKickstart(kickstartUsage(input.periods, input.checks, input.homeTimeZone))) {
     return no('cap');
   }
-  const now = parseInstant(input.now);
-  const waitMs = KICKSTART_START_AFTER_STOP_SIGN_HOURS * 3_600_000;
-  const recentStopSign = input.checks.some(
-    (c) => c.outcome === 'stop-sign' && now - parseInstant(c.askedAt) < waitMs,
-  );
-  if (recentStopSign) return no('recent-stop-sign');
+  if (recentStopSignCheck(input.checks, input.now)) return no('recent-stop-sign');
   if (latest !== null) {
     const last = effectiveLastDay(latest.period, latest.extensions, input.homeTimeZone);
     if (endedBeforeDay1(latest.period) && last >= input.today) {

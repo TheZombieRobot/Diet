@@ -365,6 +365,29 @@ describe('Backup and data card (section 16 test 39)', () => {
     expect(await test.db.kickstart_periods.count()).toBe(snapshotV1.kickstart_periods.length);
   });
 
+  it('restore: the counts name only the stores the file has records in, in plain words (F41)', async () => {
+    const file = await createBackupFile({
+      tables: { ...structuredClone(snapshotV1), audit: [], sessions: [] },
+      exportedAt: AT,
+      appVersion: '0.1.0',
+      password: null,
+    });
+    render(<BackupCard />);
+    await chooseFile(file.text);
+    const confirm = await within(card()).findByTestId('restore-confirm');
+    const rows = [...within(confirm).getByTestId('restore-counts').querySelectorAll('li')].map(
+      (li) => li.textContent,
+    );
+    expect(rows).toContain(
+      `${privacy.storeNames.card_state}: ${String(snapshotV1.card_state.length)}`,
+    );
+    expect(rows.filter((row) => /: 0$/.test(row))).toEqual([]);
+    expect(rows.join('\n')).not.toMatch(
+      new RegExp(`${privacy.storeNames.audit}|${privacy.storeNames.sessions}`),
+    );
+    expect(privacy.storeNames.card_state).toBe('Hidden reminders');
+  });
+
   it('restore: a rescue copy is called a rescue copy, not a backup', async () => {
     const rescue = await createRescueFile({
       tables: snapshotV1,

@@ -312,6 +312,22 @@ describe('starting a Kickstart chosen at setup (W14, W31)', () => {
     expect(await db.repos.kickstart.listPeriods()).toEqual([]);
   });
 
+  it('F35: the offer is true to what a start plans: no "bigger deficit" at 0%, no Kickstart figures without a rough guide', async () => {
+    const { PENDING } = WEIGHT_SCENARIOS;
+    const offer = () => region(weight.start.pendingLabel).textContent;
+    await today(PENDING, 1);
+    expect(offer()).toContain(weight.start.offer);
+    cleanup();
+    test?.db.shutDown();
+    await today({ ...PENDING, targets: { ...PENDING.targets, kickstartDeficitPct: 0 } }, 1);
+    expect(offer()).toContain(weight.start.offerNoDeficit);
+    expect(offer()).not.toContain('bigger deficit');
+    cleanup();
+    test?.db.shutDown();
+    await today({ ...PENDING, heightCm: null }, 1);
+    expect(offer()).toContain(weight.start.offerNoGuide);
+  });
+
   it('"Not now" clears the choice and says a Kickstart can start later', async () => {
     const db = await today(WEIGHT_SCENARIOS.PENDING, 1);
     fireEvent.click(

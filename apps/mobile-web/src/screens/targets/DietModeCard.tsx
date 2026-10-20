@@ -10,6 +10,7 @@ import { Button, ButtonRow, Card, ChoiceList, Notice } from '@diet/ui';
 import { type ReactElement, useEffect, useRef, useState } from 'react';
 import { StorageRuleError } from '../../db/errors';
 import type { AppStorage } from '../../db/runtime';
+import { featureOffReasonsFor } from '../../onboarding/readinessText';
 import { switchDietMode } from './dietModeActions';
 import { useCardWrite } from './form';
 import { ReadinessLink, WriteStatus } from './parts';
@@ -148,7 +149,7 @@ export function DietModeCard({
       <p className="ui-text-muted">{copy.dietMode.switchNote}</p>
       {ceilingOff ? (
         <>
-          <p>{copy.carbs.off}</p>
+          <p>{`${featureOffReasonsFor('ketoCeiling', view.gateInput, view.gates)} ${copy.carbs.offShown}`}</p>
           <ReadinessLink />
         </>
       ) : null}

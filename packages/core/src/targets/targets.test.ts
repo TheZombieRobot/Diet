@@ -167,7 +167,7 @@ describe('intake: food apart from alcohol (C11, C31, C92, NN-01; U18, U19)', () 
   ];
   const sixCans = [{ kcalPerServe: 94, count: 6 }];
 
-  it('C11: six cans of 94 kcal are their own 2,360 kJ; the floor check and protein never see them', () => {
+  it('HS-36, C11: six cans of 94 kcal are their own 2,360 kJ; the floor check and protein never see them', () => {
     const day = dayIntake(food, sixCans);
     expect(day.alcohol).toEqual({ knownKcal: 564, knownKj: 2360, unknownCount: 0 });
     expect(foodEnergyKj(food)).toBe(7000);

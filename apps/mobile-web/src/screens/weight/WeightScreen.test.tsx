@@ -1,6 +1,7 @@
 // The Weight screen (item 14 design sections 2.4 to 2.6 and 6.4): the long-term goal (WT-01,
 // WT-02, HS-01), the weigh-ins list and its zones (W6), the Phase card (W24, W31) and the screen's
 // wording. jsdom over the real repositories on fake-indexeddb.
+import { minimumDaysFor } from '@diet/core';
 import { weight } from '@diet/core/copy/health';
 import {
   onDay,
@@ -267,6 +268,19 @@ describe('How to read this and the weekly change (item 14 review)', () => {
     await open({ ...WEIGHT_SCENARIOS.K10, periods: [{ startDay: 3 }] }, 12);
     expect(within(howTo()).getByText(weight.chart.aboutBand)).toBeTruthy();
     expect(within(howTo()).queryByText(weight.chart.aboutBandKickstart)).toBeNull();
+  });
+});
+
+describe('the weekly change before two weeks of weigh-ins (full review F29)', () => {
+  it('after seven daily weigh-ins it says what it still needs: weigh-ins in each of the last two weeks', async () => {
+    await open(WEIGHT_SCENARIOS.K10, 7);
+    const trend = screen.getByRole('region', { name: weight.trend.label });
+    const change = within(trend).getByRole('group', { name: weight.trend.weeklyChange });
+    expect(change.querySelector('.ui-stat__value--empty')?.textContent).toBe(
+      weight.trend.notEnough,
+    );
+    expect(within(trend).getByText(weight.trend.needsWeekly)).toBeTruthy();
+    expect(weight.trend.needsWeekly).toContain(`at least ${String(minimumDaysFor(7))} days`);
   });
 });
 

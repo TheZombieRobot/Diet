@@ -239,3 +239,45 @@ describe('Today before setup, while reading, and when the read fails (C10, C12; 
     expect(screen.getAllByTestId('later-step')).toHaveLength(1);
   });
 });
+
+describe('after a Kickstart stop-sign answer, Today never times a fast to the window (F20, F7; HS-27)', () => {
+  it('the top line and the Fast card say it is fine to eat now, with the stop-signs; the Weight card expects no fast drop', async () => {
+    // Day 20 of the Kickstart begun on 1 March: a fast since 6:00 pm (NZST from 19 March 2000),
+    // and a "yes" to dizziness at 6:30 am.
+    test = await todayFixture({
+      fast: '2000-03-19T06:00:00.000Z',
+      now: '2000-03-19T20:00:00.000Z',
+      seed: async (t) => {
+        const [period] = await t.repos.kickstart.listPeriods();
+        await t.db.kickstart_checks.add({
+          id: t.env.randomId(),
+          periodId: period?.id ?? '',
+          askedAt: '2000-03-19T18:30:00.000Z',
+          timeZone: 'Pacific/Auckland',
+          dizzyOnStanding: 'yes',
+          palpitations: 'no',
+          crampsNotSettling: 'no',
+          faintAtWork: 'no',
+          energyRating: null,
+          sleepRating: null,
+          outcome: 'stop-sign',
+        });
+      },
+    });
+    await renderToday();
+    await waitFor(() => {
+      expect(screen.getByTestId('today-status-line').textContent).toBe(
+        `Fasting 14 h. ${fasting.card.fineToEat}`,
+      );
+    });
+    const card = screen.getByRole('region', { name: fasting.card.label });
+    expect(within(card).getByText(fasting.card.stopSignPause)).toBeDefined();
+    expect(within(card).getByText(fasting.stopSigns.action)).toBeDefined();
+    // No "Eat 6:00 pm – 7:00 pm" and no "of 23 h" to wait for.
+    expect(card.textContent).not.toMatch(/Eat \d|of \d+ h/);
+    const weightCard = screen.getByRole('region', { name: weight.card.label });
+    expect(within(weightCard).getByText(weight.phase.kickstartPausedNote)).toBeDefined();
+    expect(within(weightCard).queryByText(weight.phase.kickstartNote)).toBeNull();
+    expect(screen.getByRole('main').textContent).not.toMatch(/Eating window opens/);
+  });
+});

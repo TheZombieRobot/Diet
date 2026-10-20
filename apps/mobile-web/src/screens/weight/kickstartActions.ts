@@ -20,7 +20,10 @@ import {
   type Id,
   type KickstartEndReason,
   type KickstartPeriodRecord,
+  kickstartEndsWithGates,
   latestKickstartPeriod,
+  phaseInputFrom,
+  type ReadinessGates,
   type StartRefusal,
   StorageInvariantError,
   type WeightOverview,
@@ -107,6 +110,21 @@ async function endIfDue(storage: AppStorage): Promise<KickstartEndReason | null>
     // Otherwise the latch stays and the reconciler tries again on its next tick.
     return null;
   }
+}
+
+/**
+ * Whether a readiness answer or a profile save that gives `after` would end the Kickstart (F23,
+ * F32): from fresh records, nothing is due to end now and core kickstartEndsWithGates says the one
+ * end rule would end it with those gates. Settings asks before it saves such a change.
+ */
+export async function kickstartEndsWith(
+  storage: AppStorage,
+  after: ReadinessGates,
+): Promise<boolean> {
+  const inputs = await readWeightInputs(storage);
+  const input = overviewInputFrom(inputs, currentWeightEnv(storage));
+  if (input.settings.onboardingCompletedAt === null) return false;
+  return kickstartEndsWithGates(phaseInputFrom(input), after);
 }
 
 let ending: Promise<KickstartEndReason | null> | null = null;

@@ -96,7 +96,7 @@ export async function goTo(page: Page, screen: ScreenName): Promise<void> {
  * A finished setup (item 13): the shell opens only after it, so specs about the shell start here.
  * Opens the app (a fresh database shows Welcome), writes the five settings markers, seven "no"
  * answers, a synthetic profile (175 cm, born 1970, female, no Kickstart choice), an onboarding
- * weight of 90 kg (or none, with `weightKg: null`) and a 22:2 schedule with raw IndexedDB,
+ * weight of 100 kg (or none, with `weightKg: null`) and a 22:2 schedule with raw IndexedDB,
  * reloads, and waits for Today. Then opens `path` if given. `appUrl` is the app's address when it
  * is not the configured base (update.spec.ts's own server).
  */
@@ -106,7 +106,7 @@ export async function seedOnboarded(
   appUrl = './',
   options: { readonly weightKg?: number | null } = {},
 ): Promise<void> {
-  const weightKg = options.weightKg === undefined ? 90 : options.weightKg;
+  const weightKg = options.weightKg === undefined ? 100 : options.weightKg;
   await page.goto(appUrl);
   await expect(heading(page)).toHaveText(onboarding.welcome.title);
   await page.evaluate(

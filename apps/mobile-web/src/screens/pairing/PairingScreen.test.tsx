@@ -21,7 +21,6 @@ import { browserPairingDevices, pairingDevicesStore } from './devices';
 import { PairingScreen } from './PairingScreen';
 import { type FakeDeviceOptions, type FakeDevices, fakeDevices } from './pairingTestKit';
 import { savePairingFromCode } from './savePairing';
-import { SCAN_TIMEOUT_MS } from './ScanCard';
 
 const copy = transfer.pairing;
 let test: TestDb;
@@ -109,6 +108,12 @@ describe('not paired (A8)', () => {
     expect(devices.getUserMedia).not.toHaveBeenCalled();
     expectNothingSecretShown();
   });
+
+  it('F29: while the laptop has no code to show (until item 33), Scan is not the main button', async () => {
+    await open();
+    expect(screen.getByText(copy.laptopLaterStep)).toBeDefined();
+    expect(button(copy.scan).className).toContain('ui-button--secondary');
+  });
 });
 
 describe('scanning and saving (A9)', () => {
@@ -185,12 +190,20 @@ describe('codes and cameras that cannot be used (A10; C83)', () => {
 });
 
 describe('the camera always stops (A11; HS-38)', () => {
-  it('after 2 minutes without a code', async () => {
+  it('HS-38: after 2 minutes without a code, and not well before', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true, toFake: ['setTimeout', 'clearTimeout'] });
     await open();
     await startScan();
+    // The 2 minutes are written out, not read from the constant, so a longer limit fails (F51).
+    // The clock also moves with real time here, hence the 5-second margin.
     await act(async () => {
-      vi.advanceTimersByTime(SCAN_TIMEOUT_MS);
+      vi.advanceTimersByTime(115_000);
+      await Promise.resolve();
+    });
+    expect(screen.queryByText(copy.stoppedTimeout)).toBeNull();
+    expect(allStopped()).toBe(false);
+    await act(async () => {
+      vi.advanceTimersByTime(5_000);
       await Promise.resolve();
     });
     await screen.findByText(copy.stoppedTimeout);
@@ -477,10 +490,9 @@ describe('Settings, the Laptop card (A15)', () => {
     });
   });
 
-  it('the placeholder no longer mentions pairing', () => {
+  it('the Coming later card on Settings does not mention pairing', () => {
     render(<SettingsScreen />);
-    const placeholder = screen.getByRole('region', { name: 'Not built yet' }).textContent;
-    expect(placeholder).not.toMatch(/pairing/i);
-    expect(placeholder).toContain('arrive with the steps that use them.');
+    const later = screen.getByRole('region', { name: 'Coming later' }).textContent;
+    expect(later).not.toMatch(/pairing/i);
   });
 });

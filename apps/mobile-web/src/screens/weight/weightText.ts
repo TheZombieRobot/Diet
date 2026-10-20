@@ -1,7 +1,9 @@
 /** Weight wording filled in for display; every sentence comes from health.ts. */
 import {
+  dayTargetsFromRecords,
   fillTemplate,
   type Phase,
+  safeKickstartDeficitPct,
   type StartRefusal,
   type StartUnavailable,
   type WeightNote,
@@ -9,6 +11,7 @@ import {
 import { weight } from '@diet/core/copy/health';
 import { useEffect, useRef, type RefObject } from 'react';
 import { formatKg, formatLocalDay } from '../../format';
+import type { WeightView } from './useWeightView';
 
 /** "96.8 kg". */
 export const kgText = (kg: number): string => fillTemplate(weight.card.kg, { kg: formatKg(kg) });
@@ -18,6 +21,7 @@ export const KG_UNIT = weight.card.kg.replace('{kg}', '').trim();
 
 export const NOTE_TEXT: Readonly<Record<WeightNote, string>> = {
   kickstart: weight.phase.kickstartNote,
+  'kickstart-paused': weight.phase.kickstartPausedNote,
   'kickstart-extended': weight.phase.kickstartExtendedNote,
   'kickstart-later': weight.phase.kickstartLaterNote,
   'kickstart-not-started': weight.phase.notStartedNote,
@@ -50,6 +54,25 @@ export function startUnavailableText(
   const text = START_UNAVAILABLE_TEXT[refusal.reason];
   if (text === null || refusal.day1 === undefined) return text;
   return fillTemplate(text, { date: formatLocalDay(refusal.day1) });
+}
+
+/**
+ * The Kickstart offer, true to what a start would plan (F35): no "bigger deficit" when the
+ * Kickstart deficit is set to 0%, and none of the Kickstart figures without a rough guide (item
+ * 21's engine reads them as Steady then).
+ */
+export function startOfferText(view: WeightView): string {
+  const { input, inputs, overview } = view;
+  const { targets } = dayTargetsFromRecords(inputs, {
+    at: input.now,
+    today: overview.today,
+    deviceZone: input.deviceTimeZone,
+    endsPending: input.endsPending,
+  });
+  if (!targets.estimate.available) return weight.start.offerNoGuide;
+  return safeKickstartDeficitPct(inputs.targets.kickstartDeficitPct) === 0
+    ? weight.start.offerNoDeficit
+    : weight.start.offer;
 }
 
 /** The phase chip: "Kickstart, week 2 of 3", "Steady", or none. */

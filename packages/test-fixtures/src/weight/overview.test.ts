@@ -438,3 +438,45 @@ describe('NN-03: a long-term goal 22% below the start weight', () => {
     expect(overview(NN03, 10).goal).toMatchObject({ milestone: { kind: 'milestone', kg: 78.3 } });
   });
 });
+
+describe('after a stop-sign answer or a readiness end (F4, F5, F7, F23)', () => {
+  const stopEnded = { ...K42, periods: [{ startDay: 1, stopSignOnDay: 20, endOnDay: 20 }] };
+
+  it('F4, F5: ended after a stop-sign, the explainer names the pause, never a smaller deficit, and offers no one-tap 23:1', () => {
+    expect(overview(stopEnded, 20, {}, '13:00').cards.steadyExplainer).toMatchObject({
+      deficit: 'paused',
+      pausedUntil: date(21),
+      windowLine: false,
+    });
+    // Day 22: the Steady deficit applies again; 23:1 is still not offered within 336 hours.
+    expect(overview(stopEnded, 22).cards.steadyExplainer).toMatchObject({
+      deficit: 'smaller',
+      pausedUntil: null,
+      windowLine: false,
+    });
+    // A Kickstart deficit no bigger than the Steady one is never called the bigger one.
+    const zero = overview(K42, 22, { targets: { kickstartDeficitPct: 0 } });
+    expect(zero.cards.steadyExplainer?.deficit).toBe('steady');
+  });
+
+  it('F7: during a stop-sign pause no note says a fast drop is expected', () => {
+    const paused = { ...K42, periods: [{ startDay: 1, stopSignOnDay: 19 }] };
+    expect(overview(paused, 20).notes).toEqual(['kickstart-paused']);
+    expect(overview(K42, 20).notes).toEqual(['kickstart']);
+  });
+
+  it('F5, F23: a Kickstart a readiness change ended names that reason and offers no one-tap 23:1', () => {
+    const gated = {
+      ...K42,
+      periods: [{ startDay: 1, endOnDay: 7, endReason: 'readiness-gated' as const }],
+    };
+    expect(overview(gated, 8).cards.steadyExplainer).toMatchObject({
+      endedBecause: 'readiness',
+      windowLine: false,
+    });
+    expect(overview(K42, 22).cards.steadyExplainer).toMatchObject({
+      endedBecause: null,
+      windowLine: true,
+    });
+  });
+});

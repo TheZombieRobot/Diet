@@ -124,7 +124,7 @@ const radio = (page: Page, name: string) =>
   page.getByRole('radio', { name: new RegExp(`^${name}`) });
 const change = (page: Page) => page.getByRole('button', { name: targets.dietMode.change }).click();
 
-test('WT-07, HS-09, C11: a Kickstart day, saturated fat over budget, and alcohol as its own part', async ({
+test('WT-07, HS-09, HS-36, C11: a Kickstart day, saturated fat over budget, and alcohol as its own part', async ({
   page,
 }) => {
   await scenario(page, MALE, { food_log: [MEAL], drinks_log: [SIX_CANS] });

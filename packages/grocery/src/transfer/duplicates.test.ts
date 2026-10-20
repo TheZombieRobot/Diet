@@ -112,7 +112,7 @@ describe('G18 NN-07 TR-09b C79: the relay duplicate rule', () => {
     expect(laptop.receive(T1, at(2))).toEqual(ignored('already-received'));
   });
 
-  it('(c) stop midway and send again: a resend, then late copies are refused, also after 20 minutes', () => {
+  it('NN-07 (c): stop midway and send again: a resend, then late copies are refused, also after 20 minutes', () => {
     const laptop = new Laptop();
     laptop.receive(T1, at(1));
     expect(laptop.receive(T2, at(6))).toEqual(accepted('resend'));
@@ -148,7 +148,7 @@ describe('G18 NN-07 TR-09b C79: the relay duplicate rule', () => {
     expect(laptop.receive(send(LIST_B, 1, 9, at(2)), at(2))).toEqual(accepted('new-list'));
   });
 
-  it('(h) every order of two sends and their copies holds one list, no line twice, and keeps a laptop tick', () => {
+  it('NN-07 (h): every order of two sends and their copies holds one list, no line twice, and keeps a laptop tick', () => {
     const arrivals = [T1, T1, T2, T2];
     const orders = (rest: ListPayload[]): ListPayload[][] =>
       rest.length === 0

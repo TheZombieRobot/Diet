@@ -1,6 +1,6 @@
 import { checkProfileForm, localDateOf, type ProfileDraft } from '@diet/core';
-import { onboarding, profile as copy } from '@diet/core/copy/health';
-import { Button, Notice } from '@diet/ui';
+import { onboarding, profile as copy, readiness } from '@diet/core/copy/health';
+import { Button, ButtonRow, Notice } from '@diet/ui';
 import { type ReactElement, useEffect, useRef, useState } from 'react';
 import { appStorageStore } from '../../db/runtime';
 import { saveProfile } from '../../onboarding/actions';
@@ -16,7 +16,9 @@ import type { AppStorage } from '../../db/runtime';
 /**
  * Settings, Profile (item 13 design section 3.12): the setup form without the current weight, the
  * long-term goal and the Kickstart switch, which belong to item 14. A height that puts a stored
- * goal below the floor is saved with a note (the goal is hidden at use, never deleted; E41).
+ * goal below the floor is saved with a note (the goal is hidden at use, never deleted; E41). A
+ * birth year or height that would end a running Kickstart is saved only after "Save and end
+ * Kickstart", since a typing slip is the likely cause (F23).
  */
 export function ProfileScreen(): ReactElement | null {
   const storage = useStore(appStorageStore);
@@ -40,7 +42,9 @@ function ProfileSettings({
   const [showErrors, setShowErrors] = useState(false);
   const [refused, setRefused] = useState(0);
   const [saved, setSaved] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const form = useRef<HTMLFormElement>(null);
+  const title = useRef<HTMLParagraphElement>(null);
   const save = useSave();
   const check = checkProfileForm(draft, {
     mode: 'settings',
@@ -53,16 +57,31 @@ function ProfileSettings({
   useEffect(() => {
     if (refused > 0) focusFirstInvalid(form.current);
   }, [refused]);
+  useEffect(() => {
+    if (confirming) title.current?.focus();
+  }, [confirming]);
 
-  const onSave = () => {
+  const onSave = (endKickstart: boolean) => {
     const { value } = check;
     if (value === null) {
       setShowErrors(true);
       setSaved(false);
+      setConfirming(false);
       setRefused((n) => n + 1);
       return;
     }
-    void save.run(() => saveProfile(storage, value, 'settings')).then(setSaved);
+    let asked = false;
+    void save
+      .run(async () => {
+        const result = await saveProfile(storage, value, 'settings', {
+          askBeforeEndingKickstart: !endKickstart,
+        });
+        asked = result.kickstartEndNeedsConfirm;
+      })
+      .then((ok) => {
+        setConfirming(ok && asked);
+        setSaved(ok && !asked);
+      });
   };
 
   return (
@@ -72,6 +91,7 @@ function ProfileSettings({
         draft={draft}
         onDraftChange={(next) => {
           setSaved(false);
+          setConfirming(false);
           setDraft(next);
         }}
         check={check}
@@ -99,8 +119,42 @@ function ProfileSettings({
           <p>{copy.saved}</p>
         </Notice>
       ) : null}
+      {confirming ? (
+        <Notice>
+          <p ref={title} tabIndex={-1} className="ui-text-strong ui-step-start">
+            {readiness.endsKickstart.title}
+          </p>
+          <p>{readiness.endsKickstart.profile}</p>
+          <ButtonRow>
+            <Button
+              variant="caution"
+              aria-disabled={save.busy}
+              onClick={() => {
+                onSave(true);
+              }}
+            >
+              {readiness.endsKickstart.confirm}
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setConfirming(false);
+              }}
+            >
+              {readiness.endsKickstart.cancel}
+            </Button>
+          </ButtonRow>
+        </Notice>
+      ) : null}
       {/* aria-disabled while saving keeps focus on the button; useSave refuses a second tap. */}
-      <Button variant="primary" block aria-disabled={save.busy} onClick={onSave}>
+      <Button
+        variant="primary"
+        block
+        aria-disabled={save.busy || confirming}
+        onClick={() => {
+          if (!confirming) onSave(false);
+        }}
+      >
         {copy.save}
       </Button>
     </>
