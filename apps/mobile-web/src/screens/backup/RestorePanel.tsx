@@ -454,9 +454,12 @@ function Confirmation(props: {
       ) : null}
       <p className="ui-text-strong">{copy.countsTitle}</p>
       <ul className="ui-plain-list" data-testid="restore-counts">
-        {counts.map(({ table, count }) => (
-          <li key={table}>{fillTemplate(copy.storeCount, { table: storeName(table), count })}</li>
-        ))}
+        {/* Only the stores the file has records in: a list of zeros reads as noise (F41). */}
+        {counts
+          .filter(({ count }) => count > 0)
+          .map(({ table, count }) => (
+            <li key={table}>{fillTemplate(copy.storeCount, { table: storeName(table), count })}</li>
+          ))}
       </ul>
       {decoded.changes.length > 0 ? (
         <>

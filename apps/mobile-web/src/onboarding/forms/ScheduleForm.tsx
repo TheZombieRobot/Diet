@@ -120,7 +120,11 @@ export function ScheduleForm({
             })
           : undefined,
     },
-    { value: 'none', label: schedule.none, detail: schedule.noneDetail },
+    {
+      value: 'none',
+      label: schedule.none,
+      detail: mode === 'settings' ? schedule.noneDetailInSettings : schedule.noneDetail,
+    },
   ];
   const choose = (value: string) => {
     if (value === 'none') {

@@ -59,7 +59,7 @@ async function visitWithEverythingOpen(
   }
 }
 
-test('no screen shows banned health, price, stock or cart wording', async ({ page }) => {
+test('HS-31: no screen shows banned health, price, stock or cart wording', async ({ page }) => {
   await seedOnboarded(page);
   await expect(heading(page)).toHaveText('Today');
   const found: string[] = [];
@@ -141,7 +141,7 @@ test('no screen but About, Weight, Fasting and Diet and targets shows a number o
   expect(found).toEqual([]);
 });
 
-test('Today filled in, with the steps editor and the "+" panel open, and with fasting switched off: no banned wording', async ({
+test('HS-31: Today filled in, with the steps editor and the "+" panel open, and with fasting switched off: no banned wording', async ({
   page,
 }) => {
   // Item 16 design section 5.3 E4 (HS-07, HS-08, HS-16, HS-19, HS-21, HS-26, C11).

@@ -281,7 +281,7 @@ export interface OnboardOptions {
   readonly completedAt?: Instant;
   /** Profile fields over the default synthetic profile (175 cm, born 1970, female). */
   readonly profile?: UpdatePatch<'profile'>;
-  /** The onboarding weight (default 90 kg); null for none. */
+  /** The onboarding weight (default 100 kg, synthetic; C103); null for none. */
   readonly weightKg?: number | null;
 }
 
@@ -304,7 +304,7 @@ export async function onboardForTests(test: TestDb, options: OnboardOptions = {}
     kickstartOptIn: false,
     ...options.profile,
   });
-  const weightKg = options.weightKg === undefined ? 90 : options.weightKg;
+  const weightKg = options.weightKg === undefined ? 100 : options.weightKg;
   if (weightKg !== null) await repos.weights.addOnboardingWeight({ kg: weightKg, note: null });
   await repos.targets.update({
     fastingPreset: '22:2',

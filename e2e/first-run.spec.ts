@@ -19,6 +19,7 @@ import {
   waitForServiceWorkerControl,
 } from './support/app';
 import { lowContrastText } from './support/contrast';
+import { helpRowProblems } from './support/helpRows';
 import { startAudit } from './support/network';
 
 // The first-run flow in the production build (checklist item 13; HS-20, HS-03, RD-04, RD-07,
@@ -60,7 +61,7 @@ async function answerAll(
   await expect(heading(page)).toHaveText(readiness.summaryTitle);
 }
 
-async function fillProfile(page: Page, weight = '90', goal?: string): Promise<void> {
+async function fillProfile(page: Page, weight = '100', goal?: string): Promise<void> {
   await page.getByLabel(profile.heightLabel).fill('175');
   await page.getByLabel(profile.weightLabel).fill(weight);
   await page.getByLabel(profile.birthYearLabel).fill('1970');
@@ -223,7 +224,7 @@ test('P5 FL-08 in the UI: a whole setup, then Today, with every record stored', 
   await acknowledge(page);
   await answerAll(page);
   await button(page, onboarding.frame.continue).click();
-  await fillProfile(page, '90', '70');
+  await fillProfile(page, '100', '78');
   await button(page, onboarding.frame.continue).click();
   await expect(heading(page)).toHaveText(schedule.title);
   await page.getByRole('radio', { name: /^22:2/ }).check();
@@ -238,8 +239,8 @@ test('P5 FL-08 in the UI: a whole setup, then Today, with every record stored', 
 
   const stored = await readStores(page, ['readiness', 'weights', 'profile', 'targets', 'settings']);
   expect(stored['readiness']).toHaveLength(7);
-  expect(stored['weights']).toMatchObject([{ kg: 90, source: 'onboarding' }]);
-  expect(stored['profile']?.[0]).toMatchObject({ goalKg: 70, goalReferenceKg: 90 });
+  expect(stored['weights']).toMatchObject([{ kg: 100, source: 'onboarding' }]);
+  expect(stored['profile']?.[0]).toMatchObject({ goalKg: 78, goalReferenceKg: 100 });
   expect((stored['profile']?.[0] as { goalSetAt: unknown }).goalSetAt).toEqual(expect.any(String));
   expect(stored['targets']?.[0]).toMatchObject({
     fastingPreset: '22:2',
@@ -356,7 +357,10 @@ test('P10: Save and the Yes and No buttons in Settings keep focus while they sav
   await expect(yes).toBeFocused();
 });
 
-/** What each onboarding view must pass (P8): wording, contrast in both themes, 48 px, no sideways scroll. */
+/**
+ * What each onboarding view must pass (P8): wording, contrast in both themes, 48 px, no sideways
+ * scroll, and help number rows whose words and numbers stay whole (F19).
+ */
 async function sweep(page: Page, where: string, found: string[]): Promise<void> {
   const text = await renderedText(page);
   found.push(
@@ -389,6 +393,7 @@ async function sweep(page: Page, where: string, found: string[]): Promise<void> 
     ...(await dayBarProblems(page, where)),
     ...(await clippedTimeFields(page, where)),
     ...(await headerLinkProblems(page, where)),
+    ...(await helpRowProblems(page, where)),
   );
 }
 
@@ -527,7 +532,7 @@ async function walkSetup(page: Page, found: string[]): Promise<void> {
   await button(page, readiness.ageCheck.changeAnswer).click();
   await button(page, readiness.no).click();
   await expect(heading(page)).toHaveText(profile.title);
-  await page.getByLabel(profile.weightLabel).fill('90');
+  await page.getByLabel(profile.weightLabel).fill('100');
   await page.getByRole('radio', { name: profile.sexOptions.female }).check();
   await button(page, onboarding.frame.continue).click();
   await expect(heading(page)).toHaveText(schedule.title);
