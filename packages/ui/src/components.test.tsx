@@ -1016,3 +1016,66 @@ describe('meters, the select field and chips (item 21; K1 to K3b)', () => {
     ]);
   });
 });
+
+describe('Today pieces (item 16; C13)', () => {
+  it('an off action row is a focusable aria-disabled button that does nothing and says why', () => {
+    render(
+      <>
+        <ActionRow title="Finish meal" marker="Later" describedBy="why" />
+        <p id="why">Arrives later.</p>
+      </>,
+    );
+    const row = screen.getByRole('button', { name: 'Finish meal' });
+    expect(row.getAttribute('aria-disabled')).toBe('true');
+    expect(row.hasAttribute('disabled')).toBe(false);
+    expect(row.getAttribute('aria-describedby')).toBe('why');
+    expect(row.className).toContain('ui-action-row--off');
+    const marker = within(row).getByText('Later');
+    expect(marker.getAttribute('aria-hidden')).toBe('true');
+    row.focus();
+    expect(document.activeElement).toBe(row);
+    fireEvent.click(row);
+    fireEvent.keyDown(row, { key: 'Enter' });
+    expect(window.location.hash).toBe('');
+  });
+
+  it('an action row with onSelect is a button that runs it; the panel hands its actions a close', () => {
+    const select = vi.fn();
+    render(
+      <FloatingActionPanel label="Quick actions">
+        {(close) => (
+          <ActionRow
+            title="Log weight"
+            onSelect={() => {
+              select();
+              close();
+            }}
+          />
+        )}
+      </FloatingActionPanel>,
+    );
+    const plus = screen.getByRole('button', { name: 'Quick actions' });
+    fireEvent.click(plus);
+    const row = screen.getByRole('button', { name: 'Log weight' });
+    expect(row.hasAttribute('aria-disabled')).toBe(false);
+    fireEvent.click(row);
+    expect(select).toHaveBeenCalledOnce();
+    expect(plus.getAttribute('aria-expanded')).toBe('false');
+    // Closing for an action leaves focus to the action, not the "+".
+    expect(document.activeElement).not.toBe(plus);
+  });
+
+  it('a card heading takes focus from code but not from Tab; a stacked button row', () => {
+    const { container } = render(
+      <Card label="Water">
+        <ButtonRow stacked>
+          <Button>Save</Button>
+        </ButtonRow>
+      </Card>,
+    );
+    expect(screen.getByRole('heading', { level: 2, name: 'Water' }).tabIndex).toBe(-1);
+    expect(container.querySelector('.ui-button-row')?.className).toBe(
+      'ui-button-row ui-button-row--stacked',
+    );
+  });
+});

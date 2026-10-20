@@ -1,5 +1,35 @@
 import { describe, expect, it } from 'vitest';
-import { formatDayPhrase, formatShortDay } from './format';
+import {
+  formatDayPhrase,
+  formatShortDay,
+  formatSteps,
+  formatTodayHeading,
+  formatWaterMl,
+  formatWaterText,
+} from './format';
+
+describe("Today's figures (item 16; U12)", () => {
+  it('the heading is weekday, day and month with no comma, in the device zone', () => {
+    // 2:20 pm NZDT on Wednesday 15 March 2000.
+    expect(formatTodayHeading('2000-03-15T01:20:00.000Z', 'Pacific/Auckland')).toBe(
+      'Wednesday 15 March',
+    );
+    expect(formatTodayHeading('2000-03-15T01:20:00.000Z', 'Europe/London')).toBe(
+      'Wednesday 15 March',
+    );
+    expect(formatTodayHeading('2000-03-14T11:30:00.000Z', 'Pacific/Auckland')).toBe(
+      'Wednesday 15 March',
+    );
+  });
+
+  it('water in mL under a litre, then in litres with at most two decimals; steps grouped', () => {
+    expect(formatWaterMl(250)).toEqual({ value: '250', unit: 'mL' });
+    expect(formatWaterMl(1000)).toEqual({ value: '1', unit: 'L' });
+    expect(formatWaterMl(1250)).toEqual({ value: '1.25', unit: 'L' });
+    expect(formatWaterText(2250)).toBe('2.25 L');
+    expect(formatSteps(12000)).toBe('12,000');
+  });
+});
 
 describe('short dates for the fasting history and the reflux log (item 15)', () => {
   it('"Tue 4 Jan" in the record zone, with no comma whatever the device inserts', () => {

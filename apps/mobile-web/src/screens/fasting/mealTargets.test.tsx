@@ -23,7 +23,7 @@ import { appStorageStore } from '../../db/runtime';
 import { openSnapshotDb, type TestDb } from '../../db/testKit';
 import { formatWhole } from '../../format';
 import { MALE, seedTargets } from '../targets/targetsTestKit';
-import { TodayScreen } from '../TodayScreen';
+import { TodayScreen } from '../today/TodayScreen';
 import { NutritionTodayCard } from '../today/NutritionTodayCard';
 import { readFastingInputs } from './inputs';
 import { fastingContext } from './integration';

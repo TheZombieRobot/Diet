@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactElement } from 'react';
+import type { ButtonHTMLAttributes, ReactElement, Ref } from 'react';
 import { classNames } from '../classNames';
 
 export type ButtonVariant =
@@ -15,6 +15,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   /** Full width of its container. */
   block?: boolean;
+  /** The button, for moving focus to it after an action (item 16). */
+  ref?: Ref<HTMLButtonElement> | undefined;
 }
 
 /** A text button at least 48 px high. Defaults to type="button" so it never submits a form. */

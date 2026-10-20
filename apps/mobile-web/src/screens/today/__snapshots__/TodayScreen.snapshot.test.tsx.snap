@@ -1,0 +1,373 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`TD-01: the Today snapshot (C1) > (a) the full fixture 1`] = `
+{
+  "blocks": [
+    {
+      "controls": [
+        {
+          "href": "#/weight",
+          "name": "Set a long-term goal",
+          "role": "link",
+        },
+        {
+          "name": "Log weight",
+          "role": "button",
+        },
+        {
+          "href": "#/weight",
+          "name": "Weigh-ins and trend",
+          "role": "link",
+        },
+      ],
+      "label": "Weight",
+      "lines": [
+        "100.0 kg",
+        "Needs more weigh-ins",
+        "Not set",
+        "The 7-day average needs weigh-ins on at least 3 of the last 7 days.",
+        "This is a trend, not a promise.",
+        "Kickstart: a fast drop is expected now. Most of it is water and glycogen, with some fat. Typical first weeks on a carb ceiling see several kilograms go.",
+      ],
+    },
+    {
+      "controls": [
+        {
+          "href": "tel:111",
+          "name": "111 Emergency 111",
+          "role": "link",
+        },
+        {
+          "href": "tel:0800611116",
+          "name": "Healthline (24/7 health advice) 0800 611 116",
+          "role": "link",
+        },
+        {
+          "name": "Hide for today",
+          "role": "button",
+        },
+      ],
+      "label": "Kickstart stop-signs",
+      "lines": [
+        "Stop-signs during Kickstart: dizziness on standing, palpitations, cramps that electrolytes do not settle, or feeling faint at work.",
+        "Eat, add salt and fluids, and talk to Healthline or a GP if it continues.",
+        "Call 111 if you faint or feel very unwell.",
+        "111 Emergency 111",
+        "Healthline (24/7 health advice) 0800 611 116",
+      ],
+    },
+    {
+      "controls": [
+        {
+          "name": "Add 5 pm snack",
+          "role": "button",
+        },
+        {
+          "name": "End fast",
+          "role": "button",
+        },
+        {
+          "href": "#/fasting",
+          "name": "Fasting and reflux",
+          "role": "link",
+        },
+      ],
+      "label": "Fast",
+      "lines": [
+        "19 h 20 m of 23 h",
+        "Started yesterday at 7:00 pm Eat 6:00 pm – 7:00 pm",
+        "There is no meal check until meals are planned in the app. One meal has to carry a whole day's protein, and it's fine to add the 5 pm snack.",
+      ],
+    },
+    {
+      "controls": [],
+      "label": "Nutrition today",
+      "lines": [
+        "Energy 0 of 8,874 kJ",
+        "Protein 0 of 140 g",
+        "Fibre 0 of 25 g guide",
+        "Net carbs 0 / 20 g",
+        "Saturated fat 0 / 23 g",
+        "Nothing logged yet today.",
+      ],
+    },
+    {
+      "controls": [
+        {
+          "name": "Add 250 mL",
+          "role": "button",
+        },
+        {
+          "checked": true,
+          "name": "Electrolytes today",
+          "role": "switch",
+        },
+      ],
+      "label": "Water",
+      "lines": [
+        "500 mL",
+        "Electrolytes today",
+      ],
+    },
+    {
+      "controls": [
+        {
+          "name": "Same as yesterday: 12,000",
+          "role": "button",
+        },
+        {
+          "name": "Enter steps",
+          "role": "button",
+        },
+      ],
+      "label": "Steps",
+      "lines": [
+        "Not entered today",
+      ],
+    },
+    {
+      "controls": [],
+      "label": "Movement",
+      "lines": [
+        "Sessions, walks and rest days arrive at a later step of the build checklist.",
+      ],
+    },
+    {
+      "controls": [],
+      "label": "Drinks",
+      "lines": [
+        "NZ guidance for women: no more than 2 standard drinks a day and 10 a week, with at least 2 alcohol-free days. No alcohol use is risk-free.",
+        "Drink logging arrives at a later step of the build checklist.",
+      ],
+    },
+    {
+      "controls": [
+        {
+          "name": "Hide for today",
+          "role": "button",
+        },
+        {
+          "name": "Hide this reminder",
+          "role": "button",
+        },
+        {
+          "name": "Back up now",
+          "role": "button",
+        },
+        {
+          "name": "Not now",
+          "role": "button",
+        },
+      ],
+      "label": "Reminders",
+      "lines": [
+        "Electrolyte reminder",
+        "Electrolytes: sodium, potassium, magnesium. Garden sources: silverbeet, spinach, avocado.",
+        "Lipid test",
+        "Low-carb eating can move cholesterol in either direction. A lipid blood test before you start and again after 8–12 weeks is the only way to know. Your GP can arrange one.",
+        "Back up your records",
+        "Your records are kept only on this phone. Export a backup and keep the file somewhere else too.",
+      ],
+    },
+  ],
+  "status": [
+    "Wednesday 15 March",
+    "Fasting 19 h 20 m. Eating window opens 6:00 pm.",
+  ],
+}
+`;
+
+exports[`TD-01: the Today snapshot (C1) > (b) fasting gated (q5 yes after the fast began) and q7 yes 1`] = `
+{
+  "blocks": [
+    {
+      "controls": [
+        {
+          "href": "tel:0800787797",
+          "name": "Alcohol Drug Helpline 0800 787 797 · free, 24/7, confidential",
+          "role": "link",
+        },
+        {
+          "href": "sms:8681",
+          "name": "Alcohol Drug Helpline by text Text 8681",
+          "role": "link",
+        },
+        {
+          "href": "tel:111",
+          "name": "111 Emergency: call 111 Seizures, confusion or hallucinations",
+          "role": "link",
+        },
+        {
+          "name": "Not now",
+          "role": "button",
+        },
+      ],
+      "label": "Talk to someone",
+      "lines": [
+        "If you've been drinking most days or heavily at weekends for a while and are thinking about changing that, the safest first step is a conversation, not a sudden stop. Alcohol Drug Helpline 0800 787 797 (call or text 8681), free and 24/7, or your GP. If someone is very unwell, shaking badly, confused or having a seizure, call 111.",
+        "Alcohol Drug Helpline 0800 787 797 · free, 24/7, confidential",
+        "Alcohol Drug Helpline by text Text 8681",
+        "111 Emergency: call 111 Seizures, confusion or hallucinations",
+        "This card shows again after 30 days.",
+      ],
+    },
+    {
+      "controls": [
+        {
+          "href": "#/readiness",
+          "name": "See your readiness answers",
+          "role": "link",
+        },
+        {
+          "name": "Log weight",
+          "role": "button",
+        },
+        {
+          "href": "#/weight",
+          "name": "Weigh-ins and trend",
+          "role": "link",
+        },
+      ],
+      "label": "Weight",
+      "lines": [
+        "100.0 kg",
+        "Needs more weigh-ins",
+        "The 7-day average needs weigh-ins on at least 3 of the last 7 days.",
+        "This is a trend, not a promise.",
+        "Kickstart, the typical range and the pace notes are switched off by your readiness answers or age. Your weigh-ins and trend still show.",
+        "See your readiness answers",
+      ],
+    },
+    {
+      "controls": [
+        {
+          "href": "tel:111",
+          "name": "111 Emergency 111",
+          "role": "link",
+        },
+        {
+          "href": "tel:0800611116",
+          "name": "Healthline (24/7 health advice) 0800 611 116",
+          "role": "link",
+        },
+        {
+          "name": "End it now",
+          "role": "button",
+        },
+        {
+          "href": "#/fasting/reflux",
+          "name": "Log a reflux symptom",
+          "role": "link",
+        },
+        {
+          "href": "#/fasting",
+          "name": "Fasting and reflux",
+          "role": "link",
+        },
+      ],
+      "label": "Fasting",
+      "lines": [
+        "Fasting is switched off",
+        "A fast you started is still open.",
+        "Started yesterday at 7:00 pm",
+        "It's fine to eat now.",
+        "Break your fast and, if it doesn't settle, call Healthline 0800 611 116 or 111.",
+        "111 Emergency 111",
+        "Healthline (24/7 health advice) 0800 611 116",
+        "Fasting is off because of what you told the app about an eating disorder or low weight.",
+        "Nothing you have logged is deleted.",
+        "Log a reflux symptom",
+      ],
+    },
+    {
+      "controls": [],
+      "label": "Nutrition today",
+      "lines": [
+        "Energy 0 kJ",
+        "Protein 0 g",
+        "Fibre 0 g",
+        "Net carbs 0 g",
+        "Saturated fat 0 g",
+        "Nothing logged yet today.",
+        "Shown without targets. Your GP or a dietitian can tell you what suits you.",
+      ],
+    },
+    {
+      "controls": [
+        {
+          "name": "Add 250 mL",
+          "role": "button",
+        },
+        {
+          "checked": true,
+          "name": "Electrolytes today",
+          "role": "switch",
+        },
+      ],
+      "label": "Water",
+      "lines": [
+        "500 mL",
+        "Electrolytes today",
+      ],
+    },
+    {
+      "controls": [
+        {
+          "name": "Same as yesterday: 12,000",
+          "role": "button",
+        },
+        {
+          "name": "Enter steps",
+          "role": "button",
+        },
+      ],
+      "label": "Steps",
+      "lines": [
+        "Not entered today",
+      ],
+    },
+    {
+      "controls": [],
+      "label": "Movement",
+      "lines": [
+        "Sessions, walks and rest days arrive at a later step of the build checklist.",
+      ],
+    },
+    {
+      "controls": [],
+      "label": "Drinks",
+      "lines": [
+        "NZ guidance for women: no more than 2 standard drinks a day and 10 a week, with at least 2 alcohol-free days. No alcohol use is risk-free.",
+        "Drink logging arrives at a later step of the build checklist.",
+      ],
+    },
+    {
+      "controls": [
+        {
+          "name": "Hide this reminder",
+          "role": "button",
+        },
+        {
+          "name": "Back up now",
+          "role": "button",
+        },
+        {
+          "name": "Not now",
+          "role": "button",
+        },
+      ],
+      "label": "Reminders",
+      "lines": [
+        "Lipid test",
+        "Low-carb eating can move cholesterol in either direction. A lipid blood test before you start and again after 8–12 weeks is the only way to know. Your GP can arrange one.",
+        "Back up your records",
+        "Your records are kept only on this phone. Export a backup and keep the file somewhere else too.",
+      ],
+    },
+  ],
+  "status": [
+    "Wednesday 15 March",
+    "A fast you started is still open (19 h 20 m). You can end it below.",
+  ],
+}
+`;

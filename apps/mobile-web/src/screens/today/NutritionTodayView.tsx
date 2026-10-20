@@ -13,7 +13,12 @@ import type { NutritionTodayViewModel } from './nutritionView';
 export function NutritionTodayView({ model }: { model: NutritionTodayViewModel }): ReactElement {
   const link = model.fixLink === null ? null : copy.links[model.fixLink];
   return (
-    <Card label={copy.today.label} aside={<span className="ui-text-muted">{model.modeName}</span>}>
+    <Card
+      label={copy.today.label}
+      aside={
+        model.modeName === null ? null : <span className="ui-text-muted">{model.modeName}</span>
+      }
+    >
       {model.rows.map((row) => (
         <MeterBar key={row.label} {...row} />
       ))}

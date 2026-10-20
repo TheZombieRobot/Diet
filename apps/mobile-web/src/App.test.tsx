@@ -1,4 +1,4 @@
-import { alcohol, general, helpNumbers, privacy } from '@diet/core/copy/health';
+import { about, alcohol, general, helpNumbers, privacy, today } from '@diet/core/copy/health';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
@@ -26,6 +26,7 @@ import {
   TAB_ROUTES,
   type RouteId,
 } from './routes';
+import { AboutScreen } from './screens/AboutScreen';
 import { versionLabel } from './version';
 
 /** Opens a screen of a finished setup: the shell shows only after setup (item 13). */
@@ -33,6 +34,10 @@ async function show(route: RouteId): Promise<void> {
   window.location.hash = routeHref(route);
   render(<App />);
   await screen.findByRole('navigation', { name: 'Main' });
+  // Today shows its cards once its records are read (item 16).
+  if (route === 'today') {
+    await screen.findByRole('region', { name: today.cards.movement }, { timeout: 5000 });
+  }
 }
 
 const main = (): HTMLElement => screen.getByRole('main');
@@ -131,9 +136,10 @@ describe('every screen', () => {
 });
 
 describe('placeholder screens (no sample data)', () => {
-  // About, the setup screens (item 13), the Weight screen (item 14), the Fasting screen (item 15)
-  // and Diet and targets (item 21) are built; the rest still say they arrive later.
+  // Today (item 16), About, the setup screens (item 13), the Weight screen (item 14), the Fasting
+  // screen (item 15) and Diet and targets (item 21) are built; the rest still say they arrive later.
   const built: readonly RouteId[] = [
+    'today',
     'about',
     'readiness',
     'profile',
@@ -155,34 +161,54 @@ describe('placeholder screens (no sample data)', () => {
     },
   );
 
-  it.each(['today', 'settings'] as const)(
-    '%s shows no numbers or prices with the install offer and the "+" panel open',
-    async (route) => {
-      stopListening = listenForInstallPrompt(window);
-      await show(route);
-      act(() => {
-        window.dispatchEvent(installPromptEvent('dismissed'));
-      });
-      const plus = screen.queryByRole('button', { name: 'Quick actions' });
-      if (plus !== null) fireEvent.click(plus);
-      expect(screen.getAllByRole('button', { name: /Install app/ }).length).toBeGreaterThan(0);
-      expect(plus === null || plus.getAttribute('aria-expanded') === 'true').toBe(true);
-      expect(route === 'settings' || plus !== null).toBe(true);
-      // The "+" panel sits outside <main> (it floats over the screen), so read the whole page.
-      const text = document.body.textContent;
-      expect(text).toContain(route === 'today' ? 'Install this app' : 'Install app');
-      expect(text).not.toMatch(/\d/);
-      expect(text).not.toMatch(/[$€£]/);
-    },
-  );
+  it('settings shows no numbers or prices with the install offer open', async () => {
+    stopListening = listenForInstallPrompt(window);
+    await show('settings');
+    act(() => {
+      window.dispatchEvent(installPromptEvent('dismissed'));
+    });
+    expect(screen.getAllByRole('button', { name: /Install app/ }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole('button', { name: 'Quick actions' })).toBeNull();
+    const text = document.body.textContent;
+    expect(text).toContain('Install app');
+    expect(text).not.toMatch(/\d/);
+    expect(text).not.toMatch(/[$€£]/);
+  });
 
-  it('the "+" on Today opens and closes the quick actions note', async () => {
+  it('TD-02: Today shows no figure for what is not built, with the install offer and the "+" panel open', async () => {
+    // Today legitimately shows digits elsewhere (the date, the Fast card's pattern, the Nutrition
+    // today card's intake, the guidance line), so the check is scoped to the unbuilt card, the
+    // later-step lines and the Later rows.
+    stopListening = listenForInstallPrompt(window);
+    await show('today');
+    act(() => {
+      window.dispatchEvent(installPromptEvent('dismissed'));
+    });
+    expect(screen.getByText('Install this app')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Quick actions' }));
+    await screen.findByText(today.quickActions.laterNote);
+    const scoped = [
+      within(main()).getByRole('region', { name: today.cards.movement }),
+      ...screen.getAllByTestId('later-step'),
+      ...document.querySelectorAll('.ui-fab-panel [aria-disabled="true"]'),
+    ];
+    // One card, two later-step lines (Movement and drink logging) and six Later rows.
+    expect(scoped).toHaveLength(9);
+    for (const element of scoped) {
+      expect(element.textContent).not.toMatch(/\d/);
+      expect(element.textContent).not.toMatch(/[$€£]/);
+    }
+    expect(document.body.textContent).not.toMatch(/[$€£]/);
+  });
+
+  it('the "+" on Today opens and closes the quick actions', async () => {
     await show('today');
     const plus = screen.getByRole('button', { name: 'Quick actions' });
     expect(plus.getAttribute('aria-expanded')).toBe('false');
     fireEvent.click(plus);
     expect(plus.getAttribute('aria-expanded')).toBe('true');
     const panelId = plus.getAttribute('aria-controls') ?? '';
+    await screen.findByText(today.quickActions.laterNote);
     expect(document.getElementById(panelId)?.textContent).toContain('later step');
     fireEvent.click(plus);
     expect(plus.getAttribute('aria-expanded')).toBe('false');
@@ -221,10 +247,11 @@ describe('About (HS-13, About portion)', () => {
     expect(alcohol.firstRunNotice).toContain(helpNumbers.alcoholDrugHelpline.number);
   });
 
-  it('has a Privacy card in the words of health.ts', async () => {
+  it('has a Privacy card in the words of health.ts, with the shared-origin caveat (C34)', async () => {
     await show('about');
     const card = within(main()).getByRole('region', { name: 'Privacy' });
     expect(within(card).getByText(general.privacy).tagName).toBe('P');
+    expect(within(card).getByText(about.sharedOrigin).tagName).toBe('P');
   });
 
   it('says whether the offline copy is saved yet', async () => {
@@ -237,6 +264,15 @@ describe('About (HS-13, About portion)', () => {
     expect(fact()).toBe('Ready to use offline');
   });
 
+  it('reads nothing from the records: the same with them not open (HS-13)', () => {
+    appStorageStore.set(null);
+    render(<AboutScreen />);
+    expect(document.body.textContent).toContain(general.about);
+    expect(document.body.textContent).toContain(helpNumbers.healthline.number);
+    expect(document.body.textContent).toContain(about.sharedOrigin);
+    expect(screen.getAllByRole('link')).toHaveLength(6);
+  });
+
   it('marks only the 111 row as an emergency', async () => {
     await show('about');
     const emergencyRows = main().querySelectorAll('.ui-action-row--emergency');
@@ -244,11 +280,20 @@ describe('About (HS-13, About portion)', () => {
     expect(emergencyRows[0]?.getAttribute('href')).toBe('tel:111');
   });
 
-  it('has a data sources placeholder and the app version', async () => {
+  it('C11: data sources says what each badge means and names no database (C97); the app version', async () => {
     await show('about');
-    expect(within(main()).getByRole('region', { name: 'Data sources' }).textContent).toContain(
-      'attribution',
+    const sources = within(main()).getByRole('region', { name: 'Data sources' });
+    expect(
+      within(sources)
+        .getAllByRole('listitem')
+        .map((li) => li.textContent),
+    ).toEqual(about.dataSources.badges);
+    expect(sources.textContent).toContain(about.dataSources.now);
+    expect(sources.textContent).toContain('attribution');
+    expect(sources.textContent).not.toMatch(
+      /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
     );
+    expect(sources.textContent).not.toMatch(/food composition/i);
     expect(screen.getByTestId('app-version').textContent).toBe(versionLabel());
     expect(versionLabel()).toBe('0.0.0-test');
     expect(versionLabel('1.2.3', 'abc1234')).toBe('1.2.3, build abc1234');

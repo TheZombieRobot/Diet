@@ -5,6 +5,7 @@ import {
   GROUND,
   offerInstall,
   openBackupPanels,
+  patchRecords,
   seedOnboarded,
   visitEveryScreen,
 } from './support/app';
@@ -39,8 +40,20 @@ for (const colorScheme of ['light', 'dark'] as const) {
     await offerInstall(page);
     await goTo(page, 'Today');
     await expect(page.getByText('Install this app')).toBeVisible();
+    // Item 16: a filled Today with the steps editor open, and the "+" panel's Later rows.
+    await page.getByRole('button', { name: 'Add 250 mL' }).click();
+    await expect(page.getByTestId('water-total')).toHaveText('250 mL');
+    await page.getByRole('button', { name: 'Enter steps' }).click();
     await page.getByRole('button', { name: 'Quick actions' }).click();
-    await sweep('Today with the install banner and quick actions');
+    await expect(page.locator('.ui-fab-panel [aria-disabled="true"]')).toHaveCount(6);
+    await sweep('Today with the install banner, the steps editor and quick actions');
+    // The Off row and its reason (under 18).
+    await patchRecords(page, { readiness: { q1: 'yes' } });
+    await page.getByRole('button', { name: 'Quick actions' }).click();
+    await expect(page.locator('.ui-fab-panel').getByText('Off', { exact: true })).toBeVisible();
+    await sweep('Today under 18, with the Off quick action');
+    await patchRecords(page, { readiness: { q1: 'no' } });
+    await offerInstall(page);
     await goTo(page, 'Settings');
     await expect(page.getByRole('button', { name: 'Install app' })).toBeVisible();
     await sweep('Settings with the install button');

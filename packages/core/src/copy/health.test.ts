@@ -12,6 +12,7 @@ import { READINESS_QUESTION_IDS } from '../storage/readiness';
 import { TARGET_COPY_FACTS } from '../targets/copyFacts';
 import { DIET_MODES } from '../targets/dietModes';
 import {
+  about,
   alcohol,
   fasting,
   general,
@@ -23,8 +24,10 @@ import {
   profile,
   readiness,
   reflux,
+  reminders,
   schedule,
   targets,
+  today,
 } from './health';
 import { fillTemplate, joinList } from './template';
 
@@ -183,6 +186,41 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
     /\bpunish\w*/i,
     /\bstrict\w*/i,
     /\bmust\b/i,
+  ],
+  // Item 16 (design 3.6): no pressure to fast, no scores, no steps or water goals.
+  today: [
+    /\bstreaks?\b/i,
+    /\bwell\s+done\b/i,
+    /\bcongrat\w*/i,
+    /\bgoals?\b/i,
+    /\btargets?\b/i,
+    /\bsafe(?:ly)?\b/i,
+    /\bkeep\s+(?:going|fasting|it\s+up)\b/i,
+    /\bdon['’]t\s+(?:eat|break|give\s+up)\b/i,
+    /\bbroken?\b/i,
+    /\bfail\w*/i,
+    /\bbad\b/i,
+    /\bcheat\w*/i,
+    /\bshould\b/i,
+    /\bmust\b/i,
+  ],
+  // No supplement forms (HEALTH_SAFETY section 4) and no reassurance.
+  reminders: [
+    /\bstreaks?\b/i,
+    /\bcongrat\w*/i,
+    /\bwell\s+done\b/i,
+    /\bguarantee\w*/i,
+    /\byou(?:['’]re|\s+are)\s+safe\b/i,
+    /\b(?:tablets?|pills?|capsules?|powders?|sachets?)\b/i,
+  ],
+  // The general rules, and no food data source by name until item 18 records the licence (C97,
+  // NU-09). Case-sensitive on purpose: these are proper names. Item 18 replaces this rule.
+  about: [
+    /\byou(?:'re|\s+are)\s+safe\b/i,
+    /\b(?:100\s*%|completely|totally|fully|perfectly)\s+(?:private|secure|safe|anonymous)\b/i,
+    /\banonymous(?:ly)?\b/i,
+    /\bsecure\b/i,
+    /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
   ],
 };
 
@@ -603,8 +641,11 @@ describe('Diet and targets copy (item 21; C-1 to C-7)', () => {
     );
   });
 
-  it('C-4, C-5: the electrolyte line is the required sentence; the floor is a safety net, not a target', () => {
-    expect(targets.electrolytes.body).toBe(
+  it('C-4, C-5: the electrolyte line is the required sentence, in one wording; the floor is a safety net, not a target', () => {
+    // One reminder, one wording: the targets section has no electrolyte lines of its own (item 16
+    // merge); the reminder and item 22's planner card read reminders.electrolytes.
+    expect(Object.keys(targets)).not.toContain('electrolytes');
+    expect(reminders.electrolytes.body).toBe(
       'Electrolytes: sodium, potassium, magnesium. Garden sources: silverbeet, spinach, avocado.',
     );
     for (const text of [targets.energy.floorBinds, targets.today.floorDay]) {
@@ -634,5 +675,59 @@ describe('Diet and targets copy (item 21; C-1 to C-7)', () => {
     expect(targets.energy.pregnancyNote).toContain('GP');
     expect(targets.stopSign.action).toContain(helpNumbers.healthline.number);
     expect(targets.stopSign.emergency).toContain(helpNumbers.emergency.number);
+  });
+});
+
+describe('Today and About copy (item 16; U9)', () => {
+  it('TD-02: the later-step lines carry no figure and say the feature arrives later', () => {
+    for (const [path, text] of strings(today.laterStep, 'laterStep')) {
+      expect(text, path).not.toMatch(/\d/);
+      expect(text, path).toMatch(/later step/);
+    }
+    expect(today.quickActions.laterNote).not.toMatch(/\d/);
+  });
+
+  it('the quick-action labels are the UX_SCREENS section 2 list, in order', () => {
+    expect(Object.values(today.quickActions.labels)).toEqual([
+      'Log weight',
+      'Finish meal',
+      'Swap recipe',
+      'Complete workout',
+      'Add harvest',
+      'Add drink',
+      'Open grocery list',
+    ]);
+  });
+
+  it('C97: the data-sources card has one line per badge and names no food data source', () => {
+    expect(about.dataSources.badges.map((line) => line.split(':')[0])).toEqual([
+      'Label',
+      'Database',
+      'Estimate',
+    ]);
+    for (const [path, text] of strings(about, 'about')) {
+      expect(text, path).not.toMatch(
+        /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
+      );
+      expect(text, path).not.toMatch(/food composition/i);
+    }
+  });
+
+  it('every template fills with its named placeholders and no others', () => {
+    const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1] ?? '');
+    for (const [path, text] of [...strings(today, 'today'), ...strings(reminders, 'reminders')]) {
+      const values = Object.fromEntries(placeholders(text).map((name) => [name, 'x']));
+      expect(fillTemplate(text, values), path).not.toMatch(/[{}]/);
+    }
+    expect(fillTemplate(fasting.status.openWhileOff, { duration: '2 h' })).toBe(
+      'A fast you started is still open (2 h). You can end it below.',
+    );
+  });
+
+  it('C102, T31: the electrolyte reminder names minerals and garden foods; its blood-pressure line is one wording', () => {
+    expect(reminders.electrolytes.body).toBe(
+      'Electrolytes: sodium, potassium, magnesium. Garden sources: silverbeet, spinach, avocado.',
+    );
+    expect(readiness.ifYes.q4.endsWith(readiness.bloodPressure.electrolyte)).toBe(true);
   });
 });

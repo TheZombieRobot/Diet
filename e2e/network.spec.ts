@@ -28,6 +28,14 @@ test('online, every screen: requests go only to the app’s own files', async ({
   await waitForServiceWorkerControl(page);
   await visitEveryScreen(page);
   await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Today' }).click();
+  // Item 16 (E3): logging on Today asks nothing of the network.
+  await page.getByRole('button', { name: 'Add 250 mL' }).click();
+  await expect(page.getByTestId('water-total')).toHaveText('250 mL');
+  await page.getByRole('switch', { name: 'Electrolytes today' }).check();
+  await page.getByRole('button', { name: 'Enter steps' }).click();
+  await page.getByLabel('Steps today').fill('9000');
+  await page.getByLabel('Steps today').press('Enter');
+  await expect(page.getByTestId('steps-today')).toHaveText('9,000');
   await page.getByRole('button', { name: 'Quick actions' }).click();
   await page.evaluate(async () => {
     await (await navigator.serviceWorker.getRegistration())?.update();

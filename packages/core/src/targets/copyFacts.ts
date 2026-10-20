@@ -1,6 +1,7 @@
 /**
- * The electrolyte card's lines and the numbers the targets copy states (item 21 design section
- * 3.11; C72, C102; T22). The card itself is item 22's.
+ * The electrolyte reminder's lines and the numbers the targets copy states (item 21 design section
+ * 3.11; C72, C102; T22). Today's Reminders card (item 16) shows the reminder; item 22's planner
+ * card reuses the same lines and wording.
  */
 import { DEFAULT_PROTEIN_RANGE_G, PROTEIN_LIMITS_G } from '../energy/baseTargets';
 import {
@@ -19,9 +20,9 @@ import type { ReadinessGates } from '../storage/readiness';
 import { ESTIMATE_LIMITS, ESTIMATE_WEIGHT_STALE_DAYS } from './constants';
 
 /**
- * The electrolyte card's lines, in order. The blood-pressure line (item 13's
- * readiness.bloodPressure.electrolyte) is included whenever gates.bloodPressureSaltWording: answer
- * 4 "yes" or unanswered (C102, C41).
+ * The electrolyte reminder's lines, in order: 'body' is reminders.electrolytes.body (item 16) and
+ * 'bloodPressure' is item 13's readiness.bloodPressure.electrolyte, included whenever
+ * gates.bloodPressureSaltWording: answer 4 "yes" or unanswered (C102, C41).
  */
 export function electrolyteCopyKeys(
   gates: Pick<ReadinessGates, 'bloodPressureSaltWording'>,

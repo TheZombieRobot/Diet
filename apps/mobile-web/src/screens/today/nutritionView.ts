@@ -41,8 +41,12 @@ export interface NutritionEntryView {
 }
 
 export interface NutritionTodayViewModel {
-  /** The diet mode's name, at the right of the card label. */
-  readonly modeName: string;
+  /**
+   * The diet mode's name, at the right of the card label; null while the readiness answers switch
+   * every carb ceiling off, so Today never says "Keto-preferred" while keto is off (item 16 design
+   * section 1.1).
+   */
+  readonly modeName: string | null;
   /** Energy, protein and fibre (full width). */
   readonly rows: readonly MeterBarProps[];
   /** Net carbs and saturated fat (half width, side by side). */
@@ -234,7 +238,10 @@ export function nutritionTodayView(
   if (plainFigures) notes.push({ text: copy.today.plainNote });
 
   return {
-    modeName: copy.dietMode.names[dietMode],
+    modeName:
+      t.netCarbs.kind === 'none' && t.netCarbs.basis === 'readiness'
+        ? null
+        : copy.dietMode.names[dietMode],
     rows: [energy, protein, fibre],
     pair: [
       limit(copy.today.netCarbs, 'carbsG', t.netCarbs.kind === 'ceiling' ? t.netCarbs.grams : null),

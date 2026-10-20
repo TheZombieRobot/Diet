@@ -828,8 +828,8 @@ Invariant: at least one timestamp is non-null; otherwise there is no row. `doneA
 | `backup-reminder` | `weekly` | section 12.2 (12) | snooze per section 12.2 | elapsed |
 | `alcohol-help` | `readiness-q7` | Q7 yes or unanswered (13, 28) | returns 30 × 24 h after dismissal (C21, C58) | elapsed |
 | `alcohol-help` | `consecutive-days`, `double-guidance`, `withdrawal-tick` | the HS-06 conditions (28) | collapsed; back the next drinking day while the condition holds (C44). For the withdrawal tick this replaces C05's "returns on a new tick and otherwise monthly" with C44's rule, which shows the card more often (D43) | drinking-day cut-over |
-| `cholesterol-checkin` | `day-1`, `day-56`, `day-84` | C109: first run, then 56 and 84 elapsed days after `firstLowCarbAt` (22) | final for that trigger; the next trigger still comes | — |
-| `electrolyte-reminder` | `daily` | C72 (22) | collapsed | calendar midnight |
+| `cholesterol-checkin` | `day-1`, `day-56`, `day-84` | C109: first run, then 56 and 84 elapsed days after `firstLowCarbAt` (16; item 22 adds the planner side) | final for that trigger; the next trigger still comes | — |
+| `electrolyte-reminder` | `daily` | C72 (16; item 22 adds the planner side) | collapsed | calendar midnight |
 | `rapid-loss` | `steady` | HS-11 as changed by C08, C46 and D27 (14) | collapsed; back the next day while the condition holds. It can never be turned off (C46), and a dismissal never hides it for longer than the day | calendar midnight |
 | `weight-fluctuation-explainer` | `once` | after the first weigh-ins (14) (`fluctuation_explained_at` becomes `doneAt`) | final | — |
 | `steady-explainer` | `period:<Id>` | the day that period flips to Steady (WT-08). It carries the C55 "keep 23:1" button when the preset is the untouched Kickstart default (14) | final for that period | — |

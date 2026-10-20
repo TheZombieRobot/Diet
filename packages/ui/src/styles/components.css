@@ -1607,3 +1607,123 @@
   font-weight: 600;
   line-height: 1.45;
 }
+
+/* ---- Today and its quick actions (checklist item 16) ---- */
+
+/* The date and the one-line status at the top of Today: not a card. */
+.ui-today-status {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 4px 4px;
+}
+
+.ui-today-status__date {
+  color: var(--color-secondary);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Water and Steps side by side; one column below 360 px and while the steps editor is open. */
+.ui-card-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 14px;
+}
+
+.ui-card-pair--stacked {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 359.98px) {
+  .ui-card-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.ui-card-pair > .ui-card {
+  padding: 16px;
+}
+
+.ui-card-pair .ui-button {
+  padding: 0 10px;
+}
+
+/* A figure on its own in a half-width card (water, steps): item 14's stat, a size up. */
+.ui-stat__value--large {
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  overflow-wrap: anywhere;
+}
+
+.ui-stat__value--large .ui-stat__unit {
+  font-size: 18px;
+}
+
+.ui-stat__caption {
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Items of the Reminders card, divided by a rule. */
+.ui-reminder {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ui-reminder + .ui-reminder {
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+.ui-button-row--stacked {
+  flex-direction: column;
+}
+
+.ui-button-row--stacked > .ui-button {
+  width: 100%;
+}
+
+/* The quick actions in the "+" panel. */
+.ui-quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+}
+
+/* An action row that is a button: the whole width, text from the start. */
+.ui-action-row--button {
+  width: 100%;
+  text-align: start;
+  cursor: pointer;
+}
+
+.ui-action-row__marker {
+  flex: none;
+  margin-left: auto;
+}
+
+/* An action not built yet or switched off: full contrast, a dashed border, nothing faded. */
+.ui-action-row--off,
+.ui-action-row--off:active {
+  border-style: dashed;
+  background: transparent;
+  color: var(--color-ink);
+  cursor: default;
+  transform: none;
+}
+
+/* The panel scrolls when it is taller than the room between the top bar (72 px) and the "+". */
+.ui-fab-panel {
+  max-height: calc(
+    100dvh - 72px - env(safe-area-inset-top, 0px) - var(--size-tabbar) -
+      env(safe-area-inset-bottom, 0px) - var(--size-fab) - 48px
+  );
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}

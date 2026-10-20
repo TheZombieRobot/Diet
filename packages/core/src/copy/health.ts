@@ -71,6 +71,19 @@ export const alcohol = {
   helpCardReturns: 'This card shows again after 30 days.',
   noRiskFreeLevel: 'No alcohol use is risk-free.',
   /**
+   * Item 16 (item 28's names): the guidance line on Today's Drinks card, by guidanceFor(...).set
+   * (C25, C46). The figures appear only inside these lines, and each ends with noRiskFreeLevel
+   * (C66, NN-09). The men's line is the UX_SCREENS section 2 card 7 quote. Item 28 adds the rest.
+   */
+  guidance: {
+    line: {
+      'nz-women':
+        'NZ guidance for women: no more than 2 standard drinks a day and 10 a week, with at least 2 alcohol-free days. No alcohol use is risk-free.',
+      'nz-men':
+        'NZ guidance for men: no more than 3 standard drinks a day and 15 a week, with at least 2 alcohol-free days. No alcohol use is risk-free.',
+    },
+  },
+  /**
    * The first-run notice screen (UX 1b; mock-up Notice.dc.html). It cannot be put off: no string
    * here offers to skip it or come back later (health.test.ts).
    */
@@ -1753,6 +1766,8 @@ export const fasting = {
     windowOpens: 'Eating window opens {time}.',
     windowOpensTomorrow: "Tomorrow's eating window opens at {time}.",
     windowOpenUntil: 'Eating window open until {time}.',
+    // Item 16: a fast still running while fasting is switched off (HS-03, RD-06); no window times.
+    openWhileOff: 'A fast you started is still open ({duration}). You can end it below.',
   },
 } as const;
 
@@ -1830,7 +1845,8 @@ export const reflux = {
  * design section 4.2). Neutral indicator wording: going over a ceiling or budget changes a colour
  * and nothing is judged (HS-09). Every number stated here is checked against the core constants
  * (TARGET_COPY_FACTS; health.test.ts). The blood-pressure stop-sign and electrolyte lines are item
- * 13's readiness.bloodPressure keys (cross-item ruling 5); the activity labels are item 13's
+ * 13's readiness.bloodPressure keys (cross-item ruling 5), and the electrolyte wording is item 16's
+ * reminders.electrolytes (one reminder, one wording); the activity labels are item 13's
  * profile.activity. The badge words (today.confidence) move to item 18's foods.badges when it
  * lands, and its nutritionFooter supplies the attribution footer (item 18-20 contract 5 and 6).
  */
@@ -2055,11 +2071,120 @@ export const targets = {
     noGuide:
       'The planner does not fill days by itself without a rough guide of your energy needs. Diet and targets shows what is missing.',
   },
-  /** The electrolyte card (item 22); its blood-pressure line is readiness.bloodPressure.electrolyte. */
-  electrolytes: {
-    title: 'Electrolytes',
-    body: 'Electrolytes: sodium, potassium, magnesium. Garden sources: silverbeet, spinach, avocado.',
+} as const;
+
+// ---- Item 16: Today and About ----
+
+/**
+ * Today's dashboard (UX_SCREENS section 2; item 16 design section 3.2). Cards for features not
+ * built yet say so in one line with no figures, and no line sets a goal or scores the day.
+ */
+export const today = {
+  cards: {
+    water: 'Water',
+    steps: 'Steps',
+    movement: 'Movement',
+    drinks: 'Drinks',
   },
+  setupFirst: 'Today opens once setup is finished.',
+  readFailed: "Today's records could not be read.",
+  reload: 'Reload the app',
+  laterStep: {
+    movement: 'Sessions, walks and rest days arrive at a later step of the build checklist.',
+    drinks: 'Drink logging arrives at a later step of the build checklist.',
+  },
+  water: {
+    none: 'None logged yet',
+    add: 'Add 250 mL',
+    added: 'Added 250 mL. Today: {total}.',
+    undo: 'Undo',
+    undone: 'Removed. Today: {total}.',
+    undoneEmpty: 'Removed. None logged today.',
+    electrolytes: 'Electrolytes today',
+    unitMl: 'mL',
+    unitL: 'L',
+  },
+  steps: {
+    none: 'Not entered today',
+    enteredAt: 'typed in at {time}',
+    enter: 'Enter steps',
+    edit: 'Edit',
+    sameAsYesterday: 'Same as yesterday: {steps}',
+    field: 'Steps today',
+    save: 'Save',
+    cancel: 'Cancel',
+    remove: "Remove today's entry",
+    errors: {
+      empty: 'Enter the number of steps.',
+      format: 'Use digits only, such as 12000 or 12,000.',
+      'too-many': 'That is more than 100,000 steps. Check the number.',
+    },
+  },
+  saveFailed: 'That was not saved. Try again.',
+  quickActions: {
+    title: 'Quick actions',
+    /** UX_SCREENS section 2, in order. */
+    labels: {
+      'log-weight': 'Log weight',
+      'finish-meal': 'Finish meal',
+      'swap-recipe': 'Swap recipe',
+      'complete-workout': 'Complete workout',
+      'add-harvest': 'Add harvest',
+      'add-drink': 'Add drink',
+      'open-grocery-list': 'Open grocery list',
+    },
+    laterNote:
+      'Actions marked Later arrive at later steps of the build checklist and do nothing yet.',
+    markerLater: 'Later',
+    markerOff: 'Off',
+  },
+} as const;
+
+/**
+ * Today's Reminders card (UX_SCREENS section 2, card 8; HEALTH_SAFETY section 4; C72, C109). The
+ * electrolyte body names minerals and garden foods, never a supplement; the blood-pressure line is
+ * readiness.bloodPressure.electrolyte and the medication-timing body is fasting.pharmacist, so
+ * each sentence has one wording. The electrolyte lines and their order are item 21's
+ * electrolyteCopyKeys, which item 22's planner card reuses with this wording.
+ */
+export const reminders = {
+  cholesterol: {
+    title: {
+      'day-1': 'Lipid test',
+      'day-56': 'Cholesterol check-in: 8 weeks',
+      'day-84': 'Cholesterol check-in: 12 weeks',
+    },
+    // HEALTH_SAFETY.md section 4, word for word.
+    body: 'Low-carb eating can move cholesterol in either direction. A lipid blood test before you start and again after 8–12 weeks is the only way to know. Your GP can arrange one.',
+    hide: 'Hide this reminder',
+  },
+  electrolytes: {
+    title: 'Electrolyte reminder',
+    body: 'Electrolytes: sodium, potassium, magnesium. Garden sources: silverbeet, spinach, avocado.',
+    hide: 'Hide for today',
+  },
+  medicationTiming: {
+    title: 'Medication timing',
+  },
+} as const;
+
+/**
+ * About (UX_SCREENS section 7; HS-13). No food data is in the app yet and its licence is still to
+ * be decided, so the data-sources card names no source; item 18 names it with its attribution.
+ */
+export const about = {
+  dataSources: {
+    intro: 'Every food figure in the app will carry a badge that says where it came from:',
+    badges: [
+      'Label: you typed it in from a product label.',
+      'Database: it comes from a published table of food values. That source, and the attribution its licence asks for, will be named here when the food data is added at a later step of the build checklist.',
+      "Estimate: it was worked out from a recipe's ingredients, or approximated.",
+    ],
+    now: 'No food figures are in the app yet.',
+  },
+  /** DOC_REVIEW C34: the records share their origin with every site of the same GitHub account. */
+  sharedOrigin:
+    'The app is published on GitHub Pages. Any other site published from the same GitHub account could read the records the app keeps on this phone, so no other site is published from that account.',
 } as const;
 
 /** All sections, for scanning and review. */
@@ -2078,4 +2203,7 @@ export const healthCopy = {
   fasting,
   reflux,
   targets,
+  today,
+  reminders,
+  about,
 } as const;

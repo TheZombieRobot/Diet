@@ -1,4 +1,4 @@
-import { general, helpNumbers } from '@diet/core/copy/health';
+import { about, general, helpNumbers } from '@diet/core/copy/health';
 import { Card } from '@diet/ui';
 import type { ReactElement } from 'react';
 import { offlineCopyStore, type OfflineCopy } from '../pwa/offline';
@@ -14,7 +14,11 @@ const OFFLINE_COPY_TEXT: Readonly<Record<OfflineCopy, string>> = {
   unavailable: 'This browser could not save an offline copy',
 };
 
-/** HS-13 (About portion): not a medical device, the help numbers, privacy, sources and version. */
+/**
+ * HS-13 (About portion): not a medical device, the help numbers, privacy (with the shared-origin
+ * caveat, C34), what the food-figure badges mean, and the version. It reads nothing from the
+ * records, so it shows the same whether they open, are closed or failed.
+ */
 export function AboutScreen(): ReactElement {
   const storage = useStore(storageStore);
   const offlineCopy = useStore(offlineCopyStore);
@@ -31,13 +35,18 @@ export function AboutScreen(): ReactElement {
 
       <Card label="Privacy">
         <p>{general.privacy}</p>
+        <p>{about.sharedOrigin}</p>
       </Card>
 
+      {/* No database is named until item 18 records the food data's licence (C97, NU-09). */}
       <Card label="Data sources">
-        <p>
-          Food data sources and their attribution are listed here once the ingredient data is added,
-          at a later step of the build checklist.
-        </p>
+        <p>{about.dataSources.intro}</p>
+        <ul className="ui-plain-list">
+          {about.dataSources.badges.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+        <p className="ui-text-muted">{about.dataSources.now}</p>
       </Card>
 
       <Card label="This copy of the app">

@@ -192,6 +192,8 @@ describe('the mode and the readiness answers (FL-04, RD-01 to RD-03, T25, T26; K
     await show({ ...MALE, readiness: { q5: 'yes' } });
     expect(card().querySelector('svg')).toBeNull();
     expect(notes()).toContain(copy.today.plainNote);
+    // Every carb ceiling is off, so the card names no diet mode (items 16 and 21 merged).
+    expect(within(card()).queryByText(copy.dietMode.names.keto)).toBeNull();
     cleanup();
     test?.db.shutDown();
     await show({ ...MALE, readiness: { q2: 'yes' } });
