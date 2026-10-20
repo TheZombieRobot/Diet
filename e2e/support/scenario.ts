@@ -6,7 +6,7 @@ import { goTo, heading } from './app';
 /**
  * Restores `snapshot` the way a new phone does (item 13; C53): Welcome, the alcohol notice, then
  * "Restore from a backup instead". The file holds a finished setup, so the reload opens Settings,
- * Readiness answers (E64); then Today. Items 14 and 21 restore their synthetic scenarios this way.
+ * Readiness answers (E64), which says once that the records are back (F28); then Today. Items 14 and 21 restore their synthetic scenarios this way.
  */
 export async function restoreSnapshot(
   page: Page,
@@ -32,11 +32,20 @@ export async function restoreSnapshot(
   });
   const confirm = page.getByTestId('restore-confirm');
   await expect(confirm).toBeVisible();
+  // A new phone holds nothing of the owner's, however far setup got (F14, F22): no loss is
+  // counted, and Replace is the first button.
+  await expect(confirm.getByTestId('restore-summary')).toContainText(
+    privacy.importBackup.freshPhone,
+  );
+  await expect(confirm.getByRole('button').first()).toHaveText(privacy.importBackup.replace);
   await Promise.all([
     page.waitForEvent('load'),
     confirm.getByRole('button', { name: privacy.importBackup.replace }).click(),
   ]);
   await expect(heading(page)).toHaveText('Readiness answers');
+  await expect(
+    page.getByRole('status').filter({ hasText: privacy.importBackup.restored }),
+  ).toBeVisible();
   await goTo(page, 'Today');
 }
 

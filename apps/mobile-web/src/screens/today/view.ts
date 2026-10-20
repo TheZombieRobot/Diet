@@ -5,13 +5,13 @@
  */
 import {
   addDays,
-  type AlcoholGuidanceSet,
   type CardStateRecord,
   cholesterolCheckinDue,
   type CholesterolTrigger,
   electrolyteCopyKeys,
   electrolyteReminderDue,
-  guidanceFor,
+  type GuidanceShown,
+  guidanceShown,
   type Id,
   type Instant,
   isKickstartDay,
@@ -109,8 +109,7 @@ export interface TodayView {
   readonly setupDone: boolean;
   readonly water: WaterDay;
   readonly steps: { readonly today: StepsRecord | null; readonly repeat: number | null };
-  readonly drinks:
-    { readonly kind: 'gated' } | { readonly kind: 'guidance'; readonly set: AlcoholGuidanceSet };
+  readonly drinks: { readonly kind: 'gated' } | GuidanceShown;
   /** The Reminders card goes second (prominent) or last; with no items it is not shown. */
   readonly reminders: { readonly prominent: boolean; readonly items: readonly ReminderItem[] };
 }
@@ -184,7 +183,7 @@ export function todayView(args: TodayViewArgs): TodayView {
       repeat: stepsRepeatOffer(inputs.stepsToday, inputs.stepsYesterday),
     },
     drinks: gates.alcoholLoggingAvailable
-      ? { kind: 'guidance', set: guidanceFor(profile.sex, settings.alcoholGuidanceSet).set }
+      ? guidanceShown(profile.sex, settings.alcoholGuidanceSet, gates)
       : { kind: 'gated' },
     reminders: { prominent, items },
   };

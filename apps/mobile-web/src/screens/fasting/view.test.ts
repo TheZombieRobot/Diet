@@ -77,6 +77,7 @@ function inputs(today: string, more: Partial<FastingInputs> = {}): FastingInputs
     symptoms: [],
     snackCards: {},
     nudgeCard: undefined,
+    preStartCards: [],
     drinks: [],
     ...more,
   };
@@ -498,7 +499,7 @@ describe('the preset every reader uses (cross-item ruling 2; C07)', () => {
   const contextWith = (
     periods: KickstartPeriodRecord[],
     checks: KickstartCheckRecord[] = [],
-    preStartStopSignDate: string | null = null,
+    preStart: { readonly cards?: CardStateRecord[]; readonly held?: string } = {},
   ) =>
     fastingContext({
       inputs: inputs(D, {
@@ -511,13 +512,14 @@ describe('the preset every reader uses (cross-item ruling 2; C07)', () => {
         profile: { ...defaultProfile(T0), carbCeilingStartedAt: iso(at('1999-12-01', '00:00')) },
         periods,
         checks,
+        preStartCards: preStart.cards ?? [],
       }),
       gateInput,
       gates: readinessGates(gateInput),
       now: iso(at(D, '10:00')),
       deviceTimeZone: NZ,
       endsPending: new Map(),
-      preStartStopSignDate,
+      preStartHeld: preStart.held ?? null,
     });
 
   it('with no Kickstart running, a stored Kickstart default plans 22:2', () => {
@@ -553,8 +555,19 @@ describe('the preset every reader uses (cross-item ruling 2; C07)', () => {
     expect(paused.stopSignPause).toBe(true);
     expect(paused.preset).toMatchObject({ fastingPreset: '23:1' });
     expect(contextWith([period]).stopSignPause).toBe(false);
-    expect(contextWith([], [], D).stopSignPause).toBe(true);
-    expect(contextWith([], [], addDays(D, -1)).stopSignPause).toBe(false);
+    // A pre-start "yes" today: its record (any tab, after a relaunch), or this page's hold until
+    // the record is written; one from yesterday no longer pauses.
+    const yes = (date: string): CardStateRecord => ({
+      cardId: 'kickstart-stop-signs',
+      trigger: `date:${date}`,
+      firstShownAt: iso(at(date, '08:00')),
+      dismissedAt: null,
+      dismissedTimeZone: null,
+      doneAt: null,
+    });
+    expect(contextWith([], [], { cards: [yes(D)] }).stopSignPause).toBe(true);
+    expect(contextWith([], [], { held: D }).stopSignPause).toBe(true);
+    expect(contextWith([], [], { cards: [yes(addDays(D, -1))] }).stopSignPause).toBe(false);
   });
 
   it('on the last day of a running Kickstart it plans 23:1, and the next day already 22:2', () => {

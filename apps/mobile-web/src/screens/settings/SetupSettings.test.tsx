@@ -70,9 +70,9 @@ describe('Settings, Readiness answers (RD-06; K13, K21)', () => {
     const lowCarbSince = '2000-01-15T00:00:00.000Z';
     await setUp('readiness', {
       profile: {
-        goalKg: 70,
+        goalKg: 78,
         goalSetAt: '2000-03-01T00:00:00.000Z',
-        goalReferenceKg: 90,
+        goalReferenceKg: 100,
         kickstartOptIn: true,
         firstLowCarbAt: lowCarbSince,
         carbCeilingStartedAt: lowCarbSince,
@@ -381,6 +381,13 @@ describe('Settings, Eating schedule and Profile (K27, K20)', () => {
     expect(within(control).getByText(schedule.kickstartChip)).toBeDefined();
   });
 
+  it('F29: inside Settings, "No fasting plan for now" does not say a pattern can be chosen "later in Settings"', async () => {
+    await setUp('eating-schedule');
+    const none = await screen.findByRole('radio', { name: new RegExp(`^${schedule.none}`) });
+    expect(none.closest('label')?.textContent).toContain(schedule.noneDetailInSettings);
+    expect(screen.getByRole('main').textContent).not.toContain('later in Settings');
+  });
+
   it('RD-09: Settings, Eating schedule shows the pharmacist note above the choices', async () => {
     await setUp('eating-schedule', { answers: { q4: 'yes' } });
     const list = await screen.findByRole('radiogroup', { name: schedule.presetsLegend });
@@ -477,6 +484,17 @@ describe('the "talk to someone" card from day one (AL-09, AL-09b, C58; K15)', ()
       .map((l) => l.getAttribute('href'));
     expect(hrefs).toEqual(['tel:0800787797', 'sms:8681', 'tel:111']);
     expect(readiness.questions.q7).toBe('Do you drink alcohol most days, or heavily at weekends?');
+  });
+
+  it("F37: the card's 111 row names the card's own reasons to call, not the notice's narrower list", async () => {
+    await setUp('today', { answers: { q7: 'yes' } });
+    const section = (await screen.findByTestId('alcohol-help-card')).closest('section');
+    const emergency = within(section as HTMLElement)
+      .getAllByRole('link')
+      .find((l) => l.getAttribute('href') === 'tel:111');
+    expect(emergency?.textContent).toContain(alcohol.helpCardEmergencyDetail);
+    expect(emergency?.textContent).not.toContain(alcohol.notice.emergencyDetail);
+    expect(alcohol.helpCard).toContain('very unwell, shaking badly, confused or having a seizure');
   });
 
   it('K15: Not now hides it for 720 hours; answer 7 "no" hides it at once', async () => {

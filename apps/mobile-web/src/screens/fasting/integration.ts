@@ -43,6 +43,7 @@ import {
   stopSignPauseUntil,
   type TimeZone,
 } from '@diet/core';
+import { preStartStopSignToday } from '../weight/preStartCheck';
 import type { FastingInputs } from './inputs';
 import { mealTargetsFrom } from './mealTargets';
 import type { FastingContext } from './view';
@@ -64,7 +65,8 @@ export function fastingContext(args: {
   readonly inputs: Pick<
     FastingInputs,
     'targets' | 'settings' | 'profile' | 'periods' | 'checks' | 'readiness' | 'weights'
-  >;
+  > &
+    Partial<Pick<FastingInputs, 'preStartCards'>>;
   /** Item 13's live gate input and gates (useReadinessGates), or the same built from records. */
   readonly gateInput: GateInput;
   readonly gates: ReadinessGates;
@@ -72,8 +74,12 @@ export function fastingContext(args: {
   readonly deviceTimeZone: TimeZone;
   /** Item 14's end latch: a Kickstart whose end is due reads as ended. */
   readonly endsPending: ReadonlyMap<Id, KickstartEndReason>;
-  /** The local date of a pre-start stop-sign "yes" held by item 14 (preStartCheck.ts), if any. */
-  readonly preStartStopSignDate?: LocalDate | null;
+  /**
+   * This page's hold of a pre-start stop-sign "yes" until its record is written (item 14's
+   * preStartStopSignStore); the record itself comes in `inputs.preStartCards`. One source: item
+   * 14's preStartStopSignToday reads both, as the weight screens do.
+   */
+  readonly preStartHeld?: LocalDate | null;
 }): FastingContext {
   const { inputs, gates } = args;
   const { stated } = reasonStates(args.gateInput, featureGateOf(gates, 'fasting').reasons);
@@ -91,7 +97,8 @@ export function fastingContext(args: {
   const phase = phaseOn(phaseInput);
   const stopSignPause =
     stopSignPauseUntil(inputs.periods, inputs.checks, phaseInput.today, phaseInput.homeTimeZone) !==
-      null || args.preStartStopSignDate === phaseInput.today;
+      null ||
+    preStartStopSignToday(inputs.preStartCards ?? [], args.preStartHeld ?? null, phaseInput.today);
   return {
     gate: {
       fastingGated: gates.fastingGated,

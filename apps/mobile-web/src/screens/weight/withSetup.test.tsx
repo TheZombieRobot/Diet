@@ -221,7 +221,7 @@ describe('the Kickstart choice made at setup feeds Today’s start card (W14; it
     tap(onboarding.frame.continue);
     await headingIs(profile.title);
     fireEvent.change(screen.getByLabelText(profile.heightLabel), { target: { value: '175' } });
-    fireEvent.change(screen.getByLabelText(profile.weightLabel), { target: { value: '90' } });
+    fireEvent.change(screen.getByLabelText(profile.weightLabel), { target: { value: '100' } });
     fireEvent.change(screen.getByLabelText(profile.birthYearLabel), { target: { value: '1970' } });
     fireEvent.click(screen.getByRole('radio', { name: profile.sexOptions.female }));
     const kickstart = screen.getByRole<HTMLInputElement>('switch', {

@@ -66,6 +66,8 @@ export const alcohol = {
   helpCard:
     "If you've been drinking most days or heavily at weekends for a while and are thinking about changing that, the safest first step is a conversation, not a sudden stop. Alcohol Drug Helpline 0800 787 797 (call or text 8681), free and 24/7, or your GP. If someone is very unwell, shaking badly, confused or having a seizure, call 111.",
   helpCardLabel: 'Talk to someone',
+  /** The card's 111 row, naming the card's own reasons rather than the notice's (full review F37). */
+  helpCardEmergencyDetail: 'Very unwell, shaking badly, confused or having a seizure',
   helpCardNotNow: 'Not now',
   /** The card returns 720 hours after "Not now" while readiness answer 7 still gates (storage spec 4.12). */
   helpCardReturns: 'This card shows again after 30 days.',
@@ -82,6 +84,13 @@ export const alcohol = {
       'nz-men':
         'NZ guidance for men: no more than 3 standard drinks a day and 15 a week, with at least 2 alcohol-free days. No alcohol use is risk-free.',
     },
+    /**
+     * Readiness answer 2 "yes" or unanswered (guidanceShown; full review F30): no figures. To be
+     * checked against the official page at item 42, and confirmed by the owner at STOP 17 with the
+     * C58 help-card wording (cross-item ruling 8).
+     */
+    pregnancy:
+      'NZ guidance: if you are pregnant, could be pregnant or are breastfeeding, the safest choice is no alcohol. Your midwife or GP can talk it through. No alcohol use is risk-free.',
   },
   /**
    * The first-run notice screen (UX 1b; mock-up Notice.dc.html). It cannot be put off: no string
@@ -241,11 +250,29 @@ export const privacy = {
     /** Only when this phone is paired with a laptop. */
     pairingRemoved: 'The laptop pairing will be removed.',
     /**
-     * A file whose Kickstart history records less than this phone's never lowers it (D27; the
-     * data-loss review): the phone's periods and checks are kept, and this says so before Replace.
+     * A restore never lowers the Kickstart history (D27; full review F1, F12): this phone's
+     * periods, checks and pre-start answers that the file lacks are kept with the file's, and this
+     * says so before Replace.
      */
     kickstartKept:
-      'Kickstart history kept from this phone, because it records more Kickstart days, extensions or stop-sign checks than the file.',
+      "Kickstart history: this phone's Kickstart days, extensions and stop-sign answers are kept with the file's, because a restore never removes them.",
+    /** While the phone's Kickstart runs, the settings it runs on are kept from the phone (F13). */
+    kickstartSettingsKept:
+      'The Kickstart running on this phone keeps going: its diet mode, keto start and Kickstart eating pattern are kept from this phone.',
+    /** The restored answers, profile or weigh-ins switch Kickstart off (the phase engine's own rule). */
+    kickstartEnds:
+      "The Kickstart running on this phone will end after the restore, because the file's readiness answers, profile or weigh-ins switch it off.",
+    /** The file holds a fast that was running when it was made (F3). */
+    fastRunning:
+      'A fast was running when this backup was made (started {start}). It comes back as still running, counted from that start.',
+    endFastAtBackup: 'End that fast at {time}, when the backup was made',
+    endFastHint: 'Turn this on if you have eaten since. You can correct its end time in History.',
+    /**
+     * The records changed between the confirmation and Replace (another tab saved something), so
+     * nothing was replaced and the confirmation is shown again with fresh counts (F12).
+     */
+    changedSinceConfirm:
+      'The records on this phone changed while this was open, perhaps in another tab, so nothing was replaced. Check what the restore will do again.',
     exportFirst: 'Export what is on this phone first',
     replace: 'Replace everything on this phone',
     importRest: 'Import the rest',
@@ -267,6 +294,13 @@ export const privacy = {
     reloadCancels: 'Reload cancels the restore: you will need to choose the file again.',
     /** Counts the phone's records again and shows the confirmation again before anything is replaced. */
     tryRestoreAgain: 'Try the restore again',
+    /**
+     * Once, on Readiness answers after a restore made during setup (F28): the records are back,
+     * and the restored answers are checked before Today.
+     */
+    restored:
+      'Your records from the backup are back on this phone. Check that these answers still apply, then go to Today.',
+    restoredContinue: 'These still apply',
   },
   /**
    * An import refused for a whole list or for the file itself rather than for one record (section
@@ -284,6 +318,9 @@ export const privacy = {
   /** A rescue copy whose Kickstart history cannot be imported whole (section 9.5; D27, D28). */
   kickstartHistory:
     'This rescue copy has a Kickstart record that could not be imported ({record}), and the Kickstart history is imported whole or not at all. Nothing was imported. Keep the file: a later version of the app may read it.',
+  /** A file whose Kickstart history cannot be combined with this phone's (restorePlan.ts; F1). */
+  kickstartMerge:
+    "This backup's Kickstart history cannot be combined with the Kickstart records on this phone: they overlap, or together they pass the six-week limit. A restore never removes Kickstart days, extensions or stop-sign answers from this phone, so nothing was imported. Keep the file.",
   /** One message per BackupError code (section 10.9). {detail} names a store, a field and a rule, never a value. */
   backupErrors: {
     'too-large': 'This file is too big to be a backup from this app. Nothing was imported.',
@@ -321,8 +358,11 @@ export const privacy = {
       'A fresh start with the default drink preset and silverbeet in the garden.',
       'The home-screen icon and the storage protection setting.',
       "If Chrome saved a backup password, remove it in Chrome's settings.",
+      // No web page can take back a site permission (full review F10).
+      "If you let Chrome use the camera for this app, remove that in Chrome's Site settings, Camera.",
       'Backup files you made or shared: delete them in Files, and in your email or cloud storage if you sent them there.',
       'The list on your laptop and its pairing: also unpair on your laptop.',
+      'Copies of your records restored in another browser, such as on a laptop: delete all there too.',
       'A list waiting to be sent expires within 15 minutes.',
     ],
     exportFirst: 'Export a backup first',
@@ -419,8 +459,8 @@ export const privacy = {
     alcohol_day_notes: 'Drink day notes',
     alcohol_milestones: 'Your milestones',
     grocery_lists: 'Grocery lists',
-    card_state: 'Reminder card states',
-    audit: 'Automatic change notes',
+    card_state: 'Hidden reminders',
+    audit: 'Notes on automatic changes',
   },
   /**
    * Why a record in a backup (or the export self-check) was not accepted, in plain words. Built by
@@ -1145,6 +1185,8 @@ export const schedule = {
   custom: 'Custom times',
   none: 'No fasting plan for now',
   noneDetail: 'Meals at ordinary times. You can choose a pattern later in Settings.',
+  /** The same choice inside Settings, where "later in Settings" is not true (full review F29). */
+  noneDetailInSettings: 'Meals at ordinary times.',
   chooseFirst: 'Choose a pattern to see its times.',
   windowTitle: 'Your window',
   startLabel: 'First bite',
@@ -1283,6 +1325,9 @@ export const weight = {
     up: 'Up {kg} kg a week',
     level: 'About level',
     notEnough: 'Not enough weigh-ins yet',
+    /** Under the figures while the weekly change is empty (full review F29; minimumDaysFor(7)). */
+    needsWeekly:
+      'The weekly change needs weigh-ins on at least 3 days in each of the last two weeks.',
     howToReadLabel: 'How to read this',
     howToRead:
       'Weight moves from day to day with water, salt and the food in your stomach: a litre of water is a kilogram. The 7-day average smooths that out, so it is the number to watch.',
@@ -1302,7 +1347,7 @@ export const weight = {
     days30: '30 days',
     days90: '90 days',
     aboutBand:
-      'The shaded range is a rough typical range, not a promise and not a target. In Steady it follows about 0.5–1 kg a week, and never faster than your weight check-in setting.',
+      'The shaded range is a rough typical range, not a promise and not a target. In Steady it follows about 0.5–1 kg a week, and never faster than the pace set for the Weight check-in card in Settings.',
     // Only while the chart draws the steeper first block (item 14 review: never promised otherwise).
     aboutBandKickstart:
       'In your first Kickstart it is steeper for two weeks, mostly water and glycogen, then flattens.',
@@ -2075,7 +2120,7 @@ export const targets = {
     basisLatestOlder: 'Your last weigh-in, {kg} kg on {date}, and your activity',
     staleWeight:
       'That weigh-in is more than 14 days old. Log a weight to bring the guide up to date.',
-    how: 'The rough guide uses the Mifflin-St Jeor equation and an activity factor. It is an estimate, not a measurement.',
+    how: 'The rough guide is a standard estimate from your height, weight, age, sex and activity. It is an estimate, not a measurement.',
     unavailable: {
       unanswered:
         'The app does not estimate energy until the under-18 readiness question is answered.',
@@ -2213,7 +2258,12 @@ export const targets = {
     ofCeiling: '{eaten} / {ceiling} g',
     gramsOnly: '{eaten} g',
     atLeast: 'at least {eaten}',
-    nothingLogged: 'Nothing logged yet today.',
+    /**
+     * In place of "Nothing logged yet today." until food logging exists (full review F24), so the
+     * zeros never read as a day without food. Item 23 removes it with its own empty-day line.
+     */
+    laterStep:
+      'Food logging arrives at a later step in the build checklist. Until then no food is counted here.',
     missingOne: '1 entry has no {nutrient} figure, so the total is at least what is shown.',
     missingMany:
       '{count} entries have no {nutrient} figure, so the total is at least what is shown.',
@@ -2258,6 +2308,9 @@ export const today = {
   laterStep: {
     movement: 'Sessions, walks and rest days arrive at a later step of the build checklist.',
     drinks: 'Drink logging arrives at a later step of the build checklist.',
+    /** Settings' "Coming later" card: the UX 7 settings not built yet (full review F33). */
+    settings:
+      'The store name, the drinking-day start time, the choice of alcohol guidance figures, beach jogging, and hidden recipes and foods arrive at later steps of the build checklist.',
   },
   water: {
     none: 'None logged yet',

@@ -5,6 +5,7 @@ import {
   readiness,
   schedule,
   targets,
+  today,
   transfer,
 } from '@diet/core/copy/health';
 import { ActionRow, Button, Card, ChevronIcon, InstallIcon } from '@diet/ui';
@@ -16,7 +17,6 @@ import { routeHref } from '../routes';
 import { useStore } from '../store';
 import { BackupCard } from './backup/BackupCard';
 import { usePairing } from './pairing/usePairing';
-import { Placeholder } from './Placeholder';
 import { WeightCheckInSettings } from './weight/WeightCheckInSettings';
 
 function InstallCard(): ReactElement {
@@ -128,7 +128,10 @@ export function SettingsScreen(): ReactElement {
           </li>
         </ul>
       </Card>
-      <Placeholder coming="Settings for the store arrive with the steps that use them." />
+      {/* Settings is built; only some of its UX 7 settings wait for later steps (F33). */}
+      <Card label="Coming later">
+        <p className="ui-text-muted">{today.laterStep.settings}</p>
+      </Card>
     </>
   );
 }

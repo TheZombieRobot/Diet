@@ -131,6 +131,9 @@ describe('delete all (HS-30; section 16 test 31)', () => {
     expect(result.ok).toBe(false);
     expect(result.blocked).toBe(true);
     expect(result.failed).toContain('databases');
+    // The lock was granted, but the records were not deleted: the panel says they are still here
+    // (full review F49).
+    expect(result.recordsDeleted).toBe(false);
     expect(deps.reload).not.toHaveBeenCalled();
     holder.close();
   });

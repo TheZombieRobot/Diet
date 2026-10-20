@@ -51,6 +51,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | BK-06 | A file with a value outside the safety bounds (energy floor below 5,000 kJ, Kickstart deficit over 30%, Steady deficit outside 15–20%, protein, carb ceilings, saturated-fat budget, rapid-loss bounds, more than 3 Kickstart extensions or 42 Kickstart days) (DOC_REVIEW C50) | The whole file is refused with a clear message; nothing is clamped and nothing imported |
 | BK-07 | A failure during the import write (a bug, a refused row, a full phone) | Nothing on the phone changes ("Nothing was changed"), and "Save what was on this phone" offers the records shown on the confirmation as a rescue copy |
 | BK-08 | File names and the public repository (DOC_REVIEW C89) | Every name the app gives a saved file (diet-backup-…, rescue and locked variants, the browser's " (1)" copies, the GP summary and grocery exports) is ignored by git; a generated backup trips the backup-file and backup-marker scan rules |
+| BK-12 | A restore never erases what the phone holds about Kickstart (full review F1, F3, F12, F13) | The Kickstart history written is the phone's and the file's merged: a stop-sign answer, an end, an extension or a pre-start "yes" on the phone is kept, and the start refusal, the stop-sign card and the extension offer are the same after the restore as before; two histories that cannot be combined refuse the file; a record saved in another tab after the confirmation stops Replace and the confirmation comes back with fresh counts; a Kickstart running on the phone keeps running; a fast running when the file was made is named, with a switch to end it at the time the file was made |
 | BK-09 | The fixed version-1 reference files, plain and locked (DOC_REVIEW C99) | Decode, decrypt with the reference phrase and import in every later version |
 | BK-10 | Rescue copy after an upgrade fails | The upgrade-failed screen offers "Save a rescue copy", locked by default and named diet-backup-YYYY-MM-DD-rescue-locked.json; it is read with plain IndexedDB at the installed version from that version's allow-list, never reads the pairing or photos, and imports record by record, listing any record it could not keep by store and position; it never counts as a backup |
 | BK-11 | A database newer than the app (a stale tab, a rolled-back deploy) | "This phone has records from a newer version of the app. Reload to update."; the database's version, stores and indexes are left exactly as they were |
@@ -130,7 +131,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 |---|---|---|
 | AL-01 | Formula table | 330 mL 5% = 1.30; 440 mL 5% = 1.74; 150 mL 13% = 1.54; 30 mL 40% = 0.95; 500 mL 4.5% = 1.78; 250 mL 7% = 1.38; 750 mL 13.5% = 7.99; 568 mL 4% = 1.79; 100 mL 0.5% = 0.04; 1000 mL 0% = 0 (±0.05) (HS-04) |
 | AL-02 | Label value entry | Entered 1.3 overrides calculation |
-| AL-03 | Weekly comparison, female profile | 10/week and 2/day thresholds (HS-05) |
+| AL-03 | Weekly comparison, female profile | 10/week and 2/day thresholds (HS-05); with readiness answer 2 yes or unanswered no figure is shown as guidance (HEALTH_SAFETY section 5) |
 | AL-04 | Weekly comparison, male profile | 15/week and 3/day (HS-05) |
 | AL-05 | Alcohol-free days count | Correct for fixture week; no badge or streak wording |
 | AL-06 | Card trigger: 7 consecutive days | Card shown (HS-06) |
@@ -224,7 +225,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | TD-02 | Unbuilt features | Movement and drink logging show no numbers (the Nutrition today card shows the day's own intake, item 21); unbuilt quick actions are shown with "Later", focusable and inert; nothing is written before setup; a failed read offers a reload and keeps the status line and the "talk to someone" card |
 | TD-03 | Water and the electrolyte tick | Saved and still there after a reload offline, by local day; Undo removes only its own entry; the status total matches the stored total; focus stays on the control used, after a save and after a failed one |
 | TD-04 | Steps | Manual entry within 0–100,000; Done saves; "Same as yesterday" only when yesterday has an entry and today none; never overwrites |
-| TD-05 | Drinks guidance | By stored sex and setting, the stricter wins, women's when sex is missing, never without "No alcohol use is risk-free."; under 18 shows the reason and no figures |
+| TD-05 | Drinks guidance | By stored sex and setting, the stricter wins, women's when sex is missing, never without "No alcohol use is risk-free."; under 18 shows the reason and no figures; with readiness answer 2 yes or unanswered, the pregnancy line and no daily or weekly figures (full review F30) |
 | TD-06 | Reminders | Cholesterol per NU-08 (counted again once when low-carb eating first starts); electrolytes per C72, only with the keto ceiling on in keto mode; medication timing (RD-09) on the Fast card when fasting is available and in Reminders when it is switched off, never twice; backup per BK-03, with Reminders first when storage is not protected |
 | TD-07 | Status line | The over-24-hours sentence strictly over 24 h whether or not fasting is switched off; a neutral "still open" line when it is; no time past the running fast's 24-hour point, and from 23 h "It's fine to eat now.", as on the Fast card; the day's window after the snack is added; no fasting words with no pattern |
 
@@ -236,8 +237,10 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 - [ ] Install on phone from Chrome; icon appears.
 - [ ] Flight mode; open; log weight; start fast; close; reopen; data present.
 - [ ] Records survive a week of normal use (PWA-06, as reworded by DOC_REVIEW C98).
-- [ ] Export backup; file lands in Downloads; import on the laptop browser works.
-- [ ] Export a locked backup, then restore it in an Incognito tab on the same phone (DOC_REVIEW C48).
+- [ ] Export a locked backup; the file lands in Downloads.
+- [ ] Restore that locked file in an Incognito tab on the same phone, check that the records appear, then close the Incognito tab, which discards that copy (DOC_REVIEW C48).
+- [ ] Optional, the laptop: copy the locked file to the laptop by USB cable, open the app in a Chrome Guest window, restore it there, check the records, then close the Guest window straight away, which discards that copy. Never restore into an ordinary laptop browser window: it would keep every record (HEALTH_SAFETY section 7, DOC_REVIEW C48).
+- [ ] Clean-up: if a restore was ever made in an ordinary browser window anywhere other than this phone's app, open the app in that window and use Settings, Backup and data, Delete all data, so no copy of the records stays there.
 - [ ] Text readable outdoors at midday; buttons tappable with a thumb.
 
 ### End of week 3

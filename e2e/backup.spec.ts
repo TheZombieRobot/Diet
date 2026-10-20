@@ -99,11 +99,26 @@ async function chooseBackup(page: Page, name: string, text: string): Promise<voi
 async function replaceAndReload(page: Page, opensOn = 'Today'): Promise<void> {
   const confirm = page.getByTestId('restore-confirm');
   await expect(confirm).toBeVisible();
+  const fromSetup = opensOn === 'Readiness answers';
+  if (fromSetup) {
+    // Setup restores onto a phone that holds nothing of the owner's (F14): no loss is counted,
+    // and Replace is the first button.
+    await expect(confirm.getByTestId('restore-summary')).toContainText(
+      privacy.importBackup.freshPhone,
+    );
+    await expect(confirm.getByRole('button').first()).toHaveText(privacy.importBackup.replace);
+  }
   await Promise.all([
     page.waitForEvent('load'),
     confirm.getByRole('button', { name: privacy.importBackup.replace }).click(),
   ]);
   await expect(heading(page)).toHaveText(opensOn);
+  if (fromSetup) {
+    // Once: the records are back, with the answers to check before Today (F28).
+    await expect(
+      page.getByRole('status').filter({ hasText: privacy.importBackup.restored }),
+    ).toBeVisible();
+  }
 }
 
 /**
@@ -657,12 +672,19 @@ test('two tabs: a restore waits for a busy second tab to stop writing, so nothin
     .toBeGreaterThan(5);
 
   await chooseBackup(a, 'diet-backup-2000-03-01.json', plainReferenceEnvelopeV1());
-  await replaceAndReload(a);
+  // The first Replace waits for the busy tab to let go, then finds the weigh-ins it wrote since
+  // the confirmation: nothing is replaced, and the confirmation comes back saying why (F12).
+  const confirm = a.getByTestId('restore-confirm');
+  await confirm.getByRole('button', { name: privacy.importBackup.replace }).click();
+  await expect(
+    a.getByRole('alert').filter({ hasText: privacy.importBackup.changedSinceConfirm }),
+  ).toBeVisible();
   expect(
     await b.evaluate(
       () => (window as unknown as { dietBusyTab: { done: boolean } }).dietBusyTab.done,
     ),
   ).toBe(true);
+  await replaceAndReload(a);
   const restored = await readDatabase(a);
   for (const store of BACKED_UP) {
     expect(restored[store]?.length, store).toBe(

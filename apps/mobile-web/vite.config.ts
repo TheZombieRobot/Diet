@@ -29,6 +29,25 @@ const brandTeal = requireToken(tokens, '--color-teal').light;
 const DESCRIPTION =
   'A private logbook and planner for meals, fasting, movement, drinks and the grocery list. It works offline and keeps records on this device.';
 
+/**
+ * Code that changes only when a dependency does, in chunks of its own, so an update re-downloads
+ * the app's own chunk and not these (full review F44). React, its scheduler and Dexie go in
+ * "vendor" with Rollup's CommonJS helper, which jsQR needs too: jsQR then imports only from
+ * "vendor", so its file name stays the same while the app changes. Every chunk is still in the
+ * offline copy (workbox.globPatterns below).
+ */
+const VENDOR = new Set(['react', 'react-dom', 'scheduler', 'dexie']);
+
+function chunkFor(id: string): string | undefined {
+  if (id.includes('commonjsHelpers')) return 'vendor';
+  const parts = id.split(/[\\/]node_modules[\\/]/);
+  if (parts.length < 2) return undefined;
+  // The package a file belongs to: the folder after the last node_modules (pnpm nests them).
+  const name = parts.at(-1)?.split(/[\\/]/)[0];
+  if (name === 'jsqr') return 'jsQR';
+  return name !== undefined && VENDOR.has(name) ? 'vendor' : undefined;
+}
+
 /** The page description, and the browser's theme colour (status bar) in light and dark. */
 function headMeta(): Plugin {
   return {
@@ -79,6 +98,9 @@ export default defineConfig({
     // app's own origin, and separate files are precached for offline use.
     assetsInlineLimit: 0,
     sourcemap: false,
+    // With the dependencies in their own chunks the app's chunk is under Vite's 500 kB warning
+    // limit again, so a real jump in size still warns.
+    rollupOptions: { output: { manualChunks: chunkFor } },
   },
   preview: {
     host: '127.0.0.1',
