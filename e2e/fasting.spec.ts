@@ -92,6 +92,10 @@ test('FS-01, HS-17, FL-14: the pattern form on the Fasting screen, with a Kickst
   await seedRecords(page, snapshot, { now: at(D, '09:00') });
   await expect(fastCard(page).getByText('23:1 · One meal')).toBeVisible();
   await page.goto('./#/fasting/pattern');
+  // FS-04: the stop-signs are on the screen before any fast is started.
+  const signs = region(page, fasting.stopSigns.label);
+  await expect(signs.locator('.ui-plain-list li')).toHaveText([...fasting.stopSigns.signs]);
+  await expect(signs.locator('a[href="tel:111"]')).toBeVisible();
   const card = region(page, fasting.pattern.label);
   const choices = card.getByRole('radiogroup', { name: schedule.presetsLegend });
   await expect(choices.locator('.ui-choice__label')).toHaveText([
@@ -213,10 +217,15 @@ test('FS-02, HS-02: ending a fast and starting another a minute later does not r
   await fastCard(page).getByRole('button', { name: fasting.card.end }).click();
   await clockTo(page, at(D, '18:51'));
   await fastCard(page).getByRole('button', { name: fasting.card.start }).click();
-  await expect(fastCard(page).getByText(/so this counts as the same fast/)).toBeVisible();
+  // The end may be stamped a moment late, so the gap reads 1 m or less than a minute.
+  const joined =
+    /^This fast started (?:1 m|less than a minute) after your last fast ended, so it counts as part of the same fast\./;
+  await expect(fastCard(page).getByText(joined)).toBeVisible();
   await clockTo(page, new Date(Date.parse(at(D, '18:51')) + (23 * 60 + 49) * 60_000).toISOString());
   await expect(fastCard(page).getByText(fasting.card.overCeiling)).toBeVisible();
   await expect(fastCard(page).getByRole('button', { name: fasting.card.end })).toBeEnabled();
+  // The note names the gap between the fasts, so it is still true a day later (review).
+  await expect(fastCard(page).getByText(joined)).toBeVisible();
 });
 
 test('FS-05: a drink during the fast shows the neutral note, with no penalty or streak wording', async ({

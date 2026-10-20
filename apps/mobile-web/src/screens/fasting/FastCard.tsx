@@ -1,7 +1,7 @@
 import {
   clockTimeFromMinutes,
+  featureGateOf,
   fillTemplate,
-  formatClockRange,
   formatClockTime,
   formatDuration,
   formatElapsed,
@@ -11,10 +11,11 @@ import {
   localWallClockOf,
   parseClockTime,
   patternPill,
+  reasonStates,
   SNACK_TIME,
   zonedWallTimeToInstant,
 } from '@diet/core';
-import { fasting, privacy, reflux } from '@diet/core/copy/health';
+import { fasting, privacy, reflux, schedule } from '@diet/core/copy/health';
 import {
   ActionRow,
   Button,
@@ -25,25 +26,34 @@ import {
   Notice,
   TextField,
 } from '@diet/ui';
-import { type ReactElement, type ReactNode, useState } from 'react';
+import { type ReactElement, type ReactNode, useEffect, useId, useRef, useState } from 'react';
 import type { AppStorage } from '../../db/runtime';
 import { GateNotice } from '../../onboarding/GateNotice';
+import { consequenceText } from '../../onboarding/readinessText';
 import { fastingHref, routeHref } from '../../routes';
 import { changeStart, endFast, saveNote, startFast, undoEnd, undoStart } from './actions';
-import { clockAt, endHintText, joinedText, startedText } from './fastingText';
+import { clockAt, eatWindowText, endHintText, joinedText, startedText } from './fastingText';
 import { HelpRows } from './HelpRows';
 import { MealCheck } from './MealCheck';
 import { RefluxOptions } from './RefluxCard';
 import { StopSignsRow } from './StopSigns';
-import { ActionError } from './ActionError';
+import { ActionError, ProblemNotice } from './ActionError';
 import { useAction } from './useAction';
 import { type FastingRead, type FastingState, useFasting } from './useFasting';
-import { type MealCheckView, type RunningFastView, SNACK_BUTTON_KINDS } from './view';
+import {
+  type MealCheckView,
+  type RefluxOptionsView,
+  type RunningFastView,
+  SNACK_BUTTON_KINDS,
+} from './view';
 
 /** How long the "Fast started" and "Fast ended" lines, and their Undo, stay (F46). */
 export const OVERLAY_MS = 60_000;
 
 const card = fasting.card;
+
+/** Where focus goes after an action replaces the pressed button. */
+type FocusTarget = 'started' | 'ended' | 'start' | 'end';
 
 /** The plain link to the Fasting screen, last on every Today card. */
 function DetailsLink(): ReactElement {
@@ -64,6 +74,19 @@ function RefluxLink(): ReactElement {
       </li>
     </ul>
   );
+}
+
+/**
+ * Answer 3's line, with "hypoglycaemia", when the diabetes-medication reason is stated (RD-03): on
+ * the Fasting screen's gated cards, an open fast or not. The prescriber's agreement is confirmed
+ * in Settings, Readiness answers (F44). The line follows the gates, so it never says meals keep a
+ * deficit another answer closes (item 13 review).
+ */
+export function AnswerThreeLine({ state }: { readonly state: FastingState }): ReactElement | null {
+  const { gateView } = state;
+  const { stated } = reasonStates(gateView.input, featureGateOf(gateView.gates, 'fasting').reasons);
+  if (!stated.includes('diabetes-medication')) return null;
+  return <p>{consequenceText('q3', gateView.input, gateView.gates)}</p>;
 }
 
 /** The card shown when the fasting records cannot be read (design 3.4): reload, and the help rows. */
@@ -94,7 +117,7 @@ function Timer({
       : fillTemplate(card.ofPlanned, {
           planned: formatDuration(running.spanPlannedMinutes, 'short'),
         });
-  const hint = endHintText(running.endHint, state.deviceTimeZone);
+  const hint = endHintText(running.endHint, state.deviceTimeZone, state.today);
   return (
     <>
       <p className="ui-figure-row" data-testid="fast-timer">
@@ -199,11 +222,7 @@ function ChangeStart({
           }}
         />
       </div>
-      {problem === null ? null : (
-        <Notice role="alert">
-          <p>{problem}</p>
-        </Notice>
-      )}
+      <ProblemNotice problem={problem} />
       <ButtonRow>
         <Button variant="secondary" disabled={action.busy} onClick={save}>
           {history.save}
@@ -223,19 +242,34 @@ function ChangeStart({
   );
 }
 
-/** The meal-check regions of the card: the closed date's after-window line, then the upcoming date. */
+/** The compact reflux options Today shows: only after a symptom, not for the switches alone (F36). */
+function todayOptions(state: FastingState): RefluxOptionsView | null {
+  const { view } = state;
+  if (view.kind !== 'open') return null;
+  const options = view.reflux.options;
+  return options === null || !options.symptomTriggered ? null : options;
+}
+
+/**
+ * The meal-check regions of the card: the closed date's after-window line, then the upcoming date.
+ * On Today, a date whose change the reflux options below already name gets no second line for it.
+ */
 function MealChecks({
   storage,
   state,
+  today,
 }: {
   readonly storage: AppStorage;
   readonly state: FastingState;
+  readonly today: boolean;
 }): ReactElement | null {
   const { view } = state;
   if (view.kind !== 'open') return null;
   const regions = [view.closed, view.upcoming].filter(
     (check): check is MealCheckView => check !== null,
   );
+  const options = today ? todayOptions(state) : null;
+  const changeShownOn = options !== null && options.changed !== null ? options.date : null;
   return (
     <>
       {regions.map((check) => (
@@ -244,6 +278,7 @@ function MealChecks({
           storage={storage}
           check={check}
           proteinTargetG={state.context.mealTargets(check.date).proteinTargetG}
+          changeShownBelow={check.region === 'upcoming' && check.date === changeShownOn}
         />
       ))}
     </>
@@ -260,8 +295,8 @@ function TodayRefluxOptions({
 }): ReactElement | null {
   const { view } = state;
   if (view.kind !== 'open') return null;
-  const options = view.reflux.options;
-  if (options === null || !options.symptomTriggered) return null;
+  const options = todayOptions(state);
+  if (options === null) return null;
   const upcoming = view.upcoming;
   const snackOffered =
     upcoming !== null &&
@@ -298,6 +333,21 @@ export function FastCard({
   const [madeEnd, setMadeEnd] = useState<string | null>(null);
   const [noteFor, setNoteFor] = useState<{ id: string; text: string } | null>(null);
   const [noteSaved, setNoteSaved] = useState(false);
+  // After End, Start or an Undo the pressed button is gone, so focus moves to what took its place
+  // (the overlay line, or the main button again) at the first render that draws it (design 3.9;
+  // item 15 review). The write's own re-render and the records' update both come after the tap.
+  const ids = useId();
+  const focusTo = useRef<FocusTarget | null>(null);
+  const setFocusTo = (target: FocusTarget) => {
+    focusTo.current = target;
+  };
+  useEffect(() => {
+    if (focusTo.current === null) return;
+    const target = document.getElementById(`${ids}-${focusTo.current}`);
+    if (target === null) return;
+    target.focus();
+    focusTo.current = null;
+  });
 
   const running = view.kind === 'gated' ? view.openFast : view.running;
   const onEnd = () => {
@@ -309,12 +359,13 @@ export function FastCard({
         if (done !== null) {
           setMadeEnd(id);
           setNoteSaved(false);
+          if (view.kind === 'open') setFocusTo('ended');
         }
       });
   };
   const endButton = (label: string) => (
     <>
-      <Button variant="primary" block disabled={end.busy} onClick={onEnd}>
+      <Button id={`${ids}-end`} variant="primary" block disabled={end.busy} onClick={onEnd}>
         {label}
       </Button>
       <ActionError action={end} />
@@ -354,6 +405,7 @@ export function FastCard({
         {today ? <StopSignsRow /> : null}
         {endButton(fasting.gated.endOpenFast)}
         <GateNotice feature="fasting" link linkWhen="actionable" />
+        {today ? null : <AnswerThreeLine state={state} />}
         <p className="ui-text-muted">{fasting.gated.kept}</p>
         {today ? (
           <>
@@ -372,19 +424,25 @@ export function FastCard({
     running !== null &&
     running.fast.id === madeStart &&
     nowMs - instantMs(running.fast.startedAt) < OVERLAY_MS ? (
-      <Notice tone="info" role="status">
-        <p>{card.started}</p>
-        <Button
-          variant="quiet"
-          disabled={undo.busy}
-          onClick={() => {
-            void undo.run(() => undoStart(storage, running.fast.id));
-          }}
-        >
-          {card.undo}
-        </Button>
-        <ActionError action={undo} />
-      </Notice>
+      <div id={`${ids}-started`} tabIndex={-1}>
+        <Notice tone="info" role="status">
+          <p>{card.started}</p>
+          <Button
+            variant="quiet"
+            disabled={undo.busy}
+            onClick={() => {
+              void undo
+                .run(() => undoStart(storage, running.fast.id))
+                .then((done) => {
+                  if (done !== null) setFocusTo('start');
+                });
+            }}
+          >
+            {card.undo}
+          </Button>
+          <ActionError action={undo} />
+        </Notice>
+      </div>
     ) : null;
 
   const lastEnded = view.lastEnded;
@@ -394,33 +452,47 @@ export function FastCard({
     endedAt !== null &&
     lastEnded.fast.id === madeEnd &&
     nowMs - instantMs(endedAt) < OVERLAY_MS ? (
-      <Notice tone="info" role="status">
-        <p>{fillTemplate(card.ended, { length: formatElapsed(lastEnded.spanMs, 'text') })}</p>
-        {lastEnded.over24 ? <p>{card.overCeiling}</p> : null}
-        <ButtonRow>
-          <Button
-            variant="quiet"
-            disabled={undo.busy}
-            onClick={() => {
-              void undo.run(() => undoEnd(storage, lastEnded.fast.id));
-            }}
-          >
-            {card.undo}
-          </Button>
-          {noteFor === null ? (
+      <div id={`${ids}-ended`} tabIndex={-1}>
+        <Notice tone="info" role="status">
+          {/* With the clock behind, End stored the start (repos/fasts.ts): say so, not "0 m". */}
+          {lastEnded.clockBehind ? (
+            <>
+              <p>{card.clockBehind}</p>
+              <p>{card.endedAtStart}</p>
+            </>
+          ) : (
+            <p>{fillTemplate(card.ended, { length: formatElapsed(lastEnded.spanMs, 'text') })}</p>
+          )}
+          {lastEnded.over24 ? <p>{card.overCeiling}</p> : null}
+          <ButtonRow>
             <Button
               variant="quiet"
+              disabled={undo.busy}
               onClick={() => {
-                setNoteFor({ id: lastEnded.fast.id, text: lastEnded.fast.note ?? '' });
-                setNoteSaved(false);
+                void undo
+                  .run(() => undoEnd(storage, lastEnded.fast.id))
+                  .then((done) => {
+                    if (done !== null) setFocusTo('end');
+                  });
               }}
             >
-              {card.addNote}
+              {card.undo}
             </Button>
-          ) : null}
-        </ButtonRow>
-        <ActionError action={undo} />
-      </Notice>
+            {noteFor === null ? (
+              <Button
+                variant="quiet"
+                onClick={() => {
+                  setNoteFor({ id: lastEnded.fast.id, text: lastEnded.fast.note ?? '' });
+                  setNoteSaved(false);
+                }}
+              >
+                {card.addNote}
+              </Button>
+            ) : null}
+          </ButtonRow>
+          <ActionError action={undo} />
+        </Notice>
+      </div>
     ) : null;
 
   // The note editor stays open until saved or cancelled, whatever the 60-second timer does.
@@ -516,7 +588,7 @@ export function FastCard({
           </Notice>
         ) : null}
         {startedOverlay}
-        <MealChecks storage={storage} state={state} />
+        <MealChecks storage={storage} state={state} today={today} />
         {running.alcoholNote ? (
           <Notice tone="info">
             <p>{fasting.alcoholNote}</p>
@@ -535,6 +607,7 @@ export function FastCard({
     const startButton = (
       <>
         <Button
+          id={`${ids}-start`}
           variant={view.startVariant}
           block
           disabled={start.busy}
@@ -546,6 +619,7 @@ export function FastCard({
                   setMadeStart(done.value.id);
                   setNoteFor(null);
                   setNoteSaved(false);
+                  setFocusTo('started');
                 }
               });
           }}
@@ -560,10 +634,12 @@ export function FastCard({
         {endedOverlay}
         {noteEditor}
         {view.pattern === null ? (
+          // A stored "No fasting plan for now" is named as the owner's choice, not as a pattern
+          // still to choose (item 15 review).
           <>
-            <p>{card.noPattern}</p>
+            <p>{view.noPlanChosen ? schedule.none : card.noPattern}</p>
             <a className="ui-button ui-button--quiet" href={fastingHref('pattern')}>
-              {card.choosePattern}
+              {view.noPlanChosen ? fasting.pattern.change : card.choosePattern}
               <ChevronIcon />
             </a>
           </>
@@ -578,11 +654,7 @@ export function FastCard({
             <p>{card.notRunning}</p>
             {next === null ? null : (
               <p className="ui-split-row">
-                <span className="ui-split-row__amber">
-                  {fillTemplate(card.eatWindow, {
-                    range: formatClockRange(next.window.start, next.window.end),
-                  })}
-                </span>
+                <span className="ui-split-row__amber">{eatWindowText(next, state.today)}</span>
                 {next.window.start === SNACK_TIME && !isOneMealWindow(next.window) ? (
                   <span>
                     {fillTemplate(card.snackAndDinner, { end: formatClockTime(next.window.end) })}
@@ -592,7 +664,9 @@ export function FastCard({
             )}
           </>
         )}
-        {view.pattern === null ? null : <MealChecks storage={storage} state={state} />}
+        {view.pattern === null ? null : (
+          <MealChecks storage={storage} state={state} today={today} />
+        )}
         {today && view.pattern !== null ? (
           <TodayRefluxOptions storage={storage} state={state} />
         ) : null}

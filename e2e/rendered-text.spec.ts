@@ -1,5 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
-import { alcohol, privacy, targets, today, weight } from '../packages/core/src/copy/health';
+import {
+  alcohol,
+  fasting,
+  privacy,
+  targets,
+  today,
+  weight,
+} from '../packages/core/src/copy/health';
 import { commerceRules, healthPhraseRules } from '../tools/scans/rules';
 import { scanText } from '../tools/scans/scan';
 import {
@@ -70,7 +77,7 @@ test('no screen shows banned health, price, stock or cart wording', async ({ pag
   expect(found).toEqual([]);
 });
 
-test('no screen but About, Today, Weight, Fasting and Diet and targets shows a number or a price, even with every banner and panel open', async ({
+test('no screen but About, Weight, Fasting and Diet and targets shows a number or a price, even with every banner and panel open', async ({
   page,
 }) => {
   // Screens must not look like they hold records they do not have (no sample data). The fresh
@@ -80,9 +87,12 @@ test('no screen but About, Today, Weight, Fasting and Diet and targets shows a n
   // Weight screen, whose labels carry digits by design ("7-day average", "Less 0.1 kg"), and the
   // Fasting screen, which shows the owner's eating pattern and its clock times (item 15), and Diet
   // and targets, which shows the owner's own figures and the allowed ranges by design (item 21).
-  // Today shows the date, the pattern's times, the guidance line and the lipid-test wording, so it
-  // is checked where nothing is built yet (item 16, TD-02): Movement, the later-step lines and the
-  // "Later" rows of the "+" panel; its Nutrition today card shows today's intake, which is none.
+  // On Today the Fast card may carry digits, for the same pattern ("22:2", "Eat 5:00 pm – 7:00 pm"),
+  // and is left out by element (item 15 review); the Nutrition today card shows today's intake
+  // (none: every figure 0; item 21); and item 16's own figures are removed one element at a time:
+  // the date and status line, the "Add 250 mL" button, the NZ guidance line and the lipid-test
+  // reminder. A digit anywhere else on Today, such as an unbuilt card, a later-step line or a
+  // "Later" row of the "+" panel (TD-02), still fails.
   await seedOnboarded(page, './', './', { weightKg: null });
   const found: string[] = [];
   const check = async (where: string, screen: ScreenName) => {
@@ -93,27 +103,9 @@ test('no screen but About, Today, Weight, Fasting and Diet and targets shows a n
         weightFigures.locator('.ui-stat__value, .ui-trend-chart, [data-weigh-in-row]'),
       ).toHaveCount(0);
     }
-    if (screen === 'Today') {
-      await expect(region(page, today.cards.movement)).toBeVisible();
-      // The Nutrition today card shows today's intake (none: every figure 0) against the owner's
-      // own stored ranges and guides, never sample data (item 21; targets.spec.ts checks them).
-      await expect(
-        region(page, targets.today.label).locator('.ui-meter__value').first(),
-      ).toHaveText('0 kJ');
-      const unbuilt = [
-        region(page, today.cards.movement),
-        page.getByTestId('later-step'),
-        page.locator('.ui-fab-panel [aria-disabled="true"]'),
-      ];
-      for (const part of unbuilt) {
-        for (const text of await part.allInnerTexts()) {
-          if (/\d|[$€£]/.test(text)) found.push(`${where}: a figure in ${JSON.stringify(text)}`);
-        }
-      }
-    }
+    if (screen === 'Today') await expect(region(page, today.cards.movement)).toBeVisible();
     if (
       screen === 'About' ||
-      screen === 'Today' ||
       screen === 'Weight' ||
       screen === 'Fasting and reflux' ||
       screen === 'Diet and targets' ||
@@ -122,7 +114,24 @@ test('no screen but About, Today, Weight, Fasting and Diet and targets shows a n
       if (/[$€£]/.test(await renderedText(page))) found.push(`${where}: a currency sign`);
       return;
     }
-    const text = await renderedText(page);
+    let text = await renderedText(
+      page,
+      screen === 'Today' ? region(page, fasting.card.label) : undefined,
+    );
+    if (screen === 'Today') {
+      // The Nutrition today card shows today's intake (none: every figure 0) against the owner's
+      // own stored ranges and guides, never sample data (item 21; targets.spec.ts checks them).
+      const nutrition = region(page, targets.today.label);
+      await expect(nutrition.locator('.ui-meter__value').first()).toHaveText('0 kJ');
+      const ownFigures = [
+        nutrition,
+        page.getByTestId('today-status'),
+        region(page, today.cards.water).getByRole('button', { name: today.water.add }),
+        page.getByTestId('drinks-guidance'),
+        page.getByTestId('reminder-cholesterol'),
+      ];
+      for (const part of ownFigures) text = text.replace(await part.innerText(), '');
+    }
     if (/\d/.test(text))
       found.push(`${where}: a digit in ${JSON.stringify(text.match(/.*\d.*/)?.[0])}`);
     if (/[$€£]/.test(text)) found.push(`${where}: a currency sign`);
