@@ -9,18 +9,19 @@ const OPTIONS = ['1', '2', '3', '4', '5'].map((value) => ({ value, label: value 
  * Effort, soreness and energy, 1 to 5 (UX 4c), as item 13's inline radio groups (ruling 7). Each
  * stays optional until chosen; once chosen it can be changed but not cleared (N9), and a second
  * tap on the chosen value does nothing. The names carry the row id, so two sessions' groups on
- * one screen never share a radio group.
+ * one screen never share a radio group. While a write runs a tap is ignored, but the radios stay
+ * enabled, so focus and the arrow keys stay in the group (item 27 review).
  */
 export function RatingGroups({
   rowId,
   values,
   onRate,
-  disabled,
+  busy,
 }: {
   readonly rowId: Id;
   readonly values: Readonly<Record<RatingField, number | null>>;
   readonly onRate: (field: RatingField, value: number) => void;
-  readonly disabled: boolean;
+  readonly busy: boolean;
 }): ReactElement {
   return (
     <>
@@ -36,10 +37,9 @@ export function RatingGroups({
             name={`rating-${field}-${rowId}`}
             options={OPTIONS}
             value={current === null ? null : String(current)}
-            disabled={disabled}
             onChange={(value) => {
               const n = Number(value);
-              if (n !== current) onRate(field, n);
+              if (!busy && n !== current) onRate(field, n);
             }}
           />
         );

@@ -122,7 +122,7 @@ describe('exercise dataset (item 26)', () => {
     expect(withVersion('dumbbell')).toEqual(['seed:ex-pike-push-up', 'seed:ex-row']);
   });
 
-  it('content review: the press has its own cues, the pike stays inclined, soft sand comes in short stretches, the row needs a fixed rail, and C starts both planks kneeling', () => {
+  it('content review: the press has its own cues, the pike stays inclined, soft sand comes in short stretches, the row needs a fixed rail, C starts both planks kneeling, and the lighter walk and jog have their own cues', () => {
     const data = getExerciseData();
     const byId = new Map(data.exercises.map((e) => [e.id, e]));
     const pike = byId.get('seed:ex-pike-push-up');
@@ -137,6 +137,12 @@ describe('exercise dataset (item 26)', () => {
     expect(byId.get('seed:ex-beach-walk')?.variants.harder.how).toContain(
       '2 to 3 minutes on softer sand',
     );
+    // The lighter jog never says to jog, and the lighter walk never says to walk briskly (HS-29).
+    const jog = byId.get('seed:ex-beach-jog');
+    const walk = byId.get('seed:ex-beach-walk');
+    if (jog === undefined || walk === undefined) throw new Error('Missing a beach exercise');
+    for (const lighterCue of cuesFor(jog, 'easier')) expect(lighterCue).not.toMatch(/\bjog/i);
+    for (const lighterCue of cuesFor(walk, 'easier')) expect(lighterCue).not.toMatch(/\bbrisk/i);
     const c = data.templates.find((t) => t.id === C);
     const planks = c?.main.filter((s) => /plank/.test(s.exerciseId)).map((s) => s.startVariant);
     expect(planks).toEqual(['easier', 'easier']);
@@ -343,6 +349,16 @@ describe('exercise dataset (item 26)', () => {
         return `${ex(d, 'seed:ex-beach-jog')}.tags`;
       },
     ],
+    ...(['seed:ex-beach-walk', 'seed:ex-beach-jog'] as const).map(
+      (id): [string, ExerciseDataRule, (d: Data) => string] => [
+        `${id}'s easier version (the lighter session) without its own cues`,
+        'beach',
+        (d) => {
+          exercise(d, id).variants.easier.cues = null;
+          return `${ex(d, id)}.variants.easier.cues`;
+        },
+      ],
+    ),
     [
       'a beach session with no beach tag',
       'beach',

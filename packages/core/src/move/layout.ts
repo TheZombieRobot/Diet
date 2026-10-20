@@ -12,6 +12,7 @@ import {
   type ExerciseData,
   exerciseById,
   type PlannedMovement,
+  type SessionPlan,
   type SessionTemplate,
   type TemplateSlot,
 } from '../exercise';
@@ -28,6 +29,17 @@ export interface LayoutMovement {
   readonly stored: SessionMovement | null;
   /** The amount to show on each set not yet ticked, in order; empty when none is left. */
   readonly toDo: readonly number[];
+  /**
+   * A lighter session's movement stored at another version with nothing ticked (a stop sign or a
+   * fast past 24 hours began during the session; ruling 9): shown as the planned one, which takes
+   * its place at the first tick.
+   */
+  readonly replace: boolean;
+  /**
+   * A lighter session's movement already ticked at another version: its sets stay and count, and
+   * no more are logged today (HS-29; ruling 9).
+   */
+  readonly closed: boolean;
 }
 
 export interface LayoutBlock {
@@ -42,11 +54,16 @@ const amountOf = (m: SessionMovement): number => m.reps ?? m.seconds ?? 0;
  * main one its main slot; each takes the first stored movement of its exercise not yet matched
  * (the warm-up march the first stored march, the cool-down march the second). Stored movements
  * left over (a slot no longer in the dataset) go last in the main block, read-only.
+ *
+ * The sets left of a stored movement in its planned version are the plan's (which already counts
+ * this session's ticks), never more than were stored, so once a set uses the session's whole
+ * capped amount nothing more is suggested (EX-03). In a lighter session, a movement stored at
+ * another version is replaced when nothing of it is ticked, and closed when something is.
  */
 export function layoutSession(
   data: ExerciseData,
   template: SessionTemplate,
-  plan: { readonly movements: readonly PlannedMovement[] },
+  plan: Pick<SessionPlan, 'mode' | 'movements'>,
   row: SessionRecord,
 ): LayoutBlock[] {
   const matched = new Set<number>();
@@ -62,13 +79,20 @@ export function layoutSession(
     );
     const stored = index < 0 ? null : (row.movements[index] ?? null);
     if (stored !== null) matched.add(index);
-    let toDo: readonly number[];
-    if (stored === null) {
-      toDo = p.perSet;
-    } else {
+    let toDo: readonly number[] = p.perSet;
+    let replace = false;
+    let closed = false;
+    if (stored !== null) {
       const left = Math.max(0, stored.sets - stored.done.length);
-      const fromPlan = p.variant === stored.variant ? p.perSet : [];
-      toDo = Array.from({ length: left }, (_, i) => fromPlan[i] ?? amountOf(stored));
+      if (p.variant === stored.variant) toDo = p.perSet.slice(0, left);
+      else if (plan.mode === 'lighter' && stored.done.length === 0) replace = true;
+      else if (plan.mode === 'lighter') {
+        toDo = [];
+        closed = true;
+      } else {
+        // A version the plan no longer gives (its equipment switched off): its own stored amount.
+        toDo = Array<number>(left).fill(amountOf(stored));
+      }
     }
     groups.get(p.block)?.push({
       block: p.block,
@@ -78,12 +102,16 @@ export function layoutSession(
       index: stored === null ? null : index,
       stored,
       toDo: Object.freeze([...toDo]),
+      replace,
+      closed,
     });
   }
 
   row.movements.forEach((stored, index) => {
     if (matched.has(index)) return;
-    const left = Math.max(0, stored.sets - stored.done.length);
+    // In a lighter session only an easier one takes more sets.
+    const closed = plan.mode === 'lighter' && stored.variant !== 'easier';
+    const left = closed ? 0 : Math.max(0, stored.sets - stored.done.length);
     groups.get('main')?.push({
       block: 'main',
       exercise: exerciseById(data, stored.exerciseId) ?? null,
@@ -92,6 +120,8 @@ export function layoutSession(
       index,
       stored,
       toDo: Object.freeze(Array<number>(left).fill(amountOf(stored))),
+      replace: false,
+      closed,
     });
   });
 

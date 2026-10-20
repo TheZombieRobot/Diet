@@ -272,8 +272,13 @@ export function SessionFlow({
   const [reopened, setReopened] = useState<Id | null>(null);
   const [pending, setPending] = useState<string | null>(null);
   const [justSaved, setJustSaved] = useState<Id | null>(null);
-  // Where focus goes once the live records move the view on (section 1.17).
-  const focusFrom = useRef<{ key: string; target: 'first' | 'check' } | null>(null);
+  // Where focus goes once the live records move the view on to one of `until` (section 1.17):
+  // kept through an interim view, such as the rest card while a reopened rest becomes the log.
+  const focusFrom = useRef<{
+    key: string;
+    target: 'first' | 'check';
+    until: readonly SessionScreenState['kind'][] | null;
+  } | null>(null);
   const box = useRef<HTMLDivElement>(null);
   const save = useSave(moveSaveMessage);
 
@@ -286,25 +291,41 @@ export function SessionFlow({
   if (pending !== null && pending !== key) setPending(null);
   const busy = pending !== null;
 
+  const kind = state.kind;
+  const shownKey = useRef(key);
   useEffect(() => {
+    const changed = shownKey.current !== key;
+    shownKey.current = key;
     const request = focusFrom.current;
-    if (request === null || request.key === key) return;
-    focusFrom.current = null;
     const headings = [...(box.current?.querySelectorAll('h2') ?? [])];
+    if (request === null) {
+      // The view changed by itself (midnight, another tab) and took the focused control with it.
+      if (changed && document.activeElement === document.body) headings[0]?.focus();
+      return;
+    }
+    if (request.key === key || (request.until !== null && !request.until.includes(kind))) return;
+    focusFrom.current = null;
     const target =
       request.target === 'check'
         ? headings.find((h) => h.textContent === move.preCheck.title)
         : headings[0];
     target?.focus();
-  }, [key]);
-  const focusAfter = (target: 'first' | 'check') => {
-    focusFrom.current = { key, target };
+  }, [key, kind]);
+  const focusAfter = (
+    target: 'first' | 'check',
+    until: readonly SessionScreenState['kind'][] | null = null,
+  ) => {
+    focusFrom.current = { key, target, until };
   };
 
-  /** A write that moves the view on: disabled from the tap until it does, or fails. */
-  const act = (write: () => Promise<unknown>, target: 'first' | 'check' = 'first') => {
+  /** A write that moves the view on to `until`: disabled from the tap until it does, or fails. */
+  const act = (
+    write: () => Promise<unknown>,
+    until: readonly SessionScreenState['kind'][],
+    target: 'first' | 'check' = 'first',
+  ) => {
     setPending(key);
-    focusAfter(target);
+    focusAfter(target, until);
     void save.run(write).then((ok) => {
       if (!ok) {
         setPending(null);
@@ -313,7 +334,7 @@ export function SessionFlow({
     });
   };
   const restRow = (row: SessionRecord) => {
-    act(() => writeSession(storage, data, row.id, { status: 'rested' }));
+    act(() => writeSession(storage, data, row.id, { status: 'rested' }, 'unticked'), ['rested']);
   };
   /** The finish card's props shared by the log, finish-only and done views. */
   const finishProps = (row: SessionRecord, mode: 'log' | 'finish-only' | 'done') => ({
@@ -346,7 +367,7 @@ export function SessionFlow({
       const reopenedRow = state.kind === 'rested' && reopened === state.row.id ? state.row : null;
       if (state.kind === 'rested' && reopenedRow === null) {
         const { row, undo } = state;
-        const label = fillTemplate(moveScreen.today.undoRest, { name: nameOf(state.template) });
+        const name = nameOf(state.template);
         view = (
           <Card label={nameOf(state.template)}>
             <p className="ui-text-lead">{move.rest.rested}</p>
@@ -355,10 +376,10 @@ export function SessionFlow({
                 variant="quiet"
                 disabled={busy}
                 onClick={() => {
-                  act(() => removeRestedSession(storage, row.id), 'check');
+                  act(() => removeRestedSession(storage, row.id), ['before-start'], 'check');
                 }}
               >
-                {label}
+                {fillTemplate(moveScreen.today.undoRest, { name })}
               </Button>
             ) : null}
             {undo === 'reopen' ? (
@@ -371,7 +392,8 @@ export function SessionFlow({
                   focusAfter('check');
                 }}
               >
-                {label}
+                {/* The same words as the link on Move and Today that leads here (N5). */}
+                {fillTemplate(moveScreen.today.changeChoice, { name })}
               </Button>
             ) : null}
             <SaveError save={save} />
@@ -406,18 +428,21 @@ export function SessionFlow({
               setCheck({ on: ctx.today, answers: { ...answers, [k]: value } });
             }}
             onChoose={(choice, preCheck) => {
-              act(async () => {
-                await startSession(storage, data, {
-                  ctx,
-                  templateId: template.id,
-                  check: preCheck,
-                  choice,
-                  reopened: reopenedRow?.id ?? null,
-                });
-                if (choice !== 'rest') setChosen(choice);
-                setReopened(null);
-                setStep('log');
-              });
+              act(
+                async () => {
+                  await startSession(storage, data, {
+                    ctx,
+                    templateId: template.id,
+                    check: preCheck,
+                    choice,
+                    reopened: reopenedRow?.id ?? null,
+                  });
+                  if (choice !== 'rest') setChosen(choice);
+                  setReopened(null);
+                  setStep('log');
+                },
+                choice === 'rest' ? ['rested'] : ['log'],
+              );
             }}
           />
         </BeforeStart>
@@ -426,7 +451,7 @@ export function SessionFlow({
     }
     case 'log': {
       const { row, template } = state;
-      const mode = sessionMode(template, row, chosen);
+      const mode = sessionMode(template, row, chosen, ctx);
       view =
         step === 'finish' ? (
           <FinishCard
@@ -435,7 +460,7 @@ export function SessionFlow({
             onSaved={() => {
               setJustSaved(row.id);
               // The done summary's heading takes focus once the row reads as done.
-              focusAfter('first');
+              focusAfter('first', ['done']);
             }}
             onBack={() => {
               setStep('log');
@@ -490,7 +515,7 @@ export function SessionFlow({
             {...finishProps(row, 'finish-only')}
             onSaved={() => {
               setJustSaved(row.id);
-              focusAfter('first');
+              focusAfter('first', ['done']);
             }}
           />
         </>

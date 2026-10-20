@@ -11,8 +11,8 @@ import {
   type MoveContext,
   moveContext,
   type MoveRecords,
+  preStartStopSignDay,
   type ReadinessGates,
-  recentPreStartStopSignDay,
 } from '@diet/core';
 import { useMemo } from 'react';
 import type { WriteGate } from '../../db/gate';
@@ -82,11 +82,9 @@ export function useMoveContext(storage: AppStorage): MoveRead {
   if (records.status === 'error') return { status: 'read-error' };
   const data = exerciseDataOrNull();
   if (data === null) return { status: 'data-error' };
+  const clock = { today, now };
   // Item 14's pre-start "yes": its record, or this page's hold until the record is written.
-  const recorded = recentPreStartStopSignDay(records.value.cardStates, now);
-  const held = preStartHeld === today ? preStartHeld : null;
-  const preStartStopSignDay =
-    recorded === null || (held !== null && held > recorded) ? held : recorded;
-  const ctx = moveContext(data, { ...records.value, preStartStopSignDay }, gates, { today, now });
+  const preStart = preStartStopSignDay(records.value.cardStates, preStartHeld, clock);
+  const ctx = moveContext(data, { ...records.value, preStartStopSignDay: preStart }, gates, clock);
   return { status: 'ready', data, ctx };
 }

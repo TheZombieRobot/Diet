@@ -11,7 +11,8 @@ import { readinessGates } from '../readiness/gates';
 import type { ReadinessGates } from '../storage/readiness';
 import type { YesNo } from '../storage/primitives';
 import type { KickstartCheckRecord, SessionRecord, WeeklyPatternDay } from '../storage/records';
-import { type MoveRecords, moveContext } from './context';
+import { PRE_START_STOP_SIGN_CARD, preStartTrigger } from '../weight/preStart';
+import { type MoveRecords, moveContext, preStartStopSignDay } from './context';
 import {
   heatElectrolyteLines,
   heatWaterExtraMl,
@@ -181,10 +182,50 @@ describe('moveContext (U2; M32, HS-02, EX-05)', () => {
       null,
       '2000-01-17',
     ],
-    ['the held pre-start yes today', [], TUE, TUE],
-    ['the held pre-start yes from yesterday', [], '2000-01-17', null],
+    [
+      // Ruling 9's cautious reading of a clock set back: a check dated after now counts.
+      'faint at work an hour after now',
+      [stopCheck('2000-01-17T21:00:00.000Z', { faintAtWork: 'yes' })],
+      null,
+      TUE,
+    ],
+    ['a pre-start yes today', [], TUE, TUE],
+    // The pre-start "yes" is a record: it counts for 336 hours, in every tab and after a relaunch.
+    ['a pre-start yes 2 days ago still counts', [], '2000-01-16', '2000-01-16'],
   ] as const)('stop signs: %s', (_, kickstartChecks, preStartStopSignDay, day) => {
     expect(ctxOf({ kickstartChecks, preStartStopSignDay }).stopSignOn).toBe(day);
+  });
+
+  /** A pre-start "yes" as item 14 records it: a card_state row of its date, shown at `at`. */
+  const preStartRow = (
+    date: string,
+    at: string,
+  ): Parameters<typeof preStartStopSignDay>[0][number] => ({
+    cardId: PRE_START_STOP_SIGN_CARD,
+    trigger: preStartTrigger(date),
+    firstShownAt: at,
+    dismissedAt: null,
+    dismissedTimeZone: null,
+    doneAt: null,
+  });
+  it.each([
+    [
+      'a record 13 days ago',
+      [preStartRow('2000-01-05', '2000-01-04T20:00:00.000Z')],
+      null,
+      '2000-01-05',
+    ],
+    ['a record 15 days ago', [preStartRow('2000-01-03', '2000-01-02T20:00:00.000Z')], null, null],
+    ['no record, a "yes" this page holds from 14 days ago', [], '2000-01-04', '2000-01-04'],
+    ['no record, a "yes" this page holds from 15 days ago', [], '2000-01-03', null],
+    [
+      'the later of a record and a held "yes"',
+      [preStartRow('2000-01-10', '2000-01-09T20:00:00.000Z')],
+      '2000-01-12',
+      '2000-01-12',
+    ],
+  ] as const)('preStartStopSignDay: %s', (_, rows, held, day) => {
+    expect(preStartStopSignDay(rows, held, { today: TUE, now: NOW })).toBe(day);
   });
 
   it('a stored Sunday jog while jogging is locked is shown as the walk on Sunday', () => {

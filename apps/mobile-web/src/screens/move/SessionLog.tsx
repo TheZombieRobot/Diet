@@ -16,6 +16,7 @@ import {
   type SessionTemplate,
   storedVariants,
   switchVariants,
+  tickAsPlanned,
   tickSet,
   toSessionMovement,
   untickSet,
@@ -28,8 +29,10 @@ import { Button, ButtonRow, Card, ChoiceList, Stepper } from '@diet/ui';
 import { type ReactElement, type Ref, useEffect, useId, useRef, useState } from 'react';
 import { StorageRuleError } from '../../db/errors';
 import type { AppStorage } from '../../db/runtime';
+import { formatLocalDay } from '../../format';
 import { SaveError } from '../../onboarding/SaveError';
 import { useSave } from '../../onboarding/useSave';
+import { SafetyRows } from '../weight/parts';
 import { amountText, displayStep, heatWaterText } from './moveText';
 import { MoveWriteRefused, moveSaveMessage, writeSession } from './sessionWrites';
 
@@ -129,17 +132,24 @@ function MovementPanel({
   const [howOpen, setHowOpen] = useState(false);
   const [versionsOpen, setVersionsOpen] = useState(false);
   const howId = useId();
+  const headingRef = useRef<HTMLHeadingElement>(null);
   const tickRef = useRef<HTMLButtonElement>(null);
   const extraRef = useRef<HTMLButtonElement>(null);
+  const undoRef = useRef<HTMLButtonElement>(null);
+  // After a tick, Undo or a revealed set, focus goes to the set being done, else to "Log an extra
+  // set", else to Undo (a walk), once the live row shows the change (section 1.17).
   const focusNext = useRef(false);
   const ticked = stored?.done ?? [];
   useEffect(() => {
-    if (!focusNext.current) return;
+    const target = tickRef.current ?? extraRef.current ?? undoRef.current;
+    if (!focusNext.current || target === null) return;
     focusNext.current = false;
-    (tickRef.current ?? extraRef.current)?.focus();
-  }, [ticked.length]);
+    target.focus();
+  }, [ticked.length, extra]);
   const s = moveScreen.session;
-  const variantKey: VariantKey = stored?.variant ?? planned?.variant ?? 'standard';
+  // A lighter session's movement still stored at another version shows as the planned one.
+  const variantKey: VariantKey =
+    (movement.replace ? planned?.variant : stored?.variant) ?? planned?.variant ?? 'standard';
   const variant = exercise === null ? null : variantOf(exercise, variantKey);
   const perSide = variant?.perSide ?? false;
   const setText = (set: { reps: number | null; seconds: number | null }) =>
@@ -168,12 +178,16 @@ function MovementPanel({
   const lastAmount = ticked.at(-1);
   const fallback = slot?.min ?? exercise.step;
 
+  // Worked out from the row as read, and written only while it is still in progress today with
+  // those movements (sessionWrites.ts).
   const run = (change: (fresh: SessionRecord) => SessionRecord['movements'] | null) =>
     save.run(async () => {
       const fresh = await storage.repos.sessions.get(row.id);
       if (fresh === undefined) throw new StorageRuleError('sessions', 'not-found');
       const movements = change(fresh);
-      if (movements !== null) await writeSession(storage, data, row.id, { movements });
+      if (movements !== null) {
+        await writeSession(storage, data, row.id, { movements }, 'in-progress', fresh);
+      }
     });
   const atIndex = (fresh: SessionRecord): number => {
     if (index === null || fresh.movements[index]?.exerciseId !== exercise.id) {
@@ -183,18 +197,32 @@ function MovementPanel({
   };
   const tick = (amount: number) => {
     focusNext.current = true;
-    void run((fresh) =>
-      index === null
+    void run((fresh) => {
+      if (movement.replace && planned !== null) {
+        atIndex(fresh);
+        return tickAsPlanned(fresh.movements, planned, amount);
+      }
+      return index === null
         ? appendMovement(
             fresh.movements,
             { exerciseId: exercise.id, variant: planned?.variant ?? 'easier', unit: exercise.unit },
             amount,
           )
-        : tickSet(fresh.movements, atIndex(fresh), amount),
-    ).then((ok) => {
+        : tickSet(fresh.movements, atIndex(fresh), amount);
+    }).then((ok) => {
       if (ok) setExtra(false);
       else focusNext.current = false;
     });
+  };
+  const untick = () => {
+    focusNext.current = true;
+    void run((fresh) => untickSet(fresh.movements, atIndex(fresh))).then((ok) => {
+      if (!ok) focusNext.current = false;
+    });
+  };
+  const reveal = () => {
+    focusNext.current = true;
+    setExtra(true);
   };
   const changeVersion = (key: VariantKey) => {
     void run((fresh) => {
@@ -216,8 +244,10 @@ function MovementPanel({
       }).movements.find((m) => m.block === 'main' && m.exerciseId === exercise.id);
       if (next === undefined || !versions.includes(next.variant)) return null;
       return replaceMovement(fresh.movements, exercise.id, toSessionMovement(next));
-    }).then(() => {
+    }).then((ok) => {
       setVersionsOpen(false);
+      // The choices close, so focus goes to the movement's name, not to the page.
+      if (ok) headingRef.current?.focus();
     });
   };
 
@@ -241,7 +271,9 @@ function MovementPanel({
 
   return (
     <div className="ui-movement" data-testid={`movement-${exercise.id}`}>
-      <h3 className="ui-text-strong">{exercise.name}</h3>
+      <h3 ref={headingRef} className="ui-text-strong" tabIndex={-1}>
+        {exercise.name}
+      </h3>
       {exercise.safetyKeys.includes('painFreeOnly') ? (
         <p className="ui-text-strong">{move.safety.painFreeOnly.body}</p>
       ) : null}
@@ -340,39 +372,23 @@ function MovementPanel({
         ))}
       </ol>
       {ticked.length > 0 ? (
-        <Button
-          variant="quiet"
-          disabled={save.busy}
-          onClick={() => {
-            void run((fresh) => untickSet(fresh.movements, atIndex(fresh)));
-          }}
-        >
+        <Button ref={undoRef} variant="quiet" disabled={save.busy} onClick={untick}>
           {walk ? s.undoWalk : fillTemplate(s.undoSet, { n: ticked.length })}
         </Button>
       ) : null}
       {!walk &&
       stored !== null &&
+      !movement.closed &&
       toDo.length === 0 &&
       !extra &&
       ticked.length > 0 &&
       ticked.length < SESSION_LIMITS.maxSets ? (
-        <Button
-          ref={extraRef}
-          variant="quiet"
-          onClick={() => {
-            setExtra(true);
-          }}
-        >
+        <Button ref={extraRef} variant="quiet" onClick={reveal}>
           {s.extraSet}
         </Button>
       ) : null}
-      {planned !== null && stored === null && toDo.length === 0 && !extra ? (
-        <Button
-          variant="quiet"
-          onClick={() => {
-            setExtra(true);
-          }}
-        >
+      {planned !== null && (stored === null || movement.replace) && toDo.length === 0 && !extra ? (
+        <Button variant="quiet" onClick={reveal}>
           {s.logAnyway}
         </Button>
       ) : null}
@@ -433,6 +449,16 @@ export function SessionLog({
           ) : undefined
         }
       >
+        {/* Ruling 9, also when it began during the session: why it is the lighter session now. */}
+        {ctx.stopSignOn === null ? null : (
+          <>
+            <p className="ui-text-strong">
+              {fillTemplate(move.preCheck.recentStopSign, { day: formatLocalDay(ctx.stopSignOn) })}
+            </p>
+            <SafetyRows />
+          </>
+        )}
+        {ctx.fastOverCeiling ? <p>{move.preCheck.overCeiling}</p> : null}
         {mode === 'lighter' ? <p>{move.lighter}</p> : null}
         {template.kind === 'strength' ? (
           <p className="ui-text-muted">{move.progression.rule}</p>

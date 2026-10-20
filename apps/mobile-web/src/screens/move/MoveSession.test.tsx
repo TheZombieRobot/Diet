@@ -1,12 +1,14 @@
 // The session screen (item 27 design section 5.3, S1 to S18): the whole app over the real
 // repositories on fake-indexeddb. HS-28 (stop signs first on every route and state), HS-29 (any
 // yes gives only the lighter session or rest, which cannot be switched up), RD-05, EX-02 to EX-04.
+import { PRE_CHECK_KEYS, PRE_START_STOP_SIGN_CARD, preStartTrigger } from '@diet/core';
 import { general, move, moveScreen, readiness } from '@diet/core/copy/health';
 import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { createElement } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { exerciseDataOrNull } from './exerciseData';
 import { counts, type TestDb } from '../../db/testKit';
+import { preStartStopSignStore } from '../weight/preStartCheck';
 import { MoveSessionScreen } from './MoveSessionScreen';
 import {
   A,
@@ -255,6 +257,23 @@ describe('the check and the choice (S3, S4; HS-29, HS section 3, M32)', () => {
     expect(choiceButtons()).toEqual(['Planned session', 'Lighter session', 'Rest today']);
   });
 
+  it.each(['painOrInjury', 'heavyWorkDay'] as const)(
+    'with five answers and %s not answered yet, no choice is offered (Answer all six)',
+    async (missing) => {
+      await openSession('#/move-session/a');
+      const card = await waitForCheck();
+      const answerNo = (key: (typeof PRE_CHECK_KEYS)[number]) => {
+        const group = within(card).getByRole('radiogroup', { name: move.preCheck.questions[key] });
+        fireEvent.click(within(group).getByRole('radio', { name: 'No' }));
+      };
+      for (const key of PRE_CHECK_KEYS) if (key !== missing) answerNo(key);
+      expect(screen.queryByTestId('choice')).toBeNull();
+      expect(screen.getByText(move.preCheck.mustAnswer)).toBeDefined();
+      answerNo(missing);
+      expect(choiceButtons()).toEqual(['Planned session', 'Lighter session', 'Rest today']);
+    },
+  );
+
   it('answers given before midnight are cleared after it (N4)', async () => {
     const walkDays = pattern({ 2: [A, WALK], 3: [WALK], 5: [B] });
     await openSession('#/move-session/beach-walk', {
@@ -346,6 +365,17 @@ describe('the check and the choice (S3, S4; HS-29, HS section 3, M32)', () => {
     expect(choiceButtons()[0]).toBe(recent ? 'Lighter session' : 'Planned session');
     expect(choiceButtons().includes('Planned session')).toBe(!recent);
   });
+
+  it('S4d: a pre-start stop-sign yes 2 days ago, read from the records in a tab that never held it (ruling 9)', async () => {
+    await openSession('#/move-session/a', { preStartYes: ['2000-01-15T20:00:00.000Z'] });
+    expect(preStartStopSignStore.get()).toBeNull();
+    await waitForCheck();
+    answerCheck();
+    const choice = screen.getByTestId('choice');
+    expect(choice.textContent).not.toContain(general.readinessOutcome);
+    expect(choice.textContent).toContain('On 16 January 2000 you told the app about dizziness');
+    expect(choiceButtons()).toEqual(['Lighter session', 'Rest today']);
+  });
 });
 
 describe('HS-29 in the session (S5, S6)', () => {
@@ -407,7 +437,7 @@ describe('HS-29 in the session (S5, S6)', () => {
     expect(squat).toMatchObject({ variant: 'easier', sets: 1 });
   });
 
-  it('a lighter jog is brisk walk intervals, with walking between them, not jogs', async () => {
+  it('a lighter jog is brisk walk intervals, with walking between them, and its cues never say to jog', async () => {
     const walk = (date: string) => ({
       date,
       templateId: WALK,
@@ -431,6 +461,54 @@ describe('HS-29 in the session (S5, S6)', () => {
       'Walk easily for about 1 minute 30 seconds between brisk walks.',
     );
     expect(screen.queryByText('Walk for about 1 minute 30 seconds between jogs.')).toBeNull();
+    const howTo = within(jog).getByRole('button', { name: moveScreen.session.howTo });
+    fireEvent.click(howTo);
+    const list = document.getElementById(howTo.getAttribute('aria-controls') ?? '');
+    const cues = [...(list?.querySelectorAll('li') ?? [])].map((li) => li.textContent);
+    expect(cues).toContain('Walk easily between brisk walks for the full break.');
+    for (const cue of cues) expect(cue).not.toMatch(/\bjog/i);
+  });
+
+  it('ruling 9 during a planned session: the lighter session from then on, the reason with 111 and Healthline, and still after a reload', async () => {
+    await openSession('#/move-session/a');
+    await startPlanned();
+    const panel = (id: string) => screen.getByTestId(`movement-seed:ex-${id}`);
+    fireEvent.click(within(panel('squat')).getByRole('button', { name: 'Set 1 done' }));
+    await within(panel('squat')).findByRole('button', { name: 'Undo set 1' });
+    expect(
+      within(panel('row')).getByRole('button', { name: moveScreen.session.changeVersion }),
+    ).toBeDefined();
+    // A "yes" before a Kickstart start, given in another tab: a record (item 14).
+    await db().repos.cardState.reopen(PRE_START_STOP_SIGN_CARD, preStartTrigger('2000-01-18'));
+    const check = async () => {
+      const card = region('Session A');
+      await within(card).findByText(/On 18 January 2000 you told the app about dizziness/);
+      expect(card.querySelector('a[href="tel:111"]')).not.toBeNull();
+      expect(within(card).getByText(moveScreen.session.lighterChip)).toBeDefined();
+      expect(screen.queryByRole('button', { name: moveScreen.session.changeVersion })).toBeNull();
+      // The squat, started at its planned version, takes no more sets; the row, not started,
+      // is now the easier one.
+      expect(within(panel('squat')).queryByRole('button', { name: /^Set 2 done$/ })).toBeNull();
+      expect(
+        within(panel('squat')).queryByRole('button', { name: moveScreen.session.extraSet }),
+      ).toBeNull();
+      expect(panel('row').textContent).toContain('High-rail row');
+    };
+    await check();
+    cleanup();
+    await renderMove('#/move-session/a', 'Session');
+    await screen.findByRole('button', { name: moveScreen.session.finish });
+    await check();
+    fireEvent.click(within(panel('row')).getByRole('button', { name: 'Set 1 done' }));
+    await waitFor(async () => {
+      const row = (await sessionRows(db()))[0]?.movements.find(
+        (m) => m.exerciseId === 'seed:ex-row',
+      );
+      expect(row).toMatchObject({
+        variant: 'easier',
+        done: [{ reps: expect.any(Number) as number }],
+      });
+    });
   });
 
   it('S6: after a pain yes the hinge is left out; all no, its switch offers only Easier and Standard', async () => {
@@ -548,6 +626,10 @@ describe('logging a session (S9, S10; EX-04, C112, N7)', () => {
     await waitFor(async () => {
       expect((await squatRow())?.done).toEqual([]);
     });
+    // Focus goes to the set to do again, not to the page (section 1.17).
+    await waitFor(() => {
+      expect(document.activeElement?.textContent).toBe('Set 1 done');
+    });
     fireEvent.click(await within(squatPanel()).findByRole('button', { name: 'More for set 1' }));
     fireEvent.click(within(squatPanel()).getByRole('button', { name: 'Set 1 done' }));
     const set2 = await within(squatPanel()).findByRole('button', { name: 'Set 2 done' });
@@ -558,6 +640,7 @@ describe('logging a session (S9, S10; EX-04, C112, N7)', () => {
     fireEvent.click(
       await within(squatPanel()).findByRole('button', { name: moveScreen.session.extraSet }),
     );
+    expect(document.activeElement?.textContent).toBe('Set 3 done');
     fireEvent.click(within(squatPanel()).getByRole('button', { name: 'Set 3 done' }));
     await waitFor(async () => {
       expect(await squatRow()).toMatchObject({
@@ -642,6 +725,10 @@ describe('logging a session (S9, S10; EX-04, C112, N7)', () => {
         );
         expect(stored).toMatchObject({ variant: 'band', reps: 8 });
       });
+      // The choices close with the change, so focus goes to the movement's name.
+      await waitFor(() => {
+        expect(document.activeElement?.textContent).toBe('Row');
+      });
       fireEvent.click(await within(row()).findByRole('button', { name: 'Set 1 done' }));
       await waitFor(() => {
         expect(
@@ -652,8 +739,23 @@ describe('logging a session (S9, S10; EX-04, C112, N7)', () => {
   );
 });
 
+describe('focus in a beach walk (section 1.17)', () => {
+  it('after Walk done focus goes to Undo walk, and after Undo back to Walk done', async () => {
+    await openSession('#/move-session/beach-walk', { now: SAT });
+    await startPlanned();
+    tap(moveScreen.session.walkDone);
+    await waitFor(() => {
+      expect(document.activeElement?.textContent).toBe(moveScreen.session.undoWalk);
+    });
+    tap(moveScreen.session.undoWalk);
+    await waitFor(() => {
+      expect(document.activeElement?.textContent).toBe(moveScreen.session.walkDone);
+    });
+  });
+});
+
 describe('rest (S11; EX-08, N5)', () => {
-  it('a rest from the check keeps its answers: Undo writes nothing and offers the same choice, which updates the same row', async () => {
+  it('a rest from the check keeps its answers: "Change the choice" writes nothing and offers the same choice, which updates the same row', async () => {
     await openSession('#/move-session/a');
     await waitForCheck();
     answerCheck('painOrInjury');
@@ -661,8 +763,10 @@ describe('rest (S11; EX-08, N5)', () => {
     await screen.findByText(move.rest.rested);
     const [rested] = await sessionRows(db());
     expect(rested).toMatchObject({ status: 'rested', preCheck: checkWith('painOrInjury') });
-    tap('Undo rest for Session A');
+    // The same words as the link on Move and Today that leads here.
+    tap('Change the choice for Session A');
     const card = await waitForCheck();
+    expect(document.activeElement?.textContent).toBe(move.preCheck.title);
     expect((await sessionRows(db()))[0]).toEqual(rested);
     const radios = within(card).getAllByRole<HTMLInputElement>('radio');
     expect(radios.filter((r) => r.checked)).toHaveLength(6);
@@ -670,6 +774,8 @@ describe('rest (S11; EX-08, N5)', () => {
     expect(choiceButtons()).toEqual(['Rest today', 'Lighter session']);
     tap('Lighter session');
     await screen.findByRole('button', { name: moveScreen.session.finish });
+    // Focus waits through the rest card shown in between, then goes to the session (section 1.17).
+    expect(document.activeElement?.textContent).toBe('Session A');
     const rows = await sessionRows(db());
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({
@@ -864,6 +970,53 @@ describe('no check, no write (S15, S16; HS-29, N31)', () => {
     fireEvent.click(planned);
     await screen.findByRole('button', { name: moveScreen.session.finish });
     expect(await sessionRows(db())).toHaveLength(1);
+  });
+});
+
+describe('the finish card keeps what was typed (item 27 review)', () => {
+  it('ratings and a note are kept through "Back to the session" and through midnight', async () => {
+    await openSession('#/move-session/a', {
+      now: '2000-01-18T10:58:00.000Z',
+      sessions: [
+        {
+          date: '2000-01-18',
+          templateId: A,
+          status: 'planned',
+          movements: [done('seed:ex-squat', 'standard', [8])],
+        },
+      ],
+    });
+    await screen.findByRole('button', { name: moveScreen.session.finish });
+    tap(moveScreen.session.finish);
+    const typed = () => {
+      const finish = region(move.finish.title);
+      const effort = within(finish).getByRole('radiogroup', { name: 'Effort' });
+      return [
+        within(effort)
+          .getAllByRole<HTMLInputElement>('radio')
+          .find((r) => r.checked)?.value,
+        within(finish).getByLabelText<HTMLTextAreaElement>(moveScreen.finish.noteLabel).value,
+      ];
+    };
+    const finish = await screen.findByRole('region', { name: move.finish.title });
+    fireEvent.click(
+      within(within(finish).getByRole('radiogroup', { name: 'Effort' })).getByRole('radio', {
+        name: '2',
+      }),
+    );
+    fireEvent.change(within(finish).getByLabelText(moveScreen.finish.noteLabel), {
+      target: { value: 'Calves a bit tight' },
+    });
+    tap(moveScreen.finish.back);
+    await screen.findByRole('button', { name: moveScreen.session.finish });
+    tap(moveScreen.session.finish);
+    await screen.findByRole('region', { name: move.finish.title });
+    expect(typed()).toEqual(['2', 'Calves a bit tight']);
+    await clockTo(db(), '2000-01-18T11:01:00.000Z');
+    await screen.findByText(/This session started on 18 January 2000/);
+    expect(typed()).toEqual(['2', 'Calves a bit tight']);
+    // The card the focus was in went with the change of day: focus goes to the new view.
+    expect(document.activeElement?.tagName).toBe('H2');
   });
 });
 

@@ -148,7 +148,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 |---|---|---|
 | EX-01 | Every exercise in the dataset has easier and harder variants and a stop-rule link | Data validation |
 | EX-02 | Beach-tagged session | Flags, patrol, rip, sun, hydration prompts render before start (HS-12) |
-| EX-03 | Progression suggestion | Never more than about 10% more volume per movement than the last completed week (C76), nor than the last session |
+| EX-03 | Progression suggestion | Never more than about 10% more volume per movement than the last completed week (C76), nor than the last session; once a set uses the session's whole amount, no further set is suggested |
 | EX-04 | Session log | Saves movement, reps/time, effort, notes; visible in history (history on the Move tab) |
 | EX-05 | Rest day scheduled | Weekly view shows at least two rest days |
 | EX-06 | Beach jogging is opt-in | With the switch off, or fewer than four tolerated walks, no jog can be planned or started. After a jog that was not tolerated, or one left unfinished, the beach walk is shown again until one more tolerated walk (UX 4d, C51) |

@@ -12,7 +12,7 @@ import {
 } from '@diet/core';
 import { move, moveScreen } from '@diet/core/copy/health';
 import { Button, ButtonRow } from '@diet/ui';
-import { type ReactElement, type ReactNode, useId, useState } from 'react';
+import { type ReactElement, type ReactNode, useEffect, useId, useRef, useState } from 'react';
 import type { AppStorage } from '../../db/runtime';
 import { SaveError } from '../../onboarding/SaveError';
 import { useSave } from '../../onboarding/useSave';
@@ -64,20 +64,31 @@ function TodayItemRow({
   readonly replace: boolean;
 }): ReactElement {
   const nameId = useId();
+  const nameRef = useRef<HTMLParagraphElement>(null);
   const save = useSave(moveSaveMessage);
   // Disabled from the tap until the live item changes or the write fails (N31).
   const key = `${item.state}:${item.row?.id ?? ''}`;
   const [pending, setPending] = useState<string | null>(null);
   if (pending !== null && pending !== key) setPending(null);
   const busy = pending !== null || save.busy;
+  // The tapped button goes with the change, so focus goes to the session's name (section 1.17).
+  const focusName = useRef(false);
+  useEffect(() => {
+    if (!focusName.current) return;
+    focusName.current = false;
+    nameRef.current?.focus();
+  }, [key]);
   const name = item.template?.name ?? moveScreen.today.unknownTemplate;
   const slug = templateSlug(item.templateId);
   const { row } = item;
 
   const write = (change: () => Promise<unknown>) => {
     setPending(key);
+    focusName.current = true;
     void save.run(change).then((ok) => {
-      if (!ok) setPending(null);
+      if (ok) return;
+      setPending(null);
+      focusName.current = false;
     });
   };
   const restInstead =
@@ -98,7 +109,7 @@ function TodayItemRow({
                     preCheck: null,
                   }),
                 )
-              : writeSession(storage, data, row.id, { status: 'rested' }),
+              : writeSession(storage, data, row.id, { status: 'rested' }, 'unchecked'),
           );
         }}
       >
@@ -162,9 +173,11 @@ function TodayItemRow({
           <RatingGroups
             rowId={row.id}
             values={row}
-            disabled={save.busy}
+            busy={save.busy}
             onRate={(field, value) => {
-              void save.run(() => writeSession(storage, data, row.id, ratingPatch(field, value)));
+              void save.run(() =>
+                writeSession(storage, data, row.id, ratingPatch(field, value), 'done'),
+              );
             }}
           />
           {note === null ? null : <p className="ui-text-muted">{note}</p>}
@@ -187,6 +200,7 @@ function TodayItemRow({
         </Button>
       );
     } else if (undo === 'reopen' && slug !== null) {
+      // Opens the rested session, whose button offers the same choice again (section 1.11).
       actions = (
         <a className="ui-button ui-button--quiet" href={sessionHref(slug)}>
           {fillTemplate(moveScreen.today.changeChoice, { name })}
@@ -197,7 +211,7 @@ function TodayItemRow({
 
   return (
     <li className="ui-move-item" data-testid={`today-item-${slug ?? item.templateId}`}>
-      <p className="ui-text-strong" id={nameId}>
+      <p ref={nameRef} className="ui-text-strong" id={nameId} tabIndex={-1}>
         {name}
       </p>
       {detail === null ? null : <p className="ui-text-muted">{detail}</p>}

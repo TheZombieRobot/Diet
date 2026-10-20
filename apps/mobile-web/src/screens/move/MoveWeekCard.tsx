@@ -6,6 +6,7 @@ import {
   isoWeekdayOf,
   joinList,
   type MoveContext,
+  todayHeadline,
   weekFooter,
 } from '@diet/core';
 import { move, moveScreen, today as todayCopy } from '@diet/core/copy/health';
@@ -19,9 +20,11 @@ import { TodayItems } from './TodayItems';
 
 /**
  * The week strip (UX 4a; EX-05, EX-08): seven read-only days, Monday first. On Move each day shows
- * its state; on Today only the plan, with no done or not-done marks, so the first screen of the day
- * never reads as a habit tracker (N10). A past day with nothing logged keeps an outline and says
- * "Not done. Rest counts too." to screen readers: never red, crossed or counted.
+ * its state, and today stays planned while one of its planned sessions is still to do, so a walk
+ * done or rested never hides Session A (item 27 review); on Today only the plan, with no done or
+ * not-done marks, so the first screen of the day never reads as a habit tracker (N10). A past day
+ * with nothing logged keeps an outline and says "Not done. Rest counts too." to screen readers:
+ * never red, crossed or counted.
  */
 export function WeekStrip({
   data,
@@ -32,11 +35,18 @@ export function WeekStrip({
   readonly ctx: MoveContext;
   readonly mode: 'states' | 'plan';
 }): ReactElement {
+  const todayOpen = todayHeadline(ctx.items).kind === 'planned';
   return (
     <ol className="ui-week" aria-label={move.week.title} data-testid="week-strip">
       {ctx.days.map((day) => {
         const shown: DayState =
-          mode === 'states' ? day.state : day.templateIds.length === 0 ? 'rest-day' : 'planned';
+          mode === 'plan'
+            ? day.templateIds.length === 0
+              ? 'rest-day'
+              : 'planned'
+            : day.date === ctx.today && todayOpen
+              ? 'planned'
+              : day.state;
         const rows = ctx.sessions.filter((s) => s.date === day.date);
         const ids =
           shown === 'done' && rows.length > 0

@@ -152,6 +152,55 @@ test('E2 to E4: a beach walk logged and seen offline, the lighter session after 
   await expect(page.locator('.ui-fab-panel')).toContainText('exercise warning signs');
 });
 
+test('E8: collapsed lists stay hidden until tapped, and the stepper keeps − and + in place at 360 px', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 360, height: 780 });
+  await seedOnboarded(page);
+  await seedMovePlan(page);
+  /** The list a disclosure button controls (its id comes from React, so matched as written). */
+  const controlled = async (button: ReturnType<Page['getByRole']>) =>
+    page.locator(`[id="${(await button.getAttribute('aria-controls')) ?? ''}"]`);
+
+  // The beach walk's log: "At the beach" stays one tap away, collapsed until tapped.
+  await goTo(page, 'Move');
+  await region(page, move.week.title).getByRole('link', { name: 'Start Beach walk' }).click();
+  await answerAll(page);
+  await page.getByRole('button', { name: 'Planned session' }).click();
+  const atBeach = region(page, 'Beach walk').getByRole('button', {
+    name: move.safety.beachPrompts.title,
+  });
+  const prompts = await controlled(atBeach);
+  await expect(prompts).toBeHidden();
+  await atBeach.click();
+  await expect(prompts).toBeVisible();
+
+  // Session A's warm-up march: "How to do it" collapsed, and + stays put from 2 min 30 s to 3 min.
+  await goTo(page, 'Move');
+  await region(page, move.week.title).getByRole('link', { name: 'Start Session A' }).click();
+  await answerAll(page);
+  await page.getByRole('button', { name: 'Planned session' }).click();
+  const march = page.getByTestId('movement-seed:ex-march').first();
+  const how = march.getByRole('button', { name: moveScreen.session.howTo });
+  const cues = await controlled(how);
+  await expect(cues).toBeHidden();
+  await how.click();
+  await expect(cues).toBeVisible();
+  const more = march.getByRole('button', { name: 'More for set 1' });
+  /** Where + sits in its movement's panel (the page may scroll on a tap). */
+  const place = () =>
+    more.evaluate((button) => {
+      const box = button.getBoundingClientRect();
+      const panel = button.closest('.ui-movement')?.getBoundingClientRect();
+      return { x: box.left - (panel?.left ?? 0), y: box.top - (panel?.top ?? 0) };
+    });
+  await expect(march.locator('output')).toHaveText('2 minutes 30 seconds');
+  const before = await place();
+  await more.click();
+  await expect(march.locator('output')).toHaveText('3 minutes');
+  expect(await place()).toEqual(before);
+});
+
 /** Opens each Move view in turn: the tab, a beach walk's check with the choice, the log, the finish and the editor. */
 async function visitMoveViews(page: Page, onView: (where: string) => Promise<void>): Promise<void> {
   await goTo(page, 'Move');

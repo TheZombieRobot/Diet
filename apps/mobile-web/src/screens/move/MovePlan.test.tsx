@@ -108,6 +108,22 @@ describe('the weekly plan editor (P1, P2, P4; EX-07, EX-05)', () => {
     await screen.findByRole('heading', { level: 1, name: 'Move' });
     expect((await db().repos.settings.get()).weeklyPattern).toBeNull();
   });
+
+  it('"Use the standard week" is refused too when it would leave fewer than two rest days in 7 days in a row (N33)', async () => {
+    const stored = pattern({ 3: [A], 6: [B] });
+    await openPlan({
+      weeklyPattern: stored,
+      sessions: ['2000-01-13', '2000-01-14', '2000-01-15', '2000-01-16', '2000-01-17'].map(
+        (date) => ({ date, templateId: WALK }),
+      ),
+    });
+    fireEvent.click(screen.getByRole('button', { name: plan.standard }));
+    await waitFor(() => {
+      expect(document.activeElement).toBe(problems());
+    });
+    expect(problems()?.textContent).toContain(plan.rollingRest);
+    expect((await db().repos.settings.get()).weeklyPattern).toEqual(stored);
+  });
 });
 
 describe('the jog in the editor (P3; EX-06, C51)', () => {

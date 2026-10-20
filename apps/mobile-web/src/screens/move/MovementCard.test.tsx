@@ -88,6 +88,8 @@ describe("Today's Movement card (T1; UX 2 card 6, N10)", () => {
     const rowA = async (): Promise<SessionRecord | undefined> =>
       (await sessionRows(test as TestDb)).find((r) => r.templateId === A);
     fireEvent.click(within(effort()).getByRole('radio', { name: '3' }));
+    // While it is written the group stays enabled, so focus and the arrow keys stay in it.
+    expect(effort().closest('fieldset')?.disabled).toBe(false);
     await waitFor(async () => {
       expect((await rowA())?.exertion).toBe(3);
     });

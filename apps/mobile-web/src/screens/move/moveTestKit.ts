@@ -4,8 +4,11 @@ import {
   type DietMode,
   type Instant,
   type KickstartCheckRecord,
+  localDateOf,
   PRE_CHECK_KEYS,
+  PRE_START_STOP_SIGN_CARD,
   type PreCheck,
+  preStartTrigger,
   READINESS_WORDING,
   type ReadinessQuestionId,
   type SessionMovement,
@@ -21,6 +24,7 @@ import { appStorageStore } from '../../db/runtime';
 import type { CreateInput } from '../../db/repos/crud';
 import { onboardForTests, openTestDb, type TestDb, testEnv } from '../../db/testKit';
 import { storageStore } from '../../pwa/storage';
+import { finishDraftStore } from './finishDrafts';
 
 /** Tuesday 18 January 2000, 9:00 am in Auckland: Session A in the standard week. */
 export const MOVE_NOW: Instant = '2000-01-17T20:00:00.000Z';
@@ -91,6 +95,8 @@ export interface MoveFixture {
   readonly answersLater?: Partial<Record<ReadinessQuestionId, YesNo>>;
   /** Stored Kickstart stop-sign checks. */
   readonly kickstartChecks?: readonly Partial<KickstartCheckRecord>[];
+  /** Pre-start stop-sign answers, as item 14 records them (a card_state row), at these instants. */
+  readonly preStartYes?: readonly Instant[];
 }
 
 /** A finished setup (item 13's helper), then the Move records, at the clock `now`. */
@@ -174,6 +180,13 @@ export async function moveFixture(fixture: MoveFixture = {}): Promise<TestDb> {
       });
     }
   }
+  for (const at of fixture.preStartYes ?? []) {
+    test.env.set(at);
+    await test.repos.cardState.reopen(
+      PRE_START_STOP_SIGN_CARD,
+      preStartTrigger(localDateOf(at, ZONE)),
+    );
+  }
   test.env.set(now);
   storageStore.set('protected');
   appStorageStore.set(test.storage);
@@ -208,6 +221,7 @@ export async function clockTo(test: TestDb, at: Instant): Promise<void> {
 }
 
 export function resetMove(test: TestDb | undefined): void {
+  finishDraftStore.set({});
   appStorageStore.set(null);
   storageStore.set('checking');
   window.location.hash = '';

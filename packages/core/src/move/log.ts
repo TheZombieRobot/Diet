@@ -7,6 +7,7 @@ import {
   anyYes,
   type Exercise,
   type ExerciseData,
+  type PlannedMovement,
   type SessionPlan,
   type SessionTemplate,
   sessionVariants,
@@ -91,22 +92,28 @@ export function restedSessionDraft(input: {
 }
 
 /**
- * Lighter after any yes, after a lighter choice in this screen, or whenever the stored row has
- * the lighter shape (every stored main movement at the easier version, and one with a set fewer
- * than its slot), so a reload, a new tab or the app being closed never turns a lighter session
- * back into a planned one (HS-29; N6). A false positive only makes the session lighter.
+ * Lighter after any yes; while a Kickstart stop-sign answer in the last 336 hours or a fast past
+ * 24 hours holds (ruling 9), also when it began during the session; after a lighter choice in this
+ * screen; or whenever the stored row has the lighter shape (every stored main movement at the
+ * easier version, and one with a set fewer than its slot), so a reload, a new tab or the app being
+ * closed never turns a lighter session back into a planned one (HS-29; N6). A row with no main
+ * movement stored (every one's amount for the week was reached at the start) cannot show which
+ * was chosen, so it reads as lighter unless this screen chose the planned session. A false
+ * positive only makes the session lighter.
  */
 export function sessionMode(
   template: SessionTemplate | null,
   row: SessionRecord,
   chosen: 'planned' | 'lighter' | null,
+  ruling9: { readonly stopSignOn: LocalDate | null; readonly fastOverCeiling: boolean },
 ): 'planned' | 'lighter' {
   if (anyYes(row.preCheck) || chosen === 'lighter') return 'lighter';
+  if (ruling9.stopSignOn !== null || ruling9.fastOverCeiling) return 'lighter';
   if (template === null) return 'planned';
   const slots = new Map(template.main.map((slot) => [slot.exerciseId, slot]));
   const main = row.movements.filter((m) => slots.has(m.exerciseId));
+  if (main.length === 0) return chosen === 'planned' ? 'planned' : 'lighter';
   const lighterShape =
-    main.length > 0 &&
     main.every((m) => m.variant === 'easier') &&
     main.some((m) => m.sets <= Math.max(1, (slots.get(m.exerciseId)?.sets ?? 1) - 1));
   return lighterShape ? 'lighter' : 'planned';
@@ -204,6 +211,33 @@ export function appendMovement(
       done: [set],
     },
   ];
+}
+
+/**
+ * The first tick of a lighter session's movement stored at another version with nothing ticked
+ * (layoutSession's `replace`): the planned movement takes its place, then its first set is ticked.
+ */
+export function tickAsPlanned(
+  movements: readonly SessionMovement[],
+  planned: PlannedMovement,
+  amount: number,
+): SessionMovement[] {
+  assertAmount(planned.unit, amount);
+  const set = setOf(planned.unit, amount);
+  const next = toSessionMovement(planned) ?? {
+    exerciseId: planned.exerciseId,
+    variant: planned.variant,
+    sets: 1,
+    reps: set.reps,
+    seconds: set.seconds,
+    done: [],
+  };
+  const replaced = replaceMovement(movements, planned.exerciseId, next);
+  return tickSet(
+    replaced,
+    replaced.findIndex((m) => m.exerciseId === planned.exerciseId),
+    amount,
+  );
 }
 
 /**

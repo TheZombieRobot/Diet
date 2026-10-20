@@ -21,6 +21,7 @@ import {
   sessionMode,
   startedSessionDraft,
   switchVariants,
+  tickAsPlanned,
   tickSet,
   untickSet,
 } from './log';
@@ -42,6 +43,7 @@ const TUE = '2000-01-18';
 const BOTH = { bands: true, dumbbells: true };
 const BODYWEIGHT = { bands: false, dumbbells: false };
 const ID = '00000000-0000-4000-8000-000000000001';
+const NO_RULING_9 = { stopSignOn: null, fastOverCeiling: false };
 
 function get<T>(value: T | undefined, what: string): T {
   if (value === undefined) throw new Error(`Missing ${what}`);
@@ -230,6 +232,33 @@ describe('the session layout (L6; N6, C76)', () => {
     const ticked = { ...row, movements: tickSet(row.movements, index, 10) };
     const again = plan(A, { sessions: [...history, ticked], sessionId: ID });
     expect(squat(layoutSession(data, template(A), again, ticked))?.toDo).toEqual([7]);
+    // The whole amount in set 1: nothing more is suggested, not the stored 8 (EX-03).
+    const all = { ...row, movements: tickSet(row.movements, index, 17) };
+    const spent = plan(A, { sessions: [...history, all], sessionId: ID });
+    expect(squat(layoutSession(data, template(A), spent, all))?.toDo).toEqual([]);
+  });
+
+  it('ruling 9 during a planned session: a movement not started becomes the lighter one, one started takes no more sets', () => {
+    const p = plan(A);
+    const row = stored(
+      startedSessionDraft({ today: TUE, templateId: A, preCheck: ALL_NO, plan: p }),
+    );
+    const at = (id: string) => row.movements.findIndex((m) => m.exerciseId === id);
+    const started = { ...row, movements: tickSet(row.movements, at('seed:ex-squat'), 8) };
+    const lighter = plan(A, { choice: 'lighter', sessions: [started], sessionId: ID });
+    const main = layoutSession(data, template(A), lighter, started)[1]?.movements ?? [];
+    const of = (id: string) => main.find((m) => m.exercise?.id === id);
+    expect(of('seed:ex-squat')).toMatchObject({ closed: true, replace: false, toDo: [] });
+    const row2 = of('seed:ex-row');
+    expect(row2).toMatchObject({ replace: true, closed: false, planned: { variant: 'easier' } });
+    expect(row2?.toDo).toEqual(row2?.planned?.perSet);
+    const planned = get(row2?.planned ?? undefined, 'the planned row');
+    const next = tickAsPlanned(started.movements, planned, 6);
+    expect(next.find((m) => m.exerciseId === 'seed:ex-row')).toMatchObject({
+      variant: 'easier',
+      done: [{ reps: 6, seconds: null }],
+    });
+    expect(next).toHaveLength(started.movements.length);
   });
 
   it('a lighter row keeps its one set; a week-reached movement is not stored; an unknown one comes last', () => {
@@ -297,13 +326,36 @@ describe('the session mode and the version switch (L7, L11; HS-29, N6, N32, C112
       null,
       'planned',
     ],
+    // Every main movement's amount for the week was reached at the start: nothing tells the
+    // choices apart after a reload, so the cautious one.
+    ['all no, no main movement stored, after a reload', row([]), null, 'lighter'],
+    ['all no, no main movement stored, planned chosen here', row([]), 'planned', 'planned'],
   ] as const)('%s → %s', (_, r, chosen, mode) => {
-    expect(sessionMode(template(A), r, chosen)).toBe(mode);
+    expect(sessionMode(template(A), r, chosen, NO_RULING_9)).toBe(mode);
   });
 
-  it('an unknown template is lighter only after a yes', () => {
-    expect(sessionMode(null, row(main('easier', 1)), null)).toBe('planned');
-    expect(sessionMode(null, row([], check('heatOrSun')), null)).toBe('lighter');
+  it.each([
+    [
+      'a Kickstart stop sign in the last 336 hours',
+      { stopSignOn: '2000-01-17', fastOverCeiling: false },
+    ],
+    ['a fast past 24 hours', { stopSignOn: null, fastOverCeiling: true }],
+  ] as const)(
+    'ruling 9, %s: a planned session is lighter, also one chosen planned before it began',
+    (_, ruling9) => {
+      expect(sessionMode(template(A), row(main('standard', 2)), 'planned', ruling9)).toBe(
+        'lighter',
+      );
+      expect(sessionMode(template(A), row(main('standard', 2)), null, ruling9)).toBe('lighter');
+    },
+  );
+
+  it('an unknown template is lighter only after a yes or under ruling 9', () => {
+    expect(sessionMode(null, row(main('easier', 1)), null, NO_RULING_9)).toBe('planned');
+    expect(sessionMode(null, row([], check('heatOrSun')), null, NO_RULING_9)).toBe('lighter');
+    expect(
+      sessionMode(null, row(main('easier', 1)), null, { stopSignOn: null, fastOverCeiling: true }),
+    ).toBe('lighter');
   });
 
   it.each([
@@ -363,25 +415,64 @@ describe('the weekly plan editor (L8, L12; EX-05, EX-07, C51)', () => {
     session(5, { date: '2000-01-23', templateId: C }),
   ];
   const review = pattern({ 1: [WALK], 2: [A], 3: [WALK], 4: [B], 5: [WALK] });
+  // Monday walk, Wednesday A, Friday B and Sunday C.
+  const sundayC = pattern({ 1: [WALK], 3: [A], 5: [B], 7: [C] });
+  const doneOn = (dates: string[]) =>
+    dates.map((date, i) => session(20 + i, { date, templateId: i % 2 === 0 ? A : WALK }));
   it.each([
-    ['the review plan on that Sunday', review, '2000-01-23', 'rolling-rest-days'],
+    ['the review plan on that Sunday', review, '2000-01-23', doneWeek, 'rolling-rest-days'],
     [
       // Six active days in a row: the five done, then Monday's walk.
       'a walk the next Monday, then rest',
       pattern({ 1: [WALK], 4: [B], 5: [WALK], 6: [A] }),
       '2000-01-23',
+      doneWeek,
       'rolling-rest-days',
     ],
     [
       'a plan that starts with two rest days',
       pattern({ 3: [WALK], 4: [B], 5: [WALK], 6: [A] }),
       '2000-01-23',
+      doneWeek,
       null,
     ],
-    ['the review plan after Monday and Tuesday rested', review, '2000-01-26', null],
-    ['the standard week on a fresh profile', null, '2000-01-23', null],
-  ] as const)('planChangeRestProblem: %s', (_, draft, today, expected) => {
-    const sessions = draft === null ? [] : doneWeek;
+    ['the review plan after Monday and Tuesday rested', review, '2000-01-26', doneWeek, null],
+    ['the standard week on a fresh profile', null, '2000-01-23', [], null],
+    [
+      // Today's planned session, not started yet, counts as active.
+      'Wednesday to Saturday done, then C today and a walk tomorrow',
+      sundayC,
+      '2000-01-23',
+      doneWeek.slice(0, 4),
+      'rolling-rest-days',
+    ],
+    [
+      // The window that starts six days back counts too.
+      'Monday to Friday done, then C on Sunday',
+      pattern({ 3: [A], 5: [B], 7: [C] }),
+      '2000-01-23',
+      doneOn(['2000-01-17', '2000-01-18', '2000-01-19', '2000-01-20', '2000-01-21']),
+      'rolling-rest-days',
+    ],
+    [
+      'the standard week after five days done in a row',
+      null,
+      '2000-01-18',
+      doneOn(['2000-01-13', '2000-01-14', '2000-01-15', '2000-01-16', '2000-01-17']),
+      'rolling-rest-days',
+    ],
+    [
+      // A session rested today is not an active day.
+      'Wednesday to Saturday done, C rested today, a walk tomorrow',
+      sundayC,
+      '2000-01-23',
+      [
+        ...doneWeek.slice(0, 4),
+        session(6, { date: '2000-01-23', templateId: C, status: 'rested' }),
+      ],
+      null,
+    ],
+  ] as const)('planChangeRestProblem: %s', (_, draft, today, sessions, expected) => {
     expect(planChangeRestProblem(data, draft, { sessions, today, jogUnlocked: false })).toBe(
       expected,
     );

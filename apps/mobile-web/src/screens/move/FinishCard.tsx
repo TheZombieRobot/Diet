@@ -1,10 +1,12 @@
 import { type ExerciseData, finishPatch, type FinishValues, type SessionRecord } from '@diet/core';
 import { move, moveScreen } from '@diet/core/copy/health';
 import { Button, ButtonRow, Card, TextField } from '@diet/ui';
-import { type ReactElement, useState } from 'react';
+import type { ReactElement } from 'react';
 import type { AppStorage } from '../../db/runtime';
 import { SaveError } from '../../onboarding/SaveError';
 import { useSave } from '../../onboarding/useSave';
+import { useStore } from '../../store';
+import { dropFinishDraft, finishDraftStore, setFinishDraft } from './finishDrafts';
 import { RatingGroups } from './RatingGroups';
 import { MoveWriteRefused, moveSaveMessage, writeSession } from './sessionWrites';
 import { ratingsNote } from './moveText';
@@ -18,10 +20,12 @@ const valuesOf = (row: SessionRecord): FinishValues => ({
 
 /**
  * "How did it go?" (UX 4c; EX-04; design section 1.10): effort, soreness and energy, each
- * optional, and a note, kept on the screen until Save. Save stores status done (the repository
- * stamps the time) through item 26's write check, so a row with no check is never finished. In
- * 'log', a session with nothing ticked can also be turned into a rest, and "Back to the session"
- * returns to the sets; in 'done' (today's checked session) the same card changes what was saved.
+ * optional, and a note, kept until Save in this page's memory (finishDrafts.ts), so going back to
+ * the sets, midnight or leaving the session never loses them. Save stores status done (the
+ * repository stamps the time) through item 26's write check, so a row with no check is never
+ * finished. In 'log', a session with nothing ticked can also be turned into a rest, and "Back to
+ * the session" returns to the sets; in 'done' (today's checked session) the same card changes
+ * what was saved.
  */
 export function FinishCard({
   data,
@@ -47,7 +51,12 @@ export function FinishCard({
   readonly onRest?: (() => void) | undefined;
   readonly restDisabled?: boolean | undefined;
 }): ReactElement {
-  const [values, setValues] = useState<FinishValues>(() => valuesOf(row));
+  const drafts = useStore(finishDraftStore);
+  const values = drafts[row.id] ?? valuesOf(row);
+  const change = (next: Partial<FinishValues>) => {
+    setFinishDraft(row.id, { ...values, ...next });
+    onEdited();
+  };
   const save = useSave(moveSaveMessage);
   const note = ratingsNote(data, row.templateId);
   const ticked = row.movements.some((m) => m.done.length > 0);
@@ -57,10 +66,9 @@ export function FinishCard({
       <RatingGroups
         rowId={row.id}
         values={values}
-        disabled={save.busy}
+        busy={save.busy}
         onRate={(field, value) => {
-          setValues((v) => ({ ...v, [field]: value }));
-          onEdited();
+          change({ [field]: value });
         }}
       />
       {note === null ? null : <p className="ui-text-muted">{note}</p>}
@@ -77,9 +85,7 @@ export function FinishCard({
         autoComplete="off"
         value={values.note}
         onChange={(event) => {
-          const text = event.currentTarget.value;
-          setValues((v) => ({ ...v, note: text }));
-          onEdited();
+          change({ note: event.currentTarget.value });
         }}
       />
       <ButtonRow stacked>
@@ -92,10 +98,12 @@ export function FinishCard({
               .run(async () => {
                 const result = finishPatch(data, row, values);
                 if (!result.ok) throw new MoveWriteRefused(result.problem);
-                await writeSession(storage, data, row.id, result.patch);
+                await writeSession(storage, data, row.id, result.patch, 'finishable');
               })
               .then((ok) => {
-                if (ok) onSaved();
+                if (!ok) return;
+                dropFinishDraft(row.id);
+                onSaved();
               });
           }}
         >

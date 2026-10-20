@@ -427,6 +427,11 @@ function exerciseRules(e: ParsedExercise, path: string, problems: Problems): voi
   ) {
     problems.add(at(path, 'tags'), 'beach');
   }
+  // A beach walk's or jog's easier version is the lighter session after a yes (HS-29): it has its
+  // own cues, so "How to do it" never tells the owner to jog or walk briskly then (item 27 review).
+  if (beach && e.variants.easier !== null && e.variants.easier.cues === null) {
+    problems.add(at(at(at(path, 'variants'), 'easier'), 'cues'), 'beach');
+  }
 
   // slot: the progression and rounding step suits the unit
   if (e.unit === 'reps' ? e.step !== 1 : !SECONDS_STEPS.includes(e.step)) {

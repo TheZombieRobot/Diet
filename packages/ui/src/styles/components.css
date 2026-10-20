@@ -1964,6 +1964,25 @@
 .ui-set--next {
   flex-direction: column;
   align-items: stretch;
+  gap: 16px;
+}
+
+/* The session's stepper keeps − and + where they are whatever the value says ("2 minutes 30
+   seconds" or "3 minutes"): the value wraps inside its own box and the buttons stay at the top of
+   the row, so a second tap on + never lands anywhere else (item 27 review). */
+.ui-set--next .ui-stepper__controls {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+
+.ui-set--next .ui-stepper__value {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: var(--size-tap);
+  overflow-wrap: anywhere;
 }
 
 .ui-set--done {

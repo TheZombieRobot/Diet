@@ -165,6 +165,17 @@ describe("today's sessions (M5; M29, EX-08)", () => {
     expect(within(item).queryByRole('link', { name: /Start/ })).toBeNull();
   });
 
+  it('Session A and the walk today: resting the walk keeps today planned, A still on its chip, and focus on the walk', async () => {
+    await openMove({ weeklyPattern: pattern({ 2: [A, WALK], 5: [B] }) });
+    fireEvent.click(screen.getByRole('button', { name: 'Rest instead of Beach walk' }));
+    const item = screen.getByTestId('today-item-beach-walk');
+    await within(item).findByText(move.rest.rested);
+    // The tapped button went with the change; focus goes to the session's name (section 1.17).
+    expect(document.activeElement).toBe(within(item).getByText('Beach walk'));
+    expect(dayItem('2000-01-18').dataset['state']).toBe('planned');
+    expect(chip('2000-01-18')?.textContent).toContain('A');
+  });
+
   it('Rest instead writes a rest without the check, which can be undone later, and Start returns', async () => {
     await openMove();
     fireEvent.click(screen.getByRole('button', { name: 'Rest instead of Session A' }));
@@ -241,6 +252,18 @@ describe('beach walks and jogging (M6; EX-06, C51, UX 4d)', () => {
       expect(
         screen.getByText('Jogging is not on right now, so the beach walk is shown on Sunday.'),
       ).toBeDefined();
+      // EX-06: while jogging is paused no jog can be planned.
+      cleanup();
+      await renderMove('#/move-plan', 'Weekly plan');
+      const editor = await screen.findByRole('region', { name: moveScreen.plan.title });
+      fireEvent.click(within(editor).getByRole('button', { name: /^Sunday: / }));
+      const beach = within(editor).getByRole('radiogroup', { name: 'Beach session on Sunday' });
+      expect(
+        within(beach)
+          .getAllByRole('radio')
+          .map((r) => r.closest('label')?.querySelector('.ui-choice__label')?.textContent),
+      ).toEqual(['None', 'Beach walk']);
+      expect(within(editor).getByText(moveScreen.plan.jogHint)).toBeDefined();
     },
   );
 
