@@ -4,7 +4,7 @@ import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
 import { isTestFile, listRepoFiles } from './scan';
 
-// Item 18 (S6; HS-36, X6): the app never reads a food's figures or allergens around core's
+// Item 18 (S6; HS-37, X6): the app never reads a food's figures or allergens around core's
 // functions. A stored 0 that stands for "not known" can only be read through knownFigure,
 // totalRows and per100gRows, and a food's allergens only through foodAllergenFacts, so a
 // brand-dependent list is never read as complete. The synthetic food data stays in tests.

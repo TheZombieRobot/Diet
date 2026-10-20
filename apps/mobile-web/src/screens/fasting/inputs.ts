@@ -16,12 +16,14 @@ import {
   localDateOf,
   type PlanDayRecord,
   type ProfileRecord,
+  type ReadinessRecord,
   resolveZone,
   runningSpan,
   type SettingsRecord,
   type SymptomRecord,
   type TargetsRecord,
   utcRangeCovering,
+  type WeightRecord,
 } from '@diet/core';
 import type { AppStorage } from '../../db/runtime';
 
@@ -33,6 +35,10 @@ export interface FastingInputs {
   readonly profile: ProfileRecord;
   readonly periods: readonly KickstartPeriodRecord[];
   readonly checks: readonly KickstartCheckRecord[];
+  /** With the weigh-ins, what item 21's day targets read for the meal check (mealTargets.ts). */
+  readonly readiness: readonly ReadinessRecord[];
+  /** Every weigh-in (item 21 reads the last 7 local days and the latest on or before today). */
+  readonly weights: readonly WeightRecord[];
   readonly fasts: readonly FastRecord[];
   /** From the day before the running span began (or yesterday) to the day after tomorrow. */
   readonly planDays: readonly PlanDayRecord[];
@@ -50,14 +56,17 @@ export type FastingRead =
 
 async function read(storage: AppStorage, today: LocalDate): Promise<FastingInputs> {
   const { repos } = storage;
-  const [targets, settings, profile, periods, checks, fasts] = await Promise.all([
-    repos.targets.get(),
-    repos.settings.get(),
-    repos.profile.get(),
-    repos.kickstart.listPeriods(),
-    repos.kickstart.listChecks(),
-    repos.fasts.list(),
-  ]);
+  const [targets, settings, profile, periods, checks, readiness, weights, fasts] =
+    await Promise.all([
+      repos.targets.get(),
+      repos.settings.get(),
+      repos.profile.get(),
+      repos.kickstart.listPeriods(),
+      repos.kickstart.listChecks(),
+      repos.readiness.list(),
+      repos.weights.list(),
+      repos.fasts.list(),
+    ]);
   const span = runningSpan(fasts);
   const home = resolveZone(settings.homeTimeZone, DEFAULT_HOME_TIME_ZONE).timeZone;
   const first = span?.fasts[0];
@@ -85,6 +94,8 @@ async function read(storage: AppStorage, today: LocalDate): Promise<FastingInput
     profile,
     periods,
     checks,
+    readiness,
+    weights,
     fasts,
     planDays,
     symptoms,

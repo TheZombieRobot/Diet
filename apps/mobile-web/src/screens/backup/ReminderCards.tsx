@@ -10,54 +10,66 @@ import { pendingCheckStore } from './pendingCheck';
 import { useRedrawAt } from './redraw';
 import { readUpdateNotices, startBackupFromToday, visibleUpdateNotices } from './reminder';
 
-export interface BackupReminderCardProps {
+export interface BackupReminderItemProps {
   readonly storage: AppStorage;
   readonly prominent: boolean;
+  /**
+   * Runs the "Not now" write; Today's Reminders card moves focus once it resolves (item 16). A
+   * failed write leaves the reminder showing, which is the safe side.
+   */
+  readonly onHide: (item: HTMLElement | null, write: () => Promise<unknown>) => void;
 }
 
 /**
- * The backup reminder on Today (storage spec section 12.2; BK-03; UX_SCREENS section 2, card 8).
- * "Not now" snoozes it (7 days, or 1 when the phone has not promised to keep the records); a
- * backup only clears it once the owner confirms they can see the file. When an exported file is
- * still waiting for that answer, the card says so.
+ * The backup reminder, an item of Today's Reminders card (storage spec section 12.2; BK-03;
+ * UX_SCREENS section 2, card 8; item 16 placed it in that card). "Not now" snoozes it (7 days, or
+ * 1 when the phone has not promised to keep the records); a backup only clears it once the owner
+ * confirms they can see the file. When an exported file is still waiting for that answer, the
+ * item says so.
  */
-export function BackupReminderCard({ storage, prominent }: BackupReminderCardProps): ReactElement {
+export function BackupReminderItem({
+  storage,
+  prominent,
+  onHide,
+}: BackupReminderItemProps): ReactElement {
   const copy = privacy.backupReminder;
   const pending = useStore(pendingCheckStore);
+  const item = useRef<HTMLDivElement>(null);
   return (
-    <Card label={copy.cardLabel}>
-      <div className="ui-card__body" data-testid="backup-reminder">
-        <p className="ui-text-strong">{copy.title}</p>
-        <p>{copy.body}</p>
-        {pending === null ? null : (
-          <p data-testid="backup-reminder-pending">
-            {fillTemplate(privacy.exportBackup.pendingCheck, {
-              fileName: pending.fileName,
-              time: formatLocalTime(pending.exportedAt, storage.env.timeZone()),
-            })}
-          </p>
-        )}
-        {prominent ? (
-          <Notice>
-            <p>{copy.weakStorage}</p>
-          </Notice>
-        ) : null}
-        <ButtonRow>
-          <Button variant="primary" onClick={startBackupFromToday}>
-            {copy.backUpNow}
-          </Button>
-          <Button
-            variant="quiet"
-            onClick={() => {
-              // A failed write leaves the reminder showing, which is the safe side.
-              storage.repos.cardState.dismiss('backup-reminder', 'weekly').catch(() => undefined);
-            }}
-          >
-            {copy.notNow}
-          </Button>
-        </ButtonRow>
-      </div>
-    </Card>
+    <div ref={item} className="ui-reminder" data-testid="backup-reminder">
+      <h3 className="ui-text-strong" tabIndex={-1}>
+        {copy.title}
+      </h3>
+      <p>{copy.body}</p>
+      {pending === null ? null : (
+        <p data-testid="backup-reminder-pending">
+          {fillTemplate(privacy.exportBackup.pendingCheck, {
+            fileName: pending.fileName,
+            time: formatLocalTime(pending.exportedAt, storage.env.timeZone()),
+          })}
+        </p>
+      )}
+      {prominent ? (
+        <Notice>
+          <p>{copy.weakStorage}</p>
+        </Notice>
+      ) : null}
+      <ButtonRow>
+        <Button variant="primary" onClick={startBackupFromToday}>
+          {copy.backUpNow}
+        </Button>
+        <Button
+          variant="quiet"
+          onClick={() => {
+            onHide(item.current, () =>
+              storage.repos.cardState.dismiss('backup-reminder', 'weekly'),
+            );
+          }}
+        >
+          {copy.notNow}
+        </Button>
+      </ButtonRow>
+    </div>
   );
 }
 

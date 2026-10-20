@@ -5,6 +5,7 @@
  */
 export const PACKAGE_NAME = '@diet/core' as const;
 
+export * from './alcohol/guidance';
 export * from './alcohol/standardDrinks';
 export * from './copy/template';
 export * from './energy/age';
@@ -35,6 +36,7 @@ export * from './readiness/gates';
 export * from './relay/protocol';
 export * from './storage';
 export * from './targets';
+export * from './today';
 export * from './util/parse';
 export * from './util/round';
 export * from './util/time';

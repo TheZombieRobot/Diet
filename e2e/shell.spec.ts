@@ -65,7 +65,9 @@ test('the live page applies the policy and nothing breaks it on any screen', asy
   await visitEveryScreen(page);
   await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Today' }).click();
   await page.getByRole('button', { name: 'Quick actions' }).click();
-  await expect(page.getByText('Quick ways to log weight')).toBeVisible();
+  await expect(
+    page.locator('.ui-fab-panel').getByRole('button', { name: 'Log weight' }),
+  ).toBeVisible();
 
   expect(
     await page.evaluate(() => (window as unknown as { __cspViolations: string[] }).__cspViolations),
@@ -139,6 +141,8 @@ test('every control on every screen is at least 48 px by 48 px on a phone', asyn
   // Install app on Settings. Reload is measured in update.spec.ts once an update is waiting.
   await offerInstall(page);
   await goTo(page, 'Today');
+  // Today draws its cards once its records open; measure only after the banner is there.
+  await expect(page.getByRole('button', { name: 'Not now' })).toBeVisible();
   await page.getByRole('button', { name: 'Quick actions' }).click();
   expect(await measure('Today with the install banner')).toEqual(
     expect.arrayContaining(['Install app', 'Not now', 'Quick actions']),
@@ -208,8 +212,8 @@ test('nothing scrolls sideways or runs off a narrow or zoomed screen, online or 
   await seedOnboarded(page);
   await waitForServiceWorkerControl(page);
   const problems: string[] = [];
-  // 320 px: a small phone. 195 px: a 390 px phone at 200% zoom.
-  for (const width of [320, 195]) {
+  // 320 px: a small phone. 195 and 180 px: a 390 px and a 360 px phone at 200% zoom.
+  for (const width of [320, 195, 180]) {
     await page.setViewportSize({ width, height: 640 });
     for (const offline of [false, true]) {
       await context.setOffline(offline);
@@ -316,6 +320,51 @@ test('on Today the "+" never covers the last card', async ({ page }) => {
     };
   });
   expect(lastBottom).toBeLessThanOrEqual(fabTop);
+});
+
+test("Today's Water and Steps sit side by side, stack when narrow or editing, and keep 48 px controls; the panel scrolls", async ({
+  page,
+}) => {
+  // Item 16 design section 5.3 E6 (T25): 390 px side by side; 320 px and 195 px (a 390 px phone
+  // at 200% zoom) stacked, with no sideways scroll even with the steps editor open.
+  await page.setViewportSize({ width: 390, height: 600 });
+  await seedOnboarded(page);
+  const water = page.getByRole('region', { name: 'Water', exact: true });
+  const steps = page.getByRole('region', { name: 'Steps', exact: true });
+  await expect(steps).toBeVisible();
+  const sideBySide = async () => {
+    const [a, b] = [await water.boundingBox(), await steps.boundingBox()];
+    if (a === null || b === null) throw new Error('no card pair');
+    return Math.abs(a.y - b.y) < 1 && b.x >= a.x + a.width;
+  };
+  expect(await sideBySide()).toBe(true);
+  await steps.getByRole('button', { name: 'Enter steps' }).click();
+  expect(await sideBySide()).toBe(false);
+
+  await page.getByRole('button', { name: 'Quick actions' }).click();
+  await expect(page.locator('.ui-fab-panel [aria-disabled="true"]')).toHaveCount(6);
+  const small = await page.locator('a:visible, button:visible').evaluateAll((controls) =>
+    controls
+      .map((c) => ({ name: c.textContent, box: c.getBoundingClientRect() }))
+      .filter(({ box }) => box.width < 48 || box.height < 48)
+      .map(({ name }) => name),
+  );
+  expect(small).toEqual([]);
+  expect(
+    await page
+      .locator('.ui-fab-panel')
+      .evaluate((p) => p.scrollHeight > p.clientHeight && getComputedStyle(p).overflowY === 'auto'),
+  ).toBe(true);
+  await page.keyboard.press('Escape');
+
+  for (const width of [320, 195]) {
+    await page.setViewportSize({ width, height: 640 });
+    expect(await sideBySide(), `${width} px`).toBe(false);
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow, `${width} px`).toBeLessThanOrEqual(0);
+  }
 });
 
 test('a focused row is scrolled clear of the top bar and the tab bar', async ({ page }) => {

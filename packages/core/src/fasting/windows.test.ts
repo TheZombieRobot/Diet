@@ -114,6 +114,15 @@ describe('the schedule from the stored records (C07, C55)', () => {
     expect(isSnackAdded('2000-01-06', s)).toBe(false);
     expect(isSnackAdded('2000-01-07', s)).toBe(false);
     expect(isSnackAdded('2000-01-05', schedule(null, s.overrides))).toBe(false);
+    // "Eat 1 hour earlier" on the 6th opens the 7th at 5 pm with the same end: one change, not a
+    // snack (review). After a snack day, a snack day is still a snack.
+    const earlier = schedule(ONE_MEAL, { ...s.overrides, '2000-01-07': SNACK_AND_DINNER });
+    expect(isSnackAdded('2000-01-07', earlier)).toBe(false);
+    const twoSnacks = schedule(ONE_MEAL, {
+      '2000-01-05': SNACK_AND_DINNER,
+      '2000-01-06': SNACK_AND_DINNER,
+    });
+    expect(isSnackAdded('2000-01-06', twoSnacks)).toBe(true);
   });
 });
 

@@ -3,10 +3,18 @@
  * card (item 13 design section 3.15; E58): the control that started it is disabled while it runs;
  * a failure shows a plain message as an alert right where it happened (SaveError), focus moves to
  * it, the view stays, and the controls keep showing what is stored.
+ *
+ * A write refused because the records are closed (StorageClosedError) shows no message here: the
+ * storage failure screen, with Reload, replaces the app. When nothing else has put it up (a
+ * restore in this tab that was blocked or failed closes the gate and leaves the status 'ready',
+ * and "Back to setup" returns to a step), the failed write puts it up, so no tap is left doing
+ * nothing.
  */
 import { onboarding, privacy } from '@diet/core/copy/health';
 import { useCallback, useRef, useState } from 'react';
 import { StorageClosedError, StorageFullError } from '../db/errors';
+import { appStorageStore } from '../db/runtime';
+import { useStore } from '../store';
 import { FlowStaleError } from './actions';
 
 /** The message for a failed write, or null when none is shown here. */
@@ -29,28 +37,33 @@ export interface Save {
 }
 
 export function useSave(): Save {
+  const storage = useStore(appStorageStore);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [failures, setFailures] = useState(0);
   const running = useRef(false);
 
-  const run = useCallback(async (write: () => Promise<unknown>): Promise<boolean> => {
-    if (running.current) return false;
-    running.current = true;
-    setBusy(true);
-    try {
-      await write();
-      setError(null);
-      return true;
-    } catch (failure) {
-      setError(saveFailureMessage(failure));
-      setFailures((n) => n + 1);
-      return false;
-    } finally {
-      running.current = false;
-      setBusy(false);
-    }
-  }, []);
+  const run = useCallback(
+    async (write: () => Promise<unknown>): Promise<boolean> => {
+      if (running.current) return false;
+      running.current = true;
+      setBusy(true);
+      try {
+        await write();
+        setError(null);
+        return true;
+      } catch (failure) {
+        if (failure instanceof StorageClosedError) storage?.db.closeForGood('reload-needed');
+        setError(saveFailureMessage(failure));
+        setFailures((n) => n + 1);
+        return false;
+      } finally {
+        running.current = false;
+        setBusy(false);
+      }
+    },
+    [storage],
+  );
 
   return { busy, error, failures, run };
 }

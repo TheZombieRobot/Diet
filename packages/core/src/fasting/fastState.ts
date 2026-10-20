@@ -104,7 +104,10 @@ export function clockBehind(span: FastSpan, nowMs: number): boolean {
 
 export type RunningPhase = 'fasting' | 'window-open' | 'near-ceiling' | 'over-ceiling';
 
-/** Over the ceiling first, then near it (23 hours of span time), then the planned end passed. */
+/**
+ * Over the ceiling first, then near it (23 hours of span time), then the planned window open: from
+ * the planned end until that window closes, never after (runningPlan plans past a closed window).
+ */
 export function runningPhase(
   spanElapsed: number,
   nowMs: number,
@@ -112,7 +115,7 @@ export function runningPhase(
 ): RunningPhase {
   if (isOverCeiling(spanElapsed)) return 'over-ceiling';
   if (spanElapsed >= NEAR_CEILING_MS) return 'near-ceiling';
-  if (plan !== null && nowMs >= plan.targetEndMs) return 'window-open';
+  if (plan !== null && nowMs >= plan.targetEndMs && nowMs < plan.next.endMs) return 'window-open';
   return 'fasting';
 }
 

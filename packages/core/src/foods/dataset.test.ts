@@ -20,7 +20,7 @@ const catalogueFile = read('ingredients.json');
 const releaseFile = read('ingredient-nutrients.json');
 
 describe('NU-01: the shipped ingredient dataset (validation script)', () => {
-  it('NU-01 HS-36 R12: the catalogue and the release pass every rule; while nothing is approved every figure is not known', () => {
+  it('NU-01 HS-37 R12: the catalogue and the release pass every rule; while nothing is approved every figure is not known', () => {
     expect(validateFoodCatalogue(catalogueFile)).toEqual([]);
     const catalogue = catalogueFile as FoodCatalogue;
     expect(
@@ -95,7 +95,7 @@ describe('NU-01: the shipped ingredient dataset (validation script)', () => {
       expect(catalogue.foods.map((f) => f.id)).toContain(entry.id);
   });
 
-  it('N17 HS-36: a release that breaks a rule is not used at all; a broken catalogue is an error', () => {
+  it('N17 HS-37: a release that breaks a rule is not used at all; a broken catalogue is an error', () => {
     const catalogue = catalogueFile as FoodCatalogue;
     // A release from an unapproved source: every figure stays not known.
     const bad = loadFoodData(catalogue, exampleRelease('usda'), [], exampleAttribution);

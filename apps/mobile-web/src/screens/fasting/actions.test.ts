@@ -105,6 +105,26 @@ describe('fast actions (FS-01, FS-06, C30)', () => {
     expect(value(await saveNote(test.storage, ended.id, '   ')).note).toBeNull();
   });
 
+  it("a running fast's start moved to a minute after an earlier end joins that span: planned to its 24 hours (C30)", async () => {
+    const test = await openOpen();
+    clockAt(test, at('2000-01-03', '19:00'));
+    const first = value(await startFast(test.storage, [], ONE_MEAL));
+    clockAt(test, at('2000-01-04', '18:50'));
+    value(await endFast(test.storage, first.id));
+    clockAt(test, at('2000-01-04', '20:00'));
+    const second = value(await startFast(test.storage, await test.repos.fasts.list(), ONE_MEAL));
+    const moved = value(
+      await changeStart(
+        test.storage,
+        second,
+        iso(at('2000-01-04', '18:51')),
+        await test.repos.fasts.list(),
+        ONE_MEAL,
+      ),
+    );
+    expect(moved.plannedFastMinutes).toBe(9);
+  });
+
   it('the reflux switches write only their own field', async () => {
     const test = await openOpen();
     value(await setRefluxPreference(test.storage, 'refluxPreferSplit', true));

@@ -15,6 +15,7 @@
  *   card's state, and keeps the in-memory notice when no other card explains it.
  */
 import {
+  effectiveFastingPreset,
   type Id,
   type KickstartEndReason,
   type KickstartPeriodRecord,
@@ -43,7 +44,8 @@ export type StartResult =
 export async function startKickstart(storage: AppStorage): Promise<StartResult> {
   const { repos } = storage;
   const inputs = await readWeightInputs(storage);
-  const { start } = weightOverview(overviewInputFrom(inputs, currentWeightEnv(storage))).kickstart;
+  const overviewInput = overviewInputFrom(inputs, currentWeightEnv(storage));
+  const { start } = weightOverview(overviewInput).kickstart;
   if (!start.available) return { ok: false, reason: start.reason };
   // The keto run is counted from carbCeilingStartedAt (ketoUnbrokenSince): a missing one is set
   // first, so the new period never reads as broken before its own value is written.
@@ -61,9 +63,12 @@ export async function startKickstart(storage: AppStorage): Promise<StartResult> 
     // The period stands; see above.
   }
   const targets = await repos.targets.get().catch(() => null);
+  // Read through the one preset rule, so a Kickstart default set aside for answer 4 is not reported.
+  const preset =
+    targets === null ? null : effectiveFastingPreset(targets, true, overviewInput.gates);
   return {
     ok: true,
-    presetSet: targets?.fastingPreset === '23:1' && targets.presetChosenBy === 'kickstart-default',
+    presetSet: preset?.fastingPreset === '23:1' && preset.presetChosenBy === 'kickstart-default',
   };
 }
 

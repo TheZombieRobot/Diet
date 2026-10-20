@@ -121,7 +121,7 @@ describe('Foods in the app (item 18; UX 7a)', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(data.catalogue.foods.length);
   });
 
-  it('K3 FD-02 NU-09 C97 HS-36: a not-loaded food shows its facts, eight "not known" figures, no badge and the footer', async () => {
+  it('K3 FD-02 NU-09 C97 HS-37: a not-loaded food shows its facts, eight "not known" figures, no badge and the footer', async () => {
     await show();
     const panel = open('chard', 'Silverbeet');
     const text = panel.textContent;

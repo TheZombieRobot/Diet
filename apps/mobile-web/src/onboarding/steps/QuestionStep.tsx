@@ -1,7 +1,13 @@
-import { fillTemplate, type GateInput, type ReadinessQuestionId, type YesNo } from '@diet/core';
+import {
+  fillTemplate,
+  type GateInput,
+  type ReadinessGates,
+  type ReadinessQuestionId,
+  type YesNo,
+} from '@diet/core';
 import { onboarding, readiness } from '@diet/core/copy/health';
 import { Button, Notice } from '@diet/ui';
-import type { ReactElement } from 'react';
+import { type ReactElement, useEffect, useRef } from 'react';
 import type { AppStorage } from '../../db/runtime';
 import { type FlowFrame, FlowStepFrame } from '../FlowFrame';
 import { AnswerButtons } from '../forms/ReadinessList';
@@ -11,7 +17,9 @@ import { consequenceText } from '../readinessText';
 /**
  * One readiness question (UX 1c; HEALTH_SAFETY section 1; C41). There is no Next: an unanswered
  * question cannot be passed. "No" moves on; "Yes" stays and says what it switches off, with the
- * confirmation switch for questions 3 and 6, and Continue. Tap only, no swipe (E5).
+ * confirmation switch for questions 3 and 6, and Continue, once the yes is saved with its effects.
+ * A question already answered yes (reached with Back) shows the same at once, so it always has a
+ * way forward. Tap only, no swipe (E5).
  */
 export function QuestionStep({
   frame,
@@ -21,6 +29,7 @@ export function QuestionStep({
   count,
   showIntro,
   input,
+  gates,
   showingYes,
   onAnswered,
   onContinue,
@@ -34,6 +43,7 @@ export function QuestionStep({
   /** Question 1 of a setup: the intro paragraph above it. */
   readonly showIntro: boolean;
   readonly input: GateInput;
+  readonly gates: ReadinessGates;
   readonly showingYes: boolean;
   readonly onAnswered: (answer: YesNo) => void;
   readonly onContinue: () => void;
@@ -41,6 +51,15 @@ export function QuestionStep({
 }): ReactElement {
   const answer = input.answers[question];
   const yesShown = showingYes && answer === 'yes';
+  // After a Yes tap, focus moves to what it switches off, so a screen reader hears it: at once
+  // when it shows already, or as soon as the stored yes shows it.
+  const consequence = useRef<HTMLDivElement>(null);
+  const focusWhenShown = useRef(false);
+  useEffect(() => {
+    if (!yesShown || !focusWhenShown.current) return;
+    focusWhenShown.current = false;
+    consequence.current?.focus();
+  }, [yesShown]);
   return (
     <FlowStepFrame
       frame={frame}
@@ -79,12 +98,23 @@ export function QuestionStep({
         storage={storage}
         question={question}
         answer={answer}
-        onAnswered={onAnswered}
+        onAnswered={(value) => {
+          if (value === 'yes') {
+            if (consequence.current === null) focusWhenShown.current = true;
+            else consequence.current.focus();
+          }
+          onAnswered(value);
+        }}
       />
       {yesShown ? (
-        <div className="ui-card__body" data-testid="consequence">
+        <div
+          ref={consequence}
+          tabIndex={-1}
+          className="ui-card__body ui-step-start"
+          data-testid="consequence"
+        >
           <Notice tone="info">
-            <p>{consequenceText(question, input)}</p>
+            <p>{consequenceText(question, input, gates)}</p>
           </Notice>
           {question === 'q3' || question === 'q6' ? (
             <ConfirmationControl storage={storage} question={question} input={input} />

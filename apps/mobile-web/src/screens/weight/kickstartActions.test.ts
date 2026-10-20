@@ -119,6 +119,16 @@ describe('T2: the 22:2 → 23:1 move at a Kickstart start (C55, C07)', () => {
     expect(await startKickstart(db.storage)).toEqual({ ok: true, presetSet: false });
     expect(await db.repos.targets.get()).toMatchObject(UNTOUCHED_22);
   });
+
+  it('C07: a 23:1 Kickstart default stored before answer 4 turned yes is not reported as set at a start (it is read as 22:2)', async () => {
+    const targets = {
+      fastingPreset: '23:1',
+      eatingWindow: { start: '18:00', end: '19:00' },
+      presetChosenBy: 'kickstart-default',
+    } as const;
+    const db = await seed({ ...noPeriod, targets, readiness: { q4: 'yes' } }, 1);
+    expect(await startKickstart(db.storage)).toEqual({ ok: true, presetSet: false });
+  });
 });
 
 describe('item 15: a preset move takes the per-day windows it no longer fits with it (C30)', () => {
@@ -132,6 +142,22 @@ describe('item 15: a preset move takes the per-day windows it no longer fits wit
     ]);
     await reconcile(db.storage);
     expect(await db.repos.targets.get()).toMatchObject(UNTOUCHED_22);
+    expect(await db.repos.planDays.get(today)).toBeUndefined();
+    expect((await db.repos.planDays.get(tomorrow))?.eatingWindow).toEqual({
+      start: '16:00',
+      end: '19:00',
+    });
+  });
+
+  it('the 22:2 → 23:1 move at a Kickstart start removes an earlier window that does not widen 23:1 and keeps one that does (item 15 review)', async () => {
+    const db = await seed({ ...WEIGHT_SCENARIOS.PENDING, targets: {} }, 1);
+    const today = localDateOf(db.env.now(), db.env.timeZone());
+    const tomorrow = addDays(today, 1);
+    await db.repos.planDays.setWindows([
+      { date: today, window: { start: '16:00', end: '18:00' } },
+      { date: tomorrow, window: { start: '16:00', end: '19:00' } },
+    ]);
+    expect(await startKickstart(db.storage)).toEqual({ ok: true, presetSet: true });
     expect(await db.repos.planDays.get(today)).toBeUndefined();
     expect((await db.repos.planDays.get(tomorrow))?.eatingWindow).toEqual({
       start: '16:00',

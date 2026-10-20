@@ -14,7 +14,7 @@ import {
 } from './routes';
 
 describe('hash routes', () => {
-  it('has the five tabs of UX_SCREENS.md in order, plus Settings, About, the setup screens, Weight, Fasting and Foods', () => {
+  it('has the five tabs of UX_SCREENS.md in order, plus Settings, About, the setup screens, Weight, Fasting, Diet and targets, and Foods', () => {
     expect(TAB_ROUTES.map((r) => ROUTE_TITLES[r])).toEqual([
       'Today',
       'Food',
@@ -31,12 +31,15 @@ describe('hash routes', () => {
       'eating-schedule',
       'weight',
       'fasting',
+      'targets',
       'foods',
     ]);
     expect(ROUTE_TITLES.weight).toBe('Weight');
     expect(ROUTE_TITLES.fasting).toBe('Fasting and reflux');
+    expect(ROUTE_TITLES.targets).toBe('Diet and targets');
     // K7 (item 18): the Foods screen's title is the one its copy names.
-    expect(ROUTE_TITLES.foods).toBe(foods.screen.title);
+    expect(ROUTE_TITLES.foods).toBe('Foods in the app');
+    expect(foods.screen.title).toBe('Foods in the app');
     expect(parseRoute('#/foods')).toBe('foods');
   });
 
@@ -73,6 +76,7 @@ describe('hash routes', () => {
       'readiness',
       'profile',
       'eating-schedule',
+      'targets',
       'foods',
     ]);
   });

@@ -48,7 +48,8 @@ export function AnswerButtons({
               key={value}
               className="ui-button--tall"
               aria-pressed={answer === value}
-              disabled={save.busy}
+              // Not `disabled` while saving: that would drop focus from the tapped button.
+              aria-disabled={save.busy}
               onClick={() => {
                 tap(value);
               }}

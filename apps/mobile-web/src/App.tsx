@@ -13,6 +13,7 @@ import { type FailureStatus, type OpenStatus, openStatusStore } from './db/db';
 import { appStorageStore } from './db/runtime';
 import { goToTab, markEntryAboveToday } from './navigation';
 import { OnboardingGate } from './onboarding/OnboardingGate';
+import { takeArrivedFromSetup } from './onboarding/navigation';
 import { offlineCopyStore } from './pwa/offline';
 import {
   isTabRoute,
@@ -30,13 +31,14 @@ import { FoodScreen } from './screens/FoodScreen';
 import { FoodsScreen } from './screens/foods/FoodsScreen';
 import { ListScreen } from './screens/ListScreen';
 import { MoveScreen } from './screens/MoveScreen';
-import { QuickActions } from './screens/QuickActions';
+import { QuickActions } from './screens/today/QuickActionsPanel';
 import { EatingScheduleScreen } from './screens/settings/EatingScheduleScreen';
 import { ProfileScreen } from './screens/settings/ProfileScreen';
 import { ReadinessAnswersScreen } from './screens/settings/ReadinessAnswersScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { StorageFailureScreen } from './screens/StorageFailureScreen';
-import { TodayScreen } from './screens/TodayScreen';
+import { TargetsScreen } from './screens/targets/TargetsScreen';
+import { TodayScreen } from './screens/today/TodayScreen';
 import { UpdateBanner } from './screens/UpdateBanner';
 import { KickstartReconciler } from './screens/weight/KickstartReconciler';
 import { WeightScreen } from './screens/weight/WeightScreen';
@@ -86,6 +88,8 @@ function screenFor(route: RouteId): ReactElement {
       return <WeightScreen />;
     case 'fasting':
       return <FastingScreen />;
+    case 'targets':
+      return <TargetsScreen />;
     case 'foods':
       return <FoodsScreen />;
   }
@@ -126,9 +130,14 @@ function Shell(): ReactElement {
     document.documentElement.scrollTop = 0;
     const previous = previousRoute.current;
     previousRoute.current = route;
-    // On first render the browser decides where focus starts; after that, a new screen moves
-    // focus to its heading, so a screen reader announces it and Tab starts from the top.
-    if (previous === undefined || previous === route) return;
+    // On first render the browser decides where focus starts, except straight after setup, whose
+    // flow held focus; after that, a new screen moves focus to its heading, so a screen reader
+    // announces it and Tab starts from the top.
+    if (previous === undefined) {
+      if (takeArrivedFromSetup()) titleRef.current?.focus({ preventScroll: true });
+      return;
+    }
+    if (previous === route) return;
     markEntryAboveToday(previous, route);
     titleRef.current?.focus({ preventScroll: true });
   }, [route]);

@@ -1,5 +1,5 @@
 /**
- * Showing nutrient figures, known or not (HS-36; item 18 design 3.3; item 18–20 contract 3 to 6).
+ * Showing nutrient figures, known or not (HS-37; item 18 design 3.3; item 18–20 contract 3 to 6).
  * Every screen that shows a figure uses these functions and the foods.figures words, never its own
  * rounding or wording:
  * - a single food's unknown figure is "not known", never 0 and never filled in;

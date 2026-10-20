@@ -6,9 +6,12 @@
  *   (17:00–19:00) otherwise. A stored 'kickstart-default' means "23:1 while a Kickstart period
  *   runs"; item 14 moves it to 22:2 when none runs (C55, E51).
  * - With readiness answer 4 (medicine with food, blood pressure or cholesterol) nothing is chosen
- *   for the person (C07, E49), and "No fasting plan for now" is always a choice (E50).
+ *   for the person (C07, E49), and "No fasting plan for now" is always a choice (E50). A default
+ *   the app chose before answer 4 turned yes is set aside: cleared at setup, and a stored Kickstart
+ *   default is never used as 23:1 (item 14's effectiveFastingPreset).
  * - presetChosenBy stays a default whenever the saved schedule equals the default, so item 14's
  *   move still applies; a schedule the owner changed is 'user' and never moved silently (E19).
+ *   With answer 4 there is no default: whatever the owner saves is their own choice.
  */
 import type { TargetsRecord } from '../storage/records';
 import {
@@ -73,20 +76,45 @@ export function presetForWindow(
 }
 
 type SavedSchedule = { readonly preset: FastingPresetId | 'custom'; readonly window: EatingWindow };
+type StoredSchedule = SavedSchedule & {
+  readonly chosenBy: 'kickstart-default' | 'default' | 'user';
+};
+
+/** The stored schedule with who chose it, or null when no pattern is stored. */
+export function storedSchedule(
+  targets: Pick<TargetsRecord, 'fastingPreset' | 'eatingWindow' | 'presetChosenBy'>,
+): StoredSchedule | null {
+  const { fastingPreset, eatingWindow, presetChosenBy } = targets;
+  return fastingPreset === null || eatingWindow === null || presetChosenBy === null
+    ? null
+    : { preset: fastingPreset, window: eatingWindow, chosenBy: presetChosenBy };
+}
 
 const sameSchedule = (a: SavedSchedule, b: SavedSchedule): boolean =>
   a.preset === b.preset && a.window.start === b.window.start && a.window.end === b.window.end;
 
 /**
- * Who chose the saved schedule (E19): the stored value when nothing changed; the default's own
- * value when the saved schedule equals the default (also when answer 4 started with nothing
- * chosen and exactly the default was picked, E49); otherwise 'user'.
+ * The default the app may choose for the owner: none with answer 4 (C07, E49), where nothing is
+ * chosen for them; otherwise defaultSchedule.
+ */
+export function scheduleDefaultFor(gates: {
+  readonly pharmacistReminder: boolean;
+  readonly kickstartChosen: boolean;
+}): ScheduleDefault | null {
+  return gates.pharmacistReminder ? null : defaultSchedule(gates.kickstartChosen);
+}
+
+/**
+ * Who chose the saved schedule (E19): with no default (answer 4), always the owner ('user'), since
+ * the app chose nothing for them; otherwise the stored value when nothing changed, the default's
+ * own value when the saved schedule equals the default, and 'user' for anything else.
  */
 export function scheduleChosenBy(
   saved: SavedSchedule,
-  defaults: ScheduleDefault,
-  stored: (SavedSchedule & { readonly chosenBy: 'kickstart-default' | 'default' | 'user' }) | null,
+  defaults: ScheduleDefault | null,
+  stored: StoredSchedule | null,
 ): 'kickstart-default' | 'default' | 'user' {
+  if (defaults === null) return 'user';
   if (stored !== null && sameSchedule(saved, stored)) return stored.chosenBy;
   if (sameSchedule(saved, defaults)) return defaults.chosenBy;
   return 'user';
@@ -112,17 +140,42 @@ export function checkEatingWindowForm(
 }
 
 /**
+ * The time fields a window problem belongs to, for marking them and moving focus: the one that is
+ * not a time (or both), and both when the times are the same or too close.
+ */
+export function windowProblemFields(
+  start: string,
+  end: string,
+  problem: 'invalid-time' | 'same-time' | 'too-short',
+): readonly ('start' | 'end')[] {
+  if (problem !== 'invalid-time') return ['start', 'end'];
+  const isTime = (time: string): boolean => {
+    try {
+      parseClockTime(time);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  return [...(isTime(start) ? [] : ['start' as const]), ...(isTime(end) ? [] : ['end' as const])];
+}
+
+/**
  * Where the schedule form starts (section 3.9) when there is no draft: what is stored (a pattern,
  * or "No fasting plan" once the step was confirmed with none); nothing chosen with answer 4
- * (E49); otherwise the default for the Kickstart choice (C55).
+ * (E49), also in place of a stored Kickstart default, which the app does not use for that owner;
+ * otherwise the default for the Kickstart choice (C55).
  */
 export function scheduleStart(args: {
-  readonly stored: Pick<TargetsRecord, 'fastingPreset' | 'eatingWindow'>;
+  readonly stored: Pick<TargetsRecord, 'fastingPreset' | 'eatingWindow' | 'presetChosenBy'>;
   readonly scheduleConfirmed: boolean;
   readonly pharmacistReminder: boolean;
   readonly kickstartChosen: boolean;
 }): { readonly choice: ScheduleChoice | null; readonly window: EatingWindow | null } {
   const { fastingPreset, eatingWindow } = args.stored;
+  if (args.pharmacistReminder && args.stored.presetChosenBy === 'kickstart-default') {
+    return { choice: null, window: null };
+  }
   if (fastingPreset !== null && eatingWindow !== null) {
     return { choice: fastingPreset, window: { start: eatingWindow.start, end: eatingWindow.end } };
   }
@@ -134,20 +187,24 @@ export function scheduleStart(args: {
 
 /**
  * Whether a schedule saved earlier in this setup must be cleared, and its step asked again (C07,
- * C55; E52): while fasting is gated nothing is kept in the preset fields at setup, and an
- * untouched default that no longer matches the Kickstart choice is stale. A 'user' schedule is
- * kept. After setup nothing is cleared here (item 14 owns the moves tied to Kickstart).
+ * C55; E49, E52): while fasting is gated nothing is kept in the preset fields at setup; with
+ * answer 4 a default the app chose (before that answer turned yes) is stale, so the step asks
+ * again with nothing chosen; and an untouched default that no longer matches the Kickstart choice
+ * is stale. A 'user' schedule is kept. After setup nothing is cleared here (item 14 owns the moves
+ * tied to Kickstart, and its effectiveFastingPreset sets a Kickstart default aside for answer 4).
  */
 export function setupScheduleReset(
   targets: Pick<TargetsRecord, 'fastingPreset' | 'presetChosenBy'>,
   ctx: {
     readonly onboardingCompleted: boolean;
     readonly fastingGated: boolean;
+    readonly pharmacistReminder: boolean;
     readonly kickstartChosen: boolean;
   },
 ): boolean {
   if (ctx.onboardingCompleted || targets.fastingPreset === null) return false;
   if (ctx.fastingGated) return true;
   if (targets.presetChosenBy === 'user' || targets.presetChosenBy === null) return false;
-  return targets.presetChosenBy !== defaultSchedule(ctx.kickstartChosen).chosenBy;
+  const defaults = scheduleDefaultFor(ctx);
+  return defaults === null || targets.presetChosenBy !== defaults.chosenBy;
 }

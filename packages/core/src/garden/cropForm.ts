@@ -42,6 +42,19 @@ function readNumber(raw: string): { value?: number; problem?: 'not-a-number' } {
   }
 }
 
+/**
+ * Nothing has been entered in the form: no name, amount or keeps-for days, and no unit chosen. The
+ * step's Continue adds a crop that has been typed (and Skip discards it); an empty form adds none.
+ */
+export function gardenCropDraftEmpty(draft: GardenCropDraft): boolean {
+  return (
+    draft.name.trim() === '' &&
+    draft.amount.trim() === '' &&
+    draft.keepsDays.trim() === '' &&
+    draft.unit === null
+  );
+}
+
 export function checkGardenCrop(draft: GardenCropDraft):
   | { readonly ok: true; readonly value: GardenCropValue }
   | {

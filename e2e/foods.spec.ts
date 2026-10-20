@@ -20,7 +20,7 @@ async function expectSilverbeetNotKnown(page: Page): Promise<void> {
   expect(await panel.innerText()).not.toMatch(/\b0\s*(g|kJ|mg)\b/);
 }
 
-test('E1 PWA-03 NU-09 HS-36: a food from About shows eight "not known" figures and the footer, online and offline', async ({
+test('E1 PWA-03 NU-09 HS-37: a food from About shows eight "not known" figures and the footer, online and offline', async ({
   page,
   context,
 }) => {

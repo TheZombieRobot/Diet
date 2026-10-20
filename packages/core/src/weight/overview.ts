@@ -368,7 +368,7 @@ export function weightOverview(input: WeightOverviewInput): WeightOverview {
     ? { windowLines: startWindowLine }
     : null;
 
-  const effectivePreset = effectiveFastingPreset(targets, phase.kind === 'kickstart');
+  const effectivePreset = effectiveFastingPreset(targets, phase.kind === 'kickstart', gates);
   const latestPeriod = latestKickstartPeriod(input.periods);
   // "Kickstart has finished" only once the latest period has run: never before its first day.
   const steadyExplainer =

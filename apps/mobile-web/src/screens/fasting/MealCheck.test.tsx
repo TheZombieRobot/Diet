@@ -28,15 +28,23 @@ const offer = (more: Partial<MealCheckView> = {}): MealCheckView => ({
   headline: { proteinG: 95, atLeast: false, unknown: false, dinnerOnly: true },
   energyChecked: true,
   snack: { added: null, fits: { start: '17:00', end: '19:00' } },
+  afterCeiling: false,
   undoSnackAllowed: false,
   refluxDay: false,
   tomorrowSnack: null,
   ...more,
 });
 
-async function show(check: MealCheckView): Promise<TestDb> {
+async function show(check: MealCheckView, changeShownBelow = false): Promise<TestDb> {
   test = await openTestDb();
-  render(<MealCheck storage={test.storage} check={check} proteinTargetG={140} />);
+  render(
+    <MealCheck
+      storage={test.storage}
+      check={check}
+      proteinTargetG={140}
+      changeShownBelow={changeShownBelow}
+    />,
+  );
   return test;
 }
 const region = () => screen.getByTestId(/^meal-check/);
@@ -113,5 +121,31 @@ describe('the meal check on the Fast card', () => {
     await show(offer({ snack: { added: null, fits: null } }));
     expect(screen.getByText(copy.widen)).toBeTruthy();
     expect(screen.getByText(copy.widenDetail)).toBeTruthy();
+  });
+
+  it('the one-meal line offers the 5 pm snack only with its button (review)', async () => {
+    const unavailable = offer({ kind: 'one-meal-unavailable', reasons: [], headline: null });
+    await show(unavailable);
+    expect(region().textContent).toBe(copy.unavailableOneMeal + copy.addSnack);
+    cleanup();
+    test?.db.shutDown();
+    await show({ ...unavailable, snack: { added: null, fits: null } });
+    expect(region().textContent).toBe(copy.unavailableOneMealNoSnack);
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+
+  it('a snack added for a window past 24 hours of the fast has no time; Today names a change once (review)', async () => {
+    const added = offer({
+      kind: 'snack-added',
+      reasons: [],
+      headline: null,
+      snack: { added: { start: '17:00', end: '19:00' }, fits: null },
+    });
+    await show({ ...added, afterCeiling: true });
+    expect(region().textContent).toBe(copy.snackAddedNoRange.today + ' ');
+    cleanup();
+    test?.db.shutDown();
+    await show(added, true);
+    expect(region().textContent).toBe('');
   });
 });

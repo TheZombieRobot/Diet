@@ -242,7 +242,7 @@ describe('NU-01: catalogue rules CR1–CR20 (item 18 design 2.4)', () => {
   });
 });
 
-describe('NU-01 HS-36: release rules R1–R12', () => {
+describe('NU-01 HS-37: release rules R1–R12', () => {
   const catalogue = exampleCatalogue;
   const check = (
     raw: unknown,

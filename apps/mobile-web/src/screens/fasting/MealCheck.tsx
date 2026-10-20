@@ -16,16 +16,19 @@ const copy = fasting.mealCheck;
  * the decision table's kind, as the view worked it out. Every offer and after-window line says it
  * is fine to eat or widen the window, the widen line stays whenever the check fails, and nothing
  * here talks of a broken fast or a streak. The amber button styles are only inside the amber
- * notice, so the card keeps one teal primary action.
+ * notice, so the card keeps one teal primary action. With `changeShownBelow`, Today's reflux
+ * options already name the date's change, so its "snack added" line is not repeated here.
  */
 export function MealCheck({
   storage,
   check,
   proteinTargetG,
+  changeShownBelow = false,
 }: {
   readonly storage: AppStorage;
   readonly check: MealCheckView;
   readonly proteinTargetG: number;
+  readonly changeShownBelow?: boolean | undefined;
 }): ReactElement | null {
   const action = useAction();
   const { kind, day, date, snack, headline, reasons } = check;
@@ -37,12 +40,15 @@ export function MealCheck({
   const undo = () => {
     void action.run(() => clearDayWindow(storage, date));
   };
+  // A window opening past 24 hours of the running fast is never given a time (view.ts).
   const snackAdded =
-    snack.added === null ? null : (
+    snack.added === null || changeShownBelow ? null : (
       <p>
-        {fillTemplate(copy.snackAdded[day], {
-          range: formatClockRange(snack.added.start, snack.added.end),
-        })}{' '}
+        {check.afterCeiling
+          ? copy.snackAddedNoRange[day]
+          : fillTemplate(copy.snackAdded[day], {
+              range: formatClockRange(snack.added.start, snack.added.end),
+            })}{' '}
         {check.undoSnackAllowed ? (
           <Button variant="quiet" disabled={action.busy} onClick={undo}>
             {copy.undo}
@@ -163,7 +169,10 @@ export function MealCheck({
       {kind === 'offer-collapsed' ? <p className="ui-text-muted">{copy.widen}</p> : null}
       {kind === 'ok' && headline !== null ? <p>{headlineText(headline, day)}</p> : null}
       {kind === 'one-meal-unavailable' ? (
-        <p className="ui-text-muted">{copy.unavailableOneMeal}</p>
+        // The snack is named only when its button is there.
+        <p className="ui-text-muted">
+          {fits === null ? copy.unavailableOneMealNoSnack : copy.unavailableOneMeal}
+        </p>
       ) : null}
       {snackAdded}
       {kind === 'offer-collapsed' || kind === 'one-meal-unavailable' ? quietAdd : null}

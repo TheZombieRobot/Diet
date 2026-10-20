@@ -32,8 +32,8 @@ const zeros: Nutrients = {
 };
 const DATABASE_NAMES = /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/;
 
-describe('showing figures (HS-36; item 18 design 3.3)', () => {
-  it('F8 HS-36 D35 N39 X2: unknown is never a digit, lower bounds round down, energy never rounds up', () => {
+describe('showing figures (HS-37; item 18 design 3.3)', () => {
+  it('F8 HS-37 D35 N39 X2: unknown is never a digit, lower bounds round down, energy never rounds up', () => {
     expect(figureShown(12.3, false)).toEqual({ kind: 'value', value: 12.3 });
     expect(figureShown(12.3, true)).toEqual({ kind: 'at-least', value: 12.3 });
     expect(figureShown(0, true)).toEqual({ kind: 'not-known' });
@@ -119,7 +119,7 @@ describe('showing figures (HS-36; item 18 design 3.3)', () => {
     });
   });
 
-  it('F18 HS-36 C11 C100: differences and ratios of incomplete figures are not known; averages are "at least"', () => {
+  it('F18 HS-37 C11 C100: differences and ratios of incomplete figures are not known; averages are "at least"', () => {
     const known = (value: number) => ({ value, complete: true });
     const partial = (value: number) => ({ value, complete: false });
     expect(differenceShown(known(9100), partial(7000))).toEqual({ kind: 'not-known' });

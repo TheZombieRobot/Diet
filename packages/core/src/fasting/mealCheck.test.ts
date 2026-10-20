@@ -203,6 +203,34 @@ describe('the widen-window prompt with logged food (C62, C11)', () => {
     });
     expect(check({ windowClosed: true, logged: short }).kind).toBe('short-after');
     expect(check({ windowClosed: true, planned: [meal('dinner', 140)] }).kind).toBe('unavailable');
+    // Strict after the window too: 139.5 g against 140 g is short (C64).
+    expect(
+      check({ windowClosed: true, logged: logged({ proteinG: 139.5, foodEnergyKj: 9_500 }) }),
+    ).toMatchObject({ kind: 'short-after', reasons: ['protein'] });
+  });
+
+  it('energy: the plan alone must meet the target, whatever is logged beside it (C10)', () => {
+    // Lunch and dinner of 4,000 kJ each are short of 9,100 kJ, though a 6,000 kJ label entry in
+    // place of lunch would project 10,000 kJ.
+    const result = check({
+      oneMealWindow: false,
+      planned: [
+        meal('lunch', 80, { foodEnergyKj: 4_000 }),
+        meal('dinner', 80, { foodEnergyKj: 4_000 }),
+      ],
+      logged: logged({ proteinG: 80, foodEnergyKj: 6_000, otherEntries: 1 }),
+    });
+    expect(result).toMatchObject({ kind: 'short-before', reasons: ['energy'] });
+  });
+
+  it('a planned meal of unknown protein keeps the protein reason, whatever the others carry (C64)', () => {
+    const result = check({
+      planned: [
+        meal('meal1', 0, { proteinKnown: false, proteinFoodCookedG: 0 }),
+        meal('dinner', 150, { foodEnergyKj: 9_100, proteinFoodCookedG: 300 }),
+      ],
+    });
+    expect(result).toMatchObject({ kind: 'short-before', reasons: ['protein'] });
   });
 
   it('with no plan nothing is checked before the window closes; with neither, nothing at all', () => {
@@ -226,6 +254,14 @@ describe('the widen-window prompt with logged food (C62, C11)', () => {
       const meets = protein >= 140 && energy >= 9_100 && grams <= 600;
       expect(result.kind, JSON.stringify({ protein, energy, grams })).toBe(
         meets ? 'ok' : 'short-before',
+      );
+      // After the window, the logged figures alone, with the same thresholds.
+      const after = check({
+        windowClosed: true,
+        logged: logged({ proteinG: protein, foodEnergyKj: energy }),
+      });
+      expect(after.kind, JSON.stringify({ protein, energy })).toBe(
+        protein >= 140 && energy >= 9_100 ? 'ok' : 'short-after',
       );
     }
   });
@@ -338,7 +374,7 @@ describe('figures for the check (items 22 and 23 feed these)', () => {
 
 // Item 18's handover (item 18 design section 8, row 15): with the catalogue's figures not loaded,
 // a dinner of seed foods is never shown as enough.
-describe('a dinner of not-loaded catalogue foods (item 18; HS-18, HS-36, C29)', () => {
+describe('a dinner of not-loaded catalogue foods (item 18; HS-18, HS-37, C29)', () => {
   it('offers the 5 pm snack: protein and energy are not shown to be met, and every line counts as protein food', () => {
     const resolve = ingredientResolver(seedViews(), [], []);
     const recipe = {

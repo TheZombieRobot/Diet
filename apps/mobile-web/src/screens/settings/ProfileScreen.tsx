@@ -99,7 +99,8 @@ function ProfileSettings({
           <p>{copy.saved}</p>
         </Notice>
       ) : null}
-      <Button variant="primary" block disabled={save.busy} onClick={onSave}>
+      {/* aria-disabled while saving keeps focus on the button; useSave refuses a second tap. */}
+      <Button variant="primary" block aria-disabled={save.busy} onClick={onSave}>
         {copy.save}
       </Button>
     </>

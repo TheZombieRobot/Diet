@@ -17,7 +17,7 @@ export interface NutrientTableProps {
 
 /**
  * Nutrient figures, one row each. It formats nothing itself: the text comes from core, so a
- * figure that is not known can never become "0" here (HS-36).
+ * figure that is not known can never become "0" here (HS-37).
  */
 export function NutrientTable({ caption, rows }: NutrientTableProps): ReactElement {
   return (

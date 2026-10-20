@@ -1,4 +1,4 @@
-import { expect, type BrowserContext, type Page } from '@playwright/test';
+import { expect, type BrowserContext, type Locator, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fasting, foods, onboarding, privacy, weight } from '../../packages/core/src/copy/health';
@@ -16,6 +16,8 @@ export const SCREENS = [
   'Weight',
   // Item 15: reached from Today's Fast card.
   'Fasting and reflux',
+  // Item 21: reached from Settings, More.
+  'Diet and targets',
   // Item 18: reached from About, Data sources.
   'Foods in the app',
 ] as const;
@@ -25,6 +27,7 @@ export type ScreenName = (typeof SCREENS)[number];
 export const UNDER_SETTINGS: readonly ScreenName[] = [
   'About',
   ...SETUP_SCREENS,
+  'Diet and targets',
   'Foods in the app',
 ];
 
@@ -192,6 +195,58 @@ export async function openFoodPanel(
   await expect(page.getByRole('region', { name })).toBeVisible();
 }
 
+/**
+ * Item 16: changes a finished setup's synthetic records with raw IndexedDB (readiness answers and
+ * settings fields), then reloads, so the app reads them at launch.
+ */
+export async function patchRecords(
+  page: Page,
+  patch: {
+    readonly readiness?: Readonly<Record<string, 'yes' | 'no'>>;
+    readonly settings?: Readonly<Record<string, unknown>>;
+  },
+): Promise<void> {
+  await page.evaluate(
+    (p) =>
+      new Promise<void>((resolve, reject) => {
+        const request = indexedDB.open('diet');
+        request.onerror = () => {
+          reject(new Error('open failed'));
+        };
+        request.onsuccess = () => {
+          const db = request.result;
+          const tx = db.transaction(['settings', 'readiness'], 'readwrite');
+          const now = new Date().toISOString();
+          for (const [questionId, answer] of Object.entries(p.readiness ?? {})) {
+            tx.objectStore('readiness').put({
+              questionId,
+              answer,
+              wordingVersion: 1,
+              answeredAt: now,
+            });
+          }
+          const settings = p.settings;
+          if (settings !== undefined) {
+            const get = tx.objectStore('settings').get('singleton');
+            get.onsuccess = () => {
+              tx.objectStore('settings').put({ ...(get.result as object), ...settings });
+            };
+          }
+          tx.oncomplete = () => {
+            db.close();
+            resolve();
+          };
+          tx.onerror = () => {
+            reject(new Error('write failed'));
+          };
+        };
+      }),
+    patch,
+  );
+  await page.reload();
+  await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
+}
+
 /** Visits every screen in turn, calling `onScreen` on each. */
 export async function visitEveryScreen(
   page: Page,
@@ -217,24 +272,39 @@ export async function waitForServiceWorkerControl(page: Page): Promise<string> {
 /**
  * Everything a person can read or hear on the page: the title, the text, the labels and
  * descriptions screen readers announce, tooltips, image text, placeholders and form values.
+ * With `without`, that one element (a card, say) is left out by element, so a check can excuse
+ * exactly it and not any line elsewhere that happens to repeat its text.
  */
-export function renderedText(page: Page): Promise<string> {
-  return page.evaluate(() => {
+export async function renderedText(page: Page, without?: Locator): Promise<string> {
+  const skip = without === undefined ? null : await without.elementHandle();
+  return page.evaluate((skipped) => {
+    const kept = (e: Element) => skipped === null || !skipped.contains(e);
     const attributes = ['aria-label', 'aria-description', 'title', 'alt', 'placeholder'];
     const fromAttributes = attributes.flatMap((name) =>
-      Array.from(document.querySelectorAll(`[${name}]`), (e) => e.getAttribute(name) ?? ''),
+      Array.from(document.querySelectorAll(`[${name}]`))
+        .filter(kept)
+        .map((e) => e.getAttribute(name) ?? ''),
     );
     const values = Array.from(
       document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(
         'input, textarea, select',
       ),
-      (e) => e.value,
-    );
-    const options = Array.from(document.querySelectorAll('option'), (o) => `${o.value} ${o.text}`);
-    return [document.title, document.body.innerText, ...fromAttributes, ...values, ...options].join(
-      '\n',
-    );
-  });
+    )
+      .filter(kept)
+      .map((e) => e.value);
+    const options = Array.from(document.querySelectorAll('option'))
+      .filter(kept)
+      .map((o) => `${o.value} ${o.text}`);
+    // The shown text with the skipped element hidden for the moment of reading.
+    let text = document.body.innerText;
+    if (skipped instanceof HTMLElement) {
+      const display = skipped.style.display;
+      skipped.style.display = 'none';
+      text = document.body.innerText;
+      skipped.style.display = display;
+    }
+    return [document.title, text, ...fromAttributes, ...values, ...options].join('\n');
+  }, skip);
 }
 
 /**

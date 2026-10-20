@@ -14,7 +14,9 @@
  * start() and undoEnd() refuse while fasting is switched off ('fasting-gated'; FS-08, HS-03). The
  * gate is worked out inside the same transaction from the stored answers, profile and weigh-ins,
  * with the rule every screen uses (core weightGateInput, then readinessGates), so a tab that has
- * not re-rendered since an answer changed cannot start a fast. Ending one is never refused.
+ * not re-rendered since an answer changed cannot start a fast. Ending one is never refused: when
+ * the phone's clock reads earlier than the start, end() stores the start plus 1 ms (a fast of no
+ * length) rather than a time before it.
  */
 import {
   type ClockTime,
@@ -148,9 +150,14 @@ export function fastsRepo(ctx: RepoContext): FastsRepo {
           db.fasts.get(id).then((stored) => {
             if (stored === undefined) throw new StorageRuleError('fasts', 'not-found');
             if (stored.endedAt !== null) throw new StorageRuleError('fasts', 'already-ended');
+            // A phone clock reading earlier than the start ends the fast where it began, the one
+            // honest end the records can hold, rather than refusing (HS-18).
+            const now = instantMs(env.now());
+            const start = instantMs(stored.startedAt);
+            const endedAt = now > start ? env.now() : new Date(start + 1).toISOString();
             const row = prepare(
               'fasts',
-              { ...stored, endedAt: env.now(), endedTimeZone: env.timeZone() },
+              { ...stored, endedAt, endedTimeZone: env.timeZone() },
               env,
               stored,
             );

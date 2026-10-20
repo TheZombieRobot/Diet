@@ -51,7 +51,7 @@ export function profileProblemText(
  * Moves focus to the first field with a problem, in form order (section 3.8, On Continue): a text
  * field, or the chosen (or first) radio of a group.
  */
-export function focusFirstInvalid(form: HTMLFormElement | null): void {
+export function focusFirstInvalid(form: HTMLElement | null): void {
   const target = form?.querySelector<HTMLElement>(
     'input[aria-invalid="true"], fieldset[aria-invalid="true"]',
   );

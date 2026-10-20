@@ -37,7 +37,7 @@ export function FoodDetail({ panel }: { readonly panel: FoodPanelModel }): React
         </Notice>
       )}
       {panel.sourceLine === null ? null : <p className="ui-text-muted">{panel.sourceLine}</p>}
-      <p className="ui-text-muted">{panel.footer}</p>
+      <p className="ui-text-small">{panel.footer}</p>
     </>
   );
 }

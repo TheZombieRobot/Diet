@@ -20,7 +20,7 @@ const shipped = () => {
 const T = '2000-01-01T00:00:00.000Z';
 
 describe('the live food catalogue (item 18 design 5.2)', () => {
-  it('B1 HS-36 D35: a seed with no figures can never be stored as a food with figures of 0', async () => {
+  it('B1 HS-37 D35: a seed with no figures can never be stored as a food with figures of 0', async () => {
     const state = foodsState(shipped(), await readFoodInputs(test.storage));
     if (state.status !== 'ready') throw new Error('not ready');
     const view = state.viewById.get('seed:spinach');

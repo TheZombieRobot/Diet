@@ -4,7 +4,7 @@
 // connection changes the records it read. Real Dexie over fake-indexeddb.
 import { describe, expect, it, vi } from 'vitest';
 import { createWriteGate } from './gate';
-import { liveStore } from './liveQuery';
+import { liveStateStore, liveStore } from './liveQuery';
 import { openTestDb } from './testKit';
 
 describe('liveStore and the write gate', () => {
@@ -53,5 +53,41 @@ describe('liveStore and the write gate', () => {
     });
     expect(query).not.toHaveBeenCalled();
     for (const stop of stops) stop();
+  });
+});
+
+describe('liveStateStore (item 16; T24, TD-02)', () => {
+  it('is pending until the first result, ready with it, and an error when a read fails while the gate is open', async () => {
+    const test = await openTestDb();
+    const ok = liveStateStore(() => test.db.weights.count(), createWriteGate());
+    const failing = liveStateStore(async () => {
+      await test.db.weights.count();
+      throw new Error('synthetic read failure');
+    }, createWriteGate());
+    expect(ok.get()).toEqual({ status: 'pending' });
+    const stops = [ok.subscribe(() => undefined), failing.subscribe(() => undefined)];
+    await vi.waitFor(() => {
+      expect(ok.get()).toEqual({ status: 'ready', value: 0 });
+      expect(failing.get()).toEqual({ status: 'error' });
+    });
+    for (const stop of stops) stop();
+  });
+
+  it('a failure after the gate closed keeps the last value', async () => {
+    const test = await openTestDb();
+    const gate = createWriteGate();
+    const store = liveStateStore(() => test.db.weights.count(), gate);
+    const stop = store.subscribe(() => undefined);
+    await vi.waitFor(() => {
+      expect(store.get()).toEqual({ status: 'ready', value: 0 });
+    });
+    gate.close();
+    test.db.close();
+    await test.repos.weights
+      .create({ kg: 80, source: 'manual', note: null })
+      .catch(() => undefined);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(store.get()).toEqual({ status: 'ready', value: 0 });
+    stop();
   });
 });

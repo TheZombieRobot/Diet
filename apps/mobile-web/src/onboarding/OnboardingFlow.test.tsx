@@ -23,6 +23,7 @@ import {
   answer,
   answerAll,
   fillProfile,
+  go,
   h1,
   headingIs,
   openApp,
@@ -64,12 +65,18 @@ const gateInput = async () => {
   return gateInputOf(read.state, test.env);
 };
 const links = () => screen.queryAllByRole('link').map((l) => l.getAttribute('href'));
+/** Lets the live queries and listeners settle, so a move that should not happen has had its chance. */
+async function settle(): Promise<void> {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  });
+}
 const buttons = () => screen.getAllByRole('button').map((b) => b.textContent);
 
 describe('the first-run guard (HS-20, C41, C53)', () => {
-  it('K1: every route, and an unknown one, shows Welcome with only the help numbers to tap', async () => {
-    for (const hash of [...ROUTES.map((r) => `#/${r}`), '#/unknown']) {
-      cleanup();
+  it.each([...ROUTES.map((r) => `#/${r}`), '#/unknown'])(
+    'K1: %s shows Welcome with only the help numbers to tap',
+    async (hash) => {
       await openApp(hash);
       await headingIs(onboarding.welcome.title);
       expect(screen.getByText('Step 1 of 6')).toBeDefined();
@@ -86,9 +93,22 @@ describe('the first-run guard (HS-20, C41, C53)', () => {
         'sms:1737',
       ]);
       expect(screen.getByRole('main').textContent).toContain(general.welcome);
-    }
+      tap(onboarding.frame.continue);
+      await headingIs(alcohol.notice.title);
+    },
+  );
+
+  it('K1 / HS-20: "#/about" typed while Welcome or the notice shows (a hash change) does not open About', async () => {
+    await openApp();
+    await headingIs(onboarding.welcome.title);
+    await go('about');
+    await settle();
+    expect(h1().textContent).toBe(onboarding.welcome.title);
     tap(onboarding.frame.continue);
     await headingIs(alcohol.notice.title);
+    await go('about');
+    await settle();
+    expect(h1().textContent).toBe(alcohol.notice.title);
   });
 
   it('K2: the notice has no way past it but "I understand", which is stored once', async () => {
@@ -102,6 +122,10 @@ describe('the first-run guard (HS-20, C41, C53)', () => {
       onboarding.frame.back,
     ]);
     expect(links()).toEqual(['tel:0800787797', 'sms:8681', 'tel:111']);
+    // The helpline row: its short name over the "free, 24/7, confidential" detail, said once.
+    const helpline = screen.getAllByRole('link')[0];
+    expect(helpline?.textContent).toContain(alcohol.notice.helplineTitle);
+    expect(helpline?.textContent).not.toContain('(24/7, free, confidential)');
     expect(screen.getByTestId('first-run-notice').textContent).toBe(alcohol.firstRunNotice);
     const why = screen.getByRole('button', { name: alcohol.notice.why });
     expect(why.getAttribute('aria-expanded')).toBe('false');
@@ -116,6 +140,21 @@ describe('the first-run guard (HS-20, C41, C53)', () => {
     test.env.advanceDays(1);
     await reload();
     expect((await settings()).alcoholNoticeAckAt).toBe(ack);
+  });
+
+  it('K2 / HS-20: when "I understand" cannot be saved, the notice stays with the message', async () => {
+    const failure = failingWrite('settings', 'put', () => new Error('synthetic failure'));
+    test.db.shutDown();
+    test = await openTestDb({ env: test.env, extraMiddleware: [failure.middleware] });
+    appStorageStore.set(test.storage);
+    await openApp();
+    tap(onboarding.frame.continue);
+    await headingIs(alcohol.notice.title);
+    failure.arm();
+    tap(alcohol.notice.acknowledge);
+    expect((await screen.findByRole('alert')).textContent).toBe(onboarding.frame.saveFailed);
+    expect(h1().textContent).toBe(alcohol.notice.title);
+    expect((await settings()).alcoholNoticeAckAt).toBeNull();
   });
 
   it('K3: restore is offered only after the notice, and Cancel keeps what was typed', async () => {
@@ -181,7 +220,9 @@ describe('readiness questions (C41, D29)', () => {
     await headingIs(readiness.questions.q3);
     tap(readiness.yes);
     await screen.findByTestId('consequence');
-    expect(screen.getByText(readiness.ifYes.q3).textContent).toContain('hypoglycaemia');
+    // Questions 4 to 7 are not answered yet and count as yes, so the line says what still keeps
+    // fasting off, not that the confirmation alone switches it on (item 13 review).
+    expect(screen.getByText(readiness.ifYesAlsoOff.q3).textContent).toContain('hypoglycaemia');
     const control = screen.getByRole<HTMLInputElement>('switch', {
       name: readiness.confirmations.prescriberAgreed,
     });
@@ -189,7 +230,7 @@ describe('readiness questions (C41, D29)', () => {
     expect(document.getElementById(hintId)?.textContent).toBe(readiness.confirmationLapses);
     test.env.advanceDays(1);
     fireEvent.click(control);
-    await screen.findByText(readiness.confirmed.prescriberAgreed);
+    await screen.findByText(readiness.confirmedAlsoOff.prescriberAgreed);
     expect(screen.getByRole('button', { name: readiness.changed.q3 })).toBeDefined();
     expect((await gateInput()).confirmations.prescriberAgreed).toBe(true);
     test.env.advanceDays(1);
@@ -241,6 +282,26 @@ describe('readiness questions (C41, D29)', () => {
     await reload();
     await headingIs(readiness.summaryTitle);
   });
+
+  it('K4b: a question answered Yes, reached with Back, shows what it switches off and Continue; a Yes moves focus there', async () => {
+    await passNotice();
+    await answerAll({ q7: 'yes' });
+    tap(onboarding.frame.back);
+    await headingIs(readiness.questions.q7);
+    expect(screen.getByTestId('consequence').textContent).toContain(readiness.ifYes.q7);
+    tap(onboarding.frame.continue);
+    await headingIs(readiness.summaryTitle);
+    tap(onboarding.frame.back);
+    await headingIs(readiness.questions.q7);
+    for (const q of ['q6', 'q5', 'q4', 'q3', 'q2'] as const) {
+      tap(onboarding.frame.back);
+      await headingIs(readiness.questions[q]);
+    }
+    tap(readiness.yes);
+    await waitFor(() => {
+      expect(document.activeElement).toBe(screen.getByTestId('consequence'));
+    });
+  });
 });
 
 describe('the profile step (UX 1d; C24, C42, HS-35)', () => {
@@ -273,6 +334,18 @@ describe('the profile step (UX 1d; C24, C42, HS-35)', () => {
     ).toBeDefined();
     expect(screen.queryByLabelText(profile.goalLabel)).toBeNull();
     expect(screen.queryByRole('switch', { name: profile.kickstartLabel })).toBeNull();
+    // A year the form refuses names no lift year (the gates keep the stored one).
+    type(profile.birthYearLabel, '1899');
+    expect(screen.queryByText(/This birth year means you may be under 18/)).toBeNull();
+  });
+
+  it('K8 HS-32: a birth year that may be under 18, saved on the profile, leaves out the schedule: Back from the garden is the profile', async () => {
+    await passNotice();
+    await answerAll();
+    await throughProfile({ year: '1982' });
+    await headingIs(garden.title);
+    tap(onboarding.frame.back);
+    await headingIs(profile.title);
   });
 
   it('K8b RD-04: with answer 5 yes a weight entered is still stored for the trend', async () => {
@@ -391,6 +464,43 @@ describe('the profile step (UX 1d; C24, C42, HS-35)', () => {
     ).toBe(false);
     expect(screen.getByLabelText<HTMLInputElement>(profile.goalLabel)).toBeDefined();
   });
+
+  it('K24b C06 / D31: a profile draft started before answer 3 turned yes and confirmed shows Kickstart off, and saves it off', async () => {
+    await passNotice();
+    await answerAll();
+    tap(onboarding.frame.continue);
+    await headingIs(profile.title);
+    fillProfile();
+    expect(
+      screen.getByRole<HTMLInputElement>('switch', { name: profile.kickstartLabel }).checked,
+    ).toBe(true);
+    tap(onboarding.frame.back);
+    await headingIs(readiness.summaryTitle);
+    for (const q of ['q7', 'q6', 'q5', 'q4', 'q3'] as const) {
+      tap(onboarding.frame.back);
+      await headingIs(readiness.questions[q]);
+    }
+    tap(readiness.yes);
+    await screen.findByTestId('consequence');
+    fireEvent.click(
+      screen.getByRole<HTMLInputElement>('switch', {
+        name: readiness.confirmations.prescriberAgreed,
+      }),
+    );
+    await screen.findByText(readiness.confirmed.prescriberAgreed);
+    tap(onboarding.frame.continue);
+    await answerAll({}, 'q4');
+    tap(onboarding.frame.continue);
+    await headingIs(profile.title);
+    expect(screen.getByLabelText<HTMLInputElement>(profile.heightLabel).value).toBe('175');
+    expect(
+      screen.getByRole<HTMLInputElement>('switch', { name: profile.kickstartLabel }).checked,
+    ).toBe(false);
+    tap(onboarding.frame.continue);
+    await onSchedule();
+    expect((await test.repos.profile.get()).kickstartOptIn).toBe(false);
+    expect(radio('22:2').checked).toBe(true);
+  });
 });
 
 const radio = (id: string) =>
@@ -419,6 +529,9 @@ describe('the eating schedule (FL-08 in the UI, FL-14, C55, C07)', () => {
       '5 pm snack + dinner · Eat 5:00 pm – 7:00 pm',
     );
     fireEvent.click(radio('22:2'));
+    // 22:2 with Kickstart chosen is the owner's own pattern, kept every day: no Kickstart note.
+    expect(screen.queryByText(schedule.kickstartWhen)).toBeNull();
+    expect(screen.getByTestId('schedule-own-pattern').textContent).toBe(schedule.ownPattern);
     expect(summaryLine()).toBe('Eating 5:00 pm to 7:00 pm = 2 hours. Fasting 22 hours.');
     expect(screen.getByLabelText<HTMLInputElement>(schedule.startLabel).value).toBe('17:00');
     expect(screen.getByLabelText<HTMLInputElement>(schedule.endLabel).value).toBe('19:00');
@@ -427,9 +540,19 @@ describe('the eating schedule (FL-08 in the UI, FL-14, C55, C07)', () => {
       screen.getByRole<HTMLInputElement>('radio', { name: new RegExp(`^${schedule.custom}`) }),
     ).toHaveProperty('checked', true);
     type(schedule.endLabel, '17:00');
-    expect(screen.getByRole('alert').textContent).toBe(schedule.errors.sameTime);
+    const error = screen.getByRole('alert');
+    expect(error.textContent).toBe(schedule.errors.sameTime);
+    // The message belongs to both time fields, and a refused Continue moves focus to the first.
+    for (const label of [schedule.startLabel, schedule.endLabel]) {
+      const field = screen.getByLabelText<HTMLInputElement>(label);
+      expect(field.getAttribute('aria-invalid')).toBe('true');
+      expect(field.getAttribute('aria-describedby')?.split(' ')).toContain(error.id);
+    }
     tap(onboarding.frame.continue);
     expect(h1().textContent).toBe(schedule.title);
+    await waitFor(() => {
+      expect(document.activeElement).toBe(screen.getByLabelText(schedule.startLabel));
+    });
     fireEvent.click(radio('23:1'));
     tap(onboarding.frame.continue);
     await headingIs(garden.title);
@@ -488,7 +611,7 @@ describe('the eating schedule (FL-08 in the UI, FL-14, C55, C07)', () => {
     },
   );
 
-  it('K25 E49: with answer 4 the pharmacist note comes first, nothing is chosen, and Continue asks for a choice', async () => {
+  it("K25 E49: with answer 4 the pharmacist note comes first, nothing is chosen, and Continue asks for a choice; the pick is the owner's", async () => {
     await passNotice();
     await answerAll({ q4: 'yes' });
     await throughProfile();
@@ -502,9 +625,50 @@ describe('the eating schedule (FL-08 in the UI, FL-14, C55, C07)', () => {
     expect(await screen.findByText(schedule.errors.choosePattern)).toBeDefined();
     expect(document.activeElement).toBe(radio('16:8'));
     fireEvent.click(radio('23:1'));
+    // No default is chosen for this owner, so 23:1 is their own, kept every day (C07, E49).
+    expect(screen.queryByText(schedule.kickstartWhen)).toBeNull();
+    expect(screen.getByTestId('schedule-own-pattern')).toBeDefined();
+    tap(onboarding.frame.continue);
+    await headingIs(garden.title);
+    expect((await test.repos.targets.get()).presetChosenBy).toBe('user');
+  });
+
+  it('K25b C07 / E49: answer 4 changed to yes after the step clears the pattern the app chose and asks again with nothing chosen, after a reload too', async () => {
+    await passNotice();
+    await answerAll();
+    await throughProfile();
+    await onSchedule();
+    // Touch the form (a draft started without answer 4), then save the untouched pattern.
+    fireEvent.click(screen.getByRole('switch', { name: schedule.refluxLabel }));
     tap(onboarding.frame.continue);
     await headingIs(garden.title);
     expect((await test.repos.targets.get()).presetChosenBy).toBe('kickstart-default');
+    tap(onboarding.frame.back);
+    await onSchedule();
+    fireEvent.click(screen.getByRole('switch', { name: schedule.refluxLabel }));
+    tap(onboarding.frame.back);
+    await headingIs(profile.title);
+    tap(onboarding.frame.back);
+    await headingIs(readiness.summaryTitle);
+    for (const q of ['q7', 'q6', 'q5', 'q4'] as const) {
+      tap(onboarding.frame.back);
+      await headingIs(readiness.questions[q]);
+    }
+    tap(readiness.yes);
+    await screen.findByTestId('consequence');
+    await waitFor(async () => {
+      expect((await test.repos.targets.get()).fastingPreset).toBeNull();
+    });
+    expect((await settings()).scheduleConfirmedAt).toBeNull();
+    tap(onboarding.frame.continue);
+    await answerAll({}, 'q5');
+    await throughProfile();
+    await onSchedule();
+    expect(screen.getAllByRole<HTMLInputElement>('radio').some((r) => r.checked)).toBe(false);
+    expect(screen.getByText(schedule.pharmacistNote)).toBeDefined();
+    await reload();
+    await onSchedule();
+    expect(screen.getAllByRole<HTMLInputElement>('radio').some((r) => r.checked)).toBe(false);
   });
 
   it('K27 E50: "No fasting plan for now" hides the times and stores no pattern', async () => {
@@ -558,6 +722,25 @@ describe('the eating schedule (FL-08 in the UI, FL-14, C55, C07)', () => {
     expect((await test.repos.targets.get()).fastingPreset).toBeNull();
     expect((await test.repos.profile.get()).kickstartOptIn).toBe(false);
     expect(radio('22:2').checked).toBe(true);
+  });
+
+  it('K26 (d) C55: a touched schedule form started for Kickstart starts again at 22:2 once Kickstart is declined, and saves the default', async () => {
+    await passNotice();
+    await answerAll();
+    await throughProfile();
+    await onSchedule();
+    expect(radio('23:1').checked).toBe(true);
+    fireEvent.click(screen.getByRole('switch', { name: schedule.refluxLabel }));
+    tap(onboarding.frame.back);
+    await headingIs(profile.title);
+    fireEvent.click(screen.getByRole<HTMLInputElement>('switch', { name: profile.kickstartLabel }));
+    tap(onboarding.frame.continue);
+    await onSchedule();
+    expect(radio('22:2').checked).toBe(true);
+    tap(onboarding.frame.continue);
+    await headingIs(garden.title);
+    const targets = await test.repos.targets.get();
+    expect([targets.fastingPreset, targets.presetChosenBy]).toEqual(['22:2', 'default']);
   });
 
   it('K26 (c): a schedule the owner chose survives a change of the Kickstart choice', async () => {
@@ -617,13 +800,49 @@ describe('the garden and the end of setup (C57, E24, PWA-06)', () => {
     await waitFor(() => {
       expect(screen.getByTestId('garden-list').textContent).not.toContain('Spinach');
     });
+    // Skip leaves a half-typed crop unsaved, and says crops can be added later.
+    type(garden.nameLabel, 'Chard');
+    const skip = screen.getByRole('button', { name: garden.skip });
+    expect(document.getElementById(skip.getAttribute('aria-describedby') ?? '')?.textContent).toBe(
+      garden.skipHint,
+    );
     tap(garden.skip);
     await screen.findByRole('navigation', { name: 'Main' });
-    expect(window.location.hash).toBe('#/today');
+    await waitFor(() => {
+      expect(window.location.hash).toBe('#/today');
+    });
+    expect((await test.repos.garden.list()).some((c) => c.name === 'Chard')).toBe(false);
     const done = await settings();
     expect(done.gardenConfirmedAt).not.toBeNull();
     expect(done.onboardingCompletedAt).not.toBeNull();
     expect(onOnboardingCompleted).toHaveBeenCalledOnce();
+  });
+
+  it('K12b E24: Continue adds a crop typed in "Add a crop" (or shows what it needs and stays); Today then has focus', async () => {
+    await passNotice();
+    await answerAll({ q5: 'yes' });
+    await throughProfile();
+    await headingIs(garden.title);
+    type(garden.nameLabel, 'Kale');
+    type(garden.amountLabel, '2');
+    tap(garden.continue);
+    expect(await screen.findByText(garden.errors.unitRequired)).toBeDefined();
+    expect(h1().textContent).toBe(garden.title);
+    expect(document.activeElement).toBe(
+      screen.getByRole<HTMLInputElement>('radio', { name: garden.unitOptions.g }),
+    );
+    fireEvent.click(
+      screen.getByRole<HTMLInputElement>('radio', { name: garden.unitOptions.bunch }),
+    );
+    tap(garden.continue);
+    await screen.findByRole('navigation', { name: 'Main' });
+    const kale = (await test.repos.garden.list()).find((c) => c.name === 'Kale');
+    expect([kale?.amount, kale?.unit]).toEqual([2, 'bunch']);
+    expect((await settings()).onboardingCompletedAt).not.toBeNull();
+    await waitFor(() => {
+      expect(document.activeElement).toBe(h1());
+    });
+    expect(h1().textContent).toBe('Today');
   });
 
   it('K12: without the seeded row there is no silverbeet sentence, and an empty list says so', async () => {
@@ -712,6 +931,17 @@ describe('write failures (E58; K20)', () => {
     );
   });
 
+  it('K29b: after a restore that was blocked or failed, a tap in setup puts up the failure screen with Reload', async () => {
+    await passNotice();
+    // What a blocked or failed restore leaves: this tab's write gate closed, the status 'ready'.
+    test.db.gate.close();
+    tap(readiness.no);
+    await waitFor(() => {
+      expect(test.status.get()).toBe('reload-needed');
+    });
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
   it('a full phone says so; finishing that fails stays on the garden, and the next tap completes once', async () => {
     const onOnboardingCompleted = vi.fn();
     const quota = failingWrite(
@@ -782,6 +1012,17 @@ describe('step numbers, reachability and the back gesture (E54, E55, E59)', () =
     await headingIs(readiness.questions.q5);
   });
 
+  it('K23 HS-03: a schedule showing when another tab switches fasting off moves on to the garden', async () => {
+    await passNotice();
+    await answerAll();
+    await throughProfile();
+    await onSchedule();
+    const other = await openTestDb({ deps: test.deps, env: test.env });
+    await other.repos.readiness.answer('q5', 'yes');
+    other.db.shutDown();
+    await headingIs(garden.title);
+  });
+
   it('K30: the back gesture steps back through setup; on Welcome the flow adds no history entry', async () => {
     const start = window.history.length;
     await openApp();
@@ -792,16 +1033,44 @@ describe('step numbers, reachability and the back gesture (E54, E55, E59)', () =
     await headingIs(readiness.questions.q1);
     tap(readiness.no);
     await headingIs(readiness.questions.q2);
-    act(() => {
-      window.dispatchEvent(new PopStateEvent('popstate'));
-    });
+    window.history.back();
     await headingIs(readiness.questions.q1);
     tap(onboarding.frame.helpLink);
     await headingIs('About');
-    act(() => {
-      window.dispatchEvent(new PopStateEvent('popstate'));
-    });
+    window.history.back();
     await headingIs(readiness.questions.q1);
+  });
+
+  it('K30 E59: an address change is not the back gesture: one typed on question 2 leaves it on question 2', async () => {
+    await passNotice();
+    tap(readiness.no);
+    await headingIs(readiness.questions.q2);
+    // The flow's own entry is back in place (question 1 had dropped it).
+    await waitFor(() => {
+      expect(window.history.state).toEqual({ dietFlow: true });
+    });
+    // A typed address: the browser's own popstate and hashchange, no in-app link.
+    window.location.hash = '#/settings';
+    await settle();
+    expect(h1().textContent).toBe(readiness.questions.q2);
+    window.location.hash = '#/about';
+    await headingIs('About');
+    tap(onboarding.frame.backToSetup);
+    await headingIs(readiness.questions.q2);
+  });
+
+  it("K30 E59: when setup ends, the flow's own history entry is gone, so a single back gesture leaves the app", async () => {
+    await passNotice();
+    await answerAll({ q5: 'yes' });
+    await throughProfile();
+    await headingIs(garden.title);
+    expect(window.history.state).toEqual({ dietFlow: true });
+    tap(garden.skip);
+    await screen.findByRole('navigation', { name: 'Main' });
+    await waitFor(() => {
+      expect(window.location.hash).toBe('#/today');
+    });
+    expect(window.history.state).not.toEqual({ dietFlow: true });
   });
 });
 

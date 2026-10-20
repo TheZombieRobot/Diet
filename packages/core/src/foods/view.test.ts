@@ -33,7 +33,7 @@ const shipped = () => {
 const T = '2000-01-01T00:00:00.000Z';
 
 describe('seed views (item 18 design 3.2)', () => {
-  it('F5 HS-36 C43 C69 D35: every shipped seed reads as not loaded, with no figure, citation or badge', () => {
+  it('F5 HS-37 C43 C69 D35: every shipped seed reads as not loaded, with no figure, citation or badge', () => {
     const data = shipped();
     for (const view of allSeedViews(data)) {
       const seed = data.seedById.get(view.id);
@@ -94,7 +94,7 @@ describe('seed views (item 18 design 3.2)', () => {
     expect(figureText('energyKj', { kind: 'value', value: energy })).toBe('393 kJ');
   });
 
-  it('F11 HS-36 X6: a view is never a stored record, and has no plain allergen list', () => {
+  it('F11 HS-37 X6: a view is never a stored record, and has no plain allergen list', () => {
     const view = seedViewFixture();
     // @ts-expect-error A FoodSource may be 'not-loaded', which has no badge.
     expect(() => confidenceOf(view.source)).toThrow(RangeError);
