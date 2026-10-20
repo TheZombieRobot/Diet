@@ -418,6 +418,7 @@ export function OnboardingFlow({
           showIntro={!repair && view.question === 'q1' && view.returnTo === null}
           input={input}
           gates={gates}
+          dietMode={state.profile.dietMode}
           showingYes={view.showingYes}
           onAnswered={(answer) => {
             if (answer === 'yes') setView({ ...view, showingYes: true });
@@ -438,6 +439,7 @@ export function OnboardingFlow({
           input={input}
           gates={gates}
           birthYear={state.profile.birthYear}
+          dietMode={state.profile.dietMode}
           onContinue={
             repair
               ? onRepairDone

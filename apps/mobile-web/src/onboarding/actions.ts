@@ -15,9 +15,10 @@
  *   next; then the effects that follow from the records as they stand, which run again on every
  *   tap. So a failure at any point leaves nothing that a second tap does not finish.
  * - One rule for the gates' current weight (item 13 section 9.1 rule 2; HS-35): core
- *   weightGateInput, the lower of the 7-day average and the latest weigh-in, as on the weight
- *   screens. One rule for ending a Kickstart (C56): item 14's endKickstartIfConditionsFail, run in
- *   the same action after every readiness, profile or weigh-in write.
+ *   weightGateInput, the lowest of the 7-day average, the latest day's mean and the latest
+ *   weigh-in, as on the weight screens. One rule for ending a Kickstart (C56): item 14's
+ *   endKickstartIfConditionsFail, run in the same action after every readiness, profile or
+ *   weigh-in write.
  */
 import {
   canCompleteOnboarding,
@@ -52,7 +53,10 @@ import {
 import type { UpdatePatch } from '../db/repos';
 import type { AppStorage } from '../db/runtime';
 import { clearStaleDayWindows } from '../screens/fasting/dayWindows';
-import { endKickstartIfConditionsFail } from '../screens/weight/kickstartActions';
+import {
+  endKickstartIfConditionsFail,
+  kickstartEndsWith,
+} from '../screens/weight/kickstartActions';
 
 /** The records changed under the screen, so nothing was written; the view follows the live gates. */
 export class FlowStaleError extends Error {
@@ -175,27 +179,38 @@ export async function acknowledgeNotice(storage: AppStorage): Promise<void> {
   await storage.repos.settings.update({ alcoholNoticeAckAt: storage.env.now() });
 }
 
+/** Ask before saving a change that would end a running Kickstart (Settings; F23, F32). */
+export interface KickstartEndAsk {
+  readonly askBeforeEndingKickstart?: boolean;
+}
+
 /**
  * A Yes or No tap (section 3.6). The answer already stored under the current wording writes
  * nothing, so a confirmation never lapses through an accidental tap (E6), but its gate effects are
  * settled again; a different answer is written (lapsing the Q3 or Q6 confirmation in the same
- * transaction, D29) between its transition fields and the settled effects.
+ * transaction, D29) between its transition fields and the settled effects. With
+ * askBeforeEndingKickstart (Settings), a different answer that would end a running Kickstart
+ * writes nothing and reports kickstartEndNeedsConfirm, so the screen can say so and ask first.
  */
 export async function answerReadiness(
   storage: AppStorage,
   id: ReadinessQuestionId,
   answer: YesNo,
-): Promise<{ readonly written: boolean }> {
+  options: KickstartEndAsk = {},
+): Promise<{ readonly written: boolean; readonly kickstartEndNeedsConfirm: boolean }> {
   const before = await readFresh(storage);
   const written = before.input.answers[id] !== answer;
   if (written) {
     const after = gatesWithAnswer(before.input, id, answer);
+    if (options.askBeforeEndingKickstart === true && (await kickstartEndsWith(storage, after))) {
+      return { written: false, kickstartEndNeedsConfirm: true };
+    }
     const q3Yes = id === 'q3' && answer === 'yes';
     await writeTransition(storage, transitionPatch(before, after, q3Yes, storage.env.now()));
     await storage.repos.readiness.answer(id, answer);
   }
   await settleGateEffects(storage);
-  return { written };
+  return { written, kickstartEndNeedsConfirm: false };
 }
 
 /** The prescriber or GP confirmation switch (D29). The repository refuses it without a current answer. */
@@ -260,13 +275,16 @@ async function saveOnboardingWeight(storage: AppStorage, kg: number | null): Pro
 
 /**
  * The profile step or the Settings profile screen (section 6.2). Returns the gates after the save,
- * for the step that follows (the schedule is skipped while fasting is gated).
+ * for the step that follows (the schedule is skipped while fasting is gated). In Settings, with
+ * askBeforeEndingKickstart, a birth year or height that would end a running Kickstart writes
+ * nothing and reports kickstartEndNeedsConfirm (F23).
  */
 export async function saveProfile(
   storage: AppStorage,
   value: ProfileFormValue,
   mode: 'onboarding' | 'settings',
-): Promise<{ readonly gates: ReadinessGates }> {
+  options: KickstartEndAsk = {},
+): Promise<{ readonly gates: ReadinessGates; readonly kickstartEndNeedsConfirm: boolean }> {
   const { repos, env } = storage;
   const now = env.now();
   const common: UpdatePatch<'profile'> = {
@@ -296,8 +314,11 @@ export async function saveProfile(
         localDateOf(now, env.timeZone()),
       ),
     );
+    if (options.askBeforeEndingKickstart === true && (await kickstartEndsWith(storage, after))) {
+      return { gates: before.gates, kickstartEndNeedsConfirm: true };
+    }
     await repos.profile.update({ ...common, ...transitionPatch(before, after, false, now) });
-    return { gates: (await settleGateEffects(storage)).gates };
+    return { gates: (await settleGateEffects(storage)).gates, kickstartEndNeedsConfirm: false };
   }
   await saveOnboardingWeight(storage, value.weightKg);
   // Kickstart is stored on only if the fresh records, with this save's birth year, height and
@@ -321,7 +342,7 @@ export async function saveProfile(
   if (after.settings.profileConfirmedAt === null) {
     await repos.settings.update({ profileConfirmedAt: now });
   }
-  return { gates: after.gates };
+  return { gates: after.gates, kickstartEndNeedsConfirm: false };
 }
 
 /**

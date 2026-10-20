@@ -4,13 +4,16 @@
  * the display flags and the gates, and names no limit constant (scan targetsHome).
  */
 import { type DayTargetsView, fillTemplate, weightIsStale } from '@diet/core';
-import { alcohol, readiness, targets as copy } from '@diet/core/copy/health';
-import { formatAboutKcal, formatWhole } from '../../format';
+import { alcohol, readiness, targets as copy, weight } from '@diet/core/copy/health';
+import { formatAboutKcal, formatLocalDay, formatWhole } from '../../format';
+import { featureOffReasonsFor } from '../../onboarding/readinessText';
 
 export interface EnergyExplanation {
   readonly lines: readonly string[];
   /** A line says something is off because of a readiness answer: the readiness link follows. */
   readonly readinessLink: boolean;
+  /** The stop-sign advice is among the lines: the 111 and Healthline rows follow. */
+  readonly stopSignRows: boolean;
 }
 
 export function energyExplanation(view: DayTargetsView): EnergyExplanation {
@@ -36,7 +39,10 @@ export function energyExplanation(view: DayTargetsView): EnergyExplanation {
     // No percentage is shown when the floor applies (C61).
     lines.push(fillTemplate(copy.energy.estimateBelowFloor, floor));
   } else if (deficit.basis === 'none-readiness') {
-    lines.push(copy.energy.readinessNoDeficit);
+    // The gate's own reason: a low weight or the birth year is not a readiness answer (F31).
+    lines.push(
+      `${featureOffReasonsFor('deficit', view.gateInput, view.gates)} ${copy.energy.plannedAtGuide}`,
+    );
     if (clamped) lines.push(floorBinds);
     readinessLink = true;
   } else if (deficit.basis === 'none-stop-sign') {
@@ -54,18 +60,39 @@ export function energyExplanation(view: DayTargetsView): EnergyExplanation {
     lines.push(fillTemplate(copy.energy.steady, { pct: deficit.pct }));
   }
 
+  let stopSignRows = false;
+  // HEALTH_SAFETY section 2 in item 14's one wording (F36), with the blood-pressure wording for
+  // answer 4 yes or unanswered (C102).
+  const stopSignAdvice = () => {
+    lines.push(
+      view.gates.bloodPressureSaltWording
+        ? readiness.bloodPressure.stopSign
+        : weight.stopSigns.action,
+      weight.stopSigns.emergency,
+    );
+    stopSignRows = true;
+  };
   if (t.kickstartSuspended !== null) {
-    lines.push(copy.energy.kickstartSuspended[t.kickstartSuspended]);
+    const suspended = copy.energy.kickstartSuspended[t.kickstartSuspended];
+    lines.push(
+      t.kickstartSuspended === 'readiness'
+        ? `${featureOffReasonsFor('kickstart', view.gateInput, view.gates)} ${suspended}`
+        : suspended,
+    );
     if (t.kickstartSuspended === 'readiness') readinessLink = true;
-    if (t.kickstartSuspended === 'stop-sign') {
-      // HEALTH_SAFETY section 2, with the blood-pressure wording for answer 4 yes or unanswered (C102).
-      lines.push(
-        view.gates.bloodPressureSaltWording
-          ? readiness.bloodPressure.stopSign
-          : copy.stopSign.action,
-        copy.stopSign.emergency,
-      );
-    }
+    if (t.kickstartSuspended === 'stop-sign') stopSignAdvice();
+  } else if (
+    deficit.basis === 'none-stop-sign' &&
+    !view.kickstart.running &&
+    view.kickstart.stopSignPauseUntil !== undefined
+  ) {
+    // Ended early after a stop-sign: the pause still holds to its scheduled last day (F4).
+    lines.push(
+      fillTemplate(weight.stopSigns.pausedUntil, {
+        date: formatLocalDay(view.kickstart.stopSignPauseUntil),
+      }),
+    );
+    stopSignAdvice();
   }
   if (t.estimate.available && weightIsStale(t.estimate.weight, view.today)) {
     lines.push(copy.energy.staleWeight);
@@ -73,5 +100,5 @@ export function energyExplanation(view: DayTargetsView): EnergyExplanation {
   if (view.display.pregnancyNote) lines.push(copy.energy.pregnancyNote);
   // Alcohol is never mentioned while alcohol logging is unavailable (T16, RD-01).
   if (view.gates.alcoholLoggingAvailable) lines.push(alcohol.dayEnergy.foodOnly);
-  return { lines, readinessLink };
+  return { lines, readinessLink, stopSignRows };
 }

@@ -25,6 +25,7 @@ import { Button, Card, SelectField, TextField } from '@diet/ui';
 import { type ReactElement, useState } from 'react';
 import type { AppStorage } from '../../db/runtime';
 import { formatWhole } from '../../format';
+import { featureOffReasonsFor } from '../../onboarding/readinessText';
 import { editMessage, hintWith, optionsWith, useCardWrite } from './form';
 import { ReadinessLink, WriteStatus } from './parts';
 
@@ -209,7 +210,9 @@ export function CarbsCard({ storage, view, records, disabled }: CardProps): Reac
       {moderateShown
         ? field('moderateNetCarbCeilingG', copy.carbs.moderateLabel, copy.carbs.moderateHint)
         : null}
-      {gates.ketoCeilingAvailable ? null : <p>{copy.carbs.off}</p>}
+      {gates.ketoCeilingAvailable ? null : (
+        <p>{`${featureOffReasonsFor('ketoCeiling', view.gateInput, gates)} ${copy.carbs.offShown}`}</p>
+      )}
       {fields.length === 0 ? null : (
         <Button
           variant="primary"
