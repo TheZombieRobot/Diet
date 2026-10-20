@@ -33,7 +33,6 @@ import {
   type TestDb,
   testEnv,
 } from '../testKit';
-import { UNDO_END_WINDOW_MS } from './fasts';
 
 const NZ = 'Pacific/Auckland';
 const MIN = 60_000;
@@ -112,7 +111,8 @@ describe('undoing an end (HS-18, FS-08)', () => {
     const older = await completedFast(test, at('2000-01-02', '19:00'), at('2000-01-03', '18:00'));
     const latest = await completedFast(test, at('2000-01-03', '19:00'), at('2000-01-04', '18:00'));
     const ended = Date.parse(latest.endedAt ?? '');
-    clockAt(test, ended + UNDO_END_WINDOW_MS + 1);
+    // Five minutes and a millisecond, written out so a longer limit fails here.
+    clockAt(test, ended + 300_001);
     await expect(test.repos.fasts.undoEnd(latest.id)).rejects.toMatchObject({
       rule: 'undo-expired',
     });
@@ -125,6 +125,15 @@ describe('undoing an end (HS-18, FS-08)', () => {
     await expect(test.repos.fasts.undoEnd(fixtureId(1))).rejects.toMatchObject({
       rule: 'not-found',
     });
+  });
+
+  it('End is never refused: with the phone clock 2 hours behind the start it stores the start plus 1 ms (review)', async () => {
+    const test = await openOpen({ env: testEnv('2000-01-04T06:00:00.000Z') });
+    const fast = await test.repos.fasts.start();
+    clockAt(test, Date.parse(fast.startedAt) - 2 * HOUR);
+    const ended = await test.repos.fasts.end(fast.id);
+    expect(ended.endedAt).toBe('2000-01-04T06:00:00.001Z');
+    expect(await test.repos.fasts.running()).toBeUndefined();
   });
 
   it('an update never reopens a fast, never sets a time after now, and never overlaps another', async () => {

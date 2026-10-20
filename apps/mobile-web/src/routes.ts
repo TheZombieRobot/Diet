@@ -1,3 +1,5 @@
+import { targets } from '@diet/core/copy/health';
+
 /**
  * Hash routes (#/today, #/food, ...). GitHub Pages has no server-side rewrites, so the route lives
  * after the '#' and every screen is served by the same index.html, online or offline.
@@ -18,6 +20,8 @@ export const ROUTES = [
   'weight',
   // Item 15: the Fasting screen, opened from Today's Fast card and Settings, Eating schedule.
   'fasting',
+  // Item 21: Diet and targets, reached from Settings.
+  'targets',
   // Item 30: Settings, Laptop pairing.
   'pairing',
 ] as const;
@@ -43,6 +47,7 @@ export const ROUTE_TITLES: Readonly<Record<RouteId, string>> = {
   'eating-schedule': 'Eating schedule',
   weight: 'Weight',
   fasting: 'Fasting and reflux',
+  targets: targets.screen.title,
   pairing: 'Laptop pairing',
 };
 
@@ -82,6 +87,7 @@ const UNDER_SETTINGS: readonly RouteId[] = [
   'readiness',
   'profile',
   'eating-schedule',
+  'targets',
   'pairing',
 ];
 

@@ -15,7 +15,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   /** Full width of its container. */
   block?: boolean;
-  /** The button element, for moving focus to it (for example after Cancel). */
+  /** The button, for moving focus to it after an action (item 16). */
   ref?: Ref<HTMLButtonElement> | undefined;
 }
 

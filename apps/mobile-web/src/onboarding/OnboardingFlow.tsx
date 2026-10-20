@@ -8,7 +8,10 @@
  * - The view is pulled back only when the records move backwards (another tab, a cleared answer, a
  *   gate change that cleared the schedule) and the view is past where they now allow (E55).
  * - Drafts of the profile, schedule and add-a-crop forms live here in memory, so typing survives
- *   every detour and Back, but not a reload (E28, E60).
+ *   every detour and Back, but not a reload (E28, E60). A draft follows a later change of the
+ *   answers: the profile draft's Kickstart switch goes back to its default when answer 3 or its
+ *   confirmation changes (C06, D31), and the schedule step sets aside a draft started under other
+ *   gates (drafts.ts scheduleDraftFits).
  * - In repair mode (setup was finished but answers are missing, RD-08) only the missing questions
  *   are asked, then the summary, whose Continue leaves the flow (E7, E56).
  */
@@ -17,6 +20,7 @@ import {
   type FlowViewRank,
   firstMissingQuestion,
   furthestView,
+  type GateInput,
   type GardenCropDraft,
   nextStep,
   type OnboardingStep,
@@ -29,6 +33,7 @@ import {
   stepPosition,
   viewAllowed,
   fillTemplate,
+  kickstartChoice,
 } from '@diet/core';
 import { onboarding } from '@diet/core/copy/health';
 import { Button } from '@diet/ui';
@@ -60,6 +65,7 @@ export type FlowView =
   | {
       readonly kind: 'question';
       readonly question: ReadinessQuestionId;
+      /** The consequence and Continue show: after a Yes is saved, or at once for a stored yes. */
       readonly showingYes: boolean;
       readonly returnTo: 'profile' | null;
     }
@@ -77,10 +83,18 @@ interface Drafts {
   readonly gardenAdd?: GardenCropDraft;
 }
 
-const question = (q: ReadinessQuestionId, returnTo: 'profile' | null = null): FlowView => ({
+/**
+ * A question's view. One answered yes (reached with Back, or Next past a No) shows its consequence
+ * and Continue at once, so it always has a way forward; a fresh Yes shows them once it is saved.
+ */
+const question = (
+  q: ReadinessQuestionId,
+  input: GateInput,
+  returnTo: 'profile' | null = null,
+): FlowView => ({
   kind: 'question',
   question: q,
-  showingYes: false,
+  showingYes: input.answers[q] === 'yes',
   returnTo,
 });
 
@@ -93,12 +107,12 @@ function initialView(
   if (step === 'alcohol-notice') return { kind: 'welcome' };
   if (repairList !== null) {
     const first = repairList[0];
-    return first === undefined ? { kind: 'summary' } : question(first);
+    return first === undefined ? { kind: 'summary' } : question(first, derived.input);
   }
   switch (step) {
     case 'readiness': {
       const missing = firstMissingQuestion(derived.input);
-      return missing === null ? { kind: 'summary' } : question(missing);
+      return missing === null ? { kind: 'summary' } : question(missing, derived.input);
     }
     case 'readiness-summary':
     case 'done':
@@ -213,6 +227,25 @@ export function OnboardingFlow({
     setView({ kind: nextStep('profile', gates) === 'garden' ? 'garden' : 'schedule' });
   }
 
+  // Answer 3 or its confirmation changed (here, from a detour, or in another tab): the profile
+  // draft's Kickstart switch goes back to its default, so it is off whenever answer 3 is yes,
+  // even once confirmed, until the person turns it on again (C06, D31).
+  const kickstartBasis = `${String(input.answers.q3)}:${String(input.confirmations.prescriberAgreed)}`;
+  const [lastKickstartBasis, setLastKickstartBasis] = useState(kickstartBasis);
+  if (kickstartBasis !== lastKickstartBasis) {
+    setLastKickstartBasis(kickstartBasis);
+    const profileDraft = drafts.profile;
+    if (profileDraft !== undefined) {
+      const { value } = kickstartChoice(
+        gates,
+        input.answers.q3,
+        state.profile.kickstartOptIn,
+        state.settings.profileConfirmedAt !== null,
+      );
+      setDrafts({ ...drafts, profile: { ...profileDraft, kickstartOptIn: value } });
+    }
+  }
+
   // Focus moves to the new view's heading, as the shell does for a new screen.
   const key = viewKey(view);
   const previousKey = useRef(key);
@@ -242,26 +275,26 @@ export function OnboardingFlow({
     if (returnTo === 'profile') return { kind: 'profile' };
     const list = repairList ?? READINESS_QUESTION_IDS;
     const next = list[list.indexOf(q) + 1];
-    return next === undefined ? { kind: 'summary' } : question(next);
+    return next === undefined ? { kind: 'summary' } : question(next, input);
   };
   const beforeQuestion = (q: ReadinessQuestionId, returnTo: 'profile' | null): FlowView | null => {
     if (returnTo === 'profile') return { kind: 'profile' };
     const list = repairList ?? READINESS_QUESTION_IDS;
     const previous = list[list.indexOf(q) - 1];
-    return previous === undefined ? null : question(previous);
+    return previous === undefined ? null : question(previous, input);
   };
   const afterNotice = (): FlowView => {
     if (repairList !== null) {
       const first = repairList[0];
-      return first === undefined ? { kind: 'summary' } : question(first);
+      return first === undefined ? { kind: 'summary' } : question(first, input);
     }
     const missing = firstMissingQuestion(input);
-    return missing === null ? { kind: 'summary' } : question(missing);
+    return missing === null ? { kind: 'summary' } : question(missing, input);
   };
   const lastQuestion = (): FlowView | null => {
     const list = repairList ?? READINESS_QUESTION_IDS;
     const last = list.at(-1);
-    return last === undefined ? null : question(last);
+    return last === undefined ? null : question(last, input);
   };
   const stepBack = (from: FlowStep): FlowView | null => {
     const previous = previousStep(from, gates);
@@ -384,6 +417,7 @@ export function OnboardingFlow({
           count={list.length}
           showIntro={!repair && view.question === 'q1' && view.returnTo === null}
           input={input}
+          gates={gates}
           showingYes={view.showingYes}
           onAnswered={(answer) => {
             if (answer === 'yes') setView({ ...view, showingYes: true });
@@ -434,7 +468,7 @@ export function OnboardingFlow({
             setView({ kind: 'summary' });
           }}
           onChangeAnswer={(q) => {
-            setView(question(q, 'profile'));
+            setView(question(q, input, 'profile'));
           }}
         />
       );

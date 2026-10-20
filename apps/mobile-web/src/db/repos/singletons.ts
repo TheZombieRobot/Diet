@@ -54,7 +54,14 @@ export function singletonRepo<K extends SingletonName>(
       if (row === undefined) throw new StorageRuleError(table, 'not-found');
       return row;
     },
-    update: (patch) => crud.update('singleton', patch),
+    update: (patch) => {
+      // Item 21 (T35): the diet mode has one writer, repos.dietMode.switchTo, so every change
+      // carries its Kickstart, carb-ceiling and first-low-carb bookkeeping (C56, C72, C109).
+      if (table === 'profile' && Object.hasOwn(patch, 'dietMode')) {
+        return Promise.reject(new StorageRuleError('profile', 'diet-mode-switch-only'));
+      }
+      return crud.update('singleton', patch);
+    },
   };
 }
 

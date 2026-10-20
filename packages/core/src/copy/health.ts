@@ -71,6 +71,19 @@ export const alcohol = {
   helpCardReturns: 'This card shows again after 30 days.',
   noRiskFreeLevel: 'No alcohol use is risk-free.',
   /**
+   * Item 16 (item 28's names): the guidance line on Today's Drinks card, by guidanceFor(...).set
+   * (C25, C46). The figures appear only inside these lines, and each ends with noRiskFreeLevel
+   * (C66, NN-09). The men's line is the UX_SCREENS section 2 card 7 quote. Item 28 adds the rest.
+   */
+  guidance: {
+    line: {
+      'nz-women':
+        'NZ guidance for women: no more than 2 standard drinks a day and 10 a week, with at least 2 alcohol-free days. No alcohol use is risk-free.',
+      'nz-men':
+        'NZ guidance for men: no more than 3 standard drinks a day and 15 a week, with at least 2 alcohol-free days. No alcohol use is risk-free.',
+    },
+  },
+  /**
    * The first-run notice screen (UX 1b; mock-up Notice.dc.html). It cannot be put off: no string
    * here offers to skip it or come back later (health.test.ts).
    */
@@ -83,9 +96,24 @@ export const alcohol = {
       'The app records what you drink and shows the New Zealand guidance. It never makes a plan to change your drinking. That is a conversation for you and your GP or the helpline.',
     ],
     acknowledge: 'I understand',
+    /** The helpline row's title; its detail line carries "free, 24/7, confidential". */
+    helplineTitle: 'Alcohol Drug Helpline',
     helplineDetail: `${helpNumbers.alcoholDrugHelpline.number} · free, 24/7, confidential`,
     emergencyTitle: `Emergency: call ${helpNumbers.emergency.number}`,
     emergencyDetail: 'Seizures, confusion or hallucinations',
+  },
+  /**
+   * Item 21: alcohol energy on the Nutrition today card and the Diet and targets screen, as its own
+   * part of the day's total (C11). Never shown while alcohol logging is unavailable (under 18), and
+   * an unknown drink is never shown as 0 (NN-01, C92).
+   */
+  dayEnergy: {
+    segment: 'Alcohol {kj} kJ',
+    segmentUnknown: 'Alcohol: energy unknown',
+    unknownOne: 'Energy is unknown for 1 drink, so the day total is incomplete.',
+    unknownMany: 'Energy is unknown for {count} drinks, so the day total is incomplete.',
+    foodOnly:
+      "Today's energy total includes alcohol as its own part. The floor and the meal checks count food only.",
   },
 } as const;
 
@@ -810,9 +838,9 @@ export const onboarding = {
     restoreLink: 'Restore from a backup instead',
     restoreTitle: 'Restore from a backup',
     restoreIntro:
-      'If you used this app before and kept a backup file, you can put those records back now. The file replaces everything entered during setup, including your answers to the questions. The app then opens on the answers from the file, so you can check they still apply.',
+      'If you used this app before and kept a backup file, you can put those records back now. The file replaces everything entered during setup, including your answers to the questions. If the file is from a finished setup, the app then opens on its answers, so you can check they still apply; otherwise setup carries on from where the file left off.',
     saveFailed: 'That could not be saved. Try again.',
-    fixBelow: 'Some details need a look before you continue.',
+    fixBelow: 'Some details below need a look.',
   },
   welcome: {
     title: 'Welcome',
@@ -849,15 +877,26 @@ export const readiness = {
     q6: 'Has a doctor ever told you not to exercise, or do you get chest pain, dizziness or faint during activity?',
     q7: 'Do you drink alcohol most days, or heavily at weekends?',
   },
-  /** What a yes (or no answer) switches off or on. */
+  /**
+   * What a yes (or no answer) switches off. Where something else keeps more off (another answer, a
+   * question not answered yet, the birth year or the weight), `ifYesAlsoOff` holds the line used
+   * instead, so no line says a feature is on or can be chosen while the gates keep it off
+   * (readinessText.ts consequenceText).
+   */
   ifYes: {
     q1: 'Fasting, keto carb targets, Kickstart, any energy deficit, weight goals, the energy estimate and alcohol logging are switched off. The app works as a food and exercise planner only.',
     q2: 'Fasting, the keto carb ceiling, Kickstart, any energy deficit and weight goals are switched off. Meals are still planned. Please talk to your midwife or GP about what to eat.',
     q3: 'Low-carb eating and fasting can change how diabetes medicines act, and can cause low blood sugar (hypoglycaemia). Check with your prescriber first. Fasting, Kickstart and carb ceilings under 50 g stay off until you confirm your prescriber has agreed. Meals are still planned low-carb, with a carb ceiling of at least 50 g and a smaller energy deficit, so talk to your prescriber before you start using the meal plans.',
-    q4: 'Fasting is allowed. Check the timing of your medicines with your pharmacist or GP before you change when you eat. If you take blood-pressure medication, check with your pharmacist or GP before adding salt or using salt substitutes.',
+    q4: 'This answer does not switch anything off. Check the timing of your medicines with your pharmacist or GP before you change when you eat. If you take blood-pressure medication, check with your pharmacist or GP before adding salt or using salt substitutes.',
     q5: 'Fasting, weight goals, Kickstart, any energy deficit and the keto carb ceiling are switched off. Your weight trend is still shown, without targets.',
     q6: 'Exercise plans stay hidden until you confirm you have discussed exercise with a GP.',
     q7: 'A card with help contacts is shown on Today from the first day. You can put it away for 30 days at a time.',
+  },
+  ifYesAlsoOff: {
+    /** Answer 1 while exercise plans are off too (answer 6, or not answered yet). */
+    q1: 'Fasting, keto carb targets, Kickstart, any energy deficit, weight goals, the energy estimate and alcohol logging are switched off. The app works as a food planner only.',
+    /** Answer 3 while something else keeps the energy deficit (and so these) off too. */
+    q3: 'Low-carb eating and fasting can change how diabetes medicines act, and can cause low blood sugar (hypoglycaemia). Check with your prescriber first. Fasting, Kickstart and carb ceilings under 50 g stay off until you confirm your prescriber has agreed, and for as long as anything else you tell the app keeps them off. Talk to your prescriber before you start using the meal plans.',
   },
   confirmations: {
     prescriberAgreed:
@@ -873,16 +912,21 @@ export const readiness = {
   confirmationLapses: 'If you change this answer, the app asks for this confirmation again.',
   confirmed: {
     prescriberAgreed:
-      'You have confirmed your prescriber agreed, so fasting, Kickstart and carb ceilings under 50 g can be chosen. If your medication or dose changes, tap "My medication or dose has changed" until you have checked again.',
+      'You have confirmed your prescriber agreed, so fasting, Kickstart and carb ceilings under 50 g can be chosen. If your medication or dose changes, tap "My medication or dose has changed": they then stay off until you confirm again.',
     gpExerciseDiscussed:
       'You have confirmed you discussed exercise with a GP, so exercise plans can be shown. If your symptoms change, tap "My symptoms have changed".',
+  },
+  /** The prescriber's agreement is recorded, but something else keeps the features off. */
+  confirmedAlsoOff: {
+    prescriberAgreed:
+      'You have confirmed your prescriber agreed. Fasting, Kickstart and carb ceilings under 50 g stay off for as long as anything else you tell the app keeps them off. If your medication or dose changes, tap "My medication or dose has changed".',
   },
   changed: {
     q3: 'My medication or dose has changed',
     q6: 'My symptoms have changed',
   },
   changedDone: {
-    q3: 'Saved. Fasting, Kickstart and carb ceilings under 50 g are off until you confirm your prescriber has agreed again.',
+    q3: "Saved. The app now needs your prescriber's agreement again before fasting, Kickstart or carb ceilings under 50 g can be chosen.",
     q6: 'Saved. Exercise plans are off until you confirm you have discussed exercise with a GP again.',
   },
   summaryTitle: 'What your answers change',
@@ -892,7 +936,7 @@ export const readiness = {
   unanswered: 'Not answered yet. Until you answer, the app treats this as Yes.',
   /** A feature hidden with its reason (RD-01 to RD-05). */
   featureOff: '{feature} is off because of what you told the app about {reasons}.',
-  /** In GATED_FEATURES order (readiness/gates.ts). */
+  /** In GATED_FEATURES order (readiness/gates.ts). Singular, for "{feature} is off". */
   featureNames: {
     fasting: 'Fasting',
     kickstart: 'Kickstart',
@@ -903,7 +947,7 @@ export const readiness = {
     goalSetting: 'Weight goal setting',
     energyEstimate: 'The energy estimate',
     alcoholLogging: 'Alcohol logging',
-    exercisePlans: 'Exercise plans',
+    exercisePlans: 'Exercise planning',
   },
   /** In READINESS_REASON_IDS order (storage/readiness.ts). */
   reasonPhrases: {
@@ -927,19 +971,29 @@ export const readiness = {
     changeAnswer: 'Change my answer',
     summaryLine:
       'Your birth year means you may be under 18, so the app keeps to its under-18 settings until 1 January {year}.',
+    /** Settings, Readiness answers: the birth year is not changed there. */
+    whereToChange: 'If the birth year is wrong, correct it in Settings, Profile.',
+    profileLink: 'Open Profile',
   },
   /** A current weight below BMI 18.5 for the height counts as a yes to question 5 (HS-35). The BMI figure is never shown. */
   weightCheck: {
     lowWeight:
       'The weight you entered is low for your height. The app keeps to the same settings as a Yes to question 5: no fasting, no Kickstart, no energy deficit, no keto carb ceiling and no weight goals. If the weight or height is a typing slip, correct it above.',
+    /** Settings, Profile, which has no weight field: the stored current weight. */
+    lowWeightStored:
+      'Your current weight is low for this height. The app keeps to the same settings as a Yes to question 5: no fasting, no Kickstart, no energy deficit, no keto carb ceiling and no weight goals. If the height is a typing slip, correct it above.',
     changeAnswer: 'Change answer 5',
     summaryLine:
       'Your latest weight is low for your height, so the app keeps to the same settings as a Yes to question 5.',
+    /** Settings, Readiness answers: neither the weight nor the height is changed there. */
+    whereToChange:
+      'If a weigh-in or your height is wrong, correct it on the Weight screen or in Settings, Profile.',
+    weightLink: 'Open Weight',
   },
   settingsRow: { title: 'Readiness answers', detail: 'What the app switches on and off' },
   settingsAnswersLabel: 'Your answers',
   settingsIntro:
-    'These answers decide which parts of the app are switched on. A change applies at once, and nothing you have recorded is deleted.',
+    'These answers decide which parts of the app are switched on. A change applies at once. Your logs and weigh-ins are kept. Changing answer 3 or 6 asks for its confirmation again, and a Yes to answer 3 turns your Kickstart choice off.',
   // Item 15 (design 5.2): a question nobody answered is never stated as a fact (C41).
   featureOffUnansweredOne: '{feature} stays off until you answer the question about {reasons}.',
   featureOffUnansweredMany: '{feature} stays off until you answer the questions about {reasons}.',
@@ -1023,13 +1077,13 @@ export const profile = {
   save: 'Save',
   saved: 'Saved.',
   goalHiddenAfterHeight:
-    'Your long-term goal is below a BMI of 18.5 for this height, so it is hidden until you change it.',
+    'Your long-term goal is below a BMI of 18.5 for this height, so the app does not use it at this height. The goal itself is kept.',
   settingsRow: {
     title: 'Profile',
     detail: 'Height, sex, birth year, activity, household and food',
   },
   errors: {
-    required: 'Enter this to continue.',
+    required: 'Fill this in.',
     notANumber: 'Enter a plain number, such as 175 or 82.5.',
     oneDecimal: 'Use at most one decimal place.',
     heightRange: 'Enter a height from 120 to 230 cm.',
@@ -1059,6 +1113,11 @@ export const schedule = {
   /** UX 1e, word for word with 140 filled (docFidelity.test.ts); {proteinG} follows the protein range (C65). */
   kickstartLine:
     "One meal has to carry about {proteinG} g protein. If a day's dinner can't, the app will offer the 5 pm snack. That's not a broken fast.",
+  /** With Kickstart chosen, any pattern other than the untouched 23:1 default (E19). */
+  ownPattern: 'You chose your own pattern. The app keeps it every day, during Kickstart and after.',
+  /** Settings: a Kickstart default stored before answer 4 turned yes is not used (C07). */
+  kickstartDefaultSetAside:
+    'The app had chosen 23:1 for Kickstart before your answer to question 4. It uses 22:2 (5 pm snack + dinner) instead, until you choose a pattern and save it.',
   presetsLegend: 'Choose a pattern',
   /** HEALTH_SAFETY.md section 3 preset names. */
   presetNames: { '22:2': '5 pm snack + dinner', '23:1': 'One meal' },
@@ -1653,7 +1712,9 @@ export const fasting = {
     startedAt: 'Started {time}',
     startedOn: 'Started {day} at {time}',
     eatWindow: 'Eat {range}',
+    eatWindowTomorrow: 'Eat tomorrow {range}',
     eatBy: 'Eat by {time}',
+    eatByTomorrow: 'Eat by {time} tomorrow',
     snackAndDinner: '5 pm snack, dinner by {end}',
     windowOpenUntil: 'Eating window open until {end}.',
     noPattern: 'No eating pattern chosen yet.',
@@ -1666,10 +1727,11 @@ export const fasting = {
       'Fasts over 24 hours are outside what this app supports. Break the fast if you feel unwell, and talk to a GP before fasting this long again.',
     cappedPlan:
       "Your next eating window opens more than 24 hours after this fast began. It's fine to eat earlier: eating by {time} keeps this fast within 24 hours.",
+    // The gap between the two fasts, which stays true for the whole fast (item 15 review).
     joined:
-      "You ended a fast {gap} ago, so this counts as the same fast. It's fine to eat before starting another.",
+      "This fast started {gap} after your last fast ended, so it counts as part of the same fast. It's fine to eat before starting another.",
     joinedJustNow:
-      "You ended a fast less than a minute ago, so this counts as the same fast. It's fine to eat before starting another.",
+      "This fast started less than a minute after your last fast ended, so it counts as part of the same fast. It's fine to eat before starting another.",
     ended: 'Fast ended after {length}.',
     noteLabel: 'How did you feel? (optional)',
     noteHint: 'Up to 500 characters.',
@@ -1680,6 +1742,9 @@ export const fasting = {
     changeStart: 'Change start time',
     clockBehind:
       "The phone's clock reads earlier than this fast's start. Check the date and time in the phone's settings.",
+    // After End with the clock behind: the fast is stored as ending where it began (review).
+    endedAtStart:
+      'The fast was saved as ending at its start time. You can change the end time in History once the clock is right.',
     alreadyRunning: 'A fast is already running.',
     alreadyEnded: 'This fast was already ended on another screen.',
     notLatest: 'Only the most recent fast can be reopened. You can change its times in History.',
@@ -1763,9 +1828,17 @@ export const fasting = {
       today: '5 pm snack added for tonight. Eat {range}.',
       tomorrow: '5 pm snack added for tomorrow. Eat {range}.',
     },
+    // During a fast whose 24 hours end before that window opens: no window time (item 15 review).
+    snackAddedNoRange: {
+      today: '5 pm snack added for tonight.',
+      tomorrow: '5 pm snack added for tomorrow.',
+    },
     undo: 'Undo',
     unavailableOneMeal:
       "There is no meal check until meals are planned in the app. One meal has to carry a whole day's protein, and it's fine to add the 5 pm snack.",
+    // When the snack can no longer be added for that date (item 15 review).
+    unavailableOneMealNoSnack:
+      "There is no meal check until meals are planned in the app. One meal has to carry a whole day's protein, and it's fine to widen the window.",
   },
   pattern: {
     label: 'Eating pattern',
@@ -1782,7 +1855,10 @@ export const fasting = {
     streak: '{days} days in a row with a completed fast.',
     empty: 'No completed fasts yet.',
     over24: 'Over 24 hours',
-    joined: 'Started {gap} after the fast before it, so the two count as one fast of {length}.',
+    // Worded for any number of joined fasts (item 15 review).
+    joined: 'Started {gap} after the fast before it, so it counts as part of one fast of {length}.',
+    joinedFirst:
+      'The next fast started less than an hour after this one ended, so this counts as part of one fast of {length}.',
     showMore: 'Show more',
     edit: 'Edit',
     delete: 'Delete',
@@ -1805,6 +1881,8 @@ export const fasting = {
     windowOpens: 'Eating window opens {time}.',
     windowOpensTomorrow: "Tomorrow's eating window opens at {time}.",
     windowOpenUntil: 'Eating window open until {time}.',
+    // Item 16: a fast still running while fasting is switched off (HS-03, RD-06); no window times.
+    openWhileOff: 'A fast you started is still open ({duration}). You can end it below.',
   },
 } as const;
 
@@ -1874,6 +1952,356 @@ export const reflux = {
   },
 } as const;
 
+// ---- Diet and targets, and the Nutrition today card (checklist item 21) ----
+
+/**
+ * The Diet and targets screen, the Nutrition today card and the planner's floor lines
+ * (HEALTH_SAFETY section 4; UX 2 card 3, UX 3a and UX 7; C10, C11, C61, C65, C70, C71; item 21
+ * design section 4.2). Neutral indicator wording: going over a ceiling or budget changes a colour
+ * and nothing is judged (HS-09). Every number stated here is checked against the core constants
+ * (TARGET_COPY_FACTS; health.test.ts). The blood-pressure stop-sign and electrolyte lines are item
+ * 13's readiness.bloodPressure keys (cross-item ruling 5), and the electrolyte wording is item 16's
+ * reminders.electrolytes (one reminder, one wording); the activity labels are item 13's
+ * profile.activity. The badge words (today.confidence) move to item 18's foods.badges when it
+ * lands, and its nutritionFooter supplies the attribution footer (item 18-20 contract 5 and 6).
+ */
+export const targets = {
+  settingsRow: {
+    title: 'Diet and targets',
+    detail: 'Diet mode, energy, protein, carbs, saturated fat and fibre',
+  },
+  screen: {
+    title: 'Diet and targets',
+    intro:
+      'These figures guide the planner and the Nutrition card on Today. They are guides, not medical advice: your GP or a dietitian can tailor them to you.',
+    missingAnswers:
+      'Some readiness questions have no answer yet, so the app treats them as yes. Answer them to see your figures.',
+    readFailed: 'These figures could not be read. Reload the app to try again.',
+  },
+  links: {
+    profile: { title: 'Profile', detail: 'Add or check your height and birth year' },
+    weight: { title: 'Weight', detail: 'Log a weigh-in' },
+  },
+  dietMode: {
+    label: 'Diet mode',
+    legend: 'Choose a mode',
+    names: {
+      keto: 'Keto-preferred',
+      'moderate-low-carb': 'Moderate low-carb',
+      balanced: 'Balanced',
+    },
+    details: {
+      keto: 'Net carbs under your keto ceiling.',
+      'moderate-low-carb': 'Net carbs under a wider ceiling.',
+      balanced: 'No carb ceiling. Net carbs are still shown.',
+      ceilingOff: 'No carb ceiling for now, because of your readiness answers.',
+    },
+    change: 'Change diet mode',
+    switchNote:
+      'Switching never deletes anything. Your plans and logs stay as they are, and suggestions are put in a new order for the mode you choose.',
+    saving: 'Changing the diet mode…',
+    switched: 'Diet mode is now {mode}.',
+    failed: 'The diet mode could not be changed. Nothing was changed.',
+    leaveKickstart: {
+      title: 'Leaving keto ends Kickstart',
+      body: 'Kickstart runs only with the keto carb ceiling. If you switch now, Kickstart ends today. It does not start again by itself if you come back to keto.',
+      confirm: 'Switch and end Kickstart',
+      cancel: 'Keep keto',
+    },
+  },
+  energy: {
+    label: 'Energy',
+    roughGuideTerm: 'Rough guide',
+    roughGuide: '{kj} kJ a day (about {kcal} kcal)',
+    basisTerm: 'Based on',
+    basisAverage: 'Your 7-day average weight, {kg} kg, and your activity',
+    basisHighestRecent:
+      'Your highest weigh-in in the last 7 days, {kg} kg on {date}, and your activity',
+    basisLatestOlder: 'Your last weigh-in, {kg} kg on {date}, and your activity',
+    staleWeight:
+      'That weigh-in is more than 14 days old. Log a weight to bring the guide up to date.',
+    how: 'The rough guide uses the Mifflin-St Jeor equation and an activity factor. It is an estimate, not a measurement.',
+    unavailable: {
+      unanswered:
+        'The app does not estimate energy until the under-18 readiness question is answered.',
+      under18Answer:
+        'The app does not estimate energy because your readiness answers say you are under 18.',
+      under18BirthYear:
+        'The app does not estimate energy because your birth year means you may be under 18.',
+      missingHeight: 'A rough guide needs your height.',
+      missingBirthYear: 'A rough guide needs your birth year.',
+      missingWeight: 'A rough guide needs a weigh-in.',
+      ageOutOfRange:
+        'The rough guide works only for ages from 18 to 110. Check your birth year in your profile.',
+      heightOutOfRange:
+        'The rough guide works only for heights from 120 to 230 cm. Check your height in your profile.',
+      weightOutOfRange:
+        'The rough guide works only for weights from 30 to 350 kg. Check your weigh-ins.',
+    },
+    targetTerm: "Today's energy target",
+    target: '{kj} kJ (about {kcal} kcal)',
+    noTarget: 'None',
+    kickstart:
+      'Kickstart: {pct}% below the rough guide, with protein held at {protein} g and net carbs at {carbs} g.',
+    kickstartNoDeficit:
+      'Kickstart with no deficit, because you set the Kickstart deficit to 0%. Protein is held at {protein} g and net carbs at {carbs} g.',
+    kickstartSuspended: {
+      readiness:
+        'Kickstart figures are not in use because of an answer in your readiness questions.',
+      'diet-mode': 'Kickstart figures are used only in keto mode.',
+      'mode-changed':
+        'Kickstart figures are not in use, because the app cannot confirm keto mode has run without a break since this Kickstart began. A Kickstart does not start again by itself.',
+      'stop-sign':
+        'Kickstart figures are paused for the rest of this Kickstart, because your last check reported a stop-sign. No deficit is planned.',
+      'no-estimate': 'Kickstart figures are not in use until there is a rough guide.',
+    },
+    steady: 'Steady: {pct}% below the rough guide.',
+    readinessNoDeficit:
+      'No deficit is planned because of an answer in your readiness questions. Meals are planned at the rough guide.',
+    pregnancyNote:
+      'The rough guide does not include the extra energy needed in pregnancy or while breastfeeding. A midwife or your GP can give you a figure.',
+    floorBinds:
+      'This is the energy floor. The planner never plans a day below {floorKj} kJ (about {floorKcal} kcal). The floor is a safety net, not a target.',
+    estimateBelowFloor:
+      'Your rough guide is below the {floorKj} kJ floor, so meals are planned at the floor with no deficit. Your GP or a dietitian can give you a better figure.',
+    noTargetNeedsGuide:
+      'With no rough guide there is no energy target, so the planner does not fill days by itself and Kickstart figures are not used. The {floorKj} kJ floor (about {floorKcal} kcal) still applies to every plan.',
+    noTargetNotEstimated: 'There is no energy target. The planner plans ordinary portions.',
+    kickstartDeficitLabel: 'Kickstart deficit',
+    kickstartDeficitHint:
+      'Used only while a Kickstart is running. Up to 30% below the rough guide; you can choose less, never more.',
+    kickstartUnavailable:
+      'Kickstart is not available because of an answer in your readiness questions.',
+    steadyDeficitLabel: 'Steady deficit',
+    steadyDeficitHint: 'From 15% to 20% below the rough guide; 15% unless you change it.',
+    deficitOption: '{pct}%',
+    deficitNotInUse: 'Not in use today: the energy floor applies.',
+    deficitOff: 'There is no deficit because of an answer in your readiness questions.',
+    floorLabel: 'Energy floor, kJ',
+    floorHint:
+      'Never below 5,000 kJ (about 1,200 kcal). You can set a higher floor, up to 20,000 kJ.',
+    floorTooLow: 'The floor cannot go below 5,000 kJ.',
+    floorTooHigh: 'The floor can be at most 20,000 kJ.',
+  },
+  /** HEALTH_SAFETY section 2; the blood-pressure variant is readiness.bloodPressure.stopSign. */
+  stopSign: {
+    action: `Eat, add salt and fluids, and talk to Healthline (${helpNumbers.healthline.number}) or your GP if it continues.`,
+    emergency: `In an emergency, call ${helpNumbers.emergency.number}.`,
+  },
+  protein: {
+    label: 'Protein',
+    minLabel: 'Lowest, g a day',
+    maxLabel: 'Highest, g a day',
+    hint: 'From 80 to 200 g a day; 120 to 140 g unless you change it.',
+    minAboveMax: 'The lowest figure cannot be above the highest.',
+    kickstart: 'During Kickstart, meals are checked against the top of your range: {max} g.',
+    steady:
+      'Outside Kickstart, meals are checked against the bottom of your range ({min} g) and planned inside it.',
+    unchanged: 'Protein does not change with the deficit or with your eating window.',
+    review: 'Worth reviewing with your GP or a dietitian, who can tailor it to you.',
+    plainNote: 'Shown as information only. Your GP or a dietitian can tailor protein to you.',
+  },
+  carbs: {
+    label: 'Carbs',
+    ketoLabel: 'Keto net-carb ceiling, g a day',
+    ketoHint: 'From 20 to 50 g; 30 g unless you change it.',
+    moderateLabel: 'Moderate low-carb ceiling, g a day',
+    moderateHint: 'From 50 to 130 g; 100 g unless you change it.',
+    kickstart:
+      'During Kickstart net carbs are {carbs} g. Your own ceiling applies again after Kickstart.',
+    balanced: 'Balanced mode has no carb ceiling. Net carbs are still shown.',
+    heldAt50:
+      'Your keto ceiling stays at 50 g until you confirm your prescriber has agreed. Low-carb eating and fasting can change how diabetes medicines act; check with your prescriber first.',
+    off: 'Carb ceilings are off because of an answer in your readiness questions. Net carbs are still shown, without a ceiling.',
+    meaning: 'Net carbs are carbohydrate without the fibre.',
+  },
+  saturatedFat: {
+    label: 'Saturated fat',
+    budgetLabel: "Budget, % of the day's planned energy",
+    budgetHint: 'From 5% to 10%; 10% unless you change it.',
+    percentOption: '{pct}%',
+    today: "Today's budget: {g} g, from {pct}% of {kj} kJ.",
+    noBudget: 'A budget needs an energy target, so saturated fat is shown without one.',
+    plainNote: 'Saturated fat is shown on Today without a budget.',
+    why: 'Keeping saturated fat down is part of the cholesterol-conscious default. Going over only changes the colour of the bar.',
+  },
+  guides: {
+    label: 'Fibre and water',
+    fibreLabel: 'Fibre guide, g a day',
+    fibreDefault:
+      'Default: {g} g a day, from the Nutrient Reference Values for Australia and New Zealand.',
+    fibreHint: 'From 10 to 70 g. Leave it empty to use the default.',
+    waterLabel: 'Water guide, mL a day',
+    waterDefault:
+      'Default: {ml} mL a day, from the Nutrient Reference Values for Australia and New Zealand. Drink more on hot days and when you are active.',
+    waterHint: 'From 1,000 to 6,000 mL. Leave it empty to use the default.',
+  },
+  form: {
+    save: 'Save',
+    saving: 'Saving…',
+    saved: 'Saved.',
+    failed: 'This could not be saved. Nothing was changed.',
+    wholeNumber: 'Enter a whole number.',
+    range: 'Enter a number from {min} to {max}.',
+    storedDiffers:
+      'The stored value, {stored}, is outside the allowed range, so {used} is used instead.',
+  },
+  today: {
+    label: 'Nutrition today',
+    energy: 'Energy',
+    energyOf: '{eaten} of {target} kJ',
+    energyOnly: '{eaten} kJ',
+    food: 'Food {kj} kJ',
+    protein: 'Protein',
+    proteinOf: '{eaten} of {target} g',
+    proteinOfRange: '{eaten} of {min}–{max} g',
+    fibre: 'Fibre',
+    fibreOf: '{eaten} of {guide} g guide',
+    netCarbs: 'Net carbs',
+    satFat: 'Saturated fat',
+    ofCeiling: '{eaten} / {ceiling} g',
+    gramsOnly: '{eaten} g',
+    atLeast: 'at least {eaten}',
+    nothingLogged: 'Nothing logged yet today.',
+    missingOne: '1 entry has no {nutrient} figure, so the total is at least what is shown.',
+    missingMany:
+      '{count} entries have no {nutrient} figure, so the total is at least what is shown.',
+    nutrientNames: {
+      energyKj: 'energy',
+      proteinG: 'protein',
+      carbsG: 'carbohydrate',
+      saturatedFatG: 'saturated fat',
+      fibreG: 'fibre',
+    },
+    floorDay: "Today's energy figure is the {floorKj} kJ floor: a safety net, not a target.",
+    plainNote: 'Shown without targets. Your GP or a dietitian can tell you what suits you.',
+    confidence: { label: 'Label', database: 'Database', estimate: 'Estimate' },
+  },
+  /** The planner's floor lines (item 22 shows them; HS-10, NU-06, C108, T3). */
+  plannerFloor: {
+    refused:
+      'The planner did not fill this day: it would come to under {floorKj} kJ (about {floorKcal} kcal), and it never plans a day below that floor.',
+    manualBelow:
+      'This day comes to under {floorKj} kJ (about {floorKcal} kcal), the floor the planner never goes below. Add food if you can.',
+    noGuide:
+      'The planner does not fill days by itself without a rough guide of your energy needs. Diet and targets shows what is missing.',
+  },
+} as const;
+
+// ---- Item 16: Today and About ----
+
+/**
+ * Today's dashboard (UX_SCREENS section 2; item 16 design section 3.2). Cards for features not
+ * built yet say so in one line with no figures, and no line sets a goal or scores the day.
+ */
+export const today = {
+  cards: {
+    water: 'Water',
+    steps: 'Steps',
+    movement: 'Movement',
+    drinks: 'Drinks',
+  },
+  setupFirst: 'Today opens once setup is finished.',
+  readFailed: "Today's records could not be read.",
+  reload: 'Reload the app',
+  laterStep: {
+    movement: 'Sessions, walks and rest days arrive at a later step of the build checklist.',
+    drinks: 'Drink logging arrives at a later step of the build checklist.',
+  },
+  water: {
+    none: 'None logged yet',
+    add: 'Add 250 mL',
+    added: 'Added 250 mL. Today: {total}.',
+    undo: 'Undo',
+    undone: 'Removed. Today: {total}.',
+    undoneEmpty: 'Removed. None logged today.',
+    electrolytes: 'Electrolytes today',
+    unitMl: 'mL',
+    unitL: 'L',
+  },
+  steps: {
+    none: 'Not entered today',
+    enteredAt: 'typed in at {time}',
+    enter: 'Enter steps',
+    edit: 'Edit',
+    sameAsYesterday: 'Same as yesterday: {steps}',
+    field: 'Steps today',
+    save: 'Save',
+    cancel: 'Cancel',
+    remove: "Remove today's entry",
+    errors: {
+      empty: 'Enter the number of steps.',
+      format: 'Use digits only, such as 12000 or 12,000.',
+      'too-many': 'That is more than 100,000 steps. Check the number.',
+    },
+  },
+  saveFailed: 'That was not saved. Try again.',
+  quickActions: {
+    title: 'Quick actions',
+    /** UX_SCREENS section 2, in order. */
+    labels: {
+      'log-weight': 'Log weight',
+      'finish-meal': 'Finish meal',
+      'swap-recipe': 'Swap recipe',
+      'complete-workout': 'Complete workout',
+      'add-harvest': 'Add harvest',
+      'add-drink': 'Add drink',
+      'open-grocery-list': 'Open grocery list',
+    },
+    laterNote:
+      'Actions marked Later arrive at later steps of the build checklist and do nothing yet.',
+    markerLater: 'Later',
+    markerOff: 'Off',
+  },
+} as const;
+
+/**
+ * Today's Reminders card (UX_SCREENS section 2, card 8; HEALTH_SAFETY section 4; C72, C109). The
+ * electrolyte body names minerals and garden foods, never a supplement; the blood-pressure line is
+ * readiness.bloodPressure.electrolyte and the medication-timing body is fasting.pharmacist, so
+ * each sentence has one wording. The electrolyte lines and their order are item 21's
+ * electrolyteCopyKeys, which item 22's planner card reuses with this wording.
+ */
+export const reminders = {
+  cholesterol: {
+    title: {
+      'day-1': 'Lipid test',
+      'day-56': 'Cholesterol check-in: 8 weeks',
+      'day-84': 'Cholesterol check-in: 12 weeks',
+    },
+    // HEALTH_SAFETY.md section 4, word for word.
+    body: 'Low-carb eating can move cholesterol in either direction. A lipid blood test before you start and again after 8–12 weeks is the only way to know. Your GP can arrange one.',
+    hide: 'Hide this reminder',
+  },
+  electrolytes: {
+    title: 'Electrolyte reminder',
+    body: 'Electrolytes: sodium, potassium, magnesium. Garden sources: silverbeet, spinach, avocado.',
+    hide: 'Hide for today',
+  },
+  medicationTiming: {
+    title: 'Medication timing',
+  },
+} as const;
+
+/**
+ * About (UX_SCREENS section 7; HS-13). No food data is in the app yet and its licence is still to
+ * be decided, so the data-sources card names no source; item 18 names it with its attribution.
+ */
+export const about = {
+  dataSources: {
+    intro: 'Every food figure in the app will carry a badge that says where it came from:',
+    badges: [
+      'Label: you typed it in from a product label.',
+      'Database: it comes from a published table of food values. That source, and the attribution its licence asks for, will be named here when the food data is added at a later step of the build checklist.',
+      "Estimate: it was worked out from a recipe's ingredients, or approximated.",
+    ],
+    now: 'No food figures are in the app yet.',
+  },
+  /** DOC_REVIEW C34: the records share their origin with every site of the same GitHub account. */
+  sharedOrigin:
+    'The app is published on GitHub Pages. Any other site published from the same GitHub account could read the records the app keeps on this phone, so no other site is published from that account.',
+} as const;
+
 /** All sections, for scanning and review. */
 export const healthCopy = {
   helpNumbers,
@@ -1890,4 +2318,8 @@ export const healthCopy = {
   move,
   fasting,
   reflux,
+  targets,
+  today,
+  reminders,
+  about,
 } as const;

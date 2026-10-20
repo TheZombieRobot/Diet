@@ -60,6 +60,36 @@ export function planFast(
 }
 
 /**
+ * The plan of a running fast at `nowMs`. A fast that runs on after its planned window has closed
+ * (one started before that day's window, for example) is planned again from that window's end,
+ * with the same span start, so the card never names a window that has closed and the 24-hour cap
+ * still applies to the next one (FS-06). The planned minutes stay counted from the fast's own
+ * start.
+ */
+export function runningPlan(
+  startedAtMs: number,
+  timeZone: TimeZone,
+  schedule: Schedule,
+  spanStartMs: number,
+  nowMs: number,
+): FastPlan | null {
+  let plan = planFast(startedAtMs, timeZone, schedule, spanStartMs);
+  // Each step starts after a later window's end, and planFast gives up 24 hours past the span
+  // start, so this ends within a few steps.
+  while (plan !== null && !plan.cappedAtCeiling && nowMs >= plan.next.endMs) {
+    plan = planFast(plan.next.endMs, timeZone, schedule, spanStartMs);
+  }
+  if (plan === null) return null;
+  return {
+    ...plan,
+    plannedMinutes: Math.min(
+      Math.max(Math.round((plan.targetEndMs - startedAtMs) / MS_PER_MINUTE), 1),
+      MAX_PLANNED_FAST_HOURS * 60,
+    ),
+  };
+}
+
+/**
  * The clock time the plan ends, read from the real instant in the zone (never by adding 24 hours
  * to a wall-clock time, so the April daylight-saving night comes out right).
  */

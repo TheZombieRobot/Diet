@@ -95,6 +95,26 @@ describe('colour tokens (styles/tokens.css)', () => {
       ).toBeGreaterThanOrEqual(3);
     });
 
+    // Item 21 (WCAG 1.4.11): each meter fill stands out from the track, and the select chevron
+    // from the field. The chip tones' words are TEXT_PAIRS above.
+    it.each([
+      '--color-ink',
+      '--color-teal',
+      '--color-ink-soft',
+      '--color-secondary',
+      '--color-amber-strong',
+    ])(`${theme}: the meter fill %s on the track has at least 3:1 contrast`, (fill) => {
+      expect(
+        contrastRatio(colour(fill, theme), colour('--color-chip', theme)),
+      ).toBeGreaterThanOrEqual(3);
+    });
+
+    it(`${theme}: the select chevron stands out from the field (at least 3:1)`, () => {
+      expect(
+        contrastRatio(colour('--color-ink-soft', theme), colour('--color-inset', theme)),
+      ).toBeGreaterThanOrEqual(3);
+    });
+
     it(`${theme}: tab labels on the translucent tab bar have at least 4.5:1 contrast`, () => {
       const bar = over(colour('--color-tabbar', theme), colour('--color-ground', theme));
       expect(contrastRatio(colour('--color-secondary', theme), bar)).toBeGreaterThanOrEqual(4.5);

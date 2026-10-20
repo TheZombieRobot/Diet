@@ -19,12 +19,14 @@ import {
   type ProfileRecord,
   type ReadinessGates,
   readinessGates,
+  type ReadinessRecord,
   scheduleFrom,
   type SettingsRecord,
   staleOverrides,
   type TargetsRecord,
   type TimeZone,
   weightGateInput,
+  type WeightRecord,
 } from '@diet/core';
 import { useCallback, useMemo } from 'react';
 import { useLiveQuery } from '../../db/liveQuery';
@@ -35,13 +37,18 @@ import { useNow } from '../../useNow';
 import { endLatchStore } from '../weight/stores';
 import { fastingContext } from './integration';
 
-/** The records a pattern's schedule is built from, with every per-day window from yesterday on. */
+/**
+ * The records a pattern's schedule is built from, with every per-day window from yesterday on, and
+ * the answers and weigh-ins the gates (and the fasting context's day targets) read.
+ */
 export interface ScheduleSource {
   readonly targets: TargetsRecord;
   readonly settings: SettingsRecord;
   readonly profile: ProfileRecord;
   readonly periods: readonly KickstartPeriodRecord[];
   readonly checks: readonly KickstartCheckRecord[];
+  readonly readiness: readonly ReadinessRecord[];
+  readonly weights: readonly WeightRecord[];
   readonly planDays: readonly PlanDayRecord[];
 }
 
@@ -50,15 +57,18 @@ const LAST_DATE: LocalDate = '9999-12-31';
 
 async function readScheduleSource(storage: AppStorage, today: LocalDate): Promise<ScheduleSource> {
   const { repos } = storage;
-  const [targets, settings, profile, periods, checks, planDays] = await Promise.all([
-    repos.targets.get(),
-    repos.settings.get(),
-    repos.profile.get(),
-    repos.kickstart.listPeriods(),
-    repos.kickstart.listChecks(),
-    repos.planDays.listByIndex('date', addDays(today, -1), LAST_DATE),
-  ]);
-  return { targets, settings, profile, periods, checks, planDays };
+  const [targets, settings, profile, periods, checks, readiness, weights, planDays] =
+    await Promise.all([
+      repos.targets.get(),
+      repos.settings.get(),
+      repos.profile.get(),
+      repos.kickstart.listPeriods(),
+      repos.kickstart.listChecks(),
+      repos.readiness.list(),
+      repos.weights.list(),
+      repos.planDays.listByIndex('date', addDays(today, -1), LAST_DATE),
+    ]);
+  return { targets, settings, profile, periods, checks, readiness, weights, planDays };
 }
 
 /** The dates from today on whose per-day window the source's targets no longer fit. */
@@ -97,16 +107,12 @@ export async function clearStaleDayWindows(storage: AppStorage): Promise<LocalDa
   const now = storage.env.now();
   const deviceTimeZone = storage.env.timeZone();
   const today = localDateOf(now, deviceTimeZone);
-  const [source, readiness, weights] = await Promise.all([
-    readScheduleSource(storage, today),
-    storage.repos.readiness.list(),
-    storage.repos.weights.list(),
-  ]);
+  const source = await readScheduleSource(storage, today);
   const gateInput = weightGateInput(
     {
-      readiness,
+      readiness: source.readiness,
       profile: source.profile,
-      weights,
+      weights: source.weights,
       homeTimeZone: source.settings.homeTimeZone,
     },
     today,

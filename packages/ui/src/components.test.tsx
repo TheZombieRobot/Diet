@@ -12,6 +12,7 @@ import {
   CameraView,
   Card,
   CheckList,
+  Chip,
   ChoiceList,
   currentThemePreference,
   DayBar,
@@ -20,11 +21,14 @@ import {
   FloatingActionPanel,
   IconButton,
   IconLink,
+  MeterBar,
+  meterRects,
   OFFLINE_LABEL,
   OFFLINE_NOT_READY_LABEL,
   Notice,
   OfflineIndicator,
   ONLINE_LABEL,
+  SelectField,
   StepFrame,
   Stepper,
   Switch,
@@ -644,6 +648,41 @@ describe('first-run components (item 13; K19)', () => {
     expect(onRemove).toHaveBeenCalledWith('liver');
   });
 
+  it('DayBar sets each time under its own hour, and marks every other one to leave out when narrow', () => {
+    render(
+      <DayBar
+        segments={[{ startPct: 70.8, widthPct: 8.3 }]}
+        labels={['12 am', '6 am', '12 pm', '6 pm', '12 am']}
+      />,
+    );
+    const labels = Array.from(document.querySelectorAll<HTMLElement>('.ui-daybar__label'));
+    expect(labels.map((l) => l.style.left)).toEqual(['0%', '25%', '50%', '75%', '100%']);
+    expect(labels.map((l) => l.classList.contains('ui-daybar__label--minor'))).toEqual([
+      false,
+      true,
+      false,
+      true,
+      false,
+    ]);
+  });
+
+  it('TextField: an action sits on the input row, a shared error marks the field and describes it', () => {
+    render(
+      <>
+        <TextField label="Foods" hint="One at a time." action={<Button>Add</Button>} />
+        <TextField label="First bite" sharedErrorId="window-error" />
+        <p id="window-error">The first and last bite need different times.</p>
+      </>,
+    );
+    const row = screen.getByLabelText('Foods').parentElement;
+    expect(row?.className).toBe('ui-field__control');
+    expect(row?.contains(screen.getByRole('button', { name: 'Add' }))).toBe(true);
+    expect(row?.contains(screen.getByText('One at a time.'))).toBe(false);
+    const field = screen.getByLabelText('First bite');
+    expect(field.getAttribute('aria-invalid')).toBe('true');
+    expect(field.getAttribute('aria-describedby')).toBe('window-error');
+  });
+
   it('Switch with a hint ties it by aria-describedby; Switch and TextField forward their ref', () => {
     const switchRef = createRef<HTMLInputElement>();
     const fieldRef = createRef<HTMLInputElement>();
@@ -886,6 +925,159 @@ describe('the Fast card pieces (item 15; mock-up Main)', () => {
     expect(notNow?.className).toContain('ui-button--on-amber-outline');
     expect(document.querySelector('.ui-notice__icon')?.getAttribute('aria-hidden')).toBe('true');
     expect(document.querySelector('.ui-notice__text')?.textContent).toBe('Example meal check');
+  });
+});
+
+describe('meters, the select field and chips (item 21; K1 to K3b)', () => {
+  const rule = (selector: string) => {
+    const at = componentsCss.indexOf(`${selector} {`);
+    return componentsCss.slice(at, componentsCss.indexOf('}', at));
+  };
+
+  it('K1: a meter reads as its label and value; the bar is decorative, clamped, with a gap between parts', () => {
+    const { container, rerender } = render(
+      <MeterBar
+        label="Energy"
+        value="9,500 of 9,100 kJ"
+        segments={[
+          { fraction: 0.6, tone: 'ink' },
+          { fraction: 0.5, tone: 'alcohol' },
+        ]}
+        state="over"
+        notes={['A note']}
+      />,
+    );
+    const meter = container.querySelector('.ui-meter');
+    expect(meter?.textContent).toBe('Energy 9,500 of 9,100 kJA note');
+    expect(meter?.getAttribute('data-state')).toBe('over');
+    const svg = container.querySelector('svg');
+    expect(svg?.getAttribute('aria-hidden')).toBe('true');
+    const rects = [...container.querySelectorAll('rect')].map((r) => [
+      r.getAttribute('x'),
+      r.getAttribute('width'),
+      r.getAttribute('class'),
+    ]);
+    expect(rects).toEqual([
+      ['0', '60', 'ui-meter__fill ui-meter__fill--ink'],
+      ['61', '39', 'ui-meter__fill ui-meter__fill--alcohol'],
+    ]);
+    expect(meterRects([{ fraction: 2, tone: 'soft' }])).toEqual([
+      { x: 0, width: 100, tone: 'soft' },
+    ]);
+    expect(meterRects([{ fraction: -1, tone: 'soft' }])).toEqual([]);
+    rerender(<MeterBar label="Energy" value="9,500 kJ" segments={null} state="over" />);
+    expect(container.querySelector('svg')).toBeNull();
+    expect(container.querySelector('.ui-meter')?.hasAttribute('data-state')).toBe(false);
+    // HS-09: over changes only the soft fill's colour, to the amber token.
+    expect(rule(".ui-meter[data-state='over'] .ui-meter__fill--soft")).toContain(
+      'var(--color-amber-strong)',
+    );
+  });
+
+  it('K2: SelectField labels its select, reports a change, and draws an inline chevron in the text colour', () => {
+    const onChange = vi.fn();
+    render(
+      <SelectField
+        label="Steady deficit"
+        hint="From 15% to 20%."
+        value="15"
+        options={[
+          { value: '15', label: '15%' },
+          { value: '20', label: '20%' },
+        ]}
+        onChange={onChange}
+      />,
+    );
+    const select = screen.getByRole('combobox', { name: 'Steady deficit' });
+    expect(
+      document.getElementById(select.getAttribute('aria-describedby') ?? '')?.textContent,
+    ).toBe('From 15% to 20%.');
+    fireEvent.change(select, { target: { value: '20' } });
+    expect(onChange).toHaveBeenCalledWith('20');
+    const chevron = document.querySelector('.ui-select__chevron');
+    expect(chevron?.getAttribute('aria-hidden')).toBe('true');
+    expect(chevron?.querySelector('svg')?.getAttribute('stroke')).toBe('currentColor');
+    expect(rule('.ui-select__chevron')).toContain('color: var(--color-ink-soft)');
+  });
+
+  it('K3b: a chip carries its word, with a class for each tone', () => {
+    const { container } = render(
+      <>
+        <Chip>Label</Chip>
+        <Chip tone="neutral">Database</Chip>
+        <Chip tone="amber">Estimate</Chip>
+      </>,
+    );
+    expect(
+      [...container.querySelectorAll('span')].map((s) => [s.className, s.textContent]),
+    ).toEqual([
+      ['ui-chip', 'Label'],
+      ['ui-chip ui-chip--neutral', 'Database'],
+      ['ui-chip ui-chip--amber', 'Estimate'],
+    ]);
+  });
+});
+
+describe('Today pieces (item 16; C13)', () => {
+  it('an off action row is a focusable aria-disabled button that does nothing and says why', () => {
+    render(
+      <>
+        <ActionRow title="Finish meal" marker="Later" describedBy="why" />
+        <p id="why">Arrives later.</p>
+      </>,
+    );
+    const row = screen.getByRole('button', { name: 'Finish meal' });
+    expect(row.getAttribute('aria-disabled')).toBe('true');
+    expect(row.hasAttribute('disabled')).toBe(false);
+    expect(row.getAttribute('aria-describedby')).toBe('why');
+    expect(row.className).toContain('ui-action-row--off');
+    const marker = within(row).getByText('Later');
+    expect(marker.getAttribute('aria-hidden')).toBe('true');
+    row.focus();
+    expect(document.activeElement).toBe(row);
+    fireEvent.click(row);
+    fireEvent.keyDown(row, { key: 'Enter' });
+    expect(window.location.hash).toBe('');
+  });
+
+  it('an action row with onSelect is a button that runs it; the panel hands its actions a close', () => {
+    const select = vi.fn();
+    render(
+      <FloatingActionPanel label="Quick actions">
+        {(close) => (
+          <ActionRow
+            title="Log weight"
+            onSelect={() => {
+              select();
+              close();
+            }}
+          />
+        )}
+      </FloatingActionPanel>,
+    );
+    const plus = screen.getByRole('button', { name: 'Quick actions' });
+    fireEvent.click(plus);
+    const row = screen.getByRole('button', { name: 'Log weight' });
+    expect(row.hasAttribute('aria-disabled')).toBe(false);
+    fireEvent.click(row);
+    expect(select).toHaveBeenCalledOnce();
+    expect(plus.getAttribute('aria-expanded')).toBe('false');
+    // Closing for an action leaves focus to the action, not the "+".
+    expect(document.activeElement).not.toBe(plus);
+  });
+
+  it('a card heading takes focus from code but not from Tab; a stacked button row', () => {
+    const { container } = render(
+      <Card label="Water">
+        <ButtonRow stacked>
+          <Button>Save</Button>
+        </ButtonRow>
+      </Card>,
+    );
+    expect(screen.getByRole('heading', { level: 2, name: 'Water' }).tabIndex).toBe(-1);
+    expect(container.querySelector('.ui-button-row')?.className).toBe(
+      'ui-button-row ui-button-row--stacked',
+    );
   });
 });
 

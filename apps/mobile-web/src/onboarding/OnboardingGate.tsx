@@ -8,8 +8,8 @@
 import { missingReadinessAnswers, type ReadinessQuestionId } from '@diet/core';
 import { type ReactElement, type ReactNode, useState } from 'react';
 import { appStorageStore } from '../db/runtime';
-import { routeHref } from '../routes';
 import { useStore } from '../store';
+import { openToday } from './navigation';
 import { OnboardingFlow } from './OnboardingFlow';
 import { OpeningScreen } from './OpeningScreen';
 import { deriveOnboarding, useOnboardingState } from './state';
@@ -40,7 +40,7 @@ export function OnboardingGate({ children }: { readonly children: ReactNode }): 
         repairList={repairList}
         onRepairDone={() => {
           setRepairList(null);
-          window.location.replace(routeHref('today'));
+          openToday();
         }}
       />
     );

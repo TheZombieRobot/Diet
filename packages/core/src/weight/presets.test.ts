@@ -42,12 +42,18 @@ const kickstart: Phase = {
 
 describe('the fasting preset and Kickstart (C55, C07, WT-08)', () => {
   it('an untouched 23:1 Kickstart default reads as 22:2, 17:00–19:00, whenever no Kickstart runs', () => {
-    expect(effectiveFastingPreset(kickstartDefault, true)).toEqual(kickstartDefault);
-    expect(effectiveFastingPreset(kickstartDefault, false)).toEqual(untouched);
+    expect(effectiveFastingPreset(kickstartDefault, true, open)).toEqual(kickstartDefault);
+    expect(effectiveFastingPreset(kickstartDefault, false, open)).toEqual(untouched);
     for (const stored of [user231, user186, none]) {
-      expect(effectiveFastingPreset(stored, false)).toEqual(stored);
-      expect(effectiveFastingPreset(stored, true)).toEqual(stored);
+      expect(effectiveFastingPreset(stored, false, open)).toEqual(stored);
+      expect(effectiveFastingPreset(stored, true, open)).toEqual(stored);
     }
+  });
+
+  it('C07: while answer 4 applies, a stored Kickstart default is never used as 23:1, even during Kickstart', () => {
+    const answer4 = { pharmacistReminder: true };
+    expect(effectiveFastingPreset(kickstartDefault, true, answer4)).toEqual(untouched);
+    expect(effectiveFastingPreset(user231, true, answer4)).toEqual(user231);
   });
 
   it('a Kickstart start moves only an untouched default to the 23:1 Kickstart default', () => {
@@ -58,12 +64,13 @@ describe('the fasting preset and Kickstart (C55, C07, WT-08)', () => {
     expect(kickstartStartPresetChange(untouched, { ...open, fastingGated: true })).toBeNull();
   });
 
-  it('C07: a start never moves answer 4’s owner to one meal a day; their stored 23:1 Kickstart default still applies', () => {
+  it('C07: a start never moves answer 4’s owner to one meal a day, nor uses their stored 23:1 Kickstart default', () => {
     const answer4 = { fastingGated: false, pharmacistReminder: true };
     expect(kickstartStartPresetChange(untouched, answer4)).toBeNull();
     expect(kickstartStartUses231(untouched, answer4)).toBe(false);
     expect(kickstartStartUses231(untouched, open)).toBe(true);
-    expect(kickstartStartUses231(kickstartDefault, answer4)).toBe(true);
+    expect(kickstartStartUses231(kickstartDefault, answer4)).toBe(false);
+    expect(kickstartStartUses231(kickstartDefault, open)).toBe(true);
   });
 
   it('outside Kickstart the stored 23:1 Kickstart default moves to 22:2, whatever any card says', () => {

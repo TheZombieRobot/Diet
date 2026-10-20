@@ -11,12 +11,12 @@ import {
   zonedWallTimeToInstant,
 } from '@diet/core';
 import { fasting, privacy } from '@diet/core/copy/health';
-import { Button, ButtonRow, Card, Notice, TextField } from '@diet/ui';
+import { Button, ButtonRow, Card, TextField } from '@diet/ui';
 import { type ReactElement, useState } from 'react';
 import type { AppStorage } from '../../db/runtime';
 import { formatShortDay } from '../../format';
 import { deleteFast, editFast } from './actions';
-import { ActionError } from './ActionError';
+import { ActionError, ProblemNotice } from './ActionError';
 import { useAction } from './useAction';
 import type { FastingState } from './useFasting';
 import type { HistoryRow } from './view';
@@ -149,6 +149,13 @@ function FastRow({
           })}
         </p>
       )}
+      {row.joinedFirst === null ? null : (
+        <p className="ui-text-muted">
+          {fillTemplate(history.joinedFirst, {
+            length: formatElapsed(row.joinedFirst.spanMs, 'text'),
+          })}
+        </p>
+      )}
       {startZone.fallback || endZone.fallback ? (
         <p className="ui-text-muted">{privacy.zoneFallback}</p>
       ) : null}
@@ -217,11 +224,7 @@ function FastRow({
               setEditing({ ...editing, note: event.currentTarget.value });
             }}
           />
-          {problem === null ? null : (
-            <Notice role="alert">
-              <p>{problem}</p>
-            </Notice>
-          )}
+          <ProblemNotice problem={problem} />
           <ButtonRow>
             <Button variant="secondary" disabled={action.busy} onClick={save}>
               {history.save}

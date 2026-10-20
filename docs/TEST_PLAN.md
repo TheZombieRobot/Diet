@@ -67,7 +67,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | RD-06 | Change answers later | Features appear/disappear immediately; no data lost |
 | RD-07 | Close the app after the notice and reopen | Setup resumes at the first unfinished step; fasting hidden while gated |
 | RD-08 | Import a backup with no readiness rows | Gates closed; readiness asked before anything else |
-| RD-09 | Medication with food, blood-pressure or cholesterol medication = yes | Fasting allowed; pharmacist reminder above the schedule choices with nothing preselected; salt wording flag on |
+| RD-09 | Medication with food, blood-pressure or cholesterol medication = yes | Fasting not switched off by this answer, and no line says it is allowed; pharmacist reminder above the schedule choices with nothing preselected, at setup and in Settings; a pattern the app chose before the answer is cleared at setup and the step asked again; a stored 23:1 Kickstart default is read as 22:2, even during Kickstart; whatever the owner picks is recorded as their own; salt wording flag on |
 
 ### 3.4 Weight
 | ID | Case | Expected |
@@ -95,7 +95,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | FS-03 | Fast crosses midnight and device restarts | Timer continues from stored start time |
 | FS-04 | Stop-signs text present on fasting screen | Snapshot |
 | FS-05 | Drink logged during fast | Neutral note; no penalty text; the food figures, the meal check and the streak are unchanged |
-| FS-06 | Planned fast would pass 24 h (a later window tomorrow, a start inside the window on the April daylight-saving night, a fast restarted within the hour) | Plan ends at 24 h from the start of the fast (or of the fasts less than an hour apart), eat-by time shown, stored planned minutes never over 1,440 (C30) |
+| FS-06 | Planned fast would pass 24 h (a later window tomorrow, a start inside the window on the April daylight-saving night, a fast restarted within the hour, a fast still running after its planned window has closed) | Plan ends at 24 h from the start of the fast (or of the fasts less than an hour apart), eat-by time shown, stored planned minutes never over 1,440 (C30) |
 | FS-07 | Streak counter | A completed fast of 24 h or less counts for the day it ends; one over 24 h, or still running, neither adds nor resets; a day without one ends the count with no message (C63) |
 | FS-08 | Fasting gated by readiness | No Start anywhere, no timer, pattern or history; the repository refuses to start or reopen a fast; a fast already open can still be ended, with "It's fine to eat now." and the stop-signs (HS-03) |
 
@@ -107,9 +107,9 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | NU-03 | Net carbs = carbs − fibre, never negative | Unit test |
 | NU-04 | Heart-smart badge logic | Fixtures: avocado salad = badge; bacon-cream carbonara = flagged |
 | NU-05 | Day over saturated-fat budget | Indicator changes; no "bad"/"fail" wording (HS-09) |
-| NU-06 | Auto-plan under 5,000 kJ | Refused (HS-10) |
+| NU-06 | Auto-plan under 5,000 kJ | Refused (HS-10): the core refusal (floorCheck, every app-made write kind) at item 21; the planner's refusal at item 22 |
 | NU-07 | Garden-first filter | Recipes using ≥2 in-season garden items rank first |
-| NU-08 | Cholesterol check-in cards | Appear at ceiling start, week 8, week 12 |
+| NU-08 | Cholesterol check-in cards | Lipid test at first run; check-ins when 56 and 84 days have passed since the first low-carb day (or since the profile was made if there was none); boundaries 55/56 and 83/84 days; one case starting in balanced mode, where the lipid test and check-ins are counted again from the first low-carb day (C109) |
 | NU-09 | Attribution footer | Present on every nutrition screen |
 
 ### 3.7 Grocery list
@@ -175,19 +175,20 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | FL-01 | Add item from label per 100 g, log 150 g | Nutrients scaled; badge "Label" |
 | FL-02 | Log recipe portion | Badge "Estimate" if any ingredient is estimated, else "Database" |
 | FL-03 | Raw vs cooked | 200 g raw chicken and 150 g cooked are logged as distinct entries with the weight basis stored |
-| FL-04 | Switch diet mode keto → balanced → keto | No records deleted; targets change; suggestions re-rank |
+| FL-04 | Switch diet mode keto → balanced → keto | No records deleted; targets change; suggestions re-rank (the ranking in core at item 21; the suggestion list UI at item 22, C23) |
 | FL-05 | Household dinner for 3, my portion 1/3 | My nutrition equals per-serve; changing household to 4 leaves my numbers unchanged (HS-23) |
 | FL-06 | Edit a recipe containing a listed allergen | Allergen still listed after edit and after scaling (HS-24) |
 | FL-07 | Gluten-free household toggle off | No gluten-free substitutions suggested |
-| FL-08 | Eating window 17:00–19:00 | 2 h eating and 22 h fasting, from the core window formatter: screen 1e shows "Eating 5:00 pm to 7:00 pm = 2 hours. Fasting 22 hours." and the Fast card "2 h eating, 22 h fasting" (HS-17, C101) |
+| FL-08 | Eating window 17:00–19:00 | 2 h eating and 22 h fasting, from the core window formatter: screen 1e shows "Eating 5:00 pm to 7:00 pm = 2 hours. Fasting 22 hours." and the Fasting screen's Eating pattern card "2 h eating, 22 h fasting" (HS-17, C101) |
 | FL-09 | Eating window 22:00–02:00 (midnight wrap) | 4 h eating |
 | FL-10 | Low-protein planned day; also a day with enough protein but planned food energy under the day's energy target (C10) | Fasting card offers to widen window (HS-18). Core and card level at item 15, plan wiring at item 22 (C23) |
 | FL-11 | Reflux options on | Earlier-window and split-meal suggestions appear; symptom log available |
 | FL-12 | 23:1 preset, dinner planned at 95 g protein, target 140 g | Fasting card offers the 5 pm snack; no "broken fast" or streak-loss wording (HS-18). Core and card level at item 15, plan wiring at item 22 (C23) |
 | FL-13 | 23:1 preset, dinner planned at the protein target, at or above the day's energy target, under 600 g of protein food | No snack prompt; meal check line shows the protein figure. Core and card level at item 15, plan wiring at item 22 (C23) |
-| FL-14 | 23:1 window 6 pm to 7 pm | 1 h eating and 23 h fasting, from the core window formatter: screen 1e shows "Eating 6:00 pm to 7:00 pm = 1 hour. Fasting 23 hours." and the Fast card "1 h eating, 23 h fasting"; no over-24 h warning (HS-17, C101) |
+| FL-14 | 23:1 window 6 pm to 7 pm | 1 h eating and 23 h fasting, from the core window formatter: screen 1e shows "Eating 6:00 pm to 7:00 pm = 1 hour. Fasting 23 hours." and the Fasting screen's Eating pattern card "1 h eating, 23 h fasting"; no over-24 h warning (HS-17, C101) |
 | FL-15 | Reflux symptom logged on a 23:1 day; also on a 16:8 day | Earlier-dinner and split-meal options offered that day and the next day, not the day after |
 | FL-16 | Reflux symptoms on 3 days within 2 weeks, or rated stronger this week than last | The symptom log suggests seeing a GP; "Not now" hides it for 7 days (C47) |
+| FL-17 | Six cans logged on a day | Food energy, protein and the floor result unchanged; alcohol shown as its own part of the day's energy; an unknown drink marks the total "at least" and never shows as 0 (HS-36, C11) |
 
 ### 3.12 Non-negotiable cases from the handoff
 | ID | Case | Expected |
@@ -215,6 +216,17 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | CX-07 | Edit search term | Edited term used |
 | CX-08 | Static scan | No price/stock/cart-status strings (HS-16); footer disclaimer present |
 | CX-09 | Clear list | Removed from laptop only; phone unaffected |
+
+### 3.14 Today (checklist item 16)
+| ID | Case | Expected |
+|---|---|---|
+| TD-01 | Card order and the Today snapshot | Status line, then the "talk to someone" card, then a prominent Reminders card, then the UX_SCREENS section 2 cards; the structural snapshot with its explicit assertions |
+| TD-02 | Unbuilt features | Movement and drink logging show no numbers (the Nutrition today card shows the day's own intake, item 21); unbuilt quick actions are shown with "Later", focusable and inert; nothing is written before setup; a failed read offers a reload |
+| TD-03 | Water and the electrolyte tick | Saved and still there after a reload offline, by local day; Undo removes only its own entry; the status total matches the stored total |
+| TD-04 | Steps | Manual entry within 0–100,000; Done saves; "Same as yesterday" only when yesterday has an entry and today none; never overwrites |
+| TD-05 | Drinks guidance | By stored sex and setting, the stricter wins, women's when sex is missing, never without "No alcohol use is risk-free."; under 18 shows the reason and no figures |
+| TD-06 | Reminders | Cholesterol per NU-08 (counted again once when low-carb eating first starts); electrolytes per C72, only with the keto ceiling on in keto mode; medication timing (RD-09) on the Fast card when fasting is available and in Reminders when it is switched off, never twice; backup per BK-03, with Reminders first when storage is not protected |
+| TD-07 | Status line | The over-24-hours sentence strictly over 24 h whether or not fasting is switched off; a neutral "still open" line when it is; no window time that would carry a running fast past 24 h; the day's window after the snack is added; no fasting words with no pattern |
 
 ---
 

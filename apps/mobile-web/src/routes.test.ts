@@ -13,7 +13,7 @@ import {
 } from './routes';
 
 describe('hash routes', () => {
-  it('has the five tabs of UX_SCREENS.md in order, plus Settings, About, the setup screens, Weight, Fasting and Laptop pairing', () => {
+  it('has the five tabs of UX_SCREENS.md in order, plus Settings, About, the setup screens, Weight, Fasting, Diet and targets and Laptop pairing', () => {
     expect(TAB_ROUTES.map((r) => ROUTE_TITLES[r])).toEqual([
       'Today',
       'Food',
@@ -30,10 +30,12 @@ describe('hash routes', () => {
       'eating-schedule',
       'weight',
       'fasting',
+      'targets',
       'pairing',
     ]);
     expect(ROUTE_TITLES.weight).toBe('Weight');
     expect(ROUTE_TITLES.fasting).toBe('Fasting and reflux');
+    expect(ROUTE_TITLES.targets).toBe('Diet and targets');
     expect(ROUTE_TITLES.pairing).toBe('Laptop pairing');
   });
 
@@ -70,6 +72,7 @@ describe('hash routes', () => {
       'readiness',
       'profile',
       'eating-schedule',
+      'targets',
       'pairing',
     ]);
   });

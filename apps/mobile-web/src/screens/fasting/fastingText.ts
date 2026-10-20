@@ -8,9 +8,11 @@ import {
   formatElapsed,
   joinList,
   type LocalDate,
+  localDateOf,
   localWallClockOf,
   type SittingHeadline,
   type TimeZone,
+  type WindowInstance,
 } from '@diet/core';
 import { fasting, readiness } from '@diet/core/copy/health';
 import { formatDayPhrase, formatLocalTime } from '../../format';
@@ -37,22 +39,38 @@ export function clockAt(ms: number, zone: TimeZone): string {
   );
 }
 
+/** "Eat 6:00 pm – 7:00 pm", or "Eat tomorrow 6:00 pm – 7:00 pm" for a window on a later date. */
+export function eatWindowText(window: WindowInstance, today: LocalDate): string {
+  const { start, end } = window.window;
+  return fillTemplate(
+    window.date > today ? fasting.card.eatWindowTomorrow : fasting.card.eatWindow,
+    {
+      range: formatClockRange(start, end),
+    },
+  );
+}
+
 /**
  * When to eat, from the end hint: the planned window ("Eat 6:00 pm – 7:00 pm") or, for a capped
- * plan, the 24-hour point ("Eat by 5:30 pm"). Nothing close to or past 24 hours, so no line ever
- * names a window time that would carry the fast past the ceiling.
+ * plan, the 24-hour point ("Eat by 5:30 pm"), each saying "tomorrow" when it falls on a later date
+ * than `today` in the device zone. Nothing close to or past 24 hours, so no line ever names a
+ * window time that would carry the fast past the ceiling.
  */
-export function endHintText(hint: FastEndHint, zone: TimeZone): string | null {
-  if (hint.kind === 'window') {
-    const { start, end } = hint.window.window;
-    return fillTemplate(fasting.card.eatWindow, { range: formatClockRange(start, end) });
+export function endHintText(hint: FastEndHint, zone: TimeZone, today: LocalDate): string | null {
+  if (hint.kind === 'window') return eatWindowText(hint.window, today);
+  if (hint.kind === 'eat-by') {
+    const later = localDateOf(new Date(hint.atMs).toISOString(), zone) > today;
+    return fillTemplate(later ? fasting.card.eatByTomorrow : fasting.card.eatBy, {
+      time: clockAt(hint.atMs, zone),
+    });
   }
-  if (hint.kind === 'eat-by')
-    return fillTemplate(fasting.card.eatBy, { time: clockAt(hint.atMs, zone) });
   return null;
 }
 
-/** The note on a span joined to the fast before it (the 24-hour rule counts them as one). */
+/**
+ * The note on a span joined to the fast before it (the 24-hour rule counts them as one): the gap
+ * between the two, which stays true however long this fast runs.
+ */
 export function joinedText(gapMs: number): string {
   return gapMs < MINUTE_MS
     ? fasting.card.joinedJustNow

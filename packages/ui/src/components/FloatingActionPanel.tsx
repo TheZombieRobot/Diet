@@ -12,14 +12,18 @@ import { FloatingActionButton } from './FloatingActionButton';
 export interface FloatingActionPanelProps {
   /** The accessible name of the "+" button. */
   label: string;
-  /** The panel's content, shown above the button while it is open. */
-  children: ReactNode;
+  /**
+   * The panel's content, shown above the button while it is open. As a function it receives
+   * `close`, for an action that runs in place (it closes the panel and leaves focus to the action).
+   */
+  children: ReactNode | ((close: () => void) => ReactNode);
 }
 
 /**
  * The floating "+" and the small panel it opens. The panel comes after the button in the page, so
  * the Tab key and a screen reader reach it next. It closes on Escape, on a tap outside the panel
- * and the button, and when the screen changes; Escape and an outside tap return focus to the "+".
+ * and the button, when the screen changes, and when an action in it calls `close`; Escape and an
+ * outside tap return focus to the "+".
  */
 export function FloatingActionPanel({ label, children }: FloatingActionPanelProps): ReactElement {
   const [open, setOpen] = useState(false);
@@ -30,6 +34,10 @@ export function FloatingActionPanel({ label, children }: FloatingActionPanelProp
   const close = useCallback((returnFocus: boolean) => {
     setOpen(false);
     if (returnFocus) buttonRef.current?.focus();
+  }, []);
+  /** For an action that runs in place: it closes the panel and leaves focus to the action. */
+  const closeForAction = useCallback(() => {
+    setOpen(false);
   }, []);
 
   useEffect(() => {
@@ -69,7 +77,7 @@ export function FloatingActionPanel({ label, children }: FloatingActionPanelProp
       />
       {open ? (
         <div id={panelId} ref={panelRef} className="ui-fab-panel">
-          {children}
+          {typeof children === 'function' ? children(closeForAction) : children}
         </div>
       ) : null}
     </>

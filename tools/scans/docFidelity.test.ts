@@ -10,7 +10,9 @@ import {
   profile,
   readiness,
   reflux,
+  reminders,
   schedule,
+  targets,
   transfer,
   weight,
 } from '../../packages/core/src/copy/health';
@@ -247,5 +249,38 @@ describe('fasting copy matches the docs word for word (item 15)', () => {
     expect(quoteAfter(privacySection, 'Pairing with the laptop uses the camera:')).toBe(
       transfer.pairing.cameraNote,
     );
+  });
+});
+
+describe('Diet and targets copy matches the docs word for word (item 21)', () => {
+  const nutritionSection = section(HEALTH_SAFETY, /^## 4\. /);
+
+  it('the diet-mode names are UX_SCREENS.md screen 3a, in order (C-3)', () => {
+    expect(UX_SCREENS).toContain(`(${Object.values(targets.dietMode.names).join(' / ')})`);
+  });
+
+  it('"the floor is a safety net, not a target" is HEALTH_SAFETY.md section 4', () => {
+    expect(nutritionSection).toContain('the floor is a safety net, not a target');
+    expect(targets.energy.floorBinds).toContain('The floor is a safety net, not a target.');
+  });
+});
+
+describe('Today copy matches the docs word for word (item 16; U8)', () => {
+  const nutritionSection = section(HEALTH_SAFETY, /^## 4\. /);
+
+  it('the cholesterol check-in body is the HEALTH_SAFETY.md section 4 quote', () => {
+    expect(quoteAfter(nutritionSection, 'again at 8 and 12 weeks:')).toBe(
+      reminders.cholesterol.body,
+    );
+  });
+
+  it("the men's guidance line is the UX_SCREENS.md section 2 card 7 quote (C66); both lines are required copy", () => {
+    expect(quoteAfter(today, 'Guidance line underneath:')).toBe(alcohol.guidance.line['nz-men']);
+    expect(REQUIRED_COPY).toContain(alcohol.guidance.line['nz-men']);
+    expect(REQUIRED_COPY).toContain(alcohol.guidance.line['nz-women']);
+  });
+
+  it('the electrolyte reminder body is the reviewed required sentence', () => {
+    expect(REQUIRED_COPY).toContain(reminders.electrolytes.body);
   });
 });

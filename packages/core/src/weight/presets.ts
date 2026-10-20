@@ -4,7 +4,9 @@
  *
  * - The rule every reader uses: a stored 23:1 that is still the untouched Kickstart default
  *   ('kickstart-default') reads as 22:2, 17:00–19:00, whenever no Kickstart is running, so one meal
- *   a day never applies outside a running Kickstart, whatever has been written.
+ *   a day never applies outside a running Kickstart, whatever has been written. While readiness
+ *   answer 4 is "yes" or unanswered it reads as 22:2 even during Kickstart: the app chose that
+ *   default before the answer, and nothing is chosen for that owner (C07, E49).
  * - The two stored moves keep the records in line: at a Kickstart start an untouched default moves
  *   to the 23:1 Kickstart default (never for answer 4 "yes" or unanswered, C07); outside Kickstart
  *   an untouched 23:1 Kickstart default moves back to 22:2. A preset the owner chose is never moved,
@@ -59,12 +61,18 @@ const change = (
 const isKickstartDefault = (targets: PresetFields): boolean =>
   targets.fastingPreset === '23:1' && targets.presetChosenBy === 'kickstart-default';
 
-/** The preset every screen and planner uses: an untouched 23:1 Kickstart default reads as 22:2 'default' whenever no Kickstart is running. */
+/**
+ * The preset every screen and planner uses: an untouched 23:1 Kickstart default reads as 22:2
+ * 'default' whenever no Kickstart is running, and always while answer 4 applies (C07).
+ */
 export function effectiveFastingPreset(
   targets: Pick<TargetsRecord, 'fastingPreset' | 'eatingWindow' | 'presetChosenBy'>,
   kickstartRunning: boolean,
+  gates: Pick<ReadinessGates, 'pharmacistReminder'>,
 ): EffectivePreset {
-  if (!kickstartRunning && isKickstartDefault(targets)) return change('22:2', 'default');
+  if ((!kickstartRunning || gates.pharmacistReminder) && isKickstartDefault(targets)) {
+    return change('22:2', 'default');
+  }
   return {
     fastingPreset: targets.fastingPreset,
     eatingWindow: targets.eatingWindow,
@@ -85,12 +93,16 @@ export function kickstartStartPresetChange(
   return targets.presetChosenBy === 'default' ? change('23:1', 'kickstart-default') : null;
 }
 
-/** A start leaves the eating window at 23:1: it moves an untouched default there, or finds the 23:1 Kickstart default stored. */
+/**
+ * A start leaves the eating window at 23:1: it moves an untouched default there, or finds the 23:1
+ * Kickstart default stored. Never while answer 4 applies, when a stored Kickstart default is not
+ * used either (effectiveFastingPreset).
+ */
 export function kickstartStartUses231(
   targets: PresetFields,
   gates: Pick<ReadinessGates, 'fastingGated' | 'pharmacistReminder'>,
 ): boolean {
-  if (gates.fastingGated) return false;
+  if (gates.fastingGated || gates.pharmacistReminder) return false;
   return kickstartStartPresetChange(targets, gates) !== null || isKickstartDefault(targets);
 }
 

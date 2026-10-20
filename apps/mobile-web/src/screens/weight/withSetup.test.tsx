@@ -182,11 +182,11 @@ describe('item 13’s gates read item 14’s current weight: the lower of the 7-
     expect(read.state.latestWeightKg).toBe(60.5);
     expect(gateInputOf(read.state, db.env).lowWeight).toBe(true);
     await expect(
-      saveSchedule(
-        db.storage,
-        { choice: '16:8', window: { start: '11:00', end: '19:00' }, reflux: false },
-        'settings',
-      ),
+      saveSchedule(db.storage, {
+        choice: '16:8',
+        window: { start: '11:00', end: '19:00' },
+        reflux: false,
+      }),
     ).rejects.toEqual(new FlowStaleError('fasting-gated'));
   });
 

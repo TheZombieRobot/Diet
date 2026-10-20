@@ -6,8 +6,10 @@
 import type { RepoContext } from './context';
 import { type CardStateRepo, cardStateRepo } from './cardState';
 import { type CrudRepo, crudRepo } from './crud';
+import { type DietModeRepo, dietModeRepo } from './dietMode';
 import { type DrinksRepo, drinksRepo } from './drinks';
 import { type FastsRepo, fastsRepo } from './fasts';
+import { type FoodLogRepo, foodLogRepo } from './foodLog';
 import { type GardenPhotosRepo, gardenPhotosRepo } from './gardenPhotos';
 import { type KickstartRepo, kickstartRepo } from './kickstart';
 import { type PairingRepo, pairingRepo } from './pairing';
@@ -19,6 +21,8 @@ import { type WeightsRepo, weightsRepo } from './weights';
 
 export interface Repos {
   readonly profile: SingletonRepo<'profile'>;
+  /** The only writer of profile.dietMode (item 21). */
+  readonly dietMode: DietModeRepo;
   readonly targets: SingletonRepo<'targets'>;
   readonly settings: SettingsRepo;
   readonly readiness: ReadinessRepo;
@@ -34,7 +38,7 @@ export interface Repos {
   readonly ingredientOverrides: CrudRepo<'ingredient_overrides'>;
   readonly recipes: CrudRepo<'recipes'>;
   readonly planDays: PlanDaysRepo;
-  readonly foodLog: CrudRepo<'food_log'>;
+  readonly foodLog: FoodLogRepo;
   readonly garden: CrudRepo<'garden'>;
   readonly gardenPhotos: GardenPhotosRepo;
   readonly pantry: CrudRepo<'pantry'>;
@@ -53,6 +57,7 @@ export interface Repos {
 export function createRepos(ctx: RepoContext): Repos {
   return {
     profile: singletonRepo(ctx, 'profile'),
+    dietMode: dietModeRepo(ctx),
     targets: singletonRepo(ctx, 'targets'),
     settings: settingsRepo(ctx),
     readiness: readinessRepo(ctx),
@@ -67,7 +72,7 @@ export function createRepos(ctx: RepoContext): Repos {
     ingredientOverrides: crudRepo(ctx, 'ingredient_overrides'),
     recipes: crudRepo(ctx, 'recipes'),
     planDays: planDaysRepo(ctx),
-    foodLog: crudRepo(ctx, 'food_log'),
+    foodLog: foodLogRepo(ctx),
     garden: crudRepo(ctx, 'garden'),
     gardenPhotos: gardenPhotosRepo(ctx),
     pantry: crudRepo(ctx, 'pantry'),

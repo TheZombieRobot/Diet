@@ -231,6 +231,7 @@ export function gateChangeEffects(
     resetSetupSchedule: setupScheduleReset(ctx.targets, {
       onboardingCompleted: ctx.onboardingCompleted,
       fastingGated: after.fastingGated,
+      pharmacistReminder: after.pharmacistReminder,
       kickstartChosen: ctx.kickstartOptIn && !clearKickstartOptIn && after.kickstartAvailable,
     }),
   };

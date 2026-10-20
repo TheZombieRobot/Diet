@@ -9,7 +9,10 @@ import { GATED_FEATURES, READINESS_REASON_IDS } from '../readiness/gates';
 import { USER_ALLERGENS } from '../storage/allergens';
 import { FLOOR_KJ, KICKSTART_MAX_DEFICIT_PCT, KICKSTART_NET_CARBS_G } from '../storage/limits';
 import { READINESS_QUESTION_IDS } from '../storage/readiness';
+import { TARGET_COPY_FACTS } from '../targets/copyFacts';
+import { DIET_MODES } from '../targets/dietModes';
 import {
+  about,
   alcohol,
   fasting,
   general,
@@ -21,7 +24,10 @@ import {
   profile,
   readiness,
   reflux,
+  reminders,
   schedule,
+  targets,
+  today,
   transfer,
 } from './health';
 import { fillTemplate, joinList } from './template';
@@ -64,6 +70,10 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
     /\byou\s+should\s+stop\b/i,
     // Item 13: help after a change is never played down (the notice's "Why am I seeing this?").
     /\b(?:too\s+late|works\s+best\s+before|only\s+before|no\s+point)\b/i,
+    // Item 21 (C11): alcohol energy is never a budget, and nothing is "left" or "remaining".
+    /\bbudget\b/i,
+    /\bleft\b/i,
+    /\bremaining\b/i,
   ],
   // HEALTH_SAFETY.md section 7 (privacy as a safety feature); storage spec sections 10–12.
   privacy: [
@@ -156,6 +166,63 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
     /\b(?:antacids?|omeprazole|pantoprazole|lansoprazole|esomeprazole|PPIs?|gaviscon|ranitidine|famotidine)\b/i,
     /\bcur(?:e|es|ed|ing)\b/i,
     /\byou(?:['’]re|\s+are)\s+safe\b/i,
+  ],
+  // Item 21 (HEALTH_SAFETY section 4, HS-09, NU-05, C11, C16): neutral indicator wording; no
+  // "left" or "remaining" energy, and nothing that judges intake.
+  targets: [
+    /\bbad\b/i,
+    /\bfail\w*/i,
+    /\bcheat\w*/i,
+    /\bnaughty\b/i,
+    /\bguilt\w*/i,
+    /\bsinful\b/i,
+    /\bblew\b|\bblown\b/i,
+    /\bexceed\w*/i,
+    /\bwarning\b/i,
+    /\bdanger\w*/i,
+    /\bleft\b/i,
+    /\bremaining\b/i,
+    /\bspare\b/i,
+    /\bideal\b/i,
+    /\bstarv\w*/i,
+    /\bpunish\w*/i,
+    /\bstrict\w*/i,
+    /\bmust\b/i,
+  ],
+  // Item 16 (design 3.6): no pressure to fast, no scores, no steps or water goals.
+  today: [
+    /\bstreaks?\b/i,
+    /\bwell\s+done\b/i,
+    /\bcongrat\w*/i,
+    /\bgoals?\b/i,
+    /\btargets?\b/i,
+    /\bsafe(?:ly)?\b/i,
+    /\bkeep\s+(?:going|fasting|it\s+up)\b/i,
+    /\bdon['’]t\s+(?:eat|break|give\s+up)\b/i,
+    /\bbroken?\b/i,
+    /\bfail\w*/i,
+    /\bbad\b/i,
+    /\bcheat\w*/i,
+    /\bshould\b/i,
+    /\bmust\b/i,
+  ],
+  // No supplement forms (HEALTH_SAFETY section 4) and no reassurance.
+  reminders: [
+    /\bstreaks?\b/i,
+    /\bcongrat\w*/i,
+    /\bwell\s+done\b/i,
+    /\bguarantee\w*/i,
+    /\byou(?:['’]re|\s+are)\s+safe\b/i,
+    /\b(?:tablets?|pills?|capsules?|powders?|sachets?)\b/i,
+  ],
+  // The general rules, and no food data source by name until item 18 records the licence (C97,
+  // NU-09). Case-sensitive on purpose: these are proper names. Item 18 replaces this rule.
+  about: [
+    /\byou(?:'re|\s+are)\s+safe\b/i,
+    /\b(?:100\s*%|completely|totally|fully|perfectly)\s+(?:private|secure|safe|anonymous)\b/i,
+    /\banonymous(?:ly)?\b/i,
+    /\bsecure\b/i,
+    /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
   ],
   // Items 30 and 31 (HEALTH_SAFETY.md section 7): one list, shared with the pairing-check scan.
   transfer: TRANSFER_SECTION_RULES,
@@ -462,6 +529,7 @@ describe('fasting and reflux copy (item 15)', () => {
       m.afterWindowUnchecked,
       m.afterWindowUncheckedReflux,
       m.unavailableOneMeal,
+      m.unavailableOneMealNoSnack,
       fasting.card.windowOpen,
       fasting.card.nearCeiling,
       fasting.card.fineToEat,
@@ -495,6 +563,177 @@ describe('fasting and reflux copy (item 15)', () => {
       'Severe weakness',
     ]);
     expect(reflux.chestPain).toContain(helpNumbers.emergency.number);
+  });
+});
+
+// Item 13 review: wording that has to hold wherever it shows (setup and Settings) and whatever
+// the other answers are. The gate-dependent choice between lines is tested in the app
+// (onboarding/readinessText.test.ts); these pin the sentences the review found untrue.
+describe('first-run wording holds in every place it shows (item 13 review)', () => {
+  it('no readiness line says fasting is allowed, and the "has changed" lines promise nothing', () => {
+    for (const [path, text] of strings(readiness, 'readiness')) {
+      expect(text, path).not.toMatch(/\ballowed\b|until you have checked again/);
+    }
+    expect(readiness.changedDone.q3).not.toMatch(/\bare off until\b/);
+    expect(readiness.ifYesAlsoOff.q3).toContain('hypoglycaemia');
+    expect(readiness.confirmedAlsoOff.prescriberAgreed).toContain(`"${readiness.changed.q3}"`);
+  });
+
+  it('Settings wording says what Settings can do: no "continue", no field it lacks, nothing said to be kept that is not', () => {
+    expect(onboarding.frame.fixBelow).not.toMatch(/continue/i);
+    expect(profile.errors.required).not.toMatch(/continue/i);
+    expect(readiness.weightCheck.lowWeightStored).not.toMatch(/weight or height/);
+    expect(profile.goalHiddenAfterHeight).not.toMatch(/until you change it/);
+    expect(readiness.settingsIntro).toContain('asks for its confirmation again');
+    expect(readiness.settingsIntro).not.toMatch(/nothing .* deleted/);
+    expect(onboarding.frame.restoreIntro).toContain('otherwise setup carries on');
+    expect(alcohol.notice.helplineTitle).toBe('Alcohol Drug Helpline');
+  });
+});
+
+describe('Diet and targets copy (item 21; C-1 to C-7)', () => {
+  /** "5,000" from 5000, as the copy writes it. */
+  const n = (x: number) => String(x).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const facts = TARGET_COPY_FACTS;
+
+  it('C-2: every number the copy states equals the core constants', () => {
+    const cases: [string, readonly string[]][] = [
+      [targets.energy.floorHint, [`${n(facts.floorKj)} kJ`, `${n(facts.maxFloorKj)} kJ`]],
+      [targets.energy.floorTooLow, [`${n(facts.floorKj)} kJ`]],
+      [targets.energy.floorTooHigh, [`${n(facts.maxFloorKj)} kJ`]],
+      [targets.energy.kickstartDeficitHint, [`${facts.kickstartMaxPct}%`]],
+      [targets.energy.steadyDeficitHint, [`${facts.steady.min}% to ${facts.steady.max}%`]],
+      [
+        targets.carbs.ketoHint,
+        [`${facts.keto.min} to ${facts.keto.max} g`, `${facts.keto.default} g`],
+      ],
+      [
+        targets.carbs.moderateHint,
+        [`${facts.moderate.min} to ${facts.moderate.max} g`, `${facts.moderate.default} g`],
+      ],
+      [targets.carbs.heldAt50, [`${facts.keto.max} g`]],
+      [
+        targets.protein.hint,
+        [
+          `${facts.protein.limits.min} to ${facts.protein.limits.max} g`,
+          `${facts.protein.defaults.min} to ${facts.protein.defaults.max} g`,
+        ],
+      ],
+      [
+        targets.saturatedFat.budgetHint,
+        [`${facts.satFat.min}% to ${facts.satFat.max}%`, `${facts.satFat.default}%`],
+      ],
+      [targets.guides.fibreHint, [`${facts.fibre.min} to ${facts.fibre.max} g`]],
+      [targets.guides.waterHint, [`${n(facts.water.min)} to ${n(facts.water.max)} mL`]],
+      [targets.energy.staleWeight, [`${facts.staleWeightDays} days`]],
+      [targets.energy.unavailable.ageOutOfRange, [facts.estimateLimits.ageYears.join(' to ')]],
+      [
+        targets.energy.unavailable.heightOutOfRange,
+        [`${facts.estimateLimits.heightCm.join(' to ')} cm`],
+      ],
+      [
+        targets.energy.unavailable.weightOutOfRange,
+        [`${facts.estimateLimits.weightKg.join(' to ')} kg`],
+      ],
+    ];
+    for (const [text, parts] of cases) for (const part of parts) expect(text).toContain(part);
+  });
+
+  it('C-3: the diet-mode names read as UX 3a, in the order of DIET_MODES', () => {
+    expect(Object.keys(targets.dietMode.names)).toEqual([...DIET_MODES]);
+    expect(Object.values(targets.dietMode.names).join(' / ')).toBe(
+      'Keto-preferred / Moderate low-carb / Balanced',
+    );
+  });
+
+  it('C-4, C-5: the electrolyte line is the required sentence, in one wording; the floor is a safety net, not a target', () => {
+    // One reminder, one wording: the targets section has no electrolyte lines of its own (item 16
+    // merge); the reminder and item 22's planner card read reminders.electrolytes.
+    expect(Object.keys(targets)).not.toContain('electrolytes');
+    expect(reminders.electrolytes.body).toBe(
+      'Electrolytes: sodium, potassium, magnesium. Garden sources: silverbeet, spinach, avocado.',
+    );
+    for (const text of [targets.energy.floorBinds, targets.today.floorDay]) {
+      expect(text.toLowerCase()).toContain('safety net, not a target');
+    }
+  });
+
+  it('C-6: every template fills from its own placeholders', () => {
+    const values = Object.fromEntries(
+      [
+        ...['kj', 'kcal', 'kg', 'date', 'pct', 'protein', 'carbs', 'floorKj', 'floorKcal'],
+        ...['max', 'min', 'g', 'ml', 'stored', 'used', 'eaten', 'target', 'guide', 'ceiling'],
+        ...['count', 'nutrient', 'mode'],
+      ].map((name) => [name, 1]),
+    );
+    for (const [path, text] of [
+      ...strings(targets, 'targets'),
+      ...strings(alcohol.dayEnergy, 'alcohol.dayEnergy'),
+    ]) {
+      expect(fillTemplate(text, values), path).not.toMatch(/[{}]/);
+    }
+    expect(() => fillTemplate(targets.energy.floorBinds, { floorKj: 5000 })).toThrow(RangeError);
+  });
+
+  it('C-7: the pregnancy note names a midwife and GP; the stop-sign lines carry Healthline and 111', () => {
+    expect(targets.energy.pregnancyNote).toContain('midwife');
+    expect(targets.energy.pregnancyNote).toContain('GP');
+    expect(targets.stopSign.action).toContain(helpNumbers.healthline.number);
+    expect(targets.stopSign.emergency).toContain(helpNumbers.emergency.number);
+  });
+});
+
+describe('Today and About copy (item 16; U9)', () => {
+  it('TD-02: the later-step lines carry no figure and say the feature arrives later', () => {
+    for (const [path, text] of strings(today.laterStep, 'laterStep')) {
+      expect(text, path).not.toMatch(/\d/);
+      expect(text, path).toMatch(/later step/);
+    }
+    expect(today.quickActions.laterNote).not.toMatch(/\d/);
+  });
+
+  it('the quick-action labels are the UX_SCREENS section 2 list, in order', () => {
+    expect(Object.values(today.quickActions.labels)).toEqual([
+      'Log weight',
+      'Finish meal',
+      'Swap recipe',
+      'Complete workout',
+      'Add harvest',
+      'Add drink',
+      'Open grocery list',
+    ]);
+  });
+
+  it('C97: the data-sources card has one line per badge and names no food data source', () => {
+    expect(about.dataSources.badges.map((line) => line.split(':')[0])).toEqual([
+      'Label',
+      'Database',
+      'Estimate',
+    ]);
+    for (const [path, text] of strings(about, 'about')) {
+      expect(text, path).not.toMatch(
+        /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
+      );
+      expect(text, path).not.toMatch(/food composition/i);
+    }
+  });
+
+  it('every template fills with its named placeholders and no others', () => {
+    const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1] ?? '');
+    for (const [path, text] of [...strings(today, 'today'), ...strings(reminders, 'reminders')]) {
+      const values = Object.fromEntries(placeholders(text).map((name) => [name, 'x']));
+      expect(fillTemplate(text, values), path).not.toMatch(/[{}]/);
+    }
+    expect(fillTemplate(fasting.status.openWhileOff, { duration: '2 h' })).toBe(
+      'A fast you started is still open (2 h). You can end it below.',
+    );
+  });
+
+  it('C102, T31: the electrolyte reminder names minerals and garden foods; its blood-pressure line is one wording', () => {
+    expect(reminders.electrolytes.body).toBe(
+      'Electrolytes: sodium, potassium, magnesium. Garden sources: silverbeet, spinach, avocado.',
+    );
+    expect(readiness.ifYes.q4.endsWith(readiness.bloodPressure.electrolyte)).toBe(true);
   });
 });
 
