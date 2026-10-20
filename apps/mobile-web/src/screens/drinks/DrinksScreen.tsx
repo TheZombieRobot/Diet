@@ -4,7 +4,8 @@
  * help (5c). The Help card, with the first-run notice and every help number, is there in every
  * state: while the records open, after a failed read, before the notice and while drink logging is
  * off (HS-13, AL-12, A12). Under 18 the help card still follows all four triggers, and nothing
- * logged is lost (RD-01, RD-06, A23). Nothing here needs the network.
+ * logged is lost (RD-01, RD-06, A23). Focus is never left on <body> (focus.ts). Nothing here needs
+ * the network.
  */
 import { alcohol } from '@diet/core/copy/health';
 import { Button, ButtonRow, Card } from '@diet/ui';
@@ -15,6 +16,7 @@ import { useStore } from '../../store';
 import { AlcoholHelpCard } from '../today/AlcoholHelpCard';
 import { DayNoteCard } from './DayNoteCard';
 import { DrinksHelpCard } from './DrinksHelpCard';
+import { scrollToTop, useDrinksFocusRescue, useFocusNext } from './focus';
 import { GuidanceCard } from './GuidanceCard';
 import { LogCard } from './LogCard';
 import { MilestonesCard } from './MilestonesCard';
@@ -34,16 +36,15 @@ const PARTS = [
 /** Scrolls to a part and moves focus to it (buttons, not "#" links: "#" is the router). */
 function jumpTo(id: string): void {
   const part = document.getElementById(id);
-  if (part === null) return;
-  // jsdom has no scrollIntoView (FastingScreen and the Backup card guard it the same way).
-  if (typeof part.scrollIntoView === 'function') part.scrollIntoView({ block: 'start' });
-  part.focus({ preventScroll: true });
+  if (part !== null) scrollToTop(part);
 }
 
 export function DrinksScreen(): ReactElement {
   const storage = useStore(appStorageStore);
+  const screen = useRef<HTMLDivElement>(null);
+  useDrinksFocusRescue(screen);
   return (
-    <div className="ui-drinks-screen" data-testid="drinks-screen">
+    <div ref={screen} className="ui-drinks-screen" data-testid="drinks-screen">
       {storage === null ? (
         <>
           <p className="ui-text-muted">{a.opening}</p>
@@ -60,6 +61,8 @@ function DrinksWithRecords({ storage }: { readonly storage: AppStorage }): React
   const state = useDrinksView(storage);
   const [editingPresets, setEditingPresets] = useState(false);
   const firstJump = useRef<HTMLButtonElement>(null);
+  const editPresets = useRef<HTMLButtonElement>(null);
+  const focusNext = useFocusNext();
 
   if (state.kind !== 'ready') {
     return (
@@ -89,7 +92,7 @@ function DrinksWithRecords({ storage }: { readonly storage: AppStorage }): React
           ) : (
             <>
               <GateNotice feature="alcoholLogging" link={false} />
-              <p>{alcohol.access.kept}</p>
+              {view.hasRecords ? <p>{alcohol.access.kept}</p> : null}
             </>
           )}
         </Card>
@@ -120,18 +123,35 @@ function DrinksWithRecords({ storage }: { readonly storage: AppStorage }): React
         <LogCard
           storage={storage}
           view={view}
+          editingPresets={editingPresets}
+          editPresetsRef={editPresets}
           onEditPresets={() => {
-            setEditingPresets((open) => !open);
+            const opening = !editingPresets;
+            setEditingPresets(opening);
+            // The editor is drawn below the Log card, often below the fold: bring it into view.
+            if (opening) {
+              focusNext(() => {
+                const editor = document.getElementById('drinks-presets');
+                const heading = editor?.querySelector<HTMLElement>('h2');
+                if (editor !== null && heading !== null && heading !== undefined) {
+                  scrollToTop(editor, heading);
+                }
+                return null;
+              });
+            }
           }}
         />
         {editingPresets ? (
-          <PresetEditor
-            storage={storage}
-            view={view}
-            onDone={() => {
-              setEditingPresets(false);
-            }}
-          />
+          <div id="drinks-presets">
+            <PresetEditor
+              storage={storage}
+              view={view}
+              onDone={() => {
+                setEditingPresets(false);
+                focusNext(() => editPresets.current);
+              }}
+            />
+          </div>
         ) : null}
         <SummaryCard view={view} />
       </div>

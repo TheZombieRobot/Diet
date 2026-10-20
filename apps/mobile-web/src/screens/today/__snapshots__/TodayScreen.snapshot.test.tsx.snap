@@ -143,6 +143,7 @@ exports[`TD-01: the Today snapshot (C1) > (a) the full fixture 1`] = `
         "2 alcohol-free days",
         "NZ guidance for women: no more than 2 standard drinks a day and 10 a week, with at least 2 alcohol-free days. No alcohol use is risk-free.",
         "Days with nothing logged count as alcohol-free.",
+        "A drinking day runs from 5:00 am to 5:00 am the next day. You can change this in Settings.",
       ],
     },
     {
@@ -353,6 +354,7 @@ exports[`TD-01: the Today snapshot (C1) > (b) fasting gated (q5 yes after the fa
         "2 alcohol-free days",
         "NZ guidance for women: no more than 2 standard drinks a day and 10 a week, with at least 2 alcohol-free days. No alcohol use is risk-free.",
         "Days with nothing logged count as alcohol-free.",
+        "A drinking day runs from 5:00 am to 5:00 am the next day. You can change this in Settings.",
       ],
     },
     {

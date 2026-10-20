@@ -135,7 +135,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | AL-04 | Weekly comparison, male profile | 15/week and 3/day (HS-05) |
 | AL-05 | Alcohol-free days count | Correct for the fixture week (Monday-start, counted from the notice day up to yesterday); no badge or streak wording |
 | AL-06 | Card trigger: 7 consecutive days | Card shown (HS-06) |
-| AL-07 | Card trigger: double weekly guidance | Card shown; still shown while that 7-day window ended within the last 7 drinking days |
+| AL-07 | Card trigger: double weekly guidance | Card shown; still shown while that 7-day window ended within the last 7 drinking days; a label figure lower than the calculation, however close, counts at the calculation; a date skipped by crossing the date line widens the window to 7 days lived |
 | AL-08 | Card trigger: withdrawal symptoms note | Card shown; still shown after a reload and after a backup round trip; an un-ticked note shows no card (C05) |
 | AL-09 | Card trigger: readiness "most days" | Card shown from day one |
 | AL-09b | Readiness Q7 "most days or heavily at weekends" answered yes, or unanswered | Card shown from day one (C58) |

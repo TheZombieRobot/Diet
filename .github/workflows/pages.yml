@@ -61,6 +61,12 @@ jobs:
           package-manager-cache: false
       - name: Enable pnpm (version pinned in package.json)
         run: corepack enable
+      # Cross-item ruling 8: wording that awaits the owner's confirmation at the week-1 review
+      # (STOP 17), such as item 28's C58 help-card lines, is never published. This step fails while
+      # health.ts still marks any string that way; the commit recording the confirmation removes
+      # the markers.
+      - name: Hold wording that awaits the owner's confirmation
+        run: node tools/release/wording-hold.ts
       - run: pnpm install --frozen-lockfile
       - name: Safety scans, lint, type check and unit tests
         run: pnpm check

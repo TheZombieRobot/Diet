@@ -15,9 +15,10 @@ import {
   areConsecutiveDrinkingDays,
   drinkingDayOf,
   resolveZone,
+  skippedDrinkingDays,
 } from '../storage/dates';
 import { DRINKING_DAY_CUTOVER_MINUTES } from '../storage/limits';
-import type { Instant, TimeZone } from '../storage/primitives';
+import { type Instant, instantMs, type TimeZone } from '../storage/primitives';
 import type { DrinkLogRecord } from '../storage/records';
 import { addDays, type LocalDate } from '../util/time';
 import { reachesDoubleGuidance } from './guidance';
@@ -25,6 +26,7 @@ import {
   type AlcoholDay,
   alcoholDaysOfPlaced,
   type DrinkingDayContext,
+  type PlacedDrink,
   placeDrinks,
   totalsOfPlaced,
 } from './totals';
@@ -101,6 +103,25 @@ export function drinkingRuns(
   return runs;
 }
 
+/**
+ * Drinking days skipped by crossing the date line westward between one logged drink and the next
+ * (D8), each with the drinking day of the drink after the skip. Read from each row's own zone.
+ */
+function dateLineSkips(
+  placed: readonly PlacedDrink[],
+  cutoverMinutes: number,
+): readonly { readonly after: LocalDate; readonly days: number }[] {
+  const byTime = [...placed].sort((a, b) => instantMs(a.row.at) - instantMs(b.row.at));
+  const skips: { after: LocalDate; days: number }[] = [];
+  byTime.forEach((p, i) => {
+    const before = byTime[i - 1];
+    if (before === undefined || before.zone === p.zone) return;
+    const days = skippedDrinkingDays(p.row.at, before.zone, p.zone, cutoverMinutes);
+    if (days > 0) skips.push({ after: p.day, days });
+  });
+  return skips;
+}
+
 /** The two drinking triggers under one cut-over. */
 function drinkingTriggers(
   input: HelpTriggerInput,
@@ -119,10 +140,18 @@ function drinkingTriggers(
   const consecutive = drinkingRuns(days, cutoverMinutes).some(
     (run) => run.length >= HELP_CARD_RULES.consecutiveDays && run.end >= recentEnd,
   );
+  // 7 drinking days lived through, not 7 dates: a window reaches back one more date for each one
+  // skipped by the date line after a drink inside it (D8). Where the skip fell is not known, so it
+  // is counted whenever the drink after it is in the window: the window can only grow, never shrink.
+  const skips = dateLineSkips(placed, cutoverMinutes);
   let double = false;
   for (let k = 0; k < HELP_CARD_RULES.recentDays && !double; k++) {
     const end = addDays(today, -k);
-    const totals = totalsOfPlaced(placed, addDays(end, 1 - HELP_CARD_RULES.rollingDays), end);
+    const dates = addDays(end, 1 - HELP_CARD_RULES.rollingDays);
+    const skipped = skips
+      .filter((skip) => skip.after > dates && skip.after <= end)
+      .reduce((total, skip) => total + skip.days, 0);
+    const totals = totalsOfPlaced(placed, addDays(dates, -skipped), end);
     double = reachesDoubleGuidance(totals.triggerStd, input.weeklyGuidance);
   }
   return { consecutive, double };
@@ -177,7 +206,9 @@ export function helpCardState(
   cutoverMinutes: number,
 ): HelpCardState {
   const showing = active.filter((t) => !cardHidden(visibilityInput(t, rows, now, cutoverMinutes)));
-  const collapsed = showing.some(
+  // The return line names the earliest return: an active record-based trigger, showing or hidden
+  // for the day, brings the card back at the next drinking day while it holds.
+  const collapsed = active.some(
     (t) => visibilityInput(t, rows, now, cutoverMinutes).dismissal.kind === 'collapsed',
   );
   return {

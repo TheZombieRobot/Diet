@@ -1,15 +1,28 @@
-import { type AlcoholHelpTrigger, helpCardNextChange, helpCardState, instantMs } from '@diet/core';
+import {
+  type AlcoholHelpTrigger,
+  type CardStateRecord,
+  helpCardNextChange,
+  helpCardState,
+  instantMs,
+} from '@diet/core';
 import { alcohol } from '@diet/core/copy/health';
 import { Button, Card } from '@diet/ui';
 import { type ReactElement, useEffect, useId, useRef, useState } from 'react';
+import { useLiveQuery } from '../../db/liveQuery';
 import type { AppStorage } from '../../db/runtime';
 import { NoticeHelpRows } from '../../onboarding/NoticeHelpRows';
+import { useReadinessGates } from '../../onboarding/state';
 import { SaveError } from '../../onboarding/SaveError';
 import { useSave } from '../../onboarding/useSave';
 import { useRedrawAt } from '../backup/redraw';
 import type { DrinksState } from '../drinks/useDrinksView';
 
 const CARD = 'alcohol-help';
+
+/** Question 7's own card row, read apart from the drinks records (see below). */
+const readQ7Row = async (storage: AppStorage): Promise<{ row: CardStateRecord | undefined }> => ({
+  row: await storage.repos.cardState.get(CARD, 'readiness-q7'),
+});
 
 /**
  * The "talk to someone" card (HEALTH_SAFETY section 5; HS-06, AL-06 to AL-09b; C44, C58; item 13
@@ -23,7 +36,9 @@ const CARD = 'alcohol-help';
  * is no "done" control; the card can never be turned off (C46). It never names the trigger that
  * fired. Its visibility is worked out at its own render from the clock, and it is drawn again when
  * the app comes back into view and when a dismissal ends (redraw.ts), so it returns without
- * waiting for another redraw.
+ * waiting for another redraw. Question 7 never waits on the drinks records: while they are still
+ * opening, or could not be read, it follows item 13's live gates and its own card row, as it did
+ * before item 28 (HS-06, AL-09b).
  */
 export function AlcoholHelpCard({
   storage,
@@ -40,10 +55,15 @@ export function AlcoholHelpCard({
   const whyId = useId();
   const [whyOpen, setWhyOpen] = useState(false);
   const now = storage.env.now();
+  const gateView = useReadinessGates(storage);
+  const q7 = useLiveQuery(storage, readQ7Row);
   const view = drinks.kind === 'ready' ? drinks.view : null;
-  const active: readonly AlcoholHelpTrigger[] = view?.helpActive ?? [];
-  const rows = view?.cardRows ?? {};
-  const cutover = view?.ctx.cutoverMinutes ?? 0;
+  const q7Only: readonly AlcoholHelpTrigger[] =
+    q7 !== undefined && gateView?.gates.alcoholHelpCardFromDayOne === true ? ['readiness-q7'] : [];
+  const active: readonly AlcoholHelpTrigger[] = view?.helpActive ?? q7Only;
+  const rows = view?.cardRows ?? (q7?.row === undefined ? {} : { 'readiness-q7': q7.row });
+  const cutover =
+    view?.ctx.cutoverMinutes ?? gateView?.state.settings.drinkingDayCutoverMinutes ?? 0;
   useRedrawAt(
     view === null ? null : helpCardNextChange(active, rows, now, cutover),
     instantMs(now),
@@ -88,7 +108,7 @@ export function AlcoholHelpCard({
       <SaveError save={save} />
       <Button
         variant="quiet"
-        disabled={save.busy}
+        aria-disabled={save.busy}
         onClick={() => {
           const showing = help.showing;
           void save

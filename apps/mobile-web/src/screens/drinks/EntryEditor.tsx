@@ -1,10 +1,18 @@
 /**
  * Editing one logged drink (item 28 design 2.6; A21), from Logged today and from the Trends day
- * rows: how many, and the date and time in the device zone. Only a changed date or time is sent,
- * so editing the count alone never moves the drink or changes its zone; a time still to come is
- * refused. To change the drink itself, the owner deletes the entry and logs it again.
+ * rows: how many, and the date and time in the entry's own zone, the zone its row shows the time
+ * in, so a drink logged in Sydney is corrected in Sydney time and keeps its zone (the repository
+ * keeps it). Only a changed date or time is sent, so editing the count alone never moves the drink;
+ * a time still to come is refused. To change the drink itself, the owner deletes the entry and
+ * logs it again. Save and Delete stay focusable while they write (aria-disabled).
  */
-import { type DrinkLogRecord, localWallClockOf } from '@diet/core';
+import {
+  DEFAULT_HOME_TIME_ZONE,
+  type DrinkLogRecord,
+  localWallClockOf,
+  resolveZone,
+  type TimeZone,
+} from '@diet/core';
 import { alcohol } from '@diet/core/copy/health';
 import { Button, ButtonRow, TextField } from '@diet/ui';
 import { type ReactElement, useState } from 'react';
@@ -21,17 +29,21 @@ const clock = (minutes: number): string =>
 export function EntryEditor({
   storage,
   entry,
+  homeTimeZone,
   maxDate,
   onClose,
 }: {
   readonly storage: AppStorage;
   readonly entry: DrinkLogRecord;
+  /** settings.homeTimeZone, for an entry whose zone this device does not know (D6). */
+  readonly homeTimeZone: TimeZone;
   readonly maxDate: string;
   readonly onClose: () => void;
 }): ReactElement {
   const { env, repos } = storage;
+  const zone = resolveZone(entry.timeZone, homeTimeZone, DEFAULT_HOME_TIME_ZONE).timeZone;
   const [initial] = useState(() => {
-    const wall = localWallClockOf(entry.at, env.timeZone());
+    const wall = localWallClockOf(entry.at, zone);
     return { count: String(entry.count), date: wall.date, time: clock(wall.minutes) };
   });
   const [draft, setDraft] = useState(initial);
@@ -42,7 +54,7 @@ export function EntryEditor({
   const save = async (): Promise<void> => {
     const count = readCount(draft.count);
     const moved = draft.date !== initial.date || draft.time !== initial.time;
-    const earlier = moved ? readEarlier(draft.date, draft.time, env) : null;
+    const earlier = moved ? readEarlier(draft.date, draft.time, env, zone) : null;
     const found: WhenProblems = {};
     if (count === null) found.count = a.errors.count;
     if (earlier !== null && 'problem' in earlier) found.time = earlier.problem;
@@ -92,7 +104,7 @@ export function EntryEditor({
           <ButtonRow>
             <Button
               variant="caution"
-              disabled={write.busy}
+              aria-disabled={write.busy}
               onClick={() => {
                 void write
                   .run(() => repos.drinks.remove(entry.id))
@@ -116,7 +128,7 @@ export function EntryEditor({
         </>
       ) : (
         <ButtonRow>
-          <Button variant="primary" disabled={write.busy} onClick={() => void save()}>
+          <Button variant="primary" aria-disabled={write.busy} onClick={() => void save()}>
             {a.save}
           </Button>
           <Button

@@ -3,9 +3,17 @@
  * starts, and, for a male profile only, which guidance figures apply. The options carry no
  * numbers; the guidance line for the set that now applies is shown under them, so the figures
  * always come with "No alcohol use is risk-free." Any other profile already has the women's
- * figures, the lower set, and sees why instead of a control. Hidden while drink logging is off.
+ * figures, the lower set, and sees why instead of a control. With readiness answer 2 "yes" or
+ * unanswered the pregnancy line replaces the figures and the reason (F30). Hidden while drink
+ * logging is off. Neither control is disabled while a change saves, so focus stays on it; a
+ * second change while one is saving is ignored (useDrinksWrite).
  */
-import { alcoholAccess, DRINKING_DAY_CUTOVER_MINUTES, guidanceFor } from '@diet/core';
+import {
+  alcoholAccess,
+  DRINKING_DAY_CUTOVER_MINUTES,
+  guidanceFor,
+  guidanceShown,
+} from '@diet/core';
 import { alcohol } from '@diet/core/copy/health';
 import { Card, ChoiceList, SelectField } from '@diet/ui';
 import { type ReactElement, useId, useState } from 'react';
@@ -14,6 +22,7 @@ import { useReadinessGates } from '../../onboarding/state';
 import { useStore } from '../../store';
 import { WriteError } from '../today/WriteError';
 import { cutoverText } from './drinksText';
+import { GuidanceLine } from './SummaryCard';
 import { useDrinksWrite } from './useDrinksWrite';
 
 const s = alcohol.settings;
@@ -36,6 +45,8 @@ export function DrinksSettingsCard(): ReactElement | null {
   });
   if (access !== 'open') return null;
   const guidance = guidanceFor(profile.sex, settings.alcoholGuidanceSet);
+  const shown = guidanceShown(profile.sex, settings.alcoholGuidanceSet, gateView.gates);
+  const cutover = settings.drinkingDayCutoverMinutes;
   /** Saves one setting; each patch is written out where it is made (writers.test.ts). */
   const save = (store: () => Promise<unknown>): void => {
     setSaved(false);
@@ -47,10 +58,10 @@ export function DrinksSettingsCard(): ReactElement | null {
     <Card label={s.cardLabel}>
       <SelectField
         label={s.cutoverLabel}
-        hint={s.cutoverHint}
-        value={String(settings.drinkingDayCutoverMinutes)}
+        // At midnight nothing counts toward the evening before.
+        hint={cutover > 0 ? s.cutoverHint : undefined}
+        value={String(cutover)}
         options={CUTOVERS.map((m) => ({ value: String(m), label: cutoverText(m) }))}
-        disabled={write.busy}
         onChange={(value) => {
           const minutes = Number.parseInt(value, 10);
           save(() => storage.repos.settings.update({ drinkingDayCutoverMinutes: minutes }));
@@ -65,16 +76,15 @@ export function DrinksSettingsCard(): ReactElement | null {
             { value: 'women', label: s.guidanceWomen },
           ]}
           value={settings.alcoholGuidanceSet === 'nz-women' ? 'women' : 'men'}
-          disabled={write.busy}
           onChange={(value) => {
             const set = value === 'women' ? 'nz-women' : null;
             save(() => storage.repos.settings.update({ alcoholGuidanceSet: set }));
           }}
         />
-      ) : (
+      ) : shown.kind === 'guidance' ? (
         <p>{guidance.basis === 'no-sex' ? g.basis.noSex : g.basis.profile[guidance.set]}</p>
-      )}
-      <p className="ui-drinks-guidance">{g.line[guidance.set]}</p>
+      ) : null}
+      <GuidanceLine shown={shown} />
       <p role="status" className="ui-status-line">
         {saved ? s.saved : ''}
       </p>

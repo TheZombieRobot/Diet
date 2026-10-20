@@ -4,13 +4,15 @@
  *
  * - Food and drinks have different types, so a drink cannot reach foodEnergyKj or
  *   plannedFoodEnergyKj, which are all the floor and the meal checks ever read (C11).
- * - A drink with unknown energy is counted as unknown, never as 0 and never inferred (NN-01, C92).
+ * - A drink with unknown energy, or a label energy too low for its alcohol, is counted as unknown,
+ *   never as 0 and never inferred (NN-01, C92, A40): the one rule of countedKcalPerServe, which the
+ *   Drinks screen and Today's Drinks card use too.
  * - A bar compares what it shows (T11): a whole gram, half up for a complete total; a total with a
  *   missing figure is a lower bound, shown rounded down and never "within" (D35). Energy is always
  *   shown rounded down to a whole kJ, so a shown energy is never above what a check compared
  *   (item 18-20 contract, section 3).
  */
-import { totalDrinkEnergy } from '../alcohol/standardDrinks';
+import { type DrinkMeasure, totalDrinkEnergy } from '../alcohol/standardDrinks';
 import { kcalToKj, type Nutrients, sumNutrients } from '../nutrition/nutrients';
 import { ownerMealNutrients, type PlannedMeal } from '../nutrition/portion';
 import { nutrientCompleteness } from '../storage/derived';
@@ -23,10 +25,14 @@ export interface FoodEntryLike {
   readonly unknownNutrients: readonly NutrientKey[];
 }
 
-/** A drinks_log row's energy fields: kcalPerServe is the stored snapshot; null means unknown. */
+/**
+ * A drinks_log row's energy fields: kcalPerServe is the stored snapshot (null means unknown), and
+ * the beverage's measure is what that figure is checked against.
+ */
 export interface DrinkEntryLike {
   readonly kcalPerServe: number | null;
   readonly count: number;
+  readonly beverage: DrinkMeasure;
 }
 
 export interface DayIntake {
@@ -41,6 +47,8 @@ export interface DayIntake {
     readonly knownKj: number;
     /** Drinks (by count) whose energy is unknown. */
     readonly unknownCount: number;
+    /** Every drink (by count), so a logged drink is never "nothing logged", whatever its energy. */
+    readonly count: number;
   };
   /** food.energyKj + alcohol.knownKj, for display only. */
   readonly totalEnergyKj: number;
@@ -56,10 +64,10 @@ export function dayIntake(
 ): DayIntake {
   const sum = sumNutrients(food.map((f) => f.nutrients));
   const unknownCounts = nutrientCompleteness(food);
-  // Mapped explicitly: totalDrinkEnergy reads { kcal, count }, so rows passed as they are would
-  // count every drink as unknown.
+  // Mapped explicitly: totalDrinkEnergy reads { kcal, count, measure }, so rows passed as they are
+  // would count every drink as unknown.
   const drinksTotal = totalDrinkEnergy(
-    drinks.map((d) => ({ kcal: d.kcalPerServe, count: d.count })),
+    drinks.map((d) => ({ kcal: d.kcalPerServe, count: d.count, measure: d.beverage })),
   );
   const knownKj = Math.round(kcalToKj(drinksTotal.knownKcal));
   const foodEnergyIncomplete = unknownCounts.energyKj > 0;
@@ -67,7 +75,12 @@ export function dayIntake(
     food: sum,
     unknownCounts,
     entryCount: food.length,
-    alcohol: { knownKcal: drinksTotal.knownKcal, knownKj, unknownCount: drinksTotal.unknownCount },
+    alcohol: {
+      knownKcal: drinksTotal.knownKcal,
+      knownKj,
+      unknownCount: drinksTotal.unknownCount,
+      count: drinks.reduce((total, d) => total + d.count, 0),
+    },
     totalEnergyKj: sum.energyKj + knownKj,
     foodEnergyIncomplete,
     totalIncomplete: foodEnergyIncomplete || drinksTotal.unknownCount > 0,

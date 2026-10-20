@@ -1,7 +1,7 @@
 // The Drinks screen (item 28 design 6.2 K1): real repositories over fake-indexeddb, the test clock
 // at 1:00 pm on Wednesday 1 March 2000 in Auckland, and a finished setup (all seven answers "no",
 // female, born 1970) unless a case says otherwise.
-import { fillTemplate, type ProfileSex } from '@diet/core';
+import { fillTemplate, type ProfileSex, zonedWallTimeToInstant } from '@diet/core';
 import { alcohol, fasting, readiness } from '@diet/core/copy/health';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { createElement } from 'react';
@@ -91,9 +91,7 @@ describe('logging (K1b to K1d; AL-01, NN-01, A43, FS-05)', () => {
     });
     await renderDrinks();
     const log = region(a.log.cardLabel);
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 50));
-    });
+    // Tapped at once, before the fasting records are read: the note follows when they are.
     fireEvent.click(button(SEEDED, log));
     await within(log).findByTestId('drinks-added');
     expect(await within(log).findByText(fasting.alcoholNote)).toBeDefined();
@@ -131,6 +129,127 @@ describe('logging (K1b to K1d; AL-01, NN-01, A43, FS-05)', () => {
     );
     const [beer] = (await test.repos.drinks.list()).filter((d) => d.name === 'Bottle of beer');
     expect(beer).toMatchObject({ beverageId: 'seed:beer-bottle-330', kcalPerServe: null });
+
+    // A20: once its size is changed it is no longer that serve, so it keeps no seed id.
+    fireEvent.click(button(a.log.otherDrink, log));
+    fireEvent.click(button('Bottle of beer, 330 mL, 5%', log));
+    type(field(a.log.volumeLabel, log), '500');
+    fireEvent.click(button(a.log.add, log));
+    await waitFor(async () => {
+      expect(
+        (await test?.repos.drinks.list())?.filter((d) => d.name === 'Bottle of beer'),
+      ).toHaveLength(2);
+    });
+    const big = (await test.repos.drinks.list()).find((d) => d.beverage.volumeMl === 500);
+    expect(big?.beverageId).toBeNull();
+  });
+
+  it('2.3: two taps before the first log is written log one drink', async () => {
+    test = await drinksFixture();
+    await renderDrinks();
+    const preset = button(SEEDED, region(a.log.cardLabel));
+    fireEvent.click(preset);
+    // Marked busy, never disabled, so focus stays on it (F19); the second tap is ignored.
+    expect(preset).toHaveProperty('disabled', false);
+    expect(preset.getAttribute('aria-disabled')).toBe('true');
+    fireEvent.click(preset);
+    await within(region(a.log.cardLabel)).findByTestId('drinks-added');
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+    expect(await test.repos.drinks.list()).toHaveLength(1);
+  });
+
+  it('A13, HS-05: a "more than the guidance" line shows only when the shown total is above its figure', async () => {
+    test = await drinksFixture({ seed: (t) => logAt(t, [nz('2000-03-01', 12)]) });
+    await renderDrinks();
+    const summary = region(a.summary.cardLabel);
+    await waitFor(() => {
+      expect(summary.textContent).toContain('1 drink · 1.30 std');
+    });
+    expect(summary.textContent).not.toContain(a.summary.dayAbove);
+    expect(summary.textContent).not.toContain(a.summary.weekAbove);
+    // Women: 2 a day and 10 a week. 8 cans are 10.41.
+    await act(async () => {
+      await logAt(
+        test as TestDb,
+        Array.from({ length: 7 }, () => nz('2000-03-01', 12, 30)),
+      );
+    });
+    await waitFor(() => {
+      expect(summary.textContent).toContain('8 drinks · 10.41 std');
+    });
+    expect(summary.textContent).toContain(a.summary.dayAbove);
+    expect(summary.textContent).toContain(a.summary.weekAbove);
+  });
+
+  it('C94, A43: when the entries do not add up to the day total, a note says why', async () => {
+    // Three 30 mL nips at 40% are 0.95 each as entries, and 2.84 together (0.9468 × 3).
+    test = await drinksFixture({
+      seed: (t) =>
+        logAt(t, [nz('2000-03-01', 12), nz('2000-03-01', 12, 5), nz('2000-03-01', 12, 10)], {
+          volumeMl: 30,
+          abvPercent: 40,
+        }),
+    });
+    await renderDrinks();
+    const log = region(a.log.cardLabel);
+    await waitFor(() => {
+      expect(within(log).getByTestId('logged-today').textContent).toContain('0.95 std');
+    });
+    expect(region(a.summary.cardLabel).textContent).toContain('3 drinks · 2.84 std');
+    expect(log.textContent).toContain(a.log.roundingNote);
+  });
+
+  it('F19: More then Add hands focus back to More; Undo moves it to the status line', async () => {
+    test = await drinksFixture();
+    await renderDrinks();
+    const log = region(a.log.cardLabel);
+    const more = button('More options for Zero-sugar premix', log);
+    fireEvent.click(more);
+    fireEvent.click(button(a.log.add, log));
+    await within(log).findByTestId('drinks-added');
+    await waitFor(() => {
+      expect(document.activeElement).toBe(more);
+    });
+    fireEvent.click(button(a.log.undo, log));
+    await within(log).findByText(a.log.undone);
+    await waitFor(() => {
+      expect(document.activeElement?.getAttribute('role')).toBe('status');
+    });
+  });
+
+  it('F19: deleting an entry moves focus to the Log card heading, never to the page', async () => {
+    test = await drinksFixture({ seed: (t) => logAt(t, [nz('2000-03-01', 12)]) });
+    await renderDrinks();
+    const log = region(a.log.cardLabel);
+    fireEvent.click(await within(log).findByRole('button', { name: a.log.edit }));
+    fireEvent.click(button(a.log.delete, log));
+    const confirm = within(log).getAllByRole('button', { name: a.log.delete })[0] as HTMLElement;
+    confirm.focus();
+    fireEvent.click(confirm);
+    await waitFor(() => {
+      expect(within(log).queryByTestId('logged-today')).toBeNull();
+    });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(
+        within(log).getByRole('heading', { name: a.log.cardLabel }),
+      );
+    });
+  });
+
+  it('F20: with every preset hidden the card says so, with nothing to tap and no tap line', async () => {
+    test = await drinksFixture({
+      seed: async (t) => {
+        for (const preset of await t.repos.beverages.list())
+          await t.repos.beverages.update(preset.id, { archived: true });
+      },
+    });
+    await renderDrinks();
+    const log = region(a.log.cardLabel);
+    expect(log.textContent).toContain(a.log.allPresetsHidden);
+    expect(log.textContent).not.toContain(a.log.noPresets);
+    expect(log.textContent).not.toContain(a.log.intro);
   });
 
   it('A21: holding a preset opens its options and logs nothing, and the click a hold leaves is ignored', async () => {
@@ -149,25 +268,45 @@ describe('logging (K1b to K1d; AL-01, NN-01, A43, FS-05)', () => {
     expect(within(log).queryByTestId('drinks-added')).toBeNull();
   });
 
-  it('2.6: editing How many alone keeps the time and zone; a time still to come is refused and nothing is saved', async () => {
-    test = await drinksFixture({ seed: (t) => logAt(t, [nz('2000-03-01', 12)]) });
+  it('2.6: editing How many alone keeps the time, to the second, and the zone; a time still to come is refused and nothing is saved', async () => {
+    // Logged at 10:00:30 am in Sydney (12:00:30 pm in Auckland, where the phone is now).
+    const SYDNEY = 'Australia/Sydney';
+    const at = new Date(zonedWallTimeToInstant('2000-03-01', 600, SYDNEY) + 30_000).toISOString();
+    test = await drinksFixture({
+      seed: async (t) => {
+        t.env.setZone(SYDNEY);
+        await logAt(t, [at]);
+        t.env.setZone('Pacific/Auckland');
+      },
+    });
     await renderDrinks();
     const log = region(a.log.cardLabel);
-    const [before] = await test.repos.drinks.list();
-    fireEvent.click(await within(log).findByRole('button', { name: a.log.edit }));
+    expect((await within(log).findByTestId('logged-today')).textContent).toContain('10:00 am');
+    fireEvent.click(within(log).getByRole('button', { name: a.log.edit }));
+    expect(field(a.log.timeLabel, log)).toHaveProperty('value', '10:00');
     type(field(a.log.countLabel, log), '2');
     fireEvent.click(button(a.log.save, log));
     await waitFor(async () => {
       expect((await test?.repos.drinks.list())?.[0]?.count).toBe(2);
     });
-    const [after] = await test.repos.drinks.list();
-    expect(after).toMatchObject({ at: before?.at, timeZone: before?.timeZone });
+    expect((await test.repos.drinks.list())[0]).toMatchObject({ at, timeZone: SYDNEY });
+
+    // F6: a corrected time is read in the drink's own zone, and the drink keeps that zone.
+    fireEvent.click(await within(log).findByRole('button', { name: a.log.edit }));
+    type(field(a.log.timeLabel, log), '09:00');
+    fireEvent.click(button(a.log.save, log));
+    await waitFor(async () => {
+      expect((await test?.repos.drinks.list())?.[0]).toMatchObject({
+        at: new Date(zonedWallTimeToInstant('2000-03-01', 540, SYDNEY)).toISOString(),
+        timeZone: SYDNEY,
+      });
+    });
 
     fireEvent.click(await within(log).findByRole('button', { name: a.log.edit }));
     type(field(a.log.timeLabel, log), '13:30');
     fireEvent.click(button(a.log.save, log));
     expect(await within(log).findByText(a.log.errors.future)).toBeDefined();
-    expect((await test.repos.drinks.list())[0]?.at).toBe(before?.at);
+    expect((await test.repos.drinks.list())[0]?.timeZone).toBe(SYDNEY);
   });
 });
 
@@ -214,6 +353,41 @@ describe('the preset editor (K1e; AL-02, A42, A18, D49)', () => {
     ).toBeDefined();
   });
 
+  it('A40: an energy of 0 kcal kept by "Save anyway" reads "kcal unknown" with its note, never "0 kcal"', async () => {
+    const editor = await openEditor();
+    type(field(a.presets.energyLabel, editor), '0');
+    fireEvent.click(button(a.presets.save, editor));
+    expect(await within(editor).findByText(a.presets.kcalImplausible)).toBeDefined();
+    fireEvent.click(button(a.presets.saveAnyway, editor));
+    const log = region(a.log.cardLabel);
+    expect(
+      await within(log).findByRole('button', {
+        name: 'Zero-sugar premix 330 mL, 5%, kcal unknown, 1.3 std',
+      }),
+    ).toBeDefined();
+    expect(log.textContent).toContain(a.log.kcalLooksLow);
+    expect(log.textContent).not.toMatch(/\b0 kcal\b/);
+  });
+
+  it('F17: Edit drink presets opens the editor with focus on its heading; Done gives focus back', async () => {
+    test = await drinksFixture();
+    await renderDrinks();
+    const open = button(a.log.editPresets);
+    expect(open.getAttribute('aria-expanded')).toBe('false');
+    fireEvent.click(open);
+    const editor = region(a.presets.cardLabel);
+    await waitFor(() => {
+      expect(document.activeElement).toBe(
+        within(editor).getByRole('heading', { name: a.presets.cardLabel }),
+      );
+    });
+    expect(open.getAttribute('aria-expanded')).toBe('true');
+    fireEvent.click(button(a.presets.done, editor));
+    await waitFor(() => {
+      expect(document.activeElement).toBe(button(a.log.editPresets));
+    });
+  });
+
   it('D49: every field of the editor, Other drink, the milestone form and the day note has autocomplete off and no name', async () => {
     const editor = await openEditor();
     fireEvent.click(button(a.log.otherDrink));
@@ -251,13 +425,47 @@ describe('NZ guidance (K1f; HS-05, C25, C46, C78, NN-09)', () => {
     await renderDrinks();
     const card = region(a.guidance.cardLabel);
     expect(card.textContent).toContain(a.guidance.line[set]);
-    expect(card.textContent).toContain(a.guidance.singleOccasion[set]);
+    // C78: the single-occasion figure says where it comes from, after the sources line, which
+    // names only what it covers.
+    const single = within(card).getByTestId('single-occasion');
+    expect(single.textContent).toBe(
+      `${a.guidance.singleOccasion[set]} ${a.guidance.singleOccasionSource}`,
+    );
+    const sources = within(card).getByText(a.guidance.sources);
+    expect(sources.compareDocumentPosition(single) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(card.textContent).toContain(basis);
     expect(card.textContent).toContain(a.noRiskFreeLevel);
     if (set === 'nz-women') {
       const screenText = screen.getByTestId('drinks-screen').textContent;
       expect(screenText).not.toMatch(/3 standard drinks|15 a week|5 standard drinks/);
     }
+  });
+});
+
+describe('NZ guidance with readiness answer 2 "yes" (F30; HEALTH_SAFETY section 5, NN-09)', () => {
+  it('the pregnancy line replaces every figure, and nothing is compared with a figure', async () => {
+    test = await drinksFixture({
+      answers: { q2: 'yes' },
+      seed: (t) =>
+        logAt(
+          t,
+          Array.from({ length: 8 }, () => nz('2000-03-01', 12)),
+        ),
+    });
+    await renderDrinks();
+    const summary = region(a.summary.cardLabel);
+    await waitFor(() => {
+      expect(summary.textContent).toContain('8 drinks · 10.41 std');
+    });
+    expect(summary.textContent).not.toContain(a.summary.dayAbove);
+    expect(summary.textContent).not.toContain(a.summary.weekAbove);
+    const card = region(a.guidance.cardLabel);
+    for (const region_ of [summary, card]) {
+      expect(within(region_).getByTestId('drinks-guidance').textContent).toBe(a.guidance.pregnancy);
+    }
+    const screenText = screen.getByTestId('drinks-screen').textContent;
+    expect(screenText).not.toMatch(/standard drinks a day|\d+ a week|single occasion/);
+    expect(screenText).not.toContain(a.guidance.basis.profile['nz-women']);
   });
 });
 
@@ -306,6 +514,57 @@ describe('milestones (K1g; HS-19, A16, A47, A50)', () => {
 });
 
 describe('How you felt (K1h; AL-08, C05)', () => {
+  it('C05: a note with text and no tick brings up no card', async () => {
+    test = await drinksFixture();
+    await renderDrinks();
+    const note = region(a.dayNote.cardLabel);
+    type(field(a.dayNote.noteLabel, note), 'Synthetic note: slept badly');
+    fireEvent.click(button(a.dayNote.save, note));
+    expect(await within(note).findByText(a.dayNote.saved)).toBeDefined();
+    expect(await test.repos.alcoholDayNotes.list()).toHaveLength(1);
+    expect(screen.queryByRole('region', { name: a.helpCardLabel })).toBeNull();
+  });
+
+  it('a day still to come is refused and nothing is stored', async () => {
+    test = await drinksFixture();
+    await renderDrinks();
+    const note = region(a.dayNote.cardLabel);
+    type(field(a.dayNote.dayLabel, note), '2000-03-02');
+    fireEvent.click(within(note).getByRole('checkbox', { name: a.dayNote.withdrawalTick }));
+    fireEvent.click(button(a.dayNote.save, note));
+    expect(await within(note).findByText(a.dayNote.errors.future)).toBeDefined();
+    expect(await test.repos.alcoholDayNotes.list()).toEqual([]);
+  });
+
+  it('F18: picking another day keeps what was typed; a day with a saved note is opened only when asked', async () => {
+    test = await drinksFixture({
+      seed: (t) =>
+        t.repos.alcoholDayNotes.create({
+          date: '2000-02-27',
+          note: 'Earlier note',
+          withdrawalTick: false,
+        }),
+    });
+    await renderDrinks();
+    const note = region(a.dayNote.cardLabel);
+    type(field(a.dayNote.noteLabel, note), 'Synthetic note: headache');
+    fireEvent.click(within(note).getByRole('checkbox', { name: a.dayNote.withdrawalTick }));
+    type(field(a.dayNote.dayLabel, note), '2000-02-29');
+    expect(field(a.dayNote.dayLabel, note)).toHaveProperty('value', '2000-02-29');
+    expect(field(a.dayNote.noteLabel, note)).toHaveProperty('value', 'Synthetic note: headache');
+    expect(within(note).getByRole('checkbox', { name: a.dayNote.withdrawalTick })).toHaveProperty(
+      'checked',
+      true,
+    );
+    type(field(a.dayNote.dayLabel, note), '2000-02-27');
+    fireEvent.click(button(a.dayNote.replaceNo, note));
+    expect(field(a.dayNote.dayLabel, note)).toHaveProperty('value', '2000-02-29');
+    expect(field(a.dayNote.noteLabel, note)).toHaveProperty('value', 'Synthetic note: headache');
+    type(field(a.dayNote.dayLabel, note), '2000-02-27');
+    fireEvent.click(button(a.dayNote.replaceYes, note));
+    expect(field(a.dayNote.noteLabel, note)).toHaveProperty('value', 'Earlier note');
+  });
+
   it('a ticked note brings up the Talk to someone card; with nothing left, Remove note deletes it', async () => {
     test = await drinksFixture();
     await renderDrinks();
@@ -342,7 +601,8 @@ describe('under 18 (K1i; RD-01, RD-06, A23)', () => {
       await renderDrinks();
       const off = await screen.findByTestId('gate-notice-alcoholLogging');
       expect(off.textContent).toContain(readiness.reasonPhrases['under-18']);
-      expect(screen.getByText(a.access.kept)).toBeDefined();
+      // Said only when there are entries to keep (full review of item 28, F20).
+      expect(screen.queryByText(a.access.kept) !== null).toBe(drinks);
       expect(screen.queryByRole('region', { name: a.log.cardLabel })).toBeNull();
       expect(screen.queryByRole('button', { name: SEEDED })).toBeNull();
       expect(screen.queryByRole('link', { name: readiness.changeAnswersLink })).toBeNull();

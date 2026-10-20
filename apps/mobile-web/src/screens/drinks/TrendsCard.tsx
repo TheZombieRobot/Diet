@@ -108,6 +108,7 @@ function DayEntries({
             <EntryEditor
               storage={storage}
               entry={entry}
+              homeTimeZone={view.ctx.homeTimeZone}
               maxDate={view.noteToday}
               onClose={() => {
                 setEditing(null);
@@ -230,7 +231,9 @@ export function TrendsCard({
         ))}
       </ul>
       {line.every((v) => v === null) ? <p className="ui-text-muted">{t.rollingNote}</p> : null}
-      <p className="ui-text-muted">{alcohol.summary.freeNote}</p>
+      {view.weekly.some((week) => week.countedDays > 0) ? (
+        <p className="ui-text-muted">{alcohol.summary.freeNote}</p>
+      ) : null}
     </Card>
   );
 }

@@ -25,13 +25,13 @@ const lines = (region: HTMLElement): string[] =>
 
 describe('the Drinks card (C6; TD-05)', () => {
   it.each(['nz-women', 'nz-men'] as const)(
-    'NN-09: before the drinks read arrives, the %s card is exactly its guidance line, ending "No alcohol use is risk-free.", and the alcohol-free note',
+    'NN-09: before the drinks read arrives, the %s card is exactly its guidance line, ending "No alcohol use is risk-free."',
     (set) => {
       render(<DrinksCard drinks={{ kind: 'guidance', set }} state={{ kind: 'opening' }} />);
-      // Exactly these two lines, so no other line can carry figures without the sentence.
-      expect(lines(card())).toEqual([alcohol.guidance.line[set], alcohol.summary.freeNote]);
+      // Exactly this line, so no other line can carry figures without the sentence; the
+      // alcohol-free note comes only with an alcohol-free count (full review of item 28, F22).
+      expect(lines(card())).toEqual([alcohol.guidance.line[set]]);
       expect(alcohol.guidance.line[set].endsWith(alcohol.noRiskFreeLevel)).toBe(true);
-      expect(alcohol.summary.freeNote).not.toMatch(/\d/);
       expect(card().textContent).not.toMatch(/kcal|cans|\bleft\b|streak/i);
     },
   );
@@ -53,6 +53,14 @@ describe('the Drinks card (C6; TD-05)', () => {
       if (set === 'nz-women') expect(card().textContent).not.toMatch(/3 standard drinks|15 a week/);
     },
   );
+
+  it('F30, TD-05: with readiness answer 2 "yes" the card shows the pregnancy line and no daily or weekly figures', async () => {
+    // Unanswered (also gated) is covered by guidanceShown's own test in core.
+    test = await todayFixture({ answers: { q2: 'yes' }, fast: false, kickstart: false });
+    await renderToday();
+    expect(screen.getByTestId('drinks-guidance').textContent).toBe(alcohol.guidance.pregnancy);
+    expect(card().textContent).not.toMatch(/standard drinks|\d+ a week|at least \d+ alcohol-free/);
+  });
 
   it('RD-01: under 18 the card stays with the reason and shows no figures', async () => {
     test = await todayFixture({ answers: { q1: 'yes' }, fast: false });

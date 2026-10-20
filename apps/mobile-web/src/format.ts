@@ -160,7 +160,8 @@ export function formatSteps(steps: number): string {
 
 const std2 = new Intl.NumberFormat('en-NZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const std1 = new Intl.NumberFormat('en-NZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-const measure = new Intl.NumberFormat('en-NZ', { maximumFractionDigits: 1 });
+/** Every decimal typed, so the size and strength shown are the ones stored and counted. */
+const measure = new Intl.NumberFormat('en-NZ', { maximumFractionDigits: 20 });
 
 /** A standard-drinks total, always 2 decimals: "1.30" (C94). */
 export function formatStd2(n: number): string {
@@ -172,7 +173,7 @@ export function formatStd1(n: number): string {
   return std1.format(n);
 }
 
-/** A size or strength as typed, up to 1 decimal with no trailing zero: "330", "4.5". */
+/** A size or strength as typed, with no trailing zero: "330", "4.5", "4.75". */
 export function formatMeasure(n: number): string {
   return measure.format(n);
 }

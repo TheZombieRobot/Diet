@@ -55,6 +55,15 @@ describe('presetSummary (U5; AL-02, NN-01, D42)', () => {
     expect(presetSummary(beverage).kcal).toBeNull();
   });
 
+  it('A40: a label energy of 0 kcal for 330 mL at 5%, kept by "Save anyway", is unknown and noted, never "0 kcal"', () => {
+    const label = {
+      ...SEEDED_LABEL,
+      kcal: 0,
+      energyAsEntered: { value: 0, unit: 'kcal' as const },
+    };
+    expect(presetSummary({ ...SEEDED, label })).toMatchObject({ kcal: null, kcalLooksLow: true });
+  });
+
   it('the label of the seeded preset no longer counts once its size is edited (C92)', () => {
     expect(presetSummary({ ...SEEDED, volumeMl: 440 })).toMatchObject({
       labelIgnored: true,

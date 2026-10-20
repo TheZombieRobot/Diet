@@ -77,7 +77,8 @@ const input = (over: Partial<HelpTriggerInput> = {}): HelpTriggerInput => ({
   ...over,
 });
 
-const LABEL_2_5 = measure(375, 8.5, 2.5); // the calculation, 2.51, agrees
+// Labels a little above the calculation, so the label is the figure the card counts (A39).
+const LABEL_2_5 = measure(375, 8.4, 2.5); // the calculation, 2.49, agrees
 const LABEL_1_75 = measure(330, 6.7, 1.75); // the calculation, 1.74, agrees
 const HOLD = daily('2000-02-17', '2000-02-22', LABEL_1_75, 2); // 21.00 over 6 days, no run
 
@@ -118,6 +119,32 @@ describe('activeHelpTriggers (U4; HS-06, AL-06 to AL-10, A7, A8, A37, A39, D8)',
       ['consecutive-days', 'double-guidance'],
     ],
     [
+      'A39: women, 13 × 150 mL at 13% over three days, labelled 1.5 (within 10%; the calculation, 20.00)',
+      {
+        rows: [
+          drink(at('2000-02-25', 20), measure(150, 13, 1.5), 4),
+          drink(at('2000-02-26', 20), measure(150, 13, 1.5), 5),
+          drink(at('2000-02-27', 20), measure(150, 13, 1.5), 4),
+        ],
+      },
+      ['double-guidance'],
+    ],
+    [
+      "A39: men's figure 15, 4 × 750 mL at 13% on alternate days, labelled 7.0 (the calculation, 30.77)",
+      {
+        rows: ['2000-02-23', '2000-02-25', '2000-02-27', '2000-02-29'].map((d) =>
+          drink(at(d, 20), measure(750, 13, 7)),
+        ),
+        weeklyGuidance: 15,
+      },
+      ['double-guidance'],
+    ],
+    [
+      'A39: women, 16 × 330 mL at 5% labelled 1.2 (the calculation, 20.83)',
+      { rows: [drink(at('2000-03-01', 12), measure(330, 5, 1.2), 16)] },
+      ['double-guidance'],
+    ],
+    [
       'AL-07: women, rolling 7 at 20.00',
       { rows: [drink(at('2000-03-01', 12), LABEL_2_5, 8)] },
       ['double-guidance'],
@@ -127,7 +154,7 @@ describe('activeHelpTriggers (U4; HS-06, AL-06 to AL-10, A7, A8, A37, A39, D8)',
       {
         rows: [
           drink(at('2000-03-01', 12), LABEL_2_5, 7),
-          drink(at('2000-03-01', 12), measure(375, 8.5, 2.49)),
+          drink(at('2000-03-01', 12), measure(375, 8.4, 2.49)),
         ],
       },
       [],
@@ -172,6 +199,35 @@ describe('activeHelpTriggers (U4; HS-06, AL-06 to AL-10, A7, A8, A37, A39, D8)',
       ['withdrawal-tick'],
     ],
     ['AL-08: a tick on 31 Jan', { withdrawalTickDates: ['2000-01-31'] }, []],
+    [
+      'A9: a tick dated after today (saved in Auckland, read in Honolulu the day before)',
+      { withdrawalTickDates: ['2000-03-02'] },
+      ['withdrawal-tick'],
+    ],
+    [
+      'D8: 10.11 std in Honolulu on 22 Feb and in Auckland on 29 Feb: a date skipped, so 7 days lived (20.21)',
+      {
+        rows: [
+          drink(at('2000-02-22', 20, 0, HONOLULU), measure(750, 14), 1, HONOLULU),
+          drink(at('2000-02-22', 21, 0, HONOLULU), measure(330, 7), 1, HONOLULU),
+          drink(at('2000-02-29', 20), measure(750, 14)),
+          drink(at('2000-02-29', 21), measure(330, 7)),
+        ],
+      },
+      ['double-guidance'],
+    ],
+    [
+      'D8: the same in Auckland on both days: 8 dates, no double',
+      {
+        rows: [
+          drink(at('2000-02-22', 20), measure(750, 14)),
+          drink(at('2000-02-22', 21), measure(330, 7)),
+          drink(at('2000-02-29', 20), measure(750, 14)),
+          drink(at('2000-02-29', 21), measure(330, 7)),
+        ],
+      },
+      [],
+    ],
     [
       'AL-10: three drinks, on Mon 21, Wed 23 and Fri 25 Feb',
       { rows: ['2000-02-21', '2000-02-23', '2000-02-25'].map((d) => drink(at(d, 12))) },
@@ -256,6 +312,18 @@ describe('helpCardState (U4; C44, D43, A10)', () => {
       visible: true,
       showing: ['readiness-q7'],
       returns: 'in-30-days',
+    });
+  });
+
+  it('A10: question 7 showing and a record-based trigger hidden for the day: the card says it is back at the next drinking day', () => {
+    const rows = {
+      'readiness-q7': dismissed(at('2000-01-15', 13)),
+      'consecutive-days': dismissed(at('2000-03-01', 10)),
+    };
+    expect(helpCardState(['readiness-q7', 'consecutive-days'], rows, NOW, 300)).toEqual({
+      visible: true,
+      showing: ['readiness-q7'],
+      returns: 'next-drinking-day',
     });
   });
 

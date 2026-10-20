@@ -49,14 +49,18 @@ export function readCount(text: string): number | null {
   }
 }
 
-/** A date and time in the device zone, or why not ('time' when missing, 'future' when ahead). */
+/**
+ * A date and time in `zone` (the device zone unless given: the entry editor reads an entry's time
+ * in the entry's own zone), or why not ('time' when missing, 'future' when ahead).
+ */
 export function readEarlier(
   date: string,
   time: string,
   env: StorageEnv,
+  zone: string = env.timeZone(),
 ): { readonly at: Instant } | { readonly problem: string } {
   if (!isLocalDate(date) || !isClockTime(time)) return { problem: a.errors.time };
-  const ms = zonedWallTimeToInstant(date, parseClockTime(time), env.timeZone());
+  const ms = zonedWallTimeToInstant(date, parseClockTime(time), zone);
   if (ms > instantMs(env.now())) return { problem: a.errors.future };
   return { at: new Date(ms).toISOString() };
 }

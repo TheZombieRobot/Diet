@@ -501,7 +501,8 @@
 }
 
 @container (max-width: 130px) {
-  .ui-field__input[type='time']::-webkit-calendar-picker-indicator {
+  .ui-field__input[type='time']::-webkit-calendar-picker-indicator,
+  .ui-field__input[type='date']::-webkit-calendar-picker-indicator {
     display: none;
   }
 }
@@ -1973,20 +1974,22 @@
   gap: 6px;
 }
 
+/* At 200% text the More button drops under the preset, so the name never breaks letter by letter. */
 .ui-preset__row {
   display: flex;
+  flex-wrap: wrap;
   align-items: stretch;
   gap: 8px;
 }
 
 .ui-preset__row > .ui-button {
-  flex: 1 1 auto;
+  flex: 1 1 10em;
   flex-direction: column;
   align-items: flex-start;
   min-width: 0;
   padding: 10px 16px;
   text-align: start;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .ui-preset__name {
@@ -2057,6 +2060,21 @@
   border-radius: 16px;
 }
 
+/* A fieldset is otherwise as wide as its widest content, past its panel at 200% text. */
+fieldset.ui-subpanel {
+  min-width: 0;
+}
+
+/* At 200% text on a phone (under 260 px of screen) a panel gives its fields the card's full width:
+   rules above and below, no side padding. */
+@media (max-width: 260px) {
+  .ui-subpanel {
+    padding-inline: 0;
+    border-inline: 0;
+    border-radius: 0;
+  }
+}
+
 /* The bar chart: no text inside the drawing; ticks and the key are HTML under it. */
 .ui-bar-chart {
   display: flex;
@@ -2088,7 +2106,7 @@
 
 .ui-bar-chart__line {
   fill: none;
-  stroke: var(--color-ink-soft);
+  stroke: var(--color-ink);
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -2096,7 +2114,14 @@
 
 .ui-bar-chart__reference {
   stroke: var(--color-secondary);
-  stroke-width: 2;
+  stroke-width: 3;
+}
+
+/* The halo under each line and dot: the card colour, wider, so a line stays visible across a bar. */
+.ui-bar-chart__halo .ui-bar-chart__line,
+.ui-bar-chart__halo .ui-bar-chart__reference {
+  stroke: var(--color-card);
+  stroke-width: 7;
 }
 
 .ui-bar-chart__ticks {
@@ -2106,14 +2131,25 @@
   font-weight: 700;
 }
 
+/* Each label is centred under its bar, even when wider than the bar; the first starts at the left
+   edge and the last ends at the right edge. BarChart hides a label that would meet the next. */
 .ui-bar-chart__tick {
-  overflow: visible;
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
   white-space: nowrap;
 }
 
+.ui-bar-chart__tick:first-child {
+  justify-content: flex-start;
+}
+
 .ui-bar-chart__tick:last-child {
-  justify-self: end;
+  justify-content: flex-end;
+}
+
+.ui-bar-chart__tick-text[data-hidden='true'] {
+  visibility: hidden;
 }
 
 .ui-bar-chart__legend {
@@ -2138,7 +2174,7 @@
 }
 
 .ui-bar-chart__swatch--line {
-  border-top: 2px solid var(--color-ink-soft);
+  border-top: 2px solid var(--color-ink);
 }
 
 .ui-bar-chart__swatch--reference {

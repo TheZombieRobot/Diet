@@ -82,6 +82,13 @@ export const alcohol = {
       'nz-men':
         'NZ guidance for men: no more than 3 standard drinks a day and 15 a week, with at least 2 alcohol-free days. No alcohol use is risk-free.',
     },
+    /**
+     * Readiness answer 2 "yes" or unanswered (guidanceShown; full review F30): no figures. To be
+     * checked against the official page at item 42, and confirmed by the owner at STOP 17 with the
+     * C58 help-card wording (cross-item ruling 8).
+     */
+    pregnancy:
+      'NZ guidance: if you are pregnant, could be pregnant or are breastfeeding, the safest choice is no alcohol. Your midwife or GP can talk it through. No alcohol use is risk-free.',
     // Item 28: the NZ guidance card on the Drinks screen (HEALTH_SAFETY section 5; C25, C60, C66,
     // C78; A13, A26). The figures stay inside `line`; nothing here is compared or drawn.
     cardLabel: 'NZ guidance',
@@ -94,6 +101,15 @@ export const alcohol = {
       'nz-women': 'No more than 4 standard drinks on a single occasion (from secondary sources).',
       'nz-men': 'No more than 4 standard drinks on a single occasion (from secondary sources).',
     },
+    /**
+     * Where the single-occasion figure comes from, said plainly under it, apart from the sources
+     * line (which covers only the daily and weekly figures). DOC_REVIEW C78 gives per-sex figures
+     * (4 for women, 5 for men), not yet checked on an official page; the owner decides at the
+     * week-1 review whether to verify and use them or keep this interim line.
+     */
+    // C78: wording awaits owner confirmation at the week-1 review
+    singleOccasionSource:
+      'Some NZ summaries of the guidance give this single-occasion figure. It has not yet been checked against an official page.',
     notPersonal:
       'This is general guidance for adults in New Zealand, not advice for you. Your GP can tell you what applies to you.',
     basis: {
@@ -106,7 +122,9 @@ export const alcohol = {
     },
     howWorkedOut:
       'One NZ standard drink is 10 g of alcohol. Standard drinks are worked out from the size and strength: millilitres × alcohol % × 0.789 ÷ 1,000. When you enter the figure printed on a label, that figure is shown instead.',
-    sources: 'Sources: alcohol.org.nz, bpacnz and Health NZ.',
+    /** Names what it covers, so it never reads as covering the single-occasion figure (C60, C78). */
+    sources:
+      'Sources for the daily and weekly figures and the alcohol-free days: alcohol.org.nz, bpacnz and Health NZ.',
   },
   /**
    * The first-run notice screen (UX 1b; mock-up Notice.dc.html). It cannot be put off: no string
@@ -173,14 +191,20 @@ export const alcohol = {
    */
   access: {
     noticeFirst: 'Drinks can be logged once the alcohol safety notice has been read.',
+    /** Only when there are stored alcohol records to keep. */
     kept: 'Your earlier entries are kept.',
   },
 
   /** Log a drink (UX 5a; AL-01, AL-02, NN-01; A21, A43). */
   log: {
     cardLabel: 'Log a drink',
-    intro: 'Tap a drink to add one now. Hold it, or use More, to add several or an earlier time.',
+    /** Only while there is a preset to tap. Names the More button by its name and by what it shows. */
+    intro:
+      'Tap a drink to add one now. To add several or an earlier time, hold it or tap its More button (⋯).',
     noPresets: 'No drink presets yet. Add one under Edit drink presets, or use Other drink.',
+    /** Every preset is hidden (A19: presets are hidden, never deleted). */
+    allPresetsHidden:
+      'Your drink presets are hidden. Show them again under Edit drink presets, or use Other drink.',
     /** "Zero-sugar premix 330 mL, 5%, 94 kcal, 1.3 std" (UX 5a, word for word for the default). */
     presetSummary: '{name} {volume} mL, {abv}%, {energy}, {std} std',
     kcal: '{kcal} kcal',
@@ -217,6 +241,9 @@ export const alcohol = {
     editPresets: 'Edit drink presets',
     loggedToday: 'Logged today',
     nothingToday: 'Nothing logged today.',
+    /** C94, A43: under the entries when their rounded figures do not add up to the day's total. */
+    roundingNote:
+      "The day's total is worked out before rounding, so it can differ a little from these entries added up.",
     /** {std} and {energy} are the entry's own totals (A43). */
     entry: '{time}: {count} × {name}, {std} std, {energy}',
     edit: 'Edit',
@@ -395,6 +422,11 @@ export const alcohol = {
     recentTitle: 'Notes from the last 30 days',
     ticked: 'Shaky or sick: ticked',
     open: 'Open the note for {date}',
+    /** Another day picked while the form holds unsaved changes and that day already has a note. */
+    replaceAsk:
+      '{date} already has a saved note. What you typed here has not been saved. Open the saved note instead?',
+    replaceYes: 'Open the saved note',
+    replaceNo: 'Keep what I typed',
     errors: {
       future: 'Choose today or an earlier day.',
       empty: 'Write a note or tick the box.',

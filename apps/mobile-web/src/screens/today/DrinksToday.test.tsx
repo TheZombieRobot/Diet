@@ -6,7 +6,7 @@ import type { Instant, StoredBeverage } from '@diet/core';
 import { alcohol, today } from '@diet/core/copy/health';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { createElement } from 'react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { TestDb } from '../../db/testKit';
 import { DrinksSettingsCard } from '../drinks/DrinksSettingsCard';
 import { nz } from '../drinks/drinksTestKit';
@@ -15,6 +15,7 @@ import { clockTo, renderToday, resetToday, todayFixture } from './todayTestKit';
 
 let test: TestDb | undefined;
 afterEach(() => {
+  vi.restoreAllMocks();
   cleanup();
   resetToday(test);
   test = undefined;
@@ -41,6 +42,14 @@ const CAN: StoredBeverage = {
 };
 const can = (t: TestDb, at: Instant) =>
   t.repos.drinks.log({ beverageId: null, name: 'Zero-sugar premix', beverage: CAN, count: 1, at });
+/** The can with "0" typed for its energy and kept by "Save anyway": too low for its alcohol. */
+const ZERO_KCAL: StoredBeverage = {
+  ...CAN,
+  label:
+    CAN.label === null
+      ? null
+      : { ...CAN.label, kcal: 0, energyAsEntered: { value: 0, unit: 'kcal' }, origin: 'owner' },
+};
 
 describe('the Today Drinks card (K2b; C21, C105, A3, A4)', () => {
   it('"None logged", then this week\'s four cans in drinks, standard drinks and kcal, with the alcohol-free days', async () => {
@@ -65,6 +74,52 @@ describe('the Today Drinks card (K2b; C21, C105, A3, A4)', () => {
     });
     expect(drinksCard().textContent).toContain('376 kcal · 0 alcohol-free days');
     expect(drinksCard().textContent).not.toMatch(/kJ|cans|\bleft\b|streak/);
+  });
+});
+
+describe('the alcohol-free footnote (C21 point 4; full review of item 28, F22)', () => {
+  it('on a Monday, with no alcohol-free day counted yet, the card has no footnote for one', async () => {
+    test = await todayFixture({ now: nz('2000-03-13', 12) });
+    await renderToday();
+    await waitFor(() => {
+      expect(drinksCard().textContent).toContain(alcohol.summary.noneLogged);
+    });
+    expect(drinksCard().textContent).not.toContain(alcohol.summary.freeNote);
+    for (const tile of drinksCard().querySelectorAll('.ui-stat-tile'))
+      expect(tile.textContent).not.toMatch(/alcohol-free/);
+  });
+});
+
+describe('unknown alcohol energy on Today (NN-01, HS-36, C11, A40)', () => {
+  it('a drink with no label energy, and a label too low for its alcohol, read "kcal unknown" on both tiles, never 0 kcal', async () => {
+    test = await todayFixture({
+      seed: async (t) => {
+        await t.repos.drinks.log({
+          beverageId: null,
+          name: 'Example lager',
+          beverage: ZERO_KCAL,
+          count: 1,
+          at: nz('2000-03-13', 19),
+        });
+        await t.repos.drinks.log({
+          beverageId: 'seed:beer-bottle-330',
+          name: 'Bottle of beer',
+          beverage: { volumeMl: 330, abvPercent: 5, label: null },
+          count: 1,
+          at: nz('2000-03-15', 12),
+        });
+      },
+    });
+    await renderToday();
+    await waitFor(() => {
+      expect(drinksCard().textContent).toContain('2 drinks · 2.60 std');
+    });
+    const tiles = [...drinksCard().querySelectorAll('.ui-stat-tile')].map((t) => t.textContent);
+    expect(tiles).toHaveLength(2);
+    for (const tile of tiles) {
+      expect(tile).toContain(alcohol.summary.allUnknown);
+      expect(tile).not.toMatch(/\b0 kcal\b/);
+    }
   });
 });
 
@@ -98,6 +153,50 @@ describe('Talk to someone from the records (K2d; HS-06, AL-06, C44)', () => {
   });
 });
 
+describe('"Not now" with two triggers showing (K2d; C44, A10)', () => {
+  it('hides exactly the triggers showing: a tick saved later that day brings the card straight back', async () => {
+    test = await todayFixture({
+      seed: async (t) => {
+        await t.repos.readiness.clear('q7');
+        for (const day of ['09', '10', '11', '12', '13', '14', '15'])
+          await can(t, nz(`2000-03-${day}`, 12));
+      },
+    });
+    await renderToday();
+    const card = await screen.findByRole('region', { name: alcohol.helpCardLabel });
+    fireEvent.click(within(card).getByRole('button', { name: alcohol.helpCardNotNow }));
+    await waitFor(() => {
+      expect(talk()).toBeNull();
+    });
+    const dismissed = [];
+    for (const trigger of [
+      'readiness-q7',
+      'consecutive-days',
+      'double-guidance',
+      'withdrawal-tick',
+    ] as const) {
+      const row = await test.repos.cardState.get('alcohol-help', trigger);
+      if ((row?.dismissedAt ?? null) !== null) dismissed.push(trigger);
+    }
+    expect(dismissed).toEqual(['readiness-q7', 'consecutive-days']);
+    await act(async () => {
+      await test?.repos.alcoholDayNotes.create({
+        date: '2000-03-15',
+        note: null,
+        withdrawalTick: true,
+      });
+    });
+    expect(await screen.findByRole('region', { name: alcohol.helpCardLabel })).toBeDefined();
+  });
+
+  it('HS-06, AL-09b: question 7 brings the card even when the drinks records cannot be read', async () => {
+    test = await todayFixture({ answers: { q7: 'yes' } });
+    vi.spyOn(test.repos.alcoholMilestones, 'list').mockRejectedValue(new Error('read failed'));
+    await renderToday();
+    expect(await screen.findByRole('region', { name: alcohol.helpCardLabel })).toBeDefined();
+  });
+});
+
 describe('the Settings Drinks card (K2e, K2g; C21, C46, A25, NN-09)', () => {
   async function renderBoth(): Promise<HTMLElement> {
     render(
@@ -126,9 +225,16 @@ describe('the Settings Drinks card (K2e, K2g; C21, C46, A25, NN-09)', () => {
       '12:30 am',
       '1:00 am',
     ]);
+    expect(settings.textContent).toContain(alcohol.settings.cutoverHint);
     fireEvent.change(select, { target: { value: '0' } });
+    // F19: the select is never disabled while it saves, so focus stays on it.
+    expect(select).toHaveProperty('disabled', false);
     await waitFor(async () => {
       expect((await test?.repos.settings.get())?.drinkingDayCutoverMinutes).toBe(0);
+    });
+    // F22: at midnight nothing counts toward the evening before.
+    await waitFor(() => {
+      expect(settings.textContent).not.toContain(alcohol.settings.cutoverHint);
     });
     await waitFor(() => {
       expect(drinksCard().textContent).toContain('1 drink · 1.30 std');

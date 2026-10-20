@@ -169,7 +169,7 @@ function MilestoneForm({
       </Notice>
       <NoticeHelpRows />
       <ButtonRow>
-        <Button variant="primary" disabled={write.busy} onClick={() => void save()}>
+        <Button variant="primary" aria-disabled={write.busy} onClick={() => void save()}>
           {m.save}
         </Button>
         <Button
@@ -225,7 +225,7 @@ function MilestoneRow({
           <ButtonRow>
             <Button
               variant="caution"
-              disabled={write.busy}
+              aria-disabled={write.busy}
               onClick={() => {
                 void write.run(() => storage.repos.alcoholMilestones.remove(milestone.id));
               }}

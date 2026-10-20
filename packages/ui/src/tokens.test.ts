@@ -112,6 +112,19 @@ describe('colour tokens (styles/tokens.css)', () => {
       ).toBeGreaterThanOrEqual(3);
     });
 
+    // Item 28 (WCAG 1.4.11): the drinks chart's 4-week average and milestone dots sit on a halo of
+    // the card colour, which stands out from the bars, and they stand out from the halo and from an
+    // outlined bar's fill.
+    it.each([
+      ['--color-card', '--color-neutral'],
+      ['--color-ink', '--color-card'],
+      ['--color-secondary', '--color-card'],
+      ['--color-ink', '--color-inset'],
+      ['--color-secondary', '--color-inset'],
+    ])(`${theme}: the chart's %s on %s has at least 3:1 contrast`, (mark, under) => {
+      expect(contrastRatio(colour(mark, theme), colour(under, theme))).toBeGreaterThanOrEqual(3);
+    });
+
     it(`${theme}: the select chevron stands out from the field (at least 3:1)`, () => {
       expect(
         contrastRatio(colour('--color-ink-soft', theme), colour('--color-inset', theme)),

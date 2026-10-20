@@ -2,9 +2,12 @@
  * Log a drink (UX 5a; item 28 design 2.3, 2.5 and 2.6; AL-01, AL-02, NN-01, A20, A21, A43). A tap on
  * a preset logs one drink now; holding it, or its More button, opens How many and When. Other drink
  * offers the NZ picker serves, whose size and strength are editable and which never carry energy.
- * Every preset button is disabled while a log is written, so a double tap cannot log twice. The
- * status line and every entry show the entry's own totals, never a per-serve figure beside a count,
- * and the fasting note (FS-05) follows a drink that fell in a fast or outside the eating window.
+ * While a log is written a second tap is ignored (useDrinksWrite), so a double tap cannot log
+ * twice; the buttons are marked aria-disabled, never disabled, so focus stays where it was. A panel
+ * that closes hands focus back to the button that opened it. The status line and every entry show
+ * the entry's own totals, never a per-serve figure beside a count, and the fasting note (FS-05)
+ * follows a drink that fell in a fast or outside the eating window, worked out as the line is drawn,
+ * so it appears once the fasting records are read.
  *
  * The only place a drink is logged (the alcoholStructure scan).
  */
@@ -15,6 +18,7 @@ import {
   type DrinkLogRecord,
   type DrinkPickerServe,
   drinkingDayOfRow,
+  energyDisplay,
   entryFigures,
   fillTemplate,
   localDateOf,
@@ -26,14 +30,29 @@ import {
 } from '@diet/core';
 import { alcohol, fasting, privacy } from '@diet/core/copy/health';
 import { Button, ButtonRow, Card, Checkbox, IconButton, MoreIcon, TextField } from '@diet/ui';
-import { type PointerEvent, type ReactElement, type ReactNode, useEffect, useState } from 'react';
+import {
+  type PointerEvent,
+  type ReactElement,
+  type ReactNode,
+  type RefObject,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import type { DrinkInput } from '../../db/repos/drinks';
 import type { AppStorage } from '../../db/runtime';
-import { formatLocalTime, formatMeasure, formatShortDate, formatStd2 } from '../../format';
+import {
+  formatLocalTime,
+  formatMeasure,
+  formatShortDate,
+  formatStd2,
+  formatWhole,
+} from '../../format';
 import { WriteError } from '../today/WriteError';
 import { entryText, figureNotes, presetSummaryText } from './drinksText';
 import { EntryEditor } from './EntryEditor';
 import { useAlcoholNote } from './fastingNote';
+import { useFocusNext } from './focus';
 import { useDrinksWrite } from './useDrinksWrite';
 import type { DrinksView } from './view';
 import { freshWhen, nextSortOrder, readWhen, type WhenDraft, type WhenProblems } from './drinkForm';
@@ -92,6 +111,7 @@ function PresetRow({
   preset,
   busy,
   moreOpen,
+  moreRef,
   onTap,
   onMore,
   children,
@@ -99,6 +119,8 @@ function PresetRow({
   readonly preset: BeverageRecord;
   readonly busy: boolean;
   readonly moreOpen: boolean;
+  /** The More button, which takes focus back when its panel closes. */
+  readonly moreRef: (button: HTMLButtonElement | null) => void;
   readonly onTap: () => void;
   readonly onMore: () => void;
   /** The More panel, under this preset's row while it is open. */
@@ -117,7 +139,7 @@ function PresetRow({
       <div className="ui-preset__row">
         <Button
           className="ui-preset-button"
-          disabled={busy}
+          aria-disabled={busy}
           onPointerDown={(event) => {
             press.start(event, onMore);
           }}
@@ -136,6 +158,7 @@ function PresetRow({
           <span className="ui-preset__summary">{text.slice(preset.name.length).trim()}</span>
         </Button>
         <IconButton
+          ref={moreRef}
           label={fillTemplate(a.moreFor, { name: preset.name })}
           icon={<MoreIcon />}
           aria-expanded={moreOpen}
@@ -174,7 +197,7 @@ function MorePanel({
       <ButtonRow>
         <Button
           variant="primary"
-          disabled={busy}
+          aria-disabled={busy}
           onClick={() => {
             const read = readWhen(draft, storage.env);
             setProblems(read.ok ? {} : read.problems);
@@ -229,6 +252,12 @@ function OtherDrinkPanel({
   const [problems, setProblems] = useState<
     WhenProblems & Partial<Record<'volume' | 'abv' | 'name', string>>
   >({});
+  const sizeField = useRef<HTMLInputElement>(null);
+  const picked = serve !== null;
+  // The serve list gives way to the form: focus goes to its first field, the size to check.
+  useEffect(() => {
+    if (picked) sizeField.current?.focus();
+  }, [picked]);
 
   if (serve === null) {
     return (
@@ -301,6 +330,7 @@ function OtherDrinkPanel({
     <div className="ui-subpanel">
       <div className="ui-field-pair">
         <TextField
+          ref={sizeField}
           label={a.volumeLabel}
           inputMode="decimal"
           autoComplete="off"
@@ -336,7 +366,7 @@ function OtherDrinkPanel({
         />
       ) : null}
       <ButtonRow>
-        <Button variant="primary" disabled={busy} onClick={add}>
+        <Button variant="primary" aria-disabled={busy} onClick={add}>
           {a.add}
         </Button>
         <Button variant="quiet" onClick={onCancel}>
@@ -348,8 +378,7 @@ function OtherDrinkPanel({
 }
 
 type LogStatus =
-  | { readonly kind: 'added'; readonly row: DrinkLogRecord; readonly note: boolean }
-  | { readonly kind: 'undone' };
+  { readonly kind: 'added'; readonly row: DrinkLogRecord } | { readonly kind: 'undone' };
 
 /** "Added 3 × Zero-sugar premix (3.91 std) at 1:05 pm.", with the date for an earlier day (A43). */
 function addedText(row: DrinkLogRecord, view: DrinksView): string {
@@ -364,43 +393,80 @@ function addedText(row: DrinkLogRecord, view: DrinksView): string {
   return fillTemplate(a.addedOn, { ...values, date: formatShortDate(localDateOf(row.at, zone)) });
 }
 
+/** True when the entries' own rounded totals do not add up to the day's total shown (C94, A43). */
+function roundingShows(view: DrinksView): boolean {
+  const entries = view.todayEntries.map(entryFigures);
+  const std = entries.reduce((total, f) => total + f.std, 0);
+  if (formatStd2(std) !== formatStd2(view.todayTotals.std)) return true;
+  const energy = energyDisplay(view.todayTotals);
+  if (energy.kind !== 'known' && energy.kind !== 'partial') return false;
+  const kcal = entries.reduce((total, f) => total + (f.kcal ?? 0), 0);
+  return formatWhole(kcal) !== formatWhole(energy.kcal);
+}
+
 export function LogCard({
   storage,
   view,
+  editingPresets,
+  editPresetsRef,
   onEditPresets,
 }: {
   readonly storage: AppStorage;
   readonly view: DrinksView;
+  readonly editingPresets: boolean;
+  /** The Edit drink presets button, which takes focus back when the editor closes. */
+  readonly editPresetsRef: RefObject<HTMLButtonElement | null>;
   readonly onEditPresets: () => void;
 }): ReactElement {
   const { repos } = storage;
   const write = useDrinksWrite();
   const noteFor = useAlcoholNote(storage);
+  const focusNext = useFocusNext();
   const [panel, setPanel] = useState<string | null>(null);
   const [status, setStatus] = useState<LogStatus | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
+  const moreButtons = useRef(new Map<string, HTMLButtonElement>());
+  const editButtons = useRef(new Map<string, HTMLButtonElement>());
+  const otherButton = useRef<HTMLButtonElement>(null);
+  const statusLine = useRef<HTMLDivElement>(null);
 
-  const log = async (input: DrinkInput): Promise<DrinkLogRecord | null> => {
+  /** Closes the open panel and gives focus back to the button that opened it. */
+  const closePanel = (): void => {
+    const opener = panel === 'other' ? otherButton.current : moreButtons.current.get(panel ?? '');
+    setPanel(null);
+    if (opener !== null && opener !== undefined) focusNext(() => opener);
+  };
+  /** Logs a drink; from a panel's Add, the panel closes and its opener takes focus back. */
+  const log = async (input: DrinkInput, fromPanel: boolean): Promise<DrinkLogRecord | null> => {
     const done = await write.run(() => repos.drinks.log(input));
     if (done === null) return null;
-    setStatus({ kind: 'added', row: done.value, note: noteFor(done.value) });
-    setPanel(null);
+    setStatus({ kind: 'added', row: done.value });
+    if (fromPanel) closePanel();
+    else setPanel(null);
     return done.value;
   };
-  const fromPreset = (preset: BeverageRecord, count: number, at: string | undefined) =>
-    log({
-      beverageId: preset.id,
-      name: preset.name,
-      beverage: { volumeMl: preset.volumeMl, abvPercent: preset.abvPercent, label: preset.label },
-      count,
-      ...(at === undefined ? {} : { at }),
-    });
+  const fromPreset = (
+    preset: BeverageRecord,
+    count: number,
+    at: string | undefined,
+    fromPanel: boolean,
+  ) =>
+    log(
+      {
+        beverageId: preset.id,
+        name: preset.name,
+        beverage: { volumeMl: preset.volumeMl, abvPercent: preset.abvPercent, label: preset.label },
+        count,
+        ...(at === undefined ? {} : { at }),
+      },
+      fromPanel,
+    );
 
   return (
     <Card label={a.cardLabel}>
-      <p>{a.intro}</p>
+      {view.presets.length > 0 ? <p>{a.intro}</p> : null}
       {view.presets.length === 0 ? (
-        <p>{a.noPresets}</p>
+        <p>{view.hiddenPresets.length > 0 ? a.allPresetsHidden : a.noPresets}</p>
       ) : (
         <ul className="ui-action-list">
           {view.presets.map((preset) => (
@@ -409,7 +475,11 @@ export function LogCard({
               preset={preset}
               busy={write.busy}
               moreOpen={panel === preset.id}
-              onTap={() => void fromPreset(preset, 1, undefined)}
+              moreRef={(button) => {
+                if (button === null) moreButtons.current.delete(preset.id);
+                else moreButtons.current.set(preset.id, button);
+              }}
+              onTap={() => void fromPreset(preset, 1, undefined, false)}
               onMore={() => {
                 setPanel((open) => (open === preset.id ? null : preset.id));
               }}
@@ -419,9 +489,9 @@ export function LogCard({
                   storage={storage}
                   maxDate={view.noteToday}
                   busy={write.busy}
-                  onAdd={({ count, at }) => void fromPreset(preset, count, at)}
+                  onAdd={({ count, at }) => void fromPreset(preset, count, at, true)}
                   onCancel={() => {
-                    setPanel(null);
+                    closePanel();
                     write.clear();
                   }}
                 />
@@ -430,13 +500,22 @@ export function LogCard({
           ))}
         </ul>
       )}
+      <Button
+        ref={otherButton}
+        aria-expanded={panel === 'other'}
+        onClick={() => {
+          setPanel((open) => (open === 'other' ? null : 'other'));
+        }}
+      >
+        {a.otherDrink}
+      </Button>
       {panel === 'other' ? (
         <OtherDrinkPanel
           storage={storage}
           view={view}
           busy={write.busy}
           onLog={(input, preset) => {
-            void log(input).then((row) => {
+            void log(input, true).then((row) => {
               if (row === null || preset === null) return;
               void write.run(() =>
                 repos.beverages.create({
@@ -451,38 +530,32 @@ export function LogCard({
             });
           }}
           onCancel={() => {
-            setPanel(null);
+            closePanel();
             write.clear();
           }}
         />
-      ) : (
-        <Button
-          onClick={() => {
-            setPanel('other');
-          }}
-        >
-          {a.otherDrink}
-        </Button>
-      )}
-      <div role="status" className="ui-log-status">
+      ) : null}
+      <div ref={statusLine} role="status" tabIndex={-1} className="ui-log-status">
         {status === null ? null : status.kind === 'undone' ? (
           <p>{a.undone}</p>
         ) : (
           <>
             <p data-testid="drinks-added">{addedText(status.row, view)}</p>
-            {status.note ? <p>{fasting.alcoholNote}</p> : null}
+            {noteFor(status.row) ? <p>{fasting.alcoholNote}</p> : null}
           </>
         )}
       </div>
       {status?.kind === 'added' ? (
         <Button
           variant="quiet"
-          disabled={write.busy}
+          aria-disabled={write.busy}
           onClick={() => {
             void write
               .run(() => repos.drinks.remove(status.row.id))
               .then((done) => {
-                if (done !== null) setStatus({ kind: 'undone' });
+                if (done === null) return;
+                setStatus({ kind: 'undone' });
+                focusNext(() => statusLine.current);
               });
           }}
         >
@@ -490,7 +563,12 @@ export function LogCard({
         </Button>
       ) : null}
       <WriteError write={write} />
-      <Button variant="quiet" onClick={onEditPresets}>
+      <Button
+        ref={editPresetsRef}
+        variant="quiet"
+        aria-expanded={editingPresets}
+        onClick={onEditPresets}
+      >
         {a.editPresets}
       </Button>
       <h3 className="ui-text-strong">{a.loggedToday}</h3>
@@ -503,6 +581,10 @@ export function LogCard({
               <div className="ui-drinks-entry">
                 <span>{entryText(entry)}</span>
                 <Button
+                  ref={(button) => {
+                    if (button === null) editButtons.current.delete(entry.id);
+                    else editButtons.current.set(entry.id, button);
+                  }}
                   variant="quiet"
                   aria-expanded={editing === entry.id}
                   onClick={() => {
@@ -521,9 +603,11 @@ export function LogCard({
                 <EntryEditor
                   storage={storage}
                   entry={entry}
+                  homeTimeZone={view.ctx.homeTimeZone}
                   maxDate={view.noteToday}
                   onClose={() => {
                     setEditing(null);
+                    focusNext(() => editButtons.current.get(entry.id));
                   }}
                 />
               ) : null}
@@ -531,6 +615,9 @@ export function LogCard({
           ))}
         </ul>
       )}
+      {view.todayEntries.length > 1 && roundingShows(view) ? (
+        <p className="ui-text-muted">{a.roundingNote}</p>
+      ) : null}
       {view.todayTotals.zoneFallback ? (
         <p className="ui-text-muted">{privacy.zoneFallback}</p>
       ) : null}

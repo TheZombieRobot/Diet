@@ -41,11 +41,39 @@ describe('the alcohol code keeps its shape (S1)', () => {
     ).toEqual(['body-input', 'body-input']);
   });
 
+  it.each([
+    "import { FLOOR_KJ } from '../storage/limits';",
+    'const most = MAX_RAISED_FLOOR_KJ;',
+    'const floor = targets.energyFloorKj;',
+    'const day = useDayTargets(storage, today);',
+    'const e = estimatedDailyEnergy(input);',
+    'const r = restingEnergyKcal(input);',
+    'const w = await storage.db.weights.toArray();',
+    "const w = await storage.repos['weights'].list();",
+  ])(
+    'b: alcohol code reading the floor, the energy equation or the weigh-ins fails: %s',
+    (line) => {
+      expect(rules('packages/core/src/alcohol/totals.ts', line)).toEqual(['body-input']);
+      expect(rules('apps/mobile-web/src/screens/drinks/SummaryCard.tsx', line)).toEqual([
+        'body-input',
+      ]);
+    },
+  );
+
   it('c: the floor or meal-check code naming an alcohol total, or importing it, fails; a comment does not', () => {
     expect(
       rules(
         'packages/core/src/targets/energy.ts',
         "import { periodTotals } from '../alcohol/totals';\n// knownKcal in a comment is fine\n",
+      ),
+    ).toEqual(['energy-route', 'energy-route']);
+    expect(
+      rules('packages/core/src/targets/energy.ts', "import { totalsOfPlaced } from '..';"),
+    ).toEqual(['energy-route']);
+    expect(
+      rules(
+        'apps/mobile-web/src/screens/today/nutritionView.ts',
+        'const kcal = periodTotals(rows, ctx, day, day).knownKcal;',
       ),
     ).toEqual(['energy-route', 'energy-route']);
   });
@@ -55,6 +83,21 @@ describe('the alcohol code keeps its shape (S1)', () => {
       rules(
         'apps/mobile-web/src/screens/today/Example.tsx',
         'void repos.alcoholMilestones.create(x);\nvoid repos.drinks.log(y);\n',
+      ),
+    ).toEqual(['write-home', 'write-home']);
+    for (const text of [
+      "void repos.drinks['log'](y);",
+      'const { log } = storage.repos.drinks;',
+      'void repos.alcoholMilestones\n  .create(x);',
+    ]) {
+      expect(rules('apps/mobile-web/src/screens/today/Example.tsx', text), text).toEqual([
+        'write-home',
+      ]);
+    }
+    expect(
+      rules(
+        'apps/mobile-web/src/screens/drinks/TrendsCard.tsx',
+        "void crudRepo(ctx, 'alcohol_milestones').create(x);",
       ),
     ).toEqual(['write-home', 'write-home']);
     expect(

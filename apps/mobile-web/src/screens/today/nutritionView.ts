@@ -195,7 +195,8 @@ export function nutritionTodayView(
         };
 
   const notes: NutritionNote[] = [];
-  const drinksLogged = alcoholShown && (drinks.knownKj > 0 || drinks.unknownCount > 0);
+  // By count: a logged drink is never "nothing logged", whatever is known of its energy.
+  const drinksLogged = alcoholShown && drinks.count > 0;
   if (intake.entryCount === 0 && !drinksLogged) notes.push({ text: copy.today.nothingLogged });
   for (const key of MISSING_ORDER) {
     const count = unknownCounts[key];
@@ -209,8 +210,9 @@ export function nutritionTodayView(
     });
   }
   if (drinksLogged) {
+    // Energy unknown only when no drink's energy is known; a known 0 (a 0% drink) is shown as 0.
     const part =
-      drinks.knownKj > 0
+      drinks.unknownCount < drinks.count
         ? fillTemplate(alcohol.dayEnergy.segment, { kj: formatWhole(drinks.knownKj) })
         : alcohol.dayEnergy.segmentUnknown;
     const foodPart = fillTemplate(copy.today.food, {

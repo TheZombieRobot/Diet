@@ -996,9 +996,38 @@ describe('the alcohol stores need the notice, and drinks and milestones need log
       }),
       'alcohol-notice-first',
     );
+    await refused(
+      test.repos.alcoholDayNotes.create({ date: '2000-03-01', note: null, withdrawalTick: true }),
+      'alcohol-notice-first',
+    );
     expect(await test.repos.drinks.list()).toEqual([]);
     expect(await test.repos.alcoholMilestones.list()).toEqual([]);
     expect(await test.repos.beverages.list()).toEqual(presets);
+    expect(await test.repos.alcoholDayNotes.list()).toEqual([]);
+  });
+
+  it('before the notice, a stored milestone, preset or note cannot be changed (a restore can put them there)', async () => {
+    const test = await openTestDb();
+    await onboardForTests(test);
+    const kept = await milestone(test);
+    const note = { date: '2000-03-01', note: null, withdrawalTick: true };
+    await test.repos.alcoholDayNotes.create(note);
+    const [preset] = await test.repos.beverages.list();
+    // As a restore of an older backup can leave it: the records there, the notice not read.
+    await test.db.settings.put({ ...(await test.repos.settings.get()), alcoholNoticeAckAt: null });
+    await refused(
+      test.repos.alcoholMilestones.update(kept.id, { weeklyStdDrinks: 20 }),
+      'alcohol-notice-first',
+    );
+    await refused(
+      test.repos.beverages.update(preset?.id ?? '', { archived: true }),
+      'alcohol-notice-first',
+    );
+    await refused(
+      test.repos.alcoholDayNotes.update('2000-03-01', { note: 'Synthetic note' }),
+      'alcohol-notice-first',
+    );
+    expect((await test.repos.alcoholMilestones.get(kept.id))?.weeklyStdDrinks).toBe(8);
   });
 
   it('notice read but question 1 unanswered: no drink or milestone; a next-day note is kept', async () => {
@@ -1014,14 +1043,27 @@ describe('the alcohol stores need the notice, and drinks and milestones need log
     expect(await test.repos.alcoholDayNotes.list()).toHaveLength(1);
   });
 
-  it('RD-01: when question 1 turns yes, a logged drink cannot be edited, but it can be deleted', async () => {
+  it('RD-01: when question 1 turns yes, a logged drink or a milestone cannot be edited, but it can be deleted', async () => {
     const test = await openTestDb();
     await onboardForTests(test);
     const logged = await drink(test);
+    const kept = await milestone(test);
     await test.repos.readiness.answer('q1', 'yes');
     await refused(test.repos.drinks.update(logged.id, { count: 2 }), 'alcohol-logging-off');
+    await refused(
+      test.repos.alcoholMilestones.update(kept.id, { weeklyStdDrinks: 20 }),
+      'alcohol-logging-off',
+    );
     await test.repos.drinks.remove(logged.id);
     expect(await test.repos.drinks.list()).toEqual([]);
+  });
+
+  it('RD-01: a birth year under 18 turns logging off whatever question 1 says', async () => {
+    const test = await openTestDb();
+    // The test clock is in 2000, so 1985 is 15.
+    await onboardForTests(test, { profile: { birthYear: 1985 } });
+    await refused(drink(test), 'alcohol-logging-off');
+    await refused(milestone(test), 'alcohol-logging-off');
   });
 
   it('a drink more than 5 minutes ahead is refused, by log or by an edit of its time; a count edit is not', async () => {

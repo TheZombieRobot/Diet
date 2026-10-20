@@ -3,7 +3,9 @@
  * gates and the clock by core functions only. Pure: the screens format it with drinksText.ts.
  *
  * The figures compared with the guidance are the shown 2-decimal totals (C94); the help card's
- * triggers use the trigger totals, which never count a mistyped low label figure low (A39).
+ * triggers use the trigger totals, which never count a mistyped low label figure low (A39). With
+ * readiness answer 2 "yes" or unanswered no guidance figure is shown or compared (guidanceShown;
+ * full review F30); the help card still counts against the stricter set's weekly figure.
  */
 import {
   activeHelpTriggers,
@@ -22,6 +24,8 @@ import {
   type DrinkingDayContext,
   type DrinkLogRecord,
   guidanceFor,
+  type GuidanceShown,
+  guidanceShown,
   instantMs,
   isAboveGuidance,
   type LocalDate,
@@ -48,7 +52,12 @@ export interface DrinksClock {
 
 export interface DrinksView {
   readonly access: AlcoholAccess;
+  /** The set that applies, for the help card's double-guidance trigger and the guidance card. */
   readonly guidance: ReturnType<typeof guidanceFor>;
+  /** What the screens show as guidance: the set's line, or the pregnancy line with no figures. */
+  readonly shown: GuidanceShown;
+  /** Any drink, note or milestone in the records read, so "Your earlier entries are kept." is true. */
+  readonly hasRecords: boolean;
   readonly ctx: DrinkingDayContext;
   readonly today: LocalDate;
   readonly noteToday: LocalDate;
@@ -90,6 +99,8 @@ export function buildDrinksView(
   };
   const { today, noteToday } = clock;
   const guidance = guidanceFor(profile.sex, settings.alcoholGuidanceSet);
+  const shown = guidanceShown(profile.sex, settings.alcoholGuidanceSet, gates);
+  const figuresShown = shown.kind === 'guidance';
   const trackingStart = trackingStartOf(settings.alcoholNoticeAckAt, ctx);
   const weekStart = weekStartOf(today);
   const placed = placeDrinks(data.drinks, ctx);
@@ -103,6 +114,8 @@ export function buildDrinksView(
   return {
     access: alcoholAccess({ alcoholNoticeAckAt: settings.alcoholNoticeAckAt, gates }),
     guidance,
+    shown,
+    hasRecords: data.drinks.length > 0 || data.notes.length > 0 || data.milestones.length > 0,
     ctx,
     today,
     noteToday,
@@ -114,8 +127,8 @@ export function buildDrinksView(
     todayTotals,
     weekTotals,
     weekFree: alcoholFreeDays(weekAlcohol, weekStart, today, trackingStart, today),
-    todayAbove: isAboveGuidance(todayTotals.std, guidance.perDay),
-    weekAbove: isAboveGuidance(weekTotals.std, guidance.perWeek),
+    todayAbove: figuresShown && isAboveGuidance(todayTotals.std, guidance.perDay),
+    weekAbove: figuresShown && isAboveGuidance(weekTotals.std, guidance.perWeek),
     daily: dailySeries(data.drinks, ctx, today, trackingStart),
     weekly: weeklySeries(data.drinks, ctx, today, trackingStart, data.milestones),
     milestones: [...data.milestones].sort((a, b) =>

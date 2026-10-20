@@ -113,4 +113,19 @@ describe('the shown total is the compared total (V1; C94)', () => {
       expect(view.weekAbove).toBe(above);
     },
   );
+
+  // AL-03, AL-04: today's total against 2 (women) and 3 (men) a day, never the weekly figure.
+  it.each<[string, ProfileSex, number, StoredBeverage, number, boolean]>([
+    ['female, 2 × 100 mL at 12.7% (2.004)', 'female', 2, measure(100, 12.7), 2, false],
+    ['female, 3 × 330 mL at 5% (3.906)', 'female', 3, measure(330, 5), 3.91, true],
+    ['male, 3 × 100 mL at 12.68% (3.0014)', 'male', 3, measure(100, 12.68), 3, false],
+    ['male, 3 × 100 mL at 12.7% (3.006)', 'male', 3, measure(100, 12.7), 3.01, true],
+  ])(
+    '%s: more than the daily figure only when the shown total is',
+    (_case, sex, count, beverage, shown, above) => {
+      const view = viewFor(sex, null, count, beverage);
+      expect(view.todayTotals.std).toBe(shown);
+      expect(view.todayAbove).toBe(above);
+    },
+  );
 });

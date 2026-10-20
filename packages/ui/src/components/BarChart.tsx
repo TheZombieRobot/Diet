@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react';
+import { type ReactElement, useLayoutEffect, useRef } from 'react';
 
 export interface BarChartBar {
   readonly key: string;
@@ -26,6 +26,27 @@ export interface BarChartProps {
 
 const WIDTH = 320;
 const GRIDLINES = 3;
+/** The least room between two tick labels, in CSS pixels. */
+const TICK_GAP = 6;
+
+/**
+ * Hides any tick label that would run into the next one shown, working back from the last (which
+ * always shows: "Today", "This week"), so the labels never overlap at any width or text size. A
+ * hidden label keeps its place, so hiding one never moves another. Labels not laid out yet (no
+ * width) are left as they are.
+ */
+function fitTicks(row: HTMLElement): void {
+  const labels = [...row.querySelectorAll<HTMLElement>('.ui-bar-chart__tick-text')];
+  for (const label of labels) delete label.dataset.hidden;
+  let next: DOMRect | null = null;
+  for (const label of labels.reverse()) {
+    if (label.textContent === '') continue;
+    const box = label.getBoundingClientRect();
+    if (box.width === 0) return;
+    if (next !== null && box.right + TICK_GAP > next.left) label.dataset.hidden = 'true';
+    else next = box;
+  }
+}
 
 /**
  * Bars in the neutral colour (drinks figures), never teal, amber or red: a total is never drawn as
@@ -50,6 +71,20 @@ export function BarChart({
   const barWidth = slot * 0.62;
   const y = (v: number) => height - (Math.max(0, v) / max) * height;
   const centre = (i: number) => slot * i + slot / 2;
+  const ticks = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const row = ticks.current;
+    if (row === null) return;
+    fitTicks(row);
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => {
+      fitTicks(row);
+    });
+    observer.observe(row);
+    return () => {
+      observer.disconnect();
+    };
+  });
 
   // The line is broken where a value is missing.
   const lineRuns: string[] = [];
@@ -95,33 +130,40 @@ export function BarChart({
               />
             ),
           )}
-          {lineRuns.map((points) => (
-            <polyline key={points} className="ui-bar-chart__line" points={points} />
+          {/* Each line and dot run is drawn twice: first wide in the card colour (a halo that sets it
+              apart from the bars it crosses), then in its own colour on top. */}
+          {(['halo', 'mark'] as const).map((layer) => (
+            <g key={layer} className={layer === 'halo' ? 'ui-bar-chart__halo' : undefined}>
+              {lineRuns.map((points) => (
+                <polyline key={points} className="ui-bar-chart__line" points={points} />
+              ))}
+              {(reference ?? []).map((v, i) =>
+                v === null ? null : (
+                  <line
+                    key={i}
+                    className="ui-bar-chart__reference"
+                    x1={slot * i + 3}
+                    x2={slot * (i + 1) - 3}
+                    y1={y(v)}
+                    y2={y(v)}
+                    strokeDasharray="0 6"
+                    strokeLinecap="round"
+                  />
+                ),
+              )}
+            </g>
           ))}
-          {(reference ?? []).map((v, i) =>
-            v === null ? null : (
-              <line
-                key={i}
-                className="ui-bar-chart__reference"
-                x1={slot * i + 3}
-                x2={slot * (i + 1) - 3}
-                y1={y(v)}
-                y2={y(v)}
-                strokeDasharray="0 6"
-                strokeLinecap="round"
-              />
-            ),
-          )}
         </svg>
       </div>
       <div
+        ref={ticks}
         className="ui-bar-chart__ticks"
         style={{ gridTemplateColumns: `repeat(${bars.length}, minmax(0, 1fr))` }}
         aria-hidden="true"
       >
         {bars.map((bar) => (
           <span key={bar.key} className="ui-bar-chart__tick">
-            {bar.tick ?? ''}
+            <span className="ui-bar-chart__tick-text">{bar.tick ?? ''}</span>
           </span>
         ))}
       </div>

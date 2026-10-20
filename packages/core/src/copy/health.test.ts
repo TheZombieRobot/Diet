@@ -738,6 +738,13 @@ describe('the Drinks copy (item 28 C1; NN-09, HS-19, C58, C66, A34)', () => {
     ).toBe('Zero-sugar premix 330 mL, 5%, 94 kcal, 1.3 std');
   });
 
+  it('C60, C78: the sources line names what it covers, and the single-occasion figure says where it comes from', () => {
+    expect(alcohol.guidance.sources).toMatch(/^Sources for the daily and weekly figures\b/);
+    expect(alcohol.guidance.singleOccasionSource).toMatch(/summaries/);
+    expect(alcohol.guidance.singleOccasionSource).toMatch(/not yet been checked/);
+    expect(alcohol.guidance.singleOccasionSource).not.toMatch(/alcohol\.org\.nz|bpac|Health NZ/);
+  });
+
   it('C58: the card explains every trigger, the question first', () => {
     expect(alcohol.helpCardWhy).toContain('answered yes or not yet answered');
     expect(alcohol.helpCardReturnsNextDay).toContain('next drinking day');

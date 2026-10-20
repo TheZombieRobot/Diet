@@ -11,13 +11,15 @@
  *    no drink can be weighed against a budget (HS-08, HS-19). targetsHome.ts already keeps the
  *    floor and the energy equation out of both.
  * c. No route for alcohol totals into the energy floor, the meal checks or the planner (C11): the
- *    energy, nutrition, fasting, weight, targets and planner folders never import the alcohol
- *    totals, trends or help card, and never name their totals. Item 21's day total (targets
- *    intake.ts) is the one exception: it shows alcohol energy as its own part, behind a type wall
- *    that keeps it out of foodEnergyKj, which is all the floor and the meal checks read.
+ *    energy, nutrition, fasting, weight, targets and planner folders, and the app's Today, Diet and
+ *    targets and Fasting screens, never import the alcohol totals, trends or help card, and never
+ *    name their totals or the energy rule. Item 21's day total (targets intake.ts) is the one
+ *    exception: it shows alcohol energy as its own part, behind a type wall that keeps it out of
+ *    foodEnergyKj, which is all the floor and the meal checks read.
  * d. The writes have one home each: a milestone is created or changed only in the milestone form
  *    (the app never makes one), a drink is logged only in the Log card and edited only in the
- *    entry editor.
+ *    entry editor. A call by bracket, across lines or through a destructured method counts, and no
+ *    screen names the milestone store itself.
  */
 import { isTestFile } from './scan';
 
@@ -30,7 +32,7 @@ export interface AlcoholStructureProblem {
 const CORE_ALCOHOL = /^packages\/core\/src\/alcohol\//;
 const DRINKS_SCREENS = /^apps\/mobile-web\/src\/screens\/drinks\//;
 const ENERGY_FOLDERS =
-  /^packages\/core\/src\/(?:energy|nutrition|fasting|weight|targets|planner)\//;
+  /^(?:packages\/core\/src\/(?:energy|nutrition|fasting|weight|targets|planner)|apps\/mobile-web\/src\/screens\/(?:today|targets|fasting))\//;
 /** Item 21's day total, which shows alcohol energy as its own part (see c above). */
 const DAY_TOTAL = 'packages/core/src/targets/intake.ts';
 
@@ -44,13 +46,19 @@ const ALLOWED_IMPORTS: readonly RegExp[] = [
   /^\.\.\/storage\/(?:records|primitives|dates|derived|cards|profileMapping|readiness|defaults|limits)$/,
 ];
 
-/** Body and energy-target inputs (b). */
+/** Body and energy-target inputs (b): the body records, the energy floor and the energy equation. */
 const BODY_INPUTS: readonly RegExp[] = [
   /\bbaseTargets\b/,
   /\bWeightRecord\b/,
   /\bheightCm\b/,
   /\bkg\b/,
-  /\brepos\.(?:weights|foodLog|planDays|targets)\b/,
+  /\brepos\s*(?:\.|\[\s*['"])\s*(?:weights|foodLog|planDays|targets)\b/,
+  /\bdb\s*(?:\.|\[\s*['"])\s*(?:weights|food_log|plan_days|targets)\b/,
+  /\b(?:MAX_RAISED_)?FLOOR_KJ\b/,
+  /\benergyFloorKj\b/,
+  /\bestimatedDailyEnergy\b/,
+  /\brestingEnergyKcal\b/,
+  /\buseDayTargets\b/,
 ];
 
 /** The alcohol totals the energy code may never import or name (c). */
@@ -58,21 +66,38 @@ const ALCOHOL_TOTALS_IMPORT =
   /['"](?:\.\.\/alcohol|@diet\/core\/alcohol)\/(?:totals|trends|helpCard)['"]/;
 const ALCOHOL_TOTAL_NAMES: readonly RegExp[] = [
   /\bperiodTotals\b/,
+  /\btotalsOfPlaced\b/,
+  /\bplaceDrinks\b/,
+  /\btriggerStd\b/,
+  /\bexactStd\b/,
   /\btotalDrinkEnergy\b/,
+  /\bcountedKcalPerServe\b/,
   /\bentryFigures\b/,
   /\bknownKcal\b/,
   /\bdrinks_log\b/,
 ];
 
+/** A call of `method` on `repo`: by dot or bracket, across lines, or destructured from it. */
+const call = (repo: string, method: string): RegExp =>
+  new RegExp(
+    `\\b${repo}\\s*(?:\\.|\\[\\s*['"\`])\\s*(?:${method})\\b|\\{[^}]*\\b(?:${method})\\b[^}]*\\}\\s*=\\s*[\\w.?]*\\b${repo}\\b`,
+  );
+
 /** Each write and the one file it may appear in (d). */
 const WRITE_HOMES: readonly (readonly [RegExp, string])[] = [
   [
-    /\balcoholMilestones\.(?:create|update)\(/,
+    call('alcoholMilestones', 'create|update'),
     'apps/mobile-web/src/screens/drinks/MilestonesCard.tsx',
   ],
-  [/\bdrinks\.log\(/, 'apps/mobile-web/src/screens/drinks/LogCard.tsx'],
-  [/\bdrinks\.update\(/, 'apps/mobile-web/src/screens/drinks/EntryEditor.tsx'],
+  [call('drinks', 'log'), 'apps/mobile-web/src/screens/drinks/LogCard.tsx'],
+  [call('drinks', 'update'), 'apps/mobile-web/src/screens/drinks/EntryEditor.tsx'],
+  // The milestone repository itself is made in one place; a second one would be a second home.
+  [/\bcrudRepo\s*\([^)]*['"`]alcohol_milestones['"`]/, 'apps/mobile-web/src/db/repos/index.ts'],
 ];
+
+/** The app's own code outside its database layer, which never names the milestone store (d). */
+const APP_OUTSIDE_DB = /^apps\/mobile-web\/src\/(?!db\/)/;
+const MILESTONE_STORE = /['"`]alcohol_milestones['"`]/;
 
 /** Source files the scan reads: the workspaces' code, not tests, test kits or fixtures. */
 export function isAlcoholScanned(file: string): boolean {
@@ -122,6 +147,9 @@ export function alcoholStructureProblems(file: string, source: string): AlcoholS
     if (file !== home && write.test(text)) {
       problems.push({ file, rule: 'write-home', detail: String(write) });
     }
+  }
+  if (APP_OUTSIDE_DB.test(file) && MILESTONE_STORE.test(text)) {
+    problems.push({ file, rule: 'write-home', detail: String(MILESTONE_STORE) });
   }
   return problems;
 }

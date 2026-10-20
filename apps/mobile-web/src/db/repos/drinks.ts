@@ -128,14 +128,15 @@ export function drinksRepo(ctx: RepoContext): DrinksRepo {
           ]).then(([stored]) => {
             if (stored === undefined) throw new StorageRuleError('drinks_log', 'not-found');
             const beverage = changes.beverage ?? stored.beverage;
-            const moved = changes.at !== undefined && changes.at !== stored.at;
+            // The zone stays the drink's own: a corrected time is read in that zone (the entry
+            // editor shows and takes it there), so the drink keeps its place and its time on screen.
             const row = prepare(
               'drinks_log',
               {
                 ...stored,
                 ...changes,
                 id: stored.id,
-                timeZone: moved ? env.timeZone() : stored.timeZone,
+                timeZone: stored.timeZone,
                 beverage,
                 ...drinkFigures(beverage),
               },

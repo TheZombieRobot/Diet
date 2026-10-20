@@ -4,7 +4,8 @@
  * size and strength they were filled or typed for: changing either clears them at once and says
  * what they were for. A label figure that disagrees with the calculation, or energy lower than
  * the alcohol alone would give, needs a second tap ("Save anyway"); no message ever shows an
- * energy figure worked out from the ABV. Presets are hidden, never deleted (A19).
+ * energy figure worked out from the ABV. Presets are hidden, never deleted (A19). A form that
+ * opens takes focus on its first field, and hands it back to its Edit button when it closes.
  */
 import {
   type BeverageRecord,
@@ -23,12 +24,13 @@ import {
 } from '@diet/core';
 import { alcohol } from '@diet/core/copy/health';
 import { Button, ButtonRow, Card, Notice, SegmentedControl, TextField } from '@diet/ui';
-import { type ReactElement, useState } from 'react';
+import { type ReactElement, useEffect, useRef, useState } from 'react';
 import type { AppStorage } from '../../db/runtime';
 import { formatMeasure, formatStd2 } from '../../format';
 import { WriteError } from '../today/WriteError';
 import { figureNotes, presetSummaryText } from './drinksText';
 import { nextSortOrder } from './drinkForm';
+import { useFocusNext } from './focus';
 import { useDrinksWrite } from './useDrinksWrite';
 import type { DrinksView } from './view';
 
@@ -91,6 +93,10 @@ function PresetForm({
     setState((s) => presetFormStep(s, event, stored));
     setWarned(false);
   };
+  const nameField = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    nameField.current?.focus();
+  }, []);
   const checks = warned ? checksOf(stored, state) : null;
   const flagged = checks !== null && (checks.stdDisagrees || checks.kcalImplausible);
 
@@ -120,6 +126,7 @@ function PresetForm({
   return (
     <div className="ui-subpanel">
       <TextField
+        ref={nameField}
         label={p.nameLabel}
         autoComplete="off"
         value={state.name}
@@ -221,7 +228,7 @@ function PresetForm({
         </Notice>
       ) : null}
       <ButtonRow>
-        <Button variant="primary" disabled={write.busy} onClick={() => void save()}>
+        <Button variant="primary" aria-disabled={write.busy} onClick={() => void save()}>
           {flagged ? p.saveAnyway : p.save}
         </Button>
         <Button
@@ -249,16 +256,20 @@ export function PresetEditor({
   readonly onDone: () => void;
 }): ReactElement {
   const write = useDrinksWrite();
+  const focusNext = useFocusNext();
   const [editing, setEditing] = useState<string | null>(null);
   const [showHidden, setShowHidden] = useState(false);
   const [saved, setSaved] = useState(false);
+  const openers = useRef(new Map<string, HTMLButtonElement>());
   const sortOrder = nextSortOrder([...view.presets, ...view.hiddenPresets]);
   const archive = (preset: BeverageRecord, archived: boolean): void => {
     void write.run(() => storage.repos.beverages.update(preset.id, { archived }));
   };
   const closeForm = (didSave: boolean) => () => {
+    const opener = editing;
     setEditing(null);
     setSaved(didSave);
+    if (opener !== null) focusNext(() => openers.current.get(opener));
   };
   const form = (stored: BeverageRecord | null) => (
     <PresetForm
@@ -289,6 +300,10 @@ export function PresetEditor({
             ) : (
               <ButtonRow>
                 <Button
+                  ref={(button) => {
+                    if (button === null) openers.current.delete(preset.id);
+                    else openers.current.set(preset.id, button);
+                  }}
                   aria-label={fillTemplate(p.editFor, { name: preset.name })}
                   onClick={() => {
                     setEditing(preset.id);
@@ -300,7 +315,7 @@ export function PresetEditor({
                 <Button
                   variant="quiet"
                   aria-label={fillTemplate(p.hideFor, { name: preset.name })}
-                  disabled={write.busy}
+                  aria-disabled={write.busy}
                   onClick={() => {
                     archive(preset, true);
                   }}
@@ -317,6 +332,10 @@ export function PresetEditor({
         form(null)
       ) : (
         <Button
+          ref={(button) => {
+            if (button === null) openers.current.delete('new');
+            else openers.current.set('new', button);
+          }}
           onClick={() => {
             setEditing('new');
             setSaved(false);
@@ -345,7 +364,7 @@ export function PresetEditor({
                 <span>{presetSummaryText(preset)}</span>
                 <Button
                   variant="quiet"
-                  disabled={write.busy}
+                  aria-disabled={write.busy}
                   onClick={() => {
                     archive(preset, false);
                   }}

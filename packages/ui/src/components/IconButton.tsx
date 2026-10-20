@@ -1,4 +1,10 @@
-import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactElement, ReactNode } from 'react';
+import type {
+  AnchorHTMLAttributes,
+  ButtonHTMLAttributes,
+  ReactElement,
+  ReactNode,
+  Ref,
+} from 'react';
 import { classNames } from '../classNames';
 
 export interface IconButtonProps extends Omit<
@@ -8,6 +14,8 @@ export interface IconButtonProps extends Omit<
   /** The accessible name, read out instead of the icon. Required: an icon has no text. */
   label: string;
   icon: ReactNode;
+  /** The button, for moving focus back to it when the panel it opened closes (item 28). */
+  ref?: Ref<HTMLButtonElement> | undefined;
 }
 
 /** A 48 px round button that shows only an icon. */

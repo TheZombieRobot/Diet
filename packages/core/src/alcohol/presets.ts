@@ -12,6 +12,7 @@ import type { BeverageRecord, StoredDrinkLabel } from '../storage/records';
 import { parseOptionalNumber } from '../util/parse';
 import { roundTo } from '../util/round';
 import {
+  countedKcalPerServe,
   type DrinkMeasure,
   drinkEnergy,
   MAX_LABEL_KCAL,
@@ -314,7 +315,7 @@ export function labelCheck(
 export interface PresetSummary {
   /** The per-serve figure shown (the label figure, or the calculation), to 1 dp (C94: per-preset labels only). */
   readonly std1dp: number;
-  /** The label kcal, rounded; null when unknown or implausibly low (NN-01, A40). */
+  /** countedKcalPerServe, rounded: null when unknown or implausibly low (NN-01, A40). */
   readonly kcal: number | null;
   /** A stored label no longer applies to the preset's size and strength (C92). */
   readonly labelIgnored: boolean;
@@ -331,11 +332,12 @@ export function presetSummary(
 ): PresetSummary {
   const std = standardDrinks(b);
   const energy = drinkEnergy(b);
+  const counted = countedKcalPerServe(energy.kcal, b);
   const labelIgnored = std.labelIgnored || energy.labelIgnored;
   const applies = b.label !== null && sameMeasure(measureOfLabel(b.label), b);
   return {
     std1dp: roundTo(std.exact, 1),
-    kcal: energy.kcal === null || energy.labelImplausible ? null : Math.round(energy.kcal),
+    kcal: counted === null ? null : Math.round(counted),
     labelIgnored,
     presetDefault: applies && b.label?.origin === 'preset-default',
     labelDiffersFrom:

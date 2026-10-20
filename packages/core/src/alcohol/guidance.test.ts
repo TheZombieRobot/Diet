@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { alcohol } from '../copy/health';
 import type { AlcoholGuidanceSet, ProfileSex } from '../storage/records';
-import { guidanceFor, isAboveGuidance, NZ_GUIDANCE, reachesDoubleGuidance } from './guidance';
+import { readinessGates } from '../readiness/gates';
+import {
+  guidanceFor,
+  guidanceShown,
+  isAboveGuidance,
+  NZ_GUIDANCE,
+  reachesDoubleGuidance,
+} from './guidance';
 
 // The C66 words the guidance line must never use (it says "no more than", never "up to").
 const C66 = [/\bup\s+to\b/i, /\bsafe\b/i, /\ballowed\b/i, /\bOK\s+to\b/i, /\bwithin\s+your\b/i];
@@ -45,6 +52,26 @@ describe('NZ alcohol guidance (U7; NN-09, C66, C25, C46, TD-05)', () => {
   it.each(cases)('sex %s with setting %s: the stricter set wins', (sex, setting) => {
     const men = sex === 'male' && setting !== 'nz-women';
     expect(guidanceFor(sex, setting).set).toBe(men ? 'nz-men' : 'nz-women');
+  });
+
+  it('F30: with answer 2 "yes" or unanswered no figures are shown, only the pregnancy line', () => {
+    const gates = (q2: 'yes' | 'no' | null) =>
+      readinessGates({
+        answers: { q1: 'no', q2, q3: 'no', q4: 'no', q5: 'no', q6: 'no', q7: 'no' },
+        confirmations: { prescriberAgreed: false, gpExerciseDiscussed: false },
+        minimumAgeYears: 50,
+        lowWeight: false,
+      });
+    expect(guidanceShown('male', null, gates('no'))).toEqual({ kind: 'guidance', set: 'nz-men' });
+    for (const q2 of ['yes', null] as const) {
+      expect(guidanceShown('female', null, gates(q2))).toEqual({ kind: 'pregnancy' });
+      expect(guidanceShown('male', null, gates(q2))).toEqual({ kind: 'pregnancy' });
+    }
+    const line = alcohol.guidance.pregnancy;
+    expect(line).not.toMatch(/\d/);
+    expect(line).toMatch(/midwife or GP/);
+    expect(line.endsWith(alcohol.noRiskFreeLevel)).toBe(true);
+    for (const rule of C66) expect(line).not.toMatch(rule);
   });
 
   it('says why the set applies', () => {

@@ -1168,8 +1168,9 @@ describe('the drinks pieces (item 28; K3)', () => {
     expect(screen.getByRole('img', { name: 'Standard drinks per week' })).toBeDefined();
     expect(container.querySelectorAll('rect')).toHaveLength(2);
     expect(container.querySelectorAll('.ui-bar-chart__bar--partial')).toHaveLength(1);
-    expect(container.querySelectorAll('polyline')).toHaveLength(1);
-    const dots = container.querySelectorAll('.ui-bar-chart__reference');
+    const marks = ':not(.ui-bar-chart__halo) > ';
+    expect(container.querySelectorAll(`${marks}polyline`)).toHaveLength(1);
+    const dots = container.querySelectorAll(`${marks}.ui-bar-chart__reference`);
     expect(dots).toHaveLength(3);
     expect(dots[0]?.getAttribute('stroke-dasharray')).toBe('0 6');
     expect(container.querySelector('.ui-bar-chart__legend')?.textContent).toBe(
@@ -1177,6 +1178,70 @@ describe('the drinks pieces (item 28; K3)', () => {
     );
     const block = componentsCss.slice(componentsCss.indexOf('/* ---- Item 28'));
     expect(block).not.toMatch(/--color-(?:teal|amber|emergency)/);
+  });
+
+  it('BarChart: the line and the milestone dots are each drawn over a wider halo in the card colour, so they show across a bar', () => {
+    const { container } = render(
+      <BarChart
+        label="Standard drinks per week"
+        bars={[
+          { key: 'a', value: 9 },
+          { key: 'b', value: 9 },
+        ]}
+        line={[8, 8]}
+        reference={[8, 8]}
+      />,
+    );
+    const halo = container.querySelector('svg .ui-bar-chart__halo');
+    expect(halo?.querySelectorAll('polyline')).toHaveLength(1);
+    expect(halo?.querySelectorAll('.ui-bar-chart__reference')).toHaveLength(2);
+    // Drawn first, so the marks lie on top of it.
+    const shapes = [...container.querySelectorAll('svg polyline, svg .ui-bar-chart__reference')];
+    expect(shapes.slice(0, 3).every((shape) => halo?.contains(shape))).toBe(true);
+    expect(shapes.slice(3).some((shape) => halo?.contains(shape))).toBe(false);
+    const rule =
+      /\.ui-bar-chart__halo \.ui-bar-chart__line,\s*\.ui-bar-chart__halo \.ui-bar-chart__reference\s*\{([^}]*)\}/.exec(
+        componentsCss,
+      )?.[1];
+    expect(rule).toContain('stroke: var(--color-card)');
+    expect(Number(/stroke-width:\s*(\d+)/.exec(rule ?? '')?.[1])).toBeGreaterThan(3);
+  });
+
+  it('BarChart: a tick label that would run into the next one shown is hidden; the last always shows', () => {
+    // jsdom has no layout: each label's box is given by its text, in CSS pixels.
+    const boxes: Record<string, [number, number]> = {
+      '24 Aug': [0, 40],
+      '31 Aug': [36, 76],
+      'This week': [80, 140],
+    };
+    const spy = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        const [left, right] = boxes[this.textContent] ?? [0, 0];
+        return { left, right, width: right - left, top: 0, bottom: 0, height: 0 } as DOMRect;
+      });
+    const { container } = render(
+      <BarChart
+        label="Standard drinks per week"
+        bars={[
+          { key: 'a', value: 1, tick: '24 Aug' },
+          { key: 'b', value: 1, tick: '31 Aug' },
+          { key: 'c', value: 1, tick: 'This week' },
+        ]}
+      />,
+    );
+    spy.mockRestore();
+    const hidden = [...container.querySelectorAll<HTMLElement>('.ui-bar-chart__tick-text')].map(
+      (label) => [label.textContent, label.dataset.hidden === 'true'],
+    );
+    expect(hidden).toEqual([
+      ['24 Aug', false],
+      ['31 Aug', true],
+      ['This week', false],
+    ]);
+    expect(componentsCss).toMatch(
+      /\.ui-bar-chart__tick-text\[data-hidden='true'\]\s*\{\s*visibility: hidden;/,
+    );
   });
 });
 

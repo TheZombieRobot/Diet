@@ -5,6 +5,7 @@
  * item 16 under item 28's names; item 28 adds its comparisons to this file.
  */
 import { guidanceSetFor } from '../storage/profileMapping';
+import type { ReadinessGates } from '../storage/readiness';
 import type { AlcoholGuidanceSet, ProfileSex } from '../storage/records';
 
 export interface GuidanceFigures {
@@ -36,6 +37,25 @@ export function guidanceFor(
   const basis: GuidanceBasis =
     sex === null ? 'no-sex' : sex === 'male' && setting === 'nz-women' ? 'chosen' : 'profile';
   return { ...NZ_GUIDANCE[guidanceSetFor(sex, setting)], basis };
+}
+
+/** The guidance a screen shows: the figures of a set, or the pregnancy line with none. */
+export type GuidanceShown =
+  { readonly kind: 'guidance'; readonly set: AlcoholGuidanceSet } | { readonly kind: 'pregnancy' };
+
+/**
+ * Which guidance to show (full review F30). With readiness answer 2 "yes" or unanswered the
+ * daily and weekly figures are not shown at all: NZ guidance in pregnancy and while breastfeeding
+ * is not to drink, so the figures would read as an allowance (HEALTH_SAFETY section 5, NN-09).
+ * Otherwise the set guidanceFor picks.
+ */
+export function guidanceShown(
+  sex: ProfileSex | null,
+  setting: AlcoholGuidanceSet | null,
+  gates: Pick<ReadinessGates, 'reasons'>,
+): GuidanceShown {
+  if (gates.reasons.includes('pregnant-or-breastfeeding')) return { kind: 'pregnancy' };
+  return { kind: 'guidance', set: guidanceFor(sex, setting).set };
 }
 
 // ---- Item 28: the comparisons (HS-05, HS-06, C94, A13, A39) ----

@@ -82,7 +82,7 @@ Drinks is one scrolling screen (checklist item 28): the "talk to someone" card a
 
 **5b: Trends.** Daily bars for drinks, standard drinks and kcal; weekly totals on Monday-start weeks; alcohol-free days counted plainly; a 4-week average line. Optional milestones you or your clinician entered appear as a dotted line labelled "your milestone", never "target" or "limit".
 
-**5c: Guidance and help.** The NZ guidance in context, the "no drinking is risk-free" line, and the help card with the helpline, GP advice and 111 instructions. Next-day note with a tick box: "I felt shaky, sweaty, anxious or sick when I hadn't had a drink" which surfaces the help card.
+**5c: Guidance and help.** The NZ guidance in context, the "no drinking is risk-free" line, and the help card with the helpline, GP advice and 111 instructions. The sources line names what it covers (the daily and weekly figures and the alcohol-free days); the single-occasion figure comes after it, with a note that it comes from summaries of the guidance and has not yet been checked against an official page (C78). Next-day note with a tick box: "I felt shaky, sweaty, anxious or sick when I hadn't had a drink" which surfaces the help card.
 
 What is deliberately absent: streaks, badges, "calories left", "you've earned", blood-alcohol, driving.
 

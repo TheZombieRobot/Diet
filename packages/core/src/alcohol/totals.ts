@@ -15,7 +15,12 @@ import { type Instant, instantMs, type TimeZone } from '../storage/primitives';
 import type { DrinkLogRecord } from '../storage/records';
 import { roundTo } from '../util/round';
 import { addDays, daysBetween, type LocalDate } from '../util/time';
-import { drinkEnergy, standardDrinks, totalStandardDrinks } from './standardDrinks';
+import {
+  countedKcalPerServe,
+  drinkEnergy,
+  standardDrinks,
+  totalStandardDrinks,
+} from './standardDrinks';
 
 export interface DrinkingDayContext {
   /** settings.homeTimeZone. */
@@ -41,11 +46,15 @@ export function drinkingDayOfRow(
 interface RowFigures {
   /** shownStdDrinksPerServe: a corrupted low calculated figure never counts low (section 4.10). */
   readonly shown: number;
-  /** The shown figure, or the calculation when a label figure disagrees and is lower (A39). */
+  /**
+   * The figure the help card counts (A39): for a label row the larger of the label figure and the
+   * calculation, however small the gap, so a low or mistyped label can never hide the card; for a
+   * calculated row the shown figure. Never shown.
+   */
   readonly trigger: number;
   /** The calculation, when a label figure is used and disagrees with it (A39). */
   readonly labelDiffersFrom: number | null;
-  /** Label kcal per serve when known and plausible (A40), else null. */
+  /** countedKcalPerServe: label kcal per serve when known and plausible (A40), else null. */
   readonly kcal: number | null;
   readonly kcalLooksLow: boolean;
 }
@@ -57,14 +66,14 @@ function rowFigures(row: DrinkLogRecord): RowFigures {
     volumeMl: row.beverage.volumeMl,
     abvPercent: row.beverage.abvPercent,
   }).exact;
-  const disagrees = row.stdSource === 'label' && std.labelDisagrees;
-  const looksLow = drinkEnergy(row.beverage).labelImplausible;
+  const labelUsed = row.stdSource === 'label';
+  const disagrees = labelUsed && std.labelDisagrees;
   return {
     shown,
-    trigger: disagrees ? Math.max(shown, calculated) : shown,
+    trigger: labelUsed ? Math.max(shown, calculated) : shown,
     labelDiffersFrom: disagrees ? roundTo(calculated, 2) : null,
-    kcal: row.kcalPerServe === null || looksLow ? null : row.kcalPerServe,
-    kcalLooksLow: looksLow,
+    kcal: countedKcalPerServe(row.kcalPerServe, row.beverage),
+    kcalLooksLow: drinkEnergy(row.beverage).labelImplausible,
   };
 }
 
@@ -113,7 +122,7 @@ export interface PeriodTotals {
   readonly exactStd: number;
   /** totalStandardDrinks over the shown figures: rounded once, 2 dp (C94). Shown, and compared with the guidance. */
   readonly std: number;
-  /** As std, with a disagreeing label figure counted at the larger of it and the calculation (A39). For the help card only. */
+  /** As std, with every label row counted at the larger of its label figure and the calculation (A39). For the help card only. */
   readonly triggerStd: number;
   /** The label energy of the rows whose energy is known and plausible (NN-01, C11, A40). */
   readonly knownKcal: number;

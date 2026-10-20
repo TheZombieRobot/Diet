@@ -2,16 +2,19 @@
  * How you felt: the next-day note (HEALTH_SAFETY.md section 5; UX 5c; item 28 design 2.10; AL-08,
  * C05; A24). One note per calendar date, today or earlier. A ticked note brings up the help card's
  * text and help rows under the form, and the Talk to someone card at the top of the screen (its
- * withdrawal-tick trigger). Saving with neither text nor tick removes the note.
+ * withdrawal-tick trigger). Saving with neither text nor tick removes the note. Picking another day
+ * never drops what was typed: an unsaved note and tick move to a day with no note, and for a day
+ * that already has one the card asks before opening it in their place.
  */
 import { type AlcoholDayNoteRecord, fillTemplate, isLocalDate } from '@diet/core';
 import { alcohol } from '@diet/core/copy/health';
 import { Button, ButtonRow, Card, Checkbox, TextArea, TextField } from '@diet/ui';
-import { type ReactElement, useState } from 'react';
+import { type ReactElement, useRef, useState } from 'react';
 import type { AppStorage } from '../../db/runtime';
 import { formatShortDate } from '../../format';
 import { NoticeHelpRows } from '../../onboarding/NoticeHelpRows';
 import { WriteError } from '../today/WriteError';
+import { useFocusNext } from './focus';
 import { useDrinksWrite } from './useDrinksWrite';
 import { type DrinksView, recentNotes } from './view';
 
@@ -46,15 +49,28 @@ export function DayNoteCard({
   const [edited, setEdited] = useState<Draft | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const [status, setStatus] = useState('');
+  /** A day with a saved note, picked while this form holds unsaved changes. */
+  const [asking, setAsking] = useState<string | null>(null);
+  const dayField = useRef<HTMLInputElement>(null);
+  const focusNext = useFocusNext();
   const stored = view.notes.find((n) => n.date === date);
   const draft = edited !== null && edited.date === date ? edited : draftOf(date, stored);
+  const saved = draftOf(date, stored);
+  const unsaved = draft.note !== saved.note || draft.tick !== saved.tick;
   const recent = recentNotes(view);
 
-  const open = (next: string): void => {
+  const show = (next: string, carried: Draft | null): void => {
     setDate(next);
-    setEdited(null);
+    setEdited(carried);
+    setAsking(null);
     setProblem(null);
     setStatus('');
+  };
+  const open = (next: string): void => {
+    if (next === date) return;
+    if (!unsaved) show(next, null);
+    else if (view.notes.some((n) => n.date === next)) setAsking(next);
+    else show(next, { ...draft, date: next });
   };
 
   const save = async (): Promise<void> => {
@@ -90,6 +106,7 @@ export function DayNoteCard({
     <Card label={d.cardLabel}>
       <p>{d.intro}</p>
       <TextField
+        ref={dayField}
         label={d.dayLabel}
         type="date"
         autoComplete="off"
@@ -100,6 +117,30 @@ export function DayNoteCard({
           open(event.currentTarget.value);
         }}
       />
+      {asking === null ? null : (
+        <div className="ui-subpanel" role="group" aria-label={d.dayLabel}>
+          <p>{fillTemplate(d.replaceAsk, { date: formatShortDate(asking) })}</p>
+          <ButtonRow>
+            <Button
+              onClick={() => {
+                show(asking, null);
+                focusNext(() => dayField.current);
+              }}
+            >
+              {d.replaceYes}
+            </Button>
+            <Button
+              variant="quiet"
+              onClick={() => {
+                setAsking(null);
+                focusNext(() => dayField.current);
+              }}
+            >
+              {d.replaceNo}
+            </Button>
+          </ButtonRow>
+        </div>
+      )}
       <TextArea
         label={d.noteLabel}
         autoComplete="off"
@@ -122,13 +163,13 @@ export function DayNoteCard({
         </p>
       ) : null}
       <ButtonRow>
-        <Button variant="primary" disabled={write.busy} onClick={() => void save()}>
+        <Button variant="primary" aria-disabled={write.busy} onClick={() => void save()}>
           {d.save}
         </Button>
         {stored === undefined ? null : (
           <Button
             variant="quiet"
-            disabled={write.busy}
+            aria-disabled={write.busy}
             onClick={() => {
               void write
                 .run(() => repos.alcoholDayNotes.remove(date))
