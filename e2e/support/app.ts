@@ -18,8 +18,15 @@ export const SCREENS = [
   'Fasting and reflux',
   // Item 21: reached from Settings, More.
   'Diet and targets',
+  // Item 19: reached from Food, its "At home" card.
+  'Garden and pantry',
 ] as const;
 export type ScreenName = (typeof SCREENS)[number];
+
+/** Item 19: screens under a tab, which mark that tab as their section (aria-current="true"). */
+export const UNDER_TABS: Readonly<Partial<Record<ScreenName, (typeof TABS)[number]>>> = {
+  'Garden and pantry': 'Food',
+};
 
 /** Screens reached from Settings, which mark the settings gear as their section. */
 export const UNDER_SETTINGS: readonly ScreenName[] = [
@@ -50,7 +57,8 @@ export const heading = (page: Page) => page.getByRole('heading', { level: 1 });
 
 /**
  * Goes to a screen the way a person would: a tab, the settings gear, then "About this app"; the
- * Weight screen through Today's Weight card, and the Fasting screen through Today's Fast card.
+ * Weight screen through Today's Weight card, the Fasting screen through Today's Fast card, and
+ * Garden and pantry through Food's link.
  */
 export async function goTo(page: Page, screen: ScreenName): Promise<void> {
   if ((TABS as readonly string[]).includes(screen)) {
@@ -70,6 +78,12 @@ export async function goTo(page: Page, screen: ScreenName): Promise<void> {
       .getByRole('link', { name: 'Today' })
       .click();
     await page.getByRole('link', { name: fasting.card.detailsLink }).click();
+  } else if (screen === 'Garden and pantry') {
+    await page
+      .getByRole('navigation', { name: 'Main' })
+      .getByRole('link', { name: 'Food' })
+      .click();
+    await page.getByRole('link', { name: /^Garden and pantry/ }).click();
   } else {
     await page.getByRole('banner').getByRole('link', { name: 'Settings' }).click();
     if (screen === 'About') {

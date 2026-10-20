@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { goToTab, markEntryAboveToday, type BrowserHistory } from './navigation';
+import {
+  goToTab,
+  markEntryAboveToday,
+  markSubScreenEntry,
+  type BrowserHistory,
+  replaceEntryHref,
+} from './navigation';
 import { parseRoute, type RouteId, type TabRouteId } from './routes';
 
 /** A stand-in for the browser's session history: one list of entries and a current index. */
@@ -33,11 +39,23 @@ function fakeHistory(start = '#/today') {
     },
   };
   const route = (): RouteId => parseRoute(current().hash);
-  /** A tab tap, then what App does after the route changes. */
+  /** What App does after the route changes. */
+  const marks = (before: RouteId) => {
+    if (route() === before) return;
+    markEntryAboveToday(before, route(), browser.history);
+    markSubScreenEntry(before, route(), browser.history);
+  };
+  /** A tab tap. */
   const tap = (target: TabRouteId) => {
     const before = route();
     goToTab(target, before, browser);
-    if (route() !== before) markEntryAboveToday(before, route(), browser.history);
+    marks(before);
+  };
+  /** A link in the page (Food's "Garden and pantry", Today's Add harvest). */
+  const follow = (href: string) => {
+    const before = route();
+    browser.location.assign(href);
+    marks(before);
   };
   /** Android's back gesture: true while it stays in the app, false when it would leave. */
   const back = (): boolean => {
@@ -45,7 +63,15 @@ function fakeHistory(start = '#/today') {
     index -= 1;
     return true;
   };
-  return { tap, back, route, length: () => entries.length };
+  return {
+    tap,
+    follow,
+    back,
+    route,
+    browser,
+    hash: () => current().hash,
+    length: () => entries.length,
+  };
 }
 
 describe('tab switching and the back gesture', () => {
@@ -83,5 +109,33 @@ describe('tab switching and the back gesture', () => {
     const app = fakeHistory();
     app.tap('today');
     expect(app.length()).toBe(1);
+  });
+});
+
+describe('a screen under a tab: Garden and pantry under Food (item 19; C7, G21)', () => {
+  it('Food from a garden screen opened from Food steps back to that Food entry', () => {
+    const app = fakeHistory();
+    app.tap('food');
+    app.follow('#/garden');
+    expect(app.length()).toBe(3);
+    app.tap('food');
+    expect(app.route()).toBe('food');
+    expect(app.back()).toBe(true);
+    expect(app.route()).toBe('today');
+    expect(app.back()).toBe(false);
+  });
+
+  it("from a garden screen reached by Today's Add harvest, Food replaces it and keeps the above-Today mark", () => {
+    const app = fakeHistory();
+    app.follow('#/garden/harvest');
+    // Closing the harvest panel keeps the entry and its state.
+    replaceEntryHref('#/garden', app.browser);
+    expect([app.hash(), app.length()]).toEqual(['#/garden', 2]);
+    app.tap('food');
+    expect([app.route(), app.length()]).toEqual(['food', 2]);
+    // The mark kept: Today steps back, and back from Today leaves the app.
+    app.tap('today');
+    expect(app.route()).toBe('today');
+    expect(app.back()).toBe(false);
   });
 });

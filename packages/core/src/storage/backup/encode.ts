@@ -2,7 +2,7 @@
  * Writing a backup file (storage spec sections 9.5, 10.2–10.5; C49, C99; D19–D23).
  *
  * - Rows are built from the allow-list alone (BACKUP_FIELDS_BY_VERSION), so a stray property can
- *   never leak, and the device-only stores (transfer_pairings, garden_photos) are never written.
+ *   never leak, and the device-only stores are never written.
  * - Rows are sorted by primary key and fields are in spec order, so the same database always gives
  *   the same bytes apart from exportedAt.
  * - Export checks its own output with the import validator, and a locked file is re-parsed,

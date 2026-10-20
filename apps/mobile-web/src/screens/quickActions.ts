@@ -7,7 +7,9 @@
  */
 import { featureGateOf, type GatedFeature, type ReadinessGates } from '@diet/core';
 import { today } from '@diet/core/copy/health';
-import type { ReactElement } from 'react';
+import { LeafIcon } from '@diet/ui';
+import { createElement, type ReactElement } from 'react';
+import { GARDEN_HARVEST_HREF } from '../routes';
 import { openWeightEntry } from './weight/entryStore';
 
 /** UX_SCREENS section 2 order. */
@@ -29,18 +31,26 @@ export type QuickActionId = (typeof QUICK_ACTION_ORDER)[number];
 export type QuickAction = {
   /** today.quickActions.labels[id]. */
   readonly label: string;
-  /** An optional badge (item 19 uses its leaf icon). */
+  /** An optional badge, such as item 19's leaf on Add harvest. */
   readonly icon?: ReactElement;
 } & ({ readonly href: string } | { readonly run: () => void });
 
 /** Built actions. Item 16 adds Log weight; items 19, 22, 23, 24, 27 and 28 each add their own. */
 export const BUILT_QUICK_ACTIONS: Readonly<Partial<Record<QuickActionId, QuickAction>>> = {
   'log-weight': { label: today.quickActions.labels['log-weight'], run: openWeightEntry },
+  // Item 19: the garden screen with its Add harvest panel open. Never gated (G22, G24): no
+  // readiness answer hides or changes the garden or pantry.
+  'add-harvest': {
+    label: today.quickActions.labels['add-harvest'],
+    href: GARDEN_HARVEST_HREF,
+    icon: createElement(LeafIcon),
+  },
 };
 
 /**
  * The readiness gate that switches an action off, built or not; item 13's GateNotice says why.
- * Item 27 adds 'complete-workout': 'exercisePlans' if the Move screens need it.
+ * Each later entry that needs one adds it here with its action: 'add-drink' (item 28) keeps
+ * 'alcoholLogging', and 'complete-workout' (item 27) takes 'exercisePlans'. Add harvest has none.
  */
 export const QUICK_ACTION_GATES: Readonly<Partial<Record<QuickActionId, GatedFeature>>> = {
   'add-drink': 'alcoholLogging',

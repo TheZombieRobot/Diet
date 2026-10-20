@@ -20,6 +20,7 @@ import {
   FloatingActionPanel,
   IconButton,
   IconLink,
+  ItemRow,
   MeterBar,
   meterRects,
   OFFLINE_LABEL,
@@ -34,6 +35,7 @@ import {
   TabBar,
   TagList,
   TextField,
+  Thumbnail,
   TodayIcon,
   TrendChart,
   type TabItem,
@@ -1077,5 +1079,47 @@ describe('Today pieces (item 16; C13)', () => {
     expect(container.querySelector('.ui-button-row')?.className).toBe(
       'ui-button-row ui-button-row--stacked',
     );
+  });
+});
+
+describe('garden and pantry pieces (item 19; G21, G27, G28)', () => {
+  it('a row is one button with the switch beside it; the thumbnail falls back to the leaf; a parent tab is its section', () => {
+    render(
+      <>
+        <ul>
+          <ItemRow
+            thumbnail={<Thumbnail src="blob:example" alt="" size="row" />}
+            title="Example lettuce"
+            value="2 each"
+            detail="Ready to use"
+            expanded={false}
+            onToggle={() => undefined}
+            trailing={
+              <Switch
+                label="Ready"
+                accessibleName="Example lettuce: ready to use"
+                checked
+                onChange={() => undefined}
+              />
+            }
+          />
+        </ul>
+        <TabBar items={TABS} current="food" currentIsParent />
+      </>,
+    );
+    const row = screen.getByRole('button', { name: 'Example lettuce 2 each Ready to use' });
+    expect(row.getAttribute('aria-expanded')).toBe('false');
+    const ready = screen.getByRole('switch', { name: 'Example lettuce: ready to use' });
+    expect(row.contains(ready)).toBe(false);
+    const image = row.querySelector('img');
+    expect(image?.getAttribute('alt')).toBe('');
+    fireEvent.error(image as HTMLImageElement);
+    expect(row.querySelector('img')).toBeNull();
+    expect(row.querySelector('.ui-thumb__placeholder svg')).not.toBeNull();
+    expect(screen.getByRole('link', { name: 'Food' }).getAttribute('aria-current')).toBe('true');
+    expect(document.querySelectorAll('[aria-current="page"]')).toHaveLength(0);
+    const block = componentsCss.slice(componentsCss.indexOf('/* ---- Garden and pantry'));
+    expect(block.length).toBeGreaterThan(100);
+    expect(block).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(/i);
   });
 });

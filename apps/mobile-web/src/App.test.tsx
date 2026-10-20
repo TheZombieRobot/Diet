@@ -137,7 +137,8 @@ describe('every screen', () => {
 
 describe('placeholder screens (no sample data)', () => {
   // Today (item 16), About, the setup screens (item 13), the Weight screen (item 14), the Fasting
-  // screen (item 15) and Diet and targets (item 21) are built; the rest still say they arrive later.
+  // screen (item 15), Diet and targets (item 21) and Garden and pantry (item 19) are built; the
+  // rest still say they arrive later (Food in part: it links to the garden and pantry).
   const built: readonly RouteId[] = [
     'today',
     'about',
@@ -147,6 +148,7 @@ describe('placeholder screens (no sample data)', () => {
     'weight',
     'fasting',
     'targets',
+    'garden',
   ];
   const placeholders = ROUTES.filter((r) => !built.includes(r));
 
@@ -155,7 +157,11 @@ describe('placeholder screens (no sample data)', () => {
     async (route) => {
       await show(route);
       const text = main().textContent;
-      expect(text).toContain('This screen arrives at a later step of the build checklist.');
+      expect(text).toContain(
+        route === 'food'
+          ? 'More of this screen arrives at a later step of the build checklist.'
+          : 'This screen arrives at a later step of the build checklist.',
+      );
       expect(text).not.toMatch(/\d/);
       expect(text).not.toMatch(/[$€£]/);
     },
@@ -192,8 +198,9 @@ describe('placeholder screens (no sample data)', () => {
       ...screen.getAllByTestId('later-step'),
       ...document.querySelectorAll('.ui-fab-panel [aria-disabled="true"]'),
     ];
-    // One card, two later-step lines (Movement and drink logging) and six Later rows.
-    expect(scoped).toHaveLength(9);
+    // One card, two later-step lines (Movement and drink logging) and five Later rows (item 19
+    // built Add harvest).
+    expect(scoped).toHaveLength(8);
     for (const element of scoped) {
       expect(element.textContent).not.toMatch(/\d/);
       expect(element.textContent).not.toMatch(/[$€£]/);

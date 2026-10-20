@@ -77,7 +77,7 @@ test('no screen shows banned health, price, stock or cart wording', async ({ pag
   expect(found).toEqual([]);
 });
 
-test('no screen but About, Weight, Fasting and Diet and targets shows a number or a price, even with every banner and panel open', async ({
+test('no screen but About, Weight, Fasting and Diet and targets shows a number or a price (Garden and pantry only its ready count), even with every banner and panel open', async ({
   page,
 }) => {
   // Screens must not look like they hold records they do not have (no sample data). The fresh
@@ -118,6 +118,11 @@ test('no screen but About, Weight, Fasting and Diet and targets shows a number o
       page,
       screen === 'Today' ? region(page, fasting.card.label) : undefined,
     );
+    // Item 19: the garden's ready pill ("1 ready") is the only figure there; any other digit,
+    // such as a made-up weight, still fails (GD-03).
+    if (screen === 'Garden and pantry') {
+      text = text.replace(await page.getByTestId('garden-ready-pill').innerText(), '');
+    }
     if (screen === 'Today') {
       // The Nutrition today card shows today's intake (none: every figure 0) against the owner's
       // own stored ranges and guides, never sample data (item 21; targets.spec.ts checks them).

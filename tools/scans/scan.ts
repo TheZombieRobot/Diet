@@ -8,6 +8,8 @@ import {
   ALLOWED_EMAILS,
   CONTENT_EXEMPT_FILES,
   currencyRules,
+  DEVICE_ONLY_ALLOWED_FILES,
+  deviceOnlyRules,
   DISABLED_TEST_EXEMPT_FILES,
   disabledTestRules,
   extensionAlwaysRules,
@@ -155,6 +157,22 @@ export const RELAY_BLIND: RuleSet = {
   appliesTo: (f) => isRelaySource(f) && !isExempt(f),
 };
 
+/**
+ * Item 19: only the named files may name the photo store or reach stores generically (G8). Kept
+ * out of RULE_SETS like HEALTH_TEXT_HOME: these are code rules, not wording.
+ */
+export const DEVICE_ONLY: RuleSet = {
+  name: 'device-only stores',
+  rules: deviceOnlyRules,
+  text: 'raw',
+  appliesTo: (f) =>
+    isWorkspace(f) &&
+    isCode(f) &&
+    !isTestData(f) &&
+    !isExempt(f) &&
+    !DEVICE_ONLY_ALLOWED_FILES.includes(f),
+};
+
 export const FEASIBILITY_DOC = 'docs/INTEGRATION_FEASIBILITY.md';
 
 export interface ExtensionDecision {
@@ -212,6 +230,7 @@ export function ruleSetsFor(root: string): RuleSet[] {
     ...RULE_SETS,
     HEALTH_TEXT_HOME,
     RELAY_BLIND,
+    DEVICE_ONLY,
     ...extensionRuleSets(readExtensionDecision(root)),
   ];
 }

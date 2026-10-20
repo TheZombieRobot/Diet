@@ -226,6 +226,37 @@ describe('seeded violations in a throwaway repository', () => {
       "it.skip('x', () => {});\n",
       'disabled-test',
     ],
+    // Item 19 (D1; GD-02, HS-15): only the named files reach the photo store, by name or generically.
+    [
+      'GD-02 the photo store named in an exporter',
+      'packages/grocery/src/export.ts',
+      'export const rows = (db: Db) => db.garden_photos.toArray();\n',
+      'device-only-store-name',
+    ],
+    [
+      'GD-02 a loop over every store name',
+      'apps/mobile-web/src/exportAll.ts',
+      'export async function all(db: Db) {\n  for (const n of STORE_NAMES) await db.table(n).toArray();\n}\n',
+      'generic-store-access',
+    ],
+    [
+      'GD-02 every Dexie table',
+      'apps/mobile-web/src/exportAll.ts',
+      'export const all = (db: Db) => Promise.all(db.tables.map((t) => t.toArray()));\n',
+      'generic-store-access',
+    ],
+    [
+      'GD-02 the device-only list',
+      'apps/mobile-web/src/exportAll.ts',
+      "import { DEVICE_ONLY_TABLES } from '@diet/core';\nexport const extra = DEVICE_ONLY_TABLES;\n",
+      'generic-store-access',
+    ],
+    [
+      'GD-02 a store reached by a computed name',
+      'apps/mobile-web/src/exportAll.ts',
+      'export const rows = (db: Db, name: string) => db[name].toArray();\n',
+      'generic-store-access',
+    ],
   ])('%s: seeding %s fails, removing it passes', (_name, file, content, ruleId) => {
     write(file, content);
     expect(ruleIds()).toContain(ruleId);
@@ -250,6 +281,19 @@ describe('seeded violations in a throwaway repository', () => {
       'apps/mobile-web/vite.config.ts',
       'export default { workbox: { runtimeCaching: [] } };\n',
     );
+    expect(scanRepo(root)).toEqual([]);
+  });
+
+  it('GD-02: a named file may reach the photo store; tests may too', () => {
+    write(
+      'apps/mobile-web/src/garden/photoStore.ts',
+      'export const ids = (repos: Repos) => repos.gardenPhotos.ids();\n',
+    );
+    write(
+      'apps/mobile-web/src/db/snapshot.ts',
+      'export const all = (db: Db) => BACKUP_TABLES.map((name) => db.table(name).toArray());\n',
+    );
+    write('apps/mobile-web/src/x.test.ts', 'export const n = db.garden_photos.count();\n');
     expect(scanRepo(root)).toEqual([]);
   });
 

@@ -22,6 +22,8 @@ const ALLOWED_ABSOLUTE_URLS: Readonly<Record<string, string>> = {
     "Dexie's MissingAPI error message (no IndexedDB in this browser) links to its help page",
   'http://bit.ly/2kdckMn':
     "Dexie's PrematureCommit error message links to its explanation of early transaction commits",
+  'http://ns.adobe.com/xap/1.0/':
+    "item 19: the identifier at the start of a photo's XMP segment, compared as bytes so the segment is named when it is removed; never fetched",
 };
 
 const TEXT_FILES = new Set(['.js', '.mjs', '.css', '.html', '.webmanifest', '.json', '.svg']);

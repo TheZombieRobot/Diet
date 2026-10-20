@@ -15,6 +15,8 @@ import {
   about,
   alcohol,
   fasting,
+  garden,
+  gardenScreen,
   general,
   healthCopy,
   helpNumbers,
@@ -221,6 +223,20 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
     /\banonymous(?:ly)?\b/i,
     /\bsecure\b/i,
     /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
+  ],
+  // Item 19 (design section 4; C43, D33, C57, G19, HS-16): no food-safety or freshness claims,
+  // no "exact" homegrown weights, no gram figure in fixed copy, no kilograms, no price, savings
+  // or stock words, no blanket privacy promises, and no nudge to re-date old produce.
+  gardenScreen: [
+    /\b(?:un)?safe(?:ly|ty)?\b/i,
+    /\b(?:spoil\w*|rott\w*|mou?ld(?:y|ed)?|expir\w*|food[\s-]?poisoning|bacteria\w*|germs?|fresh\w*)\b/i,
+    /\bexact(?:ly)?\b/i,
+    /\d\s*g\b/i,
+    /\bkg\b|\bkilo\w*/i,
+    /\bprices?\b|\bcosts?\b|\bsavings?\b|\bcheap\w*|\bstock\b|\$/i,
+    /\b(?:100\s*%|completely|totally|fully|perfectly|always)\s+(?:private|secure|safe|anonymous|protected)\b/i,
+    /\bsecure(?:ly)?\b/i,
+    /\bupdate\s+it\b/i,
   ],
 };
 
@@ -730,5 +746,36 @@ describe('Today and About copy (item 16; U9)', () => {
       'Electrolytes: sodium, potassium, magnesium. Garden sources: silverbeet, spinach, avocado.',
     );
     expect(readiness.ifYes.q4.endsWith(readiness.bloodPressure.electrolyte)).toBe(true);
+  });
+});
+
+// ---- Item 19: the garden and pantry wording (A8; GD-04; HEALTH_SAFETY section 7) ----
+
+describe('garden and pantry wording (item 19)', () => {
+  it('A8 GD-04: the item 13 garden rules still hold after the edits, and no garden string nudges to "update it"', () => {
+    expect(garden.ready).toBe('Ready to use');
+    expect(garden.readyLabel).toBe(garden.ready);
+    for (const [path, text] of [
+      ...strings(garden, 'garden'),
+      ...strings(gardenScreen, 'gardenScreen'),
+    ]) {
+      expect(text, path).not.toMatch(/\d\s*g\b/i);
+      expect(text, path).not.toMatch(/\bupdate\s+it\b/i);
+    }
+  });
+
+  it('A8 HEALTH_SAFETY 7: the photo note says photos stay off backups, the location is removed from the copy, and the original is not changed', () => {
+    const note = gardenScreen.photo.note;
+    expect(note).toContain('Photos are not in backups or in anything the app sends.');
+    expect(note).toContain(
+      'The location and camera details inside a photo are removed from the copy the app keeps.',
+    );
+    expect(note).toContain('The original in your gallery or camera app is not changed.');
+    for (const text of [
+      gardenScreen.photo.removeConfirm,
+      gardenScreen.cropForm.removeConfirmWithPhoto,
+    ]) {
+      expect(text).toMatch(/not in backups/);
+    }
   });
 });

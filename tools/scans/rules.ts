@@ -952,6 +952,62 @@ export const relayBlindRules: readonly ContentRule[] = [
 ];
 
 /**
+ * Device-only stores (checklist item 19; HEALTH_SAFETY section 7; HS-15, C49, GD-02, G8). Garden
+ * photos never leave the phone: every export reads BACKUP_TABLES, which leaves them out. These raw
+ * rules keep any other file from naming the photo store, or from reaching every store generically
+ * (a loop over the store names, db.tables, db[name], .table(name) or .objectStore(name) would reach
+ * the photos without naming them). Only the files in DEVICE_ONLY_ALLOWED_FILES may. The rules
+ * check references, not behaviour: the exporters among the allowed files are proven at run time
+ * (apps/mobile-web/src/db/backup.test.ts B3, e2e/garden.spec.ts E1).
+ */
+export const deviceOnlyRules: readonly ContentRule[] = [
+  rule(
+    'device-only-store-name',
+    ['HS-15', 'GD-02'],
+    'the garden photo store named outside the files allowed to (DEVICE_ONLY_ALLOWED_FILES)',
+    /\bgarden_photos\b|\bgardenPhotos\b|\bGardenPhotoRecord\b/,
+  ),
+  rule(
+    'generic-store-access',
+    ['HS-15', 'GD-02'],
+    'every store reached generically (db.tables, db[...], .table(name), .objectStore(name), objectStoreNames, a list of store names)',
+    /\b\w*[dD]b\s*\.\s*tables\b|\b\w*[dD]b\s*\[|\.table\(\s*(?!['"`])|\.objectStore\(\s*(?!['"`])|\bobjectStoreNames\b|\b(?:STORE_NAMES|STORES_V1|DEVICE_ONLY_TABLES\w*)\b/,
+  ),
+];
+
+/**
+ * The only workspace files that may name the photo store or reach stores generically, each named
+ * on its own (no directory prefix) with its reason. Nothing under storage/backup/ is here.
+ */
+export const DEVICE_ONLY_ALLOWED_FILES: readonly string[] = [
+  // The record types, the store lists and their specs: where the photo store is defined.
+  'packages/core/src/storage/records.ts',
+  'packages/core/src/storage/tables.ts',
+  'packages/core/src/storage/migrations.ts',
+  'packages/core/src/storage/specs/v1.ts',
+  // The garden-photo invariant (a photo needs its garden row).
+  'packages/core/src/storage/invariants.ts',
+  // The plain names of the device-only stores, for refusing a file that wrongly holds one.
+  'packages/core/src/copy/health.ts',
+  // The database, its validation middleware (the photo check), upgrade, import and rescue reads.
+  'apps/mobile-web/src/db/db.ts',
+  'apps/mobile-web/src/db/middleware.ts',
+  'apps/mobile-web/src/db/upgrade.ts',
+  'apps/mobile-web/src/db/snapshot.ts',
+  'apps/mobile-web/src/db/rescue.ts',
+  // Test helpers (synthetic photo rows, raw writers); imported only by tests.
+  'apps/mobile-web/src/db/testKit.ts',
+  // The repositories: the photo repository, its registration, removal with a garden row.
+  'apps/mobile-web/src/db/repos/index.ts',
+  'apps/mobile-web/src/db/repos/crud.ts',
+  'apps/mobile-web/src/db/repos/gardenPhotos.ts',
+  // Item 14: the clock high-water mark reads every BACKUP_TABLES store (backed-up stores only).
+  'apps/mobile-web/src/db/repos/kickstart.ts',
+  // Item 19: the garden screen's only way to the photos.
+  'apps/mobile-web/src/garden/photoStore.ts',
+];
+
+/**
  * Files that intentionally contain violations (rule definitions and their test inputs). They are
  * exempt from every content rule set, never from the path rules. Add a file only with a reason.
  */

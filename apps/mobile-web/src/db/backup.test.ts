@@ -16,9 +16,11 @@ import {
   kickstartUsage,
   missingReadinessAnswers,
   migrateSnapshot,
+  parseBackupText,
   plainBackupText,
   readinessInputFromRows,
   type Snapshot,
+  unlockBackup,
   validateSnapshot,
 } from '@diet/core';
 import {
@@ -35,7 +37,7 @@ import {
 } from '@diet/test-fixtures';
 import { describe, expect, it } from 'vitest';
 import { deleteAllData } from './deleteAll';
-import { createExport, createRescueCopy } from './exportBackup';
+import { createExport, createRescueCopy, createUpgradeRescueCopy } from './exportBackup';
 import {
   decodeImport,
   type ImportFile,
@@ -169,6 +171,48 @@ describe('BK-01 / HS-15: round trip through the real database (section 10.8; sec
       expect(await after.db.garden_photos.count()).toBe(0);
     },
   );
+});
+
+describe('B3 GD-02: no file the app makes carries a garden photo (item 19; HS-15, BK-01)', () => {
+  it('the plain backup, the locked one once decrypted, a rescue copy and an unchecked copy', async () => {
+    const test = await openTestDb();
+    await fillWithFixture(test);
+    const photo = photoRow(snapshotV1.garden[0]?.id ?? '');
+    await test.db.garden_photos.put(photo);
+    const files: [string, string][] = [];
+
+    const plain = await createExport(test.db, test.env, null);
+    if (!plain.ok) throw plain.error;
+    files.push(['plain', plain.file.text]);
+    const locked = await createExport(test.db, test.env, SYNTHETIC_PHRASE);
+    if (!locked.ok) throw locked.error;
+    const parsed = parseBackupText(locked.file.text);
+    if (!parsed.encrypted) throw new Error('expected a locked file');
+    files.push(['locked, decrypted', JSON.stringify(await unlockBackup(parsed, SYNTHETIC_PHRASE))]);
+    const rescue = await createUpgradeRescueCopy(test.deps.indexedDB, test.env, null);
+    files.push(['rescue copy', rescue?.file.text ?? '']);
+
+    // An unchecked copy: a phone whose own self-check fails (a weight written past the app's checks).
+    test.db.shutDown();
+    const raw = await rawWriter(test.deps, STORES_V1);
+    await raw.table('weights').put({ ...snapshotV1.weights[0], kg: 5 });
+    raw.close();
+    const phone = await openTestDb({ deps: test.deps, env: test.env });
+    expect(await phone.db.garden_photos.count()).toBe(1);
+    const failed = await createExport(phone.db, phone.env, null);
+    if (failed.ok || failed.unchecked === null) throw new Error('expected a failed self-check');
+    files.push([
+      'unchecked copy',
+      (await createRescueCopy(failed.unchecked, phone.env, null)).file.text,
+    ]);
+
+    for (const [name, text] of files) {
+      expect(text.length, name).toBeGreaterThan(1000);
+      expect(text, name).not.toContain(bytesToBase64(new Uint8Array(photo.bytes)));
+      expect(text, name).not.toContain('garden_photos');
+      expectNoDeviceData(text);
+    }
+  });
 });
 
 describe('BK-02: a wrong password imports nothing (section 16 test 27)', () => {

@@ -11,13 +11,14 @@ import { useEffect, useRef, type ReactElement } from 'react';
 import { APP_NAME } from './appName';
 import { type FailureStatus, type OpenStatus, openStatusStore } from './db/db';
 import { appStorageStore } from './db/runtime';
-import { goToTab, markEntryAboveToday } from './navigation';
+import { goToTab, markEntryAboveToday, markSubScreenEntry } from './navigation';
 import { OnboardingGate } from './onboarding/OnboardingGate';
 import { takeArrivedFromSetup } from './onboarding/navigation';
 import { offlineCopyStore } from './pwa/offline';
 import {
   isTabRoute,
   isUnderSettings,
+  PARENT_TAB,
   ROUTE_TITLES,
   routeHref,
   TAB_ROUTES,
@@ -28,6 +29,7 @@ import { AboutScreen } from './screens/AboutScreen';
 import { DrinksScreen } from './screens/DrinksScreen';
 import { FastingScreen } from './screens/fasting/FastingScreen';
 import { FoodScreen } from './screens/FoodScreen';
+import { GardenScreen } from './screens/garden/GardenScreen';
 import { ListScreen } from './screens/ListScreen';
 import { MoveScreen } from './screens/MoveScreen';
 import { QuickActions } from './screens/today/QuickActionsPanel';
@@ -89,6 +91,8 @@ function screenFor(route: RouteId): ReactElement {
       return <FastingScreen />;
     case 'targets':
       return <TargetsScreen />;
+    case 'garden':
+      return <GardenScreen />;
   }
 }
 
@@ -136,6 +140,7 @@ function Shell(): ReactElement {
     }
     if (previous === route) return;
     markEntryAboveToday(previous, route);
+    markSubScreenEntry(previous, route);
     titleRef.current?.focus({ preventScroll: true });
   }, [route]);
 
@@ -144,7 +149,8 @@ function Shell(): ReactElement {
       title={ROUTE_TITLES[route]}
       titleRef={titleRef}
       tabs={TABS}
-      currentTab={isTabRoute(route) ? route : undefined}
+      currentTab={isTabRoute(route) ? route : PARENT_TAB[route]}
+      currentTabIsParent={!isTabRoute(route) && PARENT_TAB[route] !== undefined}
       onTabSelect={(id) => {
         if (isTabId(id)) goToTab(id, route);
       }}

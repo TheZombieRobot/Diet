@@ -25,6 +25,13 @@ export * from './fasting/streak';
 export * from './fasting/windowText';
 export * from './fasting/windows';
 export * from './garden/cropForm';
+// Item 19: the garden and pantry inventory.
+export * from './garden/catalogue';
+export * from './garden/harvest';
+export * from './garden/pantryForm';
+export * from './garden/photo';
+export * from './garden/rows';
+export * from './garden/stock';
 export * from './nutrition/confidence';
 export * from './nutrition/netCarbs';
 export * from './nutrition/nutrients';

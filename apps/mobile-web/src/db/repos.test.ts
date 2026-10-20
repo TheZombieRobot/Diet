@@ -10,14 +10,24 @@ import {
   kickstartPeriodState,
   kickstartUsage,
   primaryKeyOf,
+  readStock,
   type StoreName,
   StorageInvariantError,
   StorageValidationError,
   TABLES,
 } from '@diet/core';
 import { privacy } from '@diet/core/copy/health';
-import { snapshotV1 } from '@diet/test-fixtures';
+import {
+  cleanJpeg,
+  GL02_GARDEN,
+  GL02_PANTRY,
+  snapshotV1,
+  STOCK_NOW,
+  STOCK_TODAY,
+  withMetadata,
+} from '@diet/test-fixtures';
 import { describe, expect, it, vi } from 'vitest';
+import { readStockNow } from '../garden/stock';
 import {
   StorageClockError,
   StorageFullError,
@@ -651,6 +661,62 @@ describe('special repositories (section 8.2; section 16 test 24)', () => {
     expect(await test.repos.gardenPhotos.get(silverbeet.id)).toMatchObject({ width: 640 });
     await test.repos.garden.remove(silverbeet.id);
     expect(await test.db.garden_photos.count()).toBe(0);
+  });
+
+  // Item 19 (B1; GD-01, G2, G4): every photo write, from any code, is checked by the middleware.
+  it.each([
+    [
+      'an Exif JPEG',
+      { bytes: withMetadata(cleanJpeg({ width: 640, height: 480 }), { gps: true }) },
+      'photo-metadata',
+    ],
+    ['a WebP record', { mimeType: 'image/webp' }, 'photo-format'],
+    ['a frame of another size', { width: 641 }, 'photo-size'],
+  ] as const)(
+    'B1 GD-01: %s is refused, through the repository and a raw put on the app connection',
+    async (_name, change, rule) => {
+      const test = await openTestDb();
+      const [silverbeet] = await test.repos.garden.list();
+      if (silverbeet === undefined) throw new Error('no seeded garden row');
+      const merged = { ...photoRow(silverbeet.id), ...change };
+      const { bytes } = merged;
+      const photo = {
+        ...merged,
+        bytes: bytes instanceof Uint8Array ? bytes.slice().buffer : bytes,
+      };
+      const input = {
+        mimeType: photo.mimeType,
+        bytes: photo.bytes,
+        width: photo.width,
+        height: photo.height,
+        takenAt: photo.takenAt,
+      };
+      await expect(test.repos.gardenPhotos.put(silverbeet.id, input)).rejects.toMatchObject({
+        name: 'StorageRuleError',
+        rule,
+      });
+      await expect(test.db.garden_photos.put(photo)).rejects.toBeInstanceOf(StorageRuleError);
+      expect(await test.db.garden_photos.count()).toBe(0);
+    },
+  );
+
+  it('B1: ids() lists the crops with a photo, keys only', async () => {
+    const test = await openTestDb();
+    const [silverbeet] = await test.repos.garden.list();
+    if (silverbeet === undefined) throw new Error('no seeded garden row');
+    expect(await test.repos.gardenPhotos.ids()).toEqual([]);
+    await test.repos.gardenPhotos.put(silverbeet.id, photoRow('ignored'));
+    expect(await test.repos.gardenPhotos.ids()).toEqual([silverbeet.id]);
+  });
+
+  it('B2 GL-02: readStockNow reads both stores at once, for today in the device zone, and gives the fixture view', async () => {
+    const test = await openTestDb({ env: testEnv(STOCK_NOW) });
+    await test.db.garden.clear();
+    await test.db.garden.bulkPut([...GL02_GARDEN]);
+    await test.db.pantry.bulkPut([...GL02_PANTRY]);
+    expect(await readStockNow(test.storage)).toEqual(
+      readStock({ garden: GL02_GARDEN, pantry: GL02_PANTRY, today: STOCK_TODAY }),
+    );
   });
 
   it('weights: one onboarding weight only, and between() reads local dates in each row’s own zone', async () => {

@@ -16,6 +16,7 @@ import { type PhaseRepo, phaseRepo } from './phase';
 import { type PlanDaysRepo, planDaysRepo } from './planDays';
 import { type ReadinessRepo, readinessRepo } from './readiness';
 import { type SettingsRepo, type SingletonRepo, settingsRepo, singletonRepo } from './singletons';
+import { type StockRepo, stockRepo } from './stock';
 import { type WeightsRepo, weightsRepo } from './weights';
 
 export interface Repos {
@@ -49,6 +50,8 @@ export interface Repos {
   readonly groceryLists: CrudRepo<'grocery_lists'>;
   readonly cardState: CardStateRepo;
   readonly audit: CrudRepo<'audit'>;
+  /** Item 19: garden and pantry rows for the stock read (garden/stock.ts readStockNow). */
+  readonly stock: StockRepo;
 }
 
 export function createRepos(ctx: RepoContext): Repos {
@@ -81,6 +84,7 @@ export function createRepos(ctx: RepoContext): Repos {
     groceryLists: crudRepo(ctx, 'grocery_lists'),
     cardState: cardStateRepo(ctx),
     audit: crudRepo(ctx, 'audit'),
+    stock: stockRepo(ctx),
   };
 }
 

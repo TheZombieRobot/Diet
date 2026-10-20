@@ -18,7 +18,7 @@ import { App } from '../App';
 import { StorageRuleError } from '../db/errors';
 import { appStorageStore } from '../db/runtime';
 import { failingWrite, onboardForTests, openTestDb, rawWriter, type TestDb } from '../db/testKit';
-import { ROUTES } from '../routes';
+import { DEEP_LINKS, ROUTES } from '../routes';
 import {
   answer,
   answerAll,
@@ -74,7 +74,8 @@ async function settle(): Promise<void> {
 const buttons = () => screen.getAllByRole('button').map((b) => b.textContent);
 
 describe('the first-run guard (HS-20, C41, C53)', () => {
-  it.each([...ROUTES.map((r) => `#/${r}`), '#/unknown'])(
+  // Item 19: the deep links too (#/garden/harvest, the Fasting sub-links).
+  it.each([...ROUTES.map((r) => `#/${r}`), ...DEEP_LINKS, '#/unknown'])(
     'K1: %s shows Welcome with only the help numbers to tap',
     async (hash) => {
       await openApp(hash);
@@ -795,7 +796,8 @@ describe('the garden and the end of setup (C57, E24, PWA-06)', () => {
     );
     type(garden.keepsLabel, '1');
     tap(garden.add);
-    await screen.findByText(/1 bunch · Ready to harvest · Keeps about 1 day/);
+    // Item 19 (G16): a crop starts not ready, and the row reads as on the garden screen.
+    await screen.findByText(/1 bunch · Not ready yet · Keeps about 1 day/);
     tap('Remove Spinach');
     await waitFor(() => {
       expect(screen.getByTestId('garden-list').textContent).not.toContain('Spinach');

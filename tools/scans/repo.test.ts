@@ -9,7 +9,8 @@ import {
   repoFileReader,
   telemetryConfigProblems,
 } from './deps';
-import { formatViolations, scanHistory, scanRepo, violationKeys } from './scan';
+import { DEVICE_ONLY_ALLOWED_FILES } from './rules';
+import { formatViolations, listRepoFiles, scanHistory, scanRepo, violationKeys } from './scan';
 
 // The real repository must stay clean. These run in CI on every push (`pnpm scan`), and in the
 // pre-commit hook. Assertions compare only "file:line rule" so a failure in a public CI log never
@@ -26,6 +27,12 @@ describe('repository scan', () => {
   it('has no personal data, secrets or private files anywhere in git history', () => {
     const violations = scanHistory(root);
     expect(violationKeys(violations), `\n${formatViolations(violations)}\n`).toEqual([]);
+  });
+
+  // Item 19 (G8): a stale entry would let a new file of the same name reach the photos unchecked.
+  it('names only files that exist among those allowed to reach the device-only stores', () => {
+    const files = new Set(listRepoFiles(root));
+    expect(DEVICE_ONLY_ALLOWED_FILES.filter((f) => !files.has(f))).toEqual([]);
   });
 
   it('has no telemetry or analytics packages in the dependency tree', () => {

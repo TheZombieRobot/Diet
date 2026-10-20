@@ -1068,16 +1068,19 @@ export const schedule = {
   },
 } as const;
 
-/** The garden step (UX 1f; C57). Fixed copy never claims a homegrown weight. */
+/**
+ * The garden step (UX 1f; C57). Fixed copy never claims a homegrown weight. Item 19's garden
+ * screen reuses these keys for the same ideas (one "Ready to use" in both places), and the step's
+ * rows show item 19's core row text (gardenRowView), so amounts read the same in both places.
+ */
 export const garden = {
   title: 'Your garden',
   intro: 'Crops you grow are used first in meal plans and taken off the shopping list.',
   silverbeetListed: 'Silverbeet is listed already.',
   empty: 'No crops listed yet.',
   available: 'Available, amount not entered',
-  amount: '{amount} {unit}',
-  unitNames: { g: 'g', each: 'each', bunchOne: 'bunch', bunch: 'bunches' },
-  ready: 'Ready to harvest',
+  // Item 19: "Ready to use", since the switch also covers produce already picked (G25).
+  ready: 'Ready to use',
   notReady: 'Not ready yet',
   keepsForOne: 'Keeps about 1 day',
   keepsFor: 'Keeps about {days} days',
@@ -1089,7 +1092,7 @@ export const garden = {
   amountHint: 'Leave it empty if you have not weighed or counted it.',
   unitLegend: 'Unit',
   unitOptions: { g: 'Grams', each: 'Each', bunch: 'Bunches' },
-  readyLabel: 'Ready to harvest',
+  readyLabel: 'Ready to use',
   keepsLabel: 'Keeps for (days, optional)',
   add: 'Add to garden',
   continue: 'Continue',
@@ -2205,6 +2208,189 @@ export const about = {
     'The app is published on GitHub Pages. Any other site published from the same GitHub account could read the records the app keeps on this phone, so no other site is published from that account.',
 } as const;
 
+// ---- Item 19: the garden and pantry screen ----
+
+/**
+ * Garden and pantry screen (checklist item 19; UX_SCREENS 3d; REQUIREMENTS section 3D; DOC_REVIEW
+ * C57, C110). Item 13's `garden` section is the setup step's wording (UX 1f); this screen reuses its
+ * available, ready, notReady, keepsFor, keepsForOne, addTitle, nameLabel, nameHint, amountLabel,
+ * amountHint, unitLegend, unitOptions, readyLabel, keepsLabel and errors for the same ideas, so both
+ * places say the same thing.
+ * Written here, not quoted from the docs. The app makes no food-safety claim (C43 and D33 defer food
+ * safety): keep days are the owner's own figure, reported back, never judged. An amount the owner has
+ * not entered is never shown as a weight (REQUIREMENTS 3D, C57). Photo wording promises only what the
+ * app does (HEALTH_SAFETY section 7).
+ */
+export const gardenScreen = {
+  loading: 'Opening your records…',
+  readFailed: 'The garden and pantry could not be read. Reload to try again.',
+  closed: 'Nothing more will be saved until the app reloads.',
+  reload: 'Reload',
+  saved: 'Saved.',
+  removed: 'Removed.',
+  gone: 'This was removed in the meantime. Nothing was changed.',
+  saveOrCancelFirst: 'Save or cancel the open form first.',
+  foodLink: { cardLabel: 'At home', detail: 'Crops, harvests and the cupboard' },
+  gardenCard: 'Garden',
+  readyPill: '{count} ready',
+  addHarvest: 'Add harvest',
+  addCrop: 'Add a crop',
+  emptyGarden: 'No crops listed. Add what you grow, and the plan and the grocery list can use it.',
+  pantryCard: 'Pantry',
+  addPantry: 'Add to pantry',
+  emptyPantry: 'Nothing listed. Add what is in the cupboard, and the grocery list can count it.',
+  readySwitch: 'Ready',
+  readySwitchName: '{crop}: ready to use',
+  amount: {
+    notEnteredNotReady: 'Amount not entered',
+    someNotMeasured: 'Some, not measured',
+    noneLeft: 'None left',
+    grams: '{amount} g',
+    millilitres: '{amount} mL',
+    each: '{amount} each',
+    eachWithGrams: '{amount} each, about {grams} g per item',
+    bunchOne: '1 bunch',
+    bunchMany: '{amount} bunches',
+    bunchOneWithGrams: '1 bunch, about {grams} g',
+    bunchManyWithGrams: '{amount} bunches, about {grams} g per bunch',
+  },
+  unitWords: { g: 'grams', each: 'items', bunch: 'bunches', ml: 'millilitres' },
+  pantryUnitOptions: { g: 'Grams', ml: 'Millilitres', each: 'Each' },
+  freshness: {
+    pickedToday: 'Picked today',
+    pickedYesterday: 'Picked yesterday',
+    pickedOn: 'Picked {date}',
+    daysLeftMany: '{days} days left',
+    daysLeftOne: '1 day left',
+    lastDay: 'Last day you said it keeps',
+    pastKeepsMany: 'Past the {days} days you said it keeps',
+    pastKeepsOne: 'Past the 1 day you said it keeps',
+    // 1 day and more: item 13's garden.keepsForOne and garden.keepsFor.
+    keepsForZero: 'Keeps less than a day after picking',
+  },
+  updated: { today: 'Updated today', yesterday: 'Updated yesterday', on: 'Updated {date}' },
+  notCounted: {
+    'not-ready': 'The plan and the list leave it out until it is ready to use.',
+    'past-keeps':
+      'Past the days you said it keeps, so the plan and the list leave it out. Add a new harvest or remove it.',
+    // Shown only once the ingredient dataset exists (item 18); before it, an unlinked row has no note.
+    'not-linked':
+      'Not matched to a food yet, so the plan and the list leave it out. Pick a matching food when you edit it.',
+    'none-left': 'None left, so the list leaves it out.',
+  },
+  amountUnknownNote:
+    'The plan and the list count it as available. Add an amount so the list can work out how much to buy.',
+  pantryUnmeasuredNote: 'The list asks you before counting it. Add an amount to save that step.',
+  suggestions: 'Matching foods',
+  matchedTo: 'Matched to {food}',
+  cropForm: {
+    editTitle: 'Edit {crop}',
+    gramsPerUnit: { each: 'Grams per item (optional)', bunch: 'Grams per bunch (optional)' },
+    gramsPerUnitHint:
+      'Weigh one if you can. Without it, the list asks you before counting this crop.',
+    pickedOn: 'Picked on (optional)',
+    pickedOnHint: 'Leave it empty while it is still in the ground.',
+    keepsHint: 'How many days it keeps after picking. Leave it empty if you are not sure.',
+    save: 'Save',
+    cancel: 'Cancel',
+    remove: 'Remove crop',
+    removeConfirm: 'Remove {crop} from the garden?',
+    removeConfirmWithPhoto:
+      'Remove {crop} from the garden? Its photo is removed too, and photos are not in backups.',
+    removeYes: 'Remove',
+    removeNo: 'Keep it',
+    duplicate: '{crop} is already in the garden.',
+    editExisting: 'Edit {crop}',
+  },
+  harvest: {
+    title: 'Add harvest',
+    whichCrop: 'Which crop?',
+    anotherCrop: 'Another crop',
+    cropRequired: 'Choose a crop.',
+    useExisting: 'Use {crop}',
+    listedNow: 'Listed now: {amount}',
+    listedNowPicked: 'Listed now: {amount}, picked {date}',
+    listedNowNotReady: 'Listed now: {amount}, not ready yet',
+    listedNowNoAmount: 'Listed now: amount not entered',
+    howMuch: 'How much did you pick? (optional)',
+    howMuchHint: 'Leave it empty if you did not weigh or count it.',
+    pickedOn: 'Picked on',
+    pickedOnHint: 'Leave it as today unless you picked it earlier.',
+    modeLegend: 'What about the amount already listed?',
+    modeAdd: 'Add to it. Days left count from {date}.',
+    modeAddNoDate: 'Add to it',
+    modeReplace: 'Replace it. The earlier pick is treated as used up.',
+    modeRequired: 'Choose whether to add to the amount listed or replace it.',
+    // Nothing listed needs no notice, so 'nothing-listed' has no line here.
+    replaceOnly: {
+      'not-ready-before': 'The amount listed was not ready yet, so this replaces it.',
+      'no-amount-picked':
+        'With no amount entered, this replaces the {amount} listed with "amount not entered".',
+      'unit-differs': 'The amount listed is in a different unit, so this replaces it.',
+      'weight-differs':
+        'The amount listed has a different weight for each one, so this replaces it.',
+    },
+    replaceDate: 'The earlier pick is treated as used up. Days left count from {date}.',
+    tooMuch: 'Together that is more than 100,000 {units}. Replace the amount instead.',
+    save: 'Save harvest',
+    cancel: 'Cancel',
+    saved: 'Saved: {crop}, {amount}.',
+  },
+  pantryForm: {
+    addTitle: 'Add to pantry',
+    editTitle: 'Edit {item}',
+    name: 'Item',
+    nameHint: 'For example, rolled oats or tinned tomatoes.',
+    amount: 'Amount (optional)',
+    amountHint:
+      'Leave it empty if you have some but have not measured it; the list will ask before counting it. Enter 0 when it has run out.',
+    unitLegend: 'Unit',
+    save: 'Save',
+    cancel: 'Cancel',
+    remove: 'Remove item',
+    removeConfirm: 'Remove {item} from the pantry?',
+    removeYes: 'Remove',
+    removeNo: 'Keep it',
+    duplicate: '{item} is already in the pantry.',
+    editExisting: 'Edit {item}',
+  },
+  errors: {
+    digitsOnly: 'Type digits only, without commas, such as 1200 or 2.5.',
+    gramsPerUnitRange: 'Enter a weight above 0 and up to 5,000 grams, or leave it empty.',
+    pantryAmountRange: 'Enter an amount from 0 to 100,000, or leave it empty.',
+    dateFormat: 'Enter a date.',
+    dateFuture: 'The date cannot be after today.',
+    dateTooEarly: 'Enter a date from the year 2000 on.',
+    saveFailed: 'This could not be saved. Nothing was changed. Try again.',
+  },
+  photo: {
+    legend: 'Photo',
+    savesAlone: 'Photo changes save straight away.',
+    saveFirst: 'Save or cancel your changes first, then add a photo.',
+    add: 'Add a photo',
+    replace: 'Replace photo',
+    remove: 'Remove photo',
+    removeConfirm: 'Remove this photo? Photos are not in backups, so it cannot be brought back.',
+    removeYes: 'Remove photo',
+    removeNo: 'Keep it',
+    removed: 'Photo removed.',
+    note: 'Photos stay on this phone. The location and camera details inside a photo are removed from the copy the app keeps. The original in your gallery or camera app is not changed. Photos are not in backups or in anything the app sends.',
+    preparing: 'Getting the photo ready…',
+    kept: 'Photo kept on this phone.',
+    alt: 'Photo of {crop}',
+    errors: {
+      'file-too-large':
+        'This photo file is too big (over 30 MB). Pick a smaller one, or take it again with the camera.',
+      'too-many-pixels': 'This photo is too big for the phone to resize. Pick a smaller one.',
+      unreadable:
+        'This photo could not be read. Try another one, or take it again with the camera.',
+      'output-too-large': 'This photo could not be made small enough to keep. Try another one.',
+      'not-cleaned':
+        'The details stored inside this photo could not be removed, so it was not kept.',
+    },
+  },
+} as const;
+
 /** All sections, for scanning and review. */
 export const healthCopy = {
   helpNumbers,
@@ -2224,4 +2410,6 @@ export const healthCopy = {
   today,
   reminders,
   about,
+  // Item 19.
+  gardenScreen,
 } as const;

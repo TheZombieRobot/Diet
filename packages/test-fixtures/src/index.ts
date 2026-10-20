@@ -13,3 +13,6 @@ export * from './storage/testChains';
 export * from './grocery/list300';
 // Weight (checklist item 14): synthetic weigh-in and Kickstart scenarios, and plain gate objects.
 export * from './weight/scenarios';
+// Garden and pantry (checklist item 19): JPEG bytes built in code, and the GL-02 and NN-06 stock rows.
+export * from './garden/jpeg';
+export * from './garden/stockFixtures';

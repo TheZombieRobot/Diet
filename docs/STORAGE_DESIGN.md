@@ -679,6 +679,8 @@ Invariant: `grams` or `servings` is non-null (or both). The label form (item 23)
 | width, height | Int 1–2048 | — |
 | takenAt | Instant | — |
 
+Item 19 writes JPEG only: at most 1,024 px on the long side and 500,000 bytes, with every APPn and comment segment and anything after the end marker removed. Besides the validator above, the validation middleware (section 7.3) refuses any photo write, from any code, that is not a JPEG of its stated size without such segments (core `photoProblem`). That is a write check, not a validator change: version 1 and its fingerprint are unchanged, and WebP rows stay valid.
+
 **pantry**
 
 | Field | Type and unit | Null | Default | Validation | Serves |

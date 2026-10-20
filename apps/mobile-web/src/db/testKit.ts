@@ -16,7 +16,7 @@ import {
   type TransferPairingRecord,
   type YesNo,
 } from '@diet/core';
-import { fixtureId } from '@diet/test-fixtures';
+import { cleanJpeg, fixtureId } from '@diet/test-fixtures';
 import Dexie, { type DBCore, type Middleware } from 'dexie';
 import { IDBFactory, IDBKeyRange } from 'fake-indexeddb';
 import { createStore, type Store } from '../store';
@@ -360,11 +360,16 @@ export async function pairingRow(): Promise<TransferPairingRecord> {
 /** Synthetic photo bytes: a recognisable byte pattern, never a real image. */
 export const PHOTO_BYTES = Uint8Array.from({ length: 64 }, (_, i) => (i * 7 + 3) % 256);
 
+/**
+ * A synthetic garden photo: a clean JPEG built in code (item 19) whose frame is `width` × 480 and
+ * whose scan data carries PHOTO_BYTES (each FF stuffed as FF 00), so the validation middleware's
+ * photo check accepts it. Never a real image.
+ */
 export function photoRow(gardenId: string, width = 640): GardenPhotoRecord {
   return {
     gardenId,
     mimeType: 'image/jpeg',
-    bytes: PHOTO_BYTES.slice().buffer,
+    bytes: cleanJpeg({ width, height: 480, scan: PHOTO_BYTES }).slice().buffer,
     width,
     height: 480,
     takenAt: '2000-01-05T00:00:00.000Z',
