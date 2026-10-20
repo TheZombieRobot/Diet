@@ -200,6 +200,12 @@ describe('item 13’s gates read item 14’s current weight: the lower of the 7-
     expect(
       within(phase).getByRole('link', { name: weight.phase.readinessLink }).getAttribute('href'),
     ).toBe('#/readiness');
+    // F31: the goal card gives the gate's own reason, the weight, not "your readiness answers".
+    const goal = screen.getByRole('region', { name: weight.goal.label });
+    expect((await within(goal).findByTestId('gate-notice-goalSetting')).textContent).toBe(
+      'Weight goal setting is off because of what you told the app about your current weight.',
+    );
+    expect(goal.textContent).not.toMatch(/readiness/);
     window.location.hash = '#/food';
     window.dispatchEvent(new HashChangeEvent('hashchange'));
     expect(await screen.findByTestId('gate-notice-ketoCeiling')).toBeDefined();

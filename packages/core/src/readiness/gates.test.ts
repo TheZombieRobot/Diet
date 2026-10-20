@@ -458,6 +458,26 @@ describe('gateInputFromRecords (U13, U32)', () => {
     expect(readinessGates({ ...reworded, lowWeight: false }).fastingGated).toBe(true);
   });
 
+  it('HS-32 (F52): a stored birth year after the clock’s year reads as a minimum age of 0 and gates as under 18', () => {
+    // Every answer "no": only the birth year can gate (a clock reset after a flat battery, say).
+    const ahead = gateInputFromRecords({
+      rows: READINESS_QUESTION_IDS.map((questionId) => ({
+        questionId,
+        answer: 'no' as const,
+        wordingVersion: READINESS_WORDING[questionId],
+        answeredAt: '2000-03-01T00:00:00.000Z',
+      })),
+      birthYear: 2001,
+      heightCm: 175,
+      currentWeightKg: 90,
+      today: '2000-03-01',
+    });
+    expect(ahead.minimumAgeYears).toBe(0);
+    const gates = readinessGates(ahead);
+    expect(gates.under18).toBe(true);
+    expect(gates.reasons).toEqual(['under-18-birth-year']);
+  });
+
   it('U32 HS-35: lowWeight comes from the weight and height; with answer 5 "no" it gates exactly like a yes', () => {
     expect(build(allNoRows(), 56.6).lowWeight).toBe(true);
     expect(build(allNoRows(), 56.7).lowWeight).toBe(false);

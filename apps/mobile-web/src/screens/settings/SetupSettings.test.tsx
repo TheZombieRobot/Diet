@@ -2,7 +2,7 @@
 // 7.2: K13, K14, K15, K15b, K20 (Settings and Today), K21, K27; RD-01, RD-02, RD-05, RD-06, AL-09,
 // AL-09b, C58). The whole app over the real repositories on fake-indexeddb; synthetic values.
 import { STORES_V1, type TargetsRecord } from '@diet/core';
-import { alcohol, onboarding, profile, readiness, schedule } from '@diet/core/copy/health';
+import { alcohol, onboarding, profile, readiness, schedule, weight } from '@diet/core/copy/health';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { ReactElement } from 'react';
@@ -21,6 +21,7 @@ import { go, headingIs, openApp, tap } from '../../onboarding/flowTestKit';
 import type { RouteId } from '../../routes';
 import { storageStore } from '../../pwa/storage';
 import { useStore } from '../../store';
+import { startKickstart } from '../weight/kickstartActions';
 import { EatingScheduleScreen } from './EatingScheduleScreen';
 
 let test: TestDb;
@@ -182,6 +183,62 @@ describe('Settings, Readiness answers (RD-06; K13, K21)', () => {
   });
 });
 
+describe('a Settings change that would end a running Kickstart asks first (F23, F32)', () => {
+  const period = async () => (await test.repos.kickstart.listPeriods())[0];
+
+  it('answer 5 Yes says so; Cancel saves nothing and Kickstart runs on; confirmed, it ends, and No again names the reason', async () => {
+    await setUp('readiness');
+    expect(await startKickstart(test.storage)).toMatchObject({ ok: true });
+    // An hour into its day 1, so the end is not read as a start dated ahead (the 1 ms marker).
+    test.env.set('2000-03-01T01:00:00.000Z');
+    await screen.findByTestId('readiness-q5');
+    fireEvent.click(row('q5').getByRole('button', { name: readiness.yes }));
+    expect(await screen.findByText(readiness.endsKickstart.answer)).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: readiness.endsKickstart.cancel }));
+    await waitFor(() => {
+      expect(screen.queryByText(readiness.endsKickstart.answer)).toBeNull();
+    });
+    expect((await test.repos.readiness.list()).find((r) => r.questionId === 'q5')?.answer).toBe(
+      'no',
+    );
+    expect((await period())?.endedAt).toBeNull();
+    fireEvent.click(row('q5').getByRole('button', { name: readiness.yes }));
+    fireEvent.click(await screen.findByRole('button', { name: readiness.endsKickstart.confirm }));
+    await waitFor(async () => {
+      expect((await period())?.endReason).toBe('readiness-gated');
+    });
+    // Nothing is left to end, so No is saved at once; the Kickstart stays ended, with its reason.
+    fireEvent.click(row('q5').getByRole('button', { name: readiness.no }));
+    await waitFor(() => {
+      expect(
+        row('q5').getByRole('button', { name: readiness.no }).getAttribute('aria-pressed'),
+      ).toBe('true');
+    });
+    await go('weight');
+    const ended = await screen.findByRole('region', { name: weight.steadyExplainer.labelEnded });
+    expect(within(ended).getByText(weight.steadyExplainer.endedReadiness)).toBeDefined();
+  });
+
+  it('Profile: a birth year that would end Kickstart asks before saving; Cancel saves nothing', async () => {
+    await setUp('profile');
+    expect(await startKickstart(test.storage)).toMatchObject({ ok: true });
+    fireEvent.change(await screen.findByLabelText(profile.birthYearLabel), {
+      target: { value: '1990' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: profile.save }));
+    expect(await screen.findByText(readiness.endsKickstart.profile)).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: readiness.endsKickstart.cancel }));
+    expect((await test.repos.profile.get()).birthYear).toBe(1970);
+    expect((await period())?.endedAt).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: profile.save }));
+    fireEvent.click(await screen.findByRole('button', { name: readiness.endsKickstart.confirm }));
+    await waitFor(async () => {
+      expect((await period())?.endReason).toBe('readiness-gated');
+    });
+    expect((await test.repos.profile.get()).birthYear).toBe(1990);
+  });
+});
+
 describe('the birth year and the current weight in the app (HS-32, HS-35)', () => {
   it('HS-32: a birth year that may be under 18 with answer 1 "no" closes fasting and alcohol logging, and says where to change it', async () => {
     await setUp('eating-schedule', { profile: { birthYear: 1990 } });
@@ -313,6 +370,17 @@ describe('Settings, Eating schedule and Profile (K27, K20)', () => {
     expect(document.activeElement).toBe(save);
   });
 
+  it('F40: with answer 4 the 23:1 option carries no Kickstart chip; without it, it does (C07, ruling 4)', async () => {
+    await setUp('eating-schedule', { answers: { q4: 'yes' }, profile: { kickstartOptIn: true } });
+    const list = await screen.findByRole('radiogroup', { name: schedule.presetsLegend });
+    expect(within(list).queryByText(schedule.kickstartChip)).toBeNull();
+    cleanup();
+    test.db.shutDown();
+    await setUp('eating-schedule', { profile: { kickstartOptIn: true } });
+    const control = await screen.findByRole('radiogroup', { name: schedule.presetsLegend });
+    expect(within(control).getByText(schedule.kickstartChip)).toBeDefined();
+  });
+
   it('RD-09: Settings, Eating schedule shows the pharmacist note above the choices', async () => {
     await setUp('eating-schedule', { answers: { q4: 'yes' } });
     const list = await screen.findByRole('radiogroup', { name: schedule.presetsLegend });
@@ -334,9 +402,13 @@ describe('Settings, Eating schedule and Profile (K27, K20)', () => {
     cleanup();
     await openApp('#/eating-schedule');
     await screen.findByRole('radiogroup', { name: schedule.presetsLegend });
-    expect(screen.getByText(schedule.kickstartWhen)).toBeDefined();
-    fireEvent.click(screen.getByRole<HTMLInputElement>('radio', { name: /^18:6/ }));
+    // F39: the Kickstart is running, so the line gives its due date, never "from the day you start".
+    const runsUntil =
+      'Kickstart is due to finish on 21 March 2000. After that, the app uses 22:2 (5 pm snack + dinner) instead.';
+    expect(await screen.findByText(runsUntil)).toBeDefined();
     expect(screen.queryByText(schedule.kickstartWhen)).toBeNull();
+    fireEvent.click(screen.getByRole<HTMLInputElement>('radio', { name: /^18:6/ }));
+    expect(screen.queryByText(runsUntil)).toBeNull();
     cleanup();
     await test.repos.readiness.answer('q4', 'yes');
     // The screen alone (no app, so nothing moves the default yet), beside what is stored.

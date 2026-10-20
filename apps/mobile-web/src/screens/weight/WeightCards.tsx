@@ -11,7 +11,7 @@ import { StopSignLines } from './parts';
 import { acknowledgePreStartStopSign, preStartSeenStore } from './preStartCheck';
 import { presetMovedStore, reportStatus, stopSignFocusStore } from './stores';
 import type { WeightView } from './useWeightView';
-import { useFocusWhen } from './weightText';
+import { startOfferText, useFocusWhen } from './weightText';
 
 /** Card buttons swallow their errors: the card simply stays and can be tapped again. */
 const quietly = (write: Promise<unknown>): void => {
@@ -158,16 +158,19 @@ export function PendingStartCard({
   storage,
   card,
   today,
+  offer,
 }: {
   storage: AppStorage;
   card: NonNullable<Cards['pendingStart']>;
   today: string;
+  /** The offer, true to what a start would plan (startOfferText; F35). */
+  offer: string;
 }): ReactElement {
   const [checking, setChecking] = useState(false);
   return (
     <Card label={weight.start.pendingLabel}>
       <p>{weight.start.pendingIntro}</p>
-      <p>{weight.start.offer}</p>
+      <p>{offer}</p>
       {card.windowLines ? (
         <>
           <p>{weight.start.pendingWindow}</p>
@@ -232,10 +235,21 @@ function keepOneMeal(storage: AppStorage, then?: () => void): void {
     );
 }
 
+/** The deficit line that is true now (F4): the stop-sign pause, the smaller Steady deficit, or Steady. */
+function explainerDeficit(card: NonNullable<Cards['steadyExplainer']>): string {
+  if (card.deficit === 'paused' && card.pausedUntil !== null) {
+    return fillTemplate(weight.stopSigns.pausedUntil, { date: formatLocalDay(card.pausedUntil) });
+  }
+  return card.deficit === 'smaller'
+    ? weight.steadyExplainer.deficit
+    : weight.steadyExplainer.deficitSteady;
+}
+
 /**
  * "Kickstart has finished" (WT-08, C55, C61, W17): no percentage, with the 22:2 line and "Use 23:1
  * instead". The pace and rebound sentences are the phase notes beside it (the Weight card on Today,
- * the Phase card on the Weight screen), so they are not repeated here.
+ * the Phase card on the Weight screen), so they are not repeated here. A Kickstart a readiness
+ * answer, the birth year or the weight ended is "Kickstart has ended", with that reason (F23).
  */
 export function SteadyExplainerCard({
   storage,
@@ -245,8 +259,15 @@ export function SteadyExplainerCard({
   card: NonNullable<Cards['steadyExplainer']>;
 }): ReactElement {
   return (
-    <Card label={weight.steadyExplainer.label}>
-      <p>{weight.steadyExplainer.deficit}</p>
+    <Card
+      label={
+        card.endedBecause === 'readiness'
+          ? weight.steadyExplainer.labelEnded
+          : weight.steadyExplainer.label
+      }
+    >
+      {card.endedBecause === 'readiness' ? <p>{weight.steadyExplainer.endedReadiness}</p> : null}
+      <p>{explainerDeficit(card)}</p>
       {card.carbCeilingG === null ? null : (
         <p>{fillTemplate(weight.steadyExplainer.carbs, { g: card.carbCeilingG })}</p>
       )}
@@ -402,7 +423,12 @@ export function WeightCards({
         />
       ) : null}
       {showStartCard && cards.pendingStart !== null && !preStartStopSign ? (
-        <PendingStartCard storage={storage} card={cards.pendingStart} today={overview.today} />
+        <PendingStartCard
+          storage={storage}
+          card={cards.pendingStart}
+          today={overview.today}
+          offer={startOfferText(view)}
+        />
       ) : null}
       {cards.steadyExplainer === null ? null : (
         <SteadyExplainerCard storage={storage} card={cards.steadyExplainer} />

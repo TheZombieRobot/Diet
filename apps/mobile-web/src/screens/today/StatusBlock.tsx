@@ -66,6 +66,7 @@ export function LiveStatusBlock({
         fastingGated: context.gate.fastingGated,
         schedule,
         fasts: inputs.fasts,
+        stopSignPause: context.stopSignPause,
       }),
       read.deviceTimeZone,
     );

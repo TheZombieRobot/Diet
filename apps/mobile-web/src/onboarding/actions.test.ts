@@ -204,7 +204,10 @@ describe('a failure part-way through an answer leaves nothing a second tap does 
     await expect(answerReadiness(test.storage, 'q3', 'yes')).rejects.toThrow('synthetic failure');
     expect(await answerOf('q3')).toBe('no');
     await reopen();
-    expect(await answerReadiness(test.storage, 'q3', 'yes')).toEqual({ written: true });
+    expect(await answerReadiness(test.storage, 'q3', 'yes')).toEqual({
+      written: true,
+      kickstartEndNeedsConfirm: false,
+    });
     expect(await answerOf('q3')).toBe('yes');
     expect((await test.repos.profile.get()).kickstartOptIn).toBe(false);
   });
@@ -224,7 +227,10 @@ describe('a failure part-way through an answer leaves nothing a second tap does 
     expect(await answerOf('q5')).toBe('yes');
     expect((await test.repos.targets.get()).fastingPreset).toBe('23:1');
     await reopen();
-    expect(await answerReadiness(test.storage, 'q5', 'yes')).toEqual({ written: false });
+    expect(await answerReadiness(test.storage, 'q5', 'yes')).toEqual({
+      written: false,
+      kickstartEndNeedsConfirm: false,
+    });
     expect((await test.repos.targets.get()).fastingPreset).toBeNull();
     expect((await test.repos.settings.get()).scheduleConfirmedAt).toBeNull();
   });

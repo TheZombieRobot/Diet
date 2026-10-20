@@ -29,6 +29,7 @@ export function ReadinessAnswersScreen(): ReactElement | null {
           input={view.input}
           gates={view.gates}
           birthYear={view.state.profile.birthYear}
+          dietMode={view.state.profile.dietMode}
           showConfirmations={false}
           showWhereToChange
         />

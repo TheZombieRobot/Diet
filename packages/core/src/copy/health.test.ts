@@ -29,6 +29,7 @@ import {
   targets,
   today,
   transfer,
+  weight,
 } from './health';
 import { fillTemplate, joinList } from './template';
 import { TRANSFER_SECTION_RULES } from './transferRules';
@@ -678,8 +679,9 @@ describe('Diet and targets copy (item 21; C-1 to C-7)', () => {
   it('C-7: the pregnancy note names a midwife and GP; the stop-sign lines carry Healthline and 111', () => {
     expect(targets.energy.pregnancyNote).toContain('midwife');
     expect(targets.energy.pregnancyNote).toContain('GP');
-    expect(targets.stopSign.action).toContain(helpNumbers.healthline.number);
-    expect(targets.stopSign.emergency).toContain(helpNumbers.emergency.number);
+    // F36: one wording of the Kickstart stop-sign advice, its 111 taken from helpNumbers.
+    expect(weight.stopSigns.emergency).toContain(helpNumbers.emergency.number);
+    expect(readiness.bloodPressure.stopSign).toContain(helpNumbers.healthline.number);
   });
 });
 
