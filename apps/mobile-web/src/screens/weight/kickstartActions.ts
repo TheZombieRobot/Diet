@@ -11,8 +11,9 @@
  *   starts anything. It is the only way anything ends a Kickstart on a readiness, weight or mode
  *   change: item 13's readiness and profile saves and the weigh-in writes (onboarding/actions.ts)
  *   call it in the same action; the reconciler retries it.
- * - reconcileKickstart also makes the stored 23:1 → 22:2 move outside Kickstart, whatever any
- *   card's state, and keeps the in-memory notice when no other card explains it.
+ * - reconcileKickstart also makes the stored 23:1 → 22:2 move outside Kickstart (and during it while
+ *   readiness answer 4 is "yes" or unanswered), whatever any card's state, and keeps the in-memory
+ *   notice when no other card explains it.
  */
 import {
   effectiveFastingPreset,
@@ -20,7 +21,7 @@ import {
   type KickstartEndReason,
   type KickstartPeriodRecord,
   latestKickstartPeriod,
-  type StartUnavailable,
+  type StartRefusal,
   StorageInvariantError,
   type WeightOverview,
   weightOverview,
@@ -33,7 +34,7 @@ import { currentWeightEnv, overviewInputFrom, readWeightInputs } from './useWeig
 
 export type StartResult =
   | { readonly ok: true; readonly presetSet: boolean }
-  | { readonly ok: false; readonly reason: StartUnavailable };
+  | { readonly ok: false; readonly refusal: StartRefusal };
 
 /**
  * Starts a Kickstart today if one may start now: the period, then carbCeilingStartedAt = its start
@@ -46,7 +47,7 @@ export async function startKickstart(storage: AppStorage): Promise<StartResult> 
   const inputs = await readWeightInputs(storage);
   const overviewInput = overviewInputFrom(inputs, currentWeightEnv(storage));
   const { start } = weightOverview(overviewInput).kickstart;
-  if (!start.available) return { ok: false, reason: start.reason };
+  if (!start.available) return { ok: false, refusal: start };
   // The keto run is counted from carbCeilingStartedAt (ketoUnbrokenSince): a missing one is set
   // first, so the new period never reads as broken before its own value is written.
   if (inputs.profile.carbCeilingStartedAt === null) {

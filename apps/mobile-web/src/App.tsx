@@ -33,6 +33,7 @@ import { ListScreen } from './screens/ListScreen';
 import { MovePlanScreen } from './screens/move/MovePlanScreen';
 import { MoveScreen } from './screens/move/MoveScreen';
 import { MoveSessionScreen } from './screens/move/MoveSessionScreen';
+import { PairingScreen } from './screens/pairing/PairingScreen';
 import { QuickActions } from './screens/today/QuickActionsPanel';
 import { EatingScheduleScreen } from './screens/settings/EatingScheduleScreen';
 import { ProfileScreen } from './screens/settings/ProfileScreen';
@@ -96,6 +97,8 @@ function screenFor(route: RouteId): ReactElement {
       return <MoveSessionScreen />;
     case 'move-plan':
       return <MovePlanScreen />;
+    case 'pairing':
+      return <PairingScreen />;
   }
 }
 

@@ -9,6 +9,7 @@ import { onOnboardingCompleted, requestPersistentStorage } from '../pwa/storage'
 import { revokeAllObjectUrls, offerDownload } from '../files';
 import { type DbDeps, type DietDb, openDietDb, openStatusStore, type OpenStatus } from './db';
 import { setPendingCheck } from '../screens/backup/pendingCheck';
+import { preStartSeenStore, preStartStopSignStore } from '../screens/weight/preStartCheck';
 import { browserEnv, type StorageEnv } from './env';
 import { ensureGeneration } from './generation';
 import {
@@ -109,10 +110,26 @@ export interface StartedStorage {
 }
 
 /**
+ * What a delete-all in another tab also clears here (HS-30; full review F8): this tab's session
+ * storage, which delete-all cannot reach from the other tab, and the pre-start answer this page
+ * holds in memory. Each step in its own try, so one failure never stops the other.
+ */
+function forgetThisTab(platform: Platform): void {
+  try {
+    platform.sessionStorage().clear();
+  } catch {
+    // Blocked storage holds nothing to clear.
+  }
+  preStartStopSignStore.set(null);
+  preStartSeenStore.set(null);
+}
+
+/**
  * Opens the database (section 7.1) holding this tab's shared lock (locks.ts), and starts
  * listening for other tabs' gate messages: a restore or delete-all in another tab closes this
  * tab's database for good, which also lets go of the lock, and drops an unanswered "Can you see
- * the file?" (its file no longer matches the records). The records' generation is started when
+ * the file?" (its file no longer matches the records); a delete-all also clears this tab's session
+ * storage and in-memory pre-start answer (forgetThisTab). The records' generation is started when
  * the database was just created (generation.ts). The open status store says what happened; a
  * failure shows a storage failure screen (section 7.4).
  */
@@ -133,12 +150,14 @@ export async function startStorage(options: StartOptions = {}): Promise<StartedS
     return { status: opened.status, storage: null, channel: null };
   }
   db.attachOpenLock(lock);
-  const channel = openTabChannel(() => {
+  const platform = options.platform ?? browserPlatform;
+  const channel = openTabChannel((reason) => {
     db.closeForGood('reload-needed');
     setPendingCheck(null);
+    if (reason === 'delete-all') forgetThisTab(platform);
   }, options.channels ?? browserChannel);
   if (options.store === undefined) tabChannel = channel;
-  const storage = createAppStorage(db, deps, options.platform ?? browserPlatform);
+  const storage = createAppStorage(db, deps, platform);
   ensureGeneration(storage.platform.localStorage, () => env.randomId(), db.populated);
   (options.store ?? appStorageStore).set(storage);
   // Remembers the home zone for new records (section 3.4).

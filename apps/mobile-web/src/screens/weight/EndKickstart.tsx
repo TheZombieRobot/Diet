@@ -47,7 +47,7 @@ export function EndKickstart({
             setBusy(true);
             endKickstart(storage, 'user-ended').then(
               () => {
-                reportStatus(weight.end.ended);
+                reportStatus(weight.end.ended, true);
               },
               (error: unknown) => {
                 weightStatusStore.set(weightWriteMessage(error, 'end'));

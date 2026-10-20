@@ -343,7 +343,7 @@ export function migrateSnapshot(
  * the current version's; older ones stay as history.
  */
 export const SPEC_FINGERPRINTS: Readonly<Record<number, string>> = Object.freeze({
-  1: '131c6db5e4047a728f6dbc64aea0149064329f9b8b3bafbd8f33cf4f57ff7d16',
+  1: 'fb6a0d92fa8923962d75503e915895991e0b6397bad46ab53447c7476d55f60b',
 });
 
 export type WindowLengthOutput =

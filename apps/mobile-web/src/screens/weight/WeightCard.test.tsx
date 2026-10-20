@@ -1,6 +1,7 @@
 // Today's Weight card and the weight cards under it (item 14 design section 6.4): WT-03, WT-04,
-// WT-05, WT-13; HS-21; NN-03. jsdom over the real repositories on fake-indexeddb, seeded with the
-// synthetic weight scenarios.
+// WT-05, WT-10, WT-13, WT-14; HS-21, HS-26; NN-03. jsdom over the real repositories on
+// fake-indexeddb, seeded with the synthetic weight scenarios.
+import { weightOverview } from '@diet/core';
 import { privacy, readiness, weight } from '@diet/core/copy/health';
 import {
   onDay,
@@ -15,7 +16,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { commerceRules, healthPhraseRules } from '../../../../../tools/scans/rules';
 import { scanText } from '../../../../../tools/scans/scan';
 import { openSnapshotDb, type TestDb } from '../../db/testKit';
+import { formatKg } from '../../format';
 import { weightStatusStore } from './stores';
+import { currentWeightEnv, overviewInputFrom, readWeightInputs } from './useWeightView';
 import { WeightCard } from './WeightCard';
 
 let test: TestDb | undefined;
@@ -128,6 +131,88 @@ describe('the Weight card (UX_SCREENS card 1)', () => {
   });
 });
 
+describe('the shaded range is never a figure (WT-10, HS-26)', () => {
+  it('no edge of the range is printed on the card or in any label, and the chart is named as a range that is not a promise', async () => {
+    const db = await today(WEIGHT_SCENARIOS.K10, 10);
+    const view = weightOverview(
+      overviewInputFrom(await readWeightInputs(db.storage), currentWeightEnv(db.storage)),
+    );
+    const { chart, goal } = view;
+    const shown = new Set(
+      [
+        view.latest?.kg,
+        view.average7Kg,
+        goal.status === 'set' ? goal.goalKg : null,
+        goal.status === 'set' && goal.milestone.kind === 'milestone' ? goal.milestone.kg : null,
+      ].flatMap((kg) => (typeof kg === 'number' ? [formatKg(kg)] : [])),
+    );
+    const edges = [chart.band?.at(-1), chart.band?.find((b) => b.index === chart.todayIndex)]
+      .flatMap((b) => (b === undefined ? [] : [formatKg(b.slowKg), formatKg(b.fastKg)]))
+      .filter((kg) => !shown.has(kg));
+    expect(edges.length).toBeGreaterThan(0);
+    const labels = [...document.querySelectorAll('[aria-label]')].map(
+      (e) => e.getAttribute('aria-label') ?? '',
+    );
+    const text = [document.body.textContent, ...labels].join('\n');
+    for (const kg of edges) expect(text).not.toContain(kg);
+    expect(weightCard().querySelector('svg')?.getAttribute('aria-label')).toBe(
+      weight.chart.ariaWithBand,
+    );
+  });
+});
+
+describe('Log weight on Today (item 14 review)', () => {
+  it('Cancel closes the panel without saving; after Cancel or Save focus is back on Log weight', async () => {
+    const db = await today(WEIGHT_SCENARIOS.K10, 10);
+    const before = (await db.repos.weights.list()).length;
+    const log = () => within(weightCard()).getByRole('button', { name: weight.card.logWeight });
+    const field = () =>
+      within(weightCard()).getByRole('textbox', { name: weight.entry.fieldLabel });
+    fireEvent.click(log());
+    fireEvent.change(field(), { target: { value: '96.5' } });
+    fireEvent.click(within(weightCard()).getByRole('button', { name: weight.entry.cancel }));
+    await waitFor(() => {
+      expect(document.activeElement).toBe(log());
+    });
+    expect(
+      within(weightCard()).queryByRole('textbox', { name: weight.entry.fieldLabel }),
+    ).toBeNull();
+    expect((await db.repos.weights.list()).length).toBe(before);
+    fireEvent.click(log());
+    fireEvent.change(field(), { target: { value: '96.5' } });
+    fireEvent.click(within(weightCard()).getByRole('button', { name: weight.entry.save }));
+    expect(await within(weightCard()).findByText(/^Saved 96\.5 kg at /)).toBeTruthy();
+    await waitFor(() => {
+      expect(document.activeElement).toBe(log());
+    });
+    expect((await db.repos.weights.list()).length).toBe(before + 1);
+  });
+});
+
+describe('About daily changes (WT-14)', () => {
+  it('"Got it" puts it away for good', async () => {
+    const db = await today(WEIGHT_SCENARIOS.K10, 2);
+    const card = screen.getByRole('region', { name: weight.fluctuation.label });
+    fireEvent.click(within(card).getByRole('button', { name: weight.fluctuation.gotIt }));
+    await waitFor(() => {
+      expect(screen.queryByRole('region', { name: weight.fluctuation.label })).toBeNull();
+    });
+    expect(
+      (await db.repos.cardState.get('weight-fluctuation-explainer', 'once'))?.doneAt,
+    ).toBeTruthy();
+  });
+});
+
+describe('a weight below BMI 18.5 (W32, HS-35)', () => {
+  it('the note asks for a GP check-in and says Kickstart, the range and the long-term goal are switched off', async () => {
+    await today({ ...WEIGHT_SCENARIOS.K10, startKg: 60 }, 10);
+    const note = within(weightCard()).getByText(weight.phase.lowWeight);
+    expect(note.textContent).toContain('Please check in with your GP');
+    expect(note.textContent).toContain('Kickstart, the typical range and the long-term goal');
+    expect(weightCard().querySelector('.ui-pill--teal')).toBeNull();
+  });
+});
+
 describe('the weight check-in card on Today (WT-04, HS-11)', () => {
   it('shows on day 42 with the GP line; "Hide for today" is its only control and hides it for the day', async () => {
     const db = await today(WEIGHT_SCENARIOS.K42, 42);
@@ -177,6 +262,7 @@ describe('the Kickstart stop-sign card (HS-27, WT-11)', () => {
     await today(WEIGHT_SCENARIOS.K10, 10);
     const card = screen.getByRole('region', { name: weight.stopSigns.label });
     expect(within(card).getByText(weight.stopSigns.action)).toBeTruthy();
+    expect(within(card).getByText(weight.stopSigns.emergency)).toBeTruthy();
     const rows = within(card).getAllByRole('link');
     expect(rows[0]?.getAttribute('href')).toBe('tel:111');
     expect(rows[0]?.className).toContain('ui-action-row--emergency');

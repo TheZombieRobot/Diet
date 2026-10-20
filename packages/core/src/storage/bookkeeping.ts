@@ -135,9 +135,31 @@ export const FUTURE_START_FIELDS: Readonly<Partial<Record<BackupTableName, reado
     fasts: Object.freeze(['startedAt']),
   });
 
-/** The first event start of `row` dated after `limitMs` (FUTURE_START_FIELDS), or null. */
+/**
+ * How long after its start a Kickstart period or a fast is ended when it never ran: kickstart.ts
+ * NEVER_RAN_END_MS (a Kickstart ended before its first day) and fasts.end's end at the start when
+ * the clock reads earlier than it (not imported from kickstart.ts, which depends on this module
+ * through clock.ts).
+ */
+const NEVER_RAN_MS = 1;
+
+/**
+ * The first event start of `row` dated after `limitMs` (FUTURE_START_FIELDS), or null. A period or
+ * a fast that never ran (ended at most 1 ms after its start: started while the clock ran ahead, then
+ * ended once it was corrected) is not counted from, so its start may lie ahead; refusing it would
+ * block every backup until the clock reached that start, and every unchecked copy for good (full
+ * review F15).
+ */
 export function futureStartField(table: string, row: unknown, limitMs: number): string | null {
   if (!isPlainObject(row)) return null;
+  const { startedAt, endedAt } = row;
+  if (
+    isInstant(startedAt) &&
+    isInstant(endedAt) &&
+    instantMs(endedAt) - instantMs(startedAt) <= NEVER_RAN_MS
+  ) {
+    return null;
+  }
   const fields = (FUTURE_START_FIELDS as Readonly<Record<string, readonly string[]>>)[table];
   for (const field of fields ?? []) {
     const value = row[field];

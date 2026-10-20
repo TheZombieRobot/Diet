@@ -2,7 +2,13 @@
 // a stop-sign answer after the card was hidden (HS-27, W22, W33), the start card (W14, W31), the
 // explanation of the Steady flip and the 22:2 move (WT-08, C55). jsdom over the real repositories
 // on fake-indexeddb, seeded with synthetic scenarios.
-import { readinessGates, weightGateInput } from '@diet/core';
+import {
+  PRE_START_STOP_SIGN_CARD,
+  preStartTrigger,
+  READINESS_WORDING,
+  readinessGates,
+  weightGateInput,
+} from '@diet/core';
 import { readiness, weight } from '@diet/core/copy/health';
 import {
   onDay,
@@ -14,7 +20,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testi
 import { afterEach, describe, expect, it } from 'vitest';
 import { openSnapshotDb, type TestDb } from '../../db/testKit';
 import { reconcileKickstart } from './kickstartActions';
-import { preStartStopSignStore } from './preStartCheck';
+import { preStartSeenStore, preStartStopSignStore } from './preStartCheck';
 import { presetMovedStore, weightStatusStore } from './stores';
 import { currentWeightEnv, overviewInputFrom, readWeightInputs } from './useWeightView';
 import { WeightCard } from './WeightCard';
@@ -27,6 +33,7 @@ afterEach(() => {
   weightStatusStore.set(null);
   presetMovedStore.set(null);
   preStartStopSignStore.set(null);
+  preStartSeenStore.set(null);
   test?.db.shutDown();
   test = undefined;
 });
@@ -60,6 +67,36 @@ function answer(yesTo?: string): void {
       within(group).getByRole('radio', { name: q === yesTo ? weight.check.yes : weight.check.no }),
     );
   }
+}
+
+/**
+ * Writes a readiness answer behind the screen's back, as another tab would: raw IndexedDB, so no
+ * live query on this screen sees it.
+ */
+function answerElsewhere(db: TestDb, questionId: 'q3', answer: 'yes'): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const open = db.deps.indexedDB.open('diet');
+    open.onerror = () => {
+      reject(new Error('open failed'));
+    };
+    open.onsuccess = () => {
+      const idb = open.result;
+      const tx = idb.transaction('readiness', 'readwrite');
+      tx.objectStore('readiness').put({
+        questionId,
+        answer,
+        wordingVersion: READINESS_WORDING[questionId],
+        answeredAt: db.env.now(),
+      });
+      tx.oncomplete = () => {
+        idb.close();
+        resolve();
+      };
+      tx.onerror = () => {
+        reject(new Error('write failed'));
+      };
+    };
+  });
 }
 
 /** The overview the reconciler would act on now. */
@@ -108,6 +145,8 @@ describe('the extension offer and its check (WT-09, C59)', () => {
     await waitFor(() => {
       expect(statusLine()).toContain(weight.extension.stopSign);
     });
+    // The card that takes focus says the rest; the outcome line does not say it twice.
+    expect(statusLine()).not.toContain('Eating more today is fine');
     expect(await db.repos.kickstart.listChecks()).toMatchObject([{ outcome: 'stop-sign' }]);
     await screen.findByText(weight.stopSigns.afterCheckRunning);
     const card = region(weight.stopSigns.label);
@@ -190,6 +229,49 @@ describe('starting a Kickstart chosen at setup (W14, W31)', () => {
     );
   });
 
+  it('F6, F8, F18: the "yes" is a record: a page that never saw it (another tab, the app opened again) shows its guidance until OK in any page, and refuses a start all that day', async () => {
+    const db = await today(WEIGHT_SCENARIOS.PENDING, 1);
+    fireEvent.click(
+      within(region(weight.start.pendingLabel)).getByRole('button', {
+        name: weight.start.pendingAction,
+      }),
+    );
+    answer(weight.check.faintAtWork);
+    fireEvent.click(screen.getByRole('button', { name: weight.check.confirmStart }));
+    await screen.findByText(weight.start.stopSign);
+    await waitFor(async () => {
+      expect(
+        await db.repos.cardState.get(PRE_START_STOP_SIGN_CARD, preStartTrigger('2000-02-01')),
+      ).toMatchObject({ firstShownAt: db.env.now(), dismissedAt: null });
+    });
+
+    /** Another page on the same records: nothing held in memory. */
+    const otherPage = async () => {
+      cleanup();
+      preStartStopSignStore.set(null);
+      preStartSeenStore.set(null);
+      render(<WeightCard storage={db.storage} />);
+      await screen.findByRole('region', { name: weight.card.label });
+    };
+    await otherPage();
+    const guidance = (await screen.findByText(weight.start.stopSign)).closest('section');
+    fireEvent.click(
+      within(guidance as HTMLElement).getByRole('button', { name: weight.steadyExplainer.ok }),
+    );
+    await waitFor(async () => {
+      expect(
+        (await db.repos.cardState.get(PRE_START_STOP_SIGN_CARD, preStartTrigger('2000-02-01')))
+          ?.dismissedAt,
+      ).toBe(db.env.now());
+    });
+    await otherPage();
+    expect(screen.queryByText(weight.start.stopSign)).toBeNull();
+    const overview = weightOverview(
+      overviewInputFrom(await readWeightInputs(db.storage), currentWeightEnv(db.storage)),
+    );
+    expect(overview.kickstart.start).toEqual({ available: false, reason: 'stop-sign-today' });
+  });
+
   it('four "no": the period, the carb-ceiling start and the 23:1 Kickstart window, each said', async () => {
     const db = await today({ ...WEIGHT_SCENARIOS.PENDING, targets: {} }, 1);
     fireEvent.click(
@@ -213,7 +295,7 @@ describe('starting a Kickstart chosen at setup (W14, W31)', () => {
     expect(region(weight.stopSigns.label)).toBeTruthy();
   });
 
-  it('the start re-checks the records: answer 3 turned "yes" while the questions were open starts nothing', async () => {
+  it('the start re-checks the records: answer 3 turned "yes" in another tab while the questions were open starts nothing, and says why', async () => {
     const db = await today(WEIGHT_SCENARIOS.PENDING, 1);
     fireEvent.click(
       within(region(weight.start.pendingLabel)).getByRole('button', {
@@ -221,13 +303,11 @@ describe('starting a Kickstart chosen at setup (W14, W31)', () => {
       }),
     );
     answer();
-    await act(async () => {
-      await db.repos.readiness.answer('q3', 'yes');
-    });
-    const confirm = screen.queryByRole('button', { name: weight.check.confirmStart });
-    if (confirm !== null) fireEvent.click(confirm);
+    await answerElsewhere(db, 'q3', 'yes');
+    // This screen has not seen the answer: the button is still there.
+    fireEvent.click(screen.getByRole('button', { name: weight.check.confirmStart }));
     await waitFor(() => {
-      expect(queryRegion(weight.start.pendingLabel)).toBeNull();
+      expect(statusLine()).toContain(weight.start.unavailableGated);
     });
     expect(await db.repos.kickstart.listPeriods()).toEqual([]);
   });
@@ -251,6 +331,8 @@ describe('the Steady flip is explained and the 23:1 Kickstart default moves to 2
     expect(within(card).getByText(weight.steadyExplainer.window)).toBeTruthy();
     expect(within(card).getByText('Net carbs go back to your own ceiling of 30 g.')).toBeTruthy();
     expect(card.textContent).not.toContain('%');
+    // The pace and rebound notes are on the Weight card beside it, not said twice.
+    expect(card.textContent).not.toContain(weight.phase.steadyPace);
     fireEvent.click(within(card).getByRole('button', { name: weight.steadyExplainer.ok }));
     await waitFor(() => {
       expect(queryRegion(weight.steadyExplainer.label)).toBeNull();
@@ -315,6 +397,23 @@ describe('the Steady flip is explained and the 23:1 Kickstart default moves to 2
     await waitFor(() => {
       expect(queryRegion(weight.presetMoved.label)).toBeNull();
     });
+  });
+});
+
+describe('answer 4 and the 23:1 Kickstart default (C07; item 14 review)', () => {
+  it('a finished Kickstart offers no one-tap 23:1, and the move to 22:2 is explained without one', async () => {
+    const db = await today({ ...WEIGHT_SCENARIOS.K42, readiness: { q4: 'yes' } }, 22);
+    const card = region(weight.steadyExplainer.label);
+    expect(within(card).queryByText(weight.steadyExplainer.window)).toBeNull();
+    expect(within(card).queryByRole('button', { name: weight.steadyExplainer.use231 })).toBeNull();
+    await reconcile(db);
+    expect(await db.repos.targets.get()).toMatchObject({
+      fastingPreset: '22:2',
+      presetChosenBy: 'default',
+    });
+    const notice = await screen.findByRole('region', { name: weight.presetMoved.label });
+    expect(within(notice).getByText(weight.presetMoved.answer4)).toBeTruthy();
+    expect(within(notice).queryByRole('button', { name: weight.presetMoved.use231 })).toBeNull();
   });
 });
 

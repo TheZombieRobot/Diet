@@ -25,6 +25,8 @@ export const ROUTES = [
   // Item 27: a session and the weekly plan editor, sub-screens of the Move tab.
   'move-session',
   'move-plan',
+  // Item 30: Settings, Laptop pairing.
+  'pairing',
 ] as const;
 export type RouteId = (typeof ROUTES)[number];
 
@@ -51,6 +53,7 @@ export const ROUTE_TITLES: Readonly<Record<RouteId, string>> = {
   targets: targets.screen.title,
   'move-session': 'Session',
   'move-plan': 'Weekly plan',
+  pairing: 'Laptop pairing',
 };
 
 const isRoute = (value: string): value is RouteId => (ROUTES as readonly string[]).includes(value);
@@ -122,6 +125,7 @@ const UNDER_SETTINGS: readonly RouteId[] = [
   'profile',
   'eating-schedule',
   'targets',
+  'pairing',
 ];
 
 /** Settings and the screens reached from it light up the settings gear. */

@@ -117,6 +117,7 @@ const DEEP_LINKS = [
   './#/move-session/a',
   './#/move-session/a/finish',
   './#/move-plan',
+  './#/pairing',
   './#/nothing',
 ];
 

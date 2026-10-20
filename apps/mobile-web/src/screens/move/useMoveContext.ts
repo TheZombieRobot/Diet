@@ -1,25 +1,27 @@
 /**
  * What every Move view reads (item 27 design section 1.2): the gates, the Move records in one
- * live query, item 14's held pre-start answer and the dataset, put together by core moveContext.
+ * live query, item 14's pre-start answer and the dataset, put together by core moveContext.
  * RD-05 is decided before anything else is waited on or can fail, so the gate's reason always
  * shows while readiness answer 6 is open.
  */
 import {
+  type CardStateRecord,
   type ExerciseData,
   localDateOf,
   type MoveContext,
   moveContext,
   type MoveRecords,
   type ReadinessGates,
+  recentPreStartStopSignDay,
 } from '@diet/core';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import type { WriteGate } from '../../db/gate';
 import { useLiveQueryState } from '../../db/liveQuery';
 import type { AppStorage } from '../../db/runtime';
 import { useReadinessGateRead } from '../../onboarding/state';
 import { useStore } from '../../store';
 import { useNow } from '../../useNow';
-import { loadPreStartStopSign, preStartStopSignStore } from '../weight/preStartCheck';
+import { preStartStopSignStore } from '../weight/preStartCheck';
 import { exerciseDataOrNull } from './exerciseData';
 
 export type MoveRead =
@@ -34,19 +36,33 @@ interface MoveSource {
   readonly storage: AppStorage;
 }
 
-type StoredMoveRecords = Omit<MoveRecords, 'preStartStopSignDay'>;
+type StoredMoveRecords = Omit<MoveRecords, 'preStartStopSignDay'> & {
+  /** The card_state rows, for item 14's pre-start "yes" (core weight/preStart.ts). */
+  readonly cardStates: readonly CardStateRecord[];
+};
 
-/** The Move records in one live query: every session row, the fasts and the stop-sign checks. */
+/**
+ * The Move records in one live query: every session row, the fasts, the stop-sign checks and the
+ * card_state rows that hold a pre-start "yes".
+ */
 async function readMoveRecords({ storage }: MoveSource): Promise<StoredMoveRecords> {
   const { repos } = storage;
-  const [profile, settings, sessions, fasts, kickstartChecks] = await Promise.all([
+  const [profile, settings, sessions, fasts, kickstartChecks, cardStates] = await Promise.all([
     repos.profile.get(),
     repos.settings.get(),
     repos.sessions.list(),
     repos.fasts.list(),
     repos.kickstart.listChecks(),
+    storage.db.card_state.toArray(),
   ]);
-  return { profile, weeklyPattern: settings.weeklyPattern, sessions, fasts, kickstartChecks };
+  return {
+    profile,
+    weeklyPattern: settings.weeklyPattern,
+    sessions,
+    fasts,
+    kickstartChecks,
+    cardStates,
+  };
 }
 
 export function useMoveContext(storage: AppStorage): MoveRead {
@@ -55,10 +71,7 @@ export function useMoveContext(storage: AppStorage): MoveRead {
   const gateRead = useReadinessGateRead(storage);
   const source = useMemo<MoveSource>(() => ({ gate: storage.gate, storage }), [storage]);
   const records = useLiveQueryState(source, readMoveRecords);
-  const preStartStopSignDay = useStore(preStartStopSignStore);
-  useEffect(() => {
-    loadPreStartStopSign(storage.platform);
-  }, [storage]);
+  const preStartHeld = useStore(preStartStopSignStore);
 
   if (gateRead.status === 'pending') return { status: 'pending' };
   if (gateRead.status === 'error') return { status: 'read-error' };
@@ -69,6 +82,11 @@ export function useMoveContext(storage: AppStorage): MoveRead {
   if (records.status === 'error') return { status: 'read-error' };
   const data = exerciseDataOrNull();
   if (data === null) return { status: 'data-error' };
+  // Item 14's pre-start "yes": its record, or this page's hold until the record is written.
+  const recorded = recentPreStartStopSignDay(records.value.cardStates, now);
+  const held = preStartHeld === today ? preStartHeld : null;
+  const preStartStopSignDay =
+    recorded === null || (held !== null && held > recorded) ? held : recorded;
   const ctx = moveContext(data, { ...records.value, preStartStopSignDay }, gates, { today, now });
   return { status: 'ready', data, ctx };
 }

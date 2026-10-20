@@ -1,8 +1,14 @@
 /** Weight wording filled in for display; every sentence comes from health.ts. */
-import { fillTemplate, type Phase, type StartUnavailable, type WeightNote } from '@diet/core';
+import {
+  fillTemplate,
+  type Phase,
+  type StartRefusal,
+  type StartUnavailable,
+  type WeightNote,
+} from '@diet/core';
 import { weight } from '@diet/core/copy/health';
 import { useEffect, useRef, type RefObject } from 'react';
-import { formatKg } from '../../format';
+import { formatKg, formatLocalDay } from '../../format';
 
 /** "96.8 kg". */
 export const kgText = (kg: number): string => fillTemplate(weight.card.kg, { kg: formatKg(kg) });
@@ -22,8 +28,7 @@ export const NOTE_TEXT: Readonly<Record<WeightNote, string>> = {
   'low-weight': weight.phase.lowWeight,
 };
 
-/** The line for a start that is not available (Phase card; the start re-check). */
-export const START_UNAVAILABLE_TEXT: Readonly<Record<StartUnavailable, string | null>> = {
+const START_UNAVAILABLE_TEXT: Readonly<Record<StartUnavailable, string | null>> = {
   'low-weight': weight.start.unavailableLowWeight,
   gated: weight.start.unavailableGated,
   'not-keto': weight.start.unavailableMode,
@@ -31,10 +36,21 @@ export const START_UNAVAILABLE_TEXT: Readonly<Record<StartUnavailable, string | 
   running: null,
   // The Phase card shows the period's own "not started yet" lines and End Kickstart instead.
   'not-started': null,
-  'ended-today': weight.start.unavailableToday,
-  'recent-stop-sign': weight.start.unavailableRecentStopSign,
   cap: weight.start.unavailableCap,
+  'recent-stop-sign': weight.start.unavailableRecentStopSign,
+  'ended-ahead': weight.start.unavailableEndedAhead,
+  'ended-today': weight.start.unavailableToday,
+  'stop-sign-today': weight.start.unavailableStopSignToday,
 };
+
+/** The line for a start that is not available (Phase card; the start re-check), or none. */
+export function startUnavailableText(
+  refusal: Pick<StartRefusal, 'reason' | 'day1'>,
+): string | null {
+  const text = START_UNAVAILABLE_TEXT[refusal.reason];
+  if (text === null || refusal.day1 === undefined) return text;
+  return fillTemplate(text, { date: formatLocalDay(refusal.day1) });
+}
 
 /** The phase chip: "Kickstart, week 2 of 3", "Steady", or none. */
 export function phaseChip(phase: Phase): string | null {

@@ -28,6 +28,7 @@ import { addDays, daysBetween, type LocalDate, localDateOf } from '../util/time'
 import {
   bandAnchor,
   bandEdgesAt,
+  type BandShape,
   carbCeilingActive,
   CHART_BLOCK_DAYS,
   chartBlock,
@@ -41,9 +42,9 @@ import {
   kickstartNotStarted,
   kickstartPending,
   kickstartStartAvailability,
-  latestKickstartPeriod,
   type Phase,
   type PhaseInput,
+  periodsThatRan,
   phaseOn,
   rapidLossExemptDates,
   type StartAvailability,
@@ -138,6 +139,8 @@ export interface FourWeekChart {
   readonly line: readonly ChartPoint[];
   readonly band: readonly BandPoint[] | null;
   readonly bandHiddenBecause: 'gated' | 'no-carb-ceiling' | 'low-weight' | 'no-anchor' | null;
+  /** The block's band shape: front-loaded only in the first block of the first Kickstart that ran. */
+  readonly shape: BandShape | null;
 }
 
 export interface WeightOverview {
@@ -283,6 +286,7 @@ function fourWeekChart(
       line: [],
       band: null,
       bandHiddenBecause: 'no-anchor',
+      shape: null,
     };
   }
   const b = block.blockNumber;
@@ -295,6 +299,7 @@ function fourWeekChart(
     line,
     band: null,
     bandHiddenBecause: because,
+    shape: block.shape,
   });
   if (phase.kind === 'none' || !input.gates.projectionBandAvailable) return hidden('gated');
   if (!carbCeilingActive(input.profile.dietMode, input.gates)) return hidden('no-carb-ceiling');
@@ -369,8 +374,9 @@ export function weightOverview(input: WeightOverviewInput): WeightOverview {
     : null;
 
   const effectivePreset = effectiveFastingPreset(targets, phase.kind === 'kickstart', gates);
-  const latestPeriod = latestKickstartPeriod(input.periods);
-  // "Kickstart has finished" only once the latest period has run: never before its first day.
+  // "Kickstart has finished" only for a period that ran: never before its first day, and never for
+  // one ended before its first day came.
+  const latestPeriod = periodsThatRan(input.periods).at(-1) ?? null;
   const steadyExplainer =
     phase.kind === 'steady' &&
     latestPeriod !== null &&
@@ -385,10 +391,13 @@ export function weightOverview(input: WeightOverviewInput): WeightOverview {
             gates.carbCeilingBelow50Allowed
               ? safeKetoCeilingG(targets.netCarbCeilingG)
               : null,
+          // Never for answer 4 "yes" or unanswered: one meal a day is never offered to that owner
+          // in one tap, and a start never moves them to it (C07).
           windowLine:
             effectivePreset.fastingPreset === '22:2' &&
             effectivePreset.presetChosenBy === 'default' &&
-            !gates.fastingGated,
+            !gates.fastingGated &&
+            !gates.pharmacistReminder,
         }
       : null;
 
@@ -432,7 +441,13 @@ export function weightOverview(input: WeightOverviewInput): WeightOverview {
       endNeeded: onboardingCompleted ? kickstartEndNeeded(phaseInput) : null,
       notStarted,
       presetMoveDue: onboardingCompleted
-        ? presetMoveDue({ targets, phase, fastingGated: gates.fastingGated, onboardingCompleted })
+        ? presetMoveDue({
+            targets,
+            phase,
+            fastingGated: gates.fastingGated,
+            pharmacistReminder: gates.pharmacistReminder,
+            onboardingCompleted,
+          })
         : null,
       effectivePreset,
     },

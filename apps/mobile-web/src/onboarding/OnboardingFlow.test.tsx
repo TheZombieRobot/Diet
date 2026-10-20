@@ -32,7 +32,7 @@ import {
   throughProfile,
   type,
 } from './flowTestKit';
-import { restoreReloadTarget } from './navigation';
+import { RESTORED_HASH, restoreReloadTarget } from './navigation';
 import { OPENING_SLOW_MS } from './OpeningScreen';
 import { gateInputOf, readOnboardingState } from './state';
 
@@ -179,11 +179,19 @@ describe('the first-run guard (HS-20, C41, C53)', () => {
     expect(screen.getByLabelText<HTMLInputElement>(profile.heightLabel).value).toBe('182');
   });
 
-  it('K29: a restore from setup reloads onto Settings, Readiness answers (E64)', async () => {
-    expect(restoreReloadTarget({ pathname: '/Diet/', search: '' })).toBe('/Diet/#/readiness');
+  it('K29, F28: a restore from setup reloads onto Settings, Readiness answers, which says once that the records are back; "These still apply" opens Today (E64)', async () => {
+    expect(restoreReloadTarget({ pathname: '/Diet/', search: '' })).toBe(`/Diet/${RESTORED_HASH}`);
     await onboardForTests(test);
+    await reload(RESTORED_HASH);
+    await headingIs('Readiness answers');
+    const note = await screen.findByText(privacy.importBackup.restored);
+    expect(note.closest('[role="status"]')).not.toBeNull();
+    expect(window.location.hash).toBe('#/readiness');
+    tap(privacy.importBackup.restoredContinue);
+    await headingIs('Today');
     await reload('#/readiness');
     await headingIs('Readiness answers');
+    expect(screen.queryByText(privacy.importBackup.restored)).toBeNull();
   });
 });
 

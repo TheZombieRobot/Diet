@@ -54,6 +54,7 @@ import {
   onboardForTests,
   openTestDb,
   pairingRow,
+  savePairingForTests,
   PHOTO_BYTES,
   photoRow,
   rawWriter,
@@ -145,7 +146,7 @@ describe('BK-01 / HS-15: round trip through the real database (section 10.8; sec
       expect(
         snapshotV1.grocery_lists.some((l) => l.transferId !== null && l.receivedVersion !== null),
       ).toBe(true);
-      await test.db.transfer_pairings.put(await pairingRow());
+      await savePairingForTests(test);
       const gardenId = snapshotV1.garden[0]?.id ?? '';
       await test.db.garden_photos.put(photoRow(gardenId));
 
@@ -214,7 +215,8 @@ describe('all or nothing (BK-07; section 16 test 28)', () => {
       const deps = writeDeps();
       const outcome = await writeImport(test.db, plan, test.env, deps);
       expect(outcome.ok).toBe(false);
-      if (outcome.ok || outcome.blocked) throw new Error('expected a failed write');
+      if (outcome.ok || outcome.blocked || outcome.changed)
+        throw new Error('expected a failed write');
       expect(outcome.error).toBeInstanceOf(BackupError);
       expect(outcome.error.code).toBe('write-failed');
       expect(outcome.error.message).toBe(
@@ -260,10 +262,12 @@ describe('replace semantics and the confirmation (D17; section 16 test 29)', () 
     await test.repos.recipes.update(recipe.id, { title: 'Example renamed recipe' });
     const keptGarden = snapshotV1.garden[0]?.id ?? '';
     await test.db.garden_photos.bulkPut([photoRow(keptGarden), photoRow(extraGarden.id)]);
-    await test.db.transfer_pairings.put(await pairingRow());
+    await savePairingForTests(test);
 
     const decoded = await decodeImport(asFile(exported.file.text), null, test.env);
     const plan = await planImport(test.db, decoded);
+    // The confirmation says "The laptop pairing will be removed." only for a paired phone (A2).
+    expect(plan.paired).toBe(true);
     expect(plan.confirmation).toEqual({
       missingFromFile: 2,
       differFromFile: 1,
@@ -287,6 +291,9 @@ describe('replace semantics and the confirmation (D17; section 16 test 29)', () 
 
   it('a brand-new phone, or one just cleared by delete-all, holds nothing of the owner\u2019s: no loss is counted and Replace is the default', async () => {
     const test = await openTestDb({ env: testEnv('2026-10-19T00:00:00.000Z') });
+    // Setup offers a restore only after the alcohol notice, whose acknowledgement it stores (C53;
+    // full review F14): that is not a record of the owner's.
+    await test.repos.settings.update({ alcoholNoticeAckAt: test.env.now() });
     const decoded = await decodeImport(asFile(plainReferenceEnvelopeV1()), null, test.env);
     const fresh = await planImport(test.db, decoded);
     expect(fresh.confirmation).toEqual({
@@ -300,6 +307,7 @@ describe('replace semantics and the confirmation (D17; section 16 test 29)', () 
     await replaceAll(test.db, decoded.snapshot);
     await deleteEverything(test);
     const cleared = await openTestDb({ deps: test.deps, env: test.env });
+    await cleared.repos.settings.update({ alcoholNoticeAckAt: cleared.env.now() });
     expect((await planImport(cleared.db, decoded)).confirmation).toMatchObject({
       missingFromFile: 0,
       differFromFile: 0,
