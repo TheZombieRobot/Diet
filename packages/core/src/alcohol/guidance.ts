@@ -73,8 +73,9 @@ export function isAboveGuidance(shownTotalStd: number, figure: number): boolean 
 export const HELP_DOUBLE_FACTOR = 2;
 
 /**
- * The double-guidance help-card condition. Given the trigger total (totals.ts triggerStd), which is
- * the shown total except where a label figure disagrees with the calculation, and never lower (A39).
+ * The double-guidance help-card condition. Given the trigger total (totals.ts triggerStd), which
+ * counts every label figure at the larger of it and the calculation, so it is never lower than the
+ * shown total (A39).
  */
 export function reachesDoubleGuidance(triggerStd: number, perWeek: number): boolean {
   return triggerStd >= HELP_DOUBLE_FACTOR * perWeek;

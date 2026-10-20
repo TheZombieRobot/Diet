@@ -91,7 +91,7 @@ export function AlcoholHelpCard({
   return (
     <Card label={alcohol.helpCardLabel}>
       <p data-testid="alcohol-help-card">{alcohol.helpCard}</p>
-      <NoticeHelpRows />
+      <NoticeHelpRows emergencyDetail={alcohol.helpCardEmergencyDetail} />
       <Button
         variant="quiet"
         aria-expanded={whyOpen}

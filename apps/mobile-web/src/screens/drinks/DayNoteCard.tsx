@@ -191,7 +191,7 @@ export function DayNoteCard({
       {stored?.withdrawalTick === true ? (
         <div data-testid="day-note-help">
           <p>{alcohol.helpCard}</p>
-          <NoticeHelpRows />
+          <NoticeHelpRows emergencyDetail={alcohol.helpCardEmergencyDetail} />
         </div>
       ) : null}
       {recent.length === 0 ? null : (

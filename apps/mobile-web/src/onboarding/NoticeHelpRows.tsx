@@ -8,9 +8,15 @@ const dial = (scheme: 'tel' | 'sms', number: string): string =>
 
 /**
  * The three help rows of the alcohol safety note and the "talk to someone" card (UX 1b; mock-up
- * Notice; E34): call the helpline, text it, and emergency. Red only on the emergency row.
+ * Notice; E34): call the helpline, text it, and emergency. Red only on the emergency row, whose
+ * detail repeats the reasons to call 111 given by the text above it: the notice's by default, the
+ * card's on the card (full review F37).
  */
-export function NoticeHelpRows(): ReactElement {
+export function NoticeHelpRows({
+  emergencyDetail = alcohol.notice.emergencyDetail,
+}: {
+  readonly emergencyDetail?: string;
+} = {}): ReactElement {
   const { alcoholDrugHelpline, emergency } = helpNumbers;
   return (
     <ul className="ui-action-list">
@@ -35,7 +41,7 @@ export function NoticeHelpRows(): ReactElement {
           tone="emergency"
           href={dial('tel', emergency.number)}
           title={alcohol.notice.emergencyTitle}
-          detail={alcohol.notice.emergencyDetail}
+          detail={emergencyDetail}
           badge={emergency.number}
         />
       </li>

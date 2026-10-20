@@ -195,9 +195,10 @@ export function nutritionTodayView(
         };
 
   const notes: NutritionNote[] = [];
-  // By count: a logged drink is never "nothing logged", whatever is known of its energy.
+  // By count: a logged drink always has its alcohol part, whatever is known of its energy.
   const drinksLogged = alcoholShown && drinks.count > 0;
-  if (intake.entryCount === 0 && !drinksLogged) notes.push({ text: copy.today.nothingLogged });
+  // Food logging is not built yet (item 23): say so rather than "nothing logged" (F24).
+  if (intake.entryCount === 0) notes.push({ text: copy.today.laterStep });
   for (const key of MISSING_ORDER) {
     const count = unknownCounts[key];
     if (count === 0) continue;

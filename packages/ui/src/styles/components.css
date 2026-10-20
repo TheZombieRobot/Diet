@@ -145,6 +145,16 @@
     0 10px 28px var(--color-shadow);
 }
 
+/*
+ * Below 260 px (a 360 px phone at 200% text is 180 px) a card gives back some of its padding, so
+ * a help number row inside it fits its longest word and a whole phone number on a line (F19).
+ */
+@media (max-width: 259.98px) {
+  .ui-card {
+    padding: 10px;
+  }
+}
+
 .ui-card__header {
   display: flex;
   align-items: center;
@@ -610,6 +620,7 @@
   flex-direction: column;
   gap: 10px;
   list-style: none;
+  container: action-list / inline-size;
 }
 
 .ui-action-row {
@@ -644,7 +655,7 @@
   flex-direction: column;
   gap: 2px;
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .ui-action-row__title {
@@ -671,6 +682,27 @@
 
 .ui-action-row--emergency .ui-action-row__detail {
   color: inherit;
+}
+
+/*
+ * Too narrow for the badge beside the text (a phone at 200% text): the badge goes on its own line
+ * above it, so the text has the row's whole width and no word or phone number is split (F19).
+ */
+@container action-list (max-width: 209.98px) {
+  .ui-action-row {
+    flex-wrap: wrap;
+    row-gap: 6px;
+    padding: 8px;
+  }
+
+  .ui-action-row__badge {
+    width: 32px;
+    height: 32px;
+  }
+
+  .ui-action-row__text {
+    flex: 1 1 100%;
+  }
 }
 
 /* Label and value pairs (About: version, storage) */
@@ -1558,10 +1590,13 @@
   font-weight: 600;
 }
 
-/* Two meters side by side: two columns from a 274 px content box (2 x 130 + 14). */
+/*
+ * Two meters side by side: two columns from a 274 px content box (2 x 130 + 14). Narrower than
+ * one column (a phone at 200% text) the one column takes the box's width, never more (F25).
+ */
 .ui-meter-pair {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(130px, 100%), 1fr));
   gap: 14px;
 }
 

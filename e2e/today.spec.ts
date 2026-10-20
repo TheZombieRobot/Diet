@@ -12,7 +12,7 @@ import { heading, patchRecords, seedOnboarded, waitForServiceWorkerControl } fro
 
 // Today in the production build (item 16 design section 5.3 E2): TD-01 to TD-04, HS-20, AL-09
 // and PWA-04 (Today portion). Synthetic records from a finished setup (every answer "no", a 22:2
-// pattern, a 90 kg onboarding weight).
+// pattern, a 100 kg onboarding weight).
 
 const region = (page: Page, name: string) => page.getByRole('region', { name, exact: true });
 const panel = (page: Page) => page.locator('.ui-fab-panel');

@@ -1,7 +1,7 @@
 // The Fast card and the Fasting screen (item 15 design 7.3): the whole app over the real
 // repositories on fake-indexeddb, with the test clock. Synthetic records only.
 import { fillTemplate, type Instant, parseClockTime, zonedWallTimeToInstant } from '@diet/core';
-import { fasting, readiness, reflux, schedule } from '@diet/core/copy/health';
+import { fasting, privacy, readiness, reflux, schedule } from '@diet/core/copy/health';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { appStorageStore } from '../../db/runtime';
@@ -175,6 +175,8 @@ describe('the Fast card on Today (design 3.3; FS-02, FS-03, HS-02, HS-18)', () =
       seed: (t) => completedFast(t, at('2000-01-03', '19:00'), at(D, '18:50')),
     });
     tap(await screen.findByRole('region', { name: fasting.card.label }), fasting.card.start);
+    // F21: Start asks first; "Start now" starts it as part of the last fast.
+    tap(fastCard(), fasting.card.joinAskStart);
     const joined =
       "This fast started 1 m after your last fast ended, so it counts as part of the same fast. It's fine to eat before starting another.";
     await within(fastCard()).findByText(joined);
@@ -186,6 +188,29 @@ describe('the Fast card on Today (design 3.3; FS-02, FS-03, HS-02, HS-18)', () =
     expect(timer()).toContain('47 h 40 m');
     // The note gives the gap between the two fasts, so it is still true hours later (review).
     expect(within(fastCard()).getByText(joined)).toBeTruthy();
+  });
+
+  it('F21: Start within the hour after a 23:1 dinner asks first; Not now writes nothing, and from an hour after the end a new fast stands alone', async () => {
+    await setUp('#/today', {
+      now: at(D, '19:05'),
+      seed: (t) => completedFast(t, at('2000-01-03', '19:00'), at(D, '18:20')),
+    });
+    tap(await screen.findByRole('region', { name: fasting.card.label }), fasting.card.start);
+    const ask =
+      'Your last fast ended at 6:20 pm, less than an hour ago, so a fast started now counts as part of it. A fast started from 7:20 pm counts on its own.';
+    await focusOn(ask);
+    tap(fastCard(), fasting.card.joinAskWait);
+    await waitFor(() => {
+      expect(document.activeElement?.textContent).toBe(fasting.card.start);
+    });
+    expect((await db().repos.fasts.list()).filter((f) => f.endedAt === null)).toEqual([]);
+    await clockTo(at(D, '19:20'));
+    tap(fastCard(), fasting.card.start);
+    await within(fastCard()).findByText(fasting.card.started);
+    expect(within(fastCard()).queryByText(/counts as part of the same fast/)).toBeNull();
+    await clockTo(at('2000-01-05', '07:00'));
+    expect(timer()).toContain('11 h 40 m');
+    expect(within(fastCard()).queryByText(fasting.card.overCeiling)).toBeNull();
   });
 
   it('Undo after End goes at 60 s from the stored end; the note editor stays open and saves', async () => {
@@ -349,10 +374,44 @@ describe('the Fast card on Today (design 3.3; FS-02, FS-03, HS-02, HS-18)', () =
     });
   });
 
+  it('F46: two date changes in quick succession land on the second new day: the Fast card and Nutrition card read it', async () => {
+    await setUp('#/today', {
+      now: at(D, '09:00'),
+      seed: async (t) => {
+        t.env.set(iso(at(D, '08:00')));
+        await t.repos.symptoms.create({ symptom: 'heartburn', severity: null, note: null });
+      },
+    });
+    await within(await screen.findByRole('region', { name: fasting.card.label })).findByTestId(
+      'reflux-options',
+    );
+    // The next day starts its reads; before they return the clock moves on again with no event,
+    // so the render that follows comes from the next day's own result.
+    act(() => {
+      db().env.set(iso(at('2000-01-05', '09:00')));
+      window.dispatchEvent(new Event('focus'));
+    });
+    db().env.set(iso(at('2000-01-06', '09:00')));
+    await waitFor(() => {
+      expect(within(fastCard()).queryByTestId('reflux-options')).toBeNull();
+      expect(screen.queryByText(privacy.backupCard.notReady)).toBeNull();
+    });
+  });
+
   it('the pharmacist line shows on the open card when answer 4 is yes, never on a gated card (C07)', async () => {
     await setUp('#/today', { now: at(D, '10:00'), answers: { q4: 'yes' } });
     const card = await screen.findByRole('region', { name: fasting.card.label });
     expect(within(card).getByText(fasting.pharmacist)).toBeTruthy();
+    // F38: on the Fasting screen it shows once, on the Eating pattern card, fast running or not.
+    const noFast = () => Promise.resolve();
+    for (const seed of [noFast, runningFrom(at('2000-01-03', '19:00'))]) {
+      cleanup();
+      db().db.shutDown();
+      await setUp('#/fasting', { now: at(D, '10:00'), answers: { q4: 'yes' }, seed });
+      const pattern = await screen.findByRole('region', { name: fasting.pattern.label });
+      expect(within(pattern).getByText(fasting.pharmacist)).toBeTruthy();
+      expect(screen.getAllByText(fasting.pharmacist)).toHaveLength(1);
+    }
     cleanup();
     db().db.shutDown();
     await setUp('#/today', { now: at(D, '10:00'), answers: { q4: 'yes', q3: 'yes' } });
@@ -593,14 +652,18 @@ describe('the Fasting screen (design 3.4 to 3.8)', () => {
     expect(within(fastCard()).getByRole('link', { name: fasting.card.choosePattern })).toBeTruthy();
   });
 
-  it('E19: the open form carries the Kickstart line, once, and drops it when another pattern is picked', async () => {
+  it('E19, F39: the open form carries the Kickstart line, once, with the running Kickstart’s due date, and drops it when another pattern is picked', async () => {
     await setUp('#/fasting', { now: at(D, '10:00'), ...KICKSTART_DEFAULT });
+    const line =
+      'Kickstart is due to finish on 24 January 2000. After that, the app uses 22:2 (5 pm snack + dinner) instead.';
     const card = await screen.findByRole('region', { name: fasting.pattern.label });
-    expect(within(card).getByText(schedule.kickstartWhen)).toBeTruthy();
+    expect(within(card).getByText(line)).toBeTruthy();
+    expect(within(card).queryByText(schedule.kickstartWhen)).toBeNull();
     tap(card, fasting.pattern.change);
-    expect(within(region(fasting.pattern.label)).getByText(schedule.kickstartWhen)).toBeTruthy();
+    expect(await within(region(fasting.pattern.label)).findByText(line)).toBeTruthy();
+    expect(within(region(fasting.pattern.label)).getAllByText(line)).toHaveLength(1);
     fireEvent.click(within(region(fasting.pattern.label)).getByRole('radio', { name: /^18:6/ }));
-    expect(within(region(fasting.pattern.label)).queryByText(schedule.kickstartWhen)).toBeNull();
+    expect(within(region(fasting.pattern.label)).queryByText(line)).toBeNull();
   });
 
   it('FL-14, HS-17: the 23:1 window is 1 h eating and 23 h fasting, with no over-24 text', async () => {

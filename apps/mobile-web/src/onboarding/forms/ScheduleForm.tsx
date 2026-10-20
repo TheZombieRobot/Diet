@@ -6,6 +6,7 @@ import {
   type FastingPresetId,
   fillTemplate,
   formatClockRange,
+  type LocalDate,
   presetForWindow,
   presetWindow,
   windowProblemFields,
@@ -23,6 +24,7 @@ import {
 } from '@diet/ui';
 import { type ReactElement, type ReactNode, type Ref, useId } from 'react';
 import { fastingHref } from '../../routes';
+import { kickstartWhenText } from '../../screens/fasting/fastingText';
 import type { ScheduleDraft } from '../drafts';
 
 const WINDOW_ERRORS = {
@@ -60,6 +62,11 @@ export interface ScheduleFormProps {
   readonly diabetesNote: boolean;
   /** Settings: a Kickstart default stored before answer 4 turned yes, which is not used (C07). */
   readonly kickstartDefaultSetAside?: boolean | undefined;
+  /**
+   * Settings: the due date of a running Kickstart (the Phase card's date), null with none, or
+   * undefined while that is still being read, when the Kickstart line waits (F39).
+   */
+  readonly kickstartRunsUntil?: LocalDate | null | undefined;
   /** After a refused Continue or Save. */
   readonly showErrors: boolean;
   readonly listRef?: Ref<HTMLInputElement> | undefined;
@@ -83,6 +90,7 @@ export function ScheduleForm({
   pharmacistNote,
   diabetesNote,
   kickstartDefaultSetAside = false,
+  kickstartRunsUntil,
   showErrors,
   listRef,
   windowRef,
@@ -108,7 +116,9 @@ export function ScheduleForm({
       value: p.id,
       label: p.id,
       detail: presetDetail(p.id),
-      chip: p.id === '23:1' && kickstartChosen ? schedule.kickstartChip : undefined,
+      // Never for answer 4: 23:1 is never that owner's Kickstart default (C07, ruling 4; F40).
+      chip:
+        p.id === '23:1' && kickstartChosen && !pharmacistNote ? schedule.kickstartChip : undefined,
     })),
     {
       value: 'custom',
@@ -120,7 +130,11 @@ export function ScheduleForm({
             })
           : undefined,
     },
-    { value: 'none', label: schedule.none, detail: schedule.noneDetail },
+    {
+      value: 'none',
+      label: schedule.none,
+      detail: mode === 'settings' ? schedule.noneDetailInSettings : schedule.noneDetail,
+    },
   ];
   const choose = (value: string) => {
     if (value === 'none') {
@@ -157,8 +171,10 @@ export function ScheduleForm({
           <p data-testid="schedule-own-pattern">{schedule.ownPattern}</p>
         </Notice>
       ) : null}
-      {mode === 'settings' && savedAs === 'kickstart-default' ? (
-        <p className="ui-text-muted">{schedule.kickstartWhen}</p>
+      {mode === 'settings' &&
+      savedAs === 'kickstart-default' &&
+      kickstartRunsUntil !== undefined ? (
+        <p className="ui-text-muted">{kickstartWhenText(kickstartRunsUntil)}</p>
       ) : null}
       {mode === 'settings' && kickstartDefaultSetAside ? (
         <p className="ui-text-muted">{schedule.kickstartDefaultSetAside}</p>

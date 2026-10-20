@@ -11,6 +11,7 @@ import {
   type EatingWindow,
   type FastRecord,
   type GateInput,
+  type KickstartCheckRecord,
   type KickstartPeriodRecord,
   type LoggedIntake,
   parseClockTime,
@@ -76,6 +77,7 @@ function inputs(today: string, more: Partial<FastingInputs> = {}): FastingInputs
     symptoms: [],
     snackCards: {},
     nudgeCard: undefined,
+    preStartCards: [],
     drinks: [],
     ...more,
   };
@@ -92,6 +94,7 @@ function context(
     // Item 21's figures for the day (mealTargets.ts): 140 g of protein and a 9,100 kJ target.
     mealTargets: () => ({ proteinTargetG: 140, energyTargetKj: 9_100 }),
     mealSources: itemFifteenSources,
+    stopSignPause: false,
     ...more,
   };
 }
@@ -493,7 +496,11 @@ describe('the preset every reader uses (cross-item ruling 2; C07)', () => {
     lowWeight: false,
   };
   /** A stored 23:1 Kickstart default, keto since well before any period. */
-  const contextWith = (periods: KickstartPeriodRecord[]) =>
+  const contextWith = (
+    periods: KickstartPeriodRecord[],
+    checks: KickstartCheckRecord[] = [],
+    preStart: { readonly cards?: CardStateRecord[]; readonly held?: string } = {},
+  ) =>
     fastingContext({
       inputs: inputs(D, {
         targets: {
@@ -504,12 +511,15 @@ describe('the preset every reader uses (cross-item ruling 2; C07)', () => {
         },
         profile: { ...defaultProfile(T0), carbCeilingStartedAt: iso(at('1999-12-01', '00:00')) },
         periods,
+        checks,
+        preStartCards: preStart.cards ?? [],
       }),
       gateInput,
       gates: readinessGates(gateInput),
       now: iso(at(D, '10:00')),
       deviceTimeZone: NZ,
       endsPending: new Map(),
+      preStartHeld: preStart.held ?? null,
     });
 
   it('with no Kickstart running, a stored Kickstart default plans 22:2', () => {
@@ -518,15 +528,49 @@ describe('the preset every reader uses (cross-item ruling 2; C07)', () => {
     expect(c.kickstart).toEqual({ running: false });
   });
 
-  it('on the last day of a running Kickstart it plans 23:1, and the next day already 22:2', () => {
-    const period: KickstartPeriodRecord = {
-      id: 'k1',
-      startedAt: iso(at(addDays(D, -20), '08:00')),
+  const period: KickstartPeriodRecord = {
+    id: 'k1',
+    startedAt: iso(at(addDays(D, -20), '08:00')),
+    timeZone: NZ,
+    endedAt: null,
+    endedTimeZone: null,
+    endReason: null,
+  };
+
+  it('F20: a stop-sign check in the Kickstart, or a pre-start "yes" today, pauses the timing; the preset still follows the phase', () => {
+    const stopSign: KickstartCheckRecord = {
+      id: 'c1',
+      periodId: 'k1',
+      askedAt: iso(at(D, '08:00')),
       timeZone: NZ,
-      endedAt: null,
-      endedTimeZone: null,
-      endReason: null,
+      dizzyOnStanding: 'yes',
+      palpitations: 'no',
+      crampsNotSettling: 'no',
+      faintAtWork: 'no',
+      energyRating: null,
+      sleepRating: null,
+      outcome: 'stop-sign',
     };
+    const paused = contextWith([period], [stopSign]);
+    expect(paused.stopSignPause).toBe(true);
+    expect(paused.preset).toMatchObject({ fastingPreset: '23:1' });
+    expect(contextWith([period]).stopSignPause).toBe(false);
+    // A pre-start "yes" today: its record (any tab, after a relaunch), or this page's hold until
+    // the record is written; one from yesterday no longer pauses.
+    const yes = (date: string): CardStateRecord => ({
+      cardId: 'kickstart-stop-signs',
+      trigger: `date:${date}`,
+      firstShownAt: iso(at(date, '08:00')),
+      dismissedAt: null,
+      dismissedTimeZone: null,
+      doneAt: null,
+    });
+    expect(contextWith([], [], { cards: [yes(D)] }).stopSignPause).toBe(true);
+    expect(contextWith([], [], { held: D }).stopSignPause).toBe(true);
+    expect(contextWith([], [], { cards: [yes(addDays(D, -1))] }).stopSignPause).toBe(false);
+  });
+
+  it('on the last day of a running Kickstart it plans 23:1, and the next day already 22:2', () => {
     const c = contextWith([period]);
     expect(c.preset).toMatchObject({ fastingPreset: '23:1', eatingWindow: ONE_MEAL });
     expect(c.kickstart).toMatchObject({
@@ -534,5 +578,41 @@ describe('the preset every reader uses (cross-item ruling 2; C07)', () => {
       lastDay: D,
       presetAfter: { fastingPreset: '22:2', eatingWindow: SNACK_AND_DINNER },
     });
+  });
+});
+
+describe('after a Kickstart stop-sign answer (F20; HEALTH_SAFETY sections 2 and 3)', () => {
+  it('a running fast is not timed to the window: no planned length, no window on the meter, eat now', () => {
+    const started = at(addDays(D, -1), '19:00');
+    const fasting = inputs(D, { fasts: [fast('f1', started, null)] });
+    const view = open(fastingView(fasting, context({ stopSignPause: true }), at(D, '09:00'), NZ));
+    expect(view.stopSignPause).toBe(true);
+    expect(view.running).toMatchObject({
+      endHint: { kind: 'eat-now' },
+      spanPlannedMinutes: null,
+      plan: null,
+      meter: { window: null },
+    });
+    // Without the pause the same fast is timed to 6:00 pm.
+    const timed = open(fastingView(fasting, context(), at(D, '09:00'), NZ));
+    expect(timed.running?.endHint.kind).toBe('window');
+  });
+});
+
+describe('the reflux options (F26)', () => {
+  it('on a symptom day, once the window has opened there is nothing left to offer, so there are no options at all', () => {
+    const symptom: SymptomRecord = {
+      id: 's1',
+      at: iso(at(D, '06:40')),
+      timeZone: NZ,
+      symptom: 'heartburn',
+      severity: null,
+      note: null,
+    };
+    const withSymptom = inputs(D, { symptoms: [symptom] });
+    expect(
+      open(fastingView(withSymptom, context(), at(D, '07:00'), NZ)).reflux.options,
+    ).toMatchObject({ day: 'today', symptomTriggered: true });
+    expect(open(fastingView(withSymptom, context(), at(D, '18:10'), NZ)).reflux.options).toBeNull();
   });
 });

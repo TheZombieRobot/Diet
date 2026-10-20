@@ -330,8 +330,10 @@ export function PairingScreen(): ReactElement {
             <p>{copy.scanOnlyHere}</p>
           </Notice>
           <p className="ui-text-muted">{copy.cameraNote}</p>
+          {/* Until item 33 the laptop shows no code (laptopLaterStep), so Scan is not the main
+              button (full review F29); item 33 makes it primary with the side panel. */}
           <Button
-            variant="primary"
+            variant="secondary"
             block
             ref={returnFocus('scan')}
             onClick={() => {

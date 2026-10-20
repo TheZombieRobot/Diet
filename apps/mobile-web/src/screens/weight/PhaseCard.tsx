@@ -8,7 +8,7 @@ import { EndKickstart } from './EndKickstart';
 import { KickstartCheckPanel } from './KickstartCheckPanel';
 import { PhaseNotes } from './parts';
 import type { WeightView } from './useWeightView';
-import { phaseChip, startUnavailableText } from './weightText';
+import { phaseChip, startOfferText, startUnavailableText } from './weightText';
 
 /**
  * The Phase card on the Weight screen (item 14 design section 2.4.1): during Kickstart its week,
@@ -58,7 +58,7 @@ export function PhaseCard({
       ) : null}
       {phase.kind === 'steady' && kickstart.start.available ? (
         <>
-          <p>{weight.start.offer}</p>
+          <p>{startOfferText(view)}</p>
           {kickstart.startWindowLine ? <p>{weight.start.offerWindow}</p> : null}
           {checking ? (
             <KickstartCheckPanel

@@ -10,6 +10,7 @@ import { weight } from '@diet/core/copy/health';
 import { Button, ButtonRow, Card, TextField } from '@diet/ui';
 import { useId, useState, type ReactElement } from 'react';
 import type { AppStorage } from '../../db/runtime';
+import { GateNotice } from '../../onboarding/GateNotice';
 import { formatKg } from '../../format';
 import { KgValue, Stat, WriteFailure } from './parts';
 import type { WeightStatusMessage } from './stores';
@@ -52,7 +53,9 @@ export function GoalCard({
   if (goal.status === 'gated') {
     return (
       <Card label={weight.goal.label}>
-        <p>{weight.goal.gated}</p>
+        {/* The gate's own reason: a low weight or the birth year, not only the answers (F31). */}
+        <GateNotice feature="goalSetting" link={false} />
+        <p>{weight.goal.gatedKept}</p>
       </Card>
     );
   }

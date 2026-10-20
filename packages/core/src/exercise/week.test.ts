@@ -345,6 +345,13 @@ describe('the start gate: every way into a session (RD-05, EX-05)', () => {
       },
       { kind: 'refused', problem: 'rest-days' },
     ],
+    [
+      'ruling 11: A on Tuesday with walks on Monday and Wednesday to Saturday, rows dated after today (a clock moved back), in a 7-day window that does not end today',
+      {
+        sessions: walkDays(['2000-01-17', '2000-01-19', '2000-01-20', '2000-01-21', '2000-01-22']),
+      },
+      { kind: 'refused', problem: 'rest-days' },
+    ],
     ['A on Tuesday with nothing else', {}, ready],
   ])('%s', (_label, change, expected) => {
     expect(gate(change)).toEqual(expected);

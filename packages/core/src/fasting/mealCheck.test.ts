@@ -114,6 +114,18 @@ describe('the single-meal check (FL-12, FL-13, HS-18, C64)', () => {
     expect(result.kind === 'short-before' ? result.reasons : []).toEqual(reasons);
   });
 
+  it('C29 (F50): one planned meal in a wider window is one sitting too: 650 g offers the snack, with its headline', () => {
+    const result = check({
+      oneMealWindow: false,
+      planned: [meal('dinner', 140, { proteinFoodCookedG: 650 })],
+    });
+    expect(result).toMatchObject({
+      kind: 'short-before',
+      reasons: ['portion'],
+      sitting: { proteinG: 140, dinnerOnly: true },
+    });
+  });
+
   it('a one-meal window makes every planned meal one sitting: the headline and the 600 g test use the sum', () => {
     const result = check({
       planned: [
@@ -297,6 +309,7 @@ describe('figures for the check (items 22 and 23 feed these)', () => {
       under: ingredient(9.9),
       unknown: ingredient(0, { unknownNutrients: ['proteinG'] }),
       lentils: ingredient(24, { cookedYield: 2.5, yieldCitation: 'synthetic yield reference' }),
+      shrinks: ingredient(31, { cookedYield: 0.75, yieldCitation: 'synthetic yield reference' }),
       uncited: ingredient(24, { cookedYield: 2.5 }),
     };
     const grams = (lines: ReturnType<typeof line>[], myServes = 1, serves = 1) =>
@@ -306,6 +319,8 @@ describe('figures for the check (items 22 and 23 feed these)', () => {
     expect(grams([line('ten', 100), line('under', 100)])).toBe(100);
     expect(grams([line('unknown', 50), line('missing', 70)])).toBe(120);
     expect(grams([line('lentils', 200)])).toBe(500);
+    // F50: a cited yield below 1 (meat loses weight when cooked) never lowers the count below raw.
+    expect(grams([line('shrinks', 700)])).toBe(700);
     expect(grams([line('uncited', 200)])).toBe(200);
     expect(grams([line('chicken', 600, 400)], 1, 4)).toBe(100);
   });

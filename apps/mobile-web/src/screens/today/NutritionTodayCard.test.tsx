@@ -63,7 +63,9 @@ describe('the day’s figures (WT-06, WT-07; K6, K7)', () => {
     expect(value(copy.today.fibre)).toBe('0 of 30 g guide');
     expect(value(copy.today.netCarbs)).toBe('0 / 20 g');
     expect(value(copy.today.satFat)).toBe('0 / 27 g');
-    expect(notes()).toContain(copy.today.nothingLogged);
+    // F24: the zeros say food logging is not built yet, never that nothing was eaten.
+    expect(notes()).toContain(copy.today.laterStep);
+    expect(card().textContent).not.toMatch(/nothing logged/i);
     expect(within(card()).getByText(copy.dietMode.names.keto)).toBeTruthy();
   });
 
@@ -117,7 +119,7 @@ describe('alcohol as its own part (C11, NN-01, T16; K9, K12)', () => {
   const evening = (time: string, day = '2000-02-10') =>
     new Date(`${day}T${time}:00+13:00`).toISOString();
 
-  it('C11: six cans show as "Alcohol 2,360 kJ" beside the food; protein and carbs are unchanged', async () => {
+  it('HS-36, C11: six cans show as "Alcohol 2,360 kJ" beside the food; protein and carbs are unchanged', async () => {
     await show(MALE, { food, drinks: [drink(evening('08:00'), 6)], time: '09:00' });
     expect(value(copy.today.energy)).toBe('9,360 of 10,162 kJ');
     const alcoholLines = [...card().querySelectorAll('[data-part="alcohol"]')].map(
@@ -150,15 +152,14 @@ describe('alcohol as its own part (C11, NN-01, T16; K9, K12)', () => {
     expect(card().textContent).not.toContain('Alcohol 0 kJ');
   });
 
-  it('HS-36, A40: two cans whose label says 0 kcal are unknown energy, as on Drinks, and never "nothing logged"', async () => {
+  it('HS-36, A40: two cans whose label says 0 kcal are unknown energy, as on Drinks, never a known 0', async () => {
     await show(MALE, { drinks: [drink(evening('08:00'), 2, 0)] });
     expect(notes()).toContain('Food 0 kJ · Alcohol: energy unknown');
     expect(notes()).toContain('Energy is unknown for 2 drinks, so the day total is incomplete.');
-    expect(notes()).not.toContain(copy.today.nothingLogged);
     expect(card().textContent).not.toContain('Alcohol 0 kJ');
   });
 
-  it('a 0% drink whose label says 0 kcal is a known 0: shown as such, never "nothing logged"', async () => {
+  it('a 0% drink whose label says 0 kcal is a known 0, and still has its alcohol part', async () => {
     const zero = drink(evening('08:00'), 1, 0);
     const label = zero.beverage.label === null ? null : { ...zero.beverage.label, abvPercent: 0 };
     await show(MALE, {
@@ -167,7 +168,6 @@ describe('alcohol as its own part (C11, NN-01, T16; K9, K12)', () => {
       ],
     });
     expect(notes()).toContain('Food 0 kJ · Alcohol 0 kJ');
-    expect(notes()).not.toContain(copy.today.nothingLogged);
   });
 
   it('T16: at 01:00 the card counts the calendar day, so last evening’s drink is not in it', async () => {
@@ -258,7 +258,7 @@ describe('one clock for the whole card (T30; D14)', () => {
     await waitFor(() => {
       expect(value(copy.today.energy)).toBe('0 of 10,162 kJ');
     });
-    expect(notes()).toContain(copy.today.nothingLogged);
+    expect(notes()).toContain(copy.today.laterStep);
   });
 });
 
