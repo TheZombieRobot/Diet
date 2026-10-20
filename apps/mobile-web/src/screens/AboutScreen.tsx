@@ -1,10 +1,14 @@
-import { general, helpNumbers } from '@diet/core/copy/health';
-import { Card } from '@diet/ui';
+import { fillTemplate, sourcesInUse } from '@diet/core';
+import { foods, general, helpNumbers } from '@diet/core/copy/health';
+import { ActionRow, Card, FoodIcon } from '@diet/ui';
 import type { ReactElement } from 'react';
+import { useFoodData } from '../foods/FoodDataContext';
 import { offlineCopyStore, type OfflineCopy } from '../pwa/offline';
+import { routeHref } from '../routes';
 import { storageStore } from '../pwa/storage';
 import { useStore } from '../store';
 import { versionLabel } from '../version';
+import { AttributionList } from './foods/AttributionList';
 import { HelpNumberList } from './HelpNumbers';
 import { storageStatusText } from './backup/storageStatus';
 
@@ -13,6 +17,57 @@ const OFFLINE_COPY_TEXT: Readonly<Record<OfflineCopy, string>> = {
   ready: 'Ready to use offline',
   unavailable: 'This browser could not save an offline copy',
 };
+
+/**
+ * Item 18 (C97, NU-09): the food catalogue, the link to it, and each food database in use with the
+ * attribution its licence asks for. It reads only the bundled data, never the records.
+ */
+function FoodDataSources(): ReactElement {
+  const { data, attributions } = useFoodData();
+  if (data.status !== 'ok') {
+    return (
+      <>
+        <p>{foods.screen.readFailed}</p>
+        <p className="ui-text-muted">{foods.about.attributionNote}</p>
+        <FoodsLink />
+      </>
+    );
+  }
+  const sources = sourcesInUse(data);
+  const count = data.catalogue.foods.length;
+  return (
+    <>
+      <p>
+        {sources.length === 0
+          ? fillTemplate(foods.about.catalogue, { count })
+          : fillTemplate(foods.about.catalogueLoaded, {
+              count,
+              loaded: Object.keys(data.release.foods).length,
+            })}
+      </p>
+      <p className="ui-text-muted">{foods.about.attributionNote}</p>
+      <FoodsLink />
+      <AttributionList
+        sources={sources.map((id) => ({
+          name: attributions[id]?.name ?? '',
+          edition: data.release.sources.find((s) => s.id === id)?.edition ?? '',
+          text: attributions[id]?.text ?? '',
+        }))}
+      />
+    </>
+  );
+}
+
+function FoodsLink(): ReactElement {
+  return (
+    <ActionRow
+      href={routeHref('foods')}
+      badge={<FoodIcon size={22} />}
+      title={foods.about.linkTitle}
+      detail={foods.about.linkDetail}
+    />
+  );
+}
 
 /** HS-13 (About portion): not a medical device, the help numbers, privacy, sources and version. */
 export function AboutScreen(): ReactElement {
@@ -34,10 +89,7 @@ export function AboutScreen(): ReactElement {
       </Card>
 
       <Card label="Data sources">
-        <p>
-          Food data sources and their attribution are listed here once the ingredient data is added,
-          at a later step of the build checklist.
-        </p>
+        <FoodDataSources />
       </Card>
 
       <Card label="This copy of the app">

@@ -1,0 +1,4334 @@
+{
+  "version": 1,
+  "revisedOn": "2026-10-19",
+  "foods": [
+    {
+      "id": "seed:silverbeet",
+      "name": "Silverbeet",
+      "aliases": ["Swiss chard", "Chard", "Silver beet"],
+      "aisle": "Produce",
+      "group": "leafy-green",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 500,
+      "countWord": {
+        "one": "bunch",
+        "many": "bunches"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:spinach", "seed:kale"],
+      "importHint": "raw leaves and stalks"
+    },
+    {
+      "id": "seed:spinach",
+      "name": "Spinach",
+      "aliases": ["English spinach", "Baby spinach"],
+      "aisle": "Produce",
+      "group": "leafy-green",
+      "packs": {
+        "unit": "g",
+        "sizes": [120, 300],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [4, 5, 6, 7, 8, 9, 10, 11],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:silverbeet", "seed:kale"],
+      "importHint": "raw leaves"
+    },
+    {
+      "id": "seed:kale",
+      "name": "Kale",
+      "aliases": ["Curly kale", "Cavolo nero"],
+      "aisle": "Produce",
+      "group": "leafy-green",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 250,
+      "countWord": {
+        "one": "bunch",
+        "many": "bunches"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [5, 6, 7, 8, 9, 10],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:silverbeet", "seed:spinach"],
+      "importHint": "raw leaves"
+    },
+    {
+      "id": "seed:cos-lettuce",
+      "name": "Cos lettuce",
+      "aliases": ["Romaine lettuce", "Cos"],
+      "aisle": "Produce",
+      "group": "leafy-green",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 400,
+      "countWord": {
+        "one": "lettuce",
+        "many": "lettuces"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 9, 10, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:iceberg-lettuce", "seed:salad-leaves"],
+      "importHint": "raw leaves"
+    },
+    {
+      "id": "seed:iceberg-lettuce",
+      "name": "Iceberg lettuce",
+      "aliases": ["Crisphead lettuce"],
+      "aisle": "Produce",
+      "group": "leafy-green",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 500,
+      "countWord": {
+        "one": "lettuce",
+        "many": "lettuces"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 10, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:cos-lettuce", "seed:salad-leaves"],
+      "importHint": "raw leaves"
+    },
+    {
+      "id": "seed:salad-leaves",
+      "name": "Salad leaves",
+      "aliases": ["Mesclun", "Mixed salad greens", "Salad mix"],
+      "aisle": "Produce",
+      "group": "leafy-green",
+      "packs": {
+        "unit": "g",
+        "sizes": [120, 250],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 5, 9, 10, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:rocket", "seed:cos-lettuce", "seed:spinach"],
+      "importHint": "raw mixed leaves"
+    },
+    {
+      "id": "seed:rocket",
+      "name": "Rocket",
+      "aliases": ["Arugula"],
+      "aisle": "Produce",
+      "group": "leafy-green",
+      "packs": {
+        "unit": "g",
+        "sizes": [100],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [3, 4, 5, 6, 7, 8, 9, 10, 11],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:salad-leaves", "seed:watercress"],
+      "importHint": "raw leaves"
+    },
+    {
+      "id": "seed:bok-choy",
+      "name": "Bok choy",
+      "aliases": ["Pak choi", "Buk choy"],
+      "aisle": "Produce",
+      "group": "leafy-green",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 300,
+      "countWord": {
+        "one": "bunch",
+        "many": "bunches"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [3, 4, 5, 6, 7, 8, 9, 10, 11],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:chinese-cabbage", "seed:silverbeet"],
+      "importHint": "raw"
+    },
+    {
+      "id": "seed:chinese-cabbage",
+      "name": "Chinese cabbage",
+      "aliases": ["Wombok", "Napa cabbage"],
+      "aisle": "Produce",
+      "group": "leafy-green",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 1000,
+      "countWord": {
+        "one": "head",
+        "many": "heads"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [4, 5, 6, 7, 8, 9],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:cabbage", "seed:bok-choy"],
+      "importHint": "raw"
+    },
+    {
+      "id": "seed:cabbage",
+      "name": "Cabbage",
+      "aliases": ["Green cabbage", "Savoy cabbage"],
+      "aisle": "Produce",
+      "group": "leafy-green",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 1500,
+      "countWord": {
+        "one": "head",
+        "many": "heads"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [4, 5, 6, 7, 8, 9, 10],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:red-cabbage", "seed:chinese-cabbage"],
+      "importHint": "raw"
+    },
+    {
+      "id": "seed:red-cabbage",
+      "name": "Red cabbage",
+      "aliases": ["Purple cabbage"],
+      "aisle": "Produce",
+      "group": "leafy-green",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 1200,
+      "countWord": {
+        "one": "head",
+        "many": "heads"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [4, 5, 6, 7, 8, 9, 10],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:cabbage"],
+      "importHint": "raw"
+    },
+    {
+      "id": "seed:watercress",
+      "name": "Watercress",
+      "aliases": ["Cress"],
+      "aisle": "Produce",
+      "group": "leafy-green",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 150,
+      "countWord": {
+        "one": "bunch",
+        "many": "bunches"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [4, 5, 6, 7, 8, 9, 10, 11],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:rocket", "seed:spinach"],
+      "importHint": "raw leaves and stems"
+    },
+    {
+      "id": "seed:broccoli",
+      "name": "Broccoli",
+      "aliases": ["Broccoli head"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 350,
+      "countWord": {
+        "one": "head",
+        "many": "heads"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [4, 5, 6, 7, 8, 9, 10, 11],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:cauliflower", "seed:frozen-broccoli"],
+      "importHint": "raw florets and stalk"
+    },
+    {
+      "id": "seed:cauliflower",
+      "name": "Cauliflower",
+      "aliases": ["Cauli"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 1000,
+      "countWord": {
+        "one": "head",
+        "many": "heads"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [5, 6, 7, 8, 9, 10],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:broccoli", "seed:cauliflower-rice"],
+      "importHint": "raw"
+    },
+    {
+      "id": "seed:brussels-sprouts",
+      "name": "Brussels sprouts",
+      "aliases": ["Sprouts"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "g",
+        "sizes": [500],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": true,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [5, 6, 7, 8],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:cabbage", "seed:broccoli"],
+      "importHint": "raw"
+    },
+    {
+      "id": "seed:courgette",
+      "name": "Courgette",
+      "aliases": ["Zucchini", "Courgettes"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "g",
+        "sizes": [500],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": true,
+      "gramsPerEach": 200,
+      "countWord": {
+        "one": "courgette",
+        "many": "courgettes"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:eggplant"],
+      "importHint": "raw, unpeeled"
+    },
+    {
+      "id": "seed:cucumber",
+      "name": "Cucumber",
+      "aliases": ["Telegraph cucumber", "Lebanese cucumber"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 350,
+      "countWord": {
+        "one": "cucumber",
+        "many": "cucumbers"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "raw, unpeeled"
+    },
+    {
+      "id": "seed:tomato",
+      "name": "Tomato",
+      "aliases": ["Tomatoes", "Vine tomatoes"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "g",
+        "sizes": [500, 1000],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": true,
+      "gramsPerEach": 120,
+      "countWord": {
+        "one": "tomato",
+        "many": "tomatoes"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:cherry-tomatoes", "seed:canned-tomatoes"],
+      "importHint": "raw, ripe"
+    },
+    {
+      "id": "seed:cherry-tomatoes",
+      "name": "Cherry tomatoes",
+      "aliases": ["Grape tomatoes"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "g",
+        "sizes": [250],
+        "container": {
+          "one": "punnet",
+          "many": "punnets"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:tomato"],
+      "importHint": "raw"
+    },
+    {
+      "id": "seed:capsicum",
+      "name": "Capsicum",
+      "aliases": ["Bell pepper", "Red capsicum", "Green capsicum"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 180,
+      "countWord": {
+        "one": "capsicum",
+        "many": "capsicums"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "raw"
+    },
+    {
+      "id": "seed:green-beans",
+      "name": "Green beans",
+      "aliases": ["Runner beans", "Beans"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "g",
+        "sizes": [500],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": true,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:snow-peas", "seed:broccoli"],
+      "importHint": "raw"
+    },
+    {
+      "id": "seed:snow-peas",
+      "name": "Snow peas",
+      "aliases": ["Mangetout"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "g",
+        "sizes": [150],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": true,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [9, 10, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:green-beans"],
+      "importHint": "raw pods"
+    },
+    {
+      "id": "seed:celery",
+      "name": "Celery",
+      "aliases": ["Celery sticks"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 800,
+      "countWord": {
+        "one": "bunch",
+        "many": "bunches"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 5, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "raw stalks"
+    },
+    {
+      "id": "seed:spring-onion",
+      "name": "Spring onion",
+      "aliases": ["Scallion", "Green onion"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 100,
+      "countWord": {
+        "one": "bunch",
+        "many": "bunches"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:leek", "seed:onion"],
+      "importHint": "raw"
+    },
+    {
+      "id": "seed:leek",
+      "name": "Leek",
+      "aliases": ["Leeks"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 300,
+      "countWord": {
+        "one": "leek",
+        "many": "leeks"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [4, 5, 6, 7, 8, 9],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:onion", "seed:spring-onion"],
+      "importHint": "raw"
+    },
+    {
+      "id": "seed:onion",
+      "name": "Onion",
+      "aliases": ["Brown onion", "Onions"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "g",
+        "sizes": [1500],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": true,
+      "gramsPerEach": 150,
+      "countWord": {
+        "one": "onion",
+        "many": "onions"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:red-onion", "seed:leek"],
+      "importHint": "raw"
+    },
+    {
+      "id": "seed:red-onion",
+      "name": "Red onion",
+      "aliases": ["Red onions"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "g",
+        "sizes": [1000],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": true,
+      "gramsPerEach": 150,
+      "countWord": {
+        "one": "red onion",
+        "many": "red onions"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:onion"],
+      "importHint": "raw"
+    },
+    {
+      "id": "seed:garlic",
+      "name": "Garlic",
+      "aliases": ["Garlic bulb", "Garlic cloves"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 50,
+      "countWord": {
+        "one": "bulb",
+        "many": "bulbs"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "raw cloves"
+    },
+    {
+      "id": "seed:ginger",
+      "name": "Ginger",
+      "aliases": ["Fresh ginger", "Ginger root"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "g",
+        "sizes": [100],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "raw root"
+    },
+    {
+      "id": "seed:carrot",
+      "name": "Carrot",
+      "aliases": ["Carrots"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "g",
+        "sizes": [1000],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": true,
+      "gramsPerEach": 100,
+      "countWord": {
+        "one": "carrot",
+        "many": "carrots"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:beetroot"],
+      "importHint": "raw"
+    },
+    {
+      "id": "seed:beetroot",
+      "name": "Beetroot",
+      "aliases": ["Beets"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "g",
+        "sizes": [1000],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": true,
+      "gramsPerEach": 150,
+      "countWord": {
+        "one": "beetroot",
+        "many": "beetroot"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 5, 6, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:carrot"],
+      "importHint": "raw"
+    },
+    {
+      "id": "seed:pumpkin",
+      "name": "Pumpkin",
+      "aliases": ["Crown pumpkin", "Grey pumpkin"],
+      "aisle": "Produce",
+      "group": "starchy-vegetable",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 2500,
+      "countWord": {
+        "one": "pumpkin",
+        "many": "pumpkins"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [2, 3, 4, 5, 6, 7, 8],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:butternut", "seed:kumara"],
+      "importHint": "raw flesh"
+    },
+    {
+      "id": "seed:butternut",
+      "name": "Butternut",
+      "aliases": ["Butternut squash", "Butternut pumpkin"],
+      "aisle": "Produce",
+      "group": "starchy-vegetable",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 1200,
+      "countWord": {
+        "one": "butternut",
+        "many": "butternuts"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [2, 3, 4, 5, 6, 7, 8],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:pumpkin", "seed:kumara"],
+      "importHint": "raw flesh"
+    },
+    {
+      "id": "seed:kumara",
+      "name": "Kūmara",
+      "aliases": ["Sweet potato"],
+      "aisle": "Produce",
+      "group": "starchy-vegetable",
+      "packs": {
+        "unit": "g",
+        "sizes": [1000],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": true,
+      "gramsPerEach": 300,
+      "countWord": {
+        "one": "kūmara",
+        "many": "kūmara"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [3, 4, 5, 6, 7, 8, 9],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:pumpkin", "seed:potato"],
+      "importHint": "raw flesh, peeled"
+    },
+    {
+      "id": "seed:potato",
+      "name": "Potato",
+      "aliases": ["Potatoes", "Agria potatoes", "Washed potatoes"],
+      "aisle": "Produce",
+      "group": "starchy-vegetable",
+      "packs": {
+        "unit": "g",
+        "sizes": [2000, 4000],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": true,
+      "gramsPerEach": 200,
+      "countWord": {
+        "one": "potato",
+        "many": "potatoes"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:kumara"],
+      "importHint": "raw, peeled"
+    },
+    {
+      "id": "seed:sweetcorn",
+      "name": "Sweetcorn",
+      "aliases": ["Corn on the cob", "Corn"],
+      "aisle": "Produce",
+      "group": "starchy-vegetable",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 250,
+      "countWord": {
+        "one": "cob",
+        "many": "cobs"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "raw kernels"
+    },
+    {
+      "id": "seed:mushrooms",
+      "name": "Mushrooms",
+      "aliases": ["Button mushrooms", "Flat mushrooms", "Field mushrooms"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "g",
+        "sizes": [200, 400],
+        "container": {
+          "one": "punnet",
+          "many": "punnets"
+        }
+      },
+      "loose": true,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "raw"
+    },
+    {
+      "id": "seed:eggplant",
+      "name": "Eggplant",
+      "aliases": ["Aubergine"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 300,
+      "countWord": {
+        "one": "eggplant",
+        "many": "eggplants"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:courgette"],
+      "importHint": "raw"
+    },
+    {
+      "id": "seed:asparagus",
+      "name": "Asparagus",
+      "aliases": ["Asparagus spears"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": false,
+      "gramsPerEach": 250,
+      "countWord": {
+        "one": "bunch",
+        "many": "bunches"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [9, 10, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:green-beans", "seed:broccoli"],
+      "importHint": "raw spears"
+    },
+    {
+      "id": "seed:radish",
+      "name": "Radish",
+      "aliases": ["Radishes"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 200,
+      "countWord": {
+        "one": "bunch",
+        "many": "bunches"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 9, 10, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "raw"
+    },
+    {
+      "id": "seed:chilli",
+      "name": "Chilli",
+      "aliases": ["Fresh chilli", "Red chilli"],
+      "aisle": "Produce",
+      "group": "vegetable",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 10,
+      "countWord": {
+        "one": "chilli",
+        "many": "chillies"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "raw"
+    },
+    {
+      "id": "seed:avocado",
+      "name": "Avocado",
+      "aliases": ["Avocados", "Hass avocado"],
+      "aisle": "Produce",
+      "group": "fruit",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 200,
+      "countWord": {
+        "one": "avocado",
+        "many": "avocados"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 9, 10, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "raw flesh"
+    },
+    {
+      "id": "seed:parsley",
+      "name": "Parsley",
+      "aliases": ["Flat-leaf parsley", "Curly parsley"],
+      "aisle": "Produce",
+      "group": "herb",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 50,
+      "countWord": {
+        "one": "bunch",
+        "many": "bunches"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:coriander"],
+      "importHint": "raw leaves"
+    },
+    {
+      "id": "seed:coriander",
+      "name": "Coriander",
+      "aliases": ["Cilantro"],
+      "aisle": "Produce",
+      "group": "herb",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 40,
+      "countWord": {
+        "one": "bunch",
+        "many": "bunches"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [3, 4, 5, 6, 7, 8, 9, 10, 11],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:parsley"],
+      "importHint": "raw leaves"
+    },
+    {
+      "id": "seed:basil",
+      "name": "Basil",
+      "aliases": ["Sweet basil"],
+      "aisle": "Produce",
+      "group": "herb",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 30,
+      "countWord": {
+        "one": "bunch",
+        "many": "bunches"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:parsley"],
+      "importHint": "raw leaves"
+    },
+    {
+      "id": "seed:mint",
+      "name": "Mint",
+      "aliases": ["Garden mint"],
+      "aisle": "Produce",
+      "group": "herb",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 30,
+      "countWord": {
+        "one": "bunch",
+        "many": "bunches"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 5, 10, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "raw leaves"
+    },
+    {
+      "id": "seed:chives",
+      "name": "Chives",
+      "aliases": [],
+      "aisle": "Produce",
+      "group": "herb",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 20,
+      "countWord": {
+        "one": "bunch",
+        "many": "bunches"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 5, 9, 10, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:spring-onion"],
+      "importHint": "raw"
+    },
+    {
+      "id": "seed:lemon",
+      "name": "Lemon",
+      "aliases": ["Lemons"],
+      "aisle": "Produce",
+      "group": "fruit",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 120,
+      "countWord": {
+        "one": "lemon",
+        "many": "lemons"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:lime"],
+      "importHint": "raw flesh"
+    },
+    {
+      "id": "seed:lime",
+      "name": "Lime",
+      "aliases": ["Limes"],
+      "aisle": "Produce",
+      "group": "fruit",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 70,
+      "countWord": {
+        "one": "lime",
+        "many": "limes"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [4, 5, 6, 7, 8],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:lemon"],
+      "importHint": "raw flesh"
+    },
+    {
+      "id": "seed:mandarin",
+      "name": "Mandarin",
+      "aliases": ["Mandarins"],
+      "aisle": "Produce",
+      "group": "fruit",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 100,
+      "countWord": {
+        "one": "mandarin",
+        "many": "mandarins"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [4, 5, 6, 7, 8],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:orange"],
+      "importHint": "raw, peeled"
+    },
+    {
+      "id": "seed:orange",
+      "name": "Orange",
+      "aliases": ["Navel orange", "Oranges"],
+      "aisle": "Produce",
+      "group": "fruit",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 200,
+      "countWord": {
+        "one": "orange",
+        "many": "oranges"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [6, 7, 8, 9, 10],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:mandarin"],
+      "importHint": "raw, peeled"
+    },
+    {
+      "id": "seed:kiwifruit",
+      "name": "Kiwifruit",
+      "aliases": ["Green kiwifruit", "Gold kiwifruit", "Kiwi"],
+      "aisle": "Produce",
+      "group": "fruit",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 100,
+      "countWord": {
+        "one": "kiwifruit",
+        "many": "kiwifruit"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "raw, peeled"
+    },
+    {
+      "id": "seed:feijoa",
+      "name": "Feijoa",
+      "aliases": ["Feijoas"],
+      "aisle": "Produce",
+      "group": "fruit",
+      "packs": {
+        "unit": "g",
+        "sizes": [1000],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": true,
+      "gramsPerEach": 50,
+      "countWord": {
+        "one": "feijoa",
+        "many": "feijoas"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [3, 4, 5, 6],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "raw flesh"
+    },
+    {
+      "id": "seed:apple",
+      "name": "Apple",
+      "aliases": ["Apples"],
+      "aisle": "Produce",
+      "group": "fruit",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 150,
+      "countWord": {
+        "one": "apple",
+        "many": "apples"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [2, 3, 4, 5, 6, 7, 8],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:pear"],
+      "importHint": "raw, unpeeled"
+    },
+    {
+      "id": "seed:pear",
+      "name": "Pear",
+      "aliases": ["Pears"],
+      "aisle": "Produce",
+      "group": "fruit",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 180,
+      "countWord": {
+        "one": "pear",
+        "many": "pears"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [2, 3, 4, 5, 6],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:apple"],
+      "importHint": "raw, unpeeled"
+    },
+    {
+      "id": "seed:banana",
+      "name": "Banana",
+      "aliases": ["Bananas"],
+      "aisle": "Produce",
+      "group": "fruit",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 150,
+      "countWord": {
+        "one": "banana",
+        "many": "bananas"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "raw, peeled"
+    },
+    {
+      "id": "seed:strawberries",
+      "name": "Strawberries",
+      "aliases": ["Strawberry"],
+      "aisle": "Produce",
+      "group": "fruit",
+      "packs": {
+        "unit": "g",
+        "sizes": [250, 400],
+        "container": {
+          "one": "punnet",
+          "many": "punnets"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 10, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:blueberries", "seed:frozen-berries"],
+      "importHint": "raw"
+    },
+    {
+      "id": "seed:blueberries",
+      "name": "Blueberries",
+      "aliases": ["Blueberry"],
+      "aisle": "Produce",
+      "group": "fruit",
+      "packs": {
+        "unit": "g",
+        "sizes": [125, 250],
+        "container": {
+          "one": "punnet",
+          "many": "punnets"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [1, 2, 3, 11, 12],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:strawberries", "seed:frozen-berries"],
+      "importHint": "raw"
+    },
+    {
+      "id": "seed:tamarillo",
+      "name": "Tamarillo",
+      "aliases": ["Tree tomato"],
+      "aisle": "Produce",
+      "group": "fruit",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 80,
+      "countWord": {
+        "one": "tamarillo",
+        "many": "tamarillos"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [5, 6, 7, 8, 9],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "raw flesh"
+    },
+    {
+      "id": "seed:passionfruit",
+      "name": "Passionfruit",
+      "aliases": ["Passion fruit"],
+      "aisle": "Produce",
+      "group": "fruit",
+      "packs": {
+        "unit": "each",
+        "sizes": [1],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": 40,
+      "countWord": {
+        "one": "passionfruit",
+        "many": "passionfruit"
+      },
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": true,
+      "seasonMonths": [2, 3, 4, 5, 6],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "raw pulp"
+    },
+    {
+      "id": "seed:chicken-breast",
+      "name": "Chicken breast",
+      "aliases": ["Chicken breasts", "Skinless chicken breast"],
+      "aisle": "Meat and fish",
+      "group": "poultry",
+      "packs": {
+        "unit": "g",
+        "sizes": [500, 1000],
+        "container": {
+          "one": "pack",
+          "many": "packs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:chicken-thigh", "seed:white-fish"],
+      "importHint": "raw, skinless, flesh only"
+    },
+    {
+      "id": "seed:chicken-breast-cooked",
+      "name": "Chicken breast, cooked",
+      "aliases": [],
+      "aisle": "Meat and fish",
+      "group": "poultry",
+      "packs": null,
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "cooked",
+      "cookedOf": "seed:chicken-breast",
+      "substitutes": [],
+      "importHint": "cooked without added fat, skinless"
+    },
+    {
+      "id": "seed:chicken-thigh",
+      "name": "Chicken thigh",
+      "aliases": ["Chicken thighs", "Boneless chicken thighs"],
+      "aisle": "Meat and fish",
+      "group": "poultry",
+      "packs": {
+        "unit": "g",
+        "sizes": [500, 1000],
+        "container": {
+          "one": "pack",
+          "many": "packs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:chicken-breast", "seed:chicken-drumsticks"],
+      "importHint": "raw, boneless, skinless, flesh only"
+    },
+    {
+      "id": "seed:chicken-thigh-cooked",
+      "name": "Chicken thigh, cooked",
+      "aliases": [],
+      "aisle": "Meat and fish",
+      "group": "poultry",
+      "packs": null,
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "cooked",
+      "cookedOf": "seed:chicken-thigh",
+      "substitutes": [],
+      "importHint": "cooked without added fat, skinless"
+    },
+    {
+      "id": "seed:chicken-drumsticks",
+      "name": "Chicken drumsticks",
+      "aliases": ["Drumsticks", "Chicken legs"],
+      "aisle": "Meat and fish",
+      "group": "poultry",
+      "packs": {
+        "unit": "g",
+        "sizes": [1000],
+        "container": {
+          "one": "pack",
+          "many": "packs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:chicken-thigh"],
+      "importHint": "raw flesh and skin, bone removed"
+    },
+    {
+      "id": "seed:beef-mince-lean",
+      "name": "Lean beef mince",
+      "aliases": ["Premium mince", "Lean mince"],
+      "aisle": "Meat and fish",
+      "group": "red-meat",
+      "packs": {
+        "unit": "g",
+        "sizes": [500, 1000],
+        "container": {
+          "one": "pack",
+          "many": "packs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "raw, lean"
+    },
+    {
+      "id": "seed:beef-mince-lean-cooked",
+      "name": "Lean beef mince, cooked",
+      "aliases": [],
+      "aisle": "Meat and fish",
+      "group": "red-meat",
+      "packs": null,
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "cooked",
+      "cookedOf": "seed:beef-mince-lean",
+      "substitutes": [],
+      "importHint": "cooked, fat drained"
+    },
+    {
+      "id": "seed:beef-mince",
+      "name": "Beef mince",
+      "aliases": ["Mince", "Regular mince"],
+      "aisle": "Meat and fish",
+      "group": "red-meat",
+      "packs": {
+        "unit": "g",
+        "sizes": [500, 1000],
+        "container": {
+          "one": "pack",
+          "many": "packs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:beef-mince-lean"],
+      "importHint": "raw, regular fat"
+    },
+    {
+      "id": "seed:beef-steak",
+      "name": "Lean beef steak",
+      "aliases": ["Rump steak", "Sirloin steak", "Stir-fry beef"],
+      "aisle": "Meat and fish",
+      "group": "red-meat",
+      "packs": {
+        "unit": "g",
+        "sizes": [300, 500],
+        "container": {
+          "one": "pack",
+          "many": "packs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:lamb-leg-steaks", "seed:pork-loin-steaks"],
+      "importHint": "raw, lean, fat trimmed"
+    },
+    {
+      "id": "seed:beef-steak-cooked",
+      "name": "Lean beef steak, cooked",
+      "aliases": [],
+      "aisle": "Meat and fish",
+      "group": "red-meat",
+      "packs": null,
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "cooked",
+      "cookedOf": "seed:beef-steak",
+      "substitutes": [],
+      "importHint": "grilled, lean, fat trimmed"
+    },
+    {
+      "id": "seed:lamb-leg-steaks",
+      "name": "Lamb leg steaks",
+      "aliases": ["Lamb steaks"],
+      "aisle": "Meat and fish",
+      "group": "red-meat",
+      "packs": {
+        "unit": "g",
+        "sizes": [300, 500],
+        "container": {
+          "one": "pack",
+          "many": "packs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:beef-steak"],
+      "importHint": "raw, lean, fat trimmed"
+    },
+    {
+      "id": "seed:lamb-chops",
+      "name": "Lamb chops",
+      "aliases": ["Lamb loin chops", "Lamb forequarter chops"],
+      "aisle": "Meat and fish",
+      "group": "red-meat",
+      "packs": {
+        "unit": "g",
+        "sizes": [500, 1000],
+        "container": {
+          "one": "pack",
+          "many": "packs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:lamb-leg-steaks"],
+      "importHint": "raw, lean and fat"
+    },
+    {
+      "id": "seed:pork-loin-steaks",
+      "name": "Pork loin steaks",
+      "aliases": ["Pork steaks"],
+      "aisle": "Meat and fish",
+      "group": "red-meat",
+      "packs": {
+        "unit": "g",
+        "sizes": [400],
+        "container": {
+          "one": "pack",
+          "many": "packs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:beef-steak", "seed:chicken-breast"],
+      "importHint": "raw, lean, fat trimmed"
+    },
+    {
+      "id": "seed:pork-chops",
+      "name": "Pork chops",
+      "aliases": ["Pork loin chops"],
+      "aisle": "Meat and fish",
+      "group": "red-meat",
+      "packs": {
+        "unit": "g",
+        "sizes": [500],
+        "container": {
+          "one": "pack",
+          "many": "packs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:pork-loin-steaks"],
+      "importHint": "raw, lean and fat, bone removed"
+    },
+    {
+      "id": "seed:bacon",
+      "name": "Bacon",
+      "aliases": ["Middle bacon", "Streaky bacon"],
+      "aisle": "Meat and fish",
+      "group": "processed-meat",
+      "packs": {
+        "unit": "g",
+        "sizes": [250, 1000],
+        "container": {
+          "one": "pack",
+          "many": "packs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:ham"],
+      "importHint": "raw, as sold"
+    },
+    {
+      "id": "seed:sausages",
+      "name": "Sausages",
+      "aliases": ["Pork sausages", "Beef sausages", "Sausage"],
+      "aisle": "Meat and fish",
+      "group": "processed-meat",
+      "packs": {
+        "unit": "g",
+        "sizes": [500],
+        "container": {
+          "one": "pack",
+          "many": "packs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "raw, as sold"
+    },
+    {
+      "id": "seed:ham",
+      "name": "Ham",
+      "aliases": ["Sliced ham", "Champagne ham"],
+      "aisle": "Meat and fish",
+      "group": "processed-meat",
+      "packs": {
+        "unit": "g",
+        "sizes": [200, 400],
+        "container": {
+          "one": "pack",
+          "many": "packs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:bacon"],
+      "importHint": "sliced, as sold"
+    },
+    {
+      "id": "seed:salami",
+      "name": "Salami",
+      "aliases": ["Sliced salami"],
+      "aisle": "Meat and fish",
+      "group": "processed-meat",
+      "packs": {
+        "unit": "g",
+        "sizes": [100],
+        "container": {
+          "one": "pack",
+          "many": "packs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:ham"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:corned-silverside",
+      "name": "Corned silverside",
+      "aliases": ["Corned beef", "Silverside"],
+      "aisle": "Meat and fish",
+      "group": "processed-meat",
+      "packs": {
+        "unit": "g",
+        "sizes": [1000, 2000],
+        "container": null
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "raw, as sold"
+    },
+    {
+      "id": "seed:white-fish",
+      "name": "White fish fillets",
+      "aliases": ["Tarakihi", "Gurnard", "Snapper", "Hoki", "Fish fillets"],
+      "aisle": "Meat and fish",
+      "group": "lean-fish",
+      "packs": {
+        "unit": "g",
+        "sizes": [400],
+        "container": {
+          "one": "pack",
+          "many": "packs"
+        }
+      },
+      "loose": true,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["fish"],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:salmon", "seed:kahawai"],
+      "importHint": "raw fillet, skinless"
+    },
+    {
+      "id": "seed:white-fish-cooked",
+      "name": "White fish fillets, cooked",
+      "aliases": [],
+      "aisle": "Meat and fish",
+      "group": "lean-fish",
+      "packs": null,
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["fish"],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "cooked",
+      "cookedOf": "seed:white-fish",
+      "substitutes": [],
+      "importHint": "baked or grilled without added fat"
+    },
+    {
+      "id": "seed:salmon",
+      "name": "Salmon fillet",
+      "aliases": ["Salmon", "Fresh salmon"],
+      "aisle": "Meat and fish",
+      "group": "oily-fish",
+      "packs": {
+        "unit": "g",
+        "sizes": [250, 500],
+        "container": {
+          "one": "pack",
+          "many": "packs"
+        }
+      },
+      "loose": true,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["fish"],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:kahawai", "seed:white-fish", "seed:canned-salmon"],
+      "importHint": "raw fillet, skin removed"
+    },
+    {
+      "id": "seed:salmon-cooked",
+      "name": "Salmon fillet, cooked",
+      "aliases": [],
+      "aisle": "Meat and fish",
+      "group": "oily-fish",
+      "packs": null,
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["fish"],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "cooked",
+      "cookedOf": "seed:salmon",
+      "substitutes": [],
+      "importHint": "baked or grilled without added fat"
+    },
+    {
+      "id": "seed:kahawai",
+      "name": "Kahawai",
+      "aliases": ["Kahawai fillets"],
+      "aisle": "Meat and fish",
+      "group": "oily-fish",
+      "packs": {
+        "unit": "g",
+        "sizes": [500],
+        "container": null
+      },
+      "loose": true,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["fish"],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:salmon", "seed:white-fish"],
+      "importHint": "raw fillet"
+    },
+    {
+      "id": "seed:eggs",
+      "name": "Eggs",
+      "aliases": ["Egg", "Free-range eggs", "Barn eggs"],
+      "aisle": "Dairy and eggs",
+      "group": "egg",
+      "packs": {
+        "unit": "each",
+        "sizes": [6, 12],
+        "container": null
+      },
+      "loose": false,
+      "gramsPerEach": 62,
+      "countWord": {
+        "one": "egg",
+        "many": "eggs"
+      },
+      "allergens": ["egg"],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "whole egg, raw, without shell"
+    },
+    {
+      "id": "seed:egg-hard-boiled",
+      "name": "Egg, hard-boiled",
+      "aliases": [],
+      "aisle": "Dairy and eggs",
+      "group": "egg",
+      "packs": null,
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["egg"],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "cooked",
+      "cookedOf": "seed:eggs",
+      "substitutes": [],
+      "importHint": "whole egg, hard-boiled, without shell"
+    },
+    {
+      "id": "seed:milk",
+      "name": "Milk",
+      "aliases": ["Standard milk", "Whole milk", "Blue top milk"],
+      "aisle": "Dairy and eggs",
+      "group": "milk",
+      "packs": {
+        "unit": "ml",
+        "sizes": [1000, 2000, 3000],
+        "container": {
+          "one": "bottle",
+          "many": "bottles"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["milk"],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:trim-milk"],
+      "importHint": "fluid milk, standard fat"
+    },
+    {
+      "id": "seed:trim-milk",
+      "name": "Trim milk",
+      "aliases": ["Skim milk", "Fat-free milk"],
+      "aisle": "Dairy and eggs",
+      "group": "milk",
+      "packs": {
+        "unit": "ml",
+        "sizes": [1000, 2000],
+        "container": {
+          "one": "bottle",
+          "many": "bottles"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["milk"],
+      "allergensComplete": true,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:milk"],
+      "importHint": "fluid milk, skim"
+    },
+    {
+      "id": "seed:greek-yoghurt",
+      "name": "Greek yoghurt, plain",
+      "aliases": ["Greek yoghurt", "Plain yoghurt", "Natural yoghurt"],
+      "aisle": "Dairy and eggs",
+      "group": "yoghurt",
+      "packs": {
+        "unit": "g",
+        "sizes": [500, 1000],
+        "container": {
+          "one": "tub",
+          "many": "tubs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["milk"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "plain, unsweetened"
+    },
+    {
+      "id": "seed:cheddar",
+      "name": "Cheddar cheese",
+      "aliases": ["Tasty cheese", "Mild cheese", "Colby cheese", "Cheese"],
+      "aisle": "Dairy and eggs",
+      "group": "cheese",
+      "packs": {
+        "unit": "g",
+        "sizes": [250, 500, 1000],
+        "container": {
+          "one": "block",
+          "many": "blocks"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["milk"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:mozzarella", "seed:parmesan"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:feta",
+      "name": "Feta",
+      "aliases": ["Feta cheese"],
+      "aisle": "Dairy and eggs",
+      "group": "cheese",
+      "packs": {
+        "unit": "g",
+        "sizes": [200],
+        "container": {
+          "one": "pack",
+          "many": "packs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["milk"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:cottage-cheese"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:parmesan",
+      "name": "Parmesan",
+      "aliases": ["Parmesan cheese", "Grana"],
+      "aisle": "Dairy and eggs",
+      "group": "cheese",
+      "packs": {
+        "unit": "g",
+        "sizes": [100, 250],
+        "container": {
+          "one": "pack",
+          "many": "packs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["milk"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:cheddar"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:mozzarella",
+      "name": "Mozzarella",
+      "aliases": ["Mozzarella cheese", "Grated mozzarella"],
+      "aisle": "Dairy and eggs",
+      "group": "cheese",
+      "packs": {
+        "unit": "g",
+        "sizes": [250, 500],
+        "container": {
+          "one": "pack",
+          "many": "packs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["milk"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:cheddar"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:cottage-cheese",
+      "name": "Cottage cheese",
+      "aliases": [],
+      "aisle": "Dairy and eggs",
+      "group": "cheese",
+      "packs": {
+        "unit": "g",
+        "sizes": [250, 500],
+        "container": {
+          "one": "tub",
+          "many": "tubs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["milk"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:feta", "seed:greek-yoghurt"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:cream-cheese",
+      "name": "Cream cheese",
+      "aliases": [],
+      "aisle": "Dairy and eggs",
+      "group": "cheese",
+      "packs": {
+        "unit": "g",
+        "sizes": [250],
+        "container": {
+          "one": "tub",
+          "many": "tubs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["milk"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:cottage-cheese"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:butter",
+      "name": "Butter",
+      "aliases": ["Salted butter", "Unsalted butter"],
+      "aisle": "Dairy and eggs",
+      "group": "butter-cream",
+      "packs": {
+        "unit": "g",
+        "sizes": [250, 500],
+        "container": {
+          "one": "block",
+          "many": "blocks"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["milk"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:olive-oil"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:cream",
+      "name": "Cream",
+      "aliases": ["Fresh cream", "Pouring cream"],
+      "aisle": "Dairy and eggs",
+      "group": "butter-cream",
+      "packs": {
+        "unit": "ml",
+        "sizes": [300, 500],
+        "container": {
+          "one": "bottle",
+          "many": "bottles"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["milk"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:greek-yoghurt"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:sour-cream",
+      "name": "Sour cream",
+      "aliases": [],
+      "aisle": "Dairy and eggs",
+      "group": "butter-cream",
+      "packs": {
+        "unit": "g",
+        "sizes": [250],
+        "container": {
+          "one": "tub",
+          "many": "tubs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["milk"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:greek-yoghurt"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:firm-tofu",
+      "name": "Firm tofu",
+      "aliases": ["Tofu", "Extra firm tofu"],
+      "aisle": "Chilled",
+      "group": "tofu",
+      "packs": {
+        "unit": "g",
+        "sizes": [300, 400],
+        "container": {
+          "one": "pack",
+          "many": "packs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["soy"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "as sold, firm"
+    },
+    {
+      "id": "seed:silken-tofu",
+      "name": "Silken tofu",
+      "aliases": ["Soft tofu"],
+      "aisle": "Chilled",
+      "group": "tofu",
+      "packs": {
+        "unit": "g",
+        "sizes": [300],
+        "container": {
+          "one": "pack",
+          "many": "packs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["soy"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "as sold, silken"
+    },
+    {
+      "id": "seed:hummus",
+      "name": "Hummus",
+      "aliases": ["Houmous"],
+      "aisle": "Chilled",
+      "group": "legume",
+      "packs": {
+        "unit": "g",
+        "sizes": [200],
+        "container": {
+          "one": "tub",
+          "many": "tubs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["sesame"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:wholemeal-bread",
+      "name": "Wholemeal bread",
+      "aliases": ["Wholegrain bread", "Brown bread"],
+      "aisle": "Bakery",
+      "group": "bread",
+      "packs": {
+        "unit": "g",
+        "sizes": [700],
+        "container": {
+          "one": "loaf",
+          "many": "loaves"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["wheat"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:white-bread", "seed:wraps"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:white-bread",
+      "name": "White bread",
+      "aliases": ["Sandwich bread"],
+      "aisle": "Bakery",
+      "group": "bread",
+      "packs": {
+        "unit": "g",
+        "sizes": [600, 700],
+        "container": {
+          "one": "loaf",
+          "many": "loaves"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["wheat"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:wholemeal-bread"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:wraps",
+      "name": "Wraps",
+      "aliases": ["Tortillas", "Flour tortillas"],
+      "aisle": "Bakery",
+      "group": "bread",
+      "packs": {
+        "unit": "each",
+        "sizes": [8],
+        "container": null
+      },
+      "loose": false,
+      "gramsPerEach": 40,
+      "countWord": {
+        "one": "wrap",
+        "many": "wraps"
+      },
+      "allergens": ["wheat"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:wholemeal-bread"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:tuna-in-water",
+      "name": "Tuna in spring water",
+      "aliases": ["Canned tuna", "Tinned tuna", "Tuna"],
+      "aisle": "Pantry",
+      "group": "lean-fish",
+      "packs": {
+        "unit": "g",
+        "sizes": [95, 185, 425],
+        "container": {
+          "one": "can",
+          "many": "cans"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["fish"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:tuna-in-oil", "seed:canned-salmon"],
+      "importHint": "canned in water, drained"
+    },
+    {
+      "id": "seed:tuna-in-oil",
+      "name": "Tuna in oil",
+      "aliases": ["Tuna in olive oil"],
+      "aisle": "Pantry",
+      "group": "oily-fish",
+      "packs": {
+        "unit": "g",
+        "sizes": [95, 185],
+        "container": {
+          "one": "can",
+          "many": "cans"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["fish"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:tuna-in-water", "seed:sardines"],
+      "importHint": "canned in oil, drained"
+    },
+    {
+      "id": "seed:sardines",
+      "name": "Sardines in olive oil",
+      "aliases": ["Sardines", "Canned sardines", "Tinned sardines"],
+      "aisle": "Pantry",
+      "group": "oily-fish",
+      "packs": {
+        "unit": "g",
+        "sizes": [110],
+        "container": {
+          "one": "can",
+          "many": "cans"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["fish"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:canned-mackerel", "seed:tuna-in-oil"],
+      "importHint": "canned in oil, drained"
+    },
+    {
+      "id": "seed:canned-salmon",
+      "name": "Pink salmon (canned)",
+      "aliases": ["Canned salmon", "Tinned salmon"],
+      "aisle": "Pantry",
+      "group": "oily-fish",
+      "packs": {
+        "unit": "g",
+        "sizes": [105, 210, 415],
+        "container": {
+          "one": "can",
+          "many": "cans"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["fish"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:tuna-in-water", "seed:sardines"],
+      "importHint": "canned, drained"
+    },
+    {
+      "id": "seed:canned-mackerel",
+      "name": "Mackerel (canned)",
+      "aliases": ["Canned mackerel", "Tinned mackerel"],
+      "aisle": "Pantry",
+      "group": "oily-fish",
+      "packs": {
+        "unit": "g",
+        "sizes": [125],
+        "container": {
+          "one": "can",
+          "many": "cans"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["fish"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:sardines"],
+      "importHint": "canned, drained"
+    },
+    {
+      "id": "seed:canned-tomatoes",
+      "name": "Chopped tomatoes (canned)",
+      "aliases": ["Canned tomatoes", "Tinned tomatoes", "Diced tomatoes"],
+      "aisle": "Pantry",
+      "group": "vegetable",
+      "packs": {
+        "unit": "g",
+        "sizes": [400],
+        "container": {
+          "one": "can",
+          "many": "cans"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:passata", "seed:tomato"],
+      "importHint": "canned, with juice"
+    },
+    {
+      "id": "seed:tomato-paste",
+      "name": "Tomato paste",
+      "aliases": ["Tomato purée"],
+      "aisle": "Pantry",
+      "group": "vegetable",
+      "packs": {
+        "unit": "g",
+        "sizes": [170],
+        "container": {
+          "one": "jar",
+          "many": "jars"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:passata"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:passata",
+      "name": "Tomato passata",
+      "aliases": ["Passata"],
+      "aisle": "Pantry",
+      "group": "vegetable",
+      "packs": {
+        "unit": "g",
+        "sizes": [700],
+        "container": {
+          "one": "bottle",
+          "many": "bottles"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:canned-tomatoes"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:chickpeas",
+      "name": "Chickpeas (canned)",
+      "aliases": ["Canned chickpeas", "Garbanzo beans"],
+      "aisle": "Pantry",
+      "group": "legume",
+      "packs": {
+        "unit": "g",
+        "sizes": [400],
+        "container": {
+          "one": "can",
+          "many": "cans"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:canned-lentils", "seed:black-beans"],
+      "importHint": "canned, drained"
+    },
+    {
+      "id": "seed:black-beans",
+      "name": "Black beans (canned)",
+      "aliases": ["Canned black beans"],
+      "aisle": "Pantry",
+      "group": "legume",
+      "packs": {
+        "unit": "g",
+        "sizes": [400],
+        "container": {
+          "one": "can",
+          "many": "cans"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:kidney-beans", "seed:cannellini-beans"],
+      "importHint": "canned, drained"
+    },
+    {
+      "id": "seed:kidney-beans",
+      "name": "Red kidney beans (canned)",
+      "aliases": ["Kidney beans", "Canned kidney beans"],
+      "aisle": "Pantry",
+      "group": "legume",
+      "packs": {
+        "unit": "g",
+        "sizes": [400],
+        "container": {
+          "one": "can",
+          "many": "cans"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:black-beans"],
+      "importHint": "canned, drained"
+    },
+    {
+      "id": "seed:cannellini-beans",
+      "name": "Cannellini beans (canned)",
+      "aliases": ["Canned cannellini beans", "White beans"],
+      "aisle": "Pantry",
+      "group": "legume",
+      "packs": {
+        "unit": "g",
+        "sizes": [400],
+        "container": {
+          "one": "can",
+          "many": "cans"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:chickpeas", "seed:black-beans"],
+      "importHint": "canned, drained"
+    },
+    {
+      "id": "seed:canned-lentils",
+      "name": "Lentils (canned)",
+      "aliases": ["Canned lentils", "Brown lentils"],
+      "aisle": "Pantry",
+      "group": "legume",
+      "packs": {
+        "unit": "g",
+        "sizes": [400],
+        "container": {
+          "one": "can",
+          "many": "cans"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:red-lentils", "seed:chickpeas"],
+      "importHint": "canned, drained"
+    },
+    {
+      "id": "seed:coconut-cream",
+      "name": "Coconut cream",
+      "aliases": ["Canned coconut cream"],
+      "aisle": "Pantry",
+      "group": "condiment",
+      "packs": {
+        "unit": "ml",
+        "sizes": [165, 400],
+        "container": {
+          "one": "can",
+          "many": "cans"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:olive-oil",
+      "name": "Olive oil",
+      "aliases": ["Extra virgin olive oil", "Light olive oil"],
+      "aisle": "Pantry",
+      "group": "oil",
+      "packs": {
+        "unit": "ml",
+        "sizes": [500, 1000],
+        "container": {
+          "one": "bottle",
+          "many": "bottles"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:canola-oil"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:canola-oil",
+      "name": "Canola oil",
+      "aliases": ["Rapeseed oil"],
+      "aisle": "Pantry",
+      "group": "oil",
+      "packs": {
+        "unit": "ml",
+        "sizes": [1000, 2000],
+        "container": {
+          "one": "bottle",
+          "many": "bottles"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:olive-oil"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:coconut-oil",
+      "name": "Coconut oil",
+      "aliases": [],
+      "aisle": "Pantry",
+      "group": "oil",
+      "packs": {
+        "unit": "ml",
+        "sizes": [500],
+        "container": {
+          "one": "jar",
+          "many": "jars"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:olive-oil"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:soy-sauce",
+      "name": "Soy sauce",
+      "aliases": ["Light soy sauce", "Dark soy sauce"],
+      "aisle": "Pantry",
+      "group": "condiment",
+      "packs": {
+        "unit": "ml",
+        "sizes": [150, 500],
+        "container": {
+          "one": "bottle",
+          "many": "bottles"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["soy", "wheat"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:fish-sauce",
+      "name": "Fish sauce",
+      "aliases": [],
+      "aisle": "Pantry",
+      "group": "condiment",
+      "packs": {
+        "unit": "ml",
+        "sizes": [200],
+        "container": {
+          "one": "bottle",
+          "many": "bottles"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["fish"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:soy-sauce"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:liquid-stock",
+      "name": "Liquid stock",
+      "aliases": ["Chicken stock", "Vegetable stock", "Beef stock", "Broth"],
+      "aisle": "Pantry",
+      "group": "condiment",
+      "packs": {
+        "unit": "ml",
+        "sizes": [500, 1000],
+        "container": {
+          "one": "carton",
+          "many": "cartons"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "as sold, ready to use"
+    },
+    {
+      "id": "seed:peanut-butter",
+      "name": "Peanut butter",
+      "aliases": ["Smooth peanut butter", "Crunchy peanut butter"],
+      "aisle": "Pantry",
+      "group": "nut-seed",
+      "packs": {
+        "unit": "g",
+        "sizes": [375],
+        "container": {
+          "one": "jar",
+          "many": "jars"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["peanut"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:tahini"],
+      "importHint": "as sold, smooth"
+    },
+    {
+      "id": "seed:tahini",
+      "name": "Tahini",
+      "aliases": ["Sesame paste"],
+      "aisle": "Pantry",
+      "group": "nut-seed",
+      "packs": {
+        "unit": "g",
+        "sizes": [300],
+        "container": {
+          "one": "jar",
+          "many": "jars"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["sesame"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:peanut-butter"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:mustard",
+      "name": "Wholegrain mustard",
+      "aliases": ["Mustard", "Dijon mustard"],
+      "aisle": "Pantry",
+      "group": "condiment",
+      "packs": {
+        "unit": "g",
+        "sizes": [200],
+        "container": {
+          "one": "jar",
+          "many": "jars"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:mayonnaise",
+      "name": "Mayonnaise",
+      "aliases": ["Mayo"],
+      "aisle": "Pantry",
+      "group": "condiment",
+      "packs": {
+        "unit": "g",
+        "sizes": [400],
+        "container": {
+          "one": "jar",
+          "many": "jars"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["egg"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:greek-yoghurt"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:honey",
+      "name": "Honey",
+      "aliases": ["Liquid honey", "Creamed honey"],
+      "aisle": "Pantry",
+      "group": "condiment",
+      "packs": {
+        "unit": "g",
+        "sizes": [500],
+        "container": {
+          "one": "jar",
+          "many": "jars"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:salt",
+      "name": "Salt",
+      "aliases": ["Table salt", "Iodised salt", "Sea salt"],
+      "aisle": "Pantry",
+      "group": "condiment",
+      "packs": {
+        "unit": "g",
+        "sizes": [500, 1000],
+        "container": {
+          "one": "packet",
+          "many": "packets"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:curry-paste",
+      "name": "Curry paste",
+      "aliases": ["Red curry paste", "Green curry paste"],
+      "aisle": "Pantry",
+      "group": "condiment",
+      "packs": {
+        "unit": "g",
+        "sizes": [200],
+        "container": {
+          "one": "jar",
+          "many": "jars"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:curry-powder"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:olives",
+      "name": "Olives",
+      "aliases": ["Kalamata olives", "Black olives", "Green olives"],
+      "aisle": "Pantry",
+      "group": "vegetable",
+      "packs": {
+        "unit": "g",
+        "sizes": [350],
+        "container": {
+          "one": "jar",
+          "many": "jars"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "in brine, drained"
+    },
+    {
+      "id": "seed:white-rice",
+      "name": "White rice",
+      "aliases": ["Jasmine rice", "Basmati rice", "Long-grain rice"],
+      "aisle": "Rice, pasta and grains",
+      "group": "grain",
+      "packs": {
+        "unit": "g",
+        "sizes": [1000, 2000, 5000],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:brown-rice", "seed:quinoa", "seed:cauliflower-rice"],
+      "importHint": "dry, uncooked"
+    },
+    {
+      "id": "seed:white-rice-cooked",
+      "name": "White rice, cooked",
+      "aliases": [],
+      "aisle": "Rice, pasta and grains",
+      "group": "grain",
+      "packs": null,
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "cooked",
+      "cookedOf": "seed:white-rice",
+      "substitutes": [],
+      "importHint": "boiled, drained, no added fat or salt"
+    },
+    {
+      "id": "seed:brown-rice",
+      "name": "Brown rice",
+      "aliases": ["Wholegrain rice"],
+      "aisle": "Rice, pasta and grains",
+      "group": "grain",
+      "packs": {
+        "unit": "g",
+        "sizes": [1000],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:white-rice", "seed:quinoa"],
+      "importHint": "dry, uncooked"
+    },
+    {
+      "id": "seed:brown-rice-cooked",
+      "name": "Brown rice, cooked",
+      "aliases": [],
+      "aisle": "Rice, pasta and grains",
+      "group": "grain",
+      "packs": null,
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "cooked",
+      "cookedOf": "seed:brown-rice",
+      "substitutes": [],
+      "importHint": "boiled, drained, no added fat or salt"
+    },
+    {
+      "id": "seed:pasta",
+      "name": "Pasta",
+      "aliases": ["Dried pasta", "Spaghetti", "Penne", "Fusilli"],
+      "aisle": "Rice, pasta and grains",
+      "group": "grain",
+      "packs": {
+        "unit": "g",
+        "sizes": [500, 1000],
+        "container": {
+          "one": "packet",
+          "many": "packets"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["wheat"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:white-rice", "seed:quinoa"],
+      "importHint": "dry, uncooked"
+    },
+    {
+      "id": "seed:pasta-cooked",
+      "name": "Pasta, cooked",
+      "aliases": [],
+      "aisle": "Rice, pasta and grains",
+      "group": "grain",
+      "packs": null,
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["wheat"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "cooked",
+      "cookedOf": "seed:pasta",
+      "substitutes": [],
+      "importHint": "boiled, drained, no added fat or salt"
+    },
+    {
+      "id": "seed:quinoa",
+      "name": "Quinoa",
+      "aliases": ["White quinoa"],
+      "aisle": "Rice, pasta and grains",
+      "group": "grain",
+      "packs": {
+        "unit": "g",
+        "sizes": [500],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:white-rice", "seed:brown-rice"],
+      "importHint": "dry, uncooked"
+    },
+    {
+      "id": "seed:quinoa-cooked",
+      "name": "Quinoa, cooked",
+      "aliases": [],
+      "aisle": "Rice, pasta and grains",
+      "group": "grain",
+      "packs": null,
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "cooked",
+      "cookedOf": "seed:quinoa",
+      "substitutes": [],
+      "importHint": "boiled, drained, no added fat or salt"
+    },
+    {
+      "id": "seed:rolled-oats",
+      "name": "Rolled oats",
+      "aliases": ["Oats", "Porridge oats", "Whole oats"],
+      "aisle": "Rice, pasta and grains",
+      "group": "grain",
+      "packs": {
+        "unit": "g",
+        "sizes": [750, 1000],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["oats"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "dry, uncooked"
+    },
+    {
+      "id": "seed:red-lentils",
+      "name": "Red lentils",
+      "aliases": ["Split red lentils", "Dried lentils"],
+      "aisle": "Rice, pasta and grains",
+      "group": "legume",
+      "packs": {
+        "unit": "g",
+        "sizes": [500],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:canned-lentils"],
+      "importHint": "dry, uncooked"
+    },
+    {
+      "id": "seed:red-lentils-cooked",
+      "name": "Red lentils, cooked",
+      "aliases": [],
+      "aisle": "Rice, pasta and grains",
+      "group": "legume",
+      "packs": null,
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "cooked",
+      "cookedOf": "seed:red-lentils",
+      "substitutes": [],
+      "importHint": "boiled, drained, no added fat or salt"
+    },
+    {
+      "id": "seed:plain-flour",
+      "name": "Plain flour",
+      "aliases": ["Flour", "White flour", "All-purpose flour"],
+      "aisle": "Baking and spices",
+      "group": "grain",
+      "packs": {
+        "unit": "g",
+        "sizes": [1500],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["wheat"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:almond-meal"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:almond-meal",
+      "name": "Almond meal",
+      "aliases": ["Ground almonds", "Almond flour"],
+      "aisle": "Baking and spices",
+      "group": "nut-seed",
+      "packs": {
+        "unit": "g",
+        "sizes": [200, 500],
+        "container": {
+          "one": "packet",
+          "many": "packets"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["tree-nut"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:plain-flour"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:ground-cumin",
+      "name": "Ground cumin",
+      "aliases": ["Cumin"],
+      "aisle": "Baking and spices",
+      "group": "spice",
+      "packs": {
+        "unit": "g",
+        "sizes": [40],
+        "container": {
+          "one": "jar",
+          "many": "jars"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "dried, ground"
+    },
+    {
+      "id": "seed:smoked-paprika",
+      "name": "Smoked paprika",
+      "aliases": ["Paprika"],
+      "aisle": "Baking and spices",
+      "group": "spice",
+      "packs": {
+        "unit": "g",
+        "sizes": [40],
+        "container": {
+          "one": "jar",
+          "many": "jars"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "dried, ground"
+    },
+    {
+      "id": "seed:ground-cinnamon",
+      "name": "Ground cinnamon",
+      "aliases": ["Cinnamon"],
+      "aisle": "Baking and spices",
+      "group": "spice",
+      "packs": {
+        "unit": "g",
+        "sizes": [40],
+        "container": {
+          "one": "jar",
+          "many": "jars"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "dried, ground"
+    },
+    {
+      "id": "seed:dried-oregano",
+      "name": "Dried oregano",
+      "aliases": ["Oregano"],
+      "aisle": "Baking and spices",
+      "group": "spice",
+      "packs": {
+        "unit": "g",
+        "sizes": [15],
+        "container": {
+          "one": "jar",
+          "many": "jars"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "dried leaves"
+    },
+    {
+      "id": "seed:chilli-flakes",
+      "name": "Chilli flakes",
+      "aliases": ["Crushed chilli", "Dried chilli flakes"],
+      "aisle": "Baking and spices",
+      "group": "spice",
+      "packs": {
+        "unit": "g",
+        "sizes": [30],
+        "container": {
+          "one": "jar",
+          "many": "jars"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:chilli"],
+      "importHint": "dried, crushed"
+    },
+    {
+      "id": "seed:black-pepper",
+      "name": "Black pepper",
+      "aliases": ["Ground black pepper", "Pepper"],
+      "aisle": "Baking and spices",
+      "group": "spice",
+      "packs": {
+        "unit": "g",
+        "sizes": [50],
+        "container": {
+          "one": "jar",
+          "many": "jars"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "dried, ground"
+    },
+    {
+      "id": "seed:curry-powder",
+      "name": "Curry powder",
+      "aliases": ["Mild curry powder"],
+      "aisle": "Baking and spices",
+      "group": "spice",
+      "packs": {
+        "unit": "g",
+        "sizes": [40],
+        "container": {
+          "one": "jar",
+          "many": "jars"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:curry-paste"],
+      "importHint": "as sold"
+    },
+    {
+      "id": "seed:almonds",
+      "name": "Almonds",
+      "aliases": ["Raw almonds"],
+      "aisle": "Nuts and seeds",
+      "group": "nut-seed",
+      "packs": {
+        "unit": "g",
+        "sizes": [150, 400],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["tree-nut"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:walnuts", "seed:cashews"],
+      "importHint": "raw, unsalted"
+    },
+    {
+      "id": "seed:walnuts",
+      "name": "Walnuts",
+      "aliases": ["Walnut pieces"],
+      "aisle": "Nuts and seeds",
+      "group": "nut-seed",
+      "packs": {
+        "unit": "g",
+        "sizes": [150, 400],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["tree-nut"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:almonds"],
+      "importHint": "raw, unsalted"
+    },
+    {
+      "id": "seed:cashews",
+      "name": "Cashews",
+      "aliases": ["Cashew nuts"],
+      "aisle": "Nuts and seeds",
+      "group": "nut-seed",
+      "packs": {
+        "unit": "g",
+        "sizes": [150, 400],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["tree-nut"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:almonds"],
+      "importHint": "unsalted"
+    },
+    {
+      "id": "seed:macadamias",
+      "name": "Macadamia nuts",
+      "aliases": ["Macadamias"],
+      "aisle": "Nuts and seeds",
+      "group": "nut-seed",
+      "packs": {
+        "unit": "g",
+        "sizes": [150],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["tree-nut"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:almonds"],
+      "importHint": "raw, unsalted"
+    },
+    {
+      "id": "seed:peanuts",
+      "name": "Peanuts",
+      "aliases": ["Roasted peanuts"],
+      "aisle": "Nuts and seeds",
+      "group": "nut-seed",
+      "packs": {
+        "unit": "g",
+        "sizes": [200, 400],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["peanut"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": [],
+      "importHint": "roasted, unsalted"
+    },
+    {
+      "id": "seed:sunflower-seeds",
+      "name": "Sunflower seeds",
+      "aliases": ["Sunflower kernels"],
+      "aisle": "Nuts and seeds",
+      "group": "nut-seed",
+      "packs": {
+        "unit": "g",
+        "sizes": [250],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:pumpkin-seeds"],
+      "importHint": "kernels, raw"
+    },
+    {
+      "id": "seed:pumpkin-seeds",
+      "name": "Pumpkin seeds",
+      "aliases": ["Pepitas"],
+      "aisle": "Nuts and seeds",
+      "group": "nut-seed",
+      "packs": {
+        "unit": "g",
+        "sizes": [250],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:sunflower-seeds"],
+      "importHint": "kernels, raw"
+    },
+    {
+      "id": "seed:chia-seeds",
+      "name": "Chia seeds",
+      "aliases": ["Chia"],
+      "aisle": "Nuts and seeds",
+      "group": "nut-seed",
+      "packs": {
+        "unit": "g",
+        "sizes": [250],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:linseed"],
+      "importHint": "dried seeds"
+    },
+    {
+      "id": "seed:linseed",
+      "name": "Linseed",
+      "aliases": ["Flaxseed", "Linseeds"],
+      "aisle": "Nuts and seeds",
+      "group": "nut-seed",
+      "packs": {
+        "unit": "g",
+        "sizes": [500],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:chia-seeds"],
+      "importHint": "whole seeds"
+    },
+    {
+      "id": "seed:sesame-seeds",
+      "name": "Sesame seeds",
+      "aliases": ["Sesame"],
+      "aisle": "Nuts and seeds",
+      "group": "nut-seed",
+      "packs": {
+        "unit": "g",
+        "sizes": [100],
+        "container": {
+          "one": "packet",
+          "many": "packets"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["sesame"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:sunflower-seeds"],
+      "importHint": "dried, hulled"
+    },
+    {
+      "id": "seed:frozen-peas",
+      "name": "Frozen peas",
+      "aliases": ["Peas", "Garden peas"],
+      "aisle": "Frozen",
+      "group": "starchy-vegetable",
+      "packs": {
+        "unit": "g",
+        "sizes": [500, 1000],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:frozen-mixed-veg"],
+      "importHint": "frozen, uncooked"
+    },
+    {
+      "id": "seed:frozen-mixed-veg",
+      "name": "Frozen mixed vegetables",
+      "aliases": ["Mixed veges", "Frozen veges"],
+      "aisle": "Frozen",
+      "group": "starchy-vegetable",
+      "packs": {
+        "unit": "g",
+        "sizes": [1000],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:frozen-peas"],
+      "importHint": "frozen, uncooked"
+    },
+    {
+      "id": "seed:frozen-broccoli",
+      "name": "Frozen broccoli",
+      "aliases": [],
+      "aisle": "Frozen",
+      "group": "vegetable",
+      "packs": {
+        "unit": "g",
+        "sizes": [500],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:broccoli"],
+      "importHint": "frozen, uncooked"
+    },
+    {
+      "id": "seed:frozen-spinach",
+      "name": "Frozen spinach",
+      "aliases": [],
+      "aisle": "Frozen",
+      "group": "leafy-green",
+      "packs": {
+        "unit": "g",
+        "sizes": [250],
+        "container": {
+          "one": "pack",
+          "many": "packs"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:spinach", "seed:silverbeet"],
+      "importHint": "frozen, uncooked"
+    },
+    {
+      "id": "seed:frozen-berries",
+      "name": "Frozen mixed berries",
+      "aliases": ["Frozen berries"],
+      "aisle": "Frozen",
+      "group": "fruit",
+      "packs": {
+        "unit": "g",
+        "sizes": [500, 1000],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:strawberries", "seed:blueberries"],
+      "importHint": "frozen, unsweetened"
+    },
+    {
+      "id": "seed:cauliflower-rice",
+      "name": "Cauliflower rice (frozen)",
+      "aliases": ["Cauli rice", "Riced cauliflower"],
+      "aisle": "Frozen",
+      "group": "vegetable",
+      "packs": {
+        "unit": "g",
+        "sizes": [400],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": [],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "as-sold",
+      "cookedOf": null,
+      "substitutes": ["seed:cauliflower", "seed:white-rice"],
+      "importHint": "frozen, uncooked"
+    },
+    {
+      "id": "seed:prawns",
+      "name": "Prawns",
+      "aliases": ["Raw prawns", "Frozen prawns", "Shrimp"],
+      "aisle": "Frozen",
+      "group": "shellfish",
+      "packs": {
+        "unit": "g",
+        "sizes": [500],
+        "container": {
+          "one": "bag",
+          "many": "bags"
+        }
+      },
+      "loose": false,
+      "gramsPerEach": null,
+      "countWord": null,
+      "allergens": ["crustacea"],
+      "allergensComplete": false,
+      "gardenFlag": false,
+      "seasonMonths": [],
+      "basis": "raw",
+      "cookedOf": null,
+      "substitutes": ["seed:white-fish"],
+      "importHint": "raw, peeled, frozen"
+    }
+  ]
+}

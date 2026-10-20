@@ -112,6 +112,8 @@ const DEEP_LINKS = [
   './#/readiness',
   './#/profile',
   './#/eating-schedule',
+  // Item 18: the food catalogue.
+  './#/foods',
   './#/nothing',
 ];
 

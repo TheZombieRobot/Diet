@@ -1,6 +1,12 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import type { PhaseGates } from '../weight/phase';
-import { type DeficitChoice, dayEnergyFor, effectiveDeficit } from './energy';
+import {
+  type DeficitChoice,
+  dayEnergyFor,
+  effectiveDeficit,
+  floorCheck,
+  type PlanWriteKind,
+} from './energy';
 import {
   safeFloorKj,
   safeKetoCeilingG,
@@ -104,5 +110,33 @@ describe('the deficit (WT-08, C56, C61; item 14 amendment)', () => {
     expect([safeKickstartDeficitPct(-5), safeKickstartDeficitPct(Number.NaN)]).toEqual([0, 0]);
     expect(safeSteadyDeficitPct(Number.NaN)).toBe(15);
     expect([safeKetoCeilingG(10), safeKetoCeilingG(Number.NaN)]).toEqual([20, 30]);
+  });
+});
+
+// Item 21's U13, added with floorCheck by item 18 (X8).
+describe('the floor check for planned days (item 21 U13; HS-10, NU-06, C31, C108)', () => {
+  it('HS-10: only the owner\u2019s own meal may go below the floor; every app write and any unknown kind is refused', () => {
+    const refused = (floorKj: number) => ({ ok: false, reason: 'below-floor', floorKj });
+    expect(floorCheck(4000, 5000)).toEqual(refused(5000));
+    expect(floorCheck(4999, 5000, 'auto-fill')).toEqual(refused(5000));
+    expect(floorCheck(5000, 5000, 'auto-fill')).toEqual({
+      ok: true,
+      belowFloor: false,
+      floorKj: 5000,
+    });
+    for (const kind of ['copy', 'template', 'repeat', 'suggested-swap'] as const)
+      expect(floorCheck(4000, 5000, kind), kind).toEqual(refused(5000));
+    expect(floorCheck(4000, 5000, 'owner-meal')).toEqual({
+      ok: true,
+      belowFloor: true,
+      floorKj: 5000,
+    });
+    expect(floorCheck(4000, 5000, 'manual' as PlanWriteKind)).toEqual(refused(5000));
+    expect(floorCheck(5500, 6000, 'auto-fill')).toEqual(refused(6000));
+    // Bypasses: a stored floor below 5,000 kJ, or not a number, still refuses 4,000 kJ.
+    expect(floorCheck(4000, 3000, 'auto-fill')).toEqual(refused(5000));
+    expect(floorCheck(4000, Number.NaN, 'auto-fill')).toEqual(refused(5000));
+    expect(() => floorCheck(Number.POSITIVE_INFINITY, 5000)).toThrow(RangeError);
+    expect(() => floorCheck(-1, 5000)).toThrow(RangeError);
   });
 });

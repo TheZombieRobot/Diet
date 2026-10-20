@@ -131,8 +131,8 @@ describe('every screen', () => {
 });
 
 describe('placeholder screens (no sample data)', () => {
-  // About, the setup screens (item 13), the Weight screen (item 14) and the Fasting screen (item
-  // 15) are built; the rest still say they arrive later.
+  // About, the setup screens (item 13), the Weight screen (item 14), the Fasting screen (item 15)
+  // and Foods in the app (item 18) are built; the rest still say they arrive later.
   const built: readonly RouteId[] = [
     'about',
     'readiness',
@@ -140,6 +140,7 @@ describe('placeholder screens (no sample data)', () => {
     'eating-schedule',
     'weight',
     'fasting',
+    'foods',
   ];
   const placeholders = ROUTES.filter((r) => !built.includes(r));
 
@@ -205,6 +206,7 @@ describe('About (HS-13, About portion)', () => {
     expect(main().textContent).toContain(intro);
     const links = within(main())
       .getAllByRole('link')
+      .filter((l) => l.getAttribute('href') !== routeHref('foods')) // item 18's Data sources row
       .map((l) => [l.textContent, l.getAttribute('href')]);
     expect(links).toEqual([
       [`${emergency.number}${emergency.name} ${emergency.number}`, 'tel:111'],
@@ -243,7 +245,7 @@ describe('About (HS-13, About portion)', () => {
     expect(emergencyRows[0]?.getAttribute('href')).toBe('tel:111');
   });
 
-  it('has a data sources placeholder and the app version', async () => {
+  it('has a data sources card that speaks of attribution, and the app version', async () => {
     await show('about');
     expect(within(main()).getByRole('region', { name: 'Data sources' }).textContent).toContain(
       'attribution',

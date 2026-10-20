@@ -13,3 +13,5 @@ export * from './storage/testChains';
 export * from './grocery/list300';
 // Weight (checklist item 14): synthetic weigh-in and Kickstart scenarios, and plain gate objects.
 export * from './weight/scenarios';
+// Foods (checklist item 18): the synthetic food data and a small subset of the shipped catalogue.
+export * from './foods/foodFixtures';

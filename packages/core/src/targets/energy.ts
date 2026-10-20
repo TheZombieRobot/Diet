@@ -97,3 +97,44 @@ export function dayEnergyFor(
     estimateBelowFloor: estimateKj < floorKj,
   };
 }
+
+// ---- Item 21 design 3.4.5, added early by item 18 (X8): the floor check for planned days ----
+
+/** What wrote, or is about to write, the planned day. Only 'owner-meal' may go below the floor. */
+export type PlanWriteKind =
+  | 'owner-meal' // the owner adds, edits or removes one meal, picking the recipe or typing the entry themselves
+  | 'auto-fill' // the planner fills one or more slots
+  | 'copy' // copy a day or a week
+  | 'template' // apply a saved template
+  | 'repeat' // repeat a day
+  | 'suggested-swap'; // accept a swap or suggestion the app offered
+
+export type FloorCheck =
+  | { readonly ok: true; readonly belowFloor: false; readonly floorKj: number }
+  /** owner-meal: allowed, with targets.plannerFloor.manualBelow. */
+  | { readonly ok: true; readonly belowFloor: true; readonly floorKj: number }
+  /** Anything else: refused, with targets.plannerFloor.refused. */
+  | { readonly ok: false; readonly reason: 'below-floor'; readonly floorKj: number };
+
+/**
+ * HS-10, NU-06, C108: a planned day below the owner's effective floor (5,000 kJ, or their raised
+ * floor) is refused for every write the app makes; only the owner's own meal may go below it, with
+ * a warning. The kind is closed and defaults to refusal, so no caller can label an app-made day
+ * the owner's: an unknown kind at run time is refused.
+ */
+export function floorCheck(
+  foodKj: number,
+  storedFloorKj: number,
+  kind: PlanWriteKind = 'auto-fill',
+): FloorCheck {
+  if (!Number.isFinite(foodKj) || foodKj < 0)
+    throw new RangeError('foodKj must be a finite number of at least 0');
+  const floorKj = safeFloorKj(storedFloorKj);
+  if (foodKj >= floorKj) return { ok: true, belowFloor: false, floorKj };
+  switch (kind) {
+    case 'owner-meal':
+      return { ok: true, belowFloor: true, floorKj };
+    default:
+      return { ok: false, reason: 'below-floor', floorKj };
+  }
+}

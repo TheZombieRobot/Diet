@@ -5,8 +5,21 @@ import {
   type Page,
   test,
 } from '@playwright/test';
-import { seedOnboarded, visitEveryScreen, waitForServiceWorkerControl } from './support/app';
+import {
+  openFoodPanel,
+  type ScreenName,
+  seedOnboarded,
+  visitEveryScreen,
+  waitForServiceWorkerControl,
+} from './support/app';
 import { startAudit } from './support/network';
+
+/** Item 18 (E2): the generic loop never opens a food, so the audit opens one on Foods in the app. */
+const openAFood =
+  (page: Page) =>
+  async (screen: ScreenName): Promise<void> => {
+    if (screen === 'Foods in the app') await openFoodPanel(page);
+  };
 
 // HS-14 / TR-11, as reworded by DOC_REVIEW C03: the phone app makes only GET requests to its own
 // origin for app files and update checks, with no query string, header, cookie or body built
@@ -26,7 +39,7 @@ test('online, every screen: requests go only to the app’s own files', async ({
   const audit = await startAudit(context, request, baseURL);
   await seedOnboarded(page);
   await waitForServiceWorkerControl(page);
-  await visitEveryScreen(page);
+  await visitEveryScreen(page, openAFood(page));
   await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Today' }).click();
   await page.getByRole('button', { name: 'Quick actions' }).click();
   await page.evaluate(async () => {
@@ -52,7 +65,7 @@ test('offline, every screen: no request reaches the network at all', async ({
   const failed: string[] = [];
   context.on('requestfailed', (r) => failed.push(r.url()));
   await page.reload();
-  await visitEveryScreen(page);
+  await visitEveryScreen(page, openAFood(page));
   expect(failed).toEqual([]);
   await audit.verify();
 });

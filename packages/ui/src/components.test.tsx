@@ -1,5 +1,5 @@
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
-import { createRef } from 'react';
+import { createRef, type ReactElement, useState } from 'react';
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import {
   ActionRow,
@@ -14,6 +14,7 @@ import {
   ChoiceList,
   currentThemePreference,
   DayBar,
+  ExpandableRow,
   FastMeter,
   FloatingActionButton,
   FloatingActionPanel,
@@ -22,6 +23,7 @@ import {
   OFFLINE_LABEL,
   OFFLINE_NOT_READY_LABEL,
   Notice,
+  NutrientTable,
   OfflineIndicator,
   ONLINE_LABEL,
   StepFrame,
@@ -885,5 +887,71 @@ describe('the Fast card pieces (item 15; mock-up Main)', () => {
     expect(notNow?.className).toContain('ui-button--on-amber-outline');
     expect(document.querySelector('.ui-notice__icon')?.getAttribute('aria-hidden')).toBe('true');
     expect(document.querySelector('.ui-notice__text')?.textContent).toBe('Example meal check');
+  });
+});
+
+describe('the food catalogue pieces (item 18; K1)', () => {
+  it('K1 HS-36: the nutrient table prints the text it is given, so an unknown figure is never 0', () => {
+    const labels = ['Energy', 'Protein', 'Fat', 'Saturated fat', 'Net carbs', 'Sugars', 'Fibre'];
+    render(
+      <NutrientTable
+        caption="Nutrition per 100 g, raw"
+        rows={[...labels, 'Sodium'].map((label) => ({
+          key: label,
+          label,
+          text: 'not known',
+          known: false,
+        }))}
+      />,
+    );
+    const table = screen.getByRole('table', { name: 'Nutrition per 100 g, raw' });
+    const cells = within(table).getAllByRole('cell');
+    expect(cells).toHaveLength(8);
+    for (const cell of cells) {
+      expect(cell.textContent).toBe('not known');
+      expect(cell.getAttribute('data-known')).toBe('false');
+      expect(cell.textContent).not.toMatch(/^\s*0(\.0)?\s*(g|kJ|mg)\s*$/);
+    }
+    expect(
+      within(table)
+        .getAllByRole('rowheader')
+        .every((h) => h.getAttribute('scope') === 'row'),
+    ).toBe(true);
+  });
+
+  it('K1: an expandable row is one button named by its text, that opens a labelled panel', () => {
+    function Example(): ReactElement {
+      const [open, setOpen] = useState(false);
+      return (
+        <ul className="ui-divider-rows">
+          <ExpandableRow
+            title="Firm tofu"
+            detail="Contains soy · Check the label for allergens"
+            flag="Has soy, which you listed"
+            expanded={open}
+            onToggle={() => {
+              setOpen(!open);
+            }}
+          >
+            <p>Panel text</p>
+          </ExpandableRow>
+        </ul>
+      );
+    }
+    render(<Example />);
+    const toggle = screen.getByRole('button', {
+      name: 'Firm tofu Contains soy · Check the label for allergens Has soy, which you listed',
+    });
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(screen.queryByRole('region')).toBeNull();
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    const panel = screen.getByRole('region', { name: 'Firm tofu' });
+    expect(toggle.getAttribute('aria-controls')).toBe(panel.id);
+    const parts = toggle.querySelectorAll(
+      '.ui-row__text > .ui-expandable__title, .ui-row__text > .ui-expandable__detail, .ui-row__text > .ui-expandable__flag',
+    );
+    expect(parts).toHaveLength(3);
+    expect(componentsCss).toMatch(/\.ui-expandable__toggle \{[^}]*min-height: var\(--size-tap\);/);
   });
 });

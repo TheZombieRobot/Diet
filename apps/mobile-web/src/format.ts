@@ -6,6 +6,7 @@ import {
   daysBetween,
   DEFAULT_HOME_TIME_ZONE,
   type Instant,
+  KJ_PER_KCAL,
   type LocalDate,
   parseLocalDate,
   resolveZone,
@@ -59,6 +60,18 @@ export function formatLocalTime(at: Instant, zone: TimeZone): string {
  */
 export function formatLocalDay(date: LocalDate): string {
   return formatter('UTC', 'date').format(parseLocalDate(date) + 12 * 3_600_000);
+}
+
+// Item 21 design 4.4, added early by item 18 (X8) for the planner's floor message.
+
+/** A whole number with thousands separators: "9,100". */
+export function formatWhole(n: number): string {
+  return Math.round(n).toLocaleString('en-NZ');
+}
+
+/** The kcal beside a kJ figure, to the nearest 10: 5,000 kJ shows as "1,200" (HEALTH_SAFETY "about 1,200 kcal"). */
+export function formatAboutKcal(kj: number): string {
+  return formatWhole(Math.round(kj / KJ_PER_KCAL / 10) * 10);
 }
 
 /** A weight with one decimal: "96.8", "100.0". */

@@ -1,7 +1,7 @@
 import { expect, type BrowserContext, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { fasting, onboarding, privacy, weight } from '../../packages/core/src/copy/health';
+import { fasting, foods, onboarding, privacy, weight } from '../../packages/core/src/copy/health';
 import { parseColourTokens, requireToken } from '../../packages/ui/src/tokens';
 
 /** Every screen of the phone app, in the order a person reaches them. */
@@ -16,11 +16,17 @@ export const SCREENS = [
   'Weight',
   // Item 15: reached from Today's Fast card.
   'Fasting and reflux',
+  // Item 18: reached from About, Data sources.
+  'Foods in the app',
 ] as const;
 export type ScreenName = (typeof SCREENS)[number];
 
 /** Screens reached from Settings, which mark the settings gear as their section. */
-export const UNDER_SETTINGS: readonly ScreenName[] = ['About', ...SETUP_SCREENS];
+export const UNDER_SETTINGS: readonly ScreenName[] = [
+  'About',
+  ...SETUP_SCREENS,
+  'Foods in the app',
+];
 
 /** The app's base path, the same as on GitHub Pages. */
 export const BASE_PATH = '/Diet/';
@@ -66,9 +72,13 @@ export async function goTo(page: Page, screen: ScreenName): Promise<void> {
     await page.getByRole('link', { name: fasting.card.detailsLink }).click();
   } else {
     await page.getByRole('banner').getByRole('link', { name: 'Settings' }).click();
-    if (screen === 'About') {
+    if (screen === 'About' || screen === 'Foods in the app') {
       await expect(heading(page)).toHaveText('Settings');
       await page.getByRole('link', { name: /^About this app/ }).click();
+      if (screen === 'Foods in the app') {
+        await expect(heading(page)).toHaveText('About');
+        await page.getByRole('link', { name: new RegExp(`^${foods.about.linkTitle}`) }).click();
+      }
     } else if (screen !== 'Settings') {
       await expect(heading(page)).toHaveText('Settings');
       await page.getByRole('link', { name: new RegExp(`^${screen}`) }).click();
@@ -166,6 +176,20 @@ export async function seedOnboarded(
   await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
   await expect(heading(page)).toHaveText('Today');
   if (path !== appUrl) await page.goto(path);
+}
+
+/**
+ * On Foods in the app: types `query` into "Food name" and opens the food whose row starts with
+ * `name`, so a sweep sees a food's details, its eight figures and the footer (item 18).
+ */
+export async function openFoodPanel(
+  page: Page,
+  query = 'chard',
+  name = 'Silverbeet',
+): Promise<void> {
+  await page.getByRole('searchbox', { name: foods.screen.searchLabel }).fill(query);
+  await page.getByRole('button', { name: new RegExp(`^${name}(?: |$)`) }).click();
+  await expect(page.getByRole('region', { name })).toBeVisible();
 }
 
 /** Visits every screen in turn, calling `onScreen` on each. */

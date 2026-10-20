@@ -6,12 +6,13 @@ import { PRE_CHECK_KEYS } from '../exercise/preCheck';
 import { START_PROBLEM_CODES } from '../exercise/start';
 import { WEEK_PROBLEM_CODES } from '../exercise/week';
 import { GATED_FEATURES, READINESS_REASON_IDS } from '../readiness/gates';
-import { USER_ALLERGENS } from '../storage/allergens';
+import { ALLERGENS, USER_ALLERGENS } from '../storage/allergens';
 import { FLOOR_KJ, KICKSTART_MAX_DEFICIT_PCT, KICKSTART_NET_CARBS_G } from '../storage/limits';
 import { READINESS_QUESTION_IDS } from '../storage/readiness';
 import {
   alcohol,
   fasting,
+  foods,
   general,
   healthCopy,
   helpNumbers,
@@ -155,7 +156,24 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
     /\bcur(?:e|es|ed|ing)\b/i,
     /\byou(?:['’]re|\s+are)\s+safe\b/i,
   ],
+  // Item 18 (C69, HS-16): pack sizes are typical, never the store's and never a price; typical
+  // sizes and seasons are not claimed to be checked; an allergen summary never says a food is safe.
+  foods: [
+    /PAK['’]?n['’]?SAVE/i,
+    /\bprices?\b/i,
+    /\bverified\b/i,
+    /\baccurate\b/i,
+    /\bexact(?:ly)?\b/i,
+    /\bsafe(?:ly|r)?\b/i,
+    /\bguarantee\w*/i,
+  ],
 };
+
+/**
+ * Strings copied word for word from elsewhere and so exempt from their section's rules: a food
+ * database's attribution text, as its licence words it (item 18 design 4.1).
+ */
+const SECTION_RULES_EXEMPT: readonly string[] = ['foods.attribution'];
 
 describe('health copy', () => {
   it('every section has declared rules', () => {
@@ -164,10 +182,11 @@ describe('health copy', () => {
 
   for (const [section, rules] of Object.entries(SECTION_RULES)) {
     it(`${section} copy obeys its section rules`, () => {
-      const found = strings(healthCopy[section as keyof typeof healthCopy], section).flatMap(
-        ([path, text]) =>
+      const found = strings(healthCopy[section as keyof typeof healthCopy], section)
+        .filter(([path]) => !SECTION_RULES_EXEMPT.some((e) => path.startsWith(`${e}.`)))
+        .flatMap(([path, text]) =>
           rules.filter((r) => r.test(text)).map((r) => `${path}: ${String(r)} in "${text}"`),
-      );
+        );
       expect(found).toEqual([]);
     });
   }
@@ -491,5 +510,54 @@ describe('fasting and reflux copy (item 15)', () => {
       'Severe weakness',
     ]);
     expect(reflux.chestPain).toContain(helpNumbers.emergency.number);
+  });
+});
+
+describe('foods copy (item 18)', () => {
+  const DATABASE_NAMES = [
+    /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
+    /food composition/i,
+  ];
+  /** A stored field's label in a restore problem, not a data source. */
+  const NAMES_A_FIELD = 'privacy.recordProblem.fields.usda';
+
+  it('S4 C97 NU-09: no string anywhere in health.ts names a food database, except the attribution', () => {
+    const found = Object.entries(healthCopy)
+      .flatMap(([section, copy]) => strings(copy, section))
+      .filter(([path]) => !path.startsWith('foods.attribution.') && path !== NAMES_A_FIELD)
+      .filter(([, text]) => DATABASE_NAMES.some((r) => r.test(text)))
+      .map(([path]) => path);
+    expect(found).toEqual([]);
+    expect(Object.keys(foods.attribution)).toEqual([]);
+  });
+
+  it('S1 HS-36: the words for missing figures never say estimated, approximate or a zero amount', () => {
+    const lines: [string, string][] = [
+      ...strings(foods.figures, 'figures'),
+      ['notLoaded', foods.notLoaded],
+      ['notLoadedNone', foods.notLoadedNone],
+      ['releaseUnreadable', foods.releaseUnreadable],
+      ...strings(foods.totals, 'totals'),
+      ...strings(foods.today, 'today'),
+      ...strings(foods.derived, 'derived'),
+      ...strings(foods.planner, 'planner'),
+    ];
+    const banned = [/\bestimat\w*/i, /\bapprox\w*/i, /\bguess\w*/i, /(?<![\d.])0\s*(?:g|kJ|mg)\b/];
+    const found = lines.flatMap(([path, text]) =>
+      banned.filter((r) => r.test(text)).map((r) => `${path}: ${String(r)}`),
+    );
+    expect(found).toEqual([]);
+    expect(foods.figures.notKnown).toBe('not known');
+  });
+
+  it('every template fills with its named placeholders, and every allergen has its words, in order', () => {
+    const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1] ?? '');
+    for (const [path, text] of strings(foods, 'foods')) {
+      const values = Object.fromEntries(placeholders(text).map((name) => [name, 'x']));
+      expect(fillTemplate(text, values), path).not.toMatch(/[{}]/);
+    }
+    expect(Object.keys(foods.allergenWords)).toEqual([...ALLERGENS]);
+    expect(Object.values(foods.badges)).toEqual(['Label', 'Database', 'Estimate']);
+    expect(foods.months).toHaveLength(12);
   });
 });

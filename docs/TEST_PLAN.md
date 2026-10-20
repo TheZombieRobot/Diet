@@ -102,7 +102,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 ### 3.6 Nutrition, recipes, planner
 | ID | Case | Expected |
 |---|---|---|
-| NU-01 | Every ingredient has all eight nutrient fields and a source tag | Data validation script |
+| NU-01 | Every ingredient, as the app reads it from `packages/core/data`, has all eight nutrient fields, each either a figure with its source tag (database, field and unit) or explicitly not known (never a silent 0 and never filled in by the app); a carb basis; a food-level source tag (`not-loaded` until a database approved at checklist item 10 is imported, with a citation for every database figure); and names, aliases, aisle, typical pack sizes with count and container words, allergens and whether the list is complete, garden flag, season months, raw/cooked/as-sold basis and substitutes that pass the dataset rules | Data validation script (`pnpm foods:check`); with real figures at step 18b |
 | NU-02 | Recipe per-serve totals equal sum of ingredients ÷ serves | Unit test over all recipes |
 | NU-03 | Net carbs = carbs − fibre, never negative | Unit test |
 | NU-04 | Heart-smart badge logic | Fixtures: avocado salad = badge; bacon-cream carbonara = flagged |
@@ -110,7 +110,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | NU-06 | Auto-plan under 5,000 kJ | Refused (HS-10) |
 | NU-07 | Garden-first filter | Recipes using ≥2 in-season garden items rank first |
 | NU-08 | Cholesterol check-in cards | Appear at ceiling start, week 8, week 12 |
-| NU-09 | Attribution footer | Present on every nutrition screen |
+| NU-09 | Attribution footer | Present on every nutrition screen; names only the databases recorded as approved in DECISIONS.md (none until checklist item 10); no NZ Food Composition Database wording when only USDA is approved (C97) |
 
 ### 3.7 Grocery list
 | ID | Case | Expected |
@@ -214,6 +214,14 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | CX-07 | Edit search term | Edited term used |
 | CX-08 | Static scan | No price/stock/cart-status strings (HS-16); footer disclaimer present |
 | CX-09 | Clear list | Removed from laptop only; phone unaffected |
+
+### 3.14 Foods in the app (checklist item 18)
+| ID | Case | Expected |
+|---|---|---|
+| FD-01 | Search the catalogue by name or another name ("chard") | The matching food is listed (Silverbeet); fewer than 2 letters lists every food by aisle |
+| FD-02 | Open a food whose figures are not loaded | Every per-100 g figure reads "not known", never 0; no badge; the footer says no figure is from a food database |
+| FD-03 | Allergens of a fresh single food, a packed single food, a brand-dependent food, and one the profile lists | "None of the 15 allergens", "check the label" (with "none by nature" for the single food), what it contains plus "check the label", and the conflict in the owner's own terms ("Has wheat (gluten), which you listed") |
+| FD-04 | Swaps on a food's details | Never a swap carrying a listed allergen; gluten-free swaps only with Gluten-free household on, whatever the profile lists; "(check the label)" on a swap whose allergens are not complete |
 
 ---
 

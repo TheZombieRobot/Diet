@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { fasting } from '../packages/core/src/copy/health';
+import { APPROVED_NUTRIENT_SOURCES } from '../packages/core/src/foods/approval';
 import { commerceRules, healthPhraseRules } from '../tools/scans/rules';
 import { scanText } from '../tools/scans/scan';
 import {
@@ -7,6 +8,7 @@ import {
   heading,
   offerInstall,
   openBackupPanels,
+  openFoodPanel,
   renderedText,
   type ScreenName,
   SCREENS,
@@ -21,6 +23,7 @@ import {
 // (HS-07, HS-08, HS-19, HS-21, HS-26) and the price, stock and cart-status wording rules (HS-16).
 
 const RULES = [...healthPhraseRules, ...commerceRules];
+const FOODS: ScreenName = 'Foods in the app';
 
 async function violations(page: Page, where: string): Promise<string[]> {
   return scanText(where, await renderedText(page), RULES).map((v) => `${where}: ${v.ruleId}`);
@@ -52,9 +55,12 @@ test('no screen shows banned health, price, stock or cart wording', async ({ pag
   const found: string[] = [];
 
   await visitEveryScreen(page, async (screen) => {
+    // Item 18: the generic loop never opens a food, so open one (E2).
+    if (screen === FOODS) await openFoodPanel(page);
     found.push(...(await violations(page, screen)));
   });
-  await visitWithEverythingOpen(page, async (where) => {
+  await visitWithEverythingOpen(page, async (where, screen) => {
+    if (screen === FOODS) await openFoodPanel(page);
     found.push(...(await violations(page, where)));
   });
   await goTo(page, 'Settings');
@@ -64,7 +70,7 @@ test('no screen shows banned health, price, stock or cart wording', async ({ pag
   expect(found).toEqual([]);
 });
 
-test('no screen but About, Weight and Fasting shows a number or a price, even with every banner and panel open', async ({
+test('no screen but About, Weight, Fasting and Foods shows a number or a price, even with every banner and panel open', async ({
   page,
 }) => {
   // Screens must not look like they hold records they do not have (no sample data). The fresh
@@ -74,6 +80,8 @@ test('no screen but About, Weight and Fasting shows a number or a price, even wi
   // Weight screen, whose labels carry digits by design ("7-day average", "Less 0.1 kg"), and the
   // Fasting screen, which shows the owner's eating pattern and its clock times (item 15). On Today
   // only the Fast card may carry digits, for the same pattern ("22:2", "Eat 5:00 pm – 7:00 pm").
+  // Foods in the app is left out too: its numbers are the catalogue's (its count, typical pack
+  // sizes), not records; that it never shows a nutrient figure as a number is E1 (foods.spec.ts).
   await seedOnboarded(page, './', './', { weightKg: null });
   const found: string[] = [];
   const check = async (where: string, screen: ScreenName) => {
@@ -87,6 +95,7 @@ test('no screen but About, Weight and Fasting shows a number or a price, even wi
       screen === 'About' ||
       screen === 'Weight' ||
       screen === 'Fasting and reflux' ||
+      screen === FOODS ||
       (SETUP_SCREENS as readonly string[]).includes(screen)
     ) {
       return;
@@ -105,6 +114,23 @@ test('no screen but About, Weight and Fasting shows a number or a price, even wi
   };
   await visitEveryScreen(page, (screen) => check(screen, screen));
   await visitWithEverythingOpen(page, check);
+  expect(found).toEqual([]);
+});
+
+test('E4 C97 NU-09: while no food database is approved, no screen names one', async ({ page }) => {
+  expect(APPROVED_NUTRIENT_SOURCES).toEqual([]);
+  await seedOnboarded(page);
+  const DATABASE_NAMES = [
+    /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
+    /food composition/i,
+  ];
+  const found: string[] = [];
+  await visitEveryScreen(page, async (screen) => {
+    if (screen === FOODS) await openFoodPanel(page);
+    const text = await renderedText(page);
+    for (const name of DATABASE_NAMES)
+      if (name.test(text)) found.push(`${screen}: ${String(name)}`);
+  });
   expect(found).toEqual([]);
 });
 
