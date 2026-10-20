@@ -2,9 +2,14 @@ name: Deploy phone app to GitHub Pages
 
 # Publishes apps/mobile-web to https://thezombierobot.github.io/Diet/ (checklist item 5).
 #
-# Publishing is deliberate. A push to a work branch (named ccr-...) publishes only when its head
-# commit message contains "[deploy]"; any other push skips every job. "Run workflow" by hand also
-# publishes, but GitHub offers it only for workflows on the default branch, which holds the plan.
+# Publishing is deliberate. A push to a work branch (named ccr-...) publishes only when the
+# subject line (the first line) of its head commit message contains "[deploy]"; the marker in a
+# commit's body does not count (full review F43). Any other push runs only the marker job, which
+# says in its summary that nothing was published. Every push to a work branch starts this
+# workflow, a docs-only one too: a path filter here once meant that a docs-only "[deploy]" push
+# started no run at all and published nothing, with nothing to say so (full review F42). "Run
+# workflow" by hand also publishes, but GitHub offers it only for workflows on the default
+# branch, which holds the plan.
 #
 # Nothing is published until the build job has passed the same checks as CI: `pnpm check` (safety
 # scans, lint, type check, unit tests) and the full browser suite, `pnpm e2e`, which includes the
@@ -19,9 +24,6 @@ on:
   push:
     branches:
       - 'ccr-*'
-    paths-ignore:
-      - 'docs/**'
-      - '**/*.md'
   workflow_dispatch:
 
 permissions:
@@ -38,10 +40,33 @@ env:
   DO_NOT_TRACK: '1'
 
 jobs:
+  marker:
+    name: Is this run marked for publishing?
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      deploy: ${{ steps.marker.outputs.deploy }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: .github/scripts
+      - id: marker
+        name: Look for the deploy marker in the head commit's subject line
+        env:
+          EVENT: ${{ github.event_name }}
+          MESSAGE: ${{ github.event.head_commit.message }}
+        run: bash .github/scripts/deploy-marker.sh >> "$GITHUB_OUTPUT"
+      - name: Say when nothing is published
+        if: steps.marker.outputs.deploy != 'true'
+        run: echo 'Not published - the head commit subject line has no deploy marker.' >> "$GITHUB_STEP_SUMMARY"
+
   build:
     name: Check, test and build
+    needs: marker
     # The deploy and verify jobs need this one, so they are skipped with it.
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[deploy]')
+    if: needs.marker.outputs.deploy == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:

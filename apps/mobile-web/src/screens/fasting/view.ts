@@ -87,6 +87,11 @@ export interface FastingContext {
   /** Item 21's protein and energy for a date's meal check (mealTargets.ts), never the phase alone. */
   readonly mealTargets: (date: LocalDate) => MealTargets;
   readonly mealSources: MealSources;
+  /**
+   * A Kickstart stop-sign answer's pause holds, or a pre-start "yes" was given today (item 14;
+   * integration.ts): no fast is timed to the eating window, and it is fine to eat now (F20).
+   */
+  readonly stopSignPause: boolean;
 }
 
 export interface RunningFastView {
@@ -222,25 +227,43 @@ export type FastingView =
       readonly history: { readonly streakDays: number; readonly rows: readonly HistoryRow[] };
       readonly pharmacist: boolean;
       readonly kickstartActive: boolean;
+      /**
+       * No fast runs and the last one ended less than an hour ago, so a fast started now would
+       * join it (the 24-hour rule): Start asks first, naming when a new fast counts on its own
+       * (F21). Null otherwise.
+       */
+      readonly joinIfStartedNow: {
+        readonly endedMs: number;
+        readonly separateFromMs: number;
+      } | null;
+      /** context.stopSignPause: the cards say it is fine to eat now, with the stop-signs. */
+      readonly stopSignPause: boolean;
       readonly startVariant: 'primary' | 'secondary';
     };
 
 const iso = (ms: number): string => new Date(ms).toISOString();
 const ms = (at: string): number => Date.parse(at);
 
+/**
+ * The running fast. During a stop-sign pause it has no plan: no planned length, no window on the
+ * meter and no window to wait for, only "It's fine to eat now" (F20).
+ */
 function runningView(
   inputs: FastingInputs,
   schedule: Schedule,
   home: TimeZone,
   nowMs: number,
   deviceZone: TimeZone,
+  stopSignPause: boolean,
 ): RunningFastView | null {
   const span = runningSpan(inputs.fasts);
   const fast = inputs.fasts.find((f) => f.id === span?.fasts.at(-1)?.id);
   const first = span?.fasts[0];
   if (span === null || fast === undefined || first === undefined) return null;
   const elapsedMs = spanElapsedMs(span, nowMs);
-  const plan = runningPlan(ms(fast.startedAt), deviceZone, schedule, span.startMs, nowMs);
+  const plan = stopSignPause
+    ? null
+    : runningPlan(ms(fast.startedAt), deviceZone, schedule, span.startMs, nowMs);
   const phase = runningPhase(elapsedMs, nowMs, plan);
   const previousEnd = span.fasts.at(-2)?.endedAt ?? null;
   const zone = resolveZone(first.timeZone, home, DEFAULT_HOME_TIME_ZONE);
@@ -255,7 +278,7 @@ function runningView(
         ? null
         : Math.min(Math.max(Math.round((plan.targetEndMs - span.startMs) / 60_000), 1), 1440),
     meter: fastMeter(span, nowMs, plan),
-    endHint: fastEndHint(phase, plan),
+    endHint: stopSignPause ? { kind: 'eat-now' } : fastEndHint(phase, plan),
     joinedGapMs: previousEnd === null ? null : ms(fast.startedAt) - ms(previousEnd),
     clockBehind: clockBehind(span, nowMs),
     alcoholNote: inputs.drinks.some((d) => drinkDuringFast(d.at, span.fasts, nowMs)),
@@ -410,7 +433,7 @@ export function fastingView(
     fastingGated: context.gate.fastingGated,
     kickstart: context.kickstart,
   });
-  const running = runningView(inputs, schedule, home, nowMs, deviceZone);
+  const running = runningView(inputs, schedule, home, nowMs, deviceZone, context.stopSignPause);
   const reflux = refluxBase(inputs, home, nowMs);
   // During a fast, no window opening past 24 hours of its span is offered or timed (review).
   const ceilingMs = running === null ? null : running.span.startMs + FAST_CEILING_MS;
@@ -503,20 +526,31 @@ export function fastingView(
   if (upcomingInstance !== null && (visible.earlier || visible.split)) {
     const date = upcomingInstance.date;
     const own = hasOverride(date, schedule) ? windowOn(date, schedule) : null;
-    options = {
-      date,
-      day: upcoming?.day ?? dayOf(date, today),
-      symptomTriggered: visible.symptomTriggered,
-      earlier: visible.earlier ? earlierOption(date, schedule, deviceZone, nowMs) : null,
-      split: visible.split ? splitOption(date, schedule, deviceZone, nowMs) : null,
-      changed:
-        own === null
-          ? null
-          : {
-              window: own,
-              undoAllowed: dayWindowChangeAllowed(schedule, [{ date, window: null }], deviceZone),
-            },
-    };
+    const earlier = visible.earlier ? earlierOption(date, schedule, deviceZone, nowMs) : null;
+    const split = visible.split ? splitOption(date, schedule, deviceZone, nowMs) : null;
+    // Nothing left to offer for the date (its window has opened, say): no "Options for today"
+    // heading with nothing under it (F26).
+    options =
+      earlier === null && split === null && own === null
+        ? null
+        : {
+            date,
+            day: upcoming?.day ?? dayOf(date, today),
+            symptomTriggered: visible.symptomTriggered,
+            earlier,
+            split,
+            changed:
+              own === null
+                ? null
+                : {
+                    window: own,
+                    undoAllowed: dayWindowChangeAllowed(
+                      schedule,
+                      [{ date, window: null }],
+                      deviceZone,
+                    ),
+                  },
+          };
   }
 
   const spans = fastSpans(inputs.fasts);
@@ -551,6 +585,12 @@ export function fastingView(
           clockBehind: latest.endedAt !== null && nowMs < ms(latest.endedAt),
         };
 
+  const lastEnd = spans.at(-1)?.endMs ?? null;
+  const joinIfStartedNow =
+    running === null && lastEnd !== null && nowMs - lastEnd < SPAN_JOIN_GAP_MS
+      ? { endedMs: lastEnd, separateFromMs: lastEnd + SPAN_JOIN_GAP_MS }
+      : null;
+
   const standing = standingOn(today, schedule);
   const pattern: PatternView | null =
     schedule.standing === null || standing === null ? null : { standing, next };
@@ -573,7 +613,12 @@ export function fastingView(
     history: { streakDays: fastingStreak(inputs.fasts, today, home), rows },
     pharmacist: context.gate.pharmacistReminder,
     kickstartActive: context.kickstart.running,
-    startVariant: !noPattern && open === null && !showsReasons ? 'primary' : 'secondary',
+    joinIfStartedNow,
+    stopSignPause: context.stopSignPause,
+    startVariant:
+      !noPattern && open === null && !showsReasons && !context.stopSignPause
+        ? 'primary'
+        : 'secondary',
   };
 }
 

@@ -2,7 +2,7 @@
 // 6.3, H1 to H17): C61, C102, C108, T26, T27, T36. Pure, over the engine's view of synthetic
 // scenarios; no database.
 import { dayIntake, dayTargetsFromRecords, type DayTargetsView } from '@diet/core';
-import { alcohol, readiness, targets as copy } from '@diet/core/copy/health';
+import { alcohol, readiness, targets as copy, weight } from '@diet/core/copy/health';
 import {
   onDay,
   SCENARIO_ZONE,
@@ -62,7 +62,9 @@ describe('the first matching explanation (C61, C108; H1 to H14)', () => {
 
   it('H5: answer 2 plans at the guide with the pregnancy note and the readiness link', () => {
     const explained = energyExplanation(viewOf({ ...MALE, readiness: { q2: 'yes' } }));
-    expect(explained.lines[0]).toBe(copy.energy.readinessNoDeficit);
+    expect(explained.lines[0]).toBe(
+      'The energy deficit is off because of what you told the app about pregnancy or breastfeeding. Meals are planned at the rough guide.',
+    );
     expect(explained.lines).toContain(copy.energy.pregnancyNote);
     expect(explained.readinessLink).toBe(true);
   });
@@ -78,7 +80,7 @@ describe('the first matching explanation (C61, C108; H1 to H14)', () => {
     const q3 = energyExplanation(viewOf({ ...MALE, readiness: { q3: 'yes' } }));
     expect(q3.lines.slice(0, 2)).toEqual([
       'Steady: 15% below the rough guide.',
-      copy.energy.kickstartSuspended.readiness,
+      'Kickstart is off because of what you told the app about diabetes medication. Kickstart figures are not in use.',
     ]);
     expect(q3.readinessLink).toBe(true);
     expect(lines({ ...MALE, dietMode: 'balanced' })[1]).toBe(
@@ -88,18 +90,31 @@ describe('the first matching explanation (C61, C108; H1 to H14)', () => {
 });
 
 describe('the lines after it (T16, T27, C102; H7, H8, H15, H16)', () => {
-  it('H7: a stop-sign pause carries the HEALTH_SAFETY action with Healthline, and 111', () => {
-    const text = lines(stopSign, 20);
-    expect(text).toContain(copy.energy.kickstartSuspended['stop-sign']);
-    expect(text).toContain(copy.stopSign.action);
-    expect(text.join(' ')).toContain('0800 611 116');
-    expect(text).toContain('In an emergency, call 111.');
+  it('H7, F36: a stop-sign pause carries item 14’s one wording of the action and 111, then the 111 and Healthline rows', () => {
+    const explained = energyExplanation(viewOf(stopSign, 20));
+    expect(explained.lines).toContain(copy.energy.kickstartSuspended['stop-sign']);
+    expect(explained.lines).toContain(weight.stopSigns.action);
+    expect(explained.lines).toContain('Call 111 if you faint or feel very unwell.');
+    expect(explained.stopSignRows).toBe(true);
+    expect(energyExplanation(viewOf(MALE, 20)).stopSignRows).toBe(false);
+  });
+
+  it('F4: after End Kickstart on the stop-sign day, no deficit until its scheduled last day, and why', () => {
+    const ended = { ...MALE, periods: [{ startDay: 1, stopSignOnDay: 20, endOnDay: 20 }] };
+    const view = viewOf(ended, 21);
+    expect(view.targets.deficit.basis).toBe('none-stop-sign');
+    const explained = energyExplanation(view);
+    expect(explained.lines[0]).toBe(
+      'Because of the stop-sign you reported, no deficit is planned until the end of 21 February 2000, the day this Kickstart was due to finish. After that the app plans with the Steady deficit.',
+    );
+    expect(explained.lines).toContain(weight.stopSigns.action);
+    expect(explained.stopSignRows).toBe(true);
   });
 
   it('H8: with answer 4 unanswered, the blood-pressure wording replaces the salt line', () => {
     const text = lines({ ...stopSign, readiness: { q4: null } }, 20);
     expect(text).toContain(readiness.bloodPressure.stopSign);
-    expect(text).not.toContain(copy.stopSign.action);
+    expect(text).not.toContain(weight.stopSigns.action);
   });
 
   it('H15, H16: an older weigh-in asks for a new one; the alcohol line is last, only where alcohol is logged', () => {

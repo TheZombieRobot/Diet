@@ -15,6 +15,10 @@
  *   fine to eat now, and when the plan is capped at the 24-hour point it says it is fine to widen
  *   the window. A window open now that ends past the 24-hour point is named without its end, and
  *   a next window that opens past it is not named: the line says it is fine to widen the window.
+ * - After a Kickstart stop-sign answer (item 14's stopSignPauseUntil, or a pre-start "yes" that
+ *   day), no window time is named at all: the line says it is fine to eat now, as the stop-sign
+ *   card says to eat, add salt and fluids (HEALTH_SAFETY sections 2 and 3; F20). The over-24-hours
+ *   sentence and the gated line still come first.
  */
 import { FAST_CEILING_MS, runningPlan } from '../fasting/fastPlan';
 import {
@@ -65,7 +69,10 @@ export type TodayStatus =
       readonly elapsedMinutes: number;
       readonly window: StatusWindow | null;
     }
-  | { readonly kind: 'not-fasting'; readonly window: ClockWindow };
+  | {
+      readonly kind: 'not-fasting';
+      readonly window: ClockWindow | { readonly kind: 'eat-now' };
+    };
 
 export interface TodayStatusInput {
   readonly now: Instant;
@@ -77,6 +84,8 @@ export interface TodayStatusInput {
   readonly schedule: Schedule;
   /** The stored fasts (item 15's runningSpan finds the running one). */
   readonly fasts: readonly FastTimes[];
+  /** A Kickstart stop-sign answer's pause holds, or a pre-start "yes" was given today (F20). */
+  readonly stopSignPause: boolean;
 }
 
 const iso = (ms: number): Instant => new Date(ms).toISOString();
@@ -137,10 +146,13 @@ export function todayStatus(input: TodayStatusInput): TodayStatus {
     return {
       kind: 'fasting',
       elapsedMinutes,
-      window: runningWindow(span, elapsedMs, nowMs, timeZone, schedule),
+      window: input.stopSignPause
+        ? { kind: 'eat-now' }
+        : runningWindow(span, elapsedMs, nowMs, timeZone, schedule),
     };
   }
   if (input.fastingGated || schedule.standing === null) return { kind: 'none' };
+  if (input.stopSignPause) return { kind: 'not-fasting', window: { kind: 'eat-now' } };
   const open = openWindowAt(nowMs, timeZone, schedule);
   if (open !== null)
     return { kind: 'not-fasting', window: { kind: 'open-until', at: iso(open.endMs) } };

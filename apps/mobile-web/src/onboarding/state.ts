@@ -2,8 +2,8 @@
  * What the first-run guard and every gated screen read (item 13 design sections 3.1 and 6.1):
  * the settings row, the readiness rows, the profile and the weigh-ins, live. The gates come only
  * from core readinessGates through weightGateInput (gateInputFromRecords fed item 14's current
- * weight: the lower of the 7-day average and the latest weigh-in), so the guard, every gated
- * screen and the weight screens agree (C54; section 9.1 rules 1 and 2; HS-35).
+ * weight: the lowest of the 7-day average, the latest day's mean and the latest weigh-in), so the
+ * guard, every gated screen and the weight screens agree (C54; section 9.1 rules 1 and 2; HS-35).
  */
 import {
   gateCurrentWeightKg,

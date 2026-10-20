@@ -12,6 +12,7 @@ import type { OpenStatus } from './db';
 import { deleteAllData } from './deleteAll';
 import { StorageClosedError } from './errors';
 import { pendingCheckStore, setPendingCheck } from '../screens/backup/pendingCheck';
+import { preStartStopSignStore } from '../screens/weight/preStartCheck';
 import { createWriteGate, openTabChannel } from './gate';
 import { readGeneration } from './generation';
 import { decodeImport, type ImportPlan, planImport, writeImport } from './importBackup';
@@ -143,39 +144,50 @@ describe('the lock primitives (locks.ts)', () => {
 });
 
 describe('restore and delete-all against another tab (section 7.5; data-loss review)', () => {
-  it('a restore waits for a busy tab to stop writing: the records afterwards are exactly the file', async () => {
+  it('a restore waits for a busy tab to stop writing; what it wrote since the confirmation stops the write (F12), and the next Replace leaves exactly the file', async () => {
     const test = await openTestDb();
     const locks = locksFor(test.deps.indexedDB);
     const plan = await planFor(test);
     const other = await busyTab(test, locks, 30);
-    const outcome = await writeImport(test.db, plan, test.env, {
+    let stopped = false;
+    void other.done.then(() => {
+      stopped = true;
+    });
+    const deps = {
       postGate: other.tell,
       locks,
       requestPersistentStorage: () => Promise.resolve(),
       reload: () => undefined,
-    });
-    expect(outcome).toEqual({ ok: true });
-    expect(await other.done).toBeGreaterThan(0);
-    expect(await backupSnapshot(test.db)).toEqual(plan.snapshot);
+    };
+    const first = await writeImport(test.db, plan, test.env, deps);
+    // The write ran only once the busy tab had let go, and found its weigh-ins: nothing replaced.
+    expect(stopped).toBe(true);
+    expect(first).toMatchObject({ ok: false, blocked: false, changed: true });
+    const written = await other.done;
+    expect(written).toBeGreaterThan(0);
+    expect((await backupSnapshot(test.db)).weights).toHaveLength(written);
+
+    const again = await planImport(test.db, plan.decoded);
+    expect(again.confirmation.exportFirst).toBe(true);
+    expect(await writeImport(test.db, again, test.env, deps)).toEqual({ ok: true });
+    expect(await backupSnapshot(test.db)).toEqual(again.snapshot);
     test.db.shutDown();
   });
 
-  it('control: without the lock, the same busy tab writes on top of the restored records', async () => {
+  it('control: without the lock, a tab that has not noticed writes on top of the restored records', async () => {
     const test = await openTestDb();
     const plan = await planFor(test);
-    // A tab that has not noticed yet: it is stopped only once it has written after the restore,
-    // so the control does not depend on how fast the machine is.
-    const other = await busyTab(test, null, null);
     const outcome = await writeImport(test.db, plan, test.env, {
-      postGate: other.tell,
+      postGate: () => undefined,
       locks: null,
       requestPersistentStorage: () => Promise.resolve(),
       reload: () => undefined,
     });
     expect(outcome).toEqual({ ok: true });
-    const afterRestore = other.writes();
+    // The tab never got the message and holds no lock: nothing stops it writing now.
+    const other = await busyTab(test, null, null);
     await vi.waitFor(() => {
-      expect(other.writes()).toBeGreaterThan(afterRestore + 1);
+      expect(other.writes()).toBeGreaterThan(1);
     });
     other.stop();
     await other.done;
@@ -243,7 +255,11 @@ describe('restore and delete-all against another tab (section 7.5; data-loss rev
 });
 
 describe('startStorage holds the lock and listens for other tabs (runtime.ts)', () => {
-  async function start(deps = freshDeps(), locks = locksFor(deps.indexedDB)) {
+  async function start(
+    deps = freshDeps(),
+    locks = locksFor(deps.indexedDB),
+    platform = testPlatform(),
+  ) {
     const status = createStore<OpenStatus>('opening');
     const store = createStore<AppStorage | null>(null);
     const started = await startStorage({
@@ -252,7 +268,7 @@ describe('startStorage holds the lock and listens for other tabs (runtime.ts)', 
       locks,
       gate: createWriteGate(),
       status,
-      platform: testPlatform(),
+      platform,
       store,
     });
     cleanups.push(() => started.channel?.stop());
@@ -282,6 +298,27 @@ describe('startStorage holds the lock and listens for other tabs (runtime.ts)', 
       granted: true,
       value: 'ok',
     });
+  });
+
+  it('HS-30 in another tab (F8): its delete-all clears this tab’s session storage and the pre-start answer it holds; a restore leaves them', async () => {
+    const session = memoryStorage({ 'example-key': 'example value' });
+    const deps = freshDeps();
+    const platform = testPlatform({ sessionStorage: () => session });
+    const tab = await start(deps, locksFor(deps.indexedDB), platform);
+    preStartStopSignStore.set('2000-02-01');
+    const other = openTabChannel(() => undefined);
+    cleanups.push(other.stop);
+    other.post('import');
+    await vi.waitFor(() => {
+      expect(tab.status.get()).toBe('reload-needed');
+    });
+    expect(session.length).toBe(1);
+    expect(preStartStopSignStore.get()).toBe('2000-02-01');
+    other.post('delete-all');
+    await vi.waitFor(() => {
+      expect(session.length).toBe(0);
+    });
+    expect(preStartStopSignStore.get()).toBeNull();
   });
 
   it('a restore in a started tab first gives up that tab’s own shared lock, so it is not blocked by itself', async () => {

@@ -151,6 +151,17 @@ test('the built service worker loads and caches only the app’s own files, by r
   expect(precacheUrls).toEqual(expect.arrayContaining(['index.html', 'manifest.webmanifest']));
   expect(precacheUrls.some((u) => /^assets\/index-[\w-]+\.js$/.test(u))).toBe(true);
   for (const url of precacheUrls) expect(existsSync(join(DIST_DIR, url)), url).toBe(true);
+  // Every built chunk is in it too: the app's own, "vendor" and jsQR (full review F44).
+  const assets = filesUnder(join(DIST_DIR, 'assets')).map((f) => relative(DIST_DIR, f));
+  expect(precacheUrls).toEqual(expect.arrayContaining(assets));
+});
+
+test("the app's files carry none of the storage tests' synthetic rows", () => {
+  // The id of the validator vectors (core storage/validatorVectors.ts), which only tests read.
+  const found = filesUnder(DIST_DIR).filter((file) =>
+    readFileSync(file, 'utf8').includes('00000000-0000-4000-8000-000000000a01'),
+  );
+  expect(found.map((file) => relative(DIST_DIR, file))).toEqual([]);
 });
 
 test('every absolute URL in the built files is an inert string on the allowlist', () => {

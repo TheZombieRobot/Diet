@@ -109,6 +109,10 @@ describe('transaction-scope scan (section 8.5)', () => {
         return Dexie.Promise.all(ops).then(() => undefined);
       });
       db.version(2).stores({}).upgrade((tx) => tx.table('a').toArray().then((rows) => rows));
+      /** @transactionScope A rule chosen at run time, tagged where it is declared. */
+      const check = rules.check ?? noCheck;
+      db.transaction('rw', ['weights'], () =>
+        Dexie.Promise.all([check(row), db.weights.toArray(), db.table('a').count()]));
       const outside = async () => { await crypto.subtle.digest('SHA-256', data); };
       const obj = { crypto: 1, window: 2 };`;
     expect(scanTransactionScopes('fixture.ts', fixture)).toEqual([]);
@@ -149,7 +153,10 @@ describe('transaction-scope scan (section 8.5)', () => {
       function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
       function pause() { return sleep(0); }
       db.transaction('rw', ['weights'], () => db.weights.clear().then(() => pause()));`;
-    expect(rules(scanTransactionScopes('fixture.ts', sleep))).toEqual(['forbidden-name']);
+    expect(rules(scanTransactionScopes('fixture.ts', sleep)).sort()).toEqual([
+      'forbidden-name',
+      'non-dexie-promise',
+    ]);
     const swallow = `
       const helpers = { add: (db, rows) => db.weights.bulkAdd(rows).catch(() => undefined) };
       db.transaction('rw', ['weights'], () => helpers.add(db, rows));`;
@@ -176,6 +183,64 @@ describe('transaction-scope scan (section 8.5)', () => {
     );
     // Without the project's files the imported helper is out of sight.
     expect(scanTransactionScopes('fixture.ts', fixture)).toEqual([]);
+  });
+
+  it('F17: follows a scope passed by an imported name (a WebCrypto wait inside it is reported)', () => {
+    const helper = `
+      export function writeAll(rows) {
+        return crypto.subtle.digest('SHA-256', new Uint8Array(1)).then(() => db.weights.bulkAdd(rows));
+      }`;
+    const resolver: ModuleResolver = (_from, specifier) =>
+      specifier === './helper' ? { file: 'helper.ts', text: helper } : null;
+    const fixture = `
+      import { writeAll } from './helper';
+      db.transaction('rw', ['weights'], writeAll);`;
+    expect(rules(scanTransactionScopes('fixture.ts', fixture, resolver)).sort()).toEqual([
+      'forbidden-name',
+      'then-receiver',
+    ]);
+  });
+
+  it.each([
+    [
+      'a Blob read given to Dexie.Promise.all',
+      'Dexie.Promise.all([db.transfer_pairings.clear(), new Blob([]).arrayBuffer()])',
+      ['non-dexie-promise'],
+    ],
+    [
+      'a non-request mapped into Dexie.Promise.all',
+      'Dexie.Promise.all(names.map((name) => later(name)))',
+      ['non-dexie-promise'],
+    ],
+    [
+      'a database method that is not a store request',
+      'db.waitForPersist().then(() => db.weights.clear())',
+      ['then-receiver'],
+    ],
+    [
+      'the global Promise',
+      'Promise.resolve().then(() => db.weights.clear())',
+      ['non-dexie-promise', 'then-receiver'],
+    ],
+    [
+      'a new Promise',
+      'new Promise((resolve) => resolve(db.weights.clear()))',
+      ['non-dexie-promise'],
+    ],
+    [
+      'caches through globalThis',
+      'Dexie.Promise.resolve(globalThis.caches.keys())',
+      ['forbidden-name'],
+    ],
+    [
+      'a global reached by element access',
+      "Dexie.Promise.resolve(globalThis['cach' + 'es'].keys())",
+      ['forbidden-name'],
+    ],
+    ['a MessageChannel', 'db.weights.clear().then(() => new MessageChannel())', ['forbidden-name']],
+  ])('F17: reports %s inside a scope', (_name, body, expected) => {
+    const fixture = `db.transaction('rw', ['weights'], () => ${body});`;
+    expect(rules(scanTransactionScopes('fixture.ts', fixture)).sort()).toEqual(expected);
   });
 
   it('catches the mutations from the review of the real code: an awaiting store rule (G1), a swallowed garden removal (G2), and an import write through an async helper (G3)', () => {

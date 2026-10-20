@@ -198,8 +198,10 @@ describe('readiness answers (RD-01 to RD-06, T25, T26, T36; K17, K17b, K23)', ()
     expect(screen.queryByRole('combobox', { name: profile.activityLegend })).toBeNull();
     expect(screen.queryByRole('combobox', { name: copy.energy.kickstartDeficitLabel })).toBeNull();
     expect(screen.queryByRole('combobox', { name: copy.energy.steadyDeficitLabel })).toBeNull();
-    expect(energyText()).toContain(copy.energy.deficitOff);
-    expect(region(copy.carbs.label).textContent).toContain(copy.carbs.off);
+    expect(energyText()).toContain(
+      'The energy deficit is off because of what you told the app about being under 18.',
+    );
+    expect(region(copy.carbs.label).textContent).toContain(copy.carbs.offShown);
     expect(region(copy.protein.label).textContent).toContain(copy.protein.plainNote);
     expect(
       within(region(copy.energy.label)).getByRole('link', { name: /^Readiness answers/ }),
@@ -223,15 +225,39 @@ describe('readiness answers (RD-01 to RD-06, T25, T26, T36; K17, K17b, K23)', ()
 
   it('answer 2: no deficit, ceilings off, the pregnancy note; the mode options say no ceiling for now (K23)', async () => {
     await show({ ...MALE, readiness: { q2: 'yes' } });
-    expect(energyText()).toContain(copy.energy.deficitOff);
+    expect(energyText()).toContain(
+      'The energy deficit is off because of what you told the app about pregnancy or breastfeeding.',
+    );
     expect(energyText()).toContain(copy.energy.pregnancyNote);
-    expect(region(copy.carbs.label).textContent).toContain(copy.carbs.off);
+    expect(region(copy.carbs.label).textContent).toContain(
+      'The keto carb ceiling is off because of what you told the app about pregnancy or breastfeeding.',
+    );
     expect(radio(copy.dietMode.names.keto).closest('label')?.textContent).toContain(
       copy.dietMode.details.ceilingOff,
     );
     expect(radio(copy.dietMode.names['moderate-low-carb']).closest('label')?.textContent).toContain(
       copy.dietMode.details.ceilingOff,
     );
+  });
+
+  it('F31: a low weight, or the birth year, is the reason named; never "your readiness questions" or "answers"', async () => {
+    // 185 cm with every answer No: 60 kg is below BMI 18.5.
+    await show({ ...MALE, startKg: 60 });
+    expect(energyText()).toContain(
+      'The energy deficit is off because of what you told the app about your current weight. Meals are planned at the rough guide.',
+    );
+    const carbsAndMode = `${region(copy.carbs.label).textContent} ${region(copy.dietMode.label).textContent}`;
+    expect(carbsAndMode).toContain(
+      'The keto carb ceiling is off because of what you told the app about your current weight.',
+    );
+    expect(document.body.textContent).not.toMatch(/readiness questions|your readiness answers/);
+    cleanup();
+    test?.db.shutDown();
+    await show({ ...MALE, profile: { ...MALE.profile, birthYear: 1982 } });
+    expect(energyText()).toContain(
+      'The energy deficit is off because of what you told the app about your birth year.',
+    );
+    expect(document.body.textContent).not.toMatch(/readiness questions|your readiness answers/);
   });
 
   it('answer 3 without the prescriber: Kickstart unavailable, keto held at 50 g, the Steady deficit still offered', async () => {

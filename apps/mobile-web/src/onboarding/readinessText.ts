@@ -1,5 +1,7 @@
 /** Readiness wording put together from health.ts (item 13 design sections 3.6, 3.7 and 3.13). */
 import {
+  type DietMode,
+  featureGateOf,
   fillTemplate,
   type GatedFeature,
   type GateInput,
@@ -7,6 +9,7 @@ import {
   type ReadinessGates,
   type ReadinessQuestionId,
   type ReadinessReasonId,
+  reasonStates,
 } from '@diet/core';
 import { readiness } from '@diet/core/copy/health';
 
@@ -56,14 +59,30 @@ export function featureOffReasonsText(
 }
 
 /**
+ * Why a feature is off, from the gate's own reasons (F31): the sentence the gate notices use, so a
+ * low weight or the birth year is never put down to the readiness answers.
+ */
+export function featureOffReasonsFor(
+  feature: GatedFeature,
+  input: GateInput,
+  gates: ReadinessGates,
+): string {
+  const { stated, unanswered } = reasonStates(input, featureGateOf(gates, feature).reasons);
+  return featureOffReasonsText(feature, stated, unanswered);
+}
+
+/**
  * The consequence of a yes to one question, or the confirmed wording for 3 and 6 (D29). Each
  * answer's line is checked against the gates, so it never says a feature is on, can be chosen or
- * will come on with a confirmation while another answer (or the birth year or weight) keeps it off.
+ * will come on with a confirmation while another answer (or the birth year or weight) keeps it off;
+ * and answer 3's line never speaks of low-carb meals in Balanced mode, which has no carb ceiling
+ * (F34).
  */
 export function consequenceText(
   question: ReadinessQuestionId,
   input: GateInput,
   gates: ReadinessGates,
+  dietMode: DietMode,
 ): string {
   if (question === 'q3' && input.confirmations.prescriberAgreed) {
     return gates.kickstartAvailable
@@ -76,6 +95,7 @@ export function consequenceText(
   if (question === 'q1' && !gates.exercisePlansAvailable) return readiness.ifYesAlsoOff.q1;
   // Answer 3 alone keeps the deficit and a carb ceiling of at least 50 g; the other closers do not.
   if (question === 'q3' && !gates.deficitAllowed) return readiness.ifYesAlsoOff.q3;
+  if (question === 'q3' && dietMode === 'balanced') return readiness.ifYesBalanced.q3;
   return readiness.ifYes[question];
 }
 

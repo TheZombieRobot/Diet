@@ -63,7 +63,9 @@ describe('the day’s figures (WT-06, WT-07; K6, K7)', () => {
     expect(value(copy.today.fibre)).toBe('0 of 30 g guide');
     expect(value(copy.today.netCarbs)).toBe('0 / 20 g');
     expect(value(copy.today.satFat)).toBe('0 / 27 g');
-    expect(notes()).toContain(copy.today.nothingLogged);
+    // F24: the zeros say food logging is not built yet, never that nothing was eaten.
+    expect(notes()).toContain(copy.today.laterStep);
+    expect(card().textContent).not.toMatch(/nothing logged/i);
     expect(within(card()).getByText(copy.dietMode.names.keto)).toBeTruthy();
   });
 
@@ -117,7 +119,7 @@ describe('alcohol as its own part (C11, NN-01, T16; K9, K12)', () => {
   const evening = (time: string, day = '2000-02-10') =>
     new Date(`${day}T${time}:00+13:00`).toISOString();
 
-  it('C11: six cans show as "Alcohol 2,360 kJ" beside the food; protein and carbs are unchanged', async () => {
+  it('HS-36, C11: six cans show as "Alcohol 2,360 kJ" beside the food; protein and carbs are unchanged', async () => {
     await show(MALE, { food, drinks: [drink(evening('08:00'), 6)], time: '09:00' });
     expect(value(copy.today.energy)).toBe('9,360 of 10,162 kJ');
     const alcoholLines = [...card().querySelectorAll('[data-part="alcohol"]')].map(
@@ -238,7 +240,7 @@ describe('one clock for the whole card (T30; D14)', () => {
     await waitFor(() => {
       expect(value(copy.today.energy)).toBe('0 of 10,162 kJ');
     });
-    expect(notes()).toContain(copy.today.nothingLogged);
+    expect(notes()).toContain(copy.today.laterStep);
   });
 });
 

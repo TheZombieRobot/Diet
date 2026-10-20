@@ -88,3 +88,14 @@ describe('the Kickstart state agrees with the phase engine (C08, C56; U26)', () 
     expect(view.targets).toMatchObject({ figures: 'steady', kickstartSuspended: 'stop-sign' });
   });
 });
+
+describe('a stop-sign pause outlasts an early end (F4; HEALTH_SAFETY section 4, T27)', () => {
+  it('stop-sign at 8:00 on day 20, End at 12:00: no deficit that afternoon or on day 21; Steady from day 22', () => {
+    const ended = { ...K42, periods: [{ startDay: 1, stopSignOnDay: 20, endOnDay: 20 }] };
+    const day20 = seen(ended, 20, '13:00');
+    expect(day20.view.kickstart).toEqual({ running: false, stopSignPauseUntil: '2000-02-21' });
+    expect(day20.view.targets.deficit).toEqual({ pct: 0, basis: 'none-stop-sign' });
+    expect(seen(ended, 21).view.targets.deficit.basis).toBe('none-stop-sign');
+    expect(seen(ended, 22, '00:30').view.targets.deficit).toEqual({ pct: 15, basis: 'steady' });
+  });
+});

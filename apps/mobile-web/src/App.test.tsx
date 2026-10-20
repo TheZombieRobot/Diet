@@ -144,11 +144,12 @@ describe('every screen', () => {
 });
 
 describe('placeholder screens (no sample data)', () => {
-  // Today (item 16), About, the setup screens (item 13), the Weight screen (item 14), the Fasting
-  // screen (item 15), Foods in the app (item 18), Diet and targets (item 21) and Laptop
+  // Today (item 16), Settings and About, the setup screens (item 13), the Weight screen (item 14),
+  // the Fasting screen (item 15), Foods in the app (item 18), Diet and targets (item 21) and Laptop
   // pairing (item 30) are built; the rest still say they arrive later.
   const built: readonly RouteId[] = [
     'today',
+    'settings',
     'about',
     'readiness',
     'profile',
@@ -171,6 +172,17 @@ describe('placeholder screens (no sample data)', () => {
       expect(text).not.toMatch(/[$€£]/);
     },
   );
+
+  it('F33: Settings, a built screen, says only which settings come later, not that the screen is unbuilt or empty', async () => {
+    await show('settings');
+    const text = main().textContent;
+    expect(text).not.toContain('This screen arrives at a later step');
+    expect(text).not.toContain('Nothing is recorded here yet');
+    const later = within(main()).getByRole('region', { name: 'Coming later' });
+    expect([...later.querySelectorAll('p')].map((p) => p.textContent)).toEqual([
+      today.laterStep.settings,
+    ]);
+  });
 
   it('settings shows no numbers or prices with the install offer open', async () => {
     stopListening = listenForInstallPrompt(window);
@@ -417,6 +429,8 @@ describe('update banner (PWA-05)', () => {
     });
     const banner = within(main()).getByText('Update available').closest('[role="status"]');
     expect(banner).not.toBeNull();
+    // Saved records stay; what is typed and not saved does not (F27).
+    expect(banner?.textContent).toContain('anything typed and not yet saved is lost');
     await act(async () => {
       fireEvent.click(within(banner as HTMLElement).getByRole('button', { name: 'Reload' }));
       await Promise.resolve();

@@ -59,6 +59,22 @@ describe('seeded violations in a throwaway repository', () => {
     expect(scanHistory(root)).toEqual([]);
   });
 
+  it('a shallow clone fails loudly instead of passing on part of the history (F47)', () => {
+    commitAll('Clean start');
+    write('src/a.ts', 'export const a = 1;\n');
+    commitAll('Second');
+    const shallow = mkdtempSync(join(tmpdir(), 'diet-scan-shallow-'));
+    try {
+      execFileSync('git', ['clone', '-q', '--depth', '1', `file://${root}`, shallow], {
+        stdio: 'pipe',
+        env: gitEnv(),
+      });
+      expect(() => scanHistory(shallow)).toThrow(/shallow/);
+    } finally {
+      rmSync(shallow, { recursive: true, force: true });
+    }
+  });
+
   // The pre-commit hook runs these tests. Inside a hook, git exports GIT_DIR, GIT_INDEX_FILE and
   // GIT_WORK_TREE, which in a linked worktree point at the real repository; the throwaway
   // repository must still be the one that is read and written.

@@ -120,7 +120,7 @@ describe('seed corrections merged at read time (section 4.7; D2; section 16 test
     ).toThrow(RangeError);
   });
 
-  it('HS-24: a seed that gains tree-nut in a later dataset still warns, though the override changed only its pack size', () => {
+  it('C43: a seed that gains tree-nut in a later dataset still warns, though the override changed only its pack size', () => {
     const correction = override('seed:example-food', [
       { field: 'packSizes', value: { packSizesG: [300], enteredAt: T } },
     ]);

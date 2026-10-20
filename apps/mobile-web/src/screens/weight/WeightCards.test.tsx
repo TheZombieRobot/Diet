@@ -2,7 +2,13 @@
 // a stop-sign answer after the card was hidden (HS-27, W22, W33), the start card (W14, W31), the
 // explanation of the Steady flip and the 22:2 move (WT-08, C55). jsdom over the real repositories
 // on fake-indexeddb, seeded with synthetic scenarios.
-import { READINESS_WORDING, readinessGates, weightGateInput } from '@diet/core';
+import {
+  PRE_START_STOP_SIGN_CARD,
+  preStartTrigger,
+  READINESS_WORDING,
+  readinessGates,
+  weightGateInput,
+} from '@diet/core';
 import { readiness, weight } from '@diet/core/copy/health';
 import {
   onDay,
@@ -14,7 +20,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testi
 import { afterEach, describe, expect, it } from 'vitest';
 import { openSnapshotDb, type TestDb } from '../../db/testKit';
 import { reconcileKickstart } from './kickstartActions';
-import { preStartStopSignStore } from './preStartCheck';
+import { preStartSeenStore, preStartStopSignStore } from './preStartCheck';
 import { presetMovedStore, weightStatusStore } from './stores';
 import { currentWeightEnv, overviewInputFrom, readWeightInputs } from './useWeightView';
 import { WeightCard } from './WeightCard';
@@ -27,6 +33,7 @@ afterEach(() => {
   weightStatusStore.set(null);
   presetMovedStore.set(null);
   preStartStopSignStore.set(null);
+  preStartSeenStore.set(null);
   test?.db.shutDown();
   test = undefined;
 });
@@ -222,6 +229,49 @@ describe('starting a Kickstart chosen at setup (W14, W31)', () => {
     );
   });
 
+  it('F6, F8, F18: the "yes" is a record: a page that never saw it (another tab, the app opened again) shows its guidance until OK in any page, and refuses a start all that day', async () => {
+    const db = await today(WEIGHT_SCENARIOS.PENDING, 1);
+    fireEvent.click(
+      within(region(weight.start.pendingLabel)).getByRole('button', {
+        name: weight.start.pendingAction,
+      }),
+    );
+    answer(weight.check.faintAtWork);
+    fireEvent.click(screen.getByRole('button', { name: weight.check.confirmStart }));
+    await screen.findByText(weight.start.stopSign);
+    await waitFor(async () => {
+      expect(
+        await db.repos.cardState.get(PRE_START_STOP_SIGN_CARD, preStartTrigger('2000-02-01')),
+      ).toMatchObject({ firstShownAt: db.env.now(), dismissedAt: null });
+    });
+
+    /** Another page on the same records: nothing held in memory. */
+    const otherPage = async () => {
+      cleanup();
+      preStartStopSignStore.set(null);
+      preStartSeenStore.set(null);
+      render(<WeightCard storage={db.storage} />);
+      await screen.findByRole('region', { name: weight.card.label });
+    };
+    await otherPage();
+    const guidance = (await screen.findByText(weight.start.stopSign)).closest('section');
+    fireEvent.click(
+      within(guidance as HTMLElement).getByRole('button', { name: weight.steadyExplainer.ok }),
+    );
+    await waitFor(async () => {
+      expect(
+        (await db.repos.cardState.get(PRE_START_STOP_SIGN_CARD, preStartTrigger('2000-02-01')))
+          ?.dismissedAt,
+      ).toBe(db.env.now());
+    });
+    await otherPage();
+    expect(screen.queryByText(weight.start.stopSign)).toBeNull();
+    const overview = weightOverview(
+      overviewInputFrom(await readWeightInputs(db.storage), currentWeightEnv(db.storage)),
+    );
+    expect(overview.kickstart.start).toEqual({ available: false, reason: 'stop-sign-today' });
+  });
+
   it('four "no": the period, the carb-ceiling start and the 23:1 Kickstart window, each said', async () => {
     const db = await today({ ...WEIGHT_SCENARIOS.PENDING, targets: {} }, 1);
     fireEvent.click(
@@ -260,6 +310,22 @@ describe('starting a Kickstart chosen at setup (W14, W31)', () => {
       expect(statusLine()).toContain(weight.start.unavailableGated);
     });
     expect(await db.repos.kickstart.listPeriods()).toEqual([]);
+  });
+
+  it('F35: the offer is true to what a start plans: no "bigger deficit" at 0%, no Kickstart figures without a rough guide', async () => {
+    const { PENDING } = WEIGHT_SCENARIOS;
+    const offer = () => region(weight.start.pendingLabel).textContent;
+    await today(PENDING, 1);
+    expect(offer()).toContain(weight.start.offer);
+    cleanup();
+    test?.db.shutDown();
+    await today({ ...PENDING, targets: { ...PENDING.targets, kickstartDeficitPct: 0 } }, 1);
+    expect(offer()).toContain(weight.start.offerNoDeficit);
+    expect(offer()).not.toContain('bigger deficit');
+    cleanup();
+    test?.db.shutDown();
+    await today({ ...PENDING, heightCm: null }, 1);
+    expect(offer()).toContain(weight.start.offerNoGuide);
   });
 
   it('"Not now" clears the choice and says a Kickstart can start later', async () => {

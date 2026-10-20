@@ -53,7 +53,7 @@ export const OVERLAY_MS = 60_000;
 const card = fasting.card;
 
 /** Where focus goes after an action replaces the pressed button. */
-type FocusTarget = 'started' | 'ended' | 'start' | 'end';
+type FocusTarget = 'started' | 'ended' | 'start' | 'end' | 'join';
 
 /** The plain link to the Fasting screen, last on every Today card. */
 function DetailsLink(): ReactElement {
@@ -86,7 +86,9 @@ export function AnswerThreeLine({ state }: { readonly state: FastingState }): Re
   const { gateView } = state;
   const { stated } = reasonStates(gateView.input, featureGateOf(gateView.gates, 'fasting').reasons);
   if (!stated.includes('diabetes-medication')) return null;
-  return <p>{consequenceText('q3', gateView.input, gateView.gates)}</p>;
+  return (
+    <p>{consequenceText('q3', gateView.input, gateView.gates, state.inputs.profile.dietMode)}</p>
+  );
 }
 
 /** The card shown when the fasting records cannot be read (design 3.4): reload, and the help rows. */
@@ -333,6 +335,7 @@ export function FastCard({
   const [madeEnd, setMadeEnd] = useState<string | null>(null);
   const [noteFor, setNoteFor] = useState<{ id: string; text: string } | null>(null);
   const [noteSaved, setNoteSaved] = useState(false);
+  const [askingJoin, setAskingJoin] = useState(false);
   // After End, Start or an Undo the pressed button is gone, so focus moves to what took its place
   // (the overlay line, or the main button again) at the first render that draws it (design 3.9;
   // item 15 review). The write's own re-render and the records' update both come after the tap.
@@ -418,7 +421,17 @@ export function FastCard({
   }
 
   const pill = view.pattern === null ? null : patternPill(view.pattern.standing);
-  const pharmacist = view.pharmacist ? <p>{fasting.pharmacist}</p> : null;
+  // On the Fasting screen the Eating pattern card carries this line, so it shows once (F38).
+  const pharmacist = view.pharmacist && today ? <p>{fasting.pharmacist}</p> : null;
+  // After a Kickstart stop-sign answer: no window to wait for, and the fasting stop-signs (F20).
+  const stopSignPause = (
+    <>
+      <Notice role="status">
+        <p>{card.stopSignPause}</p>
+      </Notice>
+      <StopSignsRow />
+    </>
+  );
 
   const startedOverlay =
     running !== null &&
@@ -559,11 +572,12 @@ export function FastCard({
             <p>{card.windowOpen}</p>
           </Notice>
         ) : null}
-        {phase === 'near-ceiling' ? (
+        {phase === 'near-ceiling' && !view.stopSignPause ? (
           <Notice tone="info" role="status">
             <p>{card.nearCeiling}</p>
           </Notice>
         ) : null}
+        {view.stopSignPause && phase !== 'over-ceiling' ? stopSignPause : null}
         {phase === 'over-ceiling' ? (
           <>
             <Notice role="status">
@@ -604,31 +618,74 @@ export function FastCard({
     const idle = view.idle;
     const next = idle?.next ?? null;
     const openUntil = idle?.openUntil ?? null;
-    const startButton = (
-      <>
-        <Button
-          id={`${ids}-start`}
-          variant={view.startVariant}
-          block
-          disabled={start.busy}
-          onClick={() => {
-            void start
-              .run(() => startFast(storage, state.inputs.fasts, view.schedule))
-              .then((done) => {
-                if (done !== null) {
-                  setMadeStart(done.value.id);
-                  setNoteFor(null);
-                  setNoteSaved(false);
-                  setFocusTo('started');
-                }
-              });
-          }}
-        >
-          {card.start}
-        </Button>
-        <ActionError action={start} />
-      </>
-    );
+    const runStart = () => {
+      void start
+        .run(() => startFast(storage, state.inputs.fasts, view.schedule))
+        .then((done) => {
+          if (done !== null) {
+            setMadeStart(done.value.id);
+            setNoteFor(null);
+            setNoteSaved(false);
+            setFocusTo('started');
+          }
+        });
+    };
+    const join = view.joinIfStartedNow;
+    const startButton =
+      askingJoin && join !== null ? (
+        // Less than an hour after the last fast ended: say it would join, and when it would not
+        // (the 24-hour rule is unchanged; F21).
+        <Notice>
+          <p id={`${ids}-join`} tabIndex={-1}>
+            {fillTemplate(card.joinAsk, {
+              end: clockAt(join.endedMs, state.deviceTimeZone),
+              time: clockAt(join.separateFromMs, state.deviceTimeZone),
+            })}
+          </p>
+          <ButtonRow>
+            <Button
+              variant="secondary"
+              disabled={start.busy}
+              onClick={() => {
+                setAskingJoin(false);
+                runStart();
+              }}
+            >
+              {card.joinAskStart}
+            </Button>
+            <Button
+              variant="quiet"
+              onClick={() => {
+                setAskingJoin(false);
+                setFocusTo('start');
+              }}
+            >
+              {card.joinAskWait}
+            </Button>
+          </ButtonRow>
+          <ActionError action={start} />
+        </Notice>
+      ) : (
+        <>
+          <Button
+            id={`${ids}-start`}
+            variant={view.startVariant}
+            block
+            disabled={start.busy}
+            onClick={() => {
+              if (join === null) {
+                runStart();
+                return;
+              }
+              setAskingJoin(true);
+              setFocusTo('join');
+            }}
+          >
+            {card.start}
+          </Button>
+          <ActionError action={start} />
+        </>
+      );
     body = (
       <>
         {endedOverlay}
@@ -642,6 +699,11 @@ export function FastCard({
               {view.noPlanChosen ? fasting.pattern.change : card.choosePattern}
               <ChevronIcon />
             </a>
+          </>
+        ) : view.stopSignPause ? (
+          <>
+            <p>{card.notRunning}</p>
+            {stopSignPause}
           </>
         ) : openUntil !== null ? (
           <p>

@@ -1,4 +1,5 @@
 import {
+  type DietMode,
   fillTemplate,
   type GateInput,
   isGated,
@@ -49,6 +50,7 @@ export function ReadinessSummary({
   input,
   gates,
   birthYear,
+  dietMode,
   showConfirmations,
   showWhereToChange = false,
 }: {
@@ -56,6 +58,8 @@ export function ReadinessSummary({
   readonly input: GateInput;
   readonly gates: ReadinessGates;
   readonly birthYear: number | null;
+  /** profile.dietMode: answer 3's line follows it (F34). */
+  readonly dietMode: DietMode;
   readonly showConfirmations: boolean;
   readonly showWhereToChange?: boolean;
 }): ReactElement {
@@ -68,7 +72,7 @@ export function ReadinessSummary({
       {gated.map((q) => (
         <div key={q} className="ui-card__body" data-testid={`summary-${q}`}>
           <Notice tone="info">
-            <p>{consequenceText(q, input, gates)}</p>
+            <p>{consequenceText(q, input, gates, dietMode)}</p>
           </Notice>
           {showConfirmations && (q === 'q3' || q === 'q6') ? (
             <ConfirmationControl storage={storage} question={q} input={input} />

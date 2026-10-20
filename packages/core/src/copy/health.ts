@@ -67,6 +67,8 @@ export const alcohol = {
   helpCard:
     "If you've been drinking most days or heavily at weekends for a while and are thinking about changing that, the safest first step is a conversation, not a sudden stop. Alcohol Drug Helpline 0800 787 797 (call or text 8681), free and 24/7, or your GP. If someone is very unwell, shaking badly, confused or having a seizure, call 111.",
   helpCardLabel: 'Talk to someone',
+  /** The card's 111 row, naming the card's own reasons rather than the notice's (full review F37). */
+  helpCardEmergencyDetail: 'Very unwell, shaking badly, confused or having a seizure',
   helpCardNotNow: 'Not now',
   /** The card returns 720 hours after "Not now" while readiness answer 7 still gates (storage spec 4.12). */
   helpCardReturns: 'This card shows again after 30 days.',
@@ -83,6 +85,13 @@ export const alcohol = {
       'nz-men':
         'NZ guidance for men: no more than 3 standard drinks a day and 15 a week, with at least 2 alcohol-free days. No alcohol use is risk-free.',
     },
+    /**
+     * Readiness answer 2 "yes" or unanswered (guidanceShown; full review F30): no figures. To be
+     * checked against the official page at item 42, and confirmed by the owner at STOP 17 with the
+     * C58 help-card wording (cross-item ruling 8).
+     */
+    pregnancy:
+      'NZ guidance: if you are pregnant, could be pregnant or are breastfeeding, the safest choice is no alcohol. Your midwife or GP can talk it through. No alcohol use is risk-free.',
   },
   /**
    * The first-run notice screen (UX 1b; mock-up Notice.dc.html). It cannot be put off: no string
@@ -242,11 +251,29 @@ export const privacy = {
     /** Only when this phone is paired with a laptop. */
     pairingRemoved: 'The laptop pairing will be removed.',
     /**
-     * A file whose Kickstart history records less than this phone's never lowers it (D27; the
-     * data-loss review): the phone's periods and checks are kept, and this says so before Replace.
+     * A restore never lowers the Kickstart history (D27; full review F1, F12): this phone's
+     * periods, checks and pre-start answers that the file lacks are kept with the file's, and this
+     * says so before Replace.
      */
     kickstartKept:
-      'Kickstart history kept from this phone, because it records more Kickstart days, extensions or stop-sign checks than the file.',
+      "Kickstart history: this phone's Kickstart days, extensions and stop-sign answers are kept with the file's, because a restore never removes them.",
+    /** While the phone's Kickstart runs, the settings it runs on are kept from the phone (F13). */
+    kickstartSettingsKept:
+      'The Kickstart running on this phone keeps going: its diet mode, keto start and Kickstart eating pattern are kept from this phone.',
+    /** The restored answers, profile or weigh-ins switch Kickstart off (the phase engine's own rule). */
+    kickstartEnds:
+      "The Kickstart running on this phone will end after the restore, because the file's readiness answers, profile or weigh-ins switch it off.",
+    /** The file holds a fast that was running when it was made (F3). */
+    fastRunning:
+      'A fast was running when this backup was made (started {start}). It comes back as still running, counted from that start.',
+    endFastAtBackup: 'End that fast at {time}, when the backup was made',
+    endFastHint: 'Turn this on if you have eaten since. You can correct its end time in History.',
+    /**
+     * The records changed between the confirmation and Replace (another tab saved something), so
+     * nothing was replaced and the confirmation is shown again with fresh counts (F12).
+     */
+    changedSinceConfirm:
+      'The records on this phone changed while this was open, perhaps in another tab, so nothing was replaced. Check what the restore will do again.',
     exportFirst: 'Export what is on this phone first',
     replace: 'Replace everything on this phone',
     importRest: 'Import the rest',
@@ -268,6 +295,13 @@ export const privacy = {
     reloadCancels: 'Reload cancels the restore: you will need to choose the file again.',
     /** Counts the phone's records again and shows the confirmation again before anything is replaced. */
     tryRestoreAgain: 'Try the restore again',
+    /**
+     * Once, on Readiness answers after a restore made during setup (F28): the records are back,
+     * and the restored answers are checked before Today.
+     */
+    restored:
+      'Your records from the backup are back on this phone. Check that these answers still apply, then go to Today.',
+    restoredContinue: 'These still apply',
   },
   /**
    * An import refused for a whole list or for the file itself rather than for one record (section
@@ -285,6 +319,9 @@ export const privacy = {
   /** A rescue copy whose Kickstart history cannot be imported whole (section 9.5; D27, D28). */
   kickstartHistory:
     'This rescue copy has a Kickstart record that could not be imported ({record}), and the Kickstart history is imported whole or not at all. Nothing was imported. Keep the file: a later version of the app may read it.',
+  /** A file whose Kickstart history cannot be combined with this phone's (restorePlan.ts; F1). */
+  kickstartMerge:
+    "This backup's Kickstart history cannot be combined with the Kickstart records on this phone: they overlap, or together they pass the six-week limit. A restore never removes Kickstart days, extensions or stop-sign answers from this phone, so nothing was imported. Keep the file.",
   /** One message per BackupError code (section 10.9). {detail} names a store, a field and a rule, never a value. */
   backupErrors: {
     'too-large': 'This file is too big to be a backup from this app. Nothing was imported.',
@@ -322,8 +359,11 @@ export const privacy = {
       'A fresh start with the default drink preset and silverbeet in the garden.',
       'The home-screen icon and the storage protection setting.',
       "If Chrome saved a backup password, remove it in Chrome's settings.",
+      // No web page can take back a site permission (full review F10).
+      "If you let Chrome use the camera for this app, remove that in Chrome's Site settings, Camera.",
       'Backup files you made or shared: delete them in Files, and in your email or cloud storage if you sent them there.',
       'The list on your laptop and its pairing: also unpair on your laptop.',
+      'Copies of your records restored in another browser, such as on a laptop: delete all there too.',
       'A list waiting to be sent expires within 15 minutes.',
     ],
     exportFirst: 'Export a backup first',
@@ -420,8 +460,8 @@ export const privacy = {
     alcohol_day_notes: 'Drink day notes',
     alcohol_milestones: 'Your milestones',
     grocery_lists: 'Grocery lists',
-    card_state: 'Reminder card states',
-    audit: 'Automatic change notes',
+    card_state: 'Hidden reminders',
+    audit: 'Notes on automatic changes',
   },
   /**
    * Why a record in a backup (or the export self-check) was not accepted, in plain words. Built by
@@ -893,6 +933,10 @@ export const readiness = {
     q6: 'Exercise plans stay hidden until you confirm you have discussed exercise with a GP.',
     q7: 'A card with help contacts is shown on Today from the first day. You can put it away for 30 days at a time.',
   },
+  /** Answer 3 in Balanced mode, which has no carb ceiling to plan low-carb meals with (F34). */
+  ifYesBalanced: {
+    q3: 'Low-carb eating and fasting can change how diabetes medicines act, and can cause low blood sugar (hypoglycaemia). Check with your prescriber first. Fasting, Kickstart and carb ceilings under 50 g stay off until you confirm your prescriber has agreed. Meals are still planned with a smaller energy deficit, so talk to your prescriber before you start using the meal plans.',
+  },
   ifYesAlsoOff: {
     /** Answer 1 while exercise plans are off too (answer 6, or not answered yet). */
     q1: 'Fasting, keto carb targets, Kickstart, any energy deficit, weight goals, the energy estimate and alcohol logging are switched off. The app works as a food planner only.',
@@ -994,7 +1038,17 @@ export const readiness = {
   settingsRow: { title: 'Readiness answers', detail: 'What the app switches on and off' },
   settingsAnswersLabel: 'Your answers',
   settingsIntro:
-    'These answers decide which parts of the app are switched on. A change applies at once. Your logs and weigh-ins are kept. Changing answer 3 or 6 asks for its confirmation again, and a Yes to answer 3 turns your Kickstart choice off.',
+    'These answers decide which parts of the app are switched on. A change applies at once. Your logs and weigh-ins are kept. Changing answer 3 or 6 asks for its confirmation again, and a Yes to answer 3 turns your Kickstart choice off. A change that switches Kickstart off ends a running Kickstart, and changing it back does not start it again; for a Yes or No, the app asks you first.',
+  /** A readiness answer or a profile save that would end a running Kickstart asks first (F23, F32). */
+  endsKickstart: {
+    title: 'This ends Kickstart',
+    answer:
+      'This answer also ends your Kickstart today. Changing the answer back will not restart it.',
+    profile:
+      'With this birth year or height, your Kickstart ends today. Changing it back will not restart it. If it is a typing slip, correct it before you save.',
+    confirm: 'Save and end Kickstart',
+    cancel: 'Cancel',
+  },
   // Item 15 (design 5.2): a question nobody answered is never stated as a fact (C41).
   featureOffUnansweredOne: '{feature} stays off until you answer the question about {reasons}.',
   featureOffUnansweredMany: '{feature} stays off until you answer the questions about {reasons}.',
@@ -1111,6 +1165,9 @@ export const schedule = {
   kickstartTitle: 'Kickstart: 23:1 for the 3 weeks of Kickstart',
   kickstartWhen:
     'The 3 weeks count from the day you start Kickstart. On any other day, the app uses 22:2 (5 pm snack + dinner) instead.',
+  /** The same line while a Kickstart runs, with the Phase card's due date (F39). */
+  kickstartRunsUntil:
+    'Kickstart is due to finish on {date}. After that, the app uses 22:2 (5 pm snack + dinner) instead.',
   /** UX 1e, word for word with 140 filled (docFidelity.test.ts); {proteinG} follows the protein range (C65). */
   kickstartLine:
     "One meal has to carry about {proteinG} g protein. If a day's dinner can't, the app will offer the 5 pm snack. That's not a broken fast.",
@@ -1129,6 +1186,8 @@ export const schedule = {
   custom: 'Custom times',
   none: 'No fasting plan for now',
   noneDetail: 'Meals at ordinary times. You can choose a pattern later in Settings.',
+  /** The same choice inside Settings, where "later in Settings" is not true (full review F29). */
+  noneDetailInSettings: 'Meals at ordinary times.',
   chooseFirst: 'Choose a pattern to see its times.',
   windowTitle: 'Your window',
   startLabel: 'First bite',
@@ -1267,6 +1326,9 @@ export const weight = {
     up: 'Up {kg} kg a week',
     level: 'About level',
     notEnough: 'Not enough weigh-ins yet',
+    /** Under the figures while the weekly change is empty (full review F29; minimumDaysFor(7)). */
+    needsWeekly:
+      'The weekly change needs weigh-ins on at least 3 days in each of the last two weeks.',
     howToReadLabel: 'How to read this',
     howToRead:
       'Weight moves from day to day with water, salt and the food in your stomach: a litre of water is a kilogram. The 7-day average smooths that out, so it is the number to watch.',
@@ -1286,7 +1348,7 @@ export const weight = {
     days30: '30 days',
     days90: '90 days',
     aboutBand:
-      'The shaded range is a rough typical range, not a promise and not a target. In Steady it follows about 0.5–1 kg a week, and never faster than your weight check-in setting.',
+      'The shaded range is a rough typical range, not a promise and not a target. In Steady it follows about 0.5–1 kg a week, and never faster than the pace set for the Weight check-in card in Settings.',
     // Only while the chart draws the steeper first block (item 14 review: never promised otherwise).
     aboutBandKickstart:
       'In your first Kickstart it is steeper for two weeks, mostly water and glycogen, then flattens.',
@@ -1301,6 +1363,9 @@ export const weight = {
       'Extended Kickstart. The early drop, mostly water and glycogen, belongs to your first three Kickstart weeks; from here the pace is watched the same way as in Steady.',
     kickstartLaterNote:
       'Kickstart. The early drop, mostly water and glycogen, belongs to your first three Kickstart weeks; from here the pace is watched the same way as in Steady.',
+    // After a stop-sign answer: never "a fast drop is expected" (F7, F20).
+    kickstartPausedNote:
+      'Kickstart is paused after the stop-sign you reported: no deficit is planned for the rest of it, and eating more is fine.',
     kickstartDue: 'Kickstart is due to finish on {date}.',
     // A start dated ahead (the phone's clock was ahead when it started; item 12's 'not-started').
     notStartedNote:
@@ -1347,8 +1412,8 @@ export const weight = {
     notANumber: 'Enter the weight as a number, such as 82.5.',
     outOfRange: 'Enter a weight from 20 to 400 kg.',
     needsUpdating: 'Your long-term goal needs updating for your height.',
-    gated:
-      'Setting a long-term goal is switched off by your readiness answers or age. Your weigh-ins and trend still show.',
+    // After the gate's own reason, "Weight goal setting is off because of …" (F31).
+    gatedKept: 'Your weigh-ins and trend still show.',
     saveFailed: 'The long-term goal could not be saved. Nothing was changed. Try again.',
   },
   fluctuation: {
@@ -1387,9 +1452,13 @@ export const weight = {
     label: 'Kickstart stop-signs',
     intro:
       'Stop-signs during Kickstart: dizziness on standing, palpitations, cramps that electrolytes do not settle, or feeling faint at work.',
+    // The one wording of the Kickstart stop-sign advice: Today, Weight and Diet and targets (F36).
     action: 'Eat, add salt and fluids, and talk to Healthline or a GP if it continues.',
     // The blood-pressure variant is readiness.bloodPressure.stopSign (item 13's key; section 1 point 6).
-    emergency: 'Call 111 if you faint or feel very unwell.',
+    emergency: `Call ${helpNumbers.emergency.number} if you faint or feel very unwell.`,
+    // A stop-sign answer's pause still holds after an early end (F4).
+    pausedUntil:
+      'Because of the stop-sign you reported, no deficit is planned until the end of {date}, the day this Kickstart was due to finish. After that the app plans with the Steady deficit.',
     afterCheckRunning:
       'You told the app about a stop-sign, so Kickstart will not be extended. Eating more today is fine, and you can end Kickstart now.',
     afterCheckEnded:
@@ -1433,6 +1502,11 @@ export const weight = {
   start: {
     offer:
       'You can start a Kickstart: three weeks with the bigger deficit, protein protected, net carbs at 20 g and daily electrolytes. The app asks how you feel first.',
+    // The Kickstart deficit is set to 0%, or there is no rough guide (F35).
+    offerNoDeficit:
+      'You can start a Kickstart: three weeks with protein protected, net carbs at 20 g and daily electrolytes. Your Kickstart deficit is set to 0%, so no deficit is planned. The app asks how you feel first.',
+    offerNoGuide:
+      'You can start a Kickstart: three weeks with daily electrolytes. Its deficit, protein at the top of your range and net carbs at 20 g are not used until there is a rough guide. The app asks how you feel first.',
     offerWindow:
       'Starting it also moves the eating window to 23:1 (one meal) while Kickstart runs.',
     pendingLabel: 'Kickstart',
@@ -1475,8 +1549,14 @@ export const weight = {
   },
   steadyExplainer: {
     label: 'Kickstart has finished',
+    // A Kickstart a readiness answer, the birth year or the weight ended (F23, F32).
+    labelEnded: 'Kickstart has ended',
+    endedReadiness:
+      'Kickstart ended because of a change to your readiness answers, your birth year or your weight. Changing it back does not start it again.',
     deficit:
       'The app now plans with the smaller Steady deficit instead of the bigger Kickstart one.',
+    // The Steady deficit is not smaller than the Kickstart one that was set (F4).
+    deficitSteady: 'The app now plans with the Steady deficit.',
     carbs: 'Net carbs go back to your own ceiling of {g} g.',
     window:
       '23:1 was for Kickstart. Outside Kickstart the eating window is 22:2 (5 pm snack + dinner).',
@@ -1734,6 +1814,9 @@ export const fasting = {
     windowOpen: "Your eating window is open. It's fine to eat now.",
     nearCeiling: "This fast is close to 24 hours. It's fine to eat now.",
     fineToEat: "It's fine to eat now.",
+    // After a Kickstart stop-sign answer, or a pre-start "yes" that day (F20; HEALTH_SAFETY 2, 3).
+    stopSignPause:
+      "You told the app about a stop-sign, so it is not timing fasts to your eating window for now. It's fine to eat now.",
     // HEALTH_SAFETY.md section 3, word for word (HS-02).
     overCeiling:
       'Fasts over 24 hours are outside what this app supports. Break the fast if you feel unwell, and talk to a GP before fasting this long again.',
@@ -1744,6 +1827,11 @@ export const fasting = {
       "This fast started {gap} after your last fast ended, so it counts as part of the same fast. It's fine to eat before starting another.",
     joinedJustNow:
       "This fast started less than a minute after your last fast ended, so it counts as part of the same fast. It's fine to eat before starting another.",
+    // Start tapped less than an hour after the last fast ended, as after a 23:1 dinner (F21).
+    joinAsk:
+      'Your last fast ended at {end}, less than an hour ago, so a fast started now counts as part of it. A fast started from {time} counts on its own.',
+    joinAskStart: 'Start now',
+    joinAskWait: 'Not now',
     ended: 'Fast ended after {length}.',
     noteLabel: 'How did you feel? (optional)',
     noteHint: 'Up to 500 characters.',
@@ -2006,7 +2094,8 @@ export const targets = {
       keto: 'Net carbs under your keto ceiling.',
       'moderate-low-carb': 'Net carbs under a wider ceiling.',
       balanced: 'No carb ceiling. Net carbs are still shown.',
-      ceilingOff: 'No carb ceiling for now, because of your readiness answers.',
+      // The reason is the gate's own, on the card below (F31).
+      ceilingOff: 'No carb ceiling for now.',
     },
     change: 'Change diet mode',
     switchNote:
@@ -2032,7 +2121,7 @@ export const targets = {
     basisLatestOlder: 'Your last weigh-in, {kg} kg on {date}, and your activity',
     staleWeight:
       'That weigh-in is more than 14 days old. Log a weight to bring the guide up to date.',
-    how: 'The rough guide uses the Mifflin-St Jeor equation and an activity factor. It is an estimate, not a measurement.',
+    how: 'The rough guide is a standard estimate from your height, weight, age, sex and activity. It is an estimate, not a measurement.',
     unavailable: {
       unanswered:
         'The app does not estimate energy until the under-18 readiness question is answered.',
@@ -2058,8 +2147,8 @@ export const targets = {
     kickstartNoDeficit:
       'Kickstart with no deficit, because you set the Kickstart deficit to 0%. Protein is held at {protein} g and net carbs at {carbs} g.',
     kickstartSuspended: {
-      readiness:
-        'Kickstart figures are not in use because of an answer in your readiness questions.',
+      // After the gate's own reason, "Kickstart is off because of …" (F31).
+      readiness: 'Kickstart figures are not in use.',
       'diet-mode': 'Kickstart figures are used only in keto mode.',
       'mode-changed':
         'Kickstart figures are not in use, because the app cannot confirm keto mode has run without a break since this Kickstart began. A Kickstart does not start again by itself.',
@@ -2068,8 +2157,8 @@ export const targets = {
       'no-estimate': 'Kickstart figures are not in use until there is a rough guide.',
     },
     steady: 'Steady: {pct}% below the rough guide.',
-    readinessNoDeficit:
-      'No deficit is planned because of an answer in your readiness questions. Meals are planned at the rough guide.',
+    // After the gate's own reason, "The energy deficit is off because of …" (F31).
+    plannedAtGuide: 'Meals are planned at the rough guide.',
     pregnancyNote:
       'The rough guide does not include the extra energy needed in pregnancy or while breastfeeding. A midwife or your GP can give you a figure.',
     floorBinds:
@@ -2088,18 +2177,13 @@ export const targets = {
     steadyDeficitHint: 'From 15% to 20% below the rough guide; 15% unless you change it.',
     deficitOption: '{pct}%',
     deficitNotInUse: 'Not in use today: the energy floor applies.',
-    deficitOff: 'There is no deficit because of an answer in your readiness questions.',
     floorLabel: 'Energy floor, kJ',
     floorHint:
       'Never below 5,000 kJ (about 1,200 kcal). You can set a higher floor, up to 20,000 kJ.',
     floorTooLow: 'The floor cannot go below 5,000 kJ.',
     floorTooHigh: 'The floor can be at most 20,000 kJ.',
   },
-  /** HEALTH_SAFETY section 2; the blood-pressure variant is readiness.bloodPressure.stopSign. */
-  stopSign: {
-    action: `Eat, add salt and fluids, and talk to Healthline (${helpNumbers.healthline.number}) or your GP if it continues.`,
-    emergency: `In an emergency, call ${helpNumbers.emergency.number}.`,
-  },
+  // The stop-sign advice is weight.stopSigns' one wording (F36).
   protein: {
     label: 'Protein',
     minLabel: 'Lowest, g a day',
@@ -2124,7 +2208,8 @@ export const targets = {
     balanced: 'Balanced mode has no carb ceiling. Net carbs are still shown.',
     heldAt50:
       'Your keto ceiling stays at 50 g until you confirm your prescriber has agreed. Low-carb eating and fasting can change how diabetes medicines act; check with your prescriber first.',
-    off: 'Carb ceilings are off because of an answer in your readiness questions. Net carbs are still shown, without a ceiling.',
+    // After the gate's own reason, "The keto carb ceiling is off because of …" (F31).
+    offShown: 'Net carbs are still shown, without a ceiling.',
     meaning: 'Net carbs are carbohydrate without the fibre.',
   },
   saturatedFat: {
@@ -2173,7 +2258,12 @@ export const targets = {
     satFat: 'Saturated fat',
     ofCeiling: '{eaten} / {ceiling} g',
     gramsOnly: '{eaten} g',
-    nothingLogged: 'Nothing logged yet today.',
+    /**
+     * In place of "Nothing logged yet today." until food logging exists (full review F24), so the
+     * zeros never read as a day without food. Item 23 removes it with its own empty-day line.
+     */
+    laterStep:
+      'Food logging arrives at a later step in the build checklist. Until then no food is counted here.',
     missingOne: '1 entry has no {nutrient} figure, so the total is at least what is shown.',
     missingMany:
       '{count} entries have no {nutrient} figure, so the total is at least what is shown.',
@@ -2217,6 +2307,9 @@ export const today = {
   laterStep: {
     movement: 'Sessions, walks and rest days arrive at a later step of the build checklist.',
     drinks: 'Drink logging arrives at a later step of the build checklist.',
+    /** Settings' "Coming later" card: the UX 7 settings not built yet (full review F33). */
+    settings:
+      'The store name, the drinking-day start time, the choice of alcohol guidance figures, beach jogging, and hidden recipes and foods arrive at later steps of the build checklist.',
   },
   water: {
     none: 'None logged yet',
