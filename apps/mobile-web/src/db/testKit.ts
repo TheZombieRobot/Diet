@@ -357,6 +357,12 @@ export async function pairingRow(): Promise<TransferPairingRecord> {
   };
 }
 
+/** pairingRow's pairing, saved the way the Laptop pairing screen saves one (repos.pairing, item 30). */
+export async function savePairingForTests(test: TestDb): Promise<TransferPairingRecord> {
+  const { roomId, relayUrl, key } = await pairingRow();
+  return test.repos.pairing.save({ roomId, relayUrl, key });
+}
+
 /** Synthetic photo bytes: a recognisable byte pattern, never a real image. */
 export const PHOTO_BYTES = Uint8Array.from({ length: 64 }, (_, i) => (i * 7 + 3) % 256);
 

@@ -28,8 +28,10 @@ import {
   schedule,
   targets,
   today,
+  transfer,
 } from './health';
 import { fillTemplate, joinList } from './template';
+import { TRANSFER_SECTION_RULES } from './transferRules';
 
 /** Every string inside a copy section, with its path for readable failures. */
 function strings(value: unknown, path: string): [string, string][] {
@@ -222,6 +224,8 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
     /\bsecure\b/i,
     /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
   ],
+  // Items 30 and 31 (HEALTH_SAFETY.md section 7): one list, shared with the pairing-check scan.
+  transfer: TRANSFER_SECTION_RULES,
 };
 
 describe('health copy', () => {
@@ -730,5 +734,38 @@ describe('Today and About copy (item 16; U9)', () => {
       'Electrolytes: sodium, potassium, magnesium. Garden sources: silverbeet, spinach, avocado.',
     );
     expect(readiness.ifYes.q4.endsWith(readiness.bloodPressure.electrolyte)).toBe(true);
+  });
+});
+
+// Item 30 (A20): the pairing wording (Q1, C115, HEALTH_SAFETY section 7).
+describe('transfer copy (item 30)', () => {
+  it('the transfer section uses the one shared rule list, which catches the first draft’s promise', () => {
+    expect(SECTION_RULES.transfer).toBe(TRANSFER_SECTION_RULES);
+    const firstDraft =
+      'The list is locked on this phone with a key that only this phone and the laptop have.';
+    expect(TRANSFER_SECTION_RULES.some((rule) => rule.test(firstDraft))).toBe(true);
+  });
+
+  it('pairing never says the laptop received the list (only item 31’s verified status may)', () => {
+    for (const [path, text] of strings(transfer.pairing, 'pairing')) {
+      expect(text, path).not.toMatch(/\b(?:received|delivered|arrived)\b/i);
+    }
+  });
+
+  it('says what a photographed code allows, to scan only from this screen, and to unpair on both devices', () => {
+    expect(transfer.pairing.codeRisk).toContain('photographs');
+    expect(transfer.pairing.codeRisk).toContain('change the list');
+    expect(transfer.pairing.codeRisk).toContain('until you pair again');
+    expect(transfer.pairing.scanOnlyHere).toContain('camera app');
+    expect(transfer.unpairOther).toBe('Also unpair on your other device.');
+  });
+
+  it('has exactly eight error messages, and the camera steps fill in the site name', () => {
+    expect(Object.keys(transfer.pairing.errors)).toHaveLength(8);
+    const filled = fillTemplate(transfer.pairing.errors['camera-denied'], {
+      site: 'thezombierobot.github.io',
+    });
+    expect(filled).toContain('Choose thezombierobot.github.io and set it to Allow.');
+    expect(filled).not.toContain('{');
   });
 });

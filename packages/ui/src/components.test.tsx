@@ -9,6 +9,7 @@ import {
   BowlIcon,
   Button,
   ButtonRow,
+  CameraView,
   Card,
   CheckList,
   Chip,
@@ -1088,5 +1089,30 @@ describe('Today pieces (item 16; C13)', () => {
     expect(container.querySelector('.ui-button-row')?.className).toBe(
       'ui-button-row ui-button-row--stacked',
     );
+  });
+});
+
+// Item 30: the camera view of the Laptop pairing screen, and Button's ref for its focus rules.
+describe('CameraView and the Button ref (item 30)', () => {
+  it('U1: a muted, inline video hidden from screen readers, and a guide shown only while active', () => {
+    const videoRef = createRef<HTMLVideoElement>();
+    const { rerender } = render(<CameraView videoRef={videoRef} active={false} />);
+    const video = videoRef.current;
+    expect(video?.tagName).toBe('VIDEO');
+    expect(video?.muted).toBe(true);
+    expect(video?.hasAttribute('playsinline')).toBe(true);
+    expect(video?.getAttribute('aria-hidden')).toBe('true');
+    const view = document.querySelector('.ui-camera');
+    expect(view?.getAttribute('data-active')).toBe('false');
+    expect(componentsCss).toContain(".ui-camera[data-active='false'] .ui-camera__guide {");
+    expect(document.querySelector('.ui-camera__guide')?.getAttribute('aria-hidden')).toBe('true');
+    rerender(<CameraView videoRef={videoRef} active />);
+    expect(view?.getAttribute('data-active')).toBe('true');
+  });
+
+  it('U2: a ref passed to Button reaches the button element', () => {
+    const ref = createRef<HTMLButtonElement>();
+    render(<Button ref={ref}>Example</Button>);
+    expect(ref.current).toBe(screen.getByRole('button', { name: 'Example' }));
   });
 });

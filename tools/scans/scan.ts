@@ -18,10 +18,15 @@ import {
   NETWORK_ALLOWED_FILES,
   networkRules,
   personalDataRules,
+  pairingWebStorageRule,
   personalPathRules,
   PRICE_FORMATTER_FILES,
   priceFormatRules,
+  qrDecoderImportRule,
+  qrDecoderLoadRule,
+  qrGeneratorTestOnlyRule,
   relayBlindRules,
+  sealedBodyCastRule,
   serviceWorkerConfigRules,
   SSH_REMOTE_USERS,
   stockAndCartRules,
@@ -155,6 +160,57 @@ export const RELAY_BLIND: RuleSet = {
   appliesTo: (f) => isRelaySource(f) && !isExempt(f),
 };
 
+/** The one file that may cast to SealedRelayBody, and the one that may load jsqr (item 30). */
+export const SEALED_BODY_FILE = 'packages/grocery/src/transfer/envelope.ts';
+export const QR_DECODER_FILE = 'apps/mobile-web/src/screens/pairing/qrDecoders.ts';
+
+const isWorkspaceCode = (f: string) => isWorkspace(f) && isCode(f) && !isExempt(f);
+/** The pairing and transfer code, tests aside (checklist item 30). */
+const isPairingCode = (f: string) =>
+  (f.startsWith('packages/grocery/src/transfer/') ||
+    f.startsWith('apps/mobile-web/src/screens/pairing/') ||
+    f === 'apps/mobile-web/src/db/repos/pairing.ts') &&
+  isWorkspaceCode(f) &&
+  !isTestFile(f);
+
+/**
+ * Pairing and the transfer code (checklist item 30), each rule with its own scope. Kept out of
+ * RULE_SETS like RELAY_BLIND: code rules, not wording. Tests are covered by the cast rule too:
+ * they prove the brand with @ts-expect-error, never a cast.
+ */
+export const TRANSFER_GUARD: readonly RuleSet[] = [
+  {
+    name: 'sealed relay body',
+    rules: [sealedBodyCastRule],
+    text: 'raw',
+    appliesTo: (f) => isWorkspaceCode(f) && f !== SEALED_BODY_FILE,
+  },
+  {
+    name: 'pairing key storage',
+    rules: [pairingWebStorageRule],
+    text: 'raw',
+    appliesTo: isPairingCode,
+  },
+  {
+    name: 'QR decoder import',
+    rules: [qrDecoderImportRule],
+    text: 'raw',
+    appliesTo: isWorkspaceCode,
+  },
+  {
+    name: 'QR decoder loading',
+    rules: [qrDecoderLoadRule],
+    text: 'raw',
+    appliesTo: (f) => isWorkspaceCode(f) && f !== QR_DECODER_FILE,
+  },
+  {
+    name: 'QR generator in test fixtures only',
+    rules: [qrGeneratorTestOnlyRule],
+    text: 'raw',
+    appliesTo: (f) => isWorkspaceCode(f) && !f.startsWith('packages/test-fixtures/src/'),
+  },
+];
+
 export const FEASIBILITY_DOC = 'docs/INTEGRATION_FEASIBILITY.md';
 
 export interface ExtensionDecision {
@@ -212,6 +268,7 @@ export function ruleSetsFor(root: string): RuleSet[] {
     ...RULE_SETS,
     HEALTH_TEXT_HOME,
     RELAY_BLIND,
+    ...TRANSFER_GUARD,
     ...extensionRuleSets(readExtensionDecision(root)),
   ];
 }

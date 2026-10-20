@@ -800,10 +800,12 @@ Invariant: `note !== null || withdrawalTick` (an empty note is deleted rather th
 | Field | Type | Validation |
 |---|---|---|
 | id | `'singleton'` | one pairing at a time |
-| relayUrl | Text(1–200) | an `https:` URL. It is **not** compared with the configured relay origin here: that is build configuration (C81), so the comparison is made where the pairing is used, and a mismatch reads as "not paired" |
+| relayUrl | Text(1–200) | an `https:` URL. It is **not** compared with the configured relay origin here: that is build configuration (C81), so the comparison is made where the pairing is used. It is the laptop's relay address from the pairing code, or `NO_RELAY_URL` (`https://relay.invalid`) when it had none (item 30); a mismatch reads as "pair again" (`pairingRelayStatus`), never as "not paired" |
 | roomId | Text | 22 characters base64url (128 random bits, C113) |
 | key | CryptoKey | AES-GCM, length 256, `extractable === false`, usages encrypt and decrypt (C34) |
 | pairedAt | Instant | — |
+
+Item 30 splits the use-time rule: the paste code needs only a stored pairing; sending through the relay also needs `pairingRelayStatus` to be `ready`.
 
 ### 4.12 App state: card_state, audit
 
@@ -890,7 +892,7 @@ Rules inside one record (the "iff" and "equals" rules of section 4) are part of 
 - readiness confirmations' ordering (section 13.2);
 - recipe and ingredient allergens from the current dataset (section 4.7);
 - whether a stored zone is known to this browser (section 3.4);
-- whether a stored pairing's relay URL matches the configured relay origin (section 4.11);
+- whether a stored pairing's relay URL matches the configured relay origin (section 4.11; `pairingRelayStatus`, item 30);
 - the drinks figure shown and compared (section 4.10).
 
 **What this guarantees.** Within one app version, everything the app writes passes its own import: writes, import and the export self-check share `validateRow` and `checkInvariants`, and none of the environment checks of section 2.3 is part of them. Across versions, the migration policy (section 9.2) keeps every older backup importable. The guarantee does not cover a bug, a row written with the middleware bypassed, or a damaged database; for those, export offers an unchecked rescue copy (section 10.5) and the upgrade-failed screen offers a rescue copy (section 9.5).
@@ -1019,6 +1021,7 @@ A `QuotaExceededError` on any write aborts that transaction. Nothing is half-wri
   - drinks: `log({ beverageId, beverage, count, at? })` computes the snapshot figures with core; `update(id, { count, at, beverage })` recomputes them; `remove(id)`; `forDrinkingDays(from, to)`;
   - card_state: `get(cardId, trigger)`, `markShown`, `dismiss` (stores `dismissedTimeZone`), `done` (upserts);
   - garden_photos: `put(gardenId, …)` refuses an unknown garden id; `remove(gardenId)`; removing a garden row removes its photo in the same transaction.
+- **Special repository built in item 30:** pairing: `get`, `save` (replaces the one pairing; `pairedAt` = now; the key is imported before the transaction), `remove`.
 - **Later items** add query helpers (planner, trends and so on), and MUST go through the same preparation and validators.
 - **No audit rows** for ordinary owner edits. Audit is for automatic changes (grocery deductions at item 24, migrations).
 
@@ -1050,7 +1053,7 @@ Every write goes through `prepare(table, candidate, env)`, which is synchronous:
 | card_state | get | markShown, dismiss, done | firstShownAt; dismissedAt and dismissedTimeZone; doneAt |
 | audit | create, get, list | — | at and timeZone |
 | garden_photos | — | put, remove | none (takenAt comes from the caller) |
-| transfer_pairings | — | none at item 12 (item 30 adds them) | pairedAt (item 30) |
+| transfer_pairings | — | get, save, remove (item 30) | pairedAt |
 
 `TABLES[store].ops` records the generic column, and the generic repository refuses anything not listed (test 23).
 
@@ -1513,7 +1516,7 @@ Test titles carry their HS, BK, RD or PWA ids so the coverage table (C118) can m
 
 **Database integration tests (`apps/mobile-web/src/db/*.test.ts`, real Dexie on fake-indexeddb)**
 22. *Open (BK-11):* 28 stores with the section 4.2 keys and indexes (`db.tables` schema compared with `STORES_V1`); native version 10; populate rows present (3 singletons, the "Zero-sugar premix" preset with `origin: 'preset-default'`, the "Silverbeet" garden row with amount null). The pre-check on an empty factory creates nothing (`databases()` is empty afterwards) and the first real open still runs populate; the raw-open fallback (with `databases` removed) does the same. **Newer database:** create a database with test-only chain (d) at version 2, then open with the v1 code → `newer-version`, `DietDb` never constructed, and the database's store list, index list and native version (20) are unchanged with no `$meta` store. Post-open check: a v1 `DietDb` opened directly (pre-check bypassed) against a v2 database that only added a store → closed, `newer-version`, nothing changed.
-23. *Generic repositories:* for every store whose generic column in section 8.4 includes create, update or remove: create, get, list, an index range query, update and remove. An invalid write is refused and the store is unchanged. A raw `db.<store>.put(invalid)` is refused by the middleware, and `db.weights.update(id, { kg: 5 })` is refused too. The generic repository refuses update and remove on kickstart_periods and kickstart_checks, and everything on drinks_log except get and list; the middleware refuses a raw `put` or `delete` on kickstart_checks and a keyed `delete` on kickstart_periods. transfer_pairings has no repository at item 12; the tests write it raw.
+23. *Generic repositories:* for every store whose generic column in section 8.4 includes create, update or remove: create, get, list, an index range query, update and remove. An invalid write is refused and the store is unchanged. A raw `db.<store>.put(invalid)` is refused by the middleware, and `db.weights.update(id, { kg: 5 })` is refused too. The generic repository refuses update and remove on kickstart_periods and kickstart_checks, and everything on drinks_log except get and list; the middleware refuses a raw `put` or `delete` on kickstart_checks and a keyed `delete` on kickstart_periods. transfer_pairings has only its special repository (item 30); the generic one refuses every operation on it.
 24. *Special repositories:* the running fast (`start` refused while one is running; `running()`); `start()` with a planned figure of 1470 (the NZ autumn night) stores null and does not throw; kickstart `startPeriod` and `recordCheck` (the cap and window cases of test 5 through the repository; a palpitations "yes" → `stop-sign`, the count unchanged; `endPeriod` twice refused); readiness `answer('q3')` deletes `prescriberAgreed` in the same transaction; `drinks.log` computing the figures; `forDrinkingDays` across midnight; card_state upsert by compound key with `dismissedTimeZone`; a garden photo for an unknown garden refused; removing a garden row removes its photo.
 25. *Normalisation:* a note with `\r\n` and a tab saves with `\n` and a space; a single-line name with a newline saves with a space; a computed `-0` saves as `0`; a write with a zone this `Intl` does not know is refused with `zone-unknown`, while editing the note of an old row in such a zone succeeds; a birth year after this year is refused with `future-year`.
 26. *BK-01 / HS-15:* fill every backed-up store from the fixture (including a sent and acknowledged grocery list with a `transferId`), add a pairing (a real non-extractable AES-GCM key) and a photo; export plain; answer Yes; delete all; import; section 10.8 equality; pairing and photos empty; the file contains no room id, relay URL, photo bytes or device-only JSON keys. Repeat for a locked file.
@@ -1522,7 +1525,7 @@ Test titles carry their HS, BK, RD or PWA ids so the coverage table (C118) can m
 29. *Replace semantics and confirmation:* rows not in the file are gone after import; the pairing is cleared; a photo whose garden id is in the file is kept, and others are deleted. The confirmation counts N (not in the file) and M (rows that differ from the file's copy by content, whatever their timestamps; an edited weight, an edited fast and a settings change each count), shows both newest dates, and makes "Export what is on this phone first" the default when N or M is above zero. A fresh phone (seed rows only, or just after delete-all) counts nothing and makes Replace the default.
 30. *RD-08:* importing a backup with no readiness rows leaves every gate input gated, and `missingReadinessAnswers` lists q1–q7.
 31. *Delete all (HS-30):* with every store filled, a pairing, a photo, an extra IndexedDB database, a runtime cache, a precache cache (mocked `caches`) and localStorage and sessionStorage keys: after `deleteAllData()` and reopening, only the seed rows remain; the extra database is gone; only the `workbox-precache…` cache remains; both storages are empty; a blocked deletion reports failure and claims no success. **No resurrection:** a debounced autosave that fires after step 0 and a live query that re-runs after step 1 do not reopen the database or write any row; after the reload, only seed rows exist.
-32. *Upgrades through Dexie:* a v1 database with the fixture opened by test-only chain (a) → migrated and validated, and only the rewritten stores were cleared and refilled (a spy on the other stores sees no writes). A failing v2 step → open reports `upgrade-failed`, the database is still v1 with its data unchanged, and the rescue file imports into a v1 app. A device-only row that fails the last-step validation (a photo 5,000 px wide) is deleted and the upgrade succeeds. A changed relay constant across an upgrade keeps the pairing row; it reads as not paired at use. Chain (c) from a v1 database: rescue during a failure of that step writes the new store as an empty array and reads no device-only store.
+32. *Upgrades through Dexie:* a v1 database with the fixture opened by test-only chain (a) → migrated and validated, and only the rewritten stores were cleared and refilled (a spy on the other stores sees no writes). A failing v2 step → open reports `upgrade-failed`, the database is still v1 with its data unchanged, and the rescue file imports into a v1 app. A device-only row that fails the last-step validation (a photo 5,000 px wide) is deleted and the upgrade succeeds. A changed relay constant across an upgrade keeps the pairing row; it reads as "pair again" at use (`pairingRelayStatus`, item 30). Chain (c) from a v1 database: rescue during a failure of that step writes the new store as an empty array and reads no device-only store.
 33. *Fixed reference files (BK-09, C99):* the pinned version-1 plain and locked envelopes decode, decrypt with the reference phrase and import, and the result equals `migrateSnapshot(1, snapshotV1)`.
 34. *Rescue (BK-10):* the file name ends `-rescue-locked.json` by default; the lock is on by default; rows are built from the version's allow-list; a rescue file containing one invalid weight imports the rest after "Import the rest", lists the set-aside row by store and position only, and leaves `lastBackupAt` unchanged.
 35. *Export self-check:* two exports of the same data differ only in `exportedAt` (plain); a deliberately corrupted row (written with the middleware disabled in the test) makes export refuse with a message naming the table, field and rule, and offers "Save an unchecked copy", which produces a rescue file and leaves `lastBackupAt` unchanged.
@@ -1571,7 +1574,7 @@ Test titles carry their HS, BK, RD or PWA ids so the coverage table (C118) can m
 - **Item 24:** grocery aggregation, audit rows, line `origin`, CSV and JSON list exports through `exportFileName`.
 - **Item 27:** per-set logging and the C76 volume cap on `done[]`.
 - **Item 28:** alcohol screens and help-card triggers (consecutive days through `areConsecutiveDrinkingDays`).
-- **Items 30–31:** pairing creation, the CryptoKey, the relay, a fresh `transferId` per send, acknowledgement handling into `receivedVersion`, `receivedAt` and `laptopReceivedAt`.
+- **Items 30–31:** Item 30: pairing, the CryptoKey, the repository and the shared transfer code (done). Item 31: the relay, a fresh `transferId` per send, acknowledgement handling into `receivedVersion`, `receivedAt` and `laptopReceivedAt`.
 - **Item 37:** the theme and text-size UI.
 - **Deferred and off:** food-safety substitutions (C43; D33). Turning them on later adds a profile field under section 9.
 - **Later:** Health Connect steps; photos in backups (an optional future change, C49).

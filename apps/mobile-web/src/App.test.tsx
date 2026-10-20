@@ -137,7 +137,8 @@ describe('every screen', () => {
 
 describe('placeholder screens (no sample data)', () => {
   // Today (item 16), About, the setup screens (item 13), the Weight screen (item 14), the Fasting
-  // screen (item 15) and Diet and targets (item 21) are built; the rest still say they arrive later.
+  // screen (item 15), Diet and targets (item 21) and Laptop pairing (item 30) are built; the rest
+  // still say they arrive later.
   const built: readonly RouteId[] = [
     'today',
     'about',
@@ -147,6 +148,7 @@ describe('placeholder screens (no sample data)', () => {
     'weight',
     'fasting',
     'targets',
+    'pairing',
   ];
   const placeholders = ROUTES.filter((r) => !built.includes(r));
 

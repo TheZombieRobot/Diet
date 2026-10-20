@@ -8,7 +8,14 @@ import { deleteAllData, type DeleteAllDeps } from './deleteAll';
 import { StorageClosedError } from './errors';
 import { liveStore } from './liveQuery';
 import { replaceAll } from './snapshot';
-import { counts, memoryStorage, openTestDb, pairingRow, photoRow, type TestDb } from './testKit';
+import {
+  counts,
+  memoryStorage,
+  openTestDb,
+  photoRow,
+  savePairingForTests,
+  type TestDb,
+} from './testKit';
 
 const PRECACHE = 'workbox-precache-v2-https://example.com/Diet/';
 
@@ -69,7 +76,7 @@ describe('delete all (HS-30; section 16 test 31)', () => {
   it('empties every store, the pairing, every photo, every other database and cache except the precache, and both storages', async () => {
     const test = await openTestDb();
     await replaceAll(test.db, snapshotV1);
-    await test.db.transfer_pairings.put(await pairingRow());
+    await savePairingForTests(test);
     await test.db.garden_photos.put(photoRow(snapshotV1.garden[0]?.id ?? ''));
     await createExtraDatabase(test.deps.indexedDB, 'example-extra');
     const caches = fakeCaches([PRECACHE, 'example-runtime-cache']);

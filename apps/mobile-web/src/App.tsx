@@ -30,6 +30,7 @@ import { FastingScreen } from './screens/fasting/FastingScreen';
 import { FoodScreen } from './screens/FoodScreen';
 import { ListScreen } from './screens/ListScreen';
 import { MoveScreen } from './screens/MoveScreen';
+import { PairingScreen } from './screens/pairing/PairingScreen';
 import { QuickActions } from './screens/today/QuickActionsPanel';
 import { EatingScheduleScreen } from './screens/settings/EatingScheduleScreen';
 import { ProfileScreen } from './screens/settings/ProfileScreen';
@@ -89,6 +90,8 @@ function screenFor(route: RouteId): ReactElement {
       return <FastingScreen />;
     case 'targets':
       return <TargetsScreen />;
+    case 'pairing':
+      return <PairingScreen />;
   }
 }
 
