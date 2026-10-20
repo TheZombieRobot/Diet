@@ -1601,7 +1601,9 @@ export const fasting = {
     startedAt: 'Started {time}',
     startedOn: 'Started {day} at {time}',
     eatWindow: 'Eat {range}',
+    eatWindowTomorrow: 'Eat tomorrow {range}',
     eatBy: 'Eat by {time}',
+    eatByTomorrow: 'Eat by {time} tomorrow',
     snackAndDinner: '5 pm snack, dinner by {end}',
     windowOpenUntil: 'Eating window open until {end}.',
     noPattern: 'No eating pattern chosen yet.',
@@ -1614,10 +1616,11 @@ export const fasting = {
       'Fasts over 24 hours are outside what this app supports. Break the fast if you feel unwell, and talk to a GP before fasting this long again.',
     cappedPlan:
       "Your next eating window opens more than 24 hours after this fast began. It's fine to eat earlier: eating by {time} keeps this fast within 24 hours.",
+    // The gap between the two fasts, which stays true for the whole fast (item 15 review).
     joined:
-      "You ended a fast {gap} ago, so this counts as the same fast. It's fine to eat before starting another.",
+      "This fast started {gap} after your last fast ended, so it counts as part of the same fast. It's fine to eat before starting another.",
     joinedJustNow:
-      "You ended a fast less than a minute ago, so this counts as the same fast. It's fine to eat before starting another.",
+      "This fast started less than a minute after your last fast ended, so it counts as part of the same fast. It's fine to eat before starting another.",
     ended: 'Fast ended after {length}.',
     noteLabel: 'How did you feel? (optional)',
     noteHint: 'Up to 500 characters.',
@@ -1628,6 +1631,9 @@ export const fasting = {
     changeStart: 'Change start time',
     clockBehind:
       "The phone's clock reads earlier than this fast's start. Check the date and time in the phone's settings.",
+    // After End with the clock behind: the fast is stored as ending where it began (review).
+    endedAtStart:
+      'The fast was saved as ending at its start time. You can change the end time in History once the clock is right.',
     alreadyRunning: 'A fast is already running.',
     alreadyEnded: 'This fast was already ended on another screen.',
     notLatest: 'Only the most recent fast can be reopened. You can change its times in History.',
@@ -1711,9 +1717,17 @@ export const fasting = {
       today: '5 pm snack added for tonight. Eat {range}.',
       tomorrow: '5 pm snack added for tomorrow. Eat {range}.',
     },
+    // During a fast whose 24 hours end before that window opens: no window time (item 15 review).
+    snackAddedNoRange: {
+      today: '5 pm snack added for tonight.',
+      tomorrow: '5 pm snack added for tomorrow.',
+    },
     undo: 'Undo',
     unavailableOneMeal:
       "There is no meal check until meals are planned in the app. One meal has to carry a whole day's protein, and it's fine to add the 5 pm snack.",
+    // When the snack can no longer be added for that date (item 15 review).
+    unavailableOneMealNoSnack:
+      "There is no meal check until meals are planned in the app. One meal has to carry a whole day's protein, and it's fine to widen the window.",
   },
   pattern: {
     label: 'Eating pattern',
@@ -1730,7 +1744,10 @@ export const fasting = {
     streak: '{days} days in a row with a completed fast.',
     empty: 'No completed fasts yet.',
     over24: 'Over 24 hours',
-    joined: 'Started {gap} after the fast before it, so the two count as one fast of {length}.',
+    // Worded for any number of joined fasts (item 15 review).
+    joined: 'Started {gap} after the fast before it, so it counts as part of one fast of {length}.',
+    joinedFirst:
+      'The next fast started less than an hour after this one ended, so this counts as part of one fast of {length}.',
     showMore: 'Show more',
     edit: 'Edit',
     delete: 'Delete',

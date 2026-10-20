@@ -27,7 +27,7 @@ import {
   updateSymptom,
 } from './actions';
 import { HelpRows } from './HelpRows';
-import { ActionError } from './ActionError';
+import { ActionError, ProblemNotice } from './ActionError';
 import { useAction } from './useAction';
 import type { FastingState } from './useFasting';
 import type { RefluxOptionsView } from './view';
@@ -427,11 +427,7 @@ function SymptomRow({
               setEditing({ ...editing, note: event.currentTarget.value });
             }}
           />
-          {problem === null ? null : (
-            <Notice role="alert">
-              <p>{problem}</p>
-            </Notice>
-          )}
+          <ProblemNotice problem={problem} />
           <ButtonRow>
             <Button variant="secondary" disabled={action.busy} onClick={save}>
               {reflux.save}

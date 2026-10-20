@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { addDays, zonedWallTimeToInstant } from '../util/time';
 import { type EatingWindow, parseClockTime } from './eatingWindow';
-import { FAST_CEILING_MS, fastRecordPlan, planEndClock, planFast } from './fastPlan';
+import { FAST_CEILING_MS, fastRecordPlan, planEndClock, planFast, runningPlan } from './fastPlan';
 import type { Schedule } from './windows';
 
 const NZ = 'Pacific/Auckland';
@@ -100,6 +100,30 @@ describe('the planned fast (FS-01, FS-06, C30, D47)', () => {
     expect(plan?.cappedAtCeiling).toBe(true);
     expect(plan?.targetEndMs).toBe(at('2000-01-04', '19:00'));
     expect(plan?.plannedMinutes).toBe(9);
+  });
+
+  it('a fast still running after its window closed is planned again from that window, capped at the span (review)', () => {
+    // 23:1, started at 3 pm before that evening's window: once 6 to 7 pm has passed, the next
+    // window opens 27 hours after the start, so the plan ends at 3 pm the next day.
+    const start = at('2000-01-03', '15:00');
+    const s = schedule(ONE_MEAL);
+    expect(runningPlan(start, NZ, s, start, at('2000-01-03', '18:59'))?.next.startMs).toBe(
+      at('2000-01-03', '18:00'),
+    );
+    const later = runningPlan(start, NZ, s, start, at('2000-01-03', '19:00'));
+    expect(later).toMatchObject({ cappedAtCeiling: true, targetEndMs: at(D, '15:00') });
+    expect(later?.plannedMinutes).toBe(1440);
+    expect(runningPlan(start, NZ, s, start, at(D, '09:00'))?.targetEndMs).toBe(at(D, '15:00'));
+    // A per-day window inside the 24 hours is planned to, counted from the fast's own start.
+    const early = runningPlan(
+      start,
+      NZ,
+      schedule(ONE_MEAL, { [D]: w('11:00', '12:00') }),
+      start,
+      at(D, '09:00'),
+    );
+    expect(early).toMatchObject({ cappedAtCeiling: false, targetEndMs: at(D, '11:00') });
+    expect(early?.plannedMinutes).toBe(20 * 60);
   });
 
   it('has no plan without a pattern, or with under a minute left before 24 hours of the span', () => {

@@ -73,8 +73,9 @@ test('no screen but About, Weight, Fasting and Diet and targets shows a number o
   // owner's own entries, the question about being under 18 and the pattern names such as 16:8, the
   // Weight screen, whose labels carry digits by design ("7-day average", "Less 0.1 kg"), and the
   // Fasting screen, which shows the owner's eating pattern and its clock times (item 15). On Today
-  // only the Fast card may carry digits, for the same pattern ("22:2", "Eat 5:00 pm – 7:00 pm"),
-  // and the Nutrition today card, for today's intake (none: every figure 0; item 21).
+  // only the Fast card may carry digits, for the same pattern ("22:2", "Eat 5:00 pm – 7:00 pm"):
+  // that card is left out by element, so a digit anywhere else on Today still fails (item 15
+  // review); and the Nutrition today card, for today's intake (none: every figure 0; item 21).
   await seedOnboarded(page, './', './', { weightKg: null });
   const found: string[] = [];
   const check = async (where: string, screen: ScreenName) => {
@@ -94,22 +95,19 @@ test('no screen but About, Weight, Fasting and Diet and targets shows a number o
     ) {
       return;
     }
-    let text = await renderedText(page);
-    let fastCard = '';
+    let text = await renderedText(
+      page,
+      screen === 'Today'
+        ? page.getByRole('region', { name: fasting.card.label, exact: true })
+        : undefined,
+    );
     if (screen === 'Today') {
       // The Nutrition today card shows today's intake (none: every figure 0) against the owner's
       // own stored ranges and guides, never sample data (item 21; targets.spec.ts checks them).
       const nutrition = page.getByRole('region', { name: targets.today.label });
       await expect(nutrition.locator('.ui-meter__value').first()).toHaveText('0 kJ');
       text = text.replace(await nutrition.innerText(), '');
-      fastCard = await page
-        .getByRole('region', { name: fasting.card.label, exact: true })
-        .innerText();
     }
-    text = text
-      .split('\n')
-      .filter((line) => line.trim() === '' || !fastCard.includes(line.trim()))
-      .join('\n');
     if (/\d/.test(text))
       found.push(`${where}: a digit in ${JSON.stringify(text.match(/.*\d.*/)?.[0])}`);
     if (/[$€£]/.test(text)) found.push(`${where}: a currency sign`);

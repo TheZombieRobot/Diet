@@ -10,17 +10,22 @@ import {
   defaultTargets,
   type EatingWindow,
   type FastRecord,
+  type GateInput,
+  type KickstartPeriodRecord,
   type LoggedIntake,
   parseClockTime,
   type PlanDayRecord,
   type PlannedMealFigures,
   plannedMealsOf,
+  READINESS_CONFIRMATION_IDS,
+  READINESS_QUESTION_IDS,
+  readinessGates,
   type SymptomRecord,
   zonedWallTimeToInstant,
 } from '@diet/core';
 import { describe, expect, it } from 'vitest';
 import type { FastingInputs } from './inputs';
-import { type MealSources, mealSources as itemFifteenSources } from './integration';
+import { fastingContext, type MealSources, mealSources as itemFifteenSources } from './integration';
 import { type FastingContext, type FastingView, fastingView, joiningSpanStart } from './view';
 
 const NZ = 'Pacific/Auckland';
@@ -369,6 +374,58 @@ describe('the fasting view states (design 3.3, 3.4)', () => {
     expect(view.running?.spanPlannedMinutes).toBe(1440);
   });
 
+  it('a fast started before that day\'s window and still running after it closed is planned to 24 hours, never "open" (review)', () => {
+    const fasts = [fast('f1', at('2000-01-03', '15:00'), null)];
+    const view = open(fastingView(inputs(D, { fasts }), context(), at(D, '09:00'), NZ));
+    expect(view.running).toMatchObject({
+      phase: 'fasting',
+      endHint: { kind: 'eat-by', atMs: at(D, '15:00') },
+      spanPlannedMinutes: 1440,
+    });
+    const evening = open(
+      fastingView(inputs('2000-01-03', { fasts }), context(), at('2000-01-03', '19:30'), NZ),
+    );
+    expect(evening.running?.phase).toBe('fasting');
+  });
+
+  it("a fast restarted within the hour is capped from the first fast's start (FS-06)", () => {
+    const fasts = [fast('f1', at(D, '17:00'), at(D, '17:30')), fast('f2', at(D, '18:00'), null)];
+    const view = open(
+      fastingView(inputs(addDays(D, 1), { fasts }), context(), at(addDays(D, 1), '10:00'), NZ),
+    );
+    expect(view.running?.endHint).toEqual({ kind: 'eat-by', atMs: at(addDays(D, 1), '17:00') });
+  });
+
+  it('during a fast, a window opening past its 24 hours gets no time, no one-meal line and no snack past them (review)', () => {
+    const fasts = [fast('f1', at('2000-01-03', '15:00'), null)];
+    // The 5 pm snack today opens 26 hours in: neither it nor the one-meal line is offered.
+    const morning = open(fastingView(inputs(D, { fasts }), context(), at(D, '09:00'), NZ));
+    expect(morning.upcoming).toMatchObject({
+      kind: 'hidden',
+      afterCeiling: true,
+      snack: { fits: null },
+    });
+    const added = open(
+      fastingView(
+        inputs(D, { fasts, planDays: [windowDay(D, SNACK_AND_DINNER)] }),
+        context(),
+        at(D, '15:30'),
+        NZ,
+      ),
+    );
+    expect(added.upcoming).toMatchObject({ kind: 'snack-added', afterCeiling: true });
+    // On the April night the snack opens inside the 24 hours, so it is still offered.
+    const april = [fast('f1', at('2026-04-04', '18:30'), null)];
+    const capped = open(
+      fastingView(inputs('2026-04-05', { fasts: april }), context(), at('2026-04-05', '09:00'), NZ),
+    );
+    expect(capped.upcoming).toMatchObject({
+      kind: 'one-meal-unavailable',
+      afterCeiling: true,
+      snack: { fits: SNACK_AND_DINNER },
+    });
+  });
+
   it("a fast a minute after the last one joins its span: the elapsed time and the over-24 phase are the span's", () => {
     const firstEnd = at(D, '18:50');
     const fasts = [
@@ -407,12 +464,75 @@ describe('the fasting view states (design 3.3, 3.4)', () => {
       fast('c', at('2000-01-04', '10:30'), at('2000-01-04', '21:00')),
     ];
     const view = open(fastingView(inputs(D, { fasts }), context(), at(D, '22:00'), NZ));
-    expect(view.history.rows.map((r) => [r.fast.id, r.over24, r.joined?.gapMs ?? null])).toEqual([
-      ['c', true, 30 * 60_000],
-      ['b', true, null],
-      ['a', false, null],
+    expect(
+      view.history.rows.map((r) => [
+        r.fast.id,
+        r.over24,
+        r.joined?.gapMs ?? null,
+        r.joinedFirst?.spanMs ?? null,
+      ]),
+    ).toEqual([
+      ['c', true, 30 * 60_000, null],
+      ['b', true, null, 26 * 3_600_000],
+      ['a', false, null, null],
     ]);
     expect(view.history.streakDays).toBe(1);
     expect(view.lastEnded).toMatchObject({ fast: { id: 'c' }, over24: true });
+  });
+});
+
+describe('the preset every reader uses (cross-item ruling 2; C07)', () => {
+  const gateInput: GateInput = {
+    answers: Object.fromEntries(
+      READINESS_QUESTION_IDS.map((q) => [q, 'no']),
+    ) as GateInput['answers'],
+    confirmations: Object.fromEntries(
+      READINESS_CONFIRMATION_IDS.map((c) => [c, false]),
+    ) as GateInput['confirmations'],
+    minimumAgeYears: 40,
+    lowWeight: false,
+  };
+  /** A stored 23:1 Kickstart default, keto since well before any period. */
+  const contextWith = (periods: KickstartPeriodRecord[]) =>
+    fastingContext({
+      inputs: inputs(D, {
+        targets: {
+          ...defaultTargets(T0),
+          fastingPreset: '23:1',
+          eatingWindow: ONE_MEAL,
+          presetChosenBy: 'kickstart-default',
+        },
+        profile: { ...defaultProfile(T0), carbCeilingStartedAt: iso(at('1999-12-01', '00:00')) },
+        periods,
+      }),
+      gateInput,
+      gates: readinessGates(gateInput),
+      now: iso(at(D, '10:00')),
+      deviceTimeZone: NZ,
+      endsPending: new Map(),
+    });
+
+  it('with no Kickstart running, a stored Kickstart default plans 22:2', () => {
+    const c = contextWith([]);
+    expect(c.preset).toMatchObject({ fastingPreset: '22:2', eatingWindow: SNACK_AND_DINNER });
+    expect(c.kickstart).toEqual({ running: false });
+  });
+
+  it('on the last day of a running Kickstart it plans 23:1, and the next day already 22:2', () => {
+    const period: KickstartPeriodRecord = {
+      id: 'k1',
+      startedAt: iso(at(addDays(D, -20), '08:00')),
+      timeZone: NZ,
+      endedAt: null,
+      endedTimeZone: null,
+      endReason: null,
+    };
+    const c = contextWith([period]);
+    expect(c.preset).toMatchObject({ fastingPreset: '23:1', eatingWindow: ONE_MEAL });
+    expect(c.kickstart).toMatchObject({
+      running: true,
+      lastDay: D,
+      presetAfter: { fastingPreset: '22:2', eatingWindow: SNACK_AND_DINNER },
+    });
   });
 });

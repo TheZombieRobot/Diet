@@ -102,6 +102,10 @@ describe('elapsed time and the 24-hour ceiling (HS-02, FS-02, FS-03)', () => {
     expect(runningPhase(23 * HOUR, T0 + 23 * HOUR, plan)).toBe('near-ceiling');
     expect(runningPhase(FAST_CEILING_MS + 1, T0 + FAST_CEILING_MS + 1, plan)).toBe('over-ceiling');
     expect(runningPhase(23 * HOUR - 1, T0 + 23 * HOUR - 1, null)).toBe('fasting');
+    // Never "open" once the planned window has closed (review): an 11 am to noon window from 7 pm.
+    const late = planFast(T0, NZ, schedule({ start: '11:00', end: '12:00' }));
+    expect(runningPhase(16 * HOUR + 59 * MIN, T0 + 16 * HOUR + 59 * MIN, late)).toBe('window-open');
+    expect(runningPhase(17 * HOUR, T0 + 17 * HOUR, late)).toBe('fasting');
   });
 });
 

@@ -487,6 +487,7 @@ describe('fasting and reflux copy (item 15)', () => {
       m.afterWindowUnchecked,
       m.afterWindowUncheckedReflux,
       m.unavailableOneMeal,
+      m.unavailableOneMealNoSnack,
       fasting.card.windowOpen,
       fasting.card.nearCeiling,
       fasting.card.fineToEat,

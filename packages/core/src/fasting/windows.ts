@@ -162,12 +162,21 @@ export function windowOn(date: LocalDate, schedule: Schedule): EatingWindow | nu
   return overrideOn(date, schedule) ?? standingOn(date, schedule);
 }
 
-/** True only when the date's change is exactly the standing window with the 5 pm snack added. */
+/**
+ * True only when the date's change is exactly the standing window with the 5 pm snack added, and
+ * the date before has no moved window. "Eat 1 hour earlier" moves a date's window and may open the
+ * next date's earlier with the same end (dayChanges.ts), which can equal the snack window; that
+ * pair is one change and is never called a snack (item 15 design 3.7).
+ */
 export function isSnackAdded(date: LocalDate, schedule: Schedule): boolean {
   const override = overrideOn(date, schedule);
   const standing = schedule.standing === null ? null : standingOn(date, schedule);
   const snack = standing === null ? null : snackWindowFor(standing);
-  return override !== undefined && snack !== null && sameWindow(override, snack);
+  if (override === undefined || snack === null || !sameWindow(override, snack)) return false;
+  const before = addDays(date, -1);
+  const moved = overrideOn(before, schedule);
+  const beforeStanding = standingOn(before, schedule);
+  return moved === undefined || beforeStanding === null || windowWidens(moved, beforeStanding);
 }
 
 /** One window on one date, as real instants. Its date is the date it starts. */

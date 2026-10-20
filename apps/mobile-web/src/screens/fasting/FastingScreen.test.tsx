@@ -1,6 +1,6 @@
 // The Fast card and the Fasting screen (item 15 design 7.3): the whole app over the real
 // repositories on fake-indexeddb, with the test clock. Synthetic records only.
-import { type Instant, parseClockTime, zonedWallTimeToInstant } from '@diet/core';
+import { fillTemplate, type Instant, parseClockTime, zonedWallTimeToInstant } from '@diet/core';
 import { fasting, readiness, reflux, schedule } from '@diet/core/copy/health';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -17,6 +17,7 @@ import { GateNotice } from '../../onboarding/GateNotice';
 import { openApp } from '../../onboarding/flowTestKit';
 import { storageStore } from '../../pwa/storage';
 import { FastingScreen } from './FastingScreen';
+import { mealSources } from './integration';
 
 const NZ = 'Pacific/Auckland';
 const SECOND = 1000;
@@ -105,20 +106,47 @@ const tap = (container: HTMLElement, name: string | RegExp) => {
   fireEvent.click(within(container).getByRole('button', { name }));
 };
 const timer = () => within(fastCard()).getByTestId('fast-timer').textContent;
+const enabled = (container: HTMLElement, name: string) =>
+  !within(container).getByRole('button', { name }).hasAttribute('disabled');
+/** Waits for focus to land on an element with this text (after an action replaced a button). */
+const focusOn = (text: string) =>
+  waitFor(() => {
+    expect(document.activeElement?.textContent).toContain(text);
+  });
+/** A running fast started at `startMs`, written before the app opens. */
+const runningFrom =
+  (startMs: number) =>
+  async (t: TestDb): Promise<void> => {
+    t.env.set(iso(startMs));
+    await t.repos.fasts.start();
+  };
 
 describe('the Fast card on Today (design 3.3; FS-02, FS-03, HS-02, HS-18)', () => {
   it('Start, the timer from the stored start, Undo for 60 s, and End in every phase', async () => {
     await setUp('#/today', { now: at(D, '19:00') });
     const card = await screen.findByRole('region', { name: fasting.card.label });
     expect(within(card).getByText('23:1 · One meal')).toBeTruthy();
+    // Tonight's window has just closed: the next one is named as tomorrow's (review).
+    expect(within(card).getByText('Eat tomorrow 6:00 pm – 7:00 pm')).toBeTruthy();
     tap(card, fasting.card.start);
     await within(card).findByText(fasting.card.started);
+    // Focus moves to the line that replaced Start; Undo brings Start back, focused (review).
+    await focusOn(fasting.card.started);
+    tap(fastCard(), fasting.card.undo);
+    await waitFor(() => {
+      expect(document.activeElement?.textContent).toBe(fasting.card.start);
+    });
+    tap(fastCard(), fasting.card.start);
+    await within(fastCard()).findByText(fasting.card.started);
     expect(timer()).toBe('0 h 0 mof 23 h');
+    expect(within(fastCard()).getByText('Eat tomorrow 6:00 pm – 7:00 pm')).toBeTruthy();
     await clockTo(at(D, '19:01'));
     expect(within(fastCard()).queryByText(fasting.card.started)).toBeNull();
     // FS-03: always the stored start to now.
     await clockTo(at('2000-01-05', '09:30'));
     expect(timer()).toContain('14 h 30 m');
+    // Today's date moves with the new day's read, so the line is waited for.
+    expect(await within(fastCard()).findByText('Eat 6:00 pm – 7:00 pm')).toBeTruthy();
     await clockTo(at('2000-01-05', '18:00'));
     expect(within(fastCard()).getByText(fasting.card.nearCeiling)).toBeTruthy();
     await clockTo(at('2000-01-05', '19:00'));
@@ -145,13 +173,17 @@ describe('the Fast card on Today (design 3.3; FS-02, FS-03, HS-02, HS-18)', () =
       seed: (t) => completedFast(t, at('2000-01-03', '19:00'), at(D, '18:50')),
     });
     tap(await screen.findByRole('region', { name: fasting.card.label }), fasting.card.start);
-    await within(fastCard()).findByText(
-      "You ended a fast 1 m ago, so this counts as the same fast. It's fine to eat before starting another.",
-    );
+    const joined =
+      "This fast started 1 m after your last fast ended, so it counts as part of the same fast. It's fine to eat before starting another.";
+    await within(fastCard()).findByText(joined);
     expect(timer()).toContain('23 h 51 m');
+    // HS-18: End stays on a joined fast.
+    expect(enabled(fastCard(), fasting.card.end)).toBe(true);
     await clockTo(at(D, '18:51') + 23 * HOUR + 49 * MIN);
     expect(within(fastCard()).getByText(fasting.card.overCeiling)).toBeTruthy();
     expect(timer()).toContain('47 h 40 m');
+    // The note gives the gap between the two fasts, so it is still true hours later (review).
+    expect(within(fastCard()).getByText(joined)).toBeTruthy();
   });
 
   it('Undo after End goes at 60 s from the stored end; the note editor stays open and saves', async () => {
@@ -163,6 +195,14 @@ describe('the Fast card on Today (design 3.3; FS-02, FS-03, HS-02, HS-18)', () =
       },
     });
     tap(await screen.findByRole('region', { name: fasting.card.label }), fasting.card.end);
+    await within(fastCard()).findByText('Fast ended after 23 h.');
+    // Focus follows the line that replaced End, and Undo gives End back, focused (review).
+    await focusOn('Fast ended after 23 h.');
+    tap(fastCard(), fasting.card.undo);
+    await waitFor(() => {
+      expect(document.activeElement?.textContent).toBe(fasting.card.end);
+    });
+    tap(fastCard(), fasting.card.end);
     await within(fastCard()).findByText('Fast ended after 23 h.');
     await clockTo(at(D, '18:00') + 59 * SECOND);
     tap(fastCard(), fasting.card.addNote);
@@ -196,6 +236,63 @@ describe('the Fast card on Today (design 3.3; FS-02, FS-03, HS-02, HS-18)', () =
     expect(await within(card).findByText(fasting.alcoholNote)).toBeTruthy();
     expect(card.textContent).not.toMatch(/streak|penalt|broke/i);
     expect(within(card).getByRole('button', { name: fasting.card.end })).toBeTruthy();
+  });
+
+  it('R-clock: with the phone clock behind the start, End works and the clock note stays, never "invalid" (HS-18, review)', async () => {
+    const t = await setUp('#/today', { now: at(D, '16:00'), seed: runningFrom(at(D, '19:00')) });
+    const card = await screen.findByRole('region', { name: fasting.card.label });
+    expect(within(card).getByText(fasting.card.clockBehind)).toBeTruthy();
+    expect(timer()).toBe('0 h 0 m');
+    tap(card, fasting.card.end);
+    await within(fastCard()).findByText(fasting.card.endedAtStart);
+    expect(within(fastCard()).getByText(fasting.card.clockBehind)).toBeTruthy();
+    expect(screen.queryByText(fasting.card.invalid)).toBeNull();
+    expect(await t.repos.fasts.running()).toBeUndefined();
+  });
+
+  it('HS-18: End is enabled with the window open, and while a short plan is offered', async () => {
+    await setUp('#/today', {
+      now: at(D, '17:30'),
+      targets: {
+        fastingPreset: '22:2',
+        eatingWindow: { start: '17:00', end: '19:00' },
+        presetChosenBy: 'user',
+      },
+      seed: runningFrom(at('2000-01-03', '19:00')),
+    });
+    const card = await screen.findByRole('region', { name: fasting.card.label });
+    expect(within(card).getByText(fasting.card.windowOpen)).toBeTruthy();
+    expect(enabled(card, fasting.card.end)).toBe(true);
+    cleanup();
+    vi.spyOn(mealSources, 'plannedMeals').mockReturnValue([
+      {
+        slot: 'dinner',
+        proteinG: 95,
+        proteinKnown: true,
+        foodEnergyKj: 9_500,
+        proteinFoodCookedG: 450,
+        incomplete: false,
+      },
+    ]);
+    db().env.set(iso(at(D, '09:00')));
+    await openApp('#/today');
+    const offered = await screen.findByRole('region', { name: fasting.card.label });
+    expect(await within(offered).findByText(fasting.mealCheck.widen)).toBeTruthy();
+    expect(enabled(offered, fasting.card.end)).toBe(true);
+  });
+
+  it('FS-06: a fast started inside the window on the April night is planned to "Eat by 5:30 pm", and says why (C30)', async () => {
+    await setUp('#/today', {
+      now: at('2026-04-04', '18:31'),
+      seed: runningFrom(at('2026-04-04', '18:30')),
+    });
+    const card = await screen.findByRole('region', { name: fasting.card.label });
+    expect(within(card).getByText('Eat by 5:30 pm tomorrow')).toBeTruthy();
+    await clockTo(at('2026-04-05', '09:00'));
+    expect(await within(fastCard()).findByText('Eat by 5:30 pm')).toBeTruthy();
+    expect(
+      within(fastCard()).getByText(fillTemplate(fasting.card.cappedPlan, { time: '5:30 pm' })),
+    ).toBeTruthy();
   });
 
   it('with no meal figures yet, a 23:1 day offers only the snack, and Add writes a window-only day (F28, C73)', async () => {
@@ -237,6 +334,12 @@ describe('the Fast card on Today (design 3.3; FS-02, FS-03, HS-02, HS-18)', () =
     );
     expect(within(options).getByText(reflux.options.split)).toBeTruthy();
     expect(options.textContent).not.toContain(reflux.options.why);
+    // The snack added from the meal check is named once, by the options (review).
+    tap(fastCard(), fasting.mealCheck.addSnack);
+    expect(
+      await within(fastCard()).findByText('Changed for today: eat 5:00 pm – 7:00 pm.'),
+    ).toBeTruthy();
+    expect(fastCard().textContent).not.toContain('5 pm snack added');
     await clockTo(at('2000-01-06', '09:00'));
     // The new day's records are read again; until they arrive the card shows the last read.
     await waitFor(() => {
@@ -302,6 +405,23 @@ describe('while fasting is switched off (FS-08, HS-03, RD-03, RD-04, C41, F41)',
     expect(screen.queryByRole('switch')).toBeNull();
   });
 
+  it('HS-02: a fast still open past 24 hours shows the warning, fine to eat, 111 and "End it now", never the pharmacist line', async () => {
+    await setUp('#/today', {
+      now: at(D, '21:00'),
+      seed: async (s) => {
+        await runningFrom(at('2000-01-03', '19:00'))(s);
+        await s.repos.readiness.answer('q5', 'yes');
+        await s.repos.readiness.answer('q4', 'yes');
+      },
+    });
+    const card = await screen.findByRole('region', { name: fasting.card.gatedLabel });
+    expect(within(card).getByText(fasting.card.overCeiling)).toBeTruthy();
+    expect(within(card).getByText(fasting.card.fineToEat)).toBeTruthy();
+    expect(card.querySelector('a[href="tel:111"]')).not.toBeNull();
+    expect(enabled(card, fasting.gated.endOpenFast)).toBe(true);
+    expect(within(card).queryByText(fasting.pharmacist)).toBeNull();
+  });
+
   it('answer 3 without the agreement: the reason, the hint, "Change your answers", and the hypoglycaemia text', async () => {
     await setUp('#/today', { now: at(D, '10:00'), answers: { q3: 'yes' } });
     const card = await screen.findByRole('region', { name: fasting.card.gatedLabel });
@@ -347,18 +467,18 @@ describe('while fasting is switched off (FS-08, HS-03, RD-03, RD-04, C41, F41)',
     expect(screen.queryByRole('link')).toBeNull();
   });
 
-  it('a fast still open can be ended: "End it now", fine to eat, the stop-signs and 111', async () => {
+  it('a fast still open can be ended: "End it now", fine to eat, the stop-signs, 111 and the hypoglycaemia text (RD-03)', async () => {
     const t = await setUp('#/fasting', {
       now: at(D, '09:00'),
       seed: async (s) => {
-        s.env.set(iso(at('2000-01-03', '19:00')));
-        await s.repos.fasts.start();
-        await s.repos.readiness.answer('q5', 'yes');
+        await runningFrom(at('2000-01-03', '19:00'))(s);
+        await s.repos.readiness.answer('q3', 'yes');
       },
     });
     await screen.findByText(fasting.gated.openFast);
     const card = region(fasting.card.gatedLabel);
     expect(within(card).getByText(fasting.card.fineToEat)).toBeTruthy();
+    expect(within(card).getByText(readiness.ifYes.q3)).toBeTruthy();
     expect(within(card).queryByTestId('fast-timer')).toBeNull();
     const signs = region(fasting.stopSigns.label);
     expect(signs.querySelector('a[href="tel:111"]')).not.toBeNull();
@@ -392,6 +512,26 @@ describe('the Fasting screen (design 3.4 to 3.8)', () => {
     expect(await screen.findByText(fasting.card.readFailed)).toBeTruthy();
   });
 
+  it('FS-04: the stop-signs card is there with no fast running, and during one', async () => {
+    await setUp('#/fasting', { now: at(D, '10:00') });
+    const expectSigns = async () => {
+      const signs = await screen.findByRole('region', { name: fasting.stopSigns.label });
+      expect([...signs.querySelectorAll('.ui-plain-list li')].map((li) => li.textContent)).toEqual([
+        ...fasting.stopSigns.signs,
+      ]);
+      expect(within(signs).getByText(fasting.stopSigns.action)).toBeTruthy();
+      expect(
+        [...signs.querySelectorAll('a[href^="tel:"]')].map((a) => a.getAttribute('href')),
+      ).toEqual(['tel:111', 'tel:0800611116']);
+    };
+    await expectSigns();
+    tap(await screen.findByRole('region', { name: fasting.card.label }), fasting.card.start);
+    await within(fastCard()).findByTestId('fast-timer');
+    await clockTo(at(D, '10:00') + 14 * HOUR);
+    expect(timer()).toContain('14 h 0 m');
+    await expectSigns();
+  });
+
   it('#/fasting/reflux focuses the Reflux heading and leaves one history entry, at #/fasting', async () => {
     await setUp('#/today', { now: at(D, '10:00') });
     const entries = window.history.length;
@@ -416,6 +556,10 @@ describe('the Fasting screen (design 3.4 to 3.8)', () => {
     expect(within(region(fasting.pattern.label)).queryByRole('radiogroup')).toBeNull();
     tap(region(fasting.pattern.label), fasting.pattern.change);
     expect(within(region(fasting.pattern.label)).getByRole('radiogroup')).toBeTruthy();
+    // The legend takes focus, not the page (review).
+    await waitFor(() => {
+      expect(document.activeElement?.textContent).toBe(schedule.presetsLegend);
+    });
     expect(window.history.length).toBe(entries);
     expect(window.location.hash).toBe('#/fasting');
   });
@@ -428,11 +572,17 @@ describe('the Fasting screen (design 3.4 to 3.8)', () => {
     const card = await screen.findByRole('region', { name: fasting.pattern.label });
     expect(within(card).getByText(schedule.none)).toBeTruthy();
     expect(within(card).queryByText(schedule.noneSaved)).toBeNull();
+    // The Fast card names the choice too, with a quiet way to change it (review).
+    expect(within(fastCard()).getByText(schedule.none)).toBeTruthy();
+    expect(
+      within(fastCard()).getByRole('link', { name: fasting.pattern.change }).getAttribute('href'),
+    ).toBe('#/fasting/pattern');
     cleanup();
     await t.repos.settings.update({ scheduleConfirmedAt: null });
     await openApp('#/fasting');
     const unsaved = await screen.findByRole('region', { name: fasting.pattern.label });
     expect(within(unsaved).getByText(fasting.card.noPattern)).toBeTruthy();
+    expect(within(fastCard()).getByRole('link', { name: fasting.card.choosePattern })).toBeTruthy();
   });
 
   it('E19: the open form carries the Kickstart line, once, and drops it when another pattern is picked', async () => {
@@ -654,6 +804,28 @@ describe('the Fasting screen (design 3.4 to 3.8)', () => {
     });
   });
 
+  it('History explains a joined span on each of its rows, and tags each over 24 hours (review)', async () => {
+    await setUp('#/fasting', {
+      now: at(D, '20:00'),
+      seed: async (s) => {
+        await completedFast(s, at('2000-01-02', '07:00'), at('2000-01-03', '03:00'));
+        await completedFast(s, at('2000-01-03', '03:30'), at('2000-01-03', '13:30'));
+      },
+    });
+    const card = await screen.findByRole('region', { name: fasting.history.label });
+    expect(within(card).getAllByText(fasting.history.over24)).toHaveLength(2);
+    expect(
+      within(card).getByText(
+        'Started 30 m after the fast before it, so it counts as part of one fast of 30 h 30 m.',
+      ),
+    ).toBeTruthy();
+    expect(
+      within(card).getByText(
+        'The next fast started less than an hour after this one ended, so this counts as part of one fast of 30 h 30 m.',
+      ),
+    ).toBeTruthy();
+  });
+
   it('FS-07: History shows the streak from 2 days, actual lengths, the over-24 tag, and refuses an end after now', async () => {
     const t = await setUp('#/fasting', {
       now: at(D, '20:00'),
@@ -674,6 +846,8 @@ describe('the Fasting screen (design 3.4 to 3.8)', () => {
     });
     tap(card, fasting.history.save);
     expect(within(card).getByText(fasting.history.future)).toBeTruthy();
+    // The form's own check takes focus, like a failed write (design 3.9; review).
+    expect(document.activeElement?.textContent).toBe(fasting.history.future);
     expect(
       (await t.repos.fasts.list()).find((f) => f.endedAt === iso(at(D, '21:00'))),
     ).toBeUndefined();

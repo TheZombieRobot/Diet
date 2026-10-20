@@ -19,13 +19,13 @@ import {
   type EatingWindow,
   earlierOption,
   cardTrigger,
+  FAST_CEILING_MS,
   fastElapsedMs,
   type FastEndHint,
   fastEndHint,
   fastingStreak,
   fastMeter,
   type FastPlan,
-  planFast,
   type FastRecord,
   type FastSpan,
   fastSpans,
@@ -47,6 +47,7 @@ import {
   resolveZone,
   runningPhase,
   type RunningPhase,
+  runningPlan,
   runningSpan,
   type Schedule,
   scheduleFrom,
@@ -128,6 +129,12 @@ export interface MealCheckView {
   readonly energyChecked: boolean;
   /** The date's window when its 5 pm snack is added; the snack window when it fits. */
   readonly snack: { readonly added: EatingWindow | null; readonly fits: EatingWindow | null };
+  /**
+   * The date's window opens more than 24 hours after the running fast's span began: no line names
+   * its times, and the one-meal line shows only while a 5 pm snack opening inside those 24 hours
+   * can still be added (snack.fits never offers one past them; item 15 review).
+   */
+  readonly afterCeiling: boolean;
   readonly undoSnackAllowed: boolean;
   /** A symptom was logged today (C62). */
   readonly refluxDay: boolean;
@@ -171,6 +178,8 @@ export interface HistoryRow {
   readonly over24: boolean;
   /** Joined to the fast before it: the gap and the whole span's length. */
   readonly joined: { readonly gapMs: number; readonly spanMs: number } | null;
+  /** The first fast of a span that later fasts joined: the whole span's length. */
+  readonly joinedFirst: { readonly spanMs: number } | null;
 }
 
 /** The latest completed fast, for the "Fast ended" line. */
@@ -178,6 +187,8 @@ export interface LastEndedView {
   readonly fast: FastRecord;
   readonly spanMs: number;
   readonly over24: boolean;
+  /** The phone's clock reads earlier than the stored end (End stored the start; repos/fasts.ts). */
+  readonly clockBehind: boolean;
 }
 
 export interface PatternView {
@@ -229,7 +240,7 @@ function runningView(
   const first = span?.fasts[0];
   if (span === null || fast === undefined || first === undefined) return null;
   const elapsedMs = spanElapsedMs(span, nowMs);
-  const plan = planFast(ms(fast.startedAt), deviceZone, schedule, span.startMs);
+  const plan = runningPlan(ms(fast.startedAt), deviceZone, schedule, span.startMs, nowMs);
   const phase = runningPhase(elapsedMs, nowMs, plan);
   const previousEnd = span.fasts.at(-2)?.endedAt ?? null;
   const zone = resolveZone(first.timeZone, home, DEFAULT_HOME_TIME_ZONE);
@@ -284,17 +295,24 @@ function refluxBase(
 const dayOf = (date: LocalDate, today: LocalDate): 'today' | 'tomorrow' =>
   date > today ? 'tomorrow' : 'today';
 
-/** The 5 pm snack for a date, when it can be added now (design 3.7). */
+/**
+ * The 5 pm snack for a date, when it can be added now (design 3.7) and, during a fast, opens
+ * within 24 hours of the span's start (`ceilingMs`), so it is never offered as a time to eat that
+ * lies past the ceiling.
+ */
 function snackThatFits(
   date: LocalDate,
   schedule: Schedule,
   deviceZone: TimeZone,
   nowMs: number,
+  ceilingMs: number | null,
 ): EatingWindow | null {
   const window = windowOn(date, schedule);
   if (window === null || hasOverride(date, schedule)) return null;
   const snack = snackWindowFor(window);
-  if (snack === null || windowInstance(date, snack, deviceZone).startMs <= nowMs) return null;
+  if (snack === null) return null;
+  const startMs = windowInstance(date, snack, deviceZone).startMs;
+  if (startMs <= nowMs || (ceilingMs !== null && startMs > ceilingMs)) return null;
   return dayWindowChangeAllowed(schedule, [{ date, window: snack }], deviceZone) ? snack : null;
 }
 
@@ -322,8 +340,13 @@ function mealCheckView(
   refluxDay: boolean,
   deviceZone: TimeZone,
   nowMs: number,
+  ceilingMs: number | null,
 ): MealCheckView {
   const window = windowOn(date, schedule);
+  const afterCeiling =
+    window !== null &&
+    ceilingMs !== null &&
+    windowInstance(date, window, deviceZone).startMs > ceilingMs;
   const { mealSources } = context;
   const { proteinTargetG, energyTargetKj } = context.mealTargets(date);
   const result = mealCheck({
@@ -335,7 +358,7 @@ function mealCheckView(
     oneMealWindow: window !== null && isOneMealWindow(window),
   });
   const added = isSnackAdded(date, schedule) ? window : null;
-  const snack = { added, fits: snackThatFits(date, schedule, deviceZone, nowMs) };
+  const snack = { added, fits: snackThatFits(date, schedule, deviceZone, nowMs, ceilingMs) };
   let kind: MealCheckKind = 'hidden';
   if (region === 'closed') {
     kind = result.kind === 'short-after' ? 'after' : 'hidden';
@@ -345,7 +368,13 @@ function mealCheckView(
     kind = 'ok';
   } else if (result.kind === 'unavailable' && added !== null) {
     kind = 'snack-added';
-  } else if (result.kind === 'unavailable' && window !== null && isOneMealWindow(window)) {
+  } else if (
+    result.kind === 'unavailable' &&
+    window !== null &&
+    isOneMealWindow(window) &&
+    // Past the ceiling, only while a snack inside it can still be added (it brings eating in).
+    (!afterCeiling || snack.fits !== null)
+  ) {
     kind = 'one-meal-unavailable';
   }
   return {
@@ -357,6 +386,7 @@ function mealCheckView(
     headline: result.kind === 'ok' || result.kind === 'short-before' ? result.sitting : null,
     energyChecked: energyTargetKj !== null,
     snack,
+    afterCeiling,
     undoSnackAllowed:
       added !== null && dayWindowChangeAllowed(schedule, [{ date, window: null }], deviceZone),
     refluxDay,
@@ -382,6 +412,8 @@ export function fastingView(
   });
   const running = runningView(inputs, schedule, home, nowMs, deviceZone);
   const reflux = refluxBase(inputs, home, nowMs);
+  // During a fast, no window opening past 24 hours of its span is offered or timed (review).
+  const ceilingMs = running === null ? null : running.span.startMs + FAST_CEILING_MS;
 
   if (context.gate.fastingGated) {
     return {
@@ -410,6 +442,7 @@ export function fastingView(
           refluxDay,
           deviceZone,
           nowMs,
+          ceilingMs,
         );
 
   // The closed check date: today's window started and ended today, before now (no wrap; F33).
@@ -430,6 +463,7 @@ export function fastingView(
       refluxDay,
       deviceZone,
       nowMs,
+      ceilingMs,
     );
     // Only one "Add 5 pm snack" for tomorrow: the upcoming region's, when it shows one.
     const offeredAbove =
@@ -438,7 +472,9 @@ export function fastingView(
       SNACK_BUTTON_KINDS.includes(upcoming.kind);
     closed = {
       ...view,
-      tomorrowSnack: offeredAbove ? null : snackThatFits(tomorrow, schedule, deviceZone, nowMs),
+      tomorrowSnack: offeredAbove
+        ? null
+        : snackThatFits(tomorrow, schedule, deviceZone, nowMs, ceilingMs),
     };
   }
 
@@ -499,6 +535,8 @@ export function fastingView(
       lengthMs: fastElapsedMs(fast, nowMs),
       over24: (span?.endMs ?? null) !== null && isOverCeiling(spanMs),
       joined: beforeEnd === null ? null : { gapMs: ms(fast.startedAt) - ms(beforeEnd), spanMs },
+      // So the first row of a joined span explains its length and its over-24 tag too (review).
+      joinedFirst: index === 0 && (span?.fasts.length ?? 0) > 1 ? { spanMs } : null,
     };
   });
   const latest = completed[0];
@@ -510,6 +548,7 @@ export function fastingView(
           fast: latest,
           spanMs: spanElapsedMs(latestSpan, nowMs),
           over24: isOverCeiling(spanElapsedMs(latestSpan, nowMs)),
+          clockBehind: latest.endedAt !== null && nowMs < ms(latest.endedAt),
         };
 
   const standing = standingOn(today, schedule);
