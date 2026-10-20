@@ -241,33 +241,6 @@ export function kickstartUsage(
   return { days, extensions };
 }
 
-/** A Kickstart history: every period and check, read in its own home zone. */
-export interface KickstartHistory {
-  readonly periods: readonly (PeriodTimes & { readonly id: string })[];
-  readonly checks: readonly (CheckOutcome & { readonly askedAt: Instant })[];
-  readonly homeTimeZone?: TimeZone | undefined;
-}
-
-/**
- * Whether history `a` records more Kickstart than history `b` (D27; the data-loss review): more
- * days, or as many days and more extensions, or as many of both and a later stop-sign check (one
- * where `b` has none counts as later). A restore never replaces a history with one that records
- * less, so it can never reopen the 42-day or 3-extension cap, or an offer after a stop sign.
- */
-export function recordsMoreKickstart(a: KickstartHistory, b: KickstartHistory): boolean {
-  const ua = kickstartUsage(a.periods, a.checks, a.homeTimeZone);
-  const ub = kickstartUsage(b.periods, b.checks, b.homeTimeZone);
-  if (ua.days !== ub.days) return ua.days > ub.days;
-  if (ua.extensions !== ub.extensions) return ua.extensions > ub.extensions;
-  const lastStopSign = (h: KickstartHistory): string =>
-    h.checks
-      .filter((c) => c.outcome === 'stop-sign')
-      .map((c) => c.askedAt)
-      .sort()
-      .at(-1) ?? '';
-  return lastStopSign(a) > lastStopSign(b);
-}
-
 /** A new period starts only if a full 21 days still fit under the 42-day cap (D27). */
 export function canStartKickstart(usage: KickstartUsage): boolean {
   return usage.days + KICKSTART_DAYS <= KICKSTART_MAX_TOTAL_DAYS;

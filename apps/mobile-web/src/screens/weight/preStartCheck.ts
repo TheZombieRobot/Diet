@@ -1,58 +1,67 @@
 /**
- * A "yes" to a pre-start stop-sign question (item 14 design section 2.3.1, W31): no Kickstart may
- * start for the rest of that local day. Held in session storage (this tab only; cleared by
- * delete-all), never in the records; every read and write is guarded, and an unreadable value
- * counts as absent. Its guidance (eat, salt, 111) shows on Today and on the Weight screen, through
- * a reload and a change of screen, until OK is tapped that day (item 14 review).
+ * A "yes" to a pre-start stop-sign question (item 14 design section 2.3.1, W31; cross-item ruling
+ * 9; full review F6, F8, F18) is a record: a card_state row of that local date (core
+ * weight/preStart.ts), so every tab, a reload, a closed app, a backup and delete-all treat it like
+ * any other record. No Kickstart may start for the rest of that day; its guidance (eat, salt, 111)
+ * shows on Today and on the Weight screen, through a reload and a change of screen, until OK is
+ * tapped that day (item 14 review); and the exercise check counts it for 336 hours. Until the row
+ * is written, and if it cannot be, this page holds the answer and the OK in memory, so neither the
+ * guidance nor the refusal depends on a write succeeding. Nothing is kept in web storage.
  */
-import { isLocalDate, type LocalDate } from '@diet/core';
-import type { Platform } from '../../db/runtime';
+import {
+  type CardStateRecord,
+  type Instant,
+  type LocalDate,
+  PRE_START_STOP_SIGN_CARD,
+  preStartGuidanceDue,
+  preStartRowOn,
+  preStartStopSignOn,
+  preStartTrigger,
+} from '@diet/core';
+import type { AppStorage } from '../../db/runtime';
 import { createStore } from '../../store';
 
-const PRE_START_KEY = 'diet.kickstart.preStartStopSign';
-const SEEN_KEY = 'diet.kickstart.preStartStopSignSeen';
-
+/** The local date of a "yes" given in this page (held until its row is written, or if it cannot be). */
 export const preStartStopSignStore = createStore<LocalDate | null>(null);
-/** The local date on which OK was tapped on the guidance after that "yes". */
+/** The local date on which OK was tapped on the guidance in this page. */
 export const preStartSeenStore = createStore<LocalDate | null>(null);
 
-function read(platform: Platform, key: string): LocalDate | null {
-  try {
-    const stored = platform.sessionStorage().getItem(key);
-    return isLocalDate(stored) ? stored : null;
-  } catch {
-    // No session storage: nothing was held.
-    return null;
-  }
-}
-
-function write(platform: Platform, key: string, value: LocalDate | null): void {
-  try {
-    if (value === null) platform.sessionStorage().removeItem(key);
-    else platform.sessionStorage().setItem(key, value);
-  } catch {
-    // Held in memory for this page only.
-  }
-}
-
-/** Reads the held answer and its OK; an unreadable value counts as absent. */
-export function loadPreStartStopSign(platform: Platform): void {
-  const held = read(platform, PRE_START_KEY);
-  if (held !== null) preStartStopSignStore.set(held);
-  const seen = read(platform, SEEN_KEY);
-  if (seen !== null) preStartSeenStore.set(seen);
-}
-
-/** A new "yes": held for the day, and its guidance shows again until OK. */
-export function recordPreStartStopSign(platform: Platform, today: LocalDate): void {
+/** A new "yes": recorded for the day, and its guidance shows again until OK. */
+export async function recordPreStartStopSign(storage: AppStorage, today: LocalDate): Promise<void> {
   preStartStopSignStore.set(today);
   preStartSeenStore.set(null);
-  write(platform, PRE_START_KEY, today);
-  write(platform, SEEN_KEY, null);
+  await storage.repos.cardState.reopen(PRE_START_STOP_SIGN_CARD, preStartTrigger(today));
 }
 
-/** OK on the guidance: it stays away for the rest of that day. */
-export function acknowledgePreStartStopSign(platform: Platform, today: LocalDate): void {
+/** OK on the guidance: it stays away for the rest of that day, in every tab. */
+export async function acknowledgePreStartStopSign(
+  storage: AppStorage,
+  today: LocalDate,
+): Promise<void> {
   preStartSeenStore.set(today);
-  write(platform, SEEN_KEY, today);
+  await storage.repos.cardState.dismiss(PRE_START_STOP_SIGN_CARD, preStartTrigger(today));
+}
+
+/** A pre-start "yes" holds today: its record, or this page's hold. */
+export function preStartStopSignToday(
+  cardStates: readonly CardStateRecord[],
+  held: LocalDate | null,
+  today: LocalDate,
+): boolean {
+  return held === today || preStartStopSignOn(cardStates, today);
+}
+
+/**
+ * Its guidance shows: today's record until its OK (in any tab), or, while there is no record
+ * (not yet written, or the write failed), this page's hold; never after OK in this page.
+ */
+export function preStartGuidanceShown(
+  cardStates: readonly CardStateRecord[],
+  page: { readonly held: LocalDate | null; readonly seen: LocalDate | null },
+  today: LocalDate,
+  now: Instant,
+): boolean {
+  if (page.seen === today) return false;
+  if (preStartRowOn(cardStates, today) !== null) return preStartGuidanceDue(cardStates, today, now);
+  return page.held === today;
 }

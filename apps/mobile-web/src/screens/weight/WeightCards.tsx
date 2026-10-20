@@ -8,7 +8,12 @@ import { useStore } from '../../store';
 import { EndKickstart } from './EndKickstart';
 import { KickstartCheckPanel } from './KickstartCheckPanel';
 import { StopSignLines } from './parts';
-import { acknowledgePreStartStopSign, preStartSeenStore } from './preStartCheck';
+import {
+  acknowledgePreStartStopSign,
+  preStartGuidanceShown,
+  preStartSeenStore,
+  preStartStopSignStore,
+} from './preStartCheck';
 import { presetMovedStore, reportStatus, stopSignFocusStore } from './stores';
 import type { WeightView } from './useWeightView';
 import { useFocusWhen } from './weightText';
@@ -335,7 +340,7 @@ export function FluctuationCard({ storage }: { storage: AppStorage }): ReactElem
 
 /**
  * After a "yes" before a start: nothing started, and what to do about it (W31). Stays on Today and
- * the Weight screen, through a reload, until OK that day (preStartCheck.ts).
+ * the Weight screen, through a reload and in every tab, until OK that day (preStartCheck.ts).
  */
 export function PreStartStopSignCard({
   bloodPressure,
@@ -377,8 +382,14 @@ export function WeightCards({
   const { overview } = view;
   const { cards, phase } = overview;
   const presetMoved = useStore(presetMovedStore);
+  const preStartHeld = useStore(preStartStopSignStore);
   const preStartSeen = useStore(preStartSeenStore);
-  const preStartStopSign = view.input.preStartStopSignToday && preStartSeen !== overview.today;
+  const preStartStopSign = preStartGuidanceShown(
+    view.inputs.cardStates,
+    { held: preStartHeld, seen: preStartSeen },
+    overview.today,
+    view.input.now,
+  );
   const explained = cards.steadyExplainer?.windowLine === true || cards.pendingStart !== null;
   return (
     <>
@@ -397,7 +408,8 @@ export function WeightCards({
         <PreStartStopSignCard
           bloodPressure={view.input.gates.bloodPressureSaltWording}
           onClose={() => {
-            acknowledgePreStartStopSign(storage.platform, overview.today);
+            // OK holds in this page even if its record cannot be written.
+            void acknowledgePreStartStopSign(storage, overview.today).catch(() => undefined);
           }}
         />
       ) : null}

@@ -241,11 +241,29 @@ export const privacy = {
     /** Only when this phone is paired with a laptop. */
     pairingRemoved: 'The laptop pairing will be removed.',
     /**
-     * A file whose Kickstart history records less than this phone's never lowers it (D27; the
-     * data-loss review): the phone's periods and checks are kept, and this says so before Replace.
+     * A restore never lowers the Kickstart history (D27; full review F1, F12): this phone's
+     * periods, checks and pre-start answers that the file lacks are kept with the file's, and this
+     * says so before Replace.
      */
     kickstartKept:
-      'Kickstart history kept from this phone, because it records more Kickstart days, extensions or stop-sign checks than the file.',
+      "Kickstart history: this phone's Kickstart days, extensions and stop-sign answers are kept with the file's, because a restore never removes them.",
+    /** While the phone's Kickstart runs, the settings it runs on are kept from the phone (F13). */
+    kickstartSettingsKept:
+      'The Kickstart running on this phone keeps going: its diet mode, keto start and Kickstart eating pattern are kept from this phone.',
+    /** The restored answers, profile or weigh-ins switch Kickstart off (the phase engine's own rule). */
+    kickstartEnds:
+      "The Kickstart running on this phone will end after the restore, because the file's readiness answers, profile or weigh-ins switch it off.",
+    /** The file holds a fast that was running when it was made (F3). */
+    fastRunning:
+      'A fast was running when this backup was made (started {start}). It comes back as still running, counted from that start.',
+    endFastAtBackup: 'End that fast at {time}, when the backup was made',
+    endFastHint: 'Turn this on if you have eaten since. You can correct its end time in History.',
+    /**
+     * The records changed between the confirmation and Replace (another tab saved something), so
+     * nothing was replaced and the confirmation is shown again with fresh counts (F12).
+     */
+    changedSinceConfirm:
+      'The records on this phone changed while this was open, perhaps in another tab, so nothing was replaced. Check what the restore will do again.',
     exportFirst: 'Export what is on this phone first',
     replace: 'Replace everything on this phone',
     importRest: 'Import the rest',
@@ -267,6 +285,13 @@ export const privacy = {
     reloadCancels: 'Reload cancels the restore: you will need to choose the file again.',
     /** Counts the phone's records again and shows the confirmation again before anything is replaced. */
     tryRestoreAgain: 'Try the restore again',
+    /**
+     * Once, on Readiness answers after a restore made during setup (F28): the records are back,
+     * and the restored answers are checked before Today.
+     */
+    restored:
+      'Your records from the backup are back on this phone. Check that these answers still apply, then go to Today.',
+    restoredContinue: 'These still apply',
   },
   /**
    * An import refused for a whole list or for the file itself rather than for one record (section
@@ -284,6 +309,9 @@ export const privacy = {
   /** A rescue copy whose Kickstart history cannot be imported whole (section 9.5; D27, D28). */
   kickstartHistory:
     'This rescue copy has a Kickstart record that could not be imported ({record}), and the Kickstart history is imported whole or not at all. Nothing was imported. Keep the file: a later version of the app may read it.',
+  /** A file whose Kickstart history cannot be combined with this phone's (restorePlan.ts; F1). */
+  kickstartMerge:
+    "This backup's Kickstart history cannot be combined with the Kickstart records on this phone: they overlap, or together they pass the six-week limit. A restore never removes Kickstart days, extensions or stop-sign answers from this phone, so nothing was imported. Keep the file.",
   /** One message per BackupError code (section 10.9). {detail} names a store, a field and a rule, never a value. */
   backupErrors: {
     'too-large': 'This file is too big to be a backup from this app. Nothing was imported.',
@@ -323,6 +351,7 @@ export const privacy = {
       "If Chrome saved a backup password, remove it in Chrome's settings.",
       'Backup files you made or shared: delete them in Files, and in your email or cloud storage if you sent them there.',
       'The list on your laptop and its pairing: also unpair on your laptop.',
+      'Copies of your records restored in another browser, such as on a laptop: delete all there too.',
       'A list waiting to be sent expires within 15 minutes.',
     ],
     exportFirst: 'Export a backup first',

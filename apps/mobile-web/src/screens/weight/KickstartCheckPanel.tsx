@@ -27,7 +27,7 @@ export interface KickstartCheckPanelProps {
   readonly variant: CheckVariant;
   /** Closes the panel; nothing was recorded. */
   readonly onCancel: () => void;
-  /** A "yes" before a start: nothing was written; the caller shows what to do. */
+  /** A "yes" before a start: nothing started; the caller shows what to do. */
   readonly onPreStartStopSign: () => void;
 }
 
@@ -38,8 +38,8 @@ export interface KickstartCheckPanelProps {
  * Extension: the answers go to the Kickstart repository, which decides the outcome and enforces
  * the window, the stop-sign rule and both caps; this is the only caller of recordCheck. Energy and
  * sleep are optional and decide nothing.
- * Start: any "yes" writes nothing and is held for the rest of the day (W31); four "no" start a
- * Kickstart, which re-checks that a start is still available just before writing.
+ * Start: any "yes" starts nothing and is recorded for the day (W31; preStartCheck.ts); four "no"
+ * start a Kickstart, which re-checks that a start is still available just before writing.
  * Outcomes go to the page-level status line, so they outlive the card that asked.
  */
 export function KickstartCheckPanel({
@@ -90,7 +90,9 @@ export function KickstartCheckPanel({
       return;
     }
     if (QUESTIONS.some((q) => four[q] === 'yes')) {
-      recordPreStartStopSign(storage.platform, variant.today);
+      // Held in this page at once, then recorded; the guidance and the refusal never wait for,
+      // or depend on, the write (preStartCheck.ts).
+      void recordPreStartStopSign(storage, variant.today).catch(() => undefined);
       onPreStartStopSign();
       return;
     }

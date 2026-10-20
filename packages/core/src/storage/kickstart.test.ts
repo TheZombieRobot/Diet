@@ -11,7 +11,6 @@ import {
   kickstartDayNumber,
   kickstartUsage,
   periodDay1,
-  recordsMoreKickstart,
   scheduledLastDay,
 } from './kickstart';
 import type { KickstartCheckRecord, KickstartPeriodRecord, Snapshot } from './records';
@@ -228,35 +227,5 @@ describe('the extension window and the caps (C08, C59; D27, D28; section 16 test
     expect(findInvariantViolation(snapshot([], [check(11, a, dayOf(D1, 19))]))).toBe(
       'kickstart-check-period',
     );
-  });
-});
-
-describe('recordsMoreKickstart: a restore never lowers the Kickstart history (D27; orchestrator ruling A)', () => {
-  const a = period(1, D1);
-  const short = period(2, D1, dayOf(D1, 10));
-  const history = (periods: KickstartPeriodRecord[], checks: KickstartCheckRecord[] = []) => ({
-    periods,
-    checks,
-  });
-
-  it('compares the days first, then the extensions, then the latest stop-sign check', () => {
-    expect(recordsMoreKickstart(history([a]), history([]))).toBe(true);
-    expect(recordsMoreKickstart(history([]), history([a]))).toBe(false);
-    expect(recordsMoreKickstart(history([a]), history([short]))).toBe(true);
-    // The same history on both sides is not more.
-    const ext = [check(11, a, dayOf(D1, 19))];
-    expect(recordsMoreKickstart(history([a], ext), history([a], ext))).toBe(false);
-    // As many days (ended on day 20) but one more extension: the 3-extension cap counts.
-    const ended = period(3, D1, dayOf(D1, 20));
-    const extended = history([ended], [check(14, ended, dayOf(D1, 19))]);
-    expect(kickstartUsage(extended.periods, extended.checks)).toEqual({ days: 20, extensions: 1 });
-    expect(recordsMoreKickstart(extended, history([ended]))).toBe(true);
-    expect(recordsMoreKickstart(history([ended]), extended)).toBe(false);
-    // As many days and extensions, but only one side has a stop sign: that side records more.
-    const stopped = [check(12, a, dayOf(D1, 20), 'stop-sign')];
-    expect(recordsMoreKickstart(history([a], stopped), history([a]))).toBe(true);
-    expect(recordsMoreKickstart(history([a]), history([a], stopped))).toBe(false);
-    const later = [check(13, a, dayOf(D1, 21), 'stop-sign')];
-    expect(recordsMoreKickstart(history([a], later), history([a], stopped))).toBe(true);
   });
 });

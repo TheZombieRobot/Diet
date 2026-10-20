@@ -51,6 +51,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | BK-06 | A file with a value outside the safety bounds (energy floor below 5,000 kJ, Kickstart deficit over 30%, Steady deficit outside 15–20%, protein, carb ceilings, saturated-fat budget, rapid-loss bounds, more than 3 Kickstart extensions or 42 Kickstart days) (DOC_REVIEW C50) | The whole file is refused with a clear message; nothing is clamped and nothing imported |
 | BK-07 | A failure during the import write (a bug, a refused row, a full phone) | Nothing on the phone changes ("Nothing was changed"), and "Save what was on this phone" offers the records shown on the confirmation as a rescue copy |
 | BK-08 | File names and the public repository (DOC_REVIEW C89) | Every name the app gives a saved file (diet-backup-…, rescue and locked variants, the browser's " (1)" copies, the GP summary and grocery exports) is ignored by git; a generated backup trips the backup-file and backup-marker scan rules |
+| BK-12 | A restore never erases what the phone holds about Kickstart (full review F1, F3, F12, F13) | The Kickstart history written is the phone's and the file's merged: a stop-sign answer, an end, an extension or a pre-start "yes" on the phone is kept, and the start refusal, the stop-sign card and the extension offer are the same after the restore as before; two histories that cannot be combined refuse the file; a record saved in another tab after the confirmation stops Replace and the confirmation comes back with fresh counts; a Kickstart running on the phone keeps running; a fast running when the file was made is named, with a switch to end it at the time the file was made |
 | BK-09 | The fixed version-1 reference files, plain and locked (DOC_REVIEW C99) | Decode, decrypt with the reference phrase and import in every later version |
 | BK-10 | Rescue copy after an upgrade fails | The upgrade-failed screen offers "Save a rescue copy", locked by default and named diet-backup-YYYY-MM-DD-rescue-locked.json; it is read with plain IndexedDB at the installed version from that version's allow-list, never reads the pairing or photos, and imports record by record, listing any record it could not keep by store and position; it never counts as a backup |
 | BK-11 | A database newer than the app (a stale tab, a rolled-back deploy) | "This phone has records from a newer version of the app. Reload to update."; the database's version, stores and indexes are left exactly as they were |
@@ -236,8 +237,10 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 - [ ] Install on phone from Chrome; icon appears.
 - [ ] Flight mode; open; log weight; start fast; close; reopen; data present.
 - [ ] Records survive a week of normal use (PWA-06, as reworded by DOC_REVIEW C98).
-- [ ] Export backup; file lands in Downloads; import on the laptop browser works.
-- [ ] Export a locked backup, then restore it in an Incognito tab on the same phone (DOC_REVIEW C48).
+- [ ] Export a locked backup; the file lands in Downloads.
+- [ ] Restore that locked file in an Incognito tab on the same phone, check that the records appear, then close the Incognito tab, which discards that copy (DOC_REVIEW C48).
+- [ ] Optional, the laptop: copy the locked file to the laptop by USB cable, open the app in a Chrome Guest window, restore it there, check the records, then close the Guest window straight away, which discards that copy. Never restore into an ordinary laptop browser window: it would keep every record (HEALTH_SAFETY section 7, DOC_REVIEW C48).
+- [ ] Clean-up: if a restore was ever made in an ordinary browser window anywhere other than this phone's app, open the app in that window and use Settings, Backup and data, Delete all data, so no copy of the records stays there.
 - [ ] Text readable outdoors at midday; buttons tappable with a thumb.
 
 ### End of week 3

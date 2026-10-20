@@ -6,7 +6,7 @@ import {
   type Snapshot,
 } from '@diet/core';
 import { privacy } from '@diet/core/copy/health';
-import { Button, ButtonRow, Notice, TextField } from '@diet/ui';
+import { Button, ButtonRow, Notice, Switch, TextField } from '@diet/ui';
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { createRescueCopy } from '../../db/exportBackup';
 import { newGeneration } from '../../db/generation';
@@ -32,7 +32,8 @@ type Step =
   | { readonly kind: 'reading' }
   | { readonly kind: 'password'; readonly file: ImportFile; readonly error: string | null }
   | { readonly kind: 'unlocking'; readonly file: ImportFile }
-  | { readonly kind: 'confirm'; readonly plan: ImportPlan }
+  /** notice: why the confirmation is shown again (the records changed since it was worked out). */
+  | { readonly kind: 'confirm'; readonly plan: ImportPlan; readonly notice: string | null }
   | { readonly kind: 'writing' }
   /** Another tab did not let go of the records: nothing was written, and it can be tried again. */
   | { readonly kind: 'blocked'; readonly plan: ImportPlan }
@@ -67,11 +68,14 @@ const messageOf = (error: unknown): string =>
  * its password (autocomplete="current-password"); a wrong password says so next to the field,
  * imports nothing and can be tried again. The confirmation shows the file's date (a backup's or a
  * rescue copy's), its counts, any values changed to fit this version, any rows a rescue copy
- * could not keep, what was kept from this phone (safety settings, allergens, a Kickstart history
- * that records more), and what would be lost; when the phone holds records the file does not,
- * "Export what is on this phone first" comes first. When other tabs do not let go, nothing is
- * changed: "Try the restore again" counts the records again and shows the confirmation again.
- * Focus moves to the start of each new step.
+ * could not keep, what was kept from this phone (safety settings, allergens, the Kickstart history
+ * merged with this phone's, and the settings a running Kickstart keeps), what would be lost, and a
+ * fast that was running when the file was made, with the choice to end it then; when the phone
+ * holds records the file does not, "Export what is on this phone first" comes first. When other
+ * tabs do not let go, nothing is changed: "Try the restore again" counts the records again and
+ * shows the confirmation again. When the records changed after the confirmation was worked out
+ * (another tab saved something), nothing is replaced and the confirmation is worked out again and
+ * shown with a line saying why (F12). Focus moves to the start of each new step.
  */
 export function RestorePanel({
   storage,
@@ -86,6 +90,7 @@ export function RestorePanel({
   const [rescueChoice, setRescueChoice] = useState<LockChoice>(LOCKED_BY_DEFAULT);
   const [rescueProblem, setRescueProblem] = useState<string | null>(null);
   const [rescueFailure, setRescueFailure] = useState<string | null>(null);
+  const [endRunningFast, setEndRunningFast] = useState(false);
   // Unlocking is part of the password step: after a wrong password, focus goes back to the
   // cleared field, which now carries the error, not to the start of the step.
   const stepStart = useStepFocus<HTMLParagraphElement>(
@@ -100,7 +105,8 @@ export function RestorePanel({
     try {
       const decoded = await decodeImport(file, pass, storage.env);
       setPassword('');
-      setStep({ kind: 'confirm', plan: await planImport(storage.db, decoded) });
+      setEndRunningFast(false);
+      setStep({ kind: 'confirm', plan: await planImport(storage.db, decoded), notice: null });
     } catch (error) {
       setPassword('');
       if (error instanceof BackupError && error.code === 'wrong-password-or-damaged') {
@@ -125,34 +131,44 @@ export function RestorePanel({
   const replace = async (plan: ImportPlan): Promise<void> => {
     setStep({ kind: 'writing' });
     recordsBusyStore.set(true);
-    const outcome = await writeImport(storage.db, plan, storage.env, {
-      postGate: storage.platform.postGate,
-      locks: storage.platform.locks(),
-      requestPersistentStorage: storage.platform.requestPersistentStorage,
-      markReplaced: () => {
-        newGeneration(storage.platform.localStorage, () => storage.env.randomId());
+    const outcome = await writeImport(
+      storage.db,
+      plan,
+      storage.env,
+      {
+        postGate: storage.platform.postGate,
+        locks: storage.platform.locks(),
+        requestPersistentStorage: storage.platform.requestPersistentStorage,
+        markReplaced: () => {
+          newGeneration(storage.platform.localStorage, () => storage.env.randomId());
+        },
+        reload: () => {
+          // A backup file of the records just replaced no longer matches them.
+          setPendingCheck(null);
+          storage.platform.reload();
+        },
       },
-      reload: () => {
-        // A backup file of the records just replaced no longer matches them.
-        setPendingCheck(null);
-        storage.platform.reload();
-      },
-    });
+      { endRunningFast: plan.runningFast !== null && endRunningFast },
+    );
     if (outcome.ok) return;
     recordsBusyStore.set(false);
     if (outcome.blocked) setStep({ kind: 'blocked', plan });
+    else if (outcome.changed) await replan(plan, copy.changedSinceConfirm);
     else setStep({ kind: 'failed', message: outcome.error.message, phone: outcome.phone });
   };
 
-  /** After a blocked attempt: count the phone's records again and confirm again. */
-  const replan = async (plan: ImportPlan): Promise<void> => {
+  /**
+   * After a blocked attempt, or when the records changed since the confirmation: count the
+   * phone's records again and confirm again, saying why when it was a change.
+   */
+  async function replan(plan: ImportPlan, notice: string | null = null): Promise<void> {
     setStep({ kind: 'reading' });
     try {
-      setStep({ kind: 'confirm', plan: await planImport(storage.db, plan.decoded) });
+      setStep({ kind: 'confirm', plan: await planImport(storage.db, plan.decoded), notice });
     } catch (error) {
       setStep({ kind: 'choose', error: messageOf(error) });
     }
-  };
+  }
 
   const savePhone = async (phone: Snapshot): Promise<void> => {
     const refused = lockProblem(rescueChoice);
@@ -269,12 +285,24 @@ export function RestorePanel({
           plan={step.plan}
           zone={storage.env.timeZone()}
           firstLine={
-            <p ref={stepStart} tabIndex={-1} className="ui-step-start">
-              {fillTemplate(step.plan.decoded.kind === 'rescue' ? copy.rescueMade : copy.fileMade, {
-                date: formatLocalDateTime(step.plan.decoded.exportedAt, storage.env.timeZone()),
-              })}
-            </p>
+            <>
+              {step.notice === null ? null : (
+                <Notice role="alert">
+                  <p>{step.notice}</p>
+                </Notice>
+              )}
+              <p ref={stepStart} tabIndex={-1} className="ui-step-start">
+                {fillTemplate(
+                  step.plan.decoded.kind === 'rescue' ? copy.rescueMade : copy.fileMade,
+                  {
+                    date: formatLocalDateTime(step.plan.decoded.exportedAt, storage.env.timeZone()),
+                  },
+                )}
+              </p>
+            </>
           }
+          endRunningFast={endRunningFast}
+          onEndRunningFast={setEndRunningFast}
           onReplace={() => void replace(step.plan)}
           onExportFirst={onExportFirst}
           onCancel={onCancel}
@@ -370,6 +398,11 @@ function summaryOf(plan: ImportPlan, when: (at: Instant | null) => string): stri
     lines.push(copy.freshPhone);
   }
   if (plan.keptKickstart) lines.push(copy.kickstartKept);
+  if (plan.keptKickstartSettings) lines.push(copy.kickstartSettingsKept);
+  if (plan.kickstartEnds) lines.push(copy.kickstartEnds);
+  if (plan.runningFast !== null) {
+    lines.push(fillTemplate(copy.fastRunning, { start: when(plan.runningFast.startedAt) }));
+  }
   if (plan.paired) lines.push(copy.pairingRemoved);
   return lines;
 }
@@ -378,6 +411,9 @@ function Confirmation(props: {
   readonly plan: ImportPlan;
   readonly zone: string;
   readonly firstLine: ReactElement;
+  /** The choice to end the fast that was running when the file was made (F3). */
+  readonly endRunningFast: boolean;
+  readonly onEndRunningFast: (end: boolean) => void;
   readonly onReplace: () => void;
   readonly onExportFirst: () => void;
   readonly onCancel: () => void;
@@ -475,6 +511,14 @@ function Confirmation(props: {
           ))}
         </div>
       </Notice>
+      {props.plan.runningFast === null ? null : (
+        <Switch
+          label={fillTemplate(copy.endFastAtBackup, { time: when(decoded.exportedAt) })}
+          hint={copy.endFastHint}
+          checked={props.endRunningFast}
+          onChange={props.onEndRunningFast}
+        />
+      )}
       <ButtonRow>
         {confirmation.exportFirst ? [exportFirst, replace] : [replace, exportFirst]}
         <Button variant="quiet" onClick={props.onCancel}>
