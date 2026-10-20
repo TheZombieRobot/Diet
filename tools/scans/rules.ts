@@ -202,7 +202,7 @@ export const healthPhraseRules: readonly ContentRule[] = [
   // HEALTH_SAFETY.md sections 1 and 6, NN-09: never "you are safe to fast/train/diet".
   rule(
     'safe-to',
-    ['HEALTH_SAFETY-1', 'NN-09'],
+    ['HEALTH_SAFETY-1', 'NN-09', 'HS-31'],
     'telling the user something is safe for them',
     /\bsafe[\s-]+to[\s-]+(?:fast|train|diet|exercise|drink|stop|lose|start|begin|keep|continue)\b|\b(?:fasting|exercise|exercising|training|this\s+plan|the\s+plan|keto|it|this|that)\s+is\s+(?:completely\s+|perfectly\s+|totally\s+|quite\s+)?safe\b|\bsafe\s+for\s+you\b|\bsafely\s+(?:fast|train|diet|exercise|drink|lose)\b|\bsafe\s+drinking\b|\byou(?:['’]re|\s+are)\s+(?:completely\s+|perfectly\s+|totally\s+)?safe\b/i,
   ),
@@ -235,30 +235,30 @@ export const healthPhraseRules: readonly ContentRule[] = [
   // HEALTH_SAFETY.md section 2: no "ideal weight", no body-fat estimates.
   rule(
     'ideal-weight',
-    ['HEALTH_SAFETY-2'],
+    ['HEALTH_SAFETY-2', 'HS-31'],
     '"ideal weight" and similar',
     /\b(?:ideal|healthy|perfect)\s+(?:body\s+)?weight\b/i,
   ),
-  rule('body-fat', ['HEALTH_SAFETY-2'], 'body-fat estimates', /\bbody[\s-]?fat\b/i),
-  rule('fat-mass', ['HEALTH_SAFETY-2'], '"fat mass"', /\bfat[\s-]+mass\b/i),
+  rule('body-fat', ['HEALTH_SAFETY-2', 'HS-31'], 'body-fat estimates', /\bbody[\s-]?fat\b/i),
+  rule('fat-mass', ['HEALTH_SAFETY-2', 'HS-31'], '"fat mass"', /\bfat[\s-]+mass\b/i),
 
   // HEALTH_SAFETY.md section 4: no supplements, no ketosis-measurement claims, no fat burning.
-  rule('fat-burning', ['HEALTH_SAFETY-4'], '"fat-burning"', /\bfat[\s-]?burn\w*/i),
+  rule('fat-burning', ['HEALTH_SAFETY-4', 'HS-31'], '"fat-burning"', /\bfat[\s-]?burn\w*/i),
   rule(
     'burns-fat',
-    ['HEALTH_SAFETY-4'],
+    ['HEALTH_SAFETY-4', 'HS-31'],
     '"burns fat"',
     /\bburn(?:s|ing|ed|t)?\s+(?:body\s+|more\s+|extra\s+)?fat\b/i,
   ),
   rule(
     'supplement',
-    ['HEALTH_SAFETY-4'],
+    ['HEALTH_SAFETY-4', 'HS-31'],
     'supplement recommendations',
     /\bsupplement(?:s|ed|ing|ation)?\b/i,
   ),
   rule(
     'supplement-form',
-    ['HEALTH_SAFETY-4'],
+    ['HEALTH_SAFETY-4', 'HS-31'],
     'mineral tablets, pills or powders',
     /\b(?:magnesium|potassium|electrolytes?|zinc|sodium|salt|calcium|iron|minerals?)\s+(?:tablets?|pills?|capsules?|powders?|sachets?)\b/i,
   ),
@@ -266,29 +266,29 @@ export const healthPhraseRules: readonly ContentRule[] = [
   rule('exogenous-ketones', ['HEALTH_SAFETY-4'], 'exogenous ketones', /\bexogenous\s+ketones?\b/i),
   rule(
     'ketone-measure',
-    ['HEALTH_SAFETY-4'],
+    ['HEALTH_SAFETY-4', 'HS-31'],
     'ketosis measurement claims',
     /\bketones?\s+(?:strips?|meters?|levels?|readings?|test\w*)\b|\b(?:blood|urine|breath)\s+ketones?\b/i,
   ),
-  rule('ketosis-claim', ['HEALTH_SAFETY-4'], '"in ketosis"', /\bin\s+ketosis\b/i),
+  rule('ketosis-claim', ['HEALTH_SAFETY-4', 'HS-31'], '"in ketosis"', /\bin\s+ketosis\b/i),
 
   // HEALTH_SAFETY.md section 3: no extended or compensatory fasting.
   rule(
     'extended-fast',
-    ['HEALTH_SAFETY-3'],
+    ['HEALTH_SAFETY-3', 'HS-31'],
     'extended or dry fasting',
     /\b(?:extended|dry|water)\s+fast(?:s|ing)?\b/i,
   ),
   rule(
     'compensate',
-    ['HEALTH_SAFETY-3'],
+    ['HEALTH_SAFETY-3', 'HS-31'],
     'fasting to compensate',
     /\bcompensat(?:e|es|ed|ing|ion)\b/i,
   ),
   // HEALTH_SAFETY.md section 3, HS-18, C63: rest and food are never framed as breaking a streak.
   rule(
     'streak-loss',
-    ['HS-18', 'C63'],
+    ['HS-18', 'C63', 'HS-31'],
     'streak-loss wording ("lost your streak", "streak reset")',
     /\b(?:los(?:e|es|t|ing)|break(?:s|ing)?|broke|broken|reset(?:s|ting)?|end(?:s|ed|ing)?|ruin\w*|kill\w*)\s+(?:your\s+|the\s+|a\s+|this\s+)?streak\b|\bstreak\s+(?:is\s+|was\s+|has\s+been\s+)?(?:lost|broken|reset|ended|over|gone)\b/i,
   ),
@@ -1002,8 +1002,12 @@ export const DEVICE_ONLY_CODE_RULES: Readonly<
  */
 export const TEST_SUPPORT_FILES: readonly string[] = [
   'apps/mobile-web/src/db/testKit.ts',
+  'apps/mobile-web/src/onboarding/flowTestKit.ts',
+  'apps/mobile-web/src/screens/pairing/pairingTestKit.ts',
   'apps/mobile-web/src/screens/targets/targetsTestKit.ts',
   'apps/mobile-web/src/screens/today/todayTestKit.ts',
+  'packages/grocery/src/transfer/testKit.ts',
+  'services/relay/src/testKit.ts',
 ];
 
 /**
@@ -1043,6 +1047,50 @@ export const DEVICE_ONLY_ALLOWED_FILES: readonly string[] = [
   'packages/test-fixtures/src/storage/snapshotV1.ts',
   'packages/test-fixtures/src/storage/testChains.ts',
   'packages/test-fixtures/src/storage/fuzzMutations.ts',
+];
+
+/**
+ * Pairing and the transfer code (checklist item 30; TR-01, TR-02, HS-15, HS-38, C83). Each
+ * rule has its own scope (scan.ts TRANSFER_GUARD): only sealForRelay makes a sealed body; the
+ * pairing code never touches web storage or the console; the QR decoder loads only on demand, from
+ * one file; the QR generator stays in the test fixtures. Read as raw text, comments included.
+ */
+export const sealedBodyCastRule = rule(
+  'sealed-body-cast',
+  ['TR-01', 'TR-02'],
+  'a cast to SealedRelayBody (only sealForRelay in envelope.ts makes one)',
+  /\bas\s+SealedRelayBody\b|<SealedRelayBody>/,
+);
+export const pairingWebStorageRule = rule(
+  'pairing-web-storage',
+  ['HS-15', 'HS-38', 'TR-10'],
+  'web storage or the console in the pairing and transfer code (the key is never kept there or logged)',
+  /\b(?:localStorage|sessionStorage|console)\b/,
+);
+export const qrDecoderImportRule = rule(
+  'qr-decoder-import',
+  ['C83'],
+  'a static import of jsqr (the bundled QR decoder loads only on demand, from qrDecoders.ts)',
+  /^\s*(?:import|export)\s+(?!type\s)[^;\n]*\bfrom\s+['"]jsqr['"]|\brequire\s*\(\s*['"]jsqr['"]/m,
+);
+export const qrDecoderLoadRule = rule(
+  'qr-decoder-import',
+  ['C83'],
+  'import("jsqr") outside qrDecoders.ts (it exports loadBundledJsQr for every other use)',
+  /\bimport\s*\(\s*['"]jsqr['"]\s*\)/,
+);
+export const qrGeneratorTestOnlyRule = rule(
+  'qr-generator-test-only',
+  ['conventions'],
+  'qrcode-generator outside packages/test-fixtures (it draws test images only)',
+  /['"]qrcode-generator['"]/,
+);
+export const transferGuardRules: readonly ContentRule[] = [
+  sealedBodyCastRule,
+  pairingWebStorageRule,
+  qrDecoderImportRule,
+  qrDecoderLoadRule,
+  qrGeneratorTestOnlyRule,
 ];
 
 /**

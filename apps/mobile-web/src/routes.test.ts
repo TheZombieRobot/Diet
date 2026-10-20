@@ -17,7 +17,7 @@ import {
 } from './routes';
 
 describe('hash routes', () => {
-  it('has the five tabs of UX_SCREENS.md in order, plus Settings, About, the setup screens, Weight, Fasting, Diet and targets, and Garden and pantry', () => {
+  it('has the five tabs of UX_SCREENS.md in order, plus Settings, About, the setup screens, Weight, Fasting, Diet and targets, Garden and pantry and Laptop pairing', () => {
     expect(TAB_ROUTES.map((r) => ROUTE_TITLES[r])).toEqual([
       'Today',
       'Food',
@@ -36,11 +36,13 @@ describe('hash routes', () => {
       'fasting',
       'targets',
       'garden',
+      'pairing',
     ]);
     expect(ROUTE_TITLES.garden).toBe('Garden and pantry');
     expect(ROUTE_TITLES.weight).toBe('Weight');
     expect(ROUTE_TITLES.fasting).toBe('Fasting and reflux');
     expect(ROUTE_TITLES.targets).toBe('Diet and targets');
+    expect(ROUTE_TITLES.pairing).toBe('Laptop pairing');
   });
 
   it("the Fasting screen's sub-links open the Fasting screen and name their card (item 15)", () => {
@@ -88,6 +90,7 @@ describe('hash routes', () => {
       'profile',
       'eating-schedule',
       'targets',
+      'pairing',
     ]);
   });
 });

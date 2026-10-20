@@ -24,6 +24,8 @@ const ALLOWED_ABSOLUTE_URLS: Readonly<Record<string, string>> = {
     "Dexie's PrematureCommit error message links to its explanation of early transaction commits",
   'http://ns.adobe.com/xap/1.0/':
     "item 19: the identifier at the start of a photo's XMP segment, compared as bytes so the segment is named when it is removed; never fetched",
+  'https://relay.invalid':
+    'the reserved address (RFC 6761, never resolves) a pairing stores when the laptop has no relay address; it is compared, never contacted (item 30)',
 };
 
 const TEXT_FILES = new Set(['.js', '.mjs', '.css', '.html', '.webmanifest', '.json', '.svg']);
@@ -151,6 +153,17 @@ test('the built service worker loads and caches only the app’s own files, by r
   expect(precacheUrls).toEqual(expect.arrayContaining(['index.html', 'manifest.webmanifest']));
   expect(precacheUrls.some((u) => /^assets\/index-[\w-]+\.js$/.test(u))).toBe(true);
   for (const url of precacheUrls) expect(existsSync(join(DIST_DIR, url)), url).toBe(true);
+  // Every built chunk is in it too: the app's own, "vendor" and jsQR (full review F44).
+  const assets = filesUnder(join(DIST_DIR, 'assets')).map((f) => relative(DIST_DIR, f));
+  expect(precacheUrls).toEqual(expect.arrayContaining(assets));
+});
+
+test("the app's files carry none of the storage tests' synthetic rows", () => {
+  // The id of the validator vectors (core storage/validatorVectors.ts), which only tests read.
+  const found = filesUnder(DIST_DIR).filter((file) =>
+    readFileSync(file, 'utf8').includes('00000000-0000-4000-8000-000000000a01'),
+  );
+  expect(found.map((file) => relative(DIST_DIR, file))).toEqual([]);
 });
 
 test('every absolute URL in the built files is an inert string on the allowlist', () => {

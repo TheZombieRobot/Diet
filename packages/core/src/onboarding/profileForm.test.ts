@@ -20,12 +20,15 @@ const readiness = (
   minimumAgeYears: null,
 });
 
-/** The NN-03 fixture: 175 cm, 90 kg, a 70 kg long-term goal; born 1970. */
+/**
+ * A synthetic profile (C103; full review F11): 175 cm, 100 kg and a 78 kg long-term goal, 22% below
+ * the weight, as in item 14's NN-03 scenario; born 1970.
+ */
 const DRAFT: ProfileDraft = {
   heightCm: '175',
-  weightKg: '90',
+  weightKg: '100',
   birthYear: '1970',
-  goalKg: '70',
+  goalKg: '78',
   sex: 'female',
   activityLevel: 'active-job',
   equipmentBands: false,
@@ -55,10 +58,10 @@ describe('checkProfileForm: fields (U21)', () => {
     expect(problems).toEqual({});
     expect(value).toMatchObject({
       heightCm: 175,
-      weightKg: 90,
+      weightKg: 100,
       birthYear: 1970,
       sex: 'female',
-      goal: { write: true, goalKg: 70 },
+      goal: { write: true, goalKg: 78 },
       kickstartOptIn: true,
       householdSize: 3,
       allergens: ['milk', 'sesame'],
@@ -105,15 +108,15 @@ describe('checkProfileForm: fields (U21)', () => {
 });
 
 describe('checkProfileForm: the long-term goal (U22; HS-01 floor part, C04, NN-03)', () => {
-  it('70 kg at 175 cm and 90 kg is accepted: no 20% rule at entry', () => {
-    expect(check().value?.goal).toEqual({ write: true, goalKg: 70 });
+  it('78 kg at 175 cm and 100 kg is accepted: no 20% rule at entry', () => {
+    expect(check().value?.goal).toEqual({ write: true, goalKg: 78 });
   });
 
   it('refuses a goal below BMI 18.5, not below the weight, or without weight or height', () => {
     expect(check({ goalKg: '56.6' }).problems.goalKg).toBe('goal-below-bmi-floor');
     expect(check({ goalKg: '56.7' }).problems.goalKg).toBeUndefined();
-    expect(check({ goalKg: '90' }).problems.goalKg).toBe('goal-not-below-weight');
-    expect(check({ goalKg: '95' }).problems.goalKg).toBe('goal-not-below-weight');
+    expect(check({ goalKg: '100' }).problems.goalKg).toBe('goal-not-below-weight');
+    expect(check({ goalKg: '105' }).problems.goalKg).toBe('goal-not-below-weight');
     expect(check({ weightKg: '' }).problems.goalKg).toBe('goal-needs-weight');
     expect(check({ heightCm: '' }).problems.goalKg).toBe('goal-needs-height');
     expect(check({ goalKg: '' }).value?.goal).toEqual({ write: true, goalKg: null });
@@ -159,7 +162,7 @@ describe('checkProfileForm: answers that close goal setting and Kickstart (U23; 
   it('Settings mode shows no weight, goal or Kickstart, and flags a stored goal below the floor for a new height (E41)', () => {
     const result = check(
       { weightKg: '', goalKg: '', heightCm: '190' },
-      { mode: 'settings', storedGoalKg: 60, storedWeightKg: 90 },
+      { mode: 'settings', storedGoalKg: 60, storedWeightKg: 100 },
     );
     expect(result.show).toEqual({
       weight: false,

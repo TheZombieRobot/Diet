@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -38,7 +39,7 @@ const visibleHits = (code: string, rules: readonly ContentRule[], file = 'apps/x
 const pathHits = (path: string, size = 1000, bytes?: Uint8Array) =>
   scanPath(path, size, personalPathRules, bytes).map((v) => v.ruleId);
 
-describe('health wording (HS-07, HS-08, HS-19, HS-21, AL-11)', () => {
+describe('health wording (HS-07, HS-08, HS-19, HS-21, HS-31, AL-11)', () => {
   it.each([
     // HS-07: taper, reduction and quit wording.
     ['Cut down by one drink a day', 'taper-cut-down-by'],
@@ -147,18 +148,6 @@ describe('health wording (HS-07, HS-08, HS-19, HS-21, AL-11)', () => {
     ['Alcohol-free streak: 4', 'alcohol-reward-label'],
     ['Weekly limit', 'alcohol-reward-label'],
     ['Your drinks target', 'alcohol-reward-label'],
-    // HEALTH_SAFETY.md sections 1 and 6, NN-09: never "you are safe".
-    ['You are safe to fast', 'safe-to'],
-    ['Fasting is safe for you', 'safe-to'],
-    ['It is safe for you to fast', 'safe-to'],
-    ['You can safely fast for 23 hours', 'safe-to'],
-    ['Safe to start fasting', 'safe-to'],
-    ['Safe to keep going', 'safe-to'],
-    ['This plan is safe', 'safe-to'],
-    ['Exercise is safe on this plan', 'safe-to'],
-    ['Safe drinking', 'safe-to'],
-    ['You’re safe now', 'safe-to'],
-    ["You're safe now", 'safe-to'],
     // HS-21 / HS-26 / NN-03: no kilograms tied to time, no kg by date.
     ['Lose 5 kg in 2 weeks', 'kg-in-time'],
     ['Drop 3 kilos within a fortnight', 'kg-in-time'],
@@ -189,6 +178,26 @@ describe('health wording (HS-07, HS-08, HS-19, HS-21, AL-11)', () => {
     ['84 kg by 12 Nov', 'kg-by'],
     ['${goalKg} kg by ${d}', 'kg-by'],
     ['Results guaranteed', 'guarantee'],
+    ['Add MCT oil to your coffee', 'mct'],
+    ['Exogenous ketones help', 'exogenous-ketones'],
+  ])('flags %j', (text, ruleId) => {
+    expect(hits(text, healthPhraseRules)).toContain(ruleId);
+  });
+
+  // HS-31: the "never" statements of HEALTH_SAFETY sections 2 to 4, each by its own rule.
+  it.each([
+    // HEALTH_SAFETY.md sections 1 and 6, NN-09: never "you are safe".
+    ['You are safe to fast', 'safe-to'],
+    ['Fasting is safe for you', 'safe-to'],
+    ['It is safe for you to fast', 'safe-to'],
+    ['You can safely fast for 23 hours', 'safe-to'],
+    ['Safe to start fasting', 'safe-to'],
+    ['Safe to keep going', 'safe-to'],
+    ['This plan is safe', 'safe-to'],
+    ['Exercise is safe on this plan', 'safe-to'],
+    ['Safe drinking', 'safe-to'],
+    ['You’re safe now', 'safe-to'],
+    ["You're safe now", 'safe-to'],
     // HEALTH_SAFETY.md section 2.
     ['Your ideal weight', 'ideal-weight'],
     ['Your healthy weight is 75 kg', 'ideal-weight'],
@@ -204,8 +213,6 @@ describe('health wording (HS-07, HS-08, HS-19, HS-21, AL-11)', () => {
     ['Take a magnesium supplement', 'supplement'],
     ['Take a magnesium tablet', 'supplement-form'],
     ['Try electrolyte tablets or powder', 'supplement-form'],
-    ['Add MCT oil to your coffee', 'mct'],
-    ['Exogenous ketones help', 'exogenous-ketones'],
     ['Check your ketone strips', 'ketone-measure'],
     ['Check blood ketones', 'ketone-measure'],
     ['Ketone testing at home', 'ketone-measure'],
@@ -219,8 +226,20 @@ describe('health wording (HS-07, HS-08, HS-19, HS-21, AL-11)', () => {
     ["Don't break your streak", 'streak-loss'],
     ['Your streak is over', 'streak-loss'],
     ['This ends the streak', 'streak-loss'],
-  ])('flags %j', (text, ruleId) => {
+  ])('HS-31: flags the never-statement %j', (text, ruleId) => {
     expect(hits(text, healthPhraseRules)).toContain(ruleId);
+  });
+
+  it('HS-31: every rule its HEALTH_SAFETY row names is a health rule that says it enforces HS-31', () => {
+    const row = readFileSync(resolve(import.meta.dirname, '../../docs/HEALTH_SAFETY.md'), 'utf8')
+      .split('\n')
+      .find((line) => line.startsWith('| HS-31 |'));
+    const named = [...(row ?? '').matchAll(/`([a-z-]+)`/g)].map((m) => m[1]);
+    expect(named).toHaveLength(13);
+    const enforcing = healthPhraseRules
+      .filter((r) => r.enforces.includes('HS-31'))
+      .map((r) => r.id);
+    expect(enforcing.sort()).toEqual([...named].sort());
   });
 
   it.each([
@@ -357,7 +376,7 @@ describe('price, stock and cart wording (HS-16, NN-05, CX-08)', () => {
     ['20% off', 'specials'],
     ['Cheaper at Pāpāmoa', 'specials'],
     ['Lowest price', 'specials'],
-  ])('flags %j', (text, ruleId) => {
+  ])('HS-16, NN-05: flags %j', (text, ruleId) => {
     expect(hits(text, commerceRules)).toContain(ruleId);
   });
 
@@ -810,5 +829,66 @@ describe('S1. The blind relay rules (checklist item 29; TR-02, HS-14)', () => {
     for (const [code] of flagged) {
       expect(relayHits(code, 'services/relay/src/x.test.ts')).toEqual([]);
     }
+  });
+});
+
+describe('S1–S4. The transfer guard (checklist item 30; TR-01, TR-02, HS-15, HS-38, C83)', () => {
+  // The rule sets the repository scan runs, so a merge that drops these rules fails here.
+  const repoRuleSets = ruleSetsFor(resolve(import.meta.dirname, '../..'));
+  const GUARD_IDS = [
+    'sealed-body-cast',
+    'pairing-web-storage',
+    'qr-decoder-import',
+    'qr-generator-test-only',
+  ];
+  const guardHits = (code: string, file: string) =>
+    scanSource(file, code, repoRuleSets)
+      .map((v) => v.ruleId)
+      .filter((id) => GUARD_IDS.includes(id));
+  const ENVELOPE = 'packages/grocery/src/transfer/envelope.ts';
+  const DECODERS = 'apps/mobile-web/src/screens/pairing/qrDecoders.ts';
+  const DECODERS_TEST = 'apps/mobile-web/src/screens/pairing/qrDecoders.test.ts';
+
+  it.each([
+    ['const b = body as SealedRelayBody;', 'apps/mobile-web/src/x.ts', ['sealed-body-cast']],
+    ['const b = <SealedRelayBody>body;', 'packages/grocery/src/x.test.ts', ['sealed-body-cast']],
+    ['const b = body as SealedRelayBody;', ENVELOPE, []],
+    [
+      "localStorage.setItem('k', v);",
+      'apps/mobile-web/src/screens/pairing/x.ts',
+      ['pairing-web-storage'],
+    ],
+    ['console.warn(code);', 'packages/grocery/src/transfer/x.ts', ['pairing-web-storage']],
+    ['sessionStorage.clear();', 'apps/mobile-web/src/db/repos/pairing.ts', ['pairing-web-storage']],
+    ['console.warn(code);', 'apps/mobile-web/src/screens/pairing/x.test.ts', []],
+    ["import jsQR from 'jsqr';", DECODERS, ['qr-decoder-import']],
+    ["const j = require('jsqr');", 'apps/mobile-web/src/x.ts', ['qr-decoder-import']],
+    ["import type { QRCode } from 'jsqr';", 'apps/mobile-web/src/x.ts', []],
+    ["const m = await import('jsqr');", DECODERS_TEST, ['qr-decoder-import']],
+    ["const m = await import('jsqr');", DECODERS, []],
+    ["import { loadBundledJsQr } from './qrDecoders';", DECODERS_TEST, []],
+    [
+      "import qrcode from 'qrcode-generator';",
+      'apps/mobile-web/src/x.ts',
+      ['qr-generator-test-only'],
+    ],
+    ["import qrcode from 'qrcode-generator';", 'packages/test-fixtures/src/transfer/q.ts', []],
+  ] as const)('%j in %s gives %j', (code, file, expected) => {
+    expect(guardHits(code, file)).toEqual(expected);
+  });
+
+  it('pins the QR packages: jsqr 1.4.0 in the app only, qrcode-generator 2.0.4 in the fixtures only', () => {
+    const root = resolve(import.meta.dirname, '../..');
+    const deps = (pkg: string) => {
+      const json = JSON.parse(readFileSync(resolve(root, pkg, 'package.json'), 'utf8')) as {
+        dependencies?: Record<string, string>;
+        devDependencies?: Record<string, string>;
+      };
+      return { ...json.dependencies, ...json.devDependencies };
+    };
+    expect(deps('apps/mobile-web')['jsqr']).toBe('1.4.0');
+    expect(deps('apps/mobile-web')['qrcode-generator']).toBeUndefined();
+    expect(deps('packages/test-fixtures')['qrcode-generator']).toBe('2.0.4');
+    expect(deps('packages/test-fixtures')['jsqr']).toBeUndefined();
   });
 });

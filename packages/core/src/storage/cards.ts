@@ -77,8 +77,15 @@ export const CARD_REGISTRY_V1: CardRegistry = Object.freeze({
   'weight-fluctuation-explainer': [{ pattern: 'once', dismissal: final }],
   // The day that period flips to Steady (WT-08); carries the C55 "keep 23:1" button.
   'steady-explainer': [{ pattern: 'period:<Id>', dismissal: final }],
-  // Every day of that Kickstart period (HS section 2, HS-27 per C17, C59, C102).
-  'kickstart-stop-signs': [{ pattern: 'period:<Id>', dismissal: collapsedMidnight }],
+  'kickstart-stop-signs': [
+    // Every day of that Kickstart period (HS section 2, HS-27 per C17, C59, C102).
+    { pattern: 'period:<Id>', dismissal: collapsedMidnight },
+    // The stop-sign guidance after a "yes" to a stop-sign question before a start, on that local
+    // date (item 14 W31; cross-item ruling 9; full review F6, F18): firstShownAt is when the latest
+    // such "yes" was given, and OK is its dismissal. A record, so it holds for its 336 hours in
+    // the exercise check, is in backups, and goes with delete-all in every tab.
+    { pattern: 'date:<LocalDate>', dismissal: final },
+  ],
   // n = extensions already in that period; only while an extension is still allowed (C59, D27, D28).
   'kickstart-extension': [{ pattern: 'period:<Id>:<n>', dismissal: final }],
   // Symptoms on 3 or more days in any 14, or rising severity (C47): back after 7 × 24 h.

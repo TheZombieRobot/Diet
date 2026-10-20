@@ -187,7 +187,7 @@ describe('starting a Kickstart (D27, W14, W31, W32)', () => {
     expect(reason(on(noPeriod, 1, { dietMode: 'moderate-low-carb' }))).toBe('not-keto');
     expect(reason(on(noPeriod, 1), { lowWeight: true })).toBe('low-weight');
     expect(reason(on(K10, 10))).toBe('running');
-    expect(reason(on(noPeriod, 1), { preStartStopSignToday: true })).toBe('recent-stop-sign');
+    expect(reason(on(noPeriod, 1), { preStartStopSignToday: true })).toBe('stop-sign-today');
   });
 
   it('ended early today is refused (a new day 1 must come after it); ended yesterday is not', () => {
@@ -212,6 +212,14 @@ describe('starting a Kickstart (D27, W14, W31, W32)', () => {
     expect(reason(on({ ...K42, periods: [{ startDay: 1, stopSignOnDay: 20 }] }, 22))).toBe(
       'recent-stop-sign',
     );
+  });
+
+  it('the longest wait is the one given: a stop-sign or the cap is never "from tomorrow" (item 14 review)', () => {
+    const stopSignThenEnd = { ...K42, periods: [{ startDay: 1, stopSignOnDay: 19, endOnDay: 19 }] };
+    expect(reason(on(stopSignThenEnd, 19))).toBe('recent-stop-sign');
+    const capThenEnd = { ...K42, periods: [{ startDay: 1, extensions: 1, endOnDay: 25 }] };
+    expect(reason(on(capThenEnd, 25))).toBe('cap');
+    expect(reason(on(capThenEnd, 25), { preStartStopSignToday: true })).toBe('cap');
   });
 
   it('D27: a new Kickstart needs a full 21 days under the 42-day cap', () => {
@@ -307,11 +315,17 @@ describe('the Kickstart stop-sign card (HS-27, WT-11, W22)', () => {
   const due = (input: PhaseInput) => stopSignsDue(phaseOn(input), input);
   const stopSign19 = { ...K42, periods: [{ startDay: 1, stopSignOnDay: 19 }] };
 
-  it('shows on every Kickstart day, hideable for the day (not forced)', () => {
+  it('shows on every Kickstart day, hideable for the day (not forced): extension weeks and a restarted Kickstart too', () => {
     for (let day = 1; day <= 21; day++) {
       expect(due(on(K42, day))).toMatchObject({ forced: false, expanded: false, running: true });
     }
     expect(due(on(K42, 22))).toBeNull();
+    for (let day = 22; day <= 42; day++) {
+      expect(due(on(X3, day)), `X3 day ${String(day)}`).toMatchObject({ forced: false });
+    }
+    for (let day = 15; day <= 35; day++) {
+      expect(due(on(E10, day)), `E10 day ${String(day)}`).toMatchObject({ forced: false });
+    }
   });
 
   it('after a stop-sign answer it is forced and expanded through the period’s last day, whatever the phase', () => {

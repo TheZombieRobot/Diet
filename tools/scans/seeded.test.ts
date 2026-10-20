@@ -59,6 +59,22 @@ describe('seeded violations in a throwaway repository', () => {
     expect(scanHistory(root)).toEqual([]);
   });
 
+  it('a shallow clone fails loudly instead of passing on part of the history (F47)', () => {
+    commitAll('Clean start');
+    write('src/a.ts', 'export const a = 1;\n');
+    commitAll('Second');
+    const shallow = mkdtempSync(join(tmpdir(), 'diet-scan-shallow-'));
+    try {
+      execFileSync('git', ['clone', '-q', '--depth', '1', `file://${root}`, shallow], {
+        stdio: 'pipe',
+        env: gitEnv(),
+      });
+      expect(() => scanHistory(shallow)).toThrow(/shallow/);
+    } finally {
+      rmSync(shallow, { recursive: true, force: true });
+    }
+  });
+
   // The pre-commit hook runs these tests. Inside a hook, git exports GIT_DIR, GIT_INDEX_FILE and
   // GIT_WORK_TREE, which in a linked worktree point at the real repository; the throwaway
   // repository must still be the one that is read and written.
@@ -408,12 +424,6 @@ describe('seeded violations in a throwaway repository', () => {
         ['generic-store-access'],
       ],
       [
-        "version 1's table specs",
-        app,
-        "import { TABLES_BY_VERSION, TABLES_V1 } from '@diet/core';\nexport const specs = [TABLES_V1, TABLES_BY_VERSION];\n",
-        ['generic-store-access'],
-      ],
-      [
         'the photo repository in the grocery package',
         'packages/grocery/src/photos.ts',
         'export const photo = (repos: { [k: string]: { get(id: string): unknown } }, id: string) =>\n  repos.gardenPhotos.get(id);\n',
@@ -545,10 +555,15 @@ describe('seeded violations in a throwaway repository', () => {
       expect(scanRepo(root)).toEqual([]);
     });
 
-    it('what stays allowed: a typed object with its own tables, a literal store name, a typed database', () => {
+    it('what stays allowed: a typed object with its own tables, a literal store name, a typed database, the specs', () => {
       write(
         app,
         `${DEXIE}declare const payload: { tables: Record<string, unknown[]> };\nexport const n = Object.keys(payload.tables).length;\nexport const rows = () => storage.db.table('weights').toArray();\nconst database = storage.db;\nexport function keep(db: Dexie): Dexie {\n  return db;\n}\nexport const same = keep(database);\n`,
+      );
+      // A validator read by a store's name (the transfer payload checks a grocery list this way).
+      write(
+        'packages/grocery/src/check.ts',
+        "import { checkRow, TABLES_V1 } from '@diet/core';\nexport const ok = (row: unknown) => checkRow('grocery_lists', row, TABLES_V1).ok;\n",
       );
       expect(scanRepo(root)).toEqual([]);
     });

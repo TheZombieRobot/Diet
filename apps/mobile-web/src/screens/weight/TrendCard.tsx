@@ -50,7 +50,13 @@ export function TrendCard({ view }: { view: WeightView }): ReactElement {
           )}
         </Stat>
         <Stat id={ids.change} label={weight.trend.weeklyChange}>
-          <span className="ui-stat__value ui-stat__value--empty">
+          <span
+            className={
+              overview.weeklyChange === null
+                ? 'ui-stat__value ui-stat__value--empty'
+                : 'ui-stat__value ui-stat__value--text'
+            }
+          >
             {changeText(overview.weeklyChange)}
           </span>
         </Stat>
@@ -58,6 +64,9 @@ export function TrendCard({ view }: { view: WeightView }): ReactElement {
       {overview.average7Kg === null ? <p className="ui-text-muted">{weight.card.needs7}</p> : null}
       {overview.average14Kg === null ? (
         <p className="ui-text-muted">{weight.card.needs14}</p>
+      ) : null}
+      {overview.weeklyChange === null ? (
+        <p className="ui-text-muted">{weight.trend.needsWeekly}</p>
       ) : null}
       <div role="group" aria-label={weight.chart.viewsLabel}>
         <ButtonRow>

@@ -1,6 +1,7 @@
 // The Weight screen (item 14 design sections 2.4 to 2.6 and 6.4): the long-term goal (WT-01,
 // WT-02, HS-01), the weigh-ins list and its zones (W6), the Phase card (W24, W31) and the screen's
 // wording. jsdom over the real repositories on fake-indexeddb.
+import { minimumDaysFor } from '@diet/core';
 import { weight } from '@diet/core/copy/health';
 import {
   onDay,
@@ -14,8 +15,9 @@ import { commerceRules, healthPhraseRules } from '../../../../../tools/scans/rul
 import { scanText } from '../../../../../tools/scans/scan';
 import { appStorageStore } from '../../db/runtime';
 import { openSnapshotDb, type TestDb } from '../../db/testKit';
-import { preStartStopSignStore } from './preStartCheck';
+import { preStartSeenStore, preStartStopSignStore } from './preStartCheck';
 import { weightStatusStore } from './stores';
+import { WeightCard } from './WeightCard';
 import { WeightScreen } from './WeightScreen';
 
 let test: TestDb | undefined;
@@ -25,6 +27,7 @@ afterEach(() => {
   appStorageStore.set(null);
   weightStatusStore.set(null);
   preStartStopSignStore.set(null);
+  preStartSeenStore.set(null);
   test?.db.shutDown();
   test = undefined;
 });
@@ -162,8 +165,14 @@ describe('the weigh-ins list keeps each record in its own zone (W6; storage spec
     });
   });
 
-  it('Delete asks first', async () => {
+  it('Delete asks first; Edit and Delete are described by their own row', async () => {
     const { db, id } = await perth();
+    for (const name of [weight.list.edit, weight.list.delete]) {
+      const button = within(list()).getByRole('button', { name });
+      expect(
+        document.getElementById(button.getAttribute('aria-describedby') ?? '')?.textContent,
+      ).toBe('31 January 2000, 7:00 am: 100.0 kg');
+    }
     fireEvent.click(within(list()).getByRole('button', { name: weight.list.delete }));
     expect(within(list()).getByText(weight.list.deleteConfirm)).toBeTruthy();
     expect(await db.repos.weights.get(id)).toBeDefined();
@@ -191,11 +200,15 @@ describe('the Phase card (W24, W31)', () => {
         endReason: 'user-ended',
       });
     });
+    // The End button has gone: the outcome line takes focus, never the page.
     expect(await screen.findByText(weight.end.ended)).toBeTruthy();
+    await waitFor(() => {
+      expect(document.activeElement?.textContent).toBe(weight.end.ended);
+    });
   });
 
-  it('after a pre-start "yes" the Phase card says a new Kickstart cannot start yet', async () => {
-    await open({ ...WEIGHT_SCENARIOS.K42, today: '2000-03-01' }, 30);
+  it('W31: after a pre-start "yes" the Phase card says no Kickstart can start today, and the guidance stays through a change of screen until OK', async () => {
+    const db = await open({ ...WEIGHT_SCENARIOS.K42, today: '2000-03-01' }, 30);
     fireEvent.click(within(phaseCard()).getByRole('button', { name: weight.start.action }));
     for (const q of [
       weight.check.dizzyOnStanding,
@@ -212,9 +225,62 @@ describe('the Phase card (W24, W31)', () => {
     }
     fireEvent.click(within(phaseCard()).getByRole('button', { name: weight.check.confirmStart }));
     expect(
-      await within(phaseCard()).findByText(weight.start.unavailableRecentStopSign),
+      await within(phaseCard()).findByText(weight.start.unavailableStopSignToday),
     ).toBeTruthy();
     expect(screen.getByText(weight.start.stopSign)).toBeTruthy();
+    // To Today: the eat, salt and 111 guidance is still there until OK.
+    cleanup();
+    render(<WeightCard storage={db.storage} />);
+    const guidance = (await screen.findByText(weight.start.stopSign)).closest('section');
+    expect(
+      within(guidance as HTMLElement)
+        .getAllByRole('link')
+        .map((l) => l.getAttribute('href')),
+    ).toEqual(['tel:111', 'tel:0800611116']);
+    fireEvent.click(
+      within(guidance as HTMLElement).getByRole('button', { name: weight.steadyExplainer.ok }),
+    );
+    await waitFor(() => {
+      expect(screen.queryByText(weight.start.stopSign)).toBeNull();
+    });
+    cleanup();
+    render(<WeightScreen />);
+    await screen.findByRole('region', { name: weight.goal.label });
+    expect(screen.queryByText(weight.start.stopSign)).toBeNull();
+  });
+});
+
+describe('How to read this and the weekly change (item 14 review)', () => {
+  const howTo = () => screen.getByRole('region', { name: weight.trend.howToReadLabel });
+
+  it('"steeper in your first Kickstart" only while the chart draws it; the weekly change in plain ink', async () => {
+    await open(WEIGHT_SCENARIOS.K10, 10);
+    expect(within(howTo()).getByText(weight.chart.aboutBandKickstart)).toBeTruthy();
+    const change = within(screen.getByRole('region', { name: weight.trend.label })).getByRole(
+      'group',
+      { name: weight.trend.weeklyChange },
+    );
+    expect(change.querySelector('.ui-stat__value--text')?.textContent).toMatch(/^Down /);
+    expect(change.querySelector('.ui-stat__value--empty')).toBeNull();
+    cleanup();
+    test?.db.shutDown();
+    // Kickstart started two days after setup: the range is not steeper, so it is not said.
+    await open({ ...WEIGHT_SCENARIOS.K10, periods: [{ startDay: 3 }] }, 12);
+    expect(within(howTo()).getByText(weight.chart.aboutBand)).toBeTruthy();
+    expect(within(howTo()).queryByText(weight.chart.aboutBandKickstart)).toBeNull();
+  });
+});
+
+describe('the weekly change before two weeks of weigh-ins (full review F29)', () => {
+  it('after seven daily weigh-ins it says what it still needs: weigh-ins in each of the last two weeks', async () => {
+    await open(WEIGHT_SCENARIOS.K10, 7);
+    const trend = screen.getByRole('region', { name: weight.trend.label });
+    const change = within(trend).getByRole('group', { name: weight.trend.weeklyChange });
+    expect(change.querySelector('.ui-stat__value--empty')?.textContent).toBe(
+      weight.trend.notEnough,
+    );
+    expect(within(trend).getByText(weight.trend.needsWeekly)).toBeTruthy();
+    expect(weight.trend.needsWeekly).toContain(`at least ${String(minimumDaysFor(7))} days`);
   });
 });
 

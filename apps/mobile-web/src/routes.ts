@@ -24,6 +24,8 @@ export const ROUTES = [
   'targets',
   // Item 19: Garden and pantry, reached from Food (and Today's Add harvest).
   'garden',
+  // Item 30: Settings, Laptop pairing.
+  'pairing',
 ] as const;
 export type RouteId = (typeof ROUTES)[number];
 
@@ -49,6 +51,7 @@ export const ROUTE_TITLES: Readonly<Record<RouteId, string>> = {
   fasting: 'Fasting and reflux',
   targets: targets.screen.title,
   garden: 'Garden and pantry',
+  pairing: 'Laptop pairing',
 };
 
 const isRoute = (value: string): value is RouteId => (ROUTES as readonly string[]).includes(value);
@@ -88,6 +91,7 @@ const UNDER_SETTINGS: readonly RouteId[] = [
   'profile',
   'eating-schedule',
   'targets',
+  'pairing',
 ];
 
 /** Settings and the screens reached from it light up the settings gear. */

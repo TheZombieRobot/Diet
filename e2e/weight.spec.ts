@@ -12,10 +12,10 @@ import { goTo, renderedText, returnToApp, waitForServiceWorkerControl } from './
 import { restoreSnapshot } from './support/scenario';
 
 // The weight log, phases and trend in the production build (item 14 design section 6.6): NN-03,
-// WT-03, WT-04, WT-08, WT-09, WT-10, HS-21, HS-26, HS-27, W14 and logging offline. Each test
-// restores a synthetic scenario onto a new phone (item 13's restore inside setup) with the clock
-// fixed at the scenario's moment. A restore never lowers the phone's Kickstart history (item 12),
-// so each scenario gets its own test, and so its own new phone.
+// WT-03, WT-04, WT-08, WT-09, WT-10, HS-21, HS-26, HS-27, W14, W31, 200% text and logging
+// offline. Each test restores a synthetic scenario onto a new phone (item 13's restore inside
+// setup) with the clock fixed at the scenario's moment. A restore never lowers the phone's
+// Kickstart history (item 12), so each scenario gets its own test, and so its own new phone.
 
 // The scenarios live in New Zealand time, as the owner's phone does.
 test.use({ timezoneId: 'Pacific/Auckland' });
@@ -176,7 +176,7 @@ test('WT-09: four "no" extend by a week', async ({ page }) => {
   ).toBeVisible();
 });
 
-test('WT-09: a palpitations "yes" does not extend, and the stop-sign card stays with 111', async ({
+test('WT-09: a palpitations "yes" does not extend, the stop-sign card stays with 111, and after End no restart is promised for tomorrow', async ({
   page,
 }) => {
   await scenario(page, WEIGHT_SCENARIOS.K42, 19);
@@ -192,6 +192,16 @@ test('WT-09: a palpitations "yes" does not extend, and the stop-sign card stays 
   await expect(stopSigns.getByText(weight.stopSigns.afterCheckRunning)).toBeVisible();
   await expect(stopSigns.locator('a[href="tel:111"]')).toBeVisible();
   await expect(weightCard(page).getByText('Kickstart, week 3 of 3')).toBeVisible();
+  // Ended a minute later: the Phase card gives the 14-day wait, never "from tomorrow" (item 14
+  // review). The clock moves on, as a real one would (an end must come after the check).
+  await page.clock.setFixedTime(new Date(onDay(WEIGHT_SCENARIOS.K42, 19, '09:01').now));
+  await stopSigns.getByRole('button', { name: weight.stopSigns.endNow }).click();
+  await stopSigns.getByRole('button', { name: weight.end.yes }).click();
+  await expect(weightCard(page).getByText('Steady', { exact: true })).toBeVisible();
+  await goTo(page, 'Weight');
+  const phase = region(page, weight.phase.label);
+  await expect(phase.getByText(weight.start.unavailableRecentStopSign)).toBeVisible();
+  await expect(phase.getByText(weight.start.unavailableToday)).toHaveCount(0);
 });
 
 test('W14: Kickstart chosen at setup starts only after "Start Kickstart today" and four "no"', async ({
@@ -208,6 +218,72 @@ test('W14: Kickstart chosen at setup starts only after "Start Kickstart today" a
     fastingPreset: '23:1',
     presetChosenBy: 'kickstart-default',
   });
+});
+
+test('W31: after a pre-start "yes" the eat, salt and 111 guidance stays on Today and the Weight screen until OK', async ({
+  page,
+}) => {
+  await scenario(page, WEIGHT_SCENARIOS.PENDING, 1);
+  await region(page, weight.start.pendingLabel)
+    .getByRole('button', { name: weight.start.pendingAction })
+    .click();
+  await answer(page, weight.check.palpitations);
+  await page.getByRole('button', { name: weight.check.confirmStart }).click();
+  const guidance = region(page, weight.start.pendingLabel).filter({
+    hasText: weight.start.stopSign,
+  });
+  await expect(guidance.locator('a[href="tel:111"]')).toBeVisible();
+  await goTo(page, 'Weight');
+  await expect(guidance.locator('a[href="tel:111"]')).toBeVisible();
+  await expect(
+    region(page, weight.phase.label).getByText(weight.start.unavailableStopSignToday),
+  ).toBeVisible();
+  await goTo(page, 'Today');
+  await expect(guidance.locator('a[href="tel:111"]')).toBeVisible();
+  await guidance.getByRole('button', { name: weight.steadyExplainer.ok }).click();
+  await expect(guidance).toHaveCount(0);
+  await page.reload();
+  await expect(weightCard(page)).toBeVisible();
+  await expect(guidance).toHaveCount(0);
+});
+
+/** What runs off the screen or overlaps on the page, if anything. */
+function layoutProblems(page: Page, where: string): Promise<string[]> {
+  return page.evaluate((label) => {
+    const problems: string[] = [];
+    const width = document.documentElement.clientWidth;
+    const overflow = document.documentElement.scrollWidth - width;
+    if (overflow > 0) problems.push(`${label}: scrolls sideways by ${String(overflow)} px`);
+    for (const element of document.querySelectorAll('main *')) {
+      const box = element.getBoundingClientRect();
+      if (box.width > 0 && box.right > width + 0.5) {
+        problems.push(
+          `${label}: ${element.className || element.tagName} ends at ${String(box.right)}`,
+        );
+      }
+    }
+    // A figure or a week label wider than its own column runs into the next one.
+    for (const element of document.querySelectorAll(
+      '.ui-stat__value, .ui-stat__label, .ui-trend-chart__labels > span, .ui-pill',
+    )) {
+      if (element.scrollWidth > element.clientWidth + 0.5) {
+        problems.push(`${label}: "${element.textContent}" is wider than its box`);
+      }
+    }
+    return problems;
+  }, where);
+}
+
+test('200% text on a 360 px phone (180 px): the Weight card and the Weight screen with a running Kickstart fit, with nothing cut off', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 180, height: 740 });
+  await scenario(page, WEIGHT_SCENARIOS.K42, 19);
+  await expect(weightCard(page).getByText('Kickstart, week 3 of 3')).toBeVisible();
+  const problems = await layoutProblems(page, 'Today');
+  await goTo(page, 'Weight');
+  problems.push(...(await layoutProblems(page, 'Weight')));
+  expect(problems).toEqual([]);
 });
 
 test('PWA-04 (weight): a weigh-in logged offline is there after an offline reload', async ({

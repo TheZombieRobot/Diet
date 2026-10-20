@@ -16,6 +16,7 @@ import {
 import { GateNotice } from '../../onboarding/GateNotice';
 import { openApp } from '../../onboarding/flowTestKit';
 import { storageStore } from '../../pwa/storage';
+import { presetMovedStore } from '../weight/stores';
 import { FastingScreen } from './FastingScreen';
 import { mealSources } from './integration';
 
@@ -42,6 +43,7 @@ afterEach(() => {
   cleanup();
   appStorageStore.set(null);
   storageStore.set('checking');
+  presetMovedStore.set(null);
   test?.db.shutDown();
   test = undefined;
   window.location.hash = '';
@@ -358,7 +360,7 @@ describe('the Fast card on Today (design 3.3; FS-02, FS-03, HS-02, HS-18)', () =
     expect(within(gated).queryByText(fasting.pharmacist)).toBeNull();
   });
 
-  it('C07: with answer 4, a stored 23:1 Kickstart default reads as 22:2 on Today and the Fasting screen, even while Kickstart runs', async () => {
+  it('C07: with answer 4, a stored 23:1 Kickstart default reads as 22:2 at once on Today and the Fasting screen, even while Kickstart runs, and is then moved to 22:2 with the reason', async () => {
     const t = await setUp('#/today', { now: at(D, '10:00'), ...KICKSTART_DEFAULT });
     // Without answer 4 the running Kickstart uses its 23:1 default.
     const card = await screen.findByRole('region', { name: fasting.card.label });
@@ -369,12 +371,18 @@ describe('the Fast card on Today (design 3.3; FS-02, FS-03, HS-02, HS-18)', () =
     const today = await screen.findByRole('region', { name: fasting.card.label });
     expect(within(today).getByText('22:2 · 5 pm snack + dinner')).toBeTruthy();
     expect(today.textContent).not.toContain('One meal');
+    // Item 14's reconciler moves the stored default too (item 14 review), so a later "no" to
+    // answer 4 never brings one meal a day back unasked; Today's notice gives the reason.
+    expect(await screen.findByText(schedule.kickstartDefaultSetAside)).toBeTruthy();
+    expect(await t.repos.targets.get()).toMatchObject({
+      fastingPreset: '22:2',
+      presetChosenBy: 'default',
+    });
     cleanup();
     await openApp('#/fasting');
     const pattern = await screen.findByRole('region', { name: fasting.pattern.label });
     expect(within(pattern).getByText('2 h eating, 22 h fasting')).toBeTruthy();
     expect(within(fastCard()).getByText('22:2 · 5 pm snack + dinner')).toBeTruthy();
-    expect(within(pattern).getByText(schedule.kickstartDefaultSetAside)).toBeTruthy();
     expect(within(pattern).queryByText(schedule.kickstartWhen)).toBeNull();
     expect((await t.repos.kickstart.listPeriods())[0]?.endedAt).toBeNull();
   });

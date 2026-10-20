@@ -1,11 +1,22 @@
-import { onboarding, profile, readiness, schedule, targets } from '@diet/core/copy/health';
+import { fillTemplate } from '@diet/core';
+import {
+  onboarding,
+  profile,
+  readiness,
+  schedule,
+  targets,
+  today,
+  transfer,
+} from '@diet/core/copy/health';
 import { ActionRow, Button, Card, ChevronIcon, InstallIcon } from '@diet/ui';
 import type { ReactElement } from 'react';
 import { installStore, promptInstall } from '../pwa/install';
+import { appStorageStore } from '../db/runtime';
+import { formatLocalDate } from '../format';
 import { routeHref } from '../routes';
 import { useStore } from '../store';
 import { BackupCard } from './backup/BackupCard';
-import { Placeholder } from './Placeholder';
+import { usePairing } from './pairing/usePairing';
 import { WeightCheckInSettings } from './weight/WeightCheckInSettings';
 
 function InstallCard(): ReactElement {
@@ -59,11 +70,41 @@ function SetupCard(): ReactElement {
   );
 }
 
+/** The Laptop pairing row, with whether this phone is paired (item 30 design 1.3). */
+function LaptopCard(): ReactElement {
+  const copy = transfer.pairing;
+  const storage = useStore(appStorageStore);
+  const pairing = usePairing();
+  const detail =
+    storage === null || pairing === undefined
+      ? copy.settingsRowChecking
+      : pairing === null
+        ? copy.settingsRowNotPaired
+        : fillTemplate(copy.settingsRowPaired, {
+            date: formatLocalDate(pairing.pairedAt, storage.env.timeZone()),
+          });
+  return (
+    <Card label={copy.settingsCardLabel}>
+      <ul className="ui-action-list">
+        <li>
+          <ActionRow
+            href={routeHref('pairing')}
+            title={copy.settingsRowTitle}
+            detail={detail}
+            badge={<ChevronIcon />}
+          />
+        </li>
+      </ul>
+    </Card>
+  );
+}
+
 export function SettingsScreen(): ReactElement {
   return (
     <>
       <InstallCard />
       <SetupCard />
+      <LaptopCard />
       <BackupCard />
       <WeightCheckInSettings />
       <Card label="More">
@@ -87,7 +128,10 @@ export function SettingsScreen(): ReactElement {
           </li>
         </ul>
       </Card>
-      <Placeholder coming="Settings for the store and laptop pairing arrive with the steps that use them." />
+      {/* Settings is built; only some of its UX 7 settings wait for later steps (F33). */}
+      <Card label="Coming later">
+        <p className="ui-text-muted">{today.laterStep.settings}</p>
+      </Card>
     </>
   );
 }

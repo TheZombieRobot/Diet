@@ -204,6 +204,20 @@ async function narrowLayoutProblems(page: Page, where: string): Promise<string[]
     };
     overlapping('.ui-tabbar__link');
     overlapping('.ui-tabbar__label');
+    // The Nutrition today card's meters and their figures stay inside its padding (F25).
+    for (const card of document.querySelectorAll('main .ui-card:has(.ui-meter)')) {
+      const edge = card.getBoundingClientRect();
+      const style = getComputedStyle(card);
+      const left = edge.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft);
+      const right =
+        edge.right - parseFloat(style.borderRightWidth) - parseFloat(style.paddingRight);
+      for (const element of card.querySelectorAll('.ui-meter, .ui-meter *')) {
+        const box = element.getBoundingClientRect();
+        if (box.width > 0 && (box.left < left - 0.5 || box.right > right + 0.5)) {
+          problems.push(`${label}: "${element.textContent}" runs past the card's padding`);
+        }
+      }
+    }
     return problems;
   }, where);
 }

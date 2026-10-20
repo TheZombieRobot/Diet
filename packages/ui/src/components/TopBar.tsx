@@ -1,4 +1,4 @@
-import type { ReactElement, Ref } from 'react';
+import { type ReactElement, type Ref, useLayoutEffect, useRef } from 'react';
 import { SettingsIcon } from '../icons';
 import { IconLink } from './IconButton';
 import { OfflineIndicator } from './OfflineIndicator';
@@ -26,8 +26,24 @@ export function TopBar({
   settingsCurrent,
   offlineReady,
 }: TopBarProps): ReactElement {
+  const headerRef = useRef<HTMLElement>(null);
+  // The page's scroll-padding-top (base.css) follows the bar's real height, so focus and
+  // scrollIntoView keep a control clear of it when the title wraps at 200% text.
+  useLayoutEffect(() => {
+    const header = headerRef.current;
+    if (header === null || typeof ResizeObserver === 'undefined') return;
+    const root = document.documentElement;
+    const observer = new ResizeObserver(() => {
+      root.style.setProperty('--ui-topbar-height', `${String(header.offsetHeight)}px`);
+    });
+    observer.observe(header);
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty('--ui-topbar-height');
+    };
+  }, []);
   return (
-    <header className="ui-topbar">
+    <header className="ui-topbar" ref={headerRef}>
       {/* tabIndex -1: focusable by the app (a screen change), not a stop for the Tab key. */}
       <h1 ref={titleRef} className="ui-topbar__title" tabIndex={-1}>
         {title}

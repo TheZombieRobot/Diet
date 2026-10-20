@@ -180,9 +180,10 @@ export interface Audit {
   readonly sockets: string[];
   /**
    * Waits until the requests, policy violations and sockets have stayed unchanged for a quiet
-   * period (about 2 s), so a request made a moment after the last action is counted too, then
-   * checks everything recorded since the first page load, and that no page has a cookie.
+   * period (about 2 s), so a request made a moment after the last action is counted too.
    */
+  readonly settle: () => Promise<void>;
+  /** Settles, then checks everything recorded since the first page load, and that no page has a cookie. */
   readonly verify: () => Promise<void>;
 }
 
@@ -216,23 +217,27 @@ export async function startAudit(
   };
   for (const page of context.pages()) watch(page);
   context.on('page', watch);
+  const settle = async (): Promise<void> => {
+    const signature = () =>
+      `${String(seen.length)}/${String(violations.length)}/${String(sockets.length)}`;
+    let last = signature();
+    let quietSince = Date.now();
+    const giveUp = Date.now() + 30_000;
+    while (Date.now() - quietSince < QUIET_MS && Date.now() < giveUp) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      if (signature() !== last) {
+        last = signature();
+        quietSince = Date.now();
+      }
+    }
+  };
   return {
     seen,
     violations,
     sockets,
+    settle,
     verify: async () => {
-      const signature = () =>
-        `${String(seen.length)}/${String(violations.length)}/${String(sockets.length)}`;
-      let last = signature();
-      let quietSince = Date.now();
-      const giveUp = Date.now() + 30_000;
-      while (Date.now() - quietSince < QUIET_MS && Date.now() < giveUp) {
-        await new Promise((resolve) => setTimeout(resolve, 200));
-        if (signature() !== last) {
-          last = signature();
-          quietSince = Date.now();
-        }
-      }
+      await settle();
       expect(seen.length).toBeGreaterThan(0);
       // The first request is the app's page itself: nothing ran before the audit started.
       expect(new URL(seen[0]?.url ?? origin).pathname).toBe(new URL(baseURL ?? origin).pathname);

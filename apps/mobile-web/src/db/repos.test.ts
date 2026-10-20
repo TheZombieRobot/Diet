@@ -319,7 +319,7 @@ describe('generic repositories (section 8.2; section 16 test 23; table CRUD)', (
     expect(await test.db.kickstart_periods.count()).toBe(0);
   });
 
-  it('transfer_pairings has no repository at item 12; it is written raw and validated', async () => {
+  it('a raw write to transfer_pairings is validated too (its repository is repos.pairing, item 30)', async () => {
     const test = await openTestDb();
     await expect(
       test.db.transfer_pairings.put({

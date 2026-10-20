@@ -5,6 +5,7 @@ import {
   addDays,
   type CardStateRecord,
   chartBlock,
+  type KickstartPeriodRecord,
   phaseSegments,
   weightOverview,
   type WeightRecord,
@@ -143,6 +144,11 @@ describe('phase segments and four-week blocks (W34, C27)', () => {
     expect(segments(K42, 10, null)[0]?.frontLoaded).toBe(false);
   });
 
+  it('the band shape is exposed, so "steeper in your first Kickstart" is said only when drawn: not when it started 2 days after setup', () => {
+    expect(overview(K10, 10).chart.shape).toBe('front-loaded');
+    expect(overview({ ...K10, periods: [{ startDay: 3 }] }, 12).chart.shape).toBe('linear');
+  });
+
   it('blocks: front-loaded on K10; day 30 of an extended Kickstart is block 2, linear; Steady starts a new block; R2 is linear', () => {
     const block = (options: WeightScenarioOptions, day: number) =>
       chartBlock(segments(options, day), date(day));
@@ -167,6 +173,16 @@ describe('the rapid-loss card can be hidden for the day only (WT-04, HS-11)', ()
     expect(overview(K42, 42).cards.rapidLoss).toEqual({ thresholdKgPerWeek: 1, weeks: 3 });
     expect(overview(K42, 42, { cardStates }, '22:00').cards.rapidLoss).toBeNull();
     expect(overview(K42, 43, { cardStates }, '00:30').cards.rapidLoss).not.toBeNull();
+  });
+
+  it('WT-13, HS-11: it shows below BMI 18.5 and in balanced and moderate modes too', () => {
+    const fast = { ...K42, ratesKgPerWeek: [1.5], periods: [] };
+    const low = overview({ ...fast, startKg: 64 }, 28);
+    expect(low.lowWeight).toBe(true);
+    expect(low.cards.rapidLoss).not.toBeNull();
+    for (const dietMode of ['balanced', 'moderate-low-carb'] as const) {
+      expect(overview({ ...fast, dietMode }, 28).cards.rapidLoss, dietMode).not.toBeNull();
+    }
   });
 
   it('HS-11: a stored "done" or a dismissal dated ahead never hides it', () => {
@@ -198,7 +214,14 @@ describe('readiness and low weight (WT-13, RD-04, RD-06, W11, W32)', () => {
     expect(view.average7Kg).not.toBeNull();
     expect(view.chart.line.length).toBeGreaterThan(0);
     expect(view.cards.rapidLoss).not.toBeNull();
+    expect(view.cards.fluctuation).toBe(true);
     expect(overview(K10, 10, { gates: Q5_YES_GATES }).cards.stopSigns).toBeNull();
+  });
+
+  it('nothing is ended before setup is finished, even with the gates closed', () => {
+    expect(overview(K10, 10, { gates: Q5_YES_GATES }).kickstart.endNeeded).toBe('readiness-gated');
+    const notDone = { gates: Q5_YES_GATES, settings: { onboardingCompletedAt: null } };
+    expect(overview(K10, 10, notDone).kickstart.endNeeded).toBeNull();
   });
 
   it('WT-13: with a readiness question unanswered the note says so', () => {
@@ -231,6 +254,38 @@ describe('the Kickstart cards (HS-27, WT-08, WT-09, WT-11, W14, WT-14)', () => {
     }
     const answer4 = gatesWith({ pharmacistReminder: true, bloodPressureSaltWording: true });
     expect(overview(K42, 10, { gates: answer4 }).cards.stopSigns?.bloodPressureWording).toBe(true);
+  });
+
+  it('WT-11: "Hide for today" hides it until local midnight only', () => {
+    // No weigh-in on day 11, so the period keeps its synthetic id from day 10 to day 11.
+    const k10 = { ...K10, days: (day: number) => day <= 10 };
+    const trigger = `period:${periodId(k10, 10)}`;
+    expect(periodId(k10, 11)).toBe(periodId(k10, 10));
+    const hiddenAt21 = card({
+      cardId: 'kickstart-stop-signs',
+      trigger,
+      dismissedAt: scenarioInstant(SCENARIO_DAY1, 10, '21:00'),
+      dismissedTimeZone: 'Pacific/Auckland',
+    });
+    expect(overview(k10, 10, { cardStates: [hiddenAt21] }, '22:00').cards.stopSigns).toBeNull();
+    expect(overview(k10, 11, { cardStates: [hiddenAt21] }, '00:30').cards.stopSigns).toMatchObject({
+      trigger,
+      forced: false,
+    });
+  });
+
+  it('HS-27: a stop-sign answer, then a weight below BMI 18.5 that ends Kickstart: still forced through the end day', () => {
+    const low = {
+      ...K42,
+      startKg: 64,
+      ratesKgPerWeek: [1.5],
+      periods: [
+        { startDay: 1, stopSignOnDay: 19, endOnDay: 20, endReason: 'readiness-gated' as const },
+      ],
+    };
+    const view = overview(low, 20);
+    expect(view.lowWeight).toBe(true);
+    expect(view.cards.stopSigns).toMatchObject({ forced: true, expanded: true, running: false });
   });
 
   it('HS-27: a stop-sign answer after the card was hidden for the day brings it back, forced and expanded', () => {
@@ -273,6 +328,19 @@ describe('the Kickstart cards (HS-27, WT-08, WT-09, WT-11, W14, WT-14)', () => {
     expect(overview(K42, 22, { targets: user186 }).kickstart.presetMoveDue).toBeNull();
   });
 
+  it('C07: answer 4 never gets "23:1 was for Kickstart" or a one-tap 23:1; its set-aside default moves even during Kickstart', () => {
+    const answer4 = gatesWith({ pharmacistReminder: true, bloodPressureSaltWording: true });
+    const untouched22 = {
+      fastingPreset: '22:2' as const,
+      eatingWindow: { start: '17:00', end: '19:00' },
+      presetChosenBy: 'default' as const,
+    };
+    const finished = overview(K42, 22, { gates: answer4, targets: untouched22 });
+    expect(finished.cards.steadyExplainer).toMatchObject({ windowLine: false });
+    expect(overview(K10, 10, { gates: answer4 }).kickstart.presetMoveDue).toEqual(untouched22);
+    expect(overview(K10, 10).kickstart.presetMoveDue).toBeNull();
+  });
+
   it('WT-08: the move does not wait for the explainer: finished, it is gone but the move is still due', () => {
     const done = card({
       cardId: 'steady-explainer',
@@ -302,6 +370,61 @@ describe('the Kickstart cards (HS-27, WT-08, WT-09, WT-11, W14, WT-14)', () => {
       doneAt: scenarioInstant(SCENARIO_DAY1, 2, '08:00'),
     });
     expect(overview(K10, 2, { cardStates: [done] }).cards.fluctuation).toBe(false);
+  });
+});
+
+describe('a Kickstart ended before its first day never ran (item 14 review; HS-11, D27)', () => {
+  // Steady at 1.2 kg a week with daily weigh-ins. A Kickstart was started with the phone's clock
+  // 3 days ahead (its day 1 is day 33) and ended once the clock was right: 1 ms after its start.
+  const steady: WeightScenarioOptions = { ...K42, ratesKgPerWeek: [1.2], periods: [] };
+  const neverRan = (day1: number): KickstartPeriodRecord => {
+    const startedAt = scenarioInstant(SCENARIO_DAY1, day1, '07:30');
+    return {
+      id: '00000000-0000-4000-8000-000000099001',
+      startedAt,
+      timeZone: 'Pacific/Auckland',
+      endedAt: new Date(Date.parse(startedAt) + 1).toISOString(),
+      endedTimeZone: 'Pacific/Auckland',
+      endReason: 'user-ended',
+    };
+  };
+  const seen = (options: WeightScenarioOptions, day: number, day1 = 33) => {
+    const input = weightScenarioInput(onDay(options, day));
+    return weightOverview({ ...input, periods: [...input.periods, neverRan(day1)] });
+  };
+
+  it('the weight check-in card still shows on its day 1 and the 20 days after; no "Kickstart has finished" and no rebound note', () => {
+    for (let day = 31; day <= 60; day++) {
+      const view = seen(steady, day);
+      expect(view.cards.rapidLoss, `day ${String(day)}`).not.toBeNull();
+      expect(view.cards.steadyExplainer).toBeNull();
+      expect(view.notes).toEqual(['steady-pace']);
+      expect(view.chart.blockStart).toBe(overview(steady, day).chart.blockStart);
+    }
+    // Its one day still counts toward the 42-day cap.
+    expect(seen(steady, 40).kickstart.usage).toEqual({ days: 1, extensions: 0 });
+  });
+
+  it('after an earlier Kickstart, Steady still follows that one (its rebound note and its "Kickstart has finished")', () => {
+    const view = seen(K42, 34);
+    expect(view.phase).toEqual({ kind: 'steady', lastKickstartEnd: date(21) });
+    expect(view.cards.steadyExplainer?.trigger).toBe(`period:${periodId(K42, 34)}`);
+  });
+
+  it('HS-27: after a stop-sign, a later start (the clock 15 days ahead) ended before its day 1 leaves the forced card in place', () => {
+    const stopSign = { ...K42, periods: [{ startDay: 1, stopSignOnDay: 19, endOnDay: 20 }] };
+    expect(seen(stopSign, 20, 35).cards.stopSigns).toMatchObject({ forced: true, expanded: true });
+  });
+
+  it('a new start waits until the day after its day 1, and says so with that date; then it is offered', () => {
+    for (const day of [30, 33]) {
+      expect(seen(steady, day).kickstart.start).toEqual({
+        available: false,
+        reason: 'ended-ahead',
+        day1: date(33),
+      });
+    }
+    expect(seen(steady, 34).kickstart.start).toEqual({ available: true });
   });
 });
 

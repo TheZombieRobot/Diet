@@ -340,6 +340,7 @@ export function crudRepo<K extends StoreName>(ctx: RepoContext, table: K): CrudR
   const { db, env } = ctx;
   const rules: StoreRules = STORE_RULES[table] ?? {};
   const stores = [table, ...(rules.with ?? [])];
+  /** @transactionScope The store's own rule (tagged where STORE_RULES declares it), or none. */
   const check = rules.check ?? noCheck;
   const spec = TABLES[table];
 

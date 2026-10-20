@@ -145,6 +145,16 @@
     0 10px 28px var(--color-shadow);
 }
 
+/*
+ * Below 260 px (a 360 px phone at 200% text is 180 px) a card gives back some of its padding, so
+ * a help number row inside it fits its longest word and a whole phone number on a line (F19).
+ */
+@media (max-width: 259.98px) {
+  .ui-card {
+    padding: 10px;
+  }
+}
+
 .ui-card__header {
   display: flex;
   align-items: center;
@@ -609,6 +619,7 @@
   flex-direction: column;
   gap: 10px;
   list-style: none;
+  container: action-list / inline-size;
 }
 
 .ui-action-row {
@@ -643,7 +654,7 @@
   flex-direction: column;
   gap: 2px;
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .ui-action-row__title {
@@ -670,6 +681,27 @@
 
 .ui-action-row--emergency .ui-action-row__detail {
   color: inherit;
+}
+
+/*
+ * Too narrow for the badge beside the text (a phone at 200% text): the badge goes on its own line
+ * above it, so the text has the row's whole width and no word or phone number is split (F19).
+ */
+@container action-list (max-width: 209.98px) {
+  .ui-action-row {
+    flex-wrap: wrap;
+    row-gap: 6px;
+    padding: 8px;
+  }
+
+  .ui-action-row__badge {
+    width: 32px;
+    height: 32px;
+  }
+
+  .ui-action-row__text {
+    flex: 1 1 100%;
+  }
 }
 
 /* Label and value pairs (About: version, storage) */
@@ -706,11 +738,12 @@
 /*
  * A row of up to three figures with their labels (the Weight card). A slot with no figure holds a
  * short phrase at a smaller size (--empty); its full sentence goes under the row. Later cards add
- * modifiers rather than redefine these.
+ * modifiers rather than redefine these. On a narrow or zoomed screen (a 360 px phone at 200% text
+ * is 180 px wide) the figures go on to two rows or one column instead of running into each other.
  */
 .ui-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 5.5rem), 1fr));
   align-items: end;
   gap: 10px;
 }
@@ -757,6 +790,20 @@
   letter-spacing: normal;
 }
 
+/* A value in words ("Down 0.8 kg a week"): plain ink, never the placeholder grey of --empty. */
+.ui-stat__value--text {
+  font-size: 17px;
+  line-height: 1.3;
+  letter-spacing: normal;
+  overflow-wrap: anywhere;
+}
+
+/* An icon button that cannot be used now (the weight −/+ before there is a weight to step from). */
+.ui-icon-button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
 /* An inset note inside a card (the phase note) */
 .ui-note {
   padding: 12px 14px;
@@ -773,6 +820,7 @@
   flex-direction: column;
   gap: 8px;
   margin: 0;
+  container-type: inline-size;
 }
 
 .ui-trend-chart__svg {
@@ -824,6 +872,19 @@
   color: var(--color-secondary);
   font-size: 13px;
   font-weight: 700;
+}
+
+/* Too narrow for four week labels side by side: the first and the last, at the chart's ends. */
+@container (max-width: 200px) {
+  .ui-trend-chart__labels {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .ui-trend-chart__labels > :not(:first-child, :last-child) {
+    display: none;
+  }
 }
 
 .ui-trend-chart__legend {
@@ -1529,10 +1590,13 @@
   font-weight: 600;
 }
 
-/* Two meters side by side: two columns from a 274 px content box (2 x 130 + 14). */
+/*
+ * Two meters side by side: two columns from a 274 px content box (2 x 130 + 14). Narrower than
+ * one column (a phone at 200% text) the one column takes the box's width, never more (F25).
+ */
 .ui-meter-pair {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(130px, 100%), 1fr));
   gap: 14px;
 }
 
@@ -1952,4 +2016,41 @@
 
 .ui-thumb__placeholder {
   display: inline-flex;
+}
+
+/* ---- Laptop pairing (checklist item 30): the camera view and the numbered steps ---- */
+
+/* A square camera view with a guide square, drawn only while the stream shows. */
+.ui-camera {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 1;
+  margin-inline: auto;
+  overflow: hidden;
+  border-radius: var(--radius-control);
+  background: var(--color-inset);
+}
+
+.ui-camera__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ui-camera__guide {
+  position: absolute;
+  inset: 15%;
+  border: 3px solid var(--color-teal);
+  border-radius: var(--radius-control);
+  pointer-events: none;
+}
+
+.ui-camera[data-active='false'] .ui-camera__guide {
+  display: none;
+}
+
+.ui-plain-list--numbered {
+  list-style: decimal;
 }

@@ -54,6 +54,14 @@ describe('the Drinks card (C6; TD-05)', () => {
     },
   );
 
+  it('F30, TD-05: with readiness answer 2 "yes" the card shows the pregnancy line and no daily or weekly figures', async () => {
+    // Unanswered (also gated) is covered by guidanceShown's own test in core.
+    test = await todayFixture({ answers: { q2: 'yes' }, fast: false, kickstart: false });
+    await renderToday();
+    expect(lines(card())).toEqual([alcohol.guidance.pregnancy, today.laterStep.drinks]);
+    expect(card().textContent).not.toMatch(/\d|standard drinks?/);
+  });
+
   it('RD-01: under 18 the card stays with the reason and shows no figures', async () => {
     test = await todayFixture({ answers: { q1: 'yes' }, fast: false });
     await renderToday();

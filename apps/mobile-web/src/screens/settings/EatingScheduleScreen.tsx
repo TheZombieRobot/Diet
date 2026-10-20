@@ -88,6 +88,11 @@ export function ScheduleSettings({
   const [draft, setDraft] = useState<ScheduleDraft>(() =>
     scheduleDraftFrom({ targets, scheduleConfirmed: true, pharmacistReminder, kickstartChosen }),
   );
+  // Opened on a set-aside Kickstart default (nothing chosen): the reason stays while the form is
+  // open, also once item 14 has moved that default to 22:2 underneath it.
+  const [openedSetAside] = useState(
+    () => pharmacistReminder && targets.presetChosenBy === 'kickstart-default',
+  );
   const [showErrors, setShowErrors] = useState(false);
   const [refused, setRefused] = useState<{ readonly n: number; readonly at: 'list' | 'window' }>({
     n: 0,
@@ -150,7 +155,7 @@ export function ScheduleSettings({
         pharmacistNote={pharmacistReminder}
         diabetesNote={view.input.answers.q3 === 'yes' && view.input.confirmations.prescriberAgreed}
         kickstartDefaultSetAside={
-          pharmacistReminder && targets.presetChosenBy === 'kickstart-default'
+          pharmacistReminder && (openedSetAside || targets.presetChosenBy === 'kickstart-default')
         }
         showErrors={showErrors}
         listRef={list}

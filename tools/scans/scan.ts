@@ -22,10 +22,15 @@ import {
   NETWORK_ALLOWED_FILES,
   networkRules,
   personalDataRules,
+  pairingWebStorageRule,
   personalPathRules,
   PRICE_FORMATTER_FILES,
   priceFormatRules,
+  qrDecoderImportRule,
+  qrDecoderLoadRule,
+  qrGeneratorTestOnlyRule,
   relayBlindRules,
+  sealedBodyCastRule,
   serviceWorkerConfigRules,
   SSH_REMOTE_USERS,
   stockAndCartRules,
@@ -217,6 +222,56 @@ export function deviceOnlyCodeViolations(root: string, files: readonly string[])
     };
   });
 }
+/** The one file that may cast to SealedRelayBody, and the one that may load jsqr (item 30). */
+export const SEALED_BODY_FILE = 'packages/grocery/src/transfer/envelope.ts';
+export const QR_DECODER_FILE = 'apps/mobile-web/src/screens/pairing/qrDecoders.ts';
+
+const isWorkspaceCode = (f: string) => isWorkspace(f) && isCode(f) && !isExempt(f);
+/** The pairing and transfer code, tests aside (checklist item 30). */
+const isPairingCode = (f: string) =>
+  (f.startsWith('packages/grocery/src/transfer/') ||
+    f.startsWith('apps/mobile-web/src/screens/pairing/') ||
+    f === 'apps/mobile-web/src/db/repos/pairing.ts') &&
+  isWorkspaceCode(f) &&
+  !isTestFile(f);
+
+/**
+ * Pairing and the transfer code (checklist item 30), each rule with its own scope. Kept out of
+ * RULE_SETS like RELAY_BLIND: code rules, not wording. Tests are covered by the cast rule too:
+ * they prove the brand with @ts-expect-error, never a cast.
+ */
+export const TRANSFER_GUARD: readonly RuleSet[] = [
+  {
+    name: 'sealed relay body',
+    rules: [sealedBodyCastRule],
+    text: 'raw',
+    appliesTo: (f) => isWorkspaceCode(f) && f !== SEALED_BODY_FILE,
+  },
+  {
+    name: 'pairing key storage',
+    rules: [pairingWebStorageRule],
+    text: 'raw',
+    appliesTo: isPairingCode,
+  },
+  {
+    name: 'QR decoder import',
+    rules: [qrDecoderImportRule],
+    text: 'raw',
+    appliesTo: isWorkspaceCode,
+  },
+  {
+    name: 'QR decoder loading',
+    rules: [qrDecoderLoadRule],
+    text: 'raw',
+    appliesTo: (f) => isWorkspaceCode(f) && f !== QR_DECODER_FILE,
+  },
+  {
+    name: 'QR generator in test fixtures only',
+    rules: [qrGeneratorTestOnlyRule],
+    text: 'raw',
+    appliesTo: (f) => isWorkspaceCode(f) && !f.startsWith('packages/test-fixtures/src/'),
+  },
+];
 
 export const FEASIBILITY_DOC = 'docs/INTEGRATION_FEASIBILITY.md';
 
@@ -276,6 +331,7 @@ export function ruleSetsFor(root: string): RuleSet[] {
     HEALTH_TEXT_HOME,
     RELAY_BLIND,
     DEVICE_ONLY,
+    ...TRANSFER_GUARD,
     ...extensionRuleSets(readExtensionDecision(root)),
   ];
 }
@@ -562,6 +618,12 @@ export function scanHistory(
   pathRules: readonly PathRule[] = personalPathRules,
   contentSets: readonly RuleSet[] = [PERSONAL_DATA],
 ): Violation[] {
+  // A shallow clone holds only part of the history, and the rest would pass unseen (F47).
+  if (git(root, ['rev-parse', '--is-shallow-repository']).toString('utf8').trim() === 'true') {
+    throw new Error(
+      'The history scan needs the whole history, but this clone is shallow. Run git fetch --unshallow (in CI, check out with fetch-depth: 0).',
+    );
+  }
   const violations: Violation[] = [];
   for (const blob of historyBlobs(root)) {
     for (const path of blob.paths) {

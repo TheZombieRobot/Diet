@@ -33,12 +33,14 @@ export interface WeightStatusMessage {
   readonly tone: 'status' | 'alert';
   /** The records are closed in this tab: offer Reload. */
   readonly reload?: boolean;
+  /** The control that led here has gone: the line takes focus, so it never drops to the page. */
+  readonly focus?: boolean;
 }
 
 export const weightStatusStore = createStore<WeightStatusMessage | null>(null);
 
-export function reportStatus(text: string): void {
-  weightStatusStore.set({ text, tone: 'status' });
+export function reportStatus(text: string, focus = false): void {
+  weightStatusStore.set(focus ? { text, tone: 'status', focus } : { text, tone: 'status' });
 }
 
 /** Focus the stop-sign card when it next shows (after a stop-sign answer, W33). */

@@ -43,9 +43,14 @@ export interface DeviceOnlyProblem {
 /** The photo store in code: the store, its repository and its record type. */
 export const PHOTO_STORE_NAME = /\bgarden_photos\b|\bgardenPhotos\b|\bGardenPhotoRecord\b/;
 
-/** Names that list every store, device-only stores included (exports of core and the database). */
+/**
+ * Names that list every store, device-only stores included (exports of core and the database).
+ * The specs of every store (TABLES, TABLES_V1, TABLES_BY_VERSION) are not here: validation, the
+ * backup code and the transfer payload read them by a store's name, and every way from a name to
+ * the database is checked above in those files, which naming them as allowed would exempt.
+ */
 export const STORE_LIST_NAME =
-  /^(?:STORE_NAMES|STORES_V\d+|TABLES_V\d+|TABLES_BY_VERSION|DEVICE_ONLY_TABLES\w*|storeNamesByVersion|expectedStoreNames)$/;
+  /^(?:STORE_NAMES|STORES_V\d+|DEVICE_ONLY_TABLES\w*|storeNamesByVersion|expectedStoreNames)$/;
 
 /** Types whose values reach the database, by declared name (bases and unions are followed). */
 export const DATABASE_TYPES: ReadonlySet<string> = new Set([
