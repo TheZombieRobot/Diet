@@ -209,7 +209,7 @@ describe('placeholder screens (no sample data)', () => {
     expect(plus.getAttribute('aria-expanded')).toBe('true');
     const panelId = plus.getAttribute('aria-controls') ?? '';
     await screen.findByText(today.quickActions.laterNote);
-    expect(document.getElementById(panelId)?.textContent).toContain('later step');
+    expect(document.getElementById(panelId)?.textContent).toContain(today.quickActions.laterNote);
     fireEvent.click(plus);
     expect(plus.getAttribute('aria-expanded')).toBe('false');
   });

@@ -220,12 +220,12 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | ID | Case | Expected |
 |---|---|---|
 | TD-01 | Card order and the Today snapshot | Status line, then the "talk to someone" card, then a prominent Reminders card, then the UX_SCREENS section 2 cards; the structural snapshot with its explicit assertions |
-| TD-02 | Unbuilt features | Movement and drink logging show no numbers (the Nutrition today card shows the day's own intake, item 21); unbuilt quick actions are shown with "Later", focusable and inert; nothing is written before setup; a failed read offers a reload |
-| TD-03 | Water and the electrolyte tick | Saved and still there after a reload offline, by local day; Undo removes only its own entry; the status total matches the stored total |
+| TD-02 | Unbuilt features | Movement and drink logging show no numbers (the Nutrition today card shows the day's own intake, item 21); unbuilt quick actions are shown with "Later", focusable and inert; nothing is written before setup; a failed read offers a reload and keeps the status line and the "talk to someone" card |
+| TD-03 | Water and the electrolyte tick | Saved and still there after a reload offline, by local day; Undo removes only its own entry; the status total matches the stored total; focus stays on the control used, after a save and after a failed one |
 | TD-04 | Steps | Manual entry within 0–100,000; Done saves; "Same as yesterday" only when yesterday has an entry and today none; never overwrites |
 | TD-05 | Drinks guidance | By stored sex and setting, the stricter wins, women's when sex is missing, never without "No alcohol use is risk-free."; under 18 shows the reason and no figures |
 | TD-06 | Reminders | Cholesterol per NU-08 (counted again once when low-carb eating first starts); electrolytes per C72, only with the keto ceiling on in keto mode; medication timing (RD-09) on the Fast card when fasting is available and in Reminders when it is switched off, never twice; backup per BK-03, with Reminders first when storage is not protected |
-| TD-07 | Status line | The over-24-hours sentence strictly over 24 h whether or not fasting is switched off; a neutral "still open" line when it is; no window time that would carry a running fast past 24 h; the day's window after the snack is added; no fasting words with no pattern |
+| TD-07 | Status line | The over-24-hours sentence strictly over 24 h whether or not fasting is switched off; a neutral "still open" line when it is; no time past the running fast's 24-hour point, and from 23 h "It's fine to eat now.", as on the Fast card; the day's window after the snack is added; no fasting words with no pattern |
 
 ---
 

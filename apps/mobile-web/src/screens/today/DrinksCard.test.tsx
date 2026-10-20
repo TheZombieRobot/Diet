@@ -16,24 +16,22 @@ afterEach(() => {
 
 const card = () => screen.getByRole('region', { name: today.cards.drinks });
 
-/** NN-09 at render level: every element that names standard drinks also says no use is risk-free. */
-function expectRiskFreeBeside(region: HTMLElement): void {
-  const named = [...region.querySelectorAll('*')].filter(
-    (e) => e.children.length === 0 && /standard drinks?/i.test(e.textContent),
-  );
-  expect(named.length).toBeGreaterThan(0);
-  for (const element of named) expect(element.textContent).toContain(alcohol.noRiskFreeLevel);
-}
+/** Every line of text in the card under its heading, leaf by leaf. */
+const lines = (region: HTMLElement): string[] =>
+  [...region.querySelectorAll('*')]
+    .filter((e) => e.children.length === 0 && !e.closest('.ui-card__header'))
+    .map((e) => e.textContent.trim())
+    .filter((text) => text !== '');
 
 describe('the Drinks card (C6; TD-05)', () => {
   it.each(['nz-women', 'nz-men'] as const)(
-    'the %s line carries "No alcohol use is risk-free." and nothing that scores',
+    'NN-09: the %s card is exactly its guidance line, ending "No alcohol use is risk-free.", and the later-step line',
     (set) => {
       render(<DrinksCard drinks={{ kind: 'guidance', set }} />);
-      expect(screen.getByTestId('drinks-guidance').textContent).toBe(alcohol.guidance.line[set]);
-      expect(card().textContent).toMatch(/no alcohol use is risk-free/i);
-      expectRiskFreeBeside(card());
-      expect(screen.getByTestId('later-step').textContent).not.toMatch(/\d/);
+      // Exactly these two lines, so no other line can carry figures without the sentence.
+      expect(lines(card())).toEqual([alcohol.guidance.line[set], today.laterStep.drinks]);
+      expect(alcohol.guidance.line[set].endsWith(alcohol.noRiskFreeLevel)).toBe(true);
+      expect(today.laterStep.drinks).not.toMatch(/\d/);
       expect(card().textContent).not.toMatch(/kcal|cans|\bleft\b|streak/i);
     },
   );

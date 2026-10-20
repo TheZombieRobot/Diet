@@ -4,7 +4,14 @@ import { fasting, privacy, readiness, reminders, weight } from '@diet/core/copy/
 import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { TestDb } from '../../db/testKit';
-import { clockTo, renderToday, resetToday, TODAY_NOW, todayFixture } from './todayTestKit';
+import {
+  clockTo,
+  regionLabels,
+  renderToday,
+  resetToday,
+  TODAY_NOW,
+  todayFixture,
+} from './todayTestKit';
 
 let test: TestDb | undefined;
 afterEach(() => {
@@ -51,6 +58,11 @@ describe('the cholesterol check-ins (C8; NU-08, C109)', () => {
     await waitFor(() => {
       expect(titles()).toContain(reminders.cholesterol.title['day-56']);
     });
+    await clockTo(test, plusDays(84));
+    await waitFor(() => {
+      expect(titles()).toContain(reminders.cholesterol.title['day-84']);
+    });
+    expect(titles()).not.toContain(reminders.cholesterol.title['day-56']);
   });
 
   it('balanced at first: the lipid test hidden then comes back on the first low-carb day', async () => {
@@ -92,6 +104,15 @@ describe('the electrolyte reminder (C8; C72, C102)', () => {
     },
   );
 
+  it('C72: none in moderate low-carb mode, even on Kickstart day 15', async () => {
+    test = await todayFixture({ profile: { dietMode: 'moderate-low-carb' } });
+    await renderToday();
+    // The card is there (the lipid test is due), without the electrolyte reminder.
+    expect(titles()).toContain(reminders.cholesterol.title['day-1']);
+    expect(titles()).not.toContain(reminders.electrolytes.title);
+    expect(screen.queryByTestId('reminder-electrolytes')).toBeNull();
+  });
+
   it('"Hide for today" hides it until local midnight and moves focus to the next title', async () => {
     test = await todayFixture();
     await renderToday();
@@ -126,6 +147,33 @@ describe('the electrolyte reminder (C8; C72, C102)', () => {
       expect(document.activeElement?.textContent).toBe(weight.card.label);
     });
     expect(screen.queryByRole('region', { name: privacy.backupReminder.cardLabel })).toBeNull();
+  });
+
+  it('T27: putting off the prominent backup reminder moves the card to its normal place, and focus to the next title there', async () => {
+    test = await todayFixture({
+      kickstart: false,
+      storage: 'not-protected',
+      completedAt: plusDays(-3),
+      profile: { carbCeilingStartedAt: null },
+    });
+    const main = await renderToday();
+    await waitFor(() => {
+      expect(titles()).toEqual([
+        privacy.backupReminder.title,
+        reminders.cholesterol.title['day-1'],
+      ]);
+    });
+    expect(regionLabels(main)[0]).toBe(privacy.backupReminder.cardLabel);
+    const notNow = within(card()).getByRole('button', { name: privacy.backupReminder.notNow });
+    notNow.focus();
+    fireEvent.click(notNow);
+    await waitFor(() => {
+      expect(regionLabels(main).at(-1)).toBe(privacy.backupReminder.cardLabel);
+    });
+    await waitFor(() => {
+      expect(document.activeElement?.textContent).toBe(reminders.cholesterol.title['day-1']);
+    });
+    expect(card().contains(document.activeElement)).toBe(true);
   });
 
   it('the backup title is a focusable h3 in the same card', async () => {

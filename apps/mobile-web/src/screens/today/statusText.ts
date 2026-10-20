@@ -1,7 +1,7 @@
 /**
  * Today's top line in words (item 16 design section 1.2), from item 15's fasting.status strings,
- * its over-24-hours sentence and its widen line. The clock times read from the real instant in the
- * device zone, as on the Fast card.
+ * its over-24-hours sentence, its widen line and the Fast card's "fine to eat now" lines. The clock
+ * times read from the real instant in the device zone, as on the Fast card.
  */
 import {
   fillTemplate,
@@ -16,7 +16,11 @@ import { clockAt } from '../fasting/fastingText';
 
 const status = fasting.status;
 
-function windowText(window: Exclude<StatusWindow, { kind: 'widen' }>, zone: TimeZone): string {
+function windowText(window: StatusWindow, zone: TimeZone): string {
+  // No time past a running fast's 24-hour point: the Fast card's own words (item 15).
+  if (window.kind === 'widen') return fasting.mealCheck.widen;
+  if (window.kind === 'eat-now') return fasting.card.fineToEat;
+  if (window.kind === 'open-now') return fasting.card.windowOpen;
   const time = clockAt(instantMs(window.at), zone);
   switch (window.kind) {
     case 'open-until':
@@ -47,8 +51,7 @@ export function statusText(today: TodayStatus, zone: TimeZone): string | null {
     case 'fasting': {
       const { window } = today;
       if (window === null) return fastingFor(today.elapsedMinutes);
-      const rest = window.kind === 'widen' ? fasting.mealCheck.widen : windowText(window, zone);
-      return `${fastingFor(today.elapsedMinutes)} ${rest}`;
+      return `${fastingFor(today.elapsedMinutes)} ${windowText(window, zone)}`;
     }
     case 'not-fasting':
       return windowText(today.window, zone);

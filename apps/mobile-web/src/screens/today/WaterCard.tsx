@@ -44,11 +44,11 @@ export function WaterCard({
   const write = useTodayWrite();
   const [last, setLast] = useState<LastTap>(null);
   const addRef = useRef<HTMLButtonElement>(null);
-  /** After Undo, focus goes to Add 250 mL once it is enabled again. */
+  /** After Undo, focus goes to Add 250 mL once Undo has gone. */
   const focusAdd = useRef(false);
   useEffect(() => {
     const add = addRef.current;
-    if (!focusAdd.current || add === null || add.disabled) return;
+    if (!focusAdd.current || add === null) return;
     focusAdd.current = false;
     add.focus();
   });
@@ -128,14 +128,14 @@ export function WaterCard({
           <span>{figure.value}</span> <span className="ui-stat__unit">{figure.unit}</span>
         </p>
       )}
-      <Button ref={addRef} variant="tint" block disabled={write.busy} onClick={add}>
+      <Button ref={addRef} variant="tint" block aria-disabled={write.busy} onClick={add}>
         {water.add}
       </Button>
       <Switch
         label={water.electrolytes}
         checked={requested?.on ?? day.electrolyte}
         // Until the stored truth is back, so a second tap never works from rows already changed.
-        disabled={write.busy || requested !== null}
+        busy={write.busy || requested !== null}
         onChange={setElectrolyte}
       />
       <p role="status" className="ui-text-muted ui-status-line">
@@ -144,7 +144,7 @@ export function WaterCard({
       {canUndo ? (
         <Button
           variant="quiet"
-          disabled={write.busy}
+          aria-disabled={write.busy}
           onClick={() => {
             undo(last.id);
           }}

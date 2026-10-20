@@ -19,6 +19,12 @@ function QuickActionList({ close }: { readonly close: () => void }): ReactElemen
   const states = quickActionStates(view.gates);
   return (
     <>
+      {/* Above the list, so it is in view however far the panel scrolls (item 16 review). */}
+      {states.some(({ state }) => state.kind === 'later') ? (
+        <p id={laterNoteId} className="ui-text-muted">
+          {copy.laterNote}
+        </p>
+      ) : null}
       <ul className="ui-quick-actions">
         {states.map(({ id, state }) => {
           const label = copy.labels[id];
@@ -59,11 +65,6 @@ function QuickActionList({ close }: { readonly close: () => void }): ReactElemen
           );
         })}
       </ul>
-      {states.some(({ state }) => state.kind === 'later') ? (
-        <p id={laterNoteId} className="ui-text-muted">
-          {copy.laterNote}
-        </p>
-      ) : null}
     </>
   );
 }
