@@ -135,8 +135,9 @@ Conventions for the implementing model:
 36. **Full test pass and coverage table** mapping every HS-xx and NN-xx to a passing test, generated into `docs/COVERAGE.md`.
     *Acceptance:* no rule unmapped.
 
-37. **One-handed, sunlight and accessibility pass.** 48 px targets, contrast AA, dark mode, text size setting (the phone's own: Chrome's zoom and text scaling up to 200%), offline indicator visible on every screen.
-    *Acceptance:* A11Y-01 to A11Y-05 (A11Y-01 is the axe-core audit Lighthouse's accessibility score is made from: no serious or critical finding on any screen, in either theme); manual outdoor check recorded (TEST_PLAN section 4).
+37. **One-handed, sunlight and accessibility pass.** 48 px targets, contrast AA, dark mode, text size setting, offline indicator visible on every screen.
+    *Acceptance:* Lighthouse accessibility ≥ 95; manual outdoor check recorded.
+    *Built:* measured with axe-core, the engine Lighthouse's accessibility score is made from: no serious or critical finding on any screen, sub-screen or setup view at 360 px in either theme (TEST_PLAN A11Y-01 to A11Y-05). Text size and dark mode follow the phone's own settings (Chrome's zoom and text scaling, tested to 200%); no in-app setting. The manual outdoor check is the owner's (TEST_PLAN section 4).
 
 38. **Create `docs/TRIAL_LOG.md`** template (shopping observations only; no health data).
     *Acceptance:* file exists with the privacy note at the top.
