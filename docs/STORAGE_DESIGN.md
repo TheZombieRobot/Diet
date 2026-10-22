@@ -785,7 +785,7 @@ Invariant: `note !== null || withdrawalTick` (an empty note is deleted rather th
 | id | Id | no | — | the list id in the transfer payload | NN-07, C84 |
 | version | Int | no | 1 | 1–1,000,000; the repository adds 1 on every edit | C52, NN-07 |
 | createdAt, updatedAt | Instant | no | now | — | GL-07 |
-| storeName | Text(1–80) | no | profile.storeName | snapshot | GL-08 |
+| storeName | Text(1–80) | no | profile.storeName | copied from `profile.storeName` when the list is made; the Store setting also changes the current list's (item 24) | GL-08 |
 | sentVersion | Int | yes | null | ≤ version; the version last sent | C52, NN-07 |
 | sentAt | Instant | yes | null | null iff sentVersion is null; the phone's clock | DATA_MODEL |
 | transferId | Id | yes | null | null iff sentVersion is null. A fresh `crypto.randomUUID()` for every send, never derived from the room id or the key (so the backup leaks nothing about the pairing) | DATA_MODEL, C113 |
@@ -796,6 +796,8 @@ Invariant: `note !== null || withdrawalTick` (an empty note is deleted rather th
 
 `GroceryItem = { id: Id; origin: 'generated' | 'manual'; ingredientId: RefId | null; text: Text(1–100); quantity: Num (0–100000] | null; unit: 'g' | 'ml' | 'each' | 'pack' | null` (null iff quantity is null)`; packSuggestion: Text(1–60) | null; aisle: Text(1–40); substituteHint: Text(1–60) | null; section: 'to-buy' | 'already-have'; fromGardenG: Num 0–100000 | null; gardenAmountUnknown: Bool` (C57)`; fromPantryG: Num 0–100000 | null` (C111)`; auditNote: Text(1–200) | null; price: Price | null; ticked: Bool }`. `origin: 'manual'` marks a line the owner added, which a rebuild keeps (GL-05).
 `Price = { amountNzCents: Int 1–1,000,000; basis: 'line' | 'per_kg' | 'each'; enteredAt: Instant }`. Whole cents keep the amount exact; the CSV prints dollars (C111, NN-05, HS-16).
+
+The current list is the newest by `createdAt`; older lists are kept. Items are stored sorted as the screen shows them. A list change and the audit rows it causes are written in one transaction (`repos.groceryBuild`, item 24). A profile change to allergens, Gluten-free household or dislikes clears every stored list's substitute hints in the same transaction (item 24).
 
 **Status is derived, not stored** (`groceryListStatus(list, now)` in `derived.ts`): `draft` when `sentVersion` is null; `received` when `receivedVersion === version`; `edited-since-sent` when `sentVersion < version` (the screen adds "the laptop has an older copy" when `receivedVersion` is not null); otherwise `waiting` while `now − sentAt < RELAY_TTL_MS` and `expired` after ("Not confirmed by the laptop. If the list is not on the laptop, send it again.", C52; reworded at item 29, see the DECISIONS relay row). The DATA_MODEL `status` field and its index are therefore dropped.
 
@@ -858,12 +860,12 @@ A later item that adds a card, a trigger or a dismissal rule edits the registry,
 | id | Id | — | — |
 | at | Instant | — | — |
 | timeZone | TimeZone | the device zone at write, so "21 Oct" in an audit line is the owner's date (PLAN, NN-06) | C21 |
-| kind | `'grocery' \| 'migration'` | `grocery` for automatic list deductions (item 24); `migration` for a value a schema migration changed (section 9.2) | NN-06, C57, D13 |
+| kind | `'grocery' \| 'migration'` | `grocery` for grocery list changes (item 24): automatic deductions, the garden and pantry amounts and Buy anyway choices the owner confirms on the list, and substitute hints cleared by a profile change; `migration` for a value a schema migration changed (section 9.2) | NN-06, C57, D13 |
 | table | BackupTableName | — | NN-06 |
 | recordId | Text(1–120) | — | — |
 | reason | Text(1–500) | for example "300 g silverbeet from garden" | NN-06, C57 |
 
-Audit is append-only: no owner edit and no import writes an audit row.
+Audit is append-only: no ordinary owner edit and no import writes an audit row (item 24's list confirmations are the exception, D44).
 
 ---
 
@@ -1029,7 +1031,7 @@ A `QuotaExceededError` on any write aborts that transaction. Nothing is half-wri
   - garden and pantry (item 19 review, G17): one row per crop and one per pantry item, by food or by name (core `duplicateOnSave`). The generic repository refuses, inside the write transaction, a new row or an edit that changes the name or the link into a second row for one food (`StorageRuleError` rule `duplicate`); a pair that is already stored (an old backup) stays editable. Import does not apply the rule.
 - **Special repository built in item 30:** pairing: `get`, `save` (replaces the one pairing; `pairedAt` = now; the key is imported before the transaction), `remove`.
 - **Later items** add query helpers (planner, trends and so on), and MUST go through the same preparation and validators.
-- **No audit rows** for ordinary owner edits. Audit is for automatic changes (grocery deductions at item 24, migrations).
+- **No audit rows** for ordinary owner edits. Audit is for automatic changes (grocery deductions and hint clearing at item 24, migrations) and for the garden and pantry amounts and Buy anyway choices the owner confirms on the grocery list (D44).
 
 ### 8.3 Preparing a write
 Every write goes through `prepare(table, candidate, env)`, which is synchronous: normalise (section 2.3), then the environment checks, then `validateRow`. The environment checks are: every `TimeZone` field being written with a new value is one this device's `Intl` recognises (`zone-unknown`); `profile.birthYear` is not after the current year in the device zone (`future-year`). Values carried over unchanged from a stored row are not re-checked against the environment, so editing an old entry recorded in a zone this browser does not know still saves.
@@ -1038,7 +1040,7 @@ Every write goes through `prepare(table, candidate, env)`, which is synchronous:
 
 | Store | Generic repository | Special repository | Timestamps the repository maintains |
 |---|---|---|---|
-| profile | get, update | — | createdAt (populate), updatedAt |
+| profile | get, update | special: profileRepo (item 24): an update that changes allergens, Gluten-free household or dislikes clears every stored grocery list's substitute hints in the same transaction, with one audit row per list | createdAt (populate), updatedAt |
 | targets | get, update | — | updatedAt |
 | settings | get, update | recordBackup | none |
 | readiness | list | answer, clear | answeredAt |
@@ -1049,7 +1051,7 @@ Every write goes through `prepare(table, candidate, env)`, which is synchronous:
 | symptom_log, water_log, food_log | create, get, list, update, remove | — | at and timeZone when left to the repository |
 | steps_log | create, get, list, update, remove | — | updatedAt |
 | ingredients, ingredient_overrides, recipes, beverages | create, get, list, update, remove | — | createdAt, updatedAt |
-| grocery_lists | create, get, list, update, remove | — (item 31 adds send and acknowledgement) | createdAt, updatedAt; `version` + 1 on every update |
+| grocery_lists | create, get, list, update, remove | special: groceryBuild (item 24); item 31 adds send and acknowledgement | createdAt, updatedAt; `version` + 1 on every update |
 | plan_days, pantry | create, get, list, update, remove (plan_days: get, list and listByIndex only; it has no generic create, update or remove) | plan_days: `writeMeals` (meals, through the planner's write rule), `setWindows`/`clearWindow` (windows, item 15) | updatedAt |
 | garden | create, get, list, update, remove (also removes the photo) | — | updatedAt |
 | sessions | create, get, list, update, remove | createChecked, updateChecked, removeIf (item 27: the caller's rule runs on the stored rows inside the write transaction) | completedAt and timeZone when status becomes `done`, cleared otherwise |
@@ -1671,7 +1673,7 @@ Choices that the planning documents and DECISIONS.md do not already fix. Each is
 - **D40.** The weekly pattern holds up to 3 session templates per weekday.
 - **D41.** Grocery lists store `version`, `sentVersion`, `receivedVersion`, the phone-clock `receivedAt` (no ordering check) and the laptop's `laptopReceivedAt`; status is derived; `transferId` is random per send; each line records whether it was generated or added by hand.
 - **D42.** Drinks: a `label` row's figures must match its stored label; a `calculated` row's figure is only range-checked, and the figure shown and compared is the larger of the stored and recomputed figures. `beverageId` may be a seed id. The seeded preset's label is marked `preset-default`. Label energy may be 0.
-- **D44.** Audit rows are append-only, carry a zone and a `kind` (`grocery` or `migration`), and are never written for owner edits or imports.
+- **D44.** Audit rows are append-only, carry a zone and a `kind` (`grocery` or `migration`), and are never written for imports or ordinary owner edits. Item 24 writes them for the garden and pantry amounts the owner confirms on the grocery list and for Buy anyway, because C57 and item 19's contract require an audit line for every deduction and its reversal.
 - **D46.** Allowed operations and repository-maintained timestamps per store are as in section 8.4.
 - **D49.** Backup password inputs use `autocomplete="new-password"` (export) and `"current-password"` (import); free-text health inputs use `autocomplete="off"`.
 - **D51.** Units are fixed metric, and the DATA_MODEL `units` field is removed (PLAN 7).

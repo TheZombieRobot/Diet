@@ -72,7 +72,10 @@ export type StorageRule =
   | 'photo-size'
   // Item 28: the alcohol notice and the alcohol-logging gate (HS-20, RD-01).
   | 'alcohol-notice-first'
-  | 'alcohol-logging-off';
+  | 'alcohol-logging-off'
+  // Item 24: a list change that no longer applies (the line is gone or changed, or another tab
+  // changed the list while a build ran).
+  | 'list-changed';
 
 export class StorageRuleError extends Error {
   readonly table: string;

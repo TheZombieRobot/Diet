@@ -50,9 +50,9 @@ for (const colorScheme of ['light', 'dark'] as const) {
     await expect(page.getByTestId('water-total')).toHaveText('250 mL');
     await page.getByRole('button', { name: 'Enter steps' }).click();
     await page.getByRole('button', { name: 'Quick actions' }).click();
-    // Two Later rows: items 19, 22, 27 and 28 built Add harvest, Swap recipe, Complete
-    // workout and Add drink.
-    await expect(page.locator('.ui-fab-panel [aria-disabled="true"]')).toHaveCount(2);
+    // One Later row: items 19, 22, 24, 27 and 28 built Add harvest, Swap recipe, Open grocery
+    // list, Complete workout and Add drink.
+    await expect(page.locator('.ui-fab-panel [aria-disabled="true"]')).toHaveCount(1);
     await sweep('Today with the install banner, the steps editor and quick actions');
     // The Later rows are aria-disabled but meant to be read at full contrast, so they are swept.
     const swept = async () => (await textSamples(page)).map((sample) => sample.text);

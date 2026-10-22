@@ -694,6 +694,8 @@ export const privacy = {
       // No web page can take back a site permission (full review F10).
       "If you let Chrome use the camera for this app, remove that in Chrome's Site settings, Camera.",
       'Backup files you made or shared: delete them in Files, and in your email or cloud storage if you sent them there.',
+      // Item 24: the grocery list's own exports (HS-30).
+      'Grocery lists you exported as CSV or JSON: delete those files in Files.',
       'The list on your laptop and its pairing: also unpair on your laptop.',
       'Copies of your records restored in another browser, such as on a laptop: delete all there too.',
       'A list waiting to be sent expires within 15 minutes.',
@@ -2820,7 +2822,7 @@ export const today = {
   laterStep: {
     /** Settings' "Coming later" card: the UX 7 settings not built yet (full review F33). */
     settings:
-      'The store name, beach jogging, and hidden recipes and foods arrive at later steps of the build checklist.',
+      'Beach jogging, and hidden recipes and foods arrive at later steps of the build checklist.',
   },
   water: {
     none: 'None logged yet',
@@ -3880,6 +3882,274 @@ export const planner = {
   },
 } as const;
 
+/**
+ * The grocery list (checklist item 24; UX_SCREENS 6a; REQUIREMENTS 3D and 3F; DOC_REVIEW C19, C57,
+ * C107, C110, C111). Fixed copy never names a store (the name comes from the Store setting), never
+ * claims a price, stock level or cart state (prices are the owner's own, shown only through the
+ * price file in packages/grocery), never states a homegrown weight (amounts are placeholders
+ * filled from the owner's own entries), and never names a health record: no allergen, dislike,
+ * target, phase, fasting or drink word, because generated list text travels to the laptop (item
+ * 31's rule).
+ */
+export const grocery = {
+  loading: 'Opening your list…',
+  readFailed: 'The list could not be read. Reload to try again.',
+  reload: 'Reload',
+  header: {
+    label: 'Shopping at',
+    change: 'Change',
+    changeName: 'Change the store',
+    prices: 'Prices: unknown unless you add them',
+    madeOn: 'Made on {date}.',
+    progress: '{ticked} of {total} ticked',
+    nothingToBuy: 'Nothing to buy on this list',
+  },
+  empty: {
+    label: 'Your list',
+    body: 'No list yet. Make one from your meal plan, or start an empty list and add items yourself.',
+    fromPlan: 'Make a list from the plan',
+    emptyList: 'Start an empty list',
+    started: 'Empty list started.',
+  },
+  actions: {
+    update: 'Update from the plan',
+    add: 'Add an item',
+    startNew: 'Start a new list',
+    oldList: 'This list was made on {date}. A new list starts with nothing ticked and no prices.',
+  },
+  substitutes: {
+    cleared:
+      'Substitutes were cleared because your profile changed. They come back when you update the list from the plan.',
+  },
+  build: {
+    labelNew: 'Make a list from the plan',
+    labelUpdate: 'Update this list from the plan',
+    firstDay: 'First day',
+    firstDayHint: 'The list covers this day and the six days after it.',
+    covers: 'From {from} to {to}.',
+    mealOne: 'One planned meal',
+    mealsMany: '{count} planned meals',
+    dayOne: 'on one of these days.',
+    daysMany: 'on {count} of these days.',
+    noMeals:
+      'No meals are planned for these days. You can still make the list and add items yourself.',
+    unreadableOne:
+      'One of these planned meals could not be read, so its ingredients will not be on the list. Check the plan.',
+    unreadableMany:
+      '{count} of these planned meals could not be read, so their ingredients will not be on the list. Check the plan.',
+    snackOne:
+      'On one of these days the {time} snack has no meal chosen yet, so nothing is on the list for it. Choose one in the plan, or add items yourself.',
+    snackMany:
+      'On {count} of these days the {time} snack has no meal chosen yet, so nothing is on the list for it. Choose one in the plan, or add items yourself.',
+    keepsYours: 'Items you added yourself stay on the list.',
+    asksAgain:
+      'Garden and pantry amounts you have not changed since this list last changed are asked about again. Items you chose to buy anyway stay on the list.',
+    substitutesAgain: 'Substitutes are worked out again from your current profile.',
+    make: 'Make the list',
+    update: 'Update the list',
+    startNew: 'Start a new list instead',
+    startNewNote:
+      'Your current list is replaced on this screen and kept in your records and backups. Prices and ticks are not copied to the new list.',
+    cancel: 'Cancel',
+    working: 'Making the list…',
+    made: 'List made.',
+    updated: 'List updated.',
+    skippedOne:
+      'One planned meal could not be read, so its ingredients are not on the list. Check the plan.',
+    skippedMany:
+      '{count} planned meals could not be read, so their ingredients are not on the list. Check the plan.',
+    dismiss: 'Dismiss',
+    tooMany:
+      'That would be more than {max} lines, more than one list can hold. Nothing was changed. Choose fewer days or remove items.',
+    tooLarge:
+      '{item} would need more than one line can hold. Nothing was changed. Choose fewer days or fewer serves.',
+    foodsLoading: 'Getting the foods ready…',
+    foodsUnavailable:
+      'The foods in the app could not be read, so a list cannot be made from the plan. You can still add items yourself.',
+    changed: 'The list changed while this was being made. Nothing was changed. Try again.',
+    replaced: 'A newer list is now on this screen, so this panel was closed.',
+    saveFailed: 'The list could not be saved. Nothing was changed. Try again.',
+    dateErrors: { format: 'Enter a date.', range: 'Enter a date from the year 2000 to 2099.' },
+  },
+  line: {
+    need: 'Need {amount}',
+    unknownFood: 'Ingredient no longer in the app, from {recipe}',
+    amountNotWorkedOut: 'Amount not worked out. Check the recipe.',
+    substitute: 'or {name}',
+    options: 'Options for {item}',
+    fromGarden: '{amount} from garden, as listed on {date}',
+    fromGardenAbout: 'about {amount} from garden ({entered}), as listed on {date}',
+    fromPantry: '{amount} from pantry, as listed on {date}',
+    stillHave: '{note}, which you said you still have',
+    gardenUnknown: 'recipes need {amount}; garden amount not entered',
+    gardenUnknownMore: 'recipes need {amount} more; garden amount not entered',
+    pantryEnough: 'Pantry: some, not measured. You said you have enough.',
+    countEnough: '{place}: {amount}. You said this is enough.',
+    boughtAnyway: 'You chose to buy this anyway.',
+    short: {
+      fromGarden: '{amount} from garden',
+      fromGardenAbout: 'about {amount} from garden',
+      fromPantry: '{amount} from pantry',
+      fromHome: '{amount} from garden and pantry',
+      fromHomeAbout: 'about {amount} from garden and pantry',
+    },
+    notesJoin: '; ',
+    detailJoin: ' · ',
+  },
+  units: {
+    grams: '{amount} g',
+    millilitres: '{amount} mL',
+    count: '{amount}',
+    countWord: '{amount} {word}',
+    packOne: '{amount} pack',
+    packMany: '{amount} packs',
+  },
+  packs: {
+    single: '{size} {container}',
+    several: '{count} × {size} {containers}',
+    part: '{count} × {size}',
+    partsJoin: ' + ',
+    mixed: '{parts} {containers}',
+    container: { one: 'pack', many: 'packs' },
+    items: '{count} {word}',
+    countPackOne: '{count} pack of {size} {words}',
+    countPacksMany: '{count} packs of {size} {words}',
+    countMixed: '{parts} {words}',
+  },
+  offers: {
+    place: { garden: 'Garden', pantry: 'Pantry' },
+    placeLower: { garden: 'garden', pantry: 'pantry' },
+    listed: '{place}: {amount}, as listed on {date}.',
+    listedUnknown: 'Garden: available, amount not entered, as listed on {date}.',
+    unmeasured: 'Pantry: some, not measured.',
+    stillHave: 'Still have it?',
+    lowered: 'The {place} now lists less than the {amount} this list took.',
+    gone: 'The {place} no longer lists this item.',
+    useIt: 'Use it',
+    yesUseIt: 'Yes, use it',
+    enough: 'I have enough',
+    buyAnyway: 'Buy anyway',
+    buyFull: 'Buy the full amount',
+    actionFor: '{action}: {item}',
+    updated: 'Updated: {item}.',
+    backOnList: 'Back on the list: {item}.',
+    changed:
+      'The garden, pantry or this item changed just now, so nothing was saved. Look again and try again.',
+  },
+  alreadyHave: { label: 'Already have', count: '{count}' },
+  panel: {
+    remove: 'Remove from the list',
+    removeConfirm: 'Remove {item} from this list?',
+    removeYes: 'Remove',
+    removeNo: 'Keep it',
+    comesBack:
+      'Items made from the plan come back when you update the list from the plan, if the plan still needs them.',
+    edit: 'Edit',
+    close: 'Close',
+    removed: 'Removed: {item}.',
+    gone: 'That item is no longer on the list.',
+    saveFailed: 'That was not saved. Nothing was changed. Try again.',
+  },
+  price: {
+    none: 'Price unknown.',
+    line: 'Your price: {price} for this line, entered {date}.',
+    perKg: 'Your price: {price} per kilogram, entered {date}.',
+    each: 'Your price: {price} each, entered {date}.',
+    estimate:
+      'Covered by what you have: about {price}, an estimate from your price entered {date}.',
+    field: 'Price in dollars',
+    fieldHint: 'Type the price you see, such as 6.50. This phone app never looks up prices.',
+    basisLegend: 'The price is for',
+    basis: { line: 'This line', per_kg: 'Per kilogram', each: 'Each item' },
+    save: 'Save price',
+    remove: 'Remove the price',
+    saved: 'Price saved.',
+    removed: 'Price removed.',
+    errors: {
+      empty: 'Type a price.',
+      format: 'Type the price as digits, such as 6.50.',
+      range: 'Type a price from 0.01 to 10,000.',
+    },
+  },
+  manual: {
+    addTitle: 'Add an item',
+    editTitle: 'Edit {item}',
+    name: 'Item',
+    nameHint: 'A food, or anything else you want to buy.',
+    suggestions: 'Matching foods',
+    amount: 'Amount (optional)',
+    amountHint: 'Leave it empty if you do not need a set amount.',
+    unitLegend: 'Unit',
+    units: { g: 'Grams', ml: 'Millilitres', each: 'Each', pack: 'Packs' },
+    aisleLegend: 'Aisle',
+    add: 'Add to the list',
+    save: 'Save',
+    cancel: 'Cancel',
+    added: 'Added: {item}.',
+    errors: {
+      nameRequired: 'Type the item.',
+      nameLength: 'Use at most 100 characters.',
+      nameNoPrice:
+        'Type the item only. Add a price from Options, so it keeps the date you typed it.',
+      digitsOnly: 'Type digits only, without commas, such as 1200 or 2.5.',
+      amountRange: 'Enter an amount above 0 and up to 100,000, or leave it empty.',
+      unitRequired: 'Choose a unit for the amount.',
+      full: 'This list already has {max} items. Remove some before adding more.',
+    },
+  },
+  exports: {
+    sectionLabel: 'Export',
+    copy: 'Copy text',
+    csv: 'CSV',
+    json: 'JSON',
+    copied: 'Copied. Paste the list where you need it.',
+    copyFailed: 'The list could not be copied here. Export it as CSV or JSON instead.',
+    nothingToCopy: 'Nothing to buy on this list, so there is nothing to copy.',
+    downloaded: 'Your phone should now show {file} in Downloads.',
+    failed: 'This file could not be made. Try again, or copy the list as text.',
+    note: 'CSV and JSON files are not locked: anyone who opens them can read them. They include prices, garden and pantry amounts and notes.',
+  },
+  csv: {
+    yes: 'yes',
+    no: 'no',
+    unknown: 'unknown',
+    gardenNotEntered: 'amount not entered',
+    toBuy: 'to buy',
+    alreadyHave: 'already have',
+  },
+  store: {
+    rowTitle: 'Store',
+    rowDetail: 'Shown at the top of the grocery list',
+    label: 'Store',
+    loading: 'Opening the store setting…',
+    readFailed: 'The store name could not be read. Reload to try again.',
+    field: 'Store name',
+    hint: 'Shown at the top of your grocery list and in its exports. This phone app never contacts the store.',
+    save: 'Save',
+    useDefault: 'Use {store}',
+    saved: 'Saved. Your current list shows this store too.',
+    saveFailed: 'The store name could not be saved. Nothing was changed. Try again.',
+    errors: {
+      required: 'Type the store name.',
+      length: 'Use at most 80 characters.',
+      nameOnly: "Type only the store's name.",
+    },
+  },
+  audit: {
+    fromGarden: '{amount} {food} from garden, as listed on {date}',
+    fromGardenAbout: 'about {amount} {food} from garden ({entered}), as listed on {date}',
+    fromPantry: '{amount} {food} from pantry, as listed on {date}',
+    stillHave: '{reason}; you said you still have it',
+    gardenUnknown: '{food} marked available, amount not entered; not purchased',
+    pantryEnough: '{food}: you said the pantry has enough; amount not measured',
+    countEnough: '{food}: you said the {place} has enough ({amount}); not purchased',
+    buyAnyway: '{food}: you chose to buy it anyway',
+    buyFull: '{food}: you chose to buy the full amount',
+    hintsCleared:
+      'substitutes cleared after a profile change; worked out again on the next update from the plan',
+  },
+} as const;
+
 /** All sections, for scanning and review. */
 export const healthCopy = {
   helpNumbers,
@@ -3909,4 +4179,6 @@ export const healthCopy = {
   recipes,
   // Item 22.
   planner,
+  // Item 24.
+  grocery,
 } as const;

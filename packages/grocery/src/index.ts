@@ -3,3 +3,6 @@ export const PACKAGE_NAME = '@diet/grocery' as const;
 
 // Pairing, sealing and the transfer payloads (checklist item 30), also at @diet/grocery/transfer.
 export * from './transfer';
+
+// The grocery list builder and its exports (checklist item 24).
+export * from './list';

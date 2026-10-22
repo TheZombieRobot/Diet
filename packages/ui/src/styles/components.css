@@ -2414,6 +2414,124 @@
   list-style: decimal;
 }
 
+/* ---- The grocery list (checklist item 24) ---- */
+
+.ui-card--dashed {
+  border: 1.5px dashed var(--color-border-strong);
+  background: transparent;
+  box-shadow: none;
+}
+
+.ui-store-name {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+/* Ticked progress: a decorative bar (the words beside it carry the figure). */
+.ui-tick-meter {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--color-chip);
+}
+
+.ui-tick-meter__fill {
+  height: 100%;
+  background: var(--color-teal);
+}
+
+.ui-link-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--size-tap);
+  color: var(--color-teal);
+  font-weight: 800;
+}
+
+.ui-button-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ui-export {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ui-tick-row {
+  border-top: 1px solid var(--color-border);
+  padding-bottom: 8px;
+}
+
+.ui-tick-row:first-child {
+  border-top: 0;
+}
+
+.ui-tick-row__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ui-tick-row__tick,
+.ui-tick-row__text {
+  display: flex;
+  position: relative;
+  flex: 1;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  min-height: var(--size-tap);
+  padding: 12px 0 4px;
+}
+
+.ui-tick-row__name,
+.ui-tick-row__amount {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ui-tick-row__name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ui-tick-row__amount {
+  text-align: right;
+  white-space: normal;
+}
+
+.ui-tick-row--struck .ui-tick-row__name {
+  color: var(--color-secondary);
+  text-decoration: line-through;
+}
+
+.ui-tick-row__details {
+  display: flex;
+  gap: 6px;
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-tick-row__leaf {
+  flex: none;
+  color: var(--color-teal);
+}
+
+.ui-tick-row__offer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
 /* ---- Item 28: drinks (the neutral figures, the segmented control, tiles and the bar chart) ---- */
 
 /* A multi-line field keeps the field's look, tall enough for its lines. */

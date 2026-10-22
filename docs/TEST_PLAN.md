@@ -124,13 +124,15 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 |---|---|---|
 | GL-01 | Two recipes both needing avocado | One line, summed quantity |
 | GL-02 | Item in garden/pantry stock | Excluded, shown under "already have". The stock fixture is defined at item 19 (GL02_GARDEN, GL02_PANTRY, GL02_NULL_AMOUNT_GARDEN); the deduction is tested at item 24 |
-| GL-03 | Buyable units | 430 g chicken → "500 g pack"; 2.5 lemons → "3 lemons" |
+| GL-03 | Buyable units | 430 g chicken → "500 g pack" (fixture chicken pack sizes 250 g and 500 g, C110); 2.5 lemons → "3 lemons" |
 | GL-04 | Aisle grouping | Each item has an aisle; unknown → "Other" |
 | GL-05 | Edit, add manual item, delete | Persist across relaunch |
 | GL-06 | Copy as text | Plain text, one line per item, suitable for pasting into the PAK'nSAVE app |
-| GL-07 | Export CSV and JSON | Files open correctly; CSV columns per `DATA_MODEL.md`; store name and timestamps present |
+| GL-07 | Export CSV and JSON | Files open correctly; CSV columns per `DATA_MODEL.md` (with section, from_pantry, note and price_basis); store name and timestamps present |
 | GL-08 | Store name | Visible on the list header; changeable in settings; default PAK'nSAVE Pāpāmoa |
-| GL-09 | Substitutes | Each item with a known substitute shows it |
+| GL-09 | Substitutes | Each item with a known substitute shows it (a substitute item 20 allows for the household, without a label check for an owner who checks labels) |
+| GL-10 | Generated list text | On a phone whose other records all hold marker text and marker numbers, no line's item, pack, aisle, substitute or audit note, and not the store name, names or hints at an allergen, dislike, target, phase, fasting pattern, weight, symptom or drink; label reminders and allergen chips show on the phone only |
+| GL-11 | Stock the owner must confirm | A garden or pantry amount not changed since the current list last changed or for over 7 days, a count such as '2 bunches', a pantry amount 'some, not measured', and a garden amount not entered for anything but garden produce are never taken off without the owner's tap; Buy anyway puts a garden amount not entered back on the list and stays chosen on an update; each change writes one audit row |
 
 ### 3.8 Alcohol
 | ID | Case | Expected |
@@ -207,7 +209,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | NN-02 | 5 pm snack + 7 pm final meal | 2-hour eating window (22:2), not 4 hours (planner: item 22 S1, K3; K11) |
 | NN-03 | Fixture profile 90 kg start, 70 kg long-term goal | Goal labelled long-term; four-week chart shows trend with "not a promise" line; no "kg in N days" text anywhere (the item 14 fixture uses synthetic values instead: 180 cm, 100 kg, a 78 kg long-term goal, per C103) |
 | NN-04 | Raw/cooked weights and package quantities | Not conflated: 500 g raw mince recipe yields a "500 g pack" grocery line, and a cooked-weight log entry stays cooked |
-| NN-05 | Missing price or stock | Shown as "unknown"; never a fabricated live price; any price has an entered-at timestamp (planner: item 22 S1, K3; K11) |
+| NN-05 | Missing price or stock | Shown as "unknown"; never a fabricated live price; any price has an entered-at timestamp (planner: item 22 S1, K3; K11). Stock: the app holds no store stock data and shows none |
 | NN-06 | Silverbeet 300 g in garden, recipes need 500 g | List shows 200 g to buy and an audit line "300 g from garden" |
 | NN-07 | Stop a transfer midway, restart, send again | Laptop shows one copy of the list; no duplicated items; logs intact (the duplicate rule, scoped to the pairing, is unit-tested at item 30; end to end at item 33) |
 | NN-08 | Extension cannot checkout or change store | No checkout control exists; in mode A a batch refuses to start if the site's selected store is not the configured store; a changed page structure produces a visible error and stops |

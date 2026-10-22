@@ -23,6 +23,7 @@ import {
   garden,
   gardenScreen,
   general,
+  grocery,
   healthCopy,
   helpNumbers,
   move,
@@ -126,6 +127,25 @@ const PLANNER_SECTION_RULES: readonly RegExp[] = [
   /\$|\bprice\w*\s+\d/i,
   /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
   /(?<![\d.])0\s*(?:g|kJ|mg)\b/,
+];
+
+/**
+ * Item 24's grocery section rules (design section 3): the store name only from the setting, no
+ * currency sign, stock or cart word in fixed copy, no gram figure or exact homegrown weight, no
+ * health-record word (list text travels to the laptop), no promise, and no "received" claim.
+ */
+const GROCERY_SECTION_RULES: readonly RegExp[] = [
+  /pak['’]?n['’]?save/i,
+  /\$/,
+  /\bstock\b/i,
+  /\b(?:cart|trolley|basket)\b/i,
+  /\b(?:live|current|latest|today['’]s)\s+prices?\b|\bspecials?\b|\bdeals?\b/i,
+  /\d\s*g\b/i,
+  /\bexact(?:ly)?\b/i,
+  /\b(?:kickstart|fast(?:s|ing)?|keto|calories?|kcal|kilojoules?|protein|carbs?|allerg\w*|dislike\w*|readiness|diet\w*|weigh\w*|symptom\w*|alcohol|drinks?|healthy?)\b/i,
+  /\bsafe(?:ly)?\b|\bsecure(?:ly)?\b|\bencrypt\w*|\bsync\w*/i,
+  /(?<!\bnot\s)\blocked\b/i,
+  /\b(?:arrived|delivered|received)\b/i,
 ];
 
 /**
@@ -346,6 +366,8 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
   // ceiling", no alcohol.
   recipes: RECIPES_SECTION_RULES,
   planner: PLANNER_SECTION_RULES,
+  // Item 24 (HS-16, NN-05, C57, GL-08; item 31 rule 4).
+  grocery: GROCERY_SECTION_RULES,
 };
 
 /**
@@ -491,6 +513,7 @@ describe('health copy', () => {
     expect(stays).toContain("Chrome's Site settings, Camera");
     expect(stays).toContain('Backup files');
     expect(stays).toContain('unpair on your laptop');
+    expect(stays).toContain('Grocery lists you exported');
     expect(privacy.deleteAll.confirm).toBe('Delete everything on this phone');
   });
 });
@@ -1131,5 +1154,36 @@ describe('planner copy (item 22; C-1)', () => {
     expect(fillTemplate(planner.household.banner, { count: 3 })).toBe(
       'Dinner for 3; my portion shown separately.',
     );
+  });
+});
+
+describe('grocery copy (item 24; LS2)', () => {
+  it('LS2 GL-08 NN-05 C57: the UX 6a prices line, the C57 sentences, the exports note and the "about" forms', () => {
+    expect(grocery.header.prices).toBe('Prices: unknown unless you add them');
+    expect(fillTemplate(grocery.audit.gardenUnknown, { food: 'silverbeet' })).toBe(
+      'silverbeet marked available, amount not entered; not purchased',
+    );
+    expect(fillTemplate(grocery.line.gardenUnknown, { amount: '500 g' })).toBe(
+      'recipes need 500 g; garden amount not entered',
+    );
+    for (const word of ['not locked', 'prices', 'garden', 'pantry']) {
+      expect(grocery.exports.note).toContain(word);
+    }
+    for (const text of [
+      grocery.line.fromGardenAbout,
+      grocery.line.short.fromGardenAbout,
+      grocery.line.short.fromHomeAbout,
+      grocery.audit.fromGardenAbout,
+    ]) {
+      expect(text).toContain('about {amount}');
+    }
+  });
+
+  it('every template fills with its named placeholders', () => {
+    const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1] ?? '');
+    for (const [path, text] of strings(grocery, 'grocery')) {
+      const values = Object.fromEntries(placeholders(text).map((name) => [name, 'x']));
+      expect(fillTemplate(text, values), path).not.toMatch(/[{}]/);
+    }
   });
 });

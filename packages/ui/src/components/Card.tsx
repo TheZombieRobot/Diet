@@ -5,6 +5,8 @@ export interface CardProps {
   label: string;
   /** Optional content at the right of the label, such as a chip. */
   aside?: ReactNode;
+  /** A dashed outline with no fill (item 24's Already have). */
+  dashed?: boolean;
   children: ReactNode;
 }
 
@@ -13,10 +15,10 @@ export interface CardProps {
  * take focus from code (tabIndex -1, out of the Tab order), so a screen can move focus to the next
  * card when one goes away.
  */
-export function Card({ label, aside, children }: CardProps): ReactElement {
+export function Card({ label, aside, dashed = false, children }: CardProps): ReactElement {
   const labelId = useId();
   return (
-    <section className="ui-card" aria-labelledby={labelId}>
+    <section className={dashed ? 'ui-card ui-card--dashed' : 'ui-card'} aria-labelledby={labelId}>
       <div className="ui-card__header">
         <h2 id={labelId} className="ui-card__label" tabIndex={-1}>
           {label}

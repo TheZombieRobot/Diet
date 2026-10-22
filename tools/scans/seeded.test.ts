@@ -280,6 +280,18 @@ describe('seeded violations in a throwaway repository', () => {
     expect(scanRepo(root)).toEqual([]);
   });
 
+  it('LS1 HS-16, NN-05: a grocery file printing "$" or formatting currency fails; the price file passes', () => {
+    const code =
+      "export const s = (amount: string) => '$' + amount;\nexport const f = { style: 'currency' };\n";
+    write('packages/grocery/src/list/export.ts', code);
+    expect(ruleIds()).toEqual(
+      expect.arrayContaining(['currency-placeholder', 'intl-currency-style']),
+    );
+    rmSync(join(root, 'packages/grocery/src/list/export.ts'));
+    write('packages/grocery/src/list/price.ts', code);
+    expect(scanRepo(root)).toEqual([]);
+  });
+
   it('conventions: health text in health.ts, tests and comments is allowed', () => {
     write(
       'packages/core/src/copy/health.ts',

@@ -494,5 +494,7 @@ describe('Settings, the Laptop card (A15)', () => {
     render(<SettingsScreen />);
     const later = screen.getByRole('region', { name: 'Coming later' }).textContent;
     expect(later).not.toMatch(/pairing/i);
+    // Item 24 built the store setting.
+    expect(later).not.toMatch(/store/i);
   });
 });

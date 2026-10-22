@@ -182,6 +182,9 @@ describe('placeholder screens (no sample data)', () => {
     // Item 22: the Food tab holds the meal plan (dates and figures), and a planned day.
     'food',
     'plan',
+    // Item 24: the grocery list and the store setting.
+    'list',
+    'store',
   ];
   const placeholders = ROUTES.filter((r) => !built.includes(r));
 
@@ -239,9 +242,10 @@ describe('placeholder screens (no sample data)', () => {
       ...screen.queryAllByTestId('later-step'),
       ...document.querySelectorAll('.ui-fab-panel [aria-disabled="true"]'),
     ];
-    // No later-step line (items 27 and 28 built Movement and drink logging) and two Later rows
-    // (items 19, 22, 27 and 28 built Add harvest, Swap recipe, Complete workout and Add drink).
-    expect(scoped).toHaveLength(2);
+    // No later-step line (items 27 and 28 built Movement and drink logging) and one Later row
+    // (items 19, 22, 24, 27 and 28 built Add harvest, Swap recipe, Open grocery list, Complete
+    // workout and Add drink).
+    expect(scoped).toHaveLength(1);
     for (const element of scoped) {
       expect(element.textContent).not.toMatch(/\d/);
       expect(element.textContent).not.toMatch(/[$€£]/);

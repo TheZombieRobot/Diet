@@ -172,9 +172,9 @@ test('offline: the app reloads and every screen opens from the offline copy (PWA
   await goTo(second, 'About');
 
   expect(fromNetwork).toEqual([]);
-  // Items 18 (Foods in the app), 19 (Garden and pantry), 20 (Recipes) and 30 (Laptop pairing)
-  // each added one; the Move sub-screens (item 27) are covered by move.spec.ts.
-  expect(SCREENS).toHaveLength(17);
+  // Items 18 (Foods in the app), 19 (Garden and pantry), 20 (Recipes), 24 (Store) and 30 (Laptop
+  // pairing) each added one; the Move sub-screens (item 27) are covered by move.spec.ts.
+  expect(SCREENS).toHaveLength(18);
 });
 
 test('until the offline copy is saved, About says so and the pill does not say "all saved"', async ({

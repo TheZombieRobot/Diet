@@ -49,7 +49,9 @@ describe('hash routes', () => {
       'recipes',
       'recipe',
       'plan',
+      'store',
     ]);
+    expect(ROUTE_TITLES.store).toBe('Store');
     expect(ROUTE_TITLES.garden).toBe('Garden and pantry');
     expect(ROUTE_TITLES.weight).toBe('Weight');
     expect(ROUTE_TITLES.fasting).toBe('Fasting and reflux');
@@ -185,6 +187,7 @@ describe('hash routes', () => {
       'targets',
       'foods',
       'pairing',
+      'store',
     ]);
   });
 });
