@@ -11,11 +11,17 @@
  * list. A paste code reuses this page's sealed body for the same list version, so a relay copy
  * and a code are one transfer to the laptop (L4); a paste code is never recorded as a send.
  */
-import { type GroceryListRecord, relayBodyFits, type TransferPairingRecord } from '@diet/core';
+import {
+  type GroceryListRecord,
+  instantMs,
+  relayBodyFits,
+  type TransferPairingRecord,
+} from '@diet/core';
 import {
   encodeTransferPayload,
   monotonicSentAt,
   pasteCodeFromBody,
+  POST_RETRY_MAX_MS,
   retryDelayMs,
   type SealedRelayBody,
   sendOutcomeOf,
@@ -25,7 +31,7 @@ import {
 import type { AppStorage } from '../db/runtime';
 import type { Store } from '../store';
 import type { TransferDevices } from './devices';
-import { postList, type RelayAnswer } from './relayClient';
+import { POST_TIMEOUT_MS, postList, type RelayAnswer } from './relayClient';
 import {
   dispatchSession,
   type SealedSend,
@@ -46,6 +52,13 @@ export interface SendDeps {
   readonly session: Store<TransferSession>;
   readonly devices: TransferDevices;
 }
+
+/**
+ * The one retry leaves within this long of the tap, by the monotonic and the wall clock: the first
+ * POST's time-out, the longest wait and a margin (design 1.4 step 9). A wait that ends later, once
+ * a phone that slept wakes, gives no retry: the first answer stands (HS-14).
+ */
+const RETRY_DEADLINE_MS = POST_TIMEOUT_MS + POST_RETRY_MAX_MS + 5_000;
 
 /** The pairing a send or a session belongs to. */
 export const pairingIdOf = (pairing: Pick<TransferPairingRecord, 'roomId' | 'pairedAt'>): string =>
@@ -109,6 +122,7 @@ export async function sendList(args: SendArgs, deps: SendDeps): Promise<void> {
   const dispatch = sessionFor(deps, list.id, pairingId);
   dispatch({ type: 'tap-start' });
   const tappedAt = env.now();
+  const tappedAtMono = deps.devices.monotonic();
 
   // Step 2: for as long as this send runs, a pairing change or the records closing abandon it.
   const controller = new AbortController();
@@ -190,8 +204,16 @@ export async function sendList(args: SendArgs, deps: SendDeps): Promise<void> {
           resolve();
         });
       });
-      answer = isAbandoned() ? null : await post();
-      if (answer === null || isAbandoned()) return;
+      if (isAbandoned()) return;
+      const sinceTap = deps.devices.monotonic() - tappedAtMono;
+      if (
+        sinceTap >= 0 &&
+        sinceTap < RETRY_DEADLINE_MS &&
+        instantMs(env.now()) - instantMs(tappedAt) < RETRY_DEADLINE_MS
+      ) {
+        answer = await post();
+        if (answer === null || isAbandoned()) return;
+      }
     }
     const outcome = sendOutcomeOf(answer.outcome);
     if (outcome !== null) {

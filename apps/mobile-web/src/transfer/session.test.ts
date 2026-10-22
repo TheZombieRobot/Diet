@@ -51,7 +51,7 @@ describe('N7 L31: sessionReducer', () => {
     });
   });
 
-  it('coming online drops only "offline"; a new version drops the tap’s state but not the listening', () => {
+  it('coming online drops only "offline"; a new version drops the tap’s state, and a late one for the old version, but not the listening', () => {
     expect(run([{ type: 'online' }], busy)).toEqual({ ...busy, outcome: null });
     expect(run([{ type: 'online' }], { ...busy, outcome: 'unavailable' }).outcome).toBe(
       'unavailable',
@@ -66,6 +66,16 @@ describe('N7 L31: sessionReducer', () => {
     });
     const late = run([{ type: 'result', version: 3, outcome: 'unavailable', panel }], edited);
     expect(late).toMatchObject({ outcome: null, panel: null, phase: 'idle' });
+    // A seal or a code made for version 3 that lands after the edit is dropped, so it is never reused.
+    const stale = run(
+      [
+        // @ts-expect-error a plain string stands in for a sealed body (only sealForRelay makes one)
+        { type: 'sealed', version: 3, sealed },
+        { type: 'panel', version: 3, panel },
+      ],
+      edited,
+    );
+    expect(stale).toMatchObject({ sealed: null, panel: null });
   });
 
   it('a record failure clears only after a later write; a verified acknowledgement keeps the listening', () => {

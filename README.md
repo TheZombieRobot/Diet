@@ -141,7 +141,7 @@ Now and then, Cloudflare may offer the laptop a second copy of a list it already
 
 The relay cannot read the list. It writes no logs, its logging settings on Cloudflare are switched off, and it sends nothing anywhere else. It turns away plain text; the app's own tests check that every list is locked before it leaves the phone. What it can see is a locked block of text, a random room number your phone and laptop share, the internet addresses they connect from, and when they connect; Cloudflare can see the same. Anyone who photographs the pairing QR code on your laptop screen could read later lists until you unpair, so show it only when pairing.
 
-Until the relay's address is added to the app (after step 7), Send to laptop on the phone makes a paste code instead: copy it, send it to yourself, and paste it into the side panel. The code is the list locked with your pairing key. Only the lines still to buy go, each with its amount, pack, aisle, substitute and tick, and the store name: no prices, garden or pantry amounts, notes or health records.
+Until the relay's address is added to the app (after step 7), Send to laptop on the phone makes a paste code instead, once the side panel exists (checklist item 33) and the phone is paired with it: copy the code, send it to yourself, and paste it into the side panel. The code is the list locked with your pairing key. Only the lines still to buy go, each with its amount, pack, aisle, substitute and tick, and the store name: no prices, garden or pantry amounts, notes or health records.
 
 The technical details (addresses, answers, limits and tests) are in [services/relay/README.md](services/relay/README.md). Its tests run on every change without a Cloudflare account, and nothing in CI contacts Cloudflare.
 

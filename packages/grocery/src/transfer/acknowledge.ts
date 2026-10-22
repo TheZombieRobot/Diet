@@ -32,20 +32,29 @@ type AckedList = Pick<
 
 /**
  * The send fields for a send the relay stored, or null for no change: never above the list's
- * version, never lower than what was sent. A same-version re-send, or a receipt recorded before
+ * version, never lower than what was sent, and never a send of the recorded version that is not
+ * later than it (two tabs sending one version: the laptop keeps the later, contract section 7's
+ * 'earlier-send', so the phone does too). A same-version re-send, or a receipt recorded before
  * the current pairing, clears the received fields, so the new send shows "waiting" until its own
  * acknowledgement; an older version received since the pairing is kept (it drives olderCopy).
  */
 export function afterSend(
   list: Pick<
     GroceryListRecord,
-    'version' | 'sentVersion' | 'receivedVersion' | 'receivedAt' | 'laptopReceivedAt'
+    'version' | 'sentVersion' | 'sentAt' | 'receivedVersion' | 'receivedAt' | 'laptopReceivedAt'
   >,
   send: { readonly sentVersion: number; readonly sentAt: Instant; readonly transferId: Id },
   pairedAt: Instant,
 ): TransferFields | null {
   if (send.sentVersion > list.version) return null;
   if (list.sentVersion !== null && send.sentVersion < list.sentVersion) return null;
+  if (
+    send.sentVersion === list.sentVersion &&
+    list.sentAt !== null &&
+    instantMs(send.sentAt) <= instantMs(list.sentAt)
+  ) {
+    return null;
+  }
   const clear =
     list.receivedVersion === send.sentVersion ||
     (list.receivedAt !== null && instantMs(list.receivedAt) < instantMs(pairedAt));

@@ -78,23 +78,31 @@ function Section({
     shown.current = code;
   }, [panel]);
 
+  // Done returns focus to the button that opened the panel (Send for one that opened by itself),
+  // as the List screen's other panels do, or to the line when that button cannot take it.
+  const sendRef = useRef<HTMLButtonElement | null>(null);
+  const pasteRef = useRef<HTMLButtonElement | null>(null);
+  const lineRef = useRef<HTMLParagraphElement | null>(null);
+  const opener = useRef<'send' | 'paste'>('send');
+
   const paired = pairing === undefined || pairing === null ? null : pairing;
   return (
     <section aria-label={copy.sectionLabel} className="ui-send">
       {pairing === undefined ? null : actions.primary === 'pair' ? (
-        <a
-          className="ui-button ui-button--tint ui-button--block ui-button--tall"
-          href={routeHref('pairing')}
-        >
+        // Until item 33 builds the side panel there is nothing to pair with (the line says so), so
+        // Pair with laptop is not the main button; item 33 makes it tall and tinted again.
+        <a className="ui-button ui-button--secondary ui-button--block" href={routeHref('pairing')}>
           {copy.pair}
         </a>
       ) : (
         <Button
+          ref={sendRef}
           variant="primary"
           block
           className="ui-button--tall"
           disabled={!actions.sendEnabled}
           onClick={() => {
+            opener.current = 'send';
             if (paired !== null) void send(list, paired);
           }}
         >
@@ -104,10 +112,12 @@ function Section({
       )}
       {pairing === undefined || actions.pasteCode === 'hidden' ? null : (
         <Button
+          ref={pasteRef}
           variant="tint"
           block
           disabled={actions.pasteCode === 'disabled'}
           onClick={() => {
+            opener.current = 'paste';
             if (paired !== null) void paste(list, paired);
           }}
         >
@@ -117,7 +127,7 @@ function Section({
       <ListExportButtons list={list} />
       <p className="ui-text-muted ui-send__note">{copy.exportsNote}</p>
       {view.progress === null ? (
-        <p className="ui-status-line" role="status">
+        <p ref={lineRef} className="ui-status-line" role="status" tabIndex={-1}>
           {view.line}
         </p>
       ) : (
@@ -131,6 +141,9 @@ function Section({
           startRef={panelStart}
           onDone={() => {
             dispatchSession({ type: 'done' });
+            const button = (opener.current === 'paste' ? pasteRef : sendRef).current;
+            if (button !== null && !button.disabled) button.focus();
+            else lineRef.current?.focus();
           }}
         />
       )}

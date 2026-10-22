@@ -82,6 +82,7 @@ describe('K10 C52 L46 L47: transferStatusOf', () => {
       ['received', { list: received }, 'received'],
       ['edited since sent', { list: { ...waiting, version: 4 } }, 'edited-since-sent'],
       ['sent 4 minutes ahead', { now: at(-4) }, 'waiting'],
+      ['sent exactly the tolerance ahead', { now: at(-5) }, 'waiting'],
       ['sent 10 minutes ahead', { now: at(-10) }, 'expired'],
       [
         'sent 10 minutes ahead, this page listening for it',
@@ -153,6 +154,12 @@ describe('K11 UX 6b C12 C52 C114 R32 L6: transferLine, transferActions and trans
       [
         'waiting, an older copy received',
         { list: olderReceived },
+        'statusWaiting',
+        ['openPanel', 'olderCopy'],
+      ],
+      [
+        'waiting, an older copy received at exactly the pairing',
+        { list: { ...olderReceived, receivedAt: PAIRED } },
         'statusWaiting',
         ['openPanel', 'olderCopy'],
       ],

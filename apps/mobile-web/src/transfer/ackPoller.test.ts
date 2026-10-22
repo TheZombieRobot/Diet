@@ -138,6 +138,10 @@ async function harness(options: { recorded?: boolean } = {}) {
       visible = !hidden;
     },
     wake: () => wake?.(),
+    /** The monotonic clock jumps, as when a timer falls due after the phone slept. */
+    bump: (ms: number) => {
+      mono += ms;
+    },
     session: () => session,
     stored: () => test.repos.groceryLists.get(list.id),
     mono: () => mono,
@@ -155,7 +159,7 @@ describe('N4 HS-14 C79 L11: when it polls', () => {
     expect(h.events.at(-1)).toBe('listening-ended');
   });
 
-  it('none while hidden or offline, resuming on wake; a Retry-After of 30 s lengthens the next wait', async () => {
+  it('none while hidden or offline, resuming on wake; a Retry-After of 30 s lengthens the next wait only', async () => {
     const h = await harness();
     h.hide(true);
     await h.step();
@@ -167,6 +171,35 @@ describe('N4 HS-14 C79 L11: when it polls', () => {
     await h.step();
     expect(h.gets).toHaveLength(1);
     expect(await h.step()).toBe(30_000);
+    expect(await h.step()).toBe(5_000);
+  });
+
+  it('a poll that falls due late, at 15 minutes by either clock, makes no request and ends', async () => {
+    for (const late of ['monotonic', 'wall'] as const) {
+      const h = await harness();
+      await h.step();
+      if (late === 'monotonic') h.bump(900_000);
+      else h.test.env.set('2000-03-01T00:15:00.000Z');
+      await h.step();
+      expect(h.gets, late).toHaveLength(1);
+      expect(h.events.at(-1), late).toBe('listening-ended');
+      expect(h.pending(), late).toBe(false);
+    }
+  });
+
+  it('on wake, the wall clock alone ends listening with no request; a clock set back counts as open', async () => {
+    const h = await harness();
+    h.test.env.set('2000-02-29T23:00:00.000Z');
+    await h.step();
+    expect(h.gets).toHaveLength(1);
+    h.hide(true);
+    await h.step();
+    h.test.env.set('2000-03-01T00:15:00.000Z');
+    h.hide(false);
+    h.wake();
+    expect(h.pending()).toBe(false);
+    expect(h.events.at(-1)).toBe('listening-ended');
+    expect(h.gets).toHaveLength(1);
   });
 });
 

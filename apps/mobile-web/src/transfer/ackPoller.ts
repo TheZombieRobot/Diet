@@ -7,7 +7,7 @@
  * opened with the current pairing key), even when recording it fails; on a refused GET; on stop();
  * and when the records close. A stop aborts the request in flight, so none leaves after it.
  */
-import type { Id, Instant } from '@diet/core';
+import { type Id, type Instant, RELAY_TTL_MS } from '@diet/core';
 import {
   ackPollDelayMs,
   ackWindowOpen,
@@ -57,6 +57,14 @@ export function startAckPolling(
   let stopGate: () => void = () => undefined;
   /** Read through a function: an await or a callback can stop the poller at any point. */
   const isStopped = (): boolean => stopped;
+  /**
+   * Both clocks' bounds, checked again when a poll falls due: a timer can fire long after it was
+   * set, once a phone that slept or a page that was in the background wakes (HS-14, TR-11).
+   */
+  const windowOpen = (): boolean => {
+    const elapsed = deps.monotonic() - args.storedAtMono;
+    return elapsed >= 0 && elapsed < RELAY_TTL_MS && ackWindowOpen(args.sentAt, env.now());
+  };
 
   const stop = (): void => {
     if (stopped) return;
@@ -92,7 +100,8 @@ export function startAckPolling(
     const answer = await getAck(args.origin, args.roomId, controller.signal, deps.relay);
     if (isStopped()) return 'stop';
     if (answer.outcome === 'refused') return 'end';
-    if (answer.outcome === 'unavailable') retryAfterMs = parseRetryAfterMs(answer.retryAfter);
+    // A Retry-After lengthens the next wait only (design 1.8 step 2).
+    retryAfterMs = answer.outcome === 'unavailable' ? parseRetryAfterMs(answer.retryAfter) : null;
     if (answer.outcome !== 'delivered' || answer.body === null) return 'round';
     const bytes = await deps.open(args.key, 'ack', answer.body);
     const ack = bytes === null ? null : decodeAckPayload(bytes);
@@ -119,6 +128,10 @@ export function startAckPolling(
   const poll = async (): Promise<void> => {
     timer = null;
     if (isStopped()) return;
+    if (!windowOpen()) {
+      end();
+      return;
+    }
     if (!deps.canRequest()) {
       unwake = deps.onWake(() => {
         unwake?.();

@@ -1210,6 +1210,12 @@ export const transfer = {
     pair: 'Pair with laptop',
     pasteCode: 'Paste code',
     checking: 'Checking the pairing…',
+    /**
+     * Until item 33 builds the side panel, in place of lines.notPaired: there is nothing to pair
+     * with yet (transfer.pairing.laptopLaterStep). Item 33 removes it.
+     */
+    noLaptopYet:
+      'Sending to the laptop, through the relay or as a paste code, needs the side panel on the laptop, which arrives at a later step of the build checklist. Until then, copy the list as text, or export it as CSV or JSON.',
     /** HEALTH_SAFETY 7: an unlocked file can be read by anyone who opens it, and the app says so. */
     exportsNote:
       'CSV and JSON files are not locked: anyone who opens them can read them. They include prices, garden and pantry amounts and notes, which sending to the laptop leaves on this phone.',

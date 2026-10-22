@@ -116,6 +116,17 @@ const opened$ = async (h: Harness, body: string | undefined) =>
   decodeListPayload((await openFromRelay(h.key, 'list', body)) ?? new Uint8Array(0));
 const posted = (h: Harness, n = 0) => h.posts[n]?.init.body as string | undefined;
 const stored = (h: Harness) => h.test.repos.groceryLists.get(h.args.list.id);
+/** Real sealing that counts its calls. */
+function countingSeal(): { seal: TransferDevices['seal']; count: () => number } {
+  let n = 0;
+  return {
+    seal: (...args) => {
+      n += 1;
+      return sealForRelay(...args);
+    },
+    count: () => n,
+  };
+}
 /** Waits until the session reaches a phase (the send runs on its own). */
 async function untilPhase(h: Harness, phase: string): Promise<void> {
   for (let i = 0; i < 200 && h.deps.session.get().phase !== phase; i++) {
@@ -228,6 +239,26 @@ describe('N2: a Send tap', () => {
     expect(twice.deps.session.get().panel).not.toBeNull();
   });
 
+  it('HS-14 L12: a retry wait that ends long after the tap (the phone slept) sends nothing more', async () => {
+    for (const late of ['monotonic', 'wall'] as const) {
+      let mono = 0;
+      const h = await harness({
+        answer: () => status(429, { 'Retry-After': '2' }),
+        devices: { monotonic: () => mono },
+      });
+      const running = sendList(h.args, h.deps);
+      await untilPhase(h, 'retrying');
+      if (late === 'monotonic') mono = 600_000;
+      else h.test.env.set('2000-03-01T00:10:00.000Z');
+      h.timers.find((t) => t.ms === 2_000)?.fn();
+      await running;
+      expect(h.posts, late).toHaveLength(1);
+      const { outcome, panel } = h.deps.session.get();
+      expect(outcome, late).toBe('unavailable');
+      expect(bodyFromPasteCode(panel?.code ?? '')).toEqual({ ok: true, body: posted(h) });
+    }
+  });
+
   it('TR-07 L9: offline, relay not set up, or a pairing for another relay: a paste code and no request', async () => {
     const rows = [
       { online: false, outcome: 'offline' },
@@ -302,9 +333,64 @@ describe('N2 L4 L44: Paste code', () => {
     await running;
     expect(h.deps.session.get()).toMatchObject({ outcome: 'unavailable', panel: { code } });
   });
+
+  it('two quick Paste code taps on one version seal once', async () => {
+    const sealing = countingSeal();
+    const h = await harness({ devices: { seal: sealing.seal } });
+    await Promise.all([makePasteCode(h.args, h.deps), makePasteCode(h.args, h.deps)]);
+    expect(sealing.count()).toBe(1);
+    expect(h.deps.session.get().panel).not.toBeNull();
+  });
 });
 
 describe('N2 HS-14 L43: a send stops when its pairing changes or the records close', () => {
+  it('with the records closed, a Send tap seals and sends nothing', async () => {
+    const sealing = countingSeal();
+    const h = await harness({ devices: { seal: sealing.seal } });
+    h.test.db.gate.close();
+    await sendList(h.args, h.deps);
+    expect([sealing.count(), h.posts.length]).toEqual([0, 0]);
+    expect(h.deps.session.get()).toEqual(EMPTY_SESSION);
+  });
+
+  it('the pairing is read again before the POST and before recording, not only watched', async () => {
+    // The live watch never fires here, as when another tab's change has not reached it yet.
+    const unwatched: Partial<TransferDevices> = { watchPairing: () => () => undefined };
+    const repair = (h: Harness | null) =>
+      h?.test.repos.pairing.save({
+        roomId: 'ExampleRoomId00000000B',
+        relayUrl: ORIGIN,
+        key: h.key,
+      });
+    let sealed: Harness | null = null;
+    sealed = await harness({
+      devices: {
+        ...unwatched,
+        seal: async (...args) => {
+          const body = await sealForRelay(...args);
+          await repair(sealed);
+          return body;
+        },
+      },
+    });
+    await sendList(sealed.args, sealed.deps);
+    expect(sealed.posts).toHaveLength(0);
+    expect(sealed.deps.session.get()).toEqual(EMPTY_SESSION);
+
+    let answered: Harness | null = null;
+    answered = await harness({
+      devices: unwatched,
+      answer: async () => {
+        await repair(answered);
+        return status(204);
+      },
+    });
+    await sendList(answered.args, answered.deps);
+    expect(answered.posts).toHaveLength(1);
+    expect((await stored(answered))?.sentVersion).toBeNull();
+    expect(answered.deps.session.get()).toEqual(EMPTY_SESSION);
+  });
+
   it('unpaired during the retry wait: no second POST, nothing recorded, the session reset', async () => {
     const h = await harness({ answer: () => status(429, { 'Retry-After': '5' }) });
     const running = sendList(h.args, h.deps);

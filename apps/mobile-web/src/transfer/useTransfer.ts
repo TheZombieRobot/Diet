@@ -82,15 +82,22 @@ export function useTransferView(
       dispatchSession({ type: 'bind', listId: list.id, pairingId, version: list.version });
     }
   }, [list.id, list.version, pairingId]);
+  // The session outlives the screen, so the phone may have come back online while it was closed.
+  const devices = useStore(transferDevicesStore);
   useEffect(() => {
     const online = () => {
       dispatchSession({ type: 'online' });
     };
+    if (devices.online()) online();
     window.addEventListener('online', online);
     return () => {
       window.removeEventListener('online', online);
     };
-  }, []);
+  }, [devices]);
+  // The records closing resets the session (design 1.5), so a paste panel closes with them.
+  useEffect(() => {
+    if (!recordsOpen) dispatchSession({ type: 'reset' });
+  }, [recordsOpen]);
   useListening(storage, list.id, mine && recordsOpen ? session : EMPTY_SESSION, pairing ?? null);
 
   const now = storage.env.now();
@@ -117,7 +124,10 @@ export function useTransferView(
     line:
       pairing === undefined && recordsOpen
         ? transfer.send.checking
-        : transferLineText(line, line.time === null ? null : formatLocalTime(line.time, zone)),
+        : // Until item 33 builds the side panel there is nothing to pair with (noLaptopYet).
+          line.id === 'notPaired'
+          ? transfer.send.noLaptopYet
+          : transferLineText(line, line.time === null ? null : formatLocalTime(line.time, zone)),
     panel: current ? session.panel : null,
   };
 }

@@ -76,6 +76,45 @@ describe('D1 C52 L14 L46: recordSend', () => {
     expect((await stored(test))?.transferId).toBe(T_B);
   });
 
+  it('two tabs sending one version: the earlier send recorded last is refused, so the later one’s acknowledgement counts', async () => {
+    const test = await withList();
+    const id = groceryListSentinel().id;
+    await test.repos.groceryTransfer.recordSend(id, send('2000-02-29T12:00:01.000Z', T_B), PAIRED);
+    const earlier = await test.repos.groceryTransfer.recordSend(
+      id,
+      send('2000-02-29T12:00:00.000Z', T_A),
+      PAIRED,
+    );
+    expect(earlier.recorded).toBe(false);
+    expect(await stored(test)).toMatchObject({
+      sentAt: '2000-02-29T12:00:01.000Z',
+      transferId: T_B,
+    });
+    const ack = ackPayload({ listId: id, version: 3, transferId: T_B, receivedAt: PAIRED });
+    expect(
+      (await test.repos.groceryTransfer.recordAcknowledgement(id, ack, PAIRED)).decision,
+    ).toEqual({ accept: true });
+  });
+
+  it('a newer version keeps a receipt of an older one recorded since the pairing', async () => {
+    const test = await withList({
+      ...groceryListSentinel(),
+      version: 4,
+      sentVersion: 3,
+      sentAt: '2000-02-29T12:00:00.000Z',
+      transferId: T_A,
+      receivedVersion: 3,
+      receivedAt: '2000-02-29T12:01:00.000Z',
+      laptopReceivedAt: '2000-02-29T12:01:00.000Z',
+    });
+    await test.repos.groceryTransfer.recordSend(
+      groceryListSentinel().id,
+      send('2000-02-29T12:05:00.000Z', T_B, 4),
+      PAIRED,
+    );
+    expect(await stored(test)).toMatchObject({ sentVersion: 4, receivedVersion: 3 });
+  });
+
   it('a missing list and closed records write nothing', async () => {
     const test = await withList();
     await expect(

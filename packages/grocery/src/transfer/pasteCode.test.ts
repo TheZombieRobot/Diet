@@ -119,7 +119,7 @@ describe('K13 C12 TR-07 TR-08: reading a paste code', () => {
     }
     const body = bodyOf(13_500);
     const code = pasteCodeFromBody(body);
-    const noisy = `  ${wrapped(code).slice(0, 300)} \t\u00a0\u200b${wrapped(code).slice(300)}\ufeff\n`;
+    const noisy = `  ${wrapped(code).slice(0, 300)} \t\u00a0\u200b\u2060${wrapped(code).slice(300)}\ufeff\n`;
     expect(bodyFromPasteCode(noisy)).toEqual({ ok: true, body });
     expect(pasteCodeFromBody(bodyOf(42))).toHaveLength(51);
     expect(MAX_PASTE_CODE_CHARS).toBe(65_545);
@@ -128,6 +128,9 @@ describe('K13 C12 TR-07 TR-08: reading a paste code', () => {
   it('names a cut, changed or foreign code', () => {
     const code = pasteCodeFromBody(bodyOf(13_500));
     const changed = code.slice(0, 100) + (code[100] === 'A' ? 'B' : 'A') + code.slice(101);
+    // A right check on a middle that is no sealed list body.
+    const short = `rl1.${'A'.repeat(10)}`;
+    const malformed = `dl1.${short.slice(4)}.${crc32(utf8Encode(short)).toString(16).padStart(8, '0')}`;
     const cases: [string, PasteCodeResult][] = [
       [code.slice(0, 10), problem('incomplete')],
       [code.slice(0, code.length / 2), problem('incomplete')],
@@ -138,6 +141,7 @@ describe('K13 C12 TR-07 TR-08: reading a paste code', () => {
         `${code.slice(0, -8)}${code.endsWith('0') ? '1' : '0'}${code.slice(-7)}`,
         problem('damaged'),
       ],
+      [malformed, problem('damaged')],
       [V2_BODY, problem('not-a-code')],
       ['   ', problem('empty')],
       [`dl1.${'A'.repeat(65_542)}`, problem('too-long')],

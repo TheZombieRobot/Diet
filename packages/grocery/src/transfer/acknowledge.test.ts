@@ -117,14 +117,23 @@ describe('K4 L14 L46: afterSend', () => {
     expect(
       afterSend(withReceipt(2, '2000-01-05T09:00:00.000Z'), send, PAIRED)?.receivedVersion,
     ).toBeNull();
-    // A stored send time ahead of the new one is still replaced: the caller made it monotonic.
-    const ahead: GroceryListRecord = { ...sent, sentAt: '2000-01-06T00:00:00.000Z' };
-    expect(afterSend(ahead, send, PAIRED)?.sentAt).toBe(send.sentAt);
+    // A receipt at exactly the pairing counts as since it.
+    expect(afterSend(withReceipt(2, PAIRED), send, PAIRED)?.receivedVersion).toBe(2);
   });
 
-  it('never lowers what was sent and never goes above the version', () => {
+  it('never lowers what was sent, never goes above the version, and never moves a send of one version back', () => {
     expect(afterSend({ ...sent, version: 4, sentVersion: 4 }, send, PAIRED)).toBeNull();
     expect(afterSend({ ...base, version: 2 }, send, PAIRED)).toBeNull();
+    // Two tabs sending version 3: the later send recorded first is kept.
+    expect(afterSend({ ...sent, sentAt: '2000-01-05T10:20:00.000Z' }, send, PAIRED)).toBeNull();
+    expect(afterSend({ ...sent, sentAt: send.sentAt }, send, PAIRED)).toBeNull();
+    // A newer version is recorded whatever its time (the laptop keeps the newer version too).
+    const v2Later: GroceryListRecord = {
+      ...sent,
+      sentVersion: 2,
+      sentAt: '2000-01-06T00:00:00.000Z',
+    };
+    expect(afterSend(v2Later, send, PAIRED)?.sentVersion).toBe(3);
   });
 
   it('every merged row is a valid grocery list', () => {

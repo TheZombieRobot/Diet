@@ -271,6 +271,28 @@ test('B6a TR-11 HS-14: a list waiting from before a reload makes no request on a
   await audit.verify();
 });
 
+test('B6c TR-11 HS-14: a poll that falls due after 15 minutes, as after the phone slept, makes no request', async ({
+  page,
+  context,
+  request,
+}) => {
+  // The page's timers, Date and performance.now follow Playwright's clock from the first load.
+  await page.clock.install();
+  const { audit } = await open(page, context, request, groceryList25());
+  await tapSend(page, audit);
+  await expect(line(page)).toHaveText(/Keep this screen open to see the laptop's reply\.$/);
+  // A busy answer to the first poll puts the next one 60 s away, so none falls before the jump.
+  relay.setMode({ status: 503, retryAfter: '60' });
+  const polls = () =>
+    audit.seen.filter((s) => s.method === 'GET' && s.url.startsWith(RELAY_E2E_ORIGIN)).length;
+  await expect.poll(polls, { timeout: 30_000 }).toBe(1);
+  audit.markEnd();
+  // Like closing the laptop lid for 20 minutes: the pending poll falls due after the window.
+  await page.clock.fastForward('20:00');
+  await expect(line(page)).toHaveText(copy.lines.statusExpired);
+  await audit.verify();
+});
+
 test('B13 C12 L15: the week-3 order (a paste code, then Send) ends in "Received on laptop"', async ({
   page,
   context,
@@ -330,7 +352,7 @@ test.describe('B11 L27: the section at 360 px, light and dark', () => {
     );
     await page.reload();
     await goTo(page, 'List');
-    await expect(line(page)).toHaveText(copy.lines.notPaired);
+    await expect(line(page)).toHaveText(copy.noLaptopYet);
     await sweepSection(page, 'not paired', found);
     expect(found).toEqual([]);
   });

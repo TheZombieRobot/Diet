@@ -107,7 +107,7 @@ async function show(setup: Setup = {}): Promise<{ posts: string[]; section: HTML
   const section = await screen.findByRole('region', { name: copy.sectionLabel });
   // The pairing is read too: no Send, Pair or line while it loads.
   await waitFor(() => {
-    expect(section.querySelector('.ui-button--tall')).not.toBeNull();
+    expect(section.querySelector('.ui-button--tall, a[href="#/pairing"]')).not.toBeNull();
   });
   // This tab's own restore or delete-all closes the records; the screen keeps its last values.
   if (setup.closed === true) {
@@ -139,7 +139,7 @@ describe('V1 UX 6b C12 C52 C114 R32 TR-12: every state of the section', () => {
   };
   const rows: [string, Setup, string, 'send' | 'pair' | 'send-disabled', string][] = [
     ['records closed', { closed: true }, copy.lines.recordsClosed, 'send-disabled', 'disabled'],
-    ['not paired', { relayUrl: null }, copy.lines.notPaired, 'pair', 'hidden'],
+    ['not paired', { relayUrl: null }, copy.noLaptopYet, 'pair', 'hidden'],
     [
       'needs pairing',
       { relayUrl: 'https://other.example.test' },
@@ -216,7 +216,13 @@ describe('V1 UX 6b C12 C52 C114 R32 TR-12: every state of the section', () => {
       'send',
       'enabled',
     ],
-    ['offline', { session: { outcome: 'offline' } }, copy.lines.offline, 'send', 'enabled'],
+    [
+      'offline',
+      { session: { outcome: 'offline' }, online: false },
+      copy.lines.offline,
+      'send',
+      'enabled',
+    ],
     [
       'unavailable',
       { session: { outcome: 'unavailable' } },
@@ -245,6 +251,8 @@ describe('V1 UX 6b C12 C52 C114 R32 TR-12: every state of the section', () => {
     if (primary === 'pair') {
       expect(send).toBeNull();
       expect(pair?.getAttribute('href')).toBe('#/pairing');
+      // Until item 33 there is nothing to pair with: not the main button.
+      expect(pair?.classList.contains('ui-button--tall')).toBe(false);
     } else {
       expect(pair).toBeNull();
       expect((send as HTMLButtonElement).disabled).toBe(primary === 'send-disabled');
@@ -295,6 +303,43 @@ describe('V2 C12 TR-07: the paste panel', () => {
     await screen.findByText(copy.paste.copyFailed);
     fireEvent.click(screen.getByRole('button', { name: copy.paste.done }));
     expect(screen.queryByText(copy.paste.intro)).toBeNull();
+    // Done returns focus to the button that opened the panel.
+    expect(document.activeElement).toBe(within(section).getByRole('button', { name: copy.send }));
+    const paste = within(section).getByRole('button', { name: copy.pasteCode });
+    fireEvent.click(paste);
+    await screen.findByText(copy.paste.intro);
+    fireEvent.click(screen.getByRole('button', { name: copy.paste.done }));
+    expect(document.activeElement).toBe(paste);
+  });
+
+  it('the records closing closes the panel', async () => {
+    const { section } = await show({ online: false });
+    fireEvent.click(within(section).getByRole('button', { name: copy.send }));
+    await screen.findByText(copy.paste.intro);
+    act(() => {
+      test?.db.gate.close();
+    });
+    await waitFor(() => {
+      expect(screen.queryByText(copy.paste.intro)).toBeNull();
+    });
+    expect(line(section)).toBe(copy.lines.recordsClosed);
+  });
+
+  it('back online while the List screen was closed: no offline line on return', async () => {
+    const { section } = await show({ online: false });
+    fireEvent.click(within(section).getByRole('button', { name: copy.send }));
+    await screen.findByText(copy.paste.intro);
+    expect(line(section)).toBe(copy.lines.offline);
+    cleanup();
+    act(() => {
+      window.dispatchEvent(new Event('online'));
+    });
+    transferDevicesStore.set({ ...transferDevicesStore.get(), online: () => true });
+    render(<SendAndExport listId={base.id} />);
+    const again = await screen.findByRole('region', { name: copy.sectionLabel });
+    await waitFor(() => {
+      expect(line(again)).toBe(copy.lines.statusNotSent);
+    });
   });
 
   it('offline: the offline line and the code; coming online clears the line; unpairing closes the panel', async () => {
@@ -312,7 +357,7 @@ describe('V2 C12 TR-07: the paste panel', () => {
     await waitFor(() => {
       expect(screen.queryByText(copy.paste.intro)).toBeNull();
     });
-    expect(line(section)).toBe(copy.lines.notPaired);
+    expect(line(section)).toBe(copy.noLaptopYet);
     expect(posts).toEqual([]);
   });
 });

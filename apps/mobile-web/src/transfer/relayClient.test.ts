@@ -97,6 +97,17 @@ describe('N1 HS-14 TR-11: postList and getAck', () => {
     expect(hanging.calls[1]?.init.signal?.aborted).toBe(true);
   });
 
+  it('makes no request for a caller that has already stopped', async () => {
+    const { deps, calls } = fakeDeps(() => Promise.resolve(new Response(null, { status: 204 })));
+    const stopped = new AbortController();
+    stopped.abort();
+    expect((await postList(ORIGIN, ROOM, await sealed(), stopped.signal, deps)).outcome).toBe(
+      'unavailable',
+    );
+    expect((await getAck(ORIGIN, ROOM, stopped.signal, deps)).outcome).toBe('unavailable');
+    expect(calls).toHaveLength(0);
+  });
+
   it('maps statuses like relayOutcome, returns Retry-After, and reads a body only for a GET 200 within 4,096', async () => {
     const answers = [
       tracked(503, '{"error":"busy"}', { 'Retry-After': '30' }),
