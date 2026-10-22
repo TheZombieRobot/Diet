@@ -17,7 +17,7 @@ import {
   weightScenario,
 } from '@diet/test-fixtures';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { openSnapshotDb, type TestDb } from '../../db/testKit';
 import { reconcileKickstart } from './kickstartActions';
 import { preStartSeenStore, preStartStopSignStore } from './preStartCheck';
@@ -302,6 +302,36 @@ describe('starting a Kickstart chosen at setup (W14, W31)', () => {
       overviewInputFrom(await readWeightInputs(db.storage), currentWeightEnv(db.storage)),
     );
     expect(overview.kickstart.start).toEqual({ available: false, reason: 'stop-sign-today' });
+  });
+
+  it('W31: the guidance goes only once its OK is stored; while OK is saving it is busy, and an OK that cannot be stored leaves the guidance, to tap again', async () => {
+    const db = await today(WEIGHT_SCENARIOS.PENDING, 1);
+    fireEvent.click(
+      within(region(weight.start.pendingLabel)).getByRole('button', {
+        name: weight.start.pendingAction,
+      }),
+    );
+    answer(weight.check.faintAtWork);
+    fireEvent.click(screen.getByRole('button', { name: weight.check.confirmStart }));
+    const guidance = (await screen.findByText(weight.start.stopSign)).closest('section');
+    const ok = within(guidance as HTMLElement).getByRole<HTMLButtonElement>('button', {
+      name: weight.steadyExplainer.ok,
+    });
+    vi.spyOn(db.repos.cardState, 'dismiss').mockRejectedValueOnce(new Error('example'));
+    fireEvent.click(ok);
+    expect(ok.disabled).toBe(true);
+    await waitFor(() => {
+      expect(ok.disabled).toBe(false);
+    });
+    expect(screen.getByText(weight.start.stopSign)).toBeTruthy();
+    fireEvent.click(ok);
+    await waitFor(() => {
+      expect(screen.queryByText(weight.start.stopSign)).toBeNull();
+    });
+    expect(
+      (await db.repos.cardState.get(PRE_START_STOP_SIGN_CARD, preStartTrigger('2000-02-01')))
+        ?.dismissedAt,
+    ).toBe(db.env.now());
   });
 
   it('four "no": the period, the carb-ceiling start and the 23:1 Kickstart window, each said', async () => {

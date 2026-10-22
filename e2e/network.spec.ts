@@ -6,7 +6,7 @@ import {
   test,
 } from '@playwright/test';
 import { seedOnboarded, visitEveryScreen, waitForServiceWorkerControl } from './support/app';
-import { startAudit } from './support/network';
+import { expectOnlyOwnOrigin, startAudit } from './support/network';
 
 // HS-14 / TR-11, as reworded by DOC_REVIEW C03: the phone app makes only GET requests to its own
 // origin for app files and update checks, with no query string, header, cookie or body built
@@ -15,7 +15,8 @@ import { startAudit } from './support/network';
 // requests, every policy violation (a request the Content Security Policy blocks never reaches
 // the network log) and every WebSocket; any one outside the rules fails it. The backup, restore,
 // rescue and delete-all actions are audited the same way in backup.spec.ts. The last tests here
-// check that the audit itself catches each kind of leak.
+// check that the audit itself catches each kind of leak, and reads HTTP/2's own headers (GitHub
+// Pages) only as the browser makes them.
 
 test('online, every screen: requests go only to the app’s own files', async ({
   page,
@@ -202,4 +203,58 @@ test('the audit refuses to start after a page has loaded', async ({
   await expect(startAudit(context, request, baseURL)).rejects.toThrow(
     /the audit starts before any page of the context loads/,
   );
+});
+
+/** A deployed copy's page request over HTTP/2, as Chromium reports it, with `extra` added. */
+function auditHttp2(extra: Readonly<Record<string, string>>): void {
+  const origin = 'https://example.github.io';
+  expectOnlyOwnOrigin(
+    [
+      {
+        url: `${origin}/Diet/index.html?__WB_REVISION__=example-1`,
+        method: 'GET',
+        body: null,
+        fromServiceWorker: true,
+        headers: {
+          ':authority': 'example.github.io',
+          ':method': 'GET',
+          ':path': '/Diet/index.html?__WB_REVISION__=example-1',
+          ':scheme': 'https',
+          accept: '*/*',
+          ...extra,
+        },
+      },
+    ],
+    origin,
+    new Map([['/Diet/index.html', 'example-1']]),
+  );
+}
+
+test('over HTTP/2 the audit accepts the pseudo-headers naming the request and Chromium’s priority header', () => {
+  for (const priority of ['u=0, i', 'u=1', 'u=4, i', 'i']) {
+    expect(() => {
+      auditHttp2({ priority });
+    }, priority).not.toThrow();
+  }
+});
+
+test('over HTTP/2 the audit fails a pseudo-header that does not name the request, any other priority, a header and a cookie', () => {
+  for (const [name, value] of [
+    [':authority', 'example.com'],
+    [':authority', 'example.github.io:8443'],
+    [':method', 'POST'],
+    [':scheme', 'http'],
+    [':path', '/Diet/index.html?__WB_REVISION__=example-1&example=4-100'],
+    [':path', '/Diet/index.html'],
+    [':protocol', 'websocket'],
+    ['priority', 'u=8'],
+    ['priority', 'u=1, i, example=4-100'],
+    ['priority', 'u=1;example-4-100'],
+    ['x-example', 'example-leak-4-100'],
+    ['cookie', 'example=example-leak-4-100'],
+  ] as const) {
+    expect(() => {
+      auditHttp2({ [name]: value });
+    }, `${name}: ${value}`).toThrow(/carries a header the browser did not add, or a cookie/);
+  }
 });

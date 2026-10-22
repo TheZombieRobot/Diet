@@ -240,12 +240,43 @@ test('W31: after a pre-start "yes" the eat, salt and 111 guidance stays on Today
   ).toBeVisible();
   await goTo(page, 'Today');
   await expect(guidance.locator('a[href="tel:111"]')).toBeVisible();
-  await guidance.getByRole('button', { name: weight.steadyExplainer.ok }).click();
+  // OK is saved before the guidance goes: on a slow phone it stays, its OK busy, until the
+  // dismissal is stored, so a reload (or closing the app) the moment it goes never brings it back.
+  await holdNextDismissal(page, 2_000);
+  const ok = guidance.getByRole('button', { name: weight.steadyExplainer.ok });
+  await ok.click();
+  await expect(ok).toBeDisabled();
   await expect(guidance).toHaveCount(0);
   await page.reload();
   await expect(weightCard(page)).toBeVisible();
   await expect(guidance).toHaveCount(0);
 });
+
+/**
+ * Holds the next card_state write of a dismissal uncommitted for about `ms`, as a busy phone
+ * might: its transaction is kept open with reads, so the write lands late but whole. Only this
+ * page is slowed; a reload loads the app as it is.
+ */
+function holdNextDismissal(page: Page, ms: number): Promise<void> {
+  return page.evaluate((hold) => {
+    const put = Reflect.get(IDBObjectStore.prototype, 'put');
+    IDBObjectStore.prototype.put = function (this: IDBObjectStore, ...args) {
+      const request = put.apply(this, args);
+      if (this.name === 'card_state' && (args[0] as { dismissedAt?: unknown }).dismissedAt) {
+        IDBObjectStore.prototype.put = put;
+        let held = true;
+        setTimeout(() => {
+          held = false;
+        }, hold);
+        const keepOpen = (): void => {
+          if (held) this.count().onsuccess = keepOpen;
+        };
+        keepOpen();
+      }
+      return request;
+    };
+  }, ms);
+}
 
 /** What runs off the screen or overlaps on the page, if anything. */
 function layoutProblems(page: Page, where: string): Promise<string[]> {

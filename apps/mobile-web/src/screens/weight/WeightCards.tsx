@@ -373,9 +373,11 @@ export function PreStartStopSignCard({
   onClose,
 }: {
   bloodPressure: boolean;
-  onClose: () => void;
+  /** Stores the OK; the card goes when it is stored (preStartCheck.ts). */
+  onClose: () => Promise<void>;
 }): ReactElement {
   const focus = useFocusWhen<HTMLParagraphElement>(true);
+  const [saving, setSaving] = useState(false);
   return (
     <Card label={weight.start.pendingLabel}>
       <p ref={focus} tabIndex={-1} className="ui-text-strong ui-step-start">
@@ -383,7 +385,18 @@ export function PreStartStopSignCard({
       </p>
       <StopSignLines bloodPressure={bloodPressure} />
       <ButtonRow>
-        <Button variant="quiet" onClick={onClose}>
+        <Button
+          variant="quiet"
+          disabled={saving}
+          aria-busy={saving}
+          onClick={() => {
+            // Busy until the OK is stored; if it cannot be, the card stays and OK works again.
+            setSaving(true);
+            onClose().catch(() => {
+              setSaving(false);
+            });
+          }}
+        >
           {weight.steadyExplainer.ok}
         </Button>
       </ButtonRow>
@@ -435,10 +448,7 @@ export function WeightCards({
       {preStartStopSign && phase.kind !== 'kickstart' ? (
         <PreStartStopSignCard
           bloodPressure={view.input.gates.bloodPressureSaltWording}
-          onClose={() => {
-            // OK holds in this page even if its record cannot be written.
-            void acknowledgePreStartStopSign(storage, overview.today).catch(() => undefined);
-          }}
+          onClose={() => acknowledgePreStartStopSign(storage, overview.today)}
         />
       ) : null}
       {showStartCard && cards.pendingStart !== null && !preStartStopSign ? (

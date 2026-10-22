@@ -28,9 +28,10 @@ export interface Seen {
 }
 
 /**
- * The only request headers the audit accepts: the ones Chromium itself adds to the app's own
- * requests (page loads, scripts, fonts, the service worker's precache and update check). Anything
- * else, a custom header or any cookie, could carry user data, so it fails the audit.
+ * The request headers the audit accepts by name: the ones Chromium itself adds to the app's own
+ * requests (page loads, scripts, fonts, the service worker's precache and update check), with
+ * HTTP/2's own headers checked by value in foreignHeaders. Anything else, a custom header or any
+ * cookie, could carry user data, so it fails the audit.
  */
 export const BROWSER_HEADERS: ReadonlySet<string> = new Set([
   'accept',
@@ -58,6 +59,41 @@ export const BROWSER_HEADERS: ReadonlySet<string> = new Set([
   'upgrade-insecure-requests',
   'user-agent',
 ]);
+
+/**
+ * Chromium's priority header (RFC 9218), sent over HTTP/2 as on GitHub Pages: an urgency 0 to 7
+ * and the incremental flag, in the order Chromium writes them, and nothing else.
+ */
+const PRIORITY = /^(?:u=[0-7](?:, i)?|i)$/;
+
+/**
+ * The headers of a request that the browser did not add, as "name: value". Over HTTP/2 (GitHub
+ * Pages; the local preview is HTTP/1.1) Chromium also reports the request's pseudo-headers and its
+ * priority header. They are accepted only as the browser makes them: each pseudo-header must name
+ * the request itself (its method, https, the app's own host, exactly its path and query), so none
+ * can carry data, and the priority only in its RFC 9218 form. Anything else, a cookie included,
+ * is listed.
+ */
+export function foreignHeaders(
+  headers: Readonly<Record<string, string>>,
+  request: { readonly url: string; readonly method: string },
+  origin: string,
+): string[] {
+  const url = new URL(request.url);
+  const pseudo = new Map([
+    [':method', request.method],
+    [':scheme', 'https'],
+    [':authority', new URL(origin).host],
+    [':path', `${url.pathname}${url.search}`],
+  ]);
+  return Object.entries(headers).flatMap(([header, value]) => {
+    const name = header.toLowerCase();
+    const browserMade =
+      BROWSER_HEADERS.has(name) ||
+      (pseudo.has(name) ? pseudo.get(name) === value : name === 'priority' && PRIORITY.test(value));
+    return browserMade ? [] : [`${name}: ${value}`];
+  });
+}
 
 export function record(into: Seen[]) {
   return (request: Request) => {
@@ -156,9 +192,8 @@ export function expectOnlyOwnOrigin(
       ]);
     }
     if (headers !== undefined) {
-      const names = Object.keys(headers).map((name) => name.toLowerCase());
       expect(
-        names.filter((name) => !BROWSER_HEADERS.has(name)),
+        foreignHeaders(headers, { url, method }, origin),
         `${url} carries a header the browser did not add, or a cookie`,
       ).toEqual([]);
     }
