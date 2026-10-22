@@ -1,40 +1,49 @@
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
-import { createRef } from 'react';
+import { createRef, type ReactElement, useState } from 'react';
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import {
   ActionRow,
   AppShell,
   applyTheme,
   Banner,
+  BarChart,
   BowlIcon,
   Button,
   ButtonRow,
   CameraView,
   Card,
+  Checkbox,
   CheckList,
   Chip,
   ChoiceList,
   currentThemePreference,
   DayBar,
+  ExpandableRow,
   FastMeter,
   FloatingActionButton,
   FloatingActionPanel,
   IconButton,
   IconLink,
+  ItemRow,
   MeterBar,
   meterRects,
   OFFLINE_LABEL,
   OFFLINE_NOT_READY_LABEL,
   Notice,
+  NutrientTable,
   OfflineIndicator,
   ONLINE_LABEL,
+  SegmentedControl,
   SelectField,
+  StatTile,
   StepFrame,
   Stepper,
   Switch,
   TabBar,
   TagList,
+  TextArea,
   TextField,
+  Thumbnail,
   TodayIcon,
   TrendChart,
   type TabItem,
@@ -648,6 +657,44 @@ describe('first-run components (item 13; K19)', () => {
     expect(onRemove).toHaveBeenCalledWith('liver');
   });
 
+  it('Stepper with a step and a format: moves by the step, stops at the bounds, shows the text (item 27)', () => {
+    const onChange = vi.fn();
+    const { rerender } = render(
+      <Stepper
+        label="Set 1"
+        value={25}
+        min={5}
+        max={30}
+        step={5}
+        formatValue={(v) => `${v} seconds`}
+        onChange={onChange}
+        decreaseLabel="Less for set 1"
+        increaseLabel="More for set 1"
+      />,
+    );
+    expect(screen.getByRole('group', { name: 'Set 1' }).querySelector('output')?.textContent).toBe(
+      '25 seconds',
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'More for set 1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Less for set 1' }));
+    expect(onChange.mock.calls).toEqual([[30], [20]]);
+    rerender(
+      <Stepper
+        label="Set 1"
+        value={30}
+        min={5}
+        max={30}
+        step={5}
+        onChange={onChange}
+        decreaseLabel="Less for set 1"
+        increaseLabel="More for set 1"
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'More for set 1' }).hasAttribute('disabled')).toBe(
+      true,
+    );
+  });
+
   it('DayBar sets each time under its own hour, and marks every other one to leave out when narrow', () => {
     render(
       <DayBar
@@ -1088,6 +1135,262 @@ describe('Today pieces (item 16; C13)', () => {
     expect(screen.getByRole('heading', { level: 2, name: 'Water' }).tabIndex).toBe(-1);
     expect(container.querySelector('.ui-button-row')?.className).toBe(
       'ui-button-row ui-button-row--stacked',
+    );
+  });
+});
+
+describe('the food catalogue pieces (item 18; K1)', () => {
+  it('K1 HS-37: the nutrient table prints the text it is given, so an unknown figure is never 0', () => {
+    const labels = ['Energy', 'Protein', 'Fat', 'Saturated fat', 'Net carbs', 'Sugars', 'Fibre'];
+    render(
+      <NutrientTable
+        caption="Nutrition per 100 g, raw"
+        rows={[...labels, 'Sodium'].map((label) => ({
+          key: label,
+          label,
+          text: 'not known',
+          known: false,
+        }))}
+      />,
+    );
+    const table = screen.getByRole('table', { name: 'Nutrition per 100 g, raw' });
+    const cells = within(table).getAllByRole('cell');
+    expect(cells).toHaveLength(8);
+    for (const cell of cells) {
+      expect(cell.textContent).toBe('not known');
+      expect(cell.getAttribute('data-known')).toBe('false');
+      expect(cell.textContent).not.toMatch(/^\s*0(\.0)?\s*(g|kJ|mg)\s*$/);
+    }
+    expect(
+      within(table)
+        .getAllByRole('rowheader')
+        .every((h) => h.getAttribute('scope') === 'row'),
+    ).toBe(true);
+  });
+
+  it('K1: an expandable row is one button named by its text, that opens a labelled panel', () => {
+    function Example(): ReactElement {
+      const [open, setOpen] = useState(false);
+      return (
+        <ul className="ui-divider-rows">
+          <ExpandableRow
+            title="Firm tofu"
+            detail="Contains soy · Check the label for allergens"
+            flag="Has soy, which you listed"
+            expanded={open}
+            onToggle={() => {
+              setOpen(!open);
+            }}
+          >
+            <p>Panel text</p>
+          </ExpandableRow>
+        </ul>
+      );
+    }
+    render(<Example />);
+    const toggle = screen.getByRole('button', {
+      name: 'Firm tofu Contains soy · Check the label for allergens Has soy, which you listed',
+    });
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(screen.queryByRole('region')).toBeNull();
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    const panel = screen.getByRole('region', { name: 'Firm tofu' });
+    expect(toggle.getAttribute('aria-controls')).toBe(panel.id);
+    const parts = toggle.querySelectorAll(
+      '.ui-row__text > .ui-expandable__title, .ui-row__text > .ui-expandable__detail, .ui-row__text > .ui-expandable__flag',
+    );
+    expect(parts).toHaveLength(3);
+    expect(componentsCss).toMatch(/\.ui-expandable__toggle \{[^}]*min-height: var\(--size-tap\);/);
+  });
+});
+
+describe('garden and pantry pieces (item 19; G21, G27, G28)', () => {
+  it('a row is one button with the switch beside it; the thumbnail falls back to the leaf; a parent tab is its section', () => {
+    render(
+      <>
+        <ul>
+          <ItemRow
+            thumbnail={<Thumbnail src="blob:example" alt="" size="row" />}
+            title="Example lettuce"
+            value="2 each"
+            detail="Ready to use"
+            expanded={false}
+            onToggle={() => undefined}
+            trailing={
+              <Switch
+                label="Ready"
+                accessibleName="Example lettuce: ready to use"
+                checked
+                onChange={() => undefined}
+              />
+            }
+          />
+        </ul>
+        <TabBar items={TABS} current="food" currentIsParent />
+      </>,
+    );
+    const row = screen.getByRole('button', { name: 'Example lettuce 2 each Ready to use' });
+    expect(row.getAttribute('aria-expanded')).toBe('false');
+    const ready = screen.getByRole('switch', { name: 'Example lettuce: ready to use' });
+    expect(row.contains(ready)).toBe(false);
+    const image = row.querySelector('img');
+    expect(image?.getAttribute('alt')).toBe('');
+    fireEvent.error(image as HTMLImageElement);
+    expect(row.querySelector('img')).toBeNull();
+    expect(row.querySelector('.ui-thumb__placeholder svg')).not.toBeNull();
+    expect(screen.getByRole('link', { name: 'Food' }).getAttribute('aria-current')).toBe('true');
+    expect(document.querySelectorAll('[aria-current="page"]')).toHaveLength(0);
+    const block = componentsCss.slice(componentsCss.indexOf('/* ---- Garden and pantry'));
+    expect(block.length).toBeGreaterThan(100);
+    expect(block).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(/i);
+  });
+});
+
+describe('the drinks pieces (item 28; K3)', () => {
+  it('TextArea, Checkbox and SegmentedControl are labelled and report changes', () => {
+    const typed = vi.fn();
+    const ticked = vi.fn();
+    const chosen = vi.fn();
+    render(
+      <>
+        <TextArea
+          label="Note"
+          hint="Optional."
+          value=""
+          onChange={(e) => {
+            typed(e.target.value);
+          }}
+        />
+        <Checkbox label="I felt unwell" checked={false} onChange={ticked} />
+        <SegmentedControl
+          legend="When"
+          options={[
+            { value: 'now', label: 'Now' },
+            { value: 'earlier', label: 'Earlier' },
+          ]}
+          value="now"
+          onChange={chosen}
+        />
+      </>,
+    );
+    const note = screen.getByLabelText('Note');
+    expect(note.tagName).toBe('TEXTAREA');
+    expect(document.getElementById(note.getAttribute('aria-describedby') ?? '')?.textContent).toBe(
+      'Optional.',
+    );
+    fireEvent.change(note, { target: { value: 'x' } });
+    expect(typed).toHaveBeenCalledWith('x');
+    fireEvent.click(screen.getByRole('checkbox', { name: 'I felt unwell' }));
+    expect(ticked).toHaveBeenCalledWith(true);
+    const group = screen.getByRole('group', { name: 'When' });
+    expect(within(group).getByRole('radio', { name: 'Now' })).toHaveProperty('checked', true);
+    fireEvent.click(within(group).getByRole('radio', { name: 'Earlier' }));
+    expect(chosen).toHaveBeenCalledWith('earlier');
+  });
+
+  it('StatTile with a spoken value hides the visible figure from screen readers', () => {
+    const { container } = render(
+      <StatTile label="Today" value="1 drink · 1.30 std" spoken="1 drink, 1.30 standard drinks" />,
+    );
+    const shown = within(container).getByText('1 drink · 1.30 std');
+    expect(shown.getAttribute('aria-hidden')).toBe('true');
+    expect(within(container).getByText('1 drink, 1.30 standard drinks').className).toBe(
+      'ui-visually-hidden',
+    );
+  });
+
+  it('BarChart: one bar per value, the line and the dotted reference, and a labelled image; no colour but neutral', () => {
+    const { container } = render(
+      <BarChart
+        label="Standard drinks per week"
+        bars={[
+          { key: 'a', value: 2, tick: '21 Feb' },
+          { key: 'b', value: null },
+          { key: 'c', value: 3, partial: true, tick: 'This week' },
+        ]}
+        line={[null, 2.5, 2.5]}
+        lineLabel="4-week average"
+        reference={[4, 4, 4]}
+        referenceLabel="your milestone"
+      />,
+    );
+    expect(screen.getByRole('img', { name: 'Standard drinks per week' })).toBeDefined();
+    expect(container.querySelectorAll('rect')).toHaveLength(2);
+    expect(container.querySelectorAll('.ui-bar-chart__bar--partial')).toHaveLength(1);
+    const marks = ':not(.ui-bar-chart__halo) > ';
+    expect(container.querySelectorAll(`${marks}polyline`)).toHaveLength(1);
+    const dots = container.querySelectorAll(`${marks}.ui-bar-chart__reference`);
+    expect(dots).toHaveLength(3);
+    expect(dots[0]?.getAttribute('stroke-dasharray')).toBe('0 6');
+    expect(container.querySelector('.ui-bar-chart__legend')?.textContent).toBe(
+      '4-week averageyour milestone',
+    );
+    const block = componentsCss.slice(componentsCss.indexOf('/* ---- Item 28'));
+    expect(block).not.toMatch(/--color-(?:teal|amber|emergency)/);
+  });
+
+  it('BarChart: the line and the milestone dots are each drawn over a wider halo in the card colour, so they show across a bar', () => {
+    const { container } = render(
+      <BarChart
+        label="Standard drinks per week"
+        bars={[
+          { key: 'a', value: 9 },
+          { key: 'b', value: 9 },
+        ]}
+        line={[8, 8]}
+        reference={[8, 8]}
+      />,
+    );
+    const halo = container.querySelector('svg .ui-bar-chart__halo');
+    expect(halo?.querySelectorAll('polyline')).toHaveLength(1);
+    expect(halo?.querySelectorAll('.ui-bar-chart__reference')).toHaveLength(2);
+    // Drawn first, so the marks lie on top of it.
+    const shapes = [...container.querySelectorAll('svg polyline, svg .ui-bar-chart__reference')];
+    expect(shapes.slice(0, 3).every((shape) => halo?.contains(shape))).toBe(true);
+    expect(shapes.slice(3).some((shape) => halo?.contains(shape))).toBe(false);
+    const rule =
+      /\.ui-bar-chart__halo \.ui-bar-chart__line,\s*\.ui-bar-chart__halo \.ui-bar-chart__reference\s*\{([^}]*)\}/.exec(
+        componentsCss,
+      )?.[1];
+    expect(rule).toContain('stroke: var(--color-card)');
+    expect(Number(/stroke-width:\s*(\d+)/.exec(rule ?? '')?.[1])).toBeGreaterThan(3);
+  });
+
+  it('BarChart: a tick label that would run into the next one shown is hidden; the last always shows', () => {
+    // jsdom has no layout: each label's box is given by its text, in CSS pixels.
+    const boxes: Record<string, [number, number]> = {
+      '24 Aug': [0, 40],
+      '31 Aug': [36, 76],
+      'This week': [80, 140],
+    };
+    const spy = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        const [left, right] = boxes[this.textContent] ?? [0, 0];
+        return { left, right, width: right - left, top: 0, bottom: 0, height: 0 } as DOMRect;
+      });
+    const { container } = render(
+      <BarChart
+        label="Standard drinks per week"
+        bars={[
+          { key: 'a', value: 1, tick: '24 Aug' },
+          { key: 'b', value: 1, tick: '31 Aug' },
+          { key: 'c', value: 1, tick: 'This week' },
+        ]}
+      />,
+    );
+    spy.mockRestore();
+    const hidden = [...container.querySelectorAll<HTMLElement>('.ui-bar-chart__tick-text')].map(
+      (label) => [label.textContent, label.dataset.hidden === 'true'],
+    );
+    expect(hidden).toEqual([
+      ['24 Aug', false],
+      ['31 Aug', true],
+      ['This week', false],
+    ]);
+    expect(componentsCss).toMatch(
+      /\.ui-bar-chart__tick-text\[data-hidden='true'\]\s*\{\s*visibility: hidden;/,
     );
   });
 });

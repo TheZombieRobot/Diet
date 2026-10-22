@@ -304,9 +304,8 @@ describe('gate notices on the placeholders (RD-01, RD-02, RD-05; K14)', () => {
     expect((await screen.findByTestId('gate-notice-alcoholLogging')).textContent).toBe(
       'Alcohol logging is off because of what you told the app about being under 18.',
     );
-    expect(
-      screen.getByRole('link', { name: readiness.changeAnswersLink }).getAttribute('href'),
-    ).toBe('#/readiness');
+    // Item 28 (A23): the Drinks screen's off state has no link to change answers.
+    expect(screen.queryByRole('link', { name: readiness.changeAnswersLink })).toBeNull();
     await go('food');
     expect(await screen.findByTestId('gate-notice-ketoCeiling')).toBeDefined();
   });

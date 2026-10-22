@@ -131,6 +131,17 @@
   }
 }
 
+/*
+ * A short screen (a phone at 200% text, or on its side): the top bar scrolls away with the page,
+ * so a long heading (a recipe's name) never covers the screen (item 20 review; the same height as
+ * the "+" panel's).
+ */
+@media (max-height: 560px) {
+  .ui-topbar {
+    position: static;
+  }
+}
+
 /* Cards */
 .ui-card {
   display: flex;
@@ -238,6 +249,17 @@
   background: var(--color-teal-tint);
   color: var(--color-on-teal-tint);
   font-weight: 800;
+}
+
+/*
+ * A button for something not built yet ("Later") or not possible now (a blocked swap): read at
+ * full contrast, with a dashed border, never faded (as .ui-action-row--off; item 20 review).
+ */
+.ui-button.ui-button--off {
+  border-style: dashed;
+  border-color: var(--color-border-strong);
+  cursor: default;
+  opacity: 1;
 }
 
 .ui-button--quiet {
@@ -511,7 +533,8 @@
 }
 
 @container (max-width: 130px) {
-  .ui-field__input[type='time']::-webkit-calendar-picker-indicator {
+  .ui-field__input[type='time']::-webkit-calendar-picker-indicator,
+  .ui-field__input[type='date']::-webkit-calendar-picker-indicator {
     display: none;
   }
 }
@@ -967,12 +990,16 @@
   border-radius: var(--radius-pill);
 }
 
-.ui-tabbar__link[aria-current='page'] {
+/*
+ * The current tab, and the tab of a screen under it (item 19: Garden and pantry; item 20: the
+ * recipe screens; item 27: the Move sub-screens), marked aria-current="true".
+ */
+.ui-tabbar__link[aria-current] {
   color: var(--color-teal);
   font-weight: 800;
 }
 
-.ui-tabbar__link[aria-current='page'] .ui-tabbar__icon {
+.ui-tabbar__link[aria-current] .ui-tabbar__icon {
   background: var(--color-teal-tint);
 }
 
@@ -1831,6 +1858,525 @@
   }
 }
 
+/* ---- Foods in the app (checklist item 18) ---- */
+
+/* Plain rows with a divider between them, as on the approved List board. */
+.ui-divider-rows {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+}
+
+.ui-expandable {
+  border-top: 1px solid var(--color-border);
+}
+
+.ui-expandable:first-child {
+  border-top: 0;
+}
+
+.ui-expandable__toggle {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: var(--size-tap);
+  padding: 12px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.ui-expandable__toggle > .ui-row__text {
+  flex: 1 1 auto;
+}
+
+.ui-expandable__toggle:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.ui-expandable__title {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ui-expandable__detail {
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* A conflict with the owner's allergens: the words say it, the amber pill only marks it. */
+.ui-expandable__flag {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-amber-tint);
+  color: var(--color-on-amber-tint);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.ui-expandable__chevron {
+  display: inline-flex;
+  flex: none;
+  margin-top: 2px;
+  color: var(--color-secondary);
+}
+
+.ui-expandable__toggle[aria-expanded='true'] .ui-expandable__chevron {
+  transform: rotate(90deg);
+}
+
+.ui-expandable__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 0 16px;
+}
+
+/* Nutrient figures: the text comes from core, so an unknown figure reads "not known", never 0. */
+.ui-nutrients {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ui-nutrients caption {
+  padding-bottom: 6px;
+  color: var(--color-secondary);
+  font-size: var(--text-label);
+  font-weight: 800;
+  text-align: start;
+}
+
+.ui-nutrients th,
+.ui-nutrients td {
+  padding: 8px 0;
+  border-top: 1px solid var(--color-border);
+  font-size: 15px;
+}
+
+.ui-nutrients th {
+  color: var(--color-ink-soft);
+  font-weight: 700;
+  text-align: start;
+}
+
+.ui-nutrients td {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+.ui-nutrients td[data-known='false'] {
+  color: var(--color-secondary);
+  font-weight: 700;
+}
+
+/* ---- Garden and pantry (checklist item 19; mock-up List) ---- */
+
+/* Rows that open a panel in place: the garden crops and the pantry items. */
+.ui-item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+}
+
+.ui-item-row {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-card);
+}
+
+/* The switch moves under the row button when the button would be narrower than 12rem. */
+.ui-item-row__main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+/* The text goes under the thumbnail when it would be narrower than 7rem beside it. */
+.ui-item-row__button {
+  display: flex;
+  flex: 1 1 12rem;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  min-height: var(--size-tap);
+  padding: 12px 8px 12px 12px;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+/* A word breaks only when it is longer than the whole line (break-word, not anywhere). */
+.ui-item-row__text {
+  display: flex;
+  flex: 1 1 7rem;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+/* The amount drops under the name, still at the right, when both do not fit on one line. */
+.ui-item-row__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 8px;
+}
+
+.ui-item-row__title,
+.ui-item-row__value {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ui-item-row__value {
+  margin-inline-start: auto;
+  text-align: end;
+}
+
+.ui-item-row__detail {
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-item-row__note {
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+/* The Ready switch beside the row button (or under it, at the right): the track over its label. */
+.ui-item-row__trailing {
+  flex: none;
+  margin-inline-start: auto;
+  padding: 0 12px 4px 4px;
+}
+
+.ui-item-row__trailing .ui-switch {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 2px;
+}
+
+.ui-item-row__trailing .ui-switch__label {
+  flex: none;
+  font-size: 13px;
+}
+
+/* An open crop, harvest or pantry panel, under its row or button. */
+.ui-item-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+/*
+ * A small phone, or a larger one zoomed in (item 19 review): the card, the row and the choices
+ * each add their own padding, so inside a panel the choices lose theirs to the words.
+ */
+@media (max-width: 359.98px) {
+  .ui-item-panel {
+    padding: 12px 6px;
+  }
+
+  .ui-card__body > .ui-item-panel {
+    padding-inline: 0;
+  }
+
+  .ui-item-panel .ui-choice {
+    gap: 10px;
+    padding-inline: 10px;
+  }
+
+  .ui-item-panel .ui-choice--checked {
+    padding-inline: 9px;
+  }
+}
+
+/* A choice too narrow for its words beside the mark (a phone at 200%): the words go under it. */
+@container (max-width: 180px) {
+  .ui-item-panel .ui-choice__text {
+    flex-basis: 100%;
+  }
+}
+
+.ui-item-panel h3,
+.ui-item-panel h4 {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+/* Suggestions under a name field: short tint buttons that wrap. */
+.ui-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* A past-keeps detail: the calm amber, never red. */
+.ui-text-amber {
+  color: var(--color-amber);
+}
+
+/* A crop's photo, or the leaf when there is none. */
+.ui-thumb {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-teal-tint);
+  color: var(--color-on-teal-tint);
+}
+
+.ui-thumb--large {
+  width: 160px;
+  height: 160px;
+  border-radius: 18px;
+}
+
+.ui-thumb__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ui-thumb__placeholder {
+  display: inline-flex;
+}
+
+/* ---- Item 27: the Move screens ---- */
+
+/* Text at the right of a card label, such as "Bodyweight" (the mock-up's Move card). */
+.ui-card__aside-text {
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* The week strip: seven read-only days, Monday first; today is bold and filled with ink. */
+.ui-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: center;
+}
+
+.ui-week__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ui-week__day {
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-week__item[aria-current='date'] .ui-week__day {
+  color: var(--color-ink);
+  font-weight: 800;
+}
+
+.ui-week__chip {
+  position: relative;
+  box-sizing: border-box;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 40px;
+  min-width: 0;
+  min-height: 40px;
+  padding: 4px 1px;
+  border: 2px solid transparent;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.ui-week__chip--strength {
+  background: var(--color-teal);
+  color: var(--color-on-teal);
+}
+
+.ui-week__chip--beach {
+  background: var(--color-teal-tint);
+  color: var(--color-on-teal-tint);
+}
+
+.ui-week__chip--rest {
+  border-color: var(--color-border-strong);
+  color: var(--color-secondary);
+}
+
+/* A past day with nothing logged: an outline only, never red, crossed or struck through (EX-08). */
+.ui-week__chip--outline {
+  border-color: var(--color-border-strong);
+  color: var(--color-ink-soft);
+}
+
+.ui-week__chip--done::after {
+  content: '✓' / '';
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--color-teal);
+  border-radius: 8px;
+  background: var(--color-card);
+  color: var(--color-teal);
+  font-size: 10px;
+  line-height: 13px;
+}
+
+.ui-week__item[aria-current='date'] .ui-week__chip {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-card);
+}
+
+@media (max-width: 359.98px) {
+  .ui-week__chip {
+    font-size: 11px;
+  }
+
+  .ui-week__day {
+    font-size: 12px;
+  }
+}
+
+/* Below 300 px the columns would be narrower than "Mon": the strip becomes seven rows. */
+@media (max-width: 299.98px) {
+  .ui-week {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    text-align: start;
+  }
+
+  .ui-week__item {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .ui-week__chip {
+    width: auto;
+    max-width: none;
+    min-width: 64px;
+  }
+}
+
+/* One of today's sessions, with its actions stacked under it. */
+.ui-move-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+}
+
+.ui-movement {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ui-movement + .ui-movement {
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border);
+}
+
+/* The sets of one movement: ticked, the next one with its stepper and tick, then the later ones. */
+.ui-sets {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ui-set {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: var(--size-tap);
+}
+
+.ui-set--next {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+}
+
+/* The session's stepper keeps − and + where they are whatever the value says ("2 minutes 30
+   seconds" or "3 minutes"): the value wraps inside its own box and the buttons stay at the top of
+   the row, so a second tap on + never lands anywhere else (item 27 review). */
+.ui-set--next .ui-stepper__controls {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+
+.ui-set--next .ui-stepper__value {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: var(--size-tap);
+  overflow-wrap: anywhere;
+}
+
+.ui-set--done {
+  font-weight: 750;
+}
+
+/* The session screen's views under the stop signs: a wrapper for focus that adds no box. */
+.ui-move-flow {
+  display: contents;
+}
+
 /* ---- Laptop pairing (checklist item 30): the camera view and the numbered steps ---- */
 
 /* A square camera view with a guide square, drawn only while the stream shows. */
@@ -1866,4 +2412,526 @@
 
 .ui-plain-list--numbered {
   list-style: decimal;
+}
+
+/* ---- Item 28: drinks (the neutral figures, the segmented control, tiles and the bar chart) ---- */
+
+/* A multi-line field keeps the field's look, tall enough for its lines. */
+.ui-field__input--multiline {
+  min-height: calc(var(--size-tap) * 2);
+  padding: 10px 14px;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+/* Two or three short choices side by side, joined; each segment's box is at least 48 px. */
+.ui-segmented {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ui-segmented__legend {
+  padding: 0 0 6px;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.ui-segmented__row {
+  display: flex;
+  flex-wrap: wrap;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-inset);
+  overflow: hidden;
+}
+
+.ui-segmented__option {
+  position: relative;
+  display: flex;
+  flex: 1 1 6em;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--size-tap);
+  min-height: var(--size-tap);
+  padding: 0 12px;
+  color: var(--color-ink);
+  font-size: 15px;
+  font-weight: 650;
+  text-align: center;
+  cursor: pointer;
+}
+
+.ui-segmented__option + .ui-segmented__option {
+  border-left: 1.5px solid var(--color-border-strong);
+}
+
+/* The chosen segment: filled, bold and outlined, so it is not marked by colour alone. */
+.ui-segmented__option--checked {
+  background: var(--color-card);
+  box-shadow: inset 0 0 0 2px var(--color-ink);
+  font-weight: 800;
+}
+
+.ui-segmented__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.ui-segmented__option:has(.ui-segmented__input:focus-visible) {
+  outline: 3px solid var(--color-focus);
+  outline-offset: -3px;
+}
+
+.ui-segmented:disabled .ui-segmented__option {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* The Drinks screen: one scrolling column of parts, each a column of cards (A1). */
+.ui-drinks-screen,
+.ui-drinks-part {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Drinks figures: a neutral colour, never success, warning or alarm (A28). */
+.ui-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 359.98px) {
+  .ui-stat-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.ui-stat-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--color-inset);
+  overflow-wrap: anywhere;
+}
+
+.ui-stat-tile__label,
+.ui-stat-tile__detail {
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-stat-tile__value {
+  color: var(--color-neutral);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+/* The guidance line under the drinks figures (mock-up Main). */
+.ui-drinks-guidance {
+  color: var(--color-neutral);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* A preset button: a long press opens its options, so the text is not selected on a hold. */
+.ui-preset-button {
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.ui-preset {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* At 200% text the More button drops under the preset, so the name never breaks letter by letter. */
+.ui-preset__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.ui-preset__row > .ui-button {
+  flex: 1 1 10em;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 10px 16px;
+  text-align: start;
+  overflow-wrap: break-word;
+}
+
+.ui-preset__name {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ui-preset__summary {
+  font-size: 14px;
+  font-weight: 650;
+}
+
+/* Logged drinks: one row per entry, its Edit button at the end and its editor under it. */
+.ui-drinks-entries {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--color-border);
+  list-style: none;
+}
+
+.ui-drinks-entries > li {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ui-drinks-entries > li:last-child {
+  border-bottom: 0;
+}
+
+.ui-drinks-entry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.ui-drinks-entry > span {
+  flex: 1 1 12em;
+  min-width: 0;
+}
+
+/* The logging status line takes no room until it has something to say (it stays announced). */
+.ui-log-status {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-weight: 700;
+}
+
+.ui-log-status:empty {
+  position: absolute;
+}
+
+/* A panel opened inside a card (More, Other drink, an editor): set apart by a rule. */
+.ui-subpanel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+}
+
+/* A fieldset is otherwise as wide as its widest content, past its panel at 200% text. */
+fieldset.ui-subpanel {
+  min-width: 0;
+}
+
+/* At 200% text on a phone (under 260 px of screen) a panel gives its fields the card's full width:
+   rules above and below, no side padding. */
+@media (max-width: 260px) {
+  .ui-subpanel {
+    padding-inline: 0;
+    border-inline: 0;
+    border-radius: 0;
+  }
+}
+
+/* The bar chart: no text inside the drawing; ticks and the key are HTML under it. */
+.ui-bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ui-bar-chart__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.ui-bar-chart__grid {
+  stroke: var(--color-border);
+  stroke-width: 1;
+}
+
+.ui-bar-chart__bar {
+  fill: var(--color-neutral);
+}
+
+.ui-bar-chart__bar--partial {
+  fill: var(--color-inset);
+  stroke: var(--color-neutral);
+  stroke-width: 2;
+}
+
+.ui-bar-chart__line {
+  fill: none;
+  stroke: var(--color-ink);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ui-bar-chart__reference {
+  stroke: var(--color-secondary);
+  stroke-width: 3;
+}
+
+/* The halo under each line and dot: the card colour, wider, so a line stays visible across a bar. */
+.ui-bar-chart__halo .ui-bar-chart__line,
+.ui-bar-chart__halo .ui-bar-chart__reference {
+  stroke: var(--color-card);
+  stroke-width: 7;
+}
+
+.ui-bar-chart__ticks {
+  display: grid;
+  color: var(--color-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Each label is centred under its bar, even when wider than the bar; the first starts at the left
+   edge and the last ends at the right edge. BarChart hides a label that would meet the next. */
+.ui-bar-chart__tick {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.ui-bar-chart__tick:first-child {
+  justify-content: flex-start;
+}
+
+.ui-bar-chart__tick:last-child {
+  justify-content: flex-end;
+}
+
+.ui-bar-chart__tick-text[data-hidden='true'] {
+  visibility: hidden;
+}
+
+.ui-bar-chart__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  list-style: none;
+}
+
+.ui-bar-chart__key {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ui-bar-chart__swatch {
+  flex: none;
+  width: 22px;
+  height: 0;
+}
+
+.ui-bar-chart__swatch--line {
+  border-top: 2px solid var(--color-ink);
+}
+
+.ui-bar-chart__swatch--reference {
+  border-top: 3px dotted var(--color-secondary);
+}
+
+/* ---- Recipes (checklist item 20) ---- */
+
+/* Chips side by side, wrapping; each chip's word carries its meaning. */
+.ui-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* A long chip ("Written for moderate low-carb") wraps on a narrow or zoomed screen. */
+.ui-chip-row > .ui-chip {
+  flex: 0 1 auto;
+  max-width: 100%;
+  padding-block: 3px;
+  overflow-wrap: anywhere;
+}
+
+/* Link rows with a divider between them, as on the approved List board. */
+.ui-link-list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+}
+
+.ui-link-list > li + li {
+  border-top: 1px solid var(--color-border);
+}
+
+.ui-link-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 12px 0;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.ui-link-row:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.ui-link-row__text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ui-link-row__overline {
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.ui-link-row__title {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ui-link-row__detail {
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-link-row__chevron {
+  display: inline-flex;
+  flex: none;
+  color: var(--color-secondary);
+}
+
+/* Ingredient lines: name and amount, then short details; the garden leaf in teal words. */
+.ui-line-list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+}
+
+.ui-line {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 0;
+  /* Whole words first: a name breaks inside a word only when the word is wider than the line. */
+  overflow-wrap: break-word;
+}
+
+.ui-line__name {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ui-line + .ui-line {
+  border-top: 1px solid var(--color-border);
+}
+
+.ui-line__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ui-line__amount {
+  flex: none;
+  text-align: end;
+}
+
+/* Narrow or zoomed screens: the amount moves under the name rather than squeezing it. */
+@media (max-width: 359.98px) {
+  .ui-line__head {
+    flex-wrap: wrap;
+  }
+}
+
+.ui-line__detail {
+  display: block;
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-line__leaf {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-on-teal-tint);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* A recipe's method: numbered steps. */
+.ui-method {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 22px;
+  list-style: decimal;
+}
+
+.ui-method li {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.ui-method li::marker {
+  font-weight: 800;
+}
+
+/* What "Scale servings" focuses: the Cooking for stepper's wrapper. */
+.ui-scale-target:focus,
+.ui-focus-target:focus {
+  outline: none;
+}
+
+.ui-scale-target:focus-visible,
+.ui-focus-target:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 16px;
 }

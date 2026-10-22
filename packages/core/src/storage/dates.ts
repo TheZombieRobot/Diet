@@ -11,9 +11,10 @@ import {
   isValidTimeZone,
   type LocalDate,
   localWallClockOf,
+  zonedWallTimeToInstant,
 } from '../util/time';
 import { DRINKING_DAY_CUTOVER_MINUTES } from './limits';
-import { type Instant, isTimeZoneName, type TimeZone } from './primitives';
+import { type Instant, instantMs, isTimeZoneName, type TimeZone } from './primitives';
 
 export { localWallClockOf } from '../util/time';
 
@@ -47,14 +48,18 @@ function assertCutover(cutoverMinutes: number): void {
 
 /**
  * The drinking day of a drink (C21): drinks before the cut-over count toward the previous evening.
- * Works on wall-clock minutes, never by subtracting hours from the instant, so the night clocks go
- * back (02:30 happens twice) and the night they go forward both come out right. With a cut-over of
- * 0 the drinking day is the calendar date. `timeZone` must already be resolved (resolveZone).
+ * The day starts at an instant, the first moment the calendar date's clock reaches the cut-over
+ * (zonedWallTimeToInstant), never by subtracting hours from the instant. So on the night clocks
+ * go back, a cut-over time that happens twice starts the day at its first reading and the repeat
+ * never moves the day back; on the night they go forward over it, the day starts at the first
+ * minute after the jump. With a cut-over of 0 the drinking day is the calendar date. `timeZone`
+ * must already be resolved (resolveZone).
  */
 export function drinkingDayOf(at: Instant, timeZone: TimeZone, cutoverMinutes: number): LocalDate {
   assertCutover(cutoverMinutes);
-  const { date, minutes } = localWallClockOf(at, timeZone);
-  return minutes < cutoverMinutes ? addDays(date, -1) : date;
+  const { date } = localWallClockOf(at, timeZone);
+  const starts = zonedWallTimeToInstant(date, cutoverMinutes, timeZone);
+  return instantMs(at) >= starts ? date : addDays(date, -1);
 }
 
 /** How many drinking days a change of zone skipped at instant `at` (0 when nothing was skipped). */

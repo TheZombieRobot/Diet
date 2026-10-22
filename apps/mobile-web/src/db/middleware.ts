@@ -12,10 +12,14 @@
  *   shapes, and runUpgrade and populate validate explicitly instead (section 9).
  * - It is synchronous and never checks the write gate, because import, upgrade and delete-all must
  *   still run after the gate has closed.
+ * - Item 19: every garden photo written, by any code, must also be a clean JPEG of its stated size
+ *   (core photoProblem; G2, G4): one that still carries metadata (a location, camera details, a
+ *   comment, a trailer) is refused. This checks a write; it changes no validator, so the schema
+ *   version does not move, and import never writes photos.
  */
-import { type TableSpecs, validateRow } from '@diet/core';
+import { type GardenPhotoRecord, photoProblem, type TableSpecs, validateRow } from '@diet/core';
 import type { DBCore, DBCoreMutateRequest, DBCoreRangeType, DBCoreTable, Middleware } from 'dexie';
-import { StorageOperationError } from './errors';
+import { StorageOperationError, StorageRuleError } from './errors';
 
 /** DBCoreRangeType.Any: the range a Table.clear() sends (a const enum, so written as its value). */
 const RANGE_ANY = 3 as DBCoreRangeType;
@@ -50,6 +54,12 @@ export function refusal(
   }
   if (request.type === 'add' || request.type === 'put') {
     for (const value of request.values) validateRow(table, value, specs);
+    if (table === 'garden_photos') {
+      for (const value of request.values) {
+        const problem = photoProblem(value as GardenPhotoRecord);
+        if (problem !== null) return new StorageRuleError(table, problem);
+      }
+    }
   }
   return null;
 }

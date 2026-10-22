@@ -203,6 +203,25 @@ describe('UX 4d: beach jogging needs the opt-in and four tolerated walks', () =>
       [...walks(4), hardJog, ...walkAfter],
       'unlocked',
     ],
+    // The clock set back two days: rows dated after today count against jogging, never for it.
+    [
+      'a clock set back: a jog dated after today rated effort 5',
+      true,
+      [...walks(4), jogOn(60, '2000-01-21', { exertion: 5 })],
+      'paused',
+    ],
+    [
+      'a clock set back: a jog dated after today never finished',
+      true,
+      [...walks(4), jogOn(61, '2000-01-21', { status: 'planned', exertion: null, soreness: null })],
+      'paused',
+    ],
+    [
+      'a clock set back: a walk dated after today does not clear the pause',
+      true,
+      [...walks(4), hardJog, walk(70, '2000-01-21'), restAfterCheck(71, '2000-01-22')],
+      'paused',
+    ],
   ])('%s', (_label, jogOptIn, sessions, state) => {
     expect(jogStatus(data, { jogOptIn, sessions, today: '2000-01-19' }).state).toBe(state);
   });

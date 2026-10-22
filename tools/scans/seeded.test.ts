@@ -242,6 +242,37 @@ describe('seeded violations in a throwaway repository', () => {
       "it.skip('x', () => {});\n",
       'disabled-test',
     ],
+    // Item 19 (D1; GD-02, HS-15): only the named files reach the photo store, by name or generically.
+    [
+      'GD-02 the photo store named in an exporter',
+      'packages/grocery/src/export.ts',
+      'export const rows = (db: Db) => db.garden_photos.toArray();\n',
+      'device-only-store-name',
+    ],
+    [
+      'GD-02 a loop over every store name',
+      'apps/mobile-web/src/exportAll.ts',
+      'export async function all(db: Db) {\n  for (const n of STORE_NAMES) await db.table(n).toArray();\n}\n',
+      'generic-store-access',
+    ],
+    [
+      'GD-02 every Dexie table',
+      'apps/mobile-web/src/exportAll.ts',
+      'export const all = (db: Db) => Promise.all(db.tables.map((t) => t.toArray()));\n',
+      'generic-store-access',
+    ],
+    [
+      'GD-02 the device-only list',
+      'apps/mobile-web/src/exportAll.ts',
+      "import { DEVICE_ONLY_TABLES } from '@diet/core';\nexport const extra = DEVICE_ONLY_TABLES;\n",
+      'generic-store-access',
+    ],
+    [
+      'GD-02 a store reached by a computed name',
+      'apps/mobile-web/src/exportAll.ts',
+      'export const rows = (db: Db, name: string) => db[name].toArray();\n',
+      'generic-store-access',
+    ],
   ])('%s: seeding %s fails, removing it passes', (_name, file, content, ruleId) => {
     write(file, content);
     expect(ruleIds()).toContain(ruleId);
@@ -267,6 +298,275 @@ describe('seeded violations in a throwaway repository', () => {
       'export default { workbox: { runtimeCaching: [] } };\n',
     );
     expect(scanRepo(root)).toEqual([]);
+  });
+
+  it('GD-02: a named file may reach the photo store; tests may too', () => {
+    write(
+      'apps/mobile-web/src/garden/photoStore.ts',
+      'export const ids = (repos: Repos) => repos.gardenPhotos.ids();\n',
+    );
+    write(
+      'apps/mobile-web/src/db/snapshot.ts',
+      'export const all = (db: Db) => BACKUP_TABLES.map((name) => db.table(name).toArray());\n',
+    );
+    write('apps/mobile-web/src/x.test.ts', 'export const n = db.garden_photos.count();\n');
+    expect(scanRepo(root)).toEqual([]);
+  });
+
+  // Item 19 review (high): every way the earlier regular expressions were passed, read now with
+  // the compiler and its types. A typed database (DEXIE below) stands in for the app's DietDb.
+  describe('GD-02: the device-only scan reads the code with its types', () => {
+    const DEXIE =
+      'declare class Dexie {\n' +
+      '  tables: { name: string }[];\n' +
+      '  core: { schema: { tables: unknown[] } };\n' +
+      '  _allTables: Record<string, unknown>;\n' +
+      '  table(name: string): { toArray(): Promise<unknown[]> };\n' +
+      '}\n' +
+      'declare const storage: { db: Dexie };\n';
+    const app = 'apps/mobile-web/src/garden/exportEverything.ts';
+    // A store accessor in an allowed file: a generic repository takes any store's name.
+    const crud =
+      "export type StoreName = 'garden' | 'garden_photos';\n" +
+      'export function crudRepo<K extends StoreName>(ctx: unknown, table: K) {\n' +
+      '  return [ctx, table];\n' +
+      '}\n';
+
+    it.each([
+      [
+        'the review repro: an alias, every table, a template and a concatenated name',
+        app,
+        `${DEXIE}export async function everything() {\n  const database = storage.db;\n  await Promise.all(database.tables.map((t) => t.name));\n  await Promise.all(database.tables.map((t) => storage.db.table(\`\${t.name}\`).toArray()));\n  await storage.db.table('garden_' + 'photos').toArray();\n}\n`,
+        ['generic-store-access', 'device-only-store-name'],
+      ],
+      [
+        'a database under another name (alias)',
+        app,
+        `${DEXIE}const database = storage.db;\nexport const all = database.tables.map((t) => t.name);\n`,
+        ['generic-store-access'],
+      ],
+      [
+        'a database held on a class (this.database.tables)',
+        app,
+        `${DEXIE}export class Exporter {\n  constructor(private readonly database: Dexie) {}\n  all() {\n    return this.database.tables;\n  }\n}\n`,
+        ['generic-store-access'],
+      ],
+      [
+        'a template as the store name',
+        app,
+        `${DEXIE}export const rows = (n: string) => storage.db.table(\`\${n}\`).toArray();\n`,
+        ['generic-store-access'],
+      ],
+      [
+        'a concatenated literal as the store name',
+        app,
+        `${DEXIE}export const rows = () => storage.db.table('garden' + '_photos').toArray();\n`,
+        ['generic-store-access', 'device-only-store-name'],
+      ],
+      [
+        'the store name built from constants',
+        app,
+        "const a = 'garden_';\nconst b = 'photos';\nexport const name = `${a}${b}`;\n",
+        ['device-only-store-name'],
+      ],
+      [
+        'the store name with an escape in a string',
+        app,
+        `${DEXIE}export const rows = () => storage.db.table('garden\\u005fphotos').toArray();\n`,
+        ['device-only-store-name'],
+      ],
+      [
+        'the store name with an escape in an identifier',
+        app,
+        'export const rows = (db: { [k: string]: { toArray(): unknown } }) =>\n  db.garden\\u005fphotos.toArray();\n',
+        ['device-only-store-name'],
+      ],
+      [
+        "Dexie's own table list (_allTables)",
+        app,
+        `${DEXIE}export const all = Object.values(storage.db._allTables);\n`,
+        ['generic-store-access'],
+      ],
+      [
+        "Dexie's core schema",
+        app,
+        `${DEXIE}export const all = storage.db.core.schema.tables;\n`,
+        ['generic-store-access'],
+      ],
+      [
+        'a concatenated object-store name',
+        app,
+        "declare const tx: IDBTransaction;\nexport const req = tx.objectStore('garden' + '_photos').getAll();\n",
+        ['generic-store-access', 'device-only-store-name'],
+      ],
+      [
+        'an object store by a variable name',
+        app,
+        'export const all = (tx: IDBTransaction, name: string) => tx.objectStore(name).getAll();\n',
+        ['generic-store-access'],
+      ],
+      [
+        "IndexedDB's list of stores",
+        app,
+        'export const names = (idb: IDBDatabase) => [...idb.objectStoreNames];\n',
+        ['generic-store-access'],
+      ],
+      [
+        'a loop over every store name without .table()',
+        app,
+        "import { STORE_NAMES } from '@diet/core';\nexport const names: string[] = [];\nfor (const n of STORE_NAMES) names.push(n);\n",
+        ['generic-store-access'],
+      ],
+      [
+        "version 1's stores",
+        app,
+        "import { STORES_V1 } from '@diet/core';\nexport const names = Object.keys(STORES_V1);\n",
+        ['generic-store-access'],
+      ],
+      [
+        'the photo repository in the grocery package',
+        'packages/grocery/src/photos.ts',
+        'export const photo = (repos: { [k: string]: { get(id: string): unknown } }, id: string) =>\n  repos.gardenPhotos.get(id);\n',
+        ['device-only-store-name'],
+      ],
+      [
+        'the photo record type in a file that is not listed',
+        'apps/mobile-web/src/screens/garden/photoRow.ts',
+        "import type { GardenPhotoRecord } from '@diet/core';\nexport type Row = GardenPhotoRecord;\n",
+        ['device-only-store-name'],
+      ],
+      [
+        'every table from a file in the database folder that is not named',
+        'apps/mobile-web/src/db/exportAll.ts',
+        `${DEXIE}export const all = () => storage.db.tables.map((t) => t.name);\n`,
+        ['generic-store-access'],
+      ],
+      [
+        'the photo store in the backup code',
+        'packages/core/src/storage/backup/photos.ts',
+        "export const photos = 'garden_photos';\n",
+        ['device-only-store-name'],
+      ],
+      [
+        'the photo store in test data (no longer exempt)',
+        'packages/test-fixtures/src/garden/export.ts',
+        "export const store = 'garden_photos';\n",
+        ['device-only-store-name'],
+      ],
+      [
+        'a database cast to any',
+        app,
+        `${DEXIE}export const all = (storage.db as unknown as { tables: unknown }).tables;\n`,
+        ['generic-store-access'],
+      ],
+      [
+        'a database passed where its type is lost',
+        app,
+        `${DEXIE}export const all = Object.values(storage.db);\n`,
+        ['generic-store-access'],
+      ],
+      [
+        "a database passed through the project's own generic",
+        app,
+        `${DEXIE}function keys<T>(value: T): string[] {\n  return Object.keys(value as object);\n}\nexport const all = keys(storage.db);\n`,
+        ['generic-store-access'],
+      ],
+      [
+        'a database taken apart',
+        app,
+        `${DEXIE}const { tables } = storage.db;\nexport const all = tables;\n`,
+        ['generic-store-access'],
+      ],
+      [
+        'a computed member of a database',
+        app,
+        `${DEXIE}export const pick = (k: string) => (storage.db as Dexie & { [k: string]: unknown })[k];\n`,
+        ['generic-store-access'],
+      ],
+      [
+        'the table method kept to be called later',
+        app,
+        `${DEXIE}const read = storage.db.table.bind(storage.db);\nexport const rows = read('weights');\n`,
+        ['generic-store-access'],
+      ],
+      [
+        'IndexedDB opened outside the database files',
+        app,
+        "export const open = () => indexedDB.open('diet');\n",
+        ['database-opened'],
+      ],
+      [
+        'a second Dexie connection',
+        app,
+        `${DEXIE}export const db = new Dexie();\n`,
+        ['database-opened'],
+      ],
+    ])('%s fails; removing it passes', (_name, file, content, ruleIdsExpected) => {
+      write(file, content);
+      expect(ruleIds()).toEqual(expect.arrayContaining(ruleIdsExpected));
+      rmSync(join(root, file));
+      expect(scanRepo(root)).toEqual([]);
+    });
+
+    it('a store accessor of an allowed file takes literal names only, and is not passed on', () => {
+      write('apps/mobile-web/src/db/repos/crud.ts', crud);
+      const uses = 'apps/mobile-web/src/db/repos/uses.ts';
+      write(
+        uses,
+        "import { crudRepo, type StoreName } from './crud';\nexport const rows = (name: StoreName) => crudRepo(null, name);\n",
+      );
+      expect(ruleIds()).toEqual(['generic-store-access']);
+      write(
+        uses,
+        "import { crudRepo as make } from './crud';\nconst again = make;\nexport const rows = again(null, 'garden');\n",
+      );
+      expect(ruleIds()).toEqual(['generic-store-access']);
+      // A literal, or a name typed so it can never be the photo store, is fine.
+      write(
+        uses,
+        "import { crudRepo } from './crud';\nexport const a = crudRepo(null, 'garden');\nexport const b = <K extends 'garden'>(t: K) => crudRepo(null, t);\n",
+      );
+      expect(scanRepo(root)).toEqual([]);
+    });
+
+    it('test data and test helpers are imported only by tests and other test helpers', () => {
+      const screen = 'apps/mobile-web/src/screens/today/Example.tsx';
+      write(
+        screen,
+        "import { fixtureId } from '@diet/test-fixtures';\nexport const id = fixtureId(1);\n",
+      );
+      expect(ruleIds()).toEqual(['test-only-import']);
+      write(screen, "export { openTestDb } from '../../db/testKit';\n");
+      expect(ruleIds()).toEqual(['test-only-import']);
+      write(
+        screen,
+        "export const load = () => import('../../../../../packages/test-fixtures/src/garden/jpeg');\n",
+      );
+      expect(ruleIds()).toEqual(['test-only-import']);
+      rmSync(join(root, screen));
+      write(
+        'apps/mobile-web/src/screens/today/todayTestKit.ts',
+        "export { openTestDb } from '../../db/testKit';\nexport { fixtureId } from '@diet/test-fixtures';\n",
+      );
+      write(
+        'apps/mobile-web/src/screens/today/Today.test.tsx',
+        "import { fixtureId } from '@diet/test-fixtures';\nexport const id = fixtureId(1);\n",
+      );
+      expect(scanRepo(root)).toEqual([]);
+    });
+
+    it('what stays allowed: a typed object with its own tables, a literal store name, a typed database, the specs', () => {
+      write(
+        app,
+        `${DEXIE}declare const payload: { tables: Record<string, unknown[]> };\nexport const n = Object.keys(payload.tables).length;\nexport const rows = () => storage.db.table('weights').toArray();\nconst database = storage.db;\nexport function keep(db: Dexie): Dexie {\n  return db;\n}\nexport const same = keep(database);\n`,
+      );
+      // A validator read by a store's name (the transfer payload checks a grocery list this way).
+      write(
+        'packages/grocery/src/check.ts',
+        "import { checkRow, TABLES_V1 } from '@diet/core';\nexport const ok = (row: unknown) => checkRow('grocery_lists', row, TABLES_V1).ok;\n",
+      );
+      expect(scanRepo(root)).toEqual([]);
+    });
   });
 
   it('privacy: ignored files (kept out of git) are not scanned, committed ones are', () => {

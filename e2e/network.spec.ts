@@ -5,8 +5,23 @@ import {
   type Page,
   test,
 } from '@playwright/test';
-import { seedOnboarded, visitEveryScreen, waitForServiceWorkerControl } from './support/app';
+import {
+  openFoodPanel,
+  openRecipe,
+  type ScreenName,
+  seedOnboarded,
+  SWEPT_RECIPE,
+  visitEveryScreen,
+  waitForServiceWorkerControl,
+} from './support/app';
 import { expectOnlyOwnOrigin, startAudit } from './support/network';
+
+/** Item 18 (E2): the generic loop never opens a food, so the audit opens one on Foods in the app. */
+const openAFood =
+  (page: Page) =>
+  async (screen: ScreenName): Promise<void> => {
+    if (screen === 'Foods in the app') await openFoodPanel(page);
+  };
 
 // HS-14 / TR-11, as reworded by DOC_REVIEW C03: the phone app makes only GET requests to its own
 // origin for app files and update checks, with no query string, header, cookie or body built
@@ -27,7 +42,9 @@ test('online, every screen: requests go only to the app’s own files', async ({
   const audit = await startAudit(context, request, baseURL);
   await seedOnboarded(page);
   await waitForServiceWorkerControl(page);
-  await visitEveryScreen(page);
+  await visitEveryScreen(page, openAFood(page));
+  // Item 20: a recipe's page (E4).
+  await openRecipe(page, SWEPT_RECIPE);
   await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Today' }).click();
   // Item 16 (E3): logging on Today asks nothing of the network.
   await page.getByRole('button', { name: 'Add 250 mL' }).click();
@@ -61,7 +78,8 @@ test('offline, every screen: no request reaches the network at all', async ({
   const failed: string[] = [];
   context.on('requestfailed', (r) => failed.push(r.url()));
   await page.reload();
-  await visitEveryScreen(page);
+  await visitEveryScreen(page, openAFood(page));
+  await openRecipe(page, SWEPT_RECIPE);
   expect(failed).toEqual([]);
   await audit.verify();
 });

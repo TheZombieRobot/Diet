@@ -13,12 +13,13 @@ import { useBackupReminder } from '../backup/reminder';
 import { TodayFastCard } from '../fasting/FastCard';
 import { FastingErrorBoundary } from '../fasting/FastingErrorBoundary';
 import { InstallBanner } from '../InstallBanner';
+import { MovementCard } from '../move/MovementCard';
 import { endLatchStore } from '../weight/stores';
 import { WeightCard } from '../weight/WeightCard';
+import { useDrinksView } from '../drinks/useDrinksView';
 import { AlcoholHelpCard } from './AlcoholHelpCard';
 import { DrinksCard } from './DrinksCard';
 import { useFocusRescue } from './focus';
-import { LaterStepCard } from './LaterStepCard';
 import { NutritionTodayCard } from './NutritionTodayCard';
 import { RemindersCard } from './RemindersCard';
 import { LiveStatusBlock, StatusBlock } from './StatusBlock';
@@ -66,6 +67,8 @@ function TodayWithRecords({ storage }: { readonly storage: AppStorage }): ReactE
   const [editingSteps, setEditingSteps] = useState(false);
   const statusRef = useRef<HTMLDivElement>(null);
   useFocusRescue(statusRef);
+  // Item 28: the drinks read shared by the Talk to someone and Drinks cards (and the Drinks screen).
+  const drinks = useDrinksView(storage);
 
   const dateOnly = <StatusBlock ref={statusRef} now={now} zone={zone} line={null} />;
   if (read.status === 'error') {
@@ -76,7 +79,7 @@ function TodayWithRecords({ storage }: { readonly storage: AppStorage }): ReactE
     return (
       <>
         {setupDone ? <LiveStatusBlock ref={statusRef} storage={storage} now={now} /> : dateOnly}
-        {setupDone ? <AlcoholHelpCard storage={storage} /> : null}
+        {setupDone ? <AlcoholHelpCard storage={storage} drinks={drinks} /> : null}
         <Notice role="alert">
           <p>{copy.readFailed}</p>
           <Button
@@ -116,7 +119,7 @@ function TodayWithRecords({ storage }: { readonly storage: AppStorage }): ReactE
   return (
     <>
       <LiveStatusBlock ref={statusRef} storage={storage} now={now} />
-      <AlcoholHelpCard storage={storage} />
+      <AlcoholHelpCard storage={storage} drinks={drinks} />
       {reminders.prominent ? remindersCard : null}
       <UpdateNoticeCard storage={storage} />
       <InstallBanner />
@@ -144,8 +147,9 @@ function TodayWithRecords({ storage }: { readonly storage: AppStorage }): ReactE
           onEditing={setEditingSteps}
         />
       </div>
-      <LaterStepCard card="movement" />
-      <DrinksCard drinks={view.drinks} />
+      {/* Item 27: the week's plan, today's sessions and their ratings (UX 2 card 6). */}
+      <MovementCard storage={storage} />
+      <DrinksCard drinks={view.drinks} state={drinks} />
       {reminders.prominent ? null : remindersCard}
     </>
   );

@@ -113,7 +113,9 @@ export async function readHeaders(seen: readonly Seen[]): Promise<void> {
     seen.map(async (s) => {
       if (s.request === undefined || s.headers !== undefined) return;
       s.headers = await Promise.race([
-        s.request.allHeaders(),
+        // A request of a page closed since (item 19's offline test closes one) keeps the
+        // headers Playwright saw when it was sent.
+        s.request.allHeaders().catch(() => s.request?.headers() ?? {}),
         new Promise<Record<string, string>>((resolve) => {
           setTimeout(() => {
             resolve(s.request?.headers() ?? {});
@@ -178,6 +180,13 @@ export function expectOnlyOwnOrigin(
   files: ReadonlyMap<string, string | null>,
 ): void {
   for (const { url, method, body, headers } of seen) {
+    // Item 19: an object URL the page made itself (a garden photo's thumbnail) is read from the
+    // page's own memory: nothing leaves the browser.
+    const objectUrl = `blob:${origin}/`;
+    if (url.startsWith(objectUrl) && /^[0-9a-f-]{36}$/.test(url.slice(objectUrl.length))) {
+      expect(method, url).toBe('GET');
+      continue;
+    }
     const parsed = new URL(url);
     expect(parsed.origin, url).toBe(origin);
     expect(parsed.pathname.startsWith(BASE_PATH), url).toBe(true);

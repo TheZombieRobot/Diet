@@ -7,6 +7,8 @@ import {
   today,
   weight,
 } from '../packages/core/src/copy/health';
+import { APPROVED_NUTRIENT_SOURCES } from '../packages/core/src/foods/approval';
+import { ALCOHOL_SECTION_RULES } from '../packages/core/src/copy/alcoholRules';
 import { commerceRules, healthPhraseRules } from '../tools/scans/rules';
 import { scanText } from '../tools/scans/scan';
 import {
@@ -14,12 +16,15 @@ import {
   heading,
   offerInstall,
   openBackupPanels,
+  openFoodPanel,
+  openRecipe,
   patchRecords,
   renderedText,
   type ScreenName,
   SCREENS,
   seedOnboarded,
   SETUP_SCREENS,
+  SWEPT_RECIPE,
   visitEveryScreen,
 } from './support/app';
 
@@ -29,12 +34,35 @@ import {
 // (HS-07, HS-08, HS-19, HS-21, HS-26) and the price, stock and cart-status wording rules (HS-16).
 
 const RULES = [...healthPhraseRules, ...commerceRules];
+const FOODS: ScreenName = 'Foods in the app';
 
 const region = (page: Page, name: string) => page.getByRole('region', { name, exact: true });
 const quickActionsPanel = (page: Page) => page.locator('.ui-fab-panel');
 
 async function violations(page: Page, where: string): Promise<string[]> {
   return scanText(where, await renderedText(page), RULES).map((v) => `${where}: ${v.ruleId}`);
+}
+
+/**
+ * Item 28 (C16, C66, A34): the alcohol section's own rules, over the Drinks screen, Today's Drinks
+ * card and the Talk to someone card only. The rest of Today legitimately shows wording they would
+ * flag, such as the weight card's "long-term goal".
+ */
+async function alcoholViolations(page: Page, where: string): Promise<string[]> {
+  const regions = [
+    page.getByTestId('drinks-screen'),
+    region(page, today.cards.drinks),
+    region(page, alcohol.helpCardLabel),
+  ];
+  const found: string[] = [];
+  for (const part of regions) {
+    for (const text of await part.allInnerTexts()) {
+      for (const rule of ALCOHOL_SECTION_RULES) {
+        if (rule.test(text)) found.push(`${where}: ${String(rule)}`);
+      }
+    }
+  }
+  return found;
 }
 
 /** Every screen as it shows with the install offer, the Today banner and the "+" panel open. */
@@ -65,19 +93,51 @@ test('HS-31: no screen shows banned health, price, stock or cart wording', async
   const found: string[] = [];
 
   await visitEveryScreen(page, async (screen) => {
+    // Item 18: the generic loop never opens a food, so open one (E2).
+    if (screen === FOODS) await openFoodPanel(page);
     found.push(...(await violations(page, screen)));
   });
-  await visitWithEverythingOpen(page, async (where) => {
+  await visitWithEverythingOpen(page, async (where, screen) => {
+    if (screen === FOODS) await openFoodPanel(page);
     found.push(...(await violations(page, where)));
   });
   await goTo(page, 'Settings');
   await openBackupPanels(page);
   found.push(...(await violations(page, 'Settings with the backup panels open')));
+  // Item 20: a recipe's page (recipes.spec.ts E1 reads every one).
+  await openRecipe(page, SWEPT_RECIPE);
+  found.push(...(await violations(page, 'A recipe page')));
+
+  // Item 28 (E2): Drinks with a logged drink, a milestone with no own words and a ticked note.
+  await goTo(page, 'Drinks');
+  const log = region(page, alcohol.log.cardLabel);
+  await log.getByRole('button', { name: /^Zero-sugar premix / }).click();
+  await expect(log.getByTestId('drinks-added')).toBeVisible();
+  const milestones = region(page, alcohol.milestones.cardLabel);
+  await milestones.getByRole('button', { name: alcohol.milestones.add }).click();
+  await milestones.getByLabel(alcohol.milestones.weeklyLabel).fill('8');
+  await milestones.getByLabel(alcohol.milestones.fromLabel).fill('2000-01-03');
+  await milestones.getByRole('radio', { name: alcohol.milestones.whoSelf }).check();
+  await milestones.getByRole('button', { name: alcohol.milestones.save }).click();
+  await expect(milestones.getByText(alcohol.milestones.rowTitle, { exact: true })).toBeVisible();
+  const note = region(page, alcohol.dayNote.cardLabel);
+  await note.getByRole('checkbox', { name: alcohol.dayNote.withdrawalTick }).check();
+  await note.getByRole('button', { name: alcohol.dayNote.save }).click();
+  await expect(region(page, alcohol.helpCardLabel)).toBeVisible();
+  await region(page, alcohol.trends.cardLabel)
+    .getByRole('button', { name: alcohol.trends.showList })
+    .click();
+  found.push(...(await violations(page, 'Drinks with records')));
+  found.push(...(await alcoholViolations(page, 'Drinks with records')));
+  await goTo(page, 'Today');
+  await expect(region(page, alcohol.helpCardLabel)).toBeVisible();
+  found.push(...(await violations(page, 'Today with drinks')));
+  found.push(...(await alcoholViolations(page, 'Today with drinks')));
 
   expect(found).toEqual([]);
 });
 
-test('no screen but About, Weight, Fasting and Diet and targets shows a number or a price, even with every banner and panel open', async ({
+test('no screen but About, Drinks, Weight, Fasting, Diet and targets, Foods, Recipes and Move shows a number or a price (Garden and pantry only its ready count, Food its recipe count), even with every banner and panel open', async ({
   page,
 }) => {
   // Screens must not look like they hold records they do not have (no sample data). The fresh
@@ -86,13 +146,18 @@ test('no screen but About, Weight, Fasting and Diet and targets shows a number o
   // owner's own entries, the question about being under 18 and the pattern names such as 16:8, the
   // Weight screen, whose labels carry digits by design ("7-day average", "Less 0.1 kg"), and the
   // Fasting screen, which shows the owner's eating pattern and its clock times (item 15), and Diet
-  // and targets, which shows the owner's own figures and the allowed ranges by design (item 21).
+  // and targets, which shows the owner's own figures and the allowed ranges by design (item 21),
+  // and Move, which shows the exercise dataset's session lengths and amounts (item 27).
   // On Today the Fast card may carry digits, for the same pattern ("22:2", "Eat 5:00 pm – 7:00 pm"),
   // and is left out by element (item 15 review); the Nutrition today card shows today's intake
   // (none: every figure 0; item 21); and item 16's own figures are removed one element at a time:
   // the date and status line, the "Add 250 mL" button, the NZ guidance line and the lipid-test
   // reminder. A digit anywhere else on Today, such as an unbuilt card, a later-step line or a
   // "Later" row of the "+" panel (TD-02), still fails.
+  // Foods in the app is left out too: its numbers are the catalogue's (its count, typical pack
+  // sizes), not records; that it never shows a nutrient figure as a number is E1 (foods.spec.ts).
+  // So are Recipes (serves, times and days are the dataset's; item 20's E1 checks its figures)
+  // and, on Food, the Meals link's count of shipped recipes.
   await seedOnboarded(page, './', './', { weightKg: null });
   const found: string[] = [];
   const check = async (where: string, screen: ScreenName) => {
@@ -106,9 +171,14 @@ test('no screen but About, Weight, Fasting and Diet and targets shows a number o
     if (screen === 'Today') await expect(region(page, today.cards.movement)).toBeVisible();
     if (
       screen === 'About' ||
+      // Item 28: Drinks shows the help numbers, the guidance figures and the stored cut-over.
+      screen === 'Drinks' ||
       screen === 'Weight' ||
       screen === 'Fasting and reflux' ||
       screen === 'Diet and targets' ||
+      screen === FOODS ||
+      screen === 'Move' ||
+      screen === 'Recipes' ||
       (SETUP_SCREENS as readonly string[]).includes(screen)
     ) {
       if (/[$€£]/.test(await renderedText(page))) found.push(`${where}: a currency sign`);
@@ -116,18 +186,34 @@ test('no screen but About, Weight, Fasting and Diet and targets shows a number o
     }
     let text = await renderedText(
       page,
-      screen === 'Today' ? region(page, fasting.card.label) : undefined,
+      screen === 'Today'
+        ? region(page, fasting.card.label)
+        : // Item 28: the Settings Drinks card shows the stored cut-over (its select's value, 300,
+          // and "5:00 am") and the guidance line.
+          screen === 'Settings'
+          ? region(page, alcohol.settings.cardLabel)
+          : undefined,
     );
+    // Item 19: the garden's ready pill ("1 ready") is the only figure there; any other digit,
+    // such as a made-up weight, still fails (GD-03).
+    if (screen === 'Garden and pantry') {
+      text = text.replace(await page.getByTestId('garden-ready-pill').innerText(), '');
+    }
+    if (screen === 'Food')
+      text = text.replace(await page.getByTestId('food-recipes-link').innerText(), '');
     if (screen === 'Today') {
       // The Nutrition today card shows today's intake (none: every figure 0) against the owner's
       // own stored ranges and guides, never sample data (item 21; targets.spec.ts checks them).
       const nutrition = region(page, targets.today.label);
       await expect(nutrition.locator('.ui-meter__value').first()).toHaveText('0 kJ');
+      // Item 27's Movement card shows the dataset's session lengths ("about 25 to 27 minutes").
       const ownFigures = [
         nutrition,
+        region(page, today.cards.movement),
         page.getByTestId('today-status'),
         region(page, today.cards.water).getByRole('button', { name: today.water.add }),
-        page.getByTestId('drinks-guidance'),
+        // Item 28: the Drinks card's tiles (alcohol-free days counted) and the guidance line.
+        region(page, today.cards.drinks),
         page.getByTestId('reminder-cholesterol'),
       ];
       for (const part of ownFigures) text = text.replace(await part.innerText(), '');
@@ -168,6 +254,23 @@ test('HS-31: Today filled in, with the steps editor and the "+" panel open, and 
   expect(found).toEqual([]);
 });
 
+test('E4 C97 NU-09: while no food database is approved, no screen names one', async ({ page }) => {
+  expect(APPROVED_NUTRIENT_SOURCES).toEqual([]);
+  await seedOnboarded(page);
+  const DATABASE_NAMES = [
+    /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
+    /food composition/i,
+  ];
+  const found: string[] = [];
+  await visitEveryScreen(page, async (screen) => {
+    if (screen === FOODS) await openFoodPanel(page);
+    const text = await renderedText(page);
+    for (const name of DATABASE_NAMES)
+      if (name.test(text)) found.push(`${screen}: ${String(name)}`);
+  });
+  expect(found).toEqual([]);
+});
+
 test('the rendered-text scan catches wording that slips into a screen', async ({ page }) => {
   await seedOnboarded(page, './#/drinks');
   await expect(heading(page)).toHaveText('Drinks');
@@ -180,7 +283,14 @@ test('the rendered-text scan catches wording that slips into a screen', async ({
     input.placeholder = 'Calories left today';
     input.setAttribute('aria-description', 'Safe to drive in an hour');
     document.querySelector('main')?.append(seeded, input);
+    // Item 28: wording only the alcohol section's rules catch, inside the Drinks screen.
+    const praise = document.createElement('p');
+    praise.textContent = 'Great job, 3 days in a row';
+    document.querySelector('[data-testid="drinks-screen"]')?.append(praise);
   });
+  expect(await alcoholViolations(page, 'seeded')).toEqual(
+    expect.arrayContaining([expect.stringContaining('in\\s+a\\s+row')]),
+  );
   const ids = (await violations(page, 'seeded')).map((v) => v.replace('seeded: ', ''));
   expect(ids).toEqual(
     expect.arrayContaining([

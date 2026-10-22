@@ -49,6 +49,13 @@ html {
   scroll-padding-bottom: calc(var(--size-tabbar) + env(safe-area-inset-bottom, 0px) + 16px);
 }
 
+/* On a short screen the top bar scrolls away with the page (components.css), so nothing to clear. */
+@media (max-height: 560px) {
+  html {
+    scroll-padding-top: 8px;
+  }
+}
+
 /* Today: clear of the floating "+" as well. */
 html:has(.ui-shell--with-fab) {
   scroll-padding-bottom: calc(
@@ -77,6 +84,12 @@ p,
 ul,
 ol {
   margin: 0;
+}
+
+/* The hidden attribute always hides, whatever display a class gives the element (item 27 review:
+   a collapsed list styled as a flex column stayed on screen). */
+[hidden] {
+  display: none !important;
 }
 
 ul,

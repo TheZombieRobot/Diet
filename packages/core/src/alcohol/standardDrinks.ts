@@ -141,8 +141,28 @@ export function drinkEnergy(beverage: Beverage): DrinkEnergy {
       labelImplausible: false,
     };
   }
-  const labelImplausible = printed < 0.9 * grams * KCAL_PER_GRAM_ALCOHOL;
+  const labelImplausible = kcalImplausiblyLow(printed, grams);
   return { kcal: printed, source: 'label', labelIgnored: false, labelImplausible };
+}
+
+/** A label energy below 90% of the energy in the alcohol alone (grams × 7 kcal; A40). */
+function kcalImplausiblyLow(kcal: number, alcoholGramsPerServe: number): boolean {
+  return kcal < 0.9 * alcoholGramsPerServe * KCAL_PER_GRAM_ALCOHOL;
+}
+
+/**
+ * The energy per serve a total counts (NN-01, C11, A40; HS-36): the label figure, unless it is
+ * implausibly low for the alcohol in the serve. Null means unknown: counted as unknown, never as 0
+ * and never filled in. The one rule for every alcohol energy figure: the Drinks screen and Today's
+ * Drinks card (alcohol/totals.ts), the preset summaries (alcohol/presets.ts), and through
+ * totalDrinkEnergy the day's total on the Nutrition card and Diet and targets (targets/intake.ts).
+ */
+export function countedKcalPerServe(
+  kcal: number | null | undefined,
+  measure: DrinkMeasure,
+): number | null {
+  if (kcal === null || kcal === undefined) return null;
+  return kcalImplausiblyLow(kcal, alcoholGrams(measure.volumeMl, measure.abvPercent)) ? null : kcal;
 }
 
 /** One line of a day's or week's drinks: the unrounded standard drinks of one serve, and how many. */
@@ -171,10 +191,14 @@ export function totalStandardDrinks(entries: readonly StandardDrinksEntry[]): nu
   return roundTo(total, 2);
 }
 
-/** One line of a day's drinks: label kilocalories per serve (null or undefined when unknown). */
+/**
+ * One line of a day's drinks: label kilocalories per serve (null or undefined when unknown), and
+ * the serve's measure, which countedKcalPerServe checks the figure against.
+ */
 export interface DrinkEnergyEntry {
   kcal: number | null | undefined;
   count: number;
+  measure: DrinkMeasure;
 }
 
 export interface DrinkEnergyTotal {
@@ -186,19 +210,19 @@ export interface DrinkEnergyTotal {
 
 /**
  * Energy of a set of drinks, as a fact for the day's total (HEALTH_SAFETY.md section 5). Unknown
- * energy is counted, never filled in, so the total can say how many drinks it leaves out (NN-01).
+ * energy, and a label figure too low for the alcohol in the serve (countedKcalPerServe), is
+ * counted as unknown, never filled in and never 0, so the total can say how many drinks it leaves
+ * out (NN-01, A40).
  */
 export function totalDrinkEnergy(entries: readonly DrinkEnergyEntry[]): DrinkEnergyTotal {
   let knownKcal = 0;
   let unknownCount = 0;
-  for (const { kcal, count } of entries) {
+  for (const { kcal, count, measure } of entries) {
     assertInRange('count', count, 0, MAX_ENTRY_COUNT);
-    if (kcal === null || kcal === undefined) {
-      unknownCount += count;
-    } else {
-      assertInRange('kcal', kcal, 0, MAX_LABEL_KCAL);
-      knownKcal += kcal * count;
-    }
+    if (kcal !== null && kcal !== undefined) assertInRange('kcal', kcal, 0, MAX_LABEL_KCAL);
+    const counted = countedKcalPerServe(kcal, measure);
+    if (counted === null) unknownCount += count;
+    else knownKcal += counted * count;
   }
   return { knownKcal, unknownCount };
 }

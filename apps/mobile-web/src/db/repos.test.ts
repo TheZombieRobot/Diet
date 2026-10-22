@@ -10,14 +10,23 @@ import {
   kickstartPeriodState,
   kickstartUsage,
   primaryKeyOf,
+  readStock,
   type StoreName,
   StorageInvariantError,
   StorageValidationError,
   TABLES,
 } from '@diet/core';
 import { privacy } from '@diet/core/copy/health';
-import { snapshotV1 } from '@diet/test-fixtures';
+import {
+  cleanJpeg,
+  GL02_GARDEN,
+  GL02_PANTRY,
+  snapshotV1,
+  STOCK_TODAY,
+  withMetadata,
+} from '@diet/test-fixtures';
 import { describe, expect, it, vi } from 'vitest';
+import { readStockNow } from '../garden/stock';
 import {
   StorageClockError,
   StorageFullError,
@@ -81,6 +90,10 @@ function inputFor(table: StoreName): Record<string, unknown> {
     snapshotV1[table as keyof typeof snapshotV1][0],
   ) as unknown as Record<string, unknown>;
   for (const field of ASSIGNED[table] ?? []) Reflect.deleteProperty(sample, field);
+  if (table === 'garden') {
+    // One row per crop (item 19, G17): the fixture's first crop is the silverbeet seeded already.
+    Object.assign(sample, { name: 'Example table crop', ingredientId: 'seed:example-table-crop' });
+  }
   if (table === 'grocery_lists') {
     // A new list has never been sent (version starts at 1).
     Object.assign(sample, {
@@ -121,6 +134,10 @@ describe('generic repositories (section 8.2; section 16 test 23; table CRUD)', (
 
   it.each(FULL_CRUD)('%s: create, get, list, index range, update, remove', async (table) => {
     const test = await openTestDb();
+    // Item 28: the alcohol stores take writes only after the alcohol notice (HS-20).
+    if (['beverages', 'alcohol_day_notes', 'alcohol_milestones'].includes(table)) {
+      await onboardForTests(test, { weightKg: null });
+    }
     const repo = crudRepo(contextOf(test), table) as unknown as CrudRepo<'weights'>;
     const input = inputFor(table);
     const created = (await repo.create(input as never)) as unknown as Record<string, unknown>;
@@ -145,6 +162,8 @@ describe('generic repositories (section 8.2; section 16 test 23; table CRUD)', (
     const second = inputFor(table);
     if (Object.hasOwn(second, 'id')) delete second['id'];
     if (table === 'weights') second['source'] = 'manual';
+    // A second crop or pantry item has its own name (G17).
+    if (table === 'garden' || table === 'pantry') second['name'] = `${String(second['name'])} two`;
     if (index === 'createdAt') test.env.advanceDays(1);
     else if (index !== 'id') second[index] = outside(index, value);
     for (const keyField of spec.key) {
@@ -566,6 +585,7 @@ describe('special repositories (section 8.2; section 16 test 24)', () => {
 
   it('drinks: log computes the figures with core, update recomputes them, and forDrinkingDays crosses midnight', async () => {
     const test = await openTestDb();
+    await onboardForTests(test); // item 28: drinks are logged only after the alcohol notice
     const label = {
       volumeMl: 330,
       abvPercent: 5,
@@ -653,6 +673,138 @@ describe('special repositories (section 8.2; section 16 test 24)', () => {
     expect(await test.db.garden_photos.count()).toBe(0);
   });
 
+  // Item 19 review (G17): the rule holds whoever writes, setup included, and a pair that came from
+  // an old backup can still be edited.
+  it('G17: one row per crop and per pantry item; a pair from an old backup stays editable', async () => {
+    const test = await openTestDb();
+    const [silverbeet] = await test.repos.garden.list();
+    if (silverbeet === undefined) throw new Error('no seeded garden row');
+    const crop = {
+      ingredientId: null,
+      name: ' SILVERBEET',
+      amount: null,
+      unit: null,
+      gramsPerUnit: null,
+      harvestReady: false,
+      harvestedAt: null,
+      perishabilityDays: null,
+    };
+    await expect(test.repos.garden.create(crop)).rejects.toMatchObject({
+      name: 'StorageRuleError',
+      rule: 'duplicate',
+    });
+    // The pair an old backup could hold, written past the repositories.
+    const other = {
+      ...silverbeet,
+      id: test.env.randomId(),
+      ingredientId: null,
+      name: 'silverbeet',
+    };
+    await test.db.garden.put(other);
+    await test.repos.garden.update(silverbeet.id, { amount: 300, unit: 'g' });
+    await test.repos.garden.update(other.id, { harvestReady: false });
+    await expect(
+      test.repos.garden.update(other.id, { ingredientId: 'seed:silverbeet' }),
+    ).rejects.toMatchObject({ rule: 'duplicate' });
+    await test.repos.pantry.create({
+      ingredientId: null,
+      name: 'Example rice',
+      amount: null,
+      unit: null,
+    });
+    await expect(
+      test.repos.pantry.create({ ingredientId: null, name: 'example rice', amount: 0, unit: 'g' }),
+    ).rejects.toMatchObject({ rule: 'duplicate' });
+    expect([await test.db.garden.count(), await test.db.pantry.count()]).toEqual([2, 1]);
+  });
+
+  // Item 19 (B1; GD-01, G2, G4): every photo write, from any code, is checked by the middleware.
+  it.each([
+    [
+      'an Exif JPEG',
+      { bytes: withMetadata(cleanJpeg({ width: 640, height: 480 }), { gps: true }) },
+      'photo-metadata',
+    ],
+    ['a WebP record', { mimeType: 'image/webp' }, 'photo-format'],
+    ['a frame of another size', { width: 641 }, 'photo-size'],
+  ] as const)(
+    'B1 GD-01: %s is refused, through the repository and a raw put on the app connection',
+    async (_name, change, rule) => {
+      const test = await openTestDb();
+      const [silverbeet] = await test.repos.garden.list();
+      if (silverbeet === undefined) throw new Error('no seeded garden row');
+      const merged = { ...photoRow(silverbeet.id), ...change };
+      const { bytes } = merged;
+      const photo = {
+        ...merged,
+        bytes: bytes instanceof Uint8Array ? bytes.slice().buffer : bytes,
+      };
+      const input = {
+        mimeType: photo.mimeType,
+        bytes: photo.bytes,
+        width: photo.width,
+        height: photo.height,
+        takenAt: photo.takenAt,
+      };
+      await expect(test.repos.gardenPhotos.put(silverbeet.id, input)).rejects.toMatchObject({
+        name: 'StorageRuleError',
+        rule,
+      });
+      await expect(test.db.garden_photos.put(photo)).rejects.toMatchObject({
+        name: 'StorageRuleError',
+        rule,
+      });
+      expect(await test.db.garden_photos.count()).toBe(0);
+    },
+  );
+
+  it('B1 GD-01: an add and a bulk write on the app connection are checked too, every value', async () => {
+    const test = await openTestDb();
+    const [silverbeet] = await test.repos.garden.list();
+    if (silverbeet === undefined) throw new Error('no seeded garden row');
+    const lettuce = await test.repos.garden.create({
+      ingredientId: null,
+      name: 'Example lettuce',
+      amount: null,
+      unit: null,
+      gramsPerUnit: null,
+      harvestReady: false,
+      harvestedAt: null,
+      perishabilityDays: null,
+    });
+    const dirty = {
+      ...photoRow(lettuce.id),
+      bytes: withMetadata(cleanJpeg({ width: 640, height: 480 }), { gps: true }).slice().buffer,
+    };
+    await expect(test.db.garden_photos.add(dirty)).rejects.toMatchObject({
+      name: 'StorageRuleError',
+      rule: 'photo-metadata',
+    });
+    // A clean first value does not carry a dirty second one through.
+    await expect(test.db.garden_photos.bulkPut([photoRow(silverbeet.id), dirty])).rejects.toThrow();
+    expect(await test.db.garden_photos.count()).toBe(0);
+  });
+
+  it('B1: ids() lists the crops with a photo, keys only', async () => {
+    const test = await openTestDb();
+    const [silverbeet] = await test.repos.garden.list();
+    if (silverbeet === undefined) throw new Error('no seeded garden row');
+    expect(await test.repos.gardenPhotos.ids()).toEqual([]);
+    await test.repos.gardenPhotos.put(silverbeet.id, photoRow('ignored'));
+    expect(await test.repos.gardenPhotos.ids()).toEqual([silverbeet.id]);
+  });
+
+  it('B2 GL-02: readStockNow reads both stores at once, for today in the device zone, and gives the fixture view', async () => {
+    // 9 January in UTC, already 10 January (STOCK_TODAY) in Auckland: the device zone decides.
+    const test = await openTestDb({ env: testEnv('2000-01-09T12:00:00.000Z', 'Pacific/Auckland') });
+    await test.db.garden.clear();
+    await test.db.garden.bulkPut([...GL02_GARDEN]);
+    await test.db.pantry.bulkPut([...GL02_PANTRY]);
+    expect(await readStockNow(test.storage)).toEqual(
+      readStock({ garden: GL02_GARDEN, pantry: GL02_PANTRY, today: STOCK_TODAY }),
+    );
+  });
+
   it('weights: one onboarding weight only, and between() reads local dates in each row’s own zone', async () => {
     const test = await openTestDb();
     await test.repos.weights.addOnboardingWeight({
@@ -696,7 +848,8 @@ describe('special repositories (section 8.2; section 16 test 24)', () => {
     const kgs = (await test.repos.weights.between('2000-01-02', '2000-01-04')).map((w) => w.kg);
     expect(kgs.sort((a, b) => a - b)).toEqual([82, 83, 84]);
     // Drinks: the 03:00 drink on 5 January is before the 05:00 cut-over, so it belongs to the
-    // drinking day of 4 January, the last day asked for.
+    // drinking day of 4 January, the last day asked for. Item 28: logged after the notice.
+    await onboardForTests(test, { weightKg: null });
     const beverage = { volumeMl: 330, abvPercent: 5, label: null };
     const ids: Record<string, string> = {};
     for (const at of ['01T20', '02T20', '03T20', '04T20', '05T03', '05T20']) {
@@ -948,5 +1101,129 @@ describe('storage edge cases', () => {
         expect(text).not.toContain(sentinel);
       expect((error as { cause?: unknown }).cause).toBeUndefined();
     }
+  });
+});
+
+describe('the alcohol stores need the notice, and drinks and milestones need logging on (item 28 D1; HS-20, C53, RD-01, A46)', () => {
+  const CAN = { volumeMl: 330, abvPercent: 5, label: null };
+  const drink = (test: TestDb, at?: string) =>
+    test.repos.drinks.log({
+      beverageId: null,
+      name: 'Example lager',
+      beverage: CAN,
+      count: 1,
+      ...(at === undefined ? {} : { at }),
+    });
+  const milestone = (test: TestDb) =>
+    test.repos.alcoholMilestones.create({
+      label: 'Your milestone',
+      weeklyStdDrinks: 8,
+      fromDate: '2000-03-01',
+      enteredBy: 'self',
+      note: null,
+    });
+  const refused = async (write: Promise<unknown>, rule: string) => {
+    await expect(write).rejects.toBeInstanceOf(StorageRuleError);
+    await expect(write).rejects.toMatchObject({ rule });
+  };
+
+  it('before the notice: no drink, milestone or preset is stored', async () => {
+    const test = await openTestDb();
+    const presets = await test.repos.beverages.list();
+    await refused(drink(test), 'alcohol-notice-first');
+    await refused(milestone(test), 'alcohol-notice-first');
+    await refused(
+      test.repos.beverages.create({
+        name: 'Example lager',
+        volumeMl: 330,
+        abvPercent: 5,
+        label: null,
+        sortOrder: 1,
+        archived: false,
+      }),
+      'alcohol-notice-first',
+    );
+    await refused(
+      test.repos.alcoholDayNotes.create({ date: '2000-03-01', note: null, withdrawalTick: true }),
+      'alcohol-notice-first',
+    );
+    expect(await test.repos.drinks.list()).toEqual([]);
+    expect(await test.repos.alcoholMilestones.list()).toEqual([]);
+    expect(await test.repos.beverages.list()).toEqual(presets);
+    expect(await test.repos.alcoholDayNotes.list()).toEqual([]);
+  });
+
+  it('before the notice, a stored milestone, preset or note cannot be changed (a restore can put them there)', async () => {
+    const test = await openTestDb();
+    await onboardForTests(test);
+    const kept = await milestone(test);
+    const note = { date: '2000-03-01', note: null, withdrawalTick: true };
+    await test.repos.alcoholDayNotes.create(note);
+    const [preset] = await test.repos.beverages.list();
+    // As a restore of an older backup can leave it: the records there, the notice not read.
+    await test.db.settings.put({ ...(await test.repos.settings.get()), alcoholNoticeAckAt: null });
+    await refused(
+      test.repos.alcoholMilestones.update(kept.id, { weeklyStdDrinks: 20 }),
+      'alcohol-notice-first',
+    );
+    await refused(
+      test.repos.beverages.update(preset?.id ?? '', { archived: true }),
+      'alcohol-notice-first',
+    );
+    await refused(
+      test.repos.alcoholDayNotes.update('2000-03-01', { note: 'Synthetic note' }),
+      'alcohol-notice-first',
+    );
+    expect((await test.repos.alcoholMilestones.get(kept.id))?.weeklyStdDrinks).toBe(8);
+  });
+
+  it('notice read but question 1 unanswered: no drink or milestone; a next-day note is kept', async () => {
+    const test = await openTestDb();
+    await test.repos.settings.update({ alcoholNoticeAckAt: test.env.now() });
+    await refused(drink(test), 'alcohol-logging-off');
+    await refused(milestone(test), 'alcohol-logging-off');
+    await test.repos.alcoholDayNotes.create({
+      date: '2000-03-01',
+      note: null,
+      withdrawalTick: true,
+    });
+    expect(await test.repos.alcoholDayNotes.list()).toHaveLength(1);
+  });
+
+  it('RD-01: when question 1 turns yes, a logged drink or a milestone cannot be edited, but it can be deleted', async () => {
+    const test = await openTestDb();
+    await onboardForTests(test);
+    const logged = await drink(test);
+    const kept = await milestone(test);
+    await test.repos.readiness.answer('q1', 'yes');
+    await refused(test.repos.drinks.update(logged.id, { count: 2 }), 'alcohol-logging-off');
+    await refused(
+      test.repos.alcoholMilestones.update(kept.id, { weeklyStdDrinks: 20 }),
+      'alcohol-logging-off',
+    );
+    await test.repos.drinks.remove(logged.id);
+    expect(await test.repos.drinks.list()).toEqual([]);
+  });
+
+  it('RD-01: a birth year under 18 turns logging off whatever question 1 says', async () => {
+    const test = await openTestDb();
+    // The test clock is in 2000, so 1985 is 15.
+    await onboardForTests(test, { profile: { birthYear: 1985 } });
+    await refused(drink(test), 'alcohol-logging-off');
+    await refused(milestone(test), 'alcohol-logging-off');
+  });
+
+  it('a drink more than 5 minutes ahead is refused, by log or by an edit of its time; a count edit is not', async () => {
+    const test = await openTestDb();
+    await onboardForTests(test);
+    const ahead = (minutes: number) =>
+      new Date(Date.parse(test.env.now()) + minutes * 60_000).toISOString();
+    await refused(drink(test, ahead(6)), 'future-time');
+    const logged = await drink(test, ahead(4));
+    await refused(
+      test.repos.drinks.update(logged.id, { at: `${addDays('2000-03-01', 1)}T01:00:00.000Z` }),
+      'future-time',
+    );
+    expect((await test.repos.drinks.update(logged.id, { count: 3 })).count).toBe(3);
   });
 });

@@ -428,10 +428,13 @@ export async function saveSchedule(storage: AppStorage, save: ScheduleSave): Pro
   }
 }
 
-/** Adds a crop at setup; it is written at once, so a reload keeps it. Nothing is invented (E23). */
+/**
+ * Adds a crop at setup; it is written at once, so a reload keeps it. Nothing is invented (E23): the
+ * link is the garden screen's (item 19 G12: a name that exactly matches one food), or none.
+ */
 export function addCrop(storage: AppStorage, value: GardenCropValue): Promise<GardenRecord> {
   return storage.repos.garden.create({
-    ingredientId: null,
+    ingredientId: value.ingredientId,
     name: value.name,
     amount: value.amount,
     unit: value.unit,

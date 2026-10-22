@@ -11,26 +11,37 @@ import { useEffect, useRef, type ReactElement } from 'react';
 import { APP_NAME } from './appName';
 import { type FailureStatus, type OpenStatus, openStatusStore } from './db/db';
 import { appStorageStore } from './db/runtime';
-import { goToTab, markEntryAboveToday } from './navigation';
+import { goToTab, markEntryAboveToday, markSubScreenEntry } from './navigation';
 import { OnboardingGate } from './onboarding/OnboardingGate';
 import { takeArrivedFromSetup } from './onboarding/navigation';
 import { offlineCopyStore } from './pwa/offline';
 import {
   isTabRoute,
   isUnderSettings,
+  PARENT_TAB,
+  recipeRouteOf,
   ROUTE_TITLES,
+  routeDetail,
   routeHref,
   TAB_ROUTES,
   type RouteId,
   type TabRouteId,
 } from './routes';
+import { screenTitleStore } from './screenTitle';
 import { AboutScreen } from './screens/AboutScreen';
-import { DrinksScreen } from './screens/DrinksScreen';
+import { DrinksScreen } from './screens/drinks/DrinksScreen';
 import { FastingScreen } from './screens/fasting/FastingScreen';
 import { FoodScreen } from './screens/FoodScreen';
+import { FoodsScreen } from './screens/foods/FoodsScreen';
+import { GardenScreen } from './screens/garden/GardenScreen';
 import { ListScreen } from './screens/ListScreen';
-import { MoveScreen } from './screens/MoveScreen';
+import { MovePlanScreen } from './screens/move/MovePlanScreen';
+import { MoveScreen } from './screens/move/MoveScreen';
+import { MoveSessionScreen } from './screens/move/MoveSessionScreen';
 import { PairingScreen } from './screens/pairing/PairingScreen';
+import { RecipeScreen } from './screens/recipes/RecipeScreen';
+import { RecipesScreen } from './screens/recipes/RecipesScreen';
+import { swapStatusStore } from './screens/recipes/status';
 import { QuickActions } from './screens/today/QuickActionsPanel';
 import { EatingScheduleScreen } from './screens/settings/EatingScheduleScreen';
 import { ProfileScreen } from './screens/settings/ProfileScreen';
@@ -43,7 +54,7 @@ import { UpdateBanner } from './screens/UpdateBanner';
 import { KickstartReconciler } from './screens/weight/KickstartReconciler';
 import { WeightScreen } from './screens/weight/WeightScreen';
 import { useStore } from './store';
-import { useRoute } from './useRoute';
+import { useHash, useRoute } from './useRoute';
 
 const TAB_ICONS: Readonly<Record<TabRouteId, ReactElement>> = {
   today: <TodayIcon />,
@@ -90,8 +101,20 @@ function screenFor(route: RouteId): ReactElement {
       return <FastingScreen />;
     case 'targets':
       return <TargetsScreen />;
+    case 'foods':
+      return <FoodsScreen />;
+    case 'garden':
+      return <GardenScreen />;
+    case 'move-session':
+      return <MoveSessionScreen />;
+    case 'move-plan':
+      return <MovePlanScreen />;
     case 'pairing':
       return <PairingScreen />;
+    case 'recipes':
+      return <RecipesScreen />;
+    case 'recipe':
+      return <RecipeScreen />;
   }
 }
 
@@ -121,33 +144,59 @@ export function App(): ReactElement {
 
 function Shell(): ReactElement {
   const route = useRoute();
+  const hash = useHash();
+  // Item 20: moving from one recipe to another is a new screen too (its heading takes focus).
+  // Only the recipe page counts its detail, so the Fasting screen's sub-links keep their own focus.
+  const detail = route === 'recipe' ? routeDetail(hash) : null;
+  const titleOverride = useStore(screenTitleStore);
+  const title =
+    titleOverride !== null && titleOverride.hash === hash
+      ? titleOverride.title
+      : ROUTE_TITLES[route];
   const offlineCopy = useStore(offlineCopyStore);
   const titleRef = useRef<HTMLHeadingElement>(null);
-  const previousRoute = useRef<RouteId | undefined>(undefined);
+  const previousRoute = useRef<{ route: RouteId; detail: string | null } | undefined>(undefined);
+  // The state of the entry now shown, marks included: the next screen change reads it as the entry
+  // it came from (item 19 review: Today, Food, Garden and pantry, then Today; item 20: a recipe
+  // opened from Recipes or from another recipe is marked one deeper).
+  const entryState = useRef<unknown>(null);
+
+  // Its own effect, so a recipe's name reaches the tab title when it arrives after the route.
+  useEffect(() => {
+    document.title = route === 'today' ? APP_NAME : `${title} · ${APP_NAME}`;
+  }, [route, title]);
 
   useEffect(() => {
-    document.title = route === 'today' ? APP_NAME : `${ROUTE_TITLES[route]} · ${APP_NAME}`;
     document.documentElement.scrollTop = 0;
     const previous = previousRoute.current;
-    previousRoute.current = route;
+    previousRoute.current = { route, detail };
+    // A recipe page's status (a swap done) belongs to that recipe only.
+    const status = swapStatusStore.get();
+    if (status !== null && recipeRouteOf(window.location.hash)?.id !== status.recipeId)
+      swapStatusStore.set(null);
     // On first render the browser decides where focus starts, except straight after setup, whose
     // flow held focus; after that, a new screen moves focus to its heading, so a screen reader
     // announces it and Tab starts from the top.
+    const previousState = entryState.current;
     if (previous === undefined) {
+      entryState.current = window.history.state;
       if (takeArrivedFromSetup()) titleRef.current?.focus({ preventScroll: true });
       return;
     }
-    if (previous === route) return;
-    markEntryAboveToday(previous, route);
+    if (previous.route === route && previous.detail === detail) return;
+    if (previous.route !== route) markEntryAboveToday(previous.route, route);
+    markSubScreenEntry(previous.route, route, window.history, previousState);
+    entryState.current = window.history.state;
     titleRef.current?.focus({ preventScroll: true });
-  }, [route]);
+  }, [route, detail]);
 
   return (
     <AppShell
-      title={ROUTE_TITLES[route]}
+      title={title}
       titleRef={titleRef}
       tabs={TABS}
-      currentTab={isTabRoute(route) ? route : undefined}
+      currentTab={isTabRoute(route) ? route : PARENT_TAB[route]}
+      currentTabIsParent={!isTabRoute(route) && PARENT_TAB[route] !== undefined}
       onTabSelect={(id) => {
         if (isTabId(id)) goToTab(id, route);
       }}

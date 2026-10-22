@@ -38,6 +38,14 @@ describe('the drinking day (C21; section 3.3; section 16 test 6)', () => {
     expect(drinkingDayOf('2026-04-04T14:30:00.000Z', AKL, CUTOVER)).toBe('2026-04-04');
   });
 
+  it('the same night with a 2:30 am cut-over: the day starts at the first 02:30 and never steps back', () => {
+    expect(drinkingDayOf('2026-04-04T13:15:00.000Z', AKL, 150)).toBe('2026-04-04'); // 02:15 NZDT
+    expect(drinkingDayOf('2026-04-04T13:30:00.000Z', AKL, 150)).toBe('2026-04-05'); // 02:30 NZDT
+    expect(drinkingDayOf('2026-04-04T13:45:00.000Z', AKL, 150)).toBe('2026-04-05'); // 02:45 NZDT
+    expect(drinkingDayOf('2026-04-04T14:15:00.000Z', AKL, 150)).toBe('2026-04-05'); // 02:15 NZST
+    expect(drinkingDayOf('2026-04-04T14:45:00.000Z', AKL, 150)).toBe('2026-04-05'); // 02:45 NZST
+  });
+
   it('the cut-over across the skipped hour of 27 September 2026 (clocks go forward at 02:00)', () => {
     expect(drinkingDayOf('2026-09-26T13:59:00.000Z', AKL, CUTOVER)).toBe('2026-09-26'); // 01:59 NZST
     expect(drinkingDayOf('2026-09-26T14:00:00.000Z', AKL, CUTOVER)).toBe('2026-09-26'); // 03:00 NZDT

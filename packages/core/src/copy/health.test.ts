@@ -5,9 +5,13 @@ import { ACTIVITY_FACTORS } from '../energy/energyEstimate';
 import { PRE_CHECK_KEYS } from '../exercise/preCheck';
 import { START_PROBLEM_CODES } from '../exercise/start';
 import { WEEK_PROBLEM_CODES } from '../exercise/week';
+import { HEAT_WATER_ML_PER_HOUR } from '../move/display';
 import { GATED_FEATURES, READINESS_REASON_IDS } from '../readiness/gates';
-import { USER_ALLERGENS } from '../storage/allergens';
+import { ALLERGENS, USER_ALLERGENS } from '../storage/allergens';
+import { ALCOHOL_SECTION_RULES } from './alcoholRules';
 import { FLOOR_KJ, KICKSTART_MAX_DEFICIT_PCT, KICKSTART_NET_CARBS_G } from '../storage/limits';
+import { RECIPE_ALCOHOL_WORDS } from '../recipes/constants';
+import { FLAG_REASONS } from '../recipes/foodKind';
 import { READINESS_QUESTION_IDS } from '../storage/readiness';
 import { TARGET_COPY_FACTS } from '../targets/copyFacts';
 import { DIET_MODES } from '../targets/dietModes';
@@ -15,14 +19,19 @@ import {
   about,
   alcohol,
   fasting,
+  foods,
+  garden,
+  gardenScreen,
   general,
   healthCopy,
   helpNumbers,
   move,
+  moveScreen,
   onboarding,
   privacy,
   profile,
   readiness,
+  recipes,
   reflux,
   reminders,
   schedule,
@@ -43,6 +52,36 @@ function strings(value: unknown, path: string): [string, string][] {
   return [];
 }
 
+/** Item 20's recipes section rules (design 5.1), also seeded below. */
+const RECIPES_SECTION_RULES: readonly RegExp[] = [
+  /\bbad\b/i,
+  /\bfail\w*/i,
+  /\bcheat\w*/i,
+  /\bguilt\w*/i,
+  /\bnaughty\b/i,
+  /\bsinful\b/i,
+  /\bjunk\b/i,
+  /\bclean\s+eating\b/i,
+  /\bsuperfood\w*/i,
+  /\bhealthy\b/i,
+  /\bhealthier\b/i,
+  /\bnutritious\b/i,
+  /\bsafe(?:ly|r|st|ty)?\b/i,
+  /\b(?:allergy|allergen)[\s-]free\b/i,
+  /\bfree\s+from\b/i,
+  /\b(?:lower|lowers|lowering|reduce|reduces|cut|cuts|improve|improves|protect|protects)\s+(?:your\s+)?(?:cholesterol|blood\s+pressure|heart)\b/i,
+  /\bHeart\s+Foundation\b/i,
+  /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
+  /\bforbidden\b|\bbanned\b|\bnot\s+allowed\b/i,
+  /\bmust\b/i,
+  /\bshould\b/i,
+  /\bstreaks?\b/i,
+  /\breward\w*/i,
+  /\bfits?\s+your\b/i,
+  /\bwithin\s+your\b/i,
+  RECIPE_ALCOHOL_WORDS,
+];
+
 /**
  * Extra rules per section, on top of the repository-wide banned phrases (tools/scans/rules.ts).
  * Every section must be listed here, so a new section cannot skip review.
@@ -56,26 +95,8 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
     /\banonymous(?:ly)?\b/i,
     /\bsecure\b/i,
   ],
-  // HEALTH_SAFETY.md section 5, HS-19, NN-09, UX 5 "deliberately absent".
-  alcohol: [
-    /\bstreaks?\b/i,
-    /\bbadges?\b/i,
-    /\btargets?\b/i,
-    /\blimits?\b/i,
-    /\ballowance\b/i,
-    /\bgoals?\b/i,
-    /\bwell\s+done\b/i,
-    /\bcongrat\w*/i,
-    /\bproud\b/i,
-    /\bsafe\s+(?:level|amount|limit)\b/i,
-    /\byou\s+should\s+stop\b/i,
-    // Item 13: help after a change is never played down (the notice's "Why am I seeing this?").
-    /\b(?:too\s+late|works\s+best\s+before|only\s+before|no\s+point)\b/i,
-    // Item 21 (C11): alcohol energy is never a budget, and nothing is "left" or "remaining".
-    /\bbudget\b/i,
-    /\bleft\b/i,
-    /\bremaining\b/i,
-  ],
+  // HEALTH_SAFETY.md section 5, HS-19, NN-09, UX 5 "deliberately absent"; items 13, 21 and 28.
+  alcohol: ALCOHOL_SECTION_RULES,
   // HEALTH_SAFETY.md section 7 (privacy as a safety feature); storage spec sections 10–12.
   privacy: [
     // Say plainly what happens to the records, with no blanket promises.
@@ -147,6 +168,29 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
     /\bmake\s+up\s+for\b/i,
     /\bburn(?:s|ed|ing)?\b/i,
   ],
+  // Item 27 (HEALTH_SAFETY.md sections 1 and 6): nothing is promised safe, no day is missed or
+  // failed, rest is never skipping, nothing is made up or caught up, no running or training is
+  // required, and no scores, targets or goals.
+  moveScreen: [
+    /\bsafe(?:ly)?\b/i,
+    /\bstreaks?\b/i,
+    /\bmissed\b/i,
+    /\bfail(?:ed|s|ing|ure)?\b/i,
+    /\bbehind\b/i,
+    /\blazy\b/i,
+    /\bskip(?:s|ped|ping)?\b/i,
+    /\bcatch(?:ing)?\s+up\b/i,
+    /\bmake\s+up\s+for\b/i,
+    /\bburn(?:s|ed|ing)?\b/i,
+    /\b(?:must|have\s+to|should)\s+(?:run|jog|train|exercise)\b/i,
+    /\bpush\s+through\b/i,
+    /\bwell\s+done\b/i,
+    /\bcongrat\w*/i,
+    /\btargets?\b/i,
+    /\bgoals?\b/i,
+    /\byou\s+(?:didn['’]t|did\s+not|haven['’]t|have\s+not)\b/i,
+    /\bdiagnos\w*/i,
+  ],
   // HEALTH_SAFETY.md section 3, HS-02, HS-18, C16, C63: no streak loss, no penalty or reward, no
   // insisting on a fast. "broken fast" is not banned here: the required 1e line ("That's not a
   // broken fast.") lives in item 13's schedule section, and FL-12 is checked on the rendered card.
@@ -216,18 +260,52 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
     /\byou(?:['’]re|\s+are)\s+safe\b/i,
     /\b(?:tablets?|pills?|capsules?|powders?|sachets?)\b/i,
   ],
-  // The general rules, and no food data source by name until item 18 records the licence (C97,
-  // NU-09). Case-sensitive on purpose: these are proper names. Item 18 replaces this rule.
+  // The general rules. A food data source is named only in foods.attribution, once approved at
+  // checklist item 10: item 18's S4 test below checks every section for database names (C97, NU-09).
   about: [
     /\byou(?:'re|\s+are)\s+safe\b/i,
     /\b(?:100\s*%|completely|totally|fully|perfectly)\s+(?:private|secure|safe|anonymous)\b/i,
     /\banonymous(?:ly)?\b/i,
     /\bsecure\b/i,
-    /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
+  ],
+  // Item 18 (C69, HS-16): pack sizes are typical, never the store's and never a price; typical
+  // sizes and seasons are not claimed to be checked; an allergen summary never says a food is safe.
+  foods: [
+    /PAK['’]?n['’]?SAVE/i,
+    /\bprices?\b/i,
+    /\bverified\b/i,
+    /\baccurate\b/i,
+    /\bexact(?:ly)?\b/i,
+    /\bsafe(?:ly|r)?\b/i,
+    /\bguarantee\w*/i,
+  ],
+  // Item 19 (design section 4; C43, D33, C57, G19, HS-16): no food-safety or freshness claims,
+  // no "exact" homegrown weights, no gram figure in fixed copy, no kilograms, no price, savings
+  // or stock words, no blanket privacy promises, and no nudge to re-date old produce.
+  gardenScreen: [
+    /\b(?:un)?safe(?:ly|ty)?\b/i,
+    /\b(?:spoil\w*|rott\w*|mou?ld(?:y|ed)?|expir\w*|food[\s-]?poisoning|bacteria\w*|germs?|fresh\w*)\b/i,
+    /\bexact(?:ly)?\b/i,
+    /\d\s*g\b/i,
+    /\bkg\b|\bkilo\w*/i,
+    /\bprices?\b|\bcosts?\b|\bsavings?\b|\bcheap\w*|\bstock\b|\$/i,
+    /\b(?:100\s*%|completely|totally|fully|perfectly|always)\s+(?:private|secure|safe|anonymous|protected)\b/i,
+    /\bsecure(?:ly)?\b/i,
+    /\bupdate\s+it\b/i,
   ],
   // Items 30 and 31 (HEALTH_SAFETY.md section 7): one list, shared with the pairing-check scan.
   transfer: TRANSFER_SECTION_RULES,
+  // Item 20 (HEALTH_SAFETY section 4, HS-09, C43, C60, C97, C11): no moralising, no health or
+  // allergen-free claims, no named data source, no Heart Foundation attribution, no "fits your
+  // ceiling", no alcohol.
+  recipes: RECIPES_SECTION_RULES,
 };
+
+/**
+ * Strings copied word for word from elsewhere and so exempt from their section's rules: a food
+ * database's attribution text, as its licence words it (item 18 design 4.1).
+ */
+const SECTION_RULES_EXEMPT: readonly string[] = ['foods.attribution'];
 
 describe('health copy', () => {
   it('every section has declared rules', () => {
@@ -236,10 +314,11 @@ describe('health copy', () => {
 
   for (const [section, rules] of Object.entries(SECTION_RULES)) {
     it(`${section} copy obeys its section rules`, () => {
-      const found = strings(healthCopy[section as keyof typeof healthCopy], section).flatMap(
-        ([path, text]) =>
+      const found = strings(healthCopy[section as keyof typeof healthCopy], section)
+        .filter(([path]) => !SECTION_RULES_EXEMPT.some((e) => path.startsWith(`${e}.`)))
+        .flatMap(([path, text]) =>
           rules.filter((r) => r.test(text)).map((r) => `${path}: ${String(r)} in "${text}"`),
-      );
+        );
       expect(found).toEqual([]);
     });
   }
@@ -490,6 +569,13 @@ describe('Move copy (item 26)', () => {
     expect(move.jog.toggle.hint).toContain('never required');
   });
 
+  it('item 27: the jog lines point at the switch on Move, and the heat line keeps the per-hour figure', () => {
+    for (const text of [move.jog.needsOptIn, move.jog.readyOptIn, move.jog.toggle.hint]) {
+      expect(text).not.toMatch(/Settings|Equipment/);
+    }
+    expect(moveScreen.before.heatWater).toContain(`${HEAT_WATER_ML_PER_HOUR} mL for each hour`);
+  });
+
   it('every check question, week problem and start problem has its words, in order; required sentences are kept', () => {
     expect(Object.keys(move.preCheck.questions)).toEqual([...PRE_CHECK_KEYS]);
     expect(Object.keys(move.week.problems)).toEqual([...WEEK_PROBLEM_CODES]);
@@ -707,18 +793,16 @@ describe('Today and About copy (item 16; U9)', () => {
     ]);
   });
 
-  it('C97: the data-sources card has one line per badge and names no food data source', () => {
-    expect(about.dataSources.badges.map((line) => line.split(':')[0])).toEqual([
-      'Label',
-      'Database',
-      'Estimate',
-    ]);
-    for (const [path, text] of strings(about, 'about')) {
-      expect(text, path).not.toMatch(
-        /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
-      );
-      expect(text, path).not.toMatch(/food composition/i);
-    }
+  it('C97: the data-sources card has one line per badge, the Database line from item 18', () => {
+    // Database names anywhere in health.ts are item 18's S4 test (foods copy, below).
+    expect(
+      [
+        about.dataSources.badges.label,
+        foods.about.databaseBadgeNone,
+        foods.about.databaseBadge,
+        about.dataSources.badges.estimate,
+      ].map((line) => line.split(':')[0]),
+    ).toEqual(['Label', 'Database', 'Database', 'Estimate']);
   });
 
   it('every template fills with its named placeholders and no others', () => {
@@ -737,6 +821,143 @@ describe('Today and About copy (item 16; U9)', () => {
       'Electrolytes: sodium, potassium, magnesium. Garden sources: silverbeet, spinach, avocado.',
     );
     expect(readiness.ifYes.q4.endsWith(readiness.bloodPressure.electrolyte)).toBe(true);
+  });
+});
+
+describe('foods copy (item 18)', () => {
+  const DATABASE_NAMES = [
+    /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
+    /food composition/i,
+  ];
+  /** A stored field's label in a restore problem, not a data source. */
+  const NAMES_A_FIELD = 'privacy.recordProblem.fields.usda';
+
+  it('S4 C97 NU-09: no string anywhere in health.ts names a food database, except the attribution', () => {
+    const found = Object.entries(healthCopy)
+      .flatMap(([section, copy]) => strings(copy, section))
+      .filter(([path]) => !path.startsWith('foods.attribution.') && path !== NAMES_A_FIELD)
+      .filter(([, text]) => DATABASE_NAMES.some((r) => r.test(text)))
+      .map(([path]) => path);
+    expect(found).toEqual([]);
+    expect(Object.keys(foods.attribution)).toEqual([]);
+  });
+
+  it('S1 HS-37: the words for missing figures never say estimated, approximate or a zero amount', () => {
+    const lines: [string, string][] = [
+      ...strings(foods.figures, 'figures'),
+      ['notLoaded', foods.notLoaded],
+      ['notLoadedNone', foods.notLoadedNone],
+      ['releaseUnreadable', foods.releaseUnreadable],
+      ...strings(foods.totals, 'totals'),
+      ...strings(foods.today, 'today'),
+      ...strings(foods.derived, 'derived'),
+      ...strings(foods.planner, 'planner'),
+    ];
+    const banned = [/\bestimat\w*/i, /\bapprox\w*/i, /\bguess\w*/i, /(?<![\d.])0\s*(?:g|kJ|mg)\b/];
+    const found = lines.flatMap(([path, text]) =>
+      banned.filter((r) => r.test(text)).map((r) => `${path}: ${String(r)}`),
+    );
+    expect(found).toEqual([]);
+    expect(foods.figures.notKnown).toBe('not known');
+  });
+
+  it('every template fills with its named placeholders, and every allergen has its words, in order', () => {
+    const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1] ?? '');
+    for (const [path, text] of strings(foods, 'foods')) {
+      const values = Object.fromEntries(placeholders(text).map((name) => [name, 'x']));
+      expect(fillTemplate(text, values), path).not.toMatch(/[{}]/);
+    }
+    expect(Object.keys(foods.allergenWords)).toEqual([...ALLERGENS]);
+    expect(Object.values(foods.badges)).toEqual(['Label', 'Database', 'Estimate']);
+    expect(foods.months).toHaveLength(12);
+  });
+});
+
+// ---- Item 19: the garden and pantry wording (A8; GD-04; HEALTH_SAFETY section 7) ----
+
+describe('garden and pantry wording (item 19)', () => {
+  it('A8 GD-04: the item 13 garden rules still hold after the edits, and no garden string nudges to "update it"', () => {
+    expect(garden.ready).toBe('Ready to use');
+    expect(garden.readyLabel).toBe(garden.ready);
+    // The garden screen shows item 13's garden strings too (available, ready, keeps for, the form
+    // labels), so every garden-screen rule applies to them as well (item 19 review): no food-safety,
+    // freshness, stock, kilogram or price wording, no gram figure and no "update it" there either.
+    for (const [path, text] of [
+      ...strings(garden, 'garden'),
+      ...strings(gardenScreen, 'gardenScreen'),
+    ]) {
+      for (const rule of SECTION_RULES.gardenScreen) {
+        expect(text, `${path} ${rule.source}`).not.toMatch(rule);
+      }
+    }
+  });
+
+  it('A8 HEALTH_SAFETY 7: the photo note says photos stay off backups, the location is removed from the copy, and the original is not changed', () => {
+    const note = gardenScreen.photo.note;
+    expect(note).toContain('Photos are not in backups or in anything the app sends.');
+    expect(note).toContain(
+      'The location and camera details inside a photo are removed from the copy the app keeps.',
+    );
+    expect(note).toContain('The original in your gallery or camera app is not changed.');
+    for (const text of [
+      gardenScreen.photo.removeConfirm,
+      gardenScreen.cropForm.removeConfirmWithPhoto,
+    ]) {
+      expect(text).toMatch(/not in backups/);
+    }
+  });
+});
+
+describe('the Drinks copy (item 28 C1; NN-09, HS-19, C58, C66, A34)', () => {
+  it('HS-19: a milestone is only ever "your milestone" on a chart', () => {
+    expect(alcohol.trends.milestoneLine).toBe('your milestone');
+    expect(alcohol.milestones.rowTitle).toBe('Your milestone');
+  });
+
+  it('UX 5a: the seeded preset reads word for word', () => {
+    expect(
+      fillTemplate(alcohol.log.presetSummary, {
+        name: 'Zero-sugar premix',
+        volume: '330',
+        abv: '5',
+        energy: fillTemplate(alcohol.log.kcal, { kcal: '94' }),
+        std: '1.3',
+      }),
+    ).toBe('Zero-sugar premix 330 mL, 5%, 94 kcal, 1.3 std');
+  });
+
+  it('C60, C78: the sources line names what it covers, and the single-occasion figure says where it comes from', () => {
+    expect(alcohol.guidance.sources).toMatch(/^Sources for the daily and weekly figures\b/);
+    expect(alcohol.guidance.singleOccasionSource).toMatch(/summaries/);
+    expect(alcohol.guidance.singleOccasionSource).toMatch(/not yet been checked/);
+    expect(alcohol.guidance.singleOccasionSource).not.toMatch(/alcohol\.org\.nz|bpac|Health NZ/);
+  });
+
+  it('C58: the card explains every trigger, the question first', () => {
+    expect(alcohol.helpCardWhy).toContain('answered yes or not yet answered');
+    expect(alcohol.helpCardReturnsNextDay).toContain('next drinking day');
+  });
+
+  it('NN-09, C66: the daily and weekly figures appear only in the guidance lines, which end "No alcohol use is risk-free."', () => {
+    const figures = strings(alcohol, 'alcohol').filter(([, text]) =>
+      /standard drinks a day|\b\d+ a week\b/.test(text),
+    );
+    expect(figures.map(([path]) => path).sort()).toEqual([
+      'alcohol.guidance.line.nz-men',
+      'alcohol.guidance.line.nz-women',
+    ]);
+    for (const [, text] of figures) expect(text.endsWith(alcohol.noRiskFreeLevel)).toBe(true);
+  });
+
+  it.each([
+    'Great job, 3 days in a row',
+    'You are within your guidance',
+    'Up to 2 drinks today',
+    'A safe week',
+    'You met your milestone',
+    'Keep it up',
+  ])('A34: the alcohol rules catch %j', (text) => {
+    expect(ALCOHOL_SECTION_RULES.some((rule) => rule.test(text))).toBe(true);
   });
 });
 
@@ -770,6 +991,45 @@ describe('transfer copy (item 30)', () => {
     });
     expect(filled).toContain('Choose thezombierobot.github.io and set it to Allow.');
     expect(filled).not.toContain('{');
+  });
+});
+
+// Item 20 (U17; design 5.1): the recipes wording, its section rules and the keys other code reads.
+describe('recipes copy (item 20)', () => {
+  it('U17: the section rules catch moralising, claims, a named source, "fits your" and alcohol', () => {
+    for (const bad of [
+      'A bad choice.',
+      'A healthy dinner.',
+      'Safe for you.',
+      'Allergen-free.',
+      'Lowers your cholesterol.',
+      'As the Heart Foundation says.',
+      'Values from USDA.',
+      'It fits your ceiling.',
+      'Deglaze with white wine.',
+      'You must eat this.',
+    ])
+      expect(
+        RECIPES_SECTION_RULES.some((rule) => rule.test(bad)),
+        bad,
+      ).toBe(true);
+  });
+
+  it('U17: one key per flag reason and diet mode; no figure, badge or footer wording of its own (contract 4)', () => {
+    expect(Object.keys(recipes.heart.reasons)).toEqual([...FLAG_REASONS]);
+    for (const modes of [recipes.chips.style, recipes.chips.styleWritten, recipes.style.written])
+      expect(Object.keys(modes)).toEqual([...DIET_MODES]);
+    expect(Object.keys(recipes.nutrition.confidenceHelp)).toEqual(['database', 'estimate']);
+    // The list's lead says how figures come about, never that they exist (item 20 review).
+    expect(recipes.list.intro).not.toMatch(/figures are worked out/);
+    expect(recipes.list.intro).toContain('reads “not known”');
+    for (const key of ['confidence', 'notYet', 'unknownValue', 'atLeast', 'footer'])
+      expect(Object.keys(recipes.nutrition)).not.toContain(key);
+    const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1] ?? '');
+    for (const [path, text] of strings(recipes, 'recipes')) {
+      const values = Object.fromEntries(placeholders(text).map((name) => [name, 'x']));
+      expect(fillTemplate(text, values), path).not.toMatch(/[{}]/);
+    }
   });
 });
 

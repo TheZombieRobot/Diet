@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import type { FoodLogRecord, PlannedMealRecord, RecipeRecord } from '../storage/records';
-import type { Nutrients } from '../nutrition/nutrients';
+import type { FoodLogRecord, PlannedMealRecord } from '../storage/records';
+import { seedViews } from '../foods/dataset';
+import { NUTRIENT_KEYS, type Nutrients } from '../nutrition/nutrients';
+import { ingredientResolver } from '../storage/overrides';
 import {
   loggedIntakeOn,
   type LoggedIntake,
   mealCheck,
   type MealCheckInput,
+  type MealCheckRecipe,
   type PlannedMealFigures,
   plannedMealFigures,
   plannedMealsOf,
@@ -331,7 +334,7 @@ describe('figures for the check (items 22 and 23 feed these)', () => {
       lines: [],
       nutritionPerServe: nutrients(40, 2_000),
       unknownNutrients: ['energyKj'],
-    } as unknown as RecipeRecord;
+    } as unknown as MealCheckRecipe;
     const planned: PlannedMealRecord = {
       slot: 'dinner',
       recipeId: 'r',
@@ -381,6 +384,49 @@ describe('figures for the check (items 22 and 23 feed these)', () => {
       loggedSlots: ['lunch'],
       otherEntries: 1,
       incomplete: true,
+    });
+  });
+});
+
+// Item 18's handover (item 18 design section 8, row 15): with the catalogue's figures not loaded,
+// a dinner of seed foods is never shown as enough.
+describe('a dinner of not-loaded catalogue foods (item 18; HS-18, HS-37, C29)', () => {
+  it('offers the 5 pm snack: protein and energy are not shown to be met, and every line counts as protein food', () => {
+    const resolve = ingredientResolver(seedViews(), [], []);
+    const recipe = {
+      serves: 1,
+      lines: [
+        { ingredientId: 'seed:chicken-breast', rawG: 300, cookedG: null, displayAs: null },
+        { ingredientId: 'seed:broccoli', rawG: 350, cookedG: null, displayAs: null },
+      ],
+      nutritionPerServe: {
+        energyKj: 0,
+        proteinG: 0,
+        fatG: 0,
+        saturatedFatG: 0,
+        carbsG: 0,
+        sugarsG: 0,
+        fibreG: 0,
+        sodiumMg: 0,
+      },
+      unknownNutrients: [...NUTRIENT_KEYS],
+    } as unknown as MealCheckRecipe;
+    const dinner: PlannedMealRecord = {
+      slot: 'dinner',
+      recipeId: 'r',
+      myServes: 1,
+      householdServes: 1,
+    };
+    const figures = plannedMealFigures(dinner, recipe, resolve);
+    expect(figures).toMatchObject({
+      proteinKnown: false,
+      incomplete: true,
+      proteinFoodCookedG: 650,
+    });
+    expect(check({ planned: [figures] })).toMatchObject({
+      kind: 'short-before',
+      reasons: ['protein', 'energy', 'portion'],
+      sitting: { proteinG: 0, atLeast: true, unknown: true, dinnerOnly: true },
     });
   });
 });

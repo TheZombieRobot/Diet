@@ -106,6 +106,21 @@ The New Zealand Food Composition Database (foodcomposition.co.nz) is the preferr
 
 **Decision:** read clause 4 before loading data (checklist item 10). If it permits non-commercial use within a personal app with attribution, use a hand-curated subset of roughly 150 items with the recommended citation on the app's "About data" screen. If it does not, use the USDA FoodData Central (public domain), which is less NZ-specific but unencumbered, and note the gap for NZ-only items such as feijoa.
 
+**Status (checklist item 18):** the catalogue shipped at checklist item 18 with every figure "not known"; figures wait on item 10 (step 18b of the item 18 design). Neither site was reachable from the build environment, so no figure was loaded and none was written from memory.
+
+**What item 10 must record** (one dated DECISIONS row, the owner's decision), answered from clause 4 of the FOODfiles terms, or from the USDA FoodData Central page if USDA is chosen:
+1. May the figures be used inside a free, personal app? (yes or no, with the operative sentence quoted)
+2. May a subset (about 150 foods × 8 figures, with the database's food ids and descriptions) be committed to a public GitHub repository and published with the app on GitHub Pages?
+3. The exact attribution or citation text, and where it must appear (About, every nutrition screen, both).
+4. (a) May figures be converted (kcal to kJ, "carbohydrate by difference" to available carbohydrate)? (b) May they be rounded for display, or must they be shown exactly as published?
+5. May figures be combined with another database's figures for foods the first lacks (per-food fallback)?
+6. Must the edition or the date of the data be shown?
+7. May recipe totals and daily totals be computed from the figures?
+8. (NZ only) Which one carbohydrate field is "available carbohydrate" for the app (CHOAVL or CHOAVLDF)? One field is used for every food; a per-food maximum is not used, because a carb figure that is too high is the low-blood-sugar direction for someone on insulin or a sulfonylurea.
+9. How are trace values ("Tr") and blank cells treated? Default: both are "not known". Only if the owner records that a trace counts as 0 is it imported as 0.
+
+A "no" to 1, 2, 3 or 7 means that database is not approved. **Row format** (a documentation test reads it): the first cell is the date (`YYYY-MM-DD`, never "pending"); the decision cell starts with `**Nutrition data licence (item 10):**` and contains, for each approved source, `` Approved source: `<id>`. `` and `` Attribution text (`<id>`): "<text>" ``, copied exactly, or `Approved source: none.` The app's list of approved sources (`APPROVED_NUTRIENT_SOURCES`) and its attribution text change only in the same commit as that row.
+
 ---
 
 ## 7. If you ever want more than Tier 1

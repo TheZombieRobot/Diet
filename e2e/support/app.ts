@@ -1,7 +1,15 @@
 import { expect, type BrowserContext, type Locator, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { fasting, onboarding, privacy, today, weight } from '../../packages/core/src/copy/health';
+import {
+  fasting,
+  foods,
+  onboarding,
+  privacy,
+  recipes,
+  today,
+  weight,
+} from '../../packages/core/src/copy/health';
 import { parseColourTokens, requireToken } from '../../packages/ui/src/tokens';
 
 /** Every screen of the phone app, in the order a person reaches them. */
@@ -18,16 +26,30 @@ export const SCREENS = [
   'Fasting and reflux',
   // Item 21: reached from Settings, More.
   'Diet and targets',
+  // Item 18: reached from About, Data sources.
+  'Foods in the app',
+  // Item 19: reached from Food, its "At home" card.
+  'Garden and pantry',
   // Item 30: reached from Settings.
   'Laptop pairing',
+  // Item 20: reached from Food, its "Meals" card.
+  'Recipes',
 ] as const;
 export type ScreenName = (typeof SCREENS)[number];
+
+/** Item 19: screens under a tab, which mark that tab as their section (aria-current="true"). */
+export const UNDER_TABS: Readonly<Partial<Record<ScreenName, (typeof TABS)[number]>>> = {
+  'Garden and pantry': 'Food',
+  // Item 20.
+  Recipes: 'Food',
+};
 
 /** Screens reached from Settings, which mark the settings gear as their section. */
 export const UNDER_SETTINGS: readonly ScreenName[] = [
   'About',
   ...SETUP_SCREENS,
   'Diet and targets',
+  'Foods in the app',
   'Laptop pairing',
 ];
 
@@ -53,7 +75,8 @@ export const heading = (page: Page) => page.getByRole('heading', { level: 1 });
 
 /**
  * Goes to a screen the way a person would: a tab, the settings gear, then "About this app"; the
- * Weight screen through Today's Weight card, and the Fasting screen through Today's Fast card.
+ * Weight screen through Today's Weight card, the Fasting screen through Today's Fast card, and
+ * Garden and pantry and Recipes through Food's links.
  */
 export async function goTo(page: Page, screen: ScreenName): Promise<void> {
   if ((TABS as readonly string[]).includes(screen)) {
@@ -73,11 +96,28 @@ export async function goTo(page: Page, screen: ScreenName): Promise<void> {
       .getByRole('link', { name: 'Today' })
       .click();
     await page.getByRole('link', { name: fasting.card.detailsLink }).click();
+  } else if (screen === 'Garden and pantry' || screen === 'Recipes') {
+    await page
+      .getByRole('navigation', { name: 'Main' })
+      .getByRole('link', { name: 'Food' })
+      .click();
+    if (screen === 'Garden and pantry') {
+      await page.getByRole('link', { name: /^Garden and pantry/ }).click();
+    } else {
+      await page
+        .getByRole('region', { name: recipes.foodLink.cardLabel })
+        .getByRole('link', { name: new RegExp(`^${recipes.foodLink.title}`) })
+        .click();
+    }
   } else {
     await page.getByRole('banner').getByRole('link', { name: 'Settings' }).click();
-    if (screen === 'About') {
+    if (screen === 'About' || screen === 'Foods in the app') {
       await expect(heading(page)).toHaveText('Settings');
       await page.getByRole('link', { name: /^About this app/ }).click();
+      if (screen === 'Foods in the app') {
+        await expect(heading(page)).toHaveText('About');
+        await page.getByRole('link', { name: new RegExp(`^${foods.about.linkTitle}`) }).click();
+      }
     } else if (screen !== 'Settings') {
       await expect(heading(page)).toHaveText('Settings');
       await page.getByRole('link', { name: new RegExp(`^${screen}`) }).click();
@@ -182,6 +222,31 @@ export async function seedOnboarded(
   await expect(heading(page)).toHaveText('Today');
   if (path !== appUrl) await page.goto(path);
 }
+
+/**
+ * On Foods in the app: types `query` into "Food name" and opens the food whose row starts with
+ * `name`, so a sweep sees a food's details, its eight figures and the footer (item 18).
+ */
+export async function openFoodPanel(
+  page: Page,
+  query = 'chard',
+  name = 'Silverbeet',
+): Promise<void> {
+  await page.getByRole('searchbox', { name: foods.screen.searchLabel }).fill(query);
+  await page.getByRole('button', { name: new RegExp(`^${name}(?: |$)`) }).click();
+  await expect(page.getByRole('region', { name })).toBeVisible();
+}
+
+/** Item 20: on Recipes, opens the recipe with this title and waits for its page. */
+export async function openRecipe(page: Page, title: string): Promise<void> {
+  await goTo(page, 'Recipes');
+  await page.getByRole('link', { name: new RegExp(title) }).click();
+  await expect(heading(page)).toHaveText(title);
+  await expect(page.getByRole('region', { name: recipes.detail.atAGlance })).toBeVisible();
+}
+
+/** The silverbeet week's first dinner, the recipe page the sweeps visit. */
+export const SWEPT_RECIPE = 'Lemon chicken and silverbeet traybake';
 
 /**
  * Item 16: changes a finished setup's synthetic records with raw IndexedDB (readiness answers and

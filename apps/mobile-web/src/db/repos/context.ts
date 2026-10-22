@@ -14,9 +14,7 @@ import {
   type SettingsRecord,
   type Snapshot,
   type StoreName,
-  type StoreRecords,
 } from '@diet/core';
-import type { Table } from 'dexie';
 import type { DietDb } from '../db';
 import type { StorageEnv } from '../env';
 import { mapWriteError } from '../errors';
@@ -35,13 +33,6 @@ export interface RepoContext {
 }
 
 export type KeyOfStore<K extends StoreName> = K extends 'card_state' ? [string, string] : string;
-
-export function tableOf<K extends StoreName>(
-  db: DietDb,
-  name: K,
-): Table<StoreRecords[K], KeyOfStore<K>> {
-  return db.table<StoreRecords[K], KeyOfStore<K>>(name);
-}
 
 /**
  * Runs a write: the gate first (StorageClosedError before Dexie is touched; section 7.5), then the

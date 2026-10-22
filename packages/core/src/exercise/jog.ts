@@ -104,6 +104,10 @@ function jogSeconds(data: ExerciseData, row: SessionRecord): number {
  * so it was not tolerated: stopping part-way pauses jogging. Only an unfinished jog dated today
  * is left out, so it can still be resumed and rated. A later tolerated jog never clears an
  * earlier one that was not: only a tolerated walk does.
+ *
+ * Rows dated after today (the phone's clock set back) count against jogging, never for it: a jog
+ * that was not tolerated pauses jogging whatever its date, while walks still count only up to
+ * today, so no walk can clear it until the clock passes it (item 27 review).
  */
 export function jogStatus(
   data: ExerciseData,
@@ -121,8 +125,9 @@ export function jogStatus(
   if (!input.jogOptIn) return result(enough ? 'off-ready' : 'off-few');
   if (!enough) return result('on-few');
 
+  const allRows = [...input.sessions].sort(compareSessions);
   const tolerated = (jog: SessionRecord) => {
-    const next = nextCheck(rows, jog);
+    const next = nextCheck(allRows, jog);
     return (
       jog.status === 'done' &&
       ratedEasy(jog.exertion) &&
@@ -130,10 +135,10 @@ export function jogStatus(
       (next === null || noPainNext(next))
     );
   };
-  const lastBadJog = rows
+  const lastBadJog = allRows
     .filter(
       (s) =>
-        jogSeconds(data, s) > 0 && (s.status === 'done' || s.date < input.today) && !tolerated(s),
+        jogSeconds(data, s) > 0 && (s.status === 'done' || s.date !== input.today) && !tolerated(s),
     )
     .at(-1);
   if (lastBadJog === undefined || walkDates.some((date) => date > lastBadJog.date)) {

@@ -5,8 +5,10 @@ import {
   GROUND,
   offerInstall,
   openBackupPanels,
+  openRecipe,
   patchRecords,
   seedOnboarded,
+  SWEPT_RECIPE,
   visitEveryScreen,
 } from './support/app';
 import { lowContrastText, MIN_CONTRAST, textSamples } from './support/contrast';
@@ -37,6 +39,9 @@ for (const colorScheme of ['light', 'dark'] as const) {
     };
 
     await visitEveryScreen(page, (screen) => sweep(screen));
+    // Item 20: a recipe's page, with its chips, ingredient lines and the nutrition card.
+    await openRecipe(page, SWEPT_RECIPE);
+    await sweep('A recipe page');
     await offerInstall(page);
     await goTo(page, 'Today');
     await expect(page.getByText('Install this app')).toBeVisible();
@@ -45,7 +50,8 @@ for (const colorScheme of ['light', 'dark'] as const) {
     await expect(page.getByTestId('water-total')).toHaveText('250 mL');
     await page.getByRole('button', { name: 'Enter steps' }).click();
     await page.getByRole('button', { name: 'Quick actions' }).click();
-    await expect(page.locator('.ui-fab-panel [aria-disabled="true"]')).toHaveCount(6);
+    // Three Later rows: items 19, 27 and 28 built Add harvest, Complete workout and Add drink.
+    await expect(page.locator('.ui-fab-panel [aria-disabled="true"]')).toHaveCount(3);
     await sweep('Today with the install banner, the steps editor and quick actions');
     // The Later rows are aria-disabled but meant to be read at full contrast, so they are swept.
     const swept = async () => (await textSamples(page)).map((sample) => sample.text);

@@ -11,6 +11,12 @@ export interface TabBarProps {
   items: readonly TabItem[];
   /** The id of the current tab, or undefined on a screen that is not a tab (Settings, About). */
   current: string | undefined;
+  /**
+   * The current screen is not the tab itself but a screen under it (item 19: Garden and pantry
+   * under Food; item 27: Move's session and weekly plan): the tab is marked aria-current="true",
+   * not "page", as the gear is for About, and keeps its pill.
+   */
+  currentIsParent?: boolean | undefined;
   /** The navigation landmark's name. */
   label?: string;
   /**
@@ -29,10 +35,16 @@ const isPlainClick = (event: MouseEvent): boolean =>
   !event.altKey;
 
 /**
- * The bottom tab bar: one link per tab, the current one marked with aria-current="page" and, not
- * by colour alone, a tinted pill behind its icon.
+ * The bottom tab bar: one link per tab, the current one marked with aria-current="page" (or "true"
+ * on a sub-screen of that tab) and, not by colour alone, a tinted pill behind its icon.
  */
-export function TabBar({ items, current, label = 'Main', onSelect }: TabBarProps): ReactElement {
+export function TabBar({
+  items,
+  current,
+  currentIsParent = false,
+  label = 'Main',
+  onSelect,
+}: TabBarProps): ReactElement {
   return (
     <nav className="ui-tabbar" aria-label={label}>
       <ul className="ui-tabbar__list">
@@ -41,7 +53,7 @@ export function TabBar({ items, current, label = 'Main', onSelect }: TabBarProps
             <a
               className="ui-tabbar__link"
               href={item.href}
-              aria-current={item.id === current ? 'page' : undefined}
+              aria-current={item.id === current ? (currentIsParent ? 'true' : 'page') : undefined}
               onClick={
                 onSelect === undefined
                   ? undefined

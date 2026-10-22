@@ -42,7 +42,7 @@ Conventions for the implementing model:
 9. **Phase 0 recommendation.** Model reads 3.3 and 9.1, writes 9.2 recommending A, B or C against the gates in section 9. Do not build anything for the extension yet.
    *Acceptance:* 9.2 written with reasons.
 
-10. **Nutrition data licence.** Read foodcomposition.co.nz terms clause 4 (owner or model). Record the NZ vs USDA decision in `DECISIONS.md`.
+10. **Nutrition data licence.** Read foodcomposition.co.nz terms clause 4 (owner or model). Record the NZ vs USDA decision in `DECISIONS.md`, answering the nine questions in `INTEGRATION_FEASIBILITY.md` section 6, in the row format given there. Then run step 18b (item 18 design, section 6).
     *Acceptance:* decision recorded with the clause quoted.
 
 11. **STOP — Phase 0 decision.** Message the owner with the recommendation. Owner records A/B/C in 9.3.
@@ -68,14 +68,14 @@ Conventions for the implementing model:
 
 ## Week 2 — Food and garden
 
-18. **Ingredient dataset.** About 150 items in `packages/test-fixtures` and `packages/core/data`: name, aliases, aisle, pack sizes seen at PAK'nSAVE (owner corrects in the trial), nutrients per 100 g, source tag and citation, allergens, garden flag, Bay of Plenty season months. Silverbeet and other leafy greens included.
-    *Acceptance:* NU-01; validation script; attribution text matches the chosen licence.
+18. **Ingredient dataset.** About 150 foods in `packages/core/data` (one canonical dataset; `packages/test-fixtures` uses a small subset): name, aliases, aisle, typical NZ pack sizes (estimates, never attributed to a store; the owner corrects them after the trial), allergens, garden flag, Bay of Plenty season months, raw/cooked/as-sold basis and substitutes. Silverbeet, other leafy greens, firm tofu and silken tofu included. Nutrients per 100 g, with per-value source tags and citations, are loaded at step 18b from the source approved at item 10; until then every figure shows as not known.
+    *Acceptance:* NU-01; validation script (`pnpm foods:check`); at step 18b, attribution text matches the chosen licence, NU-01 on the real figures, and items 20–23's acceptance re-run with real figures before any deploy. *Accepted in part until step 18b* (in progress: the catalogue is built with every figure not known).
 
 19. **Garden and pantry inventory.** Crop, amount, harvest-ready, perishability, optional photo stored on device; pantry quantities; "Add harvest" quick action.
-    *Acceptance:* GL-02 fixture; PWA-04 offline persistence; photo never included in exports.
+    *Acceptance:* GL-02 fixture; PWA-04 offline persistence; photo never included in exports; GD-01 to GD-04.
 
 20. **Recipe dataset.** About 30 recipes: silverbeet-first week, leafy greens, affordable NZ proteins (chicken, eggs, canned fish, mince, seasonal fish), seasonal produce, substitutions and leftover reuse; cholesterol-conscious scoring; allergens; raw and cooked weights.
-    *Acceptance:* NU-02, NU-03, NU-04; FL-06 (HS-24).
+    *Acceptance:* NU-02, NU-03, NU-04, NU-10, NU-11; FL-06 (HS-24); HS-39. *Built:* 30 recipes in `packages/core/data/recipes.json` (two tofu dinners), their rules in `packages/core/src/recipes/`, Food, Recipes and a recipe's page with Scale servings; Substitute ingredient saves a copy once its ingredients have figures (after step 18b), and Add to plan and Log as eaten arrive with items 22 and 23.
 
 21. **Targets engine, deficits and diet modes.** Protein 120–140 g default (80–200 range), net-carb ceiling in keto mode, saturated-fat budget, fibre guide, energy estimate with "physically active job" default, Kickstart deficit up to 30% with protein at the range maximum (140 g by default) and net carbs at 20 g, Steady deficit 15–20%, 5,000 kJ floor in both; keto-preferred, moderate low-carb, balanced modes. *Built:* the engine in `packages/core/src/targets/`, Settings, Diet and targets, the Nutrition today card on Today and the diet-mode switch (HS-36 and FL-17 for alcohol energy); the planner's own refusal (HS-10, NU-06) and the suggestion list (FL-04 UI) are item 22's.
     *Acceptance:* unit tests; HS-09, HS-10, HS-22, HS-25; FL-04; WT-06, WT-07.
@@ -83,7 +83,7 @@ Conventions for the implementing model:
 22. **Seven-day planner.** Window-aware meal slots (snack plus dinner by default), swap with garden-first ranking, household scaling with independent user portion, dislikes and allergens respected, budget note, cholesterol check-in cards (day one, weeks 8 and 12), electrolyte reminder in the first fortnight, optional auto-fill respecting the floor (the Today cholesterol and electrolyte reminders were built at item 16; item 22 adds the planner side and reuses `cholesterolCheckinDue` and `electrolyteReminderDue`).
     *Acceptance:* NU-05 to NU-08; FL-05 (HS-23).
 
-23. **Food log.** Quick-add from plan or recipe, add from label (per 100 g or per serve), raw/cooked toggle, confidence badges, water and electrolyte log, manual steps.
+23. **Food log.** Quick-add from plan or recipe, add from label (per 100 g or per serve), raw/cooked toggle, confidence badges, water and electrolyte log, manual steps. The Today water card's guide adds core `heatWaterExtraMl(data, sessions, today, equipment)` (item 27: 500 mL for each started hour of today's beach or hot-day sessions) to `waterGuide(...).ml`, with one test (a done beach walk today adds 500 mL; cross-item ruling 12).
     *Acceptance:* FL-01 to FL-03.
 
 24. **Grocery list builder and exports.** Aggregate, merge, subtract pantry and garden with audit rows, pack rounding, substitutes, aisle grouping, store name header, optional timestamped prices, copy text, CSV, JSON.
@@ -100,10 +100,11 @@ Conventions for the implementing model:
     *Acceptance:* EX-01, EX-05; HS-28 and HS-29 at core level.
 
 27. **Move screens.** Week view, pre-session check, session view with progression cap, finish ratings, beach prompts, rest counted as success.
-    *Acceptance:* EX-02 to EX-04; HS-12, HS-28, HS-29; RD-05 (Move tab, Today Movement card and Complete workout).
+    *Acceptance:* EX-02 to EX-04, EX-06 to EX-08; HS-12, HS-28, HS-29 (UI); RD-05 (Move tab, Today Movement card and Complete workout); EX-05 in the week view.
 
-28. **Alcohol engine and screens.** Beverage presets (default 330 mL, 5%, 94 kcal), log, daily/weekly cans/standard drinks/kcal, trends, alcohol-free days, milestones entered by user or clinician, guidance context, help card triggers, next-day note, no banned phrasing.
-    *Acceptance:* AL-01 to AL-12; HS-05, HS-06, HS-07, HS-08, HS-19; NN-01, NN-09.
+28. **Alcohol engine and screens.** Beverage presets (default 330 mL, 5%, 94 kcal), log, daily/weekly drinks/standard drinks/kcal, trends, alcohol-free days, milestones entered by user or clinician, guidance context, help card triggers, next-day note, no banned phrasing.
+    *Acceptance:* AL-01 to AL-12 and AL-09b; HS-05, HS-06, HS-07, HS-08, HS-19; NN-01, NN-09; PWA-04 (log a drink) and RD-01 (alcohol), per DOC_REVIEW C23.
+    No commit with item 28 copy is marked [deploy] until the owner has confirmed the C58 wording at STOP 17.
 
 29. **Relay service** on Cloudflare Worker + KV: POST ciphertext to a room, GET once then delete, 15-minute expiry, 64 KB cap, rate limit, no body logging. Test deployment with 2-minute expiry.
     *Acceptance:* TR-02 (relay half), TR-05a and TR-05b (relay half), TR-06 (relay half), TR-09a, in CI with no Cloudflare account.
@@ -149,6 +150,7 @@ Conventions for the implementing model:
     *Acceptance:* each finding dispositioned; CI green.
 
 42. **Health copy review.** Owner reads every string in `health.ts` against `HEALTH_SAFETY.md`, and the exercise dataset's names, how-to lines and cues (`packages/core/data/exercises.json`); model locates and links the Heart Foundation NZ page, current CDC page, SunSmart and the 2020 Eating and Activity Guidelines PDF, replacing secondary sources where found.
+    Item 18 adds: the `foods` copy, the season months, the allergen completeness rule and `SINGLE_FOOD_IDS`, the heart-role table and the fatty cuts, canned fish under Pantry, and whether the Foods screen should show per-100 g energy figures under readiness answers 1 and 5 once figures are loaded.
     *Acceptance:* no secondary-source note remains where a primary page was found; scans pass.
 
 43. **Handover notes** in `README.md`: update, re-pair, back up, restore, delete all, reload extension after Chrome updates, redeploy the relay.

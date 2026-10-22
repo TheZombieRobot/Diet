@@ -3,6 +3,7 @@
 // 33 to 35, and import fuzzing through the app's own path; BK-01, BK-02, BK-07, BK-09, BK-10,
 // HS-15, RD-08). Real Dexie over fake-indexeddb.
 import {
+  activeHelpTriggers,
   BackupError,
   backupReminder,
   buildBackupPayload,
@@ -16,9 +17,11 @@ import {
   kickstartUsage,
   missingReadinessAnswers,
   migrateSnapshot,
+  parseBackupText,
   plainBackupText,
   readinessInputFromRows,
   type Snapshot,
+  unlockBackup,
   validateSnapshot,
 } from '@diet/core';
 import {
@@ -28,14 +31,16 @@ import {
   lockedReferenceEnvelopeV1,
   mulberry32,
   mutateBackupText,
+  overrideFiguresFor,
   plainReferenceEnvelopeV1,
   REFERENCE_PHRASE_V1,
   snapshotV1,
   SYNTHETIC_PHRASE,
 } from '@diet/test-fixtures';
 import { describe, expect, it } from 'vitest';
+import { loadDrinksData } from '../screens/drinks/load';
 import { deleteAllData } from './deleteAll';
-import { createExport, createRescueCopy } from './exportBackup';
+import { createExport, createRescueCopy, createUpgradeRescueCopy } from './exportBackup';
 import {
   decodeImport,
   type ImportFile,
@@ -82,6 +87,12 @@ const writeDeps = (): WriteDeps & { reloads: number } => {
 };
 
 /** Fills every backed-up store from the version-1 fixture (the import writer is the quickest way). */
+/** Synthetic figures for catalogue foods, as an owner's corrections (no food data ships yet). */
+async function giveFiguresTo(test: TestDb, seedIds: readonly string[]): Promise<void> {
+  for (const { seedId, changes } of overrideFiguresFor(seedIds))
+    await test.repos.ingredientOverrides.create({ seedId, changes });
+}
+
 async function fillWithFixture(test: TestDb): Promise<void> {
   await replaceAll(test.db, snapshotV1);
 }
@@ -117,19 +128,44 @@ async function importAndReload(
   return openTestDb({ deps: test.deps, env: test.env });
 }
 
-function expectNoDeviceData(text: string): void {
-  const raw = String.fromCharCode(...PHOTO_BYTES);
+/**
+ * Every way a run of photo bytes could sit in a text file, under any key (item 19 review): as
+ * Latin-1 text (raw and JSON-escaped), as hex, as a list of numbers, and as base64 from each of the
+ * three byte alignments (base64 of a run that starts 1 or 2 bytes into a group differs).
+ */
+function byteForms(bytes: Uint8Array): string[] {
+  const latin1 = String.fromCharCode(...bytes);
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  const base64 = [0, 1, 2].map((shift) => {
+    const whole = Math.floor((bytes.length - shift) / 3) * 3;
+    return bytesToBase64(bytes.subarray(shift, shift + whole));
+  });
+  return [
+    latin1,
+    JSON.stringify(latin1).slice(1, -1),
+    hex,
+    hex.toUpperCase(),
+    bytes.join(','),
+    ...base64,
+  ];
+}
+
+/** No pairing secret and no photo, in any form, in a file the app made. */
+function expectNoDeviceData(text: string, photo: Uint8Array): void {
+  // The synthetic photo carries the PHOTO_BYTES run itself, so its checks can find it.
+  expect(byteForms(photo).every((form) => form.length > 0)).toBe(true);
+  expect(photo.join(',')).toContain(PHOTO_BYTES.join(','));
   for (const leak of [
     'ExampleRoomId00000000A',
     'https://relay.example.com/room',
-    bytesToBase64(PHOTO_BYTES),
-    raw,
+    ...byteForms(PHOTO_BYTES),
+    ...byteForms(photo),
     '"bytes":',
     '"key":',
     '"roomId":',
     '"relayUrl":',
   ]) {
-    expect(text.includes(leak), leak).toBe(false);
+    expect(text.includes(leak), leak.slice(0, 40)).toBe(false);
   }
 }
 
@@ -148,7 +184,8 @@ describe('BK-01 / HS-15: round trip through the real database (section 10.8; sec
       ).toBe(true);
       await savePairingForTests(test);
       const gardenId = snapshotV1.garden[0]?.id ?? '';
-      await test.db.garden_photos.put(photoRow(gardenId));
+      const photo = photoRow(gardenId);
+      await test.db.garden_photos.put(photo);
 
       const exported = await createExport(test.db, test.env, password);
       if (!exported.ok) throw exported.error;
@@ -158,7 +195,12 @@ describe('BK-01 / HS-15: round trip through the real database (section 10.8; sec
       await test.repos.settings.recordBackup(exported.file.exportedAt);
       const before = await backupSnapshot(test.db);
       expect(before.settings[0]?.lastBackupAt).toBe(exported.file.exportedAt);
-      if (password === null) expectNoDeviceData(exported.file.text);
+      // The locked file is checked once decrypted, as the plain one is.
+      const parsed = parseBackupText(exported.file.text);
+      const readable = parsed.encrypted
+        ? JSON.stringify(await unlockBackup(parsed, SYNTHETIC_PHRASE))
+        : exported.file.text;
+      expectNoDeviceData(readable, new Uint8Array(photo.bytes));
 
       await deleteEverything(test);
       const fresh = await openTestDb({ deps: test.deps, env: test.env });
@@ -170,6 +212,48 @@ describe('BK-01 / HS-15: round trip through the real database (section 10.8; sec
       expect(await after.db.garden_photos.count()).toBe(0);
     },
   );
+});
+
+describe('B3 GD-02: no file the app makes carries a garden photo (item 19; HS-15, BK-01)', () => {
+  it('the plain backup, the locked one once decrypted, a rescue copy and an unchecked copy', async () => {
+    const test = await openTestDb();
+    await fillWithFixture(test);
+    const photo = photoRow(snapshotV1.garden[0]?.id ?? '');
+    await test.db.garden_photos.put(photo);
+    const files: [string, string][] = [];
+
+    const plain = await createExport(test.db, test.env, null);
+    if (!plain.ok) throw plain.error;
+    files.push(['plain', plain.file.text]);
+    const locked = await createExport(test.db, test.env, SYNTHETIC_PHRASE);
+    if (!locked.ok) throw locked.error;
+    const parsed = parseBackupText(locked.file.text);
+    if (!parsed.encrypted) throw new Error('expected a locked file');
+    files.push(['locked, decrypted', JSON.stringify(await unlockBackup(parsed, SYNTHETIC_PHRASE))]);
+    const rescue = await createUpgradeRescueCopy(test.deps.indexedDB, test.env, null);
+    files.push(['rescue copy', rescue?.file.text ?? '']);
+
+    // An unchecked copy: a phone whose own self-check fails (a weight written past the app's checks).
+    test.db.shutDown();
+    const raw = await rawWriter(test.deps, STORES_V1);
+    await raw.table('weights').put({ ...snapshotV1.weights[0], kg: 5 });
+    raw.close();
+    const phone = await openTestDb({ deps: test.deps, env: test.env });
+    expect(await phone.db.garden_photos.count()).toBe(1);
+    const failed = await createExport(phone.db, phone.env, null);
+    if (failed.ok || failed.unchecked === null) throw new Error('expected a failed self-check');
+    files.push([
+      'unchecked copy',
+      (await createRescueCopy(failed.unchecked, phone.env, null)).file.text,
+    ]);
+
+    for (const [name, text] of files) {
+      expect(text.length, name).toBeGreaterThan(1000);
+      expect(text, name).not.toContain(bytesToBase64(new Uint8Array(photo.bytes)));
+      expect(text, name).not.toContain('garden_photos');
+      expectNoDeviceData(text, new Uint8Array(photo.bytes));
+    }
+  });
 });
 
 describe('BK-02: a wrong password imports nothing (section 16 test 27)', () => {
@@ -241,6 +325,9 @@ describe('replace semantics and the confirmation (D17; section 16 test 29)', () 
   it('counts what the phone would lose, defaults to exporting first, and replaces everything', async () => {
     const test = await openTestDb();
     await fillWithFixture(test);
+    // Item 20: a recipe's stored figures are worked out from its lines on every write, so its
+    // catalogue line needs (synthetic) figures before the rename below can be stored (HS-39).
+    await giveFiguresTo(test, ['seed:silverbeet']);
     const exported = await createExport(test.db, test.env, null);
     if (!exported.ok) throw exported.error;
     await test.repos.settings.recordBackup(exported.file.exportedAt);
@@ -249,7 +336,8 @@ describe('replace semantics and the confirmation (D17; section 16 test 29)', () 
     const extraWeight = await test.repos.weights.create({ kg: 100, source: 'manual', note: null });
     const extraGarden = await test.repos.garden.create({
       ingredientId: null,
-      name: 'Example herb',
+      // Not a fixture crop's name: one row per crop (item 19, G17).
+      name: 'Example extra herb',
       amount: null,
       unit: null,
       gramsPerUnit: null,
@@ -314,7 +402,9 @@ describe('replace semantics and the confirmation (D17; section 16 test 29)', () 
       phoneHasOwnRecords: false,
       exportFirst: false,
     });
-    // Once the owner changes a seed row, it is theirs.
+    // Once the owner changes a seed row, it is theirs. Delete-all cleared the alcohol notice, which
+    // a preset write needs first (item 28).
+    await onboardForTests(cleared, { weightKg: null });
     const [drink] = await cleared.repos.beverages.list();
     if (drink === undefined) throw new Error('no seeded drink');
     await cleared.repos.beverages.update(drink.id, { name: 'Example lager' });
@@ -714,7 +804,12 @@ describe('a phone clock that was wrong never blocks a backup or a restore (orche
     // Setup finished with the clock ahead (item 13 refuses a completion without the notice and
     // the seven answers): every setup time, answers included, is dated ahead.
     await onboardForTests(test, { weightKg: null });
-    await test.repos.recipes.create(structuredClone(snapshotV1.recipes[0]) as never);
+    // Item 20: a recipe is stored with the figures worked out from its lines (HS-39), so its one
+    // line here is a catalogue food given synthetic figures.
+    await giveFiguresTo(test, ['seed:silverbeet']);
+    const fixture = structuredClone(snapshotV1.recipes[0]);
+    const lines = fixture?.lines.filter((l) => l.ingredientId === 'seed:silverbeet');
+    await test.repos.recipes.create({ ...fixture, lines } as never);
     await test.repos.cardState.dismiss('rapid-loss', 'steady');
     test.env.set(corrected);
     const outcome = await createExport(test.db, test.env, null);
@@ -922,5 +1017,50 @@ describe('device-only stores', () => {
       sealed,
     );
     expect([...new Uint8Array(opened)]).toEqual([1, 2, 3]);
+  });
+});
+
+describe('the withdrawal tick lasts (item 28 D2; AL-08, C05)', () => {
+  /** The help card's triggers, fed from the Drinks screens' own read. */
+  async function triggers(t: TestDb): Promise<readonly string[]> {
+    const data = await loadDrinksData({
+      gate: t.db.gate,
+      storage: t.storage,
+      from: '2000-01-01',
+      to: '2000-03-01',
+    });
+    return activeHelpTriggers({
+      now: t.env.now(),
+      deviceZone: 'Pacific/Auckland',
+      ctx: { homeTimeZone: data.settings.homeTimeZone, cutoverMinutes: 300 },
+      rows: data.drinks,
+      weeklyGuidance: 10,
+      withdrawalTickDates: data.notes.filter((n) => n.withdrawalTick).map((n) => n.date),
+      noteToday: '2000-03-01',
+      q7Gated: false,
+    });
+  }
+
+  it('a ticked note still brings up the card after a reload, and after export, delete all and import', async () => {
+    const test = await openTestDb();
+    await onboardForTests(test, { weightKg: null });
+    await test.repos.alcoholDayNotes.create({
+      date: '2000-03-01',
+      note: null,
+      withdrawalTick: true,
+    });
+    expect(await triggers(test)).toEqual(['withdrawal-tick']);
+    test.db.shutDown();
+    const reopened = await openTestDb({ deps: test.deps, env: test.env });
+    expect(await triggers(reopened)).toEqual(['withdrawal-tick']);
+
+    const exported = await createExport(reopened.db, reopened.env, null);
+    if (!exported.ok) throw exported.error;
+    await deleteEverything(reopened);
+    const fresh = await openTestDb({ deps: test.deps, env: test.env });
+    await onboardForTests(fresh, { weightKg: null });
+    expect(await triggers(fresh)).toEqual([]);
+    const after = await importAndReload(fresh, exported.file.text, null);
+    expect(await triggers(after)).toEqual(['withdrawal-tick']);
   });
 });

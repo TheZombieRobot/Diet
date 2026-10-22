@@ -57,3 +57,42 @@ export function guidanceShown(
   if (gates.reasons.includes('pregnant-or-breastfeeding')) return { kind: 'pregnancy' };
   return { kind: 'guidance', set: guidanceFor(sex, setting).set };
 }
+
+/**
+ * The weekly figure the help card's double-guidance trigger is compared with (HEALTH_SAFETY
+ * section 5; re-check V21). With readiness answer 2 "yes" or unanswered no figures are shown
+ * (guidanceShown), so the trigger takes the cautious rule: the women's figure, the lower set,
+ * whatever the sex and the setting. Otherwise the figure of the set guidanceFor picks.
+ */
+export function helpTriggerWeeklyGuidance(
+  sex: ProfileSex | null,
+  setting: AlcoholGuidanceSet | null,
+  gates: Pick<ReadinessGates, 'reasons'>,
+): number {
+  return guidanceShown(sex, setting, gates).kind === 'pregnancy'
+    ? NZ_GUIDANCE['nz-women'].perWeek
+    : guidanceFor(sex, setting).perWeek;
+}
+
+// ---- Item 28: the comparisons (HS-05, HS-06, C94, A13, A39) ----
+
+/**
+ * True only when the shown total is strictly greater than the figure: "no more than 3" includes 3.
+ * Given the shown 2-decimal total (C94), never the unrounded sum, so the figure compared is the
+ * figure shown.
+ */
+export function isAboveGuidance(shownTotalStd: number, figure: number): boolean {
+  return shownTotalStd > figure;
+}
+
+/** HEALTH_SAFETY section 5: the help card shows "at or above double the guidance figure". */
+export const HELP_DOUBLE_FACTOR = 2;
+
+/**
+ * The double-guidance help-card condition. Given the trigger total (totals.ts triggerStd), which
+ * counts every label figure at the larger of it and the calculation, so it is never lower than the
+ * shown total (A39).
+ */
+export function reachesDoubleGuidance(triggerStd: number, perWeek: number): boolean {
+  return triggerStd >= HELP_DOUBLE_FACTOR * perWeek;
+}

@@ -1,7 +1,7 @@
 // Today's order and states (item 16 design section 5.2: C2, C7, C10, C12). The real
 // repositories on fake-indexeddb with the test clock; synthetic records only.
 import { dayTargetsFromRecords, PRE_START_STOP_SIGN_CARD, preStartTrigger } from '@diet/core';
-import { alcohol, fasting, privacy, targets, today, weight } from '@diet/core/copy/health';
+import { alcohol, fasting, move, privacy, targets, today, weight } from '@diet/core/copy/health';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { counts, type TestDb } from '../../db/testKit';
@@ -241,14 +241,15 @@ describe('Today before setup, while reading, and when the read fails (C10, C12; 
     ).toEqual([today.reload]);
   });
 
-  it("Movement: one later-step line, no figure and no button (Nutrition today is item 21's card)", async () => {
+  it("Movement is item 27's card, with no later-step line, and drink logging (item 28) has none either", async () => {
     test = await todayFixture();
     await renderToday();
     const card = screen.getByRole('region', { name: today.cards.movement });
-    expect(within(card).getAllByTestId('later-step')).toHaveLength(1);
-    expect(card.textContent).not.toMatch(/\d/);
-    expect(within(card).queryAllByRole('button')).toHaveLength(0);
-    expect(screen.getAllByTestId('later-step')).toHaveLength(2); // Movement, and drink logging
+    expect(within(card).queryAllByTestId('later-step')).toHaveLength(0);
+    // A Wednesday of the standard week: a rest day.
+    expect(within(card).getByText(move.rest.restDay)).toBeDefined();
+    // Drink logging is built too (item 28): no later-step line is left on Today.
+    expect(screen.queryAllByTestId('later-step')).toHaveLength(0);
   });
 });
 

@@ -1,4 +1,12 @@
-import { about, alcohol, general, helpNumbers, privacy, today } from '@diet/core/copy/health';
+import {
+  about,
+  alcohol,
+  foods,
+  general,
+  helpNumbers,
+  privacy,
+  today,
+} from '@diet/core/copy/health';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
@@ -20,6 +28,7 @@ import {
 import { markUpdateWaiting, setUpdateActivator, updateStore } from './pwa/update';
 import {
   isUnderSettings,
+  PARENT_TAB,
   ROUTE_TITLES,
   ROUTES,
   routeHref,
@@ -73,9 +82,19 @@ describe('every screen', () => {
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(ROUTE_TITLES[route]);
     const tabs = within(screen.getByRole('navigation', { name: 'Main' })).getAllByRole('link');
     expect(tabs.map((t) => t.textContent)).toEqual(TAB_ROUTES.map((r) => ROUTE_TITLES[r]));
+    // A sub-screen marks its parent tab "true" (item 27's Move session and plan editor).
+    const parent = PARENT_TAB[route];
     expect(
-      tabs.filter((t) => t.getAttribute('aria-current') === 'page').map((t) => t.textContent),
-    ).toEqual((TAB_ROUTES as readonly string[]).includes(route) ? [ROUTE_TITLES[route]] : []);
+      tabs
+        .filter((t) => t.getAttribute('aria-current') !== null)
+        .map((t) => [t.textContent, t.getAttribute('aria-current')]),
+    ).toEqual(
+      (TAB_ROUTES as readonly string[]).includes(route)
+        ? [[ROUTE_TITLES[route], 'page']]
+        : parent === undefined
+          ? []
+          : [[ROUTE_TITLES[parent], 'true']],
+    );
     const gear = screen.getByRole('link', { name: 'Settings' });
     // "page" only on Settings itself; About, reached from Settings, marks it as its section.
     expect(gear.getAttribute('aria-current')).toBe(
@@ -137,11 +156,15 @@ describe('every screen', () => {
 
 describe('placeholder screens (no sample data)', () => {
   // Today (item 16), Settings and About, the setup screens (item 13), the Weight screen (item 14),
-  // the Fasting screen (item 15), Diet and targets (item 21) and Laptop pairing (item 30) are
-  // built; the rest still say they arrive later.
+  // the Fasting screen (item 15), Foods in the app (item 18), Garden and pantry (item 19), the
+  // recipe screens (item 20), Diet and targets (item 21), the Move screens (item 27), Drinks
+  // (item 28) and Laptop pairing (item 30) are built; the rest still say they arrive later (Food in
+  // part: it links to the garden and pantry and the recipes).
   const built: readonly RouteId[] = [
     'today',
     'settings',
+    'move',
+    'drinks',
     'about',
     'readiness',
     'profile',
@@ -149,7 +172,13 @@ describe('placeholder screens (no sample data)', () => {
     'weight',
     'fasting',
     'targets',
+    'foods',
+    'garden',
+    'move-session',
+    'move-plan',
     'pairing',
+    'recipes',
+    'recipe',
   ];
   const placeholders = ROUTES.filter((r) => !built.includes(r));
 
@@ -157,8 +186,15 @@ describe('placeholder screens (no sample data)', () => {
     '%s says it arrives later and shows no numbers or prices',
     async (route) => {
       await show(route);
-      const text = main().textContent;
-      expect(text).toContain('This screen arrives at a later step of the build checklist.');
+      let text = main().textContent;
+      // Item 20: Food's Meals card counts the shipped recipes, a dataset figure and not a record.
+      if (route === 'food')
+        text = text.replace(screen.getByTestId('food-recipes-link').textContent, '');
+      expect(text).toContain(
+        route === 'food'
+          ? 'More of this screen arrives at a later step of the build checklist.'
+          : 'This screen arrives at a later step of the build checklist.',
+      );
       expect(text).not.toMatch(/\d/);
       expect(text).not.toMatch(/[$€£]/);
     },
@@ -183,7 +219,9 @@ describe('placeholder screens (no sample data)', () => {
     });
     expect(screen.getAllByRole('button', { name: /Install app/ }).length).toBeGreaterThan(0);
     expect(screen.queryByRole('button', { name: 'Quick actions' })).toBeNull();
-    const text = document.body.textContent;
+    // Item 28: the Drinks card shows the stored cut-over ("5:00 am") and the guidance figures.
+    const drinks = await screen.findByRole('region', { name: alcohol.settings.cardLabel });
+    const text = document.body.textContent.replace(drinks.textContent, '');
     expect(text).toContain('Install app');
     expect(text).not.toMatch(/\d/);
     expect(text).not.toMatch(/[$€£]/);
@@ -191,8 +229,8 @@ describe('placeholder screens (no sample data)', () => {
 
   it('TD-02: Today shows no figure for what is not built, with the install offer and the "+" panel open', async () => {
     // Today legitimately shows digits elsewhere (the date, the Fast card's pattern, the Nutrition
-    // today card's intake, the guidance line), so the check is scoped to the unbuilt card, the
-    // later-step lines and the Later rows.
+    // today card's intake, the guidance line, the Movement card's session lengths), so the check
+    // is scoped to the later-step lines and the Later rows.
     stopListening = listenForInstallPrompt(window);
     await show('today');
     act(() => {
@@ -202,12 +240,12 @@ describe('placeholder screens (no sample data)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Quick actions' }));
     await screen.findByText(today.quickActions.laterNote);
     const scoped = [
-      within(main()).getByRole('region', { name: today.cards.movement }),
-      ...screen.getAllByTestId('later-step'),
+      ...screen.queryAllByTestId('later-step'),
       ...document.querySelectorAll('.ui-fab-panel [aria-disabled="true"]'),
     ];
-    // One card, two later-step lines (Movement and drink logging) and six Later rows.
-    expect(scoped).toHaveLength(9);
+    // No later-step line (items 27 and 28 built Movement and drink logging) and three Later rows
+    // (items 19, 27 and 28 built Add harvest, Complete workout and Add drink).
+    expect(scoped).toHaveLength(3);
     for (const element of scoped) {
       expect(element.textContent).not.toMatch(/\d/);
       expect(element.textContent).not.toMatch(/[$€£]/);
@@ -246,6 +284,7 @@ describe('About (HS-13, About portion)', () => {
     expect(main().textContent).toContain(intro);
     const links = within(main())
       .getAllByRole('link')
+      .filter((l) => l.getAttribute('href') !== routeHref('foods')) // item 18's Data sources row
       .map((l) => [l.textContent, l.getAttribute('href')]);
     expect(links).toEqual([
       [`${emergency.number}${emergency.name} ${emergency.number}`, 'tel:111'],
@@ -284,7 +323,8 @@ describe('About (HS-13, About portion)', () => {
     expect(document.body.textContent).toContain(general.about);
     expect(document.body.textContent).toContain(helpNumbers.healthline.number);
     expect(document.body.textContent).toContain(about.sharedOrigin);
-    expect(screen.getAllByRole('link')).toHaveLength(6);
+    // The six help-number rows and item 18's "Foods in the app" row.
+    expect(screen.getAllByRole('link')).toHaveLength(7);
   });
 
   it('marks only the 111 row as an emergency', async () => {
@@ -294,16 +334,25 @@ describe('About (HS-13, About portion)', () => {
     expect(emergencyRows[0]?.getAttribute('href')).toBe('tel:111');
   });
 
-  it('C11: data sources says what each badge means and names no database (C97); the app version', async () => {
+  it('C11: data sources says what each badge means, names no database (C97) and links to Foods in the app; the app version', async () => {
     await show('about');
     const sources = within(main()).getByRole('region', { name: 'Data sources' });
     expect(
       within(sources)
         .getAllByRole('listitem')
         .map((li) => li.textContent),
-    ).toEqual(about.dataSources.badges);
-    expect(sources.textContent).toContain(about.dataSources.now);
+    ).toEqual([
+      about.dataSources.badges.label,
+      foods.about.databaseBadgeNone,
+      about.dataSources.badges.estimate,
+    ]);
+    expect(sources.textContent).toContain(foods.about.attributionNote);
     expect(sources.textContent).toContain('attribution');
+    expect(
+      within(sources)
+        .getByRole('link', { name: /^Foods in the app/ })
+        .getAttribute('href'),
+    ).toBe(routeHref('foods'));
     expect(sources.textContent).not.toMatch(
       /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
     );

@@ -36,7 +36,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | PWA-01 | Installability, checked by Chrome itself (replaces the Lighthouse PWA audit, which Lighthouse 12 removed; DOC_REVIEW C35). Runs on the production build in CI and on the deployed HTTPS URL once GitHub Pages is on | `Page.getInstallabilityErrors` (Chrome DevTools Protocol) returns an empty list once the service worker is ready; the manifest has name, short_name, id, start_url and scope under `/Diet/`, `display: standalone`, and 192 and 512 px icons plus a 512 px maskable one, each fetched with a 200 and the declared size; `navigator.serviceWorker.controller` is set after a reload (criteria per [web.dev install criteria](https://web.dev/articles/install-criteria)) |
 | PWA-02 | Open app, wait for install prompt, tap "Install" (manual) | Icon on home screen; opens without browser chrome |
 | PWA-03 | Flight mode, open installed app, visit every screen | All screens load; no network error dialogs |
-| PWA-04 | Flight mode: log weight, start fast, log a drink, plan a day, build list | All saved; visible after relaunch |
+| PWA-04 | Flight mode: log weight, start fast, log a drink, plan a day, build list | All saved; visible after relaunch. Garden, pantry and photo at item 19 (e2e/garden.spec.ts E2); weight and fast at items 14 and 15 |
 | PWA-05 | Deploy a new version, reopen app online | "Update available" banner; reload applies it; data intact |
 | PWA-06 | Storage persistence request (reworded per DOC_REVIEW C98) | The request is made at every launch while storage is not already persisted, and the result is shown (unit test with a mocked StorageManager); it is asked again after install, when onboarding first completes and after a successful restore; Settings (Backup and data) and About show the result of `navigator.storage.persisted()`. "Records survive a week" moved to the end-of-week-1 checklist |
 
@@ -103,21 +103,23 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 ### 3.6 Nutrition, recipes, planner
 | ID | Case | Expected |
 |---|---|---|
-| NU-01 | Every ingredient has all eight nutrient fields and a source tag | Data validation script |
-| NU-02 | Recipe per-serve totals equal sum of ingredients ÷ serves | Unit test over all recipes |
-| NU-03 | Net carbs = carbs − fibre, never negative | Unit test |
-| NU-04 | Heart-smart badge logic | Fixtures: avocado salad = badge; bacon-cream carbonara = flagged |
+| NU-01 | Every ingredient, as the app reads it from `packages/core/data`, has all eight nutrient fields, each either a figure with its source tag (database, field and unit) or explicitly not known (never a silent 0 and never filled in by the app); a carb basis; a food-level source tag (`not-loaded` until a database approved at checklist item 10 is imported, with a citation for every database figure); and names, aliases, aisle, typical pack sizes with count and container words, allergens and whether the list is complete, garden flag, season months, raw/cooked/as-sold basis and substitutes that pass the dataset rules | Data validation script (`pnpm foods:check`); with real figures at step 18b |
+| NU-02 | Recipe per-serve totals equal sum of ingredients ÷ serves; a figure an ingredient lacks is a lower bound and listed as unknown | Unit test over all recipes, with the shipped (not loaded) figures, partly loaded figures and complete fixture figures |
+| NU-03 | Net carbs = available carbohydrate (fibre excluded), never negative; a USDA-style total figure is converted as total − fibre and floored at 0; a recipe's net carbs are its lines' available carbohydrate ÷ serves (C01) | Unit test with one 'available' and one 'total' fixture |
+| NU-04 | Heart-smart badge logic | Fixtures: avocado salad = badge; bacon-cream carbonara = flagged; plus boundary fixtures (saturated fat exactly a quarter of the fat; exactly the per-portion cap; 40 g of cheese in the portion) and incomplete figures (never a badge) |
 | NU-05 | Day over saturated-fat budget | Indicator changes; no "bad"/"fail" wording (HS-09) |
 | NU-06 | Auto-plan under 5,000 kJ | Refused (HS-10): the core refusal (floorCheck, every app-made write kind) at item 21; the planner's refusal at item 22 |
 | NU-07 | Garden-first filter | Recipes using ≥2 in-season garden items rank first |
 | NU-08 | Cholesterol check-in cards | Lipid test at first run; check-ins when 56 and 84 days have passed since the first low-carb day (or since the profile was made if there was none); boundaries 55/56 and 83/84 days; one case starting in balanced mode, where the lipid test and check-ins are counted again from the first low-carb day (C109) |
-| NU-09 | Attribution footer | Present on every nutrition screen |
+| NU-09 | Attribution footer | Present on every nutrition screen; names only the databases recorded as approved in DECISIONS.md (none until checklist item 10); no NZ Food Composition Database wording when only USDA is approved (C97); including the recipe page (item 18's footer) |
+| NU-10 | Recipe whose ingredients have no figures yet | Item 18's "not known" rows and no badge; no heart-smart label; no bare keto, moderate or balanced chip; Substitute explains why it is not available; counts as not met in every check (HS-37, HS-39) |
+| NU-11 | Recipe dataset validation | Every seed recipe passes the dataset validator against item 18's catalogue: ids, allergens, cooked weights, eggs, no added salt, curated swaps that never flag, limits already broken by a partly loaded release, wording, the keto first week, coverage |
 
 ### 3.7 Grocery list
 | ID | Case | Expected |
 |---|---|---|
 | GL-01 | Two recipes both needing avocado | One line, summed quantity |
-| GL-02 | Item in garden/pantry stock | Excluded, shown under "already have" |
+| GL-02 | Item in garden/pantry stock | Excluded, shown under "already have". The stock fixture is defined at item 19 (GL02_GARDEN, GL02_PANTRY, GL02_NULL_AMOUNT_GARDEN); the deduction is tested at item 24 |
 | GL-03 | Buyable units | 430 g chicken → "500 g pack"; 2.5 lemons → "3 lemons" |
 | GL-04 | Aisle grouping | Each item has an aisle; unknown → "Other" |
 | GL-05 | Edit, add manual item, delete | Persist across relaunch |
@@ -133,12 +135,12 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | AL-02 | Label value entry | Entered 1.3 overrides calculation |
 | AL-03 | Weekly comparison, female profile | 10/week and 2/day thresholds (HS-05); with readiness answer 2 yes or unanswered no figure is shown as guidance (HEALTH_SAFETY section 5) |
 | AL-04 | Weekly comparison, male profile | 15/week and 3/day (HS-05) |
-| AL-05 | Alcohol-free days count | Correct for fixture week; no badge or streak wording |
+| AL-05 | Alcohol-free days count | Correct for the fixture week (Monday-start, counted from the notice day up to yesterday); no badge or streak wording |
 | AL-06 | Card trigger: 7 consecutive days | Card shown (HS-06) |
-| AL-07 | Card trigger: double weekly guidance | Card shown |
-| AL-08 | Card trigger: withdrawal symptoms note | Card shown |
+| AL-07 | Card trigger: double weekly guidance | Card shown; still shown while that 7-day window ended within the last 7 drinking days; a label figure lower than the calculation, however close, counts at the calculation; a date skipped by crossing the date line widens the window to 7 days lived |
+| AL-08 | Card trigger: withdrawal symptoms note | Card shown; still shown after a reload and after a backup round trip; an un-ticked note shows no card (C05) |
 | AL-09 | Card trigger: readiness "most days" | Card shown from day one |
-| AL-09b | Readiness Q7 answered yes to the weekend wording | Card shown from day one |
+| AL-09b | Readiness Q7 "most days or heavily at weekends" answered yes, or unanswered | Card shown from day one (C58) |
 | AL-10 | Control: 3 drinks across a week | No card |
 | AL-11 | Banned phrases scan | None of: "cut down by", "reduce by", "taper", "quit date", "stop drinking", "wean", "BAC", "blood alcohol", "safe to drive", "legal limit" (HS-07, HS-08) |
 | AL-12 | Helpline numbers present | 0800 787 797 and 8681 on alcohol screen (HS-13) |
@@ -148,9 +150,12 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 |---|---|---|
 | EX-01 | Every exercise in the dataset has easier and harder variants and a stop-rule link | Data validation |
 | EX-02 | Beach-tagged session | Flags, patrol, rip, sun, hydration prompts render before start (HS-12) |
-| EX-03 | Progression suggestion | Never more than about 10% more volume per movement than the last completed week (C76), nor than the last session |
-| EX-04 | Session log | Saves movement, reps/time, effort, notes; visible in history |
+| EX-03 | Progression suggestion | Never more than about 10% more volume per movement than the last completed week (C76), nor than the last session; once a set uses the session's whole amount, no further set is suggested |
+| EX-04 | Session log | Saves movement, reps/time, effort, notes; visible in history (history on the Move tab) |
 | EX-05 | Rest day scheduled | Weekly view shows at least two rest days |
+| EX-06 | Beach jogging is opt-in | With the switch off, or fewer than four tolerated walks, no jog can be planned or started. After a jog that was not tolerated, or one left unfinished, the beach walk is shown again until one more tolerated walk (UX 4d, C51) |
+| EX-07 | Weekly plan editor | A plan cannot be saved, and the reasons are shown, when it has: fewer than two rest days; strength on consecutive days (Sunday to Monday included); other than two or three strength sessions; a jog while jogging is locked; or, counting the sessions done in the last six days, fewer than two rest days in some 7 days in a row |
+| EX-08 | Rest counts as success | Rest days, rested days and past days with nothing logged read calmly ("Rest day, that counts", "Rested. That counts.", "Not done. Rest counts too."); no screen says missed, failed, behind or streak; the Today card shows the week's plan without done or not-done marks |
 
 ### 3.10 Phone-to-laptop transfer
 | ID | Case | Expected |
@@ -178,7 +183,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | FL-03 | Raw vs cooked | 200 g raw chicken and 150 g cooked are logged as distinct entries with the weight basis stored |
 | FL-04 | Switch diet mode keto → balanced → keto | No records deleted; targets change; suggestions re-rank (the ranking in core at item 21; the suggestion list UI at item 22, C23) |
 | FL-05 | Household dinner for 3, my portion 1/3 | My nutrition equals per-serve; changing household to 4 leaves my numbers unchanged (HS-23) |
-| FL-06 | Edit a recipe containing a listed allergen | Allergen still listed after edit and after scaling (HS-24) |
+| FL-06 | Swap away the line that carries a listed allergen in a recipe | Allergen still listed after the swap, after scaling and after a reload, with the note that the original recipe contains it (HS-24) |
 | FL-07 | Gluten-free household toggle off | No gluten-free substitutions suggested |
 | FL-08 | Eating window 17:00–19:00 | 2 h eating and 22 h fasting, from the core window formatter: screen 1e shows "Eating 5:00 pm to 7:00 pm = 2 hours. Fasting 22 hours." and the Fasting screen's Eating pattern card "2 h eating, 22 h fasting" (HS-17, C101) |
 | FL-09 | Eating window 22:00–02:00 (midnight wrap) | 4 h eating |
@@ -228,6 +233,22 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | TD-05 | Drinks guidance | By stored sex and setting, the stricter wins, women's when sex is missing, never without "No alcohol use is risk-free."; under 18 shows the reason and no figures; with readiness answer 2 yes or unanswered, the pregnancy line and no daily or weekly figures (full review F30) |
 | TD-06 | Reminders | Cholesterol per NU-08 (counted again once when low-carb eating first starts); electrolytes per C72, only with the keto ceiling on in keto mode; medication timing (RD-09) on the Fast card when fasting is available and in Reminders when it is switched off, never twice; backup per BK-03, with Reminders first when storage is not protected |
 | TD-07 | Status line | The over-24-hours sentence strictly over 24 h whether or not fasting is switched off; a neutral "still open" line when it is; no time past the running fast's 24-hour point, and from 23 h "It's fine to eat now.", as on the Fast card; the day's window after the snack is added; no fasting words with no pattern |
+
+### 3.15 Foods in the app (checklist item 18)
+| ID | Case | Expected |
+|---|---|---|
+| FD-01 | Search the catalogue by name or another name ("chard") | The matching food is listed (Silverbeet); fewer than 2 letters lists every food by aisle |
+| FD-02 | Open a food whose figures are not loaded | Every per-100 g figure reads "not known", never 0; no badge; the footer says no figure is from a food database |
+| FD-03 | Allergens of a fresh single food, a packed single food, a brand-dependent food, and one the profile lists | "None of the 15 allergens", "check the label" (with "none by nature" for the single food), what it contains plus "check the label", and the conflict in the owner's own terms ("Has wheat (gluten), which you listed") |
+| FD-04 | Swaps on a food's details | Never a swap carrying a listed allergen, nor a food the owner does not want suggested; gluten-free swaps only with Gluten-free household on, whatever the profile lists, and with it on never a swap known to carry a gluten cereal; "(check the label)" on a swap whose allergens are not complete |
+
+### 3.16 Garden and pantry (checklist item 19)
+| ID | Case | Expected |
+|---|---|---|
+| GD-01 | A photo carrying EXIF location, XMP, a comment and trailing data is added to a crop | The stored photo is a JPEG at most 1,024 px on its long side, upright, with no APPn or comment segment and nothing after the end marker. Any write of a photo that still has one is refused, whichever code makes it |
+| GD-02 | A photo is stored, then every export the app can make is produced | No photo bytes, photo keys or photo text in any file, in any encoding. No file outside the named list mentions the photo store, opens the database or reaches stores generically, read with the TypeScript compiler and its types (an alias, an escape, a template or `+` name, a cast, Dexie's own table lists), and no app file imports test data or a test helper |
+| GD-03 | A crop or pantry item with no amount entered | Shown as "Available, amount not entered" (a ready crop) or "Some, not measured" (pantry). Read by the plan and list with no weight; no gram figure is made up |
+| GD-04 | Garden and pantry wording | No food-safety, freshness, price, savings, stock or kilogram wording, and no gram figure in fixed copy |
 
 ---
 

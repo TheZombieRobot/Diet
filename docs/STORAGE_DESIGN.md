@@ -569,6 +569,8 @@ It is reachable whether or not fasting is enabled (C47). The nudge is the `reflu
 | createdAt | Instant | no | now | — | — |
 | updatedAt | Instant | no | now | — | — |
 
+**Seed foods as read (item 18).** These rules are for stored rows. A read-time seed view may list unknown figures: all eight when the food is not loaded, and any figure its database release lacks (item 18). A seed is read as an `IngredientView` (core `storage/overrides.ts`): the `IngredientRecord` shape with `source` widened to `NutritionSource | 'not-loaded'` and `allergens` split into `allergensIfComplete` (null when other allergens may be present) and `allergensAtLeast`, so a brand-dependent list is never read as complete; allergen checks read it only through `foodAllergenFacts`, and `recipeAllergens` adds an incomplete line's known allergens as well as marking the recipe unknown. A view is never stored: it is not assignable to `IngredientRecord`, and this validator refuses its source and its eight unknown figures.
+
 *Partly adopted:* the review suggested a cooked yield of (0–2]. The upper bound is 5 instead, because grains and dried legumes gain weight on cooking (cooked rice is about 2.5–3 times its raw weight), and a cited yield for them must be storable.
 
 **ingredient_overrides** (D2: the owner's corrections to a seed ingredient, stored as patches)
@@ -599,7 +601,7 @@ type IngredientChange =
 - An override whose seed no longer exists in the dataset is kept but ignored when read.
 - Hiding a seed from suggestions is `settings.hiddenSeedIds`, not an override.
 
-**recipes.** The owner's recipes and edited copies. Editing a seed recipe creates a new Id with `derivedFromRecipeId` set to the seed's id, and a seed recipe that has an owner copy is not suggested (the copy is), so editing never leaves the original among the suggestions. The seed recipes (item 20) live in code.
+**recipes.** The owner's recipes and edited copies. Editing a seed recipe creates a new Id with `derivedFromRecipeId` set to the seed's id, and a seed recipe that has an owner copy is not suggested (the copy is), so editing never leaves the original among the suggestions. The seed recipes (item 20) live in code. Item 20: the recipes repository unions allergens on every create, update and swap, including the allergens of the recipe a copy was made from (HS-24), refuses a change of origin, and saves an owner copy only when its figures are not all unknown (D35); before every ingredient of a recipe has figures no copy can be stored (item 20 design 6.4). A restore keeps rows as they are; every reader unions the origin's allergens.
 
 | Field | Type and unit | Null | Default | Validation | Serves |
 |---|---|---|---|---|---|
@@ -679,6 +681,8 @@ Invariant: `grams` or `servings` is non-null (or both). The label form (item 23)
 | bytes | ArrayBuffer | 1–1,500,000 bytes (item 19 downscales first) |
 | width, height | Int 1–2048 | — |
 | takenAt | Instant | — |
+
+Item 19 writes JPEG only: at most 1,024 px on the long side and 500,000 bytes, with every APPn and comment segment and anything after the end marker removed. Besides the validator above, the validation middleware (section 7.3) refuses any photo write, from any code, that is not a JPEG of its stated size without such segments (core `photoProblem`). That is a write check, not a validator change: version 1 and its fingerprint are unchanged, and WebP rows stay valid.
 
 **pantry**
 
@@ -914,7 +918,7 @@ Rules inside one record (the "iff" and "equals" rules of section 4) are part of 
 
 Ids are fresh UUIDs; tests find the seeded rows by name. Nothing else is seeded: no readiness rows (unanswered means gated), no card state, no milestones, ever.
 
-**Datasets in code, not in the database:** ingredients (item 18), recipes (item 20), exercises and session templates (item 26), and the NZ drink-picker serves (item 28), all with SeedIds. The exercises, session templates and default week are `packages/core/data/exercises.json`, checked by the core validator `exerciseDataProblems` on every test run. Item 18 MUST define `seed:silverbeet`. A dataset change in an app update needs no migration, and backups stay small; owner corrections reach the new data through patches (section 4.7).
+**Datasets in code, not in the database:** ingredients (item 18), recipes (item 20), exercises and session templates (item 26), and the NZ drink-picker serves (item 28), all with SeedIds. The ingredients are `packages/core/data/ingredients.json` (the catalogue, with no nutrient field) and `ingredient-nutrients.json` (figures from a database approved at checklist item 10; empty until then), checked by the core validators `validateFoodCatalogue` and `validateNutrientRelease` on every test run (`pnpm foods:check`); a seed is read as an `IngredientView` (section 4.7), never stored. The exercises, session templates and default week are `packages/core/data/exercises.json`, checked by the core validator `exerciseDataProblems` on every test run. Item 18 MUST define `seed:silverbeet`. A dataset change in an app update needs no migration, and backups stay small; owner corrections reach the new data through patches (section 4.7).
 
 ---
 
@@ -1022,6 +1026,7 @@ A `QuotaExceededError` on any write aborts that transaction. Nothing is half-wri
   - drinks: `log({ beverageId, beverage, count, at? })` computes the snapshot figures with core; `update(id, { count, at, beverage })` recomputes them; `remove(id)`; `forDrinkingDays(from, to)`;
   - card_state: `get(cardId, trigger)`, `markShown`, `dismiss` (stores `dismissedTimeZone`), `done` (upserts);
   - garden_photos: `put(gardenId, …)` refuses an unknown garden id; `remove(gardenId)`; removing a garden row removes its photo in the same transaction.
+  - garden and pantry (item 19 review, G17): one row per crop and one per pantry item, by food or by name (core `duplicateOnSave`). The generic repository refuses, inside the write transaction, a new row or an edit that changes the name or the link into a second row for one food (`StorageRuleError` rule `duplicate`); a pair that is already stored (an old backup) stays editable. Import does not apply the rule.
 - **Special repository built in item 30:** pairing: `get`, `save` (replaces the one pairing; `pairedAt` = now; the key is imported before the transaction), `remove`.
 - **Later items** add query helpers (planner, trends and so on), and MUST go through the same preparation and validators.
 - **No audit rows** for ordinary owner edits. Audit is for automatic changes (grocery deductions at item 24, migrations).
@@ -1047,7 +1052,7 @@ Every write goes through `prepare(table, candidate, env)`, which is synchronous:
 | grocery_lists | create, get, list, update, remove | — (item 31 adds send and acknowledgement) | createdAt, updatedAt; `version` + 1 on every update |
 | plan_days, pantry | create, get, list, update, remove | — | updatedAt |
 | garden | create, get, list, update, remove (also removes the photo) | — | updatedAt |
-| sessions | create, get, list, update, remove | — | completedAt and timeZone when status becomes `done`, cleared otherwise |
+| sessions | create, get, list, update, remove | createChecked, updateChecked, removeIf (item 27: the caller's rule runs on the stored rows inside the write transaction) | completedAt and timeZone when status becomes `done`, cleared otherwise |
 | drinks_log | get, list | log, update, remove, forDrinkingDays | at and timeZone when left to the repository |
 | alcohol_day_notes | create, get, list, update, remove | — | enteredAt (on create), updatedAt |
 | alcohol_milestones | create, get, list, update, remove | — | createdAt |
@@ -1570,10 +1575,10 @@ Test titles carry their HS, BK, RD or PWA ids so the coverage table (C118) can m
 - **Item 14:** goal entry with the HS-01 checks; the phase engine on `kickstart.ts` (day N, scheduled end, flip, the extension offer, the restart cap and the "first 21 cumulative days" rapid-loss rule of D27, with tests that a 22-day restart does not suppress the card); the rapid-loss rule; the weight, stop-sign, extension and steady-explainer cards; the projection band.
 - **Item 15:** the fasting UI and streak computation; symptom-log UI and the nudge rule; reflux options; the single-meal snack card; the planner's refusal to plan more than 1,440 minutes (C30).
 - **Item 16:** the full Today dashboard (item 12 adds only the backup reminder).
-- **Items 18, 20, 26:** the seed datasets and their validation scripts (`seed:silverbeet` MUST exist; `carbBasis` and `unknownNutrients` per NU-01).
+- **Items 18, 20, 26:** the seed datasets and their validation scripts (`seed:silverbeet` MUST exist; `carbBasis` and `unknownNutrients` per NU-01). Item 18 (built) ships the ingredient catalogue with every figure "not known" and no storage change; its figures arrive at step 18b, after checklist item 10. Item 20 (built) ships `recipes.json` and the recipes repository, with no schema change; schema version 2 (`food_log` kinds `recipe` and `plan`, and `recipes`, may list all eight figures as unknown) is item 23's, which must add it.
 - **Item 19:** photo capture, downscaling and thumbnails (the store exists from item 12); `harvestedAt` entry.
 - **Items 21–22:** the targets engine and its clamping functions, effective protein and ceilings (including `moderateNetCarbCeilingG` and the fibre guide default by sex), the planner, the electrolyte and cholesterol card triggers.
-- **Item 23:** the food-log UI, with UX 3c's label form gaining sugars, a serving size, fibre "not on label" and the carb basis (C01, C68); the cholesterol "share with your GP" summary (C100). That summary is a derived, local-only export named through `exportFileName`, so it needs no store, it is not part of the backup, and it never goes through the relay.
+- **Item 23:** schema version 2 (item 23 owns it and MUST add it before it stores such a row): `food_log` rows of kind `recipe` or `plan`, and `recipes` rows, may list all eight figures as unknown; an identity migration (item 18 design 5.3). The food-log UI, with UX 3c's label form gaining sugars, a serving size, fibre "not on label" and the carb basis (C01, C68); the cholesterol "share with your GP" summary (C100). That summary is a derived, local-only export named through `exportFileName`, so it needs no store, it is not part of the backup, and it never goes through the relay.
 - **Item 24:** grocery aggregation, audit rows, line `origin`, CSV and JSON list exports through `exportFileName`.
 - **Item 27:** per-set logging and the C76 volume cap on `done[]`.
 - **Item 28:** alcohol screens and help-card triggers (consecutive days through `areConsecutiveDrinkingDays`).
@@ -1652,7 +1657,7 @@ Choices that the planning documents and DECISIONS.md do not already fix. Each is
 - **D32.** Onboarding progress is stored as `profileConfirmedAt`, `scheduleConfirmedAt` and `gardenConfirmedAt` in settings (C41's resume rule).
 - **D33.** Food-safety substitutions are deferred and off (the C43 option).
 - **D34.** The allergen enum spells the FSANZ Standard 1.2.3 list as 15 values, with `gluten` as a profile-only alias for wheat, barley, oats and rye (C43 fixes the list; the spelling is this spec's).
-- **D35.** Unknown nutrient figures are listed in `unknownNutrients` (a single food stores 0; a computed figure stores the known part as a lower bound); totals count entries that lack a figure and never show a ceiling or budget as met because of one. Label entries may lack only fibre; database entries none; estimates any but not all.
+- **D35.** Unknown nutrient figures are listed in `unknownNutrients` (a single food stores 0; a computed figure stores the known part as a lower bound); totals count entries that lack a figure and never show a ceiling or budget as met because of one. Label entries may lack only fibre; database entries none; estimates any but not all. These rules are for stored rows. A read-time seed view may list unknown figures: all eight when the food is not loaded, and any figure its database release lacks (item 18).
 - **D43.** The version-1 card registry and its dismissal rules are as in section 4.12. The withdrawal-tick trigger follows C44 ("collapse for the day") instead of C05 ("monthly"), because it shows the card more often. Cholesterol check-in dismissals are final per trigger. The reflux GP nudge returns 7 days after a dismissal while its condition holds. The C55 "keep 23:1" button sits on the steady-explainer card.
 - **D47.** `fasts.plannedFastMinutes` is 1–1440 and stored as null when the planned figure falls outside, so starting a fast never fails because of it.
 - **D48.** Every storage failure screen shows the not-a-medical-device line and the help numbers from static copy.

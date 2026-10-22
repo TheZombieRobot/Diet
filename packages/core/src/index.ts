@@ -5,8 +5,14 @@
  */
 export const PACKAGE_NAME = '@diet/core' as const;
 
+export * from './alcohol/access';
 export * from './alcohol/guidance';
+export * from './alcohol/helpCard';
+export * from './alcohol/presets';
+export * from './alcohol/serves';
 export * from './alcohol/standardDrinks';
+export * from './alcohol/totals';
+export * from './alcohol/trends';
 export * from './copy/template';
 export * from './energy/age';
 export * from './energy/baseTargets';
@@ -24,7 +30,16 @@ export * from './fasting/schedule';
 export * from './fasting/streak';
 export * from './fasting/windowText';
 export * from './fasting/windows';
+export * from './foods';
 export * from './garden/cropForm';
+// Item 19: the garden and pantry inventory.
+export * from './garden/catalogue';
+export * from './garden/harvest';
+export * from './garden/pantryForm';
+export * from './garden/photo';
+export * from './garden/rows';
+export * from './garden/stock';
+export * from './move';
 export * from './nutrition/confidence';
 export * from './nutrition/netCarbs';
 export * from './nutrition/nutrients';
@@ -32,6 +47,7 @@ export * from './nutrition/portion';
 export * from './onboarding/profileForm';
 export * from './onboarding/steps';
 export * from './readiness/gates';
+export * from './recipes';
 export * from './relay/protocol';
 export * from './storage';
 export * from './targets';

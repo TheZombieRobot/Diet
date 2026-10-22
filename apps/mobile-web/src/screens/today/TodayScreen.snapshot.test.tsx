@@ -1,7 +1,16 @@
 // TD-01: the Today snapshot (item 16 design section 5.2 C1, T18). A structural text outline,
 // with explicit assertions beside it so a wrong first snapshot cannot pass. CI runs with CI=true,
 // where Vitest refuses to write a missing snapshot, and a guard requires the committed file.
-import { alcohol, fasting, privacy, reminders, targets } from '@diet/core/copy/health';
+import {
+  alcohol,
+  fasting,
+  foods,
+  move,
+  privacy,
+  reminders,
+  targets,
+  today,
+} from '@diet/core/copy/health';
 import { cleanup, screen, within } from '@testing-library/react';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -60,6 +69,12 @@ describe('TD-01: the Today snapshot (C1)', () => {
     expect(nutrition?.lines).toEqual(
       expect.arrayContaining(['Protein 0 of 140 g', 'Net carbs 0 / 20 g']),
     );
+    // Item 18: the attribution footer, which names no database while none is approved (C97).
+    expect(nutrition?.lines.at(-1)).toBe(foods.footer.noDatabase);
+    // Item 27's card on a Wednesday of the standard week: a rest day, and the plan without marks.
+    const movement = outline.blocks.find((b) => b.label === today.cards.movement);
+    expect(movement?.lines[0]).toBe(move.rest.restDay);
+    expect(movement?.lines.join(' ')).not.toMatch(/not done/);
     expect(outline).toMatchSnapshot();
   });
 

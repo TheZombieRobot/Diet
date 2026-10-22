@@ -7,10 +7,13 @@ import {
   heading,
   offerInstall,
   openBackupPanels,
+  openRecipe,
   SCREENS,
   seedOnboarded,
+  SWEPT_RECIPE,
   TABS,
   UNDER_SETTINGS,
+  UNDER_TABS,
   visitEveryScreen,
   waitForServiceWorkerControl,
 } from './support/app';
@@ -102,9 +105,12 @@ test('the tab bar marks the current tab by more than colour; the gear marks Sett
   for (const screen of SCREENS) {
     await goTo(page, screen);
     for (const tab of TABS) {
-      const current = tab === screen;
+      // A screen under a tab (item 19: Garden and pantry, item 20: Recipes, under Food) marks it
+      // as its section.
+      const parent = UNDER_TABS[screen] === tab;
+      const current = tab === screen || parent;
       expect(await nav.getByRole('link', { name: tab }).getAttribute('aria-current')).toBe(
-        current ? 'page' : null,
+        tab === screen ? 'page' : parent ? 'true' : null,
       );
       // A tinted pill behind the current tab's icon, so colour vision is not needed.
       if (current) expect(await pill(tab)).not.toBe('rgba(0, 0, 0, 0)');
@@ -223,6 +229,8 @@ test('nothing scrolls sideways or runs off a narrow or zoomed screen, online or 
   page,
   context,
 }) => {
+  // Every screen and a recipe page, three widths, online and offline: about 30 s on its own.
+  test.setTimeout(90_000);
   await seedOnboarded(page);
   await waitForServiceWorkerControl(page);
   const problems: string[] = [];
@@ -239,6 +247,14 @@ test('nothing scrolls sideways or runs off a narrow or zoomed screen, online or 
           )),
         );
       });
+      // Item 20: a recipe's page, with its ingredient lines and nutrition table.
+      await openRecipe(page, SWEPT_RECIPE);
+      problems.push(
+        ...(await narrowLayoutProblems(
+          page,
+          `A recipe page at ${width} px${offline ? ', offline' : ''}`,
+        )),
+      );
     }
   }
   // The Backup and data card's panels, with their fields and button rows, at 200% zoom.
@@ -314,6 +330,17 @@ test('back from any tab goes to Today, then leaves the app; back from About retu
   await expect(heading(page)).toHaveText('Settings');
 });
 
+// Item 19 review: Garden and pantry sits under Food, so Today from there steps back over both.
+test('Today from Garden and pantry, opened from Food, then back leaves the app', async ({
+  page,
+}) => {
+  await seedOnboarded(page);
+  await goTo(page, 'Garden and pantry');
+  await goTo(page, 'Today');
+  await page.goBack();
+  expect(page.url().includes(BASE_PATH)).toBe(false);
+});
+
 test('on Today the "+" never covers the last card', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 420 });
   await seedOnboarded(page);
@@ -378,7 +405,8 @@ test("Today's Water and Steps sit side by side, stack when narrow or editing, ke
   expect(await sideBySide()).toBe(false);
 
   await page.getByRole('button', { name: 'Quick actions' }).click();
-  await expect(page.locator('.ui-fab-panel [aria-disabled="true"]')).toHaveCount(6);
+  // Three Later rows: items 19, 27 and 28 built Add harvest, Complete workout and Add drink.
+  await expect(page.locator('.ui-fab-panel [aria-disabled="true"]')).toHaveCount(3);
   const small = await page.locator('a:visible, button:visible').evaluateAll((controls) =>
     controls
       .map((c) => ({ name: c.textContent, box: c.getBoundingClientRect() }))

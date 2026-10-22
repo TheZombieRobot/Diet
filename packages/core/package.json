@@ -7,6 +7,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./copy/health": "./src/copy/health.ts",
+    "./foods/testData": "./src/foods/testData.ts",
+    "./recipes/testData": "./src/recipes/testData.ts",
     "./relay": "./src/relay/protocol.ts"
   },
   "scripts": {

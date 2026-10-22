@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   alcoholGrams,
   type Beverage,
+  countedKcalPerServe,
   drinkEnergy,
   standardDrinks,
   totalDrinkEnergy,
@@ -266,13 +267,15 @@ describe('drink energy comes only from the label (NN-01)', () => {
 });
 
 describe("a day's drink energy counts unknowns instead of inferring them (NN-01)", () => {
+  const can = { volumeMl: 330, abvPercent: 5 };
+
   it('adds known label energy and counts drinks with unknown energy', () => {
     expect(
       totalDrinkEnergy([
-        { kcal: 94, count: 2 },
-        { kcal: null, count: 1 },
-        { kcal: undefined, count: 2 },
-        { kcal: 120, count: 1 },
+        { kcal: 94, count: 2, measure: can },
+        { kcal: null, count: 1, measure: can },
+        { kcal: undefined, count: 2, measure: can },
+        { kcal: 120, count: 1, measure: can },
       ]),
     ).toEqual({ knownKcal: 308, unknownCount: 3 });
   });
@@ -281,15 +284,30 @@ describe("a day's drink energy counts unknowns instead of inferring them (NN-01)
     const edited: Beverage = { ...PRESET, volumeMl: 440 };
     expect(
       totalDrinkEnergy([
-        { kcal: drinkEnergy(PRESET).kcal, count: 1 },
-        { kcal: drinkEnergy(edited).kcal, count: 1 },
+        { kcal: drinkEnergy(PRESET).kcal, count: 1, measure: PRESET },
+        { kcal: drinkEnergy(edited).kcal, count: 1, measure: edited },
       ]),
     ).toEqual({ knownKcal: 94, unknownCount: 1 });
     expect(totalDrinkEnergy([])).toEqual({ knownKcal: 0, unknownCount: 0 });
   });
 
+  it('HS-36, A40: a label energy below 90% of the alcohol alone is unknown, never a known 0; a 0% drink can be a known 0', () => {
+    // 330 mL at 5% is 13.02 g of alcohol, 91.1 kcal; 90% of it is 82.02 kcal.
+    expect(countedKcalPerServe(0, can)).toBeNull();
+    expect(countedKcalPerServe(82, can)).toBeNull();
+    expect(countedKcalPerServe(83, can)).toBe(83);
+    expect(countedKcalPerServe(null, can)).toBeNull();
+    expect(countedKcalPerServe(0, { volumeMl: 330, abvPercent: 0 })).toBe(0);
+    expect(
+      totalDrinkEnergy([
+        { kcal: 0, count: 6, measure: can },
+        { kcal: 0, count: 1, measure: { volumeMl: 330, abvPercent: 0 } },
+      ]),
+    ).toEqual({ knownKcal: 0, unknownCount: 6 });
+  });
+
   it('rejects impossible entries', () => {
-    expect(() => totalDrinkEnergy([{ kcal: -1, count: 1 }])).toThrow(RangeError);
-    expect(() => totalDrinkEnergy([{ kcal: null, count: -1 }])).toThrow(RangeError);
+    expect(() => totalDrinkEnergy([{ kcal: -1, count: 1, measure: can }])).toThrow(RangeError);
+    expect(() => totalDrinkEnergy([{ kcal: null, count: -1, measure: can }])).toThrow(RangeError);
   });
 });

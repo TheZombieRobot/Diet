@@ -8,6 +8,7 @@ import {
   readiness,
   schedule,
 } from '../packages/core/src/copy/health';
+import { DEEP_LINKS, routeHref, ROUTES } from '../apps/mobile-web/src/routes';
 import { plainReferenceEnvelopeV1 } from '../packages/test-fixtures/src/index';
 import { commerceRules, healthPhraseRules } from '../tools/scans/rules';
 import { scanText } from '../tools/scans/scan';
@@ -101,19 +102,13 @@ function readStores(page: Page, stores: readonly string[]): Promise<Record<strin
 const settingsRow = async (page: Page) =>
   (await readStores(page, ['settings']))['settings']?.[0] as Record<string, unknown>;
 
-const DEEP_LINKS = [
+// Every route, every deep link (item 19: #/garden/harvest; the Fasting sub-links; item 20: a
+// recipe's page; item 27: the session with a slug and at its finish), the bare address and an
+// unknown one.
+const ADDRESSES = [
   './',
-  './#/today',
-  './#/food',
-  './#/move',
-  './#/drinks',
-  './#/list',
-  './#/settings',
-  './#/about',
-  './#/readiness',
-  './#/profile',
-  './#/eating-schedule',
-  './#/pairing',
+  ...ROUTES.map((route) => `./${routeHref(route)}`),
+  ...DEEP_LINKS.map((link) => `./${link}`),
   './#/nothing',
 ];
 
@@ -121,7 +116,9 @@ test('P1 HS-20: every address, and the manifest start_url, opens on Welcome', as
   page,
   request,
 }) => {
-  for (const url of DEEP_LINKS) {
+  // Twenty-eight addresses, each loaded and reloaded.
+  test.setTimeout(120_000);
+  for (const url of ADDRESSES) {
     await page.goto(url);
     // A hash change within the page (no reload) must not pass Welcome either.
     await expect(heading(page), url).toHaveText(onboarding.welcome.title);

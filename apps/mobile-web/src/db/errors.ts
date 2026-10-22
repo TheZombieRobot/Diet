@@ -35,8 +35,22 @@ StorageOperationError.prototype.name = 'StorageOperationError';
  * undoEnd and only within 5 minutes of its end; and a fast's times cannot be later than now.
  * Item 21: the diet mode is written only by the diet-mode switch, and leaving keto while a
  * Kickstart runs needs the owner's confirmation (C56, T14, T35).
+ * Item 19: a garden photo is written only as a clean JPEG of its stated size, at most 1,024 px on
+ * its long side, with no metadata (the validation middleware's photo check; G2, G4).
+ * Item 28: no alcohol record before the alcohol notice is acknowledged, no drink or milestone
+ * while alcohol logging is off (HS-20, RD-01), and no drink time more than 5 minutes ahead of now
+ * ('future-time', as for fasts).
+ * Item 20 (recipes): a recipe or line that is not there, a second copy of a seed, a swap the
+ * owner is not offered (a listed allergen among them), a copy whose figures the schema cannot
+ * store yet, a copy still in the meal plan, and a change of the recipe a copy was made from.
  */
 export type StorageRule =
+  | 'recipe-not-found'
+  | 'recipe-copy-exists'
+  | 'recipe-swap-not-allowed'
+  | 'recipe-figures-unknown'
+  | 'recipe-in-plan'
+  | 'recipe-origin-fixed'
   | 'not-found'
   | 'already-ended'
   | 'confirmation-without-answer'
@@ -49,7 +63,16 @@ export type StorageRule =
   | 'future-time'
   | 'undo-expired'
   | 'diet-mode-switch-only'
-  | 'kickstart-confirm-needed';
+  | 'kickstart-confirm-needed'
+  // Item 19: a second row for one crop or pantry item (G17).
+  | 'duplicate'
+  // Item 19: core photoProblem.
+  | 'photo-format'
+  | 'photo-metadata'
+  | 'photo-size'
+  // Item 28: the alcohol notice and the alcohol-logging gate (HS-20, RD-01).
+  | 'alcohol-notice-first'
+  | 'alcohol-logging-off';
 
 export class StorageRuleError extends Error {
   readonly table: string;

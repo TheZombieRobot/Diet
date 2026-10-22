@@ -15,6 +15,7 @@
     "e2e": "playwright test",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm scan",
     "scan": "vitest run --config tools/vitest.config.ts",
+    "foods:check": "vitest run --project core foods/dataset",
     "icons": "node tools/icons/render-icons.ts",
     "relay:telemetry-off": "pnpm dlx wrangler@4.147.0 telemetry disable --config services/relay/wrangler.jsonc",
     "relay:login": "pnpm dlx wrangler@4.147.0 login --config services/relay/wrangler.jsonc",

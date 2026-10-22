@@ -1,5 +1,12 @@
 import { expect, type Page, test } from '@playwright/test';
-import { about, alcohol, general, onboarding, readiness } from '../packages/core/src/copy/health';
+import {
+  about,
+  alcohol,
+  foods,
+  general,
+  onboarding,
+  readiness,
+} from '../packages/core/src/copy/health';
 import { heading, seedOnboarded, waitForServiceWorkerControl } from './support/app';
 
 // HS-13 (About portion) and PWA-03 in the production build (item 16 design section 5.3 E1): the
@@ -29,7 +36,12 @@ async function expectAbout(page: Page): Promise<void> {
   await expect(main).toContainText(about.sharedOrigin);
   await expectHelpNumbers(page);
   const sources = page.getByRole('region', { name: 'Data sources' });
-  for (const line of about.dataSources.badges) await expect(sources).toContainText(line);
+  const badges = [
+    about.dataSources.badges.label,
+    foods.about.databaseBadgeNone,
+    about.dataSources.badges.estimate,
+  ];
+  for (const line of badges) await expect(sources).toContainText(line);
   await expect(page.getByTestId('app-version')).toBeVisible();
   await expect(page.getByTestId('app-version')).not.toBeEmpty();
 }

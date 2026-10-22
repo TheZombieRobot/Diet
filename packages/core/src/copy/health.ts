@@ -15,6 +15,7 @@
  * Sections are scanned with their own extra rules in `health.test.ts`: for example, alcohol copy
  * may never mention streaks, targets or limits. Sections are added as each screen is built.
  */
+import type { AttributionMap } from '../foods/types';
 import { FLOOR_KJ, KICKSTART_MAX_DEFICIT_PCT, KICKSTART_NET_CARBS_G } from '../storage/limits';
 
 /**
@@ -67,6 +68,7 @@ export const alcohol = {
     "If you've been drinking most days or heavily at weekends for a while and are thinking about changing that, the safest first step is a conversation, not a sudden stop. Alcohol Drug Helpline 0800 787 797 (call or text 8681), free and 24/7, or your GP. If someone is very unwell, shaking badly, confused or having a seizure, call 111.",
   helpCardLabel: 'Talk to someone',
   /** The card's 111 row, naming the card's own reasons rather than the notice's (full review F37). */
+  // C58: wording awaits owner confirmation at the week-1 review
   helpCardEmergencyDetail: 'Very unwell, shaking badly, confused or having a seizure',
   helpCardNotNow: 'Not now',
   /** The card returns 720 hours after "Not now" while readiness answer 7 still gates (storage spec 4.12). */
@@ -91,8 +93,45 @@ export const alcohol = {
      * V19). To be checked against the official page at item 42, and confirmed by the owner at STOP
      * 17 with the C58 help-card wording (cross-item ruling 8).
      */
+    // F30: wording awaits owner confirmation at the week-1 review
     pregnancy:
       'NZ guidance: if you are pregnant, could be pregnant or are breastfeeding, the safest choice is no alcohol. Your midwife or GP can talk it through. If you drink most days, talk to them before making a change, because stopping suddenly can be risky. No alcohol use is risk-free.',
+    // Item 28: the NZ guidance card on the Drinks screen (HEALTH_SAFETY section 5; C25, C60, C66,
+    // C78; A13, A26). The figures stay inside `line`; nothing here is compared or drawn.
+    cardLabel: 'NZ guidance',
+    /**
+     * A26, the interim wording (HEALTH_SAFETY section 5): the single-occasion figure is from
+     * secondary sources until the owner confirms an official one, so both sets show the lower
+     * figure with that note. Context only: never a trigger or a per-occasion total (C78).
+     */
+    singleOccasion: {
+      'nz-women': 'No more than 4 standard drinks on a single occasion (from secondary sources).',
+      'nz-men': 'No more than 4 standard drinks on a single occasion (from secondary sources).',
+    },
+    /**
+     * Where the single-occasion figure comes from, said plainly under it, apart from the sources
+     * line (which covers only the daily and weekly figures). DOC_REVIEW C78 gives per-sex figures
+     * (4 for women, 5 for men), not yet checked on an official page; the owner decides at the
+     * week-1 review whether to verify and use them or keep this interim line.
+     */
+    // C78: wording awaits owner confirmation at the week-1 review
+    singleOccasionSource:
+      'Some NZ summaries of the guidance give this single-occasion figure. It has not yet been checked against an official page.',
+    notPersonal:
+      'This is general guidance for adults in New Zealand, not advice for you. Your GP can tell you what applies to you.',
+    basis: {
+      profile: {
+        'nz-women': "The app uses the women's figures, from your profile.",
+        'nz-men': "The app uses the men's figures, from your profile.",
+      },
+      noSex: "The app uses the women's figures, the lower set, until your profile says otherwise.",
+      chosen: "The app uses the women's figures, the lower set, as chosen in Settings.",
+    },
+    howWorkedOut:
+      'One NZ standard drink is 10 g of alcohol. Standard drinks are worked out from the size and strength: millilitres × alcohol % × 0.789 ÷ 1,000. When you enter the figure printed on a label, that figure is shown instead.',
+    /** Names what it covers, so it never reads as covering the single-occasion figure (C60, C78). */
+    sources:
+      'Sources for the daily and weekly figures and the alcohol-free days: alcohol.org.nz, bpacnz and Health NZ.',
   },
   /**
    * The first-run notice screen (UX 1b; mock-up Notice.dc.html). It cannot be put off: no string
@@ -125,6 +164,298 @@ export const alcohol = {
     unknownMany: 'Energy is unknown for {count} drinks, so the day total is incomplete.',
     foodOnly:
       "Today's energy total includes alcohol as its own part. The floor and the meal checks count food only.",
+  },
+
+  // ---- Item 28: the Drinks screen, the Today Drinks card and the Settings Drinks card ----
+
+  /** The one write-failure line for every alcohol form (A48). */
+  notSaved: 'That was not saved. Try again.',
+
+  /** The help card, beside item 13's helpCardLabel, helpCardNotNow and helpCardReturns (A10, C44). */
+  // C58: wording awaits owner confirmation at the week-1 review
+  helpCardReturnsNextDay:
+    'If this still applies, the card shows again when the next drinking day starts.',
+  // C58: wording awaits owner confirmation at the week-1 review
+  helpCardWhyTitle: 'Why this card?',
+  // C58: wording awaits owner confirmation at the week-1 review
+  helpCardWhy:
+    'The app shows this card when the drinking question is answered yes or not yet answered, when drinks are logged on 7 or more days one after another, when 7 days one after another come to double the weekly guidance figure, or when the shaky or sick box is ticked. It stays for a while after the drinking that brought it up, because those days matter most. It is not a judgement.',
+
+  /** The Drinks screen as a whole (UX 5; A1). */
+  screen: {
+    cardLabel: 'Drinks',
+    jumpTo: 'Go to',
+    jumpLog: 'Log',
+    jumpTrends: 'Trends',
+    jumpGuidance: 'Guidance and help',
+    opening: 'Your records are still opening.',
+    readFailed: 'Your drinks records could not be read just now. The help below is always here.',
+  },
+
+  /**
+   * When logging is not open (HS-20, C53; RD-01, RD-06; A23). Under 18 the reason is item 13's
+   * gate notice for alcohol logging, which already says whether the question was answered.
+   */
+  access: {
+    noticeFirst: 'Drinks can be logged once the alcohol safety notice has been read.',
+    /** Only when there are stored alcohol records to keep. */
+    kept: 'Your earlier entries are kept.',
+  },
+
+  /** Log a drink (UX 5a; AL-01, AL-02, NN-01; A21, A43). */
+  log: {
+    cardLabel: 'Log a drink',
+    /** Only while there is a preset to tap. Names the More button by its name and by what it shows. */
+    intro:
+      'Tap a drink to add one now. To add several or an earlier time, hold it or tap its More button (⋯).',
+    noPresets: 'No drink presets yet. Add one under Edit drink presets, or use Other drink.',
+    /** Every preset is hidden (A19: presets are hidden, never deleted). */
+    allPresetsHidden:
+      'Your drink presets are hidden. Show them again under Edit drink presets, or use Other drink.',
+    /** "Zero-sugar premix 330 mL, 5%, 94 kcal, 1.3 std" (UX 5a, word for word for the default). */
+    presetSummary: '{name} {volume} mL, {abv}%, {energy}, {std} std',
+    kcal: '{kcal} kcal',
+    kcalUnknown: 'kcal unknown',
+    /** A39: under a preset or an entry whose label figure differs from the calculation. */
+    labelDiffers: 'Label figure used. The calculation gives {calculated} std.',
+    /** A40: under a preset or an entry whose label energy is implausibly low. */
+    kcalLooksLow:
+      'The label energy looks lower than the alcohol alone would give, so it is not counted.',
+    moreFor: 'More options for {name}',
+    countLabel: 'How many',
+    whenLabel: 'When',
+    now: 'Now',
+    earlier: 'Earlier',
+    dateLabel: 'Date',
+    timeLabel: 'Time',
+    add: 'Add',
+    cancel: 'Cancel',
+    /** {std} is the entry's own total, 2 dp (A43). */
+    added: 'Added {count} × {name} ({std} std) at {time}.',
+    addedOn: 'Added {count} × {name} ({std} std) on {date} at {time}.',
+    undo: 'Undo',
+    undone: 'The entry was removed.',
+    otherDrink: 'Other drink',
+    otherIntro: 'Pick the closest serve, then check the size and strength on the label.',
+    serveButton: '{name}, {volume} mL, {abv}%',
+    somethingElse: 'Something else',
+    volumeLabel: 'Size (mL)',
+    abvLabel: 'Alcohol (%)',
+    otherEnergyNote:
+      'Energy is shown only from a label. Save this drink as a preset to add the label figures.',
+    saveAsPreset: 'Also save as a drink preset',
+    presetNameLabel: 'Preset name',
+    editPresets: 'Edit drink presets',
+    loggedToday: 'Logged today',
+    nothingToday: 'Nothing logged today.',
+    /** C94, A43: under the entries when their rounded figures do not add up to the day's total. */
+    roundingNote:
+      "The day's total is worked out before rounding, so it can differ a little from these entries added up.",
+    /** {std} and {energy} are the entry's own totals (A43). */
+    entry: '{time}: {count} × {name}, {std} std, {energy}',
+    edit: 'Edit',
+    save: 'Save',
+    delete: 'Delete',
+    deleteConfirm: 'Delete this entry?',
+    errors: {
+      count: 'Enter a whole number from 1 to 100.',
+      volume: 'Enter a size from 1 to 3,000 mL.',
+      abv: 'Enter an alcohol percentage from 0 to 100.',
+      number: 'Enter a plain number such as 5 or 4.5.',
+      time: 'Choose a date and a time.',
+      future: 'That time has not come yet.',
+      off: 'Drinks logging is off.',
+    },
+  },
+
+  /** Drink presets (UX 5a "Edit presets"; AL-02, C31, C92, D42; A17–A19, A42). */
+  presets: {
+    cardLabel: 'Drink presets',
+    done: 'Done',
+    add: 'Add a drink preset',
+    nameLabel: 'Name',
+    volumeLabel: 'Size (mL)',
+    abvLabel: 'Alcohol (%)',
+    labelTitle: 'From the label (optional)',
+    labelIntro: 'Label figures count only for the size and strength they were read for.',
+    energyLabel: 'Energy per serve',
+    energyUnit: 'Energy unit',
+    kcal: 'kcal',
+    kj: 'kJ',
+    stdLabel: 'Standard drinks printed on the label',
+    labelWasFor:
+      'The label figures were for {volume} mL at {abv}%, so they no longer count. Enter the figures for this size and strength.',
+    /** D42: shown while the seeded preset's label is still origin 'preset-default'. */
+    presetDefault: "These figures came with the app. Check them against your can's label.",
+    matchesLabel: "They match my can's label",
+    confirmed: 'Marked as matching your label. Save to keep it.',
+    stdDisagrees:
+      'The label figure is different from the calculation ({calculated} std). Check what you typed.',
+    kcalImplausible:
+      'That energy figure looks lower than the alcohol alone would give. Check the label.',
+    saveAnyway: 'Save anyway',
+    save: 'Save preset',
+    cancel: 'Cancel',
+    edit: 'Edit',
+    hide: 'Hide',
+    hideFor: 'Hide {name}',
+    editFor: 'Edit {name}',
+    showHidden: 'Show hidden presets',
+    hiddenTitle: 'Hidden presets',
+    unhide: 'Show again',
+    hiddenNote: 'Drinks you have already logged keep their details.',
+    saved: 'Preset saved.',
+    errors: {
+      name: 'Enter a name of 60 characters or fewer.',
+      energyKcal: 'Enter an energy figure from 0 to 5,000 kcal.',
+      energyKj: 'Enter an energy figure from 0 to 20,920 kJ.',
+      std: 'Enter a standard-drinks figure from 0 to 100.',
+    },
+  },
+
+  /** Today and this week, on the Drinks screen and the Today card (UX 2 card 7; C21, C94, C105, C11). */
+  summary: {
+    cardLabel: 'Today and this week',
+    today: 'Today',
+    week: 'This week (from Monday)',
+    noneLogged: 'None logged',
+    oneDrink: '1 drink',
+    drinks: '{count} drinks',
+    totals: '{drinks} · {std} std',
+    /** Read by screen readers in place of `totals`. */
+    totalsSpoken: '{drinks}, {std} standard drinks',
+    kcal: '{kcal} kcal',
+    kcalKj: '{kcal} kcal ({kj} kJ)',
+    atLeast: 'at least {energy}',
+    unknownPart: '{energy}; {drinks} with kcal unknown',
+    allUnknown: 'kcal unknown',
+    freeOne: '1 alcohol-free day',
+    freeMany: '{count} alcohol-free days',
+    detail: '{energy} · {free}',
+    /** C21 point 4: the footnote that goes with every alcohol-free count. */
+    freeNote: 'Days with nothing logged count as alcohol-free.',
+    breakdown: '{count} × {name} {volume} mL',
+    breakdownMore: 'and {count} more',
+    /** A13: neutral, no figure (the guidance line beside it carries the figures). */
+    dayAbove: "Today's total is more than the daily NZ guidance figure.",
+    weekAbove: "This week's total is more than the weekly NZ guidance figure.",
+    drinkingDay:
+      'A drinking day runs from {time} to {time} the next day. You can change this in Settings.',
+  },
+
+  /** Trends (UX 5b; HS-19; A13–A15). */
+  trends: {
+    cardLabel: 'Trends',
+    dailyTitle: 'Last 28 days',
+    weeklyTitle: 'Weekly totals',
+    metric: 'Show',
+    metricStd: 'Standard drinks',
+    metricDrinks: 'Drinks',
+    metricKcal: 'kcal',
+    dailyChart: '{metric} per day for the last 28 days.',
+    weeklyChart: 'Standard drinks per week for the last 8 weeks.',
+    todayTick: 'Today',
+    thisWeekTick: 'This week',
+    showList: 'Show as a list',
+    hideList: 'Hide the list',
+    dayRow: '{date}: {value}',
+    dayToday: '{date} (so far): {value}',
+    /** The list value for the standard-drinks metric. */
+    valueStd: '{std} standard drinks',
+    notTracked: 'not tracked',
+    noneLogged: 'none logged',
+    weekRow: 'Week from {date}: {value}',
+    weekRowCurrent: 'This week so far: {value}',
+    weekValue: '{drinks} · {std} standard drinks · {energy}',
+    weekFree: '{value} · {free}',
+    rollingLine: '4-week average',
+    rollingNote: 'The 4-week average starts once there are 4 full weeks of records.',
+    outlinedToday: 'The outlined bar is today so far.',
+    kcalNote:
+      'kcal bars count only drinks with a label figure. An outlined bar is not complete: today so far, or some drinks with kcal unknown. A day with no bar has no known kcal.',
+    /** HS section 5 and HS-19: the only label a milestone ever has on a chart. */
+    milestoneLine: 'your milestone',
+    empty: 'Nothing logged yet.',
+  },
+
+  /** Your milestones (HEALTH_SAFETY section 5: entered by you or your clinician; A15, A16, A47). */
+  milestones: {
+    cardLabel: 'Your milestones',
+    intro:
+      'A milestone is a weekly figure that you, or your GP or another health professional, chose. The app never suggests one. It shows on the weekly chart as a dotted line labelled "your milestone".',
+    none: 'No milestones entered.',
+    add: 'Add a milestone',
+    /** The fixed heading of every row: the owner's words are never the milestone's name on screen. */
+    rowTitle: 'Your milestone',
+    ownWords: 'Your words: "{label}"',
+    weeklyLabel: 'Standard drinks a week',
+    fromLabel: 'From',
+    nameLabel: 'Your own words for it (optional)',
+    nameDefault: 'Your milestone',
+    whoLabel: 'Who chose this figure?',
+    whoSelf: 'Me',
+    whoClinician: 'My GP or another health professional',
+    noteLabel: 'Note (optional)',
+    save: 'Save milestone',
+    cancel: 'Cancel',
+    saved: 'Milestone saved.',
+    row: '{weekly} standard drinks a week, from {date}.',
+    bySelf: 'Chosen by you.',
+    byClinician: 'Chosen by your GP or another health professional.',
+    edit: 'Edit',
+    delete: 'Delete',
+    deleteConfirm: 'Delete this milestone?',
+    errors: {
+      weekly: 'Enter a figure from 0 to 200.',
+      from: 'Choose a start date.',
+      who: 'Say who chose this figure.',
+      name: 'Use 80 characters or fewer.',
+      note: 'Use 280 characters or fewer.',
+    },
+  },
+
+  /** How you felt: the next-day note (HEALTH_SAFETY section 5; UX 5c; C05; AL-08). */
+  dayNote: {
+    cardLabel: 'How you felt',
+    intro: 'A note about how you felt, for example on the day after drinking.',
+    dayLabel: 'Day',
+    noteLabel: 'Note (optional)',
+    /** HEALTH_SAFETY section 5, word for word (canonical per C101). */
+    withdrawalTick: "I felt shaky, sweaty, anxious or sick when I hadn't had a drink",
+    save: 'Save note',
+    remove: 'Remove note',
+    saved: 'Note saved.',
+    removed: 'Note removed.',
+    recentTitle: 'Notes from the last 30 days',
+    ticked: 'Shaky or sick: ticked',
+    open: 'Open the note for {date}',
+    /** Another day picked while the form holds unsaved changes and that day already has a note. */
+    replaceAsk:
+      '{date} already has a saved note. What you typed here has not been saved. Open the saved note instead?',
+    replaceYes: 'Open the saved note',
+    replaceNo: 'Keep what I typed',
+    errors: {
+      future: 'Choose today or an earlier day.',
+      empty: 'Write a note or tick the box.',
+      long: 'Use 1,000 characters or fewer.',
+    },
+  },
+
+  /** The Help card on the Drinks screen (HS-13, AL-12): firstRunNotice and the help numbers. */
+  help: {
+    cardLabel: 'Help',
+  },
+
+  /** The Drinks card in Settings (UX 7; C21, C46; A25). No figures in the options. */
+  settings: {
+    cardLabel: 'Drinks',
+    cutoverLabel: 'A new drinking day starts at',
+    cutoverHint: 'Drinks before this time count toward the evening before.',
+    midnight: 'midnight',
+    guidanceLabel: 'Guidance figures',
+    guidanceMen: "Men's figures",
+    guidanceWomen: "Women's figures (the lower set)",
+    saved: 'Saved.',
   },
 } as const;
 
@@ -1227,16 +1558,21 @@ export const schedule = {
   },
 } as const;
 
-/** The garden step (UX 1f; C57). Fixed copy never claims a homegrown weight. */
+/**
+ * The garden step (UX 1f; C57). Fixed copy never claims a homegrown weight. Item 19's garden
+ * screen reuses these keys for the same ideas (one "Ready to use" in both places), and the step's
+ * rows show item 19's core row text (gardenRowView), so amounts read the same in both places.
+ */
 export const garden = {
   title: 'Your garden',
-  intro: 'Crops you grow are used first in meal plans and taken off the shopping list.',
+  // Item 19 review: meal plans and the shopping list are not built yet, so this says so.
+  intro:
+    'List what you grow. Meal plans and the shopping list arrive at a later step of the build checklist, and will use this list.',
   silverbeetListed: 'Silverbeet is listed already.',
   empty: 'No crops listed yet.',
   available: 'Available, amount not entered',
-  amount: '{amount} {unit}',
-  unitNames: { g: 'g', each: 'each', bunchOne: 'bunch', bunch: 'bunches' },
-  ready: 'Ready to harvest',
+  // Item 19: "Ready to use", since the switch also covers produce already picked (G25).
+  ready: 'Ready to use',
   notReady: 'Not ready yet',
   keepsForOne: 'Keeps about 1 day',
   keepsFor: 'Keeps about {days} days',
@@ -1248,7 +1584,7 @@ export const garden = {
   amountHint: 'Leave it empty if you have not weighed or counted it.',
   unitLegend: 'Unit',
   unitOptions: { g: 'Grams', each: 'Each', bunch: 'Bunches' },
-  readyLabel: 'Ready to harvest',
+  readyLabel: 'Ready to use',
   keepsLabel: 'Keeps for (days, optional)',
   add: 'Add to garden',
   continue: 'Continue',
@@ -1706,9 +2042,10 @@ export const move = {
       'Beach jogging is optional. Your work already counts as activity, so jogging is never required.',
     locked: 'Jogging unlocks after four tolerated walks.',
     progress: 'Tolerated walks so far: {count} of 4.',
-    needsOptIn: 'It also needs your opt-in in Settings, under Equipment.',
+    // Item 27: the switch is on Move's "Beach walks and jogging" card, under these lines.
+    needsOptIn: 'It also needs your opt-in, with the switch below.',
     readyOptIn:
-      'You have four tolerated walks. Jogging stays off unless you turn it on in Settings, under Equipment.',
+      'You have four tolerated walks. Jogging stays off unless you turn on the switch below.',
     paused:
       'After your last jog, effort or soreness was above 3 or not rated, or the next check showed pain or back or leg symptoms. The beach walk is shown again until one more tolerated walk.',
     tolerated:
@@ -1781,6 +2118,164 @@ export const move = {
   /** When getExerciseData() throws (never expected; CI checks the data). */
   dataError:
     'The exercise plans could not be loaded. Nothing was changed. Reload the app; if this keeps happening, the app needs an update.',
+} as const;
+
+// ---- Move screens: the week, today's sessions, the session log, history and the plan (item 27) ----
+
+/**
+ * The Move screens' own wording (UX_SCREENS.md 2 card 6 and 4a–4d; checklist item 27). Every
+ * safety sentence (stop signs, beach prompts, the check, rest, progression, jogging) is item 26's
+ * `move` section; this section holds labels, states and the session log. Nothing here may say a
+ * day was missed or failed: rest and recovery count as success (HEALTH_SAFETY.md section 6).
+ */
+export const moveScreen = {
+  listComma: ', ',
+  listAnd: ' and ',
+  seeWeek: 'See this week',
+  blockedKept:
+    'Your logged sessions are kept, and Move shows them again once exercise plans are back on.',
+  today: {
+    planned: 'Today: {names}',
+    allDone: 'Done for today.',
+    minutes: 'About {minutes} minutes',
+    inProgress: 'In progress',
+    start: 'Start {name}',
+    continue: 'Continue {name}',
+    finish: 'Finish {name}',
+    restInstead: 'Rest instead of {name}',
+    undoRest: 'Undo rest for {name}',
+    changeChoice: 'Change the choice for {name}',
+    unknownTemplate: 'A session no longer in the app',
+  },
+  week: {
+    /** The strip's hidden sentence per day ({day} is the weekday's name). */
+    day: {
+      restDay: '{day}: rest day, counts as success',
+      planned: '{day}: {names}',
+      done: '{day}: {names}, done',
+      rested: '{day}: rested, that counts',
+      notDone: '{day}: {names}, not done. Rest counts too.',
+    },
+    today: '{text} (today)',
+    minutesRange: '{low} to {high}',
+    planRow: 'Choose your training days. Rest days stay in the plan.',
+    jogAsWalkDays: 'Jogging is not on right now, so the beach walk is shown on {days}.',
+    fallbackToday:
+      'Your weekly plan did not fit the plan rules, so the standard week is shown. You can change it on Move.',
+  },
+  chooser: {
+    title: "Today's sessions",
+    nothing: 'Nothing more is planned for today.',
+  },
+  safety: {
+    /** Above item 13's "My symptoms have changed" on the stop-signs card. */
+    changedLine:
+      'If any of these happened during activity, tell the app. Exercise plans then stay off until you confirm you have discussed exercise with a GP again.',
+  },
+  before: {
+    /** {ml} is heatWaterMl of the session's longer length estimate (move/display.ts). */
+    heatWater:
+      'In the heat, carry at least {ml} mL of water, and drink about 500 mL for each hour you are active.',
+  },
+  session: {
+    lighterChip: 'Lighter',
+    restBetween: 'Rest about {amount} between sets.',
+    walkBetween: 'Walk for about {amount} between jogs.',
+    walkBetweenBrisk: 'Walk easily for about {amount} between brisk walks.',
+    howTo: 'How to do it',
+    changeVersion: 'Change version',
+    versionLegend: 'Version of {name}',
+    setLine: 'Set {n}: {amount}',
+    doneMark: 'done',
+    amountLabel: 'Set {n}',
+    less: 'Less for set {n}',
+    more: 'More for set {n}',
+    setDone: 'Set {n} done',
+    undoSet: 'Undo set {n}',
+    extraSet: 'Log an extra set',
+    logAnyway: 'Log a set anyway',
+    walkLine: 'Walk: {amount}',
+    walkAmountLabel: 'Walk time',
+    walkLess: 'Less walk time',
+    walkMore: 'More walk time',
+    walkDone: 'Walk done',
+    undoWalk: 'Undo walk',
+    finish: 'Finish session',
+    unknownMovement: 'This movement is no longer in the app. Its logged sets are kept.',
+    refusedKept:
+      'Sets already ticked today are kept, and they count. You can still finish and rate this session.',
+    dayChanged:
+      'This session started on {day}. Its ticked sets are kept and count, and you can still rate it.',
+    maxSets: 'One movement holds at most 20 sets.',
+  },
+  finish: {
+    scale: '{low}, {high}',
+    noteLabel: 'Note (optional)',
+    noteHint: 'Anything worth remembering about this session.',
+    save: 'Save',
+    saveChanges: 'Save changes',
+    back: 'Back to the session',
+    saved: 'Saved.',
+    walkRatings:
+      'A walk counts toward jogging only when at least {minutes} minutes are ticked and effort and soreness are rated 3 or less.',
+    jogRatings:
+      'Jogging stays on only when effort and soreness are rated 3 or less. A jog left unfinished counts as not rated.',
+    noTicks: "No sets are ticked yet. Only ticked sets count toward next week's amounts.",
+    noCheckDone:
+      'This session came from a backup without a quick check, so its ratings cannot be changed here.',
+  },
+  history: {
+    title: 'Recent sessions',
+    empty: 'Sessions you log show here.',
+    more: 'Show more',
+    ratings: 'Effort {exertion}, soreness {soreness}, energy {energy}',
+    notRated: 'not rated',
+    note: 'Note: {note}',
+    movement: '{name}: {amounts}',
+  },
+  beach: {
+    title: 'Beach walks and jogging',
+    toleratedButton: 'What is a tolerated walk?',
+  },
+  plan: {
+    title: 'Your week',
+    intro:
+      'Choose what each day holds. A day with nothing planned is a rest day, and rest counts. Nothing is saved until you tap Save plan.',
+    dayButton: '{day}: {summary}',
+    restDay: 'Rest day',
+    strengthLegend: 'Strength session on {day}',
+    beachLegend: 'Beach session on {day}',
+    none: 'None',
+    jogHint:
+      'Beach jogging can be added here once it is unlocked: four tolerated walks and the switch turned on, under Beach walks and jogging on Move.',
+    jogKeptAsWalk:
+      'Jogging is not on right now, so the beach walk is shown on {days}. Saving this plan keeps the walk there.',
+    problemsTitle: 'To save this plan:',
+    rollingRest:
+      'Counting the sessions already done in the last few days, this plan would leave fewer than 2 rest days in some 7 days in a row. Keep a rest day sooner, or save this plan after your next rest day.',
+    save: 'Save plan',
+    standard: 'Use the standard week',
+    back: 'Back to Move',
+  },
+  amount: {
+    rep: '1 rep',
+    reps: '{n} reps',
+    seconds: '{n} seconds',
+    minute: '1 minute',
+    minutes: '{n} minutes',
+    mixed: '{minutes} {seconds}',
+    perSide: '{amount} each side',
+  },
+  errors: {
+    readFailed: "Move's records could not be read.",
+    reload: 'Reload the app',
+    noCheck: 'This session has no quick check, so it could not be saved. Nothing was changed.',
+    /** Item 26's sessionWriteProblem 'lighter-only': after a yes, only the easier versions. */
+    lighterOnly:
+      'After a yes on the quick check, this session holds only the easier versions, so this could not be saved. Nothing was changed.',
+    changed:
+      'This session changed on another screen or at midnight, so nothing was saved. Check this screen and try again.',
+  },
 } as const;
 
 // ---- Item 15: the fasting timer and history, and the reflux log ----
@@ -2072,8 +2567,8 @@ export const reflux = {
  * (TARGET_COPY_FACTS; health.test.ts). The blood-pressure stop-sign and electrolyte lines are item
  * 13's readiness.bloodPressure keys (cross-item ruling 5), and the electrolyte wording is item 16's
  * reminders.electrolytes (one reminder, one wording); the activity labels are item 13's
- * profile.activity. The badge words (today.confidence) move to item 18's foods.badges when it
- * lands, and its nutritionFooter supplies the attribution footer (item 18-20 contract 5 and 6).
+ * profile.activity. The badge words, the "at least" and "not known" wording and the attribution
+ * footer are item 18's foods section (item 18-20 contract 4 to 6).
  */
 export const targets = {
   settingsRow: {
@@ -2268,7 +2763,6 @@ export const targets = {
     satFat: 'Saturated fat',
     ofCeiling: '{eaten} / {ceiling} g',
     gramsOnly: '{eaten} g',
-    atLeast: 'at least {eaten}',
     /**
      * In place of "Nothing logged yet today." until food logging exists (full review F24), so the
      * zeros never read as a day without food. Item 23 removes it with its own empty-day line.
@@ -2287,7 +2781,6 @@ export const targets = {
     },
     floorDay: "Today's energy figure is the {floorKj} kJ floor: a safety net, not a target.",
     plainNote: 'Shown without targets. Your GP or a dietitian can tell you what suits you.',
-    confidence: { label: 'Label', database: 'Database', estimate: 'Estimate' },
   },
   /** The planner's floor lines (item 22 shows them; HS-10, NU-06, C108, T3). */
   plannerFloor: {
@@ -2317,11 +2810,9 @@ export const today = {
   readFailed: "Today's records could not be read.",
   reload: 'Reload the app',
   laterStep: {
-    movement: 'Sessions, walks and rest days arrive at a later step of the build checklist.',
-    drinks: 'Drink logging arrives at a later step of the build checklist.',
     /** Settings' "Coming later" card: the UX 7 settings not built yet (full review F33). */
     settings:
-      'The store name, the drinking-day start time, the choice of alcohol guidance figures, beach jogging, and hidden recipes and foods arrive at later steps of the build checklist.',
+      'The store name, beach jogging, and hidden recipes and foods arrive at later steps of the build checklist.',
   },
   water: {
     none: 'None logged yet',
@@ -2400,22 +2891,671 @@ export const reminders = {
 } as const;
 
 /**
- * About (UX_SCREENS section 7; HS-13). No food data is in the app yet and its licence is still to
- * be decided, so the data-sources card names no source; item 18 names it with its attribution.
+ * About (UX_SCREENS section 7; HS-13). The data-sources card names a food database only once one
+ * is approved at checklist item 10, with its attribution (item 18: foods.about and
+ * foods.attribution give the Database line, the catalogue line and the attribution).
  */
 export const about = {
   dataSources: {
     intro: 'Every food figure in the app will carry a badge that says where it came from:',
-    badges: [
-      'Label: you typed it in from a product label.',
-      'Database: it comes from a published table of food values. That source, and the attribution its licence asks for, will be named here when the food data is added at a later step of the build checklist.',
-      "Estimate: it was worked out from a recipe's ingredients, or approximated.",
-    ],
-    now: 'No food figures are in the app yet.',
+    /** The Label and Estimate lines; the Database line is foods.about.databaseBadgeNone or databaseBadge (item 18). */
+    badges: {
+      label: 'Label: you typed it in from a product label.',
+      estimate: "Estimate: it was worked out from a recipe's ingredients, or approximated.",
+    },
   },
   /** DOC_REVIEW C34: the records share their origin with every site of the same GitHub account. */
   sharedOrigin:
     'The app is published on GitHub Pages. Any other site published from the same GitHub account could read the records the app keeps on this phone, so no other site is published from that account.',
+} as const;
+
+// ---- Item 18: the food catalogue and how unknown figures read ----
+
+/**
+ * Attribution text per approved food database, copied word for word from the dated item-10
+ * "Nutrition data licence" DECISIONS row (item 18 design 6.1). Empty while no source is approved:
+ * tools/scans/docFidelity.test.ts keeps its keys equal to APPROVED_NUTRIENT_SOURCES (S5). The one
+ * place in this file that may name a database, and the one string exempt from the foods rules.
+ */
+const FOOD_ATTRIBUTION: AttributionMap = Object.freeze({});
+
+/**
+ * The food catalogue, "Foods in the app", and the words every screen uses for a nutrient figure
+ * that is not known (checklist item 18; HS-37; DOC_REVIEW C43, C67, C69, C97, C107, C110). An
+ * unknown figure reads "not known", a sum with some known parts "at least", never 0 and never an
+ * estimate. Items 20 to 24 reuse these words rather than adding their own (item 18–20 contract 4).
+ */
+export const foods = {
+  screen: {
+    title: 'Foods in the app',
+    findLabel: 'Find a food',
+    intro:
+      'The everyday foods the app knows, with their aisles, typical pack sizes, allergens and seasons. Tap a food for its details.',
+    searchLabel: 'Food name',
+    searchHint: 'Type at least 2 letters of its name or another name, such as chard.',
+    count: '{count} foods',
+    matchesLabel: 'Matches',
+    matchOne: '1 matching food',
+    matchCount: '{count} matching foods',
+    noMatch: 'No food in the list matches that.',
+    readFailed: 'The food list could not be read. Reload the app.',
+    rowGarden: 'Often grown at home',
+    rowCooked: 'Cooked weight',
+    rowContains: 'Contains {list}',
+    rowCheckLabel: 'Check the label for allergens',
+    rowConflict: 'Has {list}, which you listed',
+  },
+  detail: {
+    otherNames: 'Other names',
+    noOtherNames: 'None',
+    aisle: 'Aisle',
+    packs: 'Typical pack sizes',
+    packsTypical: 'Typical sizes, not checked against a store.',
+    packsOwner: 'Your sizes, entered {date}.',
+    packsByThe: 'Sold by the {one}',
+    packsOf: 'Packs of {list} {many}',
+    packsIn: '{sizes} {many}',
+    packsLoose: '{sizes}, also sold loose',
+    eachWeighs:
+      'One {one} weighs about {grams} g as bought (typical), used only to count how many to buy.',
+    notSold: 'For weighing after cooking. The shopping list uses {name}.',
+    cookedForm: 'Also listed cooked, for weighing after cooking: {name}.',
+    allergens: 'Allergens',
+    allergensNone: 'None of the 15 allergens the app tracks.',
+    allergensSingle:
+      'None of the 15 allergens the app tracks is in it by nature, but packed foods can carry a “may contain” line, so check the label.',
+    allergensContains: 'Contains {list}.',
+    allergensBrandMore: 'Other allergens depend on the brand: check the label.',
+    allergensBrandOnly: 'Allergens depend on the brand: check the label.',
+    allergenConflict: 'Has {list}, which you listed to avoid.',
+    allergenUnknownForYou:
+      'Its allergens are not fully known, so it is never shown as free of the ones you listed.',
+    season: 'In season in the Bay of Plenty',
+    seasonAllYear: 'All year',
+    seasonRange: '{from} to {to}',
+    seasonNote: 'A general guide to when local produce is usually plentiful.',
+    garden: 'Grown at home',
+    gardenYes: 'Often grown in home gardens',
+    swaps: 'Swaps',
+    swapCheckLabel: '{name} (check the label)',
+    swapsNoneShown:
+      'None to show with your allergen and gluten-free settings and the foods you do not want suggested.',
+    cookedFormLabel: 'Cooked form',
+    nutritionCaption: {
+      raw: 'Nutrition per 100 g, raw',
+      cooked: 'Nutrition per 100 g, cooked',
+      'as-sold': 'Nutrition per 100 g, as sold',
+    },
+    badgeLine: 'Badge: {badge}',
+  },
+  months: [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ],
+  /** Running-text words in ALLERGENS order (profile.allergenNames are capitalised labels). */
+  allergenWords: {
+    peanut: 'peanuts',
+    'tree-nut': 'tree nuts',
+    milk: 'milk',
+    egg: 'egg',
+    fish: 'fish',
+    crustacea: 'crustacea (prawns, crab, crayfish)',
+    mollusc: 'molluscs (mussels, oysters, squid)',
+    sesame: 'sesame',
+    soy: 'soy',
+    lupin: 'lupin',
+    wheat: 'wheat',
+    barley: 'barley',
+    oats: 'oats',
+    rye: 'rye',
+    sulphites: 'sulphites',
+  },
+  allergenCovered: '{allergen} ({choice})',
+  glutenWord: 'gluten',
+  listComma: ', ',
+  listAnd: ' and ',
+  listOr: ' or ',
+  nutrientNames: {
+    energyKj: 'Energy',
+    proteinG: 'Protein',
+    fatG: 'Fat',
+    saturatedFatG: 'Saturated fat',
+    carbsG: 'Net carbs',
+    sugarsG: 'Sugars',
+    fibreG: 'Fibre',
+    sodiumMg: 'Sodium',
+  },
+  nutrientNamesLower: {
+    energyKj: 'energy',
+    proteinG: 'protein',
+    fatG: 'fat',
+    saturatedFatG: 'saturated fat',
+    carbsG: 'carbohydrate',
+    sugarsG: 'sugars',
+    fibreG: 'fibre',
+    sodiumMg: 'sodium',
+  },
+  figures: {
+    notKnown: 'not known',
+    atLeast: 'at least {value}',
+    kj: '{value} kJ',
+    g: '{value} g',
+    mg: '{value} mg',
+  },
+  /** The only badge words (HEALTH_SAFETY section 4): a figure that is not known has no badge. */
+  badges: { label: 'Label', database: 'Database', estimate: 'Estimate' },
+  notLoaded:
+    'Nutrition figures for this food are not in the app yet. They can be added from a published table of food values if its licence allows. Until then each figure shows as not known, never as 0, and the app does not fill it in.',
+  // Used only if checklist item 10 approves neither database (item 18 design 6.4).
+  notLoadedNone:
+    'Nutrition figures for this food are not in the app, because no published table of food values could be used. Each figure shows as not known, never as 0. You can enter figures from a product label in the food log.',
+  releaseUnreadable:
+    'The nutrition figures could not be read, so each one shows as not known. Reload the app. If this stays, the figures need fixing in an update.',
+  partlyKnown: {
+    database:
+      'The table this food comes from has no figure for {list}. Each missing figure shows as not known.',
+    label:
+      'The label figures entered for this food have no figure for {list}. Each missing figure shows as not known.',
+    estimate:
+      'The estimate entered for this food has no figure for {list}. Each missing figure shows as not known.',
+  },
+  sourceLine: 'From {source}: {foodName}.',
+  sourceOwn: {
+    label: 'Figures entered from a product label.',
+    estimate: 'Figures entered as an estimate.',
+  },
+  // HEALTH_SAFETY section 4: one footer that is true for whatever is on the screen (C97). A
+  // database figure from a source that is not approved is shown as Estimate, so it never needs a
+  // footer that cannot name its database.
+  footer: {
+    noDatabase:
+      'Label figures are as you typed them, and Estimates are approximate. No figure here is from a food database. Your plate will differ.',
+    withDatabase:
+      'Database figures are averages from {sources}. Label figures are as you typed them, and Estimates are approximate. Your plate will differ.',
+  },
+  totals: {
+    someMissingOne:
+      '1 ingredient has no {nutrient} figure yet, so the total is at least what is shown.',
+    someMissingMany:
+      '{count} ingredients have no {nutrient} figure yet, so the total is at least what is shown.',
+    noneLoaded:
+      'No nutrition figures are loaded yet for its ingredients, so its nutrition is not known.',
+  },
+  planner: {
+    energyNotKnown:
+      'The planner did not fill this day: the energy in some of its meals is not known yet, so it cannot check that the day reaches {floorKj} kJ.',
+    energyNotKnownOwner:
+      "The energy in some of this day's meals is not known yet, so the app cannot check that the day reaches {floorKj} kJ (about {floorKcal} kcal).",
+  },
+  today: {
+    foodNotKnown: 'Food: not known',
+    foodAtLeast: 'Food: at least {value}',
+    figuresNotLoaded:
+      "Food figures are not loaded yet, so the app cannot tell whether today's food reaches your energy floor or your protein target.",
+  },
+  kickstart: {
+    figuresNotLoaded:
+      "Until food figures are loaded, the app cannot warn you when a day's food is under your energy floor or short of your protein target. Enter label figures for your main protein foods, or keep the 5 pm snack.",
+  },
+  derived: {
+    daysMissingOne:
+      '1 day has entries with no {nutrient} figure, so the average is at least what is shown.',
+    daysMissingMany:
+      '{count} days have entries with no {nutrient} figure, so the average is at least what is shown.',
+  },
+  about: {
+    catalogue:
+      'The app lists {count} everyday foods with their aisles, typical pack sizes, allergens and seasons. Their nutrition figures are not loaded yet, so each one shows as not known.',
+    catalogueLoaded:
+      'The app lists {count} everyday foods. Nutrition figures are loaded for {loaded} of them; any figure not in the table shows as not known.',
+    attributionNote:
+      'Any table of food values the app uses is named here, with the attribution its licence asks for.',
+    linkTitle: 'Foods in the app',
+    linkDetail: 'Names, aisles, pack sizes and allergens',
+    databaseBadgeNone:
+      'Database: it would come from a published table of food values. None is used yet, so no figure has this badge.',
+    databaseBadge: 'Database: it comes from {sources}, attributed below.',
+    sourceEdition: '{name}, {edition}',
+  },
+  attribution: FOOD_ATTRIBUTION,
+} as const;
+
+// ---- Item 19: the garden and pantry screen ----
+
+/**
+ * Garden and pantry screen (checklist item 19; UX_SCREENS 3d; REQUIREMENTS section 3D; DOC_REVIEW
+ * C57, C110). Item 13's `garden` section is the setup step's wording (UX 1f); this screen reuses its
+ * available, ready, notReady, keepsFor, keepsForOne, addTitle, nameLabel, nameHint, amountLabel,
+ * amountHint, unitLegend, unitOptions, readyLabel, keepsLabel and errors for the same ideas, so both
+ * places say the same thing.
+ * Written here, not quoted from the docs. The app makes no food-safety claim (C43 and D33 defer food
+ * safety): keep days are the owner's own figure, reported back, never judged. An amount the owner has
+ * not entered is never shown as a weight (REQUIREMENTS 3D, C57). Photo wording promises only what the
+ * app does (HEALTH_SAFETY section 7).
+ */
+export const gardenScreen = {
+  loading: 'Opening your records…',
+  readFailed: 'The garden and pantry could not be read. Reload to try again.',
+  closed: 'Nothing more will be saved until the app reloads.',
+  reload: 'Reload',
+  saved: 'Saved.',
+  removed: 'Removed.',
+  gone: 'This was removed in the meantime. Nothing was changed.',
+  saveOrCancelFirst: 'Save or cancel the open form first.',
+  foodLink: { cardLabel: 'At home', detail: 'Crops, harvests and the cupboard' },
+  gardenCard: 'Garden',
+  readyPill: '{count} ready',
+  addHarvest: 'Add harvest',
+  addCrop: 'Add a crop',
+  emptyGarden: 'No crops listed. Add what you grow.',
+  pantryCard: 'Pantry',
+  addPantry: 'Add to pantry',
+  emptyPantry: 'Nothing listed. Add what is in the cupboard.',
+  readySwitch: 'Ready',
+  readySwitchName: '{crop}: ready to use',
+  amount: {
+    notEnteredNotReady: 'Amount not entered',
+    someNotMeasured: 'Some, not measured',
+    noneLeft: 'None left',
+    grams: '{amount} g',
+    millilitres: '{amount} mL',
+    each: '{amount} each',
+    eachWithGrams: '{amount} each, about {grams} g per item',
+    bunchOne: '1 bunch',
+    bunchMany: '{amount} bunches',
+    bunchOneWithGrams: '1 bunch, about {grams} g',
+    bunchManyWithGrams: '{amount} bunches, about {grams} g per bunch',
+  },
+  unitWords: { g: 'grams', each: 'items', bunch: 'bunches', ml: 'millilitres' },
+  pantryUnitOptions: { g: 'Grams', ml: 'Millilitres', each: 'Each' },
+  freshness: {
+    pickedToday: 'Picked today',
+    pickedYesterday: 'Picked yesterday',
+    pickedOn: 'Picked {date}',
+    daysLeftMany: '{days} days left',
+    daysLeftOne: '1 day left',
+    lastDay: 'Last day you said it keeps',
+    pastKeepsMany: 'Past the {days} days you said it keeps',
+    pastKeepsOne: 'Past the 1 day you said it keeps',
+    // 1 day and more: item 13's garden.keepsForOne and garden.keepsFor.
+    keepsForZero: 'Keeps less than a day after picking',
+  },
+  updated: { today: 'Updated today', yesterday: 'Updated yesterday', on: 'Updated {date}' },
+  // The notes below describe the meal plan (item 22) and the grocery list (item 24), so no row
+  // shows one until both exist (core rows.ts PLAN_AND_LIST_BUILT; item 19 review).
+  notCounted: {
+    'not-ready': 'The plan and the list leave it out until it is ready to use.',
+    'past-keeps':
+      'Past the days you said it keeps, so the plan and the list leave it out. Add a new harvest or remove it.',
+    // And only once the ingredient dataset exists (item 18); before it, an unlinked row has no note.
+    'not-linked':
+      'Not matched to a food yet, so the plan and the list leave it out. Pick a matching food when you edit it.',
+    'none-left': 'None left, so the list leaves it out.',
+  },
+  // No claim that the amount is counted: the list asks before counting a row not changed lately.
+  amountUnknownNote: 'Add an amount so the list can work out how much to buy.',
+  pantryUnmeasuredNote: 'The list asks you before counting it. Add an amount to save that step.',
+  suggestions: 'Matching foods',
+  matchedTo: 'Matched to {food}',
+  cropForm: {
+    editTitle: 'Edit {crop}',
+    gramsPerUnit: { each: 'Grams per item (optional)', bunch: 'Grams per bunch (optional)' },
+    gramsPerUnitHint:
+      'Weigh one if you can. Without it, the amount stays a count and is never turned into a weight.',
+    pickedOn: 'Picked on (optional)',
+    pickedOnHint: 'Leave it empty while it is still in the ground.',
+    keepsHint: 'How many days it keeps after picking. Leave it empty if you are not sure.',
+    save: 'Save',
+    cancel: 'Cancel',
+    remove: 'Remove crop',
+    removeConfirm: 'Remove {crop} from the garden?',
+    removeConfirmWithPhoto:
+      'Remove {crop} from the garden? Its photo is removed too, and photos are not in backups.',
+    removeYes: 'Remove',
+    removeNo: 'Keep it',
+    duplicate: '{crop} is already in the garden.',
+    editExisting: 'Edit {crop}',
+  },
+  harvest: {
+    title: 'Add harvest',
+    whichCrop: 'Which crop?',
+    anotherCrop: 'Another crop',
+    cropRequired: 'Choose a crop.',
+    useExisting: 'Use {crop}',
+    listedNow: 'Listed now: {amount}',
+    listedNowPicked: 'Listed now: {amount}, picked {date}',
+    listedNowNotReady: 'Listed now: {amount}, not ready yet',
+    listedNowNoAmount: 'Listed now: amount not entered',
+    howMuch: 'How much did you pick? (optional)',
+    howMuchHint: 'Leave it empty if you did not weigh or count it.',
+    pickedOn: 'Picked on',
+    pickedOnHint: 'Leave it as today unless you picked it earlier.',
+    modeLegend: 'What about the amount already listed?',
+    modeAdd: 'Add to it. Days left count from {date}.',
+    modeAddNoDate: 'Add to it',
+    modeReplace: 'Replace it. The earlier pick is treated as used up.',
+    modeRequired: 'Choose whether to add to the amount listed or replace it.',
+    // Nothing listed needs no notice, so 'nothing-listed' has no line here.
+    replaceOnly: {
+      'not-ready-before': 'The amount listed was not ready yet, so this replaces it.',
+      'past-keeps-before':
+        'The amount listed is past the days you said it keeps, so this replaces it.',
+      'no-amount-picked':
+        'With no amount entered, this replaces the {amount} listed with "amount not entered".',
+      'unit-differs': 'The amount listed is in a different unit, so this replaces it.',
+      'weight-differs':
+        'The amount listed has a different weight for each one, so this replaces it.',
+    },
+    replaceDate: 'The earlier pick is treated as used up. Days left count from {date}.',
+    tooMuch: 'Together that is more than 100,000 {units}. Replace the amount instead.',
+    save: 'Save harvest',
+    cancel: 'Cancel',
+    saved: 'Saved: {crop}, {amount}.',
+  },
+  pantryForm: {
+    addTitle: 'Add to pantry',
+    editTitle: 'Edit {item}',
+    name: 'Item',
+    nameHint: 'For example, rolled oats or tinned tomatoes.',
+    amount: 'Amount (optional)',
+    amountHint:
+      'Leave it empty if you have some but have not measured it. Enter 0 when it has run out.',
+    unitLegend: 'Unit',
+    save: 'Save',
+    cancel: 'Cancel',
+    remove: 'Remove item',
+    removeConfirm: 'Remove {item} from the pantry?',
+    removeYes: 'Remove',
+    removeNo: 'Keep it',
+    duplicate: '{item} is already in the pantry.',
+    editExisting: 'Edit {item}',
+  },
+  errors: {
+    digitsOnly: 'Type digits only, without commas, such as 1200 or 2.5.',
+    decimals: 'Use at most two decimal places, such as 2.5.',
+    gramsPerUnitRange: 'Enter a weight above 0 and up to 5,000 grams, or leave it empty.',
+    pantryAmountRange: 'Enter an amount from 0 to 100,000, or leave it empty.',
+    dateFormat: 'Enter a date.',
+    dateFuture: 'The date cannot be after today.',
+    dateTooEarly: 'Enter a date from the year 2000 on.',
+    saveFailed: 'This could not be saved. Nothing was changed. Try again.',
+  },
+  photo: {
+    legend: 'Photo',
+    savesAlone: 'Photo changes save straight away.',
+    saveFirst: 'Save or cancel your changes first, then add a photo.',
+    add: 'Add a photo',
+    replace: 'Replace photo',
+    remove: 'Remove photo',
+    removeConfirm: 'Remove this photo? Photos are not in backups, so it cannot be brought back.',
+    removeYes: 'Remove photo',
+    removeNo: 'Keep it',
+    removed: 'Photo removed.',
+    note: 'Photos stay on this phone. The location and camera details inside a photo are removed from the copy the app keeps. The original in your gallery or camera app is not changed. Photos are not in backups or in anything the app sends.',
+    preparing: 'Getting the photo ready…',
+    kept: 'Photo kept on this phone.',
+    alt: 'Photo of {crop}',
+    errors: {
+      'file-too-large':
+        'This photo file is too big (over 30 MB). Pick a smaller one, or take it again with the camera.',
+      'too-many-pixels': 'This photo is too big for the phone to resize. Pick a smaller one.',
+      unreadable:
+        'This photo could not be read. Try another one, or take it again with the camera.',
+      'output-too-large': 'This photo could not be made small enough to keep. Try another one.',
+      'not-cleaned':
+        'The details stored inside this photo could not be removed, so it was not kept.',
+    },
+  },
+} as const;
+
+// ---- Item 20: recipes ----
+
+/**
+ * The recipe screens (checklist item 20; HS-24, HS-39; DOC_REVIEW C01, C32, C43, C70, C102,
+ * C107). Figures, badges, the footer and allergen words are item 18's (foods): a recipe adds no
+ * wording for an unknown figure, no badge word and no footer (item 18–20 contract 4). Nothing here
+ * names a data source or attributes anything to the Heart Foundation (C60, C97), and no string
+ * says a recipe is healthy, safe, allergen-free or fits a ceiling.
+ */
+export const recipes = {
+  routeTitles: {
+    recipes: 'Recipes',
+    recipe: 'Recipe',
+  },
+  foodLink: {
+    cardLabel: 'Meals',
+    title: 'Recipes',
+    detail: '{count} recipes, with a silverbeet week',
+  },
+  list: {
+    intro:
+      'Recipes written for this app: cholesterol-conscious, and built around silverbeet, other greens and everyday New Zealand proteins. Each recipe’s figures are added up from its ingredients’ food values; a figure the app does not have yet reads “not known”.',
+    sections: {
+      week: 'Silverbeet week',
+      dinners: 'Dinners',
+      snacks: 'Snacks',
+      other: 'Breakfast and lunch',
+      ownOther: 'Your other recipes',
+    },
+    weekHint:
+      'Seven dinners that put silverbeet first, one for each day of a week. Day 2 uses chicken cooked on day 1.',
+    weekMedicines:
+      'Eating a lot more leafy greens than usual can matter for some medicines. If you take regular medicine, ask your pharmacist or GP before a big change.',
+    dayLabel: 'Day {day}',
+    serves: 'Serves {serves}',
+    servesTime: 'Serves {serves} · About {minutes} min',
+    readFailed: 'The recipes could not be read. Reload the app to try again.',
+    dataFailed: 'The recipes could not be loaded. Reload the app to try again.',
+  },
+  chips: {
+    style: {
+      keto: 'Keto',
+      'moderate-low-carb': 'Moderate low-carb',
+      balanced: 'Balanced',
+    },
+    styleWritten: {
+      keto: 'Written for keto',
+      'moderate-low-carb': 'Written for moderate low-carb',
+      balanced: 'Written for balanced eating',
+    },
+    carbsNotWorkedOut: 'Carbs not worked out',
+    heartSmart: 'Heart-smart',
+    flagged: 'More saturated fat',
+    yourVersion: 'Your version',
+    allergenConflict: 'Contains {allergens}',
+    checkLabels: 'Check labels for allergens',
+    glutenHousehold: 'Contains a gluten cereal',
+    disliked: 'Has a food you do not want suggested',
+    hidden: 'Hidden from suggestions',
+  },
+  labels: {
+    off: 'Keto labels are not shown because of what you told the app about {reasons}.',
+    gatesFailed:
+      'Keto labels are not shown because your readiness answers could not be read. Reload the app to try again.',
+    prescriberCheck:
+      'Low-carb eating can change how diabetes medicines act and can cause low blood sugar. Check with your prescriber before you use these recipes for low-carb eating.',
+  },
+  detail: {
+    atAGlance: 'At a glance',
+    makesTerm: 'Makes',
+    timeTerm: 'Time',
+    notFound:
+      'This recipe is not in the app any more. It may have been taken out in an app update, or your version of it was removed.',
+    allRecipes: 'All recipes',
+    makes: '{serves} serves',
+    makesOne: '1 serve',
+    time: 'About {minutes} minutes',
+    yourVersionOf: 'Your version of {title}.',
+    seeOriginal: 'See the original recipe',
+    copyExists: 'You have your own version of this recipe.',
+    openVersion: 'Open your version',
+    methodNote:
+      'The method is the original recipe’s, so it may still name an ingredient you swapped.',
+    pregnancyNote:
+      'If you are pregnant or breastfeeding, ask your midwife or GP which foods to take care with, including leftovers and cold cooked meat.',
+  },
+  style: {
+    written: {
+      keto: 'Written for keto.',
+      'moderate-low-carb': 'Written for moderate low-carb.',
+      balanced: 'Written for balanced eating.',
+    },
+    notYet: 'Its carbs are not worked out yet.',
+    knownAbove:
+      'Its carbs are not worked out yet, but the part that is known is already {amount} a serve.',
+    figures: '{style}: {amount} of net carbs a serve.',
+    unknown: 'Net carbs are not worked out yet.',
+  },
+  ingredients: {
+    label: 'Ingredients',
+    cookingFor: 'Cooking for',
+    cookingForHint: 'This changes the amounts only. The nutrition figures stay those of one serve.',
+    fewer: 'One fewer serve',
+    more: 'One more serve',
+    amountsFor: 'Amounts for {serves} serves, as raw weights unless a line says cooked.',
+    amountsForOne: 'Amounts for 1 serve, as raw weights unless a line says cooked.',
+    grams: '{grams} g',
+    underOneGram: 'under 1 g',
+    asWritten: 'As written for {serves} serves: {amount}',
+    eggCount: 'About {count} eggs',
+    eggCountOne: 'About 1 egg',
+    cooked: 'About {grams} cooked',
+    inGarden: 'In your garden',
+    inSeason: 'In season now',
+    swapHint: 'Or use {names}',
+    leftoverLine: 'Usually left over from {title}',
+    notInApp: 'This ingredient is not in the app any more.',
+    nameMissing: 'Ingredient not in the app',
+    addsSalt: 'This adds salt.',
+  },
+  method: {
+    label: 'Method',
+  },
+  leftovers: {
+    uses: 'Made with leftovers from {title}. No leftovers? Cook the amounts listed fresh.',
+    makes: 'Cook extra for {title}.',
+  },
+  nutrition: {
+    label: 'One serve',
+    caption: 'Per serve',
+    caption100: 'Per 100 g of the raw ingredients as listed',
+    per100Switch: 'Show per 100 g of raw ingredients',
+    per100Note: 'Per 100 g of the raw ingredients as listed, not of the cooked dish.',
+    plannedLabel: 'Your planned portion',
+    plannedServes: 'You planned {serves} serves of this.',
+    confidenceHelp: {
+      database:
+        'Database: no ingredient’s figures are approximate; they come from a published table of food values or a label you entered.',
+      estimate: 'Estimate: at least one ingredient’s figures are approximate.',
+    },
+    neverLabel: 'A recipe is worked out from its ingredients, so it never shows Label.',
+  },
+  heart: {
+    heartSmart:
+      'Heart-smart: its fats are mainly unsaturated, and {portion} has at most {capG} g of saturated fat.',
+    capReference: 'That limit is a third of the 24 g saturated-fat reference used for food labels.',
+    capBudget: 'That limit is a third of today’s {budgetG} g saturated-fat budget.',
+    flagged:
+      'More saturated fat: {reasons}. That does not take it off the menu; it uses the day’s saturated-fat budget faster.',
+    reasons: {
+      'butter-cream': 'butter or cream',
+      'coconut-fat': 'coconut oil or coconut cream',
+      'processed-meat': 'processed meat',
+      'fatty-cut': 'a fatty cut of meat',
+      'cheese-over-40g': 'more than 40 g of cheese in {portion}',
+      'saturated-fat-high': 'more than {capG} g of saturated fat in {portion}',
+    },
+    portion: {
+      serve: 'a serve',
+      mine: 'your portion',
+    },
+    neither: 'No heart-smart label: more than a quarter of its fat is saturated.',
+    unknown: 'Heart-smart: not worked out yet, because some figures are missing.',
+    budgetNotRead:
+      'Heart-smart: not worked out, because today’s saturated-fat budget could not be read.',
+    why: 'The cholesterol-conscious default favours olive oil, avocado, nuts and seeds, oily fish, chicken, eggs within six a week, legumes in small amounts, non-starchy vegetables and garden greens.',
+  },
+  allergens: {
+    label: 'Allergens',
+    contains: 'Contains {allergens}.',
+    noneRecorded: 'No allergens are recorded for its ingredients.',
+    checkLabels:
+      'Some of its packaged ingredients have allergens that depend on the brand: check their labels.',
+    inherited: 'Listed because the recipe this was made from contains {allergens}.',
+    conflict: 'This recipe contains {allergens}, which you listed as allergens to avoid.',
+    unknownForYou:
+      'Its allergens are not fully known, so it is never shown as free of {allergens}. Check the labels of its packaged ingredients.',
+    glutenHousehold:
+      'Gluten-free household is on in your profile, and this recipe contains {cereals}.',
+    source:
+      'The allergens shown are those the Food Standards Code requires on food labels, as recorded for each ingredient. Check the label of what you buy.',
+  },
+  actions: {
+    label: 'What next',
+    addToPlan: 'Add to plan',
+    logAsEaten: 'Log as eaten',
+    scale: 'Scale servings',
+    substitute: 'Substitute ingredient',
+    later: 'Later',
+    laterNote: 'This arrives at a later step of the build checklist.',
+    removeVersion: 'Go back to the original recipe',
+  },
+  swap: {
+    title: 'Substitute ingredient',
+    whichLegend: 'Which ingredient?',
+    forLegend: 'Swap {ingredient} for',
+    none: 'No swaps are listed for {ingredient}.',
+    hiddenAllergenOne: '1 other swap contains an allergen you listed, so it is not shown.',
+    hiddenAllergenMany:
+      '{count} other swaps contain an allergen you listed, so they are not shown.',
+    hiddenDislikeOne: '1 other swap is a food you do not want suggested, so it is not shown.',
+    hiddenDislikeMany:
+      '{count} other swaps are foods you do not want suggested, so they are not shown.',
+    hiddenGlutenFree:
+      'Gluten-free swaps are shown when Gluten-free household is on in your profile.',
+    hiddenGlutenHouseholdOne:
+      '1 other swap contains a gluten cereal, so it is not shown while Gluten-free household is on.',
+    hiddenGlutenHouseholdMany:
+      '{count} other swaps contain a gluten cereal, so they are not shown while Gluten-free household is on.',
+    candidateNone: 'No allergens recorded',
+    candidateGarden: 'In your garden',
+    amountNote: 'The new ingredient uses the same raw weight. Its cooked weight is not known.',
+    use: 'Use {ingredient}',
+    chooseFirst: 'Choose a swap',
+    cancel: 'Cancel',
+    saving: 'Saving your version…',
+    done: 'Swapped {from} for {to}. This is your version now; the original recipe stays in the app.',
+    doneUpdate: 'Swapped {from} for {to} in your version.',
+    undo: 'Undo',
+    undone: 'Your version was removed. The original recipe is back.',
+    blockedFigures:
+      'Swapping an ingredient saves your own version of the recipe. The app can save one only when it has food values for every ingredient in it, and it does not have them yet.',
+    blockedMissing:
+      'One of this recipe’s ingredients is not in the app any more, so it cannot be changed. You can go back to the original recipe.',
+    notAllowed: 'That swap is no longer offered. Nothing was changed.',
+    failed: 'The swap could not be saved. Nothing was changed.',
+  },
+  remove: {
+    confirmTitle: 'Go back to the original recipe?',
+    confirmBody:
+      'Your version is removed and the original recipe takes its place, with its own ingredients, allergens and figures.',
+    confirm: 'Remove my version',
+    keep: 'Keep my version',
+    removing: 'Removing your version…',
+    done: 'Your version was removed. This is the original recipe.',
+    inPlan: 'Your version is in your meal plan. Change those meals first, then try again.',
+    failed: 'Your version could not be removed. Nothing was changed.',
+  },
 } as const;
 
 /** All sections, for scanning and review. */
@@ -2432,10 +3572,17 @@ export const healthCopy = {
   garden,
   weight,
   move,
+  moveScreen,
   fasting,
   reflux,
   targets,
   today,
   reminders,
   about,
+  // Item 18.
+  foods,
+  // Item 19.
+  gardenScreen,
+  // Item 20.
+  recipes,
 } as const;
