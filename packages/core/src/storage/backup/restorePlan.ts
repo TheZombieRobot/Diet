@@ -293,6 +293,7 @@ export function kickstartEndsAfterRestore(written: Snapshot, clock: RestoreClock
   const gates = gatesFromRecords(
     { readiness: written.readiness, profile, settings, weights: written.weights },
     today,
+    clock.now,
   );
   return (
     kickstartEndNeeded({

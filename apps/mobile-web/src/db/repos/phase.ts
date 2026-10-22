@@ -90,7 +90,8 @@ export function phaseRepo(ctx: RepoContext): PhaseRepo {
       conditional((records) => {
         const home = records.settings.homeTimeZone;
         const zone = resolveZone(env.timeZone(), home, DEFAULT_HOME_TIME_ZONE).timeZone;
-        const gates = gatesFromRecords(records, localDateOf(env.now(), zone));
+        const now = env.now();
+        const gates = gatesFromRecords(records, localDateOf(now, zone), now);
         return kickstartStartPresetChange(records.targets, gates);
       }),
     applyPresetMove: () =>

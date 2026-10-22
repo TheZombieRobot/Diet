@@ -1,7 +1,14 @@
 // The Energy card's explanation lines and the Nutrition card's note order (item 21 design section
 // 6.3, H1 to H17): C61, C102, C108, T26, T27, T36. Pure, over the engine's view of synthetic
 // scenarios; no database.
-import { dayIntake, dayTargetsFromRecords, type DayTargetsView } from '@diet/core';
+import {
+  type CardStateRecord,
+  dayIntake,
+  dayTargetsFromRecords,
+  type DayTargetsView,
+  PRE_START_STOP_SIGN_CARD,
+  preStartTrigger,
+} from '@diet/core';
 import { alcohol, readiness, targets as copy, weight } from '@diet/core/copy/health';
 import {
   onDay,
@@ -33,6 +40,7 @@ function viewOf(options: WeightScenarioOptions, day = 10): DayTargetsView {
       periods: s.kickstart_periods,
       checks: s.kickstart_checks,
       weights: s.weights,
+      cardStates: s.card_state,
     },
     { at: seen.now, today: seen.today, deviceZone: SCENARIO_ZONE },
   );
@@ -109,6 +117,25 @@ describe('the lines after it (T16, T27, C102; H7, H8, H15, H16)', () => {
     );
     expect(explained.lines).toContain(weight.stopSigns.action);
     expect(explained.stopSignRows).toBe(true);
+  });
+
+  it('V16: after a "yes" before a start, no deficit for the rest of that day, and why', () => {
+    const day = onDay(MALE_STEADY, 10).today;
+    const yes: CardStateRecord = {
+      cardId: PRE_START_STOP_SIGN_CARD,
+      trigger: preStartTrigger(day),
+      firstShownAt: null,
+      dismissedAt: null,
+      dismissedTimeZone: null,
+      doneAt: null,
+    };
+    const view = viewOf({ ...MALE_STEADY, cardStates: [yes] }, 10);
+    expect(view.targets.deficit.basis).toBe('none-stop-sign');
+    const explained = energyExplanation(view);
+    expect(explained.lines[0]).toBe(weight.stopSigns.pausedToday);
+    expect(explained.lines).toContain(weight.stopSigns.action);
+    expect(explained.stopSignRows).toBe(true);
+    expect(viewOf({ ...MALE_STEADY, cardStates: [yes] }, 11).targets.deficit.basis).toBe('steady');
   });
 
   it('H8: with answer 4 unanswered, the blood-pressure wording replaces the salt line', () => {

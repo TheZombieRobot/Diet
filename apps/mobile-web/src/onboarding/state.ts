@@ -8,6 +8,7 @@
 import {
   gateCurrentWeightKg,
   type GateInput,
+  type Instant,
   type LocalDate,
   localDateOf,
   type OnboardingStep,
@@ -78,10 +79,15 @@ export interface OnboardingDerived {
   readonly mode: 'setup' | 'repair';
 }
 
-const todayOf = (env: StorageEnv): LocalDate => localDateOf(env.now(), env.timeZone());
+/** Now, and today's date in the device zone. */
+const clockOf = (env: StorageEnv): { readonly now: Instant; readonly today: LocalDate } => {
+  const now = env.now();
+  return { now, today: localDateOf(now, env.timeZone()) };
+};
 
 /** The gate input from the stored records, read at today's date in the device zone. */
 export function gateInputOf(state: OnboardingState, env: StorageEnv): GateInput {
+  const { now, today } = clockOf(env);
   return weightGateInput(
     {
       readiness: state.readinessRows,
@@ -89,13 +95,15 @@ export function gateInputOf(state: OnboardingState, env: StorageEnv): GateInput 
       weights: state.weights,
       homeTimeZone: state.settings.homeTimeZone,
     },
-    todayOf(env),
+    today,
+    now,
   );
 }
 
 /** The current weight the gates read (item 14's rule; HS-35), for a form's own low-weight check. */
 export function gateWeightKgOf(state: OnboardingState, env: StorageEnv): number | null {
-  return gateCurrentWeightKg(state.weights, todayOf(env), state.settings.homeTimeZone);
+  const { now, today } = clockOf(env);
+  return gateCurrentWeightKg(state.weights, today, now, state.settings.homeTimeZone);
 }
 
 export function deriveOnboarding(state: OnboardingState, env: StorageEnv): OnboardingDerived {

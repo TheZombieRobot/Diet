@@ -64,6 +64,10 @@ describe('NZ alcohol guidance (U7; NN-09, C66, C25, C46, TD-05)', () => {
     const line = alcohol.guidance.pregnancy;
     expect(line).not.toMatch(/\d/);
     expect(line).toMatch(/midwife or GP/);
+    // Section 5: never a sudden stop for someone who drinks most days (re-check V19).
+    expect(line).toContain(
+      'If you drink most days, talk to them before making a change, because stopping suddenly can be risky.',
+    );
     expect(line.endsWith(alcohol.noRiskFreeLevel)).toBe(true);
     for (const rule of C66) expect(line).not.toMatch(rule);
   });

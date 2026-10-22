@@ -138,6 +138,7 @@ export interface PresetRecords {
 export function gatesFromRecords(
   records: Pick<PresetRecords, 'readiness' | 'profile' | 'settings' | 'weights'>,
   today: string,
+  now: Instant,
 ): ReadinessGates {
   return readinessGates(
     weightGateInput(
@@ -148,6 +149,7 @@ export function gatesFromRecords(
         homeTimeZone: records.settings.homeTimeZone,
       },
       today,
+      now,
     ),
   );
 }
@@ -163,7 +165,7 @@ export function presetMoveDueFromRecords(
     now,
     resolveZone(deviceTimeZone, home, DEFAULT_HOME_TIME_ZONE).timeZone,
   );
-  const gates = gatesFromRecords(records, today);
+  const gates = gatesFromRecords(records, today, now);
   const phase = phaseOn({
     now,
     today,

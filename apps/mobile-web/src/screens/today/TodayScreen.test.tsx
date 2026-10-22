@@ -1,17 +1,29 @@
 // Today's order and states (item 16 design section 5.2: C2, C7, C10, C12). The real
 // repositories on fake-indexeddb with the test clock; synthetic records only.
+import { dayTargetsFromRecords, PRE_START_STOP_SIGN_CARD, preStartTrigger } from '@diet/core';
 import { alcohol, fasting, privacy, targets, today, weight } from '@diet/core/copy/health';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { counts, type TestDb } from '../../db/testKit';
+import { formatWhole } from '../../format';
+import { preStartStopSignStore } from '../weight/preStartCheck';
+import { readWeightInputs } from '../weight/useWeightView';
 import { TodayScreen } from './TodayScreen';
-import { regionLabels, renderToday, resetToday, TODAY_NOW, todayFixture } from './todayTestKit';
+import {
+  clockTo,
+  regionLabels,
+  renderToday,
+  resetToday,
+  TODAY_NOW,
+  todayFixture,
+} from './todayTestKit';
 
 let test: TestDb | undefined;
 afterEach(() => {
   vi.restoreAllMocks();
   cleanup();
   resetToday(test);
+  preStartStopSignStore.set(null);
   test = undefined;
 });
 
@@ -240,36 +252,41 @@ describe('Today before setup, while reading, and when the read fails (C10, C12; 
   });
 });
 
+/** A "yes" to dizziness in the Kickstart's check at 6:30 am on 20 March (day 20 of 21). */
+async function stopSignCheck(t: TestDb): Promise<void> {
+  const [period] = await t.repos.kickstart.listPeriods();
+  await t.db.kickstart_checks.add({
+    id: t.env.randomId(),
+    periodId: period?.id ?? '',
+    askedAt: '2000-03-19T18:30:00.000Z',
+    timeZone: 'Pacific/Auckland',
+    dizzyOnStanding: 'yes',
+    palpitations: 'no',
+    crampsNotSettling: 'no',
+    faintAtWork: 'no',
+    energyRating: null,
+    sleepRating: null,
+    outcome: 'stop-sign',
+  });
+}
+
+/** 8:00 am on 20 March 2000 (NZST from 19 March). */
+const MARCH_20_8AM = '2000-03-19T20:00:00.000Z';
+const statusLineIs = (line: string) =>
+  waitFor(() => {
+    expect(screen.getByTestId('today-status-line').textContent).toBe(line);
+  });
+
 describe('after a Kickstart stop-sign answer, Today never times a fast to the window (F20, F7; HS-27)', () => {
   it('the top line and the Fast card say it is fine to eat now, with the stop-signs; the Weight card expects no fast drop', async () => {
-    // Day 20 of the Kickstart begun on 1 March: a fast since 6:00 pm (NZST from 19 March 2000),
-    // and a "yes" to dizziness at 6:30 am.
+    // Day 20 of the Kickstart begun on 1 March: a fast since 6:00 pm, and a "yes" at 6:30 am.
     test = await todayFixture({
       fast: '2000-03-19T06:00:00.000Z',
-      now: '2000-03-19T20:00:00.000Z',
-      seed: async (t) => {
-        const [period] = await t.repos.kickstart.listPeriods();
-        await t.db.kickstart_checks.add({
-          id: t.env.randomId(),
-          periodId: period?.id ?? '',
-          askedAt: '2000-03-19T18:30:00.000Z',
-          timeZone: 'Pacific/Auckland',
-          dizzyOnStanding: 'yes',
-          palpitations: 'no',
-          crampsNotSettling: 'no',
-          faintAtWork: 'no',
-          energyRating: null,
-          sleepRating: null,
-          outcome: 'stop-sign',
-        });
-      },
+      now: MARCH_20_8AM,
+      seed: stopSignCheck,
     });
     await renderToday();
-    await waitFor(() => {
-      expect(screen.getByTestId('today-status-line').textContent).toBe(
-        `Fasting 14 h. ${fasting.card.fineToEat}`,
-      );
-    });
+    await statusLineIs(`Fasting 14 h. ${fasting.card.fineToEat}`);
     const card = screen.getByRole('region', { name: fasting.card.label });
     expect(within(card).getByText(fasting.card.stopSignPause)).toBeDefined();
     expect(within(card).getByText(fasting.stopSigns.action)).toBeDefined();
@@ -279,5 +296,103 @@ describe('after a Kickstart stop-sign answer, Today never times a fast to the wi
     expect(within(weightCard).getByText(weight.phase.kickstartPausedNote)).toBeDefined();
     expect(within(weightCard).queryByText(weight.phase.kickstartNote)).toBeNull();
     expect(screen.getByRole('main').textContent).not.toMatch(/Eating window opens/);
+  });
+
+  it('the Fast card offers no 5 pm snack and no reflux option, and a snack added names no time', async () => {
+    test = await todayFixture({
+      fast: '2000-03-19T06:00:00.000Z',
+      now: MARCH_20_8AM,
+      seed: async (t) => {
+        await stopSignCheck(t);
+        await t.repos.symptoms.create({ symptom: 'heartburn', severity: null, note: null });
+      },
+    });
+    await renderToday();
+    const card = await screen.findByRole('region', { name: fasting.card.label });
+    await within(card).findByText(fasting.card.stopSignPause);
+    expect(within(card).queryByRole('button', { name: fasting.mealCheck.addSnack })).toBeNull();
+    expect(within(card).queryByTestId('reflux-options')).toBeNull();
+    // A snack added in another tab before the answer reached this one.
+    await test.repos.planDays.setWindows([
+      { date: '2000-03-20', window: { start: '17:00', end: '19:00' } },
+    ]);
+    await within(card).findByText(fasting.mealCheck.snackAddedNoRange.today, { exact: false });
+    expect(card.textContent).not.toMatch(/Eat \d|\d:\d\d [ap]m –/);
+  });
+
+  it('with no fast running, the Fast card says so with the pause, and Start is not the main button', async () => {
+    test = await todayFixture({ fast: false, now: MARCH_20_8AM, seed: stopSignCheck });
+    await renderToday();
+    await statusLineIs(fasting.card.fineToEat);
+    const card = screen.getByRole('region', { name: fasting.card.label });
+    expect(within(card).getByText(fasting.card.notRunning)).toBeDefined();
+    expect(within(card).getByText(fasting.card.stopSignPause)).toBeDefined();
+    expect(card.textContent).not.toMatch(/Eat \d/);
+    expect(within(card).getByRole('button', { name: fasting.card.start }).className).toContain(
+      'ui-button--secondary',
+    );
+  });
+
+  it('the pause outlasts an early end: through the scheduled last day, then the window again', async () => {
+    test = await todayFixture({
+      fast: false,
+      now: MARCH_20_8AM,
+      seed: async (t) => {
+        await stopSignCheck(t);
+        await t.repos.kickstart.endPeriod('user-ended');
+      },
+    });
+    await renderToday();
+    await statusLineIs(fasting.card.fineToEat);
+    await clockTo(test, '2000-03-20T22:00:00.000Z'); // 10:00 am on 21 March, the last day
+    await statusLineIs(fasting.card.fineToEat);
+    await clockTo(test, '2000-03-21T22:00:00.000Z'); // 22 March: 22:2 from 5 pm
+    await statusLineIs('Snack window opens 5:00 pm.');
+  });
+
+  it('a "yes" before a start pauses it for the day, read from its record (any tab, a reload) or held in this page; no deficit that day', async () => {
+    /** The Nutrition card's "of … kJ" today, with or without a stop-sign "yes" (item 21's engine). */
+    const energyOf = async (t: TestDb, stopSignToday: boolean): Promise<string> => {
+      const inputs = await readWeightInputs(t.storage);
+      const { energy } = dayTargetsFromRecords(
+        { ...inputs, cardStates: [] },
+        {
+          at: MARCH_20_8AM,
+          today: '2000-03-20',
+          deviceZone: 'Pacific/Auckland',
+          preStartHeld: stopSignToday ? '2000-03-20' : null,
+        },
+      ).targets;
+      if (energy.kind !== 'target') throw new Error('no energy target');
+      return `of ${formatWhole(energy.targetKj)} kJ`;
+    };
+    const paused = async (t: TestDb) => {
+      await statusLineIs(`Fasting 14 h. ${fasting.card.fineToEat}`);
+      const [noDeficit, withDeficit] = [await energyOf(t, true), await energyOf(t, false)];
+      expect(noDeficit).not.toBe(withDeficit);
+      const nutrition = screen.getByRole('region', { name: targets.today.label });
+      await waitFor(() => {
+        expect(nutrition.textContent).toContain(noDeficit);
+      });
+    };
+    test = await todayFixture({
+      kickstart: false,
+      fast: '2000-03-19T06:00:00.000Z',
+      now: MARCH_20_8AM,
+      seed: (t) =>
+        t.repos.cardState.reopen(PRE_START_STOP_SIGN_CARD, preStartTrigger('2000-03-20')),
+    });
+    await renderToday();
+    await paused(test);
+    cleanup();
+    resetToday(test);
+    test = await todayFixture({
+      kickstart: false,
+      fast: '2000-03-19T06:00:00.000Z',
+      now: MARCH_20_8AM,
+    });
+    preStartStopSignStore.set('2000-03-20');
+    await renderToday();
+    await paused(test);
   });
 });

@@ -20,23 +20,31 @@ import type { DayChangeView } from './view';
 
 const pattern = fasting.pattern;
 
-/** A per-day change for today or tomorrow, with its Undo when the per-day limit allows it. */
+/**
+ * A per-day change for today or tomorrow, with its Undo when the per-day limit allows it. During a
+ * stop-sign pause it names no window time (F20).
+ */
 function DayChangeLine({
   storage,
   change,
+  untimed,
 }: {
   readonly storage: AppStorage;
   readonly change: DayChangeView;
+  readonly untimed: boolean;
 }): ReactElement {
   const action = useAction();
   const range = formatClockRange(change.window.start, change.window.end);
+  const line = change.snackAdded
+    ? untimed
+      ? fasting.mealCheck.snackAddedNoRange[change.day]
+      : fillTemplate(fasting.mealCheck.snackAdded[change.day], { range })
+    : untimed
+      ? reflux.options.changedNoRange[change.day]
+      : fillTemplate(reflux.options.changed[change.day], { range });
   return (
     <div>
-      <p>
-        {change.snackAdded
-          ? fillTemplate(fasting.mealCheck.snackAdded[change.day], { range })
-          : fillTemplate(reflux.options.changed[change.day], { range })}
-      </p>
+      <p>{line}</p>
       {change.undoAllowed ? (
         <Button
           variant="quiet"
@@ -120,7 +128,12 @@ export function PatternCard({
               </p>
             ) : null}
             {view.dayChanges.map((change) => (
-              <DayChangeLine key={change.date} storage={storage} change={change} />
+              <DayChangeLine
+                key={change.date}
+                storage={storage}
+                change={change}
+                untimed={view.stopSignPause}
+              />
             ))}
           </>
         )}

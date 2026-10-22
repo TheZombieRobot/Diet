@@ -8,6 +8,7 @@ import { readinessGates, gateInputFromRecords } from '../readiness/gates';
 import { defaultProfile, defaultSettings, defaultTargets } from '../storage/defaults';
 import { READINESS_QUESTION_IDS, READINESS_WORDING } from '../storage/readiness';
 import type {
+  CardStateRecord,
   KickstartCheckRecord,
   ProfileRecord,
   ReadinessRecord,
@@ -21,6 +22,7 @@ import {
   dayTargetsFromRecords,
   type TargetsClock,
 } from './dayTargets';
+import { PRE_START_STOP_SIGN_CARD, preStartTrigger } from '../weight/preStart';
 import { energyForMealChecks, plannerEnergyAim } from './energy';
 
 const ZONE = 'Pacific/Auckland';
@@ -57,6 +59,7 @@ interface Over {
   readonly readiness?: readonly ReadinessRecord[];
   readonly checks?: readonly KickstartCheckRecord[];
   readonly weights?: readonly WeightRecord[];
+  readonly cardStates?: readonly CardStateRecord[];
   readonly running?: boolean;
 }
 
@@ -92,6 +95,7 @@ function records(over: Over = {}): DayTargetRecords {
       weighIn('2000-06-14', 100, 'w2'),
       weighIn('2000-06-15', 100, 'w3'),
     ],
+    cardStates: over.cardStates ?? [],
   };
 }
 
@@ -204,6 +208,35 @@ describe('every figure for the day from one entry point', () => {
       protein: { checkTargetG: 120 },
     });
     expect(t({ checks: [{ ...stopSign, periodId: 'p0' }] }).figures).toBe('kickstart');
+  });
+
+  it('HEALTH_SAFETY section 2: a stop-sign "yes" outside a check, recorded or held for today, plans no deficit for the rest of that day', () => {
+    const yes: CardStateRecord = {
+      cardId: PRE_START_STOP_SIGN_CARD,
+      trigger: preStartTrigger('2000-06-15'),
+      firstShownAt: nz('2000-06-15', '08:00'),
+      dismissedAt: null,
+      dismissedTimeZone: null,
+      doneAt: null,
+    };
+    const none = { pct: 0, basis: 'none-stop-sign' };
+    expect(t({ running: false }).deficit.basis).toBe('steady');
+    const recorded = view({ running: false, cardStates: [yes] });
+    expect(recorded.stopSignToday).toBe(true);
+    expect(recorded.targets.deficit).toEqual(none);
+    const held = dayTargetsFromRecords(records({ running: false }), {
+      ...clock,
+      preStartHeld: '2000-06-15',
+    });
+    expect(held.targets.deficit).toEqual(none);
+    // During a running Kickstart (an extension check that could not be saved) too.
+    expect(t({ cardStates: [yes] }).deficit).toEqual(none);
+    const nextDay = dayTargetsFromRecords(records({ running: false, cardStates: [yes] }), {
+      ...clock,
+      at: nz('2000-06-16', '09:00'),
+      today: '2000-06-16',
+    });
+    expect(nextDay.targets.deficit.basis).toBe('steady');
   });
 
   it('W13: a period whose end is latched but not yet written reads as not running', () => {

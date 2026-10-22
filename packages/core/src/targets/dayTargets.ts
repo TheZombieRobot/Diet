@@ -15,6 +15,7 @@ import { type GateInput, readinessGates } from '../readiness/gates';
 import type { Id, Instant, TimeZone } from '../storage/primitives';
 import type { ReadinessGates } from '../storage/readiness';
 import type {
+  CardStateRecord,
   DietMode,
   KickstartCheckRecord,
   KickstartEndReason,
@@ -28,6 +29,7 @@ import type {
 import type { LocalDate } from '../util/time';
 import { weightGateInput } from '../weight/gateInput';
 import { runningKickstartPeriod, stopSignPauseUntil } from '../weight/phase';
+import { preStartStopSignOn } from '../weight/preStart';
 import { weighInsFromRecords } from '../weight/weighIns';
 import { effectiveNetCarbCeiling, type NetCarbCeiling } from './carbs';
 import { type TargetDisplay, targetDisplay } from './display';
@@ -103,6 +105,12 @@ export interface DayTargetsInput {
     | 'waterTargetMl'
   >;
   readonly weight: WeightBasis | null;
+  /**
+   * A stop-sign "yes" recorded or held for today outside a recorded check: before a start, or in
+   * an extension check that could not be saved (item 14's pre-start record; HEALTH_SAFETY section
+   * 2). No deficit is planned for the rest of the day.
+   */
+  readonly stopSignToday?: boolean;
 }
 
 export interface DayTargets {
@@ -165,7 +173,8 @@ export function dayTargets(input: DayTargetsInput): DayTargets {
     figures,
     dietMode,
     gates,
-    stopSignPause: kickstartSuspended === 'stop-sign' || pausedAfterEnd,
+    stopSignPause:
+      kickstartSuspended === 'stop-sign' || pausedAfterEnd || input.stopSignToday === true,
     kickstartDeficitPct: targets.kickstartDeficitPct,
     steadyDeficitPct: targets.steadyDeficitPct,
   });
@@ -232,6 +241,8 @@ export interface DayTargetRecords {
   readonly checks: readonly KickstartCheckRecord[];
   /** Every weigh-in (at least the last 7 local days and the latest on or before today). */
   readonly weights: readonly WeightRecord[];
+  /** The card states, for a pre-start stop-sign "yes" today (item 14's record; at least that row). */
+  readonly cardStates: readonly CardStateRecord[];
 }
 
 /** One clock for every figure on screen: `today` is the day the live queries read (T30). */
@@ -241,6 +252,8 @@ export interface TargetsClock {
   readonly deviceZone: TimeZone;
   /** The app's end latch (item 14): ends due but not yet written. */
   readonly endsPending?: ReadonlyMap<Id, KickstartEndReason>;
+  /** This page's hold of a pre-start stop-sign "yes" (its local date) until its record is written. */
+  readonly preStartHeld?: LocalDate | null;
 }
 
 export interface DayTargetsView {
@@ -249,6 +262,8 @@ export interface DayTargetsView {
   readonly gates: ReadinessGates;
   readonly display: TargetDisplay;
   readonly kickstart: KickstartState;
+  /** A stop-sign "yes" recorded or held for today outside a check (DayTargetsInput.stopSignToday). */
+  readonly stopSignToday: boolean;
   readonly targets: DayTargets;
 }
 
@@ -271,6 +286,7 @@ export function dayTargetsFromRecords(
       homeTimeZone: home,
     },
     today,
+    clock.at,
   );
   const gates = readinessGates(gateInput);
   const kickstart = kickstartStateFrom(
@@ -283,12 +299,15 @@ export function dayTargetsFromRecords(
     clock.endsPending,
   );
   const { weighIns } = weighInsFromRecords(records.weights, home);
+  const stopSignToday =
+    preStartStopSignOn(records.cardStates, today) || clock.preStartHeld === today;
   return {
     today,
     gateInput,
     gates,
     display: targetDisplay(gateInput, gates),
     kickstart,
+    stopSignToday,
     targets: dayTargets({
       today,
       gates,
@@ -297,6 +316,7 @@ export function dayTargetsFromRecords(
       profile: records.profile,
       targets: records.targets,
       weight: weightForEstimate(weighIns, today),
+      stopSignToday,
     }),
   };
 }

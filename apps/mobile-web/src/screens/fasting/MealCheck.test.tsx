@@ -30,6 +30,7 @@ const offer = (more: Partial<MealCheckView> = {}): MealCheckView => ({
   snack: { added: null, fits: { start: '17:00', end: '19:00' } },
   afterCeiling: false,
   undoSnackAllowed: false,
+  stopSignPause: false,
   refluxDay: false,
   tomorrowSnack: null,
   ...more,

@@ -116,6 +116,7 @@ export async function clearStaleDayWindows(storage: AppStorage): Promise<LocalDa
       homeTimeZone: source.settings.homeTimeZone,
     },
     today,
+    now,
   );
   const dates = staleDays({
     source,

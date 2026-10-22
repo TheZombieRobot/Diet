@@ -39,6 +39,7 @@ function seen(options: WeightScenarioOptions, day: number, time = '09:00') {
       periods: snapshot.kickstart_periods,
       checks: snapshot.kickstart_checks,
       weights: snapshot.weights,
+      cardStates: snapshot.card_state,
     },
     { at: at.now, today: at.today, deviceZone: SCENARIO_ZONE },
   );

@@ -19,7 +19,13 @@ const YES_NO = [
 const RATINGS = ['1', '2', '3', '4', '5'].map((value) => ({ value, label: value }));
 
 export type CheckVariant =
-  | { readonly kind: 'extend'; readonly week: number; readonly weeks: number }
+  | {
+      readonly kind: 'extend';
+      readonly week: number;
+      readonly weeks: number;
+      /** The local date, for a "yes" whose check cannot be saved. */
+      readonly today: string;
+    }
   | { readonly kind: 'start'; readonly today: string };
 
 export interface KickstartCheckPanelProps {
@@ -37,7 +43,9 @@ export interface KickstartCheckPanelProps {
  *
  * Extension: the answers go to the Kickstart repository, which decides the outcome and enforces
  * the window, the stop-sign rule and both caps; this is the only caller of recordCheck. Energy and
- * sleep are optional and decide nothing.
+ * sleep are optional and decide nothing. A "yes" whose check is refused (the clock, the offer
+ * window, a full phone) is never lost: it is held and recorded for the day as a pre-start "yes"
+ * is, and the stop-sign card takes over (re-check V9).
  * Start: any "yes" starts nothing and is recorded for the day (W31; preStartCheck.ts); four "no"
  * start a Kickstart, which re-checks that a start is still available just before writing.
  * Outcomes go to the page-level status line, so they outlive the card that asked.
@@ -64,6 +72,7 @@ export function KickstartCheckPanel({
       faintAtWork: answers.faintAtWork ?? 'yes',
     };
     setBusy(true);
+    const stopSign = QUESTIONS.some((q) => four[q] === 'yes');
     if (variant.kind === 'extend') {
       try {
         const check = await storage.repos.kickstart.recordCheck({
@@ -85,11 +94,17 @@ export function KickstartCheckPanel({
         }
       } catch (error) {
         weightStatusStore.set(weightWriteMessage(error, 'extension'));
+        if (stopSign) {
+          // Held in this page at once, then recorded for the day (preStartCheck.ts): no fast is
+          // timed to the window and no deficit is planned for the rest of it.
+          void recordPreStartStopSign(storage, variant.today).catch(() => undefined);
+          stopSignFocusStore.set(true);
+        }
         setBusy(false);
       }
       return;
     }
-    if (QUESTIONS.some((q) => four[q] === 'yes')) {
+    if (stopSign) {
       // Held in this page at once, then recorded; the guidance and the refusal never wait for,
       // or depend on, the write (preStartCheck.ts).
       void recordPreStartStopSign(storage, variant.today).catch(() => undefined);

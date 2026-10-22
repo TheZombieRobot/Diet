@@ -40,11 +40,12 @@ export function MealCheck({
   const undo = () => {
     void action.run(() => clearDayWindow(storage, date));
   };
-  // A window opening past 24 hours of the running fast is never given a time (view.ts).
+  // A window opening past 24 hours of the running fast, or any window during a stop-sign pause, is
+  // never given a time (view.ts).
   const snackAdded =
     snack.added === null || changeShownBelow ? null : (
       <p>
-        {check.afterCeiling
+        {check.afterCeiling || check.stopSignPause
           ? copy.snackAddedNoRange[day]
           : fillTemplate(copy.snackAdded[day], {
               range: formatClockRange(snack.added.start, snack.added.end),

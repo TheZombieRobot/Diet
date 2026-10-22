@@ -9,7 +9,7 @@ import {
   readinessGates,
   weightGateInput,
 } from '@diet/core';
-import { readiness, weight } from '@diet/core/copy/health';
+import { privacy, readiness, weight } from '@diet/core/copy/health';
 import {
   onDay,
   WEIGHT_SCENARIOS,
@@ -156,6 +156,38 @@ describe('the extension offer and its check (WT-09, C59)', () => {
     expect(within(card).queryByRole('button', { name: weight.stopSigns.hideToday })).toBeNull();
     expect(queryRegion(weight.extension.label)).toBeNull();
     expect(within(region(weight.card.label)).getByText('Kickstart, week 3 of 3')).toBeTruthy();
+  });
+
+  it('V9: a "yes" whose check cannot be saved is held for the day: the stop-sign card, no offer, and its record', async () => {
+    const seen = onDay(WEIGHT_SCENARIOS.K42, 19);
+    const db = await today(WEIGHT_SCENARIOS.K42, 19);
+    // A symptom saved while the phone's clock ran 10 minutes fast, then the clock corrected.
+    db.env.set(new Date(Date.parse(seen.now) + 10 * 60_000).toISOString());
+    await db.repos.symptoms.create({ symptom: 'heartburn', severity: null, note: null });
+    db.env.set(new Date(Date.parse(seen.now) + 60_000).toISOString());
+    fireEvent.click(
+      within(region(weight.extension.label)).getByRole('button', { name: weight.extension.extend }),
+    );
+    answer(weight.check.palpitations);
+    fireEvent.click(screen.getByRole('button', { name: weight.check.confirmExtend }));
+    await waitFor(() => {
+      expect(screen.getByRole('alert').textContent).toContain(privacy.clockBehind);
+    });
+    expect(await db.repos.kickstart.listChecks()).toEqual([]);
+    await screen.findByText(weight.stopSigns.afterCheckRunning);
+    const card = region(weight.stopSigns.label);
+    expect(within(card).getByRole('button', { name: weight.stopSigns.endNow })).toBeTruthy();
+    expect(within(card).queryByRole('button', { name: weight.stopSigns.hideToday })).toBeNull();
+    expect(queryRegion(weight.extension.label)).toBeNull();
+    // Not the pre-start guidance ("Kickstart has not started"), and no "fast drop" note.
+    expect(screen.queryByText(weight.start.stopSign)).toBeNull();
+    expect(screen.queryByText(weight.phase.kickstartNote)).toBeNull();
+    expect(preStartStopSignStore.get()).toBe(seen.today);
+    await waitFor(async () => {
+      expect(
+        await db.repos.cardState.get(PRE_START_STOP_SIGN_CARD, preStartTrigger(seen.today)),
+      ).toBeDefined();
+    });
   });
 
   it('Cancel records nothing; "Not now" dismisses this offer only', async () => {
@@ -416,6 +448,34 @@ describe('the Steady flip is explained and the 23:1 Kickstart default moves to 2
   });
 });
 
+describe('no one-tap 23:1 after a stop-sign answer (F5, V15)', () => {
+  it('a "yes", then End Kickstart now: the move to 22:2 is explained with no "Use 23:1 instead" anywhere', async () => {
+    const db = await today(WEIGHT_SCENARIOS.K42, 19);
+    fireEvent.click(
+      within(region(weight.extension.label)).getByRole('button', { name: weight.extension.extend }),
+    );
+    answer(weight.check.dizzyOnStanding);
+    fireEvent.click(screen.getByRole('button', { name: weight.check.confirmExtend }));
+    await screen.findByText(weight.stopSigns.afterCheckRunning);
+    const stopSigns = region(weight.stopSigns.label);
+    // A minute later, End Kickstart now from the stop-sign card.
+    db.env.set(new Date(Date.parse(db.env.now()) + 60_000).toISOString());
+    fireEvent.click(
+      await within(stopSigns).findByRole('button', { name: weight.stopSigns.endNow }),
+    );
+    fireEvent.click(within(stopSigns).getByRole('button', { name: weight.end.yes }));
+    await waitFor(async () => {
+      expect(await db.repos.kickstart.listPeriods()).toMatchObject([{ endReason: 'user-ended' }]);
+    });
+    await reconcile(db);
+    expect(await db.repos.targets.get()).toMatchObject({ fastingPreset: '22:2' });
+    const notice = await screen.findByRole('region', { name: weight.presetMoved.label });
+    expect(within(notice).getByText(weight.presetMoved.body)).toBeTruthy();
+    expect(screen.queryByRole('button', { name: weight.presetMoved.use231 })).toBeNull();
+    expect(screen.queryByRole('button', { name: weight.steadyExplainer.use231 })).toBeNull();
+  });
+});
+
 describe('answer 4 and the 23:1 Kickstart default (C07; item 14 review)', () => {
   it('a finished Kickstart offers no one-tap 23:1, and the move to 22:2 is explained without one', async () => {
     const db = await today({ ...WEIGHT_SCENARIOS.K42, readiness: { q4: 'yes' } }, 22);
@@ -439,7 +499,11 @@ describe('the gates read the readiness rows through item 13’s gate function', 
     const inputs = await readWeightInputs(db.storage);
     expect(
       readinessGates(
-        weightGateInput({ ...inputs, homeTimeZone: inputs.settings.homeTimeZone }, '2000-02-10'),
+        weightGateInput(
+          { ...inputs, homeTimeZone: inputs.settings.homeTimeZone },
+          '2000-02-10',
+          db.env.now(),
+        ),
       ).bloodPressureSaltWording,
     ).toBe(true);
     expect(

@@ -3,7 +3,8 @@
  * D6; item 14 design section 3.1). Every record is placed on a local date in its own resolved zone
  * (record zone, then the home zone, then Pacific/Auckland, then UTC), so an imported zone this
  * browser does not know never throws. Weigh-ins dated after now are ignored: every window ends
- * today, and the latest weigh-in is the newest one up to now.
+ * today, and the latest weigh-in is the newest one up to now. The gates alone also count one timed
+ * after now when it is lower (gateCurrentWeightKg), so a clock that ran ahead never hides a low one.
  */
 import { DEFAULT_HOME_TIME_ZONE, resolveZone } from '../storage/dates';
 import type { Id, Instant, TimeZone } from '../storage/primitives';
@@ -145,38 +146,47 @@ export function currentWeightFromDaily(
 }
 
 /**
- * The kg of the newest single weigh-in on a local date on or before today (ties: the lower kg).
- * Null with none.
+ * The kg of the latest single weigh-in the gates read: the newest at or before now, by instant as
+ * the Weight card's "Latest" (latestWeighIn), so a change of zone never drops it; or the newest of
+ * all when that is lower. A weigh-in timed after now (saved while the clock ran ahead, or brought
+ * in by an import) so never hides a lower one, and counts only when it is lower itself. Ties: the
+ * lower kg. Null with none.
  */
-function newestWeighInKg(weighIns: readonly WeighIn[], today: LocalDate): number | null {
-  let newest: { readonly ms: number; readonly kg: number } | null = null;
-  for (const w of weighIns) {
-    if (localDateOf(w.at, w.timeZone) > today) continue;
-    const ms = parseInstant(w.at);
-    if (newest === null || ms > newest.ms || (ms === newest.ms && w.kg < newest.kg)) {
-      newest = { ms, kg: w.kg };
-    }
+function gateLatestWeighInKg(rows: readonly WeighInRow[], now: Instant): number | null {
+  type Newest = { readonly ms: number; readonly kg: number } | null;
+  const newer = (best: Newest, ms: number, kg: number): boolean =>
+    best === null || ms > best.ms || (ms === best.ms && kg < best.kg);
+  const nowMs = parseInstant(now);
+  let upToNow: Newest = null;
+  let newest: Newest = null;
+  for (const row of rows) {
+    const ms = parseInstant(row.at);
+    if (newer(newest, ms, row.kg)) newest = { ms, kg: row.kg };
+    if (ms <= nowMs && newer(upToNow, ms, row.kg)) upToNow = { ms, kg: row.kg };
   }
-  return newest?.kg ?? null;
+  if (upToNow === null || newest === null) return newest?.kg ?? null;
+  return Math.min(upToNow.kg, newest.kg);
 }
 
 /**
  * The current weight the readiness gates read (item 13 section 9.1 rule 2; HS-35; DECISIONS "The
- * gates' current weight"): the lowest of the 7-day average, the latest day's mean and the latest
- * single weigh-in, on or before today and however old, so a low weight is never missed for want
- * of a recent weigh-in, and a low evening weigh-in is never averaged away by a higher morning one.
- * Items 13, 14 and 15 use this one rule. Null with no weigh-in.
+ * gates' current weight"): the lowest of the 7-day average, the latest day's mean (on or before
+ * today, however old) and the latest single weigh-in (gateLatestWeighInKg), so a low weight is
+ * never missed for want of a recent weigh-in, a low evening weigh-in is never averaged away by a
+ * higher morning one, and a weigh-in timed after now never hides a lower one. Items 13, 14 and 15
+ * use this one rule. Null with no weigh-in.
  */
 export function gateCurrentWeightKg(
   rows: readonly WeighInRow[],
   today: LocalDate,
+  now: Instant,
   homeTimeZone: TimeZone,
 ): number | null {
   const { weighIns } = weighInsFromRecords(rows, homeTimeZone);
   const fromDaily = currentWeightFromDaily(dailyWeightsKg(weighIns), today);
-  const newest = newestWeighInKg(weighIns, today);
-  if (fromDaily === null || newest === null) return fromDaily ?? newest;
-  return Math.min(fromDaily, newest);
+  const latest = gateLatestWeighInKg(rows, now);
+  if (fromDaily === null || latest === null) return fromDaily ?? latest;
+  return Math.min(fromDaily, latest);
 }
 
 /**
@@ -187,10 +197,11 @@ export function gateCurrentWeightKg(
 export function belowBmiFloorNow(
   rows: readonly WeighInRow[],
   today: LocalDate,
+  now: Instant,
   homeTimeZone: TimeZone,
   heightCm: number | null,
 ): boolean {
-  return isLowWeight(gateCurrentWeightKg(rows, today, homeTimeZone), heightCm);
+  return isLowWeight(gateCurrentWeightKg(rows, today, now, homeTimeZone), heightCm);
 }
 
 export type WeeklyChange = {
