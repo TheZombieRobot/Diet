@@ -156,6 +156,7 @@ Conventions for the implementing model:
 
 43. **Handover notes** in `README.md`: update, re-pair, back up, restore, delete all, reload extension after Chrome updates, redeploy the relay.
     *Acceptance:* owner follows them on a fresh browser profile.
+    *Built, in part:* README "Everyday tasks (handover notes)": update, back up, restore, delete all, pair again, redeploy the relay and check the published app. Reloading the side panel after a Chrome update is added with item 32.
 
 44. **Go/no-go notes** in `DECISIONS.md` for deferred items (reminders, Health Connect, mode A if not chosen). Build nothing.
     *Acceptance:* recorded.

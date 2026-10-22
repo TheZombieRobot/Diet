@@ -24,8 +24,11 @@ describe('evaluated health copy (packages/core/src/copy/health.ts)', () => {
     );
   });
 
-  it.each(copy)('%s passes every health and commerce rule', (path, text) => {
-    const found = scanText(path, text, [...healthPhraseRules, ...commerceRules]);
-    expect(found.map((v) => v.ruleId)).toEqual([]);
-  });
+  it.each(copy)(
+    '%s passes every health and commerce rule (HS-07, HS-08, HS-16, HS-19, HS-21, HS-31)',
+    (path, text) => {
+      const found = scanText(path, text, [...healthPhraseRules, ...commerceRules]);
+      expect(found.map((v) => v.ruleId)).toEqual([]);
+    },
+  );
 });
