@@ -140,6 +140,7 @@ Conventions for the implementing model:
 
 38. **Create `docs/TRIAL_LOG.md`** template (shopping observations only; no health data).
     *Acceptance:* file exists with the privacy note at the top.
+    *Built:* `docs/TRIAL_LOG.md` with the privacy note first, the device versions, the week-4 checklist from TEST_PLAN section 4, a row per list line and the triage table for item 41.
 
 39. **STOP — before the field week.** Confirm the owner has Club+ access and a shopping day; remind them the extension never checks out.
 
