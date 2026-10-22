@@ -160,6 +160,10 @@ test('B2 TR-02 HS-41: every stored body is sealed, differs per send, and carries
   await page.waitForTimeout(1_100);
   await tapSend(page, audit);
   await expect.poll(() => relay.listBodies().length).toBe(before + 2);
+  // The phone records the second send a moment after the relay stores it.
+  await expect
+    .poll(async () => (await storedList(page, list.id)).transferId)
+    .not.toBe(first.transferId);
   const second = await storedList(page, list.id);
   const [a, b] = relay.listBodies().slice(before);
   expect(a).not.toBe(b);
