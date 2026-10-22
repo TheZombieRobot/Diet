@@ -9,7 +9,9 @@
  *   after a stop sign, or the 336-hour wait). A period on both sides is taken where it has ended,
  *   since an end is written once and never undone. If the two histories cannot be combined (two
  *   unrelated histories that overlap or pass a cap, say a backup from before a delete-all and a
- *   Kickstart started since), the file is refused rather than either side dropped.
+ *   Kickstart started since; a start too soon after the other side's stop-sign answer; or an end
+ *   before days the other side had already lived), the file is refused rather than either side
+ *   dropped.
  * - While the phone's latest Kickstart has not finished, the diet mode, the keto-run start and the
  *   Kickstart default eating pattern come from the phone too, so the Kickstart kept is not ended by
  *   an older file's settings (a backup made before the start holds no keto-run start).
@@ -17,12 +19,19 @@
  *   and offers to end it at the time the backup was made.
  */
 import { localDateOf } from '../../util/time';
-import { isPreStartStopSignRow } from '../../weight/preStart';
+import { isPreStartStopSignRow, preStartStopSignOn } from '../../weight/preStart';
 import { gatesFromRecords } from '../../weight/presets';
-import { kickstartEndNeeded, latestKickstartPeriod } from '../../weight/phase';
+import { kickstartEndNeeded, latestKickstartPeriod, recentStopSignCheck } from '../../weight/phase';
+import { clockHighWater, notBeforeAny } from '../clock';
 import { DEFAULT_HOME_TIME_ZONE, resolveZone } from '../dates';
 import { findInvariantViolation } from '../invariants';
-import { extensionsOf, kickstartPeriodState, NEVER_RAN_END_MS } from '../kickstart';
+import {
+  effectiveLastDay,
+  extensionsOf,
+  kickstartPeriodState,
+  NEVER_RAN_END_MS,
+  periodDay1,
+} from '../kickstart';
 import { type Instant, instantMs, type TimeZone } from '../primitives';
 import type {
   CardStateRecord,
@@ -91,12 +100,77 @@ export interface MergedKickstart {
 }
 
 /**
+ * How far each side's history had run (re-check V2): the phone's clock now, in its zone, and the
+ * time the file was made. Each is lifted to the side's newest saved instant (livedUntil), as an
+ * end is (kickstartEndAt), so a clock set back never makes lived days count as fewer.
+ */
+export interface MergeSeen {
+  readonly phone: Instant;
+  readonly deviceTimeZone: TimeZone;
+  readonly file: Instant;
+}
+
+/** When a side's history was last seen running: `at`, or its newest saved instant if later. */
+export function livedUntil(tables: Snapshot, at: Instant): Instant {
+  return notBeforeAny(at, clockHighWater(tables));
+}
+
+/**
+ * A copy of a period cuts days the other copy had already lived (re-check V2): the two copies
+ * disagree on its start (written once, so only an edited file can), or the merged copy is ended
+ * on an earlier day than either copy had reached. An open copy had reached the day it was last
+ * seen on (as if ended then, so never past its scheduled last day); an ended one, its own last day.
+ */
+function cutsLivedDays(
+  merged: KickstartPeriodRecord,
+  copies: readonly (readonly [KickstartPeriodRecord, Instant, TimeZone])[],
+  extensions: number,
+  home: TimeZone | undefined,
+): boolean {
+  const kept = effectiveLastDay(merged, extensions, home);
+  return copies.some(([copy, seen, zone]) => {
+    if (instantMs(copy.startedAt) !== instantMs(merged.startedAt)) return true;
+    if (copy.timeZone !== merged.timeZone) return true;
+    if (merged.endedAt === null) return false;
+    const lived = copy.endedAt === null ? { ...copy, endedAt: seen, endedTimeZone: zone } : copy;
+    return effectiveLastDay(lived, extensions, home) > kept;
+  });
+}
+
+/**
+ * A period of the merged history starts less than 336 hours after a stop-sign check of an earlier
+ * period, or on the date of a pre-start "yes" (W31; re-check V1). The app never starts one, so a
+ * merge that makes one would bring in a Kickstart the phone had refused.
+ */
+function startsTooSoon(snapshot: Snapshot): boolean {
+  const home = snapshot.settings[0]?.homeTimeZone;
+  const periods = snapshot.kickstart_periods;
+  return periods.some((period) => {
+    const start = instantMs(period.startedAt);
+    const earlier = new Set(periods.filter((p) => instantMs(p.startedAt) < start).map((p) => p.id));
+    const checks = snapshot.kickstart_checks.filter((c) => earlier.has(c.periodId));
+    return (
+      recentStopSignCheck(checks, period.startedAt) ||
+      preStartStopSignOn(snapshot.card_state, periodDay1(period, home))
+    );
+  });
+}
+
+/**
  * The file's snapshot with the Kickstart history of both sides (F1, F12): periods by id (the
  * ended copy, or the later end), checks by id (they never change), and pre-start "yes" rows by
  * date (the later answer). Throws a BackupError ('inconsistent', rule kickstart-merge) when the
- * merged history breaks a section 5 rule: the file is refused, so neither side is dropped.
+ * file is refused, so neither side is dropped: a period's copies disagree on its start, or its
+ * merged copy ends before a day either copy had lived by `seen` (re-check V2); when the merge
+ * keeps anything of the phone's, the merged history breaks a section 5 rule; or, when the phone
+ * holds any Kickstart record, a period in it starts too soon after a stop-sign answer (re-check
+ * V1), even in a file that holds all of the phone's records too (an edited plain backup).
  */
-export function mergeKickstartHistory(phone: Snapshot, file: Snapshot): MergedKickstart {
+export function mergeKickstartHistory(
+  phone: Snapshot,
+  file: Snapshot,
+  seen: MergeSeen,
+): MergedKickstart {
   const periods = mergeBy(phone.kickstart_periods, file.kickstart_periods, (p) => p.id, laterState);
   const checks = mergeBy<KickstartCheckRecord>(
     phone.kickstart_checks,
@@ -117,14 +191,30 @@ export function mergeKickstartHistory(phone: Snapshot, file: Snapshot): MergedKi
     kickstart_checks: checks,
     card_state: [...file.card_state.filter((row) => !isPreStartRow(row)), ...answers],
   };
+  const refused = () => new BackupError('inconsistent', { rule: KICKSTART_MERGE_RULE });
+  const home = snapshot.settings[0]?.homeTimeZone;
+  const fileCopies = new Map(file.kickstart_periods.map((p) => [p.id, p]));
+  for (const own of phone.kickstart_periods) {
+    const other = fileCopies.get(own.id);
+    if (other === undefined) continue;
+    // The file's copy is read in its start zone: the zone of the phone that made it is not known.
+    const copies = [
+      [own, seen.phone, seen.deviceTimeZone],
+      [other, seen.file, other.timeZone],
+    ] as const;
+    const extensions = extensionsOf(own.id, checks);
+    if (cutsLivedDays(laterState(own, other), copies, extensions, home)) throw refused();
+  }
   const keptFromPhone =
     !sameRows(periods, file.kickstart_periods) ||
     !sameRows(checks, file.kickstart_checks) ||
     !sameRows(answers, fileAnswers);
-  if (keptFromPhone) {
-    const rule = findInvariantViolation(snapshot);
-    if (rule !== null) throw new BackupError('inconsistent', { rule: KICKSTART_MERGE_RULE });
-  }
+  const phoneHistory =
+    phone.kickstart_periods.length > 0 ||
+    phone.kickstart_checks.length > 0 ||
+    phone.card_state.some(isPreStartRow);
+  if (keptFromPhone && findInvariantViolation(snapshot) !== null) throw refused();
+  if (phoneHistory && startsTooSoon(snapshot)) throw refused();
   return { snapshot, keptFromPhone };
 }
 

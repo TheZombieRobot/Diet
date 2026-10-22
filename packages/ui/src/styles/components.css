@@ -704,6 +704,14 @@
   }
 }
 
+/*
+ * A phone number never breaks across lines, however narrow the row: the words around it wrap
+ * instead (re-check V20).
+ */
+.ui-action-row__number {
+  white-space: nowrap;
+}
+
 /* Label and value pairs (About: version, storage) */
 .ui-facts {
   display: flex;

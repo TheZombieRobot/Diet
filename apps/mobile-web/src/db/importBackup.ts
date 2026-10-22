@@ -38,7 +38,9 @@ import {
   isUntouchedSeedRow,
   type KeptStricter,
   kickstartEndsAfterRestore,
+  livedUntil,
   MAX_BACKUP_FILE_BYTES,
+  type MergeSeen,
   mergeKickstartHistory,
   type Migration,
   parseBackupText,
@@ -127,9 +129,10 @@ function phoneSide<T>(table: 'profile' | 'targets' | 'settings', phone: T, file:
 function mergedKickstart(
   phone: Snapshot,
   file: Snapshot,
+  seen: MergeSeen,
 ): ReturnType<typeof mergeKickstartHistory> {
   try {
-    return mergeKickstartHistory(phone, file);
+    return mergeKickstartHistory(phone, file, seen);
   } catch (error) {
     if (error instanceof BackupError) throw error;
     return {
@@ -185,7 +188,13 @@ export async function planImport(db: DietDb, decoded: DecodedBackup): Promise<Im
     };
     keptStricter = merged.kept;
   }
-  const kickstart = mergedKickstart(phone, snapshot);
+  // How far each side's Kickstart had run: the phone now, the file when it was made (its own
+  // records, not the rescue merge's singletons), each lifted to its newest saved instant.
+  const kickstart = mergedKickstart(phone, snapshot, {
+    phone: livedUntil(phone, clock.now),
+    deviceTimeZone: clock.deviceTimeZone,
+    file: livedUntil(decoded.snapshot, decoded.exportedAt),
+  });
   snapshot = kickstart.snapshot;
   let running: ReturnType<typeof runningKickstartSettings> = null;
   try {

@@ -18,6 +18,30 @@ export interface ActionRowProps {
   describedBy?: string;
 }
 
+/** A phone number in a row: digit groups joined by single spaces, such as "0800 611 116". */
+const PHONE_NUMBER = /\d+(?: \d+)+/g;
+
+/**
+ * The text with each phone number in a span that never breaks across lines, so a number is never
+ * split however narrow the row (re-check V20); the words around it wrap as usual.
+ */
+function wholeNumbers(text: string): ReactNode {
+  const parts: ReactNode[] = [];
+  let from = 0;
+  for (const match of text.matchAll(PHONE_NUMBER)) {
+    if (match.index > from) parts.push(text.slice(from, match.index));
+    parts.push(
+      <span key={match.index} className="ui-action-row__number">
+        {match[0]}
+      </span>,
+    );
+    from = match.index + match[0].length;
+  }
+  if (parts.length === 0) return text;
+  if (from < text.length) parts.push(text.slice(from));
+  return parts;
+}
+
 /**
  * A full-width row at least 64 px high, such as a help number to call. An off row (no `href`, no
  * `onSelect`) stays focusable at full contrast with a dashed border and does nothing: it is an
@@ -41,12 +65,12 @@ export function ActionRow({
         </span>
       )}
       <span className="ui-action-row__text">
-        <span className="ui-action-row__title">{title}</span>
+        <span className="ui-action-row__title">{wholeNumbers(title)}</span>
         {/* The space keeps the title and detail apart in the link's accessible name. */}
         {detail === undefined ? null : (
           <>
             {' '}
-            <span className="ui-action-row__detail">{detail}</span>
+            <span className="ui-action-row__detail">{wholeNumbers(detail)}</span>
           </>
         )}
       </span>

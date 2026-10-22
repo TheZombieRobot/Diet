@@ -1,7 +1,8 @@
 // @vitest-environment node
 // What a restore keeps from the phone (storage spec section 10.6 steps 9 and 10; D27; full review
-// F1, F3, F12, F13, F15, F16 and the pre-start answer of F6 and F18), through the real database
-// and the real Kickstart actions. Real Dexie over fake-indexeddb; synthetic records only.
+// F1, F3, F12, F13, F15, F16 and the pre-start answer of F6 and F18; re-check V1 to V3), through
+// the real database and the real Kickstart actions. Real Dexie over fake-indexeddb; synthetic
+// records only.
 import {
   createBackupFile,
   createRescueFile,
@@ -13,11 +14,15 @@ import {
   weightOverview,
 } from '@diet/core';
 import { privacy } from '@diet/core/copy/health';
+import { importPairingKey } from '@diet/grocery/transfer';
 import {
   onDay,
   scenarioInstant,
   SCENARIO_DAY1,
   snapshotV1,
+  V1_RELAY,
+  V1_ROOM_ID,
+  VECTOR_KEY_BYTES,
   WEIGHT_SCENARIOS,
   weightScenario,
 } from '@diet/test-fixtures';
@@ -172,6 +177,103 @@ describe('a restore never lowers the Kickstart history (D27; full review F1)', (
     opened.push(after);
     expect(await kickstartPicture(after.storage)).toEqual(before);
   });
+
+  it('F12 (re-check V3): an End of the Kickstart in another tab, a change made in place, stops the write, and the confirmation worked out again keeps the end', async () => {
+    const phone = await pendingPhone();
+    expect(await startKickstart(phone.storage)).toMatchObject({ ok: true });
+    phone.env.set(at(5));
+    const dayFive = await exportNow(phone);
+    phone.env.set(at(8));
+    const shown = await plan(phone, dayFive);
+
+    const otherTab = await openTestDb({ deps: phone.deps, env: phone.env });
+    opened.push(otherTab);
+    const ended = await otherTab.repos.kickstart.endPeriod('user-ended');
+    const saved = await backupSnapshot(phone.db);
+    expect(await writeImport(phone.db, shown, phone.env, writeDeps())).toMatchObject({
+      ok: false,
+      blocked: false,
+      changed: true,
+    });
+    expect(await backupSnapshot(phone.db)).toStrictEqual(saved);
+
+    const after = await restore(phone, dayFive);
+    expect(await after.repos.kickstart.listPeriods()).toEqual([ended]);
+  });
+
+  it('F12 (re-check V3): a laptop paired in another tab after the confirmation stops the write, and the pairing stays', async () => {
+    const phone = await pendingPhone();
+    const file = await exportNow(phone);
+    const shown = await plan(phone, file);
+    expect(shown.paired).toBe(false);
+
+    const otherTab = await openTestDb({ deps: phone.deps, env: phone.env });
+    opened.push(otherTab);
+    const key = await importPairingKey(VECTOR_KEY_BYTES);
+    await otherTab.repos.pairing.save({ roomId: V1_ROOM_ID, relayUrl: V1_RELAY, key });
+    expect(await writeImport(phone.db, shown, phone.env, writeDeps())).toMatchObject({
+      ok: false,
+      blocked: false,
+      changed: true,
+    });
+    expect(await phone.db.transfer_pairings.count()).toBe(1);
+  });
+
+  it('re-check V1: a file from a second copy of the app, whose Kickstart started 2 days after the palpitations "yes" on this phone, is refused, and the start stays refused', async () => {
+    const phone = await pendingPhone();
+    expect(await startKickstart(phone.storage)).toMatchObject({ ok: true });
+    phone.env.set(at(20));
+    expect((await phone.repos.kickstart.recordCheck(PALPITATIONS)).outcome).toBe('stop-sign');
+    phone.env.set(at(20, '09:05'));
+    await endKickstart(phone.storage, 'user-ended');
+    const second = await pendingPhone(90_000);
+    second.env.set(at(22));
+    expect(await startKickstart(second.storage)).toMatchObject({ ok: true });
+    second.env.set(at(22, '12:00'));
+    const secondFile = await exportNow(second);
+
+    phone.env.set(at(23));
+    const before = await backupSnapshot(phone.db);
+    await expect(plan(phone, secondFile)).rejects.toMatchObject({
+      code: 'inconsistent',
+      message: privacy.kickstartMerge,
+    });
+    expect(await backupSnapshot(phone.db)).toStrictEqual(before);
+    expect((await kickstartPicture(phone.storage)).start).toEqual({
+      available: false,
+      reason: 'recent-stop-sign',
+    });
+  });
+
+  it.each([
+    ['on day 30', null],
+    ['with its clock set back to day 2 after a weigh-in on day 21', 2],
+  ] as const)(
+    're-check V2: a copy of this Kickstart ended on day 3 in another window is refused once this phone has run it for its 21 days, restored %s, so no day is taken off the 42',
+    async (_, setBackTo) => {
+      const phone = await pendingPhone();
+      expect(await startKickstart(phone.storage)).toMatchObject({ ok: true });
+      phone.env.set(at(2));
+      const dayTwo = await exportNow(phone);
+      // A window where the day-2 backup was restored, and End tapped on day 3.
+      const incognito = await pendingPhone(90_000);
+      incognito.env.set(at(3));
+      const other = await restore(incognito, dayTwo);
+      await endKickstart(other.storage, 'user-ended');
+      other.env.set(at(3, '10:00'));
+      const endedEarly = await exportNow(other);
+
+      phone.env.set(at(21));
+      await phone.repos.weights.create({ kg: 90, source: 'manual', note: null });
+      phone.env.set(at(setBackTo ?? 30));
+      const before = await backupSnapshot(phone.db);
+      await expect(plan(phone, endedEarly)).rejects.toMatchObject({
+        code: 'inconsistent',
+        message: privacy.kickstartMerge,
+      });
+      expect(await backupSnapshot(phone.db)).toStrictEqual(before);
+    },
+  );
 
   it('two unrelated histories that overlap (a backup from before delete-all, a Kickstart started since) refuse the file: neither side is dropped', async () => {
     const old = await pendingPhone();

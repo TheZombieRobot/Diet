@@ -578,7 +578,7 @@ test('P8: every view of setup passes the wording, contrast, 48 px and layout che
   expect(found).toEqual([]);
 });
 
-test('P8: the opening screen, when the records take long to open, offers Reload and the help numbers', async ({
+test('P8: the opening screen, when the records take long to open, offers Reload and the help numbers, and passes the checks on a phone and at 200% text on it', async ({
   page,
 }) => {
   // Another holder of the records lock keeps the app waiting (as a stuck tab would).
@@ -596,6 +596,11 @@ test('P8: the opening screen, when the records take long to open, offers Reload 
   await expect(page.getByRole('link', { name: /111$/ })).toBeVisible();
   const found: string[] = [];
   await sweep(page, 'the opening screen, slow', found);
+  // On a 360 px phone, then at 200% text on a 412, a 390 and a 360 px phone (re-check V11, V12).
+  for (const width of [360, 206, 195, 180]) {
+    await page.setViewportSize({ width, height: 740 });
+    await sweep(page, `the opening screen, slow, at ${width} px`, found);
+  }
   expect(found).toEqual([]);
 });
 

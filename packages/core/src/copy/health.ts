@@ -318,9 +318,9 @@ export const privacy = {
   /** A rescue copy whose Kickstart history cannot be imported whole (section 9.5; D27, D28). */
   kickstartHistory:
     'This rescue copy has a Kickstart record that could not be imported ({record}), and the Kickstart history is imported whole or not at all. Nothing was imported. Keep the file: a later version of the app may read it.',
-  /** A file whose Kickstart history cannot be combined with this phone's (restorePlan.ts; F1). */
+  /** A file whose Kickstart history cannot be combined with this phone's (restorePlan.ts; F1, V1, V2). */
   kickstartMerge:
-    "This backup's Kickstart history cannot be combined with the Kickstart records on this phone: they overlap, or together they pass the six-week limit. A restore never removes Kickstart days, extensions or stop-sign answers from this phone, so nothing was imported. Keep the file.",
+    "This backup's Kickstart history cannot be combined with the Kickstart records on this phone: they overlap, together they pass the six-week limit, a Kickstart would start within two weeks of a stop-sign answer, or they differ on when a Kickstart started or how long it ran. A restore never removes Kickstart days, extensions or stop-sign answers from this phone, so nothing was imported. Keep the file.",
   /** One message per BackupError code (section 10.9). {detail} names a store, a field and a rule, never a value. */
   backupErrors: {
     'too-large': 'This file is too big to be a backup from this app. Nothing was imported.',
