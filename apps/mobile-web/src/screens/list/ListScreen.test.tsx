@@ -135,7 +135,8 @@ describe('states and layout (LC1; UX 6a, GL-04, GL-08, NN-05, J19)', () => {
     expect(
       within(screen.getByRole('region', { name: 'Already have' })).getByText('1'),
     ).toBeDefined();
-    expect(screen.getByRole('region', { name: transfer.send.sectionLabel })).toBeDefined();
+    // Send and export reads the list on its own, so it can show a moment later.
+    expect(await screen.findByRole('region', { name: transfer.send.sectionLabel })).toBeDefined();
   });
 
   it('300 lines render without virtualisation; foods that cannot be read keep the build off', async () => {
