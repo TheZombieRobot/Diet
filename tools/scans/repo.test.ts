@@ -21,7 +21,7 @@ const lockfile = readFileSync(join(root, 'pnpm-lock.yaml'), 'utf8');
 describe('repository scan', () => {
   // The device-only rules read the app's code with the TypeScript type checker (item 19), which
   // takes most of a minute on a busy machine: the time limit is raised, never the scan cut.
-  it('has no banned wording, personal data, secrets or network calls in the current files', () => {
+  it('has no banned wording (HS-07, HS-08, HS-16, HS-19, HS-21, HS-31), personal data, secrets or network calls (HS-14) in the current files', () => {
     const violations = scanRepo(root);
     expect(violationKeys(violations), `\n${formatViolations(violations)}\n`).toEqual([]);
   }, 240_000);

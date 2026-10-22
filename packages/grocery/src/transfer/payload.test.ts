@@ -85,7 +85,7 @@ const SEND = {
   sentAt: '2000-01-05T06:00:00.000Z',
 };
 
-describe('G12 TR-01 HS-16 NN-07 TR-10: a 300-line list round-trips; a wrong key fails cleanly', () => {
+describe('G12 TR-01 HS-16 TR-10: a 300-line list round-trips; a wrong key fails cleanly', () => {
   it('seals to under half the relay cap and opens to the same payload, with no price', async () => {
     const { list } = groceryList300();
     const priced: GroceryListRecord = {
