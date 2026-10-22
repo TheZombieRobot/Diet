@@ -35,8 +35,29 @@ const status = (input: Partial<TodayStatusInput> & Pick<TodayStatusInput, 'now'>
     fastingGated: false,
     schedule: schedule(ONE_MEAL),
     fasts: [],
+    stopSignPause: false,
     ...input,
   });
+
+describe('after a Kickstart stop-sign answer (F20, F7; HEALTH_SAFETY sections 2 and 3)', () => {
+  it('no window time is named: fasting or not, the line says it is fine to eat now', () => {
+    const running = [fast(at('2000-03-14', '19:00'))];
+    expect(status({ now: at(D, '09:00'), fasts: running, stopSignPause: true })).toEqual({
+      kind: 'fasting',
+      elapsedMinutes: 14 * 60,
+      window: { kind: 'eat-now' },
+    });
+    expect(status({ now: at(D, '14:20'), stopSignPause: true })).toEqual({
+      kind: 'not-fasting',
+      window: { kind: 'eat-now' },
+    });
+    // The over-24-hours sentence still comes first.
+    const long = [fast(at('2000-03-14', '08:00'))];
+    expect(status({ now: at(D, '09:00'), fasts: long, stopSignPause: true }).kind).toBe(
+      'over-ceiling',
+    );
+  });
+});
 
 describe('todayStatus with no fast running (U1; TD-07, HS-17)', () => {
   it('23:1: the window opens later today, is open until 7 pm, then opens tomorrow', () => {

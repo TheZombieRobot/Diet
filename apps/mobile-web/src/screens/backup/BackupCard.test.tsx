@@ -266,6 +266,9 @@ describe('Backup and data card (section 16 test 39)', () => {
   });
 
   it('restore on a fresh phone: shows the counts, no loss warning, and Replace as the main button; then replaces, asks for storage protection and reloads (PWA-06)', async () => {
+    // Setup offers a restore only after the alcohol notice, whose acknowledgement it stores (C53;
+    // full review F14).
+    await test.repos.settings.update({ alcoholNoticeAckAt: test.env.now() });
     render(<BackupCard />);
     await chooseFile(plainReferenceEnvelopeV1());
     const confirm = await within(card()).findByTestId('restore-confirm');
@@ -360,6 +363,29 @@ describe('Backup and data card (section 16 test 39)', () => {
     );
     fireEvent.click(within(confirm).getByRole('button', { name: importCopy.exportFirst }));
     expect(await test.db.kickstart_periods.count()).toBe(snapshotV1.kickstart_periods.length);
+  });
+
+  it('restore: the counts name only the stores the file has records in, in plain words (F41)', async () => {
+    const file = await createBackupFile({
+      tables: { ...structuredClone(snapshotV1), audit: [], sessions: [] },
+      exportedAt: AT,
+      appVersion: '0.1.0',
+      password: null,
+    });
+    render(<BackupCard />);
+    await chooseFile(file.text);
+    const confirm = await within(card()).findByTestId('restore-confirm');
+    const rows = [...within(confirm).getByTestId('restore-counts').querySelectorAll('li')].map(
+      (li) => li.textContent,
+    );
+    expect(rows).toContain(
+      `${privacy.storeNames.card_state}: ${String(snapshotV1.card_state.length)}`,
+    );
+    expect(rows.filter((row) => /: 0$/.test(row))).toEqual([]);
+    expect(rows.join('\n')).not.toMatch(
+      new RegExp(`${privacy.storeNames.audit}|${privacy.storeNames.sessions}`),
+    );
+    expect(privacy.storeNames.card_state).toBe('Hidden reminders');
   });
 
   it('restore: a rescue copy is called a rescue copy, not a backup', async () => {
@@ -574,6 +600,49 @@ describe('Backup and data card (section 16 test 39)', () => {
     expect(await test.db.weights.count()).toBe(snapshotV1.weights.length);
   });
 
+  it('restore: a record saved after the confirmation (another tab) stops Replace; the confirmation comes back saying why, with fresh counts (F12)', async () => {
+    render(<BackupCard />);
+    await chooseFile(plainReferenceEnvelopeV1());
+    const confirm = await within(card()).findByTestId('restore-confirm');
+    const extra = snapshotV1.weights[3];
+    if (extra === undefined) throw new Error('fixture');
+    await test.db.weights.add({ ...extra, id: '00000000-0000-4000-8000-000000009997' });
+    fireEvent.click(within(confirm).getByRole('button', { name: importCopy.replace }));
+    const again = await within(card()).findByText(importCopy.changedSinceConfirm);
+    expect(again.closest('[role="alert"]')).not.toBeNull();
+    const summary = await within(card()).findByTestId('restore-summary');
+    expect(summary.textContent).toContain(importCopy.missingOne);
+    expect(test.storage.platform.reloads).toBe(0);
+    expect(await test.db.weights.count()).toBe(1);
+    fireEvent.click(within(card()).getByRole('button', { name: importCopy.replace }));
+    await waitFor(() => {
+      expect(test.storage.platform.reloads).toBe(1);
+    });
+    expect(await test.db.weights.count()).toBe(snapshotV1.weights.length);
+  });
+
+  it('restore: a fast running when the file was made is named, and "End that fast" ends it when the backup was made (F3)', async () => {
+    render(<BackupCard />);
+    await chooseFile(plainReferenceEnvelopeV1());
+    const confirm = await within(card()).findByTestId('restore-confirm');
+    const running = snapshotV1.fasts.find((f) => f.endedAt === null);
+    if (running === undefined) throw new Error('fixture');
+    expect(within(confirm).getByTestId('restore-summary').textContent).toContain(
+      importCopy.fastRunning.split('{start}')[0],
+    );
+    const end = within(confirm).getByRole('switch', { name: /^End that fast at / });
+    expect(end).toHaveProperty('checked', false);
+    fireEvent.click(end);
+    fireEvent.click(within(confirm).getByRole('button', { name: importCopy.replace }));
+    await waitFor(() => {
+      expect(test.storage.platform.reloads).toBe(1);
+    });
+    expect(await test.db.fasts.get(running.id)).toMatchObject({
+      endedAt: AT,
+      endedTimeZone: running.timeZone,
+    });
+  });
+
   it('export: a failed self-check names the problem in plain words and still offers an unchecked copy', async () => {
     test.db.shutDown();
     const raw = await rawWriter(test.deps, STORES_V1);
@@ -668,6 +737,28 @@ describe('Backup and data card (section 16 test 39)', () => {
       expect(test.storage.platform.reloads).toBe(2);
     });
     expect(await test.deps.indexedDB.databases()).toEqual([]);
+  });
+
+  it('delete all, when the lock is granted but a connection that ignores versionchange keeps the records: says they are still on this phone (F49)', async () => {
+    const holder = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = test.deps.indexedDB.open('diet');
+      request.onsuccess = () => {
+        resolve(request.result);
+      };
+      request.onerror = () => {
+        reject(new Error('open failed'));
+      };
+    });
+    render(<BackupCard />);
+    fireEvent.click(button(privacy.backupCard.deleteAllAction));
+    fireEvent.click(button(privacy.deleteAll.next));
+    fireEvent.click(button(privacy.deleteAll.confirm));
+    // The deletion is reported blocked after its 3-second wait.
+    const failed = await within(card()).findByTestId('delete-failed', {}, { timeout: 8000 });
+    expect(failed.textContent).toContain(privacy.otherTabs);
+    expect(failed.textContent).toContain(privacy.deleteAll.recordsKept);
+    expect(test.storage.platform.reloads).toBe(0);
+    holder.close();
   });
 
   it('delete all, when only the list of other stored data cannot be read: says the records were deleted and to reload, never to try again forever', async () => {

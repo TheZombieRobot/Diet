@@ -78,10 +78,10 @@ export interface ProfileInput {
   readonly goal?: string;
 }
 
-/** Fills the profile step's required fields (synthetic: 175 cm, 90 kg, born 1970, female). */
+/** Fills the profile step's required fields (synthetic: 175 cm, 100 kg, born 1970, female). */
 export function fillProfile({
   height = '175',
-  weight = '90',
+  weight = '100',
   year = '1970',
   goal,
 }: ProfileInput = {}): void {

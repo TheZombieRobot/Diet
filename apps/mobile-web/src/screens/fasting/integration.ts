@@ -9,6 +9,11 @@
  *   a stored 23:1 Kickstart default as 22:2 while answer 4 applies, even during Kickstart (C07).
  *   While a Kickstart runs, the days after its last day already plan the preset as it reads
  *   outside Kickstart.
+ * - After a Kickstart stop-sign answer (item 14's stopSignPauseUntil: through that Kickstart's
+ *   scheduled last day, even when it was ended early) or a pre-start "yes" that day, no fast is
+ *   timed to the eating window: the Fast card and Today's top line say it is fine to eat now, with
+ *   the fasting stop-signs, as the stop-sign card says to eat, add salt and fluids (F20). The
+ *   preset itself still follows the phase (DECISIONS row 80, cross-item ruling 2).
  * - The protein and energy the meal check uses are item 21's, through mealTargets.ts: the day's
  *   protein.checkTargetG and energyForMealChecks over dayTargetsFromRecords, the same figures the
  *   Nutrition today card shows. Not the phase alone: a stop-sign pause or a missing rough guide
@@ -35,8 +40,10 @@ import {
   type PlannedMealFigures,
   type ReadinessGates,
   reasonStates,
+  stopSignPauseUntil,
   type TimeZone,
 } from '@diet/core';
+import { preStartStopSignToday } from '../weight/preStartCheck';
 import type { FastingInputs } from './inputs';
 import { mealTargetsFrom } from './mealTargets';
 import type { FastingContext } from './view';
@@ -58,7 +65,8 @@ export function fastingContext(args: {
   readonly inputs: Pick<
     FastingInputs,
     'targets' | 'settings' | 'profile' | 'periods' | 'checks' | 'readiness' | 'weights'
-  >;
+  > &
+    Partial<Pick<FastingInputs, 'preStartCards'>>;
   /** Item 13's live gate input and gates (useReadinessGates), or the same built from records. */
   readonly gateInput: GateInput;
   readonly gates: ReadinessGates;
@@ -66,6 +74,12 @@ export function fastingContext(args: {
   readonly deviceTimeZone: TimeZone;
   /** Item 14's end latch: a Kickstart whose end is due reads as ended. */
   readonly endsPending: ReadonlyMap<Id, KickstartEndReason>;
+  /**
+   * This page's hold of a pre-start stop-sign "yes" until its record is written (item 14's
+   * preStartStopSignStore); the record itself comes in `inputs.preStartCards`. One source: item
+   * 14's preStartStopSignToday reads both, as the weight screens do.
+   */
+  readonly preStartHeld?: LocalDate | null;
 }): FastingContext {
   const { inputs, gates } = args;
   const { stated } = reasonStates(args.gateInput, featureGateOf(gates, 'fasting').reasons);
@@ -81,6 +95,10 @@ export function fastingContext(args: {
   });
   const kickstartRunning = isKickstartDay(phaseInput);
   const phase = phaseOn(phaseInput);
+  const stopSignPause =
+    stopSignPauseUntil(inputs.periods, inputs.checks, phaseInput.today, phaseInput.homeTimeZone) !==
+      null ||
+    preStartStopSignToday(inputs.preStartCards ?? [], args.preStartHeld ?? null, phaseInput.today);
   return {
     gate: {
       fastingGated: gates.fastingGated,
@@ -102,5 +120,6 @@ export function fastingContext(args: {
       endsPending: args.endsPending,
     }),
     mealSources,
+    stopSignPause,
   };
 }

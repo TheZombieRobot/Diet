@@ -548,6 +548,12 @@ export function scanHistory(
   pathRules: readonly PathRule[] = personalPathRules,
   contentSets: readonly RuleSet[] = [PERSONAL_DATA],
 ): Violation[] {
+  // A shallow clone holds only part of the history, and the rest would pass unseen (F47).
+  if (git(root, ['rev-parse', '--is-shallow-repository']).toString('utf8').trim() === 'true') {
+    throw new Error(
+      'The history scan needs the whole history, but this clone is shallow. Run git fetch --unshallow (in CI, check out with fetch-depth: 0).',
+    );
+  }
   const violations: Violation[] = [];
   for (const blob of historyBlobs(root)) {
     for (const path of blob.paths) {

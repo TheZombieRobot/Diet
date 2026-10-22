@@ -7,7 +7,8 @@
  * cross-record invariants. In step 8 a bookkeeping time dated after latestAcceptedMs (the earlier
  * of the export and this phone's now, plus 5 minutes) is put back to that limit and the row kept,
  * and a Kickstart start, a Kickstart check or a fast start dated after it is refused
- * (bookkeeping.ts). A 'backup' file with any failure is refused whole, and an out-of-range value
+ * (bookkeeping.ts; a period or a fast that never ran is not counted from, so its start may lie
+ * ahead). A 'backup' file with any failure is refused whole, and an out-of-range value
  * is never clamped (C50). A 'rescue' file is read as far as it safely can (rescueImport.ts):
  * failing rows are set aside and listed, failing singleton fields are repaired, but a failing
  * Kickstart history or safety setting refuses it. Environment checks (a zone this browser does
@@ -569,6 +570,28 @@ function comparable(table: string, row: unknown): string {
     return stableStringify(copy);
   }
   return stableStringify(row);
+}
+
+/**
+ * Whether two reads of the phone's backed-up stores hold the same records, compared as the
+ * confirmation compares them (settings.lastBackupAt left out, since confirming an export made from
+ * the confirmation changes it). The import write calls this inside its transaction, on the stores
+ * it has just read, against the snapshot the confirmation was worked out from: when they differ,
+ * something was saved since (another tab), and nothing is written (full review F12). Synchronous
+ * and pure, so it may run inside a transaction scope (section 8.5).
+ */
+export function sameRecords(
+  a: Readonly<Record<string, readonly unknown[]>>,
+  b: Readonly<Record<string, readonly unknown[]>>,
+): boolean {
+  return BACKUP_TABLES.every((name) => {
+    const left = a[name] ?? [];
+    const right = b[name] ?? [];
+    return (
+      left.length === right.length &&
+      left.every((row, i) => comparable(name, row) === comparable(name, right[i]))
+    );
+  });
 }
 
 /**

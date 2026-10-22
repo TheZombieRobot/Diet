@@ -159,7 +159,7 @@ describe('cautiousSafetyMerge (health-rules review)', () => {
     expect(merged.kept).toEqual([]);
   });
 
-  it('keeps every allergen either side lists (HS-24), and lists that when the phone added any', () => {
+  it('keeps every allergen either side lists (the cautious allergen merge), and lists that when the phone added any', () => {
     const file = side({}, {}, { allergens: ['peanut'] });
     const phone = side({}, {}, { allergens: ['gluten', 'peanut', 'example-unknown' as never] });
     const merged = cautiousSafetyMerge(file, phone);

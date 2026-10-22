@@ -66,8 +66,15 @@ describe('readiness wording follows the gates (item 13 review)', () => {
     for (const input of everyInput()) {
       const gates = readinessGates(input);
       for (const q of READINESS_QUESTION_IDS.filter((id) => input.answers[id] === 'yes')) {
-        for (const problem of claimsHold(consequenceText(q, input, gates), gates)) {
-          wrong.push(`${q} with ${JSON.stringify(input)}: ${problem}`);
+        for (const mode of ['keto', 'balanced'] as const) {
+          const text = consequenceText(q, input, gates, mode);
+          for (const problem of claimsHold(text, gates)) {
+            wrong.push(`${q} in ${mode} with ${JSON.stringify(input)}: ${problem}`);
+          }
+          // F34: Balanced mode has no carb ceiling, so no line plans low-carb meals with one.
+          if (mode === 'balanced' && /low-carb, with a carb ceiling/.test(text)) {
+            wrong.push(`${q} in balanced with ${JSON.stringify(input)}: plans a carb ceiling`);
+          }
         }
       }
     }
@@ -105,7 +112,7 @@ describe('readiness wording follows the gates (item 13 review)', () => {
       lowWeight: false,
     });
     const text = (q: (typeof READINESS_QUESTION_IDS)[number], i: GateInput) =>
-      consequenceText(q, i, readinessGates(i));
+      consequenceText(q, i, readinessGates(i), 'keto');
     expect(text('q4', input(['q3', 'q4', 'q5']))).toBe(readiness.ifYes.q4);
     expect(text('q3', input(['q3']))).toBe(readiness.ifYes.q3);
     expect(text('q3', input(['q3', 'q5']))).toBe(readiness.ifYesAlsoOff.q3);
@@ -113,6 +120,11 @@ describe('readiness wording follows the gates (item 13 review)', () => {
     expect(text('q3', input(['q3', 'q5'], true))).toBe(readiness.confirmedAlsoOff.prescriberAgreed);
     expect(text('q1', input(['q1']))).toBe(readiness.ifYes.q1);
     expect(text('q1', input(['q1', 'q6']))).toBe(readiness.ifYesAlsoOff.q1);
+    // F34: in Balanced mode answer 3 speaks of the smaller deficit only.
+    const q3 = input(['q3']);
+    expect(consequenceText('q3', q3, readinessGates(q3), 'balanced')).toBe(
+      readiness.ifYesBalanced.q3,
+    );
   });
 
   it('every feature-off line reads as one sentence: "… is off because …"', () => {

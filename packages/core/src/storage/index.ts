@@ -12,6 +12,7 @@ export * from './backup/encode';
 export * from './backup/errors';
 export * from './backup/fileName';
 export * from './backup/rescueImport';
+export * from './backup/restorePlan';
 export * from './backupReminder';
 export * from './bookkeeping';
 export * from './cards';

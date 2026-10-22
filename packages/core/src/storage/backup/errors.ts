@@ -79,6 +79,12 @@ export function describeRecordProblem(detail: BackupErrorDetail): string {
 export const KICKSTART_HISTORY_RULE = 'kickstart-history';
 
 /**
+ * The rule of a file whose Kickstart history cannot be combined with this phone's (restorePlan.ts):
+ * a restore never drops either side's Kickstart records, so the file is refused instead.
+ */
+export const KICKSTART_MERGE_RULE = 'kickstart-merge';
+
+/**
  * The plain message of a BackupError (ux and wording reviews). A problem with one record names the
  * store, position, field and rule; a problem with a whole list or with the file itself says so
  * instead of speaking of "a record"; a rescue copy's Kickstart history has its own message.
@@ -94,6 +100,7 @@ function backupErrorMessage(code: BackupErrorCode, detail: BackupErrorDetail): s
         : fillTemplate(privacy.recordProblem.position, { table: store, position: index + 1 });
     return fillTemplate(privacy.kickstartHistory, { record });
   }
+  if (detail.rule === KICKSTART_MERGE_RULE) return privacy.kickstartMerge;
   if (code === 'invalid-record' && index === null) {
     const lists = privacy.backupListErrors;
     const rule = detail.rule ?? null;

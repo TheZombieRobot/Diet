@@ -8,7 +8,7 @@ import {
   type SymptomRecord,
   zonedWallTimeToInstant,
 } from '../packages/core/src/index';
-import { fasting, readiness, reflux, schedule } from '../packages/core/src/copy/health';
+import { fasting, privacy, readiness, reflux, schedule } from '../packages/core/src/copy/health';
 import { fixtureId } from '../packages/test-fixtures/src/index';
 import { commerceRules, healthPhraseRules } from '../tools/scans/rules';
 import { scanText } from '../tools/scans/scan';
@@ -217,6 +217,8 @@ test('FS-02, HS-02: ending a fast and starting another a minute later does not r
   await fastCard(page).getByRole('button', { name: fasting.card.end }).click();
   await clockTo(page, at(D, '18:51'));
   await fastCard(page).getByRole('button', { name: fasting.card.start }).click();
+  // F21: Start within the hour says it would join the last fast, and asks first.
+  await fastCard(page).getByRole('button', { name: fasting.card.joinAskStart }).click();
   // The end may be stamped a moment late, so the gap reads 1 m or less than a minute.
   const joined =
     /^This fast started (?:1 m|less than a minute) after your last fast ended, so it counts as part of the same fast\./;
@@ -325,9 +327,19 @@ test('FL-15: a reflux symptom brings the options that day and the next, not the 
     { now: at(D, '09:00') },
   );
   const options = () => fastCard(page).getByTestId('reflux-options');
+  /** Waits for the day's own view (its date, its window line, the Nutrition card read), so a
+   * check never passes on the day before's view still on screen (review F46). */
+  const dayShown = async (date: string) => {
+    await expect(page.getByTestId('today-date')).toHaveText(date);
+    await expect(fastCard(page).getByText('Eat 6:00 pm – 7:00 pm', { exact: true })).toBeVisible();
+    await expect(page.getByText(privacy.backupCard.notReady)).toHaveCount(0);
+  };
+  await dayShown('Tuesday 4 January');
   await expect(options().getByText(reflux.options.title.today)).toBeVisible();
   await clockTo(page, at('2000-01-05', '09:00'));
+  await dayShown('Wednesday 5 January');
   await expect(options()).toBeVisible();
   await clockTo(page, at('2000-01-06', '09:00'));
+  await dayShown('Thursday 6 January');
   await expect(options()).toHaveCount(0);
 });

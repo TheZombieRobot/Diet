@@ -222,7 +222,8 @@ describe('all or nothing (BK-07; section 16 test 28)', () => {
       const deps = writeDeps();
       const outcome = await writeImport(test.db, plan, test.env, deps);
       expect(outcome.ok).toBe(false);
-      if (outcome.ok || outcome.blocked) throw new Error('expected a failed write');
+      if (outcome.ok || outcome.blocked || outcome.changed)
+        throw new Error('expected a failed write');
       expect(outcome.error).toBeInstanceOf(BackupError);
       expect(outcome.error.code).toBe('write-failed');
       expect(outcome.error.message).toBe(
@@ -300,6 +301,9 @@ describe('replace semantics and the confirmation (D17; section 16 test 29)', () 
 
   it('a brand-new phone, or one just cleared by delete-all, holds nothing of the owner\u2019s: no loss is counted and Replace is the default', async () => {
     const test = await openTestDb({ env: testEnv('2026-10-19T00:00:00.000Z') });
+    // Setup offers a restore only after the alcohol notice, whose acknowledgement it stores (C53;
+    // full review F14): that is not a record of the owner's.
+    await test.repos.settings.update({ alcoholNoticeAckAt: test.env.now() });
     const decoded = await decodeImport(asFile(plainReferenceEnvelopeV1()), null, test.env);
     const fresh = await planImport(test.db, decoded);
     expect(fresh.confirmation).toEqual({
@@ -313,6 +317,7 @@ describe('replace semantics and the confirmation (D17; section 16 test 29)', () 
     await replaceAll(test.db, decoded.snapshot);
     await deleteEverything(test);
     const cleared = await openTestDb({ deps: test.deps, env: test.env });
+    await cleared.repos.settings.update({ alcoholNoticeAckAt: cleared.env.now() });
     expect((await planImport(cleared.db, decoded)).confirmation).toMatchObject({
       missingFromFile: 0,
       differFromFile: 0,

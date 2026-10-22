@@ -8,10 +8,15 @@ import { useStore } from '../../store';
 import { EndKickstart } from './EndKickstart';
 import { KickstartCheckPanel } from './KickstartCheckPanel';
 import { StopSignLines } from './parts';
-import { acknowledgePreStartStopSign, preStartSeenStore } from './preStartCheck';
+import {
+  acknowledgePreStartStopSign,
+  preStartGuidanceShown,
+  preStartSeenStore,
+  preStartStopSignStore,
+} from './preStartCheck';
 import { presetMovedStore, reportStatus, stopSignFocusStore } from './stores';
 import type { WeightView } from './useWeightView';
-import { useFocusWhen } from './weightText';
+import { startOfferText, useFocusWhen } from './weightText';
 
 /** Card buttons swallow their errors: the card simply stays and can be tapped again. */
 const quietly = (write: Promise<unknown>): void => {
@@ -158,16 +163,19 @@ export function PendingStartCard({
   storage,
   card,
   today,
+  offer,
 }: {
   storage: AppStorage;
   card: NonNullable<Cards['pendingStart']>;
   today: string;
+  /** The offer, true to what a start would plan (startOfferText; F35). */
+  offer: string;
 }): ReactElement {
   const [checking, setChecking] = useState(false);
   return (
     <Card label={weight.start.pendingLabel}>
       <p>{weight.start.pendingIntro}</p>
-      <p>{weight.start.offer}</p>
+      <p>{offer}</p>
       {card.windowLines ? (
         <>
           <p>{weight.start.pendingWindow}</p>
@@ -232,10 +240,21 @@ function keepOneMeal(storage: AppStorage, then?: () => void): void {
     );
 }
 
+/** The deficit line that is true now (F4): the stop-sign pause, the smaller Steady deficit, or Steady. */
+function explainerDeficit(card: NonNullable<Cards['steadyExplainer']>): string {
+  if (card.deficit === 'paused' && card.pausedUntil !== null) {
+    return fillTemplate(weight.stopSigns.pausedUntil, { date: formatLocalDay(card.pausedUntil) });
+  }
+  return card.deficit === 'smaller'
+    ? weight.steadyExplainer.deficit
+    : weight.steadyExplainer.deficitSteady;
+}
+
 /**
  * "Kickstart has finished" (WT-08, C55, C61, W17): no percentage, with the 22:2 line and "Use 23:1
  * instead". The pace and rebound sentences are the phase notes beside it (the Weight card on Today,
- * the Phase card on the Weight screen), so they are not repeated here.
+ * the Phase card on the Weight screen), so they are not repeated here. A Kickstart a readiness
+ * answer, the birth year or the weight ended is "Kickstart has ended", with that reason (F23).
  */
 export function SteadyExplainerCard({
   storage,
@@ -245,8 +264,15 @@ export function SteadyExplainerCard({
   card: NonNullable<Cards['steadyExplainer']>;
 }): ReactElement {
   return (
-    <Card label={weight.steadyExplainer.label}>
-      <p>{weight.steadyExplainer.deficit}</p>
+    <Card
+      label={
+        card.endedBecause === 'readiness'
+          ? weight.steadyExplainer.labelEnded
+          : weight.steadyExplainer.label
+      }
+    >
+      {card.endedBecause === 'readiness' ? <p>{weight.steadyExplainer.endedReadiness}</p> : null}
+      <p>{explainerDeficit(card)}</p>
       {card.carbCeilingG === null ? null : (
         <p>{fillTemplate(weight.steadyExplainer.carbs, { g: card.carbCeilingG })}</p>
       )}
@@ -335,7 +361,7 @@ export function FluctuationCard({ storage }: { storage: AppStorage }): ReactElem
 
 /**
  * After a "yes" before a start: nothing started, and what to do about it (W31). Stays on Today and
- * the Weight screen, through a reload, until OK that day (preStartCheck.ts).
+ * the Weight screen, through a reload and in every tab, until OK that day (preStartCheck.ts).
  */
 export function PreStartStopSignCard({
   bloodPressure,
@@ -377,8 +403,14 @@ export function WeightCards({
   const { overview } = view;
   const { cards, phase } = overview;
   const presetMoved = useStore(presetMovedStore);
+  const preStartHeld = useStore(preStartStopSignStore);
   const preStartSeen = useStore(preStartSeenStore);
-  const preStartStopSign = view.input.preStartStopSignToday && preStartSeen !== overview.today;
+  const preStartStopSign = preStartGuidanceShown(
+    view.inputs.cardStates,
+    { held: preStartHeld, seen: preStartSeen },
+    overview.today,
+    view.input.now,
+  );
   const explained = cards.steadyExplainer?.windowLine === true || cards.pendingStart !== null;
   return (
     <>
@@ -397,12 +429,18 @@ export function WeightCards({
         <PreStartStopSignCard
           bloodPressure={view.input.gates.bloodPressureSaltWording}
           onClose={() => {
-            acknowledgePreStartStopSign(storage.platform, overview.today);
+            // OK holds in this page even if its record cannot be written.
+            void acknowledgePreStartStopSign(storage, overview.today).catch(() => undefined);
           }}
         />
       ) : null}
       {showStartCard && cards.pendingStart !== null && !preStartStopSign ? (
-        <PendingStartCard storage={storage} card={cards.pendingStart} today={overview.today} />
+        <PendingStartCard
+          storage={storage}
+          card={cards.pendingStart}
+          today={overview.today}
+          offer={startOfferText(view)}
+        />
       ) : null}
       {cards.steadyExplainer === null ? null : (
         <SteadyExplainerCard storage={storage} card={cards.steadyExplainer} />

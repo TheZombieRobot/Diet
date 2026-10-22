@@ -198,7 +198,9 @@ const without = (row: unknown, fields: readonly string[]): string | null => {
 const SEED_EQUAL_APART_FROM: Readonly<Partial<Record<string, readonly string[]>>> = {
   profile: ['createdAt', 'updatedAt'],
   targets: ['updatedAt'],
-  settings: [],
+  // The alcohol notice's acknowledgement is written before setup offers a restore (C53), so a new
+  // browser restoring from setup still holds nothing of the owner's (full review F14, F22).
+  settings: ['alcoholNoticeAckAt'],
   beverages: ['id', 'createdAt', 'updatedAt'],
   garden: ['id', 'updatedAt'],
 };

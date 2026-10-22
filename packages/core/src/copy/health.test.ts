@@ -33,6 +33,7 @@ import {
   targets,
   today,
   transfer,
+  weight,
 } from './health';
 import { fillTemplate, joinList } from './template';
 import { TRANSFER_SECTION_RULES } from './transferRules';
@@ -413,9 +414,10 @@ describe('health copy', () => {
     expect(privacy.exportBackup.uncheckedNote).toContain('does not count as a backup');
   });
 
-  it('delete-all lists what stays, including saved passwords, backup files and the laptop (HS-30)', () => {
+  it('delete-all lists what stays, including saved passwords, the camera permission, backup files and the laptop (HS-30, F10)', () => {
     const stays = privacy.deleteAll.stays.join(' ');
     expect(stays).toContain("If Chrome saved a backup password, remove it in Chrome's settings.");
+    expect(stays).toContain("Chrome's Site settings, Camera");
     expect(stays).toContain('Backup files');
     expect(stays).toContain('unpair on your laptop');
     expect(privacy.deleteAll.confirm).toBe('Delete everything on this phone');
@@ -733,8 +735,9 @@ describe('Diet and targets copy (item 21; C-1 to C-7)', () => {
   it('C-7: the pregnancy note names a midwife and GP; the stop-sign lines carry Healthline and 111', () => {
     expect(targets.energy.pregnancyNote).toContain('midwife');
     expect(targets.energy.pregnancyNote).toContain('GP');
-    expect(targets.stopSign.action).toContain(helpNumbers.healthline.number);
-    expect(targets.stopSign.emergency).toContain(helpNumbers.emergency.number);
+    // F36: one wording of the Kickstart stop-sign advice, its 111 taken from helpNumbers.
+    expect(weight.stopSigns.emergency).toContain(helpNumbers.emergency.number);
+    expect(readiness.bloodPressure.stopSign).toContain(helpNumbers.healthline.number);
   });
 });
 
@@ -908,5 +911,22 @@ describe('recipes copy (item 20)', () => {
       const values = Object.fromEntries(placeholders(text).map((name) => [name, 'x']));
       expect(fillTemplate(text, values), path).not.toMatch(/[{}]/);
     }
+  });
+});
+
+describe('plain words on the screens the owner reads (full review F24, F41)', () => {
+  it('the rough guide is explained without the name of an equation or a factor', () => {
+    expect(targets.energy.how).not.toMatch(/Mifflin|St Jeor|equation|factor/i);
+    expect(targets.energy.how).toContain('estimate, not a measurement');
+  });
+
+  it('the typical range names the Settings card that sets its pace, by its own label', () => {
+    expect(weight.chart.aboutBand).toContain(weight.rapidLossSettings.label);
+    expect(weight.chart.aboutBand).toContain('Settings');
+  });
+
+  it("the Nutrition card's empty line says food logging comes later, with no figure", () => {
+    expect(targets.today.laterStep).toMatch(/later step/);
+    expect(targets.today.laterStep).not.toMatch(/\d/);
   });
 });

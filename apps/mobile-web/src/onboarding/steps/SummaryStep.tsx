@@ -1,4 +1,4 @@
-import type { GateInput, ReadinessGates } from '@diet/core';
+import type { DietMode, GateInput, ReadinessGates } from '@diet/core';
 import { onboarding, readiness } from '@diet/core/copy/health';
 import { Button } from '@diet/ui';
 import type { ReactElement } from 'react';
@@ -13,6 +13,7 @@ export function SummaryStep({
   input,
   gates,
   birthYear,
+  dietMode,
   onContinue,
   onBack,
 }: {
@@ -21,6 +22,7 @@ export function SummaryStep({
   readonly input: GateInput;
   readonly gates: ReadinessGates;
   readonly birthYear: number | null;
+  readonly dietMode: DietMode;
   readonly onContinue: () => void;
   readonly onBack: (() => void) | null;
 }): ReactElement {
@@ -46,6 +48,7 @@ export function SummaryStep({
         input={input}
         gates={gates}
         birthYear={birthYear}
+        dietMode={dietMode}
         showConfirmations
       />
       <p className="ui-text-muted">{readiness.changeLater}</p>

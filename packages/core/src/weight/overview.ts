@@ -23,7 +23,11 @@ import type {
   TargetsRecord,
   WeightRecord,
 } from '../storage/records';
-import { safeKetoCeilingG } from '../targets/sanitize';
+import {
+  safeKetoCeilingG,
+  safeKickstartDeficitPct,
+  safeSteadyDeficitPct,
+} from '../targets/sanitize';
 import { addDays, daysBetween, type LocalDate, localDateOf } from '../util/time';
 import {
   bandAnchor,
@@ -47,9 +51,11 @@ import {
   periodsThatRan,
   phaseOn,
   rapidLossExemptDates,
+  recentStopSignCheck,
   type StartAvailability,
   type StopSignsDue,
   stopSignsDue,
+  stopSignPauseUntil,
 } from './phase';
 import {
   type EffectivePreset,
@@ -86,7 +92,12 @@ export interface WeightOverviewInput {
   >;
   readonly targets: Pick<
     TargetsRecord,
-    'fastingPreset' | 'eatingWindow' | 'presetChosenBy' | 'netCarbCeilingG'
+    | 'fastingPreset'
+    | 'eatingWindow'
+    | 'presetChosenBy'
+    | 'netCarbCeilingG'
+    | 'kickstartDeficitPct'
+    | 'steadyDeficitPct'
   >;
   readonly settings: Pick<
     SettingsRecord,
@@ -108,6 +119,7 @@ export interface WeightOverviewInput {
 
 export type WeightNote =
   | 'kickstart'
+  | 'kickstart-paused'
   | 'kickstart-extended'
   | 'kickstart-later'
   | 'kickstart-not-started'
@@ -166,6 +178,14 @@ export interface WeightOverview {
       readonly trigger: string;
       readonly carbCeilingG: number | null;
       readonly windowLine: boolean;
+      /**
+       * Which deficit line is true now (F4): a stop-sign pause still holding ('paused', with its
+       * last day), the Steady deficit smaller than the Kickstart one ('smaller'), or neither.
+       */
+      readonly deficit: 'paused' | 'smaller' | 'steady';
+      readonly pausedUntil: LocalDate | null;
+      /** The period was ended by a readiness answer, the birth year or the weight (F23, F32). */
+      readonly endedBecause: 'readiness' | null;
     } | null;
     readonly fluctuation: boolean;
   };
@@ -227,11 +247,14 @@ function notesFor(
   missing: readonly ReadinessQuestionId[],
   today: LocalDate,
   notStarted: boolean,
+  stopSignPaused: boolean,
 ): WeightNote[] {
   // A low weight closes the deficit too (item 13 HS-35); its own line names the reason.
   if (lowWeight) return ['low-weight'];
   if (phase.kind === 'none') return [missing.length > 0 ? 'gated-unanswered' : 'gated'];
   if (phase.kind === 'kickstart') {
+    // After a stop-sign answer no note says a fast drop is expected (F7, F20).
+    if (stopSignPaused) return ['kickstart-paused'];
     if (phase.dayKind === 'exempt') return ['kickstart'];
     return [phase.dayKind === 'extension' ? 'kickstart-extended' : 'kickstart-later'];
   }
@@ -320,7 +343,8 @@ export function weightOverview(input: WeightOverviewInput): WeightOverview {
   const { weighIns, zoneFallback } = weighInsFromRecords(input.weights, input.homeTimeZone);
   const daily = dailyWeightsKg(weighIns);
   const { gates, profile, settings, targets } = input;
-  const lowWeight = belowBmiFloorNow(daily, today, profile.heightCm);
+  const lowWeight = belowBmiFloorNow(input.weights, today, input.homeTimeZone, profile.heightCm);
+  const pausedUntil = stopSignPauseUntil(input.periods, input.checks, today, input.homeTimeZone);
   const phaseInput = phaseInputFrom(input, today);
   const phase = phaseOn(phaseInput);
   const notStarted = phase.kind === 'steady' ? kickstartNotStarted(phaseInput) : null;
@@ -377,7 +401,8 @@ export function weightOverview(input: WeightOverviewInput): WeightOverview {
   // "Kickstart has finished" only for a period that ran: never before its first day, and never for
   // one ended before its first day came.
   const latestPeriod = periodsThatRan(input.periods).at(-1) ?? null;
-  const steadyExplainer =
+  const endedByReadiness = latestPeriod?.endReason === 'readiness-gated';
+  const steadyExplainer: WeightOverview['cards']['steadyExplainer'] =
     phase.kind === 'steady' &&
     latestPeriod !== null &&
     notStarted === null &&
@@ -392,12 +417,28 @@ export function weightOverview(input: WeightOverviewInput): WeightOverview {
               ? safeKetoCeilingG(targets.netCarbCeilingG)
               : null,
           // Never for answer 4 "yes" or unanswered: one meal a day is never offered to that owner
-          // in one tap, and a start never moves them to it (C07).
+          // in one tap, and a start never moves them to it (C07). Nor right after a stop-sign
+          // answer (in that Kickstart or in the last 336 hours) or a Kickstart a readiness answer,
+          // the birth year or the weight ended (F5): the eating-schedule form still offers 23:1.
           windowLine:
             effectivePreset.fastingPreset === '22:2' &&
             effectivePreset.presetChosenBy === 'default' &&
             !gates.fastingGated &&
-            !gates.pharmacistReminder,
+            !gates.pharmacistReminder &&
+            !input.checks.some(
+              (c) => c.periodId === latestPeriod.id && c.outcome === 'stop-sign',
+            ) &&
+            !recentStopSignCheck(input.checks, input.now) &&
+            !endedByReadiness,
+          deficit:
+            pausedUntil !== null
+              ? 'paused'
+              : safeSteadyDeficitPct(targets.steadyDeficitPct) <
+                  safeKickstartDeficitPct(targets.kickstartDeficitPct)
+                ? 'smaller'
+                : 'steady',
+          pausedUntil,
+          endedBecause: endedByReadiness ? 'readiness' : null,
         }
       : null;
 
@@ -412,7 +453,14 @@ export function weightOverview(input: WeightOverviewInput): WeightOverview {
     weeklyChange: weeklyChange(daily, today),
     lowWeight,
     phase,
-    notes: notesFor(phase, lowWeight, input.missingReadinessAnswers, today, notStarted !== null),
+    notes: notesFor(
+      phase,
+      lowWeight,
+      input.missingReadinessAnswers,
+      today,
+      notStarted !== null,
+      pausedUntil !== null,
+    ),
     chart: fourWeekChart(input, daily, today, phase, lowWeight),
     goal: goalView({
       goalKg: profile.goalKg,

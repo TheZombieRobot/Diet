@@ -1,4 +1,5 @@
 import {
+  type DietMode,
   fillTemplate,
   type GateInput,
   type ReadinessGates,
@@ -30,6 +31,7 @@ export function QuestionStep({
   showIntro,
   input,
   gates,
+  dietMode,
   showingYes,
   onAnswered,
   onContinue,
@@ -44,6 +46,8 @@ export function QuestionStep({
   readonly showIntro: boolean;
   readonly input: GateInput;
   readonly gates: ReadinessGates;
+  /** profile.dietMode: answer 3's line follows it (F34). */
+  readonly dietMode: DietMode;
   readonly showingYes: boolean;
   readonly onAnswered: (answer: YesNo) => void;
   readonly onContinue: () => void;
@@ -114,7 +118,7 @@ export function QuestionStep({
           data-testid="consequence"
         >
           <Notice tone="info">
-            <p>{consequenceText(question, input, gates)}</p>
+            <p>{consequenceText(question, input, gates, dietMode)}</p>
           </Notice>
           {question === 'q3' || question === 'q6' ? (
             <ConfirmationControl storage={storage} question={question} input={input} />
