@@ -58,6 +58,7 @@ function viewFor(
   setting: AlcoholGuidanceSet | null,
   count: number,
   beverage: StoredBeverage,
+  gates = GATES,
 ) {
   const drink = {
     id: 'drink-1',
@@ -83,10 +84,48 @@ function viewFor(
       milestones: [],
       cardRows: {},
     },
-    GATES,
+    gates,
     { now: NOW, deviceZone: 'Pacific/Auckland', today: '2000-03-01', noteToday: '2000-03-01' },
   );
 }
+
+/** The readiness gates with answer 2 "yes", or with no answer to it (a reworded question). */
+const answer2 = (q2: 'yes' | null) =>
+  readinessGates(
+    gateInputFromRecords({
+      rows: READINESS_QUESTION_IDS.flatMap((q) =>
+        q === 'q2' && q2 === null
+          ? []
+          : [
+              {
+                questionId: q,
+                answer: q === 'q2' ? (q2 ?? 'no') : ('no' as const),
+                wordingVersion: READINESS_WORDING[q],
+                answeredAt: NOW,
+              },
+            ],
+      ),
+      birthYear: 1970,
+      heightCm: null,
+      currentWeightKg: null,
+      today: '2000-03-01',
+    }),
+  );
+
+describe('the help card in pregnancy, with no figure shown (re-check V21; HEALTH_SAFETY section 5)', () => {
+  it.each(['yes', null] as const)(
+    "answer 2 %s: a man with the men's set reaches the trigger at double the women's figure, 20 a week",
+    (q2) => {
+      const view = viewFor('male', 'nz-men', 8, LABEL_2_5, answer2(q2));
+      expect(view.shown).toEqual({ kind: 'pregnancy' });
+      expect(view.weekTotals.std).toBe(20);
+      expect(view.helpActive).toContain('double-guidance');
+      expect(viewFor('male', 'nz-men', 7, LABEL_2_5, answer2(q2)).helpActive).not.toContain(
+        'double-guidance',
+      );
+    },
+  );
+});
 
 describe('the shown total is the compared total (V1; C94)', () => {
   it.each<[string, ProfileSex | null, AlcoholGuidanceSet | null, number, StoredBeverage, number]>([

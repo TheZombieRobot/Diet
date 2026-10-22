@@ -62,7 +62,10 @@ export interface HelpTriggerInput {
   readonly ctx: DrinkingDayContext;
   /** Drinks covering at least the last 15 drinking days. */
   readonly rows: readonly DrinkLogRecord[];
-  /** guidanceFor(profile.sex, settings.alcoholGuidanceSet).perWeek (the stricter set, C46). */
+  /**
+   * helpTriggerWeeklyGuidance: the stricter set's weekly figure (C46), or the women's while readiness
+   * answer 2 is "yes" or unanswered (V21).
+   */
   readonly weeklyGuidance: number;
   /** Dates of alcohol_day_notes rows with withdrawalTick true. */
   readonly withdrawalTickDates: readonly LocalDate[];

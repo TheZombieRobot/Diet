@@ -134,7 +134,7 @@ The app never says "you are safe to fast/train/diet." It says "nothing you have 
 **The "talk to someone" card**
 Shown, without judgement, when any of these is true:
 - drinks with alcohol logged on 7 or more consecutive drinking days, with that run ending within the last 7 drinking days, or
-- any 7 consecutive drinking days ending within the last 7 drinking days whose total is at or above double the weekly guidance figure (the stricter of the chosen set and the set for your sex), or
+- any 7 consecutive drinking days ending within the last 7 drinking days whose total is at or above double the weekly guidance figure (the stricter of the chosen set and the set for your sex; while readiness answer 2 is yes or unanswered, when no figure is shown, the women's figure, the lower set), or
 - the tick "I felt shaky, sweaty, anxious or sick when I hadn't had a drink" in the next-day note, on a day within the last 30 days, or
 - readiness answer 7 is yes or unanswered (shown from day one, dismissible, returns after 30 days).
 

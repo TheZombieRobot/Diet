@@ -58,6 +58,22 @@ export function guidanceShown(
   return { kind: 'guidance', set: guidanceFor(sex, setting).set };
 }
 
+/**
+ * The weekly figure the help card's double-guidance trigger is compared with (HEALTH_SAFETY
+ * section 5; re-check V21). With readiness answer 2 "yes" or unanswered no figures are shown
+ * (guidanceShown), so the trigger takes the cautious rule: the women's figure, the lower set,
+ * whatever the sex and the setting. Otherwise the figure of the set guidanceFor picks.
+ */
+export function helpTriggerWeeklyGuidance(
+  sex: ProfileSex | null,
+  setting: AlcoholGuidanceSet | null,
+  gates: Pick<ReadinessGates, 'reasons'>,
+): number {
+  return guidanceShown(sex, setting, gates).kind === 'pregnancy'
+    ? NZ_GUIDANCE['nz-women'].perWeek
+    : guidanceFor(sex, setting).perWeek;
+}
+
 // ---- Item 28: the comparisons (HS-05, HS-06, C94, A13, A39) ----
 
 /**

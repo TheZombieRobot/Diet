@@ -5,6 +5,7 @@ import { readinessGates } from '../readiness/gates';
 import {
   guidanceFor,
   guidanceShown,
+  helpTriggerWeeklyGuidance,
   isAboveGuidance,
   NZ_GUIDANCE,
   reachesDoubleGuidance,
@@ -95,5 +96,21 @@ describe('the item 28 comparisons (U1; HS-05, HS-06, C94)', () => {
   it('the help card counts from exactly double the weekly figure', () => {
     expect(reachesDoubleGuidance(20, 10)).toBe(true);
     expect(reachesDoubleGuidance(19.99, 10)).toBe(false);
+  });
+
+  it('V21: with answer 2 "yes" or unanswered, the double-guidance trigger takes the women\'s figure, whatever the set', () => {
+    const gates = (q2: 'yes' | 'no' | null) =>
+      readinessGates({
+        answers: { q1: 'no', q2, q3: 'no', q4: 'no', q5: 'no', q6: 'no', q7: 'no' },
+        confirmations: { prescriberAgreed: false, gpExerciseDiscussed: false },
+        minimumAgeYears: 50,
+        lowWeight: false,
+      });
+    expect(helpTriggerWeeklyGuidance('male', null, gates('no'))).toBe(15);
+    expect(helpTriggerWeeklyGuidance('male', 'nz-women', gates('no'))).toBe(10);
+    for (const q2 of ['yes', null] as const) {
+      for (const sex of ['male', 'female', null] as const)
+        expect(helpTriggerWeeklyGuidance(sex, 'nz-men', gates(q2))).toBe(10);
+    }
   });
 });

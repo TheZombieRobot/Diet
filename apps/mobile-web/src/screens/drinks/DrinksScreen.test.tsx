@@ -442,31 +442,41 @@ describe('NZ guidance (K1f; HS-05, C25, C46, C78, NN-09)', () => {
   });
 });
 
-describe('NZ guidance with readiness answer 2 "yes" (F30; HEALTH_SAFETY section 5, NN-09)', () => {
-  it('the pregnancy line replaces every figure, and nothing is compared with a figure', async () => {
-    test = await drinksFixture({
-      answers: { q2: 'yes' },
-      seed: (t) =>
-        logAt(
-          t,
-          Array.from({ length: 8 }, () => nz('2000-03-01', 12)),
-        ),
-    });
-    await renderDrinks();
-    const summary = region(a.summary.cardLabel);
-    await waitFor(() => {
-      expect(summary.textContent).toContain('8 drinks · 10.41 std');
-    });
-    expect(summary.textContent).not.toContain(a.summary.dayAbove);
-    expect(summary.textContent).not.toContain(a.summary.weekAbove);
-    const card = region(a.guidance.cardLabel);
-    for (const region_ of [summary, card]) {
-      expect(within(region_).getByTestId('drinks-guidance').textContent).toBe(a.guidance.pregnancy);
-    }
-    const screenText = screen.getByTestId('drinks-screen').textContent;
-    expect(screenText).not.toMatch(/standard drinks a day|\d+ a week|single occasion/);
-    expect(screenText).not.toContain(a.guidance.basis.profile['nz-women']);
-  });
+describe('NZ guidance with readiness answer 2 "yes" (F30; HEALTH_SAFETY section 5, NN-09; re-check V18)', () => {
+  // guidanceShown on the Drinks screen and its GuidanceCard, whichever set the profile picks.
+  it.each(['female', 'male'] as const)(
+    'the pregnancy line replaces every figure, and nothing is compared with a figure (%s profile)',
+    async (sex) => {
+      test = await drinksFixture({
+        answers: { q2: 'yes' },
+        profile: { sex },
+        seed: (t) =>
+          logAt(
+            t,
+            Array.from({ length: 8 }, () => nz('2000-03-01', 12)),
+          ),
+      });
+      await renderDrinks();
+      const summary = region(a.summary.cardLabel);
+      await waitFor(() => {
+        expect(summary.textContent).toContain('8 drinks · 10.41 std');
+      });
+      expect(summary.textContent).not.toContain(a.summary.dayAbove);
+      expect(summary.textContent).not.toContain(a.summary.weekAbove);
+      const card = region(a.guidance.cardLabel);
+      for (const region_ of [summary, card]) {
+        expect(within(region_).getByTestId('drinks-guidance').textContent).toBe(
+          a.guidance.pregnancy,
+        );
+      }
+      const screenText = screen.getByTestId('drinks-screen').textContent;
+      expect(screenText).not.toMatch(/standard drinks a day|\d+ a week|single occasion/);
+      for (const basis of Object.values(a.guidance.basis.profile))
+        expect(screenText).not.toContain(basis);
+      // The line kept from the week-1 fixes: no sudden stop for someone who drinks most days (V19).
+      expect(a.guidance.pregnancy).toContain('stopping suddenly can be risky');
+    },
+  );
 });
 
 describe('milestones (K1g; HS-19, A16, A47, A50)', () => {
