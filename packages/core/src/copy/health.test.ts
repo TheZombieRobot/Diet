@@ -1064,6 +1064,64 @@ describe('transfer copy (item 30)', () => {
   });
 });
 
+// Item 31 (K16; design section 3): Send and export, and its hand-offs to the pairing screen.
+describe('transfer copy (item 31)', () => {
+  it('K16 UX 6b C52: the item-29 lines word for word, and only the verified status says Received', () => {
+    const { lines } = transfer.send;
+    expect(lines.statusNotSent).toBe('Not sent yet. Encrypted on this phone before it leaves.');
+    expect(fillTemplate(lines.statusWaiting, { time: '10:42' })).toBe(
+      'Sent 10:42, waiting for laptop',
+    );
+    expect(lines.statusReceived).toBe('Received on laptop');
+    expect(lines.statusExpired).toBe(
+      'Not confirmed by the laptop. If the list is not on the laptop, send it again.',
+    );
+    expect(lines.tooLarge).toBe(
+      'This list is too large to send. Export it as CSV or JSON instead.',
+    );
+    expect(lines.relayNeedsPairing).toBe(
+      'To send through the relay, pair again: Settings, Laptop pairing. Until then, use the paste code.',
+    );
+    const all = strings(transfer.send, 'send');
+    expect(all.filter(([, text]) => /\bReceived\b/.test(text)).map(([path]) => path)).toEqual([
+      'send.lines.statusReceived',
+    ]);
+    for (const [path, text] of all) {
+      if (/\bCSV\b|\bJSON\b/.test(text) && path !== 'send.exportsNote') {
+        expect(text, path).not.toMatch(/\b(?:locked|encrypted)\b/i);
+        expect(text, path).toMatch(/CSV (?:or|and) JSON/);
+      }
+    }
+    for (const word of ['not locked', 'prices', 'garden']) {
+      expect(transfer.send.exportsNote).toContain(word);
+    }
+  });
+
+  it('K16 HS-30 L20 L52: About and delete-all say what sending does and what delete-all cannot reach', () => {
+    expect(general.privacy).toContain('relay');
+    expect(general.privacy).toContain('15 minutes');
+    const stays = privacy.deleteAll.stays.join(' ');
+    expect(stays).toContain(
+      'A list you sent that the laptop has not collected can no longer be collected after 15 minutes.',
+    );
+    expect(stays).toContain('Paste codes and grocery list files you copied, sent or saved');
+    expect(stays).not.toContain('expires within 15 minutes');
+  });
+
+  it('K16 C83 C115: the pairing screen hand-offs, item 30’s texts otherwise unchanged', () => {
+    expect('laterStep' in transfer.pairing).toBe(false);
+    expect(transfer.pairing.unpairSentNote).toBe(
+      'A list you sent before unpairing can still reach the laptop: through the relay for up to 15 minutes, or as a paste code you already copied.',
+    );
+    expect(transfer.pairing.noCameraExports).toBe(
+      'Without the camera, you can still copy the list as text or export it from the List tab.',
+    );
+    expect(transfer.pairing.optional).toBe(
+      'Pairing is optional. Without it, the list is sent nowhere unless you copy or export it.',
+    );
+  });
+});
+
 // Item 20 (U17; design 5.1): the recipes wording, its section rules and the keys other code reads.
 describe('recipes copy (item 20)', () => {
   it('U17: the section rules catch moralising, claims, a named source, "fits your" and alcohol', () => {
@@ -1166,8 +1224,9 @@ describe('grocery copy (item 24; LS2)', () => {
     expect(fillTemplate(grocery.line.gardenUnknown, { amount: '500 g' })).toBe(
       'recipes need 500 g; garden amount not entered',
     );
+    // Item 31's transfer.send.exportsNote took the note's place beside the buttons (K16).
     for (const word of ['not locked', 'prices', 'garden', 'pantry']) {
-      expect(grocery.exports.note).toContain(word);
+      expect(transfer.send.exportsNote).toContain(word);
     }
     for (const text of [
       grocery.line.fromGardenAbout,

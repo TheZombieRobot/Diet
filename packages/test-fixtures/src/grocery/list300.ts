@@ -21,7 +21,7 @@ const UNITS = ['g', 'ml', 'each'] as const;
 const AT = '2000-01-01T00:00:00.000Z';
 
 /** A lowercase UUID v4 drawn from `random`. */
-function seededUuid(random: () => number): string {
+export function seededUuid(random: () => number): string {
   const bytes = Array.from({ length: 16 }, () => Math.floor(random() * 256));
   bytes[6] = ((bytes[6] ?? 0) & 0x0f) | 0x40;
   bytes[8] = ((bytes[8] ?? 0) & 0x3f) | 0x80;

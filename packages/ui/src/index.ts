@@ -16,6 +16,7 @@ export { Card, type CardProps } from './components/Card';
 export { Checkbox, type CheckboxProps } from './components/Checkbox';
 export { CheckList, type CheckListProps } from './components/CheckList';
 export { Chip, type ChipProps } from './components/Chip';
+export { CodeBox, type CodeBoxProps } from './components/CodeBox';
 export { ChoiceList, type ChoiceListProps, type ChoiceOption } from './components/ChoiceList';
 export { DayBar, type DayBarProps } from './components/DayBar';
 export { ExpandableRow, type ExpandableRowProps } from './components/ExpandableRow';

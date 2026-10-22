@@ -11,6 +11,7 @@ export * from './storage/testChains';
 
 // Grocery (checklist item 29): the 300-item list for TR-05a, shared with items 24 and 31.
 export * from './grocery/list300';
+export * from './grocery/transferLists';
 // Grocery (checklist item 24): the builder's foods and stock rows linked to real catalogue ids.
 export * from './grocery/buildFixtures';
 // Weight (checklist item 14): synthetic weigh-in and Kickstart scenarios, and plain gate objects.

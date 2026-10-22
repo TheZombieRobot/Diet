@@ -16,6 +16,7 @@ import {
   CheckList,
   Chip,
   ChoiceList,
+  CodeBox,
   currentThemePreference,
   DayBar,
   ExpandableRow,
@@ -25,6 +26,7 @@ import {
   IconButton,
   IconLink,
   ItemRow,
+  LockIcon,
   MeterBar,
   meterRects,
   OFFLINE_LABEL,
@@ -1455,5 +1457,27 @@ describe('TickRow (item 24 design 1.14)', () => {
     expect(screen.getByRole('region', { name: 'Already have' }).className).toBe(
       'ui-card ui-card--dashed',
     );
+  });
+});
+
+describe('the paste code pieces (item 31; V6)', () => {
+  it('CodeBox is a labelled, read-only box the wording scans skip, and selects all on focus', () => {
+    render(<CodeBox label="Code for the laptop" value="dl1.AAAA.00000000" />);
+    const box = screen.getByLabelText<HTMLTextAreaElement>('Code for the laptop');
+    expect(box.readOnly).toBe(true);
+    expect([
+      box.getAttribute('spellcheck'),
+      box.getAttribute('autocapitalize'),
+      box.getAttribute('autocorrect'),
+    ]).toEqual(['false', 'off', 'off']);
+    expect(box.hasAttribute('data-scan-exclude')).toBe(true);
+    fireEvent.focus(box);
+    expect([box.selectionStart, box.selectionEnd]).toEqual([0, box.value.length]);
+  });
+
+  it('LockIcon is hidden from screen readers and 22 px by default', () => {
+    const { container } = render(<LockIcon />);
+    const svg = container.querySelector('svg');
+    expect([svg?.getAttribute('aria-hidden'), svg?.getAttribute('width')]).toEqual(['true', '22']);
   });
 });

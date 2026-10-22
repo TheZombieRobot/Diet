@@ -377,3 +377,13 @@ describe('Drinks copy matches the docs word for word (item 28 C2; C66, C78, C101
     expect(quoteAfter(alcoholSection, 'and for men:')).toBe(alcohol.guidance.line['nz-men']);
   });
 });
+
+describe('Send and export copy matches UX_SCREENS 6b (item 31; Q4)', () => {
+  const sendSection = UX_SCREENS.split('**6b: Send and export.**')[1]?.split('\n')[0] ?? '';
+
+  it('the waiting and received lines are the 6b quotes', () => {
+    const waiting = fillTemplate(transfer.send.lines.statusWaiting, { time: '10:42' });
+    expect(sendSection).toContain(`"${waiting}"`);
+    expect(sendSection).toContain(`"${transfer.send.lines.statusReceived}"`);
+  });
+});

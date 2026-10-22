@@ -146,3 +146,9 @@ export const V5_ROOM_ID = 'ICEiIyQlJicoKSorLC0uLw';
 export const V5_KEY_BYTES: Uint8Array = counting(0x40, 32);
 export const V5_CHECK = 'TVST';
 export const V5_CODE = `diet-pair:1:${V5_ROOM_ID}:QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl8:`;
+
+/** V6 (item 31; contract section 10.1): the paste code of V2 (77 characters). */
+export const V6_PASTE_CODE =
+  'dl1.AaChoqOkpaanqKmqq5W1NOFoA0vqSq3OH8tRiXNYrVlFvfQCLJ6ZADTNSBP2kFCg.af44727c';
+/** The check of V3_BODY's paste code (408 characters in all). */
+export const V3_PASTE_CHECK = 'c8faef6f';

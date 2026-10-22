@@ -7,7 +7,7 @@ import {
   type GroceryListRecord,
   type StoreRecords,
 } from '@diet/core';
-import { foods as foodsCopy, grocery, privacy } from '@diet/core/copy/health';
+import { foods as foodsCopy, grocery, privacy, transfer } from '@diet/core/copy/health';
 import { listCsv, listJson, listText } from '@diet/grocery';
 import { groceryList300 } from '@diet/test-fixtures';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
@@ -135,7 +135,7 @@ describe('states and layout (LC1; UX 6a, GL-04, GL-08, NN-05, J19)', () => {
     expect(
       within(screen.getByRole('region', { name: 'Already have' })).getByText('1'),
     ).toBeDefined();
-    expect(screen.getByRole('region', { name: grocery.exports.sectionLabel })).toBeDefined();
+    expect(screen.getByRole('region', { name: transfer.send.sectionLabel })).toBeDefined();
   });
 
   it('300 lines render without virtualisation; foods that cannot be read keep the build off', async () => {

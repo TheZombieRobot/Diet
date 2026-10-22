@@ -3,8 +3,8 @@
  * for tests as appStorageStore is: nothing else in the screen touches navigator, BarcodeDetector or
  * location.
  */
-import { RELAY_ORIGIN } from '@diet/core';
 import { reloadApplyingUpdate } from '../../pwa/update';
+import { BUILD_RELAY_ORIGIN } from '../../transfer/relayOrigin';
 import { createStore, type Store } from '../../store';
 import { createQrDecoder, type QrDecoder } from './qrDecoders';
 
@@ -17,7 +17,7 @@ export interface PairingDevices {
   readonly reload: () => void;
   /** The site name Chrome lists under Site settings, Camera. */
   readonly siteName: () => string;
-  /** The relay address this build sends to (item 31 switches it to its BUILD_RELAY_ORIGIN). */
+  /** The relay address this build sends to (item 31's BUILD_RELAY_ORIGIN, as the List screen's). */
   readonly relayOrigin: () => string | null;
 }
 
@@ -27,7 +27,7 @@ export const browserPairingDevices: PairingDevices = {
   createDecoder: () => createQrDecoder(),
   reload: reloadApplyingUpdate,
   siteName: () => window.location.host,
-  relayOrigin: () => RELAY_ORIGIN,
+  relayOrigin: () => BUILD_RELAY_ORIGIN,
 };
 
 export const pairingDevicesStore: Store<PairingDevices> = createStore(browserPairingDevices);

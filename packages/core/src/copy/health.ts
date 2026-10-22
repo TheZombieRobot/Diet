@@ -56,7 +56,7 @@ export const general = {
   readinessOutcome: 'Nothing you have told the app rules this out; your GP knows more.',
   /** The Privacy card on About (DOC_REVIEW C34; item 5 review). */
   privacy:
-    'Your records stay on this phone, and the app sends nothing anywhere. Later, when you tap Send to laptop, it will send the grocery list only, encrypted. There is no account and no analytics.',
+    "Your records stay on this phone. When the relay is set up and you tap Send to laptop, the app sends the grocery list, encrypted on this phone, to the relay, then checks the relay for the laptop's reply for up to 15 minutes. The relay sees when this happens, not what the list says. There is no account and no analytics.",
 } as const;
 
 /** Alcohol wording (HEALTH_SAFETY.md sections 1 and 5; UX 1b, 5c; C58). */
@@ -698,7 +698,9 @@ export const privacy = {
       'Grocery lists you exported as CSV or JSON: delete those files in Files.',
       'The list on your laptop and its pairing: also unpair on your laptop.',
       'Copies of your records restored in another browser, such as on a laptop: delete all there too.',
-      'A list waiting to be sent expires within 15 minutes.',
+      // Item 31 (item 29 N4; HS-30).
+      'A list you sent that the laptop has not collected can no longer be collected after 15 minutes.',
+      'Paste codes and grocery list files you copied, sent or saved: delete them in Files, and in your email or messages if you sent them there.',
     ],
     exportFirst: 'Export a backup first',
     next: 'Continue',
@@ -1150,8 +1152,6 @@ export const transfer = {
     /** Only when pairingRelayStatus is 'pair-again' (never while RELAY_ORIGIN is null). */
     relayPairAgain:
       'This pairing was made for a different relay, or for none, so the list can reach the laptop only as a paste code. To use the relay, update the side panel on the laptop, then pair again on both.',
-    /** Until item 31 builds sending; item 31 removes it. */
-    laterStep: 'Sending the list from the List tab arrives at a later step of the build checklist.',
     photographed:
       'If you think someone photographed the pairing code, unpair here and on the laptop, then pair again.',
     pairAgain: 'Pair again',
@@ -1163,6 +1163,12 @@ export const transfer = {
     unpairTitle: 'Unpair this phone?',
     unpairBody:
       'This phone forgets the pairing and cannot send the list to the laptop until you pair again.',
+    /** Item 31 (C115; item 29 R31): unpairing cannot recall a list already sent or copied. */
+    unpairSentNote:
+      'A list you sent before unpairing can still reach the laptop: through the relay for up to 15 minutes, or as a paste code you already copied.',
+    /** Item 31 (C83): under the camera-denied, camera-unavailable and no-reader notices. */
+    noCameraExports:
+      'Without the camera, you can still copy the list as text or export it from the List tab.',
     unpairing: 'Removing the pairing…',
     pairedNow:
       'Pairing code saved. Check that the side panel on the laptop shows the same pairing check.',
@@ -1190,6 +1196,74 @@ export const transfer = {
   },
   /** Both devices' unpair confirmations (C115; item 29 design 3.2 proposed this key). */
   unpairOther: 'Also unpair on your other device.',
+  /**
+   * Send and export on the List screen (checklist item 31 design 3.1; UX_SCREENS 6b; C12, C52,
+   * C114; item 29 design 3.2, R32 and R33). Only the verified acknowledgement's line says the
+   * laptop has the list; `lines` is keyed by TRANSFER_LINE_IDS and `extras` by TRANSFER_EXTRA_IDS
+   * (@diet/grocery/transfer, which checks both at run time).
+   */
+  send: {
+    sectionLabel: 'Send and export',
+    send: 'Send to laptop',
+    pair: 'Pair with laptop',
+    pasteCode: 'Paste code',
+    checking: 'Checking the pairing…',
+    /** HEALTH_SAFETY 7: an unlocked file can be read by anyone who opens it, and the app says so. */
+    exportsNote:
+      'CSV and JSON files are not locked: anyone who opens them can read them. They include prices, garden and pantry amounts and notes, which sending to the laptop leaves on this phone.',
+    progress: {
+      sealing: 'Locking the list on this phone…',
+      sending: 'Sending the locked list…',
+      retrying: 'The relay is busy. Trying once more…',
+    },
+    lines: {
+      recordsClosed:
+        "The app's records are closed in this window. Reload the app to send the list.",
+      notPaired:
+        'Pair with your laptop first: Settings, Laptop pairing. Until then, copy the list as text, or export it as CSV or JSON.',
+      offline: 'This phone is offline. Use the paste code, or export the list as CSV or JSON.',
+      tooLarge: 'This list is too large to send. Export it as CSV or JSON instead.',
+      refused:
+        'Sending failed because of a fault in the app. Export the list as CSV or JSON instead.',
+      unavailable:
+        'Sending is not working right now. Use the paste code, or export the list as CSV or JSON.',
+      recordFailed:
+        'Sent, but this phone could not record it, so the status here may be out of date.',
+      notConfigured:
+        'Sending through the relay is not set up yet. Use the paste code, or export the list as CSV or JSON.',
+      relayNeedsPairing:
+        'To send through the relay, pair again: Settings, Laptop pairing. Until then, use the paste code.',
+      statusNotSent: 'Not sent yet. Encrypted on this phone before it leaves.',
+      statusBeforePairing: 'Not sent since you last paired. Send it again.',
+      /** UX 6b, quoted word for word once filled ("Sent 10:42, waiting for laptop"). */
+      statusWaiting: 'Sent {time}, waiting for laptop',
+      /** UX 6b. Only after a verified acknowledgement of this send (C52). */
+      statusReceived: 'Received on laptop',
+      statusExpired:
+        'Not confirmed by the laptop. If the list is not on the laptop, send it again.',
+      statusEditedSinceSent: 'Changed since you sent it. Send it again.',
+    },
+    extras: {
+      openPanel: 'Open the side panel on the laptop.',
+      keepOpen: "Keep this screen open to see the laptop's reply.",
+      olderCopy: 'The laptop has an older copy.',
+      notRecorded:
+        'This phone could not record it, so after a reload the status here may be out of date.',
+    },
+    paste: {
+      title: 'Paste code',
+      intro:
+        'This code is your grocery list, locked on this phone with the key from your pairing. Copy it, get it to your laptop any way you like, such as an email to yourself, then paste it into the side panel there.',
+      codeLabel: 'Code for the laptop',
+      madeAt: 'Made {time}.',
+      keyNote: 'It opens only with the key from your pairing.',
+      copy: 'Copy code',
+      copied: 'Copied. Paste it into the side panel on the laptop.',
+      copyFailed:
+        'This phone did not copy the code. Press and hold the code, choose Select all, then Copy.',
+      done: 'Done',
+    },
+  },
 } as const;
 
 // ---- First-run flow, readiness, profile, eating schedule and garden (checklist item 13) ----
@@ -4098,7 +4172,6 @@ export const grocery = {
     },
   },
   exports: {
-    sectionLabel: 'Export',
     copy: 'Copy text',
     csv: 'CSV',
     json: 'JSON',
@@ -4107,7 +4180,6 @@ export const grocery = {
     nothingToCopy: 'Nothing to buy on this list, so there is nothing to copy.',
     downloaded: 'Your phone should now show {file} in Downloads.',
     failed: 'This file could not be made. Try again, or copy the list as text.',
-    note: 'CSV and JSON files are not locked: anyone who opens them can read them. They include prices, garden and pantry amounts and notes.',
   },
   csv: {
     yes: 'yes',

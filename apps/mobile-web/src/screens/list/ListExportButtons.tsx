@@ -2,8 +2,7 @@
  * Copy text, CSV and JSON (item 24 design 1.11; GL-06, GL-07): made on the phone from the list
  * record alone, with no network. A download goes through the storage platform (files.ts
  * offerDownload underneath), so tests stub it as item 12's backup tests do. Item 31's Send and
- * export section renders these same buttons; ListExportSection, with the note, is item 24's until
- * then.
+ * export section (SendAndExport) renders them, with its note that the files are not locked.
  */
 import { exportFileName, fillTemplate, type GroceryListRecord, localDateOf } from '@diet/core';
 import { grocery } from '@diet/core/copy/health';
@@ -71,15 +70,5 @@ export function ListExportButtons(props: { readonly list: GroceryListRecord }): 
         {status}
       </p>
     </>
-  );
-}
-
-/** Item 24's Export section, until item 31's Send and export replaces it (design 1.15). */
-export function ListExportSection({ list }: { readonly list: GroceryListRecord }): ReactElement {
-  return (
-    <section aria-label={copy.sectionLabel} className="ui-export">
-      <ListExportButtons list={list} />
-      <p className="ui-text-muted">{copy.note}</p>
-    </section>
   );
 }

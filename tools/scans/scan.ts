@@ -231,6 +231,8 @@ const isWorkspaceCode = (f: string) => isWorkspace(f) && isCode(f) && !isExempt(
 const isPairingCode = (f: string) =>
   (f.startsWith('packages/grocery/src/transfer/') ||
     f.startsWith('apps/mobile-web/src/screens/pairing/') ||
+    // Item 31: sending holds the pairing key and the sealed list.
+    f.startsWith('apps/mobile-web/src/transfer/') ||
     f === 'apps/mobile-web/src/db/repos/pairing.ts') &&
   isWorkspaceCode(f) &&
   !isTestFile(f);

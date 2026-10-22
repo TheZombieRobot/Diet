@@ -72,6 +72,8 @@ function NoticeSlot({
       {copy.scanAgain}
     </Button>
   );
+  // C83 (item 31): without the camera, the list can still leave as text or a file.
+  const noCamera = <p>{copy.noCameraExports}</p>;
   switch (notice) {
     case 'unpaired-now':
       return (
@@ -95,6 +97,7 @@ function NoticeSlot({
           <Button variant="primary" onClick={devices.reload}>
             {privacy.backupCard.reload}
           </Button>
+          {notice === 'no-reader' ? noCamera : null}
         </Notice>
       );
     case 'unpair-failed':
@@ -116,6 +119,7 @@ function NoticeSlot({
         <Notice role="alert">
           {first(fillTemplate(copy.errors['camera-denied'], { site: devices.siteName() }))}
           {scanAgain}
+          {noCamera}
         </Notice>
       );
     default:
@@ -123,6 +127,7 @@ function NoticeSlot({
         <Notice role="alert">
           {first(copy.errors[notice])}
           {scanAgain}
+          {notice === 'camera-unavailable' ? noCamera : null}
         </Notice>
       );
   }
@@ -281,6 +286,7 @@ export function PairingScreen(): ReactElement {
           {copy.unpairTitle}
         </p>
         <p>{copy.unpairBody}</p>
+        <p>{copy.unpairSentNote}</p>
         <p>{transfer.unpairOther}</p>
         <ButtonRow>
           <Button
@@ -363,7 +369,6 @@ export function PairingScreen(): ReactElement {
           {pairingRelayStatus(pairing.relayUrl, devices.relayOrigin()) === 'pair-again' ? (
             <p>{copy.relayPairAgain}</p>
           ) : null}
-          <p className="ui-text-muted">{copy.laterStep}</p>
           <p className="ui-text-muted">{copy.photographed}</p>
           <ButtonRow>
             <Button

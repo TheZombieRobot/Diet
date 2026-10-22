@@ -10,6 +10,7 @@ import {
   today,
   weight,
 } from '../../packages/core/src/copy/health';
+import { RELAY_ORIGIN } from '../../packages/core/src/relay/protocol';
 import { parseColourTokens, requireToken } from '../../packages/ui/src/tokens';
 
 /** Every screen of the phone app, in the order a person reaches them. */
@@ -62,9 +63,15 @@ export const BASE_PATH = '/Diet/';
 /** The built app (made by the Playwright web server before any test runs). */
 export const DIST_DIR = join(import.meta.dirname, '../../apps/mobile-web/dist');
 
+/**
+ * The page's connections: its own origin, and the relay's once RELAY_ORIGIN is set (item 31;
+ * vite.config.ts adds it at build time, and nothing else).
+ */
+const CONNECT_SRC =
+  RELAY_ORIGIN === null ? "connect-src 'self'" : `connect-src 'self' ${RELAY_ORIGIN}`;
+
 /** The exact policy index.html must carry (HS-14, TR-11, DOC_REVIEW C03). */
-export const CONTENT_SECURITY_POLICY =
-  "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'none'; object-src 'none'";
+export const CONTENT_SECURITY_POLICY = `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; ${CONNECT_SRC}; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'none'; object-src 'none'`;
 
 const tokens = parseColourTokens(
   readFileSync(join(import.meta.dirname, '../../packages/ui/src/styles/tokens.css'), 'utf8'),

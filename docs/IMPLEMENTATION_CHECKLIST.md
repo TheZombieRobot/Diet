@@ -115,13 +115,13 @@ Conventions for the implementing model:
     *Acceptance:* TR-01; TR-03a; TR-10 (phone half: unpair); NN-07's duplicate rule as unit tests in `packages/grocery` (C82); HS-38 (the camera and the key). No extension code.
 
 31. **Send to laptop and fallbacks.** Progress and status line; automatic paste-code offer when the relay is unreachable; CSV/JSON always available.
-    *Acceptance:* TR-04, TR-07, TR-08, TR-11; TR-02 (end-to-end half), TR-05a and TR-05b (phone half); TR-10 (phone half: the next send requires pairing).
+    *Acceptance:* TR-04a, TR-07, TR-08a, TR-11, TR-12; TR-02 (end-to-end half), TR-05a and TR-05b (phone half); TR-10 (phone half: the next send requires pairing); NN-07 (phone half); HS-41.
 
 32. **Extension scaffold in the approved mode.** MV3, `sidePanel` and `storage`, relay host permission; mode gate that refuses to build mode A without 9.3 approval; no content scripts in B/C.
     *Acceptance:* CX-00, CX-01, CX-02, CX-03.
 
 33. **Side panel list UI.** Pairing QR, receive and decrypt, aisle groups, tick, note, progress, partial vs complete status, store name header, paste-code input, clear, unpair, footer disclaimer.
-    *Acceptance:* CX-04, CX-08, CX-09; TR-06 (extension half), TR-09b; TR-03b, TR-10 (laptop half), NN-07 (end to end).
+    *Acceptance:* CX-04, CX-08, CX-09; TR-04b, TR-08b; TR-06 (extension half), TR-09b; TR-03b, TR-10 (laptop half), NN-07 (end to end).
 
 34. **Mode-specific behaviour.** Mode B: "Find" opens the observed search URL with an editable cleaned term, copy fallback. Mode C: copy per item only. Mode A (only if approved): visible batching with per-batch confirmation, store check before each batch, Stop button, error surfacing, tiny-test fixture; never a checkout control.
     *Acceptance:* CX-05 to CX-07; NN-08.

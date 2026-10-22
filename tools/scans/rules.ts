@@ -661,7 +661,11 @@ export const networkRules: readonly ContentRule[] = [
 ];
 
 /** Files that may use network APIs. Added deliberately, one at a time, with a reason. */
-export const NETWORK_ALLOWED_FILES: readonly string[] = [];
+export const NETWORK_ALLOWED_FILES: readonly string[] = [
+  // The relay client: Send to laptop, HS-14 (item 31). One fetch, to relayEndpoint(…) of the
+  // build's relay origin only (tools/scans/transfer.test.ts, Q1).
+  'apps/mobile-web/src/transfer/relayClient.ts',
+];
 
 /**
  * The service worker's build settings (HS-14, TR-11). The page's Content Security Policy does not

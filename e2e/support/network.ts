@@ -5,6 +5,7 @@ import {
   type Page,
   type Request,
 } from '@playwright/test';
+import { isRelayBody, RELAY_ORIGIN } from '../../packages/core/src/relay/protocol';
 import { BASE_PATH, recordPolicyViolations } from './app';
 
 // HS-14 / TR-11, as reworded by DOC_REVIEW C03: the phone app makes only GET requests to its own
@@ -209,8 +210,84 @@ export function expectOnlyOwnOrigin(
   }
 }
 
+/** Item 31: the test relay a spec may contact, and the room its requests must name. */
+export interface RelayAllowance {
+  readonly origin: string;
+  readonly roomId: string;
+}
+
+/**
+ * The relay requests among `seen` (item 31 design 5.2; TR-11, HS-14, L58): each after the first
+ * tap mark and before the end mark, POST to /v1/list or GET to /v1/ack (or their preflight), with
+ * no query or fragment, no cookie and exactly the specified headers; a POST carries a sealed-looking
+ * body; at most two POSTs follow each tap.
+ */
+export function expectRelayRequests(
+  seen: readonly Seen[],
+  relay: RelayAllowance,
+  marks: { readonly taps: readonly number[]; readonly end: number | null },
+): void {
+  const firstTap = marks.taps[0] ?? Number.POSITIVE_INFINITY;
+  seen.forEach((s, index) => {
+    if (!s.url.startsWith(`${relay.origin}/`)) return;
+    expect(index, `${s.method} ${s.url} before any Send tap`).toBeGreaterThanOrEqual(firstTap);
+    if (marks.end !== null) expect(index, `${s.url} after the end`).toBeLessThan(marks.end);
+    const url = new URL(s.url);
+    expect(url.search + url.hash, s.url).toBe('');
+    const allowed: Record<string, string> = { POST: '/v1/list', GET: '/v1/ack' };
+    if (s.method === 'OPTIONS') {
+      expect(['/v1/list', '/v1/ack'], s.url).toContain(url.pathname);
+    } else {
+      expect(allowed[s.method], `${s.method} ${s.url}`).toBe(url.pathname);
+    }
+    const headers = s.headers ?? {};
+    const extra: Record<string, (value: string) => boolean> =
+      s.method === 'POST'
+        ? {
+            'content-type': (v) => v === 'text/plain;charset=utf-8',
+            'content-length': (v) => Number(v) === new TextEncoder().encode(s.body ?? '').length,
+            'x-relay-room': (v) => v === relay.roomId,
+          }
+        : s.method === 'GET'
+          ? { 'x-relay-room': (v) => v === relay.roomId }
+          : {
+              'access-control-request-method': (v) => v === 'POST' || v === 'GET',
+              'access-control-request-headers': (v) =>
+                ['content-type,x-relay-room', 'x-relay-room'].includes(
+                  v
+                    .toLowerCase()
+                    .split(',')
+                    .map((h) => h.trim())
+                    .sort()
+                    .join(','),
+                ),
+            };
+    for (const [name, value] of Object.entries(headers)) {
+      const check = extra[name.toLowerCase()];
+      const ok = check === undefined ? BROWSER_HEADERS.has(name.toLowerCase()) : check(value);
+      expect(ok, `${s.method} ${s.url} header ${name}: ${value}`).toBe(true);
+    }
+    if (s.method === 'POST') {
+      expect(isRelayBody(s.body, 'list'), `${s.url}: a sealed list body`).toBe(true);
+    } else {
+      expect(s.body, s.url).toBeNull();
+    }
+  });
+  marks.taps.forEach((tap, i) => {
+    const next = marks.taps[i + 1] ?? seen.length;
+    const posts = seen
+      .slice(tap, next)
+      .filter((s) => s.method === 'POST' && s.url.startsWith(relay.origin));
+    expect(posts.length, 'at most one retry after a tap').toBeLessThanOrEqual(2);
+  });
+}
+
 export interface Audit {
   readonly seen: Seen[];
+  /** Marks a Send tap (item 31): relay requests may follow it. */
+  readonly markTap: () => void;
+  /** Marks the end of a transfer: no relay request may follow. */
+  readonly markEnd: () => void;
   readonly violations: string[];
   readonly sockets: string[];
   /**
@@ -234,6 +311,7 @@ export async function startAudit(
   context: BrowserContext,
   request: APIRequestContext,
   baseURL: string | undefined,
+  relay?: RelayAllowance,
 ): Promise<Audit> {
   expect(
     context.pages().map((p) => p.url()),
@@ -244,6 +322,16 @@ export async function startAudit(
   const seen: Seen[] = [];
   context.on('request', record(seen));
   const violations = await recordPolicyViolations(context);
+  // Item 31 (L56): no browser test ever reaches the owner's real relay, once its address is set.
+  const blocked: string[] = [];
+  if (RELAY_ORIGIN !== null && RELAY_ORIGIN !== relay?.origin) {
+    await context.route(`${RELAY_ORIGIN}/**`, (route) => {
+      blocked.push(route.request().url());
+      return route.abort('blockedbyclient');
+    });
+  }
+  const taps: number[] = [];
+  let end: number | null = null;
   const sockets: string[] = [];
   const watch = (page: Page): void => {
     page.on('websocket', (socket) => {
@@ -268,6 +356,12 @@ export async function startAudit(
   };
   return {
     seen,
+    markTap: () => {
+      taps.push(seen.length);
+    },
+    markEnd: () => {
+      end = seen.length;
+    },
     violations,
     sockets,
     settle,
@@ -277,7 +371,14 @@ export async function startAudit(
       // The first request is the app's page itself: nothing ran before the audit started.
       expect(new URL(seen[0]?.url ?? origin).pathname).toBe(new URL(baseURL ?? origin).pathname);
       await readHeaders(seen);
-      expectOnlyOwnOrigin(seen, origin, files);
+      expect(blocked, 'a request to the real relay').toEqual([]);
+      const toRelay = (s: Seen) => relay !== undefined && s.url.startsWith(`${relay.origin}/`);
+      if (relay !== undefined) expectRelayRequests(seen, relay, { taps, end });
+      expectOnlyOwnOrigin(
+        seen.filter((s) => !toRelay(s)),
+        origin,
+        files,
+      );
       expect(violations).toEqual([]);
       expect(sockets).toEqual([]);
       for (const page of context.pages()) {

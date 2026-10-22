@@ -4,6 +4,7 @@ import { defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { parseColourTokens, requireToken } from '../../packages/ui/src/tokens';
 import pkg from './package.json';
+import { buildRelayOrigin, TEST_RELAY_ENV, withRelayConnectSrc } from './src/transfer/buildOrigin';
 
 /**
  * The phone app build (checklist item 5). GitHub Pages serves the app at
@@ -13,6 +14,11 @@ import pkg from './package.json';
 const base = (process.env['DIET_BASE'] ?? '/Diet/').replace(/\/?$/, '/');
 /** Optional build label shown on About next to the version (the deploy passes the commit). */
 const buildId = process.env['DIET_BUILD_ID'] ?? '';
+/**
+ * The relay address this build sends to (item 31): RELAY_ORIGIN, null until the owner confirms it,
+ * or the reserved test origin when a browser-test build asks for exactly it (buildOrigin.ts).
+ */
+const relayOrigin = buildRelayOrigin(process.env[TEST_RELAY_ENV]);
 
 // Theme colours come from the design tokens, the only place a colour is written.
 const tokens = parseColourTokens(
@@ -67,6 +73,17 @@ function headMeta(): Plugin {
   };
 }
 
+/** The relay origin, when there is one, joins connect-src in the page's policy (item 31). */
+function relayConnectSrc(): Plugin {
+  return {
+    name: 'diet-relay-connect-src',
+    transformIndexHtml: {
+      order: 'pre',
+      handler: (html) => withRelayConnectSrc(html, relayOrigin),
+    },
+  };
+}
+
 /**
  * `vite dev` only: the development server injects stylesheets as inline <style> tags, which the
  * Content Security Policy in index.html blocks. Allow inline styles there and nowhere else; the
@@ -92,6 +109,7 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
     __APP_BUILD__: JSON.stringify(buildId),
+    __RELAY_ORIGIN__: JSON.stringify(relayOrigin),
   },
   build: {
     // Never inline assets as data: URLs; the Content Security Policy allows fonts only from the
@@ -110,6 +128,7 @@ export default defineConfig({
   plugins: [
     react(),
     headMeta(),
+    relayConnectSrc(),
     devServerStyles(),
     VitePWA({
       strategies: 'generateSW',

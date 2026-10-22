@@ -1,7 +1,7 @@
 // Item 24 design 5.3: making the list through the real database (Node, real Dexie over
 // fake-indexeddb), from item 20's shipped recipes and item 18's shipped catalogue. Synthetic
 // records only; the health-sentinel phone holds marker text and numbers in every other store.
-import { foodData, type GroceryListRecord, localDateOf } from '@diet/core';
+import { foodData, type GroceryListRecord, localDateOf, RELAY_E2E_ORIGIN } from '@diet/core';
 import { grocery } from '@diet/core/copy/health';
 import {
   listCsv,
@@ -11,6 +11,8 @@ import {
   lineOffers,
   priceFromInput,
 } from '@diet/grocery';
+import { decodeListPayload, importPairingKey, openFromRelay } from '@diet/grocery/transfer';
+import { VECTOR_KEY_BYTES } from '@diet/test-fixtures';
 import type { DBCore, Middleware } from 'dexie';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { AppStorage } from '../../db/runtime';
@@ -31,6 +33,10 @@ import {
 } from '../../db/testSentinels';
 import { foodsState, readFoodInputs } from '../../foods/useFoods';
 import { readStockNow } from '../../garden/stock';
+import { createStore } from '../../store';
+import { browserTransferDevices } from '../../transfer/devices';
+import { sendList } from '../../transfer/send';
+import { EMPTY_SESSION } from '../../transfer/session';
 import { type BuildRequest, runBuild } from './buildList';
 import { addListLine, priceLine, removeListLine, takeOffer, tickLine } from './lineActions';
 
@@ -361,5 +367,41 @@ describe('the health-sentinel phone (LD2, LD5; G18, HS-23, J21, GL-10, item 31 r
     }
     for (const hint of list.items.map((i) => i.substituteHint))
       expect(hint ?? '').not.toMatch(/sesame/i);
+  });
+
+  it('N8 HS-NN (item 31, L41): the list this builder makes, sent to the laptop, carries no health mark', async () => {
+    const test = await openSnapshotDb(healthSentinelSnapshot(), SENTINEL_NOW);
+    opened.push(test);
+    const list = await build(test.storage);
+    const key = await importPairingKey(VECTOR_KEY_BYTES);
+    const pairing = await test.repos.pairing.save({
+      roomId: 'ExampleRoomId00000000A',
+      relayUrl: RELAY_E2E_ORIGIN,
+      key,
+    });
+    const bodies: string[] = [];
+    const devices = {
+      ...browserTransferDevices,
+      relay: {
+        fetch: (_url: string, init: RequestInit) => {
+          if (typeof init.body === 'string') bodies.push(init.body);
+          return Promise.resolve(new Response(null, { status: 204 }));
+        },
+        setTimeout: () => 0,
+        clearTimeout: () => undefined,
+      },
+    };
+    const args = { list, pairing, origin: RELAY_E2E_ORIGIN, online: true };
+    await sendList(args, { storage: test.storage, session: createStore(EMPTY_SESSION), devices });
+    const opened$ = await openFromRelay(key, 'list', bodies[0]);
+    const text = new TextDecoder().decode(opened$ ?? new Uint8Array(0));
+    const payload = decodeListPayload(opened$ ?? new Uint8Array(0));
+    expect(payload?.list.items.length).toBeGreaterThan(2);
+    expect(payload?.list.items.map((i) => i.id)).toEqual(
+      list.items.filter((i) => i.section === 'to-buy').map((i) => i.id),
+    );
+    expect(text).not.toMatch(/zzh|sesame|kickstart|\b(?:23:1|22:2|20:4|18:6|16:8)\b|87\.3/i);
+    const notes = list.items.map((i) => i.auditNote ?? '').join(' ');
+    expect(notes).not.toMatch(/zzh|sesame|kickstart|87\.3/i);
   });
 });

@@ -55,7 +55,8 @@ export type GroceryListStatus = 'draft' | 'waiting' | 'expired' | 'received' | '
  * A list's transfer status (C52; section 4.11): draft until sent; received when the verified
  * acknowledgement is for this version; edited-since-sent after an edit (the screen adds "the
  * laptop has an older copy" when an older version was received); otherwise waiting for up to
- * RELAY_TTL_MS after sending, then expired ("Expired, not received; send again").
+ * RELAY_TTL_MS after sending, then expired ("Not confirmed by the laptop", item 29). Item 31's
+ * transferStatusOf (@diet/grocery/transfer) adds the current pairing and a send time ahead.
  */
 export function groceryListStatus(
   list: Pick<GroceryListRecord, 'version' | 'sentVersion' | 'sentAt' | 'receivedVersion'>,

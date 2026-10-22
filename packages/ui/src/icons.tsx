@@ -81,6 +81,16 @@ export function ListIcon({ size = 26 }: IconProps): ReactElement {
   );
 }
 
+/** The padlock on Send to laptop (item 31; the List mock-up): the list is locked before it leaves. */
+export function LockIcon({ size = 22 }: IconProps): ReactElement {
+  return (
+    <Svg size={size} strokeWidth={2.2}>
+      <rect x="5" y="11" width="14" height="9" rx="2" />
+      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+    </Svg>
+  );
+}
+
 export function SettingsIcon({ size = 24 }: IconProps): ReactElement {
   return (
     <Svg size={size} strokeWidth={2}>

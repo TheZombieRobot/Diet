@@ -5,6 +5,7 @@ export default defineProject({
   define: {
     __APP_VERSION__: JSON.stringify('0.0.0-test'),
     __APP_BUILD__: JSON.stringify(''),
+    __RELAY_ORIGIN__: 'null',
   },
   test: {
     name: 'mobile-web',

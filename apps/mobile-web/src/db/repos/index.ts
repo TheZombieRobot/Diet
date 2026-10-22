@@ -14,6 +14,7 @@ import { type FastsRepo, fastsRepo } from './fasts';
 import { type FoodLogRepo, foodLogRepo } from './foodLog';
 import { type GardenPhotosRepo, gardenPhotosRepo } from './gardenPhotos';
 import { type GroceryBuildRepo, groceryBuildRepo } from './groceryBuild';
+import { type GroceryTransferRepo, groceryTransferRepo } from './groceryTransfer';
 import { type KickstartRepo, kickstartRepo } from './kickstart';
 import { type PairingRepo, pairingRepo } from './pairing';
 import { type PhaseRepo, phaseRepo } from './phase';
@@ -62,6 +63,8 @@ export interface Repos {
   readonly groceryBuild: GroceryBuildRepo;
   /** The laptop pairing (item 30). */
   readonly pairing: PairingRepo;
+  /** A grocery list's send and acknowledgement fields (item 31). */
+  readonly groceryTransfer: GroceryTransferRepo;
   readonly cardState: CardStateRepo;
   readonly audit: CrudRepo<'audit'>;
   /** Item 19: garden and pantry rows for the stock read (garden/stock.ts readStockNow). */
@@ -98,6 +101,7 @@ export function createRepos(ctx: RepoContext): Repos {
     groceryLists: crudRepo(ctx, 'grocery_lists'),
     groceryBuild: groceryBuildRepo(ctx),
     pairing: pairingRepo(ctx),
+    groceryTransfer: groceryTransferRepo(ctx),
     cardState: cardStateRepo(ctx),
     audit: crudRepo(ctx, 'audit'),
     stock: stockRepo(ctx),

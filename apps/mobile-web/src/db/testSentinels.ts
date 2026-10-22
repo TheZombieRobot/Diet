@@ -5,7 +5,7 @@
  * aliases and aisles, and recipe titles), plus marker numbers no grocery amount can produce, a
  * plan for the seven days from SENTINEL_NOW, and garden and pantry rows linked to its foods.
  * A field the validator refuses as marker text keeps its fixture value and is listed by
- * healthSentinelSkips(), so a skipped field is visible. Item 31 adds `groceryList: 'sentinel'`.
+ * healthSentinelSkips(), so a skipped field is visible. Item 31 added `groceryList: 'sentinel'`.
  */
 import {
   BACKUP_TABLES,
@@ -17,7 +17,7 @@ import {
   type Snapshot,
   type StoreName,
 } from '@diet/core';
-import { fixtureId, snapshotV1 } from '@diet/test-fixtures';
+import { fixtureId, groceryListSentinel, snapshotV1 } from '@diet/test-fixtures';
 
 /** The sentinel phone's clock: the plan starts this day. */
 export const SENTINEL_NOW = '2000-03-01T00:00:00.000Z';
@@ -181,9 +181,17 @@ function build(): { readonly snapshot: Snapshot; readonly skipped: readonly stri
   return { snapshot: out as unknown as Snapshot, skipped };
 }
 
-/** The sentinel snapshot, holding no grocery list (item 31 adds its `groceryList` option). */
-export function healthSentinelSnapshot(): Snapshot {
-  return build().snapshot;
+/**
+ * The sentinel snapshot, holding no grocery list, or with `groceryList: 'sentinel'` only item 31's
+ * groceryListSentinel() (N3).
+ */
+export function healthSentinelSnapshot(
+  options: { readonly groceryList?: 'none' | 'sentinel' } = {},
+): Snapshot {
+  const { snapshot } = build();
+  return options.groceryList === 'sentinel'
+    ? { ...snapshot, grocery_lists: [groceryListSentinel()] }
+    : snapshot;
 }
 
 /** The fields the validator refused as markers (kept at their fixture values). */

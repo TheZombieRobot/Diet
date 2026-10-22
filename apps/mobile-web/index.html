@@ -10,7 +10,8 @@
       The Content Security Policy above is the first thing in <head>, so it applies before anything
       loads. GitHub Pages cannot send headers, hence a meta tag. Everything comes from the app's own
       origin: no remote scripts, styles, fonts or connections (HS-14, TR-11, DOC_REVIEW C03). The
-      relay origin joins connect-src at checklist item 31. e2e/shell.spec.ts checks the built copy.
+      relay origin joins connect-src at build time (vite.config.ts, relayConnectSrc) once
+      RELAY_ORIGIN is set. e2e/shell.spec.ts checks the built copy.
       The policy covers this page only, not the service worker: e2e/build-output.spec.ts checks
       that the built sw.js loads and caches nothing from another origin. The description and
       theme-color tags are added by vite.config.ts.

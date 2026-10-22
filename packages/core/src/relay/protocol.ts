@@ -52,6 +52,12 @@ export const APP_ORIGIN = 'https://thezombierobot.github.io';
  * While it is null the phone offers the paste code and the exports instead (item 31).
  */
 export const RELAY_ORIGIN: string | null = null;
+/**
+ * The reserved name browser-test builds use (item 31 L10): under .test, which never resolves. Only
+ * a build made with DIET_TEST_RELAY_ORIGIN set to exactly this may call it; never a default, and
+ * never referenced by app code, so it is not in the production bundle.
+ */
+export const RELAY_E2E_ORIGIN = 'https://relay.example.test';
 
 const ROOM_ID = /^[A-Za-z0-9_-]{22}$/;
 const BASE64URL = /^[A-Za-z0-9_-]+$/;

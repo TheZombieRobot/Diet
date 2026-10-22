@@ -2,6 +2,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
 import { expect, test } from '@playwright/test';
 import ts from 'typescript';
+import { RELAY_ORIGIN } from '../packages/core/src/relay/protocol';
 import { DIST_DIR } from './support/app';
 
 // The service worker is outside the page's Content Security Policy (GitHub Pages cannot send it
@@ -26,6 +27,10 @@ const ALLOWED_ABSOLUTE_URLS: Readonly<Record<string, string>> = {
     "item 19: the identifier at the start of a photo's XMP segment, compared as bytes so the segment is named when it is removed; never fetched",
   'https://relay.invalid':
     'the reserved address (RFC 6761, never resolves) a pairing stores when the laptop has no relay address; it is compared, never contacted (item 30)',
+  // Item 31: the relay's address, once the owner has confirmed it (L35); the only one contacted.
+  ...(RELAY_ORIGIN === null
+    ? {}
+    : { [RELAY_ORIGIN]: 'the relay Send to laptop posts the locked list to (item 31; C81)' }),
 };
 
 const TEXT_FILES = new Set(['.js', '.mjs', '.css', '.html', '.webmanifest', '.json', '.svg']);

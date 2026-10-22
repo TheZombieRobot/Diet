@@ -2456,10 +2456,47 @@
   gap: 8px;
 }
 
-.ui-export {
+/* Send and export, the List screen's last section (item 31; UX_SCREENS 6b; the List mock-up). */
+.ui-send {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.ui-send .ui-button--tall {
+  font-size: 18px;
+  font-weight: 800;
+  gap: 10px;
+}
+
+.ui-send__note {
+  margin: 0;
+}
+
+.ui-send .ui-status-line {
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-secondary);
+}
+
+/* A read-only code box (the paste code): breaks anywhere, scrolls inside itself. */
+.ui-code {
+  width: 100%;
+  min-height: calc(var(--size-tap) * 2);
+  max-height: 12em;
+  padding: 10px 14px;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-inset);
+  color: var(--color-ink);
+  font-family: ui-monospace, 'Roboto Mono', Menlo, monospace;
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+  resize: none;
 }
 
 .ui-tick-row {

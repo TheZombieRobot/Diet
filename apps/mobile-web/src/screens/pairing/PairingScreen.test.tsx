@@ -11,7 +11,7 @@ import {
   V5_CODE,
   V5_ROOM_ID,
 } from '@diet/test-fixtures';
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { appStorageStore } from '../../db/runtime';
 import { openTestDb, type TestDb, testEnv } from '../../db/testKit';
@@ -21,6 +21,7 @@ import { browserPairingDevices, pairingDevicesStore } from './devices';
 import { PairingScreen } from './PairingScreen';
 import { type FakeDeviceOptions, type FakeDevices, fakeDevices } from './pairingTestKit';
 import { savePairingFromCode } from './savePairing';
+import { BUILD_RELAY_ORIGIN } from '../../transfer/relayOrigin';
 
 const copy = transfer.pairing;
 let test: TestDb;
@@ -149,6 +150,7 @@ describe('codes and cameras that cannot be used (A10; C83)', () => {
     devices.seen = V1_CODE.replace(':1:', ':2:');
     await startScan();
     await screen.findByText(copy.errors['newer-version']);
+    expect(screen.queryByText(copy.noCameraExports)).toBeNull();
     expect(allStopped()).toBe(true);
     expect(screen.queryByRole('button', { name: copy.scanAgain })).toBeNull();
     tap(privacy.backupCard.reload);
@@ -161,6 +163,7 @@ describe('codes and cameras that cannot be used (A10; C83)', () => {
     await startScan();
     await screen.findByText(copy.errors.damaged);
     expect(button(copy.scanAgain)).toBeDefined();
+    expect(screen.queryByText(copy.noCameraExports)).toBeNull();
   });
 
   it('a denied camera gives the steps with the site name; an unavailable one says so', async () => {
@@ -171,12 +174,15 @@ describe('codes and cameras that cannot be used (A10; C83)', () => {
     expect(screen.getByRole('alert').textContent).toContain(
       'Choose example.test and set it to Allow.',
     );
+    // V7 C83 (item 31): the exports are pointed to under each camera failure, once.
+    expect(within(screen.getByRole('alert')).getAllByText(copy.noCameraExports)).toHaveLength(1);
     cleanup();
     useDevices({ camera: Object.assign(new Error('x'), { name: 'NotReadableError' }) });
     await open();
     tap(copy.scan);
     await screen.findByText(copy.errors['camera-unavailable']);
     expect(button(copy.scanAgain)).toBeDefined();
+    expect(within(screen.getByRole('alert')).getAllByText(copy.noCameraExports)).toHaveLength(1);
   });
 
   it('no reader: Reload is offered and the camera is never asked for', async () => {
@@ -185,6 +191,7 @@ describe('codes and cameras that cannot be used (A10; C83)', () => {
     tap(copy.scan);
     await screen.findByText(copy.errors['no-reader']);
     expect(button(privacy.backupCard.reload)).toBeDefined();
+    expect(within(screen.getByRole('alert')).getAllByText(copy.noCameraExports)).toHaveLength(1);
     expect(devices.getUserMedia).not.toHaveBeenCalled();
   });
 });
@@ -293,7 +300,15 @@ describe('Unpair (A13; TR-10 phone half; C115)', () => {
     expect(cancel?.textContent).toBe(copy.cancel);
     expect(cancel?.className).toContain('ui-button--primary');
     expect(unpair?.className).toContain('ui-button--caution');
-    expect(screen.getByText(transfer.unpairOther)).toBeDefined();
+    // V7 C115 (item 31): a list already sent or copied can still reach the laptop.
+    const said: readonly (string | null)[] = [
+      copy.unpairBody,
+      copy.unpairSentNote,
+      transfer.unpairOther,
+    ];
+    expect(
+      [...document.querySelectorAll('p')].map((p) => p.textContent).filter((t) => said.includes(t)),
+    ).toEqual(said);
     tap(copy.cancel);
     expect(await test.repos.pairing.get()).toBeDefined();
 
@@ -465,6 +480,14 @@ describe('a pairing for another relay (A21; R19, C81)', () => {
     await pairedWith(stored === NO_RELAY_URL ? V1_CODE.slice(0, -V1_RELAY.length) : V1_CODE);
     await open();
     expect(screen.queryByText(copy.relayPairAgain) !== null).toBe(shown);
+  });
+
+  it('V7 (item 31): the browser value is the List screen’s BUILD_RELAY_ORIGIN, and sending is no later step', async () => {
+    expect(browserPairingDevices.relayOrigin()).toBe(BUILD_RELAY_ORIGIN);
+    expect(BUILD_RELAY_ORIGIN).toBeNull();
+    await pairedWith(V1_CODE);
+    await open();
+    expect(screen.queryByText(/later step of the build checklist/)).toBeNull();
   });
 });
 

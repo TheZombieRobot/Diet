@@ -801,6 +801,8 @@ The current list is the newest by `createdAt`; older lists are kept. Items are s
 
 **Status is derived, not stored** (`groceryListStatus(list, now)` in `derived.ts`): `draft` when `sentVersion` is null; `received` when `receivedVersion === version`; `edited-since-sent` when `sentVersion < version` (the screen adds "the laptop has an older copy" when `receivedVersion` is not null); otherwise `waiting` while `now − sentAt < RELAY_TTL_MS` and `expired` after ("Not confirmed by the laptop. If the list is not on the laptop, send it again.", C52; reworded at item 29, see the DECISIONS relay row). The DATA_MODEL `status` field and its index are therefore dropped.
 
+Item 31 reads the status against the current pairing: a send recorded before `pairedAt` reads "Not sent since you last paired", a receipt recorded before it never counts, and the next send clears such a receipt. `receivedVersion` is written only from an acknowledgement that names the recorded send's `transferId`, or an older version. A send time more than the tolerance ahead reads as expired unless the page that sent it is listening.
+
 **transfer_pairings** (device only; item 30 owns the shape and may change it with a schema bump. No backup is ever affected, because the store is never exported.)
 
 | Field | Type | Validation |
@@ -1051,7 +1053,7 @@ Every write goes through `prepare(table, candidate, env)`, which is synchronous:
 | symptom_log, water_log, food_log | create, get, list, update, remove | — | at and timeZone when left to the repository |
 | steps_log | create, get, list, update, remove | — | updatedAt |
 | ingredients, ingredient_overrides, recipes, beverages | create, get, list, update, remove | — | createdAt, updatedAt |
-| grocery_lists | create, get, list, update, remove | special: groceryBuild (item 24); item 31 adds send and acknowledgement | createdAt, updatedAt (never earlier than the stored one); `version` + 1 on every update |
+| grocery_lists | create, get, list, update, remove | special: groceryBuild (item 24); `groceryTransfer`: `recordSend`, `recordAcknowledgement`, `latestSentAt` (item 31); neither write changes `version` or `updatedAt` | createdAt, updatedAt (never earlier than the stored one); `version` + 1 on every update |
 | plan_days, pantry | create, get, list, update, remove (plan_days: get, list and listByIndex only; it has no generic create, update or remove) | plan_days: `writeMeals` (meals, through the planner's write rule), `setWindows`/`clearWindow` (windows, item 15) | updatedAt |
 | garden | create, get, list, update, remove (also removes the photo) | — | updatedAt |
 | sessions | create, get, list, update, remove | createChecked, updateChecked, removeIf (item 27: the caller's rule runs on the stored rows inside the write transaction) | completedAt and timeZone when status becomes `done`, cleared otherwise |
@@ -1307,7 +1309,7 @@ Each step is idempotent, so a failed run can simply be repeated. The result list
 - a fresh database holding only the section 6 seed rows;
 - browser-level state that is not app data: the home-screen install and the persistent-storage grant;
 - browser features outside the app's storage: a backup password saved in Chrome's password manager (which may sync to the Google account), and Chrome's autofill entries. Free-text health inputs use `autocomplete="off"` to keep these to a minimum, and the confirmation says "If Chrome saved a backup password, remove it in Chrome's settings";
-- outside the app's reach: backup files saved to Downloads or shared elsewhere ("delete them in Files"); the laptop extension's last list and its pairing ("also unpair on your laptop", C115); and any ciphertext waiting in the relay, which expires within 15 minutes.
+- outside the app's reach: backup files saved to Downloads or shared elsewhere ("delete them in Files"); the laptop extension's last list and its pairing ("also unpair on your laptop", C115); paste codes and grocery list files copied, sent or saved elsewhere ("delete them in Files, and in your email or messages"); and any locked list waiting in the relay, which can no longer be collected after 15 minutes (Cloudflare deletes its copy soon after).
 
 **HS-30 (proposed wording):** "Delete-all empties every store, removes the laptop pairing and every garden photo, deletes every other IndexedDB database and every cache except the app's own files, and clears local and session storage; nothing the app was doing beforehand can write to the fresh database; only the app's files and a fresh database's seed rows remain."
 

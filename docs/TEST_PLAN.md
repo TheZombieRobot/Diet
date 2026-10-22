@@ -170,16 +170,19 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | TR-02 | Relay never sees plaintext | Relay half (item 29): the relay logs nothing, has no decrypt code and stores only the posted body, refusing raw text. End-to-end half (item 31): every stored body decodes to AES-GCM ciphertext under the pairing key that opens to the sent list, and shows no item name, compressed or not. |
 | TR-03a | Pairing by QR, phone half (item 30) | A pairing code drawn into the camera is read by the bundled reader (Chrome's own reader is never asked); the phone stores the pairing with a key it cannot read back, keeps it after a reload, stops the camera and, from the tap on Scan until the pairing is saved, requests nothing but the bundled reader's own file. |
 | TR-03b | Pairing by QR, end to end (item 33) | Laptop shows QR; phone scans; both sides store the pairing and show the same pairing check; second scan not needed next time |
-| TR-04 | Send 25-item list | Appears in side panel within 30 s |
+| TR-04a | Send a 25-item list through a local relay (item 31) | A laptop stand-in collects it within 30 s of the tap; the phone shows "Received on laptop" only after the stand-in's sealed acknowledgement |
+| TR-04b | Send a 25-item list (item 33) | Appears in side panel within 30 s |
 | TR-05a | Send a 300-item list (`groceryList300()` fixture) | Succeeds (C114) |
 | TR-05b | A body over the cap (`MAX_RELAY_BODY_BYTES` = 65,536 bytes of the encoded request body, checked on Content-Length and on the bytes read), for example high-entropy notes | The relay answers 413 and stores nothing; the phone shows "too large", offers CSV or JSON, and never shows "Sent" (C114) |
 | TR-06 | Blob expiry | After expiry (test deployment 2 minutes, production 15), nothing is retrievable. The relay refuses a blob past the expiry stored with it, even while KV still holds it, and answers "nothing waiting"; the extension shows "nothing waiting". A live check waits for the expiry plus the 30-second KV read cache (C79). |
-| TR-07 | Relay down | Phone offers paste fallback immediately; text code produced |
-| TR-08 | Paste fallback | Pasting the code into the extension yields the same list |
+| TR-07 | Relay down | Phone offers the paste code immediately when the relay cannot be reached, the phone is offline, the relay is not set up, or the pairing is for another relay address; text code produced |
+| TR-08a | Paste code from the phone (item 31) | Opens with the pairing key to the same list, also after line breaks and spaces are added; a cut or changed code is reported as incomplete or damaged |
+| TR-08b | Paste fallback (item 33) | Pasting the code into the extension yields the same list |
 | TR-09a | Replay (relay, item 29) | Re-fetching an already-delivered blob at the same place returns nothing. A copy served elsewhere is byte-identical to a blob sent to that room and is never served after its expiry (C79, C113). |
 | TR-09b | Replay (extension, item 33) | Each of these is ignored, and leaves one copy with ticks and notes intact: a byte-identical duplicate; a duplicate arriving after Clear list (the list stays cleared); an older version of the same list; an earlier send of the same version arriving after a later one. A deliberate re-send of the same version is accepted and keeps ticks and notes. The acknowledgement always names the version the laptop holds and the send that brought it (C79, NN-07). |
 | TR-10 | Unpair (C115) | Unpair on a device deletes that device's key and room id; the next send requires pairing; a list sealed after re-pairing cannot be opened with the old key; no network request is made on unpair (HS-14). Phone half at items 30 (unpair) and 31 (the next send requires pairing), laptop half at item 33. |
-| TR-11 | Network audit (`context.on('request')`, so service-worker requests are seen too), online and offline, visiting every screen | The phone app makes only GET requests to its own origin for app files and update checks, with no query string or body built from user data, and requests to the relay origin only after "Send to laptop" is tapped and until that transfer is received or expires (HS-14; reworded per DOC_REVIEW C03) |
+| TR-11 | Network audit (`context.on('request')`, so service-worker requests are seen too), online and offline, visiting every screen | The phone app makes only GET requests to its own origin for app files and update checks, with no query string or body built from user data, and requests to the relay origin only after "Send to laptop" is tapped and until that transfer is received or expires (HS-14; reworded per DOC_REVIEW C03). The phone contacts only the relay address built into the app, never one from a pairing; a send stops when the phone is unpaired or its records close; a build with no relay address makes no request outside its own origin. |
+| TR-12 | Exports always available (item 31) | In every Send-and-export state, Copy text, CSV and JSON are offered and work with no network, and the screen says the files are not locked |
 
 ### 3.11 Food log, diet modes, household, allergens
 | ID | Case | Expected |
@@ -211,7 +214,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | NN-04 | Raw/cooked weights and package quantities | Not conflated: 500 g raw mince recipe yields a "500 g pack" grocery line, and a cooked-weight log entry stays cooked |
 | NN-05 | Missing price or stock | Shown as "unknown"; never a fabricated live price; any price has an entered-at timestamp (planner: item 22 S1, K3; K11). Stock: the app holds no store stock data and shows none |
 | NN-06 | Silverbeet 300 g in garden, recipes need 500 g | List shows 200 g to buy and an audit line "300 g from garden" |
-| NN-07 | Stop a transfer midway, restart, send again | Laptop shows one copy of the list; no duplicated items; logs intact (the duplicate rule, scoped to the pairing, is unit-tested at item 30; end to end at item 33) |
+| NN-07 | Stop a transfer midway, restart, send again | Laptop shows one copy of the list; no duplicated items; logs intact (the duplicate rule, scoped to the pairing, is unit-tested at item 30; phone half at item 31: a stopped send, a reload and a new send carry the same list id and version, a new send id and a later time; end to end at item 33) |
 | NN-08 | Extension cannot checkout or change store | No checkout control exists; in mode A a batch refuses to start if the site's selected store is not the configured store; a changed page structure produces a visible error and stops |
 | NN-09 | Alcohol tracker wording | Never implies that meeting a guideline is safe; never prescribes detox; "no alcohol use is risk-free" present |
 
@@ -273,7 +276,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 ### End of week 3
 - [ ] Pair laptop and phone via QR in under one minute; both show the same pairing check.
 - [ ] Send today's list; appears on laptop.
-- [ ] Turn off Wi-Fi on laptop; send again; use paste fallback.
+- [ ] Phone in flight mode; tap Send to laptop (the paste code is offered); copy it; reconnect the phone; send it to yourself by any channel; paste it into the side panel; confirm the list matches; tap Send to laptop again and see "Received on laptop".
 - [ ] Do one beach session from the app; prompts appeared; log saved.
 - [ ] Log a weekend of drinks; weekly view and guidance make sense; no judgemental wording.
 

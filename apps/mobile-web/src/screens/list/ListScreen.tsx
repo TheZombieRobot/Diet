@@ -1,6 +1,6 @@
 /**
  * The List tab (UX_SCREENS 6a; checklist item 24; design section 1): the store header, the build
- * panel, the to-buy lines by aisle, Already have, and Copy text, CSV and JSON. Everything is
+ * panel, the to-buy lines by aisle, Already have, and item 31's Send and export. Everything is
  * written to and read from the phone, so the screen works the same offline (HS-14). Prices are
  * shown only when the owner typed them, with their date (HS-16, NN-05); no stock level or cart
  * state exists to show. No readiness gate touches the list (J21): nothing on it is a health
@@ -40,8 +40,8 @@ import { BuildPanel } from './BuildPanel';
 import type { BuildMode } from './buildList';
 import { addListLine } from './lineActions';
 import { AisleCard, AlreadyHaveSection, type RowContext } from './ListLine';
-import { ListExportSection } from './ListExportButtons';
 import { ManualLineForm } from './ManualLineForm';
+import { SendAndExport } from './SendAndExport';
 import { listSessionStore } from './session';
 import { useListScreen } from './useListScreen';
 import { listWriteMessage, type ListMessage } from './writeErrors';
@@ -497,7 +497,7 @@ function ListWithRecords({ storage }: { readonly storage: AppStorage }): ReactEl
           {list.items.some((line) => line.section === 'already-have') ? (
             <AlreadyHaveSection ctx={ctx} lines={sectionLines(list.items, 'already-have')} />
           ) : null}
-          <ListExportSection list={list} />
+          <SendAndExport listId={list.id} />
         </>
       )}
       <p className="ui-visually-hidden" role="status">
