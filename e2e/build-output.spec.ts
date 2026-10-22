@@ -22,6 +22,8 @@ const ALLOWED_ABSOLUTE_URLS: Readonly<Record<string, string>> = {
     "Dexie's MissingAPI error message (no IndexedDB in this browser) links to its help page",
   'http://bit.ly/2kdckMn':
     "Dexie's PrematureCommit error message links to its explanation of early transaction commits",
+  'http://ns.adobe.com/xap/1.0/':
+    "item 19: the identifier at the start of a photo's XMP segment, compared as bytes so the segment is named when it is removed; never fetched",
   'https://relay.invalid':
     'the reserved address (RFC 6761, never resolves) a pairing stores when the laptop has no relay address; it is compared, never contacted (item 30)',
 };

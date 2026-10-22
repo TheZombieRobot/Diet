@@ -204,10 +204,14 @@ describe('the add-a-crop form (U29; C57)', () => {
     expect(checkGardenCrop(draft)).toEqual({
       ok: true,
       value: {
+        // Item 19's fields, null when the setup step leaves them out.
+        ingredientId: null,
         name: 'Spinach',
         amount: null,
         unit: null,
+        gramsPerUnit: null,
         harvestReady: true,
+        harvestedAt: null,
         perishabilityDays: null,
       },
     });

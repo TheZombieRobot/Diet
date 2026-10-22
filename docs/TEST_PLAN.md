@@ -36,7 +36,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | PWA-01 | Installability, checked by Chrome itself (replaces the Lighthouse PWA audit, which Lighthouse 12 removed; DOC_REVIEW C35). Runs on the production build in CI and on the deployed HTTPS URL once GitHub Pages is on | `Page.getInstallabilityErrors` (Chrome DevTools Protocol) returns an empty list once the service worker is ready; the manifest has name, short_name, id, start_url and scope under `/Diet/`, `display: standalone`, and 192 and 512 px icons plus a 512 px maskable one, each fetched with a 200 and the declared size; `navigator.serviceWorker.controller` is set after a reload (criteria per [web.dev install criteria](https://web.dev/articles/install-criteria)) |
 | PWA-02 | Open app, wait for install prompt, tap "Install" (manual) | Icon on home screen; opens without browser chrome |
 | PWA-03 | Flight mode, open installed app, visit every screen | All screens load; no network error dialogs |
-| PWA-04 | Flight mode: log weight, start fast, log a drink, plan a day, build list | All saved; visible after relaunch |
+| PWA-04 | Flight mode: log weight, start fast, log a drink, plan a day, build list | All saved; visible after relaunch. Garden, pantry and photo at item 19 (e2e/garden.spec.ts E2); weight and fast at items 14 and 15 |
 | PWA-05 | Deploy a new version, reopen app online | "Update available" banner; reload applies it; data intact |
 | PWA-06 | Storage persistence request (reworded per DOC_REVIEW C98) | The request is made at every launch while storage is not already persisted, and the result is shown (unit test with a mocked StorageManager); it is asked again after install, when onboarding first completes and after a successful restore; Settings (Backup and data) and About show the result of `navigator.storage.persisted()`. "Records survive a week" moved to the end-of-week-1 checklist |
 
@@ -117,7 +117,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | ID | Case | Expected |
 |---|---|---|
 | GL-01 | Two recipes both needing avocado | One line, summed quantity |
-| GL-02 | Item in garden/pantry stock | Excluded, shown under "already have" |
+| GL-02 | Item in garden/pantry stock | Excluded, shown under "already have". The stock fixture is defined at item 19 (GL02_GARDEN, GL02_PANTRY, GL02_NULL_AMOUNT_GARDEN); the deduction is tested at item 24 |
 | GL-03 | Buyable units | 430 g chicken → "500 g pack"; 2.5 lemons → "3 lemons" |
 | GL-04 | Aisle grouping | Each item has an aisle; unknown → "Other" |
 | GL-05 | Edit, add manual item, delete | Persist across relaunch |
@@ -236,6 +236,14 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | FD-02 | Open a food whose figures are not loaded | Every per-100 g figure reads "not known", never 0; no badge; the footer says no figure is from a food database |
 | FD-03 | Allergens of a fresh single food, a packed single food, a brand-dependent food, and one the profile lists | "None of the 15 allergens", "check the label" (with "none by nature" for the single food), what it contains plus "check the label", and the conflict in the owner's own terms ("Has wheat (gluten), which you listed") |
 | FD-04 | Swaps on a food's details | Never a swap carrying a listed allergen, nor a food the owner does not want suggested; gluten-free swaps only with Gluten-free household on, whatever the profile lists; "(check the label)" on a swap whose allergens are not complete |
+
+### 3.16 Garden and pantry (checklist item 19)
+| ID | Case | Expected |
+|---|---|---|
+| GD-01 | A photo carrying EXIF location, XMP, a comment and trailing data is added to a crop | The stored photo is a JPEG at most 1,024 px on its long side, upright, with no APPn or comment segment and nothing after the end marker. Any write of a photo that still has one is refused, whichever code makes it |
+| GD-02 | A photo is stored, then every export the app can make is produced | No photo bytes, photo keys or photo text in any file, in any encoding. No file outside the named list mentions the photo store, opens the database or reaches stores generically, read with the TypeScript compiler and its types (an alias, an escape, a template or `+` name, a cast, Dexie's own table lists), and no app file imports test data or a test helper |
+| GD-03 | A crop or pantry item with no amount entered | Shown as "Available, amount not entered" (a ready crop) or "Some, not measured" (pantry). Read by the plan and list with no weight; no gram figure is made up |
+| GD-04 | Garden and pantry wording | No food-safety, freshness, price, savings, stock or kilogram wording, and no gram figure in fixed copy |
 
 ---
 

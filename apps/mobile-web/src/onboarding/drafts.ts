@@ -141,11 +141,15 @@ export function scheduleDraftSavedAs(
   );
 }
 
-/** An empty "Add a crop" form: ready to harvest by default (UX 1f). */
+/**
+ * An empty "Add a crop" form (UX 1f). Not ready by default, as on the garden screen (item 19, G16):
+ * a crop counts only once the owner says it is ready to use, so a seedling listed at setup never
+ * stops it being bought.
+ */
 export const EMPTY_CROP: GardenCropDraft = {
   name: '',
   amount: '',
   unit: null,
-  harvestReady: true,
+  harvestReady: false,
   keepsDays: '',
 };

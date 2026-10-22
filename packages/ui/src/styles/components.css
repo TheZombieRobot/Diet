@@ -967,12 +967,13 @@
   border-radius: var(--radius-pill);
 }
 
-.ui-tabbar__link[aria-current='page'] {
+/* The current tab, and (item 19) the tab of a screen under it, marked aria-current="true". */
+.ui-tabbar__link[aria-current] {
   color: var(--color-teal);
   font-weight: 800;
 }
 
-.ui-tabbar__link[aria-current='page'] .ui-tabbar__icon {
+.ui-tabbar__link[aria-current] .ui-tabbar__icon {
   background: var(--color-teal-tint);
 }
 
@@ -1951,6 +1952,200 @@
 .ui-nutrients td[data-known='false'] {
   color: var(--color-secondary);
   font-weight: 700;
+}
+
+/* ---- Garden and pantry (checklist item 19; mock-up List) ---- */
+
+/* Rows that open a panel in place: the garden crops and the pantry items. */
+.ui-item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+}
+
+.ui-item-row {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-card);
+}
+
+/* The switch moves under the row button when the button would be narrower than 12rem. */
+.ui-item-row__main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+/* The text goes under the thumbnail when it would be narrower than 7rem beside it. */
+.ui-item-row__button {
+  display: flex;
+  flex: 1 1 12rem;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  min-height: var(--size-tap);
+  padding: 12px 8px 12px 12px;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+/* A word breaks only when it is longer than the whole line (break-word, not anywhere). */
+.ui-item-row__text {
+  display: flex;
+  flex: 1 1 7rem;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+/* The amount drops under the name, still at the right, when both do not fit on one line. */
+.ui-item-row__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 8px;
+}
+
+.ui-item-row__title,
+.ui-item-row__value {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ui-item-row__value {
+  margin-inline-start: auto;
+  text-align: end;
+}
+
+.ui-item-row__detail {
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-item-row__note {
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+/* The Ready switch beside the row button (or under it, at the right): the track over its label. */
+.ui-item-row__trailing {
+  flex: none;
+  margin-inline-start: auto;
+  padding: 0 12px 4px 4px;
+}
+
+.ui-item-row__trailing .ui-switch {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 2px;
+}
+
+.ui-item-row__trailing .ui-switch__label {
+  flex: none;
+  font-size: 13px;
+}
+
+/* An open crop, harvest or pantry panel, under its row or button. */
+.ui-item-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+/*
+ * A small phone, or a larger one zoomed in (item 19 review): the card, the row and the choices
+ * each add their own padding, so inside a panel the choices lose theirs to the words.
+ */
+@media (max-width: 359.98px) {
+  .ui-item-panel {
+    padding: 12px 6px;
+  }
+
+  .ui-card__body > .ui-item-panel {
+    padding-inline: 0;
+  }
+
+  .ui-item-panel .ui-choice {
+    gap: 10px;
+    padding-inline: 10px;
+  }
+
+  .ui-item-panel .ui-choice--checked {
+    padding-inline: 9px;
+  }
+}
+
+/* A choice too narrow for its words beside the mark (a phone at 200%): the words go under it. */
+@container (max-width: 180px) {
+  .ui-item-panel .ui-choice__text {
+    flex-basis: 100%;
+  }
+}
+
+.ui-item-panel h3,
+.ui-item-panel h4 {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+/* Suggestions under a name field: short tint buttons that wrap. */
+.ui-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* A past-keeps detail: the calm amber, never red. */
+.ui-text-amber {
+  color: var(--color-amber);
+}
+
+/* A crop's photo, or the leaf when there is none. */
+.ui-thumb {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-teal-tint);
+  color: var(--color-on-teal-tint);
+}
+
+.ui-thumb--large {
+  width: 160px;
+  height: 160px;
+  border-radius: 18px;
+}
+
+.ui-thumb__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ui-thumb__placeholder {
+  display: inline-flex;
 }
 
 /* ---- Laptop pairing (checklist item 30): the camera view and the numbered steps ---- */

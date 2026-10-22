@@ -24,6 +24,8 @@ export const ROUTES = [
   'targets',
   // Item 18: the food catalogue, opened from About.
   'foods',
+  // Item 19: Garden and pantry, reached from Food (and Today's Add harvest).
+  'garden',
   // Item 30: Settings, Laptop pairing.
   'pairing',
 ] as const;
@@ -51,6 +53,7 @@ export const ROUTE_TITLES: Readonly<Record<RouteId, string>> = {
   fasting: 'Fasting and reflux',
   targets: targets.screen.title,
   foods: foods.screen.title,
+  garden: 'Garden and pantry',
   pairing: 'Laptop pairing',
 };
 
@@ -99,3 +102,29 @@ const UNDER_SETTINGS: readonly RouteId[] = [
 /** Settings and the screens reached from it light up the settings gear. */
 export const isUnderSettings = (route: RouteId): boolean =>
   route === 'settings' || UNDER_SETTINGS.includes(route);
+
+// ---- Item 19: the garden and pantry screen, under Food ----
+
+/**
+ * Screens that are not tabs but sit under one (item 19 design 1.1; G21): the tab stays lit, marked
+ * aria-current="true" rather than "page", as the settings gear is for the screens under Settings.
+ */
+export const PARENT_TAB: Readonly<Partial<Record<RouteId, TabRouteId>>> = { garden: 'food' };
+
+/** The garden screen with its Add harvest panel open (Today's quick action). */
+export const GARDEN_HARVEST_HREF = `${routeHref('garden')}/harvest`;
+
+/**
+ * Every in-app address that is not the plain link of a route, so the first-run guard's tests
+ * (item 13's K1 and P1; HS-20, C53) cover them too.
+ */
+export const DEEP_LINKS: readonly string[] = [
+  ...FASTING_SUBLINKS.map(fastingHref),
+  GARDEN_HARVEST_HREF,
+];
+
+/** The second segment of a hash, lower-cased: '#/garden/harvest' gives 'harvest', '#/garden' null. */
+export function routeDetail(hash: string): string | null {
+  const detail = hash.replace(/^#\/?/, '').split(/[?#]/, 1)[0]?.split('/')[1]?.toLowerCase();
+  return detail === undefined || detail === '' ? null : detail;
+}

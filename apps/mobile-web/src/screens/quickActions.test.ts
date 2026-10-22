@@ -20,14 +20,14 @@ describe('quickActionStates (U12; TD-02, T17)', () => {
     );
   });
 
-  it("Log weight is ready and opens item 14's entry in place; the rest arrive later", () => {
+  it("Log weight opens item 14's entry in place and Add harvest the garden screen (item 19); the rest arrive later", () => {
     const states = quickActionStates(readinessGates(answers('no')));
     expect(states.map((s) => s.state.kind)).toEqual([
       'ready',
       'later',
       'later',
       'later',
-      'later',
+      'ready',
       'later',
       'later',
     ]);
@@ -35,6 +35,21 @@ describe('quickActionStates (U12; TD-02, T17)', () => {
       label: 'Log weight',
       run: openWeightEntry,
     });
+  });
+
+  it('C6 G22, G24: Add harvest is never gated: ready, linking to #/garden/harvest, whatever the answers', () => {
+    // Every gate open (all "no"), then every gate closed (all "yes").
+    for (const a of ['no', 'yes'] as const) {
+      const gates = readinessGates({
+        ...answers(a),
+        answers: { q1: a, q2: a, q3: a, q4: a, q5: a, q6: a, q7: a },
+      });
+      const harvest = quickActionStates(gates).find((s) => s.id === 'add-harvest');
+      expect(harvest?.state).toMatchObject({
+        kind: 'ready',
+        action: { label: 'Add harvest', href: '#/garden/harvest' },
+      });
+    }
   });
 
   it('T11: under 18, Add drink is off for alcohol logging, not hidden', () => {

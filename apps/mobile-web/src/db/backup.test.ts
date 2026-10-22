@@ -16,9 +16,11 @@ import {
   kickstartUsage,
   missingReadinessAnswers,
   migrateSnapshot,
+  parseBackupText,
   plainBackupText,
   readinessInputFromRows,
   type Snapshot,
+  unlockBackup,
   validateSnapshot,
 } from '@diet/core';
 import {
@@ -35,7 +37,7 @@ import {
 } from '@diet/test-fixtures';
 import { describe, expect, it } from 'vitest';
 import { deleteAllData } from './deleteAll';
-import { createExport, createRescueCopy } from './exportBackup';
+import { createExport, createRescueCopy, createUpgradeRescueCopy } from './exportBackup';
 import {
   decodeImport,
   type ImportFile,
@@ -117,19 +119,44 @@ async function importAndReload(
   return openTestDb({ deps: test.deps, env: test.env });
 }
 
-function expectNoDeviceData(text: string): void {
-  const raw = String.fromCharCode(...PHOTO_BYTES);
+/**
+ * Every way a run of photo bytes could sit in a text file, under any key (item 19 review): as
+ * Latin-1 text (raw and JSON-escaped), as hex, as a list of numbers, and as base64 from each of the
+ * three byte alignments (base64 of a run that starts 1 or 2 bytes into a group differs).
+ */
+function byteForms(bytes: Uint8Array): string[] {
+  const latin1 = String.fromCharCode(...bytes);
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  const base64 = [0, 1, 2].map((shift) => {
+    const whole = Math.floor((bytes.length - shift) / 3) * 3;
+    return bytesToBase64(bytes.subarray(shift, shift + whole));
+  });
+  return [
+    latin1,
+    JSON.stringify(latin1).slice(1, -1),
+    hex,
+    hex.toUpperCase(),
+    bytes.join(','),
+    ...base64,
+  ];
+}
+
+/** No pairing secret and no photo, in any form, in a file the app made. */
+function expectNoDeviceData(text: string, photo: Uint8Array): void {
+  // The synthetic photo carries the PHOTO_BYTES run itself, so its checks can find it.
+  expect(byteForms(photo).every((form) => form.length > 0)).toBe(true);
+  expect(photo.join(',')).toContain(PHOTO_BYTES.join(','));
   for (const leak of [
     'ExampleRoomId00000000A',
     'https://relay.example.com/room',
-    bytesToBase64(PHOTO_BYTES),
-    raw,
+    ...byteForms(PHOTO_BYTES),
+    ...byteForms(photo),
     '"bytes":',
     '"key":',
     '"roomId":',
     '"relayUrl":',
   ]) {
-    expect(text.includes(leak), leak).toBe(false);
+    expect(text.includes(leak), leak.slice(0, 40)).toBe(false);
   }
 }
 
@@ -148,7 +175,8 @@ describe('BK-01 / HS-15: round trip through the real database (section 10.8; sec
       ).toBe(true);
       await savePairingForTests(test);
       const gardenId = snapshotV1.garden[0]?.id ?? '';
-      await test.db.garden_photos.put(photoRow(gardenId));
+      const photo = photoRow(gardenId);
+      await test.db.garden_photos.put(photo);
 
       const exported = await createExport(test.db, test.env, password);
       if (!exported.ok) throw exported.error;
@@ -158,7 +186,12 @@ describe('BK-01 / HS-15: round trip through the real database (section 10.8; sec
       await test.repos.settings.recordBackup(exported.file.exportedAt);
       const before = await backupSnapshot(test.db);
       expect(before.settings[0]?.lastBackupAt).toBe(exported.file.exportedAt);
-      if (password === null) expectNoDeviceData(exported.file.text);
+      // The locked file is checked once decrypted, as the plain one is.
+      const parsed = parseBackupText(exported.file.text);
+      const readable = parsed.encrypted
+        ? JSON.stringify(await unlockBackup(parsed, SYNTHETIC_PHRASE))
+        : exported.file.text;
+      expectNoDeviceData(readable, new Uint8Array(photo.bytes));
 
       await deleteEverything(test);
       const fresh = await openTestDb({ deps: test.deps, env: test.env });
@@ -170,6 +203,48 @@ describe('BK-01 / HS-15: round trip through the real database (section 10.8; sec
       expect(await after.db.garden_photos.count()).toBe(0);
     },
   );
+});
+
+describe('B3 GD-02: no file the app makes carries a garden photo (item 19; HS-15, BK-01)', () => {
+  it('the plain backup, the locked one once decrypted, a rescue copy and an unchecked copy', async () => {
+    const test = await openTestDb();
+    await fillWithFixture(test);
+    const photo = photoRow(snapshotV1.garden[0]?.id ?? '');
+    await test.db.garden_photos.put(photo);
+    const files: [string, string][] = [];
+
+    const plain = await createExport(test.db, test.env, null);
+    if (!plain.ok) throw plain.error;
+    files.push(['plain', plain.file.text]);
+    const locked = await createExport(test.db, test.env, SYNTHETIC_PHRASE);
+    if (!locked.ok) throw locked.error;
+    const parsed = parseBackupText(locked.file.text);
+    if (!parsed.encrypted) throw new Error('expected a locked file');
+    files.push(['locked, decrypted', JSON.stringify(await unlockBackup(parsed, SYNTHETIC_PHRASE))]);
+    const rescue = await createUpgradeRescueCopy(test.deps.indexedDB, test.env, null);
+    files.push(['rescue copy', rescue?.file.text ?? '']);
+
+    // An unchecked copy: a phone whose own self-check fails (a weight written past the app's checks).
+    test.db.shutDown();
+    const raw = await rawWriter(test.deps, STORES_V1);
+    await raw.table('weights').put({ ...snapshotV1.weights[0], kg: 5 });
+    raw.close();
+    const phone = await openTestDb({ deps: test.deps, env: test.env });
+    expect(await phone.db.garden_photos.count()).toBe(1);
+    const failed = await createExport(phone.db, phone.env, null);
+    if (failed.ok || failed.unchecked === null) throw new Error('expected a failed self-check');
+    files.push([
+      'unchecked copy',
+      (await createRescueCopy(failed.unchecked, phone.env, null)).file.text,
+    ]);
+
+    for (const [name, text] of files) {
+      expect(text.length, name).toBeGreaterThan(1000);
+      expect(text, name).not.toContain(bytesToBase64(new Uint8Array(photo.bytes)));
+      expect(text, name).not.toContain('garden_photos');
+      expectNoDeviceData(text, new Uint8Array(photo.bytes));
+    }
+  });
 });
 
 describe('BK-02: a wrong password imports nothing (section 16 test 27)', () => {
@@ -249,7 +324,8 @@ describe('replace semantics and the confirmation (D17; section 16 test 29)', () 
     const extraWeight = await test.repos.weights.create({ kg: 100, source: 'manual', note: null });
     const extraGarden = await test.repos.garden.create({
       ingredientId: null,
-      name: 'Example herb',
+      // Not a fixture crop's name: one row per crop (item 19, G17).
+      name: 'Example extra herb',
       amount: null,
       unit: null,
       gramsPerUnit: null,

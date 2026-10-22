@@ -16,7 +16,7 @@ import {
   type TransferPairingRecord,
   type YesNo,
 } from '@diet/core';
-import { fixtureId } from '@diet/test-fixtures';
+import { cleanJpeg, fixtureId } from '@diet/test-fixtures';
 import Dexie, { type DBCore, type Middleware } from 'dexie';
 import { IDBFactory, IDBKeyRange } from 'fake-indexeddb';
 import { createStore, type Store } from '../store';
@@ -363,14 +363,23 @@ export async function savePairingForTests(test: TestDb): Promise<TransferPairing
   return test.repos.pairing.save({ roomId, relayUrl, key });
 }
 
-/** Synthetic photo bytes: a recognisable byte pattern, never a real image. */
-export const PHOTO_BYTES = Uint8Array.from({ length: 64 }, (_, i) => (i * 7 + 3) % 256);
+/**
+ * Synthetic photo bytes: a recognisable byte pattern, never a real image. No byte is FF, so the
+ * JPEG builder stores the run as it is (an FF would be stuffed as FF 00 and the run would vanish,
+ * leaving the leak checks nothing to find; item 19 review).
+ */
+export const PHOTO_BYTES = Uint8Array.from({ length: 64 }, (_, i) => (i * 7 + 3) % 255);
 
+/**
+ * A synthetic garden photo: a clean JPEG built in code (item 19) whose frame is `width` × 480 and
+ * whose scan data is PHOTO_BYTES, byte for byte, so the validation middleware's photo check accepts
+ * it. Never a real image.
+ */
 export function photoRow(gardenId: string, width = 640): GardenPhotoRecord {
   return {
     gardenId,
     mimeType: 'image/jpeg',
-    bytes: PHOTO_BYTES.slice().buffer,
+    bytes: cleanJpeg({ width, height: 480, scan: PHOTO_BYTES }).slice().buffer,
     width,
     height: 480,
     takenAt: '2000-01-05T00:00:00.000Z',

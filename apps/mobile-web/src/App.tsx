@@ -11,13 +11,14 @@ import { useEffect, useRef, type ReactElement } from 'react';
 import { APP_NAME } from './appName';
 import { type FailureStatus, type OpenStatus, openStatusStore } from './db/db';
 import { appStorageStore } from './db/runtime';
-import { goToTab, markEntryAboveToday } from './navigation';
+import { goToTab, markEntryAboveToday, markSubScreenEntry } from './navigation';
 import { OnboardingGate } from './onboarding/OnboardingGate';
 import { takeArrivedFromSetup } from './onboarding/navigation';
 import { offlineCopyStore } from './pwa/offline';
 import {
   isTabRoute,
   isUnderSettings,
+  PARENT_TAB,
   ROUTE_TITLES,
   routeHref,
   TAB_ROUTES,
@@ -29,6 +30,7 @@ import { DrinksScreen } from './screens/DrinksScreen';
 import { FastingScreen } from './screens/fasting/FastingScreen';
 import { FoodScreen } from './screens/FoodScreen';
 import { FoodsScreen } from './screens/foods/FoodsScreen';
+import { GardenScreen } from './screens/garden/GardenScreen';
 import { ListScreen } from './screens/ListScreen';
 import { MoveScreen } from './screens/MoveScreen';
 import { PairingScreen } from './screens/pairing/PairingScreen';
@@ -93,6 +95,8 @@ function screenFor(route: RouteId): ReactElement {
       return <TargetsScreen />;
     case 'foods':
       return <FoodsScreen />;
+    case 'garden':
+      return <GardenScreen />;
     case 'pairing':
       return <PairingScreen />;
   }
@@ -127,6 +131,7 @@ function Shell(): ReactElement {
   const offlineCopy = useStore(offlineCopyStore);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const previousRoute = useRef<RouteId | undefined>(undefined);
+  const entryState = useRef<unknown>(null);
 
   useEffect(() => {
     document.title = route === 'today' ? APP_NAME : `${ROUTE_TITLES[route]} · ${APP_NAME}`;
@@ -142,7 +147,13 @@ function Shell(): ReactElement {
     }
     if (previous === route) return;
     markEntryAboveToday(previous, route);
+    markSubScreenEntry(previous, route, window.history, entryState.current);
     titleRef.current?.focus({ preventScroll: true });
+  }, [route]);
+  // The state of the entry now shown, marks included: the next route change reads it as the
+  // entry it came from (item 19 review: Today, Food, Garden and pantry, then Today).
+  useEffect(() => {
+    entryState.current = window.history.state;
   }, [route]);
 
   return (
@@ -150,7 +161,8 @@ function Shell(): ReactElement {
       title={ROUTE_TITLES[route]}
       titleRef={titleRef}
       tabs={TABS}
-      currentTab={isTabRoute(route) ? route : undefined}
+      currentTab={isTabRoute(route) ? route : PARENT_TAB[route]}
+      currentTabIsParent={!isTabRoute(route) && PARENT_TAB[route] !== undefined}
       onTabSelect={(id) => {
         if (isTabId(id)) goToTab(id, route);
       }}

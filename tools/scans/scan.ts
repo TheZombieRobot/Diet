@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { isScript, scanDeviceOnly, scanTestOnlyImports } from './deviceOnly';
 import { decodeText, rawSegment, visibleSegments, type TextSegment } from './extract';
 import {
   aiAndTelemetryRules,
@@ -8,6 +9,9 @@ import {
   ALLOWED_EMAILS,
   CONTENT_EXEMPT_FILES,
   currencyRules,
+  DEVICE_ONLY_ALLOWED_FILES,
+  DEVICE_ONLY_CODE_RULES,
+  deviceOnlyRules,
   DISABLED_TEST_EXEMPT_FILES,
   disabledTestRules,
   extensionAlwaysRules,
@@ -30,6 +34,7 @@ import {
   serviceWorkerConfigRules,
   SSH_REMOTE_USERS,
   stockAndCartRules,
+  TEST_SUPPORT_FILES,
   type ContentRule,
   type PathRule,
 } from './rules';
@@ -160,6 +165,63 @@ export const RELAY_BLIND: RuleSet = {
   appliesTo: (f) => isRelaySource(f) && !isExempt(f),
 };
 
+/**
+ * Item 19: only the named files may name the photo store or reach stores generically (G8). Kept
+ * out of RULE_SETS like HEALTH_TEXT_HOME: these are code rules, not wording. Test data is read
+ * too: it may hold anything, so no app file may import it (test-only-import below). With this
+ * set, scanFiles also runs the compiler-based rules of deviceOnly.ts over the same files.
+ */
+export const DEVICE_ONLY: RuleSet = {
+  name: 'device-only stores',
+  rules: deviceOnlyRules,
+  text: 'raw',
+  appliesTo: (f) =>
+    isWorkspace(f) &&
+    isCode(f) &&
+    !isTestFile(f) &&
+    !isExempt(f) &&
+    !DEVICE_ONLY_ALLOWED_FILES.includes(f),
+};
+
+/** Files that may import test data and test helpers: tests, the helpers and the fixtures package. */
+const mayImportTestData = (f: string) =>
+  isTestData(f) || TEST_SUPPORT_FILES.includes(f) || !isWorkspace(f);
+
+/**
+ * The compiler-based device-only rules (deviceOnly.ts) and test-only-import, as violations. The
+ * type checker reads the files together, so they run once over every file, not file by file.
+ */
+export function deviceOnlyCodeViolations(root: string, files: readonly string[]): Violation[] {
+  const problems = [
+    ...scanDeviceOnly(root, files.filter(DEVICE_ONLY.appliesTo), DEVICE_ONLY_ALLOWED_FILES),
+    ...files
+      .filter((f) => isScript(f) && isCode(f) && !isExempt(f) && !mayImportTestData(f))
+      .flatMap((f) =>
+        scanTestOnlyImports(f, readFileSync(join(root, f), 'utf8'), TEST_SUPPORT_FILES),
+      ),
+  ];
+  const lines = new Map<string, string[]>();
+  const lineOf = (file: string, line: number) => {
+    let text = lines.get(file);
+    if (text === undefined) {
+      text = readFileSync(join(root, file), 'utf8').split('\n');
+      lines.set(file, text);
+    }
+    return (text[line - 1] ?? '').trim();
+  };
+  return problems.map((p) => {
+    const rule = DEVICE_ONLY_CODE_RULES[p.rule];
+    return {
+      file: p.file,
+      line: p.line,
+      column: p.column,
+      ruleId: p.rule,
+      enforces: rule?.enforces ?? ['GD-02'],
+      description: `${rule?.description ?? p.rule}: ${p.detail}`,
+      excerpt: lineOf(p.file, p.line).slice(0, 160),
+    };
+  });
+}
 /** The one file that may cast to SealedRelayBody, and the one that may load jsqr (item 30). */
 export const SEALED_BODY_FILE = 'packages/grocery/src/transfer/envelope.ts';
 export const QR_DECODER_FILE = 'apps/mobile-web/src/screens/pairing/qrDecoders.ts';
@@ -268,6 +330,7 @@ export function ruleSetsFor(root: string): RuleSet[] {
     ...RULE_SETS,
     HEALTH_TEXT_HOME,
     RELAY_BLIND,
+    DEVICE_ONLY,
     ...TRANSFER_GUARD,
     ...extensionRuleSets(readExtensionDecision(root)),
   ];
@@ -453,6 +516,13 @@ export function scanFiles(
     violations.push(...scanPath(file, stats.size, pathRules, bytes));
     const text = decodeText(bytes);
     if (text !== undefined) violations.push(...scanSource(file, text, ruleSets));
+  }
+  if (ruleSets.includes(DEVICE_ONLY)) {
+    // The raw name rule and the compiler may report the same name: once is enough.
+    const reported = new Set(violations.map((v) => `${v.file}:${v.line}:${v.column}:${v.ruleId}`));
+    for (const v of deviceOnlyCodeViolations(root, files)) {
+      if (!reported.has(`${v.file}:${v.line}:${v.column}:${v.ruleId}`)) violations.push(v);
+    }
   }
   return violations;
 }

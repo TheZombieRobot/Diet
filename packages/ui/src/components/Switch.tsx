@@ -15,6 +15,12 @@ export interface SwitchProps {
   hint?: string | undefined;
   /** The checkbox, for moving focus to it. */
   ref?: Ref<HTMLInputElement> | undefined;
+  /**
+   * A fuller name for screen readers when several switches share one visible label (item 19: the
+   * garden rows' "Ready" switches, named "Silverbeet: ready to use"). It contains the visible
+   * label, so speech input still finds it (WCAG 2.5.3).
+   */
+  accessibleName?: string | undefined;
 }
 
 /** An on/off switch: a native checkbox with role="switch", in a row at least 48 px high. */
@@ -26,6 +32,7 @@ export function Switch({
   busy = false,
   hint,
   ref,
+  accessibleName,
 }: SwitchProps): ReactElement {
   const hintId = `${useId()}-hint`;
   const control = (
@@ -38,6 +45,7 @@ export function Switch({
         checked={checked}
         disabled={disabled}
         aria-disabled={busy || undefined}
+        aria-label={accessibleName}
         aria-describedby={hint === undefined ? undefined : hintId}
         onChange={(event) => {
           if (!busy) onChange(event.currentTarget.checked);

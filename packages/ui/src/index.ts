@@ -26,6 +26,7 @@ export {
   FloatingActionPanel,
   type FloatingActionPanelProps,
 } from './components/FloatingActionPanel';
+export { ItemRow, type ItemRowProps } from './components/ItemRow';
 export {
   IconButton,
   IconLink,
@@ -60,6 +61,7 @@ export { Switch, type SwitchProps } from './components/Switch';
 export { TabBar, type TabBarProps, type TabItem } from './components/TabBar';
 export { TagList, type TagListProps } from './components/TagList';
 export { TextField, type TextFieldProps } from './components/TextField';
+export { Thumbnail, type ThumbnailProps } from './components/Thumbnail';
 export { TopBar, type TopBarProps } from './components/TopBar';
 export { CHART_MIN_SPAN_KG, TrendChart, type TrendChartProps } from './components/TrendChart';
 export * from './icons';

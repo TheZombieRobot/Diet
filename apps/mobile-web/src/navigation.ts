@@ -1,4 +1,4 @@
-import { routeHref, type RouteId, type TabRouteId } from './routes';
+import { PARENT_TAB, routeHref, type RouteId, type TabRouteId } from './routes';
 
 /**
  * Tab switching that keeps Android's back gesture short (item 5 review): back from any tab goes
@@ -11,7 +11,7 @@ const ABOVE_TODAY = 'dietAboveToday';
 
 export interface BrowserHistory {
   location: Pick<Location, 'assign' | 'replace'>;
-  history: Pick<History, 'state' | 'back' | 'replaceState'>;
+  history: Pick<History, 'state' | 'back' | 'go' | 'replaceState'>;
 }
 
 const browserHistory = (): BrowserHistory => ({
@@ -24,6 +24,32 @@ const isAboveToday = (state: unknown): boolean =>
   state !== null &&
   (state as Readonly<Record<string, unknown>>)[ABOVE_TODAY] === true;
 
+/** Item 19: the tab a sub-screen's entry was opened from (Garden and pantry from Food). */
+const PARENT = 'dietParentTab';
+/**
+ * Item 19 review: that tab's entry is itself above Today, so Today is two entries back. It stays
+ * when another tab replaces the entry, which is still two above Today.
+ */
+const TODAY_TWO_BACK = 'dietTodayTwoBack';
+
+const parentTabOf = (state: unknown): unknown =>
+  typeof state === 'object' && state !== null
+    ? (state as Readonly<Record<string, unknown>>)[PARENT]
+    : undefined;
+
+const isTodayTwoBack = (state: unknown): boolean =>
+  typeof state === 'object' &&
+  state !== null &&
+  (state as Readonly<Record<string, unknown>>)[TODAY_TWO_BACK] === true;
+
+/** The entry's state without the sub-screen mark, for a tab switch that replaces the entry. */
+function withoutParentTab(state: unknown): unknown {
+  if (parentTabOf(state) === undefined) return state;
+  return Object.fromEntries(
+    Object.entries(state as Readonly<Record<string, unknown>>).filter(([key]) => key !== PARENT),
+  );
+}
+
 /** Switches to a tab, the way a tap on the tab bar does. */
 export function goToTab(
   target: TabRouteId,
@@ -34,7 +60,15 @@ export function goToTab(
   const href = routeHref(target);
   if (target === 'today') {
     if (isAboveToday(history.state)) history.back();
+    // Item 19 review: Today, then Food, then Garden and pantry: step back over both, so Back from
+    // Today still leaves the app.
+    else if (isTodayTwoBack(history.state)) history.go(-2);
     else location.replace(href);
+    return;
+  }
+  // Item 19: back to the tab a sub-screen was opened from, rather than a second entry for it.
+  if (parentTabOf(history.state) === target) {
+    history.back();
     return;
   }
   if (current === 'today' && !isAboveToday(history.state)) {
@@ -42,7 +76,7 @@ export function goToTab(
     location.assign(href);
     return;
   }
-  const state: unknown = history.state;
+  const state: unknown = withoutParentTab(history.state);
   location.replace(href);
   history.replaceState(state, '', href);
 }
@@ -59,4 +93,40 @@ export function markEntryAboveToday(
   if (previous === 'today' && current !== 'today' && history.state === null) {
     history.replaceState({ [ABOVE_TODAY]: true }, '');
   }
+}
+
+/**
+ * Item 19: called after every route change, next to markEntryAboveToday. A new entry for a
+ * sub-screen opened from its parent tab (Garden and pantry from Food) is marked, so the tab's tap
+ * steps back to the tab's own entry instead of stacking a second one. `previousState` is the state
+ * of the entry it was opened from: when that entry is above Today, the mark says so, and Today
+ * steps back over both.
+ */
+export function markSubScreenEntry(
+  previous: RouteId,
+  current: RouteId,
+  history: Pick<History, 'state' | 'replaceState'> = window.history,
+  previousState: unknown = null,
+): void {
+  if (PARENT_TAB[current] === previous && history.state === null) {
+    history.replaceState(
+      isAboveToday(previousState)
+        ? { [PARENT]: previous, [TODAY_TWO_BACK]: true }
+        : { [PARENT]: previous },
+      '',
+    );
+  }
+}
+
+/**
+ * Item 19: moves the current entry to `href` without a new history entry and keeps its state
+ * (closing the harvest panel turns #/garden/harvest into #/garden), so Back still goes where it did.
+ */
+export function replaceEntryHref(
+  href: string,
+  { location, history }: BrowserHistory = browserHistory(),
+): void {
+  const state: unknown = history.state;
+  location.replace(href);
+  history.replaceState(state, '', href);
 }

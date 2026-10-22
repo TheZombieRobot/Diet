@@ -15,6 +15,9 @@ export * from './grocery/list300';
 export * from './weight/scenarios';
 // Foods (checklist item 18): the synthetic food data and a small subset of the shipped catalogue.
 export * from './foods/foodFixtures';
+// Garden and pantry (checklist item 19): JPEG bytes built in code, and the GL-02 and NN-06 stock rows.
+export * from './garden/jpeg';
+export * from './garden/stockFixtures';
 // Transfer (checklist item 30): fixed pairing and sealing vectors, and QR images drawn at test time.
 export * from './transfer/qrImage';
 export * from './transfer/vectors';

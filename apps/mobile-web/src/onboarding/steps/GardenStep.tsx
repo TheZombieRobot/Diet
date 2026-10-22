@@ -1,5 +1,6 @@
 import {
   checkGardenCrop,
+  duplicateOnSave,
   fillTemplate,
   type GardenCropDraft,
   gardenCropDraftEmpty,
@@ -7,12 +8,18 @@ import {
   type GardenCropProblem,
   type GardenCropValue,
   type GardenRecord,
+  gardenProblemText,
+  gardenRowView,
+  linkFor,
+  localDateOf,
+  PLAN_AND_LIST_BUILT,
 } from '@diet/core';
-import { garden, onboarding } from '@diet/core/copy/health';
+import { garden, gardenScreen, onboarding } from '@diet/core/copy/health';
 import { Button, Card, ChoiceList, CloseIcon, IconButton, Switch, TextField } from '@diet/ui';
 import { type ReactElement, useEffect, useId, useRef, useState } from 'react';
 import { useLiveQuery } from '../../db/liveQuery';
 import type { AppStorage } from '../../db/runtime';
+import { useFoodCatalogue } from '../../foods/useFoods';
 import { addCrop, finishGarden, removeCrop } from '../actions';
 import { EMPTY_CROP } from '../drafts';
 import { type FlowFrame, FlowStepFrame } from '../FlowFrame';
@@ -25,46 +32,28 @@ const SEEDED_SILVERBEET = 'seed:silverbeet';
 
 const readGarden = (storage: AppStorage): Promise<GardenRecord[]> => storage.repos.garden.list();
 
-/** "Silverbeet — Available, amount not entered", "Spinach — 2 bunches · Ready to harvest · …". */
-function cropDetail(crop: GardenRecord): string {
-  const parts: string[] = [];
-  if (crop.amount === null || crop.unit === null) {
-    parts.push(garden.available);
-  } else {
-    const unit =
-      crop.unit === 'bunch'
-        ? crop.amount === 1
-          ? garden.unitNames.bunchOne
-          : garden.unitNames.bunch
-        : garden.unitNames[crop.unit];
-    parts.push(fillTemplate(garden.amount, { amount: crop.amount, unit }));
-  }
-  parts.push(crop.harvestReady ? garden.ready : garden.notReady);
-  if (crop.perishabilityDays !== null) {
-    parts.push(
-      crop.perishabilityDays === 1
-        ? garden.keepsForOne
-        : fillTemplate(garden.keepsFor, { days: crop.perishabilityDays }),
-    );
-  }
-  return parts.join(' · ');
+/**
+ * "Available, amount not entered · Ready to use", "2 bunches · Not ready yet · Keeps about 1 day":
+ * item 19's row text (core gardenRowView), so setup and the garden screen say the same thing. The
+ * "Updated" part and the notes mean nothing during setup and are left out.
+ */
+function cropDetail(crop: GardenRecord, storage: AppStorage): string {
+  const view = gardenRowView(crop, {
+    today: localDateOf(storage.env.now(), storage.env.timeZone()),
+    zone: storage.env.timeZone(),
+    hasDataset: false,
+    planAndListBuilt: PLAN_AND_LIST_BUILT,
+  });
+  return [view.value, view.readyText, view.freshness]
+    .filter((part): part is string => part !== null)
+    .join(' · ');
 }
 
 function cropError(
   field: GardenCropField,
   problem: GardenCropProblem | undefined,
 ): string | undefined {
-  if (problem === undefined) return undefined;
-  switch (field) {
-    case 'name':
-      return problem === 'required' ? garden.errors.nameRequired : garden.errors.nameLength;
-    case 'amount':
-      return garden.errors.amount;
-    case 'unit':
-      return garden.errors.unitRequired;
-    case 'keepsDays':
-      return garden.errors.keeps;
-  }
+  return problem === undefined ? undefined : gardenProblemText(field, problem);
 }
 
 /**
@@ -89,7 +78,10 @@ export function GardenStep({
   readonly onBack: () => void;
 }): ReactElement {
   const crops = useLiveQuery(storage, readGarden);
+  const catalogue = useFoodCatalogue(storage);
   const [problems, setProblems] = useState<Partial<Record<GardenCropField, GardenCropProblem>>>({});
+  /** The name of a listed crop the typed one would duplicate (G17). */
+  const [duplicateOf, setDuplicateOf] = useState<string | null>(null);
   const nameField = useRef<HTMLInputElement>(null);
   const addForm = useRef<HTMLDivElement>(null);
   const [refused, setRefused] = useState(0);
@@ -98,6 +90,7 @@ export function GardenStep({
   const removeSave = useSave();
   const finishSave = useSave();
   const set = (patch: Partial<GardenCropDraft>) => {
+    setDuplicateOf(null);
     onDraftChange({ ...draft, ...patch });
   };
 
@@ -105,15 +98,29 @@ export function GardenStep({
   useEffect(() => {
     if (refused > 0) focusFirstInvalid(addForm.current);
   }, [refused]);
-  const add = () => {
-    const checked = checkGardenCrop(draft);
+  /**
+   * The typed crop, linked as the garden screen links it (item 19 G12: a name that exactly matches
+   * one food), or null with what it needs: a crop listed already is refused (G17), as on the garden
+   * screen, so setup never makes a pair.
+   */
+  const checkTyped = (): GardenCropValue | null => {
+    const ingredientId = linkFor(catalogue, { name: draft.name, picked: null, stored: null });
+    const checked = checkGardenCrop({ ...draft, ingredientId });
     if (!checked.ok) {
       setProblems(checked.problems);
-      return;
+      setDuplicateOf(null);
+      return null;
     }
     setProblems({});
+    const match = duplicateOnSave(crops ?? [], checked.value, null);
+    setDuplicateOf(match?.name ?? null);
+    return match === null ? checked.value : null;
+  };
+  const add = () => {
+    const crop = checkTyped();
+    if (crop === null) return;
     void addSave
-      .run(() => addCrop(storage, checked.value))
+      .run(() => addCrop(storage, crop))
       .then((ok) => {
         if (!ok) return;
         onDraftChange(EMPTY_CROP);
@@ -123,14 +130,11 @@ export function GardenStep({
   const finish = (addTyped: boolean) => {
     let crop: GardenCropValue | null = null;
     if (addTyped && !gardenCropDraftEmpty(draft)) {
-      const checked = checkGardenCrop(draft);
-      if (!checked.ok) {
-        setProblems(checked.problems);
+      crop = checkTyped();
+      if (crop === null) {
         setRefused((n) => n + 1);
         return;
       }
-      setProblems({});
-      crop = checked.value;
     }
     let completed = false;
     void finishSave
@@ -193,7 +197,7 @@ export function GardenStep({
             <li key={crop.id} className="ui-row">
               <span className="ui-row__text">
                 <span className="ui-text-strong">{crop.name}</span>
-                <span className="ui-text-muted">{cropDetail(crop)}</span>
+                <span className="ui-text-muted">{cropDetail(crop, storage)}</span>
               </span>
               {crop.ingredientId === SEEDED_SILVERBEET ? null : (
                 <IconButton
@@ -218,7 +222,11 @@ export function GardenStep({
             hint={garden.nameHint}
             autoComplete="off"
             value={draft.name}
-            error={cropError('name', problems.name)}
+            error={
+              duplicateOf === null
+                ? cropError('name', problems.name)
+                : fillTemplate(gardenScreen.cropForm.duplicate, { crop: duplicateOf })
+            }
             onChange={(event) => {
               set({ name: event.currentTarget.value });
             }}

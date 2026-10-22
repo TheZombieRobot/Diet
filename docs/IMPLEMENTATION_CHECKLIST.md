@@ -72,7 +72,7 @@ Conventions for the implementing model:
     *Acceptance:* NU-01; validation script (`pnpm foods:check`); at step 18b, attribution text matches the chosen licence, NU-01 on the real figures, and items 20–23's acceptance re-run with real figures before any deploy. *Accepted in part until step 18b* (in progress: the catalogue is built with every figure not known).
 
 19. **Garden and pantry inventory.** Crop, amount, harvest-ready, perishability, optional photo stored on device; pantry quantities; "Add harvest" quick action.
-    *Acceptance:* GL-02 fixture; PWA-04 offline persistence; photo never included in exports.
+    *Acceptance:* GL-02 fixture; PWA-04 offline persistence; photo never included in exports; GD-01 to GD-04.
 
 20. **Recipe dataset.** About 30 recipes: silverbeet-first week, leafy greens, affordable NZ proteins (chicken, eggs, canned fish, mince, seasonal fish), seasonal produce, substitutions and leftover reuse; cholesterol-conscious scoring; allergens; raw and cooked weights.
     *Acceptance:* NU-02, NU-03, NU-04; FL-06 (HS-24).

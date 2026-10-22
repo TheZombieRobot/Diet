@@ -16,6 +16,8 @@ import {
   alcohol,
   fasting,
   foods,
+  garden,
+  gardenScreen,
   general,
   healthCopy,
   helpNumbers,
@@ -235,6 +237,20 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
     /\bexact(?:ly)?\b/i,
     /\bsafe(?:ly|r)?\b/i,
     /\bguarantee\w*/i,
+  ],
+  // Item 19 (design section 4; C43, D33, C57, G19, HS-16): no food-safety or freshness claims,
+  // no "exact" homegrown weights, no gram figure in fixed copy, no kilograms, no price, savings
+  // or stock words, no blanket privacy promises, and no nudge to re-date old produce.
+  gardenScreen: [
+    /\b(?:un)?safe(?:ly|ty)?\b/i,
+    /\b(?:spoil\w*|rott\w*|mou?ld(?:y|ed)?|expir\w*|food[\s-]?poisoning|bacteria\w*|germs?|fresh\w*)\b/i,
+    /\bexact(?:ly)?\b/i,
+    /\d\s*g\b/i,
+    /\bkg\b|\bkilo\w*/i,
+    /\bprices?\b|\bcosts?\b|\bsavings?\b|\bcheap\w*|\bstock\b|\$/i,
+    /\b(?:100\s*%|completely|totally|fully|perfectly|always)\s+(?:private|secure|safe|anonymous|protected)\b/i,
+    /\bsecure(?:ly)?\b/i,
+    /\bupdate\s+it\b/i,
   ],
   // Items 30 and 31 (HEALTH_SAFETY.md section 7): one list, shared with the pairing-check scan.
   transfer: TRANSFER_SECTION_RULES,
@@ -802,6 +818,41 @@ describe('foods copy (item 18)', () => {
     expect(Object.keys(foods.allergenWords)).toEqual([...ALLERGENS]);
     expect(Object.values(foods.badges)).toEqual(['Label', 'Database', 'Estimate']);
     expect(foods.months).toHaveLength(12);
+  });
+});
+
+// ---- Item 19: the garden and pantry wording (A8; GD-04; HEALTH_SAFETY section 7) ----
+
+describe('garden and pantry wording (item 19)', () => {
+  it('A8 GD-04: the item 13 garden rules still hold after the edits, and no garden string nudges to "update it"', () => {
+    expect(garden.ready).toBe('Ready to use');
+    expect(garden.readyLabel).toBe(garden.ready);
+    // The garden screen shows item 13's garden strings too (available, ready, keeps for, the form
+    // labels), so every garden-screen rule applies to them as well (item 19 review): no food-safety,
+    // freshness, stock, kilogram or price wording, no gram figure and no "update it" there either.
+    for (const [path, text] of [
+      ...strings(garden, 'garden'),
+      ...strings(gardenScreen, 'gardenScreen'),
+    ]) {
+      for (const rule of SECTION_RULES.gardenScreen) {
+        expect(text, `${path} ${rule.source}`).not.toMatch(rule);
+      }
+    }
+  });
+
+  it('A8 HEALTH_SAFETY 7: the photo note says photos stay off backups, the location is removed from the copy, and the original is not changed', () => {
+    const note = gardenScreen.photo.note;
+    expect(note).toContain('Photos are not in backups or in anything the app sends.');
+    expect(note).toContain(
+      'The location and camera details inside a photo are removed from the copy the app keeps.',
+    );
+    expect(note).toContain('The original in your gallery or camera app is not changed.');
+    for (const text of [
+      gardenScreen.photo.removeConfirm,
+      gardenScreen.cropForm.removeConfirmWithPhoto,
+    ]) {
+      expect(text).toMatch(/not in backups/);
+    }
   });
 });
 
