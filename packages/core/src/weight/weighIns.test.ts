@@ -54,13 +54,40 @@ describe('current weights (W3, W32, HS-35)', () => {
     ];
     expect(gateCurrentWeightKg(rows, TODAY, NOW, ZONE)).toBe(59);
     expect(belowBmiFloorNow(rows, TODAY, NOW, ZONE, 180)).toBe(true);
-    // The other order: the day's mean (60.0) is still the lowest, never the later 61.0.
+    // The other order: the morning's 59.0 still counts (the lowest in the 7 days up to the latest).
     const earlierLow = [
       ...rows.slice(0, 6),
       row('2000-02-19T18:00:00.000Z', 59),
       row('2000-02-20T05:00:00.000Z', 61),
     ];
-    expect(gateCurrentWeightKg(earlierLow, TODAY, NOW, ZONE)).toBe(60);
+    expect(gateCurrentWeightKg(earlierLow, TODAY, NOW, ZONE)).toBe(59);
+  });
+
+  it('HS-35: once now passes a higher weigh-in timed later by a wrong clock, a lower one made after it still counts', () => {
+    // 180 cm (floor 59.94 kg); now is 7 pm on 20 Feb. Six days at 61.0 (1 pm, 14 to 19 Feb).
+    const row = (at: string, kg: number) => ({ at, timeZone: ZONE, kg });
+    const before = Array.from({ length: 6 }, (_, i) =>
+      row(`2000-02-${String(14 + i).padStart(2, '0')}T00:00:00.000Z`, 61),
+    );
+    // Clock ahead: 61.0 saved at 10 am on 19 Feb while the clock read 11 pm, then 59.0 at 6 pm.
+    const ahead = [
+      ...before,
+      row('2000-02-19T10:00:00.000Z', 61),
+      row('2000-02-19T05:00:00.000Z', 59),
+    ];
+    expect(belowBmiFloorNow(ahead, TODAY, NOW, ZONE, 180)).toBe(true);
+    // Clock behind: 61.0 at 7 am today, then 59.0 saved at 6 pm while the clock read yesterday.
+    const behind = [
+      ...before,
+      row('2000-02-19T18:00:00.000Z', 61),
+      row('2000-02-19T05:00:00.000Z', 59),
+    ];
+    expect(belowBmiFloorNow(behind, TODAY, NOW, ZONE, 180)).toBe(true);
+    // With no weigh-in since, 59.0 still counts 10 days later; one timed more than 7 days after it
+    // (5:01 pm on 26 Feb in Auckland) ends that.
+    expect(gateCurrentWeightKg(ahead, '2000-03-01', '2000-03-01T06:00:00.000Z', ZONE)).toBe(59);
+    const weekLater = [...ahead, row('2000-02-26T05:01:00.000Z', 61)];
+    expect(gateCurrentWeightKg(weekLater, '2000-03-01', '2000-03-01T06:00:00.000Z', ZONE)).toBe(61);
   });
 
   it('HS-35: a weigh-in timed after now never hides a lower one, and counts only when it is lower itself', () => {

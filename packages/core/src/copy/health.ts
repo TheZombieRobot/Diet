@@ -1361,7 +1361,7 @@ export const readiness = {
       'Your current weight is low for this height. The app keeps to the same settings as a Yes to question 5: no fasting, no Kickstart, no energy deficit, no keto carb ceiling and no weight goals. If the height is a typing slip, correct it above.',
     changeAnswer: 'Change answer 5',
     summaryLine:
-      'Your latest weight is low for your height, so the app keeps to the same settings as a Yes to question 5.',
+      'Your recent weight is low for your height, so the app keeps to the same settings as a Yes to question 5.',
     /** Settings, Readiness answers: neither the weight nor the height is changed there. */
     whereToChange:
       'If a weigh-in or your height is wrong, correct it on the Weight screen or in Settings, Profile.',
@@ -1630,6 +1630,9 @@ export const weight = {
     save: 'Save weigh-in',
     cancel: 'Cancel',
     saved: 'Saved {kg} kg at {time}.',
+    /** After "saved" when stored weigh-ins are timed after now (DECISIONS 2026-10-22; HS-35). */
+    clockWrong:
+      "Some weigh-ins are timed later than now, so the phone's clock may be wrong now or was wrong when they were saved. Check the date and time in the phone's settings, and the times in Weigh-ins.",
     changeWhen: 'Change the date or time',
     dateLabel: 'Date',
     timeLabel: 'Time',
@@ -1717,8 +1720,9 @@ export const weight = {
       'Kickstart, the typical range and the pace notes are switched off by your readiness answers or age. Your weigh-ins and trend still show.',
     gatedUnanswered:
       'Kickstart, the typical range and the pace notes stay off until the readiness questions are answered. Your weigh-ins and trend still show.',
+    /** HS-35 and DECISIONS 2026-10-22: one low weigh-in holds for 7 days of later weigh-ins. */
     lowWeight:
-      'Your recent weight is below a BMI of 18.5 for your height. Please check in with your GP, and look again at readiness question 5. Kickstart, the typical range and the long-term goal are switched off, and your weigh-ins and trend still show.',
+      'Your recent weight is below a BMI of 18.5 for your height. Please check in with your GP, and look again at readiness question 5. Kickstart, the typical range and the long-term goal are switched off, and your weigh-ins and trend still show. One weigh-in below that level keeps these settings until you log a weigh-in more than 7 days after it, even if the ones in between are higher. If it was a typing slip, correct it on the Weight screen.',
     readinessLink: 'See your readiness answers',
   },
   goal: {

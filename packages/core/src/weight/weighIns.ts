@@ -3,8 +3,9 @@
  * D6; item 14 design section 3.1). Every record is placed on a local date in its own resolved zone
  * (record zone, then the home zone, then Pacific/Auckland, then UTC), so an imported zone this
  * browser does not know never throws. Weigh-ins dated after now are ignored: every window ends
- * today, and the latest weigh-in is the newest one up to now. The gates alone also count one timed
- * after now when it is lower (gateCurrentWeightKg), so a clock that ran ahead never hides a low one.
+ * today, and the latest weigh-in is the newest one up to now. The gates alone also count every
+ * weigh-in timed in the 7 days before that one or later (gateCurrentWeightKg), so a phone clock
+ * that was wrong at a save never hides a low one.
  */
 import { DEFAULT_HOME_TIME_ZONE, resolveZone } from '../storage/dates';
 import type { Id, Instant, TimeZone } from '../storage/primitives';
@@ -129,7 +130,7 @@ export function goalReferenceKgFor(
 /**
  * The lower of the 7-day average and the mean weight on the latest local date on or before today
  * with a weigh-in, however old. Null with no weigh-in. Part of the gates' current weight
- * (gateCurrentWeightKg), which also reads the latest single weigh-in.
+ * (gateCurrentWeightKg), which also reads the single weigh-ins.
  */
 export function currentWeightFromDaily(
   daily: ReadonlyMap<LocalDate, number>,
@@ -145,36 +146,42 @@ export function currentWeightFromDaily(
   return average === null || latest === null ? latest : Math.min(average, latest);
 }
 
+/** A single weigh-in counts for the gates while it is timed this many days or less before the latest. */
+const GATE_WEIGH_IN_DAYS = 7;
+
 /**
- * The kg of the latest single weigh-in the gates read: the newest at or before now, by instant as
- * the Weight card's "Latest" (latestWeighIn), so a change of zone never drops it; or the newest of
- * all when that is lower. A weigh-in timed after now (saved while the clock ran ahead, or brought
- * in by an import) so never hides a lower one, and counts only when it is lower itself. Ties: the
- * lower kg. Null with none.
+ * The kg the gates read from single weigh-ins: the lowest of the latest weigh-in at or before now
+ * (by instant, as the Weight card's "Latest" (latestWeighIn), so a change of zone never drops it)
+ * and every weigh-in timed in the GATE_WEIGH_IN_DAYS before it or later. Weigh-ins carry no save
+ * order: once the phone's clock has been wrong (ahead when a higher one was saved, or behind when
+ * a lower one was saved), a higher weigh-in can read as later than a lower one made after it. The
+ * window keeps that lower one counting until a weigh-in is timed more than 7 days after it, for a
+ * clock wrong by up to 7 days in either direction. A weigh-in timed after now (a clock that ran
+ * ahead, or an import) counts when it is lower. Null with none.
  */
-function gateLatestWeighInKg(rows: readonly WeighInRow[], now: Instant): number | null {
-  type Newest = { readonly ms: number; readonly kg: number } | null;
-  const newer = (best: Newest, ms: number, kg: number): boolean =>
-    best === null || ms > best.ms || (ms === best.ms && kg < best.kg);
+function gateSingleWeighInKg(rows: readonly WeighInRow[], now: Instant): number | null {
   const nowMs = parseInstant(now);
-  let upToNow: Newest = null;
-  let newest: Newest = null;
+  let latestMs: number | null = null;
   for (const row of rows) {
     const ms = parseInstant(row.at);
-    if (newer(newest, ms, row.kg)) newest = { ms, kg: row.kg };
-    if (ms <= nowMs && newer(upToNow, ms, row.kg)) upToNow = { ms, kg: row.kg };
+    if (ms <= nowMs && (latestMs === null || ms > latestMs)) latestMs = ms;
   }
-  if (upToNow === null || newest === null) return newest?.kg ?? null;
-  return Math.min(upToNow.kg, newest.kg);
+  const fromMs = (latestMs ?? nowMs) - GATE_WEIGH_IN_DAYS * 86_400_000;
+  let lowest: number | null = null;
+  for (const row of rows) {
+    if (parseInstant(row.at) >= fromMs && (lowest === null || row.kg < lowest)) lowest = row.kg;
+  }
+  return lowest;
 }
 
 /**
  * The current weight the readiness gates read (item 13 section 9.1 rule 2; HS-35; DECISIONS "The
  * gates' current weight"): the lowest of the 7-day average, the latest day's mean (on or before
- * today, however old) and the latest single weigh-in (gateLatestWeighInKg), so a low weight is
- * never missed for want of a recent weigh-in, a low evening weigh-in is never averaged away by a
- * higher morning one, and a weigh-in timed after now never hides a lower one. Items 13, 14 and 15
- * use this one rule. Null with no weigh-in.
+ * today, however old) and the single weigh-ins (gateSingleWeighInKg: the latest, and the lowest
+ * in the 7 days before it or later), so a low weight is never missed for want of a recent
+ * weigh-in, a low evening weigh-in is never averaged away by a higher morning one, and a higher
+ * weigh-in timed later by a wrong clock never hides a lower one. Items 13, 14 and 15 use this one
+ * rule. Null with no weigh-in.
  */
 export function gateCurrentWeightKg(
   rows: readonly WeighInRow[],
@@ -184,9 +191,9 @@ export function gateCurrentWeightKg(
 ): number | null {
   const { weighIns } = weighInsFromRecords(rows, homeTimeZone);
   const fromDaily = currentWeightFromDaily(dailyWeightsKg(weighIns), today);
-  const latest = gateLatestWeighInKg(rows, now);
-  if (fromDaily === null || latest === null) return fromDaily ?? latest;
-  return Math.min(fromDaily, latest);
+  const single = gateSingleWeighInKg(rows, now);
+  if (fromDaily === null || single === null) return fromDaily ?? single;
+  return Math.min(fromDaily, single);
 }
 
 /**
