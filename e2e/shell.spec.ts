@@ -214,6 +214,8 @@ test('nothing scrolls sideways or runs off a narrow or zoomed screen, online or 
   page,
   context,
 }) => {
+  // Every screen and a recipe page, three widths, online and offline: about 30 s on its own.
+  test.setTimeout(90_000);
   await seedOnboarded(page);
   await waitForServiceWorkerControl(page);
   const problems: string[] = [];

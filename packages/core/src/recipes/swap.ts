@@ -1,10 +1,11 @@
 /**
  * Substitute ingredient (item 20 design 4.7; C107, FL-07, HS-24, C43). Which swaps a line offers
  * is item 18's one rule, swapDecision: never a food known to carry an allergen the owner listed
- * (tofu with soy listed, canned tuna with fish listed), gluten-free swaps only with Gluten-free
- * household on, and a brand-dependent candidate always marked "check the label". Item 20 adds
- * only the pool, dislikes (item 18's isDislikedFood), the alcohol filter and garden-first order.
- * A swap keeps every allergen of the line it replaces.
+ * (tofu with soy listed, canned tuna with fish listed), never a food known to carry a gluten
+ * cereal while Gluten-free household is on, gluten-free swaps only with it on, and a
+ * brand-dependent candidate always marked "check the label". Item 20 adds only the pool, dislikes
+ * (item 18's isDislikedFood), the alcohol filter and garden-first order. A swap keeps every
+ * allergen of the line it replaces.
  */
 import { swapDecision } from '../foods/allergens';
 import { isDislikedFood } from '../foods/names';
@@ -37,6 +38,8 @@ export interface SwapOptions {
   readonly candidates: readonly SwapCandidate[];
   readonly hidden: {
     readonly allergen: number;
+    /** Known to carry a gluten cereal, with Gluten-free household on (FL-07). */
+    readonly glutenHousehold: number;
     readonly dislike: number;
     readonly glutenFree: number;
   };
@@ -89,13 +92,14 @@ export function substituteOptions(input: {
   const { foods, profile } = input;
   const current = foods.resolve(input.line.ingredientId) ?? { allergensAtLeast: [] };
   const candidates: SwapCandidate[] = [];
-  const hidden = { allergen: 0, dislike: 0, glutenFree: 0 };
+  const hidden = { allergen: 0, glutenHousehold: 0, dislike: 0, glutenFree: 0 };
   for (const id of swapPool(input.line, input.seedLines, foods)) {
     const view = foods.resolve(id);
     if (view === null) continue;
     const decision = swapDecision(current, view, profile);
     if (!decision.offered) {
       if (decision.reason === 'allergen') hidden.allergen += 1;
+      else if (decision.reason === 'gluten-household') hidden.glutenHousehold += 1;
       else hidden.glutenFree += 1;
       continue;
     }

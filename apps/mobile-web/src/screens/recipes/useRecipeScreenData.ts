@@ -1,8 +1,10 @@
 /**
  * What both recipe screens read (item 20 design 3.3): the shipped dataset, the owner's rows in one
  * live read (their foods, corrections, copies, garden, allergens and hidden recipes), the readiness
- * gates for the diet labels, and the month for "In season now". A failed read is a state of its
- * own, never an endless "still opening"; nothing is shown before the owner's allergens are read.
+ * gates for the diet labels, today's saturated-fat budget for the heart cap, and the month for "In
+ * season now". A failed read is a state of its own, never an endless "still opening"; nothing is
+ * shown before the owner's allergens and the day's budget are read, so the list and a recipe's
+ * page always judge heart-smart against the same cap.
  */
 import {
   allSeedViews,
@@ -17,6 +19,7 @@ import {
   type RefId,
   readinessGates,
   ingredientResolver,
+  type HeartCapBudget,
 } from '@diet/core';
 import { readiness } from '@diet/core/copy/health';
 import { useMemo } from 'react';
@@ -26,6 +29,7 @@ import type { AppStorage } from '../../db/runtime';
 import { useFoodData } from '../../foods/FoodDataContext';
 import { gateInputOf, useOnboardingState } from '../../onboarding/state';
 import { useNow } from '../../useNow';
+import { useDayTargets, useTargetsClock } from '../targets/useDayTargets';
 
 /**
  * The carb-style labels (P13): shown only while the keto carb ceiling is available; off (with the
@@ -58,12 +62,14 @@ export type RecipeScreenState =
       readonly labels: RecipeLabels;
       /** 1–12 in the device zone. */
       readonly month: number;
+      /** Item 21's budget for today when it is a budget, null when there is none (C70). */
+      readonly satFatBudgetG: HeartCapBudget;
     };
 
 /** The view context of a ready screen: the owner's own serve on the screens (meal 'own'). */
 export function viewContext(
   state: Extract<RecipeScreenState, { status: 'ready' }>,
-  options: { readonly myServes?: number; readonly satFatBudgetG?: number | null } = {},
+  options: { readonly myServes?: number } = {},
 ): RecipeViewContext {
   return {
     data: state.data,
@@ -75,8 +81,21 @@ export function viewContext(
     hiddenSeedIds: new Set(state.rows.hiddenSeedIds),
     month: state.month,
     myServes: options.myServes ?? 1,
-    satFatBudgetG: options.satFatBudgetG ?? null,
+    satFatBudgetG: state.satFatBudgetG,
   };
+}
+
+/**
+ * Item 21's saturated-fat budget for today: grams when it is a budget, null when there is none,
+ * 'not-read' when the day's targets could not be read, and undefined while they load.
+ */
+function useSatFatBudgetG(storage: AppStorage): HeartCapBudget | undefined {
+  const clock = useTargetsClock(storage);
+  const day = useDayTargets(storage, clock);
+  if (day.status === 'loading') return undefined;
+  if (day.status === 'error') return 'not-read';
+  const budget = day.view.targets.saturatedFat;
+  return budget.kind === 'budget' ? budget.grams : null;
 }
 
 const readRows = (storage: AppStorage): Promise<RecipeContextRows> =>
@@ -88,6 +107,7 @@ export function useRecipeScreenData(storage: AppStorage): RecipeScreenState {
   const { approved } = useFoodData();
   const at = useNow(storage.env);
   const month = Number(localDateOf(at, storage.env.timeZone()).slice(5, 7));
+  const satFatBudgetG = useSatFatBudgetG(storage);
   const labels = useMemo((): RecipeLabels => {
     if (onboarding === undefined || !onboarding.ok) {
       const carbLabels = onboarding === undefined ? 'loading' : 'failed';
@@ -118,7 +138,7 @@ export function useRecipeScreenData(storage: AppStorage): RecipeScreenState {
   return useMemo((): RecipeScreenState => {
     const result = recipeData();
     if (result.status !== 'ok') return { status: 'data-error' };
-    if (rows.status === 'pending') return { status: 'not-ready' };
+    if (rows.status === 'pending' || satFatBudgetG === undefined) return { status: 'not-ready' };
     if (rows.status === 'error') return { status: 'read-error' };
     const { own, overrides, recipes } = rows.value;
     return {
@@ -133,6 +153,7 @@ export function useRecipeScreenData(storage: AppStorage): RecipeScreenState {
       storedById: new Map(recipes.map((r) => [r.id, r])),
       labels,
       month,
+      satFatBudgetG,
     };
-  }, [rows, approved, labels, month]);
+  }, [rows, approved, labels, month, satFatBudgetG]);
 }

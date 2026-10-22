@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { plannedMealFigures } from '../fasting/mealCheck';
 import * as foodsApi from '../foods';
+import type { UserAllergen } from '../storage/allergens';
 import type { RecipeRecord } from '../storage/records';
 import * as recipesApi from '.';
 import { recipeChecksOf } from './checks';
@@ -119,6 +120,32 @@ describe('recipe views and the list (item 20)', () => {
     expect(copy.seed?.id).toBe(frittata.id);
   });
 
+  it('U15 P41: a conflict on one listed allergen keeps the label check for the others', () => {
+    const frittata = recipe('silverbeet-feta-frittata');
+    const withAllergens = (allergens: UserAllergen[]) =>
+      recipeView(frittata, context({ profile: { ...context().profile, allergens } }));
+    const both = withAllergens(['egg', 'peanut']);
+    expect([both.serving, both.conflicts, both.labelCheck]).toEqual([
+      'conflict',
+      ['egg'],
+      ['peanut'],
+    ]);
+    expect(withAllergens(['egg']).labelCheck).toEqual([]);
+    expect(withAllergens(['peanut']).labelCheck).toEqual(['peanut']);
+    expect(withAllergens([]).labelCheck).toEqual([]);
+  });
+
+  it('U15 FL-07: with Gluten-free household on, no swap hint names a food known to carry a gluten cereal', () => {
+    const patties = recipe('salmon-silverbeet-patties');
+    const hints = (glutenFreeHousehold: boolean) =>
+      recipeView(
+        patties,
+        context({ profile: { ...context().profile, glutenFreeHousehold } }),
+      ).lines.find((l) => l.ingredientId === 'seed:almond-meal')?.swapHints;
+    expect(hints(false)).toEqual(['Sunflower seeds', 'Plain flour']);
+    expect(hints(true)).toEqual(['Sunflower seeds']);
+  });
+
   it('U15: the list puts the silverbeet week first in day order and a copy in its seed’s place', () => {
     const frittata = recipe('silverbeet-feta-frittata');
     const copy = copyOf(frittata, '00000000-0000-4000-8000-0000000000e2');
@@ -154,5 +181,9 @@ describe('recipe views and the list (item 20)', () => {
     const known = plannedMealFigures(meal, recipeChecksOf(soup, filled), filled.resolve);
     expect(known).toMatchObject({ proteinKnown: true, incomplete: false });
     expect(known.proteinG).toBeGreaterThan(0);
+    // A stored record's snapshot is never taken for live figures (item 20 review).
+    // @ts-expect-error -- only recipeChecksOf makes what the check reads
+    const stored: Parameters<typeof plannedMealFigures>[1] = {} as RecipeRecord;
+    expect(stored).toEqual({});
   });
 });

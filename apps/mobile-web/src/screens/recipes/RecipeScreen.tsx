@@ -7,6 +7,7 @@
  */
 import {
   allergenListText,
+  carbStyleLine,
   type Confidence,
   eggCount,
   figureShown,
@@ -23,6 +24,7 @@ import {
   type RecipeView,
   recipeView,
   SAT_FAT_REFERENCE_G,
+  type HeartCapBudget,
   SCALE_SERVES_LIMITS,
   scaleLines,
   seedRecipe,
@@ -49,10 +51,10 @@ import { screenTitleStore } from '../../screenTitle';
 import { useStore } from '../../store';
 import { useHash } from '../../useRoute';
 import { useGateOpen } from '../backup/focus';
-import { useDayTargets, useTargetsClock } from '../targets/useDayTargets';
+import { keepOnEntry, keptOnEntry, replaceKeepingEntry } from '../../navigation';
 import { HeadChips, LabelNotices, RecipeStateCard, ReloadButton } from './parts';
 import { RecipeActions } from './RecipeActions';
-import { swapStatusStore } from './status';
+import { COOKING_FOR, cookingForOn, removeFailure, swapStatusStore } from './status';
 import { type RecipeScreenState, useRecipeScreenData, viewContext } from './useRecipeScreenData';
 
 type Ready = Extract<RecipeScreenState, { status: 'ready' }>;
@@ -80,20 +82,31 @@ function NotFound(): ReactElement {
   );
 }
 
-/** The carb-style line (design 4.6): never a bare style while the carbs are not worked out. */
-function carbStyleLine(view: RecipeView): string {
-  const { style, basis, complete, netCarbsPerServeG } = view.carbStyle;
-  if (style === null || basis === 'none') return recipes.style.unknown;
-  if (basis === 'written' && !complete)
-    return `${recipes.style.written[style]} ${recipes.style.notYet}`;
-  return fillTemplate(recipes.style.figures, {
-    style: recipes.chips.style[style],
-    amount: figureText('carbsG', figureShown(netCarbsPerServeG, !complete)),
-  });
+/**
+ * The carb-style line (design 4.6; HS-39): a style word only on complete carbs or on a lower
+ * bound that proves it (balanced); otherwise what the recipe was written for.
+ */
+function carbStyleText(view: RecipeView): string {
+  const { netCarbsPerServeG, complete } = view.carbStyle;
+  const amount = figureText('carbsG', figureShown(netCarbsPerServeG, !complete));
+  const line = carbStyleLine(view.carbStyle);
+  switch (line.kind) {
+    case 'figures':
+      return fillTemplate(recipes.style.figures, {
+        style: recipes.chips.style[line.style],
+        amount,
+      });
+    case 'written':
+      return `${recipes.style.written[line.written]} ${recipes.style.notYet}`;
+    case 'written-above':
+      return `${recipes.style.written[line.written]} ${fillTemplate(recipes.style.knownAbove, { amount })}`;
+    case 'unknown':
+      return recipes.style.unknown;
+  }
 }
 
 /** The heart line and its cap line (design 4.5): what the label is, and the limit it used. */
-function heartLines(view: RecipeView, myServes: number, budgetG: number | null): string[] {
+function heartLines(view: RecipeView, myServes: number, budgetG: HeartCapBudget): string[] {
   const portion = myServes === 1 ? recipes.heart.portion.serve : recipes.heart.portion.mine;
   const capG = formatNumber(Math.floor(view.heart.capG * 10) / 10);
   const heart = view.heart;
@@ -110,11 +123,13 @@ function heartLines(view: RecipeView, myServes: number, budgetG: number | null):
           })
         : heart.kind === 'neither'
           ? recipes.heart.neither
-          : recipes.heart.unknown;
-  const usesBudget = budgetG !== null && budgetG > 0 && budgetG < SAT_FAT_REFERENCE_G;
-  const cap = usesBudget
-    ? fillTemplate(recipes.heart.capBudget, { budgetG: formatNumber(budgetG) })
-    : recipes.heart.capReference;
+          : budgetG === 'not-read'
+            ? recipes.heart.budgetNotRead
+            : recipes.heart.unknown;
+  const cap =
+    typeof budgetG === 'number' && budgetG > 0 && budgetG < SAT_FAT_REFERENCE_G
+      ? fillTemplate(recipes.heart.capBudget, { budgetG: formatNumber(budgetG) })
+      : recipes.heart.capReference;
   return [line, cap];
 }
 
@@ -146,7 +161,7 @@ function NutritionCard({
 }: {
   readonly view: RecipeView;
   readonly myServes: number;
-  readonly budgetG: number | null;
+  readonly budgetG: HeartCapBudget;
   readonly approved: Ready['foods']['approved'];
 }): ReactElement {
   const [per100, setPer100] = useState(false);
@@ -217,22 +232,48 @@ function NutritionCard({
   );
 }
 
+/**
+ * "Cooking for" as the owner left it on this history entry (Back returns to it, and a swap or
+ * Undo carries it to the recipe that replaces this one), else the recipe's own serves.
+ */
+function initialCookingFor(view: RecipeView): number {
+  const kept = keptOnEntry(COOKING_FOR);
+  if (typeof kept === 'object' && kept !== null) {
+    const { id, serves } = kept as Readonly<Record<string, unknown>>;
+    if (
+      id === view.id &&
+      typeof serves === 'number' &&
+      Number.isInteger(serves) &&
+      serves >= SCALE_SERVES_LIMITS.min &&
+      serves <= SCALE_SERVES_LIMITS.max
+    )
+      return serves;
+  }
+  return Math.min(view.serves, SCALE_SERVES_LIMITS.max);
+}
+
 function RecipePage({
   storage,
   state,
   view,
   myServes,
-  budgetG,
 }: {
   readonly storage: AppStorage;
   readonly state: Ready;
   readonly view: RecipeView;
   readonly myServes: number;
-  readonly budgetG: number | null;
 }): ReactElement {
   const writable = useGateOpen(storage.gate);
   const status = useStore(swapStatusStore);
-  const [cookingFor, setCookingFor] = useState(Math.min(view.serves, SCALE_SERVES_LIMITS.max));
+  const [cookingFor, setCookingForState] = useState(() => initialCookingFor(view));
+  const setCookingFor = (serves: number) => {
+    setCookingForState(serves);
+    keepOnEntry(cookingForOn(view.id, serves));
+  };
+  const [undoing, setUndoing] = useState<{ busy: boolean; error: string | null }>({
+    busy: false,
+    error: null,
+  });
   const { labels } = state;
   const scaled = scaleLines(view.lines, view.serves, cookingFor);
   const copy =
@@ -240,16 +281,19 @@ function RecipePage({
       ? (state.rows.recipes.find((r) => r.derivedFromRecipeId === view.id) ?? null)
       : null;
   const ownStatus = status !== null && status.recipeId === view.id ? status : null;
+  // The status stays until the copy is removed: a refused Undo says why, and Undo stays.
   const undo = () => {
-    if (ownStatus?.kind !== 'created' || view.seed === null) return;
+    if (ownStatus?.kind !== 'created' || view.seed === null || undoing.busy) return;
     const seedId = view.seed.id;
-    swapStatusStore.set(null);
+    setUndoing({ busy: true, error: null });
     storage.repos.recipes.removeCopy(view.id).then(
       () => {
         swapStatusStore.set({ recipeId: seedId, kind: 'undone' });
-        location.replace(recipeHref(seedId));
+        replaceKeepingEntry(recipeHref(seedId), cookingForOn(seedId, cookingFor));
       },
-      () => undefined,
+      (error: unknown) => {
+        setUndoing({ busy: false, error: removeFailure(error) });
+      },
     );
   };
   const facts = view.allergens.facts;
@@ -261,24 +305,32 @@ function RecipePage({
           <ReloadButton />
         </Notice>
       )}
-      {ownStatus === null ? null : (
+      {/* A swap that updated this copy is confirmed in "What next", where it was made. */}
+      {ownStatus === null || ownStatus.kind === 'updated' ? null : (
         <Notice tone="info" role="status">
           <p>
             {ownStatus.kind === 'created'
               ? fillTemplate(recipes.swap.done, { from: ownStatus.from, to: ownStatus.to })
-              : ownStatus.kind === 'updated'
-                ? fillTemplate(recipes.swap.doneUpdate, { from: ownStatus.from, to: ownStatus.to })
-                : ownStatus.kind === 'undone'
-                  ? recipes.swap.undone
-                  : recipes.remove.done}
+              : ownStatus.kind === 'undone'
+                ? recipes.swap.undone
+                : recipes.remove.done}
           </p>
           {ownStatus.kind === 'created' ? (
-            <Button disabled={!writable} onClick={undo}>
+            <Button
+              disabled={!writable}
+              aria-disabled={undoing.busy ? 'true' : undefined}
+              onClick={undo}
+            >
               {recipes.swap.undo}
             </Button>
           ) : null}
         </Notice>
       )}
+      {ownStatus?.kind === 'created' && undoing.error !== null ? (
+        <Notice tone="amber" role="alert">
+          <p>{undoing.error}</p>
+        </Notice>
+      ) : null}
       {copy === null ? null : (
         <Notice tone="info">
           <p>{recipes.detail.copyExists}</p>
@@ -321,7 +373,7 @@ function RecipePage({
         </div>
         {labels.carbLabels === 'shown' ? (
           <>
-            <p data-testid="recipe-carb-style">{carbStyleLine(view)}</p>
+            <p data-testid="recipe-carb-style">{carbStyleText(view)}</p>
             <p className="ui-text-muted">{targets.carbs.meaning}</p>
           </>
         ) : null}
@@ -392,7 +444,8 @@ function RecipePage({
               details.push(
                 fillTemplate(foods.screen.rowConflict, { list: allergenListText(line.conflicts) }),
               );
-            if (view.serving === 'unknown' && line.allergens.allergensUnknown)
+            // P41: also beside a conflict, for the other allergens the owner listed.
+            if (view.labelCheck.length > 0 && line.allergens.allergensUnknown)
               details.push(foods.screen.rowCheckLabel);
             if (labels.saltWording && line.salty)
               details.push(recipes.ingredients.addsSalt, readiness.bloodPressure.electrolyte);
@@ -432,7 +485,7 @@ function RecipePage({
       <NutritionCard
         view={view}
         myServes={myServes}
-        budgetG={budgetG}
+        budgetG={state.satFatBudgetG}
         approved={state.foods.approved}
       />
       <Card label={recipes.allergens.label}>
@@ -451,11 +504,11 @@ function RecipePage({
             })}
           </p>
         ) : null}
-        {view.serving === 'unknown' ? (
+        {view.labelCheck.length > 0 ? (
           <Notice tone="amber">
             <p>
               {fillTemplate(recipes.allergens.unknownForYou, {
-                allergens: allergenListText(view.blocked),
+                allergens: allergenListText(view.labelCheck),
               })}
             </p>
           </Notice>
@@ -481,20 +534,10 @@ function RecipePage({
   );
 }
 
-/** Item 21's saturated-fat budget for today, when there is one (the heart cap; C70). */
-function useSatFatBudgetG(storage: AppStorage): number | null {
-  const clock = useTargetsClock(storage);
-  const day = useDayTargets(storage, clock);
-  if (day.status !== 'ready') return null;
-  const budget = day.view.targets.saturatedFat;
-  return budget.kind === 'budget' ? budget.grams : null;
-}
-
 function RecipeBody({ storage }: { readonly storage: AppStorage }): ReactElement {
   const hash = useHash();
   const route = recipeRouteOf(hash);
   const state = useRecipeScreenData(storage);
-  const budgetG = useSatFatBudgetG(storage);
   const myServes = route?.myServes ?? 1;
   const seed = route === null ? null : seedRecipe(route.id);
   const recipe =
@@ -502,9 +545,9 @@ function RecipeBody({ storage }: { readonly storage: AppStorage }): ReactElement
   const view = useMemo(
     () =>
       state.status === 'ready' && recipe !== null && recipe !== undefined
-        ? recipeView(recipe, viewContext(state, { myServes, satFatBudgetG: budgetG }))
+        ? recipeView(recipe, viewContext(state, { myServes }))
         : null,
-    [state, recipe, myServes, budgetG],
+    [state, recipe, myServes],
   );
   useScreenTitle(view?.title ?? seed?.title ?? null, hash);
   if (state.status === 'data-error')
@@ -521,14 +564,7 @@ function RecipeBody({ storage }: { readonly storage: AppStorage }): ReactElement
     );
   // A new page for each recipe: the scale and panels start afresh.
   return (
-    <RecipePage
-      key={view.id}
-      storage={storage}
-      state={state}
-      view={view}
-      myServes={myServes}
-      budgetG={budgetG}
-    />
+    <RecipePage key={view.id} storage={storage} state={state} view={view} myServes={myServes} />
   );
 }
 

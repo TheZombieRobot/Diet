@@ -11,7 +11,13 @@ import { useEffect, useRef, type ReactElement } from 'react';
 import { APP_NAME } from './appName';
 import { type FailureStatus, type OpenStatus, openStatusStore } from './db/db';
 import { appStorageStore } from './db/runtime';
-import { goToTab, markEntryAboveToday, markSubScreenEntry } from './navigation';
+import {
+  goToTab,
+  markEntryAboveToday,
+  markSubScreenEntry,
+  type SubScreenMark,
+  subScreenMarkOf,
+} from './navigation';
 import { OnboardingGate } from './onboarding/OnboardingGate';
 import { takeArrivedFromSetup } from './onboarding/navigation';
 import { offlineCopyStore } from './pwa/offline';
@@ -147,6 +153,8 @@ function Shell(): ReactElement {
   const offlineCopy = useStore(offlineCopyStore);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const previousRoute = useRef<{ route: RouteId; detail: string | null } | undefined>(undefined);
+  // Item 20: the sub-screen mark of the entry shown, so the next one can be marked one deeper.
+  const entryMark = useRef<SubScreenMark | null>(null);
 
   // Its own effect, so a recipe's name reaches the tab title when it arrives after the route.
   useEffect(() => {
@@ -164,15 +172,16 @@ function Shell(): ReactElement {
     // On first render the browser decides where focus starts, except straight after setup, whose
     // flow held focus; after that, a new screen moves focus to its heading, so a screen reader
     // announces it and Tab starts from the top.
+    const previousMark = entryMark.current;
     if (previous === undefined) {
+      entryMark.current = subScreenMarkOf(window.history.state);
       if (takeArrivedFromSetup()) titleRef.current?.focus({ preventScroll: true });
       return;
     }
     if (previous.route === route && previous.detail === detail) return;
-    if (previous.route !== route) {
-      markEntryAboveToday(previous.route, route);
-      markSubScreenEntry(previous.route, route);
-    }
+    if (previous.route !== route) markEntryAboveToday(previous.route, route);
+    markSubScreenEntry(previous.route, route, previousMark);
+    entryMark.current = subScreenMarkOf(window.history.state);
     titleRef.current?.focus({ preventScroll: true });
   }, [route, detail]);
 

@@ -126,17 +126,22 @@ export function isGlutenFreeSwap(
   return hasGluten(food.allergensAtLeast) && !hasGluten(swap.allergensAtLeast);
 }
 
-/** Whether a swap is offered: never one carrying a listed allergen; gluten-free ones only for a gluten-free household. */
+/**
+ * Whether a swap is offered: never one carrying a listed allergen, nor one known to carry a gluten
+ * cereal in a gluten-free household; gluten-free ones only for a gluten-free household.
+ */
 export type SwapDecision =
-  | { readonly offered: false; readonly reason: 'allergen' | 'gluten-free' }
+  | { readonly offered: false; readonly reason: 'allergen' | 'gluten-household' | 'gluten-free' }
   | { readonly offered: true; readonly checkLabel: boolean };
 
 /**
  * The one rule for offering a swap (C107, FL-07, C43): allowedSwaps here and item 20's
- * substituteOptions both call it. A candidate that carries one of the profile's allergens is never
- * offered (not merely warned); a gluten-free swap is offered only with Gluten-free household on,
- * whatever the profile's list says; any other is offered, marked "check the label" when its
- * allergens are not complete.
+ * substituteOptions (and so its swap hints and the repository's swapLine) all call it. A candidate
+ * that carries one of the profile's allergens is never offered (not merely warned); with
+ * Gluten-free household on, neither is one known to carry wheat, barley, oats or rye, so a
+ * household dish never gains a gluten cereal by a swap; a gluten-free swap is offered only with
+ * Gluten-free household on, whatever the profile's list says; any other is offered, marked "check
+ * the label" when its allergens are not complete.
  */
 export function swapDecision(
   food: Pick<IngredientView, 'allergensAtLeast'>,
@@ -146,6 +151,8 @@ export function swapDecision(
   const facts = foodAllergenFacts(candidate);
   if (allergenWarning(profile.allergens, facts).conflicts.length > 0)
     return { offered: false, reason: 'allergen' };
+  if (profile.glutenFreeHousehold && hasGluten(facts.allergens))
+    return { offered: false, reason: 'gluten-household' };
   if (isGlutenFreeSwap(food, candidate) && !profile.glutenFreeHousehold)
     return { offered: false, reason: 'gluten-free' };
   return { offered: true, checkLabel: facts.allergensUnknown };

@@ -898,6 +898,9 @@ describe('recipes copy (item 20)', () => {
     for (const modes of [recipes.chips.style, recipes.chips.styleWritten, recipes.style.written])
       expect(Object.keys(modes)).toEqual([...DIET_MODES]);
     expect(Object.keys(recipes.nutrition.confidenceHelp)).toEqual(['database', 'estimate']);
+    // The list's lead says how figures come about, never that they exist (item 20 review).
+    expect(recipes.list.intro).not.toMatch(/figures are worked out/);
+    expect(recipes.list.intro).toContain('reads “not known”');
     for (const key of ['confidence', 'notYet', 'unknownValue', 'atLeast', 'footer'])
       expect(Object.keys(recipes.nutrition)).not.toContain(key);
     const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1] ?? '');

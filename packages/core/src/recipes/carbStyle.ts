@@ -73,6 +73,33 @@ export function carbStyleChip(view: CarbStyleView): CarbStyleChip {
   return { kind: 'not-worked-out' };
 }
 
+/**
+ * What the carb-style line may say (design 4.6; HS-39). A style word rests on a lower bound only
+ * when the bound proves it: more than 35 g a serve is balanced whatever the rest adds. A lower
+ * bound above the written style's limit (only a keto recipe's, between 10 and 35 g) proves only
+ * that it is not keto, so the line says what it was written for and the known part, with no style.
+ * The style itself (carbStyleOf) stays a ranking for the planner, never a label.
+ */
+export type CarbStyleLine =
+  /** Complete carbs, or a lower bound that proves balanced. */
+  | { readonly kind: 'figures'; readonly style: DietMode }
+  /** Not worked out; the written style stands. */
+  | { readonly kind: 'written'; readonly written: DietMode }
+  /** Not worked out; the known part is already above the written style's limit. */
+  | { readonly kind: 'written-above'; readonly written: DietMode }
+  | { readonly kind: 'unknown' };
+
+export function carbStyleLine(view: CarbStyleView): CarbStyleLine {
+  const { style, written, complete, netCarbsPerServeG } = view;
+  if (complete) return style === null ? { kind: 'unknown' } : { kind: 'figures', style };
+  if (netCarbsPerServeG > STYLE_MAX_NET_CARBS_PER_SERVE_G['moderate-low-carb'])
+    return { kind: 'figures', style: 'balanced' };
+  if (written === null) return { kind: 'unknown' };
+  return view.basis === 'written'
+    ? { kind: 'written', written }
+    : { kind: 'written-above', written };
+}
+
 /** The keto first week is used only under a Kickstart or keto ceiling (P4). */
 export function usesKetoFirstWeek(ceiling: NetCarbCeiling): boolean {
   return ceiling.kind === 'ceiling' && (ceiling.basis === 'kickstart' || ceiling.basis === 'keto');

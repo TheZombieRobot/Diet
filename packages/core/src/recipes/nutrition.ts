@@ -145,6 +145,36 @@ export interface RecipeSnapshot {
   readonly sourceMix: SourceMix;
 }
 
+/**
+ * Whether a recipe's figures can be worked out at all: whole serves from 1 to 50 and lines that
+ * each weigh more than 0 g and at most 5,000 g (the version-1 validator's ranges, so a row outside
+ * them is refused by the validator with its own reason, not by recipeNutrition's RangeError).
+ */
+export function recipeFiguresComputable(recipe: {
+  readonly serves: unknown;
+  readonly lines: unknown;
+}): boolean {
+  const { serves, lines } = recipe;
+  return (
+    typeof serves === 'number' &&
+    Number.isInteger(serves) &&
+    serves >= 1 &&
+    serves <= 50 &&
+    Array.isArray(lines) &&
+    lines.every((line: unknown) => {
+      if (typeof line !== 'object' || line === null) return false;
+      const { ingredientId, rawG } = line as Readonly<Record<string, unknown>>;
+      return (
+        typeof ingredientId === 'string' &&
+        typeof rawG === 'number' &&
+        Number.isFinite(rawG) &&
+        rawG > 0 &&
+        rawG <= 5000
+      );
+    })
+  );
+}
+
 /** The snapshot, or null while the schema cannot store a recipe whose eight figures are all unknown (D35). */
 export function recipeSnapshot(n: RecipeNutrition): RecipeSnapshot | null {
   if (n.unknownNutrients.length === NUTRIENT_KEYS.length && !RECIPE_SNAPSHOT_ALL_UNKNOWN_STORABLE)

@@ -28,6 +28,7 @@ import {
   lockedReferenceEnvelopeV1,
   mulberry32,
   mutateBackupText,
+  overrideFiguresFor,
   plainReferenceEnvelopeV1,
   REFERENCE_PHRASE_V1,
   snapshotV1,
@@ -82,6 +83,12 @@ const writeDeps = (): WriteDeps & { reloads: number } => {
 };
 
 /** Fills every backed-up store from the version-1 fixture (the import writer is the quickest way). */
+/** Synthetic figures for catalogue foods, as an owner's corrections (no food data ships yet). */
+async function giveFiguresTo(test: TestDb, seedIds: readonly string[]): Promise<void> {
+  for (const { seedId, changes } of overrideFiguresFor(seedIds))
+    await test.repos.ingredientOverrides.create({ seedId, changes });
+}
+
 async function fillWithFixture(test: TestDb): Promise<void> {
   await replaceAll(test.db, snapshotV1);
 }
@@ -240,6 +247,9 @@ describe('replace semantics and the confirmation (D17; section 16 test 29)', () 
   it('counts what the phone would lose, defaults to exporting first, and replaces everything', async () => {
     const test = await openTestDb();
     await fillWithFixture(test);
+    // Item 20: a recipe's stored figures are worked out from its lines on every write, so its
+    // catalogue line needs (synthetic) figures before the rename below can be stored (HS-39).
+    await giveFiguresTo(test, ['seed:silverbeet']);
     const exported = await createExport(test.db, test.env, null);
     if (!exported.ok) throw exported.error;
     await test.repos.settings.recordBackup(exported.file.exportedAt);
@@ -709,7 +719,12 @@ describe('a phone clock that was wrong never blocks a backup or a restore (orche
     // Setup finished with the clock ahead (item 13 refuses a completion without the notice and
     // the seven answers): every setup time, answers included, is dated ahead.
     await onboardForTests(test, { weightKg: null });
-    await test.repos.recipes.create(structuredClone(snapshotV1.recipes[0]) as never);
+    // Item 20: a recipe is stored with the figures worked out from its lines (HS-39), so its one
+    // line here is a catalogue food given synthetic figures.
+    await giveFiguresTo(test, ['seed:silverbeet']);
+    const fixture = structuredClone(snapshotV1.recipes[0]);
+    const lines = fixture?.lines.filter((l) => l.ingredientId === 'seed:silverbeet');
+    await test.repos.recipes.create({ ...fixture, lines } as never);
     await test.repos.cardState.dismiss('rapid-loss', 'steady');
     test.env.set(corrected);
     const outcome = await createExport(test.db, test.env, null);

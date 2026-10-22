@@ -155,6 +155,14 @@ describe('recipe figures from ingredients (item 20)', () => {
     const partly = fixtureFoods({ source: 'nz-fcdb', approved: db, notLoaded: ['seed:garlic'] });
     expect(badgeOf(traybake, partly)).toBe('estimate');
     expect(recipeNutrition(traybake, partly).perServe.energyKj).toBeGreaterThan(0);
+    // Contract 5: one line missing one figure is Estimate too, so "at least" never sits by Database.
+    const gap = fixtureFoods({
+      source: 'nz-fcdb',
+      approved: db,
+      missing: { 'seed:silverbeet': ['fibreG'] },
+    });
+    expect(recipeNutrition(traybake, gap).unknownNutrients).toEqual(['fibreG']);
+    expect(badgeOf(traybake, gap)).toBe('estimate');
     // C67: a cooked-basis food on a line never multiplies raw grams; that line is all unknown.
     const cooked = {
       ...exampleOwnFood(

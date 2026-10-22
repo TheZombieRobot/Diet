@@ -2555,7 +2555,7 @@ export const recipes = {
   },
   list: {
     intro:
-      'Recipes written for this app: cholesterol-conscious, and built around silverbeet, other greens and everyday New Zealand proteins. Each recipe’s figures are worked out from its ingredients.',
+      'Recipes written for this app: cholesterol-conscious, and built around silverbeet, other greens and everyday New Zealand proteins. Each recipe’s figures are added up from its ingredients’ food values; a figure the app does not have yet reads “not known”.',
     sections: {
       week: 'Silverbeet week',
       dinners: 'Dinners',
@@ -2627,6 +2627,8 @@ export const recipes = {
       balanced: 'Written for balanced eating.',
     },
     notYet: 'Its carbs are not worked out yet.',
+    knownAbove:
+      'Its carbs are not worked out yet, but the part that is known is already {amount} a serve.',
     figures: '{style}: {amount} of net carbs a serve.',
     unknown: 'Net carbs are not worked out yet.',
   },
@@ -2643,7 +2645,7 @@ export const recipes = {
     asWritten: 'As written for {serves} serves: {amount}',
     eggCount: 'About {count} eggs',
     eggCountOne: 'About 1 egg',
-    cooked: 'About {grams} g cooked',
+    cooked: 'About {grams} cooked',
     inGarden: 'In your garden',
     inSeason: 'In season now',
     swapHint: 'Or use {names}',
@@ -2695,6 +2697,8 @@ export const recipes = {
     },
     neither: 'No heart-smart label: more than a quarter of its fat is saturated.',
     unknown: 'Heart-smart: not worked out yet, because some figures are missing.',
+    budgetNotRead:
+      'Heart-smart: not worked out, because today’s saturated-fat budget could not be read.',
     why: 'The cholesterol-conscious default favours olive oil, avocado, nuts and seeds, oily fish, chicken, eggs within six a week, legumes in small amounts, non-starchy vegetables and garden greens.',
   },
   allergens: {
@@ -2735,10 +2739,15 @@ export const recipes = {
       '{count} other swaps are foods you do not want suggested, so they are not shown.',
     hiddenGlutenFree:
       'Gluten-free swaps are shown when Gluten-free household is on in your profile.',
+    hiddenGlutenHouseholdOne:
+      '1 other swap contains a gluten cereal, so it is not shown while Gluten-free household is on.',
+    hiddenGlutenHouseholdMany:
+      '{count} other swaps contain a gluten cereal, so they are not shown while Gluten-free household is on.',
     candidateNone: 'No allergens recorded',
     candidateGarden: 'In your garden',
     amountNote: 'The new ingredient uses the same raw weight. Its cooked weight is not known.',
     use: 'Use {ingredient}',
+    chooseFirst: 'Choose a swap',
     cancel: 'Cancel',
     saving: 'Saving your version…',
     done: 'Swapped {from} for {to}. This is your version now; the original recipe stays in the app.',

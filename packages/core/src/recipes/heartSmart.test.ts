@@ -9,6 +9,7 @@ import {
   cholesterolScore,
   eggsPerServe,
   favouredKeys,
+  type HeartCapBudget,
   heartSmart,
   heartSmartInput,
 } from './heartSmart';
@@ -39,7 +40,7 @@ const heart = (
   options: {
     readonly unknown?: readonly NutrientKey[];
     readonly myServes?: number;
-    readonly budget?: number | null;
+    readonly budget?: HeartCapBudget;
     readonly cheesePerServe?: number;
     readonly lines?: readonly { kind: LineKind; rawGPerServe: number }[];
   } = {},
@@ -85,8 +86,23 @@ describe('heart-smart and the saturated-fat flag (item 20)', () => {
     expect(heart(8, 0.5, { cheesePerServe: 20, myServes: 2 }).kind).toBe('heart-smart');
     expect(heart(8, 0.5, { cheesePerServe: 20.5, myServes: 2 }).kind).toBe('flagged');
     expect(heart(8, 0.5, { cheesePerServe: 20, myServes: 3 }).kind).toBe('flagged');
+    // The portion's saturated fat, not one serve's (a plan day's two serves).
+    expect(heart(40, 4, { myServes: 2 }).kind).toBe('heart-smart');
+    expect(heart(40, 4.01, { myServes: 2 })).toEqual({
+      kind: 'flagged',
+      reasons: ['saturated-fat-high'],
+      capG: 8,
+    });
+    expect(heart(40, 2, { myServes: 2, budget: 12 }).kind).toBe('heart-smart');
+    expect(heart(40, 2.01, { myServes: 2, budget: 12 }).kind).toBe('flagged');
     // A budget that is not a positive number uses the 24 g reference; a larger one is capped by it.
     for (const budget of [0, -1, Number.NaN, 30]) expect(heart(8, 1, { budget }).capG).toBe(8);
+  });
+
+  it('U7 HS-39 C70: a day budget that could not be read never gives heart-smart; a flag on the largest cap holds', () => {
+    expect(heart(8, 1, { budget: 'not-read' })).toEqual({ kind: 'unknown', capG: 8 });
+    expect(heart(40, 8.01, { budget: 'not-read' }).kind).toBe('flagged');
+    expect(heart(8, 2.01, { budget: 'not-read' }).kind).toBe('neither');
   });
 
   it('U7 HS-39: a figure any ingredient lacks never makes a recipe heart-smart; a lower bound over the cap flags', () => {

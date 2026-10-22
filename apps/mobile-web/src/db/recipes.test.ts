@@ -16,6 +16,7 @@ import {
 import { fixtureFoods, overrideFiguresFor } from '@diet/test-fixtures';
 import { afterEach, describe, expect, it } from 'vitest';
 import { StorageRuleError } from './errors';
+import type { RecipeInput } from './repos/recipes';
 import { replaceAll } from './snapshot';
 import { backupSnapshot, onboardForTests, openTestDb, type TestDb } from './testKit';
 
@@ -197,8 +198,8 @@ describe('the recipes repository (item 20)', () => {
   });
 
   it('D4 HS-24: a create, an update or a new correction never loses an allergen; an origin cannot change', async () => {
-    const t = await open();
     const patties = seed('salmon-silverbeet-patties');
+    const t = await open({ figuresFor: idsOf(patties) });
     const eggLine = { ingredientId: 'seed:eggs', rawG: 100, cookedG: 100, displayAs: null };
     const created = await t.repos.recipes.create({
       title: 'Example eggs',
@@ -209,7 +210,6 @@ describe('the recipes repository (item 20)', () => {
       tags: [],
       allergens: ['lupin'],
       derivedFromRecipeId: null,
-      ...snapshotOf(1),
     });
     expect(created.allergens).toEqual(['egg', 'lupin']);
     // Lupin is only in the stored list: an update that empties the list keeps it.
@@ -228,16 +228,15 @@ describe('the recipes repository (item 20)', () => {
       tags: [],
       allergens: [],
       derivedFromRecipeId: patties.id,
-      ...snapshotOf(lines.length),
     });
     expect(copy.allergens).toEqual(['tree-nut', 'egg', 'fish']);
     expect(await refusal(t.repos.recipes.update(copy.id, { derivedFromRecipeId: null }))).toBe(
       'recipe-origin-fixed',
     );
     // A correction adds sesame to eggs after the save: the next title-only update adds it.
-    await t.repos.ingredientOverrides.create({
-      seedId: 'seed:eggs',
-      changes: [{ field: 'addAllergens', value: ['sesame'] }],
+    const eggs = await t.repos.ingredientOverrides.get('seed:eggs');
+    await t.repos.ingredientOverrides.update('seed:eggs', {
+      changes: [...(eggs?.changes ?? []), { field: 'addAllergens', value: ['sesame'] }],
     });
     expect(
       (await t.repos.recipes.update(created.id, { title: 'Example eggs, again' })).allergens,
@@ -245,7 +244,7 @@ describe('the recipes repository (item 20)', () => {
   });
 
   it('D5 P17: a copy in the meal plan is not removed; removing twice is not an error', async () => {
-    const t = await open();
+    const t = await open({ figuresFor: ['seed:eggs'] });
     const row = await t.repos.recipes.create({
       title: 'Example',
       serves: 1,
@@ -255,7 +254,6 @@ describe('the recipes repository (item 20)', () => {
       tags: [],
       allergens: ['egg'],
       derivedFromRecipeId: null,
-      ...snapshotOf(1),
     });
     await t.repos.planDays.create({
       date: '2000-03-02',
@@ -328,8 +326,8 @@ describe('the recipes repository (item 20)', () => {
   });
 
   it('D8 HS-24 HS-15: a restored copy keeps its rows as saved; the view and the next write keep its allergens', async () => {
-    const t = await open();
     const patties = seed('salmon-silverbeet-patties');
+    const t = await open({ figuresFor: idsOf(patties, 'seed:sunflower-seeds') });
     const almond = lineIndex(patties, 'seed:almond-meal');
     const lines = patties.lines
       .map(stored)
@@ -362,5 +360,82 @@ describe('the recipes repository (item 20)', () => {
     expect(
       (await t.repos.recipes.update(copy.id, { title: 'Example patties, again' })).allergens,
     ).toEqual(['tree-nut', 'egg', 'fish']);
+  });
+
+  it('D8b HS-24: a swap on a restored copy whose stored list is empty keeps its origin’s allergens', async () => {
+    const patties = seed('salmon-silverbeet-patties');
+    const t = await open({ figuresFor: idsOf(patties, 'seed:sunflower-seeds', 'seed:spinach') });
+    const almond = lineIndex(patties, 'seed:almond-meal');
+    const lines = patties.lines
+      .map(stored)
+      .map((l, i) => (i === almond ? { ...l, ingredientId: 'seed:sunflower-seeds' } : l));
+    const copy: RecipeRecord = {
+      id: '00000000-0000-4000-8000-0000000000f2',
+      title: 'Example patties',
+      serves: 4,
+      timeMinutes: 30,
+      lines,
+      method: [],
+      tags: [],
+      allergens: [],
+      derivedFromRecipeId: patties.id,
+      ...snapshotOf(lines.length),
+      createdAt: '2000-01-01T00:00:00.000Z',
+      updatedAt: '2000-01-01T00:00:00.000Z',
+    };
+    await replaceAll(t.db, { ...(await backupSnapshot(t.db)), recipes: [copy] });
+    const { record, created } = await t.repos.recipes.swapLine({
+      recipeId: copy.id,
+      lineIndex: lineIndex(patties, 'seed:silverbeet'),
+      ingredientId: 'seed:spinach',
+    });
+    expect(created).toBe(false);
+    expect(record.allergens).toEqual(['tree-nut', 'egg', 'fish']);
+  });
+
+  it('D9 HS-39: create and update store the figures worked out from the lines, never the caller’s', async () => {
+    const t = await open({ figuresFor: ['seed:eggs'] });
+    const eggs = (rawG: number) => ({
+      ingredientId: 'seed:eggs',
+      rawG,
+      cookedG: rawG,
+      displayAs: null,
+    });
+    // A caller that claims figures anyway (plain JavaScript, or a cast) is ignored.
+    const claimed = {
+      title: 'Example eggs',
+      serves: 1,
+      timeMinutes: null,
+      lines: [eggs(100)],
+      method: [],
+      tags: [],
+      allergens: ['egg'],
+      derivedFromRecipeId: null,
+      nutritionPerServe: { ...snapshotOf(1).nutritionPerServe, energyKj: 2500, proteinG: 40 },
+      unknownNutrients: [],
+      confidence: 'database',
+      sourceMix: { label: 0, 'nz-fcdb': 1, usda: 0, estimate: 0 },
+    } as unknown as RecipeInput;
+    const row = await t.repos.recipes.create(claimed);
+    // 100 g of eggs at the synthetic 1,000 kJ and 10 g of protein per 100 g, from an estimate.
+    expect(row).toMatchObject({
+      nutritionPerServe: { energyKj: 1000, proteinG: 10 },
+      unknownNutrients: [],
+      confidence: 'estimate',
+      sourceMix: { label: 0, 'nz-fcdb': 0, usda: 0, estimate: 1 },
+    });
+    // An update that changes the lines works them out again.
+    const doubled = await t.repos.recipes.update(row.id, { lines: [eggs(200)] });
+    expect(doubled.nutritionPerServe).toMatchObject({ energyKj: 2000, proteinG: 20 });
+    // A line with no figures: nothing is stored, as the schema cannot hold all eight unknown.
+    const before = await t.repos.recipes.list();
+    const leek = { ingredientId: 'seed:leek', rawG: 50, cookedG: null, displayAs: null };
+    expect(await refusal(t.repos.recipes.create({ ...claimed, lines: [leek] }))).toBe(
+      'recipe-figures-unknown',
+    );
+    expect(await refusal(t.repos.recipes.update(row.id, { lines: [leek] }))).toBe(
+      'recipe-figures-unknown',
+    );
+    expect(await t.repos.recipes.list()).toEqual(before);
   });
 });

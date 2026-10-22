@@ -31,14 +31,23 @@ export interface HeartSmartInput {
   /** The owner's serves: 1 on the recipe page, the planned portion from a plan day. */
   readonly myServes: number;
   readonly lines: readonly { readonly kind: LineKind; readonly rawGPerServe: number }[];
-  /** Item 21's day budget in grams when it is a budget; null otherwise. */
-  readonly satFatBudgetG: number | null;
+  /**
+   * Item 21's day budget in grams when it is a budget; null when there is none (the 24 g
+   * reference); 'not-read' when the day's targets could not be read.
+   */
+  readonly satFatBudgetG: HeartCapBudget;
 }
 
-/** A third of the day's budget, or of the 24 g label reference when there is none or it is larger. */
-export function heartSmartCapG(satFatBudgetG: number | null): number {
+export type HeartCapBudget = number | null | 'not-read';
+
+/**
+ * A third of the day's budget, or of the 24 g label reference when there is none or it is larger.
+ * A budget that could not be read gives the reference's third, the largest the cap can be, so a
+ * flag on it holds whatever the budget is.
+ */
+export function heartSmartCapG(satFatBudgetG: HeartCapBudget): number {
   const valid =
-    satFatBudgetG !== null && Number.isFinite(satFatBudgetG) && satFatBudgetG > 0
+    typeof satFatBudgetG === 'number' && Number.isFinite(satFatBudgetG) && satFatBudgetG > 0
       ? satFatBudgetG
       : SAT_FAT_REFERENCE_G;
   return Math.min(valid, SAT_FAT_REFERENCE_G) * HEART_SMART_PORTION_SHARE;
@@ -65,9 +74,11 @@ export function heartSmart(input: HeartSmartInput): HeartSmart {
     input.lines.some((line) => line.kind.origin === 'unresolved');
   if (unknown) return { kind: 'unknown', capG };
   const { fatG, saturatedFatG } = input.perServe;
-  return saturatedFatG <= HEART_SMART_MAX_SAT_SHARE_OF_FAT * fatG
-    ? { kind: 'heart-smart', capG }
-    : { kind: 'neither', capG };
+  if (saturatedFatG > HEART_SMART_MAX_SAT_SHARE_OF_FAT * fatG) return { kind: 'neither', capG };
+  // Heart-smart needs the cap it passed: never on a budget that could not be read.
+  return input.satFatBudgetG === 'not-read'
+    ? { kind: 'unknown', capG }
+    : { kind: 'heart-smart', capG };
 }
 
 /** The heart test's input for a recipe: its live figures and each line's raw grams a serve. */
@@ -75,7 +86,7 @@ export function heartSmartInput(
   n: RecipeNutrition,
   serves: number,
   lines: readonly Pick<RecipeLine, 'rawG'>[],
-  options: { readonly myServes?: number; readonly satFatBudgetG?: number | null } = {},
+  options: { readonly myServes?: number; readonly satFatBudgetG?: HeartCapBudget } = {},
 ): HeartSmartInput {
   return {
     perServe: n.perServe,

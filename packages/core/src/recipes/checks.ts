@@ -10,11 +10,15 @@ import type { RecipeFoods } from './foodKind';
 import { recipeNutrition } from './nutrition';
 import type { SeedRecipe } from './types';
 
+/** Only recipeChecksOf makes one, so a stored record's snapshot is never passed as live figures. */
+declare const LIVE_FIGURES: unique symbol;
+
 export interface RecipeChecks {
   readonly serves: number;
   readonly lines: readonly RecipeLine[];
   readonly nutritionPerServe: Nutrients;
   readonly unknownNutrients: NutrientKey[];
+  readonly [LIVE_FIGURES]: true;
 }
 
 export function recipeChecksOf(
@@ -32,5 +36,5 @@ export function recipeChecksOf(
     })),
     nutritionPerServe: { ...n.perServe },
     unknownNutrients: [...n.unknownNutrients],
-  };
+  } as Omit<RecipeChecks, typeof LIVE_FIGURES> as RecipeChecks;
 }

@@ -19,10 +19,9 @@ import type {
   MealSlot,
   PlanDayRecord,
   PlannedMealRecord,
-  RecipeLine,
-  RecipeRecord,
 } from '../storage/records';
 import { ownerMealNutrients } from '../nutrition/portion';
+import type { RecipeChecks } from '../recipes/checks';
 import { type LocalDate, localDateOf } from '../util/time';
 
 /** More cooked protein food than this in one sitting is unrealistic for one meal (C29). */
@@ -198,15 +197,11 @@ type ResolvedIngredient = Pick<
 >;
 
 /**
- * What the checks read of a recipe: a stored record, or item 20's recipeChecksOf of a seed recipe
- * (its live figures). A type widening only (item 20 design pre-flight 4).
+ * What the checks read of a recipe: item 20's recipeChecksOf, its live figures from the
+ * ingredients as they are now (item 20 design 4.10). A stored record's snapshot is not accepted:
+ * it is a record of the last save, and an ingredient's figures may have changed since (HS-37).
  */
-export type MealCheckRecipe = Pick<
-  RecipeRecord,
-  'serves' | 'nutritionPerServe' | 'unknownNutrients'
-> & {
-  readonly lines: readonly RecipeLine[];
-};
+export type MealCheckRecipe = RecipeChecks;
 
 /**
  * Cooked grams of protein food in the owner's serves of a recipe (C29). An ingredient counts when

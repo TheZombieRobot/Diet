@@ -131,6 +131,17 @@
   }
 }
 
+/*
+ * A short screen (a phone at 200% text, or on its side): the top bar scrolls away with the page,
+ * so a long heading (a recipe's name) never covers the screen (item 20 review; the same height as
+ * the "+" panel's).
+ */
+@media (max-height: 560px) {
+  .ui-topbar {
+    position: static;
+  }
+}
+
 /* Cards */
 .ui-card {
   display: flex;
@@ -228,6 +239,17 @@
   background: var(--color-teal-tint);
   color: var(--color-on-teal-tint);
   font-weight: 800;
+}
+
+/*
+ * A button for something not built yet ("Later") or not possible now (a blocked swap): read at
+ * full contrast, with a dashed border, never faded (as .ui-action-row--off; item 20 review).
+ */
+.ui-button.ui-button--off {
+  border-style: dashed;
+  border-color: var(--color-border-strong);
+  cursor: default;
+  opacity: 1;
 }
 
 .ui-button--quiet {
@@ -2035,7 +2057,8 @@
   flex-direction: column;
   gap: 4px;
   padding: 12px 0;
-  overflow-wrap: anywhere;
+  /* Whole words first: a name breaks inside a word only when the word is wider than the line. */
+  overflow-wrap: break-word;
 }
 
 .ui-line__name {
@@ -2058,6 +2081,13 @@
 .ui-line__amount {
   flex: none;
   text-align: end;
+}
+
+/* Narrow or zoomed screens: the amount moves under the name rather than squeezing it. */
+@media (max-width: 359.98px) {
+  .ui-line__head {
+    flex-wrap: wrap;
+  }
 }
 
 .ui-line__detail {
@@ -2095,11 +2125,13 @@
 }
 
 /* What "Scale servings" focuses: the Cooking for stepper's wrapper. */
-.ui-scale-target:focus {
+.ui-scale-target:focus,
+.ui-focus-target:focus {
   outline: none;
 }
 
-.ui-scale-target:focus-visible {
+.ui-scale-target:focus-visible,
+.ui-focus-target:focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 2px;
   border-radius: 16px;

@@ -8,8 +8,10 @@
  *   current allergens, so an update can only add one; a copy's origin can never be changed.
  * - A swap the screen would not offer is refused (a food known to carry an allergen the owner
  *   listed, a hidden gluten-free swap, a disliked or alcohol food), whoever asks.
- * - A copy is saved only when the schema can store its figures (D35): before food data is loaded
- *   no copy can be stored, and the swap is refused before the validator would refuse it.
+ * - A recipe's stored figures are always worked out here, from its lines and the ingredients as
+ *   this transaction reads them; a caller never passes them (HS-39). A row is saved only when the
+ *   schema can store its figures (D35): before food data is loaded no copy can be stored, and the
+ *   write is refused with 'recipe-figures-unknown' before the validator would refuse it.
  * - A copy still in the meal plan is not removed.
  * Restore and upgrade write rows as they are (HS-15); every reader unions the origin's allergens.
  */
@@ -30,7 +32,11 @@ import {
   type RecipeData,
   recipeData,
   type RecipeFoods,
+  recipeFiguresComputable,
+  recipeNutrition,
   type RecipeRecord,
+  type RecipeSnapshot,
+  recipeSnapshot,
   type RefId,
   type SeedId,
   type SeedRecipe,
@@ -41,7 +47,14 @@ import Dexie from 'dexie';
 import { StorageRuleError } from '../errors';
 import { prepare } from '../prepare';
 import { guardedWrite, type RepoContext } from './context';
-import { type CrudRepo, crudRepo, stampCreate, stampUpdate } from './crud';
+import {
+  type CreateInput,
+  type CrudRepo,
+  crudRepo,
+  stampCreate,
+  stampUpdate,
+  type UpdatePatch,
+} from './crud';
 
 /** What the recipe screens read, in one transaction (design 6.2). */
 export interface RecipeContextRows {
@@ -60,7 +73,14 @@ export interface RecipeContextRows {
   readonly plannedRecipeIds: RefId[];
 }
 
-export interface RecipesRepo extends CrudRepo<'recipes'> {
+/** A recipe's figures: the repository works them out from its lines; no caller passes them. */
+type FigureFields = 'nutritionPerServe' | 'unknownNutrients' | 'confidence' | 'sourceMix';
+export type RecipeInput = Omit<CreateInput<'recipes'>, FigureFields>;
+export type RecipePatch = Omit<UpdatePatch<'recipes'>, FigureFields>;
+
+export interface RecipesRepo extends Omit<CrudRepo<'recipes'>, 'create' | 'update'> {
+  readonly create: (input: RecipeInput) => Promise<RecipeRecord>;
+  readonly update: (id: Id, patch: RecipePatch) => Promise<RecipeRecord>;
   readonly context: () => Promise<RecipeContextRows>;
   /** Saves the owner's copy of a seed with one line swapped (created), or swaps a line of a copy. */
   readonly swapLine: (input: {
@@ -98,6 +118,38 @@ function writeFoods(
 
 const storedMap = (rows: readonly RecipeRecord[]) => new Map(rows.map((r) => [r.id, r]));
 
+const FIGURE_FIELDS: readonly string[] = [
+  'nutritionPerServe',
+  'unknownNutrients',
+  'confidence',
+  'sourceMix',
+] satisfies FigureFields[];
+
+/** A row or patch without any figures a caller passed anyway (a cast, plain JavaScript). */
+function withoutFigures<T extends object>(row: T): T {
+  return Object.fromEntries(
+    Object.entries(row).filter(([key]) => !FIGURE_FIELDS.includes(key)),
+  ) as T;
+}
+
+/**
+ * The figures a recipe row stores, worked out from its lines and the ingredients as the write
+ * reads them (HS-39). Refused when the schema cannot store them (D35); nothing when the row's
+ * numbers are out of range, so the validator refuses it with its own reason.
+ */
+function figuresFor(
+  row: Readonly<Record<string, unknown>>,
+  foods: RecipeFoods,
+): RecipeSnapshot | Record<string, never> {
+  const recipe = { serves: row['serves'], lines: row['lines'] };
+  if (!recipeFiguresComputable(recipe)) return {};
+  const snapshot = recipeSnapshot(
+    recipeNutrition(recipe as Pick<RecipeRecord, 'serves' | 'lines'>, foods),
+  );
+  if (snapshot === null) throw new StorageRuleError('recipes', 'recipe-figures-unknown');
+  return snapshot;
+}
+
 export function recipesRepo(ctx: RepoContext): RecipesRepo {
   const { db, env } = ctx;
   const crud = crudRepo(ctx, 'recipes');
@@ -117,7 +169,8 @@ export function recipesRepo(ctx: RepoContext): RecipesRepo {
           const row = prepare(
             'recipes',
             {
-              ...stamped,
+              ...withoutFigures(stamped),
+              ...figuresFor(stamped, foods),
               allergens: allergenUnion({
                 declared: input.allergens,
                 previous: null,
@@ -151,12 +204,19 @@ export function recipesRepo(ctx: RepoContext): RecipesRepo {
           )
             throw new StorageRuleError('recipes', 'recipe-origin-fixed');
           const foods = writeFoods(shipped, overrides, own);
-          const merged = stampUpdate('recipes', stored as unknown as Row, patch, env);
+          const merged = stampUpdate(
+            'recipes',
+            stored as unknown as Row,
+            withoutFigures(patch),
+            env,
+          );
           const next = merged as unknown as RecipeRecord;
           const row = prepare(
             'recipes',
             {
               ...merged,
+              // Worked out again on every update, so they always match the lines saved with them.
+              ...figuresFor(merged, foods),
               allergens: allergenUnion({
                 declared: next.allergens,
                 previous: stored.allergens,

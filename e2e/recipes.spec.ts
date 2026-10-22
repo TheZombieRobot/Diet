@@ -3,7 +3,14 @@ import { foods, recipes } from '../packages/core/src/copy/health';
 import { overrideFiguresFor } from '../packages/core/src/recipes/testData';
 import { commerceRules, healthPhraseRules } from '../tools/scans/rules';
 import { scanText } from '../tools/scans/scan';
-import { goTo, heading, renderedText, seedOnboarded } from './support/app';
+import {
+  goTo,
+  heading,
+  openRecipe,
+  renderedText,
+  seedOnboarded,
+  SWEPT_RECIPE,
+} from './support/app';
 
 // The recipe screens in the production build (item 20 design 8.4). Before checklist item 10 no
 // food figure is loaded, so every recipe reads "not known" with no badge (E1). The swap tests give
@@ -140,4 +147,95 @@ test('E2 FL-06 HS-24 / E3: swapping away the almond meal keeps tree nuts; going 
   await expect(
     page.getByRole('region', { name: recipes.ingredients.label }).getByText('Almond meal'),
   ).toBeVisible();
+});
+
+test('a short screen at 200% text: every recipe page leaves room to read below the top bar', async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await seedOnboarded(page);
+  await goTo(page, 'Recipes');
+  const hrefs = await page
+    .locator('main a.ui-link-row')
+    .evaluateAll((links) => links.map((a) => a.getAttribute('href') ?? ''));
+  expect(hrefs).toHaveLength(30);
+  // A 360 x 740 phone at 200% text is 180 x 370 CSS pixels.
+  await page.setViewportSize({ width: 180, height: 370 });
+  const cramped: string[] = [];
+  for (const href of hrefs) {
+    await page.evaluate((hash) => {
+      window.location.hash = hash;
+    }, href);
+    await expect(page.getByRole('region', { name: recipes.detail.atAGlance })).toBeVisible();
+    // Scrolled into the page: the room between what the top bar still covers and the tab bar.
+    const room = await page.evaluate(() => {
+      window.scrollTo(0, 600);
+      const top = document.querySelector('.ui-topbar')?.getBoundingClientRect().bottom ?? 0;
+      const bottom = document.querySelector('.ui-tabbar')?.getBoundingClientRect().top ?? 0;
+      return bottom - Math.max(0, top);
+    });
+    if (room < 150) cramped.push(`${href}: ${String(Math.round(room))} px`);
+  }
+  expect(cramped).toEqual([]);
+});
+
+test('ingredient names wrap at whole words on a zoomed screen', async ({ page }) => {
+  await seedOnboarded(page);
+  await page.setViewportSize({ width: 180, height: 640 });
+  await openRecipe(page, SWEPT_RECIPE);
+  const broken = await page.evaluate(() =>
+    [...document.querySelectorAll('.ui-line__name')].flatMap((name) => {
+      const text = name.firstChild;
+      if (text === null || text.nodeType !== Node.TEXT_NODE) return [];
+      const words: string[] = [];
+      for (const match of (text.textContent ?? '').matchAll(/\S+/g)) {
+        const range = document.createRange();
+        range.setStart(text, match.index);
+        range.setEnd(text, match.index + match[0].length);
+        // A word drawn on two lines has two boxes.
+        if (range.getClientRects().length > 1) words.push(match[0]);
+      }
+      return words;
+    }),
+  );
+  expect(broken).toEqual([]);
+});
+
+test('Back keeps the owner’s place: the list’s scroll and row, and a recipe’s Cooking for', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await seedOnboarded(page);
+  await goTo(page, 'Recipes');
+  const tuna = page.getByRole('link', { name: /Tuna, egg and green bean salad/ });
+  await tuna.scrollIntoViewIfNeeded();
+  const before = await page.evaluate(() => window.scrollY);
+  expect(before).toBeGreaterThan(500);
+  await tuna.click();
+  await expect(heading(page)).toHaveText('Tuna, egg and green bean salad');
+  await page.goBack();
+  await expect(heading(page)).toHaveText('Recipes');
+  await expect(tuna).toBeFocused();
+  await expect(tuna).toBeInViewport();
+  expect(Math.abs((await page.evaluate(() => window.scrollY)) - before)).toBeLessThan(2);
+
+  // Cooking for 6 on the traybake, then its soup link and Back: still 6.
+  await openRecipe(page, SWEPT_RECIPE);
+  const amounts = page
+    .getByRole('region', { name: recipes.ingredients.label })
+    .getByText('Amounts for 6 serves', { exact: false });
+  for (let i = 0; i < 2; i++)
+    await page.getByRole('button', { name: recipes.ingredients.more }).click();
+  await expect(amounts).toBeVisible();
+  await page.getByRole('link', { name: 'Silverbeet and lemon chicken soup' }).click();
+  await expect(heading(page)).toHaveText('Silverbeet and lemon chicken soup');
+  await page.goBack();
+  await expect(heading(page)).toHaveText(SWEPT_RECIPE);
+  await expect(amounts).toBeVisible();
+
+  // The Food tab from a recipe, then Back: Today, with no Recipes left in between.
+  await goTo(page, 'Food');
+  await expect(heading(page)).toHaveText('Food');
+  await page.goBack();
+  await expect(heading(page)).toHaveText('Today');
 });

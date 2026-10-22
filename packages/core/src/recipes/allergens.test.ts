@@ -121,6 +121,13 @@ describe.each([
     ).toEqual(['sesame', 'lupin']);
   });
 
+  it('U10 P41: the lines whose labels to check are those whose allergens are not fully known', () => {
+    const frittata = recipe('silverbeet-feta-frittata');
+    const view = recipeAllergenView({ ...frittata, derivedFromRecipeId: null }, foods, []);
+    // Feta, olive oil, oregano and pepper are packed: their allergens depend on the brand.
+    expect(view.checkLabelLines).toEqual(foods === shippedModel ? [3, 4, 5, 6] : []);
+  });
+
   it('U10 HS-24: 200 random swap sequences never shrink a recipe’s allergens', () => {
     let seed = 24;
     const next = () => {
@@ -216,6 +223,27 @@ describe('swaps offered on the shipped model (item 20)', () => {
     expect(offer(profile({ glutenFreeHousehold: true })).candidates.map((c) => c.id)).toEqual([
       'seed:salt',
     ]);
+  });
+
+  it('U11 FL-07: with Gluten-free household on, a swap known to carry a gluten cereal is never offered', () => {
+    const [, almond] = lineOf(recipe('salmon-silverbeet-patties'), 'seed:almond-meal');
+    const offer = (p: SwapProfile) =>
+      substituteOptions({
+        line: almond,
+        seedLines: null,
+        foods,
+        profile: p,
+        gardenIngredientIds: new Set(),
+      });
+    expect(offer(profile()).candidates.map((c) => c.id)).toContain('seed:plain-flour');
+    const household = offer(profile({ glutenFreeHousehold: true }));
+    expect(household.candidates.map((c) => c.id)).toEqual(['seed:sunflower-seeds']);
+    expect(household.hidden).toEqual({
+      allergen: 0,
+      glutenHousehold: 1,
+      dislike: 0,
+      glutenFree: 0,
+    });
   });
 
   it('U11 C43: disliked foods are left out and counted; a brand-dependent candidate says "check the label"', () => {

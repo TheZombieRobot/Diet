@@ -132,8 +132,8 @@ export function ListChips({
           })}
         </Chip>
       ) : null}
-      {/* Only for an owner who lists an allergen (P41). */}
-      {view.serving === 'unknown' ? <Chip tone="neutral">{recipes.chips.checkLabels}</Chip> : null}
+      {/* Only for an owner who lists an allergen (P41), also beside a conflict on another one. */}
+      {view.labelCheck.length > 0 ? <Chip tone="neutral">{recipes.chips.checkLabels}</Chip> : null}
       {glutenFreeHousehold && view.glutenCereals.length > 0 ? (
         <Chip tone="neutral">{recipes.chips.glutenHousehold}</Chip>
       ) : null}

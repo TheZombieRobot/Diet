@@ -24,13 +24,66 @@ const STORE_BY_NAME = [
   /\bcrudRepo\s*(?:<[^>]*>)?\s*\([^,)]*,\s*['"`]recipes['"`]\s*\)/,
 ];
 
+/** `db`, or a property or element named db (`ctx.db`, `this.db`), through brackets and casts. */
+function isDatabase(node: ts.Expression): boolean {
+  let e = node;
+  while (ts.isParenthesizedExpression(e) || ts.isNonNullExpression(e) || ts.isAsExpression(e))
+    e = e.expression;
+  if (ts.isIdentifier(e)) return e.text === 'db';
+  if (ts.isPropertyAccessExpression(e)) return e.name.text === 'db';
+  if (ts.isElementAccessExpression(e))
+    return ts.isStringLiteralLike(e.argumentExpression) && e.argumentExpression.text === 'db';
+  return false;
+}
+
+/** A binding element that takes the property `recipes` (`{ recipes }`, `{ recipes: r }`, `{ ['recipes']: r }`). */
+function bindsRecipes(element: ts.BindingElement): boolean {
+  const key = element.propertyName ?? element.name;
+  if (ts.isIdentifier(key) || ts.isStringLiteralLike(key)) return key.text === 'recipes';
+  if (ts.isComputedPropertyName(key))
+    return ts.isStringLiteralLike(key.expression) && key.expression.text === 'recipes';
+  return false;
+}
+
+/**
+ * The store reached through the database object in a form the patterns above miss (item 20
+ * review): `db['recipes']`, `db?.recipes`, `const { recipes } = db` or `{ recipes: r } = ctx.db`.
+ */
+function reachesStoreInCode(file: string, code: string): boolean {
+  const source = ts.createSourceFile(file, code, ts.ScriptTarget.Latest, true);
+  let found = false;
+  const visit = (node: ts.Node): void => {
+    if (found) return;
+    if (
+      (ts.isPropertyAccessExpression(node) &&
+        node.name.text === 'recipes' &&
+        isDatabase(node.expression)) ||
+      (ts.isElementAccessExpression(node) &&
+        ts.isStringLiteralLike(node.argumentExpression) &&
+        node.argumentExpression.text === 'recipes' &&
+        isDatabase(node.expression)) ||
+      (ts.isVariableDeclaration(node) &&
+        ts.isObjectBindingPattern(node.name) &&
+        node.initializer !== undefined &&
+        isDatabase(node.initializer) &&
+        node.name.elements.some(bindsRecipes))
+    ) {
+      found = true;
+      return;
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(source);
+  return found;
+}
+
 function recipesHomeProblems(file: string, code: string): string[] {
   if (!/\.[cm]?[jt]sx?$/.test(file) || isTestFile(file)) return [];
   const problems: string[] = [];
   if (
     file.startsWith('apps/mobile-web/src/') &&
     !RECIPES_HOME.includes(file) &&
-    STORE_BY_NAME.some((rule) => rule.test(code))
+    (STORE_BY_NAME.some((rule) => rule.test(code)) || reachesStoreInCode(file, code))
   )
     problems.push('recipes-store');
   if (!file.startsWith('packages/test-fixtures/') && file.replace(/\.ts$/, '') !== TEST_DATA) {
@@ -59,6 +112,11 @@ describe('the recipes store only through its repository; recipe test data only i
     ['apps/mobile-web/src/db/repos/plan.ts', "db.table('recipes').bulkAdd(rows);"],
     ['apps/mobile-web/src/db/repos/other.ts', "export const r = crudRepo(ctx, 'recipes');"],
     ['apps/mobile-web/src/x.ts', 'tableOf(db, "recipes").toArray();'],
+    ['apps/mobile-web/src/screens/y.ts', "db['recipes'].put(row);"],
+    ['apps/mobile-web/src/screens/y.ts', 'ctx.db?.recipes.put(row);'],
+    ['apps/mobile-web/src/screens/y.ts', 'const { recipes } = db;\nrecipes.put(row);'],
+    ['apps/mobile-web/src/screens/y.ts', 'const { recipes: store } = ctx.db;'],
+    ['apps/mobile-web/src/screens/y.ts', "const { ['recipes']: store } = ctx.db as Db;"],
   ])('refuses %s: %s', (file, code) => {
     expect(recipesHomeProblems(file, code)).toEqual(['recipes-store']);
   });
@@ -70,6 +128,13 @@ describe('the recipes store only through its repository; recipe test data only i
     expect(recipesHomeProblems('apps/mobile-web/src/x.test.ts', 'db.recipes.add(r);')).toEqual([]);
     expect(
       recipesHomeProblems('apps/mobile-web/src/x.ts', "crudRepo(ctx, 'recipe_notes');"),
+    ).toEqual([]);
+    // The repository's own name for the recipes, and other objects' recipes, are not the store.
+    expect(
+      recipesHomeProblems(
+        'apps/mobile-web/src/x.ts',
+        'storage.repos.recipes.list(); const { recipes } = state.rows;',
+      ),
     ).toEqual([]);
     expect(
       recipesHomeProblems(

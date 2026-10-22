@@ -5,7 +5,7 @@
  * 2 runs each record's own rules; pass 3 the rules across records, only when pass 1 found nothing.
  * recipeDataProblems never throws. A problem names a path and a rule, never a value.
  */
-import { CHEESE_FLAG_ABOVE_G } from '../foods/heart';
+import { CHEESE_FLAG_ABOVE_G, heartRoleOf } from '../foods/heart';
 import type { FoodDataOk } from '../foods/dataset';
 import { APPROVED_NUTRIENT_SOURCES } from '../foods/approval';
 import { deepFrozenCopy } from '../foods/validate';
@@ -25,7 +25,9 @@ import {
   MAX_SWAPS_PER_LINE,
   RECIPE_ALCOHOL_WORDS,
   RECIPE_IDS_V1,
+  SALTY_SEED_IDS,
   SILVERBEET_ID,
+  SOY_SAUCE_RECIPE_IDS,
   STYLE_MAX_NET_CARBS_PER_SERVE_G,
   YIELD_BANDS,
 } from './constants';
@@ -47,6 +49,7 @@ export const RECIPE_DATA_RULES = Object.freeze([
   'cooked-weight',
   'eggs',
   'cholesterol',
+  'salt',
   'leftovers',
   'wording',
   'first-week',
@@ -238,7 +241,22 @@ function recipeProblems(
         [swap.name, ...swap.aliases].some((n) => RECIPE_ALCOHOL_WORDS.test(n))
       )
         add(`${lp}.swaps[${k}]`, 'ingredient');
+      // A curated swap never makes the dish flagged (REQUIREMENTS 2): no flagging food, and no
+      // cheese over the limit at this line's weight a serve.
+      const role = swap === undefined ? null : heartRoleOf(swap);
+      if (
+        role?.kind === 'flag' &&
+        (role.aboveGramsPerServe === 0 || line.rawG / recipe.serves > role.aboveGramsPerServe)
+      )
+        add(`${lp}.swaps[${k}]`, 'cholesterol');
     });
+    // salt: no added salt; soy sauce only in the four recipes written with it.
+    const salty: readonly string[] = SALTY_SEED_IDS;
+    if (
+      salty.includes(line.ingredientId) &&
+      !(line.ingredientId === 'seed:soy-sauce' && SOY_SAUCE_RECIPE_IDS.includes(recipe.id))
+    )
+      add(`${lp}.ingredientId`, 'salt');
     const kind = kinds[j];
     if (seed !== undefined && kind !== undefined) {
       // cooked-weight (C29, C67): protein foods carry one; ready-to-eat foods and eggs equal raw.
@@ -302,14 +320,13 @@ function recipeProblems(
     add(`${at}.lines`, 'eggs');
   const n = figuresOf(recipe, foods);
   if (n === null) return;
+  // Complete figures or a lower bound: a lower bound already over a limit can only be higher, so
+  // a partly loaded release that breaks the written style or the saturated-fat cap fails too.
   const style = recipe.carbStyle;
-  if (!n.unknownNutrients.includes('carbsG') && style !== 'balanced') {
-    if (n.perServe.carbsG > STYLE_MAX_NET_CARBS_PER_SERVE_G[style]) add(`${at}.carbStyle`, 'style');
-  }
-  if (!n.unknownNutrients.includes('fatG') && !n.unknownNutrients.includes('saturatedFatG')) {
-    if (heartSmart(heartSmartInput(n, recipe.serves, recipe.lines)).kind === 'flagged')
-      add(`${at}.lines`, 'cholesterol');
-  }
+  if (style !== 'balanced' && n.perServe.carbsG > STYLE_MAX_NET_CARBS_PER_SERVE_G[style])
+    add(`${at}.carbStyle`, 'style');
+  if (heartSmart(heartSmartInput(n, recipe.serves, recipe.lines)).kind === 'flagged')
+    add(`${at}.lines`, 'cholesterol');
 }
 
 function crossProblems(

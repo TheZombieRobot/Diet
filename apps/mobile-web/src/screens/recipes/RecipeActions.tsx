@@ -12,15 +12,18 @@ import {
   type RecipeView,
   type SeedRecipe,
   substituteOptions,
+  type SwapOptions,
 } from '@diet/core';
 import { privacy, recipes } from '@diet/core/copy/health';
 import { ActionRow, Button, ButtonRow, Card, ChoiceList, Chip, Notice } from '@diet/ui';
 import { type ReactElement, type RefObject, useEffect, useId, useRef, useState } from 'react';
 import { StorageClosedError, StorageFullError, StorageRuleError } from '../../db/errors';
 import type { AppStorage } from '../../db/runtime';
+import { useStore } from '../../store';
 import { recipeGramsText } from '../../format';
+import { replaceKeepingEntry } from '../../navigation';
 import { recipeHref, routeHref } from '../../routes';
-import { swapStatusStore } from './status';
+import { cookingForOn, removeFailure, swapStatusStore } from './status';
 import type { RecipeScreenState } from './useRecipeScreenData';
 
 type Ready = Extract<RecipeScreenState, { status: 'ready' }>;
@@ -35,14 +38,6 @@ function swapFailure(error: unknown): string {
   if (error instanceof StorageFullError) return privacy.storageFull;
   if (error instanceof StorageClosedError) return privacy.backupCard.closed;
   return recipes.swap.failed;
-}
-
-function removeFailure(error: unknown): string {
-  if (error instanceof StorageRuleError && error.rule === 'recipe-in-plan')
-    return recipes.remove.inPlan;
-  if (error instanceof StorageFullError) return privacy.storageFull;
-  if (error instanceof StorageClosedError) return privacy.backupCard.closed;
-  return recipes.remove.failed;
 }
 
 /** Focuses an element once it is drawn (the panel's heading, the confirmation's heading). */
@@ -76,7 +71,8 @@ function SwapPanel({
   readonly copySeed: SeedRecipe | null;
   readonly cookingFor: number;
   readonly writable: boolean;
-  readonly onClose: () => void;
+  /** 'updated': the swap was saved to this copy, and its confirmation takes focus. */
+  readonly onClose: (why: 'cancel' | 'updated') => void;
 }): ReactElement {
   const heading = useFocusOnMount<HTMLHeadingElement>();
   const [panel, setPanel] = useState<PanelState>({
@@ -114,10 +110,11 @@ function SwapPanel({
         ({ record, created }) => {
           if (created) {
             swapStatusStore.set({ recipeId: record.id, kind: 'created', from, to });
-            location.replace(recipeHref(record.id));
+            // The copy takes this page's place, with its marks and "Cooking for".
+            replaceKeepingEntry(recipeHref(record.id), cookingForOn(record.id, cookingFor));
           } else {
             swapStatusStore.set({ recipeId: view.id, kind: 'updated', from, to });
-            onClose();
+            onClose('updated');
           }
         },
         (error: unknown) => {
@@ -201,9 +198,17 @@ function SwapPanel({
           disabled={chosen === undefined || panel.saving || !writable}
           onClick={use}
         >
-          {fillTemplate(recipes.swap.use, { ingredient: chosen?.name ?? lineView?.name ?? '' })}
+          {chosen === undefined
+            ? recipes.swap.chooseFirst
+            : fillTemplate(recipes.swap.use, { ingredient: chosen.name })}
         </Button>
-        <Button variant="secondary" disabled={panel.saving} onClick={onClose}>
+        <Button
+          variant="secondary"
+          disabled={panel.saving}
+          onClick={() => {
+            onClose('cancel');
+          }}
+        >
           {recipes.swap.cancel}
         </Button>
       </ButtonRow>
@@ -211,15 +216,16 @@ function SwapPanel({
   );
 }
 
-function hiddenSwapLines(hidden: {
-  readonly allergen: number;
-  readonly dislike: number;
-  readonly glutenFree: number;
-}): string[] {
+function hiddenSwapLines(hidden: SwapOptions['hidden']): string[] {
   const lines: string[] = [];
   if (hidden.allergen === 1) lines.push(recipes.swap.hiddenAllergenOne);
   if (hidden.allergen > 1)
     lines.push(fillTemplate(recipes.swap.hiddenAllergenMany, { count: hidden.allergen }));
+  if (hidden.glutenHousehold === 1) lines.push(recipes.swap.hiddenGlutenHouseholdOne);
+  if (hidden.glutenHousehold > 1)
+    lines.push(
+      fillTemplate(recipes.swap.hiddenGlutenHouseholdMany, { count: hidden.glutenHousehold }),
+    );
   if (hidden.dislike === 1) lines.push(recipes.swap.hiddenDislikeOne);
   if (hidden.dislike > 1)
     lines.push(fillTemplate(recipes.swap.hiddenDislikeMany, { count: hidden.dislike }));
@@ -231,11 +237,13 @@ function RemoveConfirm({
   storage,
   view,
   writable,
+  cookingFor,
   onKeep,
 }: {
   readonly storage: AppStorage;
   readonly view: RecipeView;
   readonly writable: boolean;
+  readonly cookingFor: number;
   readonly onKeep: () => void;
 }): ReactElement {
   const heading = useFocusOnMount<HTMLHeadingElement>();
@@ -247,11 +255,11 @@ function RemoveConfirm({
     storage.repos.recipes.removeCopy(view.id).then(
       () => {
         if (view.seed === null) {
-          location.replace(routeHref('recipes'));
+          replaceKeepingEntry(routeHref('recipes'));
           return;
         }
         swapStatusStore.set({ recipeId: view.seed.id, kind: 'removed' });
-        location.replace(recipeHref(view.seed.id));
+        replaceKeepingEntry(recipeHref(view.seed.id), cookingForOn(view.seed.id, cookingFor));
       },
       (failure: unknown) => {
         setRemoving(false);
@@ -288,6 +296,21 @@ function RemoveConfirm({
   );
 }
 
+/**
+ * The confirmation of a swap saved to this copy, where the swap was made, taking focus so it is
+ * seen and announced (the page does not change).
+ */
+function UpdatedNotice({ from, to }: { readonly from: string; readonly to: string }): ReactElement {
+  const box = useFocusOnMount<HTMLDivElement>();
+  return (
+    <div ref={box} tabIndex={-1} className="ui-focus-target">
+      <Notice tone="info" role="status">
+        <p>{fillTemplate(recipes.swap.doneUpdate, { from, to })}</p>
+      </Notice>
+    </div>
+  );
+}
+
 export function RecipeActions({
   storage,
   state,
@@ -309,18 +332,28 @@ export function RecipeActions({
   const [panelOpen, setPanelOpen] = useState(false);
   const [asking, setAsking] = useState(false);
   const removeButton = useRef<HTMLButtonElement>(null);
+  const substituteButton = useRef<HTMLButtonElement>(null);
+  const status = useStore(swapStatusStore);
+  const updated = status?.kind === 'updated' && status.recipeId === view.id ? status : null;
   const blocked =
     view.swappable === 'figures-unknown'
       ? recipes.swap.blockedFigures
       : view.swappable === 'ingredient-missing'
         ? recipes.swap.blockedMissing
         : null;
+  const substituteOff = blocked !== null || !writable;
   const press = (run: () => void) => () => {
     swapStatusStore.set(null);
     run();
   };
+  // "Later": not built yet, read at full contrast (item 16's pattern); a click does nothing.
   const later = (label: string) => (
-    <Button variant="secondary" aria-disabled="true" aria-describedby={laterId}>
+    <Button
+      variant="secondary"
+      className="ui-button--off"
+      aria-disabled="true"
+      aria-describedby={laterId}
+    >
       {label} <Chip tone="neutral">{recipes.actions.later}</Chip>
     </Button>
   );
@@ -329,6 +362,11 @@ export function RecipeActions({
       <ButtonRow>
         {later(recipes.actions.addToPlan)}
         {later(recipes.actions.logAsEaten)}
+      </ButtonRow>
+      <p id={laterId} className="ui-text-muted">
+        {recipes.actions.laterNote}
+      </p>
+      <ButtonRow>
         <Button
           variant="secondary"
           onClick={press(() => {
@@ -341,12 +379,14 @@ export function RecipeActions({
         </Button>
         {copyOfSeed === null ? (
           <Button
+            ref={substituteButton}
             variant="tint"
-            aria-disabled={blocked !== null || !writable ? 'true' : undefined}
+            className={substituteOff ? 'ui-button--off' : undefined}
+            aria-disabled={substituteOff ? 'true' : undefined}
             aria-describedby={blocked === null ? undefined : blockedId}
             aria-expanded={panelOpen}
             onClick={press(() => {
-              if (blocked === null && writable) setPanelOpen(true);
+              if (!substituteOff) setPanelOpen(true);
             })}
           >
             {recipes.actions.substitute}
@@ -356,9 +396,6 @@ export function RecipeActions({
       {copyOfSeed === null ? null : (
         <ActionRow href={recipeHref(copyOfSeed.id)} title={recipes.detail.openVersion} />
       )}
-      <p id={laterId} className="ui-text-muted">
-        {recipes.actions.laterNote}
-      </p>
       {blocked === null || copyOfSeed !== null ? null : (
         <p id={blockedId} className="ui-text-muted">
           {blocked}
@@ -372,17 +409,21 @@ export function RecipeActions({
           copySeed={view.seed}
           cookingFor={cookingFor}
           writable={writable}
-          onClose={() => {
+          onClose={(why) => {
             setPanelOpen(false);
+            // Cancel returns focus to the button; a saved swap's confirmation takes it itself.
+            if (why === 'cancel') requestAnimationFrame(() => substituteButton.current?.focus());
           }}
         />
       ) : null}
+      {updated === null ? null : <UpdatedNotice from={updated.from} to={updated.to} />}
       {view.origin === 'owner' ? (
         asking ? (
           <RemoveConfirm
             storage={storage}
             view={view}
             writable={writable}
+            cookingFor={cookingFor}
             onKeep={() => {
               setAsking(false);
               requestAnimationFrame(() => removeButton.current?.focus());

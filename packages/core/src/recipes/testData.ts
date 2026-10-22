@@ -16,7 +16,12 @@ import type { Nutrients } from '../nutrition/nutrients';
 import type { Allergen } from '../storage/allergens';
 import { ingredientResolver, type IngredientView } from '../storage/overrides';
 import type { Id, Instant } from '../storage/primitives';
-import type { IngredientOverrideRecord, IngredientRecord, RecipeLine } from '../storage/records';
+import type {
+  IngredientOverrideRecord,
+  IngredientRecord,
+  NutrientKey,
+  RecipeLine,
+} from '../storage/records';
 import type { RecipeFoods } from './foodKind';
 
 /** One made-up round set of figures per 100 g, used for every loaded food in the fixtures. */
@@ -42,9 +47,17 @@ export interface FixtureFoodsOptions {
   readonly source?: NutritionSource;
   /** Other synthetic figures for some seeds. */
   readonly figures?: Readonly<Record<string, Nutrients>>;
+  /** Figures some loaded seeds lack (stored as 0, as D35 stores an unknown figure). */
+  readonly missing?: Readonly<Record<string, readonly NutrientKey[]>>;
   readonly own?: readonly IngredientRecord[];
   readonly overrides?: readonly IngredientOverrideRecord[];
 }
+
+const withMissing = (figures: Nutrients, missing: readonly NutrientKey[]): Nutrients => {
+  const out = { ...figures };
+  for (const key of missing) out[key] = 0;
+  return out;
+};
 
 /** The seed views with synthetic figures, before the owner's changes. */
 export function fixtureSeedViews(options: FixtureFoodsOptions = {}): IngredientView[] {
@@ -54,8 +67,11 @@ export function fixtureSeedViews(options: FixtureFoodsOptions = {}): IngredientV
       ? view
       : {
           ...view,
-          nutrientsPer100g: { ...(options.figures?.[view.id] ?? SYNTHETIC_PER_100G) },
-          unknownNutrients: [],
+          nutrientsPer100g: withMissing(
+            options.figures?.[view.id] ?? SYNTHETIC_PER_100G,
+            options.missing?.[view.id] ?? [],
+          ),
+          unknownNutrients: [...(options.missing?.[view.id] ?? [])],
           source: options.source ?? 'estimate',
         },
   );

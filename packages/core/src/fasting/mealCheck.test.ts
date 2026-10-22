@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { FoodLogRecord, PlannedMealRecord, RecipeRecord } from '../storage/records';
+import type { FoodLogRecord, PlannedMealRecord } from '../storage/records';
 import { seedViews } from '../foods/dataset';
 import { NUTRIENT_KEYS, type Nutrients } from '../nutrition/nutrients';
 import { ingredientResolver } from '../storage/overrides';
@@ -8,6 +8,7 @@ import {
   type LoggedIntake,
   mealCheck,
   type MealCheckInput,
+  type MealCheckRecipe,
   type PlannedMealFigures,
   plannedMealFigures,
   plannedMealsOf,
@@ -318,7 +319,7 @@ describe('figures for the check (items 22 and 23 feed these)', () => {
       lines: [],
       nutritionPerServe: nutrients(40, 2_000),
       unknownNutrients: ['energyKj'],
-    } as unknown as RecipeRecord;
+    } as unknown as MealCheckRecipe;
     const planned: PlannedMealRecord = {
       slot: 'dinner',
       recipeId: 'r',
@@ -394,7 +395,7 @@ describe('a dinner of not-loaded catalogue foods (item 18; HS-18, HS-37, C29)', 
         sodiumMg: 0,
       },
       unknownNutrients: [...NUTRIENT_KEYS],
-    } as unknown as RecipeRecord;
+    } as unknown as MealCheckRecipe;
     const dinner: PlannedMealRecord = {
       slot: 'dinner',
       recipeId: 'r',

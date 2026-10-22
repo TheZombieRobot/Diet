@@ -112,7 +112,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | NU-08 | Cholesterol check-in cards | Lipid test at first run; check-ins when 56 and 84 days have passed since the first low-carb day (or since the profile was made if there was none); boundaries 55/56 and 83/84 days; one case starting in balanced mode, where the lipid test and check-ins are counted again from the first low-carb day (C109) |
 | NU-09 | Attribution footer | Present on every nutrition screen; names only the databases recorded as approved in DECISIONS.md (none until checklist item 10); no NZ Food Composition Database wording when only USDA is approved (C97); including the recipe page (item 18's footer) |
 | NU-10 | Recipe whose ingredients have no figures yet | Item 18's "not known" rows and no badge; no heart-smart label; no bare keto, moderate or balanced chip; Substitute explains why it is not available; counts as not met in every check (HS-37, HS-39) |
-| NU-11 | Recipe dataset validation | Every seed recipe passes the dataset validator against item 18's catalogue: ids, allergens, cooked weights, eggs, wording, the keto first week, coverage |
+| NU-11 | Recipe dataset validation | Every seed recipe passes the dataset validator against item 18's catalogue: ids, allergens, cooked weights, eggs, no added salt, curated swaps that never flag, limits already broken by a partly loaded release, wording, the keto first week, coverage |
 
 ### 3.7 Grocery list
 | ID | Case | Expected |
@@ -236,7 +236,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | FD-01 | Search the catalogue by name or another name ("chard") | The matching food is listed (Silverbeet); fewer than 2 letters lists every food by aisle |
 | FD-02 | Open a food whose figures are not loaded | Every per-100 g figure reads "not known", never 0; no badge; the footer says no figure is from a food database |
 | FD-03 | Allergens of a fresh single food, a packed single food, a brand-dependent food, and one the profile lists | "None of the 15 allergens", "check the label" (with "none by nature" for the single food), what it contains plus "check the label", and the conflict in the owner's own terms ("Has wheat (gluten), which you listed") |
-| FD-04 | Swaps on a food's details | Never a swap carrying a listed allergen, nor a food the owner does not want suggested; gluten-free swaps only with Gluten-free household on, whatever the profile lists; "(check the label)" on a swap whose allergens are not complete |
+| FD-04 | Swaps on a food's details | Never a swap carrying a listed allergen, nor a food the owner does not want suggested; gluten-free swaps only with Gluten-free household on, whatever the profile lists, and with it on never a swap known to carry a gluten cereal; "(check the label)" on a swap whose allergens are not complete |
 
 ---
 

@@ -93,6 +93,17 @@ export const SALTY_SEED_IDS = Object.freeze([
   'seed:liquid-stock',
 ] as const);
 
+/**
+ * The recipes with soy sauce, the only salty food a recipe may hold (HEALTH_SAFETY section 4: no
+ * added salt; four use soy sauce). The validator refuses salt, fish sauce, stock or more soy sauce.
+ */
+export const SOY_SAUCE_RECIPE_IDS: readonly SeedId[] = Object.freeze([
+  'seed:recipe-tofu-mushroom-silverbeet-stir-fry',
+  'seed:recipe-ginger-beef-lettuce-cups',
+  'seed:recipe-chicken-egg-cauliflower-fried-rice',
+  'seed:recipe-beef-cabbage-stir-fry',
+]);
+
 /** Alcohol never enters a recipe, a swap or the recipe wording (C11, P45). */
 export const RECIPE_ALCOHOL_WORDS =
   /\b(?:alcohol\w*|wine|wines|beer|beers|ale|lager|cider|spirits?|vodka|gin|rum|whisk(?:e)?y|brandy|sherry|port|mirin|sake|liqueurs?|vermouth|marsala|cognac|tequila|bourbon)\b/i;

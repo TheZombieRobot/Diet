@@ -32,6 +32,7 @@ import {
   type HeartSmart,
   heartSmart,
   heartSmartInput,
+  type HeartCapBudget,
 } from './heartSmart';
 import { type RecipeNutrition, recipeNutrition } from './nutrition';
 import { substituteOptions, type SwapProfile, swappable } from './swap';
@@ -86,6 +87,12 @@ export interface RecipeView {
   readonly serving: Serving;
   readonly conflicts: readonly Allergen[];
   readonly blocked: readonly Allergen[];
+  /**
+   * The listed allergens it is never shown as free of, besides its conflicts: the blocked ones
+   * that are not conflicts while its allergens are not fully known (P41). A conflict on one listed
+   * allergen never hides the label check for the others.
+   */
+  readonly labelCheck: readonly Allergen[];
   readonly glutenCereals: readonly Allergen[];
   readonly disliked: boolean;
   readonly hidden: boolean;
@@ -110,8 +117,8 @@ export interface RecipeViewContext {
   readonly month: number;
   /** 1, or the planned portion when opened from a plan day. */
   readonly myServes: number;
-  /** Item 21's saturated-fat budget in grams, or null. */
-  readonly satFatBudgetG: number | null;
+  /** Item 21's saturated-fat budget in grams, null when there is none, or 'not-read'. */
+  readonly satFatBudgetG: HeartCapBudget;
 }
 
 const isSeedRecipe = (recipe: SeedRecipe | RecipeRecord): recipe is SeedRecipe =>
@@ -226,6 +233,9 @@ export function recipeView(recipe: SeedRecipe | RecipeRecord, ctx: RecipeViewCon
     serving,
     conflicts,
     blocked,
+    labelCheck: allergens.facts.allergensUnknown
+      ? blocked.filter((a) => !conflicts.includes(a))
+      : [],
     glutenCereals: glutenCerealsIn(allergens.facts),
     disliked: lines.some((line) => {
       const view = foods.resolve(line.ingredientId);

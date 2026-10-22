@@ -38,9 +38,9 @@ export function textSamples(page: Page): Promise<TextSample[]> {
       const style = getComputedStyle(element);
       const box = element.getBoundingClientRect();
       if (box.width === 0 || box.height === 0 || style.visibility !== 'visible') continue;
-      // An off action row ("Later", "Off") is aria-disabled but meant to be read at full contrast,
-      // so it is swept.
-      const exempt = ':disabled, [aria-disabled="true"]:not(.ui-action-row--off)';
+      // An off action row or button ("Later", "Off", a blocked swap) is aria-disabled but meant
+      // to be read at full contrast, so it is swept.
+      const exempt = ':disabled, [aria-disabled="true"]:not(.ui-action-row--off, .ui-button--off)';
       if (element.closest(`${exempt}, .ui-visually-hidden`)) continue;
       const chain: Element[] = [];
       for (let node: Element | null = element; node !== null; node = node.parentElement) {

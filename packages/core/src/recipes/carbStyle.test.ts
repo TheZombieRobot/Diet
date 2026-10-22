@@ -4,6 +4,7 @@ import type { NetCarbCeiling } from '../targets/carbs';
 import {
   type CarbStyleView,
   carbStyleChip,
+  carbStyleLine,
   carbStyleOf,
   carbStyleRank,
   plannerTieBreak,
@@ -56,6 +57,23 @@ describe('carb style (item 20)', () => {
         expect(carbStyleChip(v).kind).not.toBe('style');
       }
     }
+    // No style word rests on a lower bound unless the bound proves it: only balanced, over 35 g.
+    for (const written of modes)
+      for (const carbs of [0, 5, 10, 10.5, 35, 35.5, 80]) {
+        const line = carbStyleLine(style(written, carbs, false));
+        if (line.kind === 'figures') expect([line.style, carbs > 35]).toEqual(['balanced', true]);
+      }
+    expect(carbStyleLine(style('keto', 15, false))).toEqual({
+      kind: 'written-above',
+      written: 'keto',
+    });
+    expect(carbStyleLine(style('keto', 5, false))).toEqual({ kind: 'written', written: 'keto' });
+    expect(carbStyleLine(style('keto', 36, false))).toEqual({ kind: 'figures', style: 'balanced' });
+    expect(carbStyleLine(style(null, 20, false))).toEqual({ kind: 'unknown' });
+    expect(carbStyleLine(style('keto', 12, true))).toEqual({
+      kind: 'figures',
+      style: 'moderate-low-carb',
+    });
     expect(carbStyleChip(style('keto', 0, false))).toEqual({ kind: 'written', style: 'keto' });
     expect(carbStyleChip(style('keto', 12, false))).toEqual({ kind: 'not-worked-out' });
     expect(carbStyleChip(style('keto', 6, true))).toEqual({ kind: 'style', style: 'keto' });
