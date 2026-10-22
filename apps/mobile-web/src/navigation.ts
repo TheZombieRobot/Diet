@@ -24,7 +24,10 @@ const isAboveToday = (state: unknown): boolean =>
   state !== null &&
   (state as Readonly<Record<string, unknown>>)[ABOVE_TODAY] === true;
 
-/** Item 19: the tab a sub-screen's entry was opened from (Garden and pantry from Food). */
+/**
+ * Item 19: the tab a sub-screen's entry was opened from (Garden and pantry from Food; item 27's
+ * session and weekly plan from Move).
+ */
 const PARENT = 'dietParentTab';
 /**
  * Item 19 review: that tab's entry is itself above Today, so Today is two entries back. It stays
@@ -42,12 +45,16 @@ const isTodayTwoBack = (state: unknown): boolean =>
   state !== null &&
   (state as Readonly<Record<string, unknown>>)[TODAY_TWO_BACK] === true;
 
-/** The entry's state without the sub-screen mark, for a tab switch that replaces the entry. */
+/**
+ * The entry's state without the sub-screen mark, for a tab switch that replaces the entry; null
+ * when nothing else is left (item 27).
+ */
 function withoutParentTab(state: unknown): unknown {
   if (parentTabOf(state) === undefined) return state;
-  return Object.fromEntries(
-    Object.entries(state as Readonly<Record<string, unknown>>).filter(([key]) => key !== PARENT),
+  const rest = Object.entries(state as Readonly<Record<string, unknown>>).filter(
+    ([key]) => key !== PARENT,
   );
+  return rest.length === 0 ? null : Object.fromEntries(rest);
 }
 
 /** Switches to a tab, the way a tap on the tab bar does. */
@@ -120,7 +127,8 @@ export function markSubScreenEntry(
 
 /**
  * Item 19: moves the current entry to `href` without a new history entry and keeps its state
- * (closing the harvest panel turns #/garden/harvest into #/garden), so Back still goes where it did.
+ * (closing the harvest panel turns #/garden/harvest into #/garden; item 27's Complete workout
+ * resolver and the session chooser's Start links), so Back still goes where it did.
  */
 export function replaceEntryHref(
   href: string,

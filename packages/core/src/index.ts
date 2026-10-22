@@ -33,6 +33,7 @@ export * from './garden/pantryForm';
 export * from './garden/photo';
 export * from './garden/rows';
 export * from './garden/stock';
+export * from './move';
 export * from './nutrition/confidence';
 export * from './nutrition/netCarbs';
 export * from './nutrition/nutrients';

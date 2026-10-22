@@ -28,6 +28,7 @@ import {
 import { markUpdateWaiting, setUpdateActivator, updateStore } from './pwa/update';
 import {
   isUnderSettings,
+  PARENT_TAB,
   ROUTE_TITLES,
   ROUTES,
   routeHref,
@@ -81,9 +82,19 @@ describe('every screen', () => {
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(ROUTE_TITLES[route]);
     const tabs = within(screen.getByRole('navigation', { name: 'Main' })).getAllByRole('link');
     expect(tabs.map((t) => t.textContent)).toEqual(TAB_ROUTES.map((r) => ROUTE_TITLES[r]));
+    // A sub-screen marks its parent tab "true" (item 27's Move session and plan editor).
+    const parent = PARENT_TAB[route];
     expect(
-      tabs.filter((t) => t.getAttribute('aria-current') === 'page').map((t) => t.textContent),
-    ).toEqual((TAB_ROUTES as readonly string[]).includes(route) ? [ROUTE_TITLES[route]] : []);
+      tabs
+        .filter((t) => t.getAttribute('aria-current') !== null)
+        .map((t) => [t.textContent, t.getAttribute('aria-current')]),
+    ).toEqual(
+      (TAB_ROUTES as readonly string[]).includes(route)
+        ? [[ROUTE_TITLES[route], 'page']]
+        : parent === undefined
+          ? []
+          : [[ROUTE_TITLES[parent], 'true']],
+    );
     const gear = screen.getByRole('link', { name: 'Settings' });
     // "page" only on Settings itself; About, reached from Settings, marks it as its section.
     expect(gear.getAttribute('aria-current')).toBe(
@@ -146,11 +157,12 @@ describe('every screen', () => {
 describe('placeholder screens (no sample data)', () => {
   // Today (item 16), Settings and About, the setup screens (item 13), the Weight screen (item 14),
   // the Fasting screen (item 15), Foods in the app (item 18), Garden and pantry (item 19), Diet and
-  // targets (item 21) and Laptop pairing (item 30) are built; the rest still say they arrive later
-  // (Food in part: it links to the garden and pantry).
+  // targets (item 21), the Move screens (item 27) and Laptop pairing (item 30) are built; the rest
+  // still say they arrive later (Food in part: it links to the garden and pantry).
   const built: readonly RouteId[] = [
     'today',
     'settings',
+    'move',
     'about',
     'readiness',
     'profile',
@@ -160,6 +172,8 @@ describe('placeholder screens (no sample data)', () => {
     'targets',
     'foods',
     'garden',
+    'move-session',
+    'move-plan',
     'pairing',
   ];
   const placeholders = ROUTES.filter((r) => !built.includes(r));
@@ -206,8 +220,8 @@ describe('placeholder screens (no sample data)', () => {
 
   it('TD-02: Today shows no figure for what is not built, with the install offer and the "+" panel open', async () => {
     // Today legitimately shows digits elsewhere (the date, the Fast card's pattern, the Nutrition
-    // today card's intake, the guidance line), so the check is scoped to the unbuilt card, the
-    // later-step lines and the Later rows.
+    // today card's intake, the guidance line, the Movement card's session lengths), so the check
+    // is scoped to the later-step lines and the Later rows.
     stopListening = listenForInstallPrompt(window);
     await show('today');
     act(() => {
@@ -217,13 +231,12 @@ describe('placeholder screens (no sample data)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Quick actions' }));
     await screen.findByText(today.quickActions.laterNote);
     const scoped = [
-      within(main()).getByRole('region', { name: today.cards.movement }),
       ...screen.getAllByTestId('later-step'),
       ...document.querySelectorAll('.ui-fab-panel [aria-disabled="true"]'),
     ];
-    // One card, two later-step lines (Movement and drink logging) and five Later rows (item 19
-    // built Add harvest).
-    expect(scoped).toHaveLength(8);
+    // One later-step line (drink logging) and four Later rows (item 19 built Add harvest, item 27
+    // Complete workout).
+    expect(scoped).toHaveLength(5);
     for (const element of scoped) {
       expect(element.textContent).not.toMatch(/\d/);
       expect(element.textContent).not.toMatch(/[$€£]/);

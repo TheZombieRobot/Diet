@@ -1712,9 +1712,10 @@ export const move = {
       'Beach jogging is optional. Your work already counts as activity, so jogging is never required.',
     locked: 'Jogging unlocks after four tolerated walks.',
     progress: 'Tolerated walks so far: {count} of 4.',
-    needsOptIn: 'It also needs your opt-in in Settings, under Equipment.',
+    // Item 27: the switch is on Move's "Beach walks and jogging" card, under these lines.
+    needsOptIn: 'It also needs your opt-in, with the switch below.',
     readyOptIn:
-      'You have four tolerated walks. Jogging stays off unless you turn it on in Settings, under Equipment.',
+      'You have four tolerated walks. Jogging stays off unless you turn on the switch below.',
     paused:
       'After your last jog, effort or soreness was above 3 or not rated, or the next check showed pain or back or leg symptoms. The beach walk is shown again until one more tolerated walk.',
     tolerated:
@@ -1787,6 +1788,164 @@ export const move = {
   /** When getExerciseData() throws (never expected; CI checks the data). */
   dataError:
     'The exercise plans could not be loaded. Nothing was changed. Reload the app; if this keeps happening, the app needs an update.',
+} as const;
+
+// ---- Move screens: the week, today's sessions, the session log, history and the plan (item 27) ----
+
+/**
+ * The Move screens' own wording (UX_SCREENS.md 2 card 6 and 4a–4d; checklist item 27). Every
+ * safety sentence (stop signs, beach prompts, the check, rest, progression, jogging) is item 26's
+ * `move` section; this section holds labels, states and the session log. Nothing here may say a
+ * day was missed or failed: rest and recovery count as success (HEALTH_SAFETY.md section 6).
+ */
+export const moveScreen = {
+  listComma: ', ',
+  listAnd: ' and ',
+  seeWeek: 'See this week',
+  blockedKept:
+    'Your logged sessions are kept, and Move shows them again once exercise plans are back on.',
+  today: {
+    planned: 'Today: {names}',
+    allDone: 'Done for today.',
+    minutes: 'About {minutes} minutes',
+    inProgress: 'In progress',
+    start: 'Start {name}',
+    continue: 'Continue {name}',
+    finish: 'Finish {name}',
+    restInstead: 'Rest instead of {name}',
+    undoRest: 'Undo rest for {name}',
+    changeChoice: 'Change the choice for {name}',
+    unknownTemplate: 'A session no longer in the app',
+  },
+  week: {
+    /** The strip's hidden sentence per day ({day} is the weekday's name). */
+    day: {
+      restDay: '{day}: rest day, counts as success',
+      planned: '{day}: {names}',
+      done: '{day}: {names}, done',
+      rested: '{day}: rested, that counts',
+      notDone: '{day}: {names}, not done. Rest counts too.',
+    },
+    today: '{text} (today)',
+    minutesRange: '{low} to {high}',
+    planRow: 'Choose your training days. Rest days stay in the plan.',
+    jogAsWalkDays: 'Jogging is not on right now, so the beach walk is shown on {days}.',
+    fallbackToday:
+      'Your weekly plan did not fit the plan rules, so the standard week is shown. You can change it on Move.',
+  },
+  chooser: {
+    title: "Today's sessions",
+    nothing: 'Nothing more is planned for today.',
+  },
+  safety: {
+    /** Above item 13's "My symptoms have changed" on the stop-signs card. */
+    changedLine:
+      'If any of these happened during activity, tell the app. Exercise plans then stay off until you confirm you have discussed exercise with a GP again.',
+  },
+  before: {
+    /** {ml} is heatWaterMl of the session's longer length estimate (move/display.ts). */
+    heatWater:
+      'In the heat, carry at least {ml} mL of water, and drink about 500 mL for each hour you are active.',
+  },
+  session: {
+    lighterChip: 'Lighter',
+    restBetween: 'Rest about {amount} between sets.',
+    walkBetween: 'Walk for about {amount} between jogs.',
+    walkBetweenBrisk: 'Walk easily for about {amount} between brisk walks.',
+    howTo: 'How to do it',
+    changeVersion: 'Change version',
+    versionLegend: 'Version of {name}',
+    setLine: 'Set {n}: {amount}',
+    doneMark: 'done',
+    amountLabel: 'Set {n}',
+    less: 'Less for set {n}',
+    more: 'More for set {n}',
+    setDone: 'Set {n} done',
+    undoSet: 'Undo set {n}',
+    extraSet: 'Log an extra set',
+    logAnyway: 'Log a set anyway',
+    walkLine: 'Walk: {amount}',
+    walkAmountLabel: 'Walk time',
+    walkLess: 'Less walk time',
+    walkMore: 'More walk time',
+    walkDone: 'Walk done',
+    undoWalk: 'Undo walk',
+    finish: 'Finish session',
+    unknownMovement: 'This movement is no longer in the app. Its logged sets are kept.',
+    refusedKept:
+      'Sets already ticked today are kept, and they count. You can still finish and rate this session.',
+    dayChanged:
+      'This session started on {day}. Its ticked sets are kept and count, and you can still rate it.',
+    maxSets: 'One movement holds at most 20 sets.',
+  },
+  finish: {
+    scale: '{low}, {high}',
+    noteLabel: 'Note (optional)',
+    noteHint: 'Anything worth remembering about this session.',
+    save: 'Save',
+    saveChanges: 'Save changes',
+    back: 'Back to the session',
+    saved: 'Saved.',
+    walkRatings:
+      'A walk counts toward jogging only when at least {minutes} minutes are ticked and effort and soreness are rated 3 or less.',
+    jogRatings:
+      'Jogging stays on only when effort and soreness are rated 3 or less. A jog left unfinished counts as not rated.',
+    noTicks: "No sets are ticked yet. Only ticked sets count toward next week's amounts.",
+    noCheckDone:
+      'This session came from a backup without a quick check, so its ratings cannot be changed here.',
+  },
+  history: {
+    title: 'Recent sessions',
+    empty: 'Sessions you log show here.',
+    more: 'Show more',
+    ratings: 'Effort {exertion}, soreness {soreness}, energy {energy}',
+    notRated: 'not rated',
+    note: 'Note: {note}',
+    movement: '{name}: {amounts}',
+  },
+  beach: {
+    title: 'Beach walks and jogging',
+    toleratedButton: 'What is a tolerated walk?',
+  },
+  plan: {
+    title: 'Your week',
+    intro:
+      'Choose what each day holds. A day with nothing planned is a rest day, and rest counts. Nothing is saved until you tap Save plan.',
+    dayButton: '{day}: {summary}',
+    restDay: 'Rest day',
+    strengthLegend: 'Strength session on {day}',
+    beachLegend: 'Beach session on {day}',
+    none: 'None',
+    jogHint:
+      'Beach jogging can be added here once it is unlocked: four tolerated walks and the switch turned on, under Beach walks and jogging on Move.',
+    jogKeptAsWalk:
+      'Jogging is not on right now, so the beach walk is shown on {days}. Saving this plan keeps the walk there.',
+    problemsTitle: 'To save this plan:',
+    rollingRest:
+      'Counting the sessions already done in the last few days, this plan would leave fewer than 2 rest days in some 7 days in a row. Keep a rest day sooner, or save this plan after your next rest day.',
+    save: 'Save plan',
+    standard: 'Use the standard week',
+    back: 'Back to Move',
+  },
+  amount: {
+    rep: '1 rep',
+    reps: '{n} reps',
+    seconds: '{n} seconds',
+    minute: '1 minute',
+    minutes: '{n} minutes',
+    mixed: '{minutes} {seconds}',
+    perSide: '{amount} each side',
+  },
+  errors: {
+    readFailed: "Move's records could not be read.",
+    reload: 'Reload the app',
+    noCheck: 'This session has no quick check, so it could not be saved. Nothing was changed.',
+    /** Item 26's sessionWriteProblem 'lighter-only': after a yes, only the easier versions. */
+    lighterOnly:
+      'After a yes on the quick check, this session holds only the easier versions, so this could not be saved. Nothing was changed.',
+    changed:
+      'This session changed on another screen or at midnight, so nothing was saved. Check this screen and try again.',
+  },
 } as const;
 
 // ---- Item 15: the fasting timer and history, and the reflux log ----
@@ -2321,7 +2480,6 @@ export const today = {
   readFailed: "Today's records could not be read.",
   reload: 'Reload the app',
   laterStep: {
-    movement: 'Sessions, walks and rest days arrive at a later step of the build checklist.',
     drinks: 'Drink logging arrives at a later step of the build checklist.',
     /** Settings' "Coming later" card: the UX 7 settings not built yet (full review F33). */
     settings:
@@ -2845,6 +3003,7 @@ export const healthCopy = {
   garden,
   weight,
   move,
+  moveScreen,
   fasting,
   reflux,
   targets,

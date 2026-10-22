@@ -36,7 +36,11 @@ export interface Save {
   readonly run: (write: () => Promise<unknown>) => Promise<boolean>;
 }
 
-export function useSave(): Save {
+/**
+ * `message` maps a failure to the text shown (default saveFailureMessage); Move passes its own,
+ * which falls back to this one (item 27).
+ */
+export function useSave(message: (error: unknown) => string | null = saveFailureMessage): Save {
   const storage = useStore(appStorageStore);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +58,7 @@ export function useSave(): Save {
         return true;
       } catch (failure) {
         if (failure instanceof StorageClosedError) storage?.db.closeForGood('reload-needed');
-        setError(saveFailureMessage(failure));
+        setError(message(failure));
         setFailures((n) => n + 1);
         return false;
       } finally {
@@ -62,7 +66,7 @@ export function useSave(): Save {
         setBusy(false);
       }
     },
-    [storage],
+    [storage, message],
   );
 
   return { busy, error, failures, run };

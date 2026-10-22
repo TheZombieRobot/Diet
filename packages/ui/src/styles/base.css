@@ -79,6 +79,12 @@ ol {
   margin: 0;
 }
 
+/* The hidden attribute always hides, whatever display a class gives the element (item 27 review:
+   a collapsed list styled as a flex column stayed on screen). */
+[hidden] {
+  display: none !important;
+}
+
 ul,
 ol {
   padding: 0;

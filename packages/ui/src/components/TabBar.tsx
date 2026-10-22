@@ -13,7 +13,8 @@ export interface TabBarProps {
   current: string | undefined;
   /**
    * The current screen is not the tab itself but a screen under it (item 19: Garden and pantry
-   * under Food): the tab is marked aria-current="true", not "page", and keeps its pill.
+   * under Food; item 27: Move's session and weekly plan): the tab is marked aria-current="true",
+   * not "page", as the gear is for About, and keeps its pill.
    */
   currentIsParent?: boolean | undefined;
   /** The navigation landmark's name. */
@@ -34,8 +35,8 @@ const isPlainClick = (event: MouseEvent): boolean =>
   !event.altKey;
 
 /**
- * The bottom tab bar: one link per tab, the current one marked with aria-current="page" and, not
- * by colour alone, a tinted pill behind its icon.
+ * The bottom tab bar: one link per tab, the current one marked with aria-current="page" (or "true"
+ * on a sub-screen of that tab) and, not by colour alone, a tinted pill behind its icon.
  */
 export function TabBar({
   items,

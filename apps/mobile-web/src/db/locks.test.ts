@@ -12,6 +12,7 @@ import type { OpenStatus } from './db';
 import { deleteAllData } from './deleteAll';
 import { StorageClosedError } from './errors';
 import { pendingCheckStore, setPendingCheck } from '../screens/backup/pendingCheck';
+import { finishDraftStore } from '../screens/move/finishDrafts';
 import { preStartStopSignStore } from '../screens/weight/preStartCheck';
 import { createWriteGate, openTabChannel } from './gate';
 import { readGeneration } from './generation';
@@ -300,12 +301,14 @@ describe('startStorage holds the lock and listens for other tabs (runtime.ts)', 
     });
   });
 
-  it('HS-30 in another tab (F8): its delete-all clears this tab’s session storage and the pre-start answer it holds; a restore leaves them', async () => {
+  it('HS-30 in another tab (F8): its delete-all clears this tab’s session storage, the pre-start answer and the unsaved session notes it holds; a restore leaves them', async () => {
     const session = memoryStorage({ 'example-key': 'example value' });
     const deps = freshDeps();
     const platform = testPlatform({ sessionStorage: () => session });
     const tab = await start(deps, locksFor(deps.indexedDB), platform);
     preStartStopSignStore.set('2000-02-01');
+    const draft = { exertion: 2, soreness: null, energy: null, note: 'Example note' };
+    finishDraftStore.set({ 'example-row': draft });
     const other = openTabChannel(() => undefined);
     cleanups.push(other.stop);
     other.post('import');
@@ -314,11 +317,13 @@ describe('startStorage holds the lock and listens for other tabs (runtime.ts)', 
     });
     expect(session.length).toBe(1);
     expect(preStartStopSignStore.get()).toBe('2000-02-01');
+    expect(finishDraftStore.get()).toEqual({ 'example-row': draft });
     other.post('delete-all');
     await vi.waitFor(() => {
       expect(session.length).toBe(0);
     });
     expect(preStartStopSignStore.get()).toBeNull();
+    expect(finishDraftStore.get()).toEqual({});
   });
 
   it('a restore in a started tab first gives up that tab’s own shared lock, so it is not blocked by itself', async () => {

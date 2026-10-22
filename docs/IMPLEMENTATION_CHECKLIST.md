@@ -83,7 +83,7 @@ Conventions for the implementing model:
 22. **Seven-day planner.** Window-aware meal slots (snack plus dinner by default), swap with garden-first ranking, household scaling with independent user portion, dislikes and allergens respected, budget note, cholesterol check-in cards (day one, weeks 8 and 12), electrolyte reminder in the first fortnight, optional auto-fill respecting the floor (the Today cholesterol and electrolyte reminders were built at item 16; item 22 adds the planner side and reuses `cholesterolCheckinDue` and `electrolyteReminderDue`).
     *Acceptance:* NU-05 to NU-08; FL-05 (HS-23).
 
-23. **Food log.** Quick-add from plan or recipe, add from label (per 100 g or per serve), raw/cooked toggle, confidence badges, water and electrolyte log, manual steps.
+23. **Food log.** Quick-add from plan or recipe, add from label (per 100 g or per serve), raw/cooked toggle, confidence badges, water and electrolyte log, manual steps. The Today water card's guide adds core `heatWaterExtraMl(data, sessions, today, equipment)` (item 27: 500 mL for each started hour of today's beach or hot-day sessions) to `waterGuide(...).ml`, with one test (a done beach walk today adds 500 mL; cross-item ruling 12).
     *Acceptance:* FL-01 to FL-03.
 
 24. **Grocery list builder and exports.** Aggregate, merge, subtract pantry and garden with audit rows, pack rounding, substitutes, aisle grouping, store name header, optional timestamped prices, copy text, CSV, JSON.
@@ -100,7 +100,7 @@ Conventions for the implementing model:
     *Acceptance:* EX-01, EX-05; HS-28 and HS-29 at core level.
 
 27. **Move screens.** Week view, pre-session check, session view with progression cap, finish ratings, beach prompts, rest counted as success.
-    *Acceptance:* EX-02 to EX-04; HS-12, HS-28, HS-29; RD-05 (Move tab, Today Movement card and Complete workout).
+    *Acceptance:* EX-02 to EX-04, EX-06 to EX-08; HS-12, HS-28, HS-29 (UI); RD-05 (Move tab, Today Movement card and Complete workout); EX-05 in the week view.
 
 28. **Alcohol engine and screens.** Beverage presets (default 330 mL, 5%, 94 kcal), log, daily/weekly cans/standard drinks/kcal, trends, alcohol-free days, milestones entered by user or clinician, guidance context, help card triggers, next-day note, no banned phrasing.
     *Acceptance:* AL-01 to AL-12; HS-05, HS-06, HS-07, HS-08, HS-19; NN-01, NN-09.

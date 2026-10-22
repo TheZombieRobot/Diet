@@ -155,3 +155,25 @@ export function formatWaterText(ml: number): string {
 export function formatSteps(steps: number): string {
   return counts.format(steps);
 }
+
+// ---- Item 27: the Move screens ----
+
+/** The named parts of a calendar date, formatted at noon UTC in UTC so it never shifts a day. */
+const dateParts = (date: LocalDate, options: Intl.DateTimeFormatOptions) =>
+  parts(parseLocalDate(date) + 12 * 3_600_000, 'UTC', options);
+
+/** "Tue" for a stored local date. */
+export function formatWeekdayShort(date: LocalDate): string {
+  return dateParts(date, { weekday: 'short' }).weekday ?? date;
+}
+
+/** "Tuesday" for a stored local date. */
+export function formatWeekdayLong(date: LocalDate): string {
+  return dateParts(date, { weekday: 'long' }).weekday ?? date;
+}
+
+/** "Tue 18 Jan" for a stored local date, from parts so no comma appears. */
+export function formatDayMonth(date: LocalDate): string {
+  const p = dateParts(date, { weekday: 'short', day: 'numeric', month: 'short' });
+  return `${p.weekday ?? ''} ${p.day ?? ''} ${p.month ?? ''}`;
+}

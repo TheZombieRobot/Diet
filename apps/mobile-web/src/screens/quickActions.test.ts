@@ -20,13 +20,13 @@ describe('quickActionStates (U12; TD-02, T17)', () => {
     );
   });
 
-  it("Log weight opens item 14's entry in place and Add harvest the garden screen (item 19); the rest arrive later", () => {
+  it("Log weight opens item 14's entry in place, Complete workout links to the session (item 27) and Add harvest the garden screen (item 19); the rest arrive later", () => {
     const states = quickActionStates(readinessGates(answers('no')));
     expect(states.map((s) => s.state.kind)).toEqual([
       'ready',
       'later',
       'later',
-      'later',
+      'ready',
       'ready',
       'later',
       'later',
@@ -35,6 +35,19 @@ describe('quickActionStates (U12; TD-02, T17)', () => {
       label: 'Log weight',
       run: openWeightEntry,
     });
+    expect(BUILT_QUICK_ACTIONS['complete-workout']).toMatchObject({
+      label: 'Complete workout',
+      href: '#/move-session',
+    });
+  });
+
+  it('RD-05: with readiness answer 6 open, Complete workout is off for exercise plans (item 27)', () => {
+    const gates = readinessGates({
+      ...answers('no'),
+      answers: { ...answers('no').answers, q6: 'yes' },
+    });
+    const workout = quickActionStates(gates).find((s) => s.id === 'complete-workout');
+    expect(workout?.state).toEqual({ kind: 'off', feature: 'exercisePlans' });
   });
 
   it('C6 G22, G24: Add harvest is never gated: ready, linking to #/garden/harvest, whatever the answers', () => {

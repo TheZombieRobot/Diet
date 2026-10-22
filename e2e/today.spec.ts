@@ -85,9 +85,9 @@ test('TD-02: a Later quick action does nothing; Log weight opens the entry in pl
   await expect(panel(page).getByText(today.quickActions.laterNote)).toBeVisible();
   const url = page.url();
   const later = panel(page).locator('[aria-disabled="true"]');
-  // Five Later rows since item 19 built Add harvest.
-  await expect(later).toHaveCount(5);
-  for (let i = 0; i < 5; i++) {
+  // Four Later rows: item 19 built Add harvest and item 27 Complete workout.
+  await expect(later).toHaveCount(4);
+  for (let i = 0; i < 4; i++) {
     // aria-disabled rows stay focusable and tappable on purpose; they just do nothing.
     await later.nth(i).click({ force: true });
     await later.nth(i).press('Enter');

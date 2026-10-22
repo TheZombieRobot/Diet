@@ -32,7 +32,9 @@ import { FoodScreen } from './screens/FoodScreen';
 import { FoodsScreen } from './screens/foods/FoodsScreen';
 import { GardenScreen } from './screens/garden/GardenScreen';
 import { ListScreen } from './screens/ListScreen';
-import { MoveScreen } from './screens/MoveScreen';
+import { MovePlanScreen } from './screens/move/MovePlanScreen';
+import { MoveScreen } from './screens/move/MoveScreen';
+import { MoveSessionScreen } from './screens/move/MoveSessionScreen';
 import { PairingScreen } from './screens/pairing/PairingScreen';
 import { QuickActions } from './screens/today/QuickActionsPanel';
 import { EatingScheduleScreen } from './screens/settings/EatingScheduleScreen';
@@ -97,6 +99,10 @@ function screenFor(route: RouteId): ReactElement {
       return <FoodsScreen />;
     case 'garden':
       return <GardenScreen />;
+    case 'move-session':
+      return <MoveSessionScreen />;
+    case 'move-plan':
+      return <MovePlanScreen />;
     case 'pairing':
       return <PairingScreen />;
   }

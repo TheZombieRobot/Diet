@@ -102,8 +102,8 @@ function readStores(page: Page, stores: readonly string[]): Promise<Record<strin
 const settingsRow = async (page: Page) =>
   (await readStores(page, ['settings']))['settings']?.[0] as Record<string, unknown>;
 
-// Every route, every deep link (item 19: #/garden/harvest; the Fasting sub-links), the bare
-// address and an unknown one.
+// Every route, every deep link (item 19: #/garden/harvest; the Fasting sub-links; item 27: the
+// session with a slug and at its finish), the bare address and an unknown one.
 const ADDRESSES = [
   './',
   ...ROUTES.map((route) => `./${routeHref(route)}`),

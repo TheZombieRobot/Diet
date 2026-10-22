@@ -772,7 +772,10 @@
           "name": "Easy walk on firm sand",
           "how": "Walk at a relaxed pace on firm sand.",
           "perSide": false,
-          "cues": null
+          "cues": [
+            "Walk at an easy pace where you could talk in full sentences.",
+            "Walk tall with relaxed shoulders."
+          ]
         },
         "standard": {
           "name": "Brisk walk on firm sand",
@@ -808,7 +811,10 @@
           "name": "Brisk walk intervals",
           "how": "Walk briskly instead of jogging, with easy walking in between.",
           "perSide": false,
-          "cues": null
+          "cues": [
+            "Walk briskly, but slowly enough to talk, with short, light steps.",
+            "Walk easily between brisk walks for the full break."
+          ]
         },
         "standard": {
           "name": "Easy jog on firm sand",

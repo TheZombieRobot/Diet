@@ -26,6 +26,9 @@ export const ROUTES = [
   'foods',
   // Item 19: Garden and pantry, reached from Food (and Today's Add harvest).
   'garden',
+  // Item 27: a session and the weekly plan editor, sub-screens of the Move tab.
+  'move-session',
+  'move-plan',
   // Item 30: Settings, Laptop pairing.
   'pairing',
 ] as const;
@@ -54,6 +57,8 @@ export const ROUTE_TITLES: Readonly<Record<RouteId, string>> = {
   targets: targets.screen.title,
   foods: foods.screen.title,
   garden: 'Garden and pantry',
+  'move-session': 'Session',
+  'move-plan': 'Weekly plan',
   pairing: 'Laptop pairing',
 };
 
@@ -103,13 +108,18 @@ const UNDER_SETTINGS: readonly RouteId[] = [
 export const isUnderSettings = (route: RouteId): boolean =>
   route === 'settings' || UNDER_SETTINGS.includes(route);
 
-// ---- Item 19: the garden and pantry screen, under Food ----
+// ---- Sub-screens of a tab: item 19's garden and pantry under Food, item 27's Move screens ----
 
 /**
- * Screens that are not tabs but sit under one (item 19 design 1.1; G21): the tab stays lit, marked
- * aria-current="true" rather than "page", as the settings gear is for the screens under Settings.
+ * Screens that are not tabs but sit under one (item 19 design 1.1; G21; item 27): the tab stays
+ * lit, marked aria-current="true" rather than "page", as the settings gear is for the screens under
+ * Settings, and a tap on it from a sub-screen opened from that tab steps back (navigation.ts).
  */
-export const PARENT_TAB: Readonly<Partial<Record<RouteId, TabRouteId>>> = { garden: 'food' };
+export const PARENT_TAB: Readonly<Partial<Record<RouteId, TabRouteId>>> = {
+  garden: 'food',
+  'move-session': 'move',
+  'move-plan': 'move',
+};
 
 /** The garden screen with its Add harvest panel open (Today's quick action). */
 export const GARDEN_HARVEST_HREF = `${routeHref('garden')}/harvest`;
@@ -121,10 +131,24 @@ export const GARDEN_HARVEST_HREF = `${routeHref('garden')}/harvest`;
 export const DEEP_LINKS: readonly string[] = [
   ...FASTING_SUBLINKS.map(fastingHref),
   GARDEN_HARVEST_HREF,
+  // Item 27: a session, and its finish step.
+  '#/move-session/a',
+  '#/move-session/a/finish',
 ];
 
 /** The second segment of a hash, lower-cased: '#/garden/harvest' gives 'harvest', '#/garden' null. */
 export function routeDetail(hash: string): string | null {
   const detail = hash.replace(/^#\/?/, '').split(/[?#]/, 1)[0]?.split('/')[1]?.toLowerCase();
   return detail === undefined || detail === '' ? null : detail;
+}
+
+/** The session route's slug and finish step: '#/move-session/a/finish' → { slug: 'a', finish: true }. */
+export function moveSessionLink(hash: string): {
+  readonly slug: string | null;
+  readonly finish: boolean;
+} {
+  const segments = hash.replace(/^#\/?/, '').split(/[?#]/, 1)[0]?.split('/') ?? [];
+  if (segments[0]?.toLowerCase() !== 'move-session') return { slug: null, finish: false };
+  const slug = segments[1]?.toLowerCase() ?? '';
+  return { slug: slug === '' ? null : slug, finish: segments[2] === 'finish' };
 }

@@ -60,6 +60,12 @@ function fakeHistory(start = '#/today') {
     browser.location.assign(href);
     marks(before, stateBefore);
   };
+  /** A link that replaces the address (the session chooser). */
+  const replace = (href: string) => {
+    const [before, stateBefore] = [route(), current().state];
+    replaceEntryHref(href, browser);
+    marks(before, stateBefore);
+  };
   /** Android's back gesture: true while it stays in the app, false when it would leave. */
   const back = (): boolean => {
     if (index === 0) return false;
@@ -69,6 +75,7 @@ function fakeHistory(start = '#/today') {
   return {
     tap,
     follow,
+    replace,
     back,
     route,
     browser,
@@ -106,6 +113,31 @@ describe('tab switching and the back gesture', () => {
     expect(app.route()).toBe('today');
     expect(app.length()).toBe(1);
     expect(app.back()).toBe(false);
+  });
+
+  it("item 27: a Move sub-screen opened from Move steps back to it, keeping Today's mark", () => {
+    const app = fakeHistory();
+    app.tap('move');
+    app.follow('#/move-session/a');
+    app.tap('move');
+    expect(app.route()).toBe('move');
+    expect(app.length()).toBe(3);
+    expect(app.back()).toBe(true);
+    expect(app.route()).toBe('today');
+  });
+
+  it('item 27: the chooser replaces its own address, so Back from the session returns to Today', () => {
+    const app = fakeHistory();
+    app.follow('#/move-session');
+    app.replace('#/move-session/beach-walk');
+    expect(app.length()).toBe(2);
+    expect(app.back()).toBe(true);
+    expect(app.route()).toBe('today');
+    // Another tab from the sub-screen replaces it, as from any screen above Today.
+    app.follow('#/move-plan');
+    app.tap('food');
+    expect(app.route()).toBe('food');
+    expect(app.length()).toBe(2);
   });
 
   it('tapping the current tab does nothing', () => {

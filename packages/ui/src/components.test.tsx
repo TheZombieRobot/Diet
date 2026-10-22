@@ -652,6 +652,44 @@ describe('first-run components (item 13; K19)', () => {
     expect(onRemove).toHaveBeenCalledWith('liver');
   });
 
+  it('Stepper with a step and a format: moves by the step, stops at the bounds, shows the text (item 27)', () => {
+    const onChange = vi.fn();
+    const { rerender } = render(
+      <Stepper
+        label="Set 1"
+        value={25}
+        min={5}
+        max={30}
+        step={5}
+        formatValue={(v) => `${v} seconds`}
+        onChange={onChange}
+        decreaseLabel="Less for set 1"
+        increaseLabel="More for set 1"
+      />,
+    );
+    expect(screen.getByRole('group', { name: 'Set 1' }).querySelector('output')?.textContent).toBe(
+      '25 seconds',
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'More for set 1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Less for set 1' }));
+    expect(onChange.mock.calls).toEqual([[30], [20]]);
+    rerender(
+      <Stepper
+        label="Set 1"
+        value={30}
+        min={5}
+        max={30}
+        step={5}
+        onChange={onChange}
+        decreaseLabel="Less for set 1"
+        increaseLabel="More for set 1"
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'More for set 1' }).hasAttribute('disabled')).toBe(
+      true,
+    );
+  });
+
   it('DayBar sets each time under its own hour, and marks every other one to leave out when narrow', () => {
     render(
       <DayBar

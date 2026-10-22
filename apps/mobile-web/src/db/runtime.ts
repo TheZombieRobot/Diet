@@ -9,6 +9,7 @@ import { onOnboardingCompleted, requestPersistentStorage } from '../pwa/storage'
 import { revokeAllObjectUrls, offerDownload } from '../files';
 import { type DbDeps, type DietDb, openDietDb, openStatusStore, type OpenStatus } from './db';
 import { setPendingCheck } from '../screens/backup/pendingCheck';
+import { finishDraftStore } from '../screens/move/finishDrafts';
 import { preStartSeenStore, preStartStopSignStore } from '../screens/weight/preStartCheck';
 import { browserEnv, type StorageEnv } from './env';
 import { ensureGeneration } from './generation';
@@ -111,8 +112,9 @@ export interface StartedStorage {
 
 /**
  * What a delete-all in another tab also clears here (HS-30; full review F8): this tab's session
- * storage, which delete-all cannot reach from the other tab, and the pre-start answer this page
- * holds in memory. Each step in its own try, so one failure never stops the other.
+ * storage, which delete-all cannot reach from the other tab, and the pre-start answer and the
+ * unsaved session ratings and notes this page holds in memory. Each step in its own try, so one
+ * failure never stops the other.
  */
 function forgetThisTab(platform: Platform): void {
   try {
@@ -122,6 +124,7 @@ function forgetThisTab(platform: Platform): void {
   }
   preStartStopSignStore.set(null);
   preStartSeenStore.set(null);
+  finishDraftStore.set({});
 }
 
 /**

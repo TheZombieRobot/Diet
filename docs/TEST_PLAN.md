@@ -148,9 +148,12 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 |---|---|---|
 | EX-01 | Every exercise in the dataset has easier and harder variants and a stop-rule link | Data validation |
 | EX-02 | Beach-tagged session | Flags, patrol, rip, sun, hydration prompts render before start (HS-12) |
-| EX-03 | Progression suggestion | Never more than about 10% more volume per movement than the last completed week (C76), nor than the last session |
-| EX-04 | Session log | Saves movement, reps/time, effort, notes; visible in history |
+| EX-03 | Progression suggestion | Never more than about 10% more volume per movement than the last completed week (C76), nor than the last session; once a set uses the session's whole amount, no further set is suggested |
+| EX-04 | Session log | Saves movement, reps/time, effort, notes; visible in history (history on the Move tab) |
 | EX-05 | Rest day scheduled | Weekly view shows at least two rest days |
+| EX-06 | Beach jogging is opt-in | With the switch off, or fewer than four tolerated walks, no jog can be planned or started. After a jog that was not tolerated, or one left unfinished, the beach walk is shown again until one more tolerated walk (UX 4d, C51) |
+| EX-07 | Weekly plan editor | A plan cannot be saved, and the reasons are shown, when it has: fewer than two rest days; strength on consecutive days (Sunday to Monday included); other than two or three strength sessions; a jog while jogging is locked; or, counting the sessions done in the last six days, fewer than two rest days in some 7 days in a row |
+| EX-08 | Rest counts as success | Rest days, rested days and past days with nothing logged read calmly ("Rest day, that counts", "Rested. That counts.", "Not done. Rest counts too."); no screen says missed, failed, behind or streak; the Today card shows the week's plan without done or not-done marks |
 
 ### 3.10 Phone-to-laptop transfer
 | ID | Case | Expected |

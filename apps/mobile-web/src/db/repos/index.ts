@@ -16,6 +16,7 @@ import { type PairingRepo, pairingRepo } from './pairing';
 import { type PhaseRepo, phaseRepo } from './phase';
 import { type PlanDaysRepo, planDaysRepo } from './planDays';
 import { type ReadinessRepo, readinessRepo } from './readiness';
+import { type SessionsRepo, sessionsRepo } from './sessions';
 import { type SettingsRepo, type SingletonRepo, settingsRepo, singletonRepo } from './singletons';
 import { type StockRepo, stockRepo } from './stock';
 import { type WeightsRepo, weightsRepo } from './weights';
@@ -43,7 +44,8 @@ export interface Repos {
   readonly garden: CrudRepo<'garden'>;
   readonly gardenPhotos: GardenPhotosRepo;
   readonly pantry: CrudRepo<'pantry'>;
-  readonly sessions: CrudRepo<'sessions'>;
+  /** Item 27's writes are checked inside their transaction (sessionWrites.ts). */
+  readonly sessions: SessionsRepo;
   readonly beverages: CrudRepo<'beverages'>;
   readonly drinks: DrinksRepo;
   readonly alcoholDayNotes: CrudRepo<'alcohol_day_notes'>;
@@ -79,7 +81,7 @@ export function createRepos(ctx: RepoContext): Repos {
     garden: crudRepo(ctx, 'garden'),
     gardenPhotos: gardenPhotosRepo(ctx),
     pantry: crudRepo(ctx, 'pantry'),
-    sessions: crudRepo(ctx, 'sessions'),
+    sessions: sessionsRepo(ctx),
     beverages: crudRepo(ctx, 'beverages'),
     drinks: drinksRepo(ctx),
     alcoholDayNotes: crudRepo(ctx, 'alcohol_day_notes'),

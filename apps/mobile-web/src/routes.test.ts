@@ -8,6 +8,7 @@ import {
   GARDEN_HARVEST_HREF,
   isTabRoute,
   isUnderSettings,
+  moveSessionLink,
   PARENT_TAB,
   parseRoute,
   routeDetail,
@@ -18,7 +19,7 @@ import {
 } from './routes';
 
 describe('hash routes', () => {
-  it('has the five tabs of UX_SCREENS.md in order, plus Settings, About, the setup screens, Weight, Fasting, Diet and targets, Foods, Garden and pantry and Laptop pairing', () => {
+  it('has the five tabs of UX_SCREENS.md in order, plus Settings, About, the setup screens, Weight, Fasting, Diet and targets, Foods, Garden and pantry, the Move sub-screens and Laptop pairing', () => {
     expect(TAB_ROUTES.map((r) => ROUTE_TITLES[r])).toEqual([
       'Today',
       'Food',
@@ -38,6 +39,8 @@ describe('hash routes', () => {
       'targets',
       'foods',
       'garden',
+      'move-session',
+      'move-plan',
       'pairing',
     ]);
     expect(ROUTE_TITLES.garden).toBe('Garden and pantry');
@@ -59,14 +62,38 @@ describe('hash routes', () => {
   });
 
   it('C7 G21: Garden and pantry sits under Food; #/garden/harvest opens it with the harvest detail', () => {
-    expect(PARENT_TAB).toEqual({ garden: 'food' });
+    expect(PARENT_TAB).toEqual({ garden: 'food', 'move-session': 'move', 'move-plan': 'move' });
     expect(parseRoute(GARDEN_HARVEST_HREF)).toBe('garden');
     expect(routeDetail(GARDEN_HARVEST_HREF)).toBe('harvest');
     expect(routeDetail('#/Garden/HARVEST?x=1')).toBe('harvest');
     expect(routeDetail('#/garden')).toBeNull();
     // Every in-app address that is not a route's own link, for the first-run guard tests (HS-20).
-    expect(DEEP_LINKS).toEqual(['#/fasting/reflux', '#/fasting/pattern', '#/garden/harvest']);
+    expect(DEEP_LINKS).toEqual([
+      '#/fasting/reflux',
+      '#/fasting/pattern',
+      '#/garden/harvest',
+      '#/move-session/a',
+      '#/move-session/a/finish',
+    ]);
     for (const link of DEEP_LINKS) expect(ROUTES.map(routeHref)).not.toContain(link);
+  });
+
+  it.each([
+    ['#/move-session', null, false],
+    ['#/move-session/A', 'a', false],
+    ['#/move-session/a/finish', 'a', true],
+    ['#/move-session/a/finished', 'a', false],
+    ['#/move-session/a?x=1', 'a', false],
+    ['#/move', null, false],
+  ] as const)('moveSessionLink(%j) is %s, finish %s (item 27)', (hash, slug, finish) => {
+    expect(moveSessionLink(hash)).toEqual({ slug, finish });
+  });
+
+  it("item 27's sub-screens: the Move tab is their parent, and the session's deep links are listed (HS-20)", () => {
+    expect([PARENT_TAB['move-session'], PARENT_TAB['move-plan']]).toEqual(['move', 'move']);
+    expect(DEEP_LINKS.slice(-2).map(parseRoute)).toEqual(['move-session', 'move-session']);
+    expect(routeDetail('#/move-session/beach-walk?x=1')).toBe('beach-walk');
+    expect(routeDetail('#/move-session')).toBeNull();
   });
 
   it.each(ROUTES)('reads #/%s back from its own link', (route) => {

@@ -7,9 +7,9 @@
  */
 import { featureGateOf, type GatedFeature, type ReadinessGates } from '@diet/core';
 import { today } from '@diet/core/copy/health';
-import { LeafIcon } from '@diet/ui';
+import { LeafIcon, MoveIcon } from '@diet/ui';
 import { createElement, type ReactElement } from 'react';
-import { GARDEN_HARVEST_HREF } from '../routes';
+import { GARDEN_HARVEST_HREF, routeHref } from '../routes';
 import { openWeightEntry } from './weight/entryStore';
 
 /** UX_SCREENS section 2 order. */
@@ -45,14 +45,23 @@ export const BUILT_QUICK_ACTIONS: Readonly<Partial<Record<QuickActionId, QuickAc
     href: GARDEN_HARVEST_HREF,
     icon: createElement(LeafIcon),
   },
+  // Item 27: today's session, at its finish if started, else its stop signs and check. The
+  // session screen goes through item 26's start gate; the action never writes a row.
+  'complete-workout': {
+    label: today.quickActions.labels['complete-workout'],
+    href: routeHref('move-session'),
+    icon: createElement(MoveIcon, { size: 22 }),
+  },
 };
 
 /**
  * The readiness gate that switches an action off, built or not; item 13's GateNotice says why.
  * Each later entry that needs one adds it here with its action: 'add-drink' (item 28) keeps
- * 'alcoholLogging', and 'complete-workout' (item 27) takes 'exercisePlans'. Add harvest has none.
+ * 'alcoholLogging'. Item 27: Complete workout is off while readiness answer 6 keeps exercise
+ * plans hidden (RD-05). Add harvest has none.
  */
 export const QUICK_ACTION_GATES: Readonly<Partial<Record<QuickActionId, GatedFeature>>> = {
+  'complete-workout': 'exercisePlans',
   'add-drink': 'alcoholLogging',
 };
 

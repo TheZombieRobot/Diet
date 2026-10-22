@@ -392,8 +392,8 @@ test("Today's Water and Steps sit side by side, stack when narrow or editing, ke
   expect(await sideBySide()).toBe(false);
 
   await page.getByRole('button', { name: 'Quick actions' }).click();
-  // Five Later rows since item 19 built Add harvest.
-  await expect(page.locator('.ui-fab-panel [aria-disabled="true"]')).toHaveCount(5);
+  // Four Later rows: item 19 built Add harvest and item 27 Complete workout.
+  await expect(page.locator('.ui-fab-panel [aria-disabled="true"]')).toHaveCount(4);
   const small = await page.locator('a:visible, button:visible').evaluateAll((controls) =>
     controls
       .map((c) => ({ name: c.textContent, box: c.getBoundingClientRect() }))

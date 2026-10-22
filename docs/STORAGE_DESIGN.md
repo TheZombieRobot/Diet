@@ -1052,7 +1052,7 @@ Every write goes through `prepare(table, candidate, env)`, which is synchronous:
 | grocery_lists | create, get, list, update, remove | — (item 31 adds send and acknowledgement) | createdAt, updatedAt; `version` + 1 on every update |
 | plan_days, pantry | create, get, list, update, remove | — | updatedAt |
 | garden | create, get, list, update, remove (also removes the photo) | — | updatedAt |
-| sessions | create, get, list, update, remove | — | completedAt and timeZone when status becomes `done`, cleared otherwise |
+| sessions | create, get, list, update, remove | createChecked, updateChecked, removeIf (item 27: the caller's rule runs on the stored rows inside the write transaction) | completedAt and timeZone when status becomes `done`, cleared otherwise |
 | drinks_log | get, list | log, update, remove, forDrinkingDays | at and timeZone when left to the repository |
 | alcohol_day_notes | create, get, list, update, remove | — | enteredAt (on create), updatedAt |
 | alcohol_milestones | create, get, list, update, remove | — | createdAt |

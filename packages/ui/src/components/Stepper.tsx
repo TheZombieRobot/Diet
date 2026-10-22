@@ -12,6 +12,10 @@ export interface StepperProps {
   decreaseLabel: string;
   increaseLabel: string;
   hint?: string | undefined;
+  /** How much one tap changes the value (default 1), such as 5 seconds. */
+  step?: number | undefined;
+  /** The value as shown, such as "30 seconds" (default: the number). */
+  formatValue?: ((value: number) => string) | undefined;
 }
 
 /**
@@ -27,6 +31,8 @@ export function Stepper({
   decreaseLabel,
   increaseLabel,
   hint,
+  step = 1,
+  formatValue = String,
 }: StepperProps): ReactElement {
   const id = useId();
   const labelId = `${id}-label`;
@@ -48,11 +54,11 @@ export function Stepper({
           className="ui-stepper__button"
           disabled={value <= min}
           onClick={() => {
-            onChange(Math.max(min, value - 1));
+            onChange(Math.max(min, value - step));
           }}
         />
         <output className="ui-stepper__value" aria-live="polite">
-          {value}
+          {formatValue(value)}
         </output>
         <IconButton
           label={increaseLabel}
@@ -60,7 +66,7 @@ export function Stepper({
           className="ui-stepper__button"
           disabled={value >= max}
           onClick={() => {
-            onChange(Math.min(max, value + 1));
+            onChange(Math.min(max, value + step));
           }}
         />
       </div>
