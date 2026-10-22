@@ -253,7 +253,8 @@ export function nutritionTodayView(
         };
 
   const notes: NutritionNote[] = [];
-  const drinksLogged = alcoholShown && (drinks.knownKj > 0 || drinks.unknownCount > 0);
+  // By count: a logged drink always has its alcohol part, whatever is known of its energy.
+  const drinksLogged = alcoholShown && drinks.count > 0;
   // Food logging is not built yet (item 23): say so rather than "nothing logged" (F24).
   if (intake.entryCount === 0) notes.push({ text: copy.today.laterStep });
   for (const key of MISSING_ORDER) {
@@ -268,8 +269,9 @@ export function nutritionTodayView(
     });
   }
   if (drinksLogged) {
+    // Energy unknown only when no drink's energy is known; a known 0 (a 0% drink) is shown as 0.
     const part =
-      drinks.knownKj > 0
+      drinks.unknownCount < drinks.count
         ? fillTemplate(alcohol.dayEnergy.segment, { kj: formatWhole(drinks.knownKj) })
         : alcohol.dayEnergy.segmentUnknown;
     // "Food: not known" or "Food: at least 7,000 kJ" while any entry lacks energy (item 18).

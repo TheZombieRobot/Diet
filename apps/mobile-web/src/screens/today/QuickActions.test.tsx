@@ -34,7 +34,7 @@ async function openPanel(answers: { q1?: 'yes' } = {}): Promise<HTMLElement> {
 }
 
 describe('the quick actions (C9)', () => {
-  it('seven rows in the UX order; the four not built are focusable, marked Later and described by the note; Complete workout is a link', async () => {
+  it('seven rows in the UX order; the three not built are focusable, marked Later and described by the note; Complete workout is a link', async () => {
     const panel = await openPanel();
     const rows = within(panel).getAllByRole('listitem');
     expect(rows.map((li) => li.querySelector('.ui-action-row__title')?.textContent)).toEqual(
@@ -43,7 +43,7 @@ describe('the quick actions (C9)', () => {
     const later = within(panel)
       .getAllByRole('button')
       .filter((b) => b.getAttribute('aria-disabled') === 'true');
-    expect(later).toHaveLength(4);
+    expect(later).toHaveLength(3);
     // Item 27: the session screen's resolver (RD-05 turns it Off; MovementCard.test.tsx).
     expect(
       within(panel)
@@ -98,6 +98,16 @@ describe('the quick actions (C9)', () => {
     await screen.findByRole('form', { name: gardenScreen.harvest.title });
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Garden and pantry');
     expect(screen.queryByRole('button', { name: copy.title })).toBeNull();
+  });
+
+  it('item 28 (A32): Add drink opens the Drinks screen and logs nothing by itself', async () => {
+    const panel = await openPanel();
+    const drink = within(panel).getByRole('link', { name: copy.labels['add-drink'] });
+    expect(drink.getAttribute('href')).toBe('#/drinks');
+    expect(drink.getAttribute('aria-disabled')).toBeNull();
+    const before = await counts((test as TestDb).db);
+    fireEvent.click(drink);
+    expect(await counts((test as TestDb).db)).toEqual(before);
   });
 
   it('T11: under 18, Add drink is shown Off with the alcohol-logging reason, not the Later note', async () => {

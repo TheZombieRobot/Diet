@@ -5,8 +5,14 @@
  */
 export const PACKAGE_NAME = '@diet/core' as const;
 
+export * from './alcohol/access';
 export * from './alcohol/guidance';
+export * from './alcohol/helpCard';
+export * from './alcohol/presets';
+export * from './alcohol/serves';
 export * from './alcohol/standardDrinks';
+export * from './alcohol/totals';
+export * from './alcohol/trends';
 export * from './copy/template';
 export * from './energy/age';
 export * from './energy/baseTargets';

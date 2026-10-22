@@ -52,6 +52,9 @@ export const BUILT_QUICK_ACTIONS: Readonly<Partial<Record<QuickActionId, QuickAc
     href: routeHref('move-session'),
     icon: createElement(MoveIcon, { size: 22 }),
   },
+  // Item 28: opens the Drinks screen, and never logs a drink by itself (A32). Under 18 its gate
+  // below shows it Off with item 13's reason.
+  'add-drink': { label: today.quickActions.labels['add-drink'], href: routeHref('drinks') },
 };
 
 /**

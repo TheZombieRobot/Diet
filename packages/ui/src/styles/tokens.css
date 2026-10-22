@@ -31,6 +31,7 @@
   --color-ink: light-dark(#0e1916, #edf2f0);
   --color-ink-soft: light-dark(#2e3a36, #d3ddd9);
   --color-secondary: light-dark(#4a5853, #a3b1ab);
+  --color-neutral: light-dark(#3d4a55, #b9c4cc); /* drinks figures and bars; dark chosen */
 
   /* Brand teal: primary actions, links, the current tab */
   --color-teal: light-dark(#0b6e5b, #4cc9a6);

@@ -8,7 +8,7 @@ import {
 import { move, moveScreen } from '@diet/core/copy/health';
 import { Button, Card } from '@diet/ui';
 import { type ReactElement, useState } from 'react';
-import { formatDayMonth } from '../../format';
+import { formatShortDate } from '../../format';
 import { movementLines } from './moveText';
 
 const PAGE = 10;
@@ -43,7 +43,7 @@ export function HistoryCard({
           return (
             <li key={row.id} className="ui-move-item" data-testid={`history-${row.id}`}>
               <p className="ui-text-strong">
-                {[formatDayMonth(row.date), name, state].join(' · ')}
+                {[formatShortDate(row.date), name, state].join(' · ')}
               </p>
               {movementLines(data, row).map((line) => (
                 <p key={line}>{line}</p>

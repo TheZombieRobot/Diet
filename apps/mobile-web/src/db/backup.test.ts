@@ -3,6 +3,7 @@
 // 33 to 35, and import fuzzing through the app's own path; BK-01, BK-02, BK-07, BK-09, BK-10,
 // HS-15, RD-08). Real Dexie over fake-indexeddb.
 import {
+  activeHelpTriggers,
   BackupError,
   backupReminder,
   buildBackupPayload,
@@ -36,6 +37,7 @@ import {
   SYNTHETIC_PHRASE,
 } from '@diet/test-fixtures';
 import { describe, expect, it } from 'vitest';
+import { loadDrinksData } from '../screens/drinks/load';
 import { deleteAllData } from './deleteAll';
 import { createExport, createRescueCopy, createUpgradeRescueCopy } from './exportBackup';
 import {
@@ -390,7 +392,9 @@ describe('replace semantics and the confirmation (D17; section 16 test 29)', () 
       phoneHasOwnRecords: false,
       exportFirst: false,
     });
-    // Once the owner changes a seed row, it is theirs.
+    // Once the owner changes a seed row, it is theirs. Delete-all cleared the alcohol notice, which
+    // a preset write needs first (item 28).
+    await onboardForTests(cleared, { weightKg: null });
     const [drink] = await cleared.repos.beverages.list();
     if (drink === undefined) throw new Error('no seeded drink');
     await cleared.repos.beverages.update(drink.id, { name: 'Example lager' });
@@ -998,5 +1002,50 @@ describe('device-only stores', () => {
       sealed,
     );
     expect([...new Uint8Array(opened)]).toEqual([1, 2, 3]);
+  });
+});
+
+describe('the withdrawal tick lasts (item 28 D2; AL-08, C05)', () => {
+  /** The help card's triggers, fed from the Drinks screens' own read. */
+  async function triggers(t: TestDb): Promise<readonly string[]> {
+    const data = await loadDrinksData({
+      gate: t.db.gate,
+      storage: t.storage,
+      from: '2000-01-01',
+      to: '2000-03-01',
+    });
+    return activeHelpTriggers({
+      now: t.env.now(),
+      deviceZone: 'Pacific/Auckland',
+      ctx: { homeTimeZone: data.settings.homeTimeZone, cutoverMinutes: 300 },
+      rows: data.drinks,
+      weeklyGuidance: 10,
+      withdrawalTickDates: data.notes.filter((n) => n.withdrawalTick).map((n) => n.date),
+      noteToday: '2000-03-01',
+      q7Gated: false,
+    });
+  }
+
+  it('a ticked note still brings up the card after a reload, and after export, delete all and import', async () => {
+    const test = await openTestDb();
+    await onboardForTests(test, { weightKg: null });
+    await test.repos.alcoholDayNotes.create({
+      date: '2000-03-01',
+      note: null,
+      withdrawalTick: true,
+    });
+    expect(await triggers(test)).toEqual(['withdrawal-tick']);
+    test.db.shutDown();
+    const reopened = await openTestDb({ deps: test.deps, env: test.env });
+    expect(await triggers(reopened)).toEqual(['withdrawal-tick']);
+
+    const exported = await createExport(reopened.db, reopened.env, null);
+    if (!exported.ok) throw exported.error;
+    await deleteEverything(reopened);
+    const fresh = await openTestDb({ deps: test.deps, env: test.env });
+    await onboardForTests(fresh, { weightKg: null });
+    expect(await triggers(fresh)).toEqual([]);
+    const after = await importAndReload(fresh, exported.file.text, null);
+    expect(await triggers(after)).toEqual(['withdrawal-tick']);
   });
 });

@@ -9,9 +9,11 @@ export { ActionRow, type ActionRowProps } from './components/ActionRow';
 export { AppShell, type AppShellProps } from './components/AppShell';
 export { Banner, type BannerProps } from './components/Banner';
 export { Button, type ButtonProps, type ButtonVariant } from './components/Button';
+export { BarChart, type BarChartBar, type BarChartProps } from './components/BarChart';
 export { ButtonRow } from './components/ButtonRow';
 export { CameraView, type CameraViewProps } from './components/CameraView';
 export { Card, type CardProps } from './components/Card';
+export { Checkbox, type CheckboxProps } from './components/Checkbox';
 export { CheckList, type CheckListProps } from './components/CheckList';
 export { Chip, type ChipProps } from './components/Chip';
 export { ChoiceList, type ChoiceListProps, type ChoiceOption } from './components/ChoiceList';
@@ -54,12 +56,15 @@ export {
   type NutrientTableProps,
   type NutrientTableRow,
 } from './components/NutrientTable';
+export { SegmentedControl, type SegmentedControlProps } from './components/SegmentedControl';
 export { SelectField, type SelectFieldProps } from './components/SelectField';
+export { StatGrid, StatTile, type StatTileProps } from './components/StatTile';
 export { StepFrame, type StepBar, type StepFrameProps } from './components/StepFrame';
 export { Stepper, type StepperProps } from './components/Stepper';
 export { Switch, type SwitchProps } from './components/Switch';
 export { TabBar, type TabBarProps, type TabItem } from './components/TabBar';
 export { TagList, type TagListProps } from './components/TagList';
+export { TextArea, type TextAreaProps } from './components/TextArea';
 export { TextField, type TextFieldProps } from './components/TextField';
 export { Thumbnail, type ThumbnailProps } from './components/Thumbnail';
 export { TopBar, type TopBarProps } from './components/TopBar';

@@ -70,6 +70,9 @@ describe('colour tokens (styles/tokens.css)', () => {
     ['--color-on-emergency', '--color-emergency'],
     ['--color-on-emergency-tint', '--color-emergency-tint'],
     ['--color-on-fab', '--color-fab'],
+    // Item 28: drinks figures and bars, on the card and in the inset tiles.
+    ['--color-neutral', '--color-card'],
+    ['--color-neutral', '--color-inset'],
   ];
 
   for (const theme of THEMES) {
@@ -107,6 +110,19 @@ describe('colour tokens (styles/tokens.css)', () => {
       expect(
         contrastRatio(colour(fill, theme), colour('--color-chip', theme)),
       ).toBeGreaterThanOrEqual(3);
+    });
+
+    // Item 28 (WCAG 1.4.11): the drinks chart's 4-week average and milestone dots sit on a halo of
+    // the card colour, which stands out from the bars, and they stand out from the halo and from an
+    // outlined bar's fill.
+    it.each([
+      ['--color-card', '--color-neutral'],
+      ['--color-ink', '--color-card'],
+      ['--color-secondary', '--color-card'],
+      ['--color-ink', '--color-inset'],
+      ['--color-secondary', '--color-inset'],
+    ])(`${theme}: the chart's %s on %s has at least 3:1 contrast`, (mark, under) => {
+      expect(contrastRatio(colour(mark, theme), colour(under, theme))).toBeGreaterThanOrEqual(3);
     });
 
     it(`${theme}: the select chevron stands out from the field (at least 3:1)`, () => {

@@ -16,6 +16,7 @@ import { formatLocalDate } from '../format';
 import { routeHref } from '../routes';
 import { useStore } from '../store';
 import { BackupCard } from './backup/BackupCard';
+import { DrinksSettingsCard } from './drinks/DrinksSettingsCard';
 import { usePairing } from './pairing/usePairing';
 import { WeightCheckInSettings } from './weight/WeightCheckInSettings';
 
@@ -106,6 +107,8 @@ export function SettingsScreen(): ReactElement {
       <SetupCard />
       <LaptopCard />
       <BackupCard />
+      {/* Item 28: the drinking-day cut-over and the guidance figures (UX 7). */}
+      <DrinksSettingsCard />
       <WeightCheckInSettings />
       <Card label="More">
         <ul className="ui-action-list">

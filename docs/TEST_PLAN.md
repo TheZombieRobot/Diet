@@ -133,12 +133,12 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | AL-02 | Label value entry | Entered 1.3 overrides calculation |
 | AL-03 | Weekly comparison, female profile | 10/week and 2/day thresholds (HS-05); with readiness answer 2 yes or unanswered no figure is shown as guidance (HEALTH_SAFETY section 5) |
 | AL-04 | Weekly comparison, male profile | 15/week and 3/day (HS-05) |
-| AL-05 | Alcohol-free days count | Correct for fixture week; no badge or streak wording |
+| AL-05 | Alcohol-free days count | Correct for the fixture week (Monday-start, counted from the notice day up to yesterday); no badge or streak wording |
 | AL-06 | Card trigger: 7 consecutive days | Card shown (HS-06) |
-| AL-07 | Card trigger: double weekly guidance | Card shown |
-| AL-08 | Card trigger: withdrawal symptoms note | Card shown |
+| AL-07 | Card trigger: double weekly guidance | Card shown; still shown while that 7-day window ended within the last 7 drinking days; a label figure lower than the calculation, however close, counts at the calculation; a date skipped by crossing the date line widens the window to 7 days lived |
+| AL-08 | Card trigger: withdrawal symptoms note | Card shown; still shown after a reload and after a backup round trip; an un-ticked note shows no card (C05) |
 | AL-09 | Card trigger: readiness "most days" | Card shown from day one |
-| AL-09b | Readiness Q7 answered yes to the weekend wording | Card shown from day one |
+| AL-09b | Readiness Q7 "most days or heavily at weekends" answered yes, or unanswered | Card shown from day one (C58) |
 | AL-10 | Control: 3 drinks across a week | No card |
 | AL-11 | Banned phrases scan | None of: "cut down by", "reduce by", "taper", "quit date", "stop drinking", "wean", "BAC", "blood alcohol", "safe to drive", "legal limit" (HS-07, HS-08) |
 | AL-12 | Helpline numbers present | 0800 787 797 and 8681 on alcohol screen (HS-13) |

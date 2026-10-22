@@ -154,8 +154,14 @@ exports[`TD-01: the Today snapshot (C1) > (a) the full fixture 1`] = `
       "controls": [],
       "label": "Drinks",
       "lines": [
+        "Today",
+        "None logged",
+        "This week (from Monday)",
+        "None logged",
+        "2 alcohol-free days",
         "NZ guidance for women: no more than 2 standard drinks a day and 10 a week, with at least 2 alcohol-free days. No alcohol use is risk-free.",
-        "Drink logging arrives at a later step of the build checklist.",
+        "Days with nothing logged count as alcohol-free.",
+        "A drinking day runs from 5:00 am to 5:00 am the next day. You can change this in Settings.",
       ],
     },
     {
@@ -214,6 +220,10 @@ exports[`TD-01: the Today snapshot (C1) > (b) fasting gated (q5 yes after the fa
           "href": "tel:111",
           "name": "111 Emergency: call 111 Very unwell, shaking badly, confused or having a seizure",
           "role": "link",
+        },
+        {
+          "name": "Why this card?",
+          "role": "button",
         },
         {
           "name": "Not now",
@@ -373,8 +383,14 @@ exports[`TD-01: the Today snapshot (C1) > (b) fasting gated (q5 yes after the fa
       "controls": [],
       "label": "Drinks",
       "lines": [
+        "Today",
+        "None logged",
+        "This week (from Monday)",
+        "None logged",
+        "2 alcohol-free days",
         "NZ guidance for women: no more than 2 standard drinks a day and 10 a week, with at least 2 alcohol-free days. No alcohol use is risk-free.",
-        "Drink logging arrives at a later step of the build checklist.",
+        "Days with nothing logged count as alcohol-free.",
+        "A drinking day runs from 5:00 am to 5:00 am the next day. You can change this in Settings.",
       ],
     },
     {

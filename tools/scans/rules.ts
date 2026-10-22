@@ -1003,6 +1003,7 @@ export const DEVICE_ONLY_CODE_RULES: Readonly<
 export const TEST_SUPPORT_FILES: readonly string[] = [
   'apps/mobile-web/src/db/testKit.ts',
   'apps/mobile-web/src/onboarding/flowTestKit.ts',
+  'apps/mobile-web/src/screens/drinks/drinksTestKit.ts',
   'apps/mobile-web/src/screens/move/moveTestKit.ts',
   'apps/mobile-web/src/screens/pairing/pairingTestKit.ts',
   'apps/mobile-web/src/screens/targets/targetsTestKit.ts',

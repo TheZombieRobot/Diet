@@ -157,12 +157,13 @@ describe('every screen', () => {
 describe('placeholder screens (no sample data)', () => {
   // Today (item 16), Settings and About, the setup screens (item 13), the Weight screen (item 14),
   // the Fasting screen (item 15), Foods in the app (item 18), Garden and pantry (item 19), Diet and
-  // targets (item 21), the Move screens (item 27) and Laptop pairing (item 30) are built; the rest
-  // still say they arrive later (Food in part: it links to the garden and pantry).
+  // targets (item 21), the Move screens (item 27), Drinks (item 28) and Laptop pairing (item 30) are
+  // built; the rest still say they arrive later (Food in part: it links to the garden and pantry).
   const built: readonly RouteId[] = [
     'today',
     'settings',
     'move',
+    'drinks',
     'about',
     'readiness',
     'profile',
@@ -212,7 +213,9 @@ describe('placeholder screens (no sample data)', () => {
     });
     expect(screen.getAllByRole('button', { name: /Install app/ }).length).toBeGreaterThan(0);
     expect(screen.queryByRole('button', { name: 'Quick actions' })).toBeNull();
-    const text = document.body.textContent;
+    // Item 28: the Drinks card shows the stored cut-over ("5:00 am") and the guidance figures.
+    const drinks = await screen.findByRole('region', { name: alcohol.settings.cardLabel });
+    const text = document.body.textContent.replace(drinks.textContent, '');
     expect(text).toContain('Install app');
     expect(text).not.toMatch(/\d/);
     expect(text).not.toMatch(/[$€£]/);
@@ -231,12 +234,12 @@ describe('placeholder screens (no sample data)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Quick actions' }));
     await screen.findByText(today.quickActions.laterNote);
     const scoped = [
-      ...screen.getAllByTestId('later-step'),
+      ...screen.queryAllByTestId('later-step'),
       ...document.querySelectorAll('.ui-fab-panel [aria-disabled="true"]'),
     ];
-    // One later-step line (drink logging) and four Later rows (item 19 built Add harvest, item 27
-    // Complete workout).
-    expect(scoped).toHaveLength(5);
+    // No later-step line (items 27 and 28 built Movement and drink logging) and three Later rows
+    // (items 19, 27 and 28 built Add harvest, Complete workout and Add drink).
+    expect(scoped).toHaveLength(3);
     for (const element of scoped) {
       expect(element.textContent).not.toMatch(/\d/);
       expect(element.textContent).not.toMatch(/[$€£]/);

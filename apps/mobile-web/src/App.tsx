@@ -26,7 +26,7 @@ import {
   type TabRouteId,
 } from './routes';
 import { AboutScreen } from './screens/AboutScreen';
-import { DrinksScreen } from './screens/DrinksScreen';
+import { DrinksScreen } from './screens/drinks/DrinksScreen';
 import { FastingScreen } from './screens/fasting/FastingScreen';
 import { FoodScreen } from './screens/FoodScreen';
 import { FoodsScreen } from './screens/foods/FoodsScreen';

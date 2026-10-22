@@ -48,7 +48,7 @@ function hits(sentence: string): string[] {
 
 describe('required copy passes every rule set', () => {
   it('holds the full reviewed list', () => {
-    expect(required).toHaveLength(122);
+    expect(required).toHaveLength(123);
   });
 
   it.each(required.filter((s) => !MODE_A_ONLY.has(s)))('%j is not flagged', (sentence) => {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   formatDayPhrase,
+  formatMeasure,
   formatShortDay,
   formatSteps,
   formatTodayHeading,
@@ -48,5 +49,17 @@ describe('short dates for the fasting history and the reflux log (item 15)', () 
     expect(formatDayPhrase('2000-01-04', today)).toBe('Tuesday');
     expect(formatDayPhrase('2000-01-03', today)).toBe('3 January');
     expect(formatDayPhrase('2000-01-13', today)).toBe('13 January');
+  });
+});
+
+describe('drink sizes and strengths (item 28; full review F7)', () => {
+  it('show every decimal stored, so 4.75% never reads 4.8%', () => {
+    expect([4.75, 0.05, 330.25, 330, 4.5].map(formatMeasure)).toEqual([
+      '4.75',
+      '0.05',
+      '330.25',
+      '330',
+      '4.5',
+    ]);
   });
 });

@@ -241,14 +241,15 @@ describe('Today before setup, while reading, and when the read fails (C10, C12; 
     ).toEqual([today.reload]);
   });
 
-  it("Movement is item 27's card, with no later-step line; drink logging still has one", async () => {
+  it("Movement is item 27's card, with no later-step line, and drink logging (item 28) has none either", async () => {
     test = await todayFixture();
     await renderToday();
     const card = screen.getByRole('region', { name: today.cards.movement });
     expect(within(card).queryAllByTestId('later-step')).toHaveLength(0);
     // A Wednesday of the standard week: a rest day.
     expect(within(card).getByText(move.rest.restDay)).toBeDefined();
-    expect(screen.getAllByTestId('later-step')).toHaveLength(1);
+    // Drink logging is built too (item 28): no later-step line is left on Today.
+    expect(screen.queryAllByTestId('later-step')).toHaveLength(0);
   });
 });
 

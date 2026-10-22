@@ -37,6 +37,9 @@ StorageOperationError.prototype.name = 'StorageOperationError';
  * Kickstart runs needs the owner's confirmation (C56, T14, T35).
  * Item 19: a garden photo is written only as a clean JPEG of its stated size, at most 1,024 px on
  * its long side, with no metadata (the validation middleware's photo check; G2, G4).
+ * Item 28: no alcohol record before the alcohol notice is acknowledged, no drink or milestone
+ * while alcohol logging is off (HS-20, RD-01), and no drink time more than 5 minutes ahead of now
+ * ('future-time', as for fasts).
  */
 export type StorageRule =
   | 'not-found'
@@ -57,7 +60,10 @@ export type StorageRule =
   // Item 19: core photoProblem.
   | 'photo-format'
   | 'photo-metadata'
-  | 'photo-size';
+  | 'photo-size'
+  // Item 28: the alcohol notice and the alcohol-logging gate (HS-20, RD-01).
+  | 'alcohol-notice-first'
+  | 'alcohol-logging-off';
 
 export class StorageRuleError extends Error {
   readonly table: string;

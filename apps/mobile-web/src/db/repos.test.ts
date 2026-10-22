@@ -134,6 +134,10 @@ describe('generic repositories (section 8.2; section 16 test 23; table CRUD)', (
 
   it.each(FULL_CRUD)('%s: create, get, list, index range, update, remove', async (table) => {
     const test = await openTestDb();
+    // Item 28: the alcohol stores take writes only after the alcohol notice (HS-20).
+    if (['beverages', 'alcohol_day_notes', 'alcohol_milestones'].includes(table)) {
+      await onboardForTests(test, { weightKg: null });
+    }
     const repo = crudRepo(contextOf(test), table) as unknown as CrudRepo<'weights'>;
     const input = inputFor(table);
     const created = (await repo.create(input as never)) as unknown as Record<string, unknown>;
@@ -581,6 +585,7 @@ describe('special repositories (section 8.2; section 16 test 24)', () => {
 
   it('drinks: log computes the figures with core, update recomputes them, and forDrinkingDays crosses midnight', async () => {
     const test = await openTestDb();
+    await onboardForTests(test); // item 28: drinks are logged only after the alcohol notice
     const label = {
       volumeMl: 330,
       abvPercent: 5,
@@ -843,7 +848,8 @@ describe('special repositories (section 8.2; section 16 test 24)', () => {
     const kgs = (await test.repos.weights.between('2000-01-02', '2000-01-04')).map((w) => w.kg);
     expect(kgs.sort((a, b) => a - b)).toEqual([82, 83, 84]);
     // Drinks: the 03:00 drink on 5 January is before the 05:00 cut-over, so it belongs to the
-    // drinking day of 4 January, the last day asked for.
+    // drinking day of 4 January, the last day asked for. Item 28: logged after the notice.
+    await onboardForTests(test, { weightKg: null });
     const beverage = { volumeMl: 330, abvPercent: 5, label: null };
     const ids: Record<string, string> = {};
     for (const at of ['01T20', '02T20', '03T20', '04T20', '05T03', '05T20']) {
@@ -1095,5 +1101,129 @@ describe('storage edge cases', () => {
         expect(text).not.toContain(sentinel);
       expect((error as { cause?: unknown }).cause).toBeUndefined();
     }
+  });
+});
+
+describe('the alcohol stores need the notice, and drinks and milestones need logging on (item 28 D1; HS-20, C53, RD-01, A46)', () => {
+  const CAN = { volumeMl: 330, abvPercent: 5, label: null };
+  const drink = (test: TestDb, at?: string) =>
+    test.repos.drinks.log({
+      beverageId: null,
+      name: 'Example lager',
+      beverage: CAN,
+      count: 1,
+      ...(at === undefined ? {} : { at }),
+    });
+  const milestone = (test: TestDb) =>
+    test.repos.alcoholMilestones.create({
+      label: 'Your milestone',
+      weeklyStdDrinks: 8,
+      fromDate: '2000-03-01',
+      enteredBy: 'self',
+      note: null,
+    });
+  const refused = async (write: Promise<unknown>, rule: string) => {
+    await expect(write).rejects.toBeInstanceOf(StorageRuleError);
+    await expect(write).rejects.toMatchObject({ rule });
+  };
+
+  it('before the notice: no drink, milestone or preset is stored', async () => {
+    const test = await openTestDb();
+    const presets = await test.repos.beverages.list();
+    await refused(drink(test), 'alcohol-notice-first');
+    await refused(milestone(test), 'alcohol-notice-first');
+    await refused(
+      test.repos.beverages.create({
+        name: 'Example lager',
+        volumeMl: 330,
+        abvPercent: 5,
+        label: null,
+        sortOrder: 1,
+        archived: false,
+      }),
+      'alcohol-notice-first',
+    );
+    await refused(
+      test.repos.alcoholDayNotes.create({ date: '2000-03-01', note: null, withdrawalTick: true }),
+      'alcohol-notice-first',
+    );
+    expect(await test.repos.drinks.list()).toEqual([]);
+    expect(await test.repos.alcoholMilestones.list()).toEqual([]);
+    expect(await test.repos.beverages.list()).toEqual(presets);
+    expect(await test.repos.alcoholDayNotes.list()).toEqual([]);
+  });
+
+  it('before the notice, a stored milestone, preset or note cannot be changed (a restore can put them there)', async () => {
+    const test = await openTestDb();
+    await onboardForTests(test);
+    const kept = await milestone(test);
+    const note = { date: '2000-03-01', note: null, withdrawalTick: true };
+    await test.repos.alcoholDayNotes.create(note);
+    const [preset] = await test.repos.beverages.list();
+    // As a restore of an older backup can leave it: the records there, the notice not read.
+    await test.db.settings.put({ ...(await test.repos.settings.get()), alcoholNoticeAckAt: null });
+    await refused(
+      test.repos.alcoholMilestones.update(kept.id, { weeklyStdDrinks: 20 }),
+      'alcohol-notice-first',
+    );
+    await refused(
+      test.repos.beverages.update(preset?.id ?? '', { archived: true }),
+      'alcohol-notice-first',
+    );
+    await refused(
+      test.repos.alcoholDayNotes.update('2000-03-01', { note: 'Synthetic note' }),
+      'alcohol-notice-first',
+    );
+    expect((await test.repos.alcoholMilestones.get(kept.id))?.weeklyStdDrinks).toBe(8);
+  });
+
+  it('notice read but question 1 unanswered: no drink or milestone; a next-day note is kept', async () => {
+    const test = await openTestDb();
+    await test.repos.settings.update({ alcoholNoticeAckAt: test.env.now() });
+    await refused(drink(test), 'alcohol-logging-off');
+    await refused(milestone(test), 'alcohol-logging-off');
+    await test.repos.alcoholDayNotes.create({
+      date: '2000-03-01',
+      note: null,
+      withdrawalTick: true,
+    });
+    expect(await test.repos.alcoholDayNotes.list()).toHaveLength(1);
+  });
+
+  it('RD-01: when question 1 turns yes, a logged drink or a milestone cannot be edited, but it can be deleted', async () => {
+    const test = await openTestDb();
+    await onboardForTests(test);
+    const logged = await drink(test);
+    const kept = await milestone(test);
+    await test.repos.readiness.answer('q1', 'yes');
+    await refused(test.repos.drinks.update(logged.id, { count: 2 }), 'alcohol-logging-off');
+    await refused(
+      test.repos.alcoholMilestones.update(kept.id, { weeklyStdDrinks: 20 }),
+      'alcohol-logging-off',
+    );
+    await test.repos.drinks.remove(logged.id);
+    expect(await test.repos.drinks.list()).toEqual([]);
+  });
+
+  it('RD-01: a birth year under 18 turns logging off whatever question 1 says', async () => {
+    const test = await openTestDb();
+    // The test clock is in 2000, so 1985 is 15.
+    await onboardForTests(test, { profile: { birthYear: 1985 } });
+    await refused(drink(test), 'alcohol-logging-off');
+    await refused(milestone(test), 'alcohol-logging-off');
+  });
+
+  it('a drink more than 5 minutes ahead is refused, by log or by an edit of its time; a count edit is not', async () => {
+    const test = await openTestDb();
+    await onboardForTests(test);
+    const ahead = (minutes: number) =>
+      new Date(Date.parse(test.env.now()) + minutes * 60_000).toISOString();
+    await refused(drink(test, ahead(6)), 'future-time');
+    const logged = await drink(test, ahead(4));
+    await refused(
+      test.repos.drinks.update(logged.id, { at: `${addDays('2000-03-01', 1)}T01:00:00.000Z` }),
+      'future-time',
+    );
+    expect((await test.repos.drinks.update(logged.id, { count: 3 })).count).toBe(3);
   });
 });

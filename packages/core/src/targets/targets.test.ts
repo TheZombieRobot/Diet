@@ -165,24 +165,33 @@ describe('intake: food apart from alcohol (C11, C31, C92, NN-01; U18, U19)', () 
     { nutrients: nutrients({ energyKj: 4000, proteinG: 60 }), unknownNutrients: [] },
     { nutrients: nutrients({ energyKj: 3000, proteinG: 50 }), unknownNutrients: [] },
   ];
-  const sixCans = [{ kcalPerServe: 94, count: 6 }];
+  const can = { volumeMl: 330, abvPercent: 5 };
+  const sixCans = [{ kcalPerServe: 94, count: 6, beverage: can }];
 
   it('HS-36, C11: six cans of 94 kcal are their own 2,360 kJ; the floor check and protein never see them', () => {
     const day = dayIntake(food, sixCans);
-    expect(day.alcohol).toEqual({ knownKcal: 564, knownKj: 2360, unknownCount: 0 });
+    expect(day.alcohol).toEqual({ knownKcal: 564, knownKj: 2360, unknownCount: 0, count: 6 });
     expect(foodEnergyKj(food)).toBe(7000);
     expect(day.food.energyKj).toBe(7000);
     expect(day.totalEnergyKj).toBe(9360);
     expect(day.food.proteinG).toBe(110);
     expect(floorCheck(foodEnergyKj(food), 5000)).toEqual(floorCheck(day.food.energyKj, 5000));
-    expect(dayIntake(food, [{ kcalPerServe: 94, count: 1 }]).alcohol.knownKj).toBe(393);
+    expect(dayIntake(food, [{ kcalPerServe: 94, count: 1, beverage: can }]).alcohol.knownKj).toBe(
+      393,
+    );
   });
 
   it('NN-01: a drink with unknown energy is counted as unknown, never as 0', () => {
-    const day = dayIntake(food, [...sixCans, { kcalPerServe: null, count: 1 }]);
-    expect(day.alcohol).toEqual({ knownKcal: 564, knownKj: 2360, unknownCount: 1 });
+    const day = dayIntake(food, [...sixCans, { kcalPerServe: null, count: 1, beverage: can }]);
+    expect(day.alcohol).toEqual({ knownKcal: 564, knownKj: 2360, unknownCount: 1, count: 7 });
     expect(day.totalIncomplete).toBe(true);
     expect(day.foodEnergyIncomplete).toBe(false);
+  });
+
+  it('HS-36, A40: six cans whose label says 0 kcal are six drinks of unknown energy, as on the Drinks screen', () => {
+    const day = dayIntake(food, [{ kcalPerServe: 0, count: 6, beverage: can }]);
+    expect(day.alcohol).toEqual({ knownKcal: 0, knownKj: 0, unknownCount: 6, count: 6 });
+    expect(day.totalIncomplete).toBe(true);
   });
 
   it('D35: an entry with no figure makes that nutrient’s total a lower bound', () => {

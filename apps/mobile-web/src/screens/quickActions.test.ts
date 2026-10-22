@@ -20,7 +20,7 @@ describe('quickActionStates (U12; TD-02, T17)', () => {
     );
   });
 
-  it("Log weight opens item 14's entry in place, Complete workout links to the session (item 27) and Add harvest the garden screen (item 19); the rest arrive later", () => {
+  it("Log weight opens item 14's entry in place, Complete workout links to the session (item 27), Add harvest the garden screen (item 19) and Add drink the Drinks screen (item 28); the rest arrive later", () => {
     const states = quickActionStates(readinessGates(answers('no')));
     expect(states.map((s) => s.state.kind)).toEqual([
       'ready',
@@ -28,7 +28,7 @@ describe('quickActionStates (U12; TD-02, T17)', () => {
       'later',
       'ready',
       'ready',
-      'later',
+      'ready',
       'later',
     ]);
     expect(BUILT_QUICK_ACTIONS['log-weight']).toEqual({
@@ -39,6 +39,7 @@ describe('quickActionStates (U12; TD-02, T17)', () => {
       label: 'Complete workout',
       href: '#/move-session',
     });
+    expect(BUILT_QUICK_ACTIONS['add-drink']).toEqual({ label: 'Add drink', href: '#/drinks' });
   });
 
   it('RD-05: with readiness answer 6 open, Complete workout is off for exercise plans (item 27)', () => {
