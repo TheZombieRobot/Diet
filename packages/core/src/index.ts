@@ -47,6 +47,7 @@ export * from './nutrition/portion';
 export * from './onboarding/profileForm';
 export * from './onboarding/steps';
 export * from './readiness/gates';
+export * from './recipes';
 export * from './relay/protocol';
 export * from './storage';
 export * from './targets';

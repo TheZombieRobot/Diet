@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
+  type BrowserHistory,
   goToTab,
   markEntryAboveToday,
   markSubScreenEntry,
-  type BrowserHistory,
-  replaceEntryHref,
+  replaceKeepingEntry,
+  subScreenMarkOf,
 } from './navigation';
-import { parseRoute, type RouteId, type TabRouteId } from './routes';
+import { parseRoute, routeDetail, type RouteId, type TabRouteId } from './routes';
 
 /** A stand-in for the browser's session history: one list of entries and a current index. */
 function fakeHistory(start = '#/today') {
@@ -42,39 +43,48 @@ function fakeHistory(start = '#/today') {
     },
   };
   const route = (): RouteId => parseRoute(current().hash);
-  /** What App does after the route changes, with the state of the entry it came from. */
-  const marks = (before: RouteId, stateBefore: unknown) => {
-    if (route() === before) return;
-    markEntryAboveToday(before, route(), browser.history);
-    markSubScreenEntry(before, route(), browser.history, stateBefore);
+  // Shell's record of the shown entry's state, marks included: the next screen change reads it
+  // as the entry it came from (item 19 review; item 20's depth).
+  let shown: unknown = current().state;
+  /** Shell's key for a new screen: the route, and for a recipe its id (App.tsx). */
+  const screenKey = () =>
+    `${route()}/${route() === 'recipe' ? (routeDetail(current().hash) ?? '') : ''}`;
+  /** What Shell does after the screen changes. */
+  const settle = (before: RouteId, beforeKey: string) => {
+    if (screenKey() === beforeKey) return;
+    if (route() !== before) markEntryAboveToday(before, route(), browser.history);
+    markSubScreenEntry(before, route(), browser.history, shown);
+    shown = current().state;
   };
-  /** A tab tap. */
+  /** A tab tap, then what App does after the route changes. */
   const tap = (target: TabRouteId) => {
-    const [before, stateBefore] = [route(), current().state];
+    const [before, beforeKey] = [route(), screenKey()];
     goToTab(target, before, browser);
-    marks(before, stateBefore);
+    settle(before, beforeKey);
   };
-  /** A link in the page (Food's "Garden and pantry", Today's Add harvest). */
-  const follow = (href: string) => {
-    const [before, stateBefore] = [route(), current().state];
-    browser.location.assign(href);
-    marks(before, stateBefore);
+  /** A link on the screen (Food's "Garden and pantry", Today's Add harvest, a recipe in the list). */
+  const follow = (hash: string) => {
+    const [before, beforeKey] = [route(), screenKey()];
+    browser.location.assign(hash);
+    settle(before, beforeKey);
   };
-  /** A link that replaces the address (the session chooser). */
-  const replace = (href: string) => {
-    const [before, stateBefore] = [route(), current().state];
-    replaceEntryHref(href, browser);
-    marks(before, stateBefore);
+  /** A link that replaces the address (the session chooser, a swap's copy taking its recipe's place). */
+  const replace = (hash: string) => {
+    const [before, beforeKey] = [route(), screenKey()];
+    replaceKeepingEntry(hash, {}, browser);
+    settle(before, beforeKey);
   };
   /** Android's back gesture: true while it stays in the app, false when it would leave. */
   const back = (): boolean => {
     if (index === 0) return false;
     index -= 1;
+    shown = current().state;
     return true;
   };
   return {
     tap,
     follow,
+    open: follow,
     replace,
     back,
     route,
@@ -147,7 +157,7 @@ describe('tab switching and the back gesture', () => {
   });
 });
 
-describe('a screen under a tab: Garden and pantry under Food (item 19; C7, G21)', () => {
+describe('sub-screens under a tab: Garden and pantry and Recipes under Food (items 19 and 20; C7, G21)', () => {
   it('Food from a garden screen opened from Food steps back to that Food entry', () => {
     const app = fakeHistory();
     app.tap('food');
@@ -160,11 +170,24 @@ describe('a screen under a tab: Garden and pantry under Food (item 19; C7, G21)'
     expect(app.back()).toBe(false);
   });
 
+  it('Food > Recipes > a recipe > another recipe > Food tab: Back goes to Today', () => {
+    const app = fakeHistory();
+    app.tap('food');
+    app.open('#/recipes');
+    app.open('#/recipe/seed%3Arecipe-chicken-silverbeet-traybake');
+    app.open('#/recipe/seed%3Arecipe-silverbeet-lemon-chicken-soup');
+    app.tap('food');
+    expect(app.route()).toBe('food');
+    expect(app.back()).toBe(true);
+    expect(app.route()).toBe('today');
+    expect(app.back()).toBe(false);
+  });
+
   it("from a garden screen reached by Today's Add harvest, Food replaces it and keeps the above-Today mark", () => {
     const app = fakeHistory();
     app.follow('#/garden/harvest');
     // Closing the harvest panel keeps the entry and its state.
-    replaceEntryHref('#/garden', app.browser);
+    replaceKeepingEntry('#/garden', {}, app.browser);
     expect([app.hash(), app.length()]).toEqual(['#/garden', 2]);
     app.tap('food');
     expect([app.route(), app.length()]).toEqual(['food', 2]);
@@ -187,4 +210,38 @@ describe('a screen under a tab: Garden and pantry under Food (item 19; C7, G21)'
       expect(app.back()).toBe(false);
     },
   );
+
+  it('Today from a recipe reached through Food and Recipes steps back over every entry (items 19 and 20)', () => {
+    const app = fakeHistory();
+    app.tap('food');
+    app.open('#/recipes');
+    app.open('#/recipe/seed%3Arecipe-chicken-silverbeet-traybake');
+    app.tap('today');
+    expect([app.route(), app.length()]).toEqual(['today', 4]);
+    expect(app.back()).toBe(false);
+  });
+
+  it('a recipe replaced by its copy keeps its place: the Food tab still steps back to Food', () => {
+    const app = fakeHistory();
+    app.tap('food');
+    app.open('#/recipes');
+    app.open('#/recipe/seed%3Arecipe-chicken-silverbeet-traybake');
+    app.replace('#/recipe/00000000-0000-4000-8000-000000000001');
+    expect(app.back()).toBe(true);
+    expect(app.route()).toBe('recipes');
+    app.open('#/recipe/00000000-0000-4000-8000-000000000001');
+    app.tap('food');
+    expect(app.route()).toBe('food');
+    expect(app.back()).toBe(true);
+    expect(app.route()).toBe('today');
+  });
+
+  it('a damaged depth never steps further back than one entry', () => {
+    expect(subScreenMarkOf({ dietParentTab: 'food', dietParentDepth: 999 })).toEqual({
+      tab: 'food',
+      depth: 1,
+    });
+    expect(subScreenMarkOf({ dietParentTab: 'food', dietParentDepth: 2 })?.depth).toBe(2);
+    expect(subScreenMarkOf(null)).toBeNull();
+  });
 });

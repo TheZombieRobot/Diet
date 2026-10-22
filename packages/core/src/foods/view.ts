@@ -214,15 +214,17 @@ export function foodConfidence(
 }
 
 /**
- * The source a recipe line counts as in its source mix and confidence (C32, FL-02): a line with
- * no figures counts as Estimate, so a recipe with one is never better than Estimate.
+ * The source a recipe line counts as in its source mix and confidence (C32, FL-02; item 18–20
+ * contract 5): a line missing any figure counts as Estimate, so a recipe is Database only when
+ * every line is an approved source with all its figures, and an "at least" figure never sits
+ * beside a Database badge.
  */
 export function lineSourceForMix(
   view: Pick<IngredientView, 'source' | 'unknownNutrients'>,
   approved: readonly DatabaseSource[] = APPROVED_NUTRIENT_SOURCES,
 ): NutritionSource {
   const source = displaySource(view, approved);
-  return source === 'not-loaded' || allUnknown(view) ? 'estimate' : source;
+  return source === 'not-loaded' || view.unknownNutrients.length > 0 ? 'estimate' : source;
 }
 
 /** Database sources in NUTRITION_SOURCES order. */

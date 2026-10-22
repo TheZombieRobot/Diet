@@ -131,6 +131,17 @@
   }
 }
 
+/*
+ * A short screen (a phone at 200% text, or on its side): the top bar scrolls away with the page,
+ * so a long heading (a recipe's name) never covers the screen (item 20 review; the same height as
+ * the "+" panel's).
+ */
+@media (max-height: 560px) {
+  .ui-topbar {
+    position: static;
+  }
+}
+
 /* Cards */
 .ui-card {
   display: flex;
@@ -238,6 +249,17 @@
   background: var(--color-teal-tint);
   color: var(--color-on-teal-tint);
   font-weight: 800;
+}
+
+/*
+ * A button for something not built yet ("Later") or not possible now (a blocked swap): read at
+ * full contrast, with a dashed border, never faded (as .ui-action-row--off; item 20 review).
+ */
+.ui-button.ui-button--off {
+  border-style: dashed;
+  border-color: var(--color-border-strong);
+  cursor: default;
+  opacity: 1;
 }
 
 .ui-button--quiet {
@@ -969,8 +991,8 @@
 }
 
 /*
- * The current tab, and the tab of a screen under it (item 19: Garden and pantry; item 27: the
- * Move sub-screens), marked aria-current="true".
+ * The current tab, and the tab of a screen under it (item 19: Garden and pantry; item 20: the
+ * recipe screens; item 27: the Move sub-screens), marked aria-current="true".
  */
 .ui-tabbar__link[aria-current] {
   color: var(--color-teal);
@@ -2745,4 +2767,171 @@ fieldset.ui-subpanel {
 
 .ui-bar-chart__swatch--reference {
   border-top: 3px dotted var(--color-secondary);
+}
+
+/* ---- Recipes (checklist item 20) ---- */
+
+/* Chips side by side, wrapping; each chip's word carries its meaning. */
+.ui-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* A long chip ("Written for moderate low-carb") wraps on a narrow or zoomed screen. */
+.ui-chip-row > .ui-chip {
+  flex: 0 1 auto;
+  max-width: 100%;
+  padding-block: 3px;
+  overflow-wrap: anywhere;
+}
+
+/* Link rows with a divider between them, as on the approved List board. */
+.ui-link-list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+}
+
+.ui-link-list > li + li {
+  border-top: 1px solid var(--color-border);
+}
+
+.ui-link-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 12px 0;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.ui-link-row:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.ui-link-row__text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ui-link-row__overline {
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.ui-link-row__title {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ui-link-row__detail {
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-link-row__chevron {
+  display: inline-flex;
+  flex: none;
+  color: var(--color-secondary);
+}
+
+/* Ingredient lines: name and amount, then short details; the garden leaf in teal words. */
+.ui-line-list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+}
+
+.ui-line {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 0;
+  /* Whole words first: a name breaks inside a word only when the word is wider than the line. */
+  overflow-wrap: break-word;
+}
+
+.ui-line__name {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ui-line + .ui-line {
+  border-top: 1px solid var(--color-border);
+}
+
+.ui-line__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ui-line__amount {
+  flex: none;
+  text-align: end;
+}
+
+/* Narrow or zoomed screens: the amount moves under the name rather than squeezing it. */
+@media (max-width: 359.98px) {
+  .ui-line__head {
+    flex-wrap: wrap;
+  }
+}
+
+.ui-line__detail {
+  display: block;
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ui-line__leaf {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-on-teal-tint);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* A recipe's method: numbered steps. */
+.ui-method {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 22px;
+  list-style: decimal;
+}
+
+.ui-method li {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.ui-method li::marker {
+  font-weight: 800;
+}
+
+/* What "Scale servings" focuses: the Cooking for stepper's wrapper. */
+.ui-scale-target:focus,
+.ui-focus-target:focus {
+  outline: none;
+}
+
+.ui-scale-target:focus-visible,
+.ui-focus-target:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 16px;
 }

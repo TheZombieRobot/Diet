@@ -18,6 +18,8 @@ export * from './foods/foodFixtures';
 // Garden and pantry (checklist item 19): JPEG bytes built in code, and the GL-02 and NN-06 stock rows.
 export * from './garden/jpeg';
 export * from './garden/stockFixtures';
+// Recipes (checklist item 20): synthetic figures over the shipped catalogue, and NU-04's recipes.
+export * from './recipes/recipeFixtures';
 // Transfer (checklist item 30): fixed pairing and sealing vectors, and QR images drawn at test time.
 export * from './transfer/qrImage';
 export * from './transfer/vectors';

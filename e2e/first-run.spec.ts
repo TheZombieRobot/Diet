@@ -102,8 +102,9 @@ function readStores(page: Page, stores: readonly string[]): Promise<Record<strin
 const settingsRow = async (page: Page) =>
   (await readStores(page, ['settings']))['settings']?.[0] as Record<string, unknown>;
 
-// Every route, every deep link (item 19: #/garden/harvest; the Fasting sub-links; item 27: the
-// session with a slug and at its finish), the bare address and an unknown one.
+// Every route, every deep link (item 19: #/garden/harvest; the Fasting sub-links; item 20: a
+// recipe's page; item 27: the session with a slug and at its finish), the bare address and an
+// unknown one.
 const ADDRESSES = [
   './',
   ...ROUTES.map((route) => `./${routeHref(route)}`),
@@ -115,7 +116,7 @@ test('P1 HS-20: every address, and the manifest start_url, opens on Welcome', as
   page,
   request,
 }) => {
-  // Nineteen addresses, each loaded and reloaded.
+  // Twenty-eight addresses, each loaded and reloaded.
   test.setTimeout(120_000);
   for (const url of ADDRESSES) {
     await page.goto(url);

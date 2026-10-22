@@ -1,6 +1,6 @@
 import { moveScreen } from '@diet/core/copy/health';
 import type { ReactElement, ReactNode } from 'react';
-import { goToTab, replaceEntryHref } from '../../navigation';
+import { goToTab, replaceKeepingEntry } from '../../navigation';
 import { routeHref, type RouteId } from '../../routes';
 
 /** "See this week" (or "Back to Move"): the Move tab, stepping back when the screen came from it. */
@@ -44,7 +44,7 @@ export function ReplaceLink({
       href={href}
       onClick={(event) => {
         event.preventDefault();
-        replaceEntryHref(href);
+        replaceKeepingEntry(href);
       }}
     >
       {children}

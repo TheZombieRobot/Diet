@@ -40,8 +40,17 @@ StorageOperationError.prototype.name = 'StorageOperationError';
  * Item 28: no alcohol record before the alcohol notice is acknowledged, no drink or milestone
  * while alcohol logging is off (HS-20, RD-01), and no drink time more than 5 minutes ahead of now
  * ('future-time', as for fasts).
+ * Item 20 (recipes): a recipe or line that is not there, a second copy of a seed, a swap the
+ * owner is not offered (a listed allergen among them), a copy whose figures the schema cannot
+ * store yet, a copy still in the meal plan, and a change of the recipe a copy was made from.
  */
 export type StorageRule =
+  | 'recipe-not-found'
+  | 'recipe-copy-exists'
+  | 'recipe-swap-not-allowed'
+  | 'recipe-figures-unknown'
+  | 'recipe-in-plan'
+  | 'recipe-origin-fixed'
   | 'not-found'
   | 'already-ended'
   | 'confirmation-without-answer'

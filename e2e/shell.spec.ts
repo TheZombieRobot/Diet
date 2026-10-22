@@ -7,8 +7,10 @@ import {
   heading,
   offerInstall,
   openBackupPanels,
+  openRecipe,
   SCREENS,
   seedOnboarded,
+  SWEPT_RECIPE,
   TABS,
   UNDER_SETTINGS,
   UNDER_TABS,
@@ -103,7 +105,8 @@ test('the tab bar marks the current tab by more than colour; the gear marks Sett
   for (const screen of SCREENS) {
     await goTo(page, screen);
     for (const tab of TABS) {
-      // A screen under a tab (item 19: Garden and pantry under Food) marks it as its section.
+      // A screen under a tab (item 19: Garden and pantry, item 20: Recipes, under Food) marks it
+      // as its section.
       const parent = UNDER_TABS[screen] === tab;
       const current = tab === screen || parent;
       expect(await nav.getByRole('link', { name: tab }).getAttribute('aria-current')).toBe(
@@ -226,6 +229,8 @@ test('nothing scrolls sideways or runs off a narrow or zoomed screen, online or 
   page,
   context,
 }) => {
+  // Every screen and a recipe page, three widths, online and offline: about 30 s on its own.
+  test.setTimeout(90_000);
   await seedOnboarded(page);
   await waitForServiceWorkerControl(page);
   const problems: string[] = [];
@@ -242,6 +247,14 @@ test('nothing scrolls sideways or runs off a narrow or zoomed screen, online or 
           )),
         );
       });
+      // Item 20: a recipe's page, with its ingredient lines and nutrition table.
+      await openRecipe(page, SWEPT_RECIPE);
+      problems.push(
+        ...(await narrowLayoutProblems(
+          page,
+          `A recipe page at ${width} px${offline ? ', offline' : ''}`,
+        )),
+      );
     }
   }
   // The Backup and data card's panels, with their fields and button rows, at 200% zoom.

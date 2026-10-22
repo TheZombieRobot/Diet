@@ -11,7 +11,7 @@ import { moveScreen, readiness } from '@diet/core/copy/health';
 import { Card } from '@diet/ui';
 import { type ReactElement, useEffect, useRef, useState } from 'react';
 import { type AppStorage, appStorageStore } from '../../db/runtime';
-import { replaceEntryHref } from '../../navigation';
+import { replaceKeepingEntry } from '../../navigation';
 import { moveSessionLink, parseRoute } from '../../routes';
 import { useStore } from '../../store';
 import { useLocationHash } from '../../useRoute';
@@ -50,7 +50,7 @@ function Resolver({
       parseRoute(live) === 'move-session' &&
       moveSessionLink(live).slug === null
     ) {
-      replaceEntryHref(sessionHref(slug, target.kind === 'finish'));
+      replaceKeepingEntry(sessionHref(slug, target.kind === 'finish'));
     }
   }, [slug, target.kind]);
   if (slug !== null) return null;

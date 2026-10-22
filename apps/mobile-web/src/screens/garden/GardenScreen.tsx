@@ -7,7 +7,7 @@ import { type AppStorage, appStorageStore } from '../../db/runtime';
 import { useFoodCatalogue } from '../../foods/useFoods';
 import { usePhotoIds } from '../../garden/photoStore';
 import { browserPhotoPlatform, type PhotoPlatform } from '../../garden/preparePhoto';
-import { replaceEntryHref } from '../../navigation';
+import { replaceKeepingEntry } from '../../navigation';
 import { routeDetail, routeHref } from '../../routes';
 import { useStore } from '../../store';
 import { useNow } from '../../useNow';
@@ -51,7 +51,7 @@ const alertText = (problem: WriteProblem): string | null =>
 
 /** Leaves #/garden/harvest for #/garden in the same history entry, once the harvest panel closes. */
 function leaveHarvestLink(): void {
-  if (routeDetail(window.location.hash) === 'harvest') replaceEntryHref(routeHref('garden'));
+  if (routeDetail(window.location.hash) === 'harvest') replaceKeepingEntry(routeHref('garden'));
 }
 
 /** The first field of the open form (G30: the form with unsaved typing keeps the owner there). */

@@ -5,8 +5,10 @@ import {
   GROUND,
   offerInstall,
   openBackupPanels,
+  openRecipe,
   patchRecords,
   seedOnboarded,
+  SWEPT_RECIPE,
   visitEveryScreen,
 } from './support/app';
 import { lowContrastText, MIN_CONTRAST, textSamples } from './support/contrast';
@@ -37,6 +39,9 @@ for (const colorScheme of ['light', 'dark'] as const) {
     };
 
     await visitEveryScreen(page, (screen) => sweep(screen));
+    // Item 20: a recipe's page, with its chips, ingredient lines and the nutrition card.
+    await openRecipe(page, SWEPT_RECIPE);
+    await sweep('A recipe page');
     await offerInstall(page);
     await goTo(page, 'Today');
     await expect(page.getByText('Install this app')).toBeVisible();

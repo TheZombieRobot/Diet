@@ -139,5 +139,10 @@ describe('seed views (item 18 design 3.2)', () => {
     expect(foodConfidence(seedViewFixture({ source: 'label', unknownNutrients: ['fibreG'] }))).toBe(
       'label',
     );
+    // Contract 5: a recipe line missing any figure counts as Estimate, even from an approved source.
+    expect(lineSourceForMix(usda, ['usda'])).toBe('usda');
+    expect(
+      lineSourceForMix(seedViewFixture({ source: 'usda', unknownNutrients: ['fibreG'] }), ['usda']),
+    ).toBe('estimate');
   });
 });

@@ -19,9 +19,9 @@ import type {
   MealSlot,
   PlanDayRecord,
   PlannedMealRecord,
-  RecipeRecord,
 } from '../storage/records';
 import { ownerMealNutrients } from '../nutrition/portion';
+import type { RecipeChecks } from '../recipes/checks';
 import { type LocalDate, localDateOf } from '../util/time';
 
 /** More cooked protein food than this in one sitting is unrealistic for one meal (C29). */
@@ -197,13 +197,20 @@ type ResolvedIngredient = Pick<
 >;
 
 /**
+ * What the checks read of a recipe: item 20's recipeChecksOf, its live figures from the
+ * ingredients as they are now (item 20 design 4.10). A stored record's snapshot is not accepted:
+ * it is a record of the last save, and an ingredient's figures may have changed since (HS-37).
+ */
+export type MealCheckRecipe = RecipeChecks;
+
+/**
  * Cooked grams of protein food in the owner's serves of a recipe (C29). An ingredient counts when
  * it cannot be found, its protein is unknown, or it has at least 10 g protein per 100 g on its
  * stored basis. Its weight is the cooked weight; else the raw weight times a cited cooked yield
  * when that is larger; else the raw weight. Household serves are not an input (HS-23).
  */
 export function proteinDenseCookedGrams(
-  recipe: Pick<RecipeRecord, 'serves' | 'lines'>,
+  recipe: Pick<MealCheckRecipe, 'serves' | 'lines'>,
   myServes: number,
   resolve: (id: RefId) => ResolvedIngredient | null,
 ): number {
@@ -230,7 +237,7 @@ export function proteinDenseCookedGrams(
 /** The figures of a planned meal; a missing recipe counts as nothing known (the snack is offered). */
 export function plannedMealFigures(
   meal: PlannedMealRecord,
-  recipe: RecipeRecord | null,
+  recipe: MealCheckRecipe | null,
   resolve: (id: RefId) => ResolvedIngredient | null,
 ): PlannedMealFigures {
   if (recipe === null) {

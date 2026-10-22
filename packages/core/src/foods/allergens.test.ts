@@ -57,6 +57,14 @@ describe('swaps and allergens (item 18 design 3.4)', () => {
       offered: true,
       checkLabel: true,
     });
+    // FL-07: a gluten-free household is never offered a swap known to carry a gluten cereal, even
+    // with no allergen listed (item 20 review).
+    expect(swapNames('almond-meal', profile([]))).toContain('Plain flour (label)');
+    expect(swapNames('almond-meal', profile([], true))).not.toContain('Plain flour (label)');
+    expect(swapDecision(food('almond-meal'), food('plain-flour'), profile([], true))).toEqual({
+      offered: false,
+      reason: 'gluten-household',
+    });
     // The known lists decide, complete or not: soy sauce (brand-dependent) still carries wheat.
     expect(isGlutenFreeSwap(food('pasta'), food('soy-sauce'))).toBe(false);
     expect(isGlutenFreeSwap(food('pasta'), food('white-rice'))).toBe(true);

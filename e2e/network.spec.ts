@@ -7,8 +7,10 @@ import {
 } from '@playwright/test';
 import {
   openFoodPanel,
+  openRecipe,
   type ScreenName,
   seedOnboarded,
+  SWEPT_RECIPE,
   visitEveryScreen,
   waitForServiceWorkerControl,
 } from './support/app';
@@ -40,6 +42,8 @@ test('online, every screen: requests go only to the app’s own files', async ({
   await seedOnboarded(page);
   await waitForServiceWorkerControl(page);
   await visitEveryScreen(page, openAFood(page));
+  // Item 20: a recipe's page (E4).
+  await openRecipe(page, SWEPT_RECIPE);
   await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Today' }).click();
   // Item 16 (E3): logging on Today asks nothing of the network.
   await page.getByRole('button', { name: 'Add 250 mL' }).click();
@@ -74,6 +78,7 @@ test('offline, every screen: no request reaches the network at all', async ({
   context.on('requestfailed', (r) => failed.push(r.url()));
   await page.reload();
   await visitEveryScreen(page, openAFood(page));
+  await openRecipe(page, SWEPT_RECIPE);
   expect(failed).toEqual([]);
   await audit.verify();
 });

@@ -76,7 +76,8 @@ async function settle(): Promise<void> {
 const buttons = () => screen.getAllByRole('button').map((b) => b.textContent);
 
 describe('the first-run guard (HS-20, C41, C53)', () => {
-  // Item 19: the deep links too (#/garden/harvest, the Fasting sub-links; item 27's session links).
+  // Items 19, 20 and 27: the deep links too (#/garden/harvest, a recipe page, the Fasting
+  // sub-links, the session's links).
   it.each([...ROUTES.map((r) => `#/${r}`), ...DEEP_LINKS, '#/unknown'])(
     'K1: %s shows Welcome with only the help numbers to tap',
     async (hash) => {

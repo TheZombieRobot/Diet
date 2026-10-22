@@ -24,3 +24,8 @@ export function useLocationHash(): string {
 export function useRouteDetail(): string | null {
   return routeDetail(useSyncExternalStore(subscribe, currentHash, () => ''));
 }
+
+/** Item 20: the whole location hash ('#/recipe/…?my=2'); re-renders when it changes. */
+export function useHash(): string {
+  return useSyncExternalStore(subscribe, currentHash, () => '');
+}
