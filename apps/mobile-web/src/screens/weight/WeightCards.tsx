@@ -111,11 +111,13 @@ export function ExtensionOfferCard({
   card,
   week,
   weeks,
+  today,
 }: {
   storage: AppStorage;
   card: NonNullable<Cards['extensionOffer']>;
   week: number;
   weeks: number;
+  today: string;
 }): ReactElement {
   const [checking, setChecking] = useState(false);
   return (
@@ -128,7 +130,7 @@ export function ExtensionOfferCard({
       {checking ? (
         <KickstartCheckPanel
           storage={storage}
-          variant={{ kind: 'extend', week, weeks }}
+          variant={{ kind: 'extend', week, weeks, today }}
           onCancel={() => {
             setChecking(false);
           }}
@@ -302,21 +304,24 @@ export function SteadyExplainerCard({
 
 /**
  * The in-memory notice after the stored 23:1 → 22:2 move, when nothing else explains it (C55, W16).
- * While answer 4 is "yes" or unanswered it says why 23:1 is not used and offers no one-tap 23:1
- * (C07): that owner chooses a pattern in Settings.
+ * While answer 4 is "yes" or unanswered it says why 23:1 is not used (C07). The one-tap 23:1 is
+ * there only when the overview allows it (oneTap231: not for answer 4, nor after a stop-sign
+ * answer or a readiness end; F5); otherwise the owner chooses a pattern in Settings.
  */
 export function PresetMovedCard({
   storage,
   answer4,
+  offer231,
 }: {
   storage: AppStorage;
   answer4: boolean;
+  offer231: boolean;
 }): ReactElement {
   return (
     <Card label={weight.presetMoved.label}>
       <p>{answer4 ? weight.presetMoved.answer4 : weight.presetMoved.body}</p>
       <ButtonRow>
-        {answer4 ? null : (
+        {answer4 || !offer231 ? null : (
           <Button
             onClick={() => {
               keepOneMeal(storage, () => {
@@ -423,9 +428,11 @@ export function WeightCards({
           card={cards.extensionOffer}
           week={phase.week}
           weeks={phase.weeks}
+          today={overview.today}
         />
       )}
-      {preStartStopSign ? (
+      {/* While Kickstart runs, a "yes" held for the day forces the stop-sign card instead (V9). */}
+      {preStartStopSign && phase.kind !== 'kickstart' ? (
         <PreStartStopSignCard
           bloodPressure={view.input.gates.bloodPressureSaltWording}
           onClose={() => {
@@ -446,7 +453,11 @@ export function WeightCards({
         <SteadyExplainerCard storage={storage} card={cards.steadyExplainer} />
       )}
       {presetMoved === null || explained ? null : (
-        <PresetMovedCard storage={storage} answer4={view.input.gates.pharmacistReminder} />
+        <PresetMovedCard
+          storage={storage}
+          answer4={view.input.gates.pharmacistReminder}
+          offer231={overview.kickstart.oneTap231}
+        />
       )}
       {cards.fluctuation ? <FluctuationCard storage={storage} /> : null}
     </>

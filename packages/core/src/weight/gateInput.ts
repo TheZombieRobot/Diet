@@ -1,11 +1,11 @@
 /**
  * The readiness gate input for everything item 14 decides (item 13 section 9.1 rules 1 and 2): the
- * stored answers, the birth year and height, and the current weight by item 14's rule (the lower
- * of the 7-day average and the latest weigh-in), so a low weight closes the same gates on the
- * weight screens, in the reconciler and in the repository re-checks.
+ * stored answers, the birth year and height, and the current weight by item 14's rule
+ * (gateCurrentWeightKg, read at today's date and now), so a low weight closes the same gates on
+ * the weight screens, in the reconciler and in the repository re-checks.
  */
 import { type GateInput, gateInputFromRecords } from '../readiness/gates';
-import type { TimeZone } from '../storage/primitives';
+import type { Instant, TimeZone } from '../storage/primitives';
 import type { ProfileRecord, ReadinessRecord, WeightRecord } from '../storage/records';
 import type { LocalDate } from '../util/time';
 import { gateCurrentWeightKg } from './weighIns';
@@ -18,12 +18,13 @@ export function weightGateInput(
     readonly homeTimeZone: TimeZone;
   },
   today: LocalDate,
+  now: Instant,
 ): GateInput {
   return gateInputFromRecords({
     rows: records.readiness,
     birthYear: records.profile.birthYear,
     heightCm: records.profile.heightCm,
-    currentWeightKg: gateCurrentWeightKg(records.weights, today, records.homeTimeZone),
+    currentWeightKg: gateCurrentWeightKg(records.weights, today, now, records.homeTimeZone),
     today,
   });
 }

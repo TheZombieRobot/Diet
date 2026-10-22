@@ -90,6 +90,7 @@ async function both(options: WeightScenarioOptions, day: number) {
       homeTimeZone: inputs.settings.homeTimeZone,
     },
     today,
+    now,
   );
   const gates = readinessGates(gateInput);
   const endsPending = new Map();

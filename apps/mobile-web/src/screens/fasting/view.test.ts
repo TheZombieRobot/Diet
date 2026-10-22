@@ -597,6 +597,44 @@ describe('after a Kickstart stop-sign answer (F20; HEALTH_SAFETY sections 2 and 
     const timed = open(fastingView(fasting, context(), at(D, '09:00'), NZ));
     expect(timed.running?.endHint.kind).toBe('window');
   });
+
+  it('nothing offers or names a window time: no 5 pm snack, no reflux option, no next window', () => {
+    const symptom: SymptomRecord = {
+      id: 's1',
+      at: iso(at(D, '06:40')),
+      timeZone: NZ,
+      symptom: 'heartburn',
+      severity: null,
+      note: null,
+    };
+    const refluxDay = inputs(D, { symptoms: [symptom] });
+    const timed = open(fastingView(refluxDay, context(), at(D, '09:00'), NZ));
+    expect(timed.upcoming?.snack.fits).toEqual(SNACK_AND_DINNER);
+    expect(timed.reflux.options).not.toBeNull();
+    expect(timed.pattern?.next).not.toBeNull();
+    const paused = open(
+      fastingView(refluxDay, context({ stopSignPause: true }), at(D, '09:00'), NZ),
+    );
+    // The meal check carries the pause, so a snack added before the answer shows without times.
+    expect(paused.upcoming).toMatchObject({ snack: { fits: null }, stopSignPause: true });
+    expect(paused.reflux.options).toBeNull();
+    expect(paused.pattern).toMatchObject({ next: null });
+    // After tonight's window, tomorrow's snack is not offered either.
+    const evening = (stopSignPause: boolean) =>
+      open(
+        fastingView(
+          inputs(D),
+          context({
+            mealSources: sources({ [addDays(D, 1)]: 150 }, { [D]: shortLog }),
+            stopSignPause,
+          }),
+          at(D, '21:00'),
+          NZ,
+        ),
+      ).closed?.tomorrowSnack;
+    expect(evening(false)).toEqual(SNACK_AND_DINNER);
+    expect(evening(true)).toBeNull();
+  });
 });
 
 describe('the reflux options (F26)', () => {

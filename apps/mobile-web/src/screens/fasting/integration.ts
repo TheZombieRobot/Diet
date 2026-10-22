@@ -114,11 +114,15 @@ export function fastingContext(args: {
             presetAfter: effectiveFastingPreset(inputs.targets, false, gates),
           }
         : { running: false },
-    mealTargets: mealTargetsFrom(inputs, {
-      now: args.now,
-      deviceTimeZone: args.deviceTimeZone,
-      endsPending: args.endsPending,
-    }),
+    mealTargets: mealTargetsFrom(
+      { ...inputs, cardStates: inputs.preStartCards ?? [] },
+      {
+        now: args.now,
+        deviceTimeZone: args.deviceTimeZone,
+        endsPending: args.endsPending,
+        preStartHeld: args.preStartHeld ?? null,
+      },
+    ),
     mealSources,
     stopSignPause,
   };

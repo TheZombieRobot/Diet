@@ -39,6 +39,8 @@ export function mealTargetsFrom(
     readonly deviceTimeZone: TimeZone;
     /** Item 14's end latch: a Kickstart whose end is due reads as ended. */
     readonly endsPending: ReadonlyMap<Id, KickstartEndReason>;
+    /** This page's hold of a pre-start stop-sign "yes" until its record is written. */
+    readonly preStartHeld: LocalDate | null;
   },
 ): (date: LocalDate) => MealTargets {
   const today = localDateOf(clock.now, clock.deviceTimeZone);
@@ -56,6 +58,7 @@ export function mealTargetsFrom(
       today: on,
       deviceZone: clock.deviceTimeZone,
       endsPending: clock.endsPending,
+      preStartHeld: clock.preStartHeld,
     });
     const figures: MealTargets = {
       proteinTargetG: targets.protein.checkTargetG,

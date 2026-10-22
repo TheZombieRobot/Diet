@@ -24,6 +24,7 @@ import { useLiveQuery } from '../../db/liveQuery';
 import type { AppStorage } from '../../db/runtime';
 import { useStore } from '../../store';
 import { useNow } from '../../useNow';
+import { preStartStopSignStore } from '../weight/preStartCheck';
 import { endLatchStore } from '../weight/stores';
 import { readWeightInputs, type WeightInputs } from '../weight/useWeightView';
 
@@ -46,14 +47,18 @@ async function asRead<T>(read: () => Promise<T>): Promise<Read<T>> {
   }
 }
 
-/** The one clock of a screen: the instant, its local date and the device zone, with the end latch. */
+/**
+ * The one clock of a screen: the instant, its local date and the device zone, with the end latch
+ * and this page's hold of a pre-start stop-sign "yes" (no deficit for the rest of that day).
+ */
 export function useTargetsClock(storage: AppStorage): TargetsClock {
   const at = useNow(storage.env);
   const deviceZone = storage.env.timeZone();
   const endsPending = useStore(endLatchStore);
+  const preStartHeld = useStore(preStartStopSignStore);
   return useMemo(
-    () => ({ at, today: localDateOf(at, deviceZone), deviceZone, endsPending }),
-    [at, deviceZone, endsPending],
+    () => ({ at, today: localDateOf(at, deviceZone), deviceZone, endsPending, preStartHeld }),
+    [at, deviceZone, endsPending, preStartHeld],
   );
 }
 

@@ -126,6 +126,23 @@ describe('a weigh-in below BMI 18.5 runs item 13’s gate effects in the same ac
     });
   });
 
+  it('a higher weigh-in timed later today (saved while the clock ran ahead) never hides it, and a fast is refused', async () => {
+    const db = await seed(NEAR_FLOOR, 10);
+    db.env.set(scenarioInstant(SCENARIO_DAY1, 10, '23:00'));
+    await db.repos.weights.create({ kg: 62, source: 'manual', note: null });
+    db.env.set(scenarioInstant(SCENARIO_DAY1, 10, '18:00'));
+    await weightScreen();
+    const panel = screen.getByRole('region', { name: weight.card.logWeight });
+    fireEvent.change(within(panel).getByRole('textbox', { name: weight.entry.fieldLabel }), {
+      target: { value: '59.0' },
+    });
+    fireEvent.click(within(panel).getByRole('button', { name: weight.entry.save }));
+    await waitFor(async () => {
+      expect(await periods(db)).toMatchObject([{ endReason: 'readiness-gated' }]);
+    });
+    await expect(db.repos.fasts.start()).rejects.toMatchObject({ rule: 'fasting-gated' });
+  });
+
   it('Weigh-ins: an edit to a low weight ends it; removing that weigh-in restarts the carb-ceiling clock', async () => {
     const db = await seed(NEAR_FLOOR, 10);
     const before = (await db.repos.profile.get()).carbCeilingStartedAt;

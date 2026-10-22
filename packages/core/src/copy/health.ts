@@ -85,12 +85,14 @@ export const alcohol = {
         'NZ guidance for men: no more than 3 standard drinks a day and 15 a week, with at least 2 alcohol-free days. No alcohol use is risk-free.',
     },
     /**
-     * Readiness answer 2 "yes" or unanswered (guidanceShown; full review F30): no figures. To be
-     * checked against the official page at item 42, and confirmed by the owner at STOP 17 with the
-     * C58 help-card wording (cross-item ruling 8).
+     * Readiness answer 2 "yes" or unanswered (guidanceShown; full review F30): no figures. For
+     * someone who drinks most days it carries the caution of the first-run notice and the help card:
+     * a change is talked through first, never a sudden stop (HEALTH_SAFETY section 5; re-check
+     * V19). To be checked against the official page at item 42, and confirmed by the owner at STOP
+     * 17 with the C58 help-card wording (cross-item ruling 8).
      */
     pregnancy:
-      'NZ guidance: if you are pregnant, could be pregnant or are breastfeeding, the safest choice is no alcohol. Your midwife or GP can talk it through. No alcohol use is risk-free.',
+      'NZ guidance: if you are pregnant, could be pregnant or are breastfeeding, the safest choice is no alcohol. Your midwife or GP can talk it through. If you drink most days, talk to them before making a change, because stopping suddenly can be risky. No alcohol use is risk-free.',
   },
   /**
    * The first-run notice screen (UX 1b; mock-up Notice.dc.html). It cannot be put off: no string
@@ -1458,6 +1460,9 @@ export const weight = {
     // A stop-sign answer's pause still holds after an early end (F4).
     pausedUntil:
       'Because of the stop-sign you reported, no deficit is planned until the end of {date}, the day this Kickstart was due to finish. After that the app plans with the Steady deficit.',
+    // A "yes" outside a recorded check: before a start, or in a check that could not be saved.
+    pausedToday:
+      'Because of the stop-sign you reported today, no deficit is planned for the rest of today.',
     afterCheckRunning:
       'You told the app about a stop-sign, so Kickstart will not be extended. Eating more today is fine, and you can end Kickstart now.',
     afterCheckEnded:
@@ -1927,7 +1932,8 @@ export const fasting = {
       today: '5 pm snack added for tonight. Eat {range}.',
       tomorrow: '5 pm snack added for tomorrow. Eat {range}.',
     },
-    // During a fast whose 24 hours end before that window opens: no window time (item 15 review).
+    // During a fast whose 24 hours end before that window opens (item 15 review), or during a
+    // stop-sign pause (F20): no window time.
     snackAddedNoRange: {
       today: '5 pm snack added for tonight.',
       tomorrow: '5 pm snack added for tomorrow.',
@@ -2035,6 +2041,11 @@ export const reflux = {
     changed: {
       today: 'Changed for today: eat {range}.',
       tomorrow: 'Changed for tomorrow: eat {range}.',
+    },
+    // During a stop-sign pause no window time is named (F20).
+    changedNoRange: {
+      today: 'Changed for today.',
+      tomorrow: 'Changed for tomorrow.',
     },
     undo: 'Undo',
     keepsFastShort:

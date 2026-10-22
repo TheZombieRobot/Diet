@@ -93,6 +93,10 @@ export function energyExplanation(view: DayTargetsView): EnergyExplanation {
       }),
     );
     stopSignAdvice();
+  } else if (deficit.basis === 'none-stop-sign' && view.stopSignToday) {
+    // A "yes" before a start, or in an extension check that could not be saved (V16, V9).
+    lines.push(weight.stopSigns.pausedToday);
+    stopSignAdvice();
   }
   if (t.estimate.available && weightIsStale(t.estimate.weight, view.today)) {
     lines.push(copy.energy.staleWeight);

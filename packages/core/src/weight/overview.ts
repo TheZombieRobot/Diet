@@ -39,6 +39,7 @@ import {
   phaseSegments,
 } from './band';
 import { type GoalView, goalView } from './goal';
+import { recentPreStartStopSignDay } from './preStart';
 import {
   type ExtensionOffer,
   extensionOfferDue,
@@ -202,6 +203,14 @@ export interface WeightOverview {
     readonly notStarted: { readonly periodId: Id; readonly day1: LocalDate } | null;
     /** Non-null when the stored untouched 23:1 Kickstart default should move to 22:2. */
     readonly presetMoveDue: PresetChange | null;
+    /**
+     * A one-tap "Use 23:1 instead" may be offered after a move to 22:2 (F5): never for answer 4
+     * "yes" or unanswered (C07), nor after a stop-sign answer (in the latest Kickstart, a check in
+     * the last 336 hours, or a "yes" recorded or held outside a check in that time) or a Kickstart
+     * a readiness answer, the birth year or the weight ended. The eating-schedule form still
+     * offers 23:1.
+     */
+    readonly oneTap231: boolean;
     readonly effectivePreset: EffectivePreset;
   };
 }
@@ -248,13 +257,16 @@ function notesFor(
   today: LocalDate,
   notStarted: boolean,
   stopSignPaused: boolean,
+  stopSignToday: boolean,
 ): WeightNote[] {
   // A low weight closes the deficit too (item 13 HS-35); its own line names the reason.
   if (lowWeight) return ['low-weight'];
   if (phase.kind === 'none') return [missing.length > 0 ? 'gated-unanswered' : 'gated'];
   if (phase.kind === 'kickstart') {
-    // After a stop-sign answer no note says a fast drop is expected (F7, F20).
+    // After a stop-sign answer no note says a fast drop is expected (F7, F20); after a "yes" held
+    // for today only, no phase note at all that day (the stop-sign card says the rest; V9).
     if (stopSignPaused) return ['kickstart-paused'];
+    if (stopSignToday) return [];
     if (phase.dayKind === 'exempt') return ['kickstart'];
     return [phase.dayKind === 'extension' ? 'kickstart-extended' : 'kickstart-later'];
   }
@@ -343,7 +355,13 @@ export function weightOverview(input: WeightOverviewInput): WeightOverview {
   const { weighIns, zoneFallback } = weighInsFromRecords(input.weights, input.homeTimeZone);
   const daily = dailyWeightsKg(weighIns);
   const { gates, profile, settings, targets } = input;
-  const lowWeight = belowBmiFloorNow(input.weights, today, input.homeTimeZone, profile.heightCm);
+  const lowWeight = belowBmiFloorNow(
+    input.weights,
+    today,
+    input.now,
+    input.homeTimeZone,
+    profile.heightCm,
+  );
   const pausedUntil = stopSignPauseUntil(input.periods, input.checks, today, input.homeTimeZone);
   const phaseInput = phaseInputFrom(input, today);
   const phase = phaseOn(phaseInput);
@@ -370,14 +388,23 @@ export function weightOverview(input: WeightOverviewInput): WeightOverview {
     settings: rapidSettings,
   });
 
-  const stopSignsBase = stopSignsDue(phase, phaseInput);
+  // A stop-sign "yes" recorded or held for today outside a check (preStartStopSignToday) while
+  // this Kickstart runs comes from an extension check that could not be saved (re-check V9): for
+  // the rest of the day the stop-sign card is forced as after a recorded one, and no extension is
+  // offered.
+  const stopSignToday = input.preStartStopSignToday && phase.kind === 'kickstart';
+  const dueStopSigns = stopSignsDue(phase, phaseInput);
+  const stopSignsBase =
+    dueStopSigns !== null && stopSignToday
+      ? { ...dueStopSigns, forced: true, expanded: true }
+      : dueStopSigns;
   const stopSigns =
     stopSignsBase !== null &&
     (stopSignsBase.forced || !hidden('kickstart-stop-signs', stopSignsBase.trigger))
       ? { ...stopSignsBase, bloodPressureWording: gates.bloodPressureSaltWording }
       : null;
 
-  const offer = extensionOfferDue(phase, phaseInput, lowWeight);
+  const offer = stopSignToday ? null : extensionOfferDue(phase, phaseInput, lowWeight);
   const extensionOffer =
     offer !== null && !hidden('kickstart-extension', offer.trigger)
       ? { ...offer, rapidLine: rapidLineInOffer(daily, today, rapidSettings) }
@@ -402,6 +429,13 @@ export function weightOverview(input: WeightOverviewInput): WeightOverview {
   // one ended before its first day came.
   const latestPeriod = periodsThatRan(input.periods).at(-1) ?? null;
   const endedByReadiness = latestPeriod?.endReason === 'readiness-gated';
+  const oneTap231 =
+    !gates.pharmacistReminder &&
+    !input.checks.some((c) => c.periodId === latestPeriod?.id && c.outcome === 'stop-sign') &&
+    !recentStopSignCheck(input.checks, input.now) &&
+    recentPreStartStopSignDay(input.cardStates, input.now) === null &&
+    !input.preStartStopSignToday &&
+    !endedByReadiness;
   const steadyExplainer: WeightOverview['cards']['steadyExplainer'] =
     phase.kind === 'steady' &&
     latestPeriod !== null &&
@@ -416,20 +450,13 @@ export function weightOverview(input: WeightOverviewInput): WeightOverview {
             gates.carbCeilingBelow50Allowed
               ? safeKetoCeilingG(targets.netCarbCeilingG)
               : null,
-          // Never for answer 4 "yes" or unanswered: one meal a day is never offered to that owner
-          // in one tap, and a start never moves them to it (C07). Nor right after a stop-sign
-          // answer (in that Kickstart or in the last 336 hours) or a Kickstart a readiness answer,
-          // the birth year or the weight ended (F5): the eating-schedule form still offers 23:1.
+          // Only with the one-tap 23:1 (oneTap231; C07, F5): the eating-schedule form still
+          // offers 23:1.
           windowLine:
             effectivePreset.fastingPreset === '22:2' &&
             effectivePreset.presetChosenBy === 'default' &&
             !gates.fastingGated &&
-            !gates.pharmacistReminder &&
-            !input.checks.some(
-              (c) => c.periodId === latestPeriod.id && c.outcome === 'stop-sign',
-            ) &&
-            !recentStopSignCheck(input.checks, input.now) &&
-            !endedByReadiness,
+            oneTap231,
           deficit:
             pausedUntil !== null
               ? 'paused'
@@ -460,6 +487,7 @@ export function weightOverview(input: WeightOverviewInput): WeightOverview {
       today,
       notStarted !== null,
       pausedUntil !== null,
+      stopSignToday,
     ),
     chart: fourWeekChart(input, daily, today, phase, lowWeight),
     goal: goalView({
@@ -498,6 +526,7 @@ export function weightOverview(input: WeightOverviewInput): WeightOverview {
           })
         : null,
       effectivePreset,
+      oneTap231,
     },
   };
 }

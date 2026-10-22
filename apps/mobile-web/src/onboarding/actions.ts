@@ -29,7 +29,6 @@ import {
   type GardenCropValue,
   type GardenRecord,
   type GateInput,
-  type LocalDate,
   localDateOf,
   onboardingCompletionPatch,
   type ProfileFormValue,
@@ -79,9 +78,6 @@ interface Fresh {
   readonly gates: ReadinessGates;
 }
 
-const todayOf = (storage: AppStorage): LocalDate =>
-  localDateOf(storage.env.now(), storage.env.timeZone());
-
 async function readFresh(storage: AppStorage): Promise<Fresh> {
   const { repos } = storage;
   const [settings, rows, profile, weights, targets] = await Promise.all([
@@ -91,9 +87,11 @@ async function readFresh(storage: AppStorage): Promise<Fresh> {
     repos.weights.list(),
     repos.targets.get(),
   ]);
+  const now = storage.env.now();
   const input = weightGateInput(
     { readiness: rows, profile, weights, homeTimeZone: settings.homeTimeZone },
-    todayOf(storage),
+    localDateOf(now, storage.env.timeZone()),
+    now,
   );
   return { settings, rows, profile, weights, targets, input, gates: readinessGates(input) };
 }
@@ -312,6 +310,7 @@ export async function saveProfile(
           homeTimeZone: before.settings.homeTimeZone,
         },
         localDateOf(now, env.timeZone()),
+        now,
       ),
     );
     if (options.askBeforeEndingKickstart === true && (await kickstartEndsWith(storage, after))) {
@@ -331,6 +330,7 @@ export async function saveProfile(
       homeTimeZone: before.settings.homeTimeZone,
     },
     localDateOf(now, env.timeZone()),
+    now,
   );
   const kickstartOptIn = value.kickstartOptIn && readinessGates(withValue).kickstartAvailable;
   await repos.profile.update({

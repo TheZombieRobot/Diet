@@ -134,7 +134,7 @@ export function dietModeSwitch(
     resolveZone(deviceTimeZone, home, DEFAULT_HOME_TIME_ZONE).timeZone,
   );
   // The two modes differ, so one of them has a carb ceiling: this is a change into or out of one.
-  const ceilingOpen = gatesFromRecords(records, today).ketoCeilingAvailable;
+  const ceilingOpen = gatesFromRecords(records, today, now).ketoCeilingAvailable;
   return {
     kind: 'switch',
     patch: {

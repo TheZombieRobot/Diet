@@ -91,9 +91,11 @@ function refuseWhileGated(
   if (profile === undefined || settings === undefined) {
     throw new StorageRuleError('profile', 'not-found');
   }
+  const now = env.now();
   const input = weightGateInput(
     { readiness, profile, weights, homeTimeZone: settings.homeTimeZone },
-    localDateOf(env.now(), env.timeZone()),
+    localDateOf(now, env.timeZone()),
+    now,
   );
   if (readinessGates(input).fastingGated) throw new StorageRuleError('fasts', 'fasting-gated');
 }

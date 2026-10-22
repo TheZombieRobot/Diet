@@ -89,7 +89,8 @@ export interface FastingContext {
   readonly mealSources: MealSources;
   /**
    * A Kickstart stop-sign answer's pause holds, or a pre-start "yes" was given today (item 14;
-   * integration.ts): no fast is timed to the eating window, and it is fine to eat now (F20).
+   * integration.ts): no fast is timed to the eating window, it is fine to eat now, and nothing
+   * offers or names a window time (no 5 pm snack, no reflux option, no next window; F20).
    */
   readonly stopSignPause: boolean;
 }
@@ -141,6 +142,11 @@ export interface MealCheckView {
    */
   readonly afterCeiling: boolean;
   readonly undoSnackAllowed: boolean;
+  /**
+   * context.stopSignPause: no 5 pm snack is offered (it sets a timed window) and no line names the
+   * window's times, so a snack added before reads without them (F20).
+   */
+  readonly stopSignPause: boolean;
   /** A symptom was logged today (C62). */
   readonly refluxDay: boolean;
   /** For the after-window region: tomorrow's 5 pm snack, when it fits and is not offered above. */
@@ -381,7 +387,10 @@ function mealCheckView(
     oneMealWindow: window !== null && isOneMealWindow(window),
   });
   const added = isSnackAdded(date, schedule) ? window : null;
-  const snack = { added, fits: snackThatFits(date, schedule, deviceZone, nowMs, ceilingMs) };
+  const fits = context.stopSignPause
+    ? null
+    : snackThatFits(date, schedule, deviceZone, nowMs, ceilingMs);
+  const snack = { added, fits };
   let kind: MealCheckKind = 'hidden';
   if (region === 'closed') {
     kind = result.kind === 'short-after' ? 'after' : 'hidden';
@@ -412,6 +421,7 @@ function mealCheckView(
     afterCeiling,
     undoSnackAllowed:
       added !== null && dayWindowChangeAllowed(schedule, [{ date, window: null }], deviceZone),
+    stopSignPause: context.stopSignPause,
     refluxDay,
     tomorrowSnack: null,
   };
@@ -495,9 +505,10 @@ export function fastingView(
       SNACK_BUTTON_KINDS.includes(upcoming.kind);
     closed = {
       ...view,
-      tomorrowSnack: offeredAbove
-        ? null
-        : snackThatFits(tomorrow, schedule, deviceZone, nowMs, ceilingMs),
+      tomorrowSnack:
+        offeredAbove || context.stopSignPause
+          ? null
+          : snackThatFits(tomorrow, schedule, deviceZone, nowMs, ceilingMs),
     };
   }
 
@@ -523,7 +534,8 @@ export function fastingView(
     preferSplit: inputs.targets.refluxPreferSplit,
   });
   let options: RefluxOptionsView | null = null;
-  if (upcomingInstance !== null && (visible.earlier || visible.split)) {
+  // During a stop-sign pause no option moves or times the window (F20).
+  if (!context.stopSignPause && upcomingInstance !== null && (visible.earlier || visible.split)) {
     const date = upcomingInstance.date;
     const own = hasOverride(date, schedule) ? windowOn(date, schedule) : null;
     const earlier = visible.earlier ? earlierOption(date, schedule, deviceZone, nowMs) : null;
@@ -592,8 +604,11 @@ export function fastingView(
       : null;
 
   const standing = standingOn(today, schedule);
+  // During a stop-sign pause the pattern names no next window to wait for (F20).
   const pattern: PatternView | null =
-    schedule.standing === null || standing === null ? null : { standing, next };
+    schedule.standing === null || standing === null
+      ? null
+      : { standing, next: context.stopSignPause ? null : next };
   const noPattern = pattern === null;
   const showsReasons =
     (upcoming !== null && upcoming.reasons.length > 0) || closed?.kind === 'after';

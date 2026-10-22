@@ -674,6 +674,48 @@ describe('the Fasting screen (design 3.4 to 3.8)', () => {
     expect(screen.getByRole('main').textContent).not.toContain(fasting.card.overCeiling);
   });
 
+  it('F20: after a Kickstart stop-sign answer the pattern card names no next window, and the snack added for today no time', async () => {
+    // Day 20 of a Kickstart, with a "yes" to dizziness at 8 am.
+    const day20 = '2000-01-24';
+    await setUp('#/fasting', {
+      now: at(day20, '10:00'),
+      seed: async (t) => {
+        await t.repos.planDays.setWindows([
+          { date: day20, window: { start: '17:00', end: '19:00' } },
+        ]);
+        const periodId = t.env.randomId();
+        await t.db.kickstart_periods.put({
+          id: periodId,
+          startedAt: iso(at('2000-01-05', '08:00')),
+          timeZone: NZ,
+          endedAt: null,
+          endedTimeZone: null,
+          endReason: null,
+        });
+        await t.db.kickstart_checks.add({
+          id: t.env.randomId(),
+          periodId,
+          askedAt: iso(at(day20, '08:00')),
+          timeZone: NZ,
+          dizzyOnStanding: 'yes',
+          palpitations: 'no',
+          crampsNotSettling: 'no',
+          faintAtWork: 'no',
+          energyRating: null,
+          sleepRating: null,
+          outcome: 'stop-sign',
+        });
+      },
+    });
+    await within(await screen.findByRole('region', { name: fasting.card.label })).findByText(
+      fasting.card.stopSignPause,
+    );
+    const pattern = region(fasting.pattern.label);
+    expect(within(pattern).getByText('1 h eating, 23 h fasting')).toBeTruthy();
+    expect(within(pattern).getByText(fasting.mealCheck.snackAddedNoRange.today)).toBeTruthy();
+    expect(pattern.textContent).not.toMatch(/Next eating window|Eat \d/);
+  });
+
   it('C55: a preset stored at other times reads from its clock times and saves back unchanged', async () => {
     const t = await setUp('#/fasting', {
       now: at(D, '10:00'),

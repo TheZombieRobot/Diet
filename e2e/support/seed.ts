@@ -59,6 +59,7 @@ export async function seedRecords(
         homeTimeZone: settings.homeTimeZone,
       },
       localDateOf(options.now, settings.homeTimeZone),
+      options.now,
     ),
   );
   expect(gates.fastingGated).toBe(options.expectGated ?? false);

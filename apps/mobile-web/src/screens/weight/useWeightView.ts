@@ -124,6 +124,7 @@ export function overviewInputFrom(
         homeTimeZone: home,
       },
       today,
+      env.now,
     );
   return {
     now: env.now,
