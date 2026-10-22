@@ -27,9 +27,18 @@ export function revokeAllObjectUrls(): void {
 /** How long a download link stays usable after the click. */
 export const DOWNLOAD_URL_LIFETIME_MS = 60_000;
 
-/** Offers `text` as a file named `fileName` (application/json), then revokes the URL after 60 s. */
-export function offerDownload(text: string, fileName: string, doc: Document = document): void {
-  const url = trackedObjectUrl(new Blob([text], { type: 'application/json' }));
+/** The types of the files the app offers: backups (JSON), and item 23's GP summary (text or CSV). */
+export type DownloadType =
+  'application/json' | 'text/plain;charset=utf-8' | 'text/csv;charset=utf-8';
+
+/** Offers `text` as a file named `fileName` (JSON unless given), then revokes the URL after 60 s. */
+export function offerDownload(
+  text: string,
+  fileName: string,
+  doc: Document = document,
+  type: DownloadType = 'application/json',
+): void {
+  const url = trackedObjectUrl(new Blob([text], { type }));
   const link = doc.createElement('a');
   link.href = url;
   link.download = fileName;

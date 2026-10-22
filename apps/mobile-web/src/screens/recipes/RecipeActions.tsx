@@ -1,6 +1,6 @@
 /**
  * The recipe page's "What next" card (item 20 design 3.4 card 6, 3.5 and 3.6): Add to plan (item
- * 22's panel), Log as eaten as a later step, Scale servings, Substitute ingredient with its panel,
+ * 22's panel), Log as eaten (item 23's panel), Scale servings, Substitute ingredient with its panel,
  * Hide from suggestions for a seed (item 22), and for an owner's copy "Go back to the original
  * recipe". The panel offers only what core's
  * substituteOptions offers (never a food known to carry an allergen the owner listed), and the
@@ -16,14 +16,16 @@ import {
   type SwapOptions,
 } from '@diet/core';
 import { planner, privacy, recipes } from '@diet/core/copy/health';
-import { ActionRow, Button, ButtonRow, Card, ChoiceList, Chip, Notice } from '@diet/ui';
+import { ActionRow, Button, ButtonRow, Card, ChoiceList, Notice } from '@diet/ui';
 import { type ReactElement, type RefObject, useEffect, useId, useRef, useState } from 'react';
 import { StorageClosedError, StorageFullError, StorageRuleError } from '../../db/errors';
 import type { AppStorage } from '../../db/runtime';
 import { useStore } from '../../store';
 import { recipeGramsText } from '../../format';
 import { replaceKeepingEntry } from '../../navigation';
-import { recipeHref, routeHref } from '../../routes';
+import { recipeHref, recipeRouteOf, routeHref } from '../../routes';
+import { useLocationHash } from '../../useRoute';
+import { LogAsEaten } from '../foodLog/LogAsEaten';
 import { AddedNotice, type AddedToPlan, AddToPlanPanel } from '../planner/AddToPlanPanel';
 import { cookingForOn, removeFailure, swapStatusStore } from './status';
 import type { RecipeScreenState } from './useRecipeScreenData';
@@ -348,7 +350,7 @@ export function RecipeActions({
         setHideFailure(planner.refused.failed);
       });
   };
-  const laterId = useId();
+  const plan = recipeRouteOf(useLocationHash())?.plan ?? null;
   const blockedId = useId();
   const [panelOpen, setPanelOpen] = useState(false);
   const [asking, setAsking] = useState(false);
@@ -367,17 +369,6 @@ export function RecipeActions({
     swapStatusStore.set(null);
     run();
   };
-  // "Later": not built yet, read at full contrast (item 16's pattern); a click does nothing.
-  const later = (label: string) => (
-    <Button
-      variant="secondary"
-      className="ui-button--off"
-      aria-disabled="true"
-      aria-describedby={laterId}
-    >
-      {label} <Chip tone="neutral">{recipes.actions.later}</Chip>
-    </Button>
-  );
   return (
     <Card label={recipes.actions.label}>
       <ButtonRow>
@@ -395,7 +386,6 @@ export function RecipeActions({
             {recipes.actions.addToPlan}
           </Button>
         ) : null}
-        {later(recipes.actions.logAsEaten)}
       </ButtonRow>
       {planOpen ? (
         <AddToPlanPanel
@@ -413,9 +403,16 @@ export function RecipeActions({
         />
       ) : null}
       {added === null ? null : <AddedNotice added={added} />}
-      <p id={laterId} className="ui-text-muted">
-        {recipes.actions.laterNote}
-      </p>
+      {/* Item 23: log this recipe as eaten today (or today's planned meal it was opened from). */}
+      <LogAsEaten
+        storage={storage}
+        recipeId={view.id}
+        myServes={myServes}
+        plan={plan}
+        recipeFoods={state.foods}
+        recipes={state.data}
+        writable={writable}
+      />
       <ButtonRow>
         <Button
           variant="secondary"

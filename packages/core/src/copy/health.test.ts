@@ -346,6 +346,21 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
   // ceiling", no alcohol.
   recipes: RECIPES_SECTION_RULES,
   planner: PLANNER_SECTION_RULES,
+  // Item 23 (design 3.1): no "left" wording about intake (C11), no moral words about food, no
+  // claim that a figure is exact, no safety or price wording (HS-16), the badge word only from
+  // foods.badges, an unknown never written as 0, no claim that a downloaded file was saved.
+  foodLog: [
+    /\b(?:left|remaining|to\s+go)\b/i,
+    /\b(?:bad|naughty|cheat\w*|guilt\w*|sin(?:s|ful)?|junk|clean\s+eating)\b/i,
+    /\b(?:exact(?:ly)?|accurate|accuracy|verified|precise(?:ly)?)\b/i,
+    /\bsafe(?:ly|r)?\b/i,
+    /\bguarantee\w*/i,
+    /\bprices?\b/i,
+    /\bestimat\w*/i,
+    /(?<![\d.])0\s*(?:g|kJ|mg|mL)\b/,
+    /\b(?:saved|backed\s+up)\b/i,
+    /\b(?:streaks?|well\s+done|great\s+job|on\s+track|off\s+track)\b/i,
+  ],
 };
 
 /**
@@ -1091,9 +1106,9 @@ describe('plain words on the screens the owner reads (full review F24, F41)', ()
     expect(weight.chart.aboutBand).toContain('Settings');
   });
 
-  it("the Nutrition card's empty line says food logging comes later, with no figure", () => {
-    expect(targets.today.laterStep).toMatch(/later step/);
-    expect(targets.today.laterStep).not.toMatch(/\d/);
+  it("the Nutrition card's empty line says the food log is empty, with no figure", () => {
+    expect(targets.today.nothingLogged).toMatch(/food log/);
+    expect(targets.today.nothingLogged).not.toMatch(/\d/);
   });
 });
 

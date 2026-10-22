@@ -213,15 +213,17 @@ describe('the recipe list (item 20)', () => {
     expect(within(card).getByTestId('recipe-heart').textContent).toMatch(/^More saturated fat/);
   });
 
-  it('K8: Food links to the recipes with their count; the rest of Food is still to come', async () => {
+  it('K8: Food links to the recipes with their count and to the food log; nothing is still to come', async () => {
     await setup();
     await open(routeHref('food'), recipes.foodLink.cardLabel);
-    const link = within(region(recipes.foodLink.cardLabel)).getByRole('link');
-    expect(link.textContent).toContain('30 recipes, with a silverbeet week');
-    expect(link.getAttribute('href')).toBe('#/recipes');
+    const [link, log] = within(region(recipes.foodLink.cardLabel)).getAllByRole('link');
+    expect(link?.textContent).toContain('30 recipes, with a silverbeet week');
+    expect(link?.getAttribute('href')).toBe('#/recipes');
+    // Item 23 (design 1.1): the food log row; the placeholder is gone.
+    expect(log?.getAttribute('href')).toBe('#/food-log');
     expect(
-      screen.getByText('More of this screen arrives at a later step of the build checklist.'),
-    ).toBeDefined();
+      screen.queryByText('More of this screen arrives at a later step of the build checklist.'),
+    ).toBeNull();
   });
 });
 
@@ -245,24 +247,16 @@ describe('a recipe’s page (item 20)', () => {
     expect(screen.getByTestId('recipe-carb-style').textContent).toBe(
       'Written for keto. Its carbs are not worked out yet.',
     );
+    // Schema version 2 (item 23): a copy with every figure not known can be stored, so Substitute
+    // opens, with no "figures unknown" line.
     const substitute = button(recipes.actions.substitute);
-    expect(substitute.getAttribute('aria-disabled')).toBe('true');
-    expect(
-      document.getElementById(substitute.getAttribute('aria-describedby') ?? '')?.textContent,
-    ).toBe(recipes.swap.blockedFigures);
-    // Item 22 built Add to plan; Log as eaten is still Later.
+    expect(substitute.getAttribute('aria-disabled')).toBeNull();
+    expect(screen.queryByText(recipes.swap.blockedFigures)).toBeNull();
+    // Item 22 built Add to plan; item 23 built Log as eaten.
     expect(button(recipes.actions.addToPlan).getAttribute('aria-disabled')).toBeNull();
-    const later = button(new RegExp(`^${recipes.actions.logAsEaten}`));
-    expect(later.getAttribute('aria-disabled')).toBe('true');
-    expect(later.textContent).toContain(recipes.actions.later);
-    fireEvent.click(later);
-    // The "later step" note sits under the Later button, not under Substitute.
-    const laterRow = screen.getByText(recipes.actions.laterNote).previousElementSibling;
-    expect(laterRow?.textContent).toContain(recipes.actions.logAsEaten);
-    expect(laterRow?.textContent).not.toContain(recipes.actions.substitute);
+    expect(button(recipes.actions.logAsEaten).textContent).toBe(recipes.actions.logAsEaten);
     fireEvent.click(substitute);
-    expect(screen.queryByText(recipes.swap.whichLegend)).toBeNull();
-    expect(await test.repos.recipes.list()).toEqual([]);
+    expect(screen.getByText(recipes.swap.whichLegend)).toBeDefined();
     // Per 100 g, nothing is known either.
     fireEvent.click(screen.getByRole('switch', { name: recipes.nutrition.per100Switch }));
     expect(cells()).toEqual(Array<string>(8).fill(foods.figures.notKnown));

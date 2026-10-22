@@ -88,7 +88,7 @@ exports[`TD-01: the Today snapshot (C1) > (a) the full fixture 1`] = `
         "Fibre 0 of 25 g guide",
         "Net carbs 0 / 20 g",
         "Saturated fat 0 / 23 g",
-        "Food logging arrives at a later step in the build checklist. Until then no food is counted here.",
+        "Nothing is in the food log yet today.",
         "Label figures are as you typed them, and Estimates are approximate. No figure here is from a food database. Your plate will differ.",
       ],
     },
@@ -106,7 +106,7 @@ exports[`TD-01: the Today snapshot (C1) > (a) the full fixture 1`] = `
       ],
       "label": "Water",
       "lines": [
-        "500 mL",
+        "500 mL of 2.1 L",
         "Electrolytes today",
       ],
     },
@@ -169,6 +169,11 @@ exports[`TD-01: the Today snapshot (C1) > (a) the full fixture 1`] = `
         {
           "name": "Hide for today",
           "role": "button",
+        },
+        {
+          "href": "#/gp-summary?days=28",
+          "name": "Make a summary for your GP",
+          "role": "link",
         },
         {
           "name": "Hide this reminder",
@@ -316,7 +321,7 @@ exports[`TD-01: the Today snapshot (C1) > (b) fasting gated (q5 yes after the fa
         "Fibre 0 g",
         "Net carbs 0 g",
         "Saturated fat 0 g",
-        "Food logging arrives at a later step in the build checklist. Until then no food is counted here.",
+        "Nothing is in the food log yet today.",
         "Shown without targets. Your GP or a dietitian can tell you what suits you.",
         "Label figures are as you typed them, and Estimates are approximate. No figure here is from a food database. Your plate will differ.",
       ],
@@ -395,6 +400,11 @@ exports[`TD-01: the Today snapshot (C1) > (b) fasting gated (q5 yes after the fa
     },
     {
       "controls": [
+        {
+          "href": "#/gp-summary?days=28",
+          "name": "Make a summary for your GP",
+          "role": "link",
+        },
         {
           "name": "Hide this reminder",
           "role": "button",

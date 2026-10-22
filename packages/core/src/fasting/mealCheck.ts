@@ -65,6 +65,11 @@ export interface LoggedIntake {
   /** Entries on the date that are not a logged planned slot (a label, a recipe, an estimate). */
   readonly otherEntries: number;
   readonly incomplete: boolean;
+  /**
+   * The log was read and holds no entry on the date (item 23). Absent means not stated. After the
+   * window it gives 'nothing-logged', never a claim about the day's food (cross-item ruling 23).
+   */
+  readonly empty?: boolean;
 }
 
 export interface MealCheckInput {
@@ -117,7 +122,9 @@ export type MealCheckResult =
       readonly kind: 'short-after';
       readonly reasons: readonly Exclude<MealCheckReason, 'portion'>[];
       readonly energyChecked: boolean;
-    };
+    }
+  /** After the window, nothing is in the food log for the date: no claim, the eat-more line. */
+  | { readonly kind: 'nothing-logged'; readonly energyChecked: boolean };
 
 const sum = (values: readonly number[]): number => values.reduce((a, b) => a + b, 0);
 
@@ -140,6 +147,7 @@ export function mealCheck(input: MealCheckInput): MealCheckResult {
   if (input.windowClosed) {
     // After the window: what was logged is compared alone (C62).
     if (logged === null) return { kind: 'unavailable' };
+    if (logged.empty === true) return { kind: 'nothing-logged', energyChecked };
     const reasons: Exclude<MealCheckReason, 'portion'>[] = [];
     if (logged.proteinG < proteinTargetG) reasons.push('protein');
     // The log alone, as item 15 compares it; no planned figure feeds this branch.

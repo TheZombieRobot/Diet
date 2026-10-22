@@ -1,7 +1,7 @@
 // @vitest-environment node
 // Opening the database (storage spec section 7; section 16 tests 22 and 36; BK-11): real Dexie
 // 4.4.6 over a fresh fake-indexeddb factory for every test.
-import { DB_NAME, STORE_NAMES, STORES_V1 } from '@diet/core';
+import { DB_NAME, MIGRATIONS, SCHEMA_VERSION, STORE_NAMES, STORES_V1 } from '@diet/core';
 import { chainD } from '@diet/test-fixtures';
 import Dexie from 'dexie';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -21,6 +21,9 @@ import { planImport, writeImport } from './importBackup';
 import { backupSnapshot, freshDeps, openTestDb, testEnv } from './testKit';
 import { decodeImport } from './importBackup';
 import { createExport } from './exportBackup';
+
+/** Dexie stores schema version n as native version n × 10. */
+const NATIVE_VERSION = SCHEMA_VERSION * 10;
 
 const stopListening: (() => void)[] = [];
 afterEach(() => {
@@ -61,11 +64,11 @@ async function rawShape(
 }
 
 describe('open (section 16 test 22; BK-11)', () => {
-  it('creates 28 stores with the section 4.2 keys and indexes, at native version 10, and populates them', async () => {
+  it('creates 28 stores with the section 4.2 keys and indexes, at the current native version, and populates them', async () => {
     const { db, repos } = await openTestDb();
     expect(db.tables).toHaveLength(28);
     expect(schemaOf(db)).toEqual(STORES_V1);
-    expect(db.backendDB().version).toBe(10);
+    expect(db.backendDB().version).toBe(NATIVE_VERSION);
     expect(await repos.profile.get()).toMatchObject({ id: 'singleton', sex: null });
     expect(await repos.targets.get()).toMatchObject({ id: 'singleton', energyFloorKj: 5000 });
     expect(await repos.settings.get()).toMatchObject({ id: 'singleton', lastBackupAt: null });
@@ -103,17 +106,18 @@ describe('open (section 16 test 22; BK-11)', () => {
     expect(await real.databases()).toEqual([]);
     const { repos } = await openTestDb({ deps: { ...deps, indexedDB: stripped } });
     expect((await repos.garden.list()).map((g) => g.name)).toEqual(['Silverbeet']);
-    expect(await installedNativeVersion(stripped)).toBe(10);
+    expect(await installedNativeVersion(stripped)).toBe(NATIVE_VERSION);
   });
 
-  it('a newer database (test chain d, version 2) is reported, DietDb is never made, and nothing changes', async () => {
+  it('a newer database (the released chain, then the step of test chain d) is reported, DietDb is never made, and nothing changes', async () => {
     const deps = freshDeps();
     const newer = new Dexie(DB_NAME, { indexedDB: deps.indexedDB, IDBKeyRange: deps.IDBKeyRange });
-    for (const step of chainD) newer.version(step.version).stores(step.stores);
+    for (const step of MIGRATIONS) newer.version(step.version).stores(step.stores);
+    newer.version(SCHEMA_VERSION + 1).stores(chainD[1]?.stores ?? {});
     await newer.open();
     newer.close();
     const before = await rawShape(deps.indexedDB);
-    expect(before.version).toBe(20);
+    expect(before.version).toBe(NATIVE_VERSION + 10);
     expect(before.stores['weights']).toEqual([]);
 
     const createDb = vi.fn((options: DietDbOptions) => new DietDb(options));
@@ -127,11 +131,11 @@ describe('open (section 16 test 22; BK-11)', () => {
     expect(Object.keys(after.stores)).not.toContain('$meta');
   });
 
-  it('the post-open check: a version-1 DietDb opened straight against a version-2 database closes as newer-version, changing nothing', async () => {
+  it('the post-open check: a DietDb opened straight against a newer database closes as newer-version, changing nothing', async () => {
     const deps = freshDeps();
     const newer = new Dexie(DB_NAME, { indexedDB: deps.indexedDB, IDBKeyRange: deps.IDBKeyRange });
-    newer.version(1).stores(STORES_V1);
-    newer.version(2).stores({ example_extra: 'id' });
+    for (const step of MIGRATIONS) newer.version(step.version).stores(step.stores);
+    newer.version(SCHEMA_VERSION + 1).stores({ example_extra: 'id' });
     await newer.open();
     newer.close();
     const before = await rawShape(deps.indexedDB);
@@ -147,14 +151,14 @@ describe('open (section 16 test 22; BK-11)', () => {
     await expect(db.weights.count()).rejects.toMatchObject({ name: 'DatabaseClosedError' });
   });
 
-  /** A raw native-10 'diet' database with the version-1 stores, changed by `adjust`. */
-  async function rawVersion10(
+  /** A raw 'diet' database at the current native version with its stores, changed by `adjust`. */
+  async function rawCurrentVersion(
     factory: IDBFactory,
     adjust: (db: IDBDatabase, name: string, store: IDBObjectStore) => void,
     extra: (db: IDBDatabase) => void = () => undefined,
   ): Promise<void> {
     await new Promise<void>((resolve, reject) => {
-      const request = factory.open(DB_NAME, 10);
+      const request = factory.open(DB_NAME, NATIVE_VERSION);
       request.onupgradeneeded = () => {
         const idb = request.result;
         for (const [name, schema] of Object.entries(STORES_V1)) {
@@ -181,9 +185,9 @@ describe('open (section 16 test 22; BK-11)', () => {
     });
   }
 
-  it('the post-open check refuses a native-10 database missing an index (Dexie would patch it to 11): not ready, gate closed', async () => {
+  it('the post-open check refuses a current-version database missing an index (Dexie would patch it to the next native version): not ready, gate closed', async () => {
     const deps = freshDeps();
-    await rawVersion10(deps.indexedDB, (_db, name, store) => {
+    await rawCurrentVersion(deps.indexedDB, (_db, name, store) => {
       if (name === 'weights') store.deleteIndex('at');
     });
     const status = createStore<OpenStatus>('opening');
@@ -195,10 +199,10 @@ describe('open (section 16 test 22; BK-11)', () => {
     expect(gate.isOpen()).toBe(false);
   });
 
-  it('the post-open check refuses a native-10 database with an extra store (such as a Dexie $meta store): not ready, gate closed', async () => {
+  it('the post-open check refuses a current-version database with an extra store (such as a Dexie $meta store): not ready, gate closed', async () => {
     for (const extraStore of ['$meta', 'example_extra']) {
       const deps = freshDeps();
-      await rawVersion10(
+      await rawCurrentVersion(
         deps.indexedDB,
         () => undefined,
         (idb) => {
@@ -255,7 +259,7 @@ describe('other tabs (section 7.5; section 16 test 36)', () => {
     const { db, deps, repos, status } = await openTestDb();
     expect(status.get()).toBe('ready');
     await new Promise<void>((resolve, reject) => {
-      const request = deps.indexedDB.open(DB_NAME, 20);
+      const request = deps.indexedDB.open(DB_NAME, NATIVE_VERSION + 10);
       request.onsuccess = () => {
         request.result.close();
         resolve();
@@ -272,7 +276,7 @@ describe('other tabs (section 7.5; section 16 test 36)', () => {
       StorageClosedError,
     );
     // It never reopened: the version the other connection made is still there.
-    expect(await installedNativeVersion(deps.indexedDB)).toBe(20);
+    expect(await installedNativeVersion(deps.indexedDB)).toBe(NATIVE_VERSION + 10);
   });
 
   it('a gate message on the diet-db channel closes this tab for good', async () => {

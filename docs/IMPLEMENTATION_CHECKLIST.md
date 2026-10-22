@@ -84,7 +84,7 @@ Conventions for the implementing model:
     *Acceptance:* NU-05 to NU-08; FL-05 (HS-23); NU-12 to NU-15; the planner parts of NN-02, NN-05, HS-10, HS-25, HS-03, RD-01 to RD-04, FL-04, HS-R18 and HS-R20; FL-10, FL-12 and FL-13 wiring (C23); PWA-04 (plan a day).
 
 23. **Food log.** Quick-add from plan or recipe, add from label (per 100 g or per serve), raw/cooked toggle, confidence badges, water and electrolyte log, manual steps. The Today water card's guide adds core `heatWaterExtraMl(data, sessions, today, equipment)` (item 27: 500 mL for each started hour of today's beach or hot-day sessions) to `waterGuide(...).ml`, with one test (a done beach walk today adds 500 mL; cross-item ruling 12).
-    *Acceptance:* FL-01 to FL-03.
+    *Acceptance:* FL-01 to FL-03, FL-18 to FL-26, NN-04 (log part), HS-40; schema version 2 (D35 widening).
 
 24. **Grocery list builder and exports.** Aggregate, merge, subtract pantry and garden with audit rows, pack rounding, substitutes, aisle grouping, store name header, optional timestamped prices, copy text, CSV, JSON.
     *Acceptance:* GL-01 to GL-09; NN-04, NN-05, NN-06.

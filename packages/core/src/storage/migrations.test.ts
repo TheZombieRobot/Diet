@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { NUTRIENT_KEYS } from '../nutrition/nutrients';
 import { defaultSnapshot } from './defaults';
 import {
   chainInfo,
   checkMigrationResult,
   computeGoldenVectors,
   GOLDEN_VECTORS,
+  type GoldenVectors,
   type Migration,
   MigrationError,
   MIGRATIONS,
@@ -14,8 +16,14 @@ import {
 } from './migrations';
 import type { Desc } from './primitives';
 import { STORES_V1 } from './specs/v1';
-import { specDescription, specFingerprint, TABLES_BY_VERSION, VALIDATOR_CONSTANTS } from './tables';
-import { computeValidatorVectors } from './validate';
+import {
+  specDescription,
+  specFingerprint,
+  TABLES,
+  TABLES_BY_VERSION,
+  VALIDATOR_CONSTANTS,
+} from './tables';
+import { computeValidatorVectors, validateRow } from './validate';
 
 const env = {
   now: '2000-01-01T00:00:00.000Z',
@@ -160,6 +168,72 @@ describe('the guards against an unversioned schema change (section 9.2; D12)', (
       'ABV edited',
       'printed figure null',
     ]);
+  });
+});
+
+describe('schema version 2: the D35 widening (item 23; item 18–20 contract 8)', () => {
+  const allEight = [...NUTRIENT_KEYS];
+  const planRow = {
+    id: '00000000-0000-4000-8000-000000000a01',
+    at: '2000-01-02T03:04:05.006Z',
+    timeZone: 'Pacific/Auckland',
+    sourceKind: 'plan',
+    refId: '2000-01-02#dinner',
+    name: 'Example traybake',
+    grams: null,
+    weightBasis: null,
+    servings: 1,
+    nutrients: Object.fromEntries(allEight.map((k) => [k, 0])),
+    unknownNutrients: allEight,
+    confidence: 'estimate',
+  };
+
+  it('V1: is the identity step after version 1, and TABLES is its specs', () => {
+    expect(MIGRATIONS.map((m) => m.version)).toEqual([1, 2]);
+    const v2 = MIGRATIONS[1] as Migration;
+    expect(v2).toMatchObject({ stores: {}, reads: [], rewrites: [], removesRows: [] });
+    expect(v2.backup).toEqual({ added: [], removed: [], deviceOnly: [] });
+    expect(SCHEMA_VERSION).toBe(2);
+    expect(TABLES).toBe(TABLES_BY_VERSION[2]);
+    const snapshot = defaultSnapshot(env) as unknown as Record<string, unknown[]>;
+    expect(migrateSnapshot(1, snapshot, env)).toEqual({
+      snapshot,
+      changes: [],
+      updateNotice: null,
+    });
+  });
+
+  it('V2: version 1 still has its released fingerprint, and the widening changes the description', async () => {
+    expect(await specFingerprint(1)).toBe(SPEC_FINGERPRINTS[1]);
+    expect(specDescription(2)).not.toBe(specDescription(1).replace('"version":1', '"version":2'));
+  });
+
+  it('V3: every core-function vector of version 2 equals version 1, and its validator list extends version 1', () => {
+    const { validator: v1Validator, ...v1Functions } = GOLDEN_VECTORS[1] as GoldenVectors;
+    const { validator: v2Validator, ...v2Functions } = GOLDEN_VECTORS[2] as GoldenVectors;
+    expect(v2Functions).toEqual(v1Functions);
+    expect(v2Validator.slice(0, v1Validator.length)).toEqual(v1Validator);
+    expect(v2Validator.length).toBeGreaterThan(v1Validator.length);
+  });
+
+  it('V4: a plan row with all eight unknown is stored under version 2 and refused under version 1', () => {
+    expect(validateRow('food_log', planRow, TABLES_BY_VERSION[2] ?? {})).toEqual(planRow);
+    expect(() => validateRow('food_log', planRow, TABLES_BY_VERSION[1] ?? {})).toThrow(
+      /unknownNutrients/,
+    );
+    // A label or estimate entry gains nothing.
+    for (const patch of [
+      { sourceKind: 'label', refId: 'seed:example-food', grams: 100, weightBasis: 'raw' },
+      { sourceKind: 'estimate', refId: null },
+    ]) {
+      expect(() =>
+        validateRow(
+          'food_log',
+          { ...planRow, ...patch, confidence: patch.sourceKind },
+          TABLES_BY_VERSION[2] ?? {},
+        ),
+      ).toThrow(/unknownNutrients/);
+    }
   });
 });
 

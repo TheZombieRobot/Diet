@@ -20,11 +20,11 @@ describe('quickActionStates (U12; TD-02, T17)', () => {
     );
   });
 
-  it("Log weight opens item 14's entry in place, Complete workout links to the session (item 27), Add harvest the garden screen (item 19), Swap recipe today's plan (item 22) and Add drink the Drinks screen (item 28); the rest arrive later", () => {
+  it("Log weight opens item 14's entry in place, Finish meal the food log (item 23), Complete workout links to the session (item 27), Add harvest the garden screen (item 19), Swap recipe today's plan (item 22) and Add drink the Drinks screen (item 28); the rest arrive later", () => {
     const states = quickActionStates(readinessGates(answers('no')));
     expect(states.map((s) => s.state.kind)).toEqual([
       'ready',
-      'later',
+      'ready',
       'ready',
       'ready',
       'ready',
@@ -40,6 +40,10 @@ describe('quickActionStates (U12; TD-02, T17)', () => {
       href: '#/move-session',
     });
     expect(BUILT_QUICK_ACTIONS['add-drink']).toEqual({ label: 'Add drink', href: '#/drinks' });
+    expect(BUILT_QUICK_ACTIONS['finish-meal']).toEqual({
+      label: 'Finish meal',
+      href: '#/food-log',
+    });
     expect(BUILT_QUICK_ACTIONS['swap-recipe']).toEqual({
       label: 'Swap recipe',
       href: '#/plan/today',

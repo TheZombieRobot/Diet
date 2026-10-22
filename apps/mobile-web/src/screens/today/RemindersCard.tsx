@@ -1,12 +1,21 @@
-import { fasting, privacy, readiness, reminders } from '@diet/core/copy/health';
+import type { CholesterolTrigger } from '@diet/core';
+import { fasting, foodLog, privacy, readiness, reminders } from '@diet/core/copy/health';
 import { Button, ButtonRow, Card } from '@diet/ui';
 import { type ReactElement, type ReactNode, useRef } from 'react';
 import type { AppStorage } from '../../db/runtime';
+import { gpSummaryHref } from '../../routes';
 import { BackupReminderItem } from '../backup/ReminderCards';
 import { hideReminder } from './focus';
 import { useTodayWrite } from './useWrite';
 import { WriteError } from './WriteError';
 import type { ElectrolyteLine, ReminderItem } from './view';
+
+/** The GP summary's range for each cholesterol check-in (item 23 design 1.1). */
+const GP_RANGE_FOR: Readonly<Record<CholesterolTrigger, 28 | 56 | 84>> = {
+  'day-1': 28,
+  'day-56': 56,
+  'day-84': 84,
+};
 
 /** The electrolyte reminder's wording: one wording for each line (cross-item ruling 5). */
 const electrolyteLine: Readonly<Record<ElectrolyteLine, string>> = {
@@ -22,6 +31,7 @@ function Reminder({
   title,
   children,
   hide,
+  link,
 }: {
   readonly testId: string;
   readonly title: string;
@@ -31,6 +41,8 @@ function Reminder({
     readonly run: Hide;
     readonly write: () => Promise<unknown>;
   };
+  /** A link before the hide button (item 23: the summary for a GP). */
+  readonly link?: { readonly href: string; readonly label: string };
 }): ReactElement {
   const item = useRef<HTMLDivElement>(null);
   return (
@@ -41,6 +53,11 @@ function Reminder({
       {children}
       {hide === undefined ? null : (
         <ButtonRow>
+          {link === undefined ? null : (
+            <a className="ui-button ui-button--quiet" href={link.href}>
+              {link.label}
+            </a>
+          )}
           <Button
             variant="quiet"
             onClick={() => {
@@ -119,6 +136,11 @@ export function RemindersCard({
                   label: reminders.cholesterol.hide,
                   run: hide,
                   write: () => cardState.dismiss('cholesterol-checkin', reminder.trigger),
+                }}
+                // Item 23 (C100): the summary for a GP, for everyone, its range set by the check-in.
+                link={{
+                  href: gpSummaryHref(GP_RANGE_FOR[reminder.trigger]),
+                  label: foodLog.gp.reminderLink,
                 }}
               >
                 <p>{reminders.cholesterol.body}</p>

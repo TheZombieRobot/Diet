@@ -1,6 +1,6 @@
 // The Water card (item 16 design section 5.2 C4; TD-03, T7, T8, T26): real repositories on
 // fake-indexeddb; the fixture has 250 mL at 8:00 and 10:00 am and an electrolyte tick at 8:05 am.
-import { privacy, today } from '@diet/core/copy/health';
+import { foodLog, privacy, today } from '@diet/core/copy/health';
 import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { StorageClosedError, StorageFullError } from '../../db/errors';
@@ -19,6 +19,26 @@ const card = () => screen.getByRole('region', { name: today.cards.water });
 const total = () => screen.getByTestId('water-total').textContent;
 const status = () => within(card()).getByRole('status').textContent;
 const rows = async () => (test === undefined ? [] : await test.repos.water.list());
+
+describe('the water guide on Today (item 23 K12; T7, T25, T26; ruling 12)', () => {
+  it('follows the figure, "of 2.1 L" for a woman with no target of her own, once the targets are read', async () => {
+    test = await todayFixture();
+    await renderToday();
+    await waitFor(() => {
+      expect(within(card()).getByText('of 2.1 L')).toBeDefined();
+    });
+    expect(within(card()).queryByText(foodLog.water.guidePregnancy)).toBeNull();
+  });
+
+  it('with answer 2 yes, no NRV guide and the midwife-or-GP line instead (T26)', async () => {
+    test = await todayFixture({ answersLater: { q2: 'yes' } });
+    await renderToday();
+    await waitFor(() => {
+      expect(within(card()).getByText(foodLog.water.guidePregnancy)).toBeDefined();
+    });
+    expect(card().textContent).not.toMatch(/of \d/);
+  });
+});
 
 describe('the Water card (C4; TD-03)', () => {
   it('Add 250 mL stores a glass; the line waits for the stored row and says the same total; Undo removes only it', async () => {

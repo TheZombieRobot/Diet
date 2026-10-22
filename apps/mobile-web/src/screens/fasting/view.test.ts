@@ -93,6 +93,7 @@ function inputs(today: string, more: Partial<FastingInputs> = {}): FastingInputs
       hiddenSeedIds: [],
       plannedRecipeIds: [],
     },
+    foodLog: [],
     ...more,
   };
 }
@@ -185,6 +186,26 @@ describe('the meal-check decision table (design 3.7; HS-18, C62)', () => {
       );
       expect(view.closed?.kind).toBe('hidden');
     }
+  });
+
+  it('K15 (item 23; ruling 23): after the window, an empty food log is nothing logged, with the eat-more line and tomorrow\u2019s snack', () => {
+    const empty: LoggedIntake = {
+      ...shortLog,
+      proteinG: 0,
+      foodEnergyKj: 0,
+      loggedSlots: [],
+      empty: true,
+    };
+    const view = open(
+      fastingView(
+        inputs(D),
+        context({ mealSources: sources({ [addDays(D, 1)]: 150 }, { [D]: empty }) }),
+        at(D, '21:00'),
+        NZ,
+      ),
+    );
+    expect(view.closed).toMatchObject({ region: 'closed', date: D, kind: 'after-empty' });
+    expect(view.closed?.tomorrowSnack).toEqual(SNACK_AND_DINNER);
   });
 
   it('row 3: a short plan offers the snack, and with the snack already added still shows the reasons', () => {

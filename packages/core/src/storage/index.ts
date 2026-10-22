@@ -83,5 +83,6 @@ export * from './profileMapping';
 export * from './readiness';
 export * from './records';
 export * from './specs/v1';
+export * from './specs/v2';
 export * from './tables';
 export * from './validate';

@@ -134,22 +134,21 @@ describe('the recipes repository (item 20)', () => {
     expect(second.record.allergens).toEqual(expect.arrayContaining(first.record.allergens));
   });
 
-  it('D2 NU-10 HS-39: with one ingredient not loaded, no copy is stored', async () => {
+  it('D2 NU-10 HS-39: with one ingredient not loaded, the copy is stored with every figure not known (schema version 2)', async () => {
     const frittata = seed('silverbeet-feta-frittata');
     const t = await open({
       figuresFor: idsOf(frittata, 'seed:leek').filter((id) => id !== 'seed:black-pepper'),
     });
     const onion = lineIndex(frittata, 'seed:spring-onion');
-    expect(
-      await refusal(
-        t.repos.recipes.swapLine({
-          recipeId: frittata.id,
-          lineIndex: onion,
-          ingredientId: 'seed:leek',
-        }),
-      ),
-    ).toBe('recipe-figures-unknown');
-    expect(await t.repos.recipes.list()).toEqual([]);
+    const { record } = await t.repos.recipes.swapLine({
+      recipeId: frittata.id,
+      lineIndex: onion,
+      ingredientId: 'seed:leek',
+    });
+    expect(record).toMatchObject({ unknownNutrients: [...NUTRIENT_KEYS], confidence: 'estimate' });
+    // Every allergen of the recipe it was made from is kept (HS-24).
+    expect(record.allergens).toEqual(expect.arrayContaining(['egg', 'milk']));
+    expect(await t.repos.recipes.list()).toEqual([record]);
   });
 
   it('D3 HS-24 C107: a swap the owner is not offered is refused, whoever asks', async () => {
@@ -430,15 +429,14 @@ describe('the recipes repository (item 20)', () => {
     // An update that changes the lines works them out again.
     const doubled = await t.repos.recipes.update(row.id, { lines: [eggs(200)] });
     expect(doubled.nutritionPerServe).toMatchObject({ energyKj: 2000, proteinG: 20 });
-    // A line with no figures: nothing is stored, as the schema cannot hold all eight unknown.
-    const before = await t.repos.recipes.list();
+    // A line with no figures: stored with all eight not known (schema version 2), never the
+    // caller's figures and never zeros shown as known.
     const leek = { ingredientId: 'seed:leek', rawG: 50, cookedG: null, displayAs: null };
-    expect(await refusal(t.repos.recipes.create({ ...claimed, lines: [leek] }))).toBe(
-      'recipe-figures-unknown',
-    );
-    expect(await refusal(t.repos.recipes.update(row.id, { lines: [leek] }))).toBe(
-      'recipe-figures-unknown',
-    );
-    expect(await t.repos.recipes.list()).toEqual(before);
+    const unknown = await t.repos.recipes.update(row.id, { lines: [leek] });
+    expect(unknown).toMatchObject({
+      unknownNutrients: [...NUTRIENT_KEYS],
+      confidence: 'estimate',
+      sourceMix: { label: 0, 'nz-fcdb': 0, usda: 0, estimate: 1 },
+    });
   });
 });

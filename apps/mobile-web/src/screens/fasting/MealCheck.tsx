@@ -61,16 +61,22 @@ export function MealCheck({
     <p className="ui-text-muted">{copy.energyUnavailable}</p>
   );
 
-  if (kind === 'after') {
+  if (kind === 'after' || kind === 'after-empty') {
     const tomorrow = check.tomorrowSnack;
     const uncheckedOnly = reasons.every((r) => r === 'energy-unknown');
-    const line = check.refluxDay
-      ? uncheckedOnly
-        ? copy.afterWindowUncheckedReflux
-        : copy.afterWindowReflux
-      : uncheckedOnly
-        ? copy.afterWindowUnchecked
-        : copy.afterWindow;
+    // Item 23 (cross-item ruling 23): nothing in the food log: no claim about the day's food.
+    const line =
+      kind === 'after-empty'
+        ? check.refluxDay
+          ? copy.afterWindowNothingLoggedReflux
+          : copy.afterWindowNothingLogged
+        : check.refluxDay
+          ? uncheckedOnly
+            ? copy.afterWindowUncheckedReflux
+            : copy.afterWindowReflux
+          : uncheckedOnly
+            ? copy.afterWindowUnchecked
+            : copy.afterWindow;
     return (
       <div data-testid="meal-check-after">
         <Notice tone="info">

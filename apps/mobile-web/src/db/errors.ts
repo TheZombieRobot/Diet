@@ -72,16 +72,32 @@ export type StorageRule =
   | 'photo-size'
   // Item 28: the alcohol notice and the alcohol-logging gate (HS-20, RD-01).
   | 'alcohol-notice-first'
-  | 'alcohol-logging-off';
+  | 'alcohol-logging-off'
+  // Item 23 (the food log): the label food or recipe is gone; core refused the entry or the
+  // label; a time off the entry's date; a planned meal that is not planned, or is already logged;
+  // the same recipe already logged that day without the owner's "log it again".
+  | 'food-source-missing'
+  | 'entry-refused'
+  | 'label-refused'
+  | 'entry-other-day'
+  | 'plan-not-found'
+  | 'plan-slot-logged'
+  | 'already-logged';
 
 export class StorageRuleError extends Error {
   readonly table: string;
   readonly rule: StorageRule;
+  /**
+   * A fixed code saying why, never a value or a key (item 23): core's EntryRefusal or
+   * LabelProblem, or 'unconfirmed' when only unticked label checks remain.
+   */
+  readonly reason: string | null;
 
-  constructor(table: string, rule: StorageRule) {
-    super(`${table} refused the write: ${rule}`);
+  constructor(table: string, rule: StorageRule, reason: string | null = null) {
+    super(`${table} refused the write: ${rule}${reason === null ? '' : ` (${reason})`}`);
     this.table = table;
     this.rule = rule;
+    this.reason = reason;
   }
 }
 StorageRuleError.prototype.name = 'StorageRuleError';

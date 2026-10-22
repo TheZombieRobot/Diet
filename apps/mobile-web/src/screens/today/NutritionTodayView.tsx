@@ -50,9 +50,12 @@ export function NutritionTodayView({ model }: { model: NutritionTodayViewModel }
         <ul className="ui-entry-list">
           {model.entries.map((entry) => (
             <li key={entry.key}>
-              <span className="ui-entry-list__time">{entry.time}</span>
-              <span className="ui-entry-list__name">{entry.name}</span>
-              {entry.tag === null ? null : <Chip tone={entry.tag.tone}>{entry.tag.text}</Chip>}
+              {/* Item 23: the row opens the entry in the food log. */}
+              <a className="ui-entry-list__link" href={entry.href}>
+                <span className="ui-entry-list__time">{entry.time}</span>
+                <span className="ui-entry-list__name">{entry.name}</span>
+                {entry.tag === null ? null : <Chip tone={entry.tag.tone}>{entry.tag.text}</Chip>}
+              </a>
             </li>
           ))}
         </ul>

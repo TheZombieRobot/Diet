@@ -20,6 +20,10 @@ import {
   routeHref,
   ROUTES,
   TAB_ROUTES,
+  foodLogHref,
+  foodLogRouteOf,
+  gpSummaryHref,
+  gpSummaryRouteOf,
 } from './routes';
 
 describe('hash routes', () => {
@@ -49,7 +53,11 @@ describe('hash routes', () => {
       'recipes',
       'recipe',
       'plan',
+      'food-log',
+      'gp-summary',
     ]);
+    expect(ROUTE_TITLES['food-log']).toBe('Food log');
+    expect(ROUTE_TITLES['gp-summary']).toBe('Summary for your GP');
     expect(ROUTE_TITLES.garden).toBe('Garden and pantry');
     expect(ROUTE_TITLES.weight).toBe('Weight');
     expect(ROUTE_TITLES.fasting).toBe('Fasting and reflux');
@@ -91,6 +99,8 @@ describe('hash routes', () => {
       recipes: 'food',
       recipe: 'food',
       plan: 'food',
+      'food-log': 'food',
+      'gp-summary': 'food',
       'move-session': 'move',
       'move-plan': 'move',
     });
@@ -108,6 +118,8 @@ describe('hash routes', () => {
       '#/move-session/a/finish',
       '#/plan/today',
       '#/plan/2000-01-03',
+      '#/food-log/2000-01-02',
+      '#/gp-summary?days=56',
     ]);
     for (const link of DEEP_LINKS) expect(ROUTES.map(routeHref)).not.toContain(link);
   });
@@ -171,6 +183,35 @@ describe('hash routes', () => {
     ['#/about?from=settings', 'about'],
   ] as const)('%j opens %s', (hash, route) => {
     expect(parseRoute(hash)).toBe(route);
+  });
+
+  it('item 23: food-log links pin a date up to today, open an entry, and follow today without a date', () => {
+    const today = '2026-10-18';
+    expect(foodLogHref()).toBe('#/food-log');
+    expect(foodLogHref('2026-10-17', '00000000-0000-4000-8000-000000000001')).toBe(
+      '#/food-log/2026-10-17?entry=00000000-0000-4000-8000-000000000001',
+    );
+    expect(foodLogRouteOf('#/food-log', today)).toEqual({
+      date: today,
+      entryId: null,
+      followToday: true,
+    });
+    expect(
+      foodLogRouteOf('#/food-log/2026-10-17?entry=00000000-0000-4000-8000-000000000001', today),
+    ).toEqual({
+      date: '2026-10-17',
+      entryId: '00000000-0000-4000-8000-000000000001',
+      followToday: false,
+    });
+    // A future or malformed date opens today; an entry that is not an id is ignored.
+    expect(foodLogRouteOf('#/food-log/2026-10-19', today).date).toBe(today);
+    expect(foodLogRouteOf('#/food-log/2026-02-30?entry=x', today)).toMatchObject({
+      date: today,
+      entryId: null,
+    });
+    expect(gpSummaryHref(56)).toBe('#/gp-summary?days=56');
+    expect(gpSummaryRouteOf('#/gp-summary?days=84')).toBe(84);
+    expect(gpSummaryRouteOf('#/gp-summary?days=30')).toBe(28);
   });
 
   it('opens Today by default, and only the five tabs count as tabs', () => {

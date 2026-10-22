@@ -116,7 +116,15 @@ export interface RunningFastView {
 }
 
 export type MealCheckKind =
-  'hidden' | 'after' | 'offer' | 'offer-collapsed' | 'ok' | 'snack-added' | 'one-meal-unavailable';
+  | 'hidden'
+  | 'after'
+  /** Item 23: after the window, nothing is in the food log for the day. */
+  | 'after-empty'
+  | 'offer'
+  | 'offer-collapsed'
+  | 'ok'
+  | 'snack-added'
+  | 'one-meal-unavailable';
 
 /** The kinds whose rendering carries an "Add 5 pm snack" button when the snack fits. */
 export const SNACK_BUTTON_KINDS: readonly MealCheckKind[] = [
@@ -372,7 +380,12 @@ function mealCheckView(
   const snack = { added, fits };
   let kind: MealCheckKind = 'hidden';
   if (region === 'closed') {
-    kind = result.kind === 'short-after' ? 'after' : 'hidden';
+    kind =
+      result.kind === 'short-after'
+        ? 'after'
+        : result.kind === 'nothing-logged'
+          ? 'after-empty'
+          : 'hidden';
   } else if (result.kind === 'short-before') {
     kind = snackDismissed(date, inputs.snackCards[date], nowMs) ? 'offer-collapsed' : 'offer';
   } else if (result.kind === 'ok') {
@@ -598,7 +611,9 @@ export function fastingView(
       : { standing, next: context.stopSignPause ? null : next };
   const noPattern = pattern === null;
   const showsReasons =
-    (upcoming !== null && upcoming.reasons.length > 0) || closed?.kind === 'after';
+    (upcoming !== null && upcoming.reasons.length > 0) ||
+    closed?.kind === 'after' ||
+    closed?.kind === 'after-empty';
   return {
     kind: 'open',
     schedule,

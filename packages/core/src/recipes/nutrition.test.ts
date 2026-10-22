@@ -183,13 +183,13 @@ describe('recipe figures from ingredients (item 20)', () => {
     expect(n.lines[0]?.source).toBe('estimate');
   });
 
-  it('U7 HS-39: no owner copy is stored with figures it does not have while the schema cannot hold them', () => {
-    expect(RECIPE_SNAPSHOT_ALL_UNKNOWN_STORABLE).toBe(false);
+  it('U7 HS-39: an owner copy is stored with every figure it does not have listed unknown (schema version 2)', () => {
+    expect(RECIPE_SNAPSHOT_ALL_UNKNOWN_STORABLE).toBe(true);
     const traybake = recipes()[0];
     if (traybake === undefined) throw new Error('No recipes');
     expect(
       recipeSnapshot(recipeNutrition(traybake, fixtureFoods({ notLoaded: ['seed:garlic'] }))),
-    ).toBeNull();
+    ).toMatchObject({ unknownNutrients: [...NUTRIENT_KEYS], confidence: 'estimate' });
     const stored = recipeSnapshot(recipeNutrition(traybake, fixtureFoods()));
     expect(stored?.unknownNutrients).toEqual([]);
     expect(stored?.sourceMix.estimate).toBe(traybake.lines.length);

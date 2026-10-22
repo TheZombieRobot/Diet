@@ -40,6 +40,8 @@ import { MoveScreen } from './screens/move/MoveScreen';
 import { MoveSessionScreen } from './screens/move/MoveSessionScreen';
 import { PairingScreen } from './screens/pairing/PairingScreen';
 import { PlanDayScreen } from './screens/planner/PlanDayScreen';
+import { FoodLogScreen } from './screens/foodLog/FoodLogScreen';
+import { GpSummaryScreen } from './screens/foodLog/GpSummaryScreen';
 import { RecipeScreen } from './screens/recipes/RecipeScreen';
 import { RecipesScreen } from './screens/recipes/RecipesScreen';
 import { swapStatusStore } from './screens/recipes/status';
@@ -118,6 +120,10 @@ function screenFor(route: RouteId): ReactElement {
       return <RecipeScreen />;
     case 'plan':
       return <PlanDayScreen />;
+    case 'food-log':
+      return <FoodLogScreen />;
+    case 'gp-summary':
+      return <GpSummaryScreen />;
   }
 }
 

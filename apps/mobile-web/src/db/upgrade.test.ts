@@ -1,7 +1,13 @@
 // @vitest-environment node
 // Upgrades through Dexie (storage spec sections 9.3 and 9.5; section 16 test 32; BK-10, BK-11)
 // with the TEST-ONLY version-2 chains from @diet/test-fixtures, never shipped.
-import { BACKUP_TABLES_BY_VERSION, DB_NAME, STORES_V1 } from '@diet/core';
+import {
+  BACKUP_TABLES_BY_VERSION,
+  DB_NAME,
+  MIGRATIONS,
+  NUTRIENT_KEYS,
+  STORES_V1,
+} from '@diet/core';
 import {
   chainA,
   chainB,
@@ -35,9 +41,12 @@ import {
   type TestDb,
 } from './testKit';
 
+/** The released chain's first step: a version-1 app. */
+const V1_CHAIN = MIGRATIONS.slice(0, 1);
+
 /** A version-1 database holding the fixture, closed again, ready for an upgrade. */
 async function v1Database(prepare?: (test: TestDb) => Promise<void>): Promise<TestDb> {
-  const test = await openTestDb();
+  const test = await openTestDb({ chain: V1_CHAIN });
   await replaceAll(test.db, snapshotV1);
   if (prepare !== undefined) await prepare(test);
   test.db.shutDown();
@@ -117,7 +126,7 @@ describe('upgrades through Dexie (section 16 test 32)', () => {
   it('a failing version-2 step reports upgrade-failed, leaves version 1 and its data untouched, and the rescue copy imports into a version-1 app', async () => {
     const v1 = await v1Database();
     const before = await (async () => {
-      const again = await openTestDb({ deps: v1.deps, env: v1.env });
+      const again = await openTestDb({ deps: v1.deps, env: v1.env, chain: V1_CHAIN });
       const snapshot = await backupSnapshot(again.db);
       again.db.shutDown();
       return snapshot;
@@ -136,7 +145,7 @@ describe('upgrades through Dexie (section 16 test 32)', () => {
     expect(rescue?.fileName).toBe('diet-backup-2000-03-01-rescue-locked.json');
     expect(rescue?.file.text).not.toContain(snapshotV1.weights[1]?.note ?? 'Example note');
 
-    const unchanged = await openTestDb({ deps: v1.deps, env: v1.env });
+    const unchanged = await openTestDb({ deps: v1.deps, env: v1.env, chain: V1_CHAIN });
     expect(await backupSnapshot(unchanged.db)).toStrictEqual(before);
 
     const elsewhere = await openTestDb();
@@ -160,14 +169,14 @@ describe('upgrades through Dexie (section 16 test 32)', () => {
     'a version-2 step that %s reports upgrade-failed and leaves version 1 exactly as it was (data-loss review)',
     async (_, chain) => {
       const v1 = await v1Database();
-      const again = await openTestDb({ deps: v1.deps, env: v1.env });
+      const again = await openTestDb({ deps: v1.deps, env: v1.env, chain: V1_CHAIN });
       const before = await backupSnapshot(again.db);
       again.db.shutDown();
       const status = createStore<OpenStatus>('opening');
       const result = await openDietDb(v1.env, v1.deps, { chain, status });
       expect(result).toEqual({ status: 'upgrade-failed', db: null });
       expect(await installedNativeVersion(v1.deps.indexedDB)).toBe(10);
-      const unchanged = await openTestDb({ deps: v1.deps, env: v1.env });
+      const unchanged = await openTestDb({ deps: v1.deps, env: v1.env, chain: V1_CHAIN });
       expect(await backupSnapshot(unchanged.db)).toStrictEqual(before);
       unchanged.db.shutDown();
     },
@@ -227,6 +236,27 @@ describe('upgrades through Dexie (section 16 test 32)', () => {
     expect(rows?.tables['weights']).toEqual([snapshotV1.weights[0]]);
     expect(Object.hasOwn(rows?.tables ?? {}, 'garden_photos')).toBe(false);
     expect(Object.hasOwn(rows?.tables ?? {}, 'transfer_pairings')).toBe(false);
+  });
+
+  it('D10: the released version 2 opens a version-1 database with every row unchanged, then stores a plan row with all eight figures unknown (item 23)', async () => {
+    const v1 = await v1Database();
+    const upgraded = await openTestDb({ deps: v1.deps, env: v1.env });
+    expect(upgraded.db.backendDB().version).toBe(20);
+    expect(await backupSnapshot(upgraded.db)).toEqual(snapshotV1);
+    const row = await upgraded.repos.foodLog.create({
+      at: '2000-01-06T06:00:00.000Z',
+      timeZone: 'Pacific/Auckland',
+      sourceKind: 'plan',
+      refId: '2000-01-06#dinner',
+      name: 'Example traybake',
+      grams: null,
+      weightBasis: null,
+      servings: 1,
+      nutrients: Object.fromEntries(NUTRIENT_KEYS.map((k) => [k, 0])) as never,
+      unknownNutrients: [...NUTRIENT_KEYS],
+      confidence: 'estimate',
+    });
+    expect(await upgraded.db.food_log.get(row.id)).toEqual(row);
   });
 
   it('there is nothing to rescue when no database exists', async () => {

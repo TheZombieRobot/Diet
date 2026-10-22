@@ -112,7 +112,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | NU-07 | Garden-first | Among the suggestions that pass every filter, recipes using two or more in-season ready garden foods rank first; a ready crop never promotes a recipe a filter removed |
 | NU-08 | Cholesterol check-in cards | Lipid test at first run; check-ins when 56 and 84 days have passed since the first low-carb day (or since the profile was made if there was none); boundaries 55/56 and 83/84 days; one case starting in balanced mode, where the lipid test and check-ins are counted again from the first low-carb day (C109); on Today and the Food tab, one dismissal for both (item 22) |
 | NU-09 | Attribution footer | Present on every nutrition screen; names only the databases recorded as approved in DECISIONS.md (none until checklist item 10); no NZ Food Composition Database wording when only USDA is approved (C97); including the recipe page (item 18's footer) |
-| NU-10 | Recipe whose ingredients have no figures yet | Item 18's "not known" rows and no badge; no heart-smart label; no bare keto, moderate or balanced chip; Substitute explains why it is not available; counts as not met in every check (HS-37, HS-39) |
+| NU-10 | Recipe whose ingredients have no figures yet | Item 18's "not known" rows and no badge; no heart-smart label; no bare keto, moderate or balanced chip; Substitute stores the copy with every figure not known (schema version 2, item 23); counts as not met in every check (HS-37, HS-39) |
 | NU-11 | Recipe dataset validation | Every seed recipe passes the dataset validator against item 18's catalogue: ids, allergens, cooked weights, eggs, no added salt, curated swaps that never flag, limits already broken by a partly loaded release, wording, the keto first week, coverage |
 | NU-12 | Window-aware slots | One-meal day: dinner only; 22:2: snack and dinner; fasting off or no fasting plan: breakfast, lunch and dinner with an optional snack; meals planned before a window change are kept, listed apart and not counted (C07, C73) |
 | NU-13 | Allergens not fully known | Never auto-filled or copied; picking one shows a label check naming the listed allergens and the ingredients; Cancel writes nothing; confirm writes one meal (HS-R20, P41) |
@@ -199,6 +199,15 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | FL-15 | Reflux symptom logged on a 23:1 day; also on a 16:8 day | Earlier-dinner and split-meal options offered that day and the next day, not the day after |
 | FL-16 | Reflux symptoms on 3 days within 2 weeks, or rated stronger this week than last | The symptom log suggests seeing a GP; "Not now" hides it for 7 days (C47) |
 | FL-17 | Six cans logged on a day | Food energy, protein and the floor result unchanged; alcohol shown as its own part of the day's energy; an unknown drink marks the total "at least" and never shows as 0 (HS-36, C11) |
+| FL-18 | Add from label: fibre not on label, overseas carbohydrate, per serve | Fibre is stored as not known and never shown as 0; an overseas label's carbohydrate is converted to available (total − fibre) and refused without fibre; per serve needs the serving size; kcal is stored as kJ; every field names its measure, and the change form clears the figures when Per changes (C01, C31, C68; item 23) |
+| FL-19 | Log a planned meal | One tap stores my portion with the plan date and slot; the same meal is not logged twice that day, from the plan or as the same recipe, unless the owner confirms eating it twice (HS-23; item 23) |
+| FL-20 | Log a recipe whose ingredients have no figures | Stored with every figure not known (schema version 2); no badge; no figure shown as 0 (item 23) |
+| FL-21 | Day totals with an entry lacking a figure | "at least" or "not known" with a line per nutrient; drinks shown apart and never in the food figures (C11; item 23) |
+| FL-22 | Water for a past day; a beach walk today | Entries listed, added at a time and removed; the guide is the water guide plus 500 mL per started hour in the heat, with the electrolyte note in keto; no guide under plain figures or the pregnancy note (item 23) |
+| FL-23 | Steps for a past day | Entered, changed and removed by hand (item 23) |
+| FL-24 | Summary for your GP over a fixture week | Averages of saturated fat and net carbs ("at least" with the day count when incomplete), the share of food energy "not known" when any day is incomplete, the badge mix with a no-figures count, the days with one entry; no weight or drinks; a file on the phone only, no network request (C100, HS-14; item 23) |
+| FL-25 | Meal check after the window | Reads the log once per planned meal; a day with nothing logged gets "It's fine to eat a bit more now" with no claim about the day's food (cross-item ruling 23; item 23) |
+| FL-26 | A label food named like an alcoholic drink | Under 18 (answer 1 yes or unanswered, or a birth year that may be under 18): refused with no tick and no mention of the Drinks tab; otherwise a tick; alcohol energy on a label never counts toward a meal check (C11, HS-32; item 23) |
 
 ### 3.12 Non-negotiable cases from the handoff
 | ID | Case | Expected |
@@ -206,7 +215,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | NN-01 | 330 mL at 5% | About 1.30 standard drinks; 94 kcal shown **only** when the verified selected beverage preset carries that label value, never inferred for another drink |
 | NN-02 | 5 pm snack + 7 pm final meal | 2-hour eating window (22:2), not 4 hours (planner: item 22 S1, K3; K11) |
 | NN-03 | Fixture profile 90 kg start, 70 kg long-term goal | Goal labelled long-term; four-week chart shows trend with "not a promise" line; no "kg in N days" text anywhere (the item 14 fixture uses synthetic values instead: 180 cm, 100 kg, a 78 kg long-term goal, per C103) |
-| NN-04 | Raw/cooked weights and package quantities | Not conflated: 500 g raw mince recipe yields a "500 g pack" grocery line, and a cooked-weight log entry stays cooked |
+| NN-04 | Raw/cooked weights and package quantities | Not conflated: 500 g raw mince recipe yields a "500 g pack" grocery line, and a cooked-weight log entry stays cooked (log part met at item 23; grocery part at item 24) |
 | NN-05 | Missing price or stock | Shown as "unknown"; never a fabricated live price; any price has an entered-at timestamp (planner: item 22 S1, K3; K11) |
 | NN-06 | Silverbeet 300 g in garden, recipes need 500 g | List shows 200 g to buy and an audit line "300 g from garden" |
 | NN-07 | Stop a transfer midway, restart, send again | Laptop shows one copy of the list; no duplicated items; logs intact (the duplicate rule, scoped to the pairing, is unit-tested at item 30; end to end at item 33) |

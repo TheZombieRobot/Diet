@@ -1,12 +1,11 @@
 import { fillTemplate, recipeData } from '@diet/core';
-import { gardenScreen, planner, recipes } from '@diet/core/copy/health';
+import { foodLog, gardenScreen, planner, recipes } from '@diet/core/copy/health';
 import { ActionRow, Card, FoodIcon, LeafIcon } from '@diet/ui';
 import type { ReactElement } from 'react';
 import { appStorageStore } from '../db/runtime';
 import { GateNotice } from '../onboarding/GateNotice';
 import { ROUTE_TITLES, routeHref } from '../routes';
 import { useStore } from '../store';
-import { Placeholder } from './Placeholder';
 import { FoodPlanner } from './planner/FoodPlanner';
 import { PlannerStateCard } from './planner/parts';
 
@@ -33,8 +32,8 @@ export function FoodScreen(): ReactElement {
           detail={gardenScreen.foodLink.detail}
         />
       </Card>
-      {result.status === 'ok' ? (
-        <Card label={recipes.foodLink.cardLabel}>
+      <Card label={recipes.foodLink.cardLabel}>
+        {result.status === 'ok' ? (
           <div data-testid="food-recipes-link">
             <ActionRow
               href={routeHref('recipes')}
@@ -45,9 +44,15 @@ export function FoodScreen(): ReactElement {
               })}
             />
           </div>
-        </Card>
-      ) : null}
-      <Placeholder partial coming="Food will hold the food log." />
+        ) : null}
+        {/* Item 23: the food log, with no database read here. */}
+        <ActionRow
+          href={routeHref('food-log')}
+          badge={<FoodIcon size={22} />}
+          title={foodLog.foodTab.linkTitle}
+          detail={foodLog.foodTab.linkDetail}
+        />
+      </Card>
     </>
   );
 }

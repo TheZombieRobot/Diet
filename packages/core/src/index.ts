@@ -31,6 +31,8 @@ export * from './fasting/streak';
 export * from './fasting/windowText';
 export * from './fasting/windows';
 export * from './foods';
+// Item 23: the food log.
+export * from './foodLog';
 export * from './garden/cropForm';
 // Item 19: the garden and pantry inventory.
 export * from './garden/catalogue';
