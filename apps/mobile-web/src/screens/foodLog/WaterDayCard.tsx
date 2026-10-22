@@ -29,10 +29,14 @@ const copy = foodLog.water;
 /** The "of 2.6 L" after the figure, or nothing without a guide. */
 export function WaterOf({ guide }: { readonly guide: WaterGuide | null }): ReactElement | null {
   if (guide === null || guide.guide === null) return null;
+  // A real space before it, so a screen reader or a copy reads "250 mL of 2.1 L" (review).
   return (
-    <span className="ui-stat__of">
-      {fillTemplate(copy.of, { guide: formatWaterText(guide.guide.totalMl) })}
-    </span>
+    <>
+      {' '}
+      <span className="ui-stat__of">
+        {fillTemplate(copy.of, { guide: formatWaterText(guide.guide.totalMl) })}
+      </span>
+    </>
   );
 }
 
@@ -167,7 +171,7 @@ export function WaterDayCard({
             return (
               <li key={row.id}>
                 <span className="ui-entry-list__time">{when}</span>
-                <span className="ui-entry-list__name">{text}</span>
+                <span className="ui-entry-list__name ui-entry-list__name--amount">{text}</span>
                 {row.electrolyte ? <Chip tone="neutral">{copy.entryElectrolytes}</Chip> : null}
                 <Button
                   ref={(el) => {
@@ -210,7 +214,7 @@ export function WaterDayCard({
         <TimeField
           ctx={ctx}
           label={copy.time}
-          eaten={false}
+          hint={isToday ? null : copy.timeHintPast}
           value={time}
           onChange={setTime}
           error={timeError}

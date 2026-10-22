@@ -159,13 +159,14 @@ describe('the food log repository (item 23)', () => {
       date: TODAY,
       dietMode: 'balanced',
       meals: [
-        { slot: 'dinner', recipeId: TRAYBAKE, myServes: 1, householdServes: 4 },
+        { slot: 'dinner', recipeId: TRAYBAKE, myServes: 0.5, householdServes: 4 },
         { slot: 'lunch', recipeId: TRAYBAKE, myServes: 0, householdServes: 2 },
       ],
       eatingWindow: null,
     });
+    // The owner's own serves, not the household's or a whole serve.
     const first = await t.repos.foodLog.logPlan({ date: TODAY, slot: 'dinner' });
-    expect(first).toMatchObject({ sourceKind: 'plan', refId: `${TODAY}#dinner`, servings: 1 });
+    expect(first).toMatchObject({ sourceKind: 'plan', refId: `${TODAY}#dinner`, servings: 0.5 });
     expect(
       await refusal(t.repos.foodLog.logPlan({ date: TODAY, slot: 'dinner', logAgain: true })),
     ).toBe('plan-slot-logged');
@@ -267,6 +268,82 @@ describe('the food log repository (item 23)', () => {
     expect(await t.repos.foodLog.get(plan.id)).toEqual(plan);
   });
 
+  it('D7c: a change keeps an entry on its own day, and an estimate row is never rebuilt', async () => {
+    const t = await open();
+    const { entry } = await t.repos.foodLog.logNewLabelFood({ form: CHICKEN, amount: raw200 });
+    await seedPlanDay(t, {
+      date: TODAY,
+      dietMode: 'balanced',
+      meals: [{ slot: 'dinner', recipeId: TRAYBAKE, myServes: 1, householdServes: 4 }],
+      eatingWindow: null,
+    });
+    const plan = await t.repos.foodLog.logPlan({ date: TODAY, slot: 'dinner' });
+    for (const row of [entry, plan]) {
+      expect(
+        await refusal(t.repos.foodLog.changeEntry(row.id, { at: '2000-02-29T00:00:00.000Z' })),
+      ).toBe('entry-other-day');
+      expect(await t.repos.foodLog.get(row.id)).toEqual(row);
+    }
+    const { at, timeZone, name, servings, nutrients, confidence } = plan;
+    const estimate = await t.repos.foodLog.create({
+      ...{ at, timeZone, name, servings, nutrients, confidence },
+      sourceKind: 'estimate',
+      refId: null,
+      grams: null,
+      weightBasis: null,
+      unknownNutrients: ['fibreG'],
+    });
+    expect(await refusal(t.repos.foodLog.changeEntry(estimate.id, { serves: 2 }))).toBe(
+      'entry-refused',
+    );
+  });
+
+  it('D7d: a label write needs a label food: an own food of another source is refused by each', async () => {
+    const t = await open();
+    const { food, entry } = await t.repos.foodLog.logNewLabelFood({
+      form: CHICKEN,
+      amount: raw200,
+    });
+    await t.db.ingredients.put({ ...food, source: 'estimate' });
+    expect(await refusal(t.repos.foodLog.logLabel({ foodId: food.id, amount: raw200 }))).toBe(
+      'food-source-missing',
+    );
+    expect(await refusal(t.repos.foodLog.changeEntry(entry.id, { amount: raw200 }))).toBe(
+      'food-source-missing',
+    );
+    expect(await refusal(t.repos.foodLog.saveLabelFood({ id: food.id, form: CHICKEN }))).toBe(
+      'food-source-missing',
+    );
+    expect(await t.repos.foodLog.list()).toEqual([entry]);
+  });
+
+  it('a date’s entries are the rows on that date in their own zone, not the rows the UTC cover finds', async () => {
+    const t = await open();
+    const base = {
+      sourceKind: 'estimate' as const,
+      refId: null,
+      name: 'Example soup',
+      grams: 300,
+      weightBasis: 'cooked' as const,
+      servings: null,
+      nutrients: Object.fromEntries(NUTRIENT_KEYS.map((k) => [k, 0])) as never,
+      unknownNutrients: ['fibreG' as const],
+      confidence: 'estimate' as const,
+    };
+    // The same instant: 12:30 pm on 29 February in UTC, 1:30 am on 1 March in Auckland.
+    const utc = await t.repos.foodLog.create({
+      ...base,
+      at: '2000-02-29T12:30:00.000Z',
+      timeZone: 'UTC',
+    });
+    await t.repos.foodLog.create({
+      ...base,
+      at: '2000-02-29T12:30:00.000Z',
+      timeZone: 'Pacific/Auckland',
+    });
+    expect(await t.repos.foodLog.forLocalDate('2000-02-29')).toEqual([utc]);
+  });
+
   it('D11: the meal check reads the food log: nothing logged on an empty day, the logged figures otherwise (ruling 23)', async () => {
     const t = await open();
     const sources = async () => {
@@ -343,6 +420,49 @@ describe('the food log repository (item 23)', () => {
       expect(await t.repos.ingredients.list()).toEqual(
         (await t.repos.ingredients.list()).filter((i) => i.source !== 'label'),
       );
+    },
+  );
+
+  it.each([
+    ['answer 1 is changed to yes', (t: TestDb) => t.repos.readiness.answer('q1', 'yes')],
+    [
+      'the birth year is changed to one that may be under 18',
+      (t: TestDb) => t.repos.profile.update({ birthYear: 1983 }),
+    ],
+  ] as const)(
+    'D14* HS-32 HS-40 (review): once %s, a drink-named label food stored before is not logged again or changed',
+    async (_, closeGate) => {
+      const t = await open();
+      const amount: LabelAmount = {
+        by: 'grams',
+        grams: 330,
+        weighed: 'as-sold',
+        gramsInLabelState: null,
+      };
+      const lager = await t.repos.foodLog.logNewLabelFood({
+        form: {
+          ...CHICKEN,
+          name: 'Example lager',
+          describes: 'as-sold',
+          confirmed: ['sounds-like-alcohol'],
+        },
+        amount,
+      });
+      const chicken = await t.repos.foodLog.logNewLabelFood({ form: CHICKEN, amount: raw200 });
+      await closeGate(t);
+      expect(await refusal(t.repos.foodLog.logLabel({ foodId: lager.food.id, amount }))).toBe(
+        'label-refused:alcohol-name',
+      );
+      expect(
+        await refusal(
+          t.repos.foodLog.changeEntry(lager.entry.id, { amount: { ...amount, grams: 500 } }),
+        ),
+      ).toBe('label-refused:alcohol-name');
+      expect(await t.repos.foodLog.list()).toEqual([lager.entry, chicken.entry]);
+      // Other label foods are logged as before.
+      expect(
+        await refusal(t.repos.foodLog.logLabel({ foodId: chicken.food.id, amount: raw200 })),
+      ).toBe('written');
     },
   );
 

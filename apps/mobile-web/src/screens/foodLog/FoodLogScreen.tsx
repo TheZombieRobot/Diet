@@ -110,9 +110,11 @@ function FoodLog({ storage }: { readonly storage: AppStorage }): ReactElement {
       ? status.entry
       : null;
   const loggedShown = shownEntry !== null;
+  // After Undo the button is gone, so focus stays on the status line that says what was removed.
+  const undone = status?.kind === 'undone';
   useEffect(() => {
-    if (loggedShown) statusRef.current?.focus();
-  }, [loggedShown]);
+    if (loggedShown || undone) statusRef.current?.focus();
+  }, [loggedShown, undone]);
 
   const dayCard = (
     <Card label={dayTitle(date, today)}>

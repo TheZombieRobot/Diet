@@ -126,11 +126,14 @@ export function StepsCard({
         <p className="ui-stat__value ui-stat__value--large" data-testid="steps-today">
           {formatSteps(todayRow.steps)}
         </p>
-        <p className="ui-stat__caption">
-          {fillTemplate(steps.enteredAt, {
-            time: formatLocalTime(todayRow.updatedAt, storage.env.timeZone()),
-          })}
-        </p>
+        {/* Today's save time would read as that day's time under a past day's title (design 1.7). */}
+        {pastDay ? null : (
+          <p className="ui-stat__caption">
+            {fillTemplate(steps.enteredAt, {
+              time: formatLocalTime(todayRow.updatedAt, storage.env.timeZone()),
+            })}
+          </p>
+        )}
       </>
     );
 

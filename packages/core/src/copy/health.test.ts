@@ -678,6 +678,12 @@ describe('fasting and reflux copy (item 15)', () => {
       m.afterWindowReflux,
       m.afterWindowUnchecked,
       m.afterWindowUncheckedReflux,
+      m.afterWindowNotKnown,
+      m.afterWindowNotKnownReflux,
+      m.afterWindowRefluxPaused,
+      m.afterWindowUncheckedRefluxPaused,
+      m.afterWindowNothingLoggedRefluxPaused,
+      m.afterWindowNotKnownRefluxPaused,
       m.unavailableOneMeal,
       m.unavailableOneMealNoSnack,
       fasting.card.windowOpen,
@@ -689,6 +695,14 @@ describe('fasting and reflux copy (item 15)', () => {
     ]) {
       expect(text).toMatch(/\bfine to\b/);
     }
+  });
+
+  it('item 23 review: a paused line names no eating-window time; a not-known line makes no "came in under" claim', () => {
+    const m = fasting.mealCheck;
+    for (const [path, text] of strings(m, 'mealCheck').filter(([p]) => p.endsWith('Paused')))
+      expect(text, path).not.toMatch(/\d\s*(?:am|pm)\b|earlier meal|snack|window/i);
+    for (const text of [m.afterWindowNotKnown, m.afterWindowNotKnownReflux])
+      expect(text).not.toMatch(/came in under|short|less than/i);
   });
 
   it('the meal-check and streak lines never say "broken fast" or anything about losing a streak (FL-12, C63)', () => {

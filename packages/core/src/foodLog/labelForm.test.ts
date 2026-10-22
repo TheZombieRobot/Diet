@@ -3,6 +3,8 @@ import { NUTRIENT_KEYS } from '../nutrition/nutrients';
 import {
   type LabelFormContext,
   type LabelFormInput,
+  labelFoodChange,
+  labelFoodLoggable,
   labelFormFrom,
   labelNameSoundsLikeDrink,
   parseLabelForm,
@@ -157,6 +159,13 @@ describe('parseLabelForm (item 23 design 2.2; C01, C31, C68)', () => {
     expect(checkKinds({}, { otherLabelFoods: [other], editingId: other.id })).toEqual([]);
   });
 
+  it('U11: the energy check allows 20% of the macronutrients’ energy when that is over 150 kJ', () => {
+    // 20 g protein, 20 g fat and 10 g carbohydrate give 1,250 kJ per 100 g: 20% is 250 kJ.
+    const rich = { proteinG: '20', fatG: '20', carbsG: '10' };
+    expect(checkKinds({ ...rich, energy: '1450' })).toEqual([]);
+    expect(checkKinds({ ...rich, energy: '1565' })).toEqual(['energy-mismatch']);
+  });
+
   it('U11 HS-32: a drink-like name needs a tick from an adult, and is refused outright while alcohol logging is off', () => {
     expect(checkKinds({ name: 'Example lager' })).toEqual(['sounds-like-alcohol']);
     expect(parse({ name: 'Example lager', confirmed: ['sounds-like-alcohol'] }).ok).toBe(true);
@@ -174,6 +183,10 @@ describe('parseLabelForm (item 23 design 2.2; C01, C31, C68)', () => {
       checks: [],
     });
     expect(parse({ name: 'Apple cider vinegar' }, off).ok).toBe(true);
+    // A stored food is asked again at every log (HS-40, item 23 review).
+    expect(labelFoodLoggable({ name: 'Example lager' }, false)).toBe(false);
+    expect(labelFoodLoggable({ name: 'Example lager' }, true)).toBe(true);
+    expect(labelFoodLoggable({ name: 'Apple cider vinegar' }, false)).toBe(true);
   });
 
   it('U12: a stored food reopens per 100 g in kJ, at most two decimals, and re-parses to the same food', () => {
@@ -205,6 +218,10 @@ describe('parseLabelForm (item 23 design 2.2; C01, C31, C68)', () => {
         2,
       );
     expect(again.food.unknownNutrients).toEqual(['fibreG']);
+    // A save that keeps the pack size keeps when it was entered.
+    expect(
+      labelFoodChange(again.food, { packSizesG: [500] }, '2001-01-01T00:00:00.000Z'),
+    ).not.toHaveProperty('packSizeEnteredAt');
     // An overseas food keeps its basis; a food floored at 0 available stays at 0.
     for (const [carbs, fibre, available] of [
       ['20', '3', 17],

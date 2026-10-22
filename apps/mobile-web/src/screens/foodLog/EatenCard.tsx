@@ -6,6 +6,7 @@
  */
 import {
   type AmountField,
+  amountChecks,
   type AmountProblem,
   entryBadge,
   entryInstant,
@@ -13,6 +14,7 @@ import {
   type FoodLogRecord,
   footerForEntries,
   type LabelAmount,
+  labelEntry,
   localWallClockOf,
   type LogDay,
   nutritionFooter,
@@ -27,7 +29,7 @@ import { Button, ButtonRow, Card, Chip, ExpandableRow, Notice, NutrientTable } f
 import { type ReactElement, useEffect, useRef, useState } from 'react';
 import { formatLocalTime, formatWhole } from '../../format';
 import { ServesStepper, TimeField } from './AddFood';
-import { AmountFields } from './LabelForm';
+import { AmountChecks, AmountFields } from './LabelForm';
 import type { AmountInput, LogContext } from './logContext';
 import { findRecipe } from './recipeFigures';
 import { badgeTag, entryAmountText, timeProblemText } from './text';
@@ -77,6 +79,24 @@ function ChangePanel({
   const [problems, setProblems] = useState<Readonly<Partial<Record<AmountField, AmountProblem>>>>(
     {},
   );
+  // A changed amount gets the same checks as a new entry (design 1.4); the stored one is not asked
+  // again for a time change.
+  const [amountChanged, setAmountChanged] = useState(false);
+  const [ticked, setTicked] = useState(false);
+  const [showChecks, setShowChecks] = useState(false);
+  const parsedAmount = labelFood === null ? null : parseAmount(amount, labelFood.nutrientBasis);
+  const draft =
+    labelFood === null || parsedAmount === null || !parsedAmount.ok
+      ? null
+      : labelEntry(labelFood, parsedAmount.amount);
+  const checks =
+    !amountChanged || draft === null || !draft.ok || parsedAmount === null || !parsedAmount.ok
+      ? []
+      : amountChecks({
+          amount: parsedAmount.amount,
+          draft: draft.draft,
+          proteinTargetG: ctx.proteinTargetG,
+        });
   const stored = clockText(entry, ctx.home);
   const [time, setTime] = useState(stored);
   const [timeError, setTimeError] = useState<string | null>(null);
@@ -93,11 +113,11 @@ function ChangePanel({
     }
     setTimeError(null);
     let parsed: LabelAmount | undefined;
-    if (labelFood !== null) {
-      const r = parseAmount(amount, labelFood.nutrientBasis);
-      setProblems(r.ok ? {} : r.problems);
-      if (!r.ok) return;
-      parsed = r.amount;
+    if (parsedAmount !== null) {
+      setProblems(parsedAmount.ok ? {} : parsedAmount.problems);
+      setShowChecks(true);
+      if (!parsedAmount.ok || (checks.length > 0 && !ticked)) return;
+      parsed = parsedAmount.amount;
     }
     const servesChanged = servesRebuildable && serves !== entry.servings;
     void write
@@ -115,14 +135,21 @@ function ChangePanel({
   return (
     <div className="ui-stack">
       {labelFood !== null ? (
-        <AmountFields
-          value={amount}
-          onChange={setAmount}
-          basis={labelFood.nutrientBasis}
-          servingSizeG={labelFood.servingSizeG}
-          problems={problems}
-          disabled={false}
-        />
+        <>
+          <AmountFields
+            value={amount}
+            onChange={(next) => {
+              setAmount(next);
+              setAmountChanged(true);
+              setTicked(false);
+            }}
+            basis={labelFood.nutrientBasis}
+            servingSizeG={labelFood.servingSizeG}
+            problems={problems}
+            disabled={false}
+          />
+          <AmountChecks checks={checks} ticked={ticked} onTick={setTicked} showError={showChecks} />
+        </>
       ) : servesRebuildable ? (
         <ServesStepper value={serves} onChange={setServes} />
       ) : (
@@ -179,9 +206,11 @@ export function EatenCard({
   useEffect(() => {
     const target = focusAfter.current;
     if (target === null) return;
+    // The live read may still hold the removed entry: wait until the target is rendered (review).
+    const element = target === 'empty' ? emptyRef.current : (toggles.current.get(target) ?? null);
+    if (element === null) return;
     focusAfter.current = null;
-    if (target === 'empty') emptyRef.current?.focus();
-    else toggles.current.get(target)?.focus();
+    element.focus();
   });
   const { entries } = day;
   const remove = (entry: FoodLogRecord) => {
@@ -374,10 +403,23 @@ export function TotalsCard({
       {alcoholShown && drinks.count > 0 ? (
         <>
           <p className="ui-text-muted" data-part="alcohol">
-            {drinks.unknownCount < drinks.count
-              ? fillTemplate(alcohol.dayEnergy.segment, { kj: formatWhole(drinks.knownKj) })
-              : alcohol.dayEnergy.segmentUnknown}
+            {drinks.unknownCount === drinks.count
+              ? alcohol.dayEnergy.segmentUnknown
+              : fillTemplate(
+                  drinks.unknownCount === 0
+                    ? alcohol.dayEnergy.segment
+                    : copy.totals.alcoholAtLeast,
+                  { kj: formatWhole(drinks.knownKj) },
+                )}
           </p>
+          {drinks.unknownCount === 0 ? null : (
+            // Item 21's line: the day's total is incomplete (HS-37).
+            <p className="ui-text-muted" data-part="alcohol">
+              {drinks.unknownCount === 1
+                ? alcohol.dayEnergy.unknownOne
+                : fillTemplate(alcohol.dayEnergy.unknownMany, { count: drinks.unknownCount })}
+            </p>
+          )}
           <p className="ui-text-muted" data-part="alcohol">
             {copy.totals.alcoholApart}
           </p>

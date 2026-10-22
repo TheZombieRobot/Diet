@@ -130,6 +130,14 @@ describe('label entries (FL-01, FL-03, NN-04, C67)', () => {
       ok: false,
       refusal: 'weighed-not-offered',
     });
+    // An as-sold label weighed after cooking takes the weight as sold, like a raw one (C67).
+    const pasta = draftOf(labelEntry(YOGHURT, grams(300, 'cooked', 100)));
+    expect(pasta).toMatchObject({ grams: 300, weightBasis: 'cooked' });
+    expect(pasta.nutrients.proteinG).toBeCloseTo(9.6, 9);
+    expect(labelEntry(YOGHURT, grams(300, 'cooked'))).toEqual({
+      ok: false,
+      refusal: 'label-state-weight-needed',
+    });
     // The amount step asks, with nothing preselected, unless the label is for the cooked food.
     expect(
       parseAmount({ by: 'grams', grams: '150', weighed: null, before: '', serves: '' }, 'raw'),
@@ -163,6 +171,11 @@ describe('label entries (FL-01, FL-03, NN-04, C67)', () => {
     });
     expect(labelEntry(YOGHURT, { by: 'serves', serves: 10.5 }).ok).toBe(false);
     expect(labelEntry(YOGHURT, { by: 'serves', serves: 30 }).ok).toBe(false);
+    // Serves within their limit whose weight is over 5,000 g.
+    expect(labelEntry({ ...YOGHURT, servingSizeG: 600 }, { by: 'serves', serves: 9 })).toEqual({
+      ok: false,
+      refusal: 'amount-range',
+    });
     expect(labelEntry({ ...YOGHURT, servingSizeG: null }, { by: 'serves', serves: 1 })).toEqual({
       ok: false,
       refusal: 'serving-size-missing',
@@ -182,6 +195,15 @@ describe('label entries (FL-01, FL-03, NN-04, C67)', () => {
     expect(
       amountChecks({ amount: { by: 'serves', serves: 3.5 }, draft: d, proteinTargetG: null }),
     ).toEqual(['large-amount']);
+    // Protein above the day's target asks; at the target it does not.
+    const protein = (proteinG: number) =>
+      amountChecks({
+        amount: grams(500, 'as-sold'),
+        draft: { nutrients: per100({ proteinG }) },
+        proteinTargetG: 140,
+      });
+    expect(protein(141)).toEqual(['large-protein']);
+    expect(protein(140)).toEqual([]);
   });
 });
 

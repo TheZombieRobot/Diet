@@ -1342,6 +1342,16 @@
   }
 }
 
+/*
+ * Item 23 review: narrower still (a choice in a row's panel at 200% text), a listed choice's words go
+ * under the mark, so they have the row's whole width and none is split.
+ */
+@container (max-width: 160px) {
+  .ui-choices:not(.ui-choices--inline) .ui-choice__text {
+    flex-basis: 100%;
+  }
+}
+
 .ui-choice__label,
 .ui-check__label {
   font-size: 16px;
@@ -1674,6 +1684,7 @@
 
 .ui-entry-list li {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
   padding: 12px 0;
@@ -1703,7 +1714,6 @@
 
 /* Item 23: the water guide after the figure, "of 2.6 L". */
 .ui-stat__of {
-  margin-inline-start: 4px;
   font-size: var(--text-label);
   font-weight: 700;
   color: var(--color-secondary);
@@ -1723,6 +1733,12 @@
   font-size: 15px;
   font-weight: 700;
   overflow-wrap: anywhere;
+}
+
+/* Item 23 review: an amount ("250 mL") is never split; at 200% text the button goes under it. */
+.ui-entry-list__name--amount {
+  flex: 1 0 auto;
+  white-space: nowrap;
 }
 
 .ui-text-small {
@@ -1954,6 +1970,21 @@
   flex: 0 0 auto;
   align-self: flex-start;
   margin-top: 2px;
+}
+
+/*
+ * Item 23 review: below 260 px (a 360 px phone at 200% text) a tag goes under the title with the
+ * chevron, so the title keeps the row's width and no word of it is split. Without a tag the title
+ * and the chevron still share one line.
+ */
+@media (max-width: 259.98px) {
+  .ui-expandable__toggle {
+    flex-wrap: wrap;
+  }
+
+  .ui-expandable__toggle > .ui-row__text {
+    flex-basis: calc(100% - 40px);
+  }
 }
 
 .ui-expandable__chevron {

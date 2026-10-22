@@ -3,12 +3,14 @@
 // on 1 March 2000 in Auckland); every figure is synthetic, and the shipped release has none.
 import {
   type FoodLogRecord,
+  type LabelFormInput,
+  logDay,
   NUTRIENT_KEYS,
   type ReadinessQuestionId,
   seedRecipe,
   type YesNo,
 } from '@diet/core';
-import { foodLog, foods } from '@diet/core/copy/health';
+import { alcohol, foodLog, foods, today } from '@diet/core/copy/health';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../../App';
@@ -18,6 +20,8 @@ import type * as files from '../../files';
 import { offerDownload } from '../../files';
 import { foodLogHref, gpSummaryHref } from '../../routes';
 import { screenTitleStore } from '../../screenTitle';
+import { TotalsCard } from './EatenCard';
+import type { LogContext } from './logContext';
 
 // The browser's download is replaced, so the summary's buttons can run in jsdom.
 vi.mock('../../files', async (importOriginal) => ({
@@ -212,6 +216,14 @@ describe('the Food log (item 23)', () => {
     fireEvent.click(await screen.findByRole('button', { name: TRAYBAKE_TITLE }));
     const again = screen.getByRole('region', { name: copy.add.fromRecipe });
     fireEvent.click(within(again).getByRole('button', { name: copy.add.logIt }));
+    // The confirmation takes focus, and Cancel gives it back to Log it (review).
+    const confirm = await within(again).findByRole('button', { name: copy.plan.logAgain });
+    expect(document.activeElement).toBe(confirm);
+    fireEvent.click(within(again).getByRole('button', { name: copy.add.cancel }));
+    expect(document.activeElement).toBe(
+      within(again).getByRole('button', { name: copy.add.logIt }),
+    );
+    fireEvent.click(within(again).getByRole('button', { name: copy.add.logIt }));
     fireEvent.click(await within(again).findByRole('button', { name: copy.plan.logAgain }));
     await waitFor(async () => {
       expect(await test.repos.foodLog.list()).toHaveLength(2);
@@ -242,10 +254,18 @@ describe('the Food log (item 23)', () => {
     expect(await test.repos.foodLog.list()).toMatchObject([
       { sourceKind: 'plan', refId: `${TODAY}#dinner`, servings: 1 },
     ]);
-    fireEvent.click(within(card(copy.add.label)).getByRole('button', { name: copy.add.undo }));
+    // Undo is pressed, so it has focus when it goes away.
+    const undo = within(card(copy.add.label)).getByRole('button', { name: copy.add.undo });
+    undo.focus();
+    fireEvent.click(undo);
     await waitFor(async () => {
       expect(await test.repos.foodLog.list()).toEqual([]);
     });
+    // The Undo button is gone; focus stays on the line that says so (review).
+    await waitFor(() => {
+      expect(status.textContent).toMatch(/^Removed /);
+    });
+    expect(document.activeElement).toBe(status);
   });
 
   it('K9* HS-R18: an entry with every figure listed but lower bounds above 0 shows "at least", its badge, and no "no figures" line', async () => {
@@ -301,6 +321,10 @@ describe('the Food log (item 23)', () => {
         'true',
       );
     });
+    // Water is drunk, and the error does not repeat the hint (review).
+    expect(within(water).getByText(copy.water.timeHintPast)).toBeDefined();
+    expect(within(water).getByText(copy.amount.errors.timeRequired)).toBeDefined();
+    expect(water.textContent).not.toMatch(/ate it/);
     fireEvent.change(within(water).getByLabelText(copy.water.time), { target: { value: '09:30' } });
     fireEvent.click(within(water).getByRole('button', { name: copy.water.add }));
     const remove = await within(water).findByRole('button', { name: 'Remove 400 mL at 9:30 am' });
@@ -318,6 +342,161 @@ describe('the Food log (item 23)', () => {
     await waitFor(async () => {
       expect((await test.repos.water.list()).filter((r) => r.ml > 0)).toEqual([]);
     });
+  });
+});
+
+describe('the Food log after its review (item 23)', () => {
+  /** A synthetic raw chicken label per 100 g, fibre not on the label. */
+  const CHICKEN: LabelFormInput = {
+    name: 'Example chicken breast',
+    describes: 'raw',
+    per: '100g',
+    servingSizeG: '',
+    energy: '460',
+    energyUnit: 'kJ',
+    proteinG: '23',
+    fatG: '2',
+    saturatedFatG: '0.6',
+    carbsG: '0',
+    overseas: false,
+    sugarsG: '0',
+    fibreG: '',
+    fibreNotOnLabel: true,
+    sodiumMg: '60',
+    packSizeG: '',
+    confirmed: [],
+  };
+  const raw200 = { by: 'grams', grams: 200, weighed: 'raw', gramsInLabelState: null } as const;
+  async function openWith(seed: (t: TestDb) => Promise<unknown>, hash = foodLogHref()) {
+    test = await openTestDb();
+    await onboardForTests(test, {});
+    await seed(test);
+    appStorageStore.set(test.storage);
+    window.location.hash = hash;
+    render(<App />);
+    await screen.findByRole('region', { name: copy.add.label }, { timeout: 5000 });
+  }
+
+  it('HS-32 HS-40: once alcohol logging is off, a drink-named label food stored before is not offered', async () => {
+    await openWith(async (t) => {
+      await t.repos.foodLog.logNewLabelFood({
+        form: {
+          ...CHICKEN,
+          name: 'Example lager',
+          describes: 'as-sold',
+          confirmed: ['sounds-like-alcohol'],
+        },
+        amount: { by: 'grams', grams: 330, weighed: 'as-sold', gramsInLabelState: null },
+      });
+      await t.repos.foodLog.logNewLabelFood({ form: CHICKEN, amount: raw200 });
+      await t.repos.readiness.answer('q1', 'yes');
+    });
+    openRow(copy.add.again);
+    const panel = screen.getByRole('region', { name: copy.add.again });
+    expect(within(panel).getByRole('button', { name: 'Example chicken breast' })).toBeDefined();
+    expect(within(panel).queryByRole('button', { name: 'Example lager' })).toBeNull();
+  });
+
+  it('design 1.4: a changed amount gets the amount checks of a new entry; removing the last entry focuses the empty line', async () => {
+    await openWith((t) => t.repos.foodLog.logNewLabelFood({ form: CHICKEN, amount: raw200 }));
+    const eaten = card(copy.entries.label);
+    fireEvent.click(within(eaten).getByRole('button', { name: /^Example chicken breast/ }));
+    fireEvent.click(within(eaten).getByRole('button', { name: copy.entries.change }));
+    type(copy.amount.grams, '4000');
+    const changeButton = () =>
+      within(eaten).getAllByRole('button', { name: copy.entries.change }).at(-1) as HTMLElement;
+    fireEvent.click(changeButton());
+    expect(await within(eaten).findByText(copy.label.errors.confirmNeeded)).toBeDefined();
+    expect(within(eaten).getByText(copy.amount.checkLarge)).toBeDefined();
+    expect((await test.repos.foodLog.list())[0]?.grams).toBe(200);
+    fireEvent.click(within(eaten).getByRole('checkbox', { name: copy.amount.confirmAmount }));
+    fireEvent.click(changeButton());
+    await waitFor(async () => {
+      expect((await test.repos.foodLog.list())[0]?.grams).toBe(4000);
+    });
+    // Remove the only entry: focus goes to the line saying the day is empty (review).
+    fireEvent.click(within(eaten).getByRole('button', { name: /^Example chicken breast/ }));
+    fireEvent.click(within(eaten).getByRole('button', { name: copy.entries.remove }));
+    fireEvent.click(within(eaten).getByRole('button', { name: copy.entries.removeYes }));
+    const empty = await within(eaten).findByText(copy.entries.noneToday);
+    await waitFor(() => {
+      expect(document.activeElement).toBe(empty);
+    });
+  });
+
+  it('C11 HS-37: Day totals says the alcohol energy is at least the known part when a drink’s is not known', () => {
+    const drink = { count: 1, beverage: { volumeMl: 330, abvPercent: 5 } };
+    const day = logDay(
+      [],
+      [
+        { ...drink, kcalPerServe: 100 },
+        { ...drink, kcalPerServe: null },
+      ],
+      TODAY,
+      'Pacific/Auckland',
+    );
+    const entry: FoodLogRecord = {
+      id: '00000000-0000-4000-8000-000000000001',
+      at: '2000-02-29T22:00:00.000Z',
+      timeZone: 'Pacific/Auckland',
+      sourceKind: 'label',
+      refId: '00000000-0000-4000-8000-000000000002',
+      name: 'Example yoghurt',
+      grams: 150,
+      weightBasis: 'as-sold',
+      servings: null,
+      nutrients: {
+        ...Object.fromEntries(NUTRIENT_KEYS.map((k) => [k, 1])),
+        energyKj: 400,
+      } as FoodLogRecord['nutrients'],
+      unknownNutrients: [],
+      confidence: 'label',
+    };
+    render(
+      <TotalsCard
+        ctx={{ approved: [] } as unknown as LogContext}
+        day={{ ...day, entries: [entry] }}
+        alcoholShown
+      />,
+    );
+    const lines = [...document.querySelectorAll('[data-part=alcohol]')].map((p) => p.textContent);
+    expect(lines).toEqual([
+      'Alcohol: at least 418 kJ',
+      alcohol.dayEnergy.unknownOne,
+      copy.totals.alcoholApart,
+    ]);
+  });
+
+  it('a past day: a planned meal’s time field takes focus with one hint; steps show no save time', async () => {
+    const past = '2000-02-29';
+    await openWith(
+      (t) =>
+        seedPlanDay(t, {
+          date: past,
+          dietMode: 'balanced',
+          meals: [{ slot: 'dinner', recipeId: TRAYBAKE, myServes: 1, householdServes: 4 }],
+          eatingWindow: null,
+        }),
+      foodLogHref(past),
+    );
+    openRow(copy.add.fromPlan);
+    const panel = screen.getByRole('region', { name: copy.add.fromPlan });
+    fireEvent.click(within(panel).getByRole('button', { name: copy.add.logIt }));
+    const time = await within(panel).findByLabelText(copy.amount.time);
+    expect(document.activeElement).toBe(time);
+    fireEvent.click(within(panel).getByRole('button', { name: copy.add.logIt }));
+    await within(panel).findByText(copy.amount.errors.timeRequired);
+    expect(within(panel).getAllByText(/ate it/)).toEqual([
+      within(panel).getByText(copy.plan.pastDayTime),
+    ]);
+    const steps = screen.getByRole('region', { name: today.cards.steps });
+    fireEvent.click(within(steps).getByRole('button', { name: copy.steps.enter }));
+    fireEvent.change(within(steps).getByLabelText(copy.steps.field), {
+      target: { value: '6400' },
+    });
+    fireEvent.click(within(steps).getByRole('button', { name: today.steps.save }));
+    await within(steps).findByText('6,400');
+    expect(steps.textContent).not.toMatch(/saved at/);
   });
 });
 

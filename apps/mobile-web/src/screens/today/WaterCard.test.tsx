@@ -178,9 +178,11 @@ describe('the Water card (C4; TD-03)', () => {
     expect(status()).toBe('');
   });
 
-  it('shows no water target (T7)', async () => {
+  it('shows the guide after a space, never a target or a goal (T7 as item 23 wires the guide; review)', async () => {
     test = await todayFixture();
     await renderToday();
-    expect(card().textContent).not.toMatch(/\bof\b|target|goal|2\.5/i);
+    await within(card()).findByText('of 2.1 L');
+    expect(card().textContent).toContain('500 mL of 2.1 L');
+    expect(card().textContent).not.toMatch(/target|goal|2\.5/i);
   });
 });

@@ -161,6 +161,18 @@ export function labelNameSoundsLikeDrink(name: string): boolean {
   return LABEL_DRINK_WORDS.test(name.replace(LABEL_DRINK_EXEMPT, ' '));
 }
 
+/**
+ * Whether a stored label food may be logged now (HS-32, HS-40): a drink-like name only while alcohol
+ * logging is available. The gate can close after the food was stored (answer 1 changed to yes, or a
+ * birth year that may be under 18), so every label log asks again.
+ */
+export function labelFoodLoggable(
+  food: { readonly name: string },
+  alcoholLoggingAvailable: boolean,
+): boolean {
+  return alcoholLoggingAvailable || !labelNameSoundsLikeDrink(food.name);
+}
+
 const FIGURE_FIELDS = [
   'energy',
   'proteinG',

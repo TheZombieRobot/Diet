@@ -88,12 +88,13 @@ export interface MealCheckInput {
 
 /**
  * Why a day is short. 'energy-unknown': there is no energy target, so energy is not shown to be
- * met (the check never passes on it). 'energy-not-known': a planned meal's energy is not known and
- * the known part is under the target, so the day is not shown to reach it, and no sentence may say
- * it comes in under (HS-37; item 22 review).
+ * met (the check never passes on it). 'energy-not-known': a planned meal's energy, or after the
+ * window a logged entry's protein or energy, is not known and the known part is under the target,
+ * so the day is not shown to reach it, and no sentence may say it comes in under (HS-37; item 22
+ * review). 'protein-not-known' is the same for protein after the window (item 23 review).
  */
 export type MealCheckReason =
-  'protein' | 'energy' | 'energy-not-known' | 'energy-unknown' | 'portion';
+  'protein' | 'protein-not-known' | 'energy' | 'energy-not-known' | 'energy-unknown' | 'portion';
 
 /** The protein of a single-sitting day: all of its planned meals together. */
 export interface SittingHeadline {
@@ -133,7 +134,7 @@ function energyReason(
   figure: number,
   known: boolean,
   targetKj: number | null,
-): MealCheckReason | null {
+): Extract<MealCheckReason, 'energy' | 'energy-not-known' | 'energy-unknown'> | null {
   if (targetKj === null) return 'energy-unknown';
   if (figure >= targetKj) return null;
   return known ? 'energy' : 'energy-not-known';
@@ -149,10 +150,12 @@ export function mealCheck(input: MealCheckInput): MealCheckResult {
     if (logged === null) return { kind: 'unavailable' };
     if (logged.empty === true) return { kind: 'nothing-logged', energyChecked };
     const reasons: Exclude<MealCheckReason, 'portion'>[] = [];
-    if (logged.proteinG < proteinTargetG) reasons.push('protein');
-    // The log alone, as item 15 compares it; no planned figure feeds this branch.
-    const energy = energyReason(logged.foodEnergyKj, true, dayEnergyTargetKj);
-    if (energy === 'energy' || energy === 'energy-unknown') reasons.push(energy);
+    // The log alone, as item 15 compares it; no planned figure feeds this branch. An entry whose
+    // protein or energy is not known makes both sums lower bounds, so a shortfall is not known.
+    const known = !logged.incomplete;
+    if (logged.proteinG < proteinTargetG) reasons.push(known ? 'protein' : 'protein-not-known');
+    const energy = energyReason(logged.foodEnergyKj, known, dayEnergyTargetKj);
+    if (energy !== null) reasons.push(energy);
     return reasons.length > 0
       ? { kind: 'short-after', reasons, energyChecked }
       : { kind: 'ok', sitting: null, energyChecked };

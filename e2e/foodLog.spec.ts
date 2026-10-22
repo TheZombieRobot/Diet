@@ -114,7 +114,8 @@ test('E3 FL-02 H23b: a recipe logged with no figures shows no badge, and no page
     .getByRole('region', { name: recipes.actions.label })
     .getByRole('button', { name: copy.add.logIt })
     .click();
-  await expect(page.getByText(`Logged ${SWEPT_RECIPE}.`)).toBeVisible();
+  // The panel that held focus is gone: the status line takes it (review).
+  await expect(page.getByText(`Logged ${SWEPT_RECIPE}.`)).toBeFocused();
   const zero = /\b0\s*(?:g|kJ|mg)\b/;
   expect(await renderedText(page)).not.toMatch(zero);
   await goTo(page, 'Food log');
@@ -166,4 +167,57 @@ test('E4 C100 HS-14: the summary for a GP over two logged days is a text file na
   // 200 g at 1.3 g per 100 g each day.
   expect(text).toContain('Saturated fat, average a day: 2.6 g');
   await expect(summary.getByRole('status')).toContainText(download.suggestedFilename());
+});
+
+/**
+ * Words in the log's rows, water entries and choices that a line break falls inside (the garden
+ * spec's E4 method): each word of each visible part is measured, and one drawn on two lines is
+ * listed.
+ */
+function brokenWords(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const broken: string[] = [];
+    const parts =
+      'main .ui-expandable__title, main .ui-expandable__detail, main .ui-entry-list li, main .ui-choice__label';
+    for (const element of document.querySelectorAll<HTMLElement>(parts)) {
+      if (element.getClientRects().length === 0) continue;
+      const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+      for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
+        for (const word of (node.textContent ?? '').matchAll(/\S+/g)) {
+          const range = document.createRange();
+          range.setStart(node, word.index);
+          range.setEnd(node, word.index + word[0].length);
+          const lines = new Set([...range.getClientRects()].map((r) => Math.round(r.top)));
+          if (lines.size > 1) broken.push(word[0]);
+        }
+      }
+    }
+    return broken;
+  });
+}
+
+// Item 23 review: on a phone zoomed to 200% (180 px wide), an entry's name beside its tag, a water
+// amount beside Remove, and the label form's choices wrap between words, never inside one.
+test('E5: at 200% text no word of an entry, a water row or a label choice is broken', async ({
+  page,
+}) => {
+  await seedOnboarded(page);
+  await goTo(page, 'Food log');
+  await openAdd(page, copy.add.fromLabel);
+  await typeLabel(page, 'chicken');
+  const p = panel(page, copy.add.fromLabel);
+  await p.getByLabel(copy.label.name, { exact: true }).fill('Example chicken thigh fillets');
+  await p.getByLabel(copy.amount.grams).fill('200');
+  await weighed(p, copy.amount.weighedOptions.raw).check();
+  await logIt(page, copy.add.fromLabel);
+  const water = page.getByRole('region', { name: copy.water.label });
+  await water.getByRole('button', { name: copy.water.add }).click();
+  await expect(water.getByRole('button', { name: /^Remove 250 mL/ })).toBeVisible();
+  await openAdd(page, copy.add.fromLabel);
+  await page.setViewportSize({ width: 180, height: 740 });
+  expect(await brokenWords(page)).toEqual([]);
+  const sideways = await page.evaluate(
+    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+  );
+  expect(sideways).toBe(false);
 });

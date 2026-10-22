@@ -20,6 +20,7 @@ import {
   type Instant,
   type LabelAmount,
   labelEntry,
+  labelFoodLoggable,
   type LabelField,
   type LabelFormCheck,
   labelFormFrom,
@@ -50,7 +51,7 @@ import {
   Stepper,
   TextField,
 } from '@diet/ui';
-import { type ReactElement, useRef, useState } from 'react';
+import { type ReactElement, type Ref, useEffect, useRef, useState } from 'react';
 import { StorageRuleError } from '../../db/errors';
 import { formatLocalTime } from '../../format';
 import { AmountChecks, AmountFields, LabelChecks, LabelFields } from './LabelForm';
@@ -73,26 +74,28 @@ export function TimeField({
   onChange,
   error,
   label = copy.amount.time,
-  eaten = true,
+  hint,
+  fieldRef,
 }: {
   readonly ctx: Pick<LogContext, 'date' | 'today'>;
   readonly value: string;
   readonly onChange: (v: string) => void;
   readonly error: string | null;
   readonly label?: string;
-  /** False for water: the hints speak of the time something was eaten. */
-  readonly eaten?: boolean;
+  /** Left out: the hints for food eaten; null: none (water today). */
+  readonly hint?: string | null;
+  readonly fieldRef?: Ref<HTMLInputElement>;
 }): ReactElement {
   return (
     <TextField
+      ref={fieldRef}
       type="time"
       label={label}
       hint={
-        !eaten
+        hint === null
           ? undefined
-          : ctx.date === ctx.today
-            ? copy.amount.timeHintToday
-            : copy.amount.timeHintPast
+          : (hint ??
+            (ctx.date === ctx.today ? copy.amount.timeHintToday : copy.amount.timeHintPast))
       }
       autoComplete="off"
       value={value}
@@ -199,6 +202,21 @@ export function LogRecipePanel({
   const write = useLogWrite(plannedSlot === null ? 'recipe' : 'plan');
   const owner = ctx.rows.recipeRows.recipes;
   const recipe = picked === null ? null : findRecipe(picked, ctx.recipes, owner);
+  const already =
+    plannedSlot === null && recipe !== null
+      ? sameRecipeLogged(ctx.rows.entries, ctx.rows.planDay, ctx.date, recipe.id, ctx.home)
+      : null;
+  const refusedAsLogged =
+    write.failure instanceof StorageRuleError && write.failure.rule === 'already-logged';
+  const asking = (confirmAgain && already !== null) || refusedAsLogged;
+  // The confirmation takes focus when it replaces Log it, and gives it back when cancelled (review).
+  const againRef = useRef<HTMLButtonElement>(null);
+  const logItRef = useRef<HTMLButtonElement>(null);
+  const wasAsking = useRef(false);
+  useEffect(() => {
+    if (asking !== wasAsking.current) (asking ? againRef : logItRef).current?.focus();
+    wasAsking.current = asking;
+  }, [asking]);
 
   if (recipe === null) {
     const key = matchKey(search);
@@ -257,10 +275,6 @@ export function LogRecipePanel({
 
   const preview = ctx.recipeFoods === null ? null : portionOf(recipe, ctx.recipeFoods);
   const draft = preview === null ? null : recipeEntry(preview.figures, serves);
-  const already =
-    plannedSlot === null
-      ? sameRecipeLogged(ctx.rows.entries, ctx.rows.planDay, ctx.date, recipe.id, ctx.home)
-      : null;
 
   const log = (logAgain: boolean) => {
     const at = timeOf(ctx, time);
@@ -293,8 +307,6 @@ export function LogRecipePanel({
         if (done !== null) onLogged(done.value);
       });
   };
-  const refusedAsLogged =
-    write.failure instanceof StorageRuleError && write.failure.rule === 'already-logged';
   return (
     <>
       <h3>{recipe.title}</h3>
@@ -312,13 +324,14 @@ export function LogRecipePanel({
         />
       )}
       <TimeField ctx={ctx} value={time} onChange={setTime} error={timeError} />
-      {(confirmAgain && already !== null) || refusedAsLogged ? (
+      {asking ? (
         <Notice
           tone="amber"
           role="status"
           actions={
             <ButtonRow>
               <Button
+                ref={againRef}
                 variant="primary"
                 disabled={!ctx.writable}
                 aria-disabled={write.busy}
@@ -350,6 +363,7 @@ export function LogRecipePanel({
       ) : (
         <ButtonRow>
           <Button
+            ref={logItRef}
             variant="primary"
             disabled={!ctx.writable}
             aria-disabled={write.busy}
@@ -388,6 +402,19 @@ function PlanPanel({
   const meals = planMealsToLog(ctx.rows.planDay, ctx.rows.entries, ctx.date, ctx.home);
   const owner = ctx.rows.recipeRows.recipes;
   const pastDay = ctx.date !== ctx.today;
+  // Focus follows what replaces a button: the time field, the confirmation, and back (review).
+  const timeRef = useRef<HTMLInputElement>(null);
+  const againRef = useRef<HTMLButtonElement>(null);
+  const askRef = useRef<HTMLButtonElement>(null);
+  const lastConfirm = useRef<MealSlot | null>(null);
+  useEffect(() => {
+    if (timeFor !== null) timeRef.current?.focus();
+  }, [timeFor]);
+  useEffect(() => {
+    if (confirmFor !== lastConfirm.current)
+      (confirmFor === null ? askRef : againRef).current?.focus();
+    lastConfirm.current = confirmFor;
+  }, [confirmFor]);
 
   const log = (slot: MealSlot, logAgain: boolean) => {
     const at = timeOf(ctx, time);
@@ -471,6 +498,7 @@ function PlanPanel({
                       actions={
                         <ButtonRow>
                           <Button
+                            ref={againRef}
                             variant="primary"
                             disabled={!ctx.writable}
                             aria-disabled={write.busy}
@@ -495,6 +523,7 @@ function PlanPanel({
                     </Notice>
                   ) : (
                     <Button
+                      ref={askRef}
                       variant="quiet"
                       onClick={() => {
                         setConfirmFor(meal.slot);
@@ -506,8 +535,14 @@ function PlanPanel({
                 </>
               ) : pastDay && timeFor === meal.slot ? (
                 <>
-                  <TimeField ctx={ctx} value={time} onChange={setTime} error={timeError} />
-                  <p className="ui-text-muted">{copy.plan.pastDayTime}</p>
+                  <TimeField
+                    ctx={ctx}
+                    value={time}
+                    onChange={setTime}
+                    error={timeError}
+                    hint={copy.plan.pastDayTime}
+                    fieldRef={timeRef}
+                  />
                   <Button
                     variant="primary"
                     disabled={!ctx.writable}
@@ -683,6 +718,16 @@ function ownLabelFoods(ctx: LogContext): IngredientRecord[] {
   return ctx.rows.recipeRows.own.filter((i) => i.source === 'label');
 }
 
+/**
+ * The label foods that may be logged now: a drink-like name is left out while alcohol logging is
+ * off or the gates are not read yet (HS-32, HS-40; the repository refuses it too).
+ */
+function loggableLabelFoods(ctx: LogContext): IngredientRecord[] {
+  return ownLabelFoods(ctx).filter((f) =>
+    labelFoodLoggable(f, ctx.alcoholLoggingAvailable === true),
+  );
+}
+
 function NewLabelPanel({
   ctx,
   onLogged,
@@ -821,7 +866,7 @@ function LabelFoodsPanel({
   const [chosen, setChosen] = useState<Id | null>(startWith);
   const [changing, setChanging] = useState(false);
   const [search, setSearch] = useState('');
-  const own = ownLabelFoods(ctx);
+  const own = loggableLabelFoods(ctx);
   const food = own.find((f) => f.id === chosen) ?? null;
   if (food === null) {
     const recent = recentLabelFoodIds(ctx.rows.recent, 5).flatMap((id) => {
@@ -1058,7 +1103,7 @@ export function AddFoodCardBody({
   const toggles = useRef<Partial<Record<Row, HTMLButtonElement | null>>>({});
   const meals = planMealsToLog(ctx.rows.planDay, ctx.rows.entries, ctx.date, ctx.home);
   const notLogged = meals.filter((m) => m.logged === null).length;
-  const hasLabelFoods = ownLabelFoods(ctx).length > 0;
+  const hasLabelFoods = loggableLabelFoods(ctx).length > 0;
   const close = (row: Row) => () => {
     setOpen(null);
     requestAnimationFrame(() => toggles.current[row]?.focus());

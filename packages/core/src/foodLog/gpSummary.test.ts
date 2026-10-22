@@ -6,6 +6,7 @@ import {
   type GpSummaryInput,
   gpSummaryCsv,
   gpSummaryLines,
+  gpSummaryRange,
   gpSummaryText,
 } from './gpSummary';
 
@@ -169,6 +170,34 @@ The app is a personal logbook and planner. It is not a medical device, does not 
     expectTypeOf<keyof GpSummaryInput>().toEqualTypeOf<
       'rows' | 'from' | 'to' | 'home' | 'approved'
     >();
+  });
+
+  it('HS-37 (review): an average shown as not known has no "at least" note, in the text or the CSV', () => {
+    const unknown = (date: string) =>
+      entry(date, true, {
+        sourceKind: 'plan',
+        unknownNutrients: [...NUTRIENT_KEYS],
+        confidence: 'estimate',
+      });
+    const lines = linesOf([unknown('2026-10-13'), unknown('2026-10-14')]);
+    const text = gpSummaryText(lines);
+    expect(text).toContain(`Saturated fat, average a day: not known
+  2 days have entries with no saturated fat figure, so the average is not known.`);
+    expect(text).toContain(`Net carbs, average a day: not known
+  2 days have entries with no carbohydrate figure, so the average is not known.`);
+    expect(text).not.toContain('at least');
+    expect(gpSummaryCsv(lines)).not.toContain('at least');
+  });
+
+  it('only the dates asked for count: a row after the last day (today) is left out', () => {
+    const todayRow = db('2026-10-19', false, 50, 4000, 50);
+    expect(gpSummary({ rows: [...WEEK.slice(2), todayRow], ...range })).toEqual(
+      gpSummary({ rows: WEEK.slice(2), ...range }),
+    );
+  });
+
+  it('a range of 28 days ends yesterday and covers exactly 28 days', () => {
+    expect(gpSummaryRange('2026-10-22', 28)).toEqual({ from: '2026-09-24', to: '2026-10-21' });
   });
 
   it('CSV quotes a value with a comma and a quote (RFC 4180)', () => {

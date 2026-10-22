@@ -127,14 +127,20 @@ export type GpSummaryLine =
   | { readonly kind: 'note'; readonly text: string }
   | { readonly kind: 'heading'; readonly text: string };
 
-const missingNotes = (daysMissing: number, nutrient: string): string[] =>
-  daysMissing === 0
-    ? []
-    : [
-        daysMissing === 1
-          ? fillTemplate(foods.derived.daysMissingOne, { nutrient })
-          : fillTemplate(foods.derived.daysMissingMany, { count: daysMissing, nutrient }),
-      ];
+/** The days-missing note: "at least" only under an "at least" figure, never under "not known". */
+const missingNotes = (average: GpSummary['satFatG'], nutrient: string): string[] => {
+  const { daysMissing } = average;
+  if (daysMissing === 0) return [];
+  const [one, many] =
+    average.shown.kind === 'not-known'
+      ? [copy.gp.daysMissingNotKnownOne, copy.gp.daysMissingNotKnownMany]
+      : [foods.derived.daysMissingOne, foods.derived.daysMissingMany];
+  return [
+    daysMissing === 1
+      ? fillTemplate(one, { nutrient })
+      : fillTemplate(many, { count: daysMissing, nutrient }),
+  ];
+};
 
 const entriesText = (count: number): string =>
   count === 1 ? copy.gp.entriesOne : fillTemplate(copy.gp.entriesMany, { count });
@@ -179,7 +185,7 @@ export function gpSummaryLines(
     fact(
       gp.satFat,
       figureText('saturatedFatG', s.satFatG.shown),
-      missingNotes(s.satFatG.daysMissing, foods.nutrientNamesLower.saturatedFatG),
+      missingNotes(s.satFatG, foods.nutrientNamesLower.saturatedFatG),
     ),
     s.satFatShare.kind === 'value'
       ? fact(
@@ -190,7 +196,7 @@ export function gpSummaryLines(
     fact(
       gp.netCarbs,
       figureText('carbsG', s.netCarbsG.shown),
-      missingNotes(s.netCarbsG.daysMissing, foods.nutrientNamesLower.carbsG),
+      missingNotes(s.netCarbsG, foods.nutrientNamesLower.carbsG),
     ),
     { kind: 'note', text: gp.averageNote },
     { kind: 'heading', text: gp.mixTitle },

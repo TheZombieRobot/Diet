@@ -2436,6 +2436,22 @@ export const fasting = {
       "Nothing is in the food log for today, so the app cannot check today's food. It's fine to eat a bit more now.",
     afterWindowNothingLoggedReflux:
       "Nothing is in the food log for today, so the app cannot check today's food. It's fine to eat a bit more now; something small may sit better with reflux than a large late meal. Tomorrow, an earlier meal or the 5 pm snack may suit you better.",
+    // Item 23 review (HS-37): some logged food has a protein or energy figure that is not known, so
+    // no line says it came in under a target; the safe-direction line stays (HS-18).
+    afterWindowNotKnown:
+      "Some of today's food has figures that are not known, so the app cannot check it against your targets. It's fine to eat a bit more now.",
+    afterWindowNotKnownReflux:
+      "Some of today's food has figures that are not known, so the app cannot check it against your targets. It's fine to eat a bit more now; something small may sit better with reflux than a large late meal. Tomorrow, an earlier meal or the 5 pm snack may suit you better.",
+    // Item 23 review (HEALTH_SAFETY section 2): during a stop-sign pause the reflux lines name no
+    // eating-window time, so the "earlier meal or the 5 pm snack" sentence is left out.
+    afterWindowRefluxPaused:
+      "Today's food came in under your protein or energy target. It's fine to eat a bit more now; something small may sit better with reflux than a large late meal.",
+    afterWindowUncheckedRefluxPaused:
+      "The day's energy target is not available yet, so the app cannot check today's food against it. It's fine to eat a bit more now; something small may sit better with reflux than a large late meal.",
+    afterWindowNothingLoggedRefluxPaused:
+      "Nothing is in the food log for today, so the app cannot check today's food. It's fine to eat a bit more now; something small may sit better with reflux than a large late meal.",
+    afterWindowNotKnownRefluxPaused:
+      "Some of today's food has figures that are not known, so the app cannot check it against your targets. It's fine to eat a bit more now; something small may sit better with reflux than a large late meal.",
     addSnackTomorrow: 'Add 5 pm snack tomorrow',
     snackAdded: {
       today: '5 pm snack added for tonight. Eat {range}.',
@@ -4091,7 +4107,7 @@ export const foodLog = {
       weighedNeeded: 'Choose how you weighed it.',
       beforeNeeded: 'Enter what it weighed before cooking.',
       tooMuch: 'That is more than one entry can hold. Log it as two entries.',
-      timeRequired: 'Enter the time you ate it.',
+      timeRequired: 'Enter a time, such as 12:30 pm.',
       timeFormat: 'Enter a time such as 6:30 pm.',
       timeFuture: 'That time has not come yet.',
       timeOtherDay: 'That time falls on another day. Choose a time on this day.',
@@ -4134,6 +4150,9 @@ export const foodLog = {
     noneKnown:
       'No entry on this day has nutrition figures yet, so the day’s nutrition is not known.',
     alcoholApart: 'Drinks are shown apart and are not part of these food figures.',
+    // Item 23 review (HS-37): the known part of the drinks' energy when a drink's is not known; item
+    // 21's alcohol.dayEnergy.unknownOne or unknownMany follows it.
+    alcoholAtLeast: 'Alcohol: at least {kj} kJ',
   },
   water: {
     label: 'Water and electrolytes',
@@ -4148,6 +4167,7 @@ export const foodLog = {
     amount: 'Amount, mL',
     amountHint: 'A glass is about 250 mL.',
     time: 'Time',
+    timeHintPast: 'Enter the time you drank it.',
     electrolytesDay: 'Electrolytes on this day',
     remove: 'Remove',
     removeLabel: 'Remove {amount} at {time}',
@@ -4193,6 +4213,11 @@ export const foodLog = {
     shareValue: '{pct}%',
     shareNotKnownWhy:
       'Shown as not known because some days have entries with no energy or saturated fat figure.',
+    // Under an average shown as not known (item 23 review): no "at least" (HS-37).
+    daysMissingNotKnownOne:
+      '1 day has entries with no {nutrient} figure, so the average is not known.',
+    daysMissingNotKnownMany:
+      '{count} days have entries with no {nutrient} figure, so the average is not known.',
     netCarbs: 'Net carbs, average a day',
     averageNote:
       'Only food you logged is counted, so a day with a meal not logged reads lower than you ate.',

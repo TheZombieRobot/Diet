@@ -6,10 +6,12 @@ import { validateRow } from '../storage/validate';
 import { LOG_GRAMS_MAX, WATER_ENTRY_ML } from './constants';
 import {
   energyForChecks,
+  entryAmount,
   loggedIntakeForMealCheck,
   logDay,
   planMealsToLog,
   planRowRebuildable,
+  recentLabelFoodIds,
   sameRecipeLogged,
 } from './day';
 import { parseWaterMl, waterGuideView, waterRowsOn } from './water';
@@ -68,6 +70,7 @@ describe('logDay (HS-R18, C11)', () => {
     expect(day.unknownKeys).toEqual(['proteinG']);
     expect(day.noneKnown).toBe(false);
     expect(logDay([row(allUnknown)], [], DATE, AKL).noneKnown).toBe(true);
+    expect(logDay([], [], DATE, AKL).noneKnown).toBe(false);
     // All eight listed, but lower bounds above 0: "at least" figures, so not "no figures" (H20b).
     const atLeast = row({ ...allUnknown, nutrients: n({ proteinG: 12, energyKj: 900 }) });
     expect(logDay([atLeast], [], DATE, AKL).noneKnown).toBe(false);
@@ -123,6 +126,10 @@ describe('a planned meal counts once (design 2.5)', () => {
     expect(planRowRebuildable(row({}), day, titles)).toEqual({ recipeId: TRAYBAKE });
     const replanned = plan([{ slot: 'dinner', recipeId: SOUP, myServes: 1, householdServes: 1 }]);
     expect(planRowRebuildable(row({}), replanned, titles)).toBeNull();
+    const notEating = plan([
+      { slot: 'dinner', recipeId: TRAYBAKE, myServes: 0, householdServes: 2 },
+    ]);
+    expect(planRowRebuildable(row({}), notEating, titles)).toBeNull();
   });
 
   it('U17*: the meal check reads one row per planned slot, and an empty date as nothing logged', () => {
@@ -197,6 +204,38 @@ describe('a planned meal counts once (design 2.5)', () => {
     expect(energyForChecks(dinner)).toBe(7800);
   });
 
+  it('U25* HS-37 (review): after the window, logged food with figures not known never comes in under a target', () => {
+    const check = (rows: FoodLogRecord[]) =>
+      mealCheck({
+        proteinTargetG: 120,
+        dayEnergyTargetKj: 6000,
+        planned: null,
+        logged: loggedIntakeForMealCheck(rows, DATE, AKL),
+        windowClosed: true,
+        oneMealWindow: true,
+      });
+    const unknownPlan = row(allUnknown);
+    const label = row({
+      sourceKind: 'label',
+      refId: 'seed:x',
+      grams: 200,
+      weightBasis: 'raw',
+      confidence: 'label',
+      nutrients: n({ energyKj: 920, proteinG: 46, fatG: 4 }),
+    });
+    const notKnown = {
+      kind: 'short-after',
+      reasons: ['protein-not-known', 'energy-not-known'],
+      energyChecked: true,
+    };
+    expect(check([unknownPlan])).toEqual(notKnown);
+    expect(check([label, unknownPlan])).toEqual(notKnown);
+    // Known figures still say so; a known part already at the target needs nothing more.
+    expect(check([label])).toMatchObject({ reasons: ['protein', 'energy'] });
+    const big = row({ ...label, nutrients: n({ energyKj: 6800, proteinG: 130, fatG: 124 }) });
+    expect(check([big, unknownPlan])).toMatchObject({ kind: 'ok' });
+  });
+
   it('U24: after the window an empty log is nothing logged; before the window it reads as no log', () => {
     const empty: LoggedIntake = {
       proteinG: 0,
@@ -219,6 +258,32 @@ describe('a planned meal counts once (design 2.5)', () => {
     expect(mealCheck({ ...base, logged: empty, windowClosed: false })).toEqual(
       mealCheck({ ...base, logged: null, windowClosed: false }),
     );
+  });
+});
+
+describe('amounts and recent foods (design 1.4, decision 8)', () => {
+  it('a restored estimate row with grams and serves reads as grams; only a label row reads as label serves', () => {
+    const estimate = {
+      sourceKind: 'estimate',
+      grams: 150,
+      weightBasis: 'cooked',
+      servings: 2,
+    } as const;
+    expect(entryAmount(estimate)).toEqual({ kind: 'grams', grams: 150, state: 'cooked' });
+    expect(entryAmount({ ...estimate, sourceKind: 'label' })).toEqual({
+      kind: 'label-serves',
+      serves: 2,
+      grams: 150,
+    });
+  });
+
+  it('a label food logged twice is listed once among the recent ones', () => {
+    const food = '00000000-0000-4000-8000-0000000000f1';
+    const label = (at: string) =>
+      row({ sourceKind: 'label', refId: food, at, confidence: 'label' });
+    expect(
+      recentLabelFoodIds([label('2026-10-18T01:00:00.000Z'), label('2026-10-18T02:00:00.000Z')], 5),
+    ).toEqual([food]);
   });
 });
 

@@ -40,6 +40,7 @@ import {
   type LogEntryDraft,
   type MealSlot,
   labelFoodChange,
+  labelFoodLoggable,
   labelIngredient,
   parseLabelForm,
   type PlanDayRecord,
@@ -196,8 +197,33 @@ function withRecipeRows<T>(
 }
 
 /**
- * The label rules as the write reads the records: item 13's alcohol gate from the readiness rows
- * and the profile (it depends only on answer 1 and the birth year), and the other label foods;
+ * Item 13's alcohol gate as the write reads the records: from the readiness rows and the profile
+ * (it depends only on answer 1 and the birth year).
+ * @transactionScope
+ */
+function alcoholGateInScope(db: DietDb, today: LocalDate): PromiseLike<boolean> {
+  return Dexie.Promise.all([db.readiness.toArray(), db.profile.get('singleton')]).then(
+    ([readiness, profile]) =>
+      readinessGates(
+        gateInputFromRecords({
+          rows: readiness,
+          birthYear: profile?.birthYear ?? null,
+          heightCm: profile?.heightCm ?? null,
+          currentWeightKg: null,
+          today,
+        }),
+      ).alcoholLoggingAvailable,
+  );
+}
+
+/** A stored label food with a drink-like name, while alcohol logging is off (HS-32, HS-40). */
+function refuseIfDrinkNamed(food: IngredientRecord, alcoholLoggingAvailable: boolean): void {
+  if (!labelFoodLoggable(food, alcoholLoggingAvailable))
+    throw new StorageRuleError('food_log', 'label-refused', 'alcohol-name');
+}
+
+/**
+ * The label rules as the write reads the records: the alcohol gate and the other label foods;
  * then runs `next`.
  * @transactionScope
  */
@@ -208,27 +234,16 @@ function withLabelRules<T>(
   today: LocalDate,
   next: (result: LabelFormResult, ingredients: IngredientRecord[]) => T | PromiseLike<T>,
 ): PromiseLike<T> {
-  return Dexie.Promise.all([
-    db.readiness.toArray(),
-    db.profile.get('singleton'),
-    db.ingredients.toArray(),
-  ]).then(([readiness, profile, ingredients]) => {
-    const gates = readinessGates(
-      gateInputFromRecords({
-        rows: readiness,
-        birthYear: profile?.birthYear ?? null,
-        heightCm: profile?.heightCm ?? null,
-        currentWeightKg: null,
-        today,
-      }),
-    );
-    const result = parseLabelForm(form, {
-      alcoholLoggingAvailable: gates.alcoholLoggingAvailable,
-      otherLabelFoods: ingredients.filter((i) => i.source === 'label'),
-      editingId,
-    });
-    return next(result, ingredients);
-  });
+  return Dexie.Promise.all([alcoholGateInScope(db, today), db.ingredients.toArray()]).then(
+    ([alcoholLoggingAvailable, ingredients]) => {
+      const result = parseLabelForm(form, {
+        alcoholLoggingAvailable,
+        otherLabelFoods: ingredients.filter((i) => i.source === 'label'),
+        editingId,
+      });
+      return next(result, ingredients);
+    },
+  );
 }
 
 export function foodLogRepo(ctx: RepoContext): FoodLogRepo {
@@ -272,13 +287,17 @@ export function foodLogRepo(ctx: RepoContext): FoodLogRepo {
     guardedWrite(ctx, () => {
       const m = moment(at);
       const id = env.randomId();
-      return db.transaction('rw', ['food_log', 'ingredients'], () =>
-        db.ingredients.get(foodId).then((food) => {
-          if (food === undefined || food.source !== 'label')
-            throw new StorageRuleError('food_log', 'food-source-missing');
-          const row = entryRow(draftOrThrow(labelEntry(food, amount)), id, m.at, m.zone);
-          return db.food_log.add(row).then(() => row);
-        }),
+      const today = localDateOf(m.now, m.zone);
+      return db.transaction('rw', ['food_log', 'ingredients', 'readiness', 'profile'], () =>
+        Dexie.Promise.all([db.ingredients.get(foodId), alcoholGateInScope(db, today)]).then(
+          ([food, alcoholLoggingAvailable]) => {
+            if (food === undefined || food.source !== 'label')
+              throw new StorageRuleError('food_log', 'food-source-missing');
+            refuseIfDrinkNamed(food, alcoholLoggingAvailable);
+            const row = entryRow(draftOrThrow(labelEntry(food, amount)), id, m.at, m.zone);
+            return db.food_log.add(row).then(() => row);
+          },
+        ),
       );
     });
 
@@ -377,7 +396,8 @@ export function foodLogRepo(ctx: RepoContext): FoodLogRepo {
       const m = moment(change.at);
       const rebuild = change.amount !== undefined || change.serves !== undefined;
       const shipped = rebuild ? shippedData() : null;
-      return db.transaction('rw', [...RECIPE_STORES], () =>
+      const today = localDateOf(m.now, m.zone);
+      return db.transaction('rw', [...RECIPE_STORES, 'readiness', 'profile'], () =>
         db.food_log.get(id).then((row) => {
           if (row === undefined) throw new StorageRuleError('food_log', 'not-found');
           return db.settings.get('singleton').then((settings) => {
@@ -404,17 +424,23 @@ export function foodLogRepo(ctx: RepoContext): FoodLogRepo {
             if (!kindOk || row.sourceKind === 'estimate')
               throw new StorageRuleError('food_log', 'entry-refused');
             const plan = row.sourceKind === 'plan' ? planRefOf(row.refId) : null;
-            return withRecipeRows(db, plan?.date ?? day, (r) => {
-              const put = (draft: LogEntryDraft) => {
-                const next = prepare('food_log', { id, ...timing, ...draft }, env, row);
-                return db.food_log.put(next).then(() => next);
-              };
-              if (row.sourceKind === 'label') {
-                const food = r.own.find((i) => i.id === row.refId && i.source === 'label');
-                if (food === undefined || change.amount === undefined)
+            const put = (draft: LogEntryDraft) => {
+              const next = prepare('food_log', { id, ...timing, ...draft }, env, row);
+              return db.food_log.put(next).then(() => next);
+            };
+            if (row.sourceKind === 'label') {
+              const amount = change.amount as LabelAmount;
+              return Dexie.Promise.all([
+                db.ingredients.get(row.refId ?? ''),
+                alcoholGateInScope(db, today),
+              ]).then(([food, alcoholLoggingAvailable]) => {
+                if (food === undefined || food.source !== 'label')
                   throw new StorageRuleError('food_log', 'food-source-missing');
-                return put(draftOrThrow(labelEntry(food, change.amount)));
-              }
+                refuseIfDrinkNamed(food, alcoholLoggingAvailable);
+                return put(draftOrThrow(labelEntry(food, amount)));
+              });
+            }
+            return withRecipeRows(db, plan?.date ?? day, (r) => {
               const serves = change.serves as number;
               const titleOf = (recipeId: RefId) =>
                 shipped === null

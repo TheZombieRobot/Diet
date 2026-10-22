@@ -16,7 +16,7 @@ import {
 } from '@diet/core';
 import { foodLog, recipes as recipesCopy } from '@diet/core/copy/health';
 import { ActionRow, Button, ButtonRow, FoodIcon } from '@diet/ui';
-import { type ReactElement, useRef, useState } from 'react';
+import { type ReactElement, useEffect, useRef, useState } from 'react';
 import type { AppStorage } from '../../db/runtime';
 import { useFoodData } from '../../foods/FoodDataContext';
 import { foodLogHref } from '../../routes';
@@ -52,6 +52,7 @@ export function LogAsEaten({
   const [logged, setLogged] = useState<FoodLogRecord | null>(null);
   const [undone, setUndone] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
+  const statusRef = useRef<HTMLParagraphElement>(null);
   const undo = useLogWrite('change');
   const rows = read?.ok === true ? read.rows : null;
   const home = rows?.settings.homeTimeZone ?? 'Pacific/Auckland';
@@ -62,6 +63,10 @@ export function LogAsEaten({
           (m) => m.slot === plan.slot && m.recipeId === recipeId && m.logged === null,
         )?.slot ?? null);
   const shown = logged !== null && rows?.entries.some((e) => e.id === logged.id) === true;
+  // The panel that held focus is gone: the status line says what happened (review).
+  useEffect(() => {
+    if (shown || undone) statusRef.current?.focus();
+  }, [shown, undone]);
   const ctx: LogContext | null =
     rows === null
       ? null
@@ -116,7 +121,7 @@ export function LogAsEaten({
           }}
         />
       ) : null}
-      <p role="status" className="ui-text-muted ui-status-line">
+      <p ref={statusRef} role="status" tabIndex={-1} className="ui-text-muted ui-status-line">
         {shown
           ? fillTemplate(foodLog.add.logged, { name: logged.name })
           : undone && logged !== null
