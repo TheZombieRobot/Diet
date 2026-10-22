@@ -345,6 +345,21 @@ describe('C57 and the whole need (LU4; C57, C110, H24a, J29, J31)', () => {
     }
   });
 
+  it('J31: pantry grams taken at build stay in the whole need when the garden covers the rest', () => {
+    const pantry = stockOf([], [
+      { ...GL02_PANTRY[2], ingredientId: 'seed:silverbeet', amount: 200, updatedAt: STOCK_NOW },
+    ] as PantryRecord[]);
+    const built = stockAtBuild({ quantity: 500, unit: 'g' }, pantry, silverbeet, ctx);
+    expect(built).toMatchObject({ quantity: 300, fromPantryG: 200 });
+    const { line } = tap(lineFrom(built, 'g'), [...stockOf(NN06_GARDEN), ...pantry], 'use');
+    expect(line).toMatchObject({
+      section: 'already-have',
+      quantity: 500,
+      fromGardenG: 300,
+      fromPantryG: 200,
+    });
+  });
+
   it('H24a: "2 bunches" with no grams per bunch is never turned into grams', () => {
     const rows = [{ ...NN06_GARDEN[0], amount: 2, unit: 'bunch' }] as GardenRecord[];
     const stock = stockOf(rows);
@@ -398,6 +413,34 @@ describe("re-checks and the owner's taps (LU5; G18, J30, J33, J34)", () => {
     expect(
       stockAtBuild({ quantity: 500, unit: 'g' }, ahead, silverbeet, ctx).fromGardenG,
     ).toBeNull();
+  });
+
+  it('J10: one tap never counts a row twice: a second tap of the same offer is refused, and a source taken at build is not offered again', () => {
+    const stock = stockOf(NN06_GARDEN);
+    const line = bought(stockAtBuild({ quantity: 500, unit: 'g' }, [], silverbeet, ctx));
+    const { line: once, offer } = tap(line, stock, 'use');
+    expect(once).toMatchObject({ quantity: 200, fromGardenG: 300 });
+    expect(applyOffer(listOf(once), once.id, offer, stock, info, silverbeet, ctx)).toBeNull();
+    const pantry = stockOf([], [
+      { ...GL02_PANTRY[2], ingredientId: 'seed:silverbeet', amount: 100, updatedAt: STOCK_NOW },
+    ] as PantryRecord[]);
+    const fromPantry = bought(stockAtBuild({ quantity: 500, unit: 'g' }, pantry, plain, ctx));
+    expect(fromPantry.fromPantryG).toBe(100);
+    expect(lineOffers(fromPantry, pantry, ctx, true)).toEqual([]);
+  });
+
+  it('design 1.7: a tap on a row the owner changed since it was shown is refused', () => {
+    const old = stockOf([
+      { ...NN06_GARDEN[0], updatedAt: '2000-01-02T00:00:00.000Z' },
+    ] as GardenRecord[]);
+    const line = bought(stockAtBuild({ quantity: 500, unit: 'g' }, [], silverbeet, ctx));
+    const offer = lineOffers(line, old, ctx, true).find((o) => o.kind === 'use');
+    if (offer === undefined) throw new Error('no offer');
+    expect(offer.recheck).toBe(true);
+    const changed = stockOf([
+      { ...NN06_GARDEN[0], amount: 150, updatedAt: STOCK_NOW },
+    ] as GardenRecord[]);
+    expect(applyOffer(listOf(line), line.id, offer, changed, info, silverbeet, ctx)).toBeNull();
   });
 
   it('a changed row refuses the tap; a tapped re-check keeps the wording the owner saw', () => {

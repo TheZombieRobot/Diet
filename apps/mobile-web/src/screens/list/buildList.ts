@@ -150,6 +150,7 @@ export async function runBuild(
         : await storage.repos.groceryBuild.create(
             { storeName, items: result.items },
             result.audits,
+            current === null ? null : { id: current.id, version: current.version },
           );
     return {
       ok: true,

@@ -30,7 +30,7 @@ describe('Store (LC5; GL-08, HS-16)', () => {
     const t = await openTestDb();
     test = t;
     await onboardForTests(t);
-    await t.repos.groceryBuild.create({ storeName: DEFAULT_STORE_NAME, items: [] }, []);
+    await t.repos.groceryBuild.create({ storeName: DEFAULT_STORE_NAME, items: [] }, [], null);
     appStorageStore.set(t.storage);
     render(<StoreScreen />);
     await waitFor(() => {

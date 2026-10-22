@@ -54,6 +54,17 @@ type Panel =
   | { readonly kind: 'build'; readonly mode: BuildMode; readonly listId: Id | null }
   | { readonly kind: 'manual' };
 
+/** The button that opened a panel, where Cancel returns focus (design 1.13). */
+type Opener = 'fromPlan' | 'startNew' | 'add' | 'update';
+const openerOf = (panel: Panel): Opener =>
+  panel.kind === 'manual'
+    ? 'add'
+    : panel.mode === 'update'
+      ? 'update'
+      : panel.listId === null
+        ? 'fromPlan'
+        : 'startNew';
+
 function ListHeader({
   storeName,
   list,
@@ -174,9 +185,11 @@ function ListWithRecords({ storage }: { readonly storage: AppStorage }): ReactEl
   const [starting, setStarting] = useState(false);
   const statusRef = useRef<HTMLParagraphElement>(null);
   const options = useRef(new Map<Id, HTMLButtonElement>());
+  const openers = useRef(new Map<Opener, HTMLButtonElement>());
   const pendingFocus = useRef<
     | { readonly kind: 'status' }
     | { readonly kind: 'row'; readonly id: Id }
+    | { readonly kind: 'opener'; readonly opener: Opener }
     | {
         readonly kind: 'leave';
         readonly id: Id;
@@ -218,6 +231,11 @@ function ListWithRecords({ storage }: { readonly storage: AppStorage }): ReactEl
       element.focus();
       return;
     }
+    if (target.kind === 'opener') {
+      pendingFocus.current = null;
+      (openers.current.get(target.opener) ?? statusRef.current)?.focus();
+      return;
+    }
     if (list === null || list.version === target.version) return;
     pendingFocus.current = null;
     const items = list.items;
@@ -227,7 +245,7 @@ function ListWithRecords({ storage }: { readonly storage: AppStorage }): ReactEl
     const element = next === undefined ? statusRef.current : options.current.get(next.id);
     element?.focus();
     // Also after a change that leaves the records as they were (a failure, a closed panel).
-  }, [read, list, status, openLine, announcement]);
+  }, [read, list, status, openLine, announcement, panel]);
 
   if (read.status === 'pending') return <p className="ui-text-muted">{copy.loading}</p>;
   if (read.status === 'error' || value === null) {
@@ -264,7 +282,11 @@ function ListWithRecords({ storage }: { readonly storage: AppStorage }): ReactEl
   const startEmpty = async () => {
     setStarting(true);
     try {
-      await storage.repos.groceryBuild.create({ storeName: profile.storeName, items: [] }, []);
+      await storage.repos.groceryBuild.create(
+        { storeName: profile.storeName, items: [] },
+        [],
+        list === null ? null : { id: list.id, version: list.version },
+      );
       showStatus({ text: copy.empty.started, tone: 'status' });
     } catch (error) {
       showStatus(listWriteMessage(error, 'build'));
@@ -307,6 +329,15 @@ function ListWithRecords({ storage }: { readonly storage: AppStorage }): ReactEl
     },
   };
 
+  const keepOpener = (key: Opener, element: HTMLButtonElement | null) => {
+    if (element === null) openers.current.delete(key);
+    else openers.current.set(key, element);
+  };
+  const cancelPanel = () => {
+    if (panel !== null) pendingFocus.current = { kind: 'opener', opener: openerOf(panel) };
+    setPanel(null);
+  };
+
   const old =
     list !== null && daysBetween(localDateOf(list.createdAt, zone), today) > OLD_LIST_DAYS;
   const buildPanel =
@@ -318,9 +349,7 @@ function ListWithRecords({ storage }: { readonly storage: AppStorage }): ReactEl
         mode={panel.mode}
         current={list}
         today={today}
-        onCancel={() => {
-          setPanel(null);
-        }}
+        onCancel={cancelPanel}
         onBuilt={(outcome) => {
           setPanel(null);
           listSessionStore.set(
@@ -353,6 +382,9 @@ function ListWithRecords({ storage }: { readonly storage: AppStorage }): ReactEl
             <p>{copy.empty.body}</p>
             <ButtonRow stacked>
               <Button
+                ref={(element) => {
+                  keepOpener('fromPlan', element);
+                }}
                 variant="primary"
                 block
                 onClick={() => {
@@ -388,6 +420,9 @@ function ListWithRecords({ storage }: { readonly storage: AppStorage }): ReactEl
               <ButtonRow>
                 {old ? (
                   <Button
+                    ref={(element) => {
+                      keepOpener('startNew', element);
+                    }}
                     variant="primary"
                     onClick={() => {
                       setPanel({ kind: 'build', mode: 'new', listId: list.id });
@@ -397,6 +432,9 @@ function ListWithRecords({ storage }: { readonly storage: AppStorage }): ReactEl
                   </Button>
                 ) : null}
                 <Button
+                  ref={(element) => {
+                    keepOpener('add', element);
+                  }}
                   variant="tint"
                   onClick={() => {
                     setPanel({ kind: 'manual' });
@@ -405,6 +443,9 @@ function ListWithRecords({ storage }: { readonly storage: AppStorage }): ReactEl
                   {copy.actions.add}
                 </Button>
                 <Button
+                  ref={(element) => {
+                    keepOpener('update', element);
+                  }}
                   variant="secondary"
                   onClick={() => {
                     setPanel({ kind: 'build', mode: 'update', listId: list.id });
@@ -420,9 +461,7 @@ function ListWithRecords({ storage }: { readonly storage: AppStorage }): ReactEl
             <ManualLineForm
               foods={foodsState}
               editing={null}
-              onCancel={() => {
-                setPanel(null);
-              }}
+              onCancel={cancelPanel}
               onSave={async (draft) => {
                 if (list.items.length >= MAX_LIST_ITEMS) {
                   return fillTemplate(copy.manual.errors.full, { max: MAX_LIST_ITEMS });

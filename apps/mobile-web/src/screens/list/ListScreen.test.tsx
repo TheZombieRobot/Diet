@@ -65,7 +65,11 @@ async function open(
   const t = await openTestDb({ env: testEnv(NOW) });
   await onboardForTests(t, options.profile === undefined ? {} : { profile: options.profile });
   if (options.items !== undefined) {
-    await t.repos.groceryBuild.create({ storeName: DEFAULT_STORE_NAME, items: options.items }, []);
+    await t.repos.groceryBuild.create(
+      { storeName: DEFAULT_STORE_NAME, items: options.items },
+      [],
+      null,
+    );
   }
   await options.seed?.(t);
   test = t;
@@ -218,6 +222,15 @@ describe('the build panel (LC2; GL-01, GL-05, J27, J46)', () => {
     expect(await screen.findByText(/This list was made on 10 January/)).toBeDefined();
     const row = screen.getByText(grocery.actions.add).closest('.ui-button-row');
     expect(row?.querySelector('button')?.textContent).toBe(grocery.actions.startNew);
+    // Design 1.13: a form takes focus when it opens, and Cancel returns it to the opening button.
+    tap(grocery.actions.add);
+    expect(document.activeElement).toBe(screen.getByRole('textbox', { name: grocery.manual.name }));
+    tap(grocery.manual.cancel);
+    await waitFor(() => {
+      expect(document.activeElement).toBe(
+        screen.getByRole('button', { name: grocery.actions.add }),
+      );
+    });
     t.env.set('2000-01-09T00:00:00.000Z');
     tap(grocery.actions.update);
     await waitFor(() => {
@@ -228,6 +241,12 @@ describe('the build panel (LC2; GL-01, GL-05, J27, J46)', () => {
     tap(grocery.build.update);
     expect(await screen.findByText(privacy.clockBehind)).toBeDefined();
     expect((await current()).version).toBe(1);
+    tap(grocery.build.cancel);
+    await waitFor(() => {
+      expect(document.activeElement).toBe(
+        screen.getByRole('button', { name: grocery.actions.update }),
+      );
+    });
   });
 });
 
@@ -239,9 +258,11 @@ describe('lines (LC3; GL-05, GL-09, C57, NN-05, NN-06)', () => {
         line(2, { text: 'Lemon', ingredientId: 'seed:lemon', packSuggestion: '3 lemons' }),
       ],
     });
-    const box = screen.getByRole('checkbox', { name: /^Broccoli/ });
+    const box = screen.getByRole<HTMLInputElement>('checkbox', { name: /^Broccoli/ });
     box.focus();
     fireEvent.click(box);
+    // Never disabled while it saves: a browser moves focus off a disabled box (LE1 checks focus).
+    expect(box.disabled).toBe(false);
     await waitFor(() => {
       expect(screen.getByRole<HTMLInputElement>('checkbox', { name: /^Broccoli/ }).checked).toBe(
         true,
@@ -266,7 +287,12 @@ describe('lines (LC3; GL-05, GL-09, C57, NN-05, NN-06)', () => {
       );
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Options for Lemon' }));
+    // Escape closes the panel with focus still on the Options button that opened it.
+    const lemonOptions = screen.getByRole('button', { name: 'Options for Lemon' });
+    fireEvent.click(lemonOptions);
+    fireEvent.keyDown(lemonOptions, { key: 'Escape' });
+    expect(screen.queryByLabelText(grocery.price.field)).toBeNull();
+    fireEvent.click(lemonOptions);
     tap(grocery.panel.remove);
     expect(screen.getByText(grocery.panel.comesBack)).toBeDefined();
     tap(grocery.panel.removeYes);

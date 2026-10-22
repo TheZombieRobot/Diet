@@ -9,7 +9,10 @@
  *
  * A new list, and a build of the current one, are refused while the phone's clock reads earlier
  * than the current list's last change (StorageClockError), so a new list is never hidden behind an
- * older one and no stock re-check can be got round by setting the clock back. This repository
+ * older one and no stock re-check can be got round by setting the clock back; for the same reason
+ * no list write moves a list's updatedAt backwards (crud's stampUpdate). Both are also refused as
+ * 'list-changed' unless the list they were built from is still the newest at the version read, so
+ * a stale panel never takes stock against an older list's time (J30). This repository
  * writes only grocery_lists, audit and profile.storeName: never a garden, pantry, plan or health
  * row (item 19 G18; HS-23). It never writes item 31's send fields, except that create sets them
  * to null.
@@ -32,6 +35,9 @@ import { prepare } from '../prepare';
 import { guardedWrite, type RepoContext } from './context';
 import { stampCreate, stampUpdate } from './crud';
 
+/** The current list a build was made from (null: there was none). */
+export type ListBasis = Pick<GroceryListRecord, 'id' | 'version'> | null;
+
 export interface GroceryListChange {
   readonly items: GroceryItem[];
   readonly storeName?: string;
@@ -43,16 +49,20 @@ export interface GroceryBuildRepo {
   readonly current: () => Promise<GroceryListRecord | null>;
   /** The newest time substitutes were cleared on list `id` (its hints-cleared audit rows), or null. */
   readonly hintsClearedAt: (id: Id) => Promise<Instant | null>;
-  /** A new list and its audit rows in one transaction; the six send fields null. */
+  /**
+   * A new list and its audit rows in one transaction; the six send fields null. Refused as
+   * list-changed unless `basis` is still the current list (id and version), or there is none.
+   */
   readonly create: (
     input: { readonly storeName: string; readonly items: GroceryItem[] },
     audits: readonly AuditDraft[],
+    basis: ListBasis,
   ) => Promise<GroceryListRecord>;
   /**
    * Applies `change` (pure and synchronous; null means it no longer applies) to list `id` as read
    * inside the transaction, then puts it (version + 1) with its audit rows. With `build`: refused
-   * as list-changed unless the version read is `expectedVersion`, and with StorageClockError while
-   * now is earlier than the list's updatedAt.
+   * as list-changed unless the list is still the current one at `expectedVersion`, and with
+   * StorageClockError while now is earlier than the list's updatedAt.
    */
   readonly updateList: (
     id: Id,
@@ -80,6 +90,11 @@ function newestList(db: DietDb): PromiseLike<GroceryListRecord | null> {
             .then((ties) => ties.reduce((a, b) => (b.id > a.id ? b : a), last)),
     );
 }
+
+const isBasis = (current: GroceryListRecord | null, basis: ListBasis): boolean =>
+  current === null
+    ? basis === null
+    : basis !== null && current.id === basis.id && current.version === basis.version;
 
 const clockBehind = (env: StorageEnv, list: GroceryListRecord | null): boolean =>
   list !== null && parseInstant(env.now()) < parseInstant(list.updatedAt);
@@ -114,10 +129,13 @@ export function groceryBuildRepo(ctx: RepoContext): GroceryBuildRepo {
         .sort();
       return times.at(-1) ?? null;
     },
-    create: (input, audits) =>
+    create: (input, audits, basis) =>
       guardedWrite(ctx, () =>
         db.transaction('rw', ['grocery_lists', 'audit'], () =>
           Dexie.Promise.all([newestList(db)]).then(([current]) => {
+            if (!isBasis(current ?? null, basis)) {
+              throw new StorageRuleError('grocery_lists', 'list-changed');
+            }
             if (clockBehind(env, current ?? null)) throw new StorageClockError();
             const row = prepare(
               'grocery_lists',
@@ -147,30 +165,32 @@ export function groceryBuildRepo(ctx: RepoContext): GroceryBuildRepo {
     updateList: (id, change, options = {}) =>
       guardedWrite(ctx, () =>
         db.transaction('rw', ['grocery_lists', 'audit'], () =>
-          db.grocery_lists.get(id).then((stored) => {
-            if (stored === undefined) throw new StorageRuleError('grocery_lists', 'not-found');
-            const build = options.build;
-            if (build !== undefined) {
-              if (stored.version !== build.expectedVersion) {
-                throw new StorageRuleError('grocery_lists', 'list-changed');
+          Dexie.Promise.all([db.grocery_lists.get(id), newestList(db)]).then(
+            ([stored, current]) => {
+              if (stored === undefined) throw new StorageRuleError('grocery_lists', 'not-found');
+              const build = options.build;
+              if (build !== undefined) {
+                if (!isBasis(current ?? null, { id, version: build.expectedVersion })) {
+                  throw new StorageRuleError('grocery_lists', 'list-changed');
+                }
+                if (clockBehind(env, stored)) throw new StorageClockError();
               }
-              if (clockBehind(env, stored)) throw new StorageClockError();
-            }
-            const next = change(stored);
-            if (next === null) throw new StorageRuleError('grocery_lists', 'list-changed');
-            const patch: Row = { items: next.items };
-            if (next.storeName !== undefined) patch['storeName'] = next.storeName;
-            const row = prepare(
-              'grocery_lists',
-              stampUpdate('grocery_lists', stored as unknown as Row, patch, env),
-              env,
-              stored,
-            );
-            return Dexie.Promise.all([
-              db.grocery_lists.put(row),
-              db.audit.bulkAdd(auditRows(env, next.audits, row.updatedAt)),
-            ]).then(() => row);
-          }),
+              const next = change(stored);
+              if (next === null) throw new StorageRuleError('grocery_lists', 'list-changed');
+              const patch: Row = { items: next.items };
+              if (next.storeName !== undefined) patch['storeName'] = next.storeName;
+              const row = prepare(
+                'grocery_lists',
+                stampUpdate('grocery_lists', stored as unknown as Row, patch, env),
+                env,
+                stored,
+              );
+              return Dexie.Promise.all([
+                db.grocery_lists.put(row),
+                db.audit.bulkAdd(auditRows(env, next.audits, env.now())),
+              ]).then(() => row);
+            },
+          ),
         ),
       ),
     setStoreName: (name) =>

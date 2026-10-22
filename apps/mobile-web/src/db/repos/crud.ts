@@ -13,6 +13,7 @@
 import {
   duplicateOnSave,
   type GenericOp,
+  parseInstant,
   StorageInvariantError,
   type StoreName,
   type StoreRecords,
@@ -226,7 +227,14 @@ export function stampUpdate(table: StoreName, previous: Row, patch: Row, env: St
   for (const key of TABLES[table].key) row[key] = previous[key];
   if (Object.hasOwn(previous, 'createdAt')) row['createdAt'] = previous['createdAt'];
   if (UPDATED_AT_STORES.has(table)) row['updatedAt'] = env.now();
-  if (table === 'grocery_lists') row['version'] = Number(previous['version']) + 1;
+  if (table === 'grocery_lists') {
+    row['version'] = Number(previous['version']) + 1;
+    // A list's last change never moves backwards, even with the clock set back: it is the time
+    // garden and pantry stock is re-checked against (item 24 J34; item 19 G18).
+    if (parseInstant(String(row['updatedAt'])) < parseInstant(String(previous['updatedAt']))) {
+      row['updatedAt'] = previous['updatedAt'];
+    }
+  }
   if (table === 'alcohol_day_notes') {
     row['enteredAt'] = previous['enteredAt'];
     row['timeZone'] = previous['timeZone'];

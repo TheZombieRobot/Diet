@@ -115,6 +115,13 @@ function readCsv(text: string): string[][] {
 }
 
 describe('exports (LU9; GL-06, GL-07, NN-05)', () => {
+  it('J17: a text cell starting with +, -, @, a tab or a return gets the apostrophe too', () => {
+    for (const start of ['+', '-', '@', '\t', '\r']) {
+      const csv = listCsv({ ...LIST, items: [{ ...base, text: `${start}1 Example` }] });
+      expect(readCsv(csv.slice(1))[1]?.[2], JSON.stringify(start)).toBe(`'${start}1 Example`);
+    }
+  });
+
   it('GL-06: Copy text is one line per item to buy, with no price, note, hint or header', () => {
     expect(listText(LIST)).toBe('Silverbeet, 1 bunch\n=SUM(A1), "big", 2 packs\nExample item');
     expect(

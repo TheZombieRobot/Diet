@@ -23,7 +23,7 @@ import {
   type ManualUnit,
 } from '@diet/grocery';
 import { Button, ButtonRow, Card, ChoiceList, TextField } from '@diet/ui';
-import { type ReactElement, useId, useRef, useState } from 'react';
+import { type ReactElement, useEffect, useId, useRef, useState } from 'react';
 import type { FoodsState } from '../../foods/useFoods';
 
 const copy = grocery.manual;
@@ -73,6 +73,10 @@ export function ManualLineForm({
   const nameRef = useRef<HTMLInputElement>(null);
   const amountRef = useRef<HTMLInputElement>(null);
   const unitRef = useRef<HTMLInputElement>(null);
+  // The button that opened the form has gone, so focus starts in the form (design 1.13).
+  useEffect(() => {
+    nameRef.current?.focus();
+  }, []);
 
   const suggestions: readonly IngredientView[] =
     foods.status === 'ready' && linked === null && matchKey(text).length >= 2

@@ -21,6 +21,8 @@ describe('pack suggestions (LU2; GL-03, NN-04, C110, N11)', () => {
     expect(needQuantity(need('grams', 500))).toEqual({ quantity: 500, unit: 'g' });
     expect(pack('seed:beef-mince-lean', 500)).toBe('500 g pack');
     expect(needQuantity(need('cooked', 380))).toEqual({ quantity: null, unit: null });
+    // A part gram rounds up, never down (no under-buy).
+    expect(needQuantity(need('grams', 112.5))).toEqual({ quantity: 113, unit: 'g' });
   });
 
   it('GL-03 and the design 2.4 examples, every text at most 60 characters', () => {
@@ -37,6 +39,8 @@ describe('pack suggestions (LU2; GL-03, NN-04, C110, N11)', () => {
       [pack('seed:eggs', 13, 'each'), '1 × 12 + 1 × 6 eggs'],
       [pack('seed:eggs', 12 * 2, 'each'), '2 packs of 12 eggs'],
       [pack('seed:olive-oil', 45), '500 mL bottle'],
+      // 480 g of oil may be up to 528 mL (MAX_ML_PER_G), so one 500 mL bottle could fall short.
+      [pack('seed:olive-oil', 480), '1 L bottle'],
       [pack('seed:coconut-cream', 450), '3 × 165 mL cans'],
       [pack('seed:salmon', 300), '500 g pack'],
       [pack('seed:chicken-thigh', 1600), '2 × 1 kg packs'],
@@ -51,6 +55,7 @@ describe('pack suggestions (LU2; GL-03, NN-04, C110, N11)', () => {
   it('eggs come from the 50 g edible weight, never the 62 g as-bought weight', () => {
     expect(needQuantity(need('eggs', 400))).toEqual({ quantity: 8, unit: 'each' });
     expect(needQuantity(need('eggs', 10))).toEqual({ quantity: 1, unit: 'each' });
+    expect(needQuantity(need('eggs', 60))).toEqual({ quantity: 2, unit: 'each' });
   });
 
   it('least surplus, then fewest packs, then larger packs; an owner who cleared grams per each gets none', () => {

@@ -2482,6 +2482,7 @@
   display: flex;
   position: relative;
   flex: 1;
+  flex-wrap: wrap;
   align-items: center;
   gap: 14px;
   min-width: 0;
@@ -2495,13 +2496,15 @@
   font-weight: 800;
 }
 
+/* The name keeps a few words' width: at large text or with a long pack, the amount wraps instead. */
 .ui-tick-row__name {
-  flex: 1;
+  flex: 1 1 5em;
   min-width: 0;
   overflow-wrap: anywhere;
 }
 
 .ui-tick-row__amount {
+  margin-left: auto;
   text-align: right;
   white-space: normal;
 }

@@ -49,13 +49,17 @@ describe('repos.groceryBuild (LD1, LD4; J5, J24, J34)', () => {
   it('LD1: a list and its audit rows are written together; a failing audit row leaves neither', async () => {
     const test = await phone();
     const { groceryBuild } = test.repos;
-    const created = await groceryBuild.create({ storeName: 'Example store', items: [line(1)] }, [
-      {
-        table: 'garden',
-        recordId: 'g1',
-        reason: '300 g silverbeet from garden, as listed on 9 January',
-      },
-    ]);
+    const created = await groceryBuild.create(
+      { storeName: 'Example store', items: [line(1)] },
+      [
+        {
+          table: 'garden',
+          recordId: 'g1',
+          reason: '300 g silverbeet from garden, as listed on 9 January',
+        },
+      ],
+      null,
+    );
     expect(created).toMatchObject({
       version: 1,
       sentVersion: null,
@@ -91,27 +95,40 @@ describe('repos.groceryBuild (LD1, LD4; J5, J24, J34)', () => {
     ).rejects.toMatchObject({ rule: 'list-changed' });
   });
 
-  it('LD1 J5, J34: with the clock behind the list, a new list and a build are refused; a tick still saves', async () => {
+  it('LD1 J5, J34: with the clock behind the list, a new list and a build are refused; a tick, the store name and a hint clearing still save without moving its last change back', async () => {
     const test = await phone();
     const { groceryBuild } = test.repos;
-    const list = await groceryBuild.create({ storeName: 'Example store', items: [line(1)] }, []);
-    test.env.set('2000-02-28T00:00:00.000Z');
+    test.env.advanceDays(1);
+    const list = await groceryBuild.create(
+      { storeName: 'Example store', items: [line(1, { substituteHint: 'Firm tofu' })] },
+      [],
+      null,
+    );
+    // Behind the list, though not behind the profile's own creation.
+    test.env.set('2000-03-01T12:00:00.000Z');
     await expect(
-      groceryBuild.create({ storeName: 'Example store', items: [] }, []),
+      groceryBuild.create({ storeName: 'Example store', items: [] }, [], list),
     ).rejects.toBeInstanceOf(StorageClockError);
     await expect(
       groceryBuild.updateList(list.id, tick(line(1).id), { build: { expectedVersion: 1 } }),
     ).rejects.toBeInstanceOf(StorageClockError);
     expect((await test.repos.groceryLists.list()).map((l) => l.version)).toEqual([1]);
-    expect((await groceryBuild.updateList(list.id, tick(line(1).id))).version).toBe(2);
+    expect(await groceryBuild.updateList(list.id, tick(line(1).id))).toMatchObject({
+      version: 2,
+      updatedAt: list.updatedAt,
+    });
+    await groceryBuild.setStoreName('Example market');
+    await test.repos.profile.update({ allergens: ['soy'] });
+    expect(await groceryBuild.current()).toMatchObject({ version: 4, updatedAt: list.updatedAt });
+    expect(await groceryBuild.hintsClearedAt(list.id)).toBe(list.updatedAt);
   });
 
   it('LD1: the current list is the newest; the store name changes the profile and that list together', async () => {
     const test = await phone();
     const { groceryBuild } = test.repos;
-    await groceryBuild.create({ storeName: 'Example store', items: [] }, []);
+    const older = await groceryBuild.create({ storeName: 'Example store', items: [] }, [], null);
     test.env.advanceDays(1);
-    const newer = await groceryBuild.create({ storeName: 'Example store', items: [] }, []);
+    const newer = await groceryBuild.create({ storeName: 'Example store', items: [] }, [], older);
     expect((await groceryBuild.current())?.id).toBe(newer.id);
     await groceryBuild.setStoreName('Example market');
     expect((await test.repos.profile.get()).storeName).toBe('Example market');
@@ -128,6 +145,7 @@ describe('repos.groceryBuild (LD1, LD4; J5, J24, J34)', () => {
     const list = await groceryBuild.create(
       { storeName: 'Example store', items: [line(1), line(2)] },
       [],
+      null,
     );
     await Promise.all([
       groceryBuild.updateList(list.id, tick(line(1).id)),
@@ -151,7 +169,11 @@ describe('hints never outlive their profile (LD8; J28, HS-24, C107)', () => {
       { glutenFreeHousehold: true },
       { dislikeTerms: ['zz'] },
     ]) {
-      const before = await groceryBuild.create({ storeName: 'Example store', items: hinted }, []);
+      const before = await groceryBuild.create(
+        { storeName: 'Example store', items: hinted },
+        [],
+        await groceryBuild.current(),
+      );
       test.env.advanceDays(1);
       await profile.update(patch);
       const after = await groceryBuild.current();
@@ -163,19 +185,33 @@ describe('hints never outlive their profile (LD8; J28, HS-24, C107)', () => {
       );
       expect(payload).not.toMatch(/tofu|kale/i);
     }
-    const list = await groceryBuild.create({ storeName: 'Example store', items: hinted }, []);
+    // A second clearing of one list: the notice follows the newer one.
+    const last = await groceryBuild.current();
+    if (last === null) throw new Error('no list');
+    await groceryBuild.updateList(last.id, (l) => ({
+      items: l.items.map((i) => ({ ...i, substituteHint: 'Kale' })),
+      audits: [],
+    }));
+    test.env.advanceDays(1);
+    await profile.update({ dislikeTerms: [] });
+    expect(await groceryBuild.hintsClearedAt(last.id)).toBe(test.env.now());
+    const list = await groceryBuild.create(
+      { storeName: 'Example store', items: hinted },
+      [],
+      await groceryBuild.current(),
+    );
     await profile.update({ storeName: 'Example market' });
     expect((await groceryBuild.current())?.items[0]?.substituteHint).toBe('Firm tofu');
     expect(await groceryBuild.hintsClearedAt(list.id)).toBeNull();
     expect(
       (await test.repos.audit.list()).filter((a) => a.reason === grocery.audit.hintsCleared),
-    ).toHaveLength(3);
+    ).toHaveLength(4);
   });
 
   it('a failing list write leaves the profile unchanged', async () => {
     const failing = failingWrite('grocery_lists', 'put', () => new Error('disk'));
     const test = await phone({ extraMiddleware: [failing.middleware] });
-    await test.repos.groceryBuild.create({ storeName: 'Example store', items: hinted }, []);
+    await test.repos.groceryBuild.create({ storeName: 'Example store', items: hinted }, [], null);
     failing.arm();
     await expect(test.repos.profile.update({ allergens: ['soy'] })).rejects.toThrow();
     expect((await test.repos.profile.get()).allergens).toEqual([]);

@@ -123,7 +123,13 @@ function StoreSetting({ storage }: { readonly storage: AppStorage }): ReactEleme
         </Notice>
       )}
       <ButtonRow>
-        <Button variant="primary" disabled={saving} onClick={() => void save()}>
+        {/* Never disabled while saving, which would move focus to the top of the page. */}
+        <Button
+          variant="primary"
+          onClick={() => {
+            if (!saving) void save();
+          }}
+        >
           {copy.save}
         </Button>
         {value === DEFAULT_STORE_NAME ? null : (

@@ -20,6 +20,7 @@ import {
   type GroceryItem,
   type GroceryListRecord,
   type Id,
+  type Instant,
   localDateOf,
   needsRecheck,
   parseInstant,
@@ -264,6 +265,8 @@ export interface Offer {
   readonly kind: OfferKind;
   readonly source: StockSource;
   readonly recordId: Id | null;
+  /** The stock row's last change as the offer showed it (null for Buy the full amount). */
+  readonly rowUpdatedAt: Instant | null;
   readonly recheck: boolean;
   /** Filled wording (design 1.7). */
   readonly prompt: string;
@@ -317,6 +320,7 @@ export function lineOffers(
       kind: 'buy-full',
       source,
       recordId: null,
+      rowUpdatedAt: null,
       recheck: false,
       prompt:
         lines.length > 0
@@ -332,7 +336,7 @@ export function lineOffers(
     if (s.source === 'garden' && (line.fromGardenG !== null || line.gardenAmountUnknown)) continue;
     if (s.source === 'pantry' && line.fromPantryG !== null) continue;
     const recheck = needsRecheckNow(s, ctx);
-    const base = { source: s.source, recordId: s.recordId, recheck };
+    const base = { source: s.source, recordId: s.recordId, rowUpdatedAt: s.updatedAt, recheck };
     const q = s.quantity;
     if (q.kind === 'grams' && line.unit === 'g') {
       if (q.grams <= 0) continue;
@@ -369,8 +373,12 @@ export function lineOffers(
   return result;
 }
 
+/** The same question about the same row, unchanged since it was shown (design 1.7). */
 const sameOffer = (a: Offer, b: Offer): boolean =>
-  a.kind === b.kind && a.source === b.source && a.recordId === b.recordId;
+  a.kind === b.kind &&
+  a.source === b.source &&
+  a.recordId === b.recordId &&
+  a.rowUpdatedAt === b.rowUpdatedAt;
 
 /** The line's earlier note as an opaque part: it may hold a count-derived amount (C57). */
 function earlierPart(line: GroceryItem): NotePart[] {
@@ -425,8 +433,9 @@ function backToBuy(
 
 /**
  * Applies a tapped offer to the list as read inside the write (design 1.7): only when an offer of
- * the same kind, source and stock row is still offered for that line; the wording follows the
- * prompt the owner saw (the tapped offer's `recheck`). Null when it no longer applies.
+ * the same kind, source and stock row is still offered for that line and the row has not changed
+ * since it was shown; the wording follows the prompt the owner saw (the tapped offer's `recheck`).
+ * Null when it no longer applies.
  */
 export function applyOffer(
   list: GroceryListRecord,

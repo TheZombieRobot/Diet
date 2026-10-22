@@ -2,6 +2,7 @@
 // fake-indexeddb), from item 20's shipped recipes and item 18's shipped catalogue. Synthetic
 // records only; the health-sentinel phone holds marker text and numbers in every other store.
 import { foodData, type GroceryListRecord, localDateOf } from '@diet/core';
+import { grocery } from '@diet/core/copy/health';
 import {
   listCsv,
   listJson,
@@ -185,6 +186,90 @@ describe('the list in the database (LD3, LD6, LD7; GL-01, GL-05, NN-06, NN-05)',
         'unit',
       ]);
     }
+  });
+});
+
+describe('a stale time or a stale panel never takes garden stock twice (LD1, LD9; J30, J34, G18)', () => {
+  /** The seeded silverbeet at 300 g (changed at 01:00) and the traybake for 5 on 1 to 3 March. */
+  async function silverbeetPhone(): Promise<TestDb> {
+    const test = await openTestDb();
+    opened.push(test);
+    await onboardForTests(test);
+    const [seeded] = await test.repos.garden.list();
+    if (seeded === undefined) throw new Error('no seeded garden row');
+    test.env.set('2000-03-01T01:00:00.000Z');
+    await test.repos.garden.update(seeded.id, { amount: 300, unit: 'g' });
+    for (const date of ['2000-03-01', '2000-03-02', '2000-03-03']) {
+      await seedPlanDay(test, {
+        date,
+        dietMode: 'balanced',
+        meals: [
+          {
+            slot: 'dinner',
+            recipeId: 'seed:recipe-chicken-silverbeet-traybake',
+            myServes: 1,
+            householdServes: 5,
+          },
+        ],
+        eatingWindow: null,
+      });
+    }
+    test.env.set('2000-03-01T02:00:00.000Z');
+    return test;
+  }
+
+  it('LD9 J34: a tick made with the clock set back does not let the next list take the same garden amount again', async () => {
+    const test = await silverbeetPhone();
+    const { storage, env } = test;
+    const first = await build(storage);
+    expect(byText(first, 'Silverbeet').fromGardenG).toBe(300);
+    env.set('2000-03-01T00:30:00.000Z');
+    expect(await tickLine(storage, first.id, byText(first, 'Silverbeet').id, true)).toBeNull();
+    env.set('2000-03-02T02:00:00.000Z');
+    const second = await build(storage);
+    const line = byText(second, 'Silverbeet');
+    expect(line).toMatchObject({ section: 'to-buy', fromGardenG: null });
+    const stock = await readStockNow(storage);
+    const offers = lineOffers(
+      line,
+      stock.lines.filter((s) => s.ingredientId === line.ingredientId),
+      {
+        now: env.now(),
+        today: '2000-03-02',
+        timeZone: env.timeZone(),
+        previousListAt: second.updatedAt,
+      },
+      true,
+    );
+    const use = offers.find((o) => o.kind === 'use' && o.recheck);
+    if (use === undefined) throw new Error('no re-check offer');
+    // LD9 J10: the owner's "Yes, use it" takes it once; the same tap again is refused (list-changed).
+    const foods = await foodsOf(storage);
+    expect(await takeOffer(storage, second.id, line.id, use, foods)).toBeNull();
+    expect(await takeOffer(storage, second.id, line.id, use, foods)).toEqual({
+      text: grocery.offers.changed,
+      tone: 'alert',
+    });
+    expect((await test.repos.audit.list()).filter((a) => a.table === 'garden')).toHaveLength(2);
+  });
+
+  it('LD9 J30: a panel still holding an older list can neither start a new list nor update, and writes nothing', async () => {
+    const test = await silverbeetPhone();
+    const { storage, env } = test;
+    const older = await build(storage);
+    env.set('2000-03-01T03:00:00.000Z');
+    await build(storage, { current: older });
+    const lists = await test.repos.groceryLists.list();
+    const audits = await test.repos.audit.list();
+    env.set('2000-03-01T04:00:00.000Z');
+    const foods = await foodsOf(storage);
+    for (const mode of ['new', 'update'] as const) {
+      expect(
+        await runBuild(storage, foods, { mode, firstDay: '2000-03-01', current: older }),
+      ).toEqual({ ok: false, message: { text: grocery.build.changed, tone: 'alert' } });
+    }
+    expect(await test.repos.groceryLists.list()).toEqual(lists);
+    expect(await test.repos.audit.list()).toEqual(audits);
   });
 });
 

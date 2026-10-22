@@ -381,8 +381,10 @@ export function ListLine({
       {...(toBuy
         ? {
             checked: pendingTick ?? line.ticked,
-            disabled: writing === 'tick',
+            // Never disabled while the tick saves: a browser moves focus off a disabled box, to
+            // the top of the page. A tap while it saves is ignored instead (design 1.13).
             onCheckedChange: (ticked: boolean) => {
+              if (writing === 'tick') return;
               setWriting('tick');
               setPendingTick(ticked);
               void tickLine(ctx.storage, ctx.listId, line.id, ticked).then((message) => {
@@ -472,6 +474,10 @@ export function ListLine({
           aria-expanded={open}
           onClick={() => {
             ctx.setOpenLine(open ? null : line.id);
+          }}
+          // The panel opens with focus still here, so Escape closes it from here too (design 1.9).
+          onKeyDown={(event) => {
+            if (open && event.key === 'Escape') ctx.setOpenLine(null);
           }}
         />
       }

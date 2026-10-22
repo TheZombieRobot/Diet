@@ -9,7 +9,8 @@ import { startAudit } from './support/network';
 // plan over item 20's shipped recipes and item 18's shipped catalogue, with the seeded silverbeet
 // row given 300 g. Synthetic records written with raw IndexedDB after a finished setup.
 
-/** Plans today and tomorrow, and sets the seeded silverbeet row to 300 g, then reloads. */
+/** Plans today and tomorrow (one tuna line has a long pack text), and sets the seeded silverbeet
+ * row to 300 g, then reloads. */
 async function seedPlanAndGarden(page: Page): Promise<void> {
   await page.evaluate(
     () =>
@@ -35,7 +36,10 @@ async function seedPlanAndGarden(page: Page): Promise<void> {
           tx.objectStore('plan_days').put({
             date: local(now),
             dietMode: 'balanced',
-            meals: [meal('dinner', 'seed:recipe-chicken-silverbeet-traybake', 5)],
+            meals: [
+              meal('lunch', 'seed:recipe-tuna-egg-green-bean-salad', 2),
+              meal('dinner', 'seed:recipe-chicken-silverbeet-traybake', 5),
+            ],
             eatingWindow: null,
             updatedAt: at,
           });
@@ -110,7 +114,16 @@ test('LE1, LE2 GL-01, GL-02, GL-05 to GL-08, NN-06, HS-14: make the list, tick, 
   await expect(page.getByLabel(grocery.price.field)).toBeVisible();
   await expect(page.getByRole('checkbox', { name: /^Avocado/ })).not.toBeChecked();
   await page.getByRole('button', { name: grocery.panel.close }).click();
-  await page.getByRole('checkbox', { name: /^Avocado/ }).click();
+  // Design 1.13: a tick keeps focus on its box (never disabled while it saves), so Space again unticks.
+  const avocado = page.getByRole('checkbox', { name: /^Avocado/ });
+  await avocado.focus();
+  await page.keyboard.press('Space');
+  await expect(page.getByText(/^1 of \d+ ticked$/)).toBeVisible();
+  await expect(avocado).toBeFocused();
+  await page.keyboard.press('Space');
+  await expect(page.getByText(/^0 of \d+ ticked$/)).toBeVisible();
+  await expect(avocado).toBeFocused();
+  await page.keyboard.press('Space');
   await expect(page.getByText(/^1 of \d+ ticked$/)).toBeVisible();
   await page.getByRole('button', { name: grocery.actions.add }).click();
   await page.getByLabel(grocery.manual.name, { exact: true }).fill('Example batteries');
@@ -130,6 +143,19 @@ test('LE1, LE2 GL-01, GL-02, GL-05 to GL-08, NN-06, HS-14: make the list, tick, 
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);
   }
+  // At 360 px and at 180 px (360 px at 200% text) no name is squeezed to a letter a line, even
+  // beside a long pack text; the amount wraps under it instead.
+  await expect(row(page, 'Tuna in spring water').locator('.ui-tick-row__amount')).toHaveText(/\+/);
+  for (const width of [360, 180]) {
+    await page.setViewportSize({ width, height: 800 });
+    const narrow = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>('.ui-tick-row__name')]
+        .filter((name) => name.getBoundingClientRect().width < 4 * 16)
+        .map((name) => `${name.textContent} ${String(name.getBoundingClientRect().width)}`),
+    );
+    expect(narrow, `names under 4em at ${String(width)} px`).toEqual([]);
+  }
+  await page.setViewportSize({ width: 360, height: 800 });
 
   // GL-06, GL-07: offline, the exports are made on the phone.
   await context.setOffline(true);
@@ -153,6 +179,7 @@ test('LE1, LE2 GL-01, GL-02, GL-05 to GL-08, NN-06, HS-14: make the list, tick, 
   await page.getByLabel(grocery.store.field).fill('Example store');
   await page.getByRole('button', { name: grocery.store.save, exact: true }).click();
   await expect(page.getByText(grocery.store.saved)).toBeVisible();
+  await expect(page.getByRole('button', { name: grocery.store.save, exact: true })).toBeFocused();
   await goTo(page, 'List');
   await expect(heading(page)).toHaveText('List');
   await expect(page.locator('.ui-store-name')).toHaveText('Example store');

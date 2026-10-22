@@ -87,6 +87,24 @@ describe('owner changes (LU8; GL-05, GL-08, HS-16)', () => {
     });
   });
 
+  it('GL-04: an own aisle sorts after the shipped aisles and before "Other"', () => {
+    let items: GroceryListRecord['items'] = [];
+    for (const [n, aisle] of [
+      [1, 'Other'],
+      [2, 'Pets'],
+      [3, 'Produce'],
+    ] as const) {
+      const value = { text: `Example ${String(n)}`, ingredientId: null, quantity: null };
+      items =
+        addManualLine(
+          { ...LIST, items },
+          { ...value, unit: null, aisle, substituteHint: null },
+          `0b6f1d2e-0000-4000-8000-00000000000${String(n)}`,
+        ) ?? [];
+    }
+    expect(items.map((i) => i.aisle)).toEqual(['Produce', 'Pets', 'Other']);
+  });
+
   it('an already-have line has no tick; the store name may not carry a price', () => {
     const items =
       addManualLine(
