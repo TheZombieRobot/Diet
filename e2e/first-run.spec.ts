@@ -19,6 +19,7 @@ import {
   seedOnboarded,
   waitForServiceWorkerControl,
 } from './support/app';
+import { auditPage, describeFinding, isSevere } from './support/a11y';
 import { lowContrastText } from './support/contrast';
 import { helpRowProblems } from './support/helpRows';
 import { startAudit } from './support/network';
@@ -354,9 +355,16 @@ test('P10: Save and the Yes and No buttons in Settings keep focus while they sav
   await expect(yes).toBeFocused();
 });
 
+/** The element is wholly inside the window. */
+const inFullView = (e: Element): boolean => {
+  const box = e.getBoundingClientRect();
+  return box.top >= 0 && box.left >= 0 && box.bottom <= innerHeight && box.right <= innerWidth;
+};
+
 /**
  * What each onboarding view must pass (P8): wording, contrast in both themes, 48 px, no sideways
- * scroll, and help number rows whose words and numbers stay whole (F19).
+ * scroll, help number rows whose words and numbers stay whole (F19), the offline pill in full
+ * view, and on a 360 px phone the accessibility audit in both themes (item 37).
  */
 async function sweep(page: Page, where: string, found: string[]): Promise<void> {
   const text = await renderedText(page);
@@ -365,9 +373,22 @@ async function sweep(page: Page, where: string, found: string[]): Promise<void> 
       (v) => `${where}: ${v.ruleId}`,
     ),
   );
+  const audited = page.viewportSize()?.width === 360;
   for (const colorScheme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme });
     found.push(...(await lowContrastText(page, `${where}, ${colorScheme}`)).low);
+    if (audited) {
+      const findings = await auditPage(page, `${where}, ${colorScheme}`);
+      found.push(...findings.filter(isSevere).map(describeFinding));
+    }
+  }
+  // The pill heads every view, as the top bar does in the app; it scrolls away with the page.
+  await page.evaluate(() => {
+    window.scrollTo(0, 0);
+  });
+  const pill = page.locator('header .ui-pill[role="status"]');
+  if (!(await pill.isVisible()) || !(await pill.evaluate(inFullView))) {
+    found.push(`${where}: the offline pill is not in full view at the top of the view`);
   }
   await page.emulateMedia({ colorScheme: 'light' });
   const sizes = await page
@@ -587,7 +608,7 @@ test('P8: the opening screen, when the records take long to open, offers Reload 
     );
   });
   await page.goto('./');
-  await expect(page.getByRole('status').first()).toHaveText(onboarding.frame.opening);
+  await expect(page.getByRole('main').getByRole('status')).toHaveText(onboarding.frame.opening);
   await expect(page.getByText(onboarding.frame.openingSlow)).toBeVisible({ timeout: 15_000 });
   await expect(button(page, privacy.storageFailure.reload)).toBeVisible();
   await expect(page.getByRole('link', { name: /111$/ })).toBeVisible();
@@ -606,7 +627,11 @@ test('P2 / PWA: setup works offline once the offline copy is saved', async ({ pa
   await waitForServiceWorkerControl(page);
   await context.setOffline(true);
   await page.reload();
+  // Item 37: setup says it is offline, as every screen does.
+  const pill = page.getByRole('banner').getByRole('status');
+  await expect(pill).toHaveText('Offline, all saved');
   await acknowledge(page);
   await answer(page, 'q1', 'no');
   await expect(heading(page)).toHaveText(readiness.questions.q2);
+  await expect(pill).toHaveText('Offline, all saved');
 });

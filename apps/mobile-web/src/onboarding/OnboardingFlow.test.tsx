@@ -1123,7 +1123,11 @@ describe('the opening screen (E29, E57; K28)', () => {
     vi.useFakeTimers();
     appStorageStore.set(null);
     render(<App />);
-    expect(screen.getByRole('status').textContent).toBe(onboarding.frame.opening);
+    expect(within(screen.getByRole('main')).getByRole('status').textContent).toBe(
+      onboarding.frame.opening,
+    );
+    // Item 37: the offline pill is in view here too.
+    expect(within(screen.getByRole('banner')).getByRole('status').textContent).toBe('Online');
     expect(screen.queryAllByRole('button')).toHaveLength(0);
     expect(screen.queryAllByRole('link')).toHaveLength(0);
     act(() => {

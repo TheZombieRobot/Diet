@@ -67,6 +67,11 @@
   gap: 6px;
 }
 
+/* A top bar with no title (the opening screen) keeps the offline pill on the right (item 37). */
+.ui-topbar__actions:only-child {
+  margin-inline-start: auto;
+}
+
 .ui-pill {
   display: inline-flex;
   align-items: center;

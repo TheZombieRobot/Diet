@@ -72,7 +72,9 @@ export function StepFrame({
         </h1>
         {children}
       </main>
-      {present(footer) ? <div className="ui-steps__footer">{footer}</div> : null}
+      {/* A footer outside main is the page's contentinfo landmark, so the step's actions and
+          their notes are inside a landmark too (item 37). */}
+      {present(footer) ? <footer className="ui-steps__footer">{footer}</footer> : null}
     </div>
   );
 }

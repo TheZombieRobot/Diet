@@ -268,6 +268,17 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | GD-03 | A crop or pantry item with no amount entered | Shown as "Available, amount not entered" (a ready crop) or "Some, not measured" (pantry). Read by the plan and list with no weight; no gram figure is made up |
 | GD-04 | Garden and pantry wording | No food-safety, freshness, price, savings, stock or kilogram wording, and no gram figure in fixed copy |
 
+### 3.17 Accessibility (checklist item 37)
+Checked in the browser on the production build, on a 360 × 740 phone in light and dark, on every screen and sub-screen (a recipe's page, a planned day, a Move session, the weekly plan) with the parts drawn only sometimes open (the install banner, the steps editor, the "+" panel with its Off row, the backup panels, offline), and on every view of setup.
+
+| ID | Case | Expected |
+|---|---|---|
+| A11Y-01 | The accessibility audit: axe-core, the engine Lighthouse's accessibility category runs, with the WCAG 2.0, 2.1 and 2.2 A and AA rules and axe's best practices (a test-only dependency; nothing is sent anywhere) | No serious or critical finding on any screen or setup view; any other finding is listed on the test report. The audit is checked to catch an unnamed button, an unlabelled field and an image with no text |
+| A11Y-02 | Contrast in sunlight | Every piece of text the browser draws has at least 4.5:1 contrast against what lies beneath it, in both themes |
+| A11Y-03 | Thumb-sized targets | Every link, button, field, list and switch is at least 48 × 48 px (a tick box, choice or switch counts its whole label) |
+| A11Y-04 | The phone's text size up to 200% (Chrome's zoom and text scaling; there is no separate setting in the app) | At 320 px and at 200% on a 390 and a 360 px phone (195 and 180 px), online and offline: nothing scrolls sideways, no text runs off the screen or is cut off by its box, and the pill and the gear stay in the top bar |
+| A11Y-05 | The offline state on every screen | The pill is in full view at the top of every screen, sub-screen and setup view, on the opening and storage failure screens too, and says "Offline, all saved" (or "Offline" before the offline copy is saved) when the phone is offline |
+
 ---
 
 ## 4. Manual device checklists
@@ -302,6 +313,13 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 - [ ] Time from "open panel" to "checkout page".
 - [ ] Anything that felt like the extension was doing too much or too little.
 - [ ] Any screen that showed or implied price, stock or cart state (should be none).
+
+### Outdoor, one-handed and text size check (item 37, owner)
+Tick each line and note the date and anything hard to read or tap (screens and controls only, no health data).
+- [ ] At midday in direct sun, at your usual brightness, with the phone in light mode and then in dark mode: Today's figures, the fast timer, grey hint lines, the amber "estimate" chips, the tab labels and the offline pill are all readable at arm's length.
+- [ ] Holding the phone in one hand, with your thumb only: the five tabs, the "+" button and its rows, Add 250 mL, Log weight, starting and ending a fast, ticking List lines and Continue in setup, with no tap landing on the control beside it.
+- [ ] With the phone's font size at its largest (Settings, Display) and Chrome's text size at 200% (Chrome, Settings, Accessibility): every tab, Settings, a recipe and a planned day read whole, nothing needs sideways scrolling, no word or help number is cut off, and the pill and gear stay in the top bar.
+- [ ] In flight mode, the pill reads "Offline, all saved" on every tab and in Settings.
 
 ---
 

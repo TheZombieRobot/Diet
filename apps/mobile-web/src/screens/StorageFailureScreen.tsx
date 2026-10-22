@@ -13,6 +13,7 @@ import { useStepFocus } from './backup/focus';
 import { LockFields } from './backup/LockFields';
 import { LOCKED_BY_DEFAULT, type LockChoice, lockProblem, passwordOf } from './backup/lockChoice';
 import { Progress } from './backup/Progress';
+import { TopBarPill } from './TopBarPill';
 import { UpdateBanner } from './UpdateBanner';
 
 export interface StorageFailureActions {
@@ -52,6 +53,7 @@ export function StorageFailureScreen({
     <div className="ui-shell">
       <header className="ui-topbar">
         <h1 className="ui-topbar__title">{copy.title}</h1>
+        <TopBarPill />
       </header>
       <main id="main" className="ui-shell__main" tabIndex={-1}>
         <UpdateBanner />

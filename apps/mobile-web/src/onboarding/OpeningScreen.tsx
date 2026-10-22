@@ -2,6 +2,7 @@ import { general, onboarding, privacy } from '@diet/core/copy/health';
 import { Button, Card } from '@diet/ui';
 import { type ReactElement, useEffect, useState } from 'react';
 import { HelpNumberList } from '../screens/HelpNumbers';
+import { TopBarPill } from '../screens/TopBarPill';
 
 /** How long the neutral waiting screen stays bare before it offers Reload and the help numbers. */
 export const OPENING_SLOW_MS = 5000;
@@ -22,9 +23,9 @@ export function SafetyBlock(): ReactElement {
 
 /**
  * While the records open and the first-run guard decides (item 13 design section 3.2; E29, E57):
- * a bare status line with nothing to tap through. After 5 seconds it adds Reload, the
- * not-a-medical-device line and the help numbers; when the records cannot be read it shows them at
- * once, in the layout of the storage failure screens.
+ * a bare status line with nothing to tap through, under the offline pill (item 37). After 5
+ * seconds it adds Reload, the not-a-medical-device line and the help numbers; when the records
+ * cannot be read it shows them at once, in the layout of the storage failure screens.
  */
 export function OpeningScreen({
   failed = false,
@@ -48,6 +49,7 @@ export function OpeningScreen({
       <div className="ui-shell">
         <header className="ui-topbar">
           <h1 className="ui-topbar__title">{privacy.storageFailure.title}</h1>
+          <TopBarPill />
         </header>
         <main id="main" className="ui-shell__main" tabIndex={-1}>
           <Card label={privacy.storageFailure.cardLabel}>
@@ -65,6 +67,9 @@ export function OpeningScreen({
   }
   return (
     <div className="ui-shell">
+      <header className="ui-topbar">
+        <TopBarPill />
+      </header>
       <main id="main" className="ui-shell__main" tabIndex={-1}>
         <p role="status">{onboarding.frame.opening}</p>
         {slow ? (

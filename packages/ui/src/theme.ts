@@ -1,7 +1,7 @@
 /**
- * Light or dark appearance. By default the app follows the phone's dark-mode setting; a later
- * settings screen (checklist item 37) can force one with applyTheme. tokens.css reads the
- * data-theme attribute this sets on <html>.
+ * Light or dark appearance. The app follows the phone's dark-mode setting (item 37 added no
+ * setting of its own); a later settings screen can force one with applyTheme. tokens.css reads
+ * the data-theme attribute this sets on <html>.
  */
 export type ThemePreference = 'system' | 'light' | 'dark';
 

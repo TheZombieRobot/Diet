@@ -1,6 +1,6 @@
 # Screen Descriptions (text wireframes)
 
-Plain-language descriptions of every MVP screen, written so you can picture them and so the implementing model builds the same thing. Design rules: one-handed use, large tap targets (at least 48 px), readable in sunlight (high contrast, no thin grey text), dark mode, very little typing, offline state always visible.
+Plain-language descriptions of every MVP screen, written so you can picture them and so the implementing model builds the same thing. Design rules: one-handed use, large tap targets (at least 48 px), readable in sunlight (high contrast, no thin grey text), dark mode, very little typing, offline state always visible. Dark mode and text size follow the phone's own settings (Chrome's zoom and text scaling, up to 200%); the app has no separate theme or text size setting (item 37).
 
 **Global elements**
 - Top bar: screen name, a small cloud icon that reads "Offline, all saved" or "Online", and a settings gear.

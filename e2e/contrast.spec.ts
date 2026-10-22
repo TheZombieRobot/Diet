@@ -1,29 +1,27 @@
 import { expect, test } from '@playwright/test';
 import { parseColour } from '../packages/ui/src/tokens';
 import {
-  goTo,
   GROUND,
-  offerInstall,
-  openBackupPanels,
-  openRecipe,
-  patchRecords,
   seedOnboarded,
-  SWEPT_RECIPE,
-  visitEveryScreen,
+  VIEW_TODAY_OFF,
+  VIEW_TODAY_OPEN,
+  visitEveryView,
 } from './support/app';
 import { lowContrastText, MIN_CONTRAST, textSamples } from './support/contrast';
 
 // Text must stay readable in sunlight (UX_SCREENS.md design rules; WCAG 2 AA). tokens.test.ts
 // checks the main colour pairs from the token list; this sweep checks what the browser actually
-// draws: every piece of text on every screen, against the backgrounds beneath it, in both themes,
-// with the conditional parts open (the install banner, the "+" panel, the install button and the
-// offline pill). The update banner is swept in update.spec.ts, once a real update is waiting.
+// draws on a 360 × 740 phone: every piece of text on every screen and sub-screen, against the
+// backgrounds beneath it, in both themes, with the conditional parts open (visitEveryView: the
+// install banner, the "+" panel, the install button, the backup panels and the offline pill).
 
 for (const colorScheme of ['light', 'dark'] as const) {
   test(`${colorScheme}: every piece of text on every screen has at least ${MIN_CONTRAST}:1 contrast`, async ({
     page,
     context,
   }) => {
+    test.setTimeout(90_000);
+    await page.setViewportSize({ width: 360, height: 740 });
     await page.emulateMedia({ colorScheme });
     await seedOnboarded(page);
     // The theme really is the one under test (a sweep of the wrong theme would prove nothing).
@@ -32,46 +30,20 @@ for (const colorScheme of ['light', 'dark'] as const) {
 
     const low: string[] = [];
     let checked = 0;
-    const sweep = async (where: string) => {
-      const result = await lowContrastText(page, where);
+    const swept = async () => (await textSamples(page)).map((sample) => sample.text);
+    await visitEveryView(page, context, async (view) => {
+      const result = await lowContrastText(page, view);
       low.push(...result.low);
       checked += result.checked;
-    };
-
-    await visitEveryScreen(page, (screen) => sweep(screen));
-    // Item 20: a recipe's page, with its chips, ingredient lines and the nutrition card.
-    await openRecipe(page, SWEPT_RECIPE);
-    await sweep('A recipe page');
-    await offerInstall(page);
-    await goTo(page, 'Today');
-    await expect(page.getByText('Install this app')).toBeVisible();
-    // Item 16: a filled Today with the steps editor open, and the "+" panel's rows.
-    await page.getByRole('button', { name: 'Add 250 mL' }).click();
-    await expect(page.getByTestId('water-total')).toHaveText('250 mL');
-    await page.getByRole('button', { name: 'Enter steps' }).click();
-    await page.getByRole('button', { name: 'Quick actions' }).click();
-    // No Later row: items 19, 22, 23, 24, 27 and 28 built Add harvest, Swap recipe, Finish meal,
-    // Open grocery list, Complete workout and Add drink.
-    await expect(page.locator('.ui-fab-panel [aria-disabled="true"]')).toHaveCount(0);
-    await sweep('Today with the install banner, the steps editor and quick actions');
-    const swept = async () => (await textSamples(page)).map((sample) => sample.text);
-    expect(await swept()).toEqual(expect.arrayContaining(['Finish meal', 'Open grocery list']));
-    // The Off row and its reason (under 18).
-    await patchRecords(page, { readiness: { q1: 'yes' } });
-    await page.getByRole('button', { name: 'Quick actions' }).click();
-    await expect(page.locator('.ui-fab-panel').getByText('Off', { exact: true })).toBeVisible();
-    await sweep('Today under 18, with the Off quick action');
-    expect(await swept()).toEqual(expect.arrayContaining(['Add drink', 'Off']));
-    await patchRecords(page, { readiness: { q1: 'no' } });
-    await offerInstall(page);
-    await goTo(page, 'Settings');
-    await expect(page.getByRole('button', { name: 'Install app' })).toBeVisible();
-    await sweep('Settings with the install button');
-    await openBackupPanels(page);
-    await sweep('Settings with the backup panels open');
-    await context.setOffline(true);
-    await expect(page.getByRole('banner').getByRole('status')).toHaveText(/^Offline/);
-    await sweep('Settings offline');
+      // The aria-disabled exemption must not skip the quick actions built since (the Off row
+      // is aria-disabled but meant to be read at full contrast).
+      if (view === VIEW_TODAY_OPEN) {
+        expect(await swept()).toEqual(expect.arrayContaining(['Finish meal', 'Open grocery list']));
+      }
+      if (view === VIEW_TODAY_OFF) {
+        expect(await swept()).toEqual(expect.arrayContaining(['Add drink', 'Off']));
+      }
+    });
 
     expect(low).toEqual([]);
     expect(checked).toBeGreaterThan(60);

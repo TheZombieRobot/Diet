@@ -135,7 +135,10 @@ function heartLines(view: RecipeView, myServes: number, budgetG: HeartCapBudget)
 
 const BADGE_WORDS: Readonly<Record<Confidence, string>> = foods.badges;
 
-/** A sentence with its {title} as a link to that recipe ("Cook extra for <link>."). */
+/**
+ * A sentence with its {title} as a link to that recipe ("Cook extra for <link>."). The link is a
+ * 48 px tap target inside the sentence (item 37).
+ */
 function TitleLink({
   template,
   recipe,
@@ -147,7 +150,9 @@ function TitleLink({
   return (
     <>
       {before}
-      <a href={recipeHref(recipe.id)}>{recipe.title}</a>
+      <a className="ui-link-button" href={recipeHref(recipe.id)}>
+        {recipe.title}
+      </a>
       {after}
     </>
   );

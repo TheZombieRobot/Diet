@@ -8,14 +8,14 @@ import {
   heading,
   offerInstall,
   openBackupPanels,
-  openRecipe,
   SCREENS,
   seedOnboarded,
-  SWEPT_RECIPE,
   TABS,
   UNDER_SETTINGS,
   UNDER_TABS,
   visitEveryScreen,
+  visitEveryView,
+  visitSubScreens,
   waitForServiceWorkerControl,
 } from './support/app';
 
@@ -124,44 +124,51 @@ test('the tab bar marks the current tab by more than colour; the gear marks Sett
   }
 });
 
-test('every control on every screen is at least 48 px by 48 px on a phone', async ({ page }) => {
+test('every control on every screen is at least 48 px by 48 px on a phone', async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(90_000);
   await page.setViewportSize({ width: 360, height: 780 });
   await seedOnboarded(page);
-  const measure = async (where: string) => {
-    const sizes = await page.locator('a:visible, button:visible').evaluateAll((controls) =>
-      controls.map((c) => {
-        const box = c.getBoundingClientRect();
-        return { name: c.getAttribute('aria-label') ?? c.textContent, w: box.width, h: box.height };
-      }),
-    );
-    expect(sizes.length, where).toBeGreaterThan(5);
-    for (const { name, w, h } of sizes) {
-      expect(h, `${where}: ${name} height`).toBeGreaterThanOrEqual(48);
-      expect(w, `${where}: ${name} width`).toBeGreaterThanOrEqual(48);
+  const small: string[] = [];
+  const measured: string[] = [];
+  // Item 37: every screen and sub-screen with the conditional parts open (visitEveryView), and
+  // fields, lists and switches as well as links and buttons. A tick box, choice or switch is
+  // tapped anywhere on the label around it, so the label is its target. Reload is measured in
+  // update.spec.ts once an update is waiting.
+  await visitEveryView(page, context, async (view) => {
+    const sizes = await page
+      .locator(
+        'a:visible, button:visible, input:visible, select:visible, textarea:visible, summary:visible',
+      )
+      .evaluateAll((controls) =>
+        controls.map((c) => {
+          const tick =
+            c instanceof HTMLInputElement && (c.type === 'checkbox' || c.type === 'radio');
+          const box = ((tick ? c.closest('label') : null) ?? c).getBoundingClientRect();
+          const name = c.getAttribute('aria-label') ?? c.textContent;
+          return { name, tag: c.tagName.toLowerCase(), w: box.width, h: box.height };
+        }),
+      );
+    expect(sizes.length, view).toBeGreaterThan(5);
+    for (const { name, tag, w, h } of sizes) {
+      if (w < 48 || h < 48) small.push(`${view}: ${tag} "${name}" is ${w} x ${h}`);
     }
-    return sizes.map((s) => s.name);
-  };
-  await visitEveryScreen(page, async (screen) => {
-    await measure(screen);
+    measured.push(...sizes.map((s) => s.name));
   });
-  // The conditional buttons: Install app and Not now on Today (with the "+" panel open), and
-  // Install app on Settings. Reload is measured in update.spec.ts once an update is waiting.
-  await offerInstall(page);
-  await goTo(page, 'Today');
-  await expect(page.getByText('Install this app')).toBeVisible();
-  await page.getByRole('button', { name: 'Quick actions' }).click();
-  await expect(page.locator('.ui-fab-panel .ui-action-row').first()).toBeVisible();
-  expect(await measure('Today with the install banner')).toEqual(
-    expect.arrayContaining(['Install app', 'Not now', 'Quick actions']),
+  // The conditional buttons were measured too.
+  expect(measured).toEqual(
+    expect.arrayContaining([
+      'Install app',
+      'Not now',
+      'Quick actions',
+      'Save the backup file',
+      'Choose a backup file',
+      'Continue',
+    ]),
   );
-  await goTo(page, 'Settings');
-  expect(await measure('Settings with the install button')).toEqual(
-    expect.arrayContaining(['Install app']),
-  );
-  await openBackupPanels(page);
-  expect(await measure('Settings with the backup panels open')).toEqual(
-    expect.arrayContaining(['Save the backup file', 'Choose a backup file', 'Continue']),
-  );
+  expect(small).toEqual([]);
 });
 
 test('the offline pill flips with the connection', async ({ page, context }) => {
@@ -173,6 +180,26 @@ test('the offline pill flips with the connection', async ({ page, context }) => 
   await expect(pill).toHaveText('Offline, all saved');
   await context.setOffline(false);
   await expect(pill).toHaveText('Online');
+});
+
+test('offline, the pill is in full view as every screen and sub-screen opens', async ({
+  page,
+  context,
+}) => {
+  // Item 37 (UX_SCREENS design rules: offline state always visible). Setup's views are checked
+  // in first-run.spec.ts (P8 and P2), the opening and storage failure screens in their own tests.
+  test.setTimeout(60_000);
+  await page.setViewportSize({ width: 360, height: 740 });
+  await seedOnboarded(page);
+  await waitForServiceWorkerControl(page);
+  await context.setOffline(true);
+  const pill = page.getByRole('banner').getByRole('status');
+  const inView = async () => {
+    await expect(pill).toHaveText('Offline, all saved');
+    await expect(pill).toBeInViewport({ ratio: 1 });
+  };
+  await visitEveryScreen(page, inView);
+  await visitSubScreens(page, inView);
 });
 
 /** Where the layout breaks on a narrow screen, if anywhere. */
@@ -208,6 +235,28 @@ async function narrowLayoutProblems(page: Page, where: string): Promise<string[]
     };
     overlapping('.ui-tabbar__link');
     overlapping('.ui-tabbar__label');
+    // Item 37: no text runs off the screen or is cut off by its box, and no list shows its
+    // choice cut off. A text field scrolls its own text as it is typed, so its value is not
+    // checked here (the time fields are, in first-run.spec.ts).
+    for (const element of document.body.querySelectorAll('*')) {
+      const own = Array.from(element.childNodes)
+        .filter((n) => n.nodeType === Node.TEXT_NODE)
+        .map((n) => n.textContent ?? '')
+        .join('')
+        .trim();
+      if (own === '' && !(element instanceof HTMLSelectElement)) continue;
+      const style = getComputedStyle(element);
+      const box = element.getBoundingClientRect();
+      if (box.width === 0 || box.height === 0 || style.visibility !== 'visible') continue;
+      if (element.closest('.ui-visually-hidden') !== null) continue;
+      const text = `"${(own || (element as HTMLSelectElement).value).slice(0, 40)}"`;
+      if (box.left < -0.5 || box.right > width + 0.5) {
+        problems.push(`${label}: ${text} runs off the screen (${box.left}-${box.right})`);
+      }
+      const cutX = style.overflowX !== 'visible' && element.scrollWidth > element.clientWidth + 1;
+      const cutY = style.overflowY !== 'visible' && element.scrollHeight > element.clientHeight + 1;
+      if (cutX || cutY) problems.push(`${label}: ${text} is cut off by its box`);
+    }
     // The Nutrition today card's meters and their figures stay inside its padding (F25).
     for (const card of document.querySelectorAll('main .ui-card:has(.ui-meter)')) {
       const edge = card.getBoundingClientRect();
@@ -230,8 +279,8 @@ test('nothing scrolls sideways or runs off a narrow or zoomed screen, online or 
   page,
   context,
 }) => {
-  // Every screen and a recipe page, three widths, online and offline: about 30 s on its own.
-  test.setTimeout(90_000);
+  // Every screen and sub-screen, three widths, online and offline: about 40 s on its own.
+  test.setTimeout(120_000);
   await seedOnboarded(page);
   await waitForServiceWorkerControl(page);
   const problems: string[] = [];
@@ -248,14 +297,16 @@ test('nothing scrolls sideways or runs off a narrow or zoomed screen, online or 
           )),
         );
       });
-      // Item 20: a recipe's page, with its ingredient lines and nutrition table.
-      await openRecipe(page, SWEPT_RECIPE);
-      problems.push(
-        ...(await narrowLayoutProblems(
-          page,
-          `A recipe page at ${width} px${offline ? ', offline' : ''}`,
-        )),
-      );
+      // A recipe's page (item 20), a planned day (item 22), a Move session and the weekly plan
+      // (item 27).
+      await visitSubScreens(page, async (screen) => {
+        problems.push(
+          ...(await narrowLayoutProblems(
+            page,
+            `${screen} at ${width} px${offline ? ', offline' : ''}`,
+          )),
+        );
+      });
     }
   }
   // The Backup and data card's panels, with their fields and button rows, at 200% zoom.

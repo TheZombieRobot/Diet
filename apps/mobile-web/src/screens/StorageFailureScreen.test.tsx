@@ -60,6 +60,14 @@ describe('storage failure screens (HS-13; section 16 test 41)', () => {
     updateStore.set({ waiting: false, applying: false });
   });
 
+  it.each(FAILURES)('%s shows the offline pill in its top bar (item 37)', (status) => {
+    vi.spyOn(window.navigator, 'onLine', 'get').mockReturnValue(false);
+    openStatusStore.set(status);
+    render(<App />);
+    expect(within(screen.getByRole('banner')).getByRole('status').textContent).toBe('Offline');
+    vi.restoreAllMocks();
+  });
+
   it.each(FAILURES)(
     '%s replaces the app and carries the not-a-medical-device line and every help number',
     (status) => {

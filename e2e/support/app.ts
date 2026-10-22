@@ -6,6 +6,7 @@ import {
   foodLog,
   foods,
   onboarding,
+  planner,
   privacy,
   recipes,
   today,
@@ -355,6 +356,90 @@ export async function visitEveryScreen(
     await onScreen(screen);
   }
 }
+
+/**
+ * Item 37: the screens below a screen that SCREENS leaves out: a recipe's page (item 20), today's
+ * planned day (item 22), and Session A and the weekly plan editor (item 27).
+ */
+export const SUB_SCREENS = [
+  'A recipe page',
+  'A planned day',
+  'A Move session',
+  'The weekly plan',
+] as const;
+export type SubScreenName = (typeof SUB_SCREENS)[number];
+
+/**
+ * Visits every sub-screen in turn, calling `onScreen` on each. The recipe page is opened from
+ * Recipes; the others by the address their parent screen's link goes to.
+ */
+export async function visitSubScreens(
+  page: Page,
+  onScreen: (screen: SubScreenName) => Promise<void> = () => Promise.resolve(),
+): Promise<void> {
+  await openRecipe(page, SWEPT_RECIPE);
+  await onScreen('A recipe page');
+  const opened: readonly [SubScreenName, string, Locator][] = [
+    ['A planned day', '#/plan/today', page.getByRole('region', { name: planner.day.mealsLabel })],
+    ['A Move session', '#/move-session/a', heading(page).getByText('Session', { exact: true })],
+    ['The weekly plan', '#/move-plan', heading(page).getByText('Weekly plan', { exact: true })],
+  ];
+  for (const [screen, hash, arrived] of opened) {
+    await page.goto(`./${hash}`);
+    await expect(arrived).toBeVisible();
+    await screenArrived(page);
+    await onScreen(screen);
+  }
+}
+
+/**
+ * Item 37: every view the accessibility sweeps check (contrast, 48 px targets and the audit):
+ * every screen and sub-screen, then the parts drawn only sometimes: the install banner, a filled
+ * Today with the steps editor and the "+" panel open, the Off quick action (under 18), the
+ * install button and the backup panels on Settings, and Settings offline. The update banner is
+ * swept in update.spec.ts, once a real update is waiting.
+ */
+export async function visitEveryView(
+  page: Page,
+  context: BrowserContext,
+  onView: (view: string) => Promise<void>,
+): Promise<void> {
+  await visitEveryScreen(page, onView);
+  await visitSubScreens(page, onView);
+  await offerInstall(page);
+  await goTo(page, 'Today');
+  await expect(page.getByText('Install this app')).toBeVisible();
+  // Item 16: a filled Today with the steps editor open, and the "+" panel's rows.
+  await page.getByRole('button', { name: 'Add 250 mL' }).click();
+  await expect(page.getByTestId('water-total')).toHaveText('250 mL');
+  await page.getByRole('button', { name: 'Enter steps' }).click();
+  await page.getByRole('button', { name: 'Quick actions' }).click();
+  // No Later row: items 19, 22, 23, 24, 27 and 28 built Add harvest, Swap recipe, Finish meal,
+  // Open grocery list, Complete workout and Add drink.
+  await expect(page.locator('.ui-fab-panel [aria-disabled="true"]')).toHaveCount(0);
+  await onView(VIEW_TODAY_OPEN);
+  // The Off row and its reason (under 18).
+  await patchRecords(page, { readiness: { q1: 'yes' } });
+  await page.getByRole('button', { name: 'Quick actions' }).click();
+  await expect(page.locator('.ui-fab-panel').getByText('Off', { exact: true })).toBeVisible();
+  await onView(VIEW_TODAY_OFF);
+  await patchRecords(page, { readiness: { q1: 'no' } });
+  await offerInstall(page);
+  await goTo(page, 'Settings');
+  await expect(page.getByRole('button', { name: 'Install app' })).toBeVisible();
+  await onView('Settings with the install button');
+  await openBackupPanels(page);
+  await onView('Settings with the backup panels open');
+  await context.setOffline(true);
+  await expect(page.getByRole('banner').getByRole('status')).toHaveText(/^Offline/);
+  await onView('Settings offline');
+  await context.setOffline(false);
+}
+
+/** visitEveryView's Today with the install banner, the steps editor and the "+" panel open. */
+export const VIEW_TODAY_OPEN = 'Today with the install banner, the steps editor and quick actions';
+/** visitEveryView's Today under 18, with the Off quick action. */
+export const VIEW_TODAY_OFF = 'Today under 18, with the Off quick action';
 
 /** Waits until the service worker is active, then reloads once so it controls the page. */
 export async function waitForServiceWorkerControl(page: Page): Promise<string> {

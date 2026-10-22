@@ -1589,7 +1589,7 @@ Test titles carry their HS, BK, RD or PWA ids so the coverage table (C118) can m
 - **Item 27:** per-set logging and the C76 volume cap on `done[]`.
 - **Item 28:** alcohol screens and help-card triggers (consecutive days through `areConsecutiveDrinkingDays`).
 - **Items 30–31:** Item 30: pairing, the CryptoKey, the repository and the shared transfer code (done). Item 31: the relay, a fresh `transferId` per send, acknowledgement handling into `receivedVersion`, `receivedAt` and `laptopReceivedAt`.
-- **Item 37:** the theme and text-size UI.
+- **Item 37 (done, no storage change):** no theme or text-size UI. The app follows the phone's dark mode and text size (Chrome's zoom and text scaling, tested to 200%), so `theme` and `textSize` stay at their defaults, unread; a later item that adds either choice uses these fields.
 - **Deferred and off:** food-safety substitutions (C43; D33). Turning them on later adds a profile field under section 9.
 - **Later:** Health Connect steps; photos in backups (an optional future change, C49).
 
