@@ -17,7 +17,7 @@ import { App } from '../../App';
 import { appStorageStore } from '../../db/runtime';
 import { onboardForTests, openTestDb, seedPlanDay, type TestDb } from '../../db/testKit';
 import type * as files from '../../files';
-import { offerDownload } from '../../files';
+import { downloadTypeFor, offerDownload } from '../../files';
 import { foodLogHref, gpSummaryHref } from '../../routes';
 import { screenTitleStore } from '../../screenTitle';
 import { TotalsCard } from './EatenCard';
@@ -538,7 +538,7 @@ describe('the summary for a GP (item 23; C100, H23a)', () => {
     expect(summary.textContent).not.toMatch(/\bkg\b|standard drink/i);
     fireEvent.click(within(summary).getByRole('button', { name: copy.gp.saveText }));
     fireEvent.click(within(summary).getByRole('button', { name: copy.gp.saveCsv }));
-    expect(vi.mocked(offerDownload).mock.calls.map((c) => [c[1], c[3]])).toEqual([
+    expect(vi.mocked(offerDownload).mock.calls.map((c) => [c[1], downloadTypeFor(c[1])])).toEqual([
       ['diet-gp-summary-2000-03-01.txt', 'text/plain;charset=utf-8'],
       ['diet-gp-summary-2000-03-01.csv', 'text/csv;charset=utf-8'],
     ]);

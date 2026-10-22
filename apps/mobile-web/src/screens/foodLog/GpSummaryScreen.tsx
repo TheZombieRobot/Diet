@@ -119,9 +119,8 @@ function GpSummary({ storage }: { readonly storage: AppStorage }): ReactElement 
   });
   const offer = (kind: 'gp-summary-txt' | 'gp-summary-csv') => {
     const fileName = exportFileName(kind, today);
-    if (kind === 'gp-summary-txt')
-      offerDownload(gpSummaryText(lines), fileName, document, 'text/plain;charset=utf-8');
-    else offerDownload(gpSummaryCsv(lines), fileName, document, 'text/csv;charset=utf-8');
+    // The file's type comes from its name (item 24's downloadTypeFor): text/plain or text/csv.
+    offerDownload(kind === 'gp-summary-txt' ? gpSummaryText(lines) : gpSummaryCsv(lines), fileName);
     setOffered(fileName);
   };
   return (

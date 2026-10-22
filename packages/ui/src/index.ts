@@ -69,6 +69,7 @@ export { TagList, type TagListProps } from './components/TagList';
 export { TextArea, type TextAreaProps } from './components/TextArea';
 export { TextField, type TextFieldProps } from './components/TextField';
 export { Thumbnail, type ThumbnailProps } from './components/Thumbnail';
+export { TickRow, type TickRowProps } from './components/TickRow';
 export { TopBar, type TopBarProps } from './components/TopBar';
 export { CHART_MIN_SPAN_KG, TrendChart, type TrendChartProps } from './components/TrendChart';
 export * from './icons';

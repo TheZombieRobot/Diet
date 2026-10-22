@@ -38,6 +38,8 @@ export const SCREENS = [
   // Item 23: reached from Food, its "Meals" card, and from the food log.
   'Food log',
   'Summary for your GP',
+  // Item 24: reached from Settings, More.
+  'Store',
 ] as const;
 export type ScreenName = (typeof SCREENS)[number];
 
@@ -58,6 +60,7 @@ export const UNDER_SETTINGS: readonly ScreenName[] = [
   'Diet and targets',
   'Foods in the app',
   'Laptop pairing',
+  'Store',
 ];
 
 /** The app's base path, the same as on GitHub Pages. */

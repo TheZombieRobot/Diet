@@ -86,8 +86,8 @@ Conventions for the implementing model:
 23. **Food log.** Quick-add from plan or recipe, add from label (per 100 g or per serve), raw/cooked toggle, confidence badges, water and electrolyte log, manual steps. The Today water card's guide adds core `heatWaterExtraMl(data, sessions, today, equipment)` (item 27: 500 mL for each started hour of today's beach or hot-day sessions) to `waterGuide(...).ml`, with one test (a done beach walk today adds 500 mL; cross-item ruling 12).
     *Acceptance:* FL-01 to FL-03, FL-18 to FL-26, NN-04 (log part), HS-40; schema version 2 (D35 widening).
 
-24. **Grocery list builder and exports.** Aggregate, merge, subtract pantry and garden with audit rows, pack rounding, substitutes, aisle grouping, store name header, optional timestamped prices, copy text, CSV, JSON.
-    *Acceptance:* GL-01 to GL-09; NN-04, NN-05, NN-06.
+24. **Grocery list builder and exports.** Aggregate, merge, subtract pantry and garden with audit rows, pack rounding, substitutes, aisle grouping, store name header, optional timestamped prices, copy text, CSV, JSON. The store name setting (GL-08). Generated list text never carries health data; allergen reminders on the phone only; substitute hints cleared when the profile's filters change; `ListExportButtons` and `copyToClipboard` as item 31 needs them.
+    *Acceptance:* GL-01 to GL-11; NN-04, NN-05, NN-06. *Built:* the List tab (`apps/mobile-web/src/screens/list/`), Settings, Store, and the builder and exports in `packages/grocery/src/list/`.
 
 25. **Week 2 regression and owner trial of planning a week.**
     *Acceptance:* CI green; feedback captured in `docs/CHANGELOG.md`.

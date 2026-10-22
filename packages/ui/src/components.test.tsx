@@ -44,6 +44,7 @@ import {
   TextArea,
   TextField,
   Thumbnail,
+  TickRow,
   TodayIcon,
   TrendChart,
   type TabItem,
@@ -1417,5 +1418,42 @@ describe('CameraView and the Button ref (item 30)', () => {
     const ref = createRef<HTMLButtonElement>();
     render(<Button ref={ref}>Example</Button>);
     expect(ref.current).toBe(screen.getByRole('button', { name: 'Example' }));
+  });
+});
+
+describe('TickRow (item 24 design 1.14)', () => {
+  it('the box covers only its label; the trailing button never ticks the line', () => {
+    const onCheckedChange = vi.fn();
+    render(
+      <ul>
+        <TickRow
+          name="Example item"
+          amount="1 bunch"
+          onCheckedChange={onCheckedChange}
+          trailing={<button type="button">Options</button>}
+        />
+      </ul>,
+    );
+    const box = screen.getByRole('checkbox', { name: 'Example item 1 bunch' });
+    expect(box.closest('label')?.className).toBe('ui-tick-row__tick');
+    expect(screen.getByRole('button', { name: 'Options' }).closest('label')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Options' }));
+    expect(onCheckedChange).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByText('Example item'));
+    expect(onCheckedChange).toHaveBeenCalledWith(true);
+  });
+
+  it('without a tick handler it is plain text, and the dashed card has no fill', () => {
+    render(
+      <Card label="Already have" dashed>
+        <ul>
+          <TickRow name="Example item" amount="500 g" />
+        </ul>
+      </Card>,
+    );
+    expect(screen.queryByRole('checkbox')).toBeNull();
+    expect(screen.getByRole('region', { name: 'Already have' }).className).toBe(
+      'ui-card ui-card--dashed',
+    );
   });
 });

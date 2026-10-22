@@ -371,11 +371,13 @@ export const priceFormatRules: readonly ContentRule[] = [
 ];
 
 /**
- * The one file (once it exists) that formats owner-entered, timestamped prices. It is exempt
- * from the currency rules and must have its own test that refuses a price with no entered-at
- * time (NN-05). Empty until prices are built.
+ * The one file that formats owner-entered, timestamped prices. It is exempt from the currency
+ * rules and has its own test that refuses a price with no entered-at time (NN-05).
  */
-export const PRICE_FORMATTER_FILES: readonly string[] = [];
+export const PRICE_FORMATTER_FILES: readonly string[] = [
+  // Item 24: owner-entered, timestamped prices only (price.test.ts).
+  'packages/grocery/src/list/price.ts',
+];
 
 /** Personal data must never be committed (DECISIONS.md, 2026-10-18). */
 export const personalDataRules: readonly ContentRule[] = [
@@ -1002,6 +1004,8 @@ export const DEVICE_ONLY_CODE_RULES: Readonly<
  */
 export const TEST_SUPPORT_FILES: readonly string[] = [
   'apps/mobile-web/src/db/testKit.ts',
+  // Item 24: the health-sentinel phone (GL-10; item 31's N8 uses it too).
+  'apps/mobile-web/src/db/testSentinels.ts',
   'apps/mobile-web/src/onboarding/flowTestKit.ts',
   'apps/mobile-web/src/screens/drinks/drinksTestKit.ts',
   'apps/mobile-web/src/screens/move/moveTestKit.ts',

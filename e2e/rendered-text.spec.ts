@@ -259,13 +259,21 @@ test('HS-31: Today filled in, with the steps editor and the "+" panel open, and 
   await page.getByRole('button', { name: today.steps.edit }).click();
   await expect(region(page, privacy.backupReminder.cardLabel)).toBeVisible();
   await page.getByRole('button', { name: today.quickActions.title }).click();
-  await expect(quickActionsPanel(page).getByText(today.quickActions.laterNote)).toBeVisible();
+  await expect(
+    quickActionsPanel(page).getByRole('link', {
+      name: today.quickActions.labels['open-grocery-list'],
+    }),
+  ).toBeVisible();
   const found = await violations(page, 'Today filled in');
 
   await patchRecords(page, { readiness: { q5: 'yes', q7: 'yes' } });
   await expect(region(page, alcohol.helpCardLabel)).toBeVisible();
   await page.getByRole('button', { name: today.quickActions.title }).click();
-  await expect(quickActionsPanel(page).getByText(today.quickActions.laterNote)).toBeVisible();
+  await expect(
+    quickActionsPanel(page).getByRole('link', {
+      name: today.quickActions.labels['open-grocery-list'],
+    }),
+  ).toBeVisible();
   found.push(...(await violations(page, 'Today with fasting switched off and the help card')));
   expect(found).toEqual([]);
 });

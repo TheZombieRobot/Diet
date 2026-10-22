@@ -75,27 +75,21 @@ test('TD-03, TD-04, PWA-04: water, the electrolyte tick and steps are saved offl
   await expect(page.getByTestId('steps-today')).toHaveText('9,000');
 });
 
-test('TD-02: a Later quick action does nothing; Log weight opens the entry in place, ready to type', async ({
+test('TD-02: every quick action is built, so none is Later; Log weight opens the entry in place, ready to type', async ({
   page,
 }) => {
   await seedOnboarded(page);
   await todayLoaded(page);
   await expect(region(page, weight.card.label)).toBeVisible();
   await page.getByRole('button', { name: today.quickActions.title }).click();
-  await expect(panel(page).getByText(today.quickActions.laterNote)).toBeVisible();
   const url = page.url();
-  const later = panel(page).locator('[aria-disabled="true"]');
-  // One Later row: items 19, 22, 23, 27 and 28 built Add harvest, Swap recipe, Finish meal,
-  // Complete workout and Add drink.
-  await expect(later).toHaveCount(1);
-  for (let i = 0; i < 1; i++) {
-    // aria-disabled rows stay focusable and tappable on purpose; they just do nothing.
-    await later.nth(i).click({ force: true });
-    await later.nth(i).press('Enter');
-    expect(page.url()).toBe(url);
-    await expect(heading(page)).toHaveText('Today');
-    await expect(panel(page)).toBeVisible();
-  }
+  // Items 19, 22, 23, 24, 27 and 28 built Add harvest, Swap recipe, Finish meal, Open grocery
+  // list, Complete workout and Add drink.
+  await expect(
+    panel(page).getByRole('link', { name: today.quickActions.labels['open-grocery-list'] }),
+  ).toBeVisible();
+  await expect(panel(page).locator('[aria-disabled="true"]')).toHaveCount(0);
+  await expect(panel(page).getByText(today.quickActions.laterNote)).toHaveCount(0);
   await panel(page).getByRole('button', { name: today.quickActions.labels['log-weight'] }).click();
   await expect(panel(page)).toHaveCount(0);
   await expect(page.getByLabel(weight.entry.fieldLabel)).toBeFocused();
@@ -156,7 +150,7 @@ test('TD-03, TD-04: after a save, and after a failed one, focus stays on the con
   await expect(save).toBeFocused();
 });
 
-test('TD-02: the "+" panel keeps the Later note in view, with whole rows on a phone, and every row reachable at 200% zoom', async ({
+test('TD-02: the "+" panel shows whole rows on a phone, and every row is reachable at 200% zoom', async ({
   page,
 }) => {
   await seedOnboarded(page);
@@ -170,12 +164,10 @@ test('TD-02: the "+" panel keeps the Later note in view, with whole rows on a ph
         b.top >= panelBox.top - 0.5 &&
         b.bottom <= Math.min(panelBox.bottom, window.innerHeight) + 0.5 &&
         (b.bottom <= fab.top || b.top >= fab.bottom || b.right <= fab.left || b.left >= fab.right);
-      const note = document.querySelector('.ui-fab-panel p.ui-text-muted');
       const rows = Array.from(document.querySelectorAll('.ui-fab-panel .ui-action-row'), (r) =>
         r.getBoundingClientRect(),
       );
       return {
-        note: note !== null && whole(note.getBoundingClientRect()),
         wholeRows: rows.filter(whole).length,
         // The first row starts in view, so the panel shows that it goes on.
         firstRowStarts: (rows[0]?.top ?? Infinity) < Math.min(panelBox.bottom, fab.top),
@@ -191,9 +183,11 @@ test('TD-02: the "+" panel keeps the Later note in view, with whole rows on a ph
     await page.setViewportSize({ width, height });
     await todayLoaded(page);
     await page.getByRole('button', { name: today.quickActions.title }).click();
-    await expect(panel(page).getByText(today.quickActions.laterNote)).toBeVisible();
+    // Every row is built (items 23 and 24 built the last two), so there is no Later note.
+    await expect(
+      panel(page).getByRole('link', { name: today.quickActions.labels['open-grocery-list'] }),
+    ).toBeVisible();
     const first = await inView();
-    expect(first.note, `${where}: the Later note`).toBe(true);
     expect(first.firstRowStarts, `${where}: the first row`).toBe(true);
     if (width === 360) expect(first.wholeRows, `${where}: whole rows`).toBeGreaterThanOrEqual(3);
     // Scrolled to its end, the last row is clear of the "+".

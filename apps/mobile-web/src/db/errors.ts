@@ -82,7 +82,10 @@ export type StorageRule =
   | 'entry-other-day'
   | 'plan-not-found'
   | 'plan-slot-logged'
-  | 'already-logged';
+  | 'already-logged'
+  // Item 24: a list change that no longer applies (the line is gone or changed, or another tab
+  // changed the list while a build ran).
+  | 'list-changed';
 
 export class StorageRuleError extends Error {
   readonly table: string;

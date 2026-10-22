@@ -60,6 +60,11 @@ export const BUILT_QUICK_ACTIONS: Readonly<Partial<Record<QuickActionId, QuickAc
   'add-drink': { label: today.quickActions.labels['add-drink'], href: routeHref('drinks') },
   // Item 23: the food log, for today. Never gated.
   'finish-meal': { label: today.quickActions.labels['finish-meal'], href: routeHref('food-log') },
+  // Item 24: the List tab. Never gated (J20): a closed gate must not hide food the plan needs.
+  'open-grocery-list': {
+    label: today.quickActions.labels['open-grocery-list'],
+    href: routeHref('list'),
+  },
 };
 
 /**

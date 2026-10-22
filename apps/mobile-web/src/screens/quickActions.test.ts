@@ -20,7 +20,7 @@ describe('quickActionStates (U12; TD-02, T17)', () => {
     );
   });
 
-  it("Log weight opens item 14's entry in place, Finish meal the food log (item 23), Complete workout links to the session (item 27), Add harvest the garden screen (item 19), Swap recipe today's plan (item 22) and Add drink the Drinks screen (item 28); the rest arrive later", () => {
+  it("Log weight opens item 14's entry in place, Finish meal the food log (item 23), Complete workout links to the session (item 27), Add harvest the garden screen (item 19), Swap recipe today's plan (item 22), Add drink the Drinks screen (item 28) and Open grocery list the List (item 24); none is left for later", () => {
     const states = quickActionStates(readinessGates(answers('no')));
     expect(states.map((s) => s.state.kind)).toEqual([
       'ready',
@@ -29,8 +29,17 @@ describe('quickActionStates (U12; TD-02, T17)', () => {
       'ready',
       'ready',
       'ready',
-      'later',
+      'ready',
     ]);
+    // Item 24: Open grocery list, never gated (J20).
+    expect(BUILT_QUICK_ACTIONS['open-grocery-list']).toEqual({
+      label: 'Open grocery list',
+      href: '#/list',
+    });
+    expect(
+      quickActionStates(readinessGates(answers('yes'))).find((s) => s.id === 'open-grocery-list')
+        ?.state.kind,
+    ).toBe('ready');
     expect(BUILT_QUICK_ACTIONS['log-weight']).toEqual({
       label: 'Log weight',
       run: openWeightEntry,

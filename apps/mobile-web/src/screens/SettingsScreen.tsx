@@ -1,5 +1,6 @@
 import { fillTemplate } from '@diet/core';
 import {
+  grocery,
   onboarding,
   profile,
   readiness,
@@ -119,6 +120,15 @@ export function SettingsScreen(): ReactElement {
               href={routeHref('targets')}
               title={targets.settingsRow.title}
               detail={targets.settingsRow.detail}
+              badge={<ChevronIcon />}
+            />
+          </li>
+          {/* Item 24: the store name shown on the grocery list (GL-08). */}
+          <li>
+            <ActionRow
+              href={routeHref('store')}
+              title={grocery.store.rowTitle}
+              detail={grocery.store.rowDetail}
               badge={<ChevronIcon />}
             />
           </li>

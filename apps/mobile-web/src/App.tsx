@@ -34,11 +34,12 @@ import { FastingScreen } from './screens/fasting/FastingScreen';
 import { FoodScreen } from './screens/FoodScreen';
 import { FoodsScreen } from './screens/foods/FoodsScreen';
 import { GardenScreen } from './screens/garden/GardenScreen';
-import { ListScreen } from './screens/ListScreen';
+import { ListScreen } from './screens/list/ListScreen';
 import { MovePlanScreen } from './screens/move/MovePlanScreen';
 import { MoveScreen } from './screens/move/MoveScreen';
 import { MoveSessionScreen } from './screens/move/MoveSessionScreen';
 import { PairingScreen } from './screens/pairing/PairingScreen';
+import { StoreScreen } from './screens/settings/StoreScreen';
 import { PlanDayScreen } from './screens/planner/PlanDayScreen';
 import { FoodLogScreen } from './screens/foodLog/FoodLogScreen';
 import { GpSummaryScreen } from './screens/foodLog/GpSummaryScreen';
@@ -114,6 +115,8 @@ function screenFor(route: RouteId): ReactElement {
       return <MovePlanScreen />;
     case 'pairing':
       return <PairingScreen />;
+    case 'store':
+      return <StoreScreen />;
     case 'recipes':
       return <RecipesScreen />;
     case 'recipe':

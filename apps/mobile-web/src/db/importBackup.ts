@@ -50,6 +50,7 @@ import {
   stableStringify,
   withRunningKickstartSettings,
 } from '@diet/core';
+import { clearSubstituteHints } from '@diet/grocery';
 import type { DietDb } from './db';
 import { migrationEnv, type StorageEnv } from './env';
 import type { GateReason } from './gate';
@@ -187,6 +188,17 @@ export async function planImport(db: DietDb, decoded: DecodedBackup): Promise<Im
       settings: [merged.settings],
     };
     keptStricter = merged.kept;
+    // Item 24 (J28): the file's grocery lists hold substitute hints worked out without the
+    // phone's extra allergens, so they are cleared (version + 1; no audit row on import, D44).
+    if (merged.kept.some((k) => k.table === 'profile' && k.field === 'allergens')) {
+      snapshot = {
+        ...snapshot,
+        grocery_lists: snapshot.grocery_lists.map((list) => {
+          const items = clearSubstituteHints(list.items);
+          return items === null ? list : { ...list, items, version: list.version + 1 };
+        }),
+      };
+    }
   }
   // How far each side's Kickstart had run: the phone now, the file when it was made (its own
   // records, not the rescue merge's singletons), each lifted to its newest saved instant.

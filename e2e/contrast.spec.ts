@@ -45,18 +45,17 @@ for (const colorScheme of ['light', 'dark'] as const) {
     await offerInstall(page);
     await goTo(page, 'Today');
     await expect(page.getByText('Install this app')).toBeVisible();
-    // Item 16: a filled Today with the steps editor open, and the "+" panel's Later rows.
+    // Item 16: a filled Today with the steps editor open, and the "+" panel's rows.
     await page.getByRole('button', { name: 'Add 250 mL' }).click();
     await expect(page.getByTestId('water-total')).toHaveText('250 mL');
     await page.getByRole('button', { name: 'Enter steps' }).click();
     await page.getByRole('button', { name: 'Quick actions' }).click();
-    // One Later row: items 19, 22, 23, 27 and 28 built Add harvest, Swap recipe, Finish meal,
-    // Complete workout and Add drink.
-    await expect(page.locator('.ui-fab-panel [aria-disabled="true"]')).toHaveCount(1);
+    // No Later row: items 19, 22, 23, 24, 27 and 28 built Add harvest, Swap recipe, Finish meal,
+    // Open grocery list, Complete workout and Add drink.
+    await expect(page.locator('.ui-fab-panel [aria-disabled="true"]')).toHaveCount(0);
     await sweep('Today with the install banner, the steps editor and quick actions');
-    // The Later rows are aria-disabled but meant to be read at full contrast, so they are swept.
     const swept = async () => (await textSamples(page)).map((sample) => sample.text);
-    expect(await swept()).toEqual(expect.arrayContaining(['Finish meal', 'Later']));
+    expect(await swept()).toEqual(expect.arrayContaining(['Finish meal', 'Open grocery list']));
     // The Off row and its reason (under 18).
     await patchRecords(page, { readiness: { q1: 'yes' } });
     await page.getByRole('button', { name: 'Quick actions' }).click();

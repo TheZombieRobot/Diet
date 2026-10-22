@@ -12,7 +12,7 @@ import {
   type MealSlot,
   type RefId,
 } from '@diet/core';
-import { foodLog, foods, planner, recipes, targets } from '@diet/core/copy/health';
+import { foodLog, foods, grocery, planner, recipes, targets } from '@diet/core/copy/health';
 
 /**
  * Hash routes (#/today, #/food, ...). GitHub Pages has no server-side rewrites, so the route lives
@@ -53,6 +53,8 @@ export const ROUTES = [
   // Item 23: the food log, and the summary for a GP.
   'food-log',
   'gp-summary',
+  // Item 24: the store name setting, from Settings and the List header.
+  'store',
 ] as const;
 export type RouteId = (typeof ROUTES)[number];
 
@@ -87,6 +89,7 @@ export const ROUTE_TITLES: Readonly<Record<RouteId, string>> = {
   plan: planner.routeTitle,
   'food-log': foodLog.routeTitles.log,
   'gp-summary': foodLog.routeTitles.gpSummary,
+  store: grocery.store.label,
 };
 
 const isRoute = (value: string): value is RouteId => (ROUTES as readonly string[]).includes(value);
@@ -129,6 +132,8 @@ const UNDER_SETTINGS: readonly RouteId[] = [
   // Item 18: reached from About.
   'foods',
   'pairing',
+  // Item 24.
+  'store',
 ];
 
 /** Settings and the screens reached from it light up the settings gear. */

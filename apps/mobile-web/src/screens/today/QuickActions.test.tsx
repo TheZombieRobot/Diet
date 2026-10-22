@@ -29,12 +29,12 @@ async function openPanel(answers: { q1?: 'yes' } = {}): Promise<HTMLElement> {
   await screen.findByRole('button', { name: weight.card.logWeight }, { timeout: 5000 });
   const plus = screen.getByRole('button', { name: copy.title });
   fireEvent.click(plus);
-  await screen.findByText(copy.laterNote);
+  await screen.findByRole('link', { name: copy.labels['open-grocery-list'] });
   return document.getElementById(plus.getAttribute('aria-controls') ?? '') as HTMLElement;
 }
 
 describe('the quick actions (C9)', () => {
-  it('seven rows in the UX order; the one not built is focusable, marked Later and described by the note; Complete workout is a link', async () => {
+  it('seven rows in the UX order, every one built (items 23 and 24 built the last two), so no Later row or note; Complete workout is a link', async () => {
     const panel = await openPanel();
     const rows = within(panel).getAllByRole('listitem');
     expect(rows.map((li) => li.querySelector('.ui-action-row__title')?.textContent)).toEqual(
@@ -43,35 +43,15 @@ describe('the quick actions (C9)', () => {
     const later = within(panel)
       .getAllByRole('button')
       .filter((b) => b.getAttribute('aria-disabled') === 'true');
-    expect(later).toHaveLength(1);
+    expect(later).toEqual([]);
+    expect(screen.queryByText(copy.laterNote)).toBeNull();
     // Item 27: the session screen's resolver (RD-05 turns it Off; MovementCard.test.tsx).
     expect(
       within(panel)
         .getByRole('link', { name: copy.labels['complete-workout'] })
         .getAttribute('href'),
     ).toBe('#/move-session');
-    const note = screen.getByText(copy.laterNote);
-    for (const row of later) {
-      expect(row.hasAttribute('disabled')).toBe(false);
-      expect(row.tabIndex).toBe(0);
-      expect(within(row).getByText(copy.markerLater)).toBeDefined();
-      expect(row.getAttribute('aria-describedby')).toBe(note.id);
-    }
-  });
-
-  it('a Later row does nothing: no hash change and no record written, by click or Enter', async () => {
-    const panel = await openPanel();
-    const before = await counts((test as TestDb).db);
-    const hash = window.location.hash;
-    for (const row of within(panel)
-      .getAllByRole('button')
-      .filter((b) => b.getAttribute('aria-disabled') === 'true')) {
-      row.focus();
-      fireEvent.keyDown(row, { key: 'Enter' });
-      fireEvent.click(row);
-    }
-    expect(window.location.hash).toBe(hash);
-    expect(await counts((test as TestDb).db)).toEqual(before);
+    expect(within(panel).queryByText(copy.markerLater)).toBeNull();
   });
 
   it("Log weight closes the panel and opens the Weight card's entry with focus in its field", async () => {

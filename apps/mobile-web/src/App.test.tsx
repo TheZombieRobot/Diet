@@ -185,6 +185,9 @@ describe('placeholder screens (no sample data)', () => {
     // Item 23: the food log (dates and figures) and the summary for a GP.
     'food-log',
     'gp-summary',
+    // Item 24: the grocery list and the store setting.
+    'list',
+    'store',
   ];
   const placeholders = ROUTES.filter((r) => !built.includes(r));
 
@@ -237,15 +240,15 @@ describe('placeholder screens (no sample data)', () => {
     });
     expect(screen.getByText('Install this app')).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Quick actions' }));
-    await screen.findByText(today.quickActions.laterNote);
+    await screen.findByRole('link', { name: today.quickActions.labels['open-grocery-list'] });
     const scoped = [
       ...screen.queryAllByTestId('later-step'),
       ...document.querySelectorAll('.ui-fab-panel [aria-disabled="true"]'),
     ];
-    // No later-step line (items 27 and 28 built Movement and drink logging) and one Later row
-    // (items 19, 22, 23, 27 and 28 built Add harvest, Swap recipe, Finish meal, Complete workout
-    // and Add drink).
-    expect(scoped).toHaveLength(1);
+    // No later-step line (items 27 and 28 built Movement and drink logging) and no Later row
+    // (items 19, 22, 23, 24, 27 and 28 built Add harvest, Swap recipe, Finish meal, Open grocery
+    // list, Complete workout and Add drink).
+    expect(scoped).toEqual([]);
     for (const element of scoped) {
       expect(element.textContent).not.toMatch(/\d/);
       expect(element.textContent).not.toMatch(/[$€£]/);
@@ -260,8 +263,10 @@ describe('placeholder screens (no sample data)', () => {
     fireEvent.click(plus);
     expect(plus.getAttribute('aria-expanded')).toBe('true');
     const panelId = plus.getAttribute('aria-controls') ?? '';
-    await screen.findByText(today.quickActions.laterNote);
-    expect(document.getElementById(panelId)?.textContent).toContain(today.quickActions.laterNote);
+    await screen.findByRole('link', { name: today.quickActions.labels['open-grocery-list'] });
+    expect(document.getElementById(panelId)?.textContent).toContain(
+      today.quickActions.labels['finish-meal'],
+    );
     fireEvent.click(plus);
     expect(plus.getAttribute('aria-expanded')).toBe('false');
   });
