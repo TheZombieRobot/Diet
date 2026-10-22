@@ -78,7 +78,7 @@ Checklist item 15 added fasting (`apps/mobile-web/src/screens/fasting`; the rule
 - While the readiness answers switch fasting off, only the reason and the reflux log show, and a fast still open can be ended; nothing is deleted.
 
 Checklist item 16 finished Today and About (`apps/mobile-web/src/screens/today`; the rules are in `packages/core/src/today`):
-- **Today:** the date and a one-line status from the fasting timer (past 24 hours, always the warning); the "talk to someone" card first when it applies; Weight and Fast; item 21's Nutrition today card; water with "Add 250 mL", Undo and an electrolyte switch; steps typed in, with "Same as yesterday"; the NZ alcohol guidance line, always with "No alcohol use is risk-free."; and Reminders: the lipid test and cholesterol check-ins, the electrolyte reminder during Kickstart and the first two weeks of the keto carb ceiling, medication timing while fasting is switched off, and the backup reminder. Movement and drink logging say they arrive later, with no figures. Nothing can be logged before setup is finished.
+- **Today:** the date and a one-line status from the fasting timer (past 24 hours, always the warning); the "talk to someone" card first when it applies; Weight and Fast; item 21's Nutrition today card; water with "Add 250 mL", Undo and an electrolyte switch; steps typed in, with "Same as yesterday"; the NZ alcohol guidance line, always with "No alcohol use is risk-free."; and Reminders: the lipid test and cholesterol check-ins, the electrolyte reminder during Kickstart and the first two weeks of the keto carb ceiling, medication timing while fasting is switched off, and the backup reminder. Nothing can be logged before setup is finished.
 - **"+" quick actions:** Log weight opens the entry on the Weight card; Swap recipe opens today's plan (item 22); the actions not built yet are marked "Later" and do nothing; Add drink shows "Off" with the reason under 18.
 - **About:** says that no other site is published from the app's GitHub account, and what the Label, Database and Estimate badges mean; the Data sources card links to Foods in the app (item 18) and will name a food database, with its attribution, once one is approved at checklist item 10.
 
@@ -125,7 +125,7 @@ The app lives under `/Diet/` because that is its address on GitHub Pages. To bui
 
 The app will live at **https://thezombierobot.github.io/Diet/**. Publishing happens only on purpose: the deploy workflow (`.github/workflows/pages.yml`) starts for every push to a work branch (named `ccr-...`), but publishes only when the subject line (the first line) of the pushed head commit's message contains **[deploy]**, and only after the full checks (`pnpm check`: safety scans, lint, type check, unit tests) and the full browser tests (`pnpm e2e`) pass. Any other push publishes nothing, and its run says so in its summary. The marker anywhere else in a message (a commit body quoting it, say) does not count. Steps:
 1. On GitHub: Settings → Pages → Build and deployment → Source: **GitHub Actions** (done by the owner on 19 October 2026).
-2. **Still to do by the owner:** Settings → Environments → **github-pages** → Deployment branches and tags → Add deployment branch rule → `ccr-*`. By default only the default branch may deploy, so until this rule exists a deploy is refused.
+2. Settings → Environments → **github-pages** → Deployment branches and tags → Add deployment branch rule → `ccr-*` (in place: the week-1 build was published from a `ccr-` branch on 22 October 2026). By default only the default branch may deploy, so without this rule a deploy is refused.
 3. Push a commit whose subject line contains `[deploy]` (or, once the workflow is on the default branch, Actions → **Deploy phone app to GitHub Pages** → Run workflow). Before telling anyone the new version is live, check that a **Deploy phone app to GitHub Pages** run for that exact commit finished its Deploy job (Actions tab, or `gh run list --workflow pages.yml --commit <sha>`). It runs the safety scans and tests, the browser tests, builds the app, publishes it, then checks the live copy in Chrome: installable with no errors, manifest and icons present, works offline, requests only to its own address, the Content Security Policy blocks nothing, and it will not run in a frame. The same check can be run by hand: `DIET_E2E_URL=https://thezombierobot.github.io/Diet/ pnpm exec playwright test e2e/pwa.spec.ts e2e/network.spec.ts e2e/rendered-text.spec.ts e2e/shell.spec.ts`.
 4. On the phone, open the address in Chrome and tap **Install app** (Today or Settings), or use Chrome's menu → Install app (TEST_PLAN PWA-02).
 
@@ -163,6 +163,19 @@ You need Git and Node.js 22.18 or newer on your laptop (check with `node --versi
 To update the relay later (the implementer will say when): steps 2, 3, 5, 6, 7 and 8.
 
 Wrangler is the Cloudflare tool these commands use. Step 3 switches off its usage reports for every Wrangler command on this laptop, and the commands also tell it not to send them. It may check the internet for a newer version of itself; that check carries nothing about you or the app.
+
+## Everyday tasks (handover notes)
+
+Plain steps for looking after the app yourself (checklist item 43). The laptop side panel's steps arrive with checklist items 32 to 34.
+
+- **Get a new version.** When the app shows "Update available", tap **Reload**. Your records stay on the phone. If the app has not offered one for a while, close it fully and open it again.
+- **Back up.** Settings → Backup and data → **Export a backup**. Keep the password (it is not stored anywhere you can recover it from) and keep the file somewhere other than the phone, such as your laptop over a USB cable. The app reminds you on Today 7 days after the last backup you confirmed.
+- **Restore (a new phone, or after delete-all).** Install the app from https://thezombierobot.github.io/Diet/ in Chrome, read the alcohol safety note, tap **Restore from a backup instead**, choose the file and type its password. Nothing changes until you tap **Replace**, after the app shows what it would replace. Then check your readiness answers still apply.
+- **Delete all.** Settings → Backup and data → **Delete all data**, then confirm twice. The screen lists what it cannot reach: backup files you made, the laptop's copy of a list, a backup password saved in Chrome, the camera permission (Chrome → Site settings) and GP summary files. A copy restored in another browser is deleted from inside that browser.
+- **Pair with the laptop again.** Settings → Laptop pairing → **Pair again**, then scan the code the laptop's side panel shows (checklist item 33). Do this whenever someone may have seen the pairing code. **Unpair** works on the phone alone and sends nothing.
+- **Reload the side panel after a Chrome update.** Arrives with checklist item 32.
+- **Put the relay online again, or update it.** The steps under "The relay", "To update the relay later".
+- **Check the published app.** Actions → the latest **Deploy phone app to GitHub Pages** run for the commit → all four jobs green, including **Check the deployed app**.
 
 ## Privacy note
 Nothing personal belongs in this repository: no health history, no logs, no backups. Your data lives only in the app on your phone. See `docs/DECISIONS.md`.
