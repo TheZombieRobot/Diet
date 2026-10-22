@@ -91,6 +91,16 @@ export const GROUND = requireToken(tokens, '--color-ground');
 export const heading = (page: Page) => page.getByRole('heading', { level: 1 });
 
 /**
+ * The screen under the heading has arrived: a screen whose code loads on demand (code split) has
+ * replaced its waiting line, and not with the card that says its code could not be fetched. Call
+ * it once the heading names the screen: the waiting line is drawn with the heading.
+ */
+export async function screenArrived(page: Page): Promise<void> {
+  await expect(page.getByTestId('screen-loading')).toHaveCount(0);
+  await expect(page.getByTestId('screen-load-failed')).toHaveCount(0);
+}
+
+/**
  * Goes to a screen the way a person would: a tab, the settings gear, then "About this app"; the
  * Weight screen through Today's Weight card, the Fasting screen through Today's Fast card, and
  * Garden and pantry and Recipes through Food's links.
@@ -158,6 +168,7 @@ export async function goTo(page: Page, screen: ScreenName): Promise<void> {
     }
   }
   await expect(heading(page)).toHaveText(screen);
+  await screenArrived(page);
   // Today draws its cards after its own reads (item 16): wait for them, so a check measures them.
   if (screen === 'Today') {
     await expect(

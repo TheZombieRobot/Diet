@@ -118,15 +118,28 @@ test('a new version shows "Update available"; Reload switches to it and keeps sa
   await expect(page.getByText('Update available')).toHaveCount(0);
 });
 
-test('a new version changes only the app chunk: the vendor and jsQR files keep their names, so an update does not fetch them again', () => {
+test('a new version changes only the entry chunk: vendor, jsQR, the shared layers, the datasets and every screen loaded on demand keep their names, so an update does not fetch them again', () => {
   const scripts = (dir: string) =>
     readdirSync(join(dir, 'assets')).filter((name) => name.endsWith('.js'));
   const [a, b] = [scripts(DIST_DIR), scripts(buildB)];
-  // Build B differs from build A only in its build label, which is in the app's own code.
+  // Build B differs from build A only in its build label, which is in the entry chunk alone
+  // (vite.config.ts): no other chunk imports it, so no other file name changes.
   expect(a.filter((name) => !b.includes(name))).toEqual([
     expect.stringMatching(/^index-[\w-]+\.js$/),
   ]);
-  for (const chunk of [/^vendor-[\w-]+\.js$/, /^jsQR-[\w-]+\.js$/]) {
+  const kept = [
+    'vendor',
+    'jsQR',
+    'copy',
+    'core',
+    'app',
+    'foods-data',
+    'recipes-data',
+    'exercises-data',
+    'SettingsScreen',
+    'ListScreen',
+  ];
+  for (const chunk of kept.map((name) => new RegExp(`^${name}-[\\w-]+\\.js$`))) {
     expect(a.filter((name) => chunk.test(name) && b.includes(name))).toHaveLength(1);
   }
 });

@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
 import { expect, test } from '@playwright/test';
 import ts from 'typescript';
@@ -161,6 +161,38 @@ test('the built service worker loads and caches only the app’s own files, by r
   // Every built chunk is in it too: the app's own, "vendor" and jsQR (full review F44).
   const assets = filesUnder(join(DIST_DIR, 'assets')).map((f) => relative(DIST_DIR, f));
   expect(precacheUrls).toEqual(expect.arrayContaining(assets));
+});
+
+/** What each `import(...)` in some code is given: the files it fetches on demand. */
+export const lazyImports = (code: string): string[] =>
+  [...code.matchAll(/\bimport\(([^)]*)\)/g)].map((m) => (m[1] ?? '').trim());
+
+/** A literal file beside the importing script, so nothing is fetched from another origin. */
+const SIBLING_SCRIPT = /^"\.\/([\w.-]+\.js)"$/;
+
+test('every screen loaded on demand is in the offline copy, fetched by relative URL, and no script reaches Vite’s 500 kB warning', () => {
+  const { precacheUrls } = inspectServiceWorker(readFileSync(join(DIST_DIR, 'sw.js'), 'utf8'));
+  const scripts = filesUnder(join(DIST_DIR, 'assets')).filter((f) => extname(f) === '.js');
+  const lazy = scripts.flatMap((file) =>
+    lazyImports(readFileSync(file, 'utf8')).map((arg) => ({ from: relative(DIST_DIR, file), arg })),
+  );
+  // Each screen but Today and About (code split): a check that finds none checks nothing.
+  expect(lazy.length).toBeGreaterThanOrEqual(20);
+  for (const { from, arg } of lazy) {
+    const file = SIBLING_SCRIPT.exec(arg)?.[1];
+    expect(file, `import(${arg}) in ${from}`).toBeDefined();
+    expect(precacheUrls, `import(${arg}) in ${from}`).toContain(`assets/${file ?? arg}`);
+  }
+  // Vite warns above 500 kB; every chunk, the first one included, stays under it.
+  for (const file of scripts) {
+    expect(statSync(file).size, relative(DIST_DIR, file)).toBeLessThan(500_000);
+  }
+  // The check sees an import from another origin, and one whose address is computed.
+  const found = lazyImports('import("./a-1.js");import("https://x.example/c.js");import(u)');
+  expect(found.filter((arg) => !SIBLING_SCRIPT.test(arg))).toEqual([
+    '"https://x.example/c.js"',
+    'u',
+  ]);
 });
 
 test("the app's files carry none of the storage tests' synthetic rows", () => {

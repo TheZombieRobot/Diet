@@ -1,5 +1,6 @@
 import { createServer } from 'node:http';
 import { expect, test, type Page } from '@playwright/test';
+import { onboarding } from '../packages/core/src/copy/health';
 import {
   BASE_PATH,
   CONTENT_SECURITY_POLICY,
@@ -271,6 +272,52 @@ test('a new screen moves focus to its heading', async ({ page }) => {
   for (const screen of ['Food', 'Settings', 'About', 'Today'] as const) {
     await goTo(page, screen);
     await expect(heading(page)).toBeFocused();
+  }
+});
+
+test('a screen whose code is still arriving shows the waiting line under its focused heading; one whose code cannot be fetched offers Reload and the help numbers', async ({
+  browser,
+  baseURL,
+}) => {
+  // With service workers blocked, each screen's code comes from the network, where it is held.
+  const context = await browser.newContext({
+    serviceWorkers: 'block',
+    ...(baseURL === undefined ? {} : { baseURL }),
+  });
+  try {
+    const page = await context.newPage();
+    await seedOnboarded(page);
+    let release = (): void => undefined;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route(/\/assets\/SettingsScreen-[\w-]+\.js$/, async (route) => {
+      await held;
+      await route.continue();
+    });
+    await page.route(/\/assets\/DrinksScreen-[\w-]+\.js$/, (route) => route.abort());
+
+    await page.getByRole('banner').getByRole('link', { name: 'Settings' }).click();
+    await expect(heading(page)).toHaveText('Settings');
+    await expect(page.getByTestId('screen-loading')).toHaveText(onboarding.frame.opening);
+    await expect(heading(page)).toBeFocused();
+    release();
+    await expect(page.getByRole('region', { name: 'Install' })).toBeVisible();
+    await expect(page.getByTestId('screen-loading')).toHaveCount(0);
+    await expect(heading(page)).toBeFocused();
+
+    await page
+      .getByRole('navigation', { name: 'Main' })
+      .getByRole('link', { name: 'Drinks' })
+      .click();
+    await expect(heading(page)).toHaveText('Drinks');
+    const main = page.getByRole('main');
+    await expect(main.getByTestId('screen-load-failed')).toBeVisible();
+    await expect(main.getByRole('button', { name: 'Reload' })).toBeVisible();
+    await expect(main.getByRole('link', { name: /111$/ })).toBeVisible();
+    await expect(heading(page)).toBeFocused();
+  } finally {
+    await context.close();
   }
 });
 

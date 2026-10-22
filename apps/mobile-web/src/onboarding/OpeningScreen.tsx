@@ -11,7 +11,7 @@ const reload = (): void => {
 };
 
 /** The not-a-medical-device line and the help numbers, from static copy (HS-13). */
-function SafetyBlock(): ReactElement {
+export function SafetyBlock(): ReactElement {
   return (
     <Card label={privacy.storageFailure.helpTitle}>
       <p>{general.about}</p>

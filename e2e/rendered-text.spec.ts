@@ -23,6 +23,7 @@ import {
   type ScreenName,
   SCREENS,
   seedOnboarded,
+  screenArrived,
   SETUP_SCREENS,
   SWEPT_RECIPE,
   visitEveryScreen,
@@ -298,6 +299,7 @@ test('E4 C97 NU-09: while no food database is approved, no screen names one', as
 test('the rendered-text scan catches wording that slips into a screen', async ({ page }) => {
   await seedOnboarded(page, './#/drinks');
   await expect(heading(page)).toHaveText('Drinks');
+  await screenArrived(page);
   await page.evaluate(() => {
     const seeded = document.createElement('p');
     seeded.textContent = 'You have 2 drinks left this week. Added to cart. $4.50';

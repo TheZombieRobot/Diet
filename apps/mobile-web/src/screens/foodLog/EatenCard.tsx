@@ -28,7 +28,8 @@ import { alcohol, foodLog, foods, planner, targets } from '@diet/core/copy/healt
 import { Button, ButtonRow, Card, Chip, ExpandableRow, Notice, NutrientTable } from '@diet/ui';
 import { type ReactElement, useEffect, useRef, useState } from 'react';
 import { formatLocalTime, formatWhole } from '../../format';
-import { ServesStepper, TimeField } from './AddFood';
+import { ServesStepper } from './AddFood';
+import { TimeField } from './TimeField';
 import { AmountChecks, AmountFields } from './LabelForm';
 import type { AmountInput, LogContext } from './logContext';
 import { findRecipe } from './recipeFigures';
