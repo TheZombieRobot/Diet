@@ -41,7 +41,9 @@ export interface LogWeightPanelProps {
  * 2.6.1, W6): the field starts empty with the last weigh-in as its hint; − and + step 0.1 kg from
  * the field or the last weigh-in; "Same as last time" fills the field but still needs Save. A
  * backdated time is read in the device zone; a time still to come is refused; more than 3 kg from
- * a weigh-in in the week before asks to confirm the number.
+ * a weigh-in in the week before asks to confirm the number. A save while stored weigh-ins are timed
+ * after now says the phone's clock may be wrong (HS-35; DECISIONS 2026-10-22 "a low weigh-in after
+ * a clock error"); no stored weigh-in is re-timed.
  */
 export function LogWeightPanel({
   storage,
@@ -115,18 +117,21 @@ export function LogWeightPanel({
           ...(at === undefined ? {} : { at }),
         }),
       );
+      const clockWrong = await storage.repos.weights.list().then(
+        (rows) => rows.some((row) => parseInstant(row.at) > parseInstant(now)),
+        () => false,
+      );
       setText('');
       setNote('');
       setWhen(null);
       setBigChange(null);
       // Save is now off (the field is empty): focus goes back to the field, not to the page.
       field.current?.focus();
-      onSaved(
-        fillTemplate(weight.entry.saved, {
-          kg: formatKg(parsed.kg),
-          time: formatLocalTime(at ?? now, zone),
-        }),
-      );
+      const saved = fillTemplate(weight.entry.saved, {
+        kg: formatKg(parsed.kg),
+        time: formatLocalTime(at ?? now, zone),
+      });
+      onSaved(clockWrong ? `${saved} ${weight.entry.clockWrong}` : saved);
     } catch (failed) {
       setFailure(weightWriteMessage(failed, 'entry'));
     } finally {

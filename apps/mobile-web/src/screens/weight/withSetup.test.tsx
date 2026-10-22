@@ -126,7 +126,7 @@ describe('a weigh-in below BMI 18.5 runs item 13’s gate effects in the same ac
     });
   });
 
-  it('a higher weigh-in timed later today (saved while the clock ran ahead) never hides it, and a fast is refused', async () => {
+  it('a higher weigh-in timed later today (saved while the clock ran ahead) never hides it, before or after that time, and a fast is refused', async () => {
     const db = await seed(NEAR_FLOOR, 10);
     db.env.set(scenarioInstant(SCENARIO_DAY1, 10, '23:00'));
     await db.repos.weights.create({ kg: 62, source: 'manual', note: null });
@@ -140,6 +140,10 @@ describe('a weigh-in below BMI 18.5 runs item 13’s gate effects in the same ac
     await waitFor(async () => {
       expect(await periods(db)).toMatchObject([{ endReason: 'readiness-gated' }]);
     });
+    await expect(db.repos.fasts.start()).rejects.toMatchObject({ rule: 'fasting-gated' });
+    // The save says the clock may be wrong; once real time passes 11 pm, 59.0 still counts.
+    await screen.findByText(weight.entry.clockWrong, { exact: false });
+    db.env.set(scenarioInstant(SCENARIO_DAY1, 11, '08:00'));
     await expect(db.repos.fasts.start()).rejects.toMatchObject({ rule: 'fasting-gated' });
   });
 
