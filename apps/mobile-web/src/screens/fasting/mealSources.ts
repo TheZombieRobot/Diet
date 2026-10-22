@@ -4,11 +4,16 @@
  * Fast card's own window on that date, with the recipes' live figures, through the same core
  * function the Day screen uses. When a bundled dataset could not be loaded no recipe is known, so a
  * planned meal reads "protein unknown" and the snack or the widen line is offered, never the "no
- * meals planned" wording. The food log stays item 23's. No weight-phase function is read here, and
- * the planner never reads the drink log (C11).
+ * meals planned" wording. The logged food is item 23's loggedIntakeForMealCheck: one row per
+ * planned slot, label energy capped by its macronutrients (C11), and a date with no entries read as
+ * nothing logged (cross-item ruling 23). No weight-phase function is read here, and the planner
+ * never reads the drink log (C11).
  */
 import {
   allowedSlots,
+  DEFAULT_HOME_TIME_ZONE,
+  loggedIntakeForMealCheck,
+  resolveZone,
   type LocalDate,
   type PlanData,
   plannedMealsForCheck,
@@ -21,7 +26,7 @@ import type { FastingInputs } from './inputs';
 import type { MealSources } from './integration';
 
 export function mealSourcesFrom(args: {
-  readonly inputs: Pick<FastingInputs, 'planDays' | 'recipeRows'>;
+  readonly inputs: Pick<FastingInputs, 'planDays' | 'recipeRows' | 'foodLog' | 'settings'>;
   /** planData(): null when a dataset failed to load. */
   readonly data: PlanData | null;
   /** The Fast card's own schedule (view.ts scheduleOf). */
@@ -43,6 +48,11 @@ export function mealSourcesFrom(args: {
         allowedSlots(planSlotsFor(windowOn(date, schedule))),
         lookup,
       ),
-    loggedIntake: () => null,
+    loggedIntake: (date: LocalDate) =>
+      loggedIntakeForMealCheck(
+        inputs.foodLog,
+        date,
+        resolveZone(inputs.settings.homeTimeZone, DEFAULT_HOME_TIME_ZONE).timeZone,
+      ),
   };
 }

@@ -35,11 +35,24 @@ import {
 } from '@diet/core';
 import Dexie from 'dexie';
 import { planData } from '../../planner/planData';
+import type { DietDb } from '../db';
 import { StorageRuleError } from '../errors';
 import { prepare } from '../prepare';
 import { guardedWrite, type RepoContext } from './context';
 import { type CrudRepo, crudRepo, stampCreate, stampUpdate } from './crud';
 import { recipesInScope } from './recipes';
+
+/**
+ * A date's plan row, read inside another repository's transaction (item 23's food log, which logs
+ * a planned meal as eaten), so the plan_days store is still named only here (item 22's scan).
+ * @transactionScope
+ */
+export function planDayInScope(
+  db: DietDb,
+  date: LocalDate,
+): PromiseLike<PlanDayRecord | undefined> {
+  return db.plan_days.get(date);
+}
 
 export interface PlanWriteOutcome {
   readonly written: readonly LocalDate[];

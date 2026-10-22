@@ -58,6 +58,8 @@ export const BUILT_QUICK_ACTIONS: Readonly<Partial<Record<QuickActionId, QuickAc
   // Item 28: opens the Drinks screen, and never logs a drink by itself (A32). Under 18 its gate
   // below shows it Off with item 13's reason.
   'add-drink': { label: today.quickActions.labels['add-drink'], href: routeHref('drinks') },
+  // Item 23: the food log, for today. Never gated.
+  'finish-meal': { label: today.quickActions.labels['finish-meal'], href: routeHref('food-log') },
   // Item 24: the List tab. Never gated (J20): a closed gate must not hide food the plan needs.
   'open-grocery-list': {
     label: today.quickActions.labels['open-grocery-list'],

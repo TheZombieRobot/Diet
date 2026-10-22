@@ -1,4 +1,8 @@
 import {
+  GP_SUMMARY_DEFAULT_DAYS,
+  GP_SUMMARY_RANGE_DAYS,
+  type GpRangeDays,
+  type Id,
   isId,
   isLocalDate,
   isSeedId,
@@ -8,7 +12,7 @@ import {
   type MealSlot,
   type RefId,
 } from '@diet/core';
-import { foods, grocery, planner, recipes, targets } from '@diet/core/copy/health';
+import { foodLog, foods, grocery, planner, recipes, targets } from '@diet/core/copy/health';
 
 /**
  * Hash routes (#/today, #/food, ...). GitHub Pages has no server-side rewrites, so the route lives
@@ -46,6 +50,9 @@ export const ROUTES = [
   'recipe',
   // Item 22: one planned day.
   'plan',
+  // Item 23: the food log, and the summary for a GP.
+  'food-log',
+  'gp-summary',
   // Item 24: the store name setting, from Settings and the List header.
   'store',
 ] as const;
@@ -80,6 +87,8 @@ export const ROUTE_TITLES: Readonly<Record<RouteId, string>> = {
   recipes: recipes.routeTitles.recipes,
   recipe: recipes.routeTitles.recipe,
   plan: planner.routeTitle,
+  'food-log': foodLog.routeTitles.log,
+  'gp-summary': foodLog.routeTitles.gpSummary,
   store: grocery.store.label,
 };
 
@@ -145,6 +154,8 @@ export const PARENT_TAB: Readonly<Partial<Record<RouteId, TabRouteId>>> = {
   recipes: 'food',
   recipe: 'food',
   plan: 'food',
+  'food-log': 'food',
+  'gp-summary': 'food',
   'move-session': 'move',
   'move-plan': 'move',
 };
@@ -210,6 +221,9 @@ export const DEEP_LINKS: readonly string[] = [
   // Item 22: today's plan (the "Swap recipe" quick action) and a dated day.
   '#/plan/today',
   '#/plan/2000-01-03',
+  // Item 23: a dated day of the food log, and the summary for a GP.
+  '#/food-log/2000-01-02',
+  '#/gp-summary?days=56',
 ];
 
 /**
@@ -261,4 +275,42 @@ export function planDayRouteOf(
   const detail = routeDetail(hash);
   if (detail === 'today') return { date: today };
   return detail !== null && isLocalDate(detail) ? { date: detail } : null;
+}
+
+// ---- Item 23: the food log ----
+
+/** The food log for today, for a date, or for a date with one entry opened (Today's Nutrition card). */
+export function foodLogHref(date?: LocalDate, entryId?: Id): string {
+  const base = routeHref('food-log');
+  if (date === undefined) return base;
+  return entryId === undefined ? `${base}/${date}` : `${base}/${date}?entry=${entryId}`;
+}
+
+/**
+ * The date a food-log hash names: a valid date up to today, else today (a future or malformed date
+ * opens today); the entry to open; and whether the screen follows today (no date in the route).
+ */
+export function foodLogRouteOf(
+  hash: string,
+  today: LocalDate,
+): { readonly date: LocalDate; readonly entryId: Id | null; readonly followToday: boolean } {
+  const detail = routeDetail(hash);
+  const dated = detail !== null && isLocalDate(detail) && detail <= today;
+  const entry = new URLSearchParams(hash.split('?')[1] ?? '').get('entry');
+  return {
+    date: dated ? detail : today,
+    entryId: isId(entry) ? entry : null,
+    followToday: detail === null,
+  };
+}
+
+/** The summary for a GP, with a range preselected (the cholesterol check-in reminder). */
+export function gpSummaryHref(days?: GpRangeDays): string {
+  return days === undefined ? routeHref('gp-summary') : `${routeHref('gp-summary')}?days=${days}`;
+}
+
+/** The range a GP-summary hash names, or the default. */
+export function gpSummaryRouteOf(hash: string): GpRangeDays {
+  const days = Number(new URLSearchParams(hash.split('?')[1] ?? '').get('days'));
+  return GP_SUMMARY_RANGE_DAYS.find((d) => d === days) ?? GP_SUMMARY_DEFAULT_DAYS;
 }

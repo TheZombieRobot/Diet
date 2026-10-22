@@ -12,6 +12,36 @@ import type { MealCheckView } from './view';
 const copy = fasting.mealCheck;
 
 /**
+ * The after-window line (item 15; item 23 and its review): nothing logged; a figure not known (no
+ * "came in under", HS-37); no energy target only; else short. On a reflux day the reflux form, and
+ * during a stop-sign pause the one that names no eating-window time (HEALTH_SAFETY section 2).
+ */
+function afterWindowLine(check: MealCheckView): string {
+  const { reasons } = check;
+  const lines =
+    check.kind === 'after-empty'
+      ? ([
+          copy.afterWindowNothingLogged,
+          copy.afterWindowNothingLoggedReflux,
+          copy.afterWindowNothingLoggedRefluxPaused,
+        ] as const)
+      : reasons.includes('protein') || reasons.includes('energy')
+        ? ([copy.afterWindow, copy.afterWindowReflux, copy.afterWindowRefluxPaused] as const)
+        : reasons.includes('protein-not-known') || reasons.includes('energy-not-known')
+          ? ([
+              copy.afterWindowNotKnown,
+              copy.afterWindowNotKnownReflux,
+              copy.afterWindowNotKnownRefluxPaused,
+            ] as const)
+          : ([
+              copy.afterWindowUnchecked,
+              copy.afterWindowUncheckedReflux,
+              copy.afterWindowUncheckedRefluxPaused,
+            ] as const);
+  return !check.refluxDay ? lines[0] : check.stopSignPause ? lines[2] : lines[1];
+}
+
+/**
  * One date's meal check on the Fast card (item 15 design 3.7; FL-10, FL-12, FL-13, HS-18, C62):
  * the decision table's kind, as the view worked it out. Every offer and after-window line says it
  * is fine to eat or widen the window, the widen line stays whenever the check fails, and nothing
@@ -61,16 +91,9 @@ export function MealCheck({
     <p className="ui-text-muted">{copy.energyUnavailable}</p>
   );
 
-  if (kind === 'after') {
+  if (kind === 'after' || kind === 'after-empty') {
     const tomorrow = check.tomorrowSnack;
-    const uncheckedOnly = reasons.every((r) => r === 'energy-unknown');
-    const line = check.refluxDay
-      ? uncheckedOnly
-        ? copy.afterWindowUncheckedReflux
-        : copy.afterWindowReflux
-      : uncheckedOnly
-        ? copy.afterWindowUnchecked
-        : copy.afterWindow;
+    const line = afterWindowLine(check);
     return (
       <div data-testid="meal-check-after">
         <Notice tone="info">

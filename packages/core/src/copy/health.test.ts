@@ -366,6 +366,21 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
   // ceiling", no alcohol.
   recipes: RECIPES_SECTION_RULES,
   planner: PLANNER_SECTION_RULES,
+  // Item 23 (design 3.1): no "left" wording about intake (C11), no moral words about food, no
+  // claim that a figure is exact, no safety or price wording (HS-16), the badge word only from
+  // foods.badges, an unknown never written as 0, no claim that a downloaded file was saved.
+  foodLog: [
+    /\b(?:left|remaining|to\s+go)\b/i,
+    /\b(?:bad|naughty|cheat\w*|guilt\w*|sin(?:s|ful)?|junk|clean\s+eating)\b/i,
+    /\b(?:exact(?:ly)?|accurate|accuracy|verified|precise(?:ly)?)\b/i,
+    /\bsafe(?:ly|r)?\b/i,
+    /\bguarantee\w*/i,
+    /\bprices?\b/i,
+    /\bestimat\w*/i,
+    /(?<![\d.])0\s*(?:g|kJ|mg|mL)\b/,
+    /\b(?:saved|backed\s+up)\b/i,
+    /\b(?:streaks?|well\s+done|great\s+job|on\s+track|off\s+track)\b/i,
+  ],
   // Item 24 (HS-16, NN-05, C57, GL-08; item 31 rule 4).
   grocery: GROCERY_SECTION_RULES,
 };
@@ -686,6 +701,12 @@ describe('fasting and reflux copy (item 15)', () => {
       m.afterWindowReflux,
       m.afterWindowUnchecked,
       m.afterWindowUncheckedReflux,
+      m.afterWindowNotKnown,
+      m.afterWindowNotKnownReflux,
+      m.afterWindowRefluxPaused,
+      m.afterWindowUncheckedRefluxPaused,
+      m.afterWindowNothingLoggedRefluxPaused,
+      m.afterWindowNotKnownRefluxPaused,
       m.unavailableOneMeal,
       m.unavailableOneMealNoSnack,
       fasting.card.windowOpen,
@@ -697,6 +718,14 @@ describe('fasting and reflux copy (item 15)', () => {
     ]) {
       expect(text).toMatch(/\bfine to\b/);
     }
+  });
+
+  it('item 23 review: a paused line names no eating-window time; a not-known line makes no "came in under" claim', () => {
+    const m = fasting.mealCheck;
+    for (const [path, text] of strings(m, 'mealCheck').filter(([p]) => p.endsWith('Paused')))
+      expect(text, path).not.toMatch(/\d\s*(?:am|pm)\b|earlier meal|snack|window/i);
+    for (const text of [m.afterWindowNotKnown, m.afterWindowNotKnownReflux])
+      expect(text).not.toMatch(/came in under|short|less than/i);
   });
 
   it('the meal-check and streak lines never say "broken fast" or anything about losing a streak (FL-12, C63)', () => {
@@ -1172,9 +1201,9 @@ describe('plain words on the screens the owner reads (full review F24, F41)', ()
     expect(weight.chart.aboutBand).toContain('Settings');
   });
 
-  it("the Nutrition card's empty line says food logging comes later, with no figure", () => {
-    expect(targets.today.laterStep).toMatch(/later step/);
-    expect(targets.today.laterStep).not.toMatch(/\d/);
+  it("the Nutrition card's empty line says the food log is empty, with no figure", () => {
+    expect(targets.today.nothingLogged).toMatch(/food log/);
+    expect(targets.today.nothingLogged).not.toMatch(/\d/);
   });
 });
 

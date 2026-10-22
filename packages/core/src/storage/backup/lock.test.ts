@@ -7,7 +7,7 @@ import {
   PBKDF2_IMPORT_MIN_ITERATIONS,
   PBKDF2_MAX_ITERATIONS,
 } from '../limits';
-import type { MigrationEnv } from '../migrations';
+import { type MigrationEnv, SCHEMA_VERSION } from '../migrations';
 import { bytesToBase64 } from './base64';
 import {
   BACKUP_FORMAT,
@@ -245,7 +245,7 @@ describe('export self-verification (section 10.5 step 4; section 16 test 14)', (
     expect(file).toMatchObject({
       kind: 'backup',
       locked: true,
-      schemaVersion: 1,
+      schemaVersion: SCHEMA_VERSION,
       exportedAt: EXPORTED_AT,
     });
     const decoded = await decode(file.text);

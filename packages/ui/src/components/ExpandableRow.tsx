@@ -1,4 +1,4 @@
-import { useId, type ReactElement, type ReactNode } from 'react';
+import { useId, type ReactElement, type ReactNode, type Ref } from 'react';
 import { ChevronIcon } from '../icons';
 
 export interface ExpandableRowProps {
@@ -7,8 +7,12 @@ export interface ExpandableRowProps {
   detail?: string | undefined;
   /** An amber pill after the detail; its words say what it means, so colour is never the only signal. */
   flag?: string | undefined;
+  /** Something at the right of the text, before the chevron, such as a source tag (item 23). */
+  aside?: ReactNode;
   expanded: boolean;
   onToggle: () => void;
+  /** The toggle button, for moving focus back to it when its panel closes (item 23). */
+  toggleRef?: Ref<HTMLButtonElement> | undefined;
   /** The panel shown under the row while it is expanded. */
   children: ReactNode;
 }
@@ -21,14 +25,17 @@ export function ExpandableRow({
   title,
   detail,
   flag,
+  aside,
   expanded,
   onToggle,
+  toggleRef,
   children,
 }: ExpandableRowProps): ReactElement {
   const panelId = useId();
   return (
     <li className="ui-expandable">
       <button
+        ref={toggleRef}
         type="button"
         className="ui-expandable__toggle"
         aria-expanded={expanded}
@@ -51,6 +58,9 @@ export function ExpandableRow({
             </>
           )}
         </span>
+        {aside === undefined || aside === null ? null : (
+          <span className="ui-expandable__aside">{aside}</span>
+        )}
         <span className="ui-expandable__chevron" aria-hidden="true">
           <ChevronIcon />
         </span>

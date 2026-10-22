@@ -13,6 +13,9 @@ import { Button, Card, Switch } from '@diet/ui';
 import { type ReactElement, useEffect, useRef, useState } from 'react';
 import type { AppStorage } from '../../db/runtime';
 import { formatWaterMl, formatWaterText } from '../../format';
+import { useWaterGuide } from '../foodLog/useWaterGuide';
+import { WaterGuideNotes, WaterOf } from '../foodLog/WaterDayCard';
+import { useTargetsClock } from '../targets/useDayTargets';
 import { useTodayWrite } from './useWrite';
 import { WriteError } from './WriteError';
 
@@ -25,8 +28,10 @@ type LastTap = { readonly kind: 'added' | 'removed'; readonly id: Id } | null;
  * Water and the electrolyte tick (UX_SCREENS section 2, card 4; design section 1.6). Each tap of
  * "Add 250 mL" is one glass; Undo removes only the last tap made here. The status line waits for
  * the stored row, and takes its total from the same render as the figure, so the two always agree
- * (T26). No water target is shown until item 23 wires the water guide (T7). Keyed by the date, so
- * the Undo target is forgotten at midnight.
+ * (T26). Item 23's water guide follows the figure ("of 2.6 L"), with the heat line and item 27's
+ * electrolyte lines on a hot day, and the pregnancy line in place of an NRV guide (T7, T25, T26);
+ * while it loads the card is as before. Keyed by the date, so the Undo target is forgotten at
+ * midnight.
  */
 export function WaterCard({
   storage,
@@ -42,6 +47,7 @@ export function WaterCard({
   readonly day: WaterDay;
 }): ReactElement {
   const write = useTodayWrite();
+  const guide = useWaterGuide(storage, useTargetsClock(storage), date);
   const [last, setLast] = useState<LastTap>(null);
   const addRef = useRef<HTMLButtonElement>(null);
   /** After Undo, focus goes to Add 250 mL once Undo has gone. */
@@ -124,10 +130,14 @@ export function WaterCard({
           {water.none}
         </p>
       ) : (
-        <p className="ui-stat__value ui-stat__value--large" data-testid="water-total">
-          <span>{figure.value}</span> <span className="ui-stat__unit">{figure.unit}</span>
+        <p className="ui-stat__value ui-stat__value--large">
+          <span data-testid="water-total">
+            <span>{figure.value}</span> <span className="ui-stat__unit">{figure.unit}</span>
+          </span>
+          <WaterOf guide={guide} />
         </p>
       )}
+      <WaterGuideNotes guide={guide} nothingLogged={day.totalMl === 0} />
       <Button ref={addRef} variant="tint" block aria-disabled={write.busy} onClick={add}>
         {water.add}
       </Button>

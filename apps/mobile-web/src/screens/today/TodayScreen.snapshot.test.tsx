@@ -44,6 +44,8 @@ describe('TD-01: the Today snapshot (C1)', () => {
       'Fasting 19 h 20 m. Eating window opens 6:00 pm.',
     ]);
     expect(screen.getByTestId('water-total').textContent).toBe('500 mL');
+    // Item 23: the water guide follows the figure once the targets are read.
+    expect(await screen.findByText('of 2.1 L')).toBeDefined();
     expect(screen.getByRole('switch', { name: 'Electrolytes today' })).toHaveProperty(
       'checked',
       true,

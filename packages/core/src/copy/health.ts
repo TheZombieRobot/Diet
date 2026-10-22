@@ -696,6 +696,8 @@ export const privacy = {
       'Backup files you made or shared: delete them in Files, and in your email or cloud storage if you sent them there.',
       // Item 24: the grocery list's own exports (HS-30).
       'Grocery lists you exported as CSV or JSON: delete those files in Files.',
+      // Item 23: the summary for a GP, saved as a file on the phone (HS-30).
+      'Summaries for your GP you made as text or CSV files: delete those files in Files.',
       'The list on your laptop and its pairing: also unpair on your laptop.',
       'Copies of your records restored in another browser, such as on a laptop: delete all there too.',
       // Item 31 (item 29 N4; HS-30).
@@ -2506,6 +2508,28 @@ export const fasting = {
       "The day's energy target is not available yet, so the app cannot check today's food against it. It's fine to eat a bit more now.",
     afterWindowUncheckedReflux:
       "The day's energy target is not available yet, so the app cannot check today's food against it. It's fine to eat a bit more now; something small may sit better with reflux than a large late meal. Tomorrow, an earlier meal or the 5 pm snack may suit you better.",
+    // Item 23 (cross-item ruling 23): after the window, a day with nothing in the food log. No
+    // claim about the day's food; the safe-direction line stays (HS-18, C62).
+    afterWindowNothingLogged:
+      "Nothing is in the food log for today, so the app cannot check today's food. It's fine to eat a bit more now.",
+    afterWindowNothingLoggedReflux:
+      "Nothing is in the food log for today, so the app cannot check today's food. It's fine to eat a bit more now; something small may sit better with reflux than a large late meal. Tomorrow, an earlier meal or the 5 pm snack may suit you better.",
+    // Item 23 review (HS-37): some logged food has a protein or energy figure that is not known, so
+    // no line says it came in under a target; the safe-direction line stays (HS-18).
+    afterWindowNotKnown:
+      "Some of today's food has figures that are not known, so the app cannot check it against your targets. It's fine to eat a bit more now.",
+    afterWindowNotKnownReflux:
+      "Some of today's food has figures that are not known, so the app cannot check it against your targets. It's fine to eat a bit more now; something small may sit better with reflux than a large late meal. Tomorrow, an earlier meal or the 5 pm snack may suit you better.",
+    // Item 23 review (HEALTH_SAFETY section 2): during a stop-sign pause the reflux lines name no
+    // eating-window time, so the "earlier meal or the 5 pm snack" sentence is left out.
+    afterWindowRefluxPaused:
+      "Today's food came in under your protein or energy target. It's fine to eat a bit more now; something small may sit better with reflux than a large late meal.",
+    afterWindowUncheckedRefluxPaused:
+      "The day's energy target is not available yet, so the app cannot check today's food against it. It's fine to eat a bit more now; something small may sit better with reflux than a large late meal.",
+    afterWindowNothingLoggedRefluxPaused:
+      "Nothing is in the food log for today, so the app cannot check today's food. It's fine to eat a bit more now; something small may sit better with reflux than a large late meal.",
+    afterWindowNotKnownRefluxPaused:
+      "Some of today's food has figures that are not known, so the app cannot check it against your targets. It's fine to eat a bit more now; something small may sit better with reflux than a large late meal.",
     addSnackTomorrow: 'Add 5 pm snack tomorrow',
     snackAdded: {
       today: '5 pm snack added for tonight. Eat {range}.',
@@ -2848,11 +2872,10 @@ export const targets = {
     ofCeiling: '{eaten} / {ceiling} g',
     gramsOnly: '{eaten} g',
     /**
-     * In place of "Nothing logged yet today." until food logging exists (full review F24), so the
-     * zeros never read as a day without food. Item 23 removes it with its own empty-day line.
+     * Item 23 built the food log, so an empty day says what it is (full review F24 is met): nothing
+     * is in the log, never that nothing was eaten.
      */
-    laterStep:
-      'Food logging arrives at a later step in the build checklist. Until then no food is counted here.',
+    nothingLogged: 'Nothing is in the food log yet today.',
     missingOne: '1 entry has no {nutrient} figure, so the total is at least what is shown.',
     missingMany:
       '{count} entries have no {nutrient} figure, so the total is at least what is shown.',
@@ -3590,8 +3613,6 @@ export const recipes = {
     logAsEaten: 'Log as eaten',
     scale: 'Scale servings',
     substitute: 'Substitute ingredient',
-    later: 'Later',
-    laterNote: 'This arrives at a later step of the build checklist.',
     removeVersion: 'Go back to the original recipe',
   },
   swap: {
@@ -3957,6 +3978,344 @@ export const planner = {
 } as const;
 
 /**
+ * The food log (item 23 design section 3; UX_SCREENS 3c; FL-01 to FL-03, C01, C11, C31, C67, C68,
+ * C100, HS-R18). An unknown figure is never written as a number here: figures come through item
+ * 18's figureText. No "left" intake wording, no moral words about food, no claim that a figure is
+ * exact, no prices. Slot names are item 22's planner.slots. Placeholders are filled with
+ * fillTemplate.
+ */
+export const foodLog = {
+  routeTitles: {
+    log: 'Food log',
+    gpSummary: 'Summary for your GP',
+  },
+  foodTab: {
+    linkTitle: 'Food log',
+    linkDetail: 'What you ate, day by day, with water and steps',
+  },
+  screen: {
+    readFailed: 'The food log could not be read.',
+    setupFirst: 'The food log opens once setup is finished.',
+  },
+  day: {
+    today: 'Today',
+    yesterday: 'Yesterday',
+    previous: 'Previous day',
+    next: 'Next day',
+  },
+  add: {
+    label: 'Add food',
+    fromPlan: 'From your plan',
+    fromPlanDetailOne: '1 planned meal not in the log yet',
+    fromPlanDetailMany: '{count} planned meals not in the log yet',
+    fromPlanDetailNone: 'Every planned meal is in the log',
+    fromRecipe: 'From a recipe',
+    fromRecipeDetail: 'Pick a recipe and how many serves you ate',
+    fromLabel: 'From a label',
+    fromLabelDetail: 'Type the figures from a food label',
+    again: 'Your label foods',
+    againDetail: 'Log a food you entered before',
+    cancel: 'Cancel',
+    logIt: 'Log it',
+    undo: 'Undo',
+    logged: 'Logged {name}.',
+    undone: 'Removed {name} from the log.',
+    sourceMissing: 'This food or recipe is no longer in the app, so it cannot be logged.',
+  },
+  plan: {
+    none: 'No meals are planned for this day.',
+    allLogged: 'Every planned meal for this day is in the log.',
+    row: '{slot}: {title}',
+    portion: 'Your portion: {serves} serves',
+    portionOne: 'Your portion: 1 serve',
+    inLog: 'In the log',
+    inLogAs: 'In the log as {name}',
+    inLogFromRecipe: 'Already in the log at {time}, logged as a recipe.',
+    logAgain: 'Log it again',
+    logAgainConfirm: 'Log {title} again for this day? Do this only if you ate it twice.',
+    pastDayTime: 'This day has passed, so enter the time you ate it.',
+    recipeMissing: 'This recipe is no longer in the app, so it cannot be logged from the plan.',
+    mealGone: 'This meal is no longer planned for this day.',
+    alreadyLogged: 'This planned meal is already in the log.',
+  },
+  recipe: {
+    search: 'Recipe name',
+    searchHint: 'Type at least 2 letters of its name.',
+    recent: 'Logged recently',
+    matches: 'Matches',
+    noMatch: 'No recipe matches that.',
+    serves: 'Serves you ate',
+    servesHint:
+      'In serves of the recipe as written. Cooking for more people does not change your figures.',
+    fewer: 'Fewer serves',
+    more: 'More serves',
+    servesValue: '{serves} serves',
+    servesOne: '1 serve',
+    previewCaption: 'This entry',
+    alreadyLogged: '{title} is already in the log for this day, at {time}. Log it again?',
+    plannedToday: 'This is your planned {slot} for today, so it is logged as that meal.',
+  },
+  label: {
+    newTitle: 'Add from a label',
+    changeTitle: 'Change label figures',
+    changeNote: 'Entries you have already logged keep the figures they had.',
+    changeShownPer100:
+      'Shown per 100 g in kJ, worked out from what you entered. Changing Per or the energy unit clears the figures, so you can type them from the label.',
+    name: 'Name',
+    nameHint: 'As you would like it to show in the log.',
+    nameMatches: 'Names in the app’s food list',
+    figuresYours: 'The figures always come from your label. The app never fills them in.',
+    twinHint:
+      'This food is often weighed cooked. Below, choose whether your label’s figures are for it raw or cooked.',
+    describes: 'The label’s figures are for the food',
+    describesOptions: {
+      raw: 'Raw, before cooking',
+      'as-sold': 'As sold',
+      cooked: 'Cooked',
+    },
+    describesDetails: {
+      raw: 'For example raw meat, fish or eggs',
+      'as-sold': 'For example yoghurt, bread, or a canned or dry food',
+      cooked: 'For example a cooked chicken or cooked rice',
+    },
+    per: 'The figures are',
+    perOptions: { '100g': 'Per 100 g', serve: 'Per serve' },
+    perHint:
+      'Most New Zealand labels show both. Per 100 g is the easiest to check. For a drink with no alcohol, use its per 100 mL column and count 1 mL as 1 g.',
+    servingSize: 'Serving size, g',
+    servingSizeHint: 'From the label. Needed when the figures are per serve.',
+    servingChangeNote: 'Changing the serving size does not change the figures per 100 g.',
+    energyUnit: 'Energy is in',
+    energyUnits: { kJ: 'kJ', kcal: 'kcal (Cal)' },
+    fieldLabel: '{name}, {unit} {measure}',
+    names: {
+      energy: 'Energy',
+      protein: 'Protein',
+      fat: 'Fat, total',
+      saturatedFat: 'Saturated fat',
+      carbs: 'Carbohydrate (as on an NZ/AU label)',
+      sugars: 'Sugars',
+      fibre: 'Dietary fibre',
+      sodium: 'Sodium',
+    },
+    units: { g: 'g', mg: 'mg' },
+    measures: { '100g': 'per 100 g', serve: 'per serve' },
+    perServeHint: '= {value} per {serving} g serve',
+    lessThanHint: 'If the label says less than 1 g, enter 1. If it says trace, enter 0.',
+    overseas: 'Overseas label',
+    overseasHint:
+      'Turn this on for a label whose carbohydrate includes fibre, such as a United States label. The app then takes the fibre out.',
+    fibreNotOnLabel: 'Not on label',
+    fibreHint: 'If the label shows no fibre, tick Not on label. Fibre then shows as not known.',
+    sodiumHint: 'In milligrams, as on the label.',
+    packSize: 'Package size, g (optional)',
+    packSizeHint: 'The pack size on the label, for the shopping list.',
+    checkEnergyLegend: 'Energy check',
+    checkEnergy:
+      'These figures usually come to about {computed} {unit} {measure}, but the energy entered is {entered} {unit}. Check the label, and whether it shows kJ or kcal.',
+    confirmEnergy: 'The figures match the label',
+    checkPartsLegend: 'Label check',
+    checkSatFat:
+      'Saturated fat is more than total fat. Labels round their figures, so check the label once more.',
+    checkSugars:
+      'Sugars are more than carbohydrate. Labels round their figures, so check the label once more.',
+    confirmParts: 'The figures match the label',
+    checkAlcoholLegend: 'Drink check',
+    checkAlcohol:
+      'This sounds like an alcoholic drink. Drinks belong in the Drinks tab, where their energy is shown apart from food.',
+    confirmFood: 'It is a food, not an alcoholic drink',
+    checkSameNameLegend: 'Name check',
+    checkSameName: 'You entered a label food called {name} before.',
+    useEarlier: 'Log the one you entered before',
+    confirmNewFood: 'This is a different food',
+    errors: {
+      required: 'Enter the figure from the label.',
+      'not-number': 'Enter a plain number, such as 12.5, with no commas or units.',
+      'too-high': 'That is more than 100 g in 100 g. Check the label and the serving size.',
+      'energy-too-high':
+        'That is more than {max} kJ in 100 g. Check the label and the energy unit.',
+      'sodium-too-high':
+        'That is more than {max} mg in 100 g. Check the label and the serving size.',
+      'name-required': 'Enter a name.',
+      'name-too-long': 'Use 80 characters or fewer.',
+      'name-characters': 'Use letters, numbers and ordinary punctuation only.',
+      'alcohol-name': 'Alcoholic drinks are not logged in this app.',
+      choose: 'Choose one.',
+      'serving-needed': 'Enter the serving size from the label.',
+      'serving-range': 'Enter a serving size above 0 and up to 5,000 g.',
+      'sum-over':
+        'Protein, fat, carbohydrate and fibre come to more than 100 g in 100 g. Check the label and the serving size.',
+      'fibre-needed-overseas':
+        'An overseas label counts fibre inside carbohydrate, so enter the fibre too.',
+      'pack-range': 'Enter a pack size above 0 and up to 50,000 g.',
+      confirmNeeded: 'Tick the box once you have checked.',
+    },
+  },
+  amount: {
+    label: 'What you ate',
+    by: 'Amount',
+    byOptions: { grams: 'Weight in grams', serves: 'Serves from the label' },
+    grams: 'Weight, g',
+    serves: 'Serves',
+    servesHint: 'One serve is {grams} g on the label.',
+    weighed: 'How did you weigh it?',
+    weighedHint: 'Raw and cooked weights differ, so the app asks which you weighed.',
+    weighedOptions: { raw: 'Raw', 'as-sold': 'As sold', cooked: 'After cooking' },
+    weighedOnlyCooked: 'The label is for the cooked food, so weigh it as you ate it.',
+    before: 'Weight before cooking, g',
+    beforeHint:
+      'The label’s figures are for the food {state}, so the app needs what it weighed then. Weigh it before cooking next time to skip this.',
+    states: { raw: 'raw', 'as-sold': 'as sold', cooked: 'cooked' },
+    time: 'Time eaten',
+    timeHintToday: 'Leave it empty for now, or enter the time you ate it.',
+    timeHintPast: 'Enter the time you ate it.',
+    checkLegend: 'Amount check',
+    checkBefore:
+      'The weight before cooking is very different from the cooked weight. Check both weights.',
+    checkLarge: 'That is a large amount for one entry. Check the weight and the serves.',
+    checkProtein:
+      'This entry alone has more protein than your target for the whole day. Check the weight and the label.',
+    confirmAmount: 'The amount is right',
+    errors: {
+      gramsRequired: 'Enter the weight in grams.',
+      gramsRange: 'Enter a weight above 0 and up to 5,000 g.',
+      servesRequired: 'Enter how many serves.',
+      servesRange: 'Enter serves above 0 and up to 10.',
+      beforeRange: 'Enter a weight before cooking above 0 and up to 5,000 g.',
+      weighedNeeded: 'Choose how you weighed it.',
+      beforeNeeded: 'Enter what it weighed before cooking.',
+      tooMuch: 'That is more than one entry can hold. Log it as two entries.',
+      timeRequired: 'Enter a time, such as 12:30 pm.',
+      timeFormat: 'Enter a time such as 6:30 pm.',
+      timeFuture: 'That time has not come yet.',
+      timeOtherDay: 'That time falls on another day. Choose a time on this day.',
+      notNumber: 'Enter a plain number, such as 150 or 1.5.',
+    },
+  },
+  entries: {
+    label: 'Eaten',
+    none: 'Nothing logged for this day.',
+    noneToday: 'Nothing logged yet today.',
+    rowDetail: '{time} · {amount}',
+    amountGrams: '{grams} g {state}',
+    amountServes: '{serves} serves',
+    amountServesOne: '1 serve',
+    amountLabelServes: '{serves} serves ({grams} g)',
+    amountLabelServesOne: '1 serve ({grams} g)',
+    kind: {
+      plan: 'From your plan: {slot}',
+      recipe: 'From a recipe',
+      label: 'From a label',
+      estimate: 'Entered as an approximation',
+    },
+    figuresCaption: 'This entry',
+    snapshotNote: 'Figures as they were when you logged it.',
+    noFigures: 'No nutrition figures were known for this when you logged it.',
+    cannotRebuild:
+      'The label food or recipe this came from is no longer in the app, so only its time can be changed.',
+    change: 'Change',
+    remove: 'Remove',
+    removeConfirm: 'Remove {name} from the log?',
+    removeYes: 'Remove',
+    removeNo: 'Keep it',
+    removed: 'Removed {name}.',
+    saved: 'Changes kept.',
+    gone: 'This entry is no longer in the log.',
+  },
+  totals: {
+    label: 'Day totals',
+    caption: 'Food logged on this day',
+    noneKnown:
+      'No entry on this day has nutrition figures yet, so the day’s nutrition is not known.',
+    alcoholApart: 'Drinks are shown apart and are not part of these food figures.',
+    // Item 23 review (HS-37): the known part of the drinks' energy when a drink's is not known; item
+    // 21's alcohol.dayEnergy.unknownOne or unknownMany follows it.
+    alcoholAtLeast: 'Alcohol: at least {kj} kJ',
+  },
+  water: {
+    label: 'Water and electrolytes',
+    of: 'of {guide}',
+    guideLine: 'Guide: {guide} a day.',
+    heatExtra: 'Includes {extra} for activity in the heat on this day.',
+    guidePregnancy:
+      'A midwife or your GP can give you a fluid figure for pregnancy or breastfeeding.',
+    noneDay: 'None logged for this day.',
+    entryElectrolytes: 'Electrolytes',
+    add: 'Add water',
+    amount: 'Amount, mL',
+    amountHint: 'A glass is about 250 mL.',
+    time: 'Time',
+    timeHintPast: 'Enter the time you drank it.',
+    electrolytesDay: 'Electrolytes on this day',
+    remove: 'Remove',
+    removeLabel: 'Remove {amount} at {time}',
+    added: 'Added {amount}.',
+    removed: 'Removed {amount}.',
+    errors: {
+      required: 'Enter an amount in millilitres.',
+      range: 'Enter an amount from 1 to 3,000 mL.',
+      'not-number': 'Enter a whole number of millilitres, such as 250.',
+    },
+  },
+  steps: {
+    label: 'Steps',
+    noneDay: 'Not entered for this day.',
+    field: 'Steps on this day',
+    enter: 'Enter steps',
+    change: 'Change',
+    removeDay: 'Remove this day’s entry',
+  },
+  gp: {
+    linkTitle: 'Summary for your GP',
+    linkDetail: 'Saturated fat and net carbs, to take to a check-in',
+    reminderLink: 'Make a summary for your GP',
+    intro:
+      'A summary of the food you logged, to take to a check-in with your GP. The app does not send it anywhere. Where the file goes after that is up to you and your phone’s settings.',
+    range: 'Covering',
+    rangeOptions: {
+      '7': 'The last 7 days',
+      '28': 'The last 4 weeks',
+      '56': 'The last 8 weeks',
+      '84': 'The last 12 weeks',
+    },
+    rangeHint: 'Up to yesterday, so a day still under way is not counted.',
+    summaryLabel: 'Summary',
+    dates: 'Dates',
+    datesValue: '{from} to {to}',
+    daysLogged: 'Days with food logged',
+    daysLoggedValue: '{count} of {total}',
+    singleEntryDays: 'Days with one entry',
+    singleEntryNote: 'A day with one entry may be a day with one meal, or a day not fully logged.',
+    satFat: 'Saturated fat, average a day',
+    satFatShare: 'Saturated fat, share of food energy',
+    shareValue: '{pct}%',
+    shareNotKnownWhy:
+      'Shown as not known because some days have entries with no energy or saturated fat figure.',
+    // Under an average shown as not known (item 23 review): no "at least" (HS-37).
+    daysMissingNotKnownOne:
+      '1 day has entries with no {nutrient} figure, so the average is not known.',
+    daysMissingNotKnownMany:
+      '{count} days have entries with no {nutrient} figure, so the average is not known.',
+    netCarbs: 'Net carbs, average a day',
+    averageNote:
+      'Only food you logged is counted, so a day with a meal not logged reads lower than you ate.',
+    mixTitle: 'Where the figures came from',
+    entriesOne: '1 entry',
+    entriesMany: '{count} entries',
+    mixNotKnown: 'No figures',
+    aboutTitle: 'About these figures',
+    leftOut: 'It leaves out weight and anything logged as a drink.',
+    noDays: 'No food was logged in these dates, so there is nothing to summarise.',
+    saveText: 'Save as a text file',
+    saveCsv: 'Save as a CSV file',
+    afterOffer: 'Open the Files app and look in Downloads for {fileName}.',
+    fileHeading: 'Food log summary for a GP check-in',
+    csvItem: 'Item',
+    csvValue: 'Value',
+  },
+} as const;
+
+/**
  * The grocery list (checklist item 24; UX_SCREENS 6a; REQUIREMENTS 3D and 3F; DOC_REVIEW C19, C57,
  * C107, C110, C111). Fixed copy never names a store (the name comes from the Store setting), never
  * claims a price, stock level or cart state (prices are the owner's own, shown only through the
@@ -4251,6 +4610,8 @@ export const healthCopy = {
   recipes,
   // Item 22.
   planner,
+  // Item 23.
+  foodLog,
   // Item 24.
   grocery,
 } as const;

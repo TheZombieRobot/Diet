@@ -44,6 +44,7 @@ import {
 import { alcohol, foods, targets as copy } from '@diet/core/copy/health';
 import type { MeterBarProps } from '@diet/ui';
 import { formatLocalTime, formatWhole } from '../../format';
+import { foodLogHref } from '../../routes';
 
 export interface NutritionNote {
   readonly text: string;
@@ -55,6 +56,8 @@ export interface NutritionEntryView {
   readonly key: string;
   readonly time: string;
   readonly name: string;
+  /** Item 23: the entry in the food log. */
+  readonly href: string;
   /** Null when the entry shows no number: every figure is not known (item 18, X4). */
   readonly tag: { readonly tone: 'teal' | 'neutral' | 'amber'; readonly text: string } | null;
 }
@@ -255,8 +258,8 @@ export function nutritionTodayView(
   const notes: NutritionNote[] = [];
   // By count: a logged drink always has its alcohol part, whatever is known of its energy.
   const drinksLogged = alcoholShown && drinks.count > 0;
-  // Food logging is not built yet (item 23): say so rather than "nothing logged" (F24).
-  if (intake.entryCount === 0) notes.push({ text: copy.today.laterStep });
+  // An empty log says so, never that nothing was eaten (F24; item 23).
+  if (intake.entryCount === 0) notes.push({ text: copy.today.nothingLogged });
   for (const key of MISSING_ORDER) {
     const count = unknownCounts[key];
     if (count === 0) continue;
@@ -329,6 +332,8 @@ export function nutritionTodayView(
       });
       return {
         key: entry.id,
+        // The card's entries are all on its day (useDayIntake's read for view.today).
+        href: foodLogHref(view.today, entry.id),
         time: formatLocalTime(entry.at, entry.timeZone),
         name: entry.name,
         tag: badge === null ? null : { tone: TAG_TONES[badge], text: foods.badges[badge] },

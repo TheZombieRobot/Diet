@@ -31,15 +31,16 @@ import { chainInfo, type Migration, MIGRATIONS, SCHEMA_VERSION } from './migrati
 import type { Desc, FieldTree, TableSpec, TableSpecs } from './primitives';
 import { READINESS_WORDING } from './readiness';
 import type { BackupTableName, DeviceOnlyTableName, StoreName, StoreRecords } from './records';
-import { STORES_V1, TABLES_V1 } from './specs/v1';
+import { STORES_V1 } from './specs/v1';
+import { TABLES_V2 } from './specs/v2';
 
 export { STORES_V1 } from './specs/v1';
 
 /** One database for the app's single origin (C34; DECISIONS "One origin"). */
 export const DB_NAME = 'diet';
 
-/** The current version's specs. */
-export const TABLES: { readonly [K in StoreName]: TableSpec<StoreRecords[K]> } = TABLES_V1;
+/** The current version's specs (version 2: the D35 widening, item 23). */
+export const TABLES: { readonly [K in StoreName]: TableSpec<StoreRecords[K]> } = TABLES_V2;
 
 /** Every store, in the order of section 4.1. */
 export const STORE_NAMES: readonly StoreName[] = Object.freeze(

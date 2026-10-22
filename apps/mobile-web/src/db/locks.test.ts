@@ -3,7 +3,7 @@
 // Dexie on fake-indexeddb with the Web Locks fake of testKit: a restore or delete-all writes only
 // once every other tab has closed its records, a busy tab can no longer write on top of restored
 // records, and a tab that does not let go blocks the write instead of racing it.
-import { DB_NAME, STORES_V1 } from '@diet/core';
+import { DB_NAME, SCHEMA_VERSION, STORES_V1 } from '@diet/core';
 import { fixtureId, plainReferenceEnvelopeV1, snapshotV1 } from '@diet/test-fixtures';
 import Dexie from 'dexie';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -390,7 +390,7 @@ describe('startStorage holds the lock and listens for other tabs (runtime.ts)', 
     const deps = freshDeps();
     const newer = new Dexie(DB_NAME, { indexedDB: deps.indexedDB, IDBKeyRange: deps.IDBKeyRange });
     newer.version(1).stores(STORES_V1);
-    newer.version(2).stores({ example_extra: 'id' });
+    newer.version(SCHEMA_VERSION + 1).stores({ example_extra: 'id' });
     await newer.open();
     newer.close();
     const tab = await start(deps);

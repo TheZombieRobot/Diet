@@ -415,3 +415,152 @@ function validatorVectorsV1(): readonly ValidatorVector[] {
     ),
   ]);
 }
+
+const ZERO = {
+  energyKj: 0,
+  proteinG: 0,
+  fatG: 0,
+  saturatedFatG: 0,
+  carbsG: 0,
+  sugarsG: 0,
+  fibreG: 0,
+  sodiumMg: 0,
+};
+const ALL_EIGHT = [
+  'energyKj',
+  'proteinG',
+  'fatG',
+  'saturatedFatG',
+  'carbsG',
+  'sugarsG',
+  'fibreG',
+  'sodiumMg',
+];
+
+/** A food_log row (section 4.7): a plan row listing all eight unknown, unless patched. */
+function foodEntry(patch: Record<string, unknown>): unknown {
+  return {
+    id: ID,
+    at: AT,
+    timeZone: 'Pacific/Auckland',
+    sourceKind: 'plan',
+    refId: '2000-01-02#dinner',
+    name: 'Example traybake',
+    grams: null,
+    weightBasis: null,
+    servings: 1,
+    nutrients: ZERO,
+    unknownNutrients: ALL_EIGHT,
+    confidence: 'estimate',
+    ...patch,
+  };
+}
+
+/** An owner's recipe copy (section 4.7) whose one line has no figures. */
+function recipeCopy(unknownNutrients: readonly string[]): unknown {
+  return {
+    id: ID,
+    title: 'Example traybake',
+    serves: 4,
+    timeMinutes: null,
+    lines: [{ ingredientId: 'seed:example-food', rawG: 100, cookedG: null, displayAs: null }],
+    method: [],
+    tags: [],
+    allergens: [],
+    derivedFromRecipeId: 'seed:recipe-example',
+    nutritionPerServe: ZERO,
+    unknownNutrients,
+    confidence: 'estimate',
+    sourceMix: { label: 0, 'nz-fcdb': 0, usda: 0, estimate: 1 },
+    createdAt: AT,
+    updatedAt: AT,
+  };
+}
+
+/**
+ * Version 2 (item 23; item 18–20 contract 8): version 1's vectors, each with the same outcome,
+ * plus the widened unknown-figures rule on its edges. Version 1 has no food_log or recipes
+ * vector, so no version-1 outcome changes.
+ */
+export const VALIDATOR_VECTORS_V2: readonly ValidatorVector[] =
+  /* @__PURE__ */ validatorVectorsV2();
+
+function validatorVectorsV2(): readonly ValidatorVector[] {
+  const label = { sourceKind: 'label', refId: ID, grams: 150, weightBasis: 'as-sold' };
+  return Object.freeze([
+    ...VALIDATOR_VECTORS_V1,
+    vector('a plan row with all eight unknown, all 0', 'food_log', foodEntry({}), 'ok'),
+    vector(
+      'a recipe row with all eight unknown, some lower bounds above 0',
+      'food_log',
+      foodEntry({
+        sourceKind: 'recipe',
+        refId: 'seed:recipe-example',
+        servings: 1.5,
+        nutrients: { ...ZERO, proteinG: 12, energyKj: 900 },
+      }),
+      'ok',
+    ),
+    vector(
+      'a label row with fibre unknown and 0',
+      'food_log',
+      foodEntry({ ...label, unknownNutrients: ['fibreG'], confidence: 'label' }),
+      'ok',
+    ),
+    vector(
+      'a label row with all eight unknown',
+      'food_log',
+      foodEntry({ ...label, confidence: 'label' }),
+      fails('unknownNutrients', 'equals'),
+    ),
+    vector(
+      'a label row with protein unknown',
+      'food_log',
+      foodEntry({ ...label, unknownNutrients: ['proteinG'], confidence: 'label' }),
+      fails('unknownNutrients', 'equals'),
+    ),
+    vector(
+      'an estimate row with all eight unknown',
+      'food_log',
+      foodEntry({ sourceKind: 'estimate', refId: null }),
+      fails('unknownNutrients', 'length'),
+    ),
+    vector(
+      'an estimate row with seven unknown',
+      'food_log',
+      foodEntry({ sourceKind: 'estimate', refId: null, unknownNutrients: ALL_EIGHT.slice(1) }),
+      'ok',
+    ),
+    vector(
+      'a label row with fibre unknown but stored as 2',
+      'food_log',
+      foodEntry({
+        ...label,
+        nutrients: { ...ZERO, fibreG: 2 },
+        unknownNutrients: ['fibreG'],
+        confidence: 'label',
+      }),
+      fails('nutrients.fibreG', 'equals'),
+    ),
+    vector(
+      'a recipe row with confidence label',
+      'food_log',
+      foodEntry({ sourceKind: 'recipe', refId: 'seed:recipe-example', confidence: 'label' }),
+      fails('confidence', 'equals'),
+    ),
+    vector(
+      'a plan ref on a date that does not exist',
+      'food_log',
+      foodEntry({ refId: '2001-02-29#dinner' }),
+      fails('refId', 'pattern'),
+    ),
+    vector(
+      'nine keys, one repeated',
+      'food_log',
+      foodEntry({ unknownNutrients: [...ALL_EIGHT, 'sodiumMg'] }),
+      fails('unknownNutrients', 'length'),
+    ),
+    vector('a recipes row with all eight unknown', 'recipes', recipeCopy(ALL_EIGHT), 'ok'),
+    vector('a recipes row with seven unknown', 'recipes', recipeCopy(ALL_EIGHT.slice(1)), 'ok'),
+  ]);
+}

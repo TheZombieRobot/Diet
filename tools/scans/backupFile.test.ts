@@ -11,6 +11,7 @@ import {
   type ExportFileKind,
 } from '../../packages/core/src/storage/backup/fileName';
 import { defaultSnapshot } from '../../packages/core/src/storage/defaults';
+import { SCHEMA_VERSION } from '../../packages/core/src/storage/migrations';
 import { personalDataRules, personalPathRules } from './rules';
 import { gitEnv, scanPath, scanText } from './scan';
 
@@ -97,7 +98,7 @@ describe('BK-08 / C89: saved files never reach the public repository', () => {
     expect(
       buildBackupPayload(tables, { kind: 'backup', exportedAt: AT, appVersion: '0.1.0' })
         .schemaVersion,
-    ).toBe(1);
+    ).toBe(SCHEMA_VERSION);
   });
 
   it('uses the local date: 08:00 on 2 January in Auckland is still 1 January in UTC', () => {

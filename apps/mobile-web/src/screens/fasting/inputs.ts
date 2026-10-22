@@ -22,6 +22,7 @@ import {
   resolveZone,
   runningSpan,
   type SettingsRecord,
+  type FoodLogRecord,
   type SymptomRecord,
   type TargetsRecord,
   utcRangeCovering,
@@ -59,6 +60,8 @@ export interface FastingInputs {
   readonly drinks: readonly DrinkLogRecord[];
   /** Item 20's recipe rows, for the planned meals' live figures (item 22's meal sources). */
   readonly recipeRows: RecipeContextRows;
+  /** Item 23: the food log of today and tomorrow, what the meal check reads (mealSources.ts). */
+  readonly foodLog: readonly FoodLogRecord[];
 }
 
 export type FastingRead =
@@ -87,19 +90,29 @@ async function read(storage: AppStorage, today: LocalDate): Promise<FastingInput
   const from = addDays(spanStartDate !== null && spanStartDate < today ? spanStartDate : today, -1);
   const { lower, upper } = utcRangeCovering(addDays(today, -15), addDays(today, 1));
   const tomorrow = addDays(today, 1);
-  const [planDays, symptoms, snackToday, snackTomorrow, nudgeCard, preStart, drinks, recipeRows] =
-    await Promise.all([
-      repos.planDays.listByIndex('date', from, addDays(today, 2)),
-      repos.symptoms.listByIndex('at', lower, upper),
-      repos.cardState.get('single-meal-snack', `date:${today}`),
-      repos.cardState.get('single-meal-snack', `date:${tomorrow}`),
-      repos.cardState.get('reflux-gp-nudge', 'rolling'),
-      repos.cardState.get(PRE_START_STOP_SIGN_CARD, preStartTrigger(today)),
-      spanStartDate === null
-        ? Promise.resolve([])
-        : repos.drinks.forDrinkingDays(addDays(spanStartDate, -1), tomorrow),
-      repos.recipes.context(),
-    ]);
+  const [
+    planDays,
+    symptoms,
+    snackToday,
+    snackTomorrow,
+    nudgeCard,
+    preStart,
+    drinks,
+    recipeRows,
+    foodLog,
+  ] = await Promise.all([
+    repos.planDays.listByIndex('date', from, addDays(today, 2)),
+    repos.symptoms.listByIndex('at', lower, upper),
+    repos.cardState.get('single-meal-snack', `date:${today}`),
+    repos.cardState.get('single-meal-snack', `date:${tomorrow}`),
+    repos.cardState.get('reflux-gp-nudge', 'rolling'),
+    repos.cardState.get(PRE_START_STOP_SIGN_CARD, preStartTrigger(today)),
+    spanStartDate === null
+      ? Promise.resolve([])
+      : repos.drinks.forDrinkingDays(addDays(spanStartDate, -1), tomorrow),
+    repos.recipes.context(),
+    repos.foodLog.forLocalDates(today, tomorrow),
+  ]);
   return {
     today,
     targets,
@@ -117,6 +130,7 @@ async function read(storage: AppStorage, today: LocalDate): Promise<FastingInput
     preStartCards: preStart === undefined ? [] : [preStart],
     drinks,
     recipeRows,
+    foodLog,
   };
 }
 

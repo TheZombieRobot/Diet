@@ -7,7 +7,7 @@ import {
   populateRows,
 } from './defaults';
 import { checkInvariants } from './invariants';
-import { chainInfo, MIGRATIONS } from './migrations';
+import { chainInfo, MIGRATIONS, SCHEMA_VERSION } from './migrations';
 import {
   BACKUP_FIELDS,
   BACKUP_FIELDS_BY_VERSION,
@@ -58,7 +58,7 @@ describe('the store registry (sections 4.1 and 8.4; section 16 test 18)', () => 
   it('every store has a spec, and every backed-up store an allow-list with every field in spec order', () => {
     for (const name of STORE_NAMES) expect(TABLES[name], name).toBeDefined();
     expect(Object.keys(BACKUP_FIELDS)).toEqual([...BACKUP_TABLES]);
-    expect(BACKUP_FIELDS_BY_VERSION[1]).toBe(BACKUP_FIELDS);
+    expect(BACKUP_FIELDS_BY_VERSION[SCHEMA_VERSION]).toBe(BACKUP_FIELDS);
     expect(Object.keys(BACKUP_FIELDS['weights'] ?? {})).toEqual([
       'id',
       'at',

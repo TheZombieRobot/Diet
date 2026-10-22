@@ -219,7 +219,10 @@ export function appDayCheck(input: {
       return {
         ok: false,
         reason: 'one-meal-short',
-        reasons: result.kind === 'unavailable' ? ['energy-unknown'] : result.reasons,
+        reasons:
+          result.kind === 'unavailable' || result.kind === 'nothing-logged'
+            ? ['energy-unknown']
+            : result.reasons,
       };
     }
   }

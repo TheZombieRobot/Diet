@@ -68,7 +68,7 @@ describe('the plain envelope (sections 10.2 and 10.6; section 16 test 15)', () =
     const decoded = await decodeBackupText(text, { env });
     expect(decoded).toMatchObject({
       kind: 'backup',
-      schemaVersion: 1,
+      schemaVersion: SCHEMA_VERSION,
       exportedAt: EXPORTED_AT,
       appVersion: '0.1.0',
       locked: false,

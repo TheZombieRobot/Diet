@@ -113,4 +113,4 @@ export const RECIPE_ALCOHOL_WORDS =
  * version 1 (D35); a database test ties it to the validator, so item 23's schema version 2 (the
  * item 18–20 contract 8) must set it to true in the same commit, and swaps then open.
  */
-export const RECIPE_SNAPSHOT_ALL_UNKNOWN_STORABLE: boolean = false;
+export const RECIPE_SNAPSHOT_ALL_UNKNOWN_STORABLE: boolean = true;

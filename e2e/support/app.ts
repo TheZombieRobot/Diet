@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   fasting,
+  foodLog,
   foods,
   onboarding,
   privacy,
@@ -35,6 +36,9 @@ export const SCREENS = [
   'Laptop pairing',
   // Item 20: reached from Food, its "Meals" card.
   'Recipes',
+  // Item 23: reached from Food, its "Meals" card, and from the food log.
+  'Food log',
+  'Summary for your GP',
   // Item 24: reached from Settings, More.
   'Store',
 ] as const;
@@ -45,6 +49,9 @@ export const UNDER_TABS: Readonly<Partial<Record<ScreenName, (typeof TABS)[numbe
   'Garden and pantry': 'Food',
   // Item 20.
   Recipes: 'Food',
+  // Item 23.
+  'Food log': 'Food',
+  'Summary for your GP': 'Food',
 };
 
 /** Screens reached from Settings, which mark the settings gear as their section. */
@@ -106,13 +113,30 @@ export async function goTo(page: Page, screen: ScreenName): Promise<void> {
       .getByRole('link', { name: 'Today' })
       .click();
     await page.getByRole('link', { name: fasting.card.detailsLink }).click();
-  } else if (screen === 'Garden and pantry' || screen === 'Recipes') {
+  } else if (
+    screen === 'Garden and pantry' ||
+    screen === 'Recipes' ||
+    screen === 'Food log' ||
+    screen === 'Summary for your GP'
+  ) {
     await page
       .getByRole('navigation', { name: 'Main' })
       .getByRole('link', { name: 'Food' })
       .click();
     if (screen === 'Garden and pantry') {
       await page.getByRole('link', { name: /^Garden and pantry/ }).click();
+    } else if (screen === 'Food log' || screen === 'Summary for your GP') {
+      await page
+        .getByRole('region', { name: recipes.foodLink.cardLabel })
+        .getByRole('link', { name: new RegExp(`^${foodLog.foodTab.linkTitle}`) })
+        .click();
+      if (screen === 'Summary for your GP') {
+        await expect(heading(page)).toHaveText(foodLog.routeTitles.log);
+        await page
+          .getByRole('region', { name: foodLog.gp.linkTitle })
+          .getByRole('link', { name: new RegExp(`^${foodLog.gp.linkTitle}`) })
+          .click();
+      }
     } else {
       await page
         .getByRole('region', { name: recipes.foodLink.cardLabel })

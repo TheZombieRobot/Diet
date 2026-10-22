@@ -9,6 +9,8 @@ export interface CheckListProps {
   /** The new ticked values, in option order. */
   onChange: (values: string[]) => void;
   hint?: string | undefined;
+  /** Why the group is not accepted yet (a box still to tick); shown after the options and announced. */
+  error?: string | undefined;
 }
 
 /** Several choices from a list: checkbox rows at least 48 px high, the whole row a tap target. */
@@ -18,12 +20,20 @@ export function CheckList({
   values,
   onChange,
   hint,
+  error,
 }: CheckListProps): ReactElement {
   const id = useId();
   const hintId = `${id}-hint`;
+  const errorId = `${id}-error`;
   const ticked = new Set(values);
+  const describedBy = [hint === undefined ? null : hintId, error === undefined ? null : errorId]
+    .filter((x) => x !== null)
+    .join(' ');
   return (
-    <fieldset className="ui-choices" aria-describedby={hint === undefined ? undefined : hintId}>
+    <fieldset
+      className="ui-choices"
+      aria-describedby={describedBy === '' ? undefined : describedBy}
+    >
       <legend className="ui-choices__legend">{legend}</legend>
       {hint === undefined ? null : (
         <p id={hintId} className="ui-field__hint">
@@ -50,6 +60,11 @@ export function CheckList({
           <span className="ui-check__label">{option.label}</span>
         </label>
       ))}
+      {error === undefined ? null : (
+        <p id={errorId} className="ui-field__error" role="alert">
+          {error}
+        </p>
+      )}
     </fieldset>
   );
 }

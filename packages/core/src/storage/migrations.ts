@@ -42,8 +42,13 @@ import {
   type TableSpecs,
   type TimeZone,
 } from './primitives';
-import { VALIDATOR_VECTORS_V1, type ValidatorVector } from './validatorVectors';
+import {
+  VALIDATOR_VECTORS_V1,
+  VALIDATOR_VECTORS_V2,
+  type ValidatorVector,
+} from './validatorVectors';
 import { BACKUP_TABLES_V1, DEVICE_ONLY_TABLES_V1, STORES_V1, TABLES_V1 } from './specs/v1';
+import { TABLES_V2 } from './specs/v2';
 
 /** Every store as plain arrays; device-only stores may be absent (a backup). */
 export type LooseSnapshot = Record<string, unknown[]>;
@@ -94,7 +99,10 @@ export interface Migration {
   readonly upgrade: ((snapshot: LooseSnapshot, env: MigrationEnv) => MigrationResult) | null;
 }
 
-/** The released chain. Version 1 is frozen at the item-12 commit. */
+/**
+ * The released chain. Version 1 is frozen at the item-12 commit; version 2 (item 23; item 18–20
+ * contract 8) at the item-23 commit.
+ */
 export const MIGRATIONS: readonly Migration[] = Object.freeze([
   Object.freeze({
     version: 1,
@@ -106,10 +114,22 @@ export const MIGRATIONS: readonly Migration[] = Object.freeze([
     removesRows: [],
     upgrade: null,
   }),
+  // A widening (D35 as amended): recipe and plan log rows, and recipes, may list all eight
+  // figures as unknown. No row changes, so no MigrationChange, audit row or update notice.
+  Object.freeze({
+    version: 2,
+    stores: {},
+    backup: { added: [], removed: [], deviceOnly: [] },
+    specs: TABLES_V2,
+    reads: [],
+    rewrites: [],
+    removesRows: [],
+    upgrade: (snapshot: LooseSnapshot) => ({ snapshot, changes: [] }),
+  }),
 ]);
 
 /** The current schema version (the last entry of MIGRATIONS; a test checks they agree). Dexie stores n × 10. */
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 /** Everything a chain implies, version by version (section 9.3). */
 export interface ChainInfo {
@@ -344,6 +364,7 @@ export function migrateSnapshot(
  */
 export const SPEC_FINGERPRINTS: Readonly<Record<number, string>> = Object.freeze({
   1: 'fb6a0d92fa8923962d75503e915895991e0b6397bad46ab53447c7476d55f60b',
+  2: '50bfdd88e28ec6d54fcc565c1a870a2fc408cd232d3256374ebdeb71a3551d07',
 });
 
 export type WindowLengthOutput =
@@ -453,148 +474,160 @@ const LABEL_330_5 = { volumeMl: 330, abvPercent: 5, standardDrinks: 1.3, kcal: 9
  * plan_days), the label-energy provenance rule (kJ to kcal), the drinks label rules, and the
  * confidence rules (recipes, food_log). A behaviour change fails the test until a new version is
  * added whose migration recomputes the derived fields it affects.
+ *
+ * Version 2 changes no core function a validator calls, so every function output equals version
+ * 1's; its validator list is version 1's plus the vectors of the widened rule (cross-item ruling 21).
  */
-export const GOLDEN_VECTORS: Readonly<Record<number, GoldenVectors>> = Object.freeze({
-  1: {
-    windowLength: [
-      // Every preset window (FASTING_PRESETS), then the boundaries the validators rely on.
-      {
-        input: { start: '11:00', end: '19:00' },
-        output: { eatingMinutes: 480, fastingMinutes: 960, ratio: '16:8' },
+const V1: GoldenVectors = {
+  windowLength: [
+    // Every preset window (FASTING_PRESETS), then the boundaries the validators rely on.
+    {
+      input: { start: '11:00', end: '19:00' },
+      output: { eatingMinutes: 480, fastingMinutes: 960, ratio: '16:8' },
+    },
+    {
+      input: { start: '13:00', end: '19:00' },
+      output: { eatingMinutes: 360, fastingMinutes: 1080, ratio: '18:6' },
+    },
+    {
+      input: { start: '15:00', end: '19:00' },
+      output: { eatingMinutes: 240, fastingMinutes: 1200, ratio: '20:4' },
+    },
+    {
+      input: { start: '17:00', end: '19:00' },
+      output: { eatingMinutes: 120, fastingMinutes: 1320, ratio: '22:2' },
+    },
+    {
+      input: { start: '18:00', end: '19:00' },
+      output: { eatingMinutes: 60, fastingMinutes: 1380, ratio: '23:1' },
+    },
+    {
+      input: { start: '00:01', end: '00:00' },
+      output: { eatingMinutes: 1439, fastingMinutes: 1, ratio: null },
+    },
+    {
+      input: { start: '23:00', end: '01:00' },
+      output: { eatingMinutes: 120, fastingMinutes: 1320, ratio: '22:2' },
+    },
+    { input: { start: '18:01', end: '19:00' }, output: 'refused' },
+    { input: { start: '19:00', end: '19:00' }, output: 'refused' },
+  ],
+  kjToKcal: [
+    { input: 0, output: 0 },
+    { input: 393, output: 93.92925430210325 },
+    { input: 20920, output: 5000 },
+  ],
+  drinkLabel: [
+    {
+      name: 'label applies',
+      input: { volumeMl: 330, abvPercent: 5, label: LABEL_330_5 },
+      output: { source: 'label', labelIgnored: false, kcalKnown: true },
+    },
+    {
+      name: 'volume edited',
+      input: { volumeMl: 440, abvPercent: 5, label: LABEL_330_5 },
+      output: { source: 'calculated', labelIgnored: true, kcalKnown: false },
+    },
+    {
+      name: 'ABV edited',
+      input: { volumeMl: 330, abvPercent: 4, label: LABEL_330_5 },
+      output: { source: 'calculated', labelIgnored: true, kcalKnown: false },
+    },
+    {
+      name: 'printed figure null',
+      input: {
+        volumeMl: 330,
+        abvPercent: 5,
+        label: { volumeMl: 330, abvPercent: 5, standardDrinks: null, kcal: 94 },
       },
-      {
-        input: { start: '13:00', end: '19:00' },
-        output: { eatingMinutes: 360, fastingMinutes: 1080, ratio: '18:6' },
-      },
-      {
-        input: { start: '15:00', end: '19:00' },
-        output: { eatingMinutes: 240, fastingMinutes: 1200, ratio: '20:4' },
-      },
-      {
-        input: { start: '17:00', end: '19:00' },
-        output: { eatingMinutes: 120, fastingMinutes: 1320, ratio: '22:2' },
-      },
-      {
-        input: { start: '18:00', end: '19:00' },
-        output: { eatingMinutes: 60, fastingMinutes: 1380, ratio: '23:1' },
-      },
-      {
-        input: { start: '00:01', end: '00:00' },
-        output: { eatingMinutes: 1439, fastingMinutes: 1, ratio: null },
-      },
-      {
-        input: { start: '23:00', end: '01:00' },
-        output: { eatingMinutes: 120, fastingMinutes: 1320, ratio: '22:2' },
-      },
-      { input: { start: '18:01', end: '19:00' }, output: 'refused' },
-      { input: { start: '19:00', end: '19:00' }, output: 'refused' },
-    ],
-    kjToKcal: [
-      { input: 0, output: 0 },
-      { input: 393, output: 93.92925430210325 },
-      { input: 20920, output: 5000 },
-    ],
-    drinkLabel: [
-      {
-        name: 'label applies',
-        input: { volumeMl: 330, abvPercent: 5, label: LABEL_330_5 },
-        output: { source: 'label', labelIgnored: false, kcalKnown: true },
-      },
-      {
-        name: 'volume edited',
-        input: { volumeMl: 440, abvPercent: 5, label: LABEL_330_5 },
-        output: { source: 'calculated', labelIgnored: true, kcalKnown: false },
-      },
-      {
-        name: 'ABV edited',
-        input: { volumeMl: 330, abvPercent: 4, label: LABEL_330_5 },
-        output: { source: 'calculated', labelIgnored: true, kcalKnown: false },
-      },
-      {
-        name: 'printed figure null',
-        input: {
-          volumeMl: 330,
-          abvPercent: 5,
-          label: { volumeMl: 330, abvPercent: 5, standardDrinks: null, kcal: 94 },
-        },
-        output: { source: 'calculated', labelIgnored: false, kcalKnown: true },
-      },
-    ],
-    confidenceOf: [
-      { input: 'label', output: 'label' },
-      { input: 'nz-fcdb', output: 'database' },
-      { input: 'usda', output: 'database' },
-      { input: 'estimate', output: 'estimate' },
-    ],
-    recipeConfidence: [
-      { input: ['label'], output: 'database' },
-      { input: ['nz-fcdb'], output: 'database' },
-      { input: ['usda'], output: 'database' },
-      { input: ['estimate'], output: 'estimate' },
-      { input: ['label', 'nz-fcdb', 'usda'], output: 'database' },
-      { input: ['label', 'estimate'], output: 'estimate' },
-      { input: ['usda', 'estimate', 'nz-fcdb'], output: 'estimate' },
-    ],
-    formats: [
-      f('instant', '2000-01-01T00:00:00.000Z', true),
-      f('instant', '1999-12-31T23:59:59.999Z', false),
-      f('instant', '2099-12-31T23:59:59.999Z', true),
-      f('instant', '2100-01-01T00:00:00.000Z', false),
-      f('instant', '2000-01-01T00:00:00Z', false),
-      f('instant', '2000-01-01T00:00:00.000+00:00', false),
-      f('instant', '2000-02-30T00:00:00.000Z', false),
-      f('instant', '2000-01-01t00:00:00.000z', false),
-      f('local-date', '2000-01-01', true),
-      f('local-date', '1999-12-31', false),
-      f('local-date', '2099-12-31', true),
-      f('local-date', '2100-01-01', false),
-      f('local-date', '2000-02-29', true),
-      f('local-date', '2001-02-29', false),
-      f('local-date', '2000-1-01', false),
-      f('clock-time', '00:00', true),
-      f('clock-time', '23:59', true),
-      f('clock-time', '24:00', false),
-      f('clock-time', '9:00', false),
-      f('clock-time', '12:60', false),
-      f('time-zone', 'Pacific/Auckland', true),
-      f('time-zone', 'America/Argentina/Buenos_Aires', true),
-      f('time-zone', 'Etc/GMT+10', true),
-      f('time-zone', 'UTC', true),
-      f('time-zone', 'Etc/Unknown', false),
-      f('time-zone', '', false),
-      f('time-zone', 'A/B/C/D', false),
-      f('time-zone', `A/${'b'.repeat(62)}`, true),
-      f('time-zone', `A/${'b'.repeat(63)}`, false),
-      f('time-zone', '1Pacific/Auckland', false),
-      f('id', '00000000-0000-4000-8000-000000000001', true),
-      f('id', '00000000-0000-4000-b000-000000000001', true),
-      f('id', '00000000-0000-4000-c000-000000000001', false),
-      f('id', '00000000-0000-5000-8000-000000000001', false),
-      f('id', '00000000-0000-4000-8000-00000000000A', false),
-      f('seed-id', 'seed:silverbeet', true),
-      f('seed-id', 'seed:example-food-2', true),
-      f('seed-id', 'seed:Example', false),
-      f('seed-id', 'seed:example--food', false),
-      f('seed-id', `seed:${'a'.repeat(59)}`, true),
-      f('seed-id', `seed:${'a'.repeat(60)}`, false),
-      f('ref-id', 'seed:silverbeet', true),
-      f('ref-id', '00000000-0000-4000-8000-000000000001', true),
-      f('ref-id', 'silverbeet', false),
-      f('text-1-40', 'Example', true),
-      f('text-1-40', '', false),
-      f('text-1-40', ' Example', false),
-      f('text-1-40', 'Example\tfood', false),
-      f('text-1-40', 'Example\nfood', false),
-      f('text-1-40', 'Example\u007ffood', false),
-      f('text-1-40', 'e'.repeat(40), true),
-      f('text-1-40', 'e'.repeat(41), false),
-      f('note-280', 'Example\nnote', true),
-      f('note-280', 'Example\tnote', false),
-      f('note-280', 'Example\rnote', false),
-      f('note-280', 'Example\u0085note', true),
-      f('note-280', 'Example\u007fnote', false),
-      f('note-280', '', false),
-    ],
-    validator: VALIDATOR_VECTORS_V1,
-  },
-});
+      output: { source: 'calculated', labelIgnored: false, kcalKnown: true },
+    },
+  ],
+  confidenceOf: [
+    { input: 'label', output: 'label' },
+    { input: 'nz-fcdb', output: 'database' },
+    { input: 'usda', output: 'database' },
+    { input: 'estimate', output: 'estimate' },
+  ],
+  recipeConfidence: [
+    { input: ['label'], output: 'database' },
+    { input: ['nz-fcdb'], output: 'database' },
+    { input: ['usda'], output: 'database' },
+    { input: ['estimate'], output: 'estimate' },
+    { input: ['label', 'nz-fcdb', 'usda'], output: 'database' },
+    { input: ['label', 'estimate'], output: 'estimate' },
+    { input: ['usda', 'estimate', 'nz-fcdb'], output: 'estimate' },
+  ],
+  formats: [
+    f('instant', '2000-01-01T00:00:00.000Z', true),
+    f('instant', '1999-12-31T23:59:59.999Z', false),
+    f('instant', '2099-12-31T23:59:59.999Z', true),
+    f('instant', '2100-01-01T00:00:00.000Z', false),
+    f('instant', '2000-01-01T00:00:00Z', false),
+    f('instant', '2000-01-01T00:00:00.000+00:00', false),
+    f('instant', '2000-02-30T00:00:00.000Z', false),
+    f('instant', '2000-01-01t00:00:00.000z', false),
+    f('local-date', '2000-01-01', true),
+    f('local-date', '1999-12-31', false),
+    f('local-date', '2099-12-31', true),
+    f('local-date', '2100-01-01', false),
+    f('local-date', '2000-02-29', true),
+    f('local-date', '2001-02-29', false),
+    f('local-date', '2000-1-01', false),
+    f('clock-time', '00:00', true),
+    f('clock-time', '23:59', true),
+    f('clock-time', '24:00', false),
+    f('clock-time', '9:00', false),
+    f('clock-time', '12:60', false),
+    f('time-zone', 'Pacific/Auckland', true),
+    f('time-zone', 'America/Argentina/Buenos_Aires', true),
+    f('time-zone', 'Etc/GMT+10', true),
+    f('time-zone', 'UTC', true),
+    f('time-zone', 'Etc/Unknown', false),
+    f('time-zone', '', false),
+    f('time-zone', 'A/B/C/D', false),
+    f('time-zone', `A/${'b'.repeat(62)}`, true),
+    f('time-zone', `A/${'b'.repeat(63)}`, false),
+    f('time-zone', '1Pacific/Auckland', false),
+    f('id', '00000000-0000-4000-8000-000000000001', true),
+    f('id', '00000000-0000-4000-b000-000000000001', true),
+    f('id', '00000000-0000-4000-c000-000000000001', false),
+    f('id', '00000000-0000-5000-8000-000000000001', false),
+    f('id', '00000000-0000-4000-8000-00000000000A', false),
+    f('seed-id', 'seed:silverbeet', true),
+    f('seed-id', 'seed:example-food-2', true),
+    f('seed-id', 'seed:Example', false),
+    f('seed-id', 'seed:example--food', false),
+    f('seed-id', `seed:${'a'.repeat(59)}`, true),
+    f('seed-id', `seed:${'a'.repeat(60)}`, false),
+    f('ref-id', 'seed:silverbeet', true),
+    f('ref-id', '00000000-0000-4000-8000-000000000001', true),
+    f('ref-id', 'silverbeet', false),
+    f('text-1-40', 'Example', true),
+    f('text-1-40', '', false),
+    f('text-1-40', ' Example', false),
+    f('text-1-40', 'Example\tfood', false),
+    f('text-1-40', 'Example\nfood', false),
+    f('text-1-40', 'Example\u007ffood', false),
+    f('text-1-40', 'e'.repeat(40), true),
+    f('text-1-40', 'e'.repeat(41), false),
+    f('note-280', 'Example\nnote', true),
+    f('note-280', 'Example\tnote', false),
+    f('note-280', 'Example\rnote', false),
+    f('note-280', 'Example\u0085note', true),
+    f('note-280', 'Example\u007fnote', false),
+    f('note-280', '', false),
+  ],
+  validator: VALIDATOR_VECTORS_V1,
+};
+
+/** Built by a function called once, marked pure, so the app's bundle leaves the vectors out (F44). */
+export const GOLDEN_VECTORS: Readonly<Record<number, GoldenVectors>> =
+  /* @__PURE__ */ goldenVectors();
+
+function goldenVectors(): Readonly<Record<number, GoldenVectors>> {
+  return Object.freeze({
+    1: V1,
+    2: { ...V1, validator: VALIDATOR_VECTORS_V2 },
+  });
+}

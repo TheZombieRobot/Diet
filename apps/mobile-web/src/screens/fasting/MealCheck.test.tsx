@@ -131,6 +131,52 @@ describe('the meal check on the Fast card', () => {
     expect(screen.getByText(copy.widenDetail)).toBeTruthy();
   });
 
+  it('HS-37 (item 23 review): logged food with figures not known never "came in under", and still gets the eat-more line', async () => {
+    const after = (reasons: MealCheckView['reasons'], refluxDay = false) =>
+      offer({ region: 'closed', kind: 'after', reasons, headline: null, refluxDay });
+    for (const reasons of [
+      ['protein-not-known', 'energy-not-known'],
+      ['protein-not-known', 'energy-unknown'],
+    ] as const) {
+      for (const refluxDay of [false, true]) {
+        await show(after(reasons, refluxDay));
+        expect(region().textContent).toBe(
+          refluxDay ? copy.afterWindowNotKnownReflux : copy.afterWindowNotKnown,
+        );
+        cleanup();
+        test?.db.shutDown();
+      }
+    }
+    await show(after(['protein', 'energy']));
+    expect(region().textContent).toBe(copy.afterWindow);
+  });
+
+  it('HEALTH_SAFETY 2 (item 23 review): during a stop-sign pause no after-window reflux line names the 5 pm snack or an earlier meal', async () => {
+    const paused = (more: Partial<MealCheckView>) =>
+      offer({
+        region: 'closed',
+        kind: 'after',
+        headline: null,
+        refluxDay: true,
+        stopSignPause: true,
+        snack: { added: null, fits: null },
+        ...more,
+      });
+    for (const view of [
+      paused({ kind: 'after-empty', reasons: [] }),
+      paused({ reasons: ['protein'] }),
+      paused({ reasons: ['energy-unknown'] }),
+      paused({ reasons: ['protein-not-known', 'energy-not-known'] }),
+    ]) {
+      await show(view);
+      const text = region().textContent;
+      expect(text, view.reasons.join()).toMatch(/fine to eat a bit more now; something small/);
+      expect(text, view.reasons.join()).not.toMatch(/5 pm|earlier meal/);
+      cleanup();
+      test?.db.shutDown();
+    }
+  });
+
   it('the one-meal line offers the 5 pm snack only with its button (review)', async () => {
     const unavailable = offer({ kind: 'one-meal-unavailable', reasons: [], headline: null });
     await show(unavailable);

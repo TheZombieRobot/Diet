@@ -7,7 +7,9 @@ import {
   createBackupFile,
   decodeBackupText,
   type LooseSnapshot,
+  MIGRATIONS,
   migrateSnapshot,
+  SCHEMA_VERSION,
 } from '@diet/core';
 import { describe, expect, it } from 'vitest';
 import { fixtureEnv } from './env';
@@ -30,11 +32,13 @@ async function v1File(
 ): Promise<string> {
   const tables = structuredClone(snapshotV1) as unknown as Record<string, Rows>;
   patch(tables);
+  // Written by a version-1 app: the released chain's first step only.
   const file = await createBackupFile({
     tables,
     exportedAt: '2000-03-02T00:00:00.000Z',
     appVersion: SNAPSHOT_V1_APP_VERSION,
     password: null,
+    chain: MIGRATIONS.slice(0, 1),
   });
   return file.text;
 }
@@ -129,7 +133,10 @@ describe('test-only version-2 chains (section 9.6; section 16 test 17)', () => {
   );
 
   it('a newer file than the chain is refused as newer-version', async () => {
-    const text = (await v1File()).replace('"schemaVersion":1', '"schemaVersion":2');
+    const text = (await v1File()).replace(
+      '"schemaVersion":1',
+      `"schemaVersion":${String(SCHEMA_VERSION + 1)}`,
+    );
     await expect(decodeBackupText(text, { env: fixtureEnv() })).rejects.toMatchObject({
       code: 'newer-version',
     });

@@ -179,6 +179,10 @@ test('no screen but About, Drinks, Weight, Fasting, Diet and targets, Foods, Rec
       screen === FOODS ||
       screen === 'Move' ||
       screen === 'Recipes' ||
+      // Item 23: the food log shows the owner's own entries, water and steps with their times
+      // and amounts, and the summary for a GP its date ranges and averages, by design.
+      screen === 'Food log' ||
+      screen === 'Summary for your GP' ||
       (SETUP_SCREENS as readonly string[]).includes(screen)
     ) {
       if (/[$€£]/.test(await renderedText(page))) found.push(`${where}: a currency sign`);
@@ -222,6 +226,8 @@ test('no screen but About, Drinks, Weight, Fasting, Diet and targets, Foods, Rec
         region(page, today.cards.movement),
         page.getByTestId('today-status'),
         region(page, today.cards.water).getByRole('button', { name: today.water.add }),
+        // Item 23: the owner's water guide ("Guide: 2.1 L a day."), from their own records.
+        page.getByTestId('water-guide'),
         // Item 28: the Drinks card's tiles (alcohol-free days counted) and the guidance line.
         region(page, today.cards.drinks),
         page.getByTestId('reminder-cholesterol'),
@@ -253,13 +259,21 @@ test('HS-31: Today filled in, with the steps editor and the "+" panel open, and 
   await page.getByRole('button', { name: today.steps.edit }).click();
   await expect(region(page, privacy.backupReminder.cardLabel)).toBeVisible();
   await page.getByRole('button', { name: today.quickActions.title }).click();
-  await expect(quickActionsPanel(page).getByText(today.quickActions.laterNote)).toBeVisible();
+  await expect(
+    quickActionsPanel(page).getByRole('link', {
+      name: today.quickActions.labels['open-grocery-list'],
+    }),
+  ).toBeVisible();
   const found = await violations(page, 'Today filled in');
 
   await patchRecords(page, { readiness: { q5: 'yes', q7: 'yes' } });
   await expect(region(page, alcohol.helpCardLabel)).toBeVisible();
   await page.getByRole('button', { name: today.quickActions.title }).click();
-  await expect(quickActionsPanel(page).getByText(today.quickActions.laterNote)).toBeVisible();
+  await expect(
+    quickActionsPanel(page).getByRole('link', {
+      name: today.quickActions.labels['open-grocery-list'],
+    }),
+  ).toBeVisible();
   found.push(...(await violations(page, 'Today with fasting switched off and the help card')));
   expect(found).toEqual([]);
 });

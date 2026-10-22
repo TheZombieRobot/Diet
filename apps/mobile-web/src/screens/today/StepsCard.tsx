@@ -1,5 +1,5 @@
 import { fillTemplate, type LocalDate, parseStepCount, type StepsRecord } from '@diet/core';
-import { today as copy } from '@diet/core/copy/health';
+import { foodLog, today as copy } from '@diet/core/copy/health';
 import { Button, ButtonRow, Card, TextField } from '@diet/ui';
 import { type ReactElement, useEffect, useRef, useState } from 'react';
 import type { AppStorage } from '../../db/runtime';
@@ -7,7 +7,17 @@ import { formatLocalTime, formatSteps } from '../../format';
 import { useTodayWrite } from './useWrite';
 import { WriteError } from './WriteError';
 
-const steps = copy.steps;
+const todaySteps = copy.steps;
+
+/** A past day's words in the food log (item 23 design 1.7); "Same as yesterday" is not offered. */
+const PAST_DAY_STEPS = {
+  ...todaySteps,
+  none: foodLog.steps.noneDay,
+  field: foodLog.steps.field,
+  enter: foodLog.steps.enter,
+  edit: foodLog.steps.change,
+  remove: foodLog.steps.removeDay,
+};
 
 /**
  * Steps typed in by hand (UX_SCREENS section 2, card 5; design section 1.7). "Same as yesterday"
@@ -23,6 +33,7 @@ export function StepsCard({
   repeat,
   editing,
   onEditing,
+  pastDay = false,
 }: {
   readonly storage: AppStorage;
   readonly date: LocalDate;
@@ -30,7 +41,10 @@ export function StepsCard({
   readonly repeat: number | null;
   readonly editing: boolean;
   readonly onEditing: (editing: boolean) => void;
+  /** Item 23: the food log's past day, with its own words. */
+  readonly pastDay?: boolean;
 }): ReactElement {
+  const steps = pastDay ? PAST_DAY_STEPS : todaySteps;
   const write = useTodayWrite();
   const [text, setText] = useState('');
   const [problem, setProblem] = useState<string | null>(null);
@@ -112,11 +126,14 @@ export function StepsCard({
         <p className="ui-stat__value ui-stat__value--large" data-testid="steps-today">
           {formatSteps(todayRow.steps)}
         </p>
-        <p className="ui-stat__caption">
-          {fillTemplate(steps.enteredAt, {
-            time: formatLocalTime(todayRow.updatedAt, storage.env.timeZone()),
-          })}
-        </p>
+        {/* Today's save time would read as that day's time under a past day's title (design 1.7). */}
+        {pastDay ? null : (
+          <p className="ui-stat__caption">
+            {fillTemplate(steps.enteredAt, {
+              time: formatLocalTime(todayRow.updatedAt, storage.env.timeZone()),
+            })}
+          </p>
+        )}
       </>
     );
 
