@@ -16,6 +16,7 @@ export { CheckList, type CheckListProps } from './components/CheckList';
 export { Chip, type ChipProps } from './components/Chip';
 export { ChoiceList, type ChoiceListProps, type ChoiceOption } from './components/ChoiceList';
 export { DayBar, type DayBarProps } from './components/DayBar';
+export { ExpandableRow, type ExpandableRowProps } from './components/ExpandableRow';
 export { FastMeter, type FastMeterProps } from './components/FastMeter';
 export {
   FloatingActionButton,
@@ -47,6 +48,11 @@ export {
 } from './components/MeterBar';
 export { type MeterRect, meterRects } from './components/meterRects';
 export { Notice, type NoticeProps } from './components/Notice';
+export {
+  NutrientTable,
+  type NutrientTableProps,
+  type NutrientTableRow,
+} from './components/NutrientTable';
 export { SelectField, type SelectFieldProps } from './components/SelectField';
 export { StepFrame, type StepBar, type StepFrameProps } from './components/StepFrame';
 export { Stepper, type StepperProps } from './components/Stepper';

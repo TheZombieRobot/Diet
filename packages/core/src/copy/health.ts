@@ -15,6 +15,7 @@
  * Sections are scanned with their own extra rules in `health.test.ts`: for example, alcohol copy
  * may never mention streaks, targets or limits. Sections are added as each screen is built.
  */
+import type { AttributionMap } from '../foods/types';
 import { FLOOR_KJ, KICKSTART_MAX_DEFICIT_PCT, KICKSTART_NET_CARBS_G } from '../storage/limits';
 
 /**
@@ -2072,8 +2073,8 @@ export const reflux = {
  * (TARGET_COPY_FACTS; health.test.ts). The blood-pressure stop-sign and electrolyte lines are item
  * 13's readiness.bloodPressure keys (cross-item ruling 5), and the electrolyte wording is item 16's
  * reminders.electrolytes (one reminder, one wording); the activity labels are item 13's
- * profile.activity. The badge words (today.confidence) move to item 18's foods.badges when it
- * lands, and its nutritionFooter supplies the attribution footer (item 18-20 contract 5 and 6).
+ * profile.activity. The badge words, the "at least" and "not known" wording and the attribution
+ * footer are item 18's foods section (item 18-20 contract 4 to 6).
  */
 export const targets = {
   settingsRow: {
@@ -2268,7 +2269,6 @@ export const targets = {
     satFat: 'Saturated fat',
     ofCeiling: '{eaten} / {ceiling} g',
     gramsOnly: '{eaten} g',
-    atLeast: 'at least {eaten}',
     /**
      * In place of "Nothing logged yet today." until food logging exists (full review F24), so the
      * zeros never read as a day without food. Item 23 removes it with its own empty-day line.
@@ -2287,7 +2287,6 @@ export const targets = {
     },
     floorDay: "Today's energy figure is the {floorKj} kJ floor: a safety net, not a target.",
     plainNote: 'Shown without targets. Your GP or a dietitian can tell you what suits you.',
-    confidence: { label: 'Label', database: 'Database', estimate: 'Estimate' },
   },
   /** The planner's floor lines (item 22 shows them; HS-10, NU-06, C108, T3). */
   plannerFloor: {
@@ -2400,22 +2399,243 @@ export const reminders = {
 } as const;
 
 /**
- * About (UX_SCREENS section 7; HS-13). No food data is in the app yet and its licence is still to
- * be decided, so the data-sources card names no source; item 18 names it with its attribution.
+ * About (UX_SCREENS section 7; HS-13). The data-sources card names a food database only once one
+ * is approved at checklist item 10, with its attribution (item 18: foods.about and
+ * foods.attribution give the Database line, the catalogue line and the attribution).
  */
 export const about = {
   dataSources: {
     intro: 'Every food figure in the app will carry a badge that says where it came from:',
-    badges: [
-      'Label: you typed it in from a product label.',
-      'Database: it comes from a published table of food values. That source, and the attribution its licence asks for, will be named here when the food data is added at a later step of the build checklist.',
-      "Estimate: it was worked out from a recipe's ingredients, or approximated.",
-    ],
-    now: 'No food figures are in the app yet.',
+    /** The Label and Estimate lines; the Database line is foods.about.databaseBadgeNone or databaseBadge (item 18). */
+    badges: {
+      label: 'Label: you typed it in from a product label.',
+      estimate: "Estimate: it was worked out from a recipe's ingredients, or approximated.",
+    },
   },
   /** DOC_REVIEW C34: the records share their origin with every site of the same GitHub account. */
   sharedOrigin:
     'The app is published on GitHub Pages. Any other site published from the same GitHub account could read the records the app keeps on this phone, so no other site is published from that account.',
+} as const;
+
+// ---- Item 18: the food catalogue and how unknown figures read ----
+
+/**
+ * Attribution text per approved food database, copied word for word from the dated item-10
+ * "Nutrition data licence" DECISIONS row (item 18 design 6.1). Empty while no source is approved:
+ * tools/scans/docFidelity.test.ts keeps its keys equal to APPROVED_NUTRIENT_SOURCES (S5). The one
+ * place in this file that may name a database, and the one string exempt from the foods rules.
+ */
+const FOOD_ATTRIBUTION: AttributionMap = Object.freeze({});
+
+/**
+ * The food catalogue, "Foods in the app", and the words every screen uses for a nutrient figure
+ * that is not known (checklist item 18; HS-37; DOC_REVIEW C43, C67, C69, C97, C107, C110). An
+ * unknown figure reads "not known", a sum with some known parts "at least", never 0 and never an
+ * estimate. Items 20 to 24 reuse these words rather than adding their own (item 18–20 contract 4).
+ */
+export const foods = {
+  screen: {
+    title: 'Foods in the app',
+    findLabel: 'Find a food',
+    intro:
+      'The everyday foods the app knows, with their aisles, typical pack sizes, allergens and seasons. Tap a food for its details.',
+    searchLabel: 'Food name',
+    searchHint: 'Type at least 2 letters of its name or another name, such as chard.',
+    count: '{count} foods',
+    matchesLabel: 'Matches',
+    matchOne: '1 matching food',
+    matchCount: '{count} matching foods',
+    noMatch: 'No food in the list matches that.',
+    readFailed: 'The food list could not be read. Reload the app.',
+    rowGarden: 'Often grown at home',
+    rowCooked: 'Cooked weight',
+    rowContains: 'Contains {list}',
+    rowCheckLabel: 'Check the label for allergens',
+    rowConflict: 'Has {list}, which you listed',
+  },
+  detail: {
+    otherNames: 'Other names',
+    noOtherNames: 'None',
+    aisle: 'Aisle',
+    packs: 'Typical pack sizes',
+    packsTypical: 'Typical sizes, not checked against a store.',
+    packsOwner: 'Your sizes, entered {date}.',
+    packsByThe: 'Sold by the {one}',
+    packsOf: 'Packs of {list} {many}',
+    packsIn: '{sizes} {many}',
+    packsLoose: '{sizes}, also sold loose',
+    eachWeighs:
+      'One {one} weighs about {grams} g as bought (typical), used only to count how many to buy.',
+    notSold: 'For weighing after cooking. The shopping list uses {name}.',
+    cookedForm: 'Also listed cooked, for weighing after cooking: {name}.',
+    allergens: 'Allergens',
+    allergensNone: 'None of the 15 allergens the app tracks.',
+    allergensSingle:
+      'None of the 15 allergens the app tracks is in it by nature, but packed foods can carry a “may contain” line, so check the label.',
+    allergensContains: 'Contains {list}.',
+    allergensBrandMore: 'Other allergens depend on the brand: check the label.',
+    allergensBrandOnly: 'Allergens depend on the brand: check the label.',
+    allergenConflict: 'Has {list}, which you listed to avoid.',
+    allergenUnknownForYou:
+      'Its allergens are not fully known, so it is never shown as free of the ones you listed.',
+    season: 'In season in the Bay of Plenty',
+    seasonAllYear: 'All year',
+    seasonRange: '{from} to {to}',
+    seasonNote: 'A general guide to when local produce is usually plentiful.',
+    garden: 'Grown at home',
+    gardenYes: 'Often grown in home gardens',
+    swaps: 'Swaps',
+    swapCheckLabel: '{name} (check the label)',
+    swapsNoneShown:
+      'None to show with your allergen and gluten-free settings and the foods you do not want suggested.',
+    cookedFormLabel: 'Cooked form',
+    nutritionCaption: {
+      raw: 'Nutrition per 100 g, raw',
+      cooked: 'Nutrition per 100 g, cooked',
+      'as-sold': 'Nutrition per 100 g, as sold',
+    },
+    badgeLine: 'Badge: {badge}',
+  },
+  months: [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ],
+  /** Running-text words in ALLERGENS order (profile.allergenNames are capitalised labels). */
+  allergenWords: {
+    peanut: 'peanuts',
+    'tree-nut': 'tree nuts',
+    milk: 'milk',
+    egg: 'egg',
+    fish: 'fish',
+    crustacea: 'crustacea (prawns, crab, crayfish)',
+    mollusc: 'molluscs (mussels, oysters, squid)',
+    sesame: 'sesame',
+    soy: 'soy',
+    lupin: 'lupin',
+    wheat: 'wheat',
+    barley: 'barley',
+    oats: 'oats',
+    rye: 'rye',
+    sulphites: 'sulphites',
+  },
+  allergenCovered: '{allergen} ({choice})',
+  glutenWord: 'gluten',
+  listComma: ', ',
+  listAnd: ' and ',
+  listOr: ' or ',
+  nutrientNames: {
+    energyKj: 'Energy',
+    proteinG: 'Protein',
+    fatG: 'Fat',
+    saturatedFatG: 'Saturated fat',
+    carbsG: 'Net carbs',
+    sugarsG: 'Sugars',
+    fibreG: 'Fibre',
+    sodiumMg: 'Sodium',
+  },
+  nutrientNamesLower: {
+    energyKj: 'energy',
+    proteinG: 'protein',
+    fatG: 'fat',
+    saturatedFatG: 'saturated fat',
+    carbsG: 'carbohydrate',
+    sugarsG: 'sugars',
+    fibreG: 'fibre',
+    sodiumMg: 'sodium',
+  },
+  figures: {
+    notKnown: 'not known',
+    atLeast: 'at least {value}',
+    kj: '{value} kJ',
+    g: '{value} g',
+    mg: '{value} mg',
+  },
+  /** The only badge words (HEALTH_SAFETY section 4): a figure that is not known has no badge. */
+  badges: { label: 'Label', database: 'Database', estimate: 'Estimate' },
+  notLoaded:
+    'Nutrition figures for this food are not in the app yet. They can be added from a published table of food values if its licence allows. Until then each figure shows as not known, never as 0, and the app does not fill it in.',
+  // Used only if checklist item 10 approves neither database (item 18 design 6.4).
+  notLoadedNone:
+    'Nutrition figures for this food are not in the app, because no published table of food values could be used. Each figure shows as not known, never as 0. You can enter figures from a product label in the food log.',
+  releaseUnreadable:
+    'The nutrition figures could not be read, so each one shows as not known. Reload the app. If this stays, the figures need fixing in an update.',
+  partlyKnown: {
+    database:
+      'The table this food comes from has no figure for {list}. Each missing figure shows as not known.',
+    label:
+      'The label figures entered for this food have no figure for {list}. Each missing figure shows as not known.',
+    estimate:
+      'The estimate entered for this food has no figure for {list}. Each missing figure shows as not known.',
+  },
+  sourceLine: 'From {source}: {foodName}.',
+  sourceOwn: {
+    label: 'Figures entered from a product label.',
+    estimate: 'Figures entered as an estimate.',
+  },
+  // HEALTH_SAFETY section 4: one footer that is true for whatever is on the screen (C97). A
+  // database figure from a source that is not approved is shown as Estimate, so it never needs a
+  // footer that cannot name its database.
+  footer: {
+    noDatabase:
+      'Label figures are as you typed them, and Estimates are approximate. No figure here is from a food database. Your plate will differ.',
+    withDatabase:
+      'Database figures are averages from {sources}. Label figures are as you typed them, and Estimates are approximate. Your plate will differ.',
+  },
+  totals: {
+    someMissingOne:
+      '1 ingredient has no {nutrient} figure yet, so the total is at least what is shown.',
+    someMissingMany:
+      '{count} ingredients have no {nutrient} figure yet, so the total is at least what is shown.',
+    noneLoaded:
+      'No nutrition figures are loaded yet for its ingredients, so its nutrition is not known.',
+  },
+  planner: {
+    energyNotKnown:
+      'The planner did not fill this day: the energy in some of its meals is not known yet, so it cannot check that the day reaches {floorKj} kJ.',
+    energyNotKnownOwner:
+      "The energy in some of this day's meals is not known yet, so the app cannot check that the day reaches {floorKj} kJ (about {floorKcal} kcal).",
+  },
+  today: {
+    foodNotKnown: 'Food: not known',
+    foodAtLeast: 'Food: at least {value}',
+    figuresNotLoaded:
+      "Food figures are not loaded yet, so the app cannot tell whether today's food reaches your energy floor or your protein target.",
+  },
+  kickstart: {
+    figuresNotLoaded:
+      "Until food figures are loaded, the app cannot warn you when a day's food is under your energy floor or short of your protein target. Enter label figures for your main protein foods, or keep the 5 pm snack.",
+  },
+  derived: {
+    daysMissingOne:
+      '1 day has entries with no {nutrient} figure, so the average is at least what is shown.',
+    daysMissingMany:
+      '{count} days have entries with no {nutrient} figure, so the average is at least what is shown.',
+  },
+  about: {
+    catalogue:
+      'The app lists {count} everyday foods with their aisles, typical pack sizes, allergens and seasons. Their nutrition figures are not loaded yet, so each one shows as not known.',
+    catalogueLoaded:
+      'The app lists {count} everyday foods. Nutrition figures are loaded for {loaded} of them; any figure not in the table shows as not known.',
+    attributionNote:
+      'Any table of food values the app uses is named here, with the attribution its licence asks for.',
+    linkTitle: 'Foods in the app',
+    linkDetail: 'Names, aisles, pack sizes and allergens',
+    databaseBadgeNone:
+      'Database: it would come from a published table of food values. None is used yet, so no figure has this badge.',
+    databaseBadge: 'Database: it comes from {sources}, attributed below.',
+    sourceEdition: '{name}, {edition}',
+  },
+  attribution: FOOD_ATTRIBUTION,
 } as const;
 
 /** All sections, for scanning and review. */
@@ -2438,4 +2658,5 @@ export const healthCopy = {
   today,
   reminders,
   about,
+  foods,
 } as const;

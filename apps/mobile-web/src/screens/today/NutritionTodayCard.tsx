@@ -1,7 +1,9 @@
+import { sourcesInUse } from '@diet/core';
 import { privacy, targets as copy } from '@diet/core/copy/health';
 import { Button, Card, Notice } from '@diet/ui';
 import { type ReactElement, useMemo } from 'react';
 import type { AppStorage } from '../../db/runtime';
+import { useFoodData } from '../../foods/FoodDataContext';
 import { useDayIntake, useDayTargets, useTargetsClock } from '../targets/useDayTargets';
 import { nutritionTodayView } from './nutritionView';
 import { NutritionTodayView } from './NutritionTodayView';
@@ -37,6 +39,8 @@ export function NutritionTodayCard({ storage }: { readonly storage: AppStorage }
   const clock = useTargetsClock(storage);
   const targets = useDayTargets(storage, clock);
   const intake = useDayIntake(storage, clock.today);
+  // Item 18: whether food figures are loaded, and the approved sources for the footer.
+  const { data, approved, attributions } = useFoodData();
   const model = useMemo(
     () =>
       targets.status === 'ready' && intake.status === 'ready'
@@ -45,9 +49,10 @@ export function NutritionTodayCard({ storage }: { readonly storage: AppStorage }
             intake.intake,
             intake.entries,
             targets.records.profile.dietMode,
+            { loaded: sourcesInUse(data).length > 0, approved, attributions },
           )
         : null,
-    [targets, intake],
+    [targets, intake, data, approved, attributions],
   );
   if (model !== null) return <NutritionTodayView model={model} />;
   return <NutritionStatus failed={targets.status === 'error' || intake.status === 'error'} />;

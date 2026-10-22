@@ -103,7 +103,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 ### 3.6 Nutrition, recipes, planner
 | ID | Case | Expected |
 |---|---|---|
-| NU-01 | Every ingredient has all eight nutrient fields and a source tag | Data validation script |
+| NU-01 | Every ingredient, as the app reads it from `packages/core/data`, has all eight nutrient fields, each either a figure with its source tag (database, field and unit) or explicitly not known (never a silent 0 and never filled in by the app); a carb basis; a food-level source tag (`not-loaded` until a database approved at checklist item 10 is imported, with a citation for every database figure); and names, aliases, aisle, typical pack sizes with count and container words, allergens and whether the list is complete, garden flag, season months, raw/cooked/as-sold basis and substitutes that pass the dataset rules | Data validation script (`pnpm foods:check`); with real figures at step 18b |
 | NU-02 | Recipe per-serve totals equal sum of ingredients ÷ serves | Unit test over all recipes |
 | NU-03 | Net carbs = carbs − fibre, never negative | Unit test |
 | NU-04 | Heart-smart badge logic | Fixtures: avocado salad = badge; bacon-cream carbonara = flagged |
@@ -111,7 +111,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | NU-06 | Auto-plan under 5,000 kJ | Refused (HS-10): the core refusal (floorCheck, every app-made write kind) at item 21; the planner's refusal at item 22 |
 | NU-07 | Garden-first filter | Recipes using ≥2 in-season garden items rank first |
 | NU-08 | Cholesterol check-in cards | Lipid test at first run; check-ins when 56 and 84 days have passed since the first low-carb day (or since the profile was made if there was none); boundaries 55/56 and 83/84 days; one case starting in balanced mode, where the lipid test and check-ins are counted again from the first low-carb day (C109) |
-| NU-09 | Attribution footer | Present on every nutrition screen |
+| NU-09 | Attribution footer | Present on every nutrition screen; names only the databases recorded as approved in DECISIONS.md (none until checklist item 10); no NZ Food Composition Database wording when only USDA is approved (C97) |
 
 ### 3.7 Grocery list
 | ID | Case | Expected |
@@ -228,6 +228,14 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | TD-05 | Drinks guidance | By stored sex and setting, the stricter wins, women's when sex is missing, never without "No alcohol use is risk-free."; under 18 shows the reason and no figures; with readiness answer 2 yes or unanswered, the pregnancy line and no daily or weekly figures (full review F30) |
 | TD-06 | Reminders | Cholesterol per NU-08 (counted again once when low-carb eating first starts); electrolytes per C72, only with the keto ceiling on in keto mode; medication timing (RD-09) on the Fast card when fasting is available and in Reminders when it is switched off, never twice; backup per BK-03, with Reminders first when storage is not protected |
 | TD-07 | Status line | The over-24-hours sentence strictly over 24 h whether or not fasting is switched off; a neutral "still open" line when it is; no time past the running fast's 24-hour point, and from 23 h "It's fine to eat now.", as on the Fast card; the day's window after the snack is added; no fasting words with no pattern |
+
+### 3.15 Foods in the app (checklist item 18)
+| ID | Case | Expected |
+|---|---|---|
+| FD-01 | Search the catalogue by name or another name ("chard") | The matching food is listed (Silverbeet); fewer than 2 letters lists every food by aisle |
+| FD-02 | Open a food whose figures are not loaded | Every per-100 g figure reads "not known", never 0; no badge; the footer says no figure is from a food database |
+| FD-03 | Allergens of a fresh single food, a packed single food, a brand-dependent food, and one the profile lists | "None of the 15 allergens", "check the label" (with "none by nature" for the single food), what it contains plus "check the label", and the conflict in the owner's own terms ("Has wheat (gluten), which you listed") |
+| FD-04 | Swaps on a food's details | Never a swap carrying a listed allergen, nor a food the owner does not want suggested; gluten-free swaps only with Gluten-free household on, whatever the profile lists; "(check the label)" on a swap whose allergens are not complete |
 
 ---
 

@@ -1,9 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { APPROVED_NUTRIENT_SOURCES } from '../../packages/core/src/foods/approval';
 import {
   alcohol,
   fasting,
+  foods,
   general,
   helpNumbers,
   move,
@@ -282,5 +284,76 @@ describe('Today copy matches the docs word for word (item 16; U8)', () => {
 
   it('the electrolyte reminder body is the reviewed required sentence', () => {
     expect(REQUIRED_COPY).toContain(reminders.electrolytes.body);
+  });
+});
+
+// ---- Item 18: the nutrition footer and the food-database approval guard ----
+
+/**
+ * The approval guard (item 18 design 6.1; S5): every approved food database has a dated item-10
+ * "Nutrition data licence" row in DECISIONS.md that names it and quotes, word for word, the
+ * attribution text the app shows; and the app's attribution keys are exactly the approved list.
+ */
+function approvalProblems(
+  decisions: string,
+  approved: readonly string[],
+  attribution: Readonly<Record<string, { readonly text: string } | undefined>>,
+): string[] {
+  const problems: string[] = [];
+  if ([...Object.keys(attribution)].sort().join() !== [...approved].sort().join())
+    problems.push('attribution keys differ from the approved sources');
+  const rows = decisions
+    .split('\n')
+    .map((line) => line.split(' | '))
+    .filter((cells) => cells[1]?.startsWith('**Nutrition data licence (item 10):**') === true);
+  for (const id of approved) {
+    const row = rows.find((cells) => cells[1]?.includes(`Approved source: \`${id}\`.`) === true);
+    if (row === undefined) {
+      problems.push(`${id}: no licence row`);
+      continue;
+    }
+    if (!/^\| \d{4}-\d{2}-\d{2}$/.test(row[0] ?? '')) problems.push(`${id}: the row is not dated`);
+    const quoted = new RegExp(`Attribution text \\(\`${id}\`\\): "([^"]*)"`).exec(
+      row[1] ?? '',
+    )?.[1];
+    if (quoted !== attribution[id]?.text) problems.push(`${id}: the attribution text differs`);
+  }
+  return problems;
+}
+
+describe('the nutrition footer and the food-database approval (item 18)', () => {
+  const nutrition = section(HEALTH_SAFETY, /^## 4\. /);
+
+  it('S2 C97: the two footers are the HEALTH_SAFETY.md section 4 quotes, and required copy; an unapproved database figure is Estimate', () => {
+    expect(quoteAfter(nutrition, 'With no Database figure shown it reads:')).toBe(
+      foods.footer.noDatabase,
+    );
+    expect(quoteAfter(nutrition, 'With Database figures shown:')).toBe(foods.footer.withDatabase);
+    expect(Object.keys(foods.footer)).toEqual(['noDatabase', 'withDatabase']);
+    expect(nutrition).toContain(
+      'A figure from a food database that is not approved (one restored from a backup) is shown and counted as Estimate, never as Database',
+    );
+    for (const footer of Object.values(foods.footer)) expect(REQUIRED_COPY).toContain(footer);
+  });
+
+  it('S5 HS-37: no food database is approved without a dated licence row quoting its attribution', () => {
+    expect(approvalProblems(DECISIONS, APPROVED_NUTRIENT_SOURCES, foods.attribution)).toEqual([]);
+    // The guard itself, on synthetic rows.
+    const row = (date: string, text: string) =>
+      `| ${date} | **Nutrition data licence (item 10):** Approved source: \`usda\`. Attribution text (\`usda\`): "${text}" | Reason | — |`;
+    const attribution = { usda: { name: 'Example database', text: 'Example attribution text.' } };
+    expect(
+      approvalProblems(row('2000-01-01', 'Example attribution text.'), ['usda'], attribution),
+    ).toEqual([]);
+    expect(approvalProblems('', ['usda'], attribution)).toEqual(['usda: no licence row']);
+    expect(
+      approvalProblems(row('pending', 'Example attribution text.'), ['usda'], attribution),
+    ).toEqual(['usda: the row is not dated']);
+    expect(approvalProblems(row('2000-01-01', 'Other words.'), ['usda'], attribution)).toEqual([
+      'usda: the attribution text differs',
+    ]);
+    expect(approvalProblems('', [], attribution)).toEqual([
+      'attribution keys differ from the approved sources',
+    ]);
   });
 });

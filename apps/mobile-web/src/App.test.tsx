@@ -1,4 +1,12 @@
-import { about, alcohol, general, helpNumbers, privacy, today } from '@diet/core/copy/health';
+import {
+  about,
+  alcohol,
+  foods,
+  general,
+  helpNumbers,
+  privacy,
+  today,
+} from '@diet/core/copy/health';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
@@ -137,8 +145,8 @@ describe('every screen', () => {
 
 describe('placeholder screens (no sample data)', () => {
   // Today (item 16), Settings and About, the setup screens (item 13), the Weight screen (item 14),
-  // the Fasting screen (item 15), Diet and targets (item 21) and Laptop pairing (item 30) are
-  // built; the rest still say they arrive later.
+  // the Fasting screen (item 15), Foods in the app (item 18), Diet and targets (item 21) and Laptop
+  // pairing (item 30) are built; the rest still say they arrive later.
   const built: readonly RouteId[] = [
     'today',
     'settings',
@@ -149,6 +157,7 @@ describe('placeholder screens (no sample data)', () => {
     'weight',
     'fasting',
     'targets',
+    'foods',
     'pairing',
   ];
   const placeholders = ROUTES.filter((r) => !built.includes(r));
@@ -246,6 +255,7 @@ describe('About (HS-13, About portion)', () => {
     expect(main().textContent).toContain(intro);
     const links = within(main())
       .getAllByRole('link')
+      .filter((l) => l.getAttribute('href') !== routeHref('foods')) // item 18's Data sources row
       .map((l) => [l.textContent, l.getAttribute('href')]);
     expect(links).toEqual([
       [`${emergency.number}${emergency.name} ${emergency.number}`, 'tel:111'],
@@ -284,7 +294,8 @@ describe('About (HS-13, About portion)', () => {
     expect(document.body.textContent).toContain(general.about);
     expect(document.body.textContent).toContain(helpNumbers.healthline.number);
     expect(document.body.textContent).toContain(about.sharedOrigin);
-    expect(screen.getAllByRole('link')).toHaveLength(6);
+    // The six help-number rows and item 18's "Foods in the app" row.
+    expect(screen.getAllByRole('link')).toHaveLength(7);
   });
 
   it('marks only the 111 row as an emergency', async () => {
@@ -294,16 +305,25 @@ describe('About (HS-13, About portion)', () => {
     expect(emergencyRows[0]?.getAttribute('href')).toBe('tel:111');
   });
 
-  it('C11: data sources says what each badge means and names no database (C97); the app version', async () => {
+  it('C11: data sources says what each badge means, names no database (C97) and links to Foods in the app; the app version', async () => {
     await show('about');
     const sources = within(main()).getByRole('region', { name: 'Data sources' });
     expect(
       within(sources)
         .getAllByRole('listitem')
         .map((li) => li.textContent),
-    ).toEqual(about.dataSources.badges);
-    expect(sources.textContent).toContain(about.dataSources.now);
+    ).toEqual([
+      about.dataSources.badges.label,
+      foods.about.databaseBadgeNone,
+      about.dataSources.badges.estimate,
+    ]);
+    expect(sources.textContent).toContain(foods.about.attributionNote);
     expect(sources.textContent).toContain('attribution');
+    expect(
+      within(sources)
+        .getByRole('link', { name: /^Foods in the app/ })
+        .getAttribute('href'),
+    ).toBe(routeHref('foods'));
     expect(sources.textContent).not.toMatch(
       /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
     );

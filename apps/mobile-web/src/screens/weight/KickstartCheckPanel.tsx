@@ -1,8 +1,9 @@
-import { fillTemplate, type YesNo } from '@diet/core';
-import { weight } from '@diet/core/copy/health';
-import { Button, ButtonRow, ChoiceList } from '@diet/ui';
+import { fillTemplate, sourcesInUse, type YesNo } from '@diet/core';
+import { foods, weight } from '@diet/core/copy/health';
+import { Button, ButtonRow, ChoiceList, Notice } from '@diet/ui';
 import { useId, useState, type ReactElement } from 'react';
 import type { AppStorage } from '../../db/runtime';
+import { useFoodData } from '../../foods/FoodDataContext';
 import { startKickstart } from './kickstartActions';
 import { recordPreStartStopSign } from './preStartCheck';
 import { reportStatus, stopSignFocusStore, weightStatusStore } from './stores';
@@ -63,6 +64,7 @@ export function KickstartCheckPanel({
   const unansweredId = useId();
   const titleRef = useFocusWhen<HTMLParagraphElement>(true);
   const complete = QUESTIONS.every((q) => answers[q] !== undefined);
+  const noFoodFigures = sourcesInUse(useFoodData().data).length === 0;
 
   const confirm = async () => {
     const four = {
@@ -136,6 +138,12 @@ export function KickstartCheckPanel({
         {weight.check.title}
       </p>
       <p>{variant.kind === 'extend' ? weight.check.introExtend : weight.check.introStart}</p>
+      {/* Item 18 (HS-10, HS-18): until food figures exist, the floor and protein checks cannot confirm anything. */}
+      {variant.kind === 'start' && noFoodFigures ? (
+        <Notice tone="info">
+          <p>{foods.kickstart.figuresNotLoaded}</p>
+        </Notice>
+      ) : null}
       {QUESTIONS.map((q) => (
         <ChoiceList
           key={q}

@@ -42,7 +42,7 @@ Conventions for the implementing model:
 9. **Phase 0 recommendation.** Model reads 3.3 and 9.1, writes 9.2 recommending A, B or C against the gates in section 9. Do not build anything for the extension yet.
    *Acceptance:* 9.2 written with reasons.
 
-10. **Nutrition data licence.** Read foodcomposition.co.nz terms clause 4 (owner or model). Record the NZ vs USDA decision in `DECISIONS.md`.
+10. **Nutrition data licence.** Read foodcomposition.co.nz terms clause 4 (owner or model). Record the NZ vs USDA decision in `DECISIONS.md`, answering the nine questions in `INTEGRATION_FEASIBILITY.md` section 6, in the row format given there. Then run step 18b (item 18 design, section 6).
     *Acceptance:* decision recorded with the clause quoted.
 
 11. **STOP — Phase 0 decision.** Message the owner with the recommendation. Owner records A/B/C in 9.3.
@@ -68,8 +68,8 @@ Conventions for the implementing model:
 
 ## Week 2 — Food and garden
 
-18. **Ingredient dataset.** About 150 items in `packages/test-fixtures` and `packages/core/data`: name, aliases, aisle, pack sizes seen at PAK'nSAVE (owner corrects in the trial), nutrients per 100 g, source tag and citation, allergens, garden flag, Bay of Plenty season months. Silverbeet and other leafy greens included.
-    *Acceptance:* NU-01; validation script; attribution text matches the chosen licence.
+18. **Ingredient dataset.** About 150 foods in `packages/core/data` (one canonical dataset; `packages/test-fixtures` uses a small subset): name, aliases, aisle, typical NZ pack sizes (estimates, never attributed to a store; the owner corrects them after the trial), allergens, garden flag, Bay of Plenty season months, raw/cooked/as-sold basis and substitutes. Silverbeet, other leafy greens, firm tofu and silken tofu included. Nutrients per 100 g, with per-value source tags and citations, are loaded at step 18b from the source approved at item 10; until then every figure shows as not known.
+    *Acceptance:* NU-01; validation script (`pnpm foods:check`); at step 18b, attribution text matches the chosen licence, NU-01 on the real figures, and items 20–23's acceptance re-run with real figures before any deploy. *Accepted in part until step 18b* (in progress: the catalogue is built with every figure not known).
 
 19. **Garden and pantry inventory.** Crop, amount, harvest-ready, perishability, optional photo stored on device; pantry quantities; "Add harvest" quick action.
     *Acceptance:* GL-02 fixture; PWA-04 offline persistence; photo never included in exports.
@@ -149,6 +149,7 @@ Conventions for the implementing model:
     *Acceptance:* each finding dispositioned; CI green.
 
 42. **Health copy review.** Owner reads every string in `health.ts` against `HEALTH_SAFETY.md`, and the exercise dataset's names, how-to lines and cues (`packages/core/data/exercises.json`); model locates and links the Heart Foundation NZ page, current CDC page, SunSmart and the 2020 Eating and Activity Guidelines PDF, replacing secondary sources where found.
+    Item 18 adds: the `foods` copy, the season months, the allergen completeness rule and `SINGLE_FOOD_IDS`, the heart-role table and the fatty cuts, canned fish under Pantry, and whether the Foods screen should show per-100 g energy figures under readiness answers 1 and 5 once figures are loaded.
     *Acceptance:* no secondary-source note remains where a primary page was found; scans pass.
 
 43. **Handover notes** in `README.md`: update, re-pair, back up, restore, delete all, reload extension after Chrome updates, redeploy the relay.

@@ -1,3 +1,4 @@
+import { foods } from '@diet/core/copy/health';
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_ROUTE,
@@ -13,7 +14,7 @@ import {
 } from './routes';
 
 describe('hash routes', () => {
-  it('has the five tabs of UX_SCREENS.md in order, plus Settings, About, the setup screens, Weight, Fasting, Diet and targets and Laptop pairing', () => {
+  it('has the five tabs of UX_SCREENS.md in order, plus Settings, About, the setup screens, Weight, Fasting, Diet and targets, Foods and Laptop pairing', () => {
     expect(TAB_ROUTES.map((r) => ROUTE_TITLES[r])).toEqual([
       'Today',
       'Food',
@@ -31,11 +32,16 @@ describe('hash routes', () => {
       'weight',
       'fasting',
       'targets',
+      'foods',
       'pairing',
     ]);
     expect(ROUTE_TITLES.weight).toBe('Weight');
     expect(ROUTE_TITLES.fasting).toBe('Fasting and reflux');
     expect(ROUTE_TITLES.targets).toBe('Diet and targets');
+    // K7 (item 18): the Foods screen's title is the one its copy names.
+    expect(ROUTE_TITLES.foods).toBe('Foods in the app');
+    expect(foods.screen.title).toBe('Foods in the app');
+    expect(parseRoute('#/foods')).toBe('foods');
     expect(ROUTE_TITLES.pairing).toBe('Laptop pairing');
   });
 
@@ -73,6 +79,7 @@ describe('hash routes', () => {
       'profile',
       'eating-schedule',
       'targets',
+      'foods',
       'pairing',
     ]);
   });

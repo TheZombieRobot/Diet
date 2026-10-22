@@ -1,4 +1,4 @@
-import { targets } from '@diet/core/copy/health';
+import { foods, targets } from '@diet/core/copy/health';
 
 /**
  * Hash routes (#/today, #/food, ...). GitHub Pages has no server-side rewrites, so the route lives
@@ -22,6 +22,8 @@ export const ROUTES = [
   'fasting',
   // Item 21: Diet and targets, reached from Settings.
   'targets',
+  // Item 18: the food catalogue, opened from About.
+  'foods',
   // Item 30: Settings, Laptop pairing.
   'pairing',
 ] as const;
@@ -48,6 +50,7 @@ export const ROUTE_TITLES: Readonly<Record<RouteId, string>> = {
   weight: 'Weight',
   fasting: 'Fasting and reflux',
   targets: targets.screen.title,
+  foods: foods.screen.title,
   pairing: 'Laptop pairing',
 };
 
@@ -88,6 +91,8 @@ const UNDER_SETTINGS: readonly RouteId[] = [
   'profile',
   'eating-schedule',
   'targets',
+  // Item 18: reached from About.
+  'foods',
   'pairing',
 ];
 

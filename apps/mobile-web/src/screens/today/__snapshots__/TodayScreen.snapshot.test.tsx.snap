@@ -89,6 +89,7 @@ exports[`TD-01: the Today snapshot (C1) > (a) the full fixture 1`] = `
         "Net carbs 0 / 20 g",
         "Saturated fat 0 / 23 g",
         "Food logging arrives at a later step in the build checklist. Until then no food is counted here.",
+        "Label figures are as you typed them, and Estimates are approximate. No figure here is from a food database. Your plate will differ.",
       ],
     },
     {
@@ -290,6 +291,7 @@ exports[`TD-01: the Today snapshot (C1) > (b) fasting gated (q5 yes after the fa
         "Saturated fat 0 g",
         "Food logging arrives at a later step in the build checklist. Until then no food is counted here.",
         "Shown without targets. Your GP or a dietitian can tell you what suits you.",
+        "Label figures are as you typed them, and Estimates are approximate. No figure here is from a food database. Your plate will differ.",
       ],
     },
     {

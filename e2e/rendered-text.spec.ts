@@ -7,6 +7,7 @@ import {
   today,
   weight,
 } from '../packages/core/src/copy/health';
+import { APPROVED_NUTRIENT_SOURCES } from '../packages/core/src/foods/approval';
 import { commerceRules, healthPhraseRules } from '../tools/scans/rules';
 import { scanText } from '../tools/scans/scan';
 import {
@@ -14,6 +15,7 @@ import {
   heading,
   offerInstall,
   openBackupPanels,
+  openFoodPanel,
   patchRecords,
   renderedText,
   type ScreenName,
@@ -29,6 +31,7 @@ import {
 // (HS-07, HS-08, HS-19, HS-21, HS-26) and the price, stock and cart-status wording rules (HS-16).
 
 const RULES = [...healthPhraseRules, ...commerceRules];
+const FOODS: ScreenName = 'Foods in the app';
 
 const region = (page: Page, name: string) => page.getByRole('region', { name, exact: true });
 const quickActionsPanel = (page: Page) => page.locator('.ui-fab-panel');
@@ -65,9 +68,12 @@ test('HS-31: no screen shows banned health, price, stock or cart wording', async
   const found: string[] = [];
 
   await visitEveryScreen(page, async (screen) => {
+    // Item 18: the generic loop never opens a food, so open one (E2).
+    if (screen === FOODS) await openFoodPanel(page);
     found.push(...(await violations(page, screen)));
   });
-  await visitWithEverythingOpen(page, async (where) => {
+  await visitWithEverythingOpen(page, async (where, screen) => {
+    if (screen === FOODS) await openFoodPanel(page);
     found.push(...(await violations(page, where)));
   });
   await goTo(page, 'Settings');
@@ -77,7 +83,7 @@ test('HS-31: no screen shows banned health, price, stock or cart wording', async
   expect(found).toEqual([]);
 });
 
-test('no screen but About, Weight, Fasting and Diet and targets shows a number or a price, even with every banner and panel open', async ({
+test('no screen but About, Weight, Fasting, Diet and targets, and Foods shows a number or a price, even with every banner and panel open', async ({
   page,
 }) => {
   // Screens must not look like they hold records they do not have (no sample data). The fresh
@@ -93,6 +99,8 @@ test('no screen but About, Weight, Fasting and Diet and targets shows a number o
   // the date and status line, the "Add 250 mL" button, the NZ guidance line and the lipid-test
   // reminder. A digit anywhere else on Today, such as an unbuilt card, a later-step line or a
   // "Later" row of the "+" panel (TD-02), still fails.
+  // Foods in the app is left out too: its numbers are the catalogue's (its count, typical pack
+  // sizes), not records; that it never shows a nutrient figure as a number is E1 (foods.spec.ts).
   await seedOnboarded(page, './', './', { weightKg: null });
   const found: string[] = [];
   const check = async (where: string, screen: ScreenName) => {
@@ -109,6 +117,7 @@ test('no screen but About, Weight, Fasting and Diet and targets shows a number o
       screen === 'Weight' ||
       screen === 'Fasting and reflux' ||
       screen === 'Diet and targets' ||
+      screen === FOODS ||
       (SETUP_SCREENS as readonly string[]).includes(screen)
     ) {
       if (/[$€£]/.test(await renderedText(page))) found.push(`${where}: a currency sign`);
@@ -165,6 +174,23 @@ test('HS-31: Today filled in, with the steps editor and the "+" panel open, and 
   await page.getByRole('button', { name: today.quickActions.title }).click();
   await expect(quickActionsPanel(page).getByText(today.quickActions.laterNote)).toBeVisible();
   found.push(...(await violations(page, 'Today with fasting switched off and the help card')));
+  expect(found).toEqual([]);
+});
+
+test('E4 C97 NU-09: while no food database is approved, no screen names one', async ({ page }) => {
+  expect(APPROVED_NUTRIENT_SOURCES).toEqual([]);
+  await seedOnboarded(page);
+  const DATABASE_NAMES = [
+    /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
+    /food composition/i,
+  ];
+  const found: string[] = [];
+  await visitEveryScreen(page, async (screen) => {
+    if (screen === FOODS) await openFoodPanel(page);
+    const text = await renderedText(page);
+    for (const name of DATABASE_NAMES)
+      if (name.test(text)) found.push(`${screen}: ${String(name)}`);
+  });
   expect(found).toEqual([]);
 });
 

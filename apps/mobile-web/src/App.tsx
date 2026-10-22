@@ -28,6 +28,7 @@ import { AboutScreen } from './screens/AboutScreen';
 import { DrinksScreen } from './screens/DrinksScreen';
 import { FastingScreen } from './screens/fasting/FastingScreen';
 import { FoodScreen } from './screens/FoodScreen';
+import { FoodsScreen } from './screens/foods/FoodsScreen';
 import { ListScreen } from './screens/ListScreen';
 import { MoveScreen } from './screens/MoveScreen';
 import { PairingScreen } from './screens/pairing/PairingScreen';
@@ -90,6 +91,8 @@ function screenFor(route: RouteId): ReactElement {
       return <FastingScreen />;
     case 'targets':
       return <TargetsScreen />;
+    case 'foods':
+      return <FoodsScreen />;
     case 'pairing':
       return <PairingScreen />;
   }

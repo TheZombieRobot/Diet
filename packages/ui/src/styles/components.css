@@ -1831,6 +1831,128 @@
   }
 }
 
+/* ---- Foods in the app (checklist item 18) ---- */
+
+/* Plain rows with a divider between them, as on the approved List board. */
+.ui-divider-rows {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+}
+
+.ui-expandable {
+  border-top: 1px solid var(--color-border);
+}
+
+.ui-expandable:first-child {
+  border-top: 0;
+}
+
+.ui-expandable__toggle {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: var(--size-tap);
+  padding: 12px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.ui-expandable__toggle > .ui-row__text {
+  flex: 1 1 auto;
+}
+
+.ui-expandable__toggle:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.ui-expandable__title {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ui-expandable__detail {
+  color: var(--color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* A conflict with the owner's allergens: the words say it, the amber pill only marks it. */
+.ui-expandable__flag {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-amber-tint);
+  color: var(--color-on-amber-tint);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.ui-expandable__chevron {
+  display: inline-flex;
+  flex: none;
+  margin-top: 2px;
+  color: var(--color-secondary);
+}
+
+.ui-expandable__toggle[aria-expanded='true'] .ui-expandable__chevron {
+  transform: rotate(90deg);
+}
+
+.ui-expandable__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 0 16px;
+}
+
+/* Nutrient figures: the text comes from core, so an unknown figure reads "not known", never 0. */
+.ui-nutrients {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ui-nutrients caption {
+  padding-bottom: 6px;
+  color: var(--color-secondary);
+  font-size: var(--text-label);
+  font-weight: 800;
+  text-align: start;
+}
+
+.ui-nutrients th,
+.ui-nutrients td {
+  padding: 8px 0;
+  border-top: 1px solid var(--color-border);
+  font-size: 15px;
+}
+
+.ui-nutrients th {
+  color: var(--color-ink-soft);
+  font-weight: 700;
+  text-align: start;
+}
+
+.ui-nutrients td {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+.ui-nutrients td[data-known='false'] {
+  color: var(--color-secondary);
+  font-weight: 700;
+}
+
 /* ---- Laptop pairing (checklist item 30): the camera view and the numbered steps ---- */
 
 /* A square camera view with a guide square, drawn only while the stream shows. */

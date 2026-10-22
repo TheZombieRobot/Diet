@@ -6,7 +6,7 @@ import { PRE_CHECK_KEYS } from '../exercise/preCheck';
 import { START_PROBLEM_CODES } from '../exercise/start';
 import { WEEK_PROBLEM_CODES } from '../exercise/week';
 import { GATED_FEATURES, READINESS_REASON_IDS } from '../readiness/gates';
-import { USER_ALLERGENS } from '../storage/allergens';
+import { ALLERGENS, USER_ALLERGENS } from '../storage/allergens';
 import { FLOOR_KJ, KICKSTART_MAX_DEFICIT_PCT, KICKSTART_NET_CARBS_G } from '../storage/limits';
 import { READINESS_QUESTION_IDS } from '../storage/readiness';
 import { TARGET_COPY_FACTS } from '../targets/copyFacts';
@@ -15,6 +15,7 @@ import {
   about,
   alcohol,
   fasting,
+  foods,
   general,
   healthCopy,
   helpNumbers,
@@ -216,18 +217,34 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
     /\byou(?:['’]re|\s+are)\s+safe\b/i,
     /\b(?:tablets?|pills?|capsules?|powders?|sachets?)\b/i,
   ],
-  // The general rules, and no food data source by name until item 18 records the licence (C97,
-  // NU-09). Case-sensitive on purpose: these are proper names. Item 18 replaces this rule.
+  // The general rules. A food data source is named only in foods.attribution, once approved at
+  // checklist item 10: item 18's S4 test below checks every section for database names (C97, NU-09).
   about: [
     /\byou(?:'re|\s+are)\s+safe\b/i,
     /\b(?:100\s*%|completely|totally|fully|perfectly)\s+(?:private|secure|safe|anonymous)\b/i,
     /\banonymous(?:ly)?\b/i,
     /\bsecure\b/i,
-    /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
+  ],
+  // Item 18 (C69, HS-16): pack sizes are typical, never the store's and never a price; typical
+  // sizes and seasons are not claimed to be checked; an allergen summary never says a food is safe.
+  foods: [
+    /PAK['’]?n['’]?SAVE/i,
+    /\bprices?\b/i,
+    /\bverified\b/i,
+    /\baccurate\b/i,
+    /\bexact(?:ly)?\b/i,
+    /\bsafe(?:ly|r)?\b/i,
+    /\bguarantee\w*/i,
   ],
   // Items 30 and 31 (HEALTH_SAFETY.md section 7): one list, shared with the pairing-check scan.
   transfer: TRANSFER_SECTION_RULES,
 };
+
+/**
+ * Strings copied word for word from elsewhere and so exempt from their section's rules: a food
+ * database's attribution text, as its licence words it (item 18 design 4.1).
+ */
+const SECTION_RULES_EXEMPT: readonly string[] = ['foods.attribution'];
 
 describe('health copy', () => {
   it('every section has declared rules', () => {
@@ -236,10 +253,11 @@ describe('health copy', () => {
 
   for (const [section, rules] of Object.entries(SECTION_RULES)) {
     it(`${section} copy obeys its section rules`, () => {
-      const found = strings(healthCopy[section as keyof typeof healthCopy], section).flatMap(
-        ([path, text]) =>
+      const found = strings(healthCopy[section as keyof typeof healthCopy], section)
+        .filter(([path]) => !SECTION_RULES_EXEMPT.some((e) => path.startsWith(`${e}.`)))
+        .flatMap(([path, text]) =>
           rules.filter((r) => r.test(text)).map((r) => `${path}: ${String(r)} in "${text}"`),
-      );
+        );
       expect(found).toEqual([]);
     });
   }
@@ -707,18 +725,16 @@ describe('Today and About copy (item 16; U9)', () => {
     ]);
   });
 
-  it('C97: the data-sources card has one line per badge and names no food data source', () => {
-    expect(about.dataSources.badges.map((line) => line.split(':')[0])).toEqual([
-      'Label',
-      'Database',
-      'Estimate',
-    ]);
-    for (const [path, text] of strings(about, 'about')) {
-      expect(text, path).not.toMatch(
-        /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
-      );
-      expect(text, path).not.toMatch(/food composition/i);
-    }
+  it('C97: the data-sources card has one line per badge, the Database line from item 18', () => {
+    // Database names anywhere in health.ts are item 18's S4 test (foods copy, below).
+    expect(
+      [
+        about.dataSources.badges.label,
+        foods.about.databaseBadgeNone,
+        foods.about.databaseBadge,
+        about.dataSources.badges.estimate,
+      ].map((line) => line.split(':')[0]),
+    ).toEqual(['Label', 'Database', 'Database', 'Estimate']);
   });
 
   it('every template fills with its named placeholders and no others', () => {
@@ -737,6 +753,55 @@ describe('Today and About copy (item 16; U9)', () => {
       'Electrolytes: sodium, potassium, magnesium. Garden sources: silverbeet, spinach, avocado.',
     );
     expect(readiness.ifYes.q4.endsWith(readiness.bloodPressure.electrolyte)).toBe(true);
+  });
+});
+
+describe('foods copy (item 18)', () => {
+  const DATABASE_NAMES = [
+    /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
+    /food composition/i,
+  ];
+  /** A stored field's label in a restore problem, not a data source. */
+  const NAMES_A_FIELD = 'privacy.recordProblem.fields.usda';
+
+  it('S4 C97 NU-09: no string anywhere in health.ts names a food database, except the attribution', () => {
+    const found = Object.entries(healthCopy)
+      .flatMap(([section, copy]) => strings(copy, section))
+      .filter(([path]) => !path.startsWith('foods.attribution.') && path !== NAMES_A_FIELD)
+      .filter(([, text]) => DATABASE_NAMES.some((r) => r.test(text)))
+      .map(([path]) => path);
+    expect(found).toEqual([]);
+    expect(Object.keys(foods.attribution)).toEqual([]);
+  });
+
+  it('S1 HS-37: the words for missing figures never say estimated, approximate or a zero amount', () => {
+    const lines: [string, string][] = [
+      ...strings(foods.figures, 'figures'),
+      ['notLoaded', foods.notLoaded],
+      ['notLoadedNone', foods.notLoadedNone],
+      ['releaseUnreadable', foods.releaseUnreadable],
+      ...strings(foods.totals, 'totals'),
+      ...strings(foods.today, 'today'),
+      ...strings(foods.derived, 'derived'),
+      ...strings(foods.planner, 'planner'),
+    ];
+    const banned = [/\bestimat\w*/i, /\bapprox\w*/i, /\bguess\w*/i, /(?<![\d.])0\s*(?:g|kJ|mg)\b/];
+    const found = lines.flatMap(([path, text]) =>
+      banned.filter((r) => r.test(text)).map((r) => `${path}: ${String(r)}`),
+    );
+    expect(found).toEqual([]);
+    expect(foods.figures.notKnown).toBe('not known');
+  });
+
+  it('every template fills with its named placeholders, and every allergen has its words, in order', () => {
+    const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1] ?? '');
+    for (const [path, text] of strings(foods, 'foods')) {
+      const values = Object.fromEntries(placeholders(text).map((name) => [name, 'x']));
+      expect(fillTemplate(text, values), path).not.toMatch(/[{}]/);
+    }
+    expect(Object.keys(foods.allergenWords)).toEqual([...ALLERGENS]);
+    expect(Object.values(foods.badges)).toEqual(['Label', 'Database', 'Estimate']);
+    expect(foods.months).toHaveLength(12);
   });
 });
 
