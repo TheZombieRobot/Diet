@@ -39,10 +39,13 @@ env:
   # No tool may send usage telemetry from CI (HEALTH_SAFETY.md section 7).
   DO_NOT_TRACK: '1'
 
+# Every job runs on Ubuntu 24.04, named exactly: the browser tests' Playwright 1.56 has no
+# Chromium build for Ubuntu 26.04, which `ubuntu-latest` became in October 2026 and which
+# failed every browser-test job and the week-1 publish (tools/scans/workflows.test.ts).
 jobs:
   marker:
     name: Is this run marked for publishing?
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
       contents: read
@@ -67,7 +70,7 @@ jobs:
     needs: marker
     # The deploy and verify jobs need this one, so they are skipped with it.
     if: needs.marker.outputs.deploy == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
       contents: read
@@ -115,7 +118,7 @@ jobs:
   deploy:
     name: Deploy
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     # Only this job can publish to Pages or ask GitHub for a deployment token.
     permissions:
@@ -137,7 +140,7 @@ jobs:
   verify:
     name: Check the deployed app
     needs: deploy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
       contents: read

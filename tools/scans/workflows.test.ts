@@ -31,6 +31,16 @@ describe('the full history (F47)', () => {
   });
 });
 
+describe('the runner', () => {
+  it('every job runs on Ubuntu 24.04 by name, never ubuntu-latest (Playwright has no Chromium for 26.04)', () => {
+    for (const workflow of [ci, pages]) {
+      const runners = [...workflow.matchAll(/^ {4}runs-on: (.+)$/gm)].map((m) => m[1]);
+      expect(runners.length).toBeGreaterThan(0);
+      expect(new Set(runners)).toEqual(new Set(['ubuntu-24.04']));
+    }
+  });
+});
+
 describe('the deploy marker (F43)', () => {
   it('publishes a push only when the subject line carries it', () => {
     expect(marker('Item 17: the week-1 build [deploy]')).toBe('deploy=true');

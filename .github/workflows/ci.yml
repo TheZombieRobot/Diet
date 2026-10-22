@@ -17,10 +17,13 @@ env:
   DO_NOT_TRACK: '1'
   WRANGLER_SEND_METRICS: 'false'
 
+# Every job runs on Ubuntu 24.04, named exactly: the browser tests' Playwright 1.56 has no
+# Chromium build for Ubuntu 26.04, which `ubuntu-latest` became in October 2026 and which
+# failed every browser-test job and the week-1 publish (tools/scans/workflows.test.ts).
 jobs:
   check:
     name: Safety scans, lint, typecheck, unit tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
@@ -44,7 +47,7 @@ jobs:
 
   e2e:
     name: Browser tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       # Default shallow checkout: browser tests do not need history.
