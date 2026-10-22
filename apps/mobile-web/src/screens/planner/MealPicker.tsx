@@ -74,6 +74,7 @@ export function MealPicker({
   const [household, setHousehold] = useState(start.householdServes);
   const [picked, setPicked] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
+  const [showAllLabels, setShowAllLabels] = useState(false);
   const [checking, setChecking] = useState(false);
   const [saving, setSaving] = useState(false);
   const [refusal, setRefusal] = useState<PlanWriteRefusal | null>(null);
@@ -215,6 +216,14 @@ export function MealPicker({
     !showAll && current !== null
       ? okViews.slice(SHOWN).find((v) => v.id === current.recipeId)
       : undefined;
+  // The "check labels" group is shortened the same way (with an allergen listed, every recipe whose
+  // allergens are not fully known is in it); a pick beyond the first ten stays listed.
+  const labelViews = suggestions.checkLabels.map((c) => c.view);
+  const shownLabels = showAllLabels ? labelViews : labelViews.slice(0, SHOWN);
+  const pickedBeyond =
+    !showAllLabels && picked !== null
+      ? labelViews.slice(SHOWN).find((v) => v.id === picked)
+      : undefined;
   const ns = suggestions.notShown;
   const notShown: [number, string, string][] = [
     [ns.allergen, planner.picker.notShown.allergenOne, planner.picker.notShown.allergenMany],
@@ -242,6 +251,7 @@ export function MealPicker({
             plainFigures: model.view.display.plainFigures,
             pregnancyNote: model.view.display.pregnancyNote,
             snackFits: false,
+            stopSignPause: model.ps.stopSignPause,
             hasWindow: ctx.window !== null,
             where: 'owner',
           },
@@ -295,7 +305,9 @@ export function MealPicker({
           legend={planner.picker.checkLabelsLegend}
           name={`pick-labels-${date}-${slot}`}
           hint={planner.picker.checkLabelsNote}
-          options={suggestions.checkLabels.map((c) => option(c.view, recipes.chips.checkLabels))}
+          options={[...shownLabels, ...(pickedBeyond === undefined ? [] : [pickedBeyond])].map(
+            (v) => option(v, recipes.chips.checkLabels),
+          )}
           value={inLabels ? effective : null}
           disabled={saving}
           onChange={(value) => {
@@ -304,6 +316,16 @@ export function MealPicker({
           }}
         />
       )}
+      {!showAllLabels && labelViews.length > SHOWN ? (
+        <Button
+          variant="quiet"
+          onClick={() => {
+            setShowAllLabels(true);
+          }}
+        >
+          {fillTemplate(planner.picker.showAll, { count: labelViews.length })}
+        </Button>
+      ) : null}
       {notShown.map(([count, one, many]) =>
         count === 0 ? null : (
           <p key={one} className="ui-text-muted">

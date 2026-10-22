@@ -57,12 +57,29 @@ describe('the allergen decision per write (item 22 S7; HS-24, HS-R20, C43, C107,
     ).toBe(true);
   });
 
+  it('V18, item 20 review: a conflict never hides the label check; a confirmation is for its recipe only', () => {
+    const conflictNotFullyKnown = (confirmed: readonly Allergen[], recipeId = 'r') =>
+      planAllergenDecision({
+        kind: 'owner-meal',
+        blocked: ['fish', 'peanut'],
+        serving: { serving: 'conflict', conflicts: ['fish'] },
+        allergensUnknown: true,
+        recipeId: 'r',
+        labelChecked: [],
+        conflictConfirmed: [{ recipeId, allergens: confirmed }],
+      }).allowed;
+    expect(conflictNotFullyKnown(['fish'])).toBe(false);
+    expect(conflictNotFullyKnown(['fish', 'peanut'])).toBe(true);
+    expect(conflictNotFullyKnown(['fish', 'peanut'], 'other')).toBe(false);
+  });
+
   it('FL-07: in a Gluten-free household a shared wheat recipe is a conflict and the owner’s own meal is ok', () => {
     const lookup = fixtureLookup();
     const facts = lookup.viewOf(R.wheatE)?.allergens.facts;
     if (facts === undefined) throw new Error('fixture');
     const profile = { allergens: [], glutenFreeHousehold: true };
     expect(mealSharing(3)).toBe('shared');
+    expect(mealSharing(2)).toBe('shared');
     expect(mealSharing(1)).toBe('own');
     expect(servingFor(blockedAllergens(profile, mealSharing(3)), facts).serving).toBe('conflict');
     expect(servingFor(blockedAllergens(profile, mealSharing(1)), facts).serving).toBe('ok');

@@ -44,13 +44,23 @@ function HiddenRecipes({ storage }: { readonly storage: AppStorage }): ReactElem
               <Button
                 variant="quiet"
                 disabled={!writable}
-                onClick={() => {
+                onClick={(event) => {
                   setFailure(null);
+                  // Focus goes on to the next row's button, else the previous one's, else the
+                  // card's heading, never to the top of the page.
+                  const row = event.currentTarget.closest('li');
+                  const next =
+                    (row?.nextElementSibling ?? row?.previousElementSibling)?.querySelector(
+                      'button',
+                    ) ?? row?.closest('section')?.querySelector('h2');
                   storage.repos.settings
                     .update({ hiddenSeedIds: ids.filter((id) => id !== recipe.id) })
-                    .catch((error: unknown) => {
-                      setFailure(writeFailure(error));
-                    });
+                    .then(
+                      () => next?.focus(),
+                      (error: unknown) => {
+                        setFailure(writeFailure(error));
+                      },
+                    );
                 }}
               >
                 {fillTemplate(planner.hidden.showNamed, { title: recipe.title })}

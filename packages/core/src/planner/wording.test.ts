@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { planner as copy } from '../copy/health';
 import { mealCheck } from '../fasting/mealCheck';
 import * as foods from '../foods';
 import * as recipes from '../recipes';
@@ -11,6 +12,7 @@ const base: PlanReasonOptions = {
   plainFigures: false,
   pregnancyNote: false,
   snackFits: false,
+  stopSignPause: false,
   hasWindow: true,
   where: 'preview',
 };
@@ -45,6 +47,15 @@ describe('refusal wording (item 22 S17; T25, T26, HS-18, V40, V50)', () => {
       key: 'planner.reasons.oneMealShortNoSnack',
       then: 'schedule',
     });
+  });
+
+  it('F20: during a stop-sign pause a reflux refusal offers no window-moving option and links none', () => {
+    const refusal = { reason: 'one-meal-reflux', recipeId: R.dinnerA } as const;
+    expect(planReasonWording(refusal, { ...base, stopSignPause: true })).toEqual({
+      key: 'planner.reasons.oneMealRefluxPause',
+      then: null,
+    });
+    expect(copy.reasons.oneMealRefluxPause).not.toMatch(/snack|split|earlier|window/i);
   });
 
   it('T25, T26, V40: plain figures name no target or figure except the floor; the pregnancy note only for energy', () => {

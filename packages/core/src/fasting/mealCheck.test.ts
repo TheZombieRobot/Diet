@@ -25,6 +25,7 @@ const meal = (
   proteinG,
   proteinKnown: true,
   foodEnergyKj: 9_500,
+  energyKnown: true,
   proteinFoodCookedG: 450,
   incomplete: false,
   ...more,
@@ -177,9 +178,24 @@ describe('the single-meal check (FL-12, FL-13, HS-18, C64)', () => {
     );
     expect(check({ planned: [missing] })).toMatchObject({
       kind: 'short-before',
-      reasons: ['protein', 'energy'],
+      reasons: ['protein', 'energy-not-known'],
       sitting: { proteinG: 0, atLeast: true, unknown: true },
     });
+  });
+
+  it('HS-37 (item 22 review): planned energy that is not known is "energy-not-known", never "energy"', () => {
+    const notKnown = { energyKnown: false, foodEnergyKj: 2_000 };
+    expect(check({ planned: [meal('dinner', 150, notKnown)] })).toMatchObject({
+      kind: 'short-before',
+      reasons: ['energy-not-known'],
+    });
+    expect(check({ planned: [meal('dinner', 150, { foodEnergyKj: 2_000 })] })).toMatchObject({
+      reasons: ['energy'],
+    });
+    // A known part that already reaches the target is met whatever the rest holds.
+    expect(
+      check({ planned: [meal('dinner', 150, { ...notKnown, foodEnergyKj: 9_100 })] }).kind,
+    ).toBe('ok');
   });
 });
 
@@ -337,7 +353,7 @@ describe('figures for the check (items 22 and 23 feed these)', () => {
     expect(grams([line('chicken', 600, 400)], 1, 4)).toBe(100);
   });
 
-  it('a planned meal uses the owner serves only, and marks unknown protein as a lower bound', () => {
+  it('a planned meal uses the owner serves only, and marks unknown energy as a lower bound', () => {
     const recipe = {
       serves: 4,
       lines: [],
@@ -355,6 +371,7 @@ describe('figures for the check (items 22 and 23 feed these)', () => {
       proteinG: 60,
       proteinKnown: true,
       foodEnergyKj: 3_000,
+      energyKnown: false,
       proteinFoodCookedG: 0,
       incomplete: true,
     });
@@ -434,7 +451,7 @@ describe('a dinner of not-loaded catalogue foods (item 18; HS-18, HS-37, C29)', 
     });
     expect(check({ planned: [figures] })).toMatchObject({
       kind: 'short-before',
-      reasons: ['protein', 'energy', 'portion'],
+      reasons: ['protein', 'energy-not-known', 'portion'],
       sitting: { proteinG: 0, atLeast: true, unknown: true, dinnerOnly: true },
     });
   });

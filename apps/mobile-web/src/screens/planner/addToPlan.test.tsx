@@ -42,6 +42,10 @@ describe('Add to plan on a recipe’s page (item 22 K15; UX 3b, HS-24, P41)', ()
     const actions = await page(FISH, { profile: { allergens: ['fish'] } });
     fireEvent.click(within(actions).getByRole('button', { name: recipes.actions.addToPlan }));
     const panel = await screen.findByTestId('add-to-plan');
+    // Design 2.14 step 1: the panel's heading takes focus once the panel is ready.
+    await waitFor(() => {
+      expect(document.activeElement).toBe(panel.querySelector('h3'));
+    });
     expect(within(panel).getByRole('radio', { name: planner.dayNames.today })).toHaveProperty(
       'checked',
       true,
@@ -78,21 +82,50 @@ describe('Add to plan on a recipe’s page (item 22 K15; UX 3b, HS-24, P41)', ()
   });
 });
 
+describe('the picker over the shipped recipes (item 22 review)', () => {
+  it('with an allergen listed, the "check labels" group shows ten recipes and "Show all"', async () => {
+    test = await openTestDb();
+    await onboardForTests(test, { profile: { allergens: ['peanut'] } });
+    appStorageStore.set(test.storage);
+    window.location.hash = '#/plan/2000-03-02';
+    render(<App />);
+    const dinner = await screen.findByTestId('slot-dinner');
+    fireEvent.click(within(dinner).getByRole('button', { name: planner.day.choose }));
+    const group = await screen.findByRole('radiogroup', { name: planner.picker.checkLabelsLegend });
+    expect(within(group).getAllByRole('radio')).toHaveLength(10);
+    const more = screen.getByRole('button', { name: /^Show all \d+$/ });
+    const count = Number(more.textContent.replace(/\D/g, ''));
+    expect(count).toBeGreaterThan(10);
+    fireEvent.click(more);
+    expect(within(group).getAllByRole('radio')).toHaveLength(count);
+  });
+});
+
 describe('Hide from suggestions (item 22 K15; UX 7, D3)', () => {
   it('hides a seed from the planner, shows it in Settings, and suggests it again from there', async () => {
     const actions = await page(TRAYBAKE);
-    fireEvent.click(within(actions).getByRole('button', { name: planner.hidden.hide }));
+    const hide = within(actions).getByRole('button', { name: planner.hidden.hide });
+    hide.focus();
+    fireEvent.click(hide);
     expect(await within(actions).findByText(planner.hidden.hiddenNote)).toBeDefined();
     expect((await test.repos.settings.get()).hiddenSeedIds).toEqual([TRAYBAKE]);
+    // The same button now offers to suggest it again, and keeps focus.
+    expect(document.activeElement).toBe(
+      within(actions).getByRole('button', { name: planner.hidden.unhide }),
+    );
     window.location.hash = '#/settings';
     window.dispatchEvent(new HashChangeEvent('hashchange'));
     const card = await screen.findByRole('region', { name: planner.hidden.cardLabel });
-    fireEvent.click(
-      await within(card).findByRole('button', {
-        name: 'Suggest Lemon chicken and silverbeet traybake again',
-      }),
-    );
+    const again = await within(card).findByRole('button', {
+      name: 'Suggest Lemon chicken and silverbeet traybake again',
+    });
+    again.focus();
+    fireEvent.click(again);
     expect(await within(card).findByText(planner.hidden.none)).toBeDefined();
     expect((await test.repos.settings.get()).hiddenSeedIds).toEqual([]);
+    // The last row is gone: focus is on the card's heading, never the page.
+    expect(document.activeElement).toBe(
+      within(card).getByRole('heading', { name: planner.hidden.cardLabel }),
+    );
   });
 });

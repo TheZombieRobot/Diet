@@ -104,6 +104,13 @@ describe('the meal check on the Fast card', () => {
     expect(screen.getByRole('button', { name: copy.addSnack })).toBeTruthy();
   });
 
+  it('HS-37 (item 22 review): planned energy not known never reads as under the target, with or without a headline', async () => {
+    await show(offer({ reasons: ['protein', 'energy-not-known'], headline: null }));
+    expect(region().textContent).not.toContain(copy.planShort.today);
+    expect(screen.getByText(copy.energyNotKnown)).toBeTruthy();
+    expect(screen.getByRole('button', { name: copy.addSnack })).toBeTruthy();
+  });
+
   it('HS-18: every offer, collapsed offer and after-window line says it is fine to eat or widen', async () => {
     const views: MealCheckView[] = [
       offer({ snack: { added: null, fits: null } }),

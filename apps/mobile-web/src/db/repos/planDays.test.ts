@@ -10,8 +10,8 @@ import {
 } from '@diet/core';
 import { fixtureLookup, R } from '@diet/core/planner/testData';
 import { describe, expect, it, vi } from 'vitest';
-import { StorageRuleError } from '../errors';
 import { type OnboardOptions, onboardForTests, openTestDb, type TestDb } from '../testKit';
+import { setPlannerData } from '../../testSetup/plannerData';
 
 vi.mock('../../planner/planData', async () =>
   (await import('../../testSetup/plannerData')).plannerDataMock(),
@@ -52,12 +52,6 @@ const adequate = (date = TODAY) => [
 
 const reasons = (outcome: Awaited<ReturnType<TestDb['repos']['planDays']['writeMeals']>>) =>
   outcome.refused.map((r) => r.refusal.reason);
-
-const rule = async (promise: Promise<unknown>) =>
-  promise.then(
-    () => null,
-    (error: unknown) => (error instanceof StorageRuleError ? error.rule : error),
-  );
 
 describe('writeMeals (item 22 D1, D2, D7)', () => {
   it('D1: an owner add creates the row with the profile’s diet mode; removing the last meal deletes it, a window keeps it', async () => {
@@ -102,6 +96,31 @@ describe('writeMeals (item 22 D1, D2, D7)', () => {
     const figures = (meals: NonNullable<typeof after>['meals']) =>
       countedDay(meals, ['dinner'], fixtureLookup()).figures.totals;
     expect(figures(after?.meals ?? [])).toEqual(figures(before?.meals ?? []));
+  });
+
+  it('a dataset that cannot be loaded refuses every write, a removal too, and changes nothing', async () => {
+    const test = await open();
+    const { planDays } = test.repos;
+    await planDays.writeMeals(request('owner-meal', [w('dinner', R.dinnerA)]));
+    const before = await planDays.get(TODAY);
+    setPlannerData(null);
+    try {
+      expect(
+        await planDays.writeMeals(request('owner-meal', [w('dinner', R.gardenF, 1, 1, TOMORROW)])),
+      ).toEqual({
+        written: [],
+        refused: [{ date: TOMORROW, refusal: { reason: 'recipe-missing', recipeId: R.gardenF } }],
+        notes: [],
+      });
+      const removal = await planDays.writeMeals(
+        request('owner-meal', [{ date: TODAY, slot: 'dinner', meal: null }]),
+      );
+      expect(removal.written).toEqual([]);
+      expect(await planDays.get(TODAY)).toEqual(before);
+      expect(await planDays.get(TOMORROW)).toBeUndefined();
+    } finally {
+      setPlannerData({});
+    }
   });
 
   it('D7: a past date and a date after the planning range are refused; hasMealsBefore', async () => {
@@ -297,22 +316,20 @@ describe('the generic path is narrowed (item 22 D8; V32)', () => {
   it('meals only through writeMeals; a per-day window only through item 15’s methods', async () => {
     const test = await open();
     const { planDays } = test.repos;
-    const meal = { slot: 'dinner' as const, recipeId: R.dinnerA, myServes: 1, householdServes: 1 };
-    expect(
-      await rule(
-        planDays.create({ date: TODAY, dietMode: 'keto', meals: [meal], eatingWindow: null }),
-      ),
-    ).toBe('plan-meals-through-planner');
-    await planDays.create({ date: TODAY, dietMode: 'keto', meals: [], eatingWindow: null });
-    expect(await rule(planDays.update(TODAY, { meals: [meal] }))).toBe(
-      'plan-meals-through-planner',
+    // No generic write is there to wipe a day's meals or undo a window around the checks.
+    expect(Object.keys(planDays).sort()).toEqual(
+      [
+        'clearWindow',
+        'get',
+        'hasMealsBefore',
+        'list',
+        'listByIndex',
+        'setWindows',
+        'writeMeals',
+      ].sort(),
     );
-    await planDays.update(TODAY, { meals: [] });
-    expect((await planDays.get(TODAY))?.meals).toEqual([]);
-    await planDays.remove(TODAY);
     await planDays.setWindows([{ date: TOMORROW, window: { start: '17:00', end: '19:00' } }]);
-    expect(await rule(planDays.remove(TOMORROW))).toBe('plan-window-through-fasting');
-    expect(await planDays.get(TOMORROW)).toBeDefined();
+    expect((await planDays.get(TOMORROW))?.eatingWindow).toEqual({ start: '17:00', end: '19:00' });
   });
 
   it('D9: hidden recipes and the budget note round-trip through settings and profile', async () => {

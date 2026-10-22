@@ -2958,11 +2958,23 @@ fieldset.ui-subpanel {
 }
 
 .ui-plan-meal__title {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--size-tap);
   color: var(--color-ink);
   font-size: 16px;
   font-weight: 800;
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+/* A chip on a choice row (the picker's "Check labels for allergens") wraps on a narrow or zoomed
+   screen instead of running past the row. */
+.ui-choice > .ui-chip {
+  flex: 0 1 auto;
+  max-width: 100%;
+  padding-block: 3px;
+  overflow-wrap: break-word;
 }
 
 .ui-plan-meal__title:focus-visible {

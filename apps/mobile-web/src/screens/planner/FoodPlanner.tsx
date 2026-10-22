@@ -49,7 +49,7 @@ import { useStore } from '../../store';
 import { DietModeCard } from '../targets/DietModeCard';
 import { RemindersCard } from '../today/RemindersCard';
 import { writeProposal } from './actions';
-import { ClosedNotice, PlannerStateCard, ReasonFollowUp } from './parts';
+import { ClosedNotice, PlannerStateCard, ReasonFollowUp, StatusNotice } from './parts';
 import {
   copyProposal,
   fillProposal,
@@ -91,7 +91,7 @@ export function FoodPlanner({ storage }: { readonly storage: AppStorage }): Reac
       {items.length === 0 ? null : (
         <RemindersCard storage={storage} items={items} prominent={false} />
       )}
-      <PlanWeekCard storage={storage} model={model} writable={writable} />
+      <PlanWeekCard storage={storage} model={model} writable={writable} reminders={items.length} />
       <BudgetCard storage={storage} model={model} writable={writable} />
     </>
   );
@@ -169,16 +169,27 @@ function PlanWeekCard({
   storage,
   model,
   writable,
+  reminders,
 }: {
   readonly storage: AppStorage;
   readonly model: PlanModel;
   readonly writable: boolean;
+  /** How many reminders the Reminders card above shows. */
+  readonly reminders: number;
 }): ReactElement {
   const today = model.clock.today;
   const weekStart = useShownWeek(today);
   const nav = planWeekNav(weekStart, today);
   const dates = planWeekDates(weekStart);
   const heading = useRef<HTMLHeadingElement>(null);
+  // Hiding the last reminder takes the Reminders card away: focus goes on to the week (2.4).
+  const hadReminders = useRef(reminders > 0);
+  useEffect(() => {
+    if (hadReminders.current && reminders === 0 && document.activeElement === document.body) {
+      heading.current?.focus();
+    }
+    hadReminders.current = reminders > 0;
+  }, [reminders]);
   const [panel, setPanel] = useState<Preview | null>(null);
   const [done, setDone] = useState<{ readonly text: string; readonly changed: string[] } | null>(
     null,
@@ -196,6 +207,8 @@ function PlanWeekCard({
     planWeekStore.set(week === nav.current ? null : week);
     setPanel(null);
     setDone(null);
+    // The pressed button may go (Next week, This week): focus goes to the new week's heading.
+    requestAnimationFrame(() => heading.current?.focus());
   };
   const openPanel = (which: Preview) => {
     if (noAim !== null || !writable) return;
@@ -429,6 +442,7 @@ function PreviewPanel({
         plainFigures: display.plainFigures,
         pregnancyNote: display.pregnancyNote,
         snackFits: day.snack !== null,
+        stopSignPause: model.ps.stopSignPause,
         hasWindow: day.ctx.window !== null,
         where: 'preview',
       },
@@ -469,6 +483,10 @@ function PreviewPanel({
         {copy.title}
       </h3>
       <p>{copy.intro}</p>
+      {/* Why every day reads "not known" while the panel hides the card's own line (review). */}
+      {sourcesInUse(model.data.foods).length === 0 ? (
+        <p className="ui-text-muted">{planner.week.noFillFigures}</p>
+      ) : null}
       {proposed.length === 0 ? null : (
         <>
           <h4>{copy.proposedHeading}</h4>
@@ -654,11 +672,7 @@ function BudgetCard({
           </Button>
         )}
       </ButtonRow>
-      {saved ? (
-        <Notice tone="info" role="status">
-          <p>{planner.budget.saved}</p>
-        </Notice>
-      ) : null}
+      {saved ? <StatusNotice text={planner.budget.saved} /> : null}
       {failure === null ? null : (
         <Notice tone="amber" role="alert">
           <p>{failure}</p>

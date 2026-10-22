@@ -1,17 +1,33 @@
 /**
  * Parts the planner screens share (item 22 design 2.5, 2.13, 2.17): the state card, the write
- * gate notice, a refusal with what follows it, and the failure line for a thrown write.
+ * gate notice, a refusal with what follows it, the failure line for a thrown write, and the
+ * status notice that takes focus after a write.
  */
 import type { EatingWindow, LocalDate } from '@diet/core';
 import { fasting, planner, privacy } from '@diet/core/copy/health';
 import { ActionRow, Button, Card, Notice } from '@diet/ui';
-import { type ReactElement, useState } from 'react';
+import { type ReactElement, useEffect, useRef, useState } from 'react';
 import type { AppStorage } from '../../db/runtime';
 import { fastingHref, ROUTE_TITLES, routeHref } from '../../routes';
 import { setDayWindows } from '../fasting/actions';
 import { ReloadButton } from '../recipes/parts';
 import type { ReasonText } from './reasonText';
 import type { PlannerState } from './usePlanner';
+
+/** "Saved." and the like after a write: it takes focus, so focus is never left on the page (2.9). */
+export function StatusNotice({ text }: { readonly text: string }): ReactElement {
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    box.current?.focus();
+  }, [text]);
+  return (
+    <div ref={box} tabIndex={-1} className="ui-focus-target">
+      <Notice tone="info" role="status">
+        <p>{text}</p>
+      </Notice>
+    </div>
+  );
+}
 
 /** A card while the planner cannot show its days: still opening, unreadable, or no dataset. */
 export function PlannerStateCard({

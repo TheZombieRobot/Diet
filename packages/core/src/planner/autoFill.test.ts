@@ -32,12 +32,16 @@ interface Setup {
   readonly eggs?: number;
   readonly dayBefore?: readonly PlannedMealRecord[];
   readonly eggsPerServe?: Readonly<Record<string, number>>;
+  readonly householdSize?: number;
+  readonly glutenFreeHousehold?: boolean;
 }
 
 /** An auto-fill input over the fixture, built the way the Meal plan card builds it. */
 function input(setup: Setup = {}): AutoFillInput {
-  const lookup = setup.lookup ?? fixtureLookup({ allergens: setup.allergens ?? [] });
-  const profile = { allergens: [...(setup.allergens ?? [])], glutenFreeHousehold: false };
+  const glutenFreeHousehold = setup.glutenFreeHousehold ?? false;
+  const lookup =
+    setup.lookup ?? fixtureLookup({ allergens: setup.allergens ?? [], glutenFreeHousehold });
+  const profile = { allergens: [...(setup.allergens ?? [])], glutenFreeHousehold };
   const dates = Array.from({ length: setup.days ?? 1 }, (_, i) => addDays(PLAN_TODAY, i));
   return {
     days: dates.map((date) => {
@@ -70,7 +74,7 @@ function input(setup: Setup = {}): AutoFillInput {
         },
       };
     }),
-    householdSize: 1,
+    householdSize: setup.householdSize ?? 1,
     firstWeek: setup.firstWeek ?? null,
     eggsAlreadyPlanned: setup.eggs ?? 0,
     dayBefore: setup.dayBefore ?? [],
@@ -162,6 +166,33 @@ describe('auto-fill (item 22 S9; HS-10, HS-25, NU-06, NU-07, P41, P43, V43, V44)
     expect(dinnerOf(only[0])).toBe(R.dinnerA);
     const eggs = autoFillWeek(input({ order, eggs: 3, eggsPerServe: { [R.dinnerA]: 2 } }));
     expect(dinnerOf(eggs[0])).toBe(R.bigH);
+  });
+
+  it('V16: never the same recipe twice on a day, even when it is the only one that fits', () => {
+    const days = autoFillWeek(
+      input({
+        window: null,
+        targets: exampleDayTargets('steady'),
+        stored: { [PLAN_TODAY]: [meal('breakfast', R.breakfastJ), meal('dinner', R.soupC)] },
+        order: (ids) => ids.filter((id) => id === R.soupC),
+      }),
+    );
+    expect(days[0]).toMatchObject({ status: 'refused', refusal: { reason: 'no-candidates' } });
+  });
+
+  it('FL-07, HS-24: a household dinner is judged as shared, so a Gluten-free household never gets a wheat dinner', () => {
+    const days = autoFillWeek(
+      input({
+        householdSize: 3,
+        glutenFreeHousehold: true,
+        order: (ids) => [R.wheatE, ...ids.filter((id) => id !== R.wheatE)],
+      }),
+    );
+    expect(days[0]?.status).toBe('proposed');
+    const dinner =
+      days[0]?.status === 'proposed' ? days[0].meals.find((m) => m.slot === 'dinner') : undefined;
+    expect(dinner?.recipeId).not.toBe(R.wheatE);
+    expect(dinner?.householdServes).toBe(3);
   });
 
   it('V44: after a reflux symptom a one-meal day is never raised above one serve', () => {

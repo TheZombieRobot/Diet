@@ -116,6 +116,10 @@ describe('the Meal plan card (item 22 K1, K2, K7)', () => {
     fireEvent.click(within(card).getByRole('button', { name: planner.week.next }));
     expect(within(card).getByTestId('plan-week-heading').textContent).toBe('Week of 6 March');
     expect(within(card).queryByRole('button', { name: planner.week.next })).toBeNull();
+    // The pressed Next week is gone: focus is on the new week's heading.
+    await waitFor(() => {
+      expect(document.activeElement).toBe(within(card).getByTestId('plan-week-heading'));
+    });
   });
 
   it('K2: a planned day shows its meals and an under-the-floor chip; K7: the household line', async () => {
@@ -290,11 +294,25 @@ describe('a planned day (item 22 K3, K5, K6, K7, K12, K18)', () => {
     expect(within(window).queryByRole('button', { name: fasting.mealCheck.addSnack })).toBeNull();
   });
 
-  it('F20 (DECISIONS 2026-10-22): during a stop-sign pause the day names no window time and offers no snack', async () => {
+  it('V44: a reflux day points to item 15’s reflux options', async () => {
+    await open({
+      seed: async (t) => {
+        await oneMealSchedule(t);
+        await t.repos.symptoms.create({ symptom: 'heartburn', severity: null, note: null });
+      },
+    });
+    await show(`#/plan/${TODAY}`);
+    const window = await screen.findByRole('region', { name: planner.day.windowLabel });
+    expect(await within(window).findByText(planner.day.refluxNote)).toBeDefined();
+    expect(within(window).getByRole('link', { name: fasting.pattern.refluxLink })).toBeDefined();
+  });
+
+  it('F20 (DECISIONS 2026-10-22): during a stop-sign pause the day names no window time and offers no snack or reflux option', async () => {
     await open({
       seed: async (t) => {
         await oneMealSchedule(t);
         await plan(t, TODAY, 'dinner', R.gardenF);
+        await t.repos.symptoms.create({ symptom: 'heartburn', severity: null, note: null });
         await recordPreStartStopSign(t.storage, TODAY);
       },
     });
@@ -304,6 +322,41 @@ describe('a planned day (item 22 K3, K5, K6, K7, K12, K18)', () => {
     expect(window.textContent).not.toMatch(/\d:\d\d [ap]m/);
     expect(within(window).queryByRole('button', { name: /snack/i })).toBeNull();
     expect(window.textContent).toContain(fasting.mealCheck.widen);
+    expect(window.textContent).not.toContain(planner.day.refluxNote);
+    expect(within(window).queryByRole('link', { name: fasting.pattern.refluxLink })).toBeNull();
+  });
+
+  it('V19: Remove asks first, with focus on the question; Keep it goes back to Change; Yes removes', async () => {
+    await open({ seed: (t) => plan(t, TOMORROW, 'dinner', R.dinnerA) });
+    await show(`#/plan/${TOMORROW}`);
+    const block = await slotBlock('dinner');
+    fireEvent.click(await within(block).findByRole('button', { name: planner.day.remove }));
+    const question = await within(block).findByText(/^Remove Example dinner A from /);
+    await waitFor(() => {
+      expect(document.activeElement).toBe(question);
+    });
+    fireEvent.click(within(block).getByRole('button', { name: planner.day.removeNo }));
+    await waitFor(() => {
+      expect(document.activeElement).toBe(
+        within(block).getByRole('button', { name: planner.day.change }),
+      );
+    });
+    expect((await test.repos.planDays.get(TOMORROW))?.meals).toHaveLength(1);
+    fireEvent.click(within(block).getByRole('button', { name: planner.day.remove }));
+    fireEvent.click(await within(block).findByRole('button', { name: planner.day.removeYes }));
+    await waitFor(async () => {
+      expect(await test.repos.planDays.get(TOMORROW)).toBeUndefined();
+    });
+  });
+
+  it('V3: a past day with no saved window has no empty Eating window card, and its figures line has no "yet"', async () => {
+    await open();
+    await show('#/plan/2000-02-28');
+    await screen.findByRole('region', { name: planner.day.mealsLabel });
+    expect(screen.queryByRole('region', { name: planner.day.windowLabel })).toBeNull();
+    expect(screen.getByRole('region', { name: planner.figures.label }).textContent).toContain(
+      planner.figures.nonePast,
+    );
   });
 
   it('K18 V41: a date after the planning range opens read-only', async () => {
@@ -324,6 +377,7 @@ describe('Fill and Copy (item 22 K8, K13; NU-06, HS-R18, T3, V39, V40)', () => {
     expect(within(card).getByText(planner.week.noFillFigures)).toBeDefined();
     fireEvent.click(within(card).getByRole('button', { name: planner.week.fill }));
     const panel = await screen.findByTestId('plan-fillWeek-panel');
+    expect(within(panel).getByText(planner.week.noFillFigures)).toBeDefined();
     const refused = within(panel).getAllByRole('listitem');
     expect(refused).toHaveLength(5);
     expect(refused[0]?.textContent).toMatch(
@@ -399,9 +453,15 @@ describe('the Food tab’s reminders and budget (item 22 K9, K11)', () => {
     await show('#/food');
     const reminder = await screen.findByTestId('reminder-cholesterol');
     expect(reminder.textContent).toContain('Lipid test');
-    fireEvent.click(within(reminder).getByRole('button'));
+    const hide = within(reminder).getByRole('button');
+    hide.focus();
+    fireEvent.click(hide);
     await waitFor(() => {
       expect(screen.queryByTestId('reminder-cholesterol')).toBeNull();
+    });
+    // Design 2.4: with the last reminder hidden, focus goes on to the week, never the page.
+    await waitFor(() => {
+      expect(document.activeElement).toBe(screen.getByTestId('plan-week-heading'));
     });
     go('#/today');
     await screen.findByRole('heading', { level: 1, name: 'Today' });
@@ -418,6 +478,10 @@ describe('the Food tab’s reminders and budget (item 22 K9, K11)', () => {
     });
     fireEvent.click(within(budget).getByRole('button', { name: planner.budget.save }));
     const own = await within(budget).findByText('Your note: $80 a week');
+    // Save is now disabled: focus is on "Saved." rather than the page.
+    await waitFor(() => {
+      expect(document.activeElement?.textContent).toBe(planner.budget.saved);
+    });
     expect(own.hasAttribute('data-owner-text')).toBe(true);
     const outside = [...budget.querySelectorAll('p')].filter(
       (p) => !p.hasAttribute('data-owner-text'),
@@ -446,6 +510,24 @@ describe('the Fast card reads the plan (item 22 K17; FL-12, C23, V42)', () => {
     go(`#/plan/${TODAY}`);
     const window = await screen.findByRole('region', { name: planner.day.windowLabel });
     expect(window.textContent).toContain('One meal needs about 120 g.');
+  });
+
+  it('HS-37: a planned dinner whose energy is not known never "comes in under" the energy target', async () => {
+    setPlannerData({ loaded: false });
+    await open({
+      seed: async (t) => {
+        await oneMealSchedule(t);
+        await plan(t, TODAY, 'dinner', R.gardenF);
+      },
+    });
+    await show('#/today');
+    const card = await screen.findByRole('region', { name: fasting.card.label });
+    expect(await within(card).findByText(fasting.mealCheck.energyNotKnown)).toBeDefined();
+    expect(card.textContent).not.toContain(fasting.mealCheck.energyShort);
+    go(`#/plan/${TODAY}`);
+    const window = await screen.findByRole('region', { name: planner.day.windowLabel });
+    expect(await within(window).findByText(fasting.mealCheck.energyNotKnown)).toBeDefined();
+    expect(window.textContent).not.toContain(fasting.mealCheck.energyShort);
   });
 
   it('a planned meal whose recipe data cannot be loaded reads "protein unknown", never "no meals planned"', async () => {

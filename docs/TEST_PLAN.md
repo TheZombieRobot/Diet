@@ -191,7 +191,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | FL-07 | Gluten-free household toggle off | No gluten-free substitutions suggested |
 | FL-08 | Eating window 17:00–19:00 | 2 h eating and 22 h fasting, from the core window formatter: screen 1e shows "Eating 5:00 pm to 7:00 pm = 2 hours. Fasting 22 hours." and the Fasting screen's Eating pattern card "2 h eating, 22 h fasting" (HS-17, C101) |
 | FL-09 | Eating window 22:00–02:00 (midnight wrap) | 4 h eating |
-| FL-10 | Low-protein planned day; also a day with enough protein but planned food energy under the day's energy target (C10) | Fasting card offers to widen window (HS-18). Core and card level at item 15, plan wiring at item 22 (C23) |
+| FL-10 | Low-protein planned day; also a day with enough protein but planned food energy under the day's energy target (C10) | Fasting card offers to widen window (HS-18). When a planned meal's energy is not known, the card and the Day screen say so and never that the day comes in under the energy target (HS-37). Core and card level at item 15, plan wiring at item 22 (C23) |
 | FL-11 | Reflux options on | Earlier-window and split-meal suggestions appear; symptom log available |
 | FL-12 | 23:1 preset, dinner planned at 95 g protein, target 140 g | Fasting card offers the 5 pm snack; no "broken fast" or streak-loss wording (HS-18). Core and card level at item 15, plan wiring at item 22 (C23) |
 | FL-13 | 23:1 preset, dinner planned at the protein target, at or above the day's energy target, under 600 g of protein food | No snack prompt; meal check line shows the protein figure. Core and card level at item 15, plan wiring at item 22 (C23) |

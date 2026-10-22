@@ -55,6 +55,7 @@ const TEXT: Readonly<Record<PlanReasonKey, string>> = {
   'planner.reasons.oneMealShortNoSnack': planner.reasons.oneMealShortNoSnack,
   'planner.reasons.oneMealDish': planner.reasons.oneMealDish,
   'planner.reasons.oneMealReflux': planner.reasons.oneMealReflux,
+  'planner.reasons.oneMealRefluxPause': planner.reasons.oneMealRefluxPause,
   'planner.reasons.carbsNotKnown': planner.reasons.carbsNotKnown,
   'planner.reasons.carbsOver': planner.reasons.carbsOver,
   'planner.reasons.satFatNotKnown': planner.reasons.satFatNotKnown,

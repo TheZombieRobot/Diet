@@ -2397,6 +2397,10 @@ export const fasting = {
     },
     proteinShort: 'One meal needs about {target} g.',
     energyShort: "The day's planned food comes in under the day's energy target.",
+    // A planned meal's energy is not known and the known part is under the target (HS-37): the
+    // check fails, so the snack and the widen line stay, but nothing says the day comes in under.
+    energyNotKnown:
+      "The energy in some of the day's planned food is not known yet, so the app cannot check it against the day's energy target.",
     // No energy target (no rough energy guide yet): energy is not shown to be met, so the snack
     // and the widen line are offered (item 21's energyForMealChecks returns null then).
     energyUnavailable:
@@ -3687,6 +3691,8 @@ export const planner = {
     label: 'Planned food',
     intro: 'Figures for your own portions. Cooking for more people never changes them.',
     none: 'Nothing planned yet, so there are no figures for this day.',
+    // A past day (item 22 review): no "yet".
+    nonePast: 'Nothing was planned for this day, so there are no figures for it.',
     notLoaded:
       'Food figures are not loaded yet, so the app cannot tell whether this day reaches your energy floor or your protein target.',
     notLoadedPlain: "Food figures are not loaded yet, so the app cannot add up this day's food.",
@@ -3777,6 +3783,9 @@ export const planner = {
       'The planner did not fill this day: a light dish cannot be the only meal of this day.',
     oneMealReflux:
       "The planner did not fill this day: after a reflux symptom it plans no more than one serve as a day's only meal. A split meal or the 5 pm snack may suit this day better.",
+    // During a stop-sign pause nothing offers an option that moves the window (F20).
+    oneMealRefluxPause:
+      "The planner did not fill this day: after a reflux symptom it plans no more than one serve as a day's only meal.",
     carbsNotKnown:
       'The planner did not fill this day: the carbs in some of its meals are not known yet, so it cannot check the day against your carb ceiling.',
     carbsOver:

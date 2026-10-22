@@ -3,7 +3,8 @@
  * HS-18; V26, V40, V50). Under plain figures no chosen sentence names a target or a figure, apart
  * from the floor sentences, which are a safety net; under the pregnancy note no energy sentence
  * names an energy target. A one-meal refusal offers the 5 pm snack only when it fits, otherwise
- * the widen line with the eating schedule. No screen picks a sentence itself.
+ * the widen line with the eating schedule; during a stop-sign pause a reflux refusal names no
+ * window-moving option (F20). No screen picks a sentence itself.
  */
 import type { AutoFillRefusal } from './autoFill';
 import type { CopyRefusal } from './copyWeek';
@@ -36,6 +37,7 @@ export type PlanReasonKey =
   | 'planner.reasons.oneMealShortNoSnack'
   | 'planner.reasons.oneMealDish'
   | 'planner.reasons.oneMealReflux'
+  | 'planner.reasons.oneMealRefluxPause'
   | 'planner.reasons.carbsNotKnown'
   | 'planner.reasons.carbsOver'
   | 'planner.reasons.satFatNotKnown'
@@ -55,6 +57,8 @@ export interface PlanReasonOptions {
   readonly plainFigures: boolean;
   readonly pregnancyNote: boolean;
   readonly snackFits: boolean;
+  /** A stop-sign pause holds: no sentence offers an option that moves the window (F20). */
+  readonly stopSignPause: boolean;
   /** The date has an eating window (the widen line needs one). */
   readonly hasWindow: boolean;
   readonly where: 'owner' | 'preview';
@@ -117,7 +121,9 @@ export function planReasonWording(
     case 'one-meal-dish':
       return say('planner.reasons.oneMealDish');
     case 'one-meal-reflux':
-      return say('planner.reasons.oneMealReflux', 'reflux-options');
+      return opts.stopSignPause
+        ? say('planner.reasons.oneMealRefluxPause')
+        : say('planner.reasons.oneMealReflux', 'reflux-options');
     case 'carbs-not-known':
       return say(plain ? 'planner.reasons.plainNotKnown' : 'planner.reasons.carbsNotKnown');
     case 'carbs-over':

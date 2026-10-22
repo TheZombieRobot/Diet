@@ -467,31 +467,20 @@ export function RecipeActions({
         />
       ) : null}
       {updated === null ? null : <UpdatedNotice from={updated.from} to={updated.to} />}
+      {/* One button for both, so focus stays on it when it changes. */}
+      {view.origin === 'seed' && hidden ? (
+        <p className="ui-text-muted">{planner.hidden.hiddenNote}</p>
+      ) : null}
       {view.origin === 'seed' ? (
-        hidden ? (
-          <>
-            <p className="ui-text-muted">{planner.hidden.hiddenNote}</p>
-            <Button
-              variant="quiet"
-              disabled={!writable}
-              onClick={() => {
-                setHidden(false);
-              }}
-            >
-              {planner.hidden.unhide}
-            </Button>
-          </>
-        ) : (
-          <Button
-            variant="quiet"
-            disabled={!writable}
-            onClick={() => {
-              setHidden(true);
-            }}
-          >
-            {planner.hidden.hide}
-          </Button>
-        )
+        <Button
+          variant="quiet"
+          disabled={!writable}
+          onClick={() => {
+            setHidden(!hidden);
+          }}
+        >
+          {hidden ? planner.hidden.unhide : planner.hidden.hide}
+        </Button>
       ) : null}
       {hideFailure === null ? null : (
         <Notice tone="amber" role="alert">

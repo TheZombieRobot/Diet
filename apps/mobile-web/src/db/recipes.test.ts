@@ -263,7 +263,7 @@ describe('the recipes repository (item 20)', () => {
     });
     expect(await refusal(t.repos.recipes.removeCopy(row.id))).toBe('recipe-in-plan');
     expect(await refusal(t.repos.recipes.remove(row.id))).toBe('recipe-in-plan');
-    await t.repos.planDays.remove('2000-03-02');
+    await t.db.plan_days.delete('2000-03-02');
     await t.repos.recipes.removeCopy(row.id);
     await t.repos.recipes.removeCopy(row.id);
     expect(await t.repos.recipes.list()).toEqual([]);

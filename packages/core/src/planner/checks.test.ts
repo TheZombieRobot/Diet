@@ -46,6 +46,7 @@ function day(parts: readonly Part[]): CountedDay {
     proteinG: p.protein,
     proteinKnown: !(p.unknown ?? []).includes('proteinG') || p.protein > 0,
     foodEnergyKj: p.kj,
+    energyKnown: !(p.unknown ?? []).includes('energyKj'),
     proteinFoodCookedG: p.foodG ?? 0,
     incomplete: (p.unknown ?? []).some((k) => k === 'proteinG' || k === 'energyKj'),
   }));
@@ -77,7 +78,7 @@ describe('app-made days (item 22 S6; HS-10, NU-06, HS-25, HS-R18, C10, C29, P43,
     ).toMatchObject({ ok: false, reason: 'below-floor' });
   });
 
-  it('the aim is the energy target, never the floor: 5,000 kJ is short of 9,100; 9,100 passes', () => {
+  it('the aim is the energy target, never the floor: 5,000 kJ and 9,099 kJ are short of 9,100; 9,100 passes', () => {
     expect(
       check(
         day([
@@ -89,6 +90,14 @@ describe('app-made days (item 22 S6; HS-10, NU-06, HS-25, HS-R18, C10, C29, P43,
       reason: 'energy-short',
       aimKj: 9100,
     });
+    expect(
+      check(
+        day([
+          { kj: 4099, protein: 70 },
+          { kj: 5000, protein: 70 },
+        ]),
+      ),
+    ).toMatchObject({ ok: false, reason: 'energy-short' });
     expect(
       check(
         day([

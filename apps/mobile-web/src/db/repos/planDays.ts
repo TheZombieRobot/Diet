@@ -1,5 +1,5 @@
 /**
- * Planned days (storage spec sections 4.7 and 8.2): the generic repository, narrowed; the per-day
+ * Planned days (storage spec sections 4.7 and 8.2): the generic reads only; the per-day
  * eating windows of item 15 (the 5 pm snack, "Eat 1 hour earlier", their Undo and the clean-up
  * when the pattern changes; DOC_REVIEW C30, C73); and item 22's planned meals.
  *
@@ -13,9 +13,10 @@
  * writeMeals is the only way to add, change or remove a planned meal (item 22 design 5.3; V32). It
  * runs core's checkPlanWrite inside its own read-write transaction, against the records as they
  * are then, so the floor, the targets, the window's slots, dislikes, hidden recipes and the
- * allergen decision are judged on the rows the write lands on, whatever a screen showed. The
- * generic create and update refuse a non-empty `meals`, and the generic remove refuses a row that
- * holds a per-day window, which changes only through setWindows and clearWindow.
+ * allergen decision are judged on the rows the write lands on, whatever a screen showed. There is
+ * no generic create, update or remove (V32; item 22 review): a meal changes only through
+ * writeMeals and a per-day window only through setWindows and clearWindow, so nothing can wipe a
+ * day's meals or undo a window and lengthen a fast around the checks.
  */
 import {
   addDays,
@@ -49,7 +50,7 @@ export interface PlanWriteOutcome {
   }[];
 }
 
-export interface PlanDaysRepo extends CrudRepo<'plan_days'> {
+export interface PlanDaysRepo extends Omit<CrudRepo<'plan_days'>, 'create' | 'update' | 'remove'> {
   /** Sets (or, with a null window, clears) each date's eating window, all in one transaction. */
   readonly setWindows: (changes: readonly DayWindowChange[]) => Promise<void>;
   /** Clears a date's eating window. */
@@ -61,8 +62,6 @@ export interface PlanDaysRepo extends CrudRepo<'plan_days'> {
 }
 
 type Row = Record<string, unknown>;
-
-const hasMeals = (value: unknown): boolean => Array.isArray(value) && value.length > 0;
 
 export function planDaysRepo(ctx: RepoContext): PlanDaysRepo {
   const { db, env } = ctx;
@@ -260,29 +259,9 @@ export function planDaysRepo(ctx: RepoContext): PlanDaysRepo {
   };
 
   return {
-    ...crud,
-    // Planned meals are written only through writeMeals (V32); `meals: []` adds nothing to judge.
-    create: (input) => {
-      if (hasMeals((input as Row).meals)) {
-        return Promise.reject(new StorageRuleError('plan_days', 'plan-meals-through-planner'));
-      }
-      return crud.create(input);
-    },
-    update: (key, patch) => {
-      if (hasMeals((patch as Row).meals)) {
-        return Promise.reject(new StorageRuleError('plan_days', 'plan-meals-through-planner'));
-      }
-      return crud.update(key, patch);
-    },
-    // A per-day window changes only through setWindows and clearWindow, after the screen's
-    // 23-hour check (item 15, C30); a generic removal could undo one and lengthen a fast.
-    remove: (key) =>
-      db.plan_days.get(key).then((row) => {
-        if (row !== undefined && row.eatingWindow !== null) {
-          throw new StorageRuleError('plan_days', 'plan-window-through-fasting');
-        }
-        return crud.remove(key);
-      }),
+    get: crud.get,
+    list: crud.list,
+    listByIndex: crud.listByIndex,
     setWindows,
     clearWindow: (date) => setWindows([{ date, window: null }]),
     hasMealsBefore: (date) =>

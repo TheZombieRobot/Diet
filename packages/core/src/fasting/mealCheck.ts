@@ -46,8 +46,10 @@ export interface PlannedMealFigures {
   readonly proteinG: number;
   /** False when the recipe is missing, or its protein is unknown with a 0 g lower bound. */
   readonly proteinKnown: boolean;
-  /** Food only. */
+  /** Food only. A lower bound when energyKnown is false. */
   readonly foodEnergyKj: number;
+  /** False when the recipe is missing or its energy is unknown (HS-37). */
+  readonly energyKnown: boolean;
   /** Cooked grams of protein-dense ingredients in the owner's portion. */
   readonly proteinFoodCookedG: number;
   /** Protein or energy is a lower bound (D35). */
@@ -81,9 +83,12 @@ export interface MealCheckInput {
 
 /**
  * Why a day is short. 'energy-unknown': there is no energy target, so energy is not shown to be
- * met (the check never passes on it).
+ * met (the check never passes on it). 'energy-not-known': a planned meal's energy is not known and
+ * the known part is under the target, so the day is not shown to reach it, and no sentence may say
+ * it comes in under (HS-37; item 22 review).
  */
-export type MealCheckReason = 'protein' | 'energy' | 'energy-unknown' | 'portion';
+export type MealCheckReason =
+  'protein' | 'energy' | 'energy-not-known' | 'energy-unknown' | 'portion';
 
 /** The protein of a single-sitting day: all of its planned meals together. */
 export interface SittingHeadline {
@@ -116,10 +121,15 @@ export type MealCheckResult =
 
 const sum = (values: readonly number[]): number => values.reduce((a, b) => a + b, 0);
 
-/** The energy reason for a figure: short, not shown to be met, or none. */
-function energyReason(figure: number, targetKj: number | null): MealCheckReason | null {
+/** The energy reason for a figure: short, not known to be met, not shown to be met, or none. */
+function energyReason(
+  figure: number,
+  known: boolean,
+  targetKj: number | null,
+): MealCheckReason | null {
   if (targetKj === null) return 'energy-unknown';
-  return figure < targetKj ? 'energy' : null;
+  if (figure >= targetKj) return null;
+  return known ? 'energy' : 'energy-not-known';
 }
 
 export function mealCheck(input: MealCheckInput): MealCheckResult {
@@ -132,7 +142,8 @@ export function mealCheck(input: MealCheckInput): MealCheckResult {
     if (logged === null) return { kind: 'unavailable' };
     const reasons: Exclude<MealCheckReason, 'portion'>[] = [];
     if (logged.proteinG < proteinTargetG) reasons.push('protein');
-    const energy = energyReason(logged.foodEnergyKj, dayEnergyTargetKj);
+    // The log alone, as item 15 compares it; no planned figure feeds this branch.
+    const energy = energyReason(logged.foodEnergyKj, true, dayEnergyTargetKj);
     if (energy === 'energy' || energy === 'energy-unknown') reasons.push(energy);
     return reasons.length > 0
       ? { kind: 'short-after', reasons, energyChecked }
@@ -162,7 +173,11 @@ export function mealCheck(input: MealCheckInput): MealCheckResult {
   }
   const planEnergy = sum(planned.map((m) => m.foodEnergyKj));
   const projectedEnergy = (logged?.foodEnergyKj ?? 0) + sum(remaining.map((m) => m.foodEnergyKj));
-  const energy = energyReason(Math.min(planEnergy, projectedEnergy), dayEnergyTargetKj);
+  const energy = energyReason(
+    Math.min(planEnergy, projectedEnergy),
+    planned.every((m) => m.energyKnown),
+    dayEnergyTargetKj,
+  );
   if (energy !== null) reasons.push(energy);
   if (
     sittingDay &&
@@ -249,6 +264,7 @@ export function plannedMealFigures(
       proteinG: 0,
       proteinKnown: false,
       foodEnergyKj: 0,
+      energyKnown: false,
       proteinFoodCookedG: 0,
       incomplete: true,
     };
@@ -259,13 +275,15 @@ export function plannedMealFigures(
     householdServes: meal.householdServes,
   });
   const proteinUnknown = recipe.unknownNutrients.includes('proteinG');
+  const energyUnknown = recipe.unknownNutrients.includes('energyKj');
   return {
     slot: meal.slot,
     proteinG: nutrients.proteinG,
     proteinKnown: !(proteinUnknown && nutrients.proteinG === 0),
     foodEnergyKj: nutrients.energyKj,
+    energyKnown: !energyUnknown,
     proteinFoodCookedG: proteinDenseCookedGrams(recipe, meal.myServes, resolve),
-    incomplete: proteinUnknown || recipe.unknownNutrients.includes('energyKj'),
+    incomplete: proteinUnknown || energyUnknown,
   };
 }
 

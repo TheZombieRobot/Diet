@@ -94,9 +94,13 @@ export function MealCheck({
   }
 
   if (kind === 'offer') {
-    // Without a headline, protein and energy share the one "plan comes in under" line.
+    // Without a headline, protein and energy share the one "plan comes in under" line; it is not
+    // said while the planned energy is not known (HS-37), which gets its own line.
+    const energyNotKnown = reasons.includes('energy-not-known');
     const planShort =
-      headline === null && (reasons.includes('protein') || reasons.includes('energy'));
+      headline === null &&
+      !energyNotKnown &&
+      (reasons.includes('protein') || reasons.includes('energy'));
     const fits = snack.fits;
     return (
       <div data-testid="meal-check">
@@ -135,6 +139,7 @@ export function MealCheck({
           ) : null}
           {headline !== null && reasons.includes('energy') ? <p>{copy.energyShort}</p> : null}
           {planShort ? <p>{copy.planShort[day]}</p> : null}
+          {energyNotKnown ? <p>{copy.energyNotKnown}</p> : null}
           {reasons.includes('portion') ? <p>{copy.portionLarge}</p> : null}
           {snackAdded}
           {fits === null ? (

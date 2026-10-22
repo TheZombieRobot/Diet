@@ -1,9 +1,11 @@
 import { expect, type Locator, type Page, test } from '@playwright/test';
-import { planner } from '../packages/core/src/copy/health';
+import { fasting, planner } from '../packages/core/src/copy/health';
+import { onDay, WEIGHT_SCENARIOS, weightScenario } from '../packages/test-fixtures/src/index';
 import { commerceRules, healthPhraseRules } from '../tools/scans/rules';
 import { scanText } from '../tools/scans/scan';
 import { goTo, renderedText, seedOnboarded, waitForServiceWorkerControl } from './support/app';
 import { startAudit } from './support/network';
+import { restoreSnapshot } from './support/scenario';
 
 // The seven-day planner in the production build (item 22 design 6.4), over the shipped datasets:
 // no food figures are loaded, so every planned figure reads "not known" and the planner fills
@@ -183,4 +185,82 @@ test('E4 HS-R20, E7 HS-31: with peanuts listed, the label check names them and C
   await expect(page.getByTestId('plan-copyWeek-panel')).toBeVisible();
   await sweep('Food with the copy preview');
   expect(found).toEqual([]);
+});
+
+test('E7: the Day screen, a planned meal and the picker stay inside a narrow or zoomed screen; every control is 48 px', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 360, height: 780 });
+  await seedOnboarded(page, './#/plan/today');
+  await expect(region(page, planner.day.mealsLabel)).toBeVisible();
+  await chooseDinner(page, planner.picker.suggestions);
+  await addedTitle(page);
+  // With peanuts listed, every seed recipe is in "Check labels first", each with its chip.
+  await patchProfile(page, { allergens: ['peanut'] });
+  const small = () =>
+    page.locator('a:visible, button:visible').evaluateAll((controls) =>
+      controls.flatMap((c) => {
+        const box = c.getBoundingClientRect();
+        return box.width < 48 || box.height < 48
+          ? [`${c.textContent} ${box.width}x${box.height}`]
+          : [];
+      }),
+    );
+  const openPicker = async () => {
+    await slot(page, 'snack').getByRole('button', { name: planner.day.choose }).click();
+    await expect(
+      page.getByRole('radiogroup', { name: new RegExp(planner.picker.checkLabelsLegend) }),
+    ).toBeVisible();
+  };
+  await page.goto('./#/plan/today');
+  await expect(slot(page, 'dinner').locator('.ui-plan-meal__title')).toBeVisible();
+  expect(await small()).toEqual([]);
+  await openPicker();
+  expect(await small()).toEqual([]);
+
+  const problems: string[] = [];
+  // 320 px: a small phone. 195 and 180 px: a 390 px and a 360 px phone at 200% zoom.
+  for (const width of [320, 195, 180]) {
+    await page.setViewportSize({ width, height: 640 });
+    for (const where of ['Day screen', 'picker']) {
+      // A reload closes the picker (the address does not change).
+      await page.reload();
+      await expect(region(page, planner.day.mealsLabel)).toBeVisible();
+      if (where === 'picker') await openPicker();
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      );
+      if (overflow > 0)
+        problems.push(`${where} at ${width} px: scrolls sideways by ${overflow} px`);
+    }
+  }
+  expect(problems).toEqual([]);
+});
+
+test.describe('E6: a Kickstart started 16 days ago, with the untouched 23:1 default', () => {
+  test.use({ timezoneId: 'Pacific/Auckland' });
+
+  test('one meal a day to day 21, the 5 pm snack and dinner from day 22; the Fast card matches', async ({
+    page,
+  }) => {
+    // Scenario day 17 (Thursday 17 February 2000) at 09:00: day 21 is next Monday.
+    const seen = onDay({ ...WEIGHT_SCENARIOS.K10, ratesKgPerWeek: [0] }, 17);
+    await page.clock.setFixedTime(new Date(seen.now));
+    await page.goto('./');
+    await restoreSnapshot(page, weightScenario(seen), seen.now);
+    await goTo(page, 'Today');
+    await expect(region(page, fasting.card.label)).toContainText('6:00 pm – 7:00 pm');
+    const days = [
+      ['2000-02-17', '6:00 pm – 7:00 pm', false],
+      ['2000-02-21', '6:00 pm – 7:00 pm', false],
+      ['2000-02-22', '5:00 pm – 7:00 pm', true],
+    ] as const;
+    for (const [date, range, snack] of days) {
+      await page.goto(`./#/plan/${date}`);
+      await expect(region(page, planner.day.windowLabel)).toContainText(`Eat ${range}.`);
+      await expect(slot(page, 'dinner')).toContainText(planner.slots.dinner);
+      if (snack) await expect(slot(page, 'snack')).toContainText(planner.slots.snackAtFive);
+      else await expect(slot(page, 'snack')).toHaveCount(0);
+    }
+  });
 });

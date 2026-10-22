@@ -63,9 +63,10 @@ export function AddToPlanPanel({
   const [saving, setSaving] = useState(false);
   const [refusal, setRefusal] = useState<PlanWriteRefusal | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
+  // Once the panel is ready (its first render may be the state card), and on each question.
   useEffect(() => {
     heading.current?.focus();
-  }, [asking]);
+  }, [asking, state.status]);
   if (state.status !== 'ready') {
     return <PlannerStateCard label={planner.addFromRecipe.title} state={state.status} />;
   }
@@ -164,6 +165,7 @@ export function AddToPlanPanel({
             plainFigures: model.view.display.plainFigures,
             pregnancyNote: model.view.display.pregnancyNote,
             snackFits: false,
+            stopSignPause: model.ps.stopSignPause,
             hasWindow: ctx.window !== null,
             where: 'owner',
           },

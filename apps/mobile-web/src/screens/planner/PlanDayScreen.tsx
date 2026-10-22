@@ -3,7 +3,8 @@
  * window and its meal slots, the picker and the label check, the single-sitting meal check with the
  * 5 pm snack or the widen line (item 15's rules and actions), and the day's planned figures for the
  * owner's own portion. A past date and a date after the planning range open read-only. During a
- * Kickstart stop-sign pause no line names an eating-window time and the snack is not offered (F20).
+ * Kickstart stop-sign pause no line names an eating-window time, and neither the snack nor a reflux
+ * option that moves the window is offered (F20; item 15's suppression).
  */
 import {
   allergenListText,
@@ -49,7 +50,7 @@ import { useTargetsClock } from '../targets/useDayTargets';
 import { writeOwnerMeal } from './actions';
 import { plannedFoodView } from './figuresView';
 import { MealPicker } from './MealPicker';
-import { AddSnackButton, ClosedNotice, PlannerStateCard } from './parts';
+import { AddSnackButton, ClosedNotice, PlannerStateCard, StatusNotice } from './parts';
 import { gardenFoods, type PlanDayView, type PlanModel, planDayView } from './planModel';
 import { portionWords, removeFailedText, slotLabel, writeFailure } from './reasonText';
 import { usePlanner } from './usePlanner';
@@ -139,7 +140,7 @@ function WindowCard({
   readonly model: PlanModel;
   readonly view: PlanDayView;
   readonly writable: boolean;
-}): ReactElement {
+}): ReactElement | null {
   const { ctx } = view;
   const { gates } = model.view;
   const pause = model.ps.stopSignPause;
@@ -147,10 +148,13 @@ function WindowCard({
   const editable = ctx.state === 'editable';
   const [failure, setFailure] = useState<string | null>(null);
   const range = window === null ? '' : formatClockRange(window.start, window.end);
+  // A past date shows only a per-day window stored on its row (V3): with none there is no card,
+  // rather than an empty one.
+  if (window === null && ctx.state === 'past') return null;
   if (window === null) {
     return (
       <Card label={planner.day.windowLabel}>
-        {ctx.state === 'past' ? null : gates.fastingGated ? (
+        {gates.fastingGated ? (
           <>
             <p>{planner.day.fastingOff}</p>
             <GateNotice feature="fasting" link linkWhen="actionable" gates={gates} />
@@ -203,7 +207,12 @@ function WindowCard({
           tone="amber"
           icon={<BowlIcon />}
           actions={
-            snack !== null ? (
+            snack === null ? (
+              <ActionRow
+                href={routeHref('eating-schedule')}
+                title={ROUTE_TITLES['eating-schedule']}
+              />
+            ) : (
               <ButtonRow>
                 <AddSnackButton
                   storage={storage}
@@ -222,7 +231,7 @@ function WindowCard({
                   {fasting.mealCheck.notNow}
                 </Button>
               </ButtonRow>
-            ) : undefined
+            )
           }
         >
           {sitting.sitting === null ? null : (
@@ -238,9 +247,11 @@ function WindowCard({
                   })
                 : reason === 'energy'
                   ? fasting.mealCheck.energyShort
-                  : reason === 'energy-unknown'
-                    ? fasting.mealCheck.energyUnavailable
-                    : fasting.mealCheck.portionLarge}
+                  : reason === 'energy-not-known'
+                    ? fasting.mealCheck.energyNotKnown
+                    : reason === 'energy-unknown'
+                      ? fasting.mealCheck.energyUnavailable
+                      : fasting.mealCheck.portionLarge}
             </p>
           ))}
           {snack !== null ? (
@@ -249,10 +260,6 @@ function WindowCard({
             <>
               <p>{fasting.mealCheck.widen}</p>
               <p>{fasting.mealCheck.widenDetail}</p>
-              <ActionRow
-                href={routeHref('eating-schedule')}
-                title={ROUTE_TITLES['eating-schedule']}
-              />
             </>
           )}
         </Notice>
@@ -299,7 +306,7 @@ function WindowCard({
           ) : null}
         </>
       ) : null}
-      {ctx.refluxDay && editable ? (
+      {ctx.refluxDay && editable && !pause ? (
         <>
           <p className="ui-text-muted">{planner.day.refluxNote}</p>
           <ActionRow href={fastingHref('reflux')} title={fasting.pattern.refluxLink} />
@@ -403,17 +410,16 @@ function MealsCard({
   );
 }
 
-function StatusNotice({ text }: { readonly text: string }): ReactElement {
-  const box = useRef<HTMLDivElement>(null);
+/** The Remove question, which takes focus when it opens (2.9). */
+function RemoveQuestion({ text }: { readonly text: string }): ReactElement {
+  const line = useRef<HTMLParagraphElement>(null);
   useEffect(() => {
-    box.current?.focus();
-  }, [text]);
+    line.current?.focus();
+  }, []);
   return (
-    <div ref={box} tabIndex={-1} className="ui-focus-target">
-      <Notice tone="info" role="status">
-        <p>{text}</p>
-      </Notice>
-    </div>
+    <p ref={line} tabIndex={-1} className="ui-focus-target">
+      {text}
+    </p>
   );
 }
 
@@ -452,6 +458,12 @@ function SlotBlock({
   const title = recipe?.title ?? planner.day.recipeMissing;
   const [removing, setRemoving] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
+  const block = useRef<HTMLDivElement>(null);
+  // Keep it or Cancel: focus goes back to the block's first button (Change or Choose).
+  const close = () => {
+    onAction(null);
+    requestAnimationFrame(() => block.current?.querySelector<HTMLElement>('button')?.focus());
+  };
   const remove = () => {
     setRemoving(true);
     setFailure(null);
@@ -479,7 +491,11 @@ function SlotBlock({
         );
   const garden = recipe === null ? null : gardenFoods(model, recipe);
   return (
-    <div className="ui-plan-slot" data-testid={`slot-${slot}${outside ? '-outside' : ''}`}>
+    <div
+      ref={block}
+      className="ui-plan-slot"
+      data-testid={`slot-${slot}${outside ? '-outside' : ''}`}
+    >
       <h3 className="ui-text-strong">{slotLabel(slot, ctx.window)}</h3>
       {meal === null ? null : (
         <>
@@ -533,9 +549,7 @@ function SlotBlock({
           slot={slot}
           current={meal}
           writable={writable}
-          onCancel={() => {
-            onAction(null);
-          }}
+          onCancel={close}
           onSaved={(result) => {
             onDone(
               result.status === 'added'
@@ -546,7 +560,9 @@ function SlotBlock({
         />
       ) : action?.kind === 'remove' && meal !== null ? (
         <>
-          <p>{fillTemplate(planner.day.removeConfirm, { title, day: formatPlanDate(date) })}</p>
+          <RemoveQuestion
+            text={fillTemplate(planner.day.removeConfirm, { title, day: formatPlanDate(date) })}
+          />
           {removing ? (
             <p className="ui-progress" role="status">
               {planner.day.removing}
@@ -556,13 +572,7 @@ function SlotBlock({
             <Button variant="caution" disabled={removing || !writable} onClick={remove}>
               {planner.day.removeYes}
             </Button>
-            <Button
-              variant="secondary"
-              disabled={removing}
-              onClick={() => {
-                onAction(null);
-              }}
-            >
+            <Button variant="secondary" disabled={removing} onClick={close}>
               {planner.day.removeNo}
             </Button>
           </ButtonRow>
@@ -625,7 +635,7 @@ function PlannedFoodCard({
     return (
       <Card label={planner.figures.label}>
         <p className="ui-text-muted">{planner.figures.intro}</p>
-        <p>{planner.figures.none}</p>
+        <p>{view.ctx.state === 'past' ? planner.figures.nonePast : planner.figures.none}</p>
       </Card>
     );
   }

@@ -119,6 +119,13 @@ describe('the one write rule (item 22 S11; HS-10, HS-24, HS-R20, HS-23, C07, V38
       reasonOf(request('copy', [write('snack', R.snackB), write('dinner', R.dinnerA, 5)])),
     ).toBe('portion');
     expect(reasonOf(request('owner-meal', [write('dinner', R.dinnerA, 4)]))).toBe('write');
+    // Cooking for: a whole number of people from 1 to 50.
+    for (const household of [0, 2.5, 51]) {
+      expect(reasonOf(request('owner-meal', [write('dinner', R.dinnerA, 1, household)]))).toBe(
+        'portion',
+      );
+    }
+    expect(reasonOf(request('owner-meal', [write('dinner', R.dinnerA, 1, 50)]))).toBe('write');
     expect(reasonOf(request('copy', [{ date: PLAN_TODAY, slot: 'dinner', meal: null }]))).toBe(
       'kind',
     );
@@ -243,6 +250,7 @@ describe('copy to the following week (item 22 S10; HS-24, HS-R20, HS-10; V9)', (
       readonly targetMeals?: readonly PlannedMealRecord[];
       readonly allergens?: readonly UserAllergen[];
       readonly hidden?: readonly string[];
+      readonly dislikeTerms?: readonly string[];
       readonly date?: string;
     } = {},
   ) =>
@@ -259,7 +267,11 @@ describe('copy to the following week (item 22 S10; HS-24, HS-R20, HS-10; V9)', (
           }),
         },
       ],
-      lookup: fixtureLookup({ allergens: options.allergens ?? [], hidden: options.hidden ?? [] }),
+      lookup: fixtureLookup({
+        allergens: options.allergens ?? [],
+        hidden: options.hidden ?? [],
+        dislikeTerms: options.dislikeTerms ?? [],
+      }),
       profile: { allergens: [...(options.allergens ?? [])], glutenFreeHousehold: false },
     })[0];
   const week = [meal('snack', R.snackB), meal('dinner', R.dinnerA, 2)];
@@ -284,9 +296,17 @@ describe('copy to the following week (item 22 S10; HS-24, HS-R20, HS-10; V9)', (
     });
   });
 
-  it('hidden recipes are skipped; a portion of 5 is refused', () => {
+  it('hidden and disliked recipes are skipped; a portion of 5 is refused', () => {
     expect(copy(week, { hidden: [R.snackB] })).toMatchObject({
       skipped: [{ slot: 'snack', why: 'not-wanted' }],
+    });
+    expect(copy(week, { dislikeTerms: ['Example fat'] })).toEqual({
+      date: target,
+      status: 'nothing-to-copy',
+      skipped: [
+        { slot: 'snack', recipeId: R.snackB, why: 'not-wanted' },
+        { slot: 'dinner', recipeId: R.dinnerA, why: 'not-wanted' },
+      ],
     });
     expect(copy([meal('dinner', R.dinnerA, 5)])).toMatchObject({ refusal: { reason: 'portion' } });
   });

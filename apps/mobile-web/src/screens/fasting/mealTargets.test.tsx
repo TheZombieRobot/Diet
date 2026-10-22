@@ -50,6 +50,7 @@ const dinner: PlannedMealFigures = {
   proteinG: 130,
   proteinKnown: true,
   foodEnergyKj: 15_000,
+  energyKnown: true,
   proteinFoodCookedG: 450,
   incomplete: false,
 };

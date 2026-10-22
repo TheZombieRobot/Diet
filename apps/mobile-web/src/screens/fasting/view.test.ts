@@ -118,6 +118,7 @@ const dinner = (proteinG: number): PlannedMealFigures => ({
   proteinG,
   proteinKnown: true,
   foodEnergyKj: 9_500,
+  energyKnown: true,
   proteinFoodCookedG: 450,
   incomplete: false,
 });

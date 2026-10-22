@@ -1050,7 +1050,7 @@ Every write goes through `prepare(table, candidate, env)`, which is synchronous:
 | steps_log | create, get, list, update, remove | — | updatedAt |
 | ingredients, ingredient_overrides, recipes, beverages | create, get, list, update, remove | — | createdAt, updatedAt |
 | grocery_lists | create, get, list, update, remove | — (item 31 adds send and acknowledgement) | createdAt, updatedAt; `version` + 1 on every update |
-| plan_days, pantry | create, get, list, update, remove (plan_days: the generic create and update refuse a non-empty `meals`, and the generic remove refuses a row with an `eatingWindow`) | plan_days: `writeMeals` (meals, through the planner's write rule), `setWindows`/`clearWindow` (windows, item 15) | updatedAt |
+| plan_days, pantry | create, get, list, update, remove (plan_days: get, list and listByIndex only; it has no generic create, update or remove) | plan_days: `writeMeals` (meals, through the planner's write rule), `setWindows`/`clearWindow` (windows, item 15) | updatedAt |
 | garden | create, get, list, update, remove (also removes the photo) | — | updatedAt |
 | sessions | create, get, list, update, remove | createChecked, updateChecked, removeIf (item 27: the caller's rule runs on the stored rows inside the write transaction) | completedAt and timeZone when status becomes `done`, cleared otherwise |
 | drinks_log | get, list | log, update, remove, forDrinkingDays | at and timeZone when left to the repository |
