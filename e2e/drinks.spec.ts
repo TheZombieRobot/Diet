@@ -1,6 +1,12 @@
 import { expect, type Page, test } from '@playwright/test';
 import { alcohol, helpNumbers, today } from '../packages/core/src/copy/health';
-import { goTo, heading, seedOnboarded, waitForServiceWorkerControl } from './support/app';
+import {
+  goTo,
+  heading,
+  screenArrived,
+  seedOnboarded,
+  waitForServiceWorkerControl,
+} from './support/app';
 
 // The Drinks screen in the production build (item 28 design 6.2 E1): PWA-04 (log a drink), NN-01,
 // AL-01, AL-08, AL-12 and HS-13. Synthetic records from a finished setup (every answer "no").
@@ -38,6 +44,7 @@ test('AL-08, AL-12, HS-13: a ticked next-day note brings up the help card; the H
 }) => {
   await seedOnboarded(page, './#/drinks');
   await expect(heading(page)).toHaveText('Drinks');
+  await screenArrived(page);
   const note = region(page, alcohol.dayNote.cardLabel);
   await expect(page.getByRole('region', { name: alcohol.helpCardLabel, exact: true })).toHaveCount(
     0,

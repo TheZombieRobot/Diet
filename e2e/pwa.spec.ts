@@ -9,6 +9,7 @@ import {
   heading,
   pngSize,
   SCREENS,
+  screenArrived,
   seedOnboarded,
   visitEveryScreen,
   waitForServiceWorkerControl,
@@ -169,6 +170,7 @@ test('offline: the app reloads and every screen opens from the offline copy (PWA
   const second = await context.newPage();
   await second.goto('./#/drinks');
   await expect(heading(second)).toHaveText('Drinks');
+  await screenArrived(second);
   await goTo(second, 'About');
 
   expect(fromNetwork).toEqual([]);

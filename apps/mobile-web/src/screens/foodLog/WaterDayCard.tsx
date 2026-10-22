@@ -19,7 +19,7 @@ import { foodLog, today as todayCopy } from '@diet/core/copy/health';
 import { Button, Card, Chip, Switch, TextField } from '@diet/ui';
 import { type ReactElement, useRef, useState } from 'react';
 import { formatLocalTime, formatWaterMl, formatWaterText } from '../../format';
-import { TimeField } from './AddFood';
+import { TimeField } from './TimeField';
 import { type LogContext, timeOf } from './logContext';
 import type { WaterGuide } from './useWaterGuide';
 import { useLogWrite } from './useLogWrite';

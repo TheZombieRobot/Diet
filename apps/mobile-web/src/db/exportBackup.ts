@@ -20,7 +20,7 @@ import {
   SCHEMA_VERSION,
   type Snapshot,
 } from '@diet/core';
-import { APP_VERSION } from '../version';
+import { APP_VERSION } from '../appVersion';
 import type { DietDb } from './db';
 import type { StorageEnv } from './env';
 import { readRescueRows } from './rescue';

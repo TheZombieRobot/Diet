@@ -7,7 +7,7 @@ import {
   TodayIcon,
   type TabItem,
 } from '@diet/ui';
-import { useEffect, useRef, type ReactElement } from 'react';
+import { Suspense, useEffect, useRef, type ReactElement } from 'react';
 import { APP_NAME } from './appName';
 import { type FailureStatus, type OpenStatus, openStatusStore } from './db/db';
 import { appStorageStore } from './db/runtime';
@@ -29,36 +29,57 @@ import {
 } from './routes';
 import { screenTitleStore } from './screenTitle';
 import { AboutScreen } from './screens/AboutScreen';
-import { DrinksScreen } from './screens/drinks/DrinksScreen';
-import { FastingScreen } from './screens/fasting/FastingScreen';
-import { FoodScreen } from './screens/FoodScreen';
-import { FoodsScreen } from './screens/foods/FoodsScreen';
-import { GardenScreen } from './screens/garden/GardenScreen';
-import { ListScreen } from './screens/list/ListScreen';
-import { MovePlanScreen } from './screens/move/MovePlanScreen';
-import { MoveScreen } from './screens/move/MoveScreen';
-import { MoveSessionScreen } from './screens/move/MoveSessionScreen';
-import { PairingScreen } from './screens/pairing/PairingScreen';
-import { StoreScreen } from './screens/settings/StoreScreen';
-import { PlanDayScreen } from './screens/planner/PlanDayScreen';
-import { FoodLogScreen } from './screens/foodLog/FoodLogScreen';
-import { GpSummaryScreen } from './screens/foodLog/GpSummaryScreen';
-import { RecipeScreen } from './screens/recipes/RecipeScreen';
-import { RecipesScreen } from './screens/recipes/RecipesScreen';
 import { swapStatusStore } from './screens/recipes/status';
 import { QuickActions } from './screens/today/QuickActionsPanel';
-import { EatingScheduleScreen } from './screens/settings/EatingScheduleScreen';
-import { ProfileScreen } from './screens/settings/ProfileScreen';
-import { ReadinessAnswersScreen } from './screens/settings/ReadinessAnswersScreen';
-import { SettingsScreen } from './screens/SettingsScreen';
 import { StorageFailureScreen } from './screens/StorageFailureScreen';
-import { TargetsScreen } from './screens/targets/TargetsScreen';
 import { TodayScreen } from './screens/today/TodayScreen';
+import { lazyScreen } from './screens/lazyScreen';
+import { ScreenLoading } from './screens/ScreenLoading';
 import { UpdateBanner } from './screens/UpdateBanner';
 import { KickstartReconciler } from './screens/weight/KickstartReconciler';
-import { WeightScreen } from './screens/weight/WeightScreen';
 import { useStore } from './store';
 import { useHash, useRoute } from './useRoute';
+
+/**
+ * Screens not needed for the first paint, each fetched when it first opens (code split): their
+ * code and the data only they read stay out of the chunks the first paint loads, which are smaller
+ * and change less often. Today, setup, About and the help numbers are imported above and open at
+ * once; vite.config.ts arranges the chunks.
+ */
+const DrinksScreen = lazyScreen(() => import('./screens/drinks/DrinksScreen'), 'DrinksScreen');
+const FastingScreen = lazyScreen(() => import('./screens/fasting/FastingScreen'), 'FastingScreen');
+const FoodScreen = lazyScreen(() => import('./screens/FoodScreen'), 'FoodScreen');
+const FoodsScreen = lazyScreen(() => import('./screens/foods/FoodsScreen'), 'FoodsScreen');
+const GardenScreen = lazyScreen(() => import('./screens/garden/GardenScreen'), 'GardenScreen');
+const ListScreen = lazyScreen(() => import('./screens/list/ListScreen'), 'ListScreen');
+const MovePlanScreen = lazyScreen(() => import('./screens/move/MovePlanScreen'), 'MovePlanScreen');
+const MoveScreen = lazyScreen(() => import('./screens/move/MoveScreen'), 'MoveScreen');
+const MoveSessionScreen = lazyScreen(
+  () => import('./screens/move/MoveSessionScreen'),
+  'MoveSessionScreen',
+);
+const PairingScreen = lazyScreen(() => import('./screens/pairing/PairingScreen'), 'PairingScreen');
+const StoreScreen = lazyScreen(() => import('./screens/settings/StoreScreen'), 'StoreScreen');
+const PlanDayScreen = lazyScreen(() => import('./screens/planner/PlanDayScreen'), 'PlanDayScreen');
+const FoodLogScreen = lazyScreen(() => import('./screens/foodLog/FoodLogScreen'), 'FoodLogScreen');
+const GpSummaryScreen = lazyScreen(
+  () => import('./screens/foodLog/GpSummaryScreen'),
+  'GpSummaryScreen',
+);
+const RecipeScreen = lazyScreen(() => import('./screens/recipes/RecipeScreen'), 'RecipeScreen');
+const RecipesScreen = lazyScreen(() => import('./screens/recipes/RecipesScreen'), 'RecipesScreen');
+const EatingScheduleScreen = lazyScreen(
+  () => import('./screens/settings/EatingScheduleScreen'),
+  'EatingScheduleScreen',
+);
+const ProfileScreen = lazyScreen(() => import('./screens/settings/ProfileScreen'), 'ProfileScreen');
+const ReadinessAnswersScreen = lazyScreen(
+  () => import('./screens/settings/ReadinessAnswersScreen'),
+  'ReadinessAnswersScreen',
+);
+const SettingsScreen = lazyScreen(() => import('./screens/SettingsScreen'), 'SettingsScreen');
+const TargetsScreen = lazyScreen(() => import('./screens/targets/TargetsScreen'), 'TargetsScreen');
+const WeightScreen = lazyScreen(() => import('./screens/weight/WeightScreen'), 'WeightScreen');
 
 const TAB_ICONS: Readonly<Record<TabRouteId, ReactElement>> = {
   today: <TodayIcon />,
@@ -221,7 +242,9 @@ function Shell(): ReactElement {
       banners={<UpdateBanner />}
       floatingAction={route === 'today' ? <QuickActions /> : undefined}
     >
-      {screenFor(route)}
+      <Suspense key={route} fallback={<ScreenLoading />}>
+        {screenFor(route)}
+      </Suspense>
     </AppShell>
   );
 }

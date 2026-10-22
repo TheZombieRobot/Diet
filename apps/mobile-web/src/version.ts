@@ -1,7 +1,10 @@
-/** Set at build time from package.json (vite.config.ts `define`). */
-export const APP_VERSION: string = __APP_VERSION__;
+import { APP_VERSION } from './appVersion';
 
-/** An optional build label (the deploy sets the commit; browser tests set their own). */
+/**
+ * An optional build label (the deploy sets the commit; browser tests set their own). Only About
+ * imports this module, so the label is in the entry chunk alone and a new label changes no other
+ * file of the build (vite.config.ts, sharedWithLazyScreens; e2e/update.spec.ts).
+ */
 export const APP_BUILD: string = __APP_BUILD__;
 
 /** "0.1.0", or "0.1.0, build abc1234" when the build has a label. */

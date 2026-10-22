@@ -51,7 +51,7 @@ import {
   Stepper,
   TextField,
 } from '@diet/ui';
-import { type ReactElement, type Ref, useEffect, useRef, useState } from 'react';
+import { type ReactElement, useEffect, useRef, useState } from 'react';
 import { StorageRuleError } from '../../db/errors';
 import { formatLocalTime } from '../../format';
 import { AmountChecks, AmountFields, LabelChecks, LabelFields } from './LabelForm';
@@ -64,48 +64,10 @@ import {
 } from './logContext';
 import { findRecipe, portionOf } from './recipeFigures';
 import { badgeTag, type LabelFieldErrors, labelProblemText, servesValue } from './text';
+import { TimeField } from './TimeField';
 import { type LogWrite, useLogWrite } from './useLogWrite';
 
 const copy = foodLog;
-
-export function TimeField({
-  ctx,
-  value,
-  onChange,
-  error,
-  label = copy.amount.time,
-  hint,
-  fieldRef,
-}: {
-  readonly ctx: Pick<LogContext, 'date' | 'today'>;
-  readonly value: string;
-  readonly onChange: (v: string) => void;
-  readonly error: string | null;
-  readonly label?: string;
-  /** Left out: the hints for food eaten; null: none (water today). */
-  readonly hint?: string | null;
-  readonly fieldRef?: Ref<HTMLInputElement>;
-}): ReactElement {
-  return (
-    <TextField
-      ref={fieldRef}
-      type="time"
-      label={label}
-      hint={
-        hint === null
-          ? undefined
-          : (hint ??
-            (ctx.date === ctx.today ? copy.amount.timeHintToday : copy.amount.timeHintPast))
-      }
-      autoComplete="off"
-      value={value}
-      error={error ?? undefined}
-      onChange={(e) => {
-        onChange(e.currentTarget.value);
-      }}
-    />
-  );
-}
 
 /** The serves Stepper: quarter serves; an off-grid planned portion is kept until moved. */
 export function ServesStepper({
