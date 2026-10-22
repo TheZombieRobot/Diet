@@ -2935,3 +2935,48 @@ fieldset.ui-subpanel {
   outline-offset: 2px;
   border-radius: 16px;
 }
+
+/* ---- Item 22: the seven-day planner ---- */
+
+/* Today's row in the week: the overline in ink and bolder (aria-current="date" carries it). */
+.ui-link-row--current .ui-link-row__overline {
+  color: var(--color-ink);
+  font-weight: 800;
+}
+
+/* One meal slot on a planned day. */
+.ui-plan-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.ui-plan-slot:first-child {
+  border-top: 0;
+}
+
+.ui-plan-meal__title {
+  color: var(--color-ink);
+  font-size: 16px;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.ui-plan-meal__title:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* The Fill and Copy previews' day lists. */
+.ui-plan-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 20px;
+  font-size: 15px;
+  line-height: 1.45;
+}

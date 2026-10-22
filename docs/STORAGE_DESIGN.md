@@ -835,8 +835,8 @@ Invariant: at least one timestamp is non-null; otherwise there is no row. `doneA
 | `backup-reminder` | `weekly` | section 12.2 (12) | snooze per section 12.2 | elapsed |
 | `alcohol-help` | `readiness-q7` | Q7 yes or unanswered (13, 28) | returns 30 × 24 h after dismissal (C21, C58) | elapsed |
 | `alcohol-help` | `consecutive-days`, `double-guidance`, `withdrawal-tick` | the HS-06 conditions (28) | collapsed; back the next drinking day while the condition holds (C44). For the withdrawal tick this replaces C05's "returns on a new tick and otherwise monthly" with C44's rule, which shows the card more often (D43) | drinking-day cut-over |
-| `cholesterol-checkin` | `day-1`, `day-56`, `day-84` | C109: first run, then 56 and 84 elapsed days after `firstLowCarbAt` (16; item 22 adds the planner side) | final for that trigger; the next trigger still comes | — |
-| `electrolyte-reminder` | `daily` | C72 (16; item 22 adds the planner side) | collapsed | calendar midnight |
+| `cholesterol-checkin` | `day-1`, `day-56`, `day-84` | C109: first run, then 56 and 84 elapsed days after `firstLowCarbAt` (16 (planner side 22)) | final for that trigger; the next trigger still comes | — |
+| `electrolyte-reminder` | `daily` | C72 (16 (planner side 22)) | collapsed | calendar midnight |
 | `rapid-loss` | `steady` | HS-11 as changed by C08, C46 and D27 (14) | collapsed; back the next day while the condition holds. It can never be turned off (C46), and a dismissal never hides it for longer than the day | calendar midnight |
 | `weight-fluctuation-explainer` | `once` | after the first weigh-ins (14) (`fluctuation_explained_at` becomes `doneAt`) | final | — |
 | `steady-explainer` | `period:<Id>` | the day that period flips to Steady (WT-08). It carries the C55 "keep 23:1" button when the preset is the untouched Kickstart default (14) | final for that period | — |
@@ -1050,7 +1050,7 @@ Every write goes through `prepare(table, candidate, env)`, which is synchronous:
 | steps_log | create, get, list, update, remove | — | updatedAt |
 | ingredients, ingredient_overrides, recipes, beverages | create, get, list, update, remove | — | createdAt, updatedAt |
 | grocery_lists | create, get, list, update, remove | — (item 31 adds send and acknowledgement) | createdAt, updatedAt; `version` + 1 on every update |
-| plan_days, pantry | create, get, list, update, remove | — | updatedAt |
+| plan_days, pantry | create, get, list, update, remove (plan_days: the generic create and update refuse a non-empty `meals`, and the generic remove refuses a row with an `eatingWindow`) | plan_days: `writeMeals` (meals, through the planner's write rule), `setWindows`/`clearWindow` (windows, item 15) | updatedAt |
 | garden | create, get, list, update, remove (also removes the photo) | — | updatedAt |
 | sessions | create, get, list, update, remove | createChecked, updateChecked, removeIf (item 27: the caller's rule runs on the stored rows inside the write transaction) | completedAt and timeZone when status becomes `done`, cleared otherwise |
 | drinks_log | get, list | log, update, remove, forDrinkingDays | at and timeZone when left to the repository |
@@ -1577,7 +1577,7 @@ Test titles carry their HS, BK, RD or PWA ids so the coverage table (C118) can m
 - **Item 16:** the full Today dashboard (item 12 adds only the backup reminder).
 - **Items 18, 20, 26:** the seed datasets and their validation scripts (`seed:silverbeet` MUST exist; `carbBasis` and `unknownNutrients` per NU-01). Item 18 (built) ships the ingredient catalogue with every figure "not known" and no storage change; its figures arrive at step 18b, after checklist item 10. Item 20 (built) ships `recipes.json` and the recipes repository, with no schema change; schema version 2 (`food_log` kinds `recipe` and `plan`, and `recipes`, may list all eight figures as unknown) is item 23's, which must add it.
 - **Item 19:** photo capture, downscaling and thumbnails (the store exists from item 12); `harvestedAt` entry.
-- **Items 21–22:** the targets engine and its clamping functions, effective protein and ceilings (including `moderateNetCarbCeilingG` and the fibre guide default by sex), the planner, the electrolyte and cholesterol card triggers.
+- **Items 21–22 (done):** the targets engine and its clamping functions, effective protein and ceilings (including `moderateNetCarbCeilingG` and the fibre guide default by sex), the planner (item 22, built with no schema change), the electrolyte and cholesterol card triggers.
 - **Item 23:** schema version 2 (item 23 owns it and MUST add it before it stores such a row): `food_log` rows of kind `recipe` or `plan`, and `recipes` rows, may list all eight figures as unknown; an identity migration (item 18 design 5.3). The food-log UI, with UX 3c's label form gaining sugars, a serving size, fibre "not on label" and the carb basis (C01, C68); the cholesterol "share with your GP" summary (C100). That summary is a derived, local-only export named through `exportFileName`, so it needs no store, it is not part of the backup, and it never goes through the relay.
 - **Item 24:** grocery aggregation, audit rows, line `origin`, CSV and JSON list exports through `exportFileName`.
 - **Item 27:** per-set logging and the C76 volume cap on `done[]`.

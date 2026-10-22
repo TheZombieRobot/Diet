@@ -30,12 +30,19 @@ export function DietModeCard({
   view,
   stored,
   disabled,
+  collapsed = false,
 }: {
   readonly storage: AppStorage;
   readonly view: DayTargetsView;
   readonly stored: DietMode;
   readonly disabled: boolean;
+  /**
+   * Item 22's banner on the Food tab (design 2.3): the mode's name and a "Change diet mode" button
+   * that opens the full card, which then works exactly as on Diet and targets.
+   */
+  readonly collapsed?: boolean;
 }): ReactElement {
+  const [expanded, setExpanded] = useState(!collapsed);
   const [pending, setPending] = useState<DietMode | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [switched, setSwitched] = useState<DietMode | null>(null);
@@ -74,6 +81,23 @@ export function DietModeCard({
 
   const busy = disabled || write.busy;
   const details = copy.dietMode.details;
+  if (!expanded) {
+    return (
+      <Card label={copy.dietMode.label}>
+        <p className="ui-text-strong">{copy.dietMode.names[stored]}</p>
+        {ceilingOff ? <p className="ui-text-muted">{details.ceilingOff}</p> : null}
+        <Button
+          variant="quiet"
+          onClick={() => {
+            setExpanded(true);
+            returnFocus.current = true;
+          }}
+        >
+          {copy.dietMode.change}
+        </Button>
+      </Card>
+    );
+  }
   return (
     <Card label={copy.dietMode.label}>
       <ChoiceList

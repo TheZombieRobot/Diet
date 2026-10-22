@@ -28,6 +28,7 @@ import {
   move,
   moveScreen,
   onboarding,
+  planner,
   privacy,
   profile,
   readiness,
@@ -80,6 +81,51 @@ const RECIPES_SECTION_RULES: readonly RegExp[] = [
   /\bfits?\s+your\b/i,
   /\bwithin\s+your\b/i,
   RECIPE_ALCOHOL_WORDS,
+];
+
+/**
+ * Item 22's planner section rules (design 4.1; HEALTH_SAFETY sections 3 and 4, HS-09, HS-18,
+ * NU-05, C11, C16, C43, C97, P41): neutral, no moralising, no "left" energy, no allergen-free or
+ * health claims, no source names, no broken-fast or streak wording, no "fits your ceiling", no
+ * price words, and never a 0 printed for a figure.
+ */
+const PLANNER_SECTION_RULES: readonly RegExp[] = [
+  /\bbad\b/i,
+  /\bfail\w*/i,
+  /\bcheat\w*/i,
+  /\bguilt\w*/i,
+  /\bnaughty\b/i,
+  /\bsinful\b/i,
+  /\bblew\b|\bblown\b/i,
+  /\bexceed\w*/i,
+  /\bwarning\b/i,
+  /\bdanger\w*/i,
+  /\bleft\b/i,
+  /\bremaining\b/i,
+  /\bspare\b/i,
+  /\bideal\b/i,
+  /\bstarv\w*/i,
+  /\bpunish\w*/i,
+  /\bstrict\w*/i,
+  /\bmust\b/i,
+  /\bshould\b/i,
+  /\bsafe(?:ly|r|st|ty)?\b/i,
+  /\bhealthy\b|\bhealthier\b|\bnutritious\b/i,
+  /\b(?:allergy|allergen)[\s-]free\b/i,
+  /\bfree\s+from\b/i,
+  /\bstreaks?\b/i,
+  /\breward\w*/i,
+  /\bbroken\s+fast\b/i,
+  /\bmissed\b/i,
+  /\bon\s+track\b/i,
+  /\bfits?\s+your\b/i,
+  /\bwithin\s+your\b/i,
+  /\bguarantee\w*/i,
+  /\bcheap\w*/i,
+  /\bsav(?:e|es|ing|ings)\s+(?:you\s+)?money\b/i,
+  /\$|\bprice\w*\s+\d/i,
+  /Food Composition Database|\bFCDB\b|\bUSDA\b|FoodData|New Zealand Food/,
+  /(?<![\d.])0\s*(?:g|kJ|mg)\b/,
 ];
 
 /**
@@ -299,6 +345,7 @@ const SECTION_RULES: Record<keyof typeof healthCopy, readonly RegExp[]> = {
   // allergen-free claims, no named data source, no Heart Foundation attribution, no "fits your
   // ceiling", no alcohol.
   recipes: RECIPES_SECTION_RULES,
+  planner: PLANNER_SECTION_RULES,
 };
 
 /**
@@ -1047,5 +1094,42 @@ describe('plain words on the screens the owner reads (full review F24, F41)', ()
   it("the Nutrition card's empty line says food logging comes later, with no figure", () => {
     expect(targets.today.laterStep).toMatch(/later step/);
     expect(targets.today.laterStep).not.toMatch(/\d/);
+  });
+});
+
+describe('planner copy (item 22; C-1)', () => {
+  it('slot words cover every MealSlot plus the window labels; every One line has its Many line', () => {
+    const keys = ['breakfast', 'lunch', 'meal1', 'snack', 'snackAtFive', 'mainMeal', 'dinner'];
+    expect(Object.keys(planner.slots)).toEqual(keys);
+    expect(Object.keys(planner.slotsLower)).toEqual(keys);
+    const paths = strings(planner, 'planner');
+    const ones = paths.filter(([path, text]) => path.endsWith('One') && /\b1\b/.test(text));
+    expect(ones.length).toBeGreaterThan(5);
+    for (const [path] of ones) {
+      const many = paths.find(([p]) => p === path.replace(/One$/, 'Many'));
+      expect(many?.[1], path).toContain('{count}');
+    }
+  });
+
+  it('V40, T25: the lines shown under plain figures name no target, budget, ceiling or figure', () => {
+    for (const text of [
+      planner.reasons.plainNotKnown,
+      planner.reasons.plainNotFilled,
+      planner.figures.notLoadedPlain,
+      planner.week.noFillNoEstimate,
+    ]) {
+      expect(text).not.toMatch(/\d|target|budget|ceiling/i);
+    }
+  });
+
+  it('every template fills with its named placeholders; the household line is the UX 3a quote', () => {
+    const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1] ?? '');
+    for (const [path, text] of strings(planner, 'planner')) {
+      const values = Object.fromEntries(placeholders(text).map((name) => [name, 'x']));
+      expect(fillTemplate(text, values), path).not.toMatch(/[{}]/);
+    }
+    expect(fillTemplate(planner.household.banner, { count: 3 })).toBe(
+      'Dinner for 3; my portion shown separately.',
+    );
   });
 });

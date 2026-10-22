@@ -1,5 +1,14 @@
-import { isId, isSeedId, MAX_MY_SERVES, type RefId } from '@diet/core';
-import { foods, recipes, targets } from '@diet/core/copy/health';
+import {
+  isId,
+  isLocalDate,
+  isSeedId,
+  type LocalDate,
+  MAX_MY_SERVES,
+  MEAL_SLOTS,
+  type MealSlot,
+  type RefId,
+} from '@diet/core';
+import { foods, planner, recipes, targets } from '@diet/core/copy/health';
 
 /**
  * Hash routes (#/today, #/food, ...). GitHub Pages has no server-side rewrites, so the route lives
@@ -35,6 +44,8 @@ export const ROUTES = [
   // Item 20: the recipe list and a recipe's page, reached from Food.
   'recipes',
   'recipe',
+  // Item 22: one planned day.
+  'plan',
 ] as const;
 export type RouteId = (typeof ROUTES)[number];
 
@@ -66,6 +77,7 @@ export const ROUTE_TITLES: Readonly<Record<RouteId, string>> = {
   pairing: 'Laptop pairing',
   recipes: recipes.routeTitles.recipes,
   recipe: recipes.routeTitles.recipe,
+  plan: planner.routeTitle,
 };
 
 const isRoute = (value: string): value is RouteId => (ROUTES as readonly string[]).includes(value);
@@ -127,6 +139,7 @@ export const PARENT_TAB: Readonly<Partial<Record<RouteId, TabRouteId>>> = {
   garden: 'food',
   recipes: 'food',
   recipe: 'food',
+  plan: 'food',
   'move-session': 'move',
   'move-plan': 'move',
 };
@@ -153,10 +166,26 @@ export function moveSessionLink(hash: string): {
 
 // ---- Item 20: recipes ----
 
-/** A recipe's page; `myServes` is the planned portion when a plan day links to it (item 22). */
-export function recipeHref(id: RefId, options: { readonly myServes?: number } = {}): string {
+/**
+ * A recipe's page; `myServes` is the planned portion when a plan day links to it (item 22), and
+ * `plan` the date and slot of that planned meal, so the food log can log it as that plan row
+ * (cross-item ruling 22).
+ */
+export function recipeHref(
+  id: RefId,
+  options: {
+    readonly myServes?: number;
+    readonly plan?: { readonly date: LocalDate; readonly slot: MealSlot };
+  } = {},
+): string {
   const href = `${routeHref('recipe')}/${encodeURIComponent(id)}`;
-  return options.myServes === undefined ? href : `${href}?my=${options.myServes}`;
+  const query = [
+    ...(options.myServes === undefined ? [] : [`my=${options.myServes}`]),
+    ...(options.plan === undefined
+      ? []
+      : [`date=${options.plan.date}`, `slot=${options.plan.slot}`]),
+  ];
+  return query.length === 0 ? href : `${href}?${query.join('&')}`;
 }
 
 /** The silverbeet week's first dinner: the recipe deep link the first-run guard tests cover. */
@@ -173,15 +202,21 @@ export const DEEP_LINKS: readonly string[] = [
   // Item 27: a session, and its finish step.
   '#/move-session/a',
   '#/move-session/a/finish',
+  // Item 22: today's plan (the "Swap recipe" quick action) and a dated day.
+  '#/plan/today',
+  '#/plan/2000-01-03',
 ];
 
 /**
  * The recipe a hash names, a seed id or an owner copy's id (both lower case), and the planned
  * portion `?my=` when it is a number above 0 and at most MAX_MY_SERVES; null for anything else.
  */
-export function recipeRouteOf(
-  hash: string,
-): { readonly id: RefId; readonly myServes: number | null } | null {
+export function recipeRouteOf(hash: string): {
+  readonly id: RefId;
+  readonly myServes: number | null;
+  /** The planned meal the page was opened from (item 22), when the link names one. */
+  readonly plan: { readonly date: LocalDate; readonly slot: MealSlot } | null;
+} | null {
   if (parseRoute(hash) !== 'recipe') return null;
   const detail = routeDetail(hash);
   if (detail === null) return null;
@@ -192,11 +227,33 @@ export function recipeRouteOf(
     return null;
   }
   if (!isSeedId(id) && !isId(id)) return null;
-  const my = new URLSearchParams(hash.split('?')[1] ?? '').get('my');
+  const query = new URLSearchParams(hash.split('?')[1] ?? '');
+  const my = query.get('my');
   const myServes = my === null || my.trim() === '' ? Number.NaN : Number(my);
+  const date = query.get('date');
+  const slot = MEAL_SLOTS.find((s) => s === query.get('slot'));
   return {
     id,
     myServes:
       Number.isFinite(myServes) && myServes > 0 && myServes <= MAX_MY_SERVES ? myServes : null,
+    plan: isLocalDate(date) && slot !== undefined ? { date, slot } : null,
   };
+}
+
+// ---- Item 22: the planner ----
+
+/** One planned day, by its LocalDate or 'today' (the "Swap recipe" quick action's address). */
+export function planDayHref(date: string): string {
+  return `${routeHref('plan')}/${date}`;
+}
+
+/** The date a plan hash names: 'today' gives today, a valid date that date; anything else null. */
+export function planDayRouteOf(
+  hash: string,
+  today: LocalDate,
+): { readonly date: LocalDate } | null {
+  if (parseRoute(hash) !== 'plan') return null;
+  const detail = routeDetail(hash);
+  if (detail === 'today') return { date: today };
+  return detail !== null && isLocalDate(detail) ? { date: detail } : null;
 }

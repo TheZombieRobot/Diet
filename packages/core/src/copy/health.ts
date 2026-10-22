@@ -3558,6 +3558,315 @@ export const recipes = {
   },
 } as const;
 
+// ---- Item 22: the seven-day planner ----
+
+/**
+ * The seven-day planner (item 22 design section 4.2; UX_SCREENS 3a, 3b; HS-R18, HS-R20, P41,
+ * HS-16, NN-05). Neutral wording: no "left" energy, no allergen-free or health claims, no prices.
+ * Under plain figures the "not filled" lines name no target and no figure (V40). Placeholders are
+ * filled with fillTemplate; numbers go through item 18's formatNumber.
+ */
+export const planner = {
+  routeTitle: 'Plan',
+  slots: {
+    breakfast: 'Breakfast',
+    lunch: 'Lunch',
+    meal1: 'First meal',
+    snack: 'Snack',
+    snackAtFive: '5 pm snack',
+    mainMeal: 'Main meal',
+    dinner: 'Dinner',
+  },
+  slotsLower: {
+    breakfast: 'breakfast',
+    lunch: 'lunch',
+    meal1: 'first meal',
+    snack: 'snack',
+    snackAtFive: '5 pm snack',
+    mainMeal: 'main meal',
+    dinner: 'dinner',
+  },
+  dayNames: { today: 'Today', tomorrow: 'Tomorrow' },
+  portion: {
+    half: 'Half a serve',
+    one: '1 serve',
+    many: '{serves} serves',
+    cookingFor: 'cooking for {count}',
+    joined: '{portion} · {cookingFor}',
+  },
+  screen: {
+    readFailed: 'The meal plan could not be read. Reload the app to try again.',
+    dataFailed:
+      'The recipes could not be loaded, so the meal plan cannot be shown. Reload the app to try again.',
+  },
+  week: {
+    label: 'Meal plan',
+    heading: 'Week of {date}',
+    intro: 'Tap a day to choose its meals.',
+    previous: 'Previous week',
+    next: 'Next week',
+    thisWeek: 'This week',
+    today: 'Today',
+    past: 'Past day',
+    nothingPlanned: 'Nothing planned yet',
+    mealSummary: '{slot}: {title}',
+    readOnly: 'This week has passed. Its plan is kept as it was.',
+    chips: {
+      underFloor: 'Under the energy floor',
+      energyNotKnown: 'Energy not known',
+      notCountedOne: '1 meal not counted',
+      notCountedMany: '{count} meals not counted',
+      snackAdded: '5 pm snack added',
+    },
+    fill: 'Fill empty meals',
+    copy: 'Copy to the following week',
+    noFillFigures:
+      "Food figures are not loaded yet, so the planner cannot check a day's energy and does not fill days by itself. You can still choose meals yourself.",
+    noFillLabels:
+      'With allergens listed in your profile, recipes whose allergens are not fully known are never planned automatically. You can add them yourself after a label check.',
+    noFillLabelsGluten:
+      'With Gluten-free household on, shared dinners whose allergens are not fully known are never planned automatically. You can add them yourself after a label check.',
+    noFillNoEstimate:
+      'The planner does not fill or copy days by itself while the app has no energy estimate for you. You can choose every meal yourself.',
+  },
+  household: {
+    // UX_SCREENS 3a, word for word with {count} = 3 (docFidelity).
+    banner: 'Dinner for {count}; my portion shown separately.',
+    solo: 'Cooking dinner for others too? Set the number of people in your profile.',
+  },
+  day: {
+    windowLabel: 'Eating window',
+    window: 'Eat {range}.',
+    noFastingPlan:
+      'No fasting plan is chosen, so this day plans breakfast, lunch and dinner, and a snack if you want one.',
+    fastingOff:
+      'Fasting is off, so this day plans breakfast, lunch and dinner, and a snack if you want one.',
+    oneMeal:
+      "One meal on this day. It has to carry the day's protein, about {protein} g. If it cannot, it's fine to add the 5 pm snack or widen the window.",
+    addSnack: 'Add a 5 pm snack to this day',
+    snackAdded: '5 pm snack added for this day. Eat {range}.',
+    // During a stop-sign pause no window time is named (F20; DECISIONS 2026-10-22).
+    snackAddedNoRange: '5 pm snack added for this day.',
+    removeSnack: 'Remove the 5 pm snack',
+    removeSnackFirst: 'To remove the 5 pm snack, remove the snack meal first.',
+    sitting: {
+      dinner: "This day's dinner carries {protein} g protein.",
+      dinnerAtLeast: "This day's dinner carries at least {protein} g protein.",
+      dinnerUnknown: "This day's dinner: protein unknown.",
+      meal: "This day's meal carries {protein} g protein.",
+      mealAtLeast: "This day's meal carries at least {protein} g protein.",
+      mealUnknown: "This day's meal: protein unknown.",
+    },
+    refluxNote:
+      'A reflux symptom was logged recently. An earlier meal or a split meal may suit this day better.',
+    mealsLabel: 'Meals',
+    nothingPlanned: 'Nothing planned.',
+    choose: 'Choose a meal',
+    change: 'Change',
+    remove: 'Remove',
+    addSnackMeal: 'Add a snack',
+    outsideLabel: "Not counted in this day's figures",
+    outsideNote:
+      "These meals were planned before this day's eating window or meals changed. They are not counted in the day's figures, and they stay until you remove them.",
+    past: 'This day has passed. Its plan is kept as it was.',
+    tooFar: 'Plans open one week ahead, so this day cannot be planned yet.',
+    removeConfirm: 'Remove {title} from {day}?',
+    removeYes: 'Remove',
+    removeNo: 'Keep it',
+    removing: 'Removing…',
+    removed: 'Removed {title}.',
+    added: 'Added {title}.',
+    saved: 'Saved.',
+    notFound: 'This day could not be found.',
+    weekLinkDetail: 'Back to the week',
+    usesGarden: 'Uses {foods} from your garden',
+    usesLeftovers: 'Uses leftovers from {title}',
+    recipeMissing: 'A recipe that is not in the app any more',
+  },
+  figures: {
+    label: 'Planned food',
+    intro: 'Figures for your own portions. Cooking for more people never changes them.',
+    none: 'Nothing planned yet, so there are no figures for this day.',
+    notLoaded:
+      'Food figures are not loaded yet, so the app cannot tell whether this day reaches your energy floor or your protein target.',
+    notLoadedPlain: "Food figures are not loaded yet, so the app cannot add up this day's food.",
+  },
+  picker: {
+    titleChoose: 'Choose {slot} for {day}',
+    titleChange: 'Change {slot} for {day}',
+    suggestions: 'Suggestions',
+    gardenFirst: 'Recipes that use two or more foods ready in your garden come first.',
+    gardenFirstOne: 'Recipes that use food ready in your garden come first.',
+    checkLabelsLegend: 'Check labels first',
+    checkLabelsNote:
+      'The allergens of these recipes are not fully known. Picking one asks you to check the labels before it is added.',
+    showAll: 'Show all {count}',
+    none: 'No recipe fits this meal with your current settings.',
+    recipesLink: 'All recipes',
+    notShown: {
+      allergenOne: '1 recipe with an allergen you listed is not shown.',
+      allergenMany: '{count} recipes with an allergen you listed are not shown.',
+      householdGlutenOne:
+        '1 recipe with gluten cereals is not shown for a meal shared in a Gluten-free household.',
+      householdGlutenMany:
+        '{count} recipes with gluten cereals are not shown for a meal shared in a Gluten-free household.',
+      dislikeOne: '1 recipe with a food you do not want suggested is not shown.',
+      dislikeMany: '{count} recipes with a food you do not want suggested are not shown.',
+      hiddenOne: '1 recipe you hid is not shown.',
+      hiddenMany: '{count} recipes you hid are not shown.',
+      ceilingOne: '1 recipe with more net carbs than your carb ceiling on its own is not shown.',
+      ceilingMany:
+        '{count} recipes with more net carbs than your carb ceiling on their own are not shown.',
+      oneMealOne: '1 light dish is not offered as the only meal of a one-meal day.',
+      oneMealMany: '{count} light dishes are not offered as the only meal of a one-meal day.',
+    },
+    portionLabel: 'Your portion',
+    portionHint: 'How many serves of the recipe you eat.',
+    portionFewer: 'Half a serve less',
+    portionMore: 'Half a serve more',
+    cookingForLabel: 'Cooking for',
+    add: 'Add to {day}',
+    save: 'Save changes',
+    cancel: 'Cancel',
+    saving: 'Saving…',
+    replaces: 'This replaces {title}.',
+    current: 'Planned now: {title}',
+  },
+  // P41 (contract 10 rule 3): the label check's wording is item 22's.
+  labelCheck: {
+    title: 'Check the labels first',
+    listIntro: 'Check these labels for {allergens}:',
+    once: 'This check covers this one meal. The app asks again each time this recipe is added.',
+    confirm: 'I have checked these labels',
+    cancel: 'Cancel',
+  },
+  conflict: {
+    title: 'This recipe contains an allergen you listed',
+    confirm: 'Add it anyway',
+    cancel: 'Cancel',
+  },
+  refused: {
+    pastDay: 'This day has passed, so its plan cannot be changed.',
+    futureDay: 'Plans open one week ahead, so this day cannot be planned yet. Nothing was changed.',
+    slot: "This meal is not in this day's eating window now. Nothing was changed.",
+    recipeMissing: 'This recipe is not in the app any more. Nothing was changed.',
+    allergen: 'This recipe contains {allergens}, which you listed. Nothing was changed.',
+    labelCheck:
+      'Your allergen list or this meal changed, so this recipe needs a label check first. Nothing was changed.',
+    portion: 'Choose a portion from half a serve to 4 serves.',
+    failed: 'This could not be saved. Nothing was changed.',
+  },
+  reasons: {
+    energyNotKnownAim:
+      'The planner did not fill this day: the energy in some of its meals is not known yet, so it cannot check that the day reaches its energy target.',
+    energyShort:
+      "The planner did not fill this day: the recipes that fit came in under the day's energy target.",
+    proteinNotKnown:
+      "The planner did not fill this day: the protein in some of its meals is not known yet, so it cannot check the day's protein.",
+    proteinShort:
+      "The planner did not fill this day: the recipes that fit came in under the day's protein, about {protein} g.",
+    plainNotKnown:
+      'The planner did not fill this day: some figures for its meals are not known yet. You can choose its meals yourself.',
+    plainNotFilled:
+      'The planner did not fill this day with the recipes that fit. You can choose its meals yourself.',
+    oneMealShort:
+      "The planner did not fill this day: one meal could not carry the day's protein and energy. Add the 5 pm snack for this day, then try again.",
+    oneMealShortNoSnack:
+      "The planner did not fill this day: one meal could not carry the day's protein and energy. It's fine to widen the window in your eating schedule.",
+    oneMealDish:
+      'The planner did not fill this day: a light dish cannot be the only meal of this day.',
+    oneMealReflux:
+      "The planner did not fill this day: after a reflux symptom it plans no more than one serve as a day's only meal. A split meal or the 5 pm snack may suit this day better.",
+    carbsNotKnown:
+      'The planner did not fill this day: the carbs in some of its meals are not known yet, so it cannot check the day against your carb ceiling.',
+    carbsOver:
+      'The planner did not fill this day: the recipes that fit came to more net carbs than your carb ceiling.',
+    satFatNotKnown:
+      'The planner did not fill this day: the saturated fat in some of its meals is not known yet, so it cannot check the day against your saturated-fat budget.',
+    satFatOver:
+      'The planner did not fill this day: the recipes that fit came to more saturated fat than your saturated-fat budget.',
+    noCandidates:
+      'The planner did not fill this day: no recipe fits its meals with your current settings.',
+    notWantedDay:
+      'The planner did not fill this day: {title} is now hidden or has a food you do not want suggested.',
+    labelCheck:
+      'Not copied: {title} needs a label check for your allergens. Add it yourself if you want it.',
+    allergen: 'Not copied: {title} contains {allergens}, which you listed.',
+    recipeMissing: 'Not copied: a recipe planned that day is not in the app any more.',
+    portion: 'Not copied: a portion planned that day is more than 4 serves.',
+    hasMeals: 'Not copied: that day already has meals.',
+    pastDay: 'That day has passed.',
+    slotSkipped: "{slot} was not copied: it is not in that day's eating window.",
+    notWanted: '{title} was not copied: it is hidden or has a food you do not want suggested.',
+  },
+  fill: {
+    title: 'Fill empty meals',
+    intro:
+      'The planner fills only empty meals on days that have not passed, and changes nothing you planned. Nothing is saved until you choose Use this plan.',
+    dayProposed: '{day}: {meals}',
+    meal: '{slot}: {title}, {portion}',
+    dayRefused: '{day}: {reason}',
+    proposedHeading: 'Meals to add',
+    refusedHeading: 'Days not filled',
+    use: 'Use this plan',
+    cancel: 'Cancel',
+    saving: 'Saving…',
+    nothing: 'Nothing could be filled.',
+    doneOne: 'Filled 1 day.',
+    doneMany: 'Filled {count} days.',
+    changed: 'Some days changed before they were saved, so they were not filled.',
+  },
+  copy: {
+    title: 'Copy to the following week',
+    intro:
+      "Each day's meals are copied to the same day of the following week, only where that day has no meals yet. Each day is checked again first.",
+    dayProposed: '{day}: {meals}',
+    dayRefused: '{day}: {reason}',
+    proposedHeading: 'Meals to copy',
+    refusedHeading: 'Days not copied',
+    use: 'Copy',
+    cancel: 'Cancel',
+    saving: 'Copying…',
+    nothing: 'Nothing could be copied.',
+    doneOne: 'Copied 1 day.',
+    doneMany: 'Copied {count} days.',
+    changed: 'Some days changed before they were saved, so they were not copied.',
+  },
+  budget: {
+    label: 'Budget',
+    noteLabel: 'Budget note',
+    noteHint: "A note for yourself about the week's shopping. The app shows it as you typed it.",
+    yourNote: 'Your note: {note}',
+    empty: 'No budget note yet.',
+    noPrices: 'The planner does not use prices, so it shows no costs.',
+    gardenMealsOne: '1 planned meal uses food from your garden.',
+    gardenMealsMany: '{count} planned meals use food from your garden.',
+    leftoverMealsOne: '1 planned meal reuses leftovers.',
+    leftoverMealsMany: '{count} planned meals reuse leftovers.',
+    save: 'Save note',
+    clear: 'Clear note',
+    saved: 'Saved.',
+    tooLong: 'Use at most 200 characters.',
+  },
+  hidden: {
+    cardLabel: 'Hidden recipes',
+    intro: 'The planner does not suggest these recipes. They stay in the recipe list.',
+    none: 'No recipes are hidden.',
+    showNamed: 'Suggest {title} again',
+    hide: 'Hide from suggestions',
+    unhide: 'Suggest again',
+    hiddenNote: "Hidden from the planner's suggestions.",
+  },
+  addFromRecipe: {
+    title: 'Add to plan',
+    dayLegend: 'Day',
+    mealLegend: 'Meal',
+    noMeal: "This recipe is not planned for any meal in that day's eating window.",
+    added: "Added to {day}'s {slot}.",
+    openDay: "Open {day}'s plan",
+  },
+} as const;
+
 /** All sections, for scanning and review. */
 export const healthCopy = {
   helpNumbers,
@@ -3585,4 +3894,6 @@ export const healthCopy = {
   gardenScreen,
   // Item 20.
   recipes,
+  // Item 22.
+  planner,
 } as const;

@@ -14,9 +14,11 @@ import { useStore } from '../../store';
 import { useNow } from '../../useNow';
 import { preStartStopSignStore } from '../weight/preStartCheck';
 import { endLatchStore } from '../weight/stores';
+import { planData } from '../../planner/planData';
 import { type FastingInputs, readFastingInputs } from './inputs';
 import { fastingContext } from './integration';
-import { type FastingContext, type FastingView, fastingView } from './view';
+import { mealSourcesFrom } from './mealSources';
+import { type FastingContext, type FastingView, fastingView, scheduleOf } from './view';
 
 /** The clock refresh of the fasting screens (F16): minute resolution, never more than 15 s late. */
 export const FASTING_TICK_MS = 15_000;
@@ -56,7 +58,7 @@ export function useFasting(storage: AppStorage): FastingRead {
   return useMemo((): FastingRead => {
     if (read !== undefined && !read.ok) return { kind: 'error' };
     if (read === undefined || gateView === undefined) return { kind: 'loading' };
-    const context = fastingContext({
+    const base = fastingContext({
       inputs: read.inputs,
       gateInput: gateView.input,
       gates: gateView.gates,
@@ -65,6 +67,15 @@ export function useFasting(storage: AppStorage): FastingRead {
       endsPending,
       preStartHeld,
     });
+    // Item 22 (C23): the planned meals the check reads, counted for this card's own windows.
+    const context: FastingContext = {
+      ...base,
+      mealSources: mealSourcesFrom({
+        inputs: read.inputs,
+        data: planData(),
+        schedule: scheduleOf(read.inputs, base),
+      }),
+    };
     const nowMs = Date.parse(now);
     return {
       kind: 'ready',

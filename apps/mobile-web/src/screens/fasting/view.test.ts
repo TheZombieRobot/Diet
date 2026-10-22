@@ -79,6 +79,20 @@ function inputs(today: string, more: Partial<FastingInputs> = {}): FastingInputs
     nudgeCard: undefined,
     preStartCards: [],
     drinks: [],
+    recipeRows: {
+      own: [],
+      overrides: [],
+      recipes: [],
+      gardenIngredientIds: [],
+      profile: {
+        allergens: [],
+        dislikeIngredientIds: [],
+        dislikeTerms: [],
+        glutenFreeHousehold: false,
+      },
+      hiddenSeedIds: [],
+      plannedRecipeIds: [],
+    },
     ...more,
   };
 }

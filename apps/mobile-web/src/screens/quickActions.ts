@@ -9,7 +9,7 @@ import { featureGateOf, type GatedFeature, type ReadinessGates } from '@diet/cor
 import { today } from '@diet/core/copy/health';
 import { LeafIcon, MoveIcon } from '@diet/ui';
 import { createElement, type ReactElement } from 'react';
-import { GARDEN_HARVEST_HREF, routeHref } from '../routes';
+import { GARDEN_HARVEST_HREF, planDayHref, routeHref } from '../routes';
 import { openWeightEntry } from './weight/entryStore';
 
 /** UX_SCREENS section 2 order. */
@@ -38,6 +38,9 @@ export type QuickAction = {
 /** Built actions. Item 16 adds Log weight; items 19, 22, 23, 24, 27 and 28 each add their own. */
 export const BUILT_QUICK_ACTIONS: Readonly<Partial<Record<QuickActionId, QuickAction>>> = {
   'log-weight': { label: today.quickActions.labels['log-weight'], run: openWeightEntry },
+  // Item 22: today's plan, where a meal is changed from suggestions (UX 2). Never gated: the plan is
+  // available under every readiness answer.
+  'swap-recipe': { label: today.quickActions.labels['swap-recipe'], href: planDayHref('today') },
   // Item 19: the garden screen with its Add harvest panel open. Never gated (G22, G24): no
   // readiness answer hides or changes the garden or pantry.
   'add-harvest': {

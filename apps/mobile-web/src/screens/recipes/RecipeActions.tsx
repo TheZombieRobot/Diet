@@ -1,7 +1,8 @@
 /**
- * The recipe page's "What next" card (item 20 design 3.4 card 6, 3.5 and 3.6): Add to plan and
- * Log as eaten as later steps, Scale servings, Substitute ingredient with its panel, and for an
- * owner's copy "Go back to the original recipe". The panel offers only what core's
+ * The recipe page's "What next" card (item 20 design 3.4 card 6, 3.5 and 3.6): Add to plan (item
+ * 22's panel), Log as eaten as a later step, Scale servings, Substitute ingredient with its panel,
+ * Hide from suggestions for a seed (item 22), and for an owner's copy "Go back to the original
+ * recipe". The panel offers only what core's
  * substituteOptions offers (never a food known to carry an allergen the owner listed), and the
  * repository refuses anything else. Every write is disabled while the records are closed.
  */
@@ -14,7 +15,7 @@ import {
   substituteOptions,
   type SwapOptions,
 } from '@diet/core';
-import { privacy, recipes } from '@diet/core/copy/health';
+import { planner, privacy, recipes } from '@diet/core/copy/health';
 import { ActionRow, Button, ButtonRow, Card, ChoiceList, Chip, Notice } from '@diet/ui';
 import { type ReactElement, type RefObject, useEffect, useId, useRef, useState } from 'react';
 import { StorageClosedError, StorageFullError, StorageRuleError } from '../../db/errors';
@@ -23,6 +24,7 @@ import { useStore } from '../../store';
 import { recipeGramsText } from '../../format';
 import { replaceKeepingEntry } from '../../navigation';
 import { recipeHref, routeHref } from '../../routes';
+import { AddedNotice, type AddedToPlan, AddToPlanPanel } from '../planner/AddToPlanPanel';
 import { cookingForOn, removeFailure, swapStatusStore } from './status';
 import type { RecipeScreenState } from './useRecipeScreenData';
 
@@ -317,6 +319,7 @@ export function RecipeActions({
   view,
   copyOfSeed,
   cookingFor,
+  myServes,
   writable,
 }: {
   readonly storage: AppStorage;
@@ -325,8 +328,26 @@ export function RecipeActions({
   /** The owner's copy of this seed, when it has one: Substitute becomes a link to it (P17). */
   readonly copyOfSeed: { readonly id: string } | null;
   readonly cookingFor: number;
+  /** The page's ?my= portion (item 22's Add to plan starts from it). */
+  readonly myServes: number;
   readonly writable: boolean;
 }): ReactElement {
+  const [planOpen, setPlanOpen] = useState(false);
+  const [added, setAdded] = useState<AddedToPlan | null>(null);
+  const [hideFailure, setHideFailure] = useState<string | null>(null);
+  const addButton = useRef<HTMLButtonElement>(null);
+  const hiddenIds = state.rows.hiddenSeedIds;
+  const hidden = view.origin === 'seed' && hiddenIds.includes(view.id);
+  const setHidden = (hide: boolean) => {
+    setHideFailure(null);
+    storage.repos.settings
+      .update({
+        hiddenSeedIds: hide ? [...hiddenIds, view.id] : hiddenIds.filter((id) => id !== view.id),
+      })
+      .catch(() => {
+        setHideFailure(planner.refused.failed);
+      });
+  };
   const laterId = useId();
   const blockedId = useId();
   const [panelOpen, setPanelOpen] = useState(false);
@@ -360,9 +381,38 @@ export function RecipeActions({
   return (
     <Card label={recipes.actions.label}>
       <ButtonRow>
-        {later(recipes.actions.addToPlan)}
+        {/* Item 22 (V33): a seed with an owner copy links to that copy instead (D3). */}
+        {copyOfSeed === null && !planOpen ? (
+          <Button
+            ref={addButton}
+            variant="primary"
+            disabled={!writable}
+            onClick={press(() => {
+              setAdded(null);
+              setPlanOpen(true);
+            })}
+          >
+            {recipes.actions.addToPlan}
+          </Button>
+        ) : null}
         {later(recipes.actions.logAsEaten)}
       </ButtonRow>
+      {planOpen ? (
+        <AddToPlanPanel
+          storage={storage}
+          view={view}
+          myServes={myServes}
+          onCancel={() => {
+            setPlanOpen(false);
+            requestAnimationFrame(() => addButton.current?.focus());
+          }}
+          onAdded={(next) => {
+            setPlanOpen(false);
+            setAdded(next);
+          }}
+        />
+      ) : null}
+      {added === null ? null : <AddedNotice added={added} />}
       <p id={laterId} className="ui-text-muted">
         {recipes.actions.laterNote}
       </p>
@@ -417,6 +467,37 @@ export function RecipeActions({
         />
       ) : null}
       {updated === null ? null : <UpdatedNotice from={updated.from} to={updated.to} />}
+      {view.origin === 'seed' ? (
+        hidden ? (
+          <>
+            <p className="ui-text-muted">{planner.hidden.hiddenNote}</p>
+            <Button
+              variant="quiet"
+              disabled={!writable}
+              onClick={() => {
+                setHidden(false);
+              }}
+            >
+              {planner.hidden.unhide}
+            </Button>
+          </>
+        ) : (
+          <Button
+            variant="quiet"
+            disabled={!writable}
+            onClick={() => {
+              setHidden(true);
+            }}
+          >
+            {planner.hidden.hide}
+          </Button>
+        )
+      ) : null}
+      {hideFailure === null ? null : (
+        <Notice tone="amber" role="alert">
+          <p>{hideFailure}</p>
+        </Notice>
+      )}
       {view.origin === 'owner' ? (
         asking ? (
           <RemoveConfirm

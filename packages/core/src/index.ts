@@ -46,6 +46,8 @@ export * from './nutrition/nutrients';
 export * from './nutrition/portion';
 export * from './onboarding/profileForm';
 export * from './onboarding/steps';
+// Item 22: the seven-day planner.
+export * from './planner';
 export * from './readiness/gates';
 export * from './recipes';
 export * from './relay/protocol';

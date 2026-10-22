@@ -17,6 +17,7 @@ import { routeHref } from '../routes';
 import { useStore } from '../store';
 import { BackupCard } from './backup/BackupCard';
 import { DrinksSettingsCard } from './drinks/DrinksSettingsCard';
+import { HiddenRecipesCard } from './planner/HiddenRecipesCard';
 import { usePairing } from './pairing/usePairing';
 import { WeightCheckInSettings } from './weight/WeightCheckInSettings';
 
@@ -131,6 +132,8 @@ export function SettingsScreen(): ReactElement {
           </li>
         </ul>
       </Card>
+      {/* Item 22: the recipes hidden from the planner's suggestions (UX 7). */}
+      <HiddenRecipesCard />
       {/* Settings is built; only some of its UX 7 settings wait for later steps (F33). */}
       <Card label="Coming later">
         <p className="ui-text-muted">{today.laterStep.settings}</p>

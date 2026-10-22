@@ -6,6 +6,7 @@ import {
   DAY_CHANGE_MAX_FAST_MINUTES,
   dayWindowChangeAllowed,
   earlierOption,
+  snackThatFits,
   splitOption,
   staleOverrides,
 } from './dayChanges';
@@ -174,5 +175,18 @@ describe('per-day changes that no longer fit a new pattern (C30)', () => {
         }
       }
     }
+  });
+});
+
+describe('the 5 pm snack that fits (item 15 3.7, one rule for the Fast card and the planner, item 22)', () => {
+  it('fits a one-meal day before 5 pm, not after it, not on a day with its own window, not past the ceiling', () => {
+    const s = schedule(ONE_MEAL);
+    expect(snackThatFits(D, s, NZ, MORNING)).toEqual(SNACK_AND_DINNER);
+    expect(snackThatFits(D, s, NZ, at(D, '17:30'))).toBeNull();
+    expect(
+      snackThatFits(D, schedule(ONE_MEAL, { [D]: w('17:00', '19:00') }), NZ, MORNING),
+    ).toBeNull();
+    expect(snackThatFits(D, s, NZ, MORNING, at(D, '16:00'))).toBeNull();
+    expect(snackThatFits(D, schedule(SNACK_AND_DINNER), NZ, MORNING)).toBeNull();
   });
 });

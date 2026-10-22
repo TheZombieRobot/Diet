@@ -175,7 +175,10 @@ export function mealCheck(input: MealCheckInput): MealCheckResult {
     ? {
         proteinG: Math.floor(planProtein),
         atLeast: planned.some((m) => m.incomplete || !m.proteinKnown),
-        unknown: planProtein === 0 && planned.some((m) => !m.proteinKnown),
+        // A lower bound that rounds down to 0 reads "protein unknown", never "at least 0 g" (item
+        // 22, V51; contract 3).
+        unknown:
+          planned.some((m) => m.incomplete || !m.proteinKnown) && Math.floor(planProtein) === 0,
         dinnerOnly: planned.length === 1 && planned[0]?.slot === 'dinner',
       }
     : null;

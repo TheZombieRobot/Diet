@@ -7,6 +7,8 @@ import {
   formatTodayHeading,
   formatWaterMl,
   formatWaterText,
+  formatDayLongMonth,
+  formatPlanDate,
 } from './format';
 
 describe("Today's figures (item 16; U12)", () => {
@@ -61,5 +63,14 @@ describe('drink sizes and strengths (item 28; full review F7)', () => {
       '330',
       '4.5',
     ]);
+  });
+});
+
+describe('the planner’s dates (item 22)', () => {
+  it('a stored date reads with its weekday, single spaces, no comma, and never shifts a day', () => {
+    expect(formatPlanDate('2000-01-03')).toBe('Monday 3 January');
+    expect(formatDayLongMonth('2000-01-03')).toBe('3 January');
+    // The April daylight-saving day in New Zealand is still the 5th.
+    expect(formatPlanDate('2026-04-05')).toBe('Sunday 5 April');
   });
 });

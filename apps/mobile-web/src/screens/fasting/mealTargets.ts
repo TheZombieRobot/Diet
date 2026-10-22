@@ -6,22 +6,23 @@
  * the energy figure is null: energy is not shown to be met, so the 5 pm snack and the widen line
  * are offered and the check never passes (energyForMealChecks).
  *
- * A date after today is read with the clock at the start of that date, so tomorrow's check uses
- * tomorrow's figures (a Kickstart that ends tonight reads Steady there); today, and the day before
- * when its window wraps past midnight, use the figures now. This file holds no phase function:
+ * Each date's figures are the planner's planDayTargets (item 22 V42), so the Fast card and the
+ * planner's Day screen read one protein target and one energy target per date: today's figures
+ * for today (and the day before, when its window wraps past midnight), and for a later date
+ * today's gates and weight with that date's Kickstart state. This file holds no phase function:
  * the figures are not the phase (scan targetsHome).
  */
 import {
   type DayTargetRecords,
-  dayTargetsFromRecords,
   energyForMealChecks,
   type Id,
   type Instant,
   type KickstartEndReason,
   type LocalDate,
   localDateOf,
+  planDayTargets,
+  planTargetsBase,
   type TimeZone,
-  zonedWallTimeToInstant,
 } from '@diet/core';
 
 export interface MealTargets {
@@ -44,22 +45,19 @@ export function mealTargetsFrom(
   },
 ): (date: LocalDate) => MealTargets {
   const today = localDateOf(clock.now, clock.deviceTimeZone);
+  const base = planTargetsBase(records, {
+    at: clock.now,
+    today,
+    deviceZone: clock.deviceTimeZone,
+    endsPending: clock.endsPending,
+    preStartHeld: clock.preStartHeld,
+  });
   const byDate = new Map<LocalDate, MealTargets>();
   return (date) => {
     const on = date > today ? date : today;
     const known = byDate.get(on);
     if (known !== undefined) return known;
-    const at =
-      on === today
-        ? clock.now
-        : new Date(zonedWallTimeToInstant(on, 0, clock.deviceTimeZone)).toISOString();
-    const { targets } = dayTargetsFromRecords(records, {
-      at,
-      today: on,
-      deviceZone: clock.deviceTimeZone,
-      endsPending: clock.endsPending,
-      preStartHeld: clock.preStartHeld,
-    });
+    const targets = planDayTargets(base, on);
     const figures: MealTargets = {
       proteinTargetG: targets.protein.checkTargetG,
       energyTargetKj: energyForMealChecks(targets.energy),

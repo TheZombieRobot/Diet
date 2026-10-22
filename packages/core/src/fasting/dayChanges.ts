@@ -44,6 +44,28 @@ export function applyDayChanges(schedule: Schedule, changes: readonly DayWindowC
   return { ...schedule, overrides };
 }
 
+/**
+ * The 5 pm snack for a date, when it can be added now (item 15 design 3.7): no per-day window on
+ * the date, the standing window has a snack window, that snack opens after now and, during a fast,
+ * within 24 hours of the span's start (`ceilingMs`), and the change keeps every neighbouring fast
+ * within the per-day limit. The Fast card and the planner (item 22) use this one rule.
+ */
+export function snackThatFits(
+  date: LocalDate,
+  schedule: Schedule,
+  deviceZone: TimeZone,
+  nowMs: number,
+  ceilingMs: number | null = null,
+): EatingWindow | null {
+  const window = windowOn(date, schedule);
+  if (window === null || hasOverride(date, schedule)) return null;
+  const snack = snackWindowFor(window);
+  if (snack === null) return null;
+  const startMs = windowInstance(date, snack, deviceZone).startMs;
+  if (startMs <= nowMs || (ceilingMs !== null && startMs > ceilingMs)) return null;
+  return dayWindowChangeAllowed(schedule, [{ date, window: snack }], deviceZone) ? snack : null;
+}
+
 /** Whether the changes keep every neighbouring planned fast within the per-day limit. */
 export function dayWindowChangeAllowed(
   schedule: Schedule,

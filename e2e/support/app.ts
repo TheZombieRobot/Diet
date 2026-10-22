@@ -326,12 +326,16 @@ export async function waitForServiceWorkerControl(page: Page): Promise<string> {
  * Everything a person can read or hear on the page: the title, the text, the labels and
  * descriptions screen readers announce, tooltips, image text, placeholders and form values.
  * With `without`, that one element (a card, say) is left out by element, so a check can excuse
- * exactly it and not any line elsewhere that happens to repeat its text.
+ * exactly it and not any line elsewhere that happens to repeat its text. Text inside
+ * `[data-owner-text]` (the owner's own words, such as item 22's budget note) is always left out:
+ * the sweeps check the app's wording, not what the owner typed.
  */
 export async function renderedText(page: Page, without?: Locator): Promise<string> {
   const skip = without === undefined ? null : await without.elementHandle();
   return page.evaluate((skipped) => {
-    const kept = (e: Element) => skipped === null || !skipped.contains(e);
+    const owned = Array.from(document.querySelectorAll<HTMLElement>('[data-owner-text]'));
+    const kept = (e: Element) =>
+      (skipped === null || !skipped.contains(e)) && !owned.some((o) => o.contains(e));
     const attributes = ['aria-label', 'aria-description', 'title', 'alt', 'placeholder'];
     const fromAttributes = attributes.flatMap((name) =>
       Array.from(document.querySelectorAll(`[${name}]`))
@@ -348,14 +352,15 @@ export async function renderedText(page: Page, without?: Locator): Promise<strin
     const options = Array.from(document.querySelectorAll('option'))
       .filter(kept)
       .map((o) => `${o.value} ${o.text}`);
-    // The shown text with the skipped element hidden for the moment of reading.
-    let text = document.body.innerText;
-    if (skipped instanceof HTMLElement) {
-      const display = skipped.style.display;
-      skipped.style.display = 'none';
-      text = document.body.innerText;
-      skipped.style.display = display;
-    }
+    // The shown text with the skipped element and the owner's text hidden for the moment of
+    // reading.
+    const hidden = skipped instanceof HTMLElement ? [skipped, ...owned] : owned;
+    const displays = hidden.map((e) => e.style.display);
+    for (const e of hidden) e.style.display = 'none';
+    const text = document.body.innerText;
+    hidden.forEach((e, i) => {
+      e.style.display = displays[i] ?? '';
+    });
     return [document.title, text, ...fromAttributes, ...values, ...options].join('\n');
   }, skip);
 }

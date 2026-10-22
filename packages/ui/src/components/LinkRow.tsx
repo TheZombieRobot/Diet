@@ -15,16 +15,29 @@ export interface LinkRowProps {
   detail?: string | undefined;
   /** Chips under the detail; their words carry the meaning, so colour is never the only signal. */
   chips?: ReactNode;
+  /** The row is today (item 22's week): aria-current="date" and a stronger overline. */
+  current?: boolean | undefined;
 }
 
 /**
  * A whole-row link at least 64 px high (item 20: a recipe on the Recipes list), named by its
  * text, with a chevron that is decorative.
  */
-export function LinkRow({ href, title, overline, detail, chips }: LinkRowProps): ReactElement {
+export function LinkRow({
+  href,
+  title,
+  overline,
+  detail,
+  chips,
+  current = false,
+}: LinkRowProps): ReactElement {
   return (
     <li>
-      <a className="ui-link-row" href={href}>
+      <a
+        className={current ? 'ui-link-row ui-link-row--current' : 'ui-link-row'}
+        href={href}
+        aria-current={current ? 'date' : undefined}
+      >
         <span className="ui-link-row__text">
           {overline === undefined ? null : (
             <>

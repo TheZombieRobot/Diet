@@ -528,6 +528,7 @@ function RecipePage({
         view={view}
         copyOfSeed={copy}
         cookingFor={cookingFor}
+        myServes={myServes}
         writable={writable}
       />
     </>

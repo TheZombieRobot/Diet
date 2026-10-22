@@ -153,6 +153,15 @@ describe('the single-meal check (FL-12, FL-13, HS-18, C64)', () => {
     ).toEqual({ kind: 'short-before', reasons: ['protein'], sitting: null, energyChecked: true });
   });
 
+  it('V51 (item 22): a lower bound that rounds down to 0 g reads "protein unknown", never "at least 0"', () => {
+    expect(check({ planned: [meal('dinner', 0.4, { incomplete: true })] })).toMatchObject({
+      sitting: { proteinG: 0, atLeast: true, unknown: true },
+    });
+    expect(check({ planned: [meal('dinner', 1, { incomplete: true })] })).toMatchObject({
+      sitting: { proteinG: 1, unknown: false },
+    });
+  });
+
   it('lower bounds are compared as they are and shown "at least"; a missing recipe is "protein unknown"', () => {
     expect(check({ planned: [meal('dinner', 150, { incomplete: true })] })).toMatchObject({
       kind: 'ok',

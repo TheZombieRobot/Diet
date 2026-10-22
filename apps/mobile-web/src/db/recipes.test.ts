@@ -18,7 +18,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { StorageRuleError } from './errors';
 import type { RecipeInput } from './repos/recipes';
 import { replaceAll } from './snapshot';
-import { backupSnapshot, onboardForTests, openTestDb, type TestDb } from './testKit';
+import { backupSnapshot, onboardForTests, openTestDb, seedPlanDay, type TestDb } from './testKit';
 
 let test: TestDb | undefined;
 afterEach(() => {
@@ -255,7 +255,7 @@ describe('the recipes repository (item 20)', () => {
       allergens: ['egg'],
       derivedFromRecipeId: null,
     });
-    await t.repos.planDays.create({
+    await seedPlanDay(t, {
       date: '2000-03-02',
       dietMode: 'keto',
       meals: [{ slot: 'dinner', recipeId: row.id, myServes: 1, householdServes: 1 }],

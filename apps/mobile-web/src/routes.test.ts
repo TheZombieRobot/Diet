@@ -10,6 +10,8 @@ import {
   isUnderSettings,
   moveSessionLink,
   PARENT_TAB,
+  planDayHref,
+  planDayRouteOf,
   parseRoute,
   recipeHref,
   recipeRouteOf,
@@ -46,6 +48,7 @@ describe('hash routes', () => {
       'pairing',
       'recipes',
       'recipe',
+      'plan',
     ]);
     expect(ROUTE_TITLES.garden).toBe('Garden and pantry');
     expect(ROUTE_TITLES.weight).toBe('Weight');
@@ -63,7 +66,7 @@ describe('hash routes', () => {
     // The whole list is checked with item 19's garden below.
     expect(DEEP_LINKS).toContain('#/recipe/seed%3Arecipe-chicken-silverbeet-traybake');
     const seed = 'seed:recipe-chicken-silverbeet-traybake';
-    expect(recipeRouteOf(recipeHref(seed))).toEqual({ id: seed, myServes: null });
+    expect(recipeRouteOf(recipeHref(seed))).toEqual({ id: seed, myServes: null, plan: null });
     expect(recipeRouteOf(recipeHref(seed, { myServes: 1.5 }))?.myServes).toBe(1.5);
     for (const my of ['0', '11', 'abc', ''])
       expect(recipeRouteOf(`${recipeHref(seed)}?my=${my}`)?.myServes).toBeNull();
@@ -87,6 +90,7 @@ describe('hash routes', () => {
       garden: 'food',
       recipes: 'food',
       recipe: 'food',
+      plan: 'food',
       'move-session': 'move',
       'move-plan': 'move',
     });
@@ -102,6 +106,8 @@ describe('hash routes', () => {
       '#/recipe/seed%3Arecipe-chicken-silverbeet-traybake',
       '#/move-session/a',
       '#/move-session/a/finish',
+      '#/plan/today',
+      '#/plan/2000-01-03',
     ]);
     for (const link of DEEP_LINKS) expect(ROUTES.map(routeHref)).not.toContain(link);
   });
@@ -119,9 +125,35 @@ describe('hash routes', () => {
 
   it("item 27's sub-screens: the Move tab is their parent, and the session's deep links are listed (HS-20)", () => {
     expect([PARENT_TAB['move-session'], PARENT_TAB['move-plan']]).toEqual(['move', 'move']);
-    expect(DEEP_LINKS.slice(-2).map(parseRoute)).toEqual(['move-session', 'move-session']);
+    expect(DEEP_LINKS.filter((l) => l.startsWith('#/move-session')).map(parseRoute)).toEqual([
+      'move-session',
+      'move-session',
+    ]);
     expect(routeDetail('#/move-session/beach-walk?x=1')).toBe('beach-walk');
     expect(routeDetail('#/move-session')).toBeNull();
+  });
+
+  it('item 22: a planned day sits under Food; its link names a date or today; a planned meal links its date and slot', () => {
+    expect(planDayHref('today')).toBe('#/plan/today');
+    expect(planDayRouteOf('#/plan/today', '2000-01-05')).toEqual({ date: '2000-01-05' });
+    expect(planDayRouteOf(planDayHref('2000-01-03'), '2000-01-05')).toEqual({ date: '2000-01-03' });
+    expect(planDayRouteOf('#/plan/2000-02-30', '2000-01-05')).toBeNull();
+    expect(planDayRouteOf('#/plan', '2000-01-05')).toBeNull();
+    expect(planDayRouteOf('#/food', '2000-01-05')).toBeNull();
+    // Cross-item ruling 22: item 23 logs a meal opened from the plan as that plan row.
+    const href = recipeHref('seed:recipe-x', {
+      myServes: 1.5,
+      plan: { date: '2000-01-05', slot: 'dinner' },
+    });
+    expect(href).toBe('#/recipe/seed%3Arecipe-x?my=1.5&date=2000-01-05&slot=dinner');
+    expect(recipeRouteOf(href)).toEqual({
+      id: 'seed:recipe-x',
+      myServes: 1.5,
+      plan: { date: '2000-01-05', slot: 'dinner' },
+    });
+    expect(
+      recipeRouteOf('#/recipe/seed%3Arecipe-x?date=2000-01-05&slot=elevenses')?.plan,
+    ).toBeNull();
   });
 
   it.each(ROUTES)('reads #/%s back from its own link', (route) => {

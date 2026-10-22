@@ -250,13 +250,13 @@ describe('a recipe’s page (item 20)', () => {
     expect(
       document.getElementById(substitute.getAttribute('aria-describedby') ?? '')?.textContent,
     ).toBe(recipes.swap.blockedFigures);
-    for (const name of [recipes.actions.addToPlan, recipes.actions.logAsEaten]) {
-      const later = button(new RegExp(`^${name}`));
-      expect(later.getAttribute('aria-disabled')).toBe('true');
-      expect(later.textContent).toContain(recipes.actions.later);
-      fireEvent.click(later);
-    }
-    // The "later step" note sits under the two Later buttons, not under Substitute.
+    // Item 22 built Add to plan; Log as eaten is still Later.
+    expect(button(recipes.actions.addToPlan).getAttribute('aria-disabled')).toBeNull();
+    const later = button(new RegExp(`^${recipes.actions.logAsEaten}`));
+    expect(later.getAttribute('aria-disabled')).toBe('true');
+    expect(later.textContent).toContain(recipes.actions.later);
+    fireEvent.click(later);
+    // The "later step" note sits under the Later button, not under Substitute.
     const laterRow = screen.getByText(recipes.actions.laterNote).previousElementSibling;
     expect(laterRow?.textContent).toContain(recipes.actions.logAsEaten);
     expect(laterRow?.textContent).not.toContain(recipes.actions.substitute);

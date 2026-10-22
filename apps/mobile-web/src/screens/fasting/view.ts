@@ -55,7 +55,7 @@ import {
   type SchedulePreset,
   SPAN_JOIN_GAP_MS,
   type SittingHeadline,
-  snackWindowFor,
+  snackThatFits,
   spanElapsedMs,
   splitOption,
   standingOn,
@@ -324,27 +324,6 @@ function refluxBase(
 const dayOf = (date: LocalDate, today: LocalDate): 'today' | 'tomorrow' =>
   date > today ? 'tomorrow' : 'today';
 
-/**
- * The 5 pm snack for a date, when it can be added now (design 3.7) and, during a fast, opens
- * within 24 hours of the span's start (`ceilingMs`), so it is never offered as a time to eat that
- * lies past the ceiling.
- */
-function snackThatFits(
-  date: LocalDate,
-  schedule: Schedule,
-  deviceZone: TimeZone,
-  nowMs: number,
-  ceilingMs: number | null,
-): EatingWindow | null {
-  const window = windowOn(date, schedule);
-  if (window === null || hasOverride(date, schedule)) return null;
-  const snack = snackWindowFor(window);
-  if (snack === null) return null;
-  const startMs = windowInstance(date, snack, deviceZone).startMs;
-  if (startMs <= nowMs || (ceilingMs !== null && startMs > ceilingMs)) return null;
-  return dayWindowChangeAllowed(schedule, [{ date, window: snack }], deviceZone) ? snack : null;
-}
-
 /** "Not now" on the date's snack offer (final for that date; FL-12, C73). */
 function snackDismissed(
   date: LocalDate,
@@ -427,6 +406,19 @@ function mealCheckView(
   };
 }
 
+/** The Fast card's schedule: item 15's scheduleFrom over the context's preset (item 22 uses it too). */
+export function scheduleOf(
+  inputs: Pick<FastingInputs, 'planDays'>,
+  context: Pick<FastingContext, 'preset' | 'gate' | 'kickstart'>,
+): Schedule {
+  return scheduleFrom({
+    preset: context.preset,
+    planDays: inputs.planDays,
+    fastingGated: context.gate.fastingGated,
+    kickstart: context.kickstart,
+  });
+}
+
 /** The view of the fasting records at `nowMs` in the device's zone. */
 export function fastingView(
   inputs: FastingInputs,
@@ -437,12 +429,7 @@ export function fastingView(
   const home = resolveZone(inputs.settings.homeTimeZone, DEFAULT_HOME_TIME_ZONE).timeZone;
   const { today } = inputs;
   const tomorrow = addDays(today, 1);
-  const schedule = scheduleFrom({
-    preset: context.preset,
-    planDays: inputs.planDays,
-    fastingGated: context.gate.fastingGated,
-    kickstart: context.kickstart,
-  });
+  const schedule = scheduleOf(inputs, context);
   const running = runningView(inputs, schedule, home, nowMs, deviceZone, context.stopSignPause);
   const reflux = refluxBase(inputs, home, nowMs);
   // During a fast, no window opening past 24 hours of its span is offered or timed (review).

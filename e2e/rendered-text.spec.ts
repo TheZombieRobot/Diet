@@ -199,8 +199,18 @@ test('no screen but About, Drinks, Weight, Fasting, Diet and targets, Foods, Rec
     if (screen === 'Garden and pantry') {
       text = text.replace(await page.getByTestId('garden-ready-pill').innerText(), '');
     }
-    if (screen === 'Food')
+    if (screen === 'Food') {
       text = text.replace(await page.getByTestId('food-recipes-link').innerText(), '');
+      // Item 22: the planner's Reminders card repeats Today's lipid-test reminder ("8–12 weeks"),
+      // and the Meal plan card names the week's dates; any other digit there still fails.
+      const plan = region(page, 'Meal plan');
+      const dates = [
+        page.getByTestId('reminder-cholesterol'),
+        plan.getByTestId('plan-week-heading'),
+        ...(await plan.locator('.ui-link-row__title').all()),
+      ];
+      for (const part of dates) text = text.replace(await part.innerText(), '');
+    }
     if (screen === 'Today') {
       // The Nutrition today card shows today's intake (none: every figure 0) against the owner's
       // own stored ranges and guides, never sample data (item 21; targets.spec.ts checks them).

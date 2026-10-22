@@ -72,7 +72,11 @@ export type StorageRule =
   | 'photo-size'
   // Item 28: the alcohol notice and the alcohol-logging gate (HS-20, RD-01).
   | 'alcohol-notice-first'
-  | 'alcohol-logging-off';
+  | 'alcohol-logging-off'
+  // Item 22: planned meals change only through writeMeals, per-day windows only through item 15's
+  // setWindows and clearWindow (V32).
+  | 'plan-meals-through-planner'
+  | 'plan-window-through-fasting';
 
 export class StorageRuleError extends Error {
   readonly table: string;

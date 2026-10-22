@@ -108,8 +108,25 @@ export function formatDayPhrase(date: LocalDate, today: LocalDate): string {
   if (offset === 1) return fasting.day.tomorrow;
   const noon = Date.parse(`${date}T12:00:00.000Z`);
   if (offset < 0 && offset >= -6) return parts(noon, 'UTC', { weekday: 'long' }).weekday ?? date;
-  const p = parts(noon, 'UTC', { day: 'numeric', month: 'long' });
+  return formatDayLongMonth(date);
+}
+
+// ---- Item 22: the planner's dates ----
+
+/** A stored local date as day and month, "3 January", read at noon UTC so it never shifts a day. */
+export function formatDayLongMonth(date: LocalDate): string {
+  const p = parts(Date.parse(`${date}T12:00:00.000Z`), 'UTC', { day: 'numeric', month: 'long' });
   return `${p.day ?? ''} ${p.month ?? ''}`;
+}
+
+/** A stored local date with its weekday, "Monday 3 January", with single spaces and no comma. */
+export function formatPlanDate(date: LocalDate): string {
+  const p = parts(Date.parse(`${date}T12:00:00.000Z`), 'UTC', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+  return `${p.weekday ?? ''} ${p.day ?? ''} ${p.month ?? ''}`;
 }
 
 /** A weight with one decimal, dropping a trailing ".0": "96.8", "100" (item 21). */

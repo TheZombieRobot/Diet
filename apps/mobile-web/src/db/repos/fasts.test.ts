@@ -32,6 +32,7 @@ import {
   type OpenTestOptions,
   type TestDb,
   testEnv,
+  seedPlanDay,
 } from '../testKit';
 
 const NZ = 'Pacific/Auckland';
@@ -311,7 +312,7 @@ describe('per-day eating windows (FL-12, C73)', () => {
   it('a date with no row gets one with no meals; a row with meals keeps them; every row validates', async () => {
     const test = await openTestDb();
     clockAt(test, at('2000-01-04', '09:00'));
-    await test.repos.planDays.create({
+    await seedPlanDay(test, {
       date: '2000-01-05',
       dietMode: 'keto',
       meals: [{ slot: 'dinner', recipeId: fixtureId(600), myServes: 1, householdServes: 3 }],

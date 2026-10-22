@@ -39,6 +39,7 @@ import { MovePlanScreen } from './screens/move/MovePlanScreen';
 import { MoveScreen } from './screens/move/MoveScreen';
 import { MoveSessionScreen } from './screens/move/MoveSessionScreen';
 import { PairingScreen } from './screens/pairing/PairingScreen';
+import { PlanDayScreen } from './screens/planner/PlanDayScreen';
 import { RecipeScreen } from './screens/recipes/RecipeScreen';
 import { RecipesScreen } from './screens/recipes/RecipesScreen';
 import { swapStatusStore } from './screens/recipes/status';
@@ -115,6 +116,8 @@ function screenFor(route: RouteId): ReactElement {
       return <RecipesScreen />;
     case 'recipe':
       return <RecipeScreen />;
+    case 'plan':
+      return <PlanDayScreen />;
   }
 }
 
@@ -147,7 +150,8 @@ function Shell(): ReactElement {
   const hash = useHash();
   // Item 20: moving from one recipe to another is a new screen too (its heading takes focus).
   // Only the recipe page counts its detail, so the Fasting screen's sub-links keep their own focus.
-  const detail = route === 'recipe' ? routeDetail(hash) : null;
+  // Item 22: moving from one planned day to another is a new screen too.
+  const detail = route === 'recipe' || route === 'plan' ? routeDetail(hash) : null;
   const titleOverride = useStore(screenTitleStore);
   const title =
     titleOverride !== null && titleOverride.hash === hash

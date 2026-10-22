@@ -27,6 +27,7 @@ import {
   utcRangeCovering,
   type WeightRecord,
 } from '@diet/core';
+import type { RecipeContextRows } from '../../db/repos/recipes';
 import type { AppStorage } from '../../db/runtime';
 
 export interface FastingInputs {
@@ -56,6 +57,8 @@ export interface FastingInputs {
   readonly preStartCards: readonly CardStateRecord[];
   /** Drinks of the drinking days the running span covers (none while nothing runs). */
   readonly drinks: readonly DrinkLogRecord[];
+  /** Item 20's recipe rows, for the planned meals' live figures (item 22's meal sources). */
+  readonly recipeRows: RecipeContextRows;
 }
 
 export type FastingRead =
@@ -84,7 +87,7 @@ async function read(storage: AppStorage, today: LocalDate): Promise<FastingInput
   const from = addDays(spanStartDate !== null && spanStartDate < today ? spanStartDate : today, -1);
   const { lower, upper } = utcRangeCovering(addDays(today, -15), addDays(today, 1));
   const tomorrow = addDays(today, 1);
-  const [planDays, symptoms, snackToday, snackTomorrow, nudgeCard, preStart, drinks] =
+  const [planDays, symptoms, snackToday, snackTomorrow, nudgeCard, preStart, drinks, recipeRows] =
     await Promise.all([
       repos.planDays.listByIndex('date', from, addDays(today, 2)),
       repos.symptoms.listByIndex('at', lower, upper),
@@ -95,6 +98,7 @@ async function read(storage: AppStorage, today: LocalDate): Promise<FastingInput
       spanStartDate === null
         ? Promise.resolve([])
         : repos.drinks.forDrinkingDays(addDays(spanStartDate, -1), tomorrow),
+      repos.recipes.context(),
     ]);
   return {
     today,
@@ -112,6 +116,7 @@ async function read(storage: AppStorage, today: LocalDate): Promise<FastingInput
     nudgeCard,
     preStartCards: preStart === undefined ? [] : [preStart],
     drinks,
+    recipeRows,
   };
 }
 

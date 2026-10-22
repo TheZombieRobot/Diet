@@ -158,8 +158,8 @@ describe('placeholder screens (no sample data)', () => {
   // Today (item 16), Settings and About, the setup screens (item 13), the Weight screen (item 14),
   // the Fasting screen (item 15), Foods in the app (item 18), Garden and pantry (item 19), the
   // recipe screens (item 20), Diet and targets (item 21), the Move screens (item 27), Drinks
-  // (item 28) and Laptop pairing (item 30) are built; the rest still say they arrive later (Food in
-  // part: it links to the garden and pantry and the recipes).
+  // (item 28), Laptop pairing (item 30) and the Food tab's meal plan (item 22) are built; the rest
+  // still say they arrive later.
   const built: readonly RouteId[] = [
     'today',
     'settings',
@@ -179,6 +179,9 @@ describe('placeholder screens (no sample data)', () => {
     'pairing',
     'recipes',
     'recipe',
+    // Item 22: the Food tab holds the meal plan (dates and figures), and a planned day.
+    'food',
+    'plan',
   ];
   const placeholders = ROUTES.filter((r) => !built.includes(r));
 
@@ -186,15 +189,8 @@ describe('placeholder screens (no sample data)', () => {
     '%s says it arrives later and shows no numbers or prices',
     async (route) => {
       await show(route);
-      let text = main().textContent;
-      // Item 20: Food's Meals card counts the shipped recipes, a dataset figure and not a record.
-      if (route === 'food')
-        text = text.replace(screen.getByTestId('food-recipes-link').textContent, '');
-      expect(text).toContain(
-        route === 'food'
-          ? 'More of this screen arrives at a later step of the build checklist.'
-          : 'This screen arrives at a later step of the build checklist.',
-      );
+      const text = main().textContent;
+      expect(text).toContain('This screen arrives at a later step of the build checklist.');
       expect(text).not.toMatch(/\d/);
       expect(text).not.toMatch(/[$€£]/);
     },
@@ -243,9 +239,9 @@ describe('placeholder screens (no sample data)', () => {
       ...screen.queryAllByTestId('later-step'),
       ...document.querySelectorAll('.ui-fab-panel [aria-disabled="true"]'),
     ];
-    // No later-step line (items 27 and 28 built Movement and drink logging) and three Later rows
-    // (items 19, 27 and 28 built Add harvest, Complete workout and Add drink).
-    expect(scoped).toHaveLength(3);
+    // No later-step line (items 27 and 28 built Movement and drink logging) and two Later rows
+    // (items 19, 22, 27 and 28 built Add harvest, Swap recipe, Complete workout and Add drink).
+    expect(scoped).toHaveLength(2);
     for (const element of scoped) {
       expect(element.textContent).not.toMatch(/\d/);
       expect(element.textContent).not.toMatch(/[$€£]/);

@@ -10,6 +10,7 @@ import {
   type OnboardOptions,
   onboardForTests,
   openTestDb,
+  seedPlanDay,
   type TestDb,
   testEnv,
 } from '../../db/testKit';
@@ -18,7 +19,6 @@ import { openApp } from '../../onboarding/flowTestKit';
 import { storageStore } from '../../pwa/storage';
 import { presetMovedStore } from '../weight/stores';
 import { FastingScreen } from './FastingScreen';
-import { mealSources } from './integration';
 
 const NZ = 'Pacific/Auckland';
 const SECOND = 1000;
@@ -291,16 +291,20 @@ describe('the Fast card on Today (design 3.3; FS-02, FS-03, HS-02, HS-18)', () =
     expect(within(card).getByText(fasting.card.windowOpen)).toBeTruthy();
     expect(enabled(card, fasting.card.end)).toBe(true);
     cleanup();
-    vi.spyOn(mealSources, 'plannedMeals').mockReturnValue([
-      {
-        slot: 'dinner',
-        proteinG: 95,
-        proteinKnown: true,
-        foodEnergyKj: 9_500,
-        proteinFoodCookedG: 450,
-        incomplete: false,
-      },
-    ]);
+    // Item 22: a planned dinner whose figures are not loaded yet (the shipped data) is short.
+    await seedPlanDay(db(), {
+      date: D,
+      dietMode: 'keto',
+      meals: [
+        {
+          slot: 'dinner',
+          recipeId: 'seed:recipe-chicken-silverbeet-traybake',
+          myServes: 1,
+          householdServes: 1,
+        },
+      ],
+      eatingWindow: null,
+    });
     db().env.set(iso(at(D, '09:00')));
     await openApp('#/today');
     const offered = await screen.findByRole('region', { name: fasting.card.label });

@@ -60,10 +60,10 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 ### 3.3 Profile and readiness gates
 | ID | Case | Expected |
 |---|---|---|
-| RD-01 | Under 18 = yes | Fasting, carb ceiling, alcohol hidden with explanation; Kickstart unavailable, deficit 0 (plan at the estimate), no window text |
-| RD-02 | Pregnant/breastfeeding = yes | Fasting hidden; ceiling off; midwife/GP message; no weight goal; Kickstart unavailable, deficit 0 |
-| RD-03 | Diabetes medication = yes | Fasting hidden until prescriber confirmation toggled; hypoglycaemia text shown; carb ceilings under 50 g and Kickstart off until then |
-| RD-04 | Eating-disorder history = yes | Fasting hidden; goal setting hidden; keto carb ceiling off (meals still planned) and no Kickstart; trend still visible |
+| RD-01 | Under 18 = yes | Fasting, carb ceiling, alcohol hidden with explanation; Kickstart unavailable, deficit 0 (plan at the estimate), no window text; the planner plans at least three eating occasions with no window text (C07; item 22) |
+| RD-02 | Pregnant/breastfeeding = yes | Fasting hidden; ceiling off; midwife/GP message; no weight goal; Kickstart unavailable, deficit 0; the planner plans at least three eating occasions with no window text (C07; item 22) |
+| RD-03 | Diabetes medication = yes | Fasting hidden until prescriber confirmation toggled; hypoglycaemia text shown; carb ceilings under 50 g and Kickstart off until then; the planner plans at least three eating occasions with no window text until then (C07; item 22) |
+| RD-04 | Eating-disorder history = yes | Fasting hidden; goal setting hidden; keto carb ceiling off (meals still planned) and no Kickstart; trend still visible; the planner plans at least three eating occasions with no window text (C07; item 22) |
 | RD-05 | Exercise red flag = yes | Sessions hidden on the Move tab, the Today Movement card and Complete workout until GP-discussion toggle |
 | RD-06 | Change answers later | Features appear/disappear immediately; no data lost |
 | RD-07 | Close the app after the notice and reopen | Setup resumes at the first unfinished step; fasting hidden while gated |
@@ -108,12 +108,16 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | NU-03 | Net carbs = available carbohydrate (fibre excluded), never negative; a USDA-style total figure is converted as total − fibre and floored at 0; a recipe's net carbs are its lines' available carbohydrate ÷ serves (C01) | Unit test with one 'available' and one 'total' fixture |
 | NU-04 | Heart-smart badge logic | Fixtures: avocado salad = badge; bacon-cream carbonara = flagged; plus boundary fixtures (saturated fat exactly a quarter of the fat; exactly the per-portion cap; 40 g of cheese in the portion) and incomplete figures (never a badge) |
 | NU-05 | Day over saturated-fat budget | Indicator changes; no "bad"/"fail" wording (HS-09) |
-| NU-06 | Auto-plan under 5,000 kJ | Refused (HS-10): the core refusal (floorCheck, every app-made write kind) at item 21; the planner's refusal at item 22 |
-| NU-07 | Garden-first filter | Recipes using ≥2 in-season garden items rank first |
-| NU-08 | Cholesterol check-in cards | Lipid test at first run; check-ins when 56 and 84 days have passed since the first low-carb day (or since the profile was made if there was none); boundaries 55/56 and 83/84 days; one case starting in balanced mode, where the lipid test and check-ins are counted again from the first low-carb day (C109) |
+| NU-06 | Auto-plan (fill or copy) a day under 5,000 kJ, or one whose energy is not known and whose known part is below the floor | Refused (HS-10, HS-R18); the owner's own meal below the floor is kept with a note |
+| NU-07 | Garden-first | Among the suggestions that pass every filter, recipes using two or more in-season ready garden foods rank first; a ready crop never promotes a recipe a filter removed |
+| NU-08 | Cholesterol check-in cards | Lipid test at first run; check-ins when 56 and 84 days have passed since the first low-carb day (or since the profile was made if there was none); boundaries 55/56 and 83/84 days; one case starting in balanced mode, where the lipid test and check-ins are counted again from the first low-carb day (C109); on Today and the Food tab, one dismissal for both (item 22) |
 | NU-09 | Attribution footer | Present on every nutrition screen; names only the databases recorded as approved in DECISIONS.md (none until checklist item 10); no NZ Food Composition Database wording when only USDA is approved (C97); including the recipe page (item 18's footer) |
 | NU-10 | Recipe whose ingredients have no figures yet | Item 18's "not known" rows and no badge; no heart-smart label; no bare keto, moderate or balanced chip; Substitute explains why it is not available; counts as not met in every check (HS-37, HS-39) |
 | NU-11 | Recipe dataset validation | Every seed recipe passes the dataset validator against item 18's catalogue: ids, allergens, cooked weights, eggs, no added salt, curated swaps that never flag, limits already broken by a partly loaded release, wording, the keto first week, coverage |
+| NU-12 | Window-aware slots | One-meal day: dinner only; 22:2: snack and dinner; fasting off or no fasting plan: breakfast, lunch and dinner with an optional snack; meals planned before a window change are kept, listed apart and not counted (C07, C73) |
+| NU-13 | Allergens not fully known | Never auto-filled or copied; picking one shows a label check naming the listed allergens and the ingredients; Cancel writes nothing; confirm writes one meal (HS-R20, P41) |
+| NU-14 | Every plan write re-checked | Adding an allergen or a dislike after planning or after a label check, then copying, filling or confirming, writes nothing with it (HS-24) |
+| NU-15 | App-made days | Written only when the counted meals' energy reaches the day's energy target and their protein the protein target on known figures; no auto-fill or copy without a rough guide or an energy estimate (under 18) (HS-25, T3) |
 
 ### 3.7 Grocery list
 | ID | Case | Expected |
@@ -182,7 +186,7 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | FL-02 | Log recipe portion | Badge "Estimate" if any ingredient is estimated, else "Database" |
 | FL-03 | Raw vs cooked | 200 g raw chicken and 150 g cooked are logged as distinct entries with the weight basis stored |
 | FL-04 | Switch diet mode keto → balanced → keto | No records deleted; targets change; suggestions re-rank (the ranking in core at item 21; the suggestion list UI at item 22, C23) |
-| FL-05 | Household dinner for 3, my portion 1/3 | My nutrition equals per-serve; changing household to 4 leaves my numbers unchanged (HS-23) |
+| FL-05 | Household dinner for 3, my serves 1 | My nutrition equals one recipe serve; changing household to 4 leaves my numbers unchanged (HS-23) |
 | FL-06 | Swap away the line that carries a listed allergen in a recipe | Allergen still listed after the swap, after scaling and after a reload, with the note that the original recipe contains it (HS-24) |
 | FL-07 | Gluten-free household toggle off | No gluten-free substitutions suggested |
 | FL-08 | Eating window 17:00–19:00 | 2 h eating and 22 h fasting, from the core window formatter: screen 1e shows "Eating 5:00 pm to 7:00 pm = 2 hours. Fasting 22 hours." and the Fasting screen's Eating pattern card "2 h eating, 22 h fasting" (HS-17, C101) |
@@ -200,10 +204,10 @@ Target: every rule in `HEALTH_SAFETY.md` section 8 has at least one automated te
 | ID | Case | Expected |
 |---|---|---|
 | NN-01 | 330 mL at 5% | About 1.30 standard drinks; 94 kcal shown **only** when the verified selected beverage preset carries that label value, never inferred for another drink |
-| NN-02 | 5 pm snack + 7 pm final meal | 2-hour eating window (22:2), not 4 hours |
+| NN-02 | 5 pm snack + 7 pm final meal | 2-hour eating window (22:2), not 4 hours (planner: item 22 S1, K3; K11) |
 | NN-03 | Fixture profile 90 kg start, 70 kg long-term goal | Goal labelled long-term; four-week chart shows trend with "not a promise" line; no "kg in N days" text anywhere (the item 14 fixture uses synthetic values instead: 180 cm, 100 kg, a 78 kg long-term goal, per C103) |
 | NN-04 | Raw/cooked weights and package quantities | Not conflated: 500 g raw mince recipe yields a "500 g pack" grocery line, and a cooked-weight log entry stays cooked |
-| NN-05 | Missing price or stock | Shown as "unknown"; never a fabricated live price; any price has an entered-at timestamp |
+| NN-05 | Missing price or stock | Shown as "unknown"; never a fabricated live price; any price has an entered-at timestamp (planner: item 22 S1, K3; K11) |
 | NN-06 | Silverbeet 300 g in garden, recipes need 500 g | List shows 200 g to buy and an audit line "300 g from garden" |
 | NN-07 | Stop a transfer midway, restart, send again | Laptop shows one copy of the list; no duplicated items; logs intact (the duplicate rule, scoped to the pairing, is unit-tested at item 30; end to end at item 33) |
 | NN-08 | Extension cannot checkout or change store | No checkout control exists; in mode A a batch refuses to start if the site's selected store is not the configured store; a changed page structure produces a visible error and stops |

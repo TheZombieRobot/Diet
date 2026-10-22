@@ -19,10 +19,9 @@
  *   Nutrition today card shows. Not the phase alone: a stop-sign pause or a missing rough guide
  *   reads Steady in the figures while the phase still says Kickstart, and with no rough guide the
  *   energy figure is null, which the check reads as not met (cross-item ruling 3).
- * - The meal figures come from later items: the planned meals from item 22 (plannedMealsOf, then
- *   plannedMealFigures) and the logged food from item 23 (loggedIntakeOn). Until those exist, each
- *   source honestly has nothing, so the meal check shows no figures (F28) and a one-meal window
- *   still offers the 5 pm snack.
+ * - The meal figures come from later items: the planned meals from item 22 (mealSources.ts, which
+ *   useFasting puts in place of the default below) and the logged food from item 23
+ *   (loggedIntakeOn). The default has nothing, for callers that never show a meal check.
  */
 import {
   effectiveFastingPreset,

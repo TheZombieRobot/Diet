@@ -44,6 +44,7 @@ import {
   substituteOptions,
 } from '@diet/core';
 import Dexie from 'dexie';
+import type { DietDb } from '../db';
 import { StorageRuleError } from '../errors';
 import { prepare } from '../prepare';
 import { guardedWrite, type RepoContext } from './context';
@@ -117,6 +118,15 @@ function writeFoods(
 }
 
 const storedMap = (rows: readonly RecipeRecord[]) => new Map(rows.map((r) => [r.id, r]));
+
+/**
+ * The owner's recipes, read inside another repository's transaction (item 22's plan write), so
+ * the recipes store is still named only here and in db.ts (item 20's recipes scan).
+ * @transactionScope
+ */
+export function recipesInScope(db: DietDb): PromiseLike<RecipeRecord[]> {
+  return db.recipes.toArray();
+}
 
 const FIGURE_FIELDS: readonly string[] = [
   'nutritionPerServe',

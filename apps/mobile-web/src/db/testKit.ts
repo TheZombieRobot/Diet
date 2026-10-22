@@ -9,6 +9,7 @@ import {
   type GardenPhotoRecord,
   type Instant,
   type Migration,
+  type PlanDayRecord,
   READINESS_QUESTION_IDS,
   type ReadinessConfirmationId,
   type ReadinessQuestionId,
@@ -23,6 +24,7 @@ import { createStore, type Store } from '../store';
 import { type DbDeps, type DietDb, openDietDb, type OpenStatus } from './db';
 import type { StorageEnv } from './env';
 import { createWriteGate, type GateReason } from './gate';
+import { prepare } from './prepare';
 import type { LockManagerLike } from './locks';
 import { createRepos, type Repos, type RepoHooks, type UpdatePatch } from './repos';
 import { type AppStorage, type Platform } from './runtime';
@@ -399,6 +401,24 @@ export async function rawWriter(
   raw.version(version).stores(stores);
   await raw.open();
   return raw;
+}
+
+/**
+ * Puts a prepared plan day straight into the store, meals and all (item 22): the repository writes
+ * meals only through writeMeals, which needs the recipe datasets, so other items' tests seed a
+ * planned day here.
+ */
+export async function seedPlanDay(
+  test: TestDb,
+  row: Omit<PlanDayRecord, 'updatedAt'> & { readonly updatedAt?: Instant },
+): Promise<PlanDayRecord> {
+  const prepared = prepare(
+    'plan_days',
+    { ...row, updatedAt: row.updatedAt ?? test.env.now() },
+    test.env,
+  );
+  await test.db.plan_days.put(prepared);
+  return prepared;
 }
 
 /** A middleware that fails the chosen write once armed (all-or-nothing tests). */

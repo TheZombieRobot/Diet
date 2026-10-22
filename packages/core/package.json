@@ -9,6 +9,7 @@
     "./copy/health": "./src/copy/health.ts",
     "./foods/testData": "./src/foods/testData.ts",
     "./recipes/testData": "./src/recipes/testData.ts",
+    "./planner/testData": "./src/planner/testData.ts",
     "./relay": "./src/relay/protocol.ts"
   },
   "scripts": {
