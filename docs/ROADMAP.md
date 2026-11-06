@@ -16,18 +16,22 @@
 - [x] Share-your-code button, remove friend, "End night" for the gig group
 - [x] Wi-Fi Aware RTT distance (written, untested)
 - [x] GitHub Actions: core + server tests and a debug APK on every push
-- [ ] Profile photos at arrow tips
-- [ ] Tune RSSI + spin-scan constants outdoors
+- [x] Friend photos at arrow tips (set per friend; syncing needs accounts)
+- [ ] Tune RSSI + spin-scan constants outdoors (field recorder + `tools/analyze_recording.py` are ready)
+- [x] Debug mode: live tech status, method on/off/solo, switch log, field recorder, simulated friends
+- [x] Visual design (Claude design canvas) and app restyled to it: theme, bundled fonts, finder + friends screens
+- [x] Quick Settings tile; Stop button on the visibility notification; adaptive launcher icon
 
 ## Milestone 2: works at a gig
 - [x] Relay server: encrypted location mailbox (`server/`, tested)
 - [x] GPS + compass arrow with magnetic declination (written, untested)
 - [x] Crowd relay: BLE extended adverts, sealed boxes, multi-hop (written, untested)
-- [ ] Deploy the relay server and build the app with its URL
+- [ ] Deploy the relay server (`fly deploy`, see README) and set the `MOSHPOINT_SERVER` repo variable
 - [x] Add friends by QR code (show mine / scan theirs), name suggested from the QR
 - [x] One-QR gig groups: members introduce themselves over BT5 adverts (and the server); no accounts needed
 - [ ] Accounts / usernames; syncing photos
-- [ ] Battery work: adaptive advertising/scanning
+- [x] Battery: slow advert unless a friend is looking; finder scans fast only while open
+- [ ] Battery: measure a full night; duty-cycle the listen scan with the screen off
 - [ ] Real-crowd testing session; Samsung/Xiaomi background-kill testing
 
 ## Milestone 3: launch
