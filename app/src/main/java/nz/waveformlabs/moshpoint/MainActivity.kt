@@ -16,10 +16,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +36,7 @@ import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 import nz.waveformlabs.moshpoint.service.VisibilityService
 import nz.waveformlabs.moshpoint.ui.DebugPanel
 import nz.waveformlabs.moshpoint.ui.FinderScreen
+import nz.waveformlabs.moshpoint.ui.MoshTheme
 import nz.waveformlabs.moshpoint.ui.FriendsScreen
 import nz.waveformlabs.moshpoint.ui.MyQrDialog
 import com.journeyapps.barcodescanner.ScanContract
@@ -151,7 +150,7 @@ class MainActivity : ComponentActivity() {
         ).joinToString(", ")
 
         setContent {
-            MaterialTheme(colorScheme = darkColorScheme()) {
+            MoshTheme {
                 if (showGroupQr) {
                     GroupSync.group.value?.let { g ->
                         MyQrDialog(
@@ -189,7 +188,16 @@ class MainActivity : ComponentActivity() {
                     if (finding) {
                         val arrows by engine.arrows.collectAsState()
                         val scan by engine.scan.collectAsState()
+                        val tracking by engine.tracking.collectAsState()
+                        val names = tracking.mapNotNull { FriendsRepository.byId(it)?.name }
+                        val group = GroupSync.group.value
                         FinderScreen(
+                            title = when {
+                                names.size == 1 -> names[0]
+                                group != null && tracking.all { FriendsRepository.byId(it)?.gigGroupOnly == true } -> group.name
+                                else -> "${names.size} mates"
+                            },
+                            visible = visibleToMates,
                             arrows = arrows,
                             friendOf = FriendsRepository::byId,
                             scan = scan,
