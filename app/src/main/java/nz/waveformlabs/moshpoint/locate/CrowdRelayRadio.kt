@@ -121,7 +121,7 @@ object CrowdRelayRadio {
             .build()
         val cb = object : AdvertisingSetCallback() {
             override fun onAdvertisingSetStarted(set: AdvertisingSet?, txPower: Int, status: Int) {
-                if (status == ADVERTISE_SUCCESS) advertisingSet = set else Log.w(TAG, "relay advert failed: $status")
+                if (status == AdvertisingSetCallback.ADVERTISE_SUCCESS) advertisingSet = set else Log.w(TAG, "relay advert failed: $status")
             }
         }
         advertiseCallback = cb
