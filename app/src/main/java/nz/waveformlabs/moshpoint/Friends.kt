@@ -94,6 +94,7 @@ object FriendsRepository {
 
     fun remove(id: String) {
         friends.removeAll { it.id == id }
+        PhotoStore.remove(id)
         save()
     }
 

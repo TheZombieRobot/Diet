@@ -1,7 +1,12 @@
 package nz.waveformlabs.moshpoint.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import nz.waveformlabs.moshpoint.PhotoStore
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,7 +43,7 @@ import nz.waveformlabs.moshpoint.Friend
 
 /**
  * Friends list (permanent) and gig group (one night), plus the visibility switch.
- * Tap a friend to go straight to their arrow; long-press to remove them.
+ * Tap a friend to go straight to their arrow; long-press for photo / remove.
  *
  * Adding people is a stopgap: share your code, paste theirs. Enough to test with two
  * phones. TODO: accounts, usernames, QR codes, gig group create/join via the server.
@@ -66,6 +71,8 @@ fun FriendsScreen(
     /** Returns an error message to show, or null if added. */
     onAdd: (name: String, code: String, gigGroup: Boolean) -> String?,
     onRemove: (String) -> Unit,
+    onSetPhoto: (String) -> Unit,
+    onRemovePhoto: (String) -> Unit,
     onClearGigGroup: () -> Unit,
     /** Debug builds only; null in release. */
     onAddSimulated: (() -> Unit)? = null,
@@ -83,6 +90,23 @@ fun FriendsScreen(
     }
     var confirmRemove by remember { mutableStateOf<Friend?>(null) }
 
+    var options by remember { mutableStateOf<Friend?>(null) }
+    options?.let { f ->
+        AlertDialog(
+            onDismissRequest = { options = null },
+            title = { Text(f.name) },
+            text = {
+                androidx.compose.foundation.layout.Column {
+                    TextButton(onClick = { onSetPhoto(f.id); options = null }) { Text("Set photo") }
+                    if (PhotoStore.photos.containsKey(f.id)) {
+                        TextButton(onClick = { onRemovePhoto(f.id); options = null }) { Text("Remove photo") }
+                    }
+                    TextButton(onClick = { confirmRemove = f; options = null }) { Text("Remove ${f.name}", color = Color(0xFFE53935)) }
+                }
+            },
+            confirmButton = { TextButton(onClick = { options = null }) { Text("Close") } },
+        )
+    }
     confirmRemove?.let { f ->
         AlertDialog(
             onDismissRequest = { confirmRemove = null },
@@ -105,12 +129,20 @@ fun FriendsScreen(
     fun row(f: Friend) {
         Row(
             Modifier.fillMaxWidth()
-                .combinedClickable(onClick = { onFind(setOf(f.id)) }, onLongClick = { confirmRemove = f })
+                .combinedClickable(onClick = { onFind(setOf(f.id)) }, onLongClick = { options = f })
                 .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(Modifier.size(40.dp).background(Color(f.color), CircleShape), contentAlignment = Alignment.Center) {
-                Text(f.name.take(1).uppercase(), color = Color.Black)
+            val photo = PhotoStore.photos[f.id]
+            if (photo != null) {
+                Image(
+                    photo, contentDescription = null, contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(40.dp).clip(CircleShape).border(2.dp, Color(f.color), CircleShape),
+                )
+            } else {
+                Box(Modifier.size(40.dp).background(Color(f.color), CircleShape), contentAlignment = Alignment.Center) {
+                    Text(f.name.take(1).uppercase(), color = Color.Black)
+                }
             }
             Spacer(Modifier.width(12.dp))
             Text(f.name, color = Color.White, fontSize = 18.sp)

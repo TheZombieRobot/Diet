@@ -9,6 +9,7 @@ import android.os.PowerManager
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -44,6 +45,11 @@ import com.journeyapps.barcodescanner.ScanOptions
 class MainActivity : ComponentActivity() {
     private lateinit var engine: LocatorEngine
     private var visibleToMates by mutableStateOf(false)
+    private var photoFor: String? = null
+    private val pickPhoto = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        val id = photoFor
+        if (uri != null && id != null && !PhotoStore.set(this, id, uri)) DebugStatus.log("Couldn't read that photo")
+    }
     private var alwaysOn by mutableStateOf(false)
     private var finding by mutableStateOf(false)
     private var pendingStop: Job? = null
@@ -113,6 +119,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         FriendsRepository.init(this)
+        PhotoStore.init(this)
         val mySecret = VisibilityPrefs.mySecret(this)
         engine = LocatorEngine(applicationContext, lifecycleScope, mySecret)
         visibleToMates = VisibilityPrefs.isVisible(this)
@@ -241,6 +248,11 @@ class MainActivity : ComponentActivity() {
                             onScannedUsed = { scanned = null },
                             onAdd = { name, code, gig -> FriendsRepository.add(name, code, gig, mySecret) },
                             onRemove = FriendsRepository::remove,
+                            onSetPhoto = { id ->
+                                photoFor = id
+                                pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                            },
+                            onRemovePhoto = PhotoStore::remove,
                             onClearGigGroup = FriendsRepository::clearGigGroup,
                             onAddSimulated = if (DebugStatus.enabled) FriendsRepository::addSimulated else null,
                         )

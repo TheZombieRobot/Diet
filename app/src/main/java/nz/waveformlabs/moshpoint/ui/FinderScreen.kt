@@ -40,6 +40,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.Friend
+import nz.waveformlabs.moshpoint.PhotoStore
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import nz.waveformlabs.moshpoint.core.ArrowState
 import nz.waveformlabs.moshpoint.core.ArrowStyle
 import nz.waveformlabs.moshpoint.core.Method
@@ -179,14 +183,28 @@ private fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Frie
             val angle = angles[a.friendId] ?: a.relativeDeg.toFloat()
             drawArrow(centre, length, angle, colour)
 
-            // Avatar at the tip. TODO: draw the friend's profile photo instead of an initial.
+            // Friend's photo (or initial) at the tip.
             val rad = Math.toRadians(angle.toDouble())
             val tip = Offset(
                 centre.x + (length + 36f) * sin(rad).toFloat(),
                 centre.y - (length + 36f) * cos(rad).toFloat(),
             )
-            drawCircle(colour, radius = 34f, center = tip)
-            drawLabel(friend?.name?.take(1) ?: "?", tip, 34f, Color.Black)
+            val photo = PhotoStore.photos[a.friendId]
+            if (photo != null) {
+                val r = 36f
+                val clip = Path().apply { addOval(androidx.compose.ui.geometry.Rect(tip, r)) }
+                clipPath(clip) {
+                    drawImage(
+                        photo,
+                        dstOffset = IntOffset((tip.x - r).toInt(), (tip.y - r).toInt()),
+                        dstSize = IntSize((r * 2).toInt(), (r * 2).toInt()),
+                    )
+                }
+                drawCircle(colour, radius = r, center = tip, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 5f))
+            } else {
+                drawCircle(colour, radius = 34f, center = tip)
+                drawLabel(friend?.name?.take(1) ?: "?", tip, 34f, Color.Black)
+            }
             drawLabel(ArrowStyle.distanceLabel(a.distanceM), Offset(tip.x, tip.y + 72f), 30f, Color.White)
             if (BuildConfig.DEBUG) {
                 // Test builds only: which method is driving this arrow.
