@@ -64,12 +64,13 @@ Wi-Fi as your laptop can use `-Pmoshpoint.server=http://<laptop-ip>:8080` for te
 
 1. Install on both phones and allow the permissions. The top of the friends screen shows
    what the phone has, e.g. "This phone: UWB, Wi-Fi Aware, Bluetooth, compass, GPS".
-2. Phone A: tap **Share my code** and send it to phone B (any messenger). Phone B does the same back.
-3. On each phone, under **Add someone**, paste the other person's message (the whole message is fine) and give them a name.
-4. Phone A: switch on **Visible to my mates**.
-5. Phone B: tap phone A's name. Walk around. You should see the distance and warmer/colder.
+2. Type your name at the top. Phone A taps **Show my QR**; phone B taps **Scan their QR**
+   and then **Add friend**. Swap and do it the other way too.
+   (No camera handy? **Share my code** sends it by message; paste the whole message in.)
+3. Phone A: switch on **Visible to my mates**.
+4. Phone B: tap phone A's name. Walk around. You should see the distance and warmer/colder.
    Press **Scan**, hold the phone flat on your chest and turn slowly: an arrow should appear.
-6. **If both phones have UWB:** within about 50 m the arrow should lock on and the distance
+5. **If both phones have UWB:** within about 50 m the arrow should lock on and the distance
    should be accurate to within a few cm. If the arrow points the mirror-image way, flip
    `AZIMUTH_SIGN` in `UwbFinder.kt`. Also try it with phone A's screen off and the app
    closed, to check UWB works from the background.
