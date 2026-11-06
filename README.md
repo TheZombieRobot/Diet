@@ -10,6 +10,7 @@ Find your mates at a gig. Open the app, tap a friend, and an arrow points you to
 - **Brief:** [`docs/BRIEF.md`](docs/BRIEF.md), the product brief, word for word.
 - **How it works:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 - **What's done / next:** [`docs/ROADMAP.md`](docs/ROADMAP.md)
+- **Testing on real phones:** [`docs/FIELD_TEST_PLAN.md`](docs/FIELD_TEST_PLAN.md)
 
 ## Layout
 
@@ -87,6 +88,14 @@ button on the finder screen. Release builds don't: it's compiled out.
 - **Technology status:** UWB (looking / visible), Wi-Fi Aware, Bluetooth scan and adverts,
   GPS accuracy, server, crowd relay, compass. Failures show in red.
 - **Switch log:** every hand-over, e.g. `21:04:13  Sam: BLE_RSSI distance only -> UWB (12.4 m)`.
+
+- **Field recording:** **● record** writes every raw reading to a CSV; **mark…** notes the
+  real situation ("A 20 m, due north"); **share last** sends it. This is how the maths
+  gets tuned to real phones.
+- **Simulated friend:** on the friends screen, **Debug: add simulated friend** walks a
+  pretend friend in from 200 m, producing realistic GPS/BT/Wi-Fi/UWB readings, so you can
+  check everything with one phone. Simulator switches in the panel pretend this phone has
+  no UWB / no Wi-Fi Aware / no data.
 
 Each arrow also shows a small label of the method driving it (`UWB`, `Wi-Fi`, `BT`,
 `GPS`, `crowd`, `scan`; `?` = unsure).
