@@ -23,11 +23,16 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Core tests
-        run: ./gradlew :core:test --stacktrace
+      - name: Core + server tests
+        run: ./gradlew :core:test :server:test --continue
 
       - name: Build debug APK
-        run: ./gradlew :app:assembleDebug --stacktrace
+        if: success() || failure()
+        run: ./gradlew :app:assembleDebug --continue 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
+
+      - name: Compile errors
+        if: failure()
+        run: grep -E '^(e|w): ' build.log | grep '^e:' | head -50 || true
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -43,4 +48,5 @@ jobs:
           name: reports
           path: |
             core/build/reports
+            server/build/reports
             app/build/reports

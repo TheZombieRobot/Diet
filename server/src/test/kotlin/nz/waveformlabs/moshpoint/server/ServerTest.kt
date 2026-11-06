@@ -1,0 +1,63 @@
+package nz.waveformlabs.moshpoint.server
+
+import io.ktor.client.request.get
+import io.ktor.client.request.post
+import io.ktor.client.request.put
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsBytes
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.testing.testApplication
+import kotlin.test.Test
+import kotlin.test.assertContentEquals
+import kotlin.test.assertEquals
+
+class ServerTest {
+    private val idHex = "00112233445566778899aabbccddeeff"
+    private val idRaw = ByteArray(16) { (it * 0x11).toByte() }
+    private val rec1 = ByteArray(29) { 1 }
+    private val rec2 = ByteArray(29) { 2 }
+
+    @Test fun putThenGet() = testApplication {
+        application { moshpoint(MailboxStore()) }
+        assertEquals(HttpStatusCode.NotFound, client.get("/v1/box/$idHex").status)
+        assertEquals(HttpStatusCode.NoContent, client.put("/v1/box/$idHex") { setBody(rec1) }.status)
+        assertEquals(HttpStatusCode.NoContent, client.put("/v1/box/$idHex") { setBody(rec2) }.status)
+        val body = client.get("/v1/box/$idHex").bodyAsBytes()
+        // newest first: [29][rec2][29][rec1]
+        assertContentEquals(byteArrayOf(29) + rec2 + byteArrayOf(29) + rec1, body)
+    }
+
+    @Test fun rejectsBadInput() = testApplication {
+        application { moshpoint(MailboxStore()) }
+        assertEquals(HttpStatusCode.BadRequest, client.put("/v1/box/nothex") { setBody(rec1) }.status)
+        assertEquals(HttpStatusCode.BadRequest, client.put("/v1/box/$idHex") { setBody(ByteArray(3)) }.status)
+        assertEquals(HttpStatusCode.BadRequest, client.put("/v1/box/$idHex") { setBody(ByteArray(500)) }.status)
+        assertEquals(HttpStatusCode.BadRequest, client.post("/v1/lookup") { setBody(ByteArray(15)) }.status)
+    }
+
+    @Test fun lookupMany() = testApplication {
+        application { moshpoint(MailboxStore()) }
+        client.put("/v1/box/$idHex") { setBody(rec1) }
+        val unknown = ByteArray(16) { 7 }
+        val body = client.post("/v1/lookup") { setBody(idRaw + unknown) }.bodyAsBytes()
+        assertContentEquals(byteArrayOf(1, 29) + rec1 + byteArrayOf(0), body)
+    }
+}
+
+class MailboxStoreTest {
+    @Test fun expiresAndCaps() {
+        var now = 0L
+        val s = MailboxStore(ttlMs = 1000, maxPerId = 2, clock = { now })
+        s.put("a", byteArrayOf(1)); s.put("a", byteArrayOf(2)); s.put("a", byteArrayOf(3))
+        assertEquals(listOf(3, 2), s.get("a").map { it[0].toInt() })
+        now = 2000
+        assertEquals(0, s.get("a").size)
+        assertEquals(0, s.size())
+    }
+
+    @Test fun duplicateMovesToFront() {
+        val s = MailboxStore()
+        s.put("a", byteArrayOf(1)); s.put("a", byteArrayOf(2)); s.put("a", byteArrayOf(1))
+        assertEquals(listOf(1, 2), s.get("a").map { it[0].toInt() })
+    }
+}
