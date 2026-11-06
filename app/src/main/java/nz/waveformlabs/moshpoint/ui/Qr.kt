@@ -23,22 +23,6 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
 
-/** QR payload: a moshpoint: URI so random QR codes can't be added by mistake. */
-object QrPayload {
-    private const val PREFIX = "moshpoint:add?code="
-
-    fun of(code: String, name: String) = "$PREFIX$code&name=${java.net.URLEncoder.encode(name, "UTF-8")}"
-
-    /** Returns (code, suggested name) or null if it isn't a Moshpoint QR. */
-    fun parse(text: String): Pair<String, String>? {
-        if (!text.startsWith(PREFIX)) return null
-        val rest = text.removePrefix(PREFIX)
-        val code = rest.substringBefore('&')
-        val name = rest.substringAfter("&name=", "").let { runCatching { java.net.URLDecoder.decode(it, "UTF-8") }.getOrDefault("") }
-        return code to name
-    }
-}
-
 fun qrBitmap(text: String, sizePx: Int = 720): Bitmap {
     val matrix = QRCodeWriter().encode(text, BarcodeFormat.QR_CODE, sizePx, sizePx, mapOf(EncodeHintType.MARGIN to 1))
     val pixels = IntArray(sizePx * sizePx) { i -> if (matrix[i % sizePx, i / sizePx]) 0xFF000000.toInt() else 0xFFFFFFFF.toInt() }
