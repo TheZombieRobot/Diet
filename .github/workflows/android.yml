@@ -35,6 +35,23 @@ jobs:
           # variables -> Actions -> Variables) to the relay server's https address.
           ./gradlew :app:assembleDebug --continue -Pmoshpoint.server="${{ vars.MOSHPOINT_SERVER }}" 2>&1 | tee build.log
 
+      - name: Release build (R8 shrinking, debug mode stripped)
+        if: success()
+        shell: bash
+        run: |
+          set -o pipefail
+          ./gradlew :app:assembleRelease --continue -Pmoshpoint.server="${{ vars.MOSHPOINT_SERVER }}" 2>&1 | tee -a build.log
+          # Debug-only code must not ship. Class names are obfuscated, so look for text
+          # that only the debug panel and simulator use.
+          APK=$(ls app/build/outputs/apk/release/*.apk | head -1)
+          for s in 'solo = only this one' 'Debug: add simulated friend' 'Mark ground truth'; do
+            if unzip -p "$APK" 'classes*.dex' | grep -a -q "$s"; then
+              echo "::warning::debug-only text '$s' found in release APK"
+            else
+              echo "OK: '$s' not in release APK"
+            fi
+          done
+
       - name: Compile errors
         if: failure()
         run: |
