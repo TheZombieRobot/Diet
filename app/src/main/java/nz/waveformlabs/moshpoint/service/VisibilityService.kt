@@ -194,7 +194,7 @@ class VisibilityService : LifecycleService() {
         )
         val notification: Notification = NotificationCompat.Builder(this, CHANNEL)
             .setContentTitle(getString(R.string.visibility_notification))
-            .setSmallIcon(android.R.drawable.ic_menu_mylocation)
+            .setSmallIcon(R.drawable.ic_launcher_monochrome)
             .setOngoing(true)
             .setContentIntent(open)
             .addAction(0, "Stop being visible", stopIntent)
