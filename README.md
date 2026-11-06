@@ -57,8 +57,8 @@ Variables). Every build after that has GPS mode on.
 **Quickest: Fly.io** (free allowance covers testing), from the repo root:
 
 ```sh
-fly launch --config server/fly.toml --copy-config --no-deploy   # first time; choose a name
-fly deploy --config server/fly.toml
+fly launch --copy-config --no-deploy   # first time; choose a name
+fly deploy
 curl https://<your-app>.fly.dev/healthz                          # -> ok
 ```
 

@@ -1,13 +1,13 @@
 # Fly.io config for the Moshpoint relay server.
 # From the repo root:
-#   fly launch --config server/fly.toml --copy-config --no-deploy   (first time; pick an app name)
-#   fly deploy --config server/fly.toml
+#   fly launch --copy-config --no-deploy   (first time; pick an app name)
+#   fly deploy
 # Then set the repo variable MOSHPOINT_SERVER to https://<app-name>.fly.dev
 app = "moshpoint-relay"
 primary_region = "syd" # closest to NZ
 
 [build]
-  dockerfile = "Dockerfile"
+  dockerfile = "server/Dockerfile"
 
 [http_service]
   internal_port = 8080
