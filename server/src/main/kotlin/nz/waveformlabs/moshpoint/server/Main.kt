@@ -3,6 +3,8 @@ package nz.waveformlabs.moshpoint.server
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.plugins.origin
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.request.receiveChannel
@@ -28,18 +30,31 @@ import kotlinx.io.readByteArray
  *                         rotation's ids.
  * - `GET  /healthz`
  */
-fun Application.moshpoint(store: MailboxStore = MailboxStore()) {
+fun Application.moshpoint(
+    store: MailboxStore = MailboxStore(),
+    // Crowd-relay phones upload what they hear, so PUTs get more room than lookups.
+    putLimit: RateLimiter = RateLimiter(capacity = 120.0, refillPerSec = 2.0),
+    getLimit: RateLimiter = RateLimiter(capacity = 60.0, refillPerSec = 1.0),
+) {
     launch {
         while (true) {
             delay(60_000)
             store.sweep()
+            putLimit.sweep()
+            getLimit.sweep()
         }
     }
+
+    // Behind a proxy (Fly, Render, ...) the real client is the first X-Forwarded-For entry.
+    fun ApplicationCall.client(): String =
+        request.headers["X-Forwarded-For"]?.substringBefore(',')?.trim()?.takeIf { it.isNotEmpty() }
+            ?: request.origin.remoteHost
 
     routing {
         get("/healthz") { call.respondText("ok") }
 
         put("/v1/box/{id}") {
+            if (!putLimit.allow(call.client())) return@put call.respondText("slow down", status = HttpStatusCode.TooManyRequests)
             val id = call.parameters["id"]?.lowercase()
             if (id == null || !ID_RE.matches(id)) return@put call.respondText("bad id", status = HttpStatusCode.BadRequest)
             val body = call.receiveChannel().readRemaining(MAX_RECORD + 1L).readByteArray()
@@ -51,6 +66,7 @@ fun Application.moshpoint(store: MailboxStore = MailboxStore()) {
         }
 
         get("/v1/box/{id}") {
+            if (!getLimit.allow(call.client())) return@get call.respondText("slow down", status = HttpStatusCode.TooManyRequests)
             val id = call.parameters["id"]?.lowercase()
             if (id == null || !ID_RE.matches(id)) return@get call.respondText("bad id", status = HttpStatusCode.BadRequest)
             val records = store.get(id)
@@ -59,6 +75,7 @@ fun Application.moshpoint(store: MailboxStore = MailboxStore()) {
         }
 
         post("/v1/lookup") {
+            if (!getLimit.allow(call.client())) return@post call.respondText("slow down", status = HttpStatusCode.TooManyRequests)
             val body = call.receiveChannel().readRemaining(MAX_LOOKUP * 16 + 1L).readByteArray()
             if (body.isEmpty() || body.size % 16 != 0 || body.size / 16 > MAX_LOOKUP) {
                 return@post call.respondText("bad body", status = HttpStatusCode.BadRequest)

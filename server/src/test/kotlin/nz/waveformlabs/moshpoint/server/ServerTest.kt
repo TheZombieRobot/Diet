@@ -44,6 +44,26 @@ class ServerTest {
     }
 }
 
+class RateLimitTest {
+    @Test fun bucketRefills() {
+        var now = 0L
+        val r = RateLimiter(capacity = 2.0, refillPerSec = 1.0, clock = { now })
+        assertEquals(true, r.allow("a"))
+        assertEquals(true, r.allow("a"))
+        assertEquals(false, r.allow("a"))
+        assertEquals(true, r.allow("b")) // separate client
+        now = 1000
+        assertEquals(true, r.allow("a"))
+    }
+
+    @Test fun serverReturns429() = testApplication {
+        application { moshpoint(MailboxStore(), putLimit = RateLimiter(1.0, 0.0001)) }
+        val id = "00112233445566778899aabbccddeeff"
+        assertEquals(HttpStatusCode.NoContent, client.put("/v1/box/$id") { setBody(ByteArray(29)) }.status)
+        assertEquals(HttpStatusCode.TooManyRequests, client.put("/v1/box/$id") { setBody(ByteArray(29)) }.status)
+    }
+}
+
 class MailboxStoreTest {
     @Test fun expiresAndCaps() {
         var now = 0L
