@@ -34,6 +34,13 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+    lint {
+        // Report everything, never fail the build on lint (CI prints the findings).
+        abortOnError = false
+        checkDependencies = false
+        textReport = true
+        textOutput = file("build/reports/lint.txt")
+    }
     buildFeatures {
         compose = true
         buildConfig = true

@@ -38,6 +38,17 @@ jobs:
         run: |
           grep '^e: ' build.log | head -60 || true
 
+      - name: Android lint (report only)
+        if: success()
+        continue-on-error: true
+        shell: bash
+        run: |
+          ./gradlew :app:lintDebug -q || true
+          echo "=== lint summary ==="
+          grep -E '^[^ ].*: (Error|Warning): ' app/build/reports/lint.txt | sed -E 's/.*: (Error|Warning): .*\[([A-Za-z]+)\]$/\1 \2/' | sort | uniq -c | sort -rn || true
+          echo "=== errors and key warnings ==="
+          grep -E ': Error: |\[(NewApi|MissingPermission|InlinedApi|UnspecifiedRegisterReceiverFlag|WrongConstant|ForegroundServiceType|MissingSuperCall)\]' app/build/reports/lint.txt | head -80 || true
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
@@ -51,6 +62,7 @@ jobs:
         with:
           name: reports
           path: |
+            app/build/reports/lint*
             core/build/reports
             server/build/reports
             app/build/reports
