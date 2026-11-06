@@ -8,6 +8,8 @@ composeBom = "2024.12.01"
 # Check for a newer version in Android Studio; the API used is in UwbFinder / UwbResponder.
 uwb = "1.0.0-alpha10"
 ktor = "3.0.3"
+zxing = "3.5.3"
+zxingEmbedded = "4.3.0"
 logback = "1.5.12"
 
 [libraries]
@@ -22,6 +24,8 @@ androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "u
 androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-core-uwb = { group = "androidx.core.uwb", name = "uwb", version.ref = "uwb" }
+zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
+zxing-android-embedded = { group = "com.journeyapps", name = "zxing-android-embedded", version.ref = "zxingEmbedded" }
 ktor-server-core = { group = "io.ktor", name = "ktor-server-core", version.ref = "ktor" }
 ktor-server-netty = { group = "io.ktor", name = "ktor-server-netty", version.ref = "ktor" }
 ktor-server-test-host = { group = "io.ktor", name = "ktor-server-test-host", version.ref = "ktor" }

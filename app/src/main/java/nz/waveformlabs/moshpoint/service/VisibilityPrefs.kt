@@ -22,6 +22,10 @@ object VisibilityPrefs {
     fun alwaysOn(c: Context) = prefs(c).getBoolean("always_on", false)
     fun setAlwaysOn(c: Context, v: Boolean) = prefs(c).edit().putBoolean("always_on", v).apply()
 
+    /** Your display name, suggested to mates when they scan your QR. */
+    fun myName(c: Context): String = prefs(c).getString("name", "") ?: ""
+    fun setMyName(c: Context, v: String) = prefs(c).edit().putString("name", v.trim()).apply()
+
     fun mySecret(c: Context): ByteArray {
         val p = prefs(c)
         p.getString("secret", null)?.let { return Base64.decode(it, Base64.NO_WRAP) }

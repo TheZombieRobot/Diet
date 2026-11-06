@@ -21,6 +21,10 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" />
 
+    <!-- Scanning a mate's QR code -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
     <!-- Server location sharing -->
     <uses-permission android:name="android.permission.INTERNET" />
 

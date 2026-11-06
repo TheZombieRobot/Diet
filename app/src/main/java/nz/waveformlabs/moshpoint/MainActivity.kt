@@ -32,6 +32,10 @@ import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 import nz.waveformlabs.moshpoint.service.VisibilityService
 import nz.waveformlabs.moshpoint.ui.FinderScreen
 import nz.waveformlabs.moshpoint.ui.FriendsScreen
+import nz.waveformlabs.moshpoint.ui.MyQrDialog
+import nz.waveformlabs.moshpoint.ui.QrPayload
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 
 class MainActivity : ComponentActivity() {
     private lateinit var engine: LocatorEngine
@@ -40,6 +44,14 @@ class MainActivity : ComponentActivity() {
     private var finding by mutableStateOf(false)
     private var askBattery by mutableStateOf(false)
     private var missing by mutableStateOf<List<String>>(emptyList())
+    private var showQr by mutableStateOf(false)
+    private var myName by mutableStateOf("")
+    private var scanned by mutableStateOf<Pair<String, String>?>(null)
+
+    private val scanQr = registerForActivityResult(ScanContract()) { result ->
+        val parsed = result.contents?.let(QrPayload::parse)
+        if (parsed != null) scanned = parsed
+    }
 
     private val permissions = buildList {
         add(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -97,6 +109,7 @@ class MainActivity : ComponentActivity() {
         val mySecret = VisibilityPrefs.mySecret(this)
         engine = LocatorEngine(applicationContext, lifecycleScope, mySecret)
         visible = VisibilityPrefs.isVisible(this)
+        myName = VisibilityPrefs.myName(this)
         alwaysOn = VisibilityPrefs.alwaysOn(this)
         askPermissions.launch(permissions)
         val myCode = FriendRecord.shareCode(mySecret)
@@ -111,6 +124,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MaterialTheme(colorScheme = darkColorScheme()) {
+                if (showQr) {
+                    MyQrDialog(QrPayload.of(myCode, myName)) { showQr = false }
+                }
                 if (askBattery) {
                     AlertDialog(
                         onDismissRequest = { askBattery = false },
@@ -153,6 +169,11 @@ class MainActivity : ComponentActivity() {
                             alwaysOn = alwaysOn,
                             phoneSummary = phoneSummary,
                             missingPermissions = missing,
+                            myName = myName,
+                            onMyName = {
+                                myName = it
+                                VisibilityPrefs.setMyName(this@MainActivity, it)
+                            },
                             onFixPermissions = ::fixPermissions,
                             onVisible = ::setVisibility,
                             onAlwaysOn = {
@@ -165,6 +186,18 @@ class MainActivity : ComponentActivity() {
                                 finding = true
                             },
                             onShareCode = { shareCode(myCode) },
+                            onShowQr = { showQr = true },
+                            onScanQr = {
+                                scanQr.launch(
+                                    ScanOptions()
+                                        .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+                                        .setPrompt("Scan your mate's Moshpoint QR")
+                                        .setBeepEnabled(false)
+                                        .setOrientationLocked(true),
+                                )
+                            },
+                            scanned = scanned,
+                            onScannedUsed = { scanned = null },
                             onAdd = { name, code, gig -> FriendsRepository.add(name, code, gig, mySecret) },
                             onRemove = FriendsRepository::remove,
                             onClearGigGroup = FriendsRepository::clearGigGroup,

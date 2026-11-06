@@ -24,7 +24,8 @@
 - [x] GPS + compass arrow with magnetic declination (written, untested)
 - [x] Crowd relay: BLE extended adverts, sealed boxes, multi-hop (written, untested)
 - [ ] Deploy the relay server and build the app with its URL
-- [ ] Accounts / usernames, gig-group codes and QR
+- [x] Add friends by QR code (show mine / scan theirs), name suggested from the QR
+- [ ] Accounts / usernames; one-QR gig groups (needs the server)
 - [ ] Battery work: adaptive advertising/scanning
 - [ ] Real-crowd testing session; Samsung/Xiaomi background-kill testing
 

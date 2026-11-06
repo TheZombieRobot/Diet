@@ -24,6 +24,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,12 +50,19 @@ fun FriendsScreen(
     visible: Boolean,
     alwaysOn: Boolean,
     phoneSummary: String,
+    myName: String,
+    onMyName: (String) -> Unit,
     missingPermissions: List<String>,
     onFixPermissions: () -> Unit,
     onVisible: (Boolean) -> Unit,
     onAlwaysOn: (Boolean) -> Unit,
     onFind: (Set<String>) -> Unit,
     onShareCode: () -> Unit,
+    onShowQr: () -> Unit,
+    onScanQr: () -> Unit,
+    /** Filled in after a QR scan so the user only has to confirm. */
+    scanned: Pair<String, String>?,
+    onScannedUsed: () -> Unit,
     /** Returns an error message to show, or null if added. */
     onAdd: (name: String, code: String, gigGroup: Boolean) -> String?,
     onRemove: (String) -> Unit,
@@ -63,6 +71,14 @@ fun FriendsScreen(
     var name by remember { mutableStateOf("") }
     var code by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(scanned) {
+        if (scanned != null) {
+            code = scanned.first
+            if (name.isBlank()) name = scanned.second
+            error = null
+            onScannedUsed()
+        }
+    }
     var confirmRemove by remember { mutableStateOf<Friend?>(null) }
 
     confirmRemove?.let { f ->
@@ -115,6 +131,7 @@ fun FriendsScreen(
                 }
             }
             Spacer(Modifier.height(8.dp))
+            OutlinedTextField(myName, onMyName, label = { Text("Your name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
             SwitchRow("Visible to my mates", visible, onVisible)
             SwitchRow("Leave visibility always on", alwaysOn, onAlwaysOn)
         }
@@ -141,7 +158,11 @@ fun FriendsScreen(
 
         item {
             Header("Add someone")
-            Text("Send them your code, and paste theirs below.", color = Color.Gray)
+            Text("Scan each other's QR, or send your code and paste theirs.", color = Color.Gray)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = onShowQr) { Text("Show my QR") }
+                Button(onClick = onScanQr) { Text("Scan their QR") }
+            }
             OutlinedButton(onClick = onShareCode) { Text("Share my code") }
             OutlinedTextField(name, { name = it }, label = { Text("Their name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(code, { code = it }, label = { Text("Their code") }, singleLine = true, modifier = Modifier.fillMaxWidth())
