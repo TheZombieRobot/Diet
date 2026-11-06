@@ -28,11 +28,15 @@ jobs:
 
       - name: Build debug APK
         if: success() || failure()
-        run: ./gradlew :app:assembleDebug --continue 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
+        shell: bash
+        run: |
+          set -o pipefail
+          ./gradlew :app:assembleDebug --continue 2>&1 | tee build.log
 
       - name: Compile errors
         if: failure()
-        run: grep -E '^(e|w): ' build.log | grep '^e:' | head -50 || true
+        run: |
+          grep '^e: ' build.log | head -60 || true
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

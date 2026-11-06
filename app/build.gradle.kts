@@ -14,6 +14,11 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "0.1.0"
+
+        // Relay server for GPS mode. Empty = GPS sharing off. Set with
+        // -Pmoshpoint.server=https://your-server or in gradle.properties.
+        val server = (project.findProperty("moshpoint.server") as String?) ?: ""
+        buildConfigField("String", "MOSHPOINT_SERVER", "\"$server\"")
     }
 
     buildTypes {
@@ -31,6 +36,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 

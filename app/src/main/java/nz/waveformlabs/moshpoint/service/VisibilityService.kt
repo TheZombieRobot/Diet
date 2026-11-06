@@ -1,5 +1,6 @@
 package nz.waveformlabs.moshpoint.service
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -7,6 +8,7 @@ import android.app.PendingIntent
 import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
@@ -36,8 +38,10 @@ import nz.waveformlabs.moshpoint.locate.Capabilities
  * - puts our UWB controlee address in the advert, and
  * - listens (low-power scan) for friends who are looking, and joins their UWB session.
  *
- * Battery: advert is BALANCED (~250 ms) at medium power; the UWB listen scan is LOW_POWER.
- * TODO: adaptive intervals; share GPS via the server / crowd relay while visible.
+ * It also shares our sealed GPS position via the relay server (LocationUploader).
+ *
+ * Battery: advert is BALANCED (~250 ms) at medium power; the UWB listen scan is LOW_POWER;
+ * GPS every 15 s. TODO: adaptive intervals; crowd relay.
  */
 class VisibilityService : LifecycleService() {
     private lateinit var broadcaster: BleBroadcaster
@@ -47,6 +51,7 @@ class VisibilityService : LifecycleService() {
     private var uwb: UwbResponder? = null
     private var listener: BleRanger? = null
     private var rotateJob: Job? = null
+    private var uploader: LocationUploader? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
@@ -70,6 +75,8 @@ class VisibilityService : LifecycleService() {
             }
         }
 
+        uploader = LocationUploader(this, lifecycleScope, mySecret).also { it.start() }
+
         if (Capabilities.detect(this).uwb) {
             val responder = UwbResponder(this, lifecycleScope) { info ->
                 uwbInfo = info
@@ -91,6 +98,7 @@ class VisibilityService : LifecycleService() {
 
     override fun onDestroy() {
         rotateJob?.cancel()
+        uploader?.stop()
         listener?.stop()
         uwb?.stop()
         if (::broadcaster.isInitialized) broadcaster.stop()
@@ -111,9 +119,17 @@ class VisibilityService : LifecycleService() {
             .setOngoing(true)
             .setContentIntent(open)
             .build()
-        ServiceCompat.startForeground(
-            this, NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE,
-        )
+        // Add the location type when we can, so GPS sharing keeps working with the app
+        // closed. Android refuses it in some cases (e.g. started at boot without the
+        // app being opened), so fall back to Bluetooth-only visibility.
+        val base = ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
+        val withLocation = base or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+        val canLocate = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        try {
+            ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, if (canLocate) withLocation else base)
+        } catch (e: SecurityException) {
+            ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, base)
+        }
     }
 
     companion object {
