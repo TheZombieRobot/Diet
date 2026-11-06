@@ -17,6 +17,7 @@ import nz.waveformlabs.moshpoint.core.Advert
 import nz.waveformlabs.moshpoint.core.ArrowState
 import nz.waveformlabs.moshpoint.core.EphemeralId
 import nz.waveformlabs.moshpoint.core.Fix
+import nz.waveformlabs.moshpoint.core.FriendSimulator
 import nz.waveformlabs.moshpoint.core.Geo
 import nz.waveformlabs.moshpoint.core.HeadingFilter
 import nz.waveformlabs.moshpoint.core.Method
@@ -127,6 +128,46 @@ class LocatorEngine(
                     distanceM = fix.distanceM, bearingDeg = fix.bearingDeg, headingDeg = heading, confidence = fix.confidence,
                 ),
             )
+        }
+    }
+
+    // ---- Simulated friends (debug builds only) ----
+
+    private val sims = mutableMapOf<String, FriendSimulator>()
+
+    data class SimSettings(val uwb: Boolean = true, val wifiAware: Boolean = true, val data: Boolean = true)
+
+    private val _sim = MutableStateFlow(SimSettings())
+    val simSettings: StateFlow<SimSettings> = _sim.asStateFlow()
+
+    fun setSim(settings: SimSettings) {
+        _sim.value = settings
+        sims.values.forEach { it.configure(settings) }
+        DebugStatus.log("Simulator: UWB ${settings.uwb}, Wi-Fi ${settings.wifiAware}, data ${settings.data}")
+    }
+
+    /** Start the simulated friends' walk again from far away. */
+    fun restartSims() {
+        sims.clear()
+        DebugStatus.log("Simulator: walk restarted")
+    }
+
+    private fun FriendSimulator.configure(s: SimSettings) {
+        hasUwb = s.uwb
+        hasWifiAware = s.wifiAware
+        noData = !s.data
+    }
+
+    private fun tickSims(now: Long) {
+        if (!DebugStatus.enabled) return
+        for (id in _tracking.value) {
+            if (!FriendsRepository.isSimulated(id)) continue
+            val sim = sims.getOrPut(id) {
+                FriendSimulator(id, startBearingDeg = (id.hashCode() and 0xFF) * 360.0 / 256, seed = id.hashCode()).also { it.configure(_sim.value) }
+            }
+            sim.tick(now, heading).forEach(::submit)
+            val (e, n) = sim.position(now)
+            DebugStatus.set("Simulator", "${nameOf(id)} %.0f m away".format(kotlin.math.hypot(e, n)))
         }
     }
 
@@ -300,6 +341,7 @@ class LocatorEngine(
 
     private fun tick() {
         val now = System.currentTimeMillis()
+        tickSims(now)
         if (spinScans.isNotEmpty()) updateSpinScan(now)
         val arrows = _tracking.value.map { arbiter.arrowFor(it, heading, now) }
         _arrows.value = arrows

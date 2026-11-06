@@ -176,6 +176,7 @@ class MainActivity : ComponentActivity() {
                                     val log by DebugStatus.log.collectAsState()
                                     val recording by FieldRecorder.recording.collectAsState()
                                     val recordedRows by FieldRecorder.rows.collectAsState()
+                                    val sim by engine.simSettings.collectAsState()
                                     DebugPanel(
                                         rows = rows,
                                         friendOf = FriendsRepository::byId,
@@ -190,6 +191,9 @@ class MainActivity : ComponentActivity() {
                                         onRecord = { on -> if (on) FieldRecorder.start(this@MainActivity) else FieldRecorder.stop() },
                                         onMark = FieldRecorder::mark,
                                         onShare = ::shareRecording,
+                                        sim = sim,
+                                        onSim = engine::setSim,
+                                        onSimRestart = engine::restartSims,
                                         modifier = mod,
                                     )
                                 }
@@ -237,6 +241,7 @@ class MainActivity : ComponentActivity() {
                             onAdd = { name, code, gig -> FriendsRepository.add(name, code, gig, mySecret) },
                             onRemove = FriendsRepository::remove,
                             onClearGigGroup = FriendsRepository::clearGigGroup,
+                            onAddSimulated = if (DebugStatus.enabled) FriendsRepository::addSimulated else null,
                         )
                     }
                 }

@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.core.Method
+import nz.waveformlabs.moshpoint.locate.LocatorEngine
 import nz.waveformlabs.moshpoint.core.MethodDebug
 
 /**
@@ -57,6 +58,9 @@ fun DebugPanel(
     onRecord: (Boolean) -> Unit,
     onMark: (String) -> Unit,
     onShare: () -> Unit,
+    sim: LocatorEngine.SimSettings,
+    onSim: (LocatorEngine.SimSettings) -> Unit,
+    onSimRestart: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var marking by remember { mutableStateOf(false) }
@@ -110,6 +114,17 @@ fun DebugPanel(
                     Mono("$recordedRows rows saved", 11.sp, Color.Gray)
                 }
             }
+        }
+
+        Heading("Simulated friends: pretend this phone has...")
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Toggle("UWB", sim.uwb) { onSim(sim.copy(uwb = it)) }
+            Spacer(Modifier.width(6.dp))
+            Toggle("Wi-Fi Aware", sim.wifiAware) { onSim(sim.copy(wifiAware = it)) }
+            Spacer(Modifier.width(6.dp))
+            Toggle("data", sim.data) { onSim(sim.copy(data = it)) }
+            Spacer(Modifier.width(6.dp))
+            Chip("restart walk", Color(0xFF90CAF9), onSimRestart)
         }
 
         Heading("Methods  (tap = on/off, solo = only this one)")
@@ -195,6 +210,10 @@ private fun Mono(text: String, size: TextUnit, colour: Color, bold: Boolean = fa
         fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
     )
 }
+
+@Composable
+private fun Toggle(text: String, on: Boolean, onChange: (Boolean) -> Unit) =
+    Chip(if (on) "$text ✓" else "$text ✗", if (on) Color(0xFF81C784) else Color(0xFF757575)) { onChange(!on) }
 
 @Composable
 private fun Chip(text: String, colour: Color, onClick: () -> Unit) {

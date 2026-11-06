@@ -62,13 +62,21 @@ class MethodArbiterTest {
         assertEquals(12.0, s.distanceM)
     }
 
+    @Test fun gpsDirectionDroppedWhenCloseRangeSaysWeAreClose() {
+        val a = MethodArbiter()
+        a.submit(Fix(f, Method.GPS_SERVER, 45.0, 30.0, 1.0, 1_000))
+        a.submit(Fix(f, Method.WIFI_AWARE, null, 8.0, 1.0, 1_000))
+        val s = assertIs<ArrowState.DistanceOnly>(a.arrowFor(f, 0.0, 1_100))
+        assertEquals(8.0, s.distanceM)
+    }
+
     @Test fun gpsArrowUsesCloserRangeDistance() {
         val a = MethodArbiter()
         a.submit(Fix(f, Method.GPS_SERVER, 45.0, 60.0, 1.0, 1_000))
-        a.submit(Fix(f, Method.WIFI_AWARE, null, 18.0, 1.0, 1_000))
+        a.submit(Fix(f, Method.WIFI_AWARE, null, 25.0, 1.0, 1_000))
         val s = assertIs<ArrowState.Pointing>(a.arrowFor(f, 0.0, 1_100))
         assertEquals(Method.GPS_SERVER, s.method)
-        assertEquals(18.0, s.distanceM)
+        assertEquals(25.0, s.distanceM)
     }
 
     @Test fun hysteresisAvoidsFlicker() {

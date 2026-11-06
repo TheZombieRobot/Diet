@@ -72,6 +72,26 @@ object FriendsRepository {
         return null
     }
 
+    /** Debug builds: a pretend friend driven by FriendSimulator (ids start with "sim-"). */
+    fun addSimulated() {
+        if (!DebugStatus.enabled) return
+        val n = friends.count { isSimulated(it.id) } + 1
+        val secret = ByteArray(32).also { java.security.SecureRandom().nextBytes(it) }
+        friends += Friend(
+            FriendRecord(
+                id = "sim-${UUID.randomUUID()}",
+                name = "Sim $n",
+                color = PALETTE[(friends.size) % PALETTE.size],
+                secret = secret,
+                gigGroupOnly = false,
+                addedAtMs = System.currentTimeMillis(),
+            ),
+        )
+        save()
+    }
+
+    fun isSimulated(id: String) = id.startsWith("sim-")
+
     fun remove(id: String) {
         friends.removeAll { it.id == id }
         save()

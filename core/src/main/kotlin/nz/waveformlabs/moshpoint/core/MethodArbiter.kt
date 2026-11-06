@@ -44,6 +44,12 @@ class MethodArbiter(
 
     fun latestFix(friendId: String, method: Method): Fix? = latest[friendId to method]
 
+    companion object {
+        private val CLOSE_RANGE = setOf(Method.UWB, Method.WIFI_AWARE, Method.BLE_RSSI)
+        private val GPS_LIKE = setOf(Method.GPS_SERVER, Method.CROWD_RELAY)
+        const val GPS_USELESS_BELOW_M = 20.0
+    }
+
     fun scoreOf(fix: Fix, nowMs: Long): Double = score(fix, nowMs)
 
     /** Score of a fix right now: method precision x confidence, decaying with age. */
@@ -66,7 +72,15 @@ class MethodArbiter(
             .maxByOrNull { it.second }
             ?.first?.distanceM
 
-        val directional = live.filter { it.first.method.givesDirection && it.first.bearingDeg != null }
+        // GPS error (~5-15 m each phone) is bigger than the gap once you're close, so a
+        // GPS/crowd bearing is worse than no arrow: show distance and prompt Scan instead.
+        val closeRange = live
+            .filter { it.first.method in CLOSE_RANGE && it.first.distanceM != null }
+            .minOfOrNull { it.first.distanceM!! }
+        val directional = live.filter {
+            it.first.method.givesDirection && it.first.bearingDeg != null &&
+                !(it.first.method in GPS_LIKE && closeRange != null && closeRange < GPS_USELESS_BELOW_M)
+        }
         if (directional.isEmpty()) {
             currentDirectionMethod.remove(friendId)
             val best = live.maxBy { it.second }.first

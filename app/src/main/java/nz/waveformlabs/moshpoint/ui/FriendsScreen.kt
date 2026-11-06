@@ -67,6 +67,8 @@ fun FriendsScreen(
     onAdd: (name: String, code: String, gigGroup: Boolean) -> String?,
     onRemove: (String) -> Unit,
     onClearGigGroup: () -> Unit,
+    /** Debug builds only; null in release. */
+    onAddSimulated: (() -> Unit)? = null,
 ) {
     var name by remember { mutableStateOf("") }
     var code by remember { mutableStateOf("") }
@@ -154,6 +156,11 @@ fun FriendsScreen(
 
         item { Header("Friends") }
         if (permanent.isEmpty()) item { Text("No friends added yet.", color = Color.Gray) }
+        if (onAddSimulated != null) {
+            item {
+                OutlinedButton(onClick = onAddSimulated) { Text("Debug: add simulated friend") }
+            }
+        }
         items(permanent, key = { it.id }) { row(it) }
 
         item {
