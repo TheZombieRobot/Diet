@@ -25,7 +25,8 @@
 - [x] Crowd relay: BLE extended adverts, sealed boxes, multi-hop (written, untested)
 - [ ] Deploy the relay server and build the app with its URL
 - [x] Add friends by QR code (show mine / scan theirs), name suggested from the QR
-- [ ] Accounts / usernames; one-QR gig groups (needs the server)
+- [x] One-QR gig groups: members introduce themselves over BT5 adverts (and the server); no accounts needed
+- [ ] Accounts / usernames; syncing photos
 - [ ] Battery work: adaptive advertising/scanning
 - [ ] Real-crowd testing session; Samsung/Xiaomi background-kill testing
 

@@ -72,6 +72,9 @@ Wi-Fi as your laptop can use `-Pmoshpoint.server=http://<laptop-ip>:8080` for te
 2. Type your name at the top. Phone A taps **Show my QR**; phone B taps **Scan their QR**
    and then **Add friend**. Swap and do it the other way too.
    (No camera handy? **Share my code** sends it by message; paste the whole message in.)
+   **Or as a gig group:** one phone taps **Start a gig group** and shows the QR; the
+   other taps **Join (scan QR)**. Members appear in each other's gig group within a
+   few seconds (needs Bluetooth 5 extended adverts, or the relay server).
 3. Phone A: switch on **Visible to my mates** (or add the **Moshpoint** tile to Quick
    Settings and tap it; the notification has a **Stop being visible** button).
 4. Phone B: tap phone A's name. Walk around. You should see the distance and warmer/colder.

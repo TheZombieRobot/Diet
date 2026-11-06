@@ -31,6 +31,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.core.FriendRecord
+import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.core.QrPayload
 import nz.waveformlabs.moshpoint.locate.LocatorEngine
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
@@ -59,9 +60,13 @@ class MainActivity : ComponentActivity() {
     private var myName by mutableStateOf("")
     private var scanned by mutableStateOf<Pair<String, String>?>(null)
 
+    private var showGroupQr by mutableStateOf(false)
+
     private val scanQr = registerForActivityResult(ScanContract()) { result ->
-        val parsed = result.contents?.let(QrPayload::parse)
-        if (parsed != null) scanned = parsed
+        val text = result.contents ?: return@registerForActivityResult
+        // A gig group QR joins the group; a person's QR fills in "Add someone".
+        if (GroupSync.join(this, text)) return@registerForActivityResult
+        QrPayload.parse(text)?.let { scanned = it }
     }
 
     private val permissions = buildList {
@@ -122,6 +127,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         FriendsRepository.init(this)
         PhotoStore.init(this)
+        GroupSync.load(this)
         val mySecret = VisibilityPrefs.mySecret(this)
         engine = LocatorEngine(applicationContext, lifecycleScope, mySecret)
         visibleToMates = VisibilityPrefs.isVisible(this)
@@ -140,6 +146,16 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MaterialTheme(colorScheme = darkColorScheme()) {
+                if (showGroupQr) {
+                    GroupSync.group.value?.let { g ->
+                        MyQrDialog(
+                            GigGroup.qr(g),
+                            onDismiss = { showGroupQr = false },
+                            title = "Join ${g.name}",
+                            hint = "Everyone who scans this can find everyone else in the group tonight.",
+                        )
+                    }
+                }
                 if (showQr) {
                     MyQrDialog(QrPayload.of(myCode, myName)) { showQr = false }
                 }
@@ -255,7 +271,13 @@ class MainActivity : ComponentActivity() {
                                 pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                             },
                             onRemovePhoto = PhotoStore::remove,
-                            onClearGigGroup = FriendsRepository::clearGigGroup,
+                            onClearGigGroup = { GroupSync.clear(this@MainActivity) },
+                            groupName = GroupSync.group.value?.name,
+                            onStartGroup = { name ->
+                                GroupSync.startNew(this@MainActivity, name)
+                                showGroupQr = true
+                            },
+                            onShowGroupQr = { showGroupQr = true },
                             onAddSimulated = if (DebugStatus.enabled) FriendsRepository::addSimulated else null,
                         )
                     }
@@ -317,11 +339,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         super.onStop()
+        GroupSync.release(this)
         stopEngineSoon()
     }
 
     override fun onStart() {
         super.onStart()
+        GroupSync.acquire(this)
         pendingStop?.cancel()
         if (finding) engine.start()
     }

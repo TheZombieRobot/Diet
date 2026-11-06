@@ -20,6 +20,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.FriendsRepository
+import nz.waveformlabs.moshpoint.GroupSync
 import nz.waveformlabs.moshpoint.MainActivity
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.core.Advert
@@ -95,6 +96,8 @@ class VisibilityService : LifecycleService() {
         }
 
         uploader = LocationUploader(this, lifecycleScope, mySecret).also { it.start() }
+        GroupSync.load(this)
+        GroupSync.acquire(this) // keep introducing ourselves to the gig group while visible
         CrowdRelayRadio.startListening(this)
         CrowdRelayRadio.startBroadcasting(this, lifecycleScope)
         if (wifiRttSupported(this)) {
@@ -166,6 +169,7 @@ class VisibilityService : LifecycleService() {
         uploader?.stop()
         wifi?.stop()
         if (rotateJob != null) {
+            GroupSync.release(this)
             CrowdRelayRadio.stopBroadcasting(this)
             CrowdRelayRadio.stopListening(this)
             CrowdRelayRadio.ownPacket = null

@@ -74,6 +74,9 @@ fun FriendsScreen(
     onSetPhoto: (String) -> Unit,
     onRemovePhoto: (String) -> Unit,
     onClearGigGroup: () -> Unit,
+    groupName: String?,
+    onStartGroup: (String) -> Unit,
+    onShowGroupQr: () -> Unit,
     /** Debug builds only; null in release. */
     onAddSimulated: (() -> Unit)? = null,
 ) {
@@ -91,6 +94,28 @@ fun FriendsScreen(
     var confirmRemove by remember { mutableStateOf<Friend?>(null) }
 
     var options by remember { mutableStateOf<Friend?>(null) }
+    var naming by remember { mutableStateOf(false) }
+    var groupNameText by remember { mutableStateOf("") }
+    if (naming) {
+        AlertDialog(
+            onDismissRequest = { naming = false },
+            title = { Text("Start a gig group") },
+            text = {
+                androidx.compose.foundation.layout.Column {
+                    Text("Name it (e.g. the band). Then show the QR to your mates.")
+                    OutlinedTextField(groupNameText, { groupNameText = it }, singleLine = true)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    onStartGroup(groupNameText)
+                    groupNameText = ""
+                    naming = false
+                }) { Text("Start") }
+            },
+            dismissButton = { TextButton(onClick = { naming = false }) { Text("Cancel") } },
+        )
+    }
     options?.let { f ->
         AlertDialog(
             onDismissRequest = { options = null },
@@ -173,10 +198,26 @@ fun FriendsScreen(
         val gig = friends.filter { it.gigGroupOnly }
         val permanent = friends.filterNot { it.gigGroupOnly }
 
-        item { Header("Gig group") }
-        if (gig.isEmpty()) {
-            item { Text("No group tonight.", color = Color.Gray) }
+        item { Header(groupName?.let { "Gig group: $it" } ?: "Gig group") }
+        if (groupName == null) {
+            item {
+                Text("One person starts a group; everyone else scans its QR. Members find each other automatically.", color = Color.Gray)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = { naming = true }) { Text("Start a gig group") }
+                    OutlinedButton(onClick = onScanQr) { Text("Join (scan QR)") }
+                }
+            }
         } else {
+            item {
+                if (gig.isEmpty()) Text("Waiting for others to join. Show them the group QR.", color = Color.Gray)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (gig.isNotEmpty()) Button(onClick = { onFind(gig.map { it.id }.toSet()) }) { Text("Find group") }
+                    OutlinedButton(onClick = onShowGroupQr) { Text("Group QR") }
+                    OutlinedButton(onClick = onClearGigGroup) { Text("End night") }
+                }
+            }
+        }
+        if (groupName == null && gig.isNotEmpty()) {
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = { onFind(gig.map { it.id }.toSet()) }) { Text("Find whole group") }

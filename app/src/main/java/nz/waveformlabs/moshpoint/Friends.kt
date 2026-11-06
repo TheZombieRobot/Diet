@@ -72,6 +72,35 @@ object FriendsRepository {
         return null
     }
 
+    /**
+     * A gig-group member introduced themselves (see GroupSync). Adds them to the gig group,
+     * or updates their name. Returns true if they're new. Never downgrades a permanent friend.
+     */
+    fun addFromIntro(secret: ByteArray, name: String): Boolean {
+        val existing = friends.indexOfFirst { it.secret.contentEquals(secret) }
+        if (existing >= 0) {
+            val f = friends[existing]
+            if (f.gigGroupOnly && f.name != name && name.isNotBlank()) {
+                friends[existing] = Friend(f.record.copy(name = name))
+                save()
+            }
+            return false
+        }
+        val usedColours = friends.map { it.color }.toSet()
+        friends += Friend(
+            FriendRecord(
+                id = UUID.randomUUID().toString(),
+                name = name.ifBlank { "Mate" },
+                color = PALETTE.firstOrNull { it !in usedColours } ?: PALETTE[friends.size % PALETTE.size],
+                secret = secret,
+                gigGroupOnly = true,
+                addedAtMs = System.currentTimeMillis(),
+            ),
+        )
+        save()
+        return true
+    }
+
     /** Debug builds: a pretend friend driven by FriendSimulator (ids start with "sim-"). */
     fun addSimulated() {
         if (!DebugStatus.enabled) return

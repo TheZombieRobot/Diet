@@ -30,18 +30,23 @@ fun qrBitmap(text: String, sizePx: Int = 720): Bitmap {
 }
 
 @Composable
-fun MyQrDialog(payload: String, onDismiss: () -> Unit) {
+fun MyQrDialog(
+    payload: String,
+    onDismiss: () -> Unit,
+    title: String = "Get your mate to scan this",
+    hint: String = "Then scan theirs, so you can find each other.",
+) {
     val bmp = remember(payload) { qrBitmap(payload).asImageBitmap() }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Get your mate to scan this") },
+        title = { Text(title) },
         text = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(Modifier.background(Color.White).padding(8.dp)) {
                     Image(bmp, contentDescription = "Your Moshpoint QR code", modifier = Modifier.size(240.dp))
                 }
                 Spacer(Modifier.height(8.dp))
-                Text("Then scan theirs, so you can find each other.", color = Color.Gray)
+                Text(hint, color = Color.Gray)
             }
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text("Done") } },
