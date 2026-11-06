@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Moshpoint</string>
+    <string name="visibility_channel">Visibility</string>
+    <string name="visibility_notification">You\'re visible to your mates</string>
+</resources>
