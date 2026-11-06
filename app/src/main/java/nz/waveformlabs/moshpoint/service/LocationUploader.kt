@@ -6,13 +6,15 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.core.EphemeralId
 import nz.waveformlabs.moshpoint.core.LocationBox
+import nz.waveformlabs.moshpoint.core.RelayPacket
 import nz.waveformlabs.moshpoint.core.SharedLocation
+import nz.waveformlabs.moshpoint.locate.CrowdRelayRadio
 import nz.waveformlabs.moshpoint.locate.MyLocation
 import nz.waveformlabs.moshpoint.locate.RelayClient
 
 /**
- * While visible: seal our GPS position for friends and post it to the relay server under
- * our current rotating id. Only friends can open it (see LocationBox).
+ * While visible: seal our GPS position for friends, hand it to the crowd relay, and post
+ * it to the relay server under our current rotating id. Only friends can open it.
  *
  * Battery: asks for an update every 15 s or 5 m of movement, and skips uploads when
  * nothing has changed for a minute.
@@ -25,11 +27,17 @@ class LocationUploader(context: Context, private val scope: CoroutineScope, priv
     private var lastKey: String? = null
 
     fun start() {
-        if (job != null || !RelayClient.enabled) return
+        if (job != null) return
         job = scope.launch {
             myLocation.updates(intervalMs = 15_000, minDistanceM = 5f).collect { loc ->
                 val now = System.currentTimeMillis()
                 val id = ephemeral.currentId(now)
+                // Always hand the crowd relay a fresh sealed copy (works with no signal).
+                CrowdRelayRadio.ownPacket = RelayPacket(
+                    RelayPacket.MAX_TTL, id,
+                    LocationBox.seal(mySecret, id, SharedLocation(loc.latitude, loc.longitude, now / 1000, loc.accuracy.toInt())),
+                )
+                if (!RelayClient.enabled) return@collect
                 val key = "${id.contentHashCode()}:${(loc.latitude * 1e5).toLong()}:${(loc.longitude * 1e5).toLong()}"
                 if (key == lastKey && now - lastUploadMs < 60_000) return@collect
                 val sealed = LocationBox.seal(

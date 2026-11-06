@@ -26,6 +26,9 @@ import nz.waveformlabs.moshpoint.core.EphemeralId
 import nz.waveformlabs.moshpoint.locate.BleBroadcaster
 import nz.waveformlabs.moshpoint.locate.BleRanger
 import nz.waveformlabs.moshpoint.locate.Capabilities
+import nz.waveformlabs.moshpoint.locate.CrowdRelayRadio
+import nz.waveformlabs.moshpoint.locate.WifiAwarePublisher
+import nz.waveformlabs.moshpoint.locate.wifiRttSupported
 
 /**
  * Keeps you visible to your mates, even with the app closed.
@@ -52,6 +55,7 @@ class VisibilityService : LifecycleService() {
     private var listener: BleRanger? = null
     private var rotateJob: Job? = null
     private var uploader: LocationUploader? = null
+    private var wifi: WifiAwarePublisher? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
@@ -69,6 +73,7 @@ class VisibilityService : LifecycleService() {
         rotateJob = lifecycleScope.launch {
             while (true) {
                 readvertise()
+                wifi?.refresh()
                 val now = System.currentTimeMillis()
                 val nextRotation = (ephemeral.epochAt(now) + 1) * EphemeralId.DEFAULT_ROTATION_MS
                 delay(nextRotation - now + 50)
@@ -76,6 +81,11 @@ class VisibilityService : LifecycleService() {
         }
 
         uploader = LocationUploader(this, lifecycleScope, mySecret).also { it.start() }
+        CrowdRelayRadio.startListening(this, lifecycleScope)
+        CrowdRelayRadio.startBroadcasting(this, lifecycleScope)
+        if (wifiRttSupported(this)) {
+            wifi = WifiAwarePublisher(this) { ephemeral.currentId(System.currentTimeMillis()) }.also { it.start() }
+        }
 
         if (Capabilities.detect(this).uwb) {
             val responder = UwbResponder(this, lifecycleScope) { info ->
@@ -99,6 +109,10 @@ class VisibilityService : LifecycleService() {
     override fun onDestroy() {
         rotateJob?.cancel()
         uploader?.stop()
+        wifi?.stop()
+        CrowdRelayRadio.stopBroadcasting(this)
+        CrowdRelayRadio.stopListening(this)
+        CrowdRelayRadio.ownPacket = null
         listener?.stop()
         uwb?.stop()
         if (::broadcaster.isInitialized) broadcaster.stop()

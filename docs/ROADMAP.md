@@ -14,14 +14,17 @@
 - [ ] Permission explainer screens; battery-optimisation exemption prompt
 - [x] UWB ranging (`androidx.core.uwb`), set up through BLE adverts. Written, **not yet tested on phones**
 - [x] Share-your-code button, remove friend, "End night" for the gig group
-- [ ] Wi-Fi Aware RTT distance
+- [x] Wi-Fi Aware RTT distance (written, untested)
+- [x] GitHub Actions: core + server tests and a debug APK on every push
 - [ ] Profile photos at arrow tips
 - [ ] Tune RSSI + spin-scan constants outdoors
 
 ## Milestone 2: works at a gig
-- [ ] Backend: accounts, friends, gig-group codes/QR, encrypted location sharing
-- [ ] GPS + compass arrow (with magnetic declination)
-- [ ] Crowd relay (BLE multi-hop, sealed location boxes)
+- [x] Relay server: encrypted location mailbox (`server/`, tested)
+- [x] GPS + compass arrow with magnetic declination (written, untested)
+- [x] Crowd relay: BLE extended adverts, sealed boxes, multi-hop (written, untested)
+- [ ] Deploy the relay server and build the app with its URL
+- [ ] Accounts / usernames, gig-group codes and QR
 - [ ] Battery work: adaptive advertising/scanning
 - [ ] Real-crowd testing session; Samsung/Xiaomi background-kill testing
 

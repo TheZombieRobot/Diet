@@ -16,7 +16,8 @@ Find your mates at a gig. Open the app, tap a friend, and an arrow points you to
 | Path | What |
 |---|---|
 | `core/` | Pure Kotlin, no Android. All the "where does the arrow point" logic: picking the best method, spin-to-scan maths, Bluetooth distance, arrow colours, rotating privacy codes. Fully unit-tested. |
-| `app/` | The Android app (Kotlin + Jetpack Compose): screens, Bluetooth broadcasting/scanning, compass, background visibility service. |
+| `app/` | The Android app (Kotlin + Jetpack Compose): screens, UWB, Wi-Fi Aware, Bluetooth, GPS, crowd relay, background visibility service. |
+| `server/` | The relay server: a tiny mailbox for sealed locations (Kotlin + Ktor). |
 | `docs/` | Brief, architecture, roadmap. |
 | `archive/diet-app/` | Previous project, kept for reference. |
 
@@ -29,11 +30,35 @@ Open the folder in **Android Studio** (Ladybug or newer) and press Run. You need
 - Two real Android phones (Android 10+) for anything Bluetooth, UWB or compass. Use
   at least one with UWB and one without.
 
-Core logic tests (no phone or Android SDK needed):
+Core logic and server tests (no phone or Android SDK needed):
 
 ```sh
-./gradlew :core:test
+./gradlew :core:test :server:test
 ```
+
+**Every push builds automatically** on GitHub Actions (`.github/workflows/android.yml`): it
+runs the tests and produces a debug APK you can download from the run's page
+(Actions → Android build → the run → Artifacts → `moshpoint-debug-apk`) and install
+straight onto a phone.
+
+### GPS mode needs the relay server
+
+GPS sharing is off until the app is built with a server address:
+
+```sh
+./gradlew :app:assembleDebug -Pmoshpoint.server=https://your-server.example
+```
+
+Running the server (any host that runs Docker, e.g. Fly.io, Render, Railway):
+
+```sh
+docker build -f server/Dockerfile -t moshpoint-server .
+docker run -p 8080:8080 moshpoint-server
+```
+
+Or locally without Docker: `./gradlew :server:run` (port 8080). Two phones on the same
+Wi-Fi as your laptop can use `-Pmoshpoint.server=http://<laptop-ip>:8080` for testing
+(debug builds allow plain http for this; release builds need https).
 
 ## Trying it on two phones (current build)
 
@@ -49,7 +74,7 @@ Core logic tests (no phone or Android SDK needed):
    `AZIMUTH_SIGN` in `UwbFinder.kt`. Also try it with phone A's screen off and the app
    closed, to check UWB works from the background.
 
-Debug logs: `adb logcat -s UwbFinder UwbResponder BleRanger BleBroadcaster`
+Debug logs: `adb logcat -s UwbFinder UwbResponder BleRanger BleBroadcaster CrowdRelay WifiAware MyLocation`
 
 ## Moving to its own repo
 

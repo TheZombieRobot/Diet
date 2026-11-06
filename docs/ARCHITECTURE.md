@@ -26,6 +26,8 @@ method runs at once, and a single arbiter decides what to draw.
 | `ArrowStyle.kt` | Arrow is red at 150 m or more and fades to the friend's colour by 10 m. Distance label text. |
 | `Advert.kt` | The bytes in every Bluetooth advert: `[flags][rotating id][encrypted UWB block]`. The UWB block is how two phones set up UWB with no connection or server (below). Also `UwbSessionKeys`, which both phones use to derive the same UWB session id and key on their own. |
 | `FriendRecord.kt` | Saved-friend format and share codes. Gig group members expire after 18 h. |
+| `LocationBox.kt` | Seals a GPS fix (lat, lon, time, accuracy) with AES-GCM so only the owner's friends can open it. 29 bytes. Bound to the rotating id. |
+| `CrowdRelay.kt` | `RelayPacket` (47-byte relay advert) and `RelayCache` (newest per id, hop limit, age limit, fair airtime). |
 | `EphemeralId.kt` | Rotating 16-byte broadcast code = `HMAC-SHA256(secret, 5-min epoch)`. Friends who hold the secret recognise it; nobody else can link it over time. |
 | `Geo.kt` | Distance and bearing between GPS points. Absolute bearing → arrow angle using the compass. |
 
@@ -38,6 +40,11 @@ method runs at once, and a single arbiter decides what to draw.
 | `locate/BleBroadcaster.kt` | One BLE advert; used by visibility and by the finder's "I'm looking" advert. |
 | `locate/UwbFinder.kt` | UWB on the looking phone (controller). One multicast session to every friend. |
 | `service/UwbResponder.kt` | UWB on the visible phone (controlee). Joins a looking friend's session from the background service. |
+| `locate/GpsFinder.kt` | GPS mode: fetches friends' sealed boxes from the server and the crowd-relay cache, then works out bearing and distance. |
+| `locate/RelayClient.kt` | HTTP client for the relay server. |
+| `locate/CrowdRelayRadio.kt` | Extended-advert broadcast and scan for crowd relay. |
+| `locate/WifiAware.kt` | Wi-Fi Aware publish/subscribe + RTT ranging. |
+| `service/LocationUploader.kt` | While visible: seals our GPS for the crowd relay and the server. |
 | `locate/Compass.kt` | Rotation-vector sensor → heading. |
 | `locate/Capabilities.kt` | Detects BLE / UWB / Wi-Fi Aware / compass / GPS. Phones will exchange this so both sides use a method they share. |
 | `service/VisibilityService.kt` | Foreground service (type `connectedDevice`) that keeps the BLE advert going with the app closed and swaps the code every rotation. On UWB phones it also listens for lookers and runs `UwbResponder`. |
@@ -50,12 +57,21 @@ method runs at once, and a single arbiter decides what to draw.
 
 | # | Method | Status | Notes |
 |---|---|---|---|
-| 1 | GPS + compass via server | To do | Needs a backend (e.g. Supabase / Firebase). Phones upload location **encrypted to friends** while visible. Correct compass for magnetic declination. |
-| 2 | Crowd relay over BLE | To do | Multi-hop: BLE extended adverts or GATT. Payload = sealed location box (see privacy). TTL + dedupe. |
-| 3 | UWB | **Written, untested** | `androidx.core.uwb`, set up over BLE adverts (see below). Only between two UWB phones. |
-| 4 | Wi-Fi Aware RTT | To do | `WifiAwareManager` + `WifiRttManager`. Distance only. |
-| 5 | BLE RSSI | **Working** | Distance + warmer/colder. |
-| 6 | Spin to scan | **Working** | Scan button. Maths tested; needs real-crowd tuning. |
+| 1 | GPS + compass via server | **Written** | Visible phone seals its GPS (`LocationBox`) and posts it to the relay server under its rotating id. The looking phone fetches it, opens it, and points the arrow with the compass, corrected to true north. Needs a server URL at build time. |
+| 2 | Crowd relay over BLE | **Written** | Sealed locations hop phone to phone using Bluetooth 5 extended adverts (47 bytes). Each hop keeps the newest copy per id, re-sends with one fewer hop (max 6), and uploads to the server if it has signal. |
+| 3 | UWB | **Written** | `androidx.core.uwb`, set up over BLE adverts (see below). Only between two UWB phones. |
+| 4 | Wi-Fi Aware RTT | **Written** | Visible phone publishes the `moshpoint` service with its rotating id; the looking phone subscribes and measures round-trip time about once a second. Distance only. |
+| 5 | BLE RSSI | **Written** | Distance + warmer/colder. |
+| 6 | Spin to scan | **Written** | Scan button. Maths tested; needs real-crowd tuning. |
+
+"Written" means the code is in and compiles in CI. None of it has been tried on real phones yet.
+
+## Relay server (`server/`)
+
+A dumb mailbox. `PUT /v1/box/{rotating id}` stores a sealed record for 15 minutes;
+`POST /v1/lookup` fetches several ids in one go. No accounts, no names, no plain
+locations, and ids rotate every 5 minutes, so the server can't follow anyone.
+In-memory, single instance: fine for testing and a first launch. See the README for deploying.
 
 ## UWB set-up (no connection, no server)
 
@@ -81,11 +97,13 @@ on real phones.
 
 - Visibility is off by default, only the user turns it on, and a notification shows while it's on.
 - The broadcast is a rotating HMAC code, never a fixed ID or name.
-- **Crowd network (later):** a helper phone that hears a code attaches *its own* GPS and
-  encrypts it to the owner's public key (X25519 + AES-GCM sealed box), keyed by the
-  rotating code. It uploads it or relays it. Only the owner and their friends can open it.
-  The helper can't link codes over time, so it never learns who it helped. This is the
-  same model as Apple Find My / Tile.
+- **Crowd relay (now):** the visible phone seals its *own* GPS for its friends. Helpers only
+  pass on ciphertext under a rotating id.
+- **Crowd network (later, at scale):** a helper phone that hears a code attaches *its own*
+  GPS and encrypts it to the owner's public key (X25519 + AES-GCM sealed box), keyed by the
+  rotating code. This covers people whose phone has no GPS fix. Only the owner and their
+  friends can open it. The helper can't link codes over time, so it never learns who it
+  helped. This is the same model as Apple Find My / Tile.
 - To do: per-group secrets so leaving a gig group revokes access; keys in the Android Keystore.
 
 ## Things to watch (from the brief)

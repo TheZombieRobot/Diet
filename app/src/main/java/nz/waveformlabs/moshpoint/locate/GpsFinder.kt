@@ -17,11 +17,13 @@ import nz.waveformlabs.moshpoint.core.SharedLocation
 import kotlin.math.max
 
 /**
- * GPS + compass mode, for when you're far apart and have mobile data.
+ * GPS + compass mode, for when you're far apart.
  *
- * Every few seconds: fetch each tracked friend's sealed boxes from the relay server
- * (under their current and previous rotating id), open them with the friend's secret,
- * and turn "their GPS vs my GPS" into a bearing and distance.
+ * Every few seconds, for each tracked friend (current and previous rotating id):
+ *  - fetch their sealed boxes from the relay server, if we have data, and
+ *  - check what the crowd relay has heard over Bluetooth,
+ * open them with the friend's secret, and turn "their GPS vs my GPS" into a bearing and
+ * distance.
  */
 class GpsFinder(
     context: Context,
@@ -38,7 +40,7 @@ class GpsFinder(
         private set
 
     fun start() {
-        if (jobs.isNotEmpty() || !RelayClient.enabled) return
+        if (jobs.isNotEmpty()) return
         jobs = listOf(
             scope.launch {
                 myLocation.updates(intervalMs = 3_000, minDistanceM = 0f).collect {
@@ -72,17 +74,23 @@ class GpsFinder(
             val e = f.ephemeralId.epochAt(now)
             listOf(f to f.ephemeralId.idForEpoch(e), f to f.ephemeralId.idForEpoch(e - 1))
         }
-        val results = RelayClient.lookup(asks.map { it.second }) ?: return
-        val best = mutableMapOf<String, SharedLocation>()
-        asks.forEachIndexed { i, (friend, id) ->
-            results[i].forEach { sealed ->
-                val loc = LocationBox.open(friend.secret, id, sealed) ?: return@forEach
-                val prev = best[friend.id]
-                if (prev == null || loc.timeSec > prev.timeSec) best[friend.id] = loc
-            }
+        val best = mutableMapOf<String, Pair<SharedLocation, Method>>()
+        fun consider(friend: Friend, id: ByteArray, sealed: ByteArray, method: Method) {
+            val loc = LocationBox.open(friend.secret, id, sealed) ?: return
+            val prev = best[friend.id]
+            if (prev == null || loc.timeSec > prev.first.timeSec) best[friend.id] = loc to method
+        }
+        // Bluetooth crowd relay: works with no signal at all.
+        asks.forEach { (friend, id) ->
+            CrowdRelayRadio.cache.lookup(id, now / 1000)?.let { consider(friend, id, it.sealed, Method.CROWD_RELAY) }
+        }
+        // Relay server: needs mobile data.
+        RelayClient.lookup(asks.map { it.second })?.let { results ->
+            asks.forEachIndexed { i, (friend, id) -> results[i].forEach { consider(friend, id, it, Method.GPS_SERVER) } }
         }
         val myLatLon = LatLon(here.latitude, here.longitude)
-        for ((friendId, loc) in best) {
+        for ((friendId, pair) in best) {
+            val (loc, method) = pair
             val ageMs = now - loc.timeSec * 1000
             if (ageMs > MAX_AGE_MS) continue
             val distance = Geo.distanceM(myLatLon, loc.latLon)
@@ -93,7 +101,7 @@ class GpsFinder(
             onFix(
                 Fix(
                     friendId = friendId,
-                    method = Method.GPS_SERVER,
+                    method = method,
                     bearingDeg = Geo.bearingDeg(myLatLon, loc.latLon),
                     distanceM = distance,
                     confidence = confidence,

@@ -26,8 +26,8 @@ import nz.waveformlabs.moshpoint.core.SpinScan
  * Each method pushes [Fix]es into the [MethodArbiter]; the UI just reads [arrows].
  * The user never picks a method.
  *
- * Wired up now:  UWB, GPS via relay server, Bluetooth signal strength, spin-to-scan, compass.
- * Still to do:   crowd relay, Wi-Fi Aware RTT.
+ * Wired up: UWB, Wi-Fi Aware RTT, GPS via relay server, crowd relay, Bluetooth signal
+ * strength, spin-to-scan, compass.
  *                Each one only needs to call [arbiter].submit(...) with its fixes.
  *
  * [scope] must run on the main thread: BLE callbacks and the arbiter share it.
@@ -92,6 +92,14 @@ class LocatorEngine(
 
     private val gps = GpsFinder(context, scope, { trackedFriends() }) { arbiter.submit(it) }
 
+    private val wifi: WifiAwareFinder? = if (wifiRttSupported(context)) {
+        WifiAwareFinder(context, scope, { trackedFriends() }) { friendId, distance ->
+            arbiter.submit(Fix(friendId, Method.WIFI_AWARE, null, distance, confidence = 0.85, timestampMs = System.currentTimeMillis()))
+        }
+    } else {
+        null
+    }
+
     private var jobs = listOf<Job>()
 
     fun track(friendIds: Set<String>) {
@@ -105,6 +113,8 @@ class LocatorEngine(
         ble.start(lowLatency = true)
         uwb?.start()
         gps.start()
+        wifi?.start()
+        CrowdRelayRadio.startListening(context, scope)
         jobs = listOf(
             // True-north heading: compass is magnetic, GPS bearings are true.
             scope.launch { compass.headings().collect { heading = Geo.normalize360(it + gps.declinationDeg) } },
@@ -129,6 +139,8 @@ class LocatorEngine(
         ble.stop()
         uwb?.stop()
         gps.stop()
+        wifi?.stop()
+        CrowdRelayRadio.stopListening(context)
         lookingAdvert?.stop()
         jobs.forEach { it.cancel() }
         jobs = emptyList()
