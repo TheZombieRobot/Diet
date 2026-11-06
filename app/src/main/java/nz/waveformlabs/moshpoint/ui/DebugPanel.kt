@@ -11,8 +11,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -45,8 +52,35 @@ fun DebugPanel(
     tech: Map<String, String>,
     log: List<String>,
     onClearLog: () -> Unit,
+    recording: Boolean,
+    recordedRows: Int,
+    onRecord: (Boolean) -> Unit,
+    onMark: (String) -> Unit,
+    onShare: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var marking by remember { mutableStateOf(false) }
+    var markText by remember { mutableStateOf("") }
+    if (marking) {
+        AlertDialog(
+            onDismissRequest = { marking = false },
+            title = { Text("Mark ground truth") },
+            text = {
+                Column {
+                    Text("What's actually true right now? e.g. \"Sam 20 m, due north\", \"Sam behind a wall\", \"in the mosh pit\".")
+                    OutlinedTextField(markText, { markText = it }, singleLine = true)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    onMark(markText)
+                    markText = ""
+                    marking = false
+                }) { Text("Mark") }
+            },
+            dismissButton = { TextButton(onClick = { marking = false }) { Text("Cancel") } },
+        )
+    }
     Column(
         modifier
             .background(Color(0xEE101418))
@@ -57,6 +91,25 @@ fun DebugPanel(
             Mono("DEBUG", 14.sp, Color(0xFFFFD54F), bold = true)
             Spacer(Modifier.width(12.dp))
             Chip("all on", Color(0xFF90CAF9)) { onSolo(null) }
+        }
+
+        Heading("Field recording")
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (recording) {
+                Chip("■ stop", Color(0xFFEF9A9A)) { onRecord(false) }
+                Spacer(Modifier.width(6.dp))
+                Chip("mark…", Color(0xFFFFD54F)) { marking = true }
+                Spacer(Modifier.width(8.dp))
+                Mono("● REC  $recordedRows rows", 11.sp, Color(0xFFEF9A9A))
+            } else {
+                Chip("● record", Color(0xFFEF9A9A)) { onRecord(true) }
+                Spacer(Modifier.width(6.dp))
+                Chip("share last", Color(0xFF90CAF9), onShare)
+                if (recordedRows > 0) {
+                    Spacer(Modifier.width(8.dp))
+                    Mono("$recordedRows rows saved", 11.sp, Color.Gray)
+                }
+            }
         }
 
         Heading("Methods  (tap = on/off, solo = only this one)")

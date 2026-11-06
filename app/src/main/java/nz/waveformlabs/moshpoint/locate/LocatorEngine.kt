@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.DebugStatus
+import nz.waveformlabs.moshpoint.FieldRecorder
 import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.FriendsRepository
 import nz.waveformlabs.moshpoint.core.Advert
@@ -21,6 +22,7 @@ import nz.waveformlabs.moshpoint.core.HeadingFilter
 import nz.waveformlabs.moshpoint.core.Method
 import nz.waveformlabs.moshpoint.core.MethodArbiter
 import nz.waveformlabs.moshpoint.core.MethodDebug
+import nz.waveformlabs.moshpoint.core.RecordLine
 import nz.waveformlabs.moshpoint.core.debug
 import nz.waveformlabs.moshpoint.core.SpinScan
 
@@ -72,7 +74,7 @@ class LocatorEngine(
                 updateLookingAdvert()
             },
             onResult = { friendId, distance, azimuth ->
-                arbiter.submit(
+                submit(
                     Fix(
                         friendId = friendId,
                         method = Method.UWB,
@@ -89,23 +91,68 @@ class LocatorEngine(
     }
 
     private val ble = BleRanger(context, "BT scan (looking)", { trackedFriends() }) { friend, rssi, distance, advert ->
-        arbiter.submit(Fix(friend.id, Method.BLE_RSSI, null, distance, confidence = 0.7, timestampMs = System.currentTimeMillis()))
+        submit(Fix(friend.id, Method.BLE_RSSI, null, distance, confidence = 0.7, timestampMs = System.currentTimeMillis()))
         spinScans[friend.id]?.add(heading, rssi.toDouble())
+        if (FieldRecorder.active) {
+            FieldRecorder.line(
+                RecordLine.of(
+                    System.currentTimeMillis(), if (spinScans.isNotEmpty()) "rssi_scan" else "rssi", friend.name, "BLE_RSSI",
+                    distanceM = distance, rssiDbm = rssi, headingDeg = heading,
+                ),
+            )
+        }
         val info = advert.uwb
         if (info?.role == Advert.UwbRole.CONTROLEE) uwb?.onFriendControlee(friend.id, info.address)
     }
 
-    private val gps = GpsFinder(context, scope, { trackedFriends() }) { arbiter.submit(it) }
+    private val gps = GpsFinder(context, scope, { trackedFriends() }) { submit(it) }
 
     private val wifi: WifiAwareFinder? = if (wifiRttSupported(context)) {
         WifiAwareFinder(context, scope, { trackedFriends() }) { friendId, distance ->
-            arbiter.submit(Fix(friendId, Method.WIFI_AWARE, null, distance, confidence = 0.85, timestampMs = System.currentTimeMillis()))
+            submit(Fix(friendId, Method.WIFI_AWARE, null, distance, confidence = 0.85, timestampMs = System.currentTimeMillis()))
         }
     } else {
         null
     }
 
     private var jobs = listOf<Job>()
+
+    /** Every fix goes through here: into the arbiter, and into a field recording if one is running. */
+    private fun submit(fix: Fix) {
+        arbiter.submit(fix)
+        if (FieldRecorder.active) {
+            FieldRecorder.line(
+                RecordLine.of(
+                    fix.timestampMs, "fix", nameOf(fix.friendId), fix.method.name,
+                    distanceM = fix.distanceM, bearingDeg = fix.bearingDeg, headingDeg = heading, confidence = fix.confidence,
+                ),
+            )
+        }
+    }
+
+    private fun nameOf(friendId: String) = FriendsRepository.byId(friendId)?.name ?: friendId
+    private var lastRecordAt = 0L
+
+    private fun recordTick(now: Long, arrows: List<ArrowState>) {
+        if (!FieldRecorder.active || now - lastRecordAt < 500) return
+        lastRecordAt = now
+        FieldRecorder.line(RecordLine.of(now, "heading", headingDeg = heading))
+        for (a in arrows) {
+            FieldRecorder.line(
+                when (a) {
+                    is ArrowState.NoSignal -> RecordLine.of(now, "arrow", nameOf(a.friendId), note = "no signal")
+                    is ArrowState.DistanceOnly -> RecordLine.of(
+                        now, "arrow", nameOf(a.friendId), a.method.name, distanceM = a.distanceM, note = "distance only ${a.trend}",
+                    )
+                    is ArrowState.Pointing -> RecordLine.of(
+                        now, "arrow", nameOf(a.friendId), a.method.name, distanceM = a.distanceM,
+                        bearingDeg = Geo.normalize360(heading + a.relativeDeg), headingDeg = heading,
+                        note = if (a.unsure) "unsure" else null,
+                    )
+                },
+            )
+        }
+    }
 
     private val radios = RadioWatcher(
         context,
@@ -257,6 +304,7 @@ class LocatorEngine(
         val arrows = _tracking.value.map { arbiter.arrowFor(it, heading, now) }
         _arrows.value = arrows
         if (DebugStatus.enabled) updateDebug(now, arrows)
+        recordTick(now, arrows)
     }
 
     private fun updateSpinScan(now: Long) {
@@ -265,7 +313,7 @@ class LocatorEngine(
         for ((id, scan) in spinScans) {
             when (val r = scan.result()) {
                 is SpinScan.Result.NeedMore -> { allDone = false; minCoverage = minOf(minCoverage, r.coverageDeg) }
-                is SpinScan.Result.Found -> arbiter.submit(Fix(id, Method.SPIN_SCAN, r.bearingDeg, null, r.confidence, now))
+                is SpinScan.Result.Found -> submit(Fix(id, Method.SPIN_SCAN, r.bearingDeg, null, r.confidence, now))
                 SpinScan.Result.Inconclusive -> Unit
             }
         }

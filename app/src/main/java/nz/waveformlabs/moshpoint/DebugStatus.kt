@@ -35,6 +35,7 @@ object DebugStatus {
     fun log(line: String) {
         if (!enabled) return
         val stamped = "${time.format(Date())}  $line"
+        FieldRecorder.line(nz.waveformlabs.moshpoint.core.RecordLine.of(System.currentTimeMillis(), "log", note = line))
         _log.update { (listOf(stamped) + it).take(MAX_LOG) }
     }
 

@@ -8,6 +8,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.DebugStatus
+import nz.waveformlabs.moshpoint.FieldRecorder
+import nz.waveformlabs.moshpoint.core.RecordLine
 import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.core.Fix
 import nz.waveformlabs.moshpoint.core.Geo
@@ -48,6 +50,12 @@ class GpsFinder(
                 myLocation.updates(intervalMs = 3_000, minDistanceM = 0f).collect {
                     me = it
                     DebugStatus.set("GPS", "±%.0f m via %s".format(it.accuracy, it.provider))
+                    FieldRecorder.line(
+                        RecordLine.of(
+                            System.currentTimeMillis(), "my_gps", lat = it.latitude, lon = it.longitude,
+                            accuracyM = it.accuracy.toDouble(), note = it.provider,
+                        ),
+                    )
                     declinationDeg = GeomagneticField(
                         it.latitude.toFloat(), it.longitude.toFloat(), it.altitude.toFloat(), it.time,
                     ).declination.toDouble()
@@ -103,6 +111,12 @@ class GpsFinder(
         val myLatLon = LatLon(here.latitude, here.longitude)
         for ((friendId, pair) in best) {
             val (loc, method) = pair
+            FieldRecorder.line(
+                RecordLine.of(
+                    now, "friend_gps", list.firstOrNull { it.id == friendId }?.name, method.name,
+                    lat = loc.lat, lon = loc.lon, accuracyM = loc.accuracyM.toDouble(), note = "age ${(now / 1000 - loc.timeSec)}s",
+                ),
+            )
             val ageMs = now - loc.timeSec * 1000
             if (ageMs > MAX_AGE_MS) continue
             val distance = Geo.distanceM(myLatLon, loc.latLon)

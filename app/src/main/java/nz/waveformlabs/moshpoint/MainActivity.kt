@@ -174,6 +174,8 @@ class MainActivity : ComponentActivity() {
                                     val methods by engine.enabledMethods.collectAsState()
                                     val tech by DebugStatus.tech.collectAsState()
                                     val log by DebugStatus.log.collectAsState()
+                                    val recording by FieldRecorder.recording.collectAsState()
+                                    val recordedRows by FieldRecorder.rows.collectAsState()
                                     DebugPanel(
                                         rows = rows,
                                         friendOf = FriendsRepository::byId,
@@ -183,6 +185,11 @@ class MainActivity : ComponentActivity() {
                                         tech = tech,
                                         log = log,
                                         onClearLog = DebugStatus::clearLog,
+                                        recording = recording,
+                                        recordedRows = recordedRows,
+                                        onRecord = { on -> if (on) FieldRecorder.start(this@MainActivity) else FieldRecorder.stop() },
+                                        onMark = FieldRecorder::mark,
+                                        onShare = ::shareRecording,
                                         modifier = mod,
                                     )
                                 }
@@ -248,6 +255,23 @@ class MainActivity : ComponentActivity() {
         if (on) VisibilityService.start(this) else VisibilityService.stop(this)
         val power = getSystemService(PowerManager::class.java)
         if (on && power != null && !power.isIgnoringBatteryOptimizations(packageName)) askBattery = true
+    }
+
+    /** Debug builds: send the latest field recording (CSV) via any app. */
+    private fun shareRecording() {
+        val file = FieldRecorder.lastFile?.takeIf { it.exists() } ?: FieldRecorder.files(this).firstOrNull()
+        if (file == null) {
+            DebugStatus.log("No recording to share yet")
+            return
+        }
+        val uri = androidx.core.content.FileProvider.getUriForFile(this, "$packageName.recordings", file)
+        val send = Intent(Intent.ACTION_SEND).apply {
+            type = "text/csv"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            putExtra(Intent.EXTRA_SUBJECT, "Moshpoint field recording ${file.name}")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        startActivity(Intent.createChooser(send, "Share recording"))
     }
 
     private fun shareCode(code: String) {
