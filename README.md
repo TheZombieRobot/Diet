@@ -72,7 +72,8 @@ Wi-Fi as your laptop can use `-Pmoshpoint.server=http://<laptop-ip>:8080` for te
 2. Type your name at the top. Phone A taps **Show my QR**; phone B taps **Scan their QR**
    and then **Add friend**. Swap and do it the other way too.
    (No camera handy? **Share my code** sends it by message; paste the whole message in.)
-3. Phone A: switch on **Visible to my mates**.
+3. Phone A: switch on **Visible to my mates** (or add the **Moshpoint** tile to Quick
+   Settings and tap it; the notification has a **Stop being visible** button).
 4. Phone B: tap phone A's name. Walk around. You should see the distance and warmer/colder.
    Press **Scan**, hold the phone flat on your chest and turn slowly: an arrow should appear.
 5. **If both phones have UWB:** within about 50 m the arrow should lock on and the distance

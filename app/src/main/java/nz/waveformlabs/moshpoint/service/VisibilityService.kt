@@ -62,6 +62,11 @@ class VisibilityService : LifecycleService() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
+        if (intent?.action == ACTION_STOP) {
+            VisibilityPrefs.setVisible(this, false)
+            stopSelf()
+            return START_NOT_STICKY
+        }
         if (!startInForeground()) {
             // Android refused (e.g. restarted from the background on Android 12+). Give up
             // quietly; visibility comes back next time the app is opened.
@@ -180,11 +185,15 @@ class VisibilityService : LifecycleService() {
         val open = PendingIntent.getActivity(
             this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE,
         )
+        val stopIntent = PendingIntent.getService(
+            this, 1, Intent(this, VisibilityService::class.java).setAction(ACTION_STOP), PendingIntent.FLAG_IMMUTABLE,
+        )
         val notification: Notification = NotificationCompat.Builder(this, CHANNEL)
             .setContentTitle(getString(R.string.visibility_notification))
             .setSmallIcon(android.R.drawable.ic_menu_mylocation)
             .setOngoing(true)
             .setContentIntent(open)
+            .addAction(0, "Stop being visible", stopIntent)
             .build()
         // Add the location type when we can, so GPS sharing keeps working with the app
         // closed. Android refuses it in some cases (e.g. started at boot without the
@@ -206,6 +215,7 @@ class VisibilityService : LifecycleService() {
         private const val CHANNEL = "visibility"
         private const val NOTIFICATION_ID = 1
         private const val FAST_FOR_MS = 90_000L
+        private const val ACTION_STOP = "nz.waveformlabs.moshpoint.STOP_VISIBLE"
 
         fun start(context: Context) {
             VisibilityPrefs.setVisible(context, true)

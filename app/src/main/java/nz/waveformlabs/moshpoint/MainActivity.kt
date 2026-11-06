@@ -114,6 +114,8 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         missing = missingPermissions()
+        // May have changed from the notification's Stop button or the Quick Settings tile.
+        visibleToMates = VisibilityPrefs.isVisible(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
