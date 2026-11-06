@@ -74,6 +74,9 @@ Wi-Fi as your laptop can use `-Pmoshpoint.server=http://<laptop-ip>:8080` for te
    `AZIMUTH_SIGN` in `UwbFinder.kt`. Also try it with phone A's screen off and the app
    closed, to check UWB works from the background.
 
+In debug builds each arrow shows which method is driving it (UWB, Wi-Fi, BT, GPS, crowd,
+scan; a `?` means unsure), so you can see the hand-over between methods as you walk.
+
 Debug logs: `adb logcat -s UwbFinder UwbResponder BleRanger BleBroadcaster CrowdRelay WifiAware MyLocation`
 
 ## Moving to its own repo

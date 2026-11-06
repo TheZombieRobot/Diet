@@ -49,6 +49,8 @@ fun FriendsScreen(
     visible: Boolean,
     alwaysOn: Boolean,
     phoneSummary: String,
+    missingPermissions: List<String>,
+    onFixPermissions: () -> Unit,
     onVisible: (Boolean) -> Unit,
     onAlwaysOn: (Boolean) -> Unit,
     onFind: (Set<String>) -> Unit,
@@ -101,6 +103,17 @@ fun FriendsScreen(
         item {
             Text("Moshpoint", color = Color.White, fontSize = 32.sp)
             Text(phoneSummary, color = Color.Gray, fontSize = 12.sp)
+            if (missingPermissions.isNotEmpty()) {
+                Spacer(Modifier.height(8.dp))
+                Box(Modifier.fillMaxWidth().background(Color(0xFF3A1F1F)).padding(12.dp)) {
+                    androidx.compose.foundation.layout.Column {
+                        Text("Moshpoint still needs:", color = Color.White)
+                        missingPermissions.forEach { Text("• $it", color = Color(0xFFFFCDD2), fontSize = 13.sp) }
+                        Spacer(Modifier.height(6.dp))
+                        Button(onClick = onFixPermissions) { Text("Allow") }
+                    }
+                }
+            }
             Spacer(Modifier.height(8.dp))
             SwitchRow("Visible to my mates", visible, onVisible)
             SwitchRow("Leave visibility always on", alwaysOn, onAlwaysOn)

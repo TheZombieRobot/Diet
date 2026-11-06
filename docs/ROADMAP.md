@@ -11,7 +11,7 @@
 ## Milestone 1: works on two phones in a field
 - [x] Save friends between sessions (app-private file); gig group expires after one night
 - [ ] Encrypt saved secrets with an Android Keystore key
-- [ ] Permission explainer screens; battery-optimisation exemption prompt
+- [x] Missing-permission banner with reasons; battery-optimisation prompt when going visible
 - [x] UWB ranging (`androidx.core.uwb`), set up through BLE adverts. Written, **not yet tested on phones**
 - [x] Share-your-code button, remove friend, "End night" for the gig group
 - [x] Wi-Fi Aware RTT distance (written, untested)

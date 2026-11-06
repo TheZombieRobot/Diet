@@ -24,9 +24,11 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.core.ArrowState
 import nz.waveformlabs.moshpoint.core.ArrowStyle
+import nz.waveformlabs.moshpoint.core.Method
 import nz.waveformlabs.moshpoint.core.Trend
 import nz.waveformlabs.moshpoint.locate.LocatorEngine
 import kotlin.math.cos
@@ -69,8 +71,9 @@ fun FinderScreen(
                                 Trend.COLDER -> "colder"
                                 Trend.STEADY -> ""
                             }
+                            val via = if (BuildConfig.DEBUG) "  (${methodLabel(d.method)})" else ""
                             Text(
-                                "$name  ${ArrowStyle.distanceLabel(d.distanceM)}  $trend",
+                                "$name  ${ArrowStyle.distanceLabel(d.distanceM)}  $trend$via",
                                 color = Color(ArrowStyle.arrowColor(friendOf(d.friendId)?.color ?: ArrowStyle.RED, d.distanceM)),
                                 fontSize = 22.sp,
                             )
@@ -128,8 +131,21 @@ private fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Frie
             drawCircle(colour, radius = 34f, center = tip)
             drawLabel(friend?.name?.take(1) ?: "?", tip, 34f, Color.Black)
             drawLabel(ArrowStyle.distanceLabel(a.distanceM), Offset(tip.x, tip.y + 72f), 30f, Color.White)
+            if (BuildConfig.DEBUG) {
+                // Test builds only: which method is driving this arrow.
+                drawLabel(methodLabel(a.method) + if (a.unsure) "?" else "", Offset(tip.x, tip.y + 108f), 24f, Color.Gray)
+            }
         }
     }
+}
+
+private fun methodLabel(m: Method) = when (m) {
+    Method.UWB -> "UWB"
+    Method.SPIN_SCAN -> "scan"
+    Method.GPS_SERVER -> "GPS"
+    Method.CROWD_RELAY -> "crowd"
+    Method.WIFI_AWARE -> "Wi-Fi"
+    Method.BLE_RSSI -> "BT"
 }
 
 private fun DrawScope.drawArrow(centre: Offset, length: Float, angleDeg: Float, colour: Color) {
