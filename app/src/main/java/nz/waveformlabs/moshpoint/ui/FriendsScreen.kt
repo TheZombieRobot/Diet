@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.Friend
 
 /**
@@ -229,7 +230,8 @@ fun FriendsScreen(
 
         item { Header("Friends") }
         if (permanent.isEmpty()) item { Text("No friends added yet.", color = Color.Gray) }
-        if (onAddSimulated != null) {
+        // BuildConfig.DEBUG is a compile-time constant, so release builds drop this entirely.
+        if (BuildConfig.DEBUG && onAddSimulated != null) {
             item {
                 OutlinedButton(onClick = onAddSimulated) { Text("Debug: add simulated friend") }
             }

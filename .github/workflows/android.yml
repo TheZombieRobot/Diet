@@ -44,13 +44,16 @@ jobs:
           # Debug-only code must not ship. Class names are obfuscated, so look for text
           # that only the debug panel and simulator use.
           APK=$(ls app/build/outputs/apk/release/*.apk | head -1)
-          for s in 'solo = only this one' 'Debug: add simulated friend' 'Mark ground truth'; do
+          leaked=0
+          for s in 'solo = only this one' 'Debug: add simulated friend' 'Mark ground truth' 'Hide debug'; do
             if unzip -p "$APK" 'classes*.dex' | grep -a -q "$s"; then
-              echo "::warning::debug-only text '$s' found in release APK"
+              echo "::error::debug-only text '$s' found in release APK"
+              leaked=1
             else
               echo "OK: '$s' not in release APK"
             fi
           done
+          exit $leaked
 
       - name: Compile errors
         if: failure()
