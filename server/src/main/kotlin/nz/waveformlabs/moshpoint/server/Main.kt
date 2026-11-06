@@ -110,5 +110,6 @@ private fun encodeRecords(records: List<ByteArray>) = encodeRecordsBody(records)
 
 fun main() {
     val port = System.getenv("PORT")?.toIntOrNull() ?: 8080
+    org.slf4j.LoggerFactory.getLogger("nz.waveformlabs.moshpoint.server").info("Moshpoint relay listening on port $port")
     embeddedServer(Netty, port = port, host = "0.0.0.0") { moshpoint() }.start(wait = true)
 }
