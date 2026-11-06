@@ -164,6 +164,7 @@ class MainActivity : ComponentActivity() {
                             scan = scan,
                             onScan = engine::startSpinScan,
                             onCancelScan = engine::cancelSpinScan,
+                            onDismissScan = engine::dismissScanResult,
                             onBack = {
                                 finding = false
                                 stopEngineSoon()

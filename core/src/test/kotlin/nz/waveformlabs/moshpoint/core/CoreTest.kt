@@ -140,6 +140,15 @@ class SpinScanTest {
         }
     }
 
+    @Test fun sectorsShowWhatsBeenCovered() {
+        val scan = SpinScan()
+        scan.add(5.0, -70.0)
+        scan.add(95.0, -70.0)
+        scan.add(359.0, -70.0)
+        val s = scan.sectors(4)
+        assertTrue(s[0] && s[1] && !s[2] && s[3])
+    }
+
     @Test fun needsAFullTurn() {
         val scan = SpinScan()
         for (h in 0..180 step 10) scan.add(h.toDouble(), -70.0)

@@ -49,6 +49,13 @@ class SpinScan(
 
     fun reset() = samples.clear()
 
+    /** Which of [count] equal slices of the circle have at least one sample (for the progress ring). */
+    fun sectors(count: Int = 36): BooleanArray {
+        val out = BooleanArray(count)
+        for (s in samples) out[((s.headingDeg / 360.0 * count).toInt()).coerceIn(0, count - 1)] = true
+        return out
+    }
+
     /** Angular coverage: 360 minus the largest gap between consecutive headings. */
     fun coverageDeg(): Double {
         if (samples.size < 2) return 0.0

@@ -18,6 +18,10 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.key
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,6 +63,7 @@ fun FinderScreen(
     scan: LocatorEngine.ScanUi?,
     onScan: () -> Unit,
     onCancelScan: () -> Unit,
+    onDismissScan: () -> Unit,
     onBack: () -> Unit,
     /** Only used in debug builds. Null in release. */
     debug: (@Composable (Modifier) -> Unit)? = null,
@@ -99,7 +104,13 @@ fun FinderScreen(
             }
         }
 
+        val haptics = LocalHapticFeedback.current
+        LaunchedEffect(scan?.done) {
+            if (scan?.done == true) haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+        }
         if (scan != null && !scan.done) {
+            ScanRing(scan)
+            Spacer(Modifier.height(8.dp))
             Text(
                 "Hold your phone flat against your chest and turn slowly in a full circle " +
                     "(${scan.coverageDeg.toInt()}° of 360°)",
@@ -108,6 +119,13 @@ fun FinderScreen(
             )
             Spacer(Modifier.height(8.dp))
             OutlinedButton(onClick = onCancelScan) { Text("Cancel scan") }
+        } else if (scan != null && scan.done) {
+            Text(scan.outcome.ifBlank { "Scan finished" }, color = Color.White, textAlign = TextAlign.Center)
+            Spacer(Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = onDismissScan) { Text("OK") }
+                OutlinedButton(onClick = onScan) { Text("Scan again") }
+            }
         } else {
             val unsure = arrows.any { it is ArrowState.DistanceOnly || (it is ArrowState.Pointing && it.unsure) }
             Button(onClick = onScan) { Text(if (unsure) "Scan (arrow unsure)" else "Scan") }
@@ -175,6 +193,35 @@ private fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Frie
                 drawLabel(methodLabel(a.method) + if (a.unsure) "?" else "", Offset(tip.x, tip.y + 108f), 24f, Color.Gray)
             }
         }
+    }
+}
+
+/**
+ * Progress ring for spin-to-scan: 36 slices, lit as each direction gets covered. Drawn
+ * relative to the phone, so the slice at the top is the way you're facing now.
+ */
+@Composable
+private fun ScanRing(scan: LocatorEngine.ScanUi) {
+    Canvas(Modifier.size(120.dp)) {
+        val stroke = 14f
+        val r = size.minDimension / 2 - stroke
+        val n = scan.sectors.size
+        for (i in 0 until n) {
+            val absCentre = (i + 0.5) * 360.0 / n
+            // Compose arcs start at 3 o'clock; -90 puts "straight ahead" at the top.
+            val start = (absCentre - scan.headingDeg - 90 - 180.0 / n + 1).toFloat()
+            drawArc(
+                color = if (scan.sectors[i]) Color(0xFF81C784) else Color(0xFF37474F),
+                startAngle = start,
+                sweepAngle = (360f / n) - 2f,
+                useCenter = false,
+                topLeft = Offset(center.x - r, center.y - r),
+                size = androidx.compose.ui.geometry.Size(r * 2, r * 2),
+                style = androidx.compose.ui.graphics.drawscope.Stroke(width = stroke),
+            )
+        }
+        // "You're facing here" marker.
+        drawCircle(Color.White, radius = 8f, center = Offset(center.x, center.y - r))
     }
 }
 

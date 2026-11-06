@@ -52,6 +52,23 @@ class FriendSimulator(
         }
     }
 
+    /** Latest simulated Bluetooth signal strength (dBm), for spin-to-scan. */
+    var lastRssi: Double? = null
+        private set
+
+    /**
+     * Simulated Bluetooth signal: log-distance path loss, crowd fading, and the body shadow
+     * spin-to-scan relies on (about 8 dB weaker when your back is to them).
+     */
+    fun rssiNow(nowMs: Long, headingDeg: Double): Double {
+        val (e, n) = position(nowMs)
+        val d = hypot(e, n)
+        val bearing = Math.toDegrees(atan2(e, n))
+        val facing = cos(Math.toRadians(bearing - headingDeg)) // 1 facing them, -1 back to them
+        val shadow = -4.0 * (1 - facing)
+        return -59.0 - 28.0 * log10(maxOf(d, 0.3)) + shadow + (rnd.nextDouble() - 0.5) * 6
+    }
+
     /** Readings due at [nowMs]. [headingDeg] is where the phone points (for UWB's field of view). */
     fun tick(nowMs: Long, headingDeg: Double): List<Fix> {
         val (e, n) = position(nowMs)
@@ -79,8 +96,8 @@ class FriendSimulator(
             )
         }
         if (d < 70 && due(Method.BLE_RSSI, 400)) {
-            // Log-distance path loss, plus body/crowd fading.
-            val dbm = -59.0 - 28.0 * log10(maxOf(d, 0.3)) + noise(4.0)
+            val dbm = rssiNow(nowMs, headingDeg)
+            lastRssi = dbm
             out += Fix(friendId, Method.BLE_RSSI, null, rssi.add(dbm.toInt()), 0.7, nowMs)
         }
         if (hasWifiAware && d < 40 && due(Method.WIFI_AWARE, 1_000)) {

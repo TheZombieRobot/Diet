@@ -134,6 +134,7 @@ class LocatorEngine(
     // ---- Simulated friends (debug builds only) ----
 
     private val sims = mutableMapOf<String, FriendSimulator>()
+    private var lastSimScanSample = 0L
 
     data class SimSettings(val uwb: Boolean = true, val wifiAware: Boolean = true, val data: Boolean = true)
 
@@ -166,6 +167,12 @@ class LocatorEngine(
                 FriendSimulator(id, startBearingDeg = (id.hashCode() and 0xFF) * 360.0 / 256, seed = id.hashCode()).also { it.configure(_sim.value) }
             }
             sim.tick(now, heading).forEach(::submit)
+            // Spin-to-scan works on simulated friends too (the sim models body shadow).
+            val r = sim.lastRssi
+            if (r != null && spinScans.containsKey(id) && now - lastSimScanSample >= 150) {
+                lastSimScanSample = now
+                spinScans[id]?.add(heading, sim.rssiNow(now, heading))
+            }
             val (e, n) = sim.position(now)
             DebugStatus.set("Simulator", "${nameOf(id)} %.0f m away".format(kotlin.math.hypot(e, n)))
         }
@@ -331,7 +338,16 @@ class LocatorEngine(
     /** The Scan button: start collecting (heading, signal) pairs while the user turns. */
     fun startSpinScan() {
         spinScans = _tracking.value.associateWith { SpinScan() }
-        _scan.value = ScanUi(coverageDeg = 0.0, done = false)
+        scanStartedAt = System.currentTimeMillis()
+        _scan.value = ScanUi(coverageDeg = 0.0, done = false, sectors = BooleanArray(36), headingDeg = heading)
+        DebugStatus.log("Spin scan started")
+    }
+
+    private var scanStartedAt = 0L
+
+    /** Clear the "done" message. */
+    fun dismissScanResult() {
+        if (_scan.value?.done == true) _scan.value = null
     }
 
     fun cancelSpinScan() {
@@ -352,20 +368,44 @@ class LocatorEngine(
     private fun updateSpinScan(now: Long) {
         var minCoverage = 360.0
         var allDone = true
+        var sectors = BooleanArray(36) { true }
+        val outcomes = mutableListOf<String>()
         for ((id, scan) in spinScans) {
+            val name = nameOf(id)
             when (val r = scan.result()) {
-                is SpinScan.Result.NeedMore -> { allDone = false; minCoverage = minOf(minCoverage, r.coverageDeg) }
-                is SpinScan.Result.Found -> submit(Fix(id, Method.SPIN_SCAN, r.bearingDeg, null, r.confidence, now))
-                SpinScan.Result.Inconclusive -> Unit
+                is SpinScan.Result.NeedMore -> {
+                    allDone = false
+                    if (r.coverageDeg <= minCoverage) {
+                        minCoverage = r.coverageDeg
+                        sectors = scan.sectors(36)
+                    }
+                }
+                is SpinScan.Result.Found -> {
+                    submit(Fix(id, Method.SPIN_SCAN, r.bearingDeg, null, r.confidence, now))
+                    outcomes += "$name: found" + if (r.confidence < 0.5) " (rough)" else ""
+                }
+                SpinScan.Result.Inconclusive -> outcomes += "$name: couldn't tell. Too close, or something in the way? Try again."
             }
         }
-        if (allDone) {
+        // Give up after 45 s (e.g. their phone went out of range mid-scan).
+        val timedOut = now - scanStartedAt > 45_000
+        if (allDone || timedOut) {
+            if (timedOut && !allDone) outcomes += "Not enough signal while turning. Try again a bit slower."
             spinScans = emptyMap()
-            _scan.value = ScanUi(coverageDeg = 360.0, done = true)
+            _scan.value = ScanUi(360.0, done = true, sectors = BooleanArray(36) { true }, headingDeg = heading, outcome = outcomes.joinToString("\n"))
+            DebugStatus.log("Spin scan done: " + outcomes.joinToString("; "))
         } else {
-            _scan.value = ScanUi(coverageDeg = minCoverage, done = false)
+            _scan.value = ScanUi(minCoverage, done = false, sectors = sectors, headingDeg = heading)
         }
     }
 
-    data class ScanUi(val coverageDeg: Double, val done: Boolean)
+    class ScanUi(
+        val coverageDeg: Double,
+        val done: Boolean,
+        /** 36 slices of the circle: true once covered (for the progress ring). */
+        val sectors: BooleanArray = BooleanArray(36),
+        val headingDeg: Double = 0.0,
+        /** Shown when done. */
+        val outcome: String = "",
+    )
 }

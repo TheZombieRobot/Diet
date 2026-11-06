@@ -36,6 +36,17 @@ class FriendSimulatorTest {
         assertTrue(abs(s.distanceM - hypot(sim.position(140_000).first, sim.position(140_000).second)) < 4)
     }
 
+    @Test fun spinScanFindsSimulatedFriend() {
+        val sim = FriendSimulator("sim", startBearingDeg = 120.0)
+        val t = 145_000L // in the 8 m circle by now
+        val scan = SpinScan()
+        for (h in 0 until 360 step 10) scan.add(h.toDouble(), sim.rssiNow(t, h.toDouble()))
+        val r = scan.result()
+        val (e, n) = sim.position(t)
+        val truth = Geo.normalize360(Math.toDegrees(kotlin.math.atan2(e, n)))
+        assertTrue(r is SpinScan.Result.Found && abs(Geo.normalize180(r.bearingDeg - truth)) < 30, "got $r, truth $truth")
+    }
+
     @Test fun noDataUsesCrowdRelay() {
         val sim = FriendSimulator("sim", noData = true)
         assertEquals(setOf(Method.CROWD_RELAY), run(sim, 0, 20).map { it.method }.toSet())
