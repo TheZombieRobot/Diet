@@ -54,7 +54,15 @@ For the automatic GitHub builds, set a repository **variable** (not a secret) ca
 `MOSHPOINT_SERVER` to the server's address (Settings → Secrets and variables → Actions →
 Variables). Every build after that has GPS mode on.
 
-Running the server (any host that runs Docker, e.g. Fly.io, Render, Railway):
+**Quickest: Fly.io** (free allowance covers testing), from the repo root:
+
+```sh
+fly launch --config server/fly.toml --copy-config --no-deploy   # first time; choose a name
+fly deploy --config server/fly.toml
+curl https://<your-app>.fly.dev/healthz                          # -> ok
+```
+
+Running the server elsewhere (any host that runs Docker, e.g. Render, Railway):
 
 ```sh
 docker build -f server/Dockerfile -t moshpoint-server .
