@@ -1,7 +1,8 @@
 package nz.waveformlabs.moshpoint.ui
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -15,10 +16,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,35 +31,76 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.Friend
 
 /**
  * Friends list (permanent) and gig group (one night), plus the visibility switch.
- * Tap a friend to go straight to their arrow; "Find whole group" tracks everyone.
+ * Tap a friend to go straight to their arrow; long-press to remove them.
  *
- * Adding people is a placeholder for now: share your code, paste theirs. That's enough to
- * test with two phones. TODO: accounts, usernames, QR codes, gig group create/join.
+ * Adding people is a stopgap: share your code, paste theirs. Enough to test with two
+ * phones. TODO: accounts, usernames, QR codes, gig group create/join via the server.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FriendsScreen(
     friends: List<Friend>,
     visible: Boolean,
     alwaysOn: Boolean,
-    myCode: String,
+    phoneSummary: String,
     onVisible: (Boolean) -> Unit,
     onAlwaysOn: (Boolean) -> Unit,
     onFind: (Set<String>) -> Unit,
-    onAdd: (name: String, code: String, gigGroup: Boolean) -> Unit,
+    onShareCode: () -> Unit,
+    /** Returns an error message to show, or null if added. */
+    onAdd: (name: String, code: String, gigGroup: Boolean) -> String?,
+    onRemove: (String) -> Unit,
+    onClearGigGroup: () -> Unit,
 ) {
     var name by remember { mutableStateOf("") }
     var code by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf<String?>(null) }
+    var confirmRemove by remember { mutableStateOf<Friend?>(null) }
+
+    confirmRemove?.let { f ->
+        AlertDialog(
+            onDismissRequest = { confirmRemove = null },
+            title = { Text("Remove ${f.name}?") },
+            text = { Text("You won't be able to find them until you add them again.") },
+            confirmButton = { TextButton(onClick = { onRemove(f.id); confirmRemove = null }) { Text("Remove") } },
+            dismissButton = { TextButton(onClick = { confirmRemove = null }) { Text("Cancel") } },
+        )
+    }
+
+    fun add(gig: Boolean) {
+        error = onAdd(name, code, gig)
+        if (error == null) {
+            name = ""
+            code = ""
+        }
+    }
+
+    @Composable
+    fun row(f: Friend) {
+        Row(
+            Modifier.fillMaxWidth()
+                .combinedClickable(onClick = { onFind(setOf(f.id)) }, onLongClick = { confirmRemove = f })
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(Modifier.size(40.dp).background(Color(f.color), CircleShape), contentAlignment = Alignment.Center) {
+                Text(f.name.take(1).uppercase(), color = Color.Black)
+            }
+            Spacer(Modifier.width(12.dp))
+            Text(f.name, color = Color.White, fontSize = 18.sp)
+        }
+    }
 
     LazyColumn(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
             Text("Moshpoint", color = Color.White, fontSize = 32.sp)
+            Text(phoneSummary, color = Color.Gray, fontSize = 12.sp)
             Spacer(Modifier.height(8.dp))
             SwitchRow("Visible to my mates", visible, onVisible)
             SwitchRow("Leave visibility always on", alwaysOn, onAlwaysOn)
@@ -65,23 +110,32 @@ fun FriendsScreen(
         val permanent = friends.filterNot { it.gigGroupOnly }
 
         item { Header("Gig group") }
-        if (gig.isEmpty()) item { Text("No group tonight.", color = Color.Gray) }
-        else item { Button(onClick = { onFind(gig.map { it.id }.toSet()) }) { Text("Find whole group") } }
-        items(gig, key = { it.id }) { FriendRow(it) { onFind(setOf(it.id)) } }
+        if (gig.isEmpty()) {
+            item { Text("No group tonight.", color = Color.Gray) }
+        } else {
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = { onFind(gig.map { it.id }.toSet()) }) { Text("Find whole group") }
+                    OutlinedButton(onClick = onClearGigGroup) { Text("End night") }
+                }
+            }
+        }
+        items(gig, key = { it.id }) { row(it) }
 
         item { Header("Friends") }
         if (permanent.isEmpty()) item { Text("No friends added yet.", color = Color.Gray) }
-        items(permanent, key = { it.id }) { FriendRow(it) { onFind(setOf(it.id)) } }
+        items(permanent, key = { it.id }) { row(it) }
 
         item {
             Header("Add someone")
-            Text("Your code:", color = Color.Gray)
-            Text(myCode, color = Color.White, fontFamily = FontFamily.Monospace, fontSize = 12.sp)
-            OutlinedTextField(name, { name = it }, label = { Text("Their name") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(code, { code = it }, label = { Text("Their code") }, modifier = Modifier.fillMaxWidth())
+            Text("Send them your code, and paste theirs below.", color = Color.Gray)
+            OutlinedButton(onClick = onShareCode) { Text("Share my code") }
+            OutlinedTextField(name, { name = it }, label = { Text("Their name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(code, { code = it }, label = { Text("Their code") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            error?.let { Text(it, color = Color(0xFFE53935)) }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = { onAdd(name, code, false); name = ""; code = "" }) { Text("Add friend") }
-                Button(onClick = { onAdd(name, code, true); name = ""; code = "" }) { Text("Add to gig group") }
+                Button(onClick = { add(false) }) { Text("Add friend") }
+                Button(onClick = { add(true) }) { Text("Add to gig group") }
             }
         }
     }
@@ -98,19 +152,5 @@ private fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Un
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(label, color = Color.White, modifier = Modifier.weight(1f))
         Switch(checked, onChange)
-    }
-}
-
-@Composable
-private fun FriendRow(friend: Friend, onClick: () -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(Modifier.size(40.dp).background(Color(friend.color), CircleShape), contentAlignment = Alignment.Center) {
-            Text(friend.name.take(1), color = Color.Black)
-        }
-        Spacer(Modifier.width(12.dp))
-        Text(friend.name, color = Color.White, fontSize = 18.sp)
     }
 }

@@ -1,13 +1,9 @@
 package nz.waveformlabs.moshpoint.service
 
-import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.bluetooth.BluetoothManager
-import android.bluetooth.le.AdvertiseCallback
-import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
 import android.content.Intent
@@ -20,10 +16,14 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.FriendsRepository
 import nz.waveformlabs.moshpoint.MainActivity
 import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.core.Advert
 import nz.waveformlabs.moshpoint.core.EphemeralId
-import nz.waveformlabs.moshpoint.locate.Ble
+import nz.waveformlabs.moshpoint.locate.BleBroadcaster
+import nz.waveformlabs.moshpoint.locate.BleRanger
+import nz.waveformlabs.moshpoint.locate.Capabilities
 
 /**
  * Keeps you visible to your mates, even with the app closed.
@@ -32,58 +32,68 @@ import nz.waveformlabs.moshpoint.locate.Ble
  * broadcasts a Bluetooth LE advert with your current rotating code, swapping it each
  * time the code rotates. Only ever started when the user turns visibility on.
  *
- * Battery: uses ADVERTISE_MODE_BALANCED (~250 ms interval) and low TX power by default.
- * TODO: adapt the interval (faster when a friend is actively looking, slower otherwise),
- *  and also share GPS via the server / crowd relay while visible.
+ * On UWB phones it also:
+ * - puts our UWB controlee address in the advert, and
+ * - listens (low-power scan) for friends who are looking, and joins their UWB session.
+ *
+ * Battery: advert is BALANCED (~250 ms) at medium power; the UWB listen scan is LOW_POWER.
+ * TODO: adaptive intervals; share GPS via the server / crowd relay while visible.
  */
 class VisibilityService : LifecycleService() {
-    private val advertiser by lazy { getSystemService(BluetoothManager::class.java)?.adapter?.bluetoothLeAdvertiser }
+    private lateinit var broadcaster: BleBroadcaster
+    private lateinit var mySecret: ByteArray
+    private lateinit var ephemeral: EphemeralId
+    private var uwbInfo: Advert.UwbInfo? = null
+    private var uwb: UwbResponder? = null
+    private var listener: BleRanger? = null
     private var rotateJob: Job? = null
-
-    private val advertiseCallback = object : AdvertiseCallback() {
-        override fun onStartFailure(errorCode: Int) {
-            // TODO: surface to the user (e.g. Bluetooth turned off) and retry.
-        }
-    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         startInForeground()
-        if (rotateJob == null) {
-            val id = EphemeralId(VisibilityPrefs.mySecret(this))
-            rotateJob = lifecycleScope.launch {
-                while (true) {
-                    advertise(id.currentId(System.currentTimeMillis()))
-                    val now = System.currentTimeMillis()
-                    val nextRotation = (id.epochAt(now) + 1) * EphemeralId.DEFAULT_ROTATION_MS
-                    delay(nextRotation - now + 50)
-                }
-            }
-        }
+        if (rotateJob == null) begin()
         return START_STICKY
     }
 
-    @SuppressLint("MissingPermission")
-    private fun advertise(code: ByteArray) {
-        val adv = advertiser ?: return
-        adv.stopAdvertising(advertiseCallback)
-        val settings = AdvertiseSettings.Builder()
-            .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
-            .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
-            .setConnectable(false)
-            .build()
-        val data = AdvertiseData.Builder()
-            .setIncludeDeviceName(false)
-            .setIncludeTxPowerLevel(false)
-            .addServiceData(Ble.SERVICE_UUID, code)
-            .build()
-        adv.startAdvertising(settings, data, advertiseCallback)
+    private fun begin() {
+        FriendsRepository.init(this)
+        mySecret = VisibilityPrefs.mySecret(this)
+        ephemeral = EphemeralId(mySecret)
+        broadcaster = BleBroadcaster(this, AdvertiseSettings.ADVERTISE_MODE_BALANCED)
+
+        rotateJob = lifecycleScope.launch {
+            while (true) {
+                readvertise()
+                val now = System.currentTimeMillis()
+                val nextRotation = (ephemeral.epochAt(now) + 1) * EphemeralId.DEFAULT_ROTATION_MS
+                delay(nextRotation - now + 50)
+            }
+        }
+
+        if (Capabilities.detect(this).uwb) {
+            val responder = UwbResponder(this, lifecycleScope) { info ->
+                uwbInfo = info
+                readvertise()
+            }
+            uwb = responder
+            responder.start()
+            listener = BleRanger(this, { FriendsRepository.friends.toList() }) { friend, _, _, advert ->
+                val info = advert.uwb
+                if (info?.role == Advert.UwbRole.CONTROLLER) responder.onFriendController(friend, info)
+            }.also { it.start(lowLatency = false) }
+        }
     }
 
-    @SuppressLint("MissingPermission")
+    private fun readvertise() {
+        val id = ephemeral.currentId(System.currentTimeMillis())
+        broadcaster.update(Advert.encode(mySecret, id, uwbInfo))
+    }
+
     override fun onDestroy() {
         rotateJob?.cancel()
-        advertiser?.stopAdvertising(advertiseCallback)
+        listener?.stop()
+        uwb?.stop()
+        if (::broadcaster.isInitialized) broadcaster.stop()
         super.onDestroy()
     }
 

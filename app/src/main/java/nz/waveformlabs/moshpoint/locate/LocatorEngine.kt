@@ -1,5 +1,6 @@
 package nz.waveformlabs.moshpoint.locate
 
+import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -10,8 +11,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.FriendsRepository
+import nz.waveformlabs.moshpoint.core.Advert
 import nz.waveformlabs.moshpoint.core.ArrowState
+import nz.waveformlabs.moshpoint.core.EphemeralId
 import nz.waveformlabs.moshpoint.core.Fix
+import nz.waveformlabs.moshpoint.core.Geo
 import nz.waveformlabs.moshpoint.core.Method
 import nz.waveformlabs.moshpoint.core.MethodArbiter
 import nz.waveformlabs.moshpoint.core.SpinScan
@@ -22,12 +26,17 @@ import nz.waveformlabs.moshpoint.core.SpinScan
  * Each method pushes [Fix]es into the [MethodArbiter]; the UI just reads [arrows].
  * The user never picks a method.
  *
- * Wired up now:  Bluetooth signal strength, spin-to-scan, compass.
- * Still to do:   GPS via server, crowd relay, UWB (androidx.core.uwb), Wi-Fi Aware RTT.
+ * Wired up now:  UWB, Bluetooth signal strength, spin-to-scan, compass.
+ * Still to do:   GPS via server, crowd relay, Wi-Fi Aware RTT.
  *                Each one only needs to call [arbiter].submit(...) with its fixes.
+ *
+ * [scope] must run on the main thread: BLE callbacks and the arbiter share it.
  */
-/** [scope] must run on the main thread: BLE callbacks and the arbiter share it. */
-class LocatorEngine(context: Context, private val scope: CoroutineScope) {
+class LocatorEngine(
+    private val context: Context,
+    private val scope: CoroutineScope,
+    private val mySecret: ByteArray,
+) {
     val capabilities = Capabilities.detect(context)
 
     private val arbiter = MethodArbiter()
@@ -45,9 +54,40 @@ class LocatorEngine(context: Context, private val scope: CoroutineScope) {
     val scan: StateFlow<ScanUi?> = _scan.asStateFlow()
     private var spinScans: Map<String, SpinScan> = emptyMap()
 
-    private val ble = BleRanger(context, { trackedFriends() }) { friend, rssi, distance ->
+    // "I'm looking" advert: lets friends' phones find our UWB session. Only used with UWB.
+    private val ephemeral = EphemeralId(mySecret)
+    private var lookingAdvert: BleBroadcaster? = null
+    private var uwbInfo: Advert.UwbInfo? = null
+
+    private val uwb: UwbFinder? = if (capabilities.uwb) {
+        UwbFinder(
+            context, scope, mySecret,
+            onAdvertInfo = { info ->
+                uwbInfo = info
+                updateLookingAdvert()
+            },
+            onResult = { friendId, distance, azimuth ->
+                arbiter.submit(
+                    Fix(
+                        friendId = friendId,
+                        method = Method.UWB,
+                        bearingDeg = azimuth?.let { Geo.normalize360(heading + it) },
+                        distanceM = distance,
+                        confidence = if (azimuth != null) 0.95 else 0.8,
+                        timestampMs = System.currentTimeMillis(),
+                    ),
+                )
+            },
+        )
+    } else {
+        null
+    }
+
+    private val ble = BleRanger(context, { trackedFriends() }) { friend, rssi, distance, advert ->
         arbiter.submit(Fix(friend.id, Method.BLE_RSSI, null, distance, confidence = 0.7, timestampMs = System.currentTimeMillis()))
         spinScans[friend.id]?.add(heading, rssi.toDouble())
+        val info = advert.uwb
+        if (info?.role == Advert.UwbRole.CONTROLEE) uwb?.onFriendControlee(friend.id, info.address)
     }
 
     private var jobs = listOf<Job>()
@@ -61,6 +101,7 @@ class LocatorEngine(context: Context, private val scope: CoroutineScope) {
     fun start() {
         if (jobs.isNotEmpty()) return
         ble.start(lowLatency = true)
+        uwb?.start()
         jobs = listOf(
             scope.launch { compass.headings().collect { heading = it } },
             scope.launch {
@@ -69,13 +110,33 @@ class LocatorEngine(context: Context, private val scope: CoroutineScope) {
                     delay(50)
                 }
             },
+            // Rotate the looking advert's id with the epoch.
+            scope.launch {
+                while (true) {
+                    val now = System.currentTimeMillis()
+                    delay((ephemeral.epochAt(now) + 1) * EphemeralId.DEFAULT_ROTATION_MS - now + 50)
+                    updateLookingAdvert()
+                }
+            },
         )
     }
 
     fun stop() {
         ble.stop()
+        uwb?.stop()
+        lookingAdvert?.stop()
         jobs.forEach { it.cancel() }
         jobs = emptyList()
+    }
+
+    private fun updateLookingAdvert() {
+        val info = uwbInfo
+        if (info == null) {
+            lookingAdvert?.stop()
+            return
+        }
+        val adv = lookingAdvert ?: BleBroadcaster(context, AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY).also { lookingAdvert = it }
+        adv.update(Advert.encode(mySecret, ephemeral.currentId(System.currentTimeMillis()), info))
     }
 
     /** The Scan button: start collecting (heading, signal) pairs while the user turns. */

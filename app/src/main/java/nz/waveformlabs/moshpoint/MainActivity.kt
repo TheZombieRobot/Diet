@@ -1,10 +1,10 @@
 package nz.waveformlabs.moshpoint
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Base64
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,12 +21,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.lifecycleScope
+import nz.waveformlabs.moshpoint.core.FriendRecord
 import nz.waveformlabs.moshpoint.locate.LocatorEngine
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 import nz.waveformlabs.moshpoint.service.VisibilityService
 import nz.waveformlabs.moshpoint.ui.FinderScreen
 import nz.waveformlabs.moshpoint.ui.FriendsScreen
-import java.util.UUID
 
 class MainActivity : ComponentActivity() {
     private lateinit var engine: LocatorEngine
@@ -54,11 +54,21 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        engine = LocatorEngine(applicationContext, lifecycleScope)
+        FriendsRepository.init(this)
+        val mySecret = VisibilityPrefs.mySecret(this)
+        engine = LocatorEngine(applicationContext, lifecycleScope, mySecret)
         visible = VisibilityPrefs.isVisible(this)
         alwaysOn = VisibilityPrefs.alwaysOn(this)
         askPermissions.launch(permissions)
-        val myCode = Base64.encodeToString(VisibilityPrefs.mySecret(this), Base64.NO_WRAP or Base64.URL_SAFE)
+        val myCode = FriendRecord.shareCode(mySecret)
+        val caps = engine.capabilities
+        val phoneSummary = "This phone: " + listOfNotNull(
+            "UWB".takeIf { caps.uwb },
+            "Wi-Fi Aware".takeIf { caps.wifiAware },
+            "Bluetooth".takeIf { caps.ble },
+            "compass".takeIf { caps.compass },
+            "GPS".takeIf { caps.gps },
+        ).joinToString(", ")
 
         setContent {
             MaterialTheme(colorScheme = darkColorScheme()) {
@@ -82,7 +92,7 @@ class MainActivity : ComponentActivity() {
                             friends = FriendsRepository.friends,
                             visible = visible,
                             alwaysOn = alwaysOn,
-                            myCode = myCode,
+                            phoneSummary = phoneSummary,
                             onVisible = ::setVisibility,
                             onAlwaysOn = {
                                 alwaysOn = it
@@ -93,7 +103,10 @@ class MainActivity : ComponentActivity() {
                                 engine.start()
                                 finding = true
                             },
-                            onAdd = ::addFriend,
+                            onShareCode = { shareCode(myCode) },
+                            onAdd = { name, code, gig -> FriendsRepository.add(name, code, gig, mySecret) },
+                            onRemove = FriendsRepository::remove,
+                            onClearGigGroup = FriendsRepository::clearGigGroup,
                         )
                     }
                 }
@@ -112,16 +125,12 @@ class MainActivity : ComponentActivity() {
         if (on) VisibilityService.start(this) else VisibilityService.stop(this)
     }
 
-    private fun addFriend(name: String, code: String, gigGroup: Boolean) {
-        val secret = runCatching { Base64.decode(code.trim(), Base64.NO_WRAP or Base64.URL_SAFE) }.getOrNull()
-        if (name.isBlank() || secret == null || secret.size < 16) return // TODO: show an error
-        FriendsRepository.friends += Friend(
-            id = UUID.randomUUID().toString(),
-            name = name.trim(),
-            color = PALETTE[FriendsRepository.friends.size % PALETTE.size],
-            secret = secret,
-            gigGroupOnly = gigGroup,
-        )
+    private fun shareCode(code: String) {
+        val send = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, "Add me on Moshpoint: $code")
+        }
+        startActivity(Intent.createChooser(send, "Share your Moshpoint code"))
     }
 
     override fun onStop() {
@@ -132,12 +141,5 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         if (finding) engine.start()
-    }
-
-    companion object {
-        private val PALETTE = intArrayOf(
-            0xFF1E88E5.toInt(), 0xFF43A047.toInt(), 0xFFFDD835.toInt(),
-            0xFF8E24AA.toInt(), 0xFF00ACC1.toInt(), 0xFFFB8C00.toInt(),
-        )
     }
 }
