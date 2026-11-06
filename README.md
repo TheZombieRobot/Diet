@@ -50,6 +50,10 @@ GPS sharing is off until the app is built with a server address:
 ./gradlew :app:assembleDebug -Pmoshpoint.server=https://your-server.example
 ```
 
+For the automatic GitHub builds, set a repository **variable** (not a secret) called
+`MOSHPOINT_SERVER` to the server's address (Settings → Secrets and variables → Actions →
+Variables). Every build after that has GPS mode on.
+
 Running the server (any host that runs Docker, e.g. Fly.io, Render, Railway):
 
 ```sh

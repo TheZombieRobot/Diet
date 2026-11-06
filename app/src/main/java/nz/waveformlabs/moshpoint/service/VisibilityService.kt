@@ -18,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.FriendsRepository
 import nz.waveformlabs.moshpoint.MainActivity
 import nz.waveformlabs.moshpoint.R
@@ -75,7 +76,8 @@ class VisibilityService : LifecycleService() {
         FriendsRepository.init(this)
         mySecret = VisibilityPrefs.mySecret(this)
         ephemeral = EphemeralId(mySecret)
-        broadcaster = BleBroadcaster(this, AdvertiseSettings.ADVERTISE_MODE_BALANCED, "BT advert (visible)")
+        // Slow advert (~1 s) by default to save battery; fast while a friend is looking.
+        broadcaster = BleBroadcaster(this, AdvertiseSettings.ADVERTISE_MODE_LOW_POWER, "BT advert (visible)")
 
         rotateJob = lifecycleScope.launch {
             while (true) {
@@ -107,17 +109,44 @@ class VisibilityService : LifecycleService() {
             onWifiAware = { available -> if (available) wifi?.restart() },
         ).also { it.start() }
 
-        if (Capabilities.detect(this).uwb) {
-            val responder = UwbResponder(this, lifecycleScope) { info ->
+        val responder = if (Capabilities.detect(this).uwb) {
+            UwbResponder(this, lifecycleScope) { info ->
                 uwbInfo = info
                 readvertise()
+            }.also {
+                uwb = it
+                it.start()
             }
-            uwb = responder
-            responder.start()
-            listener = BleRanger(this, "BT scan (visible, for UWB)", { FriendsRepository.friends.toList() }) { friend, _, _, advert ->
-                val info = advert.uwb
-                if (info?.role == Advert.UwbRole.CONTROLLER) responder.onFriendController(friend, info)
-            }.also { it.start(lowLatency = false) }
+        } else {
+            null
+        }
+        // Low-power listen for friends who are looking: speeds our advert up, and on UWB
+        // phones joins their UWB session.
+        listener = BleRanger(this, "BT scan (visible, listening for lookers)", { FriendsRepository.friends.toList() }) { friend, _, _, advert ->
+            if (advert.looking) onFriendLooking(friend.name)
+            val info = advert.uwb
+            if (info?.role == Advert.UwbRole.CONTROLLER) responder?.onFriendController(friend, info)
+        }.also { it.start(lowLatency = false) }
+        lifecycleScope.launch {
+            while (true) {
+                delay(10_000)
+                if (broadcaster.mode == AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY &&
+                    System.currentTimeMillis() - lastLookedAt > FAST_FOR_MS
+                ) {
+                    broadcaster.mode = AdvertiseSettings.ADVERTISE_MODE_LOW_POWER
+                    DebugStatus.log("No one looking: advert back to slow")
+                }
+            }
+        }
+    }
+
+    private var lastLookedAt = 0L
+
+    private fun onFriendLooking(name: String) {
+        lastLookedAt = System.currentTimeMillis()
+        if (broadcaster.mode != AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY) {
+            broadcaster.mode = AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY
+            DebugStatus.log("$name is looking: advert to fast")
         }
     }
 
@@ -176,6 +205,7 @@ class VisibilityService : LifecycleService() {
     companion object {
         private const val CHANNEL = "visibility"
         private const val NOTIFICATION_ID = 1
+        private const val FAST_FOR_MS = 90_000L
 
         fun start(context: Context) {
             VisibilityPrefs.setVisible(context, true)

@@ -31,7 +31,9 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          ./gradlew :app:assembleDebug --continue 2>&1 | tee build.log
+          # GPS mode: set the repository variable MOSHPOINT_SERVER (Settings -> Secrets and
+          # variables -> Actions -> Variables) to the relay server's https address.
+          ./gradlew :app:assembleDebug --continue -Pmoshpoint.server="${{ vars.MOSHPOINT_SERVER }}" 2>&1 | tee build.log
 
       - name: Compile errors
         if: failure()

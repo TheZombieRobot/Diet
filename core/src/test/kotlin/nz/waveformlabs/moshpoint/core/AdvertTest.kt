@@ -44,6 +44,15 @@ class AdvertTest {
         assertFalse(wrong.address.contentEquals(byteArrayOf(0x0A, 0x0B)) && wrong.channel == 9)
     }
 
+    @Test fun lookingFlagRoundTrips() {
+        val uwb = Advert.UwbInfo(Advert.UwbRole.CONTROLLER, byteArrayOf(1, 2), 9, 10)
+        assertTrue(Advert.decode(secret, Advert.encode(secret, id, null, looking = true))!!.looking)
+        val withUwb = Advert.decode(secret, Advert.encode(secret, id, uwb, looking = true))!!
+        assertTrue(withUwb.looking)
+        assertEquals(uwb, withUwb.uwb)
+        assertFalse(Advert.decode(secret, Advert.encode(secret, id, null))!!.looking)
+    }
+
     @Test fun shortDataRejected() {
         assertNull(Advert.decode(secret, ByteArray(5)))
     }

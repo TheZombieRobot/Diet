@@ -62,7 +62,8 @@ class LocatorEngine(
     val scan: StateFlow<ScanUi?> = _scan.asStateFlow()
     private var spinScans: Map<String, SpinScan> = emptyMap()
 
-    // "I'm looking" advert: lets friends' phones find our UWB session. Only used with UWB.
+    // "I'm looking" advert: tells visible friends to speed up their adverts (battery
+    // saving the rest of the time), and on UWB phones carries our UWB session details.
     private val ephemeral = EphemeralId(mySecret)
     private var lookingAdvert: BleBroadcaster? = null
     private var uwbInfo: Advert.UwbInfo? = null
@@ -309,6 +310,7 @@ class LocatorEngine(
                 }
             },
         )
+        updateLookingAdvert()
     }
 
     fun stop() {
@@ -325,14 +327,10 @@ class LocatorEngine(
     }
 
     private fun updateLookingAdvert() {
-        val info = uwbInfo
-        if (info == null) {
-            lookingAdvert?.stop()
-            return
-        }
+        if (jobs.isEmpty()) return // only while the finder is running
         val adv = lookingAdvert
-            ?: BleBroadcaster(context, AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY, "BT advert (looking, UWB)").also { lookingAdvert = it }
-        adv.update(Advert.encode(mySecret, ephemeral.currentId(System.currentTimeMillis()), info))
+            ?: BleBroadcaster(context, AdvertiseSettings.ADVERTISE_MODE_BALANCED, "BT advert (looking)").also { lookingAdvert = it }
+        adv.update(Advert.encode(mySecret, ephemeral.currentId(System.currentTimeMillis()), uwbInfo, looking = true))
     }
 
     /** The Scan button: start collecting (heading, signal) pairs while the user turns. */

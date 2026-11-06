@@ -21,7 +21,16 @@ import javax.crypto.spec.SecretKeySpec
  *
  * Max size is 21 bytes, which keeps the whole advert under the 31-byte legacy limit.
  */
-data class Advert(val id: ByteArray, val uwb: UwbInfo?) {
+data class Advert(
+    val id: ByteArray,
+    val uwb: UwbInfo?,
+    /**
+     * Set by a phone that is looking for friends. A visible phone that hears a friend
+     * looking speeds up its own advert so they get a fast, steady signal; otherwise it
+     * advertises slowly to save battery.
+     */
+    val looking: Boolean = false,
+) {
 
     enum class UwbRole { CONTROLEE, CONTROLLER }
 
@@ -38,15 +47,16 @@ data class Advert(val id: ByteArray, val uwb: UwbInfo?) {
         override fun hashCode() = role.hashCode() * 31 + address.contentHashCode()
     }
 
-    override fun equals(other: Any?) = other is Advert && id.contentEquals(other.id) && uwb == other.uwb
+    override fun equals(other: Any?) = other is Advert && id.contentEquals(other.id) && uwb == other.uwb && looking == other.looking
     override fun hashCode() = id.contentHashCode()
 
     companion object {
         private const val FLAG_CONTROLEE = 0x01
         private const val FLAG_CONTROLLER = 0x02
+        private const val FLAG_LOOKING = 0x04
 
         /** Builds the service-data bytes. [secret] is the advertiser's own secret. */
-        fun encode(secret: ByteArray, id: ByteArray, uwb: UwbInfo?): ByteArray {
+        fun encode(secret: ByteArray, id: ByteArray, uwb: UwbInfo?, looking: Boolean = false): ByteArray {
             require(id.size == EphemeralId.ID_BYTES)
             val plain = when (uwb?.role) {
                 null -> ByteArray(0)
@@ -58,7 +68,8 @@ data class Advert(val id: ByteArray, val uwb: UwbInfo?) {
                 UwbRole.CONTROLEE -> FLAG_CONTROLEE
                 UwbRole.CONTROLLER -> FLAG_CONTROLLER
             }
-            return byteArrayOf(flags.toByte()) + id + xor(plain, keystream(secret, id, plain.size))
+            val allFlags = flags or (if (looking) FLAG_LOOKING else 0)
+            return byteArrayOf(allFlags.toByte()) + id + xor(plain, keystream(secret, id, plain.size))
         }
 
         /** Just the rotating id, so a scanner can match it against friends before decrypting. */
@@ -78,7 +89,7 @@ data class Advert(val id: ByteArray, val uwb: UwbInfo?) {
                     UwbInfo(UwbRole.CONTROLEE, plain.copyOfRange(0, 2))
                 else -> null
             }
-            return Advert(id, uwb)
+            return Advert(id, uwb, looking = flags and FLAG_LOOKING != 0)
         }
 
         private fun keystream(secret: ByteArray, id: ByteArray, n: Int): ByteArray {

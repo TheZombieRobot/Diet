@@ -16,7 +16,7 @@ import nz.waveformlabs.moshpoint.DebugStatus
  */
 class BleBroadcaster(
     context: Context,
-    private val mode: Int = AdvertiseSettings.ADVERTISE_MODE_BALANCED,
+    mode: Int = AdvertiseSettings.ADVERTISE_MODE_BALANCED,
     /** Name shown in the debug panel. */
     private val debugName: String = "BT advert",
 ) {
@@ -24,6 +24,15 @@ class BleBroadcaster(
     // Fetched on every call: it's null while Bluetooth is off, and changes after a restart.
     private val advertiser get() = bt?.adapter?.takeIf { it.isEnabled }?.bluetoothLeAdvertiser
     private var running = false
+    private var lastData: ByteArray? = null
+
+    /** Advertising interval (ADVERTISE_MODE_*). Changing it restarts the advert. */
+    var mode: Int = mode
+        set(value) {
+            if (field == value) return
+            field = value
+            lastData?.let { if (running) update(it) }
+        }
 
     private val callback = object : AdvertiseCallback() {
         override fun onStartFailure(errorCode: Int) {
@@ -35,6 +44,7 @@ class BleBroadcaster(
 
     @SuppressLint("MissingPermission")
     fun update(serviceData: ByteArray) {
+        lastData = serviceData
         val adv = advertiser ?: run {
             running = false
             DebugStatus.set(debugName, "waiting for Bluetooth")
@@ -54,7 +64,12 @@ class BleBroadcaster(
                 .build()
             adv.startAdvertising(settings, data, callback)
             running = true
-            DebugStatus.set(debugName, "on, ${serviceData.size} bytes" + if (serviceData.size > 17) " (+UWB info)" else "")
+            val speed = when (mode) {
+                AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY -> "fast"
+                AdvertiseSettings.ADVERTISE_MODE_LOW_POWER -> "slow, saving battery"
+                else -> "medium"
+            }
+            DebugStatus.set(debugName, "on ($speed), ${serviceData.size} bytes" + if (serviceData.size > 17) " +UWB" else "")
         } catch (e: IllegalStateException) {
             Log.w(TAG, "Bluetooth not ready", e) // turned off mid-call
             running = false
