@@ -43,7 +43,7 @@ import com.journeyapps.barcodescanner.ScanOptions
 
 class MainActivity : ComponentActivity() {
     private lateinit var engine: LocatorEngine
-    private var visible by mutableStateOf(false)
+    private var visibleToMates by mutableStateOf(false)
     private var alwaysOn by mutableStateOf(false)
     private var finding by mutableStateOf(false)
     private var pendingStop: Job? = null
@@ -115,7 +115,7 @@ class MainActivity : ComponentActivity() {
         FriendsRepository.init(this)
         val mySecret = VisibilityPrefs.mySecret(this)
         engine = LocatorEngine(applicationContext, lifecycleScope, mySecret)
-        visible = VisibilityPrefs.isVisible(this)
+        visibleToMates = VisibilityPrefs.isVisible(this)
         myName = VisibilityPrefs.myName(this)
         alwaysOn = VisibilityPrefs.alwaysOn(this)
         askPermissions.launch(permissions)
@@ -193,7 +193,7 @@ class MainActivity : ComponentActivity() {
                     } else {
                         FriendsScreen(
                             friends = FriendsRepository.friends,
-                            visible = visible,
+                            visible = visibleToMates,
                             alwaysOn = alwaysOn,
                             phoneSummary = phoneSummary,
                             missingPermissions = missing,
@@ -244,7 +244,7 @@ class MainActivity : ComponentActivity() {
             askPermissions.launch(permissions)
             return
         }
-        visible = on
+        visibleToMates = on
         if (on) VisibilityService.start(this) else VisibilityService.stop(this)
         val power = getSystemService(PowerManager::class.java)
         if (on && power != null && !power.isIgnoringBatteryOptimizations(packageName)) askBattery = true
