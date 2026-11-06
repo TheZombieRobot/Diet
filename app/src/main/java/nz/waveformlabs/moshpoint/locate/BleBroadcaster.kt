@@ -7,28 +7,41 @@ import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
 import android.util.Log
+import nz.waveformlabs.moshpoint.DebugStatus
 
 /**
  * One Bluetooth LE advert carrying Moshpoint service data. Call [update] to change the
  * payload (it restarts the advert). Visibility and the finder each own one, so a phone
  * can be visible and looking at the same time.
  */
-class BleBroadcaster(context: Context, private val mode: Int = AdvertiseSettings.ADVERTISE_MODE_BALANCED) {
-    private val advertiser = context.getSystemService(BluetoothManager::class.java)?.adapter?.bluetoothLeAdvertiser
+class BleBroadcaster(
+    context: Context,
+    private val mode: Int = AdvertiseSettings.ADVERTISE_MODE_BALANCED,
+    /** Name shown in the debug panel. */
+    private val debugName: String = "BT advert",
+) {
+    private val bt = context.getSystemService(BluetoothManager::class.java)
+    // Fetched on every call: it's null while Bluetooth is off, and changes after a restart.
+    private val advertiser get() = bt?.adapter?.takeIf { it.isEnabled }?.bluetoothLeAdvertiser
     private var running = false
 
     private val callback = object : AdvertiseCallback() {
         override fun onStartFailure(errorCode: Int) {
             Log.w(TAG, "advertise failed: $errorCode")
             running = false
+            DebugStatus.set(debugName, "FAILED code $errorCode")
         }
     }
 
     @SuppressLint("MissingPermission")
     fun update(serviceData: ByteArray) {
-        val adv = advertiser ?: return
+        val adv = advertiser ?: run {
+            running = false
+            DebugStatus.set(debugName, "waiting for Bluetooth")
+            return
+        }
         try {
-            if (running) adv.stopAdvertising(callback)
+            if (running) runCatching { adv.stopAdvertising(callback) }
             val settings = AdvertiseSettings.Builder()
                 .setAdvertiseMode(mode)
                 .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
@@ -41,9 +54,19 @@ class BleBroadcaster(context: Context, private val mode: Int = AdvertiseSettings
                 .build()
             adv.startAdvertising(settings, data, callback)
             running = true
+            DebugStatus.set(debugName, "on, ${serviceData.size} bytes" + if (serviceData.size > 17) " (+UWB info)" else "")
+        } catch (e: IllegalStateException) {
+            Log.w(TAG, "Bluetooth not ready", e) // turned off mid-call
+            running = false
         } catch (e: SecurityException) {
             Log.w(TAG, "no BLUETOOTH_ADVERTISE permission", e)
+            DebugStatus.set(debugName, "NO PERMISSION")
         }
+    }
+
+    /** Bluetooth went off: the stack dropped our advert. */
+    fun onBluetoothOff() {
+        running = false
     }
 
     @SuppressLint("MissingPermission")
@@ -51,9 +74,10 @@ class BleBroadcaster(context: Context, private val mode: Int = AdvertiseSettings
         if (!running) return
         try {
             advertiser?.stopAdvertising(callback)
-        } catch (_: SecurityException) {
+        } catch (_: Exception) {
         }
         running = false
+        DebugStatus.set(debugName, "off")
     }
 
     private companion object {

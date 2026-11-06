@@ -19,6 +19,13 @@ class MethodArbiter(
     private val unsureBelow: Double = 0.35,
 ) {
     private val latest = mutableMapOf<Pair<String, Method>, Fix>()
+
+    /**
+     * Methods the arbiter may use. Everything by default; the debug panel switches methods
+     * off so each one can be tested on its own. Fixes from disabled methods are still
+     * recorded (so the panel can show them) but never drive the arrow.
+     */
+    var enabled: Set<Method> = Method.entries.toSet()
     private val currentDirectionMethod = mutableMapOf<String, Method>()
     private val rssiTrend = mutableMapOf<String, TrendTracker>()
 
@@ -35,6 +42,10 @@ class MethodArbiter(
         rssiTrend.remove(friendId)
     }
 
+    fun latestFix(friendId: String, method: Method): Fix? = latest[friendId to method]
+
+    fun scoreOf(fix: Fix, nowMs: Long): Double = score(fix, nowMs)
+
     /** Score of a fix right now: method precision x confidence, decaying with age. */
     private fun score(fix: Fix, nowMs: Long): Double {
         val age = (nowMs - fix.timestampMs).coerceAtLeast(0)
@@ -45,7 +56,7 @@ class MethodArbiter(
 
     fun arrowFor(friendId: String, headingDeg: Double, nowMs: Long): ArrowState {
         val live = latest.values
-            .filter { it.friendId == friendId }
+            .filter { it.friendId == friendId && it.method in enabled }
             .map { it to score(it, nowMs) }
             .filter { it.second > 0.0 }
         if (live.isEmpty()) return ArrowState.NoSignal(friendId)
@@ -85,6 +96,33 @@ class MethodArbiter(
         )
     }
 }
+
+/** One row of the debug panel: what one method last said about one friend. */
+data class MethodDebug(
+    val method: Method,
+    val fix: Fix?,
+    val ageMs: Long?,
+    /** 0 when stale, missing or disabled. */
+    val score: Double,
+    val enabled: Boolean,
+    /** True if this method is currently setting the arrow's direction. */
+    val drivingDirection: Boolean,
+)
+
+/** Debug view of everything the arbiter knows about a friend. */
+fun MethodArbiter.debug(friendId: String, nowMs: Long, drivingMethod: Method?): List<MethodDebug> =
+    Method.entries.map { m ->
+        val fix = latestFix(friendId, m)
+        val age = fix?.let { (nowMs - it.timestampMs).coerceAtLeast(0) }
+        MethodDebug(
+            method = m,
+            fix = fix,
+            ageMs = age,
+            score = if (fix == null || m !in enabled) 0.0 else scoreOf(fix, nowMs),
+            enabled = m in enabled,
+            drivingDirection = m == drivingMethod,
+        )
+    }
 
 /** Tracks whether distance readings are shrinking (warmer) or growing (colder). */
 internal class TrendTracker(private val window: Int = 6, private val deadbandM: Double = 1.5) {

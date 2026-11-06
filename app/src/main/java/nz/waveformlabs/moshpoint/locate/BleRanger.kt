@@ -8,6 +8,7 @@ import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.util.Log
+import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.core.Advert
 import nz.waveformlabs.moshpoint.core.RssiRanging
@@ -22,18 +23,24 @@ import nz.waveformlabs.moshpoint.core.RssiRanging
  */
 class BleRanger(
     context: Context,
+    /** Name shown in the debug panel, e.g. "BT scan (finder)". */
+    private val debugName: String,
     private val friends: () -> List<Friend>,
     private val onAdvert: (friend: Friend, rssiDbm: Int, distanceM: Double, advert: Advert) -> Unit,
 ) {
-    private val scanner = context.getSystemService(BluetoothManager::class.java)?.adapter?.bluetoothLeScanner
+    private val bt = context.getSystemService(BluetoothManager::class.java)
+    private val scanner get() = bt?.adapter?.takeIf { it.isEnabled }?.bluetoothLeScanner
+    private var lowLatency = true
     private val rangers = mutableMapOf<String, RssiRanging>()
     private var running = false
+    private var heard = 0
 
     private val callback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) = handle(result)
         override fun onBatchScanResults(results: MutableList<ScanResult>) = results.forEach(::handle)
         override fun onScanFailed(errorCode: Int) {
             Log.w("BleRanger", "scan failed: $errorCode")
+            DebugStatus.set(debugName, "FAILED code $errorCode")
             running = false
         }
     }
@@ -45,23 +52,40 @@ class BleRanger(
         val friend = friends().firstOrNull { it.ephemeralId.matches(id, now) } ?: return
         val advert = Advert.decode(friend.secret, data) ?: return
         val ranger = rangers.getOrPut(friend.id) { RssiRanging() }
+        heard++
+        DebugStatus.set(debugName, "on, heard ${friend.name} ${result.rssi} dBm (#$heard)")
         onAdvert(friend, result.rssi, ranger.add(result.rssi), advert)
     }
 
     /** Needs BLUETOOTH_SCAN (Android 12+) or location (Android 10/11). */
     @SuppressLint("MissingPermission")
     fun start(lowLatency: Boolean) {
+        this.lowLatency = lowLatency
         if (running) return
-        val filter = ScanFilter.Builder().setServiceData(Ble.SERVICE_UUID, null).build()
+        val filter = ScanFilter.Builder().setServiceData(Ble.SERVICE_UUID, ByteArray(0)).build()
         val settings = ScanSettings.Builder()
             .setScanMode(if (lowLatency) ScanSettings.SCAN_MODE_LOW_LATENCY else ScanSettings.SCAN_MODE_LOW_POWER)
             .build()
+        val s = scanner ?: run {
+            DebugStatus.set(debugName, "waiting for Bluetooth")
+            return
+        }
         try {
-            scanner?.startScan(listOf(filter), settings, callback)
-            running = scanner != null
+            s.startScan(listOf(filter), settings, callback)
+            running = true
+            DebugStatus.set(debugName, if (running) "on (${if (lowLatency) "fast" else "low power"}), nothing heard yet" else "no Bluetooth")
         } catch (e: SecurityException) {
             Log.w("BleRanger", "no scan permission", e)
+            DebugStatus.set(debugName, "NO PERMISSION")
+        } catch (e: IllegalStateException) {
+            Log.w("BleRanger", "Bluetooth not ready", e)
         }
+    }
+
+    /** Call when Bluetooth comes back on: the old scan died with it. */
+    fun restart() {
+        running = false
+        start(lowLatency)
     }
 
     @SuppressLint("MissingPermission")
@@ -69,8 +93,9 @@ class BleRanger(
         if (!running) return
         try {
             scanner?.stopScan(callback)
-        } catch (_: SecurityException) {
+        } catch (_: Exception) {
         }
         running = false
+        DebugStatus.set(debugName, "off")
     }
 }

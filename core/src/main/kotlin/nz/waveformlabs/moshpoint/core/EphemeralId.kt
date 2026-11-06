@@ -24,7 +24,14 @@ class EphemeralId(private val secret: ByteArray, private val rotationMs: Long = 
 
     fun epochAt(nowMs: Long): Long = Math.floorDiv(nowMs, rotationMs)
 
-    fun idForEpoch(epoch: Long): ByteArray {
+    // Matching runs for every advert heard, so remember recent ids instead of re-hashing.
+    private val cache = object : LinkedHashMap<Long, ByteArray>(16, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Long, ByteArray>) = size > 16
+    }
+
+    fun idForEpoch(epoch: Long): ByteArray = synchronized(cache) { cache.getOrPut(epoch) { compute(epoch) } }.copyOf()
+
+    private fun compute(epoch: Long): ByteArray {
         val mac = Mac.getInstance("HmacSHA256")
         mac.init(SecretKeySpec(secret, "HmacSHA256"))
         val msg = ByteArray(8) { i -> (epoch ushr (56 - 8 * i)).toByte() }
@@ -34,10 +41,11 @@ class EphemeralId(private val secret: ByteArray, private val rotationMs: Long = 
     fun currentId(nowMs: Long): ByteArray = idForEpoch(epochAt(nowMs))
 
     /**
-     * True if [heard] belongs to this secret around [nowMs]. Checks the neighbouring
-     * epochs too, to tolerate clock drift between phones.
+     * True if [heard] belongs to this secret around [nowMs]. Checks neighbouring epochs too:
+     * clocks drift between phones, and a phone asleep in a pocket can rotate its advert
+     * late (Android pauses timers while the CPU sleeps), so allow up to 15 minutes.
      */
-    fun matches(heard: ByteArray, nowMs: Long, toleranceEpochs: Int = 1): Boolean {
+    fun matches(heard: ByteArray, nowMs: Long, toleranceEpochs: Int = 3): Boolean {
         val e = epochAt(nowMs)
         return (-toleranceEpochs..toleranceEpochs).any { idForEpoch(e + it).contentEquals(heard) }
     }

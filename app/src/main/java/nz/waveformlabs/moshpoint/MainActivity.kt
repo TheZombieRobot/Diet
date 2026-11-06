@@ -26,11 +26,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.core.FriendRecord
 import nz.waveformlabs.moshpoint.core.QrPayload
 import nz.waveformlabs.moshpoint.locate.LocatorEngine
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 import nz.waveformlabs.moshpoint.service.VisibilityService
+import nz.waveformlabs.moshpoint.ui.DebugPanel
 import nz.waveformlabs.moshpoint.ui.FinderScreen
 import nz.waveformlabs.moshpoint.ui.FriendsScreen
 import nz.waveformlabs.moshpoint.ui.MyQrDialog
@@ -42,6 +46,7 @@ class MainActivity : ComponentActivity() {
     private var visible by mutableStateOf(false)
     private var alwaysOn by mutableStateOf(false)
     private var finding by mutableStateOf(false)
+    private var pendingStop: Job? = null
     private var askBattery by mutableStateOf(false)
     private var missing by mutableStateOf<List<String>>(emptyList())
     private var showQr by mutableStateOf(false)
@@ -54,6 +59,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private val permissions = buildList {
+        // Android 12+ ignores a fine-location request unless coarse is asked for too.
+        add(Manifest.permission.ACCESS_COARSE_LOCATION)
         add(Manifest.permission.ACCESS_FINE_LOCATION)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             add(Manifest.permission.BLUETOOTH_SCAN)
@@ -159,7 +166,28 @@ class MainActivity : ComponentActivity() {
                             onCancelScan = engine::cancelSpinScan,
                             onBack = {
                                 finding = false
-                                engine.stop()
+                                stopEngineSoon()
+                            },
+                            debug = if (DebugStatus.enabled) {
+                                { mod ->
+                                    val rows by engine.debugRows.collectAsState()
+                                    val methods by engine.enabledMethods.collectAsState()
+                                    val tech by DebugStatus.tech.collectAsState()
+                                    val log by DebugStatus.log.collectAsState()
+                                    DebugPanel(
+                                        rows = rows,
+                                        friendOf = FriendsRepository::byId,
+                                        enabled = methods,
+                                        onToggle = engine::setMethodEnabled,
+                                        onSolo = engine::enableOnly,
+                                        tech = tech,
+                                        log = log,
+                                        onClearLog = DebugStatus::clearLog,
+                                        modifier = mod,
+                                    )
+                                }
+                            } else {
+                                null
                             },
                         )
                     } else {
@@ -181,6 +209,7 @@ class MainActivity : ComponentActivity() {
                                 VisibilityPrefs.setAlwaysOn(this@MainActivity, it)
                             },
                             onFind = { ids ->
+                                pendingStop?.cancel()
                                 engine.track(ids)
                                 engine.start()
                                 finding = true
@@ -229,13 +258,32 @@ class MainActivity : ComponentActivity() {
         startActivity(Intent.createChooser(send, "Share your Moshpoint code"))
     }
 
+    /**
+     * Finding only runs while the finder is on screen (visibility keeps going in the
+     * service). Stopping is delayed: Android silently blocks more than 5 Bluetooth scan
+     * starts per app in 30 s, so flicking between screens must not restart scans.
+     */
+    private fun stopEngineSoon() {
+        pendingStop?.cancel()
+        pendingStop = lifecycleScope.launch {
+            delay(20_000)
+            engine.stop()
+        }
+    }
+
     override fun onStop() {
         super.onStop()
-        engine.stop() // finding only runs while the screen is open; visibility keeps going in the service
+        stopEngineSoon()
     }
 
     override fun onStart() {
         super.onStart()
+        pendingStop?.cancel()
         if (finding) engine.start()
+    }
+
+    override fun onDestroy() {
+        engine.stop()
+        super.onDestroy()
     }
 }

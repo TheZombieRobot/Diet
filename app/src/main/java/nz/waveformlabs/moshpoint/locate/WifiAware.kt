@@ -23,6 +23,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.Friend
 
 /**
@@ -49,6 +50,13 @@ class WifiAwarePublisher(context: Context, private val idNow: () -> ByteArray) {
     private val handler = Handler(Looper.getMainLooper())
     private var session: WifiAwareSession? = null
     private var publish: PublishDiscoverySession? = null
+    private var stopped = true
+
+    /** Wi-Fi Aware came back (Wi-Fi toggled, hotspot off, ...). */
+    fun restart() {
+        stop()
+        start()
+    }
 
     private fun config() = PublishConfig.Builder()
         .setServiceName(SERVICE)
@@ -58,19 +66,36 @@ class WifiAwarePublisher(context: Context, private val idNow: () -> ByteArray) {
 
     @SuppressLint("MissingPermission")
     fun start() {
-        if (aware == null || !aware.isAvailable) return
+        if (aware == null || !aware.isAvailable) {
+            DebugStatus.set("Wi-Fi Aware (visible)", "unavailable (Wi-Fi or location off?)")
+            return
+        }
+        stopped = false
         try {
             aware.attach(object : AttachCallback() {
                 override fun onAttached(s: WifiAwareSession) {
+                    if (stopped) {
+                        s.close() // stop() ran before attach finished
+                        return
+                    }
                     session = s
+                    DebugStatus.set("Wi-Fi Aware (visible)", "publishing")
                     s.publish(config(), object : DiscoverySessionCallback() {
                         override fun onPublishStarted(p: PublishDiscoverySession) {
-                            publish = p
+                            if (stopped) p.close() else publish = p
+                        }
+
+                        override fun onSessionTerminated() {
+                            publish = null
+                            DebugStatus.set("Wi-Fi Aware (visible)", "session ended")
                         }
                     }, handler)
                 }
 
-                override fun onAttachFailed() = Log.w(TAG, "attach failed")
+                override fun onAttachFailed() {
+                    Log.w(TAG, "attach failed")
+                    DebugStatus.log("Wi-Fi Aware: attach FAILED")
+                }
             }, handler)
         } catch (e: SecurityException) {
             Log.w(TAG, "no permission", e)
@@ -83,6 +108,7 @@ class WifiAwarePublisher(context: Context, private val idNow: () -> ByteArray) {
     }
 
     fun stop() {
+        stopped = true
         publish?.close()
         session?.close()
         publish = null
@@ -103,36 +129,56 @@ class WifiAwareFinder(
     private var session: WifiAwareSession? = null
     private var subscribe: SubscribeDiscoverySession? = null
     private var rangingJob: Job? = null
+    private var stopped = true
 
     /** Friend id -> latest peer handle for them. */
     private val peers = mutableMapOf<String, PeerHandle>()
 
     @SuppressLint("MissingPermission")
     fun start() {
-        if (aware == null || rtt == null || !aware.isAvailable) return
+        if (aware == null || rtt == null || !aware.isAvailable) {
+            DebugStatus.set(K, "unavailable (Wi-Fi or location off?)")
+            return
+        }
+        DebugStatus.set(K, "attaching")
+        stopped = false
         try {
             aware.attach(object : AttachCallback() {
                 override fun onAttached(s: WifiAwareSession) {
+                    if (stopped) {
+                        s.close()
+                        return
+                    }
                     session = s
                     s.subscribe(
                         SubscribeConfig.Builder().setServiceName(SERVICE).build(),
                         object : DiscoverySessionCallback() {
                             override fun onSubscribeStarted(sub: SubscribeDiscoverySession) {
-                                subscribe = sub
+                                if (stopped) sub.close() else subscribe = sub
+                            }
+
+                            override fun onSessionTerminated() {
+                                subscribe = null
+                                peers.clear()
+                                DebugStatus.set(K, "session ended")
                             }
 
                             override fun onServiceDiscovered(peer: PeerHandle, info: ByteArray?, filter: MutableList<ByteArray>?) {
                                 if (info == null) return
                                 val now = System.currentTimeMillis()
                                 val friend = friends().firstOrNull { it.ephemeralId.matches(info, now) } ?: return
-                                peers[friend.id] = peer
+                                if (peers.put(friend.id, peer) == null) DebugStatus.log("Wi-Fi Aware: found ${friend.name}")
+                                DebugStatus.set(K, "subscribed, ${peers.size} friend(s) found")
                             }
                         },
                         handler,
                     )
                 }
 
-                override fun onAttachFailed() = Log.w(TAG, "attach failed")
+                override fun onAttachFailed() {
+                    Log.w(TAG, "attach failed")
+                    DebugStatus.log("Wi-Fi Aware: attach FAILED")
+                }
             }, handler)
         } catch (e: SecurityException) {
             Log.w(TAG, "no permission", e)
@@ -161,10 +207,14 @@ class WifiAwareFinder(
                         if (res.status != RangingResult.STATUS_SUCCESS) return@forEach
                         val friendId = byHandle[res.peerHandle] ?: return@forEach
                         onDistance(friendId, res.distanceMm / 1000.0)
+                        DebugStatus.set(K, "RTT ok: %.1f m ±%.1f".format(res.distanceMm / 1000.0, res.distanceStdDevMm / 1000.0))
                     }
                 }
 
-                override fun onRangingFailure(code: Int) = Log.w(TAG, "ranging failed: $code")
+                override fun onRangingFailure(code: Int) {
+                    Log.w(TAG, "ranging failed: $code")
+                    DebugStatus.set(K, "RTT FAILED code $code")
+                }
             })
         } catch (e: SecurityException) {
             Log.w(TAG, "no permission for RTT", e)
@@ -172,6 +222,7 @@ class WifiAwareFinder(
     }
 
     fun stop() {
+        stopped = true
         rangingJob?.cancel()
         rangingJob = null
         subscribe?.close()
@@ -179,5 +230,10 @@ class WifiAwareFinder(
         subscribe = null
         session = null
         peers.clear()
+        DebugStatus.set(K, "off")
+    }
+
+    private companion object {
+        const val K = "Wi-Fi Aware (looking)"
     }
 }

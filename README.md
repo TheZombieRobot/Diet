@@ -75,8 +75,21 @@ Wi-Fi as your laptop can use `-Pmoshpoint.server=http://<laptop-ip>:8080` for te
    `AZIMUTH_SIGN` in `UwbFinder.kt`. Also try it with phone A's screen off and the app
    closed, to check UWB works from the background.
 
-In debug builds each arrow shows which method is driving it (UWB, Wi-Fi, BT, GPS, crowd,
-scan; a `?` means unsure), so you can see the hand-over between methods as you walk.
+### Debug mode (test builds only)
+
+Debug builds (the APK from GitHub Actions, or Run in Android Studio) have a **Debug**
+button on the finder screen. Release builds don't: it's compiled out.
+
+- **Methods:** every method with **ON/off** and **solo**. Solo one (e.g. Wi-Fi) to test it
+  on its own; **all on** puts things back. Disabled methods still show their readings.
+- **Per friend:** each method's last distance, bearing, age and trust score. The green
+  `●` row is the one driving the arrow.
+- **Technology status:** UWB (looking / visible), Wi-Fi Aware, Bluetooth scan and adverts,
+  GPS accuracy, server, crowd relay, compass. Failures show in red.
+- **Switch log:** every hand-over, e.g. `21:04:13  Sam: BLE_RSSI distance only -> UWB (12.4 m)`.
+
+Each arrow also shows a small label of the method driving it (`UWB`, `Wi-Fi`, `BT`,
+`GPS`, `crowd`, `scan`; `?` = unsure).
 
 Debug logs: `adb logcat -s UwbFinder UwbResponder BleRanger BleBroadcaster CrowdRelay WifiAware MyLocation`
 

@@ -15,9 +15,12 @@ import android.content.Context
 import android.os.ParcelUuid
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.core.RelayCache
 import nz.waveformlabs.moshpoint.core.RelayPacket
 
@@ -37,12 +40,19 @@ object CrowdRelayRadio {
 
     val cache = RelayCache()
 
+    /** Our own scope, so uploads don't die with (or leak) whichever screen started us. */
+    private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
     private const val TAG = "CrowdRelay"
+    private const val K = "Crowd relay"
     private var listeners = 0
     private var scanCallback: ScanCallback? = null
     private var advertisingSet: AdvertisingSet? = null
     private var advertiseCallback: AdvertisingSetCallback? = null
     private var broadcastJob: Job? = null
+    /** Set from the callback, so a failed or lost advert set gets started again. */
+    @Volatile private var setLive = false
+    @Volatile private var setPending = false
 
     /** Our own sealed location, refreshed by the visibility service. */
     @Volatile
@@ -56,17 +66,21 @@ object CrowdRelayRadio {
     /** Ref-counted: the finder and the visibility service can both listen. */
     @SuppressLint("MissingPermission")
     @Synchronized
-    fun startListening(context: Context, scope: CoroutineScope) {
+    fun startListening(context: Context) {
         listeners++
-        if (scanCallback != null || !supported(context)) return
+        if (!supported(context)) {
+            DebugStatus.set(K, "unsupported (no Bluetooth 5 extended adverts)")
+            return
+        }
+        if (scanCallback != null) return
         val scanner = context.getSystemService(BluetoothManager::class.java)?.adapter?.bluetoothLeScanner ?: return
         val cb = object : ScanCallback() {
-            override fun onScanResult(callbackType: Int, result: ScanResult) = handle(result, scope)
-            override fun onBatchScanResults(results: MutableList<ScanResult>) = results.forEach { handle(it, scope) }
+            override fun onScanResult(callbackType: Int, result: ScanResult) = handle(result)
+            override fun onBatchScanResults(results: MutableList<ScanResult>) = results.forEach { handle(it) }
         }
         try {
             scanner.startScan(
-                listOf(ScanFilter.Builder().setServiceData(RELAY_UUID, null).build()),
+                listOf(ScanFilter.Builder().setServiceData(RELAY_UUID, ByteArray(0)).build()),
                 ScanSettings.Builder()
                     .setLegacy(false)
                     .setPhy(ScanSettings.PHY_LE_ALL_SUPPORTED)
@@ -75,9 +89,22 @@ object CrowdRelayRadio {
                 cb,
             )
             scanCallback = cb
+            DebugStatus.set(K, "listening, cache ${cache.size()}")
         } catch (e: SecurityException) {
             Log.w(TAG, "no scan permission", e)
         }
+    }
+
+    /** Bluetooth came back: the scan died with it, and the advert set needs restarting. */
+    @Synchronized
+    fun restartAfterBluetooth(context: Context) {
+        scanCallback = null
+        if (listeners > 0) {
+            listeners--
+            startListening(context)
+        }
+        setLive = false
+        setPending = false
     }
 
     @SuppressLint("MissingPermission")
@@ -93,12 +120,13 @@ object CrowdRelayRadio {
         scanCallback = null
     }
 
-    private fun handle(result: ScanResult, scope: CoroutineScope) {
+    private fun handle(result: ScanResult) {
         val bytes = result.scanRecord?.getServiceData(RELAY_UUID) ?: return
         val packet = RelayPacket.decode(bytes) ?: return
         val isNew = cache.offer(packet, System.currentTimeMillis() / 1000)
+        if (isNew) DebugStatus.set(K, "heard packet (hops left ${packet.ttl}), cache ${cache.size()}")
         // Someone with signal passes it up to the server, so far-away friends get it too.
-        if (isNew && RelayClient.enabled) scope.launch { RelayClient.put(packet.id, packet.sealed) }
+        if (isNew && RelayClient.enabled) ioScope.launch { RelayClient.put(packet.id, packet.sealed) }
     }
 
     /**
@@ -109,7 +137,6 @@ object CrowdRelayRadio {
     @Synchronized
     fun startBroadcasting(context: Context, scope: CoroutineScope) {
         if (broadcastJob != null || !supported(context)) return
-        val advertiser = context.getSystemService(BluetoothManager::class.java)?.adapter?.bluetoothLeAdvertiser ?: return
         val params = AdvertisingSetParameters.Builder()
             .setLegacyMode(false)
             .setConnectable(false)
@@ -121,12 +148,26 @@ object CrowdRelayRadio {
             .build()
         val cb = object : AdvertisingSetCallback() {
             override fun onAdvertisingSetStarted(set: AdvertisingSet?, txPower: Int, status: Int) {
-                if (status == AdvertisingSetCallback.ADVERTISE_SUCCESS) advertisingSet = set else Log.w(TAG, "relay advert failed: $status")
+                setPending = false
+                if (status == AdvertisingSetCallback.ADVERTISE_SUCCESS) {
+                    advertisingSet = set
+                    setLive = true
+                    DebugStatus.set("$K send", "broadcasting")
+                } else {
+                    Log.w(TAG, "relay advert failed: $status")
+                    setLive = false
+                    DebugStatus.set("$K send", "FAILED code $status")
+                }
+            }
+
+            override fun onAdvertisingSetStopped(set: AdvertisingSet?) {
+                setLive = false // e.g. Bluetooth restarted: the loop starts a new set
             }
         }
         advertiseCallback = cb
+        setLive = false
+        setPending = false
         broadcastJob = scope.launch {
-            var started = false
             while (true) {
                 val now = System.currentTimeMillis() / 1000
                 val next = ownPacket?.takeIf { now - it.timeSec < 600 && (now % 3L) == 0L }
@@ -135,11 +176,13 @@ object CrowdRelayRadio {
                 if (next != null) {
                     val data = AdvertiseData.Builder().addServiceData(RELAY_UUID, next.encode()).build()
                     try {
-                        if (!started) {
-                            advertiser.startAdvertisingSet(params, data, null, null, null, cb)
-                            started = true
-                        } else {
-                            advertisingSet?.setAdvertisingData(data)
+                        val adv = context.getSystemService(BluetoothManager::class.java)?.adapter?.bluetoothLeAdvertiser
+                        when {
+                            setLive -> advertisingSet?.setAdvertisingData(data)
+                            !setPending && adv != null -> {
+                                setPending = true
+                                adv.startAdvertisingSet(params, data, null, null, null, cb)
+                            }
                         }
                     } catch (e: SecurityException) {
                         Log.w(TAG, "no advertise permission", e)
@@ -162,5 +205,7 @@ object CrowdRelayRadio {
         }
         advertiseCallback = null
         advertisingSet = null
+        setLive = false
+        setPending = false
     }
 }

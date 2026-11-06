@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.FriendsRepository
 import nz.waveformlabs.moshpoint.core.Advert
@@ -18,6 +19,8 @@ import nz.waveformlabs.moshpoint.core.Fix
 import nz.waveformlabs.moshpoint.core.Geo
 import nz.waveformlabs.moshpoint.core.Method
 import nz.waveformlabs.moshpoint.core.MethodArbiter
+import nz.waveformlabs.moshpoint.core.MethodDebug
+import nz.waveformlabs.moshpoint.core.debug
 import nz.waveformlabs.moshpoint.core.SpinScan
 
 /**
@@ -83,7 +86,7 @@ class LocatorEngine(
         null
     }
 
-    private val ble = BleRanger(context, { trackedFriends() }) { friend, rssi, distance, advert ->
+    private val ble = BleRanger(context, "BT scan (looking)", { trackedFriends() }) { friend, rssi, distance, advert ->
         arbiter.submit(Fix(friend.id, Method.BLE_RSSI, null, distance, confidence = 0.7, timestampMs = System.currentTimeMillis()))
         spinScans[friend.id]?.add(heading, rssi.toDouble())
         val info = advert.uwb
@@ -102,6 +105,79 @@ class LocatorEngine(
 
     private var jobs = listOf<Job>()
 
+    private val radios = RadioWatcher(
+        context,
+        onBluetooth = { on ->
+            if (on) {
+                ble.restart()
+                CrowdRelayRadio.restartAfterBluetooth(context)
+                updateLookingAdvert()
+            } else {
+                lookingAdvert?.onBluetoothOff()
+            }
+        },
+        onWifiAware = { available ->
+            if (available) {
+                wifi?.stop()
+                wifi?.start()
+            }
+        },
+    )
+
+    // ---- Debug panel (debug builds only) ----
+
+    private val _enabledMethods = MutableStateFlow(Method.entries.toSet())
+    /** Methods allowed to drive the arrow. Switch some off to test one at a time. */
+    val enabledMethods: StateFlow<Set<Method>> = _enabledMethods.asStateFlow()
+
+    private val _debugRows = MutableStateFlow<Map<String, List<MethodDebug>>>(emptyMap())
+    /** Per tracked friend: what every method last said, and which is driving the arrow. */
+    val debugRows: StateFlow<Map<String, List<MethodDebug>>> = _debugRows.asStateFlow()
+
+    private val lastDriving = mutableMapOf<String, String>()
+    private var lastDebugAt = 0L
+
+    fun setMethodEnabled(method: Method, on: Boolean) {
+        val next = if (on) _enabledMethods.value + method else _enabledMethods.value - method
+        _enabledMethods.value = next
+        arbiter.enabled = next
+        DebugStatus.log("${if (on) "Enabled" else "Disabled"} $method")
+    }
+
+    fun enableOnly(method: Method?) {
+        val next = if (method == null) Method.entries.toSet() else setOf(method)
+        _enabledMethods.value = next
+        arbiter.enabled = next
+        DebugStatus.log(if (method == null) "All methods enabled" else "Only $method enabled")
+    }
+
+    private fun updateDebug(now: Long, arrows: List<ArrowState>) {
+        // Log every hand-over between methods, e.g. "Sam: BT -> UWB (12 m)".
+        for (a in arrows) {
+            val name = FriendsRepository.byId(a.friendId)?.name ?: a.friendId
+            val state = when (a) {
+                is ArrowState.NoSignal -> "no signal"
+                is ArrowState.DistanceOnly -> "${a.method} distance only"
+                is ArrowState.Pointing -> a.method.name + if (a.unsure) " (unsure)" else ""
+            }
+            val before = lastDriving.put(a.friendId, state)
+            if (before != null && before != state) {
+                val d = when (a) {
+                    is ArrowState.DistanceOnly -> a.distanceM
+                    is ArrowState.Pointing -> a.distanceM
+                    else -> null
+                }
+                DebugStatus.log("$name: $before -> $state" + (d?.let { " (%.1f m)".format(it) } ?: ""))
+            }
+        }
+        if (now - lastDebugAt < 250) return
+        lastDebugAt = now
+        _debugRows.value = arrows.associate { a ->
+            a.friendId to arbiter.debug(a.friendId, now, (a as? ArrowState.Pointing)?.method)
+        }
+        DebugStatus.set("Compass", "%.0f° true (declination %.1f°)".format(heading, gps.declinationDeg))
+    }
+
     fun track(friendIds: Set<String>) {
         _tracking.value = friendIds
     }
@@ -114,7 +190,8 @@ class LocatorEngine(
         uwb?.start()
         gps.start()
         wifi?.start()
-        CrowdRelayRadio.startListening(context, scope)
+        radios.start()
+        CrowdRelayRadio.startListening(context)
         jobs = listOf(
             // True-north heading: compass is magnetic, GPS bearings are true.
             scope.launch { compass.headings().collect { heading = Geo.normalize360(it + gps.declinationDeg) } },
@@ -136,10 +213,12 @@ class LocatorEngine(
     }
 
     fun stop() {
+        if (jobs.isEmpty()) return // not running: don't release listeners we never took
         ble.stop()
         uwb?.stop()
         gps.stop()
         wifi?.stop()
+        radios.stop()
         CrowdRelayRadio.stopListening(context)
         lookingAdvert?.stop()
         jobs.forEach { it.cancel() }
@@ -152,7 +231,8 @@ class LocatorEngine(
             lookingAdvert?.stop()
             return
         }
-        val adv = lookingAdvert ?: BleBroadcaster(context, AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY).also { lookingAdvert = it }
+        val adv = lookingAdvert
+            ?: BleBroadcaster(context, AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY, "BT advert (looking, UWB)").also { lookingAdvert = it }
         adv.update(Advert.encode(mySecret, ephemeral.currentId(System.currentTimeMillis()), info))
     }
 
@@ -170,7 +250,9 @@ class LocatorEngine(
     private fun tick() {
         val now = System.currentTimeMillis()
         if (spinScans.isNotEmpty()) updateSpinScan(now)
-        _arrows.value = _tracking.value.map { arbiter.arrowFor(it, heading, now) }
+        val arrows = _tracking.value.map { arbiter.arrowFor(it, heading, now) }
+        _arrows.value = arrows
+        if (DebugStatus.enabled) updateDebug(now, arrows)
     }
 
     private fun updateSpinScan(now: Long) {

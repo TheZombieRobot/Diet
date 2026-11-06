@@ -29,8 +29,10 @@ class MyLocation(context: Context) {
                 trySend(loc)
             }
         }
+        // Register even if location is switched off right now: updates start as soon as
+        // the user turns it on. (Only skip providers this phone doesn't have at all.)
         val providers = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
-            .filter { runCatching { lm.isProviderEnabled(it) }.getOrDefault(false) }
+            .filter { it in lm.allProviders }
         try {
             providers.forEach { lm.requestLocationUpdates(it, intervalMs, minDistanceM, listener, Looper.getMainLooper()) }
         } catch (e: SecurityException) {

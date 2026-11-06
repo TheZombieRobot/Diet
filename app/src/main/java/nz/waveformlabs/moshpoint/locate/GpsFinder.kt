@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.core.Fix
 import nz.waveformlabs.moshpoint.core.Geo
@@ -43,8 +44,10 @@ class GpsFinder(
         if (jobs.isNotEmpty()) return
         jobs = listOf(
             scope.launch {
+                DebugStatus.set("GPS", "waiting for a fix")
                 myLocation.updates(intervalMs = 3_000, minDistanceM = 0f).collect {
                     me = it
+                    DebugStatus.set("GPS", "±%.0f m via %s".format(it.accuracy, it.provider))
                     declinationDeg = GeomagneticField(
                         it.latitude.toFloat(), it.longitude.toFloat(), it.altitude.toFloat(), it.time,
                     ).declination.toDouble()
@@ -85,7 +88,16 @@ class GpsFinder(
             CrowdRelayRadio.cache.lookup(id, now / 1000)?.let { consider(friend, id, it.sealed, Method.CROWD_RELAY) }
         }
         // Relay server: needs mobile data.
-        RelayClient.lookup(asks.map { it.second })?.let { results ->
+        val results = RelayClient.lookup(asks.map { it.second })
+        DebugStatus.set(
+            "Server",
+            when {
+                !RelayClient.enabled -> "off (no server URL in this build)"
+                results == null -> "lookup FAILED (no data?)"
+                else -> "ok, ${results.sumOf { it.size }} box(es) for ${list.size} friend(s)"
+            },
+        )
+        results?.let { results ->
             asks.forEachIndexed { i, (friend, id) -> results[i].forEach { consider(friend, id, it, Method.GPS_SERVER) } }
         }
         val myLatLon = LatLon(here.latitude, here.longitude)

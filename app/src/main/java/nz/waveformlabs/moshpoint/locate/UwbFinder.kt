@@ -12,6 +12,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.core.Advert
 import nz.waveformlabs.moshpoint.core.UwbSessionKeys
 
@@ -59,6 +60,7 @@ class UwbFinder(
         session = null
         peers.clear()
         onAdvertInfo(null)
+        DebugStatus.set(K, "off")
     }
 
     private suspend fun newScope() {
@@ -66,6 +68,7 @@ class UwbFinder(
             val s = manager.controllerSessionScope()
             session = s
             peers.clear()
+            DebugStatus.set(K, "ready, ch ${s.uwbComplexChannel.channel}, waiting for a visible UWB friend")
             onAdvertInfo(
                 Advert.UwbInfo(
                     role = Advert.UwbRole.CONTROLLER,
@@ -77,6 +80,7 @@ class UwbFinder(
         } catch (e: Exception) {
             // No UWB, UWB switched off (e.g. airplane mode), or permission missing.
             Log.w(TAG, "UWB controller unavailable", e)
+            DebugStatus.set(K, "UNAVAILABLE: ${e.javaClass.simpleName} ${e.message ?: ""}".trim())
             session = null
             onAdvertInfo(null)
         }
@@ -89,6 +93,7 @@ class UwbFinder(
         if (peers[key] == friendId) return
         peers.entries.removeAll { it.value == friendId } // their address changed (new scope)
         peers[key] = friendId
+        DebugStatus.log("UWB: adding friend to session (${peers.size} peer(s))")
 
         if (rangingJob == null) {
             val params = RangingParameters(
@@ -108,6 +113,7 @@ class UwbFinder(
                     throw e // stop() was called: don't reopen
                 } catch (e: Exception) {
                     Log.w(TAG, "UWB ranging ended", e)
+                    DebugStatus.log("UWB: session ended (${e.javaClass.simpleName})")
                 }
                 // A session scope is single-use: open a fresh one and re-advertise.
                 rangingJob = null
@@ -127,11 +133,19 @@ class UwbFinder(
     private fun handle(result: RangingResult) {
         val friendId = peers[result.device.address.address.hex()] ?: return
         when (result) {
-            is RangingResult.RangingResultPosition -> onResult(
-                friendId,
-                result.position.distance?.value?.toDouble(),
-                result.position.azimuth?.value?.toDouble()?.let { it * AZIMUTH_SIGN },
-            )
+            is RangingResult.RangingResultPosition -> {
+                DebugStatus.set(
+                    K,
+                    "ranging ${peers.size} peer(s): " +
+                        "${result.position.distance?.value?.let { "%.2f m".format(it) } ?: "no dist"}, " +
+                        "az ${result.position.azimuth?.value?.let { "%.0f°".format(it) } ?: "none"}",
+                )
+                onResult(
+                    friendId,
+                    result.position.distance?.value?.toDouble(),
+                    result.position.azimuth?.value?.toDouble()?.let { it * AZIMUTH_SIGN },
+                )
+            }
             is RangingResult.RangingResultPeerDisconnected -> peers.entries.removeAll { it.value == friendId }
             else -> Unit
         }
@@ -139,6 +153,7 @@ class UwbFinder(
 
     companion object {
         private const val TAG = "UwbFinder"
+        private const val K = "UWB (looking)"
 
         /**
          * TODO: confirm on a real phone. We want positive = friend is to the RIGHT.

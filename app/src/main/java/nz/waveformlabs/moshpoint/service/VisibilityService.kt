@@ -27,6 +27,7 @@ import nz.waveformlabs.moshpoint.locate.BleBroadcaster
 import nz.waveformlabs.moshpoint.locate.BleRanger
 import nz.waveformlabs.moshpoint.locate.Capabilities
 import nz.waveformlabs.moshpoint.locate.CrowdRelayRadio
+import nz.waveformlabs.moshpoint.locate.RadioWatcher
 import nz.waveformlabs.moshpoint.locate.WifiAwarePublisher
 import nz.waveformlabs.moshpoint.locate.wifiRttSupported
 
@@ -56,10 +57,16 @@ class VisibilityService : LifecycleService() {
     private var rotateJob: Job? = null
     private var uploader: LocationUploader? = null
     private var wifi: WifiAwarePublisher? = null
+    private var radios: RadioWatcher? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-        startInForeground()
+        if (!startInForeground()) {
+            // Android refused (e.g. restarted from the background on Android 12+). Give up
+            // quietly; visibility comes back next time the app is opened.
+            stopSelf()
+            return START_NOT_STICKY
+        }
         if (rotateJob == null) begin()
         return START_STICKY
     }
@@ -68,7 +75,7 @@ class VisibilityService : LifecycleService() {
         FriendsRepository.init(this)
         mySecret = VisibilityPrefs.mySecret(this)
         ephemeral = EphemeralId(mySecret)
-        broadcaster = BleBroadcaster(this, AdvertiseSettings.ADVERTISE_MODE_BALANCED)
+        broadcaster = BleBroadcaster(this, AdvertiseSettings.ADVERTISE_MODE_BALANCED, "BT advert (visible)")
 
         rotateJob = lifecycleScope.launch {
             while (true) {
@@ -81,11 +88,24 @@ class VisibilityService : LifecycleService() {
         }
 
         uploader = LocationUploader(this, lifecycleScope, mySecret).also { it.start() }
-        CrowdRelayRadio.startListening(this, lifecycleScope)
+        CrowdRelayRadio.startListening(this)
         CrowdRelayRadio.startBroadcasting(this, lifecycleScope)
         if (wifiRttSupported(this)) {
             wifi = WifiAwarePublisher(this) { ephemeral.currentId(System.currentTimeMillis()) }.also { it.start() }
         }
+        radios = RadioWatcher(
+            this,
+            onBluetooth = { on ->
+                if (on) {
+                    readvertise()
+                    listener?.restart()
+                    CrowdRelayRadio.restartAfterBluetooth(this)
+                } else {
+                    broadcaster.onBluetoothOff()
+                }
+            },
+            onWifiAware = { available -> if (available) wifi?.restart() },
+        ).also { it.start() }
 
         if (Capabilities.detect(this).uwb) {
             val responder = UwbResponder(this, lifecycleScope) { info ->
@@ -94,7 +114,7 @@ class VisibilityService : LifecycleService() {
             }
             uwb = responder
             responder.start()
-            listener = BleRanger(this, { FriendsRepository.friends.toList() }) { friend, _, _, advert ->
+            listener = BleRanger(this, "BT scan (visible, for UWB)", { FriendsRepository.friends.toList() }) { friend, _, _, advert ->
                 val info = advert.uwb
                 if (info?.role == Advert.UwbRole.CONTROLLER) responder.onFriendController(friend, info)
             }.also { it.start(lowLatency = false) }
@@ -108,18 +128,22 @@ class VisibilityService : LifecycleService() {
 
     override fun onDestroy() {
         rotateJob?.cancel()
+        radios?.stop()
         uploader?.stop()
         wifi?.stop()
-        CrowdRelayRadio.stopBroadcasting(this)
-        CrowdRelayRadio.stopListening(this)
-        CrowdRelayRadio.ownPacket = null
+        if (rotateJob != null) {
+            CrowdRelayRadio.stopBroadcasting(this)
+            CrowdRelayRadio.stopListening(this)
+            CrowdRelayRadio.ownPacket = null
+        }
         listener?.stop()
         uwb?.stop()
         if (::broadcaster.isInitialized) broadcaster.stop()
         super.onDestroy()
     }
 
-    private fun startInForeground() {
+    /** Returns false if Android won't let us run in the foreground right now. */
+    private fun startInForeground(): Boolean {
         val nm = getSystemService(NotificationManager::class.java)
         nm.createNotificationChannel(
             NotificationChannel(CHANNEL, getString(R.string.visibility_channel), NotificationManager.IMPORTANCE_LOW),
@@ -139,10 +163,13 @@ class VisibilityService : LifecycleService() {
         val base = ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
         val withLocation = base or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
         val canLocate = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-        try {
+        return try {
             ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, if (canLocate) withLocation else base)
+            true
         } catch (e: SecurityException) {
-            ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, base)
+            runCatching { ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, base) }.isSuccess
+        } catch (e: IllegalStateException) {
+            false // ForegroundServiceStartNotAllowedException
         }
     }
 

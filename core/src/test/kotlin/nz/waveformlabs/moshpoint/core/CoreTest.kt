@@ -80,6 +80,30 @@ class MethodArbiterTest {
         assertEquals(Method.GPS_SERVER, (a.arrowFor(f, 0.0, 1_000) as ArrowState.Pointing).method)
     }
 
+    @Test fun disabledMethodsAreIgnoredButStillShown() {
+        val a = MethodArbiter()
+        a.submit(Fix(f, Method.UWB, 90.0, 42.0, 1.0, 1_000))
+        a.submit(Fix(f, Method.GPS_SERVER, 180.0, 60.0, 1.0, 1_000))
+        a.enabled = Method.entries.toSet() - Method.UWB
+        val s = assertIs<ArrowState.Pointing>(a.arrowFor(f, 0.0, 1_100))
+        assertEquals(Method.GPS_SERVER, s.method)
+        assertEquals(60.0, s.distanceM) // UWB's distance isn't used either
+        val rows = a.debug(f, 1_100, s.method)
+        val uwb = rows.first { it.method == Method.UWB }
+        assertEquals(false, uwb.enabled)
+        assertEquals(0.0, uwb.score)
+        assertEquals(42.0, uwb.fix?.distanceM)
+        assertTrue(rows.first { it.method == Method.GPS_SERVER }.drivingDirection)
+    }
+
+    @Test fun onlyBluetoothEnabled() {
+        val a = MethodArbiter()
+        a.submit(Fix(f, Method.UWB, 90.0, 42.0, 1.0, 1_000))
+        a.submit(Fix(f, Method.BLE_RSSI, null, 30.0, 0.7, 1_000))
+        a.enabled = setOf(Method.BLE_RSSI)
+        assertIs<ArrowState.DistanceOnly>(a.arrowFor(f, 0.0, 1_100))
+    }
+
     @Test fun lowConfidenceIsUnsure() {
         val a = MethodArbiter()
         a.submit(Fix(f, Method.CROWD_RELAY, 10.0, 80.0, 0.5, 1_000))

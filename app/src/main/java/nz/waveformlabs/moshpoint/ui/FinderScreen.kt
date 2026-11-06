@@ -4,7 +4,9 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -13,6 +15,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -50,7 +56,11 @@ fun FinderScreen(
     onScan: () -> Unit,
     onCancelScan: () -> Unit,
     onBack: () -> Unit,
+    /** Only used in debug builds. Null in release. */
+    debug: (@Composable (Modifier) -> Unit)? = null,
 ) {
+    var showDebug by remember { mutableStateOf(false) }
+    Box(Modifier.fillMaxSize()) {
     Column(
         Modifier.fillMaxSize().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -99,7 +109,16 @@ fun FinderScreen(
             Button(onClick = onScan) { Text(if (unsure) "Scan (arrow unsure)" else "Scan") }
         }
         Spacer(Modifier.height(8.dp))
-        OutlinedButton(onClick = onBack) { Text("Friends") }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = onBack) { Text("Friends") }
+            if (BuildConfig.DEBUG && debug != null) {
+                OutlinedButton(onClick = { showDebug = !showDebug }) { Text(if (showDebug) "Hide debug" else "Debug") }
+            }
+        }
+    }
+    if (BuildConfig.DEBUG && debug != null && showDebug) {
+        debug(Modifier.align(Alignment.TopCenter).fillMaxWidth().fillMaxHeight(0.62f))
+    }
     }
 }
 
