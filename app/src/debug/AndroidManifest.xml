@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Debug builds only. -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
-    <application
-        android:usesCleartextTraffic="true"
-        tools:replace="android:usesCleartextTraffic">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:usesCleartextTraffic="true">
         <!-- Allow plain http so phones can reach a relay server on a laptop. -->
 
         <!-- Share field recordings from the debug panel. -->
