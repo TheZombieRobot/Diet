@@ -20,7 +20,7 @@ method runs at once, and a single arbiter decides what to draw.
 | File | Job |
 |---|---|
 | `Model.kt` | `Method` (with trust weight + how long a fix stays fresh), `Fix`, `ArrowState` (`NoSignal` / `DistanceOnly` / `Pointing`). |
-| `MethodArbiter.kt` | Drops stale fixes. Takes direction from the best fix that has a bearing and distance from the best fix that has a distance, so a GPS arrow can still show a precise Wi-Fi Aware distance. Hysteresis stops flicking between methods. Flags low-confidence arrows as `unsure`, which brings up the Scan prompt. |
+| `MethodArbiter.kt` | Drops stale fixes. Ignores GPS/crowd *directions* once a close-range method says the friend is under 20 m (GPS error is bigger than the gap there), so the user gets distance + a Scan prompt rather than a wrong arrow. Takes direction from the best fix that has a bearing and distance from the best fix that has a distance, so a GPS arrow can still show a precise Wi-Fi Aware distance. Hysteresis stops flicking between methods. Flags low-confidence arrows as `unsure`, which brings up the Scan prompt. |
 | `SpinScan.kt` | Spin to scan. Collects (compass heading, RSSI) while the user turns, then fits `rssi = a + b·cos(h − θ)` by least squares. θ is where the signal peaks, which is the friend's direction. It needs about 300° of the circle, and it reports "inconclusive" if the body shadow is too weak to read. |
 | `RssiRanging.kt` | Log-distance path loss with smoothing. Turns BLE signal strength into a rough distance. The constants **must be tuned in a real crowd**. |
 | `ArrowStyle.kt` | Arrow is red at 150 m or more and fades to the friend's colour by 10 m. Distance label text. |
@@ -29,6 +29,10 @@ method runs at once, and a single arbiter decides what to draw.
 | `LocationBox.kt` | Seals a GPS fix (lat, lon, time, accuracy) with AES-GCM so only the owner's friends can open it. 29 bytes. Bound to the rotating id. |
 | `CrowdRelay.kt` | `RelayPacket` (47-byte relay advert) and `RelayCache` (newest per id, hop limit, age limit, fair airtime). |
 | `EphemeralId.kt` | Rotating 16-byte broadcast code = `HMAC-SHA256(secret, 5-min epoch)`. Friends who hold the secret recognise it; nobody else can link it over time. |
+| `HeadingFilter.kt` | Compass smoothing on the unit circle: heavy for jitter, light during a real turn. |
+| `FriendSimulator.kt` | Debug: a pretend friend producing realistic readings from every method (incl. body shadow for spin-scan). |
+| `RecordLine.kt` | Debug: CSV format for field recordings (`tools/analyze_recording.py` reads it). |
+| `QrPayload.kt` | What's in a Moshpoint QR code. |
 | `Geo.kt` | Distance and bearing between GPS points. Absolute bearing → arrow angle using the compass. |
 
 ## app (Android)
@@ -106,10 +110,18 @@ on real phones.
   helped. This is the same model as Apple Find My / Tile.
 - To do: per-group secrets so leaving a gig group revokes access; keys in the Android Keystore.
 
+## Debug builds
+
+Everything below is behind `BuildConfig.DEBUG` and stripped from release builds (CI checks):
+`DebugStatus` (live status hub), `DebugPanel` (method on/off/solo, readings, tech status,
+switch log), `FieldRecorder` (CSV recordings + ground-truth marks), simulated friends.
+
 ## Things to watch (from the brief)
 
-- **Battery:** advertising is BALANCED at medium power. Next steps: adaptive intervals, scan
-  duty-cycling when the screen is off, and only fast-scanning while the finder screen is open.
+- **Battery:** a visible phone advertises slowly (~1 s, low power) and listens with a
+  low-power scan. When it hears a friend's "looking" advert it speeds up to fast (~100 ms)
+  for 90 s. The finder only scans fast while its screen is open (stops 20 s after leaving).
+  GPS shares every 15 s / 5 m. Still to try: duty-cycling the listen scan with the screen off.
 - **Crowds:** bodies absorb 2.4 GHz. Retune `RssiRanging` and `SpinScan` thresholds with real gig data.
 - **Background limits:** foreground service + `START_STICKY`. Test on Samsung/Xiaomi/Oppo,
   which kill background apps hard, and prompt users to exempt the app from battery optimisation.
