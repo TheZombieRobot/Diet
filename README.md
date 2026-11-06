@@ -10,6 +10,7 @@ Find your mates at a gig. Open the app, tap a friend, and an arrow points you to
 - **Brief:** [`docs/BRIEF.md`](docs/BRIEF.md), the product brief, word for word.
 - **How it works:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 - **What's done / next:** [`docs/ROADMAP.md`](docs/ROADMAP.md)
+- **Design:** the screens are drawn on a Claude design canvas (ask Claude for the link); `ui/Theme.kt` holds its colours and type.
 - **Testing on real phones:** [`docs/FIELD_TEST_PLAN.md`](docs/FIELD_TEST_PLAN.md); analyse recordings with `python3 tools/analyze_recording.py <file.csv>`
 
 ## Layout

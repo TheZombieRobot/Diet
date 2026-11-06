@@ -28,6 +28,15 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -151,122 +160,215 @@ fun FriendsScreen(
         }
     }
 
+    var manualCode by remember { mutableStateOf(false) }
+
     @Composable
     fun row(f: Friend) {
         Row(
             Modifier.fillMaxWidth()
+                .heightIn(min = 64.dp)
                 .combinedClickable(onClick = { onFind(setOf(f.id)) }, onLongClick = { options = f })
                 .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val photo = PhotoStore.photos[f.id]
-            if (photo != null) {
-                Image(
-                    photo, contentDescription = null, contentScale = ContentScale.Crop,
-                    modifier = Modifier.size(40.dp).clip(CircleShape).border(2.dp, Color(f.color), CircleShape),
-                )
-            } else {
-                Box(Modifier.size(40.dp).background(Color(f.color), CircleShape), contentAlignment = Alignment.Center) {
-                    Text(f.name.take(1).uppercase(), color = Color.Black)
-                }
-            }
-            Spacer(Modifier.width(12.dp))
-            Text(f.name, color = Color.White, fontSize = 18.sp)
+            Avatar(f, 44.dp)
+            Spacer(Modifier.width(14.dp))
+            Text(f.name, style = Mosh.Label.copy(fontWeight = FontWeight.Medium), modifier = Modifier.weight(1f))
+            Text("Find", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
         }
+        Box(Modifier.fillMaxWidth().height(1.dp).background(Color(0xFF1A1A21)))
     }
 
-    LazyColumn(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    val gig = friends.filter { it.gigGroupOnly }
+    val permanent = friends.filterNot { it.gigGroupOnly }
+
+    LazyColumn(
+        Modifier.fillMaxSize().background(Mosh.Ground),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
         item {
-            Text("Moshpoint", color = Color.White, fontSize = 32.sp)
-            Text(phoneSummary, color = Color.Gray, fontSize = 12.sp)
-            if (missingPermissions.isNotEmpty()) {
-                Spacer(Modifier.height(8.dp))
-                Box(Modifier.fillMaxWidth().background(Color(0xFF3A1F1F)).padding(12.dp)) {
-                    androidx.compose.foundation.layout.Column {
-                        Text("Moshpoint still needs:", color = Color.White)
-                        missingPermissions.forEach { Text("• $it", color = Color(0xFFFFCDD2), fontSize = 13.sp) }
-                        Spacer(Modifier.height(6.dp))
-                        Button(onClick = onFixPermissions) { Text("Allow") }
-                    }
+            Text("Moshpoint", style = Mosh.Title.copy(fontSize = 30.sp))
+            Text(phoneSummary, style = Mosh.Eyebrow.copy(fontSize = 12.sp, letterSpacing = 0.sp))
+        }
+        if (missingPermissions.isNotEmpty()) {
+            item {
+                Column(
+                    Modifier.fillMaxWidth().background(Color(0xFF3A1F1F), RoundedCornerShape(16.dp)).padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text("Moshpoint still needs", style = Mosh.Label)
+                    missingPermissions.forEach { Text("• $it", style = Mosh.Body.copy(fontSize = 13.sp, color = Color(0xFFFFCDD2))) }
+                    Spacer(Modifier.height(6.dp))
+                    Button(
+                        onClick = onFixPermissions, shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Mosh.Red, contentColor = Color.White),
+                    ) { Text("Allow", style = Mosh.Label.copy(color = Color.White)) }
                 }
             }
-            Spacer(Modifier.height(8.dp))
-            OutlinedTextField(myName, onMyName, label = { Text("Your name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-            SwitchRow("Visible to my mates", visible, onVisible)
-            SwitchRow("Leave visibility always on", alwaysOn, onAlwaysOn)
         }
 
-        val gig = friends.filter { it.gigGroupOnly }
-        val permanent = friends.filterNot { it.gigGroupOnly }
+        // Visibility card: the one switch that matters when you walk into the gig.
+        item {
+            Row(
+                Modifier.fillMaxWidth()
+                    .background(if (visible) Mosh.VisibleBg else Mosh.Surface, RoundedCornerShape(18.dp))
+                    .border(1.dp, if (visible) Mosh.VisibleLine else Mosh.Line, RoundedCornerShape(18.dp))
+                    .clickable(role = androidx.compose.ui.semantics.Role.Switch) { onVisible(!visible) }
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    Modifier.size(44.dp).background(if (visible) Mosh.Green else Mosh.Line, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(if (visible) "ON" else "OFF", style = Mosh.Eyebrow.copy(fontSize = 11.sp, color = if (visible) Color(0xFF08130D) else Mosh.TextDim, fontWeight = FontWeight.SemiBold))
+                }
+                Spacer(Modifier.width(14.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(if (visible) "You're visible" else "You're hidden", style = Mosh.Label)
+                    Text(
+                        if (visible) "Mates can find you, even with the app shut" else "Tap to let your mates find you",
+                        style = Mosh.Body.copy(fontSize = 13.sp, color = if (visible) Mosh.VisibleText else Mosh.TextFaint),
+                    )
+                }
+                Switch(
+                    visible, onVisible,
+                    colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Green, checkedThumbColor = Color(0xFF08130D)),
+                )
+            }
+        }
+        item {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text("Leave visibility always on", style = Mosh.Body, modifier = Modifier.weight(1f))
+                Switch(alwaysOn, onAlwaysOn, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Green, checkedThumbColor = Color(0xFF08130D)))
+            }
+            OutlinedTextField(myName, onMyName, label = { Text("Your name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        }
 
-        item { Header(groupName?.let { "Gig group: $it" } ?: "Gig group") }
-        if (groupName == null) {
+        // Tonight's gig group.
+        item {
+            Spacer(Modifier.height(8.dp))
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    (groupName?.let { "TONIGHT: $it" } ?: "GIG GROUP").uppercase(),
+                    style = Mosh.Eyebrow, maxLines = 1, modifier = Modifier.weight(1f),
+                )
+                if (groupName != null) {
+                    TextButton(onClick = onShowGroupQr) { Text("Group QR", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
+                }
+            }
+        }
+        if (groupName == null && gig.isEmpty()) {
             item {
-                Text("One person starts a group; everyone else scans its QR. Members find each other automatically.", color = Color.Gray)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = { naming = true }) { Text("Start a gig group") }
-                    OutlinedButton(onClick = onScanQr) { Text("Join (scan QR)") }
+                Column(
+                    Modifier.fillMaxWidth().background(Mosh.SurfaceLow, RoundedCornerShape(16.dp)).padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Text("One person starts a group, everyone else scans its QR. You'll all find each other tonight.", style = Mosh.Body)
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        SurfaceButton("Start a group", Modifier.weight(1f)) { naming = true }
+                        SurfaceButton("Join a group", Modifier.weight(1f), onClick = onScanQr)
+                    }
                 }
             }
         } else {
             item {
-                if (gig.isEmpty()) Text("Waiting for others to join. Show them the group QR.", color = Color.Gray)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (gig.isNotEmpty()) Button(onClick = { onFind(gig.map { it.id }.toSet()) }) { Text("Find group") }
-                    OutlinedButton(onClick = onShowGroupQr) { Text("Group QR") }
-                    OutlinedButton(onClick = onClearGigGroup) { Text("End night") }
+                if (gig.isEmpty()) {
+                    Text("Waiting for mates to join. Show them the group QR.", style = Mosh.Body)
+                } else {
+                    Button(
+                        onClick = { onFind(gig.map { it.id }.toSet()) },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Mosh.Red, contentColor = Color.White),
+                    ) { Text("Find the whole group", style = Mosh.Label.copy(color = Color.White)) }
+                    Spacer(Modifier.height(12.dp))
+                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        gig.forEach { f ->
+                            Column(
+                                Modifier.width(64.dp).combinedClickable(onClick = { onFind(setOf(f.id)) }, onLongClick = { options = f }),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            ) {
+                                Avatar(f, 56.dp)
+                                Spacer(Modifier.height(6.dp))
+                                Text(f.name, style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.Text), maxLines = 1)
+                            }
+                        }
+                    }
                 }
+                TextButton(onClick = onClearGigGroup) { Text("End the night", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Danger)) }
             }
         }
-        if (groupName == null && gig.isNotEmpty()) {
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = { onFind(gig.map { it.id }.toSet()) }) { Text("Find whole group") }
-                    OutlinedButton(onClick = onClearGigGroup) { Text("End night") }
-                }
-            }
-        }
-        items(gig, key = { it.id }) { row(it) }
 
-        item { Header("Friends") }
-        if (permanent.isEmpty()) item { Text("No friends added yet.", color = Color.Gray) }
+        // Permanent friends.
+        item {
+            Spacer(Modifier.height(4.dp))
+            Text("FRIENDS", style = Mosh.Eyebrow)
+        }
+        if (permanent.isEmpty()) item { Text("No friends added yet. Add someone below.", style = Mosh.Body) }
         // BuildConfig.DEBUG is a compile-time constant, so release builds drop this entirely.
         if (BuildConfig.DEBUG && onAddSimulated != null) {
-            item {
-                OutlinedButton(onClick = onAddSimulated) { Text("Debug: add simulated friend") }
-            }
+            item { TextButton(onClick = onAddSimulated) { Text("Debug: add simulated friend", style = Mosh.Eyebrow) } }
         }
         items(permanent, key = { it.id }) { row(it) }
 
+        // Adding people.
         item {
-            Header("Add someone")
-            Text("Scan each other's QR, or send your code and paste theirs.", color = Color.Gray)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = onShowQr) { Text("Show my QR") }
-                Button(onClick = onScanQr) { Text("Scan their QR") }
+            Spacer(Modifier.height(8.dp))
+            Text("ADD SOMEONE", style = Mosh.Eyebrow)
+            Spacer(Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                SurfaceButton("Show my QR", Modifier.weight(1f), onClick = onShowQr)
+                SurfaceButton("Scan their QR", Modifier.weight(1f), onClick = onScanQr)
             }
-            OutlinedButton(onClick = onShareCode) { Text("Share my code") }
-            OutlinedTextField(name, { name = it }, label = { Text("Their name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(code, { code = it }, label = { Text("Their code") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-            error?.let { Text(it, color = Color(0xFFE53935)) }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = { add(false) }) { Text("Add friend") }
-                Button(onClick = { add(true) }) { Text("Add to gig group") }
+            Row {
+                TextButton(onClick = onShareCode) { Text("Share my code", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
+                TextButton(onClick = { manualCode = !manualCode }) {
+                    Text(if (manualCode) "Hide code entry" else "Enter a code instead", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF)))
+                }
+            }
+            if (manualCode || code.isNotBlank()) {
+                OutlinedTextField(name, { name = it }, label = { Text("Their name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(code, { code = it }, label = { Text("Their code") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                error?.let { Text(it, style = Mosh.Body.copy(color = Mosh.Danger)) }
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    SurfaceButton("Add friend", Modifier.weight(1f)) { add(false) }
+                    SurfaceButton("Add to gig group", Modifier.weight(1f)) { add(true) }
+                }
             }
         }
     }
 }
 
+/** A friend's photo, or their initial, ringed in their colour. */
 @Composable
-private fun Header(text: String) {
-    Spacer(Modifier.height(12.dp))
-    Text(text, color = Color.White, fontSize = 20.sp)
+private fun Avatar(f: Friend, size: androidx.compose.ui.unit.Dp) {
+    val photo = PhotoStore.photos[f.id]
+    val ring = Color(f.color)
+    if (photo != null) {
+        Image(
+            photo, contentDescription = null, contentScale = ContentScale.Crop,
+            modifier = Modifier.size(size).clip(CircleShape).border(3.dp, ring, CircleShape),
+        )
+    } else {
+        Box(
+            Modifier.size(size).background(ring.copy(alpha = 0.22f), CircleShape).border(3.dp, ring, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(f.name.take(1).uppercase(), style = Mosh.Heading.copy(fontSize = (size.value * 0.36f).sp))
+        }
+    }
 }
 
 @Composable
-private fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(label, color = Color.White, modifier = Modifier.weight(1f))
-        Switch(checked, onChange)
-    }
+private fun SurfaceButton(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.heightIn(min = 52.dp),
+        shape = RoundedCornerShape(14.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Mosh.Surface, contentColor = Mosh.Text),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Mosh.Line),
+    ) { Text(text, style = Mosh.Label.copy(fontSize = 15.sp)) }
 }
