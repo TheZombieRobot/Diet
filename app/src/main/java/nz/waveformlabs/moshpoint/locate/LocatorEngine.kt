@@ -17,6 +17,7 @@ import nz.waveformlabs.moshpoint.core.ArrowState
 import nz.waveformlabs.moshpoint.core.EphemeralId
 import nz.waveformlabs.moshpoint.core.Fix
 import nz.waveformlabs.moshpoint.core.Geo
+import nz.waveformlabs.moshpoint.core.HeadingFilter
 import nz.waveformlabs.moshpoint.core.Method
 import nz.waveformlabs.moshpoint.core.MethodArbiter
 import nz.waveformlabs.moshpoint.core.MethodDebug
@@ -45,6 +46,7 @@ class LocatorEngine(
     private val arbiter = MethodArbiter()
     private val compass = Compass(context)
     private var heading = 0.0
+    private val headingFilter = HeadingFilter()
 
     private val _arrows = MutableStateFlow<List<ArrowState>>(emptyList())
     val arrows: StateFlow<List<ArrowState>> = _arrows.asStateFlow()
@@ -194,7 +196,9 @@ class LocatorEngine(
         CrowdRelayRadio.startListening(context)
         jobs = listOf(
             // True-north heading: compass is magnetic, GPS bearings are true.
-            scope.launch { compass.headings().collect { heading = Geo.normalize360(it + gps.declinationDeg) } },
+            scope.launch {
+                compass.headings().collect { heading = headingFilter.add(Geo.normalize360(it + gps.declinationDeg)) }
+            },
             scope.launch {
                 while (true) {
                     tick()

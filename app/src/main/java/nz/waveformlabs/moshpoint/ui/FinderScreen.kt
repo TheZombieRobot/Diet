@@ -14,7 +14,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -130,8 +134,23 @@ private fun NoSignal() {
     }
 }
 
+/**
+ * Keeps an arrow's angle continuous (e.g. 350° -> 370° rather than 350° -> 10°) so the
+ * animation swivels the short way round instead of spinning backwards through 180°.
+ */
+@Composable
+private fun animatedAngle(targetDeg: Double): Float {
+    // Plain holder (not Compose state): updating it mid-composition mustn't trigger recomposition.
+    val last = remember { FloatArray(1) { targetDeg.toFloat() } }
+    val delta = (((targetDeg - last[0]) % 360 + 540) % 360 - 180).toFloat()
+    last[0] += delta
+    val anim by animateFloatAsState(last[0], animationSpec = spring(stiffness = Spring.StiffnessMediumLow), label = "arrow")
+    return anim
+}
+
 @Composable
 private fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Friend?) {
+    val angles = arrows.associate { a -> a.friendId to key(a.friendId) { animatedAngle(a.relativeDeg) } }
     Canvas(Modifier.fillMaxSize()) {
         val centre = Offset(size.width / 2, size.height / 2)
         val length = size.minDimension * 0.32f
@@ -139,10 +158,11 @@ private fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Frie
             val friend = friendOf(a.friendId)
             val colour = Color(ArrowStyle.arrowColor(friend?.color ?: ArrowStyle.RED, a.distanceM))
                 .copy(alpha = if (a.unsure) 0.5f else 1f)
-            drawArrow(centre, length, a.relativeDeg.toFloat(), colour)
+            val angle = angles[a.friendId] ?: a.relativeDeg.toFloat()
+            drawArrow(centre, length, angle, colour)
 
             // Avatar at the tip. TODO: draw the friend's profile photo instead of an initial.
-            val rad = Math.toRadians(a.relativeDeg)
+            val rad = Math.toRadians(angle.toDouble())
             val tip = Offset(
                 centre.x + (length + 36f) * sin(rad).toFloat(),
                 centre.y - (length + 36f) * cos(rad).toFloat(),
