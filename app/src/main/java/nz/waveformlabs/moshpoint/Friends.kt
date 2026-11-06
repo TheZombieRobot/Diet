@@ -77,6 +77,7 @@ object FriendsRepository {
      * or updates their name. Returns true if they're new. Never downgrades a permanent friend.
      */
     fun addFromIntro(secret: ByteArray, name: String): Boolean {
+        if (secret.toHexKey() in removedGig) return false
         val existing = friends.indexOfFirst { it.secret.contentEquals(secret) }
         if (existing >= 0) {
             val f = friends[existing]
@@ -121,16 +122,23 @@ object FriendsRepository {
 
     fun isSimulated(id: String) = id.startsWith("sim-")
 
+    /** Gig members you removed tonight: don't let their intro add them straight back. */
+    private val removedGig = mutableSetOf<String>()
+
     fun remove(id: String) {
+        friends.firstOrNull { it.id == id && it.gigGroupOnly }?.let { removedGig += it.secret.toHexKey() }
         friends.removeAll { it.id == id }
         PhotoStore.remove(id)
         save()
     }
 
     fun clearGigGroup() {
+        removedGig.clear()
         friends.removeAll { it.gigGroupOnly }
         save()
     }
+
+    private fun ByteArray.toHexKey() = joinToString("") { "%02x".format(it) }
 
     private fun save() {
         val f = file ?: return

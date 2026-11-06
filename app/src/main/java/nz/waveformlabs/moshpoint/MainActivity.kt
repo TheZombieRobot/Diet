@@ -49,7 +49,11 @@ class MainActivity : ComponentActivity() {
     private var photoFor: String? = null
     private val pickPhoto = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         val id = photoFor
-        if (uri != null && id != null && !PhotoStore.set(this, id, uri)) DebugStatus.log("Couldn't read that photo")
+        if (uri != null && id != null) {
+            lifecycleScope.launch {
+                if (!PhotoStore.set(this@MainActivity, id, uri)) DebugStatus.log("Couldn't read that photo")
+            }
+        }
     }
     private var alwaysOn by mutableStateOf(false)
     private var finding by mutableStateOf(false)
@@ -125,6 +129,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Android may close the app while the photo picker is open: remember whose photo it was.
+        photoFor = savedInstanceState?.getString("photoFor")
         FriendsRepository.init(this)
         PhotoStore.init(this)
         GroupSync.load(this)
@@ -157,7 +163,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 if (showQr) {
-                    MyQrDialog(QrPayload.of(myCode, myName)) { showQr = false }
+                    MyQrDialog(QrPayload.of(myCode, myName), onDismiss = { showQr = false })
                 }
                 if (askBattery) {
                     AlertDialog(
@@ -339,18 +345,43 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         super.onStop()
-        GroupSync.release(this)
+        pendingGroupRelease?.cancel()
+        pendingGroupRelease = lifecycleScope.launch {
+            delay(20_000)
+            if (holdingGroup) {
+                GroupSync.release(this@MainActivity)
+                holdingGroup = false
+            }
+        }
         stopEngineSoon()
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        photoFor?.let { outState.putString("photoFor", it) }
+    }
+
+    // Gig-group radio: held while the app is open, released 20 s after it goes to the
+    // background (so quick app switches don't burn Android's scan-start limit).
+    private var holdingGroup = false
+    private var pendingGroupRelease: Job? = null
+
     override fun onStart() {
         super.onStart()
-        GroupSync.acquire(this)
+        pendingGroupRelease?.cancel()
+        if (!holdingGroup) {
+            GroupSync.acquire(this)
+            holdingGroup = true
+        }
         pendingStop?.cancel()
         if (finding) engine.start()
     }
 
     override fun onDestroy() {
+        if (holdingGroup) {
+            GroupSync.release(this)
+            holdingGroup = false
+        }
         engine.stop()
         super.onDestroy()
     }

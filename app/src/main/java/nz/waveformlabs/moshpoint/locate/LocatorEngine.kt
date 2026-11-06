@@ -135,7 +135,7 @@ class LocatorEngine(
     // ---- Simulated friends (debug builds only) ----
 
     private val sims = mutableMapOf<String, FriendSimulator>()
-    private var lastSimScanSample = 0L
+    private val lastSimScanSample = mutableMapOf<String, Long>()
 
     data class SimSettings(val uwb: Boolean = true, val wifiAware: Boolean = true, val data: Boolean = true)
 
@@ -170,8 +170,8 @@ class LocatorEngine(
             sim.tick(now, heading).forEach(::submit)
             // Spin-to-scan works on simulated friends too (the sim models body shadow).
             val r = sim.lastRssi
-            if (r != null && spinScans.containsKey(id) && now - lastSimScanSample >= 150) {
-                lastSimScanSample = now
+            if (r != null && spinScans.containsKey(id) && now - (lastSimScanSample[id] ?: 0L) >= 150) {
+                lastSimScanSample[id] = now
                 spinScans[id]?.add(heading, sim.rssiNow(now, heading))
             }
             val (e, n) = sim.position(now)
@@ -206,6 +206,7 @@ class LocatorEngine(
     private val radios = RadioWatcher(
         context,
         onBluetooth = { on ->
+            nz.waveformlabs.moshpoint.GroupSync.onBluetooth(context, on)
             if (on) {
                 ble.restart()
                 CrowdRelayRadio.restartAfterBluetooth(context)

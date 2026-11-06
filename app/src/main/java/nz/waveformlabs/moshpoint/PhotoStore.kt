@@ -9,6 +9,8 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import java.io.File
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Friend photos shown at the arrow tips and in the lists.
@@ -33,9 +35,18 @@ object PhotoStore {
         }
     }
 
-    /** Returns false if the image couldn't be read. */
-    fun set(context: Context, friendId: String, uri: Uri): Boolean {
-        val d = dir ?: return false
+    /**
+     * Decodes and saves off the main thread (gallery photos can be big, or still
+     * downloading from the cloud). Returns false if the image couldn't be read.
+     */
+    suspend fun set(context: Context, friendId: String, uri: Uri): Boolean {
+        val bmp = withContext(Dispatchers.IO) { decodeAndSave(context.applicationContext, friendId, uri) } ?: return false
+        photos[friendId] = bmp.asImageBitmap()
+        return true
+    }
+
+    private fun decodeAndSave(context: Context, friendId: String, uri: Uri): Bitmap? {
+        val d = dir ?: return null
         val src = runCatching {
             ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, uri)) { decoder, info, _ ->
                 // Decode small: we only need SIZE px, and gallery photos can be huge.
@@ -43,11 +54,10 @@ object PhotoStore {
                 decoder.setTargetSize(info.size.width / scale, info.size.height / scale)
                 decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
             }
-        }.getOrNull() ?: return false
+        }.getOrNull() ?: return null
         val square = centreSquare(src, SIZE)
         File(d, "$friendId.jpg").outputStream().use { square.compress(Bitmap.CompressFormat.JPEG, 85, it) }
-        photos[friendId] = square.asImageBitmap()
-        return true
+        return square
     }
 
     fun remove(friendId: String) {

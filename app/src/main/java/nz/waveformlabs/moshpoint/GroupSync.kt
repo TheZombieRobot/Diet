@@ -67,12 +67,12 @@ object GroupSync {
         group.value = GigGroup(Base64.decode(key, Base64.NO_WRAP), p.getString("name", "Gig group") ?: "Gig group", created)
     }
 
-    fun startNew(c: Context, name: String) = set(c, GigGroup.create(name, System.currentTimeMillis()))
+    fun startNew(c: Context, name: String) = set(c.applicationContext, GigGroup.create(name, System.currentTimeMillis()))
 
     /** Returns false if [qrText] isn't a group QR. */
     fun join(c: Context, qrText: String): Boolean {
         val g = GigGroup.parseQr(qrText, System.currentTimeMillis()) ?: return false
-        set(c, g)
+        set(c.applicationContext, g)
         return true
     }
 
@@ -89,10 +89,20 @@ object GroupSync {
 
     /** "End night": leave the group and drop its members. */
     fun clear(c: Context) {
-        prefs(c).edit().clear().apply()
+        val app = c.applicationContext
+        prefs(app).edit().clear().apply()
         group.value = null
         FriendsRepository.clearGigGroup()
-        stopRadio(c)
+        stopRadio(app)
+    }
+
+    /** Bluetooth toggled: the scan and advert died with it, so start them again. */
+    @Synchronized
+    fun onBluetooth(c: Context, on: Boolean) {
+        advertSet = null
+        advertCallback = null
+        scanCallback = null
+        if (on && users > 0) restart(c.applicationContext)
     }
 
     // ---- Running ----
@@ -118,9 +128,17 @@ object GroupSync {
         startListening(c, g)
         job = scope.launch {
             var lastServer = 0L
+            var sealedEpoch = Long.MIN_VALUE
+            var intro = ByteArray(0)
             while (true) {
                 val now = System.currentTimeMillis()
-                val intro = g.sealIntro(GigGroup.Intro(mySecret, myName), now)
+                // Seal once per epoch and reuse the bytes: the server de-duplicates identical
+                // posts, so each member keeps exactly one slot in the roster box.
+                val epoch = Math.floorDiv(now, EphemeralId.DEFAULT_ROTATION_MS)
+                if (epoch != sealedEpoch) {
+                    intro = g.sealIntro(GigGroup.Intro(mySecret, myName), now)
+                    sealedEpoch = epoch
+                }
                 advertise(c, intro)
                 if (RelayClient.enabled && now - lastServer > 30_000) {
                     lastServer = now
@@ -186,11 +204,15 @@ object GroupSync {
             }
             if (advertCallback != null) return // start pending
             val cb = object : AdvertisingSetCallback() {
+                // Only the current set may change state: callbacks from a set we already
+                // stopped can arrive late.
                 override fun onAdvertisingSetStarted(s: AdvertisingSet?, txPower: Int, status: Int) {
+                    if (advertCallback !== this) return
                     if (status == AdvertisingSetCallback.ADVERTISE_SUCCESS) advertSet = s else advertCallback = null
                 }
 
                 override fun onAdvertisingSetStopped(s: AdvertisingSet?) {
+                    if (advertCallback !== this) return
                     advertSet = null
                     advertCallback = null
                 }

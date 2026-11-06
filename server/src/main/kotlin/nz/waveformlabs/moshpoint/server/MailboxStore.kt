@@ -14,7 +14,8 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class MailboxStore(
     private val ttlMs: Long = 15 * 60 * 1000L,
-    private val maxPerId: Int = 8,
+    // Gig-group rosters keep one intro per member under one id, so leave room for a big group.
+    private val maxPerId: Int = 64,
     private val maxIds: Int = 2_000_000,
     private val clock: () -> Long = System::currentTimeMillis,
 ) {

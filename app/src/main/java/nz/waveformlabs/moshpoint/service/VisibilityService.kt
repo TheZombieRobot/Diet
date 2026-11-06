@@ -71,6 +71,7 @@ class VisibilityService : LifecycleService() {
         if (!startInForeground()) {
             // Android refused (e.g. restarted from the background on Android 12+). Give up
             // quietly; visibility comes back next time the app is opened.
+            VisibilityPrefs.setVisible(this, false) // so the app and tile don't claim we're visible
             stopSelf()
             return START_NOT_STICKY
         }
@@ -106,6 +107,7 @@ class VisibilityService : LifecycleService() {
         radios = RadioWatcher(
             this,
             onBluetooth = { on ->
+                GroupSync.onBluetooth(this, on)
                 if (on) {
                     readvertise()
                     listener?.restart()

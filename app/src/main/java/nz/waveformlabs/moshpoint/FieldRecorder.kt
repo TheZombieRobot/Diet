@@ -27,9 +27,11 @@ import java.util.concurrent.ConcurrentLinkedQueue
  * can be compared with reality.
  */
 object FieldRecorder {
-    private val queue = ConcurrentLinkedQueue<String>()
+    /** Each recording gets its own queue, so a quick stop/start never mixes two files. */
+    @Volatile private var queue = ConcurrentLinkedQueue<String>()
     private val io = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var writerJob: Job? = null
+    @Volatile private var current: Any? = null
     private var file: File? = null
 
     private val _recording = MutableStateFlow(false)
@@ -52,9 +54,12 @@ object FieldRecorder {
         file = f
         lastFile = f
         _rows.value = 0
-        queue.clear()
-        queue.add(RecordLine.HEADER)
-        queue.add(RecordLine.of(System.currentTimeMillis(), "device", note = "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL} Android ${android.os.Build.VERSION.RELEASE}"))
+        val q = ConcurrentLinkedQueue<String>()
+        queue = q
+        val session = Any()
+        current = session
+        q.add(RecordLine.HEADER)
+        q.add(RecordLine.of(System.currentTimeMillis(), "device", note = "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL} Android ${android.os.Build.VERSION.RELEASE}"))
         _recording.value = true
         DebugStatus.log("Recording to $name")
         writerJob = io.launch {
@@ -62,7 +67,7 @@ object FieldRecorder {
                 while (true) {
                     var n = 0
                     while (true) {
-                        val line = queue.poll() ?: break
+                        val line = q.poll() ?: break
                         w.write(line)
                         w.write("\n")
                         n++
@@ -71,7 +76,7 @@ object FieldRecorder {
                         w.flush()
                         _rows.value += n
                     }
-                    if (!_recording.value && queue.isEmpty()) break
+                    if (current !== session && q.isEmpty()) break
                     delay(1_000)
                 }
             }
@@ -82,6 +87,7 @@ object FieldRecorder {
         if (!_recording.value) return
         line(RecordLine.of(System.currentTimeMillis(), "stop"))
         _recording.value = false
+        current = null // this session's writer drains its queue and finishes
         DebugStatus.log("Recording stopped (${_rows.value} rows)")
     }
 
