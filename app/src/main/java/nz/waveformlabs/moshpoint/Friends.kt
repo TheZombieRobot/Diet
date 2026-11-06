@@ -33,11 +33,7 @@ object FriendsRepository {
     val friends = mutableStateListOf<Friend>()
     private var file: File? = null
 
-    private val PALETTE = intArrayOf(
-        0xFF1E88E5.toInt(), 0xFF43A047.toInt(), 0xFFFDD835.toInt(),
-        0xFF8E24AA.toInt(), 0xFF00ACC1.toInt(), 0xFFFB8C00.toInt(),
-        0xFFD81B60.toInt(), 0xFF7CB342.toInt(),
-    )
+    private val PALETTE = nz.waveformlabs.moshpoint.ui.Mosh.FriendColours
 
     @Synchronized
     fun init(context: Context) {
