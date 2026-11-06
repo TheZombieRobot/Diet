@@ -1,7 +1,7 @@
 package nz.waveformlabs.moshpoint.locate
 
 import android.content.Context
-import android.location.GeomagneticField
+import android.hardware.GeomagneticField
 import android.location.Location
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
