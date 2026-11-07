@@ -16,6 +16,8 @@ class VisibilityTile : TileService() {
         refresh()
     }
 
+    // The deprecated Intent overload is only used below Android 14 (version-checked).
+    @android.annotation.SuppressLint("StartActivityAndCollapseDeprecated")
     override fun onClick() {
         super.onClick()
         val on = !VisibilityPrefs.isVisible(this)
