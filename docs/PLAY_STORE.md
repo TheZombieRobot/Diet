@@ -7,9 +7,11 @@ accounts or decisions; the rest can be done in the repo.
 
 - [ ] **(you)** Trademark check for "Moshpoint" (IPONZ in NZ first; then AU/UK/US if launching there).
 - [ ] **(you)** Google Play developer account.
-- [ ] **(you)** Upload key: generate a keystore, then add `MOSHPOINT_KEYSTORE` (base64),
-      `MOSHPOINT_KEYSTORE_PASSWORD`, `MOSHPOINT_KEY_ALIAS`, `MOSHPOINT_KEY_PASSWORD` as repository
-      secrets so CI can build a signed release bundle (workflow step still to add).
+- [ ] **(you)** Upload key: `keytool -genkeypair -v -keystore upload.jks -keyalg RSA -keysize 4096 -validity 10000 -alias upload`,
+      then add repository secrets `MOSHPOINT_KEYSTORE` (`base64 -w0 upload.jks`),
+      `MOSHPOINT_KEYSTORE_PASSWORD`, `MOSHPOINT_KEY_ALIAS` (`upload`), `MOSHPOINT_KEY_PASSWORD`.
+      Every CI run then also produces a signed `moshpoint-release-aab` artifact to upload to Play.
+      Keep `upload.jks` and its passwords somewhere safe and never commit them.
 - [ ] **(you)** Deploy the relay server (`fly deploy`, see README) and set `MOSHPOINT_SERVER`.
 - [ ] Register Bluetooth SIG 16-bit UUIDs (or switch to 128-bit with extended adverts) to
       replace the placeholders `FFA7`, `FFA8`, `FFA9` in `Ble.kt`, `CrowdRelayRadio.kt`, `GroupSync.kt`.

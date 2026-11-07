@@ -13,6 +13,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      HAS_KEYSTORE: ${{ secrets.MOSHPOINT_KEYSTORE != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -54,6 +56,26 @@ jobs:
             fi
           done
           exit $leaked
+
+      - name: Signed Play Store bundle (only when signing secrets are set)
+        if: success() && env.HAS_KEYSTORE == 'true'
+        shell: bash
+        env:
+          MOSHPOINT_KEYSTORE_PASSWORD: ${{ secrets.MOSHPOINT_KEYSTORE_PASSWORD }}
+          MOSHPOINT_KEY_ALIAS: ${{ secrets.MOSHPOINT_KEY_ALIAS }}
+          MOSHPOINT_KEY_PASSWORD: ${{ secrets.MOSHPOINT_KEY_PASSWORD }}
+        run: |
+          echo "${{ secrets.MOSHPOINT_KEYSTORE }}" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          MOSHPOINT_KEYSTORE_FILE="$RUNNER_TEMP/upload.jks" ./gradlew :app:bundleRelease -Pmoshpoint.server="${{ vars.MOSHPOINT_SERVER }}"
+          rm -f "$RUNNER_TEMP/upload.jks"
+
+      - name: Upload Play Store bundle
+        if: success() && env.HAS_KEYSTORE == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: moshpoint-release-aab
+          path: app/build/outputs/bundle/release/*.aab
+          retention-days: 30
 
       - name: Compile errors
         if: failure()

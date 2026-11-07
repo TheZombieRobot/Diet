@@ -21,8 +21,23 @@ android {
         buildConfigField("String", "MOSHPOINT_SERVER", "\"$server\"")
     }
 
+    // Release signing from CI secrets (see docs/PLAY_STORE.md). Without them, release
+    // builds are unsigned, which is fine for the R8/strip check.
+    val keystorePath = System.getenv("MOSHPOINT_KEYSTORE_FILE")
+    signingConfigs {
+        if (keystorePath != null) {
+            create("release") {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("MOSHPOINT_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("MOSHPOINT_KEY_ALIAS")
+                keyPassword = System.getenv("MOSHPOINT_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (keystorePath != null) signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
         }
