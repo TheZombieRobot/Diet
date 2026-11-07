@@ -22,8 +22,8 @@ import kotlin.math.sqrt
  */
 class SpinScan(
     /** How much of the circle must be covered before a result is given. */
-    private val requiredCoverageDeg: Double = 300.0,
-    private val minSamples: Int = 12,
+    private val requiredCoverageDeg: Double = 270.0,
+    private val minSamples: Int = 8,
 ) {
     data class Sample(val headingDeg: Double, val rssiDbm: Double)
 

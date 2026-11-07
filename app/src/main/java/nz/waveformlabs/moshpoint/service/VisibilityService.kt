@@ -83,8 +83,9 @@ class VisibilityService : LifecycleService() {
         FriendsRepository.init(this)
         mySecret = VisibilityPrefs.mySecret(this)
         ephemeral = EphemeralId(mySecret)
-        // Slow advert (~1 s) by default to save battery; fast while a friend is looking.
-        broadcaster = BleBroadcaster(this, AdvertiseSettings.ADVERTISE_MODE_LOW_POWER, "BT advert (visible)")
+        // Medium advert (~4 a second) by default: enough readings for spin-to-scan even before
+        // we notice a friend looking (background listening is slow). Fast while one is looking.
+        broadcaster = BleBroadcaster(this, AdvertiseSettings.ADVERTISE_MODE_BALANCED, "BT advert (visible)")
 
         rotateJob = lifecycleScope.launch {
             while (true) {
@@ -143,8 +144,8 @@ class VisibilityService : LifecycleService() {
                 if (broadcaster.mode == AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY &&
                     System.currentTimeMillis() - lastLookedAt > FAST_FOR_MS
                 ) {
-                    broadcaster.mode = AdvertiseSettings.ADVERTISE_MODE_LOW_POWER
-                    DebugStatus.log("No one looking: advert back to slow")
+                    broadcaster.mode = AdvertiseSettings.ADVERTISE_MODE_BALANCED
+                    DebugStatus.log("No one looking: advert back to medium")
                 }
             }
         }

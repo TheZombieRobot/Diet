@@ -654,14 +654,18 @@ private fun ScanProgress(scan: LocatorEngine.ScanUi) {
                     "$pct%",
                     style = Mosh.Distance.copy(fontSize = 40.sp, lineHeight = 44.sp, color = Mosh.Lime, shadow = Shadow(Mosh.Lime.copy(alpha = 0.7f), blurRadius = 24f)),
                 )
-                Text("keep turning", style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint))
+                Text(
+                    if (scan.heard == 0) "listening…" else "heard them ${scan.heard}×",
+                    style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint),
+                )
             }
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.widthIn(max = 300.dp)) {
             Text("Spin slowly", style = Mosh.Heading)
             Spacer(Modifier.height(10.dp))
             Text(
-                "Phone flat on your chest, screen out. Your body blocks the signal, so we can tell which way they are.",
+                "Phone flat on your chest, screen out, and turn slowly: about 15 seconds for a full circle. " +
+                    "Your body blocks the signal, so we can tell which way they are.",
                 style = Mosh.Body, textAlign = TextAlign.Center,
             )
         }

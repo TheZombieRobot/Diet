@@ -449,7 +449,8 @@ class LocatorEngine(
             _scan.value = ScanUi(360.0, done = true, sectors = BooleanArray(36) { true }, headingDeg = heading, outcome = outcomes.joinToString("\n"))
             DebugStatus.log("Spin scan done: " + outcomes.joinToString("; "))
         } else {
-            _scan.value = ScanUi(minCoverage, done = false, sectors = sectors, headingDeg = heading)
+            val heard = spinScans.values.minOfOrNull { it.sampleCount } ?: 0
+            _scan.value = ScanUi(minCoverage, done = false, sectors = sectors, headingDeg = heading, heard = heard)
         }
     }
 
@@ -461,5 +462,7 @@ class LocatorEngine(
         val headingDeg: Double = 0.0,
         /** Shown when done. */
         val outcome: String = "",
+        /** Signal readings heard so far (the fewest, if scanning for several). */
+        val heard: Int = 0,
     )
 }
