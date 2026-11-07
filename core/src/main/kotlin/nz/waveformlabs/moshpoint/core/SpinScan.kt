@@ -49,6 +49,9 @@ class SpinScan(
 
     fun reset() = samples.clear()
 
+    /** Signal readings collected so far (0 = we can't hear them at all). */
+    val sampleCount: Int get() = samples.size
+
     /** Which of [count] equal slices of the circle have at least one sample (for the progress ring). */
     fun sectors(count: Int = 36): BooleanArray {
         val out = BooleanArray(count)

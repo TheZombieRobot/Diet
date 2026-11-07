@@ -279,6 +279,11 @@ class LocatorEngine(
     }
 
     fun track(friendIds: Set<String>) {
+        // A different mate: drop any scan (or its result) from the last one.
+        if (friendIds != _tracking.value) {
+            spinScans = emptyMap()
+            _scan.value = null
+        }
         _tracking.value = friendIds
     }
 
@@ -403,6 +408,19 @@ class LocatorEngine(
                 }
                 SpinScan.Result.Inconclusive -> outcomes += "$name: couldn't tell. Too close, or something in the way? Try again."
             }
+        }
+        // Can't hear them at all (not live, not added you back, out of range): say so
+        // quickly instead of leaving an empty progress ring.
+        if (!allDone && now - scanStartedAt > 6_000 && spinScans.values.all { it.sampleCount == 0 }) {
+            val who = spinScans.keys.joinToString(", ") { nameOf(it) }
+            spinScans = emptyMap()
+            _scan.value = ScanUi(
+                0.0, done = true, headingDeg = heading,
+                outcome = "Can't hear $who's phone at all. Scan needs them nearby (about 30 m) with Go live on, " +
+                    "and they need to have added you back.",
+            )
+            DebugStatus.log("Spin scan: no signal from $who")
+            return
         }
         // Give up after 45 s (e.g. their phone went out of range mid-scan).
         val timedOut = now - scanStartedAt > 45_000

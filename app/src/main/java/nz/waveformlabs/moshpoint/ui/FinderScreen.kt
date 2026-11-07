@@ -281,6 +281,13 @@ fun FinderScreen(
                         GlassButton("Scan again", Modifier.weight(1f), onClick = onScan)
                     }
                 }
+                // Can't hear anyone yet: a scan would have nothing to work with.
+                arrows.isNotEmpty() && arrows.all { it is ArrowState.NoSignal } -> Text(
+                    "Scan works once we can hear them. Check they've tapped Go live and added you back.",
+                    style = Mosh.Body.copy(color = Mosh.TextDim),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                )
                 else -> {
                     val unsure = arrows.any { it is ArrowState.DistanceOnly || (it is ArrowState.Pointing && it.unsure) }
                     GlassButton(if (unsure) "Scan to find which way" else "Scan", icon = true, onClick = onScan)
