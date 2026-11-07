@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -452,10 +453,30 @@ private fun SettingsSheet(
     phoneSummary: String,
     onClose: () -> Unit,
 ) {
-    var showLicences by remember { mutableStateOf(false) }
     androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, containerColor = Mosh.Deep) {
+        SettingsContent(myName, onMyName, onSelfie, onPickMyPhoto, onRemoveMyPhoto, onFacebook, alwaysOn, onAlwaysOn, phoneSummary)
+    }
+}
+
+/** The settings sheet's contents (separate so it can be screenshot-tested). */
+@Composable
+internal fun SettingsContent(
+    myName: String,
+    onMyName: (String) -> Unit,
+    onSelfie: () -> Unit,
+    onPickMyPhoto: () -> Unit,
+    onRemoveMyPhoto: () -> Unit,
+    onFacebook: (() -> Unit)?,
+    alwaysOn: Boolean,
+    onAlwaysOn: (Boolean) -> Unit,
+    phoneSummary: String,
+) {
+    var showLicences by remember { mutableStateOf(false) }
+    run {
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(start = 24.dp, end = 24.dp, bottom = 32.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
+                .navigationBarsPadding() // last rows clear the gesture/nav bar
+                .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text("Settings", style = Mosh.Heading)
@@ -495,6 +516,7 @@ private fun SettingsSheet(
                     Text("Stay live after a restart", style = Mosh.Label)
                     Text("If you were live when your phone restarted, go live again automatically.", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
                 }
+                Spacer(Modifier.width(12.dp))
                 Switch(alwaysOn, onAlwaysOn, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Lime, checkedThumbColor = Color(0xFF0B1200), uncheckedTrackColor = Color(0xFF1C1630)))
             }
             if (BuildConfig.DEBUG) {
@@ -505,6 +527,7 @@ private fun SettingsSheet(
                         Text("Show debug info", style = Mosh.Label)
                         Text("Which tech is finding each mate (UWB, Wi-Fi, Bluetooth, GPS, crowd) and the Debug panel. Test builds only.", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
                     }
+                    Spacer(Modifier.width(12.dp))
                     Switch((BuildConfig.DEBUG && DebugStatus.showUi), { DebugStatus.setShowUi(context, it) }, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Amber, checkedThumbColor = Color(0xFF1A1000), uncheckedTrackColor = Color(0xFF1C1630)))
                 }
             }

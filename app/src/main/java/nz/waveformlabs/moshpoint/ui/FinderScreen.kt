@@ -359,13 +359,15 @@ fun GlassButton(text: String, modifier: Modifier = Modifier.fillMaxWidth(), icon
         shape = RoundedCornerShape(18.dp),
         border = BorderStroke(1.dp, Mosh.Line),
         colors = ButtonDefaults.outlinedButtonColors(containerColor = Mosh.Surface, contentColor = Mosh.Text),
+        // Narrower than Material's 24dp so two buttons side by side fit on small phones.
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp, vertical = 10.dp),
         interactionSource = source,
     ) {
         if (icon) {
             Canvas(Modifier.size(18.dp)) { drawRefreshIcon(Mosh.Text) }
             Spacer(Modifier.width(10.dp))
         }
-        Text(text, style = Mosh.Label)
+        Text(text, style = Mosh.Label, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
     }
 }
 

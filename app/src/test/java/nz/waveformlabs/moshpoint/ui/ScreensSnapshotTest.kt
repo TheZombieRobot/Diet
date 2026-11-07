@@ -2,6 +2,7 @@ package nz.waveformlabs.moshpoint.ui
 
 import app.cash.paparazzi.DeviceConfig
 import app.cash.paparazzi.Paparazzi
+import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.asImageBitmap
 import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.core.ArrowState
@@ -127,6 +128,25 @@ class ScreensSnapshotTest {
 
     @Test fun welcome() = paparazzi.snapshot {
         MoshTheme { OnboardingScreen(name = "", onName = {}, onAskPermissions = {}, onDone = {}) }
+    }
+
+    private fun settings() = paparazzi.snapshot {
+        MoshTheme {
+            androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.background(Mosh.Deep)) {
+                SettingsContent(
+                    myName = "Josh", onMyName = {}, onSelfie = {}, onPickMyPhoto = {}, onRemoveMyPhoto = {},
+                    onFacebook = {}, alwaysOn = true, onAlwaysOn = {},
+                    phoneSummary = "This phone: UWB, Wi-Fi Aware, Bluetooth, compass, GPS",
+                )
+            }
+        }
+    }
+
+    @Test fun settingsSheet() = settings()
+
+    @Test fun smallPhoneSettings() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = DeviceConfig.NEXUS_5)
+        settings()
     }
 
     @Test fun smallPhoneOneFriend() {
