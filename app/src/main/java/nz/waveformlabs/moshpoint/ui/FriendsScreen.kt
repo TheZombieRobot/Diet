@@ -51,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.Friend
 
@@ -363,7 +364,7 @@ fun FriendsScreen(
         }
         if (permanent.isEmpty()) item { Text("No friends added yet. Add someone below.", style = Mosh.Body) }
         // Always false in release builds (BuildConfig.DEBUG is a compile-time constant).
-        if (DebugStatus.showUi && onAddSimulated != null) {
+        if ((BuildConfig.DEBUG && DebugStatus.showUi) && onAddSimulated != null) {
             item { TextButton(onClick = onAddSimulated) { Text("Debug: add simulated friend", style = Mosh.Eyebrow) } }
         }
         items(permanent, key = { it.id }) { row(it) }
@@ -484,7 +485,7 @@ private fun SettingsSheet(
                 }
                 Switch(alwaysOn, onAlwaysOn, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Lime, checkedThumbColor = Color(0xFF0B1200), uncheckedTrackColor = Color(0xFF1C1630)))
             }
-            if (DebugStatus.enabled) {
+            if (BuildConfig.DEBUG) {
                 // Test builds only: hide the techie bits, e.g. before sharing the app with mates.
                 val context = androidx.compose.ui.platform.LocalContext.current
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -492,7 +493,7 @@ private fun SettingsSheet(
                         Text("Show debug info", style = Mosh.Label)
                         Text("Which tech is finding each mate (UWB, Wi-Fi, Bluetooth, GPS, crowd) and the Debug panel. Test builds only.", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
                     }
-                    Switch(DebugStatus.showUi, { DebugStatus.setShowUi(context, it) }, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Amber, checkedThumbColor = Color(0xFF1A1000), uncheckedTrackColor = Color(0xFF1C1630)))
+                    Switch((BuildConfig.DEBUG && DebugStatus.showUi), { DebugStatus.setShowUi(context, it) }, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Amber, checkedThumbColor = Color(0xFF1A1000), uncheckedTrackColor = Color(0xFF1C1630)))
                 }
             }
             Box(Modifier.fillMaxWidth().height(1.dp).background(Mosh.Line))
