@@ -124,6 +124,9 @@ class MainActivity : ComponentActivity() {
 
     private var showGroupQr by mutableStateOf(false)
 
+    /** Name of the mate just added: prompts "now let them add you back". */
+    private var justAdded by mutableStateOf<String?>(null)
+
     private val scanQr = registerForActivityResult(ScanContract()) { result ->
         val text = result.contents ?: return@registerForActivityResult
         // A gig group QR joins the group; a person's QR fills in "Add someone".
@@ -144,9 +147,15 @@ class MainActivity : ComponentActivity() {
                 toast("You're in: ${GroupSync.group.value?.name ?: "gig group"}")
             }
             is nz.waveformlabs.moshpoint.core.Invite.Friend -> {
-                scanned = inv.code to inv.name
-                val who = inv.name.ifBlank { "your mate" }
-                toast("Got $who's invite. Tap Add friend or Add to gig group.")
+                if (inv.name.isBlank()) {
+                    // No name in it (a bare code): fill in "Add someone" so they can name them.
+                    scanned = inv.code to ""
+                    toast("Got the code. Give them a name, then tap Add friend.")
+                } else {
+                    // Add straight away, then prompt to link back.
+                    val err = FriendsRepository.add(inv.name, inv.code, false, VisibilityPrefs.mySecret(this))
+                    if (err != null) toast(err) else justAdded = inv.name
+                }
             }
             null -> {
                 if (!quietIfNone) toast("No Moshpoint invite found. Copy the whole message your mate sent, then tap Paste invite.")
@@ -273,6 +282,24 @@ class MainActivity : ComponentActivity() {
                             },
                         )
                     }
+                }
+                justAdded?.let { who ->
+                    AlertDialog(
+                        onDismissRequest = { justAdded = null },
+                        title = { Text("✓  $who added") },
+                        text = {
+                            Text(
+                                "You'll see their arrow whenever they're live.\n\n" +
+                                    "Now let $who add you back, so they can find you too: show them your QR, or send your invite.",
+                            )
+                        },
+                        confirmButton = {
+                            TextButton(onClick = { justAdded = null; showQr = true }) { Text("Show my QR") }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { justAdded = null; shareCode(myCode) }) { Text("Send invite") }
+                        },
+                    )
                 }
                 if (showQr) {
                     MyQrDialog(
@@ -426,7 +453,9 @@ class MainActivity : ComponentActivity() {
                             },
                             scanned = scanned,
                             onScannedUsed = { scanned = null },
-                            onAdd = { name, code, gig -> FriendsRepository.add(name, code, gig, mySecret) },
+                            onAdd = { name, code, gig ->
+                                FriendsRepository.add(name, code, gig, mySecret).also { if (it == null) justAdded = name.trim() }
+                            },
                             onRemove = FriendsRepository::remove,
                             onSetPhoto = { id ->
                                 photoFor = id
