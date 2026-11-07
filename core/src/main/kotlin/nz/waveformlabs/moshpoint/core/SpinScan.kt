@@ -68,7 +68,19 @@ class SpinScan(
         return 360.0 - maxGap
     }
 
-    fun result(): Result {
+    fun result(): Result = evaluate(minSamples, requiredCoverageDeg, 1.0)
+
+    /**
+     * The user has turned a full circle but readings were patchy (busy venue, a phone that
+     * drops repeat adverts): give the best answer the readings allow instead of waiting
+     * forever. Less sure, so confidence is scaled down by how much of the circle we heard.
+     */
+    fun bestGuess(): Result {
+        val r = evaluate(5, 150.0, coverageDeg() / 360.0)
+        return if (r is Result.NeedMore) Result.Inconclusive else r
+    }
+
+    private fun evaluate(minSamples: Int, requiredCoverageDeg: Double, confidenceScale: Double): Result {
         val coverage = coverageDeg()
         if (samples.size < minSamples || coverage < requiredCoverageDeg) return Result.NeedMore(coverage)
 
@@ -90,7 +102,7 @@ class SpinScan(
         // A body typically costs several dB. Under ~1.5 dB swing we can't tell direction.
         if (amplitude < 1.5) return Result.Inconclusive
         val snr = amplitude / (residualRms + 1e-9)
-        val confidence = (snr / (snr + 1.0)).coerceIn(0.0, 1.0)
+        val confidence = (snr / (snr + 1.0) * confidenceScale).coerceIn(0.0, 1.0)
         val bearing = Geo.normalize360(Math.toDegrees(atan2(s, c)))
         return Result.Found(bearing, confidence)
     }

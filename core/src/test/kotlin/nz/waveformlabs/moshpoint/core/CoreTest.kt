@@ -155,6 +155,24 @@ class SpinScanTest {
         assertIs<SpinScan.Result.NeedMore>(scan.result())
     }
 
+    @Test fun bestGuessFromPatchyReadings() {
+        // Only 7 readings over ~200 degrees: not enough for a normal result, enough for a guess.
+        val scan = SpinScan()
+        for (h in listOf(0, 30, 60, 90, 120, 160, 200)) {
+            val d = Math.toRadians(h - 90.0) // strongest facing 90
+            scan.add(h.toDouble(), -70.0 + 6.0 * kotlin.math.cos(d))
+        }
+        assertIs<SpinScan.Result.NeedMore>(scan.result())
+        val g = assertIs<SpinScan.Result.Found>(scan.bestGuess())
+        assertTrue(kotlin.math.abs(Geo.normalize180(g.bearingDeg - 90.0)) < 15.0)
+    }
+
+    @Test fun bestGuessGivesUpWithTooLittle() {
+        val scan = SpinScan()
+        scan.add(0.0, -70.0); scan.add(10.0, -71.0)
+        assertIs<SpinScan.Result.Inconclusive>(scan.bestGuess())
+    }
+
     @Test fun flatSignalIsInconclusive() {
         assertIs<SpinScan.Result.Inconclusive>(spin(90.0, noiseDb = 0.2, depthDb = 0.0).result())
     }

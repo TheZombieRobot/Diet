@@ -367,6 +367,7 @@ class LocatorEngine(
         spinScans = _tracking.value.associateWith { SpinScan() }
         scanStartedAt = System.currentTimeMillis()
         lastSpinSampleAt = scanStartedAt
+        turned.fill(false)
         ble.refresh()
         _scan.value = ScanUi(coverageDeg = 0.0, done = false, sectors = BooleanArray(36), headingDeg = heading)
         DebugStatus.log("Spin scan started")
@@ -374,6 +375,9 @@ class LocatorEngine(
 
     private var scanStartedAt = 0L
     private var lastSpinSampleAt = 0L
+
+    /** Which 10-degree slices the user has turned through this scan (from the compass). */
+    private val turned = BooleanArray(36)
 
     /** Clear the "done" message. */
     fun dismissScanResult() {
@@ -417,51 +421,52 @@ class LocatorEngine(
     private fun updateSpinScan(now: Long) {
         // Readings dried up mid-scan (repeat filtering, interference): kick the Bluetooth scan.
         if (now - lastSpinSampleAt > 2_500) ble.refresh()
-        var minCoverage = 360.0
+        turned[((Geo.normalize360(heading) / 10).toInt()).coerceIn(0, 35)] = true
+        val turnedDeg = turned.count { it } * 10.0
+        val fullCircle = turnedDeg >= 330.0
+
+        // Can't hear them at all (not live, not in your crew, out of range): say so
+        // quickly instead of leaving an empty progress ring.
+        if (now - scanStartedAt > 6_000 && spinScans.values.all { it.sampleCount == 0 }) {
+            val who = spinScans.keys.joinToString(", ") { nameOf(it) }
+            finishScan("Can't hear $who's phone at all. Scan needs them nearby (about 30 m) with Go live on, in your crew.")
+            DebugStatus.log("Spin scan: no signal from $who")
+            return
+        }
+
         var allDone = true
-        var sectors = BooleanArray(36) { true }
         val outcomes = mutableListOf<String>()
         for ((id, scan) in spinScans) {
             val name = nameOf(id)
-            when (val r = scan.result()) {
-                is SpinScan.Result.NeedMore -> {
-                    allDone = false
-                    if (r.coverageDeg <= minCoverage) {
-                        minCoverage = r.coverageDeg
-                        sectors = scan.sectors(36)
-                    }
-                }
+            // Turned a full circle but readings were patchy: best answer we can, don't wait forever.
+            var r = scan.result()
+            if (r is SpinScan.Result.NeedMore && fullCircle) r = scan.bestGuess()
+            when (r) {
+                is SpinScan.Result.NeedMore -> allDone = false
                 is SpinScan.Result.Found -> {
                     submit(Fix(id, Method.SPIN_SCAN, r.bearingDeg, null, r.confidence, now))
-                    outcomes += "$name: found" + if (r.confidence < 0.5) " (rough)" else ""
+                    outcomes += "$name: found" + if (r.confidence < 0.5) " (rough, scan again to firm it up)" else ""
                 }
-                SpinScan.Result.Inconclusive -> outcomes += "$name: couldn't tell. Too close, or something in the way? Try again."
+                SpinScan.Result.Inconclusive ->
+                    outcomes += "$name: couldn't tell (only heard them ${scan.sampleCount}×). Tap Scan again and turn a bit slower."
             }
-        }
-        // Can't hear them at all (not live, not added you back, out of range): say so
-        // quickly instead of leaving an empty progress ring.
-        if (!allDone && now - scanStartedAt > 6_000 && spinScans.values.all { it.sampleCount == 0 }) {
-            val who = spinScans.keys.joinToString(", ") { nameOf(it) }
-            spinScans = emptyMap()
-            _scan.value = ScanUi(
-                0.0, done = true, headingDeg = heading,
-                outcome = "Can't hear $who's phone at all. Scan needs them nearby (about 30 m) with Go live on, " +
-                    "and they need to have added you back.",
-            )
-            DebugStatus.log("Spin scan: no signal from $who")
-            return
         }
         // Give up after 45 s (e.g. their phone went out of range mid-scan).
         val timedOut = now - scanStartedAt > 45_000
         if (allDone || timedOut) {
             if (timedOut && !allDone) outcomes += "Not enough signal while turning. Try again a bit slower."
-            spinScans = emptyMap()
-            _scan.value = ScanUi(360.0, done = true, sectors = BooleanArray(36) { true }, headingDeg = heading, outcome = outcomes.joinToString("\n"))
+            finishScan(outcomes.joinToString("\n"))
             DebugStatus.log("Spin scan done: " + outcomes.joinToString("; "))
         } else {
+            // The ring follows how far YOU have turned, so it never looks frozen.
             val heard = spinScans.values.minOfOrNull { it.sampleCount } ?: 0
-            _scan.value = ScanUi(minCoverage, done = false, sectors = sectors, headingDeg = heading, heard = heard)
+            _scan.value = ScanUi(turnedDeg, done = false, sectors = turned.copyOf(), headingDeg = heading, heard = heard)
         }
+    }
+
+    private fun finishScan(outcome: String) {
+        spinScans = emptyMap()
+        _scan.value = ScanUi(360.0, done = true, sectors = BooleanArray(36) { true }, headingDeg = heading, outcome = outcome)
     }
 
     class ScanUi(
