@@ -23,6 +23,10 @@ accounts or decisions; the rest can be done in the repo.
 
 ## Store listing (draft)
 
+**Graphics** (in `docs/store/`): app icon `icon-512.png`, feature graphic `feature-1024x500.png`
+(source `feature.html`, open in Chrome). Phone screenshots: use `docs/screenshots/` (updated by CI on every build)
+or, better, real ones from the field test.
+
 **App name:** Moshpoint
 
 **Short description (80 chars):**

@@ -1,0 +1,37 @@
+<html><head><style>
+@font-face{font-family:U;src:url(../../app/src/main/res/font/unbounded_extrabold.ttf)}
+@font-face{font-family:I;src:url(../../app/src/main/res/font/inter_medium.ttf)}
+body{margin:0;width:1024px;height:500px;overflow:hidden;background:#07050F;position:relative;font-family:I}
+.g1{position:absolute;left:-120px;top:-160px;width:620px;height:620px;border-radius:50%;background:radial-gradient(#FF2E9355,transparent 65%)}
+.g2{position:absolute;right:-60px;bottom:-200px;width:700px;height:700px;border-radius:50%;background:radial-gradient(#22E4FF40,transparent 65%)}
+.g3{position:absolute;left:520px;top:-120px;width:500px;height:500px;border-radius:50%;background:radial-gradient(#9D5CFF45,transparent 65%)}
+.t{position:absolute;left:72px;top:160px}
+h1{font-family:U;font-size:76px;margin:0;color:#fff;letter-spacing:-1px}
+h1 span{color:#FF2E93;text-shadow:0 0 28px #FF2E93aa}
+p{color:#D9D2EE;font-size:30px;margin:18px 0 0}
+.icon{position:absolute;right:56px;top:100px;width:300px;height:300px}
+.ring{position:absolute;border-radius:50%;border:2px solid #22E4FF;opacity:.25}
+</style></head><body><div class=g1></div><div class=g2></div><div class=g3></div>
+<div class=ring style="right:10px;top:10px;width:476px;height:476px;opacity:.12"></div>
+<div class=t><h1>mosh<span>point</span></h1><p>Find your mates in any crowd.</p></div>
+<div class=icon><svg xmlns="http://www.w3.org/2000/svg" viewBox="20 20 68 68" width="300" height="300">
+ <defs>
+  <radialGradient id="bg" cx="54" cy="58" r="70" gradientUnits="userSpaceOnUse">
+   <stop offset="0" stop-color="#3A1470"/><stop offset="0.55" stop-color="#160A2E"/><stop offset="1" stop-color="#07050F"/>
+  </radialGradient>
+  <linearGradient id="arrow" x1="54" y1="78" x2="54" y2="28" gradientUnits="userSpaceOnUse">
+   <stop offset="0" stop-color="#FF2E93"/><stop offset="0.5" stop-color="#9D5CFF"/><stop offset="1" stop-color="#22E4FF"/>
+  </linearGradient>
+  <radialGradient id="halo" cx="54" cy="52" r="30" gradientUnits="userSpaceOnUse">
+   <stop offset="0" stop-color="#FF2E93" stop-opacity="0.55"/><stop offset="1" stop-color="#FF2E93" stop-opacity="0"/>
+  </radialGradient>
+ </defs>
+ <!-- foreground -->
+ <circle cx="54" cy="54" r="30" fill="url(#halo)"/>
+ <circle cx="54" cy="54" r="31" fill="none" stroke="#22E4FF" stroke-opacity="0.35" stroke-width="1.6"/>
+ <circle cx="54" cy="54" r="21" fill="none" stroke="#22E4FF" stroke-opacity="0.55" stroke-width="1.6"/>
+ <path d="M54,27 L73,77 L54,66 L35,77 Z" fill="url(#arrow)" stroke="url(#arrow)" stroke-opacity="0.35" stroke-width="5" stroke-linejoin="round"/>
+ <path d="M54,27 L73,77 L54,66 L35,77 Z" fill="url(#arrow)"/>
+ <path d="M54,27 L54,66 L35,77 Z" fill="#FFFFFF" fill-opacity="0.18"/>
+</svg></div>
+</body></html>
