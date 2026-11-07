@@ -37,6 +37,7 @@ import nz.waveformlabs.moshpoint.service.VisibilityService
 import nz.waveformlabs.moshpoint.ui.DebugPanel
 import nz.waveformlabs.moshpoint.ui.FinderScreen
 import nz.waveformlabs.moshpoint.ui.MoshTheme
+import nz.waveformlabs.moshpoint.ui.OnboardingScreen
 import nz.waveformlabs.moshpoint.ui.Mosh
 import androidx.compose.animation.togetherWith
 import nz.waveformlabs.moshpoint.ui.FriendsScreen
@@ -47,6 +48,7 @@ import com.journeyapps.barcodescanner.ScanOptions
 class MainActivity : ComponentActivity() {
     private lateinit var engine: LocatorEngine
     private var visibleToMates by mutableStateOf(false)
+    private var onboarded by mutableStateOf(true)
     private var photoFor: String? = null
     private val pickPhoto = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         val id = photoFor
@@ -115,7 +117,9 @@ class MainActivity : ComponentActivity() {
         // After a second "deny", Android stops showing the prompt, so go to app settings.
         val canAsk = permissions.any { shouldShowRequestPermissionRationale(it) }
         if (canAsk || missing.isEmpty()) {
-            askPermissions.launch(permissions)
+            onboarded = VisibilityPrefs.onboarded(this)
+        // New users get asked during the welcome, right after hearing why.
+        if (onboarded) askPermissions.launch(permissions)
         } else {
             startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.fromParts("package", packageName, null)))
         }
@@ -195,6 +199,23 @@ class MainActivity : ComponentActivity() {
                         },
                         dismissButton = { TextButton(onClick = { askBattery = false }) { Text("Not now") } },
                     )
+                }
+                if (!onboarded) {
+                    Box(Modifier.fillMaxSize().background(Mosh.Ground).safeDrawingPadding()) {
+                        OnboardingScreen(
+                            name = myName,
+                            onName = {
+                                myName = it
+                                VisibilityPrefs.setMyName(this@MainActivity, it)
+                            },
+                            onAskPermissions = { askPermissions.launch(permissions) },
+                            onDone = {
+                                VisibilityPrefs.setOnboarded(this@MainActivity)
+                                onboarded = true
+                            },
+                        )
+                    }
+                    return@MoshTheme
                 }
                 Box(Modifier.fillMaxSize().background(Mosh.Ground).safeDrawingPadding()) {
                     // Home <-> finder: a quick zoom-and-fade, like stepping into the crowd.

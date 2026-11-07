@@ -26,6 +26,10 @@ object VisibilityPrefs {
     fun myName(c: Context): String = prefs(c).getString("name", "") ?: ""
     fun setMyName(c: Context, v: String) = prefs(c).edit().putString("name", v.trim()).apply()
 
+    /** First-run welcome finished. */
+    fun onboarded(c: Context) = prefs(c).getBoolean("onboarded", false)
+    fun setOnboarded(c: Context) = prefs(c).edit().putBoolean("onboarded", true).apply()
+
     fun mySecret(c: Context): ByteArray {
         val p = prefs(c)
         p.getString("secret", null)?.let { return Base64.decode(it, Base64.NO_WRAP) }
