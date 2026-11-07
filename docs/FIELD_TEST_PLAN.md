@@ -20,6 +20,8 @@ That's what lets the distance and direction maths get tuned to real phones and r
 - [ ] Battery optimisation: when you **Go live**, accept the prompt and set Moshpoint to "Unrestricted" / "Don't optimise".
 - [ ] Add each other with **Show my QR** / **Scan their QR** (both ways round), or start a crew with **Start a group** and have the other phone **Join a group**.
 - [ ] Optional: long-press each other → **Set photo**.
+- [ ] Name or "stay live after restart" later: the sliders button top-right on the home screen.
+- [ ] Turn on battery saver for a minute: the glows and sweeps should hold still (calm motion) but the arrow still swivels.
 - [ ] Note the battery % on both phones and the time.
 
 Names below: **A** = the phone being found (visible). **B** = the phone looking.
