@@ -14,6 +14,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: write # to commit updated screenshots back to this branch
     env:
       HAS_KEYSTORE: ${{ secrets.MOSHPOINT_KEYSTORE != '' }}
     steps:
@@ -89,6 +91,25 @@ jobs:
         if: success()
         continue-on-error: true
         run: ./gradlew :app:recordPaparazziDebug -q
+
+      - name: Commit screenshots to docs/screenshots (only when they change)
+        if: success() && github.event_name == 'push'
+        continue-on-error: true
+        shell: bash
+        run: |
+          [ -n "$(ls app/src/test/snapshots/images/*.png 2>/dev/null)" ] || exit 0
+          mkdir -p docs/screenshots
+          rm -f docs/screenshots/*.png
+          for f in app/src/test/snapshots/images/*.png; do
+            # Paparazzi names files <package>_<Class>_<test>.png; keep just the test name.
+            cp "$f" "docs/screenshots/$(basename "$f" | sed -E 's/.*_([^_]+\.png)$/\1/')"
+          done
+          git add docs/screenshots
+          if git diff --cached --quiet; then echo "Screenshots unchanged"; exit 0; fi
+          git config user.name "moshpoint-ci"
+          git config user.email "moshpoint-ci@users.noreply.github.com"
+          git commit -m "Update screenshots for ${GITHUB_SHA::7} [skip ci]"
+          git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}"
 
       - name: Upload screenshots
         if: success() || failure()
