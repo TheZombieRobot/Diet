@@ -129,7 +129,8 @@ fun FinderScreen(
 ) {
     var showDebug by remember { mutableStateOf(false) }
     // Back goes to the friends list, not out of the app (the debug panel's own handler, added later, wins while it's open).
-    androidx.activity.compose.BackHandler(onBack = onBack)
+    val hasBack = androidx.activity.compose.LocalOnBackPressedDispatcherOwner.current != null // false in screenshot tests
+    if (hasBack) androidx.activity.compose.BackHandler(onBack = onBack)
     val haptics = LocalHapticFeedback.current
     LaunchedEffect(scan?.done) {
         if (scan?.done == true) haptics.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -307,7 +308,7 @@ fun FinderScreen(
                 ) { Text("✕  Close", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber)) }
             }
             // Back closes the panel first, before leaving the finder.
-            androidx.activity.compose.BackHandler { showDebug = false }
+            if (hasBack) androidx.activity.compose.BackHandler { showDebug = false }
         }
     }
 }
