@@ -50,7 +50,18 @@ class LocatorEngine(
     private val arbiter = MethodArbiter()
     private val compass = Compass(context)
     private var heading = 0.0
-    private val headingFilter = HeadingFilter()
+    // Snappier than the defaults: the arrow should feel glued to the phone.
+    private val headingFilter = HeadingFilter(slowAlpha = 0.18, fastAlpha = 0.75, fastAboveDeg = 15.0)
+
+    /** Recent raw (unsmoothed) headings by elapsedRealtime, so spin-scan readings get the heading at the moment they were received. */
+    private val headingLog = ArrayDeque<Pair<Long, Double>>()
+
+    private fun headingAt(elapsedMs: Long): Double {
+        if (elapsedMs <= 0 || headingLog.isEmpty()) return heading
+        var best = headingLog.last()
+        for (e in headingLog) if (kotlin.math.abs(e.first - elapsedMs) < kotlin.math.abs(best.first - elapsedMs)) best = e
+        return if (kotlin.math.abs(best.first - elapsedMs) < 1_000) best.second else heading
+    }
 
     private val _arrows = MutableStateFlow<List<ArrowState>>(emptyList())
     val arrows: StateFlow<List<ArrowState>> = _arrows.asStateFlow()
@@ -93,9 +104,12 @@ class LocatorEngine(
         null
     }
 
+    private var bleRef: BleRanger? = null
     private val ble = BleRanger(context, "BT scan (looking)", { trackedFriends() }) { friend, rssi, distance, advert ->
         submit(Fix(friend.id, Method.BLE_RSSI, null, distance, confidence = 0.7, timestampMs = System.currentTimeMillis()))
-        spinScans[friend.id]?.add(heading, rssi.toDouble())
+        // The heading when this reading was received, unsmoothed: otherwise turning while
+        // scanning shifts the answer in the direction you're turning.
+        spinScans[friend.id]?.add(headingAt(bleRef?.lastHeardAtElapsedMs ?: 0L), rssi.toDouble())
         if (FieldRecorder.active) {
             FieldRecorder.line(
                 RecordLine.of(
@@ -106,7 +120,7 @@ class LocatorEngine(
         }
         val info = advert.uwb
         if (info?.role == Advert.UwbRole.CONTROLEE) uwb?.onFriendControlee(friend.id, info.address)
-    }
+    }.also { bleRef = it }
 
     private val gps = GpsFinder(context, scope, { trackedFriends() }) { submit(it) }
 
@@ -300,7 +314,12 @@ class LocatorEngine(
         jobs = listOf(
             // True-north heading: compass is magnetic, GPS bearings are true.
             scope.launch {
-                compass.headings().collect { heading = headingFilter.add(Geo.normalize360(it + gps.declinationDeg)) }
+                compass.headings().collect {
+                    val raw = Geo.normalize360(it + gps.declinationDeg)
+                    headingLog.addLast(android.os.SystemClock.elapsedRealtime() to raw)
+                    while (headingLog.size > 200) headingLog.removeFirst() // a few seconds at SENSOR_DELAY_GAME
+                    heading = headingFilter.add(raw)
+                }
             },
             scope.launch {
                 while (true) {

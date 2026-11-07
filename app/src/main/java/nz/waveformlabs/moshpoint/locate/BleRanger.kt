@@ -35,6 +35,10 @@ class BleRanger(
     private var running = false
     private var heard = 0
 
+    /** When the advert being handled was actually received (elapsedRealtime ms): callbacks can lag. */
+    var lastHeardAtElapsedMs = 0L
+        private set
+
     private val callback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) = handle(result)
         override fun onBatchScanResults(results: MutableList<ScanResult>) = results.forEach(::handle)
@@ -54,6 +58,7 @@ class BleRanger(
         val ranger = rangers.getOrPut(friend.id) { RssiRanging() }
         heard++
         DebugStatus.set(debugName, "on, heard ${friend.name} ${result.rssi} dBm (#$heard)")
+        lastHeardAtElapsedMs = result.timestampNanos / 1_000_000
         onAdvert(friend, result.rssi, ranger.add(result.rssi), advert)
     }
 

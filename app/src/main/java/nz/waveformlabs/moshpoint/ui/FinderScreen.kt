@@ -480,7 +480,7 @@ private fun animatedAngle(targetDeg: Double): Float {
     last[0] += delta
     val anim by animateFloatAsState(
         last[0],
-        animationSpec = spring(dampingRatio = 0.72f, stiffness = Spring.StiffnessMediumLow),
+        animationSpec = spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMedium), // quick, no wobble
         label = "arrow",
     )
     return anim
