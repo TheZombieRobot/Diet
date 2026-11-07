@@ -49,6 +49,23 @@ class MainActivity : ComponentActivity() {
     private lateinit var engine: LocatorEngine
     private var visibleToMates by mutableStateOf(false)
     private var onboarded by mutableStateOf(true)
+
+    /** Continue with Facebook: fills your name (if empty) and photo, which friends then get. */
+    private val facebook = FacebookLogin(
+        this,
+        onProfile = { name, photo ->
+            if (name != null && myName.isBlank()) {
+                myName = name.substringBefore(' ')
+                VisibilityPrefs.setMyName(this, myName)
+            }
+            if (photo != null) {
+                lifecycleScope.launch {
+                    if (PhotoStore.set(PhotoStore.ME, photo)) AvatarSync.publishMine(this@MainActivity, force = true)
+                }
+            }
+        },
+        onFail = { DebugStatus.log(it) },
+    )
     private var calmMotion by mutableStateOf(false)
 
     /** Battery saver on, or animations turned off in accessibility settings. */
@@ -174,6 +191,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        facebook.register()
         // Android may close the app while the photo picker is open: remember whose photo it was.
         photoFor = savedInstanceState?.getString("photoFor")
         FriendsRepository.init(this)
@@ -251,6 +269,7 @@ class MainActivity : ComponentActivity() {
                                 VisibilityPrefs.setMyName(this@MainActivity, it)
                             },
                             onAskPermissions = { askPermissions.launch(permissions) },
+                            onFacebook = if (FacebookLogin.available) facebook::login else null,
                             onDone = {
                                 VisibilityPrefs.setOnboarded(this@MainActivity)
                                 onboarded = true
@@ -383,6 +402,7 @@ class MainActivity : ComponentActivity() {
                                 photoFor = PhotoStore.ME
                                 pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                             },
+                            onFacebook = if (FacebookLogin.available) facebook::login else null,
                             onRemoveMyPhoto = {
                                 PhotoStore.remove(PhotoStore.ME)
                                 AvatarSync.publishMine(this@MainActivity, force = true)

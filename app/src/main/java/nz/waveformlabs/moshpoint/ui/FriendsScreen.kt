@@ -95,6 +95,8 @@ fun FriendsScreen(
     onSelfie: () -> Unit = {},
     onPickMyPhoto: () -> Unit = {},
     onRemoveMyPhoto: () -> Unit = {},
+    /** Null when the build has no Meta app configured. */
+    onFacebook: (() -> Unit)? = null,
 ) {
     var name by remember { mutableStateOf("") }
     var code by remember { mutableStateOf("") }
@@ -114,7 +116,7 @@ fun FriendsScreen(
     if (settingsOpen) {
         SettingsSheet(
             myName = myName, onMyName = onMyName,
-            onSelfie = onSelfie, onPickMyPhoto = onPickMyPhoto, onRemoveMyPhoto = onRemoveMyPhoto,
+            onSelfie = onSelfie, onPickMyPhoto = onPickMyPhoto, onRemoveMyPhoto = onRemoveMyPhoto, onFacebook = onFacebook,
             alwaysOn = alwaysOn, onAlwaysOn = onAlwaysOn,
             phoneSummary = phoneSummary,
             onClose = { settingsOpen = false },
@@ -431,6 +433,7 @@ private fun SettingsSheet(
     onSelfie: () -> Unit,
     onPickMyPhoto: () -> Unit,
     onRemoveMyPhoto: () -> Unit,
+    onFacebook: (() -> Unit)?,
     alwaysOn: Boolean,
     onAlwaysOn: (Boolean) -> Unit,
     phoneSummary: String,
@@ -462,6 +465,7 @@ private fun SettingsSheet(
                     Text("Shows in your mates' arrow. Only your friends can see it.", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
                 }
             }
+            if (onFacebook != null) FacebookButton(onFacebook)
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 GlassButton("Take a selfie", Modifier.weight(1f), onClick = onSelfie)
                 GlassButton("Choose photo", Modifier.weight(1f), onClick = onPickMyPhoto)
@@ -521,5 +525,24 @@ private fun SlidersIcon() {
             drawLine(c, androidx.compose.ui.geometry.Offset(x, 0f), androidx.compose.ui.geometry.Offset(x, h), st, cap = androidx.compose.ui.graphics.StrokeCap.Round)
             drawLine(c, androidx.compose.ui.geometry.Offset(x - w * 0.12f, h * knob), androidx.compose.ui.geometry.Offset(x + w * 0.12f, h * knob), st * 1.3f, cap = androidx.compose.ui.graphics.StrokeCap.Round)
         }
+    }
+}
+
+/** Facebook's own blue, per their brand guidelines. */
+@Composable
+fun FacebookButton(onClick: () -> Unit, modifier: Modifier = Modifier.fillMaxWidth()) {
+    val (source, scale) = rememberPress()
+    Button(
+        onClick = onClick,
+        modifier = modifier.heightIn(min = 54.dp).pressScale(scale),
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1877F2), contentColor = Color.White),
+        interactionSource = source,
+    ) {
+        Box(Modifier.size(22.dp).background(Color.White, CircleShape), contentAlignment = Alignment.Center) {
+            Text("f", style = Mosh.Button.copy(fontSize = 15.sp, color = Color(0xFF1877F2)))
+        }
+        Spacer(Modifier.width(10.dp))
+        Text("Continue with Facebook", style = Mosh.Label.copy(color = Color.White))
     }
 }

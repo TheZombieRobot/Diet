@@ -74,6 +74,8 @@ fun OnboardingScreen(
     onName: (String) -> Unit,
     onAskPermissions: () -> Unit,
     onDone: () -> Unit,
+    /** Null when the build has no Meta app configured. */
+    onFacebook: (() -> Unit)? = null,
 ) {
     var step by remember { mutableIntStateOf(0) }
     Box(Modifier.fillMaxSize().background(Mosh.Ground)) {
@@ -128,6 +130,12 @@ fun OnboardingScreen(
                             Spacer(Modifier.height(36.dp))
                             Title("What should your\nmates call you?")
                             Spacer(Modifier.height(20.dp))
+                            if (onFacebook != null) {
+                                FacebookButton(onFacebook)
+                                Spacer(Modifier.height(10.dp))
+                                Text("or type it", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
+                                Spacer(Modifier.height(10.dp))
+                            }
                             OutlinedTextField(
                                 name, onName,
                                 placeholder = { Text("Your name", style = Mosh.Body.copy(color = Mosh.TextFaint)) },

@@ -61,6 +61,20 @@ friends have and stored under an id that changes weekly, for up to 8 days, so fr
 phones can show your face. The server can't see it. Removing your photo shares an empty one,
 so friends' copies are cleared the next time they refresh.
 
+## Continue with Facebook (optional)
+
+If you choose "Continue with Facebook", Facebook tells the app your name and profile
+photo (nothing else: no friends list, email or posts). Your first name fills in your
+Moshpoint name and the photo becomes your Moshpoint photo, shared with your friends as
+described above. Facebook's analytics and advertising features in the login library are
+switched off. You can stop using it any time; it doesn't post anything on your behalf.
+
+## Deleting your data
+
+Delete the app: everything on your phone is gone. Anything on our server (encrypted
+locations, intros and photos) expires on its own within 8 days. If you used Facebook
+login you can also remove Moshpoint at facebook.com → Settings → Apps and websites.
+
 ## Permissions and why
 
 | Permission | Why |

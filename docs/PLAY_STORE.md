@@ -15,6 +15,7 @@ accounts or decisions; the rest can be done in the repo.
 - [ ] **(you)** Deploy the relay server (`fly deploy`, see README) and set `MOSHPOINT_SERVER`.
 - [ ] Register Bluetooth SIG 16-bit UUIDs (or switch to 128-bit with extended adverts) to
       replace the placeholders `FFA7`, `FFA8`, `FFA9` in `Ble.kt`, `CrowdRelayRadio.kt`, `GroupSync.kt`.
+- [ ] **(you)** Optional: set up "Continue with Facebook" (see `docs/FACEBOOK.md`); declare the Facebook SDK in the Data safety form (login only; analytics off).
 - [ ] Raise `targetSdk` to the version Play requires at submission time.
 - [ ] Replace the placeholder launcher icon with the real logo (adaptive + monochrome layers).
 - [ ] Host `docs/PRIVACY.md` at a public URL (fill in date and contact email).
@@ -49,7 +50,7 @@ Find your mates at gigs. Tap a friend, follow the glowing arrow.
 | Can users request deletion? | Yes. Server data expires after 15 minutes automatically; on-device data is deleted with the app. |
 | Location: purpose | App functionality (finding friends). Not used for ads or analytics. |
 | Location: optional? | Required for the GPS/crowd features while live; the user controls when they're live. |
-| Personal info (name, email, etc.) | Not collected. Display names stay on device and in encrypted group intros. |
+| Personal info (name, email, etc.) | Name: optional, from "Continue with Facebook" or typed; stays on device and in encrypted group intros. Email not collected. |
 | Photos | Optional profile photo: end-to-end encrypted, visible only to the user's friends; the server can't view it. Deleted after 8 days unless refreshed. |
 | App activity, device IDs, diagnostics | Not collected. |
 

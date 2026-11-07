@@ -38,14 +38,14 @@ jobs:
           set -o pipefail
           # GPS mode: set the repository variable MOSHPOINT_SERVER (Settings -> Secrets and
           # variables -> Actions -> Variables) to the relay server's https address.
-          ./gradlew :app:assembleDebug --continue -Pmoshpoint.server="${{ vars.MOSHPOINT_SERVER }}" 2>&1 | tee build.log
+          ./gradlew :app:assembleDebug --continue -Pmoshpoint.server="${{ vars.MOSHPOINT_SERVER }}" -Pmoshpoint.facebookAppId="${{ vars.MOSHPOINT_FACEBOOK_APP_ID }}" -Pmoshpoint.facebookClientToken="${{ vars.MOSHPOINT_FACEBOOK_CLIENT_TOKEN }}" 2>&1 | tee build.log
 
       - name: Release build (R8 shrinking, debug mode stripped)
         if: success()
         shell: bash
         run: |
           set -o pipefail
-          ./gradlew :app:assembleRelease --continue -Pmoshpoint.server="${{ vars.MOSHPOINT_SERVER }}" 2>&1 | tee -a build.log
+          ./gradlew :app:assembleRelease --continue -Pmoshpoint.server="${{ vars.MOSHPOINT_SERVER }}" -Pmoshpoint.facebookAppId="${{ vars.MOSHPOINT_FACEBOOK_APP_ID }}" -Pmoshpoint.facebookClientToken="${{ vars.MOSHPOINT_FACEBOOK_CLIENT_TOKEN }}" 2>&1 | tee -a build.log
           # Debug-only code must not ship. Class names are obfuscated, so look for text
           # that only the debug panel and simulator use.
           APK=$(ls app/build/outputs/apk/release/*.apk | head -1)
@@ -71,7 +71,7 @@ jobs:
           SERVER_URL: ${{ vars.MOSHPOINT_SERVER }}
         run: |
           printf '%s' "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
-          MOSHPOINT_KEYSTORE_FILE="$RUNNER_TEMP/upload.jks" ./gradlew :app:bundleRelease -Pmoshpoint.server="$SERVER_URL"
+          MOSHPOINT_KEYSTORE_FILE="$RUNNER_TEMP/upload.jks" ./gradlew :app:bundleRelease -Pmoshpoint.server="$SERVER_URL" -Pmoshpoint.facebookAppId="${{ vars.MOSHPOINT_FACEBOOK_APP_ID }}" -Pmoshpoint.facebookClientToken="${{ vars.MOSHPOINT_FACEBOOK_CLIENT_TOKEN }}"
           rm -f "$RUNNER_TEMP/upload.jks"
 
       - name: Upload Play Store bundle

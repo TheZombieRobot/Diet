@@ -21,6 +21,15 @@ android {
         // -Pmoshpoint.server=https://your-server or in gradle.properties.
         val server = (project.findProperty("moshpoint.server") as String?) ?: ""
         buildConfigField("String", "MOSHPOINT_SERVER", "\"$server\"")
+
+        // Log in with Facebook (name + photo). Off unless a Meta app is configured:
+        // -Pmoshpoint.facebookAppId=... -Pmoshpoint.facebookClientToken=... (see docs/FACEBOOK.md).
+        val fbAppId = (project.findProperty("moshpoint.facebookAppId") as String?) ?: ""
+        val fbToken = (project.findProperty("moshpoint.facebookClientToken") as String?) ?: ""
+        resValue("string", "facebook_app_id", fbAppId)
+        resValue("string", "facebook_client_token", fbToken)
+        resValue("string", "fb_login_protocol_scheme", "fb$fbAppId")
+        buildConfigField("boolean", "FACEBOOK_ENABLED", (fbAppId.isNotBlank() && fbToken.isNotBlank()).toString())
     }
 
     // Release signing from CI secrets (see docs/PLAY_STORE.md). Without them, release
@@ -78,6 +87,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.core.uwb)
     implementation(libs.zxing.core)
+    implementation(libs.facebook.login)
     implementation(libs.zxing.android.embedded)
     debugImplementation(libs.androidx.compose.ui.tooling)
     testImplementation(kotlin("test"))

@@ -11,6 +11,7 @@ Find your mates at a gig. Open the app, tap a friend, and an arrow points you to
 - **How it works:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 - **What's done / next:** [`docs/ROADMAP.md`](docs/ROADMAP.md)
 - **Design:** neon party, premium finish, drawn on a Claude design canvas (ask Claude for the link). `ui/Theme.kt` holds the colours and type (Unbounded + Inter, bundled), `ui/Neon.kt` the motion kit (glows, radar, running neon border, shimmer, rolling numbers, confetti). In battery saver, or with animations turned off, ambient effects hold still ("calm motion"); the arrow and distance still animate.
+- **Facebook login (optional):** [`docs/FACEBOOK.md`](docs/FACEBOOK.md).
 - **Releasing:** [`docs/PLAY_STORE.md`](docs/PLAY_STORE.md) (checklist, store listing, Data safety answers) and [`docs/PRIVACY.md`](docs/PRIVACY.md) (draft privacy policy).
 - **Testing on real phones:** [`docs/FIELD_TEST_PLAN.md`](docs/FIELD_TEST_PLAN.md); analyse recordings with `python3 tools/analyze_recording.py <file.csv>`
 
