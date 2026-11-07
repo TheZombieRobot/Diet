@@ -64,9 +64,11 @@ jobs:
           MOSHPOINT_KEYSTORE_PASSWORD: ${{ secrets.MOSHPOINT_KEYSTORE_PASSWORD }}
           MOSHPOINT_KEY_ALIAS: ${{ secrets.MOSHPOINT_KEY_ALIAS }}
           MOSHPOINT_KEY_PASSWORD: ${{ secrets.MOSHPOINT_KEY_PASSWORD }}
+          KEYSTORE_B64: ${{ secrets.MOSHPOINT_KEYSTORE }}
+          SERVER_URL: ${{ vars.MOSHPOINT_SERVER }}
         run: |
-          echo "${{ secrets.MOSHPOINT_KEYSTORE }}" | base64 -d > "$RUNNER_TEMP/upload.jks"
-          MOSHPOINT_KEYSTORE_FILE="$RUNNER_TEMP/upload.jks" ./gradlew :app:bundleRelease -Pmoshpoint.server="${{ vars.MOSHPOINT_SERVER }}"
+          printf '%s' "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          MOSHPOINT_KEYSTORE_FILE="$RUNNER_TEMP/upload.jks" ./gradlew :app:bundleRelease -Pmoshpoint.server="$SERVER_URL"
           rm -f "$RUNNER_TEMP/upload.jks"
 
       - name: Upload Play Store bundle
