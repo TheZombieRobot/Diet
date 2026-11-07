@@ -37,6 +37,8 @@ import nz.waveformlabs.moshpoint.service.VisibilityService
 import nz.waveformlabs.moshpoint.ui.DebugPanel
 import nz.waveformlabs.moshpoint.ui.FinderScreen
 import nz.waveformlabs.moshpoint.ui.MoshTheme
+import nz.waveformlabs.moshpoint.ui.Mosh
+import androidx.compose.animation.togetherWith
 import nz.waveformlabs.moshpoint.ui.FriendsScreen
 import nz.waveformlabs.moshpoint.ui.MyQrDialog
 import com.journeyapps.barcodescanner.ScanContract
@@ -184,8 +186,18 @@ class MainActivity : ComponentActivity() {
                         dismissButton = { TextButton(onClick = { askBattery = false }) { Text("Not now") } },
                     )
                 }
-                Box(Modifier.fillMaxSize().background(Color.Black).safeDrawingPadding()) {
-                    if (finding) {
+                Box(Modifier.fillMaxSize().background(Mosh.Ground).safeDrawingPadding()) {
+                    // Home <-> finder: a quick zoom-and-fade, like stepping into the crowd.
+                    androidx.compose.animation.AnimatedContent(
+                        targetState = finding,
+                        transitionSpec = {
+                            (androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(320)) +
+                                androidx.compose.animation.scaleIn(androidx.compose.animation.core.tween(320), initialScale = if (targetState) 1.06f else 0.94f))
+                                .togetherWith(androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(220)))
+                        },
+                        label = "screen",
+                    ) { showFinder ->
+                    if (showFinder) {
                         val arrows by engine.arrows.collectAsState()
                         val scan by engine.scan.collectAsState()
                         val tracking by engine.tracking.collectAsState()
@@ -294,6 +306,7 @@ class MainActivity : ComponentActivity() {
                             onShowGroupQr = { showGroupQr = true },
                             onAddSimulated = if (DebugStatus.enabled) FriendsRepository::addSimulated else null,
                         )
+                    }
                     }
                 }
             }

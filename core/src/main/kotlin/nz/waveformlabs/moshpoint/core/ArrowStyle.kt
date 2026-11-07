@@ -5,12 +5,13 @@ import kotlin.math.roundToInt
 /**
  * Colour and label rules for the arrows on the main screen.
  *
- * An arrow starts red when a friend first comes into range and fades into that friend's
+ * An arrow starts hot pink when a friend first comes into range and fades into that friend's
  * own colour as you close in. Colours are packed ARGB ints so the logic stays testable
  * without Android.
  */
 object ArrowStyle {
-    const val RED: Int = 0xFFE53935.toInt()
+    /** "Far / unknown" colour: neon pink. (Named RED from the first design.) */
+    const val RED: Int = 0xFFFF2E93.toInt()
 
     /** At or beyond this distance the arrow is fully red. */
     const val FAR_M = 150.0

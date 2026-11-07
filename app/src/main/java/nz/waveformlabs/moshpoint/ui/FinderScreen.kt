@@ -1,11 +1,24 @@
 package nz.waveformlabs.moshpoint.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,17 +49,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -73,15 +92,20 @@ import nz.waveformlabs.moshpoint.locate.LocatorEngine
 import kotlin.math.cos
 import kotlin.math.sin
 
+/** Closer than this counts as "found": confetti time. */
+private const val FOUND_M = 3.0
+
+/** After "keep the arrow", celebrate again only once they've moved this far away. */
+private const val REARM_M = 8.0
+
 /**
- * The main screen (design canvas: "Finding a friend", "No signal", "Finding the whole
- * group", "Spin to scan").
+ * The main screen (design canvas: Finding, Searching, Whole crew, Spin to scan, Found them).
  *
- * - Nobody in range: no arrow, just a no-signal state.
- * - In range: arrow swivels to point the way, red when far, fading into the friend's
- *   colour as you close in, their photo at the tip. One friend gets a big distance
- *   readout; a group gets name + distance beside each photo.
+ * - Nobody in range: a radar sweeps while we look.
+ * - In range: glowing arrows swivel on a spring, hot pink when far, sliding into the
+ *   friend's colour as you close in, their photo at the tip; the distance rolls down.
  * - Distance only (no direction yet): warmer/colder and a nudge to Scan.
+ * - Under 3 m: confetti.
  */
 @Composable
 fun FinderScreen(
@@ -106,11 +130,40 @@ fun FinderScreen(
     val distanceOnly = arrows.filterIsInstance<ArrowState.DistanceOnly>()
     val scanning = scan != null && !scan.done
 
+    // Found-them celebration: the closest friend under 3 m, unless you chose to keep the arrow.
+    var dismissed by remember { mutableStateOf(setOf<String>()) }
+    val distances = arrows.mapNotNull { a ->
+        when (a) {
+            is ArrowState.Pointing -> a.distanceM?.let { a.friendId to it }
+            is ArrowState.DistanceOnly -> a.friendId to a.distanceM
+            else -> null
+        }
+    }
+    LaunchedEffect(distances) {
+        val far = distances.filter { it.second > REARM_M }.map { it.first }.toSet()
+        if (dismissed.any { it in far }) dismissed = dismissed - far
+    }
+    val found = distances.filter { it.second < FOUND_M && it.first !in dismissed }.minByOrNull { it.second }
+    LaunchedEffect(found?.first) {
+        if (found != null) haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+    }
+
+    // The screen's mood colour: the closest friend's arrow colour, or ultraviolet while searching.
+    val closest = pointing.minByOrNull { it.distanceM ?: Double.MAX_VALUE }
+    val mood by animateColorAsState(
+        when {
+            scanning -> Mosh.Lime
+            closest != null -> Color(ArrowStyle.arrowColor(friendOf(closest.friendId)?.color ?: ArrowStyle.RED, closest.distanceM))
+            else -> Mosh.Violet
+        },
+        tween(900), label = "mood",
+    )
+
     Box(Modifier.fillMaxSize().background(Mosh.Ground)) {
+        GlowBackground(colours = listOf(Mosh.Violet, mood, Mosh.Pink))
         Column(Modifier.fillMaxSize().padding(start = 24.dp, end = 24.dp, top = 12.dp, bottom = 24.dp)) {
-            // Top bar: back to friends, visibility status (and Debug in test builds).
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = onBack, contentPadding = ButtonDefaults.TextButtonContentPadding) {
+                TextButton(onClick = onBack) {
                     Text("‹  Friends", style = Mosh.Label.copy(fontWeight = FontWeight.Medium, fontSize = 15.sp))
                 }
                 Spacer(Modifier.weight(1f))
@@ -119,33 +172,35 @@ fun FinderScreen(
                         Text(if (showDebug) "Hide debug" else "Debug", style = Mosh.Eyebrow)
                     }
                 }
-                StatusPill(visible)
+                LivePill(visible)
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(14.dp))
             Text(if (scanning) "SCANNING FOR" else "FINDING", style = Mosh.Eyebrow)
+            Spacer(Modifier.height(6.dp))
             Text(title, style = Mosh.Title, maxLines = 1)
 
             Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
                 when {
                     scanning -> ScanProgress(scan!!)
-                    pointing.isEmpty() && distanceOnly.isEmpty() -> NoSignal(title)
+                    pointing.isEmpty() && distanceOnly.isEmpty() -> Searching(title)
                     else -> {
-                        GuideRings()
+                        Box(Modifier.fillMaxSize(0.92f)) { RadarPulse(mood.copy(alpha = 0.7f)) }
                         Arrows(pointing, friendOf, group = arrows.size > 1)
                         if (pointing.isEmpty()) DistanceOnly(distanceOnly, friendOf)
                     }
                 }
             }
 
-            // Big readout for a single friend with an arrow.
             if (!scanning && arrows.size == 1 && pointing.size == 1) {
                 val a = pointing[0]
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(ArrowStyle.distanceLabel(a.distanceM), style = Mosh.Distance)
-                    Text(
-                        if (a.unsure) "Rough direction. Scan to sharpen it" else "Head this way",
-                        style = Mosh.Body,
+                    DistanceReadout(a.distanceM)
+                    Spacer(Modifier.height(8.dp))
+                    Chip(
+                        if (a.unsure) "Rough" else "Locked",
+                        if (a.unsure) Mosh.Amber else Mosh.Lime,
+                        if (a.unsure) "Scan to sharpen the arrow" else "Head this way",
                     )
                 }
                 Spacer(Modifier.height(20.dp))
@@ -153,18 +208,18 @@ fun FinderScreen(
             if (!scanning && arrows.size > 1 && pointing.isNotEmpty()) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 14.dp)) {
                     Box(
-                        Modifier.width(44.dp).height(6.dp).background(
-                            Brush.horizontalGradient(listOf(Mosh.Red, Color(Mosh.FriendColours[0]))),
+                        Modifier.width(54.dp).height(6.dp).background(
+                            Brush.horizontalGradient(listOf(Mosh.Pink, Color(0xFFC86BFF), Mosh.Cyan)),
                             RoundedCornerShape(3.dp),
                         ),
                     )
-                    Spacer(Modifier.width(8.dp))
-                    Text("Red is far. Arrows turn your mate's colour as you get close.", style = Mosh.Eyebrow.copy(fontSize = 12.sp, letterSpacing = 0.sp))
+                    Spacer(Modifier.width(10.dp))
+                    Text("Hot pink is far. Arrows glow your mate's colour as you get close.", style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 16.sp, color = Mosh.TextFaint))
                 }
             }
 
             when {
-                scanning -> BigButton("Cancel scan", outlined = true, onClick = onCancelScan)
+                scanning -> GlassButton("Cancel scan", onClick = onCancelScan)
                 scan != null && scan.done -> {
                     Text(
                         scan.outcome.ifBlank { "Scan finished" },
@@ -173,88 +228,146 @@ fun FinderScreen(
                         modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        BigButton("OK", modifier = Modifier.weight(1f), onClick = onDismissScan)
-                        BigButton("Scan again", modifier = Modifier.weight(1f), outlined = true, onClick = onScan)
+                        NeonButton("OK", Modifier.weight(1f), onClick = onDismissScan)
+                        GlassButton("Scan again", Modifier.weight(1f), onClick = onScan)
                     }
                 }
                 else -> {
                     val unsure = arrows.any { it is ArrowState.DistanceOnly || (it is ArrowState.Pointing && it.unsure) }
-                    BigButton(if (unsure) "Scan to find which way" else "Scan", icon = true, onClick = onScan)
+                    GlassButton(if (unsure) "Scan to find which way" else "Scan", icon = true, onClick = onScan)
                 }
             }
         }
+
+        AnimatedVisibility(found != null, enter = fadeIn(tween(250)), exit = fadeOut(tween(300))) {
+            val f = found?.let { friendOf(it.first) }
+            FoundOverlay(
+                friend = f,
+                onDone = onBack,
+                onKeep = { found?.let { dismissed = dismissed + it.first } },
+            )
+        }
+
         if (BuildConfig.DEBUG && debug != null && showDebug) {
             debug(Modifier.align(Alignment.TopCenter).fillMaxWidth().fillMaxHeight(0.62f))
         }
     }
 }
 
+// ---------------------------------------------------------------------------------------
+// Pieces
+
 @Composable
-private fun StatusPill(visible: Boolean) {
+fun LivePill(live: Boolean) {
+    val t = rememberInfiniteTransition(label = "live")
+    val ping by t.animateFloat(0f, 1f, infiniteRepeatable(tween(1800, easing = FastOutSlowInEasing)), label = "ping")
     Row(
-        Modifier.background(Mosh.Surface, CircleShape).padding(horizontal = 12.dp, vertical = 8.dp),
+        Modifier.background(Mosh.Surface, CircleShape).border(1.dp, Mosh.Line, CircleShape).padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.size(8.dp).background(if (visible) Mosh.Green else Color(0xFF6B6B78), CircleShape))
+        Box(Modifier.size(8.dp).drawBehind {
+            if (live) drawCircle(Mosh.Lime.copy(alpha = 0.7f * (1 - ping)), radius = size.minDimension / 2 + 8.dp.toPx() * ping)
+            drawCircle(if (live) Mosh.Lime else Color(0xFF6E6886))
+        })
         Spacer(Modifier.width(8.dp))
-        Text(if (visible) "You're visible" else "You're hidden", style = Mosh.Body.copy(fontSize = 13.sp))
+        Text(if (live) "Live" else "Hidden", style = Mosh.Body.copy(fontSize = 13.sp))
     }
 }
 
 @Composable
-private fun BigButton(
-    text: String,
-    modifier: Modifier = Modifier.fillMaxWidth(),
-    outlined: Boolean = false,
-    icon: Boolean = false,
-    onClick: () -> Unit,
-) {
-    val shape = RoundedCornerShape(16.dp)
-    val content: @Composable () -> Unit = {
+private fun Chip(label: String, colour: Color, text: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            label, style = Mosh.Label.copy(fontSize = 13.sp, color = colour),
+            modifier = Modifier.background(colour.copy(alpha = 0.14f), CircleShape).padding(horizontal = 10.dp, vertical = 4.dp),
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(text, style = Mosh.Body)
+    }
+}
+
+@Composable
+private fun DistanceReadout(distanceM: Double?) {
+    val label = ArrowStyle.distanceLabel(distanceM)
+    val num = label.substringBefore(' ')
+    val unit = label.substringAfter(' ', "")
+    Row(verticalAlignment = Alignment.Bottom) {
+        RollingText(num, Mosh.Distance)
+        if (unit.isNotEmpty()) {
+            Spacer(Modifier.width(6.dp))
+            Text(unit, style = Mosh.Heading.copy(fontSize = 28.sp, color = Mosh.TextFaint), modifier = Modifier.padding(bottom = 6.dp))
+        }
+    }
+}
+
+/** Glass button with a bouncy press. */
+@Composable
+fun GlassButton(text: String, modifier: Modifier = Modifier.fillMaxWidth(), icon: Boolean = false, onClick: () -> Unit) {
+    val (source, scale) = rememberPress()
+    OutlinedButton(
+        onClick, modifier.heightIn(min = 58.dp).pressScale(scale),
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(1.dp, Mosh.Line),
+        colors = ButtonDefaults.outlinedButtonColors(containerColor = Mosh.Surface, contentColor = Mosh.Text),
+        interactionSource = source,
+    ) {
         if (icon) {
             Canvas(Modifier.size(18.dp)) { drawRefreshIcon(Mosh.Text) }
             Spacer(Modifier.width(10.dp))
         }
         Text(text, style = Mosh.Label)
     }
-    if (outlined) {
-        OutlinedButton(onClick, modifier.heightIn(min = 56.dp), shape = shape, border = BorderStroke(1.dp, Mosh.Line)) { content() }
-    } else {
-        Button(
-            onClick, modifier.heightIn(min = 56.dp), shape = shape,
-            colors = ButtonDefaults.buttonColors(containerColor = Mosh.Surface, contentColor = Mosh.Text),
-            border = BorderStroke(1.dp, Mosh.Line),
-        ) { content() }
-    }
+}
+
+/** The neon gradient button (pink -> violet -> cyan) with a sweeping shimmer. */
+@Composable
+fun NeonButton(text: String, modifier: Modifier = Modifier.fillMaxWidth(), onClick: () -> Unit) {
+    val (source, scale) = rememberPress()
+    val shine = rememberShimmer()
+    Button(
+        onClick,
+        modifier.heightIn(min = 58.dp).pressScale(scale)
+            .drawBehind {
+                // Soft neon underglow.
+                glow(Mosh.Pink, 26.dp.toPx(), 0.55f) { p ->
+                    drawContext.canvas.drawRoundRect(
+                        8.dp.toPx(), 14.dp.toPx(), size.width - 8.dp.toPx(), size.height + 4.dp.toPx(),
+                        18.dp.toPx(), 18.dp.toPx(), p,
+                    )
+                }
+            }
+            .clip(RoundedCornerShape(18.dp))
+            .background(Brush.linearGradient(listOf(Mosh.Pink, Mosh.Violet, Mosh.Cyan)))
+            .shimmer(shine),
+        shape = RoundedCornerShape(18.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
+        interactionSource = source,
+    ) { Text(text, style = Mosh.Button.copy(color = Color.White)) }
 }
 
 @Composable
-private fun GuideRings() {
-    Canvas(Modifier.fillMaxSize()) {
-        val c = Offset(size.width / 2, size.height / 2)
-        val r = size.minDimension
-        drawCircle(Mosh.Ring, radius = r * 0.46f, center = c, style = Stroke(1.5f))
-        drawCircle(Mosh.Ring, radius = r * 0.30f, center = c, style = Stroke(1.5f))
-    }
-}
-
-@Composable
-private fun NoSignal(name: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(24.dp)) {
-        Canvas(Modifier.size(200.dp).semantics { contentDescription = "No signal" }) {
-            val dash = PathEffect.dashPathEffect(floatArrayOf(10f, 10f))
-            drawCircle(Mosh.Line, radius = size.minDimension / 2 - 2, style = Stroke(2f, pathEffect = dash))
-            drawCircle(Mosh.Line, radius = size.minDimension * 0.33f, style = Stroke(2f, pathEffect = dash))
-            drawCircle(Mosh.Surface, radius = size.minDimension * 0.16f)
-            drawNoSignalIcon(Mosh.TextFaint)
+private fun Searching(name: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(30.dp)) {
+        Box(Modifier.size(240.dp).semantics { contentDescription = "Searching" }, contentAlignment = Alignment.Center) {
+            Canvas(Modifier.fillMaxSize()) {
+                val r = size.minDimension / 2
+                drawCircle(Mosh.Violet.copy(alpha = 0.35f), r, style = Stroke(1.dp.toPx()))
+                drawCircle(Mosh.Violet.copy(alpha = 0.25f), r * 0.66f, style = Stroke(1.dp.toPx()))
+                drawCircle(Mosh.Violet.copy(alpha = 0.20f), r * 0.33f, style = Stroke(1.dp.toPx()))
+            }
+            RadarSweep(Mosh.Violet)
+            RadarPulse(Mosh.Violet, rings = 1, periodMs = 3000)
+            Box(Modifier.size(14.dp).drawBehind {
+                glow(Color.White, 10.dp.toPx(), 0.8f) { p -> drawContext.canvas.drawCircle(center, size.minDimension / 2, p) }
+                drawCircle(Mosh.Text)
+            })
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.widthIn(max = 290.dp)) {
-            Text("No signal yet", style = Mosh.Heading)
-            Spacer(Modifier.height(8.dp))
+            Text("Looking for $name…", style = Mosh.Heading, textAlign = TextAlign.Center)
+            Spacer(Modifier.height(10.dp))
             Text(
-                "$name isn't in range, or hasn't turned on visibility. The arrow appears as soon as they're found.",
-                style = Mosh.Body,
-                textAlign = TextAlign.Center,
+                "They're out of range, or haven't gone live yet. Their arrow lights up the moment we find them.",
+                style = Mosh.Body, textAlign = TextAlign.Center,
             )
         }
     }
@@ -265,20 +378,24 @@ private fun DistanceOnly(list: List<ArrowState.DistanceOnly>, friendOf: (String)
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         list.forEach { d ->
             val f = friendOf(d.friendId)
-            val colour = Color(ArrowStyle.arrowColor(f?.color ?: ArrowStyle.RED, d.distanceM))
-            val trend = when (d.trend) {
-                Trend.WARMER -> "Getting warmer"
-                Trend.COLDER -> "Getting colder"
-                Trend.STEADY -> "Close by"
+            val colour by animateColorAsState(Color(ArrowStyle.arrowColor(f?.color ?: ArrowStyle.RED, d.distanceM)), tween(700), label = "c")
+            Box(Modifier.size(if (list.size > 1) 12.dp else 18.dp).drawBehind {
+                glow(colour, 12.dp.toPx(), 0.9f) { p -> drawContext.canvas.drawCircle(center, size.minDimension / 2, p) }
+                drawCircle(colour)
+            })
+            if (list.size > 1) {
+                RollingText(ArrowStyle.distanceLabel(d.distanceM), Mosh.Distance.copy(fontSize = 32.sp, lineHeight = 34.sp))
+            } else {
+                DistanceReadout(d.distanceM)
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(14.dp).background(colour, CircleShape))
-                Spacer(Modifier.width(10.dp))
-                Text(ArrowStyle.distanceLabel(d.distanceM), style = Mosh.Distance.copy(fontSize = if (list.size > 1) 32.sp else 56.sp))
+            val (label, c) = when (d.trend) {
+                Trend.WARMER -> "Warmer" to Mosh.Lime
+                Trend.COLDER -> "Colder" to Mosh.Pink
+                Trend.STEADY -> "Close" to Mosh.Cyan
             }
-            val who = if (list.size > 1) "${f?.name ?: "?"} · " else ""
+            val who = if (list.size > 1) "${f?.name ?: "?"} " else ""
             val via = if (BuildConfig.DEBUG) "  (${methodLabel(d.method)})" else ""
-            Text("$who$trend$via", style = Mosh.Body)
+            Chip(label, c, "$who$via".trim().ifEmpty { "Nearly there" })
         }
         Spacer(Modifier.height(4.dp))
         Text("Close, but no direction yet. Tap Scan to find which way.", style = Mosh.Body, textAlign = TextAlign.Center)
@@ -287,7 +404,7 @@ private fun DistanceOnly(list: List<ArrowState.DistanceOnly>, friendOf: (String)
 
 /**
  * Keeps an arrow's angle continuous (e.g. 350° -> 370° rather than 350° -> 10°) so the
- * animation swivels the short way round instead of spinning backwards through 180°.
+ * spring swivels the short way round instead of spinning backwards through 180°.
  */
 @Composable
 private fun animatedAngle(targetDeg: Double): Float {
@@ -295,35 +412,67 @@ private fun animatedAngle(targetDeg: Double): Float {
     val last = remember { FloatArray(1) { targetDeg.toFloat() } }
     val delta = (((targetDeg - last[0]) % 360 + 540) % 360 - 180).toFloat()
     last[0] += delta
-    val anim by animateFloatAsState(last[0], animationSpec = spring(stiffness = Spring.StiffnessMediumLow), label = "arrow")
+    val anim by animateFloatAsState(
+        last[0],
+        animationSpec = spring(dampingRatio = 0.72f, stiffness = Spring.StiffnessMediumLow),
+        label = "arrow",
+    )
     return anim
 }
 
 @Composable
 private fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Friend?, group: Boolean) {
+    // Per-friend animated angle and colour (hot pink sliding into their colour).
     val angles = arrows.associate { a -> a.friendId to key(a.friendId) { animatedAngle(a.relativeDeg) } }
+    val colours = arrows.associate { a ->
+        a.friendId to key(a.friendId, "c") {
+            val target = Color(ArrowStyle.arrowColor(friendOf(a.friendId)?.color ?: ArrowStyle.RED, a.distanceM))
+            animateColorAsState(target, tween(800), label = "colour").value
+        }
+    }
+    val t = rememberInfiniteTransition(label = "breathe")
+    val breathe by t.animateFloat(0.55f, 1f, infiniteRepeatable(tween(1400, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "b")
+    val spin by t.animateFloat(0f, 360f, infiniteRepeatable(tween(5000, easing = LinearEasing)), label = "spin")
+
     val context = LocalContext.current
-    val bold = remember { runCatching { ResourcesCompat.getFont(context, R.font.space_grotesk_bold) }.getOrNull() }
+    val display = remember { runCatching { ResourcesCompat.getFont(context, R.font.unbounded_extrabold) }.getOrNull() }
     val regular = remember { runCatching { ResourcesCompat.getFont(context, R.font.inter_regular) }.getOrNull() }
+
     Canvas(Modifier.fillMaxSize()) {
         val centre = Offset(size.width / 2, size.height / 2)
-        val length = size.minDimension * (if (group) 0.30f else 0.36f)
-        val avatarR = if (group) 30.dp.toPx() else 38.dp.toPx()
-        if (group) drawCircle(Mosh.Text, radius = 6.dp.toPx(), center = centre)
+        val length = size.minDimension * (if (group) 0.29f else 0.35f)
+        val avatarR = if (group) 30.dp.toPx() else 40.dp.toPx()
+        if (group) {
+            glow(Color.White, 10.dp.toPx(), 0.8f) { p -> drawContext.canvas.drawCircle(centre, 7.dp.toPx(), p) }
+            drawCircle(Mosh.Text, radius = 7.dp.toPx(), center = centre)
+        }
         arrows.forEach { a ->
             val friend = friendOf(a.friendId)
-            val colour = Color(ArrowStyle.arrowColor(friend?.color ?: ArrowStyle.RED, a.distanceM))
-                .copy(alpha = if (a.unsure) 0.55f else 1f)
+            val colour = (colours[a.friendId] ?: Mosh.Pink).copy(alpha = if (a.unsure) 0.6f else 1f)
             val angle = angles[a.friendId] ?: a.relativeDeg.toFloat()
-            drawArrow(centre, length, angle, colour, if (group) 0.20f else 0.30f)
+            val path = arrowPath(centre, length, if (group) 0.20f else 0.30f)
 
-            // Friend's photo (or initial) at the tip.
+            rotate(angle, pivot = centre) {
+                // Breathing neon glow, then a white-hot tip fading into their colour and ultraviolet.
+                glow(colour, 22.dp.toPx(), 0.75f * breathe) { p -> drawContext.canvas.drawPath(path, p) }
+                drawPath(
+                    path,
+                    Brush.verticalGradient(
+                        0f to Color.White, 0.16f to colour, 1f to lerp(colour, Mosh.Violet, 0.6f),
+                        startY = centre.y - length, endY = centre.y,
+                    ),
+                )
+            }
+
+            // Their photo (or initial) at the tip, in a spinning neon ring.
             val rad = Math.toRadians(angle.toDouble())
-            val reach = length + avatarR + 6.dp.toPx()
+            val reach = length + avatarR + 8.dp.toPx()
             val tip = Offset(centre.x + reach * sin(rad).toFloat(), centre.y - reach * cos(rad).toFloat())
+            glow(colour, 18.dp.toPx(), 0.6f * breathe) { p -> drawContext.canvas.drawCircle(tip, avatarR, p) }
+            drawCircle(Mosh.Avatar, radius = avatarR, center = tip)
             val photo = PhotoStore.photos[a.friendId]
             if (photo != null) {
-                clipPath(Path().apply { addOval(Rect(tip, avatarR)) }) {
+                clipPath(Path().apply { addOval(Rect(tip, avatarR - 3.dp.toPx())) }) {
                     drawImage(
                         photo,
                         dstOffset = IntOffset((tip.x - avatarR).toInt(), (tip.y - avatarR).toInt()),
@@ -331,76 +480,173 @@ private fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Frie
                     )
                 }
             } else {
-                drawCircle(colour.copy(alpha = 0.22f).compositeOver(Mosh.Ground), radius = avatarR, center = tip)
-                drawText(friend?.name?.take(1)?.uppercase() ?: "?", tip, avatarR * 0.8f, Mosh.Text, bold)
+                drawText(friend?.name?.take(1)?.uppercase() ?: "?", tip, avatarR * 0.72f, Mosh.Text, display)
             }
-            drawCircle(colour, radius = avatarR, center = tip, style = Stroke(4.dp.toPx()))
+            rotate(spin, pivot = tip) {
+                drawCircle(
+                    Brush.sweepGradient(listOf(colour, Mosh.Violet, colour), center = tip),
+                    radius = avatarR, center = tip, style = Stroke(3.5f.dp.toPx()),
+                )
+            }
 
             if (group) {
-                // Name + distance beside the photo, on the outer side.
-                val right = sin(rad) >= 0
-                val lx = tip.x + (if (right) -1 else 1) * 0f
-                val ly = tip.y + avatarR + 24.dp.toPx()
-                drawText(ArrowStyle.distanceLabel(a.distanceM), Offset(lx, ly), 20.sp.toPx(), Mosh.Text, bold)
-                drawText(friend?.name ?: "?", Offset(lx, ly + 18.sp.toPx()), 13.sp.toPx(), Mosh.TextDim, regular)
+                // Glass chip with distance + name under the photo.
+                val chipW = 84.dp.toPx()
+                val chipH = 44.dp.toPx()
+                val top = Offset(tip.x - chipW / 2, tip.y + avatarR + 8.dp.toPx())
+                drawRoundRect(colour.copy(alpha = 0.12f), top, Size(chipW, chipH), CornerRadius(14.dp.toPx()))
+                drawRoundRect(colour.copy(alpha = 0.40f), top, Size(chipW, chipH), CornerRadius(14.dp.toPx()), style = Stroke(1.dp.toPx()))
+                drawText(ArrowStyle.distanceLabel(a.distanceM), Offset(tip.x, top.y + 15.dp.toPx()), 15.sp.toPx(), colour, display)
+                drawText(friend?.name ?: "?", Offset(tip.x, top.y + 32.dp.toPx()), 12.sp.toPx(), Mosh.TextDim, regular)
             }
             if (BuildConfig.DEBUG) {
                 // Test builds only: which method is driving this arrow.
-                val y = tip.y - avatarR - 10.dp.toPx()
-                drawText(methodLabel(a.method) + if (a.unsure) "?" else "", Offset(tip.x, y), 11.sp.toPx(), Mosh.TextFaint, regular)
+                drawText(methodLabel(a.method) + if (a.unsure) "?" else "", Offset(tip.x, tip.y - avatarR - 10.dp.toPx()), 11.sp.toPx(), Mosh.TextFaint, regular)
             }
         }
     }
 }
 
-private fun Color.compositeOver(bg: Color) = Color(
-    red = red * alpha + bg.red * (1 - alpha),
-    green = green * alpha + bg.green * (1 - alpha),
-    blue = blue * alpha + bg.blue * (1 - alpha),
+private fun lerp(a: Color, b: Color, t: Float) = Color(
+    red = a.red + (b.red - a.red) * t, green = a.green + (b.green - a.green) * t,
+    blue = a.blue + (b.blue - a.blue) * t, alpha = a.alpha + (b.alpha - a.alpha) * t,
 )
 
 /**
- * Spin-to-scan progress: a ring of 36 slices, lit as each direction gets covered, drawn
- * relative to the phone so the white dot (top) is the way you're facing now.
+ * Spin-to-scan: a lime arc fills as you cover the circle (a light sweeps round inside),
+ * drawn relative to the phone so the white dot is the way you're facing.
  */
 @Composable
 private fun ScanProgress(scan: LocatorEngine.ScanUi) {
     val pct = (scan.coverageDeg / 360.0 * 100).toInt().coerceIn(0, 100)
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(28.dp)) {
-        Box(contentAlignment = Alignment.Center) {
-            Canvas(Modifier.size(240.dp).semantics { contentDescription = "$pct percent of the circle covered" }) {
-                val stroke = 18.dp.toPx()
+    val t = rememberInfiniteTransition(label = "scan")
+    val pulse by t.animateFloat(1f, 1.06f, infiniteRepeatable(tween(1000, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "p")
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(36.dp)) {
+        Box(Modifier.size(260.dp), contentAlignment = Alignment.Center) {
+            Box(Modifier.size(236.dp).clip(CircleShape)) { RadarSweep(Mosh.Lime, periodMs = 2400) }
+            Canvas(Modifier.fillMaxSize().semantics { contentDescription = "$pct percent of the circle covered" }) {
+                val stroke = 16.dp.toPx()
                 val r = size.minDimension / 2 - stroke
                 val n = scan.sectors.size
+                drawCircle(Color.White.copy(alpha = 0.08f), radius = r, style = Stroke(stroke))
                 for (i in 0 until n) {
+                    if (!scan.sectors[i]) continue
                     val absCentre = (i + 0.5) * 360.0 / n
                     // Compose arcs start at 3 o'clock; -90 puts "straight ahead" at the top.
-                    val start = (absCentre - scan.headingDeg - 90 - 180.0 / n + 1.5).toFloat()
+                    val start = (absCentre - scan.headingDeg - 90 - 180.0 / n).toFloat()
+                    val sweep = 360f / n + 0.6f
+                    glow(Mosh.Lime, 10.dp.toPx(), 0.5f) { p ->
+                        p.asFrameworkPaint().style = android.graphics.Paint.Style.STROKE
+                        p.asFrameworkPaint().strokeWidth = stroke
+                        drawContext.canvas.drawArc(center.x - r, center.y - r, center.x + r, center.y + r, start, sweep, false, p)
+                    }
                     drawArc(
-                        color = if (scan.sectors[i]) Mosh.Green else Color(0xFF24242C),
-                        startAngle = start,
-                        sweepAngle = (360f / n) - 3f,
-                        useCenter = false,
-                        topLeft = Offset(center.x - r, center.y - r),
-                        size = Size(r * 2, r * 2),
-                        style = Stroke(width = stroke),
+                        Mosh.Lime, startAngle = start, sweepAngle = sweep, useCenter = false,
+                        topLeft = Offset(center.x - r, center.y - r), size = Size(r * 2, r * 2), style = Stroke(stroke, cap = StrokeCap.Butt),
                     )
                 }
-                drawCircle(Mosh.Text, radius = 9.dp.toPx(), center = Offset(center.x, center.y - r))
+                drawCircle(Color.White, radius = 10.dp.toPx(), center = Offset(center.x, center.y - r))
             }
-            Text("$pct%", style = Mosh.Distance.copy(fontSize = 40.sp))
+            Column(
+                Modifier.size(150.dp).graphicsLayer { scaleX = pulse; scaleY = pulse }
+                    .background(Mosh.Deep, CircleShape).border(1.dp, Mosh.Line, CircleShape),
+                horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    "$pct%",
+                    style = Mosh.Distance.copy(fontSize = 40.sp, lineHeight = 44.sp, color = Mosh.Lime, shadow = Shadow(Mosh.Lime.copy(alpha = 0.7f), blurRadius = 24f)),
+                )
+                Text("keep turning", style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint))
+            }
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.widthIn(max = 300.dp)) {
-            Text("Turn slowly in a circle", style = Mosh.Heading)
+            Text("Spin slowly", style = Mosh.Heading)
             Spacer(Modifier.height(10.dp))
             Text(
-                "Hold your phone flat against your chest, screen facing out. Your body blocks the signal, so the app can tell which way they are.",
-                style = Mosh.Body,
-                textAlign = TextAlign.Center,
+                "Phone flat on your chest, screen out. Your body blocks the signal, so we can tell which way they are.",
+                style = Mosh.Body, textAlign = TextAlign.Center,
             )
         }
     }
 }
+
+/** "You found them!": confetti, their photo bursting in on a spinning neon ring. */
+@Composable
+private fun FoundOverlay(friend: Friend?, onDone: () -> Unit, onKeep: () -> Unit) {
+    var shown by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { shown = true }
+    val pop by animateFloatAsState(if (shown) 1f else 0.4f, spring(dampingRatio = 0.45f, stiffness = Spring.StiffnessLow), label = "pop")
+    val rise by animateFloatAsState(if (shown) 0f else 1f, tween(600, delayMillis = 250, easing = FastOutSlowInEasing), label = "rise")
+    val t = rememberInfiniteTransition(label = "found")
+    val spin by t.animateFloat(0f, 360f, infiniteRepeatable(tween(3000, easing = LinearEasing)), label = "spin")
+    val halo by t.animateFloat(0.6f, 1f, infiniteRepeatable(tween(1200, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "halo")
+    val colour = Color(friend?.color ?: Mosh.Cyan.toArgb())
+
+    Box(Modifier.fillMaxSize().background(Mosh.Ground.copy(alpha = 0.94f))) {
+        GlowBackground(colours = listOf(colour, Mosh.Violet, Mosh.Pink))
+        Confetti(playing = shown)
+        Column(
+            Modifier.fillMaxSize().padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center,
+        ) {
+            Box(Modifier.size(200.dp).graphicsLayer { scaleX = pop; scaleY = pop }, contentAlignment = Alignment.Center) {
+                RadarPulse(colour, rings = 2, periodMs = 1800)
+                Canvas(Modifier.size(156.dp)) {
+                    val r = size.minDimension / 2
+                    glow(colour, 40.dp.toPx(), halo) { p -> drawContext.canvas.drawCircle(center, r, p) }
+                    rotate(spin) { drawCircle(Brush.sweepGradient(Mosh.Spectrum), radius = r) }
+                    drawCircle(Mosh.Avatar, radius = r - 5.dp.toPx())
+                }
+                val photo = friend?.let { PhotoStore.photos[it.id] }
+                if (photo != null) {
+                    androidx.compose.foundation.Image(
+                        photo, contentDescription = null,
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                        modifier = Modifier.size(146.dp).clip(CircleShape),
+                    )
+                } else {
+                    Text(friend?.name?.take(1)?.uppercase() ?: "?", style = Mosh.Title.copy(fontSize = 56.sp))
+                }
+            }
+            Spacer(Modifier.height(32.dp))
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.graphicsLayer { translationY = rise * 40f; alpha = 1f - rise },
+            ) {
+                Text(
+                    "UNDER 3 METRES",
+                    style = Mosh.Eyebrow.copy(color = Mosh.Lime, letterSpacing = 3.sp, shadow = Shadow(Mosh.Lime.copy(alpha = 0.8f), blurRadius = 18f)),
+                )
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    "You found ${friend?.name ?: "them"}",
+                    style = Mosh.Title.copy(fontSize = 38.sp, lineHeight = 42.sp),
+                    textAlign = TextAlign.Center,
+                    // Neon gradient text: draw the text, then paint the gradient over it.
+                    modifier = Modifier
+                        .graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
+                        .drawWithContent {
+                            drawContent()
+                            drawRect(
+                                Brush.linearGradient(listOf(Mosh.Cyan, Color(0xFFC86BFF), Mosh.Pink)),
+                                blendMode = androidx.compose.ui.graphics.BlendMode.SrcAtop,
+                            )
+                        },
+                )
+                Spacer(Modifier.height(8.dp))
+                Text("Look up and wave.", style = Mosh.Body)
+                Spacer(Modifier.height(36.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    NeonButton("Done", Modifier.weight(1f), onClick = onDone)
+                    GlassButton("Keep the arrow", Modifier.weight(1f), onClick = onKeep)
+                }
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------------------
+// Drawing helpers
 
 private fun methodLabel(m: Method) = when (m) {
     Method.UWB -> "UWB"
@@ -411,23 +657,22 @@ private fun methodLabel(m: Method) = when (m) {
     Method.BLE_RSSI -> "BT"
 }
 
-/** The Moshpoint arrow: a broad head on a shaft. [headRatio] = head half-width / length. */
-private fun DrawScope.drawArrow(centre: Offset, length: Float, angleDeg: Float, colour: Color, headRatio: Float) {
-    rotate(angleDeg, pivot = centre) {
-        val w = length * headRatio
-        val headH = w * 1.35f
-        val shaft = w * 0.32f
-        val path = Path().apply {
-            moveTo(centre.x, centre.y - length)
-            lineTo(centre.x + w, centre.y - length + headH)
-            lineTo(centre.x + shaft, centre.y - length + headH)
-            lineTo(centre.x + shaft, centre.y)
-            lineTo(centre.x - shaft, centre.y)
-            lineTo(centre.x - shaft, centre.y - length + headH)
-            lineTo(centre.x - w, centre.y - length + headH)
-            close()
-        }
-        drawPath(path, colour)
+/** The Moshpoint arrow, pointing up from [centre]: broad head, rounded shaft. */
+private fun arrowPath(centre: Offset, length: Float, headRatio: Float): Path {
+    val w = length * headRatio
+    val headH = w * 1.35f
+    val shaft = w * 0.32f
+    val r = shaft * 0.9f
+    return Path().apply {
+        moveTo(centre.x, centre.y - length)
+        lineTo(centre.x + w, centre.y - length + headH)
+        lineTo(centre.x + shaft, centre.y - length + headH)
+        lineTo(centre.x + shaft, centre.y - r)
+        quadraticTo(centre.x + shaft, centre.y, centre.x, centre.y)
+        quadraticTo(centre.x - shaft, centre.y, centre.x - shaft, centre.y - r)
+        lineTo(centre.x - shaft, centre.y - length + headH)
+        lineTo(centre.x - w, centre.y - length + headH)
+        close()
     }
 }
 
@@ -445,7 +690,7 @@ private fun DrawScope.drawText(text: String, at: Offset, sizePx: Float, colour: 
 /** Circular "refresh" arrow used on the Scan button. */
 private fun DrawScope.drawRefreshIcon(colour: Color) {
     val s = size.minDimension
-    drawArc(colour, startAngle = -60f, sweepAngle = 300f, useCenter = false, style = Stroke(s * 0.11f))
+    drawArc(colour, startAngle = -60f, sweepAngle = 300f, useCenter = false, style = Stroke(s * 0.11f, cap = StrokeCap.Round))
     val p = Path().apply {
         moveTo(s * 0.98f, s * 0.05f)
         lineTo(s * 0.98f, s * 0.42f)
@@ -453,20 +698,4 @@ private fun DrawScope.drawRefreshIcon(colour: Color) {
         close()
     }
     drawPath(p, colour)
-}
-
-/** Signal waves with a strike-through, centred. */
-private fun DrawScope.drawNoSignalIcon(colour: Color) {
-    val c = center
-    val u = size.minDimension * 0.012f
-    val st = Stroke(width = 2.2f * u * 2, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-    for ((i, r) in listOf(5f, 9f, 13f).withIndex()) {
-        drawArc(
-            colour, startAngle = 225f, sweepAngle = 90f, useCenter = false,
-            topLeft = Offset(c.x - r * u * 2, c.y + 6 * u * 2 - r * u * 2 - i * 0f),
-            size = Size(r * u * 4, r * u * 4), style = st,
-        )
-    }
-    drawCircle(colour, radius = 1.6f * u * 2, center = Offset(c.x, c.y + 6 * u * 2))
-    drawLine(colour, Offset(c.x - 13 * u * 2, c.y - 13 * u * 2), Offset(c.x + 13 * u * 2, c.y + 13 * u * 2), strokeWidth = 2.2f * u * 2)
 }

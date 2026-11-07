@@ -13,37 +13,52 @@ import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.R
 
 /**
- * Moshpoint's look (see the design canvas): near-black for dark venues, one red that
- * means "far / unknown", each friend's own colour as you close in. Space Grotesk for
- * numbers and headings, Inter for everything else. Fonts are bundled (SIL OFL; licence
+ * Moshpoint's look (see the design canvas): neon party, premium finish. Inky
+ * black-violet ground with soft neon glows; hot pink means "far / unknown"; each friend
+ * glows their own colour as you close in. Unbounded for headings and numbers, Inter for text. Fonts are bundled (SIL OFL; licence
  * texts in assets/licenses).
  */
 object Mosh {
-    val Ground = Color(0xFF0B0B0F)
-    val Surface = Color(0xFF17171D)
-    val SurfaceLow = Color(0xFF141419)
-    val Line = Color(0xFF2A2A33)
-    val Ring = Color(0xFF1F1F27)
-    val Text = Color(0xFFF2F2F5)
-    val TextDim = Color(0xFFB9B9C4)
-    val TextFaint = Color(0xFF9A9AA6)
-    val Red = Color(0xFFFF3B30)
-    val Green = Color(0xFF3DDC97)
-    val VisibleBg = Color(0xFF12301F)
-    val VisibleLine = Color(0xFF1E5A39)
-    val VisibleText = Color(0xFFA8D9BF)
-    val Danger = Color(0xFFFF8A80)
+    // Ground and glass.
+    val Ground = Color(0xFF07050F)
+    val Deep = Color(0xFF0F0B1C)
+    val Avatar = Color(0xFF120E22)
+    val Surface = Color(0x0FFFFFFF) // glass panel: white at 6%
+    val SurfaceLow = Color(0x0AFFFFFF)
+    val Line = Color(0x24FFFFFF) // hairline border: white at 14%
+    val Ring = Color(0x12FFFFFF)
+    val Text = Color(0xFFF7F5FF)
+    val TextDim = Color(0xFFD9D4EC)
+    val TextFaint = Color(0xFF8E87A6)
 
-    /** Friend colours, in the order new friends get them. */
+    // Neon.
+    val Pink = Color(0xFFFF2E93)   // far / unknown
+    val Cyan = Color(0xFF22E4FF)
+    val Lime = Color(0xFFB6FF3B)   // live / found
+    val Violet = Color(0xFF9D5CFF)
+    val Amber = Color(0xFFFFB020)
+    val Red = Pink // older name: "far" colour
+    val Green = Lime
+    val VisibleBg = Deep
+    val VisibleLine = Lime
+    val VisibleText = Color(0xFFCFE9B0)
+    val Danger = Color(0xFFFF6FB3)
+
+    /** The live/neon spectrum used for running borders and confetti. */
+    val Spectrum = listOf(Lime, Cyan, Violet, Pink, Lime)
+
+    /** Friend colours, in the order new friends get them (pink is kept for "far"). */
     val FriendColours = intArrayOf(
-        0xFF4DA3FF.toInt(), 0xFF3DDC97.toInt(), 0xFFFFD23F.toInt(), 0xFFB98CFF.toInt(),
-        0xFFFF8FB1.toInt(), 0xFF5EE0E6.toInt(), 0xFFFFA24D.toInt(), 0xFFA3E635.toInt(),
+        0xFF22E4FF.toInt(), 0xFFB6FF3B.toInt(), 0xFFC86BFF.toInt(), 0xFFFFB020.toInt(),
+        0xFF5EF2C2.toInt(), 0xFFFF8A5C.toInt(), 0xFF7AA2FF.toInt(), 0xFFF5F749.toInt(),
     )
 
-    val Grotesk = FontFamily(
-        Font(R.font.space_grotesk_medium, FontWeight.Medium),
-        Font(R.font.space_grotesk_bold, FontWeight.Bold),
+    /** Unbounded: big, wide, playful. Headings and numbers. */
+    val Display = FontFamily(
+        Font(R.font.unbounded_bold, FontWeight.Bold),
+        Font(R.font.unbounded_extrabold, FontWeight.ExtraBold),
     )
+    val Grotesk = Display // older name
     val Inter = FontFamily(
         Font(R.font.inter_regular, FontWeight.Normal),
         Font(R.font.inter_medium, FontWeight.Medium),
@@ -51,28 +66,30 @@ object Mosh {
     )
 
     // Named text styles used across screens.
-    val Eyebrow = TextStyle(fontFamily = Inter, fontSize = 13.sp, letterSpacing = 1.sp, color = TextFaint)
-    val Title = TextStyle(fontFamily = Grotesk, fontWeight = FontWeight.Bold, fontSize = 34.sp, color = Text)
-    val Heading = TextStyle(fontFamily = Grotesk, fontWeight = FontWeight.Bold, fontSize = 24.sp, color = Text)
-    val Distance = TextStyle(fontFamily = Grotesk, fontWeight = FontWeight.Bold, fontSize = 56.sp, lineHeight = 56.sp, color = Text)
+    val Eyebrow = TextStyle(fontFamily = Inter, fontSize = 12.sp, letterSpacing = 2.sp, color = TextFaint)
+    val Title = TextStyle(fontFamily = Display, fontWeight = FontWeight.ExtraBold, fontSize = 32.sp, color = Text)
+    val Heading = TextStyle(fontFamily = Display, fontWeight = FontWeight.ExtraBold, fontSize = 22.sp, color = Text)
+    val Distance = TextStyle(fontFamily = Display, fontWeight = FontWeight.ExtraBold, fontSize = 64.sp, lineHeight = 64.sp, letterSpacing = (-1.5).sp, color = Text)
     val Body = TextStyle(fontFamily = Inter, fontSize = 15.sp, lineHeight = 22.sp, color = TextDim)
     val Label = TextStyle(fontFamily = Inter, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = Text)
+    val Button = TextStyle(fontFamily = Display, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Text)
 }
 
 @Composable
 fun MoshTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = darkColorScheme(
-            primary = Mosh.Red,
+            primary = Mosh.Pink,
             onPrimary = Color.White,
-            secondary = Mosh.Green,
+            secondary = Mosh.Lime,
+            tertiary = Mosh.Cyan,
             background = Mosh.Ground,
             onBackground = Mosh.Text,
-            surface = Mosh.Surface,
+            surface = Mosh.Deep,
             onSurface = Mosh.Text,
-            surfaceVariant = Mosh.SurfaceLow,
+            surfaceVariant = Color(0xFF17122A),
             onSurfaceVariant = Mosh.TextDim,
-            outline = Mosh.Line,
+            outline = Color(0xFF3A3352),
             error = Mosh.Danger,
         ),
         typography = Typography().let { t ->

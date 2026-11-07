@@ -37,6 +37,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -164,31 +166,46 @@ fun FriendsScreen(
 
     @Composable
     fun row(f: Friend) {
+        val (source, scale) = rememberPress()
         Row(
             Modifier.fillMaxWidth()
-                .heightIn(min = 64.dp)
-                .combinedClickable(onClick = { onFind(setOf(f.id)) }, onLongClick = { options = f })
-                .padding(vertical = 8.dp),
+                .pressScale(scale)
+                .heightIn(min = 66.dp)
+                .clip(RoundedCornerShape(18.dp))
+                .background(Mosh.SurfaceLow)
+                .border(1.dp, Color(0x12FFFFFF), RoundedCornerShape(18.dp))
+                .combinedClickable(interactionSource = source, indication = androidx.compose.foundation.LocalIndication.current, onClick = { onFind(setOf(f.id)) }, onLongClick = { options = f })
+                .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Avatar(f, 44.dp)
             Spacer(Modifier.width(14.dp))
-            Text(f.name, style = Mosh.Label.copy(fontWeight = FontWeight.Medium), modifier = Modifier.weight(1f))
-            Text("Find", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
+            Text(f.name, style = Mosh.Label, modifier = Modifier.weight(1f))
+            Text(
+                "Find", style = Mosh.Label.copy(fontSize = 12.sp, color = Color(f.color)),
+                modifier = Modifier.background(Color(f.color).copy(alpha = 0.12f), CircleShape).padding(horizontal = 10.dp, vertical = 4.dp),
+            )
         }
-        Box(Modifier.fillMaxWidth().height(1.dp).background(Color(0xFF1A1A21)))
     }
 
     val gig = friends.filter { it.gigGroupOnly }
     val permanent = friends.filterNot { it.gigGroupOnly }
 
+    Box(Modifier.fillMaxSize().background(Mosh.Ground)) {
+    GlowBackground(colours = listOf(Mosh.Pink, Mosh.Violet, Mosh.Cyan))
     LazyColumn(
-        Modifier.fillMaxSize().background(Mosh.Ground),
+        Modifier.fillMaxSize(),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 32.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
-            Text("Moshpoint", style = Mosh.Title.copy(fontSize = 30.sp))
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text("mosh", style = Mosh.Title.copy(fontSize = 28.sp))
+                Text(
+                    "point",
+                    style = Mosh.Title.copy(fontSize = 28.sp, color = Mosh.Pink, shadow = androidx.compose.ui.graphics.Shadow(Mosh.Pink.copy(alpha = 0.8f), blurRadius = 28f)),
+                )
+            }
             Text(phoneSummary, style = Mosh.Eyebrow.copy(fontSize = 12.sp, letterSpacing = 0.sp))
         }
         if (missingPermissions.isNotEmpty()) {
@@ -210,38 +227,50 @@ fun FriendsScreen(
 
         // Visibility card: the one switch that matters when you walk into the gig.
         item {
-            Row(
-                Modifier.fillMaxWidth()
-                    .background(if (visible) Mosh.VisibleBg else Mosh.Surface, RoundedCornerShape(18.dp))
-                    .border(1.dp, if (visible) Mosh.VisibleLine else Mosh.Line, RoundedCornerShape(18.dp))
-                    .clickable(role = androidx.compose.ui.semantics.Role.Switch) { onVisible(!visible) }
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
-                    Modifier.size(44.dp).background(if (visible) Mosh.Green else Mosh.Line, CircleShape),
-                    contentAlignment = Alignment.Center,
+            // Neon light runs round the card while you're live.
+            val (source, scale) = rememberPress()
+            val ping = rememberShimmer(1800)
+            NeonFrame(RoundedCornerShape(22.dp), Modifier.fillMaxWidth().pressScale(scale), lit = visible) {
+                Row(
+                    Modifier.fillMaxWidth()
+                        .background(Mosh.Deep, RoundedCornerShape(20.dp))
+                        .clickable(interactionSource = source, indication = androidx.compose.foundation.LocalIndication.current, role = androidx.compose.ui.semantics.Role.Switch) { onVisible(!visible) }
+                        .padding(horizontal = 16.dp, vertical = 18.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(if (visible) "ON" else "OFF", style = Mosh.Eyebrow.copy(fontSize = 11.sp, color = if (visible) Color(0xFF08130D) else Mosh.TextDim, fontWeight = FontWeight.SemiBold))
-                }
-                Spacer(Modifier.width(14.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(if (visible) "You're visible" else "You're hidden", style = Mosh.Label)
-                    Text(
-                        if (visible) "Mates can find you, even with the app shut" else "Tap to let your mates find you",
-                        style = Mosh.Body.copy(fontSize = 13.sp, color = if (visible) Mosh.VisibleText else Mosh.TextFaint),
+                    val iconColour by androidx.compose.animation.animateColorAsState(if (visible) Mosh.Lime else Color(0xFF3A3352), label = "icon")
+                    Box(
+                        Modifier.size(48.dp).drawBehind {
+                            if (visible) {
+                                drawCircle(Mosh.Lime.copy(alpha = 0.8f * (1 - ping)), radius = size.minDimension / 2 * (0.8f + 0.6f * ping), style = androidx.compose.ui.graphics.drawscope.Stroke(2.dp.toPx()))
+                                glow(Mosh.Lime, 14.dp.toPx(), 0.7f) { p -> drawContext.canvas.drawCircle(center, 20.dp.toPx(), p) }
+                            }
+                            drawCircle(iconColour, radius = 20.dp.toPx())
+                        },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(if (visible) "ON" else "OFF", style = Mosh.Eyebrow.copy(fontSize = 10.sp, letterSpacing = 1.sp, color = if (visible) Color(0xFF0B1200) else Mosh.TextDim, fontWeight = FontWeight.SemiBold))
+                    }
+                    Spacer(Modifier.width(14.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(if (visible) "You're live" else "Go live", style = Mosh.Button)
+                        Spacer(Modifier.height(3.dp))
+                        Text(
+                            if (visible) "Mates can find you, even with the app shut" else "Tap so your mates can find you tonight",
+                            style = Mosh.Body.copy(fontSize = 13.sp, color = if (visible) Mosh.VisibleText else Mosh.TextFaint),
+                        )
+                    }
+                    Switch(
+                        visible, onVisible,
+                        colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Lime, checkedThumbColor = Color(0xFF0B1200), uncheckedTrackColor = Color(0xFF1C1630)),
                     )
                 }
-                Switch(
-                    visible, onVisible,
-                    colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Green, checkedThumbColor = Color(0xFF08130D)),
-                )
             }
         }
         item {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text("Leave visibility always on", style = Mosh.Body, modifier = Modifier.weight(1f))
-                Switch(alwaysOn, onAlwaysOn, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Green, checkedThumbColor = Color(0xFF08130D)))
+                Switch(alwaysOn, onAlwaysOn, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Lime, checkedThumbColor = Color(0xFF0B1200), uncheckedTrackColor = Color(0xFF1C1630)))
             }
             OutlinedTextField(myName, onMyName, label = { Text("Your name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
         }
@@ -277,17 +306,15 @@ fun FriendsScreen(
                 if (gig.isEmpty()) {
                     Text("Waiting for mates to join. Show them the group QR.", style = Mosh.Body)
                 } else {
-                    Button(
-                        onClick = { onFind(gig.map { it.id }.toSet()) },
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Mosh.Red, contentColor = Color.White),
-                    ) { Text("Find the whole group", style = Mosh.Label.copy(color = Color.White)) }
-                    Spacer(Modifier.height(12.dp))
-                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        gig.forEach { f ->
+                    NeonButton("Find the crew") { onFind(gig.map { it.id }.toSet()) }
+                    Spacer(Modifier.height(14.dp))
+                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                        gig.forEachIndexed { i, f ->
+                            val bob = rememberFloat(i)
                             Column(
-                                Modifier.width(64.dp).combinedClickable(onClick = { onFind(setOf(f.id)) }, onLongClick = { options = f }),
+                                Modifier.width(64.dp)
+                                    .graphicsLayer { translationY = -4.dp.toPx() * bob }
+                                    .combinedClickable(onClick = { onFind(setOf(f.id)) }, onLongClick = { options = f }),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
                                 Avatar(f, 56.dp)
@@ -340,6 +367,7 @@ fun FriendsScreen(
             }
         }
     }
+    }
 }
 
 /** A friend's photo, or their initial, ringed in their colour. */
@@ -354,21 +382,16 @@ private fun Avatar(f: Friend, size: androidx.compose.ui.unit.Dp) {
         )
     } else {
         Box(
-            Modifier.size(size).background(ring.copy(alpha = 0.22f), CircleShape).border(3.dp, ring, CircleShape),
+            Modifier.size(size)
+                .drawBehind { glow(ring, 10.dp.toPx(), 0.55f) { p -> drawContext.canvas.drawCircle(center, this.size.minDimension / 2, p) } }
+                .background(Mosh.Avatar, CircleShape).border(3.dp, ring, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            Text(f.name.take(1).uppercase(), style = Mosh.Heading.copy(fontSize = (size.value * 0.36f).sp))
+            Text(f.name.take(1).uppercase(), style = Mosh.Heading.copy(fontSize = (size.value * 0.34f).sp))
         }
     }
 }
 
 @Composable
-private fun SurfaceButton(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        modifier = modifier.heightIn(min = 52.dp),
-        shape = RoundedCornerShape(14.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Mosh.Surface, contentColor = Mosh.Text),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Mosh.Line),
-    ) { Text(text, style = Mosh.Label.copy(fontSize = 15.sp)) }
-}
+private fun SurfaceButton(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) =
+    GlassButton(text, modifier, onClick = onClick)
