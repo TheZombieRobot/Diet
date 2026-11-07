@@ -26,8 +26,12 @@ android {
 
         // Log in with Facebook (name + photo). Off unless a Meta app is configured:
         // -Pmoshpoint.facebookAppId=... -Pmoshpoint.facebookClientToken=... (see docs/FACEBOOK.md).
-        val fbAppId = (project.findProperty("moshpoint.facebookAppId") as String?) ?: ""
-        val fbToken = (project.findProperty("moshpoint.facebookClientToken") as String?) ?: ""
+        // A blank -P value (unset CI variable) falls back to the values in gradle.properties.
+        fun prop(name: String, fallback: String) =
+            (project.findProperty(name) as String?)?.takeIf { it.isNotBlank() }
+                ?: (project.findProperty(fallback) as String?).orEmpty()
+        val fbAppId = prop("moshpoint.facebookAppId", "moshpoint.fb.appId")
+        val fbToken = prop("moshpoint.facebookClientToken", "moshpoint.fb.clientToken")
         resValue("string", "facebook_app_id", fbAppId)
         resValue("string", "facebook_client_token", fbToken)
         resValue("string", "fb_login_protocol_scheme", "fb$fbAppId")

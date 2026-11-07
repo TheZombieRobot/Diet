@@ -10,18 +10,22 @@ app**. About 15 minutes:
    - Package name: `nz.waveformlabs.moshpoint`
    - Default activity: `nz.waveformlabs.moshpoint.MainActivity`
    - **Key hashes:** add the hash of every key that signs the app:
-     - Debug builds from GitHub Actions use a CI debug key that changes, so for testing
-       build locally or add the hash Facebook shows in its login error.
+     - Test builds (the public download link): **`/4J7dOPAF4EOlNsopWu1d8/hipg=`**
+       (from the fixed test key `app/debug.keystore`).
      - Release: `keytool -exportcert -alias upload -keystore upload.jks | openssl sha1 -binary | openssl base64`
        (and, once on Play, the **app signing key** SHA-1 from Play Console → App integrity,
        converted the same way).
 3. **App settings → Basic:** copy the **App ID**; **App settings → Advanced → Security:**
-   copy the **Client token**. Add the privacy policy URL (host `docs/PRIVACY.md`) and a
-   data deletion instructions URL (can be the same page; see "Deleting your data").
-4. In GitHub → repo **Settings → Secrets and variables → Actions → Variables**, add
-   `MOSHPOINT_FACEBOOK_APP_ID` and `MOSHPOINT_FACEBOOK_CLIENT_TOKEN`.
-   (Locally: `-Pmoshpoint.facebookAppId=… -Pmoshpoint.facebookClientToken=…`.)
-5. Switch the Meta app to **Live** mode when you're ready for people outside your test users.
+   copy the **Client token**. Also on Basic:
+   - Privacy policy URL: `https://github.com/TheZombieRobot/Diet/blob/ccr-5839ed7c-1q0ztj/docs/PRIVACY.md`
+   - User data deletion → instructions URL: the same link with `#deleting-your-data` on the end
+   - App icon: `docs/store/icon-1024.png`; category: Social
+4. Put them in `gradle.properties` (`moshpoint.fb.appId`, `moshpoint.fb.clientToken`), or as
+   GitHub Actions variables `MOSHPOINT_FACEBOOK_APP_ID` / `MOSHPOINT_FACEBOOK_CLIENT_TOKEN`
+   (those win when set). Both values are embedded in the app anyway, so they're fine in the
+   repo. **Never** commit or share the App Secret.
+5. Switch the Meta app to **Live** mode (top of the dashboard) so anyone can log in. In
+   Development mode only people you add under App roles can.
 
 Only the `public_profile` permission is used (name + photo), which doesn't need Meta's
 app review. The SDK's analytics, advertising ID and auto-initialisation are switched off.

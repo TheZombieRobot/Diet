@@ -1,6 +1,6 @@
 # Moshpoint privacy policy
 
-_Draft for review before Play Store release. Last updated: [DATE]. Contact: [EMAIL]._
+_Draft for review before Play Store release. Last updated: 7 November 2026. Contact: [EMAIL]._
 
 Moshpoint helps you find your friends at gigs and other crowded places. It was built so
 that it can do this **without knowing who you are or where you are**. This page explains
