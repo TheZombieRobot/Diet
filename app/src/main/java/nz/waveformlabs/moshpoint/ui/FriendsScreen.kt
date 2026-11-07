@@ -39,6 +39,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -106,6 +107,15 @@ fun FriendsScreen(
     var confirmRemove by remember { mutableStateOf<Friend?>(null) }
 
     var options by remember { mutableStateOf<Friend?>(null) }
+    var settingsOpen by remember { mutableStateOf(false) }
+    if (settingsOpen) {
+        SettingsSheet(
+            myName = myName, onMyName = onMyName,
+            alwaysOn = alwaysOn, onAlwaysOn = onAlwaysOn,
+            phoneSummary = phoneSummary,
+            onClose = { settingsOpen = false },
+        )
+    }
     var naming by remember { mutableStateOf(false) }
     var groupNameText by remember { mutableStateOf("") }
     if (naming) {
@@ -199,12 +209,20 @@ fun FriendsScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
-            Row(verticalAlignment = Alignment.Bottom) {
-                Text("mosh", style = Mosh.Title.copy(fontSize = 28.sp))
-                Text(
-                    "point",
-                    style = Mosh.Title.copy(fontSize = 28.sp, color = Mosh.Pink, shadow = androidx.compose.ui.graphics.Shadow(Mosh.Pink.copy(alpha = 0.8f), blurRadius = 28f)),
-                )
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.weight(1f), verticalAlignment = Alignment.Bottom) {
+                    Text("mosh", style = Mosh.Title.copy(fontSize = 28.sp))
+                    Text(
+                        "point",
+                        style = Mosh.Title.copy(fontSize = 28.sp, color = Mosh.Pink, shadow = androidx.compose.ui.graphics.Shadow(Mosh.Pink.copy(alpha = 0.8f), blurRadius = 28f)),
+                    )
+                }
+                val (src, sc) = rememberPress()
+                androidx.compose.material3.IconButton(
+                    onClick = { settingsOpen = true },
+                    interactionSource = src,
+                    modifier = Modifier.pressScale(sc).size(44.dp).background(Mosh.Surface, RoundedCornerShape(14.dp)).border(1.dp, Mosh.Line, RoundedCornerShape(14.dp)),
+                ) { SlidersIcon() }
             }
             Text(phoneSummary, style = Mosh.Eyebrow.copy(fontSize = 12.sp, letterSpacing = 0.sp))
         }
@@ -268,13 +286,6 @@ fun FriendsScreen(
                     )
                 }
             }
-        }
-        item {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text("Leave visibility always on", style = Mosh.Body, modifier = Modifier.weight(1f))
-                Switch(alwaysOn, onAlwaysOn, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Lime, checkedThumbColor = Color(0xFF0B1200), uncheckedTrackColor = Color(0xFF1C1630)))
-            }
-            OutlinedTextField(myName, onMyName, label = { Text("Your name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
         }
 
         // Tonight's gig group.
@@ -398,3 +409,76 @@ private fun Avatar(f: Friend, size: androidx.compose.ui.unit.Dp) {
 @Composable
 private fun SurfaceButton(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) =
     GlassButton(text, modifier, onClick = onClick)
+
+/** Settings: your name, always-on, and about/licences. A bottom sheet in deep violet. */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun SettingsSheet(
+    myName: String,
+    onMyName: (String) -> Unit,
+    alwaysOn: Boolean,
+    onAlwaysOn: (Boolean) -> Unit,
+    phoneSummary: String,
+    onClose: () -> Unit,
+) {
+    var showLicences by remember { mutableStateOf(false) }
+    androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, containerColor = Mosh.Deep) {
+        Column(
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(start = 24.dp, end = 24.dp, bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text("Settings", style = Mosh.Heading)
+            OutlinedTextField(
+                myName, onMyName, label = { Text("Your name") }, singleLine = true,
+                shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth(),
+            )
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("Stay live after a restart", style = Mosh.Label)
+                    Text("If you were live when your phone restarted, go live again automatically.", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
+                }
+                Switch(alwaysOn, onAlwaysOn, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Lime, checkedThumbColor = Color(0xFF0B1200), uncheckedTrackColor = Color(0xFF1C1630)))
+            }
+            Box(Modifier.fillMaxWidth().height(1.dp).background(Mosh.Line))
+            Text("ABOUT", style = Mosh.Eyebrow)
+            Text(
+                "Moshpoint ${nz.waveformlabs.moshpoint.BuildConfig.VERSION_NAME}. No account, rotating codes, end-to-end encrypted locations. You're only findable while you're live.",
+                style = Mosh.Body,
+            )
+            Text(phoneSummary, style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
+            TextButton(onClick = { showLicences = !showLicences }) {
+                Text(if (showLicences) "Hide licences" else "Open-source licences", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan))
+            }
+            if (showLicences) {
+                val context = androidx.compose.ui.platform.LocalContext.current
+                val text = remember {
+                    runCatching {
+                        context.assets.list("licenses").orEmpty().sorted().joinToString("\n\n") { f ->
+                            "— ${f.removeSuffix(".txt")} —\n" + context.assets.open("licenses/$f").bufferedReader().use { it.readText() }
+                        }
+                    }.getOrDefault("")
+                }
+                Text(
+                    "Fonts: Unbounded and Inter, under the SIL Open Font License 1.1. QR codes: ZXing (Apache 2.0).\n\n$text",
+                    style = Mosh.Body.copy(fontSize = 11.sp, lineHeight = 15.sp, color = Mosh.TextFaint),
+                )
+            }
+        }
+    }
+}
+
+/** Little "sliders" icon for the settings button. */
+@Composable
+private fun SlidersIcon() {
+    androidx.compose.foundation.Canvas(Modifier.size(20.dp)) {
+        val w = size.width
+        val h = size.height
+        val st = 2.dp.toPx()
+        val c = Mosh.Text
+        for ((i, knob) in listOf(0.3f, 0.65f, 0.45f).withIndex()) {
+            val x = w * (0.2f + 0.3f * i)
+            drawLine(c, androidx.compose.ui.geometry.Offset(x, 0f), androidx.compose.ui.geometry.Offset(x, h), st, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+            drawLine(c, androidx.compose.ui.geometry.Offset(x - w * 0.12f, h * knob), androidx.compose.ui.geometry.Offset(x + w * 0.12f, h * knob), st * 1.3f, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+        }
+    }
+}
