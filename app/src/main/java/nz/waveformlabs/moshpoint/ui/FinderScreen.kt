@@ -280,7 +280,11 @@ fun FinderScreen(
             }
 
             when {
-                scanning -> GlassButton("Cancel scan", onClick = onCancelScan)
+                // Busy venue, interference: you can always start over.
+                scanning -> Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    GlassButton("Cancel", Modifier.weight(1f), onClick = onCancelScan)
+                    GlassButton("Restart scan", Modifier.weight(1f), icon = true, onClick = onScan)
+                }
                 scan != null && scan.done -> {
                     Text(
                         scan.outcome.ifBlank { "Scan finished" },
@@ -293,13 +297,16 @@ fun FinderScreen(
                         GlassButton("Scan again", Modifier.weight(1f), onClick = onScan)
                     }
                 }
-                // Can't hear anyone yet: a scan would have nothing to work with.
-                arrows.isNotEmpty() && arrows.all { it is ArrowState.NoSignal } -> Text(
-                    "Scan works once we can hear them. Check they've tapped Go live and added you back.",
-                    style = Mosh.Body.copy(color = Mosh.TextDim),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                )
+                // Can't hear anyone yet: explain, but still let them try (signals come and go in a crowd).
+                arrows.isNotEmpty() && arrows.all { it is ArrowState.NoSignal } -> {
+                    Text(
+                        "Scan works once we can hear them. Check they've tapped Go live and are in your crew.",
+                        style = Mosh.Body.copy(color = Mosh.TextDim),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
+                    )
+                    GlassButton("Scan anyway", icon = true, onClick = onScan)
+                }
                 else -> {
                     val unsure = arrows.any { it is ArrowState.DistanceOnly || (it is ArrowState.Pointing && it.unsure) }
                     GlassButton(if (unsure) "Scan to find which way" else "Scan", icon = true, onClick = onScan)
