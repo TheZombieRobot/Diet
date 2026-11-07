@@ -39,6 +39,10 @@ class BleRanger(
     var lastHeardAtElapsedMs = 0L
         private set
 
+    /** When we last heard any friend (elapsedRealtime ms). */
+    var lastHeardAt = 0L
+        private set
+
     private val callback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) = handle(result)
         override fun onBatchScanResults(results: MutableList<ScanResult>) = results.forEach(::handle)
@@ -59,6 +63,7 @@ class BleRanger(
         heard++
         DebugStatus.set(debugName, "on, heard ${friend.name} ${result.rssi} dBm (#$heard)")
         lastHeardAtElapsedMs = result.timestampNanos / 1_000_000
+        lastHeardAt = android.os.SystemClock.elapsedRealtime()
         onAdvert(friend, result.rssi, ranger.add(result.rssi), advert)
     }
 
@@ -85,6 +90,23 @@ class BleRanger(
         } catch (e: IllegalStateException) {
             Log.w("BleRanger", "Bluetooth not ready", e)
         }
+    }
+
+    private var lastRefreshAt = 0L
+
+    /**
+     * Stop and start the scan, so the phone reports a friend it has already heard again.
+     * Many phones' Bluetooth chips drop repeats of an advert they've seen, and ours only
+     * changes every 5 minutes, so a second spin scan would hear almost nothing.
+     * At most every 6 s: Android blocks more than 5 scan starts per 30 s.
+     */
+    fun refresh(minGapMs: Long = 6_000) {
+        val now = android.os.SystemClock.elapsedRealtime()
+        if (!running || now - lastRefreshAt < minGapMs) return
+        lastRefreshAt = now
+        stop()
+        start(lowLatency)
+        DebugStatus.log("BT scan refreshed (fresh readings)")
     }
 
     /** Call when Bluetooth comes back on: the old scan died with it. */

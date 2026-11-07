@@ -109,7 +109,10 @@ class LocatorEngine(
         submit(Fix(friend.id, Method.BLE_RSSI, null, distance, confidence = 0.7, timestampMs = System.currentTimeMillis()))
         // The heading when this reading was received, unsmoothed: otherwise turning while
         // scanning shifts the answer in the direction you're turning.
-        spinScans[friend.id]?.add(headingAt(bleRef?.lastHeardAtElapsedMs ?: 0L), rssi.toDouble())
+        spinScans[friend.id]?.let {
+            it.add(headingAt(bleRef?.lastHeardAtElapsedMs ?: 0L), rssi.toDouble())
+            lastSpinSampleAt = System.currentTimeMillis()
+        }
         if (FieldRecorder.active) {
             FieldRecorder.line(
                 RecordLine.of(
@@ -363,11 +366,14 @@ class LocatorEngine(
     fun startSpinScan() {
         spinScans = _tracking.value.associateWith { SpinScan() }
         scanStartedAt = System.currentTimeMillis()
+        lastSpinSampleAt = scanStartedAt
+        ble.refresh()
         _scan.value = ScanUi(coverageDeg = 0.0, done = false, sectors = BooleanArray(36), headingDeg = heading)
         DebugStatus.log("Spin scan started")
     }
 
     private var scanStartedAt = 0L
+    private var lastSpinSampleAt = 0L
 
     /** Clear the "done" message. */
     fun dismissScanResult() {
@@ -383,6 +389,8 @@ class LocatorEngine(
         val now = System.currentTimeMillis()
         tickSims(now)
         if (spinScans.isNotEmpty()) updateSpinScan(now)
+        // Distance gone quiet (chips that drop repeat adverts): an occasional gentle refresh.
+        else if (_tracking.value.isNotEmpty() && android.os.SystemClock.elapsedRealtime() - ble.lastHeardAt > 8_000) ble.refresh(minGapMs = 12_000)
         val raw = _tracking.value.map { arbiter.arrowFor(it, heading, now) }
         val arrows = raw.map(::steady)
         _arrows.value = arrows
@@ -407,6 +415,8 @@ class LocatorEngine(
     }
 
     private fun updateSpinScan(now: Long) {
+        // Readings dried up mid-scan (repeat filtering, interference): kick the Bluetooth scan.
+        if (now - lastSpinSampleAt > 2_500) ble.refresh()
         var minCoverage = 360.0
         var allDone = true
         var sectors = BooleanArray(36) { true }
