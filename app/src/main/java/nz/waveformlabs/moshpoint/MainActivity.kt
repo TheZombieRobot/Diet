@@ -127,8 +127,46 @@ class MainActivity : ComponentActivity() {
     private val scanQr = registerForActivityResult(ScanContract()) { result ->
         val text = result.contents ?: return@registerForActivityResult
         // A gig group QR joins the group; a person's QR fills in "Add someone".
-        if (GroupSync.join(this, text)) return@registerForActivityResult
-        QrPayload.parse(text)?.let { scanned = it }
+        handleInvite(text, quietIfNone = true)
+    }
+
+    /**
+     * Invites without a camera: a group or friend invite pasted, shared to Moshpoint from
+     * Messenger/SMS, or scanned. Groups join straight away; a friend fills in "Add someone".
+     */
+    private fun handleInvite(text: String?, quietIfNone: Boolean = false): Boolean {
+        when (val inv = text?.let { nz.waveformlabs.moshpoint.core.Invite.find(it) }) {
+            is nz.waveformlabs.moshpoint.core.Invite.Group -> {
+                if (!GroupSync.join(this, inv.qrText)) {
+                    toast("That group invite has expired. Ask for a new one.")
+                    return false
+                }
+                toast("You're in: ${GroupSync.group.value?.name ?: "gig group"}")
+            }
+            is nz.waveformlabs.moshpoint.core.Invite.Friend -> {
+                scanned = inv.code to inv.name
+                val who = inv.name.ifBlank { "your mate" }
+                toast("Got $who's invite. Tap Add friend or Add to gig group.")
+            }
+            null -> {
+                if (!quietIfNone) toast("No Moshpoint invite found. Copy the whole message your mate sent, then tap Paste invite.")
+                return false
+            }
+        }
+        return true
+    }
+
+    private fun pasteInvite() {
+        val cm = getSystemService(android.content.ClipboardManager::class.java)
+        val text = cm?.primaryClip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(this)?.toString()
+        handleInvite(text)
+    }
+
+    private fun toast(msg: String) = android.widget.Toast.makeText(this, msg, android.widget.Toast.LENGTH_LONG).show()
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleInvite(intent.getStringExtra(ShareInviteActivity.EXTRA_TEXT) ?: return)
     }
 
     private val permissions = buildList {
@@ -197,6 +235,7 @@ class MainActivity : ComponentActivity() {
         FriendsRepository.init(this)
         PhotoStore.init(this)
         DebugStatus.initUi(this)
+        if (savedInstanceState == null) intent?.getStringExtra(ShareInviteActivity.EXTRA_TEXT)?.let { handleInvite(it) }
         GroupSync.load(this)
         val mySecret = VisibilityPrefs.mySecret(this)
         engine = LocatorEngine(applicationContext, lifecycleScope, mySecret)
@@ -223,6 +262,7 @@ class MainActivity : ComponentActivity() {
                         MyQrDialog(
                             GigGroup.qr(g),
                             onDismiss = { showGroupQr = false },
+                            onShare = { shareGroup(g) },
                             eyebrow = "YOUR CREW FOR TONIGHT",
                             title = g.name,
                             hint = "Everyone scans this once. Then you can all find each other, all night.",
@@ -238,6 +278,7 @@ class MainActivity : ComponentActivity() {
                     MyQrDialog(
                         QrPayload.of(myCode, myName),
                         onDismiss = { showQr = false },
+                        onShare = { shareCode(myCode) },
                         title = if (myName.isBlank()) "Scan to add me" else "Scan to add $myName",
                     )
                 }
@@ -371,6 +412,7 @@ class MainActivity : ComponentActivity() {
                                 finding = true
                             },
                             onShareCode = { shareCode(myCode) },
+                            onPasteInvite = ::pasteInvite,
                             onShowQr = { showQr = true },
                             onScanQr = {
                                 scanQr.launch(
@@ -449,9 +491,25 @@ class MainActivity : ComponentActivity() {
     private fun shareCode(code: String) {
         val send = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, "Add me on Moshpoint: $code")
+            putExtra(
+                Intent.EXTRA_TEXT,
+                "Add me on Moshpoint! Copy this whole message, open Moshpoint and tap Paste invite " +
+                    "(or share it to Moshpoint).\n\n" + QrPayload.of(code, myName),
+            )
         }
-        startActivity(Intent.createChooser(send, "Share your Moshpoint code"))
+        startActivity(Intent.createChooser(send, "Send your Moshpoint invite"))
+    }
+
+    private fun shareGroup(g: GigGroup) {
+        val send = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(
+                Intent.EXTRA_TEXT,
+                "Join my crew \"${g.name}\" on Moshpoint tonight! Copy this whole message, open Moshpoint " +
+                    "and tap Paste invite (or share it to Moshpoint).\n\n" + GigGroup.qr(g),
+            )
+        }
+        startActivity(Intent.createChooser(send, "Send the group invite"))
     }
 
     /**

@@ -77,6 +77,7 @@ fun FriendsScreen(
     onAlwaysOn: (Boolean) -> Unit,
     onFind: (Set<String>) -> Unit,
     onShareCode: () -> Unit,
+    onPasteInvite: () -> Unit = {},
     onShowQr: () -> Unit,
     onScanQr: () -> Unit,
     /** Filled in after a QR scan so the user only has to confirm. */
@@ -328,6 +329,9 @@ fun FriendsScreen(
                         SurfaceButton("Start a group", Modifier.weight(1f)) { naming = true }
                         SurfaceButton("Join a group", Modifier.weight(1f), onClick = onScanQr)
                     }
+                    TextButton(onClick = onPasteInvite) {
+                        Text("No camera? Paste an invite", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF)))
+                    }
                 }
             }
         } else {
@@ -380,7 +384,10 @@ fun FriendsScreen(
                 SurfaceButton("Scan their QR", Modifier.weight(1f), onClick = onScanQr)
             }
             Row {
-                TextButton(onClick = onShareCode) { Text("Share my code", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
+                TextButton(onClick = onShareCode) { Text("Send invite", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
+                TextButton(onClick = onPasteInvite) { Text("Paste invite", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
+            }
+            Row {
                 TextButton(onClick = { manualCode = !manualCode }) {
                     Text(if (manualCode) "Hide code entry" else "Enter a code instead", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF)))
                 }

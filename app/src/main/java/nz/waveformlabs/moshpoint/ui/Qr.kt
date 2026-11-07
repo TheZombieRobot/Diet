@@ -72,6 +72,7 @@ fun MyQrDialog(
     eyebrow: String = "YOUR CODE",
     members: List<Friend> = emptyList(),
     onEndNight: (() -> Unit)? = null,
+    onShare: (() -> Unit)? = null,
 ) {
     val bmp = remember(payload) { qrBitmap(payload).asImageBitmap() }
     var shown by remember { mutableStateOf(false) }
@@ -122,6 +123,12 @@ fun MyQrDialog(
                 }
 
                 Spacer(Modifier.height(24.dp))
+                if (onShare != null) {
+                    // For mates whose phone can't scan QR codes.
+                    TextButton(onClick = onShare, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                        Text("Can't scan? Send an invite instead", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan))
+                    }
+                }
                 if (onEndNight != null) {
                     TextButton(onClick = onEndNight, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                         Text("End the night", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Danger))

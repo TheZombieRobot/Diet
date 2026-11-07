@@ -70,6 +70,21 @@
             </intent-filter>
         </activity>
 
+        <!-- "Share -> Moshpoint" for invites sent as text (mates whose phone can't scan QR codes). -->
+        <activity
+            android:name=".ShareInviteActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:label="Moshpoint invite"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.NoDisplay">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
         <service
             android:name=".service.VisibilityService"
             android:exported="false"
