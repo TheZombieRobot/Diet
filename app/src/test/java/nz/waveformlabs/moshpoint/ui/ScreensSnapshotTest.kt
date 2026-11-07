@@ -2,6 +2,7 @@ package nz.waveformlabs.moshpoint.ui
 
 import app.cash.paparazzi.DeviceConfig
 import app.cash.paparazzi.Paparazzi
+import androidx.compose.ui.graphics.asImageBitmap
 import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.core.ArrowState
 import nz.waveformlabs.moshpoint.core.FriendRecord
@@ -88,6 +89,39 @@ class ScreensSnapshotTest {
                 onSetPhoto = {}, onRemovePhoto = {}, onClearGigGroup = {},
                 groupName = null, onStartGroup = {}, onShowGroupQr = {},
             )
+        }
+    }
+
+    /** A fake "photo": a face-ish gradient so clipping and rings can be checked. */
+    private fun fakePhoto(top: Int, bottom: Int): androidx.compose.ui.graphics.ImageBitmap {
+        val b = android.graphics.Bitmap.createBitmap(256, 256, android.graphics.Bitmap.Config.ARGB_8888)
+        val c = android.graphics.Canvas(b)
+        val p = android.graphics.Paint().apply {
+            shader = android.graphics.LinearGradient(0f, 0f, 0f, 256f, top, bottom, android.graphics.Shader.TileMode.CLAMP)
+        }
+        c.drawRect(0f, 0f, 256f, 256f, p)
+        p.shader = null
+        p.color = 0xFFF2C9A0.toInt()
+        c.drawCircle(128f, 110f, 62f, p) // head
+        c.drawCircle(128f, 290f, 120f, p) // shoulders
+        return b.asImageBitmap()
+    }
+
+    @Test fun finderGroupWithPhotos() {
+        nz.waveformlabs.moshpoint.PhotoStore.photos["sam"] = fakePhoto(0xFF1E3A8A.toInt(), 0xFF22E4FF.toInt())
+        nz.waveformlabs.moshpoint.PhotoStore.photos["alex"] = fakePhoto(0xFF4C1D95.toInt(), 0xFFC86BFF.toInt())
+        nz.waveformlabs.moshpoint.PhotoStore.photos["jo"] = fakePhoto(0xFF7C2D12.toInt(), 0xFFFFB020.toInt())
+        try {
+            finder(
+                "Foo Fighters night",
+                listOf(
+                    ArrowState.Pointing("sam", -40.0, 8.0, Method.UWB, false),
+                    ArrowState.Pointing("alex", 52.0, 65.0, Method.GPS_SERVER, false),
+                    ArrowState.Pointing("jo", 168.0, 140.0, Method.CROWD_RELAY, true),
+                ),
+            )
+        } finally {
+            nz.waveformlabs.moshpoint.PhotoStore.photos.clear()
         }
     }
 
