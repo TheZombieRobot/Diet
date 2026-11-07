@@ -92,6 +92,9 @@ fun FriendsScreen(
     onShowGroupQr: () -> Unit,
     /** Debug builds only; null in release. */
     onAddSimulated: (() -> Unit)? = null,
+    onSelfie: () -> Unit = {},
+    onPickMyPhoto: () -> Unit = {},
+    onRemoveMyPhoto: () -> Unit = {},
 ) {
     var name by remember { mutableStateOf("") }
     var code by remember { mutableStateOf("") }
@@ -111,6 +114,7 @@ fun FriendsScreen(
     if (settingsOpen) {
         SettingsSheet(
             myName = myName, onMyName = onMyName,
+            onSelfie = onSelfie, onPickMyPhoto = onPickMyPhoto, onRemoveMyPhoto = onRemoveMyPhoto,
             alwaysOn = alwaysOn, onAlwaysOn = onAlwaysOn,
             phoneSummary = phoneSummary,
             onClose = { settingsOpen = false },
@@ -269,7 +273,15 @@ fun FriendsScreen(
                         },
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text(if (visible) "ON" else "OFF", style = Mosh.Eyebrow.copy(fontSize = 10.sp, letterSpacing = 1.sp, color = if (visible) Color(0xFF0B1200) else Mosh.TextDim, fontWeight = FontWeight.SemiBold))
+                        val mine = PhotoStore.photos[PhotoStore.ME]
+                        if (mine != null) {
+                            Image(
+                                mine, contentDescription = null, contentScale = ContentScale.Crop,
+                                modifier = Modifier.size(36.dp).clip(CircleShape).graphicsLayer { alpha = if (visible) 1f else 0.5f },
+                            )
+                        } else {
+                            Text(if (visible) "ON" else "OFF", style = Mosh.Eyebrow.copy(fontSize = 10.sp, letterSpacing = 1.sp, color = if (visible) Color(0xFF0B1200) else Mosh.TextDim, fontWeight = FontWeight.SemiBold))
+                        }
                     }
                     Spacer(Modifier.width(14.dp))
                     Column(Modifier.weight(1f)) {
@@ -416,6 +428,9 @@ private fun SurfaceButton(text: String, modifier: Modifier = Modifier, onClick: 
 private fun SettingsSheet(
     myName: String,
     onMyName: (String) -> Unit,
+    onSelfie: () -> Unit,
+    onPickMyPhoto: () -> Unit,
+    onRemoveMyPhoto: () -> Unit,
     alwaysOn: Boolean,
     onAlwaysOn: (Boolean) -> Unit,
     phoneSummary: String,
@@ -428,6 +443,32 @@ private fun SettingsSheet(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text("Settings", style = Mosh.Heading)
+            // Your photo: shown in your friends' arrow circles (shared encrypted, friends only).
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                val mine = PhotoStore.photos[PhotoStore.ME]
+                Box(
+                    Modifier.size(72.dp).clip(CircleShape).background(Mosh.Avatar).border(3.dp, Mosh.Pink, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (mine != null) {
+                        Image(mine, contentDescription = "Your photo", contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                    } else {
+                        Text(myName.trim().take(1).uppercase().ifEmpty { "?" }, style = Mosh.Heading)
+                    }
+                }
+                Spacer(Modifier.width(16.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("Your photo", style = Mosh.Label)
+                    Text("Shows in your mates' arrow. Only your friends can see it.", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                GlassButton("Take a selfie", Modifier.weight(1f), onClick = onSelfie)
+                GlassButton("Choose photo", Modifier.weight(1f), onClick = onPickMyPhoto)
+            }
+            if (PhotoStore.photos.containsKey(PhotoStore.ME)) {
+                TextButton(onClick = onRemoveMyPhoto) { Text("Remove my photo", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Danger)) }
+            }
             OutlinedTextField(
                 myName, onMyName, label = { Text("Your name") }, singleLine = true,
                 shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth(),

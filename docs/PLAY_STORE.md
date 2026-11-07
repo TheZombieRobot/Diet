@@ -50,7 +50,7 @@ Find your mates at gigs. Tap a friend, follow the glowing arrow.
 | Location: purpose | App functionality (finding friends). Not used for ads or analytics. |
 | Location: optional? | Required for the GPS/crowd features while live; the user controls when they're live. |
 | Personal info (name, email, etc.) | Not collected. Display names stay on device and in encrypted group intros. |
-| Photos | Not collected (friend photos stay on device). |
+| Photos | Optional profile photo: end-to-end encrypted, visible only to the user's friends; the server can't view it. Deleted after 8 days unless refreshed. |
 | App activity, device IDs, diagnostics | Not collected. |
 
 ## Sensitive permissions declarations

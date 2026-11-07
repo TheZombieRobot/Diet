@@ -64,6 +64,27 @@ class RateLimitTest {
     }
 }
 
+class AvatarTest {
+    @Test fun putGetAvatar() = testApplication {
+        application { moshpoint(MailboxStore()) }
+        val id = "aabbccddeeff00112233445566778899"
+        val photo = ByteArray(9000) { 5 }
+        assertEquals(HttpStatusCode.NotFound, client.get("/v1/avatar/$id").status)
+        assertEquals(HttpStatusCode.NoContent, client.put("/v1/avatar/$id") { setBody(photo) }.status)
+        assertContentEquals(photo, client.get("/v1/avatar/$id").bodyAsBytes())
+        assertEquals(HttpStatusCode.BadRequest, client.put("/v1/avatar/$id") { setBody(ByteArray(60_000)) }.status)
+    }
+
+    @Test fun storeExpiresAndCaps() {
+        var now = 0L
+        val s = AvatarStore(ttlMs = 1000, maxTotalBytes = 2500, clock = { now })
+        s.put("a", ByteArray(1000)); now = 1; s.put("b", ByteArray(1000)); now = 2; s.put("c", ByteArray(1000))
+        assertEquals(null, s.get("a")) // oldest dropped to fit the cap
+        now = 5000
+        assertEquals(null, s.get("c"))
+    }
+}
+
 class MailboxStoreTest {
     @Test fun expiresAndCaps() {
         var now = 0L

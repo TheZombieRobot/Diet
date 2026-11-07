@@ -33,6 +33,35 @@ object RelayClient {
         }.getOrDefault(false)
     }
 
+    /** Upload an encrypted profile photo (see core AvatarBox). */
+    suspend fun putAvatar(id: ByteArray, sealed: ByteArray): Boolean = withContext(Dispatchers.IO) {
+        if (!enabled) return@withContext false
+        runCatching {
+            val c = URL("$base/v1/avatar/${id.hex()}").openConnection() as HttpURLConnection
+            c.requestMethod = "PUT"
+            c.doOutput = true
+            c.connectTimeout = 8_000
+            c.readTimeout = 8_000
+            c.setRequestProperty("Content-Type", "application/octet-stream")
+            c.outputStream.use { it.write(sealed) }
+            val ok = c.responseCode in 200..299
+            c.disconnect()
+            ok
+        }.getOrDefault(false)
+    }
+
+    /** Fetch an encrypted profile photo, or null if there isn't one (or no network). */
+    suspend fun getAvatar(id: ByteArray): ByteArray? = withContext(Dispatchers.IO) {
+        if (!enabled) return@withContext null
+        runCatching {
+            val c = URL("$base/v1/avatar/${id.hex()}").openConnection() as HttpURLConnection
+            c.connectTimeout = 8_000
+            c.readTimeout = 8_000
+            if (c.responseCode != 200) return@runCatching null
+            c.inputStream.use { it.readBytes() }.also { c.disconnect() }
+        }.getOrNull()
+    }
+
     /** For each id, the sealed records posted under it (newest first). Null on network failure. */
     suspend fun lookup(ids: List<ByteArray>): List<List<ByteArray>>? = withContext(Dispatchers.IO) {
         if (!enabled || ids.isEmpty()) return@withContext null

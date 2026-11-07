@@ -68,8 +68,32 @@ class MainActivity : ComponentActivity() {
         val id = photoFor
         if (uri != null && id != null) {
             lifecycleScope.launch {
-                if (!PhotoStore.set(this@MainActivity, id, uri)) DebugStatus.log("Couldn't read that photo")
+                if (!PhotoStore.set(this@MainActivity, id, uri)) {
+                    DebugStatus.log("Couldn't read that photo")
+                } else if (id == PhotoStore.ME) {
+                    AvatarSync.publishMine(this@MainActivity, force = true)
+                }
             }
+        }
+    }
+
+    // Selfie for your own photo: the camera app's quick preview (small, which is all we need).
+    private val takeSelfie = registerForActivityResult(ActivityResultContracts.TakePicturePreview()) { bmp ->
+        if (bmp != null) {
+            lifecycleScope.launch {
+                if (PhotoStore.set(PhotoStore.ME, bmp)) AvatarSync.publishMine(this@MainActivity, force = true)
+            }
+        }
+    }
+    private val cameraForSelfie = registerForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
+        if (ok) runCatching { takeSelfie.launch(null) }
+    }
+
+    private fun selfie() {
+        if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            runCatching { takeSelfie.launch(null) }
+        } else {
+            cameraForSelfie.launch(Manifest.permission.CAMERA)
         }
     }
     private var alwaysOn by mutableStateOf(false)
@@ -143,6 +167,9 @@ class MainActivity : ComponentActivity() {
         // May have changed from the notification's Stop button or the Quick Settings tile.
         visibleToMates = VisibilityPrefs.isVisible(this)
         calmMotion = shouldCalm()
+        // Your photo out to friends, theirs in (each at most a few times a day).
+        AvatarSync.publishMine(this)
+        AvatarSync.fetchFriends(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -351,6 +378,15 @@ class MainActivity : ComponentActivity() {
                             },
                             onShowGroupQr = { showGroupQr = true },
                             onAddSimulated = if (DebugStatus.enabled) FriendsRepository::addSimulated else null,
+                            onSelfie = ::selfie,
+                            onPickMyPhoto = {
+                                photoFor = PhotoStore.ME
+                                pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                            },
+                            onRemoveMyPhoto = {
+                                PhotoStore.remove(PhotoStore.ME)
+                                AvatarSync.publishMine(this@MainActivity, force = true)
+                            },
                         )
                     }
                     }

@@ -20,7 +20,7 @@ exactly what happens to your information.
 
 Stored only in the app's private storage on your device, never backed up to the cloud:
 
-- your display name and an optional photo you choose for each friend,
+- your display name, your optional photo, and photos of friends (the ones they shared, or ones you picked for them),
 - your friends list and tonight's gig group (gig groups expire after 18 hours),
 - a random secret key that lets your friends recognise your phone.
 
@@ -55,6 +55,11 @@ Friends' phones fetch and decrypt it. The server:
 
 Gig-group introductions (your finding key and name, encrypted with the group's key) may
 also be posted there briefly so group members can find each other.
+
+**Your photo (optional):** if you set one, it's encrypted on your phone with a key only your
+friends have and stored under an id that changes weekly, for up to 8 days, so friends'
+phones can show your face. The server can't see it. Removing your photo shares an empty one,
+so friends' copies are cleared the next time they refresh.
 
 ## Permissions and why
 

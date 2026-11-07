@@ -35,11 +35,13 @@ fun Application.moshpoint(
     // Crowd-relay phones upload what they hear, so PUTs get more room than lookups.
     putLimit: RateLimiter = RateLimiter(capacity = 120.0, refillPerSec = 2.0),
     getLimit: RateLimiter = RateLimiter(capacity = 60.0, refillPerSec = 1.0),
+    avatars: AvatarStore = AvatarStore(),
 ) {
     launch {
         while (true) {
             delay(60_000)
             store.sweep()
+            avatars.sweep()
             putLimit.sweep()
             getLimit.sweep()
         }
@@ -74,6 +76,25 @@ fun Application.moshpoint(
             call.respondBytes(encodeRecords(records), ContentType.Application.OctetStream)
         }
 
+        // Encrypted profile photos (see core AvatarBox). Same id format as boxes.
+        put("/v1/avatar/{id}") {
+            if (!putLimit.allow(call.client())) return@put call.respondText("slow down", status = HttpStatusCode.TooManyRequests)
+            val id = call.parameters["id"]?.lowercase()
+            if (id == null || !ID_RE.matches(id)) return@put call.respondText("bad id", status = HttpStatusCode.BadRequest)
+            val body = call.receiveChannel().readRemaining(MAX_AVATAR + 1L).readByteArray()
+            if (body.size < 28 || body.size > MAX_AVATAR) return@put call.respondText("bad size", status = HttpStatusCode.BadRequest)
+            avatars.put(id, body)
+            call.respondText("", status = HttpStatusCode.NoContent)
+        }
+
+        get("/v1/avatar/{id}") {
+            if (!getLimit.allow(call.client())) return@get call.respondText("slow down", status = HttpStatusCode.TooManyRequests)
+            val id = call.parameters["id"]?.lowercase()
+            if (id == null || !ID_RE.matches(id)) return@get call.respondText("bad id", status = HttpStatusCode.BadRequest)
+            val data = avatars.get(id) ?: return@get call.respondText("", status = HttpStatusCode.NotFound)
+            call.respondBytes(data, ContentType.Application.OctetStream)
+        }
+
         post("/v1/lookup") {
             if (!getLimit.allow(call.client())) return@post call.respondText("slow down", status = HttpStatusCode.TooManyRequests)
             val body = call.receiveChannel().readRemaining(MAX_LOOKUP * 16 + 1L).readByteArray()
@@ -96,6 +117,7 @@ private val ID_RE = Regex("^[0-9a-f]{32}$")
 private const val MIN_RECORD = 16
 private const val MAX_RECORD = 128
 private const val MAX_LOOKUP = 64
+private const val MAX_AVATAR = 48 * 1024 + 64
 
 private fun encodeRecordsBody(records: List<ByteArray>): ByteArray {
     val out = java.io.ByteArrayOutputStream()
