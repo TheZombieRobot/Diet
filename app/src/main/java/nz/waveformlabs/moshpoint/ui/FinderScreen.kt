@@ -218,7 +218,11 @@ fun FinderScreen(
             Spacer(Modifier.height(14.dp))
             Text(if (scanning) "SCANNING FOR" else "FINDING", style = Mosh.Eyebrow)
             Spacer(Modifier.height(6.dp))
-            Text(title, style = Mosh.Title, maxLines = 1)
+            Text(
+                title,
+                style = if (title.length > 12) Mosh.Title.copy(fontSize = 26.sp) else Mosh.Title,
+                maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            )
 
             Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
                 when {
@@ -488,10 +492,12 @@ private fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Frie
     }
     Canvas(Modifier.fillMaxSize().semantics { contentDescription = spoken }) {
         val centre = Offset(size.width / 2, size.height / 2)
-        val avatarR = if (group) 28.dp.toPx() else 38.dp.toPx()
-        // Fit arrow + photo + glow inside the screen at any angle (360dp phones included);
-        // in a group the name chip hangs below the photo, so leave room for that too.
-        val margin = if (group) 56.dp.toPx() else 14.dp.toPx()
+        val avatarR = if (group) 26.dp.toPx() else 32.dp.toPx()
+        val chipW = 84.dp.toPx()
+        val chipH = 44.dp.toPx()
+        // Fit arrow + photo inside the screen at any angle (360dp phones included); in a
+        // group the name chip sits beyond the photo, so leave room for half its width too.
+        val margin = if (group) 6.dp.toPx() + chipW / 2 else 4.dp.toPx()
         val length = (size.minDimension / 2 - 2 * avatarR - 8.dp.toPx() - margin).coerceAtLeast(40.dp.toPx())
         if (group) {
             haloGlow(centre, 7.dp.toPx(), 10.dp.toPx(), Color.White, 0.8f)
@@ -501,7 +507,7 @@ private fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Frie
             val friend = friendOf(a.friendId)
             val colour = (colours[a.friendId] ?: Mosh.Pink).copy(alpha = if (a.unsure) 0.6f else 1f)
             val angle = angles[a.friendId] ?: a.relativeDeg.toFloat()
-            val path = arrowPath(centre, length, if (group) 0.20f else 0.30f)
+            val path = arrowPath(centre, length, if (group) 0.24f else 0.34f)
 
             rotate(angle, pivot = centre) {
                 // Breathing neon glow, then a white-hot tip fading into their colour and ultraviolet.
@@ -541,18 +547,22 @@ private fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Frie
             }
 
             if (group) {
-                // Glass chip with distance + name under the photo.
-                val chipW = 84.dp.toPx()
-                val chipH = 44.dp.toPx()
-                val top = Offset(tip.x - chipW / 2, tip.y + avatarR + 8.dp.toPx())
+                // Glass chip with distance + name, placed further out along the arrow's
+                // direction, so it never covers another arrow.
+                val ux = sin(rad).toFloat()
+                val uy = -cos(rad).toFloat()
+                val extent = kotlin.math.abs(ux) * chipW / 2 + kotlin.math.abs(uy) * chipH / 2
+                val cc = Offset(tip.x + ux * (avatarR + 6.dp.toPx() + extent), tip.y + uy * (avatarR + 6.dp.toPx() + extent))
+                val top = Offset(cc.x - chipW / 2, cc.y - chipH / 2)
                 drawRoundRect(colour.copy(alpha = 0.12f), top, Size(chipW, chipH), CornerRadius(14.dp.toPx()))
                 drawRoundRect(colour.copy(alpha = 0.40f), top, Size(chipW, chipH), CornerRadius(14.dp.toPx()), style = Stroke(1.dp.toPx()))
                 val inner = chipW - 10.dp.toPx()
-                drawCentred(ArrowStyle.distanceLabel(a.distanceM), Offset(tip.x, top.y + 15.dp.toPx()), 14.dp.toPx(), colour, displayPaint, inner)
-                drawCentred(friend?.name ?: "?", Offset(tip.x, top.y + 31.dp.toPx()), 11.5f.dp.toPx(), Mosh.TextDim, regularPaint, inner)
+                val who = (friend?.name ?: "?") + if (BuildConfig.DEBUG) " · " + methodLabel(a.method) + (if (a.unsure) "?" else "") else ""
+                drawCentred(ArrowStyle.distanceLabel(a.distanceM), Offset(cc.x, top.y + 15.dp.toPx()), 14.dp.toPx(), colour, displayPaint, inner)
+                drawCentred(who, Offset(cc.x, top.y + 31.dp.toPx()), 11.5f.dp.toPx(), Mosh.TextDim, regularPaint, inner)
             }
-            if (BuildConfig.DEBUG) {
-                // Test builds only: which method is driving this arrow.
+            if (BuildConfig.DEBUG && !group) {
+                // Test builds only: which method is driving this arrow (in a group it's in the chip).
                 drawCentred(methodLabel(a.method) + if (a.unsure) "?" else "", Offset(tip.x, tip.y - avatarR - 10.dp.toPx()), 10.dp.toPx(), Mosh.TextFaint, regularPaint)
             }
         }

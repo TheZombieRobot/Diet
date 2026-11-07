@@ -251,9 +251,12 @@ fun RollingText(text: String, style: TextStyle, modifier: Modifier = Modifier, d
  */
 fun androidx.compose.ui.graphics.drawscope.DrawScope.softGlow(path: androidx.compose.ui.graphics.Path, colour: Color, widthPx: Float, alpha: Float = 1f) {
     val join = androidx.compose.ui.graphics.StrokeJoin.Round
-    drawPath(path, colour.copy(alpha = 0.10f * alpha), style = Stroke(widthPx, join = join))
-    drawPath(path, colour.copy(alpha = 0.16f * alpha), style = Stroke(widthPx * 0.55f, join = join))
-    drawPath(path, colour.copy(alpha = 0.22f * alpha), style = Stroke(widthPx * 0.25f, join = join))
+    // Many faint layers, widest first, so the falloff reads as a smooth glow, not bands.
+    val layers = 7
+    for (i in 0 until layers) {
+        val f = 1f - i.toFloat() / layers // 1 .. 1/7
+        drawPath(path, colour.copy(alpha = 0.07f * alpha), style = Stroke(widthPx * f, join = join))
+    }
 }
 
 /** Cheap round glow: a radial gradient halo of [radius] + [spread]. */
