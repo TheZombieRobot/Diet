@@ -149,7 +149,8 @@ jobs:
           cp app/build/outputs/apk/debug/*.apk moshpoint.apk
           gh release view testing >/dev/null 2>&1 || gh release create testing --prerelease --target "$GITHUB_SHA" --title "Moshpoint test build" --notes "Test build"
           gh release upload testing moshpoint.apk --clobber
-          gh release edit testing --notes "Test build $GITHUB_RUN_NUMBER from ${GITHUB_SHA::7}. Install: open https://github.com/$GITHUB_REPOSITORY/releases/download/testing/moshpoint.apk on an Android phone and allow installing from your browser."
+          sed "s/BUILD_NUMBER/$GITHUB_RUN_NUMBER/; s/BUILD_SHA/${GITHUB_SHA::7}/" .github/testing-release.md > notes.md
+          gh release edit testing --title "Moshpoint (test build $GITHUB_RUN_NUMBER)" --notes-file notes.md
 
       - name: Upload test reports
         if: failure()
