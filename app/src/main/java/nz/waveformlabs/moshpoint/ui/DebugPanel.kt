@@ -87,28 +87,28 @@ fun DebugPanel(
     }
     Column(
         modifier
-            .background(Color(0xEE101418))
+            .background(Color(0xF00F0B1C))
             .verticalScroll(rememberScrollState())
             .padding(10.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Mono("DEBUG", 14.sp, Color(0xFFFFD54F), bold = true)
+            Mono("DEBUG", 14.sp, Color(0xFFFFB020), bold = true)
             Spacer(Modifier.width(12.dp))
-            Chip("all on", Color(0xFF90CAF9)) { onSolo(null) }
+            Chip("all on", Color(0xFF22E4FF)) { onSolo(null) }
         }
 
         Heading("Field recording")
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (recording) {
-                Chip("■ stop", Color(0xFFEF9A9A)) { onRecord(false) }
+                Chip("■ stop", Color(0xFFFF6FB3)) { onRecord(false) }
                 Spacer(Modifier.width(6.dp))
-                Chip("mark…", Color(0xFFFFD54F)) { marking = true }
+                Chip("mark…", Color(0xFFFFB020)) { marking = true }
                 Spacer(Modifier.width(8.dp))
-                Mono("● REC  $recordedRows rows", 11.sp, Color(0xFFEF9A9A))
+                Mono("● REC  $recordedRows rows", 11.sp, Color(0xFFFF6FB3))
             } else {
-                Chip("● record", Color(0xFFEF9A9A)) { onRecord(true) }
+                Chip("● record", Color(0xFFFF6FB3)) { onRecord(true) }
                 Spacer(Modifier.width(6.dp))
-                Chip("share last", Color(0xFF90CAF9), onShare)
+                Chip("share last", Color(0xFF22E4FF), onShare)
                 if (recordedRows > 0) {
                     Spacer(Modifier.width(8.dp))
                     Mono("$recordedRows rows saved", 11.sp, Color.Gray)
@@ -124,16 +124,16 @@ fun DebugPanel(
             Spacer(Modifier.width(6.dp))
             Toggle("data", sim.data) { onSim(sim.copy(data = it)) }
             Spacer(Modifier.width(6.dp))
-            Chip("restart walk", Color(0xFF90CAF9), onSimRestart)
+            Chip("restart walk", Color(0xFF22E4FF), onSimRestart)
         }
 
         Heading("Methods  (tap = on/off, solo = only this one)")
         Method.entries.forEach { m ->
             val on = m in enabled
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 1.dp)) {
-                Chip(if (on) "ON " else "off", if (on) Color(0xFF81C784) else Color(0xFF757575)) { onToggle(m, !on) }
+                Chip(if (on) "ON " else "off", if (on) Color(0xFFB6FF3B) else Color(0xFF757575)) { onToggle(m, !on) }
                 Spacer(Modifier.width(6.dp))
-                Chip("solo", Color(0xFF90CAF9)) { onSolo(m) }
+                Chip("solo", Color(0xFF22E4FF)) { onSolo(m) }
                 Spacer(Modifier.width(8.dp))
                 Mono(label(m), 12.sp, if (on) Color.White else Color.Gray)
             }
@@ -144,7 +144,7 @@ fun DebugPanel(
             list.forEach { r ->
                 val f = r.fix
                 val colour = when {
-                    r.drivingDirection -> Color(0xFF81C784)
+                    r.drivingDirection -> Color(0xFFB6FF3B)
                     !r.enabled -> Color(0xFF616161)
                     r.score > 0 -> Color.White
                     else -> Color(0xFF9E9E9E)
@@ -166,15 +166,15 @@ fun DebugPanel(
         Heading("Technology status")
         tech.forEach { (k, v) ->
             val bad = v.contains("FAIL") || v.contains("UNAVAILABLE") || v.contains("NO PERMISSION")
-            Mono("$k: $v", 11.sp, if (bad) Color(0xFFEF9A9A) else Color(0xFFB0BEC5))
+            Mono("$k: $v", 11.sp, if (bad) Color(0xFFFF6FB3) else Color(0xFFD9D4EC))
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Heading("Switch log")
             Spacer(Modifier.width(8.dp))
-            Chip("clear", Color(0xFF90CAF9), onClearLog)
+            Chip("clear", Color(0xFF22E4FF), onClearLog)
         }
-        log.take(25).forEach { Mono(it, 11.sp, Color(0xFFCFD8DC)) }
+        log.take(25).forEach { Mono(it, 11.sp, Color(0xFFB4AEC8)) }
         Spacer(Modifier.height(24.dp))
     }
 }
@@ -197,7 +197,7 @@ private fun ageText(ms: Long) = when {
 @Composable
 private fun Heading(text: String) {
     Spacer(Modifier.height(8.dp))
-    Mono(text, 12.sp, Color(0xFFFFD54F), bold = true)
+    Mono(text, 12.sp, Color(0xFFFFB020), bold = true)
 }
 
 @Composable
@@ -213,7 +213,7 @@ private fun Mono(text: String, size: TextUnit, colour: Color, bold: Boolean = fa
 
 @Composable
 private fun Toggle(text: String, on: Boolean, onChange: (Boolean) -> Unit) =
-    Chip(if (on) "$text ✓" else "$text ✗", if (on) Color(0xFF81C784) else Color(0xFF757575)) { onChange(!on) }
+    Chip(if (on) "$text ✓" else "$text ✗", if (on) Color(0xFFB6FF3B) else Color(0xFF757575)) { onChange(!on) }
 
 @Composable
 private fun Chip(text: String, colour: Color, onClick: () -> Unit) {

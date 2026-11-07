@@ -86,7 +86,7 @@ Wi-Fi as your laptop can use `-Pmoshpoint.server=http://<laptop-ip>:8080` for te
    other taps **Join a group**. Members appear in each other's gig group within a
    few seconds (needs Bluetooth 5 extended adverts, or the relay server).
 3. Phone A: tap the **Go live** card (or add the **Moshpoint** tile to Quick Settings and
-   tap it; the notification has a **Stop being visible** button).
+   tap it; the notification has a **Go hidden** button).
 4. Phone B: tap phone A's name. Walk around. You should see the distance and warmer/colder.
    Press **Scan**, hold the phone flat on your chest and turn slowly: an arrow should appear.
 5. **If both phones have UWB:** within about 50 m the arrow should lock on and the distance

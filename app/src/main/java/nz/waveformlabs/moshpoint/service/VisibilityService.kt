@@ -199,7 +199,8 @@ class VisibilityService : LifecycleService() {
             .setSmallIcon(R.drawable.ic_launcher_monochrome)
             .setOngoing(true)
             .setContentIntent(open)
-            .addAction(0, "Stop being visible", stopIntent)
+            .addAction(0, "Go hidden", stopIntent)
+            .setColor(0xFFB6FF3B.toInt())
             .build()
         // Add the location type when we can, so GPS sharing keeps working with the app
         // closed. Android refuses it in some cases (e.g. started at boot without the

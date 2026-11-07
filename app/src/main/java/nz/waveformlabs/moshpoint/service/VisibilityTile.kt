@@ -44,7 +44,7 @@ class VisibilityTile : TileService() {
         val tile = qsTile ?: return
         val on = VisibilityPrefs.isVisible(this)
         tile.state = if (on) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) tile.subtitle = if (on) "Visible" else "Hidden"
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) tile.subtitle = if (on) "Live" else "Hidden"
         tile.updateTile()
     }
 }
