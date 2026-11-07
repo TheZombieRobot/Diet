@@ -15,6 +15,7 @@ import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.FriendsRepository
 import nz.waveformlabs.moshpoint.core.Advert
 import nz.waveformlabs.moshpoint.core.ArrowState
+import nz.waveformlabs.moshpoint.core.DistanceSmoother
 import nz.waveformlabs.moshpoint.core.EphemeralId
 import nz.waveformlabs.moshpoint.core.Fix
 import nz.waveformlabs.moshpoint.core.FriendSimulator
@@ -358,10 +359,27 @@ class LocatorEngine(
         val now = System.currentTimeMillis()
         tickSims(now)
         if (spinScans.isNotEmpty()) updateSpinScan(now)
-        val arrows = _tracking.value.map { arbiter.arrowFor(it, heading, now) }
+        val raw = _tracking.value.map { arbiter.arrowFor(it, heading, now) }
+        val arrows = raw.map(::steady)
         _arrows.value = arrows
         if (DebugStatus.enabled) updateDebug(now, arrows)
-        recordTick(now, arrows)
+        recordTick(now, raw) // recordings keep the raw distances
+    }
+
+    // Steady on-screen distances (raw readings wobble; the number rolls when it changes).
+    private val smoothers = mutableMapOf<String, DistanceSmoother>()
+
+    private fun steady(a: ArrowState): ArrowState {
+        fun shown(id: String, d: Double) =
+            DistanceSmoother.roundForDisplay(smoothers.getOrPut(id) { DistanceSmoother() }.update(d))
+        return when (a) {
+            is ArrowState.NoSignal -> {
+                smoothers.remove(a.friendId)
+                a
+            }
+            is ArrowState.DistanceOnly -> a.copy(distanceM = shown(a.friendId, a.distanceM))
+            is ArrowState.Pointing -> a.distanceM?.let { a.copy(distanceM = shown(a.friendId, it)) } ?: a
+        }
     }
 
     private fun updateSpinScan(now: Long) {
