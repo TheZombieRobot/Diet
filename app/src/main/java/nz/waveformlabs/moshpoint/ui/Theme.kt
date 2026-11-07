@@ -88,6 +88,13 @@ fun MoshTheme(content: @Composable () -> Unit) {
             surface = Mosh.Deep,
             onSurface = Mosh.Text,
             surfaceVariant = Color(0xFF17122A),
+            // Dialogs, sheets and menus: deep violet glass, not Material grey.
+            surfaceContainerLowest = Color(0xFF0A0715),
+            surfaceContainerLow = Color(0xFF110C20),
+            surfaceContainer = Color(0xFF140F26),
+            surfaceContainerHigh = Color(0xFF181230),
+            surfaceContainerHighest = Color(0xFF1E1738),
+            surfaceTint = Mosh.Violet,
             onSurfaceVariant = Mosh.TextDim,
             outline = Color(0xFF3A3352),
             error = Mosh.Danger,
