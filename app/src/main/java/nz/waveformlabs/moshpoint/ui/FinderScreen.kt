@@ -229,7 +229,8 @@ fun FinderScreen(
                     scanning -> ScanProgress(scan!!)
                     pointing.isEmpty() && distanceOnly.isEmpty() -> Searching(title)
                     else -> {
-                        Box(Modifier.fillMaxSize(0.92f)) { RadarPulse({ mood.copy(alpha = 0.7f) }) }
+                        // Radar rings around arrows only: behind a big distance number they'd cut through it.
+                        if (pointing.isNotEmpty()) Box(Modifier.fillMaxSize(0.92f)) { RadarPulse({ mood.copy(alpha = 0.7f) }) }
                         Arrows(pointing, friendOf, group = arrows.size > 1)
                         if (pointing.isEmpty()) DistanceOnly(distanceOnly, friendOf)
                     }
