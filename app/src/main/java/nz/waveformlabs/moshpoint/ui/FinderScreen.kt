@@ -148,6 +148,29 @@ fun FinderScreen(
         if (found != null) haptics.performHapticFeedback(HapticFeedbackType.LongPress)
     }
 
+    // Keep the screen awake while finding: it mustn't lock in the middle of the crowd.
+    val view = androidx.compose.ui.platform.LocalView.current
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        view.keepScreenOn = true
+        onDispose { view.keepScreenOn = false }
+    }
+
+    // A light buzz each time you cross 50 / 20 / 10 / 5 m towards someone: feel it closing in.
+    val nearest = distances.minOfOrNull { it.second }
+    val bucket = when {
+        nearest == null -> 0
+        nearest < 5 -> 4
+        nearest < 10 -> 3
+        nearest < 20 -> 2
+        nearest < 50 -> 1
+        else -> 0
+    }
+    val lastBucket = remember { intArrayOf(bucket) }
+    LaunchedEffect(bucket) {
+        if (bucket > lastBucket[0]) haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        lastBucket[0] = bucket
+    }
+
     // The screen's mood colour: the closest friend's arrow colour, or ultraviolet while searching.
     val closest = pointing.minByOrNull { it.distanceM ?: Double.MAX_VALUE }
     val mood by animateColorAsState(
@@ -438,7 +461,14 @@ private fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Frie
     val display = remember { runCatching { ResourcesCompat.getFont(context, R.font.unbounded_extrabold) }.getOrNull() }
     val regular = remember { runCatching { ResourcesCompat.getFont(context, R.font.inter_regular) }.getOrNull() }
 
-    Canvas(Modifier.fillMaxSize()) {
+    // Screen readers: "Sam, 12 metres, at 2 o'clock".
+    val spoken = arrows.joinToString(". ") { a ->
+        val name = friendOf(a.friendId)?.name ?: "Friend"
+        val clock = (((a.relativeDeg + 360) % 360) / 30).let { kotlin.math.round(it).toInt() }.let { if (it == 0) 12 else it }
+        val dist = a.distanceM?.let { "${ArrowStyle.distanceLabel(it).replace(" m", " metres").replace(" km", " kilometres")}, " } ?: ""
+        "$name, ${dist}at $clock o'clock" + if (a.unsure) ", rough direction" else ""
+    }
+    Canvas(Modifier.fillMaxSize().semantics { contentDescription = spoken }) {
         val centre = Offset(size.width / 2, size.height / 2)
         val length = size.minDimension * (if (group) 0.29f else 0.35f)
         val avatarR = if (group) 30.dp.toPx() else 40.dp.toPx()
