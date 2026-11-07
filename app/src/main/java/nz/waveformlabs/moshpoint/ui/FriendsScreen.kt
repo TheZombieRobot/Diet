@@ -479,7 +479,7 @@ internal fun SettingsContent(
                 .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text("Settings", style = Mosh.Heading)
+            Text("Settings", style = Mosh.Heading, modifier = Modifier.padding(top = 4.dp))
             // Your photo: shown in your friends' arrow circles (shared encrypted, friends only).
             Row(verticalAlignment = Alignment.CenterVertically) {
                 val mine = PhotoStore.photos[PhotoStore.ME]
@@ -496,7 +496,7 @@ internal fun SettingsContent(
                 Spacer(Modifier.width(16.dp))
                 Column(Modifier.weight(1f)) {
                     Text("Your photo", style = Mosh.Label)
-                    Text("Shows in your mates' arrow. Only your friends can see it.", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
+                    Text("Shows in your mates' arrow. Only your friends can see it.", style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint))
                 }
             }
             if (onFacebook != null) FacebookButton(onFacebook)
@@ -514,7 +514,7 @@ internal fun SettingsContent(
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text("Stay live after a restart", style = Mosh.Label)
-                    Text("If you were live when your phone restarted, go live again automatically.", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
+                    Text("If you were live when your phone restarted, go live again automatically.", style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint))
                 }
                 Spacer(Modifier.width(12.dp))
                 Switch(alwaysOn, onAlwaysOn, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Lime, checkedThumbColor = Color(0xFF0B1200), uncheckedTrackColor = Color(0xFF1C1630)))
@@ -525,7 +525,7 @@ internal fun SettingsContent(
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("Show debug info", style = Mosh.Label)
-                        Text("Which tech is finding each mate (UWB, Wi-Fi, Bluetooth, GPS, crowd) and the Debug panel. Test builds only.", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
+                        Text("Which tech is finding each mate (UWB, Wi-Fi, Bluetooth, GPS, crowd) and the Debug panel. Test builds only.", style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint))
                     }
                     Spacer(Modifier.width(12.dp))
                     Switch((BuildConfig.DEBUG && DebugStatus.showUi), { DebugStatus.setShowUi(context, it) }, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Amber, checkedThumbColor = Color(0xFF1A1000), uncheckedTrackColor = Color(0xFF1C1630)))
@@ -537,7 +537,7 @@ internal fun SettingsContent(
                 "Moshpoint ${nz.waveformlabs.moshpoint.BuildConfig.VERSION_NAME}. No account, rotating codes, end-to-end encrypted locations. You're only findable while you're live.",
                 style = Mosh.Body,
             )
-            Text(phoneSummary, style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
+            Text(phoneSummary, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint))
             TextButton(onClick = { showLicences = !showLicences }) {
                 Text(if (showLicences) "Hide licences" else "Open-source licences", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan))
             }
