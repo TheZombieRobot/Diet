@@ -413,6 +413,7 @@ class MainActivity : ComponentActivity() {
                             },
                             onShareCode = { shareCode(myCode) },
                             onPasteInvite = ::pasteInvite,
+                            onShareApp = { shareApp(myCode) },
                             onShowQr = { showQr = true },
                             onScanQr = {
                                 scanQr.launch(
@@ -488,13 +489,34 @@ class MainActivity : ComponentActivity() {
         startActivity(Intent.createChooser(send, "Share recording"))
     }
 
+    /** Where mates get the app: the test build's public link, or the Play Store once released. */
+    private val appLink get() =
+        if (BuildConfig.DEBUG) "https://github.com/TheZombieRobot/Diet/releases/download/testing/moshpoint.apk"
+        else "https://play.google.com/store/apps/details?id=$packageName"
+
+    private val getTheApp get() =
+        "No Moshpoint yet? Get it here (Android): $appLink\n" +
+            "Then copy this whole message, open Moshpoint and tap Paste invite.\n\n"
+
+    /** One message that does everything: download link + your invite. */
+    private fun shareApp(code: String) {
+        val send = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(
+                Intent.EXTRA_TEXT,
+                "Get Moshpoint so we can find each other at gigs: tap a mate and an arrow points to them.\n\n" +
+                    getTheApp + QrPayload.of(code, myName),
+            )
+        }
+        startActivity(Intent.createChooser(send, "Share Moshpoint"))
+    }
+
     private fun shareCode(code: String) {
         val send = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(
                 Intent.EXTRA_TEXT,
-                "Add me on Moshpoint! Copy this whole message, open Moshpoint and tap Paste invite " +
-                    "(or share it to Moshpoint).\n\n" + QrPayload.of(code, myName),
+                "Add me on Moshpoint so we can find each other!\n" + getTheApp + QrPayload.of(code, myName),
             )
         }
         startActivity(Intent.createChooser(send, "Send your Moshpoint invite"))
@@ -505,8 +527,7 @@ class MainActivity : ComponentActivity() {
             type = "text/plain"
             putExtra(
                 Intent.EXTRA_TEXT,
-                "Join my crew \"${g.name}\" on Moshpoint tonight! Copy this whole message, open Moshpoint " +
-                    "and tap Paste invite (or share it to Moshpoint).\n\n" + GigGroup.qr(g),
+                "Join my crew \"${g.name}\" on Moshpoint tonight!\n" + getTheApp + GigGroup.qr(g),
             )
         }
         startActivity(Intent.createChooser(send, "Send the group invite"))

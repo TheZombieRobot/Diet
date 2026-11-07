@@ -78,6 +78,7 @@ fun FriendsScreen(
     onFind: (Set<String>) -> Unit,
     onShareCode: () -> Unit,
     onPasteInvite: () -> Unit = {},
+    onShareApp: () -> Unit = {},
     onShowQr: () -> Unit,
     onScanQr: () -> Unit,
     /** Filled in after a QR scan so the user only has to confirm. */
@@ -379,6 +380,9 @@ fun FriendsScreen(
             Spacer(Modifier.height(8.dp))
             Text("ADD SOMEONE", style = Mosh.Eyebrow)
             Spacer(Modifier.height(8.dp))
+            // One message with the download link and your invite: Messenger, SMS, anything.
+            SurfaceButton("Share Moshpoint with a mate", Modifier.fillMaxWidth(), onClick = onShareApp)
+            Spacer(Modifier.height(10.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 SurfaceButton("Show my QR", Modifier.weight(1f), onClick = onShowQr)
                 SurfaceButton("Scan their QR", Modifier.weight(1f), onClick = onScanQr)
