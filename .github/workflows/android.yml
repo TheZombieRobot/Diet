@@ -85,6 +85,20 @@ jobs:
         run: |
           grep '^e: ' build.log | head -60 || true
 
+      - name: Screenshots of every screen (Paparazzi, no phone needed)
+        if: success()
+        continue-on-error: true
+        run: ./gradlew :app:recordPaparazziDebug -q
+
+      - name: Upload screenshots
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: app/src/test/snapshots/images/*.png
+          retention-days: 14
+          if-no-files-found: warn
+
       - name: Android lint (report only)
         if: success()
         continue-on-error: true

@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    // Renders screens to PNGs on the JVM (no phone) so the UI can be reviewed visually.
+    alias(libs.plugins.paparazzi)
 }
 
 android {
@@ -78,4 +80,5 @@ dependencies {
     implementation(libs.zxing.core)
     implementation(libs.zxing.android.embedded)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    testImplementation(kotlin("test"))
 }
