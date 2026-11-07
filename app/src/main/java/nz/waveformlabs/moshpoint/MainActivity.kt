@@ -158,13 +158,23 @@ class MainActivity : ComponentActivity() {
                         MyQrDialog(
                             GigGroup.qr(g),
                             onDismiss = { showGroupQr = false },
-                            title = "Join ${g.name}",
-                            hint = "Everyone who scans this can find everyone else in the group tonight.",
+                            eyebrow = "YOUR CREW FOR TONIGHT",
+                            title = g.name,
+                            hint = "Everyone scans this once. Then you can all find each other, all night.",
+                            members = FriendsRepository.friends.filter { it.gigGroupOnly },
+                            onEndNight = {
+                                showGroupQr = false
+                                GroupSync.clear(this@MainActivity)
+                            },
                         )
                     }
                 }
                 if (showQr) {
-                    MyQrDialog(QrPayload.of(myCode, myName), onDismiss = { showQr = false })
+                    MyQrDialog(
+                        QrPayload.of(myCode, myName),
+                        onDismiss = { showQr = false },
+                        title = if (myName.isBlank()) "Scan to add me" else "Scan to add $myName",
+                    )
                 }
                 if (askBattery) {
                     AlertDialog(
