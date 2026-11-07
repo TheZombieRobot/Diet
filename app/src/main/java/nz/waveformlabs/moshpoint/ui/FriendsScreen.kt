@@ -51,7 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import nz.waveformlabs.moshpoint.BuildConfig
+import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.Friend
 
 /**
@@ -362,8 +362,8 @@ fun FriendsScreen(
             Text("FRIENDS", style = Mosh.Eyebrow)
         }
         if (permanent.isEmpty()) item { Text("No friends added yet. Add someone below.", style = Mosh.Body) }
-        // BuildConfig.DEBUG is a compile-time constant, so release builds drop this entirely.
-        if (BuildConfig.DEBUG && onAddSimulated != null) {
+        // Always false in release builds (BuildConfig.DEBUG is a compile-time constant).
+        if (DebugStatus.showUi && onAddSimulated != null) {
             item { TextButton(onClick = onAddSimulated) { Text("Debug: add simulated friend", style = Mosh.Eyebrow) } }
         }
         items(permanent, key = { it.id }) { row(it) }
@@ -483,6 +483,17 @@ private fun SettingsSheet(
                     Text("If you were live when your phone restarted, go live again automatically.", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
                 }
                 Switch(alwaysOn, onAlwaysOn, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Lime, checkedThumbColor = Color(0xFF0B1200), uncheckedTrackColor = Color(0xFF1C1630)))
+            }
+            if (DebugStatus.enabled) {
+                // Test builds only: hide the techie bits, e.g. before sharing the app with mates.
+                val context = androidx.compose.ui.platform.LocalContext.current
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Show debug info", style = Mosh.Label)
+                        Text("Which tech is finding each mate (UWB, Wi-Fi, Bluetooth, GPS, crowd) and the Debug panel. Test builds only.", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
+                    }
+                    Switch(DebugStatus.showUi, { DebugStatus.setShowUi(context, it) }, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Amber, checkedThumbColor = Color(0xFF1A1000), uncheckedTrackColor = Color(0xFF1C1630)))
+                }
             }
             Box(Modifier.fillMaxWidth().height(1.dp).background(Mosh.Line))
             Text("ABOUT", style = Mosh.Eyebrow)

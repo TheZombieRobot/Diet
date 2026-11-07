@@ -17,6 +17,21 @@ import java.util.Locale
 object DebugStatus {
     val enabled get() = BuildConfig.DEBUG
 
+    private val showUiPref = androidx.compose.runtime.mutableStateOf(true)
+    /**
+     * Debug info on screen (method labels, Debug panel, simulated friends). On by default in
+     * test builds; can be switched off in Settings (e.g. when handing the phone to a mate).
+     * Logging and recording carry on either way. Always false in release builds.
+     */
+    val showUi: Boolean get() = enabled && showUiPref.value
+
+    private fun uiPrefs(c: android.content.Context) = c.getSharedPreferences("debug", android.content.Context.MODE_PRIVATE)
+    fun initUi(c: android.content.Context) { if (enabled) showUiPref.value = uiPrefs(c).getBoolean("show_ui", true) }
+    fun setShowUi(c: android.content.Context, v: Boolean) {
+        showUiPref.value = v
+        uiPrefs(c).edit().putBoolean("show_ui", v).apply()
+    }
+
     private val _tech = MutableStateFlow<Map<String, String>>(sortedMapOf())
     /** e.g. "UWB looking" -> "ranging 2 peers, ch 9". */
     val tech: StateFlow<Map<String, String>> = _tech.asStateFlow()

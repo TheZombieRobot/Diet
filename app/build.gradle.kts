@@ -14,8 +14,10 @@ android {
         applicationId = "nz.waveformlabs.moshpoint"
         minSdk = 29
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        // CI build number, so each test build installs over the last one.
+        val build = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
+        versionCode = build
+        versionName = "0.1.0 ($build)"
 
         // Relay server for GPS mode. Empty = GPS sharing off. Set with
         // -Pmoshpoint.server=https://your-server or in gradle.properties.
@@ -36,6 +38,14 @@ android {
     // builds are unsigned, which is fine for the R8/strip check.
     val keystorePath = System.getenv("MOSHPOINT_KEYSTORE_FILE")
     signingConfigs {
+        // Test builds: a fixed, deliberately public debug key (standard "android" passwords) so
+        // every CI build has the same signature and installs as an update. Not used for release.
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
         if (keystorePath != null) {
             create("release") {
                 storeFile = file(keystorePath)

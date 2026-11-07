@@ -196,6 +196,7 @@ class MainActivity : ComponentActivity() {
         photoFor = savedInstanceState?.getString("photoFor")
         FriendsRepository.init(this)
         PhotoStore.init(this)
+        DebugStatus.initUi(this)
         GroupSync.load(this)
         val mySecret = VisibilityPrefs.mySecret(this)
         engine = LocatorEngine(applicationContext, lifecycleScope, mySecret)
