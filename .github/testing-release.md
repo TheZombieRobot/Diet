@@ -14,8 +14,7 @@ Already have an older Moshpoint test build and it says "App not installed"? Unin
 
 ### 👋 Add your mate
 
-Ask them to tap **Share Moshpoint with a mate** (or **Send invite**) and send it to you. Copy their whole message,
-open Moshpoint and tap **Paste invite**. Or scan each other's QR codes.
+Ask them to tap **Share Moshpoint with a mate** (or **Send invite**) and send it to you. Copy their whole message, open Moshpoint and tap **Paste invite**. Or scan each other's QR codes.
 
 ---
 _Test build BUILD_NUMBER (BUILD_SHA). This link always gets the newest test build._

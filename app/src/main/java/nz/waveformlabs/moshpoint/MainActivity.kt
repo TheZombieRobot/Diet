@@ -491,11 +491,11 @@ class MainActivity : ComponentActivity() {
 
     /** Where mates get the app: the test build's public link, or the Play Store once released. */
     private val appLink get() =
-        if (BuildConfig.DEBUG) "https://github.com/TheZombieRobot/Diet/releases/download/testing/moshpoint.apk"
+        if (BuildConfig.DEBUG) "https://github.com/TheZombieRobot/Diet/releases/tag/testing" // install page with steps
         else "https://play.google.com/store/apps/details?id=$packageName"
 
     private val getTheApp get() =
-        "No Moshpoint yet? Get it here (Android): $appLink\n" +
+        "No Moshpoint yet? Install it from here (Android): $appLink\n" +
             "Then copy this whole message, open Moshpoint and tap Paste invite.\n\n"
 
     /** One message that does everything: download link + your invite. */
