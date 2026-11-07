@@ -21,8 +21,6 @@ android {
 
         // Relay server for GPS mode. Empty = GPS sharing off. Set with
         // -Pmoshpoint.server=https://your-server or in gradle.properties.
-        val server = (project.findProperty("moshpoint.server") as String?) ?: ""
-        buildConfigField("String", "MOSHPOINT_SERVER", "\"$server\"")
 
         // Log in with Facebook (name + photo). Off unless a Meta app is configured:
         // -Pmoshpoint.facebookAppId=... -Pmoshpoint.facebookClientToken=... (see docs/FACEBOOK.md).
@@ -30,6 +28,8 @@ android {
         fun prop(name: String, fallback: String) =
             (project.findProperty(name) as String?)?.takeIf { it.isNotBlank() }
                 ?: (project.findProperty(fallback) as String?).orEmpty()
+        val server = prop("moshpoint.server", "moshpoint.serverUrl")
+        buildConfigField("String", "MOSHPOINT_SERVER", "\"$server\"")
         val fbAppId = prop("moshpoint.facebookAppId", "moshpoint.fb.appId")
         val fbToken = prop("moshpoint.facebookClientToken", "moshpoint.fb.clientToken")
         resValue("string", "facebook_app_id", fbAppId)

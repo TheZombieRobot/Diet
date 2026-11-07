@@ -295,7 +295,17 @@ fun FinderScreen(
         }
 
         if ((BuildConfig.DEBUG && DebugStatus.showUi) && debug != null && showDebug) {
-            debug(Modifier.align(Alignment.TopCenter).fillMaxWidth().fillMaxHeight(0.62f))
+            Box(Modifier.align(Alignment.TopCenter).fillMaxWidth().fillMaxHeight(0.62f)) {
+                debug(Modifier.fillMaxSize())
+                // The panel covers the top bar (and its "Hide debug" button), so it needs its own close.
+                TextButton(
+                    onClick = { showDebug = false },
+                    modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)
+                        .background(Color(0xFF2A2140), RoundedCornerShape(12.dp)),
+                ) { Text("✕  Close", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber)) }
+            }
+            // Back closes the panel first, before leaving the finder.
+            androidx.activity.compose.BackHandler { showDebug = false }
         }
     }
 }
