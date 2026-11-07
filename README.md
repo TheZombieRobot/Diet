@@ -15,6 +15,14 @@ Find your mates at a gig. Open the app, tap a friend, and an arrow points you to
 - **Releasing:** [`docs/PLAY_STORE.md`](docs/PLAY_STORE.md) (checklist, store listing, Data safety answers) and [`docs/PRIVACY.md`](docs/PRIVACY.md) (draft privacy policy).
 - **Testing on real phones:** [`docs/FIELD_TEST_PLAN.md`](docs/FIELD_TEST_PLAN.md); analyse recordings with `python3 tools/analyze_recording.py <file.csv>`
 
+## Install the test build
+
+On an Android phone, open
+**https://github.com/TheZombieRobot/Diet/releases/download/testing/moshpoint.apk**
+and allow your browser to install apps. Every push to the dev branch updates it, and new
+builds install over the old one. Test builds show debug info (which tech is finding each mate);
+switch it off in Settings → *Show debug info*.
+
 ## Layout
 
 | Path | What |

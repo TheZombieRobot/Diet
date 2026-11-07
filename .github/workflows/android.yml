@@ -138,6 +138,19 @@ jobs:
           path: app/build/outputs/apk/debug/*.apk
           retention-days: 14
 
+      - name: Publish test APK to a public link
+        # Fixed URL anyone can open on their phone, no GitHub login:
+        # https://github.com/TheZombieRobot/Diet/releases/download/testing/moshpoint.apk
+        if: github.event_name == 'push' && github.ref_name == 'ccr-5839ed7c-1q0ztj'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          cp app/build/outputs/apk/debug/*.apk moshpoint.apk
+          gh release view testing >/dev/null 2>&1 || gh release create testing --prerelease --target "$GITHUB_SHA" --title "Moshpoint test build" --notes "Test build"
+          gh release upload testing moshpoint.apk --clobber
+          gh release edit testing --notes "Test build $GITHUB_RUN_NUMBER from ${GITHUB_SHA::7}. Install: open https://github.com/$GITHUB_REPOSITORY/releases/download/testing/moshpoint.apk on an Android phone and allow installing from your browser."
+
       - name: Upload test reports
         if: failure()
         uses: actions/upload-artifact@v4
