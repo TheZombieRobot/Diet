@@ -17,7 +17,7 @@ accounts or decisions; the rest can be done in the repo.
       replace the placeholders `FFA7`, `FFA8`, `FFA9` in `Ble.kt`, `CrowdRelayRadio.kt`, `GroupSync.kt`.
 - [ ] **(you)** Optional: set up "Continue with Facebook" (see `docs/FACEBOOK.md`); declare the Facebook SDK in the Data safety form (login only; analytics off).
 - [ ] Raise `targetSdk` to the version Play requires at submission time.
-- [ ] Replace the placeholder launcher icon with the real logo (adaptive + monochrome layers).
+- [x] Launcher icon: neon arrow + radar rings (adaptive, with monochrome for themed icons). Swap for a pro logo later if wanted.
 - [ ] Host `docs/PRIVACY.md` at a public URL (fill in date and contact email).
 - [ ] Real-world test session done and tuned (see `FIELD_TEST_PLAN.md`).
 

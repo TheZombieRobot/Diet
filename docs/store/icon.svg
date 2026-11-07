@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="108" height="108">
+ <defs>
+  <radialGradient id="bg" cx="54" cy="58" r="70" gradientUnits="userSpaceOnUse">
+   <stop offset="0" stop-color="#3A1470"/><stop offset="0.55" stop-color="#160A2E"/><stop offset="1" stop-color="#07050F"/>
+  </radialGradient>
+  <linearGradient id="arrow" x1="54" y1="78" x2="54" y2="28" gradientUnits="userSpaceOnUse">
+   <stop offset="0" stop-color="#FF2E93"/><stop offset="0.5" stop-color="#9D5CFF"/><stop offset="1" stop-color="#22E4FF"/>
+  </linearGradient>
+  <radialGradient id="halo" cx="54" cy="52" r="30" gradientUnits="userSpaceOnUse">
+   <stop offset="0" stop-color="#FF2E93" stop-opacity="0.55"/><stop offset="1" stop-color="#FF2E93" stop-opacity="0"/>
+  </radialGradient>
+ </defs>
+ <rect width="108" height="108" fill="url(#bg)"/>
+ <!-- foreground -->
+ <circle cx="54" cy="54" r="30" fill="url(#halo)"/>
+ <circle cx="54" cy="54" r="31" fill="none" stroke="#22E4FF" stroke-opacity="0.35" stroke-width="1.6"/>
+ <circle cx="54" cy="54" r="21" fill="none" stroke="#22E4FF" stroke-opacity="0.55" stroke-width="1.6"/>
+ <path d="M54,27 L73,77 L54,66 L35,77 Z" fill="url(#arrow)" stroke="url(#arrow)" stroke-opacity="0.35" stroke-width="5" stroke-linejoin="round"/>
+ <path d="M54,27 L73,77 L54,66 L35,77 Z" fill="url(#arrow)"/>
+ <path d="M54,27 L54,66 L35,77 Z" fill="#FFFFFF" fill-opacity="0.18"/>
+</svg>
