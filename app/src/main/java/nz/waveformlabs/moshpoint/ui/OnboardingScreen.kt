@@ -30,6 +30,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.OutlinedTextField
@@ -95,17 +99,21 @@ fun OnboardingScreen(
                 modifier = Modifier.weight(1f),
                 label = "step",
             ) { s ->
-                Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                // Scrolls on small phones / big font sizes rather than cutting things off.
+                Column(
+                    Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = 12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center,
+                ) {
                     when (s) {
                         0 -> {
-                            ArrowDemo(Modifier.size(280.dp))
+                            ArrowDemo(Modifier.fillMaxWidth(0.72f).widthIn(max = 280.dp).aspectRatio(1f))
                             Spacer(Modifier.height(36.dp))
                             Title("Find your mates\nin any crowd")
                             Spacer(Modifier.height(12.dp))
                             Body("Tap a mate and an arrow points straight to them. It glows their colour as you get close.")
                         }
                         1 -> {
-                            LiveOrb(Modifier.size(240.dp))
+                            LiveOrb(Modifier.fillMaxWidth(0.5f).widthIn(max = 220.dp).aspectRatio(1f))
                             Spacer(Modifier.height(36.dp))
                             Title("Go live when\nyou head in")
                             Spacer(Modifier.height(12.dp))
@@ -116,7 +124,7 @@ fun OnboardingScreen(
                             Need(Mosh.Pink, "Notifications", "so you always know when you're live")
                         }
                         else -> {
-                            NameBadge(name, Modifier.size(200.dp))
+                            NameBadge(name, Modifier.fillMaxWidth(0.45f).widthIn(max = 200.dp).aspectRatio(1f))
                             Spacer(Modifier.height(36.dp))
                             Title("What should your\nmates call you?")
                             Spacer(Modifier.height(20.dp))
@@ -207,7 +215,7 @@ private fun ArrowDemo(modifier: Modifier) {
         drawCircle(Color.White.copy(alpha = 0.06f), maxR * 0.98f, style = Stroke(1.dp.toPx()))
         drawCircle(Color.White.copy(alpha = 0.05f), maxR * 0.62f, style = Stroke(1.dp.toPx()))
         // Friend dot with a ping.
-        glow(colour, 16.dp.toPx(), breathe) { pt -> drawContext.canvas.drawCircle(friend, 12.dp.toPx(), pt) }
+        haloGlow(friend, 10.dp.toPx(), 14.dp.toPx(), colour, breathe)
         drawCircle(colour, 10.dp.toPx(), friend)
         drawCircle(colour.copy(alpha = (1 - breathe) * 1.5f), 10.dp.toPx() + 18.dp.toPx() * (1 - breathe), friend, style = Stroke(2.dp.toPx()))
 
@@ -225,7 +233,7 @@ private fun ArrowDemo(modifier: Modifier) {
             close()
         }
         rotate(angle, pivot = c) {
-            glow(colour, 20.dp.toPx(), 0.8f * breathe) { pt -> drawContext.canvas.drawPath(path, pt) }
+            softGlow(path, colour, 28.dp.toPx(), breathe)
             drawPath(path, Brush.verticalGradient(0f to Color.White, 0.18f to colour, 1f to Mosh.Violet, startY = c.y - len, endY = c.y))
         }
         drawCircle(Mosh.Text, 6.dp.toPx(), c)
@@ -239,8 +247,8 @@ private fun LiveOrb(modifier: Modifier) {
         RadarPulse(Mosh.Lime, rings = 3, periodMs = 2400)
         val t = rememberInfiniteTransition(label = "orb")
         val b by t.animateFloat(0.7f, 1f, infiniteRepeatable(tween(1300, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "b")
-        Canvas(Modifier.size(96.dp)) {
-            glow(Mosh.Lime, 36.dp.toPx(), b) { p -> drawContext.canvas.drawCircle(center, size.minDimension / 2, p) }
+        Canvas(Modifier.fillMaxSize(0.42f)) {
+            haloGlow(center, size.minDimension / 2, 34.dp.toPx(), Mosh.Lime, b)
             drawCircle(Brush.radialGradient(listOf(Color.White, Mosh.Lime), center = center.copy(y = center.y - 12.dp.toPx())), radius = size.minDimension / 2)
         }
     }
@@ -252,9 +260,9 @@ private fun NameBadge(name: String, modifier: Modifier) {
     val t = rememberInfiniteTransition(label = "badge")
     val spin by t.animateFloat(0f, 360f, infiniteRepeatable(tween(4000, easing = LinearEasing)), label = "s")
     Box(modifier, contentAlignment = Alignment.Center) {
-        Canvas(Modifier.size(150.dp)) {
+        Canvas(Modifier.fillMaxSize(0.75f)) {
             val r = size.minDimension / 2
-            glow(Mosh.Pink, 30.dp.toPx(), 0.5f) { p -> drawContext.canvas.drawCircle(center, r, p) }
+            haloGlow(center, r, 26.dp.toPx(), Mosh.Pink, 0.6f)
             rotate(spin) { drawCircle(Brush.sweepGradient(Mosh.Spectrum), radius = r) }
             drawCircle(Mosh.Avatar, radius = r - 5.dp.toPx())
         }

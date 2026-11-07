@@ -50,6 +50,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
@@ -98,6 +100,9 @@ private const val FOUND_M = 3.0
 /** After "keep the arrow", celebrate again only once they've moved this far away. */
 private const val REARM_M = 8.0
 
+/** Once showing, keep the celebration up until they're further than this. */
+private const val FOUND_HIDE_M = 4.5
+
 /**
  * The main screen (design canvas: Finding, Searching, Whole crew, Spin to scan, Found them).
  *
@@ -143,10 +148,22 @@ fun FinderScreen(
         val far = distances.filter { it.second > REARM_M }.map { it.first }.toSet()
         if (dismissed.any { it in far }) dismissed = dismissed - far
     }
-    val found = distances.filter { it.second < FOUND_M && it.first !in dismissed }.minByOrNull { it.second }
-    LaunchedEffect(found?.first) {
+    // Show under 3 m, keep showing until they're past 4.5 m, so a noisy reading at ~3 m
+    // doesn't make it flicker on and off.
+    // Plain holder (not state): it's recomputed whenever the distances change anyway.
+    val showing = remember { arrayOfNulls<String>(1) }
+    val showingDist = distances.firstOrNull { it.first == showing[0] }?.second
+    if (showing[0] != null && (showingDist == null || showingDist > FOUND_HIDE_M || showing[0] in dismissed)) showing[0] = null
+    if (showing[0] == null) {
+        showing[0] = distances.filter { it.second < FOUND_M && it.first !in dismissed }.minByOrNull { it.second }?.first
+    }
+    val found = showing[0]
+    LaunchedEffect(found) {
         if (found != null) haptics.performHapticFeedback(HapticFeedbackType.LongPress)
     }
+    // Keep the last friend during the fade-out, so the overlay doesn't flash "them" / "?".
+    val lastFound = remember { arrayOfNulls<String>(1) }
+    if (found != null) lastFound[0] = found
 
     // Keep the screen awake while finding: it mustn't lock in the middle of the crowd.
     val view = androidx.compose.ui.platform.LocalView.current
@@ -183,7 +200,7 @@ fun FinderScreen(
     )
 
     Box(Modifier.fillMaxSize().background(Mosh.Ground)) {
-        GlowBackground(colours = listOf(Mosh.Violet, mood, Mosh.Pink))
+        GlowBackground { listOf(Mosh.Violet, mood, Mosh.Pink) }
         Column(Modifier.fillMaxSize().padding(start = 24.dp, end = 24.dp, top = 12.dp, bottom = 24.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 TextButton(onClick = onBack) {
@@ -208,7 +225,7 @@ fun FinderScreen(
                     scanning -> ScanProgress(scan!!)
                     pointing.isEmpty() && distanceOnly.isEmpty() -> Searching(title)
                     else -> {
-                        Box(Modifier.fillMaxSize(0.92f)) { RadarPulse(mood.copy(alpha = 0.7f)) }
+                        Box(Modifier.fillMaxSize(0.92f)) { RadarPulse({ mood.copy(alpha = 0.7f) }) }
                         Arrows(pointing, friendOf, group = arrows.size > 1)
                         if (pointing.isEmpty()) DistanceOnly(distanceOnly, friendOf)
                     }
@@ -263,11 +280,11 @@ fun FinderScreen(
         }
 
         AnimatedVisibility(found != null, enter = fadeIn(tween(250)), exit = fadeOut(tween(300))) {
-            val f = found?.let { friendOf(it.first) }
+            val id = found ?: lastFound[0]
             FoundOverlay(
-                friend = f,
+                friend = id?.let(friendOf),
                 onDone = onBack,
-                onKeep = { found?.let { dismissed = dismissed + it.first } },
+                onKeep = { id?.let { dismissed = dismissed + it } },
             )
         }
 
@@ -312,6 +329,10 @@ private fun Chip(label: String, colour: Color, text: String) {
 @Composable
 private fun DistanceReadout(distanceM: Double?) {
     val label = ArrowStyle.distanceLabel(distanceM)
+    if (label.startsWith("<") || label == "?") {
+        Text(if (label == "?") "?" else "< 1 m", style = Mosh.Distance.copy(fontSize = 44.sp, lineHeight = 48.sp))
+        return
+    }
     val num = label.substringBefore(' ')
     val unit = label.substringAfter(' ', "")
     Row(verticalAlignment = Alignment.Bottom) {
@@ -350,18 +371,12 @@ fun NeonButton(text: String, modifier: Modifier = Modifier.fillMaxWidth(), onCli
     Button(
         onClick,
         modifier.heightIn(min = 58.dp).pressScale(scale)
-            .drawBehind {
-                // Soft neon underglow.
-                glow(Mosh.Pink, 26.dp.toPx(), 0.55f) { p ->
-                    drawContext.canvas.drawRoundRect(
-                        8.dp.toPx(), 14.dp.toPx(), size.width - 8.dp.toPx(), size.height + 4.dp.toPx(),
-                        18.dp.toPx(), 18.dp.toPx(), p,
-                    )
-                }
-            }
+            // Neon underglow: Android's coloured shadow, drawn by the GPU.
+            .shadow(18.dp, RoundedCornerShape(18.dp), ambientColor = Mosh.Pink, spotColor = Mosh.Pink)
             .clip(RoundedCornerShape(18.dp))
             .background(Brush.linearGradient(listOf(Mosh.Pink, Mosh.Violet, Mosh.Cyan)))
-            .shimmer(shine),
+            .graphicsLayer() // the shimmer redraws only this layer
+            .shimmer { shine.value },
         shape = RoundedCornerShape(18.dp),
         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
         interactionSource = source,
@@ -460,6 +475,9 @@ private fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Frie
     val context = LocalContext.current
     val display = remember { runCatching { ResourcesCompat.getFont(context, R.font.unbounded_extrabold) }.getOrNull() }
     val regular = remember { runCatching { ResourcesCompat.getFont(context, R.font.inter_regular) }.getOrNull() }
+    // One paint per typeface, reused every frame.
+    val displayPaint = remember { textPaint(display) }
+    val regularPaint = remember { textPaint(regular) }
 
     // Screen readers: "Sam, 12 metres, at 2 o'clock".
     val spoken = arrows.joinToString(". ") { a ->
@@ -470,10 +488,13 @@ private fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Frie
     }
     Canvas(Modifier.fillMaxSize().semantics { contentDescription = spoken }) {
         val centre = Offset(size.width / 2, size.height / 2)
-        val length = size.minDimension * (if (group) 0.29f else 0.35f)
-        val avatarR = if (group) 30.dp.toPx() else 40.dp.toPx()
+        val avatarR = if (group) 28.dp.toPx() else 38.dp.toPx()
+        // Fit arrow + photo + glow inside the screen at any angle (360dp phones included);
+        // in a group the name chip hangs below the photo, so leave room for that too.
+        val margin = if (group) 56.dp.toPx() else 14.dp.toPx()
+        val length = (size.minDimension / 2 - 2 * avatarR - 8.dp.toPx() - margin).coerceAtLeast(40.dp.toPx())
         if (group) {
-            glow(Color.White, 10.dp.toPx(), 0.8f) { p -> drawContext.canvas.drawCircle(centre, 7.dp.toPx(), p) }
+            haloGlow(centre, 7.dp.toPx(), 10.dp.toPx(), Color.White, 0.8f)
             drawCircle(Mosh.Text, radius = 7.dp.toPx(), center = centre)
         }
         arrows.forEach { a ->
@@ -484,7 +505,7 @@ private fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Frie
 
             rotate(angle, pivot = centre) {
                 // Breathing neon glow, then a white-hot tip fading into their colour and ultraviolet.
-                glow(colour, 22.dp.toPx(), 0.75f * breathe) { p -> drawContext.canvas.drawPath(path, p) }
+                softGlow(path, colour, 30.dp.toPx(), breathe)
                 drawPath(
                     path,
                     Brush.verticalGradient(
@@ -498,7 +519,7 @@ private fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Frie
             val rad = Math.toRadians(angle.toDouble())
             val reach = length + avatarR + 8.dp.toPx()
             val tip = Offset(centre.x + reach * sin(rad).toFloat(), centre.y - reach * cos(rad).toFloat())
-            glow(colour, 18.dp.toPx(), 0.6f * breathe) { p -> drawContext.canvas.drawCircle(tip, avatarR, p) }
+            haloGlow(tip, avatarR, 16.dp.toPx(), colour, 0.75f * breathe)
             drawCircle(Mosh.Avatar, radius = avatarR, center = tip)
             val photo = PhotoStore.photos[a.friendId]
             if (photo != null) {
@@ -510,7 +531,7 @@ private fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Frie
                     )
                 }
             } else {
-                drawText(friend?.name?.take(1)?.uppercase() ?: "?", tip, avatarR * 0.72f, Mosh.Text, display)
+                drawCentred(friend?.name?.take(1)?.uppercase() ?: "?", tip, avatarR * 0.72f, Mosh.Text, displayPaint)
             }
             rotate(spin, pivot = tip) {
                 drawCircle(
@@ -526,12 +547,13 @@ private fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Frie
                 val top = Offset(tip.x - chipW / 2, tip.y + avatarR + 8.dp.toPx())
                 drawRoundRect(colour.copy(alpha = 0.12f), top, Size(chipW, chipH), CornerRadius(14.dp.toPx()))
                 drawRoundRect(colour.copy(alpha = 0.40f), top, Size(chipW, chipH), CornerRadius(14.dp.toPx()), style = Stroke(1.dp.toPx()))
-                drawText(ArrowStyle.distanceLabel(a.distanceM), Offset(tip.x, top.y + 15.dp.toPx()), 15.sp.toPx(), colour, display)
-                drawText(friend?.name ?: "?", Offset(tip.x, top.y + 32.dp.toPx()), 12.sp.toPx(), Mosh.TextDim, regular)
+                val inner = chipW - 10.dp.toPx()
+                drawCentred(ArrowStyle.distanceLabel(a.distanceM), Offset(tip.x, top.y + 15.dp.toPx()), 14.dp.toPx(), colour, displayPaint, inner)
+                drawCentred(friend?.name ?: "?", Offset(tip.x, top.y + 31.dp.toPx()), 11.5f.dp.toPx(), Mosh.TextDim, regularPaint, inner)
             }
             if (BuildConfig.DEBUG) {
                 // Test builds only: which method is driving this arrow.
-                drawText(methodLabel(a.method) + if (a.unsure) "?" else "", Offset(tip.x, tip.y - avatarR - 10.dp.toPx()), 11.sp.toPx(), Mosh.TextFaint, regular)
+                drawCentred(methodLabel(a.method) + if (a.unsure) "?" else "", Offset(tip.x, tip.y - avatarR - 10.dp.toPx()), 10.dp.toPx(), Mosh.TextFaint, regularPaint)
             }
         }
     }
@@ -565,11 +587,11 @@ private fun ScanProgress(scan: LocatorEngine.ScanUi) {
                     // Compose arcs start at 3 o'clock; -90 puts "straight ahead" at the top.
                     val start = (absCentre - scan.headingDeg - 90 - 180.0 / n).toFloat()
                     val sweep = 360f / n + 0.6f
-                    glow(Mosh.Lime, 10.dp.toPx(), 0.5f) { p ->
-                        p.asFrameworkPaint().style = android.graphics.Paint.Style.STROKE
-                        p.asFrameworkPaint().strokeWidth = stroke
-                        drawContext.canvas.drawArc(center.x - r, center.y - r, center.x + r, center.y + r, start, sweep, false, p)
-                    }
+                    // Cheap glow: a wide, faint arc under the lit one.
+                    drawArc(
+                        Mosh.Lime.copy(alpha = 0.18f), startAngle = start, sweepAngle = sweep, useCenter = false,
+                        topLeft = Offset(center.x - r, center.y - r), size = Size(r * 2, r * 2), style = Stroke(stroke * 2f),
+                    )
                     drawArc(
                         Mosh.Lime, startAngle = start, sweepAngle = sweep, useCenter = false,
                         topLeft = Offset(center.x - r, center.y - r), size = Size(r * 2, r * 2), style = Stroke(stroke, cap = StrokeCap.Butt),
@@ -612,7 +634,11 @@ private fun FoundOverlay(friend: Friend?, onDone: () -> Unit, onKeep: () -> Unit
     val halo by t.animateFloat(0.6f, 1f, infiniteRepeatable(tween(1200, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "halo")
     val colour = Color(friend?.color ?: Mosh.Cyan.toArgb())
 
-    Box(Modifier.fillMaxSize().background(Mosh.Ground.copy(alpha = 0.94f))) {
+    Box(
+        Modifier.fillMaxSize().background(Mosh.Ground.copy(alpha = 0.94f))
+            // Swallow taps so they don't reach the buttons underneath.
+            .pointerInput(Unit) { awaitPointerEventScope { while (true) awaitPointerEvent() } },
+    ) {
         GlowBackground(colours = listOf(colour, Mosh.Violet, Mosh.Pink))
         Confetti(playing = shown)
         Column(
@@ -623,7 +649,7 @@ private fun FoundOverlay(friend: Friend?, onDone: () -> Unit, onKeep: () -> Unit
                 RadarPulse(colour, rings = 2, periodMs = 1800)
                 Canvas(Modifier.size(156.dp)) {
                     val r = size.minDimension / 2
-                    glow(colour, 40.dp.toPx(), halo) { p -> drawContext.canvas.drawCircle(center, r, p) }
+                    haloGlow(center, r, 34.dp.toPx(), colour, halo)
                     rotate(spin) { drawCircle(Brush.sweepGradient(Mosh.Spectrum), radius = r) }
                     drawCircle(Mosh.Avatar, radius = r - 5.dp.toPx())
                 }
@@ -706,15 +732,28 @@ private fun arrowPath(centre: Offset, length: Float, headRatio: Float): Path {
     }
 }
 
-private fun DrawScope.drawText(text: String, at: Offset, sizePx: Float, colour: Color, face: android.graphics.Typeface?) {
-    val paint = android.graphics.Paint().apply {
-        isAntiAlias = true
-        textAlign = android.graphics.Paint.Align.CENTER
-        textSize = sizePx
-        color = colour.toArgb()
-        if (face != null) typeface = face
+private fun textPaint(face: android.graphics.Typeface?) = android.graphics.Paint().apply {
+    isAntiAlias = true
+    textAlign = android.graphics.Paint.Align.CENTER
+    if (face != null) typeface = face
+}
+
+/**
+ * Text centred on [at] (horizontally and by its real ascent/descent, so wide display
+ * fonts sit visually centred), shortened with "…" if wider than [maxWidth].
+ */
+private fun DrawScope.drawCentred(
+    text: String, at: Offset, sizePx: Float, colour: Color, paint: android.graphics.Paint, maxWidth: Float = Float.MAX_VALUE,
+) {
+    paint.textSize = sizePx
+    paint.color = colour.toArgb()
+    var t = text
+    if (paint.measureText(t) > maxWidth) {
+        while (t.length > 1 && paint.measureText("$t…") > maxWidth) t = t.dropLast(1)
+        t = "$t…"
     }
-    drawContext.canvas.nativeCanvas.drawText(text, at.x, at.y + sizePx / 3, paint)
+    val fm = paint.fontMetrics
+    drawContext.canvas.nativeCanvas.drawText(t, at.x, at.y - (fm.ascent + fm.descent) / 2, paint)
 }
 
 /** Circular "refresh" arrow used on the Scan button. */

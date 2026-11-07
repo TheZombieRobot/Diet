@@ -117,9 +117,7 @@ class MainActivity : ComponentActivity() {
         // After a second "deny", Android stops showing the prompt, so go to app settings.
         val canAsk = permissions.any { shouldShowRequestPermissionRationale(it) }
         if (canAsk || missing.isEmpty()) {
-            onboarded = VisibilityPrefs.onboarded(this)
-        // New users get asked during the welcome, right after hearing why.
-        if (onboarded) askPermissions.launch(permissions)
+            askPermissions.launch(permissions)
         } else {
             startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.fromParts("package", packageName, null)))
         }
@@ -144,7 +142,9 @@ class MainActivity : ComponentActivity() {
         visibleToMates = VisibilityPrefs.isVisible(this)
         myName = VisibilityPrefs.myName(this)
         alwaysOn = VisibilityPrefs.alwaysOn(this)
-        askPermissions.launch(permissions)
+        onboarded = VisibilityPrefs.onboarded(this)
+        // New users get asked during the welcome, right after hearing why.
+        if (onboarded) askPermissions.launch(permissions)
         val myCode = FriendRecord.shareCode(mySecret)
         val caps = engine.capabilities
         val phoneSummary = "This phone: " + listOfNotNull(

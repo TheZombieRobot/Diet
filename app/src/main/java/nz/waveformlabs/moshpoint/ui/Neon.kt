@@ -25,6 +25,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -62,10 +64,16 @@ import kotlin.random.Random
 
 /** Soft neon light blobs that drift slowly behind a screen. */
 @Composable
-fun GlowBackground(modifier: Modifier = Modifier, colours: List<Color> = listOf(Mosh.Violet, Mosh.Cyan, Mosh.Pink)) {
+fun GlowBackground(modifier: Modifier = Modifier, colours: List<Color> = listOf(Mosh.Violet, Mosh.Cyan, Mosh.Pink)) =
+    GlowBackground(modifier) { colours }
+
+/** [colours] is read at draw time, so an animating colour redraws without recomposing the screen. */
+@Composable
+fun GlowBackground(modifier: Modifier = Modifier, colours: () -> List<Color>) {
     val t = rememberInfiniteTransition(label = "glow")
     val drift by t.animateFloat(0f, 1f, infiniteRepeatable(tween(14_000, easing = LinearEasing)), label = "drift")
     Canvas(modifier.fillMaxSize()) {
+        val colours = colours()
         val w = size.width
         val h = size.height
         val a = drift * 2 * Math.PI
@@ -86,10 +94,15 @@ fun GlowBackground(modifier: Modifier = Modifier, colours: List<Color> = listOf(
 
 /** Rings that pulse outward from the centre, like a radar ping. */
 @Composable
-fun RadarPulse(colour: Color, modifier: Modifier = Modifier, rings: Int = 2, periodMs: Int = 2600) {
+fun RadarPulse(colour: Color, modifier: Modifier = Modifier, rings: Int = 2, periodMs: Int = 2600) =
+    RadarPulse({ colour }, modifier, rings, periodMs)
+
+@Composable
+fun RadarPulse(colour: () -> Color, modifier: Modifier = Modifier, rings: Int = 2, periodMs: Int = 2600) {
     val t = rememberInfiniteTransition(label = "radar")
     val p by t.animateFloat(0f, 1f, infiniteRepeatable(tween(periodMs, easing = FastOutSlowInEasing)), label = "p")
     Canvas(modifier.fillMaxSize()) {
+        val colour = colour()
         val maxR = size.minDimension / 2
         for (i in 0 until rings) {
             val f = (p + i.toFloat() / rings) % 1f
@@ -151,10 +164,10 @@ fun NeonFrame(
 }
 
 /** A soft highlight that sweeps across (premium shimmer on the main button). */
-fun Modifier.shimmer(progress: Float): Modifier = drawWithContent {
+fun Modifier.shimmer(progress: () -> Float): Modifier = drawWithContent {
     drawContent()
     val w = size.width
-    val x = -w * 0.5f + progress * w * 2f
+    val x = -w * 0.5f + progress() * w * 2f
     drawRect(
         Brush.linearGradient(
             listOf(Color.White.copy(alpha = 0f), Color.White.copy(alpha = 0.32f), Color.White.copy(alpha = 0f)),
@@ -163,28 +176,27 @@ fun Modifier.shimmer(progress: Float): Modifier = drawWithContent {
     )
 }
 
+/** Read the returned State inside draw/graphicsLayer only, so it never recomposes the caller. */
 @Composable
-fun rememberShimmer(periodMs: Int = 3200): Float {
+fun rememberShimmer(periodMs: Int = 3200): State<Float> {
     val t = rememberInfiniteTransition(label = "shimmer")
-    val p by t.animateFloat(
+    return t.animateFloat(
         0f, 1f,
         infiniteRepeatable(tween(periodMs, easing = FastOutSlowInEasing), repeatMode = RepeatMode.Restart),
         label = "p",
     )
-    return p
 }
 
 /** Gentle bob for floating avatars. [phase] staggers neighbours. */
 @Composable
-fun rememberFloat(phase: Int = 0): Float {
+fun rememberFloat(phase: Int = 0): State<Float> {
     val t = rememberInfiniteTransition(label = "float")
-    val y by t.animateFloat(
+    return t.animateFloat(
         0f, 1f,
         infiniteRepeatable(tween(3000, delayMillis = 0, easing = FastOutSlowInEasing), RepeatMode.Reverse,
             initialStartOffset = androidx.compose.animation.core.StartOffset(phase * 400)),
         label = "y",
     )
-    return y
 }
 
 /** Bouncy press: buttons squish a little under your thumb. Pass the source to the clickable. */
@@ -217,7 +229,33 @@ fun RollingText(text: String, style: TextStyle, modifier: Modifier = Modifier, d
     ) { Text(it, style = style) }
 }
 
-/** Glow behind a shape: draws [draw] blurred in [colour] under the content. */
+/**
+ * Cheap neon glow for anything that animates: layered wide strokes, no blur. Use this
+ * instead of [glow] on every-frame drawing (a blur re-renders on the CPU each frame).
+ */
+fun androidx.compose.ui.graphics.drawscope.DrawScope.softGlow(path: androidx.compose.ui.graphics.Path, colour: Color, widthPx: Float, alpha: Float = 1f) {
+    val join = androidx.compose.ui.graphics.StrokeJoin.Round
+    drawPath(path, colour.copy(alpha = 0.10f * alpha), style = Stroke(widthPx, join = join))
+    drawPath(path, colour.copy(alpha = 0.16f * alpha), style = Stroke(widthPx * 0.55f, join = join))
+    drawPath(path, colour.copy(alpha = 0.22f * alpha), style = Stroke(widthPx * 0.25f, join = join))
+}
+
+/** Cheap round glow: a radial gradient halo of [radius] + [spread]. */
+fun androidx.compose.ui.graphics.drawscope.DrawScope.haloGlow(centre: Offset, radius: Float, spread: Float, colour: Color, alpha: Float = 1f) {
+    val r = radius + spread
+    if (r <= 0f) return
+    drawCircle(
+        Brush.radialGradient(
+            0f to colour.copy(alpha = 0.55f * alpha),
+            (radius / r).coerceIn(0f, 0.99f) to colour.copy(alpha = 0.35f * alpha),
+            1f to colour.copy(alpha = 0f),
+            center = centre, radius = r,
+        ),
+        radius = r, center = centre,
+    )
+}
+
+/** Blurred glow behind a shape. Fine for things drawn once; for animation use [softGlow]/[haloGlow]. */
 fun androidx.compose.ui.graphics.drawscope.DrawScope.glow(colour: Color, radiusPx: Float, alpha: Float = 1f, draw: (Paint) -> Unit) {
     drawIntoCanvas { canvas ->
         val paint = Paint()
@@ -238,16 +276,18 @@ fun Confetti(modifier: Modifier = Modifier, playing: Boolean, colours: List<Colo
     var frame by remember { mutableStateOf(0L) }
     var area by remember { mutableStateOf(Size.Zero) }
 
+    val density = androidx.compose.ui.platform.LocalDensity.current.density
     LaunchedEffect(playing, area) {
         if (!playing || area == Size.Zero) return@LaunchedEffect
+        val d = density // sizes and speeds are in dp, converted to px here
         val rnd = Random(System.nanoTime())
         bits.clear()
         repeat(140) {
             val angle = Math.toRadians(-90.0 + rnd.nextDouble(-70.0, 70.0))
-            val speed = rnd.nextDouble(900.0, 2100.0).toFloat()
-            val w = rnd.nextDouble(8.0, 16.0).toFloat()
+            val speed = rnd.nextDouble(330.0, 760.0).toFloat() * d
+            val w = rnd.nextDouble(3.5, 7.0).toFloat() * d
             bits += Bit(
-                x = area.width / 2 + rnd.nextDouble(-30.0, 30.0).toFloat(),
+                x = area.width / 2 + rnd.nextDouble(-12.0, 12.0).toFloat() * d,
                 y = area.height * 0.38f,
                 vx = (cos(angle) * speed).toFloat(),
                 vy = (sin(angle) * speed).toFloat(),
@@ -264,7 +304,7 @@ fun Confetti(modifier: Modifier = Modifier, playing: Boolean, colours: List<Colo
             val dt = ((now - last) / 1e9f).coerceAtMost(0.05f)
             last = now
             for (b in bits) {
-                b.vy += 1800f * dt          // gravity
+                b.vy += 650f * d * dt       // gravity
                 b.vx *= (1f - 1.2f * dt)    // air
                 b.vy *= (1f - 0.6f * dt)
                 b.x += b.vx * dt
@@ -275,8 +315,7 @@ fun Confetti(modifier: Modifier = Modifier, playing: Boolean, colours: List<Colo
         }
     }
 
-    Canvas(modifier.fillMaxSize()) {
-        if (area != size) area = size
+    Canvas(modifier.fillMaxSize().onSizeChanged { area = Size(it.width.toFloat(), it.height.toFloat()) }) {
         if (frame < 0L) return@Canvas // reading frame redraws on every physics step
         for (b in bits) {
             rotate(b.rot, pivot = Offset(b.x, b.y)) {

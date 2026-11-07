@@ -242,8 +242,10 @@ fun FriendsScreen(
                     Box(
                         Modifier.size(48.dp).drawBehind {
                             if (visible) {
-                                drawCircle(Mosh.Lime.copy(alpha = 0.8f * (1 - ping)), radius = size.minDimension / 2 * (0.8f + 0.6f * ping), style = androidx.compose.ui.graphics.drawscope.Stroke(2.dp.toPx()))
-                                glow(Mosh.Lime, 14.dp.toPx(), 0.7f) { p -> drawContext.canvas.drawCircle(center, 20.dp.toPx(), p) }
+                                // Read the animation here (draw phase) so it never recomposes the card.
+                                val pv = ping.value
+                                drawCircle(Mosh.Lime.copy(alpha = 0.8f * (1 - pv)), radius = size.minDimension / 2 * (0.8f + 0.6f * pv), style = androidx.compose.ui.graphics.drawscope.Stroke(2.dp.toPx()))
+                                haloGlow(center, 20.dp.toPx(), 14.dp.toPx(), Mosh.Lime, 0.8f)
                             }
                             drawCircle(iconColour, radius = 20.dp.toPx())
                         },
@@ -308,12 +310,13 @@ fun FriendsScreen(
                 } else {
                     NeonButton("Find the crew") { onFind(gig.map { it.id }.toSet()) }
                     Spacer(Modifier.height(14.dp))
-                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    // Vertical padding inside the scroller so glows and the bob aren't clipped.
+                    Row(Modifier.horizontalScroll(rememberScrollState()).padding(vertical = 12.dp, horizontal = 4.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                         gig.forEachIndexed { i, f ->
                             val bob = rememberFloat(i)
                             Column(
                                 Modifier.width(64.dp)
-                                    .graphicsLayer { translationY = -4.dp.toPx() * bob }
+                                    .graphicsLayer { translationY = -4.dp.toPx() * bob.value }
                                     .combinedClickable(onClick = { onFind(setOf(f.id)) }, onLongClick = { options = f }),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) {

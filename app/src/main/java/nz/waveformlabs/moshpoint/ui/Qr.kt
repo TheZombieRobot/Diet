@@ -13,7 +13,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.draw.shadow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -75,7 +81,10 @@ fun MyQrDialog(
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Box(Modifier.fillMaxSize().background(Mosh.Ground)) {
             GlowBackground(colours = listOf(Mosh.Pink, Mosh.Violet, Mosh.Cyan))
-            Column(Modifier.fillMaxSize().padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 24.dp)) {
+            Column(
+                Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+                    .padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 24.dp),
+            ) {
                 TextButton(onClick = onDismiss) { Text("‹  Done", style = Mosh.Label.copy(fontSize = 15.sp)) }
                 Spacer(Modifier.height(12.dp))
                 Text(eyebrow, style = Mosh.Eyebrow)
@@ -87,8 +96,9 @@ fun MyQrDialog(
 
                 NeonFrame(
                     RoundedCornerShape(32.dp),
-                    Modifier.align(Alignment.CenterHorizontally).size(290.dp).graphicsLayer { scaleX = pop; scaleY = pop }
-                        .drawBehind { glow(Mosh.Pink, 40.dp.toPx(), 0.35f) { p -> drawContext.canvas.drawCircle(center, size.minDimension / 2, p) } },
+                    Modifier.align(Alignment.CenterHorizontally).fillMaxWidth(0.8f).widthIn(max = 290.dp).aspectRatio(1f)
+                        .graphicsLayer { scaleX = pop; scaleY = pop }
+                        .shadow(30.dp, RoundedCornerShape(32.dp), ambientColor = Mosh.Pink, spotColor = Mosh.Pink),
                     width = 3.dp,
                 ) {
                     Box(
@@ -102,7 +112,7 @@ fun MyQrDialog(
                 if (members.isNotEmpty()) {
                     Spacer(Modifier.height(24.dp))
                     Row(Modifier.align(Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
-                        Row {
+                        Row(horizontalArrangement = Arrangement.spacedBy((-10).dp)) {
                             members.take(6).forEachIndexed { i, f -> key(f.id) { PopInAvatar(f, i) } }
                         }
                         Spacer(Modifier.width(12.dp))
@@ -111,7 +121,7 @@ fun MyQrDialog(
                     }
                 }
 
-                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.height(24.dp))
                 if (onEndNight != null) {
                     TextButton(onClick = onEndNight, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                         Text("End the night", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Danger))
@@ -133,7 +143,7 @@ private fun PopInAvatar(f: Friend, index: Int) {
     val s by animateFloatAsState(if (shown) 1f else 0f, spring(dampingRatio = 0.45f, stiffness = Spring.StiffnessMedium), label = "pop")
     val colour = Color(f.color)
     Box(
-        Modifier.offset(x = (-10 * index).dp).size(36.dp)
+        Modifier.size(36.dp)
             .graphicsLayer { scaleX = s; scaleY = s; alpha = s.coerceIn(0f, 1f) }
             .drawBehind { glow(colour, 8.dp.toPx(), 0.7f) { p -> drawContext.canvas.drawCircle(center, size.minDimension / 2, p) } }
             .background(colour, CircleShape)
