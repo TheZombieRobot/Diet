@@ -49,6 +49,20 @@ class MainActivity : ComponentActivity() {
     private lateinit var engine: LocatorEngine
     private var visibleToMates by mutableStateOf(false)
     private var onboarded by mutableStateOf(true)
+    private var calmMotion by mutableStateOf(false)
+
+    /** Battery saver on, or animations turned off in accessibility settings. */
+    private fun shouldCalm(): Boolean {
+        val power = getSystemService(PowerManager::class.java)
+        val scale = Settings.Global.getFloat(contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f)
+        return power?.isPowerSaveMode == true || scale == 0f
+    }
+
+    private val powerSaveReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(c: android.content.Context, i: Intent) {
+            calmMotion = shouldCalm()
+        }
+    }
     private var photoFor: String? = null
     private val pickPhoto = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         val id = photoFor
@@ -128,6 +142,7 @@ class MainActivity : ComponentActivity() {
         missing = missingPermissions()
         // May have changed from the notification's Stop button or the Quick Settings tile.
         visibleToMates = VisibilityPrefs.isVisible(this)
+        calmMotion = shouldCalm()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -156,7 +171,7 @@ class MainActivity : ComponentActivity() {
         ).joinToString(", ")
 
         setContent {
-            MoshTheme {
+            MoshTheme(calm = calmMotion) {
                 if (showGroupQr) {
                     GroupSync.group.value?.let { g ->
                         MyQrDialog(
@@ -397,6 +412,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         super.onStop()
+        runCatching { unregisterReceiver(powerSaveReceiver) }
         pendingGroupRelease?.cancel()
         pendingGroupRelease = lifecycleScope.launch {
             delay(20_000)
@@ -420,6 +436,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
+        androidx.core.content.ContextCompat.registerReceiver(
+            this, powerSaveReceiver, android.content.IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED),
+            androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
         pendingGroupRelease?.cancel()
         if (!holdingGroup) {
             GroupSync.acquire(this)

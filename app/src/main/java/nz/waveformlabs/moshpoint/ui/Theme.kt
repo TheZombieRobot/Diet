@@ -75,8 +75,20 @@ object Mosh {
     val Button = TextStyle(fontFamily = Display, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Text)
 }
 
+/**
+ * Calm motion: true when the phone is in battery saver or the user turned animations off.
+ * Ambient effects (drifting glows, sweeps, breathing, spinning rings) then hold still;
+ * motion that carries meaning (arrow swivel, rolling distance) still runs.
+ */
+val LocalCalmMotion = androidx.compose.runtime.staticCompositionLocalOf { false }
+
 @Composable
-fun MoshTheme(content: @Composable () -> Unit) {
+fun MoshTheme(calm: Boolean = false, content: @Composable () -> Unit) {
+    androidx.compose.runtime.CompositionLocalProvider(LocalCalmMotion provides calm) { MoshThemeInner(content) }
+}
+
+@Composable
+private fun MoshThemeInner(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = darkColorScheme(
             primary = Mosh.Pink,

@@ -199,8 +199,8 @@ private fun Dots(step: Int) {
 @Composable
 private fun ArrowDemo(modifier: Modifier) {
     val t = rememberInfiniteTransition(label = "demo")
-    val p by t.animateFloat(0f, 1f, infiniteRepeatable(tween(6000, easing = LinearEasing)), label = "p")
-    val breathe by t.animateFloat(0.6f, 1f, infiniteRepeatable(tween(1200, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "b")
+    val p by t.animateFloat(0f, 1f, infiniteRepeatable(tween(6000, easing = LinearEasing)), label = "p") // demo: always moves
+    val breathe by t.ambient(0.6f, 1f, infiniteRepeatable(tween(1200, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "b")
     Canvas(modifier.semantics { contentDescription = "An arrow pointing to a friend" }) {
         val c = center
         val maxR = size.minDimension / 2
@@ -246,7 +246,7 @@ private fun LiveOrb(modifier: Modifier) {
     Box(modifier, contentAlignment = Alignment.Center) {
         RadarPulse(Mosh.Lime, rings = 3, periodMs = 2400)
         val t = rememberInfiniteTransition(label = "orb")
-        val b by t.animateFloat(0.7f, 1f, infiniteRepeatable(tween(1300, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "b")
+        val b by t.ambient(0.7f, 1f, infiniteRepeatable(tween(1300, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "b")
         Canvas(Modifier.fillMaxSize(0.42f)) {
             haloGlow(center, size.minDimension / 2, 34.dp.toPx(), Mosh.Lime, b)
             drawCircle(Brush.radialGradient(listOf(Color.White, Mosh.Lime), center = center.copy(y = center.y - 12.dp.toPx())), radius = size.minDimension / 2)
@@ -258,7 +258,7 @@ private fun LiveOrb(modifier: Modifier) {
 @Composable
 private fun NameBadge(name: String, modifier: Modifier) {
     val t = rememberInfiniteTransition(label = "badge")
-    val spin by t.animateFloat(0f, 360f, infiniteRepeatable(tween(4000, easing = LinearEasing)), label = "s")
+    val spin by t.ambient(0f, 360f, infiniteRepeatable(tween(4000, easing = LinearEasing)), label = "s")
     Box(modifier, contentAlignment = Alignment.Center) {
         Canvas(Modifier.fillMaxSize(0.75f)) {
             val r = size.minDimension / 2

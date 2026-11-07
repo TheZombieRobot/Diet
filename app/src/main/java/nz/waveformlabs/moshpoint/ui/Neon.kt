@@ -62,6 +62,22 @@ import kotlin.random.Random
  * isn't on screen.
  */
 
+/**
+ * An endlessly repeating ambient animation that holds still at [still] in calm motion
+ * (battery saver / animations off). Drop-in for InfiniteTransition.animateFloat.
+ */
+@Composable
+fun androidx.compose.animation.core.InfiniteTransition.ambient(
+    initialValue: Float,
+    targetValue: Float,
+    animationSpec: androidx.compose.animation.core.InfiniteRepeatableSpec<Float>,
+    label: String,
+    still: Float = targetValue,
+): State<Float> {
+    if (LocalCalmMotion.current) return remember(still) { mutableStateOf(still) }
+    return animateFloat(initialValue, targetValue, animationSpec, label)
+}
+
 /** Soft neon light blobs that drift slowly behind a screen. */
 @Composable
 fun GlowBackground(modifier: Modifier = Modifier, colours: List<Color> = listOf(Mosh.Violet, Mosh.Cyan, Mosh.Pink)) =
@@ -71,7 +87,7 @@ fun GlowBackground(modifier: Modifier = Modifier, colours: List<Color> = listOf(
 @Composable
 fun GlowBackground(modifier: Modifier = Modifier, colours: () -> List<Color>) {
     val t = rememberInfiniteTransition(label = "glow")
-    val drift by t.animateFloat(0f, 1f, infiniteRepeatable(tween(14_000, easing = LinearEasing)), label = "drift")
+    val drift by t.ambient(0f, 1f, infiniteRepeatable(tween(14_000, easing = LinearEasing)), label = "drift")
     Canvas(modifier.fillMaxSize()) {
         val colours = colours()
         val w = size.width
@@ -100,7 +116,7 @@ fun RadarPulse(colour: Color, modifier: Modifier = Modifier, rings: Int = 2, per
 @Composable
 fun RadarPulse(colour: () -> Color, modifier: Modifier = Modifier, rings: Int = 2, periodMs: Int = 2600) {
     val t = rememberInfiniteTransition(label = "radar")
-    val p by t.animateFloat(0f, 1f, infiniteRepeatable(tween(periodMs, easing = FastOutSlowInEasing)), label = "p")
+    val p by t.ambient(0f, 1f, infiniteRepeatable(tween(periodMs, easing = FastOutSlowInEasing)), label = "p")
     Canvas(modifier.fillMaxSize()) {
         val colour = colour()
         val maxR = size.minDimension / 2
@@ -119,7 +135,7 @@ fun RadarPulse(colour: () -> Color, modifier: Modifier = Modifier, rings: Int = 
 @Composable
 fun RadarSweep(colour: Color, modifier: Modifier = Modifier, periodMs: Int = 3000) {
     val t = rememberInfiniteTransition(label = "sweep")
-    val angle by t.animateFloat(0f, 360f, infiniteRepeatable(tween(periodMs, easing = LinearEasing)), label = "a")
+    val angle by t.ambient(0f, 360f, infiniteRepeatable(tween(periodMs, easing = LinearEasing)), label = "a")
     Canvas(modifier.fillMaxSize()) {
         rotate(angle) {
             drawCircle(
@@ -142,7 +158,7 @@ fun NeonFrame(
     content: @Composable BoxScope.() -> Unit,
 ) {
     val t = rememberInfiniteTransition(label = "frame")
-    val angle by t.animateFloat(0f, 360f, infiniteRepeatable(tween(4000, easing = LinearEasing)), label = "a")
+    val angle by t.ambient(0f, 360f, infiniteRepeatable(tween(4000, easing = LinearEasing)), label = "a")
     val alpha by animateFloatAsState(if (lit) 1f else 0f, tween(600), label = "lit")
     Box(
         modifier
@@ -180,7 +196,7 @@ fun Modifier.shimmer(progress: () -> Float): Modifier = drawWithContent {
 @Composable
 fun rememberShimmer(periodMs: Int = 3200): State<Float> {
     val t = rememberInfiniteTransition(label = "shimmer")
-    return t.animateFloat(
+    return t.ambient(
         0f, 1f,
         infiniteRepeatable(tween(periodMs, easing = FastOutSlowInEasing), repeatMode = RepeatMode.Restart),
         label = "p",
@@ -191,7 +207,7 @@ fun rememberShimmer(periodMs: Int = 3200): State<Float> {
 @Composable
 fun rememberFloat(phase: Int = 0): State<Float> {
     val t = rememberInfiniteTransition(label = "float")
-    return t.animateFloat(
+    return t.ambient(
         0f, 1f,
         infiniteRepeatable(tween(3000, delayMillis = 0, easing = FastOutSlowInEasing), RepeatMode.Reverse,
             initialStartOffset = androidx.compose.animation.core.StartOffset(phase * 400)),

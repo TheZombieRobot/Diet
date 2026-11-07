@@ -300,7 +300,7 @@ fun FinderScreen(
 @Composable
 fun LivePill(live: Boolean) {
     val t = rememberInfiniteTransition(label = "live")
-    val ping by t.animateFloat(0f, 1f, infiniteRepeatable(tween(1800, easing = FastOutSlowInEasing)), label = "ping")
+    val ping by t.ambient(0f, 1f, infiniteRepeatable(tween(1800, easing = FastOutSlowInEasing)), label = "ping")
     Row(
         Modifier.background(Mosh.Surface, CircleShape).border(1.dp, Mosh.Line, CircleShape).padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -469,8 +469,8 @@ private fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Frie
         }
     }
     val t = rememberInfiniteTransition(label = "breathe")
-    val breathe by t.animateFloat(0.55f, 1f, infiniteRepeatable(tween(1400, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "b")
-    val spin by t.animateFloat(0f, 360f, infiniteRepeatable(tween(5000, easing = LinearEasing)), label = "spin")
+    val breathe by t.ambient(0.55f, 1f, infiniteRepeatable(tween(1400, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "b")
+    val spin by t.ambient(0f, 360f, infiniteRepeatable(tween(5000, easing = LinearEasing)), label = "spin")
 
     val context = LocalContext.current
     val display = remember { runCatching { ResourcesCompat.getFont(context, R.font.unbounded_extrabold) }.getOrNull() }
@@ -572,7 +572,7 @@ private fun lerp(a: Color, b: Color, t: Float) = Color(
 private fun ScanProgress(scan: LocatorEngine.ScanUi) {
     val pct = (scan.coverageDeg / 360.0 * 100).toInt().coerceIn(0, 100)
     val t = rememberInfiniteTransition(label = "scan")
-    val pulse by t.animateFloat(1f, 1.06f, infiniteRepeatable(tween(1000, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "p")
+    val pulse by t.ambient(1f, 1.06f, infiniteRepeatable(tween(1000, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "p")
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(36.dp)) {
         Box(Modifier.size(260.dp), contentAlignment = Alignment.Center) {
             Box(Modifier.size(236.dp).clip(CircleShape)) { RadarSweep(Mosh.Lime, periodMs = 2400) }
@@ -630,8 +630,8 @@ private fun FoundOverlay(friend: Friend?, onDone: () -> Unit, onKeep: () -> Unit
     val pop by animateFloatAsState(if (shown) 1f else 0.4f, spring(dampingRatio = 0.45f, stiffness = Spring.StiffnessLow), label = "pop")
     val rise by animateFloatAsState(if (shown) 0f else 1f, tween(600, delayMillis = 250, easing = FastOutSlowInEasing), label = "rise")
     val t = rememberInfiniteTransition(label = "found")
-    val spin by t.animateFloat(0f, 360f, infiniteRepeatable(tween(3000, easing = LinearEasing)), label = "spin")
-    val halo by t.animateFloat(0.6f, 1f, infiniteRepeatable(tween(1200, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "halo")
+    val spin by t.ambient(0f, 360f, infiniteRepeatable(tween(3000, easing = LinearEasing)), label = "spin")
+    val halo by t.ambient(0.6f, 1f, infiniteRepeatable(tween(1200, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "halo")
     val colour = Color(friend?.color ?: Mosh.Cyan.toArgb())
 
     Box(
