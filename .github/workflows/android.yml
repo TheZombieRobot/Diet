@@ -7,7 +7,8 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Queue rather than cancel: every pushed build reports, even when pushes are close together.
+  cancel-in-progress: false
 
 jobs:
   build:
