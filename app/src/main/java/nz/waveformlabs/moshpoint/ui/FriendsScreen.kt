@@ -94,6 +94,7 @@ fun FriendsScreen(
     groupName: String?,
     onStartGroup: (String) -> Unit,
     onShowGroupQr: () -> Unit,
+    onKeepFriend: (String) -> Unit = {},
     /** Debug builds only; null in release. */
     onAddSimulated: (() -> Unit)? = null,
     onSelfie: () -> Unit = {},
@@ -154,6 +155,9 @@ fun FriendsScreen(
             title = { Text(f.name) },
             text = {
                 androidx.compose.foundation.layout.Column {
+                    if (f.gigGroupOnly) {
+                        TextButton(onClick = { onKeepFriend(f.id); options = null }) { Text("Add ${f.name} as a friend (keep after tonight)") }
+                    }
                     TextButton(onClick = { onSetPhoto(f.id); options = null }) { Text("Set photo") }
                     if (PhotoStore.photos.containsKey(f.id)) {
                         TextButton(onClick = { onRemovePhoto(f.id); options = null }) { Text("Remove photo") }

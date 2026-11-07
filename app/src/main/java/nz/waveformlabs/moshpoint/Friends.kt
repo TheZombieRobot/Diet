@@ -118,6 +118,14 @@ object FriendsRepository {
 
     fun isSimulated(id: String) = id.startsWith("sim-")
 
+    /** A crew member you want to keep: move them to your friends list (stays after "End the night"). */
+    fun keepAsFriend(id: String) {
+        val i = friends.indexOfFirst { it.id == id && it.gigGroupOnly }
+        if (i < 0) return
+        friends[i] = Friend(friends[i].record.copy(gigGroupOnly = false))
+        save()
+    }
+
     /** Gig members you removed tonight: don't let their intro add them straight back. */
     private val removedGig = mutableSetOf<String>()
 

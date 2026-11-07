@@ -124,9 +124,6 @@ class MainActivity : ComponentActivity() {
 
     private var showGroupQr by mutableStateOf(false)
 
-    /** Name of the mate just added: prompts "now let them add you back". */
-    private var justAdded by mutableStateOf<String?>(null)
-
     private val scanQr = registerForActivityResult(ScanContract()) { result ->
         val text = result.contents ?: return@registerForActivityResult
         // A gig group QR joins the group; a person's QR fills in "Add someone".
@@ -144,7 +141,9 @@ class MainActivity : ComponentActivity() {
                     toast("That group invite has expired. Ask for a new one.")
                     return false
                 }
-                toast("You're in: ${GroupSync.group.value?.name ?: "gig group"}")
+                // Scanning the crew QR is the choice to be found tonight: go live straight away.
+                setVisibility(true)
+                toast("You're in ${GroupSync.group.value?.name ?: "the crew"}! Everyone in it can find each other.")
             }
             is nz.waveformlabs.moshpoint.core.Invite.Friend -> {
                 if (inv.name.isBlank()) {
@@ -154,7 +153,7 @@ class MainActivity : ComponentActivity() {
                 } else {
                     // Add straight away, then prompt to link back.
                     val err = FriendsRepository.add(inv.name, inv.code, false, VisibilityPrefs.mySecret(this))
-                    if (err != null) toast(err) else justAdded = inv.name
+                    toast(err ?: "✓ ${inv.name} added")
                 }
             }
             null -> {
@@ -282,24 +281,6 @@ class MainActivity : ComponentActivity() {
                             },
                         )
                     }
-                }
-                justAdded?.let { who ->
-                    AlertDialog(
-                        onDismissRequest = { justAdded = null },
-                        title = { Text("✓  $who added") },
-                        text = {
-                            Text(
-                                "You'll see their arrow whenever they're live.\n\n" +
-                                    "Now let $who add you back, so they can find you too: show them your QR, or send your invite.",
-                            )
-                        },
-                        confirmButton = {
-                            TextButton(onClick = { justAdded = null; showQr = true }) { Text("Show my QR") }
-                        },
-                        dismissButton = {
-                            TextButton(onClick = { justAdded = null; shareCode(myCode) }) { Text("Send invite") }
-                        },
-                    )
                 }
                 if (showQr) {
                     MyQrDialog(
@@ -441,7 +422,7 @@ class MainActivity : ComponentActivity() {
                             onShareCode = { shareCode(myCode) },
                             onPasteInvite = ::pasteInvite,
                             onShareApp = { shareApp(myCode) },
-                            onShowQr = { showQr = true },
+                            onShowQr = { ensureCrew(); showGroupQr = true },
                             onScanQr = {
                                 scanQr.launch(
                                     ScanOptions()
@@ -454,7 +435,7 @@ class MainActivity : ComponentActivity() {
                             scanned = scanned,
                             onScannedUsed = { scanned = null },
                             onAdd = { name, code, gig ->
-                                FriendsRepository.add(name, code, gig, mySecret).also { if (it == null) justAdded = name.trim() }
+                                FriendsRepository.add(name, code, gig, mySecret).also { if (it == null) toast("✓ ${name.trim()} added") }
                             },
                             onRemove = FriendsRepository::remove,
                             onSetPhoto = { id ->
@@ -466,7 +447,12 @@ class MainActivity : ComponentActivity() {
                             groupName = GroupSync.group.value?.name,
                             onStartGroup = { name ->
                                 GroupSync.startNew(this@MainActivity, name)
+                                setVisibility(true)
                                 showGroupQr = true
+                            },
+                            onKeepFriend = { id ->
+                                FriendsRepository.keepAsFriend(id)
+                                toast("Added to your friends")
                             },
                             onShowGroupQr = { showGroupQr = true },
                             onAddSimulated = if (DebugStatus.enabled) FriendsRepository::addSimulated else null,
@@ -534,22 +520,22 @@ class MainActivity : ComponentActivity() {
             putExtra(
                 Intent.EXTRA_TEXT,
                 "Get Moshpoint so we can find each other at gigs: tap a mate and an arrow points to them.\n\n" +
-                    getTheApp + QrPayload.of(code, myName),
+                    getTheApp + GigGroup.qr(ensureCrew()),
             )
         }
         startActivity(Intent.createChooser(send, "Share Moshpoint"))
     }
 
-    private fun shareCode(code: String) {
-        val send = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(
-                Intent.EXTRA_TEXT,
-                "Add me on Moshpoint so we can find each other!\n" + getTheApp + QrPayload.of(code, myName),
-            )
-        }
-        startActivity(Intent.createChooser(send, "Send your Moshpoint invite"))
+    /** Your crew for tonight, starting one (named after you) if there isn't one. Also goes live. */
+    private fun ensureCrew(): GigGroup {
+        GroupSync.group.value?.let { return it }
+        val name = if (myName.isNotBlank()) "${myName.trim()}'s crew" else "Tonight's crew"
+        GroupSync.startNew(this, name)
+        setVisibility(true)
+        return GroupSync.group.value!!
     }
+
+    private fun shareCode(@Suppress("UNUSED_PARAMETER") code: String) = shareGroup(ensureCrew())
 
     private fun shareGroup(g: GigGroup) {
         val send = Intent(Intent.ACTION_SEND).apply {
