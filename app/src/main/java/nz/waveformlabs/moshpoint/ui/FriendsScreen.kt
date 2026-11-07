@@ -73,6 +73,7 @@ fun FriendsScreen(
     myName: String,
     onMyName: (String) -> Unit,
     missingPermissions: List<String>,
+    setupIssues: List<SetupIssue> = emptyList(),
     onFixPermissions: () -> Unit,
     onVisible: (Boolean) -> Unit,
     onAlwaysOn: (Boolean) -> Unit,
@@ -254,6 +255,29 @@ fun FriendsScreen(
                         onClick = onFixPermissions, shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Mosh.Red, contentColor = Color.White),
                     ) { Text("Allow", style = Mosh.Label.copy(color = Color.White)) }
+                }
+            }
+        }
+
+        // Phone switches that must be on (Bluetooth, Location...): the usual "why can't we find each other".
+        if (setupIssues.isNotEmpty()) {
+            item {
+                Column(
+                    Modifier.fillMaxWidth().background(Color(0xFF3A2A12), RoundedCornerShape(16.dp))
+                        .border(1.dp, Mosh.Amber.copy(alpha = 0.5f), RoundedCornerShape(16.dp)).padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Text("To find each other, switch these on", style = Mosh.Label.copy(color = Mosh.Amber))
+                    setupIssues.forEach { issue ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(issue.text, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp), modifier = Modifier.weight(1f))
+                            Spacer(Modifier.width(10.dp))
+                            Button(
+                                onClick = issue.onFix, shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Mosh.Amber, contentColor = Color(0xFF1A1000)),
+                            ) { Text(issue.button, style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF1A1000))) }
+                        }
+                    }
                 }
             }
         }
@@ -562,6 +586,9 @@ internal fun SettingsContent(
         }
     }
 }
+
+/** Something switched off on this phone that stops mates finding each other, with a one-tap fix. */
+class SetupIssue(val text: String, val button: String, val onFix: () -> Unit)
 
 /** Little "sliders" icon for the settings button. */
 @Composable

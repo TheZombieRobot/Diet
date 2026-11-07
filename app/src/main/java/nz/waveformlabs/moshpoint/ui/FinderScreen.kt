@@ -123,6 +123,8 @@ fun FinderScreen(
     onScan: () -> Unit,
     onCancelScan: () -> Unit,
     onDismissScan: () -> Unit,
+    /** A phone switch that's off (e.g. Bluetooth): shown at the top with its fix button. */
+    warning: SetupIssue? = null,
     onBack: () -> Unit,
     /** Only used in debug builds. Null in release. */
     debug: (@Composable (Modifier) -> Unit)? = null,
@@ -219,6 +221,16 @@ fun FinderScreen(
                 LivePill(visible)
             }
 
+            if (warning != null) {
+                Row(
+                    Modifier.fillMaxWidth().padding(top = 8.dp).background(Color(0xFF3A2A12), RoundedCornerShape(14.dp))
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(warning.text, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.Amber), modifier = Modifier.weight(1f))
+                    TextButton(onClick = warning.onFix) { Text(warning.button, style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber)) }
+                }
+            }
             Spacer(Modifier.height(14.dp))
             Text(if (scanning) "SCANNING FOR" else "FINDING", style = Mosh.Eyebrow)
             Spacer(Modifier.height(6.dp))

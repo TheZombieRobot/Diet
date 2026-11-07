@@ -85,6 +85,10 @@ class ScreensSnapshotTest {
                 friends = listOf(sam), visible = false, alwaysOn = false,
                 phoneSummary = "This phone: Bluetooth, compass, GPS",
                 myName = "", onMyName = {}, missingPermissions = listOf("Location: GPS arrow and Bluetooth/Wi-Fi distance"),
+                setupIssues = listOf(
+                    SetupIssue("Bluetooth is off. Nobody can find you, and you can't find them, without it.", "Turn on") {},
+                    SetupIssue("Location is off. GPS finding needs it, and many phones need it for Bluetooth finding too.", "Turn on") {},
+                ),
                 onFixPermissions = {}, onVisible = {}, onAlwaysOn = {}, onFind = {}, onShareCode = {}, onShowQr = {},
                 onScanQr = {}, scanned = null, onScannedUsed = {}, onAdd = { _, _, _ -> null }, onRemove = {},
                 onSetPhoto = {}, onRemovePhoto = {}, onClearGigGroup = {},

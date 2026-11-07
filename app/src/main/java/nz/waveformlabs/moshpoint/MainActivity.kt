@@ -117,6 +117,47 @@ class MainActivity : ComponentActivity() {
     private var finding by mutableStateOf(false)
     private var pendingStop: Job? = null
     private var askBattery by mutableStateOf(false)
+
+    /** Phone switches that are off but needed (Bluetooth, Location, ...). Refreshed on resume and when they change. */
+    private var setupIssues by mutableStateOf<List<nz.waveformlabs.moshpoint.ui.SetupIssue>>(emptyList())
+
+    private fun refreshSetupIssues() {
+        val out = mutableListOf<nz.waveformlabs.moshpoint.ui.SetupIssue>()
+        val bt = getSystemService(android.bluetooth.BluetoothManager::class.java)?.adapter
+        if (bt != null && !bt.isEnabled) {
+            out += nz.waveformlabs.moshpoint.ui.SetupIssue(
+                "Bluetooth is off. Nobody can find you, and you can't find them, without it.", "Turn on",
+            ) {
+                runCatching { startActivity(Intent(android.bluetooth.BluetoothAdapter.ACTION_REQUEST_ENABLE)) }
+                    .onFailure { runCatching { startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) } }
+            }
+        }
+        val loc = getSystemService(android.location.LocationManager::class.java)
+        if (loc != null && !loc.isLocationEnabled) {
+            out += nz.waveformlabs.moshpoint.ui.SetupIssue(
+                "Location is off. GPS finding needs it, and many phones need it for Bluetooth finding too.", "Turn on",
+            ) { runCatching { startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)) } }
+        }
+        if (engine.capabilities.wifiAware) {
+            val wifi = applicationContext.getSystemService(android.net.wifi.WifiManager::class.java)
+            if (wifi != null && !wifi.isWifiEnabled) {
+                out += nz.waveformlabs.moshpoint.ui.SetupIssue(
+                    "Wi-Fi is off. Turn it on for more precise distance (you don't need to join a network).", "Turn on",
+                ) { runCatching { startActivity(Intent(Settings.Panel.ACTION_WIFI)) } }
+            }
+        }
+        val power = getSystemService(PowerManager::class.java)
+        if (visibleToMates && power != null && !power.isIgnoringBatteryOptimizations(packageName)) {
+            out += nz.waveformlabs.moshpoint.ui.SetupIssue(
+                "Battery saving may stop Moshpoint when it's closed, so mates can't find you.", "Fix",
+            ) { askBattery = true }
+        }
+        setupIssues = out
+    }
+
+    private val radioReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(c: android.content.Context, i: Intent) = refreshSetupIssues()
+    }
     private var missing by mutableStateOf<List<String>>(emptyList())
     private var showQr by mutableStateOf(false)
     private var myName by mutableStateOf("")
@@ -195,6 +236,7 @@ class MainActivity : ComponentActivity() {
 
     private val askPermissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         missing = missingPermissions()
+        refreshSetupIssues()
     }
 
     /** Plain-English reasons for whatever's still not allowed. */
@@ -227,6 +269,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         missing = missingPermissions()
+        refreshSetupIssues()
         // May have changed from the notification's Stop button or the Quick Settings tile.
         visibleToMates = VisibilityPrefs.isVisible(this)
         calmMotion = shouldCalm()
@@ -362,6 +405,7 @@ class MainActivity : ComponentActivity() {
                                 finding = false
                                 stopEngineSoon()
                             },
+                            warning = setupIssues.firstOrNull { !it.text.startsWith("Battery") },
                             debug = if (DebugStatus.enabled) {
                                 { mod ->
                                     val rows by engine.debugRows.collectAsState()
@@ -402,6 +446,7 @@ class MainActivity : ComponentActivity() {
                             alwaysOn = alwaysOn,
                             phoneSummary = phoneSummary,
                             missingPermissions = missing,
+                            setupIssues = setupIssues,
                             myName = myName,
                             onMyName = {
                                 myName = it
@@ -482,6 +527,7 @@ class MainActivity : ComponentActivity() {
             return
         }
         visibleToMates = on
+        refreshSetupIssues()
         if (on) VisibilityService.start(this) else VisibilityService.stop(this)
         val power = getSystemService(PowerManager::class.java)
         if (on && power != null && !power.isIgnoringBatteryOptimizations(packageName)) askBattery = true
@@ -564,6 +610,7 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         super.onStop()
         runCatching { unregisterReceiver(powerSaveReceiver) }
+        runCatching { unregisterReceiver(radioReceiver) }
         pendingGroupRelease?.cancel()
         pendingGroupRelease = lifecycleScope.launch {
             delay(20_000)
@@ -589,6 +636,15 @@ class MainActivity : ComponentActivity() {
         super.onStart()
         androidx.core.content.ContextCompat.registerReceiver(
             this, powerSaveReceiver, android.content.IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED),
+            androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
+        androidx.core.content.ContextCompat.registerReceiver(
+            this, radioReceiver,
+            android.content.IntentFilter().apply {
+                addAction(android.bluetooth.BluetoothAdapter.ACTION_STATE_CHANGED)
+                addAction(android.location.LocationManager.MODE_CHANGED_ACTION)
+                addAction(android.net.wifi.WifiManager.WIFI_STATE_CHANGED_ACTION)
+            },
             androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED,
         )
         pendingGroupRelease?.cancel()
