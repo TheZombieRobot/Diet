@@ -231,7 +231,8 @@ fun FriendsScreen(
                     modifier = Modifier.pressScale(sc).size(44.dp).background(Mosh.Surface, RoundedCornerShape(14.dp)).border(1.dp, Mosh.Line, RoundedCornerShape(14.dp)),
                 ) { SlidersIcon() }
             }
-            Text(phoneSummary, style = Mosh.Eyebrow.copy(fontSize = 12.sp, letterSpacing = 0.sp))
+            // Which radios this phone has: handy when testing; everyone can still see it in Settings.
+            if (BuildConfig.DEBUG && DebugStatus.showUi) Text(phoneSummary, style = Mosh.Eyebrow.copy(fontSize = 12.sp, letterSpacing = 0.sp))
         }
         if (missingPermissions.isNotEmpty()) {
             item {
