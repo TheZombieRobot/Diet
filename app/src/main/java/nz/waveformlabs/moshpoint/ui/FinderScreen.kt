@@ -128,6 +128,8 @@ fun FinderScreen(
     debug: (@Composable (Modifier) -> Unit)? = null,
 ) {
     var showDebug by remember { mutableStateOf(false) }
+    // Back goes to the friends list, not out of the app (the debug panel's own handler, added later, wins while it's open).
+    androidx.activity.compose.BackHandler(onBack = onBack)
     val haptics = LocalHapticFeedback.current
     LaunchedEffect(scan?.done) {
         if (scan?.done == true) haptics.performHapticFeedback(HapticFeedbackType.LongPress)
