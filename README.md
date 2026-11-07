@@ -10,7 +10,7 @@ Find your mates at a gig. Open the app, tap a friend, and an arrow points you to
 - **Brief:** [`docs/BRIEF.md`](docs/BRIEF.md), the product brief, word for word.
 - **How it works:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 - **What's done / next:** [`docs/ROADMAP.md`](docs/ROADMAP.md)
-- **Design:** the screens are drawn on a Claude design canvas (ask Claude for the link); `ui/Theme.kt` holds its colours and type.
+- **Design:** neon party, premium finish, drawn on a Claude design canvas (ask Claude for the link). `ui/Theme.kt` holds the colours and type (Unbounded + Inter, bundled), `ui/Neon.kt` the motion kit (glows, radar, running neon border, shimmer, rolling numbers, confetti).
 - **Testing on real phones:** [`docs/FIELD_TEST_PLAN.md`](docs/FIELD_TEST_PLAN.md); analyse recordings with `python3 tools/analyze_recording.py <file.csv>`
 
 ## Layout
@@ -76,16 +76,17 @@ Wi-Fi as your laptop can use `-Pmoshpoint.server=http://<laptop-ip>:8080` for te
 
 ## Trying it on two phones (current build)
 
-1. Install on both phones and allow the permissions. The top of the friends screen shows
+1. Install on both phones. The first launch shows a short welcome; on step 2 tap
+   **Allow** and accept everything. The top of the friends screen shows
    what the phone has, e.g. "This phone: UWB, Wi-Fi Aware, Bluetooth, compass, GPS".
 2. Type your name at the top. Phone A taps **Show my QR**; phone B taps **Scan their QR**
    and then **Add friend**. Swap and do it the other way too.
    (No camera handy? **Share my code** sends it by message; paste the whole message in.)
-   **Or as a gig group:** one phone taps **Start a gig group** and shows the QR; the
-   other taps **Join (scan QR)**. Members appear in each other's gig group within a
+   **Or as a crew:** one phone taps **Start a group** and shows the QR; the
+   other taps **Join a group**. Members appear in each other's gig group within a
    few seconds (needs Bluetooth 5 extended adverts, or the relay server).
-3. Phone A: switch on **Visible to my mates** (or add the **Moshpoint** tile to Quick
-   Settings and tap it; the notification has a **Stop being visible** button).
+3. Phone A: tap the **Go live** card (or add the **Moshpoint** tile to Quick Settings and
+   tap it; the notification has a **Stop being visible** button).
 4. Phone B: tap phone A's name. Walk around. You should see the distance and warmer/colder.
    Press **Scan**, hold the phone flat on your chest and turn slowly: an arrow should appear.
 5. **If both phones have UWB:** within about 50 m the arrow should lock on and the distance

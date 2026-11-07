@@ -15,10 +15,10 @@ That's what lets the distance and direction maths get tuned to real phones and r
 - [ ] Two phones, both charged. Ideally **one with UWB and one without** (UWB: Pixel 6 Pro / 7 Pro / 8 Pro / 9 Pro / Fold, Samsung Galaxy S21+/Ultra and newer Ultras/+ models, some Z Folds).
   Check: the top of the friends screen shows "This phone: UWB, ..." if it has it.
 - [ ] Install the debug APK on both (GitHub → Actions → latest green "Android build" run → Artifacts → `moshpoint-debug-apk`).
-- [ ] Open the app on both and allow **every** permission. If a red "Moshpoint still needs" box shows, tap **Allow**.
+- [ ] Open the app on both. Go through the welcome and tap **Allow** on step 2, accepting **every** permission. If a "Moshpoint still needs" box shows later, tap **Allow**.
 - [ ] Bluetooth **on**, Wi-Fi **on** (doesn't need to be connected), Location **on**, on both.
-- [ ] Battery optimisation: when you switch visibility on, accept the prompt and set Moshpoint to "Unrestricted" / "Don't optimise".
-- [ ] Type your names at the top. Add each other with **Show my QR** / **Scan their QR** (both ways round).
+- [ ] Battery optimisation: when you **Go live**, accept the prompt and set Moshpoint to "Unrestricted" / "Don't optimise".
+- [ ] Add each other with **Show my QR** / **Scan their QR** (both ways round), or start a crew with **Start a group** and have the other phone **Join a group**.
 - [ ] Optional: long-press each other → **Set photo**.
 - [ ] Note the battery % on both phones and the time.
 
@@ -29,11 +29,13 @@ Names below: **A** = the phone being found (visible). **B** = the phone looking.
 On either phone, no second person needed:
 
 - [ ] Friends screen → **Debug: add simulated friend** → tap "Sim 1".
-- [ ] The arrow should appear (GPS, red), get closer over ~2 min, fade to the friend's colour, and switch methods as it comes in: debug label `GPS` → `UWB` (or `Wi-Fi`/`BT` on a non-UWB phone).
+- [ ] The arrow should appear (GPS, hot pink), get closer over ~2 min, glow into the friend's colour, and switch methods as it comes in: debug label `GPS` → `UWB` (or `Wi-Fi`/`BT` on a non-UWB phone).
 - [ ] Turn on the spot: the arrow should swivel smoothly and keep pointing the same real-world way.
 - [ ] Tap **Debug**. Check the method table updates, and the switch log shows hand-overs.
 - [ ] In the debug panel, set the simulator to **UWB ✗** and **restart walk**: should fall back to Wi-Fi/BT distance with no arrow when close. Press **Scan**, turn a full circle: the ring should fill, the phone buzzes, and an arrow appears.
 - [ ] Try **data ✗**: far away readings should come from `crowd` instead of `GPS`.
+- [ ] Let the sim walk in under 3 m: the **You found them** confetti screen should pop, with a buzz. **Keep the arrow** dismisses it until they wander >8 m away.
+- [ ] Watch the animations: smooth arrow swivel (no jumps through 180°), rolling distance, radar while searching, running neon border on the live card. Note anything that stutters and on which phone.
 
 Anything wrong here is a UI/logic bug, not a radio problem: screenshot it.
 
@@ -41,7 +43,7 @@ Anything wrong here is a UI/logic bug, not a radio problem: screenshot it.
 
 Somewhere open: a park or field. On **B**: Debug → **● record**.
 
-- [ ] A: switch on **Visible to my mates**. A notification should appear on A.
+- [ ] A: tap **Go live**. A notification should appear on A.
 - [ ] B: tap A's name.
 
 ### 2a. Bluetooth distance
@@ -72,7 +74,7 @@ On **B**: **■ stop**, then **share last** and send me the CSV.
 
 ## 3. Background and battery (1 hour, can overlap with 4)
 
-- [ ] A: visible on, then **close the app** (swipe away) and **lock the screen**. Put it in a pocket.
+- [ ] A: live, then **close the app** (swipe away) and **lock the screen**. Put it in a pocket.
 - [ ] B: after 2 min, 10 min, 30 min: can B still see A? (`BT scan (looking)` in Technology status shows when it last heard A.)
 - [ ] Toggle Bluetooth off and on on A. B should see A again within ~30 s.
 - [ ] After 1 hour, note battery % on A (visible all hour) and B. Mark it in a recording.
