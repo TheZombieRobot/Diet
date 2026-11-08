@@ -300,7 +300,7 @@ fun FriendsScreen(
                 }
                 if (!following) LivePill(visible, ghost) { onVisible(!visible) }
             }
-            if (!visible && groupName != null && !crewSleeping) {
+            if (!visible && groupName != null && !crewSleeping && !following) {
                 Spacer(Modifier.height(8.dp))
                 Text("You're hidden from your crew. Tap Go live when you want to be found.", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
             }
