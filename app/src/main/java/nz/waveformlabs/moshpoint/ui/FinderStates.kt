@@ -343,3 +343,54 @@ internal fun BeaconOverlay(colour: Color, colourName: String, onStop: () -> Unit
         )
     }
 }
+
+/**
+ * Feel the find (like Precision Finding): a soft tick that speeds up as you close in, and a
+ * click each time the signal says "warmer". Silent when far away or once found.
+ */
+@Composable
+internal fun FindHaptics(arrows: List<ArrowState>) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val vibrator = remember {
+        runCatching {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                context.getSystemService(android.os.VibratorManager::class.java)?.defaultVibrator
+            } else {
+                @Suppress("DEPRECATION")
+                context.getSystemService(android.os.Vibrator::class.java)
+            }
+        }.getOrNull()
+    }
+    val closest = arrows.mapNotNull {
+        when (it) {
+            is ArrowState.DistanceOnly -> it.distanceM
+            is ArrowState.Pointing -> it.distanceM
+            else -> null
+        }
+    }.minOrNull()
+    val warmer = arrows.any { it is ArrowState.DistanceOnly && it.trend == Trend.WARMER }
+    val d = androidx.compose.runtime.rememberUpdatedState(closest)
+    fun buzz(effect: Int) {
+        runCatching { vibrator?.vibrate(android.os.VibrationEffect.createPredefined(effect)) }
+    }
+    LaunchedEffect(warmer) { if (warmer) buzz(android.os.VibrationEffect.EFFECT_CLICK) }
+    LaunchedEffect(vibrator) {
+        if (vibrator == null) return@LaunchedEffect
+        while (true) {
+            val m = d.value
+            val gap = when {
+                m == null || m < 3.0 || m > 60.0 -> null
+                m < 10.0 -> 500L
+                m < 25.0 -> 1_100L
+                else -> 2_400L
+            }
+            if (gap == null) {
+                kotlinx.coroutines.delay(1_000)
+            } else {
+                buzz(android.os.VibrationEffect.EFFECT_TICK)
+                kotlinx.coroutines.delay(gap)
+            }
+        }
+    }
+}
+

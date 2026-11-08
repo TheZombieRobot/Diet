@@ -71,7 +71,7 @@ class VisibilityService : LifecycleService() {
         if (!startInForeground()) {
             // Android refused (e.g. restarted from the background on Android 12+). Give up
             // quietly; visibility comes back next time the app is opened.
-            VisibilityPrefs.setVisible(this, false) // so the app and tile don't claim we're visible
+            VisibilityPrefs.markStopped(this) // so the app and tile don't claim we're visible
             stopSelf()
             return START_NOT_STICKY
         }
@@ -213,6 +213,7 @@ class VisibilityService : LifecycleService() {
     }
 
     override fun onDestroy() {
+        running = false
         rotateJob?.cancel()
         radios?.stop()
         uploader?.stop()
@@ -236,20 +237,7 @@ class VisibilityService : LifecycleService() {
         nm.createNotificationChannel(
             NotificationChannel(CHANNEL, getString(R.string.visibility_channel), NotificationManager.IMPORTANCE_LOW),
         )
-        val open = PendingIntent.getActivity(
-            this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE,
-        )
-        val stopIntent = PendingIntent.getService(
-            this, 1, Intent(this, VisibilityService::class.java).setAction(ACTION_STOP), PendingIntent.FLAG_IMMUTABLE,
-        )
-        val notification: Notification = NotificationCompat.Builder(this, CHANNEL)
-            .setContentTitle(getString(R.string.visibility_notification))
-            .setSmallIcon(R.drawable.ic_launcher_monochrome)
-            .setOngoing(true)
-            .setContentIntent(open)
-            .addAction(0, "Go hidden", stopIntent)
-            .setColor(0xFFB6FF3B.toInt())
-            .build()
+        val notification: Notification = buildNotification(this, crewLine)
         // Add the location type when we can, so GPS sharing keeps working with the app
         // closed. Android refuses it in some cases (e.g. started at boot without the
         // app being opened), so fall back to Bluetooth-only visibility.
@@ -258,9 +246,10 @@ class VisibilityService : LifecycleService() {
         val canLocate = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
         return try {
             ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, if (canLocate) withLocation else base)
+            running = true
             true
         } catch (e: SecurityException) {
-            runCatching { ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, base) }.isSuccess
+            runCatching { ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, base) }.isSuccess.also { running = it }
         } catch (e: IllegalStateException) {
             false // ForegroundServiceStartNotAllowedException
         }
@@ -268,6 +257,40 @@ class VisibilityService : LifecycleService() {
 
     companion object {
         private const val CHANNEL = "visibility"
+
+        @Volatile private var running = false
+        @Volatile private var crewLine: String? = null
+
+        /**
+         * The ongoing notification, like a Live Activity: "You're live" plus where the crew is
+         * ("Bevan 40 m · Jo 1.2 km"). Tap opens the app; "Go hidden" stops sharing.
+         */
+        private fun buildNotification(c: Context, crew: String?): Notification {
+            val open = PendingIntent.getActivity(c, 0, Intent(c, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
+            val stopIntent = PendingIntent.getService(
+                c, 1, Intent(c, VisibilityService::class.java).setAction(ACTION_STOP), PendingIntent.FLAG_IMMUTABLE,
+            )
+            return NotificationCompat.Builder(c, CHANNEL)
+                .setContentTitle(c.getString(R.string.visibility_notification))
+                .apply { if (crew != null) setContentText(crew).setStyle(NotificationCompat.BigTextStyle().bigText(crew)) }
+                .setSmallIcon(R.drawable.ic_launcher_monochrome)
+                .setOngoing(true)
+                .setOnlyAlertOnce(true)
+                .setContentIntent(open)
+                .addAction(0, "Go hidden", stopIntent)
+                .setColor(0xFFB6FF3B.toInt())
+                .build()
+        }
+
+        /** Update the crew line in the live notification (no-op while hidden). */
+        fun showCrew(c: Context, line: String?) {
+            if (line == crewLine) return
+            crewLine = line
+            if (!running) return
+            runCatching {
+                c.getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, buildNotification(c.applicationContext, line))
+            }
+        }
         private const val REQUEST_CHANNEL = "requests"
         private const val REQUEST_NOTIFICATION_BASE = 5000
         private const val NOTIFICATION_ID = 1

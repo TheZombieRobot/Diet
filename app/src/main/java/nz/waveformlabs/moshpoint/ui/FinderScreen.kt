@@ -130,6 +130,7 @@ fun FinderScreen(
         showing[0] = distances.filter { it.second < FOUND_M && it.first !in dismissed }.minByOrNull { it.second }?.first
     }
     val found = showing[0]
+    if (!scanning) FindHaptics(arrows)
     LaunchedEffect(found) { if (found != null) onFound(found) }
     LaunchedEffect(found) {
         if (found != null) haptics.performHapticFeedback(HapticFeedbackType.LongPress)

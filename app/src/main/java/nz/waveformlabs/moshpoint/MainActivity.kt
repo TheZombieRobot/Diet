@@ -246,6 +246,29 @@ class MainActivity : ComponentActivity() {
         return true
     }
 
+    /** An invite found on the clipboard when the app opens: (invite text, "Bevan's crew"). */
+    private var clipInvite by mutableStateOf<Pair<String, String>?>(null)
+
+    /**
+     * Opened the app with a crew invite copied (from WhatsApp, Messenger...)? Offer to join
+     * straight away: no Paste button to find. Each invite is only offered once.
+     */
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (!hasFocus || !onboarded || clipInvite != null) return
+        val cm = getSystemService(android.content.ClipboardManager::class.java) ?: return
+        if (cm.primaryClipDescription?.hasMimeType("text/*") != true) return
+        val text = runCatching { cm.primaryClip?.getItemAt(0)?.coerceToText(this)?.toString() }.getOrNull() ?: return
+        val inv = nz.waveformlabs.moshpoint.core.Invite.find(text) as? nz.waveformlabs.moshpoint.core.Invite.Group ?: return
+        val g = GigGroup.parseQr(inv.qrText, System.currentTimeMillis()) ?: return
+        if (GroupSync.group.value?.key?.contentEquals(g.key) == true) return // already in it
+        val seenKey = inv.qrText.hashCode().toString()
+        val p = getSharedPreferences("clip", MODE_PRIVATE)
+        if (p.getString("offered", null) == seenKey) return
+        p.edit().putString("offered", seenKey).apply()
+        clipInvite = text to g.name
+    }
+
     private fun pasteInvite() {
         val cm = getSystemService(android.content.ClipboardManager::class.java)
         val text = cm?.primaryClip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(this)?.toString()
@@ -319,6 +342,11 @@ class MainActivity : ComponentActivity() {
         refreshSetupIssues()
         // May have changed from the notification's Stop button or the Quick Settings tile.
         visibleToMates = VisibilityPrefs.isVisible(this)
+        // In a crew tonight? Then you're findable, without having to remember a switch,
+        // unless you've chosen to hide.
+        if (!visibleToMates && onboarded && GroupSync.group.value != null && !VisibilityPrefs.userHid(this) && missing.isEmpty()) {
+            setVisibility(true)
+        }
         calmMotion = shouldCalm()
         // Your photo out to friends, theirs in (each at most a few times a day).
         AvatarSync.publishMine(this)
@@ -596,6 +624,9 @@ class MainActivity : ComponentActivity() {
                                 java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(java.util.Date(it * 1000))
                             },
                             onHomeSafe = { GroupSync.homeSafe(this@MainActivity) },
+                            distances = CrewStatus.distances,
+                            crewQrPayload = GroupSync.group.value?.let { crewQr(it) },
+                            onQuickCrew = { ensureCrew() },
                             onOpenMoment = momentFlow::view,
                             ghost = GhostMode.on.value,
                             onAddSimulated = if (DebugStatus.enabled) FriendsRepository::addSimulated else null,
@@ -615,6 +646,24 @@ class MainActivity : ComponentActivity() {
                     }
                     }
                     momentFlow.Dialogs()
+                    clipInvite?.let { (text, name) ->
+                        androidx.compose.material3.AlertDialog(
+                            onDismissRequest = { clipInvite = null },
+                            containerColor = Mosh.Deep,
+                            title = { androidx.compose.material3.Text("Join $name?", style = Mosh.Heading) },
+                            text = { androidx.compose.material3.Text("You copied a Moshpoint invite. Join and you can all find each other tonight.", style = Mosh.Body) },
+                            confirmButton = {
+                                androidx.compose.material3.TextButton(onClick = { clipInvite = null; handleInvite(text) }) {
+                                    androidx.compose.material3.Text("Join", style = Mosh.Label.copy(color = Mosh.Lime))
+                                }
+                            },
+                            dismissButton = {
+                                androidx.compose.material3.TextButton(onClick = { clipInvite = null }) {
+                                    androidx.compose.material3.Text("Not now", style = Mosh.Label)
+                                }
+                            },
+                        )
+                    }
                     recap?.let { s ->
                         androidx.compose.material3.AlertDialog(
                             onDismissRequest = { recap = null },

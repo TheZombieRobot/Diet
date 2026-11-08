@@ -16,7 +16,13 @@ object VisibilityPrefs {
     private fun prefs(c: Context) = c.getSharedPreferences(FILE, Context.MODE_PRIVATE)
 
     fun isVisible(c: Context) = prefs(c).getBoolean("visible", false)
-    fun setVisible(c: Context, v: Boolean) = prefs(c).edit().putBoolean("visible", v).apply()
+    fun setVisible(c: Context, v: Boolean) = prefs(c).edit().putBoolean("visible", v).putBoolean("user_hid", !v).apply()
+
+    /** Not visible, but not the user's choice (Android refused): fine to go live again later. */
+    fun markStopped(c: Context) = prefs(c).edit().putBoolean("visible", false).apply()
+
+    /** The user chose to hide (switch, notification, tile): never go live for them automatically. */
+    fun userHid(c: Context) = prefs(c).getBoolean("user_hid", false)
 
     /** "Leave visibility always on": restart after reboot if it was on. */
     fun alwaysOn(c: Context) = prefs(c).getBoolean("always_on", false)

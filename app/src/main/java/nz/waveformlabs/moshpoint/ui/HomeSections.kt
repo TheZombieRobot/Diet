@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -75,12 +76,13 @@ internal fun LivePill(live: Boolean, ghost: Boolean, onToggle: () -> Unit) {
 }
 
 /** "live · 40 m" / "12 min ago · 8%" under a crew member, from their last shared spot. */
-private fun tileStatus(s: LocationBook.Seen?, nowSec: Long): Pair<String, Color> {
-    if (s == null) return "not sharing" to Mosh.TextFaint
+private fun tileStatus(s: LocationBook.Seen?, nowSec: Long, distanceM: Double?): Pair<String, Color> {
+    if (s == null) return "not sharing yet" to Mosh.TextFaint
     val age = nowSec - s.timeSec
-    val battery = s.batteryPct?.let { " · $it%" }.orEmpty()
+    val battery = s.batteryPct?.takeIf { it <= 20 }?.let { " · $it%" }.orEmpty() // only worth saying when low
     return when {
         s.lastGasp -> "phone died" to Mosh.Danger
+        distanceM != null -> "${distanceLabel(distanceM)}$battery" to (if (age < 180) Mosh.Lime else Mosh.TextDim)
         age < 120 -> "live$battery" to Mosh.Lime
         else -> "${ago(age)}$battery" to Mosh.TextFaint
     }
@@ -95,6 +97,7 @@ internal fun CrewTiles(
     nowSec: Long,
     onFind: (String) -> Unit,
     onOptions: (Friend) -> Unit,
+    distances: Map<String, Double> = emptyMap(),
 ) {
     Row(
         Modifier.horizontalScroll(rememberScrollState()).padding(vertical = 10.dp, horizontal = 2.dp),
@@ -102,7 +105,7 @@ internal fun CrewTiles(
     ) {
         crew.forEachIndexed { i, f ->
             val bob = rememberFloat(i)
-            val (status, colour) = tileStatus(seen[f.id], nowSec)
+            val (status, colour) = tileStatus(seen[f.id], nowSec, distances[f.id])
             Column(
                 Modifier.width(78.dp)
                     .graphicsLayer { translationY = -3.dp.toPx() * bob.value }
@@ -311,3 +314,44 @@ internal fun CheckInBanner(byClock: String, onHomeSafe: () -> Unit) {
         TextButton(onClick = onHomeSafe) { Text("I'm home safe", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lime)) }
     }
 }
+
+/** Two calm secondary actions under "Find everyone". */
+@Composable
+internal fun CrewActions(onMessage: () -> Unit, onMoment: () -> Unit) {
+    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        GlassButton("💬  Message crew", Modifier.weight(1f), onClick = onMessage)
+        GlassButton("📷  Moment", Modifier.weight(1f), onClick = onMoment)
+    }
+}
+
+/** Everything you can tell the crew, in one sheet: pings, heading home, need help. */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+internal fun MessageSheet(onPing: (Int) -> Unit, onCheckIn: (Int) -> Unit, onClose: () -> Unit) {
+    androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, containerColor = Mosh.Deep) {
+        Column(
+            Modifier.fillMaxWidth().navigationBarsPadding().padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Text("Message the crew", style = Mosh.Heading)
+            Text("One tap: everyone in the crew gets it, with where you are.", style = Mosh.Body)
+            PingBar(onPing = { onPing(it) }, onCheckIn = { onCheckIn(it) })
+        }
+    }
+}
+
+/** No one's in the crew yet: the QR right here, no extra taps. */
+@Composable
+internal fun InlineCrewQr(payload: String, onShare: () -> Unit) {
+    val bmp = remember(payload) { qrBitmap(payload, 480).asImageBitmap() }
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+        androidx.compose.foundation.Image(
+            bmp, contentDescription = "Crew QR",
+            modifier = Modifier.size(200.dp).background(Color.White, RoundedCornerShape(18.dp)).padding(10.dp),
+        )
+        Spacer(Modifier.height(10.dp))
+        Text("Mates scan this with their camera or Moshpoint. That's it.", style = Mosh.Body.copy(fontSize = 14.sp), textAlign = TextAlign.Center)
+        TextButton(onClick = onShare) { Text("No camera? Send the invite", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
+    }
+}
+

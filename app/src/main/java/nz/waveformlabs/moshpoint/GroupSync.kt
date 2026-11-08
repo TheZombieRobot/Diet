@@ -20,6 +20,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.core.EphemeralId
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.core.LocationBox
 import nz.waveformlabs.moshpoint.locate.BleHub
 import nz.waveformlabs.moshpoint.locate.RelayClient
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
@@ -224,17 +225,30 @@ object GroupSync {
         if (myRally != null && now - rallyPostedAt > 10 * 60_000L) {
             if (RelayClient.put(g.rallyIdForDay(day), g.sealRally(myRally))) rallyPostedAt = now
         }
+        // One request for everything the crew shares: intros, meet-up pin, pings, and where
+        // each crew member is (so the home screen and notification show distances without
+        // anyone opening the map).
+        val crew = FriendsRepository.friends.filter { (it.gigGroupOnly || it.key in members) && !FriendsRepository.isSimulated(it.id) }.take(25)
+        val crewIds = crew.flatMap { f ->
+            val e = f.ephemeralId.epochAt(now)
+            listOf(f to f.ephemeralId.idForEpoch(e), f to f.ephemeralId.idForEpoch(e - 1))
+        }
         val ids = listOf(
             g.rosterIdForEpoch(epoch), g.rosterIdForEpoch(epoch - 1), g.rallyIdForDay(day), g.rallyIdForDay(day - 1),
             g.pingIdForEpoch(epoch), g.pingIdForEpoch(epoch - 1),
-        )
+        ) + crewIds.map { it.second }
         Moments.refresh(c, g)
         checkOverdue(c)
         val found = RelayClient.lookup(ids) ?: return
-        found.take(2).flatten().forEach { received(c, g, it) }
-        found.drop(4).flatten().forEach { blob -> g.openPing(blob)?.let { onPing(c, it, blob) } }
+        found.subList(0, 2).flatten().forEach { received(c, g, it) }
+        found.subList(4, 6).flatten().forEach { blob -> g.openPing(blob)?.let { onPing(c, it, blob) } }
+        crewIds.forEachIndexed { i, (f, id) ->
+            found[6 + i].forEach { sealed -> LocationBox.open(f.secret, id, sealed)?.let { LocationBook.update(f.id, it) } }
+        }
+        CrewStatus.refresh(c)
+        val rallyBoxes = found.subList(2, 4)
         // Newest pin from anyone in the crew wins (including "removed").
-        found.drop(2).take(2).flatten().mapNotNull { g.openRally(it) }.maxByOrNull { it.timeSec }?.let { r ->
+        rallyBoxes.flatten().mapNotNull { g.openRally(it) }.maxByOrNull { it.timeSec }?.let { r ->
             val latest = maxOf(rally.value?.timeSec ?: 0L, rallyClearedAt)
             if (r.timeSec > latest) {
                 rallyMine = false

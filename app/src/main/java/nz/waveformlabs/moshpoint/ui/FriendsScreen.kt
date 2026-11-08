@@ -105,6 +105,12 @@ fun FriendsScreen(
     /** "2:15 am" while we're checking in, else null. */
     checkInBy: String? = null,
     onHomeSafe: () -> Unit = {},
+    /** Metres to each crew member, worked out in the background. */
+    distances: Map<String, Double> = emptyMap(),
+    /** The crew QR's contents, shown right on the card while no one has joined. */
+    crewQrPayload: String? = null,
+    /** "Invite mates": start a crew named after you, no questions. Null = ask for a name. */
+    onQuickCrew: (() -> Unit)? = null,
     /** Debug builds only; null in release. */
     onAddSimulated: (() -> Unit)? = null,
     onSelfie: () -> Unit = {},
@@ -224,6 +230,8 @@ fun FriendsScreen(
     val gig = friends.filter { it.gigGroupOnly || it.key in crewKeys }
     val permanent = friends.filterNot { it.gigGroupOnly }
     var addOpen by remember { mutableStateOf(false) }
+    var messageOpen by remember { mutableStateOf(false) }
+    if (messageOpen) MessageSheet(onPing = { onPing(it) }, onCheckIn = { onCheckIn(it) }, onClose = { messageOpen = false })
     if (addOpen) {
         AddSheet(
             inCrew = groupName != null,
@@ -328,11 +336,11 @@ fun FriendsScreen(
                 ) {
                     if (groupName == null && gig.isEmpty()) {
                         Text("TONIGHT", style = Mosh.Eyebrow)
-                        Text("Find your mates at the gig", style = Mosh.Heading)
-                        Text("Start a crew and get everyone to scan your QR. Then you can all find each other, all night.", style = Mosh.Body)
-                        NeonButton("Start a crew") { naming = true }
+                        Text("Find your mates tonight", style = Mosh.Heading)
+                        Text("Invite them, they scan, done. Moshpoint does the rest.", style = Mosh.Body)
+                        NeonButton("Invite mates") { (onQuickCrew ?: { naming = true })() }
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            GlassButton("Join (scan QR)", Modifier.weight(1f), onClick = onScanQr)
+                            GlassButton("Scan an invite", Modifier.weight(1f), onClick = onScanQr)
                             GlassButton("Paste invite", Modifier.weight(1f), onClick = onPasteInvite)
                         }
                     } else {
@@ -341,7 +349,7 @@ fun FriendsScreen(
                                 Text("TONIGHT", style = Mosh.Eyebrow)
                                 Text(groupName ?: "Your crew", style = Mosh.Heading, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                             }
-                            TextButton(onClick = onShowGroupQr) { Text("Crew QR", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
+                            TextButton(onClick = onShowGroupQr) { Text("＋ Invite", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan)) }
                         }
                         if (meetUp != null) {
                             Row(
@@ -355,17 +363,15 @@ fun FriendsScreen(
                             }
                         }
                         if (gig.isEmpty()) {
-                            Text("No one's joined yet. Show them the crew QR: one scan and they're in.", style = Mosh.Body)
-                            NeonButton("Show crew QR", onClick = onShowGroupQr)
+                            if (crewQrPayload != null) InlineCrewQr(crewQrPayload, onShareCode)
+                            else NeonButton("Show crew QR", onClick = onShowGroupQr)
                         } else {
-                            CrewTiles(gig, seen, nowSec, onFind = { onFind(setOf(it)) }, onOptions = { options = it })
-                            NeonButton("Find the crew") { onFind(gig.map { it.id }.toSet()) }
-                        }
-                        if (groupName != null) {
+                            CrewTiles(gig, seen, nowSec, onFind = { onFind(setOf(it)) }, onOptions = { options = it }, distances = distances)
+                            NeonButton(if (gig.size == 1) "Find ${gig[0].name}" else "Find everyone") { onFind(gig.map { it.id }.toSet()) }
                             if (checkInBy != null) CheckInBanner(checkInBy, onHomeSafe)
-                            PingBar(onPing, onCheckIn)
-                            PingFeed(pings, nowSec, describePing)
-                            MomentStrip(moments, nowSec, onOpenMoment, onShareMoment)
+                            CrewActions(onMessage = { messageOpen = true }, onMoment = onShareMoment)
+                            PingFeed(pings.take(1), nowSec, describePing)
+                            if (moments.isNotEmpty()) MomentStrip(moments, nowSec, onOpenMoment, onShareMoment)
                         }
                         TextButton(onClick = onClearGigGroup) { Text("End the night", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Danger)) }
                     }
