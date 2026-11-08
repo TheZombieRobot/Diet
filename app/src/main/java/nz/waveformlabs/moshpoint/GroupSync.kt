@@ -7,10 +7,6 @@ import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertisingSet
 import android.bluetooth.le.AdvertisingSetCallback
 import android.bluetooth.le.AdvertisingSetParameters
-import android.bluetooth.le.ScanCallback
-import android.bluetooth.le.ScanFilter
-import android.bluetooth.le.ScanResult
-import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.os.ParcelUuid
 import android.util.Base64
@@ -24,6 +20,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.core.EphemeralId
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.locate.BleHub
 import nz.waveformlabs.moshpoint.locate.RelayClient
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 
@@ -48,7 +45,20 @@ object GroupSync {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var users = 0
     private var job: Job? = null
-    private var scanCallback: ScanCallback? = null
+    private var listening = false
+    private var postedEpoch = Long.MIN_VALUE
+    /** True while the app is on screen: scan for intros fast so people join in seconds. */
+    @Volatile var appOpen = false
+        private set
+
+    /** The app came on screen or went away: switch the intro scan between fast and low power. */
+    @Synchronized
+    fun setAppOpen(c: Context, open: Boolean) {
+        if (appOpen == open) return
+        appOpen = open
+        val g = group.value
+        if (listening && g != null) startListening(c.applicationContext, g)
+    }
     private var advertCallback: AdvertisingSetCallback? = null
     private var advertSet: AdvertisingSet? = null
 
@@ -72,7 +82,16 @@ object GroupSync {
     /** Returns false if [qrText] isn't a group QR. */
     fun join(c: Context, qrText: String): Boolean {
         val g = GigGroup.parseQr(qrText, System.currentTimeMillis()) ?: return false
-        set(c.applicationContext, g)
+        val app = c.applicationContext
+        val same = group.value?.key?.contentEquals(g.key) == true
+        if (!same) set(app, g)
+        // The person whose QR it was is in it: add them now, no waiting for an intro.
+        GigGroup.hostOf(qrText)?.let { host ->
+            if (!host.secret.contentEquals(VisibilityPrefs.mySecret(app))) {
+                FriendsRepository.unremove(host.secret)
+                FriendsRepository.addFromIntro(host.secret, host.name)
+            }
+        }
         return true
     }
 
@@ -101,7 +120,6 @@ object GroupSync {
     fun onBluetooth(c: Context, on: Boolean) {
         advertSet = null
         advertCallback = null
-        scanCallback = null
         if (on && users > 0) restart(c.applicationContext)
     }
 
@@ -126,33 +144,46 @@ object GroupSync {
         val mySecret = VisibilityPrefs.mySecret(c)
         val myName = VisibilityPrefs.myName(c).ifBlank { "Mate" }
         startListening(c, g)
+        postedEpoch = Long.MIN_VALUE
         job = scope.launch {
             var lastServer = 0L
-            var sealedEpoch = Long.MIN_VALUE
-            var intro = ByteArray(0)
+            var slot = 0
+            // Sealed intros, re-made once per rotation (the tag must keep changing). Reusing
+            // the bytes within a rotation lets the server de-duplicate repeat posts.
+            val sealed = HashMap<String, Pair<Long, ByteArray>>()
+            fun introFor(secret: ByteArray, name: String, now: Long): ByteArray {
+                val epoch = Math.floorDiv(now, EphemeralId.DEFAULT_ROTATION_MS)
+                val k = secret.joinToString("") { "%02x".format(it) }
+                sealed[k]?.let { if (it.first == epoch) return it.second }
+                return g.sealIntro(GigGroup.Intro(secret, name), now).also { sealed[k] = epoch to it }
+            }
             while (true) {
                 val now = System.currentTimeMillis()
-                // Seal once per epoch and reuse the bytes: the server de-duplicates identical
-                // posts, so each member keeps exactly one slot in the roster box.
-                val epoch = Math.floorDiv(now, EphemeralId.DEFAULT_ROTATION_MS)
-                if (epoch != sealedEpoch) {
-                    intro = g.sealIntro(GigGroup.Intro(mySecret, myName), now)
-                    sealedEpoch = epoch
+                val mine = introFor(mySecret, myName, now)
+                // Gossip: every other slot we pass on a crew member we know about, so the
+                // whole crew spreads through the room even if two of them never get close.
+                val members = FriendsRepository.friends.filter { it.gigGroupOnly }
+                val out = if (slot % 2 == 1 && members.isNotEmpty()) {
+                    val m = members[(slot / 2) % members.size]
+                    introFor(m.secret, m.name, now)
+                } else {
+                    mine
                 }
-                advertise(c, intro)
-                if (RelayClient.enabled && now - lastServer > 30_000) {
+                slot++
+                advertise(c, out)
+                if (now - lastServer > (if (RelayClient.ownServer) 30_000L else 55_000L)) {
                     lastServer = now
-                    syncServer(c, g, intro, now)
+                    syncServer(c, g, mine, now)
                 }
-                // Re-seal each rotation so the tag keeps changing.
-                delay(minOf(30_000L, (Math.floorDiv(now, EphemeralId.DEFAULT_ROTATION_MS) + 1) * EphemeralId.DEFAULT_ROTATION_MS - now + 50))
+                delay(2_500)
             }
         }
     }
 
     private suspend fun syncServer(c: Context, g: GigGroup, intro: ByteArray, now: Long) {
         val epoch = Math.floorDiv(now, EphemeralId.DEFAULT_ROTATION_MS)
-        RelayClient.put(g.rosterIdForEpoch(epoch), intro)
+        // Post once per rotation (the box id changes with it); just look the rest of the time.
+        if (epoch != postedEpoch && RelayClient.put(g.rosterIdForEpoch(epoch), intro)) postedEpoch = epoch
         val ids = listOf(g.rosterIdForEpoch(epoch), g.rosterIdForEpoch(epoch - 1))
         RelayClient.lookup(ids)?.flatten()?.forEach { received(c, g, it) }
     }
@@ -165,30 +196,18 @@ object GroupSync {
         }
     }
 
-    @SuppressLint("MissingPermission")
+    /** Listens through the app's one shared scan (see BleHub). Fast while the app is open. */
     private fun startListening(c: Context, g: GigGroup) {
         val adapter = c.getSystemService(BluetoothManager::class.java)?.adapter ?: return
-        if (!adapter.isEnabled || !adapter.isLeExtendedAdvertisingSupported) {
-            DebugStatus.set("Gig group", "Bluetooth intros unavailable (server only)")
+        if (!adapter.isLeExtendedAdvertisingSupported) {
+            DebugStatus.set("Gig group", "Bluetooth intros unavailable on this phone (internet only)")
             return
         }
-        val cb = object : ScanCallback() {
-            override fun onScanResult(callbackType: Int, result: ScanResult) {
-                result.scanRecord?.getServiceData(INTRO_UUID)?.let { received(c, g, it) }
-            }
-        }
-        try {
-            adapter.bluetoothLeScanner?.startScan(
-                listOf(ScanFilter.Builder().setServiceData(INTRO_UUID, ByteArray(0)).build()),
-                ScanSettings.Builder().setLegacy(false).setPhy(ScanSettings.PHY_LE_ALL_SUPPORTED)
-                    .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER).build(),
-                cb,
-            )
-            scanCallback = cb
-            DebugStatus.set("Gig group", "${g.name}: listening for members")
-        } catch (e: Exception) {
-            Log.w(TAG, "group scan failed", e)
-        }
+        BleHub.subscribe(c, this, BleHub.Sub(listOf(INTRO_UUID), fast = appOpen, unfiltered = false) { r ->
+            r.scanRecord?.getServiceData(INTRO_UUID)?.let { received(c, g, it) }
+        })
+        listening = true
+        DebugStatus.set("Gig group", "${g.name}: listening for members")
     }
 
     @SuppressLint("MissingPermission")
@@ -221,7 +240,7 @@ object GroupSync {
             adapter.bluetoothLeAdvertiser?.startAdvertisingSet(
                 AdvertisingSetParameters.Builder()
                     .setLegacyMode(false).setConnectable(false).setScannable(false)
-                    .setInterval(AdvertisingSetParameters.INTERVAL_HIGH) // ~1 s: intros aren't urgent
+                    .setInterval(AdvertisingSetParameters.INTERVAL_MEDIUM) // ~250 ms: each intro in the rotation gets heard
                     .setTxPowerLevel(AdvertisingSetParameters.TX_POWER_MEDIUM)
                     .setPrimaryPhy(BluetoothDevice.PHY_LE_1M).setSecondaryPhy(BluetoothDevice.PHY_LE_1M)
                     .build(),
@@ -237,13 +256,13 @@ object GroupSync {
     private fun stopRadio(c: Context) {
         job?.cancel()
         job = null
+        if (listening) BleHub.unsubscribe(c, this)
+        listening = false
         val adapter = c.getSystemService(BluetoothManager::class.java)?.adapter
         try {
-            scanCallback?.let { adapter?.bluetoothLeScanner?.stopScan(it) }
             advertCallback?.let { adapter?.bluetoothLeAdvertiser?.stopAdvertisingSet(it) }
         } catch (_: Exception) {
         }
-        scanCallback = null
         advertCallback = null
         advertSet = null
     }

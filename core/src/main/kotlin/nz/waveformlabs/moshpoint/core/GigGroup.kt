@@ -88,8 +88,29 @@ class GigGroup(val key: ByteArray, val name: String, val createdAtMs: Long) {
         private val dec = java.util.Base64.getUrlDecoder()
         private const val PREFIX = "moshpoint:group?key="
 
-        /** QR contents for joining. */
-        fun qr(group: GigGroup) = "$PREFIX${enc.encodeToString(group.key)}&name=${java.net.URLEncoder.encode(group.name, "UTF-8")}"
+        /**
+         * QR contents for joining. [host] (the person showing the QR) rides along, so whoever
+         * scans it can find the host straight away, before any Bluetooth or internet intro
+         * arrives. Host fields go before `name` so older versions still read the name.
+         */
+        fun qr(group: GigGroup, host: Intro? = null): String {
+            val h = host?.let {
+                "&h=${enc.encodeToString(it.secret)}&hn=${java.net.URLEncoder.encode(it.name.take(40), "UTF-8")}"
+            }.orEmpty()
+            return "$PREFIX${enc.encodeToString(group.key)}$h&name=${java.net.URLEncoder.encode(group.name, "UTF-8")}"
+        }
+
+        /** The host's intro carried in a group QR, if any. */
+        fun hostOf(text: String): Intro? {
+            val t = text.trim()
+            if (!t.startsWith(PREFIX)) return null
+            val params = t.removePrefix(PREFIX).split('&').drop(1)
+                .mapNotNull { p -> p.indexOf('=').takeIf { it > 0 }?.let { p.substring(0, it) to p.substring(it + 1) } }
+                .toMap()
+            val secret = params["h"]?.let { runCatching { dec.decode(it) }.getOrNull() }?.takeIf { it.size == 32 } ?: return null
+            val name = params["hn"]?.let { runCatching { java.net.URLDecoder.decode(it, "UTF-8") }.getOrNull() }.orEmpty()
+            return Intro(secret, name.ifBlank { "Host" })
+        }
 
         fun parseQr(text: String, nowMs: Long): GigGroup? {
             val t = text.trim()

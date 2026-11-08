@@ -54,7 +54,7 @@ class BleBroadcaster(
             if (running) runCatching { adv.stopAdvertising(callback) }
             val settings = AdvertiseSettings.Builder()
                 .setAdvertiseMode(mode)
-                .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
+                .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH) // crowds soak up 2.4 GHz: every dB of range helps
                 .setConnectable(false)
                 .build()
             val data = AdvertiseData.Builder()

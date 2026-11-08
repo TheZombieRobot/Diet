@@ -129,6 +129,11 @@ object FriendsRepository {
     /** Gig members you removed tonight: don't let their intro add them straight back. */
     private val removedGig = mutableSetOf<String>()
 
+    /** Scanning someone's QR again is a clear "yes, them": forget that you removed them. */
+    fun unremove(secret: ByteArray) {
+        removedGig -= secret.toHexKey()
+    }
+
     fun remove(id: String) {
         friends.firstOrNull { it.id == id && it.gigGroupOnly }?.let { removedGig += it.secret.toHexKey() }
         friends.removeAll { it.id == id }

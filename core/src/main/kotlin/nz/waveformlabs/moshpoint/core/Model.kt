@@ -11,11 +11,17 @@ enum class Method(val precision: Double, val maxAgeMs: Long, val givesDirection:
     /** Ultra-wideband: exact distance and angle within ~50 m. */
     UWB(precision = 1.0, maxAgeMs = 2_000, givesDirection = true),
 
-    /** Spin-to-scan: user turns in a circle, body shadow gives a rough bearing. */
-    SPIN_SCAN(precision = 0.6, maxAgeMs = 45_000, givesDirection = true),
+    /** GPS fixes shared through the internet relay, turned into an arrow with the compass. */
+    GPS_SERVER(precision = 0.5, maxAgeMs = 40_000, givesDirection = true),
 
-    /** GPS fixes shared through the server, turned into an arrow with the compass. */
-    GPS_SERVER(precision = 0.5, maxAgeMs = 20_000, givesDirection = true),
+    /**
+     * Spin-to-scan: user turns in a circle, body shadow gives a rough bearing. Field tests
+     * showed it's often wrong in a crowd, so it ranks below GPS and doesn't last long.
+     */
+    SPIN_SCAN(precision = 0.45, maxAgeMs = 30_000, givesDirection = true),
+
+    /** Walk-and-watch: which way you were walking when the Bluetooth signal got stronger. */
+    WALK(precision = 0.4, maxAgeMs = 20_000, givesDirection = true),
 
     /** GPS fixes that hopped phone to phone over Bluetooth through the crowd. */
     CROWD_RELAY(precision = 0.4, maxAgeMs = 60_000, givesDirection = true),

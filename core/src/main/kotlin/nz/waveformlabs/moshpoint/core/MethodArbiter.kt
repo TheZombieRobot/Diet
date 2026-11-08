@@ -32,7 +32,7 @@ class MethodArbiter(
     fun submit(fix: Fix) {
         latest[fix.friendId to fix.method] = fix
         if (fix.method == Method.BLE_RSSI || fix.method == Method.WIFI_AWARE) {
-            fix.distanceM?.let { rssiTrend.getOrPut(fix.friendId) { TrendTracker() }.add(it) }
+            fix.distanceM?.let { rssiTrend.getOrPut(fix.friendId) { TrendTracker() }.add(it, fix.timestampMs) }
         }
     }
 
@@ -138,24 +138,44 @@ fun MethodArbiter.debug(friendId: String, nowMs: Long, drivingMethod: Method?): 
         )
     }
 
-/** Tracks whether distance readings are shrinking (warmer) or growing (colder). */
-internal class TrendTracker(private val window: Int = 6, private val deadbandM: Double = 1.5) {
-    private val values = ArrayDeque<Double>()
+/**
+ * Tracks whether distance readings are shrinking (warmer) or growing (colder).
+ *
+ * Time-based, so it means the same however fast readings arrive: compares the last
+ * [recentMs] with the [recentMs]..[olderMs] before it. Works on the log of distance, so
+ * "20% closer" counts the same at 5 m as at 40 m (that's what the signal really tells us).
+ */
+internal class TrendTracker(
+    private val recentMs: Long = 3_000,
+    private val olderMs: Long = 8_000,
+    /** About 20% closer or further before we say so (roughly 2 dB of signal). */
+    private val deadband: Double = 0.08,
+) {
+    private val values = ArrayDeque<Pair<Long, Double>>()
 
-    fun add(distanceM: Double) {
-        values.addLast(distanceM)
-        while (values.size > window) values.removeFirst()
+    fun add(distanceM: Double, nowMs: Long) {
+        values.addLast(nowMs to kotlin.math.log10(distanceM.coerceAtLeast(0.1)))
+        while (values.isNotEmpty() && nowMs - values.first().first > olderMs) values.removeFirst()
     }
 
     fun trend(): Trend {
-        if (values.size < 3) return Trend.STEADY
-        val half = values.size / 2
-        val older = values.take(half).average()
-        val newer = values.drop(values.size - half).average()
+        val now = values.lastOrNull()?.first ?: return Trend.STEADY
+        var newer = values.filter { now - it.first <= recentMs }.map { it.second }
+        var older = values.filter { now - it.first > recentMs }.map { it.second }
+        if (older.size < 2 && now - values.first().first >= 1_500) {
+            // Just started: compare the first and second half of what we have.
+            val mid = (values.first().first + now) / 2
+            older = values.filter { it.first < mid }.map { it.second }
+            newer = values.filter { it.first >= mid }.map { it.second }
+        }
+        if (newer.size < 2 || older.size < 2) return Trend.STEADY
+        val diff = median(newer) - median(older)
         return when {
-            newer < older - deadbandM -> Trend.WARMER
-            newer > older + deadbandM -> Trend.COLDER
+            diff < -deadband -> Trend.WARMER
+            diff > deadband -> Trend.COLDER
             else -> Trend.STEADY
         }
     }
+
+    private fun median(v: List<Double>): Double = v.sorted().let { it[it.size / 2] }
 }

@@ -56,6 +56,12 @@ Friends' phones fetch and decrypt it. The server:
 Gig-group introductions (your finding key and name, encrypted with the group's key) may
 also be posted there briefly so group members can find each other.
 
+**Which relay:** test builds without their own server use the free public relay
+[ntfy.sh](https://ntfy.sh) for this. It gets exactly the same thing: encrypted bytes filed
+under a code that changes every 5 minutes. It can't read them or tell who you are, but like
+any website it sees your phone's internet address when it connects. ntfy.sh keeps messages
+for up to 12 hours (see its own privacy policy).
+
 **Your photo (optional):** if you set one, it's encrypted on your phone with a key only your
 friends have and stored under an id that changes weekly, for up to 8 days, so friends'
 phones can show your face. The server can't see it. Removing your photo shares an empty one,

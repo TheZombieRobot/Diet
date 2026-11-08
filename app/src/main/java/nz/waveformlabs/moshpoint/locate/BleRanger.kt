@@ -1,13 +1,7 @@
 package nz.waveformlabs.moshpoint.locate
 
-import android.annotation.SuppressLint
-import android.bluetooth.BluetoothManager
-import android.bluetooth.le.ScanCallback
-import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
-import android.bluetooth.le.ScanSettings
 import android.content.Context
-import android.util.Log
 import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.core.Advert
@@ -28,8 +22,7 @@ class BleRanger(
     private val friends: () -> List<Friend>,
     private val onAdvert: (friend: Friend, rssiDbm: Int, distanceM: Double, advert: Advert) -> Unit,
 ) {
-    private val bt = context.getSystemService(BluetoothManager::class.java)
-    private val scanner get() = bt?.adapter?.takeIf { it.isEnabled }?.bluetoothLeScanner
+    private val app = context.applicationContext
     private var lowLatency = true
     private val rangers = mutableMapOf<String, RssiRanging>()
     private var running = false
@@ -42,16 +35,6 @@ class BleRanger(
     /** When we last heard any friend (elapsedRealtime ms). */
     var lastHeardAt = 0L
         private set
-
-    private val callback = object : ScanCallback() {
-        override fun onScanResult(callbackType: Int, result: ScanResult) = handle(result)
-        override fun onBatchScanResults(results: MutableList<ScanResult>) = results.forEach(::handle)
-        override fun onScanFailed(errorCode: Int) {
-            Log.w("BleRanger", "scan failed: $errorCode")
-            DebugStatus.set(debugName, "FAILED code $errorCode")
-            running = false
-        }
-    }
 
     private fun handle(result: ScanResult) {
         val data = result.scanRecord?.getServiceData(Ble.SERVICE_UUID) ?: return
@@ -67,61 +50,35 @@ class BleRanger(
         onAdvert(friend, result.rssi, ranger.add(result.rssi), advert)
     }
 
-    /** Needs BLUETOOTH_SCAN (Android 12+) or location (Android 10/11). */
-    @SuppressLint("MissingPermission")
+    /**
+     * Listen through the shared scan ([BleHub]). [lowLatency] = the finder is on screen: fast
+     * scanning and every repeat of every advert, so readings keep flowing.
+     * Needs BLUETOOTH_SCAN (Android 12+) or location (Android 10/11).
+     */
     fun start(lowLatency: Boolean) {
+        if (running && this.lowLatency == lowLatency) return
         this.lowLatency = lowLatency
-        if (running) return
-        val filter = ScanFilter.Builder().setServiceData(Ble.SERVICE_UUID, ByteArray(0)).build()
-        val settings = ScanSettings.Builder()
-            .setScanMode(if (lowLatency) ScanSettings.SCAN_MODE_LOW_LATENCY else ScanSettings.SCAN_MODE_LOW_POWER)
-            .build()
-        val s = scanner ?: run {
-            DebugStatus.set(debugName, "waiting for Bluetooth")
-            return
-        }
-        try {
-            s.startScan(listOf(filter), settings, callback)
-            running = true
-            DebugStatus.set(debugName, if (running) "on (${if (lowLatency) "fast" else "low power"}), nothing heard yet" else "no Bluetooth")
-        } catch (e: SecurityException) {
-            Log.w("BleRanger", "no scan permission", e)
-            DebugStatus.set(debugName, "NO PERMISSION")
-        } catch (e: IllegalStateException) {
-            Log.w("BleRanger", "Bluetooth not ready", e)
-        }
+        running = true
+        BleHub.subscribe(app, this, BleHub.Sub(listOf(Ble.SERVICE_UUID), fast = lowLatency, unfiltered = lowLatency) { handle(it) })
+        DebugStatus.set(debugName, "on (${if (lowLatency) "fast" else "low power"}), nothing heard yet")
     }
 
-    private var lastRefreshAt = 0L
-
     /**
-     * Stop and start the scan, so the phone reports a friend it has already heard again.
-     * Many phones' Bluetooth chips drop repeats of an advert they've seen, and ours only
-     * changes every 5 minutes, so a second spin scan would hear almost nothing.
-     * At most every 6 s: Android blocks more than 5 scan starts per 30 s.
+     * Restart the shared scan, so the phone reports a friend it has already heard again
+     * (some chips drop repeats even unfiltered). [BleHub] keeps within Android's limit.
      */
     fun refresh(minGapMs: Long = 6_000) {
-        val now = android.os.SystemClock.elapsedRealtime()
-        if (!running || now - lastRefreshAt < minGapMs) return
-        lastRefreshAt = now
-        stop()
-        start(lowLatency)
-        DebugStatus.log("BT scan refreshed (fresh readings)")
+        if (running) BleHub.refresh(minGapMs)
     }
 
     /** Call when Bluetooth comes back on: the old scan died with it. */
     fun restart() {
-        running = false
-        start(lowLatency)
+        BleHub.onBluetooth(true)
     }
 
-    @SuppressLint("MissingPermission")
     fun stop() {
         if (!running) return
-        try {
-            scanner?.stopScan(callback)
-        } catch (_: Exception) {
-        }
+        BleHub.unsubscribe(app, this)
         running = false
         DebugStatus.set(debugName, "off")
     }

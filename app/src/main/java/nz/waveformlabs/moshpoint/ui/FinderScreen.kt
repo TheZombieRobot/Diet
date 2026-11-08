@@ -87,6 +87,7 @@ import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.PhotoStore
 import nz.waveformlabs.moshpoint.R
+import androidx.compose.foundation.clickable
 import nz.waveformlabs.moshpoint.core.ArrowState
 import nz.waveformlabs.moshpoint.core.ArrowStyle
 import nz.waveformlabs.moshpoint.core.Method
@@ -125,6 +126,11 @@ fun FinderScreen(
     onDismissScan: () -> Unit,
     /** A phone switch that's off (e.g. Bluetooth): shown at the top with its fix button. */
     warning: SetupIssue? = null,
+    /** "Light me up" is on: our screen flashes so a mate can spot us. */
+    beaconOn: Boolean = false,
+    onBeacon: (Boolean) -> Unit = {},
+    /** Mates flashing their screens for us right now. */
+    beaconing: List<String> = emptyList(),
     onBack: () -> Unit,
     /** Only used in debug builds. Null in release. */
     debug: (@Composable (Modifier) -> Unit)? = null,
@@ -231,6 +237,18 @@ fun FinderScreen(
                     TextButton(onClick = warning.onFix) { Text(warning.button, style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber)) }
                 }
             }
+            if (beaconing.isNotEmpty()) {
+                Row(
+                    Modifier.fillMaxWidth().padding(top = 8.dp).background(Color(0xFF123A2A), RoundedCornerShape(14.dp))
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        "${beaconing.joinToString(" & ")} ${if (beaconing.size == 1) "is" else "are"} flashing their screen. Look around for it!",
+                        style = Mosh.Body.copy(fontSize = 14.sp, lineHeight = 18.sp, color = Mosh.Lime),
+                    )
+                }
+            }
             Spacer(Modifier.height(14.dp))
             Text(if (scanning) "SCANNING FOR" else "FINDING", style = Mosh.Eyebrow)
             Spacer(Modifier.height(6.dp))
@@ -261,7 +279,11 @@ fun FinderScreen(
                     Chip(
                         if (a.unsure) "Rough" else "Locked",
                         if (a.unsure) Mosh.Amber else Mosh.Lime,
-                        if (a.unsure) "Scan to sharpen the arrow" else "Head this way",
+                        when {
+                            !a.unsure -> "Head this way"
+                            a.method == Method.GPS_SERVER || a.method == Method.CROWD_RELAY -> "From GPS: firms up as you walk"
+                            else -> "Rough: walk that way and watch the distance"
+                        },
                     )
                 }
                 Spacer(Modifier.height(20.dp))
@@ -305,14 +327,19 @@ fun FinderScreen(
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
                     )
-                    GlassButton("Scan anyway", icon = true, onClick = onScan)
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        GlassButton("Light me up", Modifier.weight(1f), onClick = { onBeacon(true) })
+                        GlassButton("Scan anyway", Modifier.weight(1f), icon = true, onClick = onScan)
+                    }
                 }
-                else -> {
-                    val unsure = arrows.any { it is ArrowState.DistanceOnly || (it is ArrowState.Pointing && it.unsure) }
-                    GlassButton(if (unsure) "Scan to find which way" else "Scan", icon = true, onClick = onScan)
+                else -> Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    GlassButton("Light me up", Modifier.weight(1f), onClick = { onBeacon(true) })
+                    GlassButton("Spin scan", Modifier.weight(1f), icon = true, onClick = onScan)
                 }
             }
         }
+
+        if (beaconOn) BeaconOverlay(onStop = { onBeacon(false) })
 
         AnimatedVisibility(found != null, enter = fadeIn(tween(250)), exit = fadeOut(tween(300))) {
             val id = found ?: lastFound[0]
@@ -473,17 +500,20 @@ private fun DistanceOnly(list: List<ArrowState.DistanceOnly>, friendOf: (String)
             } else {
                 DistanceReadout(d.distanceM)
             }
-            val (label, c) = when (d.trend) {
-                Trend.WARMER -> "Warmer" to Mosh.Lime
-                Trend.COLDER -> "Colder" to Mosh.Pink
-                Trend.STEADY -> "Close" to Mosh.Cyan
+            val (label, c, hint) = when (d.trend) {
+                Trend.WARMER -> Triple("Warmer", Mosh.Lime, "Keep going this way")
+                Trend.COLDER -> Triple("Colder", Mosh.Pink, "Turn around")
+                Trend.STEADY -> Triple("Steady", Mosh.Cyan, "Try another direction")
             }
-            val who = if (list.size > 1) "${f?.name ?: "?"} " else ""
+            val who = if (list.size > 1) "${f?.name ?: "?"}: " else ""
             val via = if ((BuildConfig.DEBUG && DebugStatus.showUi)) "  (${methodLabel(d.method)})" else ""
-            Chip(label, c, "$who$via".trim().ifEmpty { "Nearly there" })
+            Chip(label, c, "$who$hint$via")
         }
         Spacer(Modifier.height(4.dp))
-        Text("Close, but no direction yet. Tap Scan to find which way.", style = Mosh.Body, textAlign = TextAlign.Center)
+        Text(
+            "Walk a few steps one way, then another. Warmer means you're getting closer. The arrow appears once we've worked out which way.",
+            style = Mosh.Body, textAlign = TextAlign.Center,
+        )
     }
 }
 
@@ -764,6 +794,7 @@ private fun FoundOverlay(friend: Friend?, onDone: () -> Unit, onKeep: () -> Unit
 private fun methodLabel(m: Method) = when (m) {
     Method.UWB -> "UWB"
     Method.SPIN_SCAN -> "scan"
+    Method.WALK -> "walk"
     Method.GPS_SERVER -> "GPS"
     Method.CROWD_RELAY -> "crowd"
     Method.WIFI_AWARE -> "Wi-Fi"
@@ -824,4 +855,34 @@ private fun DrawScope.drawRefreshIcon(colour: Color) {
         close()
     }
     drawPath(p, colour)
+}
+
+/**
+ * "Light me up": the whole screen strobes bright colours so a mate can pick you out of a
+ * crowd from a distance (hold the phone up high). Tap anywhere to stop.
+ */
+@Composable
+private fun BeaconOverlay(onStop: () -> Unit) {
+    val colours = listOf(Mosh.Pink, Mosh.Cyan, Mosh.Lime, Color.White)
+    var i by remember { mutableStateOf(0) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            kotlinx.coroutines.delay(180)
+            i++
+        }
+    }
+    val on = i % 2 == 0
+    Box(
+        Modifier.fillMaxSize()
+            .background(if (on) colours[(i / 2) % colours.size] else Color.Black)
+            .clickable(onClick = onStop),
+        contentAlignment = Alignment.BottomCenter,
+    ) {
+        Text(
+            "Hold your phone up high. Tap to stop.",
+            style = Mosh.Body.copy(color = if (on) Color.Black else Color.White, fontSize = 15.sp),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(bottom = 48.dp),
+        )
+    }
 }

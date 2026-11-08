@@ -7,10 +7,7 @@ import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertisingSet
 import android.bluetooth.le.AdvertisingSetCallback
 import android.bluetooth.le.AdvertisingSetParameters
-import android.bluetooth.le.ScanCallback
-import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
-import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.os.ParcelUuid
 import android.util.Log
@@ -46,7 +43,7 @@ object CrowdRelayRadio {
     private const val TAG = "CrowdRelay"
     private const val K = "Crowd relay"
     private var listeners = 0
-    private var scanCallback: ScanCallback? = null
+    private var subscribed = false
     private var advertisingSet: AdvertisingSet? = null
     private var advertiseCallback: AdvertisingSetCallback? = null
     private var broadcastJob: Job? = null
@@ -72,37 +69,15 @@ object CrowdRelayRadio {
             DebugStatus.set(K, "unsupported (no Bluetooth 5 extended adverts)")
             return
         }
-        if (scanCallback != null) return
-        val scanner = context.getSystemService(BluetoothManager::class.java)?.adapter?.bluetoothLeScanner ?: return
-        val cb = object : ScanCallback() {
-            override fun onScanResult(callbackType: Int, result: ScanResult) = handle(result)
-            override fun onBatchScanResults(results: MutableList<ScanResult>) = results.forEach { handle(it) }
-        }
-        try {
-            scanner.startScan(
-                listOf(ScanFilter.Builder().setServiceData(RELAY_UUID, ByteArray(0)).build()),
-                ScanSettings.Builder()
-                    .setLegacy(false)
-                    .setPhy(ScanSettings.PHY_LE_ALL_SUPPORTED)
-                    .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)
-                    .build(),
-                cb,
-            )
-            scanCallback = cb
-            DebugStatus.set(K, "listening, cache ${cache.size()}")
-        } catch (e: SecurityException) {
-            Log.w(TAG, "no scan permission", e)
-        }
+        if (subscribed) return
+        BleHub.subscribe(context, this, BleHub.Sub(listOf(RELAY_UUID), fast = false, unfiltered = false) { handle(it) })
+        subscribed = true
+        DebugStatus.set(K, "listening, cache ${cache.size()}")
     }
 
     /** Bluetooth came back: the scan died with it, and the advert set needs restarting. */
     @Synchronized
     fun restartAfterBluetooth(context: Context) {
-        scanCallback = null
-        if (listeners > 0) {
-            listeners--
-            startListening(context)
-        }
         setLive = false
         setPending = false
     }
@@ -112,12 +87,9 @@ object CrowdRelayRadio {
     fun stopListening(context: Context) {
         listeners = (listeners - 1).coerceAtLeast(0)
         if (listeners > 0) return
-        val cb = scanCallback ?: return
-        try {
-            context.getSystemService(BluetoothManager::class.java)?.adapter?.bluetoothLeScanner?.stopScan(cb)
-        } catch (_: SecurityException) {
-        }
-        scanCallback = null
+        if (!subscribed) return
+        BleHub.unsubscribe(context, this)
+        subscribed = false
     }
 
     private fun handle(result: ScanResult) {
@@ -126,7 +98,7 @@ object CrowdRelayRadio {
         val isNew = cache.offer(packet, System.currentTimeMillis() / 1000)
         if (isNew) DebugStatus.set(K, "heard packet (hops left ${packet.ttl}), cache ${cache.size()}")
         // Someone with signal passes it up to the server, so far-away friends get it too.
-        if (isNew && RelayClient.enabled) ioScope.launch { RelayClient.put(packet.id, packet.sealed) }
+        if (isNew && RelayClient.ownServer) ioScope.launch { RelayClient.put(packet.id, packet.sealed) }
     }
 
     /**

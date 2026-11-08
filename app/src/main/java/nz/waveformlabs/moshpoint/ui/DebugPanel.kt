@@ -183,6 +183,7 @@ private fun label(m: Method) = when (m) {
     Method.UWB -> "UWB"
     Method.WIFI_AWARE -> "Wi-Fi"
     Method.SPIN_SCAN -> "Scan"
+    Method.WALK -> "Walk"
     Method.GPS_SERVER -> "GPS"
     Method.CROWD_RELAY -> "Crowd"
     Method.BLE_RSSI -> "BT"

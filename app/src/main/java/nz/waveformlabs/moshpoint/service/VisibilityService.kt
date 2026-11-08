@@ -108,6 +108,7 @@ class VisibilityService : LifecycleService() {
         radios = RadioWatcher(
             this,
             onBluetooth = { on ->
+                nz.waveformlabs.moshpoint.locate.BleHub.onBluetooth(on)
                 GroupSync.onBluetooth(this, on)
                 if (on) {
                     readvertise()

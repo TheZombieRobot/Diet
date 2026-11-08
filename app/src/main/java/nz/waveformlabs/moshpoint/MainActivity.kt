@@ -115,6 +115,47 @@ class MainActivity : ComponentActivity() {
     }
     private var alwaysOn by mutableStateOf(false)
     private var finding by mutableStateOf(false)
+    private var beaconOn by mutableStateOf(false)
+    private var torchJob: kotlinx.coroutines.Job? = null
+
+    /**
+     * "Light me up": full brightness, a strobing screen (drawn by the finder) and the torch
+     * flashing, plus a flag in our Bluetooth advert so mates' finders say to look for it.
+     */
+    private fun setBeacon(on: Boolean) {
+        if (beaconOn == on) return
+        beaconOn = on
+        if (::engine.isInitialized) engine.setBeacon(on)
+        window.attributes = window.attributes.apply {
+            screenBrightness = if (on) 1f else android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+        }
+        if (on) window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        else window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        torchJob?.cancel()
+        torchJob = null
+        val cm = getSystemService(android.hardware.camera2.CameraManager::class.java) ?: return
+        val torch = runCatching {
+            cm.cameraIdList.firstOrNull {
+                cm.getCameraCharacteristics(it).get(android.hardware.camera2.CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
+            }
+        }.getOrNull() ?: return
+        if (on) {
+            torchJob = lifecycleScope.launch {
+                var lit = false
+                try {
+                    while (true) {
+                        lit = !lit
+                        runCatching { cm.setTorchMode(torch, lit) }
+                        delay(if (lit) 120 else 380)
+                    }
+                } finally {
+                    runCatching { cm.setTorchMode(torch, false) }
+                }
+            }
+        } else {
+            runCatching { cm.setTorchMode(torch, false) }
+        }
+    }
     private var pendingStop: Job? = null
     private var askBattery by mutableStateOf(false)
 
@@ -311,7 +352,7 @@ class MainActivity : ComponentActivity() {
                 if (showGroupQr) {
                     GroupSync.group.value?.let { g ->
                         MyQrDialog(
-                            GigGroup.qr(g),
+                            crewQr(g),
                             onDismiss = { showGroupQr = false },
                             onShare = { shareGroup(g) },
                             eyebrow = "YOUR CREW FOR TONIGHT",
@@ -386,6 +427,7 @@ class MainActivity : ComponentActivity() {
                         val arrows by engine.arrows.collectAsState()
                         val scan by engine.scan.collectAsState()
                         val tracking by engine.tracking.collectAsState()
+                        val beaconing by engine.beaconing.collectAsState()
                         val names = tracking.mapNotNull { FriendsRepository.byId(it)?.name }
                         val group = GroupSync.group.value
                         FinderScreen(
@@ -401,7 +443,11 @@ class MainActivity : ComponentActivity() {
                             onScan = engine::startSpinScan,
                             onCancelScan = engine::cancelSpinScan,
                             onDismissScan = engine::dismissScanResult,
+                            beaconOn = beaconOn,
+                            onBeacon = ::setBeacon,
+                            beaconing = beaconing.mapNotNull { FriendsRepository.byId(it)?.name },
                             onBack = {
+                                setBeacon(false)
                                 finding = false
                                 stopEngineSoon()
                             },
@@ -566,7 +612,7 @@ class MainActivity : ComponentActivity() {
             putExtra(
                 Intent.EXTRA_TEXT,
                 "Get Moshpoint so we can find each other at gigs: tap a mate and an arrow points to them.\n\n" +
-                    getTheApp + GigGroup.qr(ensureCrew()),
+                    getTheApp + crewQr(ensureCrew()),
             )
         }
         startActivity(Intent.createChooser(send, "Share Moshpoint"))
@@ -583,12 +629,16 @@ class MainActivity : ComponentActivity() {
 
     private fun shareCode(@Suppress("UNUSED_PARAMETER") code: String) = shareGroup(ensureCrew())
 
+    /** The crew QR / invite text, with us inside it so whoever joins can find us at once. */
+    private fun crewQr(g: GigGroup) =
+        GigGroup.qr(g, GigGroup.Intro(VisibilityPrefs.mySecret(this), myName.ifBlank { "Mate" }))
+
     private fun shareGroup(g: GigGroup) {
         val send = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(
                 Intent.EXTRA_TEXT,
-                "Join my crew \"${g.name}\" on Moshpoint tonight!\n" + getTheApp + GigGroup.qr(g),
+                "Join my crew \"${g.name}\" on Moshpoint tonight!\n" + getTheApp + crewQr(g),
             )
         }
         startActivity(Intent.createChooser(send, "Send the group invite"))
@@ -609,11 +659,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         super.onStop()
+        setBeacon(false)
         runCatching { unregisterReceiver(powerSaveReceiver) }
         runCatching { unregisterReceiver(radioReceiver) }
         pendingGroupRelease?.cancel()
         pendingGroupRelease = lifecycleScope.launch {
             delay(20_000)
+            GroupSync.setAppOpen(this@MainActivity, false)
             if (holdingGroup) {
                 GroupSync.release(this@MainActivity)
                 holdingGroup = false
@@ -648,6 +700,7 @@ class MainActivity : ComponentActivity() {
             androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED,
         )
         pendingGroupRelease?.cancel()
+        GroupSync.setAppOpen(this, true)
         if (!holdingGroup) {
             GroupSync.acquire(this)
             holdingGroup = true

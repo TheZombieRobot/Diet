@@ -30,6 +30,8 @@ data class Advert(
      * advertises slowly to save battery.
      */
     val looking: Boolean = false,
+    /** "Light me up": this person is flashing their screen and torch so a friend can spot them. */
+    val beacon: Boolean = false,
 ) {
 
     enum class UwbRole { CONTROLEE, CONTROLLER }
@@ -47,16 +49,17 @@ data class Advert(
         override fun hashCode() = role.hashCode() * 31 + address.contentHashCode()
     }
 
-    override fun equals(other: Any?) = other is Advert && id.contentEquals(other.id) && uwb == other.uwb && looking == other.looking
+    override fun equals(other: Any?) = other is Advert && id.contentEquals(other.id) && uwb == other.uwb && looking == other.looking && beacon == other.beacon
     override fun hashCode() = id.contentHashCode()
 
     companion object {
         private const val FLAG_CONTROLEE = 0x01
         private const val FLAG_CONTROLLER = 0x02
         private const val FLAG_LOOKING = 0x04
+        private const val FLAG_BEACON = 0x08
 
         /** Builds the service-data bytes. [secret] is the advertiser's own secret. */
-        fun encode(secret: ByteArray, id: ByteArray, uwb: UwbInfo?, looking: Boolean = false): ByteArray {
+        fun encode(secret: ByteArray, id: ByteArray, uwb: UwbInfo?, looking: Boolean = false, beacon: Boolean = false): ByteArray {
             require(id.size == EphemeralId.ID_BYTES)
             val plain = when (uwb?.role) {
                 null -> ByteArray(0)
@@ -68,7 +71,7 @@ data class Advert(
                 UwbRole.CONTROLEE -> FLAG_CONTROLEE
                 UwbRole.CONTROLLER -> FLAG_CONTROLLER
             }
-            val allFlags = flags or (if (looking) FLAG_LOOKING else 0)
+            val allFlags = flags or (if (looking) FLAG_LOOKING else 0) or (if (beacon) FLAG_BEACON else 0)
             return byteArrayOf(allFlags.toByte()) + id + xor(plain, keystream(secret, id, plain.size))
         }
 
@@ -89,7 +92,7 @@ data class Advert(
                     UwbInfo(UwbRole.CONTROLEE, plain.copyOfRange(0, 2))
                 else -> null
             }
-            return Advert(id, uwb, looking = flags and FLAG_LOOKING != 0)
+            return Advert(id, uwb, looking = flags and FLAG_LOOKING != 0, beacon = flags and FLAG_BEACON != 0)
         }
 
         private fun keystream(secret: ByteArray, id: ByteArray, n: Int): ByteArray {

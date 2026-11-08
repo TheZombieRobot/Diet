@@ -24,7 +24,7 @@ object AvatarSync {
     /** Upload your photo for this week and next (so it's there when the id rolls over). */
     fun publishMine(context: Context, force: Boolean = false) {
         val c = context.applicationContext
-        if (!RelayClient.enabled) return
+        if (!RelayClient.avatarsEnabled) return
         val p = prefs(c)
         val now = System.currentTimeMillis()
         if (!force && now - p.getLong("published", 0) < PUBLISH_EVERY_MS) return
@@ -46,7 +46,7 @@ object AvatarSync {
     /** Fetch friends' shared photos (skipping any you've picked yourself). */
     fun fetchFriends(context: Context, force: Boolean = false) {
         val c = context.applicationContext
-        if (!RelayClient.enabled) return
+        if (!RelayClient.avatarsEnabled) return
         val p = prefs(c)
         val now = System.currentTimeMillis()
         if (!force && now - p.getLong("fetched", 0) < FETCH_EVERY_MS) return

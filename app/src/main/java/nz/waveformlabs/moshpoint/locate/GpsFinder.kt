@@ -64,7 +64,7 @@ class GpsFinder(
             scope.launch {
                 while (true) {
                     poll()
-                    delay(POLL_MS)
+                    delay(RelayClient.pollMs)
                 }
             },
         )
@@ -100,9 +100,9 @@ class GpsFinder(
         DebugStatus.set(
             "Server",
             when {
-                !RelayClient.enabled -> "off (no server URL in this build)"
+                false -> ""
                 results == null -> "lookup FAILED (no data?)"
-                else -> "ok, ${results.sumOf { it.size }} box(es) for ${list.size} friend(s)"
+                else -> "${RelayClient.label}: ${results.sumOf { it.size }} box(es) for ${list.size} friend(s)"
             },
         )
         results?.let { results ->
@@ -138,7 +138,7 @@ class GpsFinder(
     }
 
     private companion object {
-        const val POLL_MS = 4_000L
-        const val MAX_AGE_MS = 120_000L
+        // Public relay posts every ~75 s (more when moving), so allow a few minutes.
+        const val MAX_AGE_MS = 240_000L
     }
 }

@@ -39,7 +39,9 @@ class LocationUploader(context: Context, private val scope: CoroutineScope, priv
                 )
                 if (!RelayClient.enabled) return@collect
                 val key = "${id.contentHashCode()}:${(loc.latitude * 1e5).toLong()}:${(loc.longitude * 1e5).toLong()}"
-                if (key == lastKey && now - lastUploadMs < 60_000) return@collect
+                if (now - lastUploadMs < RelayClient.uploadGapMs) return@collect
+                // Standing still: a refresh every 3 minutes is plenty (the relay keeps the last one).
+                if (key == lastKey && now - lastUploadMs < 180_000) return@collect
                 val sealed = LocationBox.seal(
                     mySecret, id,
                     SharedLocation(loc.latitude, loc.longitude, now / 1000, loc.accuracy.toInt()),

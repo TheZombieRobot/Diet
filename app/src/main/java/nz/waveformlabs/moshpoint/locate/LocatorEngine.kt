@@ -27,6 +27,7 @@ import nz.waveformlabs.moshpoint.core.MethodDebug
 import nz.waveformlabs.moshpoint.core.RecordLine
 import nz.waveformlabs.moshpoint.core.debug
 import nz.waveformlabs.moshpoint.core.SpinScan
+import nz.waveformlabs.moshpoint.core.WalkDirection
 
 /**
  * Runs every locating method at once and turns them into arrows.
@@ -48,6 +49,9 @@ class LocatorEngine(
     val capabilities = Capabilities.detect(context)
 
     private val arbiter = MethodArbiter()
+    private val motion = MotionDetector(context)
+    private val walks = mutableMapOf<String, WalkDirection>()
+    private var lastWalkEstimateAt = 0L
     private val compass = Compass(context)
     private var heading = 0.0
     // Snappier than the defaults: the arrow should feel glued to the phone.
@@ -109,9 +113,14 @@ class LocatorEngine(
         submit(Fix(friend.id, Method.BLE_RSSI, null, distance, confidence = 0.7, timestampMs = System.currentTimeMillis()))
         // The heading when this reading was received, unsmoothed: otherwise turning while
         // scanning shifts the answer in the direction you're turning.
-        spinScans[friend.id]?.let {
-            it.add(headingAt(bleRef?.lastHeardAtElapsedMs ?: 0L), rssi.toDouble())
+        val atHeading = headingAt(bleRef?.lastHeardAtElapsedMs ?: 0L)
+        val spin = spinScans[friend.id]
+        if (spin != null) {
+            spin.add(atHeading, rssi.toDouble())
             lastSpinSampleAt = System.currentTimeMillis()
+        } else {
+            // Walk-and-watch: every reading while you move about helps work out the direction.
+            walks.getOrPut(friend.id) { WalkDirection() }.add(System.currentTimeMillis(), atHeading, rssi.toDouble(), motion.moving)
         }
         if (FieldRecorder.active) {
             FieldRecorder.line(
@@ -121,6 +130,7 @@ class LocatorEngine(
                 ),
             )
         }
+        if (advert.beacon) beaconHeardAt[friend.id] = System.currentTimeMillis()
         val info = advert.uwb
         if (info?.role == Advert.UwbRole.CONTROLEE) uwb?.onFriendControlee(friend.id, info.address)
     }.also { bleRef = it }
@@ -224,6 +234,7 @@ class LocatorEngine(
     private val radios = RadioWatcher(
         context,
         onBluetooth = { on ->
+            BleHub.onBluetooth(on)
             nz.waveformlabs.moshpoint.GroupSync.onBluetooth(context, on)
             if (on) {
                 ble.restart()
@@ -299,6 +310,7 @@ class LocatorEngine(
         // A different mate: drop any scan (or its result) from the last one.
         if (friendIds != _tracking.value) {
             spinScans = emptyMap()
+            walks.clear()
             _scan.value = null
         }
         _tracking.value = friendIds
@@ -309,6 +321,7 @@ class LocatorEngine(
     fun start() {
         if (jobs.isNotEmpty()) return
         ble.start(lowLatency = true)
+        motion.start()
         uwb?.start()
         gps.start()
         wifi?.start()
@@ -345,6 +358,7 @@ class LocatorEngine(
     fun stop() {
         if (jobs.isEmpty()) return // not running: don't release listeners we never took
         ble.stop()
+        motion.stop()
         uwb?.stop()
         gps.stop()
         wifi?.stop()
@@ -359,7 +373,24 @@ class LocatorEngine(
         if (jobs.isEmpty()) return // only while the finder is running
         val adv = lookingAdvert
             ?: BleBroadcaster(context, AdvertiseSettings.ADVERTISE_MODE_BALANCED, "BT advert (looking)").also { lookingAdvert = it }
-        adv.update(Advert.encode(mySecret, ephemeral.currentId(System.currentTimeMillis()), uwbInfo, looking = true))
+        adv.mode = if (beaconOn) AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY else AdvertiseSettings.ADVERTISE_MODE_BALANCED
+        adv.update(Advert.encode(mySecret, ephemeral.currentId(System.currentTimeMillis()), uwbInfo, looking = true, beacon = beaconOn))
+    }
+
+    // ---- "Light me up" beacon ----
+
+    private var beaconOn = false
+    private val beaconHeardAt = mutableMapOf<String, Long>()
+    private val _beaconing = MutableStateFlow<Set<String>>(emptySet())
+    /** Friends flashing their screen for us right now (heard in the last few seconds). */
+    val beaconing: StateFlow<Set<String>> = _beaconing.asStateFlow()
+
+    /** Tell friends' finders we're flashing our screen (a flag in our Bluetooth advert). */
+    fun setBeacon(on: Boolean) {
+        if (beaconOn == on) return
+        beaconOn = on
+        updateLookingAdvert()
+        DebugStatus.log(if (on) "Light me up: on" else "Light me up: off")
     }
 
     /** The Scan button: start collecting (heading, signal) pairs while the user turns. */
@@ -395,6 +426,12 @@ class LocatorEngine(
         if (spinScans.isNotEmpty()) updateSpinScan(now)
         // Distance gone quiet (chips that drop repeat adverts): an occasional gentle refresh.
         else if (_tracking.value.isNotEmpty() && android.os.SystemClock.elapsedRealtime() - ble.lastHeardAt > 8_000) ble.refresh(minGapMs = 12_000)
+        if (now - lastWalkEstimateAt > 1_000) {
+            lastWalkEstimateAt = now
+            for ((id, w) in walks) w.estimate()?.let { (bearing, conf) -> submit(Fix(id, Method.WALK, bearing, null, conf, now)) }
+        }
+        beaconHeardAt.entries.removeAll { now - it.value > 6_000 }
+        if (_beaconing.value != beaconHeardAt.keys) _beaconing.value = beaconHeardAt.keys.toSet()
         val raw = _tracking.value.map { arbiter.arrowFor(it, heading, now) }
         val arrows = raw.map(::steady)
         _arrows.value = arrows
