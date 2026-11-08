@@ -100,6 +100,8 @@ fun FriendsScreen(
     onKeepFriend: (String) -> Unit = {},
     /** Snap Map style view of where everyone is. */
     onOpenMap: () -> Unit = {},
+    /** The crew's meet-up pin, if someone dropped one ("Sound desk"). */
+    meetUp: String? = null,
     /** Debug builds only; null in release. */
     onAddSimulated: (() -> Unit)? = null,
     onSelfie: () -> Unit = {},
@@ -377,6 +379,17 @@ fun FriendsScreen(
                 if (gig.isEmpty()) {
                     Text("Waiting for mates to join. Show them the group QR.", style = Mosh.Body)
                 } else {
+                    if (meetUp != null) {
+                        Row(
+                            Modifier.fillMaxWidth().padding(bottom = 10.dp).background(Mosh.Pink.copy(alpha = 0.14f), RoundedCornerShape(14.dp))
+                                .border(1.dp, Mosh.Pink.copy(alpha = 0.5f), RoundedCornerShape(14.dp)).clickable(onClick = onOpenMap)
+                                .padding(horizontal = 14.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text("★  Meet-up: $meetUp", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Pink), modifier = Modifier.weight(1f))
+                            Text("Map ›", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink))
+                        }
+                    }
                     NeonButton("Find the crew") { onFind(gig.map { it.id }.toSet()) }
                     Spacer(Modifier.height(14.dp))
                     // Vertical padding inside the scroller so glows and the bob aren't clipped.

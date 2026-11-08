@@ -67,6 +67,46 @@ class GigGroup(val key: ByteArray, val name: String, val createdAtMs: Long) {
         }.getOrNull()
     }
 
+    /** Mailbox id for the crew's meet-up pin (changes daily so old pins fade away). */
+    fun rallyIdForDay(day: Long): ByteArray =
+        hmac(key, "moshpoint-group-rally".toByteArray() + ByteBuffer.allocate(8).putLong(day).array()).copyOf(16)
+
+    /**
+     * A meet-up pin for the crew: `[time:4][nonce:8][AES-GCM(lat:8, lon:8, nameLen:1, name)+tag]`.
+     * [rally] with a blank name and 0,0 means "pin removed".
+     */
+    fun sealRally(rally: Rally, random: java.security.SecureRandom = java.security.SecureRandom()): ByteArray {
+        val name = trimUtf8(rally.name.toByteArray(Charsets.UTF_8), MAX_NAME_BYTES)
+        val plain = ByteBuffer.allocate(17 + name.size).putDouble(rally.lat).putDouble(rally.lon).put(name.size.toByte()).put(name).array()
+        val time = ByteBuffer.allocate(4).putInt(rally.timeSec.toInt()).array()
+        val nonce = ByteArray(8).also { random.nextBytes(it) }
+        val c = Cipher.getInstance("AES/GCM/NoPadding")
+        c.init(Cipher.ENCRYPT_MODE, rallyKey(), GCMParameterSpec(96, time + nonce))
+        c.updateAAD("rally".toByteArray())
+        return time + nonce + c.doFinal(plain)
+    }
+
+    fun openRally(blob: ByteArray): Rally? {
+        if (blob.size < 12 + 17 + 12) return null
+        return runCatching {
+            val c = Cipher.getInstance("AES/GCM/NoPadding")
+            c.init(Cipher.DECRYPT_MODE, rallyKey(), GCMParameterSpec(96, blob.copyOfRange(0, 12)))
+            c.updateAAD("rally".toByteArray())
+            val plain = ByteBuffer.wrap(c.doFinal(blob, 12, blob.size - 12))
+            val lat = plain.double
+            val lon = plain.double
+            val n = plain.get().toInt() and 0xFF
+            val name = ByteArray(n).also { plain.get(it) }
+            Rally(lat, lon, String(name, Charsets.UTF_8), (ByteBuffer.wrap(blob, 0, 4).int.toLong() and 0xFFFFFFFFL))
+        }.getOrNull()
+    }
+
+    private fun rallyKey() = SecretKeySpec(hmac(key, "moshpoint-group-rally-aes".toByteArray()).copyOf(16), "AES")
+
+    data class Rally(val lat: Double, val lon: Double, val name: String, val timeSec: Long) {
+        val removed get() = name.isBlank() && lat == 0.0 && lon == 0.0
+    }
+
     private fun aesKey() = SecretKeySpec(hmac(key, "moshpoint-group-aes".toByteArray()).copyOf(16), "AES")
 
     // Nonce unique per (member, second): first 4 bytes of their secret + time + tag prefix.

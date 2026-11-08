@@ -135,6 +135,8 @@ fun FinderScreen(
     onNudge: () -> Unit = {},
     /** Far away: see everyone on the map instead. */
     onOpenMap: () -> Unit = {},
+    /** Close by: ask their phone to strobe. */
+    onAskLight: () -> Unit = {},
     onBack: () -> Unit,
     /** Only used in debug builds. Null in release. */
     debug: (@Composable (Modifier) -> Unit)? = null,
@@ -343,6 +345,13 @@ fun FinderScreen(
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             GlassButton("Light me up", Modifier.weight(1f), onClick = { onBeacon(true) })
                             if (needsDirection) GlassButton("Spin scan", Modifier.weight(1f), icon = true, onClick = onScan)
+                        }
+                        var asked by remember { mutableStateOf(false) }
+                        TextButton(onClick = { onAskLight(); asked = true }, enabled = !asked) {
+                            Text(
+                                if (asked) "Asked: their phone will offer to light up" else "Ask them to light up",
+                                style = Mosh.Label.copy(fontSize = 14.sp, color = if (asked) Mosh.TextFaint else Mosh.Lime),
+                            )
                         }
                     } else {
                         GlassButton("Show on map", onClick = onOpenMap)

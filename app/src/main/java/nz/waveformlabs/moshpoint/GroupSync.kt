@@ -88,6 +88,11 @@ object GroupSync {
             return
         }
         group.value = GigGroup(Base64.decode(key, Base64.NO_WRAP), p.getString("name", "Gig group") ?: "Gig group", created)
+        rallyClearedAt = p.getLong("rallyCleared", 0L)
+        rallyMine = p.getBoolean("rallyMine", false)
+        rally.value = p.getString("rally", null)?.split(',', limit = 4)?.takeIf { it.size == 4 }?.let {
+            runCatching { GigGroup.Rally(it[0].toDouble(), it[1].toDouble(), it[3], it[2].toLong()) }.getOrNull()
+        }
         members.clear()
         p.getString("members", null)?.split(',')?.filter { it.length == 64 }?.let { members.addAll(it) }
     }
@@ -117,9 +122,14 @@ object GroupSync {
             .putString("name", g.name)
             .putLong("created", g.createdAtMs)
             .remove("members")
+            .remove("rally")
+            .remove("rallyCleared")
             .apply()
         group.value = g
         members.clear()
+        rally.value = null
+        rallyMine = false
+        rallyClearedAt = 0L
         DebugStatus.log("Gig group: ${g.name}")
         if (users > 0) restart(c)
     }
@@ -130,6 +140,9 @@ object GroupSync {
         prefs(app).edit().clear().apply()
         group.value = null
         members.clear()
+        rally.value = null
+        rallyMine = false
+        rallyClearedAt = 0L
         FriendsRepository.clearGigGroup()
         stopRadio(app)
     }
@@ -203,8 +216,69 @@ object GroupSync {
         val epoch = Math.floorDiv(now, EphemeralId.DEFAULT_ROTATION_MS)
         // Post once per rotation (the box id changes with it); just look the rest of the time.
         if (epoch != postedEpoch && RelayClient.put(g.rosterIdForEpoch(epoch), intro)) postedEpoch = epoch
-        val ids = listOf(g.rosterIdForEpoch(epoch), g.rosterIdForEpoch(epoch - 1))
-        RelayClient.lookup(ids)?.flatten()?.forEach { received(c, g, it) }
+        val day = Math.floorDiv(now / 1000, 86_400L)
+        // Our meet-up pin: post when set, then every 10 min (the public relay only keeps recent posts).
+        val myRally = rally.value?.takeIf { rallyMine }
+        if (myRally != null && now - rallyPostedAt > 10 * 60_000L) {
+            if (RelayClient.put(g.rallyIdForDay(day), g.sealRally(myRally))) rallyPostedAt = now
+        }
+        val ids = listOf(g.rosterIdForEpoch(epoch), g.rosterIdForEpoch(epoch - 1), g.rallyIdForDay(day), g.rallyIdForDay(day - 1))
+        val found = RelayClient.lookup(ids) ?: return
+        found.take(2).flatten().forEach { received(c, g, it) }
+        // Newest pin from anyone in the crew wins (including "removed").
+        found.drop(2).flatten().mapNotNull { g.openRally(it) }.maxByOrNull { it.timeSec }?.let { r ->
+            val latest = maxOf(rally.value?.timeSec ?: 0L, rallyClearedAt)
+            if (r.timeSec > latest) {
+                rallyMine = false
+                saveRally(c, if (r.removed) null else r, r.timeSec)
+                if (!r.removed) DebugStatus.log("Crew meet-up: ${r.name}")
+            }
+        }
+    }
+
+    // ---- Crew meet-up pin ----
+
+    /** Where the crew is meeting, if anyone has dropped a pin (Compose state for map + home). */
+    val rally = mutableStateOf<GigGroup.Rally?>(null)
+    private var rallyMine = false
+    private var rallyPostedAt = 0L
+    private var rallyClearedAt = 0L
+
+    /** Drop (or move) the crew's meet-up pin. Everyone in the crew gets it within a minute or so. */
+    fun setRally(c: Context, name: String, lat: Double, lon: Double) {
+        val r = GigGroup.Rally(lat, lon, name.trim().ifBlank { "Meet here" }.take(24), System.currentTimeMillis() / 1000)
+        rallyMine = true
+        rallyPostedAt = 0L
+        saveRally(c, r, r.timeSec)
+        postRallyNow(c)
+    }
+
+    /** Remove the pin for everyone. */
+    fun clearRally(c: Context) {
+        val r = GigGroup.Rally(0.0, 0.0, "", System.currentTimeMillis() / 1000)
+        rallyMine = false
+        saveRally(c, null, r.timeSec)
+        val g = group.value ?: return
+        scope.launch { RelayClient.put(g.rallyIdForDay(Math.floorDiv(r.timeSec, 86_400L)), g.sealRally(r)) }
+    }
+
+    private fun postRallyNow(c: Context) {
+        val g = group.value ?: return
+        val r = rally.value ?: return
+        scope.launch {
+            if (RelayClient.put(g.rallyIdForDay(Math.floorDiv(r.timeSec, 86_400L)), g.sealRally(r))) {
+                rallyPostedAt = System.currentTimeMillis()
+            }
+        }
+    }
+
+    private fun saveRally(c: Context, r: GigGroup.Rally?, timeSec: Long) {
+        // A removal still counts as "newer": remember when, so an older pin can't come back.
+        rally.value = r
+        if (r == null) rallyClearedAt = timeSec
+        val e = prefs(c.applicationContext).edit()
+        if (r == null) e.remove("rally") else e.putString("rally", "${r.lat},${r.lon},${r.timeSec},${r.name.replace(',', ' ')}")
+        e.putBoolean("rallyMine", rallyMine).putLong("rallyCleared", rallyClearedAt).apply()
     }
 
     private fun received(c: Context, g: GigGroup, blob: ByteArray) {

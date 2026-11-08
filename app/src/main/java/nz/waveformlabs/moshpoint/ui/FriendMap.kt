@@ -56,6 +56,9 @@ data class MapPin(
     val stale: Boolean,
 )
 
+/** A saved spot or the crew's meet-up pin. */
+data class MapPlace(val id: String, val name: String, val lat: Double, val lon: Double, val meetUp: Boolean)
+
 /** Free OpenStreetMap vector maps, no API key (openfreemap.org). */
 const val MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/dark"
 
@@ -71,6 +74,9 @@ fun FriendMap(
     focus: Pair<Int, List<LatLng>>,
     onPinTapped: (String) -> Unit,
     modifier: Modifier = Modifier,
+    places: List<MapPlace> = emptyList(),
+    /** Long-press on the map: drop a pin there. */
+    onLongPress: (Double, Double) -> Unit = { _, _ -> },
 ) {
     if (LocalInspectionMode.current) {
         // Screenshot tests can't load the native map: a plain stand-in.
@@ -81,6 +87,8 @@ fun FriendMap(
     }
     val context = LocalContext.current
     val holder = remember { arrayOfNulls<MapLibreMap>(1) }
+    // Latest callback, read from the map's own listener (set up once).
+    val longPress = androidx.compose.runtime.rememberUpdatedState(onLongPress)
     // State, so pins get drawn as soon as the map style has loaded.
     val styleReady = remember { androidx.compose.runtime.mutableStateOf(false) }
     val mapView = remember {
@@ -94,6 +102,26 @@ fun FriendMap(
                 map.uiSettings.isRotateGesturesEnabled = false
                 map.cameraPosition = CameraPosition.Builder().target(LatLng(-41.29, 174.78)).zoom(4.0).build()
                 map.setStyle(Style.Builder().fromUri(MAP_STYLE_URL)) { style ->
+                    style.addSource(GeoJsonSource(SRC_PLACES))
+                    style.addImage("place-meet", placeBitmap(true))
+                    style.addImage("place-spot", placeBitmap(false))
+                    style.addLayer(
+                        SymbolLayer(LAYER_PLACES, SRC_PLACES).withProperties(
+                            PropertyFactory.iconImage(Expression.get("icon")),
+                            PropertyFactory.iconAnchor("bottom"),
+                            PropertyFactory.iconAllowOverlap(true),
+                            PropertyFactory.iconIgnorePlacement(true),
+                            PropertyFactory.textField(Expression.get("label")),
+                            PropertyFactory.textFont(arrayOf("Noto Sans Regular")),
+                            PropertyFactory.textSize(12f),
+                            PropertyFactory.textColor(android.graphics.Color.WHITE),
+                            PropertyFactory.textHaloColor(android.graphics.Color.BLACK),
+                            PropertyFactory.textHaloWidth(1.5f),
+                            PropertyFactory.textOffset(arrayOf(0f, 0.6f)),
+                            PropertyFactory.textAnchor("top"),
+                            PropertyFactory.textAllowOverlap(true),
+                        ),
+                    )
                     style.addSource(GeoJsonSource(SRC_ME))
                     style.addSource(GeoJsonSource(SRC_FRIENDS))
                     style.addLayer(
@@ -121,6 +149,10 @@ fun FriendMap(
                         ),
                     )
                     styleReady.value = true
+                }
+                map.addOnMapLongClickListener { at ->
+                    longPress.value(at.latitude, at.longitude)
+                    true
                 }
                 map.addOnMapClickListener { at ->
                     val pt = map.projection.toScreenLocation(at)
@@ -173,6 +205,16 @@ fun FriendMap(
                 },
             ),
         )
+        style.getSourceAs<GeoJsonSource>(SRC_PLACES)?.setGeoJson(
+            FeatureCollection.fromFeatures(
+                places.map { p ->
+                    Feature.fromGeometry(Point.fromLngLat(p.lon, p.lat)).apply {
+                        addStringProperty("icon", if (p.meetUp) "place-meet" else "place-spot")
+                        addStringProperty("label", if (p.meetUp) "Meet: ${p.name}" else p.name)
+                    }
+                },
+            ),
+        )
         style.getSourceAs<GeoJsonSource>(SRC_ME)?.setGeoJson(
             FeatureCollection.fromFeatures(me?.let { listOf(Feature.fromGeometry(Point.fromLngLat(it.longitude, it.latitude))) } ?: emptyList()),
         )
@@ -196,6 +238,8 @@ fun FriendMap(
 }
 
 private const val SRC_ME = "me"
+private const val SRC_PLACES = "places"
+private const val LAYER_PLACES = "place-pins"
 private const val SRC_FRIENDS = "friends"
 private const val LAYER_ME = "me-dot"
 private const val LAYER_FRIENDS = "friend-pins"
@@ -231,5 +275,26 @@ private fun pinBitmap(p: MapPin): Bitmap {
         val y = size / 2f - (paint.descent() + paint.ascent()) / 2
         c.drawText(p.name.take(1).uppercase(), size / 2f, y, paint)
     }
+    return out
+}
+
+/** A map pin: hot pink for the crew meet-up, cyan for your own spots. */
+private fun placeBitmap(meetUp: Boolean): Bitmap {
+    val w = 64
+    val h = 84
+    val out = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+    val c = Canvas(out)
+    val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    paint.color = if (meetUp) android.graphics.Color.rgb(0xFF, 0x2E, 0x93) else android.graphics.Color.rgb(0x22, 0xE4, 0xFF)
+    val path = android.graphics.Path().apply {
+        addCircle(w / 2f, w / 2f, w / 2f - 4, android.graphics.Path.Direction.CW)
+        moveTo(w / 2f - 14, w / 2f + 18)
+        lineTo(w / 2f, h - 2f)
+        lineTo(w / 2f + 14, w / 2f + 18)
+        close()
+    }
+    c.drawPath(path, paint)
+    paint.color = android.graphics.Color.rgb(0x0F, 0x0B, 0x1C)
+    c.drawCircle(w / 2f, w / 2f, 12f, paint)
     return out
 }

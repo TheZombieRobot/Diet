@@ -374,10 +374,23 @@ class LocatorEngine(
         val adv = lookingAdvert
             ?: BleBroadcaster(context, AdvertiseSettings.ADVERTISE_MODE_BALANCED, "BT advert (looking)").also { lookingAdvert = it }
         adv.mode = if (beaconOn) AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY else AdvertiseSettings.ADVERTISE_MODE_BALANCED
-        adv.update(Advert.encode(mySecret, ephemeral.currentId(System.currentTimeMillis()), uwbInfo, looking = true, beacon = beaconOn))
+        adv.update(Advert.encode(mySecret, ephemeral.currentId(System.currentTimeMillis()), uwbInfo, looking = true, beacon = beaconOn, askLight = System.currentTimeMillis() < askLightUntil))
     }
 
     // ---- "Light me up" beacon ----
+
+    private var askLightUntil = 0L
+
+    /** Ask the friends we're looking for to light up (for a minute): their phones offer it. */
+    fun askLight() {
+        askLightUntil = System.currentTimeMillis() + 60_000
+        updateLookingAdvert()
+        scope.launch {
+            kotlinx.coroutines.delay(61_000)
+            updateLookingAdvert()
+        }
+        DebugStatus.log("Asked mates to light up")
+    }
 
     private var beaconOn = false
     private val beaconHeardAt = mutableMapOf<String, Long>()

@@ -136,6 +136,7 @@ class VisibilityService : LifecycleService() {
         // phones joins their UWB session.
         listener = BleRanger(this, "BT scan (visible, listening for lookers)", { FriendsRepository.friends.toList() }) { friend, _, _, advert ->
             if (advert.looking) onFriendLooking(friend.name)
+            if (advert.askLight) onAskedToLight(friend)
             val info = advert.uwb
             if (info?.role == Advert.UwbRole.CONTROLLER) responder?.onFriendController(friend, info)
         }.also { it.start(lowLatency = false) }
@@ -153,6 +154,36 @@ class VisibilityService : LifecycleService() {
     }
 
     private var lastLookedAt = 0L
+    private val askedAt = mutableMapOf<String, Long>()
+
+    /** A mate close by tapped "Ask them to light up": offer it with a tap (never automatic). */
+    private fun onAskedToLight(friend: nz.waveformlabs.moshpoint.Friend) {
+        val now = System.currentTimeMillis()
+        if (now - (askedAt[friend.id] ?: 0L) < 90_000) return
+        askedAt[friend.id] = now
+        val nm = getSystemService(NotificationManager::class.java)
+        nm.createNotificationChannel(
+            NotificationChannel(REQUEST_CHANNEL, "Mates looking for you", NotificationManager.IMPORTANCE_HIGH),
+        )
+        val tap = PendingIntent.getActivity(
+            this, friend.id.hashCode(),
+            Intent(this, MainActivity::class.java).putExtra(MainActivity.EXTRA_LIGHT_FOR, friend.id)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+        val n = NotificationCompat.Builder(this, REQUEST_CHANNEL)
+            .setContentTitle("${friend.name} is close and looking for you")
+            .setContentText("Tap to light up your screen so they can spot you")
+            .setSmallIcon(R.drawable.ic_launcher_monochrome)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setAutoCancel(true)
+            .setContentIntent(tap)
+            .setColor(0xFFB6FF3B.toInt())
+            .build()
+        runCatching { nm.notify(REQUEST_NOTIFICATION_BASE + (friend.id.hashCode() and 0xFFF), n) }
+        DebugStatus.log("${friend.name} asked us to light up")
+    }
 
     private fun onFriendLooking(name: String) {
         lastLookedAt = System.currentTimeMillis()
@@ -222,6 +253,8 @@ class VisibilityService : LifecycleService() {
 
     companion object {
         private const val CHANNEL = "visibility"
+        private const val REQUEST_CHANNEL = "requests"
+        private const val REQUEST_NOTIFICATION_BASE = 5000
         private const val NOTIFICATION_ID = 1
         private const val FAST_FOR_MS = 90_000L
         private const val ACTION_STOP = "nz.waveformlabs.moshpoint.STOP_VISIBLE"

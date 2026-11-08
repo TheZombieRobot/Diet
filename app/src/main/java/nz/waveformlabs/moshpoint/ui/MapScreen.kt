@@ -52,7 +52,14 @@ fun MapScreen(
     onDirections: (Double, Double) -> Unit,
     onNudge: (Friend) -> Unit,
     onBack: () -> Unit,
+    /** Saved spots and the crew meet-up pin. */
+    places: List<MapPlace> = emptyList(),
+    /** In a crew: pins can be shared as the meet-up point. */
+    inCrew: Boolean = false,
+    onDropPin: (name: String, lat: Double, lon: Double, meetUp: Boolean) -> Unit = { _, _, _, _ -> },
+    onRemovePlace: (MapPlace) -> Unit = {},
 ) {
+    var dropAt by remember { mutableStateOf<Pair<Double, Double>?>(null) }
     val hasBack = androidx.activity.compose.LocalOnBackPressedDispatcherOwner.current != null
     if (hasBack) androidx.activity.compose.BackHandler(onBack = onBack)
 
@@ -83,6 +90,8 @@ fun MapScreen(
             me = me?.let { LatLng(it.lat, it.lon) },
             focus = focusN to focusPts,
             onPinTapped = { id -> seen[id]?.let { focus(listOf(LatLng(it.lat, it.lon))) } },
+            places = places,
+            onLongPress = { lat, lon -> dropAt = lat to lon },
         )
 
         // Top bar
@@ -95,6 +104,9 @@ fun MapScreen(
             Column(Modifier.weight(1f)) {
                 Text("Mosh map", style = Mosh.Label)
                 Text(status, style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 15.sp, color = Mosh.TextFaint), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            TextButton(onClick = { me?.let { dropAt = it.lat to it.lon } }, enabled = me != null) {
+                Text("Pin", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink))
             }
             TextButton(onClick = { focus(everyone) }) { Text("All", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
             TextButton(onClick = { me?.let { focus(listOf(LatLng(it.lat, it.lon))) } }) {
@@ -115,6 +127,32 @@ fun MapScreen(
                 )
             }
             LazyColumn(Modifier.heightIn(max = 260.dp)) {
+                items(places, key = { "place-" + it.id }) { p ->
+                    Row(
+                        Modifier.fillMaxWidth().clickable { focus(listOf(LatLng(p.lat, p.lon))) }.padding(horizontal = 14.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            Modifier.width(40.dp).heightIn(min = 40.dp).background(
+                                if (p.meetUp) Mosh.Pink.copy(alpha = 0.25f) else Mosh.Cyan.copy(alpha = 0.2f), RoundedCornerShape(12.dp),
+                            ),
+                            contentAlignment = Alignment.Center,
+                        ) { Text(if (p.meetUp) "★" else "●", style = Mosh.Label.copy(color = if (p.meetUp) Mosh.Pink else Mosh.Cyan)) }
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text((if (p.meetUp) "Meet: " else "") + p.name, style = Mosh.Label.copy(fontSize = 15.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(
+                                listOfNotNull(
+                                    me?.let { distanceLabel(Geo.distanceM(it, LatLon(p.lat, p.lon))) },
+                                    if (p.meetUp) "crew meet-up" else "only you see this",
+                                ).joinToString(" · "),
+                                style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 16.sp, color = Mosh.TextFaint),
+                            )
+                        }
+                        TextButton(onClick = { onDirections(p.lat, p.lon) }) { Text("Walk", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
+                        TextButton(onClick = { onRemovePlace(p) }) { Text("✕", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.TextFaint)) }
+                    }
+                }
                 items(people.sortedBy { f -> seen[f.id]?.let { nowMs / 1000 - it.timeSec } ?: Long.MAX_VALUE }, key = { it.id }) { f ->
                     val s = seen[f.id]
                     Row(
@@ -151,6 +189,41 @@ fun MapScreen(
                 }
             }
         }
+    }
+
+    dropAt?.let { (lat, lon) ->
+        var name by remember { mutableStateOf("") }
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { dropAt = null },
+            containerColor = Mosh.Deep,
+            title = { Text("Drop a pin", style = Mosh.Heading) },
+            text = {
+                Column {
+                    Text(
+                        if (inCrew) "Save it just for you (tent, car…) or make it the crew's meet-up point: everyone gets it on their map."
+                        else "Save it for yourself: the tent, the car, the good toilets. Works with no signal.",
+                        style = Mosh.Body,
+                    )
+                    Spacer(Modifier.width(1.dp).heightIn(min = 10.dp))
+                    androidx.compose.material3.OutlinedTextField(
+                        name, { name = it.take(24) }, singleLine = true,
+                        placeholder = { Text("e.g. Sound desk, Tent, Car") },
+                    )
+                }
+            },
+            confirmButton = {
+                if (inCrew) {
+                    TextButton(onClick = { onDropPin(name.ifBlank { "Meet here" }, lat, lon, true); dropAt = null }) {
+                        Text("Crew meet-up", style = Mosh.Label.copy(color = Mosh.Pink))
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { onDropPin(name.ifBlank { "My spot" }, lat, lon, false); dropAt = null }) {
+                    Text("Just for me", style = Mosh.Label.copy(color = Mosh.Cyan))
+                }
+            },
+        )
     }
 }
 

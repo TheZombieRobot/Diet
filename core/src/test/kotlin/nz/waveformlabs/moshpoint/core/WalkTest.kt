@@ -92,3 +92,17 @@ class GroupHostTest {
         assertEquals(host, GigGroup.hostOf(inv.qrText))
     }
 }
+
+class RallyTest {
+    @Test fun crewCanOpenRallyOthersCannot() {
+        val g = GigGroup.create("crew", 0)
+        val r = GigGroup.Rally(-41.2865, 174.7762, "Sound desk 🍺", 1_800_000_000L)
+        val blob = g.sealRally(r)
+        assertTrue(blob.size <= 128) // fits a relay record
+        assertEquals(r, g.openRally(blob))
+        assertNull(GigGroup.create("other", 0).openRally(blob))
+        assertTrue(g.rallyIdForDay(5).contentEquals(g.rallyIdForDay(5)))
+        assertTrue(!g.rallyIdForDay(5).contentEquals(g.rallyIdForDay(6)))
+    }
+}
+

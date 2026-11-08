@@ -117,6 +117,18 @@ class MainActivity : ComponentActivity() {
     private var alwaysOn by mutableStateOf(false)
     private var finding by mutableStateOf(false)
     private var beaconOn by mutableStateOf(false)
+
+    /** Opened from "X is looking for you": find them and light up straight away. */
+    private fun handleLightRequest(intent: Intent?) {
+        val id = intent?.getStringExtra(EXTRA_LIGHT_FOR) ?: return
+        intent.removeExtra(EXTRA_LIGHT_FOR)
+        if (FriendsRepository.byId(id) == null || !::engine.isInitialized) return
+        pendingStop?.cancel()
+        engine.track(setOf(id))
+        engine.start()
+        finding = true
+        setBeacon(true)
+    }
     private var showMap by mutableStateOf(false)
     private val mapFeed by lazy { nz.waveformlabs.moshpoint.locate.MapFeed(this, lifecycleScope) }
 
@@ -283,6 +295,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        handleLightRequest(intent)
         handleInvite(intent.getStringExtra(ShareInviteActivity.EXTRA_TEXT) ?: return)
     }
 
@@ -354,11 +367,13 @@ class MainActivity : ComponentActivity() {
         FriendsRepository.init(this)
         PhotoStore.init(this)
         LocationBook.init(this)
+        Spots.init(this)
         DebugStatus.initUi(this)
         if (savedInstanceState == null) intent?.getStringExtra(ShareInviteActivity.EXTRA_TEXT)?.let { handleInvite(it) }
         GroupSync.load(this)
         val mySecret = VisibilityPrefs.mySecret(this)
         engine = LocatorEngine(applicationContext, lifecycleScope, mySecret)
+        if (savedInstanceState == null) handleLightRequest(intent)
         visibleToMates = VisibilityPrefs.isVisible(this)
         myName = VisibilityPrefs.myName(this)
         alwaysOn = VisibilityPrefs.alwaysOn(this)
@@ -473,6 +488,7 @@ class MainActivity : ComponentActivity() {
                             onDismissScan = engine::dismissScanResult,
                             onNudge = { nudge(names) },
                             onOpenMap = { openMap() },
+                            onAskLight = { engine.askLight() },
                             beaconOn = beaconOn,
                             onBeacon = ::setBeacon,
                             beaconing = beaconing.mapNotNull { FriendsRepository.byId(it)?.name },
@@ -589,6 +605,7 @@ class MainActivity : ComponentActivity() {
                                 AvatarSync.publishMine(this@MainActivity, force = true)
                             },
                             onOpenMap = { openMap() },
+                            meetUp = GroupSync.rally.value?.name,
                         )
                     }
                     }
@@ -625,6 +642,21 @@ class MainActivity : ComponentActivity() {
                             },
                             onNudge = { f -> nudge(listOf(f.name)) },
                             onBack = { closeMap() },
+                            places = listOfNotNull(
+                                GroupSync.rally.value?.let { nz.waveformlabs.moshpoint.ui.MapPlace("rally", it.name, it.lat, it.lon, meetUp = true) },
+                            ) + Spots.spots.map { nz.waveformlabs.moshpoint.ui.MapPlace(it.id, it.name, it.lat, it.lon, meetUp = false) },
+                            inCrew = GroupSync.group.value != null,
+                            onDropPin = { name, lat, lon, meetUp ->
+                                if (meetUp) {
+                                    GroupSync.setRally(this@MainActivity, name, lat, lon)
+                                    toast("Meet-up pin sent to your crew")
+                                } else {
+                                    Spots.add(name, lat, lon)
+                                }
+                            },
+                            onRemovePlace = { p ->
+                                if (p.meetUp) GroupSync.clearRally(this@MainActivity) else Spots.remove(p.id)
+                            },
                         )
                     }
                 }
@@ -785,5 +817,10 @@ class MainActivity : ComponentActivity() {
         }
         engine.stop()
         super.onDestroy()
+    }
+
+    companion object {
+        /** Notification tap: "this friend asked us to light up". */
+        const val EXTRA_LIGHT_FOR = "nz.waveformlabs.moshpoint.LIGHT_FOR"
     }
 }
