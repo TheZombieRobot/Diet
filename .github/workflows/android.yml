@@ -90,7 +90,13 @@ jobs:
       - name: Screenshots of every screen (Paparazzi, no phone needed)
         if: success()
         continue-on-error: true
-        run: ./gradlew :app:recordPaparazziDebug -q
+        shell: bash
+        run: |
+          ./gradlew :app:recordPaparazziDebug -q || {
+            echo "=== failing screenshot tests ==="
+            grep -h -B1 -A8 "<failure" app/build/test-results/*/*.xml | head -60
+            exit 1
+          }
 
       - name: Commit screenshots to docs/screenshots (only when they change)
         if: success() && github.event_name == 'push'
