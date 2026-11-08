@@ -126,7 +126,7 @@ dependencies {
     implementation(libs.camerax.lifecycle)
     implementation(libs.camerax.video)
     implementation(libs.camerax.view)
-    implementation(libs.guava.listenablefuture) // CameraX hands back a ListenableFuture
+    implementation(libs.guava.android) // CameraX hands back a ListenableFuture (R8 strips the rest)
     implementation(libs.facebook.login)
     implementation(libs.zxing.android.embedded)
     debugImplementation(libs.androidx.compose.ui.tooling)
