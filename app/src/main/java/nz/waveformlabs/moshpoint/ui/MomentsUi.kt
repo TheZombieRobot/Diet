@@ -47,27 +47,21 @@ import nz.waveformlabs.moshpoint.Moments
 internal fun MomentStrip(items: List<Moments.Item>, nowSec: Long, onOpen: (Moments.Item) -> Unit, onShare: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("MOMENTS", style = Mosh.Eyebrow, modifier = Modifier.weight(1f))
-            TextButton(onClick = onShare) { Text("Share one", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
+            Text("THE STORY", style = Mosh.Eyebrow, modifier = Modifier.weight(1f))
+            if (items.isNotEmpty()) TextButton(onClick = { onOpen(items.first()) }) { Text("See it all ›", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
         }
-        if (items.isEmpty()) {
-            Text(
-                "Snap the stage, the bar, your spot: the crew sees the photo pinned where you took it. Handy when someone's lost.",
-                style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint),
-            )
-        } else {
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                items.take(12).forEach { m ->
-                    Column(Modifier.width(96.dp).clickable { onOpen(m) }) {
-                        Image(
-                            m.image, contentDescription = "Photo from ${m.from}", contentScale = ContentScale.Crop,
-                            modifier = Modifier.size(96.dp).clip(RoundedCornerShape(14.dp)).border(1.dp, Mosh.Line, RoundedCornerShape(14.dp)),
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(if (m.mine) "You" else m.from, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 15.sp, color = Mosh.Text), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(ago(nowSec - m.timeSec), style = Mosh.Body.copy(fontSize = 11.sp, lineHeight = 13.sp, color = Mosh.TextFaint))
-                    }
-                }
+        Row(
+            Modifier.horizontalScroll(rememberScrollState()).padding(vertical = 8.dp, horizontal = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            items.take(8).forEach { m -> Polaroid(m, 92.dp, Modifier.clickable { onOpen(m) }) }
+            Column(
+                Modifier.width(92.dp).height(110.dp).border(1.dp, Mosh.Line, RoundedCornerShape(6.dp)).clickable(onClick = onShare),
+                horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center,
+            ) {
+                Text("＋", style = Mosh.Heading.copy(color = Mosh.Cyan))
+                Text("Add", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextDim))
             }
         }
     }

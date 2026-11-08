@@ -158,6 +158,7 @@ class MainActivity : ComponentActivity() {
     private var showMap by mutableStateOf(false)
     private var bumping by mutableStateOf(false)
     private var planGig by mutableStateOf(false)
+    private var showStory by mutableStateOf(false)
     /** "Your night" recap shown before ending the night. */
     private var recap by mutableStateOf<NightStats.Stats?>(null)
     /** Ticks every 20 s so "x min ago" on the home screen stays current. */
@@ -238,7 +239,9 @@ class MainActivity : ComponentActivity() {
                     return false
                 }
                 val g = GroupSync.group.value
-                if (GroupSync.sleeping && g != null) {
+                if (GroupSync.following && g != null) {
+                    toast("You're following ${g.name}. You'll see their photos and where they are; they'll see you're following.")
+                } else if (GroupSync.sleeping && g != null) {
                     // A planned gig: nothing runs until the day.
                     toast("You're in ${g.name}! The crew wakes up on gig day (${nz.waveformlabs.moshpoint.ui.gigWhen(g.startsAtSec)}).")
                 } else {
@@ -365,7 +368,9 @@ class MainActivity : ComponentActivity() {
         visibleToMates = VisibilityPrefs.isVisible(this)
         // In a crew tonight? Then you're findable, without having to remember a switch,
         // unless you've chosen to hide.
-        if (!visibleToMates && onboarded && GroupSync.group.value != null && !GroupSync.sleeping && !VisibilityPrefs.userHid(this) && missing.isEmpty()) {
+        if (!visibleToMates && onboarded && GroupSync.group.value != null && !GroupSync.sleeping && !GroupSync.following &&
+            !VisibilityPrefs.userHid(this) && missing.isEmpty()
+        ) {
             setVisibility(true)
         }
         calmMotion = shouldCalm()
@@ -387,6 +392,7 @@ class MainActivity : ComponentActivity() {
         DebugStatus.initUi(this)
         if (savedInstanceState == null) intent?.getStringExtra(ShareInviteActivity.EXTRA_TEXT)?.let { handleInvite(it) }
         GroupSync.load(this)
+        if (GroupSync.following) FollowCheck.schedule(this)
         val mySecret = VisibilityPrefs.mySecret(this)
         engine = LocatorEngine(applicationContext, lifecycleScope, mySecret)
         lifecycleScope.launch {
@@ -650,6 +656,20 @@ class MainActivity : ComponentActivity() {
                             crewQrPayload = GroupSync.group.value?.let { crewQr(it) },
                             onQuickCrew = { ensureCrew() },
                             onPlanGig = { planGig = true },
+                            onOpenStory = { showStory = true },
+                            following = GroupSync.following,
+                            tileNotes = CrewStatus.venueNotes,
+                            followers = GroupSync.followers,
+                            onLetFamilyFollow = {
+                                GroupSync.group.value?.let { g ->
+                                    Sharing.send(
+                                        this@MainActivity,
+                                        "Follow our night at ${g.name} on Moshpoint: see our photos as they come in and that we're safe.\n" +
+                                            getTheApp + GigGroup.qr(g, null, follower = true),
+                                        "Let family follow along",
+                                    )
+                                }
+                            },
                             crewWhen = GroupSync.group.value?.takeIf { it.startsAtSec > 0 }?.let { g ->
                                 nz.waveformlabs.moshpoint.ui.gigWhen(g.startsAtSec) + if (g.venue.isNotBlank()) " · ${g.venue}" else ""
                             },
@@ -680,9 +700,9 @@ class MainActivity : ComponentActivity() {
                     if (planGig) {
                         nz.waveformlabs.moshpoint.ui.PlanGigSheet(
                             search = if (GigSearch.available) ({ q -> GigSearch.search(q) }) else null,
-                            onPick = { name, at, venue ->
+                            onPick = { name, at, venue, lat, lon ->
                                 planGig = false
-                                GroupSync.startNew(this@MainActivity, name, at, venue)
+                                GroupSync.startNew(this@MainActivity, name, at, venue, lat, lon)
                                 if (!GroupSync.sleeping) setVisibility(true)
                                 showGroupQr = true
                             },
@@ -720,11 +740,18 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     clipInvite?.let { (text, name) ->
+                        val follow = GigGroup.isFollowInvite(text)
                         androidx.compose.material3.AlertDialog(
                             onDismissRequest = { clipInvite = null },
                             containerColor = Mosh.Deep,
-                            title = { androidx.compose.material3.Text("Join $name?", style = Mosh.Heading) },
-                            text = { androidx.compose.material3.Text("You copied a Moshpoint invite. Join and you can all find each other tonight.", style = Mosh.Body) },
+                            title = { androidx.compose.material3.Text(if (follow) "Follow $name?" else "Join $name?", style = Mosh.Heading) },
+                            text = {
+                                androidx.compose.material3.Text(
+                                    if (follow) "You copied a follow-along link. You'll see their photos and that they're safe; they'll see you're following."
+                                    else "You copied a Moshpoint invite. Join and you can all find each other tonight.",
+                                    style = Mosh.Body,
+                                )
+                            },
                             confirmButton = {
                                 androidx.compose.material3.TextButton(onClick = { clipInvite = null; handleInvite(text) }) {
                                     androidx.compose.material3.Text("Join", style = Mosh.Label.copy(color = Mosh.Lime))
@@ -761,6 +788,17 @@ class MainActivity : ComponentActivity() {
                                     Sharing.send(this@MainActivity, "My night with Moshpoint: " + NightStats.summary(s, System.currentTimeMillis()) + " 🤘", "Share your night")
                                 }) { androidx.compose.material3.Text("Share", style = Mosh.Label.copy(color = Mosh.Cyan)) }
                             },
+                        )
+                    }
+                    if (showStory) {
+                        nz.waveformlabs.moshpoint.ui.StoryScreen(
+                            items = Moments.items,
+                            nowSec = homeNow / 1000,
+                            colourOf = { name -> FriendsRepository.friends.firstOrNull { it.name.equals(name, true) }?.color },
+                            onShare = if (GroupSync.following) null else momentFlow::start,
+                            onMap = { showStory = false; openMap() },
+                            onBack = { showStory = false },
+                            following = GroupSync.following,
                         )
                     }
                     if (showMap) {

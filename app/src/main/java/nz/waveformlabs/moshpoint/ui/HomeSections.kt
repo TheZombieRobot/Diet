@@ -100,6 +100,8 @@ internal fun CrewTiles(
     onFind: (String) -> Unit,
     onOptions: (Friend) -> Unit,
     distances: Map<String, Double> = emptyMap(),
+    /** Overrides the status under a tile, e.g. "at the venue" for followers. */
+    notes: Map<String, String> = emptyMap(),
 ) {
     Row(
         Modifier.horizontalScroll(rememberScrollState()).padding(vertical = 10.dp, horizontal = 2.dp),
@@ -107,7 +109,8 @@ internal fun CrewTiles(
     ) {
         crew.forEachIndexed { i, f ->
             val bob = rememberFloat(i)
-            val (status, colour) = tileStatus(seen[f.id], nowSec, distances[f.id])
+            val (status, colour) = notes[f.id]?.let { it to (if (it == "at the venue") Mosh.Lime else Mosh.TextDim) }
+                ?: tileStatus(seen[f.id], nowSec, distances[f.id])
             Column(
                 Modifier.width(78.dp)
                     .graphicsLayer { translationY = -3.dp.toPx() * bob.value }
@@ -226,7 +229,7 @@ internal fun PingFeed(pings: List<GigGroup.Ping>, nowSec: Long, describe: (Int) 
 
 /** Bottom bar: the four places you go. */
 @Composable
-internal fun HomeBar(onMap: () -> Unit, onAdd: () -> Unit, onMe: () -> Unit, myName: String = "") {
+internal fun HomeBar(onMap: () -> Unit, onAdd: () -> Unit, onMe: () -> Unit, myName: String = "", onStory: () -> Unit = {}) {
     Row(
         Modifier.fillMaxWidth().background(Mosh.Deep.copy(alpha = 0.96f))
             .border(1.dp, Mosh.Line, RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp))
@@ -237,6 +240,7 @@ internal fun HomeBar(onMap: () -> Unit, onAdd: () -> Unit, onMe: () -> Unit, myN
         BarItem("Crew", selected = true, icon = { c -> CrewIcon(c) }) {}
         BarItem("Map", selected = false, icon = { c -> PinIcon(c) }, onClick = onMap)
         BarItem("Add", selected = false, accent = true, icon = { c -> PlusIcon(c) }, onClick = onAdd)
+        BarItem("Story", selected = false, icon = { c -> PolaroidIcon(c) }, onClick = onStory)
         BarItem("Me", selected = false, icon = { _ ->
             val mine = nz.waveformlabs.moshpoint.PhotoStore.photos[nz.waveformlabs.moshpoint.PhotoStore.ME]
             if (mine != null) {
@@ -260,7 +264,7 @@ private fun BarItem(label: String, selected: Boolean, accent: Boolean = false, i
         else -> Mosh.TextDim
     }
     Column(
-        Modifier.pressScale(sc).width(72.dp)
+        Modifier.pressScale(sc).width(64.dp)
             .clickable(interactionSource = src, indication = null, onClickLabel = label, role = androidx.compose.ui.semantics.Role.Tab, onClick = onClick)
             .padding(vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -404,5 +408,15 @@ private fun PlusIcon(c: Color) = androidx.compose.foundation.Canvas(Modifier.siz
     val sw = w * 0.13f
     drawLine(c, androidx.compose.ui.geometry.Offset(w / 2, w * 0.12f), androidx.compose.ui.geometry.Offset(w / 2, w * 0.88f), sw, androidx.compose.ui.graphics.StrokeCap.Round)
     drawLine(c, androidx.compose.ui.geometry.Offset(w * 0.12f, w / 2), androidx.compose.ui.geometry.Offset(w * 0.88f, w / 2), sw, androidx.compose.ui.graphics.StrokeCap.Round)
+}
+
+@Composable
+private fun PolaroidIcon(c: Color) = androidx.compose.foundation.Canvas(Modifier.size(24.dp)) {
+    val w = size.width
+    val stroke = androidx.compose.ui.graphics.drawscope.Stroke(width = w * 0.09f, join = androidx.compose.ui.graphics.StrokeJoin.Round)
+    androidx.compose.ui.graphics.drawscope.rotate(-8f) {
+        drawRoundRect(c, androidx.compose.ui.geometry.Offset(w * 0.16f, w * 0.1f), androidx.compose.ui.geometry.Size(w * 0.68f, w * 0.8f), androidx.compose.ui.geometry.CornerRadius(w * 0.06f), style = stroke)
+        drawRect(c.copy(alpha = 0.45f), androidx.compose.ui.geometry.Offset(w * 0.27f, w * 0.21f), androidx.compose.ui.geometry.Size(w * 0.46f, w * 0.42f))
+    }
 }
 

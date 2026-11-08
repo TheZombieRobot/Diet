@@ -50,7 +50,7 @@ internal fun gigWhen(startsAtSec: Long): String {
 @Composable
 internal fun PlanGigSheet(
     search: (suspend (String) -> List<GigSearch.Gig>?)?,
-    onPick: (name: String, startsAtSec: Long, venue: String) -> Unit,
+    onPick: (name: String, startsAtSec: Long, venue: String, lat: Double?, lon: Double?) -> Unit,
     onClose: () -> Unit,
 ) {
     androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, containerColor = Mosh.Deep) {
@@ -88,7 +88,7 @@ internal fun PlanGigSheet(
                 results.orEmpty().take(12).forEach { g ->
                     Column(
                         Modifier.fillMaxWidth().background(Mosh.SurfaceLow, RoundedCornerShape(14.dp))
-                            .clickable { onPick(g.name.take(40), g.startsAtSec, listOf(g.venue, g.city).filter { it.isNotBlank() }.joinToString(", ")) }
+                            .clickable { onPick(g.name.take(40), g.startsAtSec, listOf(g.venue, g.city).filter { it.isNotBlank() }.joinToString(", "), g.lat, g.lon) }
                             .padding(horizontal = 14.dp, vertical = 10.dp),
                     ) {
                         Text(g.name, style = Mosh.Label.copy(fontSize = 15.sp), maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -133,7 +133,7 @@ internal fun PlanGigSheet(
                     }, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), android.text.format.DateFormat.is24HourFormat(context)).show()
                 }
             }
-            NeonButton("Start the crew") { onPick(name.ifBlank { "Gig night" }, at, venue.trim()) }
+            NeonButton("Start the crew") { onPick(name.ifBlank { "Gig night" }, at, venue.trim(), null, null) }
             Spacer(Modifier.heightIn(min = 4.dp))
         }
     }

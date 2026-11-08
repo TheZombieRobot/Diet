@@ -65,6 +65,9 @@ object Mosh {
         Font(R.font.inter_semibold, FontWeight.SemiBold),
     )
 
+    /** Permanent Marker: handwriting on the Polaroids. */
+    val Marker = FontFamily(Font(R.font.permanent_marker, FontWeight.Normal))
+
     // Named text styles used across screens.
     val Eyebrow = TextStyle(fontFamily = Inter, fontSize = 12.sp, letterSpacing = 2.sp, color = TextFaint)
     val Title = TextStyle(fontFamily = Display, fontWeight = FontWeight.ExtraBold, fontSize = 32.sp, color = Text)

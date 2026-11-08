@@ -86,7 +86,9 @@ object GroupSync {
         val g = GigGroup(
             Base64.decode(key, Base64.NO_WRAP), p.getString("name", "Gig group") ?: "Gig group", created,
             p.getLong("at", 0L), p.getString("venue", "") ?: "",
+            p.getString("vlat", null)?.toDoubleOrNull(), p.getString("vlon", null)?.toDoubleOrNull(),
         )
+        followingState.value = p.getBoolean("following", false)
         if (System.currentTimeMillis() > g.expiresAtMs) {
             clear(c)
             return
@@ -102,18 +104,52 @@ object GroupSync {
         p.getString("members", null)?.split(',')?.filter { it.length == 64 }?.let { members.addAll(it) }
     }
 
-    fun startNew(c: Context, name: String, startsAtSec: Long = 0L, venue: String = "") =
-        set(c.applicationContext, GigGroup.create(name, System.currentTimeMillis(), startsAtSec = startsAtSec, venue = venue))
+    fun startNew(c: Context, name: String, startsAtSec: Long = 0L, venue: String = "", venueLat: Double? = null, venueLon: Double? = null) {
+        followingState.value = false
+        prefs(c.applicationContext).edit().putBoolean("following", false).apply()
+        set(c.applicationContext, GigGroup.create(name, System.currentTimeMillis(), startsAtSec = startsAtSec, venue = venue, venueLat = venueLat, venueLon = venueLon))
+    }
 
     /** The crew is for a gig that's still days away: everything stays off until the day. */
     val sleeping: Boolean get() = group.value?.dormant(System.currentTimeMillis()) == true
 
-    /** Returns false if [qrText] isn't a group QR. */
+    // ---- Following from home ----
+
+    private val followingState = mutableStateOf(false)
+
+    /** We're following a crew from home: we see their story and whereabouts, and are never findable. */
+    val following: Boolean get() = followingState.value
+
+    /**
+     * One quiet sync with the app closed (followers' background check): pings, help alerts,
+     * check-ins, moments and whereabouts. Posts our follower intro so the crew sees us.
+     */
+    suspend fun syncOnce(c: Context) {
+        val app = c.applicationContext
+        if (group.value == null) load(app)
+        val g = group.value ?: return
+        if (g.dormant(System.currentTimeMillis())) return
+        val now = System.currentTimeMillis()
+        val name = (if (following) GigGroup.FOLLOWER_MARK else "") + VisibilityPrefs.myName(app).ifBlank { "Mate" }
+        syncServer(app, g, g.sealIntro(GigGroup.Intro(VisibilityPrefs.mySecret(app), name), now), now)
+    }
+
+    /** Loved ones following this crew from home (names), so everyone knows who can see. */
+    val followers = androidx.compose.runtime.mutableStateListOf<String>()
+
+    /** Returns false if [qrText] isn't a group QR. A follow-along invite joins as a follower. */
     fun join(c: Context, qrText: String): Boolean {
         val g = GigGroup.parseQr(qrText, System.currentTimeMillis()) ?: return false
         val app = c.applicationContext
         val same = group.value?.key?.contentEquals(g.key) == true
-        if (!same) set(app, g)
+        val asFollower = GigGroup.isFollowInvite(qrText)
+        // A crew member who opens a follow link stays a crew member.
+        if (!same) {
+            followingState.value = asFollower
+            prefs(app).edit().putBoolean("following", asFollower).apply()
+            set(app, g)
+            if (asFollower) FollowCheck.schedule(app) else FollowCheck.cancel(app)
+        }
         // The person whose QR it was is in it: add them now, no waiting for an intro.
         GigGroup.hostOf(qrText)?.let { host ->
             if (!host.secret.contentEquals(VisibilityPrefs.mySecret(app))) {
@@ -134,6 +170,8 @@ object GroupSync {
             .putLong("created", g.createdAtMs)
             .putLong("at", g.startsAtSec)
             .putString("venue", g.venue)
+            .putString("vlat", g.venueLat?.toString())
+            .putString("vlon", g.venueLon?.toString())
             .remove("members")
             .remove("rally")
             .remove("rallyCleared")
@@ -152,6 +190,9 @@ object GroupSync {
         val app = c.applicationContext
         prefs(app).edit().clear().apply()
         group.value = null
+        followingState.value = false
+        followers.clear()
+        FollowCheck.cancel(app)
         GigWake.cancel(app)
         Moments.clear()
         runCatching { CrewWidget.update(app, emptyList()) }
@@ -200,8 +241,10 @@ object GroupSync {
             return
         }
         val mySecret = VisibilityPrefs.mySecret(c)
-        val myName = VisibilityPrefs.myName(c).ifBlank { "Mate" }
-        startListening(c, g)
+        val follower = following
+        // Followers are marked so the crew lists them apart; they never use Bluetooth.
+        val myName = (if (follower) GigGroup.FOLLOWER_MARK else "") + VisibilityPrefs.myName(c).ifBlank { "Mate" }
+        if (!follower) startListening(c, g)
         postedEpoch = Long.MIN_VALUE
         job = scope.launch {
             var lastServer = 0L
@@ -228,7 +271,7 @@ object GroupSync {
                     mine
                 }
                 slot++
-                advertise(c, out)
+                if (!follower) advertise(c, out)
                 if (now - lastServer > (if (RelayClient.ownServer) 30_000L else 55_000L)) {
                     lastServer = now
                     syncServer(c, g, mine, now)
@@ -421,6 +464,12 @@ object GroupSync {
     private fun received(c: Context, g: GigGroup, blob: ByteArray) {
         val intro = g.openIntro(blob, System.currentTimeMillis()) ?: return
         if (intro.secret.contentEquals(VisibilityPrefs.mySecret(c))) return // our own
+        if (intro.name.startsWith(GigGroup.FOLLOWER_MARK)) {
+            // Someone following from home: shown to the crew, never added as a findable mate.
+            val who = intro.name.removePrefix(GigGroup.FOLLOWER_MARK).ifBlank { "Someone" }
+            if (who !in followers) followers += who
+            return
+        }
         if (FriendsRepository.addFromIntro(intro.secret, intro.name)) {
             DebugStatus.log("Gig group: ${intro.name} joined")
         }

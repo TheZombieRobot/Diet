@@ -162,7 +162,10 @@ object RelayClient {
         }.getOrNull()
     }
 
-    /** Download a file from the relay (capped at 2 MB). */
+    /** Biggest file we send or fetch: a short clip (the public relay allows ~15 MB). */
+    const val MAX_FILE = 12_000_000
+
+    /** Download a file from the relay (capped at [MAX_FILE]). */
     suspend fun download(url: String): ByteArray? = withContext(Dispatchers.IO) {
         if (!url.startsWith("$NTFY/")) return@withContext null // only ever fetch from the relay itself
         if (!Budget.takeRequest()) return@withContext null
@@ -178,7 +181,7 @@ object RelayClient {
                     val n = input.read(chunk)
                     if (n < 0) break
                     buf.write(chunk, 0, n)
-                    if (buf.size() > 2_000_000) return@runCatching null
+                    if (buf.size() > MAX_FILE) return@runCatching null
                 }
                 buf.toByteArray()
             }

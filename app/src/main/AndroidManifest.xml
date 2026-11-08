@@ -76,6 +76,10 @@
             android:exported="false" />
 
         <receiver
+            android:name=".FollowCheckReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".CrewWidget"
             android:exported="false"
             android:label="Moshpoint crew">
@@ -86,6 +90,16 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_crew_info" />
         </receiver>
+
+        <provider
+            android:name=".MediaFileProvider"
+            android:authorities="${applicationId}.media"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/media_paths" />
+        </provider>
 
         <activity
             android:name=".ShareMomentActivity"

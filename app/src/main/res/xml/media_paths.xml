@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Where the camera app saves a clip for a crew moment (app cache, deleted after sending). -->
+<paths>
+    <cache-path name="clips" path="clips/" />
+</paths>

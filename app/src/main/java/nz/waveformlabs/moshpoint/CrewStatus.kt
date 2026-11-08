@@ -19,6 +19,9 @@ object CrewStatus {
     /** Friend id -> metres from us (only when both spots are recent). */
     val distances = mutableStateMapOf<String, Double>()
 
+    /** Friend id -> "at the venue" / "1.2 km from the venue" (when the gig's venue is known). */
+    val venueNotes = mutableStateMapOf<String, String>()
+
     // "On the move": where each mate was settled, and when we last told you about them.
     private val anchors = HashMap<String, LatLon>()
     private val lastMoveAlert = HashMap<String, Long>()
@@ -50,6 +53,9 @@ object CrewStatus {
         val now = System.currentTimeMillis() / 1000
         val crew = FriendsRepository.friends.filter { it.gigGroupOnly || it.key in GroupSync.members }
         distances.clear()
+        venueNotes.clear()
+        val g = GroupSync.group.value
+        val venue = if (g?.venueLat != null && g.venueLon != null) LatLon(g.venueLat, g.venueLon) else null
         val parts = mutableListOf<Pair<Double, String>>()
         for (f in crew) {
             val s = LocationBook.seen[f.id] ?: continue
@@ -57,6 +63,10 @@ object CrewStatus {
             if (age > 3 * 3600) continue
             val d = me?.let { Geo.distanceM(LatLon(it.latitude, it.longitude), LatLon(s.lat, s.lon)) }
             if (d != null && age < 10 * 60) distances[f.id] = d
+            if (venue != null && age < 30 * 60) {
+                val dv = Geo.distanceM(venue, LatLon(s.lat, s.lon))
+                venueNotes[f.id] = if (dv < 400) "at the venue" else "${short(dv)} from the venue"
+            }
             if (age < 5 * 60 && !s.lastGasp) checkMoving(c, f, s, me?.let { LatLon(it.latitude, it.longitude) })
             parts += (d ?: Double.MAX_VALUE) to when {
                 s.lastGasp -> "${f.name} phone died"

@@ -174,3 +174,19 @@ class FutureGigTest {
     }
 }
 
+class FollowInviteTest {
+    @Test fun followInviteKeepsVenueAndIsMarked() {
+        val g = GigGroup.create("Iron Maiden", 0, startsAtSec = 1_800_000_000L, venue = "Spark Arena", venueLat = -36.8471, venueLon = 174.7724)
+        val follow = GigGroup.qr(g, null, follower = true)
+        val crew = GigGroup.qr(g)
+        assertTrue(GigGroup.isFollowInvite(follow))
+        assertTrue(!GigGroup.isFollowInvite(crew))
+        val back = assertNotNull(GigGroup.parseQr(follow, 0))
+        assertEquals(-36.8471, back.venueLat!!, 1e-4)
+        assertEquals("Iron Maiden", back.name)
+        assertTrue(back.key.contentEquals(g.key))
+        val inv = Invite.find("Follow our night: $follow") as Invite.Group
+        assertTrue(GigGroup.isFollowInvite(inv.qrText))
+    }
+}
+

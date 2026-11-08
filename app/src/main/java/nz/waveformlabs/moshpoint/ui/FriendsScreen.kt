@@ -115,6 +115,16 @@ fun FriendsScreen(
     onBump: () -> Unit = {},
     /** "Plan a gig": find it (or type it in) and start its crew ahead of time. */
     onPlanGig: () -> Unit = {},
+    /** The night's photos and clips as Polaroids. */
+    onOpenStory: () -> Unit = {},
+    /** We follow this crew from home (watch only). */
+    following: Boolean = false,
+    /** "at the venue" etc. per crew member, shown to followers. */
+    tileNotes: Map<String, String> = emptyMap(),
+    /** Names of people following this crew from home. */
+    followers: List<String> = emptyList(),
+    /** Share the follow-along invite with family. */
+    onLetFamilyFollow: () -> Unit = {},
     /** "Sat 14 Dec, 8:00 pm · Spark Arena" for a planned gig's crew, else null. */
     crewWhen: String? = null,
     /** The crew is for a later day and is asleep (nothing running) until then. */
@@ -288,7 +298,7 @@ fun FriendsScreen(
                         style = Mosh.Title.copy(fontSize = 28.sp, color = Mosh.Pink, shadow = androidx.compose.ui.graphics.Shadow(Mosh.Pink.copy(alpha = 0.8f), blurRadius = 28f)),
                     )
                 }
-                LivePill(visible, ghost) { onVisible(!visible) }
+                if (!following) LivePill(visible, ghost) { onVisible(!visible) }
             }
             if (!visible && groupName != null && !crewSleeping) {
                 Spacer(Modifier.height(8.dp))
@@ -347,11 +357,21 @@ fun FriendsScreen(
                     } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
-                                Text(if (crewSleeping) "COMING UP" else "TONIGHT", style = Mosh.Eyebrow)
+                                Text(if (following) "FOLLOWING" else if (crewSleeping) "COMING UP" else "TONIGHT", style = Mosh.Eyebrow)
                                 Text(groupName ?: "Your crew", style = Mosh.Heading, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                                 if (crewWhen != null) Text(crewWhen, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), maxLines = 2)
                             }
-                            TextButton(onClick = onShowGroupQr) { Text("＋ Invite", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan)) }
+                            if (!following) TextButton(onClick = onShowGroupQr) { Text("＋ Invite", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan)) }
+                        }
+                        if (!following) {
+                            // Who can see the crew from home, so nobody is followed without knowing.
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    if (followers.isEmpty()) "Family can follow the night from home" else "Following from home: ${followers.joinToString(", ")}",
+                                    style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), modifier = Modifier.weight(1f),
+                                )
+                                TextButton(onClick = onLetFamilyFollow) { Text("Share ›", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
+                            }
                         }
                         if (meetUp != null) {
                             Row(
@@ -370,9 +390,17 @@ fun FriendsScreen(
                                 style = Mosh.Body.copy(fontSize = 14.sp, color = Mosh.Violet),
                             )
                         }
-                        if (gig.isEmpty() || crewSleeping) {
+                        if (following && !crewSleeping) {
+                            Text("You can see where everyone is and their photos as they roll in. They can see you're following.", style = Mosh.Body.copy(fontSize = 14.sp))
+                            CrewTiles(gig, seen, nowSec, onFind = {}, onOptions = {}, distances = emptyMap(), notes = tileNotes)
+                            if (checkInBy != null) CheckInBanner(checkInBy, onHomeSafe)
+                            PingFeed(pings.take(3), nowSec, describePing)
+                            NeonButton("See the story") { onOpenStory() }
+                            GlassButton("Where are they? (map)", onClick = onOpenMap)
+                        } else if (gig.isEmpty() || crewSleeping) {
                             if (gig.isNotEmpty()) CrewTiles(gig, seen, nowSec, onFind = {}, onOptions = { options = it }, distances = emptyMap())
-                            if (crewQrPayload != null) InlineCrewQr(crewQrPayload, onShareCode)
+                            if (following) Text("You'll see them here once the gig starts.", style = Mosh.Body.copy(fontSize = 14.sp))
+                            else if (crewQrPayload != null) InlineCrewQr(crewQrPayload, onShareCode)
                             else NeonButton("Show crew QR", onClick = onShowGroupQr)
                         } else {
                             CrewTiles(gig, seen, nowSec, onFind = { onFind(setOf(it)) }, onOptions = { options = it }, distances = distances)
@@ -380,10 +408,17 @@ fun FriendsScreen(
                             if (checkInBy != null) CheckInBanner(checkInBy, onHomeSafe)
                             CrewActions(onMessage = { messageOpen = true }, onMoment = onShareMoment)
                             PingFeed(pings.take(1), nowSec, describePing)
-                            if (moments.isNotEmpty()) MomentStrip(moments, nowSec, onOpenMoment, onShareMoment)
+                            if (moments.isNotEmpty()) MomentStrip(moments, nowSec, { onOpenStory() }, onShareMoment)
                         }
                         TextButton(onClick = onClearGigGroup) {
-                            Text(if (crewSleeping) "Cancel this crew" else "End the night", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Danger))
+                            Text(
+                                when {
+                                    following -> "Stop following"
+                                    crewSleeping -> "Cancel this crew"
+                                    else -> "End the night"
+                                },
+                                style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Danger),
+                            )
                         }
                     }
                 }
@@ -402,7 +437,7 @@ fun FriendsScreen(
             item { TextButton(onClick = onAddSimulated) { Text("Debug: add simulated friend", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber)) } }
         }
     }
-    HomeBar(onMap = onOpenMap, onAdd = { addOpen = true }, onMe = { settingsOpen = true }, myName = myName)
+    HomeBar(onMap = onOpenMap, onAdd = { addOpen = true }, onMe = { settingsOpen = true }, myName = myName, onStory = onOpenStory)
     }
     }
 }

@@ -24,6 +24,9 @@ class GigGroup(
     val startsAtSec: Long = 0L,
     /** Where it is ("Spark Arena, Auckland"), may be blank. */
     val venue: String = "",
+    /** The venue's position, when known (from gig search), for "at the venue" on followers' screens. */
+    val venueLat: Double? = null,
+    val venueLon: Double? = null,
 ) {
     init {
         require(key.size == 32)
@@ -259,12 +262,14 @@ class GigGroup(
          * scans it can find the host straight away, before any Bluetooth or internet intro
          * arrives. Host fields go before `name` so older versions still read the name.
          */
-        fun qr(group: GigGroup, host: Intro? = null): String {
+        fun qr(group: GigGroup, host: Intro? = null, follower: Boolean = false): String {
             val h = host?.let {
                 "&h=${enc.encodeToString(it.secret)}&hn=${java.net.URLEncoder.encode(it.name.take(40), "UTF-8")}"
             }.orEmpty()
             val gig = (if (group.startsAtSec > 0) "&at=${group.startsAtSec}" else "") +
-                (if (group.venue.isNotBlank()) "&v=${java.net.URLEncoder.encode(group.venue.take(60), "UTF-8")}" else "")
+                (if (group.venue.isNotBlank()) "&v=${java.net.URLEncoder.encode(group.venue.take(60), "UTF-8")}" else "") +
+                (if (group.venueLat != null && group.venueLon != null) "&vl=%.5f,%.5f".format(java.util.Locale.ROOT, group.venueLat, group.venueLon) else "") +
+                (if (follower) "&f=1" else "")
             return "$PREFIX${enc.encodeToString(group.key)}$h$gig&name=${java.net.URLEncoder.encode(group.name, "UTF-8")}"
         }
 
@@ -291,7 +296,14 @@ class GigGroup(
                 .toMap()
             val at = params["at"]?.toLongOrNull() ?: 0L
             val venue = params["v"]?.let { runCatching { java.net.URLDecoder.decode(it, "UTF-8") }.getOrNull() }.orEmpty()
-            return GigGroup(key, name.ifBlank { "Gig group" }.take(40), nowMs, at, venue)
+            val vl = params["vl"]?.split(',')?.mapNotNull { it.toDoubleOrNull() }?.takeIf { it.size == 2 }
+            return GigGroup(key, name.ifBlank { "Gig group" }.take(40), nowMs, at, venue, vl?.get(0), vl?.get(1))
+        }
+
+        /** A "follow along" invite: for loved ones at home. They watch; they're never findable. */
+        fun isFollowInvite(text: String): Boolean {
+            val t = text.trim()
+            return t.startsWith(PREFIX) && t.substringBefore("&name=").split('&').any { it == "f=1" }
         }
 
         fun create(
@@ -300,7 +312,12 @@ class GigGroup(
             random: java.security.SecureRandom = java.security.SecureRandom(),
             startsAtSec: Long = 0L,
             venue: String = "",
-        ): GigGroup = GigGroup(ByteArray(32).also { random.nextBytes(it) }, name.ifBlank { "Gig group" }.take(40), nowMs, startsAtSec, venue)
+            venueLat: Double? = null,
+            venueLon: Double? = null,
+        ): GigGroup = GigGroup(ByteArray(32).also { random.nextBytes(it) }, name.ifBlank { "Gig group" }.take(40), nowMs, startsAtSec, venue, venueLat, venueLon)
+
+        /** Followers' intros start with this (invisible) mark, so the crew lists them apart and never "finds" them. */
+        const val FOLLOWER_MARK = "\u2063"
 
         /** Wake a sleeping crew this long before the gig starts. */
         const val WAKE_BEFORE_SEC = 3 * 3600L

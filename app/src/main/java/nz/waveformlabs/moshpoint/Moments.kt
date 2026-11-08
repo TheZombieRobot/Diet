@@ -31,7 +31,11 @@ object Moments {
         val caption: String,
         val image: ImageBitmap,
         val mine: Boolean,
-    )
+        /** A clip: [image] is its first frame, this is the playable file (cache). */
+        val videoFile: java.io.File? = null,
+    ) {
+        val isVideo get() = videoFile != null
+    }
 
     /** Newest first (Compose state for home and map). */
     val items = mutableStateListOf<Item>()
@@ -48,7 +52,7 @@ object Moments {
         val sealed = g.sealMoment(m)
         val ok = RelayClient.putFile(g.momentsIdForDay(Math.floorDiv(m.timeSec, 86_400L)), sealed)
         if (ok) {
-            add(m, "mine-${m.timeSec}", mine = true)
+            add(app, m, "mine-${m.timeSec}", mine = true)
             NightStats.moment(app)
         }
         DebugStatus.log(if (ok) "Moment shared with the crew" else "Moment not sent (no internet?)")
@@ -71,7 +75,7 @@ object Moments {
             val myName = VisibilityPrefs.myName(c).ifBlank { "Mate" }
             // Our own upload comes back too: we already have it.
             if (m.from == myName && items.any { it.mine && it.timeSec == m.timeSec }) continue
-            add(m, url, mine = false)
+            add(c, m, url, mine = false)
             if (now / 1000 - m.timeSec < 15 * 60) {
                 CrewNotifications.post(c, title = "${m.from} shared a moment", text = m.caption.ifBlank { "Tap to see where" })
             }
@@ -84,13 +88,58 @@ object Moments {
         lastCheckMs = 0L
     }
 
-    private fun add(m: GigGroup.Moment, key: String, mine: Boolean) {
+    private fun add(c: Context, m: GigGroup.Moment, key: String, mine: Boolean) {
         if (items.any { it.key == key }) return
-        val bmp = BitmapFactory.decodeByteArray(m.jpeg, 0, m.jpeg.size) ?: return
-        val item = Item(key, m.from, m.timeSec, m.lat, m.lon, m.caption, bmp.asImageBitmap(), mine)
+        // A clip travels as "MPV1" + thumbnail length + thumbnail JPEG + the MP4.
+        val (thumb, video) = unpackClip(c, m.jpeg, key) ?: (m.jpeg to null)
+        val bmp = BitmapFactory.decodeByteArray(thumb, 0, thumb.size)
+            ?: if (video != null) Bitmap.createBitmap(320, 320, Bitmap.Config.ARGB_8888).apply { eraseColor(0xFF1C1630.toInt()) } else return
+        val item = Item(key, m.from, m.timeSec, m.lat, m.lon, m.caption, bmp.asImageBitmap(), mine, video)
         val i = items.indexOfFirst { it.timeSec < m.timeSec }.let { if (it < 0) items.size else it }
         items.add(i, item)
         while (items.size > 30) items.removeAt(items.size - 1)
+    }
+
+    /**
+     * Share a short clip (already recorded to [file]). Its first frame becomes the Polaroid.
+     * Returns false if it's too big for the relay, or couldn't be sent.
+     */
+    suspend fun shareClip(c: Context, file: java.io.File, caption: String, lat: Double?, lon: Double?): Boolean {
+        val g = GroupSync.group.value ?: return false
+        if (!RelayClient.filesEnabled || !file.exists()) return false
+        val app = c.applicationContext
+        if (file.length() > RelayClient.MAX_FILE - 200_000) return false
+        val packed = withContext(Dispatchers.IO) {
+            val frame = runCatching {
+                android.media.MediaMetadataRetriever().use { r -> r.setDataSource(file.absolutePath); r.getFrameAtTime(0) }
+            }.getOrNull()
+            val thumb = frame?.let { shrink(it) } ?: ByteArray(0)
+            val out = ByteArrayOutputStream()
+            out.write("MPV1".toByteArray())
+            out.write(java.nio.ByteBuffer.allocate(4).putInt(thumb.size).array())
+            out.write(thumb)
+            out.write(file.readBytes())
+            out.toByteArray()
+        }
+        val m = GigGroup.Moment(VisibilityPrefs.myName(app).ifBlank { "Mate" }, System.currentTimeMillis() / 1000, lat, lon, caption.trim(), packed)
+        val ok = RelayClient.putFile(g.momentsIdForDay(Math.floorDiv(m.timeSec, 86_400L)), g.sealMoment(m))
+        if (ok) {
+            add(app, m, "mine-${m.timeSec}", mine = true)
+            NightStats.moment(app)
+        }
+        DebugStatus.log(if (ok) "Clip shared with the crew" else "Clip not sent")
+        return ok
+    }
+
+    /** (thumbnail, playable file) for a packed clip, or null if [data] is a plain photo. */
+    private fun unpackClip(c: Context, data: ByteArray, key: String): Pair<ByteArray, java.io.File>? {
+        if (data.size < 8 || String(data, 0, 4, Charsets.US_ASCII) != "MPV1") return null
+        val n = java.nio.ByteBuffer.wrap(data, 4, 4).int
+        if (n < 0 || 8 + n > data.size) return null
+        val dir = java.io.File(c.cacheDir, "clips").apply { mkdirs() }
+        val f = java.io.File(dir, "m-${key.hashCode().toUInt()}.mp4")
+        if (!f.exists()) f.writeBytes(data.copyOfRange(8 + n, data.size))
+        return data.copyOfRange(8, 8 + n) to f
     }
 
     /** Longest side 720 px, JPEG ~60%: roughly 40-80 KB, plenty to recognise a spot. */

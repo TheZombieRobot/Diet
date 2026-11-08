@@ -38,7 +38,79 @@ class MomentFlow(
         if (ok) runCatching { takeMoment.launch(null) }
     }
     private val pickMoment = activity.registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) activity.lifecycleScope.launch { momentPhoto = decodeScaled(uri) }
+        if (uri == null) return@registerForActivityResult
+        val type = activity.contentResolver.getType(uri).orEmpty()
+        activity.lifecycleScope.launch {
+            if (type.startsWith("video/")) useClip(copyToClips(uri)) else momentPhoto = decodeScaled(uri)
+        }
+    }
+
+    // ---- Clips ----
+
+    private var clipFile: java.io.File? = null
+    private var momentClip by mutableStateOf<java.io.File?>(null)
+
+    private fun newClipFile() = java.io.File(java.io.File(activity.cacheDir, "clips").apply { mkdirs() }, "out-${System.currentTimeMillis()}.mp4")
+
+    private val takeClip = activity.registerForActivityResult(object : androidx.activity.result.contract.ActivityResultContract<android.net.Uri, Boolean>() {
+        override fun createIntent(context: android.content.Context, input: android.net.Uri) =
+            Intent(android.provider.MediaStore.ACTION_VIDEO_CAPTURE)
+                .putExtra(android.provider.MediaStore.EXTRA_OUTPUT, input)
+                .putExtra(android.provider.MediaStore.EXTRA_DURATION_LIMIT, 10)
+                .putExtra(android.provider.MediaStore.EXTRA_SIZE_LIMIT, 9_000_000L)
+                .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+        override fun parseResult(resultCode: Int, intent: Intent?) = resultCode == android.app.Activity.RESULT_OK
+    }) { ok -> if (ok) useClip(clipFile) }
+
+    private val cameraForClip = activity.registerForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
+        if (ok) recordClip()
+    }
+
+    private fun recordClip() {
+        if (activity.checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            cameraForClip.launch(Manifest.permission.CAMERA)
+            return
+        }
+        val f = newClipFile()
+        clipFile = f
+        val uri = androidx.core.content.FileProvider.getUriForFile(activity, "${activity.packageName}.media", f)
+        runCatching { takeClip.launch(uri) }.onFailure { toast("No camera app can record video here") }
+    }
+
+    private suspend fun copyToClips(uri: android.net.Uri): java.io.File? = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        runCatching {
+            val f = newClipFile()
+            activity.contentResolver.openInputStream(uri)?.use { input -> f.outputStream().use { input.copyTo(it) } }
+            f
+        }.getOrNull()
+    }
+
+    private fun useClip(f: java.io.File?) {
+        if (f == null || !f.exists() || f.length() == 0L) return
+        if (f.length() > nz.waveformlabs.moshpoint.locate.RelayClient.MAX_FILE - 200_000) {
+            toast("That clip is too long to send. Keep it to about 10 seconds.")
+            f.delete()
+            return
+        }
+        momentClip = f
+    }
+
+    private fun sendClip(caption: String) {
+        val f = momentClip ?: return
+        sendingMoment = true
+        activity.lifecycleScope.launch {
+            val loc = lastLocation()
+            val ok = Moments.shareClip(activity, f, caption, loc?.latitude, loc?.longitude)
+            sendingMoment = false
+            if (ok) {
+                momentClip = null
+                f.delete()
+                toast("Clip shared with your crew")
+            } else {
+                toast("Couldn't send it. Check your internet and try again.")
+            }
+        }
     }
 
     private fun takeMomentPhoto() {
@@ -110,19 +182,36 @@ class MomentFlow(
                 onDismissRequest = { askMomentSource = false },
                 containerColor = Mosh.Deep,
                 title = { androidx.compose.material3.Text("Share a moment", style = Mosh.Heading) },
-                text = { androidx.compose.material3.Text("Snap where you are (the stage, the bar, a landmark) so the crew can spot it.", style = Mosh.Body) },
-                confirmButton = {
-                    androidx.compose.material3.TextButton(onClick = { askMomentSource = false; takeMomentPhoto() }) {
-                        androidx.compose.material3.Text("Take photo", style = Mosh.Label.copy(color = Mosh.Lime))
+                text = {
+                    androidx.compose.foundation.layout.Column {
+                        androidx.compose.material3.Text("Snap where you are (the stage, the bar, your mates). It lands in the story as a Polaroid.", style = Mosh.Body)
+                        androidx.compose.material3.TextButton(onClick = { askMomentSource = false; takeMomentPhoto() }) {
+                            androidx.compose.material3.Text("Take a photo", style = Mosh.Label.copy(color = Mosh.Lime))
+                        }
+                        androidx.compose.material3.TextButton(onClick = { askMomentSource = false; recordClip() }) {
+                            androidx.compose.material3.Text("Record a clip (10 s)", style = Mosh.Label.copy(color = Mosh.Pink))
+                        }
+                        androidx.compose.material3.TextButton(onClick = {
+                            askMomentSource = false
+                            pickMoment.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
+                        }) { androidx.compose.material3.Text("Choose from gallery", style = Mosh.Label.copy(color = Mosh.Cyan)) }
                     }
                 },
-                dismissButton = {
-                    androidx.compose.material3.TextButton(onClick = {
-                        askMomentSource = false
-                        pickMoment.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                    }) { androidx.compose.material3.Text("Choose photo", style = Mosh.Label.copy(color = Mosh.Cyan)) }
+                confirmButton = {
+                    androidx.compose.material3.TextButton(onClick = { askMomentSource = false }) {
+                        androidx.compose.material3.Text("Cancel", style = Mosh.Label)
+                    }
                 },
             )
+        }
+        momentClip?.let { f ->
+            val thumb = androidx.compose.runtime.remember(f) {
+                runCatching {
+                    android.media.MediaMetadataRetriever().use { r -> r.setDataSource(f.absolutePath); r.getFrameAtTime(0) }
+                }.getOrNull()?.asImageBitmap()
+                    ?: android.graphics.Bitmap.createBitmap(320, 240, android.graphics.Bitmap.Config.ARGB_8888).asImageBitmap()
+            }
+            nz.waveformlabs.moshpoint.ui.MomentComposer(thumb, sendingMoment, onSend = ::sendClip, onCancel = { momentClip = null; f.delete() })
         }
         momentPhoto?.let { bmp ->
             val img = androidx.compose.runtime.remember(bmp) { bmp.asImageBitmap() }
