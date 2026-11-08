@@ -72,11 +72,13 @@ fun MapScreen(
     if (hasBack) androidx.activity.compose.BackHandler(onBack = onBack)
 
     val located = people.filter { it.id in seen }
-    val pins = located.map { f ->
-        val s = seen.getValue(f.id)
-        val age = nowMs / 1000 - s.timeSec
-        MapPin(f.id, f.name, s.lat, s.lon, f.color, statusLine(s, age), stale = age > 15 * 60)
-    }
+    val pins = crewBubbles(
+        located.map { f ->
+            val s = seen.getValue(f.id)
+            val age = nowMs / 1000 - s.timeSec
+            MapPin(f.id, f.name, s.lat, s.lon, f.color, statusLine(s, age), stale = age > 15 * 60)
+        },
+    )
     // Camera requests: (counter, points). Starts by fitting everyone.
     var focusN by remember { mutableIntStateOf(0) }
     var focusPts by remember { mutableStateOf<List<LatLng>>(emptyList()) }
@@ -243,6 +245,32 @@ fun MapScreen(
             },
         )
     }
+}
+
+/**
+ * Mates standing together (within ~15 m, fresh) merge into one bubble ("Alex, Jo & Sam"),
+ * like Zenly: a tidy map, and you can see who's with whom.
+ */
+internal fun crewBubbles(pins: List<MapPin>): List<MapPin> {
+    val out = mutableListOf<MapPin>()
+    val left = pins.sortedBy { it.stale }.toMutableList()
+    while (left.isNotEmpty()) {
+        val first = left.removeAt(0)
+        if (first.stale) {
+            out += first
+            continue
+        }
+        val group = left.filter { !it.stale && Geo.distanceM(LatLon(first.lat, first.lon), LatLon(it.lat, it.lon)) < 15.0 }
+        left.removeAll(group)
+        if (group.isEmpty()) {
+            out += first
+        } else {
+            val names = (listOf(first) + group).map { it.name }
+            val label = if (names.size <= 3) names.dropLast(1).joinToString(", ") + " & " + names.last() else "${names[0]} +${names.size - 1}"
+            out += first.copy(name = label, caption = "together · ${first.caption}")
+        }
+    }
+    return out
 }
 
 /** "live · 64%", "12 min ago · 8%", "phone died here · 40 min ago". */
