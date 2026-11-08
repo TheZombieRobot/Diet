@@ -142,6 +142,7 @@ object GroupSync {
         prefs(app).edit().clear().apply()
         group.value = null
         Moments.clear()
+        runCatching { CrewWidget.update(app, emptyList()) }
         members.clear()
         rally.value = null
         rallyMine = false

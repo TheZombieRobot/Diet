@@ -37,8 +37,10 @@ object CrewStatus {
                 else -> "${f.name} ${age / 60} min ago"
             }
         }
-        val line = parts.sortedBy { it.first }.take(4).joinToString(" · ") { it.second }
+        val sorted = parts.sortedBy { it.first }.map { it.second }
+        val line = sorted.take(4).joinToString(" · ")
         VisibilityService.showCrew(c, line.ifBlank { null })
+        runCatching { CrewWidget.update(c, sorted.take(4)) }
     }
 
     private fun short(m: Double) = when {

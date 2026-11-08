@@ -71,6 +71,18 @@
         </activity>
 
         <!-- "Share -> Moshpoint" for invites sent as text (mates whose phone can't scan QR codes). -->
+        <receiver
+            android:name=".CrewWidget"
+            android:exported="false"
+            android:label="Moshpoint crew">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_crew_info" />
+        </receiver>
+
         <activity
             android:name=".ShareMomentActivity"
             android:exported="true"

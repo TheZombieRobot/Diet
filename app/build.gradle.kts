@@ -19,6 +19,10 @@ android {
         versionCode = build
         versionName = "0.1.0 ($build)"
 
+        // Real phones only (ARM): the map engine ships native code per chip type, and the x86
+        // copies are only for emulators. Roughly halves the download.
+        ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
+
         // Relay server for GPS mode. Empty = GPS sharing off. Set with
         // -Pmoshpoint.server=https://your-server or in gradle.properties.
 

@@ -132,6 +132,18 @@ class MainActivity : ComponentActivity() {
     private var finding by mutableStateOf(false)
     private var beaconOn by mutableStateOf(false)
 
+    private fun handleFindCrew(intent: Intent?) {
+        if (intent?.getBooleanExtra(EXTRA_FIND_CREW, false) != true || !::engine.isInitialized) return
+        intent.removeExtra(EXTRA_FIND_CREW)
+        val ids = FriendsRepository.friends.filter { it.gigGroupOnly || it.key in GroupSync.members }.map { it.id }.toSet()
+        if (ids.isEmpty()) return
+        closeMap()
+        pendingStop?.cancel()
+        engine.track(ids)
+        engine.start()
+        finding = true
+    }
+
     /** Opened from "X is looking for you": find them and light up straight away. */
     private fun handleLightRequest(intent: Intent?) {
         val id = intent?.getStringExtra(EXTRA_LIGHT_FOR) ?: return
@@ -281,6 +293,7 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         handleLightRequest(intent)
         momentFlow.handleShared(intent)
+        handleFindCrew(intent)
         if (intent.getBooleanExtra(EXTRA_OPEN_MAP, false)) {
             intent.removeExtra(EXTRA_OPEN_MAP)
             openMap()
@@ -377,6 +390,7 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null) {
             handleLightRequest(intent)
             momentFlow.handleShared(intent)
+            handleFindCrew(intent)
             if (intent?.getBooleanExtra(EXTRA_OPEN_MAP, false) == true) openMap()
         }
         visibleToMates = VisibilityPrefs.isVisible(this)
@@ -904,6 +918,8 @@ class MainActivity : ComponentActivity() {
         const val EXTRA_LIGHT_FOR = "nz.waveformlabs.moshpoint.LIGHT_FOR"
         /** A photo shared from another app ("Share → Moshpoint crew"): the intent's data is the image. */
         const val EXTRA_MOMENT = "nz.waveformlabs.moshpoint.MOMENT"
+        /** Notification / widget "Find crew": straight into the finder for the whole crew. */
+        const val EXTRA_FIND_CREW = "nz.waveformlabs.moshpoint.FIND_CREW"
         /** Notification tap: open the map (a crew ping or help request). */
         const val EXTRA_OPEN_MAP = "nz.waveformlabs.moshpoint.OPEN_MAP"
     }

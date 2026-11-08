@@ -277,6 +277,17 @@ class VisibilityService : LifecycleService() {
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
                 .setContentIntent(open)
+                .apply {
+                    if (crew != null) {
+                        val find = PendingIntent.getActivity(
+                            c, 2,
+                            Intent(c, MainActivity::class.java).putExtra(MainActivity.EXTRA_FIND_CREW, true)
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+                            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+                        )
+                        addAction(0, "Find crew", find)
+                    }
+                }
                 .addAction(0, "Go hidden", stopIntent)
                 .setColor(0xFFB6FF3B.toInt())
                 .build()

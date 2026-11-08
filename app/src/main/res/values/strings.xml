@@ -2,4 +2,8 @@
     <string name="app_name">Moshpoint</string>
     <string name="visibility_channel">Live status</string>
     <string name="visibility_notification">You\'re live: mates can find you</string>
+    <string name="widget_title">Your crew</string>
+    <string name="widget_empty">Start a crew in Moshpoint and your mates show up here.</string>
+    <string name="widget_find">Find crew</string>
+    <string name="widget_description">Where your crew is, and one tap to find them</string>
 </resources>
