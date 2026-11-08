@@ -56,6 +56,9 @@ data class MapPin(
     val stale: Boolean,
 )
 
+/** A crew photo pinned where it was taken. */
+class MapMoment(val key: String, val label: String, val lat: Double, val lon: Double, val image: androidx.compose.ui.graphics.ImageBitmap)
+
 /** A saved spot or the crew's meet-up pin. */
 data class MapPlace(val id: String, val name: String, val lat: Double, val lon: Double, val meetUp: Boolean)
 
@@ -79,6 +82,8 @@ fun FriendMap(
     onLongPress: (Double, Double) -> Unit = { _, _ -> },
     /** False in screenshot tests, which can't load the native map library. */
     live: Boolean = true,
+    moments: List<MapMoment> = emptyList(),
+    onMomentTapped: (String) -> Unit = {},
 ) {
     if (!live || LocalInspectionMode.current) {
         // Screenshot tests can't load the native map: a plain stand-in.
@@ -91,6 +96,7 @@ fun FriendMap(
     val holder = remember { arrayOfNulls<MapLibreMap>(1) }
     // Latest callback, read from the map's own listener (set up once).
     val longPress = androidx.compose.runtime.rememberUpdatedState(onLongPress)
+    val momentTap = androidx.compose.runtime.rememberUpdatedState(onMomentTapped)
     // State, so pins get drawn as soon as the map style has loaded.
     val styleReady = remember { androidx.compose.runtime.mutableStateOf(false) }
     val mapView = remember {
@@ -104,6 +110,22 @@ fun FriendMap(
                 map.uiSettings.isRotateGesturesEnabled = false
                 map.cameraPosition = CameraPosition.Builder().target(LatLng(-41.29, 174.78)).zoom(4.0).build()
                 map.setStyle(Style.Builder().fromUri(MAP_STYLE_URL)) { style ->
+                    style.addSource(GeoJsonSource(SRC_MOMENTS))
+                    style.addLayer(
+                        SymbolLayer(LAYER_MOMENTS, SRC_MOMENTS).withProperties(
+                            PropertyFactory.iconImage(Expression.get("icon")),
+                            PropertyFactory.iconAllowOverlap(true),
+                            PropertyFactory.iconIgnorePlacement(true),
+                            PropertyFactory.textField(Expression.get("label")),
+                            PropertyFactory.textFont(arrayOf("Noto Sans Regular")),
+                            PropertyFactory.textSize(11f),
+                            PropertyFactory.textColor(android.graphics.Color.WHITE),
+                            PropertyFactory.textHaloColor(android.graphics.Color.BLACK),
+                            PropertyFactory.textHaloWidth(1.5f),
+                            PropertyFactory.textOffset(arrayOf(0f, 2.4f)),
+                            PropertyFactory.textAllowOverlap(true),
+                        ),
+                    )
                     style.addSource(GeoJsonSource(SRC_PLACES))
                     style.addImage("place-meet", placeBitmap(true))
                     style.addImage("place-spot", placeBitmap(false))
@@ -160,7 +182,9 @@ fun FriendMap(
                     val pt = map.projection.toScreenLocation(at)
                     val hit = map.queryRenderedFeatures(pt, LAYER_FRIENDS).firstOrNull()?.getStringProperty("id")
                     if (hit != null) onPinTapped(hit)
-                    hit != null
+                    val moment = if (hit == null) map.queryRenderedFeatures(pt, LAYER_MOMENTS).firstOrNull()?.getStringProperty("key") else null
+                    if (moment != null) momentTap.value(moment)
+                    hit != null || moment != null
                 }
             }
         }
@@ -207,6 +231,18 @@ fun FriendMap(
                 },
             ),
         )
+        moments.forEach { style.addImage("m-${it.key}", momentBitmap(it.image)) }
+        style.getSourceAs<GeoJsonSource>(SRC_MOMENTS)?.setGeoJson(
+            FeatureCollection.fromFeatures(
+                moments.map { m ->
+                    Feature.fromGeometry(Point.fromLngLat(m.lon, m.lat)).apply {
+                        addStringProperty("key", m.key)
+                        addStringProperty("icon", "m-${m.key}")
+                        addStringProperty("label", m.label)
+                    }
+                },
+            ),
+        )
         style.getSourceAs<GeoJsonSource>(SRC_PLACES)?.setGeoJson(
             FeatureCollection.fromFeatures(
                 places.map { p ->
@@ -241,6 +277,8 @@ fun FriendMap(
 
 private const val SRC_ME = "me"
 private const val SRC_PLACES = "places"
+private const val SRC_MOMENTS = "moments"
+private const val LAYER_MOMENTS = "moment-pins"
 private const val LAYER_PLACES = "place-pins"
 private const val SRC_FRIENDS = "friends"
 private const val LAYER_ME = "me-dot"
@@ -299,4 +337,26 @@ private fun placeBitmap(meetUp: Boolean): Bitmap {
     paint.color = android.graphics.Color.rgb(0x0F, 0x0B, 0x1C)
     c.drawCircle(w / 2f, w / 2f, 12f, paint)
     return out
+}
+
+/** A crew photo as a small rounded square with a white border (cached per image). */
+private val momentIcons = java.util.WeakHashMap<androidx.compose.ui.graphics.ImageBitmap, Bitmap>()
+
+private fun momentBitmap(img: androidx.compose.ui.graphics.ImageBitmap): Bitmap = momentIcons.getOrPut(img) {
+    val size = 104
+    val src = img.asAndroidBitmap()
+    val out = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    val c = Canvas(out)
+    val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    paint.color = android.graphics.Color.WHITE
+    c.drawRoundRect(RectF(0f, 0f, size.toFloat(), size.toFloat()), 18f, 18f, paint)
+    val inner = RectF(5f, 5f, size - 5f, size - 5f)
+    val layer = c.saveLayer(inner, null)
+    c.drawRoundRect(inner, 14f, 14f, paint)
+    paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+    val side = minOf(src.width, src.height)
+    c.drawBitmap(src, Rect((src.width - side) / 2, (src.height - side) / 2, (src.width + side) / 2, (src.height + side) / 2), inner, paint)
+    paint.xfermode = null
+    c.restoreToCount(layer)
+    out
 }

@@ -135,3 +135,17 @@ class PingTest {
     }
 }
 
+class MomentTest {
+    @Test fun momentRoundTrip() {
+        val g = GigGroup.create("crew", 0)
+        val jpeg = ByteArray(40_000) { (it * 31).toByte() }
+        val m = GigGroup.Moment("Bevan", 1_800_000_000L, -41.2865, 174.7762, "front row!", jpeg)
+        val out = assertNotNull(g.openMoment(g.sealMoment(m)))
+        assertEquals("Bevan", out.from)
+        assertEquals("front row!", out.caption)
+        assertTrue(out.jpeg.contentEquals(jpeg))
+        assertNull(GigGroup.create("x", 0).openMoment(g.sealMoment(m)))
+        assertNull(g.openPing(g.sealMoment(m)))
+    }
+}
+

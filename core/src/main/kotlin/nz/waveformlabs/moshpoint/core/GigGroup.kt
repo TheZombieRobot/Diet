@@ -152,6 +152,48 @@ class GigGroup(val key: ByteArray, val name: String, val createdAtMs: Long) {
         }.getOrNull()
     }
 
+    /** Mailbox id for crew photo "moments" (daily: they fade out by morning). */
+    fun momentsIdForDay(day: Long): ByteArray =
+        hmac(key, "moshpoint-group-moments".toByteArray() + ByteBuffer.allocate(8).putLong(day).array()).copyOf(16)
+
+    /** A photo shared with the crew, with where and when it was taken. */
+    class Moment(val from: String, val timeSec: Long, val lat: Double?, val lon: Double?, val caption: String, val jpeg: ByteArray)
+
+    /** `[time:4][nonce:8][AES-GCM(lat:4, lon:4, nameLen:1, name, capLen:1, caption, jpeg)+tag]`. */
+    fun sealMoment(m: Moment, random: java.security.SecureRandom = java.security.SecureRandom()): ByteArray {
+        val name = trimUtf8(m.from.toByteArray(Charsets.UTF_8), MAX_NAME_BYTES)
+        val cap = trimUtf8(m.caption.toByteArray(Charsets.UTF_8), 80)
+        val plain = ByteBuffer.allocate(10 + name.size + cap.size + m.jpeg.size)
+            .putInt(((m.lat ?: 0.0) * 1e7).toInt()).putInt(((m.lon ?: 0.0) * 1e7).toInt())
+            .put(name.size.toByte()).put(name).put(cap.size.toByte()).put(cap).put(m.jpeg).array()
+        val time = ByteBuffer.allocate(4).putInt(m.timeSec.toInt()).array()
+        val nonce = ByteArray(8).also { random.nextBytes(it) }
+        val c = Cipher.getInstance("AES/GCM/NoPadding")
+        c.init(Cipher.ENCRYPT_MODE, rallyKey(), GCMParameterSpec(96, time + nonce))
+        c.updateAAD("moment".toByteArray())
+        return time + nonce + c.doFinal(plain)
+    }
+
+    fun openMoment(blob: ByteArray): Moment? {
+        if (blob.size < 12 + 10 + 12) return null
+        return runCatching {
+            val c = Cipher.getInstance("AES/GCM/NoPadding")
+            c.init(Cipher.DECRYPT_MODE, rallyKey(), GCMParameterSpec(96, blob.copyOfRange(0, 12)))
+            c.updateAAD("moment".toByteArray())
+            val b = ByteBuffer.wrap(c.doFinal(blob, 12, blob.size - 12))
+            val lat = b.int
+            val lon = b.int
+            val name = ByteArray(b.get().toInt() and 0xFF).also { b.get(it) }
+            val cap = ByteArray(b.get().toInt() and 0xFF).also { b.get(it) }
+            val jpeg = ByteArray(b.remaining()).also { b.get(it) }
+            val hasLoc = lat != 0 || lon != 0
+            Moment(
+                String(name, Charsets.UTF_8), ByteBuffer.wrap(blob, 0, 4).int.toLong() and 0xFFFFFFFFL,
+                if (hasLoc) lat / 1e7 else null, if (hasLoc) lon / 1e7 else null, String(cap, Charsets.UTF_8), jpeg,
+            )
+        }.getOrNull()
+    }
+
     private fun rallyKey() = SecretKeySpec(hmac(key, "moshpoint-group-rally-aes".toByteArray()).copyOf(16), "AES")
 
     data class Rally(val lat: Double, val lon: Double, val name: String, val timeSec: Long) {

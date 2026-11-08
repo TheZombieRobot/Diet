@@ -114,6 +114,79 @@ object RelayClient {
         }.getOrNull()
     }
 
+    /** Photos (crew moments) go as encrypted file attachments: public relay only for now. */
+    val filesEnabled get() = !ownServer
+
+    /** Upload an encrypted file (e.g. a crew moment) under [id]. ntfy.sh keeps it a few hours. */
+    suspend fun putFile(id: ByteArray, sealed: ByteArray): Boolean = withContext(Dispatchers.IO) {
+        if (!filesEnabled || !Budget.takeMessage()) return@withContext false
+        runCatching {
+            val c = URL("$NTFY/${topic(id)}").openConnection() as HttpURLConnection
+            c.requestMethod = "PUT"
+            c.doOutput = true
+            c.connectTimeout = 8_000
+            c.readTimeout = 20_000
+            c.setFixedLengthStreamingMode(sealed.size)
+            c.setRequestProperty("Filename", "m.bin")
+            c.setRequestProperty("Firebase", "no")
+            c.outputStream.use { it.write(sealed) }
+            val code = c.responseCode
+            c.disconnect()
+            if (code == 429) Budget.backOff()
+            code in 200..299
+        }.getOrDefault(false)
+    }
+
+    /** Files posted under [ids] in the last [since] (e.g. "4h"): (time, download URL), newest first. */
+    suspend fun listFiles(ids: List<ByteArray>, since: String = "4h"): List<Pair<Long, String>>? = withContext(Dispatchers.IO) {
+        if (!filesEnabled || ids.isEmpty() || !Budget.takeRequest()) return@withContext null
+        runCatching {
+            val c = URL("$NTFY/${ids.joinToString(",") { topic(it) }}/json?poll=1&since=${URLEncoder.encode(since, "UTF-8")}")
+                .openConnection() as HttpURLConnection
+            c.connectTimeout = 6_000
+            c.readTimeout = 8_000
+            val code = c.responseCode
+            if (code == 429) Budget.backOff()
+            if (code != 200) return@runCatching null
+            val out = mutableListOf<Pair<Long, String>>()
+            c.inputStream.bufferedReader().useLines { lines ->
+                for (line in lines) {
+                    val o = runCatching { JSONObject(line) }.getOrNull() ?: continue
+                    if (o.optString("event") != "message") continue
+                    val url = o.optJSONObject("attachment")?.optString("url").orEmpty()
+                    if (url.startsWith("https://")) out += o.optLong("time") to url
+                }
+            }
+            c.disconnect()
+            out.sortedByDescending { it.first }
+        }.getOrNull()
+    }
+
+    /** Download a file from the relay (capped at 2 MB). */
+    suspend fun download(url: String): ByteArray? = withContext(Dispatchers.IO) {
+        if (!url.startsWith("$NTFY/")) return@withContext null // only ever fetch from the relay itself
+        if (!Budget.takeRequest()) return@withContext null
+        runCatching {
+            val c = URL(url).openConnection() as HttpURLConnection
+            c.connectTimeout = 8_000
+            c.readTimeout = 20_000
+            if (c.responseCode != 200) return@runCatching null
+            val bytes = c.inputStream.use { input ->
+                val buf = java.io.ByteArrayOutputStream()
+                val chunk = ByteArray(16 * 1024)
+                while (true) {
+                    val n = input.read(chunk)
+                    if (n < 0) break
+                    buf.write(chunk, 0, n)
+                    if (buf.size() > 2_000_000) return@runCatching null
+                }
+                buf.toByteArray()
+            }
+            c.disconnect()
+            bytes
+        }.getOrNull()
+    }
+
     private fun topic(id: ByteArray) = "mp" + id.hex()
 
     private fun ownPut(url: String, body: ByteArray, timeout: Int): Boolean = runCatching {

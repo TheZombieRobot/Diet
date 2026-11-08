@@ -139,6 +139,7 @@ object GroupSync {
         val app = c.applicationContext
         prefs(app).edit().clear().apply()
         group.value = null
+        Moments.clear()
         members.clear()
         rally.value = null
         rallyMine = false
@@ -226,6 +227,7 @@ object GroupSync {
             g.rosterIdForEpoch(epoch), g.rosterIdForEpoch(epoch - 1), g.rallyIdForDay(day), g.rallyIdForDay(day - 1),
             g.pingIdForEpoch(epoch), g.pingIdForEpoch(epoch - 1),
         )
+        Moments.refresh(c, g)
         val found = RelayClient.lookup(ids) ?: return
         found.take(2).flatten().forEach { received(c, g, it) }
         found.drop(4).flatten().forEach { blob -> g.openPing(blob)?.let { onPing(c, it, blob) } }

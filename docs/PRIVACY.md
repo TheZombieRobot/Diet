@@ -62,6 +62,13 @@ under a code that changes every 5 minutes. It can't read them or tell who you ar
 any website it sees your phone's internet address when it connects. ntfy.sh keeps messages
 for up to 12 hours (see its own privacy policy).
 
+**Crew pings, meet-up pins and moments (optional):** messages you send your crew ("On my
+way", "Need help"), a meet-up pin you drop, and photos you choose to share as moments
+(with where you took them) are encrypted on your phone with your crew's key, so only people
+who scanned your crew's QR can open them. They pass through the same relay under codes that
+change daily or every 5 minutes; the public relay deletes them within hours. Nothing is
+shared unless you tap to send it.
+
 **Your photo (optional):** if you set one, it's encrypted on your phone with a key only your
 friends have and stored under an id that changes weekly, for up to 8 days, so friends'
 phones can show your face. The server can't see it. Removing your photo shares an empty one,

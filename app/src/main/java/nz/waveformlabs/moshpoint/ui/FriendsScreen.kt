@@ -111,6 +111,9 @@ fun FriendsScreen(
     ghost: Boolean = false,
     /** "Show crew QR" from the Add sheet: starts a crew first if needed. */
     onShowCrewQr: (() -> Unit)? = null,
+    moments: List<nz.waveformlabs.moshpoint.Moments.Item> = emptyList(),
+    onShareMoment: () -> Unit = {},
+    onOpenMoment: (nz.waveformlabs.moshpoint.Moments.Item) -> Unit = {},
     /** Debug builds only; null in release. */
     onAddSimulated: (() -> Unit)? = null,
     onSelfie: () -> Unit = {},
@@ -370,6 +373,7 @@ fun FriendsScreen(
                         if (groupName != null) {
                             PingBar(onPing)
                             PingFeed(pings, nowSec, describePing)
+                            MomentStrip(moments, nowSec, onOpenMoment, onShareMoment)
                         }
                         TextButton(onClick = onClearGigGroup) { Text("End the night", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Danger)) }
                     }

@@ -38,6 +38,7 @@ import nz.waveformlabs.moshpoint.service.VisibilityService
 import nz.waveformlabs.moshpoint.ui.DebugPanel
 import nz.waveformlabs.moshpoint.ui.FinderScreen
 import nz.waveformlabs.moshpoint.ui.MoshTheme
+import androidx.compose.ui.graphics.asImageBitmap
 import nz.waveformlabs.moshpoint.ui.OnboardingScreen
 import nz.waveformlabs.moshpoint.ui.Mosh
 import androidx.compose.animation.togetherWith
@@ -105,6 +106,133 @@ class MainActivity : ComponentActivity() {
     }
     private val cameraForSelfie = registerForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
         if (ok) runCatching { takeSelfie.launch(null) }
+    }
+
+    // ---- Crew moments (photos pinned where they were taken) ----
+
+    private var askMomentSource by mutableStateOf(false)
+    private var momentPhoto by mutableStateOf<android.graphics.Bitmap?>(null)
+    private var sendingMoment by mutableStateOf(false)
+    private var viewingMoment by mutableStateOf<Moments.Item?>(null)
+
+    private val takeMoment = registerForActivityResult(ActivityResultContracts.TakePicturePreview()) { bmp ->
+        if (bmp != null) momentPhoto = bmp
+    }
+    private val cameraForMoment = registerForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
+        if (ok) runCatching { takeMoment.launch(null) }
+    }
+    private val pickMoment = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) lifecycleScope.launch { momentPhoto = decodeScaled(uri) }
+    }
+
+    private fun takeMomentPhoto() {
+        if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            runCatching { takeMoment.launch(null) }
+        } else {
+            cameraForMoment.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    private fun handleSharedPhoto(intent: Intent?) {
+        if (intent?.getBooleanExtra(EXTRA_MOMENT, false) != true) return
+        val uri = intent.data ?: return
+        intent.removeExtra(EXTRA_MOMENT)
+        if (GroupSync.group.value == null) {
+            toast("Start or join a crew first: moments go to your crew")
+            return
+        }
+        lifecycleScope.launch { momentPhoto = decodeScaled(uri) }
+    }
+
+    private fun shareMomentStart() {
+        if (GroupSync.group.value == null) {
+            toast("Start or join a crew first: moments go to your crew")
+            return
+        }
+        askMomentSource = true
+    }
+
+    private fun sendMoment(caption: String) {
+        val photo = momentPhoto ?: return
+        sendingMoment = true
+        lifecycleScope.launch {
+            val loc = lastKnownLocation()
+            val ok = Moments.share(this@MainActivity, photo, caption, loc?.latitude, loc?.longitude)
+            sendingMoment = false
+            if (ok) {
+                momentPhoto = null
+                toast("Shared with your crew")
+            } else {
+                toast("Couldn't send it. Check your internet and try again.")
+            }
+        }
+    }
+
+    /** A picked or shared photo, decoded no bigger than ~1440 px so it never runs out of memory. */
+    private suspend fun decodeScaled(uri: android.net.Uri): android.graphics.Bitmap? = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        runCatching {
+            val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            contentResolver.openInputStream(uri)?.use { android.graphics.BitmapFactory.decodeStream(it, null, bounds) }
+            var sample = 1
+            while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= 1440) sample *= 2
+            contentResolver.openInputStream(uri)?.use {
+                android.graphics.BitmapFactory.decodeStream(it, null, android.graphics.BitmapFactory.Options().apply { inSampleSize = sample })
+            }
+        }.getOrNull()
+    }
+
+    @androidx.compose.runtime.Composable
+    private fun MomentDialogs() {
+        if (askMomentSource) {
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { askMomentSource = false },
+                containerColor = Mosh.Deep,
+                title = { androidx.compose.material3.Text("Share a moment", style = Mosh.Heading) },
+                text = { androidx.compose.material3.Text("Snap where you are (the stage, the bar, a landmark) so the crew can spot it.", style = Mosh.Body) },
+                confirmButton = {
+                    androidx.compose.material3.TextButton(onClick = { askMomentSource = false; takeMomentPhoto() }) {
+                        androidx.compose.material3.Text("Take photo", style = Mosh.Label.copy(color = Mosh.Lime))
+                    }
+                },
+                dismissButton = {
+                    androidx.compose.material3.TextButton(onClick = {
+                        askMomentSource = false
+                        pickMoment.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    }) { androidx.compose.material3.Text("Choose photo", style = Mosh.Label.copy(color = Mosh.Cyan)) }
+                },
+            )
+        }
+        momentPhoto?.let { bmp ->
+            val img = androidx.compose.runtime.remember(bmp) { bmp.asImageBitmap() }
+            nz.waveformlabs.moshpoint.ui.MomentComposer(img, sendingMoment, onSend = ::sendMoment, onCancel = { momentPhoto = null })
+        }
+        viewingMoment?.let { m ->
+            val me = lastKnownLocation()
+            val friend = FriendsRepository.friends.firstOrNull { it.name.equals(m.from, true) }
+            nz.waveformlabs.moshpoint.ui.MomentViewer(
+                m, System.currentTimeMillis() / 1000,
+                distanceText = if (me != null && m.lat != null && m.lon != null) {
+                    nz.waveformlabs.moshpoint.ui.distanceLabel(
+                        nz.waveformlabs.moshpoint.core.Geo.distanceM(
+                            nz.waveformlabs.moshpoint.core.LatLon(me.latitude, me.longitude),
+                            nz.waveformlabs.moshpoint.core.LatLon(m.lat, m.lon),
+                        ),
+                    )
+                } else {
+                    null
+                },
+                onMap = if (m.lat != null) ({ viewingMoment = null; openMap() }) else null,
+                onFind = if (friend != null && !m.mine) ({
+                    viewingMoment = null
+                    closeMap()
+                    pendingStop?.cancel()
+                    engine.track(setOf(friend.id))
+                    engine.start()
+                    finding = true
+                }) else null,
+                onClose = { viewingMoment = null },
+            )
+        }
     }
 
     private fun selfie() {
@@ -310,6 +438,7 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleLightRequest(intent)
+        handleSharedPhoto(intent)
         if (intent.getBooleanExtra(EXTRA_OPEN_MAP, false)) {
             intent.removeExtra(EXTRA_OPEN_MAP)
             openMap()
@@ -400,6 +529,7 @@ class MainActivity : ComponentActivity() {
         }
         if (savedInstanceState == null) {
             handleLightRequest(intent)
+            handleSharedPhoto(intent)
             if (intent?.getBooleanExtra(EXTRA_OPEN_MAP, false) == true) openMap()
         }
         visibleToMates = VisibilityPrefs.isVisible(this)
@@ -633,6 +763,9 @@ class MainActivity : ComponentActivity() {
                                 GroupSync.sendPing(this@MainActivity, kind, loc?.latitude, loc?.longitude)
                             },
                             describePing = GroupSync::pingText,
+                            moments = Moments.items,
+                            onShareMoment = ::shareMomentStart,
+                            onOpenMoment = { viewingMoment = it },
                             ghost = GhostMode.on.value,
                             onAddSimulated = if (DebugStatus.enabled) FriendsRepository::addSimulated else null,
                             onSelfie = ::selfie,
@@ -650,6 +783,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     }
+                    MomentDialogs()
                     if (showMap) {
                         val now by produceState(System.currentTimeMillis()) {
                             while (true) {
@@ -695,6 +829,12 @@ class MainActivity : ComponentActivity() {
                                     Spots.add(name, lat, lon)
                                 }
                             },
+                            moments = Moments.items.mapNotNull { m ->
+                                val lat = m.lat ?: return@mapNotNull null
+                                val lon = m.lon ?: return@mapNotNull null
+                                nz.waveformlabs.moshpoint.ui.MapMoment(m.key, "${if (m.mine) "You" else m.from} · ${nz.waveformlabs.moshpoint.ui.ago(now / 1000 - m.timeSec)}", lat, lon, m.image)
+                            },
+                            onMomentTapped = { key -> viewingMoment = Moments.items.firstOrNull { it.key == key } },
                             onRemovePlace = { p ->
                                 if (p.meetUp) GroupSync.clearRally(this@MainActivity) else Spots.remove(p.id)
                             },
@@ -863,6 +1003,8 @@ class MainActivity : ComponentActivity() {
     companion object {
         /** Notification tap: "this friend asked us to light up". */
         const val EXTRA_LIGHT_FOR = "nz.waveformlabs.moshpoint.LIGHT_FOR"
+        /** A photo shared from another app ("Share → Moshpoint crew"): the intent's data is the image. */
+        const val EXTRA_MOMENT = "nz.waveformlabs.moshpoint.MOMENT"
         /** Notification tap: open the map (a crew ping or help request). */
         const val EXTRA_OPEN_MAP = "nz.waveformlabs.moshpoint.OPEN_MAP"
     }

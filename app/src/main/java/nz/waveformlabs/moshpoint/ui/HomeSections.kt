@@ -112,7 +112,7 @@ internal fun CrewTiles(
                 Avatar(f, 62.dp)
                 Spacer(Modifier.height(6.dp))
                 Text(f.name, style = Mosh.Body.copy(fontSize = 14.sp, color = Mosh.Text), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(status, style = Mosh.Body.copy(fontSize = 11.sp, lineHeight = 13.sp, color = colour), maxLines = 1, textAlign = TextAlign.Center)
+                Text(status, style = Mosh.Body.copy(fontSize = 11.sp, lineHeight = 13.sp, color = colour), maxLines = 2, textAlign = TextAlign.Center)
             }
         }
     }
