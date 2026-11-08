@@ -24,6 +24,10 @@ object LocationBook {
     /** Friend id -> last seen. Compose state, so the map updates live. */
     val seen = mutableStateMapOf<String, Seen>()
 
+    /** Friend id -> where they've been in the last [TRAIL_MS] (oldest first): which way they were heading. */
+    val trails = mutableStateMapOf<String, List<Seen>>()
+    private const val TRAIL_MS = 30 * 60_000L
+
     private const val KEEP_MS = 24L * 3600_000
     private var app: Context? = null
 
@@ -49,11 +53,15 @@ object LocationBook {
     fun update(friendId: String, loc: SharedLocation) {
         val prev = seen[friendId]
         if (prev != null && prev.timeSec >= loc.timeSec) return
-        seen[friendId] = Seen(loc.lat, loc.lon, loc.timeSec, loc.accuracyM, loc.batteryPct, loc.lastGasp)
+        val s = Seen(loc.lat, loc.lon, loc.timeSec, loc.accuracyM, loc.batteryPct, loc.lastGasp)
+        seen[friendId] = s
+        val cutoff = loc.timeSec - TRAIL_MS / 1000
+        trails[friendId] = (trails[friendId].orEmpty() + s).filter { it.timeSec >= cutoff }.takeLast(60)
         save()
     }
 
     fun forget(friendId: String) {
+        trails.remove(friendId)
         if (seen.remove(friendId) != null) save()
     }
 

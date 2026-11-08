@@ -56,6 +56,9 @@ data class MapPin(
     val stale: Boolean,
 )
 
+/** Where someone has been lately, drawn as a faint line in their colour. */
+class MapTrail(val color: Int, val points: List<Pair<Double, Double>>)
+
 /** A crew photo pinned where it was taken. */
 class MapMoment(val key: String, val label: String, val lat: Double, val lon: Double, val image: androidx.compose.ui.graphics.ImageBitmap)
 
@@ -84,6 +87,10 @@ fun FriendMap(
     live: Boolean = true,
     moments: List<MapMoment> = emptyList(),
     onMomentTapped: (String) -> Unit = {},
+    trails: List<MapTrail> = emptyList(),
+    /** Bump to save the area on screen for use with no signal; progress goes to [onOffline]. */
+    saveOffline: Int = 0,
+    onOffline: (String) -> Unit = {},
 ) {
     if (!live || LocalInspectionMode.current) {
         // Screenshot tests can't load the native map: a plain stand-in.
@@ -110,6 +117,15 @@ fun FriendMap(
                 map.uiSettings.isRotateGesturesEnabled = false
                 map.cameraPosition = CameraPosition.Builder().target(LatLng(-41.29, 174.78)).zoom(4.0).build()
                 map.setStyle(Style.Builder().fromUri(MAP_STYLE_URL)) { style ->
+                    style.addSource(GeoJsonSource(SRC_TRAILS))
+                    style.addLayer(
+                        org.maplibre.android.style.layers.LineLayer(LAYER_TRAILS, SRC_TRAILS).withProperties(
+                            PropertyFactory.lineColor(Expression.toColor(Expression.get("color"))),
+                            PropertyFactory.lineWidth(3f),
+                            PropertyFactory.lineOpacity(0.55f),
+                            PropertyFactory.lineDasharray(arrayOf(1.5f, 1.5f)),
+                        ),
+                    )
                     style.addSource(GeoJsonSource(SRC_MOMENTS))
                     style.addLayer(
                         SymbolLayer(LAYER_MOMENTS, SRC_MOMENTS).withProperties(
@@ -231,6 +247,15 @@ fun FriendMap(
                 },
             ),
         )
+        style.getSourceAs<GeoJsonSource>(SRC_TRAILS)?.setGeoJson(
+            FeatureCollection.fromFeatures(
+                trails.filter { it.points.size >= 2 }.map { t ->
+                    Feature.fromGeometry(org.maplibre.geojson.LineString.fromLngLats(t.points.map { Point.fromLngLat(it.second, it.first) })).apply {
+                        addStringProperty("color", String.format("#%06X", t.color and 0xFFFFFF))
+                    }
+                },
+            ),
+        )
         moments.forEach { style.addImage("m-${it.key}", momentBitmap(it.image)) }
         style.getSourceAs<GeoJsonSource>(SRC_MOMENTS)?.setGeoJson(
             FeatureCollection.fromFeatures(
@@ -258,6 +283,15 @@ fun FriendMap(
         )
     }
 
+    // "Save this area": download the visible area's map (zoom 12-17) for when data dies.
+    val offlineCb = androidx.compose.runtime.rememberUpdatedState(onOffline)
+    LaunchedEffect(saveOffline) {
+        if (saveOffline == 0) return@LaunchedEffect
+        val map = holder[0] ?: return@LaunchedEffect
+        val bounds = map.projection.visibleRegion.latLngBounds
+        saveArea(context, bounds) { offlineCb.value(it) }
+    }
+
     // Camera moves when asked (first open, "Everyone", "Me", or tapping someone in the list).
     LaunchedEffect(focus.first) {
         var tries = 0
@@ -278,6 +312,8 @@ fun FriendMap(
 private const val SRC_ME = "me"
 private const val SRC_PLACES = "places"
 private const val SRC_MOMENTS = "moments"
+private const val SRC_TRAILS = "trails"
+private const val LAYER_TRAILS = "trail-lines"
 private const val LAYER_MOMENTS = "moment-pins"
 private const val LAYER_PLACES = "place-pins"
 private const val SRC_FRIENDS = "friends"
@@ -359,4 +395,40 @@ private fun momentBitmap(img: androidx.compose.ui.graphics.ImageBitmap): Bitmap 
     paint.xfermode = null
     c.restoreToCount(layer)
     out
+}
+
+/** Downloads the map for [bounds] so it works offline (MapLibre keeps it on the phone). */
+private fun saveArea(context: android.content.Context, bounds: LatLngBounds, progress: (String) -> Unit) {
+    val om = org.maplibre.android.offline.OfflineManager.getInstance(context)
+    val def = org.maplibre.android.offline.OfflineTilePyramidRegionDefinition(
+        MAP_STYLE_URL, bounds, 12.0, 17.0, context.resources.displayMetrics.density,
+    )
+    progress("Saving this area…")
+    om.createOfflineRegion(def, "venue".toByteArray(), object : org.maplibre.android.offline.OfflineManager.CreateOfflineRegionCallback {
+        override fun onCreate(offlineRegion: org.maplibre.android.offline.OfflineRegion) {
+            offlineRegion.setObserver(object : org.maplibre.android.offline.OfflineRegion.OfflineRegionObserver {
+                override fun onStatusChanged(status: org.maplibre.android.offline.OfflineRegionStatus) {
+                    if (status.isComplete) {
+                        progress("Area saved: the map works here with no signal")
+                        offlineRegion.setDownloadState(org.maplibre.android.offline.OfflineRegion.STATE_INACTIVE)
+                    } else if (status.requiredResourceCount > 0) {
+                        progress("Saving this area… ${100 * status.completedResourceCount / status.requiredResourceCount}%")
+                    }
+                }
+
+                override fun onError(error: org.maplibre.android.offline.OfflineRegionError) {
+                    progress("Couldn't save the area: ${error.message}")
+                }
+
+                override fun mapboxTileCountLimitExceeded(limit: Long) {
+                    progress("Too big to save: zoom in on the venue and try again")
+                }
+            })
+            offlineRegion.setDownloadState(org.maplibre.android.offline.OfflineRegion.STATE_ACTIVE)
+        }
+
+        override fun onError(error: String) {
+            progress("Couldn't save the area: $error")
+        }
+    })
 }

@@ -61,8 +61,11 @@ fun MapScreen(
     liveMap: Boolean = true,
     moments: List<MapMoment> = emptyList(),
     onMomentTapped: (String) -> Unit = {},
+    trails: Map<String, List<LocationBook.Seen>> = emptyMap(),
 ) {
     var dropAt by remember { mutableStateOf<Pair<Double, Double>?>(null) }
+    var saveN by remember { mutableIntStateOf(0) }
+    var offlineStatus by remember { mutableStateOf<String?>(null) }
     val hasBack = androidx.activity.compose.LocalOnBackPressedDispatcherOwner.current != null
     if (hasBack) androidx.activity.compose.BackHandler(onBack = onBack)
 
@@ -98,6 +101,9 @@ fun MapScreen(
             live = liveMap,
             moments = moments,
             onMomentTapped = onMomentTapped,
+            saveOffline = saveN,
+            onOffline = { offlineStatus = it },
+            trails = located.mapNotNull { f -> trails[f.id]?.let { t -> MapTrail(f.color, t.map { it.lat to it.lon }) } },
         )
 
         // Top bar
@@ -109,7 +115,7 @@ fun MapScreen(
             TextButton(onClick = onBack) { Text("‹ Back", style = Mosh.Label.copy(fontSize = 15.sp)) }
             Column(Modifier.weight(1f)) {
                 Text("Mosh map", style = Mosh.Label)
-                Text(status, style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 15.sp, color = Mosh.TextFaint), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(offlineStatus ?: status, style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 15.sp, color = Mosh.TextFaint), maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             TextButton(onClick = { me?.let { dropAt = it.lat to it.lon } }, enabled = me != null) {
                 Text("Pin", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink))
@@ -126,6 +132,9 @@ fun MapScreen(
                 .background(Mosh.Deep.copy(alpha = 0.94f), RoundedCornerShape(20.dp))
                 .border(1.dp, Mosh.Line, RoundedCornerShape(20.dp)).padding(vertical = 8.dp),
         ) {
+            TextButton(onClick = { saveN++ }, modifier = Modifier.padding(horizontal = 6.dp)) {
+                Text("⬇  Save this area for no signal", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF)))
+            }
             if (people.isEmpty()) {
                 Text(
                     "No mates yet. Start a crew or add a friend, and they'll show up here once they go live.",

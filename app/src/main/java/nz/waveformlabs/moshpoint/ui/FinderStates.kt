@@ -320,8 +320,7 @@ internal fun FoundOverlay(friend: Friend?, onDone: () -> Unit, onKeep: () -> Uni
  * crowd from a distance (hold the phone up high). Tap anywhere to stop.
  */
 @Composable
-internal fun BeaconOverlay(onStop: () -> Unit) {
-    val colours = listOf(Mosh.Pink, Mosh.Cyan, Mosh.Lime, Color.White)
+internal fun BeaconOverlay(colour: Color, colourName: String, onStop: () -> Unit) {
     var i by remember { mutableStateOf(0) }
     LaunchedEffect(Unit) {
         while (true) {
@@ -332,12 +331,12 @@ internal fun BeaconOverlay(onStop: () -> Unit) {
     val on = i % 2 == 0
     Box(
         Modifier.fillMaxSize()
-            .background(if (on) colours[(i / 2) % colours.size] else Color.Black)
+            .background(if (on) colour else Color.Black)
             .clickable(onClick = onStop),
         contentAlignment = Alignment.BottomCenter,
     ) {
         Text(
-            "Hold your phone up high. Tap to stop.",
+            "Your colour is ${colourName.uppercase()}. Hold your phone up high. Tap to stop.",
             style = Mosh.Body.copy(color = if (on) Color.Black else Color.White, fontSize = 15.sp),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom = 48.dp),

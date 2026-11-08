@@ -466,7 +466,10 @@ class MainActivity : ComponentActivity() {
                             onAskLight = { engine.askLight() },
                             beaconOn = beaconOn,
                             onBeacon = ::setBeacon,
-                            beaconing = beaconing.mapNotNull { FriendsRepository.byId(it)?.name },
+                            beaconing = beaconing.mapNotNull { id ->
+                                FriendsRepository.byId(id)?.let { "${nz.waveformlabs.moshpoint.core.BeaconColour.forSecret(it.secret).name.uppercase()} (${it.name})" }
+                            },
+                            myBeacon = nz.waveformlabs.moshpoint.core.BeaconColour.forSecret(mySecret),
                             onBack = {
                                 setBeacon(false)
                                 finding = false
@@ -651,6 +654,7 @@ class MainActivity : ComponentActivity() {
                                 val lon = m.lon ?: return@mapNotNull null
                                 nz.waveformlabs.moshpoint.ui.MapMoment(m.key, "${if (m.mine) "You" else m.from} · ${nz.waveformlabs.moshpoint.ui.ago(now / 1000 - m.timeSec)}", lat, lon, m.image)
                             },
+                            trails = LocationBook.trails,
                             onMomentTapped = { key -> Moments.items.firstOrNull { it.key == key }?.let(momentFlow::view) },
                             onRemovePlace = { p ->
                                 if (p.meetUp) GroupSync.clearRally(this@MainActivity) else Spots.remove(p.id)

@@ -81,6 +81,8 @@ fun FinderScreen(
     onBeacon: (Boolean) -> Unit = {},
     /** Mates flashing their screens for us right now. */
     beaconing: List<String> = emptyList(),
+    /** Our own Light me up colour (from our key), e.g. blue. */
+    myBeacon: nz.waveformlabs.moshpoint.core.BeaconColour.Colour = nz.waveformlabs.moshpoint.core.BeaconColour.palette[0],
     /** Can't reach them at all: send them a message asking them to go live. */
     onNudge: () -> Unit = {},
     /** Far away: see everyone on the map instead. */
@@ -200,7 +202,7 @@ fun FinderScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        "${beaconing.joinToString(" & ")} ${if (beaconing.size == 1) "is" else "are"} flashing their screen. Look around for it!",
+                        "Look for flashing ${beaconing.joinToString(" and ")}!",
                         style = Mosh.Body.copy(fontSize = 14.sp, lineHeight = 18.sp, color = Mosh.Lime),
                     )
                 }
@@ -310,7 +312,7 @@ fun FinderScreen(
             }
         }
 
-        if (beaconOn) BeaconOverlay(onStop = { onBeacon(false) })
+        if (beaconOn) BeaconOverlay(Color(myBeacon.argb), myBeacon.name, onStop = { onBeacon(false) })
 
         AnimatedVisibility(found != null, enter = fadeIn(tween(250)), exit = fadeOut(tween(300))) {
             val id = found ?: lastFound[0]
