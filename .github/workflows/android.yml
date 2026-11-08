@@ -187,18 +187,21 @@ jobs:
           retention-days: 14
 
       - name: Publish test APK to a public link
-        # Fixed URL anyone can open on their phone, no GitHub login:
-        # https://github.com/TheZombieRobot/Diet/releases/download/testing/moshpoint.apk
+        # Fixed URL anyone can open on their phone, no GitHub login.
+        # If the RELEASES_TOKEN secret is set, builds go to the separate public repo
+        # TheZombieRobot/moshpoint-builds (code can then stay private); otherwise to this repo.
         if: github.event_name == 'push' && github.ref_name == 'ccr-5839ed7c-1q0ztj'
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN || github.token }}
+          TARGET: ${{ secrets.RELEASES_TOKEN != '' && 'TheZombieRobot/moshpoint-builds' || github.repository }}
         shell: bash
         run: |
           cp app/build/outputs/apk/debug/*.apk moshpoint.apk
-          gh release view testing >/dev/null 2>&1 || gh release create testing --prerelease --target "$GITHUB_SHA" --title "Moshpoint test build" --notes "Test build"
-          gh release upload testing moshpoint.apk --clobber
+          gh release view testing --repo "$TARGET" >/dev/null 2>&1 || gh release create testing --repo "$TARGET" --prerelease --title "Moshpoint test build" --notes "Test build"
+          gh release upload testing moshpoint.apk --clobber --repo "$TARGET"
           sed "s/BUILD_NUMBER/$GITHUB_RUN_NUMBER/; s/BUILD_SHA/${GITHUB_SHA::7}/" .github/testing-release.md > notes.md
-          gh release edit testing --title "Moshpoint (test build $GITHUB_RUN_NUMBER)" --notes-file notes.md
+          gh release edit testing --repo "$TARGET" --title "Moshpoint (test build $GITHUB_RUN_NUMBER)" --notes-file notes.md
+          echo "Published to https://github.com/$TARGET/releases/tag/testing"
 
       - name: Upload test reports
         if: failure()
