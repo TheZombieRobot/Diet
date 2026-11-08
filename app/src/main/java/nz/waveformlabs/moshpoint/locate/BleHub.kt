@@ -64,6 +64,7 @@ object BleHub {
         override fun onBatchScanResults(list: MutableList<ScanResult>) = list.forEach(::dispatch)
         override fun onScanFailed(errorCode: Int) {
             Log.w(TAG, "scan failed: $errorCode")
+            if (errorCode == SCAN_FAILED_ALREADY_STARTED) return // it's running: nothing to fix
             DebugStatus.set(K, "FAILED code $errorCode (retrying)")
             running = null
             // Code 1 = already started (harmless), 2 = registration failed (often the 5-in-30s
@@ -204,7 +205,8 @@ object BleHub {
 
     @SuppressLint("MissingPermission")
     private fun stopScan() {
-        if (running == null) return
+        // Always ask, even if we think it's stopped: after a failure (e.g. "already started")
+        // the stack may still hold our callback, and stopping an unknown one is harmless.
         try {
             app?.getSystemService(BluetoothManager::class.java)?.adapter?.bluetoothLeScanner?.stopScan(callback)
         } catch (_: Exception) {
