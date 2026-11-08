@@ -27,6 +27,8 @@
 
     <!-- Server location sharing -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Sound on crew moment clips (asked the first time you hold to record). -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <!-- Keep broadcasting with the app closed -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />

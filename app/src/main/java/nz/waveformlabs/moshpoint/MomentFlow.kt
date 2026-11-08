@@ -133,13 +133,38 @@ class MomentFlow(
         activity.lifecycleScope.launch { momentPhoto = decodeScaled(uri) }
     }
 
-    /** "Share one": choose camera or gallery. */
+    // ---- Our own camera (tap = photo, hold = clip) ----
+
+    private var capturing by mutableStateOf(false)
+    private var withAudio = false
+
+    private val cameraPerms = activity.registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { r ->
+        if (r[Manifest.permission.CAMERA] == true) {
+            withAudio = r[Manifest.permission.RECORD_AUDIO] == true
+            capturing = true
+        } else {
+            toast("Moshpoint needs the camera to take a moment")
+        }
+    }
+
+    private fun openCamera() {
+        val cam = activity.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+        val mic = activity.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+        if (cam && mic) {
+            withAudio = true
+            capturing = true
+        } else {
+            cameraPerms.launch(arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO))
+        }
+    }
+
+    /** "Moment": straight into the camera. */
     fun start() {
         if (GroupSync.group.value == null) {
             toast("Start or join a crew first: moments go to your crew")
             return
         }
-        askMomentSource = true
+        openCamera()
     }
 
     private fun sendMoment(caption: String) {
@@ -177,6 +202,25 @@ class MomentFlow(
 
     @androidx.compose.runtime.Composable
     fun Dialogs() {
+        if (capturing) {
+            androidx.compose.ui.window.Dialog(
+                onDismissRequest = { capturing = false },
+                properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
+            ) {
+                nz.waveformlabs.moshpoint.ui.CaptureScreen(
+                    withAudio = withAudio,
+                    newClipFile = ::newClipFile,
+                    onPhoto = { bmp -> capturing = false; momentPhoto = bmp },
+                    onClip = { f -> capturing = false; useClip(f) },
+                    onGallery = {
+                        capturing = false
+                        pickMoment.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
+                    },
+                    onClose = { capturing = false },
+                    onError = { msg -> toast(msg) },
+                )
+            }
+        }
         if (askMomentSource) {
             androidx.compose.material3.AlertDialog(
                 onDismissRequest = { askMomentSource = false },
