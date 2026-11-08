@@ -693,6 +693,16 @@ class MainActivity : ComponentActivity() {
                             },
                             trails = LocationBook.trails,
                             onMomentTapped = { key -> Moments.items.firstOrNull { it.key == key }?.let(momentFlow::view) },
+                            onRide = { lat, lon ->
+                                runCatching {
+                                    startActivity(
+                                        Intent(
+                                            Intent.ACTION_VIEW,
+                                            android.net.Uri.parse("https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[latitude]=$lat&dropoff[longitude]=$lon"),
+                                        ),
+                                    )
+                                }
+                            },
                             onRemovePlace = { p ->
                                 if (p.meetUp) GroupSync.clearRally(this@MainActivity) else Spots.remove(p.id)
                             },

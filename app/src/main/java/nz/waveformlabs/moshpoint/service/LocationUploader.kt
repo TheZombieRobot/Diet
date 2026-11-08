@@ -36,6 +36,14 @@ class LocationUploader(private val context: Context, private val scope: Coroutin
     private var lastKey: String? = null
     private var lastLoc: Location? = null
     private var gaspSent = false
+    private var boostUntil = 0L
+
+    /** A mate is looking for us right now: share our spot more often for a few minutes. */
+    fun boost() {
+        val first = System.currentTimeMillis() > boostUntil
+        boostUntil = System.currentTimeMillis() + 5 * 60_000
+        if (first) lastLoc?.let { loc -> scope.launch { publish(loc, force = false) } }
+    }
 
     fun start() {
         if (job != null) return
@@ -77,7 +85,8 @@ class LocationUploader(private val context: Context, private val scope: Coroutin
         CrowdRelayRadio.ownPacket = RelayPacket(RelayPacket.MAX_TTL, id, LocationBox.seal(mySecret, id, shared))
         val key = "${id.contentHashCode()}:${(loc.latitude * 1e5).toLong()}:${(loc.longitude * 1e5).toLong()}"
         if (!force) {
-            if (now - lastUploadMs < RelayClient.uploadGapMs) return
+            val gap = if (now < boostUntil) minOf(RelayClient.uploadGapMs, 30_000L) else RelayClient.uploadGapMs
+            if (now - lastUploadMs < gap) return
             // Standing still: a refresh every 3 minutes is plenty (the relay keeps the last one).
             if (key == lastKey && now - lastUploadMs < 180_000) return
         }

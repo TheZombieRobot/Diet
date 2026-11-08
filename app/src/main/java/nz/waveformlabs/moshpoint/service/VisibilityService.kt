@@ -200,6 +200,7 @@ class VisibilityService : LifecycleService() {
 
     private fun onFriendLooking(name: String) {
         lastLookedAt = System.currentTimeMillis()
+        uploader?.boost()
         if (broadcaster.mode != AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY) {
             broadcaster.mode = AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY
             DebugStatus.log("$name is looking: advert to fast")

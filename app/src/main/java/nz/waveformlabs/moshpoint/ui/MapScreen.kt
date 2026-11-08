@@ -58,6 +58,8 @@ fun MapScreen(
     inCrew: Boolean = false,
     onDropPin: (name: String, lat: Double, lon: Double, meetUp: Boolean) -> Unit = { _, _, _, _ -> },
     onRemovePlace: (MapPlace) -> Unit = {},
+    /** Get a ride there (Uber etc.); null hides the button. */
+    onRide: ((Double, Double) -> Unit)? = null,
     liveMap: Boolean = true,
     moments: List<MapMoment> = emptyList(),
     onMomentTapped: (String) -> Unit = {},
@@ -165,6 +167,7 @@ fun MapScreen(
                             )
                         }
                         TextButton(onClick = { onDirections(p.lat, p.lon) }) { Text("Walk", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
+                        if (onRide != null && !p.meetUp) TextButton(onClick = { onRide(p.lat, p.lon) }) { Text("Ride", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lime)) }
                         TextButton(onClick = { onRemovePlace(p) }) { Text("✕", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.TextFaint)) }
                     }
                 }
