@@ -34,13 +34,44 @@ internal fun Avatar(f: Friend, size: androidx.compose.ui.unit.Dp) {
             modifier = Modifier.size(size).clip(CircleShape).border(3.dp, ring, CircleShape),
         )
     } else {
-        Box(
-            Modifier.size(size)
-                .drawBehind { glow(ring, 10.dp.toPx(), 0.55f) { p -> drawContext.canvas.drawCircle(center, this.size.minDimension / 2, p) } }
-                .background(Mosh.Avatar, CircleShape).border(3.dp, ring, CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(f.name.take(1).uppercase(), style = Mosh.Heading.copy(fontSize = (size.value * 0.34f).sp))
+        Box(Modifier.drawBehind { glow(ring, 10.dp.toPx(), 0.55f) { p -> drawContext.canvas.drawCircle(center, this.size.minDimension / 2, p) } }) {
+            InitialsAvatar(f.name, size, ring)
         }
     }
 }
+
+/** "King Zipper" -> "KZ", "bevan" -> "BE", "" -> "?". */
+internal fun initials(name: String): String {
+    val words = name.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
+    return when {
+        words.isEmpty() -> "?"
+        words.size == 1 -> words[0].take(1).uppercase()
+        else -> (words[0].take(1) + words[1].take(1)).uppercase()
+    }
+}
+
+/**
+ * A generated avatar for anyone without a photo: their initials on a glowing gradient in
+ * their colour (yours is picked from your name), like Apple's contact monograms.
+ */
+@Composable
+internal fun InitialsAvatar(name: String, size: androidx.compose.ui.unit.Dp, colour: Color? = null) {
+    val base = colour ?: Color(Mosh.FriendColours[Math.floorMod(name.trim().lowercase().hashCode(), Mosh.FriendColours.size)])
+    Box(
+        Modifier.size(size).clip(CircleShape)
+            .background(androidx.compose.ui.graphics.Brush.linearGradient(listOf(base, lerpColour(base, Mosh.Deep, 0.55f))))
+            .border(maxOf(1.5f, size.value / 22f).dp, Color.White.copy(alpha = 0.35f), CircleShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            initials(name),
+            style = Mosh.Heading.copy(fontSize = (size.value * 0.36f).sp, lineHeight = (size.value * 0.4f).sp, color = Color.White),
+            maxLines = 1,
+        )
+    }
+}
+
+private fun lerpColour(a: Color, b: Color, t: Float) = Color(
+    red = a.red + (b.red - a.red) * t, green = a.green + (b.green - a.green) * t,
+    blue = a.blue + (b.blue - a.blue) * t, alpha = 1f,
+)

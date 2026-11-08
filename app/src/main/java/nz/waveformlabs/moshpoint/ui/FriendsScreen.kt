@@ -270,7 +270,7 @@ fun FriendsScreen(
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                 Row(Modifier.weight(1f), verticalAlignment = Alignment.Bottom) {
                     Text("mosh", style = Mosh.Title.copy(fontSize = 28.sp))
                     Text(
@@ -280,8 +280,6 @@ fun FriendsScreen(
                 }
                 LivePill(visible, ghost) { onVisible(!visible) }
             }
-            // Which radios this phone has: handy when testing; everyone can still see it in Settings.
-            if (BuildConfig.DEBUG && DebugStatus.showUi) Text(phoneSummary, style = Mosh.Eyebrow.copy(fontSize = 12.sp, letterSpacing = 0.sp))
             if (!visible && groupName != null) {
                 Spacer(Modifier.height(8.dp))
                 Text("You're hidden from your crew. Tap Go live when you want to be found.", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
@@ -383,7 +381,7 @@ fun FriendsScreen(
             item { TextButton(onClick = onAddSimulated) { Text("Debug: add simulated friend", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber)) } }
         }
     }
-    HomeBar(onMap = onOpenMap, onAdd = { addOpen = true }, onMe = { settingsOpen = true })
+    HomeBar(onMap = onOpenMap, onAdd = { addOpen = true }, onMe = { settingsOpen = true }, myName = myName)
     }
     }
 }

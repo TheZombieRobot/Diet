@@ -31,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
@@ -55,11 +56,11 @@ internal fun LivePill(live: Boolean, ghost: Boolean, onToggle: () -> Unit) {
         else -> Mosh.Lime
     }
     Row(
-        Modifier.pressScale(sc).height(44.dp)
+        Modifier.pressScale(sc).heightIn(min = 40.dp)
             .background(if (live) colour.copy(alpha = 0.16f) else Mosh.Surface, RoundedCornerShape(22.dp))
             .border(1.dp, if (live) colour.copy(alpha = 0.7f) else Mosh.Line, RoundedCornerShape(22.dp))
             .clickable(interactionSource = src, indication = androidx.compose.foundation.LocalIndication.current, onClick = onToggle)
-            .padding(horizontal = 14.dp),
+            .padding(horizontal = 14.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.size(10.dp).background(colour, CircleShape))
@@ -71,6 +72,7 @@ internal fun LivePill(live: Boolean, ghost: Boolean, onToggle: () -> Unit) {
                 else -> "Live"
             },
             style = Mosh.Label.copy(fontSize = 15.sp, color = if (live) colour else Mosh.Text),
+            maxLines = 1, softWrap = false,
         )
     }
 }
@@ -224,7 +226,7 @@ internal fun PingFeed(pings: List<GigGroup.Ping>, nowSec: Long, describe: (Int) 
 
 /** Bottom bar: the four places you go. */
 @Composable
-internal fun HomeBar(onMap: () -> Unit, onAdd: () -> Unit, onMe: () -> Unit) {
+internal fun HomeBar(onMap: () -> Unit, onAdd: () -> Unit, onMe: () -> Unit, myName: String = "") {
     Row(
         Modifier.fillMaxWidth().background(Mosh.Deep.copy(alpha = 0.96f))
             .border(1.dp, Mosh.Line, RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp))
@@ -232,15 +234,25 @@ internal fun HomeBar(onMap: () -> Unit, onAdd: () -> Unit, onMe: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        BarItem("●", "Crew", selected = true) {}
-        BarItem("◎", "Map", selected = false, onClick = onMap)
-        BarItem("＋", "Add", selected = false, accent = true, onClick = onAdd)
-        BarItem("☺", "Me", selected = false, onClick = onMe)
+        BarItem("Crew", selected = true, icon = { c -> CrewIcon(c) }) {}
+        BarItem("Map", selected = false, icon = { c -> PinIcon(c) }, onClick = onMap)
+        BarItem("Add", selected = false, accent = true, icon = { c -> PlusIcon(c) }, onClick = onAdd)
+        BarItem("Me", selected = false, icon = { _ ->
+            val mine = nz.waveformlabs.moshpoint.PhotoStore.photos[nz.waveformlabs.moshpoint.PhotoStore.ME]
+            if (mine != null) {
+                androidx.compose.foundation.Image(
+                    mine, contentDescription = null, contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    modifier = Modifier.size(28.dp).clip(CircleShape).border(1.5.dp, Mosh.TextDim, CircleShape),
+                )
+            } else {
+                InitialsAvatar(myName, 28.dp)
+            }
+        }, onClick = onMe)
     }
 }
 
 @Composable
-private fun BarItem(icon: String, label: String, selected: Boolean, accent: Boolean = false, onClick: () -> Unit) {
+private fun BarItem(label: String, selected: Boolean, accent: Boolean = false, icon: @Composable (Color) -> Unit, onClick: () -> Unit) {
     val (src, sc) = rememberPress()
     val colour = when {
         accent -> Mosh.Pink
@@ -258,7 +270,7 @@ private fun BarItem(icon: String, label: String, selected: Boolean, accent: Bool
                 .background(if (accent) Mosh.Pink.copy(alpha = 0.18f) else Color.Transparent, CircleShape)
                 .border(if (accent) 1.dp else 0.dp, if (accent) Mosh.Pink else Color.Transparent, CircleShape),
             contentAlignment = Alignment.Center,
-        ) { Text(icon, style = Mosh.Label.copy(fontSize = if (accent) 22.sp else 18.sp, color = colour)) }
+        ) { icon(colour) }
         Text(label, style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 14.sp, color = colour))
     }
 }
@@ -353,5 +365,40 @@ internal fun InlineCrewQr(payload: String, onShare: () -> Unit) {
         Text("Mates scan this with their camera or Moshpoint. That's it.", style = Mosh.Body.copy(fontSize = 14.sp), textAlign = TextAlign.Center)
         TextButton(onClick = onShare) { Text("No camera? Send the invite", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
     }
+}
+
+// Bottom-bar icons, drawn (no emoji) so they match the neon line style.
+
+@Composable
+private fun CrewIcon(c: Color) = androidx.compose.foundation.Canvas(Modifier.size(24.dp)) {
+    val w = size.width
+    val stroke = androidx.compose.ui.graphics.drawscope.Stroke(width = w * 0.09f, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+    drawCircle(c, radius = w * 0.15f, center = androidx.compose.ui.geometry.Offset(w * 0.36f, w * 0.33f), style = stroke)
+    drawCircle(c.copy(alpha = 0.7f), radius = w * 0.12f, center = androidx.compose.ui.geometry.Offset(w * 0.7f, w * 0.38f), style = stroke)
+    drawArc(c, 200f, 140f, false, topLeft = androidx.compose.ui.geometry.Offset(w * 0.08f, w * 0.55f), size = androidx.compose.ui.geometry.Size(w * 0.56f, w * 0.5f), style = stroke)
+    drawArc(c.copy(alpha = 0.7f), 210f, 120f, false, topLeft = androidx.compose.ui.geometry.Offset(w * 0.5f, w * 0.6f), size = androidx.compose.ui.geometry.Size(w * 0.42f, w * 0.4f), style = stroke)
+}
+
+@Composable
+private fun PinIcon(c: Color) = androidx.compose.foundation.Canvas(Modifier.size(24.dp)) {
+    val w = size.width
+    val path = androidx.compose.ui.graphics.Path().apply {
+        moveTo(w * 0.5f, w * 0.94f)
+        cubicTo(w * 0.2f, w * 0.6f, w * 0.16f, w * 0.48f, w * 0.16f, w * 0.38f)
+        cubicTo(w * 0.16f, w * 0.18f, w * 0.32f, w * 0.05f, w * 0.5f, w * 0.05f)
+        cubicTo(w * 0.68f, w * 0.05f, w * 0.84f, w * 0.18f, w * 0.84f, w * 0.38f)
+        cubicTo(w * 0.84f, w * 0.48f, w * 0.8f, w * 0.6f, w * 0.5f, w * 0.94f)
+        close()
+    }
+    drawPath(path, c, style = androidx.compose.ui.graphics.drawscope.Stroke(width = w * 0.09f, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+    drawCircle(c, radius = w * 0.1f, center = androidx.compose.ui.geometry.Offset(w * 0.5f, w * 0.38f))
+}
+
+@Composable
+private fun PlusIcon(c: Color) = androidx.compose.foundation.Canvas(Modifier.size(20.dp)) {
+    val w = size.width
+    val sw = w * 0.13f
+    drawLine(c, androidx.compose.ui.geometry.Offset(w / 2, w * 0.12f), androidx.compose.ui.geometry.Offset(w / 2, w * 0.88f), sw, androidx.compose.ui.graphics.StrokeCap.Round)
+    drawLine(c, androidx.compose.ui.geometry.Offset(w * 0.12f, w / 2), androidx.compose.ui.geometry.Offset(w * 0.88f, w / 2), sw, androidx.compose.ui.graphics.StrokeCap.Round)
 }
 

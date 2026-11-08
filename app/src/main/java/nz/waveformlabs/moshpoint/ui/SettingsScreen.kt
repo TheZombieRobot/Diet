@@ -97,7 +97,7 @@ internal fun SettingsContent(
                     if (mine != null) {
                         Image(mine, contentDescription = "Your photo", contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
                     } else {
-                        Text(myName.trim().take(1).uppercase().ifEmpty { "?" }, style = Mosh.Heading)
+                        InitialsAvatar(myName, 72.dp)
                     }
                 }
                 Spacer(Modifier.width(16.dp))
