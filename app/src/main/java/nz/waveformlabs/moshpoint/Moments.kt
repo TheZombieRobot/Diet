@@ -47,7 +47,10 @@ object Moments {
         val m = GigGroup.Moment(VisibilityPrefs.myName(app).ifBlank { "Mate" }, System.currentTimeMillis() / 1000, lat, lon, caption.trim(), jpeg)
         val sealed = g.sealMoment(m)
         val ok = RelayClient.putFile(g.momentsIdForDay(Math.floorDiv(m.timeSec, 86_400L)), sealed)
-        if (ok) add(m, "mine-${m.timeSec}", mine = true)
+        if (ok) {
+            add(m, "mine-${m.timeSec}", mine = true)
+            NightStats.moment(app)
+        }
         DebugStatus.log(if (ok) "Moment shared with the crew" else "Moment not sent (no internet?)")
         return ok
     }

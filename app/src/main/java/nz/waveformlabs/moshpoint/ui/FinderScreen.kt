@@ -89,6 +89,8 @@ fun FinderScreen(
     onOpenMap: () -> Unit = {},
     /** Close by: ask their phone to strobe. */
     onAskLight: () -> Unit = {},
+    /** We got within a few metres of [friendId] (the celebration showed). */
+    onFound: (String) -> Unit = {},
     onBack: () -> Unit,
     /** Only used in debug builds. Null in release. */
     debug: (@Composable (Modifier) -> Unit)? = null,
@@ -128,6 +130,7 @@ fun FinderScreen(
         showing[0] = distances.filter { it.second < FOUND_M && it.first !in dismissed }.minByOrNull { it.second }?.first
     }
     val found = showing[0]
+    LaunchedEffect(found) { if (found != null) onFound(found) }
     LaunchedEffect(found) {
         if (found != null) haptics.performHapticFeedback(HapticFeedbackType.LongPress)
     }

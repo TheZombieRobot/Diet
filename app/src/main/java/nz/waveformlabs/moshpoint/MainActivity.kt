@@ -144,6 +144,8 @@ class MainActivity : ComponentActivity() {
         setBeacon(true)
     }
     private var showMap by mutableStateOf(false)
+    /** "Your night" recap shown before ending the night. */
+    private var recap by mutableStateOf<NightStats.Stats?>(null)
     /** Ticks every 20 s so "x min ago" on the home screen stays current. */
     private var homeNow by mutableStateOf(System.currentTimeMillis())
 
@@ -464,6 +466,7 @@ class MainActivity : ComponentActivity() {
                             onNudge = { nudge(names) },
                             onOpenMap = { openMap() },
                             onAskLight = { engine.askLight() },
+                            onFound = { NightStats.found(this@MainActivity) },
                             beaconOn = beaconOn,
                             onBeacon = ::setBeacon,
                             beaconing = beaconing.mapNotNull { id ->
@@ -559,7 +562,7 @@ class MainActivity : ComponentActivity() {
                                 pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                             },
                             onRemovePhoto = PhotoStore::remove,
-                            onClearGigGroup = { GroupSync.clear(this@MainActivity) },
+                            onClearGigGroup = { recap = NightStats.get(this@MainActivity) },
                             groupName = GroupSync.group.value?.name,
                             onStartGroup = { name ->
                                 GroupSync.startNew(this@MainActivity, name)
@@ -612,6 +615,32 @@ class MainActivity : ComponentActivity() {
                     }
                     }
                     momentFlow.Dialogs()
+                    recap?.let { s ->
+                        androidx.compose.material3.AlertDialog(
+                            onDismissRequest = { recap = null },
+                            containerColor = Mosh.Deep,
+                            title = { androidx.compose.material3.Text("Your night", style = Mosh.Heading) },
+                            text = {
+                                androidx.compose.material3.Text(
+                                    NightStats.summary(s, System.currentTimeMillis()) +
+                                        "\n\nEnding the night leaves the crew and clears tonight's mates (friends stay).",
+                                    style = Mosh.Body,
+                                )
+                            },
+                            confirmButton = {
+                                androidx.compose.material3.TextButton(onClick = {
+                                    recap = null
+                                    GroupSync.clear(this@MainActivity)
+                                    NightStats.reset(this@MainActivity)
+                                }) { androidx.compose.material3.Text("End the night", style = Mosh.Label.copy(color = Mosh.Danger)) }
+                            },
+                            dismissButton = {
+                                androidx.compose.material3.TextButton(onClick = {
+                                    Sharing.send(this@MainActivity, "My night with Moshpoint: " + NightStats.summary(s, System.currentTimeMillis()) + " 🤘", "Share your night")
+                                }) { androidx.compose.material3.Text("Share", style = Mosh.Label.copy(color = Mosh.Cyan)) }
+                            },
+                        )
+                    }
                     if (showMap) {
                         val now by produceState(System.currentTimeMillis()) {
                             while (true) {

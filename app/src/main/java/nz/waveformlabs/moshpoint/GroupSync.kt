@@ -117,6 +117,7 @@ object GroupSync {
     }
 
     private fun set(c: Context, g: GigGroup) {
+        NightStats.startIfNeeded(c)
         prefs(c).edit()
             .putString("key", Base64.encodeToString(g.key, Base64.NO_WRAP))
             .putString("name", g.name)
@@ -256,6 +257,7 @@ object GroupSync {
         val p = GigGroup.Ping(kind, VisibilityPrefs.myName(app).ifBlank { "Mate" }, System.currentTimeMillis() / 1000, lat, lon, minutes)
         val blob = g.sealPing(p)
         seenPings += blob.contentHashCode().toString()
+        NightStats.ping(app)
         scope.launch {
             val epoch = Math.floorDiv(System.currentTimeMillis(), EphemeralId.DEFAULT_ROTATION_MS)
             val ok = RelayClient.put(g.pingIdForEpoch(epoch), blob)

@@ -41,6 +41,11 @@ class LocationUploader(private val context: Context, private val scope: Coroutin
         if (job != null) return
         job = scope.launch {
             myLocation.updates(intervalMs = 15_000, minDistanceM = 5f).collect { loc ->
+                // Night recap: count real movement only (not GPS jitter).
+                lastLoc?.let { prev ->
+                    val d = prev.distanceTo(loc)
+                    if (loc.accuracy < 30 && d > maxOf(10f, loc.accuracy)) nz.waveformlabs.moshpoint.NightStats.addMetres(context, d.toDouble())
+                }
                 lastLoc = loc
                 publish(loc, force = false)
             }
