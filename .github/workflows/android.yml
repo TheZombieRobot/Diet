@@ -28,7 +28,7 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Download Gradle (in pieces if GitHub's file host is timing out)
+      - name: Download Gradle (mirrors or pieces if GitHub's file host is down; checksum-verified)
         shell: bash
         run: |
           set +e
@@ -42,8 +42,18 @@ jobs:
           SHA=$(curl -fsSL --retry 5 "$URL.sha256" || curl -fsSL --retry 5 -r 0-200 "$REAL.sha256")
           [ -n "$SHA" ] || { echo "no checksum"; exit 1; }
           OUT="$RUNNER_TEMP/$NAME"; : > "$OUT"
+          # Try Gradle's mirrors first (whole file), then GitHub in pieces. The checksum check
+          # below means a bad or tampered mirror can't get through.
+          for M in "https://downloads.gradle-dn.com/distributions/$NAME" "https://mirrors.cloud.tencent.com/gradle/$NAME" "https://mirrors.huaweicloud.com/gradle/$NAME"; do
+            if curl -fsSL --retry 3 -m 600 -o "$OUT" "$M" && echo "$SHA  $OUT" | sha256sum -c -; then
+              sed -i "s#^distributionUrl=.*#distributionUrl=file\\:$OUT#" gradle/wrapper/gradle-wrapper.properties
+              ./gradlew --version -q && exit 0
+            fi
+          done
+          : > "$OUT"
           SIZE=$(curl -sSL -r 0-0 -D - -o /dev/null --retry 5 "$REAL" | grep -i '^content-range' | tail -1 | sed -E 's#.*/([0-9]+).*#\1#')
           echo "Gradle is $SIZE bytes"
+          [ -n "$SIZE" ] || exit 1
           CHUNK=8388608; START=0
           while [ "$START" -lt "$SIZE" ]; do
             END=$((START + CHUNK - 1))
