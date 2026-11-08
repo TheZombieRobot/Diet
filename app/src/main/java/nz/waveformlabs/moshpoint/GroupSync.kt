@@ -264,9 +264,11 @@ object GroupSync {
         if (!seenPings.add(blob.contentHashCode().toString())) return
         if (System.currentTimeMillis() / 1000 - p.timeSec > 20 * 60) return // stale
         // Where they were when they sent it: put it on the map too.
-        if (p.lat != null && p.lon != null) {
+        val lat = p.lat
+        val lon = p.lon
+        if (lat != null && lon != null) {
             FriendsRepository.friends.firstOrNull { it.name.equals(p.from, true) }?.let {
-                LocationBook.update(it.id, nz.waveformlabs.moshpoint.core.SharedLocation(p.lat, p.lon, p.timeSec, 30))
+                LocationBook.update(it.id, nz.waveformlabs.moshpoint.core.SharedLocation(lat, lon, p.timeSec, 30))
             }
         }
         pings.add(0, p)
