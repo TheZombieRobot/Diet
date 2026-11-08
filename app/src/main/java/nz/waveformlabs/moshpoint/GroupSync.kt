@@ -38,7 +38,6 @@ object GroupSync {
     /** PLACEHOLDER 16-bit UUID for group intros; register with the Bluetooth SIG before release. */
     private val INTRO_UUID: ParcelUuid = ParcelUuid.fromString("0000FFA9-0000-1000-8000-00805F9B34FB")
     private const val TAG = "GroupSync"
-    private const val GROUP_TTL_MS = 18L * 60 * 60 * 1000
 
     /** The active group, if any (Compose state for the friends screen). */
     val group = mutableStateOf<GigGroup?>(null)
@@ -84,11 +83,16 @@ object GroupSync {
         val p = prefs(c)
         val key = p.getString("key", null) ?: return
         val created = p.getLong("created", 0)
-        if (System.currentTimeMillis() - created > GROUP_TTL_MS) {
+        val g = GigGroup(
+            Base64.decode(key, Base64.NO_WRAP), p.getString("name", "Gig group") ?: "Gig group", created,
+            p.getLong("at", 0L), p.getString("venue", "") ?: "",
+        )
+        if (System.currentTimeMillis() > g.expiresAtMs) {
             clear(c)
             return
         }
-        group.value = GigGroup(Base64.decode(key, Base64.NO_WRAP), p.getString("name", "Gig group") ?: "Gig group", created)
+        group.value = g
+        GigWake.schedule(c, g)
         rallyClearedAt = p.getLong("rallyCleared", 0L)
         rallyMine = p.getBoolean("rallyMine", false)
         rally.value = p.getString("rally", null)?.split(',', limit = 4)?.takeIf { it.size == 4 }?.let {
@@ -98,7 +102,11 @@ object GroupSync {
         p.getString("members", null)?.split(',')?.filter { it.length == 64 }?.let { members.addAll(it) }
     }
 
-    fun startNew(c: Context, name: String) = set(c.applicationContext, GigGroup.create(name, System.currentTimeMillis()))
+    fun startNew(c: Context, name: String, startsAtSec: Long = 0L, venue: String = "") =
+        set(c.applicationContext, GigGroup.create(name, System.currentTimeMillis(), startsAtSec = startsAtSec, venue = venue))
+
+    /** The crew is for a gig that's still days away: everything stays off until the day. */
+    val sleeping: Boolean get() = group.value?.dormant(System.currentTimeMillis()) == true
 
     /** Returns false if [qrText] isn't a group QR. */
     fun join(c: Context, qrText: String): Boolean {
@@ -118,11 +126,14 @@ object GroupSync {
     }
 
     private fun set(c: Context, g: GigGroup) {
-        NightStats.startIfNeeded(c)
+        if (!g.dormant(System.currentTimeMillis())) NightStats.startIfNeeded(c)
+        GigWake.schedule(c, g)
         prefs(c).edit()
             .putString("key", Base64.encodeToString(g.key, Base64.NO_WRAP))
             .putString("name", g.name)
             .putLong("created", g.createdAtMs)
+            .putLong("at", g.startsAtSec)
+            .putString("venue", g.venue)
             .remove("members")
             .remove("rally")
             .remove("rallyCleared")
@@ -141,6 +152,7 @@ object GroupSync {
         val app = c.applicationContext
         prefs(app).edit().clear().apply()
         group.value = null
+        GigWake.cancel(app)
         Moments.clear()
         runCatching { CrewWidget.update(app, emptyList()) }
         members.clear()
@@ -177,6 +189,16 @@ object GroupSync {
     private fun restart(c: Context) {
         stopRadio(c)
         val g = group.value ?: return
+        if (g.dormant(System.currentTimeMillis())) {
+            // Hibernating until the gig: no Bluetooth, no relay traffic. Wake on time if the
+            // app is still around then (otherwise GigWake's alarm does it).
+            DebugStatus.set("Gig group", "${g.name}: sleeping until the day")
+            job = scope.launch {
+                delay((g.wakeAtSec * 1000 - System.currentTimeMillis()).coerceAtLeast(1_000))
+                if (group.value === g && users > 0) restart(c)
+            }
+            return
+        }
         val mySecret = VisibilityPrefs.mySecret(c)
         val myName = VisibilityPrefs.myName(c).ifBlank { "Mate" }
         startListening(c, g)

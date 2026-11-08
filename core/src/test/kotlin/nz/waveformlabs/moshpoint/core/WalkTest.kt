@@ -157,3 +157,20 @@ class CheckInTest {
     }
 }
 
+class FutureGigTest {
+    @Test fun futureCrewSleepsUntilTheDayAndTheQrCarriesIt() {
+        val now = 1_800_000_000_000L
+        val at = now / 1000 + 3 * 86_400 // three days away
+        val g = GigGroup.create("Iron Maiden", now, startsAtSec = at, venue = "Spark Arena, Auckland")
+        assertTrue(g.dormant(now))
+        assertTrue(!g.dormant((at - 2 * 3600) * 1000)) // awake two hours before
+        val back = assertNotNull(GigGroup.parseQr(GigGroup.qr(g, GigGroup.Intro(ByteArray(32) { 1 }, "Josh")), now))
+        assertEquals(at, back.startsAtSec)
+        assertEquals("Spark Arena, Auckland", back.venue)
+        assertEquals("Iron Maiden", back.name)
+        assertEquals((at + 12 * 3600) * 1000, back.expiresAtMs)
+        // Tonight-crews never sleep.
+        assertTrue(!GigGroup.create("Tonight", now).dormant(now))
+    }
+}
+

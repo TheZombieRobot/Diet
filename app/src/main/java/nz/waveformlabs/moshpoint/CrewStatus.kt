@@ -19,6 +19,32 @@ object CrewStatus {
     /** Friend id -> metres from us (only when both spots are recent). */
     val distances = mutableStateMapOf<String, Double>()
 
+    // "On the move": where each mate was settled, and when we last told you about them.
+    private val anchors = HashMap<String, LatLon>()
+    private val lastMoveAlert = HashMap<String, Long>()
+    private const val MOVE_M = 200.0
+    private const val MOVE_QUIET_MS = 20 * 60_000L
+
+    /**
+     * A mate has headed well away from where they were (200 m+, not just to the bar): one
+     * quiet heads-up, at most every 20 minutes per person.
+     */
+    private fun checkMoving(c: Context, f: Friend, s: LocationBook.Seen, me: LatLon?) {
+        val here = LatLon(s.lat, s.lon)
+        val anchor = anchors[f.id] ?: run {
+            anchors[f.id] = here
+            return
+        }
+        val moved = Geo.distanceM(anchor, here)
+        if (moved < MOVE_M) return
+        anchors[f.id] = here
+        val now = System.currentTimeMillis()
+        if (now - (lastMoveAlert[f.id] ?: 0L) < MOVE_QUIET_MS) return
+        lastMoveAlert[f.id] = now
+        val away = me?.let { " Now ${short(Geo.distanceM(it, here))} from you." }.orEmpty()
+        CrewNotifications.post(c, title = "${f.name} is on the move", text = "Moved ${short(moved)} from where they were.$away Tap to see.")
+    }
+
     fun refresh(c: Context) {
         val me = myLocation(c)
         val now = System.currentTimeMillis() / 1000
@@ -31,6 +57,7 @@ object CrewStatus {
             if (age > 3 * 3600) continue
             val d = me?.let { Geo.distanceM(LatLon(it.latitude, it.longitude), LatLon(s.lat, s.lon)) }
             if (d != null && age < 10 * 60) distances[f.id] = d
+            if (age < 5 * 60 && !s.lastGasp) checkMoving(c, f, s, me?.let { LatLon(it.latitude, it.longitude) })
             parts += (d ?: Double.MAX_VALUE) to when {
                 s.lastGasp -> "${f.name} phone died"
                 d != null && age < 10 * 60 -> "${f.name} ${short(d)}"

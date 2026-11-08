@@ -288,6 +288,7 @@ internal fun AddSheet(
     onEnterCode: () -> Unit,
     onClose: () -> Unit,
     onBump: () -> Unit = {},
+    onPlanGig: (() -> Unit)? = null,
 ) {
     androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, containerColor = Mosh.Deep) {
         Column(
@@ -305,6 +306,7 @@ internal fun AddSheet(
                 GlassButton("Paste invite", Modifier.weight(1f)) { onClose(); onPasteInvite() }
             }
             GlassButton("Bump phones together") { onClose(); onBump() }
+            if (onPlanGig != null) GlassButton("Plan a gig (find it, invite now)") { onClose(); onPlanGig() }
             GlassButton("Send the app + invite (WhatsApp, Messenger…)") { onClose(); onShareApp() }
             Spacer(Modifier.height(4.dp))
             Text("FRIENDS FOR EVERY GIG", style = Mosh.Eyebrow)

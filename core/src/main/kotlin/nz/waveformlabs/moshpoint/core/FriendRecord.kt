@@ -23,8 +23,12 @@ data class FriendRecord(
     override fun hashCode() = id.hashCode()
 
     companion object {
-        /** Gig groups are for one night: members older than this are dropped on load. */
-        const val GIG_GROUP_TTL_MS = 18L * 60 * 60 * 1000
+        /**
+         * Safety net for crew members: dropped on load after this. Crews end themselves (the
+         * morning after the gig, which can be days away for a planned gig) and clear their
+         * members then; this only catches leftovers.
+         */
+        const val GIG_GROUP_TTL_MS = 8L * 24 * 60 * 60 * 1000
 
         private val enc = Base64.getUrlEncoder().withoutPadding()
         private val dec = Base64.getUrlDecoder()

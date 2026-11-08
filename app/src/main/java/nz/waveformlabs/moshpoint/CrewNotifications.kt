@@ -25,14 +25,14 @@ object CrewNotifications {
         )
     }
 
-    fun post(c: Context, channel: String = CHANNEL, title: String, text: String, urgent: Boolean = false) {
+    fun post(c: Context, channel: String = CHANNEL, title: String, text: String, urgent: Boolean = false, openMap: Boolean = true) {
         val app = c.applicationContext
         val nm = app.getSystemService(NotificationManager::class.java) ?: return
         nm.createNotificationChannel(NotificationChannel(CHANNEL, "Crew messages", NotificationManager.IMPORTANCE_DEFAULT))
         nm.createNotificationChannel(NotificationChannel(HELP_CHANNEL, "Crew help requests", NotificationManager.IMPORTANCE_HIGH))
         val open = PendingIntent.getActivity(
             app, 70,
-            Intent(app, MainActivity::class.java).putExtra(MainActivity.EXTRA_OPEN_MAP, true)
+            Intent(app, MainActivity::class.java).putExtra(MainActivity.EXTRA_OPEN_MAP, openMap)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )

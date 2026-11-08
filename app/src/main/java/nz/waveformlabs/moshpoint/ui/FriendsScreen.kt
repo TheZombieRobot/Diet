@@ -113,6 +113,12 @@ fun FriendsScreen(
     onQuickCrew: (() -> Unit)? = null,
     /** Bump phones together to share / receive a crew invite. */
     onBump: () -> Unit = {},
+    /** "Plan a gig": find it (or type it in) and start its crew ahead of time. */
+    onPlanGig: () -> Unit = {},
+    /** "Sat 14 Dec, 8:00 pm · Spark Arena" for a planned gig's crew, else null. */
+    crewWhen: String? = null,
+    /** The crew is for a later day and is asleep (nothing running) until then. */
+    crewSleeping: Boolean = false,
     /** Debug builds only; null in release. */
     onAddSimulated: (() -> Unit)? = null,
     onSelfie: () -> Unit = {},
@@ -245,6 +251,7 @@ fun FriendsScreen(
             onEnterCode = { manualCode = true },
             onClose = { addOpen = false },
             onBump = onBump,
+            onPlanGig = if (groupName == null) onPlanGig else null,
         )
     }
     if (manualCode || code.isNotBlank()) {
@@ -331,16 +338,18 @@ fun FriendsScreen(
                         Text("TONIGHT", style = Mosh.Eyebrow)
                         Text("Find your mates tonight", style = Mosh.Heading)
                         Text("Invite them, they scan, done. Moshpoint does the rest.", style = Mosh.Body)
-                        NeonButton("Invite mates") { (onQuickCrew ?: { naming = true })() }
-                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            GlassButton("Scan an invite", Modifier.weight(1f), onClick = onScanQr)
-                            GlassButton("Paste invite", Modifier.weight(1f), onClick = onPasteInvite)
+                        NeonButton("Invite mates for tonight") { (onQuickCrew ?: { naming = true })() }
+                        GlassButton("Plan a gig (find it, invite now)", onClick = onPlanGig)
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            TextButton(onClick = onScanQr) { Text("Scan an invite", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
+                            TextButton(onClick = onPasteInvite) { Text("Paste invite", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
                         }
                     } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
-                                Text("TONIGHT", style = Mosh.Eyebrow)
+                                Text(if (crewSleeping) "COMING UP" else "TONIGHT", style = Mosh.Eyebrow)
                                 Text(groupName ?: "Your crew", style = Mosh.Heading, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                                if (crewWhen != null) Text(crewWhen, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), maxLines = 2)
                             }
                             TextButton(onClick = onShowGroupQr) { Text("＋ Invite", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan)) }
                         }
@@ -355,7 +364,14 @@ fun FriendsScreen(
                                 Text("Map ›", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink))
                             }
                         }
-                        if (gig.isEmpty()) {
+                        if (crewSleeping) {
+                            Text(
+                                "Asleep until gig day: no Bluetooth, no location, no battery. Mates can join now, and you'll get a nudge on the day.",
+                                style = Mosh.Body.copy(fontSize = 14.sp, color = Mosh.Violet),
+                            )
+                        }
+                        if (gig.isEmpty() || crewSleeping) {
+                            if (gig.isNotEmpty()) CrewTiles(gig, seen, nowSec, onFind = {}, onOptions = { options = it }, distances = emptyMap())
                             if (crewQrPayload != null) InlineCrewQr(crewQrPayload, onShareCode)
                             else NeonButton("Show crew QR", onClick = onShowGroupQr)
                         } else {

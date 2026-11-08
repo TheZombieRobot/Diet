@@ -40,6 +40,9 @@ android {
         resValue("string", "facebook_client_token", fbToken)
         resValue("string", "fb_login_protocol_scheme", "fb$fbAppId")
         buildConfigField("boolean", "FACEBOOK_ENABLED", (fbAppId.isNotBlank() && fbToken.isNotBlank()).toString())
+        // Gig search (Ticketmaster Discovery API, free key from developer.ticketmaster.com).
+        // Empty = search off; you can still type the gig in by hand.
+        buildConfigField("String", "TICKETMASTER_KEY", "\"${prop("moshpoint.ticketmasterKey", "moshpoint.tm.key")}\"")
     }
 
     // Release signing from CI secrets (see docs/PLAY_STORE.md). Without them, release

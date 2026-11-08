@@ -157,6 +157,7 @@ class MainActivity : ComponentActivity() {
     }
     private var showMap by mutableStateOf(false)
     private var bumping by mutableStateOf(false)
+    private var planGig by mutableStateOf(false)
     /** "Your night" recap shown before ending the night. */
     private var recap by mutableStateOf<NightStats.Stats?>(null)
     /** Ticks every 20 s so "x min ago" on the home screen stays current. */
@@ -236,9 +237,15 @@ class MainActivity : ComponentActivity() {
                     toast("That group invite has expired. Ask for a new one.")
                     return false
                 }
-                // Scanning the crew QR is the choice to be found tonight: go live straight away.
-                setVisibility(true)
-                toast("You're in ${GroupSync.group.value?.name ?: "the crew"}! Everyone in it can find each other.")
+                val g = GroupSync.group.value
+                if (GroupSync.sleeping && g != null) {
+                    // A planned gig: nothing runs until the day.
+                    toast("You're in ${g.name}! The crew wakes up on gig day (${nz.waveformlabs.moshpoint.ui.gigWhen(g.startsAtSec)}).")
+                } else {
+                    // Scanning the crew QR is the choice to be found tonight: go live straight away.
+                    setVisibility(true)
+                    toast("You're in ${g?.name ?: "the crew"}! Everyone in it can find each other.")
+                }
             }
             is nz.waveformlabs.moshpoint.core.Invite.Friend -> {
                 if (inv.name.isBlank()) {
@@ -358,7 +365,7 @@ class MainActivity : ComponentActivity() {
         visibleToMates = VisibilityPrefs.isVisible(this)
         // In a crew tonight? Then you're findable, without having to remember a switch,
         // unless you've chosen to hide.
-        if (!visibleToMates && onboarded && GroupSync.group.value != null && !VisibilityPrefs.userHid(this) && missing.isEmpty()) {
+        if (!visibleToMates && onboarded && GroupSync.group.value != null && !GroupSync.sleeping && !VisibilityPrefs.userHid(this) && missing.isEmpty()) {
             setVisibility(true)
         }
         calmMotion = shouldCalm()
@@ -642,6 +649,11 @@ class MainActivity : ComponentActivity() {
                             distances = CrewStatus.distances,
                             crewQrPayload = GroupSync.group.value?.let { crewQr(it) },
                             onQuickCrew = { ensureCrew() },
+                            onPlanGig = { planGig = true },
+                            crewWhen = GroupSync.group.value?.takeIf { it.startsAtSec > 0 }?.let { g ->
+                                nz.waveformlabs.moshpoint.ui.gigWhen(g.startsAtSec) + if (g.venue.isNotBlank()) " · ${g.venue}" else ""
+                            },
+                            crewSleeping = homeNow > 0 && GroupSync.sleeping,
                             onBump = {
                                 bumping = true
                                 Bump.start(this@MainActivity, GroupSync.group.value?.let { crewQr(it) })
@@ -665,6 +677,18 @@ class MainActivity : ComponentActivity() {
                     }
                     }
                     momentFlow.Dialogs()
+                    if (planGig) {
+                        nz.waveformlabs.moshpoint.ui.PlanGigSheet(
+                            search = if (GigSearch.available) ({ q -> GigSearch.search(q) }) else null,
+                            onPick = { name, at, venue ->
+                                planGig = false
+                                GroupSync.startNew(this@MainActivity, name, at, venue)
+                                if (!GroupSync.sleeping) setVisibility(true)
+                                showGroupQr = true
+                            },
+                            onClose = { planGig = false },
+                        )
+                    }
                     if (bumping) {
                         nz.waveformlabs.moshpoint.ui.BumpDialog(sharing = GroupSync.group.value != null) {
                             bumping = false

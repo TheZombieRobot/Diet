@@ -16,10 +16,30 @@ import javax.crypto.spec.SecretKeySpec
  * adds that member to their gig group. Outsiders only see random-looking bytes under a
  * tag that rotates every few minutes.
  */
-class GigGroup(val key: ByteArray, val name: String, val createdAtMs: Long) {
+class GigGroup(
+    val key: ByteArray,
+    val name: String,
+    val createdAtMs: Long,
+    /** When the gig starts (unix s), or 0 for "tonight / now". */
+    val startsAtSec: Long = 0L,
+    /** Where it is ("Spark Arena, Auckland"), may be blank. */
+    val venue: String = "",
+) {
     init {
         require(key.size == 32)
     }
+
+    /**
+     * A crew for a gig that's still days away sleeps: no Bluetooth, no location sharing, no
+     * battery. It wakes [WAKE_BEFORE_SEC] before the start.
+     */
+    fun dormant(nowMs: Long) = startsAtSec > 0 && nowMs / 1000 < startsAtSec - WAKE_BEFORE_SEC
+
+    /** When the wake-up happens (unix s), or 0 if it isn't sleeping. */
+    val wakeAtSec: Long get() = if (startsAtSec > 0) startsAtSec - WAKE_BEFORE_SEC else 0L
+
+    /** The crew ends the morning after: 12 h after the start, or 18 h after it was made for "tonight". */
+    val expiresAtMs: Long get() = if (startsAtSec > 0) (startsAtSec + 12 * 3600) * 1000 else createdAtMs + 18L * 3600 * 1000
 
     /** Rotating 8-byte tag that marks "this is an intro for group X" (only members can compute it). */
     fun tagAt(nowMs: Long): ByteArray = tagForEpoch(Math.floorDiv(nowMs, EphemeralId.DEFAULT_ROTATION_MS))
@@ -243,7 +263,9 @@ class GigGroup(val key: ByteArray, val name: String, val createdAtMs: Long) {
             val h = host?.let {
                 "&h=${enc.encodeToString(it.secret)}&hn=${java.net.URLEncoder.encode(it.name.take(40), "UTF-8")}"
             }.orEmpty()
-            return "$PREFIX${enc.encodeToString(group.key)}$h&name=${java.net.URLEncoder.encode(group.name, "UTF-8")}"
+            val gig = (if (group.startsAtSec > 0) "&at=${group.startsAtSec}" else "") +
+                (if (group.venue.isNotBlank()) "&v=${java.net.URLEncoder.encode(group.venue.take(60), "UTF-8")}" else "")
+            return "$PREFIX${enc.encodeToString(group.key)}$h$gig&name=${java.net.URLEncoder.encode(group.name, "UTF-8")}"
         }
 
         /** The host's intro carried in a group QR, if any. */
@@ -264,11 +286,24 @@ class GigGroup(val key: ByteArray, val name: String, val createdAtMs: Long) {
             val rest = t.removePrefix(PREFIX)
             val key = runCatching { dec.decode(rest.substringBefore('&')) }.getOrNull()?.takeIf { it.size == 32 } ?: return null
             val name = rest.substringAfter("&name=", "").let { runCatching { java.net.URLDecoder.decode(it, "UTF-8") }.getOrDefault("") }
-            return GigGroup(key, name.ifBlank { "Gig group" }.take(40), nowMs)
+            val params = rest.substringBefore("&name=").split('&').drop(1)
+                .mapNotNull { p -> p.indexOf('=').takeIf { it > 0 }?.let { p.substring(0, it) to p.substring(it + 1) } }
+                .toMap()
+            val at = params["at"]?.toLongOrNull() ?: 0L
+            val venue = params["v"]?.let { runCatching { java.net.URLDecoder.decode(it, "UTF-8") }.getOrNull() }.orEmpty()
+            return GigGroup(key, name.ifBlank { "Gig group" }.take(40), nowMs, at, venue)
         }
 
-        fun create(name: String, nowMs: Long, random: java.security.SecureRandom = java.security.SecureRandom()): GigGroup =
-            GigGroup(ByteArray(32).also { random.nextBytes(it) }, name.ifBlank { "Gig group" }.take(40), nowMs)
+        fun create(
+            name: String,
+            nowMs: Long,
+            random: java.security.SecureRandom = java.security.SecureRandom(),
+            startsAtSec: Long = 0L,
+            venue: String = "",
+        ): GigGroup = GigGroup(ByteArray(32).also { random.nextBytes(it) }, name.ifBlank { "Gig group" }.take(40), nowMs, startsAtSec, venue)
+
+        /** Wake a sleeping crew this long before the gig starts. */
+        const val WAKE_BEFORE_SEC = 3 * 3600L
 
         private fun hmac(key: ByteArray, msg: ByteArray): ByteArray {
             val mac = Mac.getInstance("HmacSHA256")

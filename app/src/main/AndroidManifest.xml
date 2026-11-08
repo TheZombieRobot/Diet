@@ -72,6 +72,10 @@
 
         <!-- "Share -> Moshpoint" for invites sent as text (mates whose phone can't scan QR codes). -->
         <receiver
+            android:name=".GigWakeReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".CrewWidget"
             android:exported="false"
             android:label="Moshpoint crew">
