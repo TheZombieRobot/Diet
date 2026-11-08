@@ -75,6 +75,14 @@ class ScreensSnapshotTest {
                 scanned = null, onScannedUsed = {}, onAdd = { _, _, _ -> null }, onRemove = {},
                 onSetPhoto = {}, onRemovePhoto = {}, onClearGigGroup = {},
                 groupName = "Foo Fighters night", onStartGroup = {}, onShowGroupQr = {},
+                meetUp = "Sound desk",
+                seen = mapOf(
+                    "alex" to nz.waveformlabs.moshpoint.LocationBook.Seen(-41.29, 174.78, 1_000_000L - 30, 10, batteryPct = 64),
+                    "jo" to nz.waveformlabs.moshpoint.LocationBook.Seen(-41.29, 174.78, 1_000_000L - 900, 10, batteryPct = 8),
+                ),
+                nowSec = 1_000_000L,
+                pings = listOf(nz.waveformlabs.moshpoint.core.GigGroup.Ping(nz.waveformlabs.moshpoint.core.GigGroup.Ping.COMING, "Alex", 1_000_000L - 120)),
+                describePing = { "is on their way" },
             )
         }
     }

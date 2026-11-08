@@ -26,6 +26,10 @@ object VisibilityPrefs {
     fun myName(c: Context): String = prefs(c).getString("name", "") ?: ""
     fun setMyName(c: Context, v: String) = prefs(c).edit().putString("name", v.trim()).apply()
 
+    /** Ghost mode: stay findable by Bluetooth up close, but don't put your spot on anyone's map. */
+    fun ghost(c: Context) = prefs(c).getBoolean("ghost", false)
+    fun setGhost(c: Context, v: Boolean) = prefs(c).edit().putBoolean("ghost", v).apply()
+
     /** First-run welcome finished. */
     fun onboarded(c: Context) = prefs(c).getBoolean("onboarded", false)
     fun setOnboarded(c: Context) = prefs(c).edit().putBoolean("onboarded", true).apply()

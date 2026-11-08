@@ -68,7 +68,7 @@ fun MapScreen(
     val pins = located.map { f ->
         val s = seen.getValue(f.id)
         val age = nowMs / 1000 - s.timeSec
-        MapPin(f.id, f.name, s.lat, s.lon, f.color, ago(age), stale = age > 15 * 60)
+        MapPin(f.id, f.name, s.lat, s.lon, f.color, statusLine(s, age), stale = age > 15 * 60)
     }
     // Camera requests: (counter, points). Starts by fitting everyone.
     var focusN by remember { mutableIntStateOf(0) }
@@ -172,7 +172,7 @@ fun MapScreen(
                             } else {
                                 val age = nowMs / 1000 - s.timeSec
                                 val dist = me?.let { distanceLabel(Geo.distanceM(it, LatLon(s.lat, s.lon))) }
-                                listOfNotNull(dist, if (age < 120) "live" else ago(age)).joinToString(" · ")
+                                listOfNotNull(dist, statusLine(s, age, liveWord = true)).joinToString(" · ")
                             }
                             Text(
                                 line,
@@ -226,6 +226,16 @@ fun MapScreen(
                 }
             },
         )
+    }
+}
+
+/** "live · 64%", "12 min ago · 8%", "phone died here · 40 min ago". */
+internal fun statusLine(s: LocationBook.Seen, ageSec: Long, liveWord: Boolean = false): String {
+    val time = if (liveWord && ageSec < 120) "live" else ago(ageSec)
+    return when {
+        s.lastGasp -> "battery died here · $time"
+        s.batteryPct != null -> "$time · ${s.batteryPct}%"
+        else -> time
     }
 }
 

@@ -98,6 +98,7 @@ class VisibilityService : LifecycleService() {
         }
 
         uploader = LocationUploader(this, lifecycleScope, mySecret).also { it.start() }
+        registerReceiver(batteryReceiver, android.content.IntentFilter(Intent.ACTION_BATTERY_CHANGED))
         GroupSync.load(this)
         GroupSync.acquire(this) // keep introducing ourselves to the gig group while visible
         CrowdRelayRadio.startListening(this)
@@ -154,6 +155,18 @@ class VisibilityService : LifecycleService() {
     }
 
     private var lastLookedAt = 0L
+
+    /** Battery level, for the last-known-location-before-it-dies update. */
+    private val batteryReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(c: android.content.Context, i: Intent) {
+            val level = i.getIntExtra(android.os.BatteryManager.EXTRA_LEVEL, -1)
+            val scale = i.getIntExtra(android.os.BatteryManager.EXTRA_SCALE, 100)
+            val status = i.getIntExtra(android.os.BatteryManager.EXTRA_STATUS, -1)
+            if (level < 0 || scale <= 0) return
+            val charging = status == android.os.BatteryManager.BATTERY_STATUS_CHARGING || status == android.os.BatteryManager.BATTERY_STATUS_FULL
+            uploader?.onBattery(level * 100 / scale, charging)
+        }
+    }
     private val askedAt = mutableMapOf<String, Long>()
 
     /** A mate close by tapped "Ask them to light up": offer it with a tap (never automatic). */
@@ -202,6 +215,7 @@ class VisibilityService : LifecycleService() {
         rotateJob?.cancel()
         radios?.stop()
         uploader?.stop()
+        runCatching { unregisterReceiver(batteryReceiver) }
         wifi?.stop()
         if (rotateJob != null) {
             GroupSync.release(this)

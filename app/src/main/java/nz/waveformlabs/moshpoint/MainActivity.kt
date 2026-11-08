@@ -130,6 +130,20 @@ class MainActivity : ComponentActivity() {
         setBeacon(true)
     }
     private var showMap by mutableStateOf(false)
+    /** Ticks every 20 s so "x min ago" on the home screen stays current. */
+    private var homeNow by mutableStateOf(System.currentTimeMillis())
+
+    /** Best recent position from Android (for pings and pins), or null. */
+    @android.annotation.SuppressLint("MissingPermission")
+    private fun lastKnownLocation(): android.location.Location? {
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+            checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+        ) return null
+        val lm = getSystemService(android.location.LocationManager::class.java) ?: return null
+        return lm.getProviders(true).mapNotNull { runCatching { lm.getLastKnownLocation(it) }.getOrNull() }
+            .filter { System.currentTimeMillis() - it.time < 10 * 60_000 }
+            .minByOrNull { it.accuracy }
+    }
     private val mapFeed by lazy { nz.waveformlabs.moshpoint.locate.MapFeed(this, lifecycleScope) }
 
     private fun openMap() {
@@ -296,6 +310,10 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleLightRequest(intent)
+        if (intent.getBooleanExtra(EXTRA_OPEN_MAP, false)) {
+            intent.removeExtra(EXTRA_OPEN_MAP)
+            openMap()
+        }
         handleInvite(intent.getStringExtra(ShareInviteActivity.EXTRA_TEXT) ?: return)
     }
 
@@ -368,12 +386,22 @@ class MainActivity : ComponentActivity() {
         PhotoStore.init(this)
         LocationBook.init(this)
         Spots.init(this)
+        GhostMode.init(this)
         DebugStatus.initUi(this)
         if (savedInstanceState == null) intent?.getStringExtra(ShareInviteActivity.EXTRA_TEXT)?.let { handleInvite(it) }
         GroupSync.load(this)
         val mySecret = VisibilityPrefs.mySecret(this)
         engine = LocatorEngine(applicationContext, lifecycleScope, mySecret)
-        if (savedInstanceState == null) handleLightRequest(intent)
+        lifecycleScope.launch {
+            while (true) {
+                delay(20_000)
+                homeNow = System.currentTimeMillis()
+            }
+        }
+        if (savedInstanceState == null) {
+            handleLightRequest(intent)
+            if (intent?.getBooleanExtra(EXTRA_OPEN_MAP, false) == true) openMap()
+        }
         visibleToMates = VisibilityPrefs.isVisible(this)
         myName = VisibilityPrefs.myName(this)
         alwaysOn = VisibilityPrefs.alwaysOn(this)
@@ -593,6 +621,19 @@ class MainActivity : ComponentActivity() {
                                 toast("Added to your friends")
                             },
                             onShowGroupQr = { showGroupQr = true },
+                            onShowCrewQr = {
+                                ensureCrew()
+                                showGroupQr = true
+                            },
+                            seen = LocationBook.seen,
+                            nowSec = homeNow / 1000,
+                            pings = GroupSync.pings,
+                            onPing = { kind ->
+                                val loc = lastKnownLocation()
+                                GroupSync.sendPing(this@MainActivity, kind, loc?.latitude, loc?.longitude)
+                            },
+                            describePing = GroupSync::pingText,
+                            ghost = GhostMode.on.value,
                             onAddSimulated = if (DebugStatus.enabled) FriendsRepository::addSimulated else null,
                             onSelfie = ::selfie,
                             onPickMyPhoto = {
@@ -822,5 +863,7 @@ class MainActivity : ComponentActivity() {
     companion object {
         /** Notification tap: "this friend asked us to light up". */
         const val EXTRA_LIGHT_FOR = "nz.waveformlabs.moshpoint.LIGHT_FOR"
+        /** Notification tap: open the map (a crew ping or help request). */
+        const val EXTRA_OPEN_MAP = "nz.waveformlabs.moshpoint.OPEN_MAP"
     }
 }

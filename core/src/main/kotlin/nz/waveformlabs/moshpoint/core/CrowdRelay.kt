@@ -36,7 +36,7 @@ data class RelayPacket(val ttl: Int, val id: ByteArray, val sealed: ByteArray) {
     companion object {
         const val VERSION = 1
         const val MAX_TTL = 6
-        /** 2 + 16 + 29 = 47 bytes: needs Bluetooth 5 extended advertising. */
+        /** 2 + 16 + 30 = 48 bytes: needs Bluetooth 5 extended advertising. */
         const val SIZE = 2 + EphemeralId.ID_BYTES + LocationBox.SEALED_BYTES
 
         fun decode(b: ByteArray): RelayPacket? {

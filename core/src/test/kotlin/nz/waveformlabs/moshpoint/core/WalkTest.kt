@@ -106,3 +106,32 @@ class RallyTest {
     }
 }
 
+
+class LocationStatusTest {
+    @Test fun batteryAndLastGaspRoundTrip() {
+        val secret = ByteArray(32) { 7 }
+        val id = ByteArray(16) { 3 }
+        val loc = SharedLocation(-41.2865, 174.7762, 1_800_000_000L, 12, batteryPct = 4, lastGasp = true)
+        val out = assertNotNull(LocationBox.open(secret, id, LocationBox.seal(secret, id, loc)))
+        assertEquals(4, out.batteryPct)
+        assertTrue(out.lastGasp)
+        val plain = assertNotNull(LocationBox.open(secret, id, LocationBox.seal(secret, id, loc.copy(batteryPct = null, lastGasp = false))))
+        assertNull(plain.batteryPct)
+    }
+}
+
+class PingTest {
+    @Test fun pingRoundTripWithAndWithoutLocation() {
+        val g = GigGroup.create("crew", 0)
+        val p = GigGroup.Ping(GigGroup.Ping.NEED_HELP, "Bevan", 1_800_000_000L, -41.2865, 174.7762)
+        val out = assertNotNull(g.openPing(g.sealPing(p)))
+        assertEquals(p.kind, out.kind)
+        assertEquals("Bevan", out.from)
+        assertEquals(-41.2865, out.lat!!, 1e-6)
+        val q = assertNotNull(g.openPing(g.sealPing(GigGroup.Ping(GigGroup.Ping.COMING, "Zip", 5L))))
+        assertNull(q.lat)
+        assertNull(GigGroup.create("x", 0).openPing(g.sealPing(p)))
+        assertNull(g.openRally(g.sealPing(p))) // different message types don't mix
+    }
+}
+

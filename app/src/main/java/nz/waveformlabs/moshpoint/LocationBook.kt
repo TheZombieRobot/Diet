@@ -11,7 +11,15 @@ import org.json.JSONObject
  * Stored on this phone only, and dropped after [KEEP_MS].
  */
 object LocationBook {
-    data class Seen(val lat: Double, val lon: Double, val timeSec: Long, val accuracyM: Int)
+    data class Seen(
+        val lat: Double,
+        val lon: Double,
+        val timeSec: Long,
+        val accuracyM: Int,
+        val batteryPct: Int? = null,
+        /** Their phone was dying when it sent this. */
+        val lastGasp: Boolean = false,
+    )
 
     /** Friend id -> last seen. Compose state, so the map updates live. */
     val seen = mutableStateMapOf<String, Seen>()
@@ -28,7 +36,10 @@ object LocationBook {
             val cutoff = (System.currentTimeMillis() - KEEP_MS) / 1000
             for (k in o.keys()) {
                 val v = o.getJSONObject(k)
-                val s = Seen(v.getDouble("a"), v.getDouble("o"), v.getLong("t"), v.optInt("c", 50))
+                val s = Seen(
+                    v.getDouble("a"), v.getDouble("o"), v.getLong("t"), v.optInt("c", 50),
+                    v.optInt("b", -1).takeIf { it >= 0 }, v.optBoolean("g", false),
+                )
                 if (s.timeSec >= cutoff) seen[k] = s
             }
         }
@@ -38,7 +49,7 @@ object LocationBook {
     fun update(friendId: String, loc: SharedLocation) {
         val prev = seen[friendId]
         if (prev != null && prev.timeSec >= loc.timeSec) return
-        seen[friendId] = Seen(loc.lat, loc.lon, loc.timeSec, loc.accuracyM)
+        seen[friendId] = Seen(loc.lat, loc.lon, loc.timeSec, loc.accuracyM, loc.batteryPct, loc.lastGasp)
         save()
     }
 
@@ -53,7 +64,9 @@ object LocationBook {
         if (now - lastSave < 10_000) return // a few times a minute at most
         lastSave = now
         val o = JSONObject()
-        for ((k, s) in seen) o.put(k, JSONObject().put("a", s.lat).put("o", s.lon).put("t", s.timeSec).put("c", s.accuracyM))
+        for ((k, s) in seen) {
+            o.put(k, JSONObject().put("a", s.lat).put("o", s.lon).put("t", s.timeSec).put("c", s.accuracyM).put("b", s.batteryPct ?: -1).put("g", s.lastGasp))
+        }
         prefs()?.edit()?.putString("seen", o.toString())?.apply()
     }
 

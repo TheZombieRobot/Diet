@@ -101,6 +101,57 @@ class GigGroup(val key: ByteArray, val name: String, val createdAtMs: Long) {
         }.getOrNull()
     }
 
+    /** Mailbox id for crew pings ("Coming", "Need help"...), rotating with the epoch. */
+    fun pingIdForEpoch(epoch: Long): ByteArray =
+        hmac(key, "moshpoint-group-ping".toByteArray() + ByteBuffer.allocate(8).putLong(epoch).array()).copyOf(16)
+
+    /** A quick message to the whole crew, optionally with where the sender is. */
+    data class Ping(val kind: Int, val from: String, val timeSec: Long, val lat: Double? = null, val lon: Double? = null) {
+        companion object {
+            const val COMING = 1
+            const val STAY_PUT = 2
+            const val WHERE_ARE_YOU = 3
+            const val MEET_AT_PIN = 4
+            const val ALL_GOOD = 5
+            const val GOING_HOME = 6
+            const val NEED_HELP = 7
+        }
+    }
+
+    /** `[time:4][nonce:8][AES-GCM(kind:1, lat:4, lon:4, nameLen:1, name)+tag]` (lat/lon 1e-7 deg, both 0 = none). */
+    fun sealPing(p: Ping, random: java.security.SecureRandom = java.security.SecureRandom()): ByteArray {
+        val name = trimUtf8(p.from.toByteArray(Charsets.UTF_8), MAX_NAME_BYTES)
+        val plain = ByteBuffer.allocate(10 + name.size).put(p.kind.toByte())
+            .putInt(((p.lat ?: 0.0) * 1e7).toInt()).putInt(((p.lon ?: 0.0) * 1e7).toInt())
+            .put(name.size.toByte()).put(name).array()
+        val time = ByteBuffer.allocate(4).putInt(p.timeSec.toInt()).array()
+        val nonce = ByteArray(8).also { random.nextBytes(it) }
+        val c = Cipher.getInstance("AES/GCM/NoPadding")
+        c.init(Cipher.ENCRYPT_MODE, rallyKey(), GCMParameterSpec(96, time + nonce))
+        c.updateAAD("ping".toByteArray())
+        return time + nonce + c.doFinal(plain)
+    }
+
+    fun openPing(blob: ByteArray): Ping? {
+        if (blob.size < 12 + 10 + 12) return null
+        return runCatching {
+            val c = Cipher.getInstance("AES/GCM/NoPadding")
+            c.init(Cipher.DECRYPT_MODE, rallyKey(), GCMParameterSpec(96, blob.copyOfRange(0, 12)))
+            c.updateAAD("ping".toByteArray())
+            val b = ByteBuffer.wrap(c.doFinal(blob, 12, blob.size - 12))
+            val kind = b.get().toInt() and 0xFF
+            val lat = b.int
+            val lon = b.int
+            val n = b.get().toInt() and 0xFF
+            val name = ByteArray(n).also { b.get(it) }
+            val hasLoc = lat != 0 || lon != 0
+            Ping(
+                kind, String(name, Charsets.UTF_8), ByteBuffer.wrap(blob, 0, 4).int.toLong() and 0xFFFFFFFFL,
+                if (hasLoc) lat / 1e7 else null, if (hasLoc) lon / 1e7 else null,
+            )
+        }.getOrNull()
+    }
+
     private fun rallyKey() = SecretKeySpec(hmac(key, "moshpoint-group-rally-aes".toByteArray()).copyOf(16), "AES")
 
     data class Rally(val lat: Double, val lon: Double, val name: String, val timeSec: Long) {

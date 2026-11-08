@@ -222,11 +222,15 @@ object GroupSync {
         if (myRally != null && now - rallyPostedAt > 10 * 60_000L) {
             if (RelayClient.put(g.rallyIdForDay(day), g.sealRally(myRally))) rallyPostedAt = now
         }
-        val ids = listOf(g.rosterIdForEpoch(epoch), g.rosterIdForEpoch(epoch - 1), g.rallyIdForDay(day), g.rallyIdForDay(day - 1))
+        val ids = listOf(
+            g.rosterIdForEpoch(epoch), g.rosterIdForEpoch(epoch - 1), g.rallyIdForDay(day), g.rallyIdForDay(day - 1),
+            g.pingIdForEpoch(epoch), g.pingIdForEpoch(epoch - 1),
+        )
         val found = RelayClient.lookup(ids) ?: return
         found.take(2).flatten().forEach { received(c, g, it) }
+        found.drop(4).flatten().forEach { blob -> g.openPing(blob)?.let { onPing(c, it, blob) } }
         // Newest pin from anyone in the crew wins (including "removed").
-        found.drop(2).flatten().mapNotNull { g.openRally(it) }.maxByOrNull { it.timeSec }?.let { r ->
+        found.drop(2).take(2).flatten().mapNotNull { g.openRally(it) }.maxByOrNull { it.timeSec }?.let { r ->
             val latest = maxOf(rally.value?.timeSec ?: 0L, rallyClearedAt)
             if (r.timeSec > latest) {
                 rallyMine = false
@@ -234,6 +238,52 @@ object GroupSync {
                 if (!r.removed) DebugStatus.log("Crew meet-up: ${r.name}")
             }
         }
+    }
+
+    // ---- Crew pings ----
+
+    /** Recent pings from the crew, newest first (Compose state for the home screen). */
+    val pings = androidx.compose.runtime.mutableStateListOf<GigGroup.Ping>()
+    private val seenPings = HashSet<String>()
+
+    /** Send a quick message to the whole crew. Arrives within about a minute. */
+    fun sendPing(c: Context, kind: Int, lat: Double? = null, lon: Double? = null) {
+        val g = group.value ?: return
+        val app = c.applicationContext
+        val p = GigGroup.Ping(kind, VisibilityPrefs.myName(app).ifBlank { "Mate" }, System.currentTimeMillis() / 1000, lat, lon)
+        val blob = g.sealPing(p)
+        seenPings += blob.contentHashCode().toString()
+        scope.launch {
+            val epoch = Math.floorDiv(System.currentTimeMillis(), EphemeralId.DEFAULT_ROTATION_MS)
+            val ok = RelayClient.put(g.pingIdForEpoch(epoch), blob)
+            DebugStatus.log(if (ok) "Ping sent: ${pingText(kind)}" else "Ping not sent (no internet?)")
+        }
+    }
+
+    private fun onPing(c: Context, p: GigGroup.Ping, blob: ByteArray) {
+        if (!seenPings.add(blob.contentHashCode().toString())) return
+        if (System.currentTimeMillis() / 1000 - p.timeSec > 20 * 60) return // stale
+        // Where they were when they sent it: put it on the map too.
+        if (p.lat != null && p.lon != null) {
+            FriendsRepository.friends.firstOrNull { it.name.equals(p.from, true) }?.let {
+                LocationBook.update(it.id, nz.waveformlabs.moshpoint.core.SharedLocation(p.lat, p.lon, p.timeSec, 30))
+            }
+        }
+        pings.add(0, p)
+        while (pings.size > 20) pings.removeAt(pings.size - 1)
+        CrewNotifications.ping(c, p)
+    }
+
+    /** What a ping says, e.g. "is coming to you". */
+    fun pingText(kind: Int) = when (kind) {
+        GigGroup.Ping.COMING -> "is on their way"
+        GigGroup.Ping.STAY_PUT -> "says stay where you are"
+        GigGroup.Ping.WHERE_ARE_YOU -> "is asking where you are"
+        GigGroup.Ping.MEET_AT_PIN -> "says meet at the pin"
+        GigGroup.Ping.ALL_GOOD -> "is all good"
+        GigGroup.Ping.GOING_HOME -> "is heading home"
+        GigGroup.Ping.NEED_HELP -> "NEEDS HELP"
+        else -> "pinged the crew"
     }
 
     // ---- Crew meet-up pin ----
