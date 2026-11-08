@@ -39,3 +39,7 @@
 - [ ] Register a Bluetooth SIG 16-bit UUID
 - [ ] Trademark check for "Moshpoint" (IPONZ first)
 - [ ] Play Store listing, privacy policy, data safety form
+
+## Product plan
+
+Features beyond these milestones, the design audit, connectors and big ideas: see [PRODUCT.md](PRODUCT.md).
