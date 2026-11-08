@@ -171,6 +171,9 @@ class ScreensSnapshotTest {
                 status = "Updated just now",
                 nowMs = 1_000_000_000L,
                 onFind = {}, onDirections = { _, _ -> }, onNudge = {}, onBack = {},
+                places = listOf(MapPlace("r", "Sound desk", -41.288, 174.777, meetUp = true), MapPlace("t", "Tent", -41.29, 174.77, meetUp = false)),
+                inCrew = true,
+                liveMap = false,
             )
         }
     }

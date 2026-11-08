@@ -77,8 +77,10 @@ fun FriendMap(
     places: List<MapPlace> = emptyList(),
     /** Long-press on the map: drop a pin there. */
     onLongPress: (Double, Double) -> Unit = { _, _ -> },
+    /** False in screenshot tests, which can't load the native map library. */
+    live: Boolean = true,
 ) {
-    if (LocalInspectionMode.current) {
+    if (!live || LocalInspectionMode.current) {
         // Screenshot tests can't load the native map: a plain stand-in.
         Box(modifier.fillMaxSize().background(Mosh.Deep), contentAlignment = Alignment.Center) {
             Text("map", style = Mosh.Eyebrow)

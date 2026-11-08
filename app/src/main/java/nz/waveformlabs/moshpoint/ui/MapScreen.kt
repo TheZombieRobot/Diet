@@ -58,6 +58,7 @@ fun MapScreen(
     inCrew: Boolean = false,
     onDropPin: (name: String, lat: Double, lon: Double, meetUp: Boolean) -> Unit = { _, _, _, _ -> },
     onRemovePlace: (MapPlace) -> Unit = {},
+    liveMap: Boolean = true,
 ) {
     var dropAt by remember { mutableStateOf<Pair<Double, Double>?>(null) }
     val hasBack = androidx.activity.compose.LocalOnBackPressedDispatcherOwner.current != null
@@ -92,6 +93,7 @@ fun MapScreen(
             onPinTapped = { id -> seen[id]?.let { focus(listOf(LatLng(it.lat, it.lon))) } },
             places = places,
             onLongPress = { lat, lon -> dropAt = lat to lon },
+            live = liveMap,
         )
 
         // Top bar
