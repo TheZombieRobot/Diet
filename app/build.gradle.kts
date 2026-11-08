@@ -68,6 +68,12 @@ android {
     }
 
     buildTypes {
+        // Test builds are scrambled too (R8: renamed classes, unused code removed), so the
+        // APK testers download can't easily be read back into source. Debug features stay.
+        debug {
+            isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+        }
         release {
             if (keystorePath != null) signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
