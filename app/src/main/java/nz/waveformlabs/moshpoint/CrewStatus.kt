@@ -55,7 +55,9 @@ object CrewStatus {
         distances.clear()
         venueNotes.clear()
         val g = GroupSync.group.value
-        val venue = if (g?.venueLat != null && g.venueLon != null) LatLon(g.venueLat, g.venueLon) else null
+        val vLat = g?.venueLat
+        val vLon = g?.venueLon
+        val venue = if (vLat != null && vLon != null) LatLon(vLat, vLon) else null
         val parts = mutableListOf<Pair<Double, String>>()
         for (f in crew) {
             val s = LocationBook.seen[f.id] ?: continue

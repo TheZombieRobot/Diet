@@ -31,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
@@ -414,7 +415,7 @@ private fun PlusIcon(c: Color) = androidx.compose.foundation.Canvas(Modifier.siz
 private fun PolaroidIcon(c: Color) = androidx.compose.foundation.Canvas(Modifier.size(24.dp)) {
     val w = size.width
     val stroke = androidx.compose.ui.graphics.drawscope.Stroke(width = w * 0.09f, join = androidx.compose.ui.graphics.StrokeJoin.Round)
-    androidx.compose.ui.graphics.drawscope.rotate(-8f) {
+    rotate(-8f) {
         drawRoundRect(c, androidx.compose.ui.geometry.Offset(w * 0.16f, w * 0.1f), androidx.compose.ui.geometry.Size(w * 0.68f, w * 0.8f), androidx.compose.ui.geometry.CornerRadius(w * 0.06f), style = stroke)
         drawRect(c.copy(alpha = 0.45f), androidx.compose.ui.geometry.Offset(w * 0.27f, w * 0.21f), androidx.compose.ui.geometry.Size(w * 0.46f, w * 0.42f))
     }
