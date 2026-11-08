@@ -111,6 +111,8 @@ fun FriendsScreen(
     crewQrPayload: String? = null,
     /** "Invite mates": start a crew named after you, no questions. Null = ask for a name. */
     onQuickCrew: (() -> Unit)? = null,
+    /** Bump phones together to share / receive a crew invite. */
+    onBump: () -> Unit = {},
     /** Debug builds only; null in release. */
     onAddSimulated: (() -> Unit)? = null,
     onSelfie: () -> Unit = {},
@@ -242,6 +244,7 @@ fun FriendsScreen(
             onShowMyQr = onShowQr,
             onEnterCode = { manualCode = true },
             onClose = { addOpen = false },
+            onBump = onBump,
         )
     }
     if (manualCode || code.isNotBlank()) {

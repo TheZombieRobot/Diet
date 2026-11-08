@@ -287,6 +287,7 @@ internal fun AddSheet(
     onShowMyQr: () -> Unit,
     onEnterCode: () -> Unit,
     onClose: () -> Unit,
+    onBump: () -> Unit = {},
 ) {
     androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, containerColor = Mosh.Deep) {
         Column(
@@ -303,6 +304,7 @@ internal fun AddSheet(
                 GlassButton("Scan a QR", Modifier.weight(1f)) { onClose(); onScanQr() }
                 GlassButton("Paste invite", Modifier.weight(1f)) { onClose(); onPasteInvite() }
             }
+            GlassButton("Bump phones together") { onClose(); onBump() }
             GlassButton("Send the app + invite (WhatsApp, Messenger…)") { onClose(); onShareApp() }
             Spacer(Modifier.height(4.dp))
             Text("FRIENDS FOR EVERY GIG", style = Mosh.Eyebrow)

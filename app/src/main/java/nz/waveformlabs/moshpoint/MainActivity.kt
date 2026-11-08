@@ -156,6 +156,7 @@ class MainActivity : ComponentActivity() {
         setBeacon(true)
     }
     private var showMap by mutableStateOf(false)
+    private var bumping by mutableStateOf(false)
     /** "Your night" recap shown before ending the night. */
     private var recap by mutableStateOf<NightStats.Stats?>(null)
     /** Ticks every 20 s so "x min ago" on the home screen stays current. */
@@ -641,6 +642,10 @@ class MainActivity : ComponentActivity() {
                             distances = CrewStatus.distances,
                             crewQrPayload = GroupSync.group.value?.let { crewQr(it) },
                             onQuickCrew = { ensureCrew() },
+                            onBump = {
+                                bumping = true
+                                Bump.start(this@MainActivity, GroupSync.group.value?.let { crewQr(it) })
+                            },
                             onOpenMoment = momentFlow::view,
                             ghost = GhostMode.on.value,
                             onAddSimulated = if (DebugStatus.enabled) FriendsRepository::addSimulated else null,
@@ -660,6 +665,36 @@ class MainActivity : ComponentActivity() {
                     }
                     }
                     momentFlow.Dialogs()
+                    if (bumping) {
+                        nz.waveformlabs.moshpoint.ui.BumpDialog(sharing = GroupSync.group.value != null) {
+                            bumping = false
+                            Bump.stop(this@MainActivity)
+                        }
+                    }
+                    Bump.received.value?.let { text ->
+                        val name = nz.waveformlabs.moshpoint.core.Invite.find(text)
+                            ?.let { it as? nz.waveformlabs.moshpoint.core.Invite.Group }
+                            ?.let { GigGroup.parseQr(it.qrText, System.currentTimeMillis())?.name } ?: "the crew"
+                        androidx.compose.material3.AlertDialog(
+                            onDismissRequest = { Bump.received.value = null },
+                            containerColor = Mosh.Deep,
+                            title = { androidx.compose.material3.Text("Join $name?", style = Mosh.Heading) },
+                            text = { androidx.compose.material3.Text("Bumped! Join and you can all find each other tonight.", style = Mosh.Body) },
+                            confirmButton = {
+                                androidx.compose.material3.TextButton(onClick = {
+                                    Bump.received.value = null
+                                    bumping = false
+                                    Bump.stop(this@MainActivity)
+                                    handleInvite(text)
+                                }) { androidx.compose.material3.Text("Join", style = Mosh.Label.copy(color = Mosh.Lime)) }
+                            },
+                            dismissButton = {
+                                androidx.compose.material3.TextButton(onClick = { Bump.received.value = null }) {
+                                    androidx.compose.material3.Text("No", style = Mosh.Label)
+                                }
+                            },
+                        )
+                    }
                     clipInvite?.let { (text, name) ->
                         androidx.compose.material3.AlertDialog(
                             onDismissRequest = { clipInvite = null },
@@ -854,6 +889,10 @@ class MainActivity : ComponentActivity() {
         super.onStop()
         setBeacon(false)
         mapFeed.stop()
+        if (bumping) {
+            bumping = false
+            Bump.stop(this)
+        }
         runCatching { unregisterReceiver(powerSaveReceiver) }
         runCatching { unregisterReceiver(radioReceiver) }
         pendingGroupRelease?.cancel()
