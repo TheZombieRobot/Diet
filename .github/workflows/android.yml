@@ -31,13 +31,16 @@ jobs:
       - name: Download Gradle (in pieces if GitHub's file host is timing out)
         shell: bash
         run: |
-          ./gradlew --version -q && exit 0
+          set +e
+          if ./gradlew --version -q; then exit 0; fi
+          set -x
           # Whole-file downloads 504 during GitHub incidents; small ranged requests still work.
           # Fetch in 8 MB pieces, check the official checksum, then point the wrapper at the file.
           URL=$(grep distributionUrl gradle/wrapper/gradle-wrapper.properties | cut -d= -f2 | sed 's#\\:#:#')
           NAME=$(basename "$URL")
           REAL="https://github.com/gradle/gradle-distributions/releases/download/v$(echo "$NAME" | sed -E 's/gradle-(.*)-bin.zip/\1/')/$NAME"
-          SHA=$(curl -fsSL --retry 5 "$URL.sha256")
+          SHA=$(curl -fsSL --retry 5 "$URL.sha256" || curl -fsSL --retry 5 -r 0-200 "$REAL.sha256")
+          [ -n "$SHA" ] || { echo "no checksum"; exit 1; }
           OUT="$RUNNER_TEMP/$NAME"; : > "$OUT"
           SIZE=$(curl -sSL -r 0-0 -D - -o /dev/null --retry 5 "$REAL" | grep -i '^content-range' | tail -1 | sed -E 's#.*/([0-9]+).*#\1#')
           echo "Gradle is $SIZE bytes"
@@ -53,7 +56,7 @@ jobs:
             cat "$RUNNER_TEMP/part" >> "$OUT"
             START=$((END + 1))
           done
-          echo "$SHA  $OUT" | sha256sum -c -
+          echo "$SHA  $OUT" | sha256sum -c - || exit 1
           sed -i "s#^distributionUrl=.*#distributionUrl=file\\:$OUT#" gradle/wrapper/gradle-wrapper.properties
           ./gradlew --version -q
 
