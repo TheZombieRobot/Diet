@@ -120,8 +120,9 @@ internal fun CrewTiles(
 
 /** One-tap messages to the whole crew. "Need help" asks first. */
 @Composable
-internal fun PingBar(onPing: (Int) -> Unit) {
+internal fun PingBar(onPing: (Int) -> Unit, onCheckIn: (Int) -> Unit = {}) {
     var confirmHelp by remember { mutableStateOf(false) }
+    var goingHome by remember { mutableStateOf(false) }
     var sent by remember { mutableStateOf<Int?>(null) }
     val items = listOf(
         GigGroup.Ping.COMING to "On my way",
@@ -129,7 +130,6 @@ internal fun PingBar(onPing: (Int) -> Unit) {
         GigGroup.Ping.STAY_PUT to "Stay put",
         GigGroup.Ping.MEET_AT_PIN to "Meet at the pin",
         GigGroup.Ping.ALL_GOOD to "All good",
-        GigGroup.Ping.GOING_HOME to "Heading home",
     )
     Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items.forEach { (kind, label) ->
@@ -138,7 +138,31 @@ internal fun PingBar(onPing: (Int) -> Unit) {
                 sent = kind
             }
         }
+        PingChip("Heading home", Mosh.Violet) { goingHome = true }
         PingChip("Need help", Mosh.Danger) { confirmHelp = true }
+    }
+    if (goingHome) {
+        AlertDialog(
+            onDismissRequest = { goingHome = false },
+            containerColor = Mosh.Deep,
+            title = { Text("Heading home?", style = Mosh.Heading) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("Check in when you get there. If you don't, your crew gets an alert with your last spot (even if your phone dies).", style = Mosh.Body)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf(30, 45, 60, 90).forEach { m ->
+                            PingChip("$m min", Mosh.Violet) { onCheckIn(m); sent = GigGroup.Ping.CHECK_IN; goingHome = false }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { onPing(GigGroup.Ping.GOING_HOME); sent = GigGroup.Ping.GOING_HOME; goingHome = false }) {
+                    Text("Just tell them", style = Mosh.Label.copy(color = Mosh.Cyan))
+                }
+            },
+            dismissButton = { TextButton(onClick = { goingHome = false }) { Text("Cancel", style = Mosh.Label) } },
+        )
     }
     if (confirmHelp) {
         AlertDialog(
@@ -272,5 +296,18 @@ internal fun AddSheet(
                 TextButton(onClick = { onClose(); onEnterCode() }) { Text("Enter a code", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
             }
         }
+    }
+}
+
+/** While you're checking in: when you're due, and the "Home safe" button. */
+@Composable
+internal fun CheckInBanner(byClock: String, onHomeSafe: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().background(Mosh.Violet.copy(alpha = 0.16f), RoundedCornerShape(14.dp))
+            .border(1.dp, Mosh.Violet.copy(alpha = 0.6f), RoundedCornerShape(14.dp)).padding(start = 14.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text("Check in by $byClock", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Violet), modifier = Modifier.weight(1f))
+        TextButton(onClick = onHomeSafe) { Text("I'm home safe", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lime)) }
     }
 }

@@ -149,3 +149,11 @@ class MomentTest {
     }
 }
 
+class CheckInTest {
+    @Test fun checkInCarriesMinutes() {
+        val g = GigGroup.create("crew", 0)
+        val p = GigGroup.Ping(GigGroup.Ping.CHECK_IN, "Bevan", 1_800_000_000L, -41.2, 174.7, minutes = 45)
+        assertEquals(45, assertNotNull(g.openPing(g.sealPing(p))).minutes)
+    }
+}
+

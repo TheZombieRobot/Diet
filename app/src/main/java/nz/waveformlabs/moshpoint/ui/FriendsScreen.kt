@@ -101,6 +101,10 @@ fun FriendsScreen(
     moments: List<nz.waveformlabs.moshpoint.Moments.Item> = emptyList(),
     onShareMoment: () -> Unit = {},
     onOpenMoment: (nz.waveformlabs.moshpoint.Moments.Item) -> Unit = {},
+    onCheckIn: (Int) -> Unit = {},
+    /** "2:15 am" while we're checking in, else null. */
+    checkInBy: String? = null,
+    onHomeSafe: () -> Unit = {},
     /** Debug builds only; null in release. */
     onAddSimulated: (() -> Unit)? = null,
     onSelfie: () -> Unit = {},
@@ -358,7 +362,8 @@ fun FriendsScreen(
                             NeonButton("Find the crew") { onFind(gig.map { it.id }.toSet()) }
                         }
                         if (groupName != null) {
-                            PingBar(onPing)
+                            if (checkInBy != null) CheckInBanner(checkInBy, onHomeSafe)
+                            PingBar(onPing, onCheckIn)
                             PingFeed(pings, nowSec, describePing)
                             MomentStrip(moments, nowSec, onOpenMoment, onShareMoment)
                         }

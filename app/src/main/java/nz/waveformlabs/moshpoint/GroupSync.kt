@@ -228,6 +228,7 @@ object GroupSync {
             g.pingIdForEpoch(epoch), g.pingIdForEpoch(epoch - 1),
         )
         Moments.refresh(c, g)
+        checkOverdue(c)
         val found = RelayClient.lookup(ids) ?: return
         found.take(2).flatten().forEach { received(c, g, it) }
         found.drop(4).flatten().forEach { blob -> g.openPing(blob)?.let { onPing(c, it, blob) } }
@@ -249,10 +250,10 @@ object GroupSync {
     private val seenPings = HashSet<String>()
 
     /** Send a quick message to the whole crew. Arrives within about a minute. */
-    fun sendPing(c: Context, kind: Int, lat: Double? = null, lon: Double? = null) {
+    fun sendPing(c: Context, kind: Int, lat: Double? = null, lon: Double? = null, minutes: Int = 0) {
         val g = group.value ?: return
         val app = c.applicationContext
-        val p = GigGroup.Ping(kind, VisibilityPrefs.myName(app).ifBlank { "Mate" }, System.currentTimeMillis() / 1000, lat, lon)
+        val p = GigGroup.Ping(kind, VisibilityPrefs.myName(app).ifBlank { "Mate" }, System.currentTimeMillis() / 1000, lat, lon, minutes)
         val blob = g.sealPing(p)
         seenPings += blob.contentHashCode().toString()
         scope.launch {
@@ -275,7 +276,48 @@ object GroupSync {
         }
         pings.add(0, p)
         while (pings.size > 20) pings.removeAt(pings.size - 1)
+        when (p.kind) {
+            GigGroup.Ping.CHECK_IN -> checkIns[p.from] = p.timeSec + p.minutes * 60L
+            GigGroup.Ping.HOME_SAFE -> {
+                checkIns.remove(p.from)
+                overdueAlerted.remove(p.from)
+            }
+        }
         CrewNotifications.ping(c, p)
+    }
+
+    // ---- Check in ("tell the crew if I'm not home in 45 min") ----
+
+    /** Crew members heading home: name -> when they should have checked in (unix s). */
+    val checkIns = androidx.compose.runtime.mutableStateMapOf<String, Long>()
+    private val overdueAlerted = HashSet<String>()
+
+    /** Our own check-in deadline (unix s), or 0. */
+    val myCheckInBy = mutableStateOf(0L)
+
+    /** Heading home: the crew's phones raise the alarm if we don't tap "Home safe" in time. */
+    fun startCheckIn(c: Context, minutes: Int, lat: Double?, lon: Double?) {
+        myCheckInBy.value = System.currentTimeMillis() / 1000 + minutes * 60L
+        sendPing(c, GigGroup.Ping.CHECK_IN, lat, lon, minutes)
+    }
+
+    fun homeSafe(c: Context) {
+        myCheckInBy.value = 0L
+        sendPing(c, GigGroup.Ping.HOME_SAFE)
+    }
+
+    /** Called from the sync loop: anyone past their check-in time gets flagged to the crew, once. */
+    private fun checkOverdue(c: Context) {
+        val now = System.currentTimeMillis() / 1000
+        for ((who, by) in checkIns) {
+            if (now > by + 120 && overdueAlerted.add(who)) {
+                CrewNotifications.post(
+                    c, title = "$who hasn't checked in",
+                    text = "They were heading home and should be there by now. Give them a call. Tap for their last spot.",
+                    urgent = true,
+                )
+            }
+        }
     }
 
     /** What a ping says, e.g. "is coming to you". */
@@ -287,6 +329,8 @@ object GroupSync {
         GigGroup.Ping.ALL_GOOD -> "is all good"
         GigGroup.Ping.GOING_HOME -> "is heading home"
         GigGroup.Ping.NEED_HELP -> "NEEDS HELP"
+        GigGroup.Ping.CHECK_IN -> "is heading home and will check in"
+        GigGroup.Ping.HOME_SAFE -> "is home safe"
         else -> "pinged the crew"
     }
 

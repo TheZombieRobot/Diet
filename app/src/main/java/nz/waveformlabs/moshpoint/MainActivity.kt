@@ -585,6 +585,14 @@ class MainActivity : ComponentActivity() {
                             describePing = GroupSync::pingText,
                             moments = Moments.items,
                             onShareMoment = momentFlow::start,
+                            onCheckIn = { minutes ->
+                                val loc = lastKnownLocation()
+                                GroupSync.startCheckIn(this@MainActivity, minutes, loc?.latitude, loc?.longitude)
+                            },
+                            checkInBy = GroupSync.myCheckInBy.value.takeIf { it > 0 }?.let {
+                                java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(java.util.Date(it * 1000))
+                            },
+                            onHomeSafe = { GroupSync.homeSafe(this@MainActivity) },
                             onOpenMoment = momentFlow::view,
                             ghost = GhostMode.on.value,
                             onAddSimulated = if (DebugStatus.enabled) FriendsRepository::addSimulated else null,
