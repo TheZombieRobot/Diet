@@ -358,7 +358,7 @@ class MainActivity : ComponentActivity() {
                             eyebrow = "YOUR CREW FOR TONIGHT",
                             title = g.name,
                             hint = "Everyone scans this once. Then you can all find each other, all night.",
-                            members = FriendsRepository.friends.filter { it.gigGroupOnly },
+                            members = FriendsRepository.friends.filter { it.gigGroupOnly || it.key in GroupSync.members },
                             onEndNight = {
                                 showGroupQr = false
                                 GroupSync.clear(this@MainActivity)
@@ -433,7 +433,7 @@ class MainActivity : ComponentActivity() {
                         FinderScreen(
                             title = when {
                                 names.size == 1 -> names[0]
-                                group != null && tracking.all { FriendsRepository.byId(it)?.gigGroupOnly == true } -> group.name
+                                group != null && tracking.size > 1 -> group.name
                                 else -> "${names.size} mates"
                             },
                             visible = visibleToMates,
@@ -443,6 +443,18 @@ class MainActivity : ComponentActivity() {
                             onScan = engine::startSpinScan,
                             onCancelScan = engine::cancelSpinScan,
                             onDismissScan = engine::dismissScanResult,
+                            onNudge = {
+                                val who = names.joinToString(" & ").ifBlank { "mate" }
+                                startActivity(
+                                    Intent.createChooser(
+                                        Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(
+                                            Intent.EXTRA_TEXT,
+                                            "Hey $who, open Moshpoint and tap Go live (with location and data on) so I can find you!",
+                                        ),
+                                        "Ask them to go live",
+                                    ),
+                                )
+                            },
                             beaconOn = beaconOn,
                             onBeacon = ::setBeacon,
                             beaconing = beaconing.mapNotNull { FriendsRepository.byId(it)?.name },
@@ -488,6 +500,7 @@ class MainActivity : ComponentActivity() {
                     } else {
                         FriendsScreen(
                             friends = FriendsRepository.friends,
+                            crewKeys = GroupSync.members.toSet(),
                             visible = visibleToMates,
                             alwaysOn = alwaysOn,
                             phoneSummary = phoneSummary,

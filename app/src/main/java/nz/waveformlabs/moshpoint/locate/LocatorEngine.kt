@@ -460,7 +460,9 @@ class LocatorEngine(
         if (now - lastSpinSampleAt > 2_500) ble.refresh()
         turned[((Geo.normalize360(heading) / 10).toInt()).coerceIn(0, 35)] = true
         val turnedDeg = turned.count { it } * 10.0
-        val fullCircle = turnedDeg >= 330.0
+        // A full turn, or most of one after a while (some phones' compasses skip a patch):
+        // either way, give the best answer instead of a ring that never completes.
+        val fullCircle = turnedDeg >= 330.0 || (now - scanStartedAt > 25_000 && turnedDeg >= 200.0)
 
         // Can't hear them at all (not live, not in your crew, out of range): say so
         // quickly instead of leaving an empty progress ring.

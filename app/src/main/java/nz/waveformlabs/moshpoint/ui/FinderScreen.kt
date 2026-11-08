@@ -131,6 +131,8 @@ fun FinderScreen(
     onBeacon: (Boolean) -> Unit = {},
     /** Mates flashing their screens for us right now. */
     beaconing: List<String> = emptyList(),
+    /** Can't reach them at all: send them a message asking them to go live. */
+    onNudge: () -> Unit = {},
     onBack: () -> Unit,
     /** Only used in debug builds. Null in release. */
     debug: (@Composable (Modifier) -> Unit)? = null,
@@ -321,20 +323,23 @@ fun FinderScreen(
                 }
                 // Can't hear anyone yet: explain, but still let them try (signals come and go in a crowd).
                 arrows.isNotEmpty() && arrows.all { it is ArrowState.NoSignal } -> {
-                    Text(
-                        "Scan works once we can hear them. Check they've tapped Go live and are in your crew.",
-                        style = Mosh.Body.copy(color = Mosh.TextDim),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        GlassButton("Light me up", Modifier.weight(1f), onClick = { onBeacon(true) })
-                        GlassButton("Scan anyway", Modifier.weight(1f), icon = true, onClick = onScan)
-                    }
+                    GlassButton("Ask them to go live", onClick = onNudge)
                 }
-                else -> Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    GlassButton("Light me up", Modifier.weight(1f), onClick = { onBeacon(true) })
-                    GlassButton("Spin scan", Modifier.weight(1f), icon = true, onClick = onScan)
+                // Only offer the close-up tools when they're actually close: the app picks the
+                // method by itself (GPS far away, Bluetooth up close).
+                else -> {
+                    val near = arrows.any {
+                        it is ArrowState.DistanceOnly || (it is ArrowState.Pointing && (it.distanceM ?: 0.0) < 60.0)
+                    }
+                    val needsDirection = arrows.any {
+                        it is ArrowState.DistanceOnly || (it is ArrowState.Pointing && it.unsure && (it.distanceM ?: 0.0) < 40.0)
+                    }
+                    if (near) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            GlassButton("Light me up", Modifier.weight(1f), onClick = { onBeacon(true) })
+                            if (needsDirection) GlassButton("Spin scan", Modifier.weight(1f), icon = true, onClick = onScan)
+                        }
+                    }
                 }
             }
         }
@@ -478,7 +483,8 @@ private fun Searching(name: String) {
             Text("Looking for $name…", style = Mosh.Heading, textAlign = TextAlign.Center)
             Spacer(Modifier.height(10.dp))
             Text(
-                "They're out of range, or haven't gone live yet. Their arrow lights up the moment we find them.",
+                "No signal from them and no shared location yet. They need Moshpoint open with Go live on, plus location and mobile data. " +
+                    "Then their arrow appears, even if they're across town.",
                 style = Mosh.Body, textAlign = TextAlign.Center,
             )
         }
@@ -701,7 +707,7 @@ private fun ScanProgress(scan: LocatorEngine.ScanUi) {
             Text("Spin slowly", style = Mosh.Heading)
             Spacer(Modifier.height(10.dp))
             Text(
-                "Phone flat on your chest, screen out, and turn slowly: about 15 seconds for a full circle. " +
+                "Hold the phone against your chest, screen facing you, and turn slowly on the spot: about 15 seconds for a full circle. " +
                     "Your body blocks the signal, so we can tell which way they are.",
                 style = Mosh.Body, textAlign = TextAlign.Center,
             )

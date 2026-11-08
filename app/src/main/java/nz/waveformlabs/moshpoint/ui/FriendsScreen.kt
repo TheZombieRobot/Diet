@@ -93,6 +93,8 @@ fun FriendsScreen(
     onRemovePhoto: (String) -> Unit,
     onClearGigGroup: () -> Unit,
     groupName: String?,
+    /** Keys of everyone in tonight's crew, including people already on the friends list. */
+    crewKeys: Set<String> = emptySet(),
     onStartGroup: (String) -> Unit,
     onShowGroupQr: () -> Unit,
     onKeepFriend: (String) -> Unit = {},
@@ -213,7 +215,7 @@ fun FriendsScreen(
         }
     }
 
-    val gig = friends.filter { it.gigGroupOnly }
+    val gig = friends.filter { it.gigGroupOnly || it.key in crewKeys }
     val permanent = friends.filterNot { it.gigGroupOnly }
 
     Box(Modifier.fillMaxSize().background(Mosh.Ground)) {

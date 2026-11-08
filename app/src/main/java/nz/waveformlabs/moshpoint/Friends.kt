@@ -20,6 +20,8 @@ data class Friend(val record: FriendRecord) {
     /** True for a one-night gig group member, false for the permanent friends list. */
     val gigGroupOnly get() = record.gigGroupOnly
     val ephemeralId by lazy { EphemeralId(record.secret) }
+    /** Their finding key as hex: how the crew list refers to them. */
+    val key: String get() = record.secret.joinToString("") { "%02x".format(it) }
 }
 
 /**
@@ -82,6 +84,16 @@ object FriendsRepository {
                 save()
             }
             return false
+        }
+        // Same name, new key: they reinstalled the app (which makes a new key), so the entry
+        // we have can never find them again. Swap the key in, keeping their colour and photo.
+        // Not for blank/default names, which lots of people share.
+        val sameName = if (name.isBlank() || name.equals("Mate", true) || name.equals("Host", true)) -1
+            else friends.indexOfFirst { it.name.equals(name.trim(), ignoreCase = true) && !isSimulated(it.id) }
+        if (sameName >= 0) {
+            friends[sameName] = Friend(friends[sameName].record.copy(secret = secret))
+            save()
+            return true
         }
         val usedColours = friends.map { it.color }.toSet()
         friends += Friend(

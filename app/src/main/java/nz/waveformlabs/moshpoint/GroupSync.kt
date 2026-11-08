@@ -42,6 +42,19 @@ object GroupSync {
     /** The active group, if any (Compose state for the friends screen). */
     val group = mutableStateOf<GigGroup?>(null)
 
+    /**
+     * Who's in tonight's crew ([Friend.key]s), including people who were already on your
+     * friends list: they belong in the crew too, not just one-night members.
+     */
+    val members = androidx.compose.runtime.mutableStateListOf<String>()
+
+    private fun markMember(c: Context, secret: ByteArray) {
+        val k = secret.joinToString("") { "%02x".format(it) }
+        if (k in members) return
+        members += k
+        prefs(c.applicationContext).edit().putString("members", members.joinToString(",")).apply()
+    }
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var users = 0
     private var job: Job? = null
@@ -75,6 +88,8 @@ object GroupSync {
             return
         }
         group.value = GigGroup(Base64.decode(key, Base64.NO_WRAP), p.getString("name", "Gig group") ?: "Gig group", created)
+        members.clear()
+        p.getString("members", null)?.split(',')?.filter { it.length == 64 }?.let { members.addAll(it) }
     }
 
     fun startNew(c: Context, name: String) = set(c.applicationContext, GigGroup.create(name, System.currentTimeMillis()))
@@ -90,6 +105,7 @@ object GroupSync {
             if (!host.secret.contentEquals(VisibilityPrefs.mySecret(app))) {
                 FriendsRepository.unremove(host.secret)
                 FriendsRepository.addFromIntro(host.secret, host.name)
+                markMember(app, host.secret)
             }
         }
         return true
@@ -100,8 +116,10 @@ object GroupSync {
             .putString("key", Base64.encodeToString(g.key, Base64.NO_WRAP))
             .putString("name", g.name)
             .putLong("created", g.createdAtMs)
+            .remove("members")
             .apply()
         group.value = g
+        members.clear()
         DebugStatus.log("Gig group: ${g.name}")
         if (users > 0) restart(c)
     }
@@ -111,6 +129,7 @@ object GroupSync {
         val app = c.applicationContext
         prefs(app).edit().clear().apply()
         group.value = null
+        members.clear()
         FriendsRepository.clearGigGroup()
         stopRadio(app)
     }
@@ -194,6 +213,7 @@ object GroupSync {
         if (FriendsRepository.addFromIntro(intro.secret, intro.name)) {
             DebugStatus.log("Gig group: ${intro.name} joined")
         }
+        markMember(c, intro.secret)
     }
 
     /** Listens through the app's one shared scan (see BleHub). Fast while the app is open. */

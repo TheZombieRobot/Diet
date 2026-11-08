@@ -26,12 +26,19 @@ class Compass(context: Context) {
             return@callbackFlow
         }
         val rot = FloatArray(9)
-        val orient = FloatArray(3)
         val listener = object : SensorEventListener {
             override fun onSensorChanged(e: SensorEvent) {
                 SensorManager.getRotationMatrixFromVector(rot, e.values)
-                SensorManager.getOrientation(rot, orient)
-                val deg = Math.toDegrees(orient[0].toDouble())
+                // Which way the person holding the phone is facing. SensorManager.getOrientation
+                // only uses the top edge of the phone, which goes haywire once the phone is held
+                // upright (looking at the screen, or against your chest): the arrow and the scan
+                // then point anywhere. Instead add the top edge (right when the phone is flat)
+                // to the back of the phone (right when it's upright) and take the horizontal part.
+                // rot maps phone axes to world (east, north, up): column 1 = top, column 2 = screen.
+                val east = rot[1] - rot[2]
+                val north = rot[4] - rot[5]
+                if (east * east + north * north < 1e-4f) return // pointing straight up/down: no heading
+                val deg = Math.toDegrees(kotlin.math.atan2(east.toDouble(), north.toDouble()))
                 trySend((deg + 360) % 360)
             }
             override fun onAccuracyChanged(s: Sensor?, accuracy: Int) = Unit
