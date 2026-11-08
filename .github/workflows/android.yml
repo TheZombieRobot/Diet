@@ -28,15 +28,34 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Download Gradle, with retries (GitHub's file host sometimes times out)
+      - name: Download Gradle (in pieces if GitHub's file host is timing out)
         shell: bash
         run: |
-          for i in 1 2 3 4 5 6; do
-            ./gradlew --version -q && exit 0
-            echo "Gradle download failed (attempt $i), retrying in $((i * 20)) s"
-            sleep $((i * 20))
+          ./gradlew --version -q && exit 0
+          # Whole-file downloads 504 during GitHub incidents; small ranged requests still work.
+          # Fetch in 8 MB pieces, check the official checksum, then point the wrapper at the file.
+          URL=$(grep distributionUrl gradle/wrapper/gradle-wrapper.properties | cut -d= -f2 | sed 's#\\:#:#')
+          NAME=$(basename "$URL")
+          REAL="https://github.com/gradle/gradle-distributions/releases/download/v$(echo "$NAME" | sed -E 's/gradle-(.*)-bin.zip/\1/')/$NAME"
+          SHA=$(curl -fsSL --retry 5 "$URL.sha256")
+          OUT="$RUNNER_TEMP/$NAME"; : > "$OUT"
+          SIZE=$(curl -sSL -r 0-0 -D - -o /dev/null --retry 5 "$REAL" | grep -i '^content-range' | tail -1 | sed -E 's#.*/([0-9]+).*#\1#')
+          echo "Gradle is $SIZE bytes"
+          CHUNK=8388608; START=0
+          while [ "$START" -lt "$SIZE" ]; do
+            END=$((START + CHUNK - 1))
+            ok=0
+            for t in 1 2 3 4 5 6 7 8; do
+              if curl -fsSL -r "$START-$END" -o "$RUNNER_TEMP/part" "$REAL"; then ok=1; break; fi
+              echo "piece at $START failed (try $t)"; sleep $((t * 5))
+            done
+            [ "$ok" = 1 ] || exit 1
+            cat "$RUNNER_TEMP/part" >> "$OUT"
+            START=$((END + 1))
           done
-          exit 1
+          echo "$SHA  $OUT" | sha256sum -c -
+          sed -i "s#^distributionUrl=.*#distributionUrl=file\\:$OUT#" gradle/wrapper/gradle-wrapper.properties
+          ./gradlew --version -q
 
       - name: Core + server tests
         run: ./gradlew :core:test :server:test --continue
@@ -125,7 +144,7 @@ jobs:
           git config user.name "moshpoint-ci"
           git config user.email "moshpoint-ci@users.noreply.github.com"
           git commit -m "Update screenshots for ${GITHUB_SHA::7} [skip ci]"
-          git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}"
+          git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}"
 
       - name: Upload screenshots
         if: success() || failure()
