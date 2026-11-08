@@ -69,7 +69,6 @@ object Bump {
                     // Low power on purpose: only a phone right next to us should hear it.
                     .setTxPowerLevel(AdvertisingSetParameters.TX_POWER_ULTRA_LOW)
                     .setPrimaryPhy(BluetoothDevice.PHY_LE_1M).setSecondaryPhy(BluetoothDevice.PHY_LE_1M)
-                    .setDuration(60_000 / 10)
                     .build(),
                 AdvertiseData.Builder().addServiceData(UUID, bytes).build(), null, null, null, cb,
             )
