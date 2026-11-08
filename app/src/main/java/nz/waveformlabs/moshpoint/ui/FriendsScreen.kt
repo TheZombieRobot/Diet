@@ -290,7 +290,7 @@ fun FriendsScreen(
                 }
                 LivePill(visible, ghost) { onVisible(!visible) }
             }
-            if (!visible && groupName != null) {
+            if (!visible && groupName != null && !crewSleeping) {
                 Spacer(Modifier.height(8.dp))
                 Text("You're hidden from your crew. Tap Go live when you want to be found.", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
             }
@@ -382,7 +382,9 @@ fun FriendsScreen(
                             PingFeed(pings.take(1), nowSec, describePing)
                             if (moments.isNotEmpty()) MomentStrip(moments, nowSec, onOpenMoment, onShareMoment)
                         }
-                        TextButton(onClick = onClearGigGroup) { Text("End the night", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Danger)) }
+                        TextButton(onClick = onClearGigGroup) {
+                            Text(if (crewSleeping) "Cancel this crew" else "End the night", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Danger))
+                        }
                     }
                 }
             }
