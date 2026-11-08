@@ -24,7 +24,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -38,7 +37,6 @@ import nz.waveformlabs.moshpoint.service.VisibilityService
 import nz.waveformlabs.moshpoint.ui.DebugPanel
 import nz.waveformlabs.moshpoint.ui.FinderScreen
 import nz.waveformlabs.moshpoint.ui.MoshTheme
-import androidx.compose.ui.graphics.asImageBitmap
 import nz.waveformlabs.moshpoint.ui.OnboardingScreen
 import nz.waveformlabs.moshpoint.ui.Mosh
 import androidx.compose.animation.togetherWith
@@ -108,132 +106,20 @@ class MainActivity : ComponentActivity() {
         if (ok) runCatching { takeSelfie.launch(null) }
     }
 
-    // ---- Crew moments (photos pinned where they were taken) ----
-
-    private var askMomentSource by mutableStateOf(false)
-    private var momentPhoto by mutableStateOf<android.graphics.Bitmap?>(null)
-    private var sendingMoment by mutableStateOf(false)
-    private var viewingMoment by mutableStateOf<Moments.Item?>(null)
-
-    private val takeMoment = registerForActivityResult(ActivityResultContracts.TakePicturePreview()) { bmp ->
-        if (bmp != null) momentPhoto = bmp
-    }
-    private val cameraForMoment = registerForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
-        if (ok) runCatching { takeMoment.launch(null) }
-    }
-    private val pickMoment = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) lifecycleScope.launch { momentPhoto = decodeScaled(uri) }
-    }
-
-    private fun takeMomentPhoto() {
-        if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            runCatching { takeMoment.launch(null) }
-        } else {
-            cameraForMoment.launch(Manifest.permission.CAMERA)
-        }
-    }
-
-    private fun handleSharedPhoto(intent: Intent?) {
-        if (intent?.getBooleanExtra(EXTRA_MOMENT, false) != true) return
-        val uri = intent.data ?: return
-        intent.removeExtra(EXTRA_MOMENT)
-        if (GroupSync.group.value == null) {
-            toast("Start or join a crew first: moments go to your crew")
-            return
-        }
-        lifecycleScope.launch { momentPhoto = decodeScaled(uri) }
-    }
-
-    private fun shareMomentStart() {
-        if (GroupSync.group.value == null) {
-            toast("Start or join a crew first: moments go to your crew")
-            return
-        }
-        askMomentSource = true
-    }
-
-    private fun sendMoment(caption: String) {
-        val photo = momentPhoto ?: return
-        sendingMoment = true
-        lifecycleScope.launch {
-            val loc = lastKnownLocation()
-            val ok = Moments.share(this@MainActivity, photo, caption, loc?.latitude, loc?.longitude)
-            sendingMoment = false
-            if (ok) {
-                momentPhoto = null
-                toast("Shared with your crew")
-            } else {
-                toast("Couldn't send it. Check your internet and try again.")
-            }
-        }
-    }
-
-    /** A picked or shared photo, decoded no bigger than ~1440 px so it never runs out of memory. */
-    private suspend fun decodeScaled(uri: android.net.Uri): android.graphics.Bitmap? = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-        runCatching {
-            val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            contentResolver.openInputStream(uri)?.use { android.graphics.BitmapFactory.decodeStream(it, null, bounds) }
-            var sample = 1
-            while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= 1440) sample *= 2
-            contentResolver.openInputStream(uri)?.use {
-                android.graphics.BitmapFactory.decodeStream(it, null, android.graphics.BitmapFactory.Options().apply { inSampleSize = sample })
-            }
-        }.getOrNull()
-    }
-
-    @androidx.compose.runtime.Composable
-    private fun MomentDialogs() {
-        if (askMomentSource) {
-            androidx.compose.material3.AlertDialog(
-                onDismissRequest = { askMomentSource = false },
-                containerColor = Mosh.Deep,
-                title = { androidx.compose.material3.Text("Share a moment", style = Mosh.Heading) },
-                text = { androidx.compose.material3.Text("Snap where you are (the stage, the bar, a landmark) so the crew can spot it.", style = Mosh.Body) },
-                confirmButton = {
-                    androidx.compose.material3.TextButton(onClick = { askMomentSource = false; takeMomentPhoto() }) {
-                        androidx.compose.material3.Text("Take photo", style = Mosh.Label.copy(color = Mosh.Lime))
-                    }
-                },
-                dismissButton = {
-                    androidx.compose.material3.TextButton(onClick = {
-                        askMomentSource = false
-                        pickMoment.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                    }) { androidx.compose.material3.Text("Choose photo", style = Mosh.Label.copy(color = Mosh.Cyan)) }
-                },
-            )
-        }
-        momentPhoto?.let { bmp ->
-            val img = androidx.compose.runtime.remember(bmp) { bmp.asImageBitmap() }
-            nz.waveformlabs.moshpoint.ui.MomentComposer(img, sendingMoment, onSend = ::sendMoment, onCancel = { momentPhoto = null })
-        }
-        viewingMoment?.let { m ->
-            val me = lastKnownLocation()
-            val friend = FriendsRepository.friends.firstOrNull { it.name.equals(m.from, true) }
-            nz.waveformlabs.moshpoint.ui.MomentViewer(
-                m, System.currentTimeMillis() / 1000,
-                distanceText = if (me != null && m.lat != null && m.lon != null) {
-                    nz.waveformlabs.moshpoint.ui.distanceLabel(
-                        nz.waveformlabs.moshpoint.core.Geo.distanceM(
-                            nz.waveformlabs.moshpoint.core.LatLon(me.latitude, me.longitude),
-                            nz.waveformlabs.moshpoint.core.LatLon(m.lat, m.lon),
-                        ),
-                    )
-                } else {
-                    null
-                },
-                onMap = if (m.lat != null) ({ viewingMoment = null; openMap() }) else null,
-                onFind = if (friend != null && !m.mine) ({
-                    viewingMoment = null
-                    closeMap()
-                    pendingStop?.cancel()
-                    engine.track(setOf(friend.id))
-                    engine.start()
-                    finding = true
-                }) else null,
-                onClose = { viewingMoment = null },
-            )
-        }
-    }
+    // Crew moments (photos pinned where they were taken): see MomentFlow.
+    private val momentFlow = MomentFlow(
+        activity = this,
+        toast = ::toast,
+        lastLocation = ::lastKnownLocation,
+        openMap = ::openMap,
+        findFriend = { id ->
+            closeMap()
+            pendingStop?.cancel()
+            engine.track(setOf(id))
+            engine.start()
+            finding = true
+        },
+    )
 
     private fun selfie() {
         if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
@@ -285,19 +171,8 @@ class MainActivity : ComponentActivity() {
     }
 
     /** Message asking mates to open the app and go live. */
-    private fun nudge(names: List<String>) {
-        val who = names.joinToString(" & ").ifBlank { "mate" }
-        startActivity(
-            Intent.createChooser(
-                Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(
-                    Intent.EXTRA_TEXT,
-                    "Hey $who, open Moshpoint and tap Go live (with location and data on) so I can find you!",
-                ),
-                "Ask them to go live",
-            ),
-        )
-    }
-    private var torchJob: kotlinx.coroutines.Job? = null
+    private fun nudge(names: List<String>) = Sharing.send(this, Sharing.nudgeText(names), "Ask them to go live")
+    private val torch = TorchStrobe(this)
 
     /**
      * "Light me up": full brightness, a strobing screen (drawn by the finder) and the torch
@@ -307,35 +182,7 @@ class MainActivity : ComponentActivity() {
         if (beaconOn == on) return
         beaconOn = on
         if (::engine.isInitialized) engine.setBeacon(on)
-        window.attributes = window.attributes.apply {
-            screenBrightness = if (on) 1f else android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
-        }
-        if (on) window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        else window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        torchJob?.cancel()
-        torchJob = null
-        val cm = getSystemService(android.hardware.camera2.CameraManager::class.java) ?: return
-        val torch = runCatching {
-            cm.cameraIdList.firstOrNull {
-                cm.getCameraCharacteristics(it).get(android.hardware.camera2.CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
-            }
-        }.getOrNull() ?: return
-        if (on) {
-            torchJob = lifecycleScope.launch {
-                var lit = false
-                try {
-                    while (true) {
-                        lit = !lit
-                        runCatching { cm.setTorchMode(torch, lit) }
-                        delay(if (lit) 120 else 380)
-                    }
-                } finally {
-                    runCatching { cm.setTorchMode(torch, false) }
-                }
-            }
-        } else {
-            runCatching { cm.setTorchMode(torch, false) }
-        }
+        torch.set(on)
     }
     private var pendingStop: Job? = null
     private var askBattery by mutableStateOf(false)
@@ -344,37 +191,7 @@ class MainActivity : ComponentActivity() {
     private var setupIssues by mutableStateOf<List<nz.waveformlabs.moshpoint.ui.SetupIssue>>(emptyList())
 
     private fun refreshSetupIssues() {
-        val out = mutableListOf<nz.waveformlabs.moshpoint.ui.SetupIssue>()
-        val bt = getSystemService(android.bluetooth.BluetoothManager::class.java)?.adapter
-        if (bt != null && !bt.isEnabled) {
-            out += nz.waveformlabs.moshpoint.ui.SetupIssue(
-                "Bluetooth is off. Nobody can find you, and you can't find them, without it.", "Turn on",
-            ) {
-                runCatching { startActivity(Intent(android.bluetooth.BluetoothAdapter.ACTION_REQUEST_ENABLE)) }
-                    .onFailure { runCatching { startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) } }
-            }
-        }
-        val loc = getSystemService(android.location.LocationManager::class.java)
-        if (loc != null && !loc.isLocationEnabled) {
-            out += nz.waveformlabs.moshpoint.ui.SetupIssue(
-                "Location is off. GPS finding needs it, and many phones need it for Bluetooth finding too.", "Turn on",
-            ) { runCatching { startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)) } }
-        }
-        if (engine.capabilities.wifiAware) {
-            val wifi = applicationContext.getSystemService(android.net.wifi.WifiManager::class.java)
-            if (wifi != null && !wifi.isWifiEnabled) {
-                out += nz.waveformlabs.moshpoint.ui.SetupIssue(
-                    "Wi-Fi is off. Turn it on for more precise distance (you don't need to join a network).", "Turn on",
-                ) { runCatching { startActivity(Intent(Settings.Panel.ACTION_WIFI)) } }
-            }
-        }
-        val power = getSystemService(PowerManager::class.java)
-        if (visibleToMates && power != null && !power.isIgnoringBatteryOptimizations(packageName)) {
-            out += nz.waveformlabs.moshpoint.ui.SetupIssue(
-                "Battery saving may stop Moshpoint when it's closed, so mates can't find you.", "Fix",
-            ) { askBattery = true }
-        }
-        setupIssues = out
+        setupIssues = SetupChecks.issues(this, engine.capabilities.wifiAware, visibleToMates) { askBattery = true }
     }
 
     private val radioReceiver = object : android.content.BroadcastReceiver() {
@@ -438,7 +255,7 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleLightRequest(intent)
-        handleSharedPhoto(intent)
+        momentFlow.handleShared(intent)
         if (intent.getBooleanExtra(EXTRA_OPEN_MAP, false)) {
             intent.removeExtra(EXTRA_OPEN_MAP)
             openMap()
@@ -529,7 +346,7 @@ class MainActivity : ComponentActivity() {
         }
         if (savedInstanceState == null) {
             handleLightRequest(intent)
-            handleSharedPhoto(intent)
+            momentFlow.handleShared(intent)
             if (intent?.getBooleanExtra(EXTRA_OPEN_MAP, false) == true) openMap()
         }
         visibleToMates = VisibilityPrefs.isVisible(this)
@@ -764,8 +581,8 @@ class MainActivity : ComponentActivity() {
                             },
                             describePing = GroupSync::pingText,
                             moments = Moments.items,
-                            onShareMoment = ::shareMomentStart,
-                            onOpenMoment = { viewingMoment = it },
+                            onShareMoment = momentFlow::start,
+                            onOpenMoment = momentFlow::view,
                             ghost = GhostMode.on.value,
                             onAddSimulated = if (DebugStatus.enabled) FriendsRepository::addSimulated else null,
                             onSelfie = ::selfie,
@@ -783,7 +600,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     }
-                    MomentDialogs()
+                    momentFlow.Dialogs()
                     if (showMap) {
                         val now by produceState(System.currentTimeMillis()) {
                             while (true) {
@@ -834,7 +651,7 @@ class MainActivity : ComponentActivity() {
                                 val lon = m.lon ?: return@mapNotNull null
                                 nz.waveformlabs.moshpoint.ui.MapMoment(m.key, "${if (m.mine) "You" else m.from} · ${nz.waveformlabs.moshpoint.ui.ago(now / 1000 - m.timeSec)}", lat, lon, m.image)
                             },
-                            onMomentTapped = { key -> viewingMoment = Moments.items.firstOrNull { it.key == key } },
+                            onMomentTapped = { key -> Moments.items.firstOrNull { it.key == key }?.let(momentFlow::view) },
                             onRemovePlace = { p ->
                                 if (p.meetUp) GroupSync.clearRally(this@MainActivity) else Spots.remove(p.id)
                             },
@@ -876,26 +693,15 @@ class MainActivity : ComponentActivity() {
         startActivity(Intent.createChooser(send, "Share recording"))
     }
 
-    /** Where mates get the app: the test build's public link, or the Play Store once released. */
-    private val appLink get() =
-        if (BuildConfig.DEBUG) "https://github.com/TheZombieRobot/Diet/releases/tag/testing" // install page with steps
-        else "https://play.google.com/store/apps/details?id=$packageName"
-
-    private val getTheApp get() =
-        "No Moshpoint yet? Install it from here (Android): $appLink\n" +
-            "Then copy this whole message, open Moshpoint and tap Paste invite.\n\n"
+    private val getTheApp get() = Sharing.getTheApp(this)
 
     /** One message that does everything: download link + your invite. */
     private fun shareApp(code: String) {
-        val send = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(
-                Intent.EXTRA_TEXT,
-                "Get Moshpoint so we can find each other at gigs: tap a mate and an arrow points to them.\n\n" +
-                    getTheApp + crewQr(ensureCrew()),
-            )
-        }
-        startActivity(Intent.createChooser(send, "Share Moshpoint"))
+        Sharing.send(
+            this,
+            "Get Moshpoint so we can find each other at gigs: tap a mate and an arrow points to them.\n\n" + getTheApp + crewQr(ensureCrew()),
+            "Share Moshpoint",
+        )
     }
 
     /** Your crew for tonight, starting one (named after you) if there isn't one. Also goes live. */
@@ -914,14 +720,7 @@ class MainActivity : ComponentActivity() {
         GigGroup.qr(g, GigGroup.Intro(VisibilityPrefs.mySecret(this), myName.ifBlank { "Mate" }))
 
     private fun shareGroup(g: GigGroup) {
-        val send = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(
-                Intent.EXTRA_TEXT,
-                "Join my crew \"${g.name}\" on Moshpoint tonight!\n" + getTheApp + crewQr(g),
-            )
-        }
-        startActivity(Intent.createChooser(send, "Send the group invite"))
+        Sharing.send(this, "Join my crew \"${g.name}\" on Moshpoint tonight!\n" + getTheApp + crewQr(g), "Send the group invite")
     }
 
     /**
