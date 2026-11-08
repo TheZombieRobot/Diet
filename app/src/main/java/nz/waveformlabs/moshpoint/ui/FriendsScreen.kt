@@ -282,47 +282,39 @@ fun FriendsScreen(
             }
             // Which radios this phone has: handy when testing; everyone can still see it in Settings.
             if (BuildConfig.DEBUG && DebugStatus.showUi) Text(phoneSummary, style = Mosh.Eyebrow.copy(fontSize = 12.sp, letterSpacing = 0.sp))
-            if (!visible) {
+            if (!visible && groupName != null) {
                 Spacer(Modifier.height(8.dp))
-                Text("You're hidden. Tap Go live so your mates can find you tonight.", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
+                Text("You're hidden from your crew. Tap Go live when you want to be found.", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
             }
         }
-        if (missingPermissions.isNotEmpty()) {
-            item {
-                Column(
-                    Modifier.fillMaxWidth().background(Color(0xFF3A1F1F), RoundedCornerShape(16.dp)).padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Text("Moshpoint still needs", style = Mosh.Label)
-                    missingPermissions.forEach { Text("• $it", style = Mosh.Body.copy(fontSize = 13.sp, color = Color(0xFFFFCDD2))) }
-                    Spacer(Modifier.height(6.dp))
-                    Button(
-                        onClick = onFixPermissions, shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Mosh.Red, contentColor = Color.White),
-                    ) { Text("Allow", style = Mosh.Label.copy(color = Color.White)) }
-                }
-            }
+        // One calm card with the one thing to fix next (permission, then each switch), instead
+        // of a wall of warnings. It disappears once everything's ready.
+        val todo: Triple<String, String, () -> Unit>? = when {
+            missingPermissions.isNotEmpty() -> Triple(
+                "Allow Moshpoint to find your mates (" + missingPermissions.first().substringBefore(':').lowercase() + ")",
+                "Allow", onFixPermissions,
+            )
+            setupIssues.isNotEmpty() -> setupIssues.first().let { Triple(it.text, it.button, it.onFix) }
+            else -> null
         }
-
-        // Phone switches that must be on (Bluetooth, Location...): the usual "why can't we find each other".
-        if (setupIssues.isNotEmpty()) {
+        if (todo != null) {
             item {
-                Column(
-                    Modifier.fillMaxWidth().background(Color(0xFF3A2A12), RoundedCornerShape(16.dp))
-                        .border(1.dp, Mosh.Amber.copy(alpha = 0.5f), RoundedCornerShape(16.dp)).padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                val more = missingPermissions.size.coerceAtMost(1) + setupIssues.size - 1
+                Row(
+                    Modifier.fillMaxWidth().background(Color(0xFF2A2140), RoundedCornerShape(18.dp))
+                        .border(1.dp, Mosh.Amber.copy(alpha = 0.45f), RoundedCornerShape(18.dp)).padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("To find each other, switch these on", style = Mosh.Label.copy(color = Mosh.Amber))
-                    setupIssues.forEach { issue ->
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(issue.text, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp), modifier = Modifier.weight(1f))
-                            Spacer(Modifier.width(10.dp))
-                            Button(
-                                onClick = issue.onFix, shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Mosh.Amber, contentColor = Color(0xFF1A1000)),
-                            ) { Text(issue.button, style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF1A1000))) }
-                        }
+                    Column(Modifier.weight(1f)) {
+                        Text("ONE THING FIRST" + if (more > 0) " · $more MORE" else "", style = Mosh.Eyebrow.copy(color = Mosh.Amber))
+                        Spacer(Modifier.height(4.dp))
+                        Text(todo.first, style = Mosh.Body.copy(fontSize = 14.sp, lineHeight = 19.sp, color = Mosh.Text))
                     }
+                    Spacer(Modifier.width(12.dp))
+                    Button(
+                        onClick = todo.third, shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Mosh.Amber, contentColor = Color(0xFF1A1000)),
+                    ) { Text(todo.second, style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF1A1000))) }
                 }
             }
         }

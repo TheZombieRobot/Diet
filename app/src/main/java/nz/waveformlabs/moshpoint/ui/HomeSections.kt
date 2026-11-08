@@ -319,7 +319,7 @@ internal fun CheckInBanner(byClock: String, onHomeSafe: () -> Unit) {
 @Composable
 internal fun CrewActions(onMessage: () -> Unit, onMoment: () -> Unit) {
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        GlassButton("💬  Message crew", Modifier.weight(1f), onClick = onMessage)
+        GlassButton("💬  Message", Modifier.weight(1f), onClick = onMessage)
         GlassButton("📷  Moment", Modifier.weight(1f), onClick = onMoment)
     }
 }
