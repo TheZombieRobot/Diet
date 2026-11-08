@@ -207,7 +207,7 @@ fun CaptureScreen(
                 }
             }
             Spacer(Modifier.weight(1f))
-            RoundIcon("⟲") { if (recording == null) front = !front }
+            RoundIcon("⟲", onClick = { if (recording == null) front = !front })
         }
 
         // Bottom: gallery, shutter, hint.
