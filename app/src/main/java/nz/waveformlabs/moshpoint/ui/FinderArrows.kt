@@ -168,11 +168,11 @@ internal fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Fri
                 drawRoundRect(colour.copy(alpha = 0.12f), top, Size(chipW, chipH), CornerRadius(14.dp.toPx()))
                 drawRoundRect(colour.copy(alpha = 0.40f), top, Size(chipW, chipH), CornerRadius(14.dp.toPx()), style = Stroke(1.dp.toPx()))
                 val inner = chipW - 10.dp.toPx()
-                val who = (friend?.name ?: "?") + if ((BuildConfig.DEBUG && DebugStatus.showUi)) " · " + methodLabel(a.method) + (if (a.unsure) "?" else "") else ""
+                val who = (friend?.name ?: "?") + if ((BuildConfig.TEST_BUILD && DebugStatus.showUi)) " · " + methodLabel(a.method) + (if (a.unsure) "?" else "") else ""
                 drawCentred(ArrowStyle.distanceLabel(a.distanceM), Offset(cc.x, top.y + 15.dp.toPx()), 14.dp.toPx(), colour, displayPaint, inner)
                 drawCentred(who, Offset(cc.x, top.y + 31.dp.toPx()), 11.5f.dp.toPx(), Mosh.TextDim, regularPaint, inner)
             }
-            if ((BuildConfig.DEBUG && DebugStatus.showUi) && !group) {
+            if ((BuildConfig.TEST_BUILD && DebugStatus.showUi) && !group) {
                 // Test builds only: which method is driving this arrow (in a group it's in the chip).
                 drawCentred(methodLabel(a.method) + if (a.unsure) "?" else "", Offset(tip.x, tip.y - avatarR - 10.dp.toPx()), 10.dp.toPx(), Mosh.TextFaint, regularPaint)
             }

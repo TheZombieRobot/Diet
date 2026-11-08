@@ -432,8 +432,8 @@ fun FriendsScreen(
         }
         if (permanent.isEmpty()) item { Text("Friends you keep for every gig show here. Tap ＋ Add below.", style = Mosh.Body) }
         items(permanent, key = { it.id }) { row(it) }
-        // Always false in release builds (BuildConfig.DEBUG is a compile-time constant).
-        if ((BuildConfig.DEBUG && DebugStatus.showUi) && onAddSimulated != null) {
+        // Always false in release builds (BuildConfig.TEST_BUILD is a compile-time constant).
+        if ((BuildConfig.TEST_BUILD && DebugStatus.showUi) && onAddSimulated != null) {
             item { TextButton(onClick = onAddSimulated) { Text("Debug: add simulated friend", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber)) } }
         }
     }

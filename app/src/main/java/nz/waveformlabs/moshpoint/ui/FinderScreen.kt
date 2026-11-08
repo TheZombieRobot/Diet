@@ -181,7 +181,7 @@ fun FinderScreen(
                     Text("‹  Friends", style = Mosh.Label.copy(fontWeight = FontWeight.Medium, fontSize = 15.sp))
                 }
                 Spacer(Modifier.weight(1f))
-                if ((BuildConfig.DEBUG && DebugStatus.showUi) && debug != null) {
+                if ((BuildConfig.TEST_BUILD && DebugStatus.showUi) && debug != null) {
                     TextButton(onClick = { showDebug = !showDebug }) {
                         Text(if (showDebug) "Hide debug" else "Debug", style = Mosh.Eyebrow)
                     }
@@ -327,7 +327,7 @@ fun FinderScreen(
             )
         }
 
-        if ((BuildConfig.DEBUG && DebugStatus.showUi) && debug != null && showDebug) {
+        if ((BuildConfig.TEST_BUILD && DebugStatus.showUi) && debug != null && showDebug) {
             Box(Modifier.align(Alignment.TopCenter).fillMaxWidth().fillMaxHeight(0.62f)) {
                 debug(Modifier.fillMaxSize())
                 // The panel covers the top bar (and its "Hide debug" button), so it needs its own close.

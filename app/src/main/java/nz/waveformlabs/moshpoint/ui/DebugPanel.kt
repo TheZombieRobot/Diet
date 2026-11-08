@@ -34,7 +34,7 @@ import nz.waveformlabs.moshpoint.locate.LocatorEngine
 import nz.waveformlabs.moshpoint.core.MethodDebug
 
 /**
- * Debug builds only (FinderScreen only shows it when BuildConfig.DEBUG).
+ * Debug builds only (FinderScreen only shows it when BuildConfig.TEST_BUILD).
  *
  * Shows, live:
  *  - every method for every tracked friend: last reading, age, trust score, and which one

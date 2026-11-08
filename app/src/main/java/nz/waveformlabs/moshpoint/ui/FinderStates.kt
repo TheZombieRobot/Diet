@@ -163,7 +163,7 @@ internal fun DistanceOnly(list: List<ArrowState.DistanceOnly>, friendOf: (String
                 Trend.STEADY -> Triple("Steady", Mosh.Cyan, "Try another direction")
             }
             val who = if (list.size > 1) "${f?.name ?: "?"}: " else ""
-            val via = if ((BuildConfig.DEBUG && DebugStatus.showUi)) "  (${methodLabel(d.method)})" else ""
+            val via = if ((BuildConfig.TEST_BUILD && DebugStatus.showUi)) "  (${methodLabel(d.method)})" else ""
             Chip(label, c, "$who$hint$via")
         }
         Spacer(Modifier.height(4.dp))

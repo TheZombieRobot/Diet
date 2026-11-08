@@ -70,11 +70,17 @@ android {
     buildTypes {
         // Test builds are scrambled too (R8: renamed classes, unused code removed), so the
         // APK testers download can't easily be read back into source. Debug features stay.
+        // Test builds: scrambled like release (R8 renames and strips code) but with the debug
+        // panel available. Not "debuggable": Android skips name scrambling for debuggable
+        // builds. Test-only features check BuildConfig.TEST_BUILD instead of DEBUG.
         debug {
+            isDebuggable = false
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            buildConfigField("boolean", "TEST_BUILD", "true")
         }
         release {
+            buildConfigField("boolean", "TEST_BUILD", "false")
             if (keystorePath != null) signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))

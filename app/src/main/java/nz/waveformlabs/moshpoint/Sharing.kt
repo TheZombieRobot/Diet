@@ -7,7 +7,7 @@ import android.content.Intent
 object Sharing {
     /** Where mates get the app: the test build's public link, or the Play Store once released. */
     fun appLink(c: Context) =
-        if (BuildConfig.DEBUG) "https://github.com/TheZombieRobot/Diet/releases/tag/testing" // install page with steps
+        if (BuildConfig.TEST_BUILD) "https://github.com/TheZombieRobot/Diet/releases/tag/testing" // install page with steps
         else "https://play.google.com/store/apps/details?id=${c.packageName}"
 
     fun getTheApp(c: Context) =

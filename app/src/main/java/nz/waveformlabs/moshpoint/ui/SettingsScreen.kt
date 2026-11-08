@@ -146,7 +146,7 @@ internal fun SettingsContent(
                     }
                 }
             }
-            if (BuildConfig.DEBUG) {
+            if (BuildConfig.TEST_BUILD) {
                 // Test builds only: hide the techie bits, e.g. before sharing the app with mates.
                 val context = androidx.compose.ui.platform.LocalContext.current
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -155,7 +155,7 @@ internal fun SettingsContent(
                         Text("Which tech is finding each mate (UWB, Wi-Fi, Bluetooth, GPS, crowd) and the Debug panel. Test builds only.", style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint))
                     }
                     Spacer(Modifier.width(12.dp))
-                    Switch((BuildConfig.DEBUG && DebugStatus.showUi), { DebugStatus.setShowUi(context, it) }, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Amber, checkedThumbColor = Color(0xFF1A1000), uncheckedTrackColor = Color(0xFF1C1630)))
+                    Switch((BuildConfig.TEST_BUILD && DebugStatus.showUi), { DebugStatus.setShowUi(context, it) }, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Amber, checkedThumbColor = Color(0xFF1A1000), uncheckedTrackColor = Color(0xFF1C1630)))
                 }
             }
             Box(Modifier.fillMaxWidth().height(1.dp).background(Mosh.Line))

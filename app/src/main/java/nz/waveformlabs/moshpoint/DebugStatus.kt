@@ -11,11 +11,11 @@ import java.util.Locale
 /**
  * Live status of every locating technology, for the debug panel.
  *
- * Debug builds only: in release builds `BuildConfig.DEBUG` is false, so every call
+ * Debug builds only: in release builds `BuildConfig.TEST_BUILD` is false, so every call
  * returns straight away and R8 strips the rest. Nothing here reaches users.
  */
 object DebugStatus {
-    val enabled get() = BuildConfig.DEBUG
+    val enabled get() = BuildConfig.TEST_BUILD
 
     private val showUiPref = androidx.compose.runtime.mutableStateOf(true)
     /**
