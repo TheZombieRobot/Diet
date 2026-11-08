@@ -1,0 +1,14 @@
+Copyright (c) 2026 Waveform Labs. All rights reserved.
+
+Moshpoint, including its source code, designs, graphics, documentation and the
+"Moshpoint" name, is proprietary software owned by Waveform Labs.
+
+This repository is visible publicly only so that invited testers can download test
+builds. No licence is granted to use, copy, modify, merge, publish, distribute,
+sublicense or sell any part of it, in source or compiled form, except that testers may
+install and use the published test builds for personal testing.
+
+Third-party components keep their own licences (see the app's "Open-source licences"
+screen and app/src/main/assets/licenses).
+
+For permissions, contact hello.waveformlabs@gmail.com.

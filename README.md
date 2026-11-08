@@ -141,3 +141,9 @@ git rm -r archive && git commit -m "Remove archived Diet docs"
 git remote set-url origin https://github.com/JoshWaveformLabs-Dev/moshpoint.git
 git push -u origin HEAD:main
 ```
+
+## Licence
+
+**Proprietary. All rights reserved** (see [LICENSE](LICENSE)). The code is visible only so
+testers can download builds; it is not open source and may not be copied or reused.
+
