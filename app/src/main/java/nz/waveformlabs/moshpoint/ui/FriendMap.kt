@@ -65,8 +65,13 @@ class MapMoment(val key: String, val label: String, val lat: Double, val lon: Do
 /** A saved spot or the crew's meet-up pin. */
 data class MapPlace(val id: String, val name: String, val lat: Double, val lon: Double, val meetUp: Boolean)
 
-/** Free OpenStreetMap vector maps, no API key (openfreemap.org). */
-const val MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/dark"
+/** Free OpenStreetMap vector maps, no API key (openfreemap.org): bright, night-blue, and dark. */
+val MAP_STYLES = listOf(
+    "Bright" to "https://tiles.openfreemap.org/styles/liberty",
+    "Night" to "https://tiles.openfreemap.org/styles/fiord",
+    "Dark" to "https://tiles.openfreemap.org/styles/dark",
+)
+val MAP_STYLE_URL = MAP_STYLES[0].second
 
 /**
  * The map itself (MapLibre). Friends are drawn as their photo (or initial) in a ring of
@@ -91,6 +96,7 @@ fun FriendMap(
     /** Bump to save the area on screen for use with no signal; progress goes to [onOffline]. */
     saveOffline: Int = 0,
     onOffline: (String) -> Unit = {},
+    styleUrl: String = MAP_STYLE_URL,
 ) {
     if (!live || LocalInspectionMode.current) {
         // Screenshot tests can't load the native map: a plain stand-in.
@@ -106,6 +112,9 @@ fun FriendMap(
     val momentTap = androidx.compose.runtime.rememberUpdatedState(onMomentTapped)
     // State, so pins get drawn as soon as the map style has loaded.
     val styleReady = remember { androidx.compose.runtime.mutableStateOf(false) }
+    // Adds our sources/layers to a freshly loaded style (first load, and after switching style).
+    val styleSetup = remember { arrayOfNulls<(Style) -> Unit>(1) }
+    val currentStyle = remember { arrayOf(styleUrl) }
     val mapView = remember {
         MapLibre.getInstance(context)
         MapView(context).apply {
@@ -116,7 +125,7 @@ fun FriendMap(
                 map.uiSettings.isLogoEnabled = false
                 map.uiSettings.isRotateGesturesEnabled = false
                 map.cameraPosition = CameraPosition.Builder().target(LatLng(-41.29, 174.78)).zoom(4.0).build()
-                map.setStyle(Style.Builder().fromUri(MAP_STYLE_URL)) { style ->
+                styleSetup[0] = { style ->
                     style.addSource(GeoJsonSource(SRC_TRAILS))
                     style.addLayer(
                         org.maplibre.android.style.layers.LineLayer(LAYER_TRAILS, SRC_TRAILS).withProperties(
@@ -190,6 +199,7 @@ fun FriendMap(
                     )
                     styleReady.value = true
                 }
+                map.setStyle(Style.Builder().fromUri(currentStyle[0])) { styleSetup[0]?.invoke(it) }
                 map.addOnMapLongClickListener { at ->
                     longPress.value(at.latitude, at.longitude)
                     true
@@ -283,13 +293,22 @@ fun FriendMap(
         )
     }
 
+    // Style switch (Bright / Night / Dark): reload and put our layers back on top.
+    LaunchedEffect(styleUrl) {
+        val map = holder[0] ?: return@LaunchedEffect
+        if (currentStyle[0] == styleUrl) return@LaunchedEffect
+        currentStyle[0] = styleUrl
+        styleReady.value = false
+        map.setStyle(Style.Builder().fromUri(styleUrl)) { styleSetup[0]?.invoke(it) }
+    }
+
     // "Save this area": download the visible area's map (zoom 12-17) for when data dies.
     val offlineCb = androidx.compose.runtime.rememberUpdatedState(onOffline)
     LaunchedEffect(saveOffline) {
         if (saveOffline == 0) return@LaunchedEffect
         val map = holder[0] ?: return@LaunchedEffect
         val bounds = map.projection.visibleRegion.latLngBounds
-        saveArea(context, bounds) { offlineCb.value(it) }
+        saveArea(context, bounds, currentStyle[0]) { offlineCb.value(it) }
     }
 
     // Camera moves when asked (first open, "Everyone", "Me", or tapping someone in the list).
@@ -398,10 +417,10 @@ private fun momentBitmap(img: androidx.compose.ui.graphics.ImageBitmap): Bitmap 
 }
 
 /** Downloads the map for [bounds] so it works offline (MapLibre keeps it on the phone). */
-private fun saveArea(context: android.content.Context, bounds: LatLngBounds, progress: (String) -> Unit) {
+private fun saveArea(context: android.content.Context, bounds: LatLngBounds, styleUrl: String, progress: (String) -> Unit) {
     val om = org.maplibre.android.offline.OfflineManager.getInstance(context)
     val def = org.maplibre.android.offline.OfflineTilePyramidRegionDefinition(
-        MAP_STYLE_URL, bounds, 12.0, 17.0, context.resources.displayMetrics.density,
+        styleUrl, bounds, 12.0, 17.0, context.resources.displayMetrics.density,
     )
     progress("Saving this area…")
     om.createOfflineRegion(def, "venue".toByteArray(), object : org.maplibre.android.offline.OfflineManager.CreateOfflineRegionCallback {

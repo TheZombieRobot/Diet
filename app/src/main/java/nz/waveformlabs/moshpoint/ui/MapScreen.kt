@@ -67,6 +67,10 @@ fun MapScreen(
 ) {
     var dropAt by remember { mutableStateOf<Pair<Double, Double>?>(null) }
     var saveN by remember { mutableIntStateOf(0) }
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    var styleIx by remember {
+        mutableIntStateOf(runCatching { ctx.getSharedPreferences("map", android.content.Context.MODE_PRIVATE).getInt("style", 0) }.getOrDefault(0).coerceIn(0, MAP_STYLES.size - 1))
+    }
     var offlineStatus by remember { mutableStateOf<String?>(null) }
     val hasBack = androidx.activity.compose.LocalOnBackPressedDispatcherOwner.current != null
     if (hasBack) androidx.activity.compose.BackHandler(onBack = onBack)
@@ -106,6 +110,7 @@ fun MapScreen(
             moments = moments,
             onMomentTapped = onMomentTapped,
             saveOffline = saveN,
+            styleUrl = MAP_STYLES[styleIx].second,
             onOffline = { offlineStatus = it },
             trails = located.mapNotNull { f -> trails[f.id]?.let { t -> MapTrail(f.color, t.map { it.lat to it.lon }) } },
         )
@@ -128,6 +133,21 @@ fun MapScreen(
             TextButton(onClick = { me?.let { focus(listOf(LatLng(it.lat, it.lon))) } }) {
                 Text("Me", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan))
             }
+        }
+
+        // Map style: Bright / Night / Dark.
+        Box(Modifier.align(Alignment.TopEnd).padding(top = 84.dp, end = 16.dp)) {
+            Text(
+                MAP_STYLES[styleIx].first,
+                style = Mosh.Label.copy(fontSize = 13.sp, color = Mosh.Text),
+                modifier = Modifier.background(Mosh.Deep.copy(alpha = 0.88f), RoundedCornerShape(14.dp))
+                    .border(1.dp, Mosh.Line, RoundedCornerShape(14.dp))
+                    .clickable {
+                        styleIx = (styleIx + 1) % MAP_STYLES.size
+                        runCatching { ctx.getSharedPreferences("map", android.content.Context.MODE_PRIVATE).edit().putInt("style", styleIx).apply() }
+                    }
+                    .padding(horizontal = 12.dp, vertical = 7.dp),
+            )
         }
 
         // People list
