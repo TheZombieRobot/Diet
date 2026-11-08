@@ -185,4 +185,20 @@ class ScreensSnapshotTest {
             )
         }
     }
+
+    @Test fun homePlannedGigAsleep() = paparazzi.snapshot {
+        MoshTheme {
+            FriendsScreen(
+                friends = listOf(alex), visible = false, alwaysOn = false, phoneSummary = "",
+                myName = "King Zipper", onMyName = {}, missingPermissions = emptyList(), onFixPermissions = {},
+                onVisible = {}, onAlwaysOn = {}, onFind = {}, onShareCode = {}, onShowQr = {}, onScanQr = {},
+                scanned = null, onScannedUsed = {}, onAdd = { _, _, _ -> null }, onRemove = {},
+                onSetPhoto = {}, onRemovePhoto = {}, onClearGigGroup = {},
+                groupName = "Iron Maiden", onStartGroup = {}, onShowGroupQr = {},
+                crewWhen = "Sat 14 Dec, 8:00 pm · Spark Arena, Auckland",
+                crewSleeping = true,
+                crewQrPayload = "moshpoint:group?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&at=1800000000&name=Iron+Maiden",
+            )
+        }
+    }
 }

@@ -69,6 +69,10 @@ who scanned your crew's QR can open them. They pass through the same relay under
 change daily or every 5 minutes; the public relay deletes them within hours. Nothing is
 shared unless you tap to send it.
 
+**Gig search (optional):** when you search for a gig, the words you type are sent to
+Ticketmaster's public event search so it can list matching shows. Nothing about you or
+your crew is sent with it. Typing a gig in by hand sends nothing.
+
 **Your photo (optional):** if you set one, it's encrypted on your phone with a key only your
 friends have and stored under an id that changes weekly, for up to 8 days, so friends'
 phones can show your face. The server can't see it. Removing your photo shares an empty one,
