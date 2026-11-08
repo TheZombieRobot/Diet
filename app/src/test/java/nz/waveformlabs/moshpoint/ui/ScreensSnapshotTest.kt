@@ -201,4 +201,42 @@ class ScreensSnapshotTest {
             )
         }
     }
+
+    private fun moment(key: String, from: String, t: Long, caption: String, top: Int, bottom: Int, mine: Boolean = false) =
+        nz.waveformlabs.moshpoint.Moments.Item(key, from, t, -36.85, 174.77, caption, fakePhoto(top, bottom), mine)
+
+    @Test fun story() = paparazzi.snapshot {
+        MoshTheme {
+            StoryScreen(
+                items = listOf(
+                    moment("a", "Alex", 1_000_000L - 600, "Front row!!", 0xFF2B1B5E.toInt(), 0xFFFF2E93.toInt()),
+                    moment("b", "Alex", 1_000_000L - 300, "", 0xFF0B3B4E.toInt(), 0xFF22E4FF.toInt()),
+                    moment("c", "Jo", 1_000_000L - 120, "by the left speakers", 0xFF3B2A0B.toInt(), 0xFFFFB020.toInt()),
+                    moment("d", "Me", 1_000_000L - 60, "the crew", 0xFF1B3B1B.toInt(), 0xFFB6FF3B.toInt(), mine = true),
+                ),
+                nowSec = 1_000_000L,
+                colourOf = { name -> mapOf("Alex" to 0xFFC86BFF.toInt(), "Jo" to 0xFFFFB020.toInt())[name] },
+                onShare = {}, onMap = {}, onBack = {},
+            )
+        }
+    }
+
+    @Test fun homeFollowing() = paparazzi.snapshot {
+        MoshTheme {
+            FriendsScreen(
+                friends = listOf(alex, jo), visible = false, alwaysOn = false, phoneSummary = "",
+                myName = "Mum", onMyName = {}, missingPermissions = emptyList(), onFixPermissions = {},
+                onVisible = {}, onAlwaysOn = {}, onFind = {}, onShareCode = {}, onShowQr = {}, onScanQr = {},
+                scanned = null, onScannedUsed = {}, onAdd = { _, _, _ -> null }, onRemove = {},
+                onSetPhoto = {}, onRemovePhoto = {}, onClearGigGroup = {},
+                groupName = "Iron Maiden", onStartGroup = {}, onShowGroupQr = {},
+                crewWhen = "Sat 14 Dec, 8:00 pm · Spark Arena, Auckland",
+                following = true,
+                tileNotes = mapOf("alex" to "at the venue", "jo" to "1.2 km from the venue"),
+                pings = listOf(nz.waveformlabs.moshpoint.core.GigGroup.Ping(nz.waveformlabs.moshpoint.core.GigGroup.Ping.ALL_GOOD, "Alex", 1_000_000L - 300)),
+                nowSec = 1_000_000L,
+                describePing = { "is all good" },
+            )
+        }
+    }
 }
