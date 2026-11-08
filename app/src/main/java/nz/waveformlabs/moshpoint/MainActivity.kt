@@ -21,6 +21,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -116,6 +117,32 @@ class MainActivity : ComponentActivity() {
     private var alwaysOn by mutableStateOf(false)
     private var finding by mutableStateOf(false)
     private var beaconOn by mutableStateOf(false)
+    private var showMap by mutableStateOf(false)
+    private val mapFeed by lazy { nz.waveformlabs.moshpoint.locate.MapFeed(this, lifecycleScope) }
+
+    private fun openMap() {
+        showMap = true
+        mapFeed.start()
+    }
+
+    private fun closeMap() {
+        showMap = false
+        mapFeed.stop()
+    }
+
+    /** Message asking mates to open the app and go live. */
+    private fun nudge(names: List<String>) {
+        val who = names.joinToString(" & ").ifBlank { "mate" }
+        startActivity(
+            Intent.createChooser(
+                Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(
+                    Intent.EXTRA_TEXT,
+                    "Hey $who, open Moshpoint and tap Go live (with location and data on) so I can find you!",
+                ),
+                "Ask them to go live",
+            ),
+        )
+    }
     private var torchJob: kotlinx.coroutines.Job? = null
 
     /**
@@ -326,6 +353,7 @@ class MainActivity : ComponentActivity() {
         photoFor = savedInstanceState?.getString("photoFor")
         FriendsRepository.init(this)
         PhotoStore.init(this)
+        LocationBook.init(this)
         DebugStatus.initUi(this)
         if (savedInstanceState == null) intent?.getStringExtra(ShareInviteActivity.EXTRA_TEXT)?.let { handleInvite(it) }
         GroupSync.load(this)
@@ -443,18 +471,8 @@ class MainActivity : ComponentActivity() {
                             onScan = engine::startSpinScan,
                             onCancelScan = engine::cancelSpinScan,
                             onDismissScan = engine::dismissScanResult,
-                            onNudge = {
-                                val who = names.joinToString(" & ").ifBlank { "mate" }
-                                startActivity(
-                                    Intent.createChooser(
-                                        Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(
-                                            Intent.EXTRA_TEXT,
-                                            "Hey $who, open Moshpoint and tap Go live (with location and data on) so I can find you!",
-                                        ),
-                                        "Ask them to go live",
-                                    ),
-                                )
-                            },
+                            onNudge = { nudge(names) },
+                            onOpenMap = { openMap() },
                             beaconOn = beaconOn,
                             onBeacon = ::setBeacon,
                             beaconing = beaconing.mapNotNull { FriendsRepository.byId(it)?.name },
@@ -570,8 +588,44 @@ class MainActivity : ComponentActivity() {
                                 PhotoStore.remove(PhotoStore.ME)
                                 AvatarSync.publishMine(this@MainActivity, force = true)
                             },
+                            onOpenMap = { openMap() },
                         )
                     }
+                    }
+                    if (showMap) {
+                        val now by produceState(System.currentTimeMillis()) {
+                            while (true) {
+                                kotlinx.coroutines.delay(15_000)
+                                value = System.currentTimeMillis()
+                            }
+                        }
+                        val myLoc = mapFeed.me.value
+                        nz.waveformlabs.moshpoint.ui.MapScreen(
+                            people = FriendsRepository.friends.filterNot { FriendsRepository.isSimulated(it.id) },
+                            seen = LocationBook.seen,
+                            me = myLoc?.let { nz.waveformlabs.moshpoint.core.LatLon(it.latitude, it.longitude) },
+                            status = mapFeed.status.value,
+                            nowMs = now,
+                            onFind = { id ->
+                                closeMap()
+                                engine.track(setOf(id))
+                                finding = true
+                                pendingStop?.cancel()
+                                engine.start()
+                            },
+                            onDirections = { lat, lon ->
+                                runCatching {
+                                    startActivity(
+                                        Intent(
+                                            Intent.ACTION_VIEW,
+                                            android.net.Uri.parse("https://www.google.com/maps/dir/?api=1&destination=$lat,$lon&travelmode=walking"),
+                                        ),
+                                    )
+                                }
+                            },
+                            onNudge = { f -> nudge(listOf(f.name)) },
+                            onBack = { closeMap() },
+                        )
                     }
                 }
             }
@@ -673,6 +727,7 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         super.onStop()
         setBeacon(false)
+        mapFeed.stop()
         runCatching { unregisterReceiver(powerSaveReceiver) }
         runCatching { unregisterReceiver(radioReceiver) }
         pendingGroupRelease?.cancel()
@@ -714,6 +769,7 @@ class MainActivity : ComponentActivity() {
         )
         pendingGroupRelease?.cancel()
         GroupSync.setAppOpen(this, true)
+        if (showMap) mapFeed.start()
         if (!holdingGroup) {
             GroupSync.acquire(this)
             holdingGroup = true

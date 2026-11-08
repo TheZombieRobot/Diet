@@ -101,6 +101,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.core.uwb)
     implementation(libs.zxing.core)
+    implementation(libs.maplibre)
     implementation(libs.facebook.login)
     implementation(libs.zxing.android.embedded)
     debugImplementation(libs.androidx.compose.ui.tooling)

@@ -133,6 +133,8 @@ fun FinderScreen(
     beaconing: List<String> = emptyList(),
     /** Can't reach them at all: send them a message asking them to go live. */
     onNudge: () -> Unit = {},
+    /** Far away: see everyone on the map instead. */
+    onOpenMap: () -> Unit = {},
     onBack: () -> Unit,
     /** Only used in debug builds. Null in release. */
     debug: (@Composable (Modifier) -> Unit)? = null,
@@ -323,7 +325,10 @@ fun FinderScreen(
                 }
                 // Can't hear anyone yet: explain, but still let them try (signals come and go in a crowd).
                 arrows.isNotEmpty() && arrows.all { it is ArrowState.NoSignal } -> {
-                    GlassButton("Ask them to go live", onClick = onNudge)
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        GlassButton("Ask them", Modifier.weight(1f), onClick = onNudge)
+                        GlassButton("Last seen on map", Modifier.weight(1f), onClick = onOpenMap)
+                    }
                 }
                 // Only offer the close-up tools when they're actually close: the app picks the
                 // method by itself (GPS far away, Bluetooth up close).
@@ -339,6 +344,8 @@ fun FinderScreen(
                             GlassButton("Light me up", Modifier.weight(1f), onClick = { onBeacon(true) })
                             if (needsDirection) GlassButton("Spin scan", Modifier.weight(1f), icon = true, onClick = onScan)
                         }
+                    } else {
+                        GlassButton("Show on map", onClick = onOpenMap)
                     }
                 }
             }

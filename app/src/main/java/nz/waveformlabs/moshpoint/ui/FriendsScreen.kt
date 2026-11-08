@@ -98,6 +98,8 @@ fun FriendsScreen(
     onStartGroup: (String) -> Unit,
     onShowGroupQr: () -> Unit,
     onKeepFriend: (String) -> Unit = {},
+    /** Snap Map style view of where everyone is. */
+    onOpenMap: () -> Unit = {},
     /** Debug builds only; null in release. */
     onAddSimulated: (() -> Unit)? = null,
     onSelfie: () -> Unit = {},
@@ -234,6 +236,10 @@ fun FriendsScreen(
                         style = Mosh.Title.copy(fontSize = 28.sp, color = Mosh.Pink, shadow = androidx.compose.ui.graphics.Shadow(Mosh.Pink.copy(alpha = 0.8f), blurRadius = 28f)),
                     )
                 }
+                TextButton(
+                    onClick = onOpenMap,
+                    modifier = Modifier.padding(end = 8.dp).background(Mosh.Surface, RoundedCornerShape(14.dp)).border(1.dp, Mosh.Line, RoundedCornerShape(14.dp)),
+                ) { Text("Map", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan)) }
                 val (src, sc) = rememberPress()
                 androidx.compose.material3.IconButton(
                     onClick = { settingsOpen = true },
@@ -444,7 +450,7 @@ fun FriendsScreen(
 
 /** A friend's photo, or their initial, ringed in their colour. */
 @Composable
-private fun Avatar(f: Friend, size: androidx.compose.ui.unit.Dp) {
+internal fun Avatar(f: Friend, size: androidx.compose.ui.unit.Dp) {
     val photo = PhotoStore.photos[f.id]
     val ring = Color(f.color)
     if (photo != null) {

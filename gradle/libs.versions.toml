@@ -12,6 +12,8 @@ zxing = "3.5.3"
 facebook = "17.0.2"
 zxingEmbedded = "4.3.0"
 logback = "1.5.12"
+# Free vector maps (OpenFreeMap tiles, no API key). The OpenGL build runs on more phones than the Vulkan default.
+maplibre = "13.7.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -26,6 +28,7 @@ androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-core-uwb = { group = "androidx.core.uwb", name = "uwb", version.ref = "uwb" }
 facebook-login = { group = "com.facebook.android", name = "facebook-login", version.ref = "facebook" }
+maplibre = { group = "org.maplibre.gl", name = "android-sdk-opengl", version.ref = "maplibre" }
 zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
 zxing-android-embedded = { group = "com.journeyapps", name = "zxing-android-embedded", version.ref = "zxingEmbedded" }
 ktor-server-core = { group = "io.ktor", name = "ktor-server-core", version.ref = "ktor" }

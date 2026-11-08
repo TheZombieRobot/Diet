@@ -158,4 +158,20 @@ class ScreensSnapshotTest {
         paparazzi.unsafeUpdateConfig(deviceConfig = DeviceConfig.NEXUS_5)
         finder("Sam", listOf(ArrowState.Pointing("sam", 90.0, 12.0, Method.UWB, false)))
     }
+
+    @Test fun mapScreen() = paparazzi.snapshot {
+        MoshTheme {
+            MapScreen(
+                people = listOf(sam, alex, jo, mia),
+                seen = mapOf(
+                    "sam" to nz.waveformlabs.moshpoint.LocationBook.Seen(-41.29, 174.78, 1_000_000L - 30, 10),
+                    "alex" to nz.waveformlabs.moshpoint.LocationBook.Seen(-41.30, 174.80, 1_000_000L - 1_500, 20),
+                ),
+                me = nz.waveformlabs.moshpoint.core.LatLon(-41.285, 174.776),
+                status = "Updated just now",
+                nowMs = 1_000_000_000L,
+                onFind = {}, onDirections = { _, _ -> }, onNudge = {}, onBack = {},
+            )
+        }
+    }
 }

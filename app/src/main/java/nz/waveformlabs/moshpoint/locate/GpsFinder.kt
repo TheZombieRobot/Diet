@@ -88,6 +88,7 @@ class GpsFinder(
         val best = mutableMapOf<String, Pair<SharedLocation, Method>>()
         fun consider(friend: Friend, id: ByteArray, sealed: ByteArray, method: Method) {
             val loc = LocationBox.open(friend.secret, id, sealed) ?: return
+            nz.waveformlabs.moshpoint.LocationBook.update(friend.id, loc)
             val prev = best[friend.id]
             if (prev == null || loc.timeSec > prev.first.timeSec) best[friend.id] = loc to method
         }
