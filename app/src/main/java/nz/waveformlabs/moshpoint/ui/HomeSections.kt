@@ -261,7 +261,7 @@ private fun BarItem(label: String, selected: Boolean, accent: Boolean = false, i
     }
     Column(
         Modifier.pressScale(sc).width(72.dp)
-            .clickable(interactionSource = src, indication = null, onClick = onClick)
+            .clickable(interactionSource = src, indication = null, onClickLabel = label, role = androidx.compose.ui.semantics.Role.Tab, onClick = onClick)
             .padding(vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
