@@ -48,7 +48,7 @@ internal fun MomentStrip(items: List<Moments.Item>, nowSec: Long, onOpen: (Momen
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("MOMENTS", style = Mosh.Eyebrow, modifier = Modifier.weight(1f))
-            TextButton(onClick = onShare) { Text("📷  Share one", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
+            TextButton(onClick = onShare) { Text("Share one", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
         }
         if (items.isEmpty()) {
             Text(
@@ -133,7 +133,7 @@ internal fun MomentComposer(photo: ImageBitmap, sending: Boolean, onSend: (Strin
                         Modifier.align(Alignment.BottomStart).fillMaxWidth().height(36.dp)
                             .background(Brush.verticalGradient(listOf(Color.Transparent, Color(0xCC000000))), RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)),
                     )
-                    Text("📍 pinned where you are now", style = Mosh.Body.copy(fontSize = 12.sp, color = Color.White), modifier = Modifier.align(Alignment.BottomStart).padding(10.dp))
+                    Text("Pinned where you are now", style = Mosh.Body.copy(fontSize = 12.sp, color = Color.White), modifier = Modifier.align(Alignment.BottomStart).padding(10.dp))
                 }
                 OutlinedTextField(
                     caption, { caption = it.take(80) }, singleLine = true,
