@@ -203,6 +203,10 @@ class ScreensSnapshotTest {
                 crewSleeping = true,
                 onOpenChat = {},
                 chatUnread = 2,
+                upNext = listOf(
+                    UpNextCard("a", "The Rolling Stones", "Sat 10 Jan, 7:30 pm", "in 4 weeks", "Eden Park", 5, 3, "Pre-drinks at Jo's, 5pm", false),
+                    UpNextCard("b", "Six60", "Sat 7 Feb, 6:00 pm", "in 2 months", "Western Springs", 0, 0, null, false),
+                ),
                 crewQrPayload = "moshpoint:group?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&at=1800000000&name=Iron+Maiden",
             )
         }

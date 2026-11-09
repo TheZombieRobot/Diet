@@ -84,7 +84,9 @@ object GroupSync {
         RelayClient.init(c)
         CrewChat.load(c)
         val p = prefs(c)
-        val key = p.getString("key", null) ?: return
+        Crews.load(c)
+        Crews.dropExpired(c)
+        val key = p.getString("key", null) ?: return promoteNext(c)
         val created = p.getLong("created", 0)
         val g = GigGroup(
             Base64.decode(key, Base64.NO_WRAP), p.getString("name", "Gig group") ?: "Gig group", created,
@@ -104,6 +106,7 @@ object GroupSync {
             return
         }
         group.value = g
+        CrewChat.show(c, g)
         GigWake.schedule(c, g)
         rallyClearedAt = p.getLong("rallyCleared", 0L)
         rallyMine = p.getBoolean("rallyMine", false)
@@ -114,10 +117,14 @@ object GroupSync {
         p.getString("members", null)?.split(',')?.filter { it.length == 64 }?.let { members.addAll(it) }
     }
 
-    fun startNew(c: Context, name: String, startsAtSec: Long = 0L, venue: String = "", venueLat: Double? = null, venueLon: Double? = null) {
-        followingState.value = false
-        prefs(c.applicationContext).edit().putBoolean("following", false).apply()
-        set(c.applicationContext, GigGroup.create(name, System.currentTimeMillis(), startsAtSec = startsAtSec, venue = venue, venueLat = venueLat, venueLon = venueLon))
+    /** The crew most recently made or joined (main or Up next): its QR is the one to show. */
+    val newest = mutableStateOf<GigGroup?>(null)
+
+    /** Returns the new crew. It only becomes the main crew if it's the soonest (see [set]). */
+    fun startNew(c: Context, name: String, startsAtSec: Long = 0L, venue: String = "", venueLat: Double? = null, venueLon: Double? = null): GigGroup {
+        val g = GigGroup.create(name, System.currentTimeMillis(), startsAtSec = startsAtSec, venue = venue, venueLat = venueLat, venueLon = venueLon)
+        set(c.applicationContext, g, following = false)
+        return g
     }
 
     /** The crew is for a gig that's still days away: everything stays off until the day. */
@@ -151,18 +158,24 @@ object GroupSync {
     fun join(c: Context, qrText: String): Boolean {
         val g = GigGroup.parseQr(qrText, System.currentTimeMillis()) ?: return false
         val app = c.applicationContext
+        Crews.load(app)
         val same = group.value?.key?.contentEquals(g.key) == true
+        val waiting = Crews.find(g.key)
         val asFollower = GigGroup.isFollowInvite(qrText)
         // A crew member who opens a follow link stays a crew member.
-        if (!same) {
-            followingState.value = asFollower
-            prefs(app).edit().putBoolean("following", asFollower).apply()
-            set(app, g)
-            if (asFollower) FollowCheck.schedule(app) else FollowCheck.cancel(app)
+        val main = when {
+            same -> true
+            waiting != null -> { newest.value = waiting.group; false }
+            else -> set(app, g, asFollower)
         }
         // The person whose QR it was is in it: add them now, no waiting for an intro.
         GigGroup.hostOf(qrText)?.let { host ->
-            if (!host.secret.contentEquals(VisibilityPrefs.mySecret(app))) {
+            if (host.secret.contentEquals(VisibilityPrefs.mySecret(app))) return@let
+            if (!main) {
+                Crews.addMate(app, g.key, host.secret, host.name)
+                return@let
+            }
+            run {
                 FriendsRepository.unremove(host.secret)
                 FriendsRepository.addFromIntro(host.secret, host.name)
                 markMember(app, host.secret)
@@ -171,8 +184,27 @@ object GroupSync {
         return true
     }
 
-    private fun set(c: Context, g: GigGroup) {
+    /**
+     * A new crew. It becomes the main crew if it's sooner than the current one (and the
+     * current one isn't on right now); otherwise it waits in Up next. Never replaces a crew.
+     * Returns true if it's now the main crew.
+     */
+    private fun set(c: Context, g: GigGroup, following: Boolean): Boolean {
         runCatching { GigArchive.remember(c, g) }
+        newest.value = g
+        ChatSync.schedule(c)
+        val cur = group.value
+        val now = System.currentTimeMillis()
+        if (cur != null && !cur.key.contentEquals(g.key) && now < cur.expiresAtMs) {
+            if (!cur.dormant(now) || Crews.sortKey(g) >= Crews.sortKey(cur)) {
+                Crews.put(c, Crews.fresh(g, following))
+                return false
+            }
+            stashActive(c)
+        }
+        followingState.value = following
+        if (following) FollowCheck.schedule(c) else FollowCheck.cancel(c)
+        CrewChat.show(c, g)
         if (!g.dormant(System.currentTimeMillis())) NightStats.startIfNeeded(c)
         GigWake.schedule(c, g)
         prefs(c).edit()
@@ -183,6 +215,7 @@ object GroupSync {
             .putString("venue", g.venue)
             .putString("vlat", g.venueLat?.toString())
             .putString("vlon", g.venueLon?.toString())
+            .putBoolean("following", following)
             .remove("members")
             .remove("rally")
             .remove("rallyCleared")
@@ -194,19 +227,74 @@ object GroupSync {
         rallyClearedAt = 0L
         DebugStatus.log("Gig group: ${g.name}")
         if (users > 0) restart(c)
+        return true
+    }
+
+    // ---- Several crews (see Crews) ----
+
+    private val longKeys = setOf("created", "at", "rallyCleared")
+    private val boolKeys = setOf("following", "rallyMine")
+
+    /** Put the main crew aside in Up next, keeping its settings and crew-only mates. */
+    private fun stashActive(c: Context) {
+        val g = group.value ?: return
+        val settings = org.json.JSONObject()
+        prefs(c).all.forEach { (k, v) -> if (v != null) settings.put(k, v) }
+        val mates = FriendsRepository.friends.filter { it.gigGroupOnly && !FriendsRepository.isSimulated(it.id) }.map { it.secret to it.name }
+        Crews.put(c, Crews.Entry(g, following, settings, mates))
+        resetActive(c)
+    }
+
+    /** Make a waiting crew the main one: its settings and mates come back. */
+    private fun activate(c: Context, e: Crews.Entry) {
+        Crews.remove(c, e.id)
+        val ed = prefs(c).edit().clear()
+        e.settings.keys().forEach { k ->
+            when (k) {
+                in longKeys -> ed.putLong(k, e.settings.optLong(k))
+                in boolKeys -> ed.putBoolean(k, e.settings.optBoolean(k))
+                else -> ed.putString(k, e.settings.optString(k))
+            }
+        }
+        ed.commit()
+        FriendsRepository.clearGigGroup()
+        e.mates.forEach { (secret, name) -> FriendsRepository.addFromIntro(secret, name) }
+        load(c)
+        if (following) FollowCheck.schedule(c) else FollowCheck.cancel(c)
+        DebugStatus.log("Main crew now: ${e.group.name}")
+        if (users > 0) restart(c)
+    }
+
+    /** No main crew (or it just ended): the soonest waiting crew steps up. */
+    private fun promoteNext(c: Context) {
+        Crews.dropExpired(c)
+        val next = Crews.others.firstOrNull() ?: return
+        activate(c, next)
     }
 
     /** "End night": leave the group and drop its members. */
     fun clear(c: Context) {
         val app = c.applicationContext
-        prefs(app).edit().clear().apply()
+        group.value?.let { CrewChat.forget(app, it) }
+        resetActive(app)
+        promoteNext(app)
+    }
+
+    /** Drop a crew waiting in Up next. */
+    fun leave(c: Context, e: Crews.Entry) {
+        CrewChat.forget(c.applicationContext, e.group)
+        Crews.remove(c.applicationContext, e.id)
+    }
+
+    private fun resetActive(c: Context) {
+        val app = c.applicationContext
+        prefs(app).edit().clear().commit()
         group.value = null
         followingState.value = false
         followers.clear()
         FollowCheck.cancel(app)
         GigWake.cancel(app)
         Moments.clear()
-        CrewChat.clear(app)
         runCatching { CrewWidget.update(app, emptyList()) }
         members.clear()
         rally.value = null
@@ -325,6 +413,7 @@ object GroupSync {
         AvatarSync.fetchFriends(c)
         checkOverdue(c)
         CrewChat.tick(c)
+        ChatSync.pollAll(c, minGapMs = 120_000)
         val found = RelayClient.lookup(ids) ?: return
         found.subList(0, 2).flatten().forEach { received(c, g, it) }
         found.subList(4, 6).flatten().forEach { blob -> g.openPing(blob)?.let { onPing(c, it, blob) } }
@@ -349,9 +438,10 @@ object GroupSync {
      * a crew that's asleep until gig day too, without waking Bluetooth or location.
      */
     suspend fun pollPingsNow(c: Context) {
+        ChatSync.pollAll(c, minGapMs = 10_000)
         val g = group.value ?: return
+        if (g.dormant(System.currentTimeMillis())) return
         val epoch = Math.floorDiv(System.currentTimeMillis(), EphemeralId.DEFAULT_ROTATION_MS)
-        CrewChat.tick(c)
         val found = RelayClient.lookup(listOf(g.pingIdForEpoch(epoch), g.pingIdForEpoch(epoch - 1))) ?: return
         found.flatten().forEach { blob -> g.openPing(blob)?.let { onPing(c, it, blob) } }
     }

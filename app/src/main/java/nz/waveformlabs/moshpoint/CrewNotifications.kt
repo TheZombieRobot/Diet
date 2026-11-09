@@ -34,6 +34,8 @@ object CrewNotifications {
         openMap: Boolean = true,
         /** Open the crew chat instead. */
         openChat: Boolean = false,
+        /** Which crew's chat (main crew if null). */
+        crewId: String? = null,
         /** Remove it by itself after this long (e.g. "tonight!" once the gig's over). */
         timeoutMs: Long = 0L,
     ) {
@@ -42,9 +44,10 @@ object CrewNotifications {
         nm.createNotificationChannel(NotificationChannel(CHANNEL, "Crew messages", NotificationManager.IMPORTANCE_DEFAULT))
         nm.createNotificationChannel(NotificationChannel(HELP_CHANNEL, "Crew help requests", NotificationManager.IMPORTANCE_HIGH))
         val open = PendingIntent.getActivity(
-            app, if (openChat) 71 else 70,
+            app, if (openChat) 71 + (crewId?.hashCode()?.and(0xFFFF) ?: 0) else 70,
             Intent(app, MainActivity::class.java).putExtra(MainActivity.EXTRA_OPEN_MAP, openMap && !openChat)
                 .putExtra(MainActivity.EXTRA_OPEN_CHAT, openChat)
+                .putExtra(MainActivity.EXTRA_CHAT_CREW, crewId)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )

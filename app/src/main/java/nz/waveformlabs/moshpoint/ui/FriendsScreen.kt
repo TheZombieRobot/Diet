@@ -148,6 +148,9 @@ fun FriendsScreen(
     pinnedPlan: String? = null,
     /** "🔥 Bar time 🍺" under a mate's tile while their flare is up. */
     flareNotes: Map<String, String> = emptyMap(),
+    /** Other crews you're in, soonest first. */
+    upNext: List<UpNextCard> = emptyList(),
+    onOpenUpNext: (String) -> Unit = {},
 ) {
     var name by remember { mutableStateOf("") }
     var code by remember { mutableStateOf("") }
@@ -440,6 +443,11 @@ fun FriendsScreen(
                     }
                 }
             }
+        }
+
+        if (upNext.isNotEmpty()) {
+            item { Text("UP NEXT", style = Mosh.Eyebrow, modifier = Modifier.padding(top = 4.dp, start = 4.dp)) }
+            items(upNext, key = { "next-" + it.id }) { card -> UpNextRow(card) { onOpenUpNext(card.id) } }
         }
 
         // "Remember last year?": a gig on this day in an earlier year.

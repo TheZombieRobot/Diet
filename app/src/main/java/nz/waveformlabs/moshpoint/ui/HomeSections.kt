@@ -473,3 +473,80 @@ internal fun ChatPill(unread: Int, plan: String?, onClick: () -> Unit) {
         Text("›", style = Mosh.Label.copy(fontSize = 20.sp, color = Mosh.Lime))
     }
 }
+
+/** A crew that's coming up, for the "Up next" list under the main crew card. */
+data class UpNextCard(
+    val id: String,
+    val name: String,
+    /** "Sat 6 Dec, 8:00 pm" */
+    val whenText: String?,
+    /** "in 3 weeks", "tomorrow" */
+    val countdown: String?,
+    val venue: String,
+    val mates: Int,
+    val unread: Int,
+    val plan: String?,
+    val following: Boolean,
+)
+
+/** "Up next": tap for its chat (hype it up), invite and plan. */
+@Composable
+internal fun UpNextRow(card: UpNextCard, onClick: () -> Unit) {
+    val (src, sc) = rememberPress()
+    Row(
+        Modifier.fillMaxWidth().pressScale(sc).background(Mosh.Surface, RoundedCornerShape(18.dp))
+            .border(1.dp, Mosh.Line, RoundedCornerShape(18.dp))
+            .clickable(interactionSource = src, indication = androidx.compose.foundation.LocalIndication.current, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(card.name, style = Mosh.Label.copy(fontSize = 17.sp), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                if (card.countdown != null) {
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        card.countdown, style = Mosh.Label.copy(fontSize = 12.sp, color = Mosh.Violet),
+                        modifier = Modifier.background(Mosh.Violet.copy(alpha = 0.16f), RoundedCornerShape(10.dp)).padding(horizontal = 8.dp, vertical = 2.dp),
+                    )
+                }
+            }
+            val sub = listOfNotNull(card.whenText, card.venue.takeIf { it.isNotBlank() }).joinToString(" · ")
+            if (sub.isNotEmpty()) Text(sub, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                when {
+                    card.plan != null -> "📌 ${card.plan}"
+                    card.following -> "Following from home"
+                    card.mates == 0 -> "💬 Chat · invite your mates"
+                    card.mates == 1 -> "💬 Chat · 1 mate in"
+                    else -> "💬 Chat · ${card.mates} mates in"
+                },
+                style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.Lime), maxLines = 1, overflow = TextOverflow.Ellipsis,
+            )
+        }
+        if (card.unread > 0) {
+            Spacer(Modifier.width(8.dp))
+            Box(Modifier.background(Mosh.Pink, CircleShape).padding(horizontal = 8.dp, vertical = 2.dp)) {
+                Text(if (card.unread > 9) "9+" else "${card.unread}", style = Mosh.Label.copy(fontSize = 12.sp, color = Color.White))
+            }
+        }
+        Spacer(Modifier.width(6.dp))
+        Text("›", style = Mosh.Label.copy(fontSize = 22.sp, color = Mosh.TextFaint))
+    }
+}
+
+/** "tonight", "tomorrow", "in 5 days", "in 3 weeks", "in 2 months". */
+internal fun countdown(startsAtSec: Long, nowSec: Long): String? {
+    if (startsAtSec <= 0) return null
+    val zone = java.util.TimeZone.getDefault()
+    fun day(t: Long) = Math.floorDiv(t * 1000 + zone.getOffset(t * 1000), 86_400_000L)
+    val days = day(startsAtSec) - day(nowSec)
+    return when {
+        days < 0 -> null
+        days == 0L -> "tonight"
+        days == 1L -> "tomorrow"
+        days < 14 -> "in $days days"
+        days < 60 -> "in ${days / 7} weeks"
+        else -> "in ${days / 30} months"
+    }
+}

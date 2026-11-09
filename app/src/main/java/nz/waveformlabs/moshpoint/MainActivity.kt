@@ -162,6 +162,8 @@ class MainActivity : ComponentActivity() {
     private var planGig by mutableStateOf(false)
     private var showStory by mutableStateOf(false)
     private var showChat by mutableStateOf(false)
+    /** The crew whose invite QR is showing (null = the main crew). */
+    private var qrCrew by mutableStateOf<GigGroup?>(null)
     /** A past gig open in the Story viewer. */
     private var archiveGig by mutableStateOf<GigArchive.Summary?>(null)
     private var archiveItems by mutableStateOf<List<Moments.Item>>(emptyList())
@@ -309,6 +311,11 @@ class MainActivity : ComponentActivity() {
                     toast("That group invite has expired. Ask for a new one.")
                     return false
                 }
+                val joined = GroupSync.newest.value
+                if (joined != null && GroupSync.group.value?.key?.contentEquals(joined.key) != true) {
+                    toast("You're in ${joined.name}! It's in Up next: chat away, and it wakes up on gig day.")
+                    return true
+                }
                 val g = GroupSync.group.value
                 if (GroupSync.following && g != null) {
                     toast("You're following ${g.name}. You'll see their photos and where they are; they'll see you're following.")
@@ -382,7 +389,7 @@ class MainActivity : ComponentActivity() {
         }
         if (intent.getBooleanExtra(EXTRA_OPEN_CHAT, false)) {
             intent.removeExtra(EXTRA_OPEN_CHAT)
-            showChat = true
+            openChat(intent.getStringExtra(EXTRA_CHAT_CREW))
         }
         handleInvite(intent.getStringExtra(ShareInviteActivity.EXTRA_TEXT) ?: return)
     }
@@ -482,6 +489,8 @@ class MainActivity : ComponentActivity() {
             while (true) {
                 delay(20_000)
                 homeNow = System.currentTimeMillis()
+                // Every crew's chat (incl. Up next) every couple of minutes while the app is open.
+                runCatching { ChatSync.pollAll(this@MainActivity, minGapMs = 110_000) }
             }
         }
         if (savedInstanceState == null) {
@@ -489,7 +498,7 @@ class MainActivity : ComponentActivity() {
             momentFlow.handleShared(intent)
             handleFindCrew(intent)
             if (intent?.getBooleanExtra(EXTRA_OPEN_MAP, false) == true) openMap()
-            if (intent?.getBooleanExtra(EXTRA_OPEN_CHAT, false) == true) showChat = true
+            if (intent?.getBooleanExtra(EXTRA_OPEN_CHAT, false) == true) openChat(intent.getStringExtra(EXTRA_CHAT_CREW))
         }
         visibleToMates = VisibilityPrefs.isVisible(this)
         myName = VisibilityPrefs.myName(this)
@@ -510,18 +519,31 @@ class MainActivity : ComponentActivity() {
         setContent {
             MoshTheme(calm = calmMotion) {
                 if (showGroupQr) {
-                    GroupSync.group.value?.let { g ->
+                    (qrCrew ?: GroupSync.group.value)?.let { g ->
+                        val waiting = Crews.find(g.key)
                         MyQrDialog(
                             crewQr(g),
-                            onDismiss = { showGroupQr = false },
+                            onDismiss = { showGroupQr = false; qrCrew = null },
                             onShare = { shareGroup(g) },
-                            eyebrow = "YOUR CREW FOR TONIGHT",
+                            eyebrow = when {
+                                waiting != null -> "UP NEXT" + (nz.waveformlabs.moshpoint.ui.countdown(g.startsAtSec, System.currentTimeMillis() / 1000)?.let { " · ${it.uppercase()}" } ?: "")
+                                g.dormant(System.currentTimeMillis()) -> "YOUR CREW · COMING UP"
+                                else -> "YOUR CREW FOR TONIGHT"
+                            },
                             title = g.name,
-                            hint = "Everyone scans this once. Then you can all find each other, all night.",
-                            members = FriendsRepository.friends.filter { it.gigGroupOnly || it.key in GroupSync.members },
+                            hint = if (waiting != null || g.dormant(System.currentTimeMillis())) {
+                                "Everyone scans this once. Chat and hype it up now; finding each other switches on on gig day."
+                            } else "Everyone scans this once. Then you can all find each other, all night.",
+                            members = if (waiting != null) {
+                                waiting.mates.map { (secret, name) -> Friend(nz.waveformlabs.moshpoint.core.FriendRecord("next-" + secret.take(6).joinToString("") { "%02x".format(it) }, name, 0xFF9D5CFF.toInt(), secret, true, 0L)) }
+                            } else FriendsRepository.friends.filter { it.gigGroupOnly || it.key in GroupSync.members },
                             onEndNight = {
                                 showGroupQr = false
-                                GroupSync.clear(this@MainActivity)
+                                qrCrew = null
+                                if (waiting != null) {
+                                    closeChat()
+                                    GroupSync.leave(this@MainActivity, waiting)
+                                } else GroupSync.clear(this@MainActivity)
                             },
                         )
                     }
@@ -708,7 +730,7 @@ class MainActivity : ComponentActivity() {
                             onClearGigGroup = { recap = NightStats.get(this@MainActivity) },
                             groupName = GroupSync.group.value?.name,
                             onStartGroup = { name ->
-                                GroupSync.startNew(this@MainActivity, name)
+                                qrCrew = GroupSync.startNew(this@MainActivity, name)
                                 setVisibility(true)
                                 showGroupQr = true
                             },
@@ -744,9 +766,21 @@ class MainActivity : ComponentActivity() {
                             onQuickCrew = { ensureCrew() },
                             onPlanGig = { planGig = true },
                             onOpenStory = { showStory = true },
-                            onOpenChat = { showChat = true },
-                            chatUnread = CrewChat.unread.value,
-                            pinnedPlan = CrewChat.plan.value?.text,
+                            onOpenChat = { openChat(null) },
+                            chatUnread = CrewChat.unreadFor(this@MainActivity, GroupSync.group.value),
+                            pinnedPlan = GroupSync.group.value?.let { CrewChat.planFor(this@MainActivity, it)?.text },
+                            upNext = Crews.others.map { e ->
+                                nz.waveformlabs.moshpoint.ui.UpNextCard(
+                                    id = e.id, name = e.group.name,
+                                    whenText = e.group.startsAtSec.takeIf { it > 0 }?.let { nz.waveformlabs.moshpoint.ui.gigWhen(it) },
+                                    countdown = nz.waveformlabs.moshpoint.ui.countdown(e.group.startsAtSec, homeNow / 1000),
+                                    venue = e.group.venue, mates = e.mates.size,
+                                    unread = CrewChat.unreadFor(this@MainActivity, e.group),
+                                    plan = CrewChat.planFor(this@MainActivity, e.group)?.text,
+                                    following = e.following,
+                                )
+                            },
+                            onOpenUpNext = { id -> openChat(id) },
                             flareNotes = CrewChat.flares.values.filter { it.untilSec > homeNow / 1000 }.mapNotNull { fl ->
                                 FriendsRepository.friends.firstOrNull { it.name.equals(fl.from, true) }?.let { it.id to "🔥 ${fl.vibe}" }
                             }.toMap(),
@@ -806,8 +840,11 @@ class MainActivity : ComponentActivity() {
                                     return@PlanGigSheet
                                 }
                                 planGig = false
-                                GroupSync.startNew(this@MainActivity, name, at, venue, lat, lon)
-                                if (!GroupSync.sleeping) setVisibility(true)
+                                val made = GroupSync.startNew(this@MainActivity, name, at, venue, lat, lon)
+                                val isMain = GroupSync.group.value?.key?.contentEquals(made.key) == true
+                                if (isMain && !GroupSync.sleeping) setVisibility(true)
+                                if (!isMain) toast("${made.name} added to Up next. Invite your mates and start the hype!")
+                                qrCrew = made
                                 showGroupQr = true
                             },
                             onClose = { planGig = false },
@@ -896,7 +933,10 @@ class MainActivity : ComponentActivity() {
                             },
                         )
                     }
-                    if (showChat && GroupSync.group.value != null) {
+                    val chatCrew = CrewChat.viewing.value
+                    if (showChat && chatCrew != null) {
+                        val isMain = GroupSync.group.value?.key?.contentEquals(chatCrew.key) == true
+                        val waiting = if (isMain) null else Crews.find(chatCrew.key)
                         androidx.compose.runtime.DisposableEffect(Unit) {
                             CrewChat.open = true
                             onDispose { CrewChat.open = false }
@@ -909,14 +949,22 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                         nz.waveformlabs.moshpoint.ui.CrewChatScreen(
-                            crewName = GroupSync.group.value?.name ?: "Crew",
+                            crewName = chatCrew.name,
                             lines = CrewChat.lines,
                             plan = CrewChat.plan.value,
                             flares = CrewChat.flares.values.filter { it.untilSec > homeNow / 1000 }.sortedBy { it.untilSec },
                             myName = VisibilityPrefs.myName(this@MainActivity).ifBlank { "Mate" },
                             nowSec = homeNow / 1000,
-                            meetUp = GroupSync.rally.value?.name,
-                            readOnly = GroupSync.following,
+                            meetUp = if (isMain) GroupSync.rally.value?.name else null,
+                            readOnly = if (isMain) GroupSync.following else waiting?.following == true,
+                            nightTools = isMain && !GroupSync.sleeping && !GroupSync.following,
+                            subtitle = if (chatCrew.startsAtSec > 0) {
+                                listOfNotNull(
+                                    nz.waveformlabs.moshpoint.ui.gigWhen(chatCrew.startsAtSec),
+                                    nz.waveformlabs.moshpoint.ui.countdown(chatCrew.startsAtSec, homeNow / 1000),
+                                ).joinToString(" · ")
+                            } else null,
+                            onInvite = { qrCrew = chatCrew; showGroupQr = true },
                             onSend = { CrewChat.send(this@MainActivity, it) },
                             onSetPlan = { CrewChat.setPlan(this@MainActivity, it) },
                             onFlare = { vibe ->
@@ -933,8 +981,8 @@ class MainActivity : ComponentActivity() {
                                 GroupSync.startCheckIn(this@MainActivity, minutes, loc?.latitude, loc?.longitude)
                             },
                             onSharePlan = { sharePlanCard() },
-                            onOpenMap = { showChat = false; openMap() },
-                            onBack = { showChat = false },
+                            onOpenMap = { closeChat(); openMap() },
+                            onBack = { closeChat() },
                             photoOf = { name, mine ->
                                 if (mine) PhotoStore.photos[PhotoStore.ME]
                                 else FriendsRepository.friends.firstOrNull { it.name.equals(name, true) }?.let { PhotoStore.photos[it.id] }
@@ -1120,16 +1168,31 @@ class MainActivity : ComponentActivity() {
     private fun shareCode(@Suppress("UNUSED_PARAMETER") code: String) = shareGroup(ensureCrew())
 
     /** The crew QR / invite text, with us inside it so whoever joins can find us at once. */
+    /** Open the chat of crew [crewId] (null = the main crew). */
+    private fun openChat(crewId: String?) {
+        Crews.load(this)
+        val g = crewId?.let { id -> Crews.others.firstOrNull { it.id == id }?.group } ?: GroupSync.group.value ?: return
+        CrewChat.show(this, g)
+        showChat = true
+    }
+
+    private fun closeChat() {
+        showChat = false
+        CrewChat.show(this, GroupSync.group.value)
+    }
+
     /** The night's plan as a picture for the group chat that isn't on Moshpoint yet. */
     private fun sharePlanCard() {
-        val g = GroupSync.group.value ?: return
-        val crew = listOf(VisibilityPrefs.myName(this).ifBlank { "Me" }) +
+        val g = CrewChat.viewing.value ?: GroupSync.group.value ?: return
+        val isMain = GroupSync.group.value?.key?.contentEquals(g.key) == true
+        val crew = listOf(VisibilityPrefs.myName(this).ifBlank { "Me" }) + if (isMain) {
             FriendsRepository.friends.filter { (it.gigGroupOnly || it.key in GroupSync.members) && !FriendsRepository.isSimulated(it.id) }.map { it.name }
+        } else Crews.find(g.key)?.mates?.map { it.second }.orEmpty()
         val whenWhere = listOfNotNull(
             g.startsAtSec.takeIf { it > 0 }?.let { nz.waveformlabs.moshpoint.ui.gigWhen(it) },
             g.venue.takeIf { it.isNotBlank() },
         ).joinToString(" · ").ifBlank { null }
-        PlanCardImage.share(this, PlanCardImage.Card(g.name, whenWhere, CrewChat.plan.value?.text, GroupSync.rally.value?.name, crew.distinct()))
+        PlanCardImage.share(this, PlanCardImage.Card(g.name, whenWhere, CrewChat.planFor(this, g)?.text, if (isMain) GroupSync.rally.value?.name else null, crew.distinct()))
     }
 
     private fun crewQr(g: GigGroup) =
@@ -1235,5 +1298,6 @@ class MainActivity : ComponentActivity() {
         /** Notification tap: open the map (a crew ping or help request). */
         const val EXTRA_OPEN_MAP = "nz.waveformlabs.moshpoint.OPEN_MAP"
         const val EXTRA_OPEN_CHAT = "nz.waveformlabs.moshpoint.OPEN_CHAT"
+        const val EXTRA_CHAT_CREW = "nz.waveformlabs.moshpoint.CHAT_CREW"
     }
 }

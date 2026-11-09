@@ -75,6 +75,12 @@ internal fun CrewChatScreen(
     onSharePlan: () -> Unit,
     onOpenMap: () -> Unit,
     onBack: () -> Unit,
+    /** Flares and one-tap pings: only for the crew that's on tonight. */
+    nightTools: Boolean = true,
+    /** "Sat 6 Dec · in 3 weeks" for a crew that's coming up. */
+    subtitle: String? = null,
+    /** Show this crew's invite QR. */
+    onInvite: (() -> Unit)? = null,
     /** Each sender's face (their photo), or null for an initials bubble. */
     photoOf: (name: String, mine: Boolean) -> androidx.compose.ui.graphics.ImageBitmap? = { _, _ -> null },
     /** Each mate's colour, so their name and ring match the map and tiles. */
@@ -91,14 +97,15 @@ internal fun CrewChatScreen(
             TextButton(onClick = onBack) { Text("‹", style = Mosh.Heading.copy(fontSize = 28.sp)) }
             Column(Modifier.weight(1f)) {
                 Text(crewName, style = Mosh.Heading.copy(fontSize = 20.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("Crew chat · only your crew can read it", style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint))
+                Text(subtitle ?: "Crew chat · only your crew can read it", style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint), maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
+            if (onInvite != null && !readOnly) TextButton(onClick = onInvite) { Text("＋ Invite", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan)) }
         }
         Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             PlanCard(plan, meetUp, readOnly, onEdit = { editingPlan = true }, onShare = onSharePlan, onMap = onOpenMap)
             val mine = flares.firstOrNull { it.from == myName }
             flares.forEach { f -> FlareRow(f, nowSec, mine = f.from == myName, onEnd = onEndFlare, onMap = onOpenMap) }
-            if (!readOnly && mine == null) {
+            if (!readOnly && mine == null && nightTools) {
                 Text(
                     "🔥  Send a flare: show where you are for 30 min",
                     style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber),
@@ -136,7 +143,11 @@ internal fun CrewChatScreen(
         }
         if (!readOnly) {
             Column(Modifier.background(Mosh.Deep).padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                PingBar(onPing = onPing, onCheckIn = onCheckIn)
+                if (nightTools) PingBar(onPing = onPing, onCheckIn = onCheckIn)
+                else Text(
+                    "Hype it up! Flares and quick pings switch on on gig day.",
+                    style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint), modifier = Modifier.padding(horizontal = 4.dp),
+                )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(
                         draft, { if (it.length <= 140) draft = it },

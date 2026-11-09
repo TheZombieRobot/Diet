@@ -40,6 +40,8 @@ fun Application.moshpoint(
     getLimit: RateLimiter = RateLimiter(capacity = 60.0, refillPerSec = 1.0),
     avatars: AvatarStore = AvatarStore(),
     files: FileStore = FileStore(),
+    // Crew chat: kept for days, so a crew can hype up weeks before the gig.
+    held: MailboxStore = MailboxStore(ttlMs = 72 * 3600 * 1000L, maxPerId = 200, maxIds = 200_000),
 ) {
     launch {
         while (true) {
@@ -47,6 +49,7 @@ fun Application.moshpoint(
             store.sweep()
             avatars.sweep()
             files.sweep()
+            held.sweep()
             putLimit.sweep()
             getLimit.sweep()
         }
@@ -127,6 +130,34 @@ fun Application.moshpoint(
             call.respondBytes(data, ContentType.Application.OctetStream)
         }
 
+        put("/v1/held/{id}") {
+            if (!putLimit.allow(call.client())) return@put call.respondText("slow down", status = HttpStatusCode.TooManyRequests)
+            val id = call.parameters["id"]?.lowercase()
+            if (id == null || !ID_RE.matches(id)) return@put call.respondText("bad id", status = HttpStatusCode.BadRequest)
+            val body = call.receiveChannel().readRemaining(MAX_HELD + 1L).readByteArray()
+            if (body.size < MIN_RECORD || body.size > MAX_HELD) {
+                return@put call.respondText("bad size", status = HttpStatusCode.BadRequest)
+            }
+            if (!held.put(id, body)) return@put call.respondText("full", status = HttpStatusCode.ServiceUnavailable)
+            call.respondText("", status = HttpStatusCode.NoContent)
+        }
+
+        post("/v1/heldlookup") {
+            if (!getLimit.allow(call.client())) return@post call.respondText("slow down", status = HttpStatusCode.TooManyRequests)
+            val body = call.receiveChannel().readRemaining(MAX_LOOKUP * 16 + 1L).readByteArray()
+            if (body.isEmpty() || body.size % 16 != 0 || body.size / 16 > MAX_LOOKUP) {
+                return@post call.respondText("bad body", status = HttpStatusCode.BadRequest)
+            }
+            val out = java.io.ByteArrayOutputStream()
+            for (i in 0 until body.size / 16) {
+                val id = body.copyOfRange(i * 16, i * 16 + 16).joinToString("") { "%02x".format(it) }
+                val records = held.get(id).take(255)
+                out.write(records.size)
+                out.write(encodeRecordsBody(records))
+            }
+            call.respondBytes(out.toByteArray(), ContentType.Application.OctetStream)
+        }
+
         post("/v1/lookup") {
             if (!getLimit.allow(call.client())) return@post call.respondText("slow down", status = HttpStatusCode.TooManyRequests)
             val body = call.receiveChannel().readRemaining(MAX_LOOKUP * 16 + 1L).readByteArray()
@@ -148,6 +179,8 @@ fun Application.moshpoint(
 private val ID_RE = Regex("^[0-9a-f]{32}$")
 private const val MIN_RECORD = 16
 private const val MAX_RECORD = 128
+/** Chat records carry up to 160 bytes of text; lengths go as one byte, so 255 max. */
+private const val MAX_HELD = 255
 private const val MAX_LOOKUP = 64
 private const val MAX_AVATAR = 48 * 1024 + 64
 private const val MAX_FILE = 12_000_000

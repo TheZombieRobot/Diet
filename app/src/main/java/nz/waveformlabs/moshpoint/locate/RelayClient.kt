@@ -105,15 +105,31 @@ object RelayClient {
         }.getOrNull()
     }
 
+    /**
+     * Crew chat: posted where it's kept for days on our own server (12 hours on the public
+     * relay), so a crew can chat weeks before the gig and catch up when they open the app.
+     */
+    suspend fun putHeld(id: ByteArray, sealed: ByteArray): Boolean = withContext(Dispatchers.IO) {
+        if (ownServer) return@withContext ownPut("$base/v1/held/${id.hex()}", sealed, 6_000)
+        put(id, sealed)
+    }
+
+    /** Chat records under [ids] (public relay: the last 12 hours). Null on network failure. */
+    suspend fun lookupHeld(ids: List<ByteArray>): List<List<ByteArray>>? = withContext(Dispatchers.IO) {
+        if (ids.isEmpty()) return@withContext null
+        if (ownServer) return@withContext ownLookup(ids, "$base/v1/heldlookup")
+        lookup(ids, "12h")
+    }
+
     /** For each id, the sealed records posted under it (newest first). Null on network failure. */
-    suspend fun lookup(ids: List<ByteArray>): List<List<ByteArray>>? = withContext(Dispatchers.IO) {
+    suspend fun lookup(ids: List<ByteArray>, sinceAgo: String = "15m"): List<List<ByteArray>>? = withContext(Dispatchers.IO) {
         if (ids.isEmpty()) return@withContext null
         if (ownServer) return@withContext ownLookup(ids)
         if (!Budget.takeRequest()) return@withContext null
         runCatching {
             // One request for every topic: ntfy takes a comma-separated list.
             val topics = ids.map { topic(it) }
-            val since = URLEncoder.encode("15m", "UTF-8")
+            val since = URLEncoder.encode(sinceAgo, "UTF-8")
             val c = URL("$NTFY/${topics.joinToString(",")}/json?poll=1&since=$since").openConnection() as HttpURLConnection
             c.connectTimeout = 6_000
             c.readTimeout = 8_000
@@ -291,8 +307,8 @@ object RelayClient {
         ok
     }.getOrDefault(false)
 
-    private fun ownLookup(ids: List<ByteArray>): List<List<ByteArray>>? = runCatching {
-        val c = URL("$base/v1/lookup").openConnection() as HttpURLConnection
+    private fun ownLookup(ids: List<ByteArray>, url: String = "$base/v1/lookup"): List<List<ByteArray>>? = runCatching {
+        val c = URL(url).openConnection() as HttpURLConnection
         c.requestMethod = "POST"
         c.doOutput = true
         c.connectTimeout = 5_000

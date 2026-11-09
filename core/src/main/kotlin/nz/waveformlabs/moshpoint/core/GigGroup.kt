@@ -128,6 +128,10 @@ class GigGroup(
     fun pingIdForEpoch(epoch: Long): ByteArray =
         hmac(key, "moshpoint-group-ping".toByteArray() + ByteBuffer.allocate(8).putLong(epoch).array()).copyOf(16)
 
+    /** Mailbox id for the crew chat and pinned plan (daily; the relay keeps these much longer than pings). */
+    fun chatIdForDay(day: Long): ByteArray =
+        hmac(key, "moshpoint-group-chat".toByteArray() + ByteBuffer.allocate(8).putLong(day).array()).copyOf(16)
+
     /** A quick message to the whole crew, optionally with where the sender is. */
     data class Ping(
         val kind: Int,

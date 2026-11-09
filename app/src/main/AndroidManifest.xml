@@ -83,6 +83,10 @@
             android:exported="false" />
 
         <receiver
+            android:name=".ChatCheckReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".FollowCheckReceiver"
             android:exported="false" />
 
