@@ -165,6 +165,34 @@ object RelayClient {
     /** Biggest file we send or fetch: a short clip (the public relay allows ~15 MB). */
     const val MAX_FILE = 12_000_000
 
+    /** For each id, the newest file posted under it in the last [since] (download URL), or null. One request. */
+    suspend fun latestFiles(ids: List<ByteArray>, since: String = "12h"): List<String?>? = withContext(Dispatchers.IO) {
+        if (!filesEnabled || ids.isEmpty() || !Budget.takeRequest()) return@withContext null
+        runCatching {
+            val topics = ids.map { topic(it) }
+            val c = URL("$NTFY/${topics.joinToString(",")}/json?poll=1&since=${URLEncoder.encode(since, "UTF-8")}")
+                .openConnection() as HttpURLConnection
+            c.connectTimeout = 6_000
+            c.readTimeout = 8_000
+            if (c.responseCode == 429) Budget.backOff()
+            if (c.responseCode != 200) return@runCatching null
+            val newest = HashMap<String, Pair<Long, String>>()
+            c.inputStream.bufferedReader().useLines { lines ->
+                for (line in lines) {
+                    val o = runCatching { JSONObject(line) }.getOrNull() ?: continue
+                    if (o.optString("event") != "message") continue
+                    val url = o.optJSONObject("attachment")?.optString("url").orEmpty()
+                    if (!url.startsWith("https://")) continue
+                    val t = o.optLong("time")
+                    val topicName = o.optString("topic")
+                    if ((newest[topicName]?.first ?: -1) < t) newest[topicName] = t to url
+                }
+            }
+            c.disconnect()
+            topics.map { newest[it]?.second }
+        }.getOrNull()
+    }
+
     /** Download a file from the relay (capped at [MAX_FILE]). */
     suspend fun download(url: String): ByteArray? = withContext(Dispatchers.IO) {
         if (!url.startsWith("$NTFY/")) return@withContext null // only ever fetch from the relay itself

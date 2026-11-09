@@ -197,6 +197,40 @@ object GigArchive {
         gigs.addAll(list)
     }
 
+    /** Debug: a pretend gig from exactly a year ago today, with a few Polaroids, to preview Your gigs and Memories. */
+    suspend fun addSample(c: Context) {
+        withContext(Dispatchers.IO) {
+            val whenSec = java.util.Calendar.getInstance().apply {
+                add(java.util.Calendar.YEAR, -1); set(java.util.Calendar.HOUR_OF_DAY, 20); set(java.util.Calendar.MINUTE, 0)
+            }.timeInMillis / 1000
+            val d = dir(c, "sample-" + System.currentTimeMillis().toString(36))
+            File(d, "meta.json").writeText(JSONObject().put("name", "Sample gig (test)").put("when", whenSec).put("venue", "Spark Arena, Auckland").toString())
+            val people = listOf("You" to 0xFFFF2E93.toInt(), "Bevan" to 0xFF22E4FF.toInt(), "Jo" to 0xFFFFB020.toInt(), "Bevan" to 0xFFB6FF3B.toInt())
+            val captions = listOf("Front row!!", "the crew", "by the sound desk", "")
+            people.forEachIndexed { i, (who, colour) ->
+                val bmp = Bitmap.createBitmap(800, 800, Bitmap.Config.ARGB_8888)
+                val cv = android.graphics.Canvas(bmp)
+                val p = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+                p.shader = android.graphics.LinearGradient(0f, 0f, 800f, 800f, colour, 0xFF0F0B1C.toInt(), android.graphics.Shader.TileMode.CLAMP)
+                cv.drawRect(0f, 0f, 800f, 800f, p)
+                p.shader = null
+                p.color = 0x66FFFFFF
+                for (k in 0 until 6) cv.drawCircle(120f + k * 120f, 600f - (k % 3) * 90f, 40f + k * 6f, p) // "stage lights"
+                val name = "sample$i"
+                File(d, "$name.jpg").writeBytes(java.io.ByteArrayOutputStream().also { bmp.compress(Bitmap.CompressFormat.JPEG, 85, it) }.toByteArray())
+                val o = JSONObject().put("key", "sample-$i").put("from", who).put("t", whenSec + i * 1500).put("cap", captions[i])
+                    .put("mine", who == "You").put("photo", "$name.jpg").put("clip", "")
+                File(d, "items.jsonl").appendText(o.toString() + "\n")
+            }
+        }
+        refreshList(c)
+    }
+
+    suspend fun removeSamples(c: Context) {
+        withContext(Dispatchers.IO) { root(c).listFiles().orEmpty().filter { it.name.startsWith("sample-") }.forEach { it.deleteRecursively() } }
+        refreshList(c)
+    }
+
     suspend fun delete(c: Context, id: String) {
         withContext(Dispatchers.IO) { File(root(c), id).deleteRecursively() }
         refreshList(c)

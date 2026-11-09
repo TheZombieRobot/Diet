@@ -130,6 +130,13 @@ object FriendsRepository {
 
     fun isSimulated(id: String) = id.startsWith("sim-")
 
+    /** Debug: clear every simulated friend in one go. */
+    fun removeSimulated() {
+        friends.filter { isSimulated(it.id) }.forEach { PhotoStore.remove(it.id) }
+        friends.removeAll { isSimulated(it.id) }
+        save()
+    }
+
     /** A crew member you want to keep: move them to your friends list (stays after "End the night"). */
     fun keepAsFriend(id: String) {
         val i = friends.indexOfFirst { it.id == id && it.gigGroupOnly }

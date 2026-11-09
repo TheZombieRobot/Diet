@@ -58,7 +58,8 @@ class MainActivity : ComponentActivity() {
                 myName = name.substringBefore(' ')
                 VisibilityPrefs.setMyName(this, myName)
             }
-            if (photo != null) {
+            // Your Facebook picture becomes your photo unless you've already chosen one.
+            if (photo != null && PhotoStore.photos[PhotoStore.ME] == null) {
                 lifecycleScope.launch {
                     if (PhotoStore.set(PhotoStore.ME, photo)) AvatarSync.publishMine(this@MainActivity, force = true)
                 }
@@ -782,6 +783,10 @@ class MainActivity : ComponentActivity() {
                         nz.waveformlabs.moshpoint.ui.PlanGigSheet(
                             search = if (GigSearch.available) ({ q -> GigSearch.search(q) }) else null,
                             onPick = { name, at, venue, lat, lon ->
+                                if (at < System.currentTimeMillis() / 1000 - 3600) {
+                                    toast("That time has already passed. Pick when the gig starts.")
+                                    return@PlanGigSheet
+                                }
                                 planGig = false
                                 GroupSync.startNew(this@MainActivity, name, at, venue, lat, lon)
                                 if (!GroupSync.sleeping) setVisibility(true)

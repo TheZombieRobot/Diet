@@ -25,7 +25,16 @@ object CrewNotifications {
         )
     }
 
-    fun post(c: Context, channel: String = CHANNEL, title: String, text: String, urgent: Boolean = false, openMap: Boolean = true) {
+    fun post(
+        c: Context,
+        channel: String = CHANNEL,
+        title: String,
+        text: String,
+        urgent: Boolean = false,
+        openMap: Boolean = true,
+        /** Remove it by itself after this long (e.g. "tonight!" once the gig's over). */
+        timeoutMs: Long = 0L,
+    ) {
         val app = c.applicationContext
         val nm = app.getSystemService(NotificationManager::class.java) ?: return
         nm.createNotificationChannel(NotificationChannel(CHANNEL, "Crew messages", NotificationManager.IMPORTANCE_DEFAULT))
@@ -43,6 +52,7 @@ object CrewNotifications {
             .setPriority(if (urgent) NotificationCompat.PRIORITY_MAX else NotificationCompat.PRIORITY_DEFAULT)
             .setCategory(if (urgent) NotificationCompat.CATEGORY_ALARM else NotificationCompat.CATEGORY_MESSAGE)
             .setAutoCancel(true)
+            .apply { if (timeoutMs > 0) setTimeoutAfter(timeoutMs) }
             .setContentIntent(open)
             .setColor(if (urgent) 0xFFFF3B5C.toInt() else 0xFFB6FF3B.toInt())
             .build()

@@ -90,7 +90,14 @@ object GroupSync {
         )
         followingState.value = p.getBoolean("following", false)
         if (System.currentTimeMillis() > g.expiresAtMs) {
+            // The night's over: close the crew. The photos and clips stay in Your gigs.
+            val hadMoments = runCatching { java.io.File(java.io.File(c.filesDir, "gigs"), GigArchive.idFor(g)).list()?.isNotEmpty() == true }.getOrDefault(false)
             clear(c)
+            CrewNotifications.post(
+                c, title = "${g.name} is done",
+                text = if (hadMoments) "Your photos and clips are saved in Your gigs." else "Hope it was a good one. Start a new crew any time.",
+                openMap = false,
+            )
             return
         }
         group.value = g
@@ -305,6 +312,8 @@ object GroupSync {
             g.pingIdForEpoch(epoch), g.pingIdForEpoch(epoch - 1),
         ) + crewIds.map { it.second }
         Moments.refresh(c, g)
+        AvatarSync.publishMine(c) // our face on the crew's tiles (re-shared every couple of hours)
+        AvatarSync.fetchFriends(c)
         checkOverdue(c)
         val found = RelayClient.lookup(ids) ?: return
         found.subList(0, 2).flatten().forEach { received(c, g, it) }

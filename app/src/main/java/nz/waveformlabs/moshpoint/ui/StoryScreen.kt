@@ -33,6 +33,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.animation.core.animateFloat
 import kotlinx.coroutines.launch
 import androidx.compose.ui.geometry.Offset
@@ -270,11 +274,16 @@ fun StoryScreen(
     open?.let { start ->
         Dialog(onDismissRequest = { open = null }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
             val pager = rememberPagerState(initialPage = start) { timeline.size }
+            var full by remember { mutableStateOf<Moments.Item?>(null) }
             Box(Modifier.fillMaxSize().background(Color(0xF007050F))) {
                 HorizontalPager(pager, Modifier.fillMaxSize()) { page ->
                     val m = timeline[page]
                     Column(Modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                        if (m.isVideo && m.videoFile != null) VideoPolaroid(m) else Polaroid(m, 300.dp, tilted = false)
+                        // Tap again for edge-to-edge full screen.
+                        Box(Modifier.clickable { full = m }) {
+                            if (m.isVideo && m.videoFile != null) VideoPolaroid(m) else Polaroid(m, 300.dp, tilted = false)
+                        }
+                        Text("Tap for full screen", style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint), modifier = Modifier.padding(top = 8.dp))
                         Spacer(Modifier.height(18.dp))
                         Text("${if (m.mine) "You" else m.from} · ${clockTime(m.timeSec)} · ${ago(nowSec - m.timeSec)}", style = Mosh.Body.copy(color = Mosh.TextDim))
                         Row {
@@ -289,8 +298,72 @@ fun StoryScreen(
                 }
                 Row(Modifier.align(Alignment.TopCenter).padding(top = 16.dp)) { Text("${pager.currentPage + 1} / ${timeline.size}", style = Mosh.Eyebrow) }
                 TextButton(onClick = { open = null }, modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)) { Text("✕", style = Mosh.Label.copy(fontSize = 18.sp)) }
+                full?.let { FullScreenMedia(it) { full = null } }
             }
         }
+    }
+}
+
+/**
+ * Edge to edge: a photo at its best quality (pinch to zoom, double-tap to reset), or a clip
+ * playing full screen with sound. Back or ✕ to return.
+ */
+@Composable
+internal fun FullScreenMedia(m: Moments.Item, onClose: () -> Unit) {
+    val hasBack = androidx.activity.compose.LocalOnBackPressedDispatcherOwner.current != null
+    if (hasBack) androidx.activity.compose.BackHandler(onBack = onClose)
+    Box(Modifier.fillMaxSize().background(Color.Black)) {
+        val video = m.videoFile
+        if (video != null) {
+            androidx.compose.ui.viewinterop.AndroidView(
+                factory = { ctx ->
+                    android.widget.VideoView(ctx).apply {
+                        setVideoPath(video.absolutePath)
+                        setMediaController(android.widget.MediaController(ctx).also { it.setAnchorView(this) })
+                        setOnPreparedListener { it.isLooping = true; start() }
+                    }
+                },
+                modifier = Modifier.fillMaxSize(),
+            )
+        } else {
+            // Best version we have: your original, else the shared photo.
+            val best = remember(m.key) {
+                val f = m.originalFile?.takeIf { it.exists() } ?: m.photoFile
+                f?.let { file ->
+                    val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                    android.graphics.BitmapFactory.decodeFile(file.absolutePath, bounds)
+                    var sample = 1
+                    while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= 2400) sample *= 2
+                    android.graphics.BitmapFactory.decodeFile(file.absolutePath, android.graphics.BitmapFactory.Options().apply { inSampleSize = sample })?.asImageBitmap()
+                } ?: m.image
+            }
+            var scale by remember { mutableStateOf(1f) }
+            var offset by remember { mutableStateOf(Offset.Zero) }
+            Image(
+                best, contentDescription = null, contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize()
+                    .pointerInput(m.key) {
+                        detectTapGestures(onDoubleTap = { scale = 1f; offset = Offset.Zero })
+                    }
+                    .pointerInput(m.key) {
+                        detectTransformGestures { _, pan, zoom, _ ->
+                            scale = (scale * zoom).coerceIn(1f, 6f)
+                            offset = if (scale == 1f) Offset.Zero else offset + pan
+                        }
+                    }
+                    .graphicsLayer { scaleX = scale; scaleY = scale; translationX = offset.x; translationY = offset.y },
+            )
+        }
+        TextButton(
+            onClick = onClose,
+            modifier = Modifier.align(Alignment.TopEnd).padding(12.dp).background(Color(0x66000000), androidx.compose.foundation.shape.CircleShape),
+        ) { Text("✕", style = Mosh.Label.copy(fontSize = 18.sp, color = Color.White)) }
+        Text(
+            "${if (m.mine) "You" else m.from} · ${clockTime(m.timeSec)}" + if (m.caption.isNotBlank()) " · ${m.caption}" else "",
+            style = Mosh.Body.copy(color = Color.White, fontSize = 13.sp),
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 28.dp).background(Color(0x66000000), androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+        )
     }
 }
 

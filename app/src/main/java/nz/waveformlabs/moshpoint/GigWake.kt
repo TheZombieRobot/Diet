@@ -15,26 +15,40 @@ import nz.waveformlabs.moshpoint.core.GigGroup
 object GigWake {
     private const val REQUEST = 41
 
+    const val ACTION_END = "nz.waveformlabs.moshpoint.GIG_END"
+
     fun schedule(c: Context, g: GigGroup) {
         val app = c.applicationContext
-        if (!g.dormant(System.currentTimeMillis())) return cancel(app)
         val am = app.getSystemService(AlarmManager::class.java) ?: return
-        runCatching { am.set(AlarmManager.RTC_WAKEUP, g.wakeAtSec * 1000, pending(app)) }
+        // Gig day: wake the crew. The morning after: end it (memories stay in Your gigs).
+        if (g.dormant(System.currentTimeMillis())) runCatching { am.set(AlarmManager.RTC_WAKEUP, g.wakeAtSec * 1000, pending(app, false)) }
+        else runCatching { am.cancel(pending(app, false)) }
+        runCatching { am.set(AlarmManager.RTC, g.expiresAtMs + 60_000, pending(app, true)) }
     }
 
     fun cancel(c: Context) {
-        runCatching { c.applicationContext.getSystemService(AlarmManager::class.java)?.cancel(pending(c.applicationContext)) }
+        val am = c.applicationContext.getSystemService(AlarmManager::class.java) ?: return
+        runCatching { am.cancel(pending(c.applicationContext, false)) }
+        runCatching { am.cancel(pending(c.applicationContext, true)) }
     }
 
-    private fun pending(c: Context) = PendingIntent.getBroadcast(
-        c, REQUEST, Intent(c, GigWakeReceiver::class.java), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+    private fun pending(c: Context, end: Boolean) = PendingIntent.getBroadcast(
+        c, if (end) REQUEST + 1 else REQUEST,
+        Intent(c, GigWakeReceiver::class.java).apply { if (end) action = ACTION_END },
+        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
     )
 }
 
 class GigWakeReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        // The morning after: loading a finished crew ends it (and says where the photos went).
+        if (intent.action == GigWake.ACTION_END) {
+            GroupSync.load(context)
+            return
+        }
         GroupSync.load(context)
         val g = GroupSync.group.value ?: return
+        if (System.currentTimeMillis() / 1000 > g.startsAtSec + 2 * 3600) return // too late to say "tonight"
         val time = java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(java.util.Date(g.startsAtSec * 1000))
         CrewNotifications.post(
             context,
@@ -42,6 +56,8 @@ class GigWakeReceiver : BroadcastReceiver() {
             text = "Starts $time${if (g.venue.isNotBlank()) " at ${g.venue}" else ""}. Tap to go live so your crew can find you.",
             urgent = false,
             openMap = false,
+            // Gone by itself once the gig's well under way, so it's never stale the next morning.
+            timeoutMs = ((g.startsAtSec + 4 * 3600) * 1000 - System.currentTimeMillis()).coerceAtLeast(60_000),
         )
     }
 }

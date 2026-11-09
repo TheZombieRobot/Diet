@@ -1,5 +1,7 @@
 package nz.waveformlabs.moshpoint.ui
 
+import kotlinx.coroutines.launch
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -170,6 +172,24 @@ internal fun SettingsContent(
                     }
                     Spacer(Modifier.width(12.dp))
                     Switch((BuildConfig.TEST_BUILD && DebugStatus.showUi), { DebugStatus.setShowUi(context, it) }, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Amber, checkedThumbColor = Color(0xFF1A1000), uncheckedTrackColor = Color(0xFF1C1630)))
+                }
+                if (BuildConfig.TEST_BUILD && nz.waveformlabs.moshpoint.DebugStatus.showUi) {
+                    val scope = androidx.compose.runtime.rememberCoroutineScope()
+                    Text("TESTING", style = Mosh.Eyebrow)
+                    Column {
+                        TextButton(onClick = { nz.waveformlabs.moshpoint.FriendsRepository.removeSimulated() }) {
+                            Text("Remove simulated friends", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber))
+                        }
+                        TextButton(onClick = { scope.launch { nz.waveformlabs.moshpoint.GigArchive.addSample(context) } }) {
+                            Text("Add a sample past gig (memories)", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber))
+                        }
+                        TextButton(onClick = { nz.waveformlabs.moshpoint.Memories.notifyNow(context) }) {
+                            Text("Show memory notification", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber))
+                        }
+                        TextButton(onClick = { scope.launch { nz.waveformlabs.moshpoint.GigArchive.removeSamples(context) } }) {
+                            Text("Remove sample gigs", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber))
+                        }
+                    }
                 }
             }
             Box(Modifier.fillMaxWidth().height(1.dp).background(Mosh.Line))

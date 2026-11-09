@@ -247,6 +247,8 @@ fun FriendsScreen(
                 "Find", style = Mosh.Label.copy(fontSize = 12.sp, color = Color(f.color)),
                 modifier = Modifier.background(Color(f.color).copy(alpha = 0.12f), CircleShape).padding(horizontal = 10.dp, vertical = 4.dp),
             )
+            // Options (remove, photo, keep) without having to know about long-press.
+            TextButton(onClick = { options = f }) { Text("⋯", style = Mosh.Heading.copy(fontSize = 20.sp, color = Mosh.TextDim)) }
         }
     }
 
@@ -409,6 +411,7 @@ fun FriendsScreen(
                             else NeonButton("Show crew QR", onClick = onShowGroupQr)
                         } else {
                             CrewTiles(gig, seen, nowSec, onFind = { onFind(setOf(it)) }, onOptions = { options = it }, distances = distances)
+                            Text("Tap a mate to find them · hold for options", style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint))
                             NeonButton(if (gig.size == 1) "Find ${gig[0].name}" else "Find everyone") { onFind(gig.map { it.id }.toSet()) }
                             if (checkInBy != null) CheckInBanner(checkInBy, onHomeSafe)
                             CrewActions(onMessage = { messageOpen = true }, onMoment = onShareMoment)

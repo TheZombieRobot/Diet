@@ -32,6 +32,15 @@ object Memories {
         return "$ago: ${g.name}" + if (with.isNotEmpty()) " with ${with.joinToString(" & ")}" else ""
     }
 
+    /** Debug: show today's memory notification right now (add a sample past gig first). */
+    fun notifyNow(c: Context) {
+        val (g, years) = today(GigArchive.gigs).firstOrNull() ?: GigArchive.gigs.firstOrNull()?.let { it to 1 } ?: run {
+            CrewNotifications.post(c, title = "No past gigs yet", text = "Add a sample past gig first.", openMap = false)
+            return
+        }
+        CrewNotifications.post(c, title = headline(g, years), text = "${g.photos + g.clips} photos and clips. Tap to relive it.", openMap = false)
+    }
+
     /** Set an alarm for 10 am on the next anniversary of any kept gig. */
     fun schedule(c: Context, gigs: List<GigArchive.Summary>) {
         val app = c.applicationContext
