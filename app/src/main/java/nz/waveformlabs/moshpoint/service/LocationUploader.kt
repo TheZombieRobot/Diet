@@ -36,6 +36,7 @@ class LocationUploader(private val context: Context, private val scope: Coroutin
     private var lastKey: String? = null
     private var lastLoc: Location? = null
     private var gaspSent = false
+    private var lastSentLoc: Location? = null
     private var boostUntil = 0L
 
     /** A mate is looking for us right now: share our spot more often for a few minutes. */
@@ -85,14 +86,20 @@ class LocationUploader(private val context: Context, private val scope: Coroutin
         CrowdRelayRadio.ownPacket = RelayPacket(RelayPacket.MAX_TTL, id, LocationBox.seal(mySecret, id, shared))
         val key = "${id.contentHashCode()}:${(loc.latitude * 1e5).toLong()}:${(loc.longitude * 1e5).toLong()}"
         if (!force) {
-            val gap = if (now < boostUntil) minOf(RelayClient.uploadGapMs, 30_000L) else RelayClient.uploadGapMs
+            val boosted = now < boostUntil
+            val gap = if (boosted) minOf(RelayClient.uploadGapMs, 30_000L) else RelayClient.uploadGapMs
             if (now - lastUploadMs < gap) return
-            // Standing still: a refresh every 3 minutes is plenty (the relay keeps the last one).
-            if (key == lastKey && now - lastUploadMs < 180_000) return
+            // Only when you've actually moved (GPS wobbles ~10 m), else a refresh every few
+            // minutes. On the free public relay this is what makes a phone last a whole night.
+            val moved = lastSentLoc?.distanceTo(loc) ?: Float.MAX_VALUE
+            val minMove = if (RelayClient.ownServer) 10f else 25f
+            val refreshMs = if (RelayClient.ownServer) 180_000L else if (boosted) 60_000L else 240_000L
+            if (moved < minMove && now - lastUploadMs < refreshMs) return
         }
         if (RelayClient.put(id, LocationBox.seal(mySecret, id, shared))) {
             lastUploadMs = now
             lastKey = key
+            lastSentLoc = loc
             DebugStatus.set("Location", "shared ${if (lastGasp) "(last gasp) " else ""}via ${RelayClient.label}")
         }
     }

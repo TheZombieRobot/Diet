@@ -1,0 +1,17 @@
+# One-tap deploy of the Moshpoint relay server on Render (free plan).
+# In a browser: https://render.com/deploy?repo=https://github.com/TheZombieRobot/Diet
+# Then paste the service's address (https://moshpoint-relay-XXXX.onrender.com) into the
+# app: Me > Relay server (or set moshpoint.serverUrl in gradle.properties).
+services:
+  - type: web
+    name: moshpoint-relay
+    runtime: docker
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: .
+    plan: free
+    region: singapore # closest Render region to NZ
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: FILES_DIR
+        value: /tmp/moshpoint-files

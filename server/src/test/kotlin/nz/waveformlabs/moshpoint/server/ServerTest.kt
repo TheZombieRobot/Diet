@@ -5,11 +5,13 @@ import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsBytes
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class ServerTest {
     private val idHex = "00112233445566778899aabbccddeeff"
@@ -100,5 +102,18 @@ class MailboxStoreTest {
         val s = MailboxStore()
         s.put("a", byteArrayOf(1)); s.put("a", byteArrayOf(2)); s.put("a", byteArrayOf(1))
         assertEquals(listOf(1, 2), s.get("a").map { it[0].toInt() })
+    }
+
+    @Test fun filesPutListGet() = testApplication {
+        val dir = kotlin.io.path.createTempDirectory("mp-files").toFile()
+        application { moshpoint(MailboxStore(), files = FileStore(dir)) }
+        val photo = ByteArray(5_000) { (it % 251).toByte() }
+        val name = client.put("/v1/file/$idHex") { setBody(photo) }.bodyAsText()
+        val listing = client.get("/v1/files/$idHex?since=0").bodyAsText()
+        assertTrue(listing.lines().any { it.endsWith(" $name") }, listing)
+        assertContentEquals(photo, client.get("/v1/file/$idHex/$name").bodyAsBytes())
+        assertEquals(HttpStatusCode.NotFound, client.get("/v1/file/$idHex/../etc").status)
+        assertEquals(HttpStatusCode.BadRequest, client.put("/v1/file/$idHex") { setBody(ByteArray(3)) }.status)
+        dir.deleteRecursively()
     }
 }

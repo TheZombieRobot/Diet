@@ -162,6 +162,35 @@ internal fun SettingsContent(
                     Switch(nz.waveformlabs.moshpoint.ShareQuality.dataSaver.value, { nz.waveformlabs.moshpoint.ShareQuality.setDataSaver(context, it) }, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Cyan, checkedThumbColor = Color(0xFF07050F), uncheckedTrackColor = Color(0xFF1C1630)))
                 }
             }
+            run {
+                // Your own relay server (Render etc.): faster updates and no daily message cap.
+                val context = androidx.compose.ui.platform.LocalContext.current
+                var url by remember { mutableStateOf(nz.waveformlabs.moshpoint.locate.RelayClient.serverUrl) }
+                var note by remember { mutableStateOf<String?>(null) }
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("Relay server", style = Mosh.Label)
+                    Text(
+                        if (nz.waveformlabs.moshpoint.locate.RelayClient.ownServer) "Using your own server. Crews you invite use it too."
+                        else "Using the free public relay (fine for testing; it can run out late in a big night). Paste your own server's address to switch.",
+                        style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint),
+                    )
+                    OutlinedTextField(
+                        url, { url = it; note = null }, singleLine = true, placeholder = { Text("https://moshpoint-relay.onrender.com") },
+                        shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth(),
+                    )
+                    Row {
+                        TextButton(onClick = {
+                            note = if (nz.waveformlabs.moshpoint.locate.RelayClient.setServer(context, url)) "Saved" else "That doesn't look like an https:// address"
+                        }) { Text("Save", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
+                        TextButton(onClick = {
+                            url = ""
+                            nz.waveformlabs.moshpoint.locate.RelayClient.setServer(context, "")
+                            note = "Back on the public relay"
+                        }) { Text("Use public relay", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.TextDim)) }
+                    }
+                    note?.let { Text(it, style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.Lime)) }
+                }
+            }
             if (BuildConfig.TEST_BUILD) {
                 // Test builds only: hide the techie bits, e.g. before sharing the app with mates.
                 val context = androidx.compose.ui.platform.LocalContext.current

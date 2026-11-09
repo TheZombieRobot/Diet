@@ -28,6 +28,9 @@ import kotlinx.io.readByteArray
  *                         for each id in order: `[count:1]` then `[len:1][bytes]` x count.
  *                         One round trip for a whole gig group, including the previous
  *                         rotation's ids.
+ * - `PUT  /v1/file/{id}`  body = one sealed file (crew photo/clip, profile photo), up to 12 MB.
+ * - `GET  /v1/files/{id}?since=<unix s>` -> lines "<time> <name>", newest first.
+ * - `GET  /v1/file/{id}/{name}` -> the sealed file.
  * - `GET  /healthz`
  */
 fun Application.moshpoint(
@@ -36,12 +39,14 @@ fun Application.moshpoint(
     putLimit: RateLimiter = RateLimiter(capacity = 120.0, refillPerSec = 2.0),
     getLimit: RateLimiter = RateLimiter(capacity = 60.0, refillPerSec = 1.0),
     avatars: AvatarStore = AvatarStore(),
+    files: FileStore = FileStore(),
 ) {
     launch {
         while (true) {
             delay(60_000)
             store.sweep()
             avatars.sweep()
+            files.sweep()
             putLimit.sweep()
             getLimit.sweep()
         }
@@ -95,6 +100,33 @@ fun Application.moshpoint(
             call.respondBytes(data, ContentType.Application.OctetStream)
         }
 
+        // Sealed files: crew photos/clips and profile photos (see the app's Moments / AvatarSync).
+        put("/v1/file/{id}") {
+            if (!putLimit.allow(call.client())) return@put call.respondText("slow down", status = HttpStatusCode.TooManyRequests)
+            val id = call.parameters["id"]?.lowercase()
+            if (id == null || !ID_RE.matches(id)) return@put call.respondText("bad id", status = HttpStatusCode.BadRequest)
+            val body = call.receiveChannel().readRemaining(MAX_FILE + 1L).readByteArray()
+            if (body.size < 28 || body.size > MAX_FILE) return@put call.respondText("bad size", status = HttpStatusCode.BadRequest)
+            call.respondText(files.put(id, body))
+        }
+
+        get("/v1/files/{id}") {
+            if (!getLimit.allow(call.client())) return@get call.respondText("slow down", status = HttpStatusCode.TooManyRequests)
+            val id = call.parameters["id"]?.lowercase()
+            if (id == null || !ID_RE.matches(id)) return@get call.respondText("bad id", status = HttpStatusCode.BadRequest)
+            val since = call.request.queryParameters["since"]?.toLongOrNull() ?: 0L
+            call.respondText(files.list(id, since).joinToString("\n") { "${it.first} ${it.second}" })
+        }
+
+        get("/v1/file/{id}/{name}") {
+            if (!getLimit.allow(call.client())) return@get call.respondText("slow down", status = HttpStatusCode.TooManyRequests)
+            val id = call.parameters["id"]?.lowercase()
+            val name = call.parameters["name"].orEmpty()
+            if (id == null || !ID_RE.matches(id)) return@get call.respondText("bad id", status = HttpStatusCode.BadRequest)
+            val data = files.get(id, name) ?: return@get call.respondText("", status = HttpStatusCode.NotFound)
+            call.respondBytes(data, ContentType.Application.OctetStream)
+        }
+
         post("/v1/lookup") {
             if (!getLimit.allow(call.client())) return@post call.respondText("slow down", status = HttpStatusCode.TooManyRequests)
             val body = call.receiveChannel().readRemaining(MAX_LOOKUP * 16 + 1L).readByteArray()
@@ -118,6 +150,7 @@ private const val MIN_RECORD = 16
 private const val MAX_RECORD = 128
 private const val MAX_LOOKUP = 64
 private const val MAX_AVATAR = 48 * 1024 + 64
+private const val MAX_FILE = 12_000_000
 
 private fun encodeRecordsBody(records: List<ByteArray>): ByteArray {
     val out = java.io.ByteArrayOutputStream()

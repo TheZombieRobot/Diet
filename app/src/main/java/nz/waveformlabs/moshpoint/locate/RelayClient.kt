@@ -28,7 +28,27 @@ object RelayClient {
     val enabled get() = true
 
     /** Our own server is configured (photos and the crowd-relay upload need it). */
-    val ownServer get() = BuildConfig.MOSHPOINT_SERVER.isNotBlank()
+    val ownServer get() = base.isNotBlank()
+
+    /**
+     * The relay server address: set in the app (Me > Relay server, or carried in a crew's
+     * invite) or baked into the build. Blank = the free public relay.
+     */
+    @Volatile var serverUrl: String = ""
+        private set
+
+    fun init(c: android.content.Context) {
+        serverUrl = c.applicationContext.getSharedPreferences("relay", android.content.Context.MODE_PRIVATE).getString("url", null).orEmpty()
+    }
+
+    /** Use [url] as the relay (blank = public relay / build default). Returns false if it isn't a valid https address. */
+    fun setServer(c: android.content.Context, url: String): Boolean {
+        val u = url.trim().trimEnd('/')
+        if (u.isNotEmpty() && !Regex("^https://[A-Za-z0-9.-]+(:[0-9]+)?(/[A-Za-z0-9._~/-]*)?$").matches(u)) return false
+        serverUrl = u
+        c.applicationContext.getSharedPreferences("relay", android.content.Context.MODE_PRIVATE).edit().putString("url", u).apply()
+        return true
+    }
 
     /** Profile photos are too big for the public relay. */
     val avatarsEnabled get() = ownServer
@@ -42,7 +62,10 @@ object RelayClient {
     /** Minimum gap between our own location posts. */
     val uploadGapMs get() = if (ownServer) 15_000L else 75_000L
 
-    private val base get() = BuildConfig.MOSHPOINT_SERVER.trimEnd('/')
+    private val base get() = serverUrl.ifBlank { BuildConfig.MOSHPOINT_SERVER }.trimEnd('/')
+
+    /** The address crews should share (blank = public relay). */
+    val shareableServer get() = base
     private const val NTFY = "https://ntfy.sh"
 
     suspend fun put(id: ByteArray, sealed: ByteArray): Boolean = withContext(Dispatchers.IO) {
@@ -115,10 +138,11 @@ object RelayClient {
     }
 
     /** Photos (crew moments) go as encrypted file attachments: public relay only for now. */
-    val filesEnabled get() = !ownServer
+    val filesEnabled get() = true
 
     /** Upload an encrypted file (e.g. a crew moment) under [id]. ntfy.sh keeps it a few hours. */
     suspend fun putFile(id: ByteArray, sealed: ByteArray): Boolean = withContext(Dispatchers.IO) {
+        if (ownServer) return@withContext ownPut("$base/v1/file/${id.hex()}", sealed, 20_000)
         if (!filesEnabled || !Budget.takeMessage()) return@withContext false
         runCatching {
             val c = URL("$NTFY/${topic(id)}").openConnection() as HttpURLConnection
@@ -139,6 +163,10 @@ object RelayClient {
 
     /** Files posted under [ids] in the last [since] (e.g. "4h"): (time, download URL), newest first. */
     suspend fun listFiles(ids: List<ByteArray>, since: String = "4h"): List<Pair<Long, String>>? = withContext(Dispatchers.IO) {
+        if (ownServer) {
+            val sinceSec = System.currentTimeMillis() / 1000 - sinceSeconds(since)
+            return@withContext ids.flatMap { ownList(it, sinceSec) ?: return@withContext null }.sortedByDescending { it.first }
+        }
         if (!filesEnabled || ids.isEmpty() || !Budget.takeRequest()) return@withContext null
         runCatching {
             val c = URL("$NTFY/${ids.joinToString(",") { topic(it) }}/json?poll=1&since=${URLEncoder.encode(since, "UTF-8")}")
@@ -167,6 +195,10 @@ object RelayClient {
 
     /** For each id, the newest file posted under it in the last [since] (download URL), or null. One request. */
     suspend fun latestFiles(ids: List<ByteArray>, since: String = "12h"): List<String?>? = withContext(Dispatchers.IO) {
+        if (ownServer) {
+            val sinceSec = System.currentTimeMillis() / 1000 - sinceSeconds(since)
+            return@withContext ids.map { (ownList(it, sinceSec) ?: return@withContext null).firstOrNull()?.second }
+        }
         if (!filesEnabled || ids.isEmpty() || !Budget.takeRequest()) return@withContext null
         runCatching {
             val topics = ids.map { topic(it) }
@@ -195,8 +227,9 @@ object RelayClient {
 
     /** Download a file from the relay (capped at [MAX_FILE]). */
     suspend fun download(url: String): ByteArray? = withContext(Dispatchers.IO) {
-        if (!url.startsWith("$NTFY/")) return@withContext null // only ever fetch from the relay itself
-        if (!Budget.takeRequest()) return@withContext null
+        val mine = ownServer && url.startsWith("$base/v1/file/")
+        if (!mine && !url.startsWith("$NTFY/")) return@withContext null // only ever fetch from the relay itself
+        if (!mine && !Budget.takeRequest()) return@withContext null
         runCatching {
             val c = URL(url).openConnection() as HttpURLConnection
             c.connectTimeout = 8_000
@@ -219,6 +252,31 @@ object RelayClient {
     }
 
     private fun topic(id: ByteArray) = "mp" + id.hex()
+
+    /** Own server: (time, download URL) of files under [id] since [sinceSec]. */
+    private fun ownList(id: ByteArray, sinceSec: Long): List<Pair<Long, String>>? = runCatching {
+        val c = URL("$base/v1/files/${id.hex()}?since=$sinceSec").openConnection() as HttpURLConnection
+        c.connectTimeout = 6_000
+        c.readTimeout = 8_000
+        if (c.responseCode != 200) return@runCatching null
+        val body = c.inputStream.bufferedReader().use { it.readText() }
+        c.disconnect()
+        body.lines().mapNotNull { l ->
+            val parts = l.trim().split(' ')
+            if (parts.size != 2) return@mapNotNull null
+            parts[0].toLongOrNull()?.let { it to "$base/v1/file/${id.hex()}/${parts[1]}" }
+        }
+    }.getOrNull()
+
+    private fun sinceSeconds(s: String): Long {
+        val n = s.dropLast(1).toLongOrNull() ?: return 4 * 3600
+        return when (s.last()) {
+            'h' -> n * 3600
+            'm' -> n * 60
+            'd' -> n * 86_400
+            else -> n
+        }
+    }
 
     private fun ownPut(url: String, body: ByteArray, timeout: Int): Boolean = runCatching {
         val c = URL(url).openConnection() as HttpURLConnection

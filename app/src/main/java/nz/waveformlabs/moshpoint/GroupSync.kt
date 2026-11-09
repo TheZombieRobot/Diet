@@ -60,6 +60,7 @@ object GroupSync {
     private var job: Job? = null
     private var listening = false
     private var postedEpoch = Long.MIN_VALUE
+    private var startedAtMs = 0L
     /** True while the app is on screen: scan for intros fast so people join in seconds. */
     @Volatile var appOpen = false
         private set
@@ -80,6 +81,7 @@ object GroupSync {
     private fun prefs(c: Context) = c.getSharedPreferences("group", Context.MODE_PRIVATE)
 
     fun load(c: Context) {
+        RelayClient.init(c)
         val p = prefs(c)
         val key = p.getString("key", null) ?: return
         val created = p.getLong("created", 0)
@@ -254,6 +256,7 @@ object GroupSync {
         val myName = (if (follower) GigGroup.FOLLOWER_MARK else "") + VisibilityPrefs.myName(c).ifBlank { "Mate" }
         if (!follower) startListening(c, g)
         postedEpoch = Long.MIN_VALUE
+        startedAtMs = System.currentTimeMillis()
         job = scope.launch {
             var lastServer = 0L
             var slot = 0
@@ -292,7 +295,11 @@ object GroupSync {
     private suspend fun syncServer(c: Context, g: GigGroup, intro: ByteArray, now: Long) {
         val epoch = Math.floorDiv(now, EphemeralId.DEFAULT_ROTATION_MS)
         // Post once per rotation (the box id changes with it); just look the rest of the time.
-        if (epoch != postedEpoch && RelayClient.put(g.rosterIdForEpoch(epoch), intro)) postedEpoch = epoch
+        // On the free public relay (250 messages a day) post the intro every rotation only for
+        // the first half hour, then every third (by then the crew mostly knows each other,
+        // and Bluetooth gossip fills gaps). Own server: every rotation.
+        val frugal = !RelayClient.ownServer && now - startedAtMs > 30 * 60_000L && epoch % 3 != 0L
+        if (epoch != postedEpoch && !frugal && RelayClient.put(g.rosterIdForEpoch(epoch), intro)) postedEpoch = epoch
         val day = Math.floorDiv(now / 1000, 86_400L)
         // Our meet-up pin: post when set, then every 10 min (the public relay only keeps recent posts).
         val myRally = rally.value?.takeIf { rallyMine }

@@ -30,6 +30,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.core.FriendRecord
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.locate.RelayClient
 import nz.waveformlabs.moshpoint.core.QrPayload
 import nz.waveformlabs.moshpoint.locate.LocatorEngine
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
@@ -298,6 +299,11 @@ class MainActivity : ComponentActivity() {
     private fun handleInvite(text: String?, quietIfNone: Boolean = false): Boolean {
         when (val inv = text?.let { nz.waveformlabs.moshpoint.core.Invite.find(it) }) {
             is nz.waveformlabs.moshpoint.core.Invite.Group -> {
+                // Use the crew's relay server if the invite names one.
+                inv.qrText.substringBefore("&name=").split('&').firstOrNull { it.startsWith("r=") }?.removePrefix("r=")
+                    ?.let { runCatching { java.net.URLDecoder.decode(it, "UTF-8") }.getOrNull() }
+                    ?.takeIf { it != RelayClient.shareableServer }
+                    ?.let { if (RelayClient.setServer(this, it)) DebugStatus.log("Using the crew's relay server") }
                 if (!GroupSync.join(this, inv.qrText)) {
                     toast("That group invite has expired. Ask for a new one.")
                     return false
@@ -747,7 +753,7 @@ class MainActivity : ComponentActivity() {
                                     Sharing.send(
                                         this@MainActivity,
                                         "Follow our night at ${g.name} on Moshpoint: see our photos as they come in and that we're safe.\n" +
-                                            getTheApp + GigGroup.qr(g, null, follower = true),
+                                            getTheApp + withRelay(GigGroup.qr(g, null, follower = true)),
                                         "Let family follow along",
                                     )
                                 }
@@ -1057,7 +1063,13 @@ class MainActivity : ComponentActivity() {
 
     /** The crew QR / invite text, with us inside it so whoever joins can find us at once. */
     private fun crewQr(g: GigGroup) =
-        GigGroup.qr(g, GigGroup.Intro(VisibilityPrefs.mySecret(this), myName.ifBlank { "Mate" }))
+        withRelay(GigGroup.qr(g, GigGroup.Intro(VisibilityPrefs.mySecret(this), myName.ifBlank { "Mate" })))
+
+    /** The crew's relay server travels in the invite, so everyone who joins uses the same one. */
+    private fun withRelay(qr: String): String {
+        val r = RelayClient.shareableServer.takeIf { it.isNotBlank() } ?: return qr
+        return qr.replaceFirst("&name=", "&r=${java.net.URLEncoder.encode(r, "UTF-8")}&name=")
+    }
 
     private fun shareGroup(g: GigGroup) {
         Sharing.send(this, "Join my crew \"${g.name}\" on Moshpoint tonight!\n" + getTheApp + crewQr(g), "Send the group invite")
