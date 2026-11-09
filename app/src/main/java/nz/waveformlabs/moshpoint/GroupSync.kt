@@ -344,6 +344,18 @@ object GroupSync {
         }
     }
 
+    /**
+     * While the chat is open: fetch just the crew's pings (chat, plan, flares) now. Works for
+     * a crew that's asleep until gig day too, without waking Bluetooth or location.
+     */
+    suspend fun pollPingsNow(c: Context) {
+        val g = group.value ?: return
+        val epoch = Math.floorDiv(System.currentTimeMillis(), EphemeralId.DEFAULT_ROTATION_MS)
+        CrewChat.tick(c)
+        val found = RelayClient.lookup(listOf(g.pingIdForEpoch(epoch), g.pingIdForEpoch(epoch - 1))) ?: return
+        found.flatten().forEach { blob -> g.openPing(blob)?.let { onPing(c, it, blob) } }
+    }
+
     // ---- Crew pings ----
 
     /** Recent pings from the crew, newest first (Compose state for the home screen). */

@@ -901,6 +901,13 @@ class MainActivity : ComponentActivity() {
                             CrewChat.open = true
                             onDispose { CrewChat.open = false }
                         }
+                        androidx.compose.runtime.LaunchedEffect(Unit) {
+                            // Fresh messages while you're looking (and for crews asleep until gig day).
+                            while (true) {
+                                runCatching { GroupSync.pollPingsNow(this@MainActivity) }
+                                kotlinx.coroutines.delay(if (nz.waveformlabs.moshpoint.locate.RelayClient.ownServer) 8_000 else 20_000)
+                            }
+                        }
                         nz.waveformlabs.moshpoint.ui.CrewChatScreen(
                             crewName = GroupSync.group.value?.name ?: "Crew",
                             lines = CrewChat.lines,

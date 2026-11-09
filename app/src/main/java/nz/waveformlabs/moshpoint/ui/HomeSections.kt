@@ -443,3 +443,24 @@ internal fun PastGigs(gigs: List<nz.waveformlabs.moshpoint.GigArchive.Summary>, 
     }
 }
 
+
+/** "💬 Chat" on the crew card, always there while you're in a crew, with a new-message count. */
+@Composable
+internal fun ChatPill(unread: Int, onClick: () -> Unit) {
+    val (src, sc) = rememberPress()
+    Row(
+        Modifier.pressScale(sc).background(Mosh.Lime.copy(alpha = 0.14f), RoundedCornerShape(20.dp))
+            .border(1.dp, Mosh.Lime.copy(alpha = 0.55f), RoundedCornerShape(20.dp))
+            .clickable(interactionSource = src, indication = androidx.compose.foundation.LocalIndication.current, onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 7.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text("💬 Chat", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Lime))
+        if (unread > 0) {
+            Spacer(Modifier.width(6.dp))
+            Box(Modifier.background(Mosh.Pink, CircleShape).padding(horizontal = 7.dp, vertical = 1.dp)) {
+                Text(if (unread > 9) "9+" else "$unread", style = Mosh.Label.copy(fontSize = 12.sp, color = Color.White))
+            }
+        }
+    }
+}

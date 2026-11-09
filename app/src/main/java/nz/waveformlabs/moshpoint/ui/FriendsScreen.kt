@@ -375,6 +375,7 @@ fun FriendsScreen(
                                 Text(groupName ?: "Your crew", style = Mosh.Heading, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                                 if (crewWhen != null) Text(crewWhen, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), maxLines = 2)
                             }
+                            if (onOpenChat != null && groupName != null) ChatPill(chatUnread, onOpenChat)
                             if (!following) TextButton(onClick = onShowGroupQr) { Text("＋ Invite", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan)) }
                         }
                         if (!following) {
