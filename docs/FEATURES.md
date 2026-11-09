@@ -1,4 +1,4 @@
-# Moshpoint: everything it does (test build 116)
+# Moshpoint: everything it does (test build 120)
 
 Android app for finding your mates at gigs and festivals. No accounts.
 
@@ -35,7 +35,8 @@ Android app for finding your mates at gigs and festivals. No accounts.
 ## 2. Finding a mate (picks the method automatically)
 - **GPS arrow when far:** both phones share encrypted GPS through a free public relay
   (ntfy.sh), and the phone shows an arrow plus distance using the compass. (untested end to end)
-- **Bluetooth up close:** warmer/colder distance from signal strength.
+- **Bluetooth up close:** warmer/colder from signal strength, shown as bands (Right here,
+  Close, Nearby, In range) instead of fake-precise metres.
   - The phone ticks faster as you get closer.
   - A walk-to-find arrow learns the direction from which way you walked when the signal
     got stronger.
@@ -69,8 +70,19 @@ Android app for finding your mates at gigs and festivals. No accounts.
 - **Save this area for no signal:** an offline map of the venue.
 
 ## 4. Messaging and safety
+- **Crew chat:** short messages (up to 140 characters), encrypted with the crew key. Followers
+  at home can read but not post. (untested)
+- **Pinned plan:** one line pinned at the top of the chat and on the crew card ("Sound desk
+  after the encore"). It's re-sent every 8 minutes so late joiners see it. (untested)
+- **Flares:** "Bar time 🍺", "At the rail 🎶", "Lost 😅" and more. Your spot shows for 30
+  minutes, and the vibe shows under your tile. (untested)
+- **Plan card:** the gig, the plan, the meet-up and who's coming, as a shareable picture.
 - **Crew pings:** On my way, Where are you?, Stay put, Meet at the pin, All good.
-- **Need help:** an urgent alert to the crew with your location, after a confirmation.
+- **Need help:**
+  - an urgent alert to the crew with your location;
+  - a text to your emergency contact with a map link (plain SMS, so it works without data);
+  - a Call 111 button;
+  - a hint about satellite SOS when there's no signal.
 - **Check In:** "Heading home" with a 30–90 minute timer. If you don't tap "I'm home safe",
   the crew is alerted. The timer runs on the crew's phones, so it still works if yours dies.
 - **"Bevan is on the move":** fires when a mate moves 200 m or more away from where they
@@ -126,8 +138,10 @@ Android app for finding your mates at gigs and festivals. No accounts.
 - **No account:** rotating codes that change every 5 minutes, and end-to-end encryption
   (AES-GCM) for locations, intros, pings, photos and avatars. The relay only sees scrambled
   bytes.
-- **Own relay server:** written, but not deployed. It would give faster updates, longer
-  clips, and the venue heatmap idea.
+- **Own relay server:** ready to deploy in one tap on Render (free). Paste its address in Me →
+  Relay server. The invites you share carry it, so your crew switches too.
+- **Public relay is frugal:** location is only sent after moving 25 m, and intros less often
+  late in the night, so it lasts a big night.
 - **Test builds:** scrambled (R8), about 27 MB, from a public download link. The repo is
   public; there's a proprietary licence.
 
@@ -135,6 +149,5 @@ Android app for finding your mates at gigs and festivals. No accounts.
 - **No iPhone version yet.** A web-link version for iPhone mates is planned.
 - **Real-crowd accuracy is unproven.** It needs proper field tests.
 - **The public relay is slow:** about one update a minute, with message limits.
-- **No free-text chat**, only pings.
 - **No festival maps, set times or lineups**, and no ticketing or Spotify connections.
 - **No smartwatch support.**
