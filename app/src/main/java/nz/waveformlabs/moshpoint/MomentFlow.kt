@@ -200,27 +200,30 @@ class MomentFlow(
         viewingMoment = m
     }
 
+    /**
+     * The camera, full screen inside the app's own area (so it never sits under the phone's
+     * back/home buttons). Draw it last so it covers the map and the story. Back closes it.
+     */
+    @androidx.compose.runtime.Composable
+    fun CameraOverlay() {
+        if (!capturing) return
+        androidx.activity.compose.BackHandler { capturing = false }
+        nz.waveformlabs.moshpoint.ui.CaptureScreen(
+            withAudio = withAudio,
+            newClipFile = ::newClipFile,
+            onPhoto = { bmp -> capturing = false; momentPhoto = bmp },
+            onClip = { f -> capturing = false; useClip(f) },
+            onGallery = {
+                capturing = false
+                pickMoment.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
+            },
+            onClose = { capturing = false },
+            onError = { msg -> toast(msg) },
+        )
+    }
+
     @androidx.compose.runtime.Composable
     fun Dialogs() {
-        if (capturing) {
-            androidx.compose.ui.window.Dialog(
-                onDismissRequest = { capturing = false },
-                properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
-            ) {
-                nz.waveformlabs.moshpoint.ui.CaptureScreen(
-                    withAudio = withAudio,
-                    newClipFile = ::newClipFile,
-                    onPhoto = { bmp -> capturing = false; momentPhoto = bmp },
-                    onClip = { f -> capturing = false; useClip(f) },
-                    onGallery = {
-                        capturing = false
-                        pickMoment.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
-                    },
-                    onClose = { capturing = false },
-                    onError = { msg -> toast(msg) },
-                )
-            }
-        }
         if (askMomentSource) {
             androidx.compose.material3.AlertDialog(
                 onDismissRequest = { askMomentSource = false },

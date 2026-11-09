@@ -56,13 +56,7 @@ internal fun MomentStrip(items: List<Moments.Item>, nowSec: Long, onOpen: (Momen
             verticalAlignment = Alignment.CenterVertically,
         ) {
             items.take(8).forEach { m -> Polaroid(m, 92.dp, Modifier.clickable { onOpen(m) }) }
-            Column(
-                Modifier.width(92.dp).height(110.dp).border(1.dp, Mosh.Line, RoundedCornerShape(6.dp)).clickable(onClick = onShare),
-                horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center,
-            ) {
-                Text("＋", style = Mosh.Heading.copy(color = Mosh.Cyan))
-                Text("Add", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextDim))
-            }
+            CameraFab(onShare, size = 56.dp)
         }
     }
 }

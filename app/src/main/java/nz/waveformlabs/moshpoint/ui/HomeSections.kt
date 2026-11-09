@@ -341,7 +341,7 @@ internal fun CheckInBanner(byClock: String, onHomeSafe: () -> Unit) {
 internal fun CrewActions(onMessage: () -> Unit, onMoment: () -> Unit) {
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         GlassButton("Message", Modifier.weight(1f), onClick = onMessage)
-        GlassButton("Moment", Modifier.weight(1f), onClick = onMoment)
+        GlassButton("Camera", Modifier.weight(1f), onClick = onMoment)
     }
 }
 

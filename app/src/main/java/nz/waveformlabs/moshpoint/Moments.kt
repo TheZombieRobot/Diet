@@ -142,10 +142,10 @@ object Moments {
         return data.copyOfRange(8, 8 + n) to f
     }
 
-    /** Longest side 720 px, JPEG ~60%: roughly 40-80 KB, plenty to recognise a spot. */
+    /** Longest side 1280 px, JPEG 78%: roughly 150-300 KB. Sharp on the timeline, quick to send. */
     private fun shrink(src: Bitmap): ByteArray {
-        val scale = minOf(1f, 720f / maxOf(src.width, src.height))
+        val scale = minOf(1f, 1280f / maxOf(src.width, src.height))
         val bmp = if (scale < 1f) Bitmap.createScaledBitmap(src, (src.width * scale).toInt(), (src.height * scale).toInt(), true) else src
-        return ByteArrayOutputStream().also { bmp.compress(Bitmap.CompressFormat.JPEG, 60, it) }.toByteArray()
+        return ByteArrayOutputStream().also { bmp.compress(Bitmap.CompressFormat.JPEG, 78, it) }.toByteArray()
     }
 }

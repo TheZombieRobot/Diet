@@ -802,6 +802,11 @@ class MainActivity : ComponentActivity() {
                             onMap = { showStory = false; openMap() },
                             onBack = { showStory = false },
                             following = GroupSync.following,
+                            photoOf = { name, mine ->
+                                if (mine) PhotoStore.photos[PhotoStore.ME]
+                                else FriendsRepository.friends.firstOrNull { it.name.equals(name, true) }?.let { PhotoStore.photos[it.id] }
+                            },
+                            myName = myName,
                         )
                     }
                     if (showMap) {
@@ -871,6 +876,7 @@ class MainActivity : ComponentActivity() {
                             },
                         )
                     }
+                    momentFlow.CameraOverlay()
                 }
             }
         }
