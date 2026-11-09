@@ -188,7 +188,7 @@ class LocatorEngine(
 
     /** Pin the simulated friends [metres] ahead of where the phone is pointing. False = no GPS fix yet. */
     fun pinSimsAhead(metres: Double): Boolean {
-        val me = gps.myLocation ?: run {
+        val me = gps.myFix ?: run {
             DebugStatus.log("Simulator: no GPS fix yet, try again outside")
             return false
         }
@@ -212,7 +212,7 @@ class LocatorEngine(
     /** Where a pinned sim is from us now (east, north metres); each sim a few metres apart. */
     private fun pinnedOffsetFor(id: String): Pair<Double, Double>? {
         val pin = _simPin.value ?: return null
-        val me = gps.myLocation ?: return null
+        val me = gps.myFix ?: return null
         val spread = (id.hashCode() and 0xFF) / 255.0 * 2 * Math.PI
         val n = (pin.lat - me.latitude) * 111_320.0 + 6 * kotlin.math.cos(spread)
         val e = (pin.lon - me.longitude) * 111_320.0 * kotlin.math.cos(Math.toRadians(me.latitude)) + 6 * kotlin.math.sin(spread)
@@ -243,7 +243,7 @@ class LocatorEngine(
             }
             // Pinned: show them on the map too, and let walk-to-find learn from their signal.
             val pin = _simPin.value
-            val me = gps.myLocation
+            val me = gps.myFix
             if (pin != null && me != null) {
                 if (now - (lastSimMapAt[id] ?: 0L) > 10_000) {
                     lastSimMapAt[id] = now

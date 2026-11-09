@@ -38,7 +38,7 @@ class GpsFinder(
     private var me: Location? = null
 
     /** Our latest GPS fix (for simulated friends pinned to real spots). */
-    val myLocation: Location? get() = me
+    val myFix: Location? get() = me
     private var jobs = listOf<Job>()
 
     /** Magnetic declination at our position: add to a compass heading to get true north. */
