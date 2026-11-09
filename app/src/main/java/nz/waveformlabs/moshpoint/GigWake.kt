@@ -21,7 +21,8 @@ object GigWake {
         val app = c.applicationContext
         val am = app.getSystemService(AlarmManager::class.java) ?: return
         // Gig day: wake the crew. The morning after: end it (memories stay in Your gigs).
-        if (g.dormant(System.currentTimeMillis())) runCatching { am.set(AlarmManager.RTC_WAKEUP, g.wakeAtSec * 1000, pending(app, false)) }
+        // "Allow while idle": Doze / battery saving can't hold the gig-day wake-up back for hours.
+        if (g.dormant(System.currentTimeMillis())) runCatching { am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, g.wakeAtSec * 1000, pending(app, false)) }
         else runCatching { am.cancel(pending(app, false)) }
         runCatching { am.set(AlarmManager.RTC, g.expiresAtMs + 60_000, pending(app, true)) }
     }
