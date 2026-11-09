@@ -61,7 +61,7 @@ object AvatarSync {
         scope.launch {
             var got = 0
             val people = FriendsRepository.friends.toList().filter { !FriendsRepository.isSimulated(it.id) && !PhotoStore.isManual(it.id) }
-            fun use(f: Friend, sealed: ByteArray?) {
+            suspend fun use(f: Friend, sealed: ByteArray?) {
                 val jpeg = sealed?.let { AvatarBox.open(f.secret, it) } ?: return
                 if (jpeg.isEmpty()) {
                     PhotoStore.remove(f.id) // they removed their photo
