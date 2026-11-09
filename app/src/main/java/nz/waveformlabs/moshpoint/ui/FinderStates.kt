@@ -152,7 +152,14 @@ internal fun DistanceOnly(list: List<ArrowState.DistanceOnly>, friendOf: (String
                 glow(colour, 12.dp.toPx(), 0.9f) { p -> drawContext.canvas.drawCircle(center, size.minDimension / 2, p) }
                 drawCircle(colour)
             })
-            if (list.size > 1) {
+            if (d.method == nz.waveformlabs.moshpoint.core.Method.BLE_RSSI) {
+                // Signal strength in a crowd can't honestly say "7 m": show a band instead.
+                Text(
+                    ArrowStyle.bandLabel(d.distanceM),
+                    style = Mosh.Distance.copy(fontSize = if (list.size > 1) 32.sp else 52.sp, lineHeight = if (list.size > 1) 34.sp else 56.sp),
+                )
+                Text(ArrowStyle.bandHint(d.distanceM), style = Mosh.Body.copy(color = Mosh.TextFaint))
+            } else if (list.size > 1) {
                 RollingText(ArrowStyle.distanceLabel(d.distanceM), Mosh.Distance.copy(fontSize = 32.sp, lineHeight = 34.sp))
             } else {
                 DistanceReadout(d.distanceM)

@@ -89,7 +89,7 @@ object CrewStatus {
     }
 
     @SuppressLint("MissingPermission")
-    private fun myLocation(c: Context): android.location.Location? {
+    internal fun myLocation(c: Context): android.location.Location? {
         if (c.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
             c.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
         ) return null

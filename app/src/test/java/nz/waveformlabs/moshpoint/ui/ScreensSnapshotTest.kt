@@ -209,6 +209,30 @@ class ScreensSnapshotTest {
     private fun moment(key: String, from: String, t: Long, caption: String, top: Int, bottom: Int, mine: Boolean = false) =
         nz.waveformlabs.moshpoint.Moments.Item(key, from, t, -36.85, 174.77, caption, fakePhoto(top, bottom), mine)
 
+    @Test fun crewChat() = paparazzi.snapshot {
+        MoshTheme {
+            val t = 1_000_000L
+            CrewChatScreen(
+                crewName = "Iron Maiden",
+                lines = listOf(
+                    nz.waveformlabs.moshpoint.CrewChat.Line("Jo", t - 900, "pinned: Sound desk after the encore", false, 12),
+                    nz.waveformlabs.moshpoint.CrewChat.Line("Jo", t - 600, "Anyone want a drink? Bar's quiet right now", false),
+                    nz.waveformlabs.moshpoint.CrewChat.Line("Me", t - 540, "Yes! Cider pls 🙏", true),
+                    nz.waveformlabs.moshpoint.CrewChat.Line("Alex", t - 300, "sent a flare: At the rail 🎶", false, 11),
+                    nz.waveformlabs.moshpoint.CrewChat.Line("Alex", t - 240, "Left side, by the big speaker", false),
+                ),
+                plan = nz.waveformlabs.moshpoint.CrewChat.Plan("Sound desk after the encore", "Jo", t - 900),
+                flares = listOf(nz.waveformlabs.moshpoint.CrewChat.Flare("Alex", "At the rail 🎶", t + 1560, -36.85, 174.77)),
+                myName = "Me",
+                nowSec = t,
+                meetUp = "Gate C",
+                readOnly = false,
+                onSend = {}, onSetPlan = {}, onFlare = {}, onEndFlare = {}, onPing = {}, onCheckIn = {},
+                onSharePlan = {}, onOpenMap = {}, onBack = {},
+            )
+        }
+    }
+
     @Test fun story() = paparazzi.snapshot {
         MoshTheme {
             StoryScreen(

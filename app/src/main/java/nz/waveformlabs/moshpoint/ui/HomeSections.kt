@@ -174,23 +174,7 @@ internal fun PingBar(onPing: (Int) -> Unit, onCheckIn: (Int) -> Unit = {}) {
         )
     }
     if (confirmHelp) {
-        AlertDialog(
-            onDismissRequest = { confirmHelp = false },
-            containerColor = Mosh.Deep,
-            title = { Text("Ask the crew for help?", style = Mosh.Heading) },
-            text = {
-                Text(
-                    "Everyone in your crew gets an urgent alert with where you are. If you're in danger, call emergency services or find festival security.",
-                    style = Mosh.Body,
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = { onPing(GigGroup.Ping.NEED_HELP); sent = GigGroup.Ping.NEED_HELP; confirmHelp = false }) {
-                    Text("Send help alert", style = Mosh.Label.copy(color = Mosh.Danger))
-                }
-            },
-            dismissButton = { TextButton(onClick = { confirmHelp = false }) { Text("Cancel", style = Mosh.Label) } },
-        )
+        HelpDialog(onAlertCrew = { onPing(GigGroup.Ping.NEED_HELP); sent = GigGroup.Ping.NEED_HELP }, onClose = { confirmHelp = false })
     }
 }
 
@@ -338,9 +322,9 @@ internal fun CheckInBanner(byClock: String, onHomeSafe: () -> Unit) {
 
 /** Two calm secondary actions under "Find everyone". */
 @Composable
-internal fun CrewActions(onMessage: () -> Unit, onMoment: () -> Unit) {
+internal fun CrewActions(onMessage: () -> Unit, onMoment: () -> Unit, unread: Int = 0) {
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        GlassButton("Message", Modifier.weight(1f), onClick = onMessage)
+        GlassButton(if (unread > 0) "Chat ($unread)" else "Chat", Modifier.weight(1f), onClick = onMessage)
         GlassButton("Camera", Modifier.weight(1f), onClick = onMoment)
     }
 }

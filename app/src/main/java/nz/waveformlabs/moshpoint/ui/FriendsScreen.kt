@@ -141,6 +141,13 @@ fun FriendsScreen(
     onRemoveMyPhoto: () -> Unit = {},
     /** Null when the build has no Meta app configured. */
     onFacebook: (() -> Unit)? = null,
+    /** Opens the crew chat (pinned plan, messages, flares). */
+    onOpenChat: (() -> Unit)? = null,
+    chatUnread: Int = 0,
+    /** The crew's pinned plan, shown on the card. */
+    pinnedPlan: String? = null,
+    /** "🔥 Bar time 🍺" under a mate's tile while their flare is up. */
+    flareNotes: Map<String, String> = emptyMap(),
 ) {
     var name by remember { mutableStateOf("") }
     var code by remember { mutableStateOf("") }
@@ -391,6 +398,17 @@ fun FriendsScreen(
                                 Text("Map ›", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink))
                             }
                         }
+                        if (pinnedPlan != null && onOpenChat != null) {
+                            Row(
+                                Modifier.fillMaxWidth().background(Mosh.Lime.copy(alpha = 0.10f), RoundedCornerShape(14.dp))
+                                    .border(1.dp, Mosh.Lime.copy(alpha = 0.45f), RoundedCornerShape(14.dp)).clickable(onClick = onOpenChat)
+                                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text("📌  $pinnedPlan", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Lime), modifier = Modifier.weight(1f), maxLines = 2)
+                                Text("Chat ›", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lime))
+                            }
+                        }
                         if (crewSleeping) {
                             Text(
                                 "Asleep until gig day: no Bluetooth, no location, no battery. Mates can join now, and you'll get a nudge on the day.",
@@ -403,6 +421,7 @@ fun FriendsScreen(
                             if (checkInBy != null) CheckInBanner(checkInBy, onHomeSafe)
                             PingFeed(pings.take(3), nowSec, describePing)
                             NeonButton("See the story") { onOpenStory() }
+                            if (onOpenChat != null) GlassButton(if (chatUnread > 0) "Crew chat ($chatUnread new)" else "Crew chat", onClick = onOpenChat)
                             GlassButton("Where are they? (map)", onClick = onOpenMap)
                         } else if (gig.isEmpty() || crewSleeping) {
                             if (gig.isNotEmpty()) CrewTiles(gig, seen, nowSec, onFind = {}, onOptions = { options = it }, distances = emptyMap())
@@ -410,11 +429,11 @@ fun FriendsScreen(
                             else if (crewQrPayload != null) InlineCrewQr(crewQrPayload, onShareCode)
                             else NeonButton("Show crew QR", onClick = onShowGroupQr)
                         } else {
-                            CrewTiles(gig, seen, nowSec, onFind = { onFind(setOf(it)) }, onOptions = { options = it }, distances = distances)
+                            CrewTiles(gig, seen, nowSec, onFind = { onFind(setOf(it)) }, onOptions = { options = it }, distances = distances, notes = flareNotes)
                             Text("Tap a mate to find them · hold for options", style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint))
                             NeonButton(if (gig.size == 1) "Find ${gig[0].name}" else "Find everyone") { onFind(gig.map { it.id }.toSet()) }
                             if (checkInBy != null) CheckInBanner(checkInBy, onHomeSafe)
-                            CrewActions(onMessage = { messageOpen = true }, onMoment = onShareMoment)
+                            CrewActions(onMessage = { if (onOpenChat != null) onOpenChat() else messageOpen = true }, onMoment = onShareMoment, unread = chatUnread)
                             PingFeed(pings.take(1), nowSec, describePing)
                             if (moments.isNotEmpty()) MomentStrip(moments, nowSec, { onOpenStory() }, onShareMoment)
                         }

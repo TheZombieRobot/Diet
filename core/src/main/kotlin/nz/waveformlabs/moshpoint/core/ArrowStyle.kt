@@ -41,4 +41,25 @@ object ArrowStyle {
         distanceM < 1000 -> "${(distanceM / 5).roundToInt() * 5} m"
         else -> "${(distanceM / 100).roundToInt() / 10.0} km"
     }
+
+    /**
+     * Bluetooth signal strength can't honestly give "7 m" in a crowd (bodies soak up the
+     * signal), so it's shown as a band: "Right here", "Close", "Nearby", "In range".
+     */
+    fun bandLabel(distanceM: Double?): String = when {
+        distanceM == null -> "?"
+        distanceM < 3 -> "Right here"
+        distanceM < 10 -> "Close"
+        distanceM < 30 -> "Nearby"
+        else -> "In range"
+    }
+
+    /** The small print under a [bandLabel]. */
+    fun bandHint(distanceM: Double?): String = when {
+        distanceM == null -> ""
+        distanceM < 3 -> "within a few metres"
+        distanceM < 10 -> "under 10 m"
+        distanceM < 30 -> "about 10–30 m"
+        else -> "30 m or more"
+    }
 }

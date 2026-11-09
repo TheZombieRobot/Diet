@@ -32,6 +32,8 @@ object CrewNotifications {
         text: String,
         urgent: Boolean = false,
         openMap: Boolean = true,
+        /** Open the crew chat instead. */
+        openChat: Boolean = false,
         /** Remove it by itself after this long (e.g. "tonight!" once the gig's over). */
         timeoutMs: Long = 0L,
     ) {
@@ -40,8 +42,9 @@ object CrewNotifications {
         nm.createNotificationChannel(NotificationChannel(CHANNEL, "Crew messages", NotificationManager.IMPORTANCE_DEFAULT))
         nm.createNotificationChannel(NotificationChannel(HELP_CHANNEL, "Crew help requests", NotificationManager.IMPORTANCE_HIGH))
         val open = PendingIntent.getActivity(
-            app, 70,
-            Intent(app, MainActivity::class.java).putExtra(MainActivity.EXTRA_OPEN_MAP, openMap)
+            app, if (openChat) 71 else 70,
+            Intent(app, MainActivity::class.java).putExtra(MainActivity.EXTRA_OPEN_MAP, openMap && !openChat)
+                .putExtra(MainActivity.EXTRA_OPEN_CHAT, openChat)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )

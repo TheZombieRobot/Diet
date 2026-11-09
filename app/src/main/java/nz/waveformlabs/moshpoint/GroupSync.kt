@@ -82,6 +82,7 @@ object GroupSync {
 
     fun load(c: Context) {
         RelayClient.init(c)
+        CrewChat.load(c)
         val p = prefs(c)
         val key = p.getString("key", null) ?: return
         val created = p.getLong("created", 0)
@@ -205,6 +206,7 @@ object GroupSync {
         FollowCheck.cancel(app)
         GigWake.cancel(app)
         Moments.clear()
+        CrewChat.clear(app)
         runCatching { CrewWidget.update(app, emptyList()) }
         members.clear()
         rally.value = null
@@ -322,6 +324,7 @@ object GroupSync {
         AvatarSync.publishMine(c) // our face on the crew's tiles (re-shared every couple of hours)
         AvatarSync.fetchFriends(c)
         checkOverdue(c)
+        CrewChat.tick(c)
         val found = RelayClient.lookup(ids) ?: return
         found.subList(0, 2).flatten().forEach { received(c, g, it) }
         found.subList(4, 6).flatten().forEach { blob -> g.openPing(blob)?.let { onPing(c, it, blob) } }
@@ -348,13 +351,13 @@ object GroupSync {
     private val seenPings = HashSet<String>()
 
     /** Send a quick message to the whole crew. Arrives within about a minute. */
-    fun sendPing(c: Context, kind: Int, lat: Double? = null, lon: Double? = null, minutes: Int = 0) {
+    fun sendPing(c: Context, kind: Int, lat: Double? = null, lon: Double? = null, minutes: Int = 0, text: String = "", quiet: Boolean = false) {
         val g = group.value ?: return
         val app = c.applicationContext
-        val p = GigGroup.Ping(kind, VisibilityPrefs.myName(app).ifBlank { "Mate" }, System.currentTimeMillis() / 1000, lat, lon, minutes)
+        val p = GigGroup.Ping(kind, VisibilityPrefs.myName(app).ifBlank { "Mate" }, System.currentTimeMillis() / 1000, lat, lon, minutes, text)
         val blob = g.sealPing(p)
         seenPings += blob.contentHashCode().toString()
-        NightStats.ping(app)
+        if (!quiet) NightStats.ping(app)
         scope.launch {
             val epoch = Math.floorDiv(System.currentTimeMillis(), EphemeralId.DEFAULT_ROTATION_MS)
             val ok = RelayClient.put(g.pingIdForEpoch(epoch), blob)
@@ -372,6 +375,13 @@ object GroupSync {
             FriendsRepository.friends.firstOrNull { it.name.equals(p.from, true) }?.let {
                 LocationBook.update(it.id, nz.waveformlabs.moshpoint.core.SharedLocation(lat, lon, p.timeSec, 30))
             }
+        }
+        if (p.kind == GigGroup.Ping.CHAT || p.kind == GigGroup.Ping.FLARE || p.kind == GigGroup.Ping.PLAN) {
+            val note = CrewChat.received(c, p) ?: return
+            if (p.kind != GigGroup.Ping.CHAT || !CrewChat.open) {
+                CrewNotifications.post(c, title = p.from, text = note, openMap = p.kind == GigGroup.Ping.FLARE, openChat = p.kind != GigGroup.Ping.FLARE)
+            }
+            return
         }
         pings.add(0, p)
         while (pings.size > 20) pings.removeAt(pings.size - 1)
@@ -430,6 +440,9 @@ object GroupSync {
         GigGroup.Ping.NEED_HELP -> "NEEDS HELP"
         GigGroup.Ping.CHECK_IN -> "is heading home and will check in"
         GigGroup.Ping.HOME_SAFE -> "is home safe"
+        GigGroup.Ping.CHAT -> "sent a message"
+        GigGroup.Ping.FLARE -> "sent a flare"
+        GigGroup.Ping.PLAN -> "pinned a plan"
         else -> "pinged the crew"
     }
 

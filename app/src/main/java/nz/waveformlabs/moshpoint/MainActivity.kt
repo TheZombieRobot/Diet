@@ -161,6 +161,7 @@ class MainActivity : ComponentActivity() {
     private var bumping by mutableStateOf(false)
     private var planGig by mutableStateOf(false)
     private var showStory by mutableStateOf(false)
+    private var showChat by mutableStateOf(false)
     /** A past gig open in the Story viewer. */
     private var archiveGig by mutableStateOf<GigArchive.Summary?>(null)
     private var archiveItems by mutableStateOf<List<Moments.Item>>(emptyList())
@@ -379,6 +380,10 @@ class MainActivity : ComponentActivity() {
             intent.removeExtra(EXTRA_OPEN_MAP)
             openMap()
         }
+        if (intent.getBooleanExtra(EXTRA_OPEN_CHAT, false)) {
+            intent.removeExtra(EXTRA_OPEN_CHAT)
+            showChat = true
+        }
         handleInvite(intent.getStringExtra(ShareInviteActivity.EXTRA_TEXT) ?: return)
     }
 
@@ -484,6 +489,7 @@ class MainActivity : ComponentActivity() {
             momentFlow.handleShared(intent)
             handleFindCrew(intent)
             if (intent?.getBooleanExtra(EXTRA_OPEN_MAP, false) == true) openMap()
+            if (intent?.getBooleanExtra(EXTRA_OPEN_CHAT, false) == true) showChat = true
         }
         visibleToMates = VisibilityPrefs.isVisible(this)
         myName = VisibilityPrefs.myName(this)
@@ -738,6 +744,12 @@ class MainActivity : ComponentActivity() {
                             onQuickCrew = { ensureCrew() },
                             onPlanGig = { planGig = true },
                             onOpenStory = { showStory = true },
+                            onOpenChat = { showChat = true },
+                            chatUnread = CrewChat.unread.value,
+                            pinnedPlan = CrewChat.plan.value?.text,
+                            flareNotes = CrewChat.flares.values.filter { it.untilSec > homeNow / 1000 }.mapNotNull { fl ->
+                                FriendsRepository.friends.firstOrNull { it.name.equals(fl.from, true) }?.let { it.id to "🔥 ${fl.vibe}" }
+                            }.toMap(),
                             following = GroupSync.following,
                             tileNotes = CrewStatus.venueNotes,
                             followers = GroupSync.followers,
@@ -882,6 +894,40 @@ class MainActivity : ComponentActivity() {
                                     Sharing.send(this@MainActivity, "My night with Moshpoint: " + NightStats.summary(s, System.currentTimeMillis()) + " 🤘", "Share your night")
                                 }) { androidx.compose.material3.Text("Share", style = Mosh.Label.copy(color = Mosh.Cyan)) }
                             },
+                        )
+                    }
+                    if (showChat && GroupSync.group.value != null) {
+                        androidx.compose.runtime.DisposableEffect(Unit) {
+                            CrewChat.open = true
+                            onDispose { CrewChat.open = false }
+                        }
+                        nz.waveformlabs.moshpoint.ui.CrewChatScreen(
+                            crewName = GroupSync.group.value?.name ?: "Crew",
+                            lines = CrewChat.lines,
+                            plan = CrewChat.plan.value,
+                            flares = CrewChat.flares.values.filter { it.untilSec > homeNow / 1000 }.sortedBy { it.untilSec },
+                            myName = VisibilityPrefs.myName(this@MainActivity).ifBlank { "Mate" },
+                            nowSec = homeNow / 1000,
+                            meetUp = GroupSync.rally.value?.name,
+                            readOnly = GroupSync.following,
+                            onSend = { CrewChat.send(this@MainActivity, it) },
+                            onSetPlan = { CrewChat.setPlan(this@MainActivity, it) },
+                            onFlare = { vibe ->
+                                val loc = lastKnownLocation()
+                                CrewChat.flare(this@MainActivity, vibe, loc?.latitude, loc?.longitude)
+                            },
+                            onEndFlare = { CrewChat.endFlare(this@MainActivity) },
+                            onPing = { kind ->
+                                val loc = lastKnownLocation()
+                                GroupSync.sendPing(this@MainActivity, kind, loc?.latitude, loc?.longitude)
+                            },
+                            onCheckIn = { minutes ->
+                                val loc = lastKnownLocation()
+                                GroupSync.startCheckIn(this@MainActivity, minutes, loc?.latitude, loc?.longitude)
+                            },
+                            onSharePlan = { sharePlanCard() },
+                            onOpenMap = { showChat = false; openMap() },
+                            onBack = { showChat = false },
                         )
                     }
                     if (showStory) {
@@ -1062,6 +1108,18 @@ class MainActivity : ComponentActivity() {
     private fun shareCode(@Suppress("UNUSED_PARAMETER") code: String) = shareGroup(ensureCrew())
 
     /** The crew QR / invite text, with us inside it so whoever joins can find us at once. */
+    /** The night's plan as a picture for the group chat that isn't on Moshpoint yet. */
+    private fun sharePlanCard() {
+        val g = GroupSync.group.value ?: return
+        val crew = listOf(VisibilityPrefs.myName(this).ifBlank { "Me" }) +
+            FriendsRepository.friends.filter { (it.gigGroupOnly || it.key in GroupSync.members) && !FriendsRepository.isSimulated(it.id) }.map { it.name }
+        val whenWhere = listOfNotNull(
+            g.startsAtSec.takeIf { it > 0 }?.let { nz.waveformlabs.moshpoint.ui.gigWhen(it) },
+            g.venue.takeIf { it.isNotBlank() },
+        ).joinToString(" · ").ifBlank { null }
+        PlanCardImage.share(this, PlanCardImage.Card(g.name, whenWhere, CrewChat.plan.value?.text, GroupSync.rally.value?.name, crew.distinct()))
+    }
+
     private fun crewQr(g: GigGroup) =
         withRelay(GigGroup.qr(g, GigGroup.Intro(VisibilityPrefs.mySecret(this), myName.ifBlank { "Mate" })))
 
@@ -1164,5 +1222,6 @@ class MainActivity : ComponentActivity() {
         const val EXTRA_FIND_CREW = "nz.waveformlabs.moshpoint.FIND_CREW"
         /** Notification tap: open the map (a crew ping or help request). */
         const val EXTRA_OPEN_MAP = "nz.waveformlabs.moshpoint.OPEN_MAP"
+        const val EXTRA_OPEN_CHAT = "nz.waveformlabs.moshpoint.OPEN_CHAT"
     }
 }

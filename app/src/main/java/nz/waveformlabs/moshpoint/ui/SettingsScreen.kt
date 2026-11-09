@@ -163,6 +163,39 @@ internal fun SettingsContent(
                 }
             }
             run {
+                // Who "Need help" can text, outside the crew.
+                val context = androidx.compose.ui.platform.LocalContext.current
+                val saved = remember { nz.waveformlabs.moshpoint.Safety.contact(context) }
+                var name by remember { mutableStateOf(saved?.name.orEmpty()) }
+                var number by remember { mutableStateOf(saved?.number.orEmpty()) }
+                var note by remember { mutableStateOf<String?>(null) }
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("Emergency contact", style = Mosh.Label)
+                    Text(
+                        "\"Need help\" can text them your location as a normal SMS (works without data). Stays on this phone.",
+                        style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint),
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(name, { name = it; note = null }, singleLine = true, placeholder = { Text("Name") }, shape = RoundedCornerShape(16.dp), modifier = Modifier.weight(1f))
+                        OutlinedTextField(
+                            number, { number = it; note = null }, singleLine = true, placeholder = { Text("Mobile") }, shape = RoundedCornerShape(16.dp), modifier = Modifier.weight(1.2f),
+                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone),
+                        )
+                    }
+                    Row {
+                        TextButton(onClick = {
+                            note = if (number.count { it.isDigit() } >= 6) {
+                                nz.waveformlabs.moshpoint.Safety.setContact(context, name, number); "Saved"
+                            } else "Add a mobile number"
+                        }) { Text("Save", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
+                        if (saved != null || number.isNotEmpty()) TextButton(onClick = {
+                            nz.waveformlabs.moshpoint.Safety.clearContact(context); name = ""; number = ""; note = "Removed"
+                        }) { Text("Remove", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.TextDim)) }
+                    }
+                    note?.let { Text(it, style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.Lime)) }
+                }
+            }
+            run {
                 // Your own relay server (Render etc.): faster updates and no daily message cap.
                 val context = androidx.compose.ui.platform.LocalContext.current
                 var url by remember { mutableStateOf(nz.waveformlabs.moshpoint.locate.RelayClient.serverUrl) }

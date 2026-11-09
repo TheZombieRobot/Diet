@@ -54,4 +54,27 @@ class GigGroupTest {
         assertTrue(opened.name.isNotEmpty() && opened.name.replace("🤘", "").isEmpty(), opened.name)
         assertTrue(group.sealIntro(long, now).size <= GigGroup.MAX_INTRO_BYTES)
     }
+
+    @Test fun chatFlareAndPlanCarryText() {
+        val chat = GigGroup.Ping(GigGroup.Ping.CHAT, "Jo", 1_700_000_000, text = "At the bar, want one? 🍺")
+        assertEquals(chat, group.openPing(group.sealPing(chat)))
+        val flare = GigGroup.Ping(GigGroup.Ping.FLARE, "Jo", 1_700_000_000, -36.85, 174.76, 30, "Lost 😅")
+        val opened = assertNotNull(group.openPing(group.sealPing(flare)))
+        assertEquals("Lost 😅", opened.text)
+        assertEquals(30, opened.minutes)
+        // Long text is cut on a character boundary, never mid-emoji.
+        val long = GigGroup.Ping(GigGroup.Ping.PLAN, "Jo", 1_700_000_000, text = "🎸".repeat(100))
+        val cut = assertNotNull(group.openPing(group.sealPing(long))).text
+        assertTrue(cut.isNotEmpty())
+        assertEquals("🎸".repeat(cut.length / 2), cut)
+        // Plain pings still have no text.
+        assertEquals("", assertNotNull(group.openPing(group.sealPing(GigGroup.Ping(1, "Jo", 1_700_000_000)))).text)
+    }
+
+    @Test fun bluetoothShownAsBands() {
+        assertEquals("Right here", ArrowStyle.bandLabel(2.0))
+        assertEquals("Close", ArrowStyle.bandLabel(8.0))
+        assertEquals("Nearby", ArrowStyle.bandLabel(20.0))
+        assertEquals("In range", ArrowStyle.bandLabel(45.0))
+    }
 }

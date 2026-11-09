@@ -135,8 +135,10 @@ class GigGroup(
         val timeSec: Long,
         val lat: Double? = null,
         val lon: Double? = null,
-        /** [CHECK_IN]: minutes until they should be home. */
+        /** [CHECK_IN]: minutes until they should be home. [FLARE]: minutes it lasts. */
         val minutes: Int = 0,
+        /** [CHAT] message, [FLARE] vibe, or the [PLAN] text (up to [MAX_TEXT_BYTES]). */
+        val text: String = "",
     ) {
         companion object {
             const val COMING = 1
@@ -150,15 +152,25 @@ class GigGroup(
             const val CHECK_IN = 8
             /** "Home safe": ends a check-in. */
             const val HOME_SAFE = 9
+            /** A short text message to the crew. */
+            const val CHAT = 10
+            /** "Here, for the next half hour" with a vibe ("Bar time 🍺"), shown on the map. */
+            const val FLARE = 11
+            /** The crew's pinned plan ("Meet at the sound desk after the encore"). Blank clears it. */
+            const val PLAN = 12
+            const val MAX_TEXT_BYTES = 160
         }
     }
 
     /** `[time:4][nonce:8][AES-GCM(kind:1, lat:4, lon:4, nameLen:1, name)+tag]` (lat/lon 1e-7 deg, both 0 = none). */
     fun sealPing(p: Ping, random: java.security.SecureRandom = java.security.SecureRandom()): ByteArray {
         val name = trimUtf8(p.from.toByteArray(Charsets.UTF_8), MAX_NAME_BYTES)
-        val plain = ByteBuffer.allocate(12 + name.size).put(p.kind.toByte())
+        val text = trimUtf8(p.text.toByteArray(Charsets.UTF_8), Ping.MAX_TEXT_BYTES)
+        // Older builds stop reading after the minutes, so the text tail is ignored there.
+        val plain = ByteBuffer.allocate(12 + name.size + (if (text.isEmpty()) 0 else 1 + text.size)).put(p.kind.toByte())
             .putInt(((p.lat ?: 0.0) * 1e7).toInt()).putInt(((p.lon ?: 0.0) * 1e7).toInt())
-            .put(name.size.toByte()).put(name).putShort(p.minutes.coerceIn(0, 32767).toShort()).array()
+            .put(name.size.toByte()).put(name).putShort(p.minutes.coerceIn(0, 32767).toShort())
+            .apply { if (text.isNotEmpty()) put(text.size.toByte()).put(text) }.array()
         val time = ByteBuffer.allocate(4).putInt(p.timeSec.toInt()).array()
         val nonce = ByteArray(8).also { random.nextBytes(it) }
         val c = Cipher.getInstance("AES/GCM/NoPadding")
@@ -180,10 +192,14 @@ class GigGroup(
             val n = b.get().toInt() and 0xFF
             val name = ByteArray(n).also { b.get(it) }
             val minutes = if (b.remaining() >= 2) b.short.toInt() else 0
+            val text = if (b.remaining() >= 1) {
+                val tn = minOf(b.get().toInt() and 0xFF, b.remaining())
+                String(ByteArray(tn).also { b.get(it) }, Charsets.UTF_8)
+            } else ""
             val hasLoc = lat != 0 || lon != 0
             Ping(
                 kind, String(name, Charsets.UTF_8), ByteBuffer.wrap(blob, 0, 4).int.toLong() and 0xFFFFFFFFL,
-                if (hasLoc) lat / 1e7 else null, if (hasLoc) lon / 1e7 else null, minutes,
+                if (hasLoc) lat / 1e7 else null, if (hasLoc) lon / 1e7 else null, minutes, text,
             )
         }.getOrNull()
     }
