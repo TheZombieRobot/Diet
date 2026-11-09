@@ -182,7 +182,7 @@ fun StoryScreen(
                     val left = i % 2 == 0
                     val pinColour = colourOf(m.from)?.let { Color(it) } ?: if (m.mine) Mosh.Pink else Mosh.Cyan
                     Box(
-                        Modifier.fillMaxWidth().height(photoW + 72.dp)
+                        Modifier.fillMaxWidth().height(photoW + 104.dp)
                             .then(Modifier.animateItem()),
                     ) {
                         // The timeline line and a glowing node where this post sits.
