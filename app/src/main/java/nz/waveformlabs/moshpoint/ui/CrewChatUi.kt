@@ -235,7 +235,12 @@ private fun ChatLine(
             Spacer(Modifier.size(8.dp))
         }
         Column(horizontalAlignment = if (l.mine) Alignment.End else Alignment.Start) {
-            if (!l.mine && first) Text(l.from, style = Mosh.Body.copy(fontSize = 12.sp, color = ring), modifier = Modifier.padding(start = 10.dp))
+            // Always the name, not just the face: photos can be hard to make out, or change mid-gig.
+            if (first) Text(
+                if (l.mine) "You" else l.from,
+                style = Mosh.Label.copy(fontSize = 13.sp, color = if (l.mine) Mosh.Lime else ring),
+                modifier = Modifier.padding(horizontal = 10.dp),
+            )
             Text(
                 l.text,
                 style = Mosh.Body.copy(color = if (l.mine) Color(0xFF0B1200) else Mosh.Text),
@@ -244,7 +249,7 @@ private fun ChatLine(
                     .border(1.dp, if (l.mine) Color.Transparent else ring.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
                     .padding(horizontal = 14.dp, vertical = 8.dp),
             )
-            if (last) Text(ago(nowSec - l.timeSec), style = Mosh.Body.copy(fontSize = 11.sp, color = Mosh.TextFaint), modifier = Modifier.padding(horizontal = 10.dp))
+            if (last) Text("${if (l.mine) "You" else l.from} · ${ago(nowSec - l.timeSec)}", style = Mosh.Body.copy(fontSize = 11.sp, color = Mosh.TextFaint), modifier = Modifier.padding(horizontal = 10.dp))
         }
         if (l.mine) {
             Spacer(Modifier.size(8.dp))
