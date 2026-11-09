@@ -965,6 +965,13 @@ class MainActivity : ComponentActivity() {
                                 ).joinToString(" · ")
                             } else null,
                             onInvite = { qrCrew = chatCrew; showGroupQr = true },
+                            onRetry = { CrewChat.retry(this@MainActivity, it) },
+                            onMakeMain = if (waiting != null && !chatCrew.dormant(homeNow) && !waiting.following) ({
+                                GroupSync.makeMain(this@MainActivity, waiting)
+                                CrewChat.show(this@MainActivity, GroupSync.group.value)
+                                setVisibility(true)
+                                toast("${waiting.group.name} is your main crew now. Everyone in it can find each other.")
+                            }) else null,
                             onSend = { CrewChat.send(this@MainActivity, it) },
                             onSetPlan = { CrewChat.setPlan(this@MainActivity, it) },
                             onFlare = { vibe ->

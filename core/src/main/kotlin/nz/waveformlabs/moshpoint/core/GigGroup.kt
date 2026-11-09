@@ -143,6 +143,11 @@ class GigGroup(
         val minutes: Int = 0,
         /** [CHAT] message, [FLARE] vibe, or the [PLAN] text (up to [MAX_TEXT_BYTES]). */
         val text: String = "",
+        /**
+         * Who sent it, as a stable tag only the crew sees (0 = not given, older builds).
+         * Names aren't unique ("Mate"), so "is this mine?" and "same person?" use this.
+         */
+        val sender: Long = 0L,
     ) {
         companion object {
             const val COMING = 1
@@ -171,10 +176,16 @@ class GigGroup(
         val name = trimUtf8(p.from.toByteArray(Charsets.UTF_8), MAX_NAME_BYTES)
         val text = trimUtf8(p.text.toByteArray(Charsets.UTF_8), Ping.MAX_TEXT_BYTES)
         // Older builds stop reading after the minutes, so the text tail is ignored there.
-        val plain = ByteBuffer.allocate(12 + name.size + (if (text.isEmpty()) 0 else 1 + text.size)).put(p.kind.toByte())
+        val tail = when {
+            p.sender != 0L -> 1 + text.size + 8
+            text.isNotEmpty() -> 1 + text.size
+            else -> 0
+        }
+        val plain = ByteBuffer.allocate(12 + name.size + tail).put(p.kind.toByte())
             .putInt(((p.lat ?: 0.0) * 1e7).toInt()).putInt(((p.lon ?: 0.0) * 1e7).toInt())
             .put(name.size.toByte()).put(name).putShort(p.minutes.coerceIn(0, 32767).toShort())
-            .apply { if (text.isNotEmpty()) put(text.size.toByte()).put(text) }.array()
+            .apply { if (tail > 0) put(text.size.toByte()).put(text) }
+            .apply { if (p.sender != 0L) putLong(p.sender) }.array()
         val time = ByteBuffer.allocate(4).putInt(p.timeSec.toInt()).array()
         val nonce = ByteArray(8).also { random.nextBytes(it) }
         val c = Cipher.getInstance("AES/GCM/NoPadding")
@@ -200,11 +211,79 @@ class GigGroup(
                 val tn = minOf(b.get().toInt() and 0xFF, b.remaining())
                 String(ByteArray(tn).also { b.get(it) }, Charsets.UTF_8)
             } else ""
+            val sender = if (b.remaining() >= 8) b.long else 0L
             val hasLoc = lat != 0 || lon != 0
             Ping(
                 kind, String(name, Charsets.UTF_8), ByteBuffer.wrap(blob, 0, 4).int.toLong() and 0xFFFFFFFFL,
-                if (hasLoc) lat / 1e7 else null, if (hasLoc) lon / 1e7 else null, minutes, text,
+                if (hasLoc) lat / 1e7 else null, if (hasLoc) lon / 1e7 else null, minutes, text, sender,
             )
+        }.getOrNull()
+    }
+
+    /** One chat line in a [History] bundle. */
+    data class HistoryLine(val kind: Int, val from: String, val sender: Long, val timeSec: Long, val text: String)
+
+    /**
+     * A phone's recent copy of the crew chat (and the pinned plan), shared now and then so
+     * mates whose phones were off or out of signal catch up on what they missed, even after
+     * the relay has let the original messages go.
+     */
+    data class History(val lines: List<HistoryLine>, val plan: HistoryLine?)
+
+    /**
+     * `[time:4][nonce:8][AES-GCM(deflate(lines))+tag]`, trimmed (oldest lines first) to fit
+     * [maxBytes]. Null if even the plan alone won't fit.
+     */
+    fun sealHistory(h: History, timeSec: Long, maxBytes: Int = MAX_HISTORY_BYTES, random: java.security.SecureRandom = java.security.SecureRandom()): ByteArray? {
+        var lines = h.lines
+        while (true) {
+            val out = java.io.ByteArrayOutputStream()
+            java.util.zip.DeflaterOutputStream(out, java.util.zip.Deflater(9)).use { z ->
+                val d = java.io.DataOutputStream(z)
+                fun write(l: HistoryLine) {
+                    d.writeByte(l.kind)
+                    d.writeLong(l.sender)
+                    d.writeInt(l.timeSec.toInt())
+                    d.writeUTF(l.from.take(40))
+                    d.writeUTF(l.text.take(200))
+                }
+                d.writeByte(if (h.plan != null) 1 else 0)
+                h.plan?.let { write(it) }
+                d.writeShort(lines.size)
+                lines.forEach { write(it) }
+                d.flush()
+            }
+            val time = ByteBuffer.allocate(4).putInt(timeSec.toInt()).array()
+            val nonce = ByteArray(8).also { random.nextBytes(it) }
+            val c = Cipher.getInstance("AES/GCM/NoPadding")
+            c.init(Cipher.ENCRYPT_MODE, rallyKey(), GCMParameterSpec(96, time + nonce))
+            c.updateAAD("history".toByteArray())
+            val sealed = time + nonce + c.doFinal(out.toByteArray())
+            if (sealed.size <= maxBytes) return sealed
+            if (lines.isEmpty()) return null
+            lines = lines.drop(maxOf(1, lines.size / 5))
+        }
+    }
+
+    fun openHistory(blob: ByteArray): History? {
+        if (blob.size < 12 + 16 + 2) return null
+        return runCatching {
+            val c = Cipher.getInstance("AES/GCM/NoPadding")
+            c.init(Cipher.DECRYPT_MODE, rallyKey(), GCMParameterSpec(96, blob.copyOfRange(0, 12)))
+            c.updateAAD("history".toByteArray())
+            val plain = c.doFinal(blob, 12, blob.size - 12)
+            val d = java.io.DataInputStream(java.util.zip.InflaterInputStream(plain.inputStream()))
+            fun readLine(): HistoryLine {
+                val kind = d.readUnsignedByte()
+                val sender = d.readLong()
+                val time = d.readInt().toLong() and 0xFFFFFFFFL
+                val from = d.readUTF()
+                val text = d.readUTF()
+                return HistoryLine(kind, from, sender, time, text)
+            }
+            val plan = if (d.readUnsignedByte() == 1) readLine() else null
+            val n = d.readUnsignedShort().coerceAtMost(500)
+            History(List(n) { readLine() }, plan)
         }.getOrNull()
     }
 
@@ -269,6 +348,8 @@ class GigGroup(
 
     companion object {
         const val TAG_BYTES = 8
+        /** A history bundle fits one public-relay message (4 KB of base64). */
+        const val MAX_HISTORY_BYTES = 2_900
         const val MAX_NAME_BYTES = 24
         /** Upper bound for an intro: fits a BT5 extended advert and a server record (128). */
         const val MAX_INTRO_BYTES = TAG_BYTES + 4 + 4 + 32 + 1 + MAX_NAME_BYTES + 12

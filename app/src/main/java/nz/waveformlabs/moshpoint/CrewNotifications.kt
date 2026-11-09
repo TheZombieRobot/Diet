@@ -36,6 +36,12 @@ object CrewNotifications {
         openChat: Boolean = false,
         /** Which crew's chat (main crew if null). */
         crewId: String? = null,
+        /** Update this notification in place instead of adding another. */
+        notificationId: Int? = null,
+        /** Shown expanded under the text (latest messages). */
+        lines: List<String> = emptyList(),
+        /** Update without buzzing again. */
+        silent: Boolean = false,
         /** Remove it by itself after this long (e.g. "tonight!" once the gig's over). */
         timeoutMs: Long = 0L,
     ) {
@@ -58,10 +64,16 @@ object CrewNotifications {
             .setPriority(if (urgent) NotificationCompat.PRIORITY_MAX else NotificationCompat.PRIORITY_DEFAULT)
             .setCategory(if (urgent) NotificationCompat.CATEGORY_ALARM else NotificationCompat.CATEGORY_MESSAGE)
             .setAutoCancel(true)
+            .setOnlyAlertOnce(silent)
+            .apply {
+                if (lines.isNotEmpty()) {
+                    setStyle(NotificationCompat.InboxStyle().also { st -> lines.forEach { st.addLine(it) } }.setSummaryText(text))
+                }
+            }
             .apply { if (timeoutMs > 0) setTimeoutAfter(timeoutMs) }
             .setContentIntent(open)
             .setColor(if (urgent) 0xFFFF3B5C.toInt() else 0xFFB6FF3B.toInt())
             .build()
-        runCatching { nm.notify(nextId++, n) }
+        runCatching { nm.notify(notificationId ?: nextId++, n) }
     }
 }

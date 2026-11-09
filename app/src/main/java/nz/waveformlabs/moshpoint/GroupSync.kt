@@ -106,6 +106,13 @@ object GroupSync {
             return
         }
         group.value = g
+        // The main crew is still asleep but a waiting one is sooner: that one goes first.
+        val sooner = Crews.others.firstOrNull()
+        if (sooner != null && g.dormant(System.currentTimeMillis()) && Crews.sortKey(sooner.group) < Crews.sortKey(g)) {
+            stashActive(c)
+            activate(c, sooner)
+            return
+        }
         CrewChat.show(c, g)
         GigWake.schedule(c, g)
         rallyClearedAt = p.getLong("rallyCleared", 0L)
@@ -263,6 +270,17 @@ object GroupSync {
         if (following) FollowCheck.schedule(c) else FollowCheck.cancel(c)
         DebugStatus.log("Main crew now: ${e.group.name}")
         if (users > 0) restart(c)
+    }
+
+    /**
+     * Two gigs on the same day: you choose which crew is the main one (finding, Bluetooth,
+     * flares). The other waits in Up next with everything kept.
+     */
+    fun makeMain(c: Context, e: Crews.Entry) {
+        val app = c.applicationContext
+        if (group.value?.key?.contentEquals(e.group.key) == true) return
+        stashActive(app)
+        activate(app, e)
     }
 
     /** No main crew (or it just ended): the soonest waiting crew steps up. */
@@ -456,7 +474,7 @@ object GroupSync {
     fun sendPing(c: Context, kind: Int, lat: Double? = null, lon: Double? = null, minutes: Int = 0, text: String = "", quiet: Boolean = false) {
         val g = group.value ?: return
         val app = c.applicationContext
-        val p = GigGroup.Ping(kind, VisibilityPrefs.myName(app).ifBlank { "Mate" }, System.currentTimeMillis() / 1000, lat, lon, minutes, text)
+        val p = GigGroup.Ping(kind, VisibilityPrefs.myName(app).ifBlank { "Mate" }, System.currentTimeMillis() / 1000, lat, lon, minutes, text, CrewChat.myTag(app))
         val blob = g.sealPing(p)
         seenPings += blob.contentHashCode().toString()
         if (!quiet) NightStats.ping(app)

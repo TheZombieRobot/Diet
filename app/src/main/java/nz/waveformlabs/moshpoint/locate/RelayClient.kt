@@ -117,7 +117,7 @@ object RelayClient {
     /** Chat records under [ids] (public relay: the last 12 hours). Null on network failure. */
     suspend fun lookupHeld(ids: List<ByteArray>): List<List<ByteArray>>? = withContext(Dispatchers.IO) {
         if (ids.isEmpty()) return@withContext null
-        if (ownServer) return@withContext ownLookup(ids, "$base/v1/heldlookup")
+        if (ownServer) return@withContext ownLookup(ids, "$base/v1/heldlookup", wide = true)
         lookup(ids, "12h")
     }
 
@@ -307,7 +307,7 @@ object RelayClient {
         ok
     }.getOrDefault(false)
 
-    private fun ownLookup(ids: List<ByteArray>, url: String = "$base/v1/lookup"): List<List<ByteArray>>? = runCatching {
+    private fun ownLookup(ids: List<ByteArray>, url: String = "$base/v1/lookup", wide: Boolean = false): List<List<ByteArray>>? = runCatching {
         val c = URL(url).openConnection() as HttpURLConnection
         c.requestMethod = "POST"
         c.doOutput = true
@@ -318,15 +318,16 @@ object RelayClient {
         if (c.responseCode != 200) return@runCatching null
         val body = c.inputStream.use { it.readBytes() }
         c.disconnect()
-        parseLookup(body, ids.size)
+        parseLookup(body, ids.size, wide)
     }.getOrNull()
 
-    private fun parseLookup(b: ByteArray, n: Int): List<List<ByteArray>> {
+    /** `[count:1]([len:1 or 2][record])*` per id; [wide] = 2-byte lengths (chat mailbox). */
+    private fun parseLookup(b: ByteArray, n: Int, wide: Boolean = false): List<List<ByteArray>> {
         var i = 0
         return List(n) {
             val count = b[i++].toInt() and 0xFF
             List(count) {
-                val len = b[i++].toInt() and 0xFF
+                val len = if (wide) ((b[i++].toInt() and 0xFF) shl 8) or (b[i++].toInt() and 0xFF) else b[i++].toInt() and 0xFF
                 b.copyOfRange(i, i + len).also { i += len }
             }
         }

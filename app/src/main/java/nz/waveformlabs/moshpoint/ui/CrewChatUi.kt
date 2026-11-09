@@ -81,6 +81,10 @@ internal fun CrewChatScreen(
     subtitle: String? = null,
     /** Show this crew's invite QR. */
     onInvite: (() -> Unit)? = null,
+    /** "Not sent · tap to retry". */
+    onRetry: (CrewChat.Line) -> Unit = {},
+    /** This (waiting) crew's gig is on today: offer to make it the main crew. */
+    onMakeMain: (() -> Unit)? = null,
     /** Each sender's face (their photo), or null for an initials bubble. */
     photoOf: (name: String, mine: Boolean) -> androidx.compose.ui.graphics.ImageBitmap? = { _, _ -> null },
     /** Each mate's colour, so their name and ring match the map and tiles. */
@@ -102,6 +106,16 @@ internal fun CrewChatScreen(
             if (onInvite != null && !readOnly) TextButton(onClick = onInvite) { Text("＋ Invite", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan)) }
         }
         Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (onMakeMain != null) {
+                Row(
+                    Modifier.fillMaxWidth().background(Mosh.Cyan.copy(alpha = 0.12f), RoundedCornerShape(14.dp))
+                        .border(1.dp, Mosh.Cyan.copy(alpha = 0.5f), RoundedCornerShape(14.dp)).padding(start = 14.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("This gig is on today. Find each other in this crew?", style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.Text), modifier = Modifier.weight(1f))
+                    TextButton(onClick = onMakeMain) { Text("Switch", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
+                }
+            }
             PlanCard(plan, meetUp, readOnly, onEdit = { editingPlan = true }, onShare = onSharePlan, onMap = onOpenMap)
             val mine = flares.firstOrNull { it.from == myName }
             flares.forEach { f -> FlareRow(f, nowSec, mine = f.from == myName, onEnd = onEndFlare, onMap = onOpenMap) }
@@ -127,9 +141,10 @@ internal fun CrewChatScreen(
                     )
                 }
             }
-            itemsIndexed(lines, key = { _, it -> "${it.from}|${it.timeSec}|${it.text.hashCode()}" }) { i, l ->
+            itemsIndexed(lines, key = { _, it -> it.key }) { i, l ->
                 // Messenger-style runs: name on the first message, face on the last.
-                fun same(o: CrewChat.Line?) = o != null && o.kind == GigGroup.Ping.CHAT && o.mine == l.mine && o.from == l.from
+                fun same(o: CrewChat.Line?) = o != null && o.kind == GigGroup.Ping.CHAT && o.mine == l.mine &&
+                    (if (o.sender != 0L && l.sender != 0L) o.sender == l.sender else o.from == l.from)
                 ChatLine(
                     l, nowSec,
                     first = !same(lines.getOrNull(i - 1)),
@@ -137,6 +152,7 @@ internal fun CrewChatScreen(
                     face = photoOf(l.from, l.mine),
                     colour = colourOf(l.from)?.let { Color(it) },
                     myName = myName,
+                    onRetry = onRetry,
                 )
             }
             item { Spacer(Modifier.height(8.dp)) }
@@ -224,6 +240,7 @@ private fun ChatLine(
     face: androidx.compose.ui.graphics.ImageBitmap? = null,
     colour: Color? = null,
     myName: String = "",
+    onRetry: (CrewChat.Line) -> Unit = {},
 ) {
     if (l.kind != GigGroup.Ping.CHAT) {
         // "Jo pinned: …" / "Jo sent a flare: …" as a quiet centred note.
@@ -256,11 +273,19 @@ private fun ChatLine(
                 l.text,
                 style = Mosh.Body.copy(color = if (l.mine) Color(0xFF0B1200) else Mosh.Text),
                 modifier = Modifier.widthIn(max = 260.dp)
-                    .background(if (l.mine) Mosh.Lime else Mosh.Surface, RoundedCornerShape(18.dp))
+                    .background(if (l.mine) Mosh.Lime.copy(alpha = if (l.state == CrewChat.SENT) 1f else 0.55f) else Mosh.Surface, RoundedCornerShape(18.dp))
                     .border(1.dp, if (l.mine) Color.Transparent else ring.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
                     .padding(horizontal = 14.dp, vertical = 8.dp),
             )
-            if (last) Text("${if (l.mine) "You" else l.from} · ${ago(nowSec - l.timeSec)}", style = Mosh.Body.copy(fontSize = 11.sp, color = Mosh.TextFaint), modifier = Modifier.padding(horizontal = 10.dp))
+            when {
+                l.mine && l.state == CrewChat.FAILED -> Text(
+                    "Not sent · Tap to retry",
+                    style = Mosh.Label.copy(fontSize = 12.sp, color = Mosh.Danger),
+                    modifier = Modifier.clickable { onRetry(l) }.padding(horizontal = 10.dp, vertical = 2.dp),
+                )
+                l.mine && l.state == CrewChat.SENDING -> Text("Sending…", style = Mosh.Body.copy(fontSize = 11.sp, color = Mosh.TextFaint), modifier = Modifier.padding(horizontal = 10.dp))
+                last -> Text("${if (l.mine) "You" else l.from} · ${ago(nowSec - l.timeSec)}", style = Mosh.Body.copy(fontSize = 11.sp, color = Mosh.TextFaint), modifier = Modifier.padding(horizontal = 10.dp))
+            }
         }
         if (l.mine) {
             Spacer(Modifier.size(8.dp))

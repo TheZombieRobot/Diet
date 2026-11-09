@@ -151,9 +151,14 @@ fun Application.moshpoint(
             val out = java.io.ByteArrayOutputStream()
             for (i in 0 until body.size / 16) {
                 val id = body.copyOfRange(i * 16, i * 16 + 16).joinToString("") { "%02x".format(it) }
-                val records = held.get(id).take(255)
+                // Newest 255 (a crew chat can be busy); 2-byte lengths, as history bundles are bigger.
+                val records = held.get(id).takeLast(255)
                 out.write(records.size)
-                out.write(encodeRecordsBody(records))
+                records.forEach {
+                    out.write(it.size shr 8)
+                    out.write(it.size and 0xFF)
+                    out.write(it)
+                }
             }
             call.respondBytes(out.toByteArray(), ContentType.Application.OctetStream)
         }
@@ -179,8 +184,8 @@ fun Application.moshpoint(
 private val ID_RE = Regex("^[0-9a-f]{32}$")
 private const val MIN_RECORD = 16
 private const val MAX_RECORD = 128
-/** Chat records carry up to 160 bytes of text; lengths go as one byte, so 255 max. */
-private const val MAX_HELD = 255
+/** Chat messages and history bundles (a phone's recent copy of the chat, ~3 KB). */
+private const val MAX_HELD = 4_000
 private const val MAX_LOOKUP = 64
 private const val MAX_AVATAR = 48 * 1024 + 64
 private const val MAX_FILE = 12_000_000

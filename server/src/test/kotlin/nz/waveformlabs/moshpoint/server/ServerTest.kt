@@ -121,13 +121,13 @@ class MailboxStoreTest {
     @Test fun heldChatTakesBiggerRecords() = testApplication {
         application { moshpoint(MailboxStore()) }
         val id = "00112233445566778899aabbccddeeff"
-        val chat = ByteArray(240) { 7 }
+        val chat = ByteArray(2_900) { 7 }
         assertEquals(HttpStatusCode.NoContent, client.put("/v1/held/$id") { setBody(chat) }.status)
-        assertEquals(HttpStatusCode.BadRequest, client.put("/v1/held/$id") { setBody(ByteArray(300)) }.status)
+        assertEquals(HttpStatusCode.BadRequest, client.put("/v1/held/$id") { setBody(ByteArray(5_000)) }.status)
         val idBytes = ByteArray(16) { (it * 0x11).toByte() }
         val body = client.post("/v1/heldlookup") { setBody(idBytes) }.bodyAsBytes()
         assertEquals(1, body[0].toInt())
-        assertEquals(240, body[1].toInt() and 0xFF)
-        assertContentEquals(chat, body.copyOfRange(2, 242))
+        assertEquals(2_900, ((body[1].toInt() and 0xFF) shl 8) or (body[2].toInt() and 0xFF))
+        assertContentEquals(chat, body.copyOfRange(3, 2_903))
     }
 }

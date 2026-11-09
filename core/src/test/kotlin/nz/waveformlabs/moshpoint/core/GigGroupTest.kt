@@ -77,4 +77,26 @@ class GigGroupTest {
         assertEquals("Nearby", ArrowStyle.bandLabel(20.0))
         assertEquals("In range", ArrowStyle.bandLabel(45.0))
     }
+
+    @Test fun senderTagTellsSameNamesApart() {
+        val a = GigGroup.Ping(GigGroup.Ping.CHAT, "Mate", 1_700_000_000, text = "hi", sender = 42L)
+        val b = GigGroup.Ping(GigGroup.Ping.CHAT, "Mate", 1_700_000_000, text = "hi", sender = 43L)
+        assertEquals(42L, assertNotNull(group.openPing(group.sealPing(a))).sender)
+        assertEquals(43L, assertNotNull(group.openPing(group.sealPing(b))).sender)
+        // A sender with no text still round-trips.
+        val ping = GigGroup.Ping(GigGroup.Ping.COMING, "Mate", 1_700_000_000, sender = 7L)
+        assertEquals(ping, group.openPing(group.sealPing(ping)))
+    }
+
+    @Test fun historyBundlesFitAndRoundTrip() {
+        val lines = (0 until 300).map { GigGroup.HistoryLine(GigGroup.Ping.CHAT, "Jo", 9L, 1_700_000_000L + it, "message number $it, who's keen? 🎸") }
+        val plan = GigGroup.HistoryLine(GigGroup.Ping.PLAN, "Alex", 3L, 1_699_000_000L, "Pre-drinks at Jo's, 5pm")
+        val blob = assertNotNull(group.sealHistory(GigGroup.History(lines, plan), 1_700_000_500L))
+        assertTrue(blob.size <= GigGroup.MAX_HISTORY_BYTES)
+        val h = assertNotNull(group.openHistory(blob))
+        assertEquals(plan, h.plan)
+        assertTrue(h.lines.size in 20..300)
+        assertEquals(lines.last(), h.lines.last()) // the newest are kept
+        assertNull(GigGroup.create("Other", now).openHistory(blob))
+    }
 }
