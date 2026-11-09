@@ -20,7 +20,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.Image
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -72,6 +75,10 @@ internal fun CrewChatScreen(
     onSharePlan: () -> Unit,
     onOpenMap: () -> Unit,
     onBack: () -> Unit,
+    /** Each sender's face (their photo), or null for an initials bubble. */
+    photoOf: (name: String, mine: Boolean) -> androidx.compose.ui.graphics.ImageBitmap? = { _, _ -> null },
+    /** Each mate's colour, so their name and ring match the map and tiles. */
+    colourOf: (String) -> Int? = { null },
 ) {
     BackHandler(onBack = onBack)
     var draft by remember { mutableStateOf("") }
@@ -113,7 +120,18 @@ internal fun CrewChatScreen(
                     )
                 }
             }
-            items(lines, key = { "${it.from}|${it.timeSec}|${it.text.hashCode()}" }) { l -> ChatLine(l, nowSec) }
+            itemsIndexed(lines, key = { _, it -> "${it.from}|${it.timeSec}|${it.text.hashCode()}" }) { i, l ->
+                // Messenger-style runs: name on the first message, face on the last.
+                fun same(o: CrewChat.Line?) = o != null && o.kind == GigGroup.Ping.CHAT && o.mine == l.mine && o.from == l.from
+                ChatLine(
+                    l, nowSec,
+                    first = !same(lines.getOrNull(i - 1)),
+                    last = !same(lines.getOrNull(i + 1)),
+                    face = photoOf(l.from, l.mine),
+                    colour = colourOf(l.from)?.let { Color(it) },
+                    myName = myName,
+                )
+            }
             item { Spacer(Modifier.height(8.dp)) }
         }
         if (!readOnly) {
@@ -187,7 +205,15 @@ private fun FlareRow(f: CrewChat.Flare, nowSec: Long, mine: Boolean, onEnd: () -
 }
 
 @Composable
-private fun ChatLine(l: CrewChat.Line, nowSec: Long) {
+private fun ChatLine(
+    l: CrewChat.Line,
+    nowSec: Long,
+    first: Boolean = true,
+    last: Boolean = true,
+    face: androidx.compose.ui.graphics.ImageBitmap? = null,
+    colour: Color? = null,
+    myName: String = "",
+) {
     if (l.kind != GigGroup.Ping.CHAT) {
         // "Jo pinned: …" / "Jo sent a flare: …" as a quiet centred note.
         Text(
@@ -198,16 +224,45 @@ private fun ChatLine(l: CrewChat.Line, nowSec: Long) {
         )
         return
     }
-    Column(Modifier.fillMaxWidth(), horizontalAlignment = if (l.mine) Alignment.End else Alignment.Start) {
-        if (!l.mine) Text(l.from, style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.Cyan), modifier = Modifier.padding(start = 10.dp))
-        Text(
-            l.text,
-            style = Mosh.Body.copy(color = if (l.mine) Color(0xFF0B1200) else Mosh.Text),
-            modifier = Modifier.widthIn(max = 280.dp)
-                .background(if (l.mine) Mosh.Lime else Mosh.Surface, RoundedCornerShape(18.dp))
-                .padding(horizontal = 14.dp, vertical = 8.dp),
+    val ring = colour ?: Mosh.Cyan
+    Row(
+        Modifier.fillMaxWidth().padding(top = if (first) 6.dp else 0.dp),
+        horizontalArrangement = if (l.mine) Arrangement.End else Arrangement.Start,
+        verticalAlignment = Alignment.Bottom,
+    ) {
+        if (!l.mine) {
+            if (last) ChatHead(l.from, face, ring) else Spacer(Modifier.size(34.dp))
+            Spacer(Modifier.size(8.dp))
+        }
+        Column(horizontalAlignment = if (l.mine) Alignment.End else Alignment.Start) {
+            if (!l.mine && first) Text(l.from, style = Mosh.Body.copy(fontSize = 12.sp, color = ring), modifier = Modifier.padding(start = 10.dp))
+            Text(
+                l.text,
+                style = Mosh.Body.copy(color = if (l.mine) Color(0xFF0B1200) else Mosh.Text),
+                modifier = Modifier.widthIn(max = 260.dp)
+                    .background(if (l.mine) Mosh.Lime else Mosh.Surface, RoundedCornerShape(18.dp))
+                    .border(1.dp, if (l.mine) Color.Transparent else ring.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+            )
+            if (last) Text(ago(nowSec - l.timeSec), style = Mosh.Body.copy(fontSize = 11.sp, color = Mosh.TextFaint), modifier = Modifier.padding(horizontal = 10.dp))
+        }
+        if (l.mine) {
+            Spacer(Modifier.size(8.dp))
+            if (last) ChatHead(myName, face, Mosh.Lime) else Spacer(Modifier.size(34.dp))
+        }
+    }
+}
+
+/** A round face beside a message: their photo, or coloured initials. */
+@Composable
+private fun ChatHead(name: String, face: androidx.compose.ui.graphics.ImageBitmap?, ring: Color) {
+    if (face != null) {
+        Image(
+            face, contentDescription = name, contentScale = ContentScale.Crop,
+            modifier = Modifier.size(34.dp).clip(CircleShape).border(2.dp, ring, CircleShape),
         )
-        Text(ago(nowSec - l.timeSec), style = Mosh.Body.copy(fontSize = 11.sp, color = Mosh.TextFaint), modifier = Modifier.padding(horizontal = 10.dp))
+    } else {
+        Box(Modifier.size(34.dp).border(2.dp, ring, CircleShape).padding(2.dp)) { InitialsAvatar(name, 30.dp, ring) }
     }
 }
 

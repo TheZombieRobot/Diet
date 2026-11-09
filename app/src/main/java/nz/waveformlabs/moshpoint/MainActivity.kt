@@ -928,6 +928,11 @@ class MainActivity : ComponentActivity() {
                             onSharePlan = { sharePlanCard() },
                             onOpenMap = { showChat = false; openMap() },
                             onBack = { showChat = false },
+                            photoOf = { name, mine ->
+                                if (mine) PhotoStore.photos[PhotoStore.ME]
+                                else FriendsRepository.friends.firstOrNull { it.name.equals(name, true) }?.let { PhotoStore.photos[it.id] }
+                            },
+                            colourOf = { name -> FriendsRepository.friends.firstOrNull { it.name.equals(name, true) }?.color },
                         )
                     }
                     if (showStory) {

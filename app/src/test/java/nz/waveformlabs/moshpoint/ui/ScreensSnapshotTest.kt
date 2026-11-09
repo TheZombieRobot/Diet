@@ -216,7 +216,8 @@ class ScreensSnapshotTest {
                 crewName = "Iron Maiden",
                 lines = listOf(
                     nz.waveformlabs.moshpoint.CrewChat.Line("Jo", t - 900, "pinned: Sound desk after the encore", false, 12),
-                    nz.waveformlabs.moshpoint.CrewChat.Line("Jo", t - 600, "Anyone want a drink? Bar's quiet right now", false),
+                    nz.waveformlabs.moshpoint.CrewChat.Line("Jo", t - 610, "Anyone want a drink?", false),
+                    nz.waveformlabs.moshpoint.CrewChat.Line("Jo", t - 600, "Bar's quiet right now", false),
                     nz.waveformlabs.moshpoint.CrewChat.Line("Me", t - 540, "Yes! Cider pls 🙏", true),
                     nz.waveformlabs.moshpoint.CrewChat.Line("Alex", t - 300, "sent a flare: At the rail 🎶", false, 11),
                     nz.waveformlabs.moshpoint.CrewChat.Line("Alex", t - 240, "Left side, by the big speaker", false),
@@ -229,6 +230,7 @@ class ScreensSnapshotTest {
                 readOnly = false,
                 onSend = {}, onSetPlan = {}, onFlare = {}, onEndFlare = {}, onPing = {}, onCheckIn = {},
                 onSharePlan = {}, onOpenMap = {}, onBack = {},
+                colourOf = { mapOf("Jo" to 0xFFFFB020.toInt(), "Alex" to 0xFFFF2E93.toInt())[it] },
             )
         }
     }
