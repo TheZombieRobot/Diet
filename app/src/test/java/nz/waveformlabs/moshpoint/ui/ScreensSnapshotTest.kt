@@ -3,6 +3,8 @@ package nz.waveformlabs.moshpoint.ui
 import app.cash.paparazzi.DeviceConfig
 import app.cash.paparazzi.Paparazzi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.asImageBitmap
 import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.core.ArrowState
@@ -238,6 +240,20 @@ class ScreensSnapshotTest {
                 onSharePlan = {}, onOpenMap = {}, onBack = {},
                 colourOf = { mapOf("Jo" to 0xFFFFB020.toInt(), "Alex" to 0xFFFF2E93.toInt())[it] },
             )
+        }
+    }
+
+    @Test fun upNext() = paparazzi.snapshot {
+        MoshTheme {
+            androidx.compose.foundation.layout.Column(
+                androidx.compose.ui.Modifier.background(Mosh.Ground).then(androidx.compose.ui.Modifier.padding(16.dp)),
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp),
+            ) {
+                androidx.compose.material3.Text("UP NEXT", style = Mosh.Eyebrow)
+                UpNextRow(UpNextCard("a", "The Rolling Stones", "Sat 10 Jan, 7:30 pm", "in 4 weeks", "Eden Park", 5, 3, "Pre-drinks at Jo's, 5pm", false)) {}
+                UpNextRow(UpNextCard("b", "Six60", "Sat 7 Feb, 6:00 pm", "in 2 months", "Western Springs", 0, 0, null, false)) {}
+                UpNextRow(UpNextCard("c", "Fat Freddy's Drop", "Sun 14 Dec, 4:00 pm", "tomorrow", "Matakana", 2, 0, null, false)) {}
+            }
         }
     }
 
