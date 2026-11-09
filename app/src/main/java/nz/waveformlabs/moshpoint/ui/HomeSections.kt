@@ -444,23 +444,32 @@ internal fun PastGigs(gigs: List<nz.waveformlabs.moshpoint.GigArchive.Summary>, 
 }
 
 
-/** "💬 Chat" on the crew card, always there while you're in a crew, with a new-message count. */
+/** The crew chat bar on the crew card, always there while you're in a crew: the pinned plan (if any) and new messages. */
 @Composable
-internal fun ChatPill(unread: Int, onClick: () -> Unit) {
+internal fun ChatPill(unread: Int, plan: String?, onClick: () -> Unit) {
     val (src, sc) = rememberPress()
     Row(
-        Modifier.pressScale(sc).background(Mosh.Lime.copy(alpha = 0.14f), RoundedCornerShape(20.dp))
-            .border(1.dp, Mosh.Lime.copy(alpha = 0.55f), RoundedCornerShape(20.dp))
+        Modifier.fillMaxWidth().pressScale(sc).background(Mosh.Lime.copy(alpha = 0.12f), RoundedCornerShape(14.dp))
+            .border(1.dp, Mosh.Lime.copy(alpha = 0.5f), RoundedCornerShape(14.dp))
             .clickable(interactionSource = src, indication = androidx.compose.foundation.LocalIndication.current, onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 7.dp),
+            .padding(horizontal = 14.dp, vertical = 11.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("💬 Chat", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Lime))
-        if (unread > 0) {
-            Spacer(Modifier.width(6.dp))
-            Box(Modifier.background(Mosh.Pink, CircleShape).padding(horizontal = 7.dp, vertical = 1.dp)) {
-                Text(if (unread > 9) "9+" else "$unread", style = Mosh.Label.copy(fontSize = 12.sp, color = Color.White))
-            }
+        Text("💬", fontSize = 18.sp)
+        Spacer(Modifier.width(10.dp))
+        Column(Modifier.weight(1f)) {
+            Text("Crew chat", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Lime))
+            Text(
+                if (plan != null) "📌 $plan" else "Messages, the plan, flares",
+                style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), maxLines = 1, overflow = TextOverflow.Ellipsis,
+            )
         }
+        if (unread > 0) {
+            Box(Modifier.background(Mosh.Pink, CircleShape).padding(horizontal = 8.dp, vertical = 2.dp)) {
+                Text(if (unread > 9) "9+" else "$unread new", style = Mosh.Label.copy(fontSize = 12.sp, color = Color.White))
+            }
+            Spacer(Modifier.width(8.dp))
+        }
+        Text("›", style = Mosh.Label.copy(fontSize = 20.sp, color = Mosh.Lime))
     }
 }

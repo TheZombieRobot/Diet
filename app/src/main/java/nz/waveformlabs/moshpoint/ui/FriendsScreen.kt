@@ -375,9 +375,9 @@ fun FriendsScreen(
                                 Text(groupName ?: "Your crew", style = Mosh.Heading, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                                 if (crewWhen != null) Text(crewWhen, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), maxLines = 2)
                             }
-                            if (onOpenChat != null && groupName != null) ChatPill(chatUnread, onOpenChat)
                             if (!following) TextButton(onClick = onShowGroupQr) { Text("＋ Invite", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan)) }
                         }
+                        if (onOpenChat != null && groupName != null) ChatPill(chatUnread, pinnedPlan, onOpenChat)
                         if (!following) {
                             // Who can see the crew from home, so nobody is followed without knowing.
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -397,17 +397,6 @@ fun FriendsScreen(
                             ) {
                                 Text("★  Meet-up: $meetUp", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Pink), modifier = Modifier.weight(1f))
                                 Text("Map ›", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink))
-                            }
-                        }
-                        if (pinnedPlan != null && onOpenChat != null) {
-                            Row(
-                                Modifier.fillMaxWidth().background(Mosh.Lime.copy(alpha = 0.10f), RoundedCornerShape(14.dp))
-                                    .border(1.dp, Mosh.Lime.copy(alpha = 0.45f), RoundedCornerShape(14.dp)).clickable(onClick = onOpenChat)
-                                    .padding(horizontal = 14.dp, vertical = 10.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Text("📌  $pinnedPlan", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Lime), modifier = Modifier.weight(1f), maxLines = 2)
-                                Text("Chat ›", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lime))
                             }
                         }
                         if (crewSleeping) {
