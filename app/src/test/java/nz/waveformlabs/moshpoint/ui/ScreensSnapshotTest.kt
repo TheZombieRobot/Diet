@@ -201,6 +201,8 @@ class ScreensSnapshotTest {
                 groupName = "Iron Maiden", onStartGroup = {}, onShowGroupQr = {},
                 crewWhen = "Sat 14 Dec, 8:00 pm · Spark Arena, Auckland",
                 crewSleeping = true,
+                onOpenChat = {},
+                chatUnread = 2,
                 crewQrPayload = "moshpoint:group?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&at=1800000000&name=Iron+Maiden",
             )
         }
