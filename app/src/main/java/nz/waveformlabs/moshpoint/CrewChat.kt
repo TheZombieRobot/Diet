@@ -158,6 +158,26 @@ object CrewChat {
         }
     }
 
+    /** A one-tap ping ("On my way") as a chat bubble, so it shows in the conversation too. */
+    fun pingLine(c: Context, p: GigGroup.Ping, mine: Boolean) {
+        val text = quickText(p) ?: return
+        add(c, Line(if (mine) me(c) else p.from, p.timeSec, text, mine))
+        if (!mine && !open) unread.value++
+    }
+
+    fun quickText(p: GigGroup.Ping): String? = when (p.kind) {
+        GigGroup.Ping.COMING -> "On my way 🏃"
+        GigGroup.Ping.WHERE_ARE_YOU -> "Where are you? 👀"
+        GigGroup.Ping.STAY_PUT -> "Stay put ✋"
+        GigGroup.Ping.MEET_AT_PIN -> "Meet at the pin 📍"
+        GigGroup.Ping.ALL_GOOD -> "All good 👍"
+        GigGroup.Ping.GOING_HOME -> "Heading home 🏠"
+        GigGroup.Ping.NEED_HELP -> "🚨 I need help"
+        GigGroup.Ping.CHECK_IN -> "Heading home 🏠 Will check in within ${p.minutes} min"
+        GigGroup.Ping.HOME_SAFE -> "Home safe ✅"
+        else -> null
+    }
+
     private fun add(c: Context, l: Line) {
         load(c)
         if (lines.any { it.from == l.from && it.timeSec == l.timeSec && it.text == l.text }) return

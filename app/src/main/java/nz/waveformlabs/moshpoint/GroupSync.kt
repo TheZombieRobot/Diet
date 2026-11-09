@@ -370,6 +370,7 @@ object GroupSync {
         val blob = g.sealPing(p)
         seenPings += blob.contentHashCode().toString()
         if (!quiet) NightStats.ping(app)
+        CrewChat.pingLine(app, p, mine = true)
         scope.launch {
             val epoch = Math.floorDiv(System.currentTimeMillis(), EphemeralId.DEFAULT_ROTATION_MS)
             val ok = RelayClient.put(g.pingIdForEpoch(epoch), blob)
@@ -395,6 +396,7 @@ object GroupSync {
             }
             return
         }
+        CrewChat.pingLine(c, p, mine = false)
         pings.add(0, p)
         while (pings.size > 20) pings.removeAt(pings.size - 1)
         when (p.kind) {
