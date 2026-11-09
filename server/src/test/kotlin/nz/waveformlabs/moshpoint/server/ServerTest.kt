@@ -105,6 +105,7 @@ class MailboxStoreTest {
     }
 
     @Test fun filesPutListGet() = testApplication {
+        val idHex = "00112233445566778899aabbccddeeff"
         val dir = kotlin.io.path.createTempDirectory("mp-files").toFile()
         application { moshpoint(MailboxStore(), files = FileStore(dir)) }
         val photo = ByteArray(5_000) { (it % 251).toByte() }
