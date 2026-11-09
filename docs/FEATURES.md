@@ -1,4 +1,4 @@
-# Moshpoint: everything it does (test build 120)
+# Moshpoint: everything it does (test build 130)
 
 Android app for finding your mates at gigs and festivals. No accounts.
 
@@ -29,6 +29,12 @@ Android app for finding your mates at gigs and festivals. No accounts.
     check-ins and help alerts;
   - never broadcast and can't be found;
   - are shown to the crew ("Following from home: Mum").
+- **Several crews at once:** a new crew never replaces the one you're in.
+  - The soonest gig is the main crew (the big card, finding, Bluetooth).
+  - The rest wait in **Up next** with a countdown ("in 4 weeks"), the plan or how many mates
+    are in, and an unread badge. They stay asleep, so they cost no battery.
+  - When the main crew ends, the next one steps up.
+  - Two gigs on the same day: **Switch** chooses which crew is the main one. (untested)
 - **Friends list:** people you keep across gigs, alongside the one-night crew.
 - **Removing:** a ⋯ menu on each person (remove, set photo, keep as friend).
 
@@ -70,8 +76,20 @@ Android app for finding your mates at gigs and festivals. No accounts.
 - **Save this area for no signal:** an offline map of the venue.
 
 ## 4. Messaging and safety
-- **Crew chat:** short messages (up to 140 characters), encrypted with the crew key. Followers
-  at home can read but not post. (untested)
+- **Crew chat, one per crew:** short messages (up to 140 characters), encrypted with the crew
+  key. Chat works weeks before the gig, for the hype. Followers at home can read but not
+  post. (untested)
+  - **Messages don't get lost:**
+    - the relay keeps chat for 12 hours (3 days on your own server);
+    - phones share a sealed copy of the recent chat every few hours, so anyone who was away
+      catches up.
+  - **Sending:** your messages show "Sending…", then "Not sent · Tap to retry" if there's no
+    signal. They're also retried by themselves.
+  - **Every message carries a hidden sender tag,** so two people called "Mate" never get mixed
+    up.
+  - **One notification per crew,** updated in place ("3 new messages" with the latest lines).
+    The app checks every 20 s while you're chatting, every ~2 min while it's open, and about
+    hourly in the background.
 - **Pinned plan:** one line pinned at the top of the chat and on the crew card ("Sound desk
   after the encore"). It's re-sent every 8 minutes so late joiners see it. (untested)
 - **Flares:** "Bar time 🍺", "At the rail 🎶", "Lost 😅" and more. Your spot shows for 30
