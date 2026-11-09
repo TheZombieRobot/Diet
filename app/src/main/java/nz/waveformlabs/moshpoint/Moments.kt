@@ -59,11 +59,14 @@ object Moments {
         return ok
     }
 
+    /** While the Story is open: check every 30 s (the board feels live). */
+    suspend fun refreshNow(c: Context, g: GigGroup) = refresh(c, g, minGapMs = 25_000)
+
     /** Check for new moments (at most every 2 minutes). Called from the crew sync loop. */
-    suspend fun refresh(c: Context, g: GigGroup) {
+    suspend fun refresh(c: Context, g: GigGroup, minGapMs: Long = 120_000) {
         if (!RelayClient.filesEnabled) return
         val now = System.currentTimeMillis()
-        if (now - lastCheckMs < 120_000) return
+        if (now - lastCheckMs < minGapMs) return
         lastCheckMs = now
         val day = Math.floorDiv(now / 1000, 86_400L)
         val files = RelayClient.listFiles(listOf(g.momentsIdForDay(day), g.momentsIdForDay(day - 1))) ?: return

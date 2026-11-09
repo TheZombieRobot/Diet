@@ -807,6 +807,8 @@ class MainActivity : ComponentActivity() {
                                 else FriendsRepository.friends.firstOrNull { it.name.equals(name, true) }?.let { PhotoStore.photos[it.id] }
                             },
                             myName = myName,
+                            onRefresh = { GroupSync.group.value?.let { g -> Moments.refreshNow(this@MainActivity, g) } },
+                            live = GroupSync.group.value != null && !GroupSync.sleeping,
                         )
                     }
                     if (showMap) {
