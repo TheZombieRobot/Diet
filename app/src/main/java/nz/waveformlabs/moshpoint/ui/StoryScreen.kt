@@ -125,6 +125,8 @@ fun StoryScreen(
     val timeline = items.sortedByDescending { it.timeSec }
     val people = items.map { if (it.mine) "You" else it.from }.toSet().size
     val list = androidx.compose.foundation.lazy.rememberLazyListState()
+    // Only posts that arrive while you're watching get the drop-in pop.
+    val alreadyThere = remember { timeline.map { it.key }.toSet() }
     val scope = androidx.compose.runtime.rememberCoroutineScope()
 
     // Live: look for new posts every 30 s while the board is open.
@@ -206,7 +208,7 @@ fun StoryScreen(
                             Modifier.align(if (left) Alignment.TopStart else Alignment.TopEnd)
                                 .padding(top = 20.dp, start = if (left) 14.dp else 0.dp, end = if (left) 0.dp else 14.dp),
                         ) {
-                            PopIn(m.key) {
+                            PopIn(m.key, enabled = m.key !in alreadyThere) {
                                 Box {
                                     Polaroid(m, photoW, Modifier.padding(top = 12.dp).clickable { open = i }, tiltScale = 1.4f)
                                     Box(Modifier.align(Alignment.TopCenter)) { FacePin(photoOf(m.from, m.mine), if (m.mine) myName else m.from, pinColour) }
@@ -316,16 +318,22 @@ private fun LiveTag() {
 
 /** New posts drop in: a quick scale-and-fade pop the first time each one appears. */
 @Composable
-private fun PopIn(key: String, content: @Composable () -> Unit) {
-    val shown = remember(key) { androidx.compose.animation.core.Animatable(0.6f) }
+private fun PopIn(key: String, enabled: Boolean = true, content: @Composable () -> Unit) {
+    val shown = androidx.compose.runtime.saveable.rememberSaveable(key) { mutableStateOf(!enabled) }
+    if (shown.value) {
+        Box { content() }
+        return
+    }
+    val anim = remember(key) { androidx.compose.animation.core.Animatable(0.6f) }
     androidx.compose.runtime.LaunchedEffect(key) {
-        shown.animateTo(1f, androidx.compose.animation.core.spring(dampingRatio = 0.55f, stiffness = 380f))
+        anim.animateTo(1f, androidx.compose.animation.core.spring(dampingRatio = 0.55f, stiffness = 380f))
+        shown.value = true
     }
     Box(
         Modifier.graphicsLayer {
-            scaleX = shown.value
-            scaleY = shown.value
-            alpha = ((shown.value - 0.6f) / 0.4f).coerceIn(0f, 1f)
+            scaleX = anim.value
+            scaleY = anim.value
+            alpha = ((anim.value - 0.6f) / 0.4f).coerceIn(0f, 1f)
         },
     ) { content() }
 }
