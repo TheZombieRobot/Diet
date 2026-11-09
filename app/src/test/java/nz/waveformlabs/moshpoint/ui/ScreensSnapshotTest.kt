@@ -101,6 +101,10 @@ class ScreensSnapshotTest {
                 onScanQr = {}, scanned = null, onScannedUsed = {}, onAdd = { _, _, _ -> null }, onRemove = {},
                 onSetPhoto = {}, onRemovePhoto = {}, onClearGigGroup = {},
                 groupName = null, onStartGroup = {}, onShowGroupQr = {},
+                pastGigs = listOf(
+                    nz.waveformlabs.moshpoint.GigArchive.Summary("a", "Iron Maiden", 1_765_000_000L, "Spark Arena, Auckland", 23, 4, listOf("You", "Bevan", "Jo"), null, 0L),
+                    nz.waveformlabs.moshpoint.GigArchive.Summary("b", "Foo Fighters", 1_760_000_000L, "Eden Park", 9, 1, listOf("You", "Alex"), null, 0L),
+                ),
             )
         }
     }
