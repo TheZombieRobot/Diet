@@ -126,6 +126,8 @@ fun StoryScreen(
     onSaveAll: (() -> Unit)? = null,
     /** Delete this (past) gig from this phone. */
     onDelete: (() -> Unit)? = null,
+    /** Add photos/videos from this phone's camera roll taken during the gig. */
+    onAddFromPhone: (() -> Unit)? = null,
 ) {
     val hasBack = androidx.activity.compose.LocalOnBackPressedDispatcherOwner.current != null
     if (hasBack) androidx.activity.compose.BackHandler(onBack = onBack)
@@ -177,9 +179,12 @@ fun StoryScreen(
                             TextButton(onClick = onSaveAll) { Text("Save all", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
                         }
                     }
-                    if (live && onSaveAll != null && items.isNotEmpty()) {
-                        TextButton(onClick = onSaveAll, modifier = Modifier.padding(start = 12.dp)) {
-                            Text("Save the whole night to your phone", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan))
+                    Row(Modifier.padding(start = 12.dp)) {
+                        if (onAddFromPhone != null) {
+                            TextButton(onClick = onAddFromPhone) { Text("＋ Add your photos", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lime)) }
+                        }
+                        if (live && onSaveAll != null && items.isNotEmpty()) {
+                            TextButton(onClick = onSaveAll) { Text("Save all to phone", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
                         }
                     }
                 }

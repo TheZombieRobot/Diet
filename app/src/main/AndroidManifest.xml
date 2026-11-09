@@ -29,6 +29,11 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Sound on crew moment clips (asked the first time you hold to record). -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- "Add your photos from that night": find photos/videos taken during a gig (asked only then). -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
 
     <!-- Keep broadcasting with the app closed -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -79,6 +84,10 @@
 
         <receiver
             android:name=".FollowCheckReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".MemoryReceiver"
             android:exported="false" />
 
         <receiver

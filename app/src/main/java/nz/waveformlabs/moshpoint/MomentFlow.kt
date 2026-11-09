@@ -210,6 +210,7 @@ class MomentFlow(
         androidx.activity.compose.BackHandler { capturing = false }
         nz.waveformlabs.moshpoint.ui.CaptureScreen(
             withAudio = withAudio,
+            hq = !ShareQuality.dataSaver.value,
             newClipFile = ::newClipFile,
             onPhoto = { bmp -> capturing = false; momentPhoto = bmp },
             onClip = { f -> capturing = false; useClip(f) },

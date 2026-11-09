@@ -57,12 +57,13 @@ object GigArchive {
      * Keep one moment: the JPEG (for a clip, its first frame) and the clip itself. Returns the
      * kept files (photo, clip) so the Story can show them.
      */
-    fun keep(c: Context, g: GigGroup, key: String, m: GigGroup.Moment, mine: Boolean, jpeg: ByteArray, clip: File?): Pair<File, File?> {
+    fun keep(c: Context, g: GigGroup, key: String, m: GigGroup.Moment, mine: Boolean, jpeg: ByteArray, clip: File?, original: ByteArray? = null): Pair<File, File?> {
         val d = dir(c, idFor(g))
         val name = safeName(key)
         val photo = File(d, "$name.jpg")
         val alreadyKept = photo.exists()
         if (!alreadyKept) photo.writeBytes(jpeg)
+        if (original != null) File(d, "$name.orig.jpg").let { if (!it.exists()) it.writeBytes(original) }
         val video = clip?.let { src ->
             File(d, "$name.mp4").also { if (!it.exists()) runCatching { src.copyTo(it) } }
         }
@@ -76,6 +77,80 @@ object GigArchive {
         if (!alreadyKept) File(d, "items.jsonl").appendText(line.toString() + "\n")
         if (!File(d, "meta.json").exists()) remember(c, g)
         return photo to video
+    }
+
+    /** A photo or video from the phone's own camera roll, taken during a gig. */
+    data class Found(val uri: android.net.Uri, val video: Boolean, val takenSec: Long, val thumb: android.graphics.Bitmap?)
+
+    /**
+     * Photos and videos on this phone taken during gig [id] (from 2 h before it started to
+     * 8 h after), newest first, not already added. Needs photo access (asked first).
+     */
+    suspend fun findOnPhone(c: Context, id: String): List<Found> = withContext(Dispatchers.IO) {
+        val meta = runCatching { JSONObject(File(File(root(c), id), "meta.json").readText()) }.getOrNull() ?: return@withContext emptyList()
+        val start = (meta.optLong("when") - 2 * 3600) * 1000
+        val end = (meta.optLong("when") + 8 * 3600) * 1000
+        val have = File(File(root(c), id), "items.jsonl").takeIf { it.exists() }?.readText().orEmpty()
+        val out = mutableListOf<Found>()
+        for ((collection, video) in listOf(MediaStore.Images.Media.EXTERNAL_CONTENT_URI to false, MediaStore.Video.Media.EXTERNAL_CONTENT_URI to true)) {
+            runCatching {
+                c.contentResolver.query(
+                    collection, arrayOf(MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DATE_TAKEN),
+                    "${MediaStore.MediaColumns.DATE_TAKEN} BETWEEN ? AND ?", arrayOf(start.toString(), end.toString()),
+                    "${MediaStore.MediaColumns.DATE_TAKEN} DESC",
+                )?.use { cur ->
+                    while (cur.moveToNext() && out.size < 200) {
+                        val mid = cur.getLong(0)
+                        if (have.contains("roll-${if (video) "v" else "p"}$mid")) continue
+                        val uri = android.content.ContentUris.withAppendedId(collection, mid)
+                        val thumb = runCatching { c.contentResolver.loadThumbnail(uri, android.util.Size(300, 300), null) }.getOrNull()
+                        out += Found(uri, video, cur.getLong(1) / 1000, thumb)
+                    }
+                }
+            }
+        }
+        out.sortedByDescending { it.takenSec }
+    }
+
+    /** Copy picked camera-roll photos/videos into gig [id] (yours; they stay even if you delete them from the gallery). */
+    suspend fun addFromPhone(c: Context, id: String, picked: List<Found>, myName: String): Int = withContext(Dispatchers.IO) {
+        val d = File(root(c), id)
+        var n = 0
+        for (f in picked) {
+            runCatching {
+                val key = "roll-${if (f.video) "v" else "p"}${android.content.ContentUris.parseId(f.uri)}"
+                val name = safeName(key)
+                val photo = File(d, "$name.jpg")
+                if (photo.exists()) return@runCatching
+                if (f.video) {
+                    val clip = File(d, "$name.mp4")
+                    c.contentResolver.openInputStream(f.uri)?.use { input -> clip.outputStream().use { input.copyTo(it) } }
+                    val frame = (f.thumb ?: runCatching { c.contentResolver.loadThumbnail(f.uri, android.util.Size(1280, 1280), null) }.getOrNull())
+                    photo.writeBytes(java.io.ByteArrayOutputStream().also { frame?.compress(Bitmap.CompressFormat.JPEG, 85, it) }.toByteArray())
+                    appendItem(d, key, myName, f.takenSec, "", true, photo.name, clip.name)
+                } else {
+                    // Board copy (2048 px) plus the untouched original for "Save to phone".
+                    val bytes = c.contentResolver.openInputStream(f.uri)?.use { it.readBytes() } ?: return@runCatching
+                    File(d, "$name.orig.jpg").writeBytes(bytes)
+                    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+                    var sample = 1
+                    while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= 2048) sample *= 2
+                    val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample })
+                        ?: return@runCatching
+                    photo.writeBytes(java.io.ByteArrayOutputStream().also { bmp.compress(Bitmap.CompressFormat.JPEG, 88, it) }.toByteArray())
+                    appendItem(d, key, myName, f.takenSec, "", true, photo.name, "")
+                }
+                n++
+            }
+        }
+        refreshList(c)
+        n
+    }
+
+    private fun appendItem(d: File, key: String, from: String, t: Long, cap: String, mine: Boolean, photo: String, clip: String) {
+        val o = JSONObject().put("key", key).put("from", from).put("t", t).put("cap", cap).put("mine", mine).put("photo", photo).put("clip", clip)
+        File(d, "items.jsonl").appendText(o.toString() + "\n")
     }
 
     /** The moments kept for gig [id], newest first, as Story items (small images for the board). */
@@ -94,6 +169,7 @@ object GigArchive {
                     lat = if (o.has("lat")) o.getDouble("lat") else null, lon = if (o.has("lon")) o.getDouble("lon") else null,
                     caption = o.optString("cap"), image = bmp.asImageBitmap(), mine = o.optBoolean("mine"),
                     videoFile = clip, photoFile = photo,
+                    originalFile = File(d, photo.nameWithoutExtension + ".orig.jpg").takeIf { it.exists() },
                 )
             }.getOrNull()
         }.distinctBy { it.key }.sortedByDescending { it.timeSec }
@@ -132,7 +208,8 @@ object GigArchive {
         val stamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.ROOT).format(java.util.Date(item.timeSec * 1000))
         val who = item.from.replace(Regex("[^A-Za-z0-9]"), "").take(16).ifBlank { "mate" }
         val video = item.videoFile
-        val src = video ?: item.photoFile ?: return@withContext false
+        // Best version we have: your own full-quality original, else what the crew sent.
+        val src = video ?: item.originalFile?.takeIf { it.exists() } ?: item.photoFile ?: return@withContext false
         if (!src.exists()) return@withContext false
         val values = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, "${stamp}_$who.${if (video != null) "mp4" else "jpg"}")

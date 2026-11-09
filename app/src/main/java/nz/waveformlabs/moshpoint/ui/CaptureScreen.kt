@@ -85,6 +85,8 @@ private const val CLIP_MS = 10_000L
 fun CaptureScreen(
     /** Sound on clips (record-audio permission granted). */
     withAudio: Boolean,
+    /** High quality clips (720p); false = data saver (480p). */
+    hq: Boolean = true,
     newClipFile: () -> File,
     onPhoto: (Bitmap) -> Unit,
     onClip: (File) -> Unit,
@@ -105,8 +107,10 @@ fun CaptureScreen(
     val videoCapture = remember {
         VideoCapture.withOutput(
             Recorder.Builder()
-                .setQualitySelector(QualitySelector.fromOrderedList(listOf(Quality.SD, Quality.HD, Quality.LOWEST)))
-                .setTargetVideoEncodingBitRate(2_500_000) // ~3 MB for 10 s
+                .setQualitySelector(
+                    QualitySelector.fromOrderedList(if (hq) listOf(Quality.HD, Quality.SD, Quality.LOWEST) else listOf(Quality.SD, Quality.HD, Quality.LOWEST)),
+                )
+                .setTargetVideoEncodingBitRate(if (hq) 5_000_000 else 2_500_000) // ~6 MB or ~3 MB for 10 s
                 .build(),
         )
     }

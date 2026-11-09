@@ -35,6 +35,8 @@ object Moments {
         val videoFile: java.io.File? = null,
         /** The full photo (or a clip's first frame), kept in the gig's folder. */
         val photoFile: java.io.File? = null,
+        /** Your own photo at full camera quality (only for yours), used by "Save to phone". */
+        val originalFile: java.io.File? = null,
     ) {
         val isVideo get() = videoFile != null
     }
@@ -49,12 +51,17 @@ object Moments {
         val g = GroupSync.group.value ?: return false
         if (!RelayClient.filesEnabled) return false
         val app = c.applicationContext
-        val jpeg = withContext(Dispatchers.Default) { shrink(photo) }
+        val (maxPx, q) = ShareQuality.photo
+        val jpeg = withContext(Dispatchers.Default) { shrink(photo, maxPx, q) }
+        // Your own original, full quality, kept on your phone for "Save to phone".
+        val original = withContext(Dispatchers.Default) {
+            ByteArrayOutputStream().also { photo.compress(Bitmap.CompressFormat.JPEG, 94, it) }.toByteArray()
+        }
         val m = GigGroup.Moment(VisibilityPrefs.myName(app).ifBlank { "Mate" }, System.currentTimeMillis() / 1000, lat, lon, caption.trim(), jpeg)
         val sealed = g.sealMoment(m)
         val ok = RelayClient.putFile(g.momentsIdForDay(Math.floorDiv(m.timeSec, 86_400L)), sealed)
         if (ok) {
-            add(app, m, "mine-${m.timeSec}", mine = true)
+            add(app, m, "mine-${m.timeSec}", mine = true, original = original)
             NightStats.moment(app)
         }
         DebugStatus.log(if (ok) "Moment shared with the crew" else "Moment not sent (no internet?)")
@@ -103,18 +110,21 @@ object Moments {
         lastCheckMs = 0L
     }
 
-    private fun add(c: Context, m: GigGroup.Moment, key: String, mine: Boolean) {
+    private fun add(c: Context, m: GigGroup.Moment, key: String, mine: Boolean, original: ByteArray? = null) {
         if (items.any { it.key == key }) return
         // A clip travels as "MPV1" + thumbnail length + thumbnail JPEG + the MP4.
         val (thumb, cached) = unpackClip(c, m.jpeg, key) ?: (m.jpeg to null)
         // Keep it in this gig's folder (survives restarts and the relay forgetting).
         val g = GroupSync.group.value
-        val kept = g?.let { runCatching { GigArchive.keep(c, it, key, m, mine, thumb, cached) }.getOrNull() }
+        val kept = g?.let { runCatching { GigArchive.keep(c, it, key, m, mine, thumb, cached, original) }.getOrNull() }
         val video = kept?.second ?: cached
         val bmp = kept?.first?.let { GigArchive.thumbnail(it) }
             ?: BitmapFactory.decodeByteArray(thumb, 0, thumb.size)
             ?: if (video != null) Bitmap.createBitmap(320, 320, Bitmap.Config.ARGB_8888).apply { eraseColor(0xFF1C1630.toInt()) } else return
-        val item = Item(key, m.from, m.timeSec, m.lat, m.lon, m.caption, bmp.asImageBitmap(), mine, video, kept?.first)
+        val item = Item(
+            key, m.from, m.timeSec, m.lat, m.lon, m.caption, bmp.asImageBitmap(), mine, video, kept?.first,
+            kept?.first?.let { java.io.File(it.parentFile, it.nameWithoutExtension + ".orig.jpg") }?.takeIf { it.exists() },
+        )
         val i = items.indexOfFirst { it.timeSec < m.timeSec }.let { if (it < 0) items.size else it }
         items.add(i, item)
         while (items.size > 400) items.removeAt(items.size - 1)
@@ -163,9 +173,9 @@ object Moments {
     }
 
     /** Longest side 1280 px, JPEG 78%: roughly 150-300 KB. Sharp on the timeline, quick to send. */
-    private fun shrink(src: Bitmap): ByteArray {
-        val scale = minOf(1f, 1280f / maxOf(src.width, src.height))
+    private fun shrink(src: Bitmap, maxPx: Float = 1280f, quality: Int = 78): ByteArray {
+        val scale = minOf(1f, maxPx / maxOf(src.width, src.height))
         val bmp = if (scale < 1f) Bitmap.createScaledBitmap(src, (src.width * scale).toInt(), (src.height * scale).toInt(), true) else src
-        return ByteArrayOutputStream().also { bmp.compress(Bitmap.CompressFormat.JPEG, 78, it) }.toByteArray()
+        return ByteArrayOutputStream().also { bmp.compress(Bitmap.CompressFormat.JPEG, quality, it) }.toByteArray()
     }
 }

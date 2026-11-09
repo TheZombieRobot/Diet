@@ -430,6 +430,22 @@ fun FriendsScreen(
             }
         }
 
+        // "Remember last year?": a gig on this day in an earlier year.
+        nz.waveformlabs.moshpoint.Memories.today(pastGigs, if (nowSec > 0) nowSec * 1000 else System.currentTimeMillis()).firstOrNull()?.let { (g, years) ->
+            item {
+                Column(
+                    Modifier.fillMaxWidth().background(Mosh.Amber.copy(alpha = 0.12f), RoundedCornerShape(18.dp))
+                        .border(1.dp, Mosh.Amber.copy(alpha = 0.5f), RoundedCornerShape(18.dp))
+                        .clickable { onOpenGig(g) }.padding(16.dp),
+                ) {
+                    Text("MEMORIES", style = Mosh.Eyebrow.copy(color = Mosh.Amber))
+                    Spacer(Modifier.height(4.dp))
+                    Text(nz.waveformlabs.moshpoint.Memories.headline(g, years), style = Mosh.Label)
+                    Text("${g.photos + g.clips} photos and clips. Tap to relive it ›", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextDim))
+                }
+            }
+        }
+
         // Past nights, to relive and save.
         val past = pastGigs.filter { it.id != currentGigId }
         if (past.isNotEmpty()) {

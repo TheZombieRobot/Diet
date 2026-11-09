@@ -146,6 +146,20 @@ internal fun SettingsContent(
                     }
                 }
             }
+            run {
+                val context = androidx.compose.ui.platform.LocalContext.current
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Data saver", style = Mosh.Label)
+                        Text(
+                            "Share lighter photos and clips (quicker on weak signal). Off: high quality, so everyone's saved copies are crisp. Your own originals are always kept full quality.",
+                            style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint),
+                        )
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Switch(nz.waveformlabs.moshpoint.ShareQuality.dataSaver.value, { nz.waveformlabs.moshpoint.ShareQuality.setDataSaver(context, it) }, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Cyan, checkedThumbColor = Color(0xFF07050F), uncheckedTrackColor = Color(0xFF1C1630)))
+                }
+            }
             if (BuildConfig.TEST_BUILD) {
                 // Test builds only: hide the techie bits, e.g. before sharing the app with mates.
                 val context = androidx.compose.ui.platform.LocalContext.current

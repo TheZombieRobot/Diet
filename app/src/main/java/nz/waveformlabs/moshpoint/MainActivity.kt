@@ -163,6 +163,50 @@ class MainActivity : ComponentActivity() {
     private var archiveGig by mutableStateOf<GigArchive.Summary?>(null)
     private var archiveItems by mutableStateOf<List<Moments.Item>>(emptyList())
 
+    // ---- "Add your photos from that night" (camera roll) ----
+
+    private var rollGig by mutableStateOf<Pair<String, String>?>(null) // (gig id, name)
+    private var rollFound by mutableStateOf<List<GigArchive.Found>?>(null)
+    private var rollAdding by mutableStateOf(false)
+
+    private val mediaPerms = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { r ->
+        if (r.values.any { it }) findOnPhone() else {
+            rollGig = null
+            toast("Moshpoint needs access to your photos to find the ones from that night")
+        }
+    }
+
+    private fun startRoll(id: String, name: String) {
+        rollGig = id to name
+        rollFound = null
+        val perms = if (Build.VERSION.SDK_INT >= 33) {
+            listOf(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO) +
+                (if (Build.VERSION.SDK_INT >= 34) listOf(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED) else emptyList())
+        } else {
+            listOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+        if (perms.any { checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED }) findOnPhone() else mediaPerms.launch(perms.toTypedArray())
+    }
+
+    private fun findOnPhone() {
+        val (id, _) = rollGig ?: return
+        lifecycleScope.launch { rollFound = GigArchive.findOnPhone(this@MainActivity, id) }
+    }
+
+    private fun addFromPhone(picked: List<GigArchive.Found>) {
+        val (id, _) = rollGig ?: return
+        rollAdding = true
+        lifecycleScope.launch {
+            val n = GigArchive.addFromPhone(this@MainActivity, id, picked, myName.ifBlank { "You" })
+            rollAdding = false
+            rollGig = null
+            toast("Added $n to the gig")
+            // Show them straight away on whichever board is open.
+            if (GroupSync.group.value?.let(GigArchive::idFor) == id) Moments.loadCurrent(this@MainActivity)
+            archiveGig?.takeIf { it.id == id }?.let { archiveItems = GigArchive.load(this@MainActivity, id) }
+        }
+    }
+
     /** Copy photos/clips into the phone's gallery, album "Moshpoint / <gig>". */
     private fun saveToPhone(items: List<Moments.Item>, album: String) {
         if (items.isEmpty()) return
@@ -409,13 +453,16 @@ class MainActivity : ComponentActivity() {
         LocationBook.init(this)
         Spots.init(this)
         GhostMode.init(this)
+        ShareQuality.init(this)
         DebugStatus.initUi(this)
         if (savedInstanceState == null) intent?.getStringExtra(ShareInviteActivity.EXTRA_TEXT)?.let { handleInvite(it) }
         GroupSync.load(this)
         if (GroupSync.following) FollowCheck.schedule(this)
+        GroupSync.group.value?.let { runCatching { GigArchive.remember(this, it) } }
         lifecycleScope.launch {
             Moments.loadCurrent(this@MainActivity) // tonight's Story survives restarts
             GigArchive.refreshList(this@MainActivity)
+            Memories.schedule(this@MainActivity, GigArchive.gigs)
         }
         val mySecret = VisibilityPrefs.mySecret(this)
         engine = LocatorEngine(applicationContext, lifecycleScope, mySecret)
@@ -843,6 +890,7 @@ class MainActivity : ComponentActivity() {
                             onRefresh = { GroupSync.group.value?.let { g -> Moments.refreshNow(this@MainActivity, g) } },
                             onSaveOne = { m -> saveToPhone(listOf(m), GroupSync.group.value?.name ?: "Gig") },
                             onSaveAll = { saveToPhone(Moments.items.toList(), GroupSync.group.value?.name ?: "Gig") },
+                            onAddFromPhone = GroupSync.group.value?.let { g -> { startRoll(GigArchive.idFor(g), g.name) } },
                             live = GroupSync.group.value != null && !GroupSync.sleeping,
                         )
                     }
@@ -863,6 +911,7 @@ class MainActivity : ComponentActivity() {
                             title = g.name,
                             onSaveOne = { m -> saveToPhone(listOf(m), g.name) },
                             onSaveAll = { saveToPhone(archiveItems, g.name) },
+                            onAddFromPhone = { startRoll(g.id, g.name) },
                             onDelete = {
                                 archiveGig = null
                                 lifecycleScope.launch {
@@ -940,6 +989,9 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     momentFlow.CameraOverlay()
+                    rollGig?.let { (_, name) ->
+                        nz.waveformlabs.moshpoint.ui.CameraRollPicker(name, rollFound, rollAdding, onAdd = ::addFromPhone, onClose = { rollGig = null })
+                    }
                 }
             }
         }
