@@ -31,8 +31,10 @@ object Moments {
         val caption: String,
         val image: ImageBitmap,
         val mine: Boolean,
-        /** A clip: [image] is its first frame, this is the playable file (cache). */
+        /** A clip: [image] is its first frame, this is the playable file. */
         val videoFile: java.io.File? = null,
+        /** The full photo (or a clip's first frame), kept in the gig's folder. */
+        val photoFile: java.io.File? = null,
     ) {
         val isVideo get() = videoFile != null
     }
@@ -71,7 +73,7 @@ object Moments {
         val day = Math.floorDiv(now / 1000, 86_400L)
         val files = RelayClient.listFiles(listOf(g.momentsIdForDay(day), g.momentsIdForDay(day - 1))) ?: return
         for ((_, url) in files.take(12)) {
-            if (url in seenUrls) continue
+            if (url in seenUrls || items.any { it.key == url }) continue
             val blob = RelayClient.download(url) ?: continue // try again next time
             seenUrls += url
             val m = g.openMoment(blob) ?: continue
@@ -85,6 +87,16 @@ object Moments {
         }
     }
 
+    /** On app start: put tonight's Story back from the gig's folder. */
+    suspend fun loadCurrent(c: Context) {
+        val g = GroupSync.group.value ?: return
+        val kept = GigArchive.load(c, GigArchive.idFor(g))
+        if (kept.isEmpty()) return
+        val have = items.map { it.key }.toSet()
+        items.addAll(kept.filter { it.key !in have })
+        items.sortByDescending { it.timeSec }
+    }
+
     fun clear() {
         items.clear()
         seenUrls.clear()
@@ -94,13 +106,18 @@ object Moments {
     private fun add(c: Context, m: GigGroup.Moment, key: String, mine: Boolean) {
         if (items.any { it.key == key }) return
         // A clip travels as "MPV1" + thumbnail length + thumbnail JPEG + the MP4.
-        val (thumb, video) = unpackClip(c, m.jpeg, key) ?: (m.jpeg to null)
-        val bmp = BitmapFactory.decodeByteArray(thumb, 0, thumb.size)
+        val (thumb, cached) = unpackClip(c, m.jpeg, key) ?: (m.jpeg to null)
+        // Keep it in this gig's folder (survives restarts and the relay forgetting).
+        val g = GroupSync.group.value
+        val kept = g?.let { runCatching { GigArchive.keep(c, it, key, m, mine, thumb, cached) }.getOrNull() }
+        val video = kept?.second ?: cached
+        val bmp = kept?.first?.let { GigArchive.thumbnail(it) }
+            ?: BitmapFactory.decodeByteArray(thumb, 0, thumb.size)
             ?: if (video != null) Bitmap.createBitmap(320, 320, Bitmap.Config.ARGB_8888).apply { eraseColor(0xFF1C1630.toInt()) } else return
-        val item = Item(key, m.from, m.timeSec, m.lat, m.lon, m.caption, bmp.asImageBitmap(), mine, video)
+        val item = Item(key, m.from, m.timeSec, m.lat, m.lon, m.caption, bmp.asImageBitmap(), mine, video, kept?.first)
         val i = items.indexOfFirst { it.timeSec < m.timeSec }.let { if (it < 0) items.size else it }
         items.add(i, item)
-        while (items.size > 30) items.removeAt(items.size - 1)
+        while (items.size > 400) items.removeAt(items.size - 1)
     }
 
     /**

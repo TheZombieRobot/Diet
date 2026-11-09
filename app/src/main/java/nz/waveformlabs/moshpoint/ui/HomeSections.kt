@@ -421,3 +421,41 @@ private fun PolaroidIcon(c: Color) = androidx.compose.foundation.Canvas(Modifier
     }
 }
 
+/** "Your gigs": past nights kept on this phone, to relive and save. */
+@Composable
+internal fun PastGigs(gigs: List<nz.waveformlabs.moshpoint.GigArchive.Summary>, onOpen: (nz.waveformlabs.moshpoint.GigArchive.Summary) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        gigs.forEach { g ->
+            val cover = remember(g.cover) { g.cover?.let { nz.waveformlabs.moshpoint.GigArchive.thumbnail(it) }?.asImageBitmap() }
+            Row(
+                Modifier.fillMaxWidth().background(Mosh.SurfaceLow, RoundedCornerShape(18.dp))
+                    .border(1.dp, Color(0x12FFFFFF), RoundedCornerShape(18.dp))
+                    .clickable { onOpen(g) }.padding(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    Modifier.size(64.dp).graphicsLayer { rotationZ = -4f }
+                        .background(Color(0xFFF7F4EC), RoundedCornerShape(3.dp)).padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 10.dp),
+                ) {
+                    if (cover != null) {
+                        androidx.compose.foundation.Image(cover, null, contentScale = androidx.compose.ui.layout.ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(50.dp))
+                    }
+                }
+                Spacer(Modifier.width(14.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(g.name, style = Mosh.Label, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    val day = java.text.SimpleDateFormat("EEE d MMM yyyy", java.util.Locale.getDefault()).format(java.util.Date(g.whenSec * 1000))
+                    Text(listOf(day, g.venue).filter { it.isNotBlank() }.joinToString(" · "), style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    val counts = listOfNotNull(
+                        "${g.photos} photo${if (g.photos == 1) "" else "s"}".takeIf { g.photos > 0 },
+                        "${g.clips} clip${if (g.clips == 1) "" else "s"}".takeIf { g.clips > 0 },
+                        g.people.take(3).joinToString(", ") + if (g.people.size > 3) " +${g.people.size - 3}" else "",
+                    )
+                    Text(counts.joinToString(" · "), style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 15.sp, color = Mosh.TextFaint), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                Text("›", style = Mosh.Heading.copy(color = Mosh.TextFaint))
+            }
+        }
+    }
+}
+

@@ -125,6 +125,11 @@ fun FriendsScreen(
     followers: List<String> = emptyList(),
     /** Share the follow-along invite with family. */
     onLetFamilyFollow: () -> Unit = {},
+    /** Past gigs kept on this phone. */
+    pastGigs: List<nz.waveformlabs.moshpoint.GigArchive.Summary> = emptyList(),
+    /** Tonight's gig (shown in the crew card, not in the list). */
+    currentGigId: String? = null,
+    onOpenGig: (nz.waveformlabs.moshpoint.GigArchive.Summary) -> Unit = {},
     /** "Sat 14 Dec, 8:00 pm · Spark Arena" for a planned gig's crew, else null. */
     crewWhen: String? = null,
     /** The crew is for a later day and is asleep (nothing running) until then. */
@@ -422,6 +427,17 @@ fun FriendsScreen(
                         }
                     }
                 }
+            }
+        }
+
+        // Past nights, to relive and save.
+        val past = pastGigs.filter { it.id != currentGigId }
+        if (past.isNotEmpty()) {
+            item {
+                Spacer(Modifier.height(4.dp))
+                Text("YOUR GIGS", style = Mosh.Eyebrow)
+                Spacer(Modifier.height(10.dp))
+                PastGigs(past, onOpenGig)
             }
         }
 

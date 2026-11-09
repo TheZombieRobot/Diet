@@ -162,6 +162,7 @@ object GroupSync {
     }
 
     private fun set(c: Context, g: GigGroup) {
+        runCatching { GigArchive.remember(c, g) }
         if (!g.dormant(System.currentTimeMillis())) NightStats.startIfNeeded(c)
         GigWake.schedule(c, g)
         prefs(c).edit()

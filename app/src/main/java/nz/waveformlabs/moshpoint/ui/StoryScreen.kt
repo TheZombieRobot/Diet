@@ -118,6 +118,14 @@ fun StoryScreen(
     onRefresh: suspend () -> Unit = {},
     /** The crew is awake tonight: show the LIVE tag. */
     live: Boolean = true,
+    /** "The story", or a past gig's name. */
+    title: String = "The story",
+    /** Save one photo/clip to the phone's gallery. */
+    onSaveOne: ((Moments.Item) -> Unit)? = null,
+    /** Save the whole gig to the phone's gallery. */
+    onSaveAll: (() -> Unit)? = null,
+    /** Delete this (past) gig from this phone. */
+    onDelete: (() -> Unit)? = null,
 ) {
     val hasBack = androidx.activity.compose.LocalOnBackPressedDispatcherOwner.current != null
     if (hasBack) androidx.activity.compose.BackHandler(onBack = onBack)
@@ -158,13 +166,21 @@ fun StoryScreen(
                     Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                         TextButton(onClick = onBack) { Text("‹ Back", style = Mosh.Label.copy(fontSize = 15.sp)) }
                         Column(Modifier.weight(1f)) {
-                            Text("The story", style = Mosh.Heading)
+                            Text(title, style = Mosh.Heading, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             Text(
                                 if (items.isEmpty()) "Nothing pinned yet" else "${items.size} from $people ${if (people == 1) "person" else "people"}",
                                 style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint),
                             )
                         }
                         if (live) LiveTag()
+                        else if (onSaveAll != null && items.isNotEmpty()) {
+                            TextButton(onClick = onSaveAll) { Text("Save all", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
+                        }
+                    }
+                    if (live && onSaveAll != null && items.isNotEmpty()) {
+                        TextButton(onClick = onSaveAll, modifier = Modifier.padding(start = 12.dp)) {
+                            Text("Save the whole night to your phone", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan))
+                        }
                     }
                 }
                 if (items.isEmpty()) {
@@ -217,6 +233,13 @@ fun StoryScreen(
                         }
                     }
                 }
+                if (onDelete != null) {
+                    item(key = "delete") {
+                        Box(Modifier.fillMaxWidth().padding(top = 24.dp), contentAlignment = Alignment.Center) {
+                            TextButton(onClick = onDelete) { Text("Delete this gig from this phone", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Danger)) }
+                        }
+                    }
+                }
             }
         }
 
@@ -249,8 +272,13 @@ fun StoryScreen(
                         if (m.isVideo && m.videoFile != null) VideoPolaroid(m) else Polaroid(m, 300.dp, tilted = false)
                         Spacer(Modifier.height(18.dp))
                         Text("${if (m.mine) "You" else m.from} · ${clockTime(m.timeSec)} · ${ago(nowSec - m.timeSec)}", style = Mosh.Body.copy(color = Mosh.TextDim))
-                        if (m.lat != null) {
-                            TextButton(onClick = { open = null; onMap(m) }) { Text("Show where on the map", style = Mosh.Label.copy(color = Mosh.Cyan)) }
+                        Row {
+                            if (onSaveOne != null) {
+                                TextButton(onClick = { onSaveOne(m) }) { Text("Save to phone", style = Mosh.Label.copy(color = Mosh.Lime)) }
+                            }
+                            if (m.lat != null) {
+                                TextButton(onClick = { open = null; onMap(m) }) { Text("On the map", style = Mosh.Label.copy(color = Mosh.Cyan)) }
+                            }
                         }
                     }
                 }

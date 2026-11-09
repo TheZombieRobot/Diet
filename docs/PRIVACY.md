@@ -69,6 +69,11 @@ who scanned your crew's QR can open them. They pass through the same relay under
 change daily or every 5 minutes; the public relay deletes them within hours. Nothing is
 shared unless you tap to send it.
 
+**Your gigs (on your phone only):** photos and clips your crew shares are kept on your
+phone, in the app's private storage, so you can look back at the night. They never leave
+your phone from there. You can delete a gig any time, uninstalling removes them all, and
+"Save to phone" copies them into your own gallery only when you ask.
+
 **Gig search (optional):** when you search for a gig, the words you type are sent to
 Ticketmaster's public event search so it can list matching shows. Nothing about you or
 your crew is sent with it. Typing a gig in by hand sends nothing.

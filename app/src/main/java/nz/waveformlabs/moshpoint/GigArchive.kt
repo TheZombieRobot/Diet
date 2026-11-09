@@ -1,0 +1,171 @@
+package nz.waveformlabs.moshpoint
+
+import android.content.ContentValues
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.provider.MediaStore
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.ui.graphics.asImageBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import nz.waveformlabs.moshpoint.core.GigGroup
+import org.json.JSONObject
+import java.io.File
+import java.security.MessageDigest
+
+/**
+ * Your gigs: every photo and clip from a night is kept on this phone, in that gig's own
+ * folder, the moment it arrives. So the Story survives app restarts and the relay
+ * forgetting, and after the night it lives on in "Your gigs" to look back through, save to
+ * the gallery ("Moshpoint / Iron Maiden"), or delete.
+ *
+ * App-private storage (filesDir/gigs/<id>/): nobody else can read it; uninstalling removes it.
+ */
+object GigArchive {
+    data class Summary(
+        val id: String,
+        val name: String,
+        val whenSec: Long,
+        val venue: String,
+        val photos: Int,
+        val clips: Int,
+        val people: List<String>,
+        val cover: File?,
+        val bytes: Long,
+    )
+
+    /** Past and current gigs, newest first (Compose state for the home screen). */
+    val gigs = mutableStateListOf<Summary>()
+
+    fun idFor(g: GigGroup): String =
+        MessageDigest.getInstance("SHA-256").digest(g.key).take(8).joinToString("") { "%02x".format(it) }
+
+    private fun root(c: Context) = File(c.applicationContext.filesDir, "gigs").apply { mkdirs() }
+    private fun dir(c: Context, id: String) = File(root(c), id).apply { mkdirs() }
+
+    /** Note the gig's details (name, time, venue) so it shows properly in the list. */
+    fun remember(c: Context, g: GigGroup) {
+        val d = dir(c, idFor(g))
+        val meta = File(d, "meta.json")
+        val o = runCatching { JSONObject(meta.readText()) }.getOrDefault(JSONObject())
+        o.put("name", g.name).put("when", if (g.startsAtSec > 0) g.startsAtSec else g.createdAtMs / 1000).put("venue", g.venue)
+        meta.writeText(o.toString())
+    }
+
+    /**
+     * Keep one moment: the JPEG (for a clip, its first frame) and the clip itself. Returns the
+     * kept files (photo, clip) so the Story can show them.
+     */
+    fun keep(c: Context, g: GigGroup, key: String, m: GigGroup.Moment, mine: Boolean, jpeg: ByteArray, clip: File?): Pair<File, File?> {
+        val d = dir(c, idFor(g))
+        val name = safeName(key)
+        val photo = File(d, "$name.jpg")
+        val alreadyKept = photo.exists()
+        if (!alreadyKept) photo.writeBytes(jpeg)
+        val video = clip?.let { src ->
+            File(d, "$name.mp4").also { if (!it.exists()) runCatching { src.copyTo(it) } }
+        }
+        val line = JSONObject()
+            .put("key", key).put("from", m.from).put("t", m.timeSec).put("cap", m.caption).put("mine", mine)
+            .put("photo", photo.name).put("clip", video?.name ?: "")
+            .apply {
+                m.lat?.let { put("lat", it) }
+                m.lon?.let { put("lon", it) }
+            }
+        if (!alreadyKept) File(d, "items.jsonl").appendText(line.toString() + "\n")
+        if (!File(d, "meta.json").exists()) remember(c, g)
+        return photo to video
+    }
+
+    /** The moments kept for gig [id], newest first, as Story items (small images for the board). */
+    suspend fun load(c: Context, id: String): List<Moments.Item> = withContext(Dispatchers.IO) {
+        val d = File(root(c), id)
+        val index = File(d, "items.jsonl")
+        if (!index.exists()) return@withContext emptyList()
+        index.readLines().mapNotNull { l ->
+            runCatching {
+                val o = JSONObject(l)
+                val photo = File(d, o.getString("photo"))
+                val clip = o.optString("clip").takeIf { it.isNotBlank() }?.let { File(d, it) }?.takeIf { it.exists() }
+                val bmp = thumbnail(photo) ?: return@runCatching null
+                Moments.Item(
+                    key = o.getString("key"), from = o.getString("from"), timeSec = o.getLong("t"),
+                    lat = if (o.has("lat")) o.getDouble("lat") else null, lon = if (o.has("lon")) o.getDouble("lon") else null,
+                    caption = o.optString("cap"), image = bmp.asImageBitmap(), mine = o.optBoolean("mine"),
+                    videoFile = clip, photoFile = photo,
+                )
+            }.getOrNull()
+        }.distinctBy { it.key }.sortedByDescending { it.timeSec }
+    }
+
+    /** Refresh [gigs] from disk. */
+    suspend fun refreshList(c: Context) {
+        val list = withContext(Dispatchers.IO) {
+            root(c).listFiles().orEmpty().filter { it.isDirectory }.mapNotNull { d ->
+                val meta = runCatching { JSONObject(File(d, "meta.json").readText()) }.getOrNull() ?: return@mapNotNull null
+                val lines = File(d, "items.jsonl").takeIf { it.exists() }?.readLines().orEmpty()
+                    .mapNotNull { runCatching { JSONObject(it) }.getOrNull() }.distinctBy { it.optString("key") }
+                if (lines.isEmpty()) return@mapNotNull null
+                val clips = lines.count { it.optString("clip").isNotBlank() }
+                val cover = lines.maxByOrNull { it.optLong("t") }?.let { File(d, it.getString("photo")) }
+                Summary(
+                    id = d.name, name = meta.optString("name", "Gig"), whenSec = meta.optLong("when"), venue = meta.optString("venue"),
+                    photos = lines.size - clips, clips = clips,
+                    people = lines.map { if (it.optBoolean("mine")) "You" else it.optString("from") }.distinct(),
+                    cover = cover, bytes = d.walkTopDown().filter { it.isFile }.sumOf { it.length() },
+                )
+            }.sortedByDescending { it.whenSec }
+        }
+        gigs.clear()
+        gigs.addAll(list)
+    }
+
+    suspend fun delete(c: Context, id: String) {
+        withContext(Dispatchers.IO) { File(root(c), id).deleteRecursively() }
+        refreshList(c)
+    }
+
+    /** Save one moment to the phone's gallery, in an album named after the gig. */
+    suspend fun saveToPhone(c: Context, item: Moments.Item, album: String): Boolean = withContext(Dispatchers.IO) {
+        val folder = "Moshpoint/" + album.replace(Regex("[^A-Za-z0-9 ._-]"), "").trim().ifBlank { "Gig" }.take(40)
+        val stamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.ROOT).format(java.util.Date(item.timeSec * 1000))
+        val who = item.from.replace(Regex("[^A-Za-z0-9]"), "").take(16).ifBlank { "mate" }
+        val video = item.videoFile
+        val src = video ?: item.photoFile ?: return@withContext false
+        if (!src.exists()) return@withContext false
+        val values = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, "${stamp}_$who.${if (video != null) "mp4" else "jpg"}")
+            put(MediaStore.MediaColumns.MIME_TYPE, if (video != null) "video/mp4" else "image/jpeg")
+            put(MediaStore.MediaColumns.RELATIVE_PATH, (if (video != null) "Movies/" else "Pictures/") + folder)
+            put(MediaStore.MediaColumns.DATE_TAKEN, item.timeSec * 1000)
+            put(MediaStore.MediaColumns.IS_PENDING, 1)
+        }
+        val collection = if (video != null) MediaStore.Video.Media.EXTERNAL_CONTENT_URI else MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        val resolver = c.contentResolver
+        val uri = runCatching { resolver.insert(collection, values) }.getOrNull() ?: return@withContext false
+        val ok = runCatching { resolver.openOutputStream(uri)?.use { out -> src.inputStream().use { it.copyTo(out) } } != null }.getOrDefault(false)
+        if (ok) {
+            resolver.update(uri, ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }, null, null)
+        } else {
+            runCatching { resolver.delete(uri, null, null) }
+        }
+        ok
+    }
+
+    /** Save every photo and clip from a gig. Returns how many were saved. */
+    suspend fun saveAllToPhone(c: Context, items: List<Moments.Item>, album: String): Int =
+        items.count { saveToPhone(c, it, album) }
+
+    /** A small version for the board (about 540 px, 16-bit colour) so a long night fits in memory. */
+    internal fun thumbnail(f: File): Bitmap? {
+        if (!f.exists()) return null
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(f.absolutePath, bounds)
+        var sample = 1
+        while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= 540) sample *= 2
+        return BitmapFactory.decodeFile(f.absolutePath, BitmapFactory.Options().apply { inSampleSize = sample; inPreferredConfig = Bitmap.Config.RGB_565 })
+    }
+
+    private fun safeName(key: String) = MessageDigest.getInstance("SHA-1").digest(key.toByteArray()).take(10).joinToString("") { "%02x".format(it) }
+}

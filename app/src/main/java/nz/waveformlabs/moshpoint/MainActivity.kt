@@ -159,6 +159,25 @@ class MainActivity : ComponentActivity() {
     private var bumping by mutableStateOf(false)
     private var planGig by mutableStateOf(false)
     private var showStory by mutableStateOf(false)
+    /** A past gig open in the Story viewer. */
+    private var archiveGig by mutableStateOf<GigArchive.Summary?>(null)
+    private var archiveItems by mutableStateOf<List<Moments.Item>>(emptyList())
+
+    /** Copy photos/clips into the phone's gallery, album "Moshpoint / <gig>". */
+    private fun saveToPhone(items: List<Moments.Item>, album: String) {
+        if (items.isEmpty()) return
+        lifecycleScope.launch {
+            toast(if (items.size == 1) "Saving…" else "Saving ${items.size} photos and clips…")
+            val n = GigArchive.saveAllToPhone(this@MainActivity, items, album)
+            toast(
+                when {
+                    n == 0 -> "Couldn't save. Is your phone full?"
+                    n == items.size -> "Saved to your gallery: Moshpoint / $album"
+                    else -> "Saved $n of ${items.size} to your gallery"
+                },
+            )
+        }
+    }
     /** "Your night" recap shown before ending the night. */
     private var recap by mutableStateOf<NightStats.Stats?>(null)
     /** Ticks every 20 s so "x min ago" on the home screen stays current. */
@@ -362,6 +381,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        lifecycleScope.launch { GigArchive.refreshList(this@MainActivity) }
         missing = missingPermissions()
         refreshSetupIssues()
         // May have changed from the notification's Stop button or the Quick Settings tile.
@@ -393,6 +413,10 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null) intent?.getStringExtra(ShareInviteActivity.EXTRA_TEXT)?.let { handleInvite(it) }
         GroupSync.load(this)
         if (GroupSync.following) FollowCheck.schedule(this)
+        lifecycleScope.launch {
+            Moments.loadCurrent(this@MainActivity) // tonight's Story survives restarts
+            GigArchive.refreshList(this@MainActivity)
+        }
         val mySecret = VisibilityPrefs.mySecret(this)
         engine = LocatorEngine(applicationContext, lifecycleScope, mySecret)
         lifecycleScope.launch {
@@ -663,6 +687,13 @@ class MainActivity : ComponentActivity() {
                             following = GroupSync.following,
                             tileNotes = CrewStatus.venueNotes,
                             followers = GroupSync.followers,
+                            pastGigs = GigArchive.gigs,
+                            currentGigId = GroupSync.group.value?.let(GigArchive::idFor),
+                            onOpenGig = { g ->
+                                archiveGig = g
+                                archiveItems = emptyList()
+                                lifecycleScope.launch { archiveItems = GigArchive.load(this@MainActivity, g.id) }
+                            },
                             onLetFamilyFollow = {
                                 GroupSync.group.value?.let { g ->
                                     Sharing.send(
@@ -775,7 +806,7 @@ class MainActivity : ComponentActivity() {
                             text = {
                                 androidx.compose.material3.Text(
                                     NightStats.summary(s, System.currentTimeMillis()) +
-                                        "\n\nEnding the night leaves the crew and clears tonight's mates (friends stay).",
+                                        "\n\nEnding the night closes the crew (friends stay). The photos and clips stay on your phone in Your gigs.",
                                     style = Mosh.Body,
                                 )
                             },
@@ -784,6 +815,8 @@ class MainActivity : ComponentActivity() {
                                     recap = null
                                     GroupSync.clear(this@MainActivity)
                                     NightStats.reset(this@MainActivity)
+                                    lifecycleScope.launch { GigArchive.refreshList(this@MainActivity) }
+                                    toast("Night ended. Your photos and clips are in Your gigs.")
                                 }) { androidx.compose.material3.Text("End the night", style = Mosh.Label.copy(color = Mosh.Danger)) }
                             },
                             dismissButton = {
@@ -808,7 +841,35 @@ class MainActivity : ComponentActivity() {
                             },
                             myName = myName,
                             onRefresh = { GroupSync.group.value?.let { g -> Moments.refreshNow(this@MainActivity, g) } },
+                            onSaveOne = { m -> saveToPhone(listOf(m), GroupSync.group.value?.name ?: "Gig") },
+                            onSaveAll = { saveToPhone(Moments.items.toList(), GroupSync.group.value?.name ?: "Gig") },
                             live = GroupSync.group.value != null && !GroupSync.sleeping,
+                        )
+                    }
+                    archiveGig?.let { g ->
+                        nz.waveformlabs.moshpoint.ui.StoryScreen(
+                            items = archiveItems,
+                            nowSec = homeNow / 1000,
+                            colourOf = { name -> FriendsRepository.friends.firstOrNull { it.name.equals(name, true) }?.color },
+                            onShare = null,
+                            onMap = { archiveGig = null; openMap() },
+                            onBack = { archiveGig = null },
+                            photoOf = { name, mine ->
+                                if (mine) PhotoStore.photos[PhotoStore.ME]
+                                else FriendsRepository.friends.firstOrNull { it.name.equals(name, true) }?.let { PhotoStore.photos[it.id] }
+                            },
+                            myName = myName,
+                            live = false,
+                            title = g.name,
+                            onSaveOne = { m -> saveToPhone(listOf(m), g.name) },
+                            onSaveAll = { saveToPhone(archiveItems, g.name) },
+                            onDelete = {
+                                archiveGig = null
+                                lifecycleScope.launch {
+                                    GigArchive.delete(this@MainActivity, g.id)
+                                    toast("Deleted ${g.name} from this phone")
+                                }
+                            },
                         )
                     }
                     if (showMap) {
