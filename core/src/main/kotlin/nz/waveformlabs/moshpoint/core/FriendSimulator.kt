@@ -36,8 +36,16 @@ class FriendSimulator(
     private val last = mutableMapOf<Method, Long>()
     private val rssi = RssiRanging()
 
+    /**
+     * Pinned to a real spot (debug "pin ahead"): returns where that spot is from you right now,
+     * metres (east, north), from your real GPS. The friend stands still there, so walking
+     * towards it closes the gap like a real mate. Null = not pinned, or no GPS yet.
+     */
+    var pinnedOffset: (() -> Pair<Double, Double>?)? = null
+
     /** Where the friend is at [nowMs]: metres (east, north). */
     fun position(nowMs: Long): Pair<Double, Double> {
+        pinnedOffset?.invoke()?.let { return it }
         if (startMs < 0) startMs = nowMs
         val t = (nowMs - startMs) / 1000.0
         val walkIn = (startDistanceM - 8.0) / walkSpeedMps

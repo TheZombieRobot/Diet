@@ -20,6 +20,7 @@ import nz.waveformlabs.moshpoint.core.EphemeralId
 import nz.waveformlabs.moshpoint.core.Fix
 import nz.waveformlabs.moshpoint.core.FriendSimulator
 import nz.waveformlabs.moshpoint.core.Geo
+import nz.waveformlabs.moshpoint.core.LatLon
 import nz.waveformlabs.moshpoint.core.HeadingFilter
 import nz.waveformlabs.moshpoint.core.Method
 import nz.waveformlabs.moshpoint.core.MethodArbiter
@@ -164,6 +165,8 @@ class LocatorEngine(
 
     private val sims = mutableMapOf<String, FriendSimulator>()
     private val lastSimScanSample = mutableMapOf<String, Long>()
+    private val lastSimMapAt = mutableMapOf<String, Long>()
+    private val lastSimWalkAt = mutableMapOf<String, Long>()
 
     data class SimSettings(val uwb: Boolean = true, val wifiAware: Boolean = true, val data: Boolean = true)
 
@@ -174,6 +177,46 @@ class LocatorEngine(
         _sim.value = settings
         sims.values.forEach { it.configure(settings) }
         DebugStatus.log("Simulator: UWB ${settings.uwb}, Wi-Fi ${settings.wifiAware}, data ${settings.data}")
+    }
+
+    // Pinned simulated friends: a real spot, so walking towards it gets you closer.
+    private val simPrefs = context.getSharedPreferences("sim", Context.MODE_PRIVATE)
+    private val _simPin = MutableStateFlow(
+        simPrefs.getString("pin", null)?.split(',')?.mapNotNull { it.toDoubleOrNull() }?.takeIf { it.size == 2 }?.let { LatLon(it[0], it[1]) },
+    )
+    val simPin: StateFlow<LatLon?> = _simPin.asStateFlow()
+
+    /** Pin the simulated friends [metres] ahead of where the phone is pointing. False = no GPS fix yet. */
+    fun pinSimsAhead(metres: Double): Boolean {
+        val me = gps.myLocation ?: run {
+            DebugStatus.log("Simulator: no GPS fix yet, try again outside")
+            return false
+        }
+        val b = Math.toRadians(heading)
+        val lat = me.latitude + metres * kotlin.math.cos(b) / 111_320.0
+        val lon = me.longitude + metres * kotlin.math.sin(b) / (111_320.0 * kotlin.math.cos(Math.toRadians(me.latitude)))
+        _simPin.value = LatLon(lat, lon)
+        simPrefs.edit().putString("pin", "$lat,$lon").apply()
+        sims.clear()
+        DebugStatus.log("Simulator: pinned %.0f m ahead (%.0f°)".format(metres, heading))
+        return true
+    }
+
+    fun unpinSims() {
+        _simPin.value = null
+        simPrefs.edit().remove("pin").apply()
+        sims.clear()
+        DebugStatus.log("Simulator: unpinned, walking in again")
+    }
+
+    /** Where a pinned sim is from us now (east, north metres); each sim a few metres apart. */
+    private fun pinnedOffsetFor(id: String): Pair<Double, Double>? {
+        val pin = _simPin.value ?: return null
+        val me = gps.myLocation ?: return null
+        val spread = (id.hashCode() and 0xFF) / 255.0 * 2 * Math.PI
+        val n = (pin.lat - me.latitude) * 111_320.0 + 6 * kotlin.math.cos(spread)
+        val e = (pin.lon - me.longitude) * 111_320.0 * kotlin.math.cos(Math.toRadians(me.latitude)) + 6 * kotlin.math.sin(spread)
+        return e to n
     }
 
     /** Start the simulated friends' walk again from far away. */
@@ -193,7 +236,26 @@ class LocatorEngine(
         for (id in _tracking.value) {
             if (!FriendsRepository.isSimulated(id)) continue
             val sim = sims.getOrPut(id) {
-                FriendSimulator(id, startBearingDeg = (id.hashCode() and 0xFF) * 360.0 / 256, seed = id.hashCode()).also { it.configure(_sim.value) }
+                FriendSimulator(id, startBearingDeg = (id.hashCode() and 0xFF) * 360.0 / 256, seed = id.hashCode()).also {
+                    it.configure(_sim.value)
+                    if (_simPin.value != null) it.pinnedOffset = { pinnedOffsetFor(id) }
+                }
+            }
+            // Pinned: show them on the map too, and let walk-to-find learn from their signal.
+            val pin = _simPin.value
+            val me = gps.myLocation
+            if (pin != null && me != null) {
+                if (now - (lastSimMapAt[id] ?: 0L) > 10_000) {
+                    lastSimMapAt[id] = now
+                    val (pe, pn) = pinnedOffsetFor(id) ?: (0.0 to 0.0)
+                    val lat = me.latitude + pn / 111_320.0
+                    val lon = me.longitude + pe / (111_320.0 * kotlin.math.cos(Math.toRadians(me.latitude)))
+                    nz.waveformlabs.moshpoint.LocationBook.update(id, nz.waveformlabs.moshpoint.core.SharedLocation(lat, lon, now / 1000, 5, batteryPct = 80))
+                }
+                if (spinScans.isEmpty() && now - (lastSimWalkAt[id] ?: 0L) >= 250) {
+                    lastSimWalkAt[id] = now
+                    walks.getOrPut(id) { WalkDirection() }.add(now, heading, sim.rssiNow(now, heading), motion.moving)
+                }
             }
             sim.tick(now, heading).forEach(::submit)
             // Spin-to-scan works on simulated friends too (the sim models body shadow).

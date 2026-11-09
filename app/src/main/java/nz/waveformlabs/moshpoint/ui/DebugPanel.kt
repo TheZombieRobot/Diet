@@ -61,6 +61,9 @@ fun DebugPanel(
     sim: LocatorEngine.SimSettings,
     onSim: (LocatorEngine.SimSettings) -> Unit,
     onSimRestart: () -> Unit,
+    /** Pin simulated friends this many metres ahead (real spot, real GPS); null unpins. */
+    onSimPin: (Double?) -> Unit = {},
+    simPinned: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     var marking by remember { mutableStateOf(false) }
@@ -125,6 +128,19 @@ fun DebugPanel(
             Toggle("data", sim.data) { onSim(sim.copy(data = it)) }
             Spacer(Modifier.width(6.dp))
             Chip("restart walk", Color(0xFF22E4FF), onSimRestart)
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Mono("pin ahead:", 11.sp, Color.Gray)
+            Spacer(Modifier.width(6.dp))
+            Chip("60 m", Color(0xFFB6FF3B)) { onSimPin(60.0) }
+            Spacer(Modifier.width(6.dp))
+            Chip("150 m", Color(0xFFB6FF3B)) { onSimPin(150.0) }
+            Spacer(Modifier.width(6.dp))
+            Chip("400 m", Color(0xFFB6FF3B)) { onSimPin(400.0) }
+            if (simPinned) {
+                Spacer(Modifier.width(6.dp))
+                Chip("unpin", Color(0xFFFF2E93)) { onSimPin(null) }
+            }
         }
 
         Heading("Methods  (tap = on/off, solo = only this one)")

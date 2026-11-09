@@ -544,6 +544,7 @@ class MainActivity : ComponentActivity() {
                                     val recording by FieldRecorder.recording.collectAsState()
                                     val recordedRows by FieldRecorder.rows.collectAsState()
                                     val sim by engine.simSettings.collectAsState()
+                                    val simPin by engine.simPin.collectAsState()
                                     DebugPanel(
                                         rows = rows,
                                         friendOf = FriendsRepository::byId,
@@ -561,6 +562,8 @@ class MainActivity : ComponentActivity() {
                                         sim = sim,
                                         onSim = engine::setSim,
                                         onSimRestart = engine::restartSims,
+                                        onSimPin = { m -> if (m == null) engine.unpinSims() else if (!engine.pinSimsAhead(m)) toast("No GPS fix yet: step outside for a moment") },
+                                        simPinned = simPin != null,
                                         modifier = mod,
                                     )
                                 }
