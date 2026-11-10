@@ -221,8 +221,13 @@ fun FriendsScreen(
     confirmRemove?.let { f ->
         AlertDialog(
             onDismissRequest = { confirmRemove = null },
-            title = { Text("Remove ${f.name}?") },
-            text = { Text("You won't be able to find them until you add them again.") },
+            title = { Text(if (f.gigGroupOnly) "Remove ${f.name} from the crew?" else "Remove ${f.name}?") },
+            text = {
+                Text(
+                    if (f.gigGroupOnly) "The crew moves to a new key that ${f.name} doesn't get, so they can't see where anyone is, the chat or photos from now on. Everyone else stays in."
+                    else "You won't be able to find them until you add them again.",
+                )
+            },
             confirmButton = { TextButton(onClick = { onRemove(f.id); confirmRemove = null }) { Text("Remove") } },
             dismissButton = { TextButton(onClick = { confirmRemove = null }) { Text("Cancel") } },
         )

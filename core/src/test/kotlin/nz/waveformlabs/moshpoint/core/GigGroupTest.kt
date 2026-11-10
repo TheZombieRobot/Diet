@@ -158,12 +158,17 @@ class GigGroupTest {
         assertNotNull(GigGroup.hostOf(qr)?.pub)
     }
 
-    @Test fun introsCarryTheSigningKey() {
+    @Test fun introsCarryTheSigningKeyAndAreSigned() {
         val k = CrewKeys.generate()
-        val intro = GigGroup.Intro(ByteArray(32) { 5 }, "Jo", k.pub)
+        val intro = group.signedIntro(ByteArray(32) { 5 }, "Jo", k)
         val blob = group.sealIntro(intro, now)
         assertTrue(blob.size <= GigGroup.MAX_INTRO_BYTES)
-        assertEquals(intro, group.openIntro(blob, now))
+        val opened = assertNotNull(group.openIntro(blob, now))
+        assertEquals(intro, opened)
+        assertNotNull(opened.sig)
+        // Someone else's pass with Jo's key and signature: the signature doesn't hold.
+        val stolen = group.sealIntro(intro.copy(secret = ByteArray(32) { 6 }), now)
+        assertNull(assertNotNull(group.openIntro(stolen, now)).sig)
     }
 
     @Test fun keysSignVerifyAndAgree() {

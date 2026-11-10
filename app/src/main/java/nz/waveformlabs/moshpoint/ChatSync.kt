@@ -63,18 +63,18 @@ object ChatSync {
                     return@forEach
                 }
                 // A private message for us (e.g. "keep as friend"); for anyone else it's unreadable.
-                g.openDirect(blob, Identity.signer(app, g))?.let { Friendship.onDirect(app, g, it) }
+                g.openDirect(blob, Identity.signer(app, g))?.let { d ->
+                    if (d.kind == CrewRekey.REKEY) CrewRekey.onDirect(app, g, d) else Friendship.onDirect(app, g, d)
+                }
             }
             val onScreen = CrewChat.open && CrewChat.viewing.value?.key?.contentEquals(g.key) == true
             if (notify && fresh.isNotEmpty() && !onScreen) notifyCrew(app, g, fresh)
         }
+        CrewRekey.resend(app)
         CrewChat.repostPlans(app, crews)
         CrewChat.shareHistory(app, crews)
-        // Say hello in each crew we're in (not when only following from home).
-        crews.forEach { g ->
-            val following = if (GroupSync.group.value?.key?.contentEquals(g.key) == true) GroupSync.following else Crews.find(g.key)?.following == true
-            if (!following) CrewChat.announceJoin(app, g)
-        }
+        // Say hello in each crew we're in (followers too: then a new crew key reaches them as well).
+        crews.forEach { g -> CrewChat.announceJoin(app, g) }
     }
 
     /**

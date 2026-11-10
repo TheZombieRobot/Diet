@@ -526,6 +526,11 @@ class MainActivity : ComponentActivity() {
                             crewQr(g),
                             onDismiss = { showGroupQr = false; qrCrew = null },
                             onShare = { shareGroup(g) },
+                            onResetInvite = {
+                                val fresh = CrewRekey.rekey(this@MainActivity, g, null, null)
+                                if (qrCrew != null) qrCrew = fresh
+                                toast("Invite reset. Old QR codes and links don't work any more.")
+                            },
                             eyebrow = when {
                                 waiting != null -> "UP NEXT" + (nz.waveformlabs.moshpoint.ui.countdown(g.startsAtSec, System.currentTimeMillis() / 1000)?.let { " · ${it.uppercase()}" } ?: "")
                                 g.dormant(System.currentTimeMillis()) -> "YOUR CREW · COMING UP"
@@ -742,7 +747,18 @@ class MainActivity : ComponentActivity() {
                             onAdd = { name, code, gig ->
                                 FriendsRepository.add(name, code, gig, mySecret).also { if (it == null) toast("✓ ${name.trim()} added") }
                             },
-                            onRemove = FriendsRepository::remove,
+                            onRemove = { id ->
+                                val f = FriendsRepository.friends.firstOrNull { it.id == id }
+                                val g = GroupSync.group.value
+                                if (f != null && f.gigGroupOnly && g != null && !GroupSync.following) {
+                                    // Really out: the crew moves to a new key they don't get.
+                                    CrewRekey.rekey(this@MainActivity, g, GroupSync.pubOf(f.secret), f.name)
+                                    FriendsRepository.remove(id)
+                                    toast("${f.name} is out of the crew. Everyone else moves to a new key.")
+                                } else {
+                                    FriendsRepository.remove(id)
+                                }
+                            },
                             onSetPhoto = { id ->
                                 photoFor = id
                                 pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))

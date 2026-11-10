@@ -245,7 +245,7 @@ private fun ChatLine(
     if (l.kind != GigGroup.Ping.CHAT) {
         // "Jo pinned: …" / "Jo sent a flare: …" as a quiet centred note.
         Text(
-            "${if (l.mine) "You" else l.from} ${l.text} · ${ago(nowSec - l.timeSec)}",
+            if (l.kind == CrewChat.NOTE) "${l.text} · ${ago(nowSec - l.timeSec)}" else "${if (l.mine) "You" else l.from} ${l.text} · ${ago(nowSec - l.timeSec)}",
             style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint),
             modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,

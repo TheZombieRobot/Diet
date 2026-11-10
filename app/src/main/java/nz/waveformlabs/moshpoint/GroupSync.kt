@@ -267,6 +267,27 @@ object GroupSync {
         return true
     }
 
+    /**
+     * The main crew moved to a new key (someone was removed, or the invite was reset): same
+     * crew, same mates (minus whoever signs with [removedPub]), new key from now on.
+     */
+    fun adoptKey(c: Context, fresh: GigGroup, removedPub: ByteArray?) {
+        val app = c.applicationContext
+        val removedTag = removedPub?.let { nz.waveformlabs.moshpoint.core.CrewKeys.tagOf(it) }
+        if (removedTag != null) {
+            secretOfTag(removedTag)?.let { s ->
+                FriendsRepository.friends.firstOrNull { it.gigGroupOnly && it.secret.contentEquals(s) }?.let { FriendsRepository.remove(it.id) }
+                pubs.remove(hex(s))
+            }
+        }
+        prefs(app).edit().putString("key", Base64.encodeToString(fresh.key, Base64.NO_WRAP))
+            .putString("pubs", pubs.entries.joinToString(",") { "${it.key}:${Base64.encodeToString(it.value, Base64.NO_WRAP)}" }).commit()
+        group.value = fresh
+        GigWake.schedule(app, fresh)
+        DebugStatus.log("Crew moved to a new key")
+        if (users > 0) restart(app)
+    }
+
     // ---- Several crews (see Crews) ----
 
     private val longKeys = setOf("created", "at", "rallyCleared")
@@ -658,6 +679,15 @@ object GroupSync {
     private fun received(c: Context, g: GigGroup, blob: ByteArray) {
         val intro = g.openIntro(blob, System.currentTimeMillis()) ?: return
         if (Identity.isMine(c, intro.secret)) return // our own
+        // Someone we know (same signing key) with a new crew pass: the crew moved to a new key.
+        val pub = intro.pub
+        if (pub != null && intro.sig != null && pubOf(intro.secret) == null) {
+            pubs.entries.firstOrNull { it.value.contentEquals(pub) }?.let { old ->
+                val oldSecret = old.key.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+                FriendsRepository.replaceSecret(oldSecret, intro.secret, intro.name)
+                pubs.remove(old.key)
+            }
+        }
         rememberPub(c, intro.secret, intro.pub)
         if (intro.name.startsWith(GigGroup.FOLLOWER_MARK)) {
             // Someone following from home: shown to the crew, never added as a findable mate.

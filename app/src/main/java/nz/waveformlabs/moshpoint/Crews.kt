@@ -95,6 +95,14 @@ object Crews {
         put(c, Entry(e.group, e.following, e.settings, e.mates + (secret to name)))
     }
 
+    /** A waiting crew moved to a new key (see CrewRekey). */
+    fun replaceKey(c: Context, oldKey: ByteArray, fresh: GigGroup) {
+        val e = find(oldKey) ?: return
+        put(c, Entry(fresh, e.following, JSONObject(e.settings.toString()).put("key", Base64.encodeToString(fresh.key, Base64.NO_WRAP)), e.mates))
+        others.removeAll { it.group.key.contentEquals(oldKey) }
+        save(c)
+    }
+
     /** Finished gigs drop off (their photos stay in Your gigs). */
     fun dropExpired(c: Context) {
         load(c)

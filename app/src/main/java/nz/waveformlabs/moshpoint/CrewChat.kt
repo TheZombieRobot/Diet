@@ -27,6 +27,8 @@ import nz.waveformlabs.moshpoint.service.VisibilityPrefs
  * Sealed with the crew key: the relay never sees a word.
  */
 object CrewChat {
+    /** A line from the app itself ("You removed Jo…"), not from anyone in the crew. */
+    const val NOTE = 99
     const val SENT = 0
     const val SENDING = 1
     const val FAILED = 2
@@ -109,6 +111,48 @@ object CrewChat {
         while (shown.lowercase() in taken) shown = "$base (${n++})"
         if (ppl.optString(tag.toString()) != shown) prefs(c, id).edit().putString("people", ppl.put(tag.toString(), shown).toString()).apply()
         return shown
+    }
+
+    /** Signing keys we've seen in crew [g] (from anyone's checked messages). */
+    fun knownKeys(c: Context, g: GigGroup): List<ByteArray> {
+        val o = runCatching { org.json.JSONObject(prefs(c, GigArchive.idFor(g)).getString("keys", "{}")!!) }.getOrDefault(org.json.JSONObject())
+        return o.keys().asSequence().mapNotNull { runCatching { unb64(o.getString(it)) }.getOrNull() }.toList()
+    }
+
+    private fun rememberKey(c: Context, g: GigGroup, pub: ByteArray?) {
+        pub ?: return
+        val p = prefs(c, GigArchive.idFor(g))
+        val o = runCatching { org.json.JSONObject(p.getString("keys", "{}")!!) }.getOrDefault(org.json.JSONObject())
+        val tag = nz.waveformlabs.moshpoint.core.CrewKeys.tagOf(pub).toString()
+        if (o.has(tag)) return
+        p.edit().putString("keys", o.put(tag, b64(pub)).toString()).apply()
+    }
+
+    /** The name we show for whoever signs with [tag] in crew [g], if we've seen them. */
+    fun nameOf(c: Context, g: GigGroup, tag: Long): String? = people(c, GigArchive.idFor(g)).optString(tag.toString()).ifBlank { null }
+
+    /** A line from the app itself in [g]'s chat ("You removed Jo…"). */
+    fun note(c: Context, g: GigGroup, text: String) {
+        add(c, g, Line("", System.currentTimeMillis() / 1000, text, mine = true, kind = NOTE))
+    }
+
+    /** The crew moved to a new key: its chat, plan and who's-who move with it. */
+    fun migrate(c: Context, old: GigGroup, fresh: GigGroup) {
+        val from = prefs(c, GigArchive.idFor(old))
+        val to = prefs(c, GigArchive.idFor(fresh)).edit().clear()
+        from.all.forEach { (k, v) ->
+            when (v) {
+                is String -> to.putString(k, v)
+                is Long -> to.putLong(k, v)
+                is Int -> to.putInt(k, v)
+                is Boolean -> to.putBoolean(k, v)
+            }
+        }
+        // Say hello again in the new mailbox, so mates who join later learn who we are.
+        to.putBoolean("joinPosted", false).putLong("histPosted", 0L).putLong("planPosted", 0L).commit()
+        from.edit().clear().apply()
+        unread[GigArchive.idFor(fresh)] = unread.remove(GigArchive.idFor(old)) ?: 0
+        if (viewing.value?.key?.contentEquals(old.key) == true) show(c, fresh)
     }
 
     /** How many other people we know are in crew [g] (from their messages and "joined"). */
@@ -409,6 +453,7 @@ object CrewChat {
         appCtx = c.applicationContext
         if (signed.sender == 0L) return null // unsigned: could be anyone
         val mine = signed.sender == myTag(c, g)
+        rememberKey(c, g, signed.pub)
         val p = signed.copy(from = displayName(c, g, signed.sender, signed.from))
         return when (p.kind) {
             GigGroup.Ping.CHAT -> {
@@ -455,6 +500,7 @@ object CrewChat {
         val added = mutableListOf<Line>()
         val me = myTag(c, g)
         h.lines.forEach { hl ->
+            rememberKey(c, g, hl.pub)
             val mine = hl.sender == me
             val name = displayName(c, g, hl.sender, hl.from)
             val l = Line(name, hl.timeSec, hl.text, mine, hl.kind, hl.sender, proof = proofOf(hl))

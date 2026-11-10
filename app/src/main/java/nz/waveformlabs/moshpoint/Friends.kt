@@ -171,6 +171,14 @@ object FriendsRepository {
         save()
     }
 
+    /** Same crew mate, new crew pass (the crew moved to a new key): keep their entry, colour and photo. */
+    fun replaceSecret(old: ByteArray, new: ByteArray, name: String) {
+        val i = friends.indexOfFirst { it.gigGroupOnly && it.secret.contentEquals(old) }
+        if (i < 0 || friends.any { it.secret.contentEquals(new) }) return
+        friends[i] = Friend(friends[i].record.copy(secret = new, name = name.ifBlank { friends[i].name }))
+        save()
+    }
+
     fun clearGigGroup() {
         removedGig.clear()
         friends.removeAll { it.gigGroupOnly }

@@ -58,6 +58,27 @@ object Identity {
         return s
     }
 
+    /** Our signing key for the crew with id [id], if we have one (for re-sending after a key change). */
+    @Synchronized
+    fun signerById(c: Context, id: String): CrewKeys.Signer? {
+        cache[id]?.let { return it }
+        return keys(c).getString(id, null)?.split(':')?.takeIf { it.size == 2 }?.let { (priv, pub) ->
+            CrewKeys.restore(Base64.decode(priv, Base64.NO_WRAP), Base64.decode(pub, Base64.NO_WRAP))
+        }?.also { cache[id] = it }
+    }
+
+    /**
+     * The crew moved to a new key: we keep the same signing key there (so mates still know it's
+     * us). The old entry stays, under its old id, for re-sending the new key for a few days.
+     */
+    @Synchronized
+    fun migrate(c: Context, old: GigGroup, fresh: GigGroup) {
+        val oldId = GigArchive.idFor(old)
+        val v = keys(c).getString(oldId, null) ?: return
+        keys(c).edit().putString(GigArchive.idFor(fresh), v).apply()
+        cache.remove(GigArchive.idFor(fresh))
+    }
+
     /** Our sender tag in crew [g]. */
     fun tag(c: Context, g: GigGroup): Long = signer(c, g).tag
 
@@ -70,5 +91,5 @@ object Identity {
     }
 
     /** Our intro for crew [g]: our pass there, name and signing key. */
-    fun intro(c: Context, g: GigGroup, name: String) = GigGroup.Intro(crewPass(c, g), name, signer(c, g).pub)
+    fun intro(c: Context, g: GigGroup, name: String) = g.signedIntro(crewPass(c, g), name, signer(c, g))
 }

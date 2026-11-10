@@ -73,6 +73,8 @@ fun MyQrDialog(
     members: List<Friend> = emptyList(),
     onEndNight: (() -> Unit)? = null,
     onShare: (() -> Unit)? = null,
+    /** "Reset invite": a new crew key, so a leaked QR or link stops working. */
+    onResetInvite: (() -> Unit)? = null,
 ) {
     val bmp = remember(payload) { qrBitmap(payload).asImageBitmap() }
     var shown by remember { mutableStateOf(false) }
@@ -127,6 +129,28 @@ fun MyQrDialog(
                     // For mates whose phone can't scan QR codes.
                     TextButton(onClick = onShare, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                         Text("Can't scan? Send an invite instead", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan))
+                    }
+                }
+                if (onResetInvite != null) {
+                    var confirm by remember { mutableStateOf(false) }
+                    TextButton(onClick = { confirm = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                        Text("Reset invite", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.TextDim))
+                    }
+                    if (confirm) {
+                        androidx.compose.material3.AlertDialog(
+                            onDismissRequest = { confirm = false },
+                            containerColor = Mosh.Deep,
+                            title = { Text("Reset the invite?", style = Mosh.Heading) },
+                            text = {
+                                Text(
+                                    "If this QR or a screenshot of it got out, resetting stops it working. Everyone already in the crew stays in; " +
+                                        "anyone new will need the new QR.",
+                                    style = Mosh.Body,
+                                )
+                            },
+                            confirmButton = { TextButton(onClick = { confirm = false; onResetInvite() }) { Text("Reset", style = Mosh.Label.copy(color = Mosh.Cyan)) } },
+                            dismissButton = { TextButton(onClick = { confirm = false }) { Text("Cancel", style = Mosh.Label) } },
+                        )
                     }
                 }
                 if (onEndNight != null) {

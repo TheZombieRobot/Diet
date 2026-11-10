@@ -62,7 +62,8 @@ class GigGroup(
     /** What a member broadcasts: `[tag:8][time:4][AES-GCM(secret:32, colourHint:1, name)+tag:12]`. */
     fun sealIntro(intro: Intro, nowMs: Long): ByteArray {
         val nameBytes = intro.name.toByteArray(Charsets.UTF_8).let { trimUtf8(it, MAX_NAME_BYTES) }
-        val plain = intro.secret + byteArrayOf(nameBytes.size.toByte()) + nameBytes + (intro.pub ?: ByteArray(0))
+        val plain = intro.secret + byteArrayOf(nameBytes.size.toByte()) + nameBytes + (intro.pub ?: ByteArray(0)) +
+            (if (intro.pub != null) intro.sig ?: ByteArray(0) else ByteArray(0))
         val time = ByteBuffer.allocate(4).putInt((nowMs / 1000).toInt()).array()
         val tag = tagAt(nowMs)
         val c = Cipher.getInstance("AES/GCM/NoPadding")
@@ -87,7 +88,12 @@ class GigGroup(
             require(secret.copyOf(4).contentEquals(hint))
             val n = plain[32].toInt() and 0xFF
             val pub = if (plain.size >= 33 + n + CrewKeys.PUB_BYTES) plain.copyOfRange(33 + n, 33 + n + CrewKeys.PUB_BYTES) else null
-            Intro(secret, String(plain, 33, n, Charsets.UTF_8), pub)
+            val at = 33 + n + CrewKeys.PUB_BYTES
+            // A signature that doesn't check out is ignored (the intro still counts, unsigned).
+            val sig = if (pub != null && plain.size >= at + CrewKeys.SIG_BYTES) {
+                plain.copyOfRange(at, at + CrewKeys.SIG_BYTES).takeIf { CrewKeys.verify(pub, introSigned(secret, plain.copyOfRange(33, 33 + n), pub), it) }
+            } else null
+            Intro(secret, String(plain, 33, n, Charsets.UTF_8), pub, sig)
         }.getOrNull()
     }
 
@@ -459,10 +465,20 @@ class GigGroup(
      * "I'm in the crew": the member's crew pass ([secret], for finding them tonight) and their
      * signing key for this crew ([pub], so their messages can be checked).
      */
-    data class Intro(val secret: ByteArray, val name: String, val pub: ByteArray? = null) {
+    data class Intro(val secret: ByteArray, val name: String, val pub: ByteArray? = null, val sig: ByteArray? = null) {
         override fun equals(other: Any?) = other is Intro && secret.contentEquals(other.secret) && name == other.name &&
             pub.contentEquals(other.pub)
         override fun hashCode() = secret.contentHashCode()
+    }
+
+    /** What an intro's signature covers: this crew, the pass, the key and the name. */
+    private fun introSigned(secret: ByteArray, name: ByteArray, pub: ByteArray): ByteArray =
+        "mp-intro1".toByteArray() + hmac(key, "moshpoint-group-sig".toByteArray()).copyOf(8) + secret + pub + name
+
+    /** Our intro, signed so nobody else in the crew can claim our key with their own pass. */
+    fun signedIntro(secret: ByteArray, name: String, signer: CrewKeys.Signer): Intro {
+        val n = trimUtf8(name.toByteArray(Charsets.UTF_8), MAX_NAME_BYTES)
+        return Intro(secret, String(n, Charsets.UTF_8), signer.pub, CrewKeys.sign(signer, introSigned(secret, n, signer.pub)))
     }
 
     companion object {
@@ -471,7 +487,7 @@ class GigGroup(
         const val MAX_HISTORY_BYTES = 2_900
         const val MAX_NAME_BYTES = 24
         /** Upper bound for an intro: fits a BT5 extended advert and a server record (128). */
-        const val MAX_INTRO_BYTES = TAG_BYTES + 4 + 4 + 32 + 1 + MAX_NAME_BYTES + CrewKeys.PUB_BYTES + 12
+        const val MAX_INTRO_BYTES = TAG_BYTES + 4 + 4 + 32 + 1 + MAX_NAME_BYTES + CrewKeys.PUB_BYTES + CrewKeys.SIG_BYTES + 12
 
         private val enc = java.util.Base64.getUrlEncoder().withoutPadding()
         private val dec = java.util.Base64.getUrlDecoder()
