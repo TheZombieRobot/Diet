@@ -74,6 +74,9 @@ android {
         // panel available. Not "debuggable": Android skips name scrambling for debuggable
         // builds. Test-only features check BuildConfig.TEST_BUILD instead of DEBUG.
         debug {
+            // With the private key set up in CI, test builds are signed with it too, so nobody
+            // can make a fake "update" with the public debug key. Until then, the debug key.
+            if (keystorePath != null) signingConfig = signingConfigs.getByName("release")
             isDebuggable = false
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))

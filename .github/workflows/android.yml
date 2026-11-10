@@ -76,8 +76,18 @@ jobs:
       - name: Build debug APK
         if: success() || failure()
         shell: bash
+        env:
+          MOSHPOINT_KEYSTORE_PASSWORD: ${{ secrets.MOSHPOINT_KEYSTORE_PASSWORD }}
+          MOSHPOINT_KEY_ALIAS: ${{ secrets.MOSHPOINT_KEY_ALIAS }}
+          MOSHPOINT_KEY_PASSWORD: ${{ secrets.MOSHPOINT_KEY_PASSWORD }}
+          KEYSTORE_B64: ${{ secrets.MOSHPOINT_KEYSTORE }}
         run: |
           set -o pipefail
+          # Test builds are signed with the private key when it's set up (never stored in the repo).
+          if [ -n "$KEYSTORE_B64" ]; then
+            printf '%s' "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+            export MOSHPOINT_KEYSTORE_FILE="$RUNNER_TEMP/upload.jks"
+          fi
           # GPS mode: set the repository variable MOSHPOINT_SERVER (Settings -> Secrets and
           # variables -> Actions -> Variables) to the relay server's https address.
           ./gradlew :app:assembleDebug --continue -Pmoshpoint.server="${{ vars.MOSHPOINT_SERVER }}" -Pmoshpoint.facebookAppId="${{ vars.MOSHPOINT_FACEBOOK_APP_ID }}" -Pmoshpoint.facebookClientToken="${{ vars.MOSHPOINT_FACEBOOK_CLIENT_TOKEN }}" 2>&1 | tee build.log

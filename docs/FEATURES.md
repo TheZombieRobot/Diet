@@ -163,6 +163,28 @@ Android app for finding your mates at gigs and festivals. No accounts.
 - **Test builds:** scrambled (R8), about 27 MB, from a public download link. The repo is
   public; there's a proprietary licence.
 
+## 9. Security (build 135)
+- **Crew passes:** in each crew you're a separate identity, used up when the crew ends.
+  - Invites and crew mates only ever get that pass, so nobody from a one-night crew, and
+    no leaked QR, can find you at later gigs.
+  - At a gig, finding uses the crew's passes. Friends you've kept who come along join the crew.
+- **Signed messages:** every chat message, plan, ping, flare and history copy is signed with
+  your key for that crew.
+  - Fakes and edits are dropped.
+  - Two people with the same name show as "Jo" and "Jo (2)", so nobody can pass as someone
+    else.
+- **Keep as friend is a private request:** your permanent identity goes only to that person,
+  and only if they say yes.
+- **Remove from crew:** the crew moves to a new key, sent privately to everyone else (re-sent
+  for 3 days). The removed person can't see locations, the chat or photos any more.
+- **Reset invite:** the same, with nobody removed, so a leaked QR stops working. Invites also
+  expire when the crew ends.
+- **Joins are visible:** "Jo joined the crew" appears in the chat for everyone.
+- **Test builds:** signed with a private key once it's added to GitHub (no public key in the
+  repo).
+- **On the phone:** data sits in the app's private storage, which Android encrypts with your
+  screen lock, and phone backups are off.
+
 ## Known gaps
 - **No iPhone version yet.** A web-link version for iPhone mates is planned.
 - **Real-crowd accuracy is unproven.** It needs proper field tests.
