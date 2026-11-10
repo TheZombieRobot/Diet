@@ -195,7 +195,8 @@ internal fun SettingsContent(
                     note?.let { Text(it, style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.Lime)) }
                 }
             }
-            run {
+            // Test builds only: everyone else uses the app's own server, built in. Nothing to set up.
+            if (BuildConfig.TEST_BUILD) run {
                 // Your own relay server (Render etc.): faster updates and no daily message cap.
                 val context = androidx.compose.ui.platform.LocalContext.current
                 var url by remember { mutableStateOf(nz.waveformlabs.moshpoint.locate.RelayClient.serverUrl) }
