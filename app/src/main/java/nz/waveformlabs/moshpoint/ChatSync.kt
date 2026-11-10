@@ -87,6 +87,37 @@ object ChatSync {
         )
     }
 
+    /**
+     * Test builds: pretend mates wrote in [g]'s chat, exactly as if it came off the relay
+     * (unread badge, grouped notification, bubbles). [missed] = as a history copy, like
+     * catching up after your phone was off.
+     */
+    fun debugFakeChat(c: Context, g: GigGroup, missed: Boolean) {
+        val app = c.applicationContext
+        val now = System.currentTimeMillis() / 1000
+        val msgs = if (missed) listOf(
+            Triple("Alex (test)", 11L, "Did everyone get tickets?? 🎟️"),
+            Triple("Jo (test)", 12L, "Yep! Section B"),
+            Triple("Alex (test)", 11L, "Pre-drinks at mine then 🍻"),
+        ) else listOf(
+            Triple("Alex (test)", 11L, "Who's keen?! 🤘"),
+            Triple("Jo (test)", 12L, "Sooo keen. Meet at the bar?"),
+            Triple("Mate", 13L, "I'm in"),
+            Triple("Mate", 14L, "Me too (different Mate!)"),
+        )
+        val fresh = mutableListOf<String>()
+        if (missed) {
+            val h = GigGroup.History(msgs.mapIndexed { i, (n, tag, t) -> GigGroup.HistoryLine(GigGroup.Ping.CHAT, n, tag, now - 7200 + i * 600L, t) }, null)
+            CrewChat.ingestHistory(app, g, h).forEach { fresh += "${it.from}: ${it.text}" }
+        } else {
+            msgs.forEachIndexed { i, (n, tag, t) ->
+                CrewChat.ingest(app, g, GigGroup.Ping(GigGroup.Ping.CHAT, n, now - 30 + i * 5L, text = t, sender = tag))?.let { fresh += "$n: $it" }
+            }
+        }
+        val onScreen = CrewChat.open && CrewChat.viewing.value?.key?.contentEquals(g.key) == true
+        if (fresh.isNotEmpty() && !onScreen) notifyCrew(app, g, fresh)
+    }
+
     private fun notificationId(crewId: String) = 9000 + Math.floorMod(crewId.hashCode(), 900)
 
     /** The chat was opened: its notification goes. */

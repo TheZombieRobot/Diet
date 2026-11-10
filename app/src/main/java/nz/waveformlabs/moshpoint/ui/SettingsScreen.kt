@@ -251,6 +251,30 @@ internal fun SettingsContent(
                         TextButton(onClick = { scope.launch { nz.waveformlabs.moshpoint.GigArchive.removeSamples(context) } }) {
                             Text("Remove sample gigs", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber))
                         }
+                        // Chat on your own: fake mates write in, 10 s later so you can leave the app and see the notification.
+                        var note by remember { mutableStateOf<String?>(null) }
+                        fun fake(next: Boolean, missed: Boolean) {
+                            val g = if (next) nz.waveformlabs.moshpoint.Crews.others.firstOrNull()?.group else nz.waveformlabs.moshpoint.GroupSync.group.value
+                            if (g == null) {
+                                note = if (next) "Plan a second gig first (it goes in Up next)" else "Start or plan a crew first"
+                                return
+                            }
+                            note = "Messages arrive in ${g.name} in 10 s. Leave the app to see the notification."
+                            scope.launch {
+                                kotlinx.coroutines.delay(10_000)
+                                nz.waveformlabs.moshpoint.ChatSync.debugFakeChat(context, g, missed)
+                            }
+                        }
+                        TextButton(onClick = { fake(next = false, missed = false) }) {
+                            Text("Fake mates chatting (main crew)", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber))
+                        }
+                        TextButton(onClick = { fake(next = true, missed = false) }) {
+                            Text("Fake mates chatting (Up next crew)", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber))
+                        }
+                        TextButton(onClick = { fake(next = false, missed = true) }) {
+                            Text("Fake catching up on missed messages", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber))
+                        }
+                        note?.let { Text(it, style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.Lime)) }
                     }
                 }
             }
