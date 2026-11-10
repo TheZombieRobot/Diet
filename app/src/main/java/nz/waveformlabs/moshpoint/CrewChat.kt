@@ -11,7 +11,6 @@ import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.locate.RelayClient
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
-import java.security.MessageDigest
 
 /**
  * Each crew's chat and pinned plan (one per crew, so you can hype up for next month's gig
@@ -41,6 +40,8 @@ object CrewChat {
         val kind: Int = GigGroup.Ping.CHAT,
         val sender: Long = 0L,
         val state: Int = SENT,
+        /** What lets others re-check this line in a history copy (see [proofOf]); blank if none. */
+        val proof: String = "",
     ) {
         /** Same message, however it reached us (live, a re-send, or someone's history copy). */
         val key: String get() = "${if (sender != 0L) sender.toString() else from}|$timeSec|$text"
@@ -84,17 +85,60 @@ object CrewChat {
     private fun today() = Math.floorDiv(System.currentTimeMillis() / 1000, 86_400L)
     private fun isMain(g: GigGroup) = GroupSync.group.value?.key?.contentEquals(g.key) == true
 
-    private var tag = 0L
+    /** Our sender tag in crew [g] (from our signing key there). */
+    fun myTag(c: Context, g: GigGroup): Long = Identity.tag(c, g)
 
-    /** Our sender tag: stable, derived from our secret, meaningless outside the crew. */
-    fun myTag(c: Context): Long {
-        if (tag != 0L) return tag
-        val d = MessageDigest.getInstance("SHA-256").digest(VisibilityPrefs.mySecret(c.applicationContext) + "moshpoint-chat-sender".toByteArray())
-        tag = java.nio.ByteBuffer.wrap(d).long.let { if (it == 0L) 1L else it }
-        return tag
+    // ---- Who's who (names aren't unique; signing keys are) ----
+
+    private fun people(c: Context, id: String): org.json.JSONObject =
+        runCatching { org.json.JSONObject(prefs(c, id).getString("people", "{}")!!) }.getOrDefault(org.json.JSONObject())
+
+    /**
+     * The name to show for whoever signs with [tag]: their own, unless someone else in the crew
+     * already goes by it, then "Jo (2)". So nobody can pass themselves off as someone else.
+     */
+    fun displayName(c: Context, g: GigGroup, tag: Long, name: String): String {
+        if (tag == myTag(c, g)) return me(c)
+        val id = GigArchive.idFor(g)
+        val ppl = people(c, id)
+        val base = name.trim().ifBlank { "Mate" }
+        // Names already in use by someone else (including you).
+        val taken = ppl.keys().asSequence().filter { it != tag.toString() }.map { ppl.optString(it).lowercase() }.toSet() + me(c).lowercase()
+        var shown = base
+        var n = 2
+        while (shown.lowercase() in taken) shown = "$base (${n++})"
+        if (ppl.optString(tag.toString()) != shown) prefs(c, id).edit().putString("people", ppl.put(tag.toString(), shown).toString()).apply()
+        return shown
     }
 
-    private fun isMine(c: Context, from: String, sender: Long) = if (sender != 0L) sender == myTag(c) else from == me(c)
+    /** How many other people we know are in crew [g] (from their messages and "joined"). */
+    fun peopleCount(c: Context, g: GigGroup): Int = people(c, GigArchive.idFor(g)).length()
+
+    // ---- Proofs: a line's original signature, so history copies can be checked ----
+
+    private fun b64(b: ByteArray) = android.util.Base64.encodeToString(b, android.util.Base64.NO_WRAP)
+    private fun unb64(s: String) = android.util.Base64.decode(s, android.util.Base64.NO_WRAP)
+
+    /** "kind|time|minutes|pub|sig|name|text" (base64 where needed). Only for messages without a location. */
+    private fun proofOf(p: GigGroup.Ping): String {
+        val pub = p.pub ?: return ""
+        val sig = p.sig ?: return ""
+        if (p.lat != null) return ""
+        return listOf(p.kind.toString(), p.timeSec.toString(), p.minutes.toString(), b64(pub), b64(sig), b64(p.from.toByteArray()), b64(p.text.toByteArray())).joinToString("|")
+    }
+
+    private fun historyLineOf(proof: String): GigGroup.HistoryLine? = runCatching {
+        val f = proof.split('|')
+        if (f.size != 7) return null
+        val pub = unb64(f[3])
+        GigGroup.HistoryLine(f[0].toInt(), String(unb64(f[5])), nz.waveformlabs.moshpoint.core.CrewKeys.tagOf(pub), f[1].toLong(), String(unb64(f[6])), f[2].toInt(), 0, 0, pub, unb64(f[4]))
+    }.getOrNull()
+
+    private fun proofOf(h: GigGroup.HistoryLine): String {
+        val pub = h.pub ?: return ""
+        val sig = h.sig ?: return ""
+        return listOf(h.kind.toString(), h.timeSec.toString(), h.minutes.toString(), b64(pub), b64(sig), b64(h.from.toByteArray()), b64(h.text.toByteArray())).joinToString("|")
+    }
 
     fun unreadFor(c: Context, g: GigGroup?): Int {
         g ?: return 0
@@ -157,13 +201,13 @@ object CrewChat {
             if (f.size < 5) return@mapNotNull null
             Line(
                 f[0], f[1].toLongOrNull() ?: 0L, f[3], f[2] == "1", f[4].toIntOrNull() ?: GigGroup.Ping.CHAT,
-                f.getOrNull(5)?.toLongOrNull() ?: 0L, f.getOrNull(6)?.toIntOrNull() ?: SENT,
+                f.getOrNull(5)?.toLongOrNull() ?: 0L, f.getOrNull(6)?.toIntOrNull() ?: SENT, f.getOrNull(7).orEmpty(),
             )
         }
 
     private fun writeLines(c: Context, id: String, list: List<Line>) {
         val rows = list.takeLast(MAX_LINES).joinToString("\n") { l ->
-            listOf(l.from, l.timeSec.toString(), if (l.mine) "1" else "0", l.text, l.kind.toString(), l.sender.toString(), l.state.toString())
+            listOf(l.from, l.timeSec.toString(), if (l.mine) "1" else "0", l.text, l.kind.toString(), l.sender.toString(), l.state.toString(), l.proof)
                 .joinToString("\t") { it.replace('\t', ' ').replace('\n', ' ') }
         }
         prefs(c, id).edit().putString("lines", rows).apply()
@@ -196,10 +240,15 @@ object CrewChat {
 
     // ---- Sending ----
 
-    /** Post to [g]'s chat mailbox. [onDone] gets whether the relay took it. */
-    private fun post(g: GigGroup, p: GigGroup.Ping, onDone: (Boolean) -> Unit = {}) {
-        val blob = g.sealPing(p)
+    /** Seal [p] for [g], signed with our key there. Returns the bytes and the message as others will see it. */
+    private fun signed(c: Context, g: GigGroup, p: GigGroup.Ping): Pair<ByteArray, GigGroup.Ping> {
+        val blob = g.sealPing(p, Identity.signer(c, g))
         ChatSync.markSeen(blob)
+        return blob to (g.openPing(blob) ?: p)
+    }
+
+    /** Post to [g]'s chat mailbox. [onDone] gets whether the relay took it. */
+    private fun put(g: GigGroup, blob: ByteArray, onDone: (Boolean) -> Unit = {}) {
         scope.launch { onDone(RelayClient.putHeld(g.chatIdForDay(today()), blob)) }
     }
 
@@ -208,9 +257,20 @@ object CrewChat {
         val g = viewing.value ?: return
         val t = text.trim().take(140)
         if (t.isEmpty()) return
-        val line = Line(me(c), System.currentTimeMillis() / 1000, t, mine = true, sender = myTag(c), state = SENDING)
-        add(c, g, line)
-        deliver(c, g, line)
+        val app = c.applicationContext
+        val (blob, op) = signed(app, g, GigGroup.Ping(GigGroup.Ping.CHAT, me(c), System.currentTimeMillis() / 1000, text = t))
+        val line = Line(me(c), op.timeSec, op.text, mine = true, sender = op.sender, state = SENDING, proof = proofOf(op))
+        add(app, g, line)
+        put(g, blob) { ok -> setState(app, g, line, if (ok) SENT else FAILED) }
+    }
+
+    /** "I'm in!": tells the crew we've joined (and who we are), once per crew. */
+    fun announceJoin(c: Context, g: GigGroup) {
+        val p = prefs(c, GigArchive.idFor(g))
+        if (p.getBoolean("joinPosted", false)) return
+        val (blob, _) = signed(c, g, GigGroup.Ping(GigGroup.Ping.JOIN, me(c), System.currentTimeMillis() / 1000))
+        p.edit().putBoolean("joinPosted", true).apply()
+        put(g, blob) { ok -> if (!ok) p.edit().putBoolean("joinPosted", false).apply() }
     }
 
     /** "Not sent · tap to retry". */
@@ -222,9 +282,8 @@ object CrewChat {
 
     private fun deliver(c: Context, g: GigGroup, line: Line) {
         val app = c.applicationContext
-        post(g, GigGroup.Ping(GigGroup.Ping.CHAT, line.from, line.timeSec, text = line.text, sender = line.sender)) { ok ->
-            setState(app, g, line, if (ok) SENT else FAILED)
-        }
+        val (blob, _) = signed(app, g, GigGroup.Ping(GigGroup.Ping.CHAT, line.from, line.timeSec, text = line.text))
+        put(g, blob) { ok -> setState(app, g, line, if (ok) SENT else FAILED) }
     }
 
     private fun setState(c: Context, g: GigGroup, line: Line, state: Int) {
@@ -256,8 +315,8 @@ object CrewChat {
         val g = viewing.value ?: return
         val t = text.trim().take(140)
         val now = System.currentTimeMillis() / 1000
-        writePlan(c, g, if (t.isEmpty()) null else Plan(t, me(c), now, myTag(c)), mine = true, at = now)
-        add(c, g, Line(me(c), now, if (t.isEmpty()) "cleared the plan" else "pinned: $t", mine = true, kind = GigGroup.Ping.PLAN, sender = myTag(c)))
+        writePlan(c, g, if (t.isEmpty()) null else Plan(t, me(c), now, myTag(c, g)), mine = true, at = now)
+        add(c, g, Line(me(c), now, if (t.isEmpty()) "cleared the plan" else "pinned: $t", mine = true, kind = GigGroup.Ping.PLAN, sender = myTag(c, g)))
         postPlan(c, g)
     }
 
@@ -268,8 +327,9 @@ object CrewChat {
         val now = System.currentTimeMillis()
         val setAt = pl?.setAtSec ?: p.getLong("planAt", now / 1000)
         val ageMin = ((now / 1000 - setAt) / 60).toInt().coerceIn(0, 32767)
-        p.edit().putLong("planPosted", now).apply()
-        post(g, GigGroup.Ping(GigGroup.Ping.PLAN, me(c), now / 1000, minutes = ageMin, text = pl?.text.orEmpty(), sender = myTag(c))) { ok ->
+        val (blob, op) = signed(c, g, GigGroup.Ping(GigGroup.Ping.PLAN, me(c), now / 1000, minutes = ageMin, text = pl?.text.orEmpty()))
+        p.edit().putLong("planPosted", now).putString("planProof", proofOf(op)).apply()
+        put(g, blob) { ok ->
             if (!ok) p.edit().putLong("planPosted", 0L).apply() // try again on the next check
         }
     }
@@ -295,18 +355,17 @@ object CrewChat {
      */
     fun shareHistory(c: Context, crews: List<GigGroup>) {
         val now = System.currentTimeMillis()
-        val stagger = Math.floorMod(myTag(c), 3600_000L) // 0-60 min, different per phone
+        val stagger = Math.floorMod(Identity.permanent(c).fold(7L) { h, b -> h * 31 + b }, 3600_000L) // 0-60 min, different per phone
         crews.forEach { g ->
             val id = GigArchive.idFor(g)
             val p = prefs(c, id)
             if (now - p.getLong("histPosted", 0L) < HISTORY_EVERY_MS + stagger) return@forEach
-            val all = (if (id == viewingId) lines.toList() else readLines(c, id)).filter { it.state == SENT }
+            val all = (if (id == viewingId) lines.toList() else readLines(c, id)).filter { it.state == SENT && it.proof.isNotEmpty() }
             val newest = all.maxOfOrNull { it.timeSec } ?: 0L
             if (newest <= p.getLong("histNewest", 0L) && readPlan(c, id) == null) return@forEach
-            val pl = readPlan(c, id)
             val h = GigGroup.History(
-                all.takeLast(60).map { GigGroup.HistoryLine(it.kind, it.from, if (it.mine) myTag(c) else it.sender, it.timeSec, it.text) },
-                pl?.let { GigGroup.HistoryLine(GigGroup.Ping.PLAN, it.from, it.sender, it.setAtSec, it.text) },
+                all.takeLast(60).mapNotNull { historyLineOf(it.proof) },
+                p.getString("planProof", null)?.let { historyLineOf(it) },
             )
             val sealed = g.sealHistory(h, now / 1000) ?: return@forEach
             ChatSync.markSeen(sealed)
@@ -323,7 +382,7 @@ object CrewChat {
         val g = GroupSync.group.value ?: return
         val now = System.currentTimeMillis() / 1000
         flares[me(c)] = Flare(me(c), vibe, now + FLARE_MIN * 60L, lat, lon)
-        add(c, g, Line(me(c), now, "sent a flare: $vibe", mine = true, kind = GigGroup.Ping.FLARE, sender = myTag(c)))
+        add(c, g, Line(me(c), now, "sent a flare: $vibe", mine = true, kind = GigGroup.Ping.FLARE, sender = myTag(c, g)))
         GroupSync.sendPing(c, GigGroup.Ping.FLARE, lat, lon, FLARE_MIN, vibe)
     }
 
@@ -346,13 +405,19 @@ object CrewChat {
      * A chat, plan or flare for crew [g]. Returns the notification text if it's new and from
      * someone else, or null to stay quiet (ours, a repeat, or an older plan).
      */
-    fun ingest(c: Context, g: GigGroup, p: GigGroup.Ping): String? {
+    fun ingest(c: Context, g: GigGroup, signed: GigGroup.Ping): String? {
         appCtx = c.applicationContext
-        val mine = isMine(c, p.from, p.sender)
+        if (signed.sender == 0L) return null // unsigned: could be anyone
+        val mine = signed.sender == myTag(c, g)
+        val p = signed.copy(from = displayName(c, g, signed.sender, signed.from))
         return when (p.kind) {
             GigGroup.Ping.CHAT -> {
-                val added = add(c, g, Line(p.from, p.timeSec, p.text, mine, sender = p.sender))
+                val added = add(c, g, Line(p.from, p.timeSec, p.text, mine, sender = p.sender, proof = proofOf(signed)))
                 if (added && !mine) p.text else null
+            }
+            GigGroup.Ping.JOIN -> {
+                val added = add(c, g, Line(p.from, p.timeSec, "joined the crew", mine, GigGroup.Ping.JOIN, p.sender))
+                if (added && !mine) "joined the crew 🎉" else null
             }
             GigGroup.Ping.FLARE -> {
                 if (!isMain(g) || mine) return null
@@ -364,35 +429,40 @@ object CrewChat {
                 } else null
             }
             GigGroup.Ping.PLAN -> {
-                val note = takePlan(c, g, p.from, p.sender, p.timeSec - p.minutes * 60L, p.text, p.timeSec, mine)
+                val note = takePlan(c, g, p.from, p.sender, p.timeSec - p.minutes * 60L, p.text, p.timeSec, mine, proofOf(signed))
                 if (mine) null else note
             }
             else -> null
         }
     }
 
-    private fun takePlan(c: Context, g: GigGroup, from: String, sender: Long, setAt: Long, text: String, postedAt: Long, mine: Boolean): String? {
+    private fun takePlan(c: Context, g: GigGroup, from: String, sender: Long, setAt: Long, text: String, postedAt: Long, mine: Boolean, proof: String): String? {
         val cur = planFor(c, g)
         val curAt = maxOf(cur?.setAtSec ?: 0L, prefs(c, GigArchive.idFor(g)).getLong("planAt", 0L))
         if (setAt <= curAt) return null // a re-post, or older
         if (text.isBlank() && cur == null) return null
         writePlan(c, g, if (text.isBlank()) null else Plan(text, from, setAt, sender), mine = mine, at = setAt)
+        prefs(c, GigArchive.idFor(g)).edit().putString("planProof", proof).apply()
         add(c, g, Line(from, postedAt, if (text.isBlank()) "cleared the plan" else "pinned: $text", mine, GigGroup.Ping.PLAN, sender))
         return if (text.isBlank()) null else "New plan: $text"
     }
 
     /**
-     * Someone's copy of the chat: anything we missed slots in by time. Returns the newly added
-     * lines from others (for the notification).
+     * Someone's copy of the chat: anything we missed slots in by time. Every line was checked
+     * against its original signature on the way in. Returns the new lines from others.
      */
     fun ingestHistory(c: Context, g: GigGroup, h: GigGroup.History): List<Line> {
         val added = mutableListOf<Line>()
+        val me = myTag(c, g)
         h.lines.forEach { hl ->
-            val mine = isMine(c, hl.from, hl.sender)
-            val l = Line(hl.from, hl.timeSec, hl.text, mine, hl.kind, hl.sender)
+            val mine = hl.sender == me
+            val name = displayName(c, g, hl.sender, hl.from)
+            val l = Line(name, hl.timeSec, hl.text, mine, hl.kind, hl.sender, proof = proofOf(hl))
             if (add(c, g, l) && !mine && hl.kind == GigGroup.Ping.CHAT) added += l
         }
-        h.plan?.let { pl -> takePlan(c, g, pl.from, pl.sender, pl.timeSec, pl.text, pl.timeSec, isMine(c, pl.from, pl.sender)) }
+        h.plan?.let { pl ->
+            takePlan(c, g, displayName(c, g, pl.sender, pl.from), pl.sender, pl.timeSec - pl.minutes * 60L, pl.text, pl.timeSec, pl.sender == me, proofOf(pl))
+        }
         return added
     }
 
@@ -400,7 +470,7 @@ object CrewChat {
     fun pingLine(c: Context, p: GigGroup.Ping, mine: Boolean) {
         val g = GroupSync.group.value ?: return
         val text = quickText(p) ?: return
-        add(c, g, Line(if (mine) me(c) else p.from, p.timeSec, text, mine, sender = if (mine) myTag(c) else p.sender))
+        add(c, g, Line(if (mine) me(c) else p.from, p.timeSec, text, mine, sender = if (mine) myTag(c, g) else p.sender))
     }
 
     fun quickText(p: GigGroup.Ping): String? = when (p.kind) {

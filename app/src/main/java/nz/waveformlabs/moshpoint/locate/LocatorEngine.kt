@@ -45,7 +45,8 @@ import nz.waveformlabs.moshpoint.core.WalkDirection
 class LocatorEngine(
     private val context: Context,
     private val scope: CoroutineScope,
-    private val mySecret: ByteArray,
+    /** Who we are right now (crew pass at a gig, see Identity). */
+    private val identity: () -> ByteArray,
 ) {
     val capabilities = Capabilities.detect(context)
 
@@ -81,13 +82,14 @@ class LocatorEngine(
 
     // "I'm looking" advert: tells visible friends to speed up their adverts (battery
     // saving the rest of the time), and on UWB phones carries our UWB session details.
-    private val ephemeral = EphemeralId(mySecret)
+    private val mySecret: ByteArray get() = identity()
+    private val ephemeral: EphemeralId get() = EphemeralId(mySecret)
     private var lookingAdvert: BleBroadcaster? = null
     private var uwbInfo: Advert.UwbInfo? = null
 
     private val uwb: UwbFinder? = if (capabilities.uwb) {
         UwbFinder(
-            context, scope, mySecret,
+            context, scope, identity,
             onAdvertInfo = { info ->
                 uwbInfo = info
                 updateLookingAdvert()
@@ -436,7 +438,8 @@ class LocatorEngine(
         val adv = lookingAdvert
             ?: BleBroadcaster(context, AdvertiseSettings.ADVERTISE_MODE_BALANCED, "BT advert (looking)").also { lookingAdvert = it }
         adv.mode = if (beaconOn) AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY else AdvertiseSettings.ADVERTISE_MODE_BALANCED
-        adv.update(Advert.encode(mySecret, ephemeral.currentId(System.currentTimeMillis()), uwbInfo, looking = true, beacon = beaconOn, askLight = System.currentTimeMillis() < askLightUntil))
+        val me = mySecret
+        adv.update(Advert.encode(me, EphemeralId(me).currentId(System.currentTimeMillis()), uwbInfo, looking = true, beacon = beaconOn, askLight = System.currentTimeMillis() < askLightUntil))
     }
 
     // ---- "Light me up" beacon ----

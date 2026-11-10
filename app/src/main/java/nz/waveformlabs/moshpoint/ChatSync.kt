@@ -54,16 +54,27 @@ object ChatSync {
                 if (!seen.add(blob.contentHashCode())) return@forEach
                 val p = g.openPing(blob)
                 if (p != null) {
-                    CrewChat.ingest(app, g, p)?.let { note -> fresh += "${p.from}: $note" }
-                } else {
-                    g.openHistory(blob)?.let { h -> CrewChat.ingestHistory(app, g, h).forEach { fresh += "${it.from}: ${it.text}" } }
+                    CrewChat.ingest(app, g, p)?.let { note -> fresh += "${CrewChat.displayName(app, g, p.sender, p.from)}: $note" }
+                    return@forEach
                 }
+                val h = g.openHistory(blob)
+                if (h != null) {
+                    CrewChat.ingestHistory(app, g, h).forEach { fresh += "${it.from}: ${it.text}" }
+                    return@forEach
+                }
+                // A private message for us (e.g. "keep as friend"); for anyone else it's unreadable.
+                g.openDirect(blob, Identity.signer(app, g))?.let { Friendship.onDirect(app, g, it) }
             }
             val onScreen = CrewChat.open && CrewChat.viewing.value?.key?.contentEquals(g.key) == true
             if (notify && fresh.isNotEmpty() && !onScreen) notifyCrew(app, g, fresh)
         }
         CrewChat.repostPlans(app, crews)
         CrewChat.shareHistory(app, crews)
+        // Say hello in each crew we're in (not when only following from home).
+        crews.forEach { g ->
+            val following = if (GroupSync.group.value?.key?.contentEquals(g.key) == true) GroupSync.following else Crews.find(g.key)?.following == true
+            if (!following) CrewChat.announceJoin(app, g)
+        }
     }
 
     /**
@@ -95,24 +106,29 @@ object ChatSync {
     fun debugFakeChat(c: Context, g: GigGroup, missed: Boolean) {
         val app = c.applicationContext
         val now = System.currentTimeMillis() / 1000
+        // Each fake mate has their own signing key, like a real person (two of them are "Mate").
+        val keys = HashMap<String, nz.waveformlabs.moshpoint.core.CrewKeys.Signer>()
+        fun keyOf(who: String) = keys.getOrPut(who) { nz.waveformlabs.moshpoint.core.CrewKeys.generate() }
         val msgs = if (missed) listOf(
-            Triple("Alex (test)", 11L, "Did everyone get tickets?? 🎟️"),
-            Triple("Jo (test)", 12L, "Yep! Section B"),
-            Triple("Alex (test)", 11L, "Pre-drinks at mine then 🍻"),
+            "alex" to ("Alex (test)" to "Did everyone get tickets?? 🎟️"),
+            "jo" to ("Jo (test)" to "Yep! Section B"),
+            "alex" to ("Alex (test)" to "Pre-drinks at mine then 🍻"),
         ) else listOf(
-            Triple("Alex (test)", 11L, "Who's keen?! 🤘"),
-            Triple("Jo (test)", 12L, "Sooo keen. Meet at the bar?"),
-            Triple("Mate", 13L, "I'm in"),
-            Triple("Mate", 14L, "Me too (different Mate!)"),
+            "alex" to ("Alex (test)" to "Who's keen?! 🤘"),
+            "jo" to ("Jo (test)" to "Sooo keen. Meet at the bar?"),
+            "mate1" to ("Mate" to "I'm in"),
+            "mate2" to ("Mate" to "Me too (a different Mate!)"),
         )
+        val signed = msgs.mapIndexed { i, (who, nt) ->
+            val t = if (missed) now - 7200 + i * 600L else now - 30 + i * 5L
+            g.openPing(g.sealPing(GigGroup.Ping(GigGroup.Ping.CHAT, nt.first, t, text = nt.second), keyOf(who)))!!
+        }
         val fresh = mutableListOf<String>()
         if (missed) {
-            val h = GigGroup.History(msgs.mapIndexed { i, (n, tag, t) -> GigGroup.HistoryLine(GigGroup.Ping.CHAT, n, tag, now - 7200 + i * 600L, t) }, null)
+            val h = GigGroup.History(signed.map { GigGroup.HistoryLine(it.kind, it.from, it.sender, it.timeSec, it.text, it.minutes, 0, 0, it.pub, it.sig) }, null)
             CrewChat.ingestHistory(app, g, h).forEach { fresh += "${it.from}: ${it.text}" }
         } else {
-            msgs.forEachIndexed { i, (n, tag, t) ->
-                CrewChat.ingest(app, g, GigGroup.Ping(GigGroup.Ping.CHAT, n, now - 30 + i * 5L, text = t, sender = tag))?.let { fresh += "$n: $it" }
-            }
+            signed.forEach { p -> CrewChat.ingest(app, g, p)?.let { fresh += "${CrewChat.displayName(app, g, p.sender, p.from)}: $it" } }
         }
         val onScreen = CrewChat.open && CrewChat.viewing.value?.key?.contentEquals(g.key) == true
         if (fresh.isNotEmpty() && !onScreen) notifyCrew(app, g, fresh)

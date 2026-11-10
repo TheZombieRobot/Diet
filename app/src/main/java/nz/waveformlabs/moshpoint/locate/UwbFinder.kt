@@ -34,7 +34,7 @@ import nz.waveformlabs.moshpoint.core.UwbSessionKeys
 class UwbFinder(
     context: Context,
     private val scope: CoroutineScope,
-    private val mySecret: ByteArray,
+    private val identity: () -> ByteArray,
     /** Called when our advertised UWB details change (new scope), so the advert can be updated. */
     private val onAdvertInfo: (Advert.UwbInfo?) -> Unit,
     private val onResult: (friendId: String, distanceM: Double?, azimuthDeg: Double?) -> Unit,
@@ -98,9 +98,9 @@ class UwbFinder(
         if (rangingJob == null) {
             val params = RangingParameters(
                 uwbConfigType = RangingParameters.CONFIG_MULTICAST_DS_TWR,
-                sessionId = UwbSessionKeys.sessionId(mySecret, s.localAddress.address),
+                sessionId = UwbSessionKeys.sessionId(identity(), s.localAddress.address),
                 subSessionId = 0,
-                sessionKeyInfo = UwbSessionKeys.sessionKey(mySecret, s.localAddress.address),
+                sessionKeyInfo = UwbSessionKeys.sessionKey(identity(), s.localAddress.address),
                 subSessionKeyInfo = null,
                 complexChannel = s.uwbComplexChannel,
                 peerDevices = listOf(UwbDevice(UwbAddress(address))),

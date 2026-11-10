@@ -28,9 +28,9 @@ import nz.waveformlabs.moshpoint.locate.RelayClient
  * Battery: asks for an update every 15 s or 5 m of movement, and skips uploads when
  * nothing has changed (see [RelayClient.uploadGapMs]).
  */
-class LocationUploader(private val context: Context, private val scope: CoroutineScope, private val mySecret: ByteArray) {
+/** [identity]: who we are right now (crew pass at a gig, see Identity). */
+class LocationUploader(private val context: Context, private val scope: CoroutineScope, private val identity: () -> ByteArray) {
     private val myLocation = MyLocation(context)
-    private val ephemeral = EphemeralId(mySecret)
     private var job: Job? = null
     private var lastUploadMs = 0L
     private var lastKey: String? = null
@@ -80,7 +80,8 @@ class LocationUploader(private val context: Context, private val scope: Coroutin
             return
         }
         val now = System.currentTimeMillis()
-        val id = ephemeral.currentId(now)
+        val mySecret = identity()
+        val id = EphemeralId(mySecret).currentId(now)
         val shared = SharedLocation(loc.latitude, loc.longitude, now / 1000, loc.accuracy.toInt(), battery(), lastGasp)
         // Always hand the crowd relay a fresh sealed copy (works with no signal).
         CrowdRelayRadio.ownPacket = RelayPacket(RelayPacket.MAX_TTL, id, LocationBox.seal(mySecret, id, shared))

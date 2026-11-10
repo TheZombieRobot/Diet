@@ -445,6 +445,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         lifecycleScope.launch { GigArchive.refreshList(this@MainActivity) }
+        Friendship.load(this)
         missing = missingPermissions()
         refreshSetupIssues()
         // May have changed from the notification's Stop button or the Quick Settings tile.
@@ -484,7 +485,7 @@ class MainActivity : ComponentActivity() {
             Memories.schedule(this@MainActivity, GigArchive.gigs)
         }
         val mySecret = VisibilityPrefs.mySecret(this)
-        engine = LocatorEngine(applicationContext, lifecycleScope, mySecret)
+        engine = LocatorEngine(applicationContext, lifecycleScope) { Identity.current(applicationContext) }
         lifecycleScope.launch {
             while (true) {
                 delay(20_000)
@@ -554,6 +555,26 @@ class MainActivity : ComponentActivity() {
                         onDismiss = { showQr = false },
                         onShare = { shareCode(myCode) },
                         title = if (myName.isBlank()) "Scan to add me" else "Scan to add $myName",
+                    )
+                }
+                // "Sam wants to stay friends": one at a time, until answered.
+                Friendship.incoming.firstOrNull()?.let { req ->
+                    AlertDialog(
+                        onDismissRequest = {},
+                        title = { Text("${req.name} wants to stay friends") },
+                        text = {
+                            Text(
+                                "You met in ${req.crewName}. Say yes and you can find each other at any gig, not just this one. " +
+                                    "Only ${req.name} gets your details, nobody else in the crew.",
+                            )
+                        },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                Friendship.accept(this@MainActivity, req)
+                                toast("You and ${req.name} are friends now")
+                            }) { Text("Yes, stay friends") }
+                        },
+                        dismissButton = { TextButton(onClick = { Friendship.decline(this@MainActivity, req) }) { Text("Not now") } },
                     )
                 }
                 if (askBattery) {
@@ -634,7 +655,7 @@ class MainActivity : ComponentActivity() {
                             beaconing = beaconing.mapNotNull { id ->
                                 FriendsRepository.byId(id)?.let { "${nz.waveformlabs.moshpoint.core.BeaconColour.forSecret(it.secret).name.uppercase()} (${it.name})" }
                             },
-                            myBeacon = nz.waveformlabs.moshpoint.core.BeaconColour.forSecret(mySecret),
+                            myBeacon = nz.waveformlabs.moshpoint.core.BeaconColour.forSecret(Identity.current(this@MainActivity)),
                             onBack = {
                                 setBeacon(false)
                                 finding = false
@@ -734,10 +755,7 @@ class MainActivity : ComponentActivity() {
                                 setVisibility(true)
                                 showGroupQr = true
                             },
-                            onKeepFriend = { id ->
-                                FriendsRepository.keepAsFriend(id)
-                                toast("Added to your friends")
-                            },
+                            onKeepFriend = { id -> toast(Friendship.request(this@MainActivity, id)) },
                             onShowGroupQr = { showGroupQr = true },
                             onShowCrewQr = {
                                 ensureCrew()
@@ -774,7 +792,7 @@ class MainActivity : ComponentActivity() {
                                     id = e.id, name = e.group.name,
                                     whenText = e.group.startsAtSec.takeIf { it > 0 }?.let { nz.waveformlabs.moshpoint.ui.gigWhen(it) },
                                     countdown = nz.waveformlabs.moshpoint.ui.countdown(e.group.startsAtSec, homeNow / 1000),
-                                    venue = e.group.venue, mates = e.mates.size,
+                                    venue = e.group.venue, mates = maxOf(e.mates.size, CrewChat.peopleCount(this@MainActivity, e.group)),
                                     unread = CrewChat.unreadFor(this@MainActivity, e.group),
                                     plan = CrewChat.planFor(this@MainActivity, e.group)?.text,
                                     following = e.following,
@@ -1203,7 +1221,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun crewQr(g: GigGroup) =
-        withRelay(GigGroup.qr(g, GigGroup.Intro(VisibilityPrefs.mySecret(this), myName.ifBlank { "Mate" })))
+        // Our pass in this crew (never our permanent identity) and signing key ride in the invite.
+        withRelay(GigGroup.qr(g, Identity.intro(this, g, myName.ifBlank { "Mate" })))
 
     /** The crew's relay server travels in the invite, so everyone who joins uses the same one. */
     private fun withRelay(qr: String): String {

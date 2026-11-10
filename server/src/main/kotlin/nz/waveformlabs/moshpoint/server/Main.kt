@@ -183,7 +183,8 @@ fun Application.moshpoint(
 
 private val ID_RE = Regex("^[0-9a-f]{32}$")
 private const val MIN_RECORD = 16
-private const val MAX_RECORD = 128
+/** Signed crew pings (key + signature) need room; lengths go as one byte. */
+private const val MAX_RECORD = 255
 /** Chat messages and history bundles (a phone's recent copy of the chat, ~3 KB). */
 private const val MAX_HELD = 4_000
 private const val MAX_LOOKUP = 64

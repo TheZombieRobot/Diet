@@ -78,25 +78,103 @@ class GigGroupTest {
         assertEquals("In range", ArrowStyle.bandLabel(45.0))
     }
 
-    @Test fun senderTagTellsSameNamesApart() {
-        val a = GigGroup.Ping(GigGroup.Ping.CHAT, "Mate", 1_700_000_000, text = "hi", sender = 42L)
-        val b = GigGroup.Ping(GigGroup.Ping.CHAT, "Mate", 1_700_000_000, text = "hi", sender = 43L)
-        assertEquals(42L, assertNotNull(group.openPing(group.sealPing(a))).sender)
-        assertEquals(43L, assertNotNull(group.openPing(group.sealPing(b))).sender)
-        // A sender with no text still round-trips.
-        val ping = GigGroup.Ping(GigGroup.Ping.COMING, "Mate", 1_700_000_000, sender = 7L)
-        assertEquals(ping, group.openPing(group.sealPing(ping)))
+    @Test fun signedMessagesNameTheirSigner() {
+        val a = CrewKeys.generate()
+        val b = CrewKeys.generate()
+        val pa = assertNotNull(group.openPing(group.sealPing(GigGroup.Ping(GigGroup.Ping.CHAT, "Mate", 1_700_000_000, text = "hi"), a)))
+        val pb = assertNotNull(group.openPing(group.sealPing(GigGroup.Ping(GigGroup.Ping.CHAT, "Mate", 1_700_000_000, text = "hi"), b)))
+        assertEquals(a.tag, pa.sender)
+        assertEquals(b.tag, pb.sender)
+        assertTrue(pa.sender != pb.sender) // two people called Mate stay two people
+        // Unsigned: no sender at all.
+        assertEquals(0L, assertNotNull(group.openPing(group.sealPing(GigGroup.Ping(GigGroup.Ping.COMING, "Mate", 1_700_000_000)))).sender)
     }
 
-    @Test fun historyBundlesFitAndRoundTrip() {
-        val lines = (0 until 300).map { GigGroup.HistoryLine(GigGroup.Ping.CHAT, "Jo", 9L, 1_700_000_000L + it, "message number $it, who's keen? 🎸") }
-        val plan = GigGroup.HistoryLine(GigGroup.Ping.PLAN, "Alex", 3L, 1_699_000_000L, "Pre-drinks at Jo's, 5pm")
-        val blob = assertNotNull(group.sealHistory(GigGroup.History(lines, plan), 1_700_000_500L))
+    @Test fun forgedSignatureIsDropped() {
+        val real = CrewKeys.generate()
+        val blob = group.sealPing(GigGroup.Ping(GigGroup.Ping.CHAT, "Jo", 1_700_000_000, text = "meet at gate C"), real)
+        // A crew member re-seals Jo's message with different words but Jo's key and signature.
+        val opened = assertNotNull(group.openPing(blob))
+        val forged = group.sealPing(opened.copy(text = "meet at gate A", sender = 0L, pub = null, sig = null))
+        assertEquals(0L, assertNotNull(group.openPing(forged)).sender) // unsigned, so not "Jo's"
+        // Tamper inside the signed tail: rejected outright.
+        assertNull(group.openPing(forgeTail(blob)))
+    }
+
+    /** Re-seal [blob]'s plaintext with one byte of the text changed, keeping the signature. */
+    private fun forgeTail(blob: ByteArray): ByteArray {
+        val c = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding")
+        val key = javax.crypto.spec.SecretKeySpec(
+            javax.crypto.Mac.getInstance("HmacSHA256").apply { init(javax.crypto.spec.SecretKeySpec(group.key, "HmacSHA256")) }
+                .doFinal("moshpoint-group-rally-aes".toByteArray()).copyOf(16), "AES",
+        )
+        c.init(javax.crypto.Cipher.DECRYPT_MODE, key, javax.crypto.spec.GCMParameterSpec(96, blob.copyOfRange(0, 12)))
+        c.updateAAD("ping".toByteArray())
+        val plain = c.doFinal(blob, 12, blob.size - 12)
+        val i = 1 + 4 + 4 + 1 + 2 + 2 + 1 + 2 // into the text ("meet…")
+        plain[i] = (plain[i].toInt() xor 1).toByte()
+        val e = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding")
+        e.init(javax.crypto.Cipher.ENCRYPT_MODE, key, javax.crypto.spec.GCMParameterSpec(96, blob.copyOfRange(0, 12)))
+        e.updateAAD("ping".toByteArray())
+        return blob.copyOfRange(0, 12) + e.doFinal(plain)
+    }
+
+    @Test fun historyBundlesFitAndOnlyCarryCheckedLines() {
+        val jo = CrewKeys.generate()
+        fun signed(i: Int, text: String) = group.openPing(group.sealPing(GigGroup.Ping(GigGroup.Ping.CHAT, "Jo", 1_700_000_000L + i, text = text), jo))!!
+            .let { GigGroup.HistoryLine(it.kind, it.from, it.sender, it.timeSec, it.text, it.minutes, 0, 0, it.pub, it.sig) }
+        val lines = (0 until 60).map { signed(it, "message number $it, who's keen? 🎸") }
+        val blob = assertNotNull(group.sealHistory(GigGroup.History(lines, null), 1_700_000_500L))
         assertTrue(blob.size <= GigGroup.MAX_HISTORY_BYTES)
         val h = assertNotNull(group.openHistory(blob))
-        assertEquals(plan, h.plan)
-        assertTrue(h.lines.size in 20..300)
+        assertTrue(h.lines.size in 10..60)
         assertEquals(lines.last(), h.lines.last()) // the newest are kept
+        assertTrue(h.lines.all { it.sender == jo.tag })
+        // A line with words changed is dropped on the way in.
+        val fake = lines.last().copy(text = "something Jo never said")
+        val h2 = assertNotNull(group.openHistory(assertNotNull(group.sealHistory(GigGroup.History(listOf(fake, lines[0]), null), 1_700_000_600L))))
+        assertEquals(listOf(lines[0]), h2.lines)
         assertNull(GigGroup.create("Other", now).openHistory(blob))
+    }
+
+    @Test fun directMessagesOnlyForTheirReader() {
+        val sam = CrewKeys.generate()
+        val jo = CrewKeys.generate()
+        val other = CrewKeys.generate()
+        val blob = assertNotNull(group.sealDirect(sam, jo.pub, 1, "my forever key".toByteArray(), 1_700_000_000))
+        val d = assertNotNull(group.openDirect(blob, jo))
+        assertEquals("my forever key", String(d.payload))
+        assertContentEquals(sam.pub, d.fromPub)
+        assertNull(group.openDirect(blob, other)) // another crew member can't read it
+        assertNull(GigGroup.create("Other", now).openDirect(blob, jo))
+    }
+
+    @Test fun invitesExpireWithTheCrew() {
+        val qr = GigGroup.qr(group, GigGroup.Intro(ByteArray(32) { 1 }, "Sam", CrewKeys.generate().pub))
+        assertNotNull(GigGroup.parseQr(qr, now))
+        assertNull(GigGroup.parseQr(qr, group.expiresAtMs + 60_000))
+        assertNull(GigGroup.parseQr(qr.replace(Regex("&exp=[0-9]+"), ""), now)) // old-style: no
+        assertEquals(group.expiresAtMs, assertNotNull(GigGroup.parseQr(qr, now + 3_600_000)).expiresAtMs)
+        assertNotNull(GigGroup.hostOf(qr)?.pub)
+    }
+
+    @Test fun introsCarryTheSigningKey() {
+        val k = CrewKeys.generate()
+        val intro = GigGroup.Intro(ByteArray(32) { 5 }, "Jo", k.pub)
+        val blob = group.sealIntro(intro, now)
+        assertTrue(blob.size <= GigGroup.MAX_INTRO_BYTES)
+        assertEquals(intro, group.openIntro(blob, now))
+    }
+
+    @Test fun keysSignVerifyAndAgree() {
+        val a = CrewKeys.generate()
+        val b = CrewKeys.generate()
+        val sig = CrewKeys.sign(a, "x".toByteArray())
+        assertTrue(CrewKeys.verify(a.pub, "x".toByteArray(), sig))
+        assertFalse(CrewKeys.verify(b.pub, "x".toByteArray(), sig))
+        assertContentEquals(CrewKeys.agree(a, b.pub), CrewKeys.agree(b, a.pub))
+        val restored = assertNotNull(CrewKeys.restore(a.encodedPrivate(), a.pub))
+        assertTrue(CrewKeys.verify(a.pub, "y".toByteArray(), CrewKeys.sign(restored, "y".toByteArray())))
+        assertNull(CrewKeys.publicKey(ByteArray(33) { 9 }))
     }
 }

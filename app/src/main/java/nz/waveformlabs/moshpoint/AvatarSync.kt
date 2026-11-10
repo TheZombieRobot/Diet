@@ -35,15 +35,18 @@ object AvatarSync {
         val jpeg = PhotoStore.jpeg(PhotoStore.ME) ?: ByteArray(0)
         if (jpeg.size > AvatarBox.MAX_PHOTO_BYTES) return
         if (jpeg.isEmpty() && !p.contains("published")) return // never shared one: nothing to clear
-        val secret = VisibilityPrefs.mySecret(c)
+        // Under every identity we have: our permanent one for friends, and our pass in each crew.
+        val identities = listOf(Identity.permanent(c)) + ChatSync.allCrews(c).take(5).map { Identity.crewPass(c, it) }
         p.edit().putLong("published", now).apply()
         scope.launch {
             val week = AvatarBox.weekAt(now)
-            val ok = if (RelayClient.ownServer) {
-                listOf(week, week + 1).all { RelayClient.putAvatar(AvatarBox.idFor(secret, it), AvatarBox.seal(secret, jpeg)) }
-            } else {
-                RelayClient.putFile(AvatarBox.idFor(secret, week), AvatarBox.seal(secret, jpeg))
-            }
+            val ok = identities.map { secret ->
+                if (RelayClient.ownServer) {
+                    listOf(week, week + 1).all { RelayClient.putAvatar(AvatarBox.idFor(secret, it), AvatarBox.seal(secret, jpeg)) }
+                } else {
+                    RelayClient.putFile(AvatarBox.idFor(secret, week), AvatarBox.seal(secret, jpeg))
+                }
+            }.all { it }
             if (!ok) p.edit().remove("published").apply()
             DebugStatus.log(if (ok) "Shared your photo with friends" else "Couldn't share your photo (no data?)")
         }

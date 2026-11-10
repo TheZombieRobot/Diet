@@ -51,8 +51,10 @@ import nz.waveformlabs.moshpoint.locate.wifiRttSupported
  */
 class VisibilityService : LifecycleService() {
     private lateinit var broadcaster: BleBroadcaster
-    private lateinit var mySecret: ByteArray
-    private lateinit var ephemeral: EphemeralId
+    /** Who we are right now: our crew pass while a crew is on, else our permanent identity. */
+    private val mySecret: ByteArray get() = nz.waveformlabs.moshpoint.Identity.current(this)
+    private val ephemeral: EphemeralId get() = EphemeralId(mySecret)
+    private var advertisedAs: String? = null
     private var uwbInfo: Advert.UwbInfo? = null
     private var uwb: UwbResponder? = null
     private var listener: BleRanger? = null
@@ -81,8 +83,6 @@ class VisibilityService : LifecycleService() {
 
     private fun begin() {
         FriendsRepository.init(this)
-        mySecret = VisibilityPrefs.mySecret(this)
-        ephemeral = EphemeralId(mySecret)
         // Medium advert (~4 a second) by default: enough readings for spin-to-scan even before
         // we notice a friend looking (background listening is slow). Fast while one is looking.
         broadcaster = BleBroadcaster(this, AdvertiseSettings.ADVERTISE_MODE_BALANCED, "BT advert (visible)")
@@ -93,11 +93,17 @@ class VisibilityService : LifecycleService() {
                 wifi?.refresh()
                 val now = System.currentTimeMillis()
                 val nextRotation = (ephemeral.epochAt(now) + 1) * EphemeralId.DEFAULT_ROTATION_MS
-                delay(nextRotation - now + 50)
+                // Wake at the next rotation, or sooner if we become someone else (a crew
+                // starting or ending) so crew mates can find us straight away.
+                val until = nextRotation + 50
+                while (System.currentTimeMillis() < until) {
+                    delay(minOf(30_000L, until - System.currentTimeMillis()).coerceAtLeast(1L))
+                    if (identityKey() != advertisedAs) break
+                }
             }
         }
 
-        uploader = LocationUploader(this, lifecycleScope, mySecret).also { it.start() }
+        uploader = LocationUploader(this, lifecycleScope) { mySecret }.also { it.start() }
         registerReceiver(batteryReceiver, android.content.IntentFilter(Intent.ACTION_BATTERY_CHANGED))
         GroupSync.load(this)
         GroupSync.acquire(this) // keep introducing ourselves to the gig group while visible
@@ -207,9 +213,13 @@ class VisibilityService : LifecycleService() {
         }
     }
 
+    private fun identityKey() = mySecret.copyOf(4).joinToString("") { "%02x".format(it) }
+
     private fun readvertise() {
-        val id = ephemeral.currentId(System.currentTimeMillis())
-        broadcaster.update(Advert.encode(mySecret, id, uwbInfo))
+        val me = mySecret
+        advertisedAs = identityKey()
+        val id = EphemeralId(me).currentId(System.currentTimeMillis())
+        broadcaster.update(Advert.encode(me, id, uwbInfo))
     }
 
     override fun onDestroy() {

@@ -85,16 +85,8 @@ object FriendsRepository {
             }
             return false
         }
-        // Same name, new key: they reinstalled the app (which makes a new key), so the entry
-        // we have can never find them again. Swap the key in, keeping their colour and photo.
-        // Not for blank/default names, which lots of people share.
-        val sameName = if (name.isBlank() || name.equals("Mate", true) || name.equals("Host", true)) -1
-            else friends.indexOfFirst { it.name.equals(name.trim(), ignoreCase = true) && !isSimulated(it.id) }
-        if (sameName >= 0) {
-            friends[sameName] = Friend(friends[sameName].record.copy(secret = secret))
-            save()
-            return true
-        }
+        // Never match by name: two different people can share one ("Jo", "Mate"), and a crew
+        // intro must never take over a friend's entry. A new key is a new person.
         val usedColours = friends.map { it.color }.toSet()
         friends += Friend(
             FriendRecord(
@@ -138,10 +130,29 @@ object FriendsRepository {
     }
 
     /** A crew member you want to keep: move them to your friends list (stays after "End the night"). */
-    fun keepAsFriend(id: String) {
-        val i = friends.indexOfFirst { it.id == id && it.gigGroupOnly }
-        if (i < 0) return
-        friends[i] = Friend(friends[i].record.copy(gigGroupOnly = false))
+    /**
+     * "Keep as friend" went through (they said yes, see Friendship): crew mate [crewId] becomes a
+     * friend for every gig, under their permanent identity. Keeps their colour and photo.
+     */
+    fun makePermanent(crewId: String?, secret: ByteArray, name: String) {
+        val already = friends.indexOfFirst { it.secret.contentEquals(secret) }
+        val i = crewId?.let { id -> friends.indexOfFirst { it.id == id } } ?: -1
+        when {
+            already >= 0 -> friends[already] = Friend(friends[already].record.copy(gigGroupOnly = false, name = name.ifBlank { friends[already].name }))
+            i >= 0 -> friends[i] = Friend(friends[i].record.copy(secret = secret, gigGroupOnly = false, name = name.ifBlank { friends[i].name }))
+            else -> {
+                val usedColours = friends.map { it.color }.toSet()
+                friends += Friend(
+                    FriendRecord(
+                        id = UUID.randomUUID().toString(), name = name.ifBlank { "Mate" },
+                        color = PALETTE.firstOrNull { it !in usedColours } ?: PALETTE[friends.size % PALETTE.size],
+                        secret = secret, gigGroupOnly = false, addedAtMs = System.currentTimeMillis(),
+                    ),
+                )
+            }
+        }
+        // The crew-pass entry for the same person isn't needed any more.
+        if (already >= 0 && i >= 0 && friends.getOrNull(i)?.gigGroupOnly == true) friends.removeAt(i)
         save()
     }
 

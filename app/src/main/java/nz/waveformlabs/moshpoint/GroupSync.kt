@@ -48,6 +48,35 @@ object GroupSync {
      */
     val members = androidx.compose.runtime.mutableStateListOf<String>()
 
+    // ---- Crew mates' signing keys, by crew pass ----
+
+    private val pubs = HashMap<String, ByteArray>()
+    private fun hex(b: ByteArray) = b.joinToString("") { "%02x".format(it) }
+
+    /** Remember which signing key belongs to which crew mate (from their intro). First one wins. */
+    private fun rememberPub(c: Context, secret: ByteArray, pub: ByteArray?) {
+        pub ?: return
+        val k = hex(secret)
+        if (pubs.containsKey(k)) return
+        pubs[k] = pub
+        prefs(c.applicationContext).edit().putString("pubs", pubs.entries.joinToString(",") { "${it.key}:${Base64.encodeToString(it.value, Base64.NO_WRAP)}" }).apply()
+    }
+
+    /** A crew mate's signing key, if we've had their intro. */
+    fun pubOf(secret: ByteArray): ByteArray? = pubs[hex(secret)]
+
+    /** The crew pass of whoever signs with [tag], if they're in our crew. */
+    fun secretOfTag(tag: Long): ByteArray? = pubs.entries.firstOrNull { nz.waveformlabs.moshpoint.core.CrewKeys.tagOf(it.value) == tag }
+        ?.key?.chunked(2)?.map { it.toInt(16).toByte() }?.toByteArray()
+
+    private fun loadPubs(c: Context) {
+        pubs.clear()
+        prefs(c).getString("pubs", null)?.split(',')?.forEach { e ->
+            val k = e.substringBefore(':')
+            runCatching { pubs[k] = Base64.decode(e.substringAfter(':'), Base64.NO_WRAP) }
+        }
+    }
+
     private fun markMember(c: Context, secret: ByteArray) {
         val k = secret.joinToString("") { "%02x".format(it) }
         if (k in members) return
@@ -122,6 +151,7 @@ object GroupSync {
         }
         members.clear()
         p.getString("members", null)?.split(',')?.filter { it.length == 64 }?.let { members.addAll(it) }
+        loadPubs(c)
     }
 
     /** The crew most recently made or joined (main or Up next): its QR is the one to show. */
@@ -155,7 +185,7 @@ object GroupSync {
         if (g.dormant(System.currentTimeMillis())) return
         val now = System.currentTimeMillis()
         val name = (if (following) GigGroup.FOLLOWER_MARK else "") + VisibilityPrefs.myName(app).ifBlank { "Mate" }
-        syncServer(app, g, g.sealIntro(GigGroup.Intro(VisibilityPrefs.mySecret(app), name), now), now)
+        syncServer(app, g, g.sealIntro(Identity.intro(app, g, name), now), now)
     }
 
     /** Loved ones following this crew from home (names), so everyone knows who can see. */
@@ -177,7 +207,7 @@ object GroupSync {
         }
         // The person whose QR it was is in it: add them now, no waiting for an intro.
         GigGroup.hostOf(qrText)?.let { host ->
-            if (host.secret.contentEquals(VisibilityPrefs.mySecret(app))) return@let
+            if (Identity.isMine(app, host.secret)) return@let
             if (!main) {
                 Crews.addMate(app, g.key, host.secret, host.name)
                 return@let
@@ -185,7 +215,7 @@ object GroupSync {
             run {
                 FriendsRepository.unremove(host.secret)
                 FriendsRepository.addFromIntro(host.secret, host.name)
-                markMember(app, host.secret)
+                rememberPub(app, host.secret, host.pub)
             }
         }
         return true
@@ -293,7 +323,10 @@ object GroupSync {
     /** "End night": leave the group and drop its members. */
     fun clear(c: Context) {
         val app = c.applicationContext
-        group.value?.let { CrewChat.forget(app, it) }
+        group.value?.let {
+            CrewChat.forget(app, it)
+            Identity.forget(app, it)
+        }
         resetActive(app)
         promoteNext(app)
     }
@@ -301,6 +334,7 @@ object GroupSync {
     /** Drop a crew waiting in Up next. */
     fun leave(c: Context, e: Crews.Entry) {
         CrewChat.forget(c.applicationContext, e.group)
+        Identity.forget(c.applicationContext, e.group)
         Crews.remove(c.applicationContext, e.id)
     }
 
@@ -315,6 +349,7 @@ object GroupSync {
         Moments.clear()
         runCatching { CrewWidget.update(app, emptyList()) }
         members.clear()
+        pubs.clear()
         rally.value = null
         rallyMine = false
         rallyClearedAt = 0L
@@ -358,7 +393,6 @@ object GroupSync {
             }
             return
         }
-        val mySecret = VisibilityPrefs.mySecret(c)
         val follower = following
         // Followers are marked so the crew lists them apart; they never use Bluetooth.
         val myName = (if (follower) GigGroup.FOLLOWER_MARK else "") + VisibilityPrefs.myName(c).ifBlank { "Mate" }
@@ -371,21 +405,23 @@ object GroupSync {
             // Sealed intros, re-made once per rotation (the tag must keep changing). Reusing
             // the bytes within a rotation lets the server de-duplicate repeat posts.
             val sealed = HashMap<String, Pair<Long, ByteArray>>()
-            fun introFor(secret: ByteArray, name: String, now: Long): ByteArray {
+            fun introFor(intro: GigGroup.Intro, now: Long): ByteArray {
                 val epoch = Math.floorDiv(now, EphemeralId.DEFAULT_ROTATION_MS)
-                val k = secret.joinToString("") { "%02x".format(it) }
+                val k = intro.secret.joinToString("") { "%02x".format(it) }
                 sealed[k]?.let { if (it.first == epoch) return it.second }
-                return g.sealIntro(GigGroup.Intro(secret, name), now).also { sealed[k] = epoch to it }
+                return g.sealIntro(intro, now).also { sealed[k] = epoch to it }
             }
+            // Our pass in this crew (never our permanent identity) and our signing key.
+            val myIntro = Identity.intro(c, g, myName)
             while (true) {
                 val now = System.currentTimeMillis()
-                val mine = introFor(mySecret, myName, now)
+                val mine = introFor(myIntro, now)
                 // Gossip: every other slot we pass on a crew member we know about, so the
                 // whole crew spreads through the room even if two of them never get close.
                 val members = FriendsRepository.friends.filter { it.gigGroupOnly }
                 val out = if (slot % 2 == 1 && members.isNotEmpty()) {
                     val m = members[(slot / 2) % members.size]
-                    introFor(m.secret, m.name, now)
+                    introFor(GigGroup.Intro(m.secret, m.name, pubOf(m.secret)), now)
                 } else {
                     mine
                 }
@@ -474,8 +510,10 @@ object GroupSync {
     fun sendPing(c: Context, kind: Int, lat: Double? = null, lon: Double? = null, minutes: Int = 0, text: String = "", quiet: Boolean = false) {
         val g = group.value ?: return
         val app = c.applicationContext
-        val p = GigGroup.Ping(kind, VisibilityPrefs.myName(app).ifBlank { "Mate" }, System.currentTimeMillis() / 1000, lat, lon, minutes, text, CrewChat.myTag(app))
-        val blob = g.sealPing(p)
+        // Pings go to a small mailbox: keep the text short enough that signed ones always fit.
+        val short = text.toByteArray(Charsets.UTF_8).let { b -> if (b.size <= 80) text else String(b, 0, 80, Charsets.UTF_8).trimEnd('\uFFFD') }
+        val p = GigGroup.Ping(kind, VisibilityPrefs.myName(app).ifBlank { "Mate" }, System.currentTimeMillis() / 1000, lat, lon, minutes, short, Identity.tag(app, g))
+        val blob = g.sealPing(p, Identity.signer(app, g))
         seenPings += blob.contentHashCode().toString()
         if (!quiet) NightStats.ping(app)
         CrewChat.pingLine(app, p, mine = true)
@@ -486,16 +524,20 @@ object GroupSync {
         }
     }
 
-    private fun onPing(c: Context, p: GigGroup.Ping, blob: ByteArray) {
+    private fun onPing(c: Context, signed: GigGroup.Ping, blob: ByteArray) {
         if (!seenPings.add(blob.contentHashCode().toString())) return
-        if (System.currentTimeMillis() / 1000 - p.timeSec > 20 * 60) return // stale
-        // Where they were when they sent it: put it on the map too.
+        if (signed.sender == 0L) return // unsigned: could be anyone claiming any name
+        if (System.currentTimeMillis() / 1000 - signed.timeSec > 20 * 60) return // stale
+        val g = group.value ?: return
+        if (signed.sender == Identity.tag(c, g)) return // our own
+        // Two people with one name are shown apart ("Jo", "Jo (2)"): nobody can pass as someone else.
+        val p = signed.copy(from = CrewChat.displayName(c, g, signed.sender, signed.from))
+        // Where they were when they sent it: on the map too, but only on the sender's own pin.
         val lat = p.lat
         val lon = p.lon
-        if (lat != null && lon != null) {
-            FriendsRepository.friends.firstOrNull { it.name.equals(p.from, true) }?.let {
-                LocationBook.update(it.id, nz.waveformlabs.moshpoint.core.SharedLocation(lat, lon, p.timeSec, 30))
-            }
+        val who = secretOfTag(p.sender)?.let { s -> FriendsRepository.friends.firstOrNull { it.secret.contentEquals(s) } }
+        if (lat != null && lon != null && who != null) {
+            LocationBook.update(who.id, nz.waveformlabs.moshpoint.core.SharedLocation(lat, lon, p.timeSec, 30))
         }
         if (p.kind == GigGroup.Ping.CHAT || p.kind == GigGroup.Ping.FLARE || p.kind == GigGroup.Ping.PLAN) {
             val note = CrewChat.received(c, p) ?: return
@@ -615,7 +657,8 @@ object GroupSync {
 
     private fun received(c: Context, g: GigGroup, blob: ByteArray) {
         val intro = g.openIntro(blob, System.currentTimeMillis()) ?: return
-        if (intro.secret.contentEquals(VisibilityPrefs.mySecret(c))) return // our own
+        if (Identity.isMine(c, intro.secret)) return // our own
+        rememberPub(c, intro.secret, intro.pub)
         if (intro.name.startsWith(GigGroup.FOLLOWER_MARK)) {
             // Someone following from home: shown to the crew, never added as a findable mate.
             val who = intro.name.removePrefix(GigGroup.FOLLOWER_MARK).ifBlank { "Someone" }
