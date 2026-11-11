@@ -81,6 +81,9 @@ open class ScreensSnapshotTest {
         ),
     )
 
+    /** Settings > Acknowledgements: copyright, map credit, fonts, then the build's library list. */
+    @Test fun acknowledgements() = snap { AcknowledgementsContent(onClose = {}) }
+
     /** The drawn default avatars (the middle layer, under photos), to eyeball the variety. */
     @Test fun defaultAvatars() = snap {
         val names = listOf("Alex", "Jo", "Sam", "Mia", "Josh", "Ana", "Ben", "Cat", "Dev", "Eli", "Fin", "Gus", "Hana", "Kiri", "Leo", "Mere", "Nia", "Ola", "Priya", "Quinn")

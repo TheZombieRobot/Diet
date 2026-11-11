@@ -125,9 +125,12 @@ jobs:
           libs, lic = d.get("libraries", []), d.get("licenses", {})
           print(f"{len(libs)} libraries")
           count = collections.Counter(l for x in libs for l in x.get("licenses", []))
+          bundled = ("facebook-android-sdk", "libyuv")  # texts shipped in assets/licenses/third-party
           for k, n in count.most_common():
               v = lic.get(k, {})
-              print(f"  {n:3}  {v.get('name', k)}  ({'full text' if v.get('content') else 'link: ' + str(v.get('url'))})")
+              url = str(v.get("url"))
+              how = "full text" if v.get("content") else ("text bundled in app" if any(b in url for b in bundled) else "link: " + url)
+              print(f"  {n:3}  {v.get('name', k)}  ({how})")
           bare = [x.get("uniqueId") for x in libs if not x.get("licenses")]
           for b in bare: print(f"::warning::no licence found for {b}")
           PY

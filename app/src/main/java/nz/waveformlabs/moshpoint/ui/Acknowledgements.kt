@@ -37,7 +37,7 @@ import nz.waveformlabs.moshpoint.R
 import org.json.JSONObject
 
 /** One credit: a font or library, its version, and the licence(s) it comes under. */
-internal data class Credit(val name: String, val detail: String, val licences: List<LicenceText>)
+internal data class Credit(val id: String, val name: String, val detail: String, val licences: List<LicenceText>)
 internal data class LicenceText(val name: String, val text: String?, val url: String?)
 
 /**
@@ -50,18 +50,32 @@ internal object Credits {
         fun asset(f: String) = runCatching { context.assets.open("licenses/$f").bufferedReader().use { it.readText() } }.getOrNull()
         val ofl = LicenceText("SIL Open Font License 1.1", null, "https://openfontlicense.org")
         return listOf(
-            Credit("Unbounded", "© 2022 The Unbounded Project Authors", listOf(ofl.copy(text = asset("Unbounded-OFL.txt")))),
-            Credit("Inter", "© 2020 The Inter Project Authors", listOf(ofl.copy(text = asset("Inter-OFL.txt")))),
-            Credit("Permanent Marker", "© Font Diner, Inc.", listOf(LicenceText("Apache License 2.0", asset("PermanentMarker-Apache2.txt"), "https://www.apache.org/licenses/LICENSE-2.0"))),
+            Credit("font:unbounded", "Unbounded", "© 2022 The Unbounded Project Authors", listOf(ofl.copy(text = asset("Unbounded-OFL.txt")))),
+            Credit("font:inter", "Inter", "© 2020 The Inter Project Authors", listOf(ofl.copy(text = asset("Inter-OFL.txt")))),
+            Credit("font:permanent-marker", "Permanent Marker", "© Font Diner, Inc.", listOf(LicenceText("Apache License 2.0", asset("PermanentMarker-Apache2.txt"), "https://www.apache.org/licenses/LICENSE-2.0"))),
         )
     }
 
+    /**
+     * Licences the generated list only links to, but whose terms ask for the notice to ship with
+     * the app: bundled in assets/licenses/third-party and matched by the licence's URL.
+     */
+    private val bundled = mapOf(
+        "facebook-android-sdk" to "third-party/Facebook-SDK-LICENSE.txt",
+        "libyuv" to "third-party/libyuv-LICENSE.txt",
+    )
+
     fun libraries(context: Context): List<Credit> = runCatching {
         val json = context.resources.openRawResource(R.raw.aboutlibraries).bufferedReader().use { it.readText() }
-        parse(json)
+        parse(json) { l ->
+            bundled.entries.firstOrNull { l.url?.contains(it.key) == true }?.let { (_, file) ->
+                runCatching { context.assets.open("licenses/$file").bufferedReader().use { it.readText() } }.getOrNull()
+            }
+        }
     }.getOrDefault(emptyList())
 
-    internal fun parse(json: String): List<Credit> {
+    /** The build's library list; [fallback] supplies a licence text the list only links to. */
+    internal fun parse(json: String, fallback: (LicenceText) -> String? = { null }): List<Credit> {
         val root = JSONObject(json)
         val lics = root.optJSONObject("licenses") ?: JSONObject()
         val libs = root.optJSONArray("libraries") ?: return emptyList()
@@ -71,17 +85,19 @@ internal object Credits {
             val licences = (0 until (ids?.length() ?: 0)).map { j ->
                 val id = ids!!.getString(j)
                 val o = lics.optJSONObject(id)
-                LicenceText(o?.optString("name")?.takeIf { it.isNotBlank() } ?: id, o?.optString("content")?.takeIf { it.isNotBlank() }, o?.optString("url")?.takeIf { it.isNotBlank() })
+                val t = LicenceText(o?.optString("name")?.takeIf { it.isNotBlank() } ?: id, o?.optString("content")?.takeIf { it.isNotBlank() }, o?.optString("url")?.takeIf { it.isNotBlank() })
+                if (t.text == null) t.copy(text = fallback(t)) else t
             }
             val by = l.optJSONObject("organization")?.optString("name")?.takeIf { it.isNotBlank() }
                 ?: l.optJSONArray("developers")?.optJSONObject(0)?.optString("name")?.takeIf { it.isNotBlank() }
             val version = l.optString("artifactVersion")
             Credit(
+                "lib:" + l.optString("uniqueId").ifBlank { "#$i" },
                 l.optString("name").takeIf { it.isNotBlank() } ?: l.optString("uniqueId"),
                 listOfNotNull(by, version.takeIf { it.isNotBlank() }).joinToString(" · "),
                 licences,
             )
-        }.sortedBy { it.name.lowercase() }
+        }.distinctBy { Triple(it.name, it.detail, it.licences.map { l -> l.name }) }.sortedBy { it.name.lowercase() }
     }
 }
 
@@ -89,38 +105,42 @@ internal object Credits {
 @Composable
 internal fun AcknowledgementsScreen(onClose: () -> Unit) {
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        val context = LocalContext.current
-        val fonts = remember { Credits.fonts(context) }
-        val libraries = remember { Credits.libraries(context) }
-        var open by rememberSaveable { mutableStateOf<String?>(null) }
-        Column(Modifier.fillMaxSize().background(Mosh.Deep).statusBarsPadding().navigationBarsPadding()) {
-            Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.setup_open_source_licences), style = Mosh.Heading, modifier = Modifier.weight(1f), maxLines = 2)
-                TextButton(onClick = onClose) { Text(stringResource(R.string.setup_done), style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan)) }
+        AcknowledgementsContent(onClose)
+    }
+}
+
+@Composable
+internal fun AcknowledgementsContent(onClose: () -> Unit) {
+    val context = LocalContext.current
+    val fonts = remember { Credits.fonts(context) }
+    val libraries = remember { Credits.libraries(context) }
+    var open by rememberSaveable { mutableStateOf<String?>(null) }
+    Column(Modifier.fillMaxSize().background(Mosh.Deep).statusBarsPadding().navigationBarsPadding()) {
+        Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.setup_open_source_licences), style = Mosh.Heading, modifier = Modifier.weight(1f), maxLines = 2)
+            TextButton(onClick = onClose) { Text(stringResource(R.string.setup_done), style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan)) }
+        }
+        LazyColumn(
+            Modifier.fillMaxSize(),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 20.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            item {
+                Text(stringResource(R.string.setup_copyright, "2026"), style = Mosh.Body.copy(color = Mosh.Text))
+                Spacer(Modifier.height(6.dp))
+                Text(stringResource(R.string.setup_ack_intro), style = Mosh.Body.copy(fontSize = 14.sp, color = Mosh.TextDim))
+                Spacer(Modifier.height(18.dp))
+                Text(stringResource(R.string.setup_ack_map), style = Mosh.Eyebrow)
+                Spacer(Modifier.height(6.dp))
+                Text(stringResource(R.string.setup_ack_map_text), style = Mosh.Body.copy(fontSize = 14.sp, color = Mosh.TextDim))
+                Spacer(Modifier.height(18.dp))
+                Text(stringResource(R.string.setup_ack_fonts), style = Mosh.Eyebrow)
             }
-            LazyColumn(
-                Modifier.fillMaxSize(),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 20.dp, bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                item {
-                    Text(stringResource(R.string.setup_copyright, "2026"), style = Mosh.Body.copy(color = Mosh.Text))
-                    Spacer(Modifier.height(6.dp))
-                    Text(stringResource(R.string.setup_ack_intro), style = Mosh.Body.copy(fontSize = 14.sp, color = Mosh.TextDim))
-                    Spacer(Modifier.height(18.dp))
-                    Text(stringResource(R.string.setup_ack_map), style = Mosh.Eyebrow)
-                    Spacer(Modifier.height(6.dp))
-                    Text(stringResource(R.string.setup_ack_map_text), style = Mosh.Body.copy(fontSize = 14.sp, color = Mosh.TextDim))
-                    Spacer(Modifier.height(18.dp))
-                    Text(stringResource(R.string.setup_ack_fonts), style = Mosh.Eyebrow)
-                }
-                items(fonts, key = { "font:" + it.name }) { CreditRow(it, open == "font:" + it.name) { open = if (open == "font:" + it.name) null else "font:" + it.name } }
-                if (libraries.isNotEmpty()) {
-                    item { Spacer(Modifier.height(18.dp)); Text(stringResource(R.string.setup_ack_libraries), style = Mosh.Eyebrow) }
-                    items(libraries, key = { "lib:" + it.name + it.detail }) { c ->
-                        val k = "lib:" + c.name + c.detail
-                        CreditRow(c, open == k) { open = if (open == k) null else k }
-                    }
+            items(fonts, key = { it.id }) { c -> CreditRow(c, open == c.id) { open = if (open == c.id) null else c.id } }
+            if (libraries.isNotEmpty()) {
+                item { Spacer(Modifier.height(18.dp)); Text(stringResource(R.string.setup_ack_libraries), style = Mosh.Eyebrow) }
+                items(libraries, key = { it.id }) { c ->
+                    CreditRow(c, open == c.id) { open = if (open == c.id) null else c.id }
                 }
             }
         }
