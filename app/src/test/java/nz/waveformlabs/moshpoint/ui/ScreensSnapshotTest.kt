@@ -21,11 +21,11 @@ import org.junit.Test
  *
  *   ./gradlew :app:recordPaparazziDebug   -> app/src/test/snapshots/images/
  */
-open class ScreensSnapshotTest @JvmOverloads constructor(
+open class ScreensSnapshotTest {
     /** Resource qualifier for the language ("de", "ar", "en-rUS"), or null for metric English. */
-    private val lang: String? = null,
-    private val rtl: Boolean = false,
-) {
+    protected open val lang: String? get() = null
+    protected open val rtl: Boolean get() = false
+
     private fun device(base: DeviceConfig) = base.copy(
         locale = lang,
         layoutDirection = if (rtl) com.android.resources.LayoutDirection.RTL else com.android.resources.LayoutDirection.LTR,
@@ -314,13 +314,22 @@ open class ScreensSnapshotTest @JvmOverloads constructor(
  * Every screen again in other languages: long words (German), right-to-left (Arabic),
  * CJK (Japanese), and feet/miles (US). CI files them as de-<test>.png, ar-..., ja-..., us-...
  */
-class GermanScreensTest : ScreensSnapshotTest("de") {
+class GermanScreensTest : ScreensSnapshotTest() {
+    override val lang get() = "de"
+
     /** Guard: the translations really load (otherwise these screenshots would be English). */
     @Test fun translationsLoad() = kotlin.test.assertEquals("Alle finden", paparazzi.context.getString(nz.waveformlabs.moshpoint.R.string.home_find_everyone))
 }
 
-class ArabicScreensTest : ScreensSnapshotTest("ar", rtl = true)
+class ArabicScreensTest : ScreensSnapshotTest() {
+    override val lang get() = "ar"
+    override val rtl get() = true
+}
 
-class JapaneseScreensTest : ScreensSnapshotTest("ja")
+class JapaneseScreensTest : ScreensSnapshotTest() {
+    override val lang get() = "ja"
+}
 
-class UsScreensTest : ScreensSnapshotTest("en-rUS")
+class UsScreensTest : ScreensSnapshotTest() {
+    override val lang get() = "en-rUS"
+}
