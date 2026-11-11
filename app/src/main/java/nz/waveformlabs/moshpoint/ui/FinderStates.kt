@@ -100,13 +100,13 @@ internal fun Chip(label: String, colour: Color, text: String) {
 
 @Composable
 internal fun DistanceReadout(distanceM: Double?) {
-    val label = ArrowStyle.distanceLabel(distanceM)
-    if (label.startsWith("<") || label == "?") {
-        Text(if (label == "?") "?" else "< 1 m", style = Mosh.Distance.copy(fontSize = 44.sp, lineHeight = 48.sp))
+    val d = finderDistance(distanceM)
+    if (d == null || d.number.startsWith("<")) {
+        Text(if (d == null) "?" else "${d.number} ${d.unit}", style = Mosh.Distance.copy(fontSize = 44.sp, lineHeight = 48.sp))
         return
     }
-    val num = label.substringBefore(' ')
-    val unit = label.substringAfter(' ', "")
+    val num = d.number
+    val unit = d.unit
     Row(verticalAlignment = Alignment.Bottom) {
         RollingText(num, Mosh.Distance)
         if (unit.isNotEmpty()) {
@@ -163,7 +163,7 @@ internal fun DistanceOnly(list: List<ArrowState.DistanceOnly>, friendOf: (String
                 )
                 Text(bandHint(d.distanceM), style = Mosh.Body.copy(color = Mosh.TextFaint))
             } else if (list.size > 1) {
-                RollingText(ArrowStyle.distanceLabel(d.distanceM), Mosh.Distance.copy(fontSize = 32.sp, lineHeight = 34.sp))
+                RollingText(finderDistanceLabel(d.distanceM), Mosh.Distance.copy(fontSize = 32.sp, lineHeight = 34.sp))
             } else {
                 DistanceReadout(d.distanceM)
             }

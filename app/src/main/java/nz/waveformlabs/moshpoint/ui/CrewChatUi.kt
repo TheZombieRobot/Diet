@@ -467,9 +467,18 @@ internal fun HelpDialog(onAlertCrew: () -> Unit, onClose: () -> Unit) {
                         }
                     }) { Text(stringResource(R.string.crew_help_save_contact), style = Mosh.Label.copy(color = Mosh.Amber)) }
                 }
-                HelpAction(stringResource(R.string.crew_help_call, Safety.EMERGENCY_NUMBER), stringResource(R.string.crew_help_call_sub), Color(0xFFFF4D4D)) { Safety.callEmergency(c) }
+                // The emergency number(s) where you are now (abroad at a festival too).
+                val numbers = remember { nz.waveformlabs.moshpoint.EmergencyNumbers.here(c) }
+                numbers.forEach { n ->
+                    val sub = when (n.kind) {
+                        nz.waveformlabs.moshpoint.EmergencyNumbers.Kind.ALL -> stringResource(R.string.crew_help_call_sub)
+                        nz.waveformlabs.moshpoint.EmergencyNumbers.Kind.POLICE -> stringResource(R.string.crew_help_call_police)
+                        nz.waveformlabs.moshpoint.EmergencyNumbers.Kind.AMBULANCE -> stringResource(R.string.crew_help_call_ambulance)
+                    }
+                    HelpAction(stringResource(R.string.crew_help_call, n.digits), sub, Color(0xFFFF4D4D)) { Safety.callEmergency(c, n.digits) }
+                }
                 Text(
-                    stringResource(R.string.crew_help_no_signal, Safety.EMERGENCY_NUMBER),
+                    stringResource(R.string.crew_help_no_signal, numbers.first().digits),
                     style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint),
                 )
             }

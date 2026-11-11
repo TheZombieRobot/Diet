@@ -175,7 +175,7 @@ internal fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Fri
                 drawRoundRect(colour.copy(alpha = 0.40f), top, Size(chipW, chipH), CornerRadius(14.dp.toPx()), style = Stroke(1.dp.toPx()))
                 val inner = chipW - 10.dp.toPx()
                 val who = (friend?.name ?: "?") + if ((BuildConfig.TEST_BUILD && DebugStatus.showUi)) " · " + methodLabel(a.method) + (if (a.unsure) "?" else "") else ""
-                drawCentred(ArrowStyle.distanceLabel(a.distanceM), Offset(cc.x, top.y + 15.dp.toPx()), 14.dp.toPx(), colour, displayPaint, inner)
+                drawCentred(finderDistanceLabel(a.distanceM), Offset(cc.x, top.y + 15.dp.toPx()), 14.dp.toPx(), colour, displayPaint, inner)
                 drawCentred(who, Offset(cc.x, top.y + 31.dp.toPx()), 11.5f.dp.toPx(), Mosh.TextDim, regularPaint, inner)
             }
             if ((BuildConfig.TEST_BUILD && DebugStatus.showUi) && !group) {
@@ -246,11 +246,12 @@ internal fun methodLabel(m: Method) = when (m) {
 
 /** A distance for screen readers ("12 metres", "1.2 kilometres"), from the same rounding as the on-screen label. */
 private fun spokenDistance(m: Double): String {
-    val label = ArrowStyle.distanceLabel(m)
-    val num = label.substringBefore(' ')
+    val d = finderDistance(m) ?: return ""
     return when {
-        label.startsWith("<") -> Txt.s(R.string.find_spoken_under_1_metre)
-        label.endsWith(" km") -> Txt.s(R.string.find_spoken_kilometres, num)
-        else -> Txt.s(R.string.find_spoken_metres, num)
+        d.number.startsWith("<") -> Txt.s(if (d.unit == Txt.s(R.string.unit_ft)) R.string.find_spoken_under_3_feet else R.string.find_spoken_under_1_metre)
+        d.unit == Txt.s(R.string.unit_km) -> Txt.s(R.string.find_spoken_kilometres, d.number)
+        d.unit == Txt.s(R.string.unit_ft) -> Txt.s(R.string.find_spoken_feet, d.number)
+        d.unit == Txt.s(R.string.unit_mi) -> Txt.s(R.string.find_spoken_miles, d.number)
+        else -> Txt.s(R.string.find_spoken_metres, d.number)
     }
 }

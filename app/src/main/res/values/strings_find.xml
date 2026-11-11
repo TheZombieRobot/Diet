@@ -230,4 +230,8 @@
     <string name="find_take_photo">Take a photo</string>
     <string name="find_record_clip">Record a clip (10 s)</string>
     <string name="find_choose_gallery">Choose from gallery</string>
+    <!-- Read aloud by screen readers in countries using feet and miles -->
+    <string name="find_spoken_feet">%1$s feet</string>
+    <string name="find_spoken_miles">%1$s miles</string>
+    <string name="find_spoken_under_3_feet">less than 3 feet</string>
 </resources>

@@ -10,8 +10,6 @@ import android.net.Uri
  * Nothing is sent without you pressing Send in your messages app.
  */
 object Safety {
-    /** New Zealand's emergency number. */
-    const val EMERGENCY_NUMBER = "111"
 
     data class Contact(val name: String, val number: String)
 
@@ -47,10 +45,10 @@ object Safety {
         return runCatching { c.startActivity(i) }.isSuccess
     }
 
-    /** Opens the dialler with 111 ready (no call permission needed; you press Call). */
-    fun callEmergency(c: Context) {
+    /** Opens the dialler with [number] ready (the local emergency number; you press Call). */
+    fun callEmergency(c: Context, number: String) {
         runCatching {
-            c.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$EMERGENCY_NUMBER")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            c.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$number")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         }
     }
 }

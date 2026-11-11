@@ -89,3 +89,33 @@ internal fun countdown(startsAtSec: Long, nowSec: Long): String? {
         else -> Txt.p(R.plurals.countdown_months, days / 30)
     }
 }
+
+/**
+ * The finder's big distance, more precise up close: number and unit apart, so the number can
+ * roll. Metric: "4.5" "m", "35" "m", "1.2" "km". US: "15" "ft", "0.8" "mi". UK: metres up
+ * close, miles further out. Null number = no reading; "<1" when right on top of them.
+ */
+internal data class FinderDistance(val number: String, val unit: String)
+
+internal fun finderDistance(m: Double?): FinderDistance? {
+    m ?: return null
+    if (usesFeet()) {
+        val ft = m * 3.28084
+        return when {
+            ft < 3 -> FinderDistance("<3", Txt.s(R.string.unit_ft))
+            ft < 1000 -> FinderDistance(number(if (ft < 30) Math.round(ft).toDouble() else (Math.round(ft / 5) * 5).toDouble(), 0), Txt.s(R.string.unit_ft))
+            else -> FinderDistance(number(m / 1609.344, 1), Txt.s(R.string.unit_mi))
+        }
+    }
+    return when {
+        m < 1 -> FinderDistance("<1", Txt.s(R.string.unit_m))
+        m < 10 -> FinderDistance(number(Math.round(m * 10) / 10.0, if (Math.round(m * 10) % 10 == 0L) 0 else 1), Txt.s(R.string.unit_m))
+        m < 1000 -> FinderDistance(number((Math.round(m / 5) * 5).toDouble(), 0), Txt.s(R.string.unit_m))
+        usesMiles() -> FinderDistance(number(m / 1609.344, 1), Txt.s(R.string.unit_mi))
+        else -> FinderDistance(number(m / 1000, 1), Txt.s(R.string.unit_km))
+    }
+}
+
+/** The same as one piece of text ("4.5 m", "15 ft"), for small labels. */
+internal fun finderDistanceLabel(m: Double?): String =
+    finderDistance(m)?.let { Txt.s(R.string.dist_number_unit, it.number, it.unit) } ?: "?"

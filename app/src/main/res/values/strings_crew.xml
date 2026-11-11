@@ -143,6 +143,9 @@
     <!-- %1$s = emergency phone number (e.g. 111) -->
     <string name="crew_help_call">Call %1$s</string>
     <string name="crew_help_call_sub">Police, fire, ambulance</string>
+    <!-- Where a country has separate numbers (e.g. Japan 110 / 119) -->
+    <string name="crew_help_call_police">Police</string>
+    <string name="crew_help_call_ambulance">Ambulance and fire</string>
     <!-- %1$s = emergency phone number (e.g. 111) -->
     <string name="crew_help_no_signal">No signal at all? Many newer phones can reach emergency services by satellite: call %1$s and follow the prompts. At a festival, security and first aid tents can help fast.</string>
     <!-- Text message to your emergency contact when there's no location fix -->
