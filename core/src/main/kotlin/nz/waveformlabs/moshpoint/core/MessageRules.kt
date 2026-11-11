@@ -183,3 +183,52 @@ object OutboxState {
         else -> rank(to) > rank(from)
     }
 }
+
+/**
+ * Which form of crew intro to put on air (see [GigGroup.sealIntro]).
+ *
+ * The first form shows 4 constant bytes of the member's crew pass, so someone listening can
+ * follow one person all night and from gig to gig. The second form shows nothing constant,
+ * but builds from before it can't read it, and a crew mate who can't read our intro can't
+ * find us. So:
+ *  - while anyone in the crew might be on an older build, our own intro takes turns between
+ *    the two forms and intros passed on for crew mates stay in the first;
+ *  - a member's own intro (signed by them) arriving in the second form shows their phone
+ *    writes it, so reads it. That's remembered;
+ *  - once every member we know has shown that, only the second form goes on air. If someone
+ *    new turns up on an older build, they aren't on the list and the turns start again.
+ *
+ * Only what's on air changes. The copy posted to the relay stays in the first form: people
+ * following from home and older builds read the crew list from there.
+ */
+class IntroForms(saved: String? = null, private val max: Int = 600) {
+    private val reads = LinkedHashSet<String>()
+
+    init {
+        saved?.split(',')?.filter { it.length == 16 }?.forEach { reads += it }
+    }
+
+    /** An intro was heard. True if it taught us something (then save [snapshot]). */
+    fun heard(intro: GigGroup.Intro): Boolean {
+        // Passed on by someone else (unsigned), or in the first form: says nothing about this member's own phone.
+        if (!intro.form2 || intro.sig == null) return false
+        if (!reads.add(key(intro.secret))) return false
+        while (reads.size > max) reads.remove(reads.first())
+        return true
+    }
+
+    /** Has the member with this crew pass shown that their phone reads the second form? */
+    fun reads(secret: ByteArray): Boolean = key(secret) in reads
+
+    /** Every member in [crew] (by crew pass) reads the second form: the first can stop. Never true for a crew of one. */
+    fun newOnly(crew: Collection<ByteArray>): Boolean = crew.isNotEmpty() && crew.all { reads(it) }
+
+    /** Should our own intro go out in the second form on its [turn]th time (0, 1, 2…)? */
+    fun ownForm2(turn: Int, crew: Collection<ByteArray>): Boolean = newOnly(crew) || turn % 2 == 1
+
+    fun snapshot(): String = reads.joinToString(",")
+
+    // A short hash, so this list isn't another copy of anyone's crew pass.
+    private fun key(secret: ByteArray): String =
+        java.security.MessageDigest.getInstance("SHA-256").digest("mp-intro2".toByteArray() + secret).copyOf(8).joinToString("") { "%02x".format(it) }
+}

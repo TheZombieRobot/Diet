@@ -148,6 +148,65 @@ class MessageRulesTest {
         assertNull(group.openIntro(a, ms))
     }
 
+    // A member's intro as another phone hears it, in either form; [own] = sealed by the member (signed), not passed on.
+    private fun heardIntro(pass: ByteArray, name: String, form2: Boolean, own: Boolean = true): GigGroup.Intro {
+        val ms = now * 1000
+        val intro = if (own) group.signedIntro(pass, name, CrewKeys.generate()) else GigGroup.Intro(pass, name, CrewKeys.generate().pub)
+        return assertNotNull(group.openIntro(group.sealIntro(intro, ms, form2), ms))
+    }
+
+    @Test fun theOldIntroFormStaysOnAirUntilEveryCrewMateReadsTheNewOne() {
+        val forms = IntroForms()
+        val jo = ByteArray(32) { 1 }
+        val sam = ByteArray(32) { 2 }
+        val crew = listOf(jo, sam)
+        // Nobody known to read the new form: our own intro takes turns, so older builds still hear it.
+        assertFalse(forms.newOnly(crew))
+        assertEquals(listOf(false, true, false, true), (0..3).map { forms.ownForm2(it, crew) })
+        // Jo's own intro in the new form: Jo's phone writes it, so reads it.
+        assertTrue(forms.heard(heardIntro(jo, "Jo", form2 = true)))
+        assertFalse(forms.heard(heardIntro(jo, "Jo", form2 = true)), "nothing new the second time")
+        assertTrue(forms.reads(jo))
+        assertFalse(forms.newOnly(crew), "Sam hasn't shown it yet")
+        // Sam's intro in the old form, or passed on by someone else in the new one, proves nothing about Sam's phone.
+        assertFalse(forms.heard(heardIntro(sam, "Sam", form2 = false)))
+        assertFalse(forms.heard(heardIntro(sam, "Sam", form2 = true, own = false)))
+        assertFalse(forms.newOnly(crew))
+        assertTrue(forms.heard(heardIntro(sam, "Sam", form2 = true)))
+        // Everyone reads it: the form with the constant prefix goes off the air.
+        assertTrue(forms.newOnly(crew))
+        assertEquals(listOf(true, true, true, true), (0..3).map { forms.ownForm2(it, crew) })
+    }
+
+    @Test fun someoneNewOnAnOlderBuildBringsTheOldIntroFormBack() {
+        val forms = IntroForms()
+        val jo = ByteArray(32) { 1 }
+        forms.heard(heardIntro(jo, "Jo", form2 = true))
+        assertTrue(forms.newOnly(listOf(jo)))
+        val newcomer = ByteArray(32) { 9 }
+        assertFalse(forms.newOnly(listOf(jo, newcomer)))
+        assertFalse(forms.ownForm2(0, listOf(jo, newcomer)), "back to taking turns")
+        // A crew of one (waiting for the others to join) never drops the old form.
+        assertFalse(forms.newOnly(emptyList()))
+    }
+
+    @Test fun whoReadsTheNewIntroFormIsRememberedWithoutKeepingTheirPass() {
+        val forms = IntroForms()
+        val jo = ByteArray(32) { 1 }
+        forms.heard(heardIntro(jo, "Jo", form2 = true))
+        val saved = forms.snapshot()
+        assertFalse(saved.contains(jo.joinToString("") { "%02x".format(it) }.take(16)), "a hash, not the pass")
+        val again = IntroForms(saved)
+        assertTrue(again.reads(jo))
+        assertFalse(again.reads(ByteArray(32) { 2 }))
+        assertTrue(IntroForms("not,a,real,list").snapshot().isEmpty())
+        // The list is capped: the oldest entries go first.
+        val small = IntroForms(max = 2)
+        (1..3).forEach { small.heard(heardIntro(ByteArray(32) { _ -> it.toByte() }, "M$it", form2 = true)) }
+        assertFalse(small.reads(ByteArray(32) { 1 }))
+        assertTrue(small.reads(ByteArray(32) { 3 }))
+    }
+
     // ---- States only move forward ----
 
     @Test fun aMessagesStateOnlyMovesForward() {

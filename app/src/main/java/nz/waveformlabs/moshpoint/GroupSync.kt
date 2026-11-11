@@ -22,6 +22,7 @@ import nz.waveformlabs.moshpoint.core.CheckIns
 import nz.waveformlabs.moshpoint.core.Courier
 import nz.waveformlabs.moshpoint.core.EphemeralId
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.core.IntroForms
 import nz.waveformlabs.moshpoint.core.PinRule
 import nz.waveformlabs.moshpoint.core.PingPolicy
 import nz.waveformlabs.moshpoint.core.LocationBox
@@ -161,6 +162,7 @@ object GroupSync {
             runCatching { GigGroup.Rally(it[0].toDouble(), it[1].toDouble(), it[3], PinRule.capped(it[2].toLong(), nowSec)) }.getOrNull()
         }
         checkInState = CheckIns.restore(p.getString("checkins", null))
+        introForms = IntroForms(p.getString("introForms", null))
         members.clear()
         p.getString("members", null)?.split(',')?.filter { it.length == 64 }?.let { members.addAll(it) }
         loadPubs(c)
@@ -438,23 +440,33 @@ object GroupSync {
             // Sealed intros, re-made once per rotation (the tag must keep changing). Reusing
             // the bytes within a rotation lets the server de-duplicate repeat posts.
             val sealed = HashMap<String, Pair<Long, ByteArray>>()
-            fun introFor(intro: GigGroup.Intro, now: Long): ByteArray {
+            fun introFor(intro: GigGroup.Intro, now: Long, form2: Boolean = false): ByteArray {
                 val epoch = Math.floorDiv(now, EphemeralId.DEFAULT_ROTATION_MS)
-                val k = intro.secret.joinToString("") { "%02x".format(it) }
+                val k = intro.secret.joinToString("") { "%02x".format(it) } + if (form2) "/2" else ""
                 sealed[k]?.let { if (it.first == epoch) return it.second }
-                return g.sealIntro(intro, now).also { sealed[k] = epoch to it }
+                return g.sealIntro(intro, now, form2).also { sealed[k] = epoch to it }
             }
             // Our pass in this crew (never our permanent identity) and our signing key.
             val myIntro = Identity.intro(c, g, myName)
+            // The new intro form is 4 bytes longer: only if this phone's adverts have the room.
+            val roomForNew = runCatching {
+                (c.getSystemService(BluetoothManager::class.java)?.adapter?.leMaximumAdvertisingDataLength ?: 0) >= GigGroup.MAX_INTRO2_BYTES + 8
+            }.getOrDefault(false)
             while (true) {
                 val now = System.currentTimeMillis()
                 val mine = introFor(myIntro, now)
                 // Gossip: every other slot we pass on a crew member we know about, so the
                 // whole crew spreads through the room even if two of them never get close.
                 val members = FriendsRepository.friends.filter { it.gigGroupOnly }
+                // On air, the intro form without the constant prefix takes over once every crew
+                // mate's phone has shown it reads it (core IntroForms). Until then ours takes
+                // turns between the two forms. The relay's copy ([mine]) stays as it was.
+                val passes = members.filter { !FriendsRepository.isSimulated(it.id) }.map { it.secret } + this@GroupSync.members.map { unhex(it) }
                 val out = if (slot % 2 == 1 && members.isNotEmpty()) {
                     val m = members[(slot / 2) % members.size]
-                    introFor(GigGroup.Intro(m.secret, m.name, pubOf(m.secret)), now)
+                    introFor(GigGroup.Intro(m.secret, m.name, pubOf(m.secret)), now, form2 = roomForNew && introForms.newOnly(passes))
+                } else if (roomForNew && introForms.ownForm2(slot / 2, passes)) {
+                    introFor(myIntro, now, form2 = true)
                 } else {
                     mine
                 }
@@ -609,6 +621,11 @@ object GroupSync {
     /** Who's heading home and whether they've checked in: kept per person and saved (core CheckIns). */
     private var checkInState = CheckIns()
 
+    /** Which crew mates' phones read the intro form with no constant prefix (core IntroForms). */
+    private var introForms = IntroForms()
+
+    private fun unhex(s: String): ByteArray = ByteArray(s.length / 2) { s.substring(2 * it, 2 * it + 2).toInt(16).toByte() }
+
     private fun saveCheckIns(c: Context) {
         prefs(c.applicationContext).edit().putString("checkins", checkInState.snapshot()).apply()
     }
@@ -731,6 +748,8 @@ object GroupSync {
     private fun received(c: Context, g: GigGroup, blob: ByteArray) {
         val intro = g.openIntro(blob, System.currentTimeMillis()) ?: return
         if (Identity.isMine(c, intro.secret)) return // our own
+        // Their own intro in the new form: their phone reads it (see core IntroForms).
+        if (introForms.heard(intro)) prefs(c.applicationContext).edit().putString("introForms", introForms.snapshot()).apply()
         // Someone we know (same signing key) with a new crew pass: the crew moved to a new key.
         val pub = intro.pub
         if (pub != null && intro.sig != null && pubOf(intro.secret) == null) {
