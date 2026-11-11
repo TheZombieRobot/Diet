@@ -421,9 +421,11 @@ internal fun CrewStrip(arrows: List<ArrowState>, friendOf: (String) -> Friend?, 
                     is ArrowState.DistanceOnly -> a.distanceM
                     else -> null
                 }
-                val ring by animateColorAsState(
+                // Ring in their own colour (as their name in chat); the distance warms into it.
+                val ring = if (a is ArrowState.NoSignal) Color(f.color).copy(alpha = 0.35f) else Color(f.color)
+                val warmth by animateColorAsState(
                     if (a is ArrowState.NoSignal) Mosh.TextFaint else Color(ArrowStyle.arrowColor(f.color, dist)),
-                    tween(800), label = "ring",
+                    tween(800), label = "warmth",
                 )
                 val (src, sc) = rememberPress()
                 Column(
@@ -441,7 +443,7 @@ internal fun CrewStrip(arrows: List<ArrowState>, friendOf: (String) -> Friend?, 
                     )
                     Text(
                         if (a is ArrowState.NoSignal) stringResource(R.string.find_strip_no_signal) else finderDistanceLabel(dist),
-                        style = Mosh.Body.copy(fontSize = 11.sp, lineHeight = 13.sp, color = ring), maxLines = 1,
+                        style = Mosh.Body.copy(fontSize = 11.sp, lineHeight = 13.sp, color = warmth), maxLines = 1,
                     )
                 }
             }

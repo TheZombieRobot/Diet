@@ -262,7 +262,9 @@ private fun ChatLine(
         )
         return
     }
-    val ring = colour ?: Mosh.Cyan
+    // Their colour everywhere: name, face ring and bubble edge here, the bubble on the finder.
+    // Crew members who aren't friends get a steady colour from their name, never all cyan.
+    val ring = colour ?: Color(Mosh.FriendColours[Math.floorMod(l.from.trim().lowercase().hashCode(), Mosh.FriendColours.size)])
     Row(
         Modifier.fillMaxWidth().padding(top = if (first) 6.dp else 0.dp),
         horizontalArrangement = if (l.mine) Arrangement.End else Arrangement.Start,

@@ -141,6 +141,9 @@ internal fun CrewRadar(
             animateColorAsState(Color(ArrowStyle.arrowColor(friendOf(a.friendId)?.color ?: ArrowStyle.RED, a.distanceM)), tween(800), label = "c").value
         }
     }
+    // Bubbles wear each mate's own colour, the same as their name in chat; arrows and
+    // distances warm from hot pink into it as you close in.
+    val own = arrows.associate { a -> a.friendId to (friendOf(a.friendId)?.color?.let { Color(it) } ?: Mosh.Pink) }
     val t = rememberInfiniteTransition(label = "radar")
     val breathe by t.ambient(0.55f, 1f, infiniteRepeatable(tween(1400, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "b")
     val spin by t.ambient(0f, 360f, infiniteRepeatable(tween(5000, easing = LinearEasing)), label = "s")
@@ -203,8 +206,8 @@ internal fun CrewRadar(
                     drawPath(path, Brush.verticalGradient(0f to Color.White, 0.18f to colour, 1f to lerp(colour, Mosh.Violet, 0.6f), startY = centre.y - len, endY = centre.y))
                 }
             }
-            travelling.forEach { id -> bubble(spot(id), avatarR, listOf(id), colours, friendOf, spin, breathe, displayPaint) }
-            bubble(leadAt, avatarR, arrived, colours, friendOf, spin, breathe, displayPaint)
+            travelling.forEach { id -> bubble(spot(id), avatarR, listOf(id), own, friendOf, spin, breathe, displayPaint) }
+            bubble(leadAt, avatarR, arrived, own, friendOf, spin, breathe, displayPaint)
             hit[lead] = leadAt
 
             val colour = colours[lead] ?: Mosh.Pink

@@ -136,6 +136,9 @@ internal fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Fri
         arrows.forEach { a ->
             val friend = friendOf(a.friendId)
             val colour = (colours[a.friendId] ?: Mosh.Pink).copy(alpha = if (a.unsure) 0.6f else 1f)
+            // Their bubble is always their own colour (the same as their name in chat); the
+            // arrow and distance warm from hot pink into it as you close in.
+            val own = friend?.color?.let { Color(it) } ?: colour
             val angle = angles[a.friendId] ?: a.relativeDeg.toFloat()
             val path = arrowPath(centre, length, if (group) 0.24f else 0.34f)
 
@@ -156,7 +159,7 @@ internal fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Fri
             val reach = length + avatarR + 8.dp.toPx()
             val tip = Offset(centre.x + reach * sin(rad).toFloat(), centre.y - reach * cos(rad).toFloat())
             tips[a.friendId] = tip
-            haloGlow(tip, avatarR, 16.dp.toPx(), colour, 0.75f * breathe)
+            haloGlow(tip, avatarR, 16.dp.toPx(), own, 0.75f * breathe)
             drawCircle(Mosh.Avatar, radius = avatarR, center = tip)
             val photo = PhotoStore.photos[a.friendId]
             if (photo != null) {
@@ -172,7 +175,7 @@ internal fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Fri
             }
             rotate(spin, pivot = tip) {
                 drawCircle(
-                    Brush.sweepGradient(listOf(colour, Mosh.Violet, colour), center = tip),
+                    Brush.sweepGradient(listOf(own, Mosh.Violet, own), center = tip),
                     radius = avatarR, center = tip, style = Stroke(3.5f.dp.toPx()),
                 )
             }
