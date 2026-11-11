@@ -47,7 +47,11 @@ open class ScreensSnapshotTest {
     private val alex = friend("alex", "Alex", 0xFFC86BFF, gig = true)
     private val jo = friend("jo", "Jo", 0xFFFFB020, gig = true)
     private val mia = friend("mia", "Mia", 0xFFB6FF3B)
-    private val all = listOf(sam, alex, jo, mia).associateBy { it.id }
+    // A festival-sized crew for the radar.
+    private val bigCrew = listOf("Ana", "Ben", "Cleo", "Dev", "Eli", "Fin", "Gus", "Hana").mapIndexed { i, n ->
+        friend("m$i", n, listOf(0xFFFF2E93, 0xFF22E4FF, 0xFFB6FF3B, 0xFFFFB020, 0xFF9D5CFF, 0xFFFF6FB3, 0xFF7CF0FF, 0xFFFFE066)[i], gig = true)
+    }
+    private val all = (listOf(sam, alex, jo, mia) + bigCrew).associateBy { it.id }
 
     private fun finder(title: String, arrows: List<ArrowState>, scan: LocatorEngine.ScanUi? = null) = snap {
         MoshTheme {
@@ -57,6 +61,25 @@ open class ScreensSnapshotTest {
             )
         }
     }
+
+    // 12 mates: near ones close in, far ones out, and Ana + Ben side by side share a stacked bubble.
+    @Test fun finderBigCrew() = finder(
+        "Laneway crew",
+        listOf(
+            ArrowState.Pointing("sam", 20.0, 6.0, Method.UWB, false),
+            ArrowState.Pointing("alex", 95.0, 45.0, Method.GPS_SERVER, false),
+            ArrowState.Pointing("jo", 200.0, 140.0, Method.GPS_SERVER, false),
+            ArrowState.Pointing("mia", 300.0, 900.0, Method.GPS_SERVER, false),
+            ArrowState.Pointing("m0", 140.0, 60.0, Method.GPS_SERVER, false),
+            ArrowState.Pointing("m1", 143.0, 62.0, Method.GPS_SERVER, false),
+            ArrowState.Pointing("m2", 250.0, 25.0, Method.GPS_SERVER, false),
+            ArrowState.Pointing("m3", 45.0, 300.0, Method.GPS_SERVER, false),
+            ArrowState.Pointing("m4", 330.0, 15.0, Method.WALK, true),
+            ArrowState.Pointing("m5", 170.0, 1500.0, Method.GPS_SERVER, false),
+            ArrowState.NoSignal("m6"),
+            ArrowState.DistanceOnly("m7", 9.0, Trend.WARMER, Method.BLE_RSSI),
+        ),
+    )
 
     @Test fun finderOneFriend() = finder("Sam", listOf(ArrowState.Pointing("sam", 25.0, 12.0, Method.UWB, false)))
 

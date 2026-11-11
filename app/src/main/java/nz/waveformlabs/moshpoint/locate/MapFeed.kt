@@ -50,7 +50,7 @@ class MapFeed(context: Context, private val scope: CoroutineScope) {
     private fun people(): List<Friend> {
         val all = FriendsRepository.friends.filterNot { FriendsRepository.isSimulated(it.id) }
         val crew = all.filter { it.gigGroupOnly || it.key in GroupSync.members }
-        return (crew + (all - crew.toSet())).take(32)
+        return (crew + (all - crew.toSet())).take(60)
     }
 
     private suspend fun poll() {

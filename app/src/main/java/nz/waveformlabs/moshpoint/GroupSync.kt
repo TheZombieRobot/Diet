@@ -474,7 +474,7 @@ object GroupSync {
         // One request for everything the crew shares: intros, meet-up pin, pings, and where
         // each crew member is (so the home screen and notification show distances without
         // anyone opening the map).
-        val crew = FriendsRepository.friends.filter { (it.gigGroupOnly || it.key in members) && !FriendsRepository.isSimulated(it.id) }.take(25)
+        val crew = FriendsRepository.friends.filter { (it.gigGroupOnly || it.key in members) && !FriendsRepository.isSimulated(it.id) }.take(60)
         val crewIds = crew.flatMap { f ->
             val e = f.ephemeralId.epochAt(now)
             listOf(f to f.ephemeralId.idForEpoch(e), f to f.ephemeralId.idForEpoch(e - 1))

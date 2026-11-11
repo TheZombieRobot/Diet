@@ -113,6 +113,9 @@ fun FinderScreen(
     val crewView = everyone.size > 1
     var focus by remember { mutableStateOf<String?>(null) }
     if (focus != null && everyone.none { it.friendId == focus }) focus = null
+    // Tapped a stack of mates on the radar: the strip shows just them, to pick who.
+    var pickFrom by remember { mutableStateOf<List<String>?>(null) }
+    if (focus != null) pickFrom = null
     @Suppress("NAME_SHADOWING")
     val arrows = focus?.let { f -> everyone.filter { it.friendId == f } } ?: everyone
     val shownTitle = focus?.let { friendOf(it)?.name } ?: title
@@ -266,7 +269,12 @@ fun FinderScreen(
                             } else {
                                 // Radar rings around arrows only: behind a big distance number they'd cut through it.
                                 if (p.isNotEmpty()) Box(Modifier.fillMaxSize(0.92f)) { RadarPulse({ mood.copy(alpha = 0.7f) }) }
-                                Arrows(p, friendOf, group = shown.size > 1, onTap = if (crewView && f == null) ({ id -> focus = id }) else null)
+                                if (shown.size > 1) {
+                                    // The whole crew as a radar: near mates close in, far ones out, stacks when they overlap.
+                                    CrewRadar(p, friendOf, onTap = { id -> focus = id }, onTapGroup = { ids -> pickFrom = ids })
+                                } else {
+                                    Arrows(p, friendOf, group = false)
+                                }
                                 if (p.isEmpty()) DistanceOnly(d, friendOf)
                             }
                         }
@@ -293,7 +301,7 @@ fun FinderScreen(
             }
             // Everyone in the crew, including mates with no direction or no signal yet: tap to focus.
             if (!scanning && crewView && focus == null) {
-                CrewStrip(everyone, friendOf, onPick = { focus = it })
+                CrewStrip(pickFrom?.let { ids -> everyone.filter { it.friendId in ids } } ?: everyone, friendOf, onPick = { focus = it })
                 Spacer(Modifier.height(10.dp))
             }
             if (!scanning && arrows.size > 1 && pointing.isNotEmpty()) {

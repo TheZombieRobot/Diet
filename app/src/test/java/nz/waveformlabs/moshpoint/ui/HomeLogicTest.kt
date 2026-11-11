@@ -65,4 +65,28 @@ class HomeLogicTest {
         }
         inLocale(java.util.Locale.GERMANY) { assertEquals("1,2\u00A0km", distanceLabel(1_234.0)) }
     }
+
+    @Test fun crewRadarStacksMatesInTheSameSpotAndSplitsThem() {
+        val join = 0.28f
+        val split = join * 1.35f
+        // Two mates the same way at a similar distance share a bubble; the nearer one leads.
+        val together = clusterSpots(listOf(RadarSpot("jo", 30f, 0.62f), RadarSpot("sam", 33f, 0.60f), RadarSpot("mia", 200f, 0.5f)), emptyMap(), join, split)
+        assertEquals(listOf("sam", "jo"), together["sam"])
+        assertEquals(listOf("mia"), together["mia"])
+        // Moving apart a little: still together (no flicker at the edge)...
+        val prev = mapOf("sam" to "sam", "jo" to "sam")
+        val nudged = clusterSpots(listOf(RadarSpot("jo", 52f, 0.62f), RadarSpot("sam", 33f, 0.60f)), prev, join, split)
+        assertEquals(1, nudged.size)
+        // ...and clearly apart: two arrows.
+        val apart = clusterSpots(listOf(RadarSpot("jo", 90f, 0.62f), RadarSpot("sam", 33f, 0.60f)), prev, join, split)
+        assertEquals(2, apart.size)
+        // Same direction but very different distance: separate bubbles on the radar.
+        assertEquals(2, clusterSpots(listOf(RadarSpot("a", 10f, 0.35f), RadarSpot("b", 10f, 0.95f)), emptyMap(), join, split).size)
+    }
+
+    @Test fun radarScaleFitsTheFarthestMate() {
+        assertTrue(radarFrac(5.0, 2000.0) < radarFrac(50.0, 2000.0))
+        assertEquals(1f, radarFrac(2000.0, 2000.0), 0.001f)
+        assertEquals(1f, radarFrac(null, 100.0))
+    }
 }

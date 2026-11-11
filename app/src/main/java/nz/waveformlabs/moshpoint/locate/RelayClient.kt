@@ -24,6 +24,8 @@ import java.net.URLEncoder
  *    average, so this side is deliberately frugal (see [Budget]).
  */
 object RelayClient {
+    private const val LOOKUP_CHUNK = 60
+
     /** Always on: our server if configured, else the public relay. */
     val enabled get() = true
 
@@ -117,6 +119,10 @@ object RelayClient {
     /** Chat records under [ids] (public relay: the last 12 hours). Null on network failure. */
     suspend fun lookupHeld(ids: List<ByteArray>): List<List<ByteArray>>? = withContext(Dispatchers.IO) {
         if (ids.isEmpty()) return@withContext null
+        if (ids.size > LOOKUP_CHUNK) {
+            val parts = ids.chunked(LOOKUP_CHUNK).map { lookupHeld(it) ?: return@withContext null }
+            return@withContext parts.flatten()
+        }
         if (ownServer) return@withContext ownLookup(ids, "$base/v1/heldlookup", wide = true)
         lookup(ids, "12h")
     }
@@ -124,6 +130,11 @@ object RelayClient {
     /** For each id, the sealed records posted under it (newest first). Null on network failure. */
     suspend fun lookup(ids: List<ByteArray>, sinceAgo: String = "15m"): List<List<ByteArray>>? = withContext(Dispatchers.IO) {
         if (ids.isEmpty()) return@withContext null
+        // Big festival crews: one request per 60 mailboxes (the server's limit is 64).
+        if (ids.size > LOOKUP_CHUNK) {
+            val parts = ids.chunked(LOOKUP_CHUNK).map { lookup(it, sinceAgo) ?: return@withContext null }
+            return@withContext parts.flatten()
+        }
         if (ownServer) return@withContext ownLookup(ids)
         if (!Budget.takeRequest()) return@withContext null
         runCatching {
