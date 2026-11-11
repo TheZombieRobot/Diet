@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launcher background: night-club violet glow fading to the app's ground colour. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:pathData="M0,0h108v108h-108z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="radial" android:centerX="54" android:centerY="58" android:gradientRadius="70">
+                <item android:offset="0" android:color="#FF3A1470" />
+                <item android:offset="0.55" android:color="#FF160A2E" />
+                <item android:offset="1" android:color="#FF07050F" />
+            </gradient>
+        </aapt:attr>
+    </path>
+</vector>

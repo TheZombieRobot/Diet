@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Every word the watch app shows. A watch line holds about 14 letters: keep these SHORT.
+     Translations: values-xx/strings.xml, checked by tools/check_translation.py. -->
+<resources>
+    <string name="app_name" translatable="false">Moshpoint</string>
+    <!-- Name of the tile in the watch's tile picker -->
+    <string name="tile_label">Crew status</string>
+    <!-- Name of the watch-face complication in the picker -->
+    <string name="complication_label">Nearest mate</string>
+
+    <!-- ===== Crew list (first screen) ===== -->
+    <!-- Heading when the crew has no name -->
+    <string name="crew_title">Your crew</string>
+    <!-- In a crew of none: nothing to show yet -->
+    <string name="crew_empty">Start a crew on your phone</string>
+    <!-- The watch has never heard from the phone app -->
+    <string name="crew_no_phone">Open Moshpoint on your phone</string>
+    <!-- The last crew status is old: the phone isn't answering -->
+    <string name="crew_stale">Phone out of reach</string>
+    <!-- Under a mate's name: sharing their spot right now -->
+    <string name="mate_live">live</string>
+    <!-- Under a mate's name. %1$s = "live", %2$s = distance ("40 m") -->
+    <string name="mate_live_distance">%1$s · %2$s</string>
+    <!-- Under a mate's name: when they were last seen -->
+    <plurals name="time_min_ago">
+        <item quantity="one">%d min ago</item>
+        <item quantity="other">%d min ago</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="one">%d h ago</item>
+        <item quantity="other">%d h ago</item>
+    </plurals>
+    <!-- Quick messages to the whole crew -->
+    <string name="ping_on_my_way">On my way</string>
+    <string name="ping_all_good">All good</string>
+    <!-- The help button. Always there, free for everyone -->
+    <string name="need_help">Need help</string>
+    <!-- After a quick message -->
+    <string name="ping_sent">Sent</string>
+    <string name="ping_not_sent">Not sent</string>
+
+    <!-- ===== Finder (the arrow) ===== -->
+    <!-- %1$s = mate's name -->
+    <string name="find_searching">Looking for %1$s…</string>
+    <!-- There is a direction, but the watch is tilted: the arrow only shows held flat like a compass -->
+    <string name="find_hold_flat">Hold your wrist flat</string>
+    <!-- Distance but no direction (phone in a pocket, mate close). The buzzes guide instead -->
+    <string name="find_follow_buzz">Follow the buzzes</string>
+    <string name="find_warmer">Getting closer</string>
+    <string name="find_colder">Getting further</string>
+    <string name="find_no_compass">No compass on this watch</string>
+    <!-- The compass needs calibrating -->
+    <string name="find_calibrate">Move your wrist in a figure 8</string>
+    <string name="find_connecting">Finding your phone…</string>
+    <string name="find_reconnecting">Reconnecting…</string>
+    <string name="find_phone_lost">Phone out of reach</string>
+    <!-- Android won't let the phone search from the background until its app has been opened -->
+    <string name="find_needs_phone">Open Moshpoint on your phone</string>
+    <string name="find_bluetooth_off">Turn on Bluetooth on your phone</string>
+    <string name="find_no_permission">Allow Moshpoint\'s permissions on your phone</string>
+    <!-- %1$s = mate's name -->
+    <string name="find_mate_gone">%1$s isn\'t in your crew now</string>
+    <!-- %1$s = mate's name -->
+    <string name="find_found">Found %1$s!</string>
+    <!-- A find stops by itself after 15 minutes -->
+    <string name="find_timed_out">Find timed out</string>
+    <string name="find_stopped_on_phone">Stopped on your phone</string>
+    <string name="find_again">Find again</string>
+    <!-- The watch's own settings (silent, Do Not Disturb, battery saver) are muting the buzzes -->
+    <string name="find_buzz_off">Buzzes are off on this watch</string>
+    <string name="update_phone">Update Moshpoint on your phone</string>
+    <string name="update_watch">Update Moshpoint on this watch</string>
+    <!-- Ongoing notification while finding. %1$s = mate's name -->
+    <string name="find_notification">Finding %1$s</string>
+    <!-- Name of that notification's channel in the watch's settings -->
+    <string name="find_channel">Finding a mate</string>
+
+    <!-- ===== Distances. %1$s is the number, already formatted for the language ===== -->
+    <string name="unit_m">m</string>
+    <string name="unit_km">km</string>
+    <string name="unit_ft">ft</string>
+    <string name="unit_mi">mi</string>
+    <!-- %1$s = number, %2$s = unit ("4.5 m"). Reorder if your language puts the unit first -->
+    <string name="dist_number_unit">%1$s %2$s</string>
+
+    <!-- ===== Need help ===== -->
+    <!-- On the big button: keep it to one short word -->
+    <string name="sos_hold">Hold</string>
+    <string name="sos_hint">Hold to tell your crew</string>
+    <string name="sos_sending">Sending…</string>
+    <string name="sos_sent">Sent to your crew</string>
+    <string name="sos_not_sent">Not sent</string>
+    <string name="sos_out_of_reach">Your phone is out of reach</string>
+    <!-- Handed to the phone, but the phone couldn't confirm it went out -->
+    <string name="sos_unconfirmed">Not confirmed</string>
+    <string name="sos_no_signal">Your phone may have no signal</string>
+    <string name="sos_no_crew">You\'re not in a crew, so there\'s no one to tell</string>
+    <string name="sos_retry">Try again</string>
+    <!-- Sends "all good" to the crew after a Need help -->
+    <string name="sos_im_ok">I\'m OK now</string>
+    <string name="sos_ok_sent">Told your crew you\'re OK</string>
+
+    <!-- ===== Not Moshpoint+ ===== -->
+    <string name="plus_title" translatable="false">Moshpoint+</string>
+    <string name="plus_text">Unlock the watch app on your phone</string>
+
+    <!-- ===== Tile and watch-face complication ===== -->
+    <!-- %1$d = how many mates are live, %2$d = how many in the crew -->
+    <string name="glance_live_count">%1$d of %2$d live</string>
+    <!-- Complication, 7 characters at most. %1$d live of %2$d -->
+    <string name="glance_live_short" translatable="false">%1$d/%2$d</string>
+    <!-- %1$s = mate's name, %2$s = distance -->
+    <string name="glance_nearest">%1$s · %2$s</string>
+    <string name="glance_open">Open</string>
+</resources>

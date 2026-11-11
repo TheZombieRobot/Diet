@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- What the tile looks like in the watch's tile picker: the arrow in its radar ring. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp" android:height="200dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#FF07050F" android:pathData="M54,0 a54,54 0 1,1 0,108 a54,54 0 1,1 0,-108 Z" />
+    <path android:pathData="M54,23 a31,31 0 1,1 0,62 a31,31 0 1,1 0,-62 Z"
+        android:strokeColor="#22E4FF" android:strokeAlpha="0.5" android:strokeWidth="1.6" />
+    <path android:fillColor="#FFFF2E93" android:pathData="M54,30 L70,74 L54,64 L38,74 Z" />
+</vector>

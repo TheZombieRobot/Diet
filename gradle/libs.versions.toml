@@ -19,6 +19,15 @@ maplibre = "11.5.2"
 camerax = "1.4.0"
 # Lists every library the app ships, with its licence, for the in-app acknowledgements.
 aboutlibraries = "11.2.3"
+# Wear OS companion (wear/): versions from the same months as the Compose BOM above. The link to
+# the phone is the Wear Data Layer, which the phone app needs too.
+wear = "1.3.0"
+wearOngoing = "1.0.0"
+wearCompose = "1.4.1"
+wearTiles = "1.4.1"
+wearProtolayout = "1.2.1"
+wearWatchface = "1.2.1"
+playServicesWearable = "18.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -47,6 +56,16 @@ ktor-server-netty = { group = "io.ktor", name = "ktor-server-netty", version.ref
 ktor-server-test-host = { group = "io.ktor", name = "ktor-server-test-host", version.ref = "ktor" }
 logback = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
 orgjson = { group = "org.json", name = "json", version = "20240303" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
+androidx-wear = { group = "androidx.wear", name = "wear", version.ref = "wear" }
+androidx-wear-ongoing = { group = "androidx.wear", name = "wear-ongoing", version.ref = "wearOngoing" }
+androidx-wear-compose-material = { group = "androidx.wear.compose", name = "compose-material", version.ref = "wearCompose" }
+androidx-wear-compose-foundation = { group = "androidx.wear.compose", name = "compose-foundation", version.ref = "wearCompose" }
+androidx-wear-tiles = { group = "androidx.wear.tiles", name = "tiles", version.ref = "wearTiles" }
+androidx-wear-protolayout = { group = "androidx.wear.protolayout", name = "protolayout", version.ref = "wearProtolayout" }
+androidx-wear-protolayout-material = { group = "androidx.wear.protolayout", name = "protolayout-material", version.ref = "wearProtolayout" }
+androidx-wear-watchface-complications = { group = "androidx.wear.watchface", name = "watchface-complications-data-source-ktx", version.ref = "wearWatchface" }
+play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
 
 [plugins]
 aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibraries" }

@@ -278,3 +278,204 @@ jobs:
             core/build/reports
             server/build/reports
             app/build/reports
+
+  # ---- The Wear OS companion (wear/, docs/WATCH.md). Its own job, on its own runner, so the
+  # phone build above is neither slowed down nor changed. ----
+  wear:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write # to commit updated watch screenshots back to this branch
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Download Gradle (mirrors or pieces if GitHub's file host is down; checksum-verified)
+        shell: bash
+        run: |
+          set +e
+          if ./gradlew --version -q; then exit 0; fi
+          set -x
+          # Whole-file downloads 504 during GitHub incidents; small ranged requests still work.
+          # Fetch in 8 MB pieces, check the official checksum, then point the wrapper at the file.
+          URL=$(grep distributionUrl gradle/wrapper/gradle-wrapper.properties | cut -d= -f2 | sed 's#\\:#:#')
+          NAME=$(basename "$URL")
+          REAL="https://github.com/gradle/gradle-distributions/releases/download/v$(echo "$NAME" | sed -E 's/gradle-(.*)-bin.zip/\1/')/$NAME"
+          SHA=$(curl -fsSL --retry 5 "$URL.sha256" || curl -fsSL --retry 5 -r 0-200 "$REAL.sha256")
+          [ -n "$SHA" ] || { echo "no checksum"; exit 1; }
+          OUT="$RUNNER_TEMP/$NAME"; : > "$OUT"
+          # Try Gradle's mirrors first (whole file), then GitHub in pieces. The checksum check
+          # below means a bad or tampered mirror can't get through.
+          for M in "https://downloads.gradle-dn.com/distributions/$NAME" "https://mirrors.cloud.tencent.com/gradle/$NAME" "https://mirrors.huaweicloud.com/gradle/$NAME"; do
+            if curl -fsSL --retry 3 -m 600 -o "$OUT" "$M" && echo "$SHA  $OUT" | sha256sum -c -; then
+              sed -i "s#^distributionUrl=.*#distributionUrl=file\\:$OUT#" gradle/wrapper/gradle-wrapper.properties
+              ./gradlew --version -q && exit 0
+            fi
+          done
+          : > "$OUT"
+          SIZE=$(curl -sSL -r 0-0 -D - -o /dev/null --retry 5 "$REAL" | grep -i '^content-range' | tail -1 | sed -E 's#.*/([0-9]+).*#\1#')
+          echo "Gradle is $SIZE bytes"
+          [ -n "$SIZE" ] || exit 1
+          CHUNK=8388608; START=0
+          while [ "$START" -lt "$SIZE" ]; do
+            END=$((START + CHUNK - 1))
+            ok=0
+            for t in 1 2 3 4 5 6 7 8; do
+              if curl -fsSL -r "$START-$END" -o "$RUNNER_TEMP/part" "$REAL"; then ok=1; break; fi
+              echo "piece at $START failed (try $t)"; sleep $((t * 5))
+            done
+            [ "$ok" = 1 ] || exit 1
+            cat "$RUNNER_TEMP/part" >> "$OUT"
+            START=$((END + 1))
+          done
+          echo "$SHA  $OUT" | sha256sum -c - || exit 1
+          sed -i "s#^distributionUrl=.*#distributionUrl=file\\:$OUT#" gradle/wrapper/gradle-wrapper.properties
+          ./gradlew --version -q
+
+      - name: Build watch debug APK
+        shell: bash
+        env:
+          MOSHPOINT_KEYSTORE_PASSWORD: ${{ secrets.MOSHPOINT_KEYSTORE_PASSWORD }}
+          MOSHPOINT_KEY_ALIAS: ${{ secrets.MOSHPOINT_KEY_ALIAS }}
+          MOSHPOINT_KEY_PASSWORD: ${{ secrets.MOSHPOINT_KEY_PASSWORD }}
+          KEYSTORE_B64: ${{ secrets.MOSHPOINT_KEYSTORE }}
+        run: |
+          set -o pipefail
+          # Signed exactly like the phone's test build (the private key when it's set up, else
+          # the public debug key): the Wear Data Layer only links apps signed with the same key.
+          if [ -n "$KEYSTORE_B64" ]; then
+            printf '%s' "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+            export MOSHPOINT_KEYSTORE_FILE="$RUNNER_TEMP/upload.jks"
+          fi
+          ./gradlew :wear:assembleDebug --continue 2>&1 | tee wear-build.log
+
+      - name: Watch release build (R8 shrinking)
+        if: success()
+        shell: bash
+        run: |
+          set -o pipefail
+          ./gradlew :wear:assembleRelease --continue 2>&1 | tee -a wear-build.log
+
+      - name: Watch APK pairs with the phone app (same app id, watch-only)
+        if: success()
+        shell: bash
+        run: |
+          AAPT=$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)
+          for APK in wear/build/outputs/apk/debug/*.apk wear/build/outputs/apk/release/*.apk; do
+            "$AAPT" dump badging "$APK" > badging.txt
+            grep -q "^package: name='nz.waveformlabs.moshpoint' " badging.txt || { echo "::error::$APK must use the phone app's application id"; exit 1; }
+            grep -q "uses-feature: name='android.hardware.type.watch'" badging.txt || { echo "::error::$APK is not marked as a watch app"; exit 1; }
+            echo "OK: $APK ($(du -h "$APK" | cut -f1)) $(grep -o "sdkVersion:'[0-9]*'" badging.txt) $(grep -o "targetSdkVersion:'[0-9]*'" badging.txt)"
+          done
+
+      - name: Compile errors
+        if: failure()
+        run: |
+          grep '^e: ' wear-build.log | head -80 || true
+
+      - name: Watch screenshots, small and large round, every language (Paparazzi)
+        if: success()
+        shell: bash
+        run: |
+          ./gradlew :wear:recordPaparazziDebug -q || {
+            echo "=== failing watch screenshot tests ==="
+            grep -h -B1 -A12 "<failure\|<error" wear/build/test-results/*/*.xml | head -120
+            exit 1
+          }
+          echo "$(ls wear/src/test/snapshots/images/*.png | wc -l) watch screenshots"
+
+      - name: Commit watch screenshots to docs/screenshots/watch (only when they change)
+        if: success() && github.event_name == 'push'
+        continue-on-error: true
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          [ -n "$(ls wear/src/test/snapshots/images/*.png 2>/dev/null)" ] || exit 0
+          mkdir -p docs/screenshots/watch
+          rm -f docs/screenshots/watch/*.png
+          # Paparazzi names files <package>_WatchScreensTest_<screen>[<language>_<size>].png.
+          # docs/screenshots/watch keeps English (both sizes) plus German, Thai, Arabic and
+          # Japanese on the small watch; every language and size goes to the
+          # ui-screenshots-watch branch (replaced each run, so history stays small).
+          ALL="$RUNNER_TEMP/watch-shots"; rm -rf "$ALL"; mkdir -p "$ALL"
+          for f in wear/src/test/snapshots/images/*.png; do
+            base=$(basename "$f")
+            [[ "$base" =~ _WatchScreensTest_([A-Za-z0-9]+)\[([A-Za-z-]+)_(small|large)\]\.png$ ]] || continue
+            screen="${BASH_REMATCH[1]}"; lang="${BASH_REMATCH[2]}"; size="${BASH_REMATCH[3]}"
+            mkdir -p "$ALL/$lang" && cp "$f" "$ALL/$lang/$screen-$size.png"
+            case "$lang" in
+              en) cp "$f" "docs/screenshots/watch/$screen-$size.png" ;;
+              de|th|ar|ja) [ "$size" = small ] && cp "$f" "docs/screenshots/watch/$lang-$screen.png" ;;
+            esac
+          done
+          (
+            cd "$ALL" && git init -q && git checkout -q -b ui-screenshots-watch && git add . &&
+            git -c user.name=moshpoint-ci -c user.email=moshpoint-ci@users.noreply.github.com commit -qm "Watch screenshots, every language, for ${GITHUB_SHA::7}" &&
+            git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" ui-screenshots-watch
+          ) || echo "Couldn't publish the all-language watch screenshots"
+          git add docs/screenshots/watch
+          if git diff --cached --quiet; then echo "Watch screenshots unchanged"; exit 0; fi
+          git config user.name "moshpoint-ci"
+          git config user.email "moshpoint-ci@users.noreply.github.com"
+          git commit -m "Update watch screenshots for ${GITHUB_SHA::7} [skip ci]"
+          # The phone job may be committing its own screenshots at the same moment: try a few times.
+          for attempt in 1 2 3 4; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep $((attempt * 7))
+          done
+
+      - name: Upload watch screenshots
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: watch-screenshots
+          path: wear/src/test/snapshots/images/*.png
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Watch lint (report only)
+        if: success()
+        continue-on-error: true
+        shell: bash
+        run: |
+          ./gradlew :wear:lintDebug -q || true
+          echo "=== lint summary ==="
+          grep -E '^[^ ].*: (Error|Warning): ' wear/build/reports/lint.txt | sed -E 's/.*: (Error|Warning): .*\[([A-Za-z]+)\]$/\1 \2/' | sort | uniq -c | sort -rn || true
+          echo "=== errors and key warnings ==="
+          grep -E ': Error: |\[(NewApi|MissingPermission|InlinedApi|WrongConstant|ForegroundServiceType|MissingSuperCall|WearStandaloneAppFlag)\]' wear/build/reports/lint.txt | head -80 || true
+
+      - name: Upload watch APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: moshpoint-watch-debug-apk
+          path: wear/build/outputs/apk/debug/*.apk
+          retention-days: 14
+
+      - name: Publish watch test APK next to the phone one
+        # Same rule and same place as "Publish test APK to a public link" above.
+        if: github.event_name == 'push' && github.ref_name == 'ccr-5839ed7c-1q0ztj'
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN || github.token }}
+          TARGET: ${{ secrets.RELEASES_TOKEN != '' && 'TheZombieRobot/moshpoint-builds' || github.repository }}
+        shell: bash
+        run: |
+          cp wear/build/outputs/apk/debug/*.apk moshpoint-watch.apk
+          gh release view testing --repo "$TARGET" >/dev/null 2>&1 || gh release create testing --repo "$TARGET" --prerelease --title "Moshpoint test build" --notes "Test build"
+          gh release upload testing moshpoint-watch.apk --clobber --repo "$TARGET"
+          echo "Published to https://github.com/$TARGET/releases/download/testing/moshpoint-watch.apk"
+
+      - name: Upload watch reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: watch-reports
+          path: |
+            wear/build/reports
+            wear/build/test-results
