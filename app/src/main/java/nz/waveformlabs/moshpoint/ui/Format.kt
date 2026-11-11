@@ -11,7 +11,7 @@ import java.util.Locale
 /*
  * Times, distances and dates, in the user's language and country's style:
  * "5 min ago" / "vor 5 Min." / "5分前", "1.2 km" / "1,2 km" / "0.7 mi", local date order.
- * Words come from res/values*/strings_format.xml; numbers and dates from the locale.
+ * Words come from res/values-xx/strings_format.xml; numbers and dates from the locale.
  */
 
 /** Countries that measure distance in feet and miles. The UK uses miles for longer distances. */
