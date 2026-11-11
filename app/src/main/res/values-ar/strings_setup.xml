@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Arabic: settings, onboarding, planning a gig, QR codes, bumping phones, camera-roll picker. -->
+<resources>
+    <string name="setup_settings_title">الإعدادات</string>
+    <string name="setup_your_photo">صورتك</string>
+    <string name="setup_your_photo_desc">تظهر في سهم أصحابك. أصدقاؤك فقط يرونها.</string>
+    <string name="setup_take_selfie">التقط سيلفي</string>
+    <string name="setup_choose_photo">اختر صورة</string>
+    <string name="setup_remove_my_photo">إزالة صورتي</string>
+    <string name="setup_your_name">اسمك</string>
+    <string name="setup_stay_live">ابقَ ظاهرًا بعد إعادة التشغيل</string>
+    <string name="setup_stay_live_desc">إذا كنت ظاهرًا عند إعادة تشغيل هاتفك، تعود ظاهرًا تلقائيًا.</string>
+    <string name="setup_ghost_mode">وضع الشبح</string>
+    <string name="setup_ghost_mode_desc">أخفِ مكانك عن الخريطة. يظل بإمكان أصحابك إيجادك عبر Bluetooth عندما يكونون قريبين.</string>
+    <string name="setup_ghost_one_hour">شبح لمدة ساعة</string>
+    <string name="setup_data_saver">توفير البيانات</string>
+    <string name="setup_data_saver_desc">شارك صورًا ومقاطع أخف (أسرع مع الإشارة الضعيفة). عند الإيقاف: جودة عالية، فتكون النسخ المحفوظة عند الجميع واضحة. صورك الأصلية تبقى دائمًا بجودتها الكاملة.</string>
+    <string name="setup_emergency_contact">جهة اتصال للطوارئ</string>
+    <string name="setup_emergency_contact_desc">زر «أحتاج مساعدة» يمكنه إرسال موقعك إليه برسالة SMS عادية (تعمل بدون بيانات). تبقى على هذا الهاتف.</string>
+    <string name="setup_contact_name">الاسم</string>
+    <string name="setup_contact_mobile">رقم الجوال</string>
+    <string name="setup_contact_saved">حُفظ</string>
+    <string name="setup_contact_need_number">أضف رقم جوال</string>
+    <string name="setup_contact_removed">أُزيل</string>
+    <string name="setup_save">حفظ</string>
+    <string name="setup_remove">إزالة</string>
+    <string name="setup_about">حول التطبيق</string>
+    <string name="setup_about_text">Moshpoint %1$s. بلا حساب، رموز متغيّرة، ومواقع مشفّرة بالكامل بين الطرفين. لا يمكن إيجادك إلا وأنت ظاهر.</string>
+    <string name="setup_hide_licences">إخفاء التراخيص</string>
+    <string name="setup_open_source_licences">تراخيص المصادر المفتوحة</string>
+    <string name="setup_licences_fonts">الخطوط: Unbounded وInter، بموجب SIL Open Font License 1.1. رموز QR: ZXing (Apache 2.0).</string>
+    <string name="setup_continue_facebook">المتابعة باستخدام Facebook</string>
+
+    <string name="setup_onb_skip">تخطي</string>
+    <string name="setup_onb_title_find">جد أصحابك\nفي أي زحمة</string>
+    <string name="setup_onb_body_find">اضغط على صاحبك وسيشير سهم إليه مباشرة. ويتوهج بلونه كلما اقتربت.</string>
+    <string name="setup_onb_title_live">اظهر عندما\nتدخل</string>
+    <string name="setup_onb_body_live">لا يستطيع أصحابك إيجادك إلا وأنت ظاهر، وأنت وحدك من يشغّل ذلك. يحتاج Moshpoint إلى:</string>
+    <string name="setup_onb_need_nearby">الأجهزة القريبة</string>
+    <string name="setup_onb_need_nearby_why">لإيجاد أصحابك عبر Bluetooth وWi-Fi وUWB</string>
+    <string name="setup_onb_need_location">الموقع</string>
+    <string name="setup_onb_need_location_why">للسهم عندما تكونون متباعدين</string>
+    <string name="setup_onb_need_notifications">الإشعارات</string>
+    <string name="setup_onb_need_notifications_why">لتعرف دائمًا متى تكون ظاهرًا</string>
+    <string name="setup_onb_title_name">بماذا يناديك\nأصحابك؟</string>
+    <string name="setup_onb_or_type_it">أو اكتبه</string>
+    <string name="setup_onb_lets_go">هيا بنا</string>
+    <string name="setup_onb_allow">سماح</string>
+    <string name="setup_onb_skip_for_now">تخطَّ الآن</string>
+    <string name="setup_onb_im_name">أنا %1$s</string>
+    <string name="setup_onb_arrow_demo_desc">سهم يشير إلى صديق</string>
+
+    <string name="setup_plan_title">خطّط لحفلة</string>
+    <string name="setup_plan_desc">ابدأ الشلة الآن، والكل ينضم متى ناسبه. تبقى نائمة (بلا استهلاك للبطارية) حتى يوم الحفلة.</string>
+    <string name="setup_plan_search_hint">ابحث: فرقة، فنان أو مكان</string>
+    <string name="setup_plan_searching">جارٍ البحث…</string>
+    <string name="setup_plan_search_failed">تعذّر البحث الآن. اكتبها بالأسفل بدلًا من ذلك.</string>
+    <string name="setup_plan_no_results">لم نجد حفلات قادمة. اكتبها بالأسفل.</string>
+    <string name="setup_plan_when_where">%1$s · %2$s</string>
+    <string name="setup_plan_or_type">أو اكتبها</string>
+    <string name="setup_plan_whos_playing">مَن على المسرح</string>
+    <string name="setup_plan_where">أين (اختياري)</string>
+    <string name="setup_plan_start_crew">ابدأ الشلة</string>
+    <string name="setup_plan_default_name">ليلة الحفلة</string>
+
+    <string name="setup_qr_title">امسح لتضيفني</string>
+    <string name="setup_qr_hint">ثم امسح رمزهم، لتجدوا بعضكم.</string>
+    <string name="setup_qr_eyebrow">رمزك</string>
+    <string name="setup_qr_done">‹  تم</string>
+    <string name="setup_qr_code_desc">رمز QR</string>
+    <plurals name="setup_qr_mates_in">
+        <item quantity="zero">لم ينضم أحد بعد</item>
+        <item quantity="one">انضم صاحب واحد</item>
+        <item quantity="two">انضم صاحبان</item>
+        <item quantity="few">انضم %d أصحاب</item>
+        <item quantity="many">انضم %d صاحبًا</item>
+        <item quantity="other">انضم %d صاحب</item>
+    </plurals>
+    <string name="setup_qr_send_invite">لا تستطيع المسح؟ أرسل دعوة بدلًا من ذلك</string>
+    <string name="setup_qr_reset_invite">إعادة ضبط الدعوة</string>
+    <string name="setup_qr_reset_title">إعادة ضبط الدعوة؟</string>
+    <string name="setup_qr_reset_text">إذا انتشر هذا الرمز أو لقطة شاشة له، فإعادة الضبط توقفه. كل من في الشلة يبقى فيها؛ وأي شخص جديد سيحتاج الرمز الجديد.</string>
+    <string name="setup_qr_reset">إعادة ضبط</string>
+    <string name="setup_cancel">إلغاء</string>
+    <string name="setup_qr_end_night">إنهاء الليلة</string>
+
+    <string name="setup_bump_title">تلامس الهواتف</string>
+    <string name="setup_bump_sharing">ألصق ظهر هاتفك بظهر هاتف صاحبك. سيُطلب منه الانضمام إلى شلتك.</string>
+    <string name="setup_bump_joining">ألصق ظهر هاتفك بظهر هاتف شخص في شلة (يفتح «تلامس» هو أيضًا). سيُطلب منك الانضمام.</string>
+    <string name="setup_done">تم</string>
+
+    <string name="setup_roll_title">صورك من تلك الليلة</string>
+    <string name="setup_roll_looking">نبحث في صورك…</string>
+    <string name="setup_roll_nothing">لا شيء على هذا الهاتف من تلك الساعات. الصور الملتقطة بهاتف آخر، أو المضافة مسبقًا، لن تظهر هنا.</string>
+    <string name="setup_roll_tap_to_leave_out">اضغط على أي صورة لاستبعادها. تُنسخ إلى الحفلة، فتبقى حتى لو حذفتها من معرض صورك.</string>
+    <string name="setup_roll_adding">جارٍ الإضافة…</string>
+    <plurals name="setup_roll_add_n">
+        <item quantity="zero">أضف إلى هذه الحفلة (%d)</item>
+        <item quantity="one">أضف إلى هذه الحفلة (%d)</item>
+        <item quantity="two">أضف إلى هذه الحفلة (%d)</item>
+        <item quantity="few">أضف إلى هذه الحفلة (%d)</item>
+        <item quantity="many">أضف إلى هذه الحفلة (%d)</item>
+        <item quantity="other">أضف إلى هذه الحفلة (%d)</item>
+    </plurals>
+</resources>

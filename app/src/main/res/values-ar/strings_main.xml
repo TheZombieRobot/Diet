@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Arabic: main screen, invites, sharing and phone setup checks. -->
+<resources>
+    <string name="main_get_the_app">ليس لديك Moshpoint بعد؟ ثبّته من هنا (Android): %1$s\nثم انسخ هذه الرسالة كاملة، وافتح Moshpoint واضغط «لصق الدعوة».\n\n</string>
+    <string name="main_nudge_text">مرحبًا %1$s، افتح Moshpoint واضغط «اظهر» (مع تشغيل الموقع والبيانات) حتى أجدك!</string>
+    <string name="main_nudge_mate">صاحبي</string>
+    <string name="main_nudge_title">اطلب منهم الظهور</string>
+
+    <string name="main_setup_bluetooth_off">Bluetooth مغلق. بدونه لن يجدك أحد، ولن تجدهم أنت.</string>
+    <string name="main_setup_location_off">الموقع مغلق. البحث عبر GPS يحتاجه، وكثير من الهواتف تحتاجه للبحث عبر Bluetooth أيضًا.</string>
+    <string name="main_setup_wifi_off">Wi-Fi مغلق. شغّله لمسافة أدق (لا داعي للاتصال بشبكة).</string>
+    <string name="main_setup_battery">توفير البطارية قد يوقف Moshpoint وهو مغلق، فلا يستطيع أصحابك إيجادك.</string>
+    <string name="main_setup_turn_on">تشغيل</string>
+    <string name="main_setup_fix">إصلاح</string>
+
+    <string name="main_facebook_failed">فشل تسجيل الدخول عبر Facebook: %1$s</string>
+    <string name="main_facebook_unknown_error">خطأ غير معروف</string>
+    <string name="main_facebook_not_set_up">تسجيل الدخول عبر Facebook غير مُعدّ في هذا الإصدار</string>
+
+    <string name="main_my_spot">مكاني</string>
+
+    <string name="main_photos_permission_needed">يحتاج Moshpoint إلى الوصول إلى صورك ليجد صور تلك الليلة</string>
+    <string name="main_you">أنت</string>
+    <plurals name="main_added_to_gig">
+        <item quantity="zero">أُضيف إلى الحفلة: %d</item>
+        <item quantity="one">أُضيف إلى الحفلة: %d</item>
+        <item quantity="two">أُضيف إلى الحفلة: %d</item>
+        <item quantity="few">أُضيف إلى الحفلة: %d</item>
+        <item quantity="many">أُضيف إلى الحفلة: %d</item>
+        <item quantity="other">أُضيف إلى الحفلة: %d</item>
+    </plurals>
+    <string name="main_saving_one">جارٍ الحفظ…</string>
+    <plurals name="main_saving_many">
+        <item quantity="zero">جارٍ حفظ %d من الصور والمقاطع…</item>
+        <item quantity="one">جارٍ حفظ صورة أو مقطع…</item>
+        <item quantity="two">جارٍ حفظ %d من الصور والمقاطع…</item>
+        <item quantity="few">جارٍ حفظ %d من الصور والمقاطع…</item>
+        <item quantity="many">جارٍ حفظ %d من الصور والمقاطع…</item>
+        <item quantity="other">جارٍ حفظ %d من الصور والمقاطع…</item>
+    </plurals>
+    <string name="main_save_failed">تعذّر الحفظ. هل ذاكرة هاتفك ممتلئة؟</string>
+    <string name="main_saved_all">حُفظت في معرض الصور: Moshpoint / %1$s</string>
+    <plurals name="main_saved_some">
+        <item quantity="zero">حُفظ %1$d من %2$d في معرض الصور</item>
+        <item quantity="one">حُفظ %1$d من %2$d في معرض الصور</item>
+        <item quantity="two">حُفظ %1$d من %2$d في معرض الصور</item>
+        <item quantity="few">حُفظ %1$d من %2$d في معرض الصور</item>
+        <item quantity="many">حُفظ %1$d من %2$d في معرض الصور</item>
+        <item quantity="other">حُفظ %1$d من %2$d في معرض الصور</item>
+    </plurals>
+    <string name="main_gig_fallback">حفلة</string>
+
+    <string name="main_invite_expired">انتهت صلاحية دعوة المجموعة. اطلب دعوة جديدة.</string>
+    <string name="main_joined_up_next">أنت في %1$s! تجدها في «القادم»: دردشوا كما تشاؤون، وتنشط في يوم الحفلة.</string>
+    <string name="main_joined_following">أنت تتابع %1$s. سترى صورهم وأين هم، وسيرون أنك تتابعهم.</string>
+    <string name="main_joined_sleeping">أنت في %1$s! تنشط الشلة في يوم الحفلة (%2$s).</string>
+    <string name="main_joined_live">أنت في %1$s! كل من فيها يستطيع إيجاد الآخرين.</string>
+    <string name="main_the_crew">الشلة</string>
+    <string name="main_got_code">وصل الرمز. أعطهم اسمًا، ثم اضغط «إضافة صديق».</string>
+    <string name="main_friend_added">✓ أُضيف %1$s</string>
+    <string name="main_no_invite_found">لم نجد دعوة Moshpoint. انسخ الرسالة التي أرسلها صاحبك كاملة، ثم اضغط «لصق الدعوة».</string>
+
+    <string name="main_perm_location">الموقع: سهم GPS ومسافة Bluetooth/Wi-Fi</string>
+    <string name="main_perm_nearby">الأجهزة القريبة: لتجد أصحابك ويجدوك عبر Bluetooth</string>
+    <string name="main_perm_uwb">UWB: السهم الدقيق</string>
+    <string name="main_perm_notifications">الإشعارات: تُظهر متى تكون ظاهرًا</string>
+
+    <string name="main_phone_summary">هذا الهاتف: %1$s</string>
+    <string name="main_cap_compass">بوصلة</string>
+
+    <string name="main_invite_reset">أُعيد ضبط الدعوة. رموز QR والروابط القديمة لم تعد تعمل.</string>
+    <string name="main_eyebrow_up_next">القادم</string>
+    <string name="main_eyebrow_up_next_countdown">القادم · %1$s</string>
+    <string name="main_eyebrow_coming_up">شلتك · قريبًا</string>
+    <string name="main_eyebrow_tonight">شلتك الليلة</string>
+    <string name="main_qr_hint_planned">الكل يمسح هذا الرمز مرة واحدة. دردشوا وارفعوا الحماس الآن؛ ميزة إيجاد بعضكم تعمل في يوم الحفلة.</string>
+    <string name="main_qr_hint_tonight">الكل يمسح هذا الرمز مرة واحدة. وبعدها تجدون بعضكم طوال الليل.</string>
+    <string name="main_scan_to_add_me">امسح لتضيفني</string>
+    <string name="main_scan_to_add_name">امسح لتضيف %1$s</string>
+
+    <string name="main_wants_to_stay_friends">%1$s يريد أن تبقيا صديقين</string>
+    <string name="main_stay_friends_text">تعارفتما في %1$s. وافق وستجدان بعضكما في أي حفلة، لا هذه فقط. وحده %2$s يحصل على بياناتك، لا أحد غيره في الشلة.</string>
+    <string name="main_friends_now">أنت و%1$s صديقان الآن</string>
+    <string name="main_yes_stay_friends">نعم، لنبقَ أصدقاء</string>
+    <string name="main_not_now">ليس الآن</string>
+
+    <string name="main_battery_title">ابقَ ظاهرًا طوال الليل</string>
+    <string name="main_battery_text">بعض الهواتف توقف التطبيقات في الخلفية لتوفير البطارية، وهذا سيجعلك تختفي. ابحث عن Moshpoint في الشاشة التالية واضبطه على «عدم التحسين» / «غير مقيَّد».</string>
+    <string name="main_open_settings">فتح الإعدادات</string>
+
+    <plurals name="main_n_mates">
+        <item quantity="zero">%d صاحب</item>
+        <item quantity="one">صاحب واحد</item>
+        <item quantity="two">صاحبان</item>
+        <item quantity="few">%d أصحاب</item>
+        <item quantity="many">%d صاحبًا</item>
+        <item quantity="other">%d صاحب</item>
+    </plurals>
+    <string name="main_beacon_colour_name">%1$s (%2$s)</string>
+
+    <string name="main_scan_prompt">امسح رمز QR الخاص بصاحبك في Moshpoint</string>
+    <string name="main_out_of_crew">خرج %1$s من الشلة. ينتقل الباقون إلى مفتاح جديد.</string>
+
+    <string name="main_follow_share_text">تابع ليلتنا في %1$s على Moshpoint: شاهد صورنا أولًا بأول واطمئن أننا بخير.\n%2$s</string>
+    <string name="main_follow_share_title">دع العائلة تتابع</string>
+    <string name="main_when_venue">%1$s · %2$s</string>
+
+    <string name="main_time_passed">هذا الوقت مضى. اختر موعد بدء الحفلة.</string>
+    <string name="main_added_up_next">أُضيفت %1$s إلى «القادم». ادعُ أصحابك وابدأ الحماس!</string>
+
+    <string name="main_join_name">الانضمام إلى %1$s؟</string>
+    <string name="main_follow_name">متابعة %1$s؟</string>
+    <string name="main_bumped_text">تلامس الهاتفان! انضم لتجدوا بعضكم الليلة.</string>
+    <string name="main_join">انضمام</string>
+    <string name="main_no">لا</string>
+    <string name="main_clip_follow_text">نسختَ رابط متابعة. سترى صورهم وأنهم بخير، وسيرون أنك تتابعهم.</string>
+    <string name="main_clip_join_text">نسختَ دعوة Moshpoint. انضم لتجدوا بعضكم الليلة.</string>
+
+    <string name="main_your_night">ليلتك</string>
+    <string name="main_recap_text">%1$s\n\nإنهاء الليلة يغلق الشلة (الأصدقاء يبقون). الصور والمقاطع تبقى على هاتفك في «حفلاتك».</string>
+    <string name="main_night_ended">انتهت الليلة. صورك ومقاطعك في «حفلاتك».</string>
+    <string name="main_end_the_night">إنهاء الليلة</string>
+    <string name="main_share_night_text">ليلتي مع Moshpoint: %1$s 🤘</string>
+    <string name="main_share_night_title">شارك ليلتك</string>
+    <string name="main_share">مشاركة</string>
+
+    <string name="main_now_main_crew">%1$s هي شلتك الرئيسية الآن. كل من فيها يستطيع إيجاد الآخرين.</string>
+    <string name="main_deleted_gig">حُذفت %1$s من هذا الهاتف</string>
+    <string name="main_meetup_sent">أُرسلت نقطة اللقاء إلى شلتك</string>
+    <string name="main_moment_label">%1$s · %2$s</string>
+
+    <string name="main_share_app_text">حمّل Moshpoint لنجد بعضنا في الحفلات: اضغط على صاحبك ويشير سهم إليه.\n\n%1$s</string>
+    <string name="main_share_app_title">شارك Moshpoint</string>
+    <string name="main_named_crew">شلة %1$s</string>
+    <string name="main_tonights_crew">شلة الليلة</string>
+    <string name="main_me">أنا</string>
+    <string name="main_group_invite_text">انضم إلى شلتي «%1$s» على Moshpoint الليلة!\n%2$s</string>
+    <string name="main_group_invite_title">أرسل دعوة المجموعة</string>
+</resources>

@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Arabic: crew chat, notifications, friendship, safety, plan card, night stats, live status. -->
+<resources>
+    <string name="crew_you">أنت</string>
+    <string name="crew_default_name">صاحب</string>
+    <string name="crew_default_group_name">شلة الحفلة</string>
+    <string name="crew_default_gig_name">حفلة</string>
+    <string name="crew_someone">شخص ما</string>
+    <string name="crew_name_numbered">%1$s (%2$d)</string>
+    <string name="crew_cancel">إلغاء</string>
+    <string name="crew_close">إغلاق</string>
+
+    <string name="crew_chat_subtitle">دردشة الشلة · لا يقرؤها إلا شلتك</string>
+    <string name="crew_chat_invite">＋ دعوة</string>
+    <string name="crew_chat_on_today">الحفلة اليوم! هل تريدون إيجاد بعضكم في هذه الشلة؟</string>
+    <string name="crew_chat_switch">تبديل</string>
+    <plurals name="crew_chat_send_flare_hint">
+        <item quantity="zero">🔥  أطلق شعلة: اعرض مكانك لمدة %d دقيقة</item>
+        <item quantity="one">🔥  أطلق شعلة: اعرض مكانك لمدة دقيقة</item>
+        <item quantity="two">🔥  أطلق شعلة: اعرض مكانك لمدة دقيقتين</item>
+        <item quantity="few">🔥  أطلق شعلة: اعرض مكانك لمدة %d دقائق</item>
+        <item quantity="many">🔥  أطلق شعلة: اعرض مكانك لمدة %d دقيقة</item>
+        <item quantity="other">🔥  أطلق شعلة: اعرض مكانك لمدة %d دقيقة</item>
+    </plurals>
+    <string name="crew_chat_empty">لا شيء بعد. تصل الرسائل لكل الشلة خلال دقيقة تقريبًا (أسرع على خادمك الخاص).</string>
+    <string name="crew_chat_night_tools_later">ارفعوا الحماس! الشعلات والتنبيهات السريعة تعمل في يوم الحفلة.</string>
+    <string name="crew_chat_message_hint">راسل الشلة</string>
+    <string name="crew_chat_not_sent">لم تُرسَل · اضغط لإعادة المحاولة</string>
+    <string name="crew_chat_sending">جارٍ الإرسال…</string>
+    <string name="crew_chat_line_with_time">%1$s · %2$s</string>
+
+    <string name="crew_chat_you_joined">انضممتَ إلى الشلة</string>
+    <string name="crew_chat_joined">انضم %1$s إلى الشلة</string>
+    <string name="crew_chat_you_pinned">ثبّتَّ الخطة: %1$s</string>
+    <string name="crew_chat_pinned">ثبّت %1$s الخطة: %2$s</string>
+    <string name="crew_chat_you_cleared_plan">مسحتَ الخطة</string>
+    <string name="crew_chat_cleared_plan">مسح %1$s الخطة</string>
+    <string name="crew_chat_you_flare">أطلقتَ شعلة: %1$s</string>
+    <string name="crew_chat_flare">أطلق %1$s شعلة: %2$s</string>
+    <string name="crew_chat_line_other">%1$s %2$s</string>
+
+    <string name="crew_quick_coming">في الطريق 🏃</string>
+    <string name="crew_quick_where">أين أنت؟ 👀</string>
+    <string name="crew_quick_stay_put">ابقَ مكانك ✋</string>
+    <string name="crew_quick_meet_pin">نلتقي عند الدبوس 📍</string>
+    <string name="crew_quick_all_good">كل شيء تمام 👍</string>
+    <string name="crew_quick_going_home">عائد إلى البيت 🏠</string>
+    <string name="crew_quick_need_help">🚨 أحتاج مساعدة</string>
+    <plurals name="crew_quick_check_in">
+        <item quantity="zero">عائد إلى البيت 🏠 سأسجّل وصولي خلال %d دقيقة</item>
+        <item quantity="one">عائد إلى البيت 🏠 سأسجّل وصولي خلال دقيقة</item>
+        <item quantity="two">عائد إلى البيت 🏠 سأسجّل وصولي خلال دقيقتين</item>
+        <item quantity="few">عائد إلى البيت 🏠 سأسجّل وصولي خلال %d دقائق</item>
+        <item quantity="many">عائد إلى البيت 🏠 سأسجّل وصولي خلال %d دقيقة</item>
+        <item quantity="other">عائد إلى البيت 🏠 سأسجّل وصولي خلال %d دقيقة</item>
+    </plurals>
+    <string name="crew_quick_home_safe">وصلت البيت بأمان ✅</string>
+
+    <string name="crew_plan_eyebrow">📌 الخطة</string>
+    <string name="crew_plan_none">لا خطة مثبّتة بعد.</string>
+    <string name="crew_plan_prompt">ثبّت الخطة كي لا يضطر أحد للتمرير: «طاولة الصوت بعد الأغنية الأخيرة».</string>
+    <string name="crew_plan_by">من %1$s</string>
+    <string name="crew_plan_meet_up">★ نقطة اللقاء: %1$s</string>
+    <string name="crew_plan_pin">ثبّت خطة</string>
+    <string name="crew_plan_change">تغيير</string>
+    <string name="crew_plan_share">شاركها كبطاقة</string>
+    <string name="crew_plan_title">الخطة</string>
+    <string name="crew_plan_editor_body">تُثبَّت أعلى الدردشة للجميع، فلا تضيع أبدًا.</string>
+    <string name="crew_plan_idea_sound_desk">نلتقي عند طاولة الصوت بعد الأغنية الأخيرة</string>
+    <string name="crew_plan_idea_bar">يسار البار الرئيسي في الاستراحة</string>
+    <string name="crew_plan_idea_car">عند السيارة قبل 11:30</string>
+    <string name="crew_plan_idea_tent">الخيمة إذا أضعنا بعضنا</string>
+    <string name="crew_plan_pin_it">ثبّتها</string>
+    <string name="crew_plan_unpin">إلغاء التثبيت</string>
+
+    <string name="crew_vibe_lost">تائه 😅</string>
+    <string name="crew_vibe_bar">وقت البار 🍺</string>
+    <string name="crew_vibe_rail">في الصف الأمامي 🎶</string>
+    <string name="crew_vibe_food">جولة أكل 🍔</string>
+    <string name="crew_vibe_toilets">الحمّامات 🚻</string>
+    <string name="crew_vibe_air">بالخارج أتنفس 🌬️</string>
+    <string name="crew_vibe_merch">كشك التذكارات 👕</string>
+    <string name="crew_vibe_leaving">سأغادر قريبًا 👋</string>
+    <string name="crew_flare_mine">أنت: %1$s</string>
+    <string name="crew_flare_theirs">%1$s: %2$s</string>
+    <plurals name="crew_flare_left">
+        <item quantity="zero">بقيت %d دقيقة</item>
+        <item quantity="one">بقيت دقيقة</item>
+        <item quantity="two">بقيت دقيقتان</item>
+        <item quantity="few">بقيت %d دقائق</item>
+        <item quantity="many">بقيت %d دقيقة</item>
+        <item quantity="other">بقيت %d دقيقة</item>
+    </plurals>
+    <plurals name="crew_flare_left_on_map">
+        <item quantity="zero">بقيت %d دقيقة · على الخريطة</item>
+        <item quantity="one">بقيت دقيقة · على الخريطة</item>
+        <item quantity="two">بقيت دقيقتان · على الخريطة</item>
+        <item quantity="few">بقيت %d دقائق · على الخريطة</item>
+        <item quantity="many">بقيت %d دقيقة · على الخريطة</item>
+        <item quantity="other">بقيت %d دقيقة · على الخريطة</item>
+    </plurals>
+    <string name="crew_flare_end">إنهاء</string>
+    <string name="crew_flare_title">أطلق شعلة</string>
+    <plurals name="crew_flare_body">
+        <item quantity="zero">يظهر مكانك على خريطة الشلة لمدة %d دقيقة، مع حالتك.</item>
+        <item quantity="one">يظهر مكانك على خريطة الشلة لمدة دقيقة واحدة، مع حالتك.</item>
+        <item quantity="two">يظهر مكانك على خريطة الشلة لمدة دقيقتين، مع حالتك.</item>
+        <item quantity="few">يظهر مكانك على خريطة الشلة لمدة %d دقائق، مع حالتك.</item>
+        <item quantity="many">يظهر مكانك على خريطة الشلة لمدة %d دقيقة، مع حالتك.</item>
+        <item quantity="other">يظهر مكانك على خريطة الشلة لمدة %d دقيقة، مع حالتك.</item>
+    </plurals>
+    <string name="crew_flare_own_hint">أو اكتب حالتك…</string>
+    <string name="crew_flare_send">أطلق</string>
+
+    <string name="crew_help_title">اطلب المساعدة</string>
+    <string name="crew_help_alerted">نُبّهت الشلة ✓</string>
+    <string name="crew_help_alert">نبّه شلتي</string>
+    <string name="crew_help_alert_sub">تنبيه عاجل مع مكانك</string>
+    <string name="crew_help_text_contact">راسل %1$s</string>
+    <string name="crew_help_text_contact_sub">يُفتح تطبيق الرسائل مع موقعك. يعمل بدون بيانات.</string>
+    <string name="crew_help_add_contact">أضف جهة اتصال للطوارئ</string>
+    <string name="crew_help_add_contact_sub">شخص من خارج الشلة تراسله وقت الحاجة</string>
+    <string name="crew_help_contact_name">الاسم (مثلًا: أمي)</string>
+    <string name="crew_help_contact_number">رقم الجوال</string>
+    <string name="crew_help_save_contact">احفظ جهة الاتصال</string>
+    <string name="crew_help_call">اتصل بـ %1$s</string>
+    <string name="crew_help_call_sub">الشرطة، الإطفاء، الإسعاف</string>
+    <string name="crew_help_call_police">الشرطة</string>
+    <string name="crew_help_call_ambulance">الإسعاف والإطفاء</string>
+    <string name="crew_help_no_signal">لا إشارة إطلاقًا؟ كثير من الهواتف الحديثة تستطيع الوصول إلى خدمات الطوارئ عبر الأقمار الصناعية: اتصل بـ %1$s واتبع التعليمات. في المهرجانات، يمكن لفريق الأمن وخيام الإسعافات الأولية المساعدة بسرعة.</string>
+    <string name="crew_help_sms">أحتاج مساعدة. (أُرسلت من Moshpoint)</string>
+    <string name="crew_help_sms_where">أحتاج مساعدة. أنا هنا: %1$s (أُرسلت من Moshpoint)</string>
+
+    <string name="crew_channel_messages">رسائل الشلة</string>
+    <string name="crew_channel_help">طلبات المساعدة من الشلة</string>
+    <string name="crew_channel_requests">أصحاب يبحثون عنك</string>
+    <string name="crew_notif_line">%1$s: %2$s</string>
+    <plurals name="crew_new_messages">
+        <item quantity="zero">%d رسالة جديدة</item>
+        <item quantity="one">رسالة جديدة</item>
+        <item quantity="two">رسالتان جديدتان</item>
+        <item quantity="few">%d رسائل جديدة</item>
+        <item quantity="many">%d رسالة جديدة</item>
+        <item quantity="other">%d رسالة جديدة</item>
+    </plurals>
+    <string name="crew_notif_joined">انضم إلى الشلة 🎉</string>
+    <plurals name="crew_notif_flare">
+        <item quantity="zero">شعلة: %1$s · هنا لمدة %2$d دقيقة</item>
+        <item quantity="one">شعلة: %1$s · هنا لمدة دقيقة</item>
+        <item quantity="two">شعلة: %1$s · هنا لمدة دقيقتين</item>
+        <item quantity="few">شعلة: %1$s · هنا لمدة %2$d دقائق</item>
+        <item quantity="many">شعلة: %1$s · هنا لمدة %2$d دقيقة</item>
+        <item quantity="other">شعلة: %1$s · هنا لمدة %2$d دقيقة</item>
+    </plurals>
+    <string name="crew_notif_new_plan">خطة جديدة: %1$s</string>
+    <string name="crew_notif_done_title">انتهت %1$s</string>
+    <string name="crew_notif_done_saved">صورك ومقاطعك محفوظة في «حفلاتك».</string>
+    <string name="crew_notif_done_text">نتمنى أنها كانت ليلة رائعة. ابدأ شلة جديدة متى شئت.</string>
+    <string name="crew_notif_overdue_title">لم يسجّل %1$s وصوله</string>
+    <string name="crew_notif_overdue_text">كان عائدًا إلى البيت ويُفترض أنه وصل الآن. اتصل به. اضغط لترى آخر مكان له.</string>
+    <string name="crew_notif_help_where">ضغط على «أحتاج مساعدة». اضغط لترى المكان. اطمئن عليه.</string>
+    <string name="crew_notif_help">ضغط على «أحتاج مساعدة». اطمئن عليه.</string>
+    <string name="crew_notif_tap_where">اضغط لترى المكان.</string>
+    <string name="crew_notif_from_crew">من شلتك</string>
+
+    <string name="crew_ping_coming">في الطريق</string>
+    <string name="crew_ping_stay_put">يقول: ابقَ مكانك</string>
+    <string name="crew_ping_where">يسأل أين أنت</string>
+    <string name="crew_ping_meet_pin">يقول: نلتقي عند الدبوس</string>
+    <string name="crew_ping_all_good">بخير</string>
+    <string name="crew_ping_going_home">عائد إلى البيت</string>
+    <string name="crew_ping_need_help">يحتاج مساعدة!</string>
+    <string name="crew_ping_check_in">عائد إلى البيت وسيسجّل وصوله</string>
+    <string name="crew_ping_home_safe">وصل البيت بأمان</string>
+    <string name="crew_ping_chat">أرسل رسالة</string>
+    <string name="crew_ping_flare">أطلق شعلة</string>
+    <string name="crew_ping_plan">ثبّت خطة</string>
+    <string name="crew_ping_other">نبّه الشلة</string>
+
+    <string name="crew_ping_title_coming">%1$s في الطريق</string>
+    <string name="crew_ping_title_stay_put">%1$s يقول: ابقَ مكانك</string>
+    <string name="crew_ping_title_where">%1$s يسأل أين أنت</string>
+    <string name="crew_ping_title_meet_pin">%1$s يقول: نلتقي عند الدبوس</string>
+    <string name="crew_ping_title_all_good">%1$s بخير</string>
+    <string name="crew_ping_title_going_home">%1$s عائد إلى البيت</string>
+    <string name="crew_ping_title_need_help">%1$s يحتاج مساعدة!</string>
+    <string name="crew_ping_title_check_in">%1$s عائد إلى البيت وسيسجّل وصوله</string>
+    <string name="crew_ping_title_home_safe">%1$s وصل البيت بأمان</string>
+    <string name="crew_ping_title_chat">%1$s أرسل رسالة</string>
+    <string name="crew_ping_title_flare">%1$s أطلق شعلة</string>
+    <string name="crew_ping_title_plan">%1$s ثبّت خطة</string>
+    <string name="crew_ping_title_other">%1$s نبّه الشلة</string>
+
+    <string name="crew_rally_default">نلتقي هنا</string>
+
+    <string name="crew_friend_need_crew">«احتفظ به كصديق» يعمل عندما تكونان في شلة واحدة.</string>
+    <string name="crew_friend_gone">لم يعد في الشلة.</string>
+    <string name="crew_friend_unreachable">لا يمكن الوصول إلى %1$s بشكل خاص بعد. حاول مجددًا بعد ظهوره الليلة (يحتاج تطبيقه إلى تحديث إذا تكرر هذا).</string>
+    <string name="crew_friend_ask_failed">تعذّر سؤال %1$s. حاول مجددًا.</string>
+    <string name="crew_friend_asked">طلبتَ من %1$s أن تبقيا صديقين. ستصبحان صديقين لكل حفلة عندما يوافق.</string>
+    <string name="crew_friend_request_title">%1$s يريد أن تبقيا صديقين</string>
+    <string name="crew_friend_request_text">من %1$s. اضغط للموافقة، وستجدان بعضكما في أي حفلة.</string>
+    <string name="crew_friend_accepted_title">%1$s صديقك الآن</string>
+    <string name="crew_friend_accepted_text">تستطيعان إيجاد بعضكما في أي حفلة، لا في %1$s فقط.</string>
+
+    <string name="crew_add_need_name">أعطه اسمًا</string>
+    <string name="crew_add_bad_code">يبدو أن هذا الرمز غير صحيح</string>
+    <string name="crew_add_own_code">هذا رمزك أنت</string>
+
+    <string name="crew_note_you_removed">أزلتَ %1$s. للشلة مفتاح جديد: لن يرى شيئًا من الآن.</string>
+    <string name="crew_note_you_reset">أعدتَ ضبط الدعوة. رموز QR والروابط القديمة لم تعد تعمل.</string>
+    <string name="crew_note_removed">أزال %1$s %2$s من الشلة.</string>
+    <string name="crew_note_reset">أعاد %1$s ضبط الدعوة: رموز QR القديمة لم تعد تعمل.</string>
+
+    <string name="crew_wake_title">%1$s الليلة!</string>
+    <string name="crew_wake_text">تبدأ الساعة %1$s. اضغط لتظهر كي تجدك شلتك.</string>
+    <string name="crew_wake_text_venue">تبدأ الساعة %1$s في %2$s. اضغط لتظهر كي تجدك شلتك.</string>
+
+    <plurals name="crew_memory_headline">
+        <item quantity="zero">في مثل هذا اليوم قبل %1$d سنة: %2$s</item>
+        <item quantity="one">في مثل هذا اليوم قبل سنة: %2$s</item>
+        <item quantity="two">في مثل هذا اليوم قبل سنتين: %2$s</item>
+        <item quantity="few">في مثل هذا اليوم قبل %1$d سنوات: %2$s</item>
+        <item quantity="many">في مثل هذا اليوم قبل %1$d سنة: %2$s</item>
+        <item quantity="other">في مثل هذا اليوم قبل %1$d سنة: %2$s</item>
+    </plurals>
+    <plurals name="crew_memory_headline_with">
+        <item quantity="zero">في مثل هذا اليوم قبل %1$d سنة: %2$s مع %3$s</item>
+        <item quantity="one">في مثل هذا اليوم قبل سنة: %2$s مع %3$s</item>
+        <item quantity="two">في مثل هذا اليوم قبل سنتين: %2$s مع %3$s</item>
+        <item quantity="few">في مثل هذا اليوم قبل %1$d سنوات: %2$s مع %3$s</item>
+        <item quantity="many">في مثل هذا اليوم قبل %1$d سنة: %2$s مع %3$s</item>
+        <item quantity="other">في مثل هذا اليوم قبل %1$d سنة: %2$s مع %3$s</item>
+    </plurals>
+    <string name="crew_memory_two_people">%1$s و%2$s</string>
+    <plurals name="crew_memory_text">
+        <item quantity="zero">%d من الصور والمقاطع. اضغط لتعيشها من جديد.</item>
+        <item quantity="one">صورة أو مقطع واحد. اضغط لتعيشها من جديد.</item>
+        <item quantity="two">%d من الصور والمقاطع. اضغط لتعيشها من جديد.</item>
+        <item quantity="few">%d من الصور والمقاطع. اضغط لتعيشها من جديد.</item>
+        <item quantity="many">%d من الصور والمقاطع. اضغط لتعيشها من جديد.</item>
+        <item quantity="other">%d من الصور والمقاطع. اضغط لتعيشها من جديد.</item>
+    </plurals>
+
+    <string name="crew_moment_title">شارك %1$s لحظة</string>
+    <string name="crew_moment_text">اضغط لترى المكان</string>
+
+    <string name="crew_moving_title">%1$s يتحرك</string>
+    <string name="crew_moving_text">تحرك %1$s من مكانه. اضغط لترى.</string>
+    <string name="crew_moving_text_away">تحرك %1$s من مكانه. الآن على بُعد %2$s منك. اضغط لترى.</string>
+    <string name="crew_at_venue">في المكان</string>
+    <string name="crew_from_venue">على بُعد %1$s من المكان</string>
+    <string name="crew_status_phone_died">%1$s: نفد شحن الهاتف</string>
+    <string name="crew_status_distance">%1$s %2$s</string>
+    <plurals name="crew_status_min_ago">
+        <item quantity="zero">%1$s قبل %2$d دقيقة</item>
+        <item quantity="one">%1$s قبل دقيقة</item>
+        <item quantity="two">%1$s قبل دقيقتين</item>
+        <item quantity="few">%1$s قبل %2$d دقائق</item>
+        <item quantity="many">%1$s قبل %2$d دقيقة</item>
+        <item quantity="other">%1$s قبل %2$d دقيقة</item>
+    </plurals>
+
+    <string name="crew_stats_walked">مشيت %1$s</string>
+    <plurals name="crew_stats_finds">
+        <item quantity="zero">وجدت أصحابك %d مرة</item>
+        <item quantity="one">وجدت أصحابك مرة واحدة</item>
+        <item quantity="two">وجدت أصحابك مرتين</item>
+        <item quantity="few">وجدت أصحابك %d مرات</item>
+        <item quantity="many">وجدت أصحابك %d مرة</item>
+        <item quantity="other">وجدت أصحابك %d مرة</item>
+    </plurals>
+    <plurals name="crew_stats_moments">
+        <item quantity="zero">%d لحظة</item>
+        <item quantity="one">لحظة واحدة</item>
+        <item quantity="two">لحظتان</item>
+        <item quantity="few">%d لحظات</item>
+        <item quantity="many">%d لحظة</item>
+        <item quantity="other">%d لحظة</item>
+    </plurals>
+    <plurals name="crew_stats_pings">
+        <item quantity="zero">%d تنبيه</item>
+        <item quantity="one">تنبيه واحد</item>
+        <item quantity="two">تنبيهان</item>
+        <item quantity="few">%d تنبيهات</item>
+        <item quantity="many">%d تنبيهًا</item>
+        <item quantity="other">%d تنبيه</item>
+    </plurals>
+    <string name="crew_stats_out_hours">بالخارج %1$d س و%2$d د</string>
+    <plurals name="crew_stats_out_mins">
+        <item quantity="zero">بالخارج %d د</item>
+        <item quantity="one">بالخارج %d د</item>
+        <item quantity="two">بالخارج %d د</item>
+        <item quantity="few">بالخارج %d د</item>
+        <item quantity="many">بالخارج %d د</item>
+        <item quantity="other">بالخارج %d د</item>
+    </plurals>
+    <string name="crew_stats_quiet">ليلة هادئة</string>
+
+    <string name="crew_card_eyebrow">MOSHPOINT · خطة الليلة</string>
+    <string name="crew_card_plan">الخطة</string>
+    <string name="crew_card_meet_up">★  نقطة اللقاء: %1$s</string>
+    <string name="crew_card_whos_coming">مَن قادم</string>
+    <string name="crew_card_footer">أضعتم بعضكم؟ تجدون بعضكم على Moshpoint.</string>
+    <string name="crew_card_share_meet_up">نقطة اللقاء: %1$s</string>
+    <string name="crew_card_share_title">شارك الخطة</string>
+
+    <string name="crew_request_title">%1$s قريب ويبحث عنك</string>
+    <string name="crew_request_text">اضغط لتنوير شاشتك كي يراك</string>
+    <string name="crew_go_hidden">اختفِ</string>
+    <string name="crew_tile_live">ظاهر</string>
+    <string name="crew_tile_hidden">مخفي</string>
+</resources>

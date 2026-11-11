@@ -1,5 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Languages Moshpoint ships in (Android 13+ lists these under Settings → Apps → Moshpoint → Language). -->
+<!-- Languages Moshpoint ships in (Android 13+ lists these under Settings → Apps → Moshpoint → Language).
+     Keep in step with the res/values-xx folders. -->
 <locale-config xmlns:android="http://schemas.android.com/apk/res/android">
     <locale android:name="en" />
+    <locale android:name="es" />
+    <locale android:name="es-ES" />
+    <locale android:name="pt-BR" />
+    <locale android:name="fr" />
+    <locale android:name="de" />
+    <locale android:name="it" />
+    <locale android:name="nl" />
+    <locale android:name="sv" />
+    <locale android:name="pl" />
+    <locale android:name="tr" />
+    <locale android:name="ar" />
+    <locale android:name="hi" />
+    <locale android:name="th" />
+    <locale android:name="vi" />
+    <locale android:name="id" />
+    <locale android:name="ja" />
+    <locale android:name="ko" />
+    <locale android:name="zh-CN" />
+    <locale android:name="zh-TW" />
 </locale-config>

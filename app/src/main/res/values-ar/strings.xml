@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Arabic: app name, live status, widget. -->
+<resources>
+    <string name="app_name">Moshpoint</string>
+    <string name="visibility_channel">حالة الظهور</string>
+    <string name="visibility_notification">أنت ظاهر: أصحابك يمكنهم إيجادك</string>
+    <string name="widget_title">شلتك</string>
+    <string name="widget_empty">ابدأ شلة في Moshpoint وسيظهر أصحابك هنا.</string>
+    <string name="widget_find">جد الشلة</string>
+    <string name="widget_description">أين شلتك، ونقرة واحدة لتجدهم</string>
+</resources>

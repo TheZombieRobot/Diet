@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hindi: main screen, invites, sharing and phone setup checks. -->
+<resources>
+    <string name="main_get_the_app">अभी तक Moshpoint नहीं है? यहाँ से इंस्टॉल करें (Android): %1$s\nफिर यह पूरा मैसेज कॉपी करें, Moshpoint खोलें और इनवाइट पेस्ट करें पर टैप करें।\n\n</string>
+    <string name="main_nudge_text">अरे %1$s, Moshpoint खोलो और लाइव हों पर टैप करो (लोकेशन और डेटा ऑन रखकर), ताकि मैं तुम्हें ढूँढ सकूँ!</string>
+    <string name="main_nudge_mate">दोस्त</string>
+    <string name="main_nudge_title">उनसे लाइव होने को कहें</string>
+
+    <string name="main_setup_bluetooth_off">Bluetooth बंद है। इसके बिना न कोई आपको ढूँढ सकता है, न आप उन्हें।</string>
+    <string name="main_setup_location_off">लोकेशन बंद है। GPS से ढूँढने के लिए यह ज़रूरी है, और कई फ़ोन में Bluetooth से ढूँढने के लिए भी।</string>
+    <string name="main_setup_wifi_off">Wi-Fi बंद है। ज़्यादा सटीक दूरी के लिए इसे ऑन करें (किसी नेटवर्क से जुड़ना ज़रूरी नहीं)।</string>
+    <string name="main_setup_battery">ऐप बंद होने पर बैटरी सेवर Moshpoint को रोक सकता है, फिर दोस्त आपको नहीं ढूँढ पाएँगे।</string>
+    <string name="main_setup_turn_on">ऑन करें</string>
+    <string name="main_setup_fix">ठीक करें</string>
+
+    <string name="main_facebook_failed">Facebook लॉगिन नहीं हो सका: %1$s</string>
+    <string name="main_facebook_unknown_error">अज्ञात</string>
+    <string name="main_facebook_not_set_up">इस बिल्ड में Facebook लॉगिन सेट नहीं है</string>
+
+    <string name="main_my_spot">मेरी जगह</string>
+
+    <string name="main_photos_permission_needed">उस रात की फ़ोटो ढूँढने के लिए Moshpoint को आपकी फ़ोटो का एक्सेस चाहिए</string>
+    <string name="main_you">आप</string>
+    <plurals name="main_added_to_gig">
+        <item quantity="one">शो में %d जोड़ा गया</item>
+        <item quantity="other">शो में %d जोड़े गए</item>
+    </plurals>
+    <string name="main_saving_one">सेव हो रहा है…</string>
+    <plurals name="main_saving_many">
+        <item quantity="one">%d फ़ोटो या क्लिप सेव हो रही है…</item>
+        <item quantity="other">%d फ़ोटो और क्लिप सेव हो रहे हैं…</item>
+    </plurals>
+    <string name="main_save_failed">सेव नहीं हो सका। कहीं फ़ोन की मेमोरी तो नहीं भर गई?</string>
+    <string name="main_saved_all">आपकी गैलरी में सेव हुआ: Moshpoint / %1$s</string>
+    <plurals name="main_saved_some">
+        <item quantity="one">%2$d में से %1$d गैलरी में सेव हुआ</item>
+        <item quantity="other">%2$d में से %1$d गैलरी में सेव हुए</item>
+    </plurals>
+    <string name="main_gig_fallback">शो</string>
+
+    <string name="main_invite_expired">वह ग्रुप इनवाइट एक्सपायर हो गया है। नया माँग लें।</string>
+    <string name="main_joined_up_next">आप %1$s में हैं! यह आने वाले में है: जी भरकर चैट करें, शो वाले दिन यह चालू हो जाएगी।</string>
+    <string name="main_joined_following">आप %1$s को फ़ॉलो कर रहे हैं। आपको उनकी फ़ोटो और लोकेशन दिखेगी; उन्हें दिखेगा कि आप फ़ॉलो कर रहे हैं।</string>
+    <string name="main_joined_sleeping">आप %1$s में हैं! गैंग शो वाले दिन (%2$s) चालू होगी।</string>
+    <string name="main_joined_live">आप %1$s में हैं! इसमें सब एक-दूसरे को ढूँढ सकते हैं।</string>
+    <string name="main_the_crew">गैंग</string>
+    <string name="main_got_code">कोड मिल गया। उन्हें एक नाम दें, फिर दोस्त जोड़ें पर टैप करें।</string>
+    <string name="main_friend_added">✓ %1$s जुड़ गए</string>
+    <string name="main_no_invite_found">कोई Moshpoint इनवाइट नहीं मिला। दोस्त का भेजा पूरा मैसेज कॉपी करें, फिर इनवाइट पेस्ट करें पर टैप करें।</string>
+
+    <string name="main_perm_location">लोकेशन: GPS तीर और Bluetooth/Wi-Fi दूरी</string>
+    <string name="main_perm_nearby">आस-पास के डिवाइस: Bluetooth से दोस्तों को ढूँढना और ढूँढे जाना</string>
+    <string name="main_perm_uwb">UWB: सटीक तीर</string>
+    <string name="main_perm_notifications">नोटिफ़िकेशन: दिखाता है कि आप कब दिख रहे हैं</string>
+
+    <string name="main_phone_summary">यह फ़ोन: %1$s</string>
+    <string name="main_cap_compass">कम्पास</string>
+
+    <string name="main_invite_reset">इनवाइट रीसेट हो गया। पुराने QR कोड और लिंक अब काम नहीं करेंगे।</string>
+    <string name="main_eyebrow_up_next">आने वाले</string>
+    <string name="main_eyebrow_up_next_countdown">आने वाले · %1$s</string>
+    <string name="main_eyebrow_coming_up">आपकी गैंग · जल्द ही</string>
+    <string name="main_eyebrow_tonight">आज रात की आपकी गैंग</string>
+    <string name="main_qr_hint_planned">सब इसे एक बार स्कैन करें। अभी चैट करें और माहौल बनाएँ; एक-दूसरे को ढूँढना शो वाले दिन चालू होगा।</string>
+    <string name="main_qr_hint_tonight">सब इसे एक बार स्कैन करें। फिर पूरी रात सब एक-दूसरे को ढूँढ सकते हैं।</string>
+    <string name="main_scan_to_add_me">मुझे जोड़ने के लिए स्कैन करें</string>
+    <string name="main_scan_to_add_name">%1$s को जोड़ने के लिए स्कैन करें</string>
+
+    <string name="main_wants_to_stay_friends">%1$s दोस्त बने रहना चाहते हैं</string>
+    <string name="main_stay_friends_text">आप %1$s में मिले थे। हाँ कहें और आप किसी भी शो में एक-दूसरे को ढूँढ पाएँगे, सिर्फ़ इसी में नहीं। आपकी जानकारी सिर्फ़ %2$s को मिलेगी, गैंग में किसी और को नहीं।</string>
+    <string name="main_friends_now">आप और %1$s अब दोस्त हैं</string>
+    <string name="main_yes_stay_friends">हाँ, दोस्त बने रहें</string>
+    <string name="main_not_now">अभी नहीं</string>
+
+    <string name="main_battery_title">पूरी रात दिखते रहें</string>
+    <string name="main_battery_text">कुछ फ़ोन बैटरी बचाने के लिए बैकग्राउंड में ऐप बंद कर देते हैं, जिससे आप गायब हो जाएँगे। अगली स्क्रीन में Moshpoint ढूँढें और उसे \"ऑप्टिमाइज़ न करें\" / \"अनरिस्ट्रिक्टेड\" पर सेट करें।</string>
+    <string name="main_open_settings">सेटिंग खोलें</string>
+
+    <plurals name="main_n_mates">
+        <item quantity="one">%d दोस्त</item>
+        <item quantity="other">%d दोस्त</item>
+    </plurals>
+    <string name="main_beacon_colour_name">%1$s (%2$s)</string>
+
+    <string name="main_scan_prompt">अपने दोस्त का Moshpoint QR स्कैन करें</string>
+    <string name="main_out_of_crew">%1$s गैंग से बाहर हैं। बाकी सब नई चाबी पर चले जाते हैं।</string>
+
+    <string name="main_follow_share_text">Moshpoint पर %1$s में हमारी रात फ़ॉलो करें: हमारी फ़ोटो आते ही देखें, और यह भी कि हम सुरक्षित हैं।\n%2$s</string>
+    <string name="main_follow_share_title">परिवार को साथ फ़ॉलो करने दें</string>
+    <string name="main_when_venue">%1$s · %2$s</string>
+
+    <string name="main_time_passed">वह समय निकल चुका है। शो शुरू होने का समय चुनें।</string>
+    <string name="main_added_up_next">%1$s आने वाले में जुड़ गया। दोस्तों को बुलाएँ और माहौल बनाएँ!</string>
+
+    <string name="main_join_name">%1$s में शामिल हों?</string>
+    <string name="main_follow_name">%1$s को फ़ॉलो करें?</string>
+    <string name="main_bumped_text">बंप हो गया! शामिल हों और आज रात सब एक-दूसरे को ढूँढ पाएँगे।</string>
+    <string name="main_join">शामिल हों</string>
+    <string name="main_no">नहीं</string>
+    <string name="main_clip_follow_text">आपने फ़ॉलो करने का लिंक कॉपी किया है। आपको उनकी फ़ोटो दिखेंगी और यह कि वे सुरक्षित हैं; उन्हें दिखेगा कि आप फ़ॉलो कर रहे हैं।</string>
+    <string name="main_clip_join_text">आपने Moshpoint इनवाइट कॉपी किया है। शामिल हों और आज रात सब एक-दूसरे को ढूँढ पाएँगे।</string>
+
+    <string name="main_your_night">आपकी रात</string>
+    <string name="main_recap_text">%1$s\n\nरात खत्म करने से गैंग बंद हो जाती है (दोस्त बने रहते हैं)। फ़ोटो और क्लिप आपके फ़ोन में आपके शो में रहती हैं।</string>
+    <string name="main_night_ended">रात खत्म। आपकी फ़ोटो और क्लिप आपके शो में हैं।</string>
+    <string name="main_end_the_night">रात खत्म करें</string>
+    <string name="main_share_night_text">Moshpoint के साथ मेरी रात: %1$s 🤘</string>
+    <string name="main_share_night_title">अपनी रात शेयर करें</string>
+    <string name="main_share">शेयर करें</string>
+
+    <string name="main_now_main_crew">%1$s अब आपकी मेन गैंग है। इसमें सब एक-दूसरे को ढूँढ सकते हैं।</string>
+    <string name="main_deleted_gig">%1$s इस फ़ोन से डिलीट हो गया</string>
+    <string name="main_meetup_sent">मिलने की जगह का पिन आपकी गैंग को भेज दिया</string>
+    <string name="main_moment_label">%1$s · %2$s</string>
+
+    <string name="main_share_app_text">Moshpoint ले लो ताकि शो में हम एक-दूसरे को ढूँढ सकें: किसी दोस्त पर टैप करो और तीर सीधा उसकी तरफ़ इशारा करेगा।\n\n%1$s</string>
+    <string name="main_share_app_title">Moshpoint शेयर करें</string>
+    <string name="main_named_crew">%1$s की गैंग</string>
+    <string name="main_tonights_crew">आज रात की गैंग</string>
+    <string name="main_me">मैं</string>
+    <string name="main_group_invite_text">आज रात Moshpoint पर मेरी गैंग \"%1$s\" में शामिल हो जाओ!\n%2$s</string>
+    <string name="main_group_invite_title">ग्रुप इनवाइट भेजें</string>
+</resources>
