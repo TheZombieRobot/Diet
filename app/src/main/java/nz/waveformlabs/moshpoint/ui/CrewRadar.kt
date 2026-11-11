@@ -177,7 +177,17 @@ internal fun CrewRadar(
         val avatarR = avatarDp.dp.toPx()
         val chipW = 84.dp.toPx()
         val chipH = 40.dp.toPx()
-        val outer = size.minDimension / 2 - avatarR - (if (showChips) chipH else 14.dp.toPx()) - 6.dp.toPx()
+        // Room outside the bubbles for chips, or for the distance labels of a big crew.
+        val outer = size.minDimension / 2 - avatarR - (if (showChips) chipH else 26.dp.toPx()) - 6.dp.toPx()
+        // Arrow heads a fixed width (not growing with length, which made far arrows fat), and
+        // slimmer as the crew grows so a big crew reads as spokes, not a pile-up in the middle.
+        val headW = when {
+            groups.size > 6 -> 9.dp.toPx()
+            groups.size > 3 -> 14.dp.toPx()
+            else -> 22.dp.toPx()
+        }
+        // Chips and labels go on last, so no arrow ever covers them.
+        val labels = ArrayList<() -> Unit>()
         // You, in the middle.
         haloGlow(centre, 7.dp.toPx(), 10.dp.toPx(), Color.White, 0.8f)
         drawCircle(Mosh.Text, radius = 7.dp.toPx(), center = centre)
@@ -199,9 +209,9 @@ internal fun CrewRadar(
                 val colour = (colours[id] ?: Mosh.Pink).copy(alpha = if (byId[id]?.unsure == true) 0.6f else 1f)
                 val angle = angles[id] ?: 0f
                 val len = ((at - centre).getDistance() - avatarR - 6.dp.toPx()).coerceAtLeast(12.dp.toPx())
-                val path = arrowPath(centre, len, 0.28f)
+                val path = arrowPath(centre, len, (headW / len).coerceAtMost(0.28f))
                 rotate(angle, pivot = centre) {
-                    softGlow(path, colour, 22.dp.toPx(), breathe)
+                    softGlow(path, colour, (headW * 1.8f).coerceAtMost(22.dp.toPx()), breathe)
                     drawPath(path, Brush.verticalGradient(0f to Color.White, 0.18f to colour, 1f to lerp(colour, Mosh.Violet, 0.6f), startY = centre.y - len, endY = centre.y))
                 }
             }
@@ -214,7 +224,7 @@ internal fun CrewRadar(
             val label = if (arrived.size > 1) "$name +${arrived.size - 1}" else name
             val dist = finderDistanceLabel(byId[lead]?.distanceM)
             val (ux, uy) = (leadAt - centre).let { v -> val d = v.getDistance().coerceAtLeast(1f); v.x / d to v.y / d }
-            if (showChips) {
+            if (showChips) labels += {
                 val extent = kotlin.math.abs(ux) * chipW / 2 + kotlin.math.abs(uy) * chipH / 2
                 val cc = Offset(leadAt.x + ux * (avatarR + 6.dp.toPx() + extent), leadAt.y + uy * (avatarR + 6.dp.toPx() + extent))
                 val top = Offset(cc.x - chipW / 2, cc.y - chipH / 2)
@@ -223,11 +233,17 @@ internal fun CrewRadar(
                 val inner = chipW - 10.dp.toPx()
                 drawCentred(dist, Offset(cc.x, top.y + 14.dp.toPx()), 13.dp.toPx(), colour, displayPaint, inner)
                 drawCentred(label, Offset(cc.x, top.y + 29.dp.toPx()), 11f.dp.toPx(), Mosh.TextDim, regularPaint, inner)
-            } else {
-                // Big crew: just the distance under each bubble (names are in the strip below).
-                drawCentred(dist, Offset(leadAt.x, leadAt.y + avatarR + 10.dp.toPx()), 10.5f.dp.toPx(), colour, displayPaint, chipW)
+            } else labels += {
+                // Big crew: just the distance, on the far side of the bubble from you, where no
+                // arrow runs (names are in the strip below).
+                val textPx = 10.5f.dp.toPx()
+                displayPaint.textSize = textPx
+                val extent = kotlin.math.abs(ux) * displayPaint.measureText(dist) / 2 + kotlin.math.abs(uy) * textPx * 0.6f
+                val at = Offset(leadAt.x + ux * (avatarR + 5.dp.toPx() + extent), leadAt.y + uy * (avatarR + 5.dp.toPx() + extent))
+                drawCentred(dist, at, textPx, colour, displayPaint, chipW)
             }
         }
+        labels.forEach { it() }
     }
 }
 
