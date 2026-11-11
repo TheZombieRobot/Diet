@@ -13,9 +13,12 @@ app onto a watch. Install steps are at the end.
 
 _Updated as the work goes; newest first._
 
-- **Now:** design recorded (this note). Nothing is built yet.
-- **Next:** core maths and message format with tests → phone side → `wear` module → strings in
-  19 languages → screenshot tests → CI → install steps and field test.
+- **Done:** design (this note). Shared logic in `core/…/core/watch/` with 101 unit tests:
+  arrow maths (true north, declination, tilt limits, old readings), which directions are valid
+  on a wrist, buzz choice, message format and versions, crew status, the Moshpoint+ rule, the
+  finding lease.
+- **Next:** phone side → `wear` module → strings in 19 languages → screenshot tests → CI →
+  install steps and field test.
 - **Not possible in the build session:** compiling the Android modules locally (Google's Maven
   host was blocked there), so the phone and watch code is checked by CI only, and nothing has
   run on a real watch. Everything marked **verify on a watch** below is a first guess until the
@@ -73,8 +76,8 @@ The phone gets there by adding `GpsFinder.declinationDeg` to its magnetic compas
   direction of the screen's 12 o'clock, read from the rotation matrix, allowing for a flipped
   display (watch worn with the buttons on the other side).
 - Noise: `core/HeadingFilter` is reused as it is (unit-circle average, heavy for jitter, light
-  for a real turn), tuned for the watch's 25 readings a second: `slowAlpha 0.2, fastAlpha 0.8,
-  fastAboveDeg 12`. That is where it fits. It does **not** fit the bearing from the phone (two
+  for a real turn), tuned for the watch's 25 readings a second: `slowAlpha 0.15, fastAlpha 0.8,
+  fastAboveDeg 25`. That is where it fits. It does **not** fit the bearing from the phone (two
   readings a second, and a jump there is a real change of method), so the screen simply glides
   the arrow between updates.
 - Old readings. Three things, all in `WristArrow`:
@@ -248,11 +251,15 @@ A small vocabulary told apart by rhythm alone (many watch motors have no strengt
 | Four rapid ticks | "That did not send" | Any ping that failed |
 
 - **Never constant:** every pattern is under a second, with at least 0.4 s of silence after
-  it, and the motor is on less than a tenth of the time.
-- **The watch's settings win.** Buzzes use the system's default strength (never a fixed
-  maximum) and an ordinary usage, so the watch's vibration strength and master switch apply.
-  If the watch is on silent, in Do Not Disturb, theatre or bedtime mode, Moshpoint does not
-  buzz by default; the finder says so and offers "Buzz anyway" for that one find.
+  it, and the motor is never on for more than one second in any ten. The planner drops a buzz
+  rather than break that, whatever the readings do.
+- **The watch's settings win.** Guidance buzzes are played as notification-class vibrations at
+  the system's default strength (never a fixed maximum). Android itself then applies the
+  watch's vibration strength, its master switch, silent mode, Do Not Disturb and battery
+  saver; the app does not second-guess or override any of them. When one of those is
+  silencing the buzzes, the finder says "Buzzes are off on this watch" so the quiet isn't a
+  mystery. The short confirmations under your finger (hold ticks, sent, not sent) are touch
+  feedback and follow the watch's touch-vibration setting.
 - The choice of pattern and its timing is pure logic in `core/watch/BuzzPlan`, unit-tested.
 
 ### 8. "Need help" from the wrist
