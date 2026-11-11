@@ -848,7 +848,7 @@ class MainActivity : ComponentActivity() {
                             },
                             onOpenMoment = momentFlow::view,
                             ghost = GhostMode.on.value,
-                            onAddSimulated = if (DebugStatus.enabled) FriendsRepository::addSimulated else null,
+                            onAddSimulated = if (DebugStatus.enabled) ({ FriendsRepository.addSimulated() }) else null,
                             onSelfie = ::selfie,
                             onPickMyPhoto = {
                                 photoFor = PhotoStore.ME
