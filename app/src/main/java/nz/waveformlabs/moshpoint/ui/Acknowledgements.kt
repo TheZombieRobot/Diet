@@ -28,7 +28,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -132,7 +137,7 @@ internal fun AcknowledgementsContent(onClose: () -> Unit) {
                 Spacer(Modifier.height(18.dp))
                 Text(stringResource(R.string.setup_ack_map), style = Mosh.Eyebrow)
                 Spacer(Modifier.height(6.dp))
-                Text(stringResource(R.string.setup_ack_map_text), style = Mosh.Body.copy(fontSize = 14.sp, color = Mosh.TextDim))
+                Text(stringResource(R.string.setup_ack_map_text), style = english(Mosh.Body.copy(fontSize = 14.sp, color = Mosh.TextDim)))
                 Spacer(Modifier.height(18.dp))
                 Text(stringResource(R.string.setup_ack_fonts), style = Mosh.Eyebrow)
             }
@@ -152,9 +157,9 @@ private fun CreditRow(c: Credit, expanded: Boolean, onTap: () -> Unit) {
     Column(Modifier.fillMaxWidth().animateContentSize().clickable(onClick = onTap).padding(vertical = 10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text(c.name, style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Text), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(c.name, style = english(Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Text)), maxLines = 2, overflow = TextOverflow.Ellipsis)
                 val sub = listOf(c.detail, c.licences.joinToString(", ") { it.name }).filter { it.isNotBlank() }.joinToString("\n")
-                if (sub.isNotBlank()) Text(sub, style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 16.sp, color = Mosh.TextFaint))
+                if (sub.isNotBlank()) Text(sub, style = english(Mosh.Body.copy(fontSize = 12.sp, lineHeight = 16.sp, color = Mosh.TextFaint)))
             }
             Text(if (expanded) "–" else "+", style = Mosh.Label.copy(fontSize = 18.sp, color = Mosh.Cyan), modifier = Modifier.padding(start = 12.dp))
         }
@@ -163,9 +168,19 @@ private fun CreditRow(c: Credit, expanded: Boolean, onTap: () -> Unit) {
                 Spacer(Modifier.height(8.dp))
                 Text(
                     l.text ?: listOfNotNull(l.name, l.url).joinToString("\n"),
-                    style = Mosh.Body.copy(fontSize = 11.sp, lineHeight = 15.sp, color = Mosh.TextDim),
+                    style = english(Mosh.Body.copy(fontSize = 11.sp, lineHeight = 15.sp, color = Mosh.TextDim)),
                 )
             }
         }
     }
+}
+
+/**
+ * Credits are English (names, legal text). Lay them out left to right so "©" and full stops stay
+ * where they belong in right-to-left languages, but keep them on the page's starting edge.
+ */
+@Composable
+private fun english(base: TextStyle): TextStyle {
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    return base.copy(textDirection = TextDirection.Ltr, textAlign = if (rtl) TextAlign.Right else TextAlign.Left)
 }
