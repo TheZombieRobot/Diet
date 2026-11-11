@@ -84,7 +84,7 @@
     <string name="find_area_save_failed">Nie udało się zapisać obszaru: %1$s</string>
     <string name="find_area_too_big">Za duży obszar: przybliż na miejsce koncertu i spróbuj jeszcze raz</string>
     <string name="find_back">‹ Wstecz</string>
-    <string name="find_map_title">Mosh mapa</string>
+    <string name="find_map_title">Mapa</string>
     <string name="find_map_pin">Pinezka</string>
     <string name="find_map_all">Wszyscy</string>
     <string name="find_map_me">Ja</string>
