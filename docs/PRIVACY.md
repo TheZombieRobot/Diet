@@ -1,6 +1,6 @@
 # Moshpoint privacy policy
 
-_Draft for review before Play Store release. Last updated: 7 November 2026. Contact: [EMAIL]._
+_Draft for review before Play Store release. Last updated: 11 November 2026. Contact: [EMAIL]._
 
 Moshpoint helps you find your friends at gigs and other crowded places. It was built so
 that it can do this **without knowing who you are or where you are**. This page explains
@@ -40,6 +40,23 @@ friends' phones can speed up and set up precise UWB ranging.
 sealed locations over Bluetooth, and theirs may pass on yours. These are encrypted so that
 only that person's friends can open them. A phone that relays one can't read it and can't
 tell whose it is.
+
+**Messages without signal:** while you're live and there's no internet, the messages you send
+your crew (chat, "On my way", "Need help", the meet-up pin) are also passed between crew
+phones nearby over Bluetooth. The first crew phone that gets signal back sends them on for
+everyone. These are the same encrypted, signed messages that would have gone to the relay:
+only your crew can open them, and a phone can't change one or pretend to be you. Chat only
+travels between your own crew's phones. Quick messages and the pin can also pass through a
+few other Moshpoint phones, like the crowd relay: a phone passing one on can't read it or
+tell which crew or person it belongs to. Someone listening learns that a message of a
+certain size was sent at a certain time, and nothing else. Someone removed from a crew can't
+read or send these once the crew has its new key, and phones stop using the old key over
+Bluetooth as soon as they hear it has been replaced.
+
+**Crew introductions:** phones in a crew also broadcast a short encrypted introduction, so
+crew members' phones recognise each other. Only the crew can open it. Earlier versions left
+4 bytes in it that stayed the same all night. This version has a form with nothing constant
+in it, and sends only that form once everyone in the crew has updated.
 
 ## What goes to our server (only if GPS sharing is enabled)
 
@@ -101,12 +118,13 @@ login you can also remove Moshpoint at facebook.com → Settings → Apps and we
 
 | Permission | Why |
 |---|---|
-| Nearby devices (Bluetooth, Wi-Fi) | Find friends and be found nearby; precise distance. |
+| Nearby devices (Bluetooth, Wi-Fi) | Find friends and be found nearby; precise distance; pass crew messages on when there's no signal. |
 | Location | GPS arrow when you're far apart; Android requires it for Bluetooth/Wi-Fi distance on some versions. Used only while finding or while you're live. |
 | UWB | The precise arrow on phones that support it. |
 | Notifications | Shows when you're live, so it's never on without you knowing. |
 | Camera | Scanning a friend's or group's QR code. Images aren't stored or sent. |
 | Run in background / start at boot | Keep you findable with the app closed, only while you're live (and after a restart only if you chose "always on"). |
+| View network connections | Know when the phone has no signal, so messages wait (or go by Bluetooth) instead of failing. Android grants this without asking; nothing about your network is sent anywhere. |
 
 ## Children
 

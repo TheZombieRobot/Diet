@@ -77,6 +77,44 @@ A dumb mailbox. `PUT /v1/box/{rotating id}` stores a sealed record for 15 minute
 locations, and ids rotate every 5 minutes, so the server can't follow anyone.
 In-memory, single instance: fine for testing and a first launch. See the README for deploying.
 
+## Messages without signal
+
+Crew chat, quick pings and the meet-up pin still get through with no internet. The reasons
+for each choice are in [BLUETOOTH_BACKUP.md](BLUETOOTH_BACKUP.md); this is the map of the code.
+
+A message is sealed and signed once by its author. The same bytes then go by whichever
+route works:
+
+```
+ author ─┬─► relay server (when there's signal) ─────────────► every crew phone
+         ├─► Bluetooth adverts ─► crew phones in range ─► the first one back on signal uploads it
+         └─► pings and pins only: any Moshpoint phone, 4 or 5 hops (the crowd relay)
+```
+
+| File | Job |
+|---|---|
+| `core/Courier.kt` | All the delivery logic: the outbox, messages carried for crew mates, duplicates (by message id), the states Waiting / Sent nearby / Sent, what to upload and when, what to put on air. Plain synchronous code with the clock passed in, so `CourierSimTest` steps several phones through a night. |
+| `core/MessagePacket.kt` | Version 2 of the relay packet (a sealed message instead of a location; older phones drop it), fragments for long chat lines, `MessageRelay` (what a stranger's phone passes on, and its limits), `RelaySchedule` (whose turn it is in the relay's one advertising set). |
+| `core/MessageRules.kt` | Small rules, each tested: `MessageClock` (order), `PinRule`, `PingPolicy` (staleness per kind; Need help is never dropped), `OutboxState` (states only move forward), `IntroForms`. |
+| `core/CheckIns.kt` | Check in / Home safe by the sender's clock, whatever order they arrive in. |
+| `core/RekeyPolicy.kt` | Who may move a crew to a new key, and which notice a phone follows. |
+| `core/RelayBudget.kt` | The relay's daily and per-minute limits; only charged when the relay answers. |
+| `core/GigGroup.kt` | `messageId` (one id for every copy of a message), the signed pin, the `mp2` envelope for receipts and summaries, the intro form with no constant prefix. |
+| `app/OfflineMessages.kt` | Connects the courier to the phone: uploads through `RelayClient` to the mailbox valid at that moment, packets in and out through `CrowdRelayRadio`, arrivals and states into `CrewChat` and `GroupSync`. Also the test builds' route log. |
+| `app/NetState.kt` | Whether the phone has a network at all, so nothing is tried (or charged) without one. |
+| `app/locate/CrowdRelayRadio.kt` | The relay's advertising set now takes turns between locations and message packets. |
+| `app/ui/OfflineDebug.kt` | Test builds: the "Force no internet" switch and the message route list in Settings. |
+
+Rules to keep when changing any of it:
+
+- One id per message (`GigGroup.messageId`), used everywhere. Never match on the sealed bytes.
+- Carriers pass on the bytes as sealed. Only the author signs.
+- The message radio is switched on in `VisibilityService.begin()` and off in `onDestroy()`,
+  nowhere else. No new advertiser, scan or foreground service.
+- `Courier` and `CrewChat` are main-thread only.
+- A new crew key never arrives by Bluetooth, only from the relay.
+- Logic that must not break goes in `core` with a test: only `core` and `server` tests can fail CI.
+
 ## UWB set-up (no connection, no server)
 
 UWB needs both phones to agree on addresses, a channel, a session id and a key before

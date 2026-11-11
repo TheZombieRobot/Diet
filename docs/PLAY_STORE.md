@@ -63,4 +63,8 @@ Find your mates at gigs. Tap a friend, follow the glowing arrow.
 - **Foreground service (connectedDevice, location):** "Keeps the user findable by their
   friends while they've chosen to go live; shown with a persistent notification and a stop
   button."
+- **Same service, messages without signal:** while live, the service also passes the crew's
+  end-to-end encrypted messages between crew phones over Bluetooth when there's no internet.
+  No new service type and no new runtime permission (`ACCESS_NETWORK_STATE` is added, which
+  Android grants at install: it only tells the app whether there's a network).
 - **Background location:** not requested (location is used only in a foreground service the user started).

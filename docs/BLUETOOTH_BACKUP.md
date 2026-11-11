@@ -1,10 +1,13 @@
 # Messages without signal (Bluetooth backup): design note
 
 Step 1 of "Decided next (November 2026)" in [ROADMAP.md](ROADMAP.md). This note records the
-decision on each hard problem, with the reason, before the code. Where it differs from the
-roadmap text, the reason is given. The code review in
-[BLUETOOTH_BACKUP_REVIEW.md](BLUETOOTH_BACKUP_REVIEW.md) (14 items) is answered item by item
-in the second half.
+decision on each hard problem, with the reason. Where it differs from the roadmap text, the
+reason is given. The code review in [BLUETOOTH_BACKUP_REVIEW.md](BLUETOOTH_BACKUP_REVIEW.md)
+(14 items) is answered item by item in the second half.
+
+It was written before the code and then corrected to match what was built. What is done,
+what is only checked by tests, and what still needs real phones is at the end, under
+[Status](#status-and-next-steps).
 
 ## What gets built, in short
 
@@ -40,8 +43,9 @@ Limits accepted with this choice:
 - Both phones need Bluetooth 5 extended adverts. That is already true for the crowd relay and
   crew intros. Phones without it stay internet-only and show "Waiting for signal" honestly.
 - No fast catch-up of a long backlog over Bluetooth. History bundles and the relay still do that.
-- The transport sits behind an interface (`Courier.Radio`), so a connection-based link (Nearby
-  or BLE L2CAP) can be added later if field tests show the need.
+- The courier only knows the radio as "hand me the next packet" and "here is a packet I
+  heard" (`Courier.nextPacket`, `onPacket`, and `Courier.Air`). A connection-based link (Nearby
+  or BLE L2CAP) can be added behind the same calls later if field tests show the need.
 
 This also removes every new runtime permission: no `BLUETOOTH_CONNECT`, no
 `NEARBY_WIFI_DEVICES`. Going live automatically keeps working unchanged.
@@ -93,8 +97,9 @@ Bluetooth mechanics, all inside the existing relay advertising set:
 - The id is the key everywhere: chat list, outbox, notifications, the "what I have" summary,
   receipts, upload decisions and History ingest. The seen set is saved, so a restart doesn't
   alert twice.
-- Hashes of the sealed bytes are never used to identify a message. They appear in one place
-  only: a stranger's relay cache, which can't open the packet and needs something to stop loops.
+- Hashes of the sealed bytes never decide whether a message is new. They are used only as a
+  shortcut (to skip opening bytes a phone has already looked at) and in a stranger's relay
+  cache, which can't open the packet and needs something to stop loops.
 - Carriers forward the original bytes. Only the author can re-sign.
 
 ### 2. Honest states
@@ -104,10 +109,15 @@ Bluetooth mechanics, all inside the existing relay advertising set:
 - **Sent** means the relay has it: our own upload succeeded, or our message id was seen in a
   mailbox fetch (any copy), or a crew phone that uploaded it told us.
 - Stored numbers: `SENT=0, SENDING=1, FAILED=2` stay; new `NEARBY=3, WAITING=4`, so saved
-  chats still load. "Not sent · tap to retry" remains only for old rows; a tap re-queues it.
-- The sealed bytes are saved with the outbox (in the courier's file, keyed by the line's id),
-  so a retry sends the same bytes instead of re-sealing.
-- Quick pings get the same outbox and states. Today they always look sent.
+  chats still load. The allowed steps are one function in core (`OutboxState.mayMove`).
+- A message that can't start uploading (no network, or the relay asked us to slow down) shows
+  "Waiting for signal" straight away, not "Sending…" for as long as that lasts.
+- "Not sent · tap to retry" is now rare: only when a message got too old without reaching
+  anyone (three days for chat, two hours for a quick ping). A tap queues it again.
+- The sealed bytes are saved with the outbox (in the courier's file, keyed by the message id),
+  so a retry sends the same bytes instead of re-sealing. If that file is ever lost, the line is
+  sealed again: different bytes, same id, so nobody sees it twice.
+- Quick pings get the same outbox and states. Before, they always looked sent.
 
 ### 3. Store-and-forward
 
@@ -118,14 +128,24 @@ then 2 a second **per IP**; the public relay doesn't de-duplicate at all.
 
 - Upload to the mailbox id that is **valid at upload time** (today's chat id, the current
   5-minute ping id). Readers look at today and yesterday, and at this and the last ping id.
-- **The author uploads first.** A helper waits a random 10 to 60 s after regaining signal,
-  fetches the mailbox, and uploads only ids that still aren't there, five at a time. So a crew
-  walking out of a venue together uploads each message about once.
-- A helper never pushes a mailbox past 180 of its 200 records, and sends the newest first.
-  Older backlog reaches people through History bundles, as today.
+- **The author uploads first.** A helper waits a random 10 to 60 s after regaining signal
+  (3 to 15 s if it had signal all along), fetches the mailbox, and uploads only ids that still
+  aren't there, five per fetch. So a crew walking out of a venue together uploads each message
+  about once. "About": two helpers can still overlap by a message or two. On our own server
+  that costs nothing (identical bytes take one slot); on the public relay it leaves a second
+  copy, which every phone shows once.
+- An author whose message a crew phone already holds looks at the mailbox first (for up to
+  15 s) when signal returns, in case that phone has uploaded it.
+- A helper never pushes today's mailbox past 180 of its 200 records, and with little room
+  sends the newest first. Yesterday's mailbox doesn't count against today's. Older backlog
+  reaches people through History bundles, as before.
 - An id seen in a fetched History bundle counts as already uploaded.
+- Need help, Check in and Home safe are also posted to the chat mailbox, which keeps them for
+  days where the ping mailbox keeps 15 minutes.
 - Carry limits, saved to disk: 200 messages per crew, chat for 24 h, quick pings for 2 h,
-  safety pings for 12 h, the newest pin only.
+  safety pings for 12 h, the newest pin only (18 h).
+- Our own pin is re-posted every ten minutes while the app is open or live, as before (the pin
+  mailbox forgets after 15). Not with the app closed.
 
 ### 4. Rekeys while offline
 
@@ -135,8 +155,10 @@ then 2 a second **per IP**; the public relay doesn't de-duplicate at all.
   sending, opening and carrying old-key packets.
 - The phone that removed someone broadcasts a small **"this key is retired"** packet, sealed
   with the old key, through the crowd relay for six hours. A phone that hears it stops using
-  that key over Bluetooth until the relay gives it the new one, and passes the notice on. A
-  forged notice can only pause Bluetooth backup, never move a crew.
+  that key over Bluetooth until the relay gives it the new one, and passes the notice on. The
+  hold lapses 30 minutes after the last notice heard. So a forged notice (only someone holding
+  the crew key can make one) can pause Bluetooth backup while they stand there, and never move
+  a crew.
 - **Messages in flight under the old key:** carriers drop other people's. The author's phone
   re-signs its own not-yet-uploaded messages under the new key once it has it. The message id
   is the same, so anyone who already has the old copy shows it once.
@@ -152,6 +174,8 @@ then 2 a second **per IP**; the public relay doesn't de-duplicate at all.
 - New control messages are padded to 16-byte steps, and the starting hop count is random
   (4 or 5), so size and hop count say less.
 - The intro advert's constant crew-pass prefix is fixed in a compatible way: see review item 14.
+- Not ours to fix: the Bluetooth address on each advert is chosen and changed by Android on
+  its own timer.
 
 ### 6. Radio budget
 
@@ -169,10 +193,15 @@ then 2 a second **per IP**; the public relay doesn't de-duplicate at all.
 - Version 2 packets. Older phones drop anything that isn't exactly 48 bytes starting with `1`.
 - Kept at 200 bytes of service data, because many phones cap an advert near 251 and an
   oversized update fails silently. The phone's own limit is checked before sending.
-- A separate message cache: 40 packets, 20 minutes (60 for Need help), no packet timestamped
-  more than 2 minutes ahead, oldest-heard evicted first.
+- A separate message cache on every phone (`MessageRelay`): 40 packets, nothing older than an
+  hour, nothing timestamped more than 2 minutes ahead, the longest-held dropped first.
+- A stranger's phone can't tell a Need help from an "On my way", so the time limit is set by
+  the crew phones that send: a ping or pin goes out with hops for 20 minutes (Need help for an
+  hour), and after that with none, so only crew phones carry it.
 - A stranger relays each packet for two turns, with one fewer hop, and takes at most 6 new
-  packets a minute from the air.
+  packets a minute from the air. Only whole packets: a message split in two never crosses a
+  stranger's phone. Every one-tap ping, Need help and the pin fit in one packet; a flare with
+  long words may not.
 - The existing `RelayPacket` and `RelayCache` are unchanged and their tests still pass.
 
 ### 8. Android rules
@@ -192,6 +221,8 @@ then 2 a second **per IP**; the public relay doesn't de-duplicate at all.
 
 - Listens only while you're live, through the scan that is already on.
 - Idle cost is zero: no summaries, no packets, when everyone has signal and nothing is waiting.
+  A message that reaches the relay within 3 seconds never goes on air at all, unless a crew
+  mate nearby has said it has no signal. Safety pings always go on air as well.
 - A phone with no signal sends one summary a minute. A message costs about 5.5 s of advertising.
 - No connections, so nothing churns in a crowd.
 
@@ -223,12 +254,12 @@ then 2 a second **per IP**; the public relay doesn't de-duplicate at all.
 | 2 | Forward-only state | As in hard problem 2. `markSeen` no longer hides our own echo from the courier. |
 | 3 | Rekey hijack | See below. |
 | 4 | Relay budget | See below. **Done first.** |
-| 5 | Logic in core | `Courier` is a plain synchronous state machine with injected radio, relay and clock. The simulation is a `step(t)` loop over three or more phones. |
+| 5 | Logic in core | `Courier` is a plain synchronous state machine. The app, the relay and the radio are three small interfaces (`Host`, `Uplink`, `Air`) and the clock is passed in. The simulation steps several real couriers one second at a time. |
 | 6 | Pings | Same outbox and states as chat. Staleness per kind in core (`PingPolicy`): Need help, Check in and Home safe are never dropped; other pings older than 20 minutes still appear in the chat, without a notification. Future times are clamped to arrival. De-duplicated by message id before notifying. Safety pings are also posted to the 72-hour chat mailbox, which older builds ignore silently. |
 | 7 | Check-in order | `CheckIns` in core: newest state per sender key by sender time, saved. A Home safe that arrives first beats a late Check in. A Check in that arrives already overdue waits 3 minutes for a Home safe before alarming. Safety pings upload first. |
 | 8 | Transport | As above. |
 | 9 | Crowd relay | As in hard problem 7. |
-| 10 | Older builds | New control messages use a new envelope (`mp2` AAD) that older builds can't open, so nothing shows as "pinged the crew". Ping kinds stay in the ping mailbox. Unknown kinds are ignored by an allowlist. All routes go through one handler (`OfflineMessages.accept`). |
+| 10 | Older builds | New control messages use a new envelope (`mp2` AAD) that older builds can't open, so nothing shows as "pinged the crew". No new ping kinds were added. Kinds this build doesn't know are ignored by an allowlist (`PingPolicy`). Whether something is new is decided in one place for every route (`Courier.accept`, by message id); the chat's own id check backs it up. |
 | 11 | Pins | See below. |
 | 12 | Upload storm | As in hard problem 3, plus back-off with jitter after a 429 and a budget reserve. |
 | 13 | Lifecycle | Radio starts and stops only in `VisibilityService.begin()/onDestroy()`, main crew only, never for followers or sleeping crews. No new service. Everything runs on Main. No new required permission. |
@@ -267,7 +298,7 @@ location uploader, the outbox, intros and pings all retry with no signal.
 - A network callback (`NetState`) stops attempts while there's no network. Nothing waits out
   two 6-second timeouts before trying Bluetooth.
 - A reserve: background traffic (location, intros, History) stops at 150 a day; the last 50
-  are for messages, and safety pings can use every one.
+  are for messages, and the last 10 of those only for safety pings.
 - After a 429 the phone backs off with jitter. Messages stay queued and go out when it lifts.
 
 ### Item 11: pins
@@ -286,46 +317,149 @@ location uploader, the outbox, intros and pings all retry with no signal.
 Checked: `sealIntro` puts the first 4 bytes of the member's crew pass in the clear, the same
 all night.
 
+That is worse than "all night": the crew pass is fixed for the life of the crew, so the same
+4 bytes show at every gig that crew goes to.
+
 - A second intro form replaces that prefix with 8 random bytes. Older builds can't open it and
   drop it safely.
-- This build reads both forms. It sends the new form alongside the old one, and stops sending
-  the old one once every crew mate has been seen using the new form.
+- A full fix can't be compatible: a crew mate on an older build who can't read our intro can't
+  find us. So the old form has to stay on air until the crew has updated. The rule
+  (`IntroForms` in core, tested):
+  - this build reads both forms;
+  - while anyone might be on an older build, our own intro takes turns between the two forms,
+    and intros we pass on for crew mates stay in the old one;
+  - a member's own intro is signed by them. One arriving in the new form shows their phone
+    writes it, so reads it. That is remembered (as a short hash, not another copy of their pass);
+  - once every member we know has shown it, only the new form goes on air. Someone new on an
+    older build isn't on that list, so the old form comes straight back.
+- Limits: a member who never comes in Bluetooth range after updating keeps the crew on both
+  forms. The copy of the intro posted to the relay is unchanged (people following from home
+  and older builds read the crew list there), so the relay can still link a crew's roster
+  mailboxes by that prefix. Phones whose adverts have no room for the 4 extra bytes keep the
+  old form.
 - The envelope reserves a type for private messages (step 4), sealed to one person with no
   sender or recipient tag in the crew-readable layer.
 
 ## Tests
 
-In core (these can fail CI):
+In core (these can fail CI). 77 new tests; the whole core suite is 178.
 
-- Three or more phones on a simulated radio: store-and-forward, duplicates, out-of-order
-  arrival, phones moving in and out of range, lossy reception, a rekey part-way.
-- Relay budget used up, then the flush afterwards.
-- Need help never dropped. Check-in and Home safe reordered with clock skew.
-- A removed member attempting a rekey.
-- Helpers not uploading duplicates; mailbox never pushed past its limit.
-- Relay schedule: unchanged when idle, location packets never starved.
-- Packet version 2 ignored by the version 1 decoder; existing relay tests unchanged.
+| File | What it proves |
+|---|---|
+| `CourierSimTest` (21) | Several real couriers stepped one second at a time, with a lossy radio, each phone's own (possibly wrong) clock, and a relay with the server's rules. A message hops along a line of phones and the first one back on signal uploads it, once. "Sent nearby" needs a receipt and never stops the upload. Every route at once under 35% packet loss still shows each message once. A re-sealed copy is the same message. Out-of-order arrival shows in sent order; a reply stays below its question with skewed clocks. Phones walking in and out of range. Need help crosses strangers' phones and chat doesn't; Need help is carried for hours and uploaded where it lasts. Five helpers regaining signal together upload each message once. A mailbox is never pushed past its limit; yesterday's full mailbox doesn't block today's. The relay saying "too many", and a spent budget (Need help still goes), then the flush. A removed member can't send, read or rekey over Bluetooth. A restart keeps the queue. Pins: newest wins, far-future refused, only kept fresh while the app is in use. Six phones through a random night on six seeds. |
+| `RelayBudgetTest` (7) | Retries with no signal cost nothing. Location shares can't use up the messages. Back-off after "too many", with jitter. Need help still tries. |
+| `MessageRulesTest` (21) | One id for every copy of a message. Signed pin, readable by older builds. Envelope older builds can't open. Intro form with no constant prefix, and when it may replace the old one. Message clock. Need help never dropped; other late pings shown without a buzz; unknown kinds ignored. Forward-only states. |
+| `CheckInsTest` (10) | Home safe arriving before its Check in still wins; order is by the sender's clock; a Check in that arrives already overdue waits for a Home safe behind it; the alarm fires once; survives a restart. |
+| `RekeyPolicyTest` (6) | A removed member's later rekey isn't followed; a key we never knew can't rekey; the notice carries the removed key; older builds still get a form they understand. |
+| `MessagePacketTest` (12) | Version 2 packets are dropped by the version 1 decoder. Fragments. The stranger relay's limits. The airtime schedule is unchanged when idle and never starves location packets. |
 
-In server: a test pinning what the courier relies on (200 per id, identical bytes replace).
+In server: `HeldMailboxTest` pins what the courier relies on from the chat mailbox (200 per
+id, oldest dropped, identical bytes take one slot, newest first).
 
-In app (rendered, never gating): Sent / Sent nearby / Waiting for signal in every language,
-in their own test class.
+In app (rendered by CI, never gating): `OfflineSnapshotTest` and its `Offline_Lang_xx`
+subclasses draw the chat with no signal in every language: Sent, Sent nearby and Waiting for
+signal under the "messages are being passed on" note; the note that asks you to go live; and
+the chat after removing someone with no signal. Filed as `docs/screenshots/offlineChat.png`,
+`de-offlineChat.png` and so on.
+
+## Field-test tools (test builds only)
+
+- **Settings → TESTING → Force no internet.** The phone stops talking to the relay as if it
+  had no signal; Bluetooth carries on. Off again when the app restarts.
+- **Settings → TESTING → Message routes.** For each message (first six characters of its id,
+  the same on every phone): queued, on air, a crew phone nearby has it, uploaded, uploaded for
+  a crew mate, in by Bluetooth, in by crowd relay, in from the relay. The same lines go into
+  the debug panel's log and into field recordings, marked `msg`.
+- Debug panel → Technology status → `Messages (Bluetooth)` says whether this phone can carry
+  messages at all.
+- CI checks the release APK doesn't contain the switch.
+- The two-phone test (airplane mode with Bluetooth on) is section 4b of
+  [FIELD_TEST_PLAN.md](FIELD_TEST_PLAN.md).
+
+## New words, for translators
+
+All new text is in `strings_offline.xml`, in English and the 19 languages, and passes
+`tools/check_translation.py`. It reuses each language's existing words for crew, Go live,
+Need help, the pin and "no signal" (from `docs/i18n` and the existing strings). The two new
+terms a native reader should look at first:
+
+| | Sent nearby | Waiting for signal |
+|---|---|---|
+| ar | أُرسلت لمن حولك | بانتظار الإشارة |
+| de | In der Nähe gesendet | Warte auf Empfang |
+| es / es-ES | Enviado cerca | Esperando señal / Esperando cobertura |
+| fr | Envoyé à proximité | En attente de réseau |
+| hi | आस-पास भेजा गया | सिग्नल का इंतज़ार |
+| in | Terkirim ke HP terdekat | Menunggu sinyal |
+| it | Inviato qui vicino | In attesa di segnale |
+| ja | 近くの仲間に送信済み | 電波待ち |
+| ko | 근처에 보냄 | 신호 기다리는 중 |
+| nl | Verstuurd in de buurt | Wacht op bereik |
+| pl | Wysłano w pobliżu | Czeka na zasięg |
+| pt | Enviada por perto | Esperando sinal |
+| sv | Skickat i närheten | Väntar på täckning |
+| th | ส่งถึงเพื่อนใกล้ๆ แล้ว | รอสัญญาณ |
+| tr | Yakındakilere gönderildi | Sinyal bekleniyor |
+| vi | Đã gửi cho máy ở gần | Đang chờ có sóng |
+| zh-CN / zh-TW | 已发给附近队友 / 已傳給附近隊友 | 等待信号 / 等待訊號 |
+
+These were written without a native reviewer, like the rest of the app's translations.
+
+## Merging with the venue map branch
+
+Kept apart on purpose: every new string is in `strings_offline.xml`; the screenshot tests are
+in their own file and classes; `core/Advert.kt` and `ScreensSnapshotTest.kt` are untouched.
+
+Shared files this branch does change, and how much:
+
+| File | Change |
+|---|---|
+| `MainActivity.kt`, `MoshpointApp.kt`, `OnboardingScreen.kt`, `SettingsScreen.kt`, `VisibilityService.kt`, `AndroidManifest.xml`, `android.yml` | One to three lines each. |
+| `CrewChatUi.kt` | The two new state labels, the note at the top of the chat, the pin's name in "Meet at the pin". |
+| `ChatSync.kt` | The courier is told what each fetch found; rekeys are collected and applied oldest first; the day of grace for the old mailbox. |
+| `GroupSync.kt` | **Not small** (about 180 lines). Quick pings, check-ins and the pin live here, and review items 6, 7 and 11 are about exactly those: pings go through the outbox, staleness and check-ins use the core rules, pins are signed and go through the courier, and the intro form is chosen. The radio and sync loops are otherwise as they were. |
+| `CrewChat.kt`, `CrewRekey.kt`, `RelayClient.kt`, `CrowdRelayRadio.kt` | The outbox, rekey rules, budget and relay turns described above. |
 
 ## Status and next steps
 
-Updated as work lands, so it can be picked up after an interruption.
-
-- [x] Design note (this file).
-- [ ] Item 4 first: `RelayBudget` in core with tests; `RelayClient` and `NetState` use it.
-- [ ] Core: message id, envelope, signed pin, intro form 2, `PingPolicy`, `CheckIns`,
+- [x] Design note (this file), corrected to match the code.
+- [x] Item 4 first: `RelayBudget` in core with tests; `RelayClient` and `NetState` use it.
+- [x] Core: message id, envelope, signed pin, intro form 2, `PingPolicy`, `CheckIns`,
       `RekeyPolicy`, message clock, with tests.
-- [ ] Core: packet version 2, message relay cache, `RelaySchedule`, `Courier`, and the
+- [x] Core: packet version 2, message relay cache, `RelaySchedule`, `Courier`, and the
       multi-phone simulation.
-- [ ] App: `OfflineMessages` adapter; `CrewChat`, `GroupSync`, `ChatSync`, `CrewRekey`,
+- [x] App: `OfflineMessages` adapter; `CrewChat`, `GroupSync`, `ChatSync`, `CrewRekey`,
       `CrowdRelayRadio`, `VisibilityService` wired to it.
-- [ ] UI: states in the chat, `strings_offline.xml` in 19 languages, screenshot tests.
-- [ ] Debug tools: "no internet" switch and the route log.
-- [ ] Two-phone airplane-mode test in `FIELD_TEST_PLAN.md`; privacy and architecture notes.
+- [x] UI: states in the chat, `strings_offline.xml` in 19 languages, screenshot tests.
+- [x] Debug tools: "no internet" switch and the route log.
+- [x] Two-phone airplane-mode test in `FIELD_TEST_PLAN.md`; privacy and architecture notes.
+- [x] Intro advert: the new form goes on air, and replaces the old one when the crew can read it.
+- [ ] **Run section 4b of the field test plan on real phones.** Nothing here has been on a
+      phone yet.
 
-Not verified here: this container can't reach Google's Maven host, so the app module is only
-compiled by CI. Core and server tests run locally.
+### What is checked, and how
+
+- **By tests that can fail CI:** all the delivery logic (core), the relay budget, the server's
+  mailbox rules.
+- **By CI building it:** the app compiles, debug and release, and the release APK has no debug
+  tools in it. Translations match English. Screenshots render in every language.
+- **Not checked by anything yet:** the radio itself. Whether a 200-byte advert held for 5.5 s
+  is reliably heard by a phone scanning at low power in a crowd; how many phones a venue can
+  take; real battery cost; whether every phone that says it has Bluetooth 5 extended adverts
+  accepts 200 bytes; whether the arrow and UWB are undisturbed in practice (the schedule is
+  proven, the radio isn't). These numbers (5.5 s on air, 8.5 s cycle, one summary a minute,
+  six at a time) are first guesses in `Courier` and `RelaySchedule`, in one place each, to be
+  tuned from field recordings.
+
+### Known limits
+
+- Bluetooth 5 extended adverts on both phones, both live, same main crew, on gig day.
+- About one message every 8.5 seconds per phone. Text only.
+- Chat never passes through strangers' phones, so it needs a crew phone in Bluetooth range.
+- Removing someone with no signal anywhere pauses the crew's Bluetooth messages until phones
+  get signal (hard problem 4).
+- No owner role: whoever's rekey reaches the relay first wins (review item 3).
+- Two helpers can occasionally both upload a message (hard problem 3). Phones show it once.
+- This build was developed in a container that can't download the Android build tools, so the
+  app was compiled and rendered only by CI, and type-checked locally against stand-in
+  libraries. Core and server tests ran locally as well as in CI.
