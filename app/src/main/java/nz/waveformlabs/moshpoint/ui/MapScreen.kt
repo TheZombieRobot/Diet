@@ -292,27 +292,3 @@ internal fun crewBubbles(pins: List<MapPin>): List<MapPin> {
     }
     return out
 }
-
-/** "live · 64%", "12 min ago · 8%", "phone died here · 40 min ago". */
-internal fun statusLine(s: LocationBook.Seen, ageSec: Long, liveWord: Boolean = false): String {
-    val time = if (liveWord && ageSec < 120) "live" else ago(ageSec)
-    return when {
-        s.lastGasp -> "battery died here · $time"
-        s.batteryPct != null -> "$time · ${s.batteryPct}%"
-        else -> time
-    }
-}
-
-/** "just now", "4 min ago", "2 h ago". */
-internal fun ago(seconds: Long): String = when {
-    seconds < 60 -> "just now"
-    seconds < 3600 -> "${seconds / 60} min ago"
-    seconds < 48 * 3600 -> "${seconds / 3600} h ago"
-    else -> "${seconds / 86400} days ago"
-}
-
-internal fun distanceLabel(m: Double): String = when {
-    m < 1000 -> "${(m / 10).toInt() * 10} m"
-    m < 10_000 -> "%.1f km".format(m / 1000)
-    else -> "${(m / 1000).toInt()} km"
-}

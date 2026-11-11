@@ -6,6 +6,17 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class HomeLogicTest {
+    // Real app resources (words) for the formatting checks.
+    @get:org.junit.Rule
+    val paparazzi = app.cash.paparazzi.Paparazzi()
+
+    private fun inLocale(l: java.util.Locale, block: () -> Unit) {
+        val was = java.util.Locale.getDefault()
+        java.util.Locale.setDefault(l)
+        nz.waveformlabs.moshpoint.Txt.init(paparazzi.context)
+        try { block() } finally { java.util.Locale.setDefault(was) }
+    }
+
     @Test fun initialsLikeContactMonograms() {
         assertEquals("KZ", initials("King Zipper"))
         assertEquals("B", initials("bevan"))
@@ -34,7 +45,7 @@ class HomeLogicTest {
         assertEquals(2, out.size)
     }
 
-    @Test fun statusLineSaysWhatMatters() {
+    @Test fun statusLineSaysWhatMatters() = inLocale(java.util.Locale("en", "NZ")) {
         val live = LocationBook.Seen(0.0, 0.0, 0, 10, batteryPct = 64)
         assertEquals("live · 64%", statusLine(live, 30, liveWord = true))
         assertEquals("battery died here · 5 min ago", statusLine(live.copy(lastGasp = true), 300))
@@ -42,8 +53,16 @@ class HomeLogicTest {
     }
 
     @Test fun distanceLabels() {
-        assertEquals("40 m", distanceLabel(43.0))
-        assertEquals("1.2 km", distanceLabel(1_234.0))
-        assertEquals("31 km", distanceLabel(31_400.0))
+        inLocale(java.util.Locale("en", "NZ")) {
+            assertEquals("40 m", distanceLabel(43.0))
+            assertEquals("1.2 km", distanceLabel(1_234.0))
+            assertEquals("31 km", distanceLabel(31_400.0))
+        }
+        // Feet and miles where that's the norm; local decimal commas elsewhere.
+        inLocale(java.util.Locale.US) {
+            assertEquals("140 ft", distanceLabel(43.0))
+            assertEquals("0.8 mi", distanceLabel(1_234.0))
+        }
+        inLocale(java.util.Locale.GERMANY) { assertEquals("1,2 km", distanceLabel(1_234.0)) }
     }
 }

@@ -74,6 +74,10 @@ android {
         // panel available. Not "debuggable": Android skips name scrambling for debuggable
         // builds. Test-only features check BuildConfig.TEST_BUILD instead of DEBUG.
         debug {
+            // Test builds can switch to the pseudo-languages (Settings → Developer options →
+            // Languages: "English (XA)" = long accented text, "Arabic (XB)" = right-to-left)
+            // to catch clipping and mirroring bugs without a translator.
+            isPseudoLocalesEnabled = true
             // With the private key set up in CI, test builds are signed with it too, so nobody
             // can make a fake "update" with the public debug key. Until then, the debug key.
             if (keystorePath != null) signingConfig = signingConfigs.getByName("release")

@@ -35,11 +35,6 @@ import java.util.Calendar
 import java.util.Date
 
 /** "Sat 14 Dec, 8:00 pm" in the phone's own format. */
-internal fun gigWhen(startsAtSec: Long): String {
-    val d = Date(startsAtSec * 1000)
-    val day = java.text.SimpleDateFormat("EEE d MMM", java.util.Locale.getDefault()).format(d)
-    return "$day, " + DateFormat.getTimeInstance(DateFormat.SHORT).format(d)
-}
 
 /**
  * Plan a gig: search ("iron" -> Iron Maiden, Spark Arena, Sat) or type it in, then start

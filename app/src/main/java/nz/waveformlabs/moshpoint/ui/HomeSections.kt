@@ -535,18 +535,3 @@ internal fun UpNextRow(card: UpNextCard, onClick: () -> Unit) {
     }
 }
 
-/** "tonight", "tomorrow", "in 5 days", "in 3 weeks", "in 2 months". */
-internal fun countdown(startsAtSec: Long, nowSec: Long): String? {
-    if (startsAtSec <= 0) return null
-    val zone = java.util.TimeZone.getDefault()
-    fun day(t: Long) = Math.floorDiv(t * 1000 + zone.getOffset(t * 1000), 86_400_000L)
-    val days = day(startsAtSec) - day(nowSec)
-    return when {
-        days < 0 -> null
-        days == 0L -> "tonight"
-        days == 1L -> "tomorrow"
-        days < 14 -> "in $days days"
-        days < 60 -> "in ${days / 7} weeks"
-        else -> "in ${days / 30} months"
-    }
-}

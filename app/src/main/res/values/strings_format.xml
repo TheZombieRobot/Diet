@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shared formats: times, distances, countdowns. Used everywhere, so translate with care. -->
+<resources>
+    <string name="time_just_now">just now</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">%d min ago</item>
+        <item quantity="other">%d min ago</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="one">%d h ago</item>
+        <item quantity="other">%d h ago</item>
+    </plurals>
+    <plurals name="time_days_ago">
+        <item quantity="one">%d day ago</item>
+        <item quantity="other">%d days ago</item>
+    </plurals>
+    <string name="time_live">live</string>
+    <!-- %1$s = "5 min ago" -->
+    <string name="status_battery_died">battery died here · %1$s</string>
+    <!-- %1$s = "5 min ago", %2$d = battery percent -->
+    <string name="status_time_battery">%1$s · %2$d%%</string>
+
+    <!-- Distances. %1$s is the number, already formatted for the language. -->
+    <string name="dist_m">%1$s m</string>
+    <string name="dist_km">%1$s km</string>
+    <string name="dist_ft">%1$s ft</string>
+    <string name="dist_mi">%1$s mi</string>
+
+    <!-- Countdowns to a gig -->
+    <string name="countdown_tonight">tonight</string>
+    <string name="countdown_tomorrow">tomorrow</string>
+    <plurals name="countdown_days">
+        <item quantity="one">in %d day</item>
+        <item quantity="other">in %d days</item>
+    </plurals>
+    <plurals name="countdown_weeks">
+        <item quantity="one">in %d week</item>
+        <item quantity="other">in %d weeks</item>
+    </plurals>
+    <plurals name="countdown_months">
+        <item quantity="one">in %d month</item>
+        <item quantity="other">in %d months</item>
+    </plurals>
+</resources>
