@@ -737,6 +737,59 @@ class CourierSimTest {
         assertEquals(1, b.got.count { it.id == id })
     }
 
+    // ---- Several crews at once ----
+
+    @Test fun onlyTheMainCrewUsesBluetoothAndTheOthersWaitForSignal() {
+        val w = World()
+        val tonight = group
+        val nextWeek = GigGroup(ByteArray(32) { (it + 60).toByte() }, "Next week", 0L)
+        val nextId = crewIdOf(nextWeek)
+        // P is out with tonight's crew and also in next week's. Q is in next week's crew only, and happens to be near.
+        val p = Phone("P", w, tonight)
+        val q = Phone("Q", w, nextWeek)
+        val mate = Phone("M", w, tonight)
+        w.linkAll(p, q, mate)
+        fun crews(mainIsNext: Boolean) = listOf(
+            Courier.Crew(crewId, tonight, p.signer, main = !mainIsNext),
+            Courier.Crew(nextId, nextWeek, p.signer, main = mainIsNext),
+        )
+        p.courier.setCrews(crews(mainIsNext = false), p.now)
+        fun toNextWeek(text: String) = assertNotNull(
+            p.courier.post(nextId, nextWeek.sealPing(GigGroup.Ping(GigGroup.Ping.CHAT, "P", p.now / 1000, text = text), p.signer), p.now),
+        ).id
+
+        // No signal. A message for tonight's crew goes over Bluetooth; one for next week's just waits.
+        val here = p.chat("by the bar")
+        val later = toNextWeek("who's driving next week?")
+        w.run(180)
+        assertTrue(mate.has(here))
+        assertEquals(Courier.State.NEARBY, p.state(here))
+        assertFalse(q.has(later), "an Up next crew is asleep: nothing of it goes on air")
+        assertNull(p.state(later), "still waiting, and it never claimed otherwise")
+
+        // Signal: each message goes to its own crew's mailbox, sealed with that crew's key.
+        p.online = true
+        w.run(60)
+        assertEquals(Courier.State.SENT, p.state(later))
+        assertTrue(w.relay.get(nextId, chatBox).any { nextWeek.openPing(it)?.id == later })
+        assertTrue(w.relay.get(crewId, chatBox).none { tonight.openPing(it) == null }, "nothing from the other crew in tonight's mailbox")
+        assertTrue(w.relay.get(crewId, chatBox).any { tonight.openPing(it)?.id == here })
+
+        // Next week arrives: that crew becomes the main one, and its queue starts using Bluetooth.
+        p.online = false
+        val waiting = toNextWeek("leaving in ten")
+        w.run(60)
+        assertFalse(q.has(waiting))
+        p.courier.setCrews(crews(mainIsNext = true), p.now)
+        w.run(120)
+        assertTrue(q.has(waiting))
+        assertEquals(Courier.State.NEARBY, p.state(waiting))
+        // And tonight's crew is the one that's quiet now.
+        val after = p.chat("still at the bar?")
+        w.run(120)
+        assertFalse(mate.has(after))
+    }
+
     // ---- The meet-up pin ----
 
     @Test fun theNewestPinWinsAndAFarFuturePinIsRefused() {
