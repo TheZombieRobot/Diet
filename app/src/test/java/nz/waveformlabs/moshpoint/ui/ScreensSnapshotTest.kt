@@ -34,7 +34,7 @@ class ScreensSnapshotTest {
     private val mia = friend("mia", "Mia", 0xFFB6FF3B)
     private val all = listOf(sam, alex, jo, mia).associateBy { it.id }
 
-    private fun finder(title: String, arrows: List<ArrowState>, scan: LocatorEngine.ScanUi? = null) = paparazzi.snapshot {
+    private fun finder(title: String, arrows: List<ArrowState>, scan: LocatorEngine.ScanUi? = null) = snap {
         MoshTheme {
             FinderScreen(
                 title = title, visible = true, arrows = arrows, friendOf = { all[it] }, scan = scan,
@@ -67,7 +67,7 @@ class ScreensSnapshotTest {
 
     @Test fun finderFound() = finder("Sam", listOf(ArrowState.Pointing("sam", 10.0, 2.0, Method.UWB, false)))
 
-    @Test fun home() = paparazzi.snapshot {
+    @Test fun home() = snap {
         MoshTheme {
             FriendsScreen(
                 friends = listOf(alex, jo, sam, mia), visible = true, alwaysOn = false,
@@ -89,7 +89,7 @@ class ScreensSnapshotTest {
         }
     }
 
-    @Test fun homeHiddenNoGroup() = paparazzi.snapshot {
+    @Test fun homeHiddenNoGroup() = snap {
         MoshTheme {
             FriendsScreen(
                 friends = listOf(sam), visible = false, alwaysOn = false,
@@ -144,11 +144,11 @@ class ScreensSnapshotTest {
         }
     }
 
-    @Test fun welcome() = paparazzi.snapshot {
+    @Test fun welcome() = snap {
         MoshTheme { OnboardingScreen(name = "", onName = {}, onAskPermissions = {}, onDone = {}) }
     }
 
-    private fun settings() = paparazzi.snapshot {
+    private fun settings() = snap {
         MoshTheme {
             androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.background(Mosh.Deep)) {
                 SettingsContent(
@@ -173,7 +173,7 @@ class ScreensSnapshotTest {
         finder("Sam", listOf(ArrowState.Pointing("sam", 90.0, 12.0, Method.UWB, false)))
     }
 
-    @Test fun mapScreen() = paparazzi.snapshot {
+    @Test fun mapScreen() = snap {
         MoshTheme {
             MapScreen(
                 people = listOf(sam, alex, jo, mia),
@@ -192,7 +192,7 @@ class ScreensSnapshotTest {
         }
     }
 
-    @Test fun homePlannedGigAsleep() = paparazzi.snapshot {
+    @Test fun homePlannedGigAsleep() = snap {
         MoshTheme {
             FriendsScreen(
                 friends = listOf(alex), visible = false, alwaysOn = false, phoneSummary = "",
@@ -217,7 +217,7 @@ class ScreensSnapshotTest {
     private fun moment(key: String, from: String, t: Long, caption: String, top: Int, bottom: Int, mine: Boolean = false) =
         nz.waveformlabs.moshpoint.Moments.Item(key, from, t, -36.85, 174.77, caption, fakePhoto(top, bottom), mine)
 
-    @Test fun crewChat() = paparazzi.snapshot {
+    @Test fun crewChat() = snap {
         MoshTheme {
             val t = 1_000_000L
             CrewChatScreen(
@@ -243,7 +243,7 @@ class ScreensSnapshotTest {
         }
     }
 
-    @Test fun upNext() = paparazzi.snapshot {
+    @Test fun upNext() = snap {
         MoshTheme {
             androidx.compose.foundation.layout.Column(
                 androidx.compose.ui.Modifier.background(Mosh.Ground).then(androidx.compose.ui.Modifier.padding(16.dp)),
@@ -257,7 +257,7 @@ class ScreensSnapshotTest {
         }
     }
 
-    @Test fun story() = paparazzi.snapshot {
+    @Test fun story() = snap {
         MoshTheme {
             StoryScreen(
                 items = listOf(
@@ -273,7 +273,7 @@ class ScreensSnapshotTest {
         }
     }
 
-    @Test fun homeFollowing() = paparazzi.snapshot {
+    @Test fun homeFollowing() = snap {
         MoshTheme {
             FriendsScreen(
                 friends = listOf(alex, jo), visible = false, alwaysOn = false, phoneSummary = "",
@@ -295,19 +295,55 @@ class ScreensSnapshotTest {
     // ---- Other languages: long words (German), right-to-left (Arabic), CJK (Japanese) ----
     // These catch clipped labels and mirroring mistakes before anyone sees them.
 
+    /** How each screen is wrapped: in English, as is; in another language, with that language's resources. */
+    private var wrap: @androidx.compose.runtime.Composable (@androidx.compose.runtime.Composable () -> Unit) -> Unit = { it() }
+
+    private fun snap(content: @androidx.compose.runtime.Composable () -> Unit) = paparazzi.snapshot { wrap(content) }
+
+    /** A Context whose resources are in [locale] (the screenshot tool's own locale switch doesn't reach Compose). */
+    private fun localized(base: android.content.Context, locale: java.util.Locale): android.content.Context {
+        val conf = android.content.res.Configuration(base.resources.configuration).apply {
+            setLocale(locale)
+            setLayoutDirection(locale)
+        }
+        val viaConfig = runCatching { base.createConfigurationContext(conf) }.getOrNull()
+        if (viaConfig?.resources != null && viaConfig.resources.configuration.locales[0].language == locale.language) return viaConfig
+        @Suppress("DEPRECATION")
+        val res = android.content.res.Resources(base.assets, base.resources.displayMetrics, conf)
+        return object : android.content.ContextWrapper(base) {
+            override fun getResources(): android.content.res.Resources = res
+        }
+    }
+
     private fun language(tag: String, rtl: Boolean = false) {
         val l = java.util.Locale.forLanguageTag(tag)
         java.util.Locale.setDefault(l)
+        // Resource qualifier form: "de", "ar", "en-rUS".
+        val qualifier = if (l.country.isNotEmpty()) "${l.language}-r${l.country}" else l.language
         paparazzi.unsafeUpdateConfig(
             deviceConfig = DeviceConfig.PIXEL_5.copy(
-                locale = tag,
+                locale = qualifier,
                 layoutDirection = if (rtl) com.android.resources.LayoutDirection.RTL else com.android.resources.LayoutDirection.LTR,
             ),
         )
+        wrap = { content ->
+            val ctx = localized(androidx.compose.ui.platform.LocalContext.current, l)
+            androidx.compose.runtime.CompositionLocalProvider(
+                androidx.compose.ui.platform.LocalContext provides ctx,
+                androidx.compose.ui.platform.LocalConfiguration provides ctx.resources.configuration,
+                androidx.compose.ui.platform.LocalLayoutDirection provides if (rtl) androidx.compose.ui.unit.LayoutDirection.Rtl else androidx.compose.ui.unit.LayoutDirection.Ltr,
+            ) { content() }
+        }
     }
 
     // Everything else renders in metric English (the CI machine's own region would vary).
     @org.junit.Before fun metricEnglish() = java.util.Locale.setDefault(java.util.Locale.forLanguageTag("en-NZ"))
+
+    /** The translations really load (a guard for the screenshots below). */
+    @Test fun germanResourcesLoad() {
+        val de = localized(paparazzi.context, java.util.Locale.GERMAN)
+        kotlin.test.assertEquals("Alle finden", de.getString(nz.waveformlabs.moshpoint.R.string.home_find_everyone))
+    }
 
     @Test fun deHome() { language("de"); home() }
     @Test fun deCrewChat() { language("de"); crewChat() }

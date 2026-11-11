@@ -27,7 +27,7 @@ class HomeLogicTest {
     private fun pin(id: String, lat: Double, lon: Double, stale: Boolean = false) =
         MapPin(id, id.replaceFirstChar { it.uppercase() }, lat, lon, 0xFFFF2E93.toInt(), "live", stale)
 
-    @Test fun matesTogetherMergeIntoOneBubble() {
+    @Test fun matesTogetherMergeIntoOneBubble() = inLocale(java.util.Locale("en", "NZ")) {
         val out = crewBubbles(
             listOf(
                 pin("alex", -41.2865, 174.7762),
