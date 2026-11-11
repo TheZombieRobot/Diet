@@ -152,6 +152,7 @@ private fun PingChip(text: String, onClick: () -> Unit) {
 @Composable
 private fun PingFlashOverlay(fate: PingFate) {
     BoxWithConstraints(Modifier.fillMaxSize().background(Wrist.Ground.copy(alpha = 0.94f)), contentAlignment = Alignment.Center) {
+        val w = maxWidth
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             FitText(
                 stringResource(
@@ -173,7 +174,7 @@ private fun PingFlashOverlay(fate: PingFate) {
                         PingFate.OUT_OF_REACH, PingFate.NO_CREW -> Wrist.Help
                     },
                 ),
-                Modifier.width(maxWidth * 0.76f), maxLines = 2,
+                Modifier.width(w * 0.76f), maxLines = 2,
             )
             val detail = when (fate) {
                 PingFate.OUT_OF_REACH -> R.string.sos_out_of_reach
@@ -184,7 +185,7 @@ private fun PingFlashOverlay(fate: PingFate) {
             }
             if (detail != null) {
                 Spacer(Modifier.height(4.dp))
-                FitText(stringResource(detail), Wrist.Body, Modifier.width(maxWidth * 0.72f), maxLines = 3)
+                FitText(stringResource(detail), Wrist.Body, Modifier.width(w * 0.72f), maxLines = 3)
             }
         }
     }
