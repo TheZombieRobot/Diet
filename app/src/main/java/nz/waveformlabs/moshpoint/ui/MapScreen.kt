@@ -227,8 +227,10 @@ fun MapScreen(
                 }
                 items(people.sortedBy { f -> seen[f.id]?.let { nowMs / 1000 - it.timeSec } ?: Long.MAX_VALUE }, key = { it.id }) { f ->
                     val s = seen[f.id]
+                    // Placed by UWB: the row says the measured distance, like their pin.
+                    val measured = uwb[f.id]?.distanceM?.takeIf { spots[f.id] is VenuePlacement.Spot.Exact }
                     // Heard close by but with no direction: we say how close, and draw nothing.
-                    val closeBy = near[f.id]?.takeIf { s == null || spots[f.id] == VenuePlacement.Spot.Unknown }
+                    val closeBy = near[f.id]?.takeIf { measured == null && (s == null || spots[f.id] == VenuePlacement.Spot.Unknown) }
                     val pin = pins.firstOrNull { it.id == f.id }
                     Row(
                         Modifier.fillMaxWidth()
@@ -242,21 +244,21 @@ fun MapScreen(
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
                             Text(f.name, style = Mosh.Label.copy(fontSize = 15.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            val line = if (closeBy != null) {
+                            val line = if (measured != null) {
+                                listOfNotNull(finderDistanceLabel(measured), floorText[f.id]).joinToString(" · ")
+                            } else if (closeBy != null) {
                                 listOfNotNull(bandLabel(closeBy), bandHint(closeBy), floorText[f.id]).joinToString(" · ")
                             } else if (s == null) {
                                 stringResource(R.string.find_not_sharing)
                             } else {
                                 val age = nowMs / 1000 - s.timeSec
                                 val dist = me?.let { distanceLabel(Geo.distanceM(it, LatLon(s.lat, s.lon))) }
-                                listOfNotNull(dist, statusLine(s, age, liveWord = true)).joinToString(" · ")
+                                listOfNotNull(dist, statusLine(s, age, liveWord = true), floorText[f.id]).joinToString(" · ")
                             }
-                            Text(
-                                line,
-                                style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 16.sp, color = if (closeBy != null || (s != null && nowMs / 1000 - s.timeSec < 120)) Mosh.Lime else Mosh.TextFaint),
-                            )
+                            val fresh = measured != null || closeBy != null || (s != null && nowMs / 1000 - s.timeSec < 120)
+                            Text(line, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 16.sp, color = if (fresh) Mosh.Lime else Mosh.TextFaint))
                         }
-                        if (closeBy != null && s == null) {
+                        if ((closeBy != null || measured != null) && s == null) {
                             TextButton(onClick = { onFind(f.id) }) { Text(stringResource(R.string.find_find), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink)) }
                         } else if (s != null) {
                             Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
