@@ -737,6 +737,86 @@ class CourierSimTest {
         assertEquals(1, b.got.count { it.id == id })
     }
 
+    @Test fun aCrewPhonesWordThatItUploadedIsCheckedAgainstTheRelay() {
+        val w = World()
+        val a = Phone("A", w, group)
+        val b = Phone("B", w, group)
+        w.link(a, b)
+        val id = a.chat("did this really go?")
+        w.run(60)
+        assertEquals(Courier.State.NEARBY, a.state(id))
+        // B's phone (mistaken, or tampered with) says it has uploaded A's message. It hasn't.
+        val claim = java.nio.ByteBuffer.allocate(10).put(1).putLong(id).put(1).array()
+        w.broadcast(b, MessagePacket(0, 0, 1, group.sealEnvelope(GigGroup.ENV_RECEIPT, claim, b.now / 1000)).encode())
+        assertEquals(Courier.State.SENT, a.state(id), "a crew phone's word shows straight away")
+        b.live = false
+        // A gets signal and looks: the relay doesn't have it, so A uploads it after all. The label never goes back.
+        w.run(60)
+        a.online = true
+        w.run(120)
+        assertTrue(w.relay.get(crewId, chatBox).any { group.openPing(it)?.id == id }, "${a.trace}")
+        assertEquals(1, w.relay.puts)
+        assertEquals(listOf(Courier.State.NEARBY, Courier.State.SENT), a.states[id]?.toList())
+        // When the word was true, nothing is uploaded twice.
+        val c = Phone("C", w, group)
+        w.link(a, c)
+        a.online = false
+        val second = a.chat("and this one")
+        w.run(90)
+        assertTrue(c.has(second))
+        c.online = true
+        w.run(150)
+        assertEquals(2, w.relay.puts, "C uploaded it for A")
+        assertEquals(Courier.State.SENT, a.state(second))
+        a.online = true
+        w.run(150)
+        assertEquals(2, w.relay.puts, "A saw it there and left it alone")
+    }
+
+    // ---- Nothing heard on air may break a phone ----
+
+    @Test fun garbageOnTheAirIsIgnoredEvenFromSomeoneHoldingTheCrewKey() {
+        val w = World()
+        val a = Phone("A", w, group)
+        val b = Phone("B", w, group)
+        w.link(a, b)
+        val rnd = java.util.Random(5)
+        // Noise, and noise dressed up as a version 2 packet (any hop count, any fragment marker).
+        repeat(4_000) {
+            val bytes = ByteArray(rnd.nextInt(230)).also { rnd.nextBytes(it) }
+            if (bytes.size > 3 && it % 2 == 0) {
+                bytes[0] = 2
+                bytes[1] = rnd.nextInt(8).toByte()
+                bytes[2] = rnd.nextInt(256).toByte()
+            }
+            a.courier.onPacket(bytes, a.now)
+        }
+        // Someone with the crew key (a crew mate's broken or tampered app) can seal anything:
+        // summaries, receipts and unknown types with nonsense inside, of every size, dated any time.
+        val types = listOf(GigGroup.ENV_HAVE, GigGroup.ENV_RECEIPT, GigGroup.ENV_PRIVATE, 0, 77, 255)
+        repeat(3_000) {
+            val body = ByteArray(if (it % 5 == 0) rnd.nextInt(4) else rnd.nextInt(170)).also { x -> rnd.nextBytes(x) }
+            val sealed = group.sealEnvelope(types[it % types.size], body, a.now / 1000 + rnd.nextInt(600) - 300)
+            MessagePacket.split(sealed, rnd.nextInt(6)).forEach { p -> a.courier.onPacket(p.encode(), a.now) }
+            if (it % 50 == 0) w.run(1)
+        }
+        // Half of a two-part message whose other half never comes, and a second half that belongs to nothing.
+        val long = group.sealPing(GigGroup.Ping(GigGroup.Ping.CHAT, "B", b.now / 1000, text = "x".repeat(150)), b.signer)
+        val parts = MessagePacket.split(long, 0)
+        assertEquals(2, parts.size)
+        a.courier.onPacket(parts[1].encode(), a.now)
+        a.courier.onPacket(MessagePacket(0, 1, 2, ByteArray(60).also { rnd.nextBytes(it) }).encode(), a.now)
+        assertEquals(0, a.got.size, "none of that is a message")
+        assertFalse(a.paused)
+        // And the phone still works.
+        val id = b.chat("after all that")
+        w.run(120)
+        assertTrue(a.has(id))
+        val back = a.chat("got it")
+        w.run(120)
+        assertTrue(b.has(back))
+    }
+
     // ---- Several crews at once ----
 
     @Test fun onlyTheMainCrewUsesBluetoothAndTheOthersWaitForSignal() {

@@ -116,6 +116,8 @@ class Courier(
         var confirmedAtMs = 0L
         var putAtMs = 0L
         var notified: State? = null
+        /** When a crew phone told us it had uploaded this (0 = it didn't, or the relay has since confirmed it). */
+        var toldAtMs = 0L
 
         // Uploading
         var primaryFlying = false
@@ -304,6 +306,7 @@ class Courier(
                 here += a.id
             }
         }
+        if (box == Box.CHAT) checkWhatWeWereTold(crewId, here, nowMs)
         if (box == Box.PIN && active) {
             // The pin box forgets after 15 minutes. If the crew's pin has dropped out, someone re-posts it.
             parcels.values.firstOrNull { it.crewId == crewId && it.kind == KIND_PIN }?.let { p ->
@@ -311,6 +314,27 @@ class Courier(
             }
         }
         return out
+    }
+
+    /**
+     * A crew phone's word that it uploaded one of our messages shows "Sent" at once, but the
+     * relay's own word beats it. At the first look at the chat mailbox after that (with room
+     * to spare, so nothing has been pushed out), a message that isn't there is uploaded by us
+     * after all. A mistaken or tampered phone can't make a message vanish by claiming it went.
+     */
+    private fun checkWhatWeWereTold(crewId: String, here: Set<Long>, nowMs: Long) {
+        val roomy = (chatCount[crewId] ?: 0) < HELD_LIMIT
+        for (p in parcels.values) {
+            if (p.crewId != crewId || !p.mine || p.toldAtMs == 0L || primaryBox(p.kind) != Box.CHAT) continue
+            // Give the upload we were told about a moment to show up.
+            if (nowMs - p.toldAtMs < TOLD_CHECK_AFTER_MS) continue
+            p.toldAtMs = 0L
+            if (p.id !in here && roomy && p.onServer) {
+                p.onServer = false
+                dirty = true
+                host.trace(p.id, p.kind, "a crew phone said it uploaded this, but it isn't on the relay: uploading it ourselves")
+            }
+        }
     }
 
     /** One sealed blob the app got from the relay outside a full fetch (see [fetched] for the result). */
@@ -369,10 +393,12 @@ class Courier(
         return null
     }
 
-    /** Message [id] is on the relay (seen in [box], or uploaded there). */
+    /** Message [id] is on the relay (seen in [box], or uploaded there; a null [box] is a crew phone's word for it). */
     private fun onRelay(id: Long, box: Box?, nowMs: Long) {
         val p = parcels[id] ?: return
         val primary = box == null || box == primaryBox(p.kind)
+        // Seen there ourselves: nothing left to check.
+        if (box != null && primary) p.toldAtMs = 0L
         if (primary && !p.onServer) {
             p.onServer = true
             dirty = true
@@ -781,7 +807,10 @@ class Courier(
                 dirty = true
                 host.trace(p.id, p.kind, "a crew phone nearby has it")
             }
-            if (onServer) onRelay(id, null, nowMs)
+            if (onServer) {
+                if (p.mine && !p.onServer) p.toldAtMs = nowMs
+                onRelay(id, null, nowMs)
+            }
             tell(p)
         }
     }
@@ -904,7 +933,7 @@ class Courier(
                 d.writeLong(p.sender)
                 d.writeLong(p.heldAtMs)
                 d.writeByte(p.route.ordinal)
-                d.writeByte((if (p.mine) 1 else 0) or (if (p.onServer) 2 else 0) or (if (p.durable) 4 else 0) or (if (p.nearby) 8 else 0))
+                d.writeByte((if (p.mine) 1 else 0) or (if (p.onServer) 2 else 0) or (if (p.durable) 4 else 0) or (if (p.nearby) 8 else 0) or (if (p.toldAtMs != 0L) 16 else 0))
                 d.writeByte(p.notified?.ordinal ?: -1)
                 d.writeShort(p.sealed.size)
                 d.write(p.sealed)
@@ -942,6 +971,7 @@ class Courier(
                 p.onServer = flags and 2 != 0
                 p.durable = flags and 4 != 0
                 p.nearby = flags and 8 != 0
+                if (flags and 16 != 0) p.toldAtMs = nowMs
                 p.notified = State.values().getOrNull(notified)
                 // Already on air before the restart, as far as anyone waiting is concerned: don't re-send unasked.
                 p.aired = if (p.mine && !p.onServer && !p.nearby) 0 else 1
@@ -1002,6 +1032,8 @@ class Courier(
         private const val FETCH_ASK_GAP_MS = 30_000L
         /** Back on signal with a message a mate already holds: how long to wait for a look at the mailbox before uploading it ourselves. */
         private const val LOOK_FIRST_MS = 15_000L
+        /** How long after a crew phone says "I uploaded yours" before a mailbox without it counts as proof it didn't. */
+        private const val TOLD_CHECK_AFTER_MS = 30_000L
         private const val PIN_REPOST_MS = 10 * 60_000L
         private const val PIN_LAPSE_MS = 60_000L
         private const val PIN_CARRY_MS = 18 * 3600_000L
