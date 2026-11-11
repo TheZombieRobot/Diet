@@ -102,8 +102,11 @@ object FriendsRepository {
         return true
     }
 
-    /** Debug builds: a pretend friend driven by FriendSimulator (ids start with "sim-"). */
-    fun addSimulated() {
+    /**
+     * Debug builds: a pretend friend driven by FriendSimulator (ids start with "sim-").
+     * [toCrew]: a crew mate for tonight (so "Find everyone" shows them), not a saved friend.
+     */
+    fun addSimulated(toCrew: Boolean = false) {
         if (!DebugStatus.enabled) return
         val n = friends.count { isSimulated(it.id) } + 1
         val secret = ByteArray(32).also { java.security.SecureRandom().nextBytes(it) }
@@ -113,7 +116,7 @@ object FriendsRepository {
                 name = "Sim $n",
                 color = PALETTE[(friends.size) % PALETTE.size],
                 secret = secret,
-                gigGroupOnly = false,
+                gigGroupOnly = toCrew,
                 addedAtMs = System.currentTimeMillis(),
             ),
         )
