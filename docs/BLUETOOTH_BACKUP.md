@@ -413,17 +413,28 @@ These were written without a native reviewer, like the rest of the app's transla
 Kept apart on purpose: every new string is in `strings_offline.xml`; the screenshot tests are
 in their own file and classes; `core/Advert.kt` and `ScreensSnapshotTest.kt` are untouched.
 
-Shared files this branch does change, and how much:
+Every shared file this branch changes, and how much:
 
 | File | Change |
 |---|---|
-| `MainActivity.kt`, `MoshpointApp.kt`, `OnboardingScreen.kt`, `SettingsScreen.kt`, `VisibilityService.kt`, `AndroidManifest.xml`, `android.yml` | One to three lines each. |
+| `MainActivity.kt` | One line: the crew chat is given the note for its top (`offlineHint = …`). The venue map branch adds parameters to other screens' calls in the same file. |
+| `service/VisibilityService.kt` | Three lines: `OfflineMessages.startRadio(this)` in `begin()` after the relay starts, `stopRadio()` in `onDestroy()`. The venue map branch also adds lines in those two functions; both sets are needed. |
+| `MoshpointApp.kt`, `ui/OnboardingScreen.kt`, `ui/SettingsScreen.kt`, `AndroidManifest.xml`, `.github/workflows/android.yml` | One to three lines each (network watcher start, the permission's reason, the test tools, `ACCESS_NETWORK_STATE`, one more string in the release check). |
+| `CrewNotifications.kt` | Five lines: a notification can say a message was sent a while ago. |
+| `core/GigGroup.kt` | Additions only: `messageId`, the signed pin, the envelope, the second intro form. Existing formats are read exactly as before. |
+| `docs/ROADMAP.md`, `PRIVACY.md`, `ARCHITECTURE.md`, `FIELD_TEST_PLAN.md`, `PLAY_STORE.md` | A status line, new paragraphs and one new section each; nothing existing reworded except the privacy table's "Nearby devices" row and the date. |
 | `CrewChatUi.kt` | The two new state labels, the note at the top of the chat, the pin's name in "Meet at the pin". |
 | `ChatSync.kt` | The courier is told what each fetch found; rekeys are collected and applied oldest first; the day of grace for the old mailbox. |
 | `GroupSync.kt` | **Not small** (about 180 lines). Quick pings, check-ins and the pin live here, and review items 6, 7 and 11 are about exactly those: pings go through the outbox, staleness and check-ins use the core rules, pins are signed and go through the courier, and the intro form is chosen. The radio and sync loops are otherwise as they were. |
 | `CrewChat.kt`, `CrewRekey.kt`, `RelayClient.kt`, `CrowdRelayRadio.kt` | The outbox, rekey rules, budget and relay turns described above. |
 
 ## Status and next steps
+
+**Handover.** Everything ticked below is committed and pushed on `ccr-89acfff3-nbj8aa`;
+nothing is half-done. To pick this up: core and server tests are `./gradlew :core:test
+:server:test`; the app is built, and its screenshots rendered, by CI on every push
+(`Android build`). The next step is the field test, then tuning the timings from what it
+shows. No decision is waiting to be written down.
 
 - [x] Design note (this file), corrected to match the code.
 - [x] Item 4 first: `RelayBudget` in core with tests; `RelayClient` and `NetState` use it.
