@@ -90,6 +90,29 @@ first guess until the field test.
    `.github/testing-release.md`; one-line pointers in `ARCHITECTURE.md` and `FEATURES.md`.
 6. **Finish line:** both CI jobs green.
 
+### Shared files this branch touches (for merging with the other two branches)
+
+Everything else is new files (`core/…/core/watch/`, `wear/`, `docs/WATCH.md`, `wip/`).
+
+| File | Change | State |
+|---|---|---|
+| `settings.gradle.kts` | One line at the end: `include(":wear")` | Done |
+| `gradle/libs.versions.toml` | A block of Wear versions at the end of `[versions]`, a block of libraries at the end of `[libraries]`. No existing line changed | Done |
+| `.github/workflows/android.yml` | A new `wear` job appended at the very end. No existing line changed | Done |
+| `.github/workflows/android.yml` | The "Translations match English" step will also loop over `wear/src/main/res` | Planned |
+| `app/build.gradle.kts` | One dependency line: `implementation(libs.play.services.wearable)` | Planned |
+| `app/src/main/AndroidManifest.xml` | Two services and one provider added inside `<application>`, after the existing ones | Planned |
+| `app/…/locate/LocatorEngine.kt` | 17 lines appended as the last thing in the class (after `class ScanUi`): three read-only members and an `init` that registers with the bridge. Parked as `wip/watch-phone-side/locatorengine-bridge.patch`. If the venue-map branch also appends there, keep both | Planned |
+| `tools/check_translation.py` | The English folder becomes "the `values` folder next to the one being checked" instead of a fixed `app/…` path; a check that modules ship the same languages | Planned |
+| `.github/testing-release.md`, `docs/FIELD_TEST_PLAN.md`, `docs/ARCHITECTURE.md`, `docs/FEATURES.md` | Added sections or lines only | Planned |
+
+Not touched, and not going to be: `core/Advert.kt`, `service/VisibilityService.kt`,
+`MainActivity.kt`, `MoshpointApp.kt`, `GroupSync.kt`, `CrewStatus.kt`, the server. The phone
+side reads the app's existing state from outside (it is Compose state) and starts itself from
+a manifest-declared provider, so none of those need a hook. The pocket finder calls
+`Advert.encode(…, looking = true)` with named arguments, so new optional parameters there
+won't break it.
+
 ### Working notes
 
 - The Android modules cannot be built in the cloud session (Google's Maven host is blocked
