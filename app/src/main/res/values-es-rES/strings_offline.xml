@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Spanish (Spain): messages without signal (crew messages passed between phones over Bluetooth). -->
+<resources>
+
+    <string name="offline_state_sent">Enviado</string>
+    <string name="offline_state_nearby">Enviado cerca</string>
+    <string name="offline_state_waiting">Esperando cobertura</string>
+    <string name="offline_hint_bluetooth">Sin cobertura. Los mensajes pasan por Bluetooth a los móviles del grupo que estén cerca, y se envían en cuanto alguno tenga cobertura.</string>
+    <string name="offline_hint_go_live">Sin cobertura. Toca Activar en directo y los mensajes pasarán por Bluetooth a los móviles del grupo que estén cerca.</string>
+    <string name="offline_hint_bluetooth_off">Sin cobertura, y el Bluetooth está desactivado. Actívalo y los mensajes pasarán a los móviles del grupo que estén cerca.</string>
+    <string name="offline_hint_unsupported">Sin cobertura. Este móvil no puede pasar mensajes por Bluetooth, así que se enviarán cuando tengas cobertura.</string>
+    <string name="offline_hint_no_signal">Sin cobertura. Los mensajes se enviarán cuando vuelvas a tener cobertura.</string>
+    <string name="offline_hint_paused">Este grupo está cambiando de clave. Los mensajes se enviarán cuando tengas cobertura.</string>
+    <string name="offline_note_rekey_offline">El grupo recibirá su clave nueva cuando los móviles vuelvan a tener cobertura. Hasta entonces, los mensajes por Bluetooth quedan en pausa.</string>
+    <string name="offline_notif_late">Enviado %1$s. Acaba de llegar.</string>
+    <string name="offline_notif_help_late">Ha pulsado Necesito ayuda %1$s. Acaba de llegar. Comprueba que esté bien.</string>
+    <string name="offline_meet_pin_named">Nos vemos en el pin 📍 %1$s</string>
+    <string name="offline_need_nearby_why">para encontrar amigos por Bluetooth, Wi-Fi y UWB, y pasar mensajes sin cobertura</string>
+
+</resources>

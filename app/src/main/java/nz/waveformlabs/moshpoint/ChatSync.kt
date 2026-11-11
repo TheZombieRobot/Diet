@@ -10,7 +10,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.core.Courier
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.core.PingPolicy
 import nz.waveformlabs.moshpoint.locate.RelayClient
 
 /**
@@ -46,15 +48,29 @@ object ChatSync {
         if (crews.isEmpty()) return
         CrewChat.retryOutbox(app, crews)
         val day = Math.floorDiv(now / 1000, 86_400L)
-        val ids = crews.flatMap { listOf(it.chatIdForDay(day), it.chatIdForDay(day - 1)) }
+        // For a day after a crew moves to a new key, its old mailbox is still read (see CrewRekey.graceCrews).
+        val grace = CrewRekey.graceCrews(app)
+        val ids = crews.flatMap { listOf(it.chatIdForDay(day), it.chatIdForDay(day - 1)) } +
+            grace.flatMap { listOf(it.old.chatIdForDay(day), it.old.chatIdForDay(day - 1)) }
         val found = RelayClient.lookupHeld(ids) ?: return
         crews.forEachIndexed { i, g ->
             val fresh = mutableListOf<String>()
-            (found.getOrNull(2 * i).orEmpty() + found.getOrNull(2 * i + 1).orEmpty()).forEach { blob ->
+            val blobs = found.getOrNull(2 * i).orEmpty() + found.getOrNull(2 * i + 1).orEmpty()
+            // First the courier notes everything that's on the relay, our own messages included
+            // (that's how one of ours becomes "Sent" when a crew mate uploaded it for us).
+            OfflineMessages.fetched(app, g, Courier.Box.CHAT, blobs)
+            val rekeys = mutableListOf<GigGroup.Direct>()
+            blobs.forEach { blob ->
                 if (!seen.add(blob.contentHashCode())) return@forEach
                 val p = g.openPing(blob)
                 if (p != null) {
-                    CrewChat.ingest(app, g, p)?.let { note -> fresh += Txt.s(R.string.crew_notif_line, CrewChat.displayName(app, g, p.sender, p.from), note) }
+                    OfflineMessages.traceRelay(p.id, p.kind)
+                    if (PingPolicy.group(p.kind) == PingPolicy.Group.CHAT) {
+                        CrewChat.ingest(app, g, p)?.let { note -> fresh += Txt.s(R.string.crew_notif_line, CrewChat.displayName(app, g, p.sender, p.from), note) }
+                    } else if (GroupSync.group.value?.key?.contentEquals(g.key) == true) {
+                        // A safety ping, also kept here because this mailbox outlives the ping mailbox's 15 minutes.
+                        GroupSync.arrived(app, p, blob)
+                    }
                     return@forEach
                 }
                 val h = g.openHistory(blob)
@@ -64,17 +80,39 @@ object ChatSync {
                 }
                 // A private message for us (e.g. "keep as friend"); for anyone else it's unreadable.
                 g.openDirect(blob, Identity.signer(app, g))?.let { d ->
-                    if (d.kind == CrewRekey.REKEY) CrewRekey.onDirect(app, g, d) else Friendship.onDirect(app, g, d)
+                    if (d.kind == GigGroup.DIRECT_REKEY || d.kind == GigGroup.DIRECT_REKEY2) rekeys += d else Friendship.onDirect(app, g, d)
                 }
             }
             val onScreen = CrewChat.open && CrewChat.viewing.value?.key?.contentEquals(g.key) == true
             if (notify && fresh.isNotEmpty() && !onScreen) notifyCrew(app, g, fresh)
+            // New crew keys last, in the order they reached the relay (the lists are newest first).
+            // Before, the newest was read first, so a removed member's later rekey beat the real one.
+            if (rekeys.isNotEmpty()) CrewRekey.onNotices(app, g, rekeys.reversed())
+        }
+        grace.forEachIndexed { j, old ->
+            val at = 2 * (crews.size + j)
+            (found.getOrNull(at).orEmpty() + found.getOrNull(at + 1).orEmpty()).forEach { blob ->
+                if (!seen.add(blob.contentHashCode())) return@forEach
+                val p = old.old.openPing(blob) ?: return@forEach
+                // Only chat, and only from who was in the crew at the time minus whoever was removed.
+                if (p.sender !in old.allowed || PingPolicy.group(p.kind) != PingPolicy.Group.CHAT) return@forEach
+                // Shown in the crew as it is now. No proof kept: its signature belongs to the old key.
+                CrewChat.ingest(app, old.now, p.copy(sig = null))
+            }
         }
         CrewRekey.resend(app)
         CrewChat.repostPlans(app, crews)
         CrewChat.shareHistory(app, crews)
         // Say hello in each crew we're in (followers too: then a new crew key reaches them as well).
         crews.forEach { g -> CrewChat.announceJoin(app, g) }
+    }
+
+    /** A chat line, plan or "joined" that arrived over Bluetooth: shown and announced exactly like one from the relay. */
+    fun arrived(c: Context, g: GigGroup, p: GigGroup.Ping) {
+        val app = c.applicationContext
+        val note = CrewChat.ingest(app, g, p) ?: return
+        val onScreen = CrewChat.open && CrewChat.viewing.value?.key?.contentEquals(g.key) == true
+        if (!onScreen) notifyCrew(app, g, listOf(Txt.s(R.string.crew_notif_line, CrewChat.displayName(app, g, p.sender, p.from), note)))
     }
 
     /**

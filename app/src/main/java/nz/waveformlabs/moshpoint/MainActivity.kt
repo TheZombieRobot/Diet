@@ -1008,6 +1008,7 @@ class MainActivity : ComponentActivity() {
                             } else null,
                             onInvite = { qrCrew = chatCrew; showGroupQr = true },
                             onRetry = { CrewChat.retry(this@MainActivity, it) },
+                            offlineHint = OfflineMessages.chatHint(this@MainActivity, chatCrew),
                             onMakeMain = if (waiting != null && !chatCrew.dormant(homeNow) && !waiting.following) ({
                                 GroupSync.makeMain(this@MainActivity, waiting)
                                 CrewChat.show(this@MainActivity, GroupSync.group.value)

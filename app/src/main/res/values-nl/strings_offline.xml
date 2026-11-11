@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dutch: messages without signal (crew messages passed between phones over Bluetooth). -->
+<resources>
+
+    <string name="offline_state_sent">Verstuurd</string>
+    <string name="offline_state_nearby">Verstuurd in de buurt</string>
+    <string name="offline_state_waiting">Wacht op bereik</string>
+    <string name="offline_hint_bluetooth">Geen bereik. Berichten gaan via Bluetooth naar telefoons van je crew in de buurt, en worden verstuurd zodra iemand van jullie bereik heeft.</string>
+    <string name="offline_hint_go_live">Geen bereik. Tik op Ga live en berichten gaan via Bluetooth naar telefoons van je crew in de buurt.</string>
+    <string name="offline_hint_bluetooth_off">Geen bereik, en Bluetooth staat uit. Zet het aan en berichten gaan naar telefoons van je crew in de buurt.</string>
+    <string name="offline_hint_unsupported">Geen bereik. Deze telefoon kan geen berichten doorgeven via Bluetooth. Ze worden verstuurd zodra je bereik hebt.</string>
+    <string name="offline_hint_no_signal">Geen bereik. Berichten worden verstuurd zodra je weer bereik hebt.</string>
+    <string name="offline_hint_paused">Deze crew krijgt een nieuwe sleutel. Berichten worden verstuurd zodra je bereik hebt.</string>
+    <string name="offline_note_rekey_offline">De crew krijgt de nieuwe sleutel zodra de telefoons weer bereik hebben. Tot dan staan Bluetooth-berichten in de wacht.</string>
+    <string name="offline_notif_late">Verstuurd %1$s. Kwam nu pas door.</string>
+    <string name="offline_notif_help_late">Tikte %1$s op Hulp nodig. Kwam nu pas door. Check even hoe het gaat.</string>
+    <string name="offline_meet_pin_named">Zie je bij de pin 📍 %1$s</string>
+    <string name="offline_need_nearby_why">om vrienden te vinden via Bluetooth, Wi-Fi en UWB, en berichten door te geven zonder bereik</string>
+
+</resources>

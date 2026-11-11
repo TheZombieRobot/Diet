@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Indonesian: messages without signal (crew messages passed between phones over Bluetooth). -->
+<resources>
+
+    <string name="offline_state_sent">Terkirim</string>
+    <string name="offline_state_nearby">Terkirim ke HP terdekat</string>
+    <string name="offline_state_waiting">Menunggu sinyal</string>
+    <string name="offline_hint_bluetooth">Nggak ada sinyal. Pesan diteruskan lewat Bluetooth ke HP geng di sekitar, lalu dikirim begitu salah satu dari kalian dapat sinyal.</string>
+    <string name="offline_hint_go_live">Nggak ada sinyal. Ketuk Mulai live supaya pesan diteruskan lewat Bluetooth ke HP geng di sekitar.</string>
+    <string name="offline_hint_bluetooth_off">Nggak ada sinyal, dan Bluetooth mati. Nyalakan supaya pesan diteruskan ke HP geng di sekitar.</string>
+    <string name="offline_hint_unsupported">Nggak ada sinyal. HP ini nggak bisa meneruskan pesan lewat Bluetooth, jadi pesan dikirim saat kamu dapat sinyal.</string>
+    <string name="offline_hint_no_signal">Nggak ada sinyal. Pesan dikirim saat kamu dapat sinyal lagi.</string>
+    <string name="offline_hint_paused">Geng ini sedang ganti kunci baru. Pesan dikirim saat kamu dapat sinyal.</string>
+    <string name="offline_note_rekey_offline">Geng mendapat kunci barunya saat HP kalian dapat sinyal lagi. Sampai saat itu, pesan Bluetooth ditahan dulu.</string>
+    <string name="offline_notif_late">Dikirim %1$s. Baru saja sampai.</string>
+    <string name="offline_notif_help_late">Dia menekan Perlu bantuan %1$s. Baru saja sampai. Cek keadaannya.</string>
+    <string name="offline_meet_pin_named">Ketemu di pin 📍 %1$s</string>
+    <string name="offline_need_nearby_why">untuk mencari teman lewat Bluetooth, Wi-Fi, dan UWB, serta meneruskan pesan tanpa sinyal</string>
+
+</resources>

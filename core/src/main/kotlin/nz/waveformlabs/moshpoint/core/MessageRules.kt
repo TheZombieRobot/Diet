@@ -148,3 +148,38 @@ object PingPolicy {
         }
     }
 }
+
+/**
+ * How one of your own messages is doing, as the chat stores it (a number per line).
+ *
+ * The first three numbers are the ones saved chats already use; the new ones come after, so
+ * old rows still load. A state only moves forward: waiting, then sent nearby, then sent. The
+ * one way back is asking to try again.
+ */
+object OutboxState {
+    /** The relay has it. */
+    const val SENT = 0
+    /** First attempt under way. */
+    const val SENDING = 1
+    /** Given up on (too old to be worth sending, and nobody had it). Tap to try again. */
+    const val FAILED = 2
+    /** A crew phone nearby has confirmed it holds it. Still to be uploaded. */
+    const val NEARBY = 3
+    /** Queued: no signal, and no crew phone has it yet. */
+    const val WAITING = 4
+
+    private fun rank(state: Int) = when (state) {
+        SENT -> 3
+        NEARBY -> 2
+        WAITING -> 1
+        else -> 0
+    }
+
+    /** May a line in state [from] be changed to [to]? */
+    fun mayMove(from: Int, to: Int): Boolean = when {
+        from == to -> false
+        to == FAILED -> from == SENDING || from == WAITING
+        to == SENDING -> from == FAILED || from == WAITING
+        else -> rank(to) > rank(from)
+    }
+}

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hindi: messages without signal (crew messages passed between phones over Bluetooth). -->
+<resources>
+
+    <string name="offline_state_sent">भेजा गया</string>
+    <string name="offline_state_nearby">आस-पास भेजा गया</string>
+    <string name="offline_state_waiting">सिग्नल का इंतज़ार</string>
+    <string name="offline_hint_bluetooth">सिग्नल नहीं है। मैसेज Bluetooth से आस-पास के ग्रुप वालों के फ़ोन तक पहुँचते हैं, और जैसे ही किसी को सिग्नल मिलता है, भेज दिए जाते हैं।</string>
+    <string name="offline_hint_go_live">सिग्नल नहीं है। लाइव हों पर टैप करें, फिर मैसेज Bluetooth से आस-पास के ग्रुप वालों के फ़ोन तक पहुँचेंगे।</string>
+    <string name="offline_hint_bluetooth_off">सिग्नल नहीं है, और Bluetooth बंद है। इसे चालू करें, फिर मैसेज आस-पास के ग्रुप वालों के फ़ोन तक पहुँचेंगे।</string>
+    <string name="offline_hint_unsupported">सिग्नल नहीं है। यह फ़ोन Bluetooth से मैसेज आगे नहीं पहुँचा सकता, इसलिए सिग्नल मिलने पर भेजे जाएँगे।</string>
+    <string name="offline_hint_no_signal">सिग्नल नहीं है। सिग्नल वापस आने पर मैसेज भेजे जाएँगे।</string>
+    <string name="offline_hint_paused">इस ग्रुप को नई चाबी मिल रही है। सिग्नल मिलने पर मैसेज भेजे जाएँगे।</string>
+    <string name="offline_note_rekey_offline">फ़ोन में सिग्नल वापस आने पर ग्रुप को नई चाबी मिलेगी। तब तक Bluetooth मैसेज रुके रहेंगे।</string>
+    <string name="offline_notif_late">%1$s भेजा गया। अभी-अभी पहुँचा है।</string>
+    <string name="offline_notif_help_late">उन्होंने %1$s मदद चाहिए दबाया। अभी-अभी पहुँचा है। उनका हाल पूछें।</string>
+    <string name="offline_meet_pin_named">पिन पर मिलो 📍 %1$s</string>
+    <string name="offline_need_nearby_why">Bluetooth, Wi-Fi और UWB से दोस्तों को ढूँढने और बिना सिग्नल के मैसेज आगे पहुँचाने के लिए</string>
+
+</resources>

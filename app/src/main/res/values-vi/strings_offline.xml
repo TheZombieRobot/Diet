@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vietnamese: messages without signal (crew messages passed between phones over Bluetooth). -->
+<resources>
+
+    <string name="offline_state_sent">Đã gửi</string>
+    <string name="offline_state_nearby">Đã gửi cho máy ở gần</string>
+    <string name="offline_state_waiting">Đang chờ có sóng</string>
+    <string name="offline_hint_bluetooth">Mất sóng. Tin nhắn được chuyển qua Bluetooth tới máy của nhóm ở gần, và sẽ gửi đi ngay khi có ai trong nhóm bắt được sóng.</string>
+    <string name="offline_hint_go_live">Mất sóng. Chạm Bật chia sẻ để tin nhắn được chuyển qua Bluetooth tới máy của nhóm ở gần.</string>
+    <string name="offline_hint_bluetooth_off">Mất sóng, và Bluetooth đang tắt. Bật lên để tin nhắn được chuyển tới máy của nhóm ở gần.</string>
+    <string name="offline_hint_unsupported">Mất sóng. Máy này không chuyển được tin nhắn qua Bluetooth, nên tin sẽ gửi khi bạn có sóng.</string>
+    <string name="offline_hint_no_signal">Mất sóng. Tin nhắn sẽ gửi khi có sóng trở lại.</string>
+    <string name="offline_hint_paused">Nhóm này đang đổi khóa mới. Tin nhắn sẽ gửi khi bạn có sóng.</string>
+    <string name="offline_note_rekey_offline">Nhóm sẽ nhận khóa mới khi các máy có sóng trở lại. Trong lúc đó, tin nhắn qua Bluetooth tạm dừng.</string>
+    <string name="offline_notif_late">Gửi từ %1$s. Giờ mới tới nơi.</string>
+    <string name="offline_notif_help_late">Họ đã bấm Cần giúp đỡ từ %1$s. Giờ mới tới nơi. Hỏi han họ ngay.</string>
+    <string name="offline_meet_pin_named">Gặp ở chỗ ghim 📍 %1$s</string>
+    <string name="offline_need_nearby_why">để tìm bạn bè qua Bluetooth, Wi-Fi và UWB, và chuyển tin nhắn khi mất sóng</string>
+
+</resources>

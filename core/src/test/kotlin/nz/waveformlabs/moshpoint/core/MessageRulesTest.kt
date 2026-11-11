@@ -148,6 +148,30 @@ class MessageRulesTest {
         assertNull(group.openIntro(a, ms))
     }
 
+    // ---- States only move forward ----
+
+    @Test fun aMessagesStateOnlyMovesForward() {
+        val s = OutboxState
+        // The path: sending, waiting, sent nearby, sent.
+        assertTrue(s.mayMove(s.SENDING, s.WAITING))
+        assertTrue(s.mayMove(s.WAITING, s.NEARBY))
+        assertTrue(s.mayMove(s.NEARBY, s.SENT))
+        assertTrue(s.mayMove(s.SENDING, s.SENT))
+        // Never back: a late "waiting" can't undo "sent nearby", and nothing undoes "sent".
+        assertFalse(s.mayMove(s.NEARBY, s.WAITING))
+        assertFalse(s.mayMove(s.SENT, s.NEARBY))
+        assertFalse(s.mayMove(s.SENT, s.WAITING))
+        assertFalse(s.mayMove(s.SENT, s.FAILED))
+        assertFalse(s.mayMove(s.NEARBY, s.FAILED), "a crew phone has it: that isn't a failure")
+        assertFalse(s.mayMove(s.SENT, s.SENT))
+        // Giving up, and trying again.
+        assertTrue(s.mayMove(s.WAITING, s.FAILED))
+        assertTrue(s.mayMove(s.FAILED, s.SENDING))
+        assertTrue(s.mayMove(s.FAILED, s.SENT))
+        // The numbers saved chats already hold keep their meaning.
+        assertEquals(listOf(0, 1, 2), listOf(s.SENT, s.SENDING, s.FAILED))
+    }
+
     // ---- Clocks and order ----
 
     @Test fun aReplyNeverSortsAboveWhatItAnswers() {

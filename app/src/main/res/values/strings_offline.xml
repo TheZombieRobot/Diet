@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Messages without signal: with no internet, crew messages are passed between crew phones over Bluetooth
+     and sent on when any of them has signal again. "Signal" here always means phone reception (mobile data or Wi-Fi). -->
+<resources>
+
+    <!-- ===== Under your own message in the crew chat ===== -->
+    <!-- The message reached the server, so the whole crew gets it. Shown with a time: "Sent · 2 min ago" -->
+    <string name="offline_state_sent">Sent</string>
+    <!-- No internet, but a crew phone close by has received the message over Bluetooth. It hasn't reached the rest of the crew yet. -->
+    <string name="offline_state_nearby">Sent nearby</string>
+    <!-- No internet, and no crew phone nearby has the message yet. It sends by itself later; tapping this tries again now. -->
+    <string name="offline_state_waiting">Waiting for signal</string>
+
+    <!-- ===== Banner at the top of the crew chat while this phone has no internet ===== -->
+    <!-- Live, Bluetooth on: messages hop between crew phones nearby -->
+    <string name="offline_hint_bluetooth">No signal. Messages are passed to crew phones nearby over Bluetooth, and sent on as soon as any of you has signal.</string>
+    <!-- Not live. "Go live" is the button on the home screen (home_go_live) -->
+    <string name="offline_hint_go_live">No signal. Go live and messages are passed to crew phones nearby over Bluetooth.</string>
+    <string name="offline_hint_bluetooth_off">No signal, and Bluetooth is off. Turn it on and messages are passed to crew phones nearby.</string>
+    <!-- An older phone whose Bluetooth can't carry a whole message -->
+    <string name="offline_hint_unsupported">No signal. This phone can\'t pass messages over Bluetooth, so they\'ll send when you have signal.</string>
+    <!-- A crew you're not at a gig with right now (Bluetooth is only used for the crew you're out with) -->
+    <string name="offline_hint_no_signal">No signal. Messages will send when you have signal again.</string>
+    <!-- Someone was removed from the crew (or the invite was reset) while this phone had no internet.
+         The crew's new key only arrives over the internet, so Bluetooth messages wait until then. -->
+    <string name="offline_hint_paused">This crew is getting a new key. Messages will send when you have signal.</string>
+    <!-- Note in the chat after YOU removed someone or reset the invite with no internet -->
+    <string name="offline_note_rekey_offline">The crew gets its new key when phones next have signal. Until then, Bluetooth messages are on hold.</string>
+
+    <!-- ===== Notifications for a message that took a long time to arrive ===== -->
+    <!-- %1$s = how long ago it was sent, already worded ("40 min ago", "2 h ago") -->
+    <string name="offline_notif_late">Sent %1$s. It only just got through.</string>
+    <!-- Same, for the Need help button (crew_quick_need_help). %1$s = "40 min ago" -->
+    <string name="offline_notif_help_late">They hit Need help %1$s. It only just got through. Check on them.</string>
+
+    <!-- ===== Quick message ===== -->
+    <!-- "Meet at the pin" (crew_quick_meet_pin) that also says which pin. %1$s = the pin's name, e.g. "Sound desk" -->
+    <string name="offline_meet_pin_named">Meet at the pin 📍 %1$s</string>
+
+    <!-- ===== Permissions (first-run screen) ===== -->
+    <!-- Why the app asks for Nearby devices. Replaces setup_onb_need_nearby_why now that Bluetooth also carries messages. Lower case: it follows the permission's name. -->
+    <string name="offline_need_nearby_why">to find mates over Bluetooth, Wi-Fi and UWB, and pass messages on with no signal</string>
+
+</resources>

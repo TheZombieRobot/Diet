@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Arabic: messages without signal (crew messages passed between phones over Bluetooth). -->
+<resources>
+
+    <string name="offline_state_sent">أُرسلت</string>
+    <string name="offline_state_nearby">أُرسلت لمن حولك</string>
+    <string name="offline_state_waiting">بانتظار الإشارة</string>
+    <string name="offline_hint_bluetooth">لا إشارة. تنتقل الرسائل عبر Bluetooth إلى هواتف الشلة القريبة، وتُرسَل فور حصول أي منكم على إشارة.</string>
+    <string name="offline_hint_go_live">لا إشارة. اضغط «اظهر» لتنتقل الرسائل عبر Bluetooth إلى هواتف الشلة القريبة.</string>
+    <string name="offline_hint_bluetooth_off">لا إشارة، وBluetooth مغلق. شغّله لتنتقل الرسائل إلى هواتف الشلة القريبة.</string>
+    <string name="offline_hint_unsupported">لا إشارة. هذا الهاتف لا يستطيع نقل الرسائل عبر Bluetooth، لذا ستُرسَل عند توفر الإشارة.</string>
+    <string name="offline_hint_no_signal">لا إشارة. ستُرسَل الرسائل عند عودة الإشارة.</string>
+    <string name="offline_hint_paused">الشلة تحصل على مفتاح جديد. ستُرسَل الرسائل عند توفر الإشارة.</string>
+    <string name="offline_note_rekey_offline">ستحصل الشلة على مفتاحها الجديد عند عودة الإشارة إلى الهواتف. حتى ذلك الحين، رسائل Bluetooth متوقفة مؤقتًا.</string>
+    <string name="offline_notif_late">أُرسلت %1$s. وصلت الآن فقط.</string>
+    <string name="offline_notif_help_late">تم الضغط على «أحتاج مساعدة» %1$s. وصلت الآن فقط. اتصل للاطمئنان.</string>
+    <string name="offline_meet_pin_named">نلتقي عند الدبوس 📍 %1$s</string>
+    <string name="offline_need_nearby_why">لإيجاد أصحابك عبر Bluetooth وWi-Fi وUWB، ونقل الرسائل بدون إشارة</string>
+
+</resources>
