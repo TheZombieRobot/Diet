@@ -46,6 +46,8 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
     private var app: Context? = null
     private var loop: Job? = null
     private var crewSignature = ""
+    /** True until the task that first called [init] has finished (see [syncCrews]). */
+    private var starting = false
     private var saveQueued = false
     private var lastAskedFetchAt = 0L
     private val lastOwnSec = HashMap<String, Long>()
@@ -79,7 +81,10 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
             // Signal's back: look at the mailboxes, then send what's waiting.
             if (up) askFetch(force = true)
         }
+        starting = true
         loop = scope.launch {
+            // This runs once the caller of init (GroupSync.load, part-way through loading the crews) has finished.
+            starting = false
             while (true) {
                 runCatching { tick() }
                 delay(if (radioOn || CrewChat.open) 1_000L else 5_000L)
@@ -102,6 +107,9 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
 
     /** Tell the courier which crews we're in. Only the main crew, on gig day and not followed from home, uses Bluetooth. */
     private fun syncCrews(c: Context) {
+        // Not while the crews are still being loaded at start-up: a half-loaded list would
+        // make the courier drop the queue of every crew that isn't in it yet.
+        if (starting) return
         val main = GroupSync.group.value
         val t = now()
         val onAir = main != null && !GroupSync.following && !main.dormant(t)
