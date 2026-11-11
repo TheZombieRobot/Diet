@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Turkish: home screen. -->
 <resources>
-    <string name="home_go_live">Canlıya geç</string>
-    <string name="home_live_ghost">Canlı · hayalet</string>
-    <string name="home_live">Canlı</string>
+    <string name="home_go_live">Konumu paylaş</string>
+    <string name="home_live_ghost">Paylaşılıyor · hayalet</string>
+    <string name="home_live">Paylaşılıyor</string>
 
     <string name="home_tile_not_sharing">henüz paylaşmıyor</string>
     <string name="home_tile_phone_died">telefonu kapandı</string>
-    <string name="home_tile_live">canlı</string>
+    <string name="home_tile_live">paylaşıyor</string>
     <string name="home_tile_with_battery">%1$s · %%%2$d</string>
 
     <string name="home_ping_on_my_way">Geliyorum</string>
@@ -74,7 +74,7 @@
 
     <string name="home_crew_chat">Ekip sohbeti</string>
     <string name="home_pinned_plan">📌 %1$s</string>
-    <string name="home_chat_subtitle">Mesajlar, plan, meşaleler</string>
+    <string name="home_chat_subtitle">Mesajlar, plan, işaretler</string>
     <string name="home_unread_many">9+</string>
     <plurals name="home_unread_new">
         <item quantity="one">%d yeni</item>
@@ -108,7 +108,7 @@
     <string name="home_add_friend">Arkadaş ekle</string>
     <string name="home_tonight_only">Sadece bu gece</string>
 
-    <string name="home_hidden_hint">Ekibinden gizlisin. Bulunmak istediğinde Canlıya geç\'e dokun.</string>
+    <string name="home_hidden_hint">Ekibinden gizlisin. Bulunmak istediğinde Konumu paylaş\'a dokun.</string>
     <string name="home_allow_permission">Moshpoint arkadaşlarını bulabilsin (%1$s)</string>
     <string name="home_allow">İzin ver</string>
     <string name="home_one_thing_first">ÖNCE BİR ŞEY</string>

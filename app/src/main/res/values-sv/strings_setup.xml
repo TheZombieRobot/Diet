@@ -51,7 +51,7 @@
     <string name="setup_onb_arrow_demo_desc">En pil som pekar mot en kompis</string>
 
     <string name="setup_plan_title">Planera en spelning</string>
-    <string name="setup_plan_desc">Starta gänget nu, alla går med när det passar. Det sover (inget batteri) fram till dagen.</string>
+    <string name="setup_plan_desc">Starta gruppen nu, alla går med när det passar. Den sover (inget batteri) fram till dagen.</string>
     <string name="setup_plan_search_hint">Sök: band, artist eller ställe</string>
     <string name="setup_plan_searching">Söker…</string>
     <string name="setup_plan_search_failed">Kunde inte söka just nu. Skriv in det nedan i stället.</string>
@@ -60,7 +60,7 @@
     <string name="setup_plan_or_type">ELLER SKRIV IN DET</string>
     <string name="setup_plan_whos_playing">Vem spelar</string>
     <string name="setup_plan_where">Var (valfritt)</string>
-    <string name="setup_plan_start_crew">Starta gänget</string>
+    <string name="setup_plan_start_crew">Starta gruppen</string>
     <string name="setup_plan_default_name">Spelningskväll</string>
 
     <string name="setup_qr_title">Skanna för att lägga till mig</string>
@@ -75,14 +75,14 @@
     <string name="setup_qr_send_invite">Går det inte att skanna? Skicka en inbjudan i stället</string>
     <string name="setup_qr_reset_invite">Återställ inbjudan</string>
     <string name="setup_qr_reset_title">Återställa inbjudan?</string>
-    <string name="setup_qr_reset_text">Om den här QR-koden eller en skärmdump av den har spridits slutar den funka när du återställer. Alla som redan är med i gänget är kvar; nya behöver den nya QR-koden.</string>
+    <string name="setup_qr_reset_text">Om den här QR-koden eller en skärmdump av den har spridits slutar den funka när du återställer. Alla som redan är med i gruppen är kvar; nya behöver den nya QR-koden.</string>
     <string name="setup_qr_reset">Återställ</string>
     <string name="setup_cancel">Avbryt</string>
     <string name="setup_qr_end_night">Avsluta kvällen</string>
 
     <string name="setup_bump_title">Bumpa telefoner</string>
-    <string name="setup_bump_sharing">Håll din telefon rygg mot rygg med din kompis. De får frågan om att gå med i ditt gäng.</string>
-    <string name="setup_bump_joining">Håll din telefon rygg mot rygg med någon i ett gäng (de öppnar Bumpa också). Du får frågan om att gå med.</string>
+    <string name="setup_bump_sharing">Håll din telefon rygg mot rygg med din kompis. De får frågan om att gå med i din grupp.</string>
+    <string name="setup_bump_joining">Håll din telefon rygg mot rygg med någon i en grupp (de öppnar Bumpa också). Du får frågan om att gå med.</string>
     <string name="setup_done">Klar</string>
 
     <string name="setup_roll_title">Dina bilder från den kvällen</string>

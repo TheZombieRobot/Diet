@@ -8,8 +8,8 @@
     <string name="setup_choose_photo">Fotoğraf seç</string>
     <string name="setup_remove_my_photo">Fotoğrafımı kaldır</string>
     <string name="setup_your_name">Adın</string>
-    <string name="setup_stay_live">Yeniden başlatınca canlı kal</string>
-    <string name="setup_stay_live_desc">Telefonun yeniden başladığında canlıdaysan otomatik olarak yine canlıya geçersin.</string>
+    <string name="setup_stay_live">Yeniden başlatınca paylaşmaya devam et</string>
+    <string name="setup_stay_live_desc">Telefonun yeniden başladığında konumunu paylaşıyorsan, paylaşım otomatik olarak yeniden açılır.</string>
     <string name="setup_ghost_mode">Hayalet modu</string>
     <string name="setup_ghost_mode_desc">Haritada yerini gizle. Arkadaşların yakındayken seni Bluetooth ile yine de bulabilir.</string>
     <string name="setup_ghost_one_hour">1 saat hayalet ol</string>
@@ -25,7 +25,7 @@
     <string name="setup_save">Kaydet</string>
     <string name="setup_remove">Kaldır</string>
     <string name="setup_about">HAKKINDA</string>
-    <string name="setup_about_text">Moshpoint %1$s. Hesap yok, değişen kodlar, uçtan uca şifreli konumlar. Sadece canlıdayken bulunabilirsin.</string>
+    <string name="setup_about_text">Moshpoint %1$s. Hesap yok, değişen kodlar, uçtan uca şifreli konumlar. Sadece konumunu paylaşırken bulunabilirsin.</string>
     <string name="setup_hide_licences">Lisansları gizle</string>
     <string name="setup_open_source_licences">Açık kaynak lisansları</string>
     <string name="setup_licences_fonts">Yazı tipleri: Unbounded ve Inter, SIL Open Font License 1.1 kapsamında. QR kodları: ZXing (Apache 2.0).</string>
@@ -34,14 +34,14 @@
     <string name="setup_onb_skip">Geç</string>
     <string name="setup_onb_title_find">Arkadaşlarını\nher kalabalıkta bul</string>
     <string name="setup_onb_body_find">Bir arkadaşına dokun, ok doğrudan onu göstersin. Yaklaştıkça onun renginde parlar.</string>
-    <string name="setup_onb_title_live">İçeri girerken\ncanlıya geç</string>
-    <string name="setup_onb_body_live">Arkadaşların seni sadece canlıdayken bulabilir ve bunu sadece sen açarsın. Moshpoint\'in ihtiyacı olanlar:</string>
+    <string name="setup_onb_title_live">İçeri girerken\nkonumunu paylaş</string>
+    <string name="setup_onb_body_live">Arkadaşların seni sadece konumunu paylaşırken bulabilir ve bunu sadece sen açarsın. Moshpoint\'in ihtiyacı olanlar:</string>
     <string name="setup_onb_need_nearby">Yakındaki cihazlar</string>
     <string name="setup_onb_need_nearby_why">Bluetooth, Wi-Fi ve UWB ile arkadaşlarını bulmak için</string>
     <string name="setup_onb_need_location">Konum</string>
     <string name="setup_onb_need_location_why">birbirinizden uzaktayken ok için</string>
     <string name="setup_onb_need_notifications">Bildirimler</string>
-    <string name="setup_onb_need_notifications_why">canlıda olduğunu her zaman bilmen için</string>
+    <string name="setup_onb_need_notifications_why">konumunu paylaştığını her zaman bilmen için</string>
     <string name="setup_onb_title_name">Arkadaşların sana\nne desin?</string>
     <string name="setup_onb_or_type_it">ya da yaz</string>
     <string name="setup_onb_lets_go">Hadi başlayalım</string>

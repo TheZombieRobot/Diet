@@ -4,8 +4,8 @@
     <string name="app_name">Moshpoint</string>
     <string name="visibility_channel">Livestatus</string>
     <string name="visibility_notification">Du är live: kompisarna kan hitta dig</string>
-    <string name="widget_title">Ditt gäng</string>
-    <string name="widget_empty">Starta ett gäng i Moshpoint så dyker kompisarna upp här.</string>
-    <string name="widget_find">Hitta gänget</string>
-    <string name="widget_description">Var ditt gäng är, och ett tryck för att hitta dem</string>
+    <string name="widget_title">Din grupp</string>
+    <string name="widget_empty">Starta en grupp i Moshpoint så dyker kompisarna upp här.</string>
+    <string name="widget_find">Hitta gruppen</string>
+    <string name="widget_description">Var din grupp är, och ett tryck för att hitta dem</string>
 </resources>

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Polish: home screen. -->
 <resources>
-    <string name="home_go_live">Włącz live</string>
-    <string name="home_live_ghost">Live · duch</string>
-    <string name="home_live">Live</string>
+    <string name="home_go_live">Udostępnij lokalizację</string>
+    <string name="home_live_ghost">Udostępniasz · duch</string>
+    <string name="home_live">Udostępniasz</string>
 
     <string name="home_tile_not_sharing">jeszcze nie udostępnia</string>
     <string name="home_tile_phone_died">telefon padł</string>
-    <string name="home_tile_live">live</string>
+    <string name="home_tile_live">udostępnia</string>
     <string name="home_tile_with_battery">%1$s · %2$d%%</string>
 
     <string name="home_ping_on_my_way">Już idę</string>
@@ -80,7 +80,7 @@
 
     <string name="home_crew_chat">Czat ekipy</string>
     <string name="home_pinned_plan">📌 %1$s</string>
-    <string name="home_chat_subtitle">Wiadomości, plan, race</string>
+    <string name="home_chat_subtitle">Wiadomości, plan, flary</string>
     <string name="home_unread_many">9+</string>
     <plurals name="home_unread_new">
         <item quantity="one">%d nowa</item>
@@ -118,7 +118,7 @@
     <string name="home_add_friend">Dodaj znajomego</string>
     <string name="home_tonight_only">Tylko na dziś</string>
 
-    <string name="home_hidden_hint">Ekipa cię nie widzi. Kliknij Włącz live, kiedy chcesz, żeby cię znaleźli.</string>
+    <string name="home_hidden_hint">Ekipa cię nie widzi. Kliknij Udostępnij lokalizację, kiedy chcesz, żeby cię znaleźli.</string>
     <string name="home_allow_permission">Pozwól Moshpoint znaleźć twoich znajomych (%1$s)</string>
     <string name="home_allow">Zezwól</string>
     <string name="home_one_thing_first">NAJPIERW JEDNA RZECZ</string>

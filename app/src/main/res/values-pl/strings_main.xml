@@ -2,9 +2,9 @@
 <!-- Polish: main screen, invites, sharing and phone setup checks. -->
 <resources>
     <string name="main_get_the_app">Nie masz jeszcze Moshpoint? Zainstaluj stąd (Android): %1$s\nPotem skopiuj całą tę wiadomość, otwórz Moshpoint i kliknij Wklej zaproszenie.\n\n</string>
-    <string name="main_nudge_text">Hej %1$s, otwórz Moshpoint i kliknij Włącz live (z włączoną lokalizacją i danymi), to cię znajdę!</string>
+    <string name="main_nudge_text">Hej %1$s, otwórz Moshpoint i kliknij Udostępnij lokalizację (z włączonym GPS i danymi), to cię znajdę!</string>
     <string name="main_nudge_mate">ekipo</string>
-    <string name="main_nudge_title">Poproś, żeby włączyli live</string>
+    <string name="main_nudge_title">Poproś o udostępnienie lokalizacji</string>
 
     <string name="main_setup_bluetooth_off">Bluetooth jest wyłączony. Bez niego nikt cię nie znajdzie, a ty nie znajdziesz nikogo.</string>
     <string name="main_setup_location_off">Lokalizacja jest wyłączona. Szukanie przez GPS jej potrzebuje, a na wielu telefonach także szukanie przez Bluetooth.</string>

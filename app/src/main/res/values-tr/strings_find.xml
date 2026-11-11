@@ -25,11 +25,11 @@
     <string name="find_ask_light_up">Ekranlarını yakmalarını iste</string>
     <string name="find_show_on_map">Haritada göster</string>
 
-    <string name="find_pill_live">Canlı</string>
+    <string name="find_pill_live">Paylaşılıyor</string>
     <string name="find_pill_hidden">Gizli</string>
     <string name="find_searching_cd">Aranıyor</string>
     <string name="find_looking_for">Aranıyor: %1$s…</string>
-    <string name="find_searching_help">Henüz ondan sinyal yok, paylaşılan konum da yok. Moshpoint açık ve Canlıya geç açık olmalı, konum ve mobil veri de. O zaman oku görünür, şehrin öbür ucunda olsa bile.</string>
+    <string name="find_searching_help">Henüz ondan sinyal yok, paylaşılan konum da yok. Moshpoint açık ve Konumu paylaş açık olmalı, konum ve mobil veri de. O zaman oku görünür, şehrin öbür ucunda olsa bile.</string>
     <string name="find_band_right_here">Tam burada</string>
     <string name="find_band_close">Yakın</string>
     <string name="find_band_nearby">Civarda</string>
@@ -87,7 +87,7 @@
     <string name="find_map_all">Herkes</string>
     <string name="find_map_me">Ben</string>
     <string name="find_save_area">⬇  Bu alanı çekim olmayan yerler için kaydet</string>
-    <string name="find_map_no_mates">Henüz arkadaş yok. Bir ekip kur ya da arkadaş ekle; canlıya geçtiklerinde burada görünürler.</string>
+    <string name="find_map_no_mates">Henüz arkadaş yok. Bir ekip kur ya da arkadaş ekle; konumlarını paylaştıklarında burada görünürler.</string>
     <string name="find_place_crew_meetup">ekip buluşma noktası</string>
     <string name="find_place_only_you">bunu sadece sen görürsün</string>
     <string name="find_walk">Yürü</string>

@@ -8,8 +8,8 @@
     <string name="setup_choose_photo">Wybierz zdjęcie</string>
     <string name="setup_remove_my_photo">Usuń moje zdjęcie</string>
     <string name="setup_your_name">Twoje imię</string>
-    <string name="setup_stay_live">Zostań live po restarcie</string>
-    <string name="setup_stay_live_desc">Jeśli był włączony live, gdy telefon się zrestartował, włączy się znowu automatycznie.</string>
+    <string name="setup_stay_live">Udostępniaj dalej po restarcie</string>
+    <string name="setup_stay_live_desc">Jeśli udostępnianie było włączone, gdy telefon się zrestartował, włączy się znowu automatycznie.</string>
     <string name="setup_ghost_mode">Tryb ducha</string>
     <string name="setup_ghost_mode_desc">Ukryj swoje miejsce na mapie. Znajomi wciąż znajdą cię przez Bluetooth, gdy są blisko.</string>
     <string name="setup_ghost_one_hour">Duch na 1 godzinę</string>
@@ -25,7 +25,7 @@
     <string name="setup_save">Zapisz</string>
     <string name="setup_remove">Usuń</string>
     <string name="setup_about">INFORMACJE</string>
-    <string name="setup_about_text">Moshpoint %1$s. Bez konta, zmienne kody, szyfrowane end-to-end lokalizacje. Da się cię znaleźć tylko wtedy, gdy masz włączony live.</string>
+    <string name="setup_about_text">Moshpoint %1$s. Bez konta, zmienne kody, szyfrowane end-to-end lokalizacje. Da się cię znaleźć tylko wtedy, gdy udostępniasz lokalizację.</string>
     <string name="setup_hide_licences">Ukryj licencje</string>
     <string name="setup_open_source_licences">Licencje open source</string>
     <string name="setup_licences_fonts">Czcionki: Unbounded i Inter, na licencji SIL Open Font License 1.1. Kody QR: ZXing (Apache 2.0).</string>
@@ -34,14 +34,14 @@
     <string name="setup_onb_skip">Pomiń</string>
     <string name="setup_onb_title_find">Znajdź znajomych\nw każdym tłumie</string>
     <string name="setup_onb_body_find">Kliknij znajomego, a strzałka pokaże prosto na niego. Im bliżej, tym mocniej świeci jego kolorem.</string>
-    <string name="setup_onb_title_live">Włącz live,\ngdy wchodzisz</string>
-    <string name="setup_onb_body_live">Znajomi mogą cię znaleźć tylko wtedy, gdy masz włączony live, i tylko ty go włączasz. Moshpoint potrzebuje:</string>
+    <string name="setup_onb_title_live">Udostępnij lokalizację,\ngdy wchodzisz</string>
+    <string name="setup_onb_body_live">Znajomi mogą cię znaleźć tylko wtedy, gdy udostępniasz lokalizację, i tylko ty to włączasz. Moshpoint potrzebuje:</string>
     <string name="setup_onb_need_nearby">Urządzenia w pobliżu</string>
     <string name="setup_onb_need_nearby_why">żeby szukać znajomych przez Bluetooth, Wi-Fi i UWB</string>
     <string name="setup_onb_need_location">Lokalizacja</string>
     <string name="setup_onb_need_location_why">do strzałki, gdy jesteście daleko od siebie</string>
     <string name="setup_onb_need_notifications">Powiadomienia</string>
-    <string name="setup_onb_need_notifications_why">żeby zawsze było jasne, kiedy jesteś live</string>
+    <string name="setup_onb_need_notifications_why">żeby zawsze było jasne, kiedy udostępniasz lokalizację</string>
     <string name="setup_onb_title_name">Jak mają na ciebie\nmówić znajomi?</string>
     <string name="setup_onb_or_type_it">albo wpisz</string>
     <string name="setup_onb_lets_go">Lecimy</string>

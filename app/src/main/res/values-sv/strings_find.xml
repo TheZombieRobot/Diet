@@ -87,8 +87,8 @@
     <string name="find_map_all">Alla</string>
     <string name="find_map_me">Jag</string>
     <string name="find_save_area">⬇  Spara området för när täckningen är borta</string>
-    <string name="find_map_no_mates">Inga kompisar än. Starta ett gäng eller lägg till en kompis, så dyker de upp här när de går live.</string>
-    <string name="find_place_crew_meetup">gängets träffpunkt</string>
+    <string name="find_map_no_mates">Inga kompisar än. Starta en grupp eller lägg till en kompis, så dyker de upp här när de går live.</string>
+    <string name="find_place_crew_meetup">gruppens träffpunkt</string>
     <string name="find_place_only_you">bara du ser den här</string>
     <string name="find_walk">Gå</string>
     <string name="find_ride">Åk</string>
@@ -96,11 +96,11 @@
     <string name="find_find">Hitta</string>
     <string name="find_ask">Fråga</string>
     <string name="find_drop_pin">Sätt ut en nål</string>
-    <string name="find_drop_pin_crew_help">Spara den bara för dig (tältet, bilen…) eller gör den till gängets träffpunkt: alla får den på sin karta.</string>
+    <string name="find_drop_pin_crew_help">Spara den bara för dig (tältet, bilen…) eller gör den till gruppens träffpunkt: alla får den på sin karta.</string>
     <string name="find_drop_pin_solo_help">Spara den för dig själv: tältet, bilen, de bra toaletterna. Funkar utan täckning.</string>
     <string name="find_drop_pin_hint">t.ex. Ljudbordet, Tältet, Bilen</string>
     <string name="find_meet_here">Ses här</string>
-    <string name="find_crew_meetup">Gängets träffpunkt</string>
+    <string name="find_crew_meetup">Gruppens träffpunkt</string>
     <string name="find_my_spot">Min plats</string>
     <string name="find_just_for_me">Bara för mig</string>
     <string name="find_bubble_two">%1$s &amp; %2$s</string>
@@ -119,8 +119,8 @@
     <string name="find_save_all">Spara alla</string>
     <string name="find_add_your_photos">＋ Lägg till dina bilder</string>
     <string name="find_save_all_to_phone">Spara alla på telefonen</string>
-    <string name="find_story_empty_following">Bilder och klipp från gänget hamnar här när de delar dem. Ha den här öppen för att hänga med live.</string>
-    <string name="find_story_empty_crew">Knäpp scenen, baren, kompisarna. Allt gänget delar hamnar här, nyast överst.</string>
+    <string name="find_story_empty_following">Bilder och klipp från gruppen hamnar här när de delar dem. Ha den här öppen för att hänga med live.</string>
+    <string name="find_story_empty_crew">Knäpp scenen, baren, kompisarna. Allt gruppen delar hamnar här, nyast överst.</string>
     <string name="find_delete_gig">Radera spelningen från telefonen</string>
     <plurals name="find_new_posts">
         <item quantity="one">↑  %d ny</item>
@@ -143,10 +143,10 @@
     <string name="find_on_map">På kartan</string>
     <string name="find_find_name">Hitta %1$s</string>
     <string name="find_close">Stäng</string>
-    <string name="find_share_with_crew">Dela med gänget</string>
+    <string name="find_share_with_crew">Dela med gruppen</string>
     <string name="find_pinned_where_you_are">Uppsatt där du är nu</string>
     <string name="find_caption_hint">Säg var (valfritt): vänster om ljudbordet</string>
-    <string name="find_moment_privacy">Bara ditt gäng kan se det. Det försvinner från servern efter några timmar.</string>
+    <string name="find_moment_privacy">Bara din grupp kan se det. Det försvinner från servern efter några timmar.</string>
     <string name="find_sending">Skickar…</string>
     <string name="find_send">Skicka</string>
 
@@ -159,11 +159,11 @@
 
     <string name="find_no_video_app">Ingen kameraapp kan spela in video här</string>
     <string name="find_clip_too_long">Klippet är för långt för att skicka. Håll det runt 10 sekunder.</string>
-    <string name="find_clip_shared">Klippet delat med gänget</string>
+    <string name="find_clip_shared">Klippet delat med gruppen</string>
     <string name="find_send_failed">Kunde inte skicka. Kolla internet och försök igen.</string>
-    <string name="find_join_crew_first">Starta eller gå med i ett gäng först: ögonblick går till ditt gäng</string>
+    <string name="find_join_crew_first">Starta eller gå med i en grupp först: ögonblick går till din grupp</string>
     <string name="find_needs_camera">Moshpoint behöver kameran för att fånga ett ögonblick</string>
-    <string name="find_shared_with_crew">Delat med gänget</string>
+    <string name="find_shared_with_crew">Delat med gruppen</string>
     <string name="find_share_a_moment">Dela ett ögonblick</string>
     <string name="find_share_moment_help">Knäpp där du är (scenen, baren, kompisarna). Det hamnar i storyn som en polaroid.</string>
     <string name="find_take_photo">Ta en bild</string>

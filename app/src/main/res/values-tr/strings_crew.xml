@@ -15,11 +15,11 @@
     <string name="crew_chat_on_today">Bu konser bugün. Bu ekipte birbirinizi bulalım mı?</string>
     <string name="crew_chat_switch">Geç</string>
     <plurals name="crew_chat_send_flare_hint">
-        <item quantity="one">🔥  Meşale yak: %d dk boyunca nerede olduğunu göster</item>
-        <item quantity="other">🔥  Meşale yak: %d dk boyunca nerede olduğunu göster</item>
+        <item quantity="one">🔥  İşaret gönder: %d dk boyunca nerede olduğunu göster</item>
+        <item quantity="other">🔥  İşaret gönder: %d dk boyunca nerede olduğunu göster</item>
     </plurals>
     <string name="crew_chat_empty">Henüz bir şey yok. Mesajlar ekipteki herkese yaklaşık bir dakikada ulaşır (kendi sunucunla daha hızlı).</string>
-    <string name="crew_chat_night_tools_later">Gazlayın! Meşaleler ve hızlı pingler konser günü açılır.</string>
+    <string name="crew_chat_night_tools_later">Gazlayın! İşaretler ve hızlı pingler konser günü açılır.</string>
     <string name="crew_chat_message_hint">Ekibe yaz</string>
     <string name="crew_chat_not_sent">Gönderilmedi · Tekrar denemek için dokun</string>
     <string name="crew_chat_sending">Gönderiliyor…</string>
@@ -31,8 +31,8 @@
     <string name="crew_chat_pinned">%1$s sabitledi: %2$s</string>
     <string name="crew_chat_you_cleared_plan">Planı kaldırdın</string>
     <string name="crew_chat_cleared_plan">%1$s planı kaldırdı</string>
-    <string name="crew_chat_you_flare">Meşale yaktın: %1$s</string>
-    <string name="crew_chat_flare">%1$s meşale yaktı: %2$s</string>
+    <string name="crew_chat_you_flare">İşaret gönderdin: %1$s</string>
+    <string name="crew_chat_flare">%1$s işaret gönderdi: %2$s</string>
     <string name="crew_chat_line_other">%1$s %2$s</string>
 
     <string name="crew_quick_coming">Geliyorum 🏃</string>
@@ -84,7 +84,7 @@
         <item quantity="other">%d dk kaldı · haritada</item>
     </plurals>
     <string name="crew_flare_end">Bitir</string>
-    <string name="crew_flare_title">Meşale yak</string>
+    <string name="crew_flare_title">İşaret gönder</string>
     <plurals name="crew_flare_body">
         <item quantity="one">Yerin ekibin haritasında %d dakika boyunca, bir havayla görünür.</item>
         <item quantity="other">Yerin ekibin haritasında %d dakika boyunca, bir havayla görünür.</item>
@@ -121,15 +121,15 @@
     </plurals>
     <string name="crew_notif_joined">ekibe katıldı 🎉</string>
     <plurals name="crew_notif_flare">
-        <item quantity="one">Meşale: %1$s · %2$d dk burada</item>
-        <item quantity="other">Meşale: %1$s · %2$d dk burada</item>
+        <item quantity="one">İşaret: %1$s · %2$d dk burada</item>
+        <item quantity="other">İşaret: %1$s · %2$d dk burada</item>
     </plurals>
     <string name="crew_notif_new_plan">Yeni plan: %1$s</string>
     <string name="crew_notif_done_title">Bitti: %1$s</string>
     <string name="crew_notif_done_saved">Fotoğrafların ve videoların Konserlerin bölümüne kaydedildi.</string>
     <string name="crew_notif_done_text">Umarız efsane geçmiştir. İstediğin zaman yeni bir ekip kur.</string>
     <string name="crew_notif_overdue_title">%1$s haber vermedi</string>
-    <string name="crew_notif_overdue_text">Eve dönüyordu, şimdiye varmış olmalıydı. Bir ara. Son konumu için dokun.</string>
+    <string name="crew_notif_overdue_text">Eve dönüyordu, şimdiye varmış olmalıydı. Onu ara. Son konumu için dokun.</string>
     <string name="crew_notif_help_where">Yardım lazım\'a bastı. Nerede olduğunu görmek için dokun. Bir yokla.</string>
     <string name="crew_notif_help">Yardım lazım\'a bastı. Bir yokla.</string>
     <string name="crew_notif_tap_where">Nerede olduğunu görmek için dokun.</string>
@@ -145,7 +145,7 @@
     <string name="crew_ping_check_in">eve dönüyor, varınca haber verecek</string>
     <string name="crew_ping_home_safe">evde, her şey yolunda</string>
     <string name="crew_ping_chat">mesaj gönderdi</string>
-    <string name="crew_ping_flare">meşale yaktı</string>
+    <string name="crew_ping_flare">işaret gönderdi</string>
     <string name="crew_ping_plan">bir plan sabitledi</string>
     <string name="crew_ping_other">ekibe ping attı</string>
 
@@ -159,7 +159,7 @@
     <string name="crew_ping_title_check_in">%1$s eve dönüyor, varınca haber verecek</string>
     <string name="crew_ping_title_home_safe">%1$s evde, her şey yolunda</string>
     <string name="crew_ping_title_chat">%1$s mesaj gönderdi</string>
-    <string name="crew_ping_title_flare">%1$s meşale yaktı</string>
+    <string name="crew_ping_title_flare">%1$s işaret gönderdi</string>
     <string name="crew_ping_title_plan">%1$s bir plan sabitledi</string>
     <string name="crew_ping_title_other">%1$s ekibe ping attı</string>
 
@@ -185,8 +185,8 @@
     <string name="crew_note_reset">%1$s daveti sıfırladı: eski QR kodları artık çalışmıyor.</string>
 
     <string name="crew_wake_title">Bu gece: %1$s!</string>
-    <string name="crew_wake_text">Başlangıç: %1$s. Ekibin seni bulabilsin diye canlıya geçmek için dokun.</string>
-    <string name="crew_wake_text_venue">Başlangıç: %1$s, yer: %2$s. Ekibin seni bulabilsin diye canlıya geçmek için dokun.</string>
+    <string name="crew_wake_text">Başlangıç: %1$s. Ekibin seni bulabilsin diye konumunu paylaşmak için dokun.</string>
+    <string name="crew_wake_text_venue">Başlangıç: %1$s, yer: %2$s. Ekibin seni bulabilsin diye konumunu paylaşmak için dokun.</string>
 
     <plurals name="crew_memory_headline">
         <item quantity="one">Bir yıl önce bugün: %2$s</item>
@@ -248,6 +248,6 @@
     <string name="crew_request_title">%1$s yakında ve seni arıyor</string>
     <string name="crew_request_text">Seni görebilmeleri için ekranını yakmak üzere dokun</string>
     <string name="crew_go_hidden">Gizlen</string>
-    <string name="crew_tile_live">Canlı</string>
+    <string name="crew_tile_live">Paylaşılıyor</string>
     <string name="crew_tile_hidden">Gizli</string>
 </resources>

@@ -25,11 +25,11 @@
     <string name="find_ask_light_up">Poproś o podświetlenie</string>
     <string name="find_show_on_map">Pokaż na mapie</string>
 
-    <string name="find_pill_live">Live</string>
+    <string name="find_pill_live">Udostępniasz</string>
     <string name="find_pill_hidden">Ukryty</string>
     <string name="find_searching_cd">Szukam</string>
     <string name="find_looking_for">Szukam: %1$s…</string>
-    <string name="find_searching_help">Brak sygnału i brak udostępnionej lokalizacji. Ta osoba musi mieć otwarty Moshpoint z włączonym live, do tego lokalizację i dane komórkowe. Wtedy pojawi się strzałka, nawet jeśli jest na drugim końcu miasta.</string>
+    <string name="find_searching_help">Brak sygnału i brak udostępnionej lokalizacji. Ta osoba musi otworzyć Moshpoint i kliknąć Udostępnij lokalizację, a do tego mieć włączoną lokalizację i dane komórkowe. Wtedy pojawi się strzałka, nawet jeśli jest na drugim końcu miasta.</string>
     <string name="find_band_right_here">Tuż obok</string>
     <string name="find_band_close">Blisko</string>
     <string name="find_band_nearby">W pobliżu</string>
@@ -89,7 +89,7 @@
     <string name="find_map_all">Wszyscy</string>
     <string name="find_map_me">Ja</string>
     <string name="find_save_area">⬇  Zapisz obszar na brak zasięgu</string>
-    <string name="find_map_no_mates">Nie ma jeszcze znajomych. Załóż ekipę albo dodaj znajomego, a pojawią się tutaj, gdy włączą live.</string>
+    <string name="find_map_no_mates">Nie ma jeszcze znajomych. Załóż ekipę albo dodaj znajomego, a pojawią się tutaj, gdy udostępnią lokalizację.</string>
     <string name="find_place_crew_meetup">zbiórka ekipy</string>
     <string name="find_place_only_you">widzisz to tylko ty</string>
     <string name="find_walk">Pieszo</string>

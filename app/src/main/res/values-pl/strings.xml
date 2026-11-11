@@ -2,8 +2,8 @@
 <!-- Polish -->
 <resources>
     <string name="app_name">Moshpoint</string>
-    <string name="visibility_channel">Status live</string>
-    <string name="visibility_notification">Jesteś live: znajomi mogą cię znaleźć</string>
+    <string name="visibility_channel">Udostępnianie lokalizacji</string>
+    <string name="visibility_notification">Udostępniasz lokalizację: znajomi mogą cię znaleźć</string>
     <string name="widget_title">Twoja ekipa</string>
     <string name="widget_empty">Załóż ekipę w Moshpoint, a twoi znajomi pojawią się tutaj.</string>
     <string name="widget_find">Znajdź ekipę</string>

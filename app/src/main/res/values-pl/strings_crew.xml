@@ -15,13 +15,13 @@
     <string name="crew_chat_on_today">Ten koncert jest dzisiaj. Szukacie się w tej ekipie?</string>
     <string name="crew_chat_switch">Przełącz</string>
     <plurals name="crew_chat_send_flare_hint">
-        <item quantity="one">🔥  Odpal racę: pokaż, gdzie jesteś, przez %d min</item>
-        <item quantity="few">🔥  Odpal racę: pokaż, gdzie jesteś, przez %d min</item>
-        <item quantity="many">🔥  Odpal racę: pokaż, gdzie jesteś, przez %d min</item>
-        <item quantity="other">🔥  Odpal racę: pokaż, gdzie jesteś, przez %d min</item>
+        <item quantity="one">🔥  Wyślij flarę: pokaż, gdzie jesteś, przez %d min</item>
+        <item quantity="few">🔥  Wyślij flarę: pokaż, gdzie jesteś, przez %d min</item>
+        <item quantity="many">🔥  Wyślij flarę: pokaż, gdzie jesteś, przez %d min</item>
+        <item quantity="other">🔥  Wyślij flarę: pokaż, gdzie jesteś, przez %d min</item>
     </plurals>
     <string name="crew_chat_empty">Jeszcze pusto. Wiadomości docierają do całej ekipy w ok. minutę (szybciej przez własny serwer).</string>
-    <string name="crew_chat_night_tools_later">Nakręcajcie się! Race i szybkie pingi włączą się w dniu koncertu.</string>
+    <string name="crew_chat_night_tools_later">Nakręcajcie się! Flary i szybkie pingi włączą się w dniu koncertu.</string>
     <string name="crew_chat_message_hint">Napisz do ekipy</string>
     <string name="crew_chat_not_sent">Nie wysłano · Kliknij, żeby ponowić</string>
     <string name="crew_chat_sending">Wysyłam…</string>
@@ -33,8 +33,8 @@
     <string name="crew_chat_pinned">%1$s przypina: %2$s</string>
     <string name="crew_chat_you_cleared_plan">Plan usunięty przez ciebie</string>
     <string name="crew_chat_cleared_plan">%1$s usuwa plan</string>
-    <string name="crew_chat_you_flare">Twoja raca: %1$s</string>
-    <string name="crew_chat_flare">%1$s odpala racę: %2$s</string>
+    <string name="crew_chat_you_flare">Twoja flara: %1$s</string>
+    <string name="crew_chat_flare">%1$s wysyła flarę: %2$s</string>
     <string name="crew_chat_line_other">%1$s %2$s</string>
 
     <string name="crew_quick_coming">Już idę 🏃</string>
@@ -92,7 +92,7 @@
         <item quantity="other">zostało %d min · na mapie</item>
     </plurals>
     <string name="crew_flare_end">Zakończ</string>
-    <string name="crew_flare_title">Odpal racę</string>
+    <string name="crew_flare_title">Wyślij flarę</string>
     <plurals name="crew_flare_body">
         <item quantity="one">Twoje miejsce widać na mapie ekipy przez %d minutę, z klimatem.</item>
         <item quantity="few">Twoje miejsce widać na mapie ekipy przez %d minuty, z klimatem.</item>
@@ -133,10 +133,10 @@
     </plurals>
     <string name="crew_notif_joined">jest w ekipie 🎉</string>
     <plurals name="crew_notif_flare">
-        <item quantity="one">Raca: %1$s · tutaj przez %2$d min</item>
-        <item quantity="few">Raca: %1$s · tutaj przez %2$d min</item>
-        <item quantity="many">Raca: %1$s · tutaj przez %2$d min</item>
-        <item quantity="other">Raca: %1$s · tutaj przez %2$d min</item>
+        <item quantity="one">Flara: %1$s · tutaj przez %2$d min</item>
+        <item quantity="few">Flara: %1$s · tutaj przez %2$d min</item>
+        <item quantity="many">Flara: %1$s · tutaj przez %2$d min</item>
+        <item quantity="other">Flara: %1$s · tutaj przez %2$d min</item>
     </plurals>
     <string name="crew_notif_new_plan">Nowy plan: %1$s</string>
     <string name="crew_notif_done_title">Koniec: %1$s</string>
@@ -159,7 +159,7 @@
     <string name="crew_ping_check_in">wraca do domu i da znać</string>
     <string name="crew_ping_home_safe">jest bezpiecznie w domu</string>
     <string name="crew_ping_chat">pisze wiadomość</string>
-    <string name="crew_ping_flare">odpala racę</string>
+    <string name="crew_ping_flare">wysyła flarę</string>
     <string name="crew_ping_plan">przypina plan</string>
     <string name="crew_ping_other">pinguje ekipę</string>
 
@@ -173,7 +173,7 @@
     <string name="crew_ping_title_check_in">%1$s wraca do domu i da znać</string>
     <string name="crew_ping_title_home_safe">%1$s jest bezpiecznie w domu</string>
     <string name="crew_ping_title_chat">%1$s pisze wiadomość</string>
-    <string name="crew_ping_title_flare">%1$s odpala racę</string>
+    <string name="crew_ping_title_flare">%1$s wysyła flarę</string>
     <string name="crew_ping_title_plan">%1$s przypina plan</string>
     <string name="crew_ping_title_other">%1$s pinguje ekipę</string>
 
@@ -199,8 +199,8 @@
     <string name="crew_note_reset">%1$s resetuje zaproszenie: stare kody QR już nie działają.</string>
 
     <string name="crew_wake_title">Dziś wieczorem: %1$s!</string>
-    <string name="crew_wake_text">Start o %1$s. Kliknij, żeby włączyć live, a ekipa cię znajdzie.</string>
-    <string name="crew_wake_text_venue">Start o %1$s, miejsce: %2$s. Kliknij, żeby włączyć live, a ekipa cię znajdzie.</string>
+    <string name="crew_wake_text">Start o %1$s. Kliknij, żeby udostępnić lokalizację, a ekipa cię znajdzie.</string>
+    <string name="crew_wake_text_venue">Start o %1$s, miejsce: %2$s. Kliknij, żeby udostępnić lokalizację, a ekipa cię znajdzie.</string>
 
     <plurals name="crew_memory_headline">
         <item quantity="one">Dokładnie rok temu: %2$s</item>
@@ -278,6 +278,6 @@
     <string name="crew_request_title">%1$s jest blisko i cię szuka</string>
     <string name="crew_request_text">Kliknij, żeby podświetlić ekran i dać się zauważyć</string>
     <string name="crew_go_hidden">Schowaj się</string>
-    <string name="crew_tile_live">Live</string>
+    <string name="crew_tile_live">Udostępniasz</string>
     <string name="crew_tile_hidden">Ukryty</string>
 </resources>

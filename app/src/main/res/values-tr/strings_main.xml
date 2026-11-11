@@ -2,9 +2,9 @@
 <!-- Turkish: main screen, invites, sharing and phone setup checks. -->
 <resources>
     <string name="main_get_the_app">Moshpoint henüz yok mu? Buradan yükle (Android): %1$s\nSonra bu mesajın tamamını kopyala, Moshpoint\'i aç ve Daveti yapıştır\'a dokun.\n\n</string>
-    <string name="main_nudge_text">Selam %1$s, Moshpoint\'i aç ve Canlıya geç\'e dokun (konum ve mobil veri açık olsun) ki seni bulabileyim!</string>
+    <string name="main_nudge_text">Selam %1$s, Moshpoint\'i aç ve Konumu paylaş\'a dokun (konum ve mobil veri açık olsun) ki seni bulabileyim!</string>
     <string name="main_nudge_mate">kanka</string>
-    <string name="main_nudge_title">Canlıya geçmelerini iste</string>
+    <string name="main_nudge_title">Konumlarını paylaşmalarını iste</string>
 
     <string name="main_setup_bluetooth_off">Bluetooth kapalı. O olmadan kimse seni bulamaz, sen de onları bulamazsın.</string>
     <string name="main_setup_location_off">Konum kapalı. GPS ile bulma buna ihtiyaç duyar, birçok telefonda Bluetooth ile bulma da.</string>
