@@ -340,7 +340,8 @@ fun FriendsScreen(
         // of a wall of warnings. It disappears once everything's ready.
         val todo: Triple<String, String, () -> Unit>? = when {
             missingPermissions.isNotEmpty() -> Triple(
-                Txt.s(R.string.home_allow_permission, missingPermissions.first().substringBefore(':').lowercase()),
+                // The name before the colon (full-width in CJK); not lower-cased (German nouns are capitalised).
+                Txt.s(R.string.home_allow_permission, missingPermissions.first().substringBefore(':').substringBefore('：').trim()),
                 Txt.s(R.string.home_allow), onFixPermissions,
             )
             setupIssues.isNotEmpty() -> setupIssues.first().let { Triple(it.text, it.button, it.onFix) }

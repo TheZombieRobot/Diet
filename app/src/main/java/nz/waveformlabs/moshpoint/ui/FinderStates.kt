@@ -157,7 +157,7 @@ internal fun DistanceOnly(list: List<ArrowState.DistanceOnly>, friendOf: (String
             })
             if (d.method == nz.waveformlabs.moshpoint.core.Method.BLE_RSSI) {
                 // Signal strength in a crowd can't honestly say "7 m": show a band instead.
-                Text(
+                FitText(
                     bandLabel(d.distanceM),
                     style = Mosh.Distance.copy(fontSize = if (list.size > 1) 32.sp else 52.sp, lineHeight = if (list.size > 1) 34.sp else 56.sp),
                 )
@@ -424,3 +424,20 @@ internal fun FindHaptics(arrows: List<ArrowState>) {
     }
 }
 
+
+/**
+ * One line that shrinks to fit the width instead of wrapping or clipping ("Right here" is short in
+ * English, "In de buurt" or "Ganz in der Nähe" aren't). Never smaller than 60% of [style].
+ */
+@Composable
+internal fun FitText(text: String, style: androidx.compose.ui.text.TextStyle, modifier: Modifier = Modifier) {
+    var scale by remember(text) { mutableStateOf(1f) }
+    Text(
+        text,
+        style = style.copy(fontSize = style.fontSize * scale, lineHeight = style.lineHeight * scale),
+        maxLines = 1,
+        softWrap = false,
+        modifier = modifier,
+        onTextLayout = { r -> if (r.didOverflowWidth && scale > 0.6f) scale = (scale - 0.08f).coerceAtLeast(0.6f) },
+    )
+}

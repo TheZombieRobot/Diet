@@ -94,3 +94,7 @@ Method: I read every string next to the English source and its comments. I check
 4. **Drinks emoji**: resolved; Arabic now uses 🥤.
 5. **طاولة الصوت** for "sound desk" (medium): understandable but descriptive. Event crews may say «المكسر» or «منصة الصوت».
 6. **«بالخارج %d د»** (night stats "out for N min"): compact; a reviewer may prefer «خرجتَ منذ…» or similar.
+
+## UI review
+
+No wording changes were needed: Arabic strings fit like English. Layout issues seen in the renders (not fixable by wording): several screens render left-to-right (home with no group, following home, settings sheet, finder distance-only / scanning / group-with-photos / small-phone one-friend, Up next), and the permission banner shows the English word "(location)" because the permission name is built in code.

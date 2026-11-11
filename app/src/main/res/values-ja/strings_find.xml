@@ -13,12 +13,12 @@
     <string name="find_rough_walk">だいたいの方向：そっちへ歩いて距離をチェック</string>
     <string name="find_colour_legend">ホットピンクは遠い。近づくと矢印が仲間の色に光ります。</string>
     <string name="find_cancel">キャンセル</string>
-    <string name="find_restart_scan">スキャンし直す</string>
+    <string name="find_restart_scan">再スキャン</string>
     <string name="find_scan_finished">スキャン完了</string>
     <string name="find_ok">OK</string>
     <string name="find_scan_again">もう一度スキャン</string>
-    <string name="find_ask_them">シェア開始をお願い</string>
-    <string name="find_last_seen_on_map">マップで最後に見た場所</string>
+    <string name="find_ask_them">シェアをお願い</string>
+    <string name="find_last_seen_on_map">最後の場所</string>
     <string name="find_light_me_up">画面を光らせる</string>
     <string name="find_spin_scan">回転スキャン</string>
     <string name="find_asked_light_up">お願いしました：相手のスマホに光らせる案内が出ます</string>
@@ -91,7 +91,7 @@
     <string name="find_place_only_you">自分だけに表示</string>
     <string name="find_walk">徒歩</string>
     <string name="find_ride">配車</string>
-    <string name="find_not_sharing">まだシェアしてない</string>
+    <string name="find_not_sharing">未シェア</string>
     <string name="find_find">探す</string>
     <string name="find_ask">シェアをお願い</string>
     <string name="find_drop_pin">ピンを立てる</string>
@@ -169,4 +169,8 @@
     <string name="find_spoken_feet">%1$sフィート</string>
     <string name="find_spoken_miles">%1$sマイル</string>
     <string name="find_spoken_under_3_feet">3フィート未満</string>
+    <string name="find_map_status_looking">仲間を探しています…</string>
+    <string name="find_map_status_no_mates">仲間を追加するかクルーを作るとここに表示されます</string>
+    <string name="find_map_status_offline">インターネットなし：最後の場所を表示中</string>
+    <string name="find_map_status_updated">たった今更新</string>
 </resources>

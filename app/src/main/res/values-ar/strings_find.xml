@@ -184,4 +184,8 @@
     <string name="find_spoken_feet">%1$s قدم</string>
     <string name="find_spoken_miles">%1$s ميل</string>
     <string name="find_spoken_under_3_feet">أقل من 3 أقدام</string>
+    <string name="find_map_status_looking">نبحث عن أصحابك…</string>
+    <string name="find_map_status_no_mates">أضف أصحابًا أو أنشئ شلة لتراهم هنا</string>
+    <string name="find_map_status_offline">لا يوجد إنترنت: نعرض آخر المواقع المعروفة</string>
+    <string name="find_map_status_updated">تم التحديث الآن</string>
 </resources>

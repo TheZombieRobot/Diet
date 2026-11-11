@@ -5,7 +5,7 @@
     <string name="home_live_ghost">En vivo · fantasma</string>
     <string name="home_live">En vivo</string>
 
-    <string name="home_tile_not_sharing">aún no comparte</string>
+    <string name="home_tile_not_sharing">sin compartir</string>
     <string name="home_tile_phone_died">sin batería</string>
     <string name="home_tile_live">en vivo</string>
     <string name="home_tile_with_battery">%1$s · %2$d%%</string>
@@ -43,7 +43,7 @@
     <string name="home_scan_qr">Escanear un QR</string>
     <string name="home_paste_invite">Pegar invitación</string>
     <string name="home_bump_phones">Chocar los celulares</string>
-    <string name="home_plan_gig">Planear un concierto (búscalo, invita ya)</string>
+    <string name="home_plan_gig">Planear concierto (búscalo, invita)</string>
     <string name="home_send_app_invite">Enviar la app + invitación (WhatsApp, Messenger…)</string>
     <string name="home_friends_every_gig">AMIGOS PARA CADA CONCIERTO</string>
     <string name="home_my_friend_qr">Mi QR de amigo</string>
@@ -127,7 +127,7 @@
     <string name="home_eyebrow_coming_up">PRÓXIMAMENTE</string>
     <string name="home_find_mates_tonight">Encuentra a tus amigos esta noche</string>
     <string name="home_find_mates_text">Invítalos, escanean y listo. Moshpoint hace el resto.</string>
-    <string name="home_invite_mates_tonight">Invita a tus amigos para esta noche</string>
+    <string name="home_invite_mates_tonight">Invita amigos esta noche</string>
     <string name="home_scan_invite">Escanear invitación</string>
     <string name="home_your_crew">Tu grupo</string>
     <string name="home_invite">＋ Invitar</string>
@@ -136,13 +136,13 @@
     <string name="home_share">Compartir ›</string>
     <string name="home_meet_up">★  Encuentro: %1$s</string>
     <string name="home_map_link">Mapa ›</string>
-    <string name="home_asleep_text">Dormido hasta el día del concierto: sin Bluetooth, sin ubicación, sin gastar batería. Tus amigos pueden unirse ya, y ese día te avisaremos.</string>
+    <string name="home_asleep_text">Dormido hasta el día del concierto: sin Bluetooth, ubicación ni gasto de batería. Tus amigos ya pueden unirse; ese día te avisamos.</string>
     <string name="home_follower_text">Puedes ver dónde está todo el mundo y sus fotos según llegan. Ellos ven que los sigues.</string>
     <string name="home_see_story">Ver la historia</string>
     <string name="home_crew_chat_unread">Chat del grupo (%1$d nuevos)</string>
     <string name="home_where_are_they">¿Dónde están? (mapa)</string>
     <string name="home_see_them_once_starts">Los verás aquí cuando empiece el concierto.</string>
-    <string name="home_tap_mate_hint">Toca a un amigo para buscarlo · mantén presionado para más</string>
+    <string name="home_tap_mate_hint">Toca para buscar · mantén para opciones</string>
     <string name="home_find_name">Buscar a %1$s</string>
     <string name="home_find_everyone">Buscar a todos</string>
     <string name="home_stop_following">Dejar de seguir</string>

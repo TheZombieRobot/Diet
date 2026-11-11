@@ -5,7 +5,7 @@
     <string name="home_live_ghost">लाइव · घोस्ट</string>
     <string name="home_live">लाइव</string>
 
-    <string name="home_tile_not_sharing">अभी शेयर नहीं कर रहे</string>
+    <string name="home_tile_not_sharing">अभी शेयर नहीं</string>
     <string name="home_tile_phone_died">फ़ोन बंद हो गया</string>
     <string name="home_tile_live">लाइव</string>
     <string name="home_tile_with_battery">%1$s · %2$d%%</string>

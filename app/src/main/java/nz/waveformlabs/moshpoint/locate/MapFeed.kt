@@ -27,7 +27,7 @@ class MapFeed(context: Context, private val scope: CoroutineScope) {
     val me = mutableStateOf<Location?>(null)
 
     /** "Updated just now" / "No connection" line for the map. */
-    val status = mutableStateOf("Looking for your mates…")
+    val status = mutableStateOf(nz.waveformlabs.moshpoint.Txt.s(nz.waveformlabs.moshpoint.R.string.find_map_status_looking))
 
     fun start() {
         if (jobs.isNotEmpty()) return
@@ -56,7 +56,7 @@ class MapFeed(context: Context, private val scope: CoroutineScope) {
     private suspend fun poll() {
         val list = people()
         if (list.isEmpty()) {
-            status.value = "Add mates or start a crew to see them here"
+            status.value = nz.waveformlabs.moshpoint.Txt.s(nz.waveformlabs.moshpoint.R.string.find_map_status_no_mates)
             return
         }
         val now = System.currentTimeMillis()
@@ -71,12 +71,12 @@ class MapFeed(context: Context, private val scope: CoroutineScope) {
         }
         val results = RelayClient.lookup(asks.map { it.second })
         if (results == null) {
-            status.value = "Can't reach the internet: showing last known spots"
+            status.value = nz.waveformlabs.moshpoint.Txt.s(nz.waveformlabs.moshpoint.R.string.find_map_status_offline)
             return
         }
         asks.forEachIndexed { i, (f, id) ->
             results[i].forEach { sealed -> LocationBox.open(f.secret, id, sealed)?.let { LocationBook.update(f.id, it) } }
         }
-        status.value = "Updated just now"
+        status.value = nz.waveformlabs.moshpoint.Txt.s(nz.waveformlabs.moshpoint.R.string.find_map_status_updated)
     }
 }

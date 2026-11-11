@@ -13,12 +13,12 @@
     <string name="find_rough_walk">Approximatif : marche par là et surveille la distance</string>
     <string name="find_colour_legend">Rose vif, c\'est loin. Les flèches prennent la couleur de ton pote quand tu te rapproches.</string>
     <string name="find_cancel">Annuler</string>
-    <string name="find_restart_scan">Relancer le scan</string>
+    <string name="find_restart_scan">Relancer</string>
     <string name="find_scan_finished">Scan terminé</string>
     <string name="find_ok">OK</string>
     <string name="find_scan_again">Rescanner</string>
     <string name="find_ask_them">Lui demander</string>
-    <string name="find_last_seen_on_map">Dernière position sur la carte</string>
+    <string name="find_last_seen_on_map">Dernière position</string>
     <string name="find_light_me_up">Fais clignoter</string>
     <string name="find_spin_scan">Scan 360°</string>
     <string name="find_asked_light_up">Demandé : son téléphone va proposer de clignoter</string>
@@ -87,7 +87,7 @@
     <string name="find_map_pin">Repère</string>
     <string name="find_map_all">Tous</string>
     <string name="find_map_me">Moi</string>
-    <string name="find_save_area">⬇  Enregistrer la zone pour quand y\'a pas de réseau</string>
+    <string name="find_save_area">⬇  Enregistrer la zone hors réseau</string>
     <string name="find_map_no_mates">Pas encore de potes. Lance une crew ou ajoute un ami, ils apparaîtront ici dès qu\'ils passent en live.</string>
     <string name="find_place_crew_meetup">RDV de la crew</string>
     <string name="find_place_only_you">visible que par toi</string>
@@ -175,4 +175,8 @@
     <string name="find_spoken_feet">%1$s pieds</string>
     <string name="find_spoken_miles">%1$s miles</string>
     <string name="find_spoken_under_3_feet">moins de 3 pieds</string>
+    <string name="find_map_status_looking">On cherche tes potes…</string>
+    <string name="find_map_status_no_mates">Ajoute des potes ou crée une crew pour les voir ici</string>
+    <string name="find_map_status_offline">Pas d\'internet : dernières positions connues</string>
+    <string name="find_map_status_updated">Mis à jour à l\'instant</string>
 </resources>

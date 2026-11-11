@@ -60,3 +60,16 @@ Note: Wiktionary pages could not be fetched from this session (blocked network).
 3. **Ghost mode name** *Spookmodus* vs Snapchat NL's possible *Onzichtbare modus*. Confidence **medium**.
 4. **Flemish feel.** *Hou/Houd*, *zojuist* (Flemish also *zonet*) and *kletsen* should work, but a Flemish reviewer should check. Confidence **medium-high**.
 5. ***story*** vs official *verhaal*. Confidence **high** that young users understand *story*.
+
+## UI review
+Shortened so the text fits the way English does:
+- `find_light_me_up`: *Laat me knipperen* → *Knipperen* (the half-width button wrapped onto 2 lines. It keeps *knipperen* and still avoids *oplichten*)
+- `find_restart_scan`: *Scan opnieuw starten* → *Scan opnieuw* (the button wrapped)
+- `find_last_seen_on_map`: *Laatst gezien op kaart* → *Laatst gezien* (the button wrapped)
+- `find_meet_label`: *Verzamelen: %1$s* → *Pin: %1$s* (the map row got cut off with "…")
+- `home_one_thing_first` and its plural: *EERST NOG EVEN DIT (· NOG %d)* → *EERST DIT (· NOG %d)* (the eyebrow wrapped)
+- `home_plan_gig`: *Plan een concert (zoek het, nodig nu uit)* → *Plan een concert (zoek, nodig uit)* (the button wrapped)
+- `home_invite_mates_tonight`: *Vrienden uitnodigen voor vanavond* → *Vrienden uitnodigen* (the main button wrapped. The card title already says *vanavond*)
+- `home_paste_invite` / `home_scan_invite`: *Uitnodiging plakken / Uitnodiging scannen* → *Plak uitnodiging / Scan uitnodiging* (the link wrapped). The two hints that name the button (`main_get_the_app`, `main_no_invite_found`) were updated to match.
+- `home_chat_subtitle`: *Berichten, het plan, lichtkogels* → *Chat, plan, lichtkogels* (cut off with "…")
+- `home_tap_mate_hint`: *Tik op een vriend om hem te vinden · houd vast voor opties* → *Tik om te zoeken · houd vast voor opties* (wrapped onto 2 lines. This also drops the gendered *hem*)

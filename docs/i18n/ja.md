@@ -56,3 +56,10 @@ Overall the machine translation was already good: it uses real Japanese gig voca
 3. Mixed です/ます and 〜してね register (medium). It is typical for casual apps. If you want a stricter style, convert 〜してね to 〜してください.
 4. クルー vs グループ (medium). LINE users are used to グループ. クルー sounds cooler but slightly niche.
 5. 仲間 as a fallback *name* (medium). It works as a label, but someone might prefer ゲスト.
+
+## UI review
+Shortened so the text fits the way English does:
+- `find_restart_scan`: *スキャンし直す* → *再スキャン* (the button wrapped and left "す" alone on line 2)
+- `find_last_seen_on_map`: *マップで最後に見た場所* → *最後の場所* (the button wrapped)
+- `find_ask_them`: *シェア開始をお願い* → *シェアをお願い* (the button wrapped and left "い" alone. It still says what the button asks for, so the concern behind the earlier fix still holds)
+- `find_not_sharing`, `home_tile_not_sharing`: *まだシェアしてない* → *未シェア* (the label under the avatar wrapped onto 2 lines)

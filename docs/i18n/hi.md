@@ -78,3 +78,9 @@ All 74 occurrences of "गैंग" are now "ग्रुप". I rewrote each s
 3. **शो for "gig"** (high confidence it's fine): "आपके शो" ("your shows") could sound like shows you perform. "आपके कॉन्सर्ट" is an option.
 4. **Gendered/plural verbs**: "भटक गए", "जल्द निकल रहे हैं" use the plural/honorific form, which avoids gender. That is natural for statuses, but a reviewer may prefer first-person singular forms.
 5. **घर पहुँचकर सुरक्षित ✅** (low): understandable but slightly stiff. "सही-सलामत घर पहुँच गए ✅" may sound more natural.
+
+## UI review
+Shortened so the text fits the way English does:
+- `find_restart_scan`: *स्कैन फिर से शुरू करें* → *फिर स्कैन करें* (the button wrapped and left one word alone on line 2)
+- `find_last_seen_on_map`: *मैप पर आखिरी बार दिखे* → *मैप पर आखिरी जगह* (the button wrapped)
+- `find_not_sharing`, `home_tile_not_sharing`: *अभी शेयर नहीं कर रहे* → *अभी शेयर नहीं* (the label under the avatar wrapped onto 2 lines)

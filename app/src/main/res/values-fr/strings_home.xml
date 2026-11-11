@@ -5,7 +5,7 @@
     <string name="home_live_ghost">Live · fantôme</string>
     <string name="home_live">Live</string>
 
-    <string name="home_tile_not_sharing">ne partage pas encore</string>
+    <string name="home_tile_not_sharing">ne partage pas</string>
     <string name="home_tile_phone_died">téléphone à plat</string>
     <string name="home_tile_live">live</string>
     <string name="home_tile_with_battery">%1$s · %2$d%%</string>
@@ -41,9 +41,9 @@
     <string name="home_show_crew_qr">Montrer le QR de la crew</string>
     <string name="home_start_crew_show_qr">Lancer une crew + montrer le QR</string>
     <string name="home_scan_qr">Scanner un QR</string>
-    <string name="home_paste_invite">Coller l\'invitation</string>
+    <string name="home_paste_invite">Coller l\'invit</string>
     <string name="home_bump_phones">Faire un check téléphones</string>
-    <string name="home_plan_gig">Prévoir un concert (le trouver, inviter)</string>
+    <string name="home_plan_gig">Prévoir un concert (et inviter)</string>
     <string name="home_send_app_invite">Envoyer l\'appli + l\'invitation (WhatsApp, Messenger…)</string>
     <string name="home_friends_every_gig">DES AMIS POUR TOUS LES CONCERTS</string>
     <string name="home_my_friend_qr">Mon QR ami</string>
@@ -77,7 +77,7 @@
 
     <string name="home_crew_chat">Chat de la crew</string>
     <string name="home_pinned_plan">📌 %1$s</string>
-    <string name="home_chat_subtitle">Messages, le plan, fusées</string>
+    <string name="home_chat_subtitle">Messages, plan, fusées</string>
     <string name="home_unread_many">9+</string>
     <plurals name="home_unread_new">
         <item quantity="one">%d nouveau</item>
@@ -118,16 +118,16 @@
     <string name="home_allow">Autoriser</string>
     <string name="home_one_thing_first">D\'ABORD UN TRUC</string>
     <plurals name="home_one_thing_first_more">
-        <item quantity="one">D\'ABORD UN TRUC · ENCORE %d</item>
-        <item quantity="many">D\'ABORD UN TRUC · ENCORE %d</item>
-        <item quantity="other">D\'ABORD UN TRUC · ENCORE %d</item>
+        <item quantity="one">D\'ABORD ÇA · ENCORE %d</item>
+        <item quantity="many">D\'ABORD ÇA · ENCORE %d</item>
+        <item quantity="other">D\'ABORD ÇA · ENCORE %d</item>
     </plurals>
     <string name="home_eyebrow_tonight">CE SOIR</string>
     <string name="home_eyebrow_following">SUIVI</string>
     <string name="home_eyebrow_coming_up">BIENTÔT</string>
     <string name="home_find_mates_tonight">Retrouve tes potes ce soir</string>
     <string name="home_find_mates_text">Invite-les, ils scannent, c\'est fait. Moshpoint s\'occupe du reste.</string>
-    <string name="home_invite_mates_tonight">Inviter des potes pour ce soir</string>
+    <string name="home_invite_mates_tonight">Invite tes potes ce soir</string>
     <string name="home_scan_invite">Scanner une invitation</string>
     <string name="home_your_crew">Ta crew</string>
     <string name="home_invite">＋ Inviter</string>
@@ -136,13 +136,13 @@
     <string name="home_share">Partager ›</string>
     <string name="home_meet_up">★  RDV : %1$s</string>
     <string name="home_map_link">Carte ›</string>
-    <string name="home_asleep_text">En veille jusqu\'au jour du concert : pas de Bluetooth, pas de localisation, zéro conso de batterie. Tes potes peuvent rejoindre dès maintenant, et tu recevras un rappel le jour J.</string>
+    <string name="home_asleep_text">En veille jusqu\'au concert : ni Bluetooth, ni localisation, ni batterie. Tes potes peuvent déjà rejoindre, rappel le jour J.</string>
     <string name="home_follower_text">Tu vois où tout le monde est et leurs photos au fur et à mesure. Ils voient que tu les suis.</string>
     <string name="home_see_story">Voir la story</string>
     <string name="home_crew_chat_unread">Chat de la crew (%1$d nouveaux)</string>
     <string name="home_where_are_they">Ils sont où ? (carte)</string>
     <string name="home_see_them_once_starts">Tu les verras ici dès que le concert commence.</string>
-    <string name="home_tap_mate_hint">Appuie sur un pote pour le trouver · appui long pour les options</string>
+    <string name="home_tap_mate_hint">Appuie pour trouver · appui long : options</string>
     <string name="home_find_name">Trouver %1$s</string>
     <string name="home_find_everyone">Trouver tout le monde</string>
     <string name="home_stop_following">Ne plus suivre</string>

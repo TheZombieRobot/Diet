@@ -18,7 +18,7 @@
     <string name="find_ok">OK</string>
     <string name="find_scan_again">Scan lagi</string>
     <string name="find_ask_them">Minta live</string>
-    <string name="find_last_seen_on_map">Terakhir terlihat di peta</string>
+    <string name="find_last_seen_on_map">Terakhir di peta</string>
     <string name="find_light_me_up">Nyalakan layarku</string>
     <string name="find_spin_scan">Scan putar</string>
     <string name="find_asked_light_up">Sudah diminta: HP mereka akan menawarkan untuk menyala</string>
@@ -32,7 +32,7 @@
     <string name="find_searching_help">Belum ada sinyal dari mereka dan belum ada lokasi yang dibagikan. Mereka perlu buka Moshpoint dengan Mulai live aktif, plus lokasi dan data seluler. Setelah itu panahnya muncul, meski mereka di ujung kota.</string>
     <string name="find_band_right_here">Di sini banget</string>
     <string name="find_band_close">Dekat</string>
-    <string name="find_band_nearby">Sekitar sini</string>
+    <string name="find_band_nearby">Dekat</string>
     <string name="find_band_in_range">Dalam jangkauan</string>
     <string name="find_band_hint_right_here">dalam beberapa meter</string>
     <string name="find_band_hint_close">di bawah 10 m</string>
@@ -81,14 +81,14 @@
     <string name="find_area_save_failed">Gagal menyimpan area: %1$s</string>
     <string name="find_area_too_big">Terlalu luas untuk disimpan: perbesar ke venue lalu coba lagi</string>
     <string name="find_back">‹ Kembali</string>
-    <string name="find_map_title">Peta mosh</string>
+    <string name="find_map_title">Peta</string>
     <string name="find_map_pin">Pin</string>
     <string name="find_map_all">Semua</string>
     <string name="find_map_me">Aku</string>
     <string name="find_save_area">⬇  Simpan area ini untuk saat tanpa sinyal</string>
     <string name="find_map_no_mates">Belum ada teman. Bikin geng atau tambah teman, nanti mereka muncul di sini begitu live.</string>
     <string name="find_place_crew_meetup">titik kumpul geng</string>
-    <string name="find_place_only_you">cuma kamu yang lihat</string>
+    <string name="find_place_only_you">khusus kamu</string>
     <string name="find_walk">Jalan</string>
     <string name="find_ride">Pesan taksi</string>
     <string name="find_not_sharing">Belum berbagi</string>
@@ -169,4 +169,8 @@
     <string name="find_spoken_feet">%1$s kaki</string>
     <string name="find_spoken_miles">%1$s mil</string>
     <string name="find_spoken_under_3_feet">kurang dari 3 kaki</string>
+    <string name="find_map_status_looking">Mencari teman-temanmu…</string>
+    <string name="find_map_status_no_mates">Tambah teman atau bikin geng untuk melihat mereka di sini</string>
+    <string name="find_map_status_offline">Tidak ada internet: menampilkan lokasi terakhir</string>
+    <string name="find_map_status_updated">Baru saja diperbarui</string>
 </resources>

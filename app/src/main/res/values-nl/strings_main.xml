@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Dutch: main screen, invites, sharing and phone setup checks. -->
 <resources>
-    <string name="main_get_the_app">Nog geen Moshpoint? Installeer de app hier (Android): %1$s\nKopieer daarna dit hele bericht, open Moshpoint en tik op Uitnodiging plakken.\n\n</string>
+    <string name="main_get_the_app">Nog geen Moshpoint? Installeer de app hier (Android): %1$s\nKopieer daarna dit hele bericht, open Moshpoint en tik op Plak uitnodiging.\n\n</string>
     <string name="main_nudge_text">Hé %1$s, open Moshpoint en tik op Ga live (met locatie en data aan), dan kan ik je vinden!</string>
     <string name="main_nudge_mate">maat</string>
     <string name="main_nudge_title">Vraag ze om live te gaan</string>
@@ -46,7 +46,7 @@
     <string name="main_the_crew">de crew</string>
     <string name="main_got_code">Code binnen. Geef ze een naam en tik dan op Vriend toevoegen.</string>
     <string name="main_friend_added">✓ %1$s toegevoegd</string>
-    <string name="main_no_invite_found">Geen Moshpoint-uitnodiging gevonden. Kopieer het hele bericht van je vriend en tik dan op Uitnodiging plakken.</string>
+    <string name="main_no_invite_found">Geen Moshpoint-uitnodiging gevonden. Kopieer het hele bericht van je vriend en tik dan op Plak uitnodiging.</string>
 
     <string name="main_perm_location">Locatie: GPS-pijl en afstand via Bluetooth/Wi-Fi</string>
     <string name="main_perm_nearby">Apparaten in de buurt: vrienden vinden en gevonden worden via Bluetooth</string>

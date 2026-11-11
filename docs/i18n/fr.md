@@ -68,3 +68,24 @@ Note: fr.wiktionary.org and en.wiktionary.org could not be fetched from this ses
 3. **Fusée** as a light "where I am" status. Natural enough? Confidence **medium**.
 4. **Remaining *Touche pour…*** hints (e.g. *Touche pour réessayer*). Fine French, but Android itself uses *Appuie/Appuyez*. Confidence **high** that they are acceptable.
 5. **Crew vibe *Je suis où ? 😅*** for "Lost". Playful and gender-neutral. Check it reads as intended. Confidence **medium-high**.
+
+## UI review
+
+Shortened so the text fits like English does in the rendered screens:
+
+| Key | Old | New |
+|---|---|---|
+| `find_restart_scan` | Relancer le scan | Relancer |
+| `find_last_seen_on_map` | Dernière position sur la carte | Dernière position |
+| `find_save_area` | Enregistrer la zone pour quand y'a pas de réseau | Enregistrer la zone hors réseau |
+| `home_plan_gig` | Prévoir un concert (le trouver, inviter) | Prévoir un concert (et inviter) |
+| `home_invite_mates_tonight` | Inviter des potes pour ce soir | Invite tes potes ce soir |
+| `home_paste_invite` | Coller l'invitation | Coller l'invit |
+| `home_one_thing_first_more` | D'ABORD UN TRUC · ENCORE %d | D'ABORD ÇA · ENCORE %d |
+| `home_tap_mate_hint` | Appuie sur un pote pour le trouver · appui long pour les options | Appuie pour trouver · appui long : options |
+| `home_chat_subtitle` | Messages, le plan, fusées | Messages, plan, fusées |
+| `home_tile_not_sharing` | ne partage pas encore | ne partage pas |
+| `home_asleep_text` | En veille jusqu'au jour du concert : pas de Bluetooth, pas de localisation, zéro conso… | En veille jusqu'au concert : ni Bluetooth, ni localisation, ni batterie. Tes potes peuvent déjà rejoindre, rappel le jour J. |
+| `setup_take_selfie` | Prendre un selfie | Selfie |
+| `setup_choose_photo` | Choisir une photo | Galerie |
+| `setup_stay_live` | Rester en live après un redémarrage | Live après redémarrage |

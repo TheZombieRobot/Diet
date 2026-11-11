@@ -4,11 +4,11 @@
     <string name="setup_settings_title">Réglages</string>
     <string name="setup_your_photo">Ta photo</string>
     <string name="setup_your_photo_desc">S\'affiche dans la flèche de tes potes. Seuls tes amis la voient.</string>
-    <string name="setup_take_selfie">Prendre un selfie</string>
-    <string name="setup_choose_photo">Choisir une photo</string>
+    <string name="setup_take_selfie">Selfie</string>
+    <string name="setup_choose_photo">Galerie</string>
     <string name="setup_remove_my_photo">Retirer ma photo</string>
     <string name="setup_your_name">Ton prénom</string>
-    <string name="setup_stay_live">Rester en live après un redémarrage</string>
+    <string name="setup_stay_live">Live après redémarrage</string>
     <string name="setup_stay_live_desc">Si tu étais en live quand ton téléphone a redémarré, tu repasses en live automatiquement.</string>
     <string name="setup_ghost_mode">Mode fantôme</string>
     <string name="setup_ghost_mode_desc">Cache ta position sur la carte. Tes potes peuvent encore te trouver en Bluetooth quand ils sont tout près.</string>

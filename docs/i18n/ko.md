@@ -57,3 +57,7 @@ Register: UI text uses 해요체 (friendly-polite), the norm for Korean consumer
 3. 나는 %1$s! (medium). It is casual next to the 해요체 onboarding, but particle-safe. The alternative is "제 이름은 %1$s".
 4. 음향 부스 (medium). Some fans say 콘솔 or FOH.
 5. 호출 for "pinged the crew" (medium). It may sound a bit like summoning.
+
+## UI review
+Shortened so the text fits the way English does:
+- `find_last_seen_on_map`: *지도에서 마지막 위치* → *마지막 위치* (the button wrapped and left "치" alone on line 2)

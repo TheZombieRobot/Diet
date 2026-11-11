@@ -41,7 +41,7 @@
     <string name="home_scan_qr">Scan QR</string>
     <string name="home_paste_invite">Tempel undangan</string>
     <string name="home_bump_phones">Tempelkan HP kalian</string>
-    <string name="home_plan_gig">Rencanakan konser (cari, undang sekarang)</string>
+    <string name="home_plan_gig">Atur konser (cari, undang)</string>
     <string name="home_send_app_invite">Kirim aplikasi + undangan (WhatsApp, Messenger…)</string>
     <string name="home_friends_every_gig">TEMAN UNTUK SETIAP KONSER</string>
     <string name="home_my_friend_qr">QR temanku</string>
@@ -119,7 +119,7 @@
     <string name="home_scan_invite">Scan undangan</string>
     <string name="home_your_crew">Geng kamu</string>
     <string name="home_invite">＋ Undang</string>
-    <string name="home_family_can_follow">Keluarga bisa ikut memantau dari rumah</string>
+    <string name="home_family_can_follow">Keluarga bisa pantau dari rumah</string>
     <string name="home_following_from_home_names">Mengikuti dari rumah: %1$s</string>
     <string name="home_share">Bagikan ›</string>
     <string name="home_meet_up">★  Titik kumpul: %1$s</string>

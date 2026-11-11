@@ -18,7 +18,7 @@
     <string name="find_ok">확인</string>
     <string name="find_scan_again">한 번 더 스캔</string>
     <string name="find_ask_them">요청하기</string>
-    <string name="find_last_seen_on_map">지도에서 마지막 위치</string>
+    <string name="find_last_seen_on_map">마지막 위치</string>
     <string name="find_light_me_up">화면 밝히기</string>
     <string name="find_spin_scan">회전 스캔</string>
     <string name="find_asked_light_up">요청했어요: 친구 폰에 화면 밝히기 안내가 떠요</string>
@@ -169,4 +169,8 @@
     <string name="find_spoken_feet">%1$s피트</string>
     <string name="find_spoken_miles">%1$s마일</string>
     <string name="find_spoken_under_3_feet">3피트 미만</string>
+    <string name="find_map_status_looking">친구를 찾는 중…</string>
+    <string name="find_map_status_no_mates">친구를 추가하거나 크루를 만들면 여기에 보여요</string>
+    <string name="find_map_status_offline">인터넷 없음: 마지막 위치를 보여 줘요</string>
+    <string name="find_map_status_updated">방금 업데이트됨</string>
 </resources>

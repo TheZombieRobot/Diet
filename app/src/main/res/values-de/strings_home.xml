@@ -42,7 +42,7 @@
     <string name="home_scan_qr">QR scannen</string>
     <string name="home_paste_invite">Einladung einfügen</string>
     <string name="home_bump_phones">Handys anstoßen</string>
-    <string name="home_plan_gig">Konzert planen (suchen, jetzt einladen)</string>
+    <string name="home_plan_gig">Konzert planen (suchen, einladen)</string>
     <string name="home_send_app_invite">App + Einladung senden (WhatsApp, Messenger…)</string>
     <string name="home_friends_every_gig">FREUNDE FÜR JEDES KONZERT</string>
     <string name="home_my_friend_qr">Mein Freundes-QR</string>
@@ -74,7 +74,7 @@
 
     <string name="home_crew_chat">Crew-Chat</string>
     <string name="home_pinned_plan">📌 %1$s</string>
-    <string name="home_chat_subtitle">Nachrichten, der Plan, Leuchtsignale</string>
+    <string name="home_chat_subtitle">Chat, Plan, Leuchtsignale</string>
     <string name="home_unread_many">9+</string>
     <plurals name="home_unread_new">
         <item quantity="one">%d neu</item>
@@ -113,8 +113,8 @@
     <string name="home_allow">Erlauben</string>
     <string name="home_one_thing_first">ERST NOCH EINS</string>
     <plurals name="home_one_thing_first_more">
-        <item quantity="one">ERST NOCH EINS · %d WEITERES</item>
-        <item quantity="other">ERST NOCH EINS · %d WEITERE</item>
+        <item quantity="one">ERST EINS · NOCH %d</item>
+        <item quantity="other">ERST EINS · NOCH %d</item>
     </plurals>
     <string name="home_eyebrow_tonight">HEUTE ABEND</string>
     <string name="home_eyebrow_following">DU FOLGST</string>
@@ -130,13 +130,13 @@
     <string name="home_share">Teilen ›</string>
     <string name="home_meet_up">★  Treffpunkt: %1$s</string>
     <string name="home_map_link">Karte ›</string>
-    <string name="home_asleep_text">Schläft bis zum Konzerttag: kein Bluetooth, kein Standort, kein Akkuverbrauch. Freunde können schon beitreten, und am Tag bekommst du eine Erinnerung.</string>
+    <string name="home_asleep_text">Ruht bis zum Konzerttag: kein Bluetooth, kein Standort, kein Akkuverbrauch. Freunde können schon beitreten, am Tag erinnern wir dich.</string>
     <string name="home_follower_text">Du siehst, wo alle sind, und ihre Fotos, sobald sie reinkommen. Sie sehen, dass du folgst.</string>
     <string name="home_see_story">Story ansehen</string>
     <string name="home_crew_chat_unread">Crew-Chat (%1$d neu)</string>
     <string name="home_where_are_they">Wo sind sie? (Karte)</string>
     <string name="home_see_them_once_starts">Du siehst sie hier, sobald das Konzert beginnt.</string>
-    <string name="home_tap_mate_hint">Tippe auf einen Freund, um ihn zu finden · gedrückt halten für Optionen</string>
+    <string name="home_tap_mate_hint">Antippen zum Finden · halten für Optionen</string>
     <string name="home_find_name">%1$s finden</string>
     <string name="home_find_everyone">Alle finden</string>
     <string name="home_stop_following">Nicht mehr folgen</string>

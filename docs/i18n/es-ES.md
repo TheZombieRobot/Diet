@@ -60,3 +60,20 @@ Validator: `check_translation.py app/src/main/res/values-es-rES` → **OK**.
 2. **"Chocar los móviles"** for Bump (about 70%). An alternative is "Juntar los móviles".
 3. **"En el merch"** (about 80%). Young Spanish gig-goers do say "merch", but "En el puesto de merch" is safer if testers find the short form odd.
 4. **Leísmo**: kept (see above). A reviewer from Andalusia or the Canary Islands might prefer "lo/los" (about 85% fine either way).
+
+## UI review
+
+Shortened so the text fits like English does in the rendered screens:
+
+| Key | Old | New |
+|---|---|---|
+| `crew_chat_send_flare_hint` | Lanza una bengala: muestra dónde estás durante %d min | Lanza una bengala: tu ubicación por %d min |
+| `find_spin_scan` | Escaneo giratorio | Escaneo 360° |
+| `find_restart_scan` | Volver a empezar | Reiniciar |
+| `find_last_seen_on_map` | Visto por última vez en el mapa | Última ubicación |
+| `home_plan_gig` | Planear un concierto (búscalo, invita ya) | Planear concierto (búscalo, invita) |
+| `home_invite_mates_tonight` | Invita a tus amigos para esta noche | Invita amigos esta noche |
+| `home_tap_mate_hint` | Toca a un amigo para buscarle · mantén pulsado para más | Toca para buscar · mantén para opciones |
+| `home_tile_not_sharing` | aún no comparte | sin compartir |
+| `home_asleep_text` | … sin Bluetooth, sin ubicación, sin gastar batería. Tus amigos pueden unirse ya, y ese día te avisaremos. | … sin Bluetooth, ubicación ni gasto de batería. Tus amigos ya pueden unirse; ese día te avisamos. |
+| `setup_take_selfie` | Hacer un selfie | Hacer selfie |

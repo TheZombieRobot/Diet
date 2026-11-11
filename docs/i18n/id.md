@@ -71,3 +71,13 @@ Android does not fall back from `ms` to `in`, so Malaysian-locale phones won't s
 3. **Pesan taksi** (medium-high). "Taksi online" is the more exact Indonesian term. "Pesan taksi" was chosen so it also reads well in Malaysia.
 4. **Ke bar dulu** (high). Fine. The owner could restore "Ngebir dulu" if they want a cheekier tone in Indonesia only.
 5. **Battery setting names** in main_battery_text ("Jangan optimalkan" / "Tidak dibatasi") (medium). They match stock Android, but phone brands differ.
+
+## UI review
+Shortened so the text fits the way English does:
+- `setup_onb_title_find`: *Temukan temanmu\ndi keramaian mana pun* → *Temukan temanmu\ndi keramaian* (the welcome title took 4 lines, with "pun" alone on the last one)
+- `find_band_nearby`: *Sekitar sini* → *Dekat* (the big finder word wrapped onto 2 lines. Matches *Makin dekat*)
+- `find_last_seen_on_map`: *Terakhir terlihat di peta* → *Terakhir di peta* (the button wrapped)
+- `find_map_title`: *Peta mosh* → *Peta* (the map header title wrapped and pushed "Updated…" into an ellipsis)
+- `find_place_only_you`: *cuma kamu yang lihat* → *khusus kamu* (the map row subtitle took 2 lines)
+- `home_plan_gig`: *Rencanakan konser (cari, undang sekarang)* → *Atur konser (cari, undang)* (the button wrapped)
+- `home_family_can_follow`: *Keluarga bisa ikut memantau dari rumah* → *Keluarga bisa pantau dari rumah* (wrapped onto 2 lines)

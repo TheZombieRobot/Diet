@@ -13,13 +13,13 @@
     <string name="find_rough_walk">Globaal: loop die kant op en let op de afstand</string>
     <string name="find_colour_legend">Felroze is ver weg. De pijlen gloeien in de kleur van je vriend als je dichterbij komt.</string>
     <string name="find_cancel">Annuleren</string>
-    <string name="find_restart_scan">Scan opnieuw starten</string>
+    <string name="find_restart_scan">Scan opnieuw</string>
     <string name="find_scan_finished">Scan klaar</string>
     <string name="find_ok">OK</string>
     <string name="find_scan_again">Opnieuw scannen</string>
     <string name="find_ask_them">Vraag het</string>
-    <string name="find_last_seen_on_map">Laatst gezien op kaart</string>
-    <string name="find_light_me_up">Laat me knipperen</string>
+    <string name="find_last_seen_on_map">Laatst gezien</string>
+    <string name="find_light_me_up">Knipperen</string>
     <string name="find_spin_scan">Draaiscan</string>
     <string name="find_asked_light_up">Gevraagd: hun telefoon biedt aan om te knipperen</string>
     <string name="find_ask_light_up">Vraag ze te knipperen</string>
@@ -75,7 +75,7 @@
     <string name="find_map_style_bright">Licht</string>
     <string name="find_map_style_night">Nacht</string>
     <string name="find_map_style_dark">Donker</string>
-    <string name="find_meet_label">Verzamelen: %1$s</string>
+    <string name="find_meet_label">Pin: %1$s</string>
     <string name="find_saving_area">Gebied opslaan…</string>
     <string name="find_saving_area_pct">Gebied opslaan… %1$d%%</string>
     <string name="find_area_saved">Gebied opgeslagen: de kaart werkt hier zonder bereik</string>
@@ -172,4 +172,8 @@
     <string name="find_spoken_feet">%1$s voet</string>
     <string name="find_spoken_miles">%1$s mijl</string>
     <string name="find_spoken_under_3_feet">minder dan 3 voet</string>
+    <string name="find_map_status_looking">Je vrienden zoeken…</string>
+    <string name="find_map_status_no_mates">Voeg vrienden toe of start een crew om ze hier te zien</string>
+    <string name="find_map_status_offline">Geen internet: laatst bekende plekken</string>
+    <string name="find_map_status_updated">Zojuist bijgewerkt</string>
 </resources>

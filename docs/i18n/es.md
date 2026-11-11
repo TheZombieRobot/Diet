@@ -65,3 +65,20 @@ Validator: `check_translation.py app/src/main/res/values-es` → **OK**.
 3. **"Por comida 🍔"** for "Food run" (about 75%). It is natural in MX ("voy por comida"). Argentines might prefer "A buscar comida".
 4. **"Desde %1$s."** in `crew_friend_request_text` (crew name). It reads acceptably, but "Del grupo %1$s" may be clearer (about 70%).
 5. **"auto" / "carpa"**: understood everywhere, but MX/CO/VE say "carro" (about 85% fine).
+
+## UI review
+
+Shortened so the text fits like English does in the rendered screens:
+
+| Key | Old | New |
+|---|---|---|
+| `crew_chat_send_flare_hint` | Lanza una bengala: muestra dónde estás durante %d min | Lanza una bengala: tu ubicación por %d min |
+| `find_spin_scan` | Escaneo giratorio | Escaneo 360° |
+| `find_restart_scan` | Volver a empezar | Reiniciar |
+| `find_last_seen_on_map` | Visto por última vez en el mapa | Última ubicación |
+| `home_plan_gig` | Planear un concierto (búscalo, invita ya) | Planear concierto (búscalo, invita) |
+| `home_invite_mates_tonight` | Invita a tus amigos para esta noche | Invita amigos esta noche |
+| `home_tap_mate_hint` | Toca a un amigo para buscarlo · mantén presionado para más | Toca para buscar · mantén para opciones |
+| `home_tile_not_sharing` | aún no comparte | sin compartir |
+| `home_asleep_text` | … sin Bluetooth, sin ubicación, sin gastar batería. Tus amigos pueden unirse ya, y ese día te avisaremos. | … sin Bluetooth, ubicación ni gasto de batería. Tus amigos ya pueden unirse; ese día te avisamos. |
+| `setup_take_selfie` | Tomarte una selfie | Tomar selfie |

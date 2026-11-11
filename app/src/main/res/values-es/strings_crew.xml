@@ -16,9 +16,9 @@
     <string name="crew_chat_on_today">Este concierto es hoy. ¿Se buscan con este grupo?</string>
     <string name="crew_chat_switch">Cambiar</string>
     <plurals name="crew_chat_send_flare_hint">
-        <item quantity="one">🔥  Lanza una bengala: muestra dónde estás durante %d min</item>
-        <item quantity="many">🔥  Lanza una bengala: muestra dónde estás durante %d min</item>
-        <item quantity="other">🔥  Lanza una bengala: muestra dónde estás durante %d min</item>
+        <item quantity="one">🔥  Lanza una bengala: tu ubicación por %d min</item>
+        <item quantity="many">🔥  Lanza una bengala: tu ubicación por %d min</item>
+        <item quantity="other">🔥  Lanza una bengala: tu ubicación por %d min</item>
     </plurals>
     <string name="crew_chat_empty">Nada todavía. Los mensajes llegan a todo el grupo en más o menos un minuto (más rápido con tu propio servidor).</string>
     <string name="crew_chat_night_tools_later">¡Que empiece la cuenta regresiva! Las bengalas y los avisos rápidos se activan el día del concierto.</string>

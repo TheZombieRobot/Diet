@@ -56,3 +56,16 @@ Validator: `check_translation.py app/src/main/res/values-it` prints **OK**.
 2. **Gendered defaults** (*sano e salvo, Perso, Nascosto, entrato*). These are the standard generic masculine. Italian inclusive forms (schwa, asterisk) are politically divisive and were deliberately not used. Confidence **high**.
 3. ***Passaggio*** for Ride: clear for booking an Uber or taxi? Confidence **medium**.
 4. ***Gruppo*** vs *crew*. Young Italians also say *la mia crew*. *Gruppo* is safer and clearer. Confidence **high**.
+
+## UI review
+Shortened so the text fits the way English does:
+- `find_band_nearby`: *Nei paraggi* → *Vicino* (the big finder word wrapped onto 2 lines)
+- `find_spin_scan`: *Scansione a giro* → *Gira e cerca* (the button wrapped)
+- `find_from_gps`: *Da GPS: diventa più precisa mentre cammini* → *Da GPS: più precisa se cammini* (wrapped onto 2 lines)
+- `find_last_seen_on_map`: *Visto l'ultima volta sulla mappa* → *Ultima posizione* (the button wrapped)
+- `find_map_title`: *Mappa Mosh* → *Mappa* (the map header title wrapped and pushed "Updated…" into an ellipsis)
+- `home_one_thing_first_more`: *PRIMA UNA COSA · ALTRE %d* → *PRIMA UNA COSA · +%d* (the eyebrow wrapped)
+- `home_plan_gig`: *Pianifica un concerto (trovalo, invita subito)* → *Pianifica un concerto (trova, invita)* (the button wrapped)
+- `home_tile_not_sharing`: *non condivide ancora* → *non condivide* (the label under the avatar wrapped)
+- `home_family_can_follow`: *La famiglia può seguire la serata da casa* → *La famiglia può seguirti da casa* (wrapped onto 2 lines)
+- `home_tap_mate_hint`: *Tocca un amico per trovarlo · tieni premuto per le opzioni* → *Tocca per trovarlo · tieni premuto per le opzioni* (wrapped onto 2 lines)

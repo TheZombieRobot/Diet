@@ -64,3 +64,18 @@ Note: Wiktionary could not be fetched from this session (blocked network). Evide
 2. **Mixed imperative forms.** A few lowercase *tipp* and *kopier* forms mid-sentence remain colloquial. Fine for casual tone. Confidence **high**.
 3. **Swiss users.** `values-de` uses *ß* (*weiß*, *Schließen*). Switzerland writes *ss*. Consider a `values-de-rCH` copy with ß→ss. Confidence the current strings are understood in CH: **high**.
 4. ***Leuchtsignal*** as a casual status message. Natural enough? Confidence **medium-high**.
+
+## UI review
+
+Shortened so the text fits like English does in the rendered screens:
+
+| Key | Old | New |
+|---|---|---|
+| `find_restart_scan` | Scan neu starten | Neu scannen |
+| `find_last_seen_on_map` | Zuletzt auf der Karte | Letzter Standort |
+| `find_band_nearby` | In der Nähe | Nah dran |
+| `home_plan_gig` | Konzert planen (suchen, jetzt einladen) | Konzert planen (suchen, einladen) |
+| `home_one_thing_first_more` | ERST NOCH EINS · %d WEITERE(S) | ERST EINS · NOCH %d |
+| `home_tap_mate_hint` | Tippe auf einen Freund, um ihn zu finden · gedrückt halten für Optionen | Antippen zum Finden · halten für Optionen |
+| `home_chat_subtitle` | Nachrichten, der Plan, Leuchtsignale | Chat, Plan, Leuchtsignale |
+| `home_asleep_text` | … und am Tag bekommst du eine Erinnerung. | Ruht bis zum Konzerttag: … am Tag erinnern wir dich. |

@@ -171,7 +171,7 @@ fun StoryScreen(
             LazyColumn(
                 Modifier.fillMaxSize(),
                 state = list,
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 8.dp, bottom = 130.dp),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 8.dp, bottom = 190.dp), // clear of the camera button
             ) {
                 item(key = "header") {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {

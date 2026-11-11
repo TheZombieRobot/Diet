@@ -234,4 +234,9 @@
     <string name="find_spoken_feet">%1$s feet</string>
     <string name="find_spoken_miles">%1$s miles</string>
     <string name="find_spoken_under_3_feet">less than 3 feet</string>
+    <!-- Status line under the map title -->
+    <string name="find_map_status_looking">Looking for your mates…</string>
+    <string name="find_map_status_no_mates">Add mates or start a crew to see them here</string>
+    <string name="find_map_status_offline">Can\'t reach the internet: showing last known spots</string>
+    <string name="find_map_status_updated">Updated just now</string>
 </resources>

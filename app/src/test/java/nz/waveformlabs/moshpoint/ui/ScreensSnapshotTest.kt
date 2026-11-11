@@ -307,7 +307,13 @@ open class ScreensSnapshotTest {
         }
     }
 
-    private fun snap(content: @androidx.compose.runtime.Composable () -> Unit) = paparazzi.snapshot { content() }
+    /** Right-to-left set on Compose itself: the renderer's own setting doesn't reach every screen. */
+    private fun snap(content: @androidx.compose.runtime.Composable () -> Unit) = paparazzi.snapshot {
+        androidx.compose.runtime.CompositionLocalProvider(
+            androidx.compose.ui.platform.LocalLayoutDirection provides
+                if (rtl) androidx.compose.ui.unit.LayoutDirection.Rtl else androidx.compose.ui.unit.LayoutDirection.Ltr,
+        ) { content() }
+    }
 }
 
 /*

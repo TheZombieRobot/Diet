@@ -13,12 +13,12 @@
     <string name="find_rough_walk">अंदाज़न: उस तरफ़ चलें और दूरी पर नज़र रखें</string>
     <string name="find_colour_legend">गहरा गुलाबी मतलब दूर। पास आते ही तीर आपके दोस्त के रंग में चमकने लगते हैं।</string>
     <string name="find_cancel">रद्द करें</string>
-    <string name="find_restart_scan">स्कैन फिर से शुरू करें</string>
+    <string name="find_restart_scan">फिर स्कैन करें</string>
     <string name="find_scan_finished">स्कैन पूरा हुआ</string>
     <string name="find_ok">ठीक है</string>
     <string name="find_scan_again">फिर स्कैन करें</string>
     <string name="find_ask_them">उनसे कहें</string>
-    <string name="find_last_seen_on_map">मैप पर आखिरी बार दिखे</string>
+    <string name="find_last_seen_on_map">मैप पर आखिरी जगह</string>
     <string name="find_light_me_up">मेरी स्क्रीन चमकाएँ</string>
     <string name="find_spin_scan">घूमकर स्कैन</string>
     <string name="find_asked_light_up">कह दिया: उनका फ़ोन स्क्रीन चमकाने का ऑप्शन देगा</string>
@@ -92,7 +92,7 @@
     <string name="find_place_only_you">सिर्फ़ आपको दिखता है</string>
     <string name="find_walk">पैदल</string>
     <string name="find_ride">राइड</string>
-    <string name="find_not_sharing">अभी शेयर नहीं कर रहे</string>
+    <string name="find_not_sharing">अभी शेयर नहीं</string>
     <string name="find_find">ढूँढें</string>
     <string name="find_ask">कहें</string>
     <string name="find_drop_pin">पिन लगाएँ</string>
@@ -172,4 +172,8 @@
     <string name="find_spoken_feet">%1$s फ़ुट</string>
     <string name="find_spoken_miles">%1$s मील</string>
     <string name="find_spoken_under_3_feet">3 फ़ुट से कम</string>
+    <string name="find_map_status_looking">आपके दोस्तों को ढूँढ रहे हैं…</string>
+    <string name="find_map_status_no_mates">यहाँ देखने के लिए दोस्त जोड़ें या ग्रुप बनाएँ</string>
+    <string name="find_map_status_offline">इंटरनेट नहीं: आख़िरी पता जगहें दिखा रहे हैं</string>
+    <string name="find_map_status_updated">अभी अपडेट हुआ</string>
 </resources>
