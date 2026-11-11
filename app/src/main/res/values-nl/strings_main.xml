@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dutch: main screen, invites, sharing and phone setup checks. -->
+<resources>
+    <string name="main_get_the_app">Nog geen Moshpoint? Installeer de app hier (Android): %1$s\nKopieer daarna dit hele bericht, open Moshpoint en tik op Uitnodiging plakken.\n\n</string>
+    <string name="main_nudge_text">Hé %1$s, open Moshpoint en tik op Ga live (met locatie en data aan), dan kan ik je vinden!</string>
+    <string name="main_nudge_mate">maat</string>
+    <string name="main_nudge_title">Vraag ze om live te gaan</string>
+
+    <string name="main_setup_bluetooth_off">Bluetooth staat uit. Zonder Bluetooth kan niemand jou vinden, en jij hen ook niet.</string>
+    <string name="main_setup_location_off">Locatie staat uit. Zoeken via GPS heeft het nodig, en veel telefoons ook voor zoeken via Bluetooth.</string>
+    <string name="main_setup_wifi_off">Wi-Fi staat uit. Zet het aan voor een preciezere afstand (je hoeft nergens verbinding mee te maken).</string>
+    <string name="main_setup_battery">Batterijbesparing kan Moshpoint stoppen als de app dicht is, en dan kunnen je vrienden je niet vinden.</string>
+    <string name="main_setup_turn_on">Aanzetten</string>
+    <string name="main_setup_fix">Oplossen</string>
+
+    <string name="main_facebook_failed">Inloggen met Facebook mislukt: %1$s</string>
+    <string name="main_facebook_unknown_error">onbekend</string>
+    <string name="main_facebook_not_set_up">Inloggen met Facebook is niet ingesteld in deze build</string>
+
+    <string name="main_my_spot">Mijn plek</string>
+
+    <string name="main_photos_permission_needed">Moshpoint heeft toegang tot je foto\'s nodig om die van die avond te vinden</string>
+    <string name="main_you">Jij</string>
+    <plurals name="main_added_to_gig">
+        <item quantity="one">%d toegevoegd aan het concert</item>
+        <item quantity="other">%d toegevoegd aan het concert</item>
+    </plurals>
+    <string name="main_saving_one">Opslaan…</string>
+    <plurals name="main_saving_many">
+        <item quantity="one">%d foto of clip opslaan…</item>
+        <item quantity="other">%d foto\'s en clips opslaan…</item>
+    </plurals>
+    <string name="main_save_failed">Opslaan lukte niet. Is je telefoon vol?</string>
+    <string name="main_saved_all">Opgeslagen in je galerij: Moshpoint / %1$s</string>
+    <plurals name="main_saved_some">
+        <item quantity="one">%1$d van %2$d opgeslagen in je galerij</item>
+        <item quantity="other">%1$d van %2$d opgeslagen in je galerij</item>
+    </plurals>
+    <string name="main_gig_fallback">Concert</string>
+
+    <string name="main_invite_expired">Die uitnodiging is verlopen. Vraag om een nieuwe.</string>
+    <string name="main_joined_up_next">Je zit in %1$s! Het staat bij Binnenkort: kletsen kan nu al, op de concertdag wordt het wakker.</string>
+    <string name="main_joined_following">Je volgt %1$s. Je ziet hun foto\'s en waar ze zijn; zij zien dat je volgt.</string>
+    <string name="main_joined_sleeping">Je zit in %1$s! De crew wordt wakker op de concertdag (%2$s).</string>
+    <string name="main_joined_live">Je zit in %1$s! Iedereen erin kan elkaar vinden.</string>
+    <string name="main_the_crew">de crew</string>
+    <string name="main_got_code">Code binnen. Geef ze een naam en tik dan op Vriend toevoegen.</string>
+    <string name="main_friend_added">✓ %1$s toegevoegd</string>
+    <string name="main_no_invite_found">Geen Moshpoint-uitnodiging gevonden. Kopieer het hele bericht van je vriend en tik dan op Uitnodiging plakken.</string>
+
+    <string name="main_perm_location">Locatie: GPS-pijl en afstand via Bluetooth/Wi-Fi</string>
+    <string name="main_perm_nearby">Apparaten in de buurt: vrienden vinden en gevonden worden via Bluetooth</string>
+    <string name="main_perm_uwb">UWB: de precieze pijl</string>
+    <string name="main_perm_notifications">Meldingen: laat zien wanneer je zichtbaar bent</string>
+
+    <string name="main_phone_summary">Deze telefoon: %1$s</string>
+    <string name="main_cap_compass">kompas</string>
+
+    <string name="main_invite_reset">Uitnodiging gereset. Oude QR-codes en links werken niet meer.</string>
+    <string name="main_eyebrow_up_next">BINNENKORT</string>
+    <string name="main_eyebrow_up_next_countdown">BINNENKORT · %1$s</string>
+    <string name="main_eyebrow_coming_up">JE CREW · KOMT ERAAN</string>
+    <string name="main_eyebrow_tonight">JE CREW VOOR VANAVOND</string>
+    <string name="main_qr_hint_planned">Iedereen scant dit één keer. Klets en hype het nu al op; elkaar vinden gaat aan op de concertdag.</string>
+    <string name="main_qr_hint_tonight">Iedereen scant dit één keer. Dan kunnen jullie elkaar de hele nacht vinden.</string>
+    <string name="main_scan_to_add_me">Scan om mij toe te voegen</string>
+    <string name="main_scan_to_add_name">Scan om %1$s toe te voegen</string>
+
+    <string name="main_wants_to_stay_friends">%1$s wil vrienden blijven</string>
+    <string name="main_stay_friends_text">Jullie hebben elkaar ontmoet in %1$s. Zeg ja en jullie kunnen elkaar op elk concert vinden, niet alleen op deze. Alleen %2$s krijgt je gegevens, verder niemand in de crew.</string>
+    <string name="main_friends_now">Jij en %1$s zijn nu vrienden</string>
+    <string name="main_yes_stay_friends">Ja, vrienden blijven</string>
+    <string name="main_not_now">Niet nu</string>
+
+    <string name="main_battery_title">Blijf de hele nacht zichtbaar</string>
+    <string name="main_battery_text">Sommige telefoons sluiten apps op de achtergrond af om batterij te sparen, en dan verdwijn je. Zoek Moshpoint op het volgende scherm en zet het op \"Niet optimaliseren\" / \"Onbeperkt\".</string>
+    <string name="main_open_settings">Instellingen openen</string>
+
+    <plurals name="main_n_mates">
+        <item quantity="one">%d vriend</item>
+        <item quantity="other">%d vrienden</item>
+    </plurals>
+    <string name="main_beacon_colour_name">%1$s (%2$s)</string>
+
+    <string name="main_scan_prompt">Scan de Moshpoint-QR van je vriend</string>
+    <string name="main_out_of_crew">%1$s zit niet meer in de crew. Alle anderen krijgen een nieuwe sleutel.</string>
+
+    <string name="main_follow_share_text">Volg onze avond bij %1$s op Moshpoint: zie onze foto\'s zodra ze binnenkomen en dat we veilig zijn.\n%2$s</string>
+    <string name="main_follow_share_title">Laat familie meekijken</string>
+    <string name="main_when_venue">%1$s · %2$s</string>
+
+    <string name="main_time_passed">Die tijd is al voorbij. Kies wanneer het concert begint.</string>
+    <string name="main_added_up_next">%1$s toegevoegd aan Binnenkort. Nodig je vrienden uit en begin met de hype!</string>
+
+    <string name="main_join_name">Lid worden van %1$s?</string>
+    <string name="main_follow_name">%1$s volgen?</string>
+    <string name="main_bumped_text">Gebotst! Doe mee en jullie kunnen elkaar vanavond allemaal vinden.</string>
+    <string name="main_join">Meedoen</string>
+    <string name="main_no">Nee</string>
+    <string name="main_clip_follow_text">Je hebt een meekijklink gekopieerd. Je ziet hun foto\'s en dat ze veilig zijn; zij zien dat je volgt.</string>
+    <string name="main_clip_join_text">Je hebt een Moshpoint-uitnodiging gekopieerd. Doe mee en jullie kunnen elkaar vanavond allemaal vinden.</string>
+
+    <string name="main_your_night">Jouw avond</string>
+    <string name="main_recap_text">%1$s\n\nAls je de avond afsluit, gaat de crew dicht (vrienden blijven). De foto\'s en clips blijven op je telefoon bij Jouw concerten.</string>
+    <string name="main_night_ended">Avond afgesloten. Je foto\'s en clips staan bij Jouw concerten.</string>
+    <string name="main_end_the_night">Avond afsluiten</string>
+    <string name="main_share_night_text">Mijn avond met Moshpoint: %1$s 🤘</string>
+    <string name="main_share_night_title">Deel je avond</string>
+    <string name="main_share">Delen</string>
+
+    <string name="main_now_main_crew">%1$s is nu je hoofdcrew. Iedereen erin kan elkaar vinden.</string>
+    <string name="main_deleted_gig">%1$s verwijderd van deze telefoon</string>
+    <string name="main_meetup_sent">Verzamelpunt naar je crew gestuurd</string>
+    <string name="main_moment_label">%1$s · %2$s</string>
+
+    <string name="main_share_app_text">Haal Moshpoint, dan kunnen we elkaar vinden op concerten: tik op een vriend en een pijl wijst naar hem of haar.\n\n%1$s</string>
+    <string name="main_share_app_title">Moshpoint delen</string>
+    <string name="main_named_crew">Crew van %1$s</string>
+    <string name="main_tonights_crew">Crew van vanavond</string>
+    <string name="main_me">Ik</string>
+    <string name="main_group_invite_text">Kom vanavond in mijn crew \"%1$s\" op Moshpoint!\n%2$s</string>
+    <string name="main_group_invite_title">Groepsuitnodiging sturen</string>
+</resources>

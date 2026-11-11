@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dutch: app name, live status, widget. -->
+<resources>
+    <string name="app_name">Moshpoint</string>
+    <string name="visibility_channel">Live-status</string>
+    <string name="visibility_notification">Je bent live: je vrienden kunnen je vinden</string>
+    <string name="widget_title">Je crew</string>
+    <string name="widget_empty">Start een crew in Moshpoint en je vrienden verschijnen hier.</string>
+    <string name="widget_find">Crew vinden</string>
+    <string name="widget_description">Waar je crew is, en met één tik vind je ze</string>
+</resources>

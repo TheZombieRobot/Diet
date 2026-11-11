@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dutch: crew chat, notifications, friendship, safety, plan card, night stats, live status. -->
+<resources>
+
+    <string name="crew_you">Jij</string>
+    <string name="crew_default_name">Maat</string>
+    <string name="crew_default_group_name">Concertgroep</string>
+    <string name="crew_default_gig_name">Concert</string>
+    <string name="crew_someone">Iemand</string>
+    <string name="crew_name_numbered">%1$s (%2$d)</string>
+    <string name="crew_cancel">Annuleren</string>
+    <string name="crew_close">Sluiten</string>
+
+    <string name="crew_chat_subtitle">Crewchat · alleen je crew kan het lezen</string>
+    <string name="crew_chat_invite">＋ Uitnodigen</string>
+    <string name="crew_chat_on_today">Dit concert is vandaag. Elkaar vinden in deze crew?</string>
+    <string name="crew_chat_switch">Wisselen</string>
+    <plurals name="crew_chat_send_flare_hint">
+        <item quantity="one">🔥  Stuur een lichtkogel: laat %d min zien waar je bent</item>
+        <item quantity="other">🔥  Stuur een lichtkogel: laat %d min zien waar je bent</item>
+    </plurals>
+    <string name="crew_chat_empty">Nog niks. Berichten komen binnen ongeveer een minuut bij iedereen in de crew (sneller via je eigen relay).</string>
+    <string name="crew_chat_night_tools_later">Hype het op! Lichtkogels en snelle pings gaan aan op de concertdag.</string>
+    <string name="crew_chat_message_hint">Bericht aan de crew</string>
+    <string name="crew_chat_not_sent">Niet verstuurd · Tik om opnieuw te proberen</string>
+    <string name="crew_chat_sending">Versturen…</string>
+    <string name="crew_chat_line_with_time">%1$s · %2$s</string>
+
+    <string name="crew_chat_you_joined">Je bent bij de crew gekomen</string>
+    <string name="crew_chat_joined">%1$s is bij de crew gekomen</string>
+    <string name="crew_chat_you_pinned">Je hebt gepind: %1$s</string>
+    <string name="crew_chat_pinned">%1$s heeft gepind: %2$s</string>
+    <string name="crew_chat_you_cleared_plan">Je hebt het plan gewist</string>
+    <string name="crew_chat_cleared_plan">%1$s heeft het plan gewist</string>
+    <string name="crew_chat_you_flare">Je stuurde een lichtkogel: %1$s</string>
+    <string name="crew_chat_flare">%1$s stuurde een lichtkogel: %2$s</string>
+    <string name="crew_chat_line_other">%1$s %2$s</string>
+
+    <string name="crew_quick_coming">Ik kom eraan 🏃</string>
+    <string name="crew_quick_where">Waar ben je? 👀</string>
+    <string name="crew_quick_stay_put">Blijf staan ✋</string>
+    <string name="crew_quick_meet_pin">Zie je bij de pin 📍</string>
+    <string name="crew_quick_all_good">Alles goed 👍</string>
+    <string name="crew_quick_going_home">Ik ga naar huis 🏠</string>
+    <string name="crew_quick_need_help">🚨 Ik heb hulp nodig</string>
+    <plurals name="crew_quick_check_in">
+        <item quantity="one">Ik ga naar huis 🏠 Check binnen %d min in</item>
+        <item quantity="other">Ik ga naar huis 🏠 Check binnen %d min in</item>
+    </plurals>
+    <string name="crew_quick_home_safe">Veilig thuis ✅</string>
+
+    <string name="crew_plan_eyebrow">📌 HET PLAN</string>
+    <string name="crew_plan_none">Nog geen plan gepind.</string>
+    <string name="crew_plan_prompt">Pin het plan, dan hoeft niemand te scrollen: \"Mengtafel na de toegift\".</string>
+    <string name="crew_plan_by">door %1$s</string>
+    <string name="crew_plan_meet_up">★ Verzamelpunt: %1$s</string>
+    <string name="crew_plan_pin">Plan pinnen</string>
+    <string name="crew_plan_change">Wijzigen</string>
+    <string name="crew_plan_share">Delen als kaart</string>
+    <string name="crew_plan_title">Het plan</string>
+    <string name="crew_plan_editor_body">Voor iedereen bovenaan de chat gepind, dus het scrollt nooit weg.</string>
+    <string name="crew_plan_idea_sound_desk">Na de toegift bij de mengtafel</string>
+    <string name="crew_plan_idea_bar">Links van de hoofdbar in de pauze</string>
+    <string name="crew_plan_idea_car">Om 23:30 terug bij de auto</string>
+    <string name="crew_plan_idea_tent">Bij de tent als we elkaar kwijt zijn</string>
+    <string name="crew_plan_pin_it">Pinnen</string>
+    <string name="crew_plan_unpin">Losmaken</string>
+
+    <string name="crew_vibe_lost">Kwijt 😅</string>
+    <string name="crew_vibe_bar">Tijd voor de bar 🍺</string>
+    <string name="crew_vibe_rail">Vooraan bij het hek 🎶</string>
+    <string name="crew_vibe_food">Eten halen 🍔</string>
+    <string name="crew_vibe_toilets">Wc 🚻</string>
+    <string name="crew_vibe_air">Even naar buiten 🌬️</string>
+    <string name="crew_vibe_merch">Merchstand 👕</string>
+    <string name="crew_vibe_leaving">Ga zo weg 👋</string>
+    <string name="crew_flare_mine">Jij: %1$s</string>
+    <string name="crew_flare_theirs">%1$s: %2$s</string>
+    <plurals name="crew_flare_left">
+        <item quantity="one">nog %d min</item>
+        <item quantity="other">nog %d min</item>
+    </plurals>
+    <plurals name="crew_flare_left_on_map">
+        <item quantity="one">nog %d min · op de kaart</item>
+        <item quantity="other">nog %d min · op de kaart</item>
+    </plurals>
+    <string name="crew_flare_end">Stoppen</string>
+    <string name="crew_flare_title">Stuur een lichtkogel</string>
+    <plurals name="crew_flare_body">
+        <item quantity="one">Je plek staat %d minuut op de kaart van de crew, met een vibe.</item>
+        <item quantity="other">Je plek staat %d minuten op de kaart van de crew, met een vibe.</item>
+    </plurals>
+    <string name="crew_flare_own_hint">Of je eigen…</string>
+    <string name="crew_flare_send">Versturen</string>
+
+    <string name="crew_help_title">Hulp halen</string>
+    <string name="crew_help_alerted">Crew gewaarschuwd ✓</string>
+    <string name="crew_help_alert">Waarschuw mijn crew</string>
+    <string name="crew_help_alert_sub">Dringende melding met waar je bent</string>
+    <string name="crew_help_text_contact">Sms %1$s</string>
+    <string name="crew_help_text_contact_sub">Je berichtenapp opent met je locatie. Werkt zonder data.</string>
+    <string name="crew_help_add_contact">Noodcontact toevoegen</string>
+    <string name="crew_help_add_contact_sub">Iemand buiten de crew om te sms\'en als het erop aankomt</string>
+    <string name="crew_help_contact_name">Naam (bijv. Mam)</string>
+    <string name="crew_help_contact_number">Mobiel nummer</string>
+    <string name="crew_help_save_contact">Contact opslaan</string>
+    <string name="crew_help_call">%1$s bellen</string>
+    <string name="crew_help_call_sub">Politie, brandweer, ambulance</string>
+    <string name="crew_help_call_police">Politie</string>
+    <string name="crew_help_call_ambulance">Ambulance en brandweer</string>
+    <string name="crew_help_no_signal">Helemaal geen bereik? Veel nieuwere telefoons kunnen de hulpdiensten via satelliet bereiken: bel %1$s en volg de stappen. Op een festival kunnen security en de EHBO-post snel helpen.</string>
+    <string name="crew_help_sms">Ik heb hulp nodig. (verstuurd via Moshpoint)</string>
+    <string name="crew_help_sms_where">Ik heb hulp nodig. Ik ben hier: %1$s (verstuurd via Moshpoint)</string>
+
+    <string name="crew_channel_messages">Crewberichten</string>
+    <string name="crew_channel_help">Hulpvragen van de crew</string>
+    <string name="crew_channel_requests">Vrienden die je zoeken</string>
+    <string name="crew_notif_line">%1$s: %2$s</string>
+    <plurals name="crew_new_messages">
+        <item quantity="one">%d nieuw bericht</item>
+        <item quantity="other">%d nieuwe berichten</item>
+    </plurals>
+    <string name="crew_notif_joined">is bij de crew gekomen 🎉</string>
+    <plurals name="crew_notif_flare">
+        <item quantity="one">Lichtkogel: %1$s · %2$d min hier</item>
+        <item quantity="other">Lichtkogel: %1$s · %2$d min hier</item>
+    </plurals>
+    <string name="crew_notif_new_plan">Nieuw plan: %1$s</string>
+    <string name="crew_notif_done_title">%1$s is voorbij</string>
+    <string name="crew_notif_done_saved">Je foto\'s en clips staan opgeslagen bij Jouw concerten.</string>
+    <string name="crew_notif_done_text">Hopelijk was het een goeie. Start wanneer je wilt een nieuwe crew.</string>
+    <string name="crew_notif_overdue_title">%1$s heeft niet ingecheckt</string>
+    <string name="crew_notif_overdue_text">Was op weg naar huis en zou er nu moeten zijn. Bel even. Tik voor de laatste plek.</string>
+    <string name="crew_notif_help_where">Tikte op Hulp nodig. Tik om te zien waar. Ga even checken.</string>
+    <string name="crew_notif_help">Tikte op Hulp nodig. Ga even checken.</string>
+    <string name="crew_notif_tap_where">Tik om te zien waar.</string>
+    <string name="crew_notif_from_crew">Van je crew</string>
+
+    <string name="crew_ping_coming">komt eraan</string>
+    <string name="crew_ping_stay_put">zegt: blijf staan</string>
+    <string name="crew_ping_where">vraagt waar je bent</string>
+    <string name="crew_ping_meet_pin">zegt: zie je bij de pin</string>
+    <string name="crew_ping_all_good">is oké</string>
+    <string name="crew_ping_going_home">gaat naar huis</string>
+    <string name="crew_ping_need_help">HEEFT HULP NODIG</string>
+    <string name="crew_ping_check_in">gaat naar huis en checkt in</string>
+    <string name="crew_ping_home_safe">is veilig thuis</string>
+    <string name="crew_ping_chat">stuurde een bericht</string>
+    <string name="crew_ping_flare">stuurde een lichtkogel</string>
+    <string name="crew_ping_plan">pinde een plan</string>
+    <string name="crew_ping_other">pingde de crew</string>
+
+    <string name="crew_ping_title_coming">%1$s komt eraan</string>
+    <string name="crew_ping_title_stay_put">%1$s zegt: blijf staan</string>
+    <string name="crew_ping_title_where">%1$s vraagt waar je bent</string>
+    <string name="crew_ping_title_meet_pin">%1$s zegt: zie je bij de pin</string>
+    <string name="crew_ping_title_all_good">%1$s is oké</string>
+    <string name="crew_ping_title_going_home">%1$s gaat naar huis</string>
+    <string name="crew_ping_title_need_help">%1$s HEEFT HULP NODIG</string>
+    <string name="crew_ping_title_check_in">%1$s gaat naar huis en checkt in</string>
+    <string name="crew_ping_title_home_safe">%1$s is veilig thuis</string>
+    <string name="crew_ping_title_chat">%1$s stuurde een bericht</string>
+    <string name="crew_ping_title_flare">%1$s stuurde een lichtkogel</string>
+    <string name="crew_ping_title_plan">%1$s pinde een plan</string>
+    <string name="crew_ping_title_other">%1$s pingde de crew</string>
+
+    <string name="crew_rally_default">Hier verzamelen</string>
+
+    <string name="crew_friend_need_crew">Als vriend houden werkt als jullie samen in een crew zitten.</string>
+    <string name="crew_friend_gone">Die persoon zit niet meer in de crew.</string>
+    <string name="crew_friend_unreachable">%1$s is nog niet privé bereikbaar. Probeer het opnieuw zodra ze vanavond gezien zijn (blijft dit gebeuren, dan moet hun app worden bijgewerkt).</string>
+    <string name="crew_friend_ask_failed">Vragen aan %1$s lukte niet. Probeer opnieuw.</string>
+    <string name="crew_friend_asked">%1$s gevraagd om vrienden te blijven. Zeggen ze ja, dan zijn jullie vrienden voor elk concert.</string>
+    <string name="crew_friend_request_title">%1$s wil vrienden blijven</string>
+    <string name="crew_friend_request_text">Uit %1$s. Tik om ja te zeggen, dan kunnen jullie elkaar op elk concert vinden.</string>
+    <string name="crew_friend_accepted_title">%1$s is nu een vriend</string>
+    <string name="crew_friend_accepted_text">Jullie kunnen elkaar op elk concert vinden, niet alleen bij %1$s.</string>
+
+    <string name="crew_add_need_name">Geef ze een naam</string>
+    <string name="crew_add_bad_code">Die code klopt niet</string>
+    <string name="crew_add_own_code">Dat is je eigen code</string>
+
+    <string name="crew_note_you_removed">Je hebt %1$s verwijderd. De crew heeft een nieuwe sleutel: vanaf nu zien ze niks meer.</string>
+    <string name="crew_note_you_reset">Je hebt de uitnodiging gereset. Oude QR-codes en links werken niet meer.</string>
+    <string name="crew_note_removed">%1$s heeft %2$s uit de crew gehaald.</string>
+    <string name="crew_note_reset">%1$s heeft de uitnodiging gereset: oude QR-codes werken niet meer.</string>
+
+    <string name="crew_wake_title">%1$s vanavond!</string>
+    <string name="crew_wake_text">Begint om %1$s. Tik om live te gaan, zodat je crew je kan vinden.</string>
+    <string name="crew_wake_text_venue">Begint om %1$s in %2$s. Tik om live te gaan, zodat je crew je kan vinden.</string>
+
+    <plurals name="crew_memory_headline">
+        <item quantity="one">Vandaag een jaar geleden: %2$s</item>
+        <item quantity="other">Vandaag %1$d jaar geleden: %2$s</item>
+    </plurals>
+    <plurals name="crew_memory_headline_with">
+        <item quantity="one">Vandaag een jaar geleden: %2$s met %3$s</item>
+        <item quantity="other">Vandaag %1$d jaar geleden: %2$s met %3$s</item>
+    </plurals>
+    <string name="crew_memory_two_people">%1$s &amp; %2$s</string>
+    <plurals name="crew_memory_text">
+        <item quantity="one">%d foto\'s en clips. Tik om het te herbeleven.</item>
+        <item quantity="other">%d foto\'s en clips. Tik om het te herbeleven.</item>
+    </plurals>
+
+    <string name="crew_moment_title">%1$s deelde een moment</string>
+    <string name="crew_moment_text">Tik om te zien waar</string>
+
+    <string name="crew_moving_title">%1$s is onderweg</string>
+    <string name="crew_moving_text">Is %1$s opgeschoven. Tik om te kijken.</string>
+    <string name="crew_moving_text_away">Is %1$s opgeschoven. Nu %2$s van je vandaan. Tik om te kijken.</string>
+    <string name="crew_at_venue">op de locatie</string>
+    <string name="crew_from_venue">%1$s van de locatie</string>
+    <string name="crew_status_phone_died">Telefoon van %1$s is leeg</string>
+    <string name="crew_status_distance">%1$s %2$s</string>
+    <plurals name="crew_status_min_ago">
+        <item quantity="one">%1$s %2$d min geleden</item>
+        <item quantity="other">%1$s %2$d min geleden</item>
+    </plurals>
+
+    <string name="crew_stats_walked">%1$s gelopen</string>
+    <plurals name="crew_stats_finds">
+        <item quantity="one">%d keer vrienden gevonden</item>
+        <item quantity="other">%d keer vrienden gevonden</item>
+    </plurals>
+    <plurals name="crew_stats_moments">
+        <item quantity="one">%d moment</item>
+        <item quantity="other">%d momenten</item>
+    </plurals>
+    <plurals name="crew_stats_pings">
+        <item quantity="one">%d ping</item>
+        <item quantity="other">%d pings</item>
+    </plurals>
+    <string name="crew_stats_out_hours">%1$d u %2$d min op stap</string>
+    <plurals name="crew_stats_out_mins">
+        <item quantity="one">%d min op stap</item>
+        <item quantity="other">%d min op stap</item>
+    </plurals>
+    <string name="crew_stats_quiet">Een rustige avond</string>
+
+    <string name="crew_card_eyebrow">MOSHPOINT · HET PLAN VAN VANAVOND</string>
+    <string name="crew_card_plan">HET PLAN</string>
+    <string name="crew_card_meet_up">★  Verzamelpunt: %1$s</string>
+    <string name="crew_card_whos_coming">WIE KOMEN ER</string>
+    <string name="crew_card_footer">Elkaar kwijt? Vind elkaar op Moshpoint.</string>
+    <string name="crew_card_share_meet_up">Verzamelpunt: %1$s</string>
+    <string name="crew_card_share_title">Deel het plan</string>
+
+    <string name="crew_request_title">%1$s is dichtbij en zoekt je</string>
+    <string name="crew_request_text">Tik om je scherm te laten oplichten, zodat ze je zien</string>
+    <string name="crew_go_hidden">Verbergen</string>
+    <string name="crew_tile_live">Live</string>
+    <string name="crew_tile_hidden">Verborgen</string>
+</resources>

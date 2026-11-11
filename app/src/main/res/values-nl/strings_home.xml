@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dutch: home screen (crew card, friends list, bottom bar, add sheet, pings). -->
+<resources>
+    <string name="home_go_live">Ga live</string>
+    <string name="home_live_ghost">Live · spook</string>
+    <string name="home_live">Live</string>
+
+    <string name="home_tile_not_sharing">deelt nog niet</string>
+    <string name="home_tile_phone_died">telefoon leeg</string>
+    <string name="home_tile_live">live</string>
+    <string name="home_tile_with_battery">%1$s · %2$d%%</string>
+
+    <string name="home_ping_on_my_way">Ik kom eraan</string>
+    <string name="home_ping_where_are_you">Waar ben je?</string>
+    <string name="home_ping_stay_put">Blijf staan</string>
+    <string name="home_ping_meet_at_pin">Zie je bij de pin</string>
+    <string name="home_ping_all_good">Alles goed</string>
+    <string name="home_ping_sent">Verstuurd ✓</string>
+    <string name="home_ping_heading_home">Ik ga naar huis</string>
+    <string name="home_ping_need_help">Hulp nodig</string>
+    <string name="home_heading_home_title">Naar huis?</string>
+    <string name="home_heading_home_text">Check in als je er bent. Doe je dat niet, dan krijgt je crew een melding met je laatste plek (ook als je telefoon leeg is).</string>
+    <plurals name="home_checkin_minutes">
+        <item quantity="one">%d min</item>
+        <item quantity="other">%d min</item>
+    </plurals>
+    <string name="home_just_tell_them">Laat het alleen weten</string>
+    <string name="home_cancel">Annuleren</string>
+    <string name="home_ping_line">%1$s %2$s</string>
+    <string name="home_ping_default">pingde de crew</string>
+
+    <string name="home_bar_crew">Crew</string>
+    <string name="home_bar_map">Kaart</string>
+    <string name="home_bar_add">Toevoegen</string>
+    <string name="home_bar_story">Story</string>
+    <string name="home_bar_me">Ik</string>
+
+    <string name="home_add_mates">Vrienden toevoegen</string>
+    <string name="home_add_mates_text">Op het concert: laat je crew-QR zien en zij scannen hem. Klaar: iedereen in de crew kan iedereen vinden.</string>
+    <string name="home_show_crew_qr">Crew-QR tonen</string>
+    <string name="home_start_crew_show_qr">Crew starten + QR tonen</string>
+    <string name="home_scan_qr">QR scannen</string>
+    <string name="home_paste_invite">Uitnodiging plakken</string>
+    <string name="home_bump_phones">Telefoons tegen elkaar botsen</string>
+    <string name="home_plan_gig">Plan een concert (zoek het, nodig nu uit)</string>
+    <string name="home_send_app_invite">Stuur de app + uitnodiging (WhatsApp, Messenger…)</string>
+    <string name="home_friends_every_gig">VRIENDEN VOOR ELK CONCERT</string>
+    <string name="home_my_friend_qr">Mijn vrienden-QR</string>
+    <string name="home_enter_code">Code invoeren</string>
+
+    <string name="home_check_in_by">Check in voor %1$s</string>
+    <string name="home_home_safe">Veilig thuis</string>
+
+    <string name="home_chat">Chat</string>
+    <string name="home_chat_unread">Chat (%1$d)</string>
+    <string name="home_camera">Camera</string>
+
+    <string name="home_message_crew">Bericht aan de crew</string>
+    <string name="home_message_crew_text">Eén tik: iedereen in de crew krijgt het, met waar je bent.</string>
+
+    <string name="home_crew_qr_desc">Crew-QR</string>
+    <string name="home_inline_qr_text">Vrienden scannen dit met hun camera of Moshpoint. Klaar.</string>
+    <string name="home_no_camera_send_invite">Geen camera? Stuur de uitnodiging</string>
+
+    <plurals name="home_gig_photos">
+        <item quantity="one">%d foto</item>
+        <item quantity="other">%d foto\'s</item>
+    </plurals>
+    <plurals name="home_gig_clips">
+        <item quantity="one">%d clip</item>
+        <item quantity="other">%d clips</item>
+    </plurals>
+    <string name="home_people_more">%1$s +%2$d</string>
+
+    <string name="home_crew_chat">Crewchat</string>
+    <string name="home_pinned_plan">📌 %1$s</string>
+    <string name="home_chat_subtitle">Berichten, het plan, lichtkogels</string>
+    <string name="home_unread_many">9+</string>
+    <plurals name="home_unread_new">
+        <item quantity="one">%d nieuw</item>
+        <item quantity="other">%d nieuw</item>
+    </plurals>
+
+    <string name="home_following_from_home">Volgt vanuit huis</string>
+    <string name="home_upnext_invite">💬 Chat · nodig je vrienden uit</string>
+    <plurals name="home_upnext_mates">
+        <item quantity="one">💬 Chat · %d vriend erin</item>
+        <item quantity="other">💬 Chat · %d vrienden erin</item>
+    </plurals>
+
+    <string name="home_start_gig_group">Start een concertgroep</string>
+    <string name="home_start_gig_group_text">Geef hem een naam (bijv. de band). Laat dan de QR aan je vrienden zien.</string>
+    <string name="home_start">Starten</string>
+    <string name="home_keep_friend">%1$s als vriend toevoegen (ook na vanavond)</string>
+    <string name="home_set_photo">Foto instellen</string>
+    <string name="home_remove_photo">Foto verwijderen</string>
+    <string name="home_remove_name">%1$s verwijderen</string>
+    <string name="home_close">Sluiten</string>
+    <string name="home_remove_from_crew_title">%1$s uit de crew halen?</string>
+    <string name="home_remove_friend_title">%1$s verwijderen?</string>
+    <string name="home_remove_from_crew_text">De crew krijgt een nieuwe sleutel die %1$s niet krijgt. Vanaf nu ziet die persoon niet meer waar iemand is, en ook de chat en foto\'s niet. Alle anderen blijven erin.</string>
+    <string name="home_remove_friend_text">Je kunt ze pas weer vinden als je ze opnieuw toevoegt.</string>
+    <string name="home_remove">Verwijderen</string>
+    <string name="home_find">Vinden</string>
+    <string name="home_add_with_code">Toevoegen met code</string>
+    <string name="home_their_name">Hun naam</string>
+    <string name="home_their_code">Hun code</string>
+    <string name="home_add_friend">Vriend toevoegen</string>
+    <string name="home_tonight_only">Alleen vanavond</string>
+
+    <string name="home_hidden_hint">Je bent verborgen voor je crew. Tik op Ga live als je gevonden wilt worden.</string>
+    <string name="home_allow_permission">Laat Moshpoint je vrienden vinden (%1$s)</string>
+    <string name="home_allow">Toestaan</string>
+    <string name="home_one_thing_first">EERST NOG EVEN DIT</string>
+    <plurals name="home_one_thing_first_more">
+        <item quantity="one">EERST NOG EVEN DIT · NOG %d</item>
+        <item quantity="other">EERST NOG EVEN DIT · NOG %d</item>
+    </plurals>
+    <string name="home_eyebrow_tonight">VANAVOND</string>
+    <string name="home_eyebrow_following">JE VOLGT</string>
+    <string name="home_eyebrow_coming_up">KOMT ERAAN</string>
+    <string name="home_find_mates_tonight">Vind je vrienden vanavond</string>
+    <string name="home_find_mates_text">Nodig ze uit, zij scannen, klaar. Moshpoint doet de rest.</string>
+    <string name="home_invite_mates_tonight">Vrienden uitnodigen voor vanavond</string>
+    <string name="home_scan_invite">Uitnodiging scannen</string>
+    <string name="home_your_crew">Je crew</string>
+    <string name="home_invite">＋ Uitnodigen</string>
+    <string name="home_family_can_follow">Familie kan de avond vanuit huis volgen</string>
+    <string name="home_following_from_home_names">Volgen vanuit huis: %1$s</string>
+    <string name="home_share">Delen ›</string>
+    <string name="home_meet_up">★  Verzamelpunt: %1$s</string>
+    <string name="home_map_link">Kaart ›</string>
+    <string name="home_asleep_text">Slaapt tot de concertdag: geen Bluetooth, geen locatie, geen batterij. Vrienden kunnen nu al meedoen, en op de dag krijg je een seintje.</string>
+    <string name="home_follower_text">Je ziet waar iedereen is en hun foto\'s zodra ze binnenkomen. Zij zien dat je volgt.</string>
+    <string name="home_see_story">Bekijk de story</string>
+    <string name="home_crew_chat_unread">Crewchat (%1$d nieuw)</string>
+    <string name="home_where_are_they">Waar zijn ze? (kaart)</string>
+    <string name="home_see_them_once_starts">Je ziet ze hier zodra het concert begint.</string>
+    <string name="home_tap_mate_hint">Tik op een vriend om hem te vinden · houd vast voor opties</string>
+    <string name="home_find_name">%1$s vinden</string>
+    <string name="home_find_everyone">Iedereen vinden</string>
+    <string name="home_stop_following">Stoppen met volgen</string>
+    <string name="home_cancel_crew">Deze crew annuleren</string>
+    <string name="home_end_night">Avond afsluiten</string>
+    <string name="home_up_next">BINNENKORT</string>
+    <string name="home_memories">HERINNERINGEN</string>
+    <plurals name="home_memories_count">
+        <item quantity="one">%d foto\'s en clips. Tik om het te herbeleven ›</item>
+        <item quantity="other">%d foto\'s en clips. Tik om het te herbeleven ›</item>
+    </plurals>
+    <string name="home_your_gigs">JOUW CONCERTEN</string>
+    <string name="home_friends">VRIENDEN</string>
+    <string name="home_friends_empty">Vrienden die je voor elk concert houdt, staan hier. Tik hieronder op ＋ Toevoegen.</string>
+</resources>

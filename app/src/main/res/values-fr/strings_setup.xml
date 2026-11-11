@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- French: settings, onboarding, planning a gig, QR codes, bumping phones, camera-roll picker. -->
+<resources>
+    <string name="setup_settings_title">Réglages</string>
+    <string name="setup_your_photo">Ta photo</string>
+    <string name="setup_your_photo_desc">S\'affiche dans la flèche de tes potes. Seuls tes amis la voient.</string>
+    <string name="setup_take_selfie">Prendre un selfie</string>
+    <string name="setup_choose_photo">Choisir une photo</string>
+    <string name="setup_remove_my_photo">Retirer ma photo</string>
+    <string name="setup_your_name">Ton prénom</string>
+    <string name="setup_stay_live">Rester en live après un redémarrage</string>
+    <string name="setup_stay_live_desc">Si tu étais en live quand ton téléphone a redémarré, tu repasses en live automatiquement.</string>
+    <string name="setup_ghost_mode">Mode fantôme</string>
+    <string name="setup_ghost_mode_desc">Cache ta position sur la carte. Tes potes peuvent encore te trouver en Bluetooth quand ils sont tout près.</string>
+    <string name="setup_ghost_one_hour">Fantôme pendant 1 h</string>
+    <string name="setup_data_saver">Économie de données</string>
+    <string name="setup_data_saver_desc">Partage des photos et vidéos plus légères (plus rapide quand le réseau est faible). Désactivé : haute qualité, pour que les copies de tout le monde soient nettes. Tes originaux restent toujours en pleine qualité.</string>
+    <string name="setup_emergency_contact">Contact d\'urgence</string>
+    <string name="setup_emergency_contact_desc">\"Besoin d\'aide\" peut lui envoyer ta position par SMS classique (marche sans données). Reste sur ce téléphone.</string>
+    <string name="setup_contact_name">Nom</string>
+    <string name="setup_contact_mobile">Portable</string>
+    <string name="setup_contact_saved">Enregistré</string>
+    <string name="setup_contact_need_number">Ajoute un numéro de portable</string>
+    <string name="setup_contact_removed">Supprimé</string>
+    <string name="setup_save">Enregistrer</string>
+    <string name="setup_remove">Supprimer</string>
+    <string name="setup_about">À PROPOS</string>
+    <string name="setup_about_text">Moshpoint %1$s. Pas de compte, codes tournants, positions chiffrées de bout en bout. On ne peut te trouver que quand tu es en live.</string>
+    <string name="setup_hide_licences">Masquer les licences</string>
+    <string name="setup_open_source_licences">Licences open source</string>
+    <string name="setup_licences_fonts">Polices : Unbounded et Inter, sous SIL Open Font License 1.1. QR codes : ZXing (Apache 2.0).</string>
+    <string name="setup_continue_facebook">Continuer avec Facebook</string>
+
+    <string name="setup_onb_skip">Passer</string>
+    <string name="setup_onb_title_find">Retrouve tes potes\ndans n\'importe quelle foule</string>
+    <string name="setup_onb_body_find">Touche un pote et une flèche pointe droit vers lui. Elle prend sa couleur quand tu te rapproches.</string>
+    <string name="setup_onb_title_live">Passe en live\nen arrivant</string>
+    <string name="setup_onb_body_live">Tes potes ne peuvent te trouver que quand tu es en live, et toi seul·e peux l\'activer. Moshpoint a besoin de :</string>
+    <string name="setup_onb_need_nearby">Appareils à proximité</string>
+    <string name="setup_onb_need_nearby_why">pour trouver tes potes en Bluetooth, Wi-Fi et UWB</string>
+    <string name="setup_onb_need_location">Localisation</string>
+    <string name="setup_onb_need_location_why">pour la flèche quand vous êtes loin</string>
+    <string name="setup_onb_need_notifications">Notifications</string>
+    <string name="setup_onb_need_notifications_why">pour toujours savoir quand tu es en live</string>
+    <string name="setup_onb_title_name">Comment tes potes\nt\'appellent ?</string>
+    <string name="setup_onb_or_type_it">ou tape-le</string>
+    <string name="setup_onb_lets_go">C\'est parti</string>
+    <string name="setup_onb_allow">Autoriser</string>
+    <string name="setup_onb_skip_for_now">Plus tard</string>
+    <string name="setup_onb_im_name">Moi, c\'est %1$s</string>
+    <string name="setup_onb_arrow_demo_desc">Une flèche qui pointe vers un ami</string>
+
+    <string name="setup_plan_title">Prévoir un concert</string>
+    <string name="setup_plan_desc">Lance la crew maintenant, chacun la rejoint quand il veut. Elle dort (zéro batterie) jusqu\'au jour J.</string>
+    <string name="setup_plan_search_hint">Cherche : groupe, artiste ou salle</string>
+    <string name="setup_plan_searching">Recherche…</string>
+    <string name="setup_plan_search_failed">Recherche impossible pour l\'instant. Tape-le plutôt ci-dessous.</string>
+    <string name="setup_plan_no_results">Aucun concert à venir trouvé. Tape-le ci-dessous.</string>
+    <string name="setup_plan_when_where">%1$s · %2$s</string>
+    <string name="setup_plan_or_type">OU TAPE-LE</string>
+    <string name="setup_plan_whos_playing">Qui joue</string>
+    <string name="setup_plan_where">Où (facultatif)</string>
+    <string name="setup_plan_start_crew">Lancer la crew</string>
+    <string name="setup_plan_default_name">Soirée concert</string>
+
+    <string name="setup_qr_title">Scanne pour m\'ajouter</string>
+    <string name="setup_qr_hint">Puis scanne le sien, pour vous retrouver.</string>
+    <string name="setup_qr_eyebrow">TON CODE</string>
+    <string name="setup_qr_done">‹  OK</string>
+    <string name="setup_qr_code_desc">QR code</string>
+    <plurals name="setup_qr_mates_in">
+        <item quantity="one">%d pote dedans</item>
+        <item quantity="many">%d potes dedans</item>
+        <item quantity="other">%d potes dedans</item>
+    </plurals>
+    <string name="setup_qr_send_invite">Pas moyen de scanner ? Envoie une invitation</string>
+    <string name="setup_qr_reset_invite">Réinitialiser l\'invitation</string>
+    <string name="setup_qr_reset_title">Réinitialiser l\'invitation ?</string>
+    <string name="setup_qr_reset_text">Si ce QR ou une capture d\'écran a fuité, le réinitialiser le désactive. Ceux qui sont déjà dans la crew y restent ; les nouveaux auront besoin du nouveau QR.</string>
+    <string name="setup_qr_reset">Réinitialiser</string>
+    <string name="setup_cancel">Annuler</string>
+    <string name="setup_qr_end_night">Terminer la soirée</string>
+
+    <string name="setup_bump_title">Check des téléphones</string>
+    <string name="setup_bump_sharing">Colle ton téléphone dos à dos avec celui de ton pote. On lui proposera de rejoindre ta crew.</string>
+    <string name="setup_bump_joining">Colle ton téléphone dos à dos avec quelqu\'un dans une crew (il ouvre Check lui aussi). On te proposera de rejoindre.</string>
+    <string name="setup_done">OK</string>
+
+    <string name="setup_roll_title">Tes photos de ce soir-là</string>
+    <string name="setup_roll_looking">On parcourt tes photos…</string>
+    <string name="setup_roll_nothing">Rien sur ce téléphone pendant ces heures-là. Les photos prises avec un autre téléphone, ou déjà ajoutées, n\'apparaissent pas ici.</string>
+    <string name="setup_roll_tap_to_leave_out">Touche une photo pour l\'exclure. Elles sont copiées dans le concert, donc elles restent même si tu les supprimes de ta galerie.</string>
+    <string name="setup_roll_adding">Ajout…</string>
+    <plurals name="setup_roll_add_n">
+        <item quantity="one">Ajouter %d à ce concert</item>
+        <item quantity="many">Ajouter %d à ce concert</item>
+        <item quantity="other">Ajouter %d à ce concert</item>
+    </plurals>
+</resources>

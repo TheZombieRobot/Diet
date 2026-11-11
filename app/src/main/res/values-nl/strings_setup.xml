@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dutch: settings, onboarding, planning a gig, QR codes, bumping phones, camera-roll picker. -->
+<resources>
+    <string name="setup_settings_title">Instellingen</string>
+    <string name="setup_your_photo">Je foto</string>
+    <string name="setup_your_photo_desc">Staat in de pijl van je vrienden. Alleen je vrienden zien hem.</string>
+    <string name="setup_take_selfie">Selfie maken</string>
+    <string name="setup_choose_photo">Foto kiezen</string>
+    <string name="setup_remove_my_photo">Mijn foto verwijderen</string>
+    <string name="setup_your_name">Je naam</string>
+    <string name="setup_stay_live">Live blijven na herstart</string>
+    <string name="setup_stay_live_desc">Als je live was toen je telefoon herstartte, ga je automatisch weer live.</string>
+    <string name="setup_ghost_mode">Spookmodus</string>
+    <string name="setup_ghost_mode_desc">Verberg je plek op de kaart. Vrienden die dichtbij zijn kunnen je nog steeds vinden via Bluetooth.</string>
+    <string name="setup_ghost_one_hour">1 uur spook</string>
+    <string name="setup_data_saver">Databesparing</string>
+    <string name="setup_data_saver_desc">Deel lichtere foto\'s en clips (sneller bij slecht bereik). Uit: hoge kwaliteit, zodat ieders kopieën scherp zijn. Je eigen originelen blijven altijd in volle kwaliteit.</string>
+    <string name="setup_emergency_contact">Noodcontact</string>
+    <string name="setup_emergency_contact_desc">\"Hulp nodig\" kan je locatie als gewone sms naar ze sturen (werkt zonder data). Blijft op deze telefoon.</string>
+    <string name="setup_contact_name">Naam</string>
+    <string name="setup_contact_mobile">Mobiel</string>
+    <string name="setup_contact_saved">Opgeslagen</string>
+    <string name="setup_contact_need_number">Voeg een mobiel nummer toe</string>
+    <string name="setup_contact_removed">Verwijderd</string>
+    <string name="setup_save">Opslaan</string>
+    <string name="setup_remove">Verwijderen</string>
+    <string name="setup_about">OVER</string>
+    <string name="setup_about_text">Moshpoint %1$s. Geen account, wisselende codes, end-to-end versleutelde locaties. Je bent alleen vindbaar als je live bent.</string>
+    <string name="setup_hide_licences">Licenties verbergen</string>
+    <string name="setup_open_source_licences">Opensourcelicenties</string>
+    <string name="setup_licences_fonts">Lettertypen: Unbounded en Inter, onder de SIL Open Font License 1.1. QR-codes: ZXing (Apache 2.0).</string>
+    <string name="setup_continue_facebook">Doorgaan met Facebook</string>
+
+    <string name="setup_onb_skip">Overslaan</string>
+    <string name="setup_onb_title_find">Vind je vrienden\nin elke menigte</string>
+    <string name="setup_onb_body_find">Tik op een vriend en een pijl wijst recht naar hem of haar. Hij gloeit in hun kleur als je dichterbij komt.</string>
+    <string name="setup_onb_title_live">Ga live als\nje naar binnen gaat</string>
+    <string name="setup_onb_body_live">Je vrienden kunnen je alleen vinden als je live bent, en alleen jij zet dat aan. Moshpoint heeft nodig:</string>
+    <string name="setup_onb_need_nearby">Apparaten in de buurt</string>
+    <string name="setup_onb_need_nearby_why">om vrienden te vinden via Bluetooth, Wi-Fi en UWB</string>
+    <string name="setup_onb_need_location">Locatie</string>
+    <string name="setup_onb_need_location_why">voor de pijl als jullie ver uit elkaar zijn</string>
+    <string name="setup_onb_need_notifications">Meldingen</string>
+    <string name="setup_onb_need_notifications_why">zodat je altijd weet wanneer je live bent</string>
+    <string name="setup_onb_title_name">Hoe moeten je\nvrienden je noemen?</string>
+    <string name="setup_onb_or_type_it">of typ hem in</string>
+    <string name="setup_onb_lets_go">Let\'s go</string>
+    <string name="setup_onb_allow">Toestaan</string>
+    <string name="setup_onb_skip_for_now">Nu overslaan</string>
+    <string name="setup_onb_im_name">Ik ben %1$s</string>
+    <string name="setup_onb_arrow_demo_desc">Een pijl die naar een vriend wijst</string>
+
+    <string name="setup_plan_title">Plan een concert</string>
+    <string name="setup_plan_desc">Start de crew nu, iedereen doet mee wanneer het uitkomt. Hij slaapt (geen batterij) tot de dag zelf.</string>
+    <string name="setup_plan_search_hint">Zoek: band, artiest of zaal</string>
+    <string name="setup_plan_searching">Zoeken…</string>
+    <string name="setup_plan_search_failed">Zoeken lukt nu even niet. Typ het hieronder in.</string>
+    <string name="setup_plan_no_results">Geen komende concerten gevonden. Typ het hieronder in.</string>
+    <string name="setup_plan_when_where">%1$s · %2$s</string>
+    <string name="setup_plan_or_type">OF TYP HET IN</string>
+    <string name="setup_plan_whos_playing">Wie speelt er</string>
+    <string name="setup_plan_where">Waar (optioneel)</string>
+    <string name="setup_plan_start_crew">Crew starten</string>
+    <string name="setup_plan_default_name">Concertavond</string>
+
+    <string name="setup_qr_title">Scan om mij toe te voegen</string>
+    <string name="setup_qr_hint">Scan daarna die van hen, dan kunnen jullie elkaar vinden.</string>
+    <string name="setup_qr_eyebrow">JOUW CODE</string>
+    <string name="setup_qr_done">‹  Klaar</string>
+    <string name="setup_qr_code_desc">QR-code</string>
+    <plurals name="setup_qr_mates_in">
+        <item quantity="one">%d vriend erin</item>
+        <item quantity="other">%d vrienden erin</item>
+    </plurals>
+    <string name="setup_qr_send_invite">Lukt scannen niet? Stuur een uitnodiging</string>
+    <string name="setup_qr_reset_invite">Uitnodiging resetten</string>
+    <string name="setup_qr_reset_title">Uitnodiging resetten?</string>
+    <string name="setup_qr_reset_text">Als deze QR of een screenshot ervan is rondgegaan, werkt hij na een reset niet meer. Wie al in de crew zit, blijft erin; nieuwe mensen hebben de nieuwe QR nodig.</string>
+    <string name="setup_qr_reset">Resetten</string>
+    <string name="setup_cancel">Annuleren</string>
+    <string name="setup_qr_end_night">Avond afsluiten</string>
+
+    <string name="setup_bump_title">Telefoons botsen</string>
+    <string name="setup_bump_sharing">Hou je telefoon rug aan rug tegen die van je vriend. Die krijgt de vraag om bij je crew te komen.</string>
+    <string name="setup_bump_joining">Hou je telefoon rug aan rug tegen die van iemand in een crew (die opent ook Botsen). Jij krijgt de vraag om mee te doen.</string>
+    <string name="setup_done">Klaar</string>
+
+    <string name="setup_roll_title">Je foto\'s van die avond</string>
+    <string name="setup_roll_looking">Je foto\'s doorzoeken…</string>
+    <string name="setup_roll_nothing">Niks op deze telefoon uit die uren. Foto\'s van een andere telefoon, of die al zijn toegevoegd, staan hier niet.</string>
+    <string name="setup_roll_tap_to_leave_out">Tik om er een weg te laten. Ze worden naar het concert gekopieerd, dus ze blijven ook als je ze uit je galerij verwijdert.</string>
+    <string name="setup_roll_adding">Toevoegen…</string>
+    <plurals name="setup_roll_add_n">
+        <item quantity="one">%d toevoegen aan dit concert</item>
+        <item quantity="other">%d toevoegen aan dit concert</item>
+    </plurals>
+</resources>
