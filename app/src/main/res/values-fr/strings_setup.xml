@@ -26,9 +26,12 @@
     <string name="setup_remove">Supprimer</string>
     <string name="setup_about">À PROPOS</string>
     <string name="setup_about_text">Moshpoint %1$s. Pas de compte, codes tournants, positions chiffrées de bout en bout. On ne peut te trouver que quand tu es en live.</string>
-    <string name="setup_hide_licences">Masquer les licences</string>
-    <string name="setup_open_source_licences">Licences open source</string>
-    <string name="setup_licences_fonts">Polices : Unbounded et Inter, sous SIL Open Font License 1.1. QR codes : ZXing (Apache 2.0).</string>
+    <string name="setup_open_source_licences">Licences tierces</string>
+    <string name="setup_copyright">© %1$s Waveform Labs. Tous droits réservés.</string>
+    <string name="setup_ack_intro">Moshpoint utilise ces composants open source. Merci à leurs auteurs.</string>
+    <string name="setup_ack_fonts">POLICES</string>
+    <string name="setup_ack_map">DONNÉES CARTOGRAPHIQUES</string>
+    <string name="setup_ack_libraries">BIBLIOTHÈQUES</string>
     <string name="setup_continue_facebook">Continuer avec Facebook</string>
 
     <string name="setup_onb_skip">Passer</string>

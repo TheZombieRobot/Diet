@@ -298,22 +298,13 @@ internal fun SettingsContent(
                 style = Mosh.Body,
             )
             Text(phoneSummary, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint))
-            TextButton(onClick = { showLicences = !showLicences }) {
-                Text(if (showLicences) stringResource(R.string.setup_hide_licences) else stringResource(R.string.setup_open_source_licences), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan))
+            // Credits and licences for the third-party parts (fonts, libraries, map data).
+            // Moshpoint itself is proprietary; this is what those parts' licences ask us to show.
+            Text(stringResource(R.string.setup_copyright, "2026"), style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
+            TextButton(onClick = { showLicences = true }) {
+                Text(stringResource(R.string.setup_open_source_licences), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan))
             }
-            if (showLicences) {
-                val context = androidx.compose.ui.platform.LocalContext.current
-                val text = remember {
-                    runCatching {
-                        context.assets.list("licenses").orEmpty().sorted().joinToString("\n\n") { f ->
-                            "— ${f.removeSuffix(".txt")} —\n" + context.assets.open("licenses/$f").bufferedReader().use { it.readText() }
-                        }
-                    }.getOrDefault("")
-                }
-                Text(
-                    stringResource(R.string.setup_licences_fonts) + "\n\n" + text,
-                    style = Mosh.Body.copy(fontSize = 11.sp, lineHeight = 15.sp, color = Mosh.TextFaint),
-                )
+            if (showLicences) AcknowledgementsScreen(onClose = { showLicences = false })
             }
         }
     }

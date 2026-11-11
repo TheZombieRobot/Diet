@@ -26,9 +26,12 @@
     <string name="setup_remove">Xóa</string>
     <string name="setup_about">GIỚI THIỆU</string>
     <string name="setup_about_text">Moshpoint %1$s. Không cần tài khoản, mã luôn thay đổi, vị trí mã hóa đầu cuối. Chỉ tìm được bạn khi bạn đang chia sẻ.</string>
-    <string name="setup_hide_licences">Ẩn giấy phép</string>
-    <string name="setup_open_source_licences">Giấy phép mã nguồn mở</string>
-    <string name="setup_licences_fonts">Font: Unbounded và Inter, theo SIL Open Font License 1.1. Mã QR: ZXing (Apache 2.0).</string>
+    <string name="setup_open_source_licences">Giấy phép bên thứ ba</string>
+    <string name="setup_copyright">© %1$s Waveform Labs. Bảo lưu mọi quyền.</string>
+    <string name="setup_ack_intro">Moshpoint sử dụng các thành phần mã nguồn mở này. Cảm ơn các tác giả.</string>
+    <string name="setup_ack_fonts">PHÔNG CHỮ</string>
+    <string name="setup_ack_map">DỮ LIỆU BẢN ĐỒ</string>
+    <string name="setup_ack_libraries">THƯ VIỆN</string>
     <string name="setup_continue_facebook">Tiếp tục với Facebook</string>
 
     <string name="setup_onb_skip">Bỏ qua</string>

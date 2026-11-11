@@ -26,9 +26,12 @@
     <string name="setup_remove">ลบ</string>
     <string name="setup_about">เกี่ยวกับ</string>
     <string name="setup_about_text">Moshpoint %1$s ไม่ต้องมีบัญชี โค้ดเปลี่ยนตลอด ตำแหน่งเข้ารหัสแบบ end-to-end คนอื่นจะหาคุณเจอได้เฉพาะตอนที่คุณแชร์อยู่</string>
-    <string name="setup_hide_licences">ซ่อนสัญญาอนุญาต</string>
-    <string name="setup_open_source_licences">สัญญาอนุญาตโอเพนซอร์ส</string>
-    <string name="setup_licences_fonts">ฟอนต์: Unbounded และ Inter ภายใต้ SIL Open Font License 1.1 QR: ZXing (Apache 2.0)</string>
+    <string name="setup_open_source_licences">สัญญาอนุญาตของบุคคลที่สาม</string>
+    <string name="setup_copyright">© %1$s Waveform Labs. สงวนลิขสิทธิ์</string>
+    <string name="setup_ack_intro">Moshpoint ใช้คอมโพเนนต์โอเพนซอร์สเหล่านี้ ขอบคุณผู้สร้างทุกคน</string>
+    <string name="setup_ack_fonts">ฟอนต์</string>
+    <string name="setup_ack_map">ข้อมูลแผนที่</string>
+    <string name="setup_ack_libraries">ไลบรารี</string>
     <string name="setup_continue_facebook">ใช้ Facebook ต่อ</string>
 
     <string name="setup_onb_skip">ข้าม</string>

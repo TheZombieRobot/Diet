@@ -26,9 +26,12 @@
     <string name="setup_remove">Kaldır</string>
     <string name="setup_about">HAKKINDA</string>
     <string name="setup_about_text">Moshpoint %1$s. Hesap yok, değişen kodlar, uçtan uca şifreli konumlar. Sadece konumunu paylaşırken bulunabilirsin.</string>
-    <string name="setup_hide_licences">Lisansları gizle</string>
-    <string name="setup_open_source_licences">Açık kaynak lisansları</string>
-    <string name="setup_licences_fonts">Yazı tipleri: Unbounded ve Inter, SIL Open Font License 1.1 kapsamında. QR kodları: ZXing (Apache 2.0).</string>
+    <string name="setup_open_source_licences">Üçüncü taraf lisansları</string>
+    <string name="setup_copyright">© %1$s Waveform Labs. Tüm hakları saklıdır.</string>
+    <string name="setup_ack_intro">Moshpoint bu açık kaynak bileşenleri kullanır. Geliştiricilerine teşekkürler.</string>
+    <string name="setup_ack_fonts">YAZI TİPLERİ</string>
+    <string name="setup_ack_map">HARİTA VERİLERİ</string>
+    <string name="setup_ack_libraries">KÜTÜPHANELER</string>
     <string name="setup_continue_facebook">Facebook ile devam et</string>
 
     <string name="setup_onb_skip">Geç</string>

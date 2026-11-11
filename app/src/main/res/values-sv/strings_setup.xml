@@ -26,9 +26,12 @@
     <string name="setup_remove">Ta bort</string>
     <string name="setup_about">OM</string>
     <string name="setup_about_text">Moshpoint %1$s. Inget konto, roterande koder, end-to-end-krypterade platser. Du går bara att hitta när du är live.</string>
-    <string name="setup_hide_licences">Dölj licenser</string>
-    <string name="setup_open_source_licences">Licenser för öppen källkod</string>
-    <string name="setup_licences_fonts">Typsnitt: Unbounded och Inter, under SIL Open Font License 1.1. QR-koder: ZXing (Apache 2.0).</string>
+    <string name="setup_open_source_licences">Tredjepartslicenser</string>
+    <string name="setup_copyright">© %1$s Waveform Labs. Alla rättigheter förbehållna.</string>
+    <string name="setup_ack_intro">Moshpoint använder de här komponenterna med öppen källkod. Tack till skaparna.</string>
+    <string name="setup_ack_fonts">TYPSNITT</string>
+    <string name="setup_ack_map">KARTDATA</string>
+    <string name="setup_ack_libraries">BIBLIOTEK</string>
     <string name="setup_continue_facebook">Fortsätt med Facebook</string>
 
     <string name="setup_onb_skip">Hoppa över</string>

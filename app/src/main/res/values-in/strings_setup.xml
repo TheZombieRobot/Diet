@@ -26,9 +26,12 @@
     <string name="setup_remove">Hapus</string>
     <string name="setup_about">TENTANG</string>
     <string name="setup_about_text">Moshpoint %1$s. Tanpa akun, kode berganti terus, lokasi terenkripsi end-to-end. Kamu cuma bisa ditemukan saat live.</string>
-    <string name="setup_hide_licences">Sembunyikan lisensi</string>
-    <string name="setup_open_source_licences">Lisensi open source</string>
-    <string name="setup_licences_fonts">Font: Unbounded dan Inter, di bawah SIL Open Font License 1.1. Kode QR: ZXing (Apache 2.0).</string>
+    <string name="setup_open_source_licences">Lisensi pihak ketiga</string>
+    <string name="setup_copyright">© %1$s Waveform Labs. Hak cipta dilindungi undang-undang.</string>
+    <string name="setup_ack_intro">Moshpoint menggunakan komponen open source ini. Terima kasih kepada para pembuatnya.</string>
+    <string name="setup_ack_fonts">FON</string>
+    <string name="setup_ack_map">DATA PETA</string>
+    <string name="setup_ack_libraries">PUSTAKA</string>
     <string name="setup_continue_facebook">Lanjut dengan Facebook</string>
 
     <string name="setup_onb_skip">Lewati</string>

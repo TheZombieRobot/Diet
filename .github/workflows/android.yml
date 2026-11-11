@@ -112,6 +112,26 @@ jobs:
           done
           exit $leaked
 
+      - name: Licences of every library in the app (shown in Settings)
+        if: success()
+        shell: bash
+        run: |
+          # Every library shipped must come with a licence the app can show; fail otherwise.
+          F=$(find app/build/generated -path '*release*' -name aboutlibraries.json | head -1)
+          [ -n "$F" ] || { echo "::error::licence list (aboutlibraries.json) was not generated"; exit 1; }
+          python3 - "$F" <<'PY'
+          import json, sys, collections
+          d = json.load(open(sys.argv[1]))
+          libs, lic = d.get("libraries", []), d.get("licenses", {})
+          print(f"{len(libs)} libraries")
+          count = collections.Counter(l for x in libs for l in x.get("licenses", []))
+          for k, n in count.most_common():
+              v = lic.get(k, {})
+              print(f"  {n:3}  {v.get('name', k)}  ({'full text' if v.get('content') else 'link: ' + str(v.get('url'))})")
+          bare = [x.get("uniqueId") for x in libs if not x.get("licenses")]
+          for b in bare: print(f"::warning::no licence found for {b}")
+          PY
+
       - name: Signed Play Store bundle (only when signing secrets are set)
         if: success() && env.HAS_KEYSTORE == 'true'
         shell: bash

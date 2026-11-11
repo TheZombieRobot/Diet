@@ -26,9 +26,12 @@
     <string name="setup_remove">إزالة</string>
     <string name="setup_about">حول التطبيق</string>
     <string name="setup_about_text">Moshpoint %1$s. بلا حساب، رموز متغيّرة، ومواقع مشفّرة بالكامل بين الطرفين. لا يمكن إيجادك إلا وأنت ظاهر.</string>
-    <string name="setup_hide_licences">إخفاء التراخيص</string>
-    <string name="setup_open_source_licences">تراخيص المصادر المفتوحة</string>
-    <string name="setup_licences_fonts">الخطوط: Unbounded وInter، بموجب SIL Open Font License 1.1. رموز QR: ZXing (Apache 2.0).</string>
+    <string name="setup_open_source_licences">تراخيص الجهات الخارجية</string>
+    <string name="setup_copyright">© %1$s Waveform Labs. جميع الحقوق محفوظة.</string>
+    <string name="setup_ack_intro">يستخدم Moshpoint هذه المكوّنات مفتوحة المصدر. شكرًا لمطوّريها.</string>
+    <string name="setup_ack_fonts">الخطوط</string>
+    <string name="setup_ack_map">بيانات الخريطة</string>
+    <string name="setup_ack_libraries">المكتبات</string>
     <string name="setup_continue_facebook">المتابعة باستخدام Facebook</string>
 
     <string name="setup_onb_skip">تخطي</string>

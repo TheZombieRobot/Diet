@@ -26,9 +26,12 @@
     <string name="setup_remove">हटाएँ</string>
     <string name="setup_about">जानकारी</string>
     <string name="setup_about_text">Moshpoint %1$s. कोई अकाउंट नहीं, बदलते कोड, एंड-टू-एंड एन्क्रिप्टेड लोकेशन। आपको सिर्फ़ तभी ढूँढा जा सकता है जब आप लाइव हों।</string>
-    <string name="setup_hide_licences">लाइसेंस छिपाएँ</string>
-    <string name="setup_open_source_licences">ओपन-सोर्स लाइसेंस</string>
-    <string name="setup_licences_fonts">फ़ॉन्ट: Unbounded और Inter, SIL Open Font License 1.1 के तहत। QR कोड: ZXing (Apache 2.0)।</string>
+    <string name="setup_open_source_licences">थर्ड-पार्टी लाइसेंस</string>
+    <string name="setup_copyright">© %1$s Waveform Labs. सर्वाधिकार सुरक्षित।</string>
+    <string name="setup_ack_intro">Moshpoint इन ओपन-सोर्स घटकों का उपयोग करता है। इन्हें बनाने वालों का धन्यवाद।</string>
+    <string name="setup_ack_fonts">फ़ॉन्ट</string>
+    <string name="setup_ack_map">मैप डेटा</string>
+    <string name="setup_ack_libraries">लाइब्रेरी</string>
     <string name="setup_continue_facebook">Facebook के साथ जारी रखें</string>
 
     <string name="setup_onb_skip">स्किप</string>

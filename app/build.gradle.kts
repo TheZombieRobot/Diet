@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     // Renders screens to PNGs on the JVM (no phone) so the UI can be reviewed visually.
     alias(libs.plugins.paparazzi)
+    // Builds the list of every library in the app with its licence (Settings > Acknowledgements).
+    alias(libs.plugins.aboutlibraries)
 }
 
 android {

@@ -34,10 +34,17 @@
     <string name="setup_about">ABOUT</string>
     <!-- %1$s = app version, e.g. "1.4.2" -->
     <string name="setup_about_text">Moshpoint %1$s. No account, rotating codes, end-to-end encrypted locations. You\'re only findable while you\'re live.</string>
-    <string name="setup_hide_licences">Hide licences</string>
-    <string name="setup_open_source_licences">Open-source licences</string>
-    <!-- Font and library names are product names: do not translate them -->
-    <string name="setup_licences_fonts">Fonts: Unbounded and Inter, under the SIL Open Font License 1.1. QR codes: ZXing (Apache 2.0).</string>
+    <!-- Settings link and screen title: credits and licences for the third-party parts the app is built with (NOT a licence for the app itself, which is proprietary) -->
+    <string name="setup_open_source_licences">Acknowledgements</string>
+    <!-- %1$s = year. Legal line: keep "Waveform Labs" as is -->
+    <string name="setup_copyright">© %1$s Waveform Labs. All rights reserved.</string>
+    <string name="setup_ack_intro">Moshpoint is built with these open-source components. Thank you to their authors.</string>
+    <!-- Section headings, shown in capitals where the script has them -->
+    <string name="setup_ack_fonts">FONTS</string>
+    <string name="setup_ack_map">MAP DATA</string>
+    <string name="setup_ack_libraries">LIBRARIES</string>
+    <!-- Required map credit (OpenStreetMap licence): keep in English -->
+    <string name="setup_ack_map_text" translatable="false">© OpenStreetMap contributors. Map tiles: OpenFreeMap, using OpenMapTiles.</string>
     <string name="setup_continue_facebook">Continue with Facebook</string>
 
     <!-- Onboarding (first run) -->

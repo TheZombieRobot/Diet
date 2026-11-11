@@ -26,9 +26,12 @@
     <string name="setup_remove">移除</string>
     <string name="setup_about">关于</string>
     <string name="setup_about_text">Moshpoint %1$s。无需账号，代码定期轮换，位置端到端加密。只有在线时才能被找到。</string>
-    <string name="setup_hide_licences">隐藏许可</string>
-    <string name="setup_open_source_licences">开源许可</string>
-    <string name="setup_licences_fonts">字体：Unbounded 和 Inter，采用 SIL Open Font License 1.1。二维码：ZXing（Apache 2.0）。</string>
+    <string name="setup_open_source_licences">第三方许可</string>
+    <string name="setup_copyright">© %1$s Waveform Labs. 保留所有权利。</string>
+    <string name="setup_ack_intro">Moshpoint 使用了以下开源组件。感谢它们的作者。</string>
+    <string name="setup_ack_fonts">字体</string>
+    <string name="setup_ack_map">地图数据</string>
+    <string name="setup_ack_libraries">库</string>
     <string name="setup_continue_facebook">用 Facebook 继续</string>
 
     <string name="setup_onb_skip">跳过</string>
