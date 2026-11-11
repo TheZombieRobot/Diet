@@ -160,7 +160,9 @@ jobs:
           rm -f docs/screenshots/*.png
           for f in app/src/test/snapshots/images/*.png; do
             # Paparazzi names files <package>_<Class>_<test>.png; keep just the test name.
-            cp "$f" "docs/screenshots/$(basename "$f" | sed -E 's/.*_([^_]+\.png)$/\1/')"
+            # ...ScreensSnapshotTest_home.png -> home.png; ...GermanScreensTest_home.png -> de-home.png
+            name=$(basename "$f" | sed -E 's/.*GermanScreensTest_/de-/; s/.*ArabicScreensTest_/ar-/; s/.*JapaneseScreensTest_/ja-/; s/.*UsScreensTest_/us-/; s/.*_([^_]+\.png)$/\1/')
+            cp "$f" "docs/screenshots/$name"
           done
           git add docs/screenshots
           if git diff --cached --quiet; then echo "Screenshots unchanged"; exit 0; fi

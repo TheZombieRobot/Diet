@@ -21,9 +21,24 @@ import org.junit.Test
  *
  *   ./gradlew :app:recordPaparazziDebug   -> app/src/test/snapshots/images/
  */
-class ScreensSnapshotTest {
+open class ScreensSnapshotTest @JvmOverloads constructor(
+    /** Resource qualifier for the language ("de", "ar", "en-rUS"), or null for metric English. */
+    private val lang: String? = null,
+    private val rtl: Boolean = false,
+) {
+    private fun device(base: DeviceConfig) = base.copy(
+        locale = lang,
+        layoutDirection = if (rtl) com.android.resources.LayoutDirection.RTL else com.android.resources.LayoutDirection.LTR,
+    )
+
     @get:Rule
-    val paparazzi = Paparazzi(deviceConfig = DeviceConfig.PIXEL_5, theme = "android:Theme.Material.NoActionBar")
+    val paparazzi = Paparazzi(deviceConfig = device(DeviceConfig.PIXEL_5), theme = "android:Theme.Material.NoActionBar")
+
+    /** Numbers, dates and units follow the same language and country (en-NZ = metric English). */
+    @org.junit.Before fun locale() {
+        val tag = lang?.replace("-r", "-") ?: "en-NZ"
+        java.util.Locale.setDefault(java.util.Locale.forLanguageTag(tag))
+    }
 
     private fun friend(id: String, name: String, colour: Long, gig: Boolean = false) =
         Friend(FriendRecord(id, name, colour.toInt(), ByteArray(32) { it.toByte() }, gig, 0L))
@@ -163,13 +178,13 @@ class ScreensSnapshotTest {
     @Test fun settingsSheet() = settings()
 
     @Test fun smallPhoneSettings() {
-        paparazzi.unsafeUpdateConfig(deviceConfig = DeviceConfig.NEXUS_5)
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5))
         settings()
     }
 
     @Test fun smallPhoneOneFriend() {
         // 360dp-wide class phone: checks the arrow + photo stay on screen.
-        paparazzi.unsafeUpdateConfig(deviceConfig = DeviceConfig.NEXUS_5)
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5))
         finder("Sam", listOf(ArrowState.Pointing("sam", 90.0, 12.0, Method.UWB, false)))
     }
 
@@ -292,76 +307,20 @@ class ScreensSnapshotTest {
         }
     }
 
-    // ---- Other languages: long words (German), right-to-left (Arabic), CJK (Japanese) ----
-    // These catch clipped labels and mirroring mistakes before anyone sees them.
-
-    /** How each screen is wrapped: in English, as is; in another language, with that language's resources. */
-    private var wrap: @androidx.compose.runtime.Composable (@androidx.compose.runtime.Composable () -> Unit) -> Unit = { it() }
-
-    private fun snap(content: @androidx.compose.runtime.Composable () -> Unit) = paparazzi.snapshot { wrap(content) }
-
-    /** A Context whose resources are in [locale] (the screenshot tool's own locale switch doesn't reach Compose). */
-    private fun localized(base: android.content.Context, locale: java.util.Locale): android.content.Context {
-        val conf = android.content.res.Configuration(base.resources.configuration).apply {
-            setLocale(locale)
-            setLayoutDirection(locale)
-        }
-        val viaConfig = runCatching { base.createConfigurationContext(conf) }.getOrNull()
-        if (viaConfig?.resources != null && viaConfig.resources.configuration.locales[0].language == locale.language) return viaConfig
-        @Suppress("DEPRECATION")
-        val res = android.content.res.Resources(base.assets, base.resources.displayMetrics, conf)
-        return object : android.content.ContextWrapper(base) {
-            override fun getResources(): android.content.res.Resources = res
-        }
-    }
-
-    private fun language(tag: String, rtl: Boolean = false) {
-        val l = java.util.Locale.forLanguageTag(tag)
-        java.util.Locale.setDefault(l)
-        // Resource qualifier form: "de", "ar", "en-rUS".
-        val qualifier = if (l.country.isNotEmpty()) "${l.language}-r${l.country}" else l.language
-        paparazzi.unsafeUpdateConfig(
-            deviceConfig = DeviceConfig.PIXEL_5.copy(
-                locale = qualifier,
-                layoutDirection = if (rtl) com.android.resources.LayoutDirection.RTL else com.android.resources.LayoutDirection.LTR,
-            ),
-        )
-        wrap = { content ->
-            val ctx = localized(androidx.compose.ui.platform.LocalContext.current, l)
-            androidx.compose.runtime.CompositionLocalProvider(
-                androidx.compose.ui.platform.LocalContext provides ctx,
-                androidx.compose.ui.platform.LocalConfiguration provides ctx.resources.configuration,
-                androidx.compose.ui.platform.LocalLayoutDirection provides if (rtl) androidx.compose.ui.unit.LayoutDirection.Rtl else androidx.compose.ui.unit.LayoutDirection.Ltr,
-            ) { content() }
-        }
-    }
-
-    // Everything else renders in metric English (the CI machine's own region would vary).
-    @org.junit.Before fun metricEnglish() = java.util.Locale.setDefault(java.util.Locale.forLanguageTag("en-NZ"))
-
-    /** The translations really load (a guard for the screenshots below). */
-    @Test fun germanResourcesLoad() {
-        val de = localized(paparazzi.context, java.util.Locale.GERMAN)
-        kotlin.test.assertEquals("Alle finden", de.getString(nz.waveformlabs.moshpoint.R.string.home_find_everyone))
-    }
-
-    @Test fun deHome() { language("de"); home() }
-    @Test fun deCrewChat() { language("de"); crewChat() }
-    @Test fun deSettings() { language("de"); settings() }
-    @Test fun deWelcome() { language("de"); welcome() }
-    @Test fun dePlannedGig() { language("de"); homePlannedGigAsleep() }
-    @Test fun deFinder() { language("de"); finderOneFriend() }
-    @Test fun deSmallPhoneSettings() { language("de"); paparazzi.unsafeUpdateConfig(deviceConfig = DeviceConfig.NEXUS_5.copy(locale = "de")); settings() }
-
-    @Test fun arHome() { language("ar", rtl = true); home() }
-    @Test fun arCrewChat() { language("ar", rtl = true); crewChat() }
-    @Test fun arSettings() { language("ar", rtl = true); settings() }
-    @Test fun arFinder() { language("ar", rtl = true); finderOneFriend() }
-    @Test fun arUpNext() { language("ar", rtl = true); upNext() }
-
-    @Test fun jaHome() { language("ja"); home() }
-    @Test fun jaCrewChat() { language("ja"); crewChat() }
-    @Test fun jaWelcome() { language("ja"); welcome() }
-
-    @Test fun usFinderInFeet() { language("en-US"); finderOneFriend() }
+    private fun snap(content: @androidx.compose.runtime.Composable () -> Unit) = paparazzi.snapshot { content() }
 }
+
+/*
+ * Every screen again in other languages: long words (German), right-to-left (Arabic),
+ * CJK (Japanese), and feet/miles (US). CI files them as de-<test>.png, ar-..., ja-..., us-...
+ */
+class GermanScreensTest : ScreensSnapshotTest("de") {
+    /** Guard: the translations really load (otherwise these screenshots would be English). */
+    @Test fun translationsLoad() = kotlin.test.assertEquals("Alle finden", paparazzi.context.getString(nz.waveformlabs.moshpoint.R.string.home_find_everyone))
+}
+
+class ArabicScreensTest : ScreensSnapshotTest("ar", rtl = true)
+
+class JapaneseScreensTest : ScreensSnapshotTest("ja")
+
+class UsScreensTest : ScreensSnapshotTest("en-rUS")
