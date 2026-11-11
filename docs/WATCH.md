@@ -11,18 +11,96 @@ app onto a watch. Install steps are at the end.
 
 ## Status and next steps
 
-_Updated as the work goes; newest first._
+_A handover: enough to pick the work up cold. Last updated 11 November 2026, 22:55 UTC, when
+the work was paused part-way through the phone side._
 
-- **Done:** design (this note). Shared logic in `core/…/core/watch/` with 101 unit tests:
-  arrow maths (true north, declination, tilt limits, old readings), which directions are valid
-  on a wrist, buzz choice, message format and versions, crew status, the Moshpoint+ rule, the
-  finding lease.
-- **Next:** phone side → `wear` module → strings in 19 languages → screenshot tests → CI →
-  install steps and field test.
-- **Not possible in the build session:** compiling the Android modules locally (Google's Maven
-  host was blocked there), so the phone and watch code is checked by CI only, and nothing has
-  run on a real watch. Everything marked **verify on a watch** below is a first guess until the
-  field test.
+### Where things stand
+
+| Piece | State |
+|---|---|
+| Design (this note) | **Done.** All eleven decisions below. |
+| Shared logic, `core/…/core/watch/` | **Done, tested, green in CI.** 101 unit tests: arrow maths (true north, declination, tilt limits, old readings), which directions are valid on a wrist, buzz choice, message format and versions, crew status, the Moshpoint+ rule, the finding lease. |
+| Watch app, `wear/` | **Written; not yet proven.** Every screen, the compass, buzzer, find session and its foreground service, Data Layer listener, tile, complication, screenshot tests. The first CI compile found two errors (one cause); the fix is pushed but **its CI result had not been seen** when work paused. The release (R8) build, the screenshot run and lint for `wear` have never run yet. English strings only. |
+| CI | A separate `wear` job (at the end of `android.yml`) builds watch debug and release, checks the APK has the phone's app id, records screenshots, uploads the watch APK, and publishes it to the test release on the main Moshpoint branch. |
+| Phone side | **Half written, parked in `wip/watch-phone-side/`, not compiled.** See below. |
+| Translations, checker, install steps, field test | **Not started.** |
+
+Nothing has run on a real watch or phone. Everything marked **verify on a watch** below is a
+first guess until the field test.
+
+### Next steps, in order
+
+1. **Read the `wear` job of the latest CI run** on this branch and fix what it reports
+   (expect R8 or screenshot-rendering problems; the Kotlin already compiled bar the one fix).
+2. **Finish the phone side.**
+   - Move `wip/watch-phone-side/*.kt` to `app/src/main/java/nz/waveformlabs/moshpoint/watch/`,
+     apply `locatorengine-bridge.patch` (`git apply`; it only appends a read-only block to
+     the end of `LocatorEngine`), then delete `wip/`.
+   - Parked and written: `Entitlements` (the one Moshpoint+ check), `WatchLink` (send
+     helpers, "is there a watch at all"), `WatchLinkService` (the Data Layer listener),
+     `WatchPings` (wrist pings through `GroupSync.sendPing`, read back from the relay;
+     Need help skips the paywall), `WatchSync` + `WatchSyncStarter` (crew status and faces to
+     the watch when they change), `PhoneFinderBridge` + `PhoneHeld`.
+   - **Still to write** (`WatchLinkService` already calls the first):
+     - `WatchFind` (object): `start(context, watchNode, FindStart)`, `renew(…, FindRenew)`,
+       `stop(sessionId)`. Holds a `core` `FindLease` and a `WristArbiter`. Checks
+       `Entitlements.plus` and that the mate exists. While the lease is active, every
+       `intervalMs`: take fixes from `PhoneFinderBridge` if the phone's own finder is running
+       (passing `PhoneHeld.held`), else from `PocketFinder`; send
+       `FindUpdate(sessionId, seq, status, arbiter.reading(…), lease.lastWatchClockMs,
+       lease.echoHeldMs(now))` with `WatchLink.send`. On `FindLease.State.Ended` send
+       `FindEnded` and stop everything. Must hop to the main thread (the listener calls it
+       from a background thread).
+     - `PocketFinder`: the screen-off finder from problem 4. `BleRanger(…).start(lowLatency =
+       false)` plus its own `BleHub.subscribe(…, BleHub.Sub(listOf(Ble.SERVICE_UUID), fast =
+       true, unfiltered = false) {})` so the shared scan is fast **and filtered**; `UwbFinder`
+       (distance only: pass no bearing); `WifiAwareFinder`; `GpsFinder` (its `declinationDeg`
+       is what goes to the watch); `CrowdRelayRadio.startListening`; a "looking" advert
+       (`BleBroadcaster` + `Advert.encode(…, looking = true)`, re-made each id rotation, as
+       `LocatorEngine.updateLookingAdvert` does); `RadioWatcher`. In test builds, feed
+       `FriendSimulator` fixes for `sim-` friends so the wrist can be tried with one phone.
+     - `WatchFinderService`: a `LifecycleService` copied in shape from
+       `VisibilityService.startInForeground`: try `connectedDevice | location`, fall back to
+       `connectedDevice` on `SecurityException`, give up on `IllegalStateException`; low
+       importance channel, "Finding Sam for your watch", a Stop action. If Android refuses
+       the start but `VisibilityPrefs.isVisible` (the live service is up), find anyway; if
+       it can't find at all, the updates carry `FindStatus.NEEDS_PHONE`.
+   - Add (additions only): `implementation(libs.play.services.wearable)` in
+     `app/build.gradle.kts`; in the app manifest `WatchLinkService` (exported, intent filter
+     `com.google.android.gms.wearable.MESSAGE_RECEIVED`, data `wear://*/mosh/` path prefix),
+     `WatchFinderService` (`foregroundServiceType="connectedDevice|location"`), the
+     `WatchSyncStarter` provider (authority `${applicationId}.watchsync`, not exported);
+     `app/src/main/res/values/wear.xml` declaring the capability `moshpoint_phone`;
+     `strings_watch.xml` (channel name, "Finding %1$s for your watch", Stop) in English and
+     all 19 languages.
+3. **Translate the watch strings** (`wear/src/main/res/values/strings.xml`, 59 entries) into
+   the app's 19 languages with the terms in `docs/i18n` and the app's own wording for the
+   same pings. Make `tools/check_translation.py` take any module's `values-xx` folder (its
+   English folder is the sibling `values`), run it over `wear` in the CI step, and fail if
+   `app` and `wear` ship different sets of languages.
+4. **Look at the watch screenshots.** CI commits English, German, Thai, Arabic and Japanese to
+   `docs/screenshots/watch/` and pushes every language and both sizes to the
+   `ui-screenshots-watch` branch. Fix anything that runs off the round edge.
+5. **Docs:** the install steps at the end of this note (facts already checked: adb 30 or
+   newer; phone/computer and watch on the same Wi-Fi; on a Galaxy Watch, Settings → About
+   watch → Software information → tap Software version seven times, then Developer options →
+   ADB debugging and Wireless debugging → Pair new device; `adb pair IP:PORT`, then `adb
+   connect IP:PORT` with the *other* port shown, then `adb -s IP:PORT install -r
+   moshpoint-watch.apk`); a wrist section in `docs/FIELD_TEST_PLAN.md`; the watch APK link in
+   `.github/testing-release.md`; one-line pointers in `ARCHITECTURE.md` and `FEATURES.md`.
+6. **Finish line:** both CI jobs green.
+
+### Working notes
+
+- The Android modules cannot be built in the cloud session (Google's Maven host is blocked
+  there), so `app` and `wear` are checked by CI only: push, wait about 13 minutes, read the
+  job log. `core` builds and tests locally with a scratch Gradle settings file that includes
+  only `:core` and points its version catalogue at `gradle/libs.versions.toml`.
+- Library calls in `wear` were checked against the published API signature files in the
+  androidx GitHub mirror (`…/api/<version>-beta0x.txt`): Wear Compose 1.4, wear 1.3, ongoing
+  1.0, tiles 1.4, protolayout 1.2, watch-face complications 1.2.
+- Not built on purpose: a tile screenshot test (tiles aren't Compose), a companion-device
+  association (battery-optimisation exemption already covers background starts).
 
 ## What it does
 
