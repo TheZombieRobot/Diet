@@ -5,7 +5,7 @@
     <string name="setup_your_photo">Twoje zdjęcie</string>
     <string name="setup_your_photo_desc">Widać je w strzałce u znajomych. Widzą je tylko twoi znajomi.</string>
     <string name="setup_take_selfie">Zrób selfie</string>
-    <string name="setup_choose_photo">Wybierz zdjęcie</string>
+    <string name="setup_choose_photo">Z galerii</string>
     <string name="setup_remove_my_photo">Usuń moje zdjęcie</string>
     <string name="setup_your_name">Twoje imię</string>
     <string name="setup_stay_live">Udostępniaj dalej po restarcie</string>
@@ -33,7 +33,7 @@
 
     <string name="setup_onb_skip">Pomiń</string>
     <string name="setup_onb_title_find">Znajdź znajomych\nw każdym tłumie</string>
-    <string name="setup_onb_body_find">Kliknij znajomego, a strzałka pokaże prosto na niego. Im bliżej, tym mocniej świeci jego kolorem.</string>
+    <string name="setup_onb_body_find">Kliknij znajomego, a strzałka pokaże na niego. Im bliżej, tym mocniej świeci jego kolorem.</string>
     <string name="setup_onb_title_live">Udostępnij lokalizację,\ngdy wchodzisz</string>
     <string name="setup_onb_body_live">Znajomi mogą cię znaleźć tylko wtedy, gdy udostępniasz lokalizację, i tylko ty to włączasz. Moshpoint potrzebuje:</string>
     <string name="setup_onb_need_nearby">Urządzenia w pobliżu</string>

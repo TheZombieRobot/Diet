@@ -13,14 +13,14 @@
     <string name="find_rough_walk">Ungefär: gå åt det hållet och kolla avståndet</string>
     <string name="find_colour_legend">Knallrosa är långt bort. Pilarna lyser i din kompis färg när du kommer nära.</string>
     <string name="find_cancel">Avbryt</string>
-    <string name="find_restart_scan">Starta om skanningen</string>
+    <string name="find_restart_scan">Skanna igen</string>
     <string name="find_scan_finished">Skanningen klar</string>
     <string name="find_ok">OK</string>
     <string name="find_scan_again">Skanna igen</string>
     <string name="find_ask_them">Fråga dem</string>
-    <string name="find_last_seen_on_map">Senast sedd på kartan</string>
+    <string name="find_last_seen_on_map">Senast på kartan</string>
     <string name="find_light_me_up">Lys upp mig</string>
-    <string name="find_spin_scan">Snurrskanning</string>
+    <string name="find_spin_scan">Snurra</string>
     <string name="find_asked_light_up">Frågat: deras telefon erbjuder sig att lysa upp</string>
     <string name="find_ask_light_up">Be dem lysa upp</string>
     <string name="find_show_on_map">Visa på kartan</string>
@@ -172,4 +172,8 @@
     <string name="find_spoken_feet">%1$s fot</string>
     <string name="find_spoken_miles">%1$s engelska mil</string>
     <string name="find_spoken_under_3_feet">mindre än 3 fot</string>
+    <string name="find_map_status_looking">Letar efter dina kompisar…</string>
+    <string name="find_map_status_no_mates">Lägg till kompisar eller starta en grupp för att se dem här</string>
+    <string name="find_map_status_offline">Inget internet: visar senast kända platser</string>
+    <string name="find_map_status_updated">Uppdaterat nyss</string>
 </resources>

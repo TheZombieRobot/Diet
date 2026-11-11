@@ -5,7 +5,7 @@
     <string name="home_live_ghost">Paylaşılıyor · hayalet</string>
     <string name="home_live">Paylaşılıyor</string>
 
-    <string name="home_tile_not_sharing">henüz paylaşmıyor</string>
+    <string name="home_tile_not_sharing">paylaşmıyor</string>
     <string name="home_tile_phone_died">telefonu kapandı</string>
     <string name="home_tile_live">paylaşıyor</string>
     <string name="home_tile_with_battery">%1$s · %%%2$d</string>
@@ -42,7 +42,7 @@
     <string name="home_scan_qr">QR tara</string>
     <string name="home_paste_invite">Daveti yapıştır</string>
     <string name="home_bump_phones">Telefonları tokuştur</string>
-    <string name="home_plan_gig">Konser planla (bul, şimdiden davet et)</string>
+    <string name="home_plan_gig">Konser planla (bul, davet et)</string>
     <string name="home_send_app_invite">Uygulamayı + daveti gönder (WhatsApp, Messenger…)</string>
     <string name="home_friends_every_gig">HER KONSER İÇİN ARKADAŞLAR</string>
     <string name="home_my_friend_qr">Arkadaşlık QR\'ım</string>
@@ -113,15 +113,15 @@
     <string name="home_allow">İzin ver</string>
     <string name="home_one_thing_first">ÖNCE BİR ŞEY</string>
     <plurals name="home_one_thing_first_more">
-        <item quantity="one">ÖNCE BİR ŞEY · %d TANE DAHA</item>
-        <item quantity="other">ÖNCE BİR ŞEY · %d TANE DAHA</item>
+        <item quantity="one">ÖNCE BİR ŞEY · %d DAHA</item>
+        <item quantity="other">ÖNCE BİR ŞEY · %d DAHA</item>
     </plurals>
     <string name="home_eyebrow_tonight">BU GECE</string>
     <string name="home_eyebrow_following">TAKİPTE</string>
     <string name="home_eyebrow_coming_up">YAKINDA</string>
     <string name="home_find_mates_tonight">Bu gece arkadaşlarını bul</string>
     <string name="home_find_mates_text">Davet et, tarasınlar, tamam. Gerisini Moshpoint halleder.</string>
-    <string name="home_invite_mates_tonight">Bu gece için arkadaşlarını davet et</string>
+    <string name="home_invite_mates_tonight">Arkadaşlarını davet et</string>
     <string name="home_scan_invite">Davet tara</string>
     <string name="home_your_crew">Ekibin</string>
     <string name="home_invite">＋ Davet et</string>
@@ -136,7 +136,7 @@
     <string name="home_crew_chat_unread">Ekip sohbeti (%1$d yeni)</string>
     <string name="home_where_are_they">Neredeler? (harita)</string>
     <string name="home_see_them_once_starts">Konser başlayınca onları burada göreceksin.</string>
-    <string name="home_tap_mate_hint">Bulmak için bir arkadaşına dokun · seçenekler için basılı tut</string>
+    <string name="home_tap_mate_hint">Bulmak için dokun · seçenekler için basılı tut</string>
     <string name="home_find_name">Bul: %1$s</string>
     <string name="home_find_everyone">Herkesi bul</string>
     <string name="home_stop_following">Takibi bırak</string>

@@ -317,7 +317,8 @@ fun FriendsScreen(
     ) {
         item {
             Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                Row(Modifier.weight(1f), verticalAlignment = Alignment.Bottom) {
+                // The wordmark never shrinks or wraps; the live pill gives way instead (see LivePill).
+                Row(verticalAlignment = Alignment.Bottom) {
                     // The wordmark reads "moshpoint" in every language, right-to-left ones too.
                     androidx.compose.runtime.CompositionLocalProvider(androidx.compose.ui.platform.LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Ltr) {
                         Row(verticalAlignment = Alignment.Bottom) {
@@ -329,7 +330,8 @@ fun FriendsScreen(
                         }
                     }
                 }
-                if (!following) LivePill(visible, ghost) { onVisible(!visible) }
+                Spacer(Modifier.weight(1f))
+                if (!following) LivePill(visible, ghost, Modifier.padding(start = 12.dp)) { onVisible(!visible) }
             }
             if (!visible && groupName != null && !crewSleeping && !following) {
                 Spacer(Modifier.height(8.dp))

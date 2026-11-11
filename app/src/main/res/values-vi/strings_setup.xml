@@ -8,7 +8,7 @@
     <string name="setup_choose_photo">Chọn ảnh</string>
     <string name="setup_remove_my_photo">Xóa ảnh của mình</string>
     <string name="setup_your_name">Tên của bạn</string>
-    <string name="setup_stay_live">Chia sẻ tiếp sau khi khởi động lại</string>
+    <string name="setup_stay_live">Khởi động lại vẫn chia sẻ</string>
     <string name="setup_stay_live_desc">Nếu bạn đang chia sẻ lúc máy khởi động lại, tự bật chia sẻ lại.</string>
     <string name="setup_ghost_mode">Chế độ tàng hình</string>
     <string name="setup_ghost_mode_desc">Ẩn vị trí của bạn khỏi bản đồ. Khi ở gần, bạn bè vẫn tìm được bạn qua Bluetooth.</string>
@@ -33,7 +33,7 @@
 
     <string name="setup_onb_skip">Bỏ qua</string>
     <string name="setup_onb_title_find">Tìm bạn bè\ngiữa biển người</string>
-    <string name="setup_onb_body_find">Chạm vào một người là có mũi tên chỉ thẳng tới họ. Càng gần, mũi tên càng sáng màu của họ.</string>
+    <string name="setup_onb_body_find">Chạm một người là có mũi tên chỉ thẳng tới họ. Càng gần, mũi tên càng sáng màu của họ.</string>
     <string name="setup_onb_title_live">Bật chia sẻ\nkhi vào show</string>
     <string name="setup_onb_body_live">Bạn bè chỉ tìm được bạn khi bạn đang chia sẻ, và chỉ bạn mới bật được. Moshpoint cần:</string>
     <string name="setup_onb_need_nearby">Thiết bị lân cận</string>

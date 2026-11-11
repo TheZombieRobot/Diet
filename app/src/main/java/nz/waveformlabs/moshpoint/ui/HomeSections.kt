@@ -53,7 +53,7 @@ import nz.waveformlabs.moshpoint.core.GigGroup
 
 /** Compact "you're live" switch for the header: the one thing that must be on at a gig. */
 @Composable
-internal fun LivePill(live: Boolean, ghost: Boolean, onToggle: () -> Unit) {
+internal fun LivePill(live: Boolean, ghost: Boolean, modifier: Modifier = Modifier, onToggle: () -> Unit) {
     val (src, sc) = rememberPress()
     val colour = when {
         !live -> Mosh.TextFaint
@@ -61,7 +61,7 @@ internal fun LivePill(live: Boolean, ghost: Boolean, onToggle: () -> Unit) {
         else -> Mosh.Lime
     }
     Row(
-        Modifier.pressScale(sc).heightIn(min = 40.dp)
+        modifier.pressScale(sc).heightIn(min = 40.dp)
             .background(if (live) colour.copy(alpha = 0.16f) else Mosh.Surface, RoundedCornerShape(22.dp))
             .border(1.dp, if (live) colour.copy(alpha = 0.7f) else Mosh.Line, RoundedCornerShape(22.dp))
             .clickable(interactionSource = src, indication = androidx.compose.foundation.LocalIndication.current, onClick = onToggle)
@@ -77,7 +77,8 @@ internal fun LivePill(live: Boolean, ghost: Boolean, onToggle: () -> Unit) {
                 else -> stringResource(R.string.home_live)
             },
             style = Mosh.Label.copy(fontSize = 15.sp, color = if (live) colour else Mosh.Text),
-            maxLines = 1, softWrap = false,
+            // Long in some languages ("Udostępnij lokalizację"): shorten with … rather than push the logo.
+            maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis,
         )
     }
 }
@@ -434,8 +435,10 @@ internal fun PastGigs(gigs: List<nz.waveformlabs.moshpoint.GigArchive.Summary>, 
                 Spacer(Modifier.width(14.dp))
                 Column(Modifier.weight(1f)) {
                     Text(g.name, style = Mosh.Label, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    val day = java.text.SimpleDateFormat("EEE d MMM yyyy", java.util.Locale.getDefault()).format(java.util.Date(g.whenSec * 1000))
-                    Text(listOf(day, g.venue).filter { it.isNotBlank() }.joinToString(" · "), style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    val day = java.text.SimpleDateFormat(
+                        android.text.format.DateFormat.getBestDateTimePattern(java.util.Locale.getDefault(), "EEEdMMMyyyy"), java.util.Locale.getDefault(),
+                    ).format(java.util.Date(g.whenSec * 1000))
+                    Text(listOf(day, g.venue).filter { it.isNotBlank() }.joinToString(" · "), style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), maxLines = 2, overflow = TextOverflow.Ellipsis)
                     val names = g.people.take(3).joinToString(", ")
                     val counts = listOfNotNull(
                         pluralStringResource(R.plurals.home_gig_photos, g.photos, g.photos).takeIf { g.photos > 0 },

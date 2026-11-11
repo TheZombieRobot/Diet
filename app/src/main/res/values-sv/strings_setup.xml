@@ -33,7 +33,7 @@
 
     <string name="setup_onb_skip">Hoppa över</string>
     <string name="setup_onb_title_find">Hitta kompisarna\ni vilken publik som helst</string>
-    <string name="setup_onb_body_find">Tryck på en kompis så pekar en pil rakt mot dem. Den lyser i deras färg när du kommer nära.</string>
+    <string name="setup_onb_body_find">Tryck på en kompis så pekar en pil mot dem. Den lyser i deras färg när du kommer nära.</string>
     <string name="setup_onb_title_live">Gå live när\ndu går in</string>
     <string name="setup_onb_body_live">Kompisarna kan bara hitta dig när du är live, och bara du slår på det. Moshpoint behöver:</string>
     <string name="setup_onb_need_nearby">Enheter i närheten</string>

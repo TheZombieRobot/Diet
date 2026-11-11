@@ -5,7 +5,7 @@
     <string name="home_live_ghost">Ao vivo · fantasma</string>
     <string name="home_live">Ao vivo</string>
 
-    <string name="home_tile_not_sharing">ainda não compartilha</string>
+    <string name="home_tile_not_sharing">não compartilha</string>
     <string name="home_tile_phone_died">sem bateria</string>
     <string name="home_tile_live">ao vivo</string>
     <string name="home_tile_with_battery">%1$s · %2$d%%</string>
@@ -43,7 +43,7 @@
     <string name="home_scan_qr">Escanear um QR</string>
     <string name="home_paste_invite">Colar convite</string>
     <string name="home_bump_phones">Encostar os celulares</string>
-    <string name="home_plan_gig">Planejar um show (ache e convide já)</string>
+    <string name="home_plan_gig">Planejar show (ache e convide)</string>
     <string name="home_send_app_invite">Enviar o app + convite (WhatsApp, Messenger…)</string>
     <string name="home_friends_every_gig">AMIGOS PRA TODO SHOW</string>
     <string name="home_my_friend_qr">Meu QR de amigo</string>
@@ -77,7 +77,7 @@
 
     <string name="home_crew_chat">Chat da galera</string>
     <string name="home_pinned_plan">📌 %1$s</string>
-    <string name="home_chat_subtitle">Mensagens, o plano, sinalizadores</string>
+    <string name="home_chat_subtitle">Chat, plano, sinalizadores</string>
     <string name="home_unread_many">9+</string>
     <plurals name="home_unread_new">
         <item quantity="one">%d nova</item>
@@ -118,9 +118,9 @@
     <string name="home_allow">Permitir</string>
     <string name="home_one_thing_first">ANTES, UMA COISA</string>
     <plurals name="home_one_thing_first_more">
-        <item quantity="one">ANTES, UMA COISA · MAIS %d</item>
-        <item quantity="many">ANTES, UMA COISA · MAIS %d</item>
-        <item quantity="other">ANTES, UMA COISA · MAIS %d</item>
+        <item quantity="one">PRIMEIRO ISTO · MAIS %d</item>
+        <item quantity="many">PRIMEIRO ISTO · MAIS %d</item>
+        <item quantity="other">PRIMEIRO ISTO · MAIS %d</item>
     </plurals>
     <string name="home_eyebrow_tonight">HOJE À NOITE</string>
     <string name="home_eyebrow_following">ACOMPANHANDO</string>
@@ -131,7 +131,7 @@
     <string name="home_scan_invite">Escanear convite</string>
     <string name="home_your_crew">Sua galera</string>
     <string name="home_invite">＋ Convidar</string>
-    <string name="home_family_can_follow">A família pode acompanhar a noite de casa</string>
+    <string name="home_family_can_follow">A família acompanha a noite de casa</string>
     <string name="home_following_from_home_names">Acompanhando de casa: %1$s</string>
     <string name="home_share">Compartilhar ›</string>
     <string name="home_meet_up">★  Encontro: %1$s</string>

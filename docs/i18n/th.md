@@ -62,3 +62,7 @@ Note on sources: web search worked, but direct page fetches were blocked in this
 4. **ติดขอบเวที** for "At the rail" (medium). A possible alternative is ชิดรั้วหน้าเวที.
 5. **เช็กอิน** for the safety "check in" (medium). It might be read as a location check-in. A possible alternative is แจ้งว่าถึงแล้ว.
 6. **อุ่นเครื่อง** (new) (high).
+
+## UI review
+
+All screens checked against English: no clipping, wrapping or overlap needing a wording change. No strings changed.

@@ -67,3 +67,23 @@ Every sentence that quotes the button now says "Konumu paylaş" with the correct
 1. **işaret** for "flare" (medium confidence). It is safe but a little flat. Check that "İşaret gönder" reads as "share where I am with a vibe".
 2. **pin / Pinde buluşalım** (medium confidence). Casual users say "pin", but Google uses "raptiye". "Konumda buluşalım" is an alternative.
 3. **Ekranımı yak** (medium-high confidence). "Ekran yanması" also means screen burn-in. Check that it doesn't sound like damaging the screen.
+
+## UI review
+
+Shortened after checking the rendered screens against English (validator: OK).
+
+| Key | Old | New | Why |
+|---|---|---|---|
+| home_tap_mate_hint | Bulmak için bir arkadaşına dokun · seçenekler için basılı tut | Bulmak için dokun · seçenekler için basılı tut | Wrapped to 2 lines |
+| home_one_thing_first_more | ÖNCE BİR ŞEY · %d TANE DAHA | ÖNCE BİR ŞEY · %d DAHA | Kicker wrapped |
+| home_plan_gig | Konser planla (bul, şimdiden davet et) | Konser planla (bul, davet et) | Button wrapped |
+| home_invite_mates_tonight | Bu gece için arkadaşlarını davet et | Arkadaşlarını davet et | Main button wrapped (the card title already says tonight) |
+| home_tile_not_sharing | henüz paylaşmıyor | paylaşmıyor | Tile status wrapped |
+| crew_chat_send_flare_hint (plural) | İşaret gönder: %d dk boyunca nerede olduğunu göster | İşaret gönder: %d dk konumunu göster | "göster" wrapped alone |
+| find_restart_scan | Taramayı yeniden başlat | Yeniden tara | Button wrapped to 3 lines |
+| find_last_seen_on_map | Haritada son görülen yer | Son konum | Button wrapped |
+| find_place_crew_meetup | ekip buluşma noktası | buluşma yeri | Map row wrapped |
+| find_place_only_you | bunu sadece sen görürsün | sana özel | Map row wrapped |
+| setup_stay_live | Yeniden başlatınca paylaşmaya devam et | Yeniden başlayınca paylaş | Setting title wrapped |
+
+Not fixable by wording: the "Konumu paylaş" chip squeezes the moshpoint logo into a broken wrap on Home (layout bug). The vetted term is kept.

@@ -9,7 +9,7 @@
     <string name="find_chip_rough">Aprox.</string>
     <string name="find_chip_locked">Na mira</string>
     <string name="find_head_this_way">Vai por aqui</string>
-    <string name="find_from_gps">Pelo GPS: fica mais preciso enquanto você anda</string>
+    <string name="find_from_gps">Pelo GPS: melhora ao andar</string>
     <string name="find_rough_walk">Aproximado: ande pra lá e olhe a distância</string>
     <string name="find_colour_legend">Rosa choque é longe. As setas brilham na cor do seu amigo quando você chega perto.</string>
     <string name="find_cancel">Cancelar</string>
@@ -18,7 +18,7 @@
     <string name="find_ok">OK</string>
     <string name="find_scan_again">Escanear de novo</string>
     <string name="find_ask_them">Pedir</string>
-    <string name="find_last_seen_on_map">Visto por último no mapa</string>
+    <string name="find_last_seen_on_map">Último local</string>
     <string name="find_light_me_up">Me ilumina</string>
     <string name="find_spin_scan">Giro de busca</string>
     <string name="find_asked_light_up">Pedido: o celular da pessoa vai oferecer acender a tela</string>
@@ -175,4 +175,8 @@
     <string name="find_spoken_feet">%1$s pés</string>
     <string name="find_spoken_miles">%1$s milhas</string>
     <string name="find_spoken_under_3_feet">menos de 3 pés</string>
+    <string name="find_map_status_looking">Procurando seus amigos…</string>
+    <string name="find_map_status_no_mates">Adicione amigos ou crie uma galera para vê-los aqui</string>
+    <string name="find_map_status_offline">Sem internet: mostrando os últimos locais</string>
+    <string name="find_map_status_updated">Atualizado agora</string>
 </resources>

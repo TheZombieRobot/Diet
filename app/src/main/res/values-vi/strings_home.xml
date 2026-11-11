@@ -41,7 +41,7 @@
     <string name="home_scan_qr">Quét QR</string>
     <string name="home_paste_invite">Dán lời mời</string>
     <string name="home_bump_phones">Chạm hai máy vào nhau</string>
-    <string name="home_plan_gig">Lên kế hoạch đi show (tìm show, rủ luôn)</string>
+    <string name="home_plan_gig">Lên lịch đi show (tìm, rủ luôn)</string>
     <string name="home_send_app_invite">Gửi app + lời mời (Zalo, Messenger…)</string>
     <string name="home_friends_every_gig">BẠN BÈ CHO MỌI SHOW</string>
     <string name="home_my_friend_qr">QR kết bạn của mình</string>
@@ -108,7 +108,7 @@
     <string name="home_allow">Cho phép</string>
     <string name="home_one_thing_first">MỘT VIỆC TRƯỚC ĐÃ</string>
     <plurals name="home_one_thing_first_more">
-        <item quantity="other">MỘT VIỆC TRƯỚC ĐÃ · CÒN %d</item>
+        <item quantity="other">TRƯỚC TIÊN · CÒN %d</item>
     </plurals>
     <string name="home_eyebrow_tonight">TỐI NAY</string>
     <string name="home_eyebrow_following">ĐANG THEO DÕI</string>
@@ -119,7 +119,7 @@
     <string name="home_scan_invite">Quét lời mời</string>
     <string name="home_your_crew">Nhóm của bạn</string>
     <string name="home_invite">＋ Mời</string>
-    <string name="home_family_can_follow">Gia đình có thể theo dõi đêm nay từ nhà</string>
+    <string name="home_family_can_follow">Gia đình theo dõi đêm nay từ nhà</string>
     <string name="home_following_from_home_names">Theo dõi từ nhà: %1$s</string>
     <string name="home_share">Chia sẻ ›</string>
     <string name="home_meet_up">★  Điểm hẹn: %1$s</string>

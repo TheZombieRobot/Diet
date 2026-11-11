@@ -42,7 +42,7 @@
     <string name="home_scan_qr">Skanna en QR</string>
     <string name="home_paste_invite">Klistra in inbjudan</string>
     <string name="home_bump_phones">Bumpa ihop telefonerna</string>
-    <string name="home_plan_gig">Planera en spelning (hitta den, bjud in nu)</string>
+    <string name="home_plan_gig">Planera spelning (hitta, bjud in)</string>
     <string name="home_send_app_invite">Skicka appen + inbjudan (WhatsApp, Messenger…)</string>
     <string name="home_friends_every_gig">KOMPISAR FÖR VARJE SPELNING</string>
     <string name="home_my_friend_qr">Min kompis-QR</string>
@@ -74,7 +74,7 @@
 
     <string name="home_crew_chat">Gruppens chatt</string>
     <string name="home_pinned_plan">📌 %1$s</string>
-    <string name="home_chat_subtitle">Meddelanden, planen, lysraketer</string>
+    <string name="home_chat_subtitle">Chatt, planen, lysraketer</string>
     <string name="home_unread_many">9+</string>
     <plurals name="home_unread_new">
         <item quantity="one">%d ny</item>

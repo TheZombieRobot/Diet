@@ -28,6 +28,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -124,9 +126,13 @@ fun MapScreen(
                 .border(1.dp, Mosh.Line, RoundedCornerShape(16.dp)).padding(horizontal = 6.dp, vertical = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            TextButton(onClick = onBack) { Text(stringResource(R.string.find_back), style = Mosh.Label.copy(fontSize = 15.sp)) }
+            // Back as a compact chevron: the title and status get the room (long in some languages).
+            val back = stringResource(R.string.find_back)
+            TextButton(onClick = onBack, modifier = Modifier.semantics { contentDescription = back }) {
+                Text("‹", style = Mosh.Label.copy(fontSize = 24.sp))
+            }
             Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.find_map_title), style = Mosh.Label)
+                Text(stringResource(R.string.find_map_title), style = Mosh.Label, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(offlineStatus ?: status, style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 15.sp, color = Mosh.TextFaint), maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             TextButton(onClick = { me?.let { dropAt = it.lat to it.lon } }, enabled = me != null) {

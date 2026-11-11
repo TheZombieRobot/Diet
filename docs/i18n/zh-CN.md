@@ -55,3 +55,7 @@ Overall: the translation is natural, casual and uses mainland vocabulary through
 2. **上线 / 在线 for "live"** (medium-high). It reads as "online" rather than "sharing location". 共享位置中 would be more literal but longer.
 3. **故事 for Story** (medium). Some users may expect 快拍. Another option is 今晚相册.
 4. **Battery setting names** (main_battery_text: 不优化 / 无限制) (medium). These match MIUI and older Android. Stock Android 12+ says 不受限制, and Huawei says 允许后台活动.
+
+## UI review
+
+All screens checked against English: no clipping, wrapping or overlap needing a wording change. No strings changed.

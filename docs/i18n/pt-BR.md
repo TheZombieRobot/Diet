@@ -66,3 +66,18 @@ The folder is plain `values-pt`, so Portugal sees these strings. Nothing is offe
 3. **"História"** for Story (about 70%). Brazilian Instagram users say "story/stories" in English. "Story" might feel more native for the tab name.
 4. **"Na mira"** for the reliable-direction chip (about 75%). The alternative is "Certeiro".
 5. **"Memórias"** vs "Lembranças" for the memories section (about 80%). Both are used by big apps.
+
+## UI review
+
+Shortened after checking the rendered screens against English (validator: OK).
+
+| Key | Old | New | Why |
+|---|---|---|---|
+| home_family_can_follow | A família pode acompanhar a noite de casa | A família acompanha a noite de casa | Wrapped to 2 lines |
+| home_one_thing_first_more | ANTES, UMA COISA · MAIS %d | PRIMEIRO ISTO · MAIS %d | Kicker wrapped |
+| home_plan_gig | Planejar um show (ache e convide já) | Planejar show (ache e convide) | Button wrapped |
+| home_chat_subtitle | Mensagens, o plano, sinalizadores | Chat, plano, sinalizadores | Truncated with "…" |
+| home_tile_not_sharing | ainda não compartilha | não compartilha | Tile status wrapped |
+| crew_chat_send_flare_hint (plural) | Solte um sinalizador: mostre onde você está por %d min | Sinalizador: mostre onde está por %d min | "30 min" wrapped alone |
+| find_from_gps | Pelo GPS: fica mais preciso enquanto você anda | Pelo GPS: melhora ao andar | Wrapped to 2 lines |
+| find_last_seen_on_map | Visto por último no mapa | Último local | Button wrapped |

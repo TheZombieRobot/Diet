@@ -11,7 +11,7 @@
     <string name="find_head_this_way">往這邊走</string>
     <string name="find_from_gps">來自 GPS：邊走邊變準</string>
     <string name="find_rough_walk">大概方向：往那邊走，注意距離</string>
-    <string name="find_colour_legend">亮粉紅代表還很遠。越靠近，箭頭越亮出朋友的顏色。</string>
+    <string name="find_colour_legend">亮粉紅表示還遠。越近，箭頭越亮出朋友的顏色。</string>
     <string name="find_cancel">取消</string>
     <string name="find_restart_scan">重新掃描</string>
     <string name="find_scan_finished">掃描完成</string>
@@ -169,4 +169,8 @@
     <string name="find_spoken_feet">%1$s 英尺</string>
     <string name="find_spoken_miles">%1$s 英里</string>
     <string name="find_spoken_under_3_feet">不到 3 英尺</string>
+    <string name="find_map_status_looking">正在找你的朋友…</string>
+    <string name="find_map_status_no_mates">加入朋友或建立小隊，就能在這裡看到他們</string>
+    <string name="find_map_status_offline">沒有網路：顯示最後已知位置</string>
+    <string name="find_map_status_updated">剛剛更新</string>
 </resources>

@@ -66,3 +66,22 @@ Every sentence that quotes the button now says "Udostępnij lokalizację" or "ud
 2. **realizatorka** for "sound desk" (medium confidence). I believe "pod realizatorką" is real concert jargon, but search could not confirm it. If it isn't, "przy stanowisku dźwiękowca" is the safe alternative.
 3. **Stuknij** as the Bump button name (medium-high confidence). The bare form appears in "(ta osoba też otwiera Stuknij)".
 4. **Podświetl mnie** for "Light me up" (medium confidence). It is understandable but literal. "Zaświeć ekranem" could be livelier.
+
+## UI review
+
+Shortened after checking the rendered screens against English (validator: OK).
+
+| Key | Old | New | Why |
+|---|---|---|---|
+| home_tap_mate_hint | Kliknij znajomego, żeby szukać · przytrzymaj, żeby zobaczyć opcje | Kliknij znajomego, by szukać · przytrzymaj: opcje | Wrapped to 2 lines |
+| home_one_thing_first_more | NAJPIERW JEDNA RZECZ · JESZCZE %d | NAJPIERW TO · JESZCZE %d | Kicker wrapped |
+| home_plan_gig | Zaplanuj koncert (znajdź go, zaproś już teraz) | Zaplanuj koncert (znajdź, zaproś) | Button wrapped |
+| home_scan_invite | Zeskanuj zaproszenie | Zeskanuj kod | Made room so "Wklej zaproszenie" stays on one line |
+| home_tile_not_sharing | jeszcze nie udostępnia | nie udostępnia | Tile status wrapped |
+| find_spin_scan | Skan w obrocie | Obróć się | Button wrapped (matches "Obracaj się powoli") |
+| find_restart_scan | Skanuj od nowa | Od nowa | Button wrapped (refresh icon carries "scan") |
+| find_last_seen_on_map | Ostatnio widziane na mapie | Ostatnio na mapie | Button wrapped to 3 lines |
+| setup_choose_photo | Wybierz zdjęcie | Z galerii | Wrapped on small phones |
+| setup_onb_body_find | …strzałka pokaże prosto na niego… | …strzałka pokaże na niego… | Lone word on last line |
+
+Not fixable by wording: the "Udostępnij lokalizację" chip squeezes the moshpoint logo into a broken 3-line wrap on Home (layout bug, the logo must not wrap). The vetted term is kept.

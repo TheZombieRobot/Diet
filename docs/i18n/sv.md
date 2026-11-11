@@ -58,3 +58,16 @@ Note: during this review only web search worked. Direct page fetches to svenska.
 2. **Bumpa** (medium confidence). Check that it reads as playful, not odd. "Stöt ihop telefonerna" would be a more native alternative.
 3. **Storyn vs Berättelsen** (high confidence that "Storyn" is fine colloquially).
 4. **Hemma ✅** for "Home safe" drops the word "safe". "Hemma, allt ok ✅" is an option.
+
+## UI review
+
+Shortened after checking the rendered screens against English (validator: OK).
+
+| Key | Old | New | Why |
+|---|---|---|---|
+| home_plan_gig | Planera en spelning (hitta den, bjud in nu) | Planera spelning (hitta, bjud in) | Button wrapped |
+| home_chat_subtitle | Meddelanden, planen, lysraketer | Chatt, planen, lysraketer | Truncated with "…" |
+| find_spin_scan | Snurrskanning | Snurra | Word was broken mid-word ("Snurrskannin g"); matches "Snurra långsamt" |
+| find_restart_scan | Starta om skanningen | Skanna igen | Button wrapped |
+| find_last_seen_on_map | Senast sedd på kartan | Senast på kartan | Button wrapped |
+| setup_onb_body_find | …pekar en pil rakt mot dem… | …pekar en pil mot dem… | Lone word on last line |

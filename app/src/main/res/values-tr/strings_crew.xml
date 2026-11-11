@@ -15,8 +15,8 @@
     <string name="crew_chat_on_today">Bu konser bugün. Bu ekipte birbirinizi bulalım mı?</string>
     <string name="crew_chat_switch">Geç</string>
     <plurals name="crew_chat_send_flare_hint">
-        <item quantity="one">🔥  İşaret gönder: %d dk boyunca nerede olduğunu göster</item>
-        <item quantity="other">🔥  İşaret gönder: %d dk boyunca nerede olduğunu göster</item>
+        <item quantity="one">🔥  İşaret gönder: %d dk konumunu göster</item>
+        <item quantity="other">🔥  İşaret gönder: %d dk konumunu göster</item>
     </plurals>
     <string name="crew_chat_empty">Henüz bir şey yok. Mesajlar ekipteki herkese yaklaşık bir dakikada ulaşır (kendi sunucunla daha hızlı).</string>
     <string name="crew_chat_night_tools_later">Gazlayın! İşaretler ve hızlı pingler konser günü açılır.</string>

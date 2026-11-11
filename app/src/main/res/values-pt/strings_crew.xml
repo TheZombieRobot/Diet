@@ -16,9 +16,9 @@
     <string name="crew_chat_on_today">Esse show é hoje. Usar esta galera pra vocês se acharem?</string>
     <string name="crew_chat_switch">Trocar</string>
     <plurals name="crew_chat_send_flare_hint">
-        <item quantity="one">🔥  Solte um sinalizador: mostre onde você está por %d min</item>
-        <item quantity="many">🔥  Solte um sinalizador: mostre onde você está por %d min</item>
-        <item quantity="other">🔥  Solte um sinalizador: mostre onde você está por %d min</item>
+        <item quantity="one">🔥  Sinalizador: mostre onde está por %d min</item>
+        <item quantity="many">🔥  Sinalizador: mostre onde está por %d min</item>
+        <item quantity="other">🔥  Sinalizador: mostre onde está por %d min</item>
     </plurals>
     <string name="crew_chat_empty">Nada ainda. As mensagens chegam pra todo mundo da galera em cerca de um minuto (mais rápido no seu próprio servidor).</string>
     <string name="crew_chat_night_tools_later">Bora criar o hype! Sinalizadores e avisos rápidos ligam no dia do show.</string>

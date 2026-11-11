@@ -63,3 +63,16 @@ Note on sources: web search worked, but direct page fetches were blocked in this
 4. **Một người bạn** as the fallback name (medium). It reads well in sentences ("Một người bạn đã gửi tin nhắn"), but it is long in lists.
 5. **bàn âm thanh** for "sound desk" (medium). Maybe "khu FOH" or "khu điều khiển âm thanh"?
 6. Pronouns: tabs use "Tôi" (Me), as Shopee does. Other casual text uses "mình". This is acceptable but slightly mixed (low risk).
+
+## UI review
+
+Shortened after checking the rendered screens against English (validator: OK).
+
+| Key | Old | New | Why |
+|---|---|---|---|
+| home_family_can_follow | Gia đình có thể theo dõi đêm nay từ nhà | Gia đình theo dõi đêm nay từ nhà | Wrapped to 2 lines |
+| home_one_thing_first_more | MỘT VIỆC TRƯỚC ĐÃ · CÒN %d | TRƯỚC TIÊN · CÒN %d | Kicker wrapped |
+| home_plan_gig | Lên kế hoạch đi show (tìm show, rủ luôn) | Lên lịch đi show (tìm, rủ luôn) | Button wrapped |
+| find_last_seen_on_map | Thấy lần cuối trên bản đồ | Vị trí cuối | Button wrapped |
+| setup_stay_live | Chia sẻ tiếp sau khi khởi động lại | Khởi động lại vẫn chia sẻ | "lại" wrapped alone on small phones |
+| setup_onb_body_find | Chạm vào một người… | Chạm một người… | Lone word on last line |

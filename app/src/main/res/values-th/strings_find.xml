@@ -169,4 +169,8 @@
     <string name="find_spoken_feet">%1$s ฟุต</string>
     <string name="find_spoken_miles">%1$s ไมล์</string>
     <string name="find_spoken_under_3_feet">ไม่ถึง 3 ฟุต</string>
+    <string name="find_map_status_looking">กำลังหาเพื่อน…</string>
+    <string name="find_map_status_no_mates">เพิ่มเพื่อนหรือสร้างแก๊งเพื่อดูเพื่อนที่นี่</string>
+    <string name="find_map_status_offline">ไม่มีอินเทอร์เน็ต: แสดงตำแหน่งล่าสุดที่รู้</string>
+    <string name="find_map_status_updated">อัปเดตเมื่อสักครู่</string>
 </resources>

@@ -5,7 +5,7 @@
     <string name="home_live_ghost">Udostępniasz · duch</string>
     <string name="home_live">Udostępniasz</string>
 
-    <string name="home_tile_not_sharing">jeszcze nie udostępnia</string>
+    <string name="home_tile_not_sharing">nie udostępnia</string>
     <string name="home_tile_phone_died">telefon padł</string>
     <string name="home_tile_live">udostępnia</string>
     <string name="home_tile_with_battery">%1$s · %2$d%%</string>
@@ -44,7 +44,7 @@
     <string name="home_scan_qr">Zeskanuj QR</string>
     <string name="home_paste_invite">Wklej zaproszenie</string>
     <string name="home_bump_phones">Stuknijcie się telefonami</string>
-    <string name="home_plan_gig">Zaplanuj koncert (znajdź go, zaproś już teraz)</string>
+    <string name="home_plan_gig">Zaplanuj koncert (znajdź, zaproś)</string>
     <string name="home_send_app_invite">Wyślij apkę + zaproszenie (WhatsApp, Messenger…)</string>
     <string name="home_friends_every_gig">ZNAJOMI NA KAŻDY KONCERT</string>
     <string name="home_my_friend_qr">Mój QR dla znajomych</string>
@@ -123,10 +123,10 @@
     <string name="home_allow">Zezwól</string>
     <string name="home_one_thing_first">NAJPIERW JEDNA RZECZ</string>
     <plurals name="home_one_thing_first_more">
-        <item quantity="one">NAJPIERW JEDNA RZECZ · JESZCZE %d</item>
-        <item quantity="few">NAJPIERW JEDNA RZECZ · JESZCZE %d</item>
-        <item quantity="many">NAJPIERW JEDNA RZECZ · JESZCZE %d</item>
-        <item quantity="other">NAJPIERW JEDNA RZECZ · JESZCZE %d</item>
+        <item quantity="one">NAJPIERW TO · JESZCZE %d</item>
+        <item quantity="few">NAJPIERW TO · JESZCZE %d</item>
+        <item quantity="many">NAJPIERW TO · JESZCZE %d</item>
+        <item quantity="other">NAJPIERW TO · JESZCZE %d</item>
     </plurals>
     <string name="home_eyebrow_tonight">DZIŚ WIECZOREM</string>
     <string name="home_eyebrow_following">OBSERWUJESZ</string>
@@ -134,7 +134,7 @@
     <string name="home_find_mates_tonight">Znajdź dziś swoich znajomych</string>
     <string name="home_find_mates_text">Zaproś ich, zeskanują, gotowe. Resztę ogarnia Moshpoint.</string>
     <string name="home_invite_mates_tonight">Zaproś znajomych na dziś</string>
-    <string name="home_scan_invite">Zeskanuj zaproszenie</string>
+    <string name="home_scan_invite">Zeskanuj kod</string>
     <string name="home_your_crew">Twoja ekipa</string>
     <string name="home_invite">＋ Zaproś</string>
     <string name="home_family_can_follow">Rodzina może śledzić noc z domu</string>
@@ -148,7 +148,7 @@
     <string name="home_crew_chat_unread">Czat ekipy (nowe: %1$d)</string>
     <string name="home_where_are_they">Gdzie oni są? (mapa)</string>
     <string name="home_see_them_once_starts">Zobaczysz ich tutaj, gdy zacznie się koncert.</string>
-    <string name="home_tap_mate_hint">Kliknij znajomego, żeby szukać · przytrzymaj, żeby zobaczyć opcje</string>
+    <string name="home_tap_mate_hint">Kliknij znajomego, by szukać · przytrzymaj: opcje</string>
     <string name="home_find_name">Znajdź: %1$s</string>
     <string name="home_find_everyone">Znajdź wszystkich</string>
     <string name="home_stop_following">Przestań obserwować</string>

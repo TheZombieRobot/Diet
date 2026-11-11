@@ -8,7 +8,7 @@
     <string name="setup_choose_photo">Fotoğraf seç</string>
     <string name="setup_remove_my_photo">Fotoğrafımı kaldır</string>
     <string name="setup_your_name">Adın</string>
-    <string name="setup_stay_live">Yeniden başlatınca paylaşmaya devam et</string>
+    <string name="setup_stay_live">Yeniden başlayınca paylaş</string>
     <string name="setup_stay_live_desc">Telefonun yeniden başladığında konumunu paylaşıyorsan, paylaşım otomatik olarak yeniden açılır.</string>
     <string name="setup_ghost_mode">Hayalet modu</string>
     <string name="setup_ghost_mode_desc">Haritada yerini gizle. Arkadaşların yakındayken seni Bluetooth ile yine de bulabilir.</string>

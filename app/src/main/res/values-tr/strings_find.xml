@@ -13,12 +13,12 @@
     <string name="find_rough_walk">Tahmini: o yöne yürü ve mesafeye bak</string>
     <string name="find_colour_legend">Parlak pembe uzak demek. Yaklaştıkça oklar arkadaşının renginde parlar.</string>
     <string name="find_cancel">İptal</string>
-    <string name="find_restart_scan">Taramayı yeniden başlat</string>
+    <string name="find_restart_scan">Yeniden tara</string>
     <string name="find_scan_finished">Tarama bitti</string>
     <string name="find_ok">Tamam</string>
     <string name="find_scan_again">Tekrar tara</string>
     <string name="find_ask_them">Onlara sor</string>
-    <string name="find_last_seen_on_map">Haritada son görülen yer</string>
+    <string name="find_last_seen_on_map">Son konum</string>
     <string name="find_light_me_up">Ekranımı yak</string>
     <string name="find_spin_scan">Dönerek tara</string>
     <string name="find_asked_light_up">İstendi: telefonları ekranı yakmayı önerecek</string>
@@ -88,8 +88,8 @@
     <string name="find_map_me">Ben</string>
     <string name="find_save_area">⬇  Bu alanı çekim olmayan yerler için kaydet</string>
     <string name="find_map_no_mates">Henüz arkadaş yok. Bir ekip kur ya da arkadaş ekle; konumlarını paylaştıklarında burada görünürler.</string>
-    <string name="find_place_crew_meetup">ekip buluşma noktası</string>
-    <string name="find_place_only_you">bunu sadece sen görürsün</string>
+    <string name="find_place_crew_meetup">buluşma yeri</string>
+    <string name="find_place_only_you">sana özel</string>
     <string name="find_walk">Yürü</string>
     <string name="find_ride">Araç</string>
     <string name="find_not_sharing">Henüz paylaşmıyor</string>
@@ -172,4 +172,8 @@
     <string name="find_spoken_feet">%1$s fit</string>
     <string name="find_spoken_miles">%1$s mil</string>
     <string name="find_spoken_under_3_feet">3 fitten az</string>
+    <string name="find_map_status_looking">Arkadaşların aranıyor…</string>
+    <string name="find_map_status_no_mates">Burada görmek için arkadaş ekle ya da ekip kur</string>
+    <string name="find_map_status_offline">İnternet yok: bilinen son konumlar gösteriliyor</string>
+    <string name="find_map_status_updated">Az önce güncellendi</string>
 </resources>

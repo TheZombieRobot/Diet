@@ -63,3 +63,9 @@ If Hong Kong is a target market, add a `values-zh-rHK` folder rather than changi
 2. **信號彈 for flare** (medium). It has a distress-signal sense; see zh-CN.
 3. **上線中 vs 分享位置中 for "live"** (medium-high).
 4. **Battery settings** (main_battery_text: 不要最佳化 / 不受限制) (high). These match Android Traditional Chinese.
+
+## UI review
+
+| Key | Old | New | Why |
+|---|---|---|---|
+| find_colour_legend | 亮粉紅代表還很遠。越靠近，箭頭越亮出朋友的顏色。 | 亮粉紅表示還遠。越近，箭頭越亮出朋友的顏色。 | "色。" wrapped alone |

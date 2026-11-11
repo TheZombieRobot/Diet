@@ -18,7 +18,7 @@
     <string name="find_ok">OK</string>
     <string name="find_scan_again">Quét lần nữa</string>
     <string name="find_ask_them">Nhắn họ</string>
-    <string name="find_last_seen_on_map">Thấy lần cuối trên bản đồ</string>
+    <string name="find_last_seen_on_map">Vị trí cuối</string>
     <string name="find_light_me_up">Nháy màn hình</string>
     <string name="find_spin_scan">Xoay để quét</string>
     <string name="find_asked_light_up">Đã nhờ: máy họ sẽ hỏi có muốn nháy màn hình không</string>
@@ -169,4 +169,8 @@
     <string name="find_spoken_feet">%1$s feet</string>
     <string name="find_spoken_miles">%1$s dặm</string>
     <string name="find_spoken_under_3_feet">dưới 3 feet</string>
+    <string name="find_map_status_looking">Đang tìm bạn bè…</string>
+    <string name="find_map_status_no_mates">Thêm bạn hoặc tạo nhóm để thấy họ ở đây</string>
+    <string name="find_map_status_offline">Không có mạng: hiện vị trí gần nhất</string>
+    <string name="find_map_status_updated">Vừa cập nhật</string>
 </resources>
