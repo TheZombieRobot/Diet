@@ -45,6 +45,7 @@ import nz.waveformlabs.moshpoint.ui.Mosh
 import androidx.compose.animation.togetherWith
 import nz.waveformlabs.moshpoint.ui.FriendsScreen
 import nz.waveformlabs.moshpoint.ui.MyQrDialog
+import nz.waveformlabs.moshpoint.venue.Floors
 import nz.waveformlabs.moshpoint.venue.VenueLookup
 import nz.waveformlabs.moshpoint.venue.VenueMaps
 import com.journeyapps.barcodescanner.ScanContract
@@ -249,14 +250,40 @@ class MainActivity : ComponentActivity() {
     }
     private val mapFeed by lazy { nz.waveformlabs.moshpoint.locate.MapFeed(this, lifecycleScope) }
 
+    /** Set while the map is open at the gig: the venue it opened on. Null = the ordinary map. */
+    private var mapVenue by mutableStateOf<nz.waveformlabs.moshpoint.ui.VenueView?>(null)
+    /** The finder engine is running just for the map (UWB places mates exactly). */
+    private var mapEngine = false
+
     private fun openMap() {
+        // At the gig (gig day, and this phone at the venue) the map opens zoomed into the venue.
+        val here = lastKnownLocation()
+        val venue = VenueMaps.venue(this)
+        mapVenue = if (venue != null && VenueMaps.atGig(this, here)) {
+            nz.waveformlabs.moshpoint.ui.VenueView(venue, here?.let { nz.waveformlabs.moshpoint.core.LatLon(it.latitude, it.longitude) })
+        } else null
         showMap = true
         mapFeed.start()
+        // UWB only measures while someone is looking, so at the gig the map looks for the whole
+        // crew (unless the finder is already looking for someone).
+        if (mapVenue != null && ::engine.isInitialized && !finding) {
+            val ids = FriendsRepository.friends.filter { it.gigGroupOnly || it.key in GroupSync.members }.map { it.id }.toSet()
+            if (ids.isNotEmpty()) {
+                pendingStop?.cancel()
+                engine.track(ids)
+                engine.start()
+                mapEngine = true
+            }
+        }
     }
 
     private fun closeMap() {
         showMap = false
         mapFeed.stop()
+        if (mapEngine) {
+            mapEngine = false
+            if (!finding) stopEngineSoon()
+        }
     }
 
     /** Message asking mates to open the app and go live. */
@@ -672,6 +699,7 @@ class MainActivity : ComponentActivity() {
                                 stopEngineSoon()
                             },
                             warning = setupIssues.firstOrNull { it.text != batteryIssue },
+                            floors = Floors.tags,
                             debug = if (DebugStatus.enabled) {
                                 { mod ->
                                     val rows by engine.debugRows.collectAsState()
@@ -1118,6 +1146,8 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                         val myLoc = mapFeed.me.value
+                        val mapUwb by engine.uwbSpots.collectAsState()
+                        val mapArrows by engine.arrows.collectAsState()
                         nz.waveformlabs.moshpoint.ui.MapScreen(
                             people = FriendsRepository.friends.filterNot { FriendsRepository.isSimulated(it.id) },
                             seen = LocationBook.seen,
@@ -1161,12 +1191,19 @@ class MainActivity : ComponentActivity() {
                                 nz.waveformlabs.moshpoint.ui.MapMoment(m.key, Txt.s(R.string.main_moment_label, if (m.mine) Txt.s(R.string.main_you) else m.from, nz.waveformlabs.moshpoint.ui.ago(now / 1000 - m.timeSec)), lat, lon, m.image)
                             },
                             trails = LocationBook.trails,
-                            // The venue map saved on the phone, when the live one can't be had.
+                            // The venue map saved on the phone: at the gig, or when there's no internet.
                             savedStyle = { look ->
                                 VenueMaps.savedChanges.intValue // look again when a saved map appears or goes
-                                if (VenueMaps.online(this@MainActivity)) null
+                                if (mapVenue == null && VenueMaps.online(this@MainActivity)) null
                                 else VenueMaps.saved(this@MainActivity, look)?.let { nz.waveformlabs.moshpoint.ui.MapStyle(it.key, json = it.json) }
                             },
+                            venueView = mapVenue,
+                            floors = Floors.tags,
+                            heights = Floors.heights,
+                            uwb = mapUwb,
+                            // Only while something is looking: old readings say nothing about now.
+                            near = if (mapVenue == null && !finding) emptyMap()
+                            else mapArrows.filterIsInstance<nz.waveformlabs.moshpoint.core.ArrowState.DistanceOnly>().associate { it.friendId to it.distanceM },
                             onMomentTapped = { key -> Moments.items.firstOrNull { it.key == key }?.let(momentFlow::view) },
                             onRide = { lat, lon ->
                                 runCatching {
@@ -1307,6 +1344,7 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         super.onStop()
         setBeacon(false)
+        Floors.release(watching = true)
         mapFeed.stop()
         if (bumping) {
             bumping = false
@@ -1353,13 +1391,14 @@ class MainActivity : ComponentActivity() {
         )
         pendingGroupRelease?.cancel()
         GroupSync.setAppOpen(this, true)
+        Floors.acquire(this, watching = true) // our own pressure, for upstairs/downstairs
         if (showMap) mapFeed.start()
         if (!holdingGroup) {
             GroupSync.acquire(this)
             holdingGroup = true
         }
         pendingStop?.cancel()
-        if (finding) engine.start()
+        if (finding || mapEngine) engine.start()
     }
 
     override fun onDestroy() {

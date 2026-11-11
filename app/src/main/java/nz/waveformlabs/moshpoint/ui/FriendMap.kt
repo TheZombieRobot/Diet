@@ -55,7 +55,17 @@ data class MapPin(
     val caption: String,
     /** Old position: drawn faded. */
     val stale: Boolean,
+    /** Placed by UWB, exactly where they are around you (never merged with others). */
+    val exact: Boolean = false,
+    /** "↑ Upstairs" / "↓ Downstairs", drawn on their face; null = no tag. */
+    val floor: String? = null,
 )
+
+/**
+ * Where the camera should go. [n] goes up for each new request. With [minZoom] set (the venue
+ * view), [points] are fitted but the view is never wider than [minZoom] nor closer than [maxZoom].
+ */
+class MapFocus(val n: Int, val points: List<LatLng>, val minZoom: Double? = null, val maxZoom: Double? = null)
 
 /** Where someone has been lately, drawn as a faint line in their colour. */
 class MapTrail(val color: Int, val points: List<Pair<Double, Double>>)
@@ -99,7 +109,7 @@ class MapStyle(val key: String, val uri: String? = null, val json: String? = nul
 fun FriendMap(
     pins: List<MapPin>,
     me: LatLng?,
-    focus: Pair<Int, List<LatLng>>,
+    focus: MapFocus,
     onPinTapped: (String) -> Unit,
     modifier: Modifier = Modifier,
     places: List<MapPlace> = emptyList(),
@@ -323,13 +333,28 @@ fun FriendMap(
     }
 
     // Camera moves when asked (first open, "Everyone", "Me", or tapping someone in the list).
-    LaunchedEffect(focus.first) {
+    LaunchedEffect(focus.n) {
         var tries = 0
         while (holder[0] == null && tries++ < 50) kotlinx.coroutines.delay(100)
         val map = holder[0] ?: return@LaunchedEffect
-        val pts = focus.second
+        val pts = focus.points
+        val minZoom = focus.minZoom
         when {
             pts.isEmpty() -> Unit
+            minZoom != null -> {
+                // The venue view: fit who's there, in the part of the screen the list doesn't cover,
+                // never wider than the venue's surroundings nor closer than a room or two.
+                val maxZoom = focus.maxZoom ?: 19.0
+                val fit = if (pts.size < 2) null else runCatching {
+                    val side = (map.width * 0.12f).toInt()
+                    map.getCameraForLatLngBounds(
+                        LatLngBounds.Builder().includes(pts).build(),
+                        intArrayOf(side, (map.height * 0.16f).toInt(), side, (map.height * 0.42f).toInt()),
+                    )
+                }.getOrNull()
+                val zoom = (fit?.zoom?.takeIf { it.isFinite() } ?: maxZoom).coerceIn(minZoom, maxOf(minZoom, maxZoom))
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(fit?.target ?: pts[0], zoom), 600)
+            }
             pts.size == 1 -> map.animateCamera(CameraUpdateFactory.newLatLngZoom(pts[0], 15.0), 600)
             else -> map.animateCamera(
                 CameraUpdateFactory.newLatLngBounds(LatLngBounds.Builder().includes(pts).build(), 140),
@@ -350,16 +375,30 @@ private const val SRC_FRIENDS = "friends"
 private const val LAYER_ME = "me-dot"
 private const val LAYER_FRIENDS = "friend-pins"
 
-/** A round photo (or initial) with a coloured ring, like a Snap Map avatar. */
-private fun pinBitmap(p: MapPin): Bitmap {
+/**
+ * A round photo (or initial) with a coloured ring, like a Snap Map avatar. A mate on another
+ * floor wears a tag across the top of their face ("↑ Upstairs"); the picture is padded equally
+ * above and below so the face stays centred on their spot.
+ */
+internal fun pinBitmap(p: MapPin): Bitmap {
     val size = 112
     val ring = 9f
-    val out = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-    val c = Canvas(out)
     val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    val tag = p.floor
+    val tagText = 30f
+    val tagH = 44f
+    val pad = if (tag != null) 26 else 0 // how far the tag sticks out above the face
+    paint.textSize = tagText
+    paint.isFakeBoldText = true
+    val tagW = if (tag != null) paint.measureText(tag) + 28f else 0f
+    val w = maxOf(size, kotlin.math.ceil(tagW).toInt())
+    val out = Bitmap.createBitmap(w, size + 2 * pad, Bitmap.Config.ARGB_8888)
+    val c = Canvas(out)
+    val left = (w - size) / 2f
+    val top = pad.toFloat()
     paint.color = p.color
-    c.drawCircle(size / 2f, size / 2f, size / 2f, paint)
-    val inner = RectF(ring, ring, size - ring, size - ring)
+    c.drawCircle(left + size / 2f, top + size / 2f, size / 2f, paint)
+    val inner = RectF(left + ring, top + ring, left + size - ring, top + size - ring)
     val photo = Faces.of(p.id, p.name)?.asAndroidBitmap()
     if (photo != null) {
         val layer = c.saveLayer(inner, null)
@@ -378,8 +417,22 @@ private fun pinBitmap(p: MapPin): Bitmap {
         paint.textSize = 44f
         paint.textAlign = Paint.Align.CENTER
         paint.isFakeBoldText = true
-        val y = size / 2f - (paint.descent() + paint.ascent()) / 2
-        c.drawText(p.name.take(1).uppercase(), size / 2f, y, paint)
+        val y = top + size / 2f - (paint.descent() + paint.ascent()) / 2
+        c.drawText(p.name.take(1).uppercase(), left + size / 2f, y, paint)
+    }
+    if (tag != null) {
+        // Cyan pill with a dark edge, so it reads on any photo and any map look.
+        val pill = RectF((w - tagW) / 2f, 0f, (w + tagW) / 2f, tagH)
+        paint.color = android.graphics.Color.rgb(0x0F, 0x0B, 0x1C)
+        c.drawRoundRect(pill, tagH / 2, tagH / 2, paint)
+        pill.inset(3f, 3f)
+        paint.color = android.graphics.Color.rgb(0x22, 0xE4, 0xFF)
+        c.drawRoundRect(pill, tagH / 2, tagH / 2, paint)
+        paint.color = android.graphics.Color.rgb(0x0F, 0x0B, 0x1C)
+        paint.textSize = tagText
+        paint.textAlign = Paint.Align.CENTER
+        paint.isFakeBoldText = true
+        c.drawText(tag, w / 2f, tagH / 2 - (paint.descent() + paint.ascent()) / 2, paint)
     }
     return out
 }

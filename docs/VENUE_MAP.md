@@ -17,10 +17,10 @@ Updated after every pushed step, so the work can be picked up by anyone.
 |---|---|
 | 1. This document | done |
 | 2. Core logic + unit tests (floor maths, at-the-gig rule, placement, map plan, floor record, advert pressure) | done: `Floors.kt`, `FloorBox.kt`, `Venue.kt`, `VenueMapPlan.kt`, `Advert.kt` in `core`, 159 core tests pass |
-| 3. App: automatic offline venue map, crew card line, "Save this area" removed | written (`venue/VenueMaps.kt`, `VenueStyle.kt`, `VenueLookup.kt`, `ui/VenueUi.kt`), waiting for CI to compile it; server endpoint `/v1/venue` still to add |
-| 4. App: map opens on the venue at the gig; UWB mates placed around you | next |
-| 5. App: upstairs/downstairs tags (barometer, sharing, calibration) | not started |
-| 6. Strings in 19 languages (`strings_venue.xml`), screenshot tests in their own class | strings done; screenshot tests not started |
+| 3. App: automatic offline venue map, crew card line, "Save this area" removed | done and compiling in CI (`venue/VenueMaps.kt`, `VenueStyle.kt`, `VenueLookup.kt`, `ui/VenueUi.kt`); server endpoint `/v1/venue` done with tests |
+| 4. App: map opens on the venue at the gig; UWB mates placed around you | written (`MapScreen.kt`, `FriendMap.kt`, `LocatorEngine.uwbSpots`, `MainActivity.openMap`), waiting for CI |
+| 5. App: upstairs/downstairs tags (barometer, sharing, calibration) | written (`venue/Floors.kt`, tags in the finder and on map pins), waiting for CI |
+| 6. Strings in 19 languages (`strings_venue.xml`), screenshot tests in their own class | strings done; screenshot tests next |
 | 7. Field test section, privacy and architecture notes | not started |
 
 Branch: `claude/venue-map-offline-placement-l4e5pc`, started from `ccr-5839ed7c-1q0ztj` at

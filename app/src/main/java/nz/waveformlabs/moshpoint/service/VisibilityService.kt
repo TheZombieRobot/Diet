@@ -108,6 +108,9 @@ class VisibilityService : LifecycleService() {
         GroupSync.load(this)
         GroupSync.acquire(this) // keep introducing ourselves to the gig group while visible
         nz.waveformlabs.moshpoint.venue.VenueMaps.sync(this) // and keep the venue map download going
+        // Upstairs/downstairs: our pressure rides in the advert (phones without the sensor send none).
+        nz.waveformlabs.moshpoint.venue.Floors.onAdvertChange = { readvertise() }
+        nz.waveformlabs.moshpoint.venue.Floors.acquire(this, live = true)
         CrowdRelayRadio.startListening(this)
         CrowdRelayRadio.startBroadcasting(this, lifecycleScope)
         if (wifiRttSupported(this)) {
@@ -142,7 +145,8 @@ class VisibilityService : LifecycleService() {
         }
         // Low-power listen for friends who are looking: speeds our advert up, and on UWB
         // phones joins their UWB session.
-        listener = BleRanger(this, "BT scan (visible, listening for lookers)", { FriendsRepository.friends.toList() }) { friend, _, _, advert ->
+        listener = BleRanger(this, "BT scan (visible, listening for lookers)", { FriendsRepository.friends.toList() }) { friend, _, distanceM, advert ->
+            nz.waveformlabs.moshpoint.venue.Floors.onBluetooth(friend.id, distanceM, advert.pressure)
             if (advert.looking) onFriendLooking(friend.name)
             if (advert.askLight) onAskedToLight(friend)
             val info = advert.uwb
@@ -220,7 +224,7 @@ class VisibilityService : LifecycleService() {
         val me = mySecret
         advertisedAs = identityKey()
         val id = EphemeralId(me).currentId(System.currentTimeMillis())
-        broadcaster.update(Advert.encode(me, id, uwbInfo))
+        broadcaster.update(Advert.encode(me, id, uwbInfo, pressure = nz.waveformlabs.moshpoint.venue.Floors.advertPressure()))
     }
 
     override fun onDestroy() {
@@ -231,6 +235,8 @@ class VisibilityService : LifecycleService() {
         runCatching { unregisterReceiver(batteryReceiver) }
         wifi?.stop()
         if (rotateJob != null) {
+            nz.waveformlabs.moshpoint.venue.Floors.onAdvertChange = null
+            nz.waveformlabs.moshpoint.venue.Floors.release(live = true)
             GroupSync.release(this)
             CrowdRelayRadio.stopBroadcasting(this)
             CrowdRelayRadio.stopListening(this)

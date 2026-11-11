@@ -145,7 +145,12 @@ internal fun Searching(name: String) {
 }
 
 @Composable
-internal fun DistanceOnly(list: List<ArrowState.DistanceOnly>, friendOf: (String) -> Friend?) {
+internal fun DistanceOnly(
+    list: List<ArrowState.DistanceOnly>,
+    friendOf: (String) -> Friend?,
+    /** Who is on another floor: the best clue there is when Bluetooth says "close" and you can't see them. */
+    floors: Map<String, nz.waveformlabs.moshpoint.core.Floor> = emptyMap(),
+) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         list.forEach { d ->
             val f = friendOf(d.friendId)
@@ -166,6 +171,7 @@ internal fun DistanceOnly(list: List<ArrowState.DistanceOnly>, friendOf: (String
             } else {
                 DistanceReadout(d.distanceM)
             }
+            floors[d.friendId]?.let { FloorTag(it) }
             val (label, c, hint) = when (d.trend) {
                 Trend.WARMER -> Triple(stringResource(R.string.find_trend_warmer), Mosh.Lime, stringResource(R.string.find_trend_warmer_hint))
                 Trend.COLDER -> Triple(stringResource(R.string.find_trend_colder), Mosh.Pink, stringResource(R.string.find_trend_colder_hint))
@@ -185,7 +191,7 @@ internal fun DistanceOnly(list: List<ArrowState.DistanceOnly>, friendOf: (String
 
 /** App-side, translated twin of ArrowStyle.bandLabel (same thresholds). */
 @Composable
-private fun bandLabel(distanceM: Double?): String = when {
+internal fun bandLabel(distanceM: Double?): String = when {
     distanceM == null -> "?"
     distanceM < 3 -> stringResource(R.string.find_band_right_here)
     distanceM < 10 -> stringResource(R.string.find_band_close)
@@ -195,7 +201,7 @@ private fun bandLabel(distanceM: Double?): String = when {
 
 /** App-side, translated twin of ArrowStyle.bandHint (same thresholds). */
 @Composable
-private fun bandHint(distanceM: Double?): String = when {
+internal fun bandHint(distanceM: Double?): String = when {
     distanceM == null -> ""
     distanceM < 3 -> stringResource(R.string.find_band_hint_right_here)
     distanceM < 10 -> stringResource(R.string.find_band_hint_close)
