@@ -36,4 +36,10 @@
     <plurals name="countdown_months">
         <item quantity="other">%d개월 후</item>
     </plurals>
+    <string name="colour_pink">핑크</string>
+    <string name="colour_blue">파랑</string>
+    <string name="colour_green">초록</string>
+    <string name="colour_orange">주황</string>
+    <string name="colour_purple">보라</string>
+    <string name="colour_white">하양</string>
 </resources>

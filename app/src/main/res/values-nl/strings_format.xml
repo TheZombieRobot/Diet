@@ -42,4 +42,10 @@
         <item quantity="one">over %d maand</item>
         <item quantity="other">over %d maanden</item>
     </plurals>
+    <string name="colour_pink">roze</string>
+    <string name="colour_blue">blauw</string>
+    <string name="colour_green">groen</string>
+    <string name="colour_orange">oranje</string>
+    <string name="colour_purple">paars</string>
+    <string name="colour_white">wit</string>
 </resources>

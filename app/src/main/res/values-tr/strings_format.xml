@@ -42,4 +42,10 @@
         <item quantity="one">%d ay sonra</item>
         <item quantity="other">%d ay sonra</item>
     </plurals>
+    <string name="colour_pink">pembe</string>
+    <string name="colour_blue">mavi</string>
+    <string name="colour_green">yeşil</string>
+    <string name="colour_orange">turuncu</string>
+    <string name="colour_purple">mor</string>
+    <string name="colour_white">beyaz</string>
 </resources>

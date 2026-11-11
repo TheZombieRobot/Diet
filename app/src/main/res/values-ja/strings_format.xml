@@ -36,4 +36,10 @@
     <plurals name="countdown_months">
         <item quantity="other">%dか月後</item>
     </plurals>
+    <string name="colour_pink">ピンク</string>
+    <string name="colour_blue">ブルー</string>
+    <string name="colour_green">グリーン</string>
+    <string name="colour_orange">オレンジ</string>
+    <string name="colour_purple">パープル</string>
+    <string name="colour_white">ホワイト</string>
 </resources>

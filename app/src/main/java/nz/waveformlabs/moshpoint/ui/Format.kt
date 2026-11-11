@@ -119,3 +119,16 @@ internal fun finderDistance(m: Double?): FinderDistance? {
 /** The same as one piece of text ("4.5 m", "15 ft"), for small labels. */
 internal fun finderDistanceLabel(m: Double?): String =
     finderDistance(m)?.let { Txt.s(R.string.dist_number_unit, it.number, it.unit) } ?: "?"
+
+/** The light-me-up colour in the user's language ("BLUE", "BLAU", "青"…), upper-cased where that exists. */
+internal fun beaconColourName(c: nz.waveformlabs.moshpoint.core.BeaconColour.Colour): String {
+    val id = when (c.name) {
+        "pink" -> R.string.colour_pink
+        "blue" -> R.string.colour_blue
+        "green" -> R.string.colour_green
+        "orange" -> R.string.colour_orange
+        "purple" -> R.string.colour_purple
+        else -> R.string.colour_white
+    }
+    return Txt.s(id).uppercase(Locale.getDefault())
+}

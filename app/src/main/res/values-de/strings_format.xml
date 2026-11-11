@@ -42,4 +42,10 @@
         <item quantity="one">in %d Monat</item>
         <item quantity="other">in %d Monaten</item>
     </plurals>
+    <string name="colour_pink">pink</string>
+    <string name="colour_blue">blau</string>
+    <string name="colour_green">grün</string>
+    <string name="colour_orange">orange</string>
+    <string name="colour_purple">lila</string>
+    <string name="colour_white">weiß</string>
 </resources>

@@ -36,4 +36,10 @@
     <plurals name="countdown_months">
         <item quantity="other">%d个月后</item>
     </plurals>
+    <string name="colour_pink">粉色</string>
+    <string name="colour_blue">蓝色</string>
+    <string name="colour_green">绿色</string>
+    <string name="colour_orange">橙色</string>
+    <string name="colour_purple">紫色</string>
+    <string name="colour_white">白色</string>
 </resources>

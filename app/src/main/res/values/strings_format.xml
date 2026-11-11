@@ -48,4 +48,11 @@
         <item quantity="one">in %d month</item>
         <item quantity="other">in %d months</item>
     </plurals>
+    <!-- Light-me-up colour names ("look for flashing BLUE") -->
+    <string name="colour_pink">pink</string>
+    <string name="colour_blue">blue</string>
+    <string name="colour_green">green</string>
+    <string name="colour_orange">orange</string>
+    <string name="colour_purple">purple</string>
+    <string name="colour_white">white</string>
 </resources>

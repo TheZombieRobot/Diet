@@ -36,4 +36,10 @@
     <plurals name="countdown_months">
         <item quantity="other">อีก %d เดือน</item>
     </plurals>
+    <string name="colour_pink">ชมพู</string>
+    <string name="colour_blue">ฟ้า</string>
+    <string name="colour_green">เขียว</string>
+    <string name="colour_orange">ส้ม</string>
+    <string name="colour_purple">ม่วง</string>
+    <string name="colour_white">ขาว</string>
 </resources>

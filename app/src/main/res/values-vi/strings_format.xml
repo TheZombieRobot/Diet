@@ -36,4 +36,10 @@
     <plurals name="countdown_months">
         <item quantity="other">%d tháng nữa</item>
     </plurals>
+    <string name="colour_pink">hồng</string>
+    <string name="colour_blue">xanh dương</string>
+    <string name="colour_green">xanh lá</string>
+    <string name="colour_orange">cam</string>
+    <string name="colour_purple">tím</string>
+    <string name="colour_white">trắng</string>
 </resources>

@@ -318,7 +318,7 @@ fun FinderScreen(
             }
         }
 
-        if (beaconOn) BeaconOverlay(Color(myBeacon.argb), myBeacon.name, onStop = { onBeacon(false) })
+        if (beaconOn) BeaconOverlay(Color(myBeacon.argb), beaconColourName(myBeacon), onStop = { onBeacon(false) })
 
         AnimatedVisibility(found != null, enter = fadeIn(tween(250)), exit = fadeOut(tween(300))) {
             val id = found ?: lastFound[0]

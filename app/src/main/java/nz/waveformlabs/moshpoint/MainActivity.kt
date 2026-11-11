@@ -659,7 +659,7 @@ class MainActivity : ComponentActivity() {
                             beaconOn = beaconOn,
                             onBeacon = ::setBeacon,
                             beaconing = beaconing.mapNotNull { id ->
-                                FriendsRepository.byId(id)?.let { Txt.s(R.string.main_beacon_colour_name, nz.waveformlabs.moshpoint.core.BeaconColour.forSecret(it.secret).name.uppercase(), it.name) }
+                                FriendsRepository.byId(id)?.let { Txt.s(R.string.main_beacon_colour_name, nz.waveformlabs.moshpoint.ui.beaconColourName(nz.waveformlabs.moshpoint.core.BeaconColour.forSecret(it.secret)), it.name) }
                             },
                             myBeacon = nz.waveformlabs.moshpoint.core.BeaconColour.forSecret(Identity.current(this@MainActivity)),
                             onBack = {

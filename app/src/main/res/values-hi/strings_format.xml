@@ -42,4 +42,10 @@
         <item quantity="one">%d महीने में</item>
         <item quantity="other">%d महीनों में</item>
     </plurals>
+    <string name="colour_pink">गुलाबी</string>
+    <string name="colour_blue">नीला</string>
+    <string name="colour_green">हरा</string>
+    <string name="colour_orange">नारंगी</string>
+    <string name="colour_purple">बैंगनी</string>
+    <string name="colour_white">सफ़ेद</string>
 </resources>

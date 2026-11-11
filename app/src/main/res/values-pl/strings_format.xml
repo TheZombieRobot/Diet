@@ -54,4 +54,10 @@
         <item quantity="many">za %d miesięcy</item>
         <item quantity="other">za %d miesiąca</item>
     </plurals>
+    <string name="colour_pink">różowy</string>
+    <string name="colour_blue">niebieski</string>
+    <string name="colour_green">zielony</string>
+    <string name="colour_orange">pomarańczowy</string>
+    <string name="colour_purple">fioletowy</string>
+    <string name="colour_white">biały</string>
 </resources>

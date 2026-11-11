@@ -36,4 +36,10 @@
     <plurals name="countdown_months">
         <item quantity="other">%d bulan lagi</item>
     </plurals>
+    <string name="colour_pink">pink</string>
+    <string name="colour_blue">biru</string>
+    <string name="colour_green">hijau</string>
+    <string name="colour_orange">oranye</string>
+    <string name="colour_purple">ungu</string>
+    <string name="colour_white">putih</string>
 </resources>

@@ -48,4 +48,10 @@
         <item quantity="many">tra %d mesi</item>
         <item quantity="other">tra %d mesi</item>
     </plurals>
+    <string name="colour_pink">rosa</string>
+    <string name="colour_blue">blu</string>
+    <string name="colour_green">verde</string>
+    <string name="colour_orange">arancione</string>
+    <string name="colour_purple">viola</string>
+    <string name="colour_white">bianco</string>
 </resources>

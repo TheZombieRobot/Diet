@@ -48,4 +48,10 @@
         <item quantity="many">dans %d mois</item>
         <item quantity="other">dans %d mois</item>
     </plurals>
+    <string name="colour_pink">rose</string>
+    <string name="colour_blue">bleu</string>
+    <string name="colour_green">vert</string>
+    <string name="colour_orange">orange</string>
+    <string name="colour_purple">violet</string>
+    <string name="colour_white">blanc</string>
 </resources>

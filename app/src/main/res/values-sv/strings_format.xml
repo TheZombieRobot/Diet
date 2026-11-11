@@ -42,4 +42,10 @@
         <item quantity="one">om %d månad</item>
         <item quantity="other">om %d månader</item>
     </plurals>
+    <string name="colour_pink">rosa</string>
+    <string name="colour_blue">blått</string>
+    <string name="colour_green">grönt</string>
+    <string name="colour_orange">orange</string>
+    <string name="colour_purple">lila</string>
+    <string name="colour_white">vitt</string>
 </resources>

@@ -48,4 +48,10 @@
         <item quantity="many">en %d meses</item>
         <item quantity="other">en %d meses</item>
     </plurals>
+    <string name="colour_pink">rosa</string>
+    <string name="colour_blue">azul</string>
+    <string name="colour_green">verde</string>
+    <string name="colour_orange">naranja</string>
+    <string name="colour_purple">morado</string>
+    <string name="colour_white">blanco</string>
 </resources>

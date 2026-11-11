@@ -66,4 +66,10 @@
         <item quantity="many">بعد %d شهرًا</item>
         <item quantity="other">بعد %d شهر</item>
     </plurals>
+    <string name="colour_pink">وردي</string>
+    <string name="colour_blue">أزرق</string>
+    <string name="colour_green">أخضر</string>
+    <string name="colour_orange">برتقالي</string>
+    <string name="colour_purple">بنفسجي</string>
+    <string name="colour_white">أبيض</string>
 </resources>

@@ -48,4 +48,10 @@
         <item quantity="many">em %d meses</item>
         <item quantity="other">em %d meses</item>
     </plurals>
+    <string name="colour_pink">rosa</string>
+    <string name="colour_blue">azul</string>
+    <string name="colour_green">verde</string>
+    <string name="colour_orange">laranja</string>
+    <string name="colour_purple">roxo</string>
+    <string name="colour_white">branco</string>
 </resources>
