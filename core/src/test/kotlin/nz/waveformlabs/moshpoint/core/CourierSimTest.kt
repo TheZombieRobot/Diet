@@ -658,6 +658,26 @@ class CourierSimTest {
      * order of events: every phone ends up with every message, shown once, and the relay
      * holds one copy of each.
      */
+    @Test fun phonesOnHoldTogetherStayOnHoldAndOneOnItsOwnLetsGo() {
+        val w = World()
+        val a = Phone("A", w, group)
+        val b = Phone("B", w, group)
+        val c = Phone("C", w, group)
+        val d = Phone("D", w, group)
+        w.linkAll(a, b, c, d)
+        // A removes someone with no signal anywhere: only A has the new key.
+        a.moveTo(GigGroup(ByteArray(32) { (it + 90).toByte() }, group.name, 0L))
+        w.run(120)
+        assertTrue(b.paused && c.paused && d.paused)
+        // A walks off. B and C stay together; D wanders off alone.
+        for (p in listOf(b, c, d)) w.cut(a, p)
+        w.cut(d, b)
+        w.cut(d, c)
+        w.run(45 * 60)
+        assertTrue(b.paused && c.paused, "in range of each other, they pass the notice back and forth")
+        assertFalse(d.paused, "half an hour without hearing it, D stops waiting")
+    }
+
     @Test fun aRandomNightEndsWithEveryMessageEverywhereOnce() {
         for (seed in 1L..6L) {
             val w = World(seed)
