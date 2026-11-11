@@ -15,3 +15,10 @@ services:
     envVars:
       - key: FILES_DIR
         value: /tmp/moshpoint-files
+      # Gig search sources (fill in on Render; each is optional, never put keys in the app).
+      - key: TICKETMASTER_KEY
+        sync: false
+      - key: BANDSINTOWN_APP_ID
+        sync: false
+      - key: SEATGEEK_CLIENT_ID
+        sync: false

@@ -21,6 +21,7 @@ dependencies {
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
     implementation(libs.logback)
+    implementation(libs.orgjson)
     testImplementation(libs.ktor.server.test.host)
     testImplementation(kotlin("test"))
 }

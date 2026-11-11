@@ -42,6 +42,7 @@ fun Application.moshpoint(
     files: FileStore = FileStore(),
     // Crew chat: kept for days, so a crew can hype up weeks before the gig.
     held: MailboxStore = MailboxStore(ttlMs = 72 * 3600 * 1000L, maxPerId = 200, maxIds = 200_000),
+    gigs: GigSearch = GigSearch(),
 ) {
     launch {
         while (true) {
@@ -161,6 +162,18 @@ fun Application.moshpoint(
                 }
             }
             call.respondBytes(out.toByteArray(), ContentType.Application.OctetStream)
+        }
+
+        // "Find a gig" in any country (see GigSearch). Keys stay on the server.
+        get("/v1/gigs/search") {
+            if (!getLimit.allow(call.client())) return@get call.respondText("slow down", status = HttpStatusCode.TooManyRequests)
+            val q = call.request.queryParameters["q"].orEmpty()
+            val country = call.request.queryParameters["country"]
+            call.respondText(gigs.toJson(gigs.search(q, country)), ContentType.Application.Json)
+        }
+
+        get("/v1/gigs/sources") {
+            call.respondText(org.json.JSONArray(gigs.sources).toString(), ContentType.Application.Json)
         }
 
         post("/v1/lookup") {

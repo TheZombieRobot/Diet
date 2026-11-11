@@ -130,4 +130,25 @@ class MailboxStoreTest {
         assertEquals(2_900, ((body[1].toInt() and 0xFF) shl 8) or (body[2].toInt() and 0xFF))
         assertContentEquals(chat, body.copyOfRange(3, 2_903))
     }
+
+    @Test fun gigSearchMergesSourcesAndKeepsKeysServerSide() {
+        val tm = """{"_embedded":{"events":[{"name":"Iron Maiden","dates":{"start":{"dateTime":"2099-03-01T08:00:00Z","localDate":"2099-03-01","localTime":"20:00:00"}},
+            "_embedded":{"venues":[{"name":"Spark Arena","city":{"name":"Auckland"},"country":{"countryCode":"NZ"},"location":{"latitude":"-36.85","longitude":"174.77"}}]}}]}}"""
+        val bit = """[{"datetime":"2099-03-01T20:00:00","title":"","artist":{"name":"Iron Maiden"},"venue":{"name":"Spark Arena","city":"Auckland","country":"New Zealand","latitude":"-36.85","longitude":"174.77"}},
+            {"datetime":"2099-05-10T20:00:00","title":"","artist":{"name":"Iron Maiden"},"venue":{"name":"O2","city":"London","country":"United Kingdom"}}]"""
+        val urls = mutableListOf<String>()
+        val s = GigSearch(
+            env = { mapOf("TICKETMASTER_KEY" to "tm-secret", "BANDSINTOWN_APP_ID" to "bit-id")[it] },
+            fetch = { url -> urls += url; if (url.contains("ticketmaster")) tm else bit },
+            clock = { 1_700_000_000_000L },
+        )
+        val nz = s.search("Iron Maiden", "nz")
+        assertEquals(1, nz.size) // the NZ show from both sources counts once; London is another country
+        assertEquals("Spark Arena", nz[0].venue)
+        assertTrue(urls.any { it.contains("countryCode=NZ") })
+        val anywhere = s.search("iron maiden", null)
+        assertTrue(anywhere.size >= 2)
+        assertTrue(s.toJson(anywhere).let { !it.contains("tm-secret") && !it.contains("bit-id") })
+        assertEquals(listOf("ticketmaster", "bandsintown"), s.sources)
+    }
 }
