@@ -509,7 +509,9 @@ object VenueMaps {
                         r.setObserver(null)
                         r.setDownloadState(OfflineRegion.STATE_INACTIVE)
                     }
-                    DebugStatus.log("Venue map saved: ${a.key}, ${status.completedTileCount} tiles, ${status.completedResourceSize / 1024} KB")
+                    val size = "${status.completedTileCount} tiles, ${status.completedResourceSize / 1024} KB"
+                    DebugStatus.log("Venue map saved: ${a.key}, $size")
+                    DebugStatus.set("Venue map", "saved ${a.key}: $size, map data ${a.version}")
                     savedChanges.intValue++
                     save(force = true)
                 } else {
@@ -529,6 +531,7 @@ object VenueMaps {
         })
         r.setDownloadState(OfflineRegion.STATE_ACTIVE)
         DebugStatus.log("Venue map: saving ${a.key} (map data ${a.version})")
+        DebugStatus.set("Venue map", "saving ${a.key}")
     }
 
     // ---- The crew card line ----

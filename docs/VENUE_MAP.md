@@ -11,20 +11,80 @@ unit-tested here, the app is compiled and screenshot-tested by CI, and the rest 
 
 ## Status and next steps
 
-Updated after every pushed step, so the work can be picked up by anyone.
+**Paused on 11 November 2026, part-way through step 6.** Everything written is committed and
+pushed. This section is the handover: what is done, what is only written, and what to do next.
 
 | Step | State |
 |---|---|
 | 1. This document | done |
-| 2. Core logic + unit tests (floor maths, at-the-gig rule, placement, map plan, floor record, advert pressure) | done: `Floors.kt`, `FloorBox.kt`, `Venue.kt`, `VenueMapPlan.kt`, `Advert.kt` in `core`, 159 core tests pass |
-| 3. App: automatic offline venue map, crew card line, "Save this area" removed | done and compiling in CI (`venue/VenueMaps.kt`, `VenueStyle.kt`, `VenueLookup.kt`, `ui/VenueUi.kt`); server endpoint `/v1/venue` done with tests |
-| 4. App: map opens on the venue at the gig; UWB mates placed around you | written (`MapScreen.kt`, `FriendMap.kt`, `LocatorEngine.uwbSpots`, `MainActivity.openMap`), waiting for CI |
-| 5. App: upstairs/downstairs tags (barometer, sharing, calibration) | written (`venue/Floors.kt`, tags in the finder and on map pins), waiting for CI |
-| 6. Strings in 19 languages (`strings_venue.xml`), screenshot tests in their own class | strings done; screenshot tests next |
-| 7. Field test section, privacy and architecture notes | not started |
+| 2. Core logic + unit tests (floor maths, at-the-gig rule, placement, map plan, floor record, advert pressure) | **done, green in CI.** `Floors.kt`, `FloorBox.kt`, `Venue.kt`, `VenueMapPlan.kt`, `Advert.kt` in `core`; 159 core tests |
+| 3. App: automatic offline venue map, crew card line, "Save this area" removed; server `/v1/venue` | **done, builds in CI** (debug and release). `venue/VenueMaps.kt`, `VenueStyle.kt`, `VenueLookup.kt`, `ui/VenueUi.kt`; server `VenueLookup.kt` with 8 tests |
+| 4. App: map opens on the venue at the gig; UWB mates placed around you | **done, builds in CI** (run 192, commit `74d00fd`). `MapScreen.kt`, `FriendMap.kt`, `LocatorEngine.uwbSpots`, `MainActivity.openMap` |
+| 5. App: upstairs/downstairs tags (barometer, sharing, calibration) | **done, builds in CI** (same run). `venue/Floors.kt`; tags in the finder and on map pins |
+| 6. Strings in 19 languages; app tests in their own classes | strings **done** (CI's translation check passes). Tests **written, not yet seen passing**: see below |
+| 7. Field test section; privacy, architecture and roadmap notes | field test **drafted** (`FIELD_TEST_PLAN.md` section 5); the other notes **not started** |
 
-Branch: `claude/venue-map-offline-placement-l4e5pc`, started from `ccr-5839ed7c-1q0ztj` at
-`88d7877`. To continue: read "What gets built" below, then build the next step in the table.
+Nothing has run on a real phone. The app can't be built where this was written (no Android
+SDK), so the app code has only ever been compiled and tested by CI.
+
+### What was in progress when it paused
+
+Commit `7c86b6a` added two test files under `app/src/test/java/nz/waveformlabs/moshpoint/venue/`:
+
+- `VenueLogicTest.kt` (6 tests: style rewriting, the pack style, font addresses, reading
+  Nominatim's answer). These pass in a scratch JVM build with the real `org.json`, the same
+  library version `app/build.gradle.kts` now adds for tests. Not yet seen passing in CI.
+- `VenueSnapshotTest.kt` (screenshots). **Never compiled or run.** In every language:
+  `venueCard` (home with the offline-map line), `venueLines` (the line's four states),
+  `venueFinder` (crew radar and strip with floor tags). English only
+  (`VenueMoreSnapshotTest`): `venueUpstairs`, `venueClose`, `venuePins`, `venueMapList`. The
+  per-language classes are named `Lang_<xx>` in their own package, because CI's file naming
+  looks for `_Lang_<xx>_`; the pictures land in `docs/screenshots` as `venueCard.png`,
+  `de-venueCard.png` and so on.
+
+CI run 195 was building that commit when work stopped.
+
+### Next steps, in order
+
+1. **Read the result of the newest CI run on this branch.** The screenshot step is allowed to
+   fail without turning the run red (`continue-on-error`), so open the log of "Screenshots of
+   every screen" and look for `=== failing screenshot tests ===`, or for `e: ` lines if the
+   test file doesn't compile. Fix what it says. Likely trouble: a wrong parameter name in the
+   `FriendsScreen` / `MapScreen` / `FinderScreen` calls in `VenueSnapshotTest.kt`.
+2. **Look at the pictures** CI commits to `docs/screenshots` (`venue*.png`, and the `de-`,
+   `ar-`, `ja-`, `en-rUS-` copies). Things to check, none seen yet: the tag on a face in the
+   finder's strip (it sits 6 dp over the bottom of the face and may crowd the name under it,
+   and "↓ Downstairs" is wider than the face); the tag on the big arrow and on radar bubbles;
+   the pin faces in `venuePins`; long card lines in German, Polish and Thai.
+3. **Finish the field test section** (`FIELD_TEST_PLAN.md`, section 5). Its button names
+   were checked against the strings; the timings in 5e (half a minute for a tag, a minute
+   over the relay) are reasoned from the code, not measured.
+4. **Notes not started:** a venue-map paragraph in `ARCHITECTURE.md`; pressure, venue lookup
+   and map downloads in `PRIVACY.md`; mark the free half of step 2 in `ROADMAP.md`.
+5. **One design point found late, undecided.** The pressure in the Bluetooth advert is only
+   refreshed when it has moved 0.06 hPa (half a metre) and at most every 15 seconds, so the
+   value a mate hears can be up to half a metre stale. That puts up to 0.5 m of error into a
+   calibration, where the maths assumes 0.4 m (UWB). Options: refresh at 0.03 hPa, or refresh
+   whenever a mate is within calibrating distance. Refreshing restarts Bluetooth advertising
+   (`BleBroadcaster.update` stops and starts it), so don't do it much more often than now
+   without a phone to test on.
+6. Optional: a floors summary in `tools/analyze_recording.py` (rows `baro`, `baro_mate`,
+   `baro_cal` are already in the recordings; the tool ignores them today).
+7. **Done means** (from the task): CI green; the unit tests above; the screenshot tests; the
+   field test. Then report: what was built, that nothing has run on a phone, the 18 MB
+   finding and the pack built instead, and that venue lookups without our own relay server
+   go straight to Nominatim and stop for good if it ever turns the app away.
+
+### How to work on it
+
+- Branch `claude/venue-map-offline-placement-l4e5pc`, started from `ccr-5839ed7c-1q0ztj` at
+  `88d7877`. Push only there. No pull request unless the owner asks.
+- CI (`.github/workflows/android.yml`) runs on every push, takes about 12 minutes, and commits
+  changed screenshots back to the branch, so `git pull --rebase` before each push.
+- `core` and `server` tests run anywhere with Gradle and a JDK. The `app` module needs the
+  Android SDK.
+- Another session is building Bluetooth messaging: new strings only in `strings_venue.xml`,
+  and keep out of `GroupSync.kt`, `CrowdRelay.kt` and `LocationBox.kt` (untouched so far).
 
 ## What you see
 

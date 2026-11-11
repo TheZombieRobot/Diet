@@ -91,11 +91,123 @@ At a gig, a busy bar, a crowded street, a sports game. Anywhere packed with peop
 - [ ] Try spin-to-scan in the crowd (bodies all around change the signal a lot).
 - [ ] If mobile data drops: does `Crowd relay` in Technology status show packets heard? (It only helps once lots of people use the app, but it shouldn't break anything.)
 
-## 5. What to send back
+## 5. Venue map: the saved map, the venue view, upstairs/downstairs
+
+Nothing in this section has run on a real phone yet (it was built where no phone or map could
+be run), so expect the first pass to find things. What was decided and why:
+[VENUE_MAP.md](VENUE_MAP.md).
+
+You need: two phones, **A** and **B**. For 5d both need UWB. For 5e both need a pressure sensor
+(most Pixels and Galaxy S phones have one): Debug → Technology status → `Floors` says
+`this phone has no pressure sensor` if it hasn't. And a building with stairs.
+
+### 5a. The map saves itself (at home, 10 min)
+- [ ] On mobile data (not Wi-Fi), B: **+** → **Plan a gig** → tap a real gig in the search.
+  (No search box in your build? Type it in as in the last step of 5a.) The crew card should say
+  "Saving the venue map… 40%" and then "Venue map saved for offline ✓", usually in well under
+  a minute.
+- [ ] **Write down the size:** Debug → Technology status → `Venue map` says
+  `saved <position>: N tiles, X KB`. Expected: 15–35 tiles, 2,000–4,500 KB. This number is
+  the one estimate in the design that could only be guessed; tell me what you get for two or
+  three different venues (a city-centre one will be the biggest).
+- [ ] A: join with the invite. A's crew card should show the same line by itself.
+- [ ] Interrupt it: start a crew for a gig in another city, and switch on airplane mode while
+  the line still shows a percentage. It should change to "Venue map: waiting for a connection".
+  Airplane mode off: it should carry on within a minute and finish.
+- [ ] **The proof.** Airplane mode on. Open **Map** and drag to the venue: streets, street
+  names and the venue's building should all be there, in each look (tap **Bright** / **Night** /
+  **Dark**). Zoom right in and out to the whole city. Screenshot anything blank, any missing
+  names, any look that doesn't load.
+- [ ] Still in airplane mode, drag a few kilometres away from the venue: the map should run
+  out (blank or blurry). That's right: only 2 km each way is saved.
+- [ ] Airplane mode off: the map goes back to the normal online one (names in bold and italic
+  again is the giveaway).
+- [ ] A gig typed in by hand: **Plan a gig** → **Who's playing**, and under **Where** a real
+  venue with its city (e.g. "Spark Arena, Auckland") → **Start the crew**. The button should say
+  "Finding the venue…" for a moment, then the card should save a map as above. Check on the map
+  that it found the right place. Then try a made-up venue ("Dave's shed"): the card should say
+  "Venue map saves when you get there".
+- [ ] Storage: Android Settings → Apps → Moshpoint → Storage, before and after saving three
+  venues. Expect about 5 MB for the first and 2–4 MB for each one after.
+
+### 5b. A typed gig, "when you get there" (10 min, can be done anywhere)
+- [ ] B: a quick crew for tonight with no venue (**+** → **Start a crew + show QR**), or the
+  made-up one from 5a on its day, outdoors with a GPS fix. Within a minute or two the card
+  should go from "Venue map saves when you get there" to saving, then saved: the 2 km around
+  where you're standing.
+- [ ] Mark it in a recording if it saves while you're in a moving car or bus (it shouldn't).
+
+### 5c. The map opens on the venue (at the venue, gig day)
+The rule: it's the gig's day (from 3 hours before the start), and **your** phone is within
+400 m of the venue.
+- [ ] At home on gig day, or at the venue on another day: **Map** opens as it always has
+  (everyone fitted on screen).
+- [ ] At the venue, within 3 hours of the start: **Map** opens zoomed into the venue, about one
+  block across, with you on it. A mate who is still at home is off screen; **All** brings
+  everyone back.
+- [ ] Walk 600 m away, close the map and open it again: back to the ordinary view.
+- [ ] Leave the map open and walk around: it must never move by itself.
+- [ ] Mark anything wrong: `map opened on the venue at home`, `venue view too wide`,
+  `venue view centred on the wrong building`.
+
+### 5d. Mates placed by UWB (both phones UWB; open space first, then indoors)
+- [ ] At the venue (or wherever 5c works), A goes live. B opens **Map** and holds the phone up,
+  pointing at A from 5–15 m. Within a few seconds A's face should jump from their GPS spot to
+  a spot measured from yours. The list under the map shows the measured distance (`6 m`).
+- [ ] **Which way:** is A drawn on the correct side of you? Stand so A is due north of you
+  (use the street grid): A's face should be straight up the map from your dot. Mark it:
+  `UWB map: A really north, drawn east`. If it's mirrored left-to-right, say so; that is one
+  sign to flip.
+- [ ] Turn your back on A: the face goes back to the GPS spot after about 10 seconds (UWB only
+  sees in front of the phone). Correct, but tell me if it feels wrong in use.
+- [ ] Walk around A in a circle, phone pointed at them: their face should stay put on the
+  map while your dot moves round it. If instead A's face swings about, the compass is the
+  problem: note where you were (near a stage, steel barriers, a car).
+- [ ] With A on Bluetooth only (another phone with no UWB): no face is drawn for them at the
+  venue, and the list says how close ("Close · …"). That's deliberate: we don't know which way.
+
+### 5e. Upstairs / downstairs (both phones with a pressure sensor, a building with stairs)
+B records throughout (**● record**), and you **mark…** every time someone changes floor:
+`A upstairs now`, `both ground floor`. The recording keeps both phones' pressure, which is
+what the thresholds get tuned from.
+- [ ] Both live, stand together for 30 seconds, phones within a metre. Debug → the log should
+  say `Floors: calibrated with A by UWB` (or `by Bluetooth`), and Technology status → `Floors`
+  shows something like `1013.20 hPa, A +0.1 m ±0.4`.
+- [ ] A goes up one full storey. Within about half a minute B should show **↑ Upstairs** on
+  A's face: in the finder (on the arrow, the crew radar and the strip) and on the map. `Floors`
+  should read about `+3 m`. A's own phone should show B as **↓ Downstairs**. Mark how long it took.
+- [ ] A comes back down: the tag goes within about half a minute.
+- [ ] Half a flight, a mezzanine, a few steps up to a stage or a tiered stand: there should
+  be **no** tag. Mark each one with the real height if you can guess it.
+- [ ] A upstairs directly above B, under 3 m apart in a straight line: the finder must **not**
+  show "You found them".
+- [ ] A lift or a long staircase, 3 or more floors: still one tag (we only say up or down).
+- [ ] **Drift, the important one.** After calibrating, stay on the same floor as each other
+  but apart (different rooms) for as long as you can: an hour or more, ideally a whole gig.
+  The `Floors` row should stay near `0 m` the whole time. Mark the reading every 20–30 minutes
+  (`same floor, Floors says +0.6`). A false tag while you're on the same floor is the failure
+  that matters most: mark the time.
+- [ ] Doors and weather: mark when a big door opens next to one phone, when the air
+  conditioning kicks in, when one of you steps outside.
+- [ ] A phone with no pressure sensor in the crew: nobody sees a tag for it and it shows
+  none, and nothing else changes.
+- [ ] Out of Bluetooth range (only with a build that has our own relay server): the tag
+  should still appear, later (up to a minute).
+
+### 5f. Afterwards
+- [ ] Four days after the gig, open the app: Android Settings → Apps → Moshpoint → Storage
+  should have gone back down (the saved map is deleted 3 days after the gig ends).
+- [ ] If you ever used the old **Save this area** button: a week after installing this
+  build its 18 MB downloads are removed too.
+
+## 6. What to send back
 
 - The CSV recordings (debug panel → **share last**; older ones are in the share list too).
 - Screenshots of anything odd, especially the debug panel at that moment.
 - Which phones (make/model) were A and B.
+- For the venue map (section 5): the `Venue map` size line for each venue, screenshots of the
+  map in airplane mode, and a recording that covers a floor change and a long stretch on the
+  same floor.
 - Quick notes: what felt good, what felt wrong, what was confusing.
 
 ## Known limits going in
@@ -104,3 +216,7 @@ At a gig, a busy bar, a crowded street, a sports game. Anywhere packed with peop
 - Friend photos are set by you on your phone; they don't sync between phones yet.
 - The crowd relay needs lots of Moshpoint users nearby to help at all.
 - The Bluetooth IDs and all the distance constants are first guesses until this test.
+- The venue map's numbers are first guesses too: the size of a saved map, what height counts
+  as a floor (2.5 m), how fast a calibration goes stale (0.3 m an hour), and how close counts
+  as "together" for calibrating (2 m by UWB, 1.5 m by Bluetooth).
+- Upstairs/downstairs between phones out of Bluetooth range needs our own relay server.
