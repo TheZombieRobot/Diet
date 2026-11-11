@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Spanish: home screen (crew card, friends list, bottom bar, add sheet, pings). -->
 <resources>
-    <string name="home_go_live">Activar en vivo</string>
-    <string name="home_live_ghost">En vivo · fantasma</string>
-    <string name="home_live">En vivo</string>
+    <string name="home_go_live">Activar en directo</string>
+    <string name="home_live_ghost">En directo · fantasma</string>
+    <string name="home_live">En directo</string>
 
     <string name="home_tile_not_sharing">aún no comparte</string>
     <string name="home_tile_phone_died">sin batería</string>
-    <string name="home_tile_live">en vivo</string>
+    <string name="home_tile_live">en directo</string>
     <string name="home_tile_with_battery">%1$s · %2$d%%</string>
 
     <string name="home_ping_on_my_way">Voy para allá</string>
@@ -113,7 +113,7 @@
     <string name="home_add_friend">Añadir amigo</string>
     <string name="home_tonight_only">Solo esta noche</string>
 
-    <string name="home_hidden_hint">Tu grupo no te ve. Toca Activar en vivo cuando quieras que te encuentren.</string>
+    <string name="home_hidden_hint">Tu grupo no te ve. Toca Activar en directo cuando quieras que te encuentren.</string>
     <string name="home_allow_permission">Deja que Moshpoint encuentre a tus amigos (%1$s)</string>
     <string name="home_allow">Permitir</string>
     <string name="home_one_thing_first">ANTES, UNA COSA</string>

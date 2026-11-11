@@ -64,7 +64,7 @@
     <string name="main_eyebrow_up_next_countdown">PRÓXIMOS · %1$s</string>
     <string name="main_eyebrow_coming_up">TU GRUPO · PRÓXIMAMENTE</string>
     <string name="main_eyebrow_tonight">TU GRUPO PARA ESTA NOCHE</string>
-    <string name="main_qr_hint_planned">Todos lo escanean una vez. Chateen y vengan con ganas; la búsqueda se activa el día del concierto.</string>
+    <string name="main_qr_hint_planned">Todos lo escanean una vez. Chateen y vayan preparándose; la búsqueda se activa el día del concierto.</string>
     <string name="main_qr_hint_tonight">Todos lo escanean una vez. Y podrán encontrarse toda la noche.</string>
     <string name="main_scan_to_add_me">Escanea para agregarme</string>
     <string name="main_scan_to_add_name">Escanea para agregar a %1$s</string>
@@ -98,7 +98,7 @@
 
     <string name="main_join_name">¿Unirte a %1$s?</string>
     <string name="main_follow_name">¿Seguir a %1$s?</string>
-    <string name="main_bumped_text">¡Chocados! Únete y podrán encontrarse esta noche.</string>
+    <string name="main_bumped_text">¡Conectados! Únete y podrán encontrarse esta noche.</string>
     <string name="main_join">Unirme</string>
     <string name="main_no">No</string>
     <string name="main_clip_follow_text">Copiaste un enlace para seguir. Verás sus fotos y que están bien; ellos verán que los sigues.</string>

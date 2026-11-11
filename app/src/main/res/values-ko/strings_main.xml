@@ -2,9 +2,9 @@
 <!-- Korean: main screen, invites, sharing and phone setup checks. -->
 <resources>
     <string name="main_get_the_app">아직 Moshpoint 없어요? 여기서 설치하세요(Android): %1$s\n그다음 이 메시지 전체를 복사하고, Moshpoint를 열어 ‘초대 붙여넣기’를 탭하세요.\n\n</string>
-    <string name="main_nudge_text">%1$s, Moshpoint 열고 ‘라이브 켜기’ 눌러 줘(위치랑 데이터 켜고)! 그래야 내가 찾을 수 있어!</string>
+    <string name="main_nudge_text">%1$s, Moshpoint 열고 ‘위치 공유 켜기’ 눌러 줘(위치랑 데이터 켜고)! 그래야 내가 찾을 수 있어!</string>
     <string name="main_nudge_mate">얘들아</string>
-    <string name="main_nudge_title">라이브 켜 달라고 하기</string>
+    <string name="main_nudge_title">위치 공유 켜 달라고 하기</string>
 
     <string name="main_setup_bluetooth_off">Bluetooth가 꺼져 있어요. 꺼져 있으면 아무도 나를 못 찾고, 나도 친구를 못 찾아요.</string>
     <string name="main_setup_location_off">위치가 꺼져 있어요. GPS로 찾을 때 필요하고, 많은 폰에서는 Bluetooth로 찾을 때도 필요해요.</string>
@@ -90,16 +90,16 @@
 
     <string name="main_join_name">%1$s에 참여할까요?</string>
     <string name="main_follow_name">%1$s 팔로우할까요?</string>
-    <string name="main_bumped_text">맞닿기 완료! 참여하면 오늘 밤 모두 서로를 찾을 수 있어요.</string>
+    <string name="main_bumped_text">맞대기 완료! 참여하면 오늘 밤 모두 서로를 찾을 수 있어요.</string>
     <string name="main_join">참여</string>
     <string name="main_no">아니요</string>
     <string name="main_clip_follow_text">팔로우 링크를 복사했어요. 상대의 사진과 무사한지 볼 수 있고, 내가 팔로우 중인 것도 상대에게 보여요.</string>
     <string name="main_clip_join_text">Moshpoint 초대를 복사했어요. 참여하면 오늘 밤 모두 서로를 찾을 수 있어요.</string>
 
     <string name="main_your_night">나의 밤</string>
-    <string name="main_recap_text">%1$s\n\n밤을 끝내면 크루가 종료돼요(친구는 그대로). 사진과 영상은 ‘내 공연’에 남아 있어요.</string>
-    <string name="main_night_ended">밤이 끝났어요. 사진과 영상은 ‘내 공연’에 있어요.</string>
-    <string name="main_end_the_night">밤 끝내기</string>
+    <string name="main_recap_text">%1$s\n\n오늘 밤을 마무리하면 크루가 종료돼요(친구는 그대로). 사진과 영상은 ‘내 공연’에 남아 있어요.</string>
+    <string name="main_night_ended">오늘 밤을 마무리했어요. 사진과 영상은 ‘내 공연’에 있어요.</string>
+    <string name="main_end_the_night">오늘 밤 마무리</string>
     <string name="main_share_night_text">Moshpoint와 함께한 나의 밤: %1$s 🤘</string>
     <string name="main_share_night_title">나의 밤 공유하기</string>
     <string name="main_share">공유</string>

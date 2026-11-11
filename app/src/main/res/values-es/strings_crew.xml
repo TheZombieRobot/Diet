@@ -21,7 +21,7 @@
         <item quantity="other">🔥  Lanza una bengala: muestra dónde estás durante %d min</item>
     </plurals>
     <string name="crew_chat_empty">Nada todavía. Los mensajes llegan a todo el grupo en más o menos un minuto (más rápido con tu propio servidor).</string>
-    <string name="crew_chat_night_tools_later">¡Vayan calentando! Las bengalas y los avisos rápidos se activan el día del concierto.</string>
+    <string name="crew_chat_night_tools_later">¡Que empiece la cuenta regresiva! Las bengalas y los avisos rápidos se activan el día del concierto.</string>
     <string name="crew_chat_message_hint">Escribe al grupo</string>
     <string name="crew_chat_not_sent">No enviado · Toca para reintentar</string>
     <string name="crew_chat_sending">Enviando…</string>
@@ -68,12 +68,12 @@
     <string name="crew_plan_pin_it">Fijar</string>
     <string name="crew_plan_unpin">Quitar</string>
 
-    <string name="crew_vibe_lost">Perdido 😅</string>
+    <string name="crew_vibe_lost">Me perdí 😅</string>
     <string name="crew_vibe_bar">A la barra 🍺</string>
     <string name="crew_vibe_rail">En primera fila 🎶</string>
     <string name="crew_vibe_food">Por comida 🍔</string>
     <string name="crew_vibe_toilets">Baños 🚻</string>
-    <string name="crew_vibe_air">Fuera, tomando aire 🌬️</string>
+    <string name="crew_vibe_air">Afuera, tomando aire 🌬️</string>
     <string name="crew_vibe_merch">En el merch 👕</string>
     <string name="crew_vibe_leaving">Me voy pronto 👋</string>
     <string name="crew_flare_mine">Tú: %1$s</string>
@@ -137,7 +137,7 @@
     <string name="crew_notif_done_saved">Tus fotos y clips están guardados en Tus conciertos.</string>
     <string name="crew_notif_done_text">Esperamos que haya sido una gran noche. Crea un grupo nuevo cuando quieras.</string>
     <string name="crew_notif_overdue_title">%1$s no avisó</string>
-    <string name="crew_notif_overdue_text">Volvía a casa y ya debería haber llegado. Llámalo. Toca para ver su última ubicación.</string>
+    <string name="crew_notif_overdue_text">Volvía a casa y ya debería haber llegado. Llama para ver cómo está. Toca para ver su última ubicación.</string>
     <string name="crew_notif_help_where">Tocó Necesito ayuda. Toca para ver dónde. Comprueba que esté bien.</string>
     <string name="crew_notif_help">Tocó Necesito ayuda. Comprueba que esté bien.</string>
     <string name="crew_notif_tap_where">Toca para ver dónde.</string>

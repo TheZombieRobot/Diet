@@ -21,7 +21,7 @@
         <item quantity="other">🔥  Lanza una bengala: muestra dónde estás durante %d min</item>
     </plurals>
     <string name="crew_chat_empty">Nada todavía. Los mensajes llegan a todo el grupo en más o menos un minuto (más rápido con tu propio servidor).</string>
-    <string name="crew_chat_night_tools_later">¡Id calentando! Las bengalas y los avisos rápidos se activan el día del concierto.</string>
+    <string name="crew_chat_night_tools_later">¡Id calentando motores! Las bengalas y los avisos rápidos se activan el día del concierto.</string>
     <string name="crew_chat_message_hint">Escribe al grupo</string>
     <string name="crew_chat_not_sent">No enviado · Toca para reintentar</string>
     <string name="crew_chat_sending">Enviando…</string>
@@ -68,7 +68,7 @@
     <string name="crew_plan_pin_it">Fijar</string>
     <string name="crew_plan_unpin">Quitar</string>
 
-    <string name="crew_vibe_lost">Perdido 😅</string>
+    <string name="crew_vibe_lost">Me he perdido 😅</string>
     <string name="crew_vibe_bar">A la barra 🍺</string>
     <string name="crew_vibe_rail">En primera fila 🎶</string>
     <string name="crew_vibe_food">A por comida 🍔</string>
@@ -137,7 +137,7 @@
     <string name="crew_notif_done_saved">Tus fotos y clips están guardados en Tus conciertos.</string>
     <string name="crew_notif_done_text">Esperamos que haya sido una gran noche. Crea un grupo nuevo cuando quieras.</string>
     <string name="crew_notif_overdue_title">%1$s no ha avisado</string>
-    <string name="crew_notif_overdue_text">Volvía a casa y ya debería haber llegado. Llámale. Toca para ver su última ubicación.</string>
+    <string name="crew_notif_overdue_text">Volvía a casa y ya debería haber llegado. Llama para ver cómo está. Toca para ver su última ubicación.</string>
     <string name="crew_notif_help_where">Ha pulsado Necesito ayuda. Toca para ver dónde. Comprueba que esté bien.</string>
     <string name="crew_notif_help">Ha pulsado Necesito ayuda. Comprueba que esté bien.</string>
     <string name="crew_notif_tap_where">Toca para ver dónde.</string>
@@ -193,8 +193,8 @@
     <string name="crew_note_reset">%1$s ha reiniciado la invitación: los QR antiguos ya no funcionan.</string>
 
     <string name="crew_wake_title">¡%1$s esta noche!</string>
-    <string name="crew_wake_text">Empieza a las %1$s. Toca para ponerte en vivo y que tu grupo te encuentre.</string>
-    <string name="crew_wake_text_venue">Empieza a las %1$s en %2$s. Toca para ponerte en vivo y que tu grupo te encuentre.</string>
+    <string name="crew_wake_text">Empieza a las %1$s. Toca para ponerte en directo y que tu grupo te encuentre.</string>
+    <string name="crew_wake_text_venue">Empieza a las %1$s en %2$s. Toca para ponerte en directo y que tu grupo te encuentre.</string>
 
     <plurals name="crew_memory_headline">
         <item quantity="one">Hoy hace un año: %2$s</item>
@@ -264,6 +264,6 @@
     <string name="crew_request_title">%1$s está cerca y te busca</string>
     <string name="crew_request_text">Toca para iluminar tu pantalla y que te vea</string>
     <string name="crew_go_hidden">Ocultarme</string>
-    <string name="crew_tile_live">En vivo</string>
+    <string name="crew_tile_live">En directo</string>
     <string name="crew_tile_hidden">Oculto</string>
 </resources>

@@ -20,7 +20,7 @@
     <string name="find_ask_them">Pídeselo</string>
     <string name="find_last_seen_on_map">Visto por última vez en el mapa</string>
     <string name="find_light_me_up">Ilumíname</string>
-    <string name="find_spin_scan">Escaneo girando</string>
+    <string name="find_spin_scan">Escaneo giratorio</string>
     <string name="find_asked_light_up">Pedido: su celular le ofrecerá iluminarse</string>
     <string name="find_ask_light_up">Pídele que se ilumine</string>
     <string name="find_show_on_map">Ver en el mapa</string>
@@ -38,14 +38,14 @@
     <string name="find_band_hint_close">menos de 10 m</string>
     <string name="find_band_hint_nearby">unos 10–30 m</string>
     <string name="find_band_hint_in_range">30 m o más</string>
-    <string name="find_trend_warmer">Caliente</string>
+    <string name="find_trend_warmer">Más cerca</string>
     <string name="find_trend_warmer_hint">Sigue por aquí</string>
-    <string name="find_trend_colder">Frío</string>
+    <string name="find_trend_colder">Más lejos</string>
     <string name="find_trend_colder_hint">Date la vuelta</string>
     <string name="find_trend_steady">Igual</string>
     <string name="find_trend_steady_hint">Prueba otra dirección</string>
     <string name="find_trend_hint_who">%1$s: %2$s</string>
-    <string name="find_warmer_help">Camina unos pasos hacia un lado y luego hacia otro. Caliente significa que te acercas. La flecha aparece cuando sepamos hacia dónde.</string>
+    <string name="find_warmer_help">Camina unos pasos hacia un lado y luego hacia otro. Más cerca significa que vas bien. La flecha aparece cuando sepamos hacia dónde.</string>
     <string name="find_scan_covered_cd">%1$d por ciento del círculo cubierto</string>
     <string name="find_scan_percent">%1$d%%</string>
     <string name="find_scan_listening">escuchando…</string>
@@ -83,7 +83,7 @@
     <string name="find_area_save_failed">No se pudo guardar la zona: %1$s</string>
     <string name="find_area_too_big">Demasiado grande: acerca el zoom al lugar y vuelve a intentarlo</string>
     <string name="find_back">‹ Atrás</string>
-    <string name="find_map_title">Mosh mapa</string>
+    <string name="find_map_title">Mapa Mosh</string>
     <string name="find_map_pin">Pin</string>
     <string name="find_map_all">Todos</string>
     <string name="find_map_me">Yo</string>

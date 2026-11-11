@@ -8,8 +8,8 @@
     <string name="setup_choose_photo">Elegir foto</string>
     <string name="setup_remove_my_photo">Quitar mi foto</string>
     <string name="setup_your_name">Tu nombre</string>
-    <string name="setup_stay_live">Seguir en vivo tras reiniciar</string>
-    <string name="setup_stay_live_desc">Si estabas en vivo cuando se reinició el móvil, vuelve a activarse solo.</string>
+    <string name="setup_stay_live">Seguir en directo tras reiniciar</string>
+    <string name="setup_stay_live_desc">Si estabas en directo cuando se reinició el móvil, vuelve a activarse solo.</string>
     <string name="setup_ghost_mode">Modo fantasma</string>
     <string name="setup_ghost_mode_desc">Oculta tu ubicación del mapa. Tus amigos aún pueden encontrarte por Bluetooth cuando están cerca.</string>
     <string name="setup_ghost_one_hour">Fantasma 1 hora</string>
@@ -25,7 +25,7 @@
     <string name="setup_save">Guardar</string>
     <string name="setup_remove">Quitar</string>
     <string name="setup_about">INFORMACIÓN</string>
-    <string name="setup_about_text">Moshpoint %1$s. Sin cuenta, códigos rotativos, ubicaciones cifradas de extremo a extremo. Solo te pueden encontrar mientras estás en vivo.</string>
+    <string name="setup_about_text">Moshpoint %1$s. Sin cuenta, códigos rotativos, ubicaciones cifradas de extremo a extremo. Solo te pueden encontrar mientras estás en directo.</string>
     <string name="setup_hide_licences">Ocultar licencias</string>
     <string name="setup_open_source_licences">Licencias de código abierto</string>
     <string name="setup_licences_fonts">Fuentes: Unbounded e Inter, bajo la SIL Open Font License 1.1. Códigos QR: ZXing (Apache 2.0).</string>
@@ -33,15 +33,15 @@
 
     <string name="setup_onb_skip">Saltar</string>
     <string name="setup_onb_title_find">Encuentra a tus amigos\nen cualquier multitud</string>
-    <string name="setup_onb_body_find">Toca a un amigo y una flecha apunta directo a él. Brilla con su color cuando te acercas.</string>
-    <string name="setup_onb_title_live">Ponte en vivo\nal entrar</string>
-    <string name="setup_onb_body_live">Tus amigos solo pueden encontrarte mientras estás en vivo, y solo tú lo activas. Moshpoint necesita:</string>
+    <string name="setup_onb_body_find">Toca a un amigo y una flecha apunta directamente a él. Brilla con su color cuando te acercas.</string>
+    <string name="setup_onb_title_live">Ponte en directo\nal entrar</string>
+    <string name="setup_onb_body_live">Tus amigos solo pueden encontrarte mientras estás en directo, y solo tú lo activas. Moshpoint necesita:</string>
     <string name="setup_onb_need_nearby">Dispositivos cercanos</string>
     <string name="setup_onb_need_nearby_why">para encontrar amigos por Bluetooth, Wi-Fi y UWB</string>
     <string name="setup_onb_need_location">Ubicación</string>
     <string name="setup_onb_need_location_why">para la flecha cuando estáis lejos</string>
     <string name="setup_onb_need_notifications">Notificaciones</string>
-    <string name="setup_onb_need_notifications_why">para que siempre sepas cuándo estás en vivo</string>
+    <string name="setup_onb_need_notifications_why">para que siempre sepas cuándo estás en directo</string>
     <string name="setup_onb_title_name">¿Cómo te llaman\ntus amigos?</string>
     <string name="setup_onb_or_type_it">o escríbelo</string>
     <string name="setup_onb_lets_go">¡Vamos!</string>

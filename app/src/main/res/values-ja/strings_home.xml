@@ -19,7 +19,7 @@
     <string name="home_ping_heading_home">帰るね</string>
     <string name="home_ping_need_help">助けて</string>
     <string name="home_heading_home_title">もう帰る？</string>
-    <string name="home_heading_home_text">着いたらチェックインしてね。しなかった場合、最後にいた場所がクルーに通知されます（スマホの電池が切れても）。</string>
+    <string name="home_heading_home_text">着いたら到着確認してね。しなかった場合、最後にいた場所がクルーに通知されます（スマホの電池が切れても）。</string>
     <plurals name="home_checkin_minutes">
         <item quantity="other">%d分</item>
     </plurals>
@@ -47,7 +47,7 @@
     <string name="home_my_friend_qr">自分の友達QR</string>
     <string name="home_enter_code">コードを入力</string>
 
-    <string name="home_check_in_by">%1$sまでにチェックイン</string>
+    <string name="home_check_in_by">%1$sまでに到着確認</string>
     <string name="home_home_safe">無事に帰ったよ</string>
 
     <string name="home_chat">チャット</string>
@@ -135,7 +135,7 @@
     <string name="home_find_everyone">全員を探す</string>
     <string name="home_stop_following">フォローをやめる</string>
     <string name="home_cancel_crew">このクルーを取り消す</string>
-    <string name="home_end_night">夜を終了</string>
+    <string name="home_end_night">今夜は解散</string>
     <string name="home_up_next">次の予定</string>
     <string name="home_memories">思い出</string>
     <plurals name="home_memories_count">

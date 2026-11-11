@@ -41,7 +41,7 @@
     <string name="home_scan_qr">Quét QR</string>
     <string name="home_paste_invite">Dán lời mời</string>
     <string name="home_bump_phones">Chạm hai máy vào nhau</string>
-    <string name="home_plan_gig">Lên kèo đi show (tìm show, rủ luôn)</string>
+    <string name="home_plan_gig">Lên kế hoạch đi show (tìm show, rủ luôn)</string>
     <string name="home_send_app_invite">Gửi app + lời mời (Zalo, Messenger…)</string>
     <string name="home_friends_every_gig">BẠN BÈ CHO MỌI SHOW</string>
     <string name="home_my_friend_qr">QR kết bạn của mình</string>
@@ -71,7 +71,7 @@
 
     <string name="home_crew_chat">Chat nhóm</string>
     <string name="home_pinned_plan">📌 %1$s</string>
-    <string name="home_chat_subtitle">Tin nhắn, kèo, pháo sáng</string>
+    <string name="home_chat_subtitle">Tin nhắn, kế hoạch, tín hiệu</string>
     <string name="home_unread_many">9+</string>
     <plurals name="home_unread_new">
         <item quantity="other">%d mới</item>
@@ -139,7 +139,7 @@
     <string name="home_up_next">SẮP TỚI</string>
     <string name="home_memories">KỶ NIỆM</string>
     <plurals name="home_memories_count">
-        <item quantity="other">%d ảnh và clip. Chạm để sống lại ›</item>
+        <item quantity="other">%d ảnh và clip. Chạm để xem lại ›</item>
     </plurals>
     <string name="home_your_gigs">SHOW CỦA BẠN</string>
     <string name="home_friends">BẠN BÈ</string>

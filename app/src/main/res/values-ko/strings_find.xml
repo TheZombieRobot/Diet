@@ -7,7 +7,7 @@
     <string name="find_eyebrow_scanning">스캔 중</string>
     <string name="find_eyebrow_finding">찾는 중</string>
     <string name="find_chip_rough">대략</string>
-    <string name="find_chip_locked">고정됨</string>
+    <string name="find_chip_locked">정확</string>
     <string name="find_head_this_way">이쪽으로 가세요</string>
     <string name="find_from_gps">GPS 기준: 걸으면 더 정확해져요</string>
     <string name="find_rough_walk">대략적인 방향: 그쪽으로 걸으면서 거리를 확인하세요</string>
@@ -25,11 +25,11 @@
     <string name="find_ask_light_up">화면 밝혀 달라고 하기</string>
     <string name="find_show_on_map">지도에서 보기</string>
 
-    <string name="find_pill_live">라이브</string>
+    <string name="find_pill_live">공유 중</string>
     <string name="find_pill_hidden">숨김</string>
     <string name="find_searching_cd">찾는 중</string>
     <string name="find_looking_for">%1$s 찾는 중…</string>
-    <string name="find_searching_help">아직 신호도, 공유된 위치도 없어요. 친구가 Moshpoint를 열고 라이브를 켜야 하고, 위치와 모바일 데이터도 켜져 있어야 해요. 그러면 도시 반대편에 있어도 화살표가 나타나요.</string>
+    <string name="find_searching_help">아직 신호도, 공유된 위치도 없어요. 친구가 Moshpoint를 열고 ‘위치 공유 켜기’를 해야 하고, 휴대폰 위치와 모바일 데이터도 켜져 있어야 해요. 그러면 도시 반대편에 있어도 화살표가 나타나요.</string>
     <string name="find_band_right_here">바로 여기</string>
     <string name="find_band_close">가까움</string>
     <string name="find_band_nearby">근처</string>
@@ -60,7 +60,7 @@
     <string name="find_look_up_wave">고개 들고 손 흔들어요.</string>
     <string name="find_done">완료</string>
     <string name="find_keep_arrow">화살표 계속 보기</string>
-    <string name="find_beacon_help">내 색은 %1$s예요. 폰을 높이 들어요. 탭하면 멈춰요.</string>
+    <string name="find_beacon_help">내 색: %1$s. 폰을 높이 들어요. 탭하면 멈춰요.</string>
 
     <string name="find_friend_fallback">친구</string>
     <string name="find_spoken_metres">%1$s미터</string>
@@ -86,7 +86,7 @@
     <string name="find_map_all">전체</string>
     <string name="find_map_me">나</string>
     <string name="find_save_area">⬇  신호 없을 때를 위해 이 지역 저장</string>
-    <string name="find_map_no_mates">아직 친구가 없어요. 크루를 만들거나 친구를 추가하면, 친구가 라이브를 켰을 때 여기에 표시돼요.</string>
+    <string name="find_map_no_mates">아직 친구가 없어요. 크루를 만들거나 친구를 추가하면, 친구가 위치 공유를 켰을 때 여기에 표시돼요.</string>
     <string name="find_place_crew_meetup">크루 만남 장소</string>
     <string name="find_place_only_you">나만 볼 수 있어요</string>
     <string name="find_walk">도보</string>

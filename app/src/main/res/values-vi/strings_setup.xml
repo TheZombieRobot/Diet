@@ -50,7 +50,7 @@
     <string name="setup_onb_im_name">Mình là %1$s</string>
     <string name="setup_onb_arrow_demo_desc">Mũi tên chỉ tới một người bạn</string>
 
-    <string name="setup_plan_title">Lên kèo đi show</string>
+    <string name="setup_plan_title">Lên kế hoạch đi show</string>
     <string name="setup_plan_desc">Lập nhóm ngay, ai rảnh lúc nào thì vào lúc đó. Nhóm sẽ ngủ (không tốn pin) tới ngày diễn.</string>
     <string name="setup_plan_search_hint">Tìm: ban nhạc, nghệ sĩ hoặc địa điểm</string>
     <string name="setup_plan_searching">Đang tìm…</string>

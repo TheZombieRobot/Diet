@@ -58,7 +58,7 @@
     <string name="main_eyebrow_up_next_countdown">เร็วๆ นี้ · %1$s</string>
     <string name="main_eyebrow_coming_up">แก๊งของคุณ · เร็วๆ นี้</string>
     <string name="main_eyebrow_tonight">แก๊งของคุณคืนนี้</string>
-    <string name="main_qr_hint_planned">ทุกคนสแกนแค่ครั้งเดียว แชทปั่นกระแสกันได้เลย ส่วนฟีเจอร์หากันจะเปิดในวันคอน</string>
+    <string name="main_qr_hint_planned">ทุกคนสแกนแค่ครั้งเดียว แชทอุ่นเครื่องกันได้เลย ส่วนฟีเจอร์หากันจะเปิดในวันคอน</string>
     <string name="main_qr_hint_tonight">ทุกคนสแกนแค่ครั้งเดียว แล้วหากันเจอได้ทั้งคืน</string>
     <string name="main_scan_to_add_me">สแกนเพื่อแอดเรา</string>
     <string name="main_scan_to_add_name">สแกนเพื่อแอด %1$s</string>
@@ -86,7 +86,7 @@
     <string name="main_when_venue">%1$s · %2$s</string>
 
     <string name="main_time_passed">เวลานี้ผ่านไปแล้ว เลือกเวลาที่คอนเริ่มนะ</string>
-    <string name="main_added_up_next">เพิ่ม %1$s ใน เร็วๆ นี้ แล้ว ชวนเพื่อนมาปั่นกระแสกันเลย!</string>
+    <string name="main_added_up_next">เพิ่ม %1$s ใน เร็วๆ นี้ แล้ว ชวนเพื่อนมาอุ่นเครื่องกันเลย!</string>
 
     <string name="main_join_name">เข้า %1$s ไหม?</string>
     <string name="main_follow_name">ติดตาม %1$s ไหม?</string>

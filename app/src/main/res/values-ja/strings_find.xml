@@ -7,7 +7,7 @@
     <string name="find_eyebrow_scanning">スキャン中</string>
     <string name="find_eyebrow_finding">探し中</string>
     <string name="find_chip_rough">だいたい</string>
-    <string name="find_chip_locked">ロック</string>
+    <string name="find_chip_locked">正確</string>
     <string name="find_head_this_way">こっちへ進んで</string>
     <string name="find_from_gps">GPSより：歩くと精度が上がります</string>
     <string name="find_rough_walk">だいたいの方向：そっちへ歩いて距離をチェック</string>
@@ -17,7 +17,7 @@
     <string name="find_scan_finished">スキャン完了</string>
     <string name="find_ok">OK</string>
     <string name="find_scan_again">もう一度スキャン</string>
-    <string name="find_ask_them">お願いする</string>
+    <string name="find_ask_them">シェア開始をお願い</string>
     <string name="find_last_seen_on_map">マップで最後に見た場所</string>
     <string name="find_light_me_up">画面を光らせる</string>
     <string name="find_spin_scan">回転スキャン</string>
@@ -93,7 +93,7 @@
     <string name="find_ride">配車</string>
     <string name="find_not_sharing">まだシェアしてない</string>
     <string name="find_find">探す</string>
-    <string name="find_ask">お願い</string>
+    <string name="find_ask">シェアをお願い</string>
     <string name="find_drop_pin">ピンを立てる</string>
     <string name="find_drop_pin_crew_help">自分用に保存（テント、車…）するか、クルーの集合場所にしよう。みんなのマップに表示されます。</string>
     <string name="find_drop_pin_solo_help">自分用に保存：テント、車、きれいなトイレ。電波がなくても使えます。</string>

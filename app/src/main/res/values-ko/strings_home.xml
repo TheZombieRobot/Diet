@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Korean: home screen (crew card, friends list, bottom bar, add sheet, pings). -->
 <resources>
-    <string name="home_go_live">라이브 켜기</string>
-    <string name="home_live_ghost">라이브 · 고스트</string>
-    <string name="home_live">라이브</string>
+    <string name="home_go_live">위치 공유 켜기</string>
+    <string name="home_live_ghost">공유 중 · 고스트</string>
+    <string name="home_live">공유 중</string>
 
     <string name="home_tile_not_sharing">아직 공유 안 함</string>
     <string name="home_tile_phone_died">배터리 방전</string>
-    <string name="home_tile_live">라이브</string>
+    <string name="home_tile_live">공유 중</string>
     <string name="home_tile_with_battery">%1$s · %2$d%%</string>
 
     <string name="home_ping_on_my_way">가는 중</string>
@@ -40,7 +40,7 @@
     <string name="home_start_crew_show_qr">크루 만들고 QR 보기</string>
     <string name="home_scan_qr">QR 스캔</string>
     <string name="home_paste_invite">초대 붙여넣기</string>
-    <string name="home_bump_phones">폰 맞닿기</string>
+    <string name="home_bump_phones">폰 맞대기</string>
     <string name="home_plan_gig">공연 계획하기(찾아서 지금 초대)</string>
     <string name="home_send_app_invite">앱 + 초대 보내기(카카오톡, WhatsApp…)</string>
     <string name="home_friends_every_gig">모든 공연에서 함께할 친구</string>
@@ -103,7 +103,7 @@
     <string name="home_add_friend">친구 추가</string>
     <string name="home_tonight_only">오늘 밤만</string>
 
-    <string name="home_hidden_hint">지금 크루에게 숨겨져 있어요. 찾아지고 싶을 때 ‘라이브 켜기’를 탭하세요.</string>
+    <string name="home_hidden_hint">지금 크루에게 숨겨져 있어요. 찾아지고 싶을 때 ‘위치 공유 켜기’를 탭하세요.</string>
     <string name="home_allow_permission">Moshpoint가 친구를 찾을 수 있게 허용해 주세요(%1$s)</string>
     <string name="home_allow">허용</string>
     <string name="home_one_thing_first">먼저 이것부터</string>
@@ -135,7 +135,7 @@
     <string name="home_find_everyone">모두 찾기</string>
     <string name="home_stop_following">팔로우 중단</string>
     <string name="home_cancel_crew">이 크루 취소</string>
-    <string name="home_end_night">밤 끝내기</string>
+    <string name="home_end_night">오늘 밤 마무리</string>
     <string name="home_up_next">다가오는 공연</string>
     <string name="home_memories">추억</string>
     <plurals name="home_memories_count">

@@ -97,9 +97,9 @@
     <string name="main_clip_join_text">Moshpointの招待をコピーしました。参加すれば今夜みんなでお互いを見つけられます。</string>
 
     <string name="main_your_night">あなたの夜</string>
-    <string name="main_recap_text">%1$s\n\n夜を終了するとクルーは解散します（友達はそのまま）。写真と動画は「あなたのライブ」に残ります。</string>
-    <string name="main_night_ended">夜を終了しました。写真と動画は「あなたのライブ」にあります。</string>
-    <string name="main_end_the_night">夜を終了</string>
+    <string name="main_recap_text">%1$s\n\n解散するとクルーは終了します（友達はそのまま）。写真と動画は「あなたのライブ」に残ります。</string>
+    <string name="main_night_ended">解散しました。写真と動画は「あなたのライブ」にあります。</string>
+    <string name="main_end_the_night">今夜は解散</string>
     <string name="main_share_night_text">Moshpointで過ごした夜：%1$s 🤘</string>
     <string name="main_share_night_title">今夜をシェア</string>
     <string name="main_share">シェア</string>

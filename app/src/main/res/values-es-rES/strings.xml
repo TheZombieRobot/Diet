@@ -2,8 +2,8 @@
 <!-- Spanish -->
 <resources>
     <string name="app_name">Moshpoint</string>
-    <string name="visibility_channel">Estado en vivo</string>
-    <string name="visibility_notification">Estás en vivo: tus amigos pueden encontrarte</string>
+    <string name="visibility_channel">Estado en directo</string>
+    <string name="visibility_notification">Estás en directo: tus amigos pueden encontrarte</string>
     <string name="widget_title">Tu grupo</string>
     <string name="widget_empty">Crea un grupo en Moshpoint y tus amigos aparecerán aquí.</string>
     <string name="widget_find">Buscar grupo</string>

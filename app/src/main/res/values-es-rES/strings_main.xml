@@ -2,9 +2,9 @@
 <!-- Spanish: main screen, invites, sharing and phone setup checks. -->
 <resources>
     <string name="main_get_the_app">¿Aún no tienes Moshpoint? Instálala desde aquí (Android): %1$s\nLuego copia todo este mensaje, abre Moshpoint y toca Pegar invitación.\n\n</string>
-    <string name="main_nudge_text">¡Ey %1$s, abre Moshpoint y toca Activar en vivo (con ubicación y datos activados) para que te encuentre!</string>
+    <string name="main_nudge_text">¡Ey %1$s, abre Moshpoint y toca Activar en directo (con ubicación y datos activados) para que te encuentre!</string>
     <string name="main_nudge_mate">colega</string>
-    <string name="main_nudge_title">Pídeles que se pongan en vivo</string>
+    <string name="main_nudge_title">Pídeles que se pongan en directo</string>
 
     <string name="main_setup_bluetooth_off">El Bluetooth está desactivado. Sin él, nadie te encuentra y tú no encuentras a nadie.</string>
     <string name="main_setup_location_off">La ubicación está desactivada. La búsqueda por GPS la necesita, y en muchos móviles también la de Bluetooth.</string>
@@ -98,7 +98,7 @@
 
     <string name="main_join_name">¿Unirte a %1$s?</string>
     <string name="main_follow_name">¿Seguir a %1$s?</string>
-    <string name="main_bumped_text">¡Chocados! Únete y podréis encontraros esta noche.</string>
+    <string name="main_bumped_text">¡Conectados! Únete y podréis encontraros esta noche.</string>
     <string name="main_join">Unirme</string>
     <string name="main_no">No</string>
     <string name="main_clip_follow_text">Has copiado un enlace para seguir. Verás sus fotos y que están bien; ellos verán que les sigues.</string>

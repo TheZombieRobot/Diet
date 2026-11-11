@@ -6,7 +6,7 @@
     <string name="home_live">Ao vivo</string>
 
     <string name="home_tile_not_sharing">ainda não compartilha</string>
-    <string name="home_tile_phone_died">celular morreu</string>
+    <string name="home_tile_phone_died">sem bateria</string>
     <string name="home_tile_live">ao vivo</string>
     <string name="home_tile_with_battery">%1$s · %2$d%%</string>
 

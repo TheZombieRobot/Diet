@@ -70,7 +70,7 @@
     <string name="crew_vibe_toilets">화장실 🚻</string>
     <string name="crew_vibe_air">바람 쐬는 중 🌬️</string>
     <string name="crew_vibe_merch">MD 부스 👕</string>
-    <string name="crew_vibe_leaving">곧 나가요 👋</string>
+    <string name="crew_vibe_leaving">곧 나갈 예정 👋</string>
     <string name="crew_flare_mine">나: %1$s</string>
     <string name="crew_flare_theirs">%1$s: %2$s</string>
     <plurals name="crew_flare_left">
@@ -102,7 +102,7 @@
     <string name="crew_help_call_sub">경찰, 소방, 구급</string>
     <string name="crew_help_call_police">경찰</string>
     <string name="crew_help_call_ambulance">구급·소방</string>
-    <string name="crew_help_no_signal">신호가 전혀 없나요? 최신 폰은 대부분 위성으로 긴급 신고를 할 수 있어요: %1$s에 전화하고 안내를 따르세요. 페스티벌에서는 경호 요원과 의무 텐트가 빠르게 도와줄 수 있어요.</string>
+    <string name="crew_help_no_signal">신호가 전혀 없나요? 최신 폰은 대부분 위성으로 긴급 신고를 할 수 있어요: %1$s에 전화하고 안내를 따르세요. 페스티벌에서는 안전 요원과 의무실이 빠르게 도와줄 수 있어요.</string>
     <string name="crew_help_sms">도움이 필요해요. (Moshpoint에서 보냄)</string>
     <string name="crew_help_sms_where">도움이 필요해요. 여기 있어요: %1$s (Moshpoint에서 보냄)</string>
 
@@ -178,14 +178,14 @@
     <string name="crew_note_reset">%1$s님이 초대를 재설정했어요: 이전 QR 코드는 더 이상 작동하지 않아요.</string>
 
     <string name="crew_wake_title">오늘 밤 %1$s!</string>
-    <string name="crew_wake_text">%1$s 시작. 탭해서 라이브를 켜면 크루가 나를 찾을 수 있어요.</string>
-    <string name="crew_wake_text_venue">%2$s에서 %1$s 시작. 탭해서 라이브를 켜면 크루가 나를 찾을 수 있어요.</string>
+    <string name="crew_wake_text">%1$s 시작. 탭해서 위치 공유를 켜면 크루가 나를 찾을 수 있어요.</string>
+    <string name="crew_wake_text_venue">%2$s에서 %1$s 시작. 탭해서 위치 공유를 켜면 크루가 나를 찾을 수 있어요.</string>
 
     <plurals name="crew_memory_headline">
         <item quantity="other">%1$d년 전 오늘: %2$s</item>
     </plurals>
     <plurals name="crew_memory_headline_with">
-        <item quantity="other">%1$d년 전 오늘: %3$s와 함께한 %2$s</item>
+        <item quantity="other">%1$d년 전 오늘: %3$s님과 함께한 %2$s</item>
     </plurals>
     <string name="crew_memory_two_people">%1$s &amp; %2$s</string>
     <plurals name="crew_memory_text">
@@ -232,7 +232,7 @@
 
     <string name="crew_request_title">%1$s님이 가까이에서 나를 찾고 있어요</string>
     <string name="crew_request_text">탭해서 화면을 밝히면 친구가 나를 쉽게 찾을 수 있어요</string>
-    <string name="crew_go_hidden">숨기기</string>
-    <string name="crew_tile_live">라이브</string>
+    <string name="crew_go_hidden">내 위치 숨기기</string>
+    <string name="crew_tile_live">공유 중</string>
     <string name="crew_tile_hidden">숨김</string>
 </resources>

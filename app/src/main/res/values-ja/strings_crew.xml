@@ -42,7 +42,7 @@
     <string name="crew_quick_going_home">帰るね 🏠</string>
     <string name="crew_quick_need_help">🚨 助けて</string>
     <plurals name="crew_quick_check_in">
-        <item quantity="other">帰るね 🏠 %d分以内にチェックインするよ</item>
+        <item quantity="other">帰るね 🏠 %d分以内に到着確認するね</item>
     </plurals>
     <string name="crew_quick_home_safe">無事に帰ったよ ✅</string>
 
@@ -64,7 +64,7 @@
     <string name="crew_plan_unpin">ピン留めを外す</string>
 
     <string name="crew_vibe_lost">迷子 😅</string>
-    <string name="crew_vibe_bar">バータイム 🍺</string>
+    <string name="crew_vibe_bar">バーカウンター 🍺</string>
     <string name="crew_vibe_rail">最前列 🎶</string>
     <string name="crew_vibe_food">ごはん調達中 🍔</string>
     <string name="crew_vibe_toilets">トイレ 🚻</string>
@@ -121,7 +121,7 @@
     <string name="crew_notif_done_title">%1$sが終了しました</string>
     <string name="crew_notif_done_saved">写真と動画は「あなたのライブ」に保存されています。</string>
     <string name="crew_notif_done_text">いい夜だったかな？新しいクルーはいつでも作れます。</string>
-    <string name="crew_notif_overdue_title">%1$sからチェックインがありません</string>
+    <string name="crew_notif_overdue_title">%1$sから到着確認がありません</string>
     <string name="crew_notif_overdue_text">帰宅中で、もう着いているはずです。電話してみて。タップで最後にいた場所を表示。</string>
     <string name="crew_notif_help_where">「助けて」が押されました。タップで場所を確認して、様子を見てあげて。</string>
     <string name="crew_notif_help">「助けて」が押されました。様子を見てあげて。</string>
@@ -135,7 +135,7 @@
     <string name="crew_ping_all_good">は大丈夫です</string>
     <string name="crew_ping_going_home">が帰宅中です</string>
     <string name="crew_ping_need_help">が助けを求めています</string>
-    <string name="crew_ping_check_in">が帰宅中です。着いたらチェックインします</string>
+    <string name="crew_ping_check_in">が帰宅中です。着いたら到着確認します</string>
     <string name="crew_ping_home_safe">が無事に帰宅しました</string>
     <string name="crew_ping_chat">がメッセージを送りました</string>
     <string name="crew_ping_flare">がフレアを送りました</string>
@@ -149,7 +149,7 @@
     <string name="crew_ping_title_all_good">%1$sは大丈夫です</string>
     <string name="crew_ping_title_going_home">%1$sが帰宅中です</string>
     <string name="crew_ping_title_need_help">%1$sが助けを求めています！</string>
-    <string name="crew_ping_title_check_in">%1$sが帰宅中です。着いたらチェックインします</string>
+    <string name="crew_ping_title_check_in">%1$sが帰宅中です。着いたら到着確認します</string>
     <string name="crew_ping_title_home_safe">%1$sが無事に帰宅しました</string>
     <string name="crew_ping_title_chat">%1$sがメッセージを送りました</string>
     <string name="crew_ping_title_flare">%1$sがフレアを送りました</string>

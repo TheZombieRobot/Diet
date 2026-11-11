@@ -11,7 +11,7 @@
     <plurals name="time_days_ago">
         <item quantity="other">%d일 전</item>
     </plurals>
-    <string name="time_live">라이브</string>
+    <string name="time_live">공유 중</string>
     <string name="status_battery_died">여기서 배터리 방전 · %1$s</string>
     <string name="status_time_battery">%1$s · %2$d%%</string>
 
@@ -37,9 +37,9 @@
         <item quantity="other">%d개월 후</item>
     </plurals>
     <string name="colour_pink">핑크</string>
-    <string name="colour_blue">파랑</string>
-    <string name="colour_green">초록</string>
-    <string name="colour_orange">주황</string>
-    <string name="colour_purple">보라</string>
-    <string name="colour_white">하양</string>
+    <string name="colour_blue">파란색</string>
+    <string name="colour_green">초록색</string>
+    <string name="colour_orange">주황색</string>
+    <string name="colour_purple">보라색</string>
+    <string name="colour_white">흰색</string>
 </resources>

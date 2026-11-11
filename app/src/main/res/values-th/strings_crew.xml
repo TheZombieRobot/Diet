@@ -12,13 +12,13 @@
 
     <string name="crew_chat_subtitle">แชทแก๊ง · อ่านได้แค่คนในแก๊ง</string>
     <string name="crew_chat_invite">＋ ชวน</string>
-    <string name="crew_chat_on_today">คอนนี้คือวันนี้ ใช้แก๊งนี้หากันไหม?</string>
+    <string name="crew_chat_on_today">คอนนี้จัดวันนี้ ใช้แก๊งนี้หากันไหม?</string>
     <string name="crew_chat_switch">สลับ</string>
     <plurals name="crew_chat_send_flare_hint">
         <item quantity="other">🔥  ยิงพลุ: โชว์ว่าอยู่ไหน %d นาที</item>
     </plurals>
     <string name="crew_chat_empty">ยังไม่มีอะไร ข้อความจะถึงทุกคนในแก๊งภายในประมาณ 1 นาที (เร็วกว่านี้ถ้าใช้รีเลย์ของตัวเอง)</string>
-    <string name="crew_chat_night_tools_later">ปั่นกระแสกันเลย! พลุกับปิงด่วนจะเปิดในวันคอน</string>
+    <string name="crew_chat_night_tools_later">อุ่นเครื่องกันก่อนเลย! พลุกับปิงด่วนจะเปิดในวันคอน</string>
     <string name="crew_chat_message_hint">ส่งข้อความหาแก๊ง</string>
     <string name="crew_chat_not_sent">ส่งไม่สำเร็จ · แตะเพื่อลองใหม่</string>
     <string name="crew_chat_sending">กำลังส่ง…</string>

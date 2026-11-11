@@ -2,7 +2,7 @@
 <!-- Vietnamese: crew chat, notifications, friendship, safety, plan card, night stats, live status. -->
 <resources>
     <string name="crew_you">Bạn</string>
-    <string name="crew_default_name">Bạn</string>
+    <string name="crew_default_name">Một người bạn</string>
     <string name="crew_default_group_name">Nhóm đi show</string>
     <string name="crew_default_gig_name">Show</string>
     <string name="crew_someone">Ai đó</string>
@@ -15,10 +15,10 @@
     <string name="crew_chat_on_today">Show này diễn hôm nay. Dùng nhóm này để tìm nhau nhé?</string>
     <string name="crew_chat_switch">Chuyển</string>
     <plurals name="crew_chat_send_flare_hint">
-        <item quantity="other">🔥  Bắn pháo sáng: hiện chỗ bạn đứng trong %d phút</item>
+        <item quantity="other">🔥  Phát tín hiệu: hiện chỗ bạn đứng trong %d phút</item>
     </plurals>
     <string name="crew_chat_empty">Chưa có gì. Tin nhắn tới cả nhóm trong khoảng một phút (nhanh hơn nếu dùng relay riêng).</string>
-    <string name="crew_chat_night_tools_later">Hâm nóng không khí đi! Pháo sáng và ping nhanh sẽ bật vào ngày diễn.</string>
+    <string name="crew_chat_night_tools_later">Hâm nóng không khí đi! Tín hiệu và ping nhanh sẽ bật vào ngày diễn.</string>
     <string name="crew_chat_message_hint">Nhắn cả nhóm</string>
     <string name="crew_chat_not_sent">Chưa gửi được · Chạm để thử lại</string>
     <string name="crew_chat_sending">Đang gửi…</string>
@@ -28,10 +28,10 @@
     <string name="crew_chat_joined">%1$s đã vào nhóm</string>
     <string name="crew_chat_you_pinned">Bạn đã ghim: %1$s</string>
     <string name="crew_chat_pinned">%1$s đã ghim: %2$s</string>
-    <string name="crew_chat_you_cleared_plan">Bạn đã xóa kèo</string>
-    <string name="crew_chat_cleared_plan">%1$s đã xóa kèo</string>
-    <string name="crew_chat_you_flare">Bạn đã bắn pháo sáng: %1$s</string>
-    <string name="crew_chat_flare">%1$s đã bắn pháo sáng: %2$s</string>
+    <string name="crew_chat_you_cleared_plan">Bạn đã xóa kế hoạch</string>
+    <string name="crew_chat_cleared_plan">%1$s đã xóa kế hoạch</string>
+    <string name="crew_chat_you_flare">Bạn đã phát tín hiệu: %1$s</string>
+    <string name="crew_chat_flare">%1$s đã phát tín hiệu: %2$s</string>
     <string name="crew_chat_line_other">%1$s %2$s</string>
 
     <string name="crew_quick_coming">Đang tới 🏃</string>
@@ -46,15 +46,15 @@
     </plurals>
     <string name="crew_quick_home_safe">Về nhà an toàn ✅</string>
 
-    <string name="crew_plan_eyebrow">📌 KÈO</string>
-    <string name="crew_plan_none">Chưa ghim kèo nào.</string>
-    <string name="crew_plan_prompt">Ghim kèo để khỏi ai phải cuộn tìm: \"Bàn âm thanh sau encore\".</string>
-    <string name="crew_plan_by">bởi %1$s</string>
+    <string name="crew_plan_eyebrow">📌 KẾ HOẠCH</string>
+    <string name="crew_plan_none">Chưa ghim kế hoạch nào.</string>
+    <string name="crew_plan_prompt">Ghim kế hoạch để khỏi ai phải cuộn tìm: \"Bàn âm thanh sau encore\".</string>
+    <string name="crew_plan_by">do %1$s ghim</string>
     <string name="crew_plan_meet_up">★ Ghim điểm hẹn: %1$s</string>
-    <string name="crew_plan_pin">Ghim kèo</string>
+    <string name="crew_plan_pin">Ghim kế hoạch</string>
     <string name="crew_plan_change">Đổi</string>
     <string name="crew_plan_share">Chia sẻ dạng thẻ</string>
-    <string name="crew_plan_title">Kèo</string>
+    <string name="crew_plan_title">Kế hoạch</string>
     <string name="crew_plan_editor_body">Ghim trên đầu chat cho cả nhóm, không bao giờ bị trôi.</string>
     <string name="crew_plan_idea_sound_desk">Gặp ở bàn âm thanh sau encore</string>
     <string name="crew_plan_idea_bar">Bên trái quầy bar chính lúc nghỉ giữa giờ</string>
@@ -80,7 +80,7 @@
         <item quantity="other">còn %d phút · trên bản đồ</item>
     </plurals>
     <string name="crew_flare_end">Dừng</string>
-    <string name="crew_flare_title">Bắn pháo sáng</string>
+    <string name="crew_flare_title">Phát tín hiệu</string>
     <plurals name="crew_flare_body">
         <item quantity="other">Chỗ của bạn hiện trên bản đồ của nhóm trong %d phút, kèm vibe.</item>
     </plurals>
@@ -115,9 +115,9 @@
     </plurals>
     <string name="crew_notif_joined">đã vào nhóm 🎉</string>
     <plurals name="crew_notif_flare">
-        <item quantity="other">Pháo sáng: %1$s · ở đây trong %2$d phút</item>
+        <item quantity="other">Tín hiệu: %1$s · ở đây trong %2$d phút</item>
     </plurals>
-    <string name="crew_notif_new_plan">Kèo mới: %1$s</string>
+    <string name="crew_notif_new_plan">Kế hoạch mới: %1$s</string>
     <string name="crew_notif_done_title">%1$s đã kết thúc</string>
     <string name="crew_notif_done_saved">Ảnh và clip của bạn đã lưu trong Show của bạn.</string>
     <string name="crew_notif_done_text">Mong là đêm nay vui hết nấc. Lập nhóm mới lúc nào cũng được.</string>
@@ -138,8 +138,8 @@
     <string name="crew_ping_check_in">đang về nhà và sẽ check-in</string>
     <string name="crew_ping_home_safe">đã về nhà an toàn</string>
     <string name="crew_ping_chat">đã gửi tin nhắn</string>
-    <string name="crew_ping_flare">đã bắn pháo sáng</string>
-    <string name="crew_ping_plan">đã ghim kèo</string>
+    <string name="crew_ping_flare">đã phát tín hiệu</string>
+    <string name="crew_ping_plan">đã ghim kế hoạch</string>
     <string name="crew_ping_other">đã ping cả nhóm</string>
 
     <string name="crew_ping_title_coming">%1$s đang tới</string>
@@ -152,8 +152,8 @@
     <string name="crew_ping_title_check_in">%1$s đang về nhà và sẽ check-in</string>
     <string name="crew_ping_title_home_safe">%1$s đã về nhà an toàn</string>
     <string name="crew_ping_title_chat">%1$s đã gửi tin nhắn</string>
-    <string name="crew_ping_title_flare">%1$s đã bắn pháo sáng</string>
-    <string name="crew_ping_title_plan">%1$s đã ghim kèo</string>
+    <string name="crew_ping_title_flare">%1$s đã phát tín hiệu</string>
+    <string name="crew_ping_title_plan">%1$s đã ghim kế hoạch</string>
     <string name="crew_ping_title_other">%1$s đã ping cả nhóm</string>
 
     <string name="crew_rally_default">Gặp ở đây</string>
@@ -189,7 +189,7 @@
     </plurals>
     <string name="crew_memory_two_people">%1$s &amp; %2$s</string>
     <plurals name="crew_memory_text">
-        <item quantity="other">%d ảnh và clip. Chạm để sống lại.</item>
+        <item quantity="other">%d ảnh và clip. Chạm để xem lại.</item>
     </plurals>
 
     <string name="crew_moment_title">%1$s đã chia sẻ một khoảnh khắc</string>
@@ -222,13 +222,13 @@
     </plurals>
     <string name="crew_stats_quiet">Một đêm nhẹ nhàng</string>
 
-    <string name="crew_card_eyebrow">MOSHPOINT · KÈO TỐI NAY</string>
-    <string name="crew_card_plan">KÈO</string>
+    <string name="crew_card_eyebrow">MOSHPOINT · KẾ HOẠCH TỐI NAY</string>
+    <string name="crew_card_plan">KẾ HOẠCH</string>
     <string name="crew_card_meet_up">★  Điểm hẹn: %1$s</string>
     <string name="crew_card_whos_coming">AI ĐI</string>
     <string name="crew_card_footer">Lạc nhau? Tìm nhau trên Moshpoint.</string>
     <string name="crew_card_share_meet_up">Điểm hẹn: %1$s</string>
-    <string name="crew_card_share_title">Chia sẻ kèo</string>
+    <string name="crew_card_share_title">Chia sẻ kế hoạch</string>
 
     <string name="crew_request_title">%1$s đang ở gần và tìm bạn</string>
     <string name="crew_request_text">Chạm để nháy màn hình cho họ thấy bạn</string>

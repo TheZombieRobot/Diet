@@ -68,7 +68,7 @@
     <string name="crew_plan_pin_it">Fixar</string>
     <string name="crew_plan_unpin">Desafixar</string>
 
-    <string name="crew_vibe_lost">Perdido 😅</string>
+    <string name="crew_vibe_lost">Me perdi 😅</string>
     <string name="crew_vibe_bar">Hora do bar 🍺</string>
     <string name="crew_vibe_rail">Na grade 🎶</string>
     <string name="crew_vibe_food">Atrás de comida 🍔</string>
@@ -193,8 +193,8 @@
     <string name="crew_note_reset">%1$s resetou o convite: QR codes antigos não funcionam mais.</string>
 
     <string name="crew_wake_title">%1$s hoje à noite!</string>
-    <string name="crew_wake_text">Começa %1$s. Toque pra ficar ao vivo e sua galera te achar.</string>
-    <string name="crew_wake_text_venue">Começa %1$s em %2$s. Toque pra ficar ao vivo e sua galera te achar.</string>
+    <string name="crew_wake_text">Começa às %1$s. Toque pra ficar ao vivo e sua galera te achar.</string>
+    <string name="crew_wake_text_venue">Começa às %1$s em %2$s. Toque pra ficar ao vivo e sua galera te achar.</string>
 
     <plurals name="crew_memory_headline">
         <item quantity="one">Há um ano: %2$s</item>
@@ -221,7 +221,7 @@
     <string name="crew_moving_text_away">Andou %1$s de onde estava. Agora a %2$s de você. Toque pra ver.</string>
     <string name="crew_at_venue">no local</string>
     <string name="crew_from_venue">a %1$s do local</string>
-    <string name="crew_status_phone_died">%1$s celular morreu</string>
+    <string name="crew_status_phone_died">%1$s sem bateria</string>
     <string name="crew_status_distance">%1$s %2$s</string>
     <plurals name="crew_status_min_ago">
         <item quantity="one">%1$s há %2$d min</item>
