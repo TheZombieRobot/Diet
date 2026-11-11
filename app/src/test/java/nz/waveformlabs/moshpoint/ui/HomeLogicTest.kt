@@ -54,15 +54,15 @@ class HomeLogicTest {
 
     @Test fun distanceLabels() {
         inLocale(java.util.Locale("en", "NZ")) {
-            assertEquals("40 m", distanceLabel(43.0))
-            assertEquals("1.2 km", distanceLabel(1_234.0))
-            assertEquals("31 km", distanceLabel(31_400.0))
+            assertEquals("40\u00A0m", distanceLabel(43.0))
+            assertEquals("1.2\u00A0km", distanceLabel(1_234.0))
+            assertEquals("31\u00A0km", distanceLabel(31_400.0))
         }
         // Feet and miles where that's the norm; local decimal commas elsewhere.
         inLocale(java.util.Locale.US) {
-            assertEquals("140 ft", distanceLabel(43.0))
-            assertEquals("0.8 mi", distanceLabel(1_234.0))
+            assertEquals("140\u00A0ft", distanceLabel(43.0))
+            assertEquals("0.8\u00A0mi", distanceLabel(1_234.0))
         }
-        inLocale(java.util.Locale.GERMANY) { assertEquals("1,2 km", distanceLabel(1_234.0)) }
+        inLocale(java.util.Locale.GERMANY) { assertEquals("1,2\u00A0km", distanceLabel(1_234.0)) }
     }
 }
