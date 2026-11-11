@@ -1,5 +1,7 @@
 package nz.waveformlabs.moshpoint.ui
 
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -75,7 +77,9 @@ internal fun animatedAngle(targetDeg: Double): Float {
 }
 
 @Composable
-internal fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Friend?, group: Boolean) {
+internal fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Friend?, group: Boolean, onTap: ((String) -> Unit)? = null) {
+    // Where each mate's bubble was drawn, so a tap can pick them (not state: drawing only).
+    val tips = remember { HashMap<String, Offset>() }
     // Per-friend animated angle and colour (hot pink sliding into their colour).
     val angles = arrows.associate { a -> a.friendId to key(a.friendId) { animatedAngle(a.relativeDeg) } }
     val colours = arrows.associate { a ->
@@ -107,7 +111,16 @@ internal fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Fri
             else -> Txt.s(R.string.find_arrow_spoken, name, dist, clock)
         }
     }
-    Canvas(Modifier.fillMaxSize().semantics { contentDescription = spoken }) {
+    val tapModifier = if (onTap != null) {
+        Modifier.pointerInput(onTap) {
+            detectTapGestures { p ->
+                tips.minByOrNull { (it.value - p).getDistance() }
+                    ?.takeIf { (it.value - p).getDistance() < 64.dp.toPx() }
+                    ?.let { onTap(it.key) }
+            }
+        }
+    } else Modifier
+    Canvas(Modifier.fillMaxSize().then(tapModifier).semantics { contentDescription = spoken }) {
         val centre = Offset(size.width / 2, size.height / 2)
         val avatarR = if (group) 26.dp.toPx() else 32.dp.toPx()
         val chipW = 84.dp.toPx()
@@ -142,6 +155,7 @@ internal fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Fri
             val rad = Math.toRadians(angle.toDouble())
             val reach = length + avatarR + 8.dp.toPx()
             val tip = Offset(centre.x + reach * sin(rad).toFloat(), centre.y - reach * cos(rad).toFloat())
+            tips[a.friendId] = tip
             haloGlow(tip, avatarR, 16.dp.toPx(), colour, 0.75f * breathe)
             drawCircle(Mosh.Avatar, radius = avatarR, center = tip)
             val photo = PhotoStore.photos[a.friendId]

@@ -188,4 +188,7 @@
     <string name="find_map_status_no_mates">أضف أصحابًا أو أنشئ شلة لتراهم هنا</string>
     <string name="find_map_status_offline">لا يوجد إنترنت: نعرض آخر المواقع المعروفة</string>
     <string name="find_map_status_updated">تم التحديث الآن</string>
+    <string name="find_back_everyone">‹  الجميع</string>
+    <string name="find_strip_no_signal">لا إشارة</string>
+    <string name="find_strip_hint">اضغط على أحدهم للبحث عنه وحده</string>
 </resources>

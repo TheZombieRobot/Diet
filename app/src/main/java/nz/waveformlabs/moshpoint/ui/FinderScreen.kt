@@ -1,5 +1,14 @@
 package nz.waveformlabs.moshpoint.ui
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.scaleIn
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.spring
@@ -98,9 +107,19 @@ fun FinderScreen(
     debug: (@Composable (Modifier) -> Unit)? = null,
 ) {
     var showDebug by remember { mutableStateOf(false) }
-    // Back goes to the friends list, not out of the app (the debug panel's own handler, added later, wins while it's open).
+    // Whole crew: every mate's arrow at once. Tap one (their bubble, or in the strip below) to
+    // find just them; back, or "‹ Everyone", returns to the whole crew.
+    val everyone = arrows
+    val crewView = everyone.size > 1
+    var focus by remember { mutableStateOf<String?>(null) }
+    if (focus != null && everyone.none { it.friendId == focus }) focus = null
+    @Suppress("NAME_SHADOWING")
+    val arrows = focus?.let { f -> everyone.filter { it.friendId == f } } ?: everyone
+    val shownTitle = focus?.let { friendOf(it)?.name } ?: title
+    // Back goes to the whole crew (if focused), else the friends list, not out of the app
+    // (the debug panel's own handler, added later, wins while it's open).
     val hasBack = androidx.activity.compose.LocalOnBackPressedDispatcherOwner.current != null // false in screenshot tests
-    if (hasBack) androidx.activity.compose.BackHandler(onBack = onBack)
+    if (hasBack) androidx.activity.compose.BackHandler { if (focus != null) focus = null else onBack() }
     val haptics = LocalHapticFeedback.current
     LaunchedEffect(scan?.done) {
         if (scan?.done == true) haptics.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -179,8 +198,11 @@ fun FinderScreen(
         GlowBackground { listOf(Mosh.Violet, mood, Mosh.Pink) }
         Column(Modifier.fillMaxSize().padding(start = 24.dp, end = 24.dp, top = 12.dp, bottom = 24.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = onBack) {
-                    Text(stringResource(R.string.find_back_friends), style = Mosh.Label.copy(fontWeight = FontWeight.Medium, fontSize = 15.sp))
+                TextButton(onClick = { if (focus != null) focus = null else onBack() }) {
+                    Text(
+                        stringResource(if (focus != null) R.string.find_back_everyone else R.string.find_back_friends),
+                        style = Mosh.Label.copy(fontWeight = FontWeight.Medium, fontSize = 15.sp),
+                    )
                 }
                 Spacer(Modifier.weight(1f))
                 if ((BuildConfig.TEST_BUILD && DebugStatus.showUi) && debug != null) {
@@ -217,20 +239,37 @@ fun FinderScreen(
             Text(if (scanning) stringResource(R.string.find_eyebrow_scanning) else stringResource(R.string.find_eyebrow_finding), style = Mosh.Eyebrow)
             Spacer(Modifier.height(6.dp))
             Text(
-                title,
-                style = if (title.length > 12) Mosh.Title.copy(fontSize = 26.sp) else Mosh.Title,
+                shownTitle,
+                style = if (shownTitle.length > 12) Mosh.Title.copy(fontSize = 26.sp) else Mosh.Title,
                 maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
             )
 
             Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
-                when {
-                    scanning -> ScanProgress(scan!!)
-                    pointing.isEmpty() && distanceOnly.isEmpty() -> Searching(title)
-                    else -> {
-                        // Radar rings around arrows only: behind a big distance number they'd cut through it.
-                        if (pointing.isNotEmpty()) Box(Modifier.fillMaxSize(0.92f)) { RadarPulse({ mood.copy(alpha = 0.7f) }) }
-                        Arrows(pointing, friendOf, group = arrows.size > 1)
-                        if (pointing.isEmpty()) DistanceOnly(distanceOnly, friendOf)
+                if (scanning) {
+                    ScanProgress(scan!!)
+                } else {
+                    // Crew ↔ one mate: the other arrows fade away and theirs settles in.
+                    AnimatedContent(
+                        targetState = focus,
+                        transitionSpec = {
+                            (fadeIn(tween(280)) + scaleIn(tween(280), initialScale = if (targetState != null) 0.9f else 1.08f))
+                                .togetherWith(fadeOut(tween(180)))
+                        },
+                        label = "focus",
+                    ) { f ->
+                        val shown = f?.let { id -> everyone.filter { it.friendId == id } } ?: everyone
+                        val p = shown.filterIsInstance<ArrowState.Pointing>()
+                        val d = shown.filterIsInstance<ArrowState.DistanceOnly>()
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            if (p.isEmpty() && d.isEmpty()) {
+                                Searching(f?.let { friendOf(it)?.name } ?: title)
+                            } else {
+                                // Radar rings around arrows only: behind a big distance number they'd cut through it.
+                                if (p.isNotEmpty()) Box(Modifier.fillMaxSize(0.92f)) { RadarPulse({ mood.copy(alpha = 0.7f) }) }
+                                Arrows(p, friendOf, group = shown.size > 1, onTap = if (crewView && f == null) ({ id -> focus = id }) else null)
+                                if (p.isEmpty()) DistanceOnly(d, friendOf)
+                            }
+                        }
                     }
                 }
             }
@@ -251,6 +290,11 @@ fun FinderScreen(
                     )
                 }
                 Spacer(Modifier.height(20.dp))
+            }
+            // Everyone in the crew, including mates with no direction or no signal yet: tap to focus.
+            if (!scanning && crewView && focus == null) {
+                CrewStrip(everyone, friendOf, onPick = { focus = it })
+                Spacer(Modifier.height(10.dp))
             }
             if (!scanning && arrows.size > 1 && pointing.isNotEmpty()) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 14.dp)) {
@@ -342,5 +386,58 @@ fun FinderScreen(
             // Back closes the panel first, before leaving the finder.
             if (hasBack) androidx.activity.compose.BackHandler { showDebug = false }
         }
+    }
+}
+
+/**
+ * The whole crew in one row: each mate's face in a ring of their arrow colour (pink when far,
+ * their own colour up close, grey with no signal) and how far away they are. Tap to find just them.
+ */
+@Composable
+internal fun CrewStrip(arrows: List<ArrowState>, friendOf: (String) -> Friend?, onPick: (String) -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+        Row(
+            Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            arrows.sortedBy { a ->
+                when (a) {
+                    is ArrowState.Pointing -> a.distanceM ?: 9e6
+                    is ArrowState.DistanceOnly -> a.distanceM
+                    else -> 1e9
+                }
+            }.forEach { a ->
+                val f = friendOf(a.friendId) ?: return@forEach
+                val dist = when (a) {
+                    is ArrowState.Pointing -> a.distanceM
+                    is ArrowState.DistanceOnly -> a.distanceM
+                    else -> null
+                }
+                val ring by animateColorAsState(
+                    if (a is ArrowState.NoSignal) Mosh.TextFaint else Color(ArrowStyle.arrowColor(f.color, dist)),
+                    tween(800), label = "ring",
+                )
+                val (src, sc) = rememberPress()
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.pressScale(sc).clickable(interactionSource = src, indication = null) { onPick(a.friendId) }
+                        .padding(4.dp),
+                ) {
+                    Box(Modifier.size(50.dp).border(2.5.dp, ring, CircleShape).padding(4.dp), contentAlignment = Alignment.Center) {
+                        Avatar(f, 42.dp)
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        f.name, style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 14.sp, color = Mosh.Text),
+                        maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 72.dp),
+                    )
+                    Text(
+                        if (a is ArrowState.NoSignal) stringResource(R.string.find_strip_no_signal) else finderDistanceLabel(dist),
+                        style = Mosh.Body.copy(fontSize = 11.sp, lineHeight = 13.sp, color = ring), maxLines = 1,
+                    )
+                }
+            }
+        }
+        Text(stringResource(R.string.find_strip_hint), style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint), modifier = Modifier.padding(top = 2.dp))
     }
 }

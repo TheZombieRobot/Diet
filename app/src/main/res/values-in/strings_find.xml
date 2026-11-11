@@ -173,4 +173,7 @@
     <string name="find_map_status_no_mates">Tambah teman atau bikin geng untuk melihat mereka di sini</string>
     <string name="find_map_status_offline">Tidak ada internet: menampilkan lokasi terakhir</string>
     <string name="find_map_status_updated">Baru saja diperbarui</string>
+    <string name="find_back_everyone">‹  Semua</string>
+    <string name="find_strip_no_signal">tanpa sinyal</string>
+    <string name="find_strip_hint">Ketuk seseorang untuk mencari dia saja</string>
 </resources>

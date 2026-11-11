@@ -173,4 +173,7 @@
     <string name="find_map_status_no_mates">친구를 추가하거나 크루를 만들면 여기에 보여요</string>
     <string name="find_map_status_offline">인터넷 없음: 마지막 위치를 보여 줘요</string>
     <string name="find_map_status_updated">방금 업데이트됨</string>
+    <string name="find_back_everyone">‹  모두</string>
+    <string name="find_strip_no_signal">신호 없음</string>
+    <string name="find_strip_hint">한 명을 탭하면 그 사람만 찾아요</string>
 </resources>

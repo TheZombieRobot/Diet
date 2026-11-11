@@ -173,4 +173,7 @@
     <string name="find_map_status_no_mates">Thêm bạn hoặc tạo nhóm để thấy họ ở đây</string>
     <string name="find_map_status_offline">Không có mạng: hiện vị trí gần nhất</string>
     <string name="find_map_status_updated">Vừa cập nhật</string>
+    <string name="find_back_everyone">‹  Mọi người</string>
+    <string name="find_strip_no_signal">mất tín hiệu</string>
+    <string name="find_strip_hint">Chạm vào một người để chỉ tìm người đó</string>
 </resources>

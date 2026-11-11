@@ -176,4 +176,7 @@
     <string name="find_map_status_no_mates">Füge Freunde hinzu oder starte eine Crew, um sie hier zu sehen</string>
     <string name="find_map_status_offline">Kein Internet: zeige letzte bekannte Standorte</string>
     <string name="find_map_status_updated">Gerade aktualisiert</string>
+    <string name="find_back_everyone">‹  Alle</string>
+    <string name="find_strip_no_signal">kein Signal</string>
+    <string name="find_strip_hint">Tippe auf jemanden, um nur diese Person zu finden</string>
 </resources>

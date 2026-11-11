@@ -176,4 +176,7 @@
     <string name="find_map_status_no_mates">Burada görmek için arkadaş ekle ya da ekip kur</string>
     <string name="find_map_status_offline">İnternet yok: bilinen son konumlar gösteriliyor</string>
     <string name="find_map_status_updated">Az önce güncellendi</string>
+    <string name="find_back_everyone">‹  Herkes</string>
+    <string name="find_strip_no_signal">sinyal yok</string>
+    <string name="find_strip_hint">Sadece birini bulmak için ona dokun</string>
 </resources>

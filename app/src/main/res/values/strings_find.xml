@@ -239,4 +239,8 @@
     <string name="find_map_status_no_mates">Add mates or start a crew to see them here</string>
     <string name="find_map_status_offline">Can\'t reach the internet: showing last known spots</string>
     <string name="find_map_status_updated">Updated just now</string>
+    <!-- Crew finder: back from one mate to the whole crew; under a mate with no signal; hint under the crew strip -->
+    <string name="find_back_everyone">‹  Everyone</string>
+    <string name="find_strip_no_signal">no signal</string>
+    <string name="find_strip_hint">Tap someone to find just them</string>
 </resources>

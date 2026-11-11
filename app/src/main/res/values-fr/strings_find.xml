@@ -179,4 +179,7 @@
     <string name="find_map_status_no_mates">Ajoute des potes ou crée une crew pour les voir ici</string>
     <string name="find_map_status_offline">Pas d\'internet : dernières positions connues</string>
     <string name="find_map_status_updated">Mis à jour à l\'instant</string>
+    <string name="find_back_everyone">‹  Tout le monde</string>
+    <string name="find_strip_no_signal">pas de signal</string>
+    <string name="find_strip_hint">Appuie sur quelqu\'un pour ne chercher que lui ou elle</string>
 </resources>

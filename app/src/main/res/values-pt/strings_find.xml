@@ -179,4 +179,7 @@
     <string name="find_map_status_no_mates">Adicione amigos ou crie uma galera para vê-los aqui</string>
     <string name="find_map_status_offline">Sem internet: mostrando os últimos locais</string>
     <string name="find_map_status_updated">Atualizado agora</string>
+    <string name="find_back_everyone">‹  Todos</string>
+    <string name="find_strip_no_signal">sem sinal</string>
+    <string name="find_strip_hint">Toque em alguém para achar só essa pessoa</string>
 </resources>

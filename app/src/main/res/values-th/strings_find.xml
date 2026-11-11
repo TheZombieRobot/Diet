@@ -173,4 +173,7 @@
     <string name="find_map_status_no_mates">เพิ่มเพื่อนหรือสร้างแก๊งเพื่อดูเพื่อนที่นี่</string>
     <string name="find_map_status_offline">ไม่มีอินเทอร์เน็ต: แสดงตำแหน่งล่าสุดที่รู้</string>
     <string name="find_map_status_updated">อัปเดตเมื่อสักครู่</string>
+    <string name="find_back_everyone">‹  ทุกคน</string>
+    <string name="find_strip_no_signal">ไม่มีสัญญาณ</string>
+    <string name="find_strip_hint">แตะที่ใครสักคนเพื่อหาเฉพาะคนนั้น</string>
 </resources>

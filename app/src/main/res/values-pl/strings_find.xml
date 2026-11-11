@@ -182,4 +182,7 @@
     <string name="find_map_status_no_mates">Dodaj znajomych albo załóż ekipę, żeby ich tu zobaczyć</string>
     <string name="find_map_status_offline">Brak internetu: ostatnie znane miejsca</string>
     <string name="find_map_status_updated">Zaktualizowano przed chwilą</string>
+    <string name="find_back_everyone">‹  Wszyscy</string>
+    <string name="find_strip_no_signal">brak sygnału</string>
+    <string name="find_strip_hint">Stuknij kogoś, by szukać tylko tej osoby</string>
 </resources>

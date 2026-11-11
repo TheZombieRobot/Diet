@@ -176,4 +176,7 @@
     <string name="find_map_status_no_mates">यहाँ देखने के लिए दोस्त जोड़ें या ग्रुप बनाएँ</string>
     <string name="find_map_status_offline">इंटरनेट नहीं: आख़िरी पता जगहें दिखा रहे हैं</string>
     <string name="find_map_status_updated">अभी अपडेट हुआ</string>
+    <string name="find_back_everyone">‹  सभी</string>
+    <string name="find_strip_no_signal">सिग्नल नहीं</string>
+    <string name="find_strip_hint">सिर्फ़ किसी एक को ढूँढने के लिए उस पर टैप करें</string>
 </resources>

@@ -173,4 +173,7 @@
     <string name="find_map_status_no_mates">仲間を追加するかクルーを作るとここに表示されます</string>
     <string name="find_map_status_offline">インターネットなし：最後の場所を表示中</string>
     <string name="find_map_status_updated">たった今更新</string>
+    <string name="find_back_everyone">‹  全員</string>
+    <string name="find_strip_no_signal">電波なし</string>
+    <string name="find_strip_hint">タップするとその人だけを探せます</string>
 </resources>

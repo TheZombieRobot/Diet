@@ -176,4 +176,7 @@
     <string name="find_map_status_no_mates">Voeg vrienden toe of start een crew om ze hier te zien</string>
     <string name="find_map_status_offline">Geen internet: laatst bekende plekken</string>
     <string name="find_map_status_updated">Zojuist bijgewerkt</string>
+    <string name="find_back_everyone">‹  Iedereen</string>
+    <string name="find_strip_no_signal">geen signaal</string>
+    <string name="find_strip_hint">Tik op iemand om alleen die persoon te zoeken</string>
 </resources>

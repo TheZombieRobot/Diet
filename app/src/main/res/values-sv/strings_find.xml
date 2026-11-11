@@ -176,4 +176,7 @@
     <string name="find_map_status_no_mates">Lägg till kompisar eller starta en grupp för att se dem här</string>
     <string name="find_map_status_offline">Inget internet: visar senast kända platser</string>
     <string name="find_map_status_updated">Uppdaterat nyss</string>
+    <string name="find_back_everyone">‹  Alla</string>
+    <string name="find_strip_no_signal">ingen signal</string>
+    <string name="find_strip_hint">Tryck på någon för att bara hitta den personen</string>
 </resources>
