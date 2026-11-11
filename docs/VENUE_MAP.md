@@ -16,8 +16,8 @@ Updated after every pushed step, so the work can be picked up by anyone.
 | Step | State |
 |---|---|
 | 1. This document | done |
-| 2. Core logic + unit tests (floor maths, at-the-gig rule, placement, map plan, floor record, advert pressure) | next |
-| 3. App: automatic offline venue map, crew card line, "Save this area" removed | not started |
+| 2. Core logic + unit tests (floor maths, at-the-gig rule, placement, map plan, floor record, advert pressure) | done: `Floors.kt`, `FloorBox.kt`, `Venue.kt`, `VenueMapPlan.kt`, `Advert.kt` in `core`, 159 core tests pass |
+| 3. App: automatic offline venue map, crew card line, "Save this area" removed | next |
 | 4. App: map opens on the venue at the gig; UWB mates placed around you | not started |
 | 5. App: upstairs/downstairs tags (barometer, sharing, calibration) | not started |
 | 6. Strings in 19 languages (`strings_venue.xml`), screenshot tests in their own class | not started |
