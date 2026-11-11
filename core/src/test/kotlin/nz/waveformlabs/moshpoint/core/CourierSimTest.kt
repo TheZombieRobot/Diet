@@ -559,10 +559,13 @@ class CourierSimTest {
         w.run(20 * 60)
         ids.forEach { assertNotEquals(Courier.State.SENT, a.state(it)) }
         assertEquals(0, w.relay.puts)
+        // The app shows a new message as "Waiting for signal" while this lasts, not "Sending…".
+        assertTrue(a.courier.onHold(a.now))
         w.relay.tooMany = false
         w.run(16 * 60)
         ids.forEach { assertEquals(Courier.State.SENT, a.state(it)) }
         assertEquals(3, w.relay.puts)
+        assertFalse(a.courier.onHold(a.now))
     }
 
     @Test fun aSpentBudgetHoldsChatBackButNotNeedHelpAndFlushesNextDay() {

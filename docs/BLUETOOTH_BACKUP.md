@@ -155,10 +155,13 @@ then 2 a second **per IP**; the public relay doesn't de-duplicate at all.
   sending, opening and carrying old-key packets.
 - The phone that removed someone broadcasts a small **"this key is retired"** packet, sealed
   with the old key, through the crowd relay for six hours. A phone that hears it stops using
-  that key over Bluetooth until the relay gives it the new one, and passes the notice on. The
-  hold lapses 30 minutes after the last notice heard. So a forged notice (only someone holding
-  the crew key can make one) can pause Bluetooth backup while they stand there, and never move
-  a crew.
+  that key over Bluetooth until the relay gives it the new one, and passes the notice on, so
+  crew phones in range of each other stay on hold together. A phone on its own drops the hold
+  30 minutes after the last notice it heard. Only someone holding the crew key can make a
+  notice, and all it can do is pause Bluetooth backup: it can never move a crew.
+- A limit that follows: a crew phone that has been alone and without signal for more than
+  half an hour, and then meets the removed member, exchanges old-key Bluetooth messages with
+  them again until it gets signal. It has no way to know who was removed until then.
 - **Messages in flight under the old key:** carriers drop other people's. The author's phone
   re-signs its own not-yet-uploaded messages under the new key once it has it. The message id
   is the same, so anyone who already has the old copy shows it once.
@@ -447,7 +450,9 @@ Shared files this branch does change, and how much:
   is reliably heard by a phone scanning at low power in a crowd; how many phones a venue can
   take; real battery cost; whether every phone that says it has Bluetooth 5 extended adverts
   accepts 200 bytes; whether the arrow and UWB are undisturbed in practice (the schedule is
-  proven, the radio isn't). These numbers (5.5 s on air, 8.5 s cycle, one summary a minute,
+  proven, the radio isn't). Some phones scan less often with the screen off; there a message
+  may need more than one airing, which the once-a-minute summary takes care of, at the cost
+  of time. These numbers (5.5 s on air, 8.5 s cycle, one summary a minute,
   six at a time) are first guesses in `Courier` and `RelaySchedule`, in one place each, to be
   tuned from field recordings.
 

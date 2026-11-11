@@ -52,9 +52,13 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
 
     /** The message radio is on (you're live). Set only by [startRadio] and [stopRadio]. */
     @Volatile private var radioOn = false
-    private var canCarry = false
     private var bluetoothCheckedAt = 0L
-    private var bluetoothOn = false
+
+    // The same three facts as Compose state, so the note at the top of the chat redraws when one changes.
+    private val liveState = mutableStateOf(false)
+    private val bluetoothOn = mutableStateOf(false)
+    /** This phone's adverts have room for a message packet (Bluetooth 5 extended adverts). */
+    private val canCarry = mutableStateOf(false)
 
     /** Bluetooth messages for the main crew are on hold until the relay gives us its new key (Compose state). */
     val paused = mutableStateOf(false)
@@ -150,9 +154,9 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
         val crewId = GigArchive.idFor(g)
         val m = courier.post(crewId, sealed, t)
         courier.tick(t)
-        // Nothing started (no network, or the relay asked us to slow down): say it's waiting,
-        // rather than "Sending…" for as long as that lasts.
-        if (m != null && courier.stateOf(m.id) == Courier.State.WAITING && !courier.uploading(m.id)) {
+        // Nothing can go just now (no network, or the relay asked us to slow down): say it's
+        // waiting, rather than "Sending…" for as long as that lasts.
+        if (m != null && courier.onHold(t) && courier.stateOf(m.id) == Courier.State.WAITING) {
             scope.launch { stateChanged(crewId, m.id, Courier.State.WAITING) }
         }
         save()
@@ -249,34 +253,47 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
     /** You went live: start carrying messages over Bluetooth. Called from VisibilityService.begin() only. */
     fun startRadio(c: Context) {
         init(c)
-        val a = c.applicationContext
-        val adapter = a.getSystemService(BluetoothManager::class.java)?.adapter
-        // Needs Bluetooth 5 extended adverts with room for a whole packet (plus the advert's own header).
-        canCarry = runCatching {
-            adapter != null && adapter.isLeExtendedAdvertisingSupported && adapter.leMaximumAdvertisingDataLength >= MessagePacket.MAX_SIZE + 8
-        }.getOrDefault(false)
-        bluetoothCheckedAt = 0L
         radioOn = true
-        DebugStatus.set(K, if (canCarry) "on" else "this phone can't carry messages (needs Bluetooth 5 adverts)")
+        liveState.value = true
+        checkBluetooth(force = true)
     }
 
     /** You went hidden (or the service stopped). Called from VisibilityService.onDestroy() only. */
     fun stopRadio() {
         radioOn = false
+        liveState.value = false
         DebugStatus.set(K, "off (not live)")
     }
 
-    /** Can this phone carry messages over Bluetooth at all (Bluetooth 5 extended adverts)? */
-    fun supported(c: Context): Boolean = CrowdRelayRadio.supported(c)
+    /** Is Bluetooth on, and do this phone's adverts have room for a packet? Looked at every couple of seconds while live. */
+    private fun checkBluetooth(force: Boolean = false) {
+        val t = SystemClock.elapsedRealtime()
+        if (!force && t - bluetoothCheckedAt <= 2_000) return
+        bluetoothCheckedAt = t
+        val adapter = runCatching { app?.getSystemService(BluetoothManager::class.java)?.adapter }.getOrNull()
+        val on = runCatching { adapter?.isEnabled == true }.getOrDefault(false)
+        // Needs Bluetooth 5 extended adverts with room for a whole packet (plus the advert's own
+        // header). A phone asked while Bluetooth is off says no, so it's asked again once it's on.
+        if (on && (!canCarry.value || force)) {
+            canCarry.value = runCatching {
+                adapter != null && adapter.isLeExtendedAdvertisingSupported && adapter.leMaximumAdvertisingDataLength >= MessagePacket.MAX_SIZE + 8
+            }.getOrDefault(false)
+        }
+        bluetoothOn.value = on
+        DebugStatus.set(
+            K,
+            when {
+                !on -> "Bluetooth is off"
+                canCarry.value -> "on"
+                else -> "this phone can't carry messages (needs Bluetooth 5 adverts with room for 200 bytes)"
+            },
+        )
+    }
 
     override fun ready(): Boolean {
-        if (!radioOn || !canCarry) return false
-        val t = SystemClock.elapsedRealtime()
-        if (t - bluetoothCheckedAt > 2_000) {
-            bluetoothCheckedAt = t
-            bluetoothOn = runCatching { app?.getSystemService(BluetoothManager::class.java)?.adapter?.isEnabled == true }.getOrDefault(false)
-        }
-        return bluetoothOn
+        if (!radioOn) return false
+        checkBluetooth()
+        return bluetoothOn.value && canCarry.value
     }
 
     /** A version 2 relay packet was heard. */
@@ -363,9 +380,9 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
         if (!noNetwork) return null
         if (!main || GroupSync.sleeping || GroupSync.following) return Txt.s(R.string.offline_hint_no_signal)
         return when {
-            !radioOn -> Txt.s(R.string.offline_hint_go_live)
-            !supported(c) -> Txt.s(R.string.offline_hint_unsupported)
-            c.getSystemService(BluetoothManager::class.java)?.adapter?.isEnabled != true -> Txt.s(R.string.offline_hint_bluetooth_off)
+            !liveState.value -> Txt.s(R.string.offline_hint_go_live)
+            !bluetoothOn.value -> Txt.s(R.string.offline_hint_bluetooth_off)
+            !canCarry.value -> Txt.s(R.string.offline_hint_unsupported)
             else -> Txt.s(R.string.offline_hint_bluetooth)
         }
     }

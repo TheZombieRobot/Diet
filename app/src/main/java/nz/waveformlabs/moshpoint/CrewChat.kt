@@ -345,7 +345,8 @@ object CrewChat {
         val app = c.applicationContext
         resend(app, g, line)
         // "Not sent" becomes "Sending…" (or "Waiting for signal") again; one that's waiting stays as it is.
-        if (line.state == FAILED) setState(app, g, OfflineMessages.firstState()) { it.key == line.key }
+        // (Matched on sender, time and text: resend() may just have given an old line its id.)
+        if (line.state == FAILED) setState(app, g, OfflineMessages.firstState()) { it.legacyKey == line.legacyKey }
         OfflineMessages.retryNow(c)
     }
 
@@ -410,7 +411,7 @@ object CrewChat {
             live.takeLast(10).forEach { resend(c, g, it) }
             // Past three days the relay wouldn't have kept it anyway: "Not sent", until the person taps it.
             stale.filter { (it.state == SENDING || it.state == WAITING) && !OfflineMessages.holds(idNumber(it)) }
-                .forEach { l -> setState(c, g, FAILED) { it.key == l.key } }
+                .forEach { l -> setState(c, g, FAILED) { it.legacyKey == l.legacyKey } }
         }
     }
 

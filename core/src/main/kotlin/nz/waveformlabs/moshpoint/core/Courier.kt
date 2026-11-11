@@ -244,8 +244,8 @@ class Courier(
     /** Where one of our messages has got to, or null if the courier no longer holds it. */
     fun stateOf(id: Long): State? = parcels[id]?.takeIf { it.mine }?.let { stateOf(it) }
 
-    /** Is an upload of message [id] under way right now? */
-    fun uploading(id: Long): Boolean = parcels[id]?.let { it.primaryFlying || it.durableFlying } ?: false
+    /** Nothing can be uploaded right now: no network, or the relay asked us to slow down. */
+    fun onHold(nowMs: Long): Boolean = !online || nowMs < uploadHoldUntilMs
 
     /** Ask again now for anything of ours still waiting (the user tapped retry). */
     fun retryNow(nowMs: Long) {
