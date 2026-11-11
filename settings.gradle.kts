@@ -23,3 +23,4 @@ rootProject.name = "moshpoint"
 include(":core")
 include(":app")
 include(":server")
+include(":wear")

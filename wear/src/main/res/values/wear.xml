@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- What this app tells the Wear Data Layer it can do: the phone looks for "moshpoint_watch"
+     before pushing anything, so a phone with no Moshpoint watch stays silent. -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@array/android_wear_capabilities">
+    <string-array name="android_wear_capabilities" translatable="false">
+        <item>moshpoint_watch</item>
+    </string-array>
+</resources>

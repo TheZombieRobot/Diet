@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Moshpoint for Wear OS: the companion to the phone app (same application id and signing
+     key, which the Wear Data Layer requires). Design notes: docs/WATCH.md. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-feature android:name="android.hardware.type.watch" />
+
+    <!-- Buzzes that guide you. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Ambient (wrist-down) mode. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Keeps a find going (buzzes, ongoing activity) while the wrist is down. The service
+         talks to the phone, a connected device; declaring CHANGE_NETWORK_STATE is the
+         prerequisite Android 14+ asks for that type, with no prompt for the wearer. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <!-- The "Finding Sam" ongoing notification (Wear OS 4+ asks the wearer once). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.DeviceDefault">
+
+        <uses-library
+            android:name="com.google.android.wearable"
+            android:required="false" />
+
+        <!-- Not standalone: the phone does the finding and the sending. -->
+        <meta-data
+            android:name="com.google.android.wearable.standalone"
+            android:value="false" />
+
+        <activity
+            android:name=".CrewActivity"
+            android:exported="true"
+            android:taskAffinity="">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- The arrow. singleTop so the ongoing-activity chip returns to the find in progress. -->
+        <activity
+            android:name=".FinderActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:taskAffinity="" />
+
+        <!-- Hold-to-send "Need help". Exported so the tile can open it. Free for everyone. -->
+        <activity
+            android:name=".SosActivity"
+            android:exported="true"
+            android:taskAffinity="" />
+
+        <service
+            android:name=".FindSessionService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
+
+        <!-- Everything from the phone arrives here: live find updates, ping answers, and the
+             crew status and faces it pushes when they change. -->
+        <service
+            android:name=".WatchListenerService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:host="*"
+                    android:pathPrefix="/mosh/"
+                    android:scheme="wear" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".CrewTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_mosh"
+            android:label="@string/tile_label"
+            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
+            <intent-filter>
+                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
+            </intent-filter>
+            <meta-data
+                android:name="androidx.wear.tiles.PREVIEW"
+                android:resource="@drawable/tile_preview" />
+        </service>
+
+        <!-- UPDATE_PERIOD_SECONDS 0: never polled. It redraws when the phone pushes a change. -->
+        <service
+            android:name=".CrewComplicationService"
+            android:exported="true"
+            android:icon="@drawable/ic_mosh"
+            android:label="@string/complication_label"
+            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
+            <intent-filter>
+                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
+            </intent-filter>
+            <meta-data
+                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+                android:value="SHORT_TEXT,LONG_TEXT,RANGED_VALUE" />
+            <meta-data
+                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+                android:value="0" />
+        </service>
+    </application>
+</manifest>
