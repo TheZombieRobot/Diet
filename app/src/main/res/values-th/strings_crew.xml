@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thai: crew chat, notifications, friendship, safety, plan card, night stats, live status. -->
+<resources>
+    <string name="crew_you">คุณ</string>
+    <string name="crew_default_name">เพื่อน</string>
+    <string name="crew_default_group_name">กลุ่มไปคอน</string>
+    <string name="crew_default_gig_name">คอน</string>
+    <string name="crew_someone">ใครสักคน</string>
+    <string name="crew_name_numbered">%1$s (%2$d)</string>
+    <string name="crew_cancel">ยกเลิก</string>
+    <string name="crew_close">ปิด</string>
+
+    <string name="crew_chat_subtitle">แชทแก๊ง · อ่านได้แค่คนในแก๊ง</string>
+    <string name="crew_chat_invite">＋ ชวน</string>
+    <string name="crew_chat_on_today">คอนนี้คือวันนี้ ใช้แก๊งนี้หากันไหม?</string>
+    <string name="crew_chat_switch">สลับ</string>
+    <plurals name="crew_chat_send_flare_hint">
+        <item quantity="other">🔥  ยิงพลุ: โชว์ว่าอยู่ไหน %d นาที</item>
+    </plurals>
+    <string name="crew_chat_empty">ยังไม่มีอะไร ข้อความจะถึงทุกคนในแก๊งภายในประมาณ 1 นาที (เร็วกว่านี้ถ้าใช้รีเลย์ของตัวเอง)</string>
+    <string name="crew_chat_night_tools_later">ปั่นกระแสกันเลย! พลุกับปิงด่วนจะเปิดในวันคอน</string>
+    <string name="crew_chat_message_hint">ส่งข้อความหาแก๊ง</string>
+    <string name="crew_chat_not_sent">ส่งไม่สำเร็จ · แตะเพื่อลองใหม่</string>
+    <string name="crew_chat_sending">กำลังส่ง…</string>
+    <string name="crew_chat_line_with_time">%1$s · %2$s</string>
+
+    <string name="crew_chat_you_joined">คุณเข้าแก๊งแล้ว</string>
+    <string name="crew_chat_joined">%1$s เข้าแก๊งแล้ว</string>
+    <string name="crew_chat_you_pinned">คุณปักหมุด: %1$s</string>
+    <string name="crew_chat_pinned">%1$s ปักหมุด: %2$s</string>
+    <string name="crew_chat_you_cleared_plan">คุณล้างแผนแล้ว</string>
+    <string name="crew_chat_cleared_plan">%1$s ล้างแผนแล้ว</string>
+    <string name="crew_chat_you_flare">คุณยิงพลุ: %1$s</string>
+    <string name="crew_chat_flare">%1$s ยิงพลุ: %2$s</string>
+    <string name="crew_chat_line_other">%1$s %2$s</string>
+
+    <string name="crew_quick_coming">กำลังไป 🏃</string>
+    <string name="crew_quick_where">อยู่ไหน? 👀</string>
+    <string name="crew_quick_stay_put">รออยู่ตรงนั้น ✋</string>
+    <string name="crew_quick_meet_pin">เจอกันที่หมุด 📍</string>
+    <string name="crew_quick_all_good">โอเคดี 👍</string>
+    <string name="crew_quick_going_home">กำลังกลับบ้าน 🏠</string>
+    <string name="crew_quick_need_help">🚨 ขอความช่วยเหลือ</string>
+    <plurals name="crew_quick_check_in">
+        <item quantity="other">กำลังกลับบ้าน 🏠 จะเช็กอินภายใน %d นาที</item>
+    </plurals>
+    <string name="crew_quick_home_safe">ถึงบ้านปลอดภัย ✅</string>
+
+    <string name="crew_plan_eyebrow">📌 แผน</string>
+    <string name="crew_plan_none">ยังไม่มีแผนที่ปักไว้</string>
+    <string name="crew_plan_prompt">ปักหมุดแผนไว้ ไม่ต้องเลื่อนหา: \"เจอกันที่บูธเสียงหลังอังกอร์\"</string>
+    <string name="crew_plan_by">โดย %1$s</string>
+    <string name="crew_plan_meet_up">★ หมุดจุดนัดเจอ: %1$s</string>
+    <string name="crew_plan_pin">ปักหมุดแผน</string>
+    <string name="crew_plan_change">เปลี่ยน</string>
+    <string name="crew_plan_share">แชร์เป็นการ์ด</string>
+    <string name="crew_plan_title">แผน</string>
+    <string name="crew_plan_editor_body">ปักไว้บนสุดของแชทให้ทุกคนเห็น ไม่หายไปไหน</string>
+    <string name="crew_plan_idea_sound_desk">เจอกันที่บูธเสียงหลังอังกอร์</string>
+    <string name="crew_plan_idea_bar">ซ้ายบาร์ใหญ่ตอนพักเบรก</string>
+    <string name="crew_plan_idea_car">กลับมาที่รถก่อน 23:30</string>
+    <string name="crew_plan_idea_tent">ถ้าหลงกัน เจอกันที่เต็นท์</string>
+    <string name="crew_plan_pin_it">ปักหมุดเลย</string>
+    <string name="crew_plan_unpin">เลิกปักหมุด</string>
+
+    <string name="crew_vibe_lost">หลงอยู่ 😅</string>
+    <string name="crew_vibe_bar">ไปบาร์ 🍺</string>
+    <string name="crew_vibe_rail">ติดขอบเวที 🎶</string>
+    <string name="crew_vibe_food">หาของกิน 🍔</string>
+    <string name="crew_vibe_toilets">เข้าห้องน้ำ 🚻</string>
+    <string name="crew_vibe_air">ออกไปสูดอากาศ 🌬️</string>
+    <string name="crew_vibe_merch">บูธเมอร์ช 👕</string>
+    <string name="crew_vibe_leaving">ใกล้กลับแล้ว 👋</string>
+    <string name="crew_flare_mine">คุณ: %1$s</string>
+    <string name="crew_flare_theirs">%1$s: %2$s</string>
+    <plurals name="crew_flare_left">
+        <item quantity="other">เหลือ %d นาที</item>
+    </plurals>
+    <plurals name="crew_flare_left_on_map">
+        <item quantity="other">เหลือ %d นาที · บนแผนที่</item>
+    </plurals>
+    <string name="crew_flare_end">หยุด</string>
+    <string name="crew_flare_title">ยิงพลุ</string>
+    <plurals name="crew_flare_body">
+        <item quantity="other">จุดของคุณจะโชว์บนแผนที่แก๊ง %d นาที พร้อมบอกฟีล</item>
+    </plurals>
+    <string name="crew_flare_own_hint">หรือพิมพ์เอง…</string>
+    <string name="crew_flare_send">ส่ง</string>
+
+    <string name="crew_help_title">ขอความช่วยเหลือ</string>
+    <string name="crew_help_alerted">แจ้งแก๊งแล้ว ✓</string>
+    <string name="crew_help_alert">แจ้งเตือนแก๊ง</string>
+    <string name="crew_help_alert_sub">แจ้งเตือนด่วนพร้อมตำแหน่งของคุณ</string>
+    <string name="crew_help_text_contact">ส่ง SMS หา %1$s</string>
+    <string name="crew_help_text_contact_sub">แอปข้อความจะเปิดพร้อมตำแหน่งของคุณ ใช้ได้แม้ไม่มีเน็ต</string>
+    <string name="crew_help_add_contact">เพิ่มผู้ติดต่อฉุกเฉิน</string>
+    <string name="crew_help_add_contact_sub">คนนอกแก๊งที่ส่งข้อความหาได้ตอนจำเป็น</string>
+    <string name="crew_help_contact_name">ชื่อ (เช่น แม่)</string>
+    <string name="crew_help_contact_number">เบอร์มือถือ</string>
+    <string name="crew_help_save_contact">บันทึกผู้ติดต่อ</string>
+    <string name="crew_help_call">โทร %1$s</string>
+    <string name="crew_help_call_sub">ตำรวจ ดับเพลิง รถพยาบาล</string>
+    <string name="crew_help_call_police">ตำรวจ</string>
+    <string name="crew_help_call_ambulance">รถพยาบาลและดับเพลิง</string>
+    <string name="crew_help_no_signal">ไม่มีสัญญาณเลย? มือถือรุ่นใหม่หลายรุ่นติดต่อเหตุฉุกเฉินผ่านดาวเทียมได้: โทร %1$s แล้วทำตามขั้นตอน ถ้าอยู่ในเฟสติวัล เจ้าหน้าที่รักษาความปลอดภัยและเต็นท์ปฐมพยาบาลช่วยได้เร็ว</string>
+    <string name="crew_help_sms">ขอความช่วยเหลือด่วน (ส่งจาก Moshpoint)</string>
+    <string name="crew_help_sms_where">ขอความช่วยเหลือด่วน อยู่ตรงนี้: %1$s (ส่งจาก Moshpoint)</string>
+
+    <string name="crew_channel_messages">ข้อความแก๊ง</string>
+    <string name="crew_channel_help">คำขอความช่วยเหลือจากแก๊ง</string>
+    <string name="crew_channel_requests">เพื่อนกำลังหาคุณ</string>
+    <string name="crew_notif_line">%1$s: %2$s</string>
+    <plurals name="crew_new_messages">
+        <item quantity="other">ข้อความใหม่ %d ข้อความ</item>
+    </plurals>
+    <string name="crew_notif_joined">เข้าแก๊งแล้ว 🎉</string>
+    <plurals name="crew_notif_flare">
+        <item quantity="other">พลุ: %1$s · อยู่ตรงนี้ %2$d นาที</item>
+    </plurals>
+    <string name="crew_notif_new_plan">แผนใหม่: %1$s</string>
+    <string name="crew_notif_done_title">%1$s จบแล้ว</string>
+    <string name="crew_notif_done_saved">รูปและคลิปบันทึกไว้ใน คอนของคุณ แล้ว</string>
+    <string name="crew_notif_done_text">หวังว่าจะมันส์นะ ตั้งแก๊งใหม่ได้ทุกเมื่อ</string>
+    <string name="crew_notif_overdue_title">%1$s ยังไม่เช็กอิน</string>
+    <string name="crew_notif_overdue_text">เขากำลังกลับบ้านและน่าจะถึงแล้ว ลองโทรหาหน่อย แตะเพื่อดูตำแหน่งล่าสุด</string>
+    <string name="crew_notif_help_where">เขากด ขอความช่วยเหลือ แตะเพื่อดูว่าอยู่ไหน แล้วเช็กว่าเขาโอเคไหม</string>
+    <string name="crew_notif_help">เขากด ขอความช่วยเหลือ เช็กว่าเขาโอเคไหม</string>
+    <string name="crew_notif_tap_where">แตะเพื่อดูว่าอยู่ไหน</string>
+    <string name="crew_notif_from_crew">จากแก๊งของคุณ</string>
+
+    <string name="crew_ping_coming">กำลังไป</string>
+    <string name="crew_ping_stay_put">บอกให้รออยู่ตรงนั้น</string>
+    <string name="crew_ping_where">ถามว่าคุณอยู่ไหน</string>
+    <string name="crew_ping_meet_pin">บอกให้เจอกันที่หมุด</string>
+    <string name="crew_ping_all_good">โอเคดี</string>
+    <string name="crew_ping_going_home">กำลังกลับบ้าน</string>
+    <string name="crew_ping_need_help">ขอความช่วยเหลือด่วน</string>
+    <string name="crew_ping_check_in">กำลังกลับบ้าน แล้วจะเช็กอิน</string>
+    <string name="crew_ping_home_safe">ถึงบ้านปลอดภัยแล้ว</string>
+    <string name="crew_ping_chat">ส่งข้อความ</string>
+    <string name="crew_ping_flare">ยิงพลุ</string>
+    <string name="crew_ping_plan">ปักหมุดแผน</string>
+    <string name="crew_ping_other">ส่งสัญญาณหาแก๊ง</string>
+
+    <string name="crew_ping_title_coming">%1$s กำลังไป</string>
+    <string name="crew_ping_title_stay_put">%1$s บอกให้รออยู่ตรงนั้น</string>
+    <string name="crew_ping_title_where">%1$s ถามว่าคุณอยู่ไหน</string>
+    <string name="crew_ping_title_meet_pin">%1$s บอกให้เจอกันที่หมุด</string>
+    <string name="crew_ping_title_all_good">%1$s โอเคดี</string>
+    <string name="crew_ping_title_going_home">%1$s กำลังกลับบ้าน</string>
+    <string name="crew_ping_title_need_help">%1$s ขอความช่วยเหลือด่วน</string>
+    <string name="crew_ping_title_check_in">%1$s กำลังกลับบ้าน แล้วจะเช็กอิน</string>
+    <string name="crew_ping_title_home_safe">%1$s ถึงบ้านปลอดภัยแล้ว</string>
+    <string name="crew_ping_title_chat">%1$s ส่งข้อความ</string>
+    <string name="crew_ping_title_flare">%1$s ยิงพลุ</string>
+    <string name="crew_ping_title_plan">%1$s ปักหมุดแผน</string>
+    <string name="crew_ping_title_other">%1$s ส่งสัญญาณหาแก๊ง</string>
+
+    <string name="crew_rally_default">เจอกันตรงนี้</string>
+
+    <string name="crew_friend_need_crew">เก็บเป็นเพื่อนได้ตอนที่อยู่แก๊งเดียวกัน</string>
+    <string name="crew_friend_gone">เขาไม่ได้อยู่ในแก๊งแล้ว</string>
+    <string name="crew_friend_unreachable">ยังติดต่อ %1$s แบบส่วนตัวไม่ได้ ลองใหม่หลังจากเห็นเขาคืนนี้ (ถ้ายังเป็นแบบนี้ แอปของเขาอาจต้องอัปเดต)</string>
+    <string name="crew_friend_ask_failed">ขอ %1$s ไม่สำเร็จ ลองใหม่อีกที</string>
+    <string name="crew_friend_asked">ขอ %1$s เป็นเพื่อนกันต่อแล้ว ถ้าเขาตอบตกลง จะเป็นเพื่อนกันทุกคอน</string>
+    <string name="crew_friend_request_title">%1$s อยากเป็นเพื่อนกันต่อ</string>
+    <string name="crew_friend_request_text">จาก %1$s แตะเพื่อตอบตกลง แล้วจะหากันเจอได้ทุกคอน</string>
+    <string name="crew_friend_accepted_title">%1$s เป็นเพื่อนคุณแล้ว</string>
+    <string name="crew_friend_accepted_text">หากันเจอได้ทุกคอน ไม่ใช่แค่ %1$s</string>
+
+    <string name="crew_add_need_name">ตั้งชื่อให้เขาก่อน</string>
+    <string name="crew_add_bad_code">โค้ดนี้ดูไม่ถูกนะ</string>
+    <string name="crew_add_own_code">นี่โค้ดของคุณเอง</string>
+
+    <string name="crew_note_you_removed">คุณลบ %1$s แล้ว แก๊งเปลี่ยนเป็นคีย์ใหม่ ต่อจากนี้เขาจะไม่เห็นอะไรอีก</string>
+    <string name="crew_note_you_reset">คุณรีเซ็ตคำชวนแล้ว QR และลิงก์เก่าใช้ไม่ได้แล้ว</string>
+    <string name="crew_note_removed">%1$s ลบ %2$s ออกจากแก๊ง</string>
+    <string name="crew_note_reset">%1$s รีเซ็ตคำชวน: QR เก่าใช้ไม่ได้แล้ว</string>
+
+    <string name="crew_wake_title">%1$s คืนนี้!</string>
+    <string name="crew_wake_text">เริ่ม %1$s แตะเพื่อเริ่มแชร์ แก๊งจะได้หาคุณเจอ</string>
+    <string name="crew_wake_text_venue">เริ่ม %1$s ที่ %2$s แตะเพื่อเริ่มแชร์ แก๊งจะได้หาคุณเจอ</string>
+
+    <plurals name="crew_memory_headline">
+        <item quantity="other">วันนี้เมื่อ %1$d ปีก่อน: %2$s</item>
+    </plurals>
+    <plurals name="crew_memory_headline_with">
+        <item quantity="other">วันนี้เมื่อ %1$d ปีก่อน: %2$s กับ %3$s</item>
+    </plurals>
+    <string name="crew_memory_two_people">%1$s &amp; %2$s</string>
+    <plurals name="crew_memory_text">
+        <item quantity="other">รูปและคลิป %d รายการ แตะเพื่อย้อนดู</item>
+    </plurals>
+
+    <string name="crew_moment_title">%1$s แชร์โมเมนต์</string>
+    <string name="crew_moment_text">แตะเพื่อดูว่าอยู่ไหน</string>
+
+    <string name="crew_moving_title">%1$s กำลังย้ายที่</string>
+    <string name="crew_moving_text">ย้ายจากที่เดิม %1$s แตะเพื่อดู</string>
+    <string name="crew_moving_text_away">ย้ายจากที่เดิม %1$s ตอนนี้ห่างจากคุณ %2$s แตะเพื่อดู</string>
+    <string name="crew_at_venue">อยู่ที่งาน</string>
+    <string name="crew_from_venue">ห่างจากงาน %1$s</string>
+    <string name="crew_status_phone_died">%1$s แบตหมด</string>
+    <string name="crew_status_distance">%1$s %2$s</string>
+    <plurals name="crew_status_min_ago">
+        <item quantity="other">%1$s %2$d นาทีที่แล้ว</item>
+    </plurals>
+
+    <string name="crew_stats_walked">เดิน %1$s</string>
+    <plurals name="crew_stats_finds">
+        <item quantity="other">หาเพื่อนเจอ %d ครั้ง</item>
+    </plurals>
+    <plurals name="crew_stats_moments">
+        <item quantity="other">%d โมเมนต์</item>
+    </plurals>
+    <plurals name="crew_stats_pings">
+        <item quantity="other">ปิง %d ครั้ง</item>
+    </plurals>
+    <string name="crew_stats_out_hours">ออกมา %1$d ชม. %2$d นาที</string>
+    <plurals name="crew_stats_out_mins">
+        <item quantity="other">ออกมา %d นาที</item>
+    </plurals>
+    <string name="crew_stats_quiet">คืนชิลๆ</string>
+
+    <string name="crew_card_eyebrow">MOSHPOINT · แผนคืนนี้</string>
+    <string name="crew_card_plan">แผน</string>
+    <string name="crew_card_meet_up">★  จุดนัดเจอ: %1$s</string>
+    <string name="crew_card_whos_coming">ใครไปบ้าง</string>
+    <string name="crew_card_footer">หลงกัน? หากันให้เจอบน Moshpoint</string>
+    <string name="crew_card_share_meet_up">จุดนัดเจอ: %1$s</string>
+    <string name="crew_card_share_title">แชร์แผน</string>
+
+    <string name="crew_request_title">%1$s อยู่ใกล้ๆ และกำลังหาคุณ</string>
+    <string name="crew_request_text">แตะเพื่อเปิดไฟจอ ให้เพื่อนมองเห็นคุณ</string>
+    <string name="crew_go_hidden">ซ่อนตัว</string>
+    <string name="crew_tile_live">แชร์อยู่</string>
+    <string name="crew_tile_hidden">ซ่อนอยู่</string>
+</resources>

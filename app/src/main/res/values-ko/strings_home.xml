@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Korean: home screen (crew card, friends list, bottom bar, add sheet, pings). -->
+<resources>
+    <string name="home_go_live">라이브 켜기</string>
+    <string name="home_live_ghost">라이브 · 고스트</string>
+    <string name="home_live">라이브</string>
+
+    <string name="home_tile_not_sharing">아직 공유 안 함</string>
+    <string name="home_tile_phone_died">배터리 방전</string>
+    <string name="home_tile_live">라이브</string>
+    <string name="home_tile_with_battery">%1$s · %2$d%%</string>
+
+    <string name="home_ping_on_my_way">가는 중</string>
+    <string name="home_ping_where_are_you">어디야?</string>
+    <string name="home_ping_stay_put">거기 있어</string>
+    <string name="home_ping_meet_at_pin">핀에서 만나</string>
+    <string name="home_ping_all_good">괜찮아</string>
+    <string name="home_ping_sent">보냄 ✓</string>
+    <string name="home_ping_heading_home">집에 가는 중</string>
+    <string name="home_ping_need_help">도움 요청</string>
+    <string name="home_heading_home_title">집에 가요?</string>
+    <string name="home_heading_home_text">도착하면 체크인하세요. 체크인하지 않으면 크루에게 마지막 위치와 함께 알림이 가요(폰이 꺼져도요).</string>
+    <plurals name="home_checkin_minutes">
+        <item quantity="other">%d분</item>
+    </plurals>
+    <string name="home_just_tell_them">알리기만 하기</string>
+    <string name="home_cancel">취소</string>
+    <string name="home_ping_line">%1$s %2$s</string>
+    <string name="home_ping_default">크루를 호출했어요</string>
+
+    <string name="home_bar_crew">크루</string>
+    <string name="home_bar_map">지도</string>
+    <string name="home_bar_add">추가</string>
+    <string name="home_bar_story">스토리</string>
+    <string name="home_bar_me">나</string>
+
+    <string name="home_add_mates">친구 추가</string>
+    <string name="home_add_mates_text">공연장에서: 크루 QR을 보여 주고 친구가 스캔하면 끝. 크루 모두가 서로를 찾을 수 있어요.</string>
+    <string name="home_show_crew_qr">크루 QR 보기</string>
+    <string name="home_start_crew_show_qr">크루 만들고 QR 보기</string>
+    <string name="home_scan_qr">QR 스캔</string>
+    <string name="home_paste_invite">초대 붙여넣기</string>
+    <string name="home_bump_phones">폰 맞닿기</string>
+    <string name="home_plan_gig">공연 계획하기(찾아서 지금 초대)</string>
+    <string name="home_send_app_invite">앱 + 초대 보내기(카카오톡, WhatsApp…)</string>
+    <string name="home_friends_every_gig">모든 공연에서 함께할 친구</string>
+    <string name="home_my_friend_qr">내 친구 QR</string>
+    <string name="home_enter_code">코드 입력</string>
+
+    <string name="home_check_in_by">%1$s까지 체크인</string>
+    <string name="home_home_safe">집에 잘 도착했어요</string>
+
+    <string name="home_chat">채팅</string>
+    <string name="home_chat_unread">채팅(%1$d)</string>
+    <string name="home_camera">카메라</string>
+
+    <string name="home_message_crew">크루에게 메시지</string>
+    <string name="home_message_crew_text">탭 한 번이면 크루 모두에게 내 위치와 함께 전달돼요.</string>
+
+    <string name="home_crew_qr_desc">크루 QR</string>
+    <string name="home_inline_qr_text">친구가 카메라나 Moshpoint로 스캔하면 끝이에요.</string>
+    <string name="home_no_camera_send_invite">카메라가 없나요? 초대 보내기</string>
+
+    <plurals name="home_gig_photos">
+        <item quantity="other">사진 %d장</item>
+    </plurals>
+    <plurals name="home_gig_clips">
+        <item quantity="other">영상 %d개</item>
+    </plurals>
+    <string name="home_people_more">%1$s +%2$d</string>
+
+    <string name="home_crew_chat">크루 채팅</string>
+    <string name="home_pinned_plan">📌 %1$s</string>
+    <string name="home_chat_subtitle">메시지, 계획, 플레어</string>
+    <string name="home_unread_many">9+</string>
+    <plurals name="home_unread_new">
+        <item quantity="other">새 메시지 %d개</item>
+    </plurals>
+
+    <string name="home_following_from_home">집에서 팔로우 중</string>
+    <string name="home_upnext_invite">💬 채팅 · 친구 초대하기</string>
+    <plurals name="home_upnext_mates">
+        <item quantity="other">💬 채팅 · 친구 %d명 참여</item>
+    </plurals>
+
+    <string name="home_start_gig_group">공연 그룹 만들기</string>
+    <string name="home_start_gig_group_text">이름을 정하고(예: 밴드 이름) 친구들에게 QR을 보여 주세요.</string>
+    <string name="home_start">시작</string>
+    <string name="home_keep_friend">%1$s님을 친구로 추가(오늘 밤 이후에도 유지)</string>
+    <string name="home_set_photo">사진 설정</string>
+    <string name="home_remove_photo">사진 삭제</string>
+    <string name="home_remove_name">%1$s 삭제</string>
+    <string name="home_close">닫기</string>
+    <string name="home_remove_from_crew_title">%1$s님을 크루에서 내보낼까요?</string>
+    <string name="home_remove_friend_title">%1$s님을 삭제할까요?</string>
+    <string name="home_remove_from_crew_text">크루가 %1$s님은 받지 못하는 새 키로 바뀌어서, 이제부터 다른 사람의 위치, 채팅, 사진을 볼 수 없어요. 나머지는 모두 그대로 남아요.</string>
+    <string name="home_remove_friend_text">다시 추가하기 전까지는 이 친구를 찾을 수 없어요.</string>
+    <string name="home_remove">삭제</string>
+    <string name="home_find">찾기</string>
+    <string name="home_add_with_code">코드로 추가</string>
+    <string name="home_their_name">친구 이름</string>
+    <string name="home_their_code">친구 코드</string>
+    <string name="home_add_friend">친구 추가</string>
+    <string name="home_tonight_only">오늘 밤만</string>
+
+    <string name="home_hidden_hint">지금 크루에게 숨겨져 있어요. 찾아지고 싶을 때 ‘라이브 켜기’를 탭하세요.</string>
+    <string name="home_allow_permission">Moshpoint가 친구를 찾을 수 있게 허용해 주세요(%1$s)</string>
+    <string name="home_allow">허용</string>
+    <string name="home_one_thing_first">먼저 이것부터</string>
+    <plurals name="home_one_thing_first_more">
+        <item quantity="other">먼저 이것부터 · %d개 더</item>
+    </plurals>
+    <string name="home_eyebrow_tonight">오늘 밤</string>
+    <string name="home_eyebrow_following">팔로우 중</string>
+    <string name="home_eyebrow_coming_up">곧 시작</string>
+    <string name="home_find_mates_tonight">오늘 밤 친구들을 찾아요</string>
+    <string name="home_find_mates_text">초대하고, 친구가 스캔하면 끝. 나머지는 Moshpoint가 알아서 해요.</string>
+    <string name="home_invite_mates_tonight">오늘 밤 친구 초대하기</string>
+    <string name="home_scan_invite">초대 스캔</string>
+    <string name="home_your_crew">내 크루</string>
+    <string name="home_invite">＋ 초대</string>
+    <string name="home_family_can_follow">가족이 집에서 오늘 밤을 지켜볼 수 있어요</string>
+    <string name="home_following_from_home_names">집에서 팔로우 중: %1$s</string>
+    <string name="home_share">공유 ›</string>
+    <string name="home_meet_up">★  만남 장소: %1$s</string>
+    <string name="home_map_link">지도 ›</string>
+    <string name="home_asleep_text">공연 당일까지 잠자는 중: Bluetooth도, 위치도, 배터리도 안 써요. 친구들은 지금 참여할 수 있고, 당일에 알림이 가요.</string>
+    <string name="home_follower_text">모두의 위치와 실시간으로 올라오는 사진을 볼 수 있어요. 내가 팔로우 중인 것도 상대에게 보여요.</string>
+    <string name="home_see_story">스토리 보기</string>
+    <string name="home_crew_chat_unread">크루 채팅(새 메시지 %1$d개)</string>
+    <string name="home_where_are_they">다들 어디 있어?(지도)</string>
+    <string name="home_see_them_once_starts">공연이 시작되면 여기에 표시돼요.</string>
+    <string name="home_tap_mate_hint">친구를 탭해서 찾기 · 길게 눌러 옵션</string>
+    <string name="home_find_name">%1$s 찾기</string>
+    <string name="home_find_everyone">모두 찾기</string>
+    <string name="home_stop_following">팔로우 중단</string>
+    <string name="home_cancel_crew">이 크루 취소</string>
+    <string name="home_end_night">밤 끝내기</string>
+    <string name="home_up_next">다가오는 공연</string>
+    <string name="home_memories">추억</string>
+    <plurals name="home_memories_count">
+        <item quantity="other">사진·영상 %d개. 탭해서 다시 즐겨요 ›</item>
+    </plurals>
+    <string name="home_your_gigs">내 공연</string>
+    <string name="home_friends">친구</string>
+    <string name="home_friends_empty">모든 공연에서 함께할 친구가 여기에 표시돼요. 아래 ＋ 추가를 탭하세요.</string>
+</resources>

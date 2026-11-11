@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Korean: settings, onboarding, planning a gig, QR codes, bumping phones, camera-roll picker. -->
+<resources>
+    <string name="setup_settings_title">설정</string>
+    <string name="setup_your_photo">내 사진</string>
+    <string name="setup_your_photo_desc">친구 화면의 화살표에 표시돼요. 친구들만 볼 수 있어요.</string>
+    <string name="setup_take_selfie">셀카 찍기</string>
+    <string name="setup_choose_photo">사진 선택</string>
+    <string name="setup_remove_my_photo">내 사진 삭제</string>
+    <string name="setup_your_name">내 이름</string>
+    <string name="setup_stay_live">재시작 후에도 라이브 유지</string>
+    <string name="setup_stay_live_desc">폰이 재시작될 때 라이브 중이었다면 자동으로 다시 라이브를 켜요.</string>
+    <string name="setup_ghost_mode">고스트 모드</string>
+    <string name="setup_ghost_mode_desc">지도에서 내 위치를 숨겨요. 친구가 가까이 있으면 Bluetooth로는 여전히 찾을 수 있어요.</string>
+    <string name="setup_ghost_one_hour">1시간 동안 고스트</string>
+    <string name="setup_data_saver">데이터 절약</string>
+    <string name="setup_data_saver_desc">사진과 영상을 가볍게 공유해요(신호가 약해도 빨라요). 끄면: 고화질이라 모두가 저장한 사본도 선명해요. 내 원본은 항상 원래 화질로 보관돼요.</string>
+    <string name="setup_emergency_contact">비상 연락처</string>
+    <string name="setup_emergency_contact_desc">‘도움 요청’을 누르면 일반 문자로 이 사람에게 내 위치를 보낼 수 있어요(데이터 없이도 돼요). 이 폰에만 저장돼요.</string>
+    <string name="setup_contact_name">이름</string>
+    <string name="setup_contact_mobile">휴대폰 번호</string>
+    <string name="setup_contact_saved">저장됨</string>
+    <string name="setup_contact_need_number">휴대폰 번호를 입력하세요</string>
+    <string name="setup_contact_removed">삭제됨</string>
+    <string name="setup_save">저장</string>
+    <string name="setup_remove">삭제</string>
+    <string name="setup_about">앱 정보</string>
+    <string name="setup_about_text">Moshpoint %1$s. 계정 없음, 계속 바뀌는 코드, 종단간 암호화된 위치. 라이브 중일 때만 나를 찾을 수 있어요.</string>
+    <string name="setup_hide_licences">라이선스 숨기기</string>
+    <string name="setup_open_source_licences">오픈소스 라이선스</string>
+    <string name="setup_licences_fonts">글꼴: Unbounded, Inter(SIL Open Font License 1.1). QR 코드: ZXing(Apache 2.0).</string>
+    <string name="setup_continue_facebook">Facebook으로 계속하기</string>
+
+    <string name="setup_onb_skip">건너뛰기</string>
+    <string name="setup_onb_title_find">어떤 인파 속에서도\n친구를 찾아요</string>
+    <string name="setup_onb_body_find">친구를 탭하면 화살표가 바로 그 친구를 가리켜요. 가까워질수록 친구의 색으로 빛나요.</string>
+    <string name="setup_onb_title_live">입장할 때\n라이브 켜기</string>
+    <string name="setup_onb_body_live">친구들은 내가 라이브일 때만 나를 찾을 수 있고, 켜는 건 나만 할 수 있어요. Moshpoint에 필요한 것:</string>
+    <string name="setup_onb_need_nearby">근처 기기</string>
+    <string name="setup_onb_need_nearby_why">Bluetooth, Wi-Fi, UWB로 친구를 찾기 위해</string>
+    <string name="setup_onb_need_location">위치</string>
+    <string name="setup_onb_need_location_why">멀리 떨어져 있을 때 화살표를 보여 주기 위해</string>
+    <string name="setup_onb_need_notifications">알림</string>
+    <string name="setup_onb_need_notifications_why">라이브 중인지 항상 알 수 있게</string>
+    <string name="setup_onb_title_name">친구들이 나를\n뭐라고 부를까요?</string>
+    <string name="setup_onb_or_type_it">또는 직접 입력</string>
+    <string name="setup_onb_lets_go">시작하기</string>
+    <string name="setup_onb_allow">허용</string>
+    <string name="setup_onb_skip_for_now">나중에 하기</string>
+    <string name="setup_onb_im_name">저는 %1$s예요</string>
+    <string name="setup_onb_arrow_demo_desc">친구를 가리키는 화살표</string>
+
+    <string name="setup_plan_title">공연 계획하기</string>
+    <string name="setup_plan_desc">지금 크루를 만들고, 다들 편할 때 참여하면 돼요. 당일까지는 잠자는 중이에요(배터리 안 써요).</string>
+    <string name="setup_plan_search_hint">검색: 밴드, 아티스트, 공연장</string>
+    <string name="setup_plan_searching">검색 중…</string>
+    <string name="setup_plan_search_failed">지금은 검색할 수 없어요. 아래에 직접 입력하세요.</string>
+    <string name="setup_plan_no_results">예정된 공연을 찾지 못했어요. 아래에 입력하세요.</string>
+    <string name="setup_plan_when_where">%1$s · %2$s</string>
+    <string name="setup_plan_or_type">또는 직접 입력</string>
+    <string name="setup_plan_whos_playing">출연자</string>
+    <string name="setup_plan_where">장소(선택)</string>
+    <string name="setup_plan_start_crew">크루 만들기</string>
+    <string name="setup_plan_default_name">공연의 밤</string>
+
+    <string name="setup_qr_title">스캔해서 나를 추가해요</string>
+    <string name="setup_qr_hint">그다음 친구 QR도 스캔하면 서로를 찾을 수 있어요.</string>
+    <string name="setup_qr_eyebrow">내 코드</string>
+    <string name="setup_qr_done">‹  완료</string>
+    <string name="setup_qr_code_desc">QR 코드</string>
+    <plurals name="setup_qr_mates_in">
+        <item quantity="other">친구 %d명 참여</item>
+    </plurals>
+    <string name="setup_qr_send_invite">스캔이 안 되나요? 대신 초대 보내기</string>
+    <string name="setup_qr_reset_invite">초대 재설정</string>
+    <string name="setup_qr_reset_title">초대를 재설정할까요?</string>
+    <string name="setup_qr_reset_text">이 QR이나 스크린샷이 퍼졌다면, 재설정하면 더 이상 작동하지 않아요. 이미 크루에 있는 사람은 그대로 남고, 새로 들어올 사람은 새 QR이 필요해요.</string>
+    <string name="setup_qr_reset">재설정</string>
+    <string name="setup_cancel">취소</string>
+    <string name="setup_qr_end_night">밤 끝내기</string>
+
+    <string name="setup_bump_title">폰 맞닿기</string>
+    <string name="setup_bump_sharing">친구 폰과 뒷면끼리 맞대세요. 친구에게 내 크루 참여 요청이 가요.</string>
+    <string name="setup_bump_joining">크루에 있는 사람의 폰과 뒷면끼리 맞대세요(상대도 ‘맞닿기’를 열어야 해요). 참여할지 물어봐요.</string>
+    <string name="setup_done">완료</string>
+
+    <string name="setup_roll_title">그날 밤 내 사진</string>
+    <string name="setup_roll_looking">사진을 살펴보는 중…</string>
+    <string name="setup_roll_nothing">그 시간대에 이 폰으로 찍은 게 없어요. 다른 폰으로 찍었거나 이미 추가한 사진은 여기에 안 보여요.</string>
+    <string name="setup_roll_tap_to_leave_out">탭하면 빼낼 수 있어요. 공연에 복사되니까 갤러리에서 지워도 남아 있어요.</string>
+    <string name="setup_roll_adding">추가 중…</string>
+    <plurals name="setup_roll_add_n">
+        <item quantity="other">이 공연에 %d개 추가</item>
+    </plurals>
+</resources>

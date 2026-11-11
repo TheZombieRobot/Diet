@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vietnamese: settings, onboarding, planning a gig, QR codes, bumping phones, camera-roll picker. -->
+<resources>
+    <string name="setup_settings_title">Cài đặt</string>
+    <string name="setup_your_photo">Ảnh của bạn</string>
+    <string name="setup_your_photo_desc">Hiện trên mũi tên của bạn bè. Chỉ bạn bè của bạn mới thấy.</string>
+    <string name="setup_take_selfie">Chụp selfie</string>
+    <string name="setup_choose_photo">Chọn ảnh</string>
+    <string name="setup_remove_my_photo">Xóa ảnh của mình</string>
+    <string name="setup_your_name">Tên của bạn</string>
+    <string name="setup_stay_live">Chia sẻ tiếp sau khi khởi động lại</string>
+    <string name="setup_stay_live_desc">Nếu bạn đang chia sẻ lúc máy khởi động lại, tự bật chia sẻ lại.</string>
+    <string name="setup_ghost_mode">Chế độ tàng hình</string>
+    <string name="setup_ghost_mode_desc">Ẩn vị trí của bạn khỏi bản đồ. Khi ở gần, bạn bè vẫn tìm được bạn qua Bluetooth.</string>
+    <string name="setup_ghost_one_hour">Tàng hình 1 giờ</string>
+    <string name="setup_data_saver">Tiết kiệm dữ liệu</string>
+    <string name="setup_data_saver_desc">Chia sẻ ảnh và clip nhẹ hơn (nhanh hơn khi sóng yếu). Tắt: chất lượng cao, ai lưu về cũng nét. Bản gốc của bạn luôn được giữ nguyên chất lượng.</string>
+    <string name="setup_emergency_contact">Liên hệ khẩn cấp</string>
+    <string name="setup_emergency_contact_desc">Nút \"Cần giúp đỡ\" có thể nhắn vị trí của bạn cho họ bằng SMS thường (không cần dữ liệu). Chỉ lưu trên máy này.</string>
+    <string name="setup_contact_name">Tên</string>
+    <string name="setup_contact_mobile">Số điện thoại</string>
+    <string name="setup_contact_saved">Đã lưu</string>
+    <string name="setup_contact_need_number">Thêm số điện thoại</string>
+    <string name="setup_contact_removed">Đã xóa</string>
+    <string name="setup_save">Lưu</string>
+    <string name="setup_remove">Xóa</string>
+    <string name="setup_about">GIỚI THIỆU</string>
+    <string name="setup_about_text">Moshpoint %1$s. Không cần tài khoản, mã luôn thay đổi, vị trí mã hóa đầu cuối. Chỉ tìm được bạn khi bạn đang chia sẻ.</string>
+    <string name="setup_hide_licences">Ẩn giấy phép</string>
+    <string name="setup_open_source_licences">Giấy phép mã nguồn mở</string>
+    <string name="setup_licences_fonts">Font: Unbounded và Inter, theo SIL Open Font License 1.1. Mã QR: ZXing (Apache 2.0).</string>
+    <string name="setup_continue_facebook">Tiếp tục với Facebook</string>
+
+    <string name="setup_onb_skip">Bỏ qua</string>
+    <string name="setup_onb_title_find">Tìm bạn bè\ngiữa biển người</string>
+    <string name="setup_onb_body_find">Chạm vào một người là có mũi tên chỉ thẳng tới họ. Càng gần, mũi tên càng sáng màu của họ.</string>
+    <string name="setup_onb_title_live">Bật chia sẻ\nkhi vào show</string>
+    <string name="setup_onb_body_live">Bạn bè chỉ tìm được bạn khi bạn đang chia sẻ, và chỉ bạn mới bật được. Moshpoint cần:</string>
+    <string name="setup_onb_need_nearby">Thiết bị lân cận</string>
+    <string name="setup_onb_need_nearby_why">để tìm bạn bè qua Bluetooth, Wi-Fi và UWB</string>
+    <string name="setup_onb_need_location">Vị trí</string>
+    <string name="setup_onb_need_location_why">cho mũi tên khi hai người ở xa nhau</string>
+    <string name="setup_onb_need_notifications">Thông báo</string>
+    <string name="setup_onb_need_notifications_why">để bạn luôn biết khi nào mình đang chia sẻ</string>
+    <string name="setup_onb_title_name">Bạn bè nên gọi\nbạn là gì?</string>
+    <string name="setup_onb_or_type_it">hoặc tự nhập</string>
+    <string name="setup_onb_lets_go">Đi thôi</string>
+    <string name="setup_onb_allow">Cho phép</string>
+    <string name="setup_onb_skip_for_now">Để sau</string>
+    <string name="setup_onb_im_name">Mình là %1$s</string>
+    <string name="setup_onb_arrow_demo_desc">Mũi tên chỉ tới một người bạn</string>
+
+    <string name="setup_plan_title">Lên kèo đi show</string>
+    <string name="setup_plan_desc">Lập nhóm ngay, ai rảnh lúc nào thì vào lúc đó. Nhóm sẽ ngủ (không tốn pin) tới ngày diễn.</string>
+    <string name="setup_plan_search_hint">Tìm: ban nhạc, nghệ sĩ hoặc địa điểm</string>
+    <string name="setup_plan_searching">Đang tìm…</string>
+    <string name="setup_plan_search_failed">Giờ chưa tìm được. Nhập bên dưới nhé.</string>
+    <string name="setup_plan_no_results">Không thấy show nào sắp diễn. Nhập bên dưới nhé.</string>
+    <string name="setup_plan_when_where">%1$s · %2$s</string>
+    <string name="setup_plan_or_type">HOẶC TỰ NHẬP</string>
+    <string name="setup_plan_whos_playing">Ai diễn</string>
+    <string name="setup_plan_where">Ở đâu (không bắt buộc)</string>
+    <string name="setup_plan_start_crew">Lập nhóm</string>
+    <string name="setup_plan_default_name">Đêm đi show</string>
+
+    <string name="setup_qr_title">Quét để thêm mình</string>
+    <string name="setup_qr_hint">Rồi quét mã của họ, để hai bên tìm được nhau.</string>
+    <string name="setup_qr_eyebrow">MÃ CỦA BẠN</string>
+    <string name="setup_qr_done">‹  Xong</string>
+    <string name="setup_qr_code_desc">Mã QR</string>
+    <plurals name="setup_qr_mates_in">
+        <item quantity="other">%d người đã vào</item>
+    </plurals>
+    <string name="setup_qr_send_invite">Không quét được? Gửi lời mời</string>
+    <string name="setup_qr_reset_invite">Đặt lại lời mời</string>
+    <string name="setup_qr_reset_title">Đặt lại lời mời?</string>
+    <string name="setup_qr_reset_text">Nếu QR này hoặc ảnh chụp màn hình của nó bị lộ, đặt lại sẽ vô hiệu nó. Ai đã trong nhóm vẫn ở lại; người mới sẽ cần QR mới.</string>
+    <string name="setup_qr_reset">Đặt lại</string>
+    <string name="setup_cancel">Hủy</string>
+    <string name="setup_qr_end_night">Kết thúc đêm</string>
+
+    <string name="setup_bump_title">Chạm máy</string>
+    <string name="setup_bump_sharing">Áp lưng điện thoại vào lưng máy của bạn mình. Họ sẽ được mời vào nhóm của bạn.</string>
+    <string name="setup_bump_joining">Áp lưng điện thoại vào lưng máy của người trong nhóm (họ cũng mở Chạm máy). Bạn sẽ được mời vào nhóm.</string>
+    <string name="setup_done">Xong</string>
+
+    <string name="setup_roll_title">Ảnh của bạn từ đêm đó</string>
+    <string name="setup_roll_looking">Đang lục ảnh của bạn…</string>
+    <string name="setup_roll_nothing">Máy này không có gì từ khoảng thời gian đó. Ảnh chụp bằng máy khác, hoặc đã thêm rồi, sẽ không hiện ở đây.</string>
+    <string name="setup_roll_tap_to_leave_out">Chạm để bỏ bớt. Ảnh được sao chép vào show, nên vẫn còn dù bạn xóa khỏi thư viện.</string>
+    <string name="setup_roll_adding">Đang thêm…</string>
+    <plurals name="setup_roll_add_n">
+        <item quantity="other">Thêm %d vào show này</item>
+    </plurals>
+</resources>

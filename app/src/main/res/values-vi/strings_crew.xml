@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vietnamese: crew chat, notifications, friendship, safety, plan card, night stats, live status. -->
+<resources>
+    <string name="crew_you">Bạn</string>
+    <string name="crew_default_name">Bạn</string>
+    <string name="crew_default_group_name">Nhóm đi show</string>
+    <string name="crew_default_gig_name">Show</string>
+    <string name="crew_someone">Ai đó</string>
+    <string name="crew_name_numbered">%1$s (%2$d)</string>
+    <string name="crew_cancel">Hủy</string>
+    <string name="crew_close">Đóng</string>
+
+    <string name="crew_chat_subtitle">Chat nhóm · chỉ người trong nhóm đọc được</string>
+    <string name="crew_chat_invite">＋ Mời</string>
+    <string name="crew_chat_on_today">Show này diễn hôm nay. Dùng nhóm này để tìm nhau nhé?</string>
+    <string name="crew_chat_switch">Chuyển</string>
+    <plurals name="crew_chat_send_flare_hint">
+        <item quantity="other">🔥  Bắn pháo sáng: hiện chỗ bạn đứng trong %d phút</item>
+    </plurals>
+    <string name="crew_chat_empty">Chưa có gì. Tin nhắn tới cả nhóm trong khoảng một phút (nhanh hơn nếu dùng relay riêng).</string>
+    <string name="crew_chat_night_tools_later">Hâm nóng không khí đi! Pháo sáng và ping nhanh sẽ bật vào ngày diễn.</string>
+    <string name="crew_chat_message_hint">Nhắn cả nhóm</string>
+    <string name="crew_chat_not_sent">Chưa gửi được · Chạm để thử lại</string>
+    <string name="crew_chat_sending">Đang gửi…</string>
+    <string name="crew_chat_line_with_time">%1$s · %2$s</string>
+
+    <string name="crew_chat_you_joined">Bạn đã vào nhóm</string>
+    <string name="crew_chat_joined">%1$s đã vào nhóm</string>
+    <string name="crew_chat_you_pinned">Bạn đã ghim: %1$s</string>
+    <string name="crew_chat_pinned">%1$s đã ghim: %2$s</string>
+    <string name="crew_chat_you_cleared_plan">Bạn đã xóa kèo</string>
+    <string name="crew_chat_cleared_plan">%1$s đã xóa kèo</string>
+    <string name="crew_chat_you_flare">Bạn đã bắn pháo sáng: %1$s</string>
+    <string name="crew_chat_flare">%1$s đã bắn pháo sáng: %2$s</string>
+    <string name="crew_chat_line_other">%1$s %2$s</string>
+
+    <string name="crew_quick_coming">Đang tới 🏃</string>
+    <string name="crew_quick_where">Đâu rồi? 👀</string>
+    <string name="crew_quick_stay_put">Đứng yên đó ✋</string>
+    <string name="crew_quick_meet_pin">Gặp ở chỗ ghim 📍</string>
+    <string name="crew_quick_all_good">Ổn cả 👍</string>
+    <string name="crew_quick_going_home">Đang về nhà 🏠</string>
+    <string name="crew_quick_need_help">🚨 Mình cần giúp đỡ</string>
+    <plurals name="crew_quick_check_in">
+        <item quantity="other">Đang về nhà 🏠 Sẽ check-in trong %d phút</item>
+    </plurals>
+    <string name="crew_quick_home_safe">Về nhà an toàn ✅</string>
+
+    <string name="crew_plan_eyebrow">📌 KÈO</string>
+    <string name="crew_plan_none">Chưa ghim kèo nào.</string>
+    <string name="crew_plan_prompt">Ghim kèo để khỏi ai phải cuộn tìm: \"Bàn âm thanh sau encore\".</string>
+    <string name="crew_plan_by">bởi %1$s</string>
+    <string name="crew_plan_meet_up">★ Ghim điểm hẹn: %1$s</string>
+    <string name="crew_plan_pin">Ghim kèo</string>
+    <string name="crew_plan_change">Đổi</string>
+    <string name="crew_plan_share">Chia sẻ dạng thẻ</string>
+    <string name="crew_plan_title">Kèo</string>
+    <string name="crew_plan_editor_body">Ghim trên đầu chat cho cả nhóm, không bao giờ bị trôi.</string>
+    <string name="crew_plan_idea_sound_desk">Gặp ở bàn âm thanh sau encore</string>
+    <string name="crew_plan_idea_bar">Bên trái quầy bar chính lúc nghỉ giữa giờ</string>
+    <string name="crew_plan_idea_car">Về xe trước 23:30</string>
+    <string name="crew_plan_idea_tent">Lạc nhau thì về lều</string>
+    <string name="crew_plan_pin_it">Ghim luôn</string>
+    <string name="crew_plan_unpin">Bỏ ghim</string>
+
+    <string name="crew_vibe_lost">Lạc rồi 😅</string>
+    <string name="crew_vibe_bar">Ra bar 🍺</string>
+    <string name="crew_vibe_rail">Sát rào 🎶</string>
+    <string name="crew_vibe_food">Đi kiếm đồ ăn 🍔</string>
+    <string name="crew_vibe_toilets">Đi vệ sinh 🚻</string>
+    <string name="crew_vibe_air">Ra ngoài hít thở 🌬️</string>
+    <string name="crew_vibe_merch">Quầy merch 👕</string>
+    <string name="crew_vibe_leaving">Sắp về 👋</string>
+    <string name="crew_flare_mine">Bạn: %1$s</string>
+    <string name="crew_flare_theirs">%1$s: %2$s</string>
+    <plurals name="crew_flare_left">
+        <item quantity="other">còn %d phút</item>
+    </plurals>
+    <plurals name="crew_flare_left_on_map">
+        <item quantity="other">còn %d phút · trên bản đồ</item>
+    </plurals>
+    <string name="crew_flare_end">Dừng</string>
+    <string name="crew_flare_title">Bắn pháo sáng</string>
+    <plurals name="crew_flare_body">
+        <item quantity="other">Chỗ của bạn hiện trên bản đồ của nhóm trong %d phút, kèm vibe.</item>
+    </plurals>
+    <string name="crew_flare_own_hint">Hoặc tự viết…</string>
+    <string name="crew_flare_send">Gửi</string>
+
+    <string name="crew_help_title">Cần giúp đỡ</string>
+    <string name="crew_help_alerted">Đã báo nhóm ✓</string>
+    <string name="crew_help_alert">Báo động cho nhóm</string>
+    <string name="crew_help_alert_sub">Cảnh báo khẩn kèm vị trí của bạn</string>
+    <string name="crew_help_text_contact">Nhắn tin cho %1$s</string>
+    <string name="crew_help_text_contact_sub">App tin nhắn sẽ mở kèm vị trí của bạn. Không cần dữ liệu.</string>
+    <string name="crew_help_add_contact">Thêm liên hệ khẩn cấp</string>
+    <string name="crew_help_add_contact_sub">Một người ngoài nhóm để nhắn khi cần</string>
+    <string name="crew_help_contact_name">Tên (vd: Mẹ)</string>
+    <string name="crew_help_contact_number">Số điện thoại</string>
+    <string name="crew_help_save_contact">Lưu liên hệ</string>
+    <string name="crew_help_call">Gọi %1$s</string>
+    <string name="crew_help_call_sub">Công an, cứu hỏa, cấp cứu</string>
+    <string name="crew_help_call_police">Công an</string>
+    <string name="crew_help_call_ambulance">Cấp cứu và cứu hỏa</string>
+    <string name="crew_help_no_signal">Không có sóng? Nhiều máy đời mới gọi được dịch vụ khẩn cấp qua vệ tinh: gọi %1$s và làm theo hướng dẫn. Ở festival, bảo vệ và lều sơ cứu có thể giúp nhanh.</string>
+    <string name="crew_help_sms">Mình cần giúp đỡ. (gửi từ Moshpoint)</string>
+    <string name="crew_help_sms_where">Mình cần giúp đỡ. Mình đang ở đây: %1$s (gửi từ Moshpoint)</string>
+
+    <string name="crew_channel_messages">Tin nhắn nhóm</string>
+    <string name="crew_channel_help">Yêu cầu trợ giúp từ nhóm</string>
+    <string name="crew_channel_requests">Bạn bè đang tìm bạn</string>
+    <string name="crew_notif_line">%1$s: %2$s</string>
+    <plurals name="crew_new_messages">
+        <item quantity="other">%d tin nhắn mới</item>
+    </plurals>
+    <string name="crew_notif_joined">đã vào nhóm 🎉</string>
+    <plurals name="crew_notif_flare">
+        <item quantity="other">Pháo sáng: %1$s · ở đây trong %2$d phút</item>
+    </plurals>
+    <string name="crew_notif_new_plan">Kèo mới: %1$s</string>
+    <string name="crew_notif_done_title">%1$s đã kết thúc</string>
+    <string name="crew_notif_done_saved">Ảnh và clip của bạn đã lưu trong Show của bạn.</string>
+    <string name="crew_notif_done_text">Mong là đêm nay vui hết nấc. Lập nhóm mới lúc nào cũng được.</string>
+    <string name="crew_notif_overdue_title">%1$s chưa check-in</string>
+    <string name="crew_notif_overdue_text">Họ đang về nhà và lẽ ra đã tới nơi. Gọi cho họ thử. Chạm để xem vị trí cuối cùng.</string>
+    <string name="crew_notif_help_where">Họ vừa bấm Cần giúp đỡ. Chạm để xem họ ở đâu. Hỏi han họ ngay.</string>
+    <string name="crew_notif_help">Họ vừa bấm Cần giúp đỡ. Hỏi han họ ngay.</string>
+    <string name="crew_notif_tap_where">Chạm để xem ở đâu.</string>
+    <string name="crew_notif_from_crew">Từ nhóm của bạn</string>
+
+    <string name="crew_ping_coming">đang tới</string>
+    <string name="crew_ping_stay_put">bảo bạn đứng yên đó</string>
+    <string name="crew_ping_where">đang hỏi bạn ở đâu</string>
+    <string name="crew_ping_meet_pin">bảo gặp ở chỗ ghim</string>
+    <string name="crew_ping_all_good">vẫn ổn</string>
+    <string name="crew_ping_going_home">đang về nhà</string>
+    <string name="crew_ping_need_help">CẦN GIÚP ĐỠ</string>
+    <string name="crew_ping_check_in">đang về nhà và sẽ check-in</string>
+    <string name="crew_ping_home_safe">đã về nhà an toàn</string>
+    <string name="crew_ping_chat">đã gửi tin nhắn</string>
+    <string name="crew_ping_flare">đã bắn pháo sáng</string>
+    <string name="crew_ping_plan">đã ghim kèo</string>
+    <string name="crew_ping_other">đã ping cả nhóm</string>
+
+    <string name="crew_ping_title_coming">%1$s đang tới</string>
+    <string name="crew_ping_title_stay_put">%1$s bảo bạn đứng yên đó</string>
+    <string name="crew_ping_title_where">%1$s đang hỏi bạn ở đâu</string>
+    <string name="crew_ping_title_meet_pin">%1$s bảo gặp ở chỗ ghim</string>
+    <string name="crew_ping_title_all_good">%1$s vẫn ổn</string>
+    <string name="crew_ping_title_going_home">%1$s đang về nhà</string>
+    <string name="crew_ping_title_need_help">%1$s CẦN GIÚP ĐỠ</string>
+    <string name="crew_ping_title_check_in">%1$s đang về nhà và sẽ check-in</string>
+    <string name="crew_ping_title_home_safe">%1$s đã về nhà an toàn</string>
+    <string name="crew_ping_title_chat">%1$s đã gửi tin nhắn</string>
+    <string name="crew_ping_title_flare">%1$s đã bắn pháo sáng</string>
+    <string name="crew_ping_title_plan">%1$s đã ghim kèo</string>
+    <string name="crew_ping_title_other">%1$s đã ping cả nhóm</string>
+
+    <string name="crew_rally_default">Gặp ở đây</string>
+
+    <string name="crew_friend_need_crew">Chỉ giữ làm bạn được khi hai bạn đang chung nhóm.</string>
+    <string name="crew_friend_gone">Họ không còn trong nhóm nữa.</string>
+    <string name="crew_friend_unreachable">Chưa liên lạc riêng được với %1$s. Thử lại khi họ đã xuất hiện tối nay (nếu cứ bị vậy thì app của họ cần cập nhật).</string>
+    <string name="crew_friend_ask_failed">Không hỏi được %1$s. Thử lại nhé.</string>
+    <string name="crew_friend_asked">Đã hỏi %1$s làm bạn tiếp. Khi họ đồng ý, hai bạn sẽ là bạn ở mọi show.</string>
+    <string name="crew_friend_request_title">%1$s muốn làm bạn tiếp</string>
+    <string name="crew_friend_request_text">Từ %1$s. Chạm để đồng ý, và hai bạn tìm được nhau ở mọi show.</string>
+    <string name="crew_friend_accepted_title">%1$s giờ là bạn của bạn</string>
+    <string name="crew_friend_accepted_text">Hai bạn tìm được nhau ở mọi show, không chỉ %1$s.</string>
+
+    <string name="crew_add_need_name">Đặt tên cho họ đã</string>
+    <string name="crew_add_bad_code">Mã này có vẻ không đúng</string>
+    <string name="crew_add_own_code">Đây là mã của chính bạn mà</string>
+
+    <string name="crew_note_you_removed">Bạn đã xóa %1$s. Nhóm có khóa mới: từ giờ họ không thấy gì nữa.</string>
+    <string name="crew_note_you_reset">Bạn đã đặt lại lời mời. Mã QR và link cũ không dùng được nữa.</string>
+    <string name="crew_note_removed">%1$s đã xóa %2$s khỏi nhóm.</string>
+    <string name="crew_note_reset">%1$s đã đặt lại lời mời: mã QR cũ không dùng được nữa.</string>
+
+    <string name="crew_wake_title">Tối nay là %1$s!</string>
+    <string name="crew_wake_text">Bắt đầu lúc %1$s. Chạm để bật chia sẻ cho nhóm tìm được bạn.</string>
+    <string name="crew_wake_text_venue">Bắt đầu lúc %1$s ở %2$s. Chạm để bật chia sẻ cho nhóm tìm được bạn.</string>
+
+    <plurals name="crew_memory_headline">
+        <item quantity="other">Ngày này %1$d năm trước: %2$s</item>
+    </plurals>
+    <plurals name="crew_memory_headline_with">
+        <item quantity="other">Ngày này %1$d năm trước: %2$s cùng %3$s</item>
+    </plurals>
+    <string name="crew_memory_two_people">%1$s &amp; %2$s</string>
+    <plurals name="crew_memory_text">
+        <item quantity="other">%d ảnh và clip. Chạm để sống lại.</item>
+    </plurals>
+
+    <string name="crew_moment_title">%1$s đã chia sẻ một khoảnh khắc</string>
+    <string name="crew_moment_text">Chạm để xem ở đâu</string>
+
+    <string name="crew_moving_title">%1$s đang di chuyển</string>
+    <string name="crew_moving_text">Đã đi %1$s so với chỗ cũ. Chạm để xem.</string>
+    <string name="crew_moving_text_away">Đã đi %1$s so với chỗ cũ. Giờ cách bạn %2$s. Chạm để xem.</string>
+    <string name="crew_at_venue">ở địa điểm diễn</string>
+    <string name="crew_from_venue">cách địa điểm %1$s</string>
+    <string name="crew_status_phone_died">%1$s hết pin</string>
+    <string name="crew_status_distance">%1$s %2$s</string>
+    <plurals name="crew_status_min_ago">
+        <item quantity="other">%1$s %2$d phút trước</item>
+    </plurals>
+
+    <string name="crew_stats_walked">đi bộ %1$s</string>
+    <plurals name="crew_stats_finds">
+        <item quantity="other">tìm thấy bạn bè %d lần</item>
+    </plurals>
+    <plurals name="crew_stats_moments">
+        <item quantity="other">%d khoảnh khắc</item>
+    </plurals>
+    <plurals name="crew_stats_pings">
+        <item quantity="other">%d lượt ping</item>
+    </plurals>
+    <string name="crew_stats_out_hours">quẩy %1$d giờ %2$d phút</string>
+    <plurals name="crew_stats_out_mins">
+        <item quantity="other">quẩy %d phút</item>
+    </plurals>
+    <string name="crew_stats_quiet">Một đêm nhẹ nhàng</string>
+
+    <string name="crew_card_eyebrow">MOSHPOINT · KÈO TỐI NAY</string>
+    <string name="crew_card_plan">KÈO</string>
+    <string name="crew_card_meet_up">★  Điểm hẹn: %1$s</string>
+    <string name="crew_card_whos_coming">AI ĐI</string>
+    <string name="crew_card_footer">Lạc nhau? Tìm nhau trên Moshpoint.</string>
+    <string name="crew_card_share_meet_up">Điểm hẹn: %1$s</string>
+    <string name="crew_card_share_title">Chia sẻ kèo</string>
+
+    <string name="crew_request_title">%1$s đang ở gần và tìm bạn</string>
+    <string name="crew_request_text">Chạm để nháy màn hình cho họ thấy bạn</string>
+    <string name="crew_go_hidden">Ẩn đi</string>
+    <string name="crew_tile_live">Đang chia sẻ</string>
+    <string name="crew_tile_hidden">Đang ẩn</string>
+</resources>

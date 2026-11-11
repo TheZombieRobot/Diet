@@ -291,4 +291,41 @@ class ScreensSnapshotTest {
             )
         }
     }
+
+    // ---- Other languages: long words (German), right-to-left (Arabic), CJK (Japanese) ----
+    // These catch clipped labels and mirroring mistakes before anyone sees them.
+
+    private fun language(tag: String, rtl: Boolean = false) {
+        val l = java.util.Locale.forLanguageTag(tag)
+        java.util.Locale.setDefault(l)
+        paparazzi.unsafeUpdateConfig(
+            deviceConfig = DeviceConfig.PIXEL_5.copy(
+                locale = tag,
+                layoutDirection = if (rtl) com.android.resources.LayoutDirection.RTL else com.android.resources.LayoutDirection.LTR,
+            ),
+        )
+    }
+
+    // Everything else renders in metric English (the CI machine's own region would vary).
+    @org.junit.Before fun metricEnglish() = java.util.Locale.setDefault(java.util.Locale.forLanguageTag("en-NZ"))
+
+    @Test fun deHome() { language("de"); home() }
+    @Test fun deCrewChat() { language("de"); crewChat() }
+    @Test fun deSettings() { language("de"); settings() }
+    @Test fun deWelcome() { language("de"); welcome() }
+    @Test fun dePlannedGig() { language("de"); homePlannedGigAsleep() }
+    @Test fun deFinder() { language("de"); finderOneFriend() }
+    @Test fun deSmallPhoneSettings() { language("de"); paparazzi.unsafeUpdateConfig(deviceConfig = DeviceConfig.NEXUS_5.copy(locale = "de")); settings() }
+
+    @Test fun arHome() { language("ar", rtl = true); home() }
+    @Test fun arCrewChat() { language("ar", rtl = true); crewChat() }
+    @Test fun arSettings() { language("ar", rtl = true); settings() }
+    @Test fun arFinder() { language("ar", rtl = true); finderOneFriend() }
+    @Test fun arUpNext() { language("ar", rtl = true); upNext() }
+
+    @Test fun jaHome() { language("ja"); home() }
+    @Test fun jaCrewChat() { language("ja"); crewChat() }
+    @Test fun jaWelcome() { language("ja"); welcome() }
+
+    @Test fun usFinderInFeet() { language("en-US"); finderOneFriend() }
 }

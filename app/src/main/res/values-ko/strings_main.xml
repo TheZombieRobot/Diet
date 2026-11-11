@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Korean: main screen, invites, sharing and phone setup checks. -->
+<resources>
+    <string name="main_get_the_app">아직 Moshpoint 없어요? 여기서 설치하세요(Android): %1$s\n그다음 이 메시지 전체를 복사하고, Moshpoint를 열어 ‘초대 붙여넣기’를 탭하세요.\n\n</string>
+    <string name="main_nudge_text">%1$s, Moshpoint 열고 ‘라이브 켜기’ 눌러 줘(위치랑 데이터 켜고)! 그래야 내가 찾을 수 있어!</string>
+    <string name="main_nudge_mate">얘들아</string>
+    <string name="main_nudge_title">라이브 켜 달라고 하기</string>
+
+    <string name="main_setup_bluetooth_off">Bluetooth가 꺼져 있어요. 꺼져 있으면 아무도 나를 못 찾고, 나도 친구를 못 찾아요.</string>
+    <string name="main_setup_location_off">위치가 꺼져 있어요. GPS로 찾을 때 필요하고, 많은 폰에서는 Bluetooth로 찾을 때도 필요해요.</string>
+    <string name="main_setup_wifi_off">Wi-Fi가 꺼져 있어요. 켜면 거리가 더 정확해져요(네트워크에 연결할 필요는 없어요).</string>
+    <string name="main_setup_battery">배터리 절약 기능 때문에 Moshpoint가 닫혀 있을 때 멈추면 친구들이 나를 못 찾을 수 있어요.</string>
+    <string name="main_setup_turn_on">켜기</string>
+    <string name="main_setup_fix">해결</string>
+
+    <string name="main_facebook_failed">Facebook 로그인 실패: %1$s</string>
+    <string name="main_facebook_unknown_error">알 수 없음</string>
+    <string name="main_facebook_not_set_up">이 빌드에는 Facebook 로그인이 설정되어 있지 않아요</string>
+
+    <string name="main_my_spot">내 장소</string>
+
+    <string name="main_photos_permission_needed">그날 밤 사진을 찾으려면 Moshpoint에 사진 접근 권한이 필요해요</string>
+    <string name="main_you">나</string>
+    <plurals name="main_added_to_gig">
+        <item quantity="other">공연에 %d개 추가했어요</item>
+    </plurals>
+    <string name="main_saving_one">저장 중…</string>
+    <plurals name="main_saving_many">
+        <item quantity="other">사진·영상 %d개 저장 중…</item>
+    </plurals>
+    <string name="main_save_failed">저장하지 못했어요. 저장 공간이 꽉 찼나요?</string>
+    <string name="main_saved_all">갤러리에 저장했어요: Moshpoint / %1$s</string>
+    <plurals name="main_saved_some">
+        <item quantity="other">%2$d개 중 %1$d개를 갤러리에 저장했어요</item>
+    </plurals>
+    <string name="main_gig_fallback">공연</string>
+
+    <string name="main_invite_expired">그룹 초대가 만료됐어요. 새 초대를 받아 주세요.</string>
+    <string name="main_joined_up_next">%1$s에 들어왔어요! ‘다가오는 공연’에 있어요. 지금부터 채팅할 수 있고, 공연 당일에 활성화돼요.</string>
+    <string name="main_joined_following">%1$s 팔로우 중이에요. 사진과 위치를 볼 수 있고, 내가 팔로우 중인 것도 상대에게 보여요.</string>
+    <string name="main_joined_sleeping">%1$s에 들어왔어요! 크루는 공연 당일(%2$s)에 활성화돼요.</string>
+    <string name="main_joined_live">%1$s에 들어왔어요! 모두 서로를 찾을 수 있어요.</string>
+    <string name="main_the_crew">크루</string>
+    <string name="main_got_code">코드를 받았어요. 이름을 정하고 ‘친구 추가’를 탭하세요.</string>
+    <string name="main_friend_added">✓ %1$s 추가 완료</string>
+    <string name="main_no_invite_found">Moshpoint 초대를 찾지 못했어요. 친구가 보낸 메시지 전체를 복사한 다음 ‘초대 붙여넣기’를 탭하세요.</string>
+
+    <string name="main_perm_location">위치: GPS 화살표와 Bluetooth/Wi-Fi 거리</string>
+    <string name="main_perm_nearby">근처 기기: Bluetooth로 친구를 찾고 내가 찾아지게 하기</string>
+    <string name="main_perm_uwb">UWB: 정밀한 화살표</string>
+    <string name="main_perm_notifications">알림: 내가 보이는 상태일 때 표시</string>
+
+    <string name="main_phone_summary">이 폰: %1$s</string>
+    <string name="main_cap_compass">나침반</string>
+
+    <string name="main_invite_reset">초대를 재설정했어요. 이전 QR 코드와 링크는 더 이상 작동하지 않아요.</string>
+    <string name="main_eyebrow_up_next">다가오는 공연</string>
+    <string name="main_eyebrow_up_next_countdown">다가오는 공연 · %1$s</string>
+    <string name="main_eyebrow_coming_up">내 크루 · 곧 시작</string>
+    <string name="main_eyebrow_tonight">오늘 밤 내 크루</string>
+    <string name="main_qr_hint_planned">모두 한 번만 스캔하면 돼요. 지금 채팅으로 분위기 띄워요. 서로 찾기는 공연 당일에 켜져요.</string>
+    <string name="main_qr_hint_tonight">모두 한 번만 스캔하면 돼요. 그러면 밤새 서로를 찾을 수 있어요.</string>
+    <string name="main_scan_to_add_me">스캔해서 나를 추가해요</string>
+    <string name="main_scan_to_add_name">스캔해서 %1$s 추가</string>
+
+    <string name="main_wants_to_stay_friends">%1$s님이 계속 친구로 지내고 싶어 해요</string>
+    <string name="main_stay_friends_text">%1$s에서 만났어요. 수락하면 이번 공연뿐 아니라 어떤 공연에서든 서로를 찾을 수 있어요. 내 정보는 %2$s님에게만 가고, 크루의 다른 사람에게는 가지 않아요.</string>
+    <string name="main_friends_now">이제 %1$s님과 친구예요</string>
+    <string name="main_yes_stay_friends">좋아요, 친구 할래요</string>
+    <string name="main_not_now">나중에</string>
+
+    <string name="main_battery_title">밤새 보이게 하기</string>
+    <string name="main_battery_text">일부 폰은 배터리를 아끼려고 백그라운드 앱을 종료해서 내가 사라질 수 있어요. 다음 화면에서 Moshpoint를 찾아 \"최적화 안 함\" / \"제한 없음\"으로 설정하세요.</string>
+    <string name="main_open_settings">설정 열기</string>
+
+    <plurals name="main_n_mates">
+        <item quantity="other">친구 %d명</item>
+    </plurals>
+    <string name="main_beacon_colour_name">%1$s(%2$s)</string>
+
+    <string name="main_scan_prompt">친구의 Moshpoint QR을 스캔하세요</string>
+    <string name="main_out_of_crew">%1$s님이 크루에서 나갔어요. 나머지는 모두 새 키로 바뀌어요.</string>
+
+    <string name="main_follow_share_text">Moshpoint로 %1$s에서 보내는 우리 밤을 따라와요. 올라오는 사진도 보고 우리가 무사한지도 알 수 있어요.\n%2$s</string>
+    <string name="main_follow_share_title">가족도 함께 지켜보게 하기</string>
+    <string name="main_when_venue">%1$s · %2$s</string>
+
+    <string name="main_time_passed">이미 지난 시간이에요. 공연 시작 시간을 골라 주세요.</string>
+    <string name="main_added_up_next">%1$s, ‘다가오는 공연’에 추가했어요. 친구들을 초대하고 분위기를 띄워요!</string>
+
+    <string name="main_join_name">%1$s에 참여할까요?</string>
+    <string name="main_follow_name">%1$s 팔로우할까요?</string>
+    <string name="main_bumped_text">맞닿기 완료! 참여하면 오늘 밤 모두 서로를 찾을 수 있어요.</string>
+    <string name="main_join">참여</string>
+    <string name="main_no">아니요</string>
+    <string name="main_clip_follow_text">팔로우 링크를 복사했어요. 상대의 사진과 무사한지 볼 수 있고, 내가 팔로우 중인 것도 상대에게 보여요.</string>
+    <string name="main_clip_join_text">Moshpoint 초대를 복사했어요. 참여하면 오늘 밤 모두 서로를 찾을 수 있어요.</string>
+
+    <string name="main_your_night">나의 밤</string>
+    <string name="main_recap_text">%1$s\n\n밤을 끝내면 크루가 종료돼요(친구는 그대로). 사진과 영상은 ‘내 공연’에 남아 있어요.</string>
+    <string name="main_night_ended">밤이 끝났어요. 사진과 영상은 ‘내 공연’에 있어요.</string>
+    <string name="main_end_the_night">밤 끝내기</string>
+    <string name="main_share_night_text">Moshpoint와 함께한 나의 밤: %1$s 🤘</string>
+    <string name="main_share_night_title">나의 밤 공유하기</string>
+    <string name="main_share">공유</string>
+
+    <string name="main_now_main_crew">이제 %1$s이(가) 메인 크루예요. 모두 서로를 찾을 수 있어요.</string>
+    <string name="main_deleted_gig">이 폰에서 %1$s을(를) 삭제했어요</string>
+    <string name="main_meetup_sent">만남 핀을 크루에 보냈어요</string>
+    <string name="main_moment_label">%1$s · %2$s</string>
+
+    <string name="main_share_app_text">공연에서 서로 찾을 수 있게 Moshpoint 깔아요. 친구를 탭하면 화살표가 그 친구를 가리켜요.\n\n%1$s</string>
+    <string name="main_share_app_title">Moshpoint 공유하기</string>
+    <string name="main_named_crew">%1$s의 크루</string>
+    <string name="main_tonights_crew">오늘 밤 크루</string>
+    <string name="main_me">나</string>
+    <string name="main_group_invite_text">오늘 밤 Moshpoint에서 내 크루 \"%1$s\"에 들어와요!\n%2$s</string>
+    <string name="main_group_invite_title">그룹 초대 보내기</string>
+</resources>

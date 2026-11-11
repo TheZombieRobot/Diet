@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Korean: crew chat, notifications, friendship, safety, plan card, night stats, live status. -->
+<resources>
+    <string name="crew_you">나</string>
+    <string name="crew_default_name">친구</string>
+    <string name="crew_default_group_name">공연 그룹</string>
+    <string name="crew_default_gig_name">공연</string>
+    <string name="crew_someone">누군가</string>
+    <string name="crew_name_numbered">%1$s(%2$d)</string>
+    <string name="crew_cancel">취소</string>
+    <string name="crew_close">닫기</string>
+
+    <string name="crew_chat_subtitle">크루 채팅 · 크루만 읽을 수 있어요</string>
+    <string name="crew_chat_invite">＋ 초대</string>
+    <string name="crew_chat_on_today">오늘이 이 공연 날이에요. 이 크루에서 서로 찾을까요?</string>
+    <string name="crew_chat_switch">전환</string>
+    <plurals name="crew_chat_send_flare_hint">
+        <item quantity="other">🔥  플레어 보내기: %d분 동안 내 위치 표시</item>
+    </plurals>
+    <string name="crew_chat_empty">아직 아무것도 없어요. 메시지는 1분 안에 크루 모두에게 전달돼요(내 릴레이를 쓰면 더 빨라요).</string>
+    <string name="crew_chat_night_tools_later">분위기 띄워요! 플레어와 빠른 호출은 공연 당일에 켜져요.</string>
+    <string name="crew_chat_message_hint">크루에게 메시지</string>
+    <string name="crew_chat_not_sent">전송 안 됨 · 탭해서 다시 시도</string>
+    <string name="crew_chat_sending">보내는 중…</string>
+    <string name="crew_chat_line_with_time">%1$s · %2$s</string>
+
+    <string name="crew_chat_you_joined">크루에 참여했어요</string>
+    <string name="crew_chat_joined">%1$s님이 크루에 참여했어요</string>
+    <string name="crew_chat_you_pinned">내가 고정함: %1$s</string>
+    <string name="crew_chat_pinned">%1$s님이 고정함: %2$s</string>
+    <string name="crew_chat_you_cleared_plan">계획을 지웠어요</string>
+    <string name="crew_chat_cleared_plan">%1$s님이 계획을 지웠어요</string>
+    <string name="crew_chat_you_flare">플레어를 보냈어요: %1$s</string>
+    <string name="crew_chat_flare">%1$s님이 플레어를 보냈어요: %2$s</string>
+    <string name="crew_chat_line_other">%1$s %2$s</string>
+
+    <string name="crew_quick_coming">가는 중 🏃</string>
+    <string name="crew_quick_where">어디야? 👀</string>
+    <string name="crew_quick_stay_put">거기 있어 ✋</string>
+    <string name="crew_quick_meet_pin">핀에서 만나 📍</string>
+    <string name="crew_quick_all_good">괜찮아 👍</string>
+    <string name="crew_quick_going_home">집에 가는 중 🏠</string>
+    <string name="crew_quick_need_help">🚨 도와줘</string>
+    <plurals name="crew_quick_check_in">
+        <item quantity="other">집에 가는 중 🏠 %d분 안에 체크인할게</item>
+    </plurals>
+    <string name="crew_quick_home_safe">집에 잘 도착 ✅</string>
+
+    <string name="crew_plan_eyebrow">📌 계획</string>
+    <string name="crew_plan_none">아직 고정된 계획이 없어요.</string>
+    <string name="crew_plan_prompt">계획을 고정하면 아무도 스크롤할 필요 없어요: \"앙코르 끝나고 음향 부스에서\".</string>
+    <string name="crew_plan_by">작성: %1$s</string>
+    <string name="crew_plan_meet_up">★ 만남 핀: %1$s</string>
+    <string name="crew_plan_pin">계획 고정하기</string>
+    <string name="crew_plan_change">변경</string>
+    <string name="crew_plan_share">카드로 공유</string>
+    <string name="crew_plan_title">계획</string>
+    <string name="crew_plan_editor_body">모두의 채팅 맨 위에 고정돼서 스크롤해도 사라지지 않아요.</string>
+    <string name="crew_plan_idea_sound_desk">앙코르 끝나고 음향 부스에서 만나요</string>
+    <string name="crew_plan_idea_bar">쉬는 시간에 메인 바 왼쪽</string>
+    <string name="crew_plan_idea_car">11시 30분까지 차로 돌아오기</string>
+    <string name="crew_plan_idea_tent">흩어지면 텐트에서</string>
+    <string name="crew_plan_pin_it">고정</string>
+    <string name="crew_plan_unpin">고정 해제</string>
+
+    <string name="crew_vibe_lost">길 잃음 😅</string>
+    <string name="crew_vibe_bar">한잔하는 중 🍺</string>
+    <string name="crew_vibe_rail">펜스 앞 🎶</string>
+    <string name="crew_vibe_food">먹을 거 사러 🍔</string>
+    <string name="crew_vibe_toilets">화장실 🚻</string>
+    <string name="crew_vibe_air">바람 쐬는 중 🌬️</string>
+    <string name="crew_vibe_merch">MD 부스 👕</string>
+    <string name="crew_vibe_leaving">곧 나가요 👋</string>
+    <string name="crew_flare_mine">나: %1$s</string>
+    <string name="crew_flare_theirs">%1$s: %2$s</string>
+    <plurals name="crew_flare_left">
+        <item quantity="other">%d분 남음</item>
+    </plurals>
+    <plurals name="crew_flare_left_on_map">
+        <item quantity="other">%d분 남음 · 지도에 표시 중</item>
+    </plurals>
+    <string name="crew_flare_end">종료</string>
+    <string name="crew_flare_title">플레어 보내기</string>
+    <plurals name="crew_flare_body">
+        <item quantity="other">내 위치가 한마디와 함께 %d분 동안 크루 지도에 표시돼요.</item>
+    </plurals>
+    <string name="crew_flare_own_hint">또는 직접 입력…</string>
+    <string name="crew_flare_send">보내기</string>
+
+    <string name="crew_help_title">도움 요청</string>
+    <string name="crew_help_alerted">크루에 알렸어요 ✓</string>
+    <string name="crew_help_alert">크루에 알리기</string>
+    <string name="crew_help_alert_sub">내 위치와 함께 긴급 알림</string>
+    <string name="crew_help_text_contact">%1$s에게 문자</string>
+    <string name="crew_help_text_contact_sub">내 위치가 담긴 채로 메시지 앱이 열려요. 데이터 없이도 돼요.</string>
+    <string name="crew_help_add_contact">비상 연락처 추가</string>
+    <string name="crew_help_add_contact_sub">위급할 때 문자 보낼 크루 밖의 사람</string>
+    <string name="crew_help_contact_name">이름(예: 엄마)</string>
+    <string name="crew_help_contact_number">휴대폰 번호</string>
+    <string name="crew_help_save_contact">연락처 저장</string>
+    <string name="crew_help_call">%1$s에 전화</string>
+    <string name="crew_help_call_sub">경찰, 소방, 구급</string>
+    <string name="crew_help_call_police">경찰</string>
+    <string name="crew_help_call_ambulance">구급·소방</string>
+    <string name="crew_help_no_signal">신호가 전혀 없나요? 최신 폰은 대부분 위성으로 긴급 신고를 할 수 있어요: %1$s에 전화하고 안내를 따르세요. 페스티벌에서는 경호 요원과 의무 텐트가 빠르게 도와줄 수 있어요.</string>
+    <string name="crew_help_sms">도움이 필요해요. (Moshpoint에서 보냄)</string>
+    <string name="crew_help_sms_where">도움이 필요해요. 여기 있어요: %1$s (Moshpoint에서 보냄)</string>
+
+    <string name="crew_channel_messages">크루 메시지</string>
+    <string name="crew_channel_help">크루 도움 요청</string>
+    <string name="crew_channel_requests">나를 찾는 친구</string>
+    <string name="crew_notif_line">%1$s: %2$s</string>
+    <plurals name="crew_new_messages">
+        <item quantity="other">새 메시지 %d개</item>
+    </plurals>
+    <string name="crew_notif_joined">크루에 참여했어요 🎉</string>
+    <plurals name="crew_notif_flare">
+        <item quantity="other">플레어: %1$s · %2$d분 동안 여기 있어요</item>
+    </plurals>
+    <string name="crew_notif_new_plan">새 계획: %1$s</string>
+    <string name="crew_notif_done_title">%1$s 종료</string>
+    <string name="crew_notif_done_saved">사진과 영상은 ‘내 공연’에 저장돼 있어요.</string>
+    <string name="crew_notif_done_text">즐거운 시간이었길 바라요. 언제든 새 크루를 만들 수 있어요.</string>
+    <string name="crew_notif_overdue_title">%1$s님이 체크인하지 않았어요</string>
+    <string name="crew_notif_overdue_text">집에 가는 중이었고 지금쯤 도착했어야 해요. 전화해 보세요. 탭하면 마지막 위치를 볼 수 있어요.</string>
+    <string name="crew_notif_help_where">‘도움 요청’을 눌렀어요. 탭해서 위치를 보고 상태를 확인해 주세요.</string>
+    <string name="crew_notif_help">‘도움 요청’을 눌렀어요. 상태를 확인해 주세요.</string>
+    <string name="crew_notif_tap_where">탭해서 위치 보기.</string>
+    <string name="crew_notif_from_crew">크루에서</string>
+
+    <string name="crew_ping_coming">가는 중이에요</string>
+    <string name="crew_ping_stay_put">거기 있으래요</string>
+    <string name="crew_ping_where">어디 있냐고 물어요</string>
+    <string name="crew_ping_meet_pin">핀에서 만나재요</string>
+    <string name="crew_ping_all_good">괜찮대요</string>
+    <string name="crew_ping_going_home">집에 가는 중이에요</string>
+    <string name="crew_ping_need_help">도움이 필요해요!</string>
+    <string name="crew_ping_check_in">집에 가는 중, 도착하면 체크인한대요</string>
+    <string name="crew_ping_home_safe">집에 잘 도착했어요</string>
+    <string name="crew_ping_chat">메시지를 보냈어요</string>
+    <string name="crew_ping_flare">플레어를 보냈어요</string>
+    <string name="crew_ping_plan">계획을 고정했어요</string>
+    <string name="crew_ping_other">크루를 호출했어요</string>
+
+    <string name="crew_ping_title_coming">%1$s님이 가는 중이에요</string>
+    <string name="crew_ping_title_stay_put">%1$s님이 거기 있으래요</string>
+    <string name="crew_ping_title_where">%1$s님이 어디 있냐고 물어요</string>
+    <string name="crew_ping_title_meet_pin">%1$s님이 핀에서 만나재요</string>
+    <string name="crew_ping_title_all_good">%1$s님은 괜찮대요</string>
+    <string name="crew_ping_title_going_home">%1$s님이 집에 가는 중이에요</string>
+    <string name="crew_ping_title_need_help">%1$s님이 도움이 필요해요!</string>
+    <string name="crew_ping_title_check_in">%1$s님이 집에 가는 중, 도착하면 체크인한대요</string>
+    <string name="crew_ping_title_home_safe">%1$s님이 집에 잘 도착했어요</string>
+    <string name="crew_ping_title_chat">%1$s님이 메시지를 보냈어요</string>
+    <string name="crew_ping_title_flare">%1$s님이 플레어를 보냈어요</string>
+    <string name="crew_ping_title_plan">%1$s님이 계획을 고정했어요</string>
+    <string name="crew_ping_title_other">%1$s님이 크루를 호출했어요</string>
+
+    <string name="crew_rally_default">여기서 만나요</string>
+
+    <string name="crew_friend_need_crew">‘친구로 유지’는 같은 크루에 있을 때만 쓸 수 있어요.</string>
+    <string name="crew_friend_gone">이 사람은 이제 크루에 없어요.</string>
+    <string name="crew_friend_unreachable">아직 %1$s님에게 개별 연락이 안 돼요. 오늘 밤 그 친구가 표시되면 다시 해 보세요(계속 이러면 그 친구 앱을 업데이트해야 해요).</string>
+    <string name="crew_friend_ask_failed">%1$s님에게 요청하지 못했어요. 다시 해 보세요.</string>
+    <string name="crew_friend_asked">%1$s님에게 친구 요청을 보냈어요. 수락하면 모든 공연에서 친구예요.</string>
+    <string name="crew_friend_request_title">%1$s님이 계속 친구로 지내고 싶어 해요</string>
+    <string name="crew_friend_request_text">%1$s에서 보낸 요청이에요. 탭해서 수락하면 어떤 공연에서든 서로를 찾을 수 있어요.</string>
+    <string name="crew_friend_accepted_title">이제 %1$s님과 친구예요</string>
+    <string name="crew_friend_accepted_text">%1$s뿐 아니라 어떤 공연에서든 서로를 찾을 수 있어요.</string>
+
+    <string name="crew_add_need_name">이름을 정해 주세요</string>
+    <string name="crew_add_bad_code">코드가 올바르지 않은 것 같아요</string>
+    <string name="crew_add_own_code">내 코드예요</string>
+
+    <string name="crew_note_you_removed">%1$s님을 내보냈어요. 크루에 새 키가 생겨서 이제 그 사람은 아무것도 볼 수 없어요.</string>
+    <string name="crew_note_you_reset">초대를 재설정했어요. 이전 QR 코드와 링크는 더 이상 작동하지 않아요.</string>
+    <string name="crew_note_removed">%1$s님이 %2$s님을 크루에서 내보냈어요.</string>
+    <string name="crew_note_reset">%1$s님이 초대를 재설정했어요: 이전 QR 코드는 더 이상 작동하지 않아요.</string>
+
+    <string name="crew_wake_title">오늘 밤 %1$s!</string>
+    <string name="crew_wake_text">%1$s 시작. 탭해서 라이브를 켜면 크루가 나를 찾을 수 있어요.</string>
+    <string name="crew_wake_text_venue">%2$s에서 %1$s 시작. 탭해서 라이브를 켜면 크루가 나를 찾을 수 있어요.</string>
+
+    <plurals name="crew_memory_headline">
+        <item quantity="other">%1$d년 전 오늘: %2$s</item>
+    </plurals>
+    <plurals name="crew_memory_headline_with">
+        <item quantity="other">%1$d년 전 오늘: %3$s와 함께한 %2$s</item>
+    </plurals>
+    <string name="crew_memory_two_people">%1$s &amp; %2$s</string>
+    <plurals name="crew_memory_text">
+        <item quantity="other">사진·영상 %d개. 탭해서 다시 즐겨요.</item>
+    </plurals>
+
+    <string name="crew_moment_title">%1$s님이 순간을 공유했어요</string>
+    <string name="crew_moment_text">탭해서 위치 보기</string>
+
+    <string name="crew_moving_title">%1$s님이 이동 중이에요</string>
+    <string name="crew_moving_text">있던 곳에서 %1$s 이동했어요. 탭해서 확인하세요.</string>
+    <string name="crew_moving_text_away">있던 곳에서 %1$s 이동했어요. 지금 나와 %2$s 거리예요. 탭해서 확인하세요.</string>
+    <string name="crew_at_venue">공연장에 있음</string>
+    <string name="crew_from_venue">공연장에서 %1$s</string>
+    <string name="crew_status_phone_died">%1$s 폰 배터리 방전</string>
+    <string name="crew_status_distance">%1$s %2$s</string>
+    <plurals name="crew_status_min_ago">
+        <item quantity="other">%1$s %2$d분 전</item>
+    </plurals>
+
+    <string name="crew_stats_walked">%1$s 걸었어요</string>
+    <plurals name="crew_stats_finds">
+        <item quantity="other">친구 찾기 %d번</item>
+    </plurals>
+    <plurals name="crew_stats_moments">
+        <item quantity="other">순간 %d개</item>
+    </plurals>
+    <plurals name="crew_stats_pings">
+        <item quantity="other">호출 %d번</item>
+    </plurals>
+    <string name="crew_stats_out_hours">%1$d시간 %2$d분 외출</string>
+    <plurals name="crew_stats_out_mins">
+        <item quantity="other">%d분 외출</item>
+    </plurals>
+    <string name="crew_stats_quiet">조용한 밤</string>
+
+    <string name="crew_card_eyebrow">MOSHPOINT · 오늘 밤 계획</string>
+    <string name="crew_card_plan">계획</string>
+    <string name="crew_card_meet_up">★  만남 장소: %1$s</string>
+    <string name="crew_card_whos_coming">함께하는 사람</string>
+    <string name="crew_card_footer">서로 놓쳤나요? Moshpoint로 찾아요.</string>
+    <string name="crew_card_share_meet_up">만남 장소: %1$s</string>
+    <string name="crew_card_share_title">계획 공유하기</string>
+
+    <string name="crew_request_title">%1$s님이 가까이에서 나를 찾고 있어요</string>
+    <string name="crew_request_text">탭해서 화면을 밝히면 친구가 나를 쉽게 찾을 수 있어요</string>
+    <string name="crew_go_hidden">숨기기</string>
+    <string name="crew_tile_live">라이브</string>
+    <string name="crew_tile_hidden">숨김</string>
+</resources>

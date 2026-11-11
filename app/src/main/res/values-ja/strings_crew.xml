@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Japanese: crew chat, notifications, friendship, safety, plan card, night stats, live status. -->
+<resources>
+    <string name="crew_you">自分</string>
+    <string name="crew_default_name">仲間</string>
+    <string name="crew_default_group_name">ライブグループ</string>
+    <string name="crew_default_gig_name">ライブ</string>
+    <string name="crew_someone">誰か</string>
+    <string name="crew_name_numbered">%1$s（%2$d）</string>
+    <string name="crew_cancel">キャンセル</string>
+    <string name="crew_close">閉じる</string>
+
+    <string name="crew_chat_subtitle">クルーチャット · クルーだけが読めます</string>
+    <string name="crew_chat_invite">＋ 招待</string>
+    <string name="crew_chat_on_today">このライブは今日です。このクルーでお互いを探す？</string>
+    <string name="crew_chat_switch">切り替え</string>
+    <plurals name="crew_chat_send_flare_hint">
+        <item quantity="other">🔥  フレアを送る：%d分間、居場所を表示</item>
+    </plurals>
+    <string name="crew_chat_empty">まだ何もありません。メッセージは1分ほどでクルー全員に届きます（自分のリレーならもっと速い）。</string>
+    <string name="crew_chat_night_tools_later">盛り上がっていこう！フレアやクイック通知はライブ当日にオンになります。</string>
+    <string name="crew_chat_message_hint">クルーにメッセージ</string>
+    <string name="crew_chat_not_sent">未送信 · タップで再送</string>
+    <string name="crew_chat_sending">送信中…</string>
+    <string name="crew_chat_line_with_time">%1$s · %2$s</string>
+
+    <string name="crew_chat_you_joined">クルーに参加しました</string>
+    <string name="crew_chat_joined">%1$sがクルーに参加しました</string>
+    <string name="crew_chat_you_pinned">ピン留めしました：%1$s</string>
+    <string name="crew_chat_pinned">%1$sがピン留め：%2$s</string>
+    <string name="crew_chat_you_cleared_plan">予定をクリアしました</string>
+    <string name="crew_chat_cleared_plan">%1$sが予定をクリアしました</string>
+    <string name="crew_chat_you_flare">フレアを送りました：%1$s</string>
+    <string name="crew_chat_flare">%1$sがフレアを送信：%2$s</string>
+    <string name="crew_chat_line_other">%1$s%2$s</string>
+
+    <string name="crew_quick_coming">今行く 🏃</string>
+    <string name="crew_quick_where">どこにいる？ 👀</string>
+    <string name="crew_quick_stay_put">そこにいて ✋</string>
+    <string name="crew_quick_meet_pin">ピンで集合 📍</string>
+    <string name="crew_quick_all_good">大丈夫 👍</string>
+    <string name="crew_quick_going_home">帰るね 🏠</string>
+    <string name="crew_quick_need_help">🚨 助けて</string>
+    <plurals name="crew_quick_check_in">
+        <item quantity="other">帰るね 🏠 %d分以内にチェックインするよ</item>
+    </plurals>
+    <string name="crew_quick_home_safe">無事に帰ったよ ✅</string>
+
+    <string name="crew_plan_eyebrow">📌 予定</string>
+    <string name="crew_plan_none">まだ予定がピン留めされていません。</string>
+    <string name="crew_plan_prompt">予定をピン留めすれば、誰もスクロールしなくてOK：「アンコール後にPA卓で」。</string>
+    <string name="crew_plan_by">by %1$s</string>
+    <string name="crew_plan_meet_up">★ 集合ピン：%1$s</string>
+    <string name="crew_plan_pin">予定をピン留め</string>
+    <string name="crew_plan_change">変更</string>
+    <string name="crew_plan_share">カードでシェア</string>
+    <string name="crew_plan_title">予定</string>
+    <string name="crew_plan_editor_body">チャットの一番上に全員向けにピン留めされるので、流れていきません。</string>
+    <string name="crew_plan_idea_sound_desk">アンコール後にPA卓で集合</string>
+    <string name="crew_plan_idea_bar">休憩中はメインバーの左</string>
+    <string name="crew_plan_idea_car">23:30までに車に戻る</string>
+    <string name="crew_plan_idea_tent">はぐれたらテントで</string>
+    <string name="crew_plan_pin_it">ピン留め</string>
+    <string name="crew_plan_unpin">ピン留めを外す</string>
+
+    <string name="crew_vibe_lost">迷子 😅</string>
+    <string name="crew_vibe_bar">バータイム 🍺</string>
+    <string name="crew_vibe_rail">最前列 🎶</string>
+    <string name="crew_vibe_food">ごはん調達中 🍔</string>
+    <string name="crew_vibe_toilets">トイレ 🚻</string>
+    <string name="crew_vibe_air">外で休憩中 🌬️</string>
+    <string name="crew_vibe_merch">物販 👕</string>
+    <string name="crew_vibe_leaving">そろそろ帰る 👋</string>
+    <string name="crew_flare_mine">自分：%1$s</string>
+    <string name="crew_flare_theirs">%1$s：%2$s</string>
+    <plurals name="crew_flare_left">
+        <item quantity="other">残り%d分</item>
+    </plurals>
+    <plurals name="crew_flare_left_on_map">
+        <item quantity="other">残り%d分 · マップに表示中</item>
+    </plurals>
+    <string name="crew_flare_end">終了</string>
+    <string name="crew_flare_title">フレアを送る</string>
+    <plurals name="crew_flare_body">
+        <item quantity="other">あなたの居場所がひとことと一緒に、%d分間クルーのマップに表示されます。</item>
+    </plurals>
+    <string name="crew_flare_own_hint">または自分で入力…</string>
+    <string name="crew_flare_send">送信</string>
+
+    <string name="crew_help_title">助けを呼ぶ</string>
+    <string name="crew_help_alerted">クルーに通知しました ✓</string>
+    <string name="crew_help_alert">クルーに知らせる</string>
+    <string name="crew_help_alert_sub">居場所付きの緊急通知</string>
+    <string name="crew_help_text_contact">%1$sにSMS</string>
+    <string name="crew_help_text_contact_sub">位置情報入りでメッセージアプリが開きます。データ通信なしでもOK。</string>
+    <string name="crew_help_add_contact">緊急連絡先を追加</string>
+    <string name="crew_help_add_contact_sub">いざというときに連絡する、クルー以外の人</string>
+    <string name="crew_help_contact_name">名前（例：お母さん）</string>
+    <string name="crew_help_contact_number">携帯番号</string>
+    <string name="crew_help_save_contact">連絡先を保存</string>
+    <string name="crew_help_call">%1$sに電話</string>
+    <string name="crew_help_call_sub">警察・消防・救急</string>
+    <string name="crew_help_call_police">警察</string>
+    <string name="crew_help_call_ambulance">救急・消防</string>
+    <string name="crew_help_no_signal">まったく電波がない？最近のスマホの多くは衛星経由で緊急通報できます：%1$sに電話して案内に従ってください。フェスなら警備スタッフや救護テントがすぐに助けてくれます。</string>
+    <string name="crew_help_sms">助けが必要です。（Moshpointから送信）</string>
+    <string name="crew_help_sms_where">助けが必要です。今ここにいます：%1$s（Moshpointから送信）</string>
+
+    <string name="crew_channel_messages">クルーのメッセージ</string>
+    <string name="crew_channel_help">クルーのヘルプ要請</string>
+    <string name="crew_channel_requests">あなたを探している仲間</string>
+    <string name="crew_notif_line">%1$s：%2$s</string>
+    <plurals name="crew_new_messages">
+        <item quantity="other">新着メッセージ%d件</item>
+    </plurals>
+    <string name="crew_notif_joined">クルーに参加しました 🎉</string>
+    <plurals name="crew_notif_flare">
+        <item quantity="other">フレア：%1$s · %2$d分間ここにいます</item>
+    </plurals>
+    <string name="crew_notif_new_plan">新しい予定：%1$s</string>
+    <string name="crew_notif_done_title">%1$sが終了しました</string>
+    <string name="crew_notif_done_saved">写真と動画は「あなたのライブ」に保存されています。</string>
+    <string name="crew_notif_done_text">いい夜だったかな？新しいクルーはいつでも作れます。</string>
+    <string name="crew_notif_overdue_title">%1$sからチェックインがありません</string>
+    <string name="crew_notif_overdue_text">帰宅中で、もう着いているはずです。電話してみて。タップで最後にいた場所を表示。</string>
+    <string name="crew_notif_help_where">「助けて」が押されました。タップで場所を確認して、様子を見てあげて。</string>
+    <string name="crew_notif_help">「助けて」が押されました。様子を見てあげて。</string>
+    <string name="crew_notif_tap_where">タップで場所を表示。</string>
+    <string name="crew_notif_from_crew">クルーから</string>
+
+    <string name="crew_ping_coming">が向かっています</string>
+    <string name="crew_ping_stay_put">が「そこにいて」と言っています</string>
+    <string name="crew_ping_where">があなたの居場所を聞いています</string>
+    <string name="crew_ping_meet_pin">が「ピンで集合」と言っています</string>
+    <string name="crew_ping_all_good">は大丈夫です</string>
+    <string name="crew_ping_going_home">が帰宅中です</string>
+    <string name="crew_ping_need_help">が助けを求めています</string>
+    <string name="crew_ping_check_in">が帰宅中です。着いたらチェックインします</string>
+    <string name="crew_ping_home_safe">が無事に帰宅しました</string>
+    <string name="crew_ping_chat">がメッセージを送りました</string>
+    <string name="crew_ping_flare">がフレアを送りました</string>
+    <string name="crew_ping_plan">が予定をピン留めしました</string>
+    <string name="crew_ping_other">がクルーに通知しました</string>
+
+    <string name="crew_ping_title_coming">%1$sが向かっています</string>
+    <string name="crew_ping_title_stay_put">%1$sが「そこにいて」と言っています</string>
+    <string name="crew_ping_title_where">%1$sがあなたの居場所を聞いています</string>
+    <string name="crew_ping_title_meet_pin">%1$sが「ピンで集合」と言っています</string>
+    <string name="crew_ping_title_all_good">%1$sは大丈夫です</string>
+    <string name="crew_ping_title_going_home">%1$sが帰宅中です</string>
+    <string name="crew_ping_title_need_help">%1$sが助けを求めています！</string>
+    <string name="crew_ping_title_check_in">%1$sが帰宅中です。着いたらチェックインします</string>
+    <string name="crew_ping_title_home_safe">%1$sが無事に帰宅しました</string>
+    <string name="crew_ping_title_chat">%1$sがメッセージを送りました</string>
+    <string name="crew_ping_title_flare">%1$sがフレアを送りました</string>
+    <string name="crew_ping_title_plan">%1$sが予定をピン留めしました</string>
+    <string name="crew_ping_title_other">%1$sがクルーに通知しました</string>
+
+    <string name="crew_rally_default">ここに集合</string>
+
+    <string name="crew_friend_need_crew">「友達として残す」は同じクルーにいる間だけ使えます。</string>
+    <string name="crew_friend_gone">この人はもうクルーにいません。</string>
+    <string name="crew_friend_unreachable">まだ%1$sに個別に連絡できません。今夜相手が表示されたらもう一度試してね（何度も起きる場合は、相手のアプリのアップデートが必要です）。</string>
+    <string name="crew_friend_ask_failed">%1$sにリクエストできませんでした。もう一度試してね。</string>
+    <string name="crew_friend_asked">%1$sに友達リクエストを送りました。OKされたら、どのライブでも友達です。</string>
+    <string name="crew_friend_request_title">%1$sがこれからも友達でいたいそうです</string>
+    <string name="crew_friend_request_text">%1$sから。タップしてOKすると、どのライブでもお互いを見つけられます。</string>
+    <string name="crew_friend_accepted_title">%1$sと友達になりました</string>
+    <string name="crew_friend_accepted_text">%1$sだけじゃなく、どのライブでもお互いを見つけられます。</string>
+
+    <string name="crew_add_need_name">名前をつけてね</string>
+    <string name="crew_add_bad_code">そのコードは正しくないみたい</string>
+    <string name="crew_add_own_code">それは自分のコードです</string>
+
+    <string name="crew_note_you_removed">%1$sを外しました。クルーは新しいキーになり、この人は今後何も見られません。</string>
+    <string name="crew_note_you_reset">招待をリセットしました。古いQRコードやリンクはもう使えません。</string>
+    <string name="crew_note_removed">%1$sが%2$sをクルーから外しました。</string>
+    <string name="crew_note_reset">%1$sが招待をリセットしました：古いQRコードはもう使えません。</string>
+
+    <string name="crew_wake_title">今夜は%1$s！</string>
+    <string name="crew_wake_text">%1$sスタート。タップしてシェアを始めれば、クルーがあなたを見つけられます。</string>
+    <string name="crew_wake_text_venue">%2$sで%1$sスタート。タップしてシェアを始めれば、クルーがあなたを見つけられます。</string>
+
+    <plurals name="crew_memory_headline">
+        <item quantity="other">%1$d年前の今日：%2$s</item>
+    </plurals>
+    <plurals name="crew_memory_headline_with">
+        <item quantity="other">%1$d年前の今日：%3$sと%2$s</item>
+    </plurals>
+    <string name="crew_memory_two_people">%1$s &amp; %2$s</string>
+    <plurals name="crew_memory_text">
+        <item quantity="other">写真・動画%d件。タップして振り返ろう。</item>
+    </plurals>
+
+    <string name="crew_moment_title">%1$sがモーメントをシェアしました</string>
+    <string name="crew_moment_text">タップで場所を表示</string>
+
+    <string name="crew_moving_title">%1$sが移動中</string>
+    <string name="crew_moving_text">元の場所から%1$s移動しました。タップで確認。</string>
+    <string name="crew_moving_text_away">元の場所から%1$s移動しました。あなたから%2$sの場所にいます。タップで確認。</string>
+    <string name="crew_at_venue">会場にいます</string>
+    <string name="crew_from_venue">会場から%1$s</string>
+    <string name="crew_status_phone_died">%1$sのスマホが電池切れ</string>
+    <string name="crew_status_distance">%1$s %2$s</string>
+    <plurals name="crew_status_min_ago">
+        <item quantity="other">%1$s %2$d分前</item>
+    </plurals>
+
+    <string name="crew_stats_walked">%1$s歩いた</string>
+    <plurals name="crew_stats_finds">
+        <item quantity="other">仲間を%d回発見</item>
+    </plurals>
+    <plurals name="crew_stats_moments">
+        <item quantity="other">モーメント%d件</item>
+    </plurals>
+    <plurals name="crew_stats_pings">
+        <item quantity="other">通知%d回</item>
+    </plurals>
+    <string name="crew_stats_out_hours">%1$d時間%2$d分のお出かけ</string>
+    <plurals name="crew_stats_out_mins">
+        <item quantity="other">%d分のお出かけ</item>
+    </plurals>
+    <string name="crew_stats_quiet">まったりした夜</string>
+
+    <string name="crew_card_eyebrow">MOSHPOINT · 今夜の予定</string>
+    <string name="crew_card_plan">予定</string>
+    <string name="crew_card_meet_up">★  集合場所：%1$s</string>
+    <string name="crew_card_whos_coming">参加メンバー</string>
+    <string name="crew_card_footer">はぐれても大丈夫。Moshpointでお互いを見つけよう。</string>
+    <string name="crew_card_share_meet_up">集合場所：%1$s</string>
+    <string name="crew_card_share_title">予定をシェア</string>
+
+    <string name="crew_request_title">%1$sが近くであなたを探しています</string>
+    <string name="crew_request_text">タップして画面を光らせると、相手があなたを見つけやすくなります</string>
+    <string name="crew_go_hidden">非表示にする</string>
+    <string name="crew_tile_live">シェア中</string>
+    <string name="crew_tile_hidden">非表示</string>
+</resources>

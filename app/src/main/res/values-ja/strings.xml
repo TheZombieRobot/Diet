@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Japanese: app name, live-status notification, widget. -->
+<resources>
+    <string name="app_name">Moshpoint</string>
+    <string name="visibility_channel">シェア状態</string>
+    <string name="visibility_notification">シェア中：仲間があなたを見つけられます</string>
+    <string name="widget_title">あなたのクルー</string>
+    <string name="widget_empty">Moshpointでクルーを作ると、仲間がここに表示されます。</string>
+    <string name="widget_find">クルーを探す</string>
+    <string name="widget_description">クルーの居場所をチェック、ワンタップで見つけられる</string>
+</resources>

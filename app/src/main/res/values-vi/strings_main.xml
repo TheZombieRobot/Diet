@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vietnamese: main screen, invites, sharing and phone setup checks. -->
+<resources>
+    <string name="main_get_the_app">Chưa có Moshpoint? Tải ở đây (Android): %1$s\nRồi copy cả tin nhắn này, mở Moshpoint và chạm Dán lời mời.\n\n</string>
+    <string name="main_nudge_text">Ê %1$s, mở Moshpoint và chạm Bật chia sẻ (nhớ bật vị trí và dữ liệu) để mình tìm được nha!</string>
+    <string name="main_nudge_mate">bạn ơi</string>
+    <string name="main_nudge_title">Rủ bạn bật chia sẻ</string>
+
+    <string name="main_setup_bluetooth_off">Bluetooth đang tắt. Không có nó thì không ai tìm được bạn, và bạn cũng không tìm được ai.</string>
+    <string name="main_setup_location_off">Vị trí đang tắt. Tìm bằng GPS cần nó, và nhiều máy cũng cần nó để tìm bằng Bluetooth.</string>
+    <string name="main_setup_wifi_off">Wi-Fi đang tắt. Bật lên để đo khoảng cách chuẩn hơn (không cần kết nối mạng nào).</string>
+    <string name="main_setup_battery">Chế độ tiết kiệm pin có thể dừng Moshpoint khi bạn đóng app, nên bạn bè không tìm được bạn.</string>
+    <string name="main_setup_turn_on">Bật</string>
+    <string name="main_setup_fix">Sửa</string>
+
+    <string name="main_facebook_failed">Đăng nhập Facebook không được: %1$s</string>
+    <string name="main_facebook_unknown_error">không rõ lỗi</string>
+    <string name="main_facebook_not_set_up">Bản này chưa hỗ trợ đăng nhập Facebook</string>
+
+    <string name="main_my_spot">Chỗ của mình</string>
+
+    <string name="main_photos_permission_needed">Moshpoint cần quyền truy cập ảnh để tìm ảnh của đêm đó</string>
+    <string name="main_you">Bạn</string>
+    <plurals name="main_added_to_gig">
+        <item quantity="other">Đã thêm %d vào show</item>
+    </plurals>
+    <string name="main_saving_one">Đang lưu…</string>
+    <plurals name="main_saving_many">
+        <item quantity="other">Đang lưu %d ảnh và clip…</item>
+    </plurals>
+    <string name="main_save_failed">Không lưu được. Máy đầy bộ nhớ à?</string>
+    <string name="main_saved_all">Đã lưu vào thư viện: Moshpoint / %1$s</string>
+    <plurals name="main_saved_some">
+        <item quantity="other">Đã lưu %1$d/%2$d vào thư viện</item>
+    </plurals>
+    <string name="main_gig_fallback">Show</string>
+
+    <string name="main_invite_expired">Lời mời vào nhóm này hết hạn rồi. Xin cái mới nhé.</string>
+    <string name="main_joined_up_next">Bạn đã vào %1$s! Nhóm nằm trong Sắp tới: cứ chat thoải mái, đến ngày diễn nhóm sẽ tự bật.</string>
+    <string name="main_joined_following">Bạn đang theo dõi %1$s. Bạn sẽ thấy ảnh và vị trí của họ; họ cũng thấy bạn đang theo dõi.</string>
+    <string name="main_joined_sleeping">Bạn đã vào %1$s! Nhóm sẽ bật vào ngày diễn (%2$s).</string>
+    <string name="main_joined_live">Bạn đã vào %1$s! Mọi người trong nhóm tìm được nhau rồi.</string>
+    <string name="main_the_crew">nhóm</string>
+    <string name="main_got_code">Có mã rồi. Đặt tên cho họ, rồi chạm Thêm bạn.</string>
+    <string name="main_friend_added">✓ Đã thêm %1$s</string>
+    <string name="main_no_invite_found">Không thấy lời mời Moshpoint nào. Copy cả tin nhắn bạn gửi, rồi chạm Dán lời mời.</string>
+
+    <string name="main_perm_location">Vị trí: mũi tên GPS và đo khoảng cách qua Bluetooth/Wi-Fi</string>
+    <string name="main_perm_nearby">Thiết bị lân cận: tìm bạn bè và để được tìm qua Bluetooth</string>
+    <string name="main_perm_uwb">UWB: mũi tên siêu chuẩn</string>
+    <string name="main_perm_notifications">Thông báo: cho biết khi nào bạn đang hiện</string>
+
+    <string name="main_phone_summary">Máy này: %1$s</string>
+    <string name="main_cap_compass">la bàn</string>
+
+    <string name="main_invite_reset">Đã đặt lại lời mời. Mã QR và link cũ không dùng được nữa.</string>
+    <string name="main_eyebrow_up_next">SẮP TỚI</string>
+    <string name="main_eyebrow_up_next_countdown">SẮP TỚI · %1$s</string>
+    <string name="main_eyebrow_coming_up">NHÓM CỦA BẠN · SẮP TỚI</string>
+    <string name="main_eyebrow_tonight">NHÓM CỦA BẠN TỐI NAY</string>
+    <string name="main_qr_hint_planned">Mọi người quét một lần thôi. Giờ cứ chat cho máu; tính năng tìm nhau sẽ bật vào ngày diễn.</string>
+    <string name="main_qr_hint_tonight">Mọi người quét một lần thôi. Rồi cả nhóm tìm được nhau suốt đêm.</string>
+    <string name="main_scan_to_add_me">Quét để thêm mình</string>
+    <string name="main_scan_to_add_name">Quét để thêm %1$s</string>
+
+    <string name="main_wants_to_stay_friends">%1$s muốn làm bạn tiếp</string>
+    <string name="main_stay_friends_text">Hai bạn gặp nhau ở %1$s. Đồng ý là tìm được nhau ở mọi show, không chỉ show này. Chỉ %2$s nhận thông tin của bạn, không ai khác trong nhóm.</string>
+    <string name="main_friends_now">Bạn và %1$s giờ là bạn bè rồi</string>
+    <string name="main_yes_stay_friends">Ok, làm bạn tiếp</string>
+    <string name="main_not_now">Để sau</string>
+
+    <string name="main_battery_title">Hiện suốt đêm</string>
+    <string name="main_battery_text">Một số máy tự tắt app chạy nền để tiết kiệm pin, khiến bạn biến mất. Tìm Moshpoint ở màn hình tiếp theo và chọn \"Không tối ưu hóa\" / \"Không hạn chế\".</string>
+    <string name="main_open_settings">Mở cài đặt</string>
+
+    <plurals name="main_n_mates">
+        <item quantity="other">%d người bạn</item>
+    </plurals>
+    <string name="main_beacon_colour_name">%1$s (%2$s)</string>
+
+    <string name="main_scan_prompt">Quét QR Moshpoint của bạn bè</string>
+    <string name="main_out_of_crew">%1$s đã ra khỏi nhóm. Những người còn lại chuyển sang khóa mới.</string>
+
+    <string name="main_follow_share_text">Theo dõi đêm nay của tụi mình ở %1$s trên Moshpoint: xem ảnh ngay khi tụi mình đăng và biết tụi mình vẫn ổn.\n%2$s</string>
+    <string name="main_follow_share_title">Cho gia đình theo dõi</string>
+    <string name="main_when_venue">%1$s · %2$s</string>
+
+    <string name="main_time_passed">Giờ đó qua rồi. Chọn giờ show bắt đầu nhé.</string>
+    <string name="main_added_up_next">Đã thêm %1$s vào Sắp tới. Rủ bạn bè vào và quẩy thôi!</string>
+
+    <string name="main_join_name">Vào %1$s?</string>
+    <string name="main_follow_name">Theo dõi %1$s?</string>
+    <string name="main_bumped_text">Chạm rồi! Vào nhóm là tối nay cả bọn tìm được nhau.</string>
+    <string name="main_join">Vào nhóm</string>
+    <string name="main_no">Không</string>
+    <string name="main_clip_follow_text">Bạn vừa copy link theo dõi. Bạn sẽ thấy ảnh của họ và biết họ vẫn ổn; họ cũng thấy bạn đang theo dõi.</string>
+    <string name="main_clip_join_text">Bạn vừa copy lời mời Moshpoint. Vào nhóm là tối nay cả bọn tìm được nhau.</string>
+
+    <string name="main_your_night">Đêm của bạn</string>
+    <string name="main_recap_text">%1$s\n\nKết thúc đêm sẽ đóng nhóm (bạn bè vẫn giữ). Ảnh và clip vẫn nằm trong máy, ở mục Show của bạn.</string>
+    <string name="main_night_ended">Đêm đã kết thúc. Ảnh và clip nằm trong Show của bạn.</string>
+    <string name="main_end_the_night">Kết thúc đêm</string>
+    <string name="main_share_night_text">Đêm của mình với Moshpoint: %1$s 🤘</string>
+    <string name="main_share_night_title">Chia sẻ đêm của bạn</string>
+    <string name="main_share">Chia sẻ</string>
+
+    <string name="main_now_main_crew">%1$s giờ là nhóm chính của bạn. Mọi người trong nhóm tìm được nhau.</string>
+    <string name="main_deleted_gig">Đã xóa %1$s khỏi máy này</string>
+    <string name="main_meetup_sent">Đã gửi ghim điểm hẹn cho nhóm</string>
+    <string name="main_moment_label">%1$s · %2$s</string>
+
+    <string name="main_share_app_text">Tải Moshpoint để tụi mình tìm nhau ở show nha: chạm vào một người là có mũi tên chỉ tới họ.\n\n%1$s</string>
+    <string name="main_share_app_title">Chia sẻ Moshpoint</string>
+    <string name="main_named_crew">Nhóm của %1$s</string>
+    <string name="main_tonights_crew">Nhóm tối nay</string>
+    <string name="main_me">Mình</string>
+    <string name="main_group_invite_text">Vào nhóm \"%1$s\" của mình trên Moshpoint tối nay nha!\n%2$s</string>
+    <string name="main_group_invite_title">Gửi lời mời vào nhóm</string>
+</resources>

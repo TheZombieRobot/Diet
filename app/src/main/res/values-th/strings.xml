@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thai: app name, live status, widget. -->
+<resources>
+    <string name="app_name">Moshpoint</string>
+    <string name="visibility_channel">สถานะแชร์</string>
+    <string name="visibility_notification">แชร์อยู่: เพื่อนหาคุณเจอได้แล้ว</string>
+    <string name="widget_title">แก๊งของคุณ</string>
+    <string name="widget_empty">ตั้งแก๊งใน Moshpoint แล้วเพื่อนๆ จะโผล่ตรงนี้</string>
+    <string name="widget_find">หาแก๊ง</string>
+    <string name="widget_description">ดูว่าแก๊งอยู่ไหน แตะทีเดียวก็หาเจอ</string>
+</resources>

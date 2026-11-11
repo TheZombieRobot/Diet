@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vietnamese: shared formats (times, distances, countdowns). -->
+<resources>
+    <string name="time_just_now">vừa xong</string>
+    <plurals name="time_min_ago">
+        <item quantity="other">%d phút trước</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="other">%d giờ trước</item>
+    </plurals>
+    <plurals name="time_days_ago">
+        <item quantity="other">%d ngày trước</item>
+    </plurals>
+    <string name="time_live">đang chia sẻ</string>
+    <string name="status_battery_died">hết pin ở đây · %1$s</string>
+    <string name="status_time_battery">%1$s · %2$d%%</string>
+
+    <string name="dist_m">%1$s m</string>
+    <string name="dist_km">%1$s km</string>
+    <string name="dist_ft">%1$s ft</string>
+    <string name="dist_mi">%1$s mi</string>
+    <string name="unit_m">m</string>
+    <string name="unit_km">km</string>
+    <string name="unit_ft">ft</string>
+    <string name="unit_mi">mi</string>
+    <string name="dist_number_unit">%1$s %2$s</string>
+
+    <string name="countdown_tonight">tối nay</string>
+    <string name="countdown_tomorrow">ngày mai</string>
+    <plurals name="countdown_days">
+        <item quantity="other">%d ngày nữa</item>
+    </plurals>
+    <plurals name="countdown_weeks">
+        <item quantity="other">%d tuần nữa</item>
+    </plurals>
+    <plurals name="countdown_months">
+        <item quantity="other">%d tháng nữa</item>
+    </plurals>
+</resources>

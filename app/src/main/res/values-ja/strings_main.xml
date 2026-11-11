@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Japanese: main screen, invites, sharing and phone setup checks. -->
+<resources>
+    <string name="main_get_the_app">Moshpointをまだ入れてない？ここからインストール（Android）：%1$s\nそのあとこのメッセージを全部コピーして、Moshpointを開いて「招待を貼り付け」をタップしてね。\n\n</string>
+    <string name="main_nudge_text">%1$s、Moshpointを開いて「シェア開始」をタップしてね（位置情報とデータはオンで）。そしたら見つけられるから！</string>
+    <string name="main_nudge_mate">みんな</string>
+    <string name="main_nudge_title">シェア開始をお願いする</string>
+
+    <string name="main_setup_bluetooth_off">Bluetoothがオフです。オフのままだと、誰もあなたを見つけられず、あなたも仲間を見つけられません。</string>
+    <string name="main_setup_location_off">位置情報がオフです。GPSで探すのに必要で、多くのスマホではBluetoothで探すのにも必要です。</string>
+    <string name="main_setup_wifi_off">Wi-Fiがオフです。オンにすると距離がもっと正確になります（ネットワークへの接続は不要）。</string>
+    <string name="main_setup_battery">バッテリー節約機能のせいで、閉じているときにMoshpointが止まり、仲間があなたを見つけられなくなるかも。</string>
+    <string name="main_setup_turn_on">オンにする</string>
+    <string name="main_setup_fix">直す</string>
+
+    <string name="main_facebook_failed">Facebookログインに失敗しました：%1$s</string>
+    <string name="main_facebook_unknown_error">不明なエラー</string>
+    <string name="main_facebook_not_set_up">このビルドではFacebookログインが設定されていません</string>
+
+    <string name="main_my_spot">自分のスポット</string>
+
+    <string name="main_photos_permission_needed">あの夜の写真を見つけるために、Moshpointに写真へのアクセスを許可してください</string>
+    <string name="main_you">自分</string>
+    <plurals name="main_added_to_gig">
+        <item quantity="other">%d件をライブに追加しました</item>
+    </plurals>
+    <string name="main_saving_one">保存中…</string>
+    <plurals name="main_saving_many">
+        <item quantity="other">写真・動画%d件を保存中…</item>
+    </plurals>
+    <string name="main_save_failed">保存できませんでした。ストレージがいっぱいかも？</string>
+    <string name="main_saved_all">ギャラリーに保存しました：Moshpoint / %1$s</string>
+    <plurals name="main_saved_some">
+        <item quantity="other">%2$d件中%1$d件をギャラリーに保存しました</item>
+    </plurals>
+    <string name="main_gig_fallback">ライブ</string>
+
+    <string name="main_invite_expired">このグループ招待は期限切れです。新しい招待をもらってね。</string>
+    <string name="main_joined_up_next">%1$sに参加しました！「次の予定」に入っています。今からチャットできて、ライブ当日に起動します。</string>
+    <string name="main_joined_following">%1$sをフォロー中です。写真と居場所が見られます。あなたがフォローしていることは相手にも表示されます。</string>
+    <string name="main_joined_sleeping">%1$sに参加しました！クルーはライブ当日（%2$s）に起動します。</string>
+    <string name="main_joined_live">%1$sに参加しました！メンバー全員がお互いを見つけられます。</string>
+    <string name="main_the_crew">クルー</string>
+    <string name="main_got_code">コードを受け取りました。名前をつけて「友達を追加」をタップしてね。</string>
+    <string name="main_friend_added">✓ %1$sを追加しました</string>
+    <string name="main_no_invite_found">Moshpointの招待が見つかりません。仲間から届いたメッセージを全部コピーして、「招待を貼り付け」をタップしてね。</string>
+
+    <string name="main_perm_location">位置情報：GPSの矢印とBluetooth/Wi-Fiでの距離</string>
+    <string name="main_perm_nearby">付近のデバイス：Bluetoothで仲間を探したり見つけてもらったりするため</string>
+    <string name="main_perm_uwb">UWB：正確な矢印</string>
+    <string name="main_perm_notifications">通知：見つけてもらえる状態のときに表示</string>
+
+    <string name="main_phone_summary">このスマホ：%1$s</string>
+    <string name="main_cap_compass">コンパス</string>
+
+    <string name="main_invite_reset">招待をリセットしました。古いQRコードやリンクはもう使えません。</string>
+    <string name="main_eyebrow_up_next">次の予定</string>
+    <string name="main_eyebrow_up_next_countdown">次の予定 · %1$s</string>
+    <string name="main_eyebrow_coming_up">あなたのクルー · もうすぐ</string>
+    <string name="main_eyebrow_tonight">今夜のクルー</string>
+    <string name="main_qr_hint_planned">みんな一度だけこれをスキャン。今からチャットで盛り上がろう。お互いを探す機能はライブ当日にオンになります。</string>
+    <string name="main_qr_hint_tonight">みんな一度だけこれをスキャン。それで一晩中お互いを見つけられます。</string>
+    <string name="main_scan_to_add_me">スキャンして追加してね</string>
+    <string name="main_scan_to_add_name">スキャンして%1$sを追加</string>
+
+    <string name="main_wants_to_stay_friends">%1$sがこれからも友達でいたいそうです</string>
+    <string name="main_stay_friends_text">%1$sで出会いました。OKすると、このライブだけじゃなくどのライブでもお互いを見つけられます。あなたの情報が届くのは%2$sだけで、クルーの他の人には届きません。</string>
+    <string name="main_friends_now">%1$sと友達になりました</string>
+    <string name="main_yes_stay_friends">うん、友達になる</string>
+    <string name="main_not_now">今はしない</string>
+
+    <string name="main_battery_title">一晩中見つけてもらえるように</string>
+    <string name="main_battery_text">スマホによっては、バッテリー節約のためにバックグラウンドのアプリを止めてしまい、あなたが見つからなくなります。次の画面でMoshpointを探して、「最適化しない」/「制限なし」に設定してください。</string>
+    <string name="main_open_settings">設定を開く</string>
+
+    <plurals name="main_n_mates">
+        <item quantity="other">仲間%d人</item>
+    </plurals>
+    <string name="main_beacon_colour_name">%1$s（%2$s）</string>
+
+    <string name="main_scan_prompt">仲間のMoshpoint QRをスキャン</string>
+    <string name="main_out_of_crew">%1$sはクルーから外れました。他のメンバーは新しいキーに切り替わります。</string>
+
+    <string name="main_follow_share_text">Moshpointで%1$sでの私たちの夜をフォローしてね。写真がリアルタイムで見られて、無事かどうかもわかるよ。\n%2$s</string>
+    <string name="main_follow_share_title">家族にも見守ってもらう</string>
+    <string name="main_when_venue">%1$s · %2$s</string>
+
+    <string name="main_time_passed">その時間はもう過ぎています。ライブの開始時間を選んでね。</string>
+    <string name="main_added_up_next">%1$sを「次の予定」に追加しました。仲間を招待して盛り上がろう！</string>
+
+    <string name="main_join_name">%1$sに参加する？</string>
+    <string name="main_follow_name">%1$sをフォローする？</string>
+    <string name="main_bumped_text">タッチ完了！参加すれば今夜みんなでお互いを見つけられます。</string>
+    <string name="main_join">参加</string>
+    <string name="main_no">いいえ</string>
+    <string name="main_clip_follow_text">フォロー用リンクをコピーしました。相手の写真や無事かどうかが見られます。あなたがフォローしていることは相手にも表示されます。</string>
+    <string name="main_clip_join_text">Moshpointの招待をコピーしました。参加すれば今夜みんなでお互いを見つけられます。</string>
+
+    <string name="main_your_night">あなたの夜</string>
+    <string name="main_recap_text">%1$s\n\n夜を終了するとクルーは解散します（友達はそのまま）。写真と動画は「あなたのライブ」に残ります。</string>
+    <string name="main_night_ended">夜を終了しました。写真と動画は「あなたのライブ」にあります。</string>
+    <string name="main_end_the_night">夜を終了</string>
+    <string name="main_share_night_text">Moshpointで過ごした夜：%1$s 🤘</string>
+    <string name="main_share_night_title">今夜をシェア</string>
+    <string name="main_share">シェア</string>
+
+    <string name="main_now_main_crew">%1$sがメインのクルーになりました。メンバー全員がお互いを見つけられます。</string>
+    <string name="main_deleted_gig">%1$sをこのスマホから削除しました</string>
+    <string name="main_meetup_sent">集合ピンをクルーに送りました</string>
+    <string name="main_moment_label">%1$s · %2$s</string>
+
+    <string name="main_share_app_text">Moshpointを入れて、ライブでお互いを見つけよう。仲間をタップすると矢印がその人を指すよ。\n\n%1$s</string>
+    <string name="main_share_app_title">Moshpointをシェア</string>
+    <string name="main_named_crew">%1$sのクルー</string>
+    <string name="main_tonights_crew">今夜のクルー</string>
+    <string name="main_me">自分</string>
+    <string name="main_group_invite_text">今夜、Moshpointでクルー「%1$s」に入って！\n%2$s</string>
+    <string name="main_group_invite_title">グループ招待を送る</string>
+</resources>

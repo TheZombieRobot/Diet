@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thai: main screen, invites, sharing and phone setup checks. -->
+<resources>
+    <string name="main_get_the_app">ยังไม่มี Moshpoint? โหลดได้ที่นี่ (Android): %1$s\nแล้วก๊อปข้อความนี้ทั้งหมด เปิด Moshpoint แล้วแตะ วางคำชวน\n\n</string>
+    <string name="main_nudge_text">เฮ้ %1$s เปิด Moshpoint แล้วแตะ เริ่มแชร์ หน่อย (เปิดตำแหน่งกับเน็ตไว้ด้วย) เราจะได้หาเจอ!</string>
+    <string name="main_nudge_mate">เพื่อน</string>
+    <string name="main_nudge_title">ชวนเพื่อนเริ่มแชร์</string>
+
+    <string name="main_setup_bluetooth_off">Bluetooth ปิดอยู่ ถ้าไม่เปิด จะไม่มีใครหาคุณเจอ และคุณก็หาใครไม่เจอ</string>
+    <string name="main_setup_location_off">ตำแหน่งปิดอยู่ การหาด้วย GPS ต้องใช้ และมือถือหลายรุ่นต้องใช้ตอนหาด้วย Bluetooth ด้วย</string>
+    <string name="main_setup_wifi_off">Wi-Fi ปิดอยู่ เปิดไว้จะวัดระยะได้แม่นขึ้น (ไม่ต้องต่อเน็ตไหน)</string>
+    <string name="main_setup_battery">โหมดประหยัดแบตอาจหยุด Moshpoint ตอนปิดแอป เพื่อนเลยหาคุณไม่เจอ</string>
+    <string name="main_setup_turn_on">เปิด</string>
+    <string name="main_setup_fix">แก้เลย</string>
+
+    <string name="main_facebook_failed">เข้าสู่ระบบด้วย Facebook ไม่สำเร็จ: %1$s</string>
+    <string name="main_facebook_unknown_error">ไม่ทราบสาเหตุ</string>
+    <string name="main_facebook_not_set_up">เวอร์ชันนี้ยังไม่รองรับการเข้าสู่ระบบด้วย Facebook</string>
+
+    <string name="main_my_spot">จุดของฉัน</string>
+
+    <string name="main_photos_permission_needed">Moshpoint ต้องเข้าถึงรูปของคุณ เพื่อหารูปจากคืนนั้น</string>
+    <string name="main_you">คุณ</string>
+    <plurals name="main_added_to_gig">
+        <item quantity="other">เพิ่ม %d รายการลงคอนแล้ว</item>
+    </plurals>
+    <string name="main_saving_one">กำลังบันทึก…</string>
+    <plurals name="main_saving_many">
+        <item quantity="other">กำลังบันทึกรูปและคลิป %d รายการ…</item>
+    </plurals>
+    <string name="main_save_failed">บันทึกไม่ได้ เมมเต็มหรือเปล่า?</string>
+    <string name="main_saved_all">บันทึกลงแกลเลอรีแล้ว: Moshpoint / %1$s</string>
+    <plurals name="main_saved_some">
+        <item quantity="other">บันทึกลงแกลเลอรีได้ %1$d จาก %2$d รายการ</item>
+    </plurals>
+    <string name="main_gig_fallback">คอน</string>
+
+    <string name="main_invite_expired">คำชวนเข้ากลุ่มนี้หมดอายุแล้ว ขอใหม่อีกทีนะ</string>
+    <string name="main_joined_up_next">เข้า %1$s แล้ว! อยู่ใน เร็วๆ นี้ แชทกันได้เลย แล้วจะเริ่มทำงานในวันคอน</string>
+    <string name="main_joined_following">คุณกำลังติดตาม %1$s จะเห็นรูปและตำแหน่งของพวกเขา และพวกเขาจะเห็นว่าคุณติดตามอยู่</string>
+    <string name="main_joined_sleeping">เข้า %1$s แล้ว! แก๊งจะเริ่มทำงานในวันคอน (%2$s)</string>
+    <string name="main_joined_live">เข้า %1$s แล้ว! ทุกคนในแก๊งหากันเจอได้เลย</string>
+    <string name="main_the_crew">แก๊ง</string>
+    <string name="main_got_code">ได้โค้ดแล้ว ตั้งชื่อให้เขา แล้วแตะ เพิ่มเพื่อน</string>
+    <string name="main_friend_added">✓ เพิ่ม %1$s แล้ว</string>
+    <string name="main_no_invite_found">ไม่เจอคำชวน Moshpoint ก๊อปข้อความที่เพื่อนส่งมาทั้งหมด แล้วแตะ วางคำชวน</string>
+
+    <string name="main_perm_location">ตำแหน่ง: ลูกศร GPS และวัดระยะผ่าน Bluetooth/Wi-Fi</string>
+    <string name="main_perm_nearby">อุปกรณ์ใกล้เคียง: หาเพื่อนและให้เพื่อนหาเจอผ่าน Bluetooth</string>
+    <string name="main_perm_uwb">UWB: ลูกศรแบบแม่นๆ</string>
+    <string name="main_perm_notifications">การแจ้งเตือน: บอกว่าตอนนี้มีคนเห็นคุณอยู่</string>
+
+    <string name="main_phone_summary">มือถือเครื่องนี้: %1$s</string>
+    <string name="main_cap_compass">เข็มทิศ</string>
+
+    <string name="main_invite_reset">รีเซ็ตคำชวนแล้ว QR และลิงก์เก่าใช้ไม่ได้แล้ว</string>
+    <string name="main_eyebrow_up_next">เร็วๆ นี้</string>
+    <string name="main_eyebrow_up_next_countdown">เร็วๆ นี้ · %1$s</string>
+    <string name="main_eyebrow_coming_up">แก๊งของคุณ · เร็วๆ นี้</string>
+    <string name="main_eyebrow_tonight">แก๊งของคุณคืนนี้</string>
+    <string name="main_qr_hint_planned">ทุกคนสแกนแค่ครั้งเดียว แชทปั่นกระแสกันได้เลย ส่วนฟีเจอร์หากันจะเปิดในวันคอน</string>
+    <string name="main_qr_hint_tonight">ทุกคนสแกนแค่ครั้งเดียว แล้วหากันเจอได้ทั้งคืน</string>
+    <string name="main_scan_to_add_me">สแกนเพื่อแอดเรา</string>
+    <string name="main_scan_to_add_name">สแกนเพื่อแอด %1$s</string>
+
+    <string name="main_wants_to_stay_friends">%1$s อยากเป็นเพื่อนกันต่อ</string>
+    <string name="main_stay_friends_text">เจอกันที่ %1$s ตอบตกลงแล้วจะหากันเจอได้ทุกคอน ไม่ใช่แค่ครั้งนี้ ข้อมูลของคุณจะไปถึงแค่ %2$s ไม่มีใครอื่นในแก๊งได้</string>
+    <string name="main_friends_now">คุณกับ %1$s เป็นเพื่อนกันแล้ว</string>
+    <string name="main_yes_stay_friends">ตกลง เป็นเพื่อนกันต่อ</string>
+    <string name="main_not_now">ไว้ก่อน</string>
+
+    <string name="main_battery_title">ให้เพื่อนเห็นได้ทั้งคืน</string>
+    <string name="main_battery_text">มือถือบางรุ่นจะปิดแอปเบื้องหลังเพื่อประหยัดแบต ทำให้คุณหายไปจากแผนที่ หา Moshpoint ในหน้าถัดไป แล้วตั้งเป็น \"ไม่ปรับให้เหมาะสม\" / \"ไม่จำกัด\"</string>
+    <string name="main_open_settings">เปิดการตั้งค่า</string>
+
+    <plurals name="main_n_mates">
+        <item quantity="other">เพื่อน %d คน</item>
+    </plurals>
+    <string name="main_beacon_colour_name">%1$s (%2$s)</string>
+
+    <string name="main_scan_prompt">สแกน QR ของ Moshpoint เพื่อน</string>
+    <string name="main_out_of_crew">%1$s ออกจากแก๊งแล้ว คนที่เหลือจะย้ายไปใช้คีย์ใหม่</string>
+
+    <string name="main_follow_share_text">ติดตามคืนนี้ของพวกเราที่ %1$s บน Moshpoint: ดูรูปที่เราลงสดๆ และรู้ว่าเราปลอดภัย\n%2$s</string>
+    <string name="main_follow_share_title">ให้ครอบครัวติดตามได้</string>
+    <string name="main_when_venue">%1$s · %2$s</string>
+
+    <string name="main_time_passed">เวลานี้ผ่านไปแล้ว เลือกเวลาที่คอนเริ่มนะ</string>
+    <string name="main_added_up_next">เพิ่ม %1$s ใน เร็วๆ นี้ แล้ว ชวนเพื่อนมาปั่นกระแสกันเลย!</string>
+
+    <string name="main_join_name">เข้า %1$s ไหม?</string>
+    <string name="main_follow_name">ติดตาม %1$s ไหม?</string>
+    <string name="main_bumped_text">ชนแล้ว! เข้าแก๊งแล้วคืนนี้หากันเจอได้ทุกคน</string>
+    <string name="main_join">เข้าแก๊ง</string>
+    <string name="main_no">ไม่</string>
+    <string name="main_clip_follow_text">คุณก๊อปลิงก์ติดตามไว้ จะได้เห็นรูปและรู้ว่าพวกเขาปลอดภัย และพวกเขาจะเห็นว่าคุณติดตามอยู่</string>
+    <string name="main_clip_join_text">คุณก๊อปคำชวน Moshpoint ไว้ เข้าแก๊งแล้วคืนนี้หากันเจอได้ทุกคน</string>
+
+    <string name="main_your_night">คืนของคุณ</string>
+    <string name="main_recap_text">%1$s\n\nจบคืนนี้แล้วแก๊งจะปิด (เพื่อนยังอยู่) รูปและคลิปยังอยู่ในมือถือที่ คอนของคุณ</string>
+    <string name="main_night_ended">จบคืนนี้แล้ว รูปและคลิปอยู่ใน คอนของคุณ</string>
+    <string name="main_end_the_night">จบคืนนี้</string>
+    <string name="main_share_night_text">คืนของเรากับ Moshpoint: %1$s 🤘</string>
+    <string name="main_share_night_title">แชร์คืนของคุณ</string>
+    <string name="main_share">แชร์</string>
+
+    <string name="main_now_main_crew">ตอนนี้ %1$s เป็นแก๊งหลักของคุณแล้ว ทุกคนในแก๊งหากันเจอได้</string>
+    <string name="main_deleted_gig">ลบ %1$s ออกจากมือถือนี้แล้ว</string>
+    <string name="main_meetup_sent">ส่งหมุดจุดนัดเจอให้แก๊งแล้ว</string>
+    <string name="main_moment_label">%1$s · %2$s</string>
+
+    <string name="main_share_app_text">โหลด Moshpoint ไว้ จะได้หากันเจอตอนไปคอน: แตะชื่อเพื่อน แล้วลูกศรจะชี้ไปหาเลย\n\n%1$s</string>
+    <string name="main_share_app_title">แชร์ Moshpoint</string>
+    <string name="main_named_crew">แก๊งของ %1$s</string>
+    <string name="main_tonights_crew">แก๊งคืนนี้</string>
+    <string name="main_me">ฉัน</string>
+    <string name="main_group_invite_text">มาเข้าแก๊ง \"%1$s\" ของเราบน Moshpoint คืนนี้กัน!\n%2$s</string>
+    <string name="main_group_invite_title">ส่งคำชวนเข้ากลุ่ม</string>
+</resources>

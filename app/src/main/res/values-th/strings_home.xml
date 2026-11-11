@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thai: home screen (crew card, friends list, bottom bar, add sheet, pings). -->
+<resources>
+    <string name="home_go_live">เริ่มแชร์</string>
+    <string name="home_live_ghost">แชร์อยู่ · ล่องหน</string>
+    <string name="home_live">แชร์อยู่</string>
+
+    <string name="home_tile_not_sharing">ยังไม่แชร์</string>
+    <string name="home_tile_phone_died">แบตหมด</string>
+    <string name="home_tile_live">แชร์อยู่</string>
+    <string name="home_tile_with_battery">%1$s · %2$d%%</string>
+
+    <string name="home_ping_on_my_way">กำลังไป</string>
+    <string name="home_ping_where_are_you">อยู่ไหน?</string>
+    <string name="home_ping_stay_put">รออยู่ตรงนั้น</string>
+    <string name="home_ping_meet_at_pin">เจอกันที่หมุด</string>
+    <string name="home_ping_all_good">โอเคดี</string>
+    <string name="home_ping_sent">ส่งแล้ว ✓</string>
+    <string name="home_ping_heading_home">กำลังกลับบ้าน</string>
+    <string name="home_ping_need_help">ขอความช่วยเหลือ</string>
+    <string name="home_heading_home_title">จะกลับบ้านแล้วเหรอ?</string>
+    <string name="home_heading_home_text">ถึงแล้วเช็กอินด้วยนะ ถ้าไม่เช็กอิน แก๊งจะได้แจ้งเตือนพร้อมตำแหน่งล่าสุดของคุณ (แม้มือถือจะแบตหมด)</string>
+    <plurals name="home_checkin_minutes">
+        <item quantity="other">%d นาที</item>
+    </plurals>
+    <string name="home_just_tell_them">แค่บอกเฉยๆ</string>
+    <string name="home_cancel">ยกเลิก</string>
+    <string name="home_ping_line">%1$s %2$s</string>
+    <string name="home_ping_default">ส่งสัญญาณหาแก๊ง</string>
+
+    <string name="home_bar_crew">แก๊ง</string>
+    <string name="home_bar_map">แผนที่</string>
+    <string name="home_bar_add">เพิ่ม</string>
+    <string name="home_bar_story">สตอรี่</string>
+    <string name="home_bar_me">ฉัน</string>
+
+    <string name="home_add_mates">เพิ่มเพื่อน</string>
+    <string name="home_add_mates_text">ที่คอน: โชว์ QR แก๊ง ให้เพื่อนสแกน แค่นั้นเลย ทุกคนในแก๊งหากันเจอหมด</string>
+    <string name="home_show_crew_qr">โชว์ QR แก๊ง</string>
+    <string name="home_start_crew_show_qr">ตั้งแก๊ง + โชว์ QR</string>
+    <string name="home_scan_qr">สแกน QR</string>
+    <string name="home_paste_invite">วางคำชวน</string>
+    <string name="home_bump_phones">ชนมือถือกัน</string>
+    <string name="home_plan_gig">วางแผนไปคอน (หาคอน แล้วชวนเลย)</string>
+    <string name="home_send_app_invite">ส่งแอป + คำชวน (LINE, Messenger…)</string>
+    <string name="home_friends_every_gig">เพื่อนสำหรับทุกคอน</string>
+    <string name="home_my_friend_qr">QR เพื่อนของฉัน</string>
+    <string name="home_enter_code">ใส่โค้ด</string>
+
+    <string name="home_check_in_by">เช็กอินก่อน %1$s</string>
+    <string name="home_home_safe">ถึงบ้านปลอดภัยแล้ว</string>
+
+    <string name="home_chat">แชท</string>
+    <string name="home_chat_unread">แชท (%1$d)</string>
+    <string name="home_camera">กล้อง</string>
+
+    <string name="home_message_crew">ส่งข้อความหาแก๊ง</string>
+    <string name="home_message_crew_text">แตะทีเดียว ทุกคนในแก๊งได้รับ พร้อมตำแหน่งของคุณ</string>
+
+    <string name="home_crew_qr_desc">QR แก๊ง</string>
+    <string name="home_inline_qr_text">ให้เพื่อนสแกนด้วยกล้องหรือ Moshpoint แค่นั้นเลย</string>
+    <string name="home_no_camera_send_invite">ไม่มีกล้อง? ส่งคำชวนแทน</string>
+
+    <plurals name="home_gig_photos">
+        <item quantity="other">%d รูป</item>
+    </plurals>
+    <plurals name="home_gig_clips">
+        <item quantity="other">%d คลิป</item>
+    </plurals>
+    <string name="home_people_more">%1$s +%2$d</string>
+
+    <string name="home_crew_chat">แชทแก๊ง</string>
+    <string name="home_pinned_plan">📌 %1$s</string>
+    <string name="home_chat_subtitle">ข้อความ แผน พลุ</string>
+    <string name="home_unread_many">9+</string>
+    <plurals name="home_unread_new">
+        <item quantity="other">ใหม่ %d</item>
+    </plurals>
+
+    <string name="home_following_from_home">ติดตามจากบ้าน</string>
+    <string name="home_upnext_invite">💬 แชท · ชวนเพื่อน</string>
+    <plurals name="home_upnext_mates">
+        <item quantity="other">💬 แชท · เพื่อนเข้าแล้ว %d คน</item>
+    </plurals>
+
+    <string name="home_start_gig_group">ตั้งกลุ่มไปคอน</string>
+    <string name="home_start_gig_group_text">ตั้งชื่อ (เช่น ชื่อวง) แล้วโชว์ QR ให้เพื่อนสแกน</string>
+    <string name="home_start">เริ่ม</string>
+    <string name="home_keep_friend">เพิ่ม %1$s เป็นเพื่อน (เก็บไว้หลังคืนนี้)</string>
+    <string name="home_set_photo">ตั้งรูป</string>
+    <string name="home_remove_photo">ลบรูป</string>
+    <string name="home_remove_name">ลบ %1$s</string>
+    <string name="home_close">ปิด</string>
+    <string name="home_remove_from_crew_title">ลบ %1$s ออกจากแก๊งไหม?</string>
+    <string name="home_remove_friend_title">ลบ %1$s ไหม?</string>
+    <string name="home_remove_from_crew_text">แก๊งจะย้ายไปใช้คีย์ใหม่ที่ %1$s ไม่ได้รับ ต่อจากนี้เขาจะไม่เห็นตำแหน่งใคร แชท หรือรูปอีก คนอื่นยังอยู่ในแก๊งตามเดิม</string>
+    <string name="home_remove_friend_text">คุณจะหาเขาไม่เจอจนกว่าจะเพิ่มกลับมาใหม่</string>
+    <string name="home_remove">ลบ</string>
+    <string name="home_find">หา</string>
+    <string name="home_add_with_code">เพิ่มด้วยโค้ด</string>
+    <string name="home_their_name">ชื่อเพื่อน</string>
+    <string name="home_their_code">โค้ดเพื่อน</string>
+    <string name="home_add_friend">เพิ่มเพื่อน</string>
+    <string name="home_tonight_only">แค่คืนนี้</string>
+
+    <string name="home_hidden_hint">ตอนนี้แก๊งมองไม่เห็นคุณ แตะ เริ่มแชร์ เมื่ออยากให้เพื่อนหาเจอ</string>
+    <string name="home_allow_permission">อนุญาตให้ Moshpoint หาเพื่อนของคุณ (%1$s)</string>
+    <string name="home_allow">อนุญาต</string>
+    <string name="home_one_thing_first">ขออย่างหนึ่งก่อน</string>
+    <plurals name="home_one_thing_first_more">
+        <item quantity="other">ขออย่างหนึ่งก่อน · อีก %d ขั้น</item>
+    </plurals>
+    <string name="home_eyebrow_tonight">คืนนี้</string>
+    <string name="home_eyebrow_following">กำลังติดตาม</string>
+    <string name="home_eyebrow_coming_up">เร็วๆ นี้</string>
+    <string name="home_find_mates_tonight">หาเพื่อนให้เจอคืนนี้</string>
+    <string name="home_find_mates_text">ชวนเพื่อน ให้สแกน จบ ที่เหลือ Moshpoint จัดให้</string>
+    <string name="home_invite_mates_tonight">ชวนเพื่อนมาคืนนี้</string>
+    <string name="home_scan_invite">สแกนคำชวน</string>
+    <string name="home_your_crew">แก๊งของคุณ</string>
+    <string name="home_invite">＋ ชวน</string>
+    <string name="home_family_can_follow">ครอบครัวติดตามคืนนี้จากบ้านได้</string>
+    <string name="home_following_from_home_names">ติดตามจากบ้าน: %1$s</string>
+    <string name="home_share">แชร์ ›</string>
+    <string name="home_meet_up">★  จุดนัดเจอ: %1$s</string>
+    <string name="home_map_link">แผนที่ ›</string>
+    <string name="home_asleep_text">พักไว้จนถึงวันคอน: ไม่ใช้ Bluetooth ไม่ใช้ตำแหน่ง ไม่กินแบต เพื่อนเข้าแก๊งได้เลย แล้ววันจริงจะมีแจ้งเตือนไปปลุก</string>
+    <string name="home_follower_text">คุณเห็นได้ว่าทุกคนอยู่ไหน และดูรูปที่ลงมาสดๆ ได้ พวกเขาจะเห็นว่าคุณติดตามอยู่</string>
+    <string name="home_see_story">ดูสตอรี่</string>
+    <string name="home_crew_chat_unread">แชทแก๊ง (ใหม่ %1$d)</string>
+    <string name="home_where_are_they">อยู่ไหนกัน? (แผนที่)</string>
+    <string name="home_see_them_once_starts">พอคอนเริ่มจะเห็นเพื่อนตรงนี้</string>
+    <string name="home_tap_mate_hint">แตะเพื่อนเพื่อหา · กดค้างดูตัวเลือก</string>
+    <string name="home_find_name">หา %1$s</string>
+    <string name="home_find_everyone">หาทุกคน</string>
+    <string name="home_stop_following">เลิกติดตาม</string>
+    <string name="home_cancel_crew">ยกเลิกแก๊งนี้</string>
+    <string name="home_end_night">จบคืนนี้</string>
+    <string name="home_up_next">เร็วๆ นี้</string>
+    <string name="home_memories">ความทรงจำ</string>
+    <plurals name="home_memories_count">
+        <item quantity="other">รูปและคลิป %d รายการ แตะเพื่อย้อนดู ›</item>
+    </plurals>
+    <string name="home_your_gigs">คอนของคุณ</string>
+    <string name="home_friends">เพื่อน</string>
+    <string name="home_friends_empty">เพื่อนที่เก็บไว้ไปทุกคอนจะแสดงตรงนี้ แตะ ＋ เพิ่ม ด้านล่าง</string>
+</resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vietnamese: app name, live status, widget. -->
+<resources>
+    <string name="app_name">Moshpoint</string>
+    <string name="visibility_channel">Trạng thái chia sẻ</string>
+    <string name="visibility_notification">Đang chia sẻ: bạn bè tìm được bạn rồi</string>
+    <string name="widget_title">Nhóm của bạn</string>
+    <string name="widget_empty">Lập nhóm trong Moshpoint là bạn bè sẽ hiện ở đây.</string>
+    <string name="widget_find">Tìm nhóm</string>
+    <string name="widget_description">Nhóm đang ở đâu, chạm một cái là tìm thấy</string>
+</resources>

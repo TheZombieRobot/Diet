@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Japanese: settings, onboarding, planning a gig, QR codes, bumping phones, camera-roll picker. -->
+<resources>
+    <string name="setup_settings_title">設定</string>
+    <string name="setup_your_photo">あなたの写真</string>
+    <string name="setup_your_photo_desc">仲間の矢印に表示されます。見られるのは友達だけです。</string>
+    <string name="setup_take_selfie">自撮りする</string>
+    <string name="setup_choose_photo">写真を選ぶ</string>
+    <string name="setup_remove_my_photo">自分の写真を削除</string>
+    <string name="setup_your_name">あなたの名前</string>
+    <string name="setup_stay_live">再起動後もシェアを続ける</string>
+    <string name="setup_stay_live_desc">シェア中にスマホが再起動したら、自動でシェアを再開します。</string>
+    <string name="setup_ghost_mode">ゴーストモード</string>
+    <string name="setup_ghost_mode_desc">マップに自分の場所を表示しません。仲間が近くにいれば、Bluetoothで見つけてもらえます。</string>
+    <string name="setup_ghost_one_hour">1時間ゴーストにする</string>
+    <string name="setup_data_saver">データセーバー</string>
+    <string name="setup_data_saver_desc">写真と動画を軽くしてシェア（電波が弱くても速い）。オフ：高画質なので、みんなの保存データもきれい。自分のオリジナルは常にフル画質で残ります。</string>
+    <string name="setup_emergency_contact">緊急連絡先</string>
+    <string name="setup_emergency_contact_desc">「助けて」を押すと、この人に普通のSMSで位置情報を送れます（データ通信なしでもOK）。この情報はこのスマホにだけ保存されます。</string>
+    <string name="setup_contact_name">名前</string>
+    <string name="setup_contact_mobile">携帯番号</string>
+    <string name="setup_contact_saved">保存しました</string>
+    <string name="setup_contact_need_number">携帯番号を入力してね</string>
+    <string name="setup_contact_removed">削除しました</string>
+    <string name="setup_save">保存</string>
+    <string name="setup_remove">削除</string>
+    <string name="setup_about">このアプリについて</string>
+    <string name="setup_about_text">Moshpoint %1$s。アカウント不要、コードは定期的に変更、位置情報はエンドツーエンド暗号化。見つけてもらえるのはシェア中だけです。</string>
+    <string name="setup_hide_licences">ライセンスを隠す</string>
+    <string name="setup_open_source_licences">オープンソースライセンス</string>
+    <string name="setup_licences_fonts">フォント：Unbounded、Inter（SIL Open Font License 1.1）。QRコード：ZXing（Apache 2.0）。</string>
+    <string name="setup_continue_facebook">Facebookで続ける</string>
+
+    <string name="setup_onb_skip">スキップ</string>
+    <string name="setup_onb_title_find">どんな人混みでも\n仲間が見つかる</string>
+    <string name="setup_onb_body_find">仲間をタップすると、矢印がまっすぐその人を指します。近づくほどその人の色に光ります。</string>
+    <string name="setup_onb_title_live">会場に入ったら\nシェア開始</string>
+    <string name="setup_onb_body_live">仲間があなたを見つけられるのはシェア中だけ。オンにできるのはあなただけです。Moshpointに必要なのは：</string>
+    <string name="setup_onb_need_nearby">付近のデバイス</string>
+    <string name="setup_onb_need_nearby_why">Bluetooth、Wi-Fi、UWBで仲間を探すため</string>
+    <string name="setup_onb_need_location">位置情報</string>
+    <string name="setup_onb_need_location_why">離れているときに矢印を出すため</string>
+    <string name="setup_onb_need_notifications">通知</string>
+    <string name="setup_onb_need_notifications_why">シェア中かどうかいつでもわかるように</string>
+    <string name="setup_onb_title_name">仲間からは\nなんて呼ばれたい？</string>
+    <string name="setup_onb_or_type_it">または入力</string>
+    <string name="setup_onb_lets_go">はじめよう</string>
+    <string name="setup_onb_allow">許可</string>
+    <string name="setup_onb_skip_for_now">今はスキップ</string>
+    <string name="setup_onb_im_name">%1$sです</string>
+    <string name="setup_onb_arrow_demo_desc">友達を指す矢印</string>
+
+    <string name="setup_plan_title">ライブを計画</string>
+    <string name="setup_plan_desc">今クルーを作って、みんなは好きなときに参加。当日まではスリープ中（電池を使いません）。</string>
+    <string name="setup_plan_search_hint">検索：バンド、アーティスト、会場</string>
+    <string name="setup_plan_searching">検索中…</string>
+    <string name="setup_plan_search_failed">今は検索できません。下に直接入力してね。</string>
+    <string name="setup_plan_no_results">今後のライブが見つかりません。下に入力してね。</string>
+    <string name="setup_plan_when_where">%1$s · %2$s</string>
+    <string name="setup_plan_or_type">または直接入力</string>
+    <string name="setup_plan_whos_playing">出演者</string>
+    <string name="setup_plan_where">会場（任意）</string>
+    <string name="setup_plan_start_crew">クルーを作る</string>
+    <string name="setup_plan_default_name">ライブの夜</string>
+
+    <string name="setup_qr_title">スキャンして追加してね</string>
+    <string name="setup_qr_hint">相手のQRもスキャンすれば、お互いを見つけられます。</string>
+    <string name="setup_qr_eyebrow">あなたのコード</string>
+    <string name="setup_qr_done">‹  完了</string>
+    <string name="setup_qr_code_desc">QRコード</string>
+    <plurals name="setup_qr_mates_in">
+        <item quantity="other">仲間%d人が参加中</item>
+    </plurals>
+    <string name="setup_qr_send_invite">スキャンできない？代わりに招待を送ろう</string>
+    <string name="setup_qr_reset_invite">招待をリセット</string>
+    <string name="setup_qr_reset_title">招待をリセットする？</string>
+    <string name="setup_qr_reset_text">このQRやそのスクショが広まってしまったら、リセットで使えなくできます。すでにクルーにいる人はそのまま。新しく入る人には新しいQRが必要です。</string>
+    <string name="setup_qr_reset">リセット</string>
+    <string name="setup_cancel">キャンセル</string>
+    <string name="setup_qr_end_night">夜を終了</string>
+
+    <string name="setup_bump_title">スマホをタッチ</string>
+    <string name="setup_bump_sharing">仲間のスマホと背中合わせにしてね。相手にクルーへの参加リクエストが届きます。</string>
+    <string name="setup_bump_joining">クルーにいる人のスマホと背中合わせにしてね（相手も「タッチ」を開いておく）。参加するか聞かれます。</string>
+    <string name="setup_done">完了</string>
+
+    <string name="setup_roll_title">あの夜のあなたの写真</string>
+    <string name="setup_roll_looking">写真を探しています…</string>
+    <string name="setup_roll_nothing">その時間帯の写真はこのスマホにありません。別のスマホで撮った写真や、追加済みの写真はここに表示されません。</string>
+    <string name="setup_roll_tap_to_leave_out">タップすると除外できます。写真はライブにコピーされるので、ギャラリーから消しても残ります。</string>
+    <string name="setup_roll_adding">追加中…</string>
+    <plurals name="setup_roll_add_n">
+        <item quantity="other">%d件をこのライブに追加</item>
+    </plurals>
+</resources>
