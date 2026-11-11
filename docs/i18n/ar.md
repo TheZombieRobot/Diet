@@ -98,3 +98,15 @@ Method: I read every string next to the English source and its comments. I check
 ## UI review
 
 No wording changes were needed: Arabic strings fit like English. Layout issues seen in the renders (not fixable by wording): several screens render left-to-right (home with no group, following home, settings sheet, finder distance-only / scanning / group-with-photos / small-phone one-friend, Up next), and the permission banner shows the English word "(location)" because the permission name is built in code.
+
+## Venue map (`strings_venue.xml`)
+
+Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a mate's face, and "Finding the venue…". Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| venue map | **خريطة المكان** | Passive «حُفظت» / «تُحفظ», as in `find_area_saved`, so no line is gendered. «المكان» is the word `crew_at_venue` already uses for the venue. |
+| ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ الطابق العلوي / ↓ الطابق السفلي** | Short, with the arrow kept. |
+| upstairs / downstairs (screen reader) | في الطابق العلوي / في الطابق السفلي | Said in full after the mate's direction. |
+
+For a native reviewer: «الطابق العلوي» can also be read as "the top floor". If that confuses in a building with many floors, «طابق أعلى» / «طابق أسفل» ("a floor up / down") is the alternative. Confidence the current wording is understood: **medium-high**.

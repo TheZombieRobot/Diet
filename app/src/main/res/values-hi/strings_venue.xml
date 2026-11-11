@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hindi: the venue map (offline download line, upstairs/downstairs tags, venue lookup). -->
+<resources>
+    <string name="venue_map_saved">वेन्यू का मैप ऑफ़लाइन के लिए सेव हो गया ✓</string>
+    <string name="venue_map_saving">वेन्यू का मैप सेव हो रहा है… %1$d%%</string>
+    <string name="venue_map_waiting">वेन्यू का मैप: कनेक्शन का इंतज़ार</string>
+    <string name="venue_map_on_arrival">वेन्यू का मैप वहाँ पहुँचने पर सेव होगा</string>
+    <string name="venue_floor_up">↑ ऊपर</string>
+    <string name="venue_floor_down">↓ नीचे</string>
+    <string name="venue_floor_up_spoken">ऊपर की मंज़िल पर</string>
+    <string name="venue_floor_down_spoken">नीचे की मंज़िल पर</string>
+    <string name="venue_spoken_floor">%1$s, %2$s</string>
+    <string name="venue_finding">वेन्यू खोज रहे हैं…</string>
+</resources>

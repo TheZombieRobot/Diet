@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dutch: the venue map (offline download line, upstairs/downstairs tags, venue lookup). -->
+<resources>
+    <string name="venue_map_saved">Kaart van de locatie offline opgeslagen ✓</string>
+    <string name="venue_map_saving">Kaart van de locatie opslaan… %1$d%%</string>
+    <string name="venue_map_waiting">Kaart van de locatie: wacht op verbinding</string>
+    <string name="venue_map_on_arrival">Kaart van de locatie wordt opgeslagen als je er bent</string>
+    <string name="venue_floor_up">↑ Boven</string>
+    <string name="venue_floor_down">↓ Beneden</string>
+    <string name="venue_floor_up_spoken">een verdieping hoger</string>
+    <string name="venue_floor_down_spoken">een verdieping lager</string>
+    <string name="venue_spoken_floor">%1$s, %2$s</string>
+    <string name="venue_finding">Locatie zoeken…</string>
+</resources>

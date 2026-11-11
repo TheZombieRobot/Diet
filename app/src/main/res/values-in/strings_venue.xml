@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Indonesian: the venue map (offline download line, upstairs/downstairs tags, venue lookup). -->
+<resources>
+    <string name="venue_map_saved">Peta venue tersimpan untuk offline ✓</string>
+    <string name="venue_map_saving">Menyimpan peta venue… %1$d%%</string>
+    <string name="venue_map_waiting">Peta venue: menunggu koneksi</string>
+    <string name="venue_map_on_arrival">Peta venue disimpan saat kamu tiba</string>
+    <string name="venue_floor_up">↑ Lantai atas</string>
+    <string name="venue_floor_down">↓ Lantai bawah</string>
+    <string name="venue_floor_up_spoken">di lantai atas</string>
+    <string name="venue_floor_down_spoken">di lantai bawah</string>
+    <string name="venue_spoken_floor">%1$s, %2$s</string>
+    <string name="venue_finding">Mencari venue…</string>
+</resources>

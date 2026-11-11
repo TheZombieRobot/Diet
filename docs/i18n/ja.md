@@ -63,3 +63,15 @@ Shortened so the text fits the way English does:
 - `find_last_seen_on_map`: *マップで最後に見た場所* → *最後の場所* (the button wrapped)
 - `find_ask_them`: *シェア開始をお願い* → *シェアをお願い* (the button wrapped and left "い" alone. It still says what the button asks for, so the concern behind the earlier fix still holds)
 - `find_not_sharing`, `home_tile_not_sharing`: *まだシェアしてない* → *未シェア* (the label under the avatar wrapped onto 2 lines)
+
+## Venue map (`strings_venue.xml`)
+
+Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a mate's face, and "Finding the venue…". Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| venue map | **会場マップ** | 会場 as in `crew_at_venue`. Full-width colon and 、 as elsewhere. |
+| ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ 上の階 / ↓ 下の階** | Short, with the arrow kept. |
+| upstairs / downstairs (screen reader) | 上の階 / 下の階 | Said in full after the mate's direction. |
+
+For a native reviewer: Nothing doubtful. Confidence: **high**.

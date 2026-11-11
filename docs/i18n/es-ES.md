@@ -77,3 +77,15 @@ Shortened so the text fits like English does in the rendered screens:
 | `home_tile_not_sharing` | aún no comparte | sin compartir |
 | `home_asleep_text` | … sin Bluetooth, sin ubicación, sin gastar batería. Tus amigos pueden unirse ya, y ese día te avisaremos. | … sin Bluetooth, ubicación ni gasto de batería. Tus amigos ya pueden unirse; ese día te avisamos. |
 | `setup_take_selfie` | Hacer un selfie | Hacer selfie |
+
+## Venue map (`strings_venue.xml`)
+
+Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a mate's face, and "Finding the venue…". Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| venue map | **mapa del recinto** | *Recinto* as in `crew_at_venue`. *Planta* is the usual word for a floor in Spain. |
+| ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ Arriba / ↓ Abajo** | Short, with the arrow kept. |
+| upstairs / downstairs (screen reader) | en la planta de arriba / en la planta de abajo | Said in full after the mate's direction. |
+
+For a native reviewer: Nothing doubtful. Confidence: **high**.

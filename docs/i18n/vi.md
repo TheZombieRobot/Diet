@@ -76,3 +76,15 @@ Shortened after checking the rendered screens against English (validator: OK).
 | find_last_seen_on_map | Thấy lần cuối trên bản đồ | Vị trí cuối | Button wrapped |
 | setup_stay_live | Chia sẻ tiếp sau khi khởi động lại | Khởi động lại vẫn chia sẻ | "lại" wrapped alone on small phones |
 | setup_onb_body_find | Chạm vào một người… | Chạm một người… | Lone word on last line |
+
+## Venue map (`strings_venue.xml`)
+
+Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a mate's face, and "Finding the venue…". Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| venue map | **bản đồ địa điểm** | *Địa điểm* as in `crew_from_venue`. "Offline" is said as *khi mất sóng* ("when there's no signal"), matching `find_area_saved`. |
+| ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ Tầng trên / ↓ Tầng dưới** | Short, with the arrow kept. |
+| upstairs / downstairs (screen reader) | ở tầng trên / ở tầng dưới | Said in full after the mate's direction. |
+
+For a native reviewer: Nothing doubtful. Confidence: **high**.

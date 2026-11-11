@@ -81,3 +81,15 @@ Shortened after checking the rendered screens against English (validator: OK).
 | crew_chat_send_flare_hint (plural) | Solte um sinalizador: mostre onde você está por %d min | Sinalizador: mostre onde está por %d min | "30 min" wrapped alone |
 | find_from_gps | Pelo GPS: fica mais preciso enquanto você anda | Pelo GPS: melhora ao andar | Wrapped to 2 lines |
 | find_last_seen_on_map | Visto por último no mapa | Último local | Button wrapped |
+
+## Venue map (`strings_venue.xml`)
+
+Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a mate's face, and "Finding the venue…". Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| venue map | **mapa do local** | *Local* as in `crew_at_venue`. |
+| ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ Em cima / ↓ Embaixo** | Short, with the arrow kept. |
+| upstairs / downstairs (screen reader) | no andar de cima / no andar de baixo | Said in full after the mate's direction. |
+
+For a native reviewer: Nothing doubtful. Confidence: **high**.

@@ -71,3 +71,15 @@ Shortened after checking the rendered screens against English (validator: OK).
 | find_restart_scan | Starta om skanningen | Skanna igen | Button wrapped |
 | find_last_seen_on_map | Senast sedd på kartan | Senast på kartan | Button wrapped |
 | setup_onb_body_find | …pekar en pil rakt mot dem… | …pekar en pil mot dem… | Lone word on last line |
+
+## Venue map (`strings_venue.xml`)
+
+Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a mate's face, and "Finding the venue…". Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| venue map | **karta över stället** | *Stället* as in `crew_at_venue`. *Uppkoppling* for a connection. |
+| ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ Uppe / ↓ Nere** | Short, with the arrow kept. |
+| upstairs / downstairs (screen reader) | en trappa upp / en trappa ner | Said in full after the mate's direction. |
+
+For a native reviewer: *Uppe* can also mean "awake"; with the arrow and on a map it reads as upstairs. *En trappa upp* (used for screen readers) is the unambiguous form if it needs changing. Confidence: **medium-high**.

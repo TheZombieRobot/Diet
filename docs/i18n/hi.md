@@ -84,3 +84,15 @@ Shortened so the text fits the way English does:
 - `find_restart_scan`: *स्कैन फिर से शुरू करें* → *फिर स्कैन करें* (the button wrapped and left one word alone on line 2)
 - `find_last_seen_on_map`: *मैप पर आखिरी बार दिखे* → *मैप पर आखिरी जगह* (the button wrapped)
 - `find_not_sharing`, `home_tile_not_sharing`: *अभी शेयर नहीं कर रहे* → *अभी शेयर नहीं* (the label under the avatar wrapped onto 2 lines)
+
+## Venue map (`strings_venue.xml`)
+
+Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a mate's face, and "Finding the venue…". Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| venue map | **वेन्यू का मैप** | वेन्यू and मैप as in the existing strings. The tag is just "up / down" with the arrow, to stay short; the screen-reader text names the floor. |
+| ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ ऊपर / ↓ नीचे** | Short, with the arrow kept. |
+| upstairs / downstairs (screen reader) | ऊपर की मंज़िल पर / नीचे की मंज़िल पर | Said in full after the mate's direction. |
+
+For a native reviewer: Whether ऊपर / नीचे alone reads as "upstairs / downstairs" on a face. Confidence: **medium-high**.
