@@ -967,7 +967,16 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     val chatCrew = CrewChat.viewing.value
-                    if (showChat && chatCrew != null) {
+                    // Chat slides in from the side (and back out), like opening a conversation.
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = showChat && chatCrew != null,
+                        enter = androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(320)) { it / 3 } +
+                            androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(240)),
+                        exit = androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(240)) { it / 3 } +
+                            androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(200)),
+                    ) {
+                        @Suppress("NAME_SHADOWING")
+                        val chatCrew = chatCrew ?: return@AnimatedVisibility
                         val isMain = GroupSync.group.value?.key?.contentEquals(chatCrew.key) == true
                         val waiting = if (isMain) null else Crews.find(chatCrew.key)
                         androidx.compose.runtime.DisposableEffect(Unit) {
@@ -1030,7 +1039,14 @@ class MainActivity : ComponentActivity() {
                             colourOf = { name -> FriendsRepository.friends.firstOrNull { it.name.equals(name, true) }?.color },
                         )
                     }
-                    if (showStory) {
+                    // The Story rises up from the bottom, like a card stack.
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = showStory,
+                        enter = androidx.compose.animation.slideInVertically(androidx.compose.animation.core.tween(340)) { it / 4 } +
+                            androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(260)),
+                        exit = androidx.compose.animation.slideOutVertically(androidx.compose.animation.core.tween(240)) { it / 4 } +
+                            androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(200)),
+                    ) {
                         nz.waveformlabs.moshpoint.ui.StoryScreen(
                             items = Moments.items,
                             nowSec = homeNow / 1000,
@@ -1078,7 +1094,14 @@ class MainActivity : ComponentActivity() {
                             },
                         )
                     }
-                    if (showMap) {
+                    // The map zooms in from the button, and out again.
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = showMap,
+                        enter = androidx.compose.animation.scaleIn(androidx.compose.animation.core.tween(320), initialScale = 0.94f) +
+                            androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(260)),
+                        exit = androidx.compose.animation.scaleOut(androidx.compose.animation.core.tween(220), targetScale = 0.96f) +
+                            androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(200)),
+                    ) {
                         val now by produceState(System.currentTimeMillis()) {
                             while (true) {
                                 kotlinx.coroutines.delay(15_000)
@@ -1218,7 +1241,11 @@ class MainActivity : ComponentActivity() {
 
     private fun closeChat() {
         showChat = false
-        CrewChat.show(this, GroupSync.group.value)
+        // After the slide-out, so the closing chat doesn't swap to another crew's messages mid-animation.
+        lifecycleScope.launch {
+            kotlinx.coroutines.delay(300)
+            if (!showChat) CrewChat.show(this@MainActivity, GroupSync.group.value)
+        }
     }
 
     /** The night's plan as a picture for the group chat that isn't on Moshpoint yet. */

@@ -464,7 +464,7 @@ fun FriendsScreen(
 
         if (upNext.isNotEmpty()) {
             item { Text(stringResource(R.string.home_up_next), style = Mosh.Eyebrow, modifier = Modifier.padding(top = 4.dp, start = 4.dp)) }
-            items(upNext, key = { "next-" + it.id }) { card -> UpNextRow(card) { onOpenUpNext(card.id) } }
+            items(upNext, key = { "next-" + it.id }) { card -> Box(Modifier.animateItem()) { UpNextRow(card) { onOpenUpNext(card.id) } } }
         }
 
         // "Remember last year?": a gig on this day in an earlier year.

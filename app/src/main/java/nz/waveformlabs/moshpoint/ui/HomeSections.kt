@@ -474,11 +474,18 @@ internal fun ChatPill(unread: Int, plan: String?, onClick: () -> Unit) {
                 style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), maxLines = 1, overflow = TextOverflow.Ellipsis,
             )
         }
-        if (unread > 0) {
+        // New messages: the badge pops in with a little bounce.
+        androidx.compose.animation.AnimatedVisibility(
+            visible = unread > 0,
+            enter = androidx.compose.animation.scaleIn(androidx.compose.animation.core.spring(dampingRatio = 0.45f, stiffness = 500f)) + androidx.compose.animation.fadeIn(),
+            exit = androidx.compose.animation.scaleOut() + androidx.compose.animation.fadeOut(),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.background(Mosh.Pink, CircleShape).padding(horizontal = 8.dp, vertical = 2.dp)) {
                 Text(if (unread > 9) stringResource(R.string.home_unread_many) else pluralStringResource(R.plurals.home_unread_new, unread, unread), style = Mosh.Label.copy(fontSize = 12.sp, color = Color.White))
             }
             Spacer(Modifier.width(8.dp))
+        }
         }
         Text("›", style = Mosh.Label.copy(fontSize = 20.sp, color = Mosh.Lime))
     }

@@ -145,6 +145,8 @@ internal fun CrewChatScreen(
                 }
             }
             itemsIndexed(lines, key = { _, it -> it.key }) { i, l ->
+                // New messages ease in; the list makes room smoothly.
+                Box(Modifier.animateItem()) {
                 // Messenger-style runs: name on the first message, face on the last.
                 fun same(o: CrewChat.Line?) = o != null && isBubble(o.kind) && o.mine == l.mine &&
                     (if (o.sender != 0L && l.sender != 0L) o.sender == l.sender else o.from == l.from)
@@ -157,6 +159,7 @@ internal fun CrewChatScreen(
                     myName = myName,
                     onRetry = onRetry,
                 )
+            }
             }
             item { Spacer(Modifier.height(8.dp)) }
         }
