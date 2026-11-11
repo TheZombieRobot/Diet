@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Spanish (neutral Latin American): shared formats (times, distances, countdowns). -->
+<resources>
+    <string name="time_just_now">ahora mismo</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">hace %d min</item>
+        <item quantity="many">hace %d min</item>
+        <item quantity="other">hace %d min</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="one">hace %d h</item>
+        <item quantity="many">hace %d h</item>
+        <item quantity="other">hace %d h</item>
+    </plurals>
+    <plurals name="time_days_ago">
+        <item quantity="one">hace %d día</item>
+        <item quantity="many">hace %d días</item>
+        <item quantity="other">hace %d días</item>
+    </plurals>
+    <string name="time_live">en vivo</string>
+    <string name="status_battery_died">sin batería aquí · %1$s</string>
+    <string name="status_time_battery">%1$s · %2$d%%</string>
+
+    <string name="dist_m">%1$s m</string>
+    <string name="dist_km">%1$s km</string>
+    <string name="dist_ft">%1$s ft</string>
+    <string name="dist_mi">%1$s mi</string>
+    <string name="unit_m">m</string>
+    <string name="unit_km">km</string>
+    <string name="unit_ft">ft</string>
+    <string name="unit_mi">mi</string>
+    <string name="dist_number_unit">%1$s %2$s</string>
+
+    <string name="countdown_tonight">esta noche</string>
+    <string name="countdown_tomorrow">mañana</string>
+    <plurals name="countdown_days">
+        <item quantity="one">en %d día</item>
+        <item quantity="many">en %d días</item>
+        <item quantity="other">en %d días</item>
+    </plurals>
+    <plurals name="countdown_weeks">
+        <item quantity="one">en %d semana</item>
+        <item quantity="many">en %d semanas</item>
+        <item quantity="other">en %d semanas</item>
+    </plurals>
+    <plurals name="countdown_months">
+        <item quantity="one">en %d mes</item>
+        <item quantity="many">en %d meses</item>
+        <item quantity="other">en %d meses</item>
+    </plurals>
+</resources>

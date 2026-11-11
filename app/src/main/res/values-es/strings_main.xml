@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Spanish (neutral Latin American): main screen, invites, sharing and phone setup checks. -->
+<resources>
+    <string name="main_get_the_app">¿Aún no tienes Moshpoint? Instálala desde aquí (Android): %1$s\nLuego copia todo este mensaje, abre Moshpoint y toca Pegar invitación.\n\n</string>
+    <string name="main_nudge_text">¡Oye, %1$s, abre Moshpoint y toca Activar en vivo (con ubicación y datos activados) para que te encuentre!</string>
+    <string name="main_nudge_mate">amigo</string>
+    <string name="main_nudge_title">Pídeles que se pongan en vivo</string>
+
+    <string name="main_setup_bluetooth_off">El Bluetooth está desactivado. Sin él, nadie te encuentra y tú no encuentras a nadie.</string>
+    <string name="main_setup_location_off">La ubicación está desactivada. La búsqueda por GPS la necesita, y en muchos celulares también la de Bluetooth.</string>
+    <string name="main_setup_wifi_off">El Wi-Fi está desactivado. Actívalo para una distancia más precisa (no hace falta conectarte a ninguna red).</string>
+    <string name="main_setup_battery">El ahorro de batería puede cerrar Moshpoint cuando no está abierta, y tus amigos no podrán encontrarte.</string>
+    <string name="main_setup_turn_on">Activar</string>
+    <string name="main_setup_fix">Arreglar</string>
+
+    <string name="main_facebook_failed">Error al entrar con Facebook: %1$s</string>
+    <string name="main_facebook_unknown_error">desconocido</string>
+    <string name="main_facebook_not_set_up">El inicio con Facebook no está configurado en esta versión</string>
+
+    <string name="main_my_spot">Mi lugar</string>
+
+    <string name="main_photos_permission_needed">Moshpoint necesita acceso a tus fotos para encontrar las de esa noche</string>
+    <string name="main_you">Tú</string>
+    <plurals name="main_added_to_gig">
+        <item quantity="one">%d agregado al concierto</item>
+        <item quantity="many">%d agregados al concierto</item>
+        <item quantity="other">%d agregados al concierto</item>
+    </plurals>
+    <string name="main_saving_one">Guardando…</string>
+    <plurals name="main_saving_many">
+        <item quantity="one">Guardando %d foto o clip…</item>
+        <item quantity="many">Guardando %d fotos y clips…</item>
+        <item quantity="other">Guardando %d fotos y clips…</item>
+    </plurals>
+    <string name="main_save_failed">No se pudo guardar. ¿Tienes el celular lleno?</string>
+    <string name="main_saved_all">Guardado en tu galería: Moshpoint / %1$s</string>
+    <plurals name="main_saved_some">
+        <item quantity="one">Guardado %1$d de %2$d en tu galería</item>
+        <item quantity="many">Guardados %1$d de %2$d en tu galería</item>
+        <item quantity="other">Guardados %1$d de %2$d en tu galería</item>
+    </plurals>
+    <string name="main_gig_fallback">Concierto</string>
+
+    <string name="main_invite_expired">Esa invitación caducó. Pide una nueva.</string>
+    <string name="main_joined_up_next">¡Estás en %1$s! Está en Próximos: chatea todo lo que quieras, y se activa el día del concierto.</string>
+    <string name="main_joined_following">Sigues a %1$s. Verás sus fotos y dónde están; ellos verán que los sigues.</string>
+    <string name="main_joined_sleeping">¡Estás en %1$s! El grupo se activa el día del concierto (%2$s).</string>
+    <string name="main_joined_live">¡Estás en %1$s! Todos los del grupo pueden encontrarse.</string>
+    <string name="main_the_crew">el grupo</string>
+    <string name="main_got_code">Código recibido. Ponle un nombre y toca Agregar amigo.</string>
+    <string name="main_friend_added">✓ %1$s agregado</string>
+    <string name="main_no_invite_found">No hay ninguna invitación de Moshpoint. Copia todo el mensaje que te mandó tu amigo y toca Pegar invitación.</string>
+
+    <string name="main_perm_location">Ubicación: flecha GPS y distancia por Bluetooth/Wi-Fi</string>
+    <string name="main_perm_nearby">Dispositivos cercanos: encontrar amigos y que te encuentren por Bluetooth</string>
+    <string name="main_perm_uwb">UWB: la flecha precisa</string>
+    <string name="main_perm_notifications">Notificaciones: te avisa cuando eres visible</string>
+
+    <string name="main_phone_summary">Este celular: %1$s</string>
+    <string name="main_cap_compass">brújula</string>
+
+    <string name="main_invite_reset">Invitación reiniciada. Los QR y enlaces antiguos ya no funcionan.</string>
+    <string name="main_eyebrow_up_next">PRÓXIMOS</string>
+    <string name="main_eyebrow_up_next_countdown">PRÓXIMOS · %1$s</string>
+    <string name="main_eyebrow_coming_up">TU GRUPO · PRÓXIMAMENTE</string>
+    <string name="main_eyebrow_tonight">TU GRUPO PARA ESTA NOCHE</string>
+    <string name="main_qr_hint_planned">Todos lo escanean una vez. Chateen y vengan con ganas; la búsqueda se activa el día del concierto.</string>
+    <string name="main_qr_hint_tonight">Todos lo escanean una vez. Y podrán encontrarse toda la noche.</string>
+    <string name="main_scan_to_add_me">Escanea para agregarme</string>
+    <string name="main_scan_to_add_name">Escanea para agregar a %1$s</string>
+
+    <string name="main_wants_to_stay_friends">%1$s quiere seguir siendo tu amigo</string>
+    <string name="main_stay_friends_text">Se conocieron en %1$s. Di que sí y podrán encontrarse en cualquier concierto, no solo en este. Solo %2$s recibe tus datos, nadie más del grupo.</string>
+    <string name="main_friends_now">%1$s y tú ya son amigos</string>
+    <string name="main_yes_stay_friends">Sí, seguir siendo amigos</string>
+    <string name="main_not_now">Ahora no</string>
+
+    <string name="main_battery_title">Sé visible toda la noche</string>
+    <string name="main_battery_text">Algunos celulares cierran apps en segundo plano para ahorrar batería, y desaparecerías. Busca Moshpoint en la siguiente pantalla y ponla en \"No optimizar\" / \"Sin restricciones\".</string>
+    <string name="main_open_settings">Abrir configuración</string>
+
+    <plurals name="main_n_mates">
+        <item quantity="one">%d amigo</item>
+        <item quantity="many">%d amigos</item>
+        <item quantity="other">%d amigos</item>
+    </plurals>
+    <string name="main_beacon_colour_name">%1$s (%2$s)</string>
+
+    <string name="main_scan_prompt">Escanea el QR de Moshpoint de tu amigo</string>
+    <string name="main_out_of_crew">%1$s ya no está en el grupo. Todos los demás pasan a una clave nueva.</string>
+
+    <string name="main_follow_share_text">Sigue nuestra noche en %1$s con Moshpoint: mira nuestras fotos según llegan y que estamos bien.\n%2$s</string>
+    <string name="main_follow_share_title">Que tu familia te siga</string>
+    <string name="main_when_venue">%1$s · %2$s</string>
+
+    <string name="main_time_passed">Esa hora ya pasó. Elige cuándo empieza el concierto.</string>
+    <string name="main_added_up_next">%1$s agregado a Próximos. ¡Invita a tus amigos y que empiece el hype!</string>
+
+    <string name="main_join_name">¿Unirte a %1$s?</string>
+    <string name="main_follow_name">¿Seguir a %1$s?</string>
+    <string name="main_bumped_text">¡Chocados! Únete y podrán encontrarse esta noche.</string>
+    <string name="main_join">Unirme</string>
+    <string name="main_no">No</string>
+    <string name="main_clip_follow_text">Copiaste un enlace para seguir. Verás sus fotos y que están bien; ellos verán que los sigues.</string>
+    <string name="main_clip_join_text">Copiaste una invitación de Moshpoint. Únete y podrán encontrarse esta noche.</string>
+
+    <string name="main_your_night">Tu noche</string>
+    <string name="main_recap_text">%1$s\n\nAl terminar la noche se cierra el grupo (los amigos se quedan). Las fotos y clips siguen en tu celular, en Tus conciertos.</string>
+    <string name="main_night_ended">Noche terminada. Tus fotos y clips están en Tus conciertos.</string>
+    <string name="main_end_the_night">Terminar la noche</string>
+    <string name="main_share_night_text">Mi noche con Moshpoint: %1$s 🤘</string>
+    <string name="main_share_night_title">Comparte tu noche</string>
+    <string name="main_share">Compartir</string>
+
+    <string name="main_now_main_crew">%1$s es ahora tu grupo principal. Todos en él pueden encontrarse.</string>
+    <string name="main_deleted_gig">%1$s borrado de este celular</string>
+    <string name="main_meetup_sent">Punto de encuentro enviado a tu grupo</string>
+    <string name="main_moment_label">%1$s · %2$s</string>
+
+    <string name="main_share_app_text">Descarga Moshpoint para encontrarnos en los conciertos: tocas a un amigo y una flecha te lleva hasta él.\n\n%1$s</string>
+    <string name="main_share_app_title">Compartir Moshpoint</string>
+    <string name="main_named_crew">Grupo de %1$s</string>
+    <string name="main_tonights_crew">Grupo de esta noche</string>
+    <string name="main_me">Yo</string>
+    <string name="main_group_invite_text">¡Únete a mi grupo \"%1$s\" en Moshpoint esta noche!\n%2$s</string>
+    <string name="main_group_invite_title">Enviar la invitación al grupo</string>
+</resources>

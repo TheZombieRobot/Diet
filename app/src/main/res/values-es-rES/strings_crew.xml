@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Spanish: crew chat, notifications, friendship, safety, plan card, night stats, live status. -->
+<resources>
+
+    <string name="crew_you">Tú</string>
+    <string name="crew_default_name">Colega</string>
+    <string name="crew_default_group_name">Grupo de concierto</string>
+    <string name="crew_default_gig_name">Concierto</string>
+    <string name="crew_someone">Alguien</string>
+    <string name="crew_name_numbered">%1$s (%2$d)</string>
+    <string name="crew_cancel">Cancelar</string>
+    <string name="crew_close">Cerrar</string>
+
+    <string name="crew_chat_subtitle">Chat del grupo · solo lo lee tu grupo</string>
+    <string name="crew_chat_invite">＋ Invitar</string>
+    <string name="crew_chat_on_today">Este concierto es hoy. ¿Os buscáis con este grupo?</string>
+    <string name="crew_chat_switch">Cambiar</string>
+    <plurals name="crew_chat_send_flare_hint">
+        <item quantity="one">🔥  Lanza una bengala: muestra dónde estás durante %d min</item>
+        <item quantity="many">🔥  Lanza una bengala: muestra dónde estás durante %d min</item>
+        <item quantity="other">🔥  Lanza una bengala: muestra dónde estás durante %d min</item>
+    </plurals>
+    <string name="crew_chat_empty">Nada todavía. Los mensajes llegan a todo el grupo en más o menos un minuto (más rápido con tu propio servidor).</string>
+    <string name="crew_chat_night_tools_later">¡Id calentando! Las bengalas y los avisos rápidos se activan el día del concierto.</string>
+    <string name="crew_chat_message_hint">Escribe al grupo</string>
+    <string name="crew_chat_not_sent">No enviado · Toca para reintentar</string>
+    <string name="crew_chat_sending">Enviando…</string>
+    <string name="crew_chat_line_with_time">%1$s · %2$s</string>
+
+    <string name="crew_chat_you_joined">Te has unido al grupo</string>
+    <string name="crew_chat_joined">%1$s se ha unido al grupo</string>
+    <string name="crew_chat_you_pinned">Has fijado: %1$s</string>
+    <string name="crew_chat_pinned">%1$s ha fijado: %2$s</string>
+    <string name="crew_chat_you_cleared_plan">Has quitado el plan</string>
+    <string name="crew_chat_cleared_plan">%1$s ha quitado el plan</string>
+    <string name="crew_chat_you_flare">Has lanzado una bengala: %1$s</string>
+    <string name="crew_chat_flare">%1$s ha lanzado una bengala: %2$s</string>
+    <string name="crew_chat_line_other">%1$s %2$s</string>
+
+    <string name="crew_quick_coming">Voy para allá 🏃</string>
+    <string name="crew_quick_where">¿Dónde estás? 👀</string>
+    <string name="crew_quick_stay_put">No te muevas ✋</string>
+    <string name="crew_quick_meet_pin">Nos vemos en el pin 📍</string>
+    <string name="crew_quick_all_good">Todo bien 👍</string>
+    <string name="crew_quick_going_home">Vuelvo a casa 🏠</string>
+    <string name="crew_quick_need_help">🚨 Necesito ayuda</string>
+    <plurals name="crew_quick_check_in">
+        <item quantity="one">Vuelvo a casa 🏠 Aviso en menos de %d min</item>
+        <item quantity="many">Vuelvo a casa 🏠 Aviso en menos de %d min</item>
+        <item quantity="other">Vuelvo a casa 🏠 Aviso en menos de %d min</item>
+    </plurals>
+    <string name="crew_quick_home_safe">Ya en casa ✅</string>
+
+    <string name="crew_plan_eyebrow">📌 EL PLAN</string>
+    <string name="crew_plan_none">Aún no hay plan fijado.</string>
+    <string name="crew_plan_prompt">Fija el plan para que nadie tenga que buscarlo: \"Mesa de sonido después del bis\".</string>
+    <string name="crew_plan_by">de %1$s</string>
+    <string name="crew_plan_meet_up">★ Punto de encuentro: %1$s</string>
+    <string name="crew_plan_pin">Fijar un plan</string>
+    <string name="crew_plan_change">Cambiar</string>
+    <string name="crew_plan_share">Compartir como tarjeta</string>
+    <string name="crew_plan_title">El plan</string>
+    <string name="crew_plan_editor_body">Fijado arriba del chat para todos, así nunca se pierde.</string>
+    <string name="crew_plan_idea_sound_desk">En la mesa de sonido después del bis</string>
+    <string name="crew_plan_idea_bar">A la izquierda de la barra en el descanso</string>
+    <string name="crew_plan_idea_car">En el coche a las 11:30</string>
+    <string name="crew_plan_idea_tent">En la tienda si nos perdemos</string>
+    <string name="crew_plan_pin_it">Fijar</string>
+    <string name="crew_plan_unpin">Quitar</string>
+
+    <string name="crew_vibe_lost">Perdido 😅</string>
+    <string name="crew_vibe_bar">A la barra 🍺</string>
+    <string name="crew_vibe_rail">En primera fila 🎶</string>
+    <string name="crew_vibe_food">A por comida 🍔</string>
+    <string name="crew_vibe_toilets">Baños 🚻</string>
+    <string name="crew_vibe_air">Fuera, tomando aire 🌬️</string>
+    <string name="crew_vibe_merch">En el merch 👕</string>
+    <string name="crew_vibe_leaving">Me voy pronto 👋</string>
+    <string name="crew_flare_mine">Tú: %1$s</string>
+    <string name="crew_flare_theirs">%1$s: %2$s</string>
+    <plurals name="crew_flare_left">
+        <item quantity="one">queda %d min</item>
+        <item quantity="many">quedan %d min</item>
+        <item quantity="other">quedan %d min</item>
+    </plurals>
+    <plurals name="crew_flare_left_on_map">
+        <item quantity="one">queda %d min · en el mapa</item>
+        <item quantity="many">quedan %d min · en el mapa</item>
+        <item quantity="other">quedan %d min · en el mapa</item>
+    </plurals>
+    <string name="crew_flare_end">Terminar</string>
+    <string name="crew_flare_title">Lanzar una bengala</string>
+    <plurals name="crew_flare_body">
+        <item quantity="one">Tu ubicación sale en el mapa del grupo durante %d minuto, con tu rollo.</item>
+        <item quantity="many">Tu ubicación sale en el mapa del grupo durante %d minutos, con tu rollo.</item>
+        <item quantity="other">Tu ubicación sale en el mapa del grupo durante %d minutos, con tu rollo.</item>
+    </plurals>
+    <string name="crew_flare_own_hint">O escribe el tuyo…</string>
+    <string name="crew_flare_send">Lanzar</string>
+
+    <string name="crew_help_title">Pedir ayuda</string>
+    <string name="crew_help_alerted">Grupo avisado ✓</string>
+    <string name="crew_help_alert">Avisar a mi grupo</string>
+    <string name="crew_help_alert_sub">Alerta urgente con tu ubicación</string>
+    <string name="crew_help_text_contact">Escribir a %1$s</string>
+    <string name="crew_help_text_contact_sub">Se abre tu app de mensajes con tu ubicación. Funciona sin datos.</string>
+    <string name="crew_help_add_contact">Añadir contacto de emergencia</string>
+    <string name="crew_help_add_contact_sub">Alguien fuera del grupo a quien escribir si hace falta</string>
+    <string name="crew_help_contact_name">Nombre (p. ej. Mamá)</string>
+    <string name="crew_help_contact_number">Número de móvil</string>
+    <string name="crew_help_save_contact">Guardar contacto</string>
+    <string name="crew_help_call">Llamar al %1$s</string>
+    <string name="crew_help_call_sub">Policía, bomberos, ambulancia</string>
+    <string name="crew_help_call_police">Policía</string>
+    <string name="crew_help_call_ambulance">Ambulancia y bomberos</string>
+    <string name="crew_help_no_signal">¿Sin nada de cobertura? Muchos móviles nuevos pueden contactar con emergencias por satélite: llama al %1$s y sigue las instrucciones. En un festival, seguridad y las carpas de primeros auxilios ayudan rápido.</string>
+    <string name="crew_help_sms">Necesito ayuda. (enviado desde Moshpoint)</string>
+    <string name="crew_help_sms_where">Necesito ayuda. Estoy aquí: %1$s (enviado desde Moshpoint)</string>
+
+    <string name="crew_channel_messages">Mensajes del grupo</string>
+    <string name="crew_channel_help">Peticiones de ayuda del grupo</string>
+    <string name="crew_channel_requests">Amigos que te buscan</string>
+    <string name="crew_notif_line">%1$s: %2$s</string>
+    <plurals name="crew_new_messages">
+        <item quantity="one">%d mensaje nuevo</item>
+        <item quantity="many">%d mensajes nuevos</item>
+        <item quantity="other">%d mensajes nuevos</item>
+    </plurals>
+    <string name="crew_notif_joined">se ha unido al grupo 🎉</string>
+    <plurals name="crew_notif_flare">
+        <item quantity="one">Bengala: %1$s · aquí %2$d min</item>
+        <item quantity="many">Bengala: %1$s · aquí %2$d min</item>
+        <item quantity="other">Bengala: %1$s · aquí %2$d min</item>
+    </plurals>
+    <string name="crew_notif_new_plan">Nuevo plan: %1$s</string>
+    <string name="crew_notif_done_title">%1$s ha terminado</string>
+    <string name="crew_notif_done_saved">Tus fotos y clips están guardados en Tus conciertos.</string>
+    <string name="crew_notif_done_text">Esperamos que haya sido una gran noche. Crea un grupo nuevo cuando quieras.</string>
+    <string name="crew_notif_overdue_title">%1$s no ha avisado</string>
+    <string name="crew_notif_overdue_text">Volvía a casa y ya debería haber llegado. Llámale. Toca para ver su última ubicación.</string>
+    <string name="crew_notif_help_where">Ha pulsado Necesito ayuda. Toca para ver dónde. Comprueba que esté bien.</string>
+    <string name="crew_notif_help">Ha pulsado Necesito ayuda. Comprueba que esté bien.</string>
+    <string name="crew_notif_tap_where">Toca para ver dónde.</string>
+    <string name="crew_notif_from_crew">De tu grupo</string>
+
+    <string name="crew_ping_coming">va para allá</string>
+    <string name="crew_ping_stay_put">dice que no te muevas</string>
+    <string name="crew_ping_where">pregunta dónde estás</string>
+    <string name="crew_ping_meet_pin">dice que os veis en el pin</string>
+    <string name="crew_ping_all_good">está bien</string>
+    <string name="crew_ping_going_home">vuelve a casa</string>
+    <string name="crew_ping_need_help">NECESITA AYUDA</string>
+    <string name="crew_ping_check_in">vuelve a casa y avisará al llegar</string>
+    <string name="crew_ping_home_safe">ya está en casa</string>
+    <string name="crew_ping_chat">ha enviado un mensaje</string>
+    <string name="crew_ping_flare">ha lanzado una bengala</string>
+    <string name="crew_ping_plan">ha fijado un plan</string>
+    <string name="crew_ping_other">ha avisado al grupo</string>
+
+    <string name="crew_ping_title_coming">%1$s va para allá</string>
+    <string name="crew_ping_title_stay_put">%1$s dice que no te muevas</string>
+    <string name="crew_ping_title_where">%1$s pregunta dónde estás</string>
+    <string name="crew_ping_title_meet_pin">%1$s dice que os veis en el pin</string>
+    <string name="crew_ping_title_all_good">%1$s está bien</string>
+    <string name="crew_ping_title_going_home">%1$s vuelve a casa</string>
+    <string name="crew_ping_title_need_help">%1$s NECESITA AYUDA</string>
+    <string name="crew_ping_title_check_in">%1$s vuelve a casa y avisará al llegar</string>
+    <string name="crew_ping_title_home_safe">%1$s ya está en casa</string>
+    <string name="crew_ping_title_chat">%1$s ha enviado un mensaje</string>
+    <string name="crew_ping_title_flare">%1$s ha lanzado una bengala</string>
+    <string name="crew_ping_title_plan">%1$s ha fijado un plan</string>
+    <string name="crew_ping_title_other">%1$s ha avisado al grupo</string>
+
+    <string name="crew_rally_default">Nos vemos aquí</string>
+
+    <string name="crew_friend_need_crew">Guardar como amigo funciona mientras estéis en el mismo grupo.</string>
+    <string name="crew_friend_gone">Ya no está en el grupo.</string>
+    <string name="crew_friend_unreachable">Aún no se puede contactar con %1$s en privado. Vuelve a probar cuando se le haya visto esta noche (si sigue pasando, tiene que actualizar la app).</string>
+    <string name="crew_friend_ask_failed">No se pudo preguntar a %1$s. Vuelve a probar.</string>
+    <string name="crew_friend_asked">Le has pedido a %1$s seguir siendo amigos. Cuando diga que sí, seréis amigos para todos los conciertos.</string>
+    <string name="crew_friend_request_title">%1$s quiere seguir siendo tu amigo</string>
+    <string name="crew_friend_request_text">Desde %1$s. Toca para decir que sí y podréis encontraros en cualquier concierto.</string>
+    <string name="crew_friend_accepted_title">%1$s ya es tu amigo</string>
+    <string name="crew_friend_accepted_text">Podéis encontraros en cualquier concierto, no solo en %1$s.</string>
+
+    <string name="crew_add_need_name">Ponle un nombre</string>
+    <string name="crew_add_bad_code">Ese código no parece correcto</string>
+    <string name="crew_add_own_code">Ese es tu propio código</string>
+
+    <string name="crew_note_you_removed">Has sacado a %1$s. El grupo tiene una clave nueva: desde ahora no puede ver nada.</string>
+    <string name="crew_note_you_reset">Has reiniciado la invitación. Los QR y enlaces antiguos ya no funcionan.</string>
+    <string name="crew_note_removed">%1$s ha sacado a %2$s del grupo.</string>
+    <string name="crew_note_reset">%1$s ha reiniciado la invitación: los QR antiguos ya no funcionan.</string>
+
+    <string name="crew_wake_title">¡%1$s esta noche!</string>
+    <string name="crew_wake_text">Empieza a las %1$s. Toca para ponerte en vivo y que tu grupo te encuentre.</string>
+    <string name="crew_wake_text_venue">Empieza a las %1$s en %2$s. Toca para ponerte en vivo y que tu grupo te encuentre.</string>
+
+    <plurals name="crew_memory_headline">
+        <item quantity="one">Hoy hace un año: %2$s</item>
+        <item quantity="many">Hoy hace %1$d años: %2$s</item>
+        <item quantity="other">Hoy hace %1$d años: %2$s</item>
+    </plurals>
+    <plurals name="crew_memory_headline_with">
+        <item quantity="one">Hoy hace un año: %2$s con %3$s</item>
+        <item quantity="many">Hoy hace %1$d años: %2$s con %3$s</item>
+        <item quantity="other">Hoy hace %1$d años: %2$s con %3$s</item>
+    </plurals>
+    <string name="crew_memory_two_people">%1$s y %2$s</string>
+    <plurals name="crew_memory_text">
+        <item quantity="one">%d fotos y clips. Toca para revivirlo.</item>
+        <item quantity="many">%d fotos y clips. Toca para revivirlo.</item>
+        <item quantity="other">%d fotos y clips. Toca para revivirlo.</item>
+    </plurals>
+
+    <string name="crew_moment_title">%1$s ha compartido un momento</string>
+    <string name="crew_moment_text">Toca para ver dónde</string>
+
+    <string name="crew_moving_title">%1$s se está moviendo</string>
+    <string name="crew_moving_text">Se ha movido %1$s desde donde estaba. Toca para ver.</string>
+    <string name="crew_moving_text_away">Se ha movido %1$s desde donde estaba. Ahora está a %2$s de ti. Toca para ver.</string>
+    <string name="crew_at_venue">en el recinto</string>
+    <string name="crew_from_venue">a %1$s del recinto</string>
+    <string name="crew_status_phone_died">%1$s sin batería</string>
+    <string name="crew_status_distance">%1$s %2$s</string>
+    <plurals name="crew_status_min_ago">
+        <item quantity="one">%1$s hace %2$d min</item>
+        <item quantity="many">%1$s hace %2$d min</item>
+        <item quantity="other">%1$s hace %2$d min</item>
+    </plurals>
+
+    <string name="crew_stats_walked">%1$s andados</string>
+    <plurals name="crew_stats_finds">
+        <item quantity="one">amigos encontrados %d vez</item>
+        <item quantity="many">amigos encontrados %d veces</item>
+        <item quantity="other">amigos encontrados %d veces</item>
+    </plurals>
+    <plurals name="crew_stats_moments">
+        <item quantity="one">%d momento</item>
+        <item quantity="many">%d momentos</item>
+        <item quantity="other">%d momentos</item>
+    </plurals>
+    <plurals name="crew_stats_pings">
+        <item quantity="one">%d aviso</item>
+        <item quantity="many">%d avisos</item>
+        <item quantity="other">%d avisos</item>
+    </plurals>
+    <string name="crew_stats_out_hours">%1$d h %2$d min de fiesta</string>
+    <plurals name="crew_stats_out_mins">
+        <item quantity="one">%d min de fiesta</item>
+        <item quantity="many">%d min de fiesta</item>
+        <item quantity="other">%d min de fiesta</item>
+    </plurals>
+    <string name="crew_stats_quiet">Una noche tranquila</string>
+
+    <string name="crew_card_eyebrow">MOSHPOINT · EL PLAN DE ESTA NOCHE</string>
+    <string name="crew_card_plan">EL PLAN</string>
+    <string name="crew_card_meet_up">★  Encuentro: %1$s</string>
+    <string name="crew_card_whos_coming">QUIÉN VIENE</string>
+    <string name="crew_card_footer">¿Os perdéis? Encontraos con Moshpoint.</string>
+    <string name="crew_card_share_meet_up">Encuentro: %1$s</string>
+    <string name="crew_card_share_title">Compartir el plan</string>
+
+    <string name="crew_request_title">%1$s está cerca y te busca</string>
+    <string name="crew_request_text">Toca para iluminar tu pantalla y que te vea</string>
+    <string name="crew_go_hidden">Ocultarme</string>
+    <string name="crew_tile_live">En vivo</string>
+    <string name="crew_tile_hidden">Oculto</string>
+</resources>
