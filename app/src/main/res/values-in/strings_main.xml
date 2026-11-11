@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Indonesian (in): main screen, invites, sharing, phone setup checks. -->
+<resources>
+    <string name="main_get_the_app">Belum punya Moshpoint? Install dari sini (Android): %1$s\nLalu salin seluruh pesan ini, buka Moshpoint, dan ketuk Tempel undangan.\n\n</string>
+    <string name="main_nudge_text">Hai %1$s, buka Moshpoint dan ketuk Mulai live (lokasi dan data nyala ya) biar aku bisa menemukanmu!</string>
+    <string name="main_nudge_mate">teman</string>
+    <string name="main_nudge_title">Minta mereka live</string>
+
+    <string name="main_setup_bluetooth_off">Bluetooth mati. Tanpa itu, nggak ada yang bisa menemukanmu, dan kamu juga nggak bisa menemukan mereka.</string>
+    <string name="main_setup_location_off">Lokasi mati. Pencarian GPS butuh ini, dan banyak HP juga butuh ini untuk pencarian Bluetooth.</string>
+    <string name="main_setup_wifi_off">Wi-Fi mati. Nyalakan supaya jaraknya lebih akurat (nggak perlu tersambung ke jaringan).</string>
+    <string name="main_setup_battery">Penghemat baterai bisa menghentikan Moshpoint saat ditutup, jadi teman nggak bisa menemukanmu.</string>
+    <string name="main_setup_turn_on">Nyalakan</string>
+    <string name="main_setup_fix">Perbaiki</string>
+
+    <string name="main_facebook_failed">Login Facebook gagal: %1$s</string>
+    <string name="main_facebook_unknown_error">tidak diketahui</string>
+    <string name="main_facebook_not_set_up">Login Facebook belum diatur di versi ini</string>
+
+    <string name="main_my_spot">Tempatku</string>
+
+    <string name="main_photos_permission_needed">Moshpoint butuh akses ke fotomu untuk menemukan foto-foto dari malam itu</string>
+    <string name="main_you">Kamu</string>
+    <plurals name="main_added_to_gig">
+        <item quantity="other">%d ditambahkan ke konser</item>
+    </plurals>
+    <string name="main_saving_one">Menyimpan…</string>
+    <plurals name="main_saving_many">
+        <item quantity="other">Menyimpan %d foto dan video…</item>
+    </plurals>
+    <string name="main_save_failed">Gagal menyimpan. Memori HP-mu penuh?</string>
+    <string name="main_saved_all">Tersimpan di galeri: Moshpoint / %1$s</string>
+    <plurals name="main_saved_some">
+        <item quantity="other">%1$d dari %2$d tersimpan di galeri</item>
+    </plurals>
+    <string name="main_gig_fallback">Konser</string>
+
+    <string name="main_invite_expired">Undangan grup itu sudah kedaluwarsa. Minta yang baru, ya.</string>
+    <string name="main_joined_up_next">Kamu masuk %1$s! Ada di Berikutnya: ngobrol aja dulu, nanti aktif di hari konser.</string>
+    <string name="main_joined_following">Kamu mengikuti %1$s. Kamu bisa lihat foto dan lokasi mereka; mereka juga tahu kamu mengikuti.</string>
+    <string name="main_joined_sleeping">Kamu masuk %1$s! Geng aktif di hari konser (%2$s).</string>
+    <string name="main_joined_live">Kamu masuk %1$s! Semua yang ada di dalamnya bisa saling menemukan.</string>
+    <string name="main_the_crew">geng</string>
+    <string name="main_got_code">Kodenya dapat. Kasih nama, lalu ketuk Tambah teman.</string>
+    <string name="main_friend_added">✓ %1$s ditambahkan</string>
+    <string name="main_no_invite_found">Undangan Moshpoint nggak ditemukan. Salin seluruh pesan dari temanmu, lalu ketuk Tempel undangan.</string>
+
+    <string name="main_perm_location">Lokasi: panah GPS dan jarak lewat Bluetooth/Wi-Fi</string>
+    <string name="main_perm_nearby">Perangkat di sekitar: mencari teman dan ditemukan lewat Bluetooth</string>
+    <string name="main_perm_uwb">UWB: panah yang presisi</string>
+    <string name="main_perm_notifications">Notifikasi: menunjukkan kapan kamu terlihat</string>
+
+    <string name="main_phone_summary">HP ini: %1$s</string>
+    <string name="main_cap_compass">kompas</string>
+
+    <string name="main_invite_reset">Undangan direset. QR dan link lama sudah nggak berlaku.</string>
+    <string name="main_eyebrow_up_next">BERIKUTNYA</string>
+    <string name="main_eyebrow_up_next_countdown">BERIKUTNYA · %1$s</string>
+    <string name="main_eyebrow_coming_up">GENG KAMU · SEGERA</string>
+    <string name="main_eyebrow_tonight">GENG KAMU MALAM INI</string>
+    <string name="main_qr_hint_planned">Semua cukup scan sekali. Ngobrol dan bikin heboh dari sekarang; fitur cari teman aktif di hari konser.</string>
+    <string name="main_qr_hint_tonight">Semua cukup scan sekali. Setelah itu kalian bisa saling menemukan semalaman.</string>
+    <string name="main_scan_to_add_me">Scan untuk tambah aku</string>
+    <string name="main_scan_to_add_name">Scan untuk tambah %1$s</string>
+
+    <string name="main_wants_to_stay_friends">%1$s mau tetap berteman</string>
+    <string name="main_stay_friends_text">Kalian ketemu di %1$s. Bilang iya, dan kalian bisa saling menemukan di konser mana pun, bukan cuma yang ini. Cuma %2$s yang dapat detailmu, bukan yang lain di geng.</string>
+    <string name="main_friends_now">Kamu dan %1$s sekarang berteman</string>
+    <string name="main_yes_stay_friends">Iya, tetap berteman</string>
+    <string name="main_not_now">Nanti dulu</string>
+
+    <string name="main_battery_title">Tetap terlihat semalaman</string>
+    <string name="main_battery_text">Beberapa HP mematikan aplikasi di latar belakang untuk hemat baterai, jadi kamu bakal hilang. Cari Moshpoint di layar berikutnya dan atur ke \"Jangan optimalkan\" / \"Tidak dibatasi\".</string>
+    <string name="main_open_settings">Buka setelan</string>
+
+    <plurals name="main_n_mates">
+        <item quantity="other">%d teman</item>
+    </plurals>
+    <string name="main_beacon_colour_name">%1$s (%2$s)</string>
+
+    <string name="main_scan_prompt">Scan QR Moshpoint temanmu</string>
+    <string name="main_out_of_crew">%1$s sudah keluar dari geng. Yang lain pindah ke kunci baru.</string>
+
+    <string name="main_follow_share_text">Ikuti malam kami di %1$s lewat Moshpoint: lihat foto kami begitu masuk dan pastikan kami aman.\n%2$s</string>
+    <string name="main_follow_share_title">Biar keluarga ikut memantau</string>
+    <string name="main_when_venue">%1$s · %2$s</string>
+
+    <string name="main_time_passed">Waktu itu sudah lewat. Pilih jam mulai konsernya.</string>
+    <string name="main_added_up_next">%1$s masuk ke Berikutnya. Ajak teman-temanmu dan mulai hebohnya!</string>
+
+    <string name="main_join_name">Gabung %1$s?</string>
+    <string name="main_follow_name">Ikuti %1$s?</string>
+    <string name="main_bumped_text">Nempel! Gabung dan kalian semua bisa saling menemukan malam ini.</string>
+    <string name="main_join">Gabung</string>
+    <string name="main_no">Nggak</string>
+    <string name="main_clip_follow_text">Kamu menyalin link untuk mengikuti. Kamu bisa lihat foto mereka dan bahwa mereka aman; mereka juga tahu kamu mengikuti.</string>
+    <string name="main_clip_join_text">Kamu menyalin undangan Moshpoint. Gabung dan kalian semua bisa saling menemukan malam ini.</string>
+
+    <string name="main_your_night">Malammu</string>
+    <string name="main_recap_text">%1$s\n\nMengakhiri malam akan menutup geng (teman tetap tersimpan). Foto dan video tetap ada di HP-mu di Konser kamu.</string>
+    <string name="main_night_ended">Malam selesai. Foto dan videomu ada di Konser kamu.</string>
+    <string name="main_end_the_night">Akhiri malam</string>
+    <string name="main_share_night_text">Malamku bareng Moshpoint: %1$s 🤘</string>
+    <string name="main_share_night_title">Bagikan malammu</string>
+    <string name="main_share">Bagikan</string>
+
+    <string name="main_now_main_crew">%1$s sekarang jadi geng utamamu. Semua yang ada di dalamnya bisa saling menemukan.</string>
+    <string name="main_deleted_gig">%1$s dihapus dari HP ini</string>
+    <string name="main_meetup_sent">Titik kumpul dikirim ke gengmu</string>
+    <string name="main_moment_label">%1$s · %2$s</string>
+
+    <string name="main_share_app_text">Pakai Moshpoint biar kita bisa saling menemukan di konser: ketuk teman dan panah langsung menunjuk ke dia.\n\n%1$s</string>
+    <string name="main_share_app_title">Bagikan Moshpoint</string>
+    <string name="main_named_crew">Geng %1$s</string>
+    <string name="main_tonights_crew">Geng malam ini</string>
+    <string name="main_me">Aku</string>
+    <string name="main_group_invite_text">Gabung ke gengku \"%1$s\" di Moshpoint malam ini!\n%2$s</string>
+    <string name="main_group_invite_title">Kirim undangan grup</string>
+</resources>

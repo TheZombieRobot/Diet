@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Simplified Chinese (zh-CN): crew chat, notifications, friendship, safety, plan card, stats, live status. -->
+<resources>
+    <string name="crew_you">你</string>
+    <string name="crew_default_name">朋友</string>
+    <string name="crew_default_group_name">演出小队</string>
+    <string name="crew_default_gig_name">演出</string>
+    <string name="crew_someone">有人</string>
+    <string name="crew_name_numbered">%1$s (%2$d)</string>
+    <string name="crew_cancel">取消</string>
+    <string name="crew_close">关闭</string>
+
+    <string name="crew_chat_subtitle">小队聊天 · 只有小队成员能看</string>
+    <string name="crew_chat_invite">＋ 邀请</string>
+    <string name="crew_chat_on_today">这场演出就在今天。用这个小队互相找？</string>
+    <string name="crew_chat_switch">切换</string>
+    <plurals name="crew_chat_send_flare_hint">
+        <item quantity="other">🔥  发信号弹：显示你的位置 %d 分钟</item>
+    </plurals>
+    <string name="crew_chat_empty">还没有消息。消息大约一分钟内送达小队每个人（用自己的中继服务器更快）。</string>
+    <string name="crew_chat_night_tools_later">先预热起来！信号弹和快捷提醒在演出当天开启。</string>
+    <string name="crew_chat_message_hint">给小队发消息</string>
+    <string name="crew_chat_not_sent">未发送 · 点击重试</string>
+    <string name="crew_chat_sending">发送中…</string>
+    <string name="crew_chat_line_with_time">%1$s · %2$s</string>
+
+    <string name="crew_chat_you_joined">你加入了小队</string>
+    <string name="crew_chat_joined">%1$s 加入了小队</string>
+    <string name="crew_chat_you_pinned">你置顶了：%1$s</string>
+    <string name="crew_chat_pinned">%1$s 置顶了：%2$s</string>
+    <string name="crew_chat_you_cleared_plan">你清除了计划</string>
+    <string name="crew_chat_cleared_plan">%1$s 清除了计划</string>
+    <string name="crew_chat_you_flare">你发了信号弹：%1$s</string>
+    <string name="crew_chat_flare">%1$s 发了信号弹：%2$s</string>
+    <string name="crew_chat_line_other">%1$s%2$s</string>
+
+    <string name="crew_quick_coming">马上到 🏃</string>
+    <string name="crew_quick_where">你在哪？👀</string>
+    <string name="crew_quick_stay_put">原地别动 ✋</string>
+    <string name="crew_quick_meet_pin">集合点见 📍</string>
+    <string name="crew_quick_all_good">一切都好 👍</string>
+    <string name="crew_quick_going_home">回家了 🏠</string>
+    <string name="crew_quick_need_help">🚨 我需要帮助</string>
+    <plurals name="crew_quick_check_in">
+        <item quantity="other">回家了 🏠 %d 分钟内报平安</item>
+    </plurals>
+    <string name="crew_quick_home_safe">安全到家 ✅</string>
+
+    <string name="crew_plan_eyebrow">📌 计划</string>
+    <string name="crew_plan_none">还没有置顶计划。</string>
+    <string name="crew_plan_prompt">把计划置顶，谁都不用往上翻：“返场后调音台见”。</string>
+    <string name="crew_plan_by">来自 %1$s</string>
+    <string name="crew_plan_meet_up">★ 集合点：%1$s</string>
+    <string name="crew_plan_pin">置顶计划</string>
+    <string name="crew_plan_change">修改</string>
+    <string name="crew_plan_share">分享成卡片</string>
+    <string name="crew_plan_title">计划</string>
+    <string name="crew_plan_editor_body">对所有人置顶在聊天最上方，永远不会被刷走。</string>
+    <string name="crew_plan_idea_sound_desk">返场后在调音台集合</string>
+    <string name="crew_plan_idea_bar">中场休息时在主吧台左边</string>
+    <string name="crew_plan_idea_car">11:30 前回到车上</string>
+    <string name="crew_plan_idea_tent">走散了就回帐篷</string>
+    <string name="crew_plan_pin_it">置顶</string>
+    <string name="crew_plan_unpin">取消置顶</string>
+
+    <string name="crew_vibe_lost">迷路了 😅</string>
+    <string name="crew_vibe_bar">喝一杯 🍺</string>
+    <string name="crew_vibe_rail">在最前排 🎶</string>
+    <string name="crew_vibe_food">去买吃的 🍔</string>
+    <string name="crew_vibe_toilets">上厕所 🚻</string>
+    <string name="crew_vibe_air">出去透透气 🌬️</string>
+    <string name="crew_vibe_merch">周边摊 👕</string>
+    <string name="crew_vibe_leaving">快走了 👋</string>
+    <string name="crew_flare_mine">你：%1$s</string>
+    <string name="crew_flare_theirs">%1$s：%2$s</string>
+    <plurals name="crew_flare_left">
+        <item quantity="other">还剩 %d 分钟</item>
+    </plurals>
+    <plurals name="crew_flare_left_on_map">
+        <item quantity="other">还剩 %d 分钟 · 在地图上</item>
+    </plurals>
+    <string name="crew_flare_end">结束</string>
+    <string name="crew_flare_title">发信号弹</string>
+    <plurals name="crew_flare_body">
+        <item quantity="other">你的位置会在小队地图上显示 %d 分钟，还能附上心情。</item>
+    </plurals>
+    <string name="crew_flare_own_hint">或者自己写…</string>
+    <string name="crew_flare_send">发送</string>
+
+    <string name="crew_help_title">求助</string>
+    <string name="crew_help_alerted">已通知小队 ✓</string>
+    <string name="crew_help_alert">通知我的小队</string>
+    <string name="crew_help_alert_sub">紧急提醒，附上你的位置</string>
+    <string name="crew_help_text_contact">给 %1$s 发短信</string>
+    <string name="crew_help_text_contact_sub">短信应用会打开并带上你的位置。不用流量。</string>
+    <string name="crew_help_add_contact">添加紧急联系人</string>
+    <string name="crew_help_add_contact_sub">关键时刻能发短信的小队外的人</string>
+    <string name="crew_help_contact_name">名字（比如：妈妈）</string>
+    <string name="crew_help_contact_number">手机号</string>
+    <string name="crew_help_save_contact">保存联系人</string>
+    <string name="crew_help_call">拨打 %1$s</string>
+    <string name="crew_help_call_sub">报警、火警、急救</string>
+    <string name="crew_help_call_police">报警</string>
+    <string name="crew_help_call_ambulance">急救和火警</string>
+    <string name="crew_help_no_signal">完全没信号？很多新手机可以通过卫星联系紧急服务：拨打 %1$s 并按提示操作。在音乐节上，安保和医疗帐篷也能很快帮到你。</string>
+    <string name="crew_help_sms">我需要帮助。（来自 Moshpoint）</string>
+    <string name="crew_help_sms_where">我需要帮助。我在这里：%1$s（来自 Moshpoint）</string>
+
+    <string name="crew_channel_messages">小队消息</string>
+    <string name="crew_channel_help">小队求助</string>
+    <string name="crew_channel_requests">朋友在找你</string>
+    <string name="crew_notif_line">%1$s：%2$s</string>
+    <plurals name="crew_new_messages">
+        <item quantity="other">%d 条新消息</item>
+    </plurals>
+    <string name="crew_notif_joined">加入了小队 🎉</string>
+    <plurals name="crew_notif_flare">
+        <item quantity="other">信号弹：%1$s · 停留 %2$d 分钟</item>
+    </plurals>
+    <string name="crew_notif_new_plan">新计划：%1$s</string>
+    <string name="crew_notif_done_title">%1$s 结束了</string>
+    <string name="crew_notif_done_saved">你的照片和视频都保存在“我的演出”里。</string>
+    <string name="crew_notif_done_text">希望玩得开心。随时可以建新小队。</string>
+    <string name="crew_notif_overdue_title">%1$s 还没报平安</string>
+    <string name="crew_notif_overdue_text">对方说要回家，现在应该已经到了。打个电话问问吧。点击查看最后位置。</string>
+    <string name="crew_notif_help_where">对方按了“需要帮助”。点击查看位置，去看看情况。</string>
+    <string name="crew_notif_help">对方按了“需要帮助”。去看看情况。</string>
+    <string name="crew_notif_tap_where">点击查看位置。</string>
+    <string name="crew_notif_from_crew">来自你的小队</string>
+
+    <string name="crew_ping_coming">马上到</string>
+    <string name="crew_ping_stay_put">说原地别动</string>
+    <string name="crew_ping_where">在问你在哪</string>
+    <string name="crew_ping_meet_pin">说集合点见</string>
+    <string name="crew_ping_all_good">一切都好</string>
+    <string name="crew_ping_going_home">回家了</string>
+    <string name="crew_ping_need_help">需要帮助！</string>
+    <string name="crew_ping_check_in">回家了，到家会报平安</string>
+    <string name="crew_ping_home_safe">已安全到家</string>
+    <string name="crew_ping_chat">发了一条消息</string>
+    <string name="crew_ping_flare">发了信号弹</string>
+    <string name="crew_ping_plan">置顶了计划</string>
+    <string name="crew_ping_other">提醒了小队</string>
+
+    <string name="crew_ping_title_coming">%1$s 马上到</string>
+    <string name="crew_ping_title_stay_put">%1$s 说原地别动</string>
+    <string name="crew_ping_title_where">%1$s 在问你在哪</string>
+    <string name="crew_ping_title_meet_pin">%1$s 说集合点见</string>
+    <string name="crew_ping_title_all_good">%1$s 一切都好</string>
+    <string name="crew_ping_title_going_home">%1$s 回家了</string>
+    <string name="crew_ping_title_need_help">%1$s 需要帮助！</string>
+    <string name="crew_ping_title_check_in">%1$s 回家了，到家会报平安</string>
+    <string name="crew_ping_title_home_safe">%1$s 已安全到家</string>
+    <string name="crew_ping_title_chat">%1$s 发了一条消息</string>
+    <string name="crew_ping_title_flare">%1$s 发了信号弹</string>
+    <string name="crew_ping_title_plan">%1$s 置顶了计划</string>
+    <string name="crew_ping_title_other">%1$s 提醒了小队</string>
+
+    <string name="crew_rally_default">在这儿集合</string>
+
+    <string name="crew_friend_need_crew">在同一个小队里时才能保留为好友。</string>
+    <string name="crew_friend_gone">对方已经不在小队里了。</string>
+    <string name="crew_friend_unreachable">暂时无法私下联系 %1$s。等对方今晚出现后再试（如果一直这样，对方需要更新应用）。</string>
+    <string name="crew_friend_ask_failed">没能发出请求给 %1$s，再试一次。</string>
+    <string name="crew_friend_asked">已邀请 %1$s 继续做朋友。对方同意后，你们每场演出都能互相找到。</string>
+    <string name="crew_friend_request_title">%1$s 想和你继续做朋友</string>
+    <string name="crew_friend_request_text">来自 %1$s。点击同意，以后任何演出都能互相找到。</string>
+    <string name="crew_friend_accepted_title">%1$s 现在是你的好友了</string>
+    <string name="crew_friend_accepted_text">以后任何演出都能互相找到，不只是 %1$s。</string>
+
+    <string name="crew_add_need_name">给对方起个名字</string>
+    <string name="crew_add_bad_code">这个代码好像不对</string>
+    <string name="crew_add_own_code">这是你自己的代码</string>
+
+    <string name="crew_note_you_removed">你移除了 %1$s。小队换了新密钥：对方从现在起什么都看不到了。</string>
+    <string name="crew_note_you_reset">你重置了邀请。旧的 二维码和链接都失效了。</string>
+    <string name="crew_note_removed">%1$s 把 %2$s 移出了小队。</string>
+    <string name="crew_note_reset">%1$s 重置了邀请：旧的 二维码失效了。</string>
+
+    <string name="crew_wake_title">今晚就是 %1$s！</string>
+    <string name="crew_wake_text">%1$s 开始。点一下上线，让小队找到你。</string>
+    <string name="crew_wake_text_venue">%1$s 在 %2$s 开始。点一下上线，让小队找到你。</string>
+
+    <plurals name="crew_memory_headline">
+        <item quantity="other">%1$d 年前的今天：%2$s</item>
+    </plurals>
+    <plurals name="crew_memory_headline_with">
+        <item quantity="other">%1$d 年前的今天：和 %3$s 一起看 %2$s</item>
+    </plurals>
+    <string name="crew_memory_two_people">%1$s和%2$s</string>
+    <plurals name="crew_memory_text">
+        <item quantity="other">%d 张照片和视频，点开重温。</item>
+    </plurals>
+
+    <string name="crew_moment_title">%1$s 分享了一个瞬间</string>
+    <string name="crew_moment_text">点击查看位置</string>
+
+    <string name="crew_moving_title">%1$s 在移动</string>
+    <string name="crew_moving_text">离开原来的位置 %1$s。点击查看。</string>
+    <string name="crew_moving_text_away">离开原来的位置 %1$s，现在离你 %2$s。点击查看。</string>
+    <string name="crew_at_venue">在场馆</string>
+    <string name="crew_from_venue">离场馆 %1$s</string>
+    <string name="crew_status_phone_died">%1$s 手机没电了</string>
+    <string name="crew_status_distance">%1$s %2$s</string>
+    <plurals name="crew_status_min_ago">
+        <item quantity="other">%1$s %2$d分钟前</item>
+    </plurals>
+
+    <string name="crew_stats_walked">走了 %1$s</string>
+    <plurals name="crew_stats_finds">
+        <item quantity="other">找到朋友 %d 次</item>
+    </plurals>
+    <plurals name="crew_stats_moments">
+        <item quantity="other">%d 个瞬间</item>
+    </plurals>
+    <plurals name="crew_stats_pings">
+        <item quantity="other">%d 次提醒</item>
+    </plurals>
+    <string name="crew_stats_out_hours">在外 %1$d 小时 %2$d 分钟</string>
+    <plurals name="crew_stats_out_mins">
+        <item quantity="other">在外 %d 分钟</item>
+    </plurals>
+    <string name="crew_stats_quiet">安静的一晚</string>
+
+    <string name="crew_card_eyebrow">MOSHPOINT · 今晚的计划</string>
+    <string name="crew_card_plan">计划</string>
+    <string name="crew_card_meet_up">★  集合点：%1$s</string>
+    <string name="crew_card_whos_coming">谁会来</string>
+    <string name="crew_card_footer">走散了？用 Moshpoint 互相找。</string>
+    <string name="crew_card_share_meet_up">集合点：%1$s</string>
+    <string name="crew_card_share_title">分享计划</string>
+
+    <string name="crew_request_title">%1$s 就在附近，正在找你</string>
+    <string name="crew_request_text">点一下点亮屏幕，让对方看到你</string>
+    <string name="crew_go_hidden">隐藏</string>
+    <string name="crew_tile_live">在线</string>
+    <string name="crew_tile_hidden">已隐藏</string>
+</resources>

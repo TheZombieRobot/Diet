@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Indonesian (in) -->
+<resources>
+    <string name="app_name">Moshpoint</string>
+    <string name="visibility_channel">Status live</string>
+    <string name="visibility_notification">Kamu lagi live: teman bisa menemukanmu</string>
+    <string name="widget_title">Geng kamu</string>
+    <string name="widget_empty">Bikin geng di Moshpoint, nanti teman-temanmu muncul di sini.</string>
+    <string name="widget_find">Cari geng</string>
+    <string name="widget_description">Lihat gengmu di mana, sekali ketuk langsung ketemu</string>
+</resources>

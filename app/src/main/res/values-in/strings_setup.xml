@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Indonesian (in): settings, onboarding, planning, QR, bump, camera roll. -->
+<resources>
+    <string name="setup_settings_title">Setelan</string>
+    <string name="setup_your_photo">Fotomu</string>
+    <string name="setup_your_photo_desc">Muncul di panah teman-temanmu. Cuma temanmu yang bisa lihat.</string>
+    <string name="setup_take_selfie">Ambil selfie</string>
+    <string name="setup_choose_photo">Pilih foto</string>
+    <string name="setup_remove_my_photo">Hapus fotoku</string>
+    <string name="setup_your_name">Namamu</string>
+    <string name="setup_stay_live">Tetap live setelah restart</string>
+    <string name="setup_stay_live_desc">Kalau kamu lagi live saat HP restart, otomatis live lagi.</string>
+    <string name="setup_ghost_mode">Mode hantu</string>
+    <string name="setup_ghost_mode_desc">Sembunyikan posisimu dari peta. Teman tetap bisa menemukanmu lewat Bluetooth kalau sudah dekat.</string>
+    <string name="setup_ghost_one_hour">Mode hantu 1 jam</string>
+    <string name="setup_data_saver">Hemat data</string>
+    <string name="setup_data_saver_desc">Bagikan foto dan video yang lebih ringan (lebih cepat saat sinyal lemah). Mati: kualitas tinggi, jadi salinan yang disimpan semua orang tetap tajam. Foto aslimu selalu disimpan dalam kualitas penuh.</string>
+    <string name="setup_emergency_contact">Kontak darurat</string>
+    <string name="setup_emergency_contact_desc">\"Butuh bantuan\" bisa mengirim lokasimu lewat SMS biasa (tanpa data). Hanya tersimpan di HP ini.</string>
+    <string name="setup_contact_name">Nama</string>
+    <string name="setup_contact_mobile">Nomor HP</string>
+    <string name="setup_contact_saved">Tersimpan</string>
+    <string name="setup_contact_need_number">Masukkan nomor HP</string>
+    <string name="setup_contact_removed">Dihapus</string>
+    <string name="setup_save">Simpan</string>
+    <string name="setup_remove">Hapus</string>
+    <string name="setup_about">TENTANG</string>
+    <string name="setup_about_text">Moshpoint %1$s. Tanpa akun, kode berganti terus, lokasi terenkripsi end-to-end. Kamu cuma bisa ditemukan saat live.</string>
+    <string name="setup_hide_licences">Sembunyikan lisensi</string>
+    <string name="setup_open_source_licences">Lisensi open source</string>
+    <string name="setup_licences_fonts">Font: Unbounded dan Inter, di bawah SIL Open Font License 1.1. Kode QR: ZXing (Apache 2.0).</string>
+    <string name="setup_continue_facebook">Lanjut dengan Facebook</string>
+
+    <string name="setup_onb_skip">Lewati</string>
+    <string name="setup_onb_title_find">Temukan temanmu\ndi keramaian mana pun</string>
+    <string name="setup_onb_body_find">Ketuk teman dan panah langsung menunjuk ke dia. Panahnya menyala dengan warna dia saat kamu makin dekat.</string>
+    <string name="setup_onb_title_live">Mulai live\nbegitu masuk</string>
+    <string name="setup_onb_body_live">Teman cuma bisa menemukanmu saat kamu live, dan cuma kamu yang bisa menyalakannya. Moshpoint butuh:</string>
+    <string name="setup_onb_need_nearby">Perangkat di sekitar</string>
+    <string name="setup_onb_need_nearby_why">untuk mencari teman lewat Bluetooth, Wi-Fi, dan UWB</string>
+    <string name="setup_onb_need_location">Lokasi</string>
+    <string name="setup_onb_need_location_why">untuk panah saat kalian berjauhan</string>
+    <string name="setup_onb_need_notifications">Notifikasi</string>
+    <string name="setup_onb_need_notifications_why">biar kamu selalu tahu kapan kamu live</string>
+    <string name="setup_onb_title_name">Teman-temanmu\nmanggil kamu apa?</string>
+    <string name="setup_onb_or_type_it">atau ketik</string>
+    <string name="setup_onb_lets_go">Gas!</string>
+    <string name="setup_onb_allow">Izinkan</string>
+    <string name="setup_onb_skip_for_now">Lewati dulu</string>
+    <string name="setup_onb_im_name">Aku %1$s</string>
+    <string name="setup_onb_arrow_demo_desc">Panah yang menunjuk ke teman</string>
+
+    <string name="setup_plan_title">Rencanakan konser</string>
+    <string name="setup_plan_desc">Bikin gengnya sekarang, semua gabung kapan pun sempat. Geng tidur (nggak makan baterai) sampai harinya.</string>
+    <string name="setup_plan_search_hint">Cari: band, artis, atau venue</string>
+    <string name="setup_plan_searching">Mencari…</string>
+    <string name="setup_plan_search_failed">Lagi nggak bisa mencari. Ketik saja di bawah.</string>
+    <string name="setup_plan_no_results">Nggak ada konser mendatang. Ketik saja di bawah.</string>
+    <string name="setup_plan_when_where">%1$s · %2$s</string>
+    <string name="setup_plan_or_type">ATAU KETIK SENDIRI</string>
+    <string name="setup_plan_whos_playing">Siapa yang tampil</string>
+    <string name="setup_plan_where">Di mana (opsional)</string>
+    <string name="setup_plan_start_crew">Bikin geng</string>
+    <string name="setup_plan_default_name">Malam konser</string>
+
+    <string name="setup_qr_title">Scan untuk tambah aku</string>
+    <string name="setup_qr_hint">Lalu scan punya dia, biar kalian bisa saling menemukan.</string>
+    <string name="setup_qr_eyebrow">KODEMU</string>
+    <string name="setup_qr_done">‹  Selesai</string>
+    <string name="setup_qr_code_desc">Kode QR</string>
+    <plurals name="setup_qr_mates_in">
+        <item quantity="other">%d teman sudah masuk</item>
+    </plurals>
+    <string name="setup_qr_send_invite">Nggak bisa scan? Kirim undangan aja</string>
+    <string name="setup_qr_reset_invite">Reset undangan</string>
+    <string name="setup_qr_reset_title">Reset undangan?</string>
+    <string name="setup_qr_reset_text">Kalau QR ini atau screenshot-nya tersebar, reset bikin QR itu nggak berlaku. Yang sudah di geng tetap di dalam; yang baru perlu QR baru.</string>
+    <string name="setup_qr_reset">Reset</string>
+    <string name="setup_cancel">Batal</string>
+    <string name="setup_qr_end_night">Akhiri malam</string>
+
+    <string name="setup_bump_title">Tempel HP</string>
+    <string name="setup_bump_sharing">Tempelkan bagian belakang HP-mu ke HP temanmu. Dia akan diajak gabung ke gengmu.</string>
+    <string name="setup_bump_joining">Tempelkan bagian belakang HP-mu ke HP seseorang yang ada di geng (dia juga buka Tempel HP). Kamu akan diajak gabung.</string>
+    <string name="setup_done">Selesai</string>
+
+    <string name="setup_roll_title">Fotomu dari malam itu</string>
+    <string name="setup_roll_looking">Lagi cek foto-fotomu…</string>
+    <string name="setup_roll_nothing">Nggak ada foto dari jam-jam itu di HP ini. Foto dari HP lain, atau yang sudah ditambahkan, nggak muncul di sini.</string>
+    <string name="setup_roll_tap_to_leave_out">Ketuk untuk melewatkan foto. Foto disalin ke konser, jadi tetap ada meski kamu hapus dari galeri.</string>
+    <string name="setup_roll_adding">Menambahkan…</string>
+    <plurals name="setup_roll_add_n">
+        <item quantity="other">Tambah %d ke konser ini</item>
+    </plurals>
+</resources>

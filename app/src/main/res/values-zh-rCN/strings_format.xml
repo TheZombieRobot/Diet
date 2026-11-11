@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Simplified Chinese (zh-CN): shared formats. -->
+<resources>
+    <string name="time_just_now">刚刚</string>
+    <plurals name="time_min_ago">
+        <item quantity="other">%d分钟前</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="other">%d小时前</item>
+    </plurals>
+    <plurals name="time_days_ago">
+        <item quantity="other">%d天前</item>
+    </plurals>
+    <string name="time_live">在线</string>
+    <string name="status_battery_died">在这里没电了 · %1$s</string>
+    <string name="status_time_battery">%1$s · %2$d%%</string>
+
+    <string name="dist_m">%1$s m</string>
+    <string name="dist_km">%1$s km</string>
+    <string name="dist_ft">%1$s ft</string>
+    <string name="dist_mi">%1$s mi</string>
+    <string name="unit_m">m</string>
+    <string name="unit_km">km</string>
+    <string name="unit_ft">ft</string>
+    <string name="unit_mi">mi</string>
+    <string name="dist_number_unit">%1$s %2$s</string>
+
+    <string name="countdown_tonight">今晚</string>
+    <string name="countdown_tomorrow">明天</string>
+    <plurals name="countdown_days">
+        <item quantity="other">%d天后</item>
+    </plurals>
+    <plurals name="countdown_weeks">
+        <item quantity="other">%d周后</item>
+    </plurals>
+    <plurals name="countdown_months">
+        <item quantity="other">%d个月后</item>
+    </plurals>
+</resources>

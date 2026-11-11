@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Indonesian (in): home screen. -->
+<resources>
+    <string name="home_go_live">Mulai live</string>
+    <string name="home_live_ghost">Live · hantu</string>
+    <string name="home_live">Live</string>
+
+    <string name="home_tile_not_sharing">belum berbagi</string>
+    <string name="home_tile_phone_died">HP mati</string>
+    <string name="home_tile_live">live</string>
+    <string name="home_tile_with_battery">%1$s · %2$d%%</string>
+
+    <string name="home_ping_on_my_way">OTW</string>
+    <string name="home_ping_where_are_you">Kamu di mana?</string>
+    <string name="home_ping_stay_put">Tetap di situ</string>
+    <string name="home_ping_meet_at_pin">Ketemu di pin</string>
+    <string name="home_ping_all_good">Aman</string>
+    <string name="home_ping_sent">Terkirim ✓</string>
+    <string name="home_ping_heading_home">Pulang dulu</string>
+    <string name="home_ping_need_help">Butuh bantuan</string>
+    <string name="home_heading_home_title">Mau pulang?</string>
+    <string name="home_heading_home_text">Kabari kalau sudah sampai. Kalau nggak, gengmu dapat peringatan dengan lokasi terakhirmu (meski HP-mu mati).</string>
+    <plurals name="home_checkin_minutes">
+        <item quantity="other">%d mnt</item>
+    </plurals>
+    <string name="home_just_tell_them">Kabari aja</string>
+    <string name="home_cancel">Batal</string>
+    <string name="home_ping_line">%1$s %2$s</string>
+    <string name="home_ping_default">mengirim ping ke geng</string>
+
+    <string name="home_bar_crew">Geng</string>
+    <string name="home_bar_map">Peta</string>
+    <string name="home_bar_add">Tambah</string>
+    <string name="home_bar_story">Cerita</string>
+    <string name="home_bar_me">Aku</string>
+
+    <string name="home_add_mates">Tambah teman</string>
+    <string name="home_add_mates_text">Di konser: tunjukkan QR geng dan biar mereka scan. Udah, gitu aja: semua di geng bisa saling menemukan.</string>
+    <string name="home_show_crew_qr">Tunjukkan QR geng</string>
+    <string name="home_start_crew_show_qr">Bikin geng + tunjukkan QR</string>
+    <string name="home_scan_qr">Scan QR</string>
+    <string name="home_paste_invite">Tempel undangan</string>
+    <string name="home_bump_phones">Tempelkan HP kalian</string>
+    <string name="home_plan_gig">Rencanakan konser (cari, undang sekarang)</string>
+    <string name="home_send_app_invite">Kirim aplikasi + undangan (WhatsApp, Messenger…)</string>
+    <string name="home_friends_every_gig">TEMAN UNTUK SETIAP KONSER</string>
+    <string name="home_my_friend_qr">QR temanku</string>
+    <string name="home_enter_code">Masukkan kode</string>
+
+    <string name="home_check_in_by">Kabari sebelum %1$s</string>
+    <string name="home_home_safe">Aku sudah sampai rumah</string>
+
+    <string name="home_chat">Chat</string>
+    <string name="home_chat_unread">Chat (%1$d)</string>
+    <string name="home_camera">Kamera</string>
+
+    <string name="home_message_crew">Kirim pesan ke geng</string>
+    <string name="home_message_crew_text">Sekali ketuk: semua di geng dapat, lengkap dengan lokasimu.</string>
+
+    <string name="home_crew_qr_desc">QR geng</string>
+    <string name="home_inline_qr_text">Teman tinggal scan ini pakai kamera atau Moshpoint. Gitu aja.</string>
+    <string name="home_no_camera_send_invite">Nggak ada kamera? Kirim undangan</string>
+
+    <plurals name="home_gig_photos">
+        <item quantity="other">%d foto</item>
+    </plurals>
+    <plurals name="home_gig_clips">
+        <item quantity="other">%d video</item>
+    </plurals>
+    <string name="home_people_more">%1$s +%2$d</string>
+
+    <string name="home_crew_chat">Chat geng</string>
+    <string name="home_pinned_plan">📌 %1$s</string>
+    <string name="home_chat_subtitle">Pesan, rencana, suar</string>
+    <string name="home_unread_many">9+</string>
+    <plurals name="home_unread_new">
+        <item quantity="other">%d baru</item>
+    </plurals>
+
+    <string name="home_following_from_home">Mengikuti dari rumah</string>
+    <string name="home_upnext_invite">💬 Chat · ajak teman</string>
+    <plurals name="home_upnext_mates">
+        <item quantity="other">💬 Chat · %d teman sudah masuk</item>
+    </plurals>
+
+    <string name="home_start_gig_group">Bikin grup konser</string>
+    <string name="home_start_gig_group_text">Kasih nama (misalnya nama band). Lalu tunjukkan QR ke teman-temanmu.</string>
+    <string name="home_start">Mulai</string>
+    <string name="home_keep_friend">Tambahkan %1$s sebagai teman (tetap setelah malam ini)</string>
+    <string name="home_set_photo">Pasang foto</string>
+    <string name="home_remove_photo">Hapus foto</string>
+    <string name="home_remove_name">Hapus %1$s</string>
+    <string name="home_close">Tutup</string>
+    <string name="home_remove_from_crew_title">Keluarkan %1$s dari geng?</string>
+    <string name="home_remove_friend_title">Hapus %1$s?</string>
+    <string name="home_remove_from_crew_text">Geng pindah ke kunci baru yang nggak didapat %1$s, jadi mulai sekarang dia nggak bisa lihat lokasi siapa pun, chat, atau foto. Yang lain tetap di geng.</string>
+    <string name="home_remove_friend_text">Kamu nggak bisa menemukan dia sampai kamu menambahkannya lagi.</string>
+    <string name="home_remove">Hapus</string>
+    <string name="home_find">Cari</string>
+    <string name="home_add_with_code">Tambah pakai kode</string>
+    <string name="home_their_name">Nama dia</string>
+    <string name="home_their_code">Kode dia</string>
+    <string name="home_add_friend">Tambah teman</string>
+    <string name="home_tonight_only">Malam ini saja</string>
+
+    <string name="home_hidden_hint">Kamu tersembunyi dari gengmu. Ketuk Mulai live kalau mau ditemukan.</string>
+    <string name="home_allow_permission">Izinkan Moshpoint mencari temanmu (%1$s)</string>
+    <string name="home_allow">Izinkan</string>
+    <string name="home_one_thing_first">SATU HAL DULU</string>
+    <plurals name="home_one_thing_first_more">
+        <item quantity="other">SATU HAL DULU · %d LAGI</item>
+    </plurals>
+    <string name="home_eyebrow_tonight">MALAM INI</string>
+    <string name="home_eyebrow_following">MENGIKUTI</string>
+    <string name="home_eyebrow_coming_up">SEGERA</string>
+    <string name="home_find_mates_tonight">Temukan temanmu malam ini</string>
+    <string name="home_find_mates_text">Undang mereka, mereka scan, beres. Sisanya urusan Moshpoint.</string>
+    <string name="home_invite_mates_tonight">Ajak teman malam ini</string>
+    <string name="home_scan_invite">Scan undangan</string>
+    <string name="home_your_crew">Geng kamu</string>
+    <string name="home_invite">＋ Undang</string>
+    <string name="home_family_can_follow">Keluarga bisa ikut memantau dari rumah</string>
+    <string name="home_following_from_home_names">Mengikuti dari rumah: %1$s</string>
+    <string name="home_share">Bagikan ›</string>
+    <string name="home_meet_up">★  Titik kumpul: %1$s</string>
+    <string name="home_map_link">Peta ›</string>
+    <string name="home_asleep_text">Tidur sampai hari konser: tanpa Bluetooth, tanpa lokasi, nggak makan baterai. Teman bisa gabung sekarang, dan kamu dapat pengingat di hari H.</string>
+    <string name="home_follower_text">Kamu bisa lihat posisi semua orang dan foto mereka begitu masuk. Mereka juga tahu kamu mengikuti.</string>
+    <string name="home_see_story">Lihat cerita</string>
+    <string name="home_crew_chat_unread">Chat geng (%1$d baru)</string>
+    <string name="home_where_are_they">Mereka di mana? (peta)</string>
+    <string name="home_see_them_once_starts">Mereka bakal muncul di sini begitu konser mulai.</string>
+    <string name="home_tap_mate_hint">Ketuk teman untuk mencari · tahan untuk opsi</string>
+    <string name="home_find_name">Cari %1$s</string>
+    <string name="home_find_everyone">Cari semua</string>
+    <string name="home_stop_following">Berhenti mengikuti</string>
+    <string name="home_cancel_crew">Batalkan geng ini</string>
+    <string name="home_end_night">Akhiri malam</string>
+    <string name="home_up_next">BERIKUTNYA</string>
+    <string name="home_memories">KENANGAN</string>
+    <plurals name="home_memories_count">
+        <item quantity="other">%d foto dan video. Ketuk untuk mengenang ›</item>
+    </plurals>
+    <string name="home_your_gigs">KONSER KAMU</string>
+    <string name="home_friends">TEMAN</string>
+    <string name="home_friends_empty">Teman yang kamu simpan untuk setiap konser muncul di sini. Ketuk ＋ Tambah di bawah.</string>
+</resources>

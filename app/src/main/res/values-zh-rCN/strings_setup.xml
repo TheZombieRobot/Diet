@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Simplified Chinese (zh-CN): settings, onboarding, planning, QR, bump, camera roll. -->
+<resources>
+    <string name="setup_settings_title">设置</string>
+    <string name="setup_your_photo">你的照片</string>
+    <string name="setup_your_photo_desc">会显示在朋友的箭头里。只有你的好友能看到。</string>
+    <string name="setup_take_selfie">自拍一张</string>
+    <string name="setup_choose_photo">选择照片</string>
+    <string name="setup_remove_my_photo">移除我的照片</string>
+    <string name="setup_your_name">你的名字</string>
+    <string name="setup_stay_live">重启后保持在线</string>
+    <string name="setup_stay_live_desc">手机重启时如果你在线，会自动重新上线。</string>
+    <string name="setup_ghost_mode">幽灵模式</string>
+    <string name="setup_ghost_mode_desc">在地图上隐藏你的位置。朋友离你近时，仍能通过 Bluetooth 找到你。</string>
+    <string name="setup_ghost_one_hour">幽灵 1 小时</string>
+    <string name="setup_data_saver">省流量</string>
+    <string name="setup_data_saver_desc">分享更小的照片和视频（信号差时更快）。关闭：高画质，大家保存的都很清晰。你自己的原图始终保留原画质。</string>
+    <string name="setup_emergency_contact">紧急联系人</string>
+    <string name="setup_emergency_contact_desc">“需要帮助”可以用普通短信把你的位置发给对方（不用流量）。只保存在这台手机上。</string>
+    <string name="setup_contact_name">名字</string>
+    <string name="setup_contact_mobile">手机号</string>
+    <string name="setup_contact_saved">已保存</string>
+    <string name="setup_contact_need_number">请填写手机号</string>
+    <string name="setup_contact_removed">已移除</string>
+    <string name="setup_save">保存</string>
+    <string name="setup_remove">移除</string>
+    <string name="setup_about">关于</string>
+    <string name="setup_about_text">Moshpoint %1$s。无需账号，代码定期轮换，位置端到端加密。只有在线时才能被找到。</string>
+    <string name="setup_hide_licences">隐藏许可</string>
+    <string name="setup_open_source_licences">开源许可</string>
+    <string name="setup_licences_fonts">字体：Unbounded 和 Inter，采用 SIL Open Font License 1.1。二维码：ZXing（Apache 2.0）。</string>
+    <string name="setup_continue_facebook">用 Facebook 继续</string>
+
+    <string name="setup_onb_skip">跳过</string>
+    <string name="setup_onb_title_find">人再多\n也能找到朋友</string>
+    <string name="setup_onb_body_find">点一下朋友，箭头直接指向他。越靠近，箭头越亮出他的颜色。</string>
+    <string name="setup_onb_title_live">进场时\n点上线</string>
+    <string name="setup_onb_body_live">只有你在线时朋友才能找到你，而且只有你能打开。Moshpoint 需要：</string>
+    <string name="setup_onb_need_nearby">附近的设备</string>
+    <string name="setup_onb_need_nearby_why">通过 Bluetooth、Wi-Fi 和 UWB 找朋友</string>
+    <string name="setup_onb_need_location">定位</string>
+    <string name="setup_onb_need_location_why">离得远时也能显示箭头</string>
+    <string name="setup_onb_need_notifications">通知</string>
+    <string name="setup_onb_need_notifications_why">随时知道自己是否在线</string>
+    <string name="setup_onb_title_name">朋友们\n该怎么叫你？</string>
+    <string name="setup_onb_or_type_it">或者直接输入</string>
+    <string name="setup_onb_lets_go">出发吧</string>
+    <string name="setup_onb_allow">允许</string>
+    <string name="setup_onb_skip_for_now">先跳过</string>
+    <string name="setup_onb_im_name">我是 %1$s</string>
+    <string name="setup_onb_arrow_demo_desc">指向朋友的箭头</string>
+
+    <string name="setup_plan_title">计划一场演出</string>
+    <string name="setup_plan_desc">现在就建小队，大家方便时再加入。演出当天前一直休眠（不耗电）。</string>
+    <string name="setup_plan_search_hint">搜索：乐队、艺人或场馆</string>
+    <string name="setup_plan_searching">搜索中…</string>
+    <string name="setup_plan_search_failed">暂时搜不了，在下面手动输入吧。</string>
+    <string name="setup_plan_no_results">没找到近期演出，在下面手动输入吧。</string>
+    <string name="setup_plan_when_where">%1$s · %2$s</string>
+    <string name="setup_plan_or_type">或者手动输入</string>
+    <string name="setup_plan_whos_playing">谁的演出</string>
+    <string name="setup_plan_where">在哪里（选填）</string>
+    <string name="setup_plan_start_crew">建小队</string>
+    <string name="setup_plan_default_name">演出之夜</string>
+
+    <string name="setup_qr_title">扫码加我</string>
+    <string name="setup_qr_hint">再扫对方的，你们就能互相找到。</string>
+    <string name="setup_qr_eyebrow">你的代码</string>
+    <string name="setup_qr_done">‹  完成</string>
+    <string name="setup_qr_code_desc">二维码</string>
+    <plurals name="setup_qr_mates_in">
+        <item quantity="other">%d 个朋友已加入</item>
+    </plurals>
+    <string name="setup_qr_send_invite">扫不了？改发邀请</string>
+    <string name="setup_qr_reset_invite">重置邀请</string>
+    <string name="setup_qr_reset_title">重置邀请？</string>
+    <string name="setup_qr_reset_text">如果这个 二维码或它的截图流出去了，重置就能让它失效。已经在小队里的人不受影响；新加入的人需要用新的 二维码。</string>
+    <string name="setup_qr_reset">重置</string>
+    <string name="setup_cancel">取消</string>
+    <string name="setup_qr_end_night">结束这一晚</string>
+
+    <string name="setup_bump_title">碰一碰</string>
+    <string name="setup_bump_sharing">把手机和朋友的手机背对背贴在一起。对方会收到加入你小队的邀请。</string>
+    <string name="setup_bump_joining">把手机和小队里某人的手机背对背贴在一起（对方也要打开“碰一碰”）。你会收到加入邀请。</string>
+    <string name="setup_done">完成</string>
+
+    <string name="setup_roll_title">你那晚拍的照片</string>
+    <string name="setup_roll_looking">正在翻你的照片…</string>
+    <string name="setup_roll_nothing">这台手机上没有那段时间的照片。用别的手机拍的或已经添加过的不会显示在这里。</string>
+    <string name="setup_roll_tap_to_leave_out">点一下可以排除。照片会复制到这场演出里，就算从相册删掉也还在。</string>
+    <string name="setup_roll_adding">添加中…</string>
+    <plurals name="setup_roll_add_n">
+        <item quantity="other">添加 %d 项到这场演出</item>
+    </plurals>
+</resources>

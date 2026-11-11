@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Traditional Chinese, Taiwan (zh-TW) -->
+<resources>
+    <string name="app_name">Moshpoint</string>
+    <string name="visibility_channel">上線狀態</string>
+    <string name="visibility_notification">你上線了：朋友都找得到你</string>
+    <string name="widget_title">你的小隊</string>
+    <string name="widget_empty">在 Moshpoint 開個小隊，朋友就會出現在這裡。</string>
+    <string name="widget_find">找小隊</string>
+    <string name="widget_description">小隊在哪，點一下就找到</string>
+</resources>

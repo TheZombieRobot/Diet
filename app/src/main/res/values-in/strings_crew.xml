@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Indonesian (in): crew chat, notifications, friendship, safety, plan card, stats, live status. -->
+<resources>
+    <string name="crew_you">Kamu</string>
+    <string name="crew_default_name">Teman</string>
+    <string name="crew_default_group_name">Grup konser</string>
+    <string name="crew_default_gig_name">Konser</string>
+    <string name="crew_someone">Seseorang</string>
+    <string name="crew_name_numbered">%1$s (%2$d)</string>
+    <string name="crew_cancel">Batal</string>
+    <string name="crew_close">Tutup</string>
+
+    <string name="crew_chat_subtitle">Chat geng · cuma gengmu yang bisa baca</string>
+    <string name="crew_chat_invite">＋ Undang</string>
+    <string name="crew_chat_on_today">Konser ini hari ini. Saling cari pakai geng ini?</string>
+    <string name="crew_chat_switch">Ganti</string>
+    <plurals name="crew_chat_send_flare_hint">
+        <item quantity="other">🔥  Kirim suar: tunjukkan posisimu selama %d mnt</item>
+    </plurals>
+    <string name="crew_chat_empty">Belum ada apa-apa. Pesan sampai ke semua orang di geng dalam sekitar satu menit (lebih cepat pakai relay sendiri).</string>
+    <string name="crew_chat_night_tools_later">Bikin heboh dulu! Suar dan ping cepat aktif di hari konser.</string>
+    <string name="crew_chat_message_hint">Kirim pesan ke geng</string>
+    <string name="crew_chat_not_sent">Belum terkirim · Ketuk untuk coba lagi</string>
+    <string name="crew_chat_sending">Mengirim…</string>
+    <string name="crew_chat_line_with_time">%1$s · %2$s</string>
+
+    <string name="crew_chat_you_joined">Kamu gabung ke geng</string>
+    <string name="crew_chat_joined">%1$s gabung ke geng</string>
+    <string name="crew_chat_you_pinned">Kamu menyematkan: %1$s</string>
+    <string name="crew_chat_pinned">%1$s menyematkan: %2$s</string>
+    <string name="crew_chat_you_cleared_plan">Kamu menghapus rencana</string>
+    <string name="crew_chat_cleared_plan">%1$s menghapus rencana</string>
+    <string name="crew_chat_you_flare">Kamu mengirim suar: %1$s</string>
+    <string name="crew_chat_flare">%1$s mengirim suar: %2$s</string>
+    <string name="crew_chat_line_other">%1$s %2$s</string>
+
+    <string name="crew_quick_coming">OTW 🏃</string>
+    <string name="crew_quick_where">Kamu di mana? 👀</string>
+    <string name="crew_quick_stay_put">Tetap di situ ✋</string>
+    <string name="crew_quick_meet_pin">Ketemu di pin 📍</string>
+    <string name="crew_quick_all_good">Aman 👍</string>
+    <string name="crew_quick_going_home">Pulang dulu 🏠</string>
+    <string name="crew_quick_need_help">🚨 Aku butuh bantuan</string>
+    <plurals name="crew_quick_check_in">
+        <item quantity="other">Pulang dulu 🏠 Kukabari dalam %d mnt</item>
+    </plurals>
+    <string name="crew_quick_home_safe">Sudah sampai rumah ✅</string>
+
+    <string name="crew_plan_eyebrow">📌 RENCANA</string>
+    <string name="crew_plan_none">Belum ada rencana yang disematkan.</string>
+    <string name="crew_plan_prompt">Sematkan rencana biar nggak ada yang perlu scroll: \"Di FOH setelah encore\".</string>
+    <string name="crew_plan_by">oleh %1$s</string>
+    <string name="crew_plan_meet_up">★ Titik kumpul: %1$s</string>
+    <string name="crew_plan_pin">Sematkan rencana</string>
+    <string name="crew_plan_change">Ubah</string>
+    <string name="crew_plan_share">Bagikan sebagai kartu</string>
+    <string name="crew_plan_title">Rencana</string>
+    <string name="crew_plan_editor_body">Disematkan di atas chat untuk semua orang, jadi nggak bakal tenggelam.</string>
+    <string name="crew_plan_idea_sound_desk">Kumpul di FOH setelah encore</string>
+    <string name="crew_plan_idea_bar">Kiri bar utama pas jeda</string>
+    <string name="crew_plan_idea_car">Balik ke mobil jam 11.30</string>
+    <string name="crew_plan_idea_tent">Ke tenda kalau kepisah</string>
+    <string name="crew_plan_pin_it">Sematkan</string>
+    <string name="crew_plan_unpin">Lepas sematan</string>
+
+    <string name="crew_vibe_lost">Nyasar 😅</string>
+    <string name="crew_vibe_bar">Ngebir dulu 🍺</string>
+    <string name="crew_vibe_rail">Di barisan depan 🎶</string>
+    <string name="crew_vibe_food">Cari makan 🍔</string>
+    <string name="crew_vibe_toilets">Ke toilet 🚻</string>
+    <string name="crew_vibe_air">Cari angin di luar 🌬️</string>
+    <string name="crew_vibe_merch">Booth merch 👕</string>
+    <string name="crew_vibe_leaving">Bentar lagi cabut 👋</string>
+    <string name="crew_flare_mine">Kamu: %1$s</string>
+    <string name="crew_flare_theirs">%1$s: %2$s</string>
+    <plurals name="crew_flare_left">
+        <item quantity="other">sisa %d mnt</item>
+    </plurals>
+    <plurals name="crew_flare_left_on_map">
+        <item quantity="other">sisa %d mnt · di peta</item>
+    </plurals>
+    <string name="crew_flare_end">Akhiri</string>
+    <string name="crew_flare_title">Kirim suar</string>
+    <plurals name="crew_flare_body">
+        <item quantity="other">Posisimu muncul di peta geng selama %d menit, plus vibe-nya.</item>
+    </plurals>
+    <string name="crew_flare_own_hint">Atau tulis sendiri…</string>
+    <string name="crew_flare_send">Kirim</string>
+
+    <string name="crew_help_title">Minta bantuan</string>
+    <string name="crew_help_alerted">Geng sudah diberi tahu ✓</string>
+    <string name="crew_help_alert">Kabari gengku</string>
+    <string name="crew_help_alert_sub">Peringatan darurat dengan lokasimu</string>
+    <string name="crew_help_text_contact">SMS %1$s</string>
+    <string name="crew_help_text_contact_sub">Aplikasi pesan terbuka dengan lokasimu. Bisa tanpa data.</string>
+    <string name="crew_help_add_contact">Tambah kontak darurat</string>
+    <string name="crew_help_add_contact_sub">Seseorang di luar geng untuk dihubungi saat genting</string>
+    <string name="crew_help_contact_name">Nama (misalnya Mama)</string>
+    <string name="crew_help_contact_number">Nomor HP</string>
+    <string name="crew_help_save_contact">Simpan kontak</string>
+    <string name="crew_help_call">Telepon %1$s</string>
+    <string name="crew_help_call_sub">Polisi, pemadam kebakaran, ambulans</string>
+    <string name="crew_help_call_police">Polisi</string>
+    <string name="crew_help_call_ambulance">Ambulans dan pemadam kebakaran</string>
+    <string name="crew_help_no_signal">Sama sekali nggak ada sinyal? Banyak HP baru bisa menghubungi layanan darurat lewat satelit: telepon %1$s dan ikuti petunjuknya. Di festival, petugas keamanan dan tenda P3K bisa bantu dengan cepat.</string>
+    <string name="crew_help_sms">Aku butuh bantuan. (dikirim dari Moshpoint)</string>
+    <string name="crew_help_sms_where">Aku butuh bantuan. Aku di sini: %1$s (dikirim dari Moshpoint)</string>
+
+    <string name="crew_channel_messages">Pesan geng</string>
+    <string name="crew_channel_help">Permintaan bantuan geng</string>
+    <string name="crew_channel_requests">Teman yang mencarimu</string>
+    <string name="crew_notif_line">%1$s: %2$s</string>
+    <plurals name="crew_new_messages">
+        <item quantity="other">%d pesan baru</item>
+    </plurals>
+    <string name="crew_notif_joined">gabung ke geng 🎉</string>
+    <plurals name="crew_notif_flare">
+        <item quantity="other">Suar: %1$s · di sini selama %2$d mnt</item>
+    </plurals>
+    <string name="crew_notif_new_plan">Rencana baru: %1$s</string>
+    <string name="crew_notif_done_title">%1$s selesai</string>
+    <string name="crew_notif_done_saved">Foto dan videomu tersimpan di Konser kamu.</string>
+    <string name="crew_notif_done_text">Semoga seru ya. Bikin geng baru kapan aja.</string>
+    <string name="crew_notif_overdue_title">%1$s belum ngabarin</string>
+    <string name="crew_notif_overdue_text">Dia lagi pulang dan harusnya sudah sampai. Coba telepon dia. Ketuk untuk lihat lokasi terakhirnya.</string>
+    <string name="crew_notif_help_where">Dia menekan Butuh bantuan. Ketuk untuk lihat lokasinya. Cek keadaannya.</string>
+    <string name="crew_notif_help">Dia menekan Butuh bantuan. Cek keadaannya.</string>
+    <string name="crew_notif_tap_where">Ketuk untuk lihat lokasinya.</string>
+    <string name="crew_notif_from_crew">Dari gengmu</string>
+
+    <string name="crew_ping_coming">lagi OTW</string>
+    <string name="crew_ping_stay_put">bilang tetap di situ</string>
+    <string name="crew_ping_where">nanya kamu di mana</string>
+    <string name="crew_ping_meet_pin">bilang ketemu di pin</string>
+    <string name="crew_ping_all_good">aman</string>
+    <string name="crew_ping_going_home">lagi pulang</string>
+    <string name="crew_ping_need_help">BUTUH BANTUAN</string>
+    <string name="crew_ping_check_in">lagi pulang dan bakal ngabarin</string>
+    <string name="crew_ping_home_safe">sudah sampai rumah</string>
+    <string name="crew_ping_chat">mengirim pesan</string>
+    <string name="crew_ping_flare">mengirim suar</string>
+    <string name="crew_ping_plan">menyematkan rencana</string>
+    <string name="crew_ping_other">mengirim ping ke geng</string>
+
+    <string name="crew_ping_title_coming">%1$s lagi OTW</string>
+    <string name="crew_ping_title_stay_put">%1$s bilang tetap di situ</string>
+    <string name="crew_ping_title_where">%1$s nanya kamu di mana</string>
+    <string name="crew_ping_title_meet_pin">%1$s bilang ketemu di pin</string>
+    <string name="crew_ping_title_all_good">%1$s aman</string>
+    <string name="crew_ping_title_going_home">%1$s lagi pulang</string>
+    <string name="crew_ping_title_need_help">%1$s BUTUH BANTUAN</string>
+    <string name="crew_ping_title_check_in">%1$s lagi pulang dan bakal ngabarin</string>
+    <string name="crew_ping_title_home_safe">%1$s sudah sampai rumah</string>
+    <string name="crew_ping_title_chat">%1$s mengirim pesan</string>
+    <string name="crew_ping_title_flare">%1$s mengirim suar</string>
+    <string name="crew_ping_title_plan">%1$s menyematkan rencana</string>
+    <string name="crew_ping_title_other">%1$s mengirim ping ke geng</string>
+
+    <string name="crew_rally_default">Kumpul di sini</string>
+
+    <string name="crew_friend_need_crew">Simpan sebagai teman bisa dipakai saat kalian ada di geng yang sama.</string>
+    <string name="crew_friend_gone">Dia sudah nggak ada di geng.</string>
+    <string name="crew_friend_unreachable">Belum bisa menghubungi %1$s secara pribadi. Coba lagi setelah dia terlihat malam ini (kalau terus begini, aplikasinya perlu di-update).</string>
+    <string name="crew_friend_ask_failed">Gagal mengajak %1$s. Coba lagi.</string>
+    <string name="crew_friend_asked">%1$s sudah diajak tetap berteman. Kalian bakal berteman di setiap konser begitu dia bilang iya.</string>
+    <string name="crew_friend_request_title">%1$s mau tetap berteman</string>
+    <string name="crew_friend_request_text">Dari %1$s. Ketuk untuk bilang iya, dan kalian bisa saling menemukan di konser mana pun.</string>
+    <string name="crew_friend_accepted_title">%1$s sekarang temanmu</string>
+    <string name="crew_friend_accepted_text">Kalian bisa saling menemukan di konser mana pun, bukan cuma %1$s.</string>
+
+    <string name="crew_add_need_name">Kasih dia nama</string>
+    <string name="crew_add_bad_code">Kodenya kayaknya salah</string>
+    <string name="crew_add_own_code">Itu kodemu sendiri</string>
+
+    <string name="crew_note_you_removed">Kamu mengeluarkan %1$s. Geng punya kunci baru: mulai sekarang dia nggak bisa lihat apa pun.</string>
+    <string name="crew_note_you_reset">Kamu mereset undangan. QR dan link lama sudah nggak berlaku.</string>
+    <string name="crew_note_removed">%1$s mengeluarkan %2$s dari geng.</string>
+    <string name="crew_note_reset">%1$s mereset undangan: QR lama sudah nggak berlaku.</string>
+
+    <string name="crew_wake_title">%1$s malam ini!</string>
+    <string name="crew_wake_text">Mulai %1$s. Ketuk untuk live biar gengmu bisa menemukanmu.</string>
+    <string name="crew_wake_text_venue">Mulai %1$s di %2$s. Ketuk untuk live biar gengmu bisa menemukanmu.</string>
+
+    <plurals name="crew_memory_headline">
+        <item quantity="other">%1$d tahun lalu hari ini: %2$s</item>
+    </plurals>
+    <plurals name="crew_memory_headline_with">
+        <item quantity="other">%1$d tahun lalu hari ini: %2$s bareng %3$s</item>
+    </plurals>
+    <string name="crew_memory_two_people">%1$s &amp; %2$s</string>
+    <plurals name="crew_memory_text">
+        <item quantity="other">%d foto dan video. Ketuk untuk mengenang.</item>
+    </plurals>
+
+    <string name="crew_moment_title">%1$s membagikan momen</string>
+    <string name="crew_moment_text">Ketuk untuk lihat lokasinya</string>
+
+    <string name="crew_moving_title">%1$s lagi pindah</string>
+    <string name="crew_moving_text">Pindah %1$s dari posisi sebelumnya. Ketuk untuk lihat.</string>
+    <string name="crew_moving_text_away">Pindah %1$s dari posisi sebelumnya. Sekarang %2$s darimu. Ketuk untuk lihat.</string>
+    <string name="crew_at_venue">di venue</string>
+    <string name="crew_from_venue">%1$s dari venue</string>
+    <string name="crew_status_phone_died">HP %1$s mati</string>
+    <string name="crew_status_distance">%1$s %2$s</string>
+    <plurals name="crew_status_min_ago">
+        <item quantity="other">%1$s %2$d mnt lalu</item>
+    </plurals>
+
+    <string name="crew_stats_walked">%1$s jalan kaki</string>
+    <plurals name="crew_stats_finds">
+        <item quantity="other">ketemu teman %d kali</item>
+    </plurals>
+    <plurals name="crew_stats_moments">
+        <item quantity="other">%d momen</item>
+    </plurals>
+    <plurals name="crew_stats_pings">
+        <item quantity="other">%d ping</item>
+    </plurals>
+    <string name="crew_stats_out_hours">%1$d j %2$d mnt di luar</string>
+    <plurals name="crew_stats_out_mins">
+        <item quantity="other">%d mnt di luar</item>
+    </plurals>
+    <string name="crew_stats_quiet">Malam yang santai</string>
+
+    <string name="crew_card_eyebrow">MOSHPOINT · RENCANA MALAM INI</string>
+    <string name="crew_card_plan">RENCANA</string>
+    <string name="crew_card_meet_up">★  Titik kumpul: %1$s</string>
+    <string name="crew_card_whos_coming">SIAPA YANG DATANG</string>
+    <string name="crew_card_footer">Kepisah? Saling cari di Moshpoint.</string>
+    <string name="crew_card_share_meet_up">Titik kumpul: %1$s</string>
+    <string name="crew_card_share_title">Bagikan rencana</string>
+
+    <string name="crew_request_title">%1$s sudah dekat dan lagi mencarimu</string>
+    <string name="crew_request_text">Ketuk untuk menyalakan layarmu biar dia bisa melihatmu</string>
+    <string name="crew_go_hidden">Sembunyi</string>
+    <string name="crew_tile_live">Live</string>
+    <string name="crew_tile_hidden">Tersembunyi</string>
+</resources>

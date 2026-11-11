@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Simplified Chinese (zh-CN) -->
+<resources>
+    <string name="app_name">Moshpoint</string>
+    <string name="visibility_channel">在线状态</string>
+    <string name="visibility_notification">你在线了：朋友们能找到你</string>
+    <string name="widget_title">你的小队</string>
+    <string name="widget_empty">在 Moshpoint 里建个小队，朋友们就会出现在这里。</string>
+    <string name="widget_find">找小队</string>
+    <string name="widget_description">小队在哪，一点就找到</string>
+</resources>

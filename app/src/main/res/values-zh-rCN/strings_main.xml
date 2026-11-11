@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Simplified Chinese (zh-CN): main screen, invites, sharing, phone setup checks. -->
+<resources>
+    <string name="main_get_the_app">还没装 Moshpoint？从这里安装（Android）：%1$s\n然后复制这整条消息，打开 Moshpoint，点“粘贴邀请”。\n\n</string>
+    <string name="main_nudge_text">嘿 %1$s，打开 Moshpoint 点“上线”（记得开定位和流量），我好找到你！</string>
+    <string name="main_nudge_mate">朋友</string>
+    <string name="main_nudge_title">叫他们上线</string>
+
+    <string name="main_setup_bluetooth_off">Bluetooth 关着。不开的话，没人能找到你，你也找不到别人。</string>
+    <string name="main_setup_location_off">定位关着。GPS 找人要用它，很多手机用 Bluetooth 找人也需要它。</string>
+    <string name="main_setup_wifi_off">Wi-Fi 关着。打开能让距离更准（不用连网络）。</string>
+    <string name="main_setup_battery">省电模式可能会在后台关掉 Moshpoint，朋友们就找不到你了。</string>
+    <string name="main_setup_turn_on">打开</string>
+    <string name="main_setup_fix">修复</string>
+
+    <string name="main_facebook_failed">Facebook 登录失败：%1$s</string>
+    <string name="main_facebook_unknown_error">未知错误</string>
+    <string name="main_facebook_not_set_up">这个版本没有配置 Facebook 登录</string>
+
+    <string name="main_my_spot">我的位置</string>
+
+    <string name="main_photos_permission_needed">Moshpoint 需要访问你的照片，才能找出那晚拍的</string>
+    <string name="main_you">你</string>
+    <plurals name="main_added_to_gig">
+        <item quantity="other">已添加 %d 项到这场演出</item>
+    </plurals>
+    <string name="main_saving_one">正在保存…</string>
+    <plurals name="main_saving_many">
+        <item quantity="other">正在保存 %d 张照片和视频…</item>
+    </plurals>
+    <string name="main_save_failed">保存失败。手机存储满了吗？</string>
+    <string name="main_saved_all">已保存到相册：Moshpoint / %1$s</string>
+    <plurals name="main_saved_some">
+        <item quantity="other">已保存 %1$d/%2$d 项到相册</item>
+    </plurals>
+    <string name="main_gig_fallback">演出</string>
+
+    <string name="main_invite_expired">这个邀请已过期，找人再要一个吧。</string>
+    <string name="main_joined_up_next">你加入了 %1$s！它在“下一场”里：先聊起来，演出当天自动开启。</string>
+    <string name="main_joined_following">你正在关注 %1$s。你能看到他们的照片和位置；他们也会知道你在关注。</string>
+    <string name="main_joined_sleeping">你加入了 %1$s！小队会在演出当天开启（%2$s）。</string>
+    <string name="main_joined_live">你加入了 %1$s！小队里的人都能互相找到。</string>
+    <string name="main_the_crew">小队</string>
+    <string name="main_got_code">收到代码了。给对方起个名字，然后点“加好友”。</string>
+    <string name="main_friend_added">✓ 已添加 %1$s</string>
+    <string name="main_no_invite_found">没找到 Moshpoint 邀请。复制朋友发来的整条消息，再点“粘贴邀请”。</string>
+
+    <string name="main_perm_location">定位：GPS 箭头和 Bluetooth/Wi-Fi 测距</string>
+    <string name="main_perm_nearby">附近的设备：通过 Bluetooth 找朋友、被朋友找到</string>
+    <string name="main_perm_uwb">UWB：精准箭头</string>
+    <string name="main_perm_notifications">通知：显示你是否可被找到</string>
+
+    <string name="main_phone_summary">这台手机：%1$s</string>
+    <string name="main_cap_compass">指南针</string>
+
+    <string name="main_invite_reset">邀请已重置。旧的 二维码和链接都失效了。</string>
+    <string name="main_eyebrow_up_next">下一场</string>
+    <string name="main_eyebrow_up_next_countdown">下一场 · %1$s</string>
+    <string name="main_eyebrow_coming_up">你的小队 · 即将开始</string>
+    <string name="main_eyebrow_tonight">今晚的小队</string>
+    <string name="main_qr_hint_planned">每人扫一次就行。现在就开聊预热，演出当天开启找人功能。</string>
+    <string name="main_qr_hint_tonight">每人扫一次就行。之后整晚大家都能互相找到。</string>
+    <string name="main_scan_to_add_me">扫码加我</string>
+    <string name="main_scan_to_add_name">扫码加 %1$s</string>
+
+    <string name="main_wants_to_stay_friends">%1$s 想和你继续做朋友</string>
+    <string name="main_stay_friends_text">你们在 %1$s 认识。同意后，以后任何演出都能互相找到，不只是这场。只有 %2$s 会拿到你的信息，小队里其他人不会。</string>
+    <string name="main_friends_now">你和 %1$s 现在是好友了</string>
+    <string name="main_yes_stay_friends">好呀，做朋友</string>
+    <string name="main_not_now">以后再说</string>
+
+    <string name="main_battery_title">整晚保持可见</string>
+    <string name="main_battery_text">有些手机为了省电会关掉后台应用，你就会“消失”。在下一个页面找到 Moshpoint，设为“不优化”/“无限制”。</string>
+    <string name="main_open_settings">打开设置</string>
+
+    <plurals name="main_n_mates">
+        <item quantity="other">%d 个朋友</item>
+    </plurals>
+    <string name="main_beacon_colour_name">%1$s（%2$s）</string>
+
+    <string name="main_scan_prompt">扫朋友的 Moshpoint 二维码</string>
+    <string name="main_out_of_crew">%1$s 已离开小队。其他人都换用新密钥。</string>
+
+    <string name="main_follow_share_text">在 Moshpoint 上关注我们在 %1$s 的这一晚：实时看我们的照片，也知道我们平安。\n%2$s</string>
+    <string name="main_follow_share_title">让家人一起关注</string>
+    <string name="main_when_venue">%1$s · %2$s</string>
+
+    <string name="main_time_passed">这个时间已经过了。选一下演出开始的时间。</string>
+    <string name="main_added_up_next">%1$s 已加入“下一场”。快邀请朋友，开始预热！</string>
+
+    <string name="main_join_name">加入 %1$s？</string>
+    <string name="main_follow_name">关注 %1$s？</string>
+    <string name="main_bumped_text">碰到了！加入后今晚大家都能互相找到。</string>
+    <string name="main_join">加入</string>
+    <string name="main_no">不了</string>
+    <string name="main_clip_follow_text">你复制了一个关注链接。你能看到他们的照片和是否平安；他们也会知道你在关注。</string>
+    <string name="main_clip_join_text">你复制了一个 Moshpoint 邀请。加入后今晚大家都能互相找到。</string>
+
+    <string name="main_your_night">你的这一晚</string>
+    <string name="main_recap_text">%1$s\n\n结束这一晚会关闭小队（好友会保留）。照片和视频都留在你手机的“我的演出”里。</string>
+    <string name="main_night_ended">这一晚结束啦。照片和视频都在“我的演出”里。</string>
+    <string name="main_end_the_night">结束这一晚</string>
+    <string name="main_share_night_text">我用 Moshpoint 的这一晚：%1$s 🤘</string>
+    <string name="main_share_night_title">分享你的这一晚</string>
+    <string name="main_share">分享</string>
+
+    <string name="main_now_main_crew">%1$s 现在是你的主小队了。小队里的人都能互相找到。</string>
+    <string name="main_deleted_gig">已从这台手机删除 %1$s</string>
+    <string name="main_meetup_sent">集合点已发给小队</string>
+    <string name="main_moment_label">%1$s · %2$s</string>
+
+    <string name="main_share_app_text">装个 Moshpoint，看演出时就能互相找到：点一下朋友，箭头就指向他。\n\n%1$s</string>
+    <string name="main_share_app_title">分享 Moshpoint</string>
+    <string name="main_named_crew">%1$s的小队</string>
+    <string name="main_tonights_crew">今晚的小队</string>
+    <string name="main_me">我</string>
+    <string name="main_group_invite_text">今晚来 Moshpoint 加入我的小队“%1$s”！\n%2$s</string>
+    <string name="main_group_invite_title">发送小队邀请</string>
+</resources>

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Traditional Chinese, Taiwan (zh-TW): home screen. -->
+<resources>
+    <string name="home_go_live">上線</string>
+    <string name="home_live_ghost">上線中 · 幽靈</string>
+    <string name="home_live">上線中</string>
+
+    <string name="home_tile_not_sharing">還沒分享</string>
+    <string name="home_tile_phone_died">手機沒電了</string>
+    <string name="home_tile_live">上線中</string>
+    <string name="home_tile_with_battery">%1$s · %2$d%%</string>
+
+    <string name="home_ping_on_my_way">在路上了</string>
+    <string name="home_ping_where_are_you">你在哪？</string>
+    <string name="home_ping_stay_put">待在原地</string>
+    <string name="home_ping_meet_at_pin">集合點見</string>
+    <string name="home_ping_all_good">一切OK</string>
+    <string name="home_ping_sent">已傳送 ✓</string>
+    <string name="home_ping_heading_home">要回家了</string>
+    <string name="home_ping_need_help">需要幫忙</string>
+    <string name="home_heading_home_title">要回家了嗎？</string>
+    <string name="home_heading_home_text">到家後報個平安。如果沒報，小隊會收到通知和你最後的位置（就算手機沒電也一樣）。</string>
+    <plurals name="home_checkin_minutes">
+        <item quantity="other">%d分鐘</item>
+    </plurals>
+    <string name="home_just_tell_them">只跟他們說</string>
+    <string name="home_cancel">取消</string>
+    <string name="home_ping_line">%1$s%2$s</string>
+    <string name="home_ping_default">提醒了小隊</string>
+
+    <string name="home_bar_crew">小隊</string>
+    <string name="home_bar_map">地圖</string>
+    <string name="home_bar_add">新增</string>
+    <string name="home_bar_story">故事</string>
+    <string name="home_bar_me">我</string>
+
+    <string name="home_add_mates">加朋友</string>
+    <string name="home_add_mates_text">在演出現場：秀出小隊 QR 碼讓大家掃。就這樣，小隊裡所有人都能互相找到。</string>
+    <string name="home_show_crew_qr">顯示小隊 QR 碼</string>
+    <string name="home_start_crew_show_qr">開小隊 + 顯示 QR 碼</string>
+    <string name="home_scan_qr">掃 QR 碼</string>
+    <string name="home_paste_invite">貼上邀請</string>
+    <string name="home_bump_phones">兩支手機碰一下</string>
+    <string name="home_plan_gig">規劃一場演出（先找好，現在就揪）</string>
+    <string name="home_send_app_invite">傳送 App + 邀請（LINE、Messenger…）</string>
+    <string name="home_friends_every_gig">每場演出都在的好友</string>
+    <string name="home_my_friend_qr">我的好友 QR 碼</string>
+    <string name="home_enter_code">輸入代碼</string>
+
+    <string name="home_check_in_by">請在 %1$s 前報平安</string>
+    <string name="home_home_safe">我平安到家了</string>
+
+    <string name="home_chat">聊天</string>
+    <string name="home_chat_unread">聊天（%1$d）</string>
+    <string name="home_camera">相機</string>
+
+    <string name="home_message_crew">傳訊息給小隊</string>
+    <string name="home_message_crew_text">點一下就送出：小隊每個人都會收到，還附上你的位置。</string>
+
+    <string name="home_crew_qr_desc">小隊 QR 碼</string>
+    <string name="home_inline_qr_text">朋友用相機或 Moshpoint 掃一下就好。</string>
+    <string name="home_no_camera_send_invite">沒相機？傳邀請吧</string>
+
+    <plurals name="home_gig_photos">
+        <item quantity="other">%d 張相片</item>
+    </plurals>
+    <plurals name="home_gig_clips">
+        <item quantity="other">%d 段影片</item>
+    </plurals>
+    <string name="home_people_more">%1$s +%2$d</string>
+
+    <string name="home_crew_chat">小隊聊天</string>
+    <string name="home_pinned_plan">📌 %1$s</string>
+    <string name="home_chat_subtitle">訊息、計畫、信號彈</string>
+    <string name="home_unread_many">9+</string>
+    <plurals name="home_unread_new">
+        <item quantity="other">%d 則新訊息</item>
+    </plurals>
+
+    <string name="home_following_from_home">在家追蹤中</string>
+    <string name="home_upnext_invite">💬 聊天 · 揪朋友</string>
+    <plurals name="home_upnext_mates">
+        <item quantity="other">💬 聊天 · 已有 %d 個朋友加入</item>
+    </plurals>
+
+    <string name="home_start_gig_group">開一個演出小隊</string>
+    <string name="home_start_gig_group_text">取個名字（例如樂團名），再給朋友看 QR 碼。</string>
+    <string name="home_start">開始</string>
+    <string name="home_keep_friend">把 %1$s 加為好友（今晚過後也保留）</string>
+    <string name="home_set_photo">設定相片</string>
+    <string name="home_remove_photo">移除相片</string>
+    <string name="home_remove_name">移除 %1$s</string>
+    <string name="home_close">關閉</string>
+    <string name="home_remove_from_crew_title">要把 %1$s 移出小隊嗎？</string>
+    <string name="home_remove_friend_title">要移除 %1$s 嗎？</string>
+    <string name="home_remove_from_crew_text">小隊會換一把新金鑰，%1$s 拿不到，所以從現在起看不到任何人的位置、聊天和相片。其他人都還在。</string>
+    <string name="home_remove_friend_text">重新加入之前，你都找不到對方。</string>
+    <string name="home_remove">移除</string>
+    <string name="home_find">找</string>
+    <string name="home_add_with_code">用代碼新增</string>
+    <string name="home_their_name">對方的名字</string>
+    <string name="home_their_code">對方的代碼</string>
+    <string name="home_add_friend">加好友</string>
+    <string name="home_tonight_only">只限今晚</string>
+
+    <string name="home_hidden_hint">你對小隊隱藏中。想被找到時點「上線」。</string>
+    <string name="home_allow_permission">允許 Moshpoint 找朋友（%1$s）</string>
+    <string name="home_allow">允許</string>
+    <string name="home_one_thing_first">先搞定一件事</string>
+    <plurals name="home_one_thing_first_more">
+        <item quantity="other">先搞定一件事 · 還有 %d 件</item>
+    </plurals>
+    <string name="home_eyebrow_tonight">今晚</string>
+    <string name="home_eyebrow_following">追蹤中</string>
+    <string name="home_eyebrow_coming_up">即將開始</string>
+    <string name="home_find_mates_tonight">今晚找到你的朋友</string>
+    <string name="home_find_mates_text">揪他們、掃一下，搞定。剩下的交給 Moshpoint。</string>
+    <string name="home_invite_mates_tonight">揪朋友今晚一起</string>
+    <string name="home_scan_invite">掃描邀請</string>
+    <string name="home_your_crew">你的小隊</string>
+    <string name="home_invite">＋ 邀請</string>
+    <string name="home_family_can_follow">家人可以在家追蹤這一晚</string>
+    <string name="home_following_from_home_names">在家追蹤：%1$s</string>
+    <string name="home_share">分享 ›</string>
+    <string name="home_meet_up">★  集合點：%1$s</string>
+    <string name="home_map_link">地圖 ›</string>
+    <string name="home_asleep_text">演出當天前都在休眠：不用 Bluetooth、不用定位、不耗電。朋友現在就能加入，當天你會收到提醒。</string>
+    <string name="home_follower_text">你看得到每個人的位置，還有他們即時傳上來的相片。他們也知道你在追蹤。</string>
+    <string name="home_see_story">看故事</string>
+    <string name="home_crew_chat_unread">小隊聊天（%1$d 則新訊息）</string>
+    <string name="home_where_are_they">他們在哪？（地圖）</string>
+    <string name="home_see_them_once_starts">演出開始後就能在這裡看到他們。</string>
+    <string name="home_tap_mate_hint">點朋友開始找 · 長按看選項</string>
+    <string name="home_find_name">找 %1$s</string>
+    <string name="home_find_everyone">找所有人</string>
+    <string name="home_stop_following">停止追蹤</string>
+    <string name="home_cancel_crew">取消這個小隊</string>
+    <string name="home_end_night">結束這一晚</string>
+    <string name="home_up_next">下一場</string>
+    <string name="home_memories">回憶</string>
+    <plurals name="home_memories_count">
+        <item quantity="other">%d 張相片和影片，點開重溫 ›</item>
+    </plurals>
+    <string name="home_your_gigs">我的演出</string>
+    <string name="home_friends">好友</string>
+    <string name="home_friends_empty">每場演出都在的好友會顯示在這裡。點下方的「＋ 新增」。</string>
+</resources>
