@@ -47,7 +47,7 @@
     <string name="find_trend_hint_who">%1$s: %2$s</string>
     <string name="find_warmer_help">Geh ein paar Schritte in eine Richtung, dann in eine andere. Wärmer heißt, du kommst näher. Der Pfeil erscheint, sobald wir die Richtung kennen.</string>
     <string name="find_scan_covered_cd">%1$d Prozent des Kreises abgedeckt</string>
-    <string name="find_scan_percent">%1$d %%</string>
+    <string name="find_scan_percent">%1$d %%</string>
     <string name="find_scan_listening">horcht…</string>
     <plurals name="find_scan_heard">
         <item quantity="one">%d× gehört</item>
@@ -77,7 +77,7 @@
     <string name="find_map_style_dark">Dunkel</string>
     <string name="find_meet_label">Treffpunkt: %1$s</string>
     <string name="find_saving_area">Bereich wird gespeichert…</string>
-    <string name="find_saving_area_pct">Bereich wird gespeichert… %1$d %%</string>
+    <string name="find_saving_area_pct">Bereich wird gespeichert… %1$d %%</string>
     <string name="find_area_saved">Bereich gespeichert: die Karte funktioniert hier ohne Empfang</string>
     <string name="find_area_save_failed">Bereich konnte nicht gespeichert werden: %1$s</string>
     <string name="find_area_too_big">Zu groß: zoom auf die Location und versuch es nochmal</string>

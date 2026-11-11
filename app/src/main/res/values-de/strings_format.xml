@@ -16,17 +16,17 @@
     </plurals>
     <string name="time_live">live</string>
     <string name="status_battery_died">Akku hier leer · %1$s</string>
-    <string name="status_time_battery">%1$s · %2$d %%</string>
+    <string name="status_time_battery">%1$s · %2$d %%</string>
 
-    <string name="dist_m">%1$s m</string>
-    <string name="dist_km">%1$s km</string>
-    <string name="dist_ft">%1$s ft</string>
-    <string name="dist_mi">%1$s mi</string>
+    <string name="dist_m">%1$s m</string>
+    <string name="dist_km">%1$s km</string>
+    <string name="dist_ft">%1$s ft</string>
+    <string name="dist_mi">%1$s mi</string>
     <string name="unit_m">m</string>
     <string name="unit_km">km</string>
     <string name="unit_ft">ft</string>
     <string name="unit_mi">mi</string>
-    <string name="dist_number_unit">%1$s %2$s</string>
+    <string name="dist_number_unit">%1$s %2$s</string>
 
     <string name="countdown_tonight">heute Abend</string>
     <string name="countdown_tomorrow">morgen</string>

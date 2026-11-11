@@ -318,11 +318,16 @@ fun FriendsScreen(
         item {
             Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                 Row(Modifier.weight(1f), verticalAlignment = Alignment.Bottom) {
-                    Text("mosh", style = Mosh.Title.copy(fontSize = 28.sp))
-                    Text(
-                        "point",
-                        style = Mosh.Title.copy(fontSize = 28.sp, color = Mosh.Pink, shadow = androidx.compose.ui.graphics.Shadow(Mosh.Pink.copy(alpha = 0.8f), blurRadius = 28f)),
-                    )
+                    // The wordmark reads "moshpoint" in every language, right-to-left ones too.
+                    androidx.compose.runtime.CompositionLocalProvider(androidx.compose.ui.platform.LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Ltr) {
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            Text("mosh", style = Mosh.Title.copy(fontSize = 28.sp))
+                            Text(
+                                "point",
+                                style = Mosh.Title.copy(fontSize = 28.sp, color = Mosh.Pink, shadow = androidx.compose.ui.graphics.Shadow(Mosh.Pink.copy(alpha = 0.8f), blurRadius = 28f)),
+                            )
+                        }
+                    }
                 }
                 if (!following) LivePill(visible, ghost) { onVisible(!visible) }
             }

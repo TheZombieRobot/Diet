@@ -201,7 +201,9 @@ private fun PlanCard(plan: CrewChat.Plan?, meetUp: String?, readOnly: Boolean, o
         Text(stringResource(R.string.crew_plan_eyebrow), style = Mosh.Eyebrow.copy(color = Mosh.Lime))
         Text(
             plan?.text ?: if (readOnly) stringResource(R.string.crew_plan_none) else stringResource(R.string.crew_plan_prompt),
-            style = if (plan != null) Mosh.Label.copy(fontSize = 17.sp) else Mosh.Body.copy(fontSize = 14.sp),
+            // Typed by a mate: laid out in its own writing direction (English in an Arabic UI and vice versa).
+            style = (if (plan != null) Mosh.Label.copy(fontSize = 17.sp) else Mosh.Body.copy(fontSize = 14.sp))
+                .copy(textDirection = androidx.compose.ui.text.style.TextDirection.Content),
             modifier = Modifier.padding(top = 2.dp),
         )
         if (plan != null) Text(stringResource(R.string.crew_plan_by, plan.from), style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint))
@@ -276,7 +278,8 @@ private fun ChatLine(
             )
             Text(
                 if (l.kind == GigGroup.Ping.CHAT) l.text else quickLine(l),
-                style = Mosh.Body.copy(color = if (l.mine) Color(0xFF0B1200) else Mosh.Text),
+                // A message reads in its own direction, whatever language the app is in.
+                style = Mosh.Body.copy(color = if (l.mine) Color(0xFF0B1200) else Mosh.Text, textDirection = androidx.compose.ui.text.style.TextDirection.Content),
                 modifier = Modifier.widthIn(max = 260.dp)
                     .background(if (l.mine) Mosh.Lime.copy(alpha = if (l.state == CrewChat.SENT) 1f else 0.55f) else Mosh.Surface, RoundedCornerShape(18.dp))
                     .border(1.dp, if (l.mine) Color.Transparent else ring.copy(alpha = 0.35f), RoundedCornerShape(18.dp))

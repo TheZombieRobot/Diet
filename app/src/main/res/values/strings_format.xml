@@ -21,17 +21,17 @@
     <string name="status_time_battery">%1$s · %2$d%%</string>
 
     <!-- Distances. %1$s is the number, already formatted for the language. -->
-    <string name="dist_m">%1$s m</string>
-    <string name="dist_km">%1$s km</string>
-    <string name="dist_ft">%1$s ft</string>
-    <string name="dist_mi">%1$s mi</string>
+    <string name="dist_m">%1$s m</string>
+    <string name="dist_km">%1$s km</string>
+    <string name="dist_ft">%1$s ft</string>
+    <string name="dist_mi">%1$s mi</string>
     <!-- Unit abbreviations on their own (the finder shows the number big and the unit small) -->
     <string name="unit_m">m</string>
     <string name="unit_km">km</string>
     <string name="unit_ft">ft</string>
     <string name="unit_mi">mi</string>
     <!-- %1$s = number, %2$s = unit ("4.5 m"). Reorder if your language puts the unit first. -->
-    <string name="dist_number_unit">%1$s %2$s</string>
+    <string name="dist_number_unit">%1$s %2$s</string>
 
     <!-- Countdowns to a gig -->
     <string name="countdown_tonight">tonight</string>

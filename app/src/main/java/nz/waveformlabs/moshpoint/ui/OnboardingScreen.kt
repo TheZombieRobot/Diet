@@ -85,9 +85,12 @@ fun OnboardingScreen(
         GlowBackground(colours = listOf(Mosh.Violet, glowColour, Mosh.Pink))
         Column(Modifier.fillMaxSize().padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 28.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Row(verticalAlignment = Alignment.Bottom) {
-                    Text("mosh", style = Mosh.Title.copy(fontSize = 22.sp))
-                    Text("point", style = Mosh.Title.copy(fontSize = 22.sp, color = Mosh.Pink))
+                // The wordmark reads "moshpoint" in every language, right-to-left ones too.
+                androidx.compose.runtime.CompositionLocalProvider(androidx.compose.ui.platform.LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Ltr) {
+                    Row(verticalAlignment = Alignment.Bottom) {
+                        Text("mosh", style = Mosh.Title.copy(fontSize = 22.sp))
+                        Text("point", style = Mosh.Title.copy(fontSize = 22.sp, color = Mosh.Pink))
+                    }
                 }
                 Spacer(Modifier.weight(1f))
                 if (step < 2) TextButton(onClick = { step = 2 }) { Text(stringResource(R.string.setup_onb_skip), style = Mosh.Body.copy(color = Mosh.TextFaint)) }
