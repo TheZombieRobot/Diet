@@ -60,7 +60,7 @@ object CrewRekey {
             .put("payload", b64(RekeyPolicy.payloadOld(fresh.key, removedName, twin = true)))
             .put("payload2", b64(RekeyPolicy.payload(fresh.key, listOfNotNull(removedPub), removedName)))
             .put("to", JSONArray(recipients.map { b64(it) })).put("since", System.currentTimeMillis()).put("sent", 0L)
-            .put("signer", GigArchive.idFor(g))
+            .put("signer", GigArchive.idFor(g)).put("now", b64(fresh.key))
         rememberGrace(app, g, fresh, known.keys - setOfNotNull(removedTag) - me)
         migrate(app, g, fresh, removedPub)
         addPending(app, pending)
@@ -106,6 +106,26 @@ object CrewRekey {
     private fun addPending(c: Context, o: JSONObject) {
         val arr = pending(c).put(o)
         prefs(c).edit().putString("pending", arr.toString()).apply()
+        noteUnsent(arr)
+    }
+
+    /** Crews (by their new key) that we moved while we had no signal, so nobody else has the key yet. Compose state. */
+    private val unsent = androidx.compose.runtime.mutableStateOf<Set<String>>(emptySet())
+    private var unsentLoaded = false
+
+    private fun noteUnsent(arr: JSONArray) {
+        unsentLoaded = true
+        unsent.value = (0 until arr.length()).mapNotNull { arr.optJSONObject(it) }
+            .filter { it.optLong("sent") == 0L }.mapNotNull { o -> o.optString("now").takeIf { it.isNotEmpty() } }.toSet()
+    }
+
+    /**
+     * Did this phone move [g] to its new key and not manage to send that key to anyone yet?
+     * Until it does, nobody can read what we send there. Read while drawing the chat.
+     */
+    fun awaitingSignal(c: Context, g: GigGroup): Boolean {
+        if (!unsentLoaded) noteUnsent(pending(c.applicationContext))
+        return unsent.value.isNotEmpty() && b64(g.key) in unsent.value
     }
 
     /** From each chat check: send (or re-send) any new keys still within their few days. */
@@ -144,6 +164,7 @@ object CrewRekey {
             }
         }
         prefs(app).edit().putString("pending", keep.toString()).apply()
+        noteUnsent(keep)
     }
 
     // ---- Receiving ----

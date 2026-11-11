@@ -374,7 +374,9 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
      */
     fun chatHint(c: Context, g: GigGroup): String? {
         val main = isMain(g)
-        if (main && paused.value) return Txt.s(R.string.offline_hint_paused)
+        // On hold for a new key: we heard the old one was retired, or we moved the crew
+        // ourselves with no signal and nobody else has the new key yet.
+        if ((main && paused.value) || CrewRekey.awaitingSignal(c, g)) return Txt.s(R.string.offline_hint_paused)
         // Reading the Compose state here redraws the chat when the network comes or goes.
         val noNetwork = !NetState.online.value || RelayClient.offline
         if (!noNetwork) return null
