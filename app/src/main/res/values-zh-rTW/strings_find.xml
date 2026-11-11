@@ -2,7 +2,7 @@
 <!-- Traditional Chinese, Taiwan (zh-TW): finder, map, story, moments, camera. -->
 <resources>
     <string name="find_back_friends">‹  好友</string>
-    <string name="find_look_for_flashing">找找正在閃螢幕的 %1$s！</string>
+    <string name="find_look_for_flashing">找找閃著%1$s的螢幕！</string>
     <string name="find_list_and">"、"</string>
     <string name="find_eyebrow_scanning">正在掃描</string>
     <string name="find_eyebrow_finding">正在尋找</string>

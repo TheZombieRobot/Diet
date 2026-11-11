@@ -23,7 +23,7 @@
     <plurals name="home_checkin_minutes">
         <item quantity="other">%d分鐘</item>
     </plurals>
-    <string name="home_just_tell_them">只跟他們說</string>
+    <string name="home_just_tell_them">直接跟他們說</string>
     <string name="home_cancel">取消</string>
     <string name="home_ping_line">%1$s%2$s</string>
     <string name="home_ping_default">提醒了小隊</string>

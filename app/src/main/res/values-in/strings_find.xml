@@ -90,7 +90,7 @@
     <string name="find_place_crew_meetup">titik kumpul geng</string>
     <string name="find_place_only_you">cuma kamu yang lihat</string>
     <string name="find_walk">Jalan</string>
-    <string name="find_ride">Ojol</string>
+    <string name="find_ride">Pesan taksi</string>
     <string name="find_not_sharing">Belum berbagi</string>
     <string name="find_find">Cari</string>
     <string name="find_ask">Minta</string>
@@ -108,7 +108,7 @@
     <string name="find_bubble_together">bareng · %1$s</string>
 
     <string name="find_you">Kamu</string>
-    <string name="find_story_title">Ceritanya</string>
+    <string name="find_story_title">Cerita</string>
     <string name="find_photo_from">Foto dari %1$s</string>
     <string name="find_story_empty_title">Belum ada apa-apa</string>
     <plurals name="find_story_count">
@@ -133,7 +133,7 @@
     <string name="find_live_tag">LIVE</string>
     <string name="find_camera">Kamera</string>
 
-    <string name="find_the_story_eyebrow">CERITANYA</string>
+    <string name="find_the_story_eyebrow">CERITA</string>
     <string name="find_see_it_all">Lihat semua ›</string>
     <string name="find_your_moment">Momenmu</string>
     <string name="find_distance_away">%1$s lagi</string>
@@ -159,7 +159,7 @@
     <string name="find_clip_shared">Video dibagikan ke gengmu</string>
     <string name="find_send_failed">Gagal mengirim. Cek internetmu lalu coba lagi.</string>
     <string name="find_join_crew_first">Bikin atau gabung geng dulu: momen dikirim ke gengmu</string>
-    <string name="find_needs_camera">Moshpoint butuh kamera untuk mengambil momen</string>
+    <string name="find_needs_camera">Moshpoint perlu kamera untuk mengambil momen</string>
     <string name="find_shared_with_crew">Dibagikan ke gengmu</string>
     <string name="find_share_a_moment">Bagikan momen</string>
     <string name="find_share_moment_help">Foto tempatmu sekarang (panggung, bar, teman-temanmu). Hasilnya masuk ke cerita sebagai Polaroid.</string>

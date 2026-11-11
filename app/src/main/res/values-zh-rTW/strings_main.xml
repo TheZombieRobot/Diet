@@ -48,7 +48,7 @@
     <string name="main_perm_location">定位：GPS 箭頭和 Bluetooth/Wi-Fi 測距</string>
     <string name="main_perm_nearby">鄰近裝置：透過 Bluetooth 找朋友、被朋友找到</string>
     <string name="main_perm_uwb">UWB：精準箭頭</string>
-    <string name="main_perm_notifications">通知：顯示你是否找得到</string>
+    <string name="main_perm_notifications">通知：顯示你目前能不能被找到</string>
 
     <string name="main_phone_summary">這支手機：%1$s</string>
     <string name="main_cap_compass">指南針</string>

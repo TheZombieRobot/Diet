@@ -200,7 +200,7 @@
     <string name="crew_moving_text_away">離開原本的位置 %1$s，現在離你 %2$s。點一下查看。</string>
     <string name="crew_at_venue">在場地</string>
     <string name="crew_from_venue">離場地 %1$s</string>
-    <string name="crew_status_phone_died">%1$s 手機沒電了</string>
+    <string name="crew_status_phone_died">%1$s的手機沒電了</string>
     <string name="crew_status_distance">%1$s %2$s</string>
     <plurals name="crew_status_min_ago">
         <item quantity="other">%1$s %2$d分鐘前</item>

@@ -23,7 +23,7 @@
     <plurals name="home_checkin_minutes">
         <item quantity="other">%d分钟</item>
     </plurals>
-    <string name="home_just_tell_them">只告诉他们</string>
+    <string name="home_just_tell_them">直接告诉他们</string>
     <string name="home_cancel">取消</string>
     <string name="home_ping_line">%1$s%2$s</string>
     <string name="home_ping_default">提醒了小队</string>
@@ -35,16 +35,16 @@
     <string name="home_bar_me">我</string>
 
     <string name="home_add_mates">添加朋友</string>
-    <string name="home_add_mates_text">在演出现场：亮出小队 二维码让大家扫。就这样，小队里所有人都能互相找到。</string>
-    <string name="home_show_crew_qr">显示小队 二维码</string>
-    <string name="home_start_crew_show_qr">建小队 + 显示 二维码</string>
-    <string name="home_scan_qr">扫 二维码</string>
+    <string name="home_add_mates_text">在演出现场：亮出小队二维码让大家扫。就这样，小队里所有人都能互相找到。</string>
+    <string name="home_show_crew_qr">显示小队二维码</string>
+    <string name="home_start_crew_show_qr">建小队 + 显示二维码</string>
+    <string name="home_scan_qr">扫二维码</string>
     <string name="home_paste_invite">粘贴邀请</string>
     <string name="home_bump_phones">两部手机碰一碰</string>
     <string name="home_plan_gig">计划一场演出（先找好，现在就邀请）</string>
     <string name="home_send_app_invite">发送应用 + 邀请（微信、WhatsApp…）</string>
     <string name="home_friends_every_gig">每场演出都在的好友</string>
-    <string name="home_my_friend_qr">我的好友 二维码</string>
+    <string name="home_my_friend_qr">我的好友二维码</string>
     <string name="home_enter_code">输入代码</string>
 
     <string name="home_check_in_by">请在 %1$s 前报平安</string>
@@ -57,7 +57,7 @@
     <string name="home_message_crew">给小队发消息</string>
     <string name="home_message_crew_text">一点就发：小队每个人都能收到，还带上你的位置。</string>
 
-    <string name="home_crew_qr_desc">小队 二维码</string>
+    <string name="home_crew_qr_desc">小队二维码</string>
     <string name="home_inline_qr_text">朋友用相机或 Moshpoint 扫一下就行。</string>
     <string name="home_no_camera_send_invite">没相机？发邀请吧</string>
 
@@ -84,7 +84,7 @@
     </plurals>
 
     <string name="home_start_gig_group">建一个演出小队</string>
-    <string name="home_start_gig_group_text">起个名字（比如乐队名），然后给朋友们看 二维码。</string>
+    <string name="home_start_gig_group_text">起个名字（比如乐队名），然后给朋友们看二维码。</string>
     <string name="home_start">开始</string>
     <string name="home_keep_friend">把 %1$s 加为好友（今晚之后也保留）</string>
     <string name="home_set_photo">设置照片</string>

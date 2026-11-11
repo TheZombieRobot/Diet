@@ -3,7 +3,7 @@
 <resources>
     <string name="crew_you">Kamu</string>
     <string name="crew_default_name">Teman</string>
-    <string name="crew_default_group_name">Grup konser</string>
+    <string name="crew_default_group_name">Geng konser</string>
     <string name="crew_default_gig_name">Konser</string>
     <string name="crew_someone">Seseorang</string>
     <string name="crew_name_numbered">%1$s (%2$d)</string>
@@ -40,7 +40,7 @@
     <string name="crew_quick_meet_pin">Ketemu di pin 📍</string>
     <string name="crew_quick_all_good">Aman 👍</string>
     <string name="crew_quick_going_home">Pulang dulu 🏠</string>
-    <string name="crew_quick_need_help">🚨 Aku butuh bantuan</string>
+    <string name="crew_quick_need_help">🚨 Aku perlu bantuan</string>
     <plurals name="crew_quick_check_in">
         <item quantity="other">Pulang dulu 🏠 Kukabari dalam %d mnt</item>
     </plurals>
@@ -64,7 +64,7 @@
     <string name="crew_plan_unpin">Lepas sematan</string>
 
     <string name="crew_vibe_lost">Nyasar 😅</string>
-    <string name="crew_vibe_bar">Ngebir dulu 🍺</string>
+    <string name="crew_vibe_bar">Ke bar dulu 🍺</string>
     <string name="crew_vibe_rail">Di barisan depan 🎶</string>
     <string name="crew_vibe_food">Cari makan 🍔</string>
     <string name="crew_vibe_toilets">Ke toilet 🚻</string>
@@ -103,8 +103,8 @@
     <string name="crew_help_call_police">Polisi</string>
     <string name="crew_help_call_ambulance">Ambulans dan pemadam kebakaran</string>
     <string name="crew_help_no_signal">Sama sekali nggak ada sinyal? Banyak HP baru bisa menghubungi layanan darurat lewat satelit: telepon %1$s dan ikuti petunjuknya. Di festival, petugas keamanan dan tenda P3K bisa bantu dengan cepat.</string>
-    <string name="crew_help_sms">Aku butuh bantuan. (dikirim dari Moshpoint)</string>
-    <string name="crew_help_sms_where">Aku butuh bantuan. Aku di sini: %1$s (dikirim dari Moshpoint)</string>
+    <string name="crew_help_sms">Aku perlu bantuan. (dikirim dari Moshpoint)</string>
+    <string name="crew_help_sms_where">Aku perlu bantuan. Aku di sini: %1$s (dikirim dari Moshpoint)</string>
 
     <string name="crew_channel_messages">Pesan geng</string>
     <string name="crew_channel_help">Permintaan bantuan geng</string>
@@ -123,8 +123,8 @@
     <string name="crew_notif_done_text">Semoga seru ya. Bikin geng baru kapan aja.</string>
     <string name="crew_notif_overdue_title">%1$s belum ngabarin</string>
     <string name="crew_notif_overdue_text">Dia lagi pulang dan harusnya sudah sampai. Coba telepon dia. Ketuk untuk lihat lokasi terakhirnya.</string>
-    <string name="crew_notif_help_where">Dia menekan Butuh bantuan. Ketuk untuk lihat lokasinya. Cek keadaannya.</string>
-    <string name="crew_notif_help">Dia menekan Butuh bantuan. Cek keadaannya.</string>
+    <string name="crew_notif_help_where">Dia menekan Perlu bantuan. Ketuk untuk lihat lokasinya. Cek keadaannya.</string>
+    <string name="crew_notif_help">Dia menekan Perlu bantuan. Cek keadaannya.</string>
     <string name="crew_notif_tap_where">Ketuk untuk lihat lokasinya.</string>
     <string name="crew_notif_from_crew">Dari gengmu</string>
 
@@ -134,7 +134,7 @@
     <string name="crew_ping_meet_pin">bilang ketemu di pin</string>
     <string name="crew_ping_all_good">aman</string>
     <string name="crew_ping_going_home">lagi pulang</string>
-    <string name="crew_ping_need_help">BUTUH BANTUAN</string>
+    <string name="crew_ping_need_help">PERLU BANTUAN</string>
     <string name="crew_ping_check_in">lagi pulang dan bakal ngabarin</string>
     <string name="crew_ping_home_safe">sudah sampai rumah</string>
     <string name="crew_ping_chat">mengirim pesan</string>
@@ -148,7 +148,7 @@
     <string name="crew_ping_title_meet_pin">%1$s bilang ketemu di pin</string>
     <string name="crew_ping_title_all_good">%1$s aman</string>
     <string name="crew_ping_title_going_home">%1$s lagi pulang</string>
-    <string name="crew_ping_title_need_help">%1$s BUTUH BANTUAN</string>
+    <string name="crew_ping_title_need_help">%1$s PERLU BANTUAN</string>
     <string name="crew_ping_title_check_in">%1$s lagi pulang dan bakal ngabarin</string>
     <string name="crew_ping_title_home_safe">%1$s sudah sampai rumah</string>
     <string name="crew_ping_title_chat">%1$s mengirim pesan</string>

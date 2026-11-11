@@ -53,7 +53,7 @@
     <string name="main_phone_summary">这台手机：%1$s</string>
     <string name="main_cap_compass">指南针</string>
 
-    <string name="main_invite_reset">邀请已重置。旧的 二维码和链接都失效了。</string>
+    <string name="main_invite_reset">邀请已重置。旧的二维码和链接都失效了。</string>
     <string name="main_eyebrow_up_next">下一场</string>
     <string name="main_eyebrow_up_next_countdown">下一场 · %1$s</string>
     <string name="main_eyebrow_coming_up">你的小队 · 即将开始</string>

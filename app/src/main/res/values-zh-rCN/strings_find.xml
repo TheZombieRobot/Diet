@@ -2,7 +2,7 @@
 <!-- Simplified Chinese (zh-CN): finder, map, story, moments, camera. -->
 <resources>
     <string name="find_back_friends">‹  好友</string>
-    <string name="find_look_for_flashing">找找正在闪屏的 %1$s！</string>
+    <string name="find_look_for_flashing">找找闪着%1$s的屏幕！</string>
     <string name="find_list_and">"、"</string>
     <string name="find_eyebrow_scanning">正在扫描</string>
     <string name="find_eyebrow_finding">正在寻找</string>

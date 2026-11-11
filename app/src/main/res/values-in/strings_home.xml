@@ -17,7 +17,7 @@
     <string name="home_ping_all_good">Aman</string>
     <string name="home_ping_sent">Terkirim ✓</string>
     <string name="home_ping_heading_home">Pulang dulu</string>
-    <string name="home_ping_need_help">Butuh bantuan</string>
+    <string name="home_ping_need_help">Perlu bantuan</string>
     <string name="home_heading_home_title">Mau pulang?</string>
     <string name="home_heading_home_text">Kabari kalau sudah sampai. Kalau nggak, gengmu dapat peringatan dengan lokasi terakhirmu (meski HP-mu mati).</string>
     <plurals name="home_checkin_minutes">
@@ -83,7 +83,7 @@
         <item quantity="other">💬 Chat · %d teman sudah masuk</item>
     </plurals>
 
-    <string name="home_start_gig_group">Bikin grup konser</string>
+    <string name="home_start_gig_group">Bikin geng konser</string>
     <string name="home_start_gig_group_text">Kasih nama (misalnya nama band). Lalu tunjukkan QR ke teman-temanmu.</string>
     <string name="home_start">Mulai</string>
     <string name="home_keep_friend">Tambahkan %1$s sebagai teman (tetap setelah malam ini)</string>

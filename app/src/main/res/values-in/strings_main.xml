@@ -7,7 +7,7 @@
     <string name="main_nudge_title">Minta mereka live</string>
 
     <string name="main_setup_bluetooth_off">Bluetooth mati. Tanpa itu, nggak ada yang bisa menemukanmu, dan kamu juga nggak bisa menemukan mereka.</string>
-    <string name="main_setup_location_off">Lokasi mati. Pencarian GPS butuh ini, dan banyak HP juga butuh ini untuk pencarian Bluetooth.</string>
+    <string name="main_setup_location_off">Lokasi mati. Pencarian GPS perlu ini, dan banyak HP juga perlu ini untuk pencarian Bluetooth.</string>
     <string name="main_setup_wifi_off">Wi-Fi mati. Nyalakan supaya jaraknya lebih akurat (nggak perlu tersambung ke jaringan).</string>
     <string name="main_setup_battery">Penghemat baterai bisa menghentikan Moshpoint saat ditutup, jadi teman nggak bisa menemukanmu.</string>
     <string name="main_setup_turn_on">Nyalakan</string>
@@ -19,7 +19,7 @@
 
     <string name="main_my_spot">Tempatku</string>
 
-    <string name="main_photos_permission_needed">Moshpoint butuh akses ke fotomu untuk menemukan foto-foto dari malam itu</string>
+    <string name="main_photos_permission_needed">Moshpoint perlu akses ke fotomu untuk menemukan foto-foto dari malam itu</string>
     <string name="main_you">Kamu</string>
     <plurals name="main_added_to_gig">
         <item quantity="other">%d ditambahkan ke konser</item>
@@ -35,7 +35,7 @@
     </plurals>
     <string name="main_gig_fallback">Konser</string>
 
-    <string name="main_invite_expired">Undangan grup itu sudah kedaluwarsa. Minta yang baru, ya.</string>
+    <string name="main_invite_expired">Undangan geng itu sudah kedaluwarsa. Minta yang baru, ya.</string>
     <string name="main_joined_up_next">Kamu masuk %1$s! Ada di Berikutnya: ngobrol aja dulu, nanti aktif di hari konser.</string>
     <string name="main_joined_following">Kamu mengikuti %1$s. Kamu bisa lihat foto dan lokasi mereka; mereka juga tahu kamu mengikuti.</string>
     <string name="main_joined_sleeping">Kamu masuk %1$s! Geng aktif di hari konser (%2$s).</string>
@@ -115,5 +115,5 @@
     <string name="main_tonights_crew">Geng malam ini</string>
     <string name="main_me">Aku</string>
     <string name="main_group_invite_text">Gabung ke gengku \"%1$s\" di Moshpoint malam ini!\n%2$s</string>
-    <string name="main_group_invite_title">Kirim undangan grup</string>
+    <string name="main_group_invite_title">Kirim undangan geng</string>
 </resources>

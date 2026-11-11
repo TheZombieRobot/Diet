@@ -74,7 +74,7 @@
     <string name="setup_qr_send_invite">扫不了？改发邀请</string>
     <string name="setup_qr_reset_invite">重置邀请</string>
     <string name="setup_qr_reset_title">重置邀请？</string>
-    <string name="setup_qr_reset_text">如果这个 二维码或它的截图流出去了，重置就能让它失效。已经在小队里的人不受影响；新加入的人需要用新的 二维码。</string>
+    <string name="setup_qr_reset_text">如果这个二维码或它的截图流出去了，重置就能让它失效。已经在小队里的人不受影响；新加入的人需要用新的二维码。</string>
     <string name="setup_qr_reset">重置</string>
     <string name="setup_cancel">取消</string>
     <string name="setup_qr_end_night">结束这一晚</string>

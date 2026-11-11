@@ -16,7 +16,7 @@
     <string name="setup_data_saver">Hemat data</string>
     <string name="setup_data_saver_desc">Bagikan foto dan video yang lebih ringan (lebih cepat saat sinyal lemah). Mati: kualitas tinggi, jadi salinan yang disimpan semua orang tetap tajam. Foto aslimu selalu disimpan dalam kualitas penuh.</string>
     <string name="setup_emergency_contact">Kontak darurat</string>
-    <string name="setup_emergency_contact_desc">\"Butuh bantuan\" bisa mengirim lokasimu lewat SMS biasa (tanpa data). Hanya tersimpan di HP ini.</string>
+    <string name="setup_emergency_contact_desc">\"Perlu bantuan\" bisa mengirim lokasimu lewat SMS biasa (tanpa data). Hanya tersimpan di HP ini.</string>
     <string name="setup_contact_name">Nama</string>
     <string name="setup_contact_mobile">Nomor HP</string>
     <string name="setup_contact_saved">Tersimpan</string>
@@ -35,7 +35,7 @@
     <string name="setup_onb_title_find">Temukan temanmu\ndi keramaian mana pun</string>
     <string name="setup_onb_body_find">Ketuk teman dan panah langsung menunjuk ke dia. Panahnya menyala dengan warna dia saat kamu makin dekat.</string>
     <string name="setup_onb_title_live">Mulai live\nbegitu masuk</string>
-    <string name="setup_onb_body_live">Teman cuma bisa menemukanmu saat kamu live, dan cuma kamu yang bisa menyalakannya. Moshpoint butuh:</string>
+    <string name="setup_onb_body_live">Teman cuma bisa menemukanmu saat kamu live, dan cuma kamu yang bisa menyalakannya. Moshpoint perlu:</string>
     <string name="setup_onb_need_nearby">Perangkat di sekitar</string>
     <string name="setup_onb_need_nearby_why">untuk mencari teman lewat Bluetooth, Wi-Fi, dan UWB</string>
     <string name="setup_onb_need_location">Lokasi</string>

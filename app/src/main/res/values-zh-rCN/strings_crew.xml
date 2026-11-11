@@ -173,9 +173,9 @@
     <string name="crew_add_own_code">这是你自己的代码</string>
 
     <string name="crew_note_you_removed">你移除了 %1$s。小队换了新密钥：对方从现在起什么都看不到了。</string>
-    <string name="crew_note_you_reset">你重置了邀请。旧的 二维码和链接都失效了。</string>
+    <string name="crew_note_you_reset">你重置了邀请。旧的二维码和链接都失效了。</string>
     <string name="crew_note_removed">%1$s 把 %2$s 移出了小队。</string>
-    <string name="crew_note_reset">%1$s 重置了邀请：旧的 二维码失效了。</string>
+    <string name="crew_note_reset">%1$s 重置了邀请：旧的二维码失效了。</string>
 
     <string name="crew_wake_title">今晚就是 %1$s！</string>
     <string name="crew_wake_text">%1$s 开始。点一下上线，让小队找到你。</string>
@@ -200,7 +200,7 @@
     <string name="crew_moving_text_away">离开原来的位置 %1$s，现在离你 %2$s。点击查看。</string>
     <string name="crew_at_venue">在场馆</string>
     <string name="crew_from_venue">离场馆 %1$s</string>
-    <string name="crew_status_phone_died">%1$s 手机没电了</string>
+    <string name="crew_status_phone_died">%1$s的手机没电了</string>
     <string name="crew_status_distance">%1$s %2$s</string>
     <plurals name="crew_status_min_ago">
         <item quantity="other">%1$s %2$d分钟前</item>
