@@ -59,33 +59,58 @@ class GigGroup(
     fun rosterIdForEpoch(epoch: Long): ByteArray =
         hmac(key, "moshpoint-group-roster".toByteArray() + ByteBuffer.allocate(8).putLong(epoch).array()).copyOf(16)
 
-    /** What a member broadcasts: `[tag:8][time:4][AES-GCM(secret:32, colourHint:1, name)+tag:12]`. */
-    fun sealIntro(intro: Intro, nowMs: Long): ByteArray {
+    /**
+     * What a member broadcasts. Two forms:
+     *  - the first, `[tag:8][time:4][secret prefix:4][AES-GCM(secret:32, nameLen:1, name, pub, sig)+tag:12]`,
+     *    which every build reads. Its weakness: the 4-byte prefix of the member's crew pass is in
+     *    the clear and never changes, so anyone listening can follow one person all night.
+     *  - [form2], `[tag:8][time:4][salt:8][AES-GCM(...)]`: 8 random bytes instead. Older builds
+     *    can't open it and drop it. Sent alongside the first form until the whole crew reads it.
+     */
+    fun sealIntro(intro: Intro, nowMs: Long, form2: Boolean = false, random: java.security.SecureRandom = java.security.SecureRandom()): ByteArray {
         val nameBytes = intro.name.toByteArray(Charsets.UTF_8).let { trimUtf8(it, MAX_NAME_BYTES) }
         val plain = intro.secret + byteArrayOf(nameBytes.size.toByte()) + nameBytes + (intro.pub ?: ByteArray(0)) +
             (if (intro.pub != null) intro.sig ?: ByteArray(0) else ByteArray(0))
         val time = ByteBuffer.allocate(4).putInt((nowMs / 1000).toInt()).array()
         val tag = tagAt(nowMs)
+        if (form2) {
+            val salt = ByteArray(8).also { random.nextBytes(it) }
+            val c2 = Cipher.getInstance("AES/GCM/NoPadding")
+            c2.init(Cipher.ENCRYPT_MODE, aesKey(), GCMParameterSpec(96, salt + time))
+            c2.updateAAD(tag + time + INTRO_FORM2)
+            return tag + time + salt + c2.doFinal(plain)
+        }
         val c = Cipher.getInstance("AES/GCM/NoPadding")
         c.init(Cipher.ENCRYPT_MODE, aesKey(), GCMParameterSpec(96, nonce(tag, time, intro.secret)))
         c.updateAAD(tag + time)
         return tag + time + intro.secret.copyOf(4) + c.doFinal(plain)
     }
 
-    /** Returns the intro if this blob is for our group and intact. */
+    /** Returns the intro if this blob is for our group and intact (either form, see [sealIntro]). */
     fun openIntro(blob: ByteArray, nowMs: Long): Intro? {
         if (blob.size < TAG_BYTES + 4 + 4 + 33 + 12) return null
         val tag = blob.copyOfRange(0, TAG_BYTES)
         if (!matchesTag(tag, nowMs)) return null
         val time = blob.copyOfRange(TAG_BYTES, TAG_BYTES + 4)
         val hint = blob.copyOfRange(TAG_BYTES + 4, TAG_BYTES + 8)
-        return runCatching {
+        return openIntroPlain(false) {
             val c = Cipher.getInstance("AES/GCM/NoPadding")
             c.init(Cipher.DECRYPT_MODE, aesKey(), GCMParameterSpec(96, nonceFromHint(tag, time, hint)))
             c.updateAAD(tag + time)
-            val plain = c.doFinal(blob, TAG_BYTES + 8, blob.size - TAG_BYTES - 8)
+            c.doFinal(blob, TAG_BYTES + 8, blob.size - TAG_BYTES - 8).also { require(it.copyOf(4).contentEquals(hint)) }
+        } ?: openIntroPlain(true) {
+            require(blob.size >= TAG_BYTES + 4 + 8 + 33 + 12)
+            val c = Cipher.getInstance("AES/GCM/NoPadding")
+            c.init(Cipher.DECRYPT_MODE, aesKey(), GCMParameterSpec(96, blob.copyOfRange(TAG_BYTES + 4, TAG_BYTES + 12) + time))
+            c.updateAAD(tag + time + INTRO_FORM2)
+            c.doFinal(blob, TAG_BYTES + 12, blob.size - TAG_BYTES - 12)
+        }
+    }
+
+    private fun openIntroPlain(form2: Boolean, decrypt: () -> ByteArray): Intro? {
+        return runCatching {
+            val plain = decrypt()
             val secret = plain.copyOfRange(0, 32)
-            require(secret.copyOf(4).contentEquals(hint))
             val n = plain[32].toInt() and 0xFF
             val pub = if (plain.size >= 33 + n + CrewKeys.PUB_BYTES) plain.copyOfRange(33 + n, 33 + n + CrewKeys.PUB_BYTES) else null
             val at = 33 + n + CrewKeys.PUB_BYTES
@@ -93,7 +118,7 @@ class GigGroup(
             val sig = if (pub != null && plain.size >= at + CrewKeys.SIG_BYTES) {
                 plain.copyOfRange(at, at + CrewKeys.SIG_BYTES).takeIf { CrewKeys.verify(pub, introSigned(secret, plain.copyOfRange(33, 33 + n), pub), it) }
             } else null
-            Intro(secret, String(plain, 33, n, Charsets.UTF_8), pub, sig)
+            Intro(secret, String(plain, 33, n, Charsets.UTF_8), pub, sig, form2)
         }.getOrNull()
     }
 
@@ -102,12 +127,16 @@ class GigGroup(
         hmac(key, "moshpoint-group-rally".toByteArray() + ByteBuffer.allocate(8).putLong(day).array()).copyOf(16)
 
     /**
-     * A meet-up pin for the crew: `[time:4][nonce:8][AES-GCM(lat:8, lon:8, nameLen:1, name)+tag]`.
+     * A meet-up pin for the crew: `[time:4][nonce:8][AES-GCM(lat:8, lon:8, nameLen:1, name, pub:33, sig:64)+tag]`.
      * [rally] with a blank name and 0,0 means "pin removed".
+     *
+     * Signed with [signer] when given (older builds read a signed pin as a plain one: they stop
+     * after the name). Unsigned, anyone holding the crew key could move the pin as anyone.
      */
-    fun sealRally(rally: Rally, random: java.security.SecureRandom = java.security.SecureRandom()): ByteArray {
+    fun sealRally(rally: Rally, signer: CrewKeys.Signer? = null, random: java.security.SecureRandom = java.security.SecureRandom()): ByteArray {
         val name = trimUtf8(rally.name.toByteArray(Charsets.UTF_8), MAX_NAME_BYTES)
-        val plain = ByteBuffer.allocate(17 + name.size).putDouble(rally.lat).putDouble(rally.lon).put(name.size.toByte()).put(name).array()
+        val proof = signer?.let { it.pub + CrewKeys.sign(it, pinSigned(rally.timeSec, rally.lat, rally.lon, name)) } ?: ByteArray(0)
+        val plain = ByteBuffer.allocate(17 + name.size + proof.size).putDouble(rally.lat).putDouble(rally.lon).put(name.size.toByte()).put(name).put(proof).array()
         val time = ByteBuffer.allocate(4).putInt(rally.timeSec.toInt()).array()
         val nonce = ByteArray(8).also { random.nextBytes(it) }
         val c = Cipher.getInstance("AES/GCM/NoPadding")
@@ -127,9 +156,28 @@ class GigGroup(
             val lon = plain.double
             val n = plain.get().toInt() and 0xFF
             val name = ByteArray(n).also { plain.get(it) }
-            Rally(lat, lon, String(name, Charsets.UTF_8), (ByteBuffer.wrap(blob, 0, 4).int.toLong() and 0xFFFFFFFFL))
+            val time = ByteBuffer.wrap(blob, 0, 4).int.toLong() and 0xFFFFFFFFL
+            // Signed: the signature must check out, or the pin is dropped.
+            var pub: ByteArray? = null
+            if (plain.remaining() >= CrewKeys.PUB_BYTES + CrewKeys.SIG_BYTES) {
+                val k = ByteArray(CrewKeys.PUB_BYTES).also { plain.get(it) }
+                val s = ByteArray(CrewKeys.SIG_BYTES).also { plain.get(it) }
+                if (!CrewKeys.verify(k, pinSigned(time, lat, lon, name), s)) return null
+                pub = k
+            }
+            Rally(
+                lat, lon, String(name, Charsets.UTF_8), time,
+                pub?.let { CrewKeys.tagOf(it) } ?: 0L,
+                pub?.let { pinId(it, time, lat, lon, name) } ?: 0L,
+            )
         }.getOrNull()
     }
+
+    /** What a pin's signature covers: this crew, when, where and its name. */
+    private fun pinSigned(timeSec: Long, lat: Double, lon: Double, name: ByteArray): ByteArray =
+        ByteBuffer.allocate(7 + 8 + 4 + 16 + 1 + name.size)
+            .put("mp-pin1".toByteArray()).put(hmac(key, "moshpoint-group-sig".toByteArray()).copyOf(8))
+            .putInt(timeSec.toInt()).putDouble(lat).putDouble(lon).put(name.size.toByte()).put(name).array()
 
     /** Mailbox id for crew pings ("Coming", "Need help"...), rotating with the epoch. */
     fun pingIdForEpoch(epoch: Long): ByteArray =
@@ -159,6 +207,11 @@ class GigGroup(
         val pub: ByteArray? = null,
         /** The signature, kept with the message so history copies can be checked too. */
         val sig: ByteArray? = null,
+        /**
+         * The message's id (see [messageId]): the same for every copy of it, however it was
+         * sealed and whichever way it arrived. 0 if unsigned. Set by [openPing].
+         */
+        val id: Long = 0L,
     ) {
         override fun equals(other: Any?) = other is Ping && kind == other.kind && from == other.from && timeSec == other.timeSec &&
             lat == other.lat && lon == other.lon && minutes == other.minutes && text == other.text && sender == other.sender
@@ -205,8 +258,10 @@ class GigGroup(
     fun sealPing(p: Ping, signer: CrewKeys.Signer? = null, random: java.security.SecureRandom = java.security.SecureRandom()): ByteArray {
         val name = trimUtf8(p.from.toByteArray(Charsets.UTF_8), MAX_NAME_BYTES)
         val text = trimUtf8(p.text.toByteArray(Charsets.UTF_8), Ping.MAX_TEXT_BYTES)
-        val latE7 = ((p.lat ?: 0.0) * 1e7).toInt()
-        val lonE7 = ((p.lon ?: 0.0) * 1e7).toInt()
+        // Rounded, not cut off: a message opened and sealed again (after the crew moves to a new
+        // key) must come out with exactly the same position, or it would count as a new message.
+        val latE7 = Math.round((p.lat ?: 0.0) * 1e7).toInt()
+        val lonE7 = Math.round((p.lon ?: 0.0) * 1e7).toInt()
         val minutes = p.minutes.coerceIn(0, 32767)
         val proof = signer?.let { it.pub + CrewKeys.sign(it, signedBytes(p.kind, p.timeSec, minutes, latE7, lonE7, name, text)) } ?: ByteArray(0)
         val plain = ByteBuffer.allocate(12 + name.size + 1 + text.size + proof.size).put(p.kind.toByte())
@@ -254,6 +309,7 @@ class GigGroup(
                 kind, String(name, Charsets.UTF_8), time,
                 if (hasLoc) lat / 1e7 else null, if (hasLoc) lon / 1e7 else null, minutes, String(textBytes, Charsets.UTF_8),
                 pub?.let { CrewKeys.tagOf(it) } ?: 0L, pub, sig,
+                pub?.let { messageId(it, kind, time, minutes, lat, lon, textBytes) } ?: 0L,
             )
         }.getOrNull()
     }
@@ -275,6 +331,9 @@ class GigGroup(
         val pub: ByteArray? = null,
         val sig: ByteArray? = null,
     ) {
+        /** The same id the live message has (see [messageId]); 0 if it carries no key. */
+        val id: Long get() = pub?.let { messageId(it, kind, timeSec, minutes, latE7, lonE7, text.toByteArray(Charsets.UTF_8)) } ?: 0L
+
         override fun equals(other: Any?) = other is HistoryLine && kind == other.kind && from == other.from && sender == other.sender &&
             timeSec == other.timeSec && text == other.text && minutes == other.minutes
         override fun hashCode() = (from.hashCode() * 31 + text.hashCode()) * 31 + timeSec.hashCode()
@@ -451,9 +510,55 @@ class GigGroup(
 
     private fun rallyKey() = SecretKeySpec(hmac(key, "moshpoint-group-rally-aes".toByteArray()).copyOf(16), "AES")
 
-    data class Rally(val lat: Double, val lon: Double, val name: String, val timeSec: Long) {
+    data class Rally(
+        val lat: Double,
+        val lon: Double,
+        val name: String,
+        val timeSec: Long,
+        /** Who set it: the tag of the key that signed it (0 = unsigned, from an older build). */
+        val sender: Long = 0L,
+        /** The pin's message id (see [messageId]); 0 for an unsigned pin. */
+        val id: Long = 0L,
+    ) {
         val removed get() = name.isBlank() && lat == 0.0 && lon == 0.0
     }
+
+    // ---- Envelope for new kinds of crew message ----
+
+    /**
+     * A sealed crew message of a kind older builds don't know: `[time:4][nonce:8][AES-GCM(type:1,
+     * len:2, body, padding)+tag]`. It has its own key and its own label ("mp2"), so an older
+     * build can't open it at all, and so can't show it as "pinged the crew". Padded so the whole
+     * thing is a multiple of 16 bytes: a listener learns less from its size.
+     */
+    class Envelope(val type: Int, val body: ByteArray, val timeSec: Long)
+
+    fun sealEnvelope(type: Int, body: ByteArray, timeSec: Long, random: java.security.SecureRandom = java.security.SecureRandom()): ByteArray {
+        require(type in 0..255 && body.size <= 0xFFFF)
+        val pad = (16 - (12 + 3 + body.size + 12) % 16) % 16
+        val plain = ByteBuffer.allocate(3 + body.size + pad).put(type.toByte()).putShort(body.size.toShort()).put(body).array()
+        val time = ByteBuffer.allocate(4).putInt(timeSec.toInt()).array()
+        val nonce = ByteArray(8).also { random.nextBytes(it) }
+        val c = Cipher.getInstance("AES/GCM/NoPadding")
+        c.init(Cipher.ENCRYPT_MODE, envelopeKey(), GCMParameterSpec(96, time + nonce))
+        c.updateAAD("mp2".toByteArray())
+        return time + nonce + c.doFinal(plain)
+    }
+
+    fun openEnvelope(blob: ByteArray): Envelope? {
+        if (blob.size < 12 + 3 + 12) return null
+        return runCatching {
+            val c = Cipher.getInstance("AES/GCM/NoPadding")
+            c.init(Cipher.DECRYPT_MODE, envelopeKey(), GCMParameterSpec(96, blob.copyOfRange(0, 12)))
+            c.updateAAD("mp2".toByteArray())
+            val b = ByteBuffer.wrap(c.doFinal(blob, 12, blob.size - 12))
+            val type = b.get().toInt() and 0xFF
+            val body = ByteArray(b.short.toInt() and 0xFFFF).also { b.get(it) }
+            Envelope(type, body, ByteBuffer.wrap(blob, 0, 4).int.toLong() and 0xFFFFFFFFL)
+        }.getOrNull()
+    }
+
+    private fun envelopeKey() = SecretKeySpec(hmac(key, "moshpoint-group-mp2".toByteArray()).copyOf(16), "AES")
 
     private fun aesKey() = SecretKeySpec(hmac(key, "moshpoint-group-aes".toByteArray()).copyOf(16), "AES")
 
@@ -465,7 +570,14 @@ class GigGroup(
      * "I'm in the crew": the member's crew pass ([secret], for finding them tonight) and their
      * signing key for this crew ([pub], so their messages can be checked).
      */
-    data class Intro(val secret: ByteArray, val name: String, val pub: ByteArray? = null, val sig: ByteArray? = null) {
+    data class Intro(
+        val secret: ByteArray,
+        val name: String,
+        val pub: ByteArray? = null,
+        val sig: ByteArray? = null,
+        /** How it arrived: true for the form with no constant prefix (see [sealIntro]). Not part of who it is. */
+        val form2: Boolean = false,
+    ) {
         override fun equals(other: Any?) = other is Intro && secret.contentEquals(other.secret) && name == other.name &&
             pub.contentEquals(other.pub)
         override fun hashCode() = secret.contentHashCode()
@@ -483,11 +595,60 @@ class GigGroup(
 
     companion object {
         const val TAG_BYTES = 8
+
+        /** [Envelope] types. */
+        const val ENV_HAVE = 1
+        const val ENV_RECEIPT = 2
+        const val ENV_RETIRED = 3
+        /** Kept for private messages (roadmap step 4): sealed to one person, with no sender or recipient tag here. */
+        const val ENV_PRIVATE = 16
+
+        /** Direct-message kinds 1 and 2 are "keep as friend" (see the app's Friendship). */
+        const val DIRECT_REKEY = 3
+        /** A rekey that also says whose key was removed (see core RekeyPolicy). Older builds ignore it. */
+        const val DIRECT_REKEY2 = 4
+
+        private val INTRO_FORM2 = byteArrayOf(2)
+
+        /**
+         * One id per crew message, the same on every phone and for every copy: a retry that was
+         * sealed again, a copy in someone's History bundle, the same bytes arriving by Bluetooth
+         * and by the relay, and a re-sign after the crew moved to a new key.
+         *
+         * It's worked out from what the signature covers plus the signer's key, so nothing new
+         * has to be signed or sent. It leaves out the display name and the crew-key tag on
+         * purpose: neither changes which message it is.
+         */
+        fun messageId(pub: ByteArray, kind: Int, timeSec: Long, minutes: Int, latE7: Int, lonE7: Int, text: ByteArray): Long {
+            val md = java.security.MessageDigest.getInstance("SHA-256")
+            md.update("mp-id1".toByteArray())
+            md.update(pub)
+            md.update(ByteBuffer.allocate(15).put(kind.toByte()).putInt(timeSec.toInt()).putShort(minutes.toShort()).putInt(latE7).putInt(lonE7).array())
+            md.update(text)
+            val id = ByteBuffer.wrap(md.digest()).long
+            return if (id == 0L) 1L else id
+        }
+
+        /** The same idea for a signed meet-up pin. */
+        internal fun pinId(pub: ByteArray, timeSec: Long, lat: Double, lon: Double, name: ByteArray): Long {
+            val md = java.security.MessageDigest.getInstance("SHA-256")
+            md.update("mp-pin1".toByteArray())
+            md.update(pub)
+            md.update(ByteBuffer.allocate(20).putInt(timeSec.toInt()).putDouble(lat).putDouble(lon).array())
+            md.update(name)
+            val id = ByteBuffer.wrap(md.digest()).long
+            return if (id == 0L) 1L else id
+        }
+
+        /** How ids are written down (chat rows, logs). */
+        fun idText(id: Long): String = java.lang.Long.toHexString(id)
         /** A history bundle fits one public-relay message (4 KB of base64). */
         const val MAX_HISTORY_BYTES = 2_900
         const val MAX_NAME_BYTES = 24
-        /** Upper bound for an intro: fits a BT5 extended advert and a server record (128). */
+        /** Upper bound for an intro: fits a BT5 extended advert and a server record (255). */
         const val MAX_INTRO_BYTES = TAG_BYTES + 4 + 4 + 32 + 1 + MAX_NAME_BYTES + CrewKeys.PUB_BYTES + CrewKeys.SIG_BYTES + 12
+        /** The second form (see [sealIntro]) is 4 bytes longer. */
+        const val MAX_INTRO2_BYTES = MAX_INTRO_BYTES + 4
 
         private val enc = java.util.Base64.getUrlEncoder().withoutPadding()
         private val dec = java.util.Base64.getUrlDecoder()

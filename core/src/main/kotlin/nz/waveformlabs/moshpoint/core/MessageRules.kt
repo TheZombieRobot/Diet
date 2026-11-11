@@ -1,0 +1,150 @@
+package nz.waveformlabs.moshpoint.core
+
+/**
+ * Small rules for crew messages that every phone must apply the same way. They live here,
+ * not in the app, so the tests that can fail a build cover them.
+ */
+
+/**
+ * Timestamps, when phones' clocks disagree.
+ *
+ * Chat is ordered by the time each sender stamped. That only reads sensibly if a reply is
+ * never stamped earlier than the message it answers, so a phone stamps a new message just
+ * after the newest one it has seen (within reason), whatever its own clock says.
+ */
+object MessageClock {
+    /** How far ahead of its own clock a phone will stamp to stay behind what it has seen. */
+    const val FOLLOW_SEC = 300L
+
+    /** A timestamp further ahead than this of the phone reading it is treated as a wrong clock. */
+    const val FUTURE_SLACK_SEC = 120L
+
+    /**
+     * The time to stamp on a new message. [newestSeenSec] is the newest message this phone has
+     * seen in that crew; [lastOwnSec] the last one it sent there (so two quick messages never
+     * share a second, and so an id).
+     */
+    fun stamp(nowSec: Long, newestSeenSec: Long, lastOwnSec: Long = 0L): Long {
+        var t = nowSec
+        if (newestSeenSec >= t && newestSeenSec - nowSec <= FOLLOW_SEC) t = newestSeenSec + 1
+        if (lastOwnSec >= t && lastOwnSec - nowSec <= FOLLOW_SEC + 60) t = lastOwnSec + 1
+        return t
+    }
+
+    /**
+     * Where a message sorts on the phone showing it: by its own time, unless that is in the
+     * future here, in which case by when it arrived. Otherwise one phone with a fast clock
+     * would pin its message to the bottom of everyone's chat for hours.
+     */
+    fun sortTime(timeSec: Long, arrivedSec: Long): Long = if (timeSec > arrivedSec + FUTURE_SLACK_SEC) arrivedSec else timeSec
+
+    /** The order every phone shows: by time, then by message id, so arrival order never matters. */
+    fun compare(aTimeSec: Long, aId: Long, bTimeSec: Long, bId: Long): Int =
+        if (aTimeSec != bTimeSec) aTimeSec.compareTo(bTimeSec) else java.lang.Long.compareUnsigned(aId, bId)
+}
+
+/**
+ * The meet-up pin: the newest one wins, including "removed". Two guards on "newest":
+ *  - a pin dated well into the future is refused, or one pin dated years ahead would win
+ *    forever and lock the crew's pin;
+ *  - a new pin is stamped just after the one it replaces, so it wins even from a phone whose
+ *    clock runs slow.
+ */
+object PinRule {
+    const val FUTURE_SLACK_SEC = 300L
+
+    /** Should a pin stamped [incomingSec] replace the one stamped [currentSec] (0 = none)? */
+    fun accepts(incomingSec: Long, currentSec: Long, nowSec: Long): Boolean =
+        incomingSec <= nowSec + FUTURE_SLACK_SEC && incomingSec > currentSec
+
+    /** A saved pin time, made safe: an old build may have stored one from the far future. */
+    fun capped(savedSec: Long, nowSec: Long): Long = minOf(savedSec, nowSec + FUTURE_SLACK_SEC)
+
+    /** The time to stamp on a pin we set or clear now. */
+    fun stamp(nowSec: Long, currentSec: Long): Long = maxOf(nowSec, capped(currentSec, nowSec) + 1)
+}
+
+/**
+ * What to do with a quick ping when it arrives, by kind and by how old it is.
+ *
+ * Before this, every ping older than 20 minutes was dropped without a trace, "Need help"
+ * included, and any kind a build didn't know was announced as "pinged the crew".
+ */
+object PingPolicy {
+    enum class Group {
+        /** Need help, Check in, Home safe: never dropped, sent first. */
+        SAFETY,
+        /** On my way, Where are you?, Stay put, Meet at the pin, All good, Heading home. */
+        QUICK,
+        /** "Here for the next half hour", with a spot. */
+        FLARE,
+        /** Chat lines, the pinned plan, "joined": they live in the chat mailbox. */
+        CHAT,
+        /** A kind this build doesn't know: ignored, never announced. */
+        UNKNOWN,
+    }
+
+    /** Pings count as fresh, and are announced, for this long. */
+    const val FRESH_SEC = 20 * 60L
+
+    /** A Need help still raises an alert this long after it was sent (then it's only shown). */
+    const val HELP_ALERT_SEC = 12 * 3600L
+
+    fun group(kind: Int): Group = when (kind) {
+        GigGroup.Ping.NEED_HELP, GigGroup.Ping.CHECK_IN, GigGroup.Ping.HOME_SAFE -> Group.SAFETY
+        GigGroup.Ping.COMING, GigGroup.Ping.STAY_PUT, GigGroup.Ping.WHERE_ARE_YOU, GigGroup.Ping.MEET_AT_PIN,
+        GigGroup.Ping.ALL_GOOD, GigGroup.Ping.GOING_HOME -> Group.QUICK
+        GigGroup.Ping.FLARE -> Group.FLARE
+        GigGroup.Ping.CHAT, GigGroup.Ping.PLAN, GigGroup.Ping.JOIN -> Group.CHAT
+        else -> Group.UNKNOWN
+    }
+
+    /** How the relay budget treats it. */
+    fun use(kind: Int): RelayUse = if (group(kind) == Group.SAFETY) RelayUse.SAFETY else RelayUse.MESSAGE
+
+    /** Safety pings are also posted to the crew's chat mailbox, which keeps them for days (older builds ignore them there). */
+    fun alsoHeld(kind: Int): Boolean = group(kind) == Group.SAFETY
+
+    /** How long phones carry it for crew mates who haven't had it. */
+    fun carrySec(kind: Int): Long = when (group(kind)) {
+        Group.SAFETY -> 12 * 3600L
+        Group.QUICK, Group.FLARE -> 2 * 3600L
+        Group.CHAT -> 24 * 3600L
+        Group.UNKNOWN -> 0L
+    }
+
+    /** How long strangers' phones pass it along (see MessageRelay). */
+    fun crowdSec(kind: Int): Long = if (kind == GigGroup.Ping.NEED_HELP) 3600L else FRESH_SEC
+
+    class Verdict(
+        /** Put it in the chat (and on the crew's ping list). False only for kinds we don't know. */
+        val show: Boolean,
+        /** Raise a notification now. */
+        val alert: Boolean,
+        /** It arrived well after it was sent: say so ("sent 40 min ago"). */
+        val late: Boolean,
+        /** Its time as far as this phone is concerned (a future stamp is pulled back to now). */
+        val timeSec: Long,
+    )
+
+    fun onArrival(kind: Int, timeSec: Long, minutes: Int, nowSec: Long): Verdict {
+        val t = if (timeSec > nowSec + MessageClock.FUTURE_SLACK_SEC) nowSec else timeSec
+        val age = (nowSec - t).coerceAtLeast(0)
+        val late = age > FRESH_SEC
+        return when (group(kind)) {
+            Group.UNKNOWN -> Verdict(show = false, alert = false, late = false, timeSec = t)
+            Group.SAFETY -> Verdict(
+                show = true,
+                // Need help is announced even hours late; a late Check in or Home safe only updates the state.
+                alert = if (kind == GigGroup.Ping.NEED_HELP) age <= HELP_ALERT_SEC else !late,
+                late = late, timeSec = t,
+            )
+            Group.QUICK -> Verdict(show = true, alert = !late, late = late, timeSec = t)
+            Group.FLARE -> {
+                val live = t + minutes.coerceIn(1, 120) * 60L > nowSec
+                Verdict(show = true, alert = live, late = !live, timeSec = t)
+            }
+            Group.CHAT -> Verdict(show = true, alert = true, late = false, timeSec = t)
+        }
+    }
+}
