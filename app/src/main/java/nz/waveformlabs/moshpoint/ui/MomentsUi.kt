@@ -35,10 +35,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.Moments
+import nz.waveformlabs.moshpoint.R
 
 // Crew moments: photos the crew snapped, shown where and when they were taken.
 
@@ -47,8 +49,8 @@ import nz.waveformlabs.moshpoint.Moments
 internal fun MomentStrip(items: List<Moments.Item>, nowSec: Long, onOpen: (Moments.Item) -> Unit, onShare: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("THE STORY", style = Mosh.Eyebrow, modifier = Modifier.weight(1f))
-            if (items.isNotEmpty()) TextButton(onClick = { onOpen(items.first()) }) { Text("See it all ›", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
+            Text(stringResource(R.string.find_the_story_eyebrow), style = Mosh.Eyebrow, modifier = Modifier.weight(1f))
+            if (items.isNotEmpty()) TextButton(onClick = { onOpen(items.first()) }) { Text(stringResource(R.string.find_see_it_all), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
         }
         Row(
             Modifier.horizontalScroll(rememberScrollState()).padding(vertical = 8.dp, horizontal = 4.dp),
@@ -76,9 +78,9 @@ internal fun MomentViewer(
         containerColor = Mosh.Deep,
         title = {
             Column {
-                Text(if (m.mine) "Your moment" else m.from, style = Mosh.Heading)
+                Text(if (m.mine) stringResource(R.string.find_your_moment) else m.from, style = Mosh.Heading)
                 Text(
-                    listOfNotNull(ago(nowSec - m.timeSec), distanceText?.let { "$it away" }).joinToString(" · "),
+                    listOfNotNull(ago(nowSec - m.timeSec), distanceText?.let { stringResource(R.string.find_distance_away, it) }).joinToString(" · "),
                     style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint),
                 )
             }
@@ -94,11 +96,11 @@ internal fun MomentViewer(
         },
         confirmButton = {
             Row {
-                if (onMap != null) TextButton(onClick = onMap) { Text("On map", style = Mosh.Label.copy(color = Mosh.Cyan)) }
-                if (onFind != null) TextButton(onClick = onFind) { Text("Find ${m.from}", style = Mosh.Label.copy(color = Mosh.Pink)) }
+                if (onMap != null) TextButton(onClick = onMap) { Text(stringResource(R.string.find_on_map), style = Mosh.Label.copy(color = Mosh.Cyan)) }
+                if (onFind != null) TextButton(onClick = onFind) { Text(stringResource(R.string.find_find_name, m.from), style = Mosh.Label.copy(color = Mosh.Pink)) }
             }
         },
-        dismissButton = { TextButton(onClick = onClose) { Text("Close", style = Mosh.Label) } },
+        dismissButton = { TextButton(onClick = onClose) { Text(stringResource(R.string.find_close), style = Mosh.Label) } },
     )
 }
 
@@ -109,7 +111,7 @@ internal fun MomentComposer(photo: ImageBitmap, sending: Boolean, onSend: (Strin
     AlertDialog(
         onDismissRequest = { if (!sending) onCancel() },
         containerColor = Mosh.Deep,
-        title = { Text("Share with the crew", style = Mosh.Heading) },
+        title = { Text(stringResource(R.string.find_share_with_crew), style = Mosh.Heading) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Box {
@@ -121,21 +123,21 @@ internal fun MomentComposer(photo: ImageBitmap, sending: Boolean, onSend: (Strin
                         Modifier.align(Alignment.BottomStart).fillMaxWidth().height(36.dp)
                             .background(Brush.verticalGradient(listOf(Color.Transparent, Color(0xCC000000))), RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)),
                     )
-                    Text("Pinned where you are now", style = Mosh.Body.copy(fontSize = 12.sp, color = Color.White), modifier = Modifier.align(Alignment.BottomStart).padding(10.dp))
+                    Text(stringResource(R.string.find_pinned_where_you_are), style = Mosh.Body.copy(fontSize = 12.sp, color = Color.White), modifier = Modifier.align(Alignment.BottomStart).padding(10.dp))
                 }
                 OutlinedTextField(
                     caption, { caption = it.take(80) }, singleLine = true,
-                    placeholder = { Text("Say where (optional): left of the sound desk") },
+                    placeholder = { Text(stringResource(R.string.find_caption_hint)) },
                     modifier = Modifier.fillMaxWidth(),
                 )
-                Text("Only your crew can see it. It disappears from the relay after a few hours.", style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 16.sp, color = Mosh.TextFaint))
+                Text(stringResource(R.string.find_moment_privacy), style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 16.sp, color = Mosh.TextFaint))
             }
         },
         confirmButton = {
             TextButton(onClick = { onSend(caption) }, enabled = !sending) {
-                Text(if (sending) "Sending…" else "Send", style = Mosh.Label.copy(color = Mosh.Lime))
+                Text(if (sending) stringResource(R.string.find_sending) else stringResource(R.string.find_send), style = Mosh.Label.copy(color = Mosh.Lime))
             }
         },
-        dismissButton = { TextButton(onClick = onCancel, enabled = !sending) { Text("Cancel", style = Mosh.Label) } },
+        dismissButton = { TextButton(onClick = onCancel, enabled = !sending) { Text(stringResource(R.string.find_cancel), style = Mosh.Label) } },
     )
 }

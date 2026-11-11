@@ -36,12 +36,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.LocationBook
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.GigGroup
 
 // The home screen's building blocks (people first, like Snap Map / Life360 / Find My:
@@ -68,9 +72,9 @@ internal fun LivePill(live: Boolean, ghost: Boolean, onToggle: () -> Unit) {
         Spacer(Modifier.width(8.dp))
         Text(
             when {
-                !live -> "Go live"
-                ghost -> "Live · ghost"
-                else -> "Live"
+                !live -> stringResource(R.string.home_go_live)
+                ghost -> stringResource(R.string.home_live_ghost)
+                else -> stringResource(R.string.home_live)
             },
             style = Mosh.Label.copy(fontSize = 15.sp, color = if (live) colour else Mosh.Text),
             maxLines = 1, softWrap = false,
@@ -80,14 +84,15 @@ internal fun LivePill(live: Boolean, ghost: Boolean, onToggle: () -> Unit) {
 
 /** "live · 40 m" / "12 min ago · 8%" under a crew member, from their last shared spot. */
 private fun tileStatus(s: LocationBook.Seen?, nowSec: Long, distanceM: Double?): Pair<String, Color> {
-    if (s == null) return "not sharing yet" to Mosh.TextFaint
+    if (s == null) return Txt.s(R.string.home_tile_not_sharing) to Mosh.TextFaint
     val age = nowSec - s.timeSec
-    val battery = s.batteryPct?.takeIf { it <= 20 }?.let { " · $it%" }.orEmpty() // only worth saying when low
+    val lowBattery = s.batteryPct?.takeIf { it <= 20 } // only worth saying when low
+    fun withBattery(text: String) = if (lowBattery != null) Txt.s(R.string.home_tile_with_battery, text, lowBattery) else text
     return when {
-        s.lastGasp -> "phone died" to Mosh.Danger
-        distanceM != null -> "${distanceLabel(distanceM)}$battery" to (if (age < 180) Mosh.Lime else Mosh.TextDim)
-        age < 120 -> "live$battery" to Mosh.Lime
-        else -> "${ago(age)}$battery" to Mosh.TextFaint
+        s.lastGasp -> Txt.s(R.string.home_tile_phone_died) to Mosh.Danger
+        distanceM != null -> withBattery(distanceLabel(distanceM)) to (if (age < 180) Mosh.Lime else Mosh.TextDim)
+        age < 120 -> withBattery(Txt.s(R.string.home_tile_live)) to Mosh.Lime
+        else -> withBattery(ago(age)) to Mosh.TextFaint
     }
 }
 
@@ -110,7 +115,7 @@ internal fun CrewTiles(
     ) {
         crew.forEachIndexed { i, f ->
             val bob = rememberFloat(i)
-            val (status, colour) = notes[f.id]?.let { it to (if (it == "at the venue") Mosh.Lime else Mosh.TextDim) }
+            val (status, colour) = notes[f.id]?.let { it to (if (it == nz.waveformlabs.moshpoint.Txt.s(R.string.crew_at_venue)) Mosh.Lime else Mosh.TextDim) }
                 ?: tileStatus(seen[f.id], nowSec, distances[f.id])
             Column(
                 Modifier.width(78.dp)
@@ -134,43 +139,44 @@ internal fun PingBar(onPing: (Int) -> Unit, onCheckIn: (Int) -> Unit = {}) {
     var goingHome by remember { mutableStateOf(false) }
     var sent by remember { mutableStateOf<Int?>(null) }
     val items = listOf(
-        GigGroup.Ping.COMING to "On my way",
-        GigGroup.Ping.WHERE_ARE_YOU to "Where are you?",
-        GigGroup.Ping.STAY_PUT to "Stay put",
-        GigGroup.Ping.MEET_AT_PIN to "Meet at the pin",
-        GigGroup.Ping.ALL_GOOD to "All good",
+        GigGroup.Ping.COMING to stringResource(R.string.home_ping_on_my_way),
+        GigGroup.Ping.WHERE_ARE_YOU to stringResource(R.string.home_ping_where_are_you),
+        GigGroup.Ping.STAY_PUT to stringResource(R.string.home_ping_stay_put),
+        GigGroup.Ping.MEET_AT_PIN to stringResource(R.string.home_ping_meet_at_pin),
+        GigGroup.Ping.ALL_GOOD to stringResource(R.string.home_ping_all_good),
     )
+    val sentLabel = stringResource(R.string.home_ping_sent)
     Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items.forEach { (kind, label) ->
-            PingChip(if (sent == kind) "Sent ✓" else label, if (sent == kind) Mosh.Lime else Mosh.Cyan) {
+            PingChip(if (sent == kind) sentLabel else label, if (sent == kind) Mosh.Lime else Mosh.Cyan) {
                 onPing(kind)
                 sent = kind
             }
         }
-        PingChip("Heading home", Mosh.Violet) { goingHome = true }
-        PingChip("Need help", Mosh.Danger) { confirmHelp = true }
+        PingChip(stringResource(R.string.home_ping_heading_home), Mosh.Violet) { goingHome = true }
+        PingChip(stringResource(R.string.home_ping_need_help), Mosh.Danger) { confirmHelp = true }
     }
     if (goingHome) {
         AlertDialog(
             onDismissRequest = { goingHome = false },
             containerColor = Mosh.Deep,
-            title = { Text("Heading home?", style = Mosh.Heading) },
+            title = { Text(stringResource(R.string.home_heading_home_title), style = Mosh.Heading) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("Check in when you get there. If you don't, your crew gets an alert with your last spot (even if your phone dies).", style = Mosh.Body)
+                    Text(stringResource(R.string.home_heading_home_text), style = Mosh.Body)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf(30, 45, 60, 90).forEach { m ->
-                            PingChip("$m min", Mosh.Violet) { onCheckIn(m); sent = GigGroup.Ping.CHECK_IN; goingHome = false }
+                            PingChip(pluralStringResource(R.plurals.home_checkin_minutes, m, m), Mosh.Violet) { onCheckIn(m); sent = GigGroup.Ping.CHECK_IN; goingHome = false }
                         }
                     }
                 }
             },
             confirmButton = {
                 TextButton(onClick = { onPing(GigGroup.Ping.GOING_HOME); sent = GigGroup.Ping.GOING_HOME; goingHome = false }) {
-                    Text("Just tell them", style = Mosh.Label.copy(color = Mosh.Cyan))
+                    Text(stringResource(R.string.home_just_tell_them), style = Mosh.Label.copy(color = Mosh.Cyan))
                 }
             },
-            dismissButton = { TextButton(onClick = { goingHome = false }) { Text("Cancel", style = Mosh.Label) } },
+            dismissButton = { TextButton(onClick = { goingHome = false }) { Text(stringResource(R.string.home_cancel), style = Mosh.Label) } },
         )
     }
     if (confirmHelp) {
@@ -202,7 +208,7 @@ internal fun PingFeed(pings: List<GigGroup.Ping>, nowSec: Long, describe: (Int) 
                 Box(Modifier.size(8.dp).background(if (help) Mosh.Danger else Mosh.Cyan, CircleShape))
                 Spacer(Modifier.width(10.dp))
                 Text(
-                    "${p.from} ${describe(p.kind)}",
+                    stringResource(R.string.home_ping_line, p.from, describe(p.kind)),
                     style = Mosh.Body.copy(fontSize = 14.sp, color = if (help) Mosh.Danger else Mosh.Text),
                     modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
@@ -222,11 +228,11 @@ internal fun HomeBar(onMap: () -> Unit, onAdd: () -> Unit, onMe: () -> Unit, myN
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        BarItem("Crew", selected = true, icon = { c -> CrewIcon(c) }) {}
-        BarItem("Map", selected = false, icon = { c -> PinIcon(c) }, onClick = onMap)
-        BarItem("Add", selected = false, accent = true, icon = { c -> PlusIcon(c) }, onClick = onAdd)
-        BarItem("Story", selected = false, icon = { c -> PolaroidIcon(c) }, onClick = onStory)
-        BarItem("Me", selected = false, icon = { _ ->
+        BarItem(stringResource(R.string.home_bar_crew), selected = true, icon = { c -> CrewIcon(c) }) {}
+        BarItem(stringResource(R.string.home_bar_map), selected = false, icon = { c -> PinIcon(c) }, onClick = onMap)
+        BarItem(stringResource(R.string.home_bar_add), selected = false, accent = true, icon = { c -> PlusIcon(c) }, onClick = onAdd)
+        BarItem(stringResource(R.string.home_bar_story), selected = false, icon = { c -> PolaroidIcon(c) }, onClick = onStory)
+        BarItem(stringResource(R.string.home_bar_me), selected = false, icon = { _ ->
             val mine = nz.waveformlabs.moshpoint.PhotoStore.photos[nz.waveformlabs.moshpoint.PhotoStore.ME]
             if (mine != null) {
                 androidx.compose.foundation.Image(
@@ -284,24 +290,24 @@ internal fun AddSheet(
             Modifier.fillMaxWidth().navigationBarsPadding().padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("Add mates", style = Mosh.Heading)
+            Text(stringResource(R.string.home_add_mates), style = Mosh.Heading)
             Text(
-                "At the gig: show your crew QR and they scan it. That's it: everyone in the crew can find everyone.",
+                stringResource(R.string.home_add_mates_text),
                 style = Mosh.Body,
             )
-            NeonButton(if (inCrew) "Show crew QR" else "Start a crew + show QR") { onClose(); onShowCrewQr() }
+            NeonButton(if (inCrew) stringResource(R.string.home_show_crew_qr) else stringResource(R.string.home_start_crew_show_qr)) { onClose(); onShowCrewQr() }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                GlassButton("Scan a QR", Modifier.weight(1f)) { onClose(); onScanQr() }
-                GlassButton("Paste invite", Modifier.weight(1f)) { onClose(); onPasteInvite() }
+                GlassButton(stringResource(R.string.home_scan_qr), Modifier.weight(1f)) { onClose(); onScanQr() }
+                GlassButton(stringResource(R.string.home_paste_invite), Modifier.weight(1f)) { onClose(); onPasteInvite() }
             }
-            GlassButton("Bump phones together") { onClose(); onBump() }
-            if (onPlanGig != null) GlassButton("Plan a gig (find it, invite now)") { onClose(); onPlanGig() }
-            GlassButton("Send the app + invite (WhatsApp, Messenger…)") { onClose(); onShareApp() }
+            GlassButton(stringResource(R.string.home_bump_phones)) { onClose(); onBump() }
+            if (onPlanGig != null) GlassButton(stringResource(R.string.home_plan_gig)) { onClose(); onPlanGig() }
+            GlassButton(stringResource(R.string.home_send_app_invite)) { onClose(); onShareApp() }
             Spacer(Modifier.height(4.dp))
-            Text("FRIENDS FOR EVERY GIG", style = Mosh.Eyebrow)
+            Text(stringResource(R.string.home_friends_every_gig), style = Mosh.Eyebrow)
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                TextButton(onClick = { onClose(); onShowMyQr() }) { Text("My friend QR", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
-                TextButton(onClick = { onClose(); onEnterCode() }) { Text("Enter a code", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
+                TextButton(onClick = { onClose(); onShowMyQr() }) { Text(stringResource(R.string.home_my_friend_qr), style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
+                TextButton(onClick = { onClose(); onEnterCode() }) { Text(stringResource(R.string.home_enter_code), style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
             }
         }
     }
@@ -315,8 +321,8 @@ internal fun CheckInBanner(byClock: String, onHomeSafe: () -> Unit) {
             .border(1.dp, Mosh.Violet.copy(alpha = 0.6f), RoundedCornerShape(14.dp)).padding(start = 14.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("Check in by $byClock", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Violet), modifier = Modifier.weight(1f))
-        TextButton(onClick = onHomeSafe) { Text("I'm home safe", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lime)) }
+        Text(stringResource(R.string.home_check_in_by, byClock), style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Violet), modifier = Modifier.weight(1f))
+        TextButton(onClick = onHomeSafe) { Text(stringResource(R.string.home_home_safe), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lime)) }
     }
 }
 
@@ -324,8 +330,8 @@ internal fun CheckInBanner(byClock: String, onHomeSafe: () -> Unit) {
 @Composable
 internal fun CrewActions(onMessage: () -> Unit, onMoment: () -> Unit, unread: Int = 0) {
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        GlassButton(if (unread > 0) "Chat ($unread)" else "Chat", Modifier.weight(1f), onClick = onMessage)
-        GlassButton("Camera", Modifier.weight(1f), onClick = onMoment)
+        GlassButton(if (unread > 0) stringResource(R.string.home_chat_unread, unread) else stringResource(R.string.home_chat), Modifier.weight(1f), onClick = onMessage)
+        GlassButton(stringResource(R.string.home_camera), Modifier.weight(1f), onClick = onMoment)
     }
 }
 
@@ -338,8 +344,8 @@ internal fun MessageSheet(onPing: (Int) -> Unit, onCheckIn: (Int) -> Unit, onClo
             Modifier.fillMaxWidth().navigationBarsPadding().padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text("Message the crew", style = Mosh.Heading)
-            Text("One tap: everyone in the crew gets it, with where you are.", style = Mosh.Body)
+            Text(stringResource(R.string.home_message_crew), style = Mosh.Heading)
+            Text(stringResource(R.string.home_message_crew_text), style = Mosh.Body)
             PingBar(onPing = { onPing(it) }, onCheckIn = { onCheckIn(it) })
         }
     }
@@ -351,12 +357,12 @@ internal fun InlineCrewQr(payload: String, onShare: () -> Unit) {
     val bmp = remember(payload) { qrBitmap(payload, 480).asImageBitmap() }
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
         androidx.compose.foundation.Image(
-            bmp, contentDescription = "Crew QR",
+            bmp, contentDescription = stringResource(R.string.home_crew_qr_desc),
             modifier = Modifier.size(200.dp).background(Color.White, RoundedCornerShape(18.dp)).padding(10.dp),
         )
         Spacer(Modifier.height(10.dp))
-        Text("Mates scan this with their camera or Moshpoint. That's it.", style = Mosh.Body.copy(fontSize = 14.sp), textAlign = TextAlign.Center)
-        TextButton(onClick = onShare) { Text("No camera? Send the invite", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
+        Text(stringResource(R.string.home_inline_qr_text), style = Mosh.Body.copy(fontSize = 14.sp), textAlign = TextAlign.Center)
+        TextButton(onClick = onShare) { Text(stringResource(R.string.home_no_camera_send_invite), style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
     }
 }
 
@@ -430,10 +436,11 @@ internal fun PastGigs(gigs: List<nz.waveformlabs.moshpoint.GigArchive.Summary>, 
                     Text(g.name, style = Mosh.Label, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     val day = java.text.SimpleDateFormat("EEE d MMM yyyy", java.util.Locale.getDefault()).format(java.util.Date(g.whenSec * 1000))
                     Text(listOf(day, g.venue).filter { it.isNotBlank() }.joinToString(" · "), style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    val names = g.people.take(3).joinToString(", ")
                     val counts = listOfNotNull(
-                        "${g.photos} photo${if (g.photos == 1) "" else "s"}".takeIf { g.photos > 0 },
-                        "${g.clips} clip${if (g.clips == 1) "" else "s"}".takeIf { g.clips > 0 },
-                        g.people.take(3).joinToString(", ") + if (g.people.size > 3) " +${g.people.size - 3}" else "",
+                        pluralStringResource(R.plurals.home_gig_photos, g.photos, g.photos).takeIf { g.photos > 0 },
+                        pluralStringResource(R.plurals.home_gig_clips, g.clips, g.clips).takeIf { g.clips > 0 },
+                        if (g.people.size > 3) stringResource(R.string.home_people_more, names, g.people.size - 3) else names,
                     )
                     Text(counts.joinToString(" · "), style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 15.sp, color = Mosh.TextFaint), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
@@ -458,15 +465,15 @@ internal fun ChatPill(unread: Int, plan: String?, onClick: () -> Unit) {
         Text("💬", fontSize = 18.sp)
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {
-            Text("Crew chat", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Lime))
+            Text(stringResource(R.string.home_crew_chat), style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Lime))
             Text(
-                if (plan != null) "📌 $plan" else "Messages, the plan, flares",
+                if (plan != null) stringResource(R.string.home_pinned_plan, plan) else stringResource(R.string.home_chat_subtitle),
                 style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), maxLines = 1, overflow = TextOverflow.Ellipsis,
             )
         }
         if (unread > 0) {
             Box(Modifier.background(Mosh.Pink, CircleShape).padding(horizontal = 8.dp, vertical = 2.dp)) {
-                Text(if (unread > 9) "9+" else "$unread new", style = Mosh.Label.copy(fontSize = 12.sp, color = Color.White))
+                Text(if (unread > 9) stringResource(R.string.home_unread_many) else pluralStringResource(R.plurals.home_unread_new, unread, unread), style = Mosh.Label.copy(fontSize = 12.sp, color = Color.White))
             }
             Spacer(Modifier.width(8.dp))
         }
@@ -515,11 +522,10 @@ internal fun UpNextRow(card: UpNextCard, onClick: () -> Unit) {
             if (sub.isNotEmpty()) Text(sub, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(
                 when {
-                    card.plan != null -> "📌 ${card.plan}"
-                    card.following -> "Following from home"
-                    card.mates == 0 -> "💬 Chat · invite your mates"
-                    card.mates == 1 -> "💬 Chat · 1 mate in"
-                    else -> "💬 Chat · ${card.mates} mates in"
+                    card.plan != null -> stringResource(R.string.home_pinned_plan, card.plan)
+                    card.following -> stringResource(R.string.home_following_from_home)
+                    card.mates == 0 -> stringResource(R.string.home_upnext_invite)
+                    else -> pluralStringResource(R.plurals.home_upnext_mates, card.mates, card.mates)
                 },
                 style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.Lime), maxLines = 1, overflow = TextOverflow.Ellipsis,
             )
@@ -527,7 +533,7 @@ internal fun UpNextRow(card: UpNextCard, onClick: () -> Unit) {
         if (card.unread > 0) {
             Spacer(Modifier.width(8.dp))
             Box(Modifier.background(Mosh.Pink, CircleShape).padding(horizontal = 8.dp, vertical = 2.dp)) {
-                Text(if (card.unread > 9) "9+" else "${card.unread}", style = Mosh.Label.copy(fontSize = 12.sp, color = Color.White))
+                Text(if (card.unread > 9) stringResource(R.string.home_unread_many) else "${card.unread}", style = Mosh.Label.copy(fontSize = 12.sp, color = Color.White))
             }
         }
         Spacer(Modifier.width(6.dp))

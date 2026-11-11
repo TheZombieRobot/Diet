@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import nz.waveformlabs.moshpoint.core.Geo
 import nz.waveformlabs.moshpoint.core.LatLon
 import nz.waveformlabs.moshpoint.service.VisibilityService
+import nz.waveformlabs.moshpoint.ui.distanceLabel
 
 /**
  * How far away each crew member is right now, worked out quietly in the background from
@@ -44,8 +45,9 @@ object CrewStatus {
         val now = System.currentTimeMillis()
         if (now - (lastMoveAlert[f.id] ?: 0L) < MOVE_QUIET_MS) return
         lastMoveAlert[f.id] = now
-        val away = me?.let { " Now ${short(Geo.distanceM(it, here))} from you." }.orEmpty()
-        CrewNotifications.post(c, title = "${f.name} is on the move", text = "Moved ${short(moved)} from where they were.$away Tap to see.")
+        val text = if (me != null) Txt.s(R.string.crew_moving_text_away, distanceLabel(moved), distanceLabel(Geo.distanceM(me, here)))
+        else Txt.s(R.string.crew_moving_text, distanceLabel(moved))
+        CrewNotifications.post(c, title = Txt.s(R.string.crew_moving_title, f.name), text = text)
     }
 
     fun refresh(c: Context) {
@@ -67,25 +69,19 @@ object CrewStatus {
             if (d != null && age < 10 * 60) distances[f.id] = d
             if (venue != null && age < 30 * 60) {
                 val dv = Geo.distanceM(venue, LatLon(s.lat, s.lon))
-                venueNotes[f.id] = if (dv < 400) "at the venue" else "${short(dv)} from the venue"
+                venueNotes[f.id] = if (dv < 400) Txt.s(R.string.crew_at_venue) else Txt.s(R.string.crew_from_venue, distanceLabel(dv))
             }
             if (age < 5 * 60 && !s.lastGasp) checkMoving(c, f, s, me?.let { LatLon(it.latitude, it.longitude) })
             parts += (d ?: Double.MAX_VALUE) to when {
-                s.lastGasp -> "${f.name} phone died"
-                d != null && age < 10 * 60 -> "${f.name} ${short(d)}"
-                else -> "${f.name} ${age / 60} min ago"
+                s.lastGasp -> Txt.s(R.string.crew_status_phone_died, f.name)
+                d != null && age < 10 * 60 -> Txt.s(R.string.crew_status_distance, f.name, distanceLabel(d))
+                else -> Txt.p(R.plurals.crew_status_min_ago, (age / 60).toInt(), f.name, (age / 60).toInt())
             }
         }
         val sorted = parts.sortedBy { it.first }.map { it.second }
         val line = sorted.take(4).joinToString(" · ")
         VisibilityService.showCrew(c, line.ifBlank { null })
         runCatching { CrewWidget.update(c, sorted.take(4)) }
-    }
-
-    private fun short(m: Double) = when {
-        m < 1000 -> "${maxOf(5, (m / 5).toInt() * 5)} m"
-        m < 10_000 -> "%.1f km".format(m / 1000)
-        else -> "${(m / 1000).toInt()} km"
     }
 
     @SuppressLint("MissingPermission")

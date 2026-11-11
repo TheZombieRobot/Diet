@@ -80,10 +80,14 @@ object CrewChat {
     private const val HISTORY_EVERY_MS = 4 * 3600_000L
 
     /** Ready-made flare vibes. */
-    val VIBES = listOf("Lost 😅", "Bar time 🍺", "At the rail 🎶", "Food run 🍔", "Toilets 🚻", "Outside for air 🌬️", "Merch stand 👕", "Leaving soon 👋")
+    val VIBES: List<String>
+        get() = listOf(
+            R.string.crew_vibe_lost, R.string.crew_vibe_bar, R.string.crew_vibe_rail, R.string.crew_vibe_food,
+            R.string.crew_vibe_toilets, R.string.crew_vibe_air, R.string.crew_vibe_merch, R.string.crew_vibe_leaving,
+        ).map { Txt.s(it) }
 
     private fun prefs(c: Context, id: String) = c.applicationContext.getSharedPreferences("crewchat_$id", Context.MODE_PRIVATE)
-    private fun me(c: Context) = VisibilityPrefs.myName(c.applicationContext).ifBlank { "Mate" }
+    private fun me(c: Context) = VisibilityPrefs.myName(c.applicationContext).ifBlank { Txt.s(R.string.crew_default_name) }
     private fun today() = Math.floorDiv(System.currentTimeMillis() / 1000, 86_400L)
     private fun isMain(g: GigGroup) = GroupSync.group.value?.key?.contentEquals(g.key) == true
 
@@ -103,12 +107,12 @@ object CrewChat {
         if (tag == myTag(c, g)) return me(c)
         val id = GigArchive.idFor(g)
         val ppl = people(c, id)
-        val base = name.trim().ifBlank { "Mate" }
+        val base = name.trim().ifBlank { Txt.s(R.string.crew_default_name) }
         // Names already in use by someone else (including you).
         val taken = ppl.keys().asSequence().filter { it != tag.toString() }.map { ppl.optString(it).lowercase() }.toSet() + me(c).lowercase()
         var shown = base
         var n = 2
-        while (shown.lowercase() in taken) shown = "$base (${n++})"
+        while (shown.lowercase() in taken) shown = Txt.s(R.string.crew_name_numbered, base, n++)
         if (ppl.optString(tag.toString()) != shown) prefs(c, id).edit().putString("people", ppl.put(tag.toString(), shown).toString()).apply()
         return shown
     }
@@ -360,7 +364,8 @@ object CrewChat {
         val t = text.trim().take(140)
         val now = System.currentTimeMillis() / 1000
         writePlan(c, g, if (t.isEmpty()) null else Plan(t, me(c), now, myTag(c, g)), mine = true, at = now)
-        add(c, g, Line(me(c), now, if (t.isEmpty()) "cleared the plan" else "pinned: $t", mine = true, kind = GigGroup.Ping.PLAN, sender = myTag(c, g)))
+        // Stored as the bare plan (blank = cleared); the chat words it at display time, in the current language.
+        add(c, g, Line(me(c), now, t, mine = true, kind = GigGroup.Ping.PLAN, sender = myTag(c, g)))
         postPlan(c, g)
     }
 
@@ -426,7 +431,7 @@ object CrewChat {
         val g = GroupSync.group.value ?: return
         val now = System.currentTimeMillis() / 1000
         flares[me(c)] = Flare(me(c), vibe, now + FLARE_MIN * 60L, lat, lon)
-        add(c, g, Line(me(c), now, "sent a flare: $vibe", mine = true, kind = GigGroup.Ping.FLARE, sender = myTag(c, g)))
+        add(c, g, Line(me(c), now, vibe, mine = true, kind = GigGroup.Ping.FLARE, sender = myTag(c, g)))
         GroupSync.sendPing(c, GigGroup.Ping.FLARE, lat, lon, FLARE_MIN, vibe)
     }
 
@@ -461,16 +466,16 @@ object CrewChat {
                 if (added && !mine) p.text else null
             }
             GigGroup.Ping.JOIN -> {
-                val added = add(c, g, Line(p.from, p.timeSec, "joined the crew", mine, GigGroup.Ping.JOIN, p.sender))
-                if (added && !mine) "joined the crew 🎉" else null
+                val added = add(c, g, Line(p.from, p.timeSec, "", mine, GigGroup.Ping.JOIN, p.sender))
+                if (added && !mine) Txt.s(R.string.crew_notif_joined) else null
             }
             GigGroup.Ping.FLARE -> {
                 if (!isMain(g) || mine) return null
                 val until = p.timeSec + p.minutes.coerceIn(1, 120) * 60L
                 if (until < System.currentTimeMillis() / 1000) return null
                 flares[p.from] = Flare(p.from, p.text, until, p.lat, p.lon)
-                if (add(c, g, Line(p.from, p.timeSec, "sent a flare: ${p.text}", false, GigGroup.Ping.FLARE, p.sender))) {
-                    "Flare: ${p.text} · here for ${p.minutes} min"
+                if (add(c, g, Line(p.from, p.timeSec, p.text, false, GigGroup.Ping.FLARE, p.sender))) {
+                    Txt.p(R.plurals.crew_notif_flare, p.minutes, p.text, p.minutes)
                 } else null
             }
             GigGroup.Ping.PLAN -> {
@@ -488,8 +493,8 @@ object CrewChat {
         if (text.isBlank() && cur == null) return null
         writePlan(c, g, if (text.isBlank()) null else Plan(text, from, setAt, sender), mine = mine, at = setAt)
         prefs(c, GigArchive.idFor(g)).edit().putString("planProof", proof).apply()
-        add(c, g, Line(from, postedAt, if (text.isBlank()) "cleared the plan" else "pinned: $text", mine, GigGroup.Ping.PLAN, sender))
-        return if (text.isBlank()) null else "New plan: $text"
+        add(c, g, Line(from, postedAt, text, mine, GigGroup.Ping.PLAN, sender))
+        return if (text.isBlank()) null else Txt.s(R.string.crew_notif_new_plan, text)
     }
 
     /**
@@ -512,23 +517,39 @@ object CrewChat {
         return added
     }
 
-    /** A one-tap ping ("On my way") in the main crew, as a chat bubble. */
+    /**
+     * A one-tap ping ("On my way") in the main crew, as a chat bubble. Stored with the ping's
+     * kind (and the minutes, for a check-in) rather than its words, so the chat shows it in
+     * whatever language the phone is in (see [quickText]). Older builds stored the English
+     * words as a plain chat line; those still show as they are.
+     */
     fun pingLine(c: Context, p: GigGroup.Ping, mine: Boolean) {
         val g = GroupSync.group.value ?: return
-        val text = quickText(p) ?: return
-        add(c, g, Line(if (mine) me(c) else p.from, p.timeSec, text, mine, sender = if (mine) myTag(c, g) else p.sender))
+        if (!isQuick(p.kind)) return
+        val payload = if (p.kind == GigGroup.Ping.CHECK_IN) p.minutes.toString() else ""
+        add(c, g, Line(if (mine) me(c) else p.from, p.timeSec, payload, mine, p.kind, sender = if (mine) myTag(c, g) else p.sender))
     }
 
-    fun quickText(p: GigGroup.Ping): String? = when (p.kind) {
-        GigGroup.Ping.COMING -> "On my way 🏃"
-        GigGroup.Ping.WHERE_ARE_YOU -> "Where are you? 👀"
-        GigGroup.Ping.STAY_PUT -> "Stay put ✋"
-        GigGroup.Ping.MEET_AT_PIN -> "Meet at the pin 📍"
-        GigGroup.Ping.ALL_GOOD -> "All good 👍"
-        GigGroup.Ping.GOING_HOME -> "Heading home 🏠"
-        GigGroup.Ping.NEED_HELP -> "🚨 I need help"
-        GigGroup.Ping.CHECK_IN -> "Heading home 🏠 Will check in within ${p.minutes} min"
-        GigGroup.Ping.HOME_SAFE -> "Home safe ✅"
+    /** A one-tap ping's kind (shown as a chat bubble, worded by [quickText]). */
+    fun isQuick(kind: Int): Boolean = when (kind) {
+        GigGroup.Ping.COMING, GigGroup.Ping.WHERE_ARE_YOU, GigGroup.Ping.STAY_PUT, GigGroup.Ping.MEET_AT_PIN, GigGroup.Ping.ALL_GOOD,
+        GigGroup.Ping.GOING_HOME, GigGroup.Ping.NEED_HELP, GigGroup.Ping.CHECK_IN, GigGroup.Ping.HOME_SAFE -> true
+        else -> false
+    }
+
+    fun quickText(p: GigGroup.Ping): String? = quickText(p.kind, p.minutes)
+
+    /** The words for a one-tap ping of [kind]; [minutes] is only used by a check-in. */
+    fun quickText(kind: Int, minutes: Int): String? = when (kind) {
+        GigGroup.Ping.COMING -> Txt.s(R.string.crew_quick_coming)
+        GigGroup.Ping.WHERE_ARE_YOU -> Txt.s(R.string.crew_quick_where)
+        GigGroup.Ping.STAY_PUT -> Txt.s(R.string.crew_quick_stay_put)
+        GigGroup.Ping.MEET_AT_PIN -> Txt.s(R.string.crew_quick_meet_pin)
+        GigGroup.Ping.ALL_GOOD -> Txt.s(R.string.crew_quick_all_good)
+        GigGroup.Ping.GOING_HOME -> Txt.s(R.string.crew_quick_going_home)
+        GigGroup.Ping.NEED_HELP -> Txt.s(R.string.crew_quick_need_help)
+        GigGroup.Ping.CHECK_IN -> Txt.p(R.plurals.crew_quick_check_in, minutes)
+        GigGroup.Ping.HOME_SAFE -> Txt.s(R.string.crew_quick_home_safe)
         else -> null
     }
 

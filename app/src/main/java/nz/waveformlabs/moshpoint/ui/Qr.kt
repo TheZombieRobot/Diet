@@ -51,6 +51,9 @@ import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
 import kotlinx.coroutines.delay
 import nz.waveformlabs.moshpoint.Friend
+import nz.waveformlabs.moshpoint.R
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 
 fun qrBitmap(text: String, sizePx: Int = 720): Bitmap {
     val matrix = QRCodeWriter().encode(text, BarcodeFormat.QR_CODE, sizePx, sizePx, mapOf(EncodeHintType.MARGIN to 1))
@@ -67,9 +70,9 @@ fun qrBitmap(text: String, sizePx: Int = 720): Bitmap {
 fun MyQrDialog(
     payload: String,
     onDismiss: () -> Unit,
-    title: String = "Scan to add me",
-    hint: String = "Then scan theirs, so you can find each other.",
-    eyebrow: String = "YOUR CODE",
+    title: String = stringResource(R.string.setup_qr_title),
+    hint: String = stringResource(R.string.setup_qr_hint),
+    eyebrow: String = stringResource(R.string.setup_qr_eyebrow),
     members: List<Friend> = emptyList(),
     onEndNight: (() -> Unit)? = null,
     onShare: (() -> Unit)? = null,
@@ -88,7 +91,7 @@ fun MyQrDialog(
                 Modifier.fillMaxSize().verticalScroll(rememberScrollState())
                     .padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 24.dp),
             ) {
-                TextButton(onClick = onDismiss) { Text("‹  Done", style = Mosh.Label.copy(fontSize = 15.sp)) }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.setup_qr_done), style = Mosh.Label.copy(fontSize = 15.sp)) }
                 Spacer(Modifier.height(12.dp))
                 Text(eyebrow, style = Mosh.Eyebrow)
                 Spacer(Modifier.height(6.dp))
@@ -108,7 +111,7 @@ fun MyQrDialog(
                         Modifier.fillMaxSize().background(Color.White, RoundedCornerShape(29.dp)).padding(18.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Image(bmp, contentDescription = "QR code", modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp)))
+                        Image(bmp, contentDescription = stringResource(R.string.setup_qr_code_desc), modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp)))
                     }
                 }
 
@@ -120,7 +123,7 @@ fun MyQrDialog(
                         }
                         Spacer(Modifier.width(12.dp))
                         val n = members.size
-                        Text("$n mate${if (n == 1) "" else "s"} in", style = Mosh.Body.copy(color = Mosh.Text))
+                        Text(pluralStringResource(R.plurals.setup_qr_mates_in, n, n), style = Mosh.Body.copy(color = Mosh.Text))
                     }
                 }
 
@@ -128,34 +131,33 @@ fun MyQrDialog(
                 if (onShare != null) {
                     // For mates whose phone can't scan QR codes.
                     TextButton(onClick = onShare, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                        Text("Can't scan? Send an invite instead", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan))
+                        Text(stringResource(R.string.setup_qr_send_invite), style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan))
                     }
                 }
                 if (onResetInvite != null) {
                     var confirm by remember { mutableStateOf(false) }
                     TextButton(onClick = { confirm = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                        Text("Reset invite", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.TextDim))
+                        Text(stringResource(R.string.setup_qr_reset_invite), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.TextDim))
                     }
                     if (confirm) {
                         androidx.compose.material3.AlertDialog(
                             onDismissRequest = { confirm = false },
                             containerColor = Mosh.Deep,
-                            title = { Text("Reset the invite?", style = Mosh.Heading) },
+                            title = { Text(stringResource(R.string.setup_qr_reset_title), style = Mosh.Heading) },
                             text = {
                                 Text(
-                                    "If this QR or a screenshot of it got out, resetting stops it working. Everyone already in the crew stays in; " +
-                                        "anyone new will need the new QR.",
+                                    stringResource(R.string.setup_qr_reset_text),
                                     style = Mosh.Body,
                                 )
                             },
-                            confirmButton = { TextButton(onClick = { confirm = false; onResetInvite() }) { Text("Reset", style = Mosh.Label.copy(color = Mosh.Cyan)) } },
-                            dismissButton = { TextButton(onClick = { confirm = false }) { Text("Cancel", style = Mosh.Label) } },
+                            confirmButton = { TextButton(onClick = { confirm = false; onResetInvite() }) { Text(stringResource(R.string.setup_qr_reset), style = Mosh.Label.copy(color = Mosh.Cyan)) } },
+                            dismissButton = { TextButton(onClick = { confirm = false }) { Text(stringResource(R.string.setup_cancel), style = Mosh.Label) } },
                         )
                     }
                 }
                 if (onEndNight != null) {
                     TextButton(onClick = onEndNight, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                        Text("End the night", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Danger))
+                        Text(stringResource(R.string.setup_qr_end_night), style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Danger))
                     }
                 }
             }

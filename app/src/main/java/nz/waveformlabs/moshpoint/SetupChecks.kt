@@ -15,28 +15,28 @@ object SetupChecks {
         val out = mutableListOf<SetupIssue>()
         val bt = a.getSystemService(android.bluetooth.BluetoothManager::class.java)?.adapter
         if (bt != null && !bt.isEnabled) {
-            out += SetupIssue("Bluetooth is off. Nobody can find you, and you can't find them, without it.", "Turn on") {
+            out += SetupIssue(Txt.s(R.string.main_setup_bluetooth_off), Txt.s(R.string.main_setup_turn_on)) {
                 runCatching { a.startActivity(Intent(android.bluetooth.BluetoothAdapter.ACTION_REQUEST_ENABLE)) }
                     .onFailure { runCatching { a.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) } }
             }
         }
         val loc = a.getSystemService(android.location.LocationManager::class.java)
         if (loc != null && !loc.isLocationEnabled) {
-            out += SetupIssue("Location is off. GPS finding needs it, and many phones need it for Bluetooth finding too.", "Turn on") {
+            out += SetupIssue(Txt.s(R.string.main_setup_location_off), Txt.s(R.string.main_setup_turn_on)) {
                 runCatching { a.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)) }
             }
         }
         if (wifiAware) {
             val wifi = a.applicationContext.getSystemService(android.net.wifi.WifiManager::class.java)
             if (wifi != null && !wifi.isWifiEnabled) {
-                out += SetupIssue("Wi-Fi is off. Turn it on for more precise distance (you don't need to join a network).", "Turn on") {
+                out += SetupIssue(Txt.s(R.string.main_setup_wifi_off), Txt.s(R.string.main_setup_turn_on)) {
                     runCatching { a.startActivity(Intent(Settings.Panel.ACTION_WIFI)) }
                 }
             }
         }
         val power = a.getSystemService(PowerManager::class.java)
         if (live && power != null && !power.isIgnoringBatteryOptimizations(a.packageName)) {
-            out += SetupIssue("Battery saving may stop Moshpoint when it's closed, so mates can't find you.", "Fix", onFixBattery)
+            out += SetupIssue(Txt.s(R.string.main_setup_battery), Txt.s(R.string.main_setup_fix), onFixBattery)
         }
         return out
     }

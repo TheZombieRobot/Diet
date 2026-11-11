@@ -27,11 +27,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.LocationBook
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.Geo
 import nz.waveformlabs.moshpoint.core.LatLon
 import org.maplibre.android.geometry.LatLng
@@ -121,24 +124,24 @@ fun MapScreen(
                 .border(1.dp, Mosh.Line, RoundedCornerShape(16.dp)).padding(horizontal = 6.dp, vertical = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            TextButton(onClick = onBack) { Text("‹ Back", style = Mosh.Label.copy(fontSize = 15.sp)) }
+            TextButton(onClick = onBack) { Text(stringResource(R.string.find_back), style = Mosh.Label.copy(fontSize = 15.sp)) }
             Column(Modifier.weight(1f)) {
-                Text("Mosh map", style = Mosh.Label)
+                Text(stringResource(R.string.find_map_title), style = Mosh.Label)
                 Text(offlineStatus ?: status, style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 15.sp, color = Mosh.TextFaint), maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             TextButton(onClick = { me?.let { dropAt = it.lat to it.lon } }, enabled = me != null) {
-                Text("Pin", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink))
+                Text(stringResource(R.string.find_map_pin), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink))
             }
-            TextButton(onClick = { focus(everyone) }) { Text("All", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
+            TextButton(onClick = { focus(everyone) }) { Text(stringResource(R.string.find_map_all), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
             TextButton(onClick = { me?.let { focus(listOf(LatLng(it.lat, it.lon))) } }) {
-                Text("Me", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan))
+                Text(stringResource(R.string.find_map_me), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan))
             }
         }
 
         // Map style: Bright / Night / Dark.
         Box(Modifier.align(Alignment.TopEnd).padding(top = 84.dp, end = 16.dp)) {
             Text(
-                MAP_STYLES[styleIx].first,
+                stringResource(MAP_STYLES[styleIx].first),
                 style = Mosh.Label.copy(fontSize = 13.sp, color = Mosh.Text),
                 modifier = Modifier.background(Mosh.Deep.copy(alpha = 0.88f), RoundedCornerShape(14.dp))
                     .border(1.dp, Mosh.Line, RoundedCornerShape(14.dp))
@@ -157,11 +160,11 @@ fun MapScreen(
                 .border(1.dp, Mosh.Line, RoundedCornerShape(20.dp)).padding(vertical = 8.dp),
         ) {
             TextButton(onClick = { saveN++ }, modifier = Modifier.padding(horizontal = 6.dp)) {
-                Text("⬇  Save this area for no signal", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF)))
+                Text(stringResource(R.string.find_save_area), style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF)))
             }
             if (people.isEmpty()) {
                 Text(
-                    "No mates yet. Start a crew or add a friend, and they'll show up here once they go live.",
+                    stringResource(R.string.find_map_no_mates),
                     style = Mosh.Body, modifier = Modifier.padding(16.dp),
                 )
             }
@@ -179,17 +182,17 @@ fun MapScreen(
                         ) { Text(if (p.meetUp) "★" else "●", style = Mosh.Label.copy(color = if (p.meetUp) Mosh.Pink else Mosh.Cyan)) }
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
-                            Text((if (p.meetUp) "Meet: " else "") + p.name, style = Mosh.Label.copy(fontSize = 15.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(if (p.meetUp) stringResource(R.string.find_meet_label, p.name) else p.name, style = Mosh.Label.copy(fontSize = 15.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
                             Text(
                                 listOfNotNull(
                                     me?.let { distanceLabel(Geo.distanceM(it, LatLon(p.lat, p.lon))) },
-                                    if (p.meetUp) "crew meet-up" else "only you see this",
+                                    if (p.meetUp) stringResource(R.string.find_place_crew_meetup) else stringResource(R.string.find_place_only_you),
                                 ).joinToString(" · "),
                                 style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 16.sp, color = Mosh.TextFaint),
                             )
                         }
-                        TextButton(onClick = { onDirections(p.lat, p.lon) }) { Text("Walk", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
-                        if (onRide != null && !p.meetUp) TextButton(onClick = { onRide(p.lat, p.lon) }) { Text("Ride", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lime)) }
+                        TextButton(onClick = { onDirections(p.lat, p.lon) }) { Text(stringResource(R.string.find_walk), style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
+                        if (onRide != null && !p.meetUp) TextButton(onClick = { onRide(p.lat, p.lon) }) { Text(stringResource(R.string.find_ride), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lime)) }
                         TextButton(onClick = { onRemovePlace(p) }) { Text("✕", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.TextFaint)) }
                     }
                 }
@@ -206,7 +209,7 @@ fun MapScreen(
                         Column(Modifier.weight(1f)) {
                             Text(f.name, style = Mosh.Label.copy(fontSize = 15.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
                             val line = if (s == null) {
-                                "Not sharing yet"
+                                stringResource(R.string.find_not_sharing)
                             } else {
                                 val age = nowMs / 1000 - s.timeSec
                                 val dist = me?.let { distanceLabel(Geo.distanceM(it, LatLon(s.lat, s.lon))) }
@@ -219,11 +222,11 @@ fun MapScreen(
                         }
                         if (s != null) {
                             Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                                TextButton(onClick = { onDirections(s.lat, s.lon) }) { Text("Walk", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
-                                TextButton(onClick = { onFind(f.id) }) { Text("Find", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink)) }
+                                TextButton(onClick = { onDirections(s.lat, s.lon) }) { Text(stringResource(R.string.find_walk), style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
+                                TextButton(onClick = { onFind(f.id) }) { Text(stringResource(R.string.find_find), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink)) }
                             }
                         } else {
-                            TextButton(onClick = { onNudge(f) }) { Text("Ask", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
+                            TextButton(onClick = { onNudge(f) }) { Text(stringResource(R.string.find_ask), style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
                         }
                     }
                 }
@@ -233,34 +236,36 @@ fun MapScreen(
 
     dropAt?.let { (lat, lon) ->
         var name by remember { mutableStateOf("") }
+        val meetHere = stringResource(R.string.find_meet_here)
+        val mySpot = stringResource(R.string.find_my_spot)
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { dropAt = null },
             containerColor = Mosh.Deep,
-            title = { Text("Drop a pin", style = Mosh.Heading) },
+            title = { Text(stringResource(R.string.find_drop_pin), style = Mosh.Heading) },
             text = {
                 Column {
                     Text(
-                        if (inCrew) "Save it just for you (tent, car…) or make it the crew's meet-up point: everyone gets it on their map."
-                        else "Save it for yourself: the tent, the car, the good toilets. Works with no signal.",
+                        if (inCrew) stringResource(R.string.find_drop_pin_crew_help)
+                        else stringResource(R.string.find_drop_pin_solo_help),
                         style = Mosh.Body,
                     )
                     Spacer(Modifier.width(1.dp).heightIn(min = 10.dp))
                     androidx.compose.material3.OutlinedTextField(
                         name, { name = it.take(24) }, singleLine = true,
-                        placeholder = { Text("e.g. Sound desk, Tent, Car") },
+                        placeholder = { Text(stringResource(R.string.find_drop_pin_hint)) },
                     )
                 }
             },
             confirmButton = {
                 if (inCrew) {
-                    TextButton(onClick = { onDropPin(name.ifBlank { "Meet here" }, lat, lon, true); dropAt = null }) {
-                        Text("Crew meet-up", style = Mosh.Label.copy(color = Mosh.Pink))
+                    TextButton(onClick = { onDropPin(name.ifBlank { meetHere }, lat, lon, true); dropAt = null }) {
+                        Text(stringResource(R.string.find_crew_meetup), style = Mosh.Label.copy(color = Mosh.Pink))
                     }
                 }
             },
             dismissButton = {
-                TextButton(onClick = { onDropPin(name.ifBlank { "My spot" }, lat, lon, false); dropAt = null }) {
-                    Text("Just for me", style = Mosh.Label.copy(color = Mosh.Cyan))
+                TextButton(onClick = { onDropPin(name.ifBlank { mySpot }, lat, lon, false); dropAt = null }) {
+                    Text(stringResource(R.string.find_just_for_me), style = Mosh.Label.copy(color = Mosh.Cyan))
                 }
             },
         )
@@ -286,8 +291,12 @@ internal fun crewBubbles(pins: List<MapPin>): List<MapPin> {
             out += first
         } else {
             val names = (listOf(first) + group).map { it.name }
-            val label = if (names.size <= 3) names.dropLast(1).joinToString(", ") + " & " + names.last() else "${names[0]} +${names.size - 1}"
-            out += first.copy(name = label, caption = "together · ${first.caption}")
+            val label = when (names.size) {
+                2 -> Txt.s(R.string.find_bubble_two, names[0], names[1])
+                3 -> Txt.s(R.string.find_bubble_three, names[0], names[1], names[2])
+                else -> Txt.s(R.string.find_bubble_more, names[0], names.size - 1)
+            }
+            out += first.copy(name = label, caption = Txt.s(R.string.find_bubble_together, first.caption))
         }
     }
     return out

@@ -30,6 +30,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.GigSearch
+import nz.waveformlabs.moshpoint.R
+import androidx.compose.ui.res.stringResource
 import java.text.DateFormat
 import java.util.Calendar
 import java.util.Date
@@ -54,8 +56,8 @@ internal fun PlanGigSheet(
                 .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("Plan a gig", style = Mosh.Heading)
-            Text("Start the crew now, everyone joins when it suits. It sleeps (no battery) until the day.", style = Mosh.Body)
+            Text(stringResource(R.string.setup_plan_title), style = Mosh.Heading)
+            Text(stringResource(R.string.setup_plan_desc), style = Mosh.Body)
 
             if (search != null) {
                 var query by remember { mutableStateOf("") }
@@ -63,7 +65,7 @@ internal fun PlanGigSheet(
                 var busy by remember { mutableStateOf(false) }
                 OutlinedTextField(
                     query, { query = it }, singleLine = true, modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Search: band, artist or venue") },
+                    placeholder = { Text(stringResource(R.string.setup_plan_search_hint)) },
                 )
                 LaunchedEffect(query) {
                     if (query.trim().length < 2) {
@@ -76,9 +78,9 @@ internal fun PlanGigSheet(
                     busy = false
                 }
                 when {
-                    busy -> Text("Searching…", style = Mosh.Body.copy(color = Mosh.TextFaint))
-                    results == null -> Text("Couldn't search right now. Type it in below instead.", style = Mosh.Body.copy(color = Mosh.TextFaint))
-                    results!!.isEmpty() && query.trim().length >= 2 -> Text("No upcoming gigs found. Type it in below.", style = Mosh.Body.copy(color = Mosh.TextFaint))
+                    busy -> Text(stringResource(R.string.setup_plan_searching), style = Mosh.Body.copy(color = Mosh.TextFaint))
+                    results == null -> Text(stringResource(R.string.setup_plan_search_failed), style = Mosh.Body.copy(color = Mosh.TextFaint))
+                    results!!.isEmpty() && query.trim().length >= 2 -> Text(stringResource(R.string.setup_plan_no_results), style = Mosh.Body.copy(color = Mosh.TextFaint))
                 }
                 results.orEmpty().take(12).forEach { g ->
                     Column(
@@ -87,14 +89,15 @@ internal fun PlanGigSheet(
                             .padding(horizontal = 14.dp, vertical = 10.dp),
                     ) {
                         Text(g.name, style = Mosh.Label.copy(fontSize = 15.sp), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        val where = listOf(g.venue, g.city).filter { it.isNotBlank() }.joinToString(", ")
                         Text(
-                            gigWhen(g.startsAtSec) + listOf(g.venue, g.city).filter { it.isNotBlank() }.joinToString(", ").let { if (it.isBlank()) "" else " · $it" },
+                            if (where.isBlank()) gigWhen(g.startsAtSec) else stringResource(R.string.setup_plan_when_where, gigWhen(g.startsAtSec), where),
                             style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim),
                         )
                     }
                 }
                 Spacer(Modifier.height(4.dp))
-                Text("OR TYPE IT IN", style = Mosh.Eyebrow)
+                Text(stringResource(R.string.setup_plan_or_type), style = Mosh.Eyebrow)
             }
 
             // By hand: works anywhere, no key or internet needed.
@@ -109,10 +112,10 @@ internal fun PlanGigSheet(
                     }.timeInMillis / 1000,
                 )
             }
-            OutlinedTextField(name, { name = it.take(40) }, singleLine = true, modifier = Modifier.fillMaxWidth(), label = { Text("Who's playing") })
-            OutlinedTextField(venue, { venue = it.take(60) }, singleLine = true, modifier = Modifier.fillMaxWidth(), label = { Text("Where (optional)") })
+            OutlinedTextField(name, { name = it.take(40) }, singleLine = true, modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.setup_plan_whos_playing)) })
+            OutlinedTextField(venue, { venue = it.take(60) }, singleLine = true, modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.setup_plan_where)) })
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                GlassButton(java.text.SimpleDateFormat("EEE d MMM", java.util.Locale.getDefault()).format(Date(at * 1000)), Modifier.weight(1f)) {
+                GlassButton(java.text.SimpleDateFormat(android.text.format.DateFormat.getBestDateTimePattern(java.util.Locale.getDefault(), "EEEdMMM"), java.util.Locale.getDefault()).format(Date(at * 1000)), Modifier.weight(1f)) {
                     val cal = Calendar.getInstance().apply { timeInMillis = at * 1000 }
                     android.app.DatePickerDialog(context, { _, y, m, d ->
                         cal.set(y, m, d)
@@ -128,7 +131,8 @@ internal fun PlanGigSheet(
                     }, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), android.text.format.DateFormat.is24HourFormat(context)).show()
                 }
             }
-            NeonButton("Start the crew") { onPick(name.ifBlank { "Gig night" }, at, venue.trim(), null, null) }
+            val defaultGigName = stringResource(R.string.setup_plan_default_name)
+            NeonButton(stringResource(R.string.setup_plan_start_crew)) { onPick(name.ifBlank { defaultGigName }, at, venue.trim(), null, null) }
             Spacer(Modifier.heightIn(min = 4.dp))
         }
     }

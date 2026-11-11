@@ -49,6 +49,8 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -58,6 +60,7 @@ import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.PhotoStore
+import nz.waveformlabs.moshpoint.R
 import androidx.compose.foundation.clickable
 import nz.waveformlabs.moshpoint.core.ArrowState
 import nz.waveformlabs.moshpoint.core.ArrowStyle
@@ -79,7 +82,7 @@ fun LivePill(live: Boolean) {
             drawCircle(if (live) Mosh.Lime else Color(0xFF6E6886))
         })
         Spacer(Modifier.width(8.dp))
-        Text(if (live) "Live" else "Hidden", style = Mosh.Body.copy(fontSize = 13.sp))
+        Text(if (live) stringResource(R.string.find_pill_live) else stringResource(R.string.find_pill_hidden), style = Mosh.Body.copy(fontSize = 13.sp))
     }
 }
 
@@ -115,8 +118,9 @@ internal fun DistanceReadout(distanceM: Double?) {
 
 @Composable
 internal fun Searching(name: String) {
+    val searchingCd = stringResource(R.string.find_searching_cd)
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(30.dp)) {
-        Box(Modifier.size(240.dp).semantics { contentDescription = "Searching" }, contentAlignment = Alignment.Center) {
+        Box(Modifier.size(240.dp).semantics { contentDescription = searchingCd }, contentAlignment = Alignment.Center) {
             Canvas(Modifier.fillMaxSize()) {
                 val r = size.minDimension / 2
                 drawCircle(Mosh.Violet.copy(alpha = 0.35f), r, style = Stroke(1.dp.toPx()))
@@ -131,11 +135,10 @@ internal fun Searching(name: String) {
             })
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.widthIn(max = 290.dp)) {
-            Text("Looking for $name…", style = Mosh.Heading, textAlign = TextAlign.Center)
+            Text(stringResource(R.string.find_looking_for, name), style = Mosh.Heading, textAlign = TextAlign.Center)
             Spacer(Modifier.height(10.dp))
             Text(
-                "No signal from them and no shared location yet. They need Moshpoint open with Go live on, plus location and mobile data. " +
-                    "Then their arrow appears, even if they're across town.",
+                stringResource(R.string.find_searching_help),
                 style = Mosh.Body, textAlign = TextAlign.Center,
             )
         }
@@ -155,30 +158,50 @@ internal fun DistanceOnly(list: List<ArrowState.DistanceOnly>, friendOf: (String
             if (d.method == nz.waveformlabs.moshpoint.core.Method.BLE_RSSI) {
                 // Signal strength in a crowd can't honestly say "7 m": show a band instead.
                 Text(
-                    ArrowStyle.bandLabel(d.distanceM),
+                    bandLabel(d.distanceM),
                     style = Mosh.Distance.copy(fontSize = if (list.size > 1) 32.sp else 52.sp, lineHeight = if (list.size > 1) 34.sp else 56.sp),
                 )
-                Text(ArrowStyle.bandHint(d.distanceM), style = Mosh.Body.copy(color = Mosh.TextFaint))
+                Text(bandHint(d.distanceM), style = Mosh.Body.copy(color = Mosh.TextFaint))
             } else if (list.size > 1) {
                 RollingText(ArrowStyle.distanceLabel(d.distanceM), Mosh.Distance.copy(fontSize = 32.sp, lineHeight = 34.sp))
             } else {
                 DistanceReadout(d.distanceM)
             }
             val (label, c, hint) = when (d.trend) {
-                Trend.WARMER -> Triple("Warmer", Mosh.Lime, "Keep going this way")
-                Trend.COLDER -> Triple("Colder", Mosh.Pink, "Turn around")
-                Trend.STEADY -> Triple("Steady", Mosh.Cyan, "Try another direction")
+                Trend.WARMER -> Triple(stringResource(R.string.find_trend_warmer), Mosh.Lime, stringResource(R.string.find_trend_warmer_hint))
+                Trend.COLDER -> Triple(stringResource(R.string.find_trend_colder), Mosh.Pink, stringResource(R.string.find_trend_colder_hint))
+                Trend.STEADY -> Triple(stringResource(R.string.find_trend_steady), Mosh.Cyan, stringResource(R.string.find_trend_steady_hint))
             }
-            val who = if (list.size > 1) "${f?.name ?: "?"}: " else ""
+            val whoHint = if (list.size > 1) stringResource(R.string.find_trend_hint_who, f?.name ?: "?", hint) else hint
             val via = if ((BuildConfig.TEST_BUILD && DebugStatus.showUi)) "  (${methodLabel(d.method)})" else ""
-            Chip(label, c, "$who$hint$via")
+            Chip(label, c, "$whoHint$via")
         }
         Spacer(Modifier.height(4.dp))
         Text(
-            "Walk a few steps one way, then another. Warmer means you're getting closer. The arrow appears once we've worked out which way.",
+            stringResource(R.string.find_warmer_help),
             style = Mosh.Body, textAlign = TextAlign.Center,
         )
     }
+}
+
+/** App-side, translated twin of ArrowStyle.bandLabel (same thresholds). */
+@Composable
+private fun bandLabel(distanceM: Double?): String = when {
+    distanceM == null -> "?"
+    distanceM < 3 -> stringResource(R.string.find_band_right_here)
+    distanceM < 10 -> stringResource(R.string.find_band_close)
+    distanceM < 30 -> stringResource(R.string.find_band_nearby)
+    else -> stringResource(R.string.find_band_in_range)
+}
+
+/** App-side, translated twin of ArrowStyle.bandHint (same thresholds). */
+@Composable
+private fun bandHint(distanceM: Double?): String = when {
+    distanceM == null -> ""
+    distanceM < 3 -> stringResource(R.string.find_band_hint_right_here)
+    distanceM < 10 -> stringResource(R.string.find_band_hint_close)
+    distanceM < 30 -> stringResource(R.string.find_band_hint_nearby)
+    else -> stringResource(R.string.find_band_hint_in_range)
 }
 
 /**
@@ -188,12 +211,13 @@ internal fun DistanceOnly(list: List<ArrowState.DistanceOnly>, friendOf: (String
 @Composable
 internal fun ScanProgress(scan: LocatorEngine.ScanUi) {
     val pct = (scan.coverageDeg / 360.0 * 100).toInt().coerceIn(0, 100)
+    val coveredCd = stringResource(R.string.find_scan_covered_cd, pct)
     val t = rememberInfiniteTransition(label = "scan")
     val pulse by t.ambient(1f, 1.06f, infiniteRepeatable(tween(1000, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "p")
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(36.dp)) {
         Box(Modifier.size(260.dp), contentAlignment = Alignment.Center) {
             Box(Modifier.size(236.dp).clip(CircleShape)) { RadarSweep(Mosh.Lime, periodMs = 2400) }
-            Canvas(Modifier.fillMaxSize().semantics { contentDescription = "$pct percent of the circle covered" }) {
+            Canvas(Modifier.fillMaxSize().semantics { contentDescription = coveredCd }) {
                 val stroke = 16.dp.toPx()
                 val r = size.minDimension / 2 - stroke
                 val n = scan.sectors.size
@@ -222,21 +246,20 @@ internal fun ScanProgress(scan: LocatorEngine.ScanUi) {
                 horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center,
             ) {
                 Text(
-                    "$pct%",
+                    stringResource(R.string.find_scan_percent, pct),
                     style = Mosh.Distance.copy(fontSize = 40.sp, lineHeight = 44.sp, color = Mosh.Lime, shadow = Shadow(Mosh.Lime.copy(alpha = 0.7f), blurRadius = 24f)),
                 )
                 Text(
-                    if (scan.heard == 0) "listening…" else "heard them ${scan.heard}×",
+                    if (scan.heard == 0) stringResource(R.string.find_scan_listening) else pluralStringResource(R.plurals.find_scan_heard, scan.heard, scan.heard),
                     style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint),
                 )
             }
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.widthIn(max = 300.dp)) {
-            Text("Spin slowly", style = Mosh.Heading)
+            Text(stringResource(R.string.find_spin_slowly), style = Mosh.Heading)
             Spacer(Modifier.height(10.dp))
             Text(
-                "Hold the phone against your chest, screen facing you, and turn slowly on the spot: about 15 seconds for a full circle. " +
-                    "Your body blocks the signal, so we can tell which way they are.",
+                stringResource(R.string.find_spin_help),
                 style = Mosh.Body, textAlign = TextAlign.Center,
             )
         }
@@ -291,12 +314,12 @@ internal fun FoundOverlay(friend: Friend?, onDone: () -> Unit, onKeep: () -> Uni
                 modifier = Modifier.graphicsLayer { translationY = rise * 40f; alpha = 1f - rise },
             ) {
                 Text(
-                    "UNDER 3 METRES",
+                    stringResource(R.string.find_under_3_metres),
                     style = Mosh.Eyebrow.copy(color = Mosh.Lime, letterSpacing = 3.sp, shadow = Shadow(Mosh.Lime.copy(alpha = 0.8f), blurRadius = 18f)),
                 )
                 Spacer(Modifier.height(10.dp))
                 Text(
-                    "You found ${friend?.name ?: "them"}",
+                    friend?.name?.let { stringResource(R.string.find_you_found, it) } ?: stringResource(R.string.find_you_found_them),
                     style = Mosh.Title.copy(fontSize = 38.sp, lineHeight = 42.sp),
                     textAlign = TextAlign.Center,
                     // Neon gradient text: draw the text, then paint the gradient over it.
@@ -311,11 +334,11 @@ internal fun FoundOverlay(friend: Friend?, onDone: () -> Unit, onKeep: () -> Uni
                         },
                 )
                 Spacer(Modifier.height(8.dp))
-                Text("Look up and wave.", style = Mosh.Body)
+                Text(stringResource(R.string.find_look_up_wave), style = Mosh.Body)
                 Spacer(Modifier.height(36.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    NeonButton("Done", Modifier.weight(1f), onClick = onDone)
-                    GlassButton("Keep the arrow", Modifier.weight(1f), onClick = onKeep)
+                    NeonButton(stringResource(R.string.find_done), Modifier.weight(1f), onClick = onDone)
+                    GlassButton(stringResource(R.string.find_keep_arrow), Modifier.weight(1f), onClick = onKeep)
                 }
             }
         }
@@ -343,7 +366,7 @@ internal fun BeaconOverlay(colour: Color, colourName: String, onStop: () -> Unit
         contentAlignment = Alignment.BottomCenter,
     ) {
         Text(
-            "Your colour is ${colourName.uppercase()}. Hold your phone up high. Tap to stop.",
+            stringResource(R.string.find_beacon_help, colourName.uppercase()),
             style = Mosh.Body.copy(color = if (on) Color.Black else Color.White, fontSize = 15.sp),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom = 48.dp),

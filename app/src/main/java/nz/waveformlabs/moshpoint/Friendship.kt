@@ -66,7 +66,7 @@ object Friendship {
     fun hasAsked(c: Context, friendId: String) = friendId in asked(c).values
 
     private fun payload(c: Context): ByteArray =
-        Identity.permanent(c) + VisibilityPrefs.myName(c.applicationContext).ifBlank { "Mate" }.take(40).toByteArray(Charsets.UTF_8)
+        Identity.permanent(c) + VisibilityPrefs.myName(c.applicationContext).ifBlank { Txt.s(R.string.crew_default_name) }.take(40).toByteArray(Charsets.UTF_8)
 
     private fun send(c: Context, g: GigGroup, toPub: ByteArray, kind: Int): Boolean {
         val blob = g.sealDirect(Identity.signer(c, g), toPub, kind, payload(c), System.currentTimeMillis() / 1000) ?: return false
@@ -81,16 +81,16 @@ object Friendship {
     /** Ask crew mate [friendId] to stay friends. Returns what to tell the user. */
     fun request(c: Context, friendId: String): String {
         val app = c.applicationContext
-        val g = GroupSync.group.value ?: return "Keep as friend works while you're in a crew together."
-        val f = FriendsRepository.friends.firstOrNull { it.id == friendId } ?: return "They're not in the crew any more."
+        val g = GroupSync.group.value ?: return Txt.s(R.string.crew_friend_need_crew)
+        val f = FriendsRepository.friends.firstOrNull { it.id == friendId } ?: return Txt.s(R.string.crew_friend_gone)
         val pub = GroupSync.pubOf(f.secret)
-            ?: return "Can't reach ${f.name} privately yet. Try again once they've been seen tonight (their app needs updating if this keeps happening)."
-        if (!send(app, g, pub, REQUEST)) return "Couldn't ask ${f.name}. Try again."
+            ?: return Txt.s(R.string.crew_friend_unreachable, f.name)
+        if (!send(app, g, pub, REQUEST)) return Txt.s(R.string.crew_friend_ask_failed, f.name)
         val set = prefs(app).getStringSet("asked", emptySet())!!.toMutableSet()
         set.removeAll { it.endsWith("=$friendId") }
         set += "${CrewKeys.tagOf(pub)}=$friendId"
         prefs(app).edit().putStringSet("asked", set).apply()
-        return "Asked ${f.name} to stay friends. You'll be friends for every gig when they say yes."
+        return Txt.s(R.string.crew_friend_asked, f.name)
     }
 
     fun accept(c: Context, p: Pending) {
@@ -134,7 +134,7 @@ object Friendship {
                 if (incoming.any { it.secret.contentEquals(secret) }) return
                 incoming += Pending(GigArchive.idFor(g), g.name, d.fromPub, secret, name)
                 save(app)
-                CrewNotifications.post(app, title = "$name wants to stay friends", text = "From ${g.name}. Tap to say yes, and you can find each other at any gig.", openMap = false)
+                CrewNotifications.post(app, title = Txt.s(R.string.crew_friend_request_title, name), text = Txt.s(R.string.crew_friend_request_text, g.name), openMap = false)
             }
             ACCEPT -> {
                 val tag = CrewKeys.tagOf(d.fromPub).toString()
@@ -142,7 +142,7 @@ object Friendship {
                 val entry = a[tag] ?: return // we never asked: ignore
                 FriendsRepository.makePermanent(entry, secret, name)
                 prefs(app).edit().putStringSet("asked", prefs(app).getStringSet("asked", emptySet())!!.filterNot { it.startsWith("$tag=") }.toSet()).apply()
-                CrewNotifications.post(app, title = "$name is a friend now", text = "You can find each other at any gig, not just ${g.name}.", openMap = false)
+                CrewNotifications.post(app, title = Txt.s(R.string.crew_friend_accepted_title, name), text = Txt.s(R.string.crew_friend_accepted_text, g.name), openMap = false)
             }
         }
     }

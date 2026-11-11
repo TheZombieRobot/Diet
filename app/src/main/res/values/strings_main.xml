@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Main screen, invites, sharing and phone setup checks. -->
+<resources>
+    <!-- Sharing: install instructions put in front of every invite. %1$s = download link -->
+    <string name="main_get_the_app">No Moshpoint yet? Install it from here (Android): %1$s\nThen copy this whole message, open Moshpoint and tap Paste invite.\n\n</string>
+    <!-- %1$s = mate names joined with " & ", or main_nudge_mate if none -->
+    <string name="main_nudge_text">Hey %1$s, open Moshpoint and tap Go live (with location and data on) so I can find you!</string>
+    <!-- Used in main_nudge_text when we don't know their names -->
+    <string name="main_nudge_mate">mate</string>
+    <!-- Share sheet title -->
+    <string name="main_nudge_title">Ask them to go live</string>
+
+    <!-- Phone setup checks -->
+    <string name="main_setup_bluetooth_off">Bluetooth is off. Nobody can find you, and you can\'t find them, without it.</string>
+    <string name="main_setup_location_off">Location is off. GPS finding needs it, and many phones need it for Bluetooth finding too.</string>
+    <string name="main_setup_wifi_off">Wi-Fi is off. Turn it on for more precise distance (you don\'t need to join a network).</string>
+    <string name="main_setup_battery">Battery saving may stop Moshpoint when it\'s closed, so mates can\'t find you.</string>
+    <!-- Button: turn the switch on -->
+    <string name="main_setup_turn_on">Turn on</string>
+    <!-- Button: fix the battery setting -->
+    <string name="main_setup_fix">Fix</string>
+
+    <!-- Facebook login. %1$s = error message from Facebook -->
+    <string name="main_facebook_failed">Facebook login failed: %1$s</string>
+    <string name="main_facebook_unknown_error">unknown</string>
+    <string name="main_facebook_not_set_up">Facebook login isn\'t set up in this build</string>
+
+    <!-- Default name for a saved map spot -->
+    <string name="main_my_spot">My spot</string>
+
+    <!-- Camera roll -->
+    <string name="main_photos_permission_needed">Moshpoint needs access to your photos to find the ones from that night</string>
+    <!-- Name shown on photos you add from your camera roll when you haven't set a name -->
+    <string name="main_you">You</string>
+    <!-- %d = number of photos/clips added -->
+    <plurals name="main_added_to_gig">
+        <item quantity="one">Added %d to the gig</item>
+        <item quantity="other">Added %d to the gig</item>
+    </plurals>
+    <string name="main_saving_one">Saving…</string>
+    <!-- %d = number of photos and clips being saved -->
+    <plurals name="main_saving_many">
+        <item quantity="one">Saving %d photo or clip…</item>
+        <item quantity="other">Saving %d photos and clips…</item>
+    </plurals>
+    <string name="main_save_failed">Couldn\'t save. Is your phone full?</string>
+    <!-- %1$s = album (gig) name -->
+    <string name="main_saved_all">Saved to your gallery: Moshpoint / %1$s</string>
+    <!-- %1$d = how many were saved, %2$d = how many were tried -->
+    <plurals name="main_saved_some">
+        <item quantity="one">Saved %1$d of %2$d to your gallery</item>
+        <item quantity="other">Saved %1$d of %2$d to your gallery</item>
+    </plurals>
+    <!-- Album name when the gig has no name -->
+    <string name="main_gig_fallback">Gig</string>
+
+    <!-- Invites -->
+    <string name="main_invite_expired">That group invite has expired. Ask for a new one.</string>
+    <!-- %1$s = crew / gig name -->
+    <string name="main_joined_up_next">You\'re in %1$s! It\'s in Up next: chat away, and it wakes up on gig day.</string>
+    <!-- %1$s = crew name -->
+    <string name="main_joined_following">You\'re following %1$s. You\'ll see their photos and where they are; they\'ll see you\'re following.</string>
+    <!-- %1$s = crew name, %2$s = when the gig is, e.g. "Sat 8 pm" -->
+    <string name="main_joined_sleeping">You\'re in %1$s! The crew wakes up on gig day (%2$s).</string>
+    <!-- %1$s = crew name (or main_the_crew) -->
+    <string name="main_joined_live">You\'re in %1$s! Everyone in it can find each other.</string>
+    <!-- Used in place of a crew name when it's unknown -->
+    <string name="main_the_crew">the crew</string>
+    <string name="main_got_code">Got the code. Give them a name, then tap Add friend.</string>
+    <!-- %1$s = friend's name -->
+    <string name="main_friend_added">✓ %1$s added</string>
+    <string name="main_no_invite_found">No Moshpoint invite found. Copy the whole message your mate sent, then tap Paste invite.</string>
+
+    <!-- Permissions still missing -->
+    <string name="main_perm_location">Location: GPS arrow and Bluetooth/Wi-Fi distance</string>
+    <string name="main_perm_nearby">Nearby devices: finding mates and being found over Bluetooth</string>
+    <string name="main_perm_uwb">UWB: the precise arrow</string>
+    <string name="main_perm_notifications">Notifications: shows when you\'re visible</string>
+
+    <!-- %1$s = list of finding hardware, e.g. "UWB, Bluetooth, compass, GPS" -->
+    <string name="main_phone_summary">This phone: %1$s</string>
+    <string name="main_cap_compass">compass</string>
+
+    <!-- Crew QR dialog -->
+    <string name="main_invite_reset">Invite reset. Old QR codes and links don\'t work any more.</string>
+    <!-- Small caps label above the crew name -->
+    <string name="main_eyebrow_up_next">UP NEXT</string>
+    <!-- %1$s = countdown, already in capitals, e.g. "IN 3 DAYS" -->
+    <string name="main_eyebrow_up_next_countdown">UP NEXT · %1$s</string>
+    <string name="main_eyebrow_coming_up">YOUR CREW · COMING UP</string>
+    <string name="main_eyebrow_tonight">YOUR CREW FOR TONIGHT</string>
+    <string name="main_qr_hint_planned">Everyone scans this once. Chat and hype it up now; finding each other switches on on gig day.</string>
+    <string name="main_qr_hint_tonight">Everyone scans this once. Then you can all find each other, all night.</string>
+    <string name="main_scan_to_add_me">Scan to add me</string>
+    <!-- %1$s = your name -->
+    <string name="main_scan_to_add_name">Scan to add %1$s</string>
+
+    <!-- Keep friends dialog. %1$s = their name -->
+    <string name="main_wants_to_stay_friends">%1$s wants to stay friends</string>
+    <!-- %1$s = crew name, %2$s = their name -->
+    <string name="main_stay_friends_text">You met in %1$s. Say yes and you can find each other at any gig, not just this one. Only %2$s gets your details, nobody else in the crew.</string>
+    <!-- %1$s = their name -->
+    <string name="main_friends_now">You and %1$s are friends now</string>
+    <string name="main_yes_stay_friends">Yes, stay friends</string>
+    <string name="main_not_now">Not now</string>
+
+    <!-- Battery optimisation dialog -->
+    <string name="main_battery_title">Stay visible all night</string>
+    <!-- The quoted words are Android setting names; use the names Android shows in this language -->
+    <string name="main_battery_text">Some phones shut down apps in the background to save battery, which would make you disappear. Find Moshpoint in the next screen and set it to \"Don\'t optimise\" / \"Unrestricted\".</string>
+    <string name="main_open_settings">Open settings</string>
+
+    <!-- Finder title when finding several mates. %d = number of mates -->
+    <plurals name="main_n_mates">
+        <item quantity="one">%d mate</item>
+        <item quantity="other">%d mates</item>
+    </plurals>
+    <!-- A mate's light-up colour and name. %1$s = colour name (e.g. PINK), %2$s = mate's name -->
+    <string name="main_beacon_colour_name">%1$s (%2$s)</string>
+
+    <string name="main_scan_prompt">Scan your mate\'s Moshpoint QR</string>
+    <!-- %1$s = friend's name -->
+    <string name="main_out_of_crew">%1$s is out of the crew. Everyone else moves to a new key.</string>
+
+    <!-- Let family follow. %1$s = crew name, %2$s = install steps and the invite link -->
+    <string name="main_follow_share_text">Follow our night at %1$s on Moshpoint: see our photos as they come in and that we\'re safe.\n%2$s</string>
+    <string name="main_follow_share_title">Let family follow along</string>
+    <!-- When and where the crew meets. %1$s = when, %2$s = venue -->
+    <string name="main_when_venue">%1$s · %2$s</string>
+
+    <string name="main_time_passed">That time has already passed. Pick when the gig starts.</string>
+    <!-- %1$s = gig name -->
+    <string name="main_added_up_next">%1$s added to Up next. Invite your mates and start the hype!</string>
+
+    <!-- Bump / clipboard invite dialogs. %1$s = crew name -->
+    <string name="main_join_name">Join %1$s?</string>
+    <!-- %1$s = crew name -->
+    <string name="main_follow_name">Follow %1$s?</string>
+    <string name="main_bumped_text">Bumped! Join and you can all find each other tonight.</string>
+    <string name="main_join">Join</string>
+    <string name="main_no">No</string>
+    <string name="main_clip_follow_text">You copied a follow-along link. You\'ll see their photos and that they\'re safe; they\'ll see you\'re following.</string>
+    <string name="main_clip_join_text">You copied a Moshpoint invite. Join and you can all find each other tonight.</string>
+
+    <!-- End of night recap -->
+    <string name="main_your_night">Your night</string>
+    <!-- %1$s = summary of the night (several sentences) -->
+    <string name="main_recap_text">%1$s\n\nEnding the night closes the crew (friends stay). The photos and clips stay on your phone in Your gigs.</string>
+    <string name="main_night_ended">Night ended. Your photos and clips are in Your gigs.</string>
+    <string name="main_end_the_night">End the night</string>
+    <!-- %1$s = summary of the night -->
+    <string name="main_share_night_text">My night with Moshpoint: %1$s 🤘</string>
+    <string name="main_share_night_title">Share your night</string>
+    <string name="main_share">Share</string>
+
+    <!-- %1$s = crew name -->
+    <string name="main_now_main_crew">%1$s is your main crew now. Everyone in it can find each other.</string>
+    <!-- %1$s = gig name -->
+    <string name="main_deleted_gig">Deleted %1$s from this phone</string>
+    <string name="main_meetup_sent">Meet-up pin sent to your crew</string>
+    <!-- Photo label on the map. %1$s = who took it, %2$s = how long ago, e.g. "5 min ago" -->
+    <string name="main_moment_label">%1$s · %2$s</string>
+
+    <!-- Share Moshpoint. %1$s = install steps and the invite link -->
+    <string name="main_share_app_text">Get Moshpoint so we can find each other at gigs: tap a mate and an arrow points to them.\n\n%1$s</string>
+    <string name="main_share_app_title">Share Moshpoint</string>
+    <!-- Default crew name. %1$s = your name -->
+    <string name="main_named_crew">%1$s\'s crew</string>
+    <string name="main_tonights_crew">Tonight\'s crew</string>
+    <!-- Your name on the shared plan picture when you haven't set one -->
+    <string name="main_me">Me</string>
+    <!-- %1$s = crew name, %2$s = install steps and the invite link -->
+    <string name="main_group_invite_text">Join my crew \"%1$s\" on Moshpoint tonight!\n%2$s</string>
+    <string name="main_group_invite_title">Send the group invite</string>
+</resources>

@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Crew chat, crew notifications, friendship, safety, plan card, night stats and the live-status service. -->
+<resources>
+
+    <!-- ===== Shared ===== -->
+    <!-- Shown instead of your own name ("You pinned: …", "You · 2 min ago") -->
+    <string name="crew_you">You</string>
+    <!-- Fallback name for someone who hasn't set one -->
+    <string name="crew_default_name">Mate</string>
+    <!-- Fallback name for a crew with no name -->
+    <string name="crew_default_group_name">Gig group</string>
+    <!-- Fallback name for a saved gig with no name -->
+    <string name="crew_default_gig_name">Gig</string>
+    <!-- Fallback for a person whose name we don't know -->
+    <string name="crew_someone">Someone</string>
+    <!-- Two people in the crew share a name: %1$s = the name, %2$d = 2, 3, … (e.g. "Jo (2)") -->
+    <string name="crew_name_numbered">%1$s (%2$d)</string>
+    <string name="crew_cancel">Cancel</string>
+    <string name="crew_close">Close</string>
+
+    <!-- ===== Crew chat screen ===== -->
+    <string name="crew_chat_subtitle">Crew chat · only your crew can read it</string>
+    <string name="crew_chat_invite">＋ Invite</string>
+    <string name="crew_chat_on_today">This gig is on today. Find each other in this crew?</string>
+    <!-- Button: make this crew the main crew for tonight -->
+    <string name="crew_chat_switch">Switch</string>
+    <!-- %d = minutes the flare lasts -->
+    <plurals name="crew_chat_send_flare_hint">
+        <item quantity="one">🔥  Send a flare: show where you are for %d min</item>
+        <item quantity="other">🔥  Send a flare: show where you are for %d min</item>
+    </plurals>
+    <string name="crew_chat_empty">Nothing yet. Messages reach everyone in the crew within about a minute (faster on your own relay).</string>
+    <string name="crew_chat_night_tools_later">Hype it up! Flares and quick pings switch on on gig day.</string>
+    <string name="crew_chat_message_hint">Message the crew</string>
+    <string name="crew_chat_not_sent">Not sent · Tap to retry</string>
+    <string name="crew_chat_sending">Sending…</string>
+    <!-- A chat line with when it was sent: %1$s = the line or the sender's name, %2$s = how long ago ("2 min ago") -->
+    <string name="crew_chat_line_with_time">%1$s · %2$s</string>
+
+    <!-- System lines in the chat (worded when shown, so they follow the phone's language) -->
+    <string name="crew_chat_you_joined">You joined the crew</string>
+    <!-- %1$s = person's name -->
+    <string name="crew_chat_joined">%1$s joined the crew</string>
+    <!-- %1$s = the plan text -->
+    <string name="crew_chat_you_pinned">You pinned: %1$s</string>
+    <!-- %1$s = person's name, %2$s = the plan text -->
+    <string name="crew_chat_pinned">%1$s pinned: %2$s</string>
+    <string name="crew_chat_you_cleared_plan">You cleared the plan</string>
+    <!-- %1$s = person's name -->
+    <string name="crew_chat_cleared_plan">%1$s cleared the plan</string>
+    <!-- %1$s = the flare's vibe ("Bar time 🍺") -->
+    <string name="crew_chat_you_flare">You sent a flare: %1$s</string>
+    <!-- %1$s = person's name, %2$s = the flare's vibe ("Bar time 🍺") -->
+    <string name="crew_chat_flare">%1$s sent a flare: %2$s</string>
+    <!-- Any other app line: %1$s = person's name (or "You"), %2$s = what happened -->
+    <string name="crew_chat_line_other">%1$s %2$s</string>
+
+    <!-- One-tap pings, shown as chat bubbles -->
+    <string name="crew_quick_coming">On my way 🏃</string>
+    <string name="crew_quick_where">Where are you? 👀</string>
+    <string name="crew_quick_stay_put">Stay put ✋</string>
+    <string name="crew_quick_meet_pin">Meet at the pin 📍</string>
+    <string name="crew_quick_all_good">All good 👍</string>
+    <string name="crew_quick_going_home">Heading home 🏠</string>
+    <string name="crew_quick_need_help">🚨 I need help</string>
+    <!-- %d = minutes until they'll check in -->
+    <plurals name="crew_quick_check_in">
+        <item quantity="one">Heading home 🏠 Will check in within %d min</item>
+        <item quantity="other">Heading home 🏠 Will check in within %d min</item>
+    </plurals>
+    <string name="crew_quick_home_safe">Home safe ✅</string>
+
+    <!-- ===== Pinned plan ===== -->
+    <string name="crew_plan_eyebrow">📌 THE PLAN</string>
+    <string name="crew_plan_none">No plan pinned yet.</string>
+    <string name="crew_plan_prompt">Pin the plan so nobody has to scroll: \"Sound desk after the encore\".</string>
+    <!-- %1$s = who pinned the plan -->
+    <string name="crew_plan_by">by %1$s</string>
+    <!-- %1$s = the meet-up pin's name -->
+    <string name="crew_plan_meet_up">★ Meet-up pin: %1$s</string>
+    <string name="crew_plan_pin">Pin a plan</string>
+    <!-- Button: change the pinned plan -->
+    <string name="crew_plan_change">Change</string>
+    <string name="crew_plan_share">Share as a card</string>
+    <string name="crew_plan_title">The plan</string>
+    <string name="crew_plan_editor_body">Pinned at the top of the chat for everyone, so it never scrolls away.</string>
+    <!-- Example plans offered as one-tap ideas -->
+    <string name="crew_plan_idea_sound_desk">Meet at the sound desk after the encore</string>
+    <string name="crew_plan_idea_bar">Left of the main bar at the break</string>
+    <string name="crew_plan_idea_car">Back at the car by 11:30</string>
+    <string name="crew_plan_idea_tent">Tent if we lose each other</string>
+    <string name="crew_plan_pin_it">Pin it</string>
+    <string name="crew_plan_unpin">Unpin</string>
+
+    <!-- ===== Flares ===== -->
+    <!-- Ready-made flare vibes (sent to the crew as they are) -->
+    <string name="crew_vibe_lost">Lost 😅</string>
+    <string name="crew_vibe_bar">Bar time 🍺</string>
+    <string name="crew_vibe_rail">At the rail 🎶</string>
+    <string name="crew_vibe_food">Food run 🍔</string>
+    <string name="crew_vibe_toilets">Toilets 🚻</string>
+    <string name="crew_vibe_air">Outside for air 🌬️</string>
+    <string name="crew_vibe_merch">Merch stand 👕</string>
+    <string name="crew_vibe_leaving">Leaving soon 👋</string>
+    <!-- Your own flare: %1$s = its vibe -->
+    <string name="crew_flare_mine">You: %1$s</string>
+    <!-- %1$s = person's name, %2$s = the flare's vibe -->
+    <string name="crew_flare_theirs">%1$s: %2$s</string>
+    <!-- %d = minutes left on the flare -->
+    <plurals name="crew_flare_left">
+        <item quantity="one">%d min left</item>
+        <item quantity="other">%d min left</item>
+    </plurals>
+    <!-- %d = minutes left on the flare -->
+    <plurals name="crew_flare_left_on_map">
+        <item quantity="one">%d min left · on the map</item>
+        <item quantity="other">%d min left · on the map</item>
+    </plurals>
+    <!-- Button: end your flare early -->
+    <string name="crew_flare_end">End</string>
+    <string name="crew_flare_title">Send a flare</string>
+    <!-- %d = minutes the flare lasts -->
+    <plurals name="crew_flare_body">
+        <item quantity="one">Your spot shows on the crew\'s map for %d minute, with a vibe.</item>
+        <item quantity="other">Your spot shows on the crew\'s map for %d minutes, with a vibe.</item>
+    </plurals>
+    <string name="crew_flare_own_hint">Or your own…</string>
+    <string name="crew_flare_send">Send</string>
+
+    <!-- ===== Get help ===== -->
+    <string name="crew_help_title">Get help</string>
+    <string name="crew_help_alerted">Crew alerted ✓</string>
+    <string name="crew_help_alert">Alert my crew</string>
+    <string name="crew_help_alert_sub">Urgent alert with where you are</string>
+    <!-- %1$s = emergency contact's name -->
+    <string name="crew_help_text_contact">Text %1$s</string>
+    <string name="crew_help_text_contact_sub">Your messages app opens with your location. Works without data.</string>
+    <string name="crew_help_add_contact">Add an emergency contact</string>
+    <string name="crew_help_add_contact_sub">Someone outside the crew to text when it matters</string>
+    <string name="crew_help_contact_name">Name (e.g. Mum)</string>
+    <string name="crew_help_contact_number">Mobile number</string>
+    <string name="crew_help_save_contact">Save contact</string>
+    <!-- %1$s = emergency phone number (e.g. 111) -->
+    <string name="crew_help_call">Call %1$s</string>
+    <string name="crew_help_call_sub">Police, fire, ambulance</string>
+    <!-- %1$s = emergency phone number (e.g. 111) -->
+    <string name="crew_help_no_signal">No signal at all? Many newer phones can reach emergency services by satellite: call %1$s and follow the prompts. At a festival, security and first aid tents can help fast.</string>
+    <!-- Text message to your emergency contact when there's no location fix -->
+    <string name="crew_help_sms">I need help. (sent from Moshpoint)</string>
+    <!-- Text message to your emergency contact: %1$s = a maps link to where you are (keep it as is) -->
+    <string name="crew_help_sms_where">I need help. I\'m here: %1$s (sent from Moshpoint)</string>
+
+    <!-- ===== Notifications ===== -->
+    <string name="crew_channel_messages">Crew messages</string>
+    <string name="crew_channel_help">Crew help requests</string>
+    <string name="crew_channel_requests">Mates looking for you</string>
+    <!-- One chat message in a notification: %1$s = sender's name, %2$s = the message -->
+    <string name="crew_notif_line">%1$s: %2$s</string>
+    <!-- %d = number of unread messages -->
+    <plurals name="crew_new_messages">
+        <item quantity="one">%d new message</item>
+        <item quantity="other">%d new messages</item>
+    </plurals>
+    <!-- Shown after the person's name ("Jo: joined the crew 🎉") -->
+    <string name="crew_notif_joined">joined the crew 🎉</string>
+    <!-- %1$s = the flare's vibe, %2$d = minutes they'll be there -->
+    <plurals name="crew_notif_flare">
+        <item quantity="one">Flare: %1$s · here for %2$d min</item>
+        <item quantity="other">Flare: %1$s · here for %2$d min</item>
+    </plurals>
+    <!-- %1$s = the plan text -->
+    <string name="crew_notif_new_plan">New plan: %1$s</string>
+    <!-- %1$s = crew name -->
+    <string name="crew_notif_done_title">%1$s is done</string>
+    <string name="crew_notif_done_saved">Your photos and clips are saved in Your gigs.</string>
+    <string name="crew_notif_done_text">Hope it was a good one. Start a new crew any time.</string>
+    <!-- %1$s = person's name -->
+    <string name="crew_notif_overdue_title">%1$s hasn\'t checked in</string>
+    <string name="crew_notif_overdue_text">They were heading home and should be there by now. Give them a call. Tap for their last spot.</string>
+    <string name="crew_notif_help_where">They hit Need help. Tap to see where. Check on them.</string>
+    <string name="crew_notif_help">They hit Need help. Check on them.</string>
+    <string name="crew_notif_tap_where">Tap to see where.</string>
+    <string name="crew_notif_from_crew">From your crew</string>
+
+    <!-- What a ping says, shown right after the sender's name ("Jo" + " is on their way") -->
+    <string name="crew_ping_coming">is on their way</string>
+    <string name="crew_ping_stay_put">says stay where you are</string>
+    <string name="crew_ping_where">is asking where you are</string>
+    <string name="crew_ping_meet_pin">says meet at the pin</string>
+    <string name="crew_ping_all_good">is all good</string>
+    <string name="crew_ping_going_home">is heading home</string>
+    <string name="crew_ping_need_help">NEEDS HELP</string>
+    <string name="crew_ping_check_in">is heading home and will check in</string>
+    <string name="crew_ping_home_safe">is home safe</string>
+    <string name="crew_ping_chat">sent a message</string>
+    <string name="crew_ping_flare">sent a flare</string>
+    <string name="crew_ping_plan">pinned a plan</string>
+    <string name="crew_ping_other">pinged the crew</string>
+
+    <!-- Notification titles for pings: %1$s = sender's name -->
+    <string name="crew_ping_title_coming">%1$s is on their way</string>
+    <string name="crew_ping_title_stay_put">%1$s says stay where you are</string>
+    <string name="crew_ping_title_where">%1$s is asking where you are</string>
+    <string name="crew_ping_title_meet_pin">%1$s says meet at the pin</string>
+    <string name="crew_ping_title_all_good">%1$s is all good</string>
+    <string name="crew_ping_title_going_home">%1$s is heading home</string>
+    <string name="crew_ping_title_need_help">%1$s NEEDS HELP</string>
+    <string name="crew_ping_title_check_in">%1$s is heading home and will check in</string>
+    <string name="crew_ping_title_home_safe">%1$s is home safe</string>
+    <string name="crew_ping_title_chat">%1$s sent a message</string>
+    <string name="crew_ping_title_flare">%1$s sent a flare</string>
+    <string name="crew_ping_title_plan">%1$s pinned a plan</string>
+    <string name="crew_ping_title_other">%1$s pinged the crew</string>
+
+    <!-- Default name for a meet-up pin -->
+    <string name="crew_rally_default">Meet here</string>
+
+    <!-- ===== Friendship (keep as friend) ===== -->
+    <string name="crew_friend_need_crew">Keep as friend works while you\'re in a crew together.</string>
+    <string name="crew_friend_gone">They\'re not in the crew any more.</string>
+    <!-- %1$s = friend's name -->
+    <string name="crew_friend_unreachable">Can\'t reach %1$s privately yet. Try again once they\'ve been seen tonight (their app needs updating if this keeps happening).</string>
+    <!-- %1$s = friend's name -->
+    <string name="crew_friend_ask_failed">Couldn\'t ask %1$s. Try again.</string>
+    <!-- %1$s = friend's name -->
+    <string name="crew_friend_asked">Asked %1$s to stay friends. You\'ll be friends for every gig when they say yes.</string>
+    <!-- %1$s = person's name -->
+    <string name="crew_friend_request_title">%1$s wants to stay friends</string>
+    <!-- %1$s = crew name -->
+    <string name="crew_friend_request_text">From %1$s. Tap to say yes, and you can find each other at any gig.</string>
+    <!-- %1$s = person's name -->
+    <string name="crew_friend_accepted_title">%1$s is a friend now</string>
+    <!-- %1$s = crew name -->
+    <string name="crew_friend_accepted_text">You can find each other at any gig, not just %1$s.</string>
+
+    <!-- Adding a friend by code (errors) -->
+    <string name="crew_add_need_name">Give them a name</string>
+    <string name="crew_add_bad_code">That code doesn\'t look right</string>
+    <string name="crew_add_own_code">That\'s your own code</string>
+
+    <!-- ===== New crew key (removing someone / resetting the invite) ===== -->
+    <!-- %1$s = name of the person removed -->
+    <string name="crew_note_you_removed">You removed %1$s. The crew has a new key: they can\'t see anything from now on.</string>
+    <string name="crew_note_you_reset">You reset the invite. Old QR codes and links don\'t work any more.</string>
+    <!-- %1$s = who did it, %2$s = who was removed -->
+    <string name="crew_note_removed">%1$s removed %2$s from the crew.</string>
+    <!-- %1$s = who did it -->
+    <string name="crew_note_reset">%1$s reset the invite: old QR codes don\'t work any more.</string>
+
+    <!-- ===== Gig day reminder ===== -->
+    <!-- %1$s = crew / gig name -->
+    <string name="crew_wake_title">%1$s tonight!</string>
+    <!-- %1$s = start time (e.g. 8:00 pm) -->
+    <string name="crew_wake_text">Starts %1$s. Tap to go live so your crew can find you.</string>
+    <!-- %1$s = start time (e.g. 8:00 pm), %2$s = venue -->
+    <string name="crew_wake_text_venue">Starts %1$s at %2$s. Tap to go live so your crew can find you.</string>
+
+    <!-- ===== Memories (gig anniversaries) ===== -->
+    <!-- %1$d = years ago, %2$s = gig name -->
+    <plurals name="crew_memory_headline">
+        <item quantity="one">A year ago today: %2$s</item>
+        <item quantity="other">%1$d years ago today: %2$s</item>
+    </plurals>
+    <!-- %1$d = years ago, %2$s = gig name, %3$s = who was there (one or two names) -->
+    <plurals name="crew_memory_headline_with">
+        <item quantity="one">A year ago today: %2$s with %3$s</item>
+        <item quantity="other">%1$d years ago today: %2$s with %3$s</item>
+    </plurals>
+    <!-- Two names joined: %1$s and %2$s -->
+    <string name="crew_memory_two_people">%1$s &amp; %2$s</string>
+    <!-- %d = number of photos and clips kept -->
+    <plurals name="crew_memory_text">
+        <item quantity="one">%d photos and clips. Tap to relive it.</item>
+        <item quantity="other">%d photos and clips. Tap to relive it.</item>
+    </plurals>
+
+    <!-- ===== Moments ===== -->
+    <!-- %1$s = person's name -->
+    <string name="crew_moment_title">%1$s shared a moment</string>
+    <string name="crew_moment_text">Tap to see where</string>
+
+    <!-- ===== Crew status (distances, on the move) ===== -->
+    <!-- %1$s = person's name -->
+    <string name="crew_moving_title">%1$s is on the move</string>
+    <!-- %1$s = distance moved (e.g. 300 m) -->
+    <string name="crew_moving_text">Moved %1$s from where they were. Tap to see.</string>
+    <!-- %1$s = distance moved, %2$s = their distance from you now -->
+    <string name="crew_moving_text_away">Moved %1$s from where they were. Now %2$s from you. Tap to see.</string>
+    <string name="crew_at_venue">at the venue</string>
+    <!-- %1$s = distance (e.g. 1.2 km) -->
+    <string name="crew_from_venue">%1$s from the venue</string>
+    <!-- Live-status line: %1$s = person's name -->
+    <string name="crew_status_phone_died">%1$s phone died</string>
+    <!-- Live-status line: %1$s = person's name, %2$s = distance from you (e.g. 40 m) -->
+    <string name="crew_status_distance">%1$s %2$s</string>
+    <!-- Live-status line: %1$s = person's name, %2$d = minutes since last seen -->
+    <plurals name="crew_status_min_ago">
+        <item quantity="one">%1$s %2$d min ago</item>
+        <item quantity="other">%1$s %2$d min ago</item>
+    </plurals>
+
+    <!-- ===== Night stats ("4.2 km walked · found mates 6 times · 3 moments") ===== -->
+    <!-- %1$s = distance (e.g. 4.2 km) -->
+    <string name="crew_stats_walked">%1$s walked</string>
+    <plurals name="crew_stats_finds">
+        <item quantity="one">found mates %d time</item>
+        <item quantity="other">found mates %d times</item>
+    </plurals>
+    <plurals name="crew_stats_moments">
+        <item quantity="one">%d moment</item>
+        <item quantity="other">%d moments</item>
+    </plurals>
+    <plurals name="crew_stats_pings">
+        <item quantity="one">%d ping</item>
+        <item quantity="other">%d pings</item>
+    </plurals>
+    <!-- Time out tonight: %1$d = hours, %2$d = minutes -->
+    <string name="crew_stats_out_hours">%1$d h %2$d min out</string>
+    <!-- Time out tonight: %d = minutes -->
+    <plurals name="crew_stats_out_mins">
+        <item quantity="one">%d min out</item>
+        <item quantity="other">%d min out</item>
+    </plurals>
+    <string name="crew_stats_quiet">A quiet one</string>
+
+    <!-- ===== Shareable plan card (drawn on an image) ===== -->
+    <string name="crew_card_eyebrow">MOSHPOINT · TONIGHT\'S PLAN</string>
+    <string name="crew_card_plan">THE PLAN</string>
+    <!-- %1$s = the meet-up pin's name -->
+    <string name="crew_card_meet_up">★  Meet-up: %1$s</string>
+    <string name="crew_card_whos_coming">WHO\'S COMING</string>
+    <string name="crew_card_footer">Lose each other? Find each other on Moshpoint.</string>
+    <!-- Text sent along with the card: %1$s = the meet-up pin's name -->
+    <string name="crew_card_share_meet_up">Meet-up: %1$s</string>
+    <string name="crew_card_share_title">Share the plan</string>
+
+    <!-- ===== Live status (service, quick-settings tile) ===== -->
+    <!-- %1$s = friend's name -->
+    <string name="crew_request_title">%1$s is close and looking for you</string>
+    <string name="crew_request_text">Tap to light up your screen so they can spot you</string>
+    <string name="crew_go_hidden">Go hidden</string>
+    <!-- Quick-settings tile subtitle -->
+    <string name="crew_tile_live">Live</string>
+    <string name="crew_tile_hidden">Hidden</string>
+</resources>

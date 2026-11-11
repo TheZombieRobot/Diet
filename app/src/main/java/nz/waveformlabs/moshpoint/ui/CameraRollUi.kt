@@ -37,6 +37,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import nz.waveformlabs.moshpoint.GigArchive
+import nz.waveformlabs.moshpoint.R
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 
 /**
  * "Add your photos from that night": what's on this phone from the gig's hours, all
@@ -55,19 +58,19 @@ internal fun CameraRollPicker(
         Column(Modifier.fillMaxSize().background(Mosh.Deep).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("Your photos from that night", style = Mosh.Heading)
+                    Text(stringResource(R.string.setup_roll_title), style = Mosh.Heading)
                     Text(gigName, style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
                 }
                 TextButton(onClick = onClose, enabled = !adding) { Text("✕", style = Mosh.Label.copy(fontSize = 18.sp)) }
             }
             when {
-                found == null -> Text("Looking through your photos…", style = Mosh.Body)
+                found == null -> Text(stringResource(R.string.setup_roll_looking), style = Mosh.Body)
                 found.isEmpty() -> Text(
-                    "Nothing on this phone from those hours. Photos taken on another phone, or already added, won't show here.",
+                    stringResource(R.string.setup_roll_nothing),
                     style = Mosh.Body, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 40.dp),
                 )
                 else -> {
-                    Text("Tap to leave one out. They're copied into the gig, so they stay even if you delete them from your gallery.", style = Mosh.Body.copy(fontSize = 13.sp))
+                    Text(stringResource(R.string.setup_roll_tap_to_leave_out), style = Mosh.Body.copy(fontSize = 13.sp))
                     LazyVerticalGrid(GridCells.Fixed(3), Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         items(found, key = { it.uri.toString() }) { f ->
                             val on = f.uri !in unpicked
@@ -93,7 +96,7 @@ internal fun CameraRollPicker(
                         }
                     }
                     val chosen = found.filter { it.uri !in unpicked }
-                    NeonButton(if (adding) "Adding…" else "Add ${chosen.size} to this gig") { if (!adding && chosen.isNotEmpty()) onAdd(chosen) }
+                    NeonButton(if (adding) stringResource(R.string.setup_roll_adding) else pluralStringResource(R.plurals.setup_roll_add_n, chosen.size, chosen.size)) { if (!adding && chosen.isNotEmpty()) onAdd(chosen) }
                 }
             }
         }

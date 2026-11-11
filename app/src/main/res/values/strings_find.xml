@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The finder (arrows, warmer/colder, spin scan, found them), the map, the story board, crew moments and the camera. -->
+<resources>
+    <!-- ===== Finder screen ===== -->
+    <string name="find_back_friends">‹  Friends</string>
+    <!-- %1$s = names of mates flashing their screens, joined with find_list_and, e.g. "Sam and Jo" -->
+    <string name="find_look_for_flashing">Look for flashing %1$s!</string>
+    <!-- Joins names in a list: "Sam and Jo and Alex". Keep the spaces. -->
+    <string name="find_list_and">" and "</string>
+    <!-- Small heading above the friend's name while a spin scan runs -->
+    <string name="find_eyebrow_scanning">SCANNING FOR</string>
+    <!-- Small heading above the friend's name -->
+    <string name="find_eyebrow_finding">FINDING</string>
+    <!-- Chip: direction is only a rough guess -->
+    <string name="find_chip_rough">Rough</string>
+    <!-- Chip: direction is reliable -->
+    <string name="find_chip_locked">Locked</string>
+    <string name="find_head_this_way">Head this way</string>
+    <string name="find_from_gps">From GPS: firms up as you walk</string>
+    <string name="find_rough_walk">Rough: walk that way and watch the distance</string>
+    <string name="find_colour_legend">Hot pink is far. Arrows glow your mate\'s colour as you get close.</string>
+    <string name="find_cancel">Cancel</string>
+    <string name="find_restart_scan">Restart scan</string>
+    <string name="find_scan_finished">Scan finished</string>
+    <string name="find_ok">OK</string>
+    <string name="find_scan_again">Scan again</string>
+    <!-- Button: send a message asking them to go live -->
+    <string name="find_ask_them">Ask them</string>
+    <string name="find_last_seen_on_map">Last seen on map</string>
+    <!-- Button: make your own screen flash bright colours so a mate can spot you -->
+    <string name="find_light_me_up">Light me up</string>
+    <string name="find_spin_scan">Spin scan</string>
+    <string name="find_asked_light_up">Asked: their phone will offer to light up</string>
+    <string name="find_ask_light_up">Ask them to light up</string>
+    <string name="find_show_on_map">Show on map</string>
+
+    <!-- ===== Finder states ===== -->
+    <!-- Pill: you're sharing your location / not sharing -->
+    <string name="find_pill_live">Live</string>
+    <string name="find_pill_hidden">Hidden</string>
+    <!-- Screen reader label for the searching radar -->
+    <string name="find_searching_cd">Searching</string>
+    <!-- %1$s = friend's (or crew's) name -->
+    <string name="find_looking_for">Looking for %1$s…</string>
+    <string name="find_searching_help">No signal from them and no shared location yet. They need Moshpoint open with Go live on, plus location and mobile data. Then their arrow appears, even if they\'re across town.</string>
+    <!-- Bluetooth distance bands: signal strength can only say roughly how close -->
+    <string name="find_band_right_here">Right here</string>
+    <string name="find_band_close">Close</string>
+    <string name="find_band_nearby">Nearby</string>
+    <string name="find_band_in_range">In range</string>
+    <!-- Small print under each Bluetooth band -->
+    <string name="find_band_hint_right_here">within a few metres</string>
+    <string name="find_band_hint_close">under 10 m</string>
+    <string name="find_band_hint_nearby">about 10–30 m</string>
+    <string name="find_band_hint_in_range">30 m or more</string>
+    <!-- Warmer/colder chip: getting closer / further / no change -->
+    <string name="find_trend_warmer">Warmer</string>
+    <string name="find_trend_warmer_hint">Keep going this way</string>
+    <string name="find_trend_colder">Colder</string>
+    <string name="find_trend_colder_hint">Turn around</string>
+    <string name="find_trend_steady">Steady</string>
+    <string name="find_trend_steady_hint">Try another direction</string>
+    <!-- Several friends at once: %1$s = friend's name, %2$s = hint like "Turn around" -->
+    <string name="find_trend_hint_who">%1$s: %2$s</string>
+    <string name="find_warmer_help">Walk a few steps one way, then another. Warmer means you\'re getting closer. The arrow appears once we\'ve worked out which way.</string>
+    <!-- Screen reader: %1$d = percent of the full circle the spin scan has covered -->
+    <string name="find_scan_covered_cd">%1$d percent of the circle covered</string>
+    <!-- Big number in the scan ring: %1$d = percent covered -->
+    <string name="find_scan_percent">%1$d%%</string>
+    <string name="find_scan_listening">listening…</string>
+    <!-- %d = how many times we've picked up their signal during the scan -->
+    <plurals name="find_scan_heard">
+        <item quantity="one">heard them %d×</item>
+        <item quantity="other">heard them %d×</item>
+    </plurals>
+    <string name="find_spin_slowly">Spin slowly</string>
+    <string name="find_spin_help">Hold the phone against your chest, screen facing you, and turn slowly on the spot: about 15 seconds for a full circle. Your body blocks the signal, so we can tell which way they are.</string>
+    <!-- Found-them celebration -->
+    <string name="find_under_3_metres">UNDER 3 METRES</string>
+    <!-- %1$s = friend's name -->
+    <string name="find_you_found">You found %1$s</string>
+    <!-- Used when we don't know the friend's name: "You found them" -->
+    <string name="find_you_found_them">You found them</string>
+    <string name="find_look_up_wave">Look up and wave.</string>
+    <string name="find_done">Done</string>
+    <string name="find_keep_arrow">Keep the arrow</string>
+    <!-- Shown on the flashing "Light me up" screen. %1$s = colour name in capitals, e.g. BLUE -->
+    <string name="find_beacon_help">Your colour is %1$s. Hold your phone up high. Tap to stop.</string>
+
+    <!-- ===== Arrows (screen reader) ===== -->
+    <!-- Fallback when a friend's name isn't known -->
+    <string name="find_friend_fallback">Friend</string>
+    <!-- Spoken distances. %1$s = number, e.g. "12" or "1.2" -->
+    <string name="find_spoken_metres">%1$s metres</string>
+    <string name="find_spoken_kilometres">%1$s kilometres</string>
+    <string name="find_spoken_under_1_metre">less than 1 metre</string>
+    <!-- Screen reader, one per arrow. %1$s = name, %2$s = spoken distance, %3$d = clock position 1–12 (12 = straight ahead) -->
+    <string name="find_arrow_spoken">%1$s, %2$s, at %3$d o\'clock</string>
+    <string name="find_arrow_spoken_rough">%1$s, %2$s, at %3$d o\'clock, rough direction</string>
+    <!-- Same, distance unknown. %1$s = name, %2$d = clock position -->
+    <string name="find_arrow_spoken_nodist">%1$s, at %2$d o\'clock</string>
+    <string name="find_arrow_spoken_nodist_rough">%1$s, at %2$d o\'clock, rough direction</string>
+
+    <!-- ===== Map ===== -->
+    <!-- Map styles (tap to cycle) -->
+    <string name="find_map_style_bright">Bright</string>
+    <string name="find_map_style_night">Night</string>
+    <string name="find_map_style_dark">Dark</string>
+    <!-- Label on a crew meet-up pin. %1$s = pin name -->
+    <string name="find_meet_label">Meet: %1$s</string>
+    <string name="find_saving_area">Saving this area…</string>
+    <!-- %1$d = percent downloaded -->
+    <string name="find_saving_area_pct">Saving this area… %1$d%%</string>
+    <string name="find_area_saved">Area saved: the map works here with no signal</string>
+    <!-- %1$s = error message from the map library -->
+    <string name="find_area_save_failed">Couldn\'t save the area: %1$s</string>
+    <string name="find_area_too_big">Too big to save: zoom in on the venue and try again</string>
+    <string name="find_back">‹ Back</string>
+    <string name="find_map_title">Mosh map</string>
+    <!-- Button: drop a pin where you are -->
+    <string name="find_map_pin">Pin</string>
+    <!-- Button: zoom to show everyone -->
+    <string name="find_map_all">All</string>
+    <!-- Button: zoom to yourself -->
+    <string name="find_map_me">Me</string>
+    <string name="find_save_area">⬇  Save this area for no signal</string>
+    <string name="find_map_no_mates">No mates yet. Start a crew or add a friend, and they\'ll show up here once they go live.</string>
+    <string name="find_place_crew_meetup">crew meet-up</string>
+    <string name="find_place_only_you">only you see this</string>
+    <!-- Button: walking directions -->
+    <string name="find_walk">Walk</string>
+    <!-- Button: book a ride (Uber etc.) -->
+    <string name="find_ride">Ride</string>
+    <string name="find_not_sharing">Not sharing yet</string>
+    <string name="find_find">Find</string>
+    <!-- Button: ask them to share their location -->
+    <string name="find_ask">Ask</string>
+    <string name="find_drop_pin">Drop a pin</string>
+    <string name="find_drop_pin_crew_help">Save it just for you (tent, car…) or make it the crew\'s meet-up point: everyone gets it on their map.</string>
+    <string name="find_drop_pin_solo_help">Save it for yourself: the tent, the car, the good toilets. Works with no signal.</string>
+    <string name="find_drop_pin_hint">e.g. Sound desk, Tent, Car</string>
+    <!-- Default name for a crew meet-up pin -->
+    <string name="find_meet_here">Meet here</string>
+    <string name="find_crew_meetup">Crew meet-up</string>
+    <!-- Default name for your own pin -->
+    <string name="find_my_spot">My spot</string>
+    <string name="find_just_for_me">Just for me</string>
+    <!-- Mates standing together on the map, one bubble. %1$s, %2$s, %3$s = names -->
+    <string name="find_bubble_two">%1$s &amp; %2$s</string>
+    <string name="find_bubble_three">%1$s, %2$s &amp; %3$s</string>
+    <!-- %1$s = first name, %2$d = how many others, e.g. "Alex +3" -->
+    <string name="find_bubble_more">%1$s +%2$d</string>
+    <!-- Caption under a merged bubble. %1$s = status, e.g. "5 min ago" -->
+    <string name="find_bubble_together">together · %1$s</string>
+
+    <!-- ===== The story (photo board) ===== -->
+    <!-- You, as the poster of a photo -->
+    <string name="find_you">You</string>
+    <!-- Default board title -->
+    <string name="find_story_title">The story</string>
+    <!-- Screen reader. %1$s = who posted it -->
+    <string name="find_photo_from">Photo from %1$s</string>
+    <string name="find_story_empty_title">Nothing pinned yet</string>
+    <!-- %1$d = number of photos/clips, %2$d = number of people who posted them -->
+    <plurals name="find_story_count">
+        <item quantity="one">%1$d from %2$d person</item>
+        <item quantity="other">%1$d from %2$d people</item>
+    </plurals>
+    <string name="find_save_all">Save all</string>
+    <string name="find_add_your_photos">＋ Add your photos</string>
+    <string name="find_save_all_to_phone">Save all to phone</string>
+    <string name="find_story_empty_following">Photos and clips from the crew get pinned here as they share them. Keep this open to follow along live.</string>
+    <string name="find_story_empty_crew">Snap the stage, the bar, your mates. Everything the crew shares gets pinned here, newest at the top.</string>
+    <string name="find_delete_gig">Delete this gig from this phone</string>
+    <!-- Pill when new posts arrive while scrolled down. %d = how many -->
+    <plurals name="find_new_posts">
+        <item quantity="one">↑  %d new</item>
+        <item quantity="other">↑  %d new</item>
+    </plurals>
+    <string name="find_tap_full_screen">Tap for full screen</string>
+    <!-- %1$s = who, %2$s = clock time, %3$s = how long ago -->
+    <string name="find_who_time_ago">%1$s · %2$s · %3$s</string>
+    <string name="find_save_to_phone">Save to phone</string>
+    <string name="find_on_the_map">On the map</string>
+    <!-- Photo position in the viewer. %1$d = this one, %2$d = total -->
+    <string name="find_page_of">%1$d / %2$d</string>
+    <!-- %1$s = who, %2$s = clock time -->
+    <string name="find_who_time">%1$s · %2$s</string>
+    <!-- %1$s = who, %2$s = clock time, %3$s = caption -->
+    <string name="find_who_time_caption">%1$s · %2$s · %3$s</string>
+    <string name="find_live_tag">LIVE</string>
+    <!-- Accessibility action label for the camera button -->
+    <string name="find_camera">Camera</string>
+
+    <!-- ===== Moments ===== -->
+    <string name="find_the_story_eyebrow">THE STORY</string>
+    <string name="find_see_it_all">See it all ›</string>
+    <string name="find_your_moment">Your moment</string>
+    <!-- %1$s = distance, e.g. "40 m" -->
+    <string name="find_distance_away">%1$s away</string>
+    <string name="find_on_map">On map</string>
+    <!-- Button. %1$s = friend's name -->
+    <string name="find_find_name">Find %1$s</string>
+    <string name="find_close">Close</string>
+    <string name="find_share_with_crew">Share with the crew</string>
+    <string name="find_pinned_where_you_are">Pinned where you are now</string>
+    <string name="find_caption_hint">Say where (optional): left of the sound desk</string>
+    <string name="find_moment_privacy">Only your crew can see it. It disappears from the relay after a few hours.</string>
+    <string name="find_sending">Sending…</string>
+    <string name="find_send">Send</string>
+
+    <!-- ===== Camera ===== -->
+    <string name="find_camera_unavailable">Camera not available</string>
+    <string name="find_camera_open_failed">Couldn\'t open the camera</string>
+    <string name="find_photo_failed">Couldn\'t take the photo</string>
+    <string name="find_clip_failed">Couldn\'t record that clip</string>
+    <string name="find_let_go_to_stop">Let go to stop</string>
+    <string name="find_tap_hold_hint">Tap for photo · Hold for video</string>
+
+    <!-- ===== Moment flow (toasts and the share dialog) ===== -->
+    <string name="find_no_video_app">No camera app can record video here</string>
+    <string name="find_clip_too_long">That clip is too long to send. Keep it to about 10 seconds.</string>
+    <string name="find_clip_shared">Clip shared with your crew</string>
+    <string name="find_send_failed">Couldn\'t send it. Check your internet and try again.</string>
+    <string name="find_join_crew_first">Start or join a crew first: moments go to your crew</string>
+    <string name="find_needs_camera">Moshpoint needs the camera to take a moment</string>
+    <string name="find_shared_with_crew">Shared with your crew</string>
+    <string name="find_share_a_moment">Share a moment</string>
+    <string name="find_share_moment_help">Snap where you are (the stage, the bar, your mates). It lands in the story as a Polaroid.</string>
+    <string name="find_take_photo">Take a photo</string>
+    <string name="find_record_clip">Record a clip (10 s)</string>
+    <string name="find_choose_gallery">Choose from gallery</string>
+</resources>

@@ -186,9 +186,9 @@ object GigArchive {
                 val clips = lines.count { it.optString("clip").isNotBlank() }
                 val cover = lines.maxByOrNull { it.optLong("t") }?.let { File(d, it.getString("photo")) }
                 Summary(
-                    id = d.name, name = meta.optString("name", "Gig"), whenSec = meta.optLong("when"), venue = meta.optString("venue"),
+                    id = d.name, name = meta.optString("name", Txt.s(R.string.crew_default_gig_name)), whenSec = meta.optLong("when"), venue = meta.optString("venue"),
                     photos = lines.size - clips, clips = clips,
-                    people = lines.map { if (it.optBoolean("mine")) "You" else it.optString("from") }.distinct(),
+                    people = lines.map { if (it.optBoolean("mine")) Txt.s(R.string.crew_you) else it.optString("from") }.distinct(),
                     cover = cover, bytes = d.walkTopDown().filter { it.isFile }.sumOf { it.length() },
                 )
             }.sortedByDescending { it.whenSec }

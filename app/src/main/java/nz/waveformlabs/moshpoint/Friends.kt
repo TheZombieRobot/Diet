@@ -52,9 +52,9 @@ object FriendsRepository {
     /** Returns an error message, or null on success. */
     fun add(name: String, code: String, gigGroup: Boolean, mySecret: ByteArray): String? {
         val trimmed = name.trim()
-        if (trimmed.isEmpty()) return "Give them a name"
-        val secret = FriendRecord.secretFromCode(code) ?: return "That code doesn't look right"
-        if (secret.contentEquals(mySecret)) return "That's your own code"
+        if (trimmed.isEmpty()) return Txt.s(R.string.crew_add_need_name)
+        val secret = FriendRecord.secretFromCode(code) ?: return Txt.s(R.string.crew_add_bad_code)
+        if (secret.contentEquals(mySecret)) return Txt.s(R.string.crew_add_own_code)
         val existing = friends.indexOfFirst { it.secret.contentEquals(secret) }
         val usedColours = friends.map { it.color }.toSet()
         val record = FriendRecord(
@@ -91,7 +91,7 @@ object FriendsRepository {
         friends += Friend(
             FriendRecord(
                 id = UUID.randomUUID().toString(),
-                name = name.ifBlank { "Mate" },
+                name = name.ifBlank { Txt.s(R.string.crew_default_name) },
                 color = PALETTE.firstOrNull { it !in usedColours } ?: PALETTE[friends.size % PALETTE.size],
                 secret = secret,
                 gigGroupOnly = true,
@@ -144,7 +144,7 @@ object FriendsRepository {
                 val usedColours = friends.map { it.color }.toSet()
                 friends += Friend(
                     FriendRecord(
-                        id = UUID.randomUUID().toString(), name = name.ifBlank { "Mate" },
+                        id = UUID.randomUUID().toString(), name = name.ifBlank { Txt.s(R.string.crew_default_name) },
                         color = PALETTE.firstOrNull { it !in usedColours } ?: PALETTE[friends.size % PALETTE.size],
                         secret = secret, gigGroupOnly = false, addedAtMs = System.currentTimeMillis(),
                     ),

@@ -44,6 +44,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -53,6 +55,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import nz.waveformlabs.moshpoint.Moments
+import nz.waveformlabs.moshpoint.R
 
 // The Story: everyone's photos (and clips) from the night as Polaroids, a row per person.
 
@@ -75,7 +78,7 @@ internal fun Polaroid(m: Moments.Item, width: Dp, modifier: Modifier = Modifier,
     ) {
         Box {
             Image(
-                m.image, contentDescription = "Photo from ${m.from}", contentScale = ContentScale.Crop,
+                m.image, contentDescription = stringResource(R.string.find_photo_from, m.from), contentScale = ContentScale.Crop,
                 modifier = Modifier.size(width - pad * 2).background(Color(0xFF222222)),
             )
             if (m.isVideo) {
@@ -117,13 +120,13 @@ fun StoryScreen(
     following: Boolean = false,
     /** The poster's profile photo (by name; mine = yours), if they have one. */
     photoOf: (name: String, mine: Boolean) -> androidx.compose.ui.graphics.ImageBitmap? = { _, _ -> null },
-    myName: String = "You",
+    myName: String = stringResource(R.string.find_you),
     /** Fetch new posts now (called every 30 s while the board is open). */
     onRefresh: suspend () -> Unit = {},
     /** The crew is awake tonight: show the LIVE tag. */
     live: Boolean = true,
     /** "The story", or a past gig's name. */
-    title: String = "The story",
+    title: String = stringResource(R.string.find_story_title),
     /** Save one photo/clip to the phone's gallery. */
     onSaveOne: ((Moments.Item) -> Unit)? = null,
     /** Save the whole gig to the phone's gallery. */
@@ -137,7 +140,9 @@ fun StoryScreen(
     if (hasBack) androidx.activity.compose.BackHandler(onBack = onBack)
     var open by remember { mutableStateOf<Int?>(null) }
     val timeline = items.sortedByDescending { it.timeSec }
+    // Count distinct posters ("You" here is only a key, never shown).
     val people = items.map { if (it.mine) "You" else it.from }.toSet().size
+    val you = stringResource(R.string.find_you)
     val list = androidx.compose.foundation.lazy.rememberLazyListState()
     // Only posts that arrive while you're watching get the drop-in pop.
     val alreadyThere = remember { timeline.map { it.key }.toSet() }
@@ -170,33 +175,33 @@ fun StoryScreen(
             ) {
                 item(key = "header") {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                        TextButton(onClick = onBack) { Text("‹ Back", style = Mosh.Label.copy(fontSize = 15.sp)) }
+                        TextButton(onClick = onBack) { Text(stringResource(R.string.find_back), style = Mosh.Label.copy(fontSize = 15.sp)) }
                         Column(Modifier.weight(1f)) {
                             Text(title, style = Mosh.Heading, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             Text(
-                                if (items.isEmpty()) "Nothing pinned yet" else "${items.size} from $people ${if (people == 1) "person" else "people"}",
+                                if (items.isEmpty()) stringResource(R.string.find_story_empty_title) else pluralStringResource(R.plurals.find_story_count, people, items.size, people),
                                 style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint),
                             )
                         }
                         if (live) LiveTag()
                         else if (onSaveAll != null && items.isNotEmpty()) {
-                            TextButton(onClick = onSaveAll) { Text("Save all", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
+                            TextButton(onClick = onSaveAll) { Text(stringResource(R.string.find_save_all), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
                         }
                     }
                     Row(Modifier.padding(start = 12.dp)) {
                         if (onAddFromPhone != null) {
-                            TextButton(onClick = onAddFromPhone) { Text("＋ Add your photos", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lime)) }
+                            TextButton(onClick = onAddFromPhone) { Text(stringResource(R.string.find_add_your_photos), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lime)) }
                         }
                         if (live && onSaveAll != null && items.isNotEmpty()) {
-                            TextButton(onClick = onSaveAll) { Text("Save all to phone", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
+                            TextButton(onClick = onSaveAll) { Text(stringResource(R.string.find_save_all_to_phone), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
                         }
                     }
                 }
                 if (items.isEmpty()) {
                     item(key = "empty") {
                         Text(
-                            if (following) "Photos and clips from the crew get pinned here as they share them. Keep this open to follow along live."
-                            else "Snap the stage, the bar, your mates. Everything the crew shares gets pinned here, newest at the top.",
+                            if (following) stringResource(R.string.find_story_empty_following)
+                            else stringResource(R.string.find_story_empty_crew),
                             style = Mosh.Body, textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 36.dp, vertical = 48.dp),
                         )
@@ -224,7 +229,7 @@ fun StoryScreen(
                                 .width(half - 30.dp),
                             horizontalAlignment = if (left) Alignment.End else Alignment.Start,
                         ) {
-                            Text(if (m.mine) "You" else m.from, style = Mosh.Label.copy(fontSize = 15.sp, color = pinColour), maxLines = 1)
+                            Text(if (m.mine) you else m.from, style = Mosh.Label.copy(fontSize = 15.sp, color = pinColour), maxLines = 1)
                             Text(clockTime(m.timeSec), style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 16.sp, color = Mosh.TextDim))
                             Text(ago(nowSec - m.timeSec), style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 15.sp, color = Mosh.TextFaint))
                         }
@@ -245,7 +250,7 @@ fun StoryScreen(
                 if (onDelete != null) {
                     item(key = "delete") {
                         Box(Modifier.fillMaxWidth().padding(top = 24.dp), contentAlignment = Alignment.Center) {
-                            TextButton(onClick = onDelete) { Text("Delete this gig from this phone", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Danger)) }
+                            TextButton(onClick = onDelete) { Text(stringResource(R.string.find_delete_gig), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Danger)) }
                         }
                     }
                 }
@@ -255,7 +260,7 @@ fun StoryScreen(
         // "↑ 2 new" when posts arrive while you're further down.
         if (!atTop && newCount > 0) {
             Text(
-                "↑  $newCount new",
+                pluralStringResource(R.plurals.find_new_posts, newCount, newCount),
                 style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF07050F)),
                 modifier = Modifier.align(Alignment.TopCenter).padding(top = 72.dp)
                     .shadow(10.dp, androidx.compose.foundation.shape.RoundedCornerShape(50), clip = false)
@@ -283,20 +288,20 @@ fun StoryScreen(
                         Box(Modifier.clickable { full = m }) {
                             if (m.isVideo && m.videoFile != null) VideoPolaroid(m) else Polaroid(m, 300.dp, tilted = false)
                         }
-                        Text("Tap for full screen", style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint), modifier = Modifier.padding(top = 8.dp))
+                        Text(stringResource(R.string.find_tap_full_screen), style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint), modifier = Modifier.padding(top = 8.dp))
                         Spacer(Modifier.height(18.dp))
-                        Text("${if (m.mine) "You" else m.from} · ${clockTime(m.timeSec)} · ${ago(nowSec - m.timeSec)}", style = Mosh.Body.copy(color = Mosh.TextDim))
+                        Text(stringResource(R.string.find_who_time_ago, if (m.mine) you else m.from, clockTime(m.timeSec), ago(nowSec - m.timeSec)), style = Mosh.Body.copy(color = Mosh.TextDim))
                         Row {
                             if (onSaveOne != null) {
-                                TextButton(onClick = { onSaveOne(m) }) { Text("Save to phone", style = Mosh.Label.copy(color = Mosh.Lime)) }
+                                TextButton(onClick = { onSaveOne(m) }) { Text(stringResource(R.string.find_save_to_phone), style = Mosh.Label.copy(color = Mosh.Lime)) }
                             }
                             if (m.lat != null) {
-                                TextButton(onClick = { open = null; onMap(m) }) { Text("On the map", style = Mosh.Label.copy(color = Mosh.Cyan)) }
+                                TextButton(onClick = { open = null; onMap(m) }) { Text(stringResource(R.string.find_on_the_map), style = Mosh.Label.copy(color = Mosh.Cyan)) }
                             }
                         }
                     }
                 }
-                Row(Modifier.align(Alignment.TopCenter).padding(top = 16.dp)) { Text("${pager.currentPage + 1} / ${timeline.size}", style = Mosh.Eyebrow) }
+                Row(Modifier.align(Alignment.TopCenter).padding(top = 16.dp)) { Text(stringResource(R.string.find_page_of, pager.currentPage + 1, timeline.size), style = Mosh.Eyebrow) }
                 TextButton(onClick = { open = null }, modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)) { Text("✕", style = Mosh.Label.copy(fontSize = 18.sp)) }
                 full?.let { FullScreenMedia(it) { full = null } }
             }
@@ -359,7 +364,11 @@ internal fun FullScreenMedia(m: Moments.Item, onClose: () -> Unit) {
             modifier = Modifier.align(Alignment.TopEnd).padding(12.dp).background(Color(0x66000000), androidx.compose.foundation.shape.CircleShape),
         ) { Text("✕", style = Mosh.Label.copy(fontSize = 18.sp, color = Color.White)) }
         Text(
-            "${if (m.mine) "You" else m.from} · ${clockTime(m.timeSec)}" + if (m.caption.isNotBlank()) " · ${m.caption}" else "",
+            if (m.caption.isNotBlank()) {
+                stringResource(R.string.find_who_time_caption, if (m.mine) stringResource(R.string.find_you) else m.from, clockTime(m.timeSec), m.caption)
+            } else {
+                stringResource(R.string.find_who_time, if (m.mine) stringResource(R.string.find_you) else m.from, clockTime(m.timeSec))
+            },
             style = Mosh.Body.copy(color = Color.White, fontSize = 13.sp),
             modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 28.dp).background(Color(0x66000000), androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
                 .padding(horizontal = 12.dp, vertical = 6.dp),
@@ -418,7 +427,7 @@ private fun LiveTag() {
     ) {
         Box(Modifier.size(8.dp).background(Color(0xFFFF2E4F).copy(alpha = pulse), androidx.compose.foundation.shape.CircleShape))
         Spacer(Modifier.width(6.dp))
-        Text("LIVE", style = Mosh.Label.copy(fontSize = 12.sp, color = Color(0xFFFF6A80), letterSpacing = 1.5.sp))
+        Text(stringResource(R.string.find_live_tag), style = Mosh.Label.copy(fontSize = 12.sp, color = Color(0xFFFF6A80), letterSpacing = 1.5.sp))
     }
 }
 
@@ -448,11 +457,12 @@ private fun PopIn(key: String, enabled: Boolean = true, content: @Composable () 
 @Composable
 internal fun CameraFab(onClick: () -> Unit, modifier: Modifier = Modifier, size: Dp = 64.dp) {
     val (src, sc) = rememberPress()
+    val cameraLabel = stringResource(R.string.find_camera)
     Box(
         modifier.pressScale(sc).size(size)
             .shadow(14.dp, androidx.compose.foundation.shape.CircleShape, clip = false)
             .background(androidx.compose.ui.graphics.Brush.linearGradient(listOf(Mosh.Pink, Mosh.Cyan)), androidx.compose.foundation.shape.CircleShape)
-            .clickable(interactionSource = src, indication = null, onClickLabel = "Camera", onClick = onClick),
+            .clickable(interactionSource = src, indication = null, onClickLabel = cameraLabel, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) { CameraGlyph(Color(0xFF07050F), size * 0.46f) }
 }

@@ -126,7 +126,7 @@ object Crews {
 
     fun groupFrom(o: JSONObject): GigGroup? = runCatching {
         GigGroup(
-            Base64.decode(o.getString("key"), Base64.NO_WRAP), o.optString("name", "Gig group"), o.optLong("created", 0L),
+            Base64.decode(o.getString("key"), Base64.NO_WRAP), o.optString("name", Txt.s(R.string.crew_default_group_name)), o.optLong("created", 0L),
             o.optLong("at", 0L), o.optString("venue", ""),
             o.optString("vlat", "").toDoubleOrNull(), o.optString("vlon", "").toDoubleOrNull(),
         )

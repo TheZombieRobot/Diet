@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
+import nz.waveformlabs.moshpoint.R
 
 /**
  * Quick Settings tile: one tap to go visible as you walk into the gig, without opening
@@ -46,7 +47,7 @@ class VisibilityTile : TileService() {
         val tile = qsTile ?: return
         val on = VisibilityPrefs.isVisible(this)
         tile.state = if (on) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) tile.subtitle = if (on) "Live" else "Hidden"
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) tile.subtitle = getString(if (on) R.string.crew_tile_live else R.string.crew_tile_hidden)
         tile.updateTile()
     }
 }

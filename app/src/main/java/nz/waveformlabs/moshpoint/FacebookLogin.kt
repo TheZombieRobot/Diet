@@ -47,13 +47,13 @@ class FacebookLogin(
         manager.registerCallback(callbacks, object : FacebookCallback<LoginResult> {
             override fun onSuccess(result: LoginResult) = fetchProfile(result.accessToken)
             override fun onCancel() = Unit
-            override fun onError(error: FacebookException) = onFail("Facebook login failed: ${error.message ?: "unknown"}")
+            override fun onError(error: FacebookException) = onFail(Txt.s(R.string.main_facebook_failed, error.message ?: Txt.s(R.string.main_facebook_unknown_error)))
         })
         launcher = activity.registerForActivityResult(manager.createLogInActivityResultContract(callbacks, null)) {}
     }
 
     fun login() {
-        launcher?.launch(listOf("public_profile")) ?: onFail("Facebook login isn't set up in this build")
+        launcher?.launch(listOf("public_profile")) ?: onFail(Txt.s(R.string.main_facebook_not_set_up))
     }
 
     private fun fetchProfile(token: AccessToken) {

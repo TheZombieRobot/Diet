@@ -47,6 +47,7 @@ import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.PhotoStore
 import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.ArrowState
 import nz.waveformlabs.moshpoint.core.ArrowStyle
 import nz.waveformlabs.moshpoint.core.Method
@@ -96,10 +97,15 @@ internal fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Fri
 
     // Screen readers: "Sam, 12 metres, at 2 o'clock".
     val spoken = arrows.joinToString(". ") { a ->
-        val name = friendOf(a.friendId)?.name ?: "Friend"
+        val name = friendOf(a.friendId)?.name ?: Txt.s(R.string.find_friend_fallback)
         val clock = (((a.relativeDeg + 360) % 360) / 30).let { kotlin.math.round(it).toInt() }.let { if (it == 0) 12 else it }
-        val dist = a.distanceM?.let { "${ArrowStyle.distanceLabel(it).replace(" m", " metres").replace(" km", " kilometres")}, " } ?: ""
-        "$name, ${dist}at $clock o'clock" + if (a.unsure) ", rough direction" else ""
+        val dist = a.distanceM?.let { spokenDistance(it) }
+        when {
+            dist == null && a.unsure -> Txt.s(R.string.find_arrow_spoken_nodist_rough, name, clock)
+            dist == null -> Txt.s(R.string.find_arrow_spoken_nodist, name, clock)
+            a.unsure -> Txt.s(R.string.find_arrow_spoken_rough, name, dist, clock)
+            else -> Txt.s(R.string.find_arrow_spoken, name, dist, clock)
+        }
     }
     Canvas(Modifier.fillMaxSize().semantics { contentDescription = spoken }) {
         val centre = Offset(size.width / 2, size.height / 2)
@@ -236,4 +242,15 @@ internal fun methodLabel(m: Method) = when (m) {
     Method.CROWD_RELAY -> "crowd"
     Method.WIFI_AWARE -> "Wi-Fi"
     Method.BLE_RSSI -> "BT"
+}
+
+/** A distance for screen readers ("12 metres", "1.2 kilometres"), from the same rounding as the on-screen label. */
+private fun spokenDistance(m: Double): String {
+    val label = ArrowStyle.distanceLabel(m)
+    val num = label.substringBefore(' ')
+    return when {
+        label.startsWith("<") -> Txt.s(R.string.find_spoken_under_1_metre)
+        label.endsWith(" km") -> Txt.s(R.string.find_spoken_kilometres, num)
+        else -> Txt.s(R.string.find_spoken_metres, num)
+    }
 }

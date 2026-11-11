@@ -54,12 +54,12 @@ object ChatSync {
                 if (!seen.add(blob.contentHashCode())) return@forEach
                 val p = g.openPing(blob)
                 if (p != null) {
-                    CrewChat.ingest(app, g, p)?.let { note -> fresh += "${CrewChat.displayName(app, g, p.sender, p.from)}: $note" }
+                    CrewChat.ingest(app, g, p)?.let { note -> fresh += Txt.s(R.string.crew_notif_line, CrewChat.displayName(app, g, p.sender, p.from), note) }
                     return@forEach
                 }
                 val h = g.openHistory(blob)
                 if (h != null) {
-                    CrewChat.ingestHistory(app, g, h).forEach { fresh += "${it.from}: ${it.text}" }
+                    CrewChat.ingestHistory(app, g, h).forEach { fresh += Txt.s(R.string.crew_notif_line, it.from, it.text) }
                     return@forEach
                 }
                 // A private message for us (e.g. "keep as friend"); for anyone else it's unreadable.
@@ -90,7 +90,7 @@ object ChatSync {
         CrewNotifications.post(
             c,
             title = g.name,
-            text = if (total <= 1) list.last() else "$total new messages",
+            text = if (total <= 1) list.last() else Txt.p(R.plurals.crew_new_messages, total),
             openMap = false, openChat = true, crewId = id,
             notificationId = notificationId(id),
             lines = if (total <= 1) emptyList() else list.takeLast(5),

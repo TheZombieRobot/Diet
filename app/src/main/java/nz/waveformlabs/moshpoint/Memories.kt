@@ -27,9 +27,13 @@ object Memories {
     }
 
     fun headline(g: GigArchive.Summary, years: Int): String {
-        val ago = if (years == 1) "A year ago today" else "$years years ago today"
-        val with = g.people.filter { it != "You" }.take(2)
-        return "$ago: ${g.name}" + if (with.isNotEmpty()) " with ${with.joinToString(" & ")}" else ""
+        val you = Txt.s(R.string.crew_you)
+        val with = g.people.filter { it != you }.take(2)
+        return when (with.size) {
+            0 -> Txt.p(R.plurals.crew_memory_headline, years, years, g.name)
+            1 -> Txt.p(R.plurals.crew_memory_headline_with, years, years, g.name, with[0])
+            else -> Txt.p(R.plurals.crew_memory_headline_with, years, years, g.name, Txt.s(R.string.crew_memory_two_people, with[0], with[1]))
+        }
     }
 
     /** Debug: show today's memory notification right now (add a sample past gig first). */
@@ -38,7 +42,7 @@ object Memories {
             CrewNotifications.post(c, title = "No past gigs yet", text = "Add a sample past gig first.", openMap = false)
             return
         }
-        CrewNotifications.post(c, title = headline(g, years), text = "${g.photos + g.clips} photos and clips. Tap to relive it.", openMap = false)
+        CrewNotifications.post(c, title = headline(g, years), text = Txt.p(R.plurals.crew_memory_text, g.photos + g.clips), openMap = false)
     }
 
     /** Set an alarm for 10 am on the next anniversary of any kept gig. */
@@ -68,7 +72,7 @@ class MemoryReceiver : BroadcastReceiver() {
             try {
                 GigArchive.refreshList(app)
                 Memories.today(GigArchive.gigs).firstOrNull()?.let { (g, years) ->
-                    CrewNotifications.post(app, title = Memories.headline(g, years), text = "${g.photos + g.clips} photos and clips. Tap to relive it.", openMap = false)
+                    CrewNotifications.post(app, title = Memories.headline(g, years), text = Txt.p(R.plurals.crew_memory_text, g.photos + g.clips), openMap = false)
                 }
                 Memories.schedule(app, GigArchive.gigs) // the next one
             } finally {

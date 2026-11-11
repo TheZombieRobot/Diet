@@ -25,6 +25,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import nz.waveformlabs.moshpoint.PhotoStore
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
@@ -65,11 +67,11 @@ class MapMoment(val key: String, val label: String, val lat: Double, val lon: Do
 /** A saved spot or the crew's meet-up pin. */
 data class MapPlace(val id: String, val name: String, val lat: Double, val lon: Double, val meetUp: Boolean)
 
-/** Free OpenStreetMap vector maps, no API key (openfreemap.org): bright, night-blue, and dark. */
+/** Free OpenStreetMap vector maps, no API key (openfreemap.org): bright, night-blue, and dark. (Name as a string resource, URL.) */
 val MAP_STYLES = listOf(
-    "Bright" to "https://tiles.openfreemap.org/styles/liberty",
-    "Night" to "https://tiles.openfreemap.org/styles/fiord",
-    "Dark" to "https://tiles.openfreemap.org/styles/dark",
+    R.string.find_map_style_bright to "https://tiles.openfreemap.org/styles/liberty",
+    R.string.find_map_style_night to "https://tiles.openfreemap.org/styles/fiord",
+    R.string.find_map_style_dark to "https://tiles.openfreemap.org/styles/dark",
 )
 val MAP_STYLE_URL = MAP_STYLES[0].second
 
@@ -283,7 +285,7 @@ fun FriendMap(
                 places.map { p ->
                     Feature.fromGeometry(Point.fromLngLat(p.lon, p.lat)).apply {
                         addStringProperty("icon", if (p.meetUp) "place-meet" else "place-spot")
-                        addStringProperty("label", if (p.meetUp) "Meet: ${p.name}" else p.name)
+                        addStringProperty("label", if (p.meetUp) Txt.s(R.string.find_meet_label, p.name) else p.name)
                     }
                 },
             ),
@@ -422,32 +424,32 @@ private fun saveArea(context: android.content.Context, bounds: LatLngBounds, sty
     val def = org.maplibre.android.offline.OfflineTilePyramidRegionDefinition(
         styleUrl, bounds, 12.0, 17.0, context.resources.displayMetrics.density,
     )
-    progress("Saving this area…")
+    progress(Txt.s(R.string.find_saving_area))
     om.createOfflineRegion(def, "venue".toByteArray(), object : org.maplibre.android.offline.OfflineManager.CreateOfflineRegionCallback {
         override fun onCreate(offlineRegion: org.maplibre.android.offline.OfflineRegion) {
             offlineRegion.setObserver(object : org.maplibre.android.offline.OfflineRegion.OfflineRegionObserver {
                 override fun onStatusChanged(status: org.maplibre.android.offline.OfflineRegionStatus) {
                     if (status.isComplete) {
-                        progress("Area saved: the map works here with no signal")
+                        progress(Txt.s(R.string.find_area_saved))
                         offlineRegion.setDownloadState(org.maplibre.android.offline.OfflineRegion.STATE_INACTIVE)
                     } else if (status.requiredResourceCount > 0) {
-                        progress("Saving this area… ${100 * status.completedResourceCount / status.requiredResourceCount}%")
+                        progress(Txt.s(R.string.find_saving_area_pct, (100 * status.completedResourceCount / status.requiredResourceCount).toInt()))
                     }
                 }
 
                 override fun onError(error: org.maplibre.android.offline.OfflineRegionError) {
-                    progress("Couldn't save the area: ${error.message}")
+                    progress(Txt.s(R.string.find_area_save_failed, error.message.orEmpty()))
                 }
 
                 override fun mapboxTileCountLimitExceeded(limit: Long) {
-                    progress("Too big to save: zoom in on the venue and try again")
+                    progress(Txt.s(R.string.find_area_too_big))
                 }
             })
             offlineRegion.setDownloadState(org.maplibre.android.offline.OfflineRegion.STATE_ACTIVE)
         }
 
         override fun onError(error: String) {
-            progress("Couldn't save the area: $error")
+            progress(Txt.s(R.string.find_area_save_failed, error))
         }
     })
 }

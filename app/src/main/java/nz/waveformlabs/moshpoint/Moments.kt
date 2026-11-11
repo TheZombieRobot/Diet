@@ -57,7 +57,7 @@ object Moments {
         val original = withContext(Dispatchers.Default) {
             ByteArrayOutputStream().also { photo.compress(Bitmap.CompressFormat.JPEG, 94, it) }.toByteArray()
         }
-        val m = GigGroup.Moment(VisibilityPrefs.myName(app).ifBlank { "Mate" }, System.currentTimeMillis() / 1000, lat, lon, caption.trim(), jpeg)
+        val m = GigGroup.Moment(VisibilityPrefs.myName(app).ifBlank { Txt.s(R.string.crew_default_name) }, System.currentTimeMillis() / 1000, lat, lon, caption.trim(), jpeg)
         val sealed = g.sealMoment(m)
         val ok = RelayClient.putFile(g.momentsIdForDay(Math.floorDiv(m.timeSec, 86_400L)), sealed)
         if (ok) {
@@ -84,12 +84,12 @@ object Moments {
             val blob = RelayClient.download(url) ?: continue // try again next time
             seenUrls += url
             val m = g.openMoment(blob) ?: continue
-            val myName = VisibilityPrefs.myName(c).ifBlank { "Mate" }
+            val myName = VisibilityPrefs.myName(c).ifBlank { Txt.s(R.string.crew_default_name) }
             // Our own upload comes back too: we already have it.
             if (m.from == myName && items.any { it.mine && it.timeSec == m.timeSec }) continue
             add(c, m, url, mine = false)
             if (now / 1000 - m.timeSec < 15 * 60) {
-                CrewNotifications.post(c, title = "${m.from} shared a moment", text = m.caption.ifBlank { "Tap to see where" })
+                CrewNotifications.post(c, title = Txt.s(R.string.crew_moment_title, m.from), text = m.caption.ifBlank { Txt.s(R.string.crew_moment_text) })
             }
         }
     }
@@ -151,7 +151,7 @@ object Moments {
             out.write(file.readBytes())
             out.toByteArray()
         }
-        val m = GigGroup.Moment(VisibilityPrefs.myName(app).ifBlank { "Mate" }, System.currentTimeMillis() / 1000, lat, lon, caption.trim(), packed)
+        val m = GigGroup.Moment(VisibilityPrefs.myName(app).ifBlank { Txt.s(R.string.crew_default_name) }, System.currentTimeMillis() / 1000, lat, lon, caption.trim(), packed)
         val ok = RelayClient.putFile(g.momentsIdForDay(Math.floorDiv(m.timeSec, 86_400L)), g.sealMoment(m))
         if (ok) {
             add(app, m, "mine-${m.timeSec}", mine = true)

@@ -32,8 +32,9 @@ object Safety {
 
     /** "I need help. I'm here: maps link" (or without the link if there's no fix). */
     fun helpText(lat: Double?, lon: Double?): String {
-        val where = if (lat != null && lon != null) " I'm here: https://maps.google.com/?q=%.5f,%.5f".format(java.util.Locale.ROOT, lat, lon) else ""
-        return "I need help.$where (sent from Moshpoint)"
+        if (lat == null || lon == null) return Txt.s(R.string.crew_help_sms)
+        val link = "https://maps.google.com/?q=%.5f,%.5f".format(java.util.Locale.ROOT, lat, lon)
+        return Txt.s(R.string.crew_help_sms_where, link)
     }
 
     /** Opens the messages app with the help text ready; you press Send. */

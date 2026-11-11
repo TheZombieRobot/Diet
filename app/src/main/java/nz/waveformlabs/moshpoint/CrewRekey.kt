@@ -54,7 +54,7 @@ object CrewRekey {
         migrate(app, g, fresh, removedPub)
         addPending(app, pending)
         resend(app)
-        CrewChat.note(app, fresh, if (removedName != null) "You removed $removedName. The crew has a new key: they can't see anything from now on." else "You reset the invite. Old QR codes and links don't work any more.")
+        CrewChat.note(app, fresh, if (removedName != null) Txt.s(R.string.crew_note_you_removed, removedName) else Txt.s(R.string.crew_note_you_reset))
         return fresh
     }
 
@@ -129,9 +129,9 @@ object CrewRekey {
         if (ChatSync.allCrews(app).any { it.key.contentEquals(newKey) }) return // already moved
         val removed = String(d.payload, 32, d.payload.size - 32, Charsets.UTF_8).ifBlank { null }
         val fresh = GigGroup(newKey, g.name, g.createdAtMs, g.startsAtSec, g.venue, g.venueLat, g.venueLon)
-        val by = CrewChat.nameOf(app, g, CrewKeys.tagOf(d.fromPub)) ?: "Someone"
+        val by = CrewChat.nameOf(app, g, CrewKeys.tagOf(d.fromPub)) ?: Txt.s(R.string.crew_someone)
         migrate(app, g, fresh, null)
-        val text = if (removed != null) "$by removed $removed from the crew." else "$by reset the invite: old QR codes don't work any more."
+        val text = if (removed != null) Txt.s(R.string.crew_note_removed, by, removed) else Txt.s(R.string.crew_note_reset, by)
         CrewChat.note(app, fresh, text)
         CrewNotifications.post(app, title = g.name, text = text, openMap = false, openChat = true, crewId = GigArchive.idFor(fresh))
     }

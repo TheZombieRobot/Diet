@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -41,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.Friend
+import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.core.ArrowState
 import nz.waveformlabs.moshpoint.core.ArrowStyle
 import nz.waveformlabs.moshpoint.core.Method
@@ -178,7 +180,7 @@ fun FinderScreen(
         Column(Modifier.fillMaxSize().padding(start = 24.dp, end = 24.dp, top = 12.dp, bottom = 24.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 TextButton(onClick = onBack) {
-                    Text("‹  Friends", style = Mosh.Label.copy(fontWeight = FontWeight.Medium, fontSize = 15.sp))
+                    Text(stringResource(R.string.find_back_friends), style = Mosh.Label.copy(fontWeight = FontWeight.Medium, fontSize = 15.sp))
                 }
                 Spacer(Modifier.weight(1f))
                 if ((BuildConfig.TEST_BUILD && DebugStatus.showUi) && debug != null) {
@@ -206,13 +208,13 @@ fun FinderScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        "Look for flashing ${beaconing.joinToString(" and ")}!",
+                        stringResource(R.string.find_look_for_flashing, beaconing.joinToString(stringResource(R.string.find_list_and))),
                         style = Mosh.Body.copy(fontSize = 14.sp, lineHeight = 18.sp, color = Mosh.Lime),
                     )
                 }
             }
             Spacer(Modifier.height(14.dp))
-            Text(if (scanning) "SCANNING FOR" else "FINDING", style = Mosh.Eyebrow)
+            Text(if (scanning) stringResource(R.string.find_eyebrow_scanning) else stringResource(R.string.find_eyebrow_finding), style = Mosh.Eyebrow)
             Spacer(Modifier.height(6.dp))
             Text(
                 title,
@@ -239,12 +241,12 @@ fun FinderScreen(
                     DistanceReadout(a.distanceM)
                     Spacer(Modifier.height(8.dp))
                     Chip(
-                        if (a.unsure) "Rough" else "Locked",
+                        if (a.unsure) stringResource(R.string.find_chip_rough) else stringResource(R.string.find_chip_locked),
                         if (a.unsure) Mosh.Amber else Mosh.Lime,
                         when {
-                            !a.unsure -> "Head this way"
-                            a.method == Method.GPS_SERVER || a.method == Method.CROWD_RELAY -> "From GPS: firms up as you walk"
-                            else -> "Rough: walk that way and watch the distance"
+                            !a.unsure -> stringResource(R.string.find_head_this_way)
+                            a.method == Method.GPS_SERVER || a.method == Method.CROWD_RELAY -> stringResource(R.string.find_from_gps)
+                            else -> stringResource(R.string.find_rough_walk)
                         },
                     )
                 }
@@ -259,33 +261,33 @@ fun FinderScreen(
                         ),
                     )
                     Spacer(Modifier.width(10.dp))
-                    Text("Hot pink is far. Arrows glow your mate's colour as you get close.", style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 16.sp, color = Mosh.TextFaint))
+                    Text(stringResource(R.string.find_colour_legend), style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 16.sp, color = Mosh.TextFaint))
                 }
             }
 
             when {
                 // Busy venue, interference: you can always start over.
                 scanning -> Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    GlassButton("Cancel", Modifier.weight(1f), onClick = onCancelScan)
-                    GlassButton("Restart scan", Modifier.weight(1f), icon = true, onClick = onScan)
+                    GlassButton(stringResource(R.string.find_cancel), Modifier.weight(1f), onClick = onCancelScan)
+                    GlassButton(stringResource(R.string.find_restart_scan), Modifier.weight(1f), icon = true, onClick = onScan)
                 }
                 scan != null && scan.done -> {
                     Text(
-                        scan.outcome.ifBlank { "Scan finished" },
+                        scan.outcome.ifBlank { stringResource(R.string.find_scan_finished) },
                         style = Mosh.Body.copy(color = Mosh.Text),
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        NeonButton("OK", Modifier.weight(1f), onClick = onDismissScan)
-                        GlassButton("Scan again", Modifier.weight(1f), onClick = onScan)
+                        NeonButton(stringResource(R.string.find_ok), Modifier.weight(1f), onClick = onDismissScan)
+                        GlassButton(stringResource(R.string.find_scan_again), Modifier.weight(1f), onClick = onScan)
                     }
                 }
                 // Can't hear anyone yet: explain, but still let them try (signals come and go in a crowd).
                 arrows.isNotEmpty() && arrows.all { it is ArrowState.NoSignal } -> {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        GlassButton("Ask them", Modifier.weight(1f), onClick = onNudge)
-                        GlassButton("Last seen on map", Modifier.weight(1f), onClick = onOpenMap)
+                        GlassButton(stringResource(R.string.find_ask_them), Modifier.weight(1f), onClick = onNudge)
+                        GlassButton(stringResource(R.string.find_last_seen_on_map), Modifier.weight(1f), onClick = onOpenMap)
                     }
                 }
                 // Only offer the close-up tools when they're actually close: the app picks the
@@ -299,18 +301,18 @@ fun FinderScreen(
                     }
                     if (near) {
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            GlassButton("Light me up", Modifier.weight(1f), onClick = { onBeacon(true) })
-                            if (needsDirection) GlassButton("Spin scan", Modifier.weight(1f), icon = true, onClick = onScan)
+                            GlassButton(stringResource(R.string.find_light_me_up), Modifier.weight(1f), onClick = { onBeacon(true) })
+                            if (needsDirection) GlassButton(stringResource(R.string.find_spin_scan), Modifier.weight(1f), icon = true, onClick = onScan)
                         }
                         var asked by remember { mutableStateOf(false) }
                         TextButton(onClick = { onAskLight(); asked = true }, enabled = !asked) {
                             Text(
-                                if (asked) "Asked: their phone will offer to light up" else "Ask them to light up",
+                                if (asked) stringResource(R.string.find_asked_light_up) else stringResource(R.string.find_ask_light_up),
                                 style = Mosh.Label.copy(fontSize = 14.sp, color = if (asked) Mosh.TextFaint else Mosh.Lime),
                             )
                         }
                     } else {
-                        GlassButton("Show on map", onClick = onOpenMap)
+                        GlassButton(stringResource(R.string.find_show_on_map), onClick = onOpenMap)
                     }
                 }
             }

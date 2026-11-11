@@ -16,11 +16,16 @@ object CrewNotifications {
 
     fun ping(c: Context, p: GigGroup.Ping) {
         val help = p.kind == GigGroup.Ping.NEED_HELP
-        val where = if (p.lat != null) " Tap to see where." else ""
+        val located = p.lat != null
         post(
             c, if (help) HELP_CHANNEL else CHANNEL,
-            title = "${p.from} ${GroupSync.pingText(p.kind)}",
-            text = if (help) "They hit Need help.$where Check on them." else where.trim().ifEmpty { "From your crew" },
+            title = GroupSync.pingTitle(p.kind, p.from),
+            text = when {
+                help && located -> Txt.s(R.string.crew_notif_help_where)
+                help -> Txt.s(R.string.crew_notif_help)
+                located -> Txt.s(R.string.crew_notif_tap_where)
+                else -> Txt.s(R.string.crew_notif_from_crew)
+            },
             urgent = help,
         )
     }
@@ -47,8 +52,8 @@ object CrewNotifications {
     ) {
         val app = c.applicationContext
         val nm = app.getSystemService(NotificationManager::class.java) ?: return
-        nm.createNotificationChannel(NotificationChannel(CHANNEL, "Crew messages", NotificationManager.IMPORTANCE_DEFAULT))
-        nm.createNotificationChannel(NotificationChannel(HELP_CHANNEL, "Crew help requests", NotificationManager.IMPORTANCE_HIGH))
+        nm.createNotificationChannel(NotificationChannel(CHANNEL, Txt.s(R.string.crew_channel_messages), NotificationManager.IMPORTANCE_DEFAULT))
+        nm.createNotificationChannel(NotificationChannel(HELP_CHANNEL, Txt.s(R.string.crew_channel_help), NotificationManager.IMPORTANCE_HIGH))
         val open = PendingIntent.getActivity(
             app, if (openChat) 71 + (crewId?.hashCode()?.and(0xFFFF) ?: 0) else 70,
             Intent(app, MainActivity::class.java).putExtra(MainActivity.EXTRA_OPEN_MAP, openMap && !openChat)

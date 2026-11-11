@@ -53,8 +53,8 @@ class GigWakeReceiver : BroadcastReceiver() {
         val time = java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(java.util.Date(g.startsAtSec * 1000))
         CrewNotifications.post(
             context,
-            title = "${g.name} tonight!",
-            text = "Starts $time${if (g.venue.isNotBlank()) " at ${g.venue}" else ""}. Tap to go live so your crew can find you.",
+            title = Txt.s(R.string.crew_wake_title, g.name),
+            text = if (g.venue.isNotBlank()) Txt.s(R.string.crew_wake_text_venue, time, g.venue) else Txt.s(R.string.crew_wake_text, time),
             urgent = false,
             openMap = false,
             // Gone by itself once the gig's well under way, so it's never stale the next morning.

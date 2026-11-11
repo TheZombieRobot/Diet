@@ -182,7 +182,7 @@ class VisibilityService : LifecycleService() {
         askedAt[friend.id] = now
         val nm = getSystemService(NotificationManager::class.java)
         nm.createNotificationChannel(
-            NotificationChannel(REQUEST_CHANNEL, "Mates looking for you", NotificationManager.IMPORTANCE_HIGH),
+            NotificationChannel(REQUEST_CHANNEL, getString(R.string.crew_channel_requests), NotificationManager.IMPORTANCE_HIGH),
         )
         val tap = PendingIntent.getActivity(
             this, friend.id.hashCode(),
@@ -191,8 +191,8 @@ class VisibilityService : LifecycleService() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
         val n = NotificationCompat.Builder(this, REQUEST_CHANNEL)
-            .setContentTitle("${friend.name} is close and looking for you")
-            .setContentText("Tap to light up your screen so they can spot you")
+            .setContentTitle(getString(R.string.crew_request_title, friend.name))
+            .setContentText(getString(R.string.crew_request_text))
             .setSmallIcon(R.drawable.ic_launcher_monochrome)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
@@ -295,10 +295,10 @@ class VisibilityService : LifecycleService() {
                                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
                             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
                         )
-                        addAction(0, "Find crew", find)
+                        addAction(0, c.getString(R.string.widget_find), find)
                     }
                 }
-                .addAction(0, "Go hidden", stopIntent)
+                .addAction(0, c.getString(R.string.crew_go_hidden), stopIntent)
                 .setColor(0xFFB6FF3B.toInt())
                 .build()
         }

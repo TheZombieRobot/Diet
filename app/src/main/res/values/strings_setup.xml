@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Settings, onboarding, planning a gig, QR codes, bumping phones, camera-roll picker. -->
+<resources>
+    <!-- Settings (the Me tab) -->
+    <string name="setup_settings_title">Settings</string>
+    <string name="setup_your_photo">Your photo</string>
+    <!-- "mates" = friends -->
+    <string name="setup_your_photo_desc">Shows in your mates\' arrow. Only your friends can see it.</string>
+    <string name="setup_take_selfie">Take a selfie</string>
+    <string name="setup_choose_photo">Choose photo</string>
+    <string name="setup_remove_my_photo">Remove my photo</string>
+    <string name="setup_your_name">Your name</string>
+    <!-- "Live" = sharing your location so mates can find you -->
+    <string name="setup_stay_live">Stay live after a restart</string>
+    <string name="setup_stay_live_desc">If you were live when your phone restarted, go live again automatically.</string>
+    <string name="setup_ghost_mode">Ghost mode</string>
+    <string name="setup_ghost_mode_desc">Hide your spot from the map. Mates can still find you with Bluetooth when they\'re close.</string>
+    <string name="setup_ghost_one_hour">Ghost for 1 hour</string>
+    <string name="setup_data_saver">Data saver</string>
+    <string name="setup_data_saver_desc">Share lighter photos and clips (quicker on weak signal). Off: high quality, so everyone\'s saved copies are crisp. Your own originals are always kept full quality.</string>
+    <string name="setup_emergency_contact">Emergency contact</string>
+    <!-- "Need help" is the name of a button elsewhere in the app; keep it matching that button's translation -->
+    <string name="setup_emergency_contact_desc">\"Need help\" can text them your location as a normal SMS (works without data). Stays on this phone.</string>
+    <!-- Placeholder: the emergency contact's name -->
+    <string name="setup_contact_name">Name</string>
+    <!-- Placeholder: the emergency contact's mobile phone number -->
+    <string name="setup_contact_mobile">Mobile</string>
+    <string name="setup_contact_saved">Saved</string>
+    <string name="setup_contact_need_number">Add a mobile number</string>
+    <string name="setup_contact_removed">Removed</string>
+    <string name="setup_save">Save</string>
+    <string name="setup_remove">Remove</string>
+    <!-- Section heading, shown in capitals -->
+    <string name="setup_about">ABOUT</string>
+    <!-- %1$s = app version, e.g. "1.4.2" -->
+    <string name="setup_about_text">Moshpoint %1$s. No account, rotating codes, end-to-end encrypted locations. You\'re only findable while you\'re live.</string>
+    <string name="setup_hide_licences">Hide licences</string>
+    <string name="setup_open_source_licences">Open-source licences</string>
+    <!-- Font and library names are product names: do not translate them -->
+    <string name="setup_licences_fonts">Fonts: Unbounded and Inter, under the SIL Open Font License 1.1. QR codes: ZXing (Apache 2.0).</string>
+    <string name="setup_continue_facebook">Continue with Facebook</string>
+
+    <!-- Onboarding (first run) -->
+    <string name="setup_onb_skip">Skip</string>
+    <string name="setup_onb_title_find">Find your mates\nin any crowd</string>
+    <string name="setup_onb_body_find">Tap a mate and an arrow points straight to them. It glows their colour as you get close.</string>
+    <string name="setup_onb_title_live">Go live when\nyou head in</string>
+    <!-- Followed by a list of the permissions needed -->
+    <string name="setup_onb_body_live">Your mates can only find you while you\'re live, and only you switch it on. Moshpoint needs:</string>
+    <!-- Permission name, then why it is needed -->
+    <string name="setup_onb_need_nearby">Nearby devices</string>
+    <string name="setup_onb_need_nearby_why">to find mates over Bluetooth, Wi-Fi and UWB</string>
+    <string name="setup_onb_need_location">Location</string>
+    <string name="setup_onb_need_location_why">for the arrow when you\'re far apart</string>
+    <string name="setup_onb_need_notifications">Notifications</string>
+    <string name="setup_onb_need_notifications_why">so you always know when you\'re live</string>
+    <string name="setup_onb_title_name">What should your\nmates call you?</string>
+    <!-- Between the "Continue with Facebook" button and the name field -->
+    <string name="setup_onb_or_type_it">or type it</string>
+    <string name="setup_onb_lets_go">Let\'s go</string>
+    <string name="setup_onb_allow">Allow</string>
+    <string name="setup_onb_skip_for_now">Skip for now</string>
+    <!-- Final onboarding button. %1$s = the name the user typed -->
+    <string name="setup_onb_im_name">I\'m %1$s</string>
+    <string name="setup_onb_arrow_demo_desc">An arrow pointing to a friend</string>
+
+    <!-- Plan a gig -->
+    <string name="setup_plan_title">Plan a gig</string>
+    <string name="setup_plan_desc">Start the crew now, everyone joins when it suits. It sleeps (no battery) until the day.</string>
+    <string name="setup_plan_search_hint">Search: band, artist or venue</string>
+    <string name="setup_plan_searching">Searching…</string>
+    <string name="setup_plan_search_failed">Couldn\'t search right now. Type it in below instead.</string>
+    <string name="setup_plan_no_results">No upcoming gigs found. Type it in below.</string>
+    <!-- Search result line. %1$s = when (e.g. "Sat 8 pm"), %2$s = venue and city -->
+    <string name="setup_plan_when_where">%1$s · %2$s</string>
+    <!-- Section heading, shown in capitals -->
+    <string name="setup_plan_or_type">OR TYPE IT IN</string>
+    <!-- Field label: the band or artist -->
+    <string name="setup_plan_whos_playing">Who\'s playing</string>
+    <!-- Field label: the venue -->
+    <string name="setup_plan_where">Where (optional)</string>
+    <string name="setup_plan_start_crew">Start the crew</string>
+    <!-- Default crew name when the user leaves "Who's playing" empty -->
+    <string name="setup_plan_default_name">Gig night</string>
+
+    <!-- QR code screen -->
+    <string name="setup_qr_title">Scan to add me</string>
+    <string name="setup_qr_hint">Then scan theirs, so you can find each other.</string>
+    <!-- Small heading above the QR, shown in capitals -->
+    <string name="setup_qr_eyebrow">YOUR CODE</string>
+    <!-- Back/close button; the ‹ is a back chevron -->
+    <string name="setup_qr_done">‹  Done</string>
+    <string name="setup_qr_code_desc">QR code</string>
+    <!-- How many people have joined the crew -->
+    <plurals name="setup_qr_mates_in">
+        <item quantity="one">%d mate in</item>
+        <item quantity="other">%d mates in</item>
+    </plurals>
+    <string name="setup_qr_send_invite">Can\'t scan? Send an invite instead</string>
+    <string name="setup_qr_reset_invite">Reset invite</string>
+    <string name="setup_qr_reset_title">Reset the invite?</string>
+    <string name="setup_qr_reset_text">If this QR or a screenshot of it got out, resetting stops it working. Everyone already in the crew stays in; anyone new will need the new QR.</string>
+    <string name="setup_qr_reset">Reset</string>
+    <string name="setup_cancel">Cancel</string>
+    <string name="setup_qr_end_night">End the night</string>
+
+    <!-- Bump phones -->
+    <string name="setup_bump_title">Bump phones</string>
+    <string name="setup_bump_sharing">Hold your phone back to back with your mate\'s. They\'ll be asked to join your crew.</string>
+    <!-- "Bump" is the name of this feature/button -->
+    <string name="setup_bump_joining">Hold your phone back to back with someone in a crew (they open Bump too). You\'ll be asked to join.</string>
+    <string name="setup_done">Done</string>
+
+    <!-- Camera-roll picker: add your own photos to a past gig -->
+    <string name="setup_roll_title">Your photos from that night</string>
+    <string name="setup_roll_looking">Looking through your photos…</string>
+    <string name="setup_roll_nothing">Nothing on this phone from those hours. Photos taken on another phone, or already added, won\'t show here.</string>
+    <string name="setup_roll_tap_to_leave_out">Tap to leave one out. They\'re copied into the gig, so they stay even if you delete them from your gallery.</string>
+    <string name="setup_roll_adding">Adding…</string>
+    <!-- Button. %d = number of photos/videos chosen -->
+    <plurals name="setup_roll_add_n">
+        <item quantity="one">Add %d to this gig</item>
+        <item quantity="other">Add %d to this gig</item>
+    </plurals>
+</resources>

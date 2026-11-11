@@ -59,6 +59,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import nz.waveformlabs.moshpoint.R
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.hypot
@@ -88,7 +90,7 @@ fun OnboardingScreen(
                     Text("point", style = Mosh.Title.copy(fontSize = 22.sp, color = Mosh.Pink))
                 }
                 Spacer(Modifier.weight(1f))
-                if (step < 2) TextButton(onClick = { step = 2 }) { Text("Skip", style = Mosh.Body.copy(color = Mosh.TextFaint)) }
+                if (step < 2) TextButton(onClick = { step = 2 }) { Text(stringResource(R.string.setup_onb_skip), style = Mosh.Body.copy(color = Mosh.TextFaint)) }
             }
 
             AnimatedContent(
@@ -110,35 +112,35 @@ fun OnboardingScreen(
                         0 -> {
                             ArrowDemo(Modifier.fillMaxWidth(0.72f).widthIn(max = 280.dp).aspectRatio(1f))
                             Spacer(Modifier.height(36.dp))
-                            Title("Find your mates\nin any crowd")
+                            Title(stringResource(R.string.setup_onb_title_find))
                             Spacer(Modifier.height(12.dp))
-                            Body("Tap a mate and an arrow points straight to them. It glows their colour as you get close.")
+                            Body(stringResource(R.string.setup_onb_body_find))
                         }
                         1 -> {
                             LiveOrb(Modifier.fillMaxWidth(0.5f).widthIn(max = 220.dp).aspectRatio(1f))
                             Spacer(Modifier.height(36.dp))
-                            Title("Go live when\nyou head in")
+                            Title(stringResource(R.string.setup_onb_title_live))
                             Spacer(Modifier.height(12.dp))
-                            Body("Your mates can only find you while you're live, and only you switch it on. Moshpoint needs:")
+                            Body(stringResource(R.string.setup_onb_body_live))
                             Spacer(Modifier.height(16.dp))
-                            Need(Mosh.Cyan, "Nearby devices", "to find mates over Bluetooth, Wi-Fi and UWB")
-                            Need(Mosh.Lime, "Location", "for the arrow when you're far apart")
-                            Need(Mosh.Pink, "Notifications", "so you always know when you're live")
+                            Need(Mosh.Cyan, stringResource(R.string.setup_onb_need_nearby), stringResource(R.string.setup_onb_need_nearby_why))
+                            Need(Mosh.Lime, stringResource(R.string.setup_onb_need_location), stringResource(R.string.setup_onb_need_location_why))
+                            Need(Mosh.Pink, stringResource(R.string.setup_onb_need_notifications), stringResource(R.string.setup_onb_need_notifications_why))
                         }
                         else -> {
                             NameBadge(name, Modifier.fillMaxWidth(0.45f).widthIn(max = 200.dp).aspectRatio(1f))
                             Spacer(Modifier.height(36.dp))
-                            Title("What should your\nmates call you?")
+                            Title(stringResource(R.string.setup_onb_title_name))
                             Spacer(Modifier.height(20.dp))
                             if (onFacebook != null) {
                                 FacebookButton(onFacebook)
                                 Spacer(Modifier.height(10.dp))
-                                Text("or type it", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
+                                Text(stringResource(R.string.setup_onb_or_type_it), style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
                                 Spacer(Modifier.height(10.dp))
                             }
                             OutlinedTextField(
                                 name, onName,
-                                placeholder = { Text("Your name", style = Mosh.Body.copy(color = Mosh.TextFaint)) },
+                                placeholder = { Text(stringResource(R.string.setup_your_name), style = Mosh.Body.copy(color = Mosh.TextFaint)) },
                                 singleLine = true,
                                 textStyle = Mosh.Heading.copy(fontSize = 20.sp),
                                 shape = RoundedCornerShape(18.dp),
@@ -155,12 +157,12 @@ fun OnboardingScreen(
             Dots(step)
             Spacer(Modifier.height(20.dp))
             when (step) {
-                0 -> NeonButton("Let's go") { step = 1 }
-                1 -> NeonButton("Allow") {
+                0 -> NeonButton(stringResource(R.string.setup_onb_lets_go)) { step = 1 }
+                1 -> NeonButton(stringResource(R.string.setup_onb_allow)) {
                     onAskPermissions()
                     step = 2
                 }
-                else -> NeonButton(if (name.isBlank()) "Skip for now" else "I'm ${name.trim()}", onClick = onDone)
+                else -> NeonButton(if (name.isBlank()) stringResource(R.string.setup_onb_skip_for_now) else stringResource(R.string.setup_onb_im_name, name.trim()), onClick = onDone)
             }
         }
     }
@@ -209,7 +211,8 @@ private fun ArrowDemo(modifier: Modifier) {
     val t = rememberInfiniteTransition(label = "demo")
     val p by t.animateFloat(0f, 1f, infiniteRepeatable(tween(6000, easing = LinearEasing)), label = "p") // demo: always moves
     val breathe by t.ambient(0.6f, 1f, infiniteRepeatable(tween(1200, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "b")
-    Canvas(modifier.semantics { contentDescription = "An arrow pointing to a friend" }) {
+    val arrowDesc = stringResource(R.string.setup_onb_arrow_demo_desc)
+    Canvas(modifier.semantics { contentDescription = arrowDesc }) {
         val c = center
         val maxR = size.minDimension / 2
         // Friend path: spiral in, then back out.

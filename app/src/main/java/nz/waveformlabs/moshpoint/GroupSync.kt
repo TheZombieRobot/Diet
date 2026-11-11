@@ -118,7 +118,7 @@ object GroupSync {
         val key = p.getString("key", null) ?: return promoteNext(c)
         val created = p.getLong("created", 0)
         val g = GigGroup(
-            Base64.decode(key, Base64.NO_WRAP), p.getString("name", "Gig group") ?: "Gig group", created,
+            Base64.decode(key, Base64.NO_WRAP), p.getString("name", null) ?: Txt.s(R.string.crew_default_group_name), created,
             p.getLong("at", 0L), p.getString("venue", "") ?: "",
             p.getString("vlat", null)?.toDoubleOrNull(), p.getString("vlon", null)?.toDoubleOrNull(),
         )
@@ -128,8 +128,8 @@ object GroupSync {
             val hadMoments = runCatching { java.io.File(java.io.File(c.filesDir, "gigs"), GigArchive.idFor(g)).list()?.isNotEmpty() == true }.getOrDefault(false)
             clear(c)
             CrewNotifications.post(
-                c, title = "${g.name} is done",
-                text = if (hadMoments) "Your photos and clips are saved in Your gigs." else "Hope it was a good one. Start a new crew any time.",
+                c, title = Txt.s(R.string.crew_notif_done_title, g.name),
+                text = if (hadMoments) Txt.s(R.string.crew_notif_done_saved) else Txt.s(R.string.crew_notif_done_text),
                 openMap = false,
             )
             return
@@ -184,7 +184,7 @@ object GroupSync {
         val g = group.value ?: return
         if (g.dormant(System.currentTimeMillis())) return
         val now = System.currentTimeMillis()
-        val name = (if (following) GigGroup.FOLLOWER_MARK else "") + VisibilityPrefs.myName(app).ifBlank { "Mate" }
+        val name = (if (following) GigGroup.FOLLOWER_MARK else "") + VisibilityPrefs.myName(app).ifBlank { Txt.s(R.string.crew_default_name) }
         syncServer(app, g, g.sealIntro(Identity.intro(app, g, name), now), now)
     }
 
@@ -416,7 +416,7 @@ object GroupSync {
         }
         val follower = following
         // Followers are marked so the crew lists them apart; they never use Bluetooth.
-        val myName = (if (follower) GigGroup.FOLLOWER_MARK else "") + VisibilityPrefs.myName(c).ifBlank { "Mate" }
+        val myName = (if (follower) GigGroup.FOLLOWER_MARK else "") + VisibilityPrefs.myName(c).ifBlank { Txt.s(R.string.crew_default_name) }
         if (!follower) startListening(c, g)
         postedEpoch = Long.MIN_VALUE
         startedAtMs = System.currentTimeMillis()
@@ -533,7 +533,7 @@ object GroupSync {
         val app = c.applicationContext
         // Pings go to a small mailbox: keep the text short enough that signed ones always fit.
         val short = text.toByteArray(Charsets.UTF_8).let { b -> if (b.size <= 80) text else String(b, 0, 80, Charsets.UTF_8).trimEnd('\uFFFD') }
-        val p = GigGroup.Ping(kind, VisibilityPrefs.myName(app).ifBlank { "Mate" }, System.currentTimeMillis() / 1000, lat, lon, minutes, short, Identity.tag(app, g))
+        val p = GigGroup.Ping(kind, VisibilityPrefs.myName(app).ifBlank { Txt.s(R.string.crew_default_name) }, System.currentTimeMillis() / 1000, lat, lon, minutes, short, Identity.tag(app, g))
         val blob = g.sealPing(p, Identity.signer(app, g))
         seenPings += blob.contentHashCode().toString()
         if (!quiet) NightStats.ping(app)
@@ -606,30 +606,52 @@ object GroupSync {
         for ((who, by) in checkIns) {
             if (now > by + 120 && overdueAlerted.add(who)) {
                 CrewNotifications.post(
-                    c, title = "$who hasn't checked in",
-                    text = "They were heading home and should be there by now. Give them a call. Tap for their last spot.",
+                    c, title = Txt.s(R.string.crew_notif_overdue_title, who),
+                    text = Txt.s(R.string.crew_notif_overdue_text),
                     urgent = true,
                 )
             }
         }
     }
 
-    /** What a ping says, e.g. "is coming to you". */
-    fun pingText(kind: Int) = when (kind) {
-        GigGroup.Ping.COMING -> "is on their way"
-        GigGroup.Ping.STAY_PUT -> "says stay where you are"
-        GigGroup.Ping.WHERE_ARE_YOU -> "is asking where you are"
-        GigGroup.Ping.MEET_AT_PIN -> "says meet at the pin"
-        GigGroup.Ping.ALL_GOOD -> "is all good"
-        GigGroup.Ping.GOING_HOME -> "is heading home"
-        GigGroup.Ping.NEED_HELP -> "NEEDS HELP"
-        GigGroup.Ping.CHECK_IN -> "is heading home and will check in"
-        GigGroup.Ping.HOME_SAFE -> "is home safe"
-        GigGroup.Ping.CHAT -> "sent a message"
-        GigGroup.Ping.FLARE -> "sent a flare"
-        GigGroup.Ping.PLAN -> "pinned a plan"
-        else -> "pinged the crew"
-    }
+    /** What a ping says, e.g. "is coming to you" (shown after the sender's name). */
+    fun pingText(kind: Int): String = Txt.s(
+        when (kind) {
+            GigGroup.Ping.COMING -> R.string.crew_ping_coming
+            GigGroup.Ping.STAY_PUT -> R.string.crew_ping_stay_put
+            GigGroup.Ping.WHERE_ARE_YOU -> R.string.crew_ping_where
+            GigGroup.Ping.MEET_AT_PIN -> R.string.crew_ping_meet_pin
+            GigGroup.Ping.ALL_GOOD -> R.string.crew_ping_all_good
+            GigGroup.Ping.GOING_HOME -> R.string.crew_ping_going_home
+            GigGroup.Ping.NEED_HELP -> R.string.crew_ping_need_help
+            GigGroup.Ping.CHECK_IN -> R.string.crew_ping_check_in
+            GigGroup.Ping.HOME_SAFE -> R.string.crew_ping_home_safe
+            GigGroup.Ping.CHAT -> R.string.crew_ping_chat
+            GigGroup.Ping.FLARE -> R.string.crew_ping_flare
+            GigGroup.Ping.PLAN -> R.string.crew_ping_plan
+            else -> R.string.crew_ping_other
+        },
+    )
+
+    /** A whole notification title for a ping from [name] ("Jo is on their way"). */
+    fun pingTitle(kind: Int, name: String): String = Txt.s(
+        when (kind) {
+            GigGroup.Ping.COMING -> R.string.crew_ping_title_coming
+            GigGroup.Ping.STAY_PUT -> R.string.crew_ping_title_stay_put
+            GigGroup.Ping.WHERE_ARE_YOU -> R.string.crew_ping_title_where
+            GigGroup.Ping.MEET_AT_PIN -> R.string.crew_ping_title_meet_pin
+            GigGroup.Ping.ALL_GOOD -> R.string.crew_ping_title_all_good
+            GigGroup.Ping.GOING_HOME -> R.string.crew_ping_title_going_home
+            GigGroup.Ping.NEED_HELP -> R.string.crew_ping_title_need_help
+            GigGroup.Ping.CHECK_IN -> R.string.crew_ping_title_check_in
+            GigGroup.Ping.HOME_SAFE -> R.string.crew_ping_title_home_safe
+            GigGroup.Ping.CHAT -> R.string.crew_ping_title_chat
+            GigGroup.Ping.FLARE -> R.string.crew_ping_title_flare
+            GigGroup.Ping.PLAN -> R.string.crew_ping_title_plan
+            else -> R.string.crew_ping_title_other
+        },
+        name,
+    )
 
     // ---- Crew meet-up pin ----
 
@@ -641,7 +663,7 @@ object GroupSync {
 
     /** Drop (or move) the crew's meet-up pin. Everyone in the crew gets it within a minute or so. */
     fun setRally(c: Context, name: String, lat: Double, lon: Double) {
-        val r = GigGroup.Rally(lat, lon, name.trim().ifBlank { "Meet here" }.take(24), System.currentTimeMillis() / 1000)
+        val r = GigGroup.Rally(lat, lon, name.trim().ifBlank { Txt.s(R.string.crew_rally_default) }.take(24), System.currentTimeMillis() / 1000)
         rallyMine = true
         rallyPostedAt = 0L
         saveRally(c, r, r.timeSec)
@@ -691,7 +713,7 @@ object GroupSync {
         rememberPub(c, intro.secret, intro.pub)
         if (intro.name.startsWith(GigGroup.FOLLOWER_MARK)) {
             // Someone following from home: shown to the crew, never added as a findable mate.
-            val who = intro.name.removePrefix(GigGroup.FOLLOWER_MARK).ifBlank { "Someone" }
+            val who = intro.name.removePrefix(GigGroup.FOLLOWER_MARK).ifBlank { Txt.s(R.string.crew_someone) }
             if (who !in followers) followers += who
             return
         }

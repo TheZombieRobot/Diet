@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.ui.Mosh
@@ -75,7 +76,7 @@ class MomentFlow(
         val f = newClipFile()
         clipFile = f
         val uri = androidx.core.content.FileProvider.getUriForFile(activity, "${activity.packageName}.media", f)
-        runCatching { takeClip.launch(uri) }.onFailure { toast("No camera app can record video here") }
+        runCatching { takeClip.launch(uri) }.onFailure { toast(Txt.s(R.string.find_no_video_app)) }
     }
 
     private suspend fun copyToClips(uri: android.net.Uri): java.io.File? = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
@@ -89,7 +90,7 @@ class MomentFlow(
     private fun useClip(f: java.io.File?) {
         if (f == null || !f.exists() || f.length() == 0L) return
         if (f.length() > nz.waveformlabs.moshpoint.locate.RelayClient.MAX_FILE - 200_000) {
-            toast("That clip is too long to send. Keep it to about 10 seconds.")
+            toast(Txt.s(R.string.find_clip_too_long))
             f.delete()
             return
         }
@@ -106,9 +107,9 @@ class MomentFlow(
             if (ok) {
                 momentClip = null
                 f.delete()
-                toast("Clip shared with your crew")
+                toast(Txt.s(R.string.find_clip_shared))
             } else {
-                toast("Couldn't send it. Check your internet and try again.")
+                toast(Txt.s(R.string.find_send_failed))
             }
         }
     }
@@ -127,7 +128,7 @@ class MomentFlow(
         val uri = intent.data ?: return
         intent.removeExtra(MainActivity.EXTRA_MOMENT)
         if (GroupSync.group.value == null) {
-            toast("Start or join a crew first: moments go to your crew")
+            toast(Txt.s(R.string.find_join_crew_first))
             return
         }
         activity.lifecycleScope.launch { momentPhoto = decodeScaled(uri) }
@@ -143,7 +144,7 @@ class MomentFlow(
             withAudio = r[Manifest.permission.RECORD_AUDIO] == true
             capturing = true
         } else {
-            toast("Moshpoint needs the camera to take a moment")
+            toast(Txt.s(R.string.find_needs_camera))
         }
     }
 
@@ -161,7 +162,7 @@ class MomentFlow(
     /** "Moment": straight into the camera. */
     fun start() {
         if (GroupSync.group.value == null) {
-            toast("Start or join a crew first: moments go to your crew")
+            toast(Txt.s(R.string.find_join_crew_first))
             return
         }
         openCamera()
@@ -176,9 +177,9 @@ class MomentFlow(
             sendingMoment = false
             if (ok) {
                 momentPhoto = null
-                toast("Shared with your crew")
+                toast(Txt.s(R.string.find_shared_with_crew))
             } else {
-                toast("Couldn't send it. Check your internet and try again.")
+                toast(Txt.s(R.string.find_send_failed))
             }
         }
     }
@@ -229,25 +230,25 @@ class MomentFlow(
             androidx.compose.material3.AlertDialog(
                 onDismissRequest = { askMomentSource = false },
                 containerColor = Mosh.Deep,
-                title = { androidx.compose.material3.Text("Share a moment", style = Mosh.Heading) },
+                title = { androidx.compose.material3.Text(stringResource(R.string.find_share_a_moment), style = Mosh.Heading) },
                 text = {
                     androidx.compose.foundation.layout.Column {
-                        androidx.compose.material3.Text("Snap where you are (the stage, the bar, your mates). It lands in the story as a Polaroid.", style = Mosh.Body)
+                        androidx.compose.material3.Text(stringResource(R.string.find_share_moment_help), style = Mosh.Body)
                         androidx.compose.material3.TextButton(onClick = { askMomentSource = false; takeMomentPhoto() }) {
-                            androidx.compose.material3.Text("Take a photo", style = Mosh.Label.copy(color = Mosh.Lime))
+                            androidx.compose.material3.Text(stringResource(R.string.find_take_photo), style = Mosh.Label.copy(color = Mosh.Lime))
                         }
                         androidx.compose.material3.TextButton(onClick = { askMomentSource = false; recordClip() }) {
-                            androidx.compose.material3.Text("Record a clip (10 s)", style = Mosh.Label.copy(color = Mosh.Pink))
+                            androidx.compose.material3.Text(stringResource(R.string.find_record_clip), style = Mosh.Label.copy(color = Mosh.Pink))
                         }
                         androidx.compose.material3.TextButton(onClick = {
                             askMomentSource = false
                             pickMoment.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
-                        }) { androidx.compose.material3.Text("Choose from gallery", style = Mosh.Label.copy(color = Mosh.Cyan)) }
+                        }) { androidx.compose.material3.Text(stringResource(R.string.find_choose_gallery), style = Mosh.Label.copy(color = Mosh.Cyan)) }
                     }
                 },
                 confirmButton = {
                     androidx.compose.material3.TextButton(onClick = { askMomentSource = false }) {
-                        androidx.compose.material3.Text("Cancel", style = Mosh.Label)
+                        androidx.compose.material3.Text(stringResource(R.string.find_cancel), style = Mosh.Label)
                     }
                 },
             )

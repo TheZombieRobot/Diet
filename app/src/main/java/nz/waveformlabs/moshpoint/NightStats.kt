@@ -1,6 +1,7 @@
 package nz.waveformlabs.moshpoint
 
 import android.content.Context
+import nz.waveformlabs.moshpoint.ui.distanceLabel
 
 /**
  * Your night in numbers, for the recap card when you end the night: how far you walked,
@@ -39,14 +40,14 @@ object NightStats {
     /** "4.2 km walked · found mates 6 times · 3 moments · 5 h 12 min out" */
     fun summary(s: Stats, nowMs: Long): String {
         val parts = mutableListOf<String>()
-        if (s.metres >= 100) parts += if (s.metres < 1000) "${(s.metres / 10).toInt() * 10} m walked" else "%.1f km walked".format(s.metres / 1000)
-        if (s.finds > 0) parts += "found mates ${s.finds} time${if (s.finds == 1) "" else "s"}"
-        if (s.moments > 0) parts += "${s.moments} moment${if (s.moments == 1) "" else "s"}"
-        if (s.pings > 0) parts += "${s.pings} ping${if (s.pings == 1) "" else "s"}"
+        if (s.metres >= 100) parts += Txt.s(R.string.crew_stats_walked, distanceLabel(s.metres))
+        if (s.finds > 0) parts += Txt.p(R.plurals.crew_stats_finds, s.finds)
+        if (s.moments > 0) parts += Txt.p(R.plurals.crew_stats_moments, s.moments)
+        if (s.pings > 0) parts += Txt.p(R.plurals.crew_stats_pings, s.pings)
         if (s.startedAtMs > 0) {
-            val mins = (nowMs - s.startedAtMs) / 60_000
-            parts += if (mins >= 60) "${mins / 60} h ${mins % 60} min out" else "$mins min out"
+            val mins = ((nowMs - s.startedAtMs) / 60_000).toInt()
+            parts += if (mins >= 60) Txt.s(R.string.crew_stats_out_hours, mins / 60, mins % 60) else Txt.p(R.plurals.crew_stats_out_mins, mins)
         }
-        return parts.joinToString(" · ").ifBlank { "A quiet one" }
+        return parts.joinToString(" · ").ifBlank { Txt.s(R.string.crew_stats_quiet) }
     }
 }

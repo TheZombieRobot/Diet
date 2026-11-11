@@ -44,6 +44,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.DebugStatus
+import nz.waveformlabs.moshpoint.R
+import androidx.compose.ui.res.stringResource
 
 // Settings (the Me tab): your photo and name, ghost mode, staying live, debug, about.
 
@@ -88,7 +90,7 @@ internal fun SettingsContent(
                 .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text("Settings", style = Mosh.Heading, modifier = Modifier.padding(top = 4.dp))
+            Text(stringResource(R.string.setup_settings_title), style = Mosh.Heading, modifier = Modifier.padding(top = 4.dp))
             // Your photo: shown in your friends' arrow circles (shared encrypted, friends only).
             Row(verticalAlignment = Alignment.CenterVertically) {
                 val mine = PhotoStore.photos[PhotoStore.ME]
@@ -97,33 +99,33 @@ internal fun SettingsContent(
                     contentAlignment = Alignment.Center,
                 ) {
                     if (mine != null) {
-                        Image(mine, contentDescription = "Your photo", contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                        Image(mine, contentDescription = stringResource(R.string.setup_your_photo), contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
                     } else {
                         InitialsAvatar(myName, 72.dp)
                     }
                 }
                 Spacer(Modifier.width(16.dp))
                 Column(Modifier.weight(1f)) {
-                    Text("Your photo", style = Mosh.Label)
-                    Text("Shows in your mates' arrow. Only your friends can see it.", style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint))
+                    Text(stringResource(R.string.setup_your_photo), style = Mosh.Label)
+                    Text(stringResource(R.string.setup_your_photo_desc), style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint))
                 }
             }
             if (onFacebook != null) FacebookButton(onFacebook)
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                GlassButton("Take a selfie", Modifier.weight(1f), onClick = onSelfie)
-                GlassButton("Choose photo", Modifier.weight(1f), onClick = onPickMyPhoto)
+                GlassButton(stringResource(R.string.setup_take_selfie), Modifier.weight(1f), onClick = onSelfie)
+                GlassButton(stringResource(R.string.setup_choose_photo), Modifier.weight(1f), onClick = onPickMyPhoto)
             }
             if (PhotoStore.photos.containsKey(PhotoStore.ME)) {
-                TextButton(onClick = onRemoveMyPhoto) { Text("Remove my photo", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Danger)) }
+                TextButton(onClick = onRemoveMyPhoto) { Text(stringResource(R.string.setup_remove_my_photo), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Danger)) }
             }
             OutlinedTextField(
-                myName, onMyName, label = { Text("Your name") }, singleLine = true,
+                myName, onMyName, label = { Text(stringResource(R.string.setup_your_name)) }, singleLine = true,
                 shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth(),
             )
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("Stay live after a restart", style = Mosh.Label)
-                    Text("If you were live when your phone restarted, go live again automatically.", style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint))
+                    Text(stringResource(R.string.setup_stay_live), style = Mosh.Label)
+                    Text(stringResource(R.string.setup_stay_live_desc), style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint))
                 }
                 Spacer(Modifier.width(12.dp))
                 Switch(alwaysOn, onAlwaysOn, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Lime, checkedThumbColor = Color(0xFF0B1200), uncheckedTrackColor = Color(0xFF1C1630)))
@@ -133,9 +135,9 @@ internal fun SettingsContent(
                 val ghost = nz.waveformlabs.moshpoint.GhostMode.on.value
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text("Ghost mode", style = Mosh.Label)
+                        Text(stringResource(R.string.setup_ghost_mode), style = Mosh.Label)
                         Text(
-                            "Hide your spot from the map. Mates can still find you with Bluetooth when they're close.",
+                            stringResource(R.string.setup_ghost_mode_desc),
                             style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint),
                         )
                     }
@@ -144,7 +146,7 @@ internal fun SettingsContent(
                 }
                 if (!ghost) {
                     TextButton(onClick = { nz.waveformlabs.moshpoint.GhostMode.set(context, true, 3_600_000L) }) {
-                        Text("Ghost for 1 hour", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Violet))
+                        Text(stringResource(R.string.setup_ghost_one_hour), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Violet))
                     }
                 }
             }
@@ -152,9 +154,9 @@ internal fun SettingsContent(
                 val context = androidx.compose.ui.platform.LocalContext.current
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text("Data saver", style = Mosh.Label)
+                        Text(stringResource(R.string.setup_data_saver), style = Mosh.Label)
                         Text(
-                            "Share lighter photos and clips (quicker on weak signal). Off: high quality, so everyone's saved copies are crisp. Your own originals are always kept full quality.",
+                            stringResource(R.string.setup_data_saver_desc),
                             style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint),
                         )
                     }
@@ -169,28 +171,31 @@ internal fun SettingsContent(
                 var name by remember { mutableStateOf(saved?.name.orEmpty()) }
                 var number by remember { mutableStateOf(saved?.number.orEmpty()) }
                 var note by remember { mutableStateOf<String?>(null) }
+                val savedText = stringResource(R.string.setup_contact_saved)
+                val needNumberText = stringResource(R.string.setup_contact_need_number)
+                val removedText = stringResource(R.string.setup_contact_removed)
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text("Emergency contact", style = Mosh.Label)
+                    Text(stringResource(R.string.setup_emergency_contact), style = Mosh.Label)
                     Text(
-                        "\"Need help\" can text them your location as a normal SMS (works without data). Stays on this phone.",
+                        stringResource(R.string.setup_emergency_contact_desc),
                         style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint),
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(name, { name = it; note = null }, singleLine = true, placeholder = { Text("Name") }, shape = RoundedCornerShape(16.dp), modifier = Modifier.weight(1f))
+                        OutlinedTextField(name, { name = it; note = null }, singleLine = true, placeholder = { Text(stringResource(R.string.setup_contact_name)) }, shape = RoundedCornerShape(16.dp), modifier = Modifier.weight(1f))
                         OutlinedTextField(
-                            number, { number = it; note = null }, singleLine = true, placeholder = { Text("Mobile") }, shape = RoundedCornerShape(16.dp), modifier = Modifier.weight(1.2f),
+                            number, { number = it; note = null }, singleLine = true, placeholder = { Text(stringResource(R.string.setup_contact_mobile)) }, shape = RoundedCornerShape(16.dp), modifier = Modifier.weight(1.2f),
                             keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone),
                         )
                     }
                     Row {
                         TextButton(onClick = {
                             note = if (number.count { it.isDigit() } >= 6) {
-                                nz.waveformlabs.moshpoint.Safety.setContact(context, name, number); "Saved"
-                            } else "Add a mobile number"
-                        }) { Text("Save", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
+                                nz.waveformlabs.moshpoint.Safety.setContact(context, name, number); savedText
+                            } else needNumberText
+                        }) { Text(stringResource(R.string.setup_save), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
                         if (saved != null || number.isNotEmpty()) TextButton(onClick = {
-                            nz.waveformlabs.moshpoint.Safety.clearContact(context); name = ""; number = ""; note = "Removed"
-                        }) { Text("Remove", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.TextDim)) }
+                            nz.waveformlabs.moshpoint.Safety.clearContact(context); name = ""; number = ""; note = removedText
+                        }) { Text(stringResource(R.string.setup_remove), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.TextDim)) }
                     }
                     note?.let { Text(it, style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.Lime)) }
                 }
@@ -280,14 +285,14 @@ internal fun SettingsContent(
                 }
             }
             Box(Modifier.fillMaxWidth().height(1.dp).background(Mosh.Line))
-            Text("ABOUT", style = Mosh.Eyebrow)
+            Text(stringResource(R.string.setup_about), style = Mosh.Eyebrow)
             Text(
-                "Moshpoint ${nz.waveformlabs.moshpoint.BuildConfig.VERSION_NAME}. No account, rotating codes, end-to-end encrypted locations. You're only findable while you're live.",
+                stringResource(R.string.setup_about_text, nz.waveformlabs.moshpoint.BuildConfig.VERSION_NAME),
                 style = Mosh.Body,
             )
             Text(phoneSummary, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint))
             TextButton(onClick = { showLicences = !showLicences }) {
-                Text(if (showLicences) "Hide licences" else "Open-source licences", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan))
+                Text(if (showLicences) stringResource(R.string.setup_hide_licences) else stringResource(R.string.setup_open_source_licences), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan))
             }
             if (showLicences) {
                 val context = androidx.compose.ui.platform.LocalContext.current
@@ -299,7 +304,7 @@ internal fun SettingsContent(
                     }.getOrDefault("")
                 }
                 Text(
-                    "Fonts: Unbounded and Inter, under the SIL Open Font License 1.1. QR codes: ZXing (Apache 2.0).\n\n$text",
+                    stringResource(R.string.setup_licences_fonts) + "\n\n" + text,
                     style = Mosh.Body.copy(fontSize = 11.sp, lineHeight = 15.sp, color = Mosh.TextFaint),
                 )
             }
@@ -322,6 +327,6 @@ fun FacebookButton(onClick: () -> Unit, modifier: Modifier = Modifier.fillMaxWid
             Text("f", style = Mosh.Button.copy(fontSize = 15.sp, color = Color(0xFF1877F2)))
         }
         Spacer(Modifier.width(10.dp))
-        Text("Continue with Facebook", style = Mosh.Label.copy(color = Color.White))
+        Text(stringResource(R.string.setup_continue_facebook), style = Mosh.Label.copy(color = Color.White))
     }
 }

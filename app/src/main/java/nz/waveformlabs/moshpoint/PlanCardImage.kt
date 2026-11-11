@@ -43,7 +43,7 @@ object PlanCardImage {
             cv.save(); cv.translate(pad, y); layout.draw(cv); cv.restore()
             return layout.height.toFloat()
         }
-        y += text("MOSHPOINT · TONIGHT'S PLAN", 34f, 0xFF8E87A6.toInt(), bold, 0.12f) + 40f
+        y += text(Txt.s(R.string.crew_card_eyebrow), 34f, 0xFF8E87A6.toInt(), bold, 0.12f) + 40f
         y += text(card.title, 92f, 0xFFF7F5FF.toInt(), bold) + 18f
         card.whenWhere?.let { y += text(it, 42f, 0xFF22E4FF.toInt()) + 50f } ?: run { y += 32f }
         card.plan?.let { p ->
@@ -54,16 +54,16 @@ object PlanCardImage {
             cv.drawRoundRect(box, 36f, 36f, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x26B6FF3B })
             cv.drawRoundRect(box, 36f, 36f, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xAAB6FF3B.toInt(); style = Paint.Style.STROKE; strokeWidth = 4f })
             y += 10f
-            y += text("THE PLAN", 30f, 0xFFB6FF3B.toInt(), bold, 0.14f) + 14f
+            y += text(Txt.s(R.string.crew_card_plan), 30f, 0xFFB6FF3B.toInt(), bold, 0.14f) + 14f
             y += text(p, 58f, 0xFFF7F5FF.toInt(), bold) + 70f
         }
-        card.meetUp?.let { y += text("★  Meet-up: $it", 44f, 0xFFFF2E93.toInt(), bold) + 40f }
+        card.meetUp?.let { y += text(Txt.s(R.string.crew_card_meet_up, it), 44f, 0xFFFF2E93.toInt(), bold) + 40f }
         if (card.crew.isNotEmpty()) {
-            y += text("WHO'S COMING", 30f, 0xFF8E87A6.toInt(), bold, 0.14f) + 12f
+            y += text(Txt.s(R.string.crew_card_whos_coming), 30f, 0xFF8E87A6.toInt(), bold, 0.14f) + 12f
             text(card.crew.take(12).joinToString("  ·  "), 44f, 0xFFD9D4EC.toInt())
         }
         val foot = TextPaint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 30f; color = 0xFF8E87A6.toInt() }
-        cv.drawText("Lose each other? Find each other on Moshpoint.", pad, h - 80f, foot)
+        cv.drawText(Txt.s(R.string.crew_card_footer), pad, h - 80f, foot)
         return bmp
     }
 
@@ -74,8 +74,8 @@ object PlanCardImage {
         runCatching { f.outputStream().use { render(card).compress(Bitmap.CompressFormat.PNG, 100, it) } }.onFailure { return }
         val uri = FileProvider.getUriForFile(c, "${c.packageName}.media", f)
         val send = Intent(Intent.ACTION_SEND).setType("image/png").putExtra(Intent.EXTRA_STREAM, uri)
-            .putExtra(Intent.EXTRA_TEXT, listOfNotNull(card.title, card.plan, card.meetUp?.let { "Meet-up: $it" }).joinToString("\n"))
+            .putExtra(Intent.EXTRA_TEXT, listOfNotNull(card.title, card.plan, card.meetUp?.let { Txt.s(R.string.crew_card_share_meet_up, it) }).joinToString("\n"))
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        c.startActivity(Intent.createChooser(send, "Share the plan").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        c.startActivity(Intent.createChooser(send, Txt.s(R.string.crew_card_share_title)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }
 }

@@ -65,11 +65,13 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.R
 import java.io.File
 
 /** Longest clip: short enough to share over the relay quickly, long enough for a chorus. */
@@ -101,6 +103,11 @@ fun CaptureScreen(
     var recording by remember { mutableStateOf<Recording?>(null) }
     var flash by remember { mutableStateOf(false) }
     val progress = remember { Animatable(0f) }
+    // Read up front: the camera callbacks below run outside composition.
+    val errNoCamera = stringResource(R.string.find_camera_unavailable)
+    val errOpen = stringResource(R.string.find_camera_open_failed)
+    val errPhoto = stringResource(R.string.find_photo_failed)
+    val errClip = stringResource(R.string.find_clip_failed)
 
     val previewView = remember { PreviewView(context).apply { scaleType = PreviewView.ScaleType.FILL_CENTER } }
     val imageCapture = remember { ImageCapture.Builder().setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY).build() }
@@ -119,7 +126,7 @@ fun CaptureScreen(
         val future = ProcessCameraProvider.getInstance(context)
         var provider: ProcessCameraProvider? = null
         future.addListener({
-            val p = runCatching { future.get() }.getOrNull() ?: return@addListener onError("Camera not available")
+            val p = runCatching { future.get() }.getOrNull() ?: return@addListener onError(errNoCamera)
             provider = p
             val preview = Preview.Builder().build().also { it.setSurfaceProvider(previewView.surfaceProvider) }
             val selector = if (front) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA
@@ -127,7 +134,7 @@ fun CaptureScreen(
             // Some phones can't do preview + photo + video at once: fall back to photo only.
             runCatching { p.bindToLifecycle(lifecycle, selector, preview, imageCapture, videoCapture) }
                 .recoverCatching { p.unbindAll(); p.bindToLifecycle(lifecycle, selector, preview, imageCapture) }
-                .onFailure { onError("Couldn't open the camera") }
+                .onFailure { onError(errOpen) }
         }, ContextCompat.getMainExecutor(context))
         onDispose {
             recording?.stop()
@@ -148,7 +155,7 @@ fun CaptureScreen(
                     onPhoto(upright)
                 }
 
-                override fun onError(exception: ImageCaptureException) = onError("Couldn't take the photo")
+                override fun onError(exception: ImageCaptureException) = onError(errPhoto)
             },
         )
     }
@@ -164,7 +171,7 @@ fun CaptureScreen(
                 recording = null
                 scope.launch { progress.snapTo(0f) }
                 if (e.hasError() && e.error != VideoRecordEvent.Finalize.ERROR_DURATION_LIMIT_REACHED) {
-                    if (file.length() == 0L) onError("Couldn't record that clip") else onClip(file)
+                    if (file.length() == 0L) onError(errClip) else onClip(file)
                 } else {
                     onClip(file)
                 }
@@ -220,7 +227,7 @@ fun CaptureScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                if (recording != null) "Let go to stop" else "Tap for photo · Hold for video",
+                if (recording != null) stringResource(R.string.find_let_go_to_stop) else stringResource(R.string.find_tap_hold_hint),
                 style = Mosh.Label.copy(color = Color.White, fontSize = 14.sp),
                 modifier = Modifier.background(Color(0x66000000), RoundedPill).padding(horizontal = 14.dp, vertical = 6.dp),
             )

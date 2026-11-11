@@ -37,11 +37,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.Friend
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
 
 /**
  * Friends list (permanent) and gig group (one night), plus the visibility switch.
@@ -94,7 +98,7 @@ fun FriendsScreen(
     nowSec: Long = 0L,
     pings: List<nz.waveformlabs.moshpoint.core.GigGroup.Ping> = emptyList(),
     onPing: (Int) -> Unit = {},
-    describePing: (Int) -> String = { "pinged the crew" },
+    describePing: (Int) -> String = { Txt.s(R.string.home_ping_default) },
     ghost: Boolean = false,
     /** "Show crew QR" from the Add sheet: starts a crew first if needed. */
     onShowCrewQr: (() -> Unit)? = null,
@@ -182,10 +186,10 @@ fun FriendsScreen(
     if (naming) {
         AlertDialog(
             onDismissRequest = { naming = false },
-            title = { Text("Start a gig group") },
+            title = { Text(stringResource(R.string.home_start_gig_group)) },
             text = {
                 androidx.compose.foundation.layout.Column {
-                    Text("Name it (e.g. the band). Then show the QR to your mates.")
+                    Text(stringResource(R.string.home_start_gig_group_text))
                     OutlinedTextField(groupNameText, { groupNameText = it }, singleLine = true)
                 }
             },
@@ -194,9 +198,9 @@ fun FriendsScreen(
                     onStartGroup(groupNameText)
                     groupNameText = ""
                     naming = false
-                }) { Text("Start") }
+                }) { Text(stringResource(R.string.home_start)) }
             },
-            dismissButton = { TextButton(onClick = { naming = false }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { naming = false }) { Text(stringResource(R.string.home_cancel)) } },
         )
     }
     options?.let { f ->
@@ -206,30 +210,30 @@ fun FriendsScreen(
             text = {
                 androidx.compose.foundation.layout.Column {
                     if (f.gigGroupOnly) {
-                        TextButton(onClick = { onKeepFriend(f.id); options = null }) { Text("Add ${f.name} as a friend (keep after tonight)") }
+                        TextButton(onClick = { onKeepFriend(f.id); options = null }) { Text(stringResource(R.string.home_keep_friend, f.name)) }
                     }
-                    TextButton(onClick = { onSetPhoto(f.id); options = null }) { Text("Set photo") }
+                    TextButton(onClick = { onSetPhoto(f.id); options = null }) { Text(stringResource(R.string.home_set_photo)) }
                     if (PhotoStore.photos.containsKey(f.id)) {
-                        TextButton(onClick = { onRemovePhoto(f.id); options = null }) { Text("Remove photo") }
+                        TextButton(onClick = { onRemovePhoto(f.id); options = null }) { Text(stringResource(R.string.home_remove_photo)) }
                     }
-                    TextButton(onClick = { confirmRemove = f; options = null }) { Text("Remove ${f.name}", color = Color(0xFFE53935)) }
+                    TextButton(onClick = { confirmRemove = f; options = null }) { Text(stringResource(R.string.home_remove_name, f.name), color = Color(0xFFE53935)) }
                 }
             },
-            confirmButton = { TextButton(onClick = { options = null }) { Text("Close") } },
+            confirmButton = { TextButton(onClick = { options = null }) { Text(stringResource(R.string.home_close)) } },
         )
     }
     confirmRemove?.let { f ->
         AlertDialog(
             onDismissRequest = { confirmRemove = null },
-            title = { Text(if (f.gigGroupOnly) "Remove ${f.name} from the crew?" else "Remove ${f.name}?") },
+            title = { Text(if (f.gigGroupOnly) stringResource(R.string.home_remove_from_crew_title, f.name) else stringResource(R.string.home_remove_friend_title, f.name)) },
             text = {
                 Text(
-                    if (f.gigGroupOnly) "The crew moves to a new key that ${f.name} doesn't get, so they can't see where anyone is, the chat or photos from now on. Everyone else stays in."
-                    else "You won't be able to find them until you add them again.",
+                    if (f.gigGroupOnly) stringResource(R.string.home_remove_from_crew_text, f.name)
+                    else stringResource(R.string.home_remove_friend_text),
                 )
             },
-            confirmButton = { TextButton(onClick = { onRemove(f.id); confirmRemove = null }) { Text("Remove") } },
-            dismissButton = { TextButton(onClick = { confirmRemove = null }) { Text("Cancel") } },
+            confirmButton = { TextButton(onClick = { onRemove(f.id); confirmRemove = null }) { Text(stringResource(R.string.home_remove)) } },
+            dismissButton = { TextButton(onClick = { confirmRemove = null }) { Text(stringResource(R.string.home_cancel)) } },
         )
     }
 
@@ -259,7 +263,7 @@ fun FriendsScreen(
             Spacer(Modifier.width(14.dp))
             Text(f.name, style = Mosh.Label, modifier = Modifier.weight(1f))
             Text(
-                "Find", style = Mosh.Label.copy(fontSize = 12.sp, color = Color(f.color)),
+                stringResource(R.string.home_find), style = Mosh.Label.copy(fontSize = 12.sp, color = Color(f.color)),
                 modifier = Modifier.background(Color(f.color).copy(alpha = 0.12f), CircleShape).padding(horizontal = 10.dp, vertical = 4.dp),
             )
             // Options (remove, photo, keep) without having to know about long-press.
@@ -290,16 +294,16 @@ fun FriendsScreen(
         AlertDialog(
             onDismissRequest = { manualCode = false; code = ""; name = "" },
             containerColor = Mosh.Deep,
-            title = { Text("Add with a code", style = Mosh.Heading) },
+            title = { Text(stringResource(R.string.home_add_with_code), style = Mosh.Heading) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(name, { name = it }, label = { Text("Their name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                    OutlinedTextField(code, { code = it }, label = { Text("Their code") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(name, { name = it }, label = { Text(stringResource(R.string.home_their_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(code, { code = it }, label = { Text(stringResource(R.string.home_their_code)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                     error?.let { Text(it, style = Mosh.Body.copy(color = Mosh.Danger)) }
                 }
             },
-            confirmButton = { TextButton(onClick = { add(false); if (error == null) manualCode = false }) { Text("Add friend", style = Mosh.Label.copy(color = Mosh.Cyan)) } },
-            dismissButton = { TextButton(onClick = { add(true); if (error == null) manualCode = false }) { Text("Tonight only", style = Mosh.Label) } },
+            confirmButton = { TextButton(onClick = { add(false); if (error == null) manualCode = false }) { Text(stringResource(R.string.home_add_friend), style = Mosh.Label.copy(color = Mosh.Cyan)) } },
+            dismissButton = { TextButton(onClick = { add(true); if (error == null) manualCode = false }) { Text(stringResource(R.string.home_tonight_only), style = Mosh.Label) } },
         )
     }
 
@@ -324,15 +328,15 @@ fun FriendsScreen(
             }
             if (!visible && groupName != null && !crewSleeping && !following) {
                 Spacer(Modifier.height(8.dp))
-                Text("You're hidden from your crew. Tap Go live when you want to be found.", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
+                Text(stringResource(R.string.home_hidden_hint), style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
             }
         }
         // One calm card with the one thing to fix next (permission, then each switch), instead
         // of a wall of warnings. It disappears once everything's ready.
         val todo: Triple<String, String, () -> Unit>? = when {
             missingPermissions.isNotEmpty() -> Triple(
-                "Allow Moshpoint to find your mates (" + missingPermissions.first().substringBefore(':').lowercase() + ")",
-                "Allow", onFixPermissions,
+                Txt.s(R.string.home_allow_permission, missingPermissions.first().substringBefore(':').lowercase()),
+                Txt.s(R.string.home_allow), onFixPermissions,
             )
             setupIssues.isNotEmpty() -> setupIssues.first().let { Triple(it.text, it.button, it.onFix) }
             else -> null
@@ -346,7 +350,7 @@ fun FriendsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(Modifier.weight(1f)) {
-                        Text("ONE THING FIRST" + if (more > 0) " · $more MORE" else "", style = Mosh.Eyebrow.copy(color = Mosh.Amber))
+                        Text(if (more > 0) pluralStringResource(R.plurals.home_one_thing_first_more, more, more) else stringResource(R.string.home_one_thing_first), style = Mosh.Eyebrow.copy(color = Mosh.Amber))
                         Spacer(Modifier.height(4.dp))
                         Text(todo.first, style = Mosh.Body.copy(fontSize = 14.sp, lineHeight = 19.sp, color = Mosh.Text))
                     }
@@ -367,33 +371,33 @@ fun FriendsScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     if (groupName == null && gig.isEmpty()) {
-                        Text("TONIGHT", style = Mosh.Eyebrow)
-                        Text("Find your mates tonight", style = Mosh.Heading)
-                        Text("Invite them, they scan, done. Moshpoint does the rest.", style = Mosh.Body)
-                        NeonButton("Invite mates for tonight") { (onQuickCrew ?: { naming = true })() }
-                        GlassButton("Plan a gig (find it, invite now)", onClick = onPlanGig)
+                        Text(stringResource(R.string.home_eyebrow_tonight), style = Mosh.Eyebrow)
+                        Text(stringResource(R.string.home_find_mates_tonight), style = Mosh.Heading)
+                        Text(stringResource(R.string.home_find_mates_text), style = Mosh.Body)
+                        NeonButton(stringResource(R.string.home_invite_mates_tonight)) { (onQuickCrew ?: { naming = true })() }
+                        GlassButton(stringResource(R.string.home_plan_gig), onClick = onPlanGig)
                         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            TextButton(onClick = onScanQr) { Text("Scan an invite", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
-                            TextButton(onClick = onPasteInvite) { Text("Paste invite", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
+                            TextButton(onClick = onScanQr) { Text(stringResource(R.string.home_scan_invite), style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
+                            TextButton(onClick = onPasteInvite) { Text(stringResource(R.string.home_paste_invite), style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
                         }
                     } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
-                                Text(if (following) "FOLLOWING" else if (crewSleeping) "COMING UP" else "TONIGHT", style = Mosh.Eyebrow)
-                                Text(groupName ?: "Your crew", style = Mosh.Heading, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                                Text(if (following) stringResource(R.string.home_eyebrow_following) else if (crewSleeping) stringResource(R.string.home_eyebrow_coming_up) else stringResource(R.string.home_eyebrow_tonight), style = Mosh.Eyebrow)
+                                Text(groupName ?: stringResource(R.string.home_your_crew), style = Mosh.Heading, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                                 if (crewWhen != null) Text(crewWhen, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), maxLines = 2)
                             }
-                            if (!following) TextButton(onClick = onShowGroupQr) { Text("＋ Invite", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan)) }
+                            if (!following) TextButton(onClick = onShowGroupQr) { Text(stringResource(R.string.home_invite), style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan)) }
                         }
                         if (onOpenChat != null && groupName != null) ChatPill(chatUnread, pinnedPlan, onOpenChat)
                         if (!following) {
                             // Who can see the crew from home, so nobody is followed without knowing.
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    if (followers.isEmpty()) "Family can follow the night from home" else "Following from home: ${followers.joinToString(", ")}",
+                                    if (followers.isEmpty()) stringResource(R.string.home_family_can_follow) else stringResource(R.string.home_following_from_home_names, followers.joinToString(", ")),
                                     style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), modifier = Modifier.weight(1f),
                                 )
-                                TextButton(onClick = onLetFamilyFollow) { Text("Share ›", style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
+                                TextButton(onClick = onLetFamilyFollow) { Text(stringResource(R.string.home_share), style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
                             }
                         }
                         if (meetUp != null) {
@@ -403,33 +407,33 @@ fun FriendsScreen(
                                     .padding(horizontal = 14.dp, vertical = 10.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Text("★  Meet-up: $meetUp", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Pink), modifier = Modifier.weight(1f))
-                                Text("Map ›", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink))
+                                Text(stringResource(R.string.home_meet_up, meetUp), style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Pink), modifier = Modifier.weight(1f))
+                                Text(stringResource(R.string.home_map_link), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink))
                             }
                         }
                         if (crewSleeping) {
                             Text(
-                                "Asleep until gig day: no Bluetooth, no location, no battery. Mates can join now, and you'll get a nudge on the day.",
+                                stringResource(R.string.home_asleep_text),
                                 style = Mosh.Body.copy(fontSize = 14.sp, color = Mosh.Violet),
                             )
                         }
                         if (following && !crewSleeping) {
-                            Text("You can see where everyone is and their photos as they roll in. They can see you're following.", style = Mosh.Body.copy(fontSize = 14.sp))
+                            Text(stringResource(R.string.home_follower_text), style = Mosh.Body.copy(fontSize = 14.sp))
                             CrewTiles(gig, seen, nowSec, onFind = {}, onOptions = {}, distances = emptyMap(), notes = tileNotes)
                             if (checkInBy != null) CheckInBanner(checkInBy, onHomeSafe)
                             PingFeed(pings.take(3), nowSec, describePing)
-                            NeonButton("See the story") { onOpenStory() }
-                            if (onOpenChat != null) GlassButton(if (chatUnread > 0) "Crew chat ($chatUnread new)" else "Crew chat", onClick = onOpenChat)
-                            GlassButton("Where are they? (map)", onClick = onOpenMap)
+                            NeonButton(stringResource(R.string.home_see_story)) { onOpenStory() }
+                            if (onOpenChat != null) GlassButton(if (chatUnread > 0) stringResource(R.string.home_crew_chat_unread, chatUnread) else stringResource(R.string.home_crew_chat), onClick = onOpenChat)
+                            GlassButton(stringResource(R.string.home_where_are_they), onClick = onOpenMap)
                         } else if (gig.isEmpty() || crewSleeping) {
                             if (gig.isNotEmpty()) CrewTiles(gig, seen, nowSec, onFind = {}, onOptions = { options = it }, distances = emptyMap())
-                            if (following) Text("You'll see them here once the gig starts.", style = Mosh.Body.copy(fontSize = 14.sp))
+                            if (following) Text(stringResource(R.string.home_see_them_once_starts), style = Mosh.Body.copy(fontSize = 14.sp))
                             else if (crewQrPayload != null) InlineCrewQr(crewQrPayload, onShareCode)
-                            else NeonButton("Show crew QR", onClick = onShowGroupQr)
+                            else NeonButton(stringResource(R.string.home_show_crew_qr), onClick = onShowGroupQr)
                         } else {
                             CrewTiles(gig, seen, nowSec, onFind = { onFind(setOf(it)) }, onOptions = { options = it }, distances = distances, notes = flareNotes)
-                            Text("Tap a mate to find them · hold for options", style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint))
-                            NeonButton(if (gig.size == 1) "Find ${gig[0].name}" else "Find everyone") { onFind(gig.map { it.id }.toSet()) }
+                            Text(stringResource(R.string.home_tap_mate_hint), style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint))
+                            NeonButton(if (gig.size == 1) stringResource(R.string.home_find_name, gig[0].name) else stringResource(R.string.home_find_everyone)) { onFind(gig.map { it.id }.toSet()) }
                             if (checkInBy != null) CheckInBanner(checkInBy, onHomeSafe)
                             CrewActions(onMessage = { if (onOpenChat != null) onOpenChat() else messageOpen = true }, onMoment = onShareMoment, unread = chatUnread)
                             PingFeed(pings.take(1), nowSec, describePing)
@@ -438,9 +442,9 @@ fun FriendsScreen(
                         TextButton(onClick = onClearGigGroup) {
                             Text(
                                 when {
-                                    following -> "Stop following"
-                                    crewSleeping -> "Cancel this crew"
-                                    else -> "End the night"
+                                    following -> stringResource(R.string.home_stop_following)
+                                    crewSleeping -> stringResource(R.string.home_cancel_crew)
+                                    else -> stringResource(R.string.home_end_night)
                                 },
                                 style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Danger),
                             )
@@ -451,7 +455,7 @@ fun FriendsScreen(
         }
 
         if (upNext.isNotEmpty()) {
-            item { Text("UP NEXT", style = Mosh.Eyebrow, modifier = Modifier.padding(top = 4.dp, start = 4.dp)) }
+            item { Text(stringResource(R.string.home_up_next), style = Mosh.Eyebrow, modifier = Modifier.padding(top = 4.dp, start = 4.dp)) }
             items(upNext, key = { "next-" + it.id }) { card -> UpNextRow(card) { onOpenUpNext(card.id) } }
         }
 
@@ -463,10 +467,10 @@ fun FriendsScreen(
                         .border(1.dp, Mosh.Amber.copy(alpha = 0.5f), RoundedCornerShape(18.dp))
                         .clickable { onOpenGig(g) }.padding(16.dp),
                 ) {
-                    Text("MEMORIES", style = Mosh.Eyebrow.copy(color = Mosh.Amber))
+                    Text(stringResource(R.string.home_memories), style = Mosh.Eyebrow.copy(color = Mosh.Amber))
                     Spacer(Modifier.height(4.dp))
                     Text(nz.waveformlabs.moshpoint.Memories.headline(g, years), style = Mosh.Label)
-                    Text("${g.photos + g.clips} photos and clips. Tap to relive it ›", style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextDim))
+                    Text(pluralStringResource(R.plurals.home_memories_count, g.photos + g.clips, g.photos + g.clips), style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextDim))
                 }
             }
         }
@@ -476,7 +480,7 @@ fun FriendsScreen(
         if (past.isNotEmpty()) {
             item {
                 Spacer(Modifier.height(4.dp))
-                Text("YOUR GIGS", style = Mosh.Eyebrow)
+                Text(stringResource(R.string.home_your_gigs), style = Mosh.Eyebrow)
                 Spacer(Modifier.height(10.dp))
                 PastGigs(past, onOpenGig)
             }
@@ -485,9 +489,9 @@ fun FriendsScreen(
         // Permanent friends.
         item {
             Spacer(Modifier.height(4.dp))
-            Text("FRIENDS", style = Mosh.Eyebrow)
+            Text(stringResource(R.string.home_friends), style = Mosh.Eyebrow)
         }
-        if (permanent.isEmpty()) item { Text("Friends you keep for every gig show here. Tap ＋ Add below.", style = Mosh.Body) }
+        if (permanent.isEmpty()) item { Text(stringResource(R.string.home_friends_empty), style = Mosh.Body) }
         items(permanent, key = { it.id }) { row(it) }
         // Always false in release builds (BuildConfig.TEST_BUILD is a compile-time constant).
         if ((BuildConfig.TEST_BUILD && DebugStatus.showUi) && onAddSimulated != null) {

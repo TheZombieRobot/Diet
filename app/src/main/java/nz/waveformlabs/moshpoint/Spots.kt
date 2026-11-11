@@ -29,7 +29,7 @@ object Spots {
     }
 
     fun add(name: String, lat: Double, lon: Double) {
-        spots += Spot(java.util.UUID.randomUUID().toString(), name.trim().ifBlank { "My spot" }.take(30), lat, lon, System.currentTimeMillis() / 1000)
+        spots += Spot(java.util.UUID.randomUUID().toString(), name.trim().ifBlank { Txt.s(R.string.main_my_spot) }.take(30), lat, lon, System.currentTimeMillis() / 1000)
         save()
     }
 

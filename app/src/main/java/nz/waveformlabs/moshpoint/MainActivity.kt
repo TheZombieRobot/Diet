@@ -24,6 +24,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -177,7 +179,7 @@ class MainActivity : ComponentActivity() {
     private val mediaPerms = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { r ->
         if (r.values.any { it }) findOnPhone() else {
             rollGig = null
-            toast("Moshpoint needs access to your photos to find the ones from that night")
+            toast(Txt.s(R.string.main_photos_permission_needed))
         }
     }
 
@@ -202,10 +204,10 @@ class MainActivity : ComponentActivity() {
         val (id, _) = rollGig ?: return
         rollAdding = true
         lifecycleScope.launch {
-            val n = GigArchive.addFromPhone(this@MainActivity, id, picked, myName.ifBlank { "You" })
+            val n = GigArchive.addFromPhone(this@MainActivity, id, picked, myName.ifBlank { Txt.s(R.string.main_you) })
             rollAdding = false
             rollGig = null
-            toast("Added $n to the gig")
+            toast(Txt.p(R.plurals.main_added_to_gig, n))
             // Show them straight away on whichever board is open.
             if (GroupSync.group.value?.let(GigArchive::idFor) == id) Moments.loadCurrent(this@MainActivity)
             archiveGig?.takeIf { it.id == id }?.let { archiveItems = GigArchive.load(this@MainActivity, id) }
@@ -216,13 +218,13 @@ class MainActivity : ComponentActivity() {
     private fun saveToPhone(items: List<Moments.Item>, album: String) {
         if (items.isEmpty()) return
         lifecycleScope.launch {
-            toast(if (items.size == 1) "Saving…" else "Saving ${items.size} photos and clips…")
+            toast(if (items.size == 1) Txt.s(R.string.main_saving_one) else Txt.p(R.plurals.main_saving_many, items.size))
             val n = GigArchive.saveAllToPhone(this@MainActivity, items, album)
             toast(
                 when {
-                    n == 0 -> "Couldn't save. Is your phone full?"
-                    n == items.size -> "Saved to your gallery: Moshpoint / $album"
-                    else -> "Saved $n of ${items.size} to your gallery"
+                    n == 0 -> Txt.s(R.string.main_save_failed)
+                    n == items.size -> Txt.s(R.string.main_saved_all, album)
+                    else -> Txt.p(R.plurals.main_saved_some, items.size, n, items.size)
                 },
             )
         }
@@ -256,7 +258,7 @@ class MainActivity : ComponentActivity() {
     }
 
     /** Message asking mates to open the app and go live. */
-    private fun nudge(names: List<String>) = Sharing.send(this, Sharing.nudgeText(names), "Ask them to go live")
+    private fun nudge(names: List<String>) = Sharing.send(this, Sharing.nudgeText(names), Txt.s(R.string.main_nudge_title))
     private val torch = TorchStrobe(this)
 
     /**
@@ -308,39 +310,39 @@ class MainActivity : ComponentActivity() {
                     ?.takeIf { it != RelayClient.shareableServer }
                     ?.let { if (RelayClient.setServer(this, it)) DebugStatus.log("Using the crew's relay server") }
                 if (!GroupSync.join(this, inv.qrText)) {
-                    toast("That group invite has expired. Ask for a new one.")
+                    toast(Txt.s(R.string.main_invite_expired))
                     return false
                 }
                 val joined = GroupSync.newest.value
                 if (joined != null && GroupSync.group.value?.key?.contentEquals(joined.key) != true) {
-                    toast("You're in ${joined.name}! It's in Up next: chat away, and it wakes up on gig day.")
+                    toast(Txt.s(R.string.main_joined_up_next, joined.name))
                     return true
                 }
                 val g = GroupSync.group.value
                 if (GroupSync.following && g != null) {
-                    toast("You're following ${g.name}. You'll see their photos and where they are; they'll see you're following.")
+                    toast(Txt.s(R.string.main_joined_following, g.name))
                 } else if (GroupSync.sleeping && g != null) {
                     // A planned gig: nothing runs until the day.
-                    toast("You're in ${g.name}! The crew wakes up on gig day (${nz.waveformlabs.moshpoint.ui.gigWhen(g.startsAtSec)}).")
+                    toast(Txt.s(R.string.main_joined_sleeping, g.name, nz.waveformlabs.moshpoint.ui.gigWhen(g.startsAtSec)))
                 } else {
                     // Scanning the crew QR is the choice to be found tonight: go live straight away.
                     setVisibility(true)
-                    toast("You're in ${g?.name ?: "the crew"}! Everyone in it can find each other.")
+                    toast(Txt.s(R.string.main_joined_live, g?.name ?: Txt.s(R.string.main_the_crew)))
                 }
             }
             is nz.waveformlabs.moshpoint.core.Invite.Friend -> {
                 if (inv.name.isBlank()) {
                     // No name in it (a bare code): fill in "Add someone" so they can name them.
                     scanned = inv.code to ""
-                    toast("Got the code. Give them a name, then tap Add friend.")
+                    toast(Txt.s(R.string.main_got_code))
                 } else {
                     // Add straight away, then prompt to link back.
                     val err = FriendsRepository.add(inv.name, inv.code, false, VisibilityPrefs.mySecret(this))
-                    toast(err ?: "✓ ${inv.name} added")
+                    toast(err ?: Txt.s(R.string.main_friend_added, inv.name))
                 }
             }
             null -> {
-                if (!quietIfNone) toast("No Moshpoint invite found. Copy the whole message your mate sent, then tap Paste invite.")
+                if (!quietIfNone) toast(Txt.s(R.string.main_no_invite_found))
                 return false
             }
         }
@@ -419,15 +421,15 @@ class MainActivity : ComponentActivity() {
     private fun missingPermissions(): List<String> {
         fun denied(p: String) = checkSelfPermission(p) != PackageManager.PERMISSION_GRANTED
         val out = mutableListOf<String>()
-        if (denied(Manifest.permission.ACCESS_FINE_LOCATION)) out += "Location: GPS arrow and Bluetooth/Wi-Fi distance"
+        if (denied(Manifest.permission.ACCESS_FINE_LOCATION)) out += getString(R.string.main_perm_location)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (denied(Manifest.permission.BLUETOOTH_SCAN) || denied(Manifest.permission.BLUETOOTH_ADVERTISE)) {
-                out += "Nearby devices: finding mates and being found over Bluetooth"
+                out += getString(R.string.main_perm_nearby)
             }
-            if (engine.capabilities.uwb && denied(Manifest.permission.UWB_RANGING)) out += "UWB: the precise arrow"
+            if (engine.capabilities.uwb && denied(Manifest.permission.UWB_RANGING)) out += getString(R.string.main_perm_uwb)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && denied(Manifest.permission.POST_NOTIFICATIONS)) {
-            out += "Notifications: shows when you're visible"
+            out += getString(R.string.main_perm_notifications)
         }
         return out
     }
@@ -509,13 +511,16 @@ class MainActivity : ComponentActivity() {
         if (onboarded) askPermissions.launch(permissions)
         val myCode = FriendRecord.shareCode(mySecret)
         val caps = engine.capabilities
-        val phoneSummary = "This phone: " + listOfNotNull(
-            "UWB".takeIf { caps.uwb },
-            "Wi-Fi Aware".takeIf { caps.wifiAware },
-            "Bluetooth".takeIf { caps.ble },
-            "compass".takeIf { caps.compass },
-            "GPS".takeIf { caps.gps },
-        ).joinToString(", ")
+        val phoneSummary = getString(
+            R.string.main_phone_summary,
+            listOfNotNull(
+                "UWB".takeIf { caps.uwb },
+                "Wi-Fi Aware".takeIf { caps.wifiAware },
+                "Bluetooth".takeIf { caps.ble },
+                getString(R.string.main_cap_compass).takeIf { caps.compass },
+                "GPS".takeIf { caps.gps },
+            ).joinToString(", "),
+        )
 
         setContent {
             MoshTheme(calm = calmMotion) {
@@ -529,17 +534,19 @@ class MainActivity : ComponentActivity() {
                             onResetInvite = {
                                 val fresh = CrewRekey.rekey(this@MainActivity, g, null, null)
                                 if (qrCrew != null) qrCrew = fresh
-                                toast("Invite reset. Old QR codes and links don't work any more.")
+                                toast(Txt.s(R.string.main_invite_reset))
                             },
                             eyebrow = when {
-                                waiting != null -> "UP NEXT" + (nz.waveformlabs.moshpoint.ui.countdown(g.startsAtSec, System.currentTimeMillis() / 1000)?.let { " · ${it.uppercase()}" } ?: "")
-                                g.dormant(System.currentTimeMillis()) -> "YOUR CREW · COMING UP"
-                                else -> "YOUR CREW FOR TONIGHT"
+                                waiting != null -> nz.waveformlabs.moshpoint.ui.countdown(g.startsAtSec, System.currentTimeMillis() / 1000)
+                                    ?.let { stringResource(R.string.main_eyebrow_up_next_countdown, it.uppercase()) }
+                                    ?: stringResource(R.string.main_eyebrow_up_next)
+                                g.dormant(System.currentTimeMillis()) -> stringResource(R.string.main_eyebrow_coming_up)
+                                else -> stringResource(R.string.main_eyebrow_tonight)
                             },
                             title = g.name,
                             hint = if (waiting != null || g.dormant(System.currentTimeMillis())) {
-                                "Everyone scans this once. Chat and hype it up now; finding each other switches on on gig day."
-                            } else "Everyone scans this once. Then you can all find each other, all night.",
+                                stringResource(R.string.main_qr_hint_planned)
+                            } else stringResource(R.string.main_qr_hint_tonight),
                             members = if (waiting != null) {
                                 waiting.mates.map { (secret, name) -> Friend(nz.waveformlabs.moshpoint.core.FriendRecord("next-" + secret.take(6).joinToString("") { "%02x".format(it) }, name, 0xFF9D5CFF.toInt(), secret, true, 0L)) }
                             } else FriendsRepository.friends.filter { it.gigGroupOnly || it.key in GroupSync.members },
@@ -559,47 +566,40 @@ class MainActivity : ComponentActivity() {
                         QrPayload.of(myCode, myName),
                         onDismiss = { showQr = false },
                         onShare = { shareCode(myCode) },
-                        title = if (myName.isBlank()) "Scan to add me" else "Scan to add $myName",
+                        title = if (myName.isBlank()) stringResource(R.string.main_scan_to_add_me) else stringResource(R.string.main_scan_to_add_name, myName),
                     )
                 }
                 // "Sam wants to stay friends": one at a time, until answered.
                 Friendship.incoming.firstOrNull()?.let { req ->
                     AlertDialog(
                         onDismissRequest = {},
-                        title = { Text("${req.name} wants to stay friends") },
+                        title = { Text(stringResource(R.string.main_wants_to_stay_friends, req.name)) },
                         text = {
-                            Text(
-                                "You met in ${req.crewName}. Say yes and you can find each other at any gig, not just this one. " +
-                                    "Only ${req.name} gets your details, nobody else in the crew.",
-                            )
+                            Text(stringResource(R.string.main_stay_friends_text, req.crewName, req.name))
                         },
                         confirmButton = {
                             TextButton(onClick = {
                                 Friendship.accept(this@MainActivity, req)
-                                toast("You and ${req.name} are friends now")
-                            }) { Text("Yes, stay friends") }
+                                toast(Txt.s(R.string.main_friends_now, req.name))
+                            }) { Text(stringResource(R.string.main_yes_stay_friends)) }
                         },
-                        dismissButton = { TextButton(onClick = { Friendship.decline(this@MainActivity, req) }) { Text("Not now") } },
+                        dismissButton = { TextButton(onClick = { Friendship.decline(this@MainActivity, req) }) { Text(stringResource(R.string.main_not_now)) } },
                     )
                 }
                 if (askBattery) {
                     AlertDialog(
                         onDismissRequest = { askBattery = false },
-                        title = { Text("Stay visible all night") },
+                        title = { Text(stringResource(R.string.main_battery_title)) },
                         text = {
-                            Text(
-                                "Some phones shut down apps in the background to save battery, which would " +
-                                    "make you disappear. Find Moshpoint in the next screen and set it to " +
-                                    "\"Don't optimise\" / \"Unrestricted\".",
-                            )
+                            Text(stringResource(R.string.main_battery_text))
                         },
                         confirmButton = {
                             TextButton(onClick = {
                                 askBattery = false
                                 runCatching { startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }
-                            }) { Text("Open settings") }
+                            }) { Text(stringResource(R.string.main_open_settings)) }
                         },
-                        dismissButton = { TextButton(onClick = { askBattery = false }) { Text("Not now") } },
+                        dismissButton = { TextButton(onClick = { askBattery = false }) { Text(stringResource(R.string.main_not_now)) } },
                     )
                 }
                 if (!onboarded) {
@@ -638,11 +638,12 @@ class MainActivity : ComponentActivity() {
                         val beaconing by engine.beaconing.collectAsState()
                         val names = tracking.mapNotNull { FriendsRepository.byId(it)?.name }
                         val group = GroupSync.group.value
+                        val batteryIssue = stringResource(R.string.main_setup_battery)
                         FinderScreen(
                             title = when {
                                 names.size == 1 -> names[0]
                                 group != null && tracking.size > 1 -> group.name
-                                else -> "${names.size} mates"
+                                else -> pluralStringResource(R.plurals.main_n_mates, names.size, names.size)
                             },
                             visible = visibleToMates,
                             arrows = arrows,
@@ -658,7 +659,7 @@ class MainActivity : ComponentActivity() {
                             beaconOn = beaconOn,
                             onBeacon = ::setBeacon,
                             beaconing = beaconing.mapNotNull { id ->
-                                FriendsRepository.byId(id)?.let { "${nz.waveformlabs.moshpoint.core.BeaconColour.forSecret(it.secret).name.uppercase()} (${it.name})" }
+                                FriendsRepository.byId(id)?.let { Txt.s(R.string.main_beacon_colour_name, nz.waveformlabs.moshpoint.core.BeaconColour.forSecret(it.secret).name.uppercase(), it.name) }
                             },
                             myBeacon = nz.waveformlabs.moshpoint.core.BeaconColour.forSecret(Identity.current(this@MainActivity)),
                             onBack = {
@@ -666,7 +667,7 @@ class MainActivity : ComponentActivity() {
                                 finding = false
                                 stopEngineSoon()
                             },
-                            warning = setupIssues.firstOrNull { !it.text.startsWith("Battery") },
+                            warning = setupIssues.firstOrNull { it.text != batteryIssue },
                             debug = if (DebugStatus.enabled) {
                                 { mod ->
                                     val rows by engine.debugRows.collectAsState()
@@ -737,7 +738,7 @@ class MainActivity : ComponentActivity() {
                                 scanQr.launch(
                                     ScanOptions()
                                         .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-                                        .setPrompt("Scan your mate's Moshpoint QR")
+                                        .setPrompt(Txt.s(R.string.main_scan_prompt))
                                         .setBeepEnabled(false)
                                         .setOrientationLocked(true),
                                 )
@@ -745,7 +746,7 @@ class MainActivity : ComponentActivity() {
                             scanned = scanned,
                             onScannedUsed = { scanned = null },
                             onAdd = { name, code, gig ->
-                                FriendsRepository.add(name, code, gig, mySecret).also { if (it == null) toast("✓ ${name.trim()} added") }
+                                FriendsRepository.add(name, code, gig, mySecret).also { if (it == null) toast(Txt.s(R.string.main_friend_added, name.trim())) }
                             },
                             onRemove = { id ->
                                 val f = FriendsRepository.friends.firstOrNull { it.id == id }
@@ -754,7 +755,7 @@ class MainActivity : ComponentActivity() {
                                     // Really out: the crew moves to a new key they don't get.
                                     CrewRekey.rekey(this@MainActivity, g, GroupSync.pubOf(f.secret), f.name)
                                     FriendsRepository.remove(id)
-                                    toast("${f.name} is out of the crew. Everyone else moves to a new key.")
+                                    toast(Txt.s(R.string.main_out_of_crew, f.name))
                                 } else {
                                     FriendsRepository.remove(id)
                                 }
@@ -832,14 +833,13 @@ class MainActivity : ComponentActivity() {
                                 GroupSync.group.value?.let { g ->
                                     Sharing.send(
                                         this@MainActivity,
-                                        "Follow our night at ${g.name} on Moshpoint: see our photos as they come in and that we're safe.\n" +
-                                            getTheApp + withRelay(GigGroup.qr(g, null, follower = true)),
-                                        "Let family follow along",
+                                        Txt.s(R.string.main_follow_share_text, g.name, getTheApp + withRelay(GigGroup.qr(g, null, follower = true))),
+                                        Txt.s(R.string.main_follow_share_title),
                                     )
                                 }
                             },
                             crewWhen = GroupSync.group.value?.takeIf { it.startsAtSec > 0 }?.let { g ->
-                                nz.waveformlabs.moshpoint.ui.gigWhen(g.startsAtSec) + if (g.venue.isNotBlank()) " · ${g.venue}" else ""
+                                nz.waveformlabs.moshpoint.ui.gigWhen(g.startsAtSec).let { w -> if (g.venue.isNotBlank()) Txt.s(R.string.main_when_venue, w, g.venue) else w }
                             },
                             crewSleeping = homeNow > 0 && GroupSync.sleeping,
                             onBump = {
@@ -870,14 +870,14 @@ class MainActivity : ComponentActivity() {
                             search = if (GigSearch.available) ({ q -> GigSearch.search(q) }) else null,
                             onPick = { name, at, venue, lat, lon ->
                                 if (at < System.currentTimeMillis() / 1000 - 3600) {
-                                    toast("That time has already passed. Pick when the gig starts.")
+                                    toast(Txt.s(R.string.main_time_passed))
                                     return@PlanGigSheet
                                 }
                                 planGig = false
                                 val made = GroupSync.startNew(this@MainActivity, name, at, venue, lat, lon)
                                 val isMain = GroupSync.group.value?.key?.contentEquals(made.key) == true
                                 if (isMain && !GroupSync.sleeping) setVisibility(true)
-                                if (!isMain) toast("${made.name} added to Up next. Invite your mates and start the hype!")
+                                if (!isMain) toast(Txt.s(R.string.main_added_up_next, made.name))
                                 qrCrew = made
                                 showGroupQr = true
                             },
@@ -893,23 +893,23 @@ class MainActivity : ComponentActivity() {
                     Bump.received.value?.let { text ->
                         val name = nz.waveformlabs.moshpoint.core.Invite.find(text)
                             ?.let { it as? nz.waveformlabs.moshpoint.core.Invite.Group }
-                            ?.let { GigGroup.parseQr(it.qrText, System.currentTimeMillis())?.name } ?: "the crew"
+                            ?.let { GigGroup.parseQr(it.qrText, System.currentTimeMillis())?.name } ?: stringResource(R.string.main_the_crew)
                         androidx.compose.material3.AlertDialog(
                             onDismissRequest = { Bump.received.value = null },
                             containerColor = Mosh.Deep,
-                            title = { androidx.compose.material3.Text("Join $name?", style = Mosh.Heading) },
-                            text = { androidx.compose.material3.Text("Bumped! Join and you can all find each other tonight.", style = Mosh.Body) },
+                            title = { androidx.compose.material3.Text(stringResource(R.string.main_join_name, name), style = Mosh.Heading) },
+                            text = { androidx.compose.material3.Text(stringResource(R.string.main_bumped_text), style = Mosh.Body) },
                             confirmButton = {
                                 androidx.compose.material3.TextButton(onClick = {
                                     Bump.received.value = null
                                     bumping = false
                                     Bump.stop(this@MainActivity)
                                     handleInvite(text)
-                                }) { androidx.compose.material3.Text("Join", style = Mosh.Label.copy(color = Mosh.Lime)) }
+                                }) { androidx.compose.material3.Text(stringResource(R.string.main_join), style = Mosh.Label.copy(color = Mosh.Lime)) }
                             },
                             dismissButton = {
                                 androidx.compose.material3.TextButton(onClick = { Bump.received.value = null }) {
-                                    androidx.compose.material3.Text("No", style = Mosh.Label)
+                                    androidx.compose.material3.Text(stringResource(R.string.main_no), style = Mosh.Label)
                                 }
                             },
                         )
@@ -919,22 +919,22 @@ class MainActivity : ComponentActivity() {
                         androidx.compose.material3.AlertDialog(
                             onDismissRequest = { clipInvite = null },
                             containerColor = Mosh.Deep,
-                            title = { androidx.compose.material3.Text(if (follow) "Follow $name?" else "Join $name?", style = Mosh.Heading) },
+                            title = { androidx.compose.material3.Text(if (follow) stringResource(R.string.main_follow_name, name) else stringResource(R.string.main_join_name, name), style = Mosh.Heading) },
                             text = {
                                 androidx.compose.material3.Text(
-                                    if (follow) "You copied a follow-along link. You'll see their photos and that they're safe; they'll see you're following."
-                                    else "You copied a Moshpoint invite. Join and you can all find each other tonight.",
+                                    if (follow) stringResource(R.string.main_clip_follow_text)
+                                    else stringResource(R.string.main_clip_join_text),
                                     style = Mosh.Body,
                                 )
                             },
                             confirmButton = {
                                 androidx.compose.material3.TextButton(onClick = { clipInvite = null; handleInvite(text) }) {
-                                    androidx.compose.material3.Text("Join", style = Mosh.Label.copy(color = Mosh.Lime))
+                                    androidx.compose.material3.Text(stringResource(R.string.main_join), style = Mosh.Label.copy(color = Mosh.Lime))
                                 }
                             },
                             dismissButton = {
                                 androidx.compose.material3.TextButton(onClick = { clipInvite = null }) {
-                                    androidx.compose.material3.Text("Not now", style = Mosh.Label)
+                                    androidx.compose.material3.Text(stringResource(R.string.main_not_now), style = Mosh.Label)
                                 }
                             },
                         )
@@ -943,11 +943,10 @@ class MainActivity : ComponentActivity() {
                         androidx.compose.material3.AlertDialog(
                             onDismissRequest = { recap = null },
                             containerColor = Mosh.Deep,
-                            title = { androidx.compose.material3.Text("Your night", style = Mosh.Heading) },
+                            title = { androidx.compose.material3.Text(stringResource(R.string.main_your_night), style = Mosh.Heading) },
                             text = {
                                 androidx.compose.material3.Text(
-                                    NightStats.summary(s, System.currentTimeMillis()) +
-                                        "\n\nEnding the night closes the crew (friends stay). The photos and clips stay on your phone in Your gigs.",
+                                    stringResource(R.string.main_recap_text, NightStats.summary(s, System.currentTimeMillis())),
                                     style = Mosh.Body,
                                 )
                             },
@@ -957,13 +956,13 @@ class MainActivity : ComponentActivity() {
                                     GroupSync.clear(this@MainActivity)
                                     NightStats.reset(this@MainActivity)
                                     lifecycleScope.launch { GigArchive.refreshList(this@MainActivity) }
-                                    toast("Night ended. Your photos and clips are in Your gigs.")
-                                }) { androidx.compose.material3.Text("End the night", style = Mosh.Label.copy(color = Mosh.Danger)) }
+                                    toast(Txt.s(R.string.main_night_ended))
+                                }) { androidx.compose.material3.Text(stringResource(R.string.main_end_the_night), style = Mosh.Label.copy(color = Mosh.Danger)) }
                             },
                             dismissButton = {
                                 androidx.compose.material3.TextButton(onClick = {
-                                    Sharing.send(this@MainActivity, "My night with Moshpoint: " + NightStats.summary(s, System.currentTimeMillis()) + " 🤘", "Share your night")
-                                }) { androidx.compose.material3.Text("Share", style = Mosh.Label.copy(color = Mosh.Cyan)) }
+                                    Sharing.send(this@MainActivity, Txt.s(R.string.main_share_night_text, NightStats.summary(s, System.currentTimeMillis())), Txt.s(R.string.main_share_night_title))
+                                }) { androidx.compose.material3.Text(stringResource(R.string.main_share), style = Mosh.Label.copy(color = Mosh.Cyan)) }
                             },
                         )
                     }
@@ -1004,7 +1003,7 @@ class MainActivity : ComponentActivity() {
                                 GroupSync.makeMain(this@MainActivity, waiting)
                                 CrewChat.show(this@MainActivity, GroupSync.group.value)
                                 setVisibility(true)
-                                toast("${waiting.group.name} is your main crew now. Everyone in it can find each other.")
+                                toast(Txt.s(R.string.main_now_main_crew, waiting.group.name))
                             }) else null,
                             onSend = { CrewChat.send(this@MainActivity, it) },
                             onSetPlan = { CrewChat.setPlan(this@MainActivity, it) },
@@ -1046,8 +1045,8 @@ class MainActivity : ComponentActivity() {
                             },
                             myName = myName,
                             onRefresh = { GroupSync.group.value?.let { g -> Moments.refreshNow(this@MainActivity, g) } },
-                            onSaveOne = { m -> saveToPhone(listOf(m), GroupSync.group.value?.name ?: "Gig") },
-                            onSaveAll = { saveToPhone(Moments.items.toList(), GroupSync.group.value?.name ?: "Gig") },
+                            onSaveOne = { m -> saveToPhone(listOf(m), GroupSync.group.value?.name ?: Txt.s(R.string.main_gig_fallback)) },
+                            onSaveAll = { saveToPhone(Moments.items.toList(), GroupSync.group.value?.name ?: Txt.s(R.string.main_gig_fallback)) },
                             onAddFromPhone = GroupSync.group.value?.let { g -> { startRoll(GigArchive.idFor(g), g.name) } },
                             live = GroupSync.group.value != null && !GroupSync.sleeping,
                         )
@@ -1074,7 +1073,7 @@ class MainActivity : ComponentActivity() {
                                 archiveGig = null
                                 lifecycleScope.launch {
                                     GigArchive.delete(this@MainActivity, g.id)
-                                    toast("Deleted ${g.name} from this phone")
+                                    toast(Txt.s(R.string.main_deleted_gig, g.name))
                                 }
                             },
                         )
@@ -1119,7 +1118,7 @@ class MainActivity : ComponentActivity() {
                             onDropPin = { name, lat, lon, meetUp ->
                                 if (meetUp) {
                                     GroupSync.setRally(this@MainActivity, name, lat, lon)
-                                    toast("Meet-up pin sent to your crew")
+                                    toast(Txt.s(R.string.main_meetup_sent))
                                 } else {
                                     Spots.add(name, lat, lon)
                                 }
@@ -1127,7 +1126,7 @@ class MainActivity : ComponentActivity() {
                             moments = Moments.items.mapNotNull { m ->
                                 val lat = m.lat ?: return@mapNotNull null
                                 val lon = m.lon ?: return@mapNotNull null
-                                nz.waveformlabs.moshpoint.ui.MapMoment(m.key, "${if (m.mine) "You" else m.from} · ${nz.waveformlabs.moshpoint.ui.ago(now / 1000 - m.timeSec)}", lat, lon, m.image)
+                                nz.waveformlabs.moshpoint.ui.MapMoment(m.key, Txt.s(R.string.main_moment_label, if (m.mine) Txt.s(R.string.main_you) else m.from, nz.waveformlabs.moshpoint.ui.ago(now / 1000 - m.timeSec)), lat, lon, m.image)
                             },
                             trails = LocationBook.trails,
                             onMomentTapped = { key -> Moments.items.firstOrNull { it.key == key }?.let(momentFlow::view) },
@@ -1192,15 +1191,15 @@ class MainActivity : ComponentActivity() {
     private fun shareApp(code: String) {
         Sharing.send(
             this,
-            "Get Moshpoint so we can find each other at gigs: tap a mate and an arrow points to them.\n\n" + getTheApp + crewQr(ensureCrew()),
-            "Share Moshpoint",
+            getString(R.string.main_share_app_text, getTheApp + crewQr(ensureCrew())),
+            getString(R.string.main_share_app_title),
         )
     }
 
     /** Your crew for tonight, starting one (named after you) if there isn't one. Also goes live. */
     private fun ensureCrew(): GigGroup {
         GroupSync.group.value?.let { return it }
-        val name = if (myName.isNotBlank()) "${myName.trim()}'s crew" else "Tonight's crew"
+        val name = if (myName.isNotBlank()) getString(R.string.main_named_crew, myName.trim()) else getString(R.string.main_tonights_crew)
         GroupSync.startNew(this, name)
         setVisibility(true)
         return GroupSync.group.value!!
@@ -1226,7 +1225,7 @@ class MainActivity : ComponentActivity() {
     private fun sharePlanCard() {
         val g = CrewChat.viewing.value ?: GroupSync.group.value ?: return
         val isMain = GroupSync.group.value?.key?.contentEquals(g.key) == true
-        val crew = listOf(VisibilityPrefs.myName(this).ifBlank { "Me" }) + if (isMain) {
+        val crew = listOf(VisibilityPrefs.myName(this).ifBlank { getString(R.string.main_me) }) + if (isMain) {
             FriendsRepository.friends.filter { (it.gigGroupOnly || it.key in GroupSync.members) && !FriendsRepository.isSimulated(it.id) }.map { it.name }
         } else Crews.find(g.key)?.mates?.map { it.second }.orEmpty()
         val whenWhere = listOfNotNull(
@@ -1247,7 +1246,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun shareGroup(g: GigGroup) {
-        Sharing.send(this, "Join my crew \"${g.name}\" on Moshpoint tonight!\n" + getTheApp + crewQr(g), "Send the group invite")
+        Sharing.send(this, getString(R.string.main_group_invite_text, g.name, getTheApp + crewQr(g)), getString(R.string.main_group_invite_title))
     }
 
     /**

@@ -25,6 +25,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import nz.waveformlabs.moshpoint.R
 
 /**
  * "Hold your phones together": two phones drift into each other with a pulse where they
@@ -41,7 +43,7 @@ internal fun BumpDialog(sharing: Boolean, onClose: () -> Unit) {
     AlertDialog(
         onDismissRequest = onClose,
         containerColor = Mosh.Deep,
-        title = { Text("Bump phones", style = Mosh.Heading) },
+        title = { Text(stringResource(R.string.setup_bump_title), style = Mosh.Heading) },
         text = {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp), modifier = Modifier.fillMaxWidth()) {
                 Canvas(Modifier.size(200.dp, 120.dp)) {
@@ -57,12 +59,12 @@ internal fun BumpDialog(sharing: Boolean, onClose: () -> Unit) {
                     drawCircle(Mosh.Lime.copy(alpha = 1f - gap), radius = 12f + 30f * (1f - gap), center = Offset(w / 2, h / 2), style = Stroke(4f))
                 }
                 Text(
-                    if (sharing) "Hold your phone back to back with your mate's. They'll be asked to join your crew."
-                    else "Hold your phone back to back with someone in a crew (they open Bump too). You'll be asked to join.",
+                    if (sharing) stringResource(R.string.setup_bump_sharing)
+                    else stringResource(R.string.setup_bump_joining),
                     style = Mosh.Body, textAlign = TextAlign.Center,
                 )
             }
         },
-        confirmButton = { TextButton(onClick = onClose) { Text("Done", style = Mosh.Label) } },
+        confirmButton = { TextButton(onClick = onClose) { Text(stringResource(R.string.setup_done), style = Mosh.Label) } },
     )
 }

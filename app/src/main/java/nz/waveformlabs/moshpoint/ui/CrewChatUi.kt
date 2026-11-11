@@ -43,12 +43,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.CrewChat
+import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Safety
 import nz.waveformlabs.moshpoint.core.GigGroup
 
@@ -101,9 +104,9 @@ internal fun CrewChatScreen(
             TextButton(onClick = onBack) { Text("‹", style = Mosh.Heading.copy(fontSize = 28.sp)) }
             Column(Modifier.weight(1f)) {
                 Text(crewName, style = Mosh.Heading.copy(fontSize = 20.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(subtitle ?: "Crew chat · only your crew can read it", style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(subtitle ?: stringResource(R.string.crew_chat_subtitle), style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint), maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
-            if (onInvite != null && !readOnly) TextButton(onClick = onInvite) { Text("＋ Invite", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan)) }
+            if (onInvite != null && !readOnly) TextButton(onClick = onInvite) { Text(stringResource(R.string.crew_chat_invite), style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan)) }
         }
         Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (onMakeMain != null) {
@@ -112,8 +115,8 @@ internal fun CrewChatScreen(
                         .border(1.dp, Mosh.Cyan.copy(alpha = 0.5f), RoundedCornerShape(14.dp)).padding(start = 14.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("This gig is on today. Find each other in this crew?", style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.Text), modifier = Modifier.weight(1f))
-                    TextButton(onClick = onMakeMain) { Text("Switch", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
+                    Text(stringResource(R.string.crew_chat_on_today), style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.Text), modifier = Modifier.weight(1f))
+                    TextButton(onClick = onMakeMain) { Text(stringResource(R.string.crew_chat_switch), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
                 }
             }
             PlanCard(plan, meetUp, readOnly, onEdit = { editingPlan = true }, onShare = onSharePlan, onMap = onOpenMap)
@@ -121,7 +124,7 @@ internal fun CrewChatScreen(
             flares.forEach { f -> FlareRow(f, nowSec, mine = f.from == myName, onEnd = onEndFlare, onMap = onOpenMap) }
             if (!readOnly && mine == null && nightTools) {
                 Text(
-                    "🔥  Send a flare: show where you are for 30 min",
+                    pluralStringResource(R.plurals.crew_chat_send_flare_hint, CrewChat.FLARE_MIN, CrewChat.FLARE_MIN),
                     style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber),
                     modifier = Modifier.clickable { flaring = true }.padding(vertical = 4.dp),
                 )
@@ -136,14 +139,14 @@ internal fun CrewChatScreen(
             if (lines.isEmpty()) {
                 item {
                     Text(
-                        "Nothing yet. Messages reach everyone in the crew within about a minute (faster on your own relay).",
+                        stringResource(R.string.crew_chat_empty),
                         style = Mosh.Body.copy(fontSize = 14.sp, color = Mosh.TextFaint), modifier = Modifier.padding(vertical = 24.dp),
                     )
                 }
             }
             itemsIndexed(lines, key = { _, it -> it.key }) { i, l ->
                 // Messenger-style runs: name on the first message, face on the last.
-                fun same(o: CrewChat.Line?) = o != null && o.kind == GigGroup.Ping.CHAT && o.mine == l.mine &&
+                fun same(o: CrewChat.Line?) = o != null && isBubble(o.kind) && o.mine == l.mine &&
                     (if (o.sender != 0L && l.sender != 0L) o.sender == l.sender else o.from == l.from)
                 ChatLine(
                     l, nowSec,
@@ -161,14 +164,14 @@ internal fun CrewChatScreen(
             Column(Modifier.background(Mosh.Deep).padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (nightTools) PingBar(onPing = onPing, onCheckIn = onCheckIn)
                 else Text(
-                    "Hype it up! Flares and quick pings switch on on gig day.",
+                    stringResource(R.string.crew_chat_night_tools_later),
                     style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint), modifier = Modifier.padding(horizontal = 4.dp),
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(
                         draft, { if (it.length <= 140) draft = it },
                         modifier = Modifier.weight(1f),
-                        placeholder = { Text("Message the crew", style = Mosh.Body.copy(color = Mosh.TextFaint)) },
+                        placeholder = { Text(stringResource(R.string.crew_chat_message_hint), style = Mosh.Body.copy(color = Mosh.TextFaint)) },
                         textStyle = Mosh.Body.copy(color = Mosh.Text),
                         maxLines = 3,
                         shape = RoundedCornerShape(22.dp),
@@ -195,19 +198,19 @@ private fun PlanCard(plan: CrewChat.Plan?, meetUp: String?, readOnly: Boolean, o
             .border(1.dp, Mosh.Lime.copy(alpha = 0.45f), RoundedCornerShape(16.dp))
             .padding(horizontal = 14.dp, vertical = 10.dp),
     ) {
-        Text("📌 THE PLAN", style = Mosh.Eyebrow.copy(color = Mosh.Lime))
+        Text(stringResource(R.string.crew_plan_eyebrow), style = Mosh.Eyebrow.copy(color = Mosh.Lime))
         Text(
-            plan?.text ?: if (readOnly) "No plan pinned yet." else "Pin the plan so nobody has to scroll: \"Sound desk after the encore\".",
+            plan?.text ?: if (readOnly) stringResource(R.string.crew_plan_none) else stringResource(R.string.crew_plan_prompt),
             style = if (plan != null) Mosh.Label.copy(fontSize = 17.sp) else Mosh.Body.copy(fontSize = 14.sp),
             modifier = Modifier.padding(top = 2.dp),
         )
-        if (plan != null) Text("by ${plan.from}", style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint))
+        if (plan != null) Text(stringResource(R.string.crew_plan_by, plan.from), style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint))
         if (meetUp != null) {
-            Text("★ Meet-up pin: $meetUp", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink), modifier = Modifier.clickable(onClick = onMap).padding(top = 4.dp))
+            Text(stringResource(R.string.crew_plan_meet_up, meetUp), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink), modifier = Modifier.clickable(onClick = onMap).padding(top = 4.dp))
         }
         Row {
-            if (!readOnly) TextButton(onClick = onEdit) { Text(if (plan == null) "Pin a plan" else "Change", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lime)) }
-            if (plan != null || meetUp != null) TextButton(onClick = onShare) { Text("Share as a card", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
+            if (!readOnly) TextButton(onClick = onEdit) { Text(if (plan == null) stringResource(R.string.crew_plan_pin) else stringResource(R.string.crew_plan_change), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lime)) }
+            if (plan != null || meetUp != null) TextButton(onClick = onShare) { Text(stringResource(R.string.crew_plan_share), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
         }
     }
 }
@@ -224,10 +227,12 @@ private fun FlareRow(f: CrewChat.Flare, nowSec: Long, mine: Boolean, onEnd: () -
         Text("🔥", fontSize = 18.sp)
         Spacer(Modifier.size(8.dp))
         Column(Modifier.weight(1f)) {
-            Text("${if (mine) "You" else f.from}: ${f.vibe}", style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Amber), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text("$left min left${if (f.lat != null) " · on the map" else ""}", style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint))
+            Text(if (mine) stringResource(R.string.crew_flare_mine, f.vibe) else stringResource(R.string.crew_flare_theirs, f.from, f.vibe), style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Amber), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                if (f.lat != null) pluralStringResource(R.plurals.crew_flare_left_on_map, left.toInt(), left.toInt()) else pluralStringResource(R.plurals.crew_flare_left, left.toInt(), left.toInt()),
+                style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint))
         }
-        if (mine) TextButton(onClick = onEnd) { Text("End", style = Mosh.Label.copy(fontSize = 14.sp)) }
+        if (mine) TextButton(onClick = onEnd) { Text(stringResource(R.string.crew_flare_end), style = Mosh.Label.copy(fontSize = 14.sp)) }
     }
 }
 
@@ -242,10 +247,10 @@ private fun ChatLine(
     myName: String = "",
     onRetry: (CrewChat.Line) -> Unit = {},
 ) {
-    if (l.kind != GigGroup.Ping.CHAT) {
+    if (!isBubble(l.kind)) {
         // "Jo pinned: …" / "Jo sent a flare: …" as a quiet centred note.
         Text(
-            if (l.kind == CrewChat.NOTE) "${l.text} · ${ago(nowSec - l.timeSec)}" else "${if (l.mine) "You" else l.from} ${l.text} · ${ago(nowSec - l.timeSec)}",
+            stringResource(R.string.crew_chat_line_with_time, systemLine(l), ago(nowSec - l.timeSec)),
             style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint),
             modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -265,12 +270,12 @@ private fun ChatLine(
         Column(horizontalAlignment = if (l.mine) Alignment.End else Alignment.Start) {
             // Always the name, not just the face: photos can be hard to make out, or change mid-gig.
             if (first) Text(
-                if (l.mine) "You" else l.from,
+                if (l.mine) stringResource(R.string.crew_you) else l.from,
                 style = Mosh.Label.copy(fontSize = 13.sp, color = if (l.mine) Mosh.Lime else ring),
                 modifier = Modifier.padding(horizontal = 10.dp),
             )
             Text(
-                l.text,
+                if (l.kind == GigGroup.Ping.CHAT) l.text else quickLine(l),
                 style = Mosh.Body.copy(color = if (l.mine) Color(0xFF0B1200) else Mosh.Text),
                 modifier = Modifier.widthIn(max = 260.dp)
                     .background(if (l.mine) Mosh.Lime.copy(alpha = if (l.state == CrewChat.SENT) 1f else 0.55f) else Mosh.Surface, RoundedCornerShape(18.dp))
@@ -279,18 +284,65 @@ private fun ChatLine(
             )
             when {
                 l.mine && l.state == CrewChat.FAILED -> Text(
-                    "Not sent · Tap to retry",
+                    stringResource(R.string.crew_chat_not_sent),
                     style = Mosh.Label.copy(fontSize = 12.sp, color = Mosh.Danger),
                     modifier = Modifier.clickable { onRetry(l) }.padding(horizontal = 10.dp, vertical = 2.dp),
                 )
-                l.mine && l.state == CrewChat.SENDING -> Text("Sending…", style = Mosh.Body.copy(fontSize = 11.sp, color = Mosh.TextFaint), modifier = Modifier.padding(horizontal = 10.dp))
-                last -> Text("${if (l.mine) "You" else l.from} · ${ago(nowSec - l.timeSec)}", style = Mosh.Body.copy(fontSize = 11.sp, color = Mosh.TextFaint), modifier = Modifier.padding(horizontal = 10.dp))
+                l.mine && l.state == CrewChat.SENDING -> Text(stringResource(R.string.crew_chat_sending), style = Mosh.Body.copy(fontSize = 11.sp, color = Mosh.TextFaint), modifier = Modifier.padding(horizontal = 10.dp))
+                last -> Text(stringResource(R.string.crew_chat_line_with_time, if (l.mine) stringResource(R.string.crew_you) else l.from, ago(nowSec - l.timeSec)), style = Mosh.Body.copy(fontSize = 11.sp, color = Mosh.TextFaint), modifier = Modifier.padding(horizontal = 10.dp))
             }
         }
         if (l.mine) {
             Spacer(Modifier.size(8.dp))
             if (last) ChatHead(myName, face, Mosh.Lime) else Spacer(Modifier.size(34.dp))
         }
+    }
+}
+
+/** Shown as a speech bubble: typed messages, and the one-tap pings ("On my way"). */
+private fun isBubble(kind: Int) = kind == GigGroup.Ping.CHAT || CrewChat.isQuick(kind)
+
+/** A one-tap ping's words, in the current language ([CrewChat.Line.text] holds a check-in's minutes). */
+@Composable
+private fun quickLine(l: CrewChat.Line): String = when (l.kind) {
+    GigGroup.Ping.COMING -> stringResource(R.string.crew_quick_coming)
+    GigGroup.Ping.WHERE_ARE_YOU -> stringResource(R.string.crew_quick_where)
+    GigGroup.Ping.STAY_PUT -> stringResource(R.string.crew_quick_stay_put)
+    GigGroup.Ping.MEET_AT_PIN -> stringResource(R.string.crew_quick_meet_pin)
+    GigGroup.Ping.ALL_GOOD -> stringResource(R.string.crew_quick_all_good)
+    GigGroup.Ping.GOING_HOME -> stringResource(R.string.crew_quick_going_home)
+    GigGroup.Ping.NEED_HELP -> stringResource(R.string.crew_quick_need_help)
+    GigGroup.Ping.CHECK_IN -> (l.text.toIntOrNull() ?: 0).let { pluralStringResource(R.plurals.crew_quick_check_in, it, it) }
+    GigGroup.Ping.HOME_SAFE -> stringResource(R.string.crew_quick_home_safe)
+    else -> l.text
+}
+
+/**
+ * A system line's sentence ("Jo pinned: …"), worded now from the stored payload so it follows
+ * the phone's language. Older builds stored the English sentence itself ("pinned: …"): those
+ * prefixes are stripped so the line still reads right.
+ */
+@Composable
+private fun systemLine(l: CrewChat.Line): String {
+    val you = l.mine
+    return when (l.kind) {
+        CrewChat.NOTE -> l.text
+        GigGroup.Ping.JOIN ->
+            if (you) stringResource(R.string.crew_chat_you_joined) else stringResource(R.string.crew_chat_joined, l.from)
+        GigGroup.Ping.PLAN -> {
+            val plan = if (l.text == "cleared the plan") "" else l.text.removePrefix("pinned: ").trim()
+            when {
+                plan.isEmpty() && you -> stringResource(R.string.crew_chat_you_cleared_plan)
+                plan.isEmpty() -> stringResource(R.string.crew_chat_cleared_plan, l.from)
+                you -> stringResource(R.string.crew_chat_you_pinned, plan)
+                else -> stringResource(R.string.crew_chat_pinned, l.from, plan)
+            }
+        }
+        GigGroup.Ping.FLARE -> {
+            val vibe = l.text.removePrefix("sent a flare: ")
+            if (you) stringResource(R.string.crew_chat_you_flare, vibe) else stringResource(R.string.crew_chat_flare, l.from, vibe)
+        }
+        else -> stringResource(R.string.crew_chat_line_other, if (you) stringResource(R.string.crew_you) else l.from, l.text)
     }
 }
 
@@ -310,14 +362,17 @@ private fun ChatHead(name: String, face: androidx.compose.ui.graphics.ImageBitma
 @Composable
 private fun PlanEditor(start: String, onSave: (String) -> Unit, onClose: () -> Unit) {
     var text by remember { mutableStateOf(start) }
-    val ideas = listOf("Meet at the sound desk after the encore", "Left of the main bar at the break", "Back at the car by 11:30", "Tent if we lose each other")
+    val ideas = listOf(
+        stringResource(R.string.crew_plan_idea_sound_desk), stringResource(R.string.crew_plan_idea_bar),
+        stringResource(R.string.crew_plan_idea_car), stringResource(R.string.crew_plan_idea_tent),
+    )
     AlertDialog(
         onDismissRequest = onClose,
         containerColor = Mosh.Deep,
-        title = { Text("The plan", style = Mosh.Heading) },
+        title = { Text(stringResource(R.string.crew_plan_title), style = Mosh.Heading) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("Pinned at the top of the chat for everyone, so it never scrolls away.", style = Mosh.Body.copy(fontSize = 14.sp))
+                Text(stringResource(R.string.crew_plan_editor_body), style = Mosh.Body.copy(fontSize = 14.sp))
                 OutlinedTextField(text, { if (it.length <= 140) text = it }, maxLines = 3, textStyle = Mosh.Body.copy(color = Mosh.Text))
                 Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     ideas.forEach { i ->
@@ -330,11 +385,11 @@ private fun PlanEditor(start: String, onSave: (String) -> Unit, onClose: () -> U
                 }
             }
         },
-        confirmButton = { TextButton(onClick = { onSave(text) }) { Text("Pin it", style = Mosh.Label.copy(color = Mosh.Lime)) } },
+        confirmButton = { TextButton(onClick = { onSave(text) }) { Text(stringResource(R.string.crew_plan_pin_it), style = Mosh.Label.copy(color = Mosh.Lime)) } },
         dismissButton = {
             Row {
-                if (start.isNotEmpty()) TextButton(onClick = { onSave("") }) { Text("Unpin", style = Mosh.Label.copy(color = Mosh.Danger)) }
-                TextButton(onClick = onClose) { Text("Cancel", style = Mosh.Label) }
+                if (start.isNotEmpty()) TextButton(onClick = { onSave("") }) { Text(stringResource(R.string.crew_plan_unpin), style = Mosh.Label.copy(color = Mosh.Danger)) }
+                TextButton(onClick = onClose) { Text(stringResource(R.string.crew_cancel), style = Mosh.Label) }
             }
         },
     )
@@ -346,10 +401,10 @@ private fun FlarePicker(onPick: (String) -> Unit, onClose: () -> Unit) {
     AlertDialog(
         onDismissRequest = onClose,
         containerColor = Mosh.Deep,
-        title = { Text("Send a flare", style = Mosh.Heading) },
+        title = { Text(stringResource(R.string.crew_flare_title), style = Mosh.Heading) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("Your spot shows on the crew's map for 30 minutes, with a vibe.", style = Mosh.Body.copy(fontSize = 14.sp))
+                Text(pluralStringResource(R.plurals.crew_flare_body, CrewChat.FLARE_MIN, CrewChat.FLARE_MIN), style = Mosh.Body.copy(fontSize = 14.sp))
                 CrewChat.VIBES.chunked(2).forEach { row ->
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         row.forEach { v ->
@@ -361,11 +416,11 @@ private fun FlarePicker(onPick: (String) -> Unit, onClose: () -> Unit) {
                         }
                     }
                 }
-                OutlinedTextField(own, { if (it.length <= 40) own = it }, singleLine = true, placeholder = { Text("Or your own…") }, textStyle = Mosh.Body.copy(color = Mosh.Text))
+                OutlinedTextField(own, { if (it.length <= 40) own = it }, singleLine = true, placeholder = { Text(stringResource(R.string.crew_flare_own_hint)) }, textStyle = Mosh.Body.copy(color = Mosh.Text))
             }
         },
-        confirmButton = { TextButton(onClick = { if (own.isNotBlank()) onPick(own.trim()) }, enabled = own.isNotBlank()) { Text("Send", style = Mosh.Label.copy(color = Mosh.Amber)) } },
-        dismissButton = { TextButton(onClick = onClose) { Text("Cancel", style = Mosh.Label) } },
+        confirmButton = { TextButton(onClick = { if (own.isNotBlank()) onPick(own.trim()) }, enabled = own.isNotBlank()) { Text(stringResource(R.string.crew_flare_send), style = Mosh.Label.copy(color = Mosh.Amber)) } },
+        dismissButton = { TextButton(onClick = onClose) { Text(stringResource(R.string.crew_cancel), style = Mosh.Label) } },
     )
 }
 
@@ -384,21 +439,24 @@ internal fun HelpDialog(onAlertCrew: () -> Unit, onClose: () -> Unit) {
     AlertDialog(
         onDismissRequest = onClose,
         containerColor = Mosh.Deep,
-        title = { Text("Get help", style = Mosh.Heading) },
+        title = { Text(stringResource(R.string.crew_help_title), style = Mosh.Heading) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                HelpAction(if (crewSent) "Crew alerted ✓" else "Alert my crew", "Urgent alert with where you are", Mosh.Danger) {
+                HelpAction(
+                    if (crewSent) stringResource(R.string.crew_help_alerted) else stringResource(R.string.crew_help_alert),
+                    stringResource(R.string.crew_help_alert_sub), Mosh.Danger,
+                ) {
                     if (!crewSent) { onAlertCrew(); crewSent = true }
                 }
                 val who = contact
                 if (who != null) {
-                    HelpAction("Text ${who.name}", "Your messages app opens with your location. Works without data.", Mosh.Amber) { Safety.textContact(c) }
+                    HelpAction(stringResource(R.string.crew_help_text_contact, who.name), stringResource(R.string.crew_help_text_contact_sub), Mosh.Amber) { Safety.textContact(c) }
                 } else if (!adding) {
-                    HelpAction("Add an emergency contact", "Someone outside the crew to text when it matters", Mosh.Amber) { adding = true }
+                    HelpAction(stringResource(R.string.crew_help_add_contact), stringResource(R.string.crew_help_add_contact_sub), Mosh.Amber) { adding = true }
                 } else {
-                    OutlinedTextField(name, { name = it }, singleLine = true, placeholder = { Text("Name (e.g. Mum)") }, textStyle = Mosh.Body.copy(color = Mosh.Text))
+                    OutlinedTextField(name, { name = it }, singleLine = true, placeholder = { Text(stringResource(R.string.crew_help_contact_name)) }, textStyle = Mosh.Body.copy(color = Mosh.Text))
                     OutlinedTextField(
-                        number, { number = it }, singleLine = true, placeholder = { Text("Mobile number") },
+                        number, { number = it }, singleLine = true, placeholder = { Text(stringResource(R.string.crew_help_contact_number)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), textStyle = Mosh.Body.copy(color = Mosh.Text),
                     )
                     TextButton(onClick = {
@@ -407,17 +465,16 @@ internal fun HelpDialog(onAlertCrew: () -> Unit, onClose: () -> Unit) {
                             contact = Safety.contact(c)
                             adding = false
                         }
-                    }) { Text("Save contact", style = Mosh.Label.copy(color = Mosh.Amber)) }
+                    }) { Text(stringResource(R.string.crew_help_save_contact), style = Mosh.Label.copy(color = Mosh.Amber)) }
                 }
-                HelpAction("Call ${Safety.EMERGENCY_NUMBER}", "Police, fire, ambulance", Color(0xFFFF4D4D)) { Safety.callEmergency(c) }
+                HelpAction(stringResource(R.string.crew_help_call, Safety.EMERGENCY_NUMBER), stringResource(R.string.crew_help_call_sub), Color(0xFFFF4D4D)) { Safety.callEmergency(c) }
                 Text(
-                    "No signal at all? Many newer phones can reach emergency services by satellite: call ${Safety.EMERGENCY_NUMBER} and follow the prompts. " +
-                        "At a festival, security and first aid tents can help fast.",
+                    stringResource(R.string.crew_help_no_signal, Safety.EMERGENCY_NUMBER),
                     style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint),
                 )
             }
         },
-        confirmButton = { TextButton(onClick = onClose) { Text("Close", style = Mosh.Label) } },
+        confirmButton = { TextButton(onClick = onClose) { Text(stringResource(R.string.crew_close), style = Mosh.Label) } },
     )
 }
 
