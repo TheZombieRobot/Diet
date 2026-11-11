@@ -311,25 +311,91 @@ open class ScreensSnapshotTest {
 }
 
 /*
- * Every screen again in other languages: long words (German), right-to-left (Arabic),
- * CJK (Japanese), and feet/miles (US). CI files them as de-<test>.png, ar-..., ja-..., us-...
+ * Every screen again in every language the app ships, to catch clipped or crowded text:
+ * long words (German, Finnish-style compounds), right-to-left (Arabic), CJK and Thai scripts,
+ * and US units. CI files them as <lang>-<test>.png and publishes the full set to the
+ * ui-screenshots branch.
  */
-class GermanScreensTest : ScreensSnapshotTest() {
+class Lang_es : ScreensSnapshotTest() {
+    override val lang get() = "es"
+}
+
+class Lang_es_rES : ScreensSnapshotTest() {
+    override val lang get() = "es-rES"
+}
+
+class Lang_pt : ScreensSnapshotTest() {
+    override val lang get() = "pt-rBR"
+}
+
+class Lang_fr : ScreensSnapshotTest() {
+    override val lang get() = "fr"
+}
+
+class Lang_de : ScreensSnapshotTest() {
     override val lang get() = "de"
 
     /** Guard: the translations really load (otherwise these screenshots would be English). */
     @Test fun translationsLoad() = kotlin.test.assertEquals("Alle finden", paparazzi.context.getString(nz.waveformlabs.moshpoint.R.string.home_find_everyone))
 }
 
-class ArabicScreensTest : ScreensSnapshotTest() {
+class Lang_it : ScreensSnapshotTest() {
+    override val lang get() = "it"
+}
+
+class Lang_nl : ScreensSnapshotTest() {
+    override val lang get() = "nl"
+}
+
+class Lang_sv : ScreensSnapshotTest() {
+    override val lang get() = "sv"
+}
+
+class Lang_pl : ScreensSnapshotTest() {
+    override val lang get() = "pl"
+}
+
+class Lang_tr : ScreensSnapshotTest() {
+    override val lang get() = "tr"
+}
+
+class Lang_ar : ScreensSnapshotTest() {
     override val lang get() = "ar"
     override val rtl get() = true
 }
 
-class JapaneseScreensTest : ScreensSnapshotTest() {
+class Lang_hi : ScreensSnapshotTest() {
+    override val lang get() = "hi"
+}
+
+class Lang_th : ScreensSnapshotTest() {
+    override val lang get() = "th"
+}
+
+class Lang_vi : ScreensSnapshotTest() {
+    override val lang get() = "vi"
+}
+
+class Lang_in : ScreensSnapshotTest() {
+    override val lang get() = "in"
+}
+
+class Lang_ja : ScreensSnapshotTest() {
     override val lang get() = "ja"
 }
 
-class UsScreensTest : ScreensSnapshotTest() {
+class Lang_ko : ScreensSnapshotTest() {
+    override val lang get() = "ko"
+}
+
+class Lang_zh_rCN : ScreensSnapshotTest() {
+    override val lang get() = "zh-rCN"
+}
+
+class Lang_zh_rTW : ScreensSnapshotTest() {
+    override val lang get() = "zh-rTW"
+}
+
+class Lang_en_rUS : ScreensSnapshotTest() {
     override val lang get() = "en-rUS"
 }

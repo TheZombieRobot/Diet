@@ -154,16 +154,36 @@ jobs:
         if: success() && github.event_name == 'push'
         continue-on-error: true
         shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           [ -n "$(ls app/src/test/snapshots/images/*.png 2>/dev/null)" ] || exit 0
           mkdir -p docs/screenshots
           rm -f docs/screenshots/*.png
+          # Paparazzi names files <package>_<Class>_<test>.png.
+          #   ...ScreensSnapshotTest_home.png -> home.png (English)
+          #   ...Lang_de_home.png -> de-home.png, ...Lang_zh_rTW_home.png -> zh-rTW-home.png
+          # docs/screenshots keeps English plus German, Arabic, Japanese and US; every language
+          # goes to the ui-screenshots branch (replaced each run, so history stays small).
+          ALL="$RUNNER_TEMP/ui-shots"; rm -rf "$ALL"; mkdir -p "$ALL"
           for f in app/src/test/snapshots/images/*.png; do
-            # Paparazzi names files <package>_<Class>_<test>.png; keep just the test name.
-            # ...ScreensSnapshotTest_home.png -> home.png; ...GermanScreensTest_home.png -> de-home.png
-            name=$(basename "$f" | sed -E 's/.*GermanScreensTest_/de-/; s/.*ArabicScreensTest_/ar-/; s/.*JapaneseScreensTest_/ja-/; s/.*UsScreensTest_/us-/; s/.*_([^_]+\.png)$/\1/')
-            cp "$f" "docs/screenshots/$name"
+            base=$(basename "$f")
+            if [[ "$base" =~ _Lang_([a-z]+)(_r[A-Z]+)?_(.+\.png)$ ]]; then
+              lang="${BASH_REMATCH[1]}${BASH_REMATCH[2]/_r/-r}"; test="${BASH_REMATCH[3]}"
+            else
+              lang="en"; test=$(echo "$base" | sed -E 's/.*_([^_]+\.png)$/\1/')
+            fi
+            mkdir -p "$ALL/$lang" && cp "$f" "$ALL/$lang/$test"
+            case "$lang" in
+              en) cp "$f" "docs/screenshots/$test" ;;
+              de|ar|ja|en-rUS) cp "$f" "docs/screenshots/$lang-$test" ;;
+            esac
           done
+          (
+            cd "$ALL" && git init -q && git checkout -q -b ui-screenshots && git add . &&
+            git -c user.name=moshpoint-ci -c user.email=moshpoint-ci@users.noreply.github.com commit -qm "UI screenshots, every language, for ${GITHUB_SHA::7}" &&
+            git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" ui-screenshots
+          ) || echo "Couldn't publish the all-language screenshots"
           git add docs/screenshots
           if git diff --cached --quiet; then echo "Screenshots unchanged"; exit 0; fi
           git config user.name "moshpoint-ci"
