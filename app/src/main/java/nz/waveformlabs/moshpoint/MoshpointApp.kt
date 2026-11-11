@@ -10,6 +10,7 @@ class MoshpointApp : Application() {
     override fun onCreate() {
         super.onCreate()
         Txt.init(this)
+        NetState.init(this)
         nz.waveformlabs.moshpoint.ui.DefaultAvatars.init(this)
     }
 }

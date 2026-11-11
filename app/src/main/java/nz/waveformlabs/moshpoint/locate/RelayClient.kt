@@ -5,6 +5,10 @@ import android.util.Base64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import nz.waveformlabs.moshpoint.BuildConfig
+import nz.waveformlabs.moshpoint.NetState
+import nz.waveformlabs.moshpoint.core.PutResult
+import nz.waveformlabs.moshpoint.core.RelayBudget
+import nz.waveformlabs.moshpoint.core.RelayUse
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
@@ -21,7 +25,10 @@ import java.net.URLEncoder
  *    out of the box with no server to run. Each box id becomes a topic name (the rotating
  *    id, which changes every 5 minutes); the message is the sealed box in base64. ntfy.sh
  *    limits each internet address to about 250 messages a day and a request every 5 s on
- *    average, so this side is deliberately frugal (see [Budget]).
+ *    average, so this side is deliberately frugal (see core [RelayBudget]).
+ *
+ * Nothing here spends budget, or waits out a timeout, while the phone has no network at all
+ * ([NetState]): it answers [PutResult.NO_NETWORK] straight away so Bluetooth can take over.
  */
 object RelayClient {
     private const val LOOKUP_CHUNK = 60
@@ -70,10 +77,18 @@ object RelayClient {
     val shareableServer get() = base
     private const val NTFY = "https://ntfy.sh"
 
-    suspend fun put(id: ByteArray, sealed: ByteArray): Boolean = withContext(Dispatchers.IO) {
-        if (ownServer) return@withContext ownPut("$base/v1/box/${id.hex()}", sealed, 5_000)
-        if (!Budget.takeMessage()) return@withContext false
-        runCatching {
+    /** Location shares, intros and the like: [RelayUse.BACKGROUND] unless the caller says otherwise. */
+    suspend fun put(id: ByteArray, sealed: ByteArray, use: RelayUse = RelayUse.BACKGROUND): Boolean = send(id, sealed, use).ok
+
+    /**
+     * Post one sealed record under [id] and say how it went. [held] = the crew-chat mailbox
+     * (kept for days on our own server; the public relay has only one kind of mailbox).
+     */
+    suspend fun send(id: ByteArray, sealed: ByteArray, use: RelayUse, held: Boolean = false): PutResult = withContext(Dispatchers.IO) {
+        if (ownServer) {
+            return@withContext ownPut("$base/v1/${if (held) "held" else "box"}/${id.hex()}", sealed, if (held) 6_000 else 5_000, use)
+        }
+        exchange(use, message = true) {
             val c = URL("$NTFY/${topic(id)}").openConnection() as HttpURLConnection
             c.requestMethod = "POST"
             c.doOutput = true
@@ -84,37 +99,35 @@ object RelayClient {
             c.outputStream.use { it.write(Base64.encodeToString(sealed, Base64.NO_WRAP or Base64.URL_SAFE).toByteArray()) }
             val code = c.responseCode
             c.disconnect()
-            if (code == 429) Budget.backOff()
-            code in 200..299
-        }.getOrDefault(false)
+            code to Unit
+        }.first
     }
 
     /** Upload an encrypted profile photo (see core AvatarBox). Own server only. */
     suspend fun putAvatar(id: ByteArray, sealed: ByteArray): Boolean = withContext(Dispatchers.IO) {
         if (!avatarsEnabled) return@withContext false
-        ownPut("$base/v1/avatar/${id.hex()}", sealed, 8_000)
+        ownPut("$base/v1/avatar/${id.hex()}", sealed, 8_000, RelayUse.BACKGROUND).ok
     }
 
     /** Fetch an encrypted profile photo, or null if there isn't one (or no network). */
     suspend fun getAvatar(id: ByteArray): ByteArray? = withContext(Dispatchers.IO) {
         if (!avatarsEnabled) return@withContext null
-        runCatching {
+        exchange(RelayUse.BACKGROUND, message = false) {
             val c = URL("$base/v1/avatar/${id.hex()}").openConnection() as HttpURLConnection
             c.connectTimeout = 8_000
             c.readTimeout = 8_000
-            if (c.responseCode != 200) return@runCatching null
-            c.inputStream.use { it.readBytes() }.also { c.disconnect() }
-        }.getOrNull()
+            val code = c.responseCode
+            val bytes = if (code == 200) c.inputStream.use { it.readBytes() } else null
+            c.disconnect()
+            code to bytes
+        }.second
     }
 
     /**
      * Crew chat: posted where it's kept for days on our own server (12 hours on the public
      * relay), so a crew can chat weeks before the gig and catch up when they open the app.
      */
-    suspend fun putHeld(id: ByteArray, sealed: ByteArray): Boolean = withContext(Dispatchers.IO) {
-        if (ownServer) return@withContext ownPut("$base/v1/held/${id.hex()}", sealed, 6_000)
-        put(id, sealed)
-    }
+    suspend fun putHeld(id: ByteArray, sealed: ByteArray, use: RelayUse = RelayUse.MESSAGE): Boolean = send(id, sealed, use, held = true).ok
 
     /** Chat records under [ids] (public relay: the last 12 hours). Null on network failure. */
     suspend fun lookupHeld(ids: List<ByteArray>): List<List<ByteArray>>? = withContext(Dispatchers.IO) {
@@ -136,8 +149,7 @@ object RelayClient {
             return@withContext parts.flatten()
         }
         if (ownServer) return@withContext ownLookup(ids)
-        if (!Budget.takeRequest()) return@withContext null
-        runCatching {
+        exchange(RelayUse.MESSAGE, message = false) {
             // One request for every topic: ntfy takes a comma-separated list.
             val topics = ids.map { topic(it) }
             val since = URLEncoder.encode(sinceAgo, "UTF-8")
@@ -145,8 +157,10 @@ object RelayClient {
             c.connectTimeout = 6_000
             c.readTimeout = 8_000
             val code = c.responseCode
-            if (code == 429) Budget.backOff()
-            if (code != 200) return@runCatching null
+            if (code != 200) {
+                c.disconnect()
+                return@exchange code to null
+            }
             val byTopic = HashMap<String, MutableList<Pair<Long, ByteArray>>>()
             c.inputStream.bufferedReader().useLines { lines ->
                 for (line in lines) {
@@ -160,8 +174,8 @@ object RelayClient {
                 }
             }
             c.disconnect()
-            topics.map { t -> byTopic[t].orEmpty().sortedByDescending { it.first }.map { it.second } }
-        }.getOrNull()
+            code to topics.map { t -> byTopic[t].orEmpty().sortedByDescending { it.first }.map { it.second } }
+        }.second
     }
 
     /** Photos (crew moments) go as encrypted file attachments: public relay only for now. */
@@ -169,9 +183,9 @@ object RelayClient {
 
     /** Upload an encrypted file (e.g. a crew moment) under [id]. ntfy.sh keeps it a few hours. */
     suspend fun putFile(id: ByteArray, sealed: ByteArray): Boolean = withContext(Dispatchers.IO) {
-        if (ownServer) return@withContext ownPut("$base/v1/file/${id.hex()}", sealed, 20_000)
-        if (!filesEnabled || !Budget.takeMessage()) return@withContext false
-        runCatching {
+        if (ownServer) return@withContext ownPut("$base/v1/file/${id.hex()}", sealed, 20_000, RelayUse.BACKGROUND).ok
+        if (!filesEnabled) return@withContext false
+        exchange(RelayUse.BACKGROUND, message = true) {
             val c = URL("$NTFY/${topic(id)}").openConnection() as HttpURLConnection
             c.requestMethod = "PUT"
             c.doOutput = true
@@ -183,9 +197,8 @@ object RelayClient {
             c.outputStream.use { it.write(sealed) }
             val code = c.responseCode
             c.disconnect()
-            if (code == 429) Budget.backOff()
-            code in 200..299
-        }.getOrDefault(false)
+            code to Unit
+        }.first.ok
     }
 
     /** Files posted under [ids] in the last [since] (e.g. "4h"): (time, download URL), newest first. */
@@ -194,15 +207,17 @@ object RelayClient {
             val sinceSec = System.currentTimeMillis() / 1000 - sinceSeconds(since)
             return@withContext ids.flatMap { ownList(it, sinceSec) ?: return@withContext null }.sortedByDescending { it.first }
         }
-        if (!filesEnabled || ids.isEmpty() || !Budget.takeRequest()) return@withContext null
-        runCatching {
+        if (!filesEnabled || ids.isEmpty()) return@withContext null
+        exchange(RelayUse.BACKGROUND, message = false) {
             val c = URL("$NTFY/${ids.joinToString(",") { topic(it) }}/json?poll=1&since=${URLEncoder.encode(since, "UTF-8")}")
                 .openConnection() as HttpURLConnection
             c.connectTimeout = 6_000
             c.readTimeout = 8_000
             val code = c.responseCode
-            if (code == 429) Budget.backOff()
-            if (code != 200) return@runCatching null
+            if (code != 200) {
+                c.disconnect()
+                return@exchange code to null
+            }
             val out = mutableListOf<Pair<Long, String>>()
             c.inputStream.bufferedReader().useLines { lines ->
                 for (line in lines) {
@@ -213,8 +228,8 @@ object RelayClient {
                 }
             }
             c.disconnect()
-            out.sortedByDescending { it.first }
-        }.getOrNull()
+            code to out.sortedByDescending { it.first }
+        }.second
     }
 
     /** Biggest file we send or fetch: a short clip (the public relay allows ~15 MB). */
@@ -226,15 +241,18 @@ object RelayClient {
             val sinceSec = System.currentTimeMillis() / 1000 - sinceSeconds(since)
             return@withContext ids.map { (ownList(it, sinceSec) ?: return@withContext null).firstOrNull()?.second }
         }
-        if (!filesEnabled || ids.isEmpty() || !Budget.takeRequest()) return@withContext null
-        runCatching {
+        if (!filesEnabled || ids.isEmpty()) return@withContext null
+        exchange(RelayUse.BACKGROUND, message = false) {
             val topics = ids.map { topic(it) }
             val c = URL("$NTFY/${topics.joinToString(",")}/json?poll=1&since=${URLEncoder.encode(since, "UTF-8")}")
                 .openConnection() as HttpURLConnection
             c.connectTimeout = 6_000
             c.readTimeout = 8_000
-            if (c.responseCode == 429) Budget.backOff()
-            if (c.responseCode != 200) return@runCatching null
+            val code = c.responseCode
+            if (code != 200) {
+                c.disconnect()
+                return@exchange code to null
+            }
             val newest = HashMap<String, Pair<Long, String>>()
             c.inputStream.bufferedReader().useLines { lines ->
                 for (line in lines) {
@@ -248,52 +266,61 @@ object RelayClient {
                 }
             }
             c.disconnect()
-            topics.map { newest[it]?.second }
-        }.getOrNull()
+            code to topics.map { newest[it]?.second }
+        }.second
     }
 
     /** Download a file from the relay (capped at [MAX_FILE]). */
     suspend fun download(url: String): ByteArray? = withContext(Dispatchers.IO) {
         val mine = ownServer && url.startsWith("$base/v1/file/")
         if (!mine && !url.startsWith("$NTFY/")) return@withContext null // only ever fetch from the relay itself
-        if (!mine && !Budget.takeRequest()) return@withContext null
-        runCatching {
+        exchange(RelayUse.BACKGROUND, message = false) {
             val c = URL(url).openConnection() as HttpURLConnection
             c.connectTimeout = 8_000
             c.readTimeout = 20_000
-            if (c.responseCode != 200) return@runCatching null
+            val code = c.responseCode
+            if (code != 200) {
+                c.disconnect()
+                return@exchange code to null
+            }
             val bytes = c.inputStream.use { input ->
                 val buf = java.io.ByteArrayOutputStream()
                 val chunk = ByteArray(16 * 1024)
-                while (true) {
+                var tooBig = false
+                while (!tooBig) {
                     val n = input.read(chunk)
                     if (n < 0) break
                     buf.write(chunk, 0, n)
-                    if (buf.size() > MAX_FILE) return@runCatching null
+                    if (buf.size() > MAX_FILE) tooBig = true
                 }
-                buf.toByteArray()
+                if (tooBig) null else buf.toByteArray()
             }
             c.disconnect()
-            bytes
-        }.getOrNull()
+            code to bytes
+        }.second
     }
 
     private fun topic(id: ByteArray) = "mp" + id.hex()
 
     /** Own server: (time, download URL) of files under [id] since [sinceSec]. */
-    private fun ownList(id: ByteArray, sinceSec: Long): List<Pair<Long, String>>? = runCatching {
-        val c = URL("$base/v1/files/${id.hex()}?since=$sinceSec").openConnection() as HttpURLConnection
-        c.connectTimeout = 6_000
-        c.readTimeout = 8_000
-        if (c.responseCode != 200) return@runCatching null
-        val body = c.inputStream.bufferedReader().use { it.readText() }
-        c.disconnect()
-        body.lines().mapNotNull { l ->
-            val parts = l.trim().split(' ')
-            if (parts.size != 2) return@mapNotNull null
-            parts[0].toLongOrNull()?.let { it to "$base/v1/file/${id.hex()}/${parts[1]}" }
-        }
-    }.getOrNull()
+    private fun ownList(id: ByteArray, sinceSec: Long): List<Pair<Long, String>>? =
+        exchange(RelayUse.BACKGROUND, message = false) {
+            val c = URL("$base/v1/files/${id.hex()}?since=$sinceSec").openConnection() as HttpURLConnection
+            c.connectTimeout = 6_000
+            c.readTimeout = 8_000
+            val code = c.responseCode
+            if (code != 200) {
+                c.disconnect()
+                return@exchange code to null
+            }
+            val body = c.inputStream.bufferedReader().use { it.readText() }
+            c.disconnect()
+            code to body.lines().mapNotNull { l ->
+                val parts = l.trim().split(' ')
+                if (parts.size != 2) return@mapNotNull null
+                parts[0].toLongOrNull()?.let { it to "$base/v1/file/${id.hex()}/${parts[1]}" }
+            }
+        }.second
 
     private fun sinceSeconds(s: String): Long {
         val n = s.dropLast(1).toLongOrNull() ?: return 4 * 3600
@@ -305,32 +332,38 @@ object RelayClient {
         }
     }
 
-    private fun ownPut(url: String, body: ByteArray, timeout: Int): Boolean = runCatching {
-        val c = URL(url).openConnection() as HttpURLConnection
-        c.requestMethod = "PUT"
-        c.doOutput = true
-        c.connectTimeout = timeout
-        c.readTimeout = timeout
-        c.setRequestProperty("Content-Type", "application/octet-stream")
-        c.outputStream.use { it.write(body) }
-        val ok = c.responseCode in 200..299
-        c.disconnect()
-        ok
-    }.getOrDefault(false)
+    private fun ownPut(url: String, body: ByteArray, timeout: Int, use: RelayUse): PutResult =
+        exchange(use, message = true) {
+            val c = URL(url).openConnection() as HttpURLConnection
+            c.requestMethod = "PUT"
+            c.doOutput = true
+            c.connectTimeout = timeout
+            c.readTimeout = timeout
+            c.setRequestProperty("Content-Type", "application/octet-stream")
+            c.outputStream.use { it.write(body) }
+            val code = c.responseCode
+            c.disconnect()
+            code to Unit
+        }.first
 
-    private fun ownLookup(ids: List<ByteArray>, url: String = "$base/v1/lookup", wide: Boolean = false): List<List<ByteArray>>? = runCatching {
-        val c = URL(url).openConnection() as HttpURLConnection
-        c.requestMethod = "POST"
-        c.doOutput = true
-        c.connectTimeout = 5_000
-        c.readTimeout = 5_000
-        c.setRequestProperty("Content-Type", "application/octet-stream")
-        c.outputStream.use { out -> ids.forEach { out.write(it) } }
-        if (c.responseCode != 200) return@runCatching null
-        val body = c.inputStream.use { it.readBytes() }
-        c.disconnect()
-        parseLookup(body, ids.size, wide)
-    }.getOrNull()
+    private fun ownLookup(ids: List<ByteArray>, url: String = "$base/v1/lookup", wide: Boolean = false): List<List<ByteArray>>? =
+        exchange(RelayUse.MESSAGE, message = false) {
+            val c = URL(url).openConnection() as HttpURLConnection
+            c.requestMethod = "POST"
+            c.doOutput = true
+            c.connectTimeout = 5_000
+            c.readTimeout = 5_000
+            c.setRequestProperty("Content-Type", "application/octet-stream")
+            c.outputStream.use { out -> ids.forEach { out.write(it) } }
+            val code = c.responseCode
+            if (code != 200) {
+                c.disconnect()
+                return@exchange code to null
+            }
+            val body = c.inputStream.use { it.readBytes() }
+            c.disconnect()
+            code to parseLookup(body, ids.size, wide)
+        }.second
 
     /** `[count:1]([len:1 or 2][record])*` per id; [wide] = 2-byte lengths (chat mailbox). */
     private fun parseLookup(b: ByteArray, n: Int, wide: Boolean = false): List<List<ByteArray>> {
@@ -344,44 +377,66 @@ object RelayClient {
         }
     }
 
+    // ---- Budget and "is there any network?" ----
+
     /**
-     * Stays inside ntfy.sh's free limits: about 12 requests a minute (we use 8) and 250
-     * messages a day per internet address (we use 200, leaving room for others behind the
-     * same mobile-network address). Backs off for a minute if the relay says "too many".
+     * Test builds: pretend there's no internet at all, to try Bluetooth backup without walking
+     * into a basement (Settings > Testing). Always false in release builds.
      */
-    private object Budget {
-        private const val REQUESTS_PER_MIN = 8
-        private const val MESSAGES_PER_DAY = 200
-        private val requests = ArrayDeque<Long>()
-        private var dayStart = 0L
-        private var messages = 0
-        private var pausedUntil = 0L
-
-        @Synchronized
-        fun takeRequest(): Boolean {
-            val now = SystemClock.elapsedRealtime()
-            if (now < pausedUntil) return false
-            while (requests.isNotEmpty() && now - requests.first() > 60_000) requests.removeFirst()
-            if (requests.size >= REQUESTS_PER_MIN) return false
-            requests.addLast(now)
-            return true
+    @Volatile var debugNoInternet = false
+        set(v) {
+            field = BuildConfig.TEST_BUILD && v
         }
 
-        @Synchronized
-        fun takeMessage(): Boolean {
-            val now = SystemClock.elapsedRealtime()
-            if (now - dayStart > 24 * 3600_000L) {
-                dayStart = now
-                messages = 0
+    /** No network at all (airplane mode, no service), or the test switch: don't even try. */
+    val offline: Boolean get() = (BuildConfig.TEST_BUILD && debugNoInternet) || !NetState.up
+
+    /** The free public relay's limits (see core [RelayBudget]). */
+    private val publicBudget = RelayBudget()
+
+    /** Our own server has no daily limit: this one only keeps the back-off after "too many" or no answer. */
+    private val ownBudget = RelayBudget(
+        messagesPerDay = 1_000_000, requestsPerMinute = 600, messageReserve = 0, safetyReserve = 0, requestReserve = 0,
+    )
+    private val budget get() = if (ownServer) ownBudget else publicBudget
+
+    /** The phone has a network again: stop holding requests back. */
+    fun networkBack() {
+        publicBudget.networkBack()
+        ownBudget.networkBack()
+    }
+
+    /** Would a message for [use] be let through right now? (Used to say "Waiting for signal" honestly.) */
+    fun wouldSend(use: RelayUse): Boolean = !offline && budget.refusal(use, true, SystemClock.elapsedRealtime()) == null
+
+    /**
+     * One HTTP exchange, inside the budget. [call] returns the HTTP status and the parsed
+     * answer, and throws if the relay never answered. The budget is only charged when it did.
+     */
+    private inline fun <T> exchange(use: RelayUse, message: Boolean, call: () -> Pair<Int, T?>): Pair<PutResult, T?> {
+        if (offline) return PutResult.NO_NETWORK to null
+        val b = budget
+        val start = SystemClock.elapsedRealtime()
+        val ticket = b.take(use, message, start) ?: return (b.refusal(use, message, start) ?: PutResult.THROTTLED) to null
+        return try {
+            val (code, value) = call()
+            when {
+                code in 200..299 -> {
+                    b.settle(ticket, RelayBudget.Outcome.OK, SystemClock.elapsedRealtime())
+                    PutResult.SENT to value
+                }
+                code == 429 -> {
+                    b.settle(ticket, RelayBudget.Outcome.THROTTLED, SystemClock.elapsedRealtime())
+                    PutResult.THROTTLED to null
+                }
+                else -> {
+                    b.settle(ticket, RelayBudget.Outcome.REFUSED, SystemClock.elapsedRealtime())
+                    PutResult.REFUSED to null
+                }
             }
-            if (messages >= MESSAGES_PER_DAY || !takeRequest()) return false
-            messages++
-            return true
-        }
-
-        @Synchronized
-        fun backOff() {
-            pausedUntil = SystemClock.elapsedRealtime() + 60_000
+        } catch (e: Exception) {
+            b.settle(ticket, RelayBudget.Outcome.NO_ANSWER, SystemClock.elapsedRealtime())
+            PutResult.NO_NETWORK to null
         }
     }
 }
