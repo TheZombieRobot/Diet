@@ -92,7 +92,7 @@ Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a 
 
 | English | Chosen | Why |
 |---|---|---|
-| venue map | **mapa miejsca koncertu** | *Miejsce koncertu* as in `crew_at_venue`. First person *Zapisuję… / Szukam…*, like `find_saving_area_pct`. |
+| venue map | **mapa miejsca koncertu** | *Miejsce koncertu* as in `crew_at_venue`. First person *Zapisuję… / Szukam…*, like `main_saving_many`. |
 | ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ Na górze / ↓ Na dole** | Short, with the arrow kept. |
 | upstairs / downstairs (screen reader) | piętro wyżej / piętro niżej | Said in full after the mate's direction. |
 

@@ -94,7 +94,7 @@ Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a 
 
 | English | Chosen | Why |
 |---|---|---|
-| venue map | **mekân haritası** | *Mekân* as in `crew_at_venue`. Percent written `%%%1$d`, as in `find_saving_area_pct`. |
+| venue map | **mekân haritası** | *Mekân* as in `crew_at_venue`. Percent written `%%%1$d`, as in `find_scan_percent`. |
 | ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ Üst katta / ↓ Alt katta** | Short, with the arrow kept. |
 | upstairs / downstairs (screen reader) | üst katta / alt katta | Said in full after the mate's direction. |
 

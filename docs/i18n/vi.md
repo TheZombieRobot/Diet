@@ -83,7 +83,7 @@ Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a 
 
 | English | Chosen | Why |
 |---|---|---|
-| venue map | **bản đồ địa điểm** | *Địa điểm* as in `crew_from_venue`. "Offline" is said as *khi mất sóng* ("when there's no signal"), matching `find_area_saved`. |
+| venue map | **bản đồ địa điểm** | *Địa điểm* as in `crew_from_venue`. "Offline" is said as *khi mất sóng* ("when there's no signal"), matching `find_drop_pin_solo_help`. |
 | ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ Tầng trên / ↓ Tầng dưới** | Short, with the arrow kept. |
 | upstairs / downstairs (screen reader) | ở tầng trên / ở tầng dưới | Said in full after the mate's direction. |
 

@@ -80,17 +80,11 @@
     <string name="find_map_style_night">ليلي</string>
     <string name="find_map_style_dark">داكن</string>
     <string name="find_meet_label">لقاء: %1$s</string>
-    <string name="find_saving_area">جارٍ حفظ هذه المنطقة…</string>
-    <string name="find_saving_area_pct">جارٍ حفظ هذه المنطقة… %1$d%%</string>
-    <string name="find_area_saved">حُفظت المنطقة: الخريطة تعمل هنا بدون إشارة</string>
-    <string name="find_area_save_failed">تعذّر حفظ المنطقة: %1$s</string>
-    <string name="find_area_too_big">المنطقة كبيرة جدًا: قرّب على المكان وحاول مجددًا</string>
     <string name="find_back">‹ رجوع</string>
     <string name="find_map_title">خريطة الحفلة</string>
     <string name="find_map_pin">دبوس</string>
     <string name="find_map_all">الكل</string>
     <string name="find_map_me">أنا</string>
-    <string name="find_save_area">⬇  احفظ هذه المنطقة لوقت انقطاع الإشارة</string>
     <string name="find_map_no_mates">لا أصحاب بعد. ابدأ شلة أو أضف صديقًا، وسيظهرون هنا بمجرد أن يضغطوا «اظهر».</string>
     <string name="find_place_crew_meetup">نقطة لقاء الشلة</string>
     <string name="find_place_only_you">أنت فقط ترى هذا</string>

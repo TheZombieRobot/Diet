@@ -108,13 +108,6 @@
     <string name="find_map_style_dark">Dark</string>
     <!-- Label on a crew meet-up pin. %1$s = pin name -->
     <string name="find_meet_label">Meet: %1$s</string>
-    <string name="find_saving_area">Saving this area…</string>
-    <!-- %1$d = percent downloaded -->
-    <string name="find_saving_area_pct">Saving this area… %1$d%%</string>
-    <string name="find_area_saved">Area saved: the map works here with no signal</string>
-    <!-- %1$s = error message from the map library -->
-    <string name="find_area_save_failed">Couldn\'t save the area: %1$s</string>
-    <string name="find_area_too_big">Too big to save: zoom in on the venue and try again</string>
     <string name="find_back">‹ Back</string>
     <string name="find_map_title">Mosh map</string>
     <!-- Button: drop a pin where you are -->
@@ -123,7 +116,6 @@
     <string name="find_map_all">All</string>
     <!-- Button: zoom to yourself -->
     <string name="find_map_me">Me</string>
-    <string name="find_save_area">⬇  Save this area for no signal</string>
     <string name="find_map_no_mates">No mates yet. Start a crew or add a friend, and they\'ll show up here once they go live.</string>
     <string name="find_place_crew_meetup">crew meet-up</string>
     <string name="find_place_only_you">only you see this</string>

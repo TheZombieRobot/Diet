@@ -75,17 +75,11 @@
     <string name="find_map_style_night">กลางคืน</string>
     <string name="find_map_style_dark">มืด</string>
     <string name="find_meet_label">นัดเจอ: %1$s</string>
-    <string name="find_saving_area">กำลังบันทึกพื้นที่นี้…</string>
-    <string name="find_saving_area_pct">กำลังบันทึกพื้นที่นี้… %1$d%%</string>
-    <string name="find_area_saved">บันทึกพื้นที่แล้ว: ใช้แผนที่ตรงนี้ได้แม้ไม่มีสัญญาณ</string>
-    <string name="find_area_save_failed">บันทึกพื้นที่ไม่ได้: %1$s</string>
-    <string name="find_area_too_big">พื้นที่ใหญ่เกินไป: ซูมเข้าไปที่งานแล้วลองใหม่</string>
     <string name="find_back">‹ กลับ</string>
     <string name="find_map_title">แผนที่ม็อช</string>
     <string name="find_map_pin">ปักหมุด</string>
     <string name="find_map_all">ทุกคน</string>
     <string name="find_map_me">ฉัน</string>
-    <string name="find_save_area">⬇  บันทึกพื้นที่นี้ไว้ใช้ตอนไม่มีสัญญาณ</string>
     <string name="find_map_no_mates">ยังไม่มีเพื่อน ตั้งแก๊งหรือเพิ่มเพื่อน แล้วเพื่อนจะโผล่ตรงนี้เมื่อเริ่มแชร์</string>
     <string name="find_place_crew_meetup">จุดนัดเจอของแก๊ง</string>
     <string name="find_place_only_you">เห็นแค่คุณ</string>

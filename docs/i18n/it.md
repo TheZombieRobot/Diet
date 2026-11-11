@@ -76,7 +76,7 @@ Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a 
 
 | English | Chosen | Why |
 |---|---|---|
-| venue map | **mappa della location** | *Location* as in `crew_from_venue`. First person *Salvo… / Cerco…*, like `find_saving_area_pct`. |
+| venue map | **mappa della location** | *Location* as in `crew_from_venue`. First person *Salvo… / Cerco…*, like `main_saving_many`. |
 | ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ Di sopra / ↓ Di sotto** | Short, with the arrow kept. |
 | upstairs / downstairs (screen reader) | al piano di sopra / al piano di sotto | Said in full after the mate's direction. |
 
