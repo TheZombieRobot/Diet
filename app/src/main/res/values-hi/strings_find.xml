@@ -19,7 +19,7 @@
     <string name="find_scan_again">फिर स्कैन करें</string>
     <string name="find_ask_them">उनसे कहें</string>
     <string name="find_last_seen_on_map">मैप पर आखिरी बार दिखे</string>
-    <string name="find_light_me_up">मेरी स्क्रीन चमकाओ</string>
+    <string name="find_light_me_up">मेरी स्क्रीन चमकाएँ</string>
     <string name="find_spin_scan">घूमकर स्कैन</string>
     <string name="find_asked_light_up">कह दिया: उनका फ़ोन स्क्रीन चमकाने का ऑप्शन देगा</string>
     <string name="find_ask_light_up">उनसे स्क्रीन चमकाने को कहें</string>
@@ -38,14 +38,14 @@
     <string name="find_band_hint_close">10 m से कम</string>
     <string name="find_band_hint_nearby">लगभग 10–30 m</string>
     <string name="find_band_hint_in_range">30 m या ज़्यादा</string>
-    <string name="find_trend_warmer">गरम</string>
+    <string name="find_trend_warmer">और पास</string>
     <string name="find_trend_warmer_hint">इसी तरफ़ चलते रहें</string>
-    <string name="find_trend_colder">ठंडा</string>
+    <string name="find_trend_colder">और दूर</string>
     <string name="find_trend_colder_hint">पीछे मुड़ें</string>
     <string name="find_trend_steady">वैसा ही</string>
     <string name="find_trend_steady_hint">दूसरी दिशा आज़माएँ</string>
     <string name="find_trend_hint_who">%1$s: %2$s</string>
-    <string name="find_warmer_help">कुछ कदम एक तरफ़ चलें, फिर दूसरी तरफ़। गरम मतलब आप पास आ रहे हैं। दिशा पता चलते ही तीर दिखेगा।</string>
+    <string name="find_warmer_help">कुछ कदम एक तरफ़ चलें, फिर दूसरी तरफ़। \"और पास\" मतलब आप नज़दीक आ रहे हैं। दिशा पता चलते ही तीर दिखेगा।</string>
     <string name="find_scan_covered_cd">घेरे का %1$d प्रतिशत पूरा</string>
     <string name="find_scan_percent">%1$d%%</string>
     <string name="find_scan_listening">सुन रहे हैं…</string>
@@ -87,8 +87,8 @@
     <string name="find_map_all">सब</string>
     <string name="find_map_me">मैं</string>
     <string name="find_save_area">⬇  बिना सिग्नल के लिए यह इलाका सेव करें</string>
-    <string name="find_map_no_mates">अभी कोई दोस्त नहीं। गैंग शुरू करें या दोस्त जोड़ें, लाइव होते ही वे यहाँ दिखेंगे।</string>
-    <string name="find_place_crew_meetup">गैंग के मिलने की जगह</string>
+    <string name="find_map_no_mates">अभी कोई दोस्त नहीं। ग्रुप शुरू करें या दोस्त जोड़ें, लाइव होते ही वे यहाँ दिखेंगे।</string>
+    <string name="find_place_crew_meetup">ग्रुप के मिलने की जगह</string>
     <string name="find_place_only_you">सिर्फ़ आपको दिखता है</string>
     <string name="find_walk">पैदल</string>
     <string name="find_ride">राइड</string>
@@ -96,11 +96,11 @@
     <string name="find_find">ढूँढें</string>
     <string name="find_ask">कहें</string>
     <string name="find_drop_pin">पिन लगाएँ</string>
-    <string name="find_drop_pin_crew_help">सिर्फ़ अपने लिए सेव करें (टेंट, कार…) या इसे गैंग के मिलने की जगह बनाएँ: सबके मैप पर दिखेगा।</string>
+    <string name="find_drop_pin_crew_help">सिर्फ़ अपने लिए सेव करें (टेंट, कार…) या इसे ग्रुप के मिलने की जगह बनाएँ: सबके मैप पर दिखेगा।</string>
     <string name="find_drop_pin_solo_help">अपने लिए सेव करें: टेंट, कार, अच्छे वाले टॉयलेट। बिना सिग्नल के भी काम करता है।</string>
     <string name="find_drop_pin_hint">जैसे साउंड डेस्क, टेंट, कार</string>
     <string name="find_meet_here">यहाँ मिलें</string>
-    <string name="find_crew_meetup">गैंग मीट-अप</string>
+    <string name="find_crew_meetup">ग्रुप मीट-अप</string>
     <string name="find_my_spot">मेरी जगह</string>
     <string name="find_just_for_me">सिर्फ़ मेरे लिए</string>
     <string name="find_bubble_two">%1$s और %2$s</string>
@@ -119,8 +119,8 @@
     <string name="find_save_all">सब सेव करें</string>
     <string name="find_add_your_photos">＋ अपनी फ़ोटो जोड़ें</string>
     <string name="find_save_all_to_phone">सब फ़ोन में सेव करें</string>
-    <string name="find_story_empty_following">गैंग की फ़ोटो और क्लिप शेयर होते ही यहाँ पिन होती हैं। लाइव फ़ॉलो करने के लिए इसे खुला रखें।</string>
-    <string name="find_story_empty_crew">स्टेज, बार, अपने दोस्तों की फ़ोटो लें। गैंग जो भी शेयर करती है वह यहाँ पिन होता है, सबसे नया सबसे ऊपर।</string>
+    <string name="find_story_empty_following">ग्रुप की फ़ोटो और क्लिप शेयर होते ही यहाँ पिन होती हैं। लाइव फ़ॉलो करने के लिए इसे खुला रखें।</string>
+    <string name="find_story_empty_crew">स्टेज, बार, अपने दोस्तों की फ़ोटो लें। ग्रुप जो भी शेयर करता है वह यहाँ पिन होता है, सबसे नया सबसे ऊपर।</string>
     <string name="find_delete_gig">यह शो इस फ़ोन से डिलीट करें</string>
     <plurals name="find_new_posts">
         <item quantity="one">↑  %d नया</item>
@@ -143,10 +143,10 @@
     <string name="find_on_map">मैप पर</string>
     <string name="find_find_name">%1$s को ढूँढें</string>
     <string name="find_close">बंद करें</string>
-    <string name="find_share_with_crew">गैंग के साथ शेयर करें</string>
+    <string name="find_share_with_crew">ग्रुप के साथ शेयर करें</string>
     <string name="find_pinned_where_you_are">आप अभी जहाँ हैं, वहाँ पिन किया</string>
     <string name="find_caption_hint">कहाँ, बताएँ (वैकल्पिक): साउंड डेस्क के बाईं ओर</string>
-    <string name="find_moment_privacy">सिर्फ़ आपकी गैंग इसे देख सकती है। कुछ घंटों बाद यह रिले से गायब हो जाता है।</string>
+    <string name="find_moment_privacy">सिर्फ़ आपका ग्रुप इसे देख सकता है। कुछ घंटों बाद यह रिले से गायब हो जाता है।</string>
     <string name="find_sending">भेज रहे हैं…</string>
     <string name="find_send">भेजें</string>
 
@@ -159,11 +159,11 @@
 
     <string name="find_no_video_app">यहाँ कोई कैमरा ऐप वीडियो रिकॉर्ड नहीं कर सकता</string>
     <string name="find_clip_too_long">यह क्लिप भेजने के लिए बहुत लंबी है। लगभग 10 सेकंड तक रखें।</string>
-    <string name="find_clip_shared">क्लिप आपकी गैंग के साथ शेयर हो गई</string>
+    <string name="find_clip_shared">क्लिप आपके ग्रुप के साथ शेयर हो गई</string>
     <string name="find_send_failed">भेजा नहीं जा सका। इंटरनेट चेक करें और फिर कोशिश करें।</string>
-    <string name="find_join_crew_first">पहले कोई गैंग शुरू करें या जॉइन करें: पल आपकी गैंग को जाते हैं</string>
+    <string name="find_join_crew_first">पहले कोई ग्रुप शुरू करें या जॉइन करें: पल आपके ग्रुप को जाते हैं</string>
     <string name="find_needs_camera">पल कैप्चर करने के लिए Moshpoint को कैमरा चाहिए</string>
-    <string name="find_shared_with_crew">आपकी गैंग के साथ शेयर हुआ</string>
+    <string name="find_shared_with_crew">आपके ग्रुप के साथ शेयर हुआ</string>
     <string name="find_share_a_moment">एक पल शेयर करें</string>
     <string name="find_share_moment_help">आप जहाँ हैं, वहाँ की फ़ोटो लें (स्टेज, बार, दोस्त)। यह स्टोरी में पोलरॉइड की तरह आएगी।</string>
     <string name="find_take_photo">फ़ोटो लें</string>

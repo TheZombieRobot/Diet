@@ -51,7 +51,7 @@
     <string name="setup_onb_arrow_demo_desc">दोस्त की ओर इशारा करता तीर</string>
 
     <string name="setup_plan_title">शो प्लान करें</string>
-    <string name="setup_plan_desc">अभी गैंग शुरू करें, सब अपनी सुविधा से जुड़ें। उस दिन तक यह सोती रहती है (बैटरी खर्च नहीं)।</string>
+    <string name="setup_plan_desc">अभी ग्रुप शुरू करें, सब अपनी सुविधा से जुड़ें। उस दिन तक यह सोता रहता है (बैटरी खर्च नहीं)।</string>
     <string name="setup_plan_search_hint">खोजें: बैंड, आर्टिस्ट या वेन्यू</string>
     <string name="setup_plan_searching">खोज रहे हैं…</string>
     <string name="setup_plan_search_failed">अभी खोज नहीं हो सकी। नीचे टाइप कर दें।</string>
@@ -60,7 +60,7 @@
     <string name="setup_plan_or_type">या टाइप करें</string>
     <string name="setup_plan_whos_playing">कौन परफ़ॉर्म कर रहा है</string>
     <string name="setup_plan_where">कहाँ (वैकल्पिक)</string>
-    <string name="setup_plan_start_crew">गैंग शुरू करें</string>
+    <string name="setup_plan_start_crew">ग्रुप शुरू करें</string>
     <string name="setup_plan_default_name">शो नाइट</string>
 
     <string name="setup_qr_title">मुझे जोड़ने के लिए स्कैन करें</string>
@@ -75,14 +75,14 @@
     <string name="setup_qr_send_invite">स्कैन नहीं हो रहा? इनवाइट भेज दें</string>
     <string name="setup_qr_reset_invite">इनवाइट रीसेट करें</string>
     <string name="setup_qr_reset_title">इनवाइट रीसेट करें?</string>
-    <string name="setup_qr_reset_text">अगर यह QR या इसका स्क्रीनशॉट बाहर चला गया है, तो रीसेट करने से वह काम करना बंद कर देगा। जो पहले से गैंग में हैं वे बने रहेंगे; नए लोगों को नया QR चाहिए होगा।</string>
+    <string name="setup_qr_reset_text">अगर यह QR या इसका स्क्रीनशॉट बाहर चला गया है, तो रीसेट करने से वह काम करना बंद कर देगा। जो पहले से ग्रुप में हैं वे बने रहेंगे; नए लोगों को नया QR चाहिए होगा।</string>
     <string name="setup_qr_reset">रीसेट</string>
     <string name="setup_cancel">रद्द करें</string>
     <string name="setup_qr_end_night">रात खत्म करें</string>
 
     <string name="setup_bump_title">फ़ोन बंप करें</string>
-    <string name="setup_bump_sharing">अपना फ़ोन दोस्त के फ़ोन से पीठ-से-पीठ सटाकर रखें। उनसे आपकी गैंग में शामिल होने को कहा जाएगा।</string>
-    <string name="setup_bump_joining">अपना फ़ोन किसी गैंग वाले के फ़ोन से पीठ-से-पीठ सटाकर रखें (वे भी बंप खोलें)। आपसे शामिल होने को कहा जाएगा।</string>
+    <string name="setup_bump_sharing">अपना फ़ोन दोस्त के फ़ोन से पीठ-से-पीठ सटाकर रखें। उनसे आपके ग्रुप में शामिल होने को कहा जाएगा।</string>
+    <string name="setup_bump_joining">अपना फ़ोन किसी ग्रुप वाले के फ़ोन से पीठ-से-पीठ सटाकर रखें (वे भी बंप खोलें)। आपसे शामिल होने को कहा जाएगा।</string>
     <string name="setup_done">हो गया</string>
 
     <string name="setup_roll_title">उस रात की आपकी फ़ोटो</string>

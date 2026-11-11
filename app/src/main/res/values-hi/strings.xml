@@ -4,8 +4,8 @@
     <string name="app_name">Moshpoint</string>
     <string name="visibility_channel">लाइव स्टेटस</string>
     <string name="visibility_notification">आप लाइव हैं: दोस्त आपको ढूँढ सकते हैं</string>
-    <string name="widget_title">आपकी गैंग</string>
-    <string name="widget_empty">Moshpoint में गैंग शुरू करें, आपके दोस्त यहाँ दिखेंगे।</string>
-    <string name="widget_find">गैंग ढूँढें</string>
-    <string name="widget_description">आपकी गैंग कहाँ है, और एक टैप में उन्हें ढूँढें</string>
+    <string name="widget_title">आपका ग्रुप</string>
+    <string name="widget_empty">Moshpoint में ग्रुप शुरू करें, आपके दोस्त यहाँ दिखेंगे।</string>
+    <string name="widget_find">ग्रुप ढूँढें</string>
+    <string name="widget_description">आपका ग्रुप कहाँ है, और एक टैप में उन्हें ढूँढें</string>
 </resources>

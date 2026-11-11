@@ -39,11 +39,11 @@
     <string name="main_gig_fallback">शो</string>
 
     <string name="main_invite_expired">वह ग्रुप इनवाइट एक्सपायर हो गया है। नया माँग लें।</string>
-    <string name="main_joined_up_next">आप %1$s में हैं! यह आने वाले में है: जी भरकर चैट करें, शो वाले दिन यह चालू हो जाएगी।</string>
+    <string name="main_joined_up_next">आप %1$s में हैं! यह \"आगे के शो\" में है: जी भरकर चैट करें, शो वाले दिन यह चालू हो जाएगा।</string>
     <string name="main_joined_following">आप %1$s को फ़ॉलो कर रहे हैं। आपको उनकी फ़ोटो और लोकेशन दिखेगी; उन्हें दिखेगा कि आप फ़ॉलो कर रहे हैं।</string>
-    <string name="main_joined_sleeping">आप %1$s में हैं! गैंग शो वाले दिन (%2$s) चालू होगी।</string>
+    <string name="main_joined_sleeping">आप %1$s में हैं! ग्रुप शो वाले दिन (%2$s) चालू होगा।</string>
     <string name="main_joined_live">आप %1$s में हैं! इसमें सब एक-दूसरे को ढूँढ सकते हैं।</string>
-    <string name="main_the_crew">गैंग</string>
+    <string name="main_the_crew">ग्रुप</string>
     <string name="main_got_code">कोड मिल गया। उन्हें एक नाम दें, फिर दोस्त जोड़ें पर टैप करें।</string>
     <string name="main_friend_added">✓ %1$s जुड़ गए</string>
     <string name="main_no_invite_found">कोई Moshpoint इनवाइट नहीं मिला। दोस्त का भेजा पूरा मैसेज कॉपी करें, फिर इनवाइट पेस्ट करें पर टैप करें।</string>
@@ -57,17 +57,17 @@
     <string name="main_cap_compass">कम्पास</string>
 
     <string name="main_invite_reset">इनवाइट रीसेट हो गया। पुराने QR कोड और लिंक अब काम नहीं करेंगे।</string>
-    <string name="main_eyebrow_up_next">आने वाले</string>
-    <string name="main_eyebrow_up_next_countdown">आने वाले · %1$s</string>
-    <string name="main_eyebrow_coming_up">आपकी गैंग · जल्द ही</string>
-    <string name="main_eyebrow_tonight">आज रात की आपकी गैंग</string>
+    <string name="main_eyebrow_up_next">आगे के शो</string>
+    <string name="main_eyebrow_up_next_countdown">आगे के शो · %1$s</string>
+    <string name="main_eyebrow_coming_up">आपका ग्रुप · जल्द ही</string>
+    <string name="main_eyebrow_tonight">आज रात का आपका ग्रुप</string>
     <string name="main_qr_hint_planned">सब इसे एक बार स्कैन करें। अभी चैट करें और माहौल बनाएँ; एक-दूसरे को ढूँढना शो वाले दिन चालू होगा।</string>
     <string name="main_qr_hint_tonight">सब इसे एक बार स्कैन करें। फिर पूरी रात सब एक-दूसरे को ढूँढ सकते हैं।</string>
     <string name="main_scan_to_add_me">मुझे जोड़ने के लिए स्कैन करें</string>
     <string name="main_scan_to_add_name">%1$s को जोड़ने के लिए स्कैन करें</string>
 
     <string name="main_wants_to_stay_friends">%1$s दोस्त बने रहना चाहते हैं</string>
-    <string name="main_stay_friends_text">आप %1$s में मिले थे। हाँ कहें और आप किसी भी शो में एक-दूसरे को ढूँढ पाएँगे, सिर्फ़ इसी में नहीं। आपकी जानकारी सिर्फ़ %2$s को मिलेगी, गैंग में किसी और को नहीं।</string>
+    <string name="main_stay_friends_text">आप %1$s में मिले थे। हाँ कहें और आप किसी भी शो में एक-दूसरे को ढूँढ पाएँगे, सिर्फ़ इसी में नहीं। आपकी जानकारी सिर्फ़ %2$s को मिलेगी, ग्रुप में किसी और को नहीं।</string>
     <string name="main_friends_now">आप और %1$s अब दोस्त हैं</string>
     <string name="main_yes_stay_friends">हाँ, दोस्त बने रहें</string>
     <string name="main_not_now">अभी नहीं</string>
@@ -83,14 +83,14 @@
     <string name="main_beacon_colour_name">%1$s (%2$s)</string>
 
     <string name="main_scan_prompt">अपने दोस्त का Moshpoint QR स्कैन करें</string>
-    <string name="main_out_of_crew">%1$s गैंग से बाहर हैं। बाकी सब नई चाबी पर चले जाते हैं।</string>
+    <string name="main_out_of_crew">%1$s ग्रुप से बाहर हैं। बाकी सब नई चाबी पर चले जाते हैं।</string>
 
     <string name="main_follow_share_text">Moshpoint पर %1$s में हमारी रात फ़ॉलो करें: हमारी फ़ोटो आते ही देखें, और यह भी कि हम सुरक्षित हैं।\n%2$s</string>
     <string name="main_follow_share_title">परिवार को साथ फ़ॉलो करने दें</string>
     <string name="main_when_venue">%1$s · %2$s</string>
 
     <string name="main_time_passed">वह समय निकल चुका है। शो शुरू होने का समय चुनें।</string>
-    <string name="main_added_up_next">%1$s आने वाले में जुड़ गया। दोस्तों को बुलाएँ और माहौल बनाएँ!</string>
+    <string name="main_added_up_next">%1$s \"आगे के शो\" में जुड़ गया। दोस्तों को बुलाएँ और माहौल बनाएँ!</string>
 
     <string name="main_join_name">%1$s में शामिल हों?</string>
     <string name="main_follow_name">%1$s को फ़ॉलो करें?</string>
@@ -101,23 +101,23 @@
     <string name="main_clip_join_text">आपने Moshpoint इनवाइट कॉपी किया है। शामिल हों और आज रात सब एक-दूसरे को ढूँढ पाएँगे।</string>
 
     <string name="main_your_night">आपकी रात</string>
-    <string name="main_recap_text">%1$s\n\nरात खत्म करने से गैंग बंद हो जाती है (दोस्त बने रहते हैं)। फ़ोटो और क्लिप आपके फ़ोन में आपके शो में रहती हैं।</string>
-    <string name="main_night_ended">रात खत्म। आपकी फ़ोटो और क्लिप आपके शो में हैं।</string>
+    <string name="main_recap_text">%1$s\n\nरात खत्म करने से ग्रुप बंद हो जाता है (दोस्त बने रहते हैं)। फ़ोटो और क्लिप आपके फ़ोन में \"आपके शो\" में रहती हैं।</string>
+    <string name="main_night_ended">रात खत्म। आपकी फ़ोटो और क्लिप \"आपके शो\" में हैं।</string>
     <string name="main_end_the_night">रात खत्म करें</string>
     <string name="main_share_night_text">Moshpoint के साथ मेरी रात: %1$s 🤘</string>
     <string name="main_share_night_title">अपनी रात शेयर करें</string>
     <string name="main_share">शेयर करें</string>
 
-    <string name="main_now_main_crew">%1$s अब आपकी मेन गैंग है। इसमें सब एक-दूसरे को ढूँढ सकते हैं।</string>
+    <string name="main_now_main_crew">%1$s अब आपका मेन ग्रुप है। इसमें सब एक-दूसरे को ढूँढ सकते हैं।</string>
     <string name="main_deleted_gig">%1$s इस फ़ोन से डिलीट हो गया</string>
-    <string name="main_meetup_sent">मिलने की जगह का पिन आपकी गैंग को भेज दिया</string>
+    <string name="main_meetup_sent">मिलने की जगह का पिन आपके ग्रुप को भेज दिया</string>
     <string name="main_moment_label">%1$s · %2$s</string>
 
     <string name="main_share_app_text">Moshpoint ले लो ताकि शो में हम एक-दूसरे को ढूँढ सकें: किसी दोस्त पर टैप करो और तीर सीधा उसकी तरफ़ इशारा करेगा।\n\n%1$s</string>
     <string name="main_share_app_title">Moshpoint शेयर करें</string>
-    <string name="main_named_crew">%1$s की गैंग</string>
-    <string name="main_tonights_crew">आज रात की गैंग</string>
+    <string name="main_named_crew">%1$s का ग्रुप</string>
+    <string name="main_tonights_crew">आज रात का ग्रुप</string>
     <string name="main_me">मैं</string>
-    <string name="main_group_invite_text">आज रात Moshpoint पर मेरी गैंग \"%1$s\" में शामिल हो जाओ!\n%2$s</string>
+    <string name="main_group_invite_text">आज रात Moshpoint पर मेरे ग्रुप \"%1$s\" में शामिल हो जाओ!\n%2$s</string>
     <string name="main_group_invite_title">ग्रुप इनवाइट भेजें</string>
 </resources>

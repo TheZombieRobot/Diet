@@ -57,7 +57,7 @@
     <string name="main_joined_live">أنت في %1$s! كل من فيها يستطيع إيجاد الآخرين.</string>
     <string name="main_the_crew">الشلة</string>
     <string name="main_got_code">وصل الرمز. أعطهم اسمًا، ثم اضغط «إضافة صديق».</string>
-    <string name="main_friend_added">✓ أُضيف %1$s</string>
+    <string name="main_friend_added">✓ تمت إضافة %1$s</string>
     <string name="main_no_invite_found">لم نجد دعوة Moshpoint. انسخ الرسالة التي أرسلها صاحبك كاملة، ثم اضغط «لصق الدعوة».</string>
 
     <string name="main_perm_location">الموقع: سهم GPS ومسافة Bluetooth/Wi-Fi</string>
@@ -78,9 +78,9 @@
     <string name="main_scan_to_add_me">امسح لتضيفني</string>
     <string name="main_scan_to_add_name">امسح لتضيف %1$s</string>
 
-    <string name="main_wants_to_stay_friends">%1$s يريد أن تبقيا صديقين</string>
-    <string name="main_stay_friends_text">تعارفتما في %1$s. وافق وستجدان بعضكما في أي حفلة، لا هذه فقط. وحده %2$s يحصل على بياناتك، لا أحد غيره في الشلة.</string>
-    <string name="main_friends_now">أنت و%1$s صديقان الآن</string>
+    <string name="main_wants_to_stay_friends">طلب من %1$s: لنبقَ أصدقاء</string>
+    <string name="main_stay_friends_text">تعارفتما في %1$s. وافق وستجدان بعضكما في أي حفلة، لا هذه فقط. لن تصل بياناتك إلا إلى %2$s، لا إلى أي أحد آخر في الشلة.</string>
+    <string name="main_friends_now">أنت و%1$s أصدقاء الآن</string>
     <string name="main_yes_stay_friends">نعم، لنبقَ أصدقاء</string>
     <string name="main_not_now">ليس الآن</string>
 
@@ -99,7 +99,7 @@
     <string name="main_beacon_colour_name">%1$s (%2$s)</string>
 
     <string name="main_scan_prompt">امسح رمز QR الخاص بصاحبك في Moshpoint</string>
-    <string name="main_out_of_crew">خرج %1$s من الشلة. ينتقل الباقون إلى مفتاح جديد.</string>
+    <string name="main_out_of_crew">%1$s خارج الشلة الآن. ينتقل الباقون إلى مفتاح جديد.</string>
 
     <string name="main_follow_share_text">تابع ليلتنا في %1$s على Moshpoint: شاهد صورنا أولًا بأول واطمئن أننا بخير.\n%2$s</string>
     <string name="main_follow_share_title">دع العائلة تتابع</string>
@@ -110,11 +110,11 @@
 
     <string name="main_join_name">الانضمام إلى %1$s؟</string>
     <string name="main_follow_name">متابعة %1$s؟</string>
-    <string name="main_bumped_text">تلامس الهاتفان! انضم لتجدوا بعضكم الليلة.</string>
+    <string name="main_bumped_text">التقى الهاتفان! انضم لتجدوا بعضكم الليلة.</string>
     <string name="main_join">انضمام</string>
     <string name="main_no">لا</string>
-    <string name="main_clip_follow_text">نسختَ رابط متابعة. سترى صورهم وأنهم بخير، وسيرون أنك تتابعهم.</string>
-    <string name="main_clip_join_text">نسختَ دعوة Moshpoint. انضم لتجدوا بعضكم الليلة.</string>
+    <string name="main_clip_follow_text">نسخت رابط متابعة. سترى صورهم وأنهم بخير، وسيرون أنك تتابعهم.</string>
+    <string name="main_clip_join_text">نسخت دعوة Moshpoint. انضم لتجدوا بعضكم الليلة.</string>
 
     <string name="main_your_night">ليلتك</string>
     <string name="main_recap_text">%1$s\n\nإنهاء الليلة يغلق الشلة (الأصدقاء يبقون). الصور والمقاطع تبقى على هاتفك في «حفلاتك».</string>

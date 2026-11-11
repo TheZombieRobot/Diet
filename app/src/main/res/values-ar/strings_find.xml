@@ -38,14 +38,14 @@
     <string name="find_band_hint_close">أقل من 10 m</string>
     <string name="find_band_hint_nearby">حوالي 10–30 m</string>
     <string name="find_band_hint_in_range">30 m أو أكثر</string>
-    <string name="find_trend_warmer">أدفأ</string>
+    <string name="find_trend_warmer">أقرب</string>
     <string name="find_trend_warmer_hint">استمر في هذا الاتجاه</string>
-    <string name="find_trend_colder">أبرد</string>
+    <string name="find_trend_colder">أبعد</string>
     <string name="find_trend_colder_hint">استدر للخلف</string>
     <string name="find_trend_steady">ثابت</string>
     <string name="find_trend_steady_hint">جرّب اتجاهًا آخر</string>
     <string name="find_trend_hint_who">%1$s: %2$s</string>
-    <string name="find_warmer_help">امشِ بضع خطوات في اتجاه، ثم في آخر. «أدفأ» تعني أنك تقترب. يظهر السهم بمجرد أن نعرف الاتجاه.</string>
+    <string name="find_warmer_help">امشِ بضع خطوات في اتجاه، ثم في آخر. «أقرب» تعني أنك تقترب. يظهر السهم بمجرد أن نعرف الاتجاه.</string>
     <string name="find_scan_covered_cd">تمت تغطية %1$d بالمئة من الدائرة</string>
     <string name="find_scan_percent">%1$d%%</string>
     <string name="find_scan_listening">نستمع…</string>
@@ -60,7 +60,7 @@
     <string name="find_spin_slowly">استدر ببطء</string>
     <string name="find_spin_help">أمسك الهاتف على صدرك والشاشة نحوك، واستدر ببطء في مكانك: حوالي 15 ثانية للدورة الكاملة. جسمك يحجب الإشارة، فنعرف في أي اتجاه هم.</string>
     <string name="find_under_3_metres">أقل من 3 أمتار</string>
-    <string name="find_you_found">وجدتَ %1$s</string>
+    <string name="find_you_found">وجدت %1$s</string>
     <string name="find_you_found_them">وجدتهم</string>
     <string name="find_look_up_wave">ارفع رأسك ولوّح.</string>
     <string name="find_done">تم</string>
@@ -96,12 +96,12 @@
     <string name="find_place_only_you">أنت فقط ترى هذا</string>
     <string name="find_walk">مشي</string>
     <string name="find_ride">توصيلة</string>
-    <string name="find_not_sharing">لم يشارك بعد</string>
+    <string name="find_not_sharing">لا مشاركة بعد</string>
     <string name="find_find">جِده</string>
     <string name="find_ask">اطلب</string>
     <string name="find_drop_pin">ضع دبوسًا</string>
     <string name="find_drop_pin_crew_help">احفظه لك وحدك (الخيمة، السيارة…) أو اجعله نقطة لقاء الشلة: يظهر للجميع على خرائطهم.</string>
-    <string name="find_drop_pin_solo_help">احفظه لنفسك: الخيمة، السيارة، الحمّامات النظيفة. يعمل بدون إشارة.</string>
+    <string name="find_drop_pin_solo_help">احفظه لنفسك: الخيمة، السيارة، دورات المياه النظيفة. يعمل بدون إشارة.</string>
     <string name="find_drop_pin_hint">مثلًا: طاولة الصوت، الخيمة، السيارة</string>
     <string name="find_meet_here">نلتقي هنا</string>
     <string name="find_crew_meetup">نقطة لقاء الشلة</string>
@@ -128,7 +128,7 @@
     <string name="find_add_your_photos">＋ أضف صورك</string>
     <string name="find_save_all_to_phone">احفظ الكل على الهاتف</string>
     <string name="find_story_empty_following">صور ومقاطع الشلة تُثبَّت هنا فور مشاركتها. أبقِ هذه الصفحة مفتوحة لتتابع مباشرة.</string>
-    <string name="find_story_empty_crew">صوّر المسرح، البار، أصحابك. كل ما تشاركه الشلة يُثبَّت هنا، والأحدث في الأعلى.</string>
+    <string name="find_story_empty_crew">صوّر المسرح، الأجواء، أصحابك. كل ما تشاركه الشلة يُثبَّت هنا، والأحدث في الأعلى.</string>
     <string name="find_delete_gig">احذف هذه الحفلة من هذا الهاتف</string>
     <plurals name="find_new_posts">
         <item quantity="zero">↑  %d جديد</item>
@@ -158,7 +158,7 @@
     <string name="find_share_with_crew">شارك مع الشلة</string>
     <string name="find_pinned_where_you_are">مثبّتة حيث أنت الآن</string>
     <string name="find_caption_hint">قل أين (اختياري): يسار طاولة الصوت</string>
-    <string name="find_moment_privacy">لا يراها إلا شلتك. تختفي من خادم التمرير بعد بضع ساعات.</string>
+    <string name="find_moment_privacy">لا يراها إلا شلتك. تختفي من الخادم بعد بضع ساعات.</string>
     <string name="find_sending">جارٍ الإرسال…</string>
     <string name="find_send">إرسال</string>
 
@@ -171,13 +171,13 @@
 
     <string name="find_no_video_app">لا يوجد تطبيق كاميرا يمكنه تسجيل الفيديو هنا</string>
     <string name="find_clip_too_long">المقطع طويل جدًا للإرسال. اجعله حوالي 10 ثوانٍ.</string>
-    <string name="find_clip_shared">شاركتَ المقطع مع شلتك</string>
+    <string name="find_clip_shared">تمت مشاركة المقطع مع شلتك</string>
     <string name="find_send_failed">تعذّر الإرسال. تحقق من الإنترنت وحاول مجددًا.</string>
     <string name="find_join_crew_first">ابدأ شلة أو انضم إلى واحدة أولًا: اللحظات تذهب إلى شلتك</string>
     <string name="find_needs_camera">يحتاج Moshpoint إلى الكاميرا لالتقاط لحظة</string>
     <string name="find_shared_with_crew">تمت المشاركة مع شلتك</string>
     <string name="find_share_a_moment">شارك لحظة</string>
-    <string name="find_share_moment_help">صوّر حيث أنت (المسرح، البار، أصحابك). تصل إلى القصة كصورة بولارويد.</string>
+    <string name="find_share_moment_help">صوّر حيث أنت (المسرح، الأجواء، أصحابك). تصل إلى القصة كصورة بولارويد.</string>
     <string name="find_take_photo">التقط صورة</string>
     <string name="find_record_clip">سجّل مقطعًا (10 ث)</string>
     <string name="find_choose_gallery">اختر من المعرض</string>

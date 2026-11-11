@@ -19,7 +19,7 @@
     <string name="home_ping_heading_home">घर की ओर</string>
     <string name="home_ping_need_help">मदद चाहिए</string>
     <string name="home_heading_home_title">घर जा रहे हैं?</string>
-    <string name="home_heading_home_text">पहुँचकर चेक-इन करें। अगर नहीं किया, तो आपकी गैंग को आपकी आखिरी जगह के साथ अलर्ट मिलेगा (फ़ोन बंद हो जाए तब भी)।</string>
+    <string name="home_heading_home_text">पहुँचकर चेक-इन करें। अगर नहीं किया, तो आपके ग्रुप को आपकी आखिरी जगह के साथ अलर्ट मिलेगा (फ़ोन बंद हो जाए तब भी)।</string>
     <plurals name="home_checkin_minutes">
         <item quantity="one">%d मिनट</item>
         <item quantity="other">%d मिनट</item>
@@ -27,18 +27,18 @@
     <string name="home_just_tell_them">बस उन्हें बता दें</string>
     <string name="home_cancel">रद्द करें</string>
     <string name="home_ping_line">%1$s %2$s</string>
-    <string name="home_ping_default">ने गैंग को पिंग किया</string>
+    <string name="home_ping_default">ने ग्रुप को पिंग किया</string>
 
-    <string name="home_bar_crew">गैंग</string>
+    <string name="home_bar_crew">ग्रुप</string>
     <string name="home_bar_map">मैप</string>
     <string name="home_bar_add">जोड़ें</string>
     <string name="home_bar_story">स्टोरी</string>
     <string name="home_bar_me">मैं</string>
 
     <string name="home_add_mates">दोस्त जोड़ें</string>
-    <string name="home_add_mates_text">शो में: अपनी गैंग का QR दिखाएँ और वे उसे स्कैन करें। बस: गैंग में हर कोई सबको ढूँढ सकता है।</string>
-    <string name="home_show_crew_qr">गैंग का QR दिखाएँ</string>
-    <string name="home_start_crew_show_qr">गैंग शुरू करें + QR दिखाएँ</string>
+    <string name="home_add_mates_text">शो में: अपने ग्रुप का QR दिखाएँ और वे उसे स्कैन करें। बस: ग्रुप में हर कोई सबको ढूँढ सकता है।</string>
+    <string name="home_show_crew_qr">ग्रुप का QR दिखाएँ</string>
+    <string name="home_start_crew_show_qr">ग्रुप शुरू करें + QR दिखाएँ</string>
     <string name="home_scan_qr">QR स्कैन करें</string>
     <string name="home_paste_invite">इनवाइट पेस्ट करें</string>
     <string name="home_bump_phones">फ़ोन से फ़ोन बंप करें</string>
@@ -55,10 +55,10 @@
     <string name="home_chat_unread">चैट (%1$d)</string>
     <string name="home_camera">कैमरा</string>
 
-    <string name="home_message_crew">गैंग को मैसेज करें</string>
-    <string name="home_message_crew_text">एक टैप: गैंग में सबको मिलेगा, आपकी जगह के साथ।</string>
+    <string name="home_message_crew">ग्रुप को मैसेज करें</string>
+    <string name="home_message_crew_text">एक टैप: ग्रुप में सबको मिलेगा, आपकी जगह के साथ।</string>
 
-    <string name="home_crew_qr_desc">गैंग QR</string>
+    <string name="home_crew_qr_desc">ग्रुप QR</string>
     <string name="home_inline_qr_text">दोस्त इसे अपने कैमरे या Moshpoint से स्कैन करें। बस इतना ही।</string>
     <string name="home_no_camera_send_invite">कैमरा नहीं है? इनवाइट भेजें</string>
 
@@ -72,7 +72,7 @@
     </plurals>
     <string name="home_people_more">%1$s +%2$d</string>
 
-    <string name="home_crew_chat">गैंग चैट</string>
+    <string name="home_crew_chat">ग्रुप चैट</string>
     <string name="home_pinned_plan">📌 %1$s</string>
     <string name="home_chat_subtitle">मैसेज, प्लान, फ्लेयर</string>
     <string name="home_unread_many">9+</string>
@@ -88,7 +88,7 @@
         <item quantity="other">💬 चैट · %d दोस्त जुड़े</item>
     </plurals>
 
-    <string name="home_start_gig_group">शो के लिए गैंग शुरू करें</string>
+    <string name="home_start_gig_group">शो के लिए ग्रुप शुरू करें</string>
     <string name="home_start_gig_group_text">नाम दें (जैसे बैंड का नाम)। फिर दोस्तों को QR दिखाएँ।</string>
     <string name="home_start">शुरू करें</string>
     <string name="home_keep_friend">%1$s को दोस्त के रूप में जोड़ें (आज रात के बाद भी)</string>
@@ -96,9 +96,9 @@
     <string name="home_remove_photo">फ़ोटो हटाएँ</string>
     <string name="home_remove_name">%1$s को हटाएँ</string>
     <string name="home_close">बंद करें</string>
-    <string name="home_remove_from_crew_title">%1$s को गैंग से हटाएँ?</string>
+    <string name="home_remove_from_crew_title">%1$s को ग्रुप से हटाएँ?</string>
     <string name="home_remove_friend_title">%1$s को हटाएँ?</string>
-    <string name="home_remove_from_crew_text">गैंग एक नई चाबी पर चली जाएगी जो %1$s को नहीं मिलेगी, इसलिए अब से वे न किसी की जगह देख पाएँगे, न चैट, न फ़ोटो। बाकी सब गैंग में बने रहेंगे।</string>
+    <string name="home_remove_from_crew_text">ग्रुप एक नई चाबी पर चला जाएगा जो %1$s को नहीं मिलेगी, इसलिए अब से वे न किसी की जगह देख पाएँगे, न चैट, न फ़ोटो। बाकी सब ग्रुप में बने रहेंगे।</string>
     <string name="home_remove_friend_text">जब तक आप उन्हें फिर से नहीं जोड़ते, आप उन्हें ढूँढ नहीं पाएँगे।</string>
     <string name="home_remove">हटाएँ</string>
     <string name="home_find">ढूँढें</string>
@@ -108,7 +108,7 @@
     <string name="home_add_friend">दोस्त जोड़ें</string>
     <string name="home_tonight_only">सिर्फ़ आज रात</string>
 
-    <string name="home_hidden_hint">आप अपनी गैंग से छिपे हुए हैं। जब ढूँढे जाना चाहें, लाइव हों पर टैप करें।</string>
+    <string name="home_hidden_hint">आप अपने ग्रुप से छिपे हुए हैं। जब ढूँढे जाना चाहें, लाइव हों पर टैप करें।</string>
     <string name="home_allow_permission">Moshpoint को अपने दोस्त ढूँढने दें (%1$s)</string>
     <string name="home_allow">अनुमति दें</string>
     <string name="home_one_thing_first">पहले एक काम</string>
@@ -123,26 +123,26 @@
     <string name="home_find_mates_text">उन्हें बुलाएँ, वे स्कैन करें, हो गया। बाकी Moshpoint संभाल लेगा।</string>
     <string name="home_invite_mates_tonight">आज रात के लिए दोस्तों को बुलाएँ</string>
     <string name="home_scan_invite">इनवाइट स्कैन करें</string>
-    <string name="home_your_crew">आपकी गैंग</string>
+    <string name="home_your_crew">आपका ग्रुप</string>
     <string name="home_invite">＋ बुलाएँ</string>
     <string name="home_family_can_follow">परिवार घर से रात फ़ॉलो कर सकता है</string>
     <string name="home_following_from_home_names">घर से फ़ॉलो कर रहे हैं: %1$s</string>
     <string name="home_share">शेयर ›</string>
     <string name="home_meet_up">★  मिलने की जगह: %1$s</string>
     <string name="home_map_link">मैप ›</string>
-    <string name="home_asleep_text">शो वाले दिन तक सो रही है: न Bluetooth, न लोकेशन, न बैटरी खर्च। दोस्त अभी जुड़ सकते हैं, और उस दिन आपको याद दिलाया जाएगा।</string>
+    <string name="home_asleep_text">शो वाले दिन तक सो रहा है: न Bluetooth, न लोकेशन, न बैटरी खर्च। दोस्त अभी जुड़ सकते हैं, और उस दिन आपको याद दिलाया जाएगा।</string>
     <string name="home_follower_text">आप देख सकते हैं कि सब कहाँ हैं, और उनकी फ़ोटो आते ही देख सकते हैं। उन्हें दिखता है कि आप फ़ॉलो कर रहे हैं।</string>
     <string name="home_see_story">स्टोरी देखें</string>
-    <string name="home_crew_chat_unread">गैंग चैट (%1$d नए)</string>
+    <string name="home_crew_chat_unread">ग्रुप चैट (%1$d नए)</string>
     <string name="home_where_are_they">वे कहाँ हैं? (मैप)</string>
     <string name="home_see_them_once_starts">शो शुरू होते ही वे आपको यहाँ दिखेंगे।</string>
     <string name="home_tap_mate_hint">दोस्त को ढूँढने के लिए टैप करें · विकल्पों के लिए दबाकर रखें</string>
     <string name="home_find_name">%1$s को ढूँढें</string>
     <string name="home_find_everyone">सबको ढूँढें</string>
     <string name="home_stop_following">फ़ॉलो करना बंद करें</string>
-    <string name="home_cancel_crew">यह गैंग रद्द करें</string>
+    <string name="home_cancel_crew">यह ग्रुप रद्द करें</string>
     <string name="home_end_night">रात खत्म करें</string>
-    <string name="home_up_next">आने वाले</string>
+    <string name="home_up_next">आगे के शो</string>
     <string name="home_memories">यादें</string>
     <plurals name="home_memories_count">
         <item quantity="one">%d फ़ोटो और क्लिप। फिर से जीने के लिए टैप करें ›</item>

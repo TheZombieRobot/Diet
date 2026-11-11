@@ -84,9 +84,9 @@
     <string name="setup_cancel">إلغاء</string>
     <string name="setup_qr_end_night">إنهاء الليلة</string>
 
-    <string name="setup_bump_title">تلامس الهواتف</string>
-    <string name="setup_bump_sharing">ألصق ظهر هاتفك بظهر هاتف صاحبك. سيُطلب منه الانضمام إلى شلتك.</string>
-    <string name="setup_bump_joining">ألصق ظهر هاتفك بظهر هاتف شخص في شلة (يفتح «تلامس» هو أيضًا). سيُطلب منك الانضمام.</string>
+    <string name="setup_bump_title">تقريب الهواتف</string>
+    <string name="setup_bump_sharing">ألصق ظهر هاتفك بظهر هاتف صاحبك. ستظهر على الهاتف الآخر دعوة للانضمام إلى شلتك.</string>
+    <string name="setup_bump_joining">ألصق ظهر هاتفك بظهر هاتف شخص في شلة (مع فتح «تقريب الهواتف» على الهاتفين). سيُطلب منك الانضمام.</string>
     <string name="setup_done">تم</string>
 
     <string name="setup_roll_title">صورك من تلك الليلة</string>

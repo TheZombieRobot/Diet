@@ -5,7 +5,7 @@
     <string name="home_live_ghost">ظاهر · شبح</string>
     <string name="home_live">ظاهر</string>
 
-    <string name="home_tile_not_sharing">لم يشارك بعد</string>
+    <string name="home_tile_not_sharing">لا مشاركة بعد</string>
     <string name="home_tile_phone_died">نفد شحن الهاتف</string>
     <string name="home_tile_live">ظاهر</string>
     <string name="home_tile_with_battery">%1$s · %2$d%%</string>
@@ -16,9 +16,9 @@
     <string name="home_ping_meet_at_pin">نلتقي عند الدبوس</string>
     <string name="home_ping_all_good">كل شيء تمام</string>
     <string name="home_ping_sent">أُرسل ✓</string>
-    <string name="home_ping_heading_home">عائد إلى البيت</string>
+    <string name="home_ping_heading_home">في طريقي إلى البيت</string>
     <string name="home_ping_need_help">أحتاج مساعدة</string>
-    <string name="home_heading_home_title">عائد إلى البيت؟</string>
+    <string name="home_heading_home_title">في طريقك إلى البيت؟</string>
     <string name="home_heading_home_text">سجّل وصولك عندما تصل. إن لم تفعل، تتلقى شلتك تنبيهًا بآخر مكان لك (حتى لو نفد شحن هاتفك).</string>
     <plurals name="home_checkin_minutes">
         <item quantity="zero">%d دقيقة</item>
@@ -30,8 +30,8 @@
     </plurals>
     <string name="home_just_tell_them">أخبرهم فقط</string>
     <string name="home_cancel">إلغاء</string>
-    <string name="home_ping_line">%1$s %2$s</string>
-    <string name="home_ping_default">نبّه الشلة</string>
+    <string name="home_ping_line">%1$s: %2$s</string>
+    <string name="home_ping_default">تنبيه للشلة</string>
 
     <string name="home_bar_crew">الشلة</string>
     <string name="home_bar_map">الخريطة</string>
@@ -45,7 +45,7 @@
     <string name="home_start_crew_show_qr">ابدأ شلة + اعرض QR</string>
     <string name="home_scan_qr">امسح QR</string>
     <string name="home_paste_invite">لصق الدعوة</string>
-    <string name="home_bump_phones">تلامس الهاتفين</string>
+    <string name="home_bump_phones">قرّب الهاتفين من بعضهما</string>
     <string name="home_plan_gig">خطّط لحفلة (ابحث عنها وادعُ الآن)</string>
     <string name="home_send_app_invite">أرسل التطبيق + الدعوة (WhatsApp، Messenger…)</string>
     <string name="home_friends_every_gig">أصدقاء لكل حفلة</string>
@@ -111,14 +111,14 @@
     <string name="home_start_gig_group">ابدأ شلة للحفلة</string>
     <string name="home_start_gig_group_text">سمّها (مثلًا باسم الفرقة). ثم اعرض رمز QR لأصحابك.</string>
     <string name="home_start">ابدأ</string>
-    <string name="home_keep_friend">أضف %1$s كصديق (يبقى بعد الليلة)</string>
+    <string name="home_keep_friend">أضف %1$s إلى الأصدقاء (حتى بعد الليلة)</string>
     <string name="home_set_photo">تعيين صورة</string>
     <string name="home_remove_photo">إزالة الصورة</string>
     <string name="home_remove_name">إزالة %1$s</string>
     <string name="home_close">إغلاق</string>
     <string name="home_remove_from_crew_title">إزالة %1$s من الشلة؟</string>
     <string name="home_remove_friend_title">إزالة %1$s؟</string>
-    <string name="home_remove_from_crew_text">تنتقل الشلة إلى مفتاح جديد لا يحصل عليه %1$s، فلن يرى من الآن أماكن أحد ولا الدردشة ولا الصور. الباقون يبقون.</string>
+    <string name="home_remove_from_crew_text">تنتقل الشلة إلى مفتاح جديد لا يحصل عليه %1$s، فلا وصول بعد الآن إلى أماكن أحد ولا الدردشة ولا الصور. الباقون يبقون.</string>
     <string name="home_remove_friend_text">لن تستطيع إيجادهم حتى تضيفهم من جديد.</string>
     <string name="home_remove">إزالة</string>
     <string name="home_find">جِده</string>
