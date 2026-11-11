@@ -342,7 +342,10 @@ object CrewChat {
     /** "Waiting for signal" or "Not sent", tapped: try again now. */
     fun retry(c: Context, line: Line) {
         val g = viewing.value ?: return
-        resend(c.applicationContext, g, line)
+        val app = c.applicationContext
+        resend(app, g, line)
+        // "Not sent" becomes "Sending…" (or "Waiting for signal") again; one that's waiting stays as it is.
+        if (line.state == FAILED) setState(app, g, OfflineMessages.firstState()) { it.key == line.key }
         OfflineMessages.retryNow(c)
     }
 
@@ -376,13 +379,18 @@ object CrewChat {
     /** The courier says how the message with [id] in [g] is doing. A state never goes backwards. */
     fun setStateById(c: Context, g: GigGroup, id: String, state: Int) {
         if (id.isEmpty()) return
+        setState(c, g, state) { it.id == id }
+    }
+
+    /** Move our own line picked by [which] to [state], if that's a step the outbox allows (core OutboxState). */
+    private fun setState(c: Context, g: GigGroup, state: Int, which: (Line) -> Boolean) {
         val crew = GigArchive.idFor(g)
         val list = if (crew == viewingId) lines.toMutableList() else readLines(c, crew).toMutableList()
-        val i = list.indexOfFirst { it.id == id && it.mine }
+        val i = list.indexOfFirst { it.mine && which(it) }
         if (i < 0 || !OutboxState.mayMove(list[i].state, state)) return
         list[i] = list[i].copy(state = state)
         if (crew == viewingId) {
-            val j = lines.indexOfFirst { it.id == id && it.mine }
+            val j = lines.indexOfFirst { it.mine && which(it) }
             if (j >= 0) lines[j] = lines[j].copy(state = state)
         }
         writeLines(c, crew, list)
@@ -394,10 +402,20 @@ object CrewChat {
         crews.forEach { g ->
             val id = GigArchive.idFor(g)
             val list = if (id == viewingId) lines.toList() else readLines(c, id)
-            list.filter { it.mine && it.kind == GigGroup.Ping.CHAT && it.state != SENT && it.state != NEARBY && !(it.state == SENDING && now - it.timeSec <= 60) }
-                .takeLast(10).forEach { resend(c, g, it) }
+            // Everything of ours not yet on the relay ("Sent nearby" too: a crew phone having it
+            // never stops our own upload), except one still on its first try.
+            val unsent = list.filter { it.mine && it.kind == GigGroup.Ping.CHAT && it.state != SENT && !(it.state == SENDING && now - it.timeSec <= 60) }
+            val (live, stale) = unsent.partition { now - it.timeSec <= KEEP_TRYING_SEC }
+            // resend() does nothing for a line the courier already holds, which is the usual case.
+            live.takeLast(10).forEach { resend(c, g, it) }
+            // Past three days the relay wouldn't have kept it anyway: "Not sent", until the person taps it.
+            stale.filter { (it.state == SENDING || it.state == WAITING) && !OfflineMessages.holds(idNumber(it)) }
+                .forEach { l -> setState(c, g, FAILED) { it.key == l.key } }
         }
     }
+
+    /** How long an unsent line is retried by itself: as long as the relay would keep it. */
+    private const val KEEP_TRYING_SEC = 72 * 3600L
 
     /** The newest message time seen in [g] (see core MessageClock: a new message is stamped after it). */
     fun newestSeen(c: Context, g: GigGroup): Long {

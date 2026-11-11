@@ -179,6 +179,12 @@ class Courier(
     /** True once something changed that [save] would write differently. The app saves and clears it. */
     var dirty = false
 
+    /**
+     * Is the app open or live? While it isn't, nobody is looking at the map, so our meet-up pin
+     * isn't kept fresh on the relay every ten minutes (messages waiting to go still go).
+     */
+    var active = true
+
     // ---- Crews and connection ----
 
     /** The crews this phone is in now. Messages for crews it has left are dropped. */
@@ -238,6 +244,9 @@ class Courier(
     /** Where one of our messages has got to, or null if the courier no longer holds it. */
     fun stateOf(id: Long): State? = parcels[id]?.takeIf { it.mine }?.let { stateOf(it) }
 
+    /** Is an upload of message [id] under way right now? */
+    fun uploading(id: Long): Boolean = parcels[id]?.let { it.primaryFlying || it.durableFlying } ?: false
+
     /** Ask again now for anything of ours still waiting (the user tapped retry). */
     fun retryNow(nowMs: Long) {
         uploadHoldUntilMs = 0L
@@ -274,13 +283,17 @@ class Courier(
      * The app fetched [box] of [crewId]: [blobs] is everything in it. Marks what's on the relay
      * (so nothing is uploaded twice), keeps the main crew's messages to pass on by Bluetooth,
      * and says which are new to this phone.
+     *
+     * [inUploadBox]: how many of [blobs] sit in the mailbox an upload would go to now. The chat
+     * mailbox changes every day and each day's holds 200, so yesterday's mustn't count against
+     * today's room.
      */
-    fun fetched(crewId: String, box: Box, blobs: List<ByteArray>, nowMs: Long): List<Accepted> {
+    fun fetched(crewId: String, box: Box, blobs: List<ByteArray>, nowMs: Long, inUploadBox: Int = blobs.size): List<Accepted> {
         val crew = crews[crewId] ?: return emptyList()
         val key = "$crewId/${box.ordinal}"
         lastFetchMs[key] = nowMs
         helperBatch[key] = HELPER_BATCH
-        if (box == Box.CHAT) chatCount[crewId] = blobs.size
+        if (box == Box.CHAT) chatCount[crewId] = inUploadBox.coerceIn(0, blobs.size)
         relayAnswered(nowMs)
         val out = ArrayList<Accepted>()
         val here = HashSet<Long>()
@@ -291,7 +304,7 @@ class Courier(
                 here += a.id
             }
         }
-        if (box == Box.PIN) {
+        if (box == Box.PIN && active) {
             // The pin box forgets after 15 minutes. If the crew's pin has dropped out, someone re-posts it.
             parcels.values.firstOrNull { it.crewId == crewId && it.kind == KIND_PIN }?.let { p ->
                 if (p.id !in here && p.onServer && nowMs - p.confirmedAtMs > PIN_LAPSE_MS) p.onServer = false
@@ -470,8 +483,8 @@ class Courier(
                 }
                 continue
             }
-            // Our own pin is re-posted every ten minutes: the relay's pin box forgets after fifteen.
-            val pinDue = p.kind == KIND_PIN && nowMs - p.putAtMs >= PIN_REPOST_MS
+            // Our own pin is re-posted every ten minutes while the app is in use: the relay's pin box forgets after fifteen.
+            val pinDue = active && p.kind == KIND_PIN && nowMs - p.putAtMs >= PIN_REPOST_MS
             if ((!p.onServer || pinDue) && !p.primaryFlying) start(p, primaryBox(p.kind), false)
             if (free > 0 && wantsDurable(p) && !p.durableFlying) start(p, Box.CHAT, false)
         }
@@ -524,7 +537,11 @@ class Courier(
         val it = parcels.values.iterator()
         while (it.hasNext()) {
             val p = it.next()
-            val born = minOf(p.timeSec * 1000, p.heldAtMs)
+            // Never from under an upload that's on its way: its answer still has to land somewhere.
+            if (p.primaryFlying || p.durableFlying) continue
+            // One we queued ourselves counts from when it was queued, so an old line the person
+            // taps to retry gets a proper go. Anything else counts from when it was written.
+            val born = if (p.route == Route.OWN) p.heldAtMs else minOf(p.timeSec * 1000, p.heldAtMs)
             val age = nowMs - born
             if (!p.mine) {
                 if (age > carryMs(p.kind)) {

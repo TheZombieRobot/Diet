@@ -2,6 +2,7 @@ package nz.waveformlabs.moshpoint
 
 import android.bluetooth.BluetoothManager
 import android.content.Context
+import android.os.Looper
 import android.os.SystemClock
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -89,6 +90,8 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
         syncCrews(c)
         val t = now()
         courier.setOnline(!RelayClient.offline, t)
+        // Open or live: only then is our meet-up pin kept fresh on the relay.
+        courier.active = GroupSync.inUse
         courier.tick(t)
         save()
     }
@@ -144,8 +147,14 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
         syncCrews(a)
         val t = now()
         courier.setOnline(!RelayClient.offline, t)
-        val m = courier.post(GigArchive.idFor(g), sealed, t)
+        val crewId = GigArchive.idFor(g)
+        val m = courier.post(crewId, sealed, t)
         courier.tick(t)
+        // Nothing started (no network, or the relay asked us to slow down): say it's waiting,
+        // rather than "Sending…" for as long as that lasts.
+        if (m != null && courier.stateOf(m.id) == Courier.State.WAITING && !courier.uploading(m.id)) {
+            scope.launch { stateChanged(crewId, m.id, Courier.State.WAITING) }
+        }
         save()
         return m
     }
@@ -181,14 +190,16 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
      * Everything the app just fetched from one of [g]'s mailboxes. The courier notes what's
      * on the relay (so nothing is uploaded twice) and keeps the main crew's messages to pass
      * on by Bluetooth. The caller still shows them as it always did.
+     * [inUploadBox]: how many of them are in the mailbox an upload would go to now (today's
+     * chat mailbox, not yesterday's).
      */
-    fun fetched(c: Context, g: GigGroup, box: Courier.Box, blobs: List<ByteArray>) {
+    fun fetched(c: Context, g: GigGroup, box: Courier.Box, blobs: List<ByteArray>, inUploadBox: Int = blobs.size) {
         init(c)
         val a = c.applicationContext
         syncCrews(a)
         val t = now()
         courier.setOnline(!RelayClient.offline, t)
-        courier.fetched(GigArchive.idFor(g), box, blobs, t)
+        courier.fetched(GigArchive.idFor(g), box, blobs, t, inUploadBox)
         courier.tick(t)
         save()
     }
@@ -271,6 +282,11 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
     /** A version 2 relay packet was heard. */
     fun onPacket(bytes: ByteArray) {
         if (!radioOn) return
+        // Scan results arrive on the main thread; if one ever doesn't, hop over rather than race the courier.
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            scope.launch { onPacket(bytes) }
+            return
+        }
         courier.onPacket(bytes, now())
         save()
     }

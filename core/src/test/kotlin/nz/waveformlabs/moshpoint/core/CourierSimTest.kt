@@ -27,6 +27,8 @@ class CourierSimTest {
         /** Like our own server: posting the same bytes again doesn't add a record. The public relay doesn't do this. */
         var dedupes = true
         var tooMany = false
+        /** What's still in yesterday's chat mailbox: a phone reads it, but uploads go to today's. */
+        var yesterdayChat: List<ByteArray> = emptyList()
 
         fun put(job: Courier.Upload): PutResult {
             if (tooMany) return PutResult.THROTTLED
@@ -129,7 +131,9 @@ class CourierSimTest {
         fun fetch() {
             val c = crew ?: return
             for (box in Courier.Box.values()) {
-                courier.fetched(c.id, box, world.relay.get(c.id, box), now).forEach { a ->
+                val today = world.relay.get(c.id, box)
+                val all = if (box == Courier.Box.CHAT) today + world.relay.yesterdayChat else today
+                courier.fetched(c.id, box, all, now, inUploadBox = today.size).forEach { a ->
                     if (a.fresh) a.message?.let {
                         got += it
                         routes[it.id] = Courier.Route.INTERNET
@@ -495,6 +499,53 @@ class CourierSimTest {
         assertEquals(Courier.HELD_LIMIT, records.size)
         // The two it did send are the newest.
         assertEquals(ids.takeLast(2).toSet(), records.mapNotNull { group.openPing(it)?.id }.toSet())
+    }
+
+    @Test fun yesterdaysFullMailboxDoesNotStopTodaysUploads() {
+        val w = World()
+        val author = Phone("X", w, group)
+        val helper = Phone("H", w, group)
+        w.link(author, helper)
+        val id = author.chat("day two of the festival")
+        w.run(120)
+        assertTrue(helper.has(id))
+        author.live = false
+        // Yesterday's chat mailbox is as good as full. Uploads go to today's, which is empty.
+        w.relay.yesterdayChat = List(190) { i -> ByteArray(40) { (i + it).toByte() } + byteArrayOf((i shr 8).toByte()) }
+        helper.online = true
+        w.run(300)
+        assertTrue(w.relay.get(crewId, chatBox).any { group.openPing(it)?.id == id }, "uploaded into today's mailbox")
+    }
+
+    // ---- Retrying, and the pin ----
+
+    @Test fun anOldLineTheUserRetriesIsUploadedNotDroppedAsTooOld() {
+        val w = World()
+        val a = Phone("A", w, group)
+        a.online = true
+        // Written four days ago, never sent (the queue was lost); the person taps "Not sent".
+        val old = group.sealPing(GigGroup.Ping(GigGroup.Ping.CHAT, "A", a.now / 1000 - 4 * 86_400L, text = "from Thursday"), a.signer)
+        val id = assertNotNull(a.courier.post(crewId, old, a.now)).id
+        w.run(30)
+        assertEquals(Courier.State.SENT, a.state(id))
+        assertTrue(w.relay.get(crewId, chatBox).any { it.contentEquals(old) })
+    }
+
+    @Test fun ourPinIsOnlyKeptFreshWhileTheAppIsInUse() {
+        val w = World()
+        val a = Phone("A", w, group)
+        a.online = true
+        a.courier.post(crewId, group.sealRally(GigGroup.Rally(-36.85, 174.76, "Sound desk", a.now / 1000), a.signer), a.now)
+        w.run(35 * 60)
+        val whileOpen = w.relay.puts
+        assertTrue(whileOpen >= 3, "re-posted about every ten minutes: $whileOpen")
+        // App closed and not live: nobody is looking at the map, so no more requests for the pin.
+        a.courier.active = false
+        w.run(60 * 60)
+        assertEquals(whileOpen, w.relay.puts)
+        a.courier.active = true
+        w.run(60)
+        assertEquals(whileOpen + 1, w.relay.puts)
     }
 
     // ---- The relay's budget ----

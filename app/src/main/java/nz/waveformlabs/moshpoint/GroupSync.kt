@@ -90,6 +90,10 @@ object GroupSync {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var users = 0
+
+    /** The app is open or we're live: the crew sync is running. */
+    val inUse: Boolean get() = users > 0
+
     private var job: Job? = null
     private var listening = false
     private var postedEpoch = Long.MIN_VALUE

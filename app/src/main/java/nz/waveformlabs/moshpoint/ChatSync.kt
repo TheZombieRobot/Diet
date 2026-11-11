@@ -58,7 +58,8 @@ object ChatSync {
             val blobs = found.getOrNull(2 * i).orEmpty() + found.getOrNull(2 * i + 1).orEmpty()
             // First the courier notes everything that's on the relay, our own messages included
             // (that's how one of ours becomes "Sent" when a crew mate uploaded it for us).
-            OfflineMessages.fetched(app, g, Courier.Box.CHAT, blobs)
+            // (Uploads go to today's mailbox, so only today's count says how much room it has.)
+            OfflineMessages.fetched(app, g, Courier.Box.CHAT, blobs, inUploadBox = found.getOrNull(2 * i).orEmpty().size)
             val rekeys = mutableListOf<GigGroup.Direct>()
             blobs.forEach { blob ->
                 if (!seen.add(blob.contentHashCode())) return@forEach
@@ -97,7 +98,9 @@ object ChatSync {
                 // Only chat, and only from who was in the crew at the time minus whoever was removed.
                 if (p.sender !in old.allowed || PingPolicy.group(p.kind) != PingPolicy.Group.CHAT) return@forEach
                 // Shown in the crew as it is now. No proof kept: its signature belongs to the old key.
-                CrewChat.ingest(app, old.now, p.copy(sig = null))
+                val note = CrewChat.ingest(app, old.now, p.copy(sig = null)) ?: return@forEach
+                val onScreen = CrewChat.open && CrewChat.viewing.value?.key?.contentEquals(old.now.key) == true
+                if (notify && !onScreen) notifyCrew(app, old.now, listOf(Txt.s(R.string.crew_notif_line, CrewChat.displayName(app, old.now, p.sender, p.from), note)))
             }
         }
         CrewRekey.resend(app)
