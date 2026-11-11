@@ -241,7 +241,7 @@ internal fun HomeBar(onMap: () -> Unit, onAdd: () -> Unit, onMe: () -> Unit, myN
                     modifier = Modifier.size(28.dp).clip(CircleShape).border(1.5.dp, Mosh.TextDim, CircleShape),
                 )
             } else {
-                InitialsAvatar(myName, 28.dp)
+                DefaultAvatar(myName, 28.dp)
             }
         }, onClick = onMe)
     }

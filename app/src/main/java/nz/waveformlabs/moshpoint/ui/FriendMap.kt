@@ -24,7 +24,6 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import nz.waveformlabs.moshpoint.PhotoStore
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import org.maplibre.android.MapLibre
@@ -351,7 +350,7 @@ private fun pinBitmap(p: MapPin): Bitmap {
     paint.color = p.color
     c.drawCircle(size / 2f, size / 2f, size / 2f, paint)
     val inner = RectF(ring, ring, size - ring, size - ring)
-    val photo = PhotoStore.photos[p.id]?.asAndroidBitmap()
+    val photo = Faces.of(p.id, p.name)?.asAndroidBitmap()
     if (photo != null) {
         val layer = c.saveLayer(inner, null)
         paint.color = android.graphics.Color.WHITE

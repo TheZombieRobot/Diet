@@ -101,7 +101,7 @@ internal fun SettingsContent(
                     if (mine != null) {
                         Image(mine, contentDescription = stringResource(R.string.setup_your_photo), contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
                     } else {
-                        InitialsAvatar(myName, 72.dp)
+                        DefaultAvatar(myName, 72.dp)
                     }
                 }
                 Spacer(Modifier.width(16.dp))

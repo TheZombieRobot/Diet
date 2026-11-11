@@ -363,7 +363,7 @@ private fun ChatHead(name: String, face: androidx.compose.ui.graphics.ImageBitma
             modifier = Modifier.size(34.dp).clip(CircleShape).border(2.dp, ring, CircleShape),
         )
     } else {
-        Box(Modifier.size(34.dp).border(2.dp, ring, CircleShape).padding(2.dp)) { InitialsAvatar(name, 30.dp, ring) }
+        Box(Modifier.size(34.dp).border(2.dp, ring, CircleShape).padding(2.dp)) { DefaultAvatar(name, 30.dp, ring) }
     }
 }
 

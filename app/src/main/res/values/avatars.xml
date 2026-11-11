@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Default avatar artwork, for anyone without their own photo. Add images to
+      res/drawable-nodpi (e.g. avatar_default_01.png, square, 256px+) and list them here:
+          <item>@drawable/avatar_default_01</item>
+      Each person always gets the same one (picked from their name). While this is empty,
+      the app draws a face for them instead.
+    -->
+    <array name="default_avatar_art" />
+</resources>

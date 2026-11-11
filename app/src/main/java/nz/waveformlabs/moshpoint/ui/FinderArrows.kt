@@ -47,7 +47,6 @@ import androidx.core.content.res.ResourcesCompat
 import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.Friend
-import nz.waveformlabs.moshpoint.PhotoStore
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.ArrowState
@@ -161,7 +160,7 @@ internal fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Fri
             tips[a.friendId] = tip
             haloGlow(tip, avatarR, 16.dp.toPx(), own, 0.75f * breathe)
             drawCircle(Mosh.Avatar, radius = avatarR, center = tip)
-            val photo = PhotoStore.photos[a.friendId]
+            val photo = Faces.of(a.friendId, friend?.name)
             if (photo != null) {
                 clipPath(Path().apply { addOval(Rect(tip, avatarR - 3.dp.toPx())) }) {
                     drawImage(

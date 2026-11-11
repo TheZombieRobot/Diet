@@ -59,7 +59,6 @@ import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.Friend
-import nz.waveformlabs.moshpoint.PhotoStore
 import nz.waveformlabs.moshpoint.R
 import androidx.compose.foundation.clickable
 import nz.waveformlabs.moshpoint.core.ArrowState
@@ -297,7 +296,7 @@ internal fun FoundOverlay(friend: Friend?, onDone: () -> Unit, onKeep: () -> Uni
                     rotate(spin) { drawCircle(Brush.sweepGradient(Mosh.Spectrum), radius = r) }
                     drawCircle(Mosh.Avatar, radius = r - 5.dp.toPx())
                 }
-                val photo = friend?.let { PhotoStore.photos[it.id] }
+                val photo = friend?.let { Faces.of(it.id, it.name) }
                 if (photo != null) {
                     androidx.compose.foundation.Image(
                         photo, contentDescription = null,

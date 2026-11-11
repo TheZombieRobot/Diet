@@ -89,6 +89,7 @@ val LocalCalmMotion = androidx.compose.runtime.staticCompositionLocalOf { false 
 fun MoshTheme(calm: Boolean = false, content: @Composable () -> Unit) {
     // Text outside Compose (Txt) needs a Context; in screenshot tests there's no app start-up.
     nz.waveformlabs.moshpoint.Txt.init(androidx.compose.ui.platform.LocalContext.current)
+    DefaultAvatars.init(androidx.compose.ui.platform.LocalContext.current)
     androidx.compose.runtime.CompositionLocalProvider(LocalCalmMotion provides calm) { MoshThemeInner(content) }
 }
 

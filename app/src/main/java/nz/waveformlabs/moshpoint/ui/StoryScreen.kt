@@ -404,7 +404,7 @@ private fun FacePin(photo: androidx.compose.ui.graphics.ImageBitmap?, name: Stri
                     .border(2.5.dp, colour, androidx.compose.foundation.shape.CircleShape),
             )
         } else {
-            InitialsAvatar(name, 34.dp, colour)
+            DefaultAvatar(name, 34.dp, colour)
         }
         // A little highlight so it reads as a round pin head.
         androidx.compose.foundation.Canvas(Modifier.size(34.dp)) {

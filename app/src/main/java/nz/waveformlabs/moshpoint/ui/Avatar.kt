@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import nz.waveformlabs.moshpoint.PhotoStore
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -21,12 +20,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.Friend
 
-// Friend avatars: their photo, or their initial, ringed in their colour.
+// Faces, in layers: their photo, else their default avatar, else their initials (see Faces).
 
-/** A friend's photo, or their initial, ringed in their colour. */
+/** A friend's face, ringed in their colour. */
 @Composable
 internal fun Avatar(f: Friend, size: androidx.compose.ui.unit.Dp) {
-    val photo = PhotoStore.photos[f.id]
+    val photo = Faces.of(f.id, f.name)
     val ring = Color(f.color)
     if (photo != null) {
         Image(
@@ -50,8 +49,19 @@ internal fun initials(name: String): String {
     }
 }
 
+/** Someone without a photo: their default avatar, or their initials if that can't be made. */
+@Composable
+internal fun DefaultAvatar(name: String, size: androidx.compose.ui.unit.Dp, colour: Color? = null) {
+    val art = DefaultAvatars.image(name)
+    if (art != null) {
+        Image(art, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.size(size).clip(CircleShape))
+    } else {
+        InitialsAvatar(name, size, colour)
+    }
+}
+
 /**
- * A generated avatar for anyone without a photo: their initials on a glowing gradient in
+ * The last layer, for anyone without a photo or default avatar: their initials on a glowing gradient in
  * their colour (yours is picked from your name), like Apple's contact monograms.
  */
 @Composable

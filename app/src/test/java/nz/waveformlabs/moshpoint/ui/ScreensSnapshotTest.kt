@@ -81,6 +81,21 @@ open class ScreensSnapshotTest {
         ),
     )
 
+    /** The drawn default avatars (the middle layer, under photos), to eyeball the variety. */
+    @Test fun defaultAvatars() = snap {
+        val names = listOf("Alex", "Jo", "Sam", "Mia", "Josh", "Ana", "Ben", "Cat", "Dev", "Eli", "Fin", "Gus", "Hana", "Kiri", "Leo", "Mere", "Nia", "Ola", "Priya", "Quinn")
+        androidx.compose.foundation.layout.Column(
+            androidx.compose.ui.Modifier.background(Mosh.Ground).padding(16.dp),
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
+        ) {
+            names.chunked(4).forEach { row ->
+                androidx.compose.foundation.layout.Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp)) {
+                    row.forEach { DefaultAvatar(it, 80.dp) }
+                }
+            }
+        }
+    }
+
     @Test fun finderOneFriend() = finder("Sam", listOf(ArrowState.Pointing("sam", 25.0, 12.0, Method.UWB, false)))
 
     @Test fun finderFarAway() = finder("Sam", listOf(ArrowState.Pointing("sam", -60.0, 140.0, Method.GPS_SERVER, true)))

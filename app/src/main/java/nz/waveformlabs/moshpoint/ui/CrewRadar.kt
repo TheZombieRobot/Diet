@@ -38,7 +38,6 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.core.content.res.ResourcesCompat
 import nz.waveformlabs.moshpoint.Friend
-import nz.waveformlabs.moshpoint.PhotoStore
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.core.ArrowState
 import nz.waveformlabs.moshpoint.core.ArrowStyle
@@ -265,7 +264,7 @@ private fun DrawScope.bubble(
 
 private fun DrawScope.face(at: Offset, r: Float, id: String, ring: Color, friendOf: (String) -> Friend?, paint: android.graphics.Paint) {
     drawCircle(Mosh.Avatar, radius = r, center = at)
-    val photo = PhotoStore.photos[id]
+    val photo = Faces.of(id, friendOf(id)?.name)
     if (photo != null) {
         clipPath(Path().apply { addOval(Rect(at, r - 2.dp.toPx())) }) {
             drawImage(photo, dstOffset = IntOffset((at.x - r).toInt(), (at.y - r).toInt()), dstSize = IntSize((r * 2).toInt(), (r * 2).toInt()))

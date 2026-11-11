@@ -183,7 +183,15 @@ private fun PopInAvatar(f: Friend, index: Int) {
             .border(2.dp, Mosh.Ground, CircleShape),
         contentAlignment = Alignment.Center,
     ) {
-        Text(f.name.take(1).uppercase(), style = Mosh.Button.copy(fontSize = 13.sp, color = Mosh.Ground), textAlign = TextAlign.Center)
+        val face = Faces.of(f.id, f.name)
+        if (face != null) {
+            androidx.compose.foundation.Image(
+                face, contentDescription = null, contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                modifier = Modifier.size(32.dp).clip(CircleShape),
+            )
+        } else {
+            Text(f.name.take(1).uppercase(), style = Mosh.Button.copy(fontSize = 13.sp, color = Mosh.Ground), textAlign = TextAlign.Center)
+        }
     }
 }
 
