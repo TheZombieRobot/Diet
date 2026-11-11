@@ -17,7 +17,7 @@ import nz.waveformlabs.moshpoint.core.LocationBox
  * Feeds the map while it's open: our own position, plus everyone's shared locations from
  * the relay (and the Bluetooth crowd relay), into [LocationBook].
  *
- * Crew first, then friends; at most 32 people per lookup (two rotating ids each).
+ * Crew first, then friends; up to 60 people (two rotating ids each, looked up in chunks).
  */
 class MapFeed(context: Context, private val scope: CoroutineScope) {
     private val myLocation = MyLocation(context)
