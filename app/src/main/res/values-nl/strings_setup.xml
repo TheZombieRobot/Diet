@@ -12,7 +12,7 @@
     <string name="setup_stay_live_desc">Als je live was toen je telefoon herstartte, ga je automatisch weer live.</string>
     <string name="setup_ghost_mode">Spookmodus</string>
     <string name="setup_ghost_mode_desc">Verberg je plek op de kaart. Vrienden die dichtbij zijn kunnen je nog steeds vinden via Bluetooth.</string>
-    <string name="setup_ghost_one_hour">1 uur spook</string>
+    <string name="setup_ghost_one_hour">1 uur spookmodus</string>
     <string name="setup_data_saver">Databesparing</string>
     <string name="setup_data_saver_desc">Deel lichtere foto\'s en clips (sneller bij slecht bereik). Uit: hoge kwaliteit, zodat ieders kopieën scherp zijn. Je eigen originelen blijven altijd in volle kwaliteit.</string>
     <string name="setup_emergency_contact">Noodcontact</string>
@@ -51,7 +51,7 @@
     <string name="setup_onb_arrow_demo_desc">Een pijl die naar een vriend wijst</string>
 
     <string name="setup_plan_title">Plan een concert</string>
-    <string name="setup_plan_desc">Start de crew nu, iedereen doet mee wanneer het uitkomt. Hij slaapt (geen batterij) tot de dag zelf.</string>
+    <string name="setup_plan_desc">Start de crew nu, iedereen doet mee wanneer het uitkomt. Hij slaapt (geen batterijverbruik) tot de dag zelf.</string>
     <string name="setup_plan_search_hint">Zoek: band, artiest of zaal</string>
     <string name="setup_plan_searching">Zoeken…</string>
     <string name="setup_plan_search_failed">Zoeken lukt nu even niet. Typ het hieronder in.</string>
@@ -80,9 +80,9 @@
     <string name="setup_cancel">Annuleren</string>
     <string name="setup_qr_end_night">Avond afsluiten</string>
 
-    <string name="setup_bump_title">Telefoons botsen</string>
+    <string name="setup_bump_title">Telefoons tikken</string>
     <string name="setup_bump_sharing">Hou je telefoon rug aan rug tegen die van je vriend. Die krijgt de vraag om bij je crew te komen.</string>
-    <string name="setup_bump_joining">Hou je telefoon rug aan rug tegen die van iemand in een crew (die opent ook Botsen). Jij krijgt de vraag om mee te doen.</string>
+    <string name="setup_bump_joining">Hou je telefoon rug aan rug tegen die van iemand in een crew (die opent ook Telefoons tikken). Jij krijgt de vraag om mee te doen.</string>
     <string name="setup_done">Klaar</string>
 
     <string name="setup_roll_title">Je foto\'s van die avond</string>

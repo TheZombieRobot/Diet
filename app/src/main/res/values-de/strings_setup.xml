@@ -12,7 +12,7 @@
     <string name="setup_stay_live_desc">Wenn du beim Neustart deines Handys live warst, gehst du automatisch wieder live.</string>
     <string name="setup_ghost_mode">Geistmodus</string>
     <string name="setup_ghost_mode_desc">Versteckt deinen Standort auf der Karte. Freunde in deiner Nähe finden dich trotzdem per Bluetooth.</string>
-    <string name="setup_ghost_one_hour">1 Stunde Geist</string>
+    <string name="setup_ghost_one_hour">1 Stunde Geistmodus</string>
     <string name="setup_data_saver">Datensparmodus</string>
     <string name="setup_data_saver_desc">Teilt leichtere Fotos und Clips (schneller bei schwachem Empfang). Aus: hohe Qualität, damit alle gestochen scharfe Kopien haben. Deine eigenen Originale bleiben immer in voller Qualität.</string>
     <string name="setup_emergency_contact">Notfallkontakt</string>
@@ -32,8 +32,8 @@
     <string name="setup_continue_facebook">Weiter mit Facebook</string>
 
     <string name="setup_onb_skip">Überspringen</string>
-    <string name="setup_onb_title_find">Find deine Freunde\nin jeder Menge</string>
-    <string name="setup_onb_body_find">Tipp auf einen Freund und ein Pfeil zeigt direkt zu ihm. Je näher du kommst, desto mehr leuchtet er in seiner Farbe.</string>
+    <string name="setup_onb_title_find">Find deine Freunde\nin jeder Menschenmenge</string>
+    <string name="setup_onb_body_find">Tippe auf einen Freund und ein Pfeil zeigt direkt zu ihm. Je näher du kommst, desto mehr leuchtet er in seiner Farbe.</string>
     <string name="setup_onb_title_live">Geh live, wenn\ndu reingehst</string>
     <string name="setup_onb_body_live">Deine Freunde finden dich nur, wenn du live bist, und nur du schaltest das ein. Moshpoint braucht:</string>
     <string name="setup_onb_need_nearby">Geräte in der Nähe</string>
@@ -54,8 +54,8 @@
     <string name="setup_plan_desc">Starte die Crew jetzt, alle treten bei, wann es passt. Sie schläft (kein Akkuverbrauch) bis zum Tag.</string>
     <string name="setup_plan_search_hint">Suche: Band, Artist oder Location</string>
     <string name="setup_plan_searching">Suche…</string>
-    <string name="setup_plan_search_failed">Suche geht gerade nicht. Tipp es stattdessen unten ein.</string>
-    <string name="setup_plan_no_results">Keine anstehenden Konzerte gefunden. Tipp es unten ein.</string>
+    <string name="setup_plan_search_failed">Suche geht gerade nicht. Tippe es stattdessen unten ein.</string>
+    <string name="setup_plan_no_results">Keine anstehenden Konzerte gefunden. Tippe es unten ein.</string>
     <string name="setup_plan_when_where">%1$s · %2$s</string>
     <string name="setup_plan_or_type">ODER SELBST EINTIPPEN</string>
     <string name="setup_plan_whos_playing">Wer spielt</string>
@@ -88,7 +88,7 @@
     <string name="setup_roll_title">Deine Fotos von dem Abend</string>
     <string name="setup_roll_looking">Durchsuche deine Fotos…</string>
     <string name="setup_roll_nothing">Nichts auf diesem Handy aus diesen Stunden. Fotos von einem anderen Handy oder schon hinzugefügte erscheinen hier nicht.</string>
-    <string name="setup_roll_tap_to_leave_out">Tipp auf ein Foto, um es wegzulassen. Sie werden ins Konzert kopiert und bleiben, auch wenn du sie aus deiner Galerie löschst.</string>
+    <string name="setup_roll_tap_to_leave_out">Tippe auf ein Foto, um es wegzulassen. Sie werden ins Konzert kopiert und bleiben, auch wenn du sie aus deiner Galerie löschst.</string>
     <string name="setup_roll_adding">Wird hinzugefügt…</string>
     <plurals name="setup_roll_add_n">
         <item quantity="one">%d zum Konzert hinzufügen</item>

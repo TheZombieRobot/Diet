@@ -131,8 +131,8 @@
     <string name="crew_notif_done_text">Hopelijk was het een goeie. Start wanneer je wilt een nieuwe crew.</string>
     <string name="crew_notif_overdue_title">%1$s heeft niet ingecheckt</string>
     <string name="crew_notif_overdue_text">Was op weg naar huis en zou er nu moeten zijn. Bel even. Tik voor de laatste plek.</string>
-    <string name="crew_notif_help_where">Tikte op Hulp nodig. Tik om te zien waar. Ga even checken.</string>
-    <string name="crew_notif_help">Tikte op Hulp nodig. Ga even checken.</string>
+    <string name="crew_notif_help_where">Tikte op Hulp nodig. Tik om te zien waar. Check even hoe het gaat.</string>
+    <string name="crew_notif_help">Tikte op Hulp nodig. Check even hoe het gaat.</string>
     <string name="crew_notif_tap_where">Tik om te zien waar.</string>
     <string name="crew_notif_from_crew">Van je crew</string>
 
@@ -231,7 +231,7 @@
         <item quantity="one">%d ping</item>
         <item quantity="other">%d pings</item>
     </plurals>
-    <string name="crew_stats_out_hours">%1$d u %2$d min op stap</string>
+    <string name="crew_stats_out_hours">%1$d uur %2$d min op stap</string>
     <plurals name="crew_stats_out_mins">
         <item quantity="one">%d min op stap</item>
         <item quantity="other">%d min op stap</item>
@@ -247,7 +247,7 @@
     <string name="crew_card_share_title">Deel het plan</string>
 
     <string name="crew_request_title">%1$s is dichtbij en zoekt je</string>
-    <string name="crew_request_text">Tik om je scherm te laten oplichten, zodat ze je zien</string>
+    <string name="crew_request_text">Tik om je scherm te laten knipperen, zodat ze je zien</string>
     <string name="crew_go_hidden">Verbergen</string>
     <string name="crew_tile_live">Live</string>
     <string name="crew_tile_hidden">Verborgen</string>

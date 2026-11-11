@@ -2,7 +2,7 @@
 <!-- Dutch: home screen (crew card, friends list, bottom bar, add sheet, pings). -->
 <resources>
     <string name="home_go_live">Ga live</string>
-    <string name="home_live_ghost">Live · spook</string>
+    <string name="home_live_ghost">Live · spookmodus</string>
     <string name="home_live">Live</string>
 
     <string name="home_tile_not_sharing">deelt nog niet</string>
@@ -41,7 +41,7 @@
     <string name="home_start_crew_show_qr">Crew starten + QR tonen</string>
     <string name="home_scan_qr">QR scannen</string>
     <string name="home_paste_invite">Uitnodiging plakken</string>
-    <string name="home_bump_phones">Telefoons tegen elkaar botsen</string>
+    <string name="home_bump_phones">Telefoons tegen elkaar tikken</string>
     <string name="home_plan_gig">Plan een concert (zoek het, nodig nu uit)</string>
     <string name="home_send_app_invite">Stuur de app + uitnodiging (WhatsApp, Messenger…)</string>
     <string name="home_friends_every_gig">VRIENDEN VOOR ELK CONCERT</string>
@@ -130,7 +130,7 @@
     <string name="home_share">Delen ›</string>
     <string name="home_meet_up">★  Verzamelpunt: %1$s</string>
     <string name="home_map_link">Kaart ›</string>
-    <string name="home_asleep_text">Slaapt tot de concertdag: geen Bluetooth, geen locatie, geen batterij. Vrienden kunnen nu al meedoen, en op de dag krijg je een seintje.</string>
+    <string name="home_asleep_text">Slaapt tot de concertdag: geen Bluetooth, geen locatie, geen batterijverbruik. Vrienden kunnen nu al meedoen, en op de dag krijg je een seintje.</string>
     <string name="home_follower_text">Je ziet waar iedereen is en hun foto\'s zodra ze binnenkomen. Zij zien dat je volgt.</string>
     <string name="home_see_story">Bekijk de story</string>
     <string name="home_crew_chat_unread">Crewchat (%1$d nieuw)</string>

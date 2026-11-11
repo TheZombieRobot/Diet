@@ -49,7 +49,7 @@
         <item quantity="many">Je rentre 🏠 Check-in d\'ici %d min</item>
         <item quantity="other">Je rentre 🏠 Check-in d\'ici %d min</item>
     </plurals>
-    <string name="crew_quick_home_safe">Bien rentré·e ✅</string>
+    <string name="crew_quick_home_safe">À la maison, tout va bien ✅</string>
 
     <string name="crew_plan_eyebrow">📌 LE PLAN</string>
     <string name="crew_plan_none">Pas encore de plan épinglé.</string>
@@ -68,12 +68,12 @@
     <string name="crew_plan_pin_it">Épingler</string>
     <string name="crew_plan_unpin">Désépingler</string>
 
-    <string name="crew_vibe_lost">Perdu·e 😅</string>
+    <string name="crew_vibe_lost">Je suis où ? 😅</string>
     <string name="crew_vibe_bar">Pause bar 🍺</string>
     <string name="crew_vibe_rail">Contre la barrière 🎶</string>
     <string name="crew_vibe_food">Je vais manger 🍔</string>
     <string name="crew_vibe_toilets">Toilettes 🚻</string>
-    <string name="crew_vibe_air">Dehors, je respire 🌬️</string>
+    <string name="crew_vibe_air">Je prends l\'air 🌬️</string>
     <string name="crew_vibe_merch">Stand merch 👕</string>
     <string name="crew_vibe_leaving">Je pars bientôt 👋</string>
     <string name="crew_flare_mine">Toi : %1$s</string>
@@ -107,12 +107,12 @@
     <string name="crew_help_add_contact">Ajouter un contact d\'urgence</string>
     <string name="crew_help_add_contact_sub">Quelqu\'un hors de la crew à prévenir en cas de besoin</string>
     <string name="crew_help_contact_name">Nom (ex. Maman)</string>
-    <string name="crew_help_contact_number">Numéro de portable</string>
+    <string name="crew_help_contact_number">Numéro de mobile</string>
     <string name="crew_help_save_contact">Enregistrer le contact</string>
     <string name="crew_help_call">Appeler le %1$s</string>
-    <string name="crew_help_call_sub">Police, pompiers, SAMU</string>
+    <string name="crew_help_call_sub">Police, pompiers, ambulance</string>
     <string name="crew_help_call_police">Police</string>
-    <string name="crew_help_call_ambulance">SAMU et pompiers</string>
+    <string name="crew_help_call_ambulance">Ambulance et pompiers</string>
     <string name="crew_help_no_signal">Aucun réseau ? Beaucoup de téléphones récents peuvent joindre les secours par satellite : appelle le %1$s et suis les instructions. En festival, la sécurité et les postes de secours peuvent t\'aider vite.</string>
     <string name="crew_help_sms">J\'ai besoin d\'aide. (envoyé depuis Moshpoint)</string>
     <string name="crew_help_sms_where">J\'ai besoin d\'aide. Je suis ici : %1$s (envoyé depuis Moshpoint)</string>
@@ -137,7 +137,7 @@
     <string name="crew_notif_done_saved">Tes photos et vidéos sont enregistrées dans Tes concerts.</string>
     <string name="crew_notif_done_text">On espère que c\'était top. Lance une nouvelle crew quand tu veux.</string>
     <string name="crew_notif_overdue_title">%1$s n\'a pas fait son check-in</string>
-    <string name="crew_notif_overdue_text">Il ou elle rentrait et devrait être arrivé·e. Appelle-le ou appelle-la. Touche pour voir sa dernière position.</string>
+    <string name="crew_notif_overdue_text">Cette personne rentrait chez elle et devrait déjà être arrivée. Passe-lui un coup de fil. Touche pour voir sa dernière position.</string>
     <string name="crew_notif_help_where">A appuyé sur Besoin d\'aide. Touche pour voir où. Prends des nouvelles.</string>
     <string name="crew_notif_help">A appuyé sur Besoin d\'aide. Prends des nouvelles.</string>
     <string name="crew_notif_tap_where">Touche pour voir où.</string>
@@ -151,7 +151,7 @@
     <string name="crew_ping_going_home">rentre</string>
     <string name="crew_ping_need_help">A BESOIN D\'AIDE</string>
     <string name="crew_ping_check_in">rentre et fera son check-in</string>
-    <string name="crew_ping_home_safe">est bien rentré·e</string>
+    <string name="crew_ping_home_safe">est à la maison, tout va bien</string>
     <string name="crew_ping_chat">a envoyé un message</string>
     <string name="crew_ping_flare">a envoyé une fusée</string>
     <string name="crew_ping_plan">a épinglé un plan</string>
@@ -165,7 +165,7 @@
     <string name="crew_ping_title_going_home">%1$s rentre</string>
     <string name="crew_ping_title_need_help">%1$s A BESOIN D\'AIDE</string>
     <string name="crew_ping_title_check_in">%1$s rentre et fera son check-in</string>
-    <string name="crew_ping_title_home_safe">%1$s est bien rentré·e</string>
+    <string name="crew_ping_title_home_safe">%1$s est à la maison, tout va bien</string>
     <string name="crew_ping_title_chat">%1$s a envoyé un message</string>
     <string name="crew_ping_title_flare">%1$s a envoyé une fusée</string>
     <string name="crew_ping_title_plan">%1$s a épinglé un plan</string>
@@ -175,12 +175,12 @@
 
     <string name="crew_friend_need_crew">Garder en ami, ça marche quand vous êtes dans la même crew.</string>
     <string name="crew_friend_gone">Cette personne n\'est plus dans la crew.</string>
-    <string name="crew_friend_unreachable">Impossible de joindre %1$s en privé pour l\'instant. Réessaie quand on l\'aura vu·e ce soir (si ça continue, son appli doit être mise à jour).</string>
+    <string name="crew_friend_unreachable">Impossible de joindre %1$s en privé pour l\'instant. Réessaie quand cette personne se sera connectée ce soir (si ça continue, son appli doit être mise à jour).</string>
     <string name="crew_friend_ask_failed">Impossible de demander à %1$s. Réessaie.</string>
     <string name="crew_friend_asked">Demande envoyée à %1$s. Vous serez amis pour tous les concerts dès qu\'il ou elle dit oui.</string>
-    <string name="crew_friend_request_title">%1$s veut rester ami·e</string>
+    <string name="crew_friend_request_title">%1$s veut rester en contact</string>
     <string name="crew_friend_request_text">Depuis %1$s. Touche pour dire oui, et vous pourrez vous retrouver à n\'importe quel concert.</string>
-    <string name="crew_friend_accepted_title">%1$s est ton ami·e maintenant</string>
+    <string name="crew_friend_accepted_title">%1$s et toi êtes amis maintenant</string>
     <string name="crew_friend_accepted_text">Vous pouvez vous retrouver à n\'importe quel concert, pas juste %1$s.</string>
 
     <string name="crew_add_need_name">Donne-lui un nom</string>
@@ -217,8 +217,8 @@
     <string name="crew_moment_text">Touche pour voir où</string>
 
     <string name="crew_moving_title">%1$s se déplace</string>
-    <string name="crew_moving_text">S\'est déplacé·e de %1$s. Touche pour voir.</string>
-    <string name="crew_moving_text_away">S\'est déplacé·e de %1$s. Maintenant à %2$s de toi. Touche pour voir.</string>
+    <string name="crew_moving_text">A bougé de %1$s. Touche pour voir.</string>
+    <string name="crew_moving_text_away">A bougé de %1$s. Maintenant à %2$s de toi. Touche pour voir.</string>
     <string name="crew_at_venue">sur place</string>
     <string name="crew_from_venue">à %1$s du lieu</string>
     <string name="crew_status_phone_died">%1$s : téléphone à plat</string>
@@ -245,11 +245,11 @@
         <item quantity="many">%d pings</item>
         <item quantity="other">%d pings</item>
     </plurals>
-    <string name="crew_stats_out_hours">%1$d h %2$d min dehors</string>
+    <string name="crew_stats_out_hours">%1$d h %2$d min de sortie</string>
     <plurals name="crew_stats_out_mins">
-        <item quantity="one">%d min dehors</item>
-        <item quantity="many">%d min dehors</item>
-        <item quantity="other">%d min dehors</item>
+        <item quantity="one">%d min de sortie</item>
+        <item quantity="many">%d min de sortie</item>
+        <item quantity="other">%d min de sortie</item>
     </plurals>
     <string name="crew_stats_quiet">Une soirée tranquille</string>
 
@@ -265,5 +265,5 @@
     <string name="crew_request_text">Touche pour faire clignoter ton écran et qu\'on te repère</string>
     <string name="crew_go_hidden">Se cacher</string>
     <string name="crew_tile_live">Live</string>
-    <string name="crew_tile_hidden">Caché·e</string>
+    <string name="crew_tile_hidden">Invisible</string>
 </resources>

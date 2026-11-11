@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Dutch: shared formats (times, distances, countdowns). -->
 <resources>
-    <string name="time_just_now">net nu</string>
+    <string name="time_just_now">zojuist</string>
     <plurals name="time_min_ago">
         <item quantity="one">%d min geleden</item>
         <item quantity="other">%d min geleden</item>
     </plurals>
     <plurals name="time_hours_ago">
-        <item quantity="one">%d u geleden</item>
-        <item quantity="other">%d u geleden</item>
+        <item quantity="one">%d uur geleden</item>
+        <item quantity="other">%d uur geleden</item>
     </plurals>
     <plurals name="time_days_ago">
         <item quantity="one">%d dag geleden</item>

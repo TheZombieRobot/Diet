@@ -2,7 +2,7 @@
 <!-- German: home screen (crew card, friends list, bottom bar, add sheet, pings). -->
 <resources>
     <string name="home_go_live">Live gehen</string>
-    <string name="home_live_ghost">Live · Geist</string>
+    <string name="home_live_ghost">Live · Geistmodus</string>
     <string name="home_live">Live</string>
 
     <string name="home_tile_not_sharing">teilt noch nicht</string>
@@ -49,14 +49,14 @@
     <string name="home_enter_code">Code eingeben</string>
 
     <string name="home_check_in_by">Melde dich bis %1$s</string>
-    <string name="home_home_safe">Bin gut daheim</string>
+    <string name="home_home_safe">Bin gut zu Hause</string>
 
     <string name="home_chat">Chat</string>
     <string name="home_chat_unread">Chat (%1$d)</string>
     <string name="home_camera">Kamera</string>
 
     <string name="home_message_crew">Nachricht an die Crew</string>
-    <string name="home_message_crew_text">Ein Tipp: alle in der Crew bekommen es, mit deinem Standort.</string>
+    <string name="home_message_crew_text">Einmal tippen: alle in der Crew bekommen es, mit deinem Standort.</string>
 
     <string name="home_crew_qr_desc">Crew-QR</string>
     <string name="home_inline_qr_text">Freunde scannen das mit ihrer Kamera oder Moshpoint. Das war\'s.</string>
@@ -108,7 +108,7 @@
     <string name="home_add_friend">Freund hinzufügen</string>
     <string name="home_tonight_only">Nur heute</string>
 
-    <string name="home_hidden_hint">Du bist für deine Crew versteckt. Tipp auf Live gehen, wenn du gefunden werden willst.</string>
+    <string name="home_hidden_hint">Du bist für deine Crew versteckt. Tippe auf Live gehen, wenn du gefunden werden willst.</string>
     <string name="home_allow_permission">Erlaub Moshpoint, deine Freunde zu finden (%1$s)</string>
     <string name="home_allow">Erlauben</string>
     <string name="home_one_thing_first">ERST NOCH EINS</string>
@@ -136,7 +136,7 @@
     <string name="home_crew_chat_unread">Crew-Chat (%1$d neu)</string>
     <string name="home_where_are_they">Wo sind sie? (Karte)</string>
     <string name="home_see_them_once_starts">Du siehst sie hier, sobald das Konzert beginnt.</string>
-    <string name="home_tap_mate_hint">Tipp auf einen Freund, um ihn zu finden · gedrückt halten für Optionen</string>
+    <string name="home_tap_mate_hint">Tippe auf einen Freund, um ihn zu finden · gedrückt halten für Optionen</string>
     <string name="home_find_name">%1$s finden</string>
     <string name="home_find_everyone">Alle finden</string>
     <string name="home_stop_following">Nicht mehr folgen</string>
@@ -145,10 +145,10 @@
     <string name="home_up_next">DEMNÄCHST</string>
     <string name="home_memories">ERINNERUNGEN</string>
     <plurals name="home_memories_count">
-        <item quantity="one">%d Fotos und Clips. Tipp zum Nacherleben ›</item>
-        <item quantity="other">%d Fotos und Clips. Tipp zum Nacherleben ›</item>
+        <item quantity="one">%d Fotos und Clips. Tippen zum Nacherleben ›</item>
+        <item quantity="other">%d Fotos und Clips. Tippen zum Nacherleben ›</item>
     </plurals>
     <string name="home_your_gigs">DEINE KONZERTE</string>
     <string name="home_friends">FREUNDE</string>
-    <string name="home_friends_empty">Freunde, die du für jedes Konzert behältst, erscheinen hier. Tipp unten auf ＋ Neu.</string>
+    <string name="home_friends_empty">Freunde, die du für jedes Konzert behältst, erscheinen hier. Tippe unten auf ＋ Neu.</string>
 </resources>

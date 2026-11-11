@@ -48,11 +48,11 @@
     <string name="main_joined_live">Tu fais partie de %1$s ! Tout le monde dedans peut se retrouver.</string>
     <string name="main_the_crew">la crew</string>
     <string name="main_got_code">Code reçu. Donne-lui un nom, puis appuie sur Ajouter en ami.</string>
-    <string name="main_friend_added">✓ %1$s ajouté·e</string>
+    <string name="main_friend_added">✓ %1$s est dans tes amis</string>
     <string name="main_no_invite_found">Aucune invitation Moshpoint trouvée. Copie tout le message de ton pote, puis appuie sur Coller l\'invitation.</string>
 
     <string name="main_perm_location">Localisation : flèche GPS et distance Bluetooth/Wi-Fi</string>
-    <string name="main_perm_nearby">Appareils à proximité : trouver tes potes et être trouvé·e en Bluetooth</string>
+    <string name="main_perm_nearby">Appareils à proximité : trouver tes potes et qu\'ils te trouvent en Bluetooth</string>
     <string name="main_perm_uwb">UWB : la flèche précise</string>
     <string name="main_perm_notifications">Notifications : montre quand tu es visible</string>
 
@@ -64,13 +64,13 @@
     <string name="main_eyebrow_up_next_countdown">À VENIR · %1$s</string>
     <string name="main_eyebrow_coming_up">TA CREW · BIENTÔT</string>
     <string name="main_eyebrow_tonight">TA CREW DE CE SOIR</string>
-    <string name="main_qr_hint_planned">Chacun le scanne une fois. Papotez et chauffez-vous dès maintenant ; la recherche s\'active le jour du concert.</string>
+    <string name="main_qr_hint_planned">Chacun le scanne une fois. Papotez et faites monter la hype dès maintenant ; la recherche s\'active le jour du concert.</string>
     <string name="main_qr_hint_tonight">Chacun le scanne une fois. Ensuite, vous pouvez tous vous retrouver, toute la nuit.</string>
     <string name="main_scan_to_add_me">Scanne pour m\'ajouter</string>
     <string name="main_scan_to_add_name">Scanne pour ajouter %1$s</string>
 
-    <string name="main_wants_to_stay_friends">%1$s veut rester ami·e</string>
-    <string name="main_stay_friends_text">Vous vous êtes rencontrés dans %1$s. Dis oui et vous pourrez vous retrouver à n\'importe quel concert, pas juste celui-ci. Seul·e %2$s reçoit tes infos, personne d\'autre dans la crew.</string>
+    <string name="main_wants_to_stay_friends">%1$s veut rester en contact</string>
+    <string name="main_stay_friends_text">Vous vous êtes rencontrés dans %1$s. Dis oui et vous pourrez vous retrouver à n\'importe quel concert, pas juste celui-ci. Tes infos ne vont qu\'à %2$s, personne d\'autre dans la crew.</string>
     <string name="main_friends_now">%1$s et toi êtes amis maintenant</string>
     <string name="main_yes_stay_friends">Oui, restons amis</string>
     <string name="main_not_now">Pas maintenant</string>
@@ -94,7 +94,7 @@
     <string name="main_when_venue">%1$s · %2$s</string>
 
     <string name="main_time_passed">Cette heure est déjà passée. Choisis quand le concert commence.</string>
-    <string name="main_added_up_next">%1$s ajouté à À venir. Invite tes potes et lance la hype !</string>
+    <string name="main_added_up_next">%1$s ajouté à À venir. Invite tes potes et fais monter la hype !</string>
 
     <string name="main_join_name">Rejoindre %1$s ?</string>
     <string name="main_follow_name">Suivre %1$s ?</string>
@@ -117,7 +117,7 @@
     <string name="main_meetup_sent">Point de rendez-vous envoyé à ta crew</string>
     <string name="main_moment_label">%1$s · %2$s</string>
 
-    <string name="main_share_app_text">Prends Moshpoint pour qu\'on se retrouve aux concerts : touche un pote et une flèche te montre où il est.\n\n%1$s</string>
+    <string name="main_share_app_text">Installe Moshpoint pour qu\'on se retrouve aux concerts : appuie sur un pote et une flèche te montre où il est.\n\n%1$s</string>
     <string name="main_share_app_title">Partager Moshpoint</string>
     <string name="main_named_crew">La crew de %1$s</string>
     <string name="main_tonights_crew">La crew de ce soir</string>

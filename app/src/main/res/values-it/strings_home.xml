@@ -6,7 +6,7 @@
     <string name="home_live">Live</string>
 
     <string name="home_tile_not_sharing">non condivide ancora</string>
-    <string name="home_tile_phone_died">telefono morto</string>
+    <string name="home_tile_phone_died">telefono scarico</string>
     <string name="home_tile_live">live</string>
     <string name="home_tile_with_battery">%1$s · %2$d%%</string>
 
@@ -77,7 +77,7 @@
 
     <string name="home_crew_chat">Chat del gruppo</string>
     <string name="home_pinned_plan">📌 %1$s</string>
-    <string name="home_chat_subtitle">Messaggi, il piano, bengala</string>
+    <string name="home_chat_subtitle">Messaggi, il piano, segnali</string>
     <string name="home_unread_many">9+</string>
     <plurals name="home_unread_new">
         <item quantity="one">%d nuovo</item>
@@ -114,7 +114,7 @@
     <string name="home_tonight_only">Solo stasera</string>
 
     <string name="home_hidden_hint">Sei nascosto al tuo gruppo. Tocca Vai live quando vuoi farti trovare.</string>
-    <string name="home_allow_permission">Fai trovare i tuoi amici a Moshpoint (%1$s)</string>
+    <string name="home_allow_permission">Consenti a Moshpoint di trovare i tuoi amici (%1$s)</string>
     <string name="home_allow">Consenti</string>
     <string name="home_one_thing_first">PRIMA UNA COSA</string>
     <plurals name="home_one_thing_first_more">
@@ -136,7 +136,7 @@
     <string name="home_share">Condividi ›</string>
     <string name="home_meet_up">★  Ritrovo: %1$s</string>
     <string name="home_map_link">Mappa ›</string>
-    <string name="home_asleep_text">In pausa fino al giorno del concerto: niente Bluetooth, niente posizione, niente batteria. Gli amici possono entrare già ora, e quel giorno ti avviseremo.</string>
+    <string name="home_asleep_text">In pausa fino al giorno del concerto: niente Bluetooth, niente posizione, zero consumo di batteria. Gli amici possono entrare già ora, e quel giorno ti avviseremo.</string>
     <string name="home_follower_text">Vedi dove sono tutti e le loro foto appena arrivano. Loro vedono che li segui.</string>
     <string name="home_see_story">Guarda la storia</string>
     <string name="home_crew_chat_unread">Chat del gruppo (%1$d nuovi)</string>

@@ -51,7 +51,7 @@
     <string name="setup_onb_arrow_demo_desc">Una freccia che punta verso un amico</string>
 
     <string name="setup_plan_title">Pianifica un concerto</string>
-    <string name="setup_plan_desc">Crea il gruppo ora, ognuno entra quando vuole. Resta in pausa (zero batteria) fino al giorno.</string>
+    <string name="setup_plan_desc">Crea il gruppo ora, ognuno entra quando vuole. Resta in pausa (zero consumo di batteria) fino al giorno.</string>
     <string name="setup_plan_search_hint">Cerca: band, artista o locale</string>
     <string name="setup_plan_searching">Ricerca…</string>
     <string name="setup_plan_search_failed">Ricerca non disponibile ora. Scrivilo qui sotto.</string>

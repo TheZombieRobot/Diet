@@ -18,9 +18,9 @@
     <string name="setup_emergency_contact">Contact d\'urgence</string>
     <string name="setup_emergency_contact_desc">\"Besoin d\'aide\" peut lui envoyer ta position par SMS classique (marche sans données). Reste sur ce téléphone.</string>
     <string name="setup_contact_name">Nom</string>
-    <string name="setup_contact_mobile">Portable</string>
+    <string name="setup_contact_mobile">Mobile</string>
     <string name="setup_contact_saved">Enregistré</string>
-    <string name="setup_contact_need_number">Ajoute un numéro de portable</string>
+    <string name="setup_contact_need_number">Ajoute un numéro de mobile</string>
     <string name="setup_contact_removed">Supprimé</string>
     <string name="setup_save">Enregistrer</string>
     <string name="setup_remove">Supprimer</string>
@@ -33,9 +33,9 @@
 
     <string name="setup_onb_skip">Passer</string>
     <string name="setup_onb_title_find">Retrouve tes potes\ndans n\'importe quelle foule</string>
-    <string name="setup_onb_body_find">Touche un pote et une flèche pointe droit vers lui. Elle prend sa couleur quand tu te rapproches.</string>
+    <string name="setup_onb_body_find">Appuie sur un pote et une flèche pointe droit vers lui. Elle prend sa couleur quand tu te rapproches.</string>
     <string name="setup_onb_title_live">Passe en live\nen arrivant</string>
-    <string name="setup_onb_body_live">Tes potes ne peuvent te trouver que quand tu es en live, et toi seul·e peux l\'activer. Moshpoint a besoin de :</string>
+    <string name="setup_onb_body_live">Tes potes ne peuvent te trouver que quand tu es en live, et c\'est toi qui l\'actives. Moshpoint a besoin de :</string>
     <string name="setup_onb_need_nearby">Appareils à proximité</string>
     <string name="setup_onb_need_nearby_why">pour trouver tes potes en Bluetooth, Wi-Fi et UWB</string>
     <string name="setup_onb_need_location">Localisation</string>

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- German: main screen, invites, sharing and phone setup checks. -->
 <resources>
-    <string name="main_get_the_app">Noch kein Moshpoint? Hier installieren (Android): %1$s\nDann kopier diese ganze Nachricht, öffne Moshpoint und tipp auf Einladung einfügen.\n\n</string>
-    <string name="main_nudge_text">Hey %1$s, öffne Moshpoint und tipp auf Live gehen (mit Standort und mobilen Daten an), damit ich dich finde!</string>
+    <string name="main_get_the_app">Noch kein Moshpoint? Hier installieren (Android): %1$s\nDann kopier diese ganze Nachricht, öffne Moshpoint und tippe auf Einladung einfügen.\n\n</string>
+    <string name="main_nudge_text">Hey %1$s, öffne Moshpoint und tippe auf Live gehen (mit Standort und mobilen Daten an), damit ich dich finde!</string>
     <string name="main_nudge_mate">du</string>
     <string name="main_nudge_title">Bitte sie, live zu gehen</string>
 
@@ -44,7 +44,7 @@
     <string name="main_joined_sleeping">Du bist bei %1$s dabei! Die Crew wacht am Konzerttag auf (%2$s).</string>
     <string name="main_joined_live">Du bist bei %1$s dabei! Alle darin können sich gegenseitig finden.</string>
     <string name="main_the_crew">der Crew</string>
-    <string name="main_got_code">Code erhalten. Gib ihnen einen Namen und tipp dann auf Freund hinzufügen.</string>
+    <string name="main_got_code">Code erhalten. Gib der Person einen Namen und tipp dann auf Freund hinzufügen.</string>
     <string name="main_friend_added">✓ %1$s hinzugefügt</string>
     <string name="main_no_invite_found">Keine Moshpoint-Einladung gefunden. Kopier die ganze Nachricht von deinem Freund und tipp dann auf Einladung einfügen.</string>
 
@@ -90,7 +90,7 @@
     <string name="main_when_venue">%1$s · %2$s</string>
 
     <string name="main_time_passed">Die Zeit ist schon vorbei. Wähl, wann das Konzert anfängt.</string>
-    <string name="main_added_up_next">%1$s steht jetzt unter Demnächst. Lad deine Freunde ein und lass die Vorfreude starten!</string>
+    <string name="main_added_up_next">%1$s steht jetzt unter Demnächst. Lad deine Freunde ein und lass die Vorfreude steigen!</string>
 
     <string name="main_join_name">%1$s beitreten?</string>
     <string name="main_follow_name">%1$s folgen?</string>
@@ -113,7 +113,7 @@
     <string name="main_meetup_sent">Treffpunkt an deine Crew geschickt</string>
     <string name="main_moment_label">%1$s · %2$s</string>
 
-    <string name="main_share_app_text">Hol dir Moshpoint, damit wir uns auf Konzerten finden: tipp auf einen Freund und ein Pfeil zeigt dir, wo er ist.\n\n%1$s</string>
+    <string name="main_share_app_text">Hol dir Moshpoint, damit wir uns auf Konzerten finden: tippe auf einen Freund und ein Pfeil zeigt dir, wo er ist.\n\n%1$s</string>
     <string name="main_share_app_title">Moshpoint teilen</string>
     <string name="main_named_crew">Crew von %1$s</string>
     <string name="main_tonights_crew">Crew für heute</string>

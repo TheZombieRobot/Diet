@@ -50,7 +50,7 @@
     <string name="home_enter_code">Entrer un code</string>
 
     <string name="home_check_in_by">Check-in avant %1$s</string>
-    <string name="home_home_safe">Bien rentré·e</string>
+    <string name="home_home_safe">Je suis à la maison</string>
 
     <string name="home_chat">Chat</string>
     <string name="home_chat_unread">Chat (%1$d)</string>
@@ -113,7 +113,7 @@
     <string name="home_add_friend">Ajouter en ami</string>
     <string name="home_tonight_only">Juste ce soir</string>
 
-    <string name="home_hidden_hint">Tu es caché·e de ta crew. Appuie sur Passer en live quand tu veux qu\'on te trouve.</string>
+    <string name="home_hidden_hint">Ta crew ne te voit pas. Appuie sur Passer en live quand tu veux qu\'on te trouve.</string>
     <string name="home_allow_permission">Autorise Moshpoint à trouver tes potes (%1$s)</string>
     <string name="home_allow">Autoriser</string>
     <string name="home_one_thing_first">D\'ABORD UN TRUC</string>
@@ -136,13 +136,13 @@
     <string name="home_share">Partager ›</string>
     <string name="home_meet_up">★  RDV : %1$s</string>
     <string name="home_map_link">Carte ›</string>
-    <string name="home_asleep_text">En veille jusqu\'au jour du concert : pas de Bluetooth, pas de localisation, pas de batterie. Tes potes peuvent rejoindre dès maintenant, et tu recevras un rappel le jour J.</string>
+    <string name="home_asleep_text">En veille jusqu\'au jour du concert : pas de Bluetooth, pas de localisation, zéro conso de batterie. Tes potes peuvent rejoindre dès maintenant, et tu recevras un rappel le jour J.</string>
     <string name="home_follower_text">Tu vois où tout le monde est et leurs photos au fur et à mesure. Ils voient que tu les suis.</string>
     <string name="home_see_story">Voir la story</string>
     <string name="home_crew_chat_unread">Chat de la crew (%1$d nouveaux)</string>
     <string name="home_where_are_they">Ils sont où ? (carte)</string>
     <string name="home_see_them_once_starts">Tu les verras ici dès que le concert commence.</string>
-    <string name="home_tap_mate_hint">Touche un pote pour le trouver · appui long pour les options</string>
+    <string name="home_tap_mate_hint">Appuie sur un pote pour le trouver · appui long pour les options</string>
     <string name="home_find_name">Trouver %1$s</string>
     <string name="home_find_everyone">Trouver tout le monde</string>
     <string name="home_stop_following">Ne plus suivre</string>

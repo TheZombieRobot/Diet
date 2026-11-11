@@ -81,9 +81,9 @@
     <string name="find_saving_area_pct">Salvo questa zona… %1$d%%</string>
     <string name="find_area_saved">Zona salvata: qui la mappa funziona senza segnale</string>
     <string name="find_area_save_failed">Impossibile salvare la zona: %1$s</string>
-    <string name="find_area_too_big">Troppo grande: zooma sul locale e riprova</string>
+    <string name="find_area_too_big">Troppo grande: zooma sulla location e riprova</string>
     <string name="find_back">‹ Indietro</string>
-    <string name="find_map_title">Mosh mappa</string>
+    <string name="find_map_title">Mappa Mosh</string>
     <string name="find_map_pin">Pin</string>
     <string name="find_map_all">Tutti</string>
     <string name="find_map_me">Io</string>
@@ -122,7 +122,7 @@
     <string name="find_add_your_photos">＋ Aggiungi le tue foto</string>
     <string name="find_save_all_to_phone">Salva tutto sul telefono</string>
     <string name="find_story_empty_following">Foto e clip del gruppo finiscono qui appena le condividono. Tienilo aperto per seguire tutto live.</string>
-    <string name="find_story_empty_crew">Scatta il palco, il bar, i tuoi amici. Tutto quello che il gruppo condivide finisce qui, i più recenti in alto.</string>
+    <string name="find_story_empty_crew">Fotografa il palco, il bar, i tuoi amici. Tutto quello che il gruppo condivide finisce qui, i più recenti in alto.</string>
     <string name="find_delete_gig">Elimina questo concerto dal telefono</string>
     <plurals name="find_new_posts">
         <item quantity="one">↑  %d nuovo</item>
@@ -168,7 +168,7 @@
     <string name="find_needs_camera">Moshpoint ha bisogno della fotocamera per catturare un momento</string>
     <string name="find_shared_with_crew">Condiviso con il gruppo</string>
     <string name="find_share_a_moment">Condividi un momento</string>
-    <string name="find_share_moment_help">Scatta dove sei (il palco, il bar, i tuoi amici). Finisce nella storia come una Polaroid.</string>
+    <string name="find_share_moment_help">Fai una foto di dove sei (il palco, il bar, i tuoi amici). Finisce nella storia come una Polaroid.</string>
     <string name="find_take_photo">Scatta una foto</string>
     <string name="find_record_clip">Registra una clip (10 s)</string>
     <string name="find_choose_gallery">Scegli dalla galleria</string>

@@ -7,7 +7,7 @@
     <string name="find_eyebrow_scanning">RECHERCHE DE</string>
     <string name="find_eyebrow_finding">DIRECTION</string>
     <string name="find_chip_rough">Approx.</string>
-    <string name="find_chip_locked">Calé</string>
+    <string name="find_chip_locked">Précis</string>
     <string name="find_head_this_way">Par ici</string>
     <string name="find_from_gps">Via GPS : plus précis en marchant</string>
     <string name="find_rough_walk">Approximatif : marche par là et surveille la distance</string>
@@ -18,7 +18,7 @@
     <string name="find_ok">OK</string>
     <string name="find_scan_again">Rescanner</string>
     <string name="find_ask_them">Lui demander</string>
-    <string name="find_last_seen_on_map">Vu·e en dernier sur la carte</string>
+    <string name="find_last_seen_on_map">Dernière position sur la carte</string>
     <string name="find_light_me_up">Fais clignoter</string>
     <string name="find_spin_scan">Scan 360°</string>
     <string name="find_asked_light_up">Demandé : son téléphone va proposer de clignoter</string>
@@ -26,7 +26,7 @@
     <string name="find_show_on_map">Voir sur la carte</string>
 
     <string name="find_pill_live">Live</string>
-    <string name="find_pill_hidden">Caché·e</string>
+    <string name="find_pill_hidden">Invisible</string>
     <string name="find_searching_cd">Recherche</string>
     <string name="find_looking_for">On cherche %1$s…</string>
     <string name="find_searching_help">Aucun signal et aucune position partagée pour l\'instant. Il faut que Moshpoint soit ouvert chez eux avec Passer en live activé, plus la localisation et les données mobiles. Ensuite leur flèche apparaît, même s\'ils sont à l\'autre bout de la ville.</string>
@@ -92,7 +92,7 @@
     <string name="find_place_crew_meetup">RDV de la crew</string>
     <string name="find_place_only_you">visible que par toi</string>
     <string name="find_walk">À pied</string>
-    <string name="find_ride">VTC</string>
+    <string name="find_ride">Taxi</string>
     <string name="find_not_sharing">Ne partage pas encore</string>
     <string name="find_find">Trouver</string>
     <string name="find_ask">Demander</string>
@@ -122,7 +122,7 @@
     <string name="find_add_your_photos">＋ Ajoute tes photos</string>
     <string name="find_save_all_to_phone">Tout enregistrer sur le téléphone</string>
     <string name="find_story_empty_following">Les photos et vidéos de la crew sont épinglées ici dès qu\'ils les partagent. Garde ça ouvert pour suivre en direct.</string>
-    <string name="find_story_empty_crew">Shoote la scène, le bar, tes potes. Tout ce que la crew partage est épinglé ici, les plus récents en haut.</string>
+    <string name="find_story_empty_crew">Prends en photo la scène, le bar, tes potes. Tout ce que la crew partage est épinglé ici, les plus récents en haut.</string>
     <string name="find_delete_gig">Supprimer ce concert de ce téléphone</string>
     <plurals name="find_new_posts">
         <item quantity="one">↑  %d nouveau</item>
@@ -168,7 +168,7 @@
     <string name="find_needs_camera">Moshpoint a besoin de la caméra pour capturer un moment</string>
     <string name="find_shared_with_crew">Partagé avec ta crew</string>
     <string name="find_share_a_moment">Partager un moment</string>
-    <string name="find_share_moment_help">Shoote là où tu es (la scène, le bar, tes potes). Ça atterrit dans la story façon Polaroid.</string>
+    <string name="find_share_moment_help">Prends en photo l\'endroit où tu es (la scène, le bar, tes potes). Ça atterrit dans la story façon Polaroid.</string>
     <string name="find_take_photo">Prendre une photo</string>
     <string name="find_record_clip">Filmer une vidéo (10 s)</string>
     <string name="find_choose_gallery">Choisir dans la galerie</string>
