@@ -1,0 +1,334 @@
+# Moshpoint on the wrist (Wear OS)
+
+The watch app is a **companion**: the phone does the finding, the watch does the pointing and
+the buzzing. This note records the decision on each hard problem and why, then how to get the
+app onto a watch. Install steps are at the end.
+
+- Module: `wear/` (Wear OS 3 and later: Galaxy Watch4 and newer, Pixel Watch). Same application
+  id and signing key as the phone app, which the Wear Data Layer requires.
+- Shared logic and all the maths: `core/…/core/watch/` (pure Kotlin, unit-tested).
+- Phone side: `app/…/moshpoint/watch/` (new files only).
+
+## Status and next steps
+
+_Updated as the work goes; newest first._
+
+- **Now:** design recorded (this note). Nothing is built yet.
+- **Next:** core maths and message format with tests → phone side → `wear` module → strings in
+  19 languages → screenshot tests → CI → install steps and field test.
+- **Not possible in the build session:** compiling the Android modules locally (Google's Maven
+  host was blocked there), so the phone and watch code is checked by CI only, and nothing has
+  run on a real watch. Everything marked **verify on a watch** below is a first guess until the
+  field test.
+
+## What it does
+
+| | |
+|---|---|
+| Arrow | Tap a mate. An arrow on the wrist points at them, with their face, name and distance. |
+| Buzzes | Faster as you get closer, a double tap when you're facing them, one long buzz when you're heading away. |
+| Tile and watch face | Crew status tile; complication with the nearest mate, or "4 of 5 live". |
+| Wrist pings | "On my way", "All good", and hold-to-send "Need help". |
+| Paid | Everything is Moshpoint+ except "Need help", which is free for everyone, always. |
+
+## How the pieces fit
+
+```
+ WATCH (wear)                              PHONE (app)
+ compass + tilt ──┐                        WatchLinkService  (Data Layer listener)
+ WristArrow maths │   messages, 2 a second   ├─ Need help ──► GroupSync.sendPing
+ BuzzPlan ────────┼◄──────────────────────►  ├─ pings (Moshpoint+)
+ FindSession      │   (true bearing,          └─ find start / renew / stop
+ (foreground      │    distance, ages)      WatchFind + WatchFinderService (foreground)
+  service +       │                           ├─ PocketFinder: BLE, UWB, Wi-Fi Aware, GPS
+  ongoing         │   data items, on change   │    → its own MethodArbiter
+  activity)       │◄──────────────────────    └─ or reads the phone's own finder (bridge)
+ tile, complication   (crew status, faces,  WatchSync (crew status, faces, Moshpoint+)
+                       Moshpoint+ flag)
+```
+
+The phone never sends "turn left 30°". It sends **where the mate is** (bearing from true north,
+distance, how old each reading is). The watch turns that into an arrow with its own compass,
+fresh, 25 times a second. That one choice is what makes the link's delay harmless (problem 1).
+
+## The hard problems
+
+### 1. True north on the wrist
+
+**Checked in the code:** `Fix.bearingDeg` is "degrees clockwise from true north" (`Model.kt`).
+The phone gets there by adding `GpsFinder.declinationDeg` to its magnetic compass
+(`LocatorEngine.start`), and `MethodArbiter.arrowFor` then subtracts the phone's heading. So an
+`ArrowState.relativeDeg` is relative to *the phone's* top edge and is useless on a wrist.
+
+**Decision**
+- The phone sends the **true bearing** and the **declination it is using**. The watch computes
+  `true heading = watch compass (magnetic) + that declination` and draws
+  `Geo.relativeDeg(bearing, heading)`. The watch needs no location permission and no GPS.
+- The declination sent is the one the *source finder* used, even when that is 0 because the
+  phone has no GPS fix yet. Bearings and heading then stay in the same frame either way. (A GPS
+  bearing cannot exist before the fix that also sets the declination, so a GPS arrow is never
+  drawn with the wrong one.) In New Zealand the correction is about 20°, so it is very visible
+  if this is wrong.
+- Watch heading comes from the rotation-vector sensor (fused, magnetic north): the compass
+  direction of the screen's 12 o'clock, read from the rotation matrix, allowing for a flipped
+  display (watch worn with the buttons on the other side).
+- Noise: `core/HeadingFilter` is reused as it is (unit-circle average, heavy for jitter, light
+  for a real turn), tuned for the watch's 25 readings a second: `slowAlpha 0.2, fastAlpha 0.8,
+  fastAboveDeg 12`. That is where it fits. It does **not** fit the bearing from the phone (two
+  readings a second, and a jump there is a real change of method), so the screen simply glides
+  the arrow between updates.
+- Old readings. Three things, all in `WristArrow`:
+  1. The bearing is in world terms, so turning the wrist never waits for the phone.
+  2. No clocks are compared between phone and watch (they can differ by seconds). The phone
+     sends each reading's **age**; the watch adds its own time since arrival plus the measured
+     link delay (the phone echoes the watch's own timestamp from the last renewal, which gives
+     the round trip).
+  3. A bearing only goes stale because *you* move: worst case it drifts by
+     `atan(walking speed × age ÷ distance)`. Past 25° of possible drift the arrow is shown as
+     "rough" (dimmed) and the facing buzz is held back. With no update for 2.5 s the arrow
+     dims; after 10 s the watch says the phone is out of reach.
+
+**Why:** a few hundred milliseconds only matters if the angle depends on the phone's or the
+watch's heading at send time. Here it doesn't.
+
+**Verify on a watch:** compass quality near speakers and steel; whether a flipped Galaxy Watch
+reports the display rotation the standard way (if the arrow points backwards when flipped, it
+doesn't).
+
+### 2. Wrist position
+
+**Decision:** a live arrow only while the watch face is within **40°** of flat (face up). Once
+showing, it stays until **50°** (so it doesn't flicker at the edge), and it needs 0.3 s inside
+the limit before it appears. Otherwise the screen shows distance and "Hold your wrist flat".
+Buzzes carry on either way.
+
+**Why these numbers**
+- People read a watch tilted 20–40° towards their eyes. A stricter limit would hide the arrow
+  in the normal reading pose.
+- On a tilted screen, "the angle I see" and "the angle on the ground" differ by at most 7.6° at
+  40° and 12.5° at 50°; compass noise grows by 1.3× and 1.6×. Past that, "up on the screen"
+  starts to mean "sky", not "ahead".
+- Tilt comes from the same fused sensor as the heading (steadier than the raw accelerometer in
+  a jumping crowd).
+
+A watch with no compass shows distance and buzzes only. A compass reporting low accuracy shows
+the arrow as rough with a "move your wrist in a figure 8" hint.
+
+### 3. Phone in the pocket
+
+**Checked in the code** (`Method.givesDirection`, `LocatorEngine`, `GpsFinder`, `UwbFinder`,
+`WalkDirection`, `SpinScan`):
+
+| Method | How its bearing is made | In a pocket |
+|---|---|---|
+| `GPS_SERVER`, `CROWD_RELAY` | Geometry between two GPS positions (`Geo.bearingDeg`) | **Valid.** Nothing to do with how the phone is held. |
+| `UWB` | Phone's compass heading + angle at the phone's antennas (`heading + azimuth`) | **Not valid.** The antennas face your leg, may be upside down, and your body is in the way. Distance stays good. |
+| `SPIN_SCAN` | Signal against the phone's heading while you turn with the phone on your chest | **Not valid** unless the scan was done phone-in-hand. |
+| `WALK` | Treats the phone's heading as the way you're walking | **Not valid.** A pocketed phone's "heading" is not your direction of travel. |
+| `WIFI_AWARE`, `BLE_RSSI` | No direction | Distance only, as on the phone. |
+
+**Decision**
+- `core/watch/WristDirections` strips the bearing (never the distance) from `UWB`, `SPIN_SCAN`
+  and `WALK` fixes unless the phone is demonstrably being held as a finder, then runs the
+  ordinary `MethodArbiter` over what is left. So the wrist gets the arbiter's rules unchanged
+  (stale fixes dropped, GPS direction ignored under 20 m, hysteresis, "unsure"), just with a
+  smaller set of directions. A test fails if a new direction method is added without being put
+  in one list or the other.
+- In practice: **further than about 20 m** the wrist arrow runs on GPS or crowd relay. **Closer
+  than that** there is no honest arrow from a pocket, so the watch shows distance and the
+  warmer / colder buzzes do the work (UWB, when both phones have it, still gives the distance
+  to within centimetres).
+- "Held as a finder" means: the phone's own finder is running, its screen is on, and gravity
+  says it is upright or flat in portrait (top edge not hanging down, screen not facing the
+  floor). Only then are the phone's UWB / scan / walk directions passed on, so the two arrows
+  agree when you hold both.
+- The phone's own compass, motion sensor and 20-a-second loop do not run in pocket mode at all.
+
+**Why:** a wrong arrow is worse than no arrow; `MethodArbiter` already takes that view for GPS
+up close.
+
+### 4. Phone side running in the background
+
+**Checked in the code:** the finder (`LocatorEngine`) belongs to `MainActivity` and its scan is
+**unfiltered** (`BleRanger.start(lowLatency = true)` → `BleHub`), which Android suspends the
+moment the screen goes off. So the existing finder cannot simply be left running in a pocket.
+
+**Decision**
+- A separate small **`PocketFinder`** (new file) built from the same public parts
+  (`BleRanger`, `UwbFinder`, `WifiAwareFinder`, `GpsFinder`, crowd relay, a "looking" advert)
+  with a **filtered, fast** scan, which keeps working with the screen off. No compass, no
+  walk-and-watch, no spin scan, no 20-a-second loop: none of them mean anything in a pocket.
+- `LocatorEngine` is not refactored. It gains one read-only block at the end of the class (is
+  it running, each method's latest fix, the declination) and registers itself with
+  `PhoneFinderBridge`. If the phone's own finder is running, `PocketFinder` stands down and the
+  watch is fed from it instead, so there are never two UWB sessions or two "looking" adverts.
+- **`WatchFinderService`**: a foreground service, type `connectedDevice`, plus `location` when
+  Android allows it, with its own notification ("Finding Sam for your watch" · Stop). The
+  permissions for both types are already in the manifest.
+- **Starts only when the watch asks; stops as soon as it stops.** The watch holds a lease it
+  renews every 5 s. No renewal for 15 s (watch out of range, crashed, flat battery), a stop
+  message, or the Stop button ends the service. A hard cap of 20 minutes means a forgotten
+  session cannot run all night.
+- Android's rules, and what happens (Android 12–16):
+
+| Phone when the watch asks | Starting the service | Location and Bluetooth results | What you get |
+|---|---|---|---|
+| You're live (normal at a gig), phone in pocket | Allowed when battery optimisation is off for Moshpoint, which the app already asks for at Go live. Otherwise it relies on Play services being bound to us at that moment, which Android's code allows but its documentation doesn't promise | Yes. The live service already holds the `location` type from when it was started with the app open | Full finding |
+| App open on screen | Always allowed, with `location` | Yes | Full finding |
+| Not live, app closed | As the first row | **No.** Android 14+ refuses a `location` service started from the background | Watch says "Open Moshpoint on your phone". Opening it once fixes it for that session |
+
+- If the start is refused but you're live, the finder still runs under the live service's
+  foreground status. If it can't run at all, the watch is told and says so; it never shows a
+  stale or made-up arrow.
+
+**Battery:** nothing runs unless the watch asks; pocket mode skips the phone's compass and
+motion sensors; Android itself drops a screen-off scan to a low duty cycle; the lease and the
+cap bound the worst case.
+
+**Verify on a phone:** background start on Samsung/Xiaomi with battery optimisation left on;
+whether UWB ranges from a pocket at all.
+
+### 5. The phone-watch link
+
+- **Same app id and key:** `wear` uses `applicationId "nz.waveformlabs.moshpoint"` and the same
+  signing set-up as `app` (the public debug key for test builds, the private key from CI
+  secrets when present). Its version code is the phone's plus 1,000,000 so the two can share a
+  Play listing.
+- **Versioned messages:** every frame starts `magic, version, type`. A side that sees a version
+  it can't read says "update Moshpoint on your phone / watch" instead of guessing. Inside a
+  version, new fields are only ever added at the end and unknown types are ignored, so a newer
+  phone and an older watch keep working. Encoding and rules live in `core/watch/WatchProtocol`
+  and are unit-tested.
+- **Rate:** about two updates a second while the arrow can be seen; one every two seconds
+  while the wrist is down (buzzes only need distance); **nothing at all when no one is being
+  found**. Crew status is a data item written only when it changes, and only once a watch has
+  been seen.
+- **Bluetooth dropping:** the watch shows "Reconnecting…", gives one distinct buzz so silence
+  isn't mistaken for "no change", keeps asking for up to a minute, and picks the session back
+  up when the phone returns. The phone keeps finding until the lease runs out (15 s), then
+  stops.
+- **Only a phone that's with you counts.** Finding requires a *nearby* Data Layer node (direct
+  Bluetooth). A phone left at home and reached through the cloud would point from the wrong
+  place. "Need help" goes by any route.
+- **Faces sent once:** each mate's face (their photo, else the drawn default avatar, as on the
+  phone) goes as a 96-pixel image in its own data item, named by a hash of the picture. The
+  watch keeps it. The twice-a-second updates carry no images and no names.
+
+### 6. Watch battery and ambient mode
+
+- **Wrist up:** compass on, arrow live, two updates a second.
+- **Wrist down** (ambient, screen off, or arm hanging for more than 3 s): compass **off**, the
+  fast updates **stop**. If a find is on, a slow trickle (one small message every 2 s) keeps
+  the buzzes going, because buzzes are the part that is meant to work without looking. Ending
+  the find stops everything.
+- **Ambient:** the finder goes black with thin grey text (mate, last distance), no arrow, no
+  animation, updated once a minute.
+- **Ongoing activity:** while finding, a small foreground service (`connectedDevice`) holds the
+  session and shows it as an ongoing activity ("Sam · 40 m"), so it has a chip on the watch
+  face and one tap returns to the arrow.
+- **A find ends by itself** when you reach them, after 15 minutes, or after a minute without
+  the phone.
+- **Tile and complication** are drawn from what the phone last pushed. They refresh when a
+  push arrives (`onDataChanged` → update requests). No timers, no polling: the tile's refresh
+  interval is 0, the complication's update period is 0. A status older than 3 minutes is shown
+  without the "live" claim rather than fetched again.
+
+### 7. Buzz design
+
+A small vocabulary told apart by rhythm alone (many watch motors have no strength control):
+
+| Buzz | Means | When |
+|---|---|---|
+| One short tick, repeating | "Getting there" | Gap shrinks with distance: 4 s at 150 m, about 2.6 s at 30 m, 1.7 s at 10 m, 0.6 s at 3 m. Every 8 s beyond 150 m |
+| Two quick ticks | "You're facing them" | Once, when the arrow comes within 15° of straight ahead; armed again after you turn 30° away |
+| One long buzz | "Wrong way" | When the distance has clearly grown; ticks pause; repeats every 6 s while it keeps growing |
+| Short, short, long | "Found them" | Once, under 3 m; the find ends |
+| Two long buzzes | "Lost the phone" | Once, when updates stop |
+| One very long buzz | "Need help was sent" | |
+| Four rapid ticks | "That did not send" | Any ping that failed |
+
+- **Never constant:** every pattern is under a second, with at least 0.4 s of silence after
+  it, and the motor is on less than a tenth of the time.
+- **The watch's settings win.** Buzzes use the system's default strength (never a fixed
+  maximum) and an ordinary usage, so the watch's vibration strength and master switch apply.
+  If the watch is on silent, in Do Not Disturb, theatre or bedtime mode, Moshpoint does not
+  buzz by default; the finder says so and offers "Buzz anyway" for that one find.
+- The choice of pattern and its timing is pure logic in `core/watch/BuzzPlan`, unit-tested.
+
+### 8. "Need help" from the wrist
+
+- **Hold to send:** press and hold the red button for 2 seconds. A ring fills and the watch
+  ticks each half second; let go early and nothing is sent.
+- **Same path as the phone:** the phone's `WatchLinkService` calls `GroupSync.sendPing(NEED_HELP)`
+  with the phone's last known position, exactly as the button in the app does. It works with
+  the app closed: Play services wakes the listener, which loads the crew first.
+- **It says what happened, and only what it knows:**
+  - No phone in reach, or the message can't be handed over → **"Not sent. Your phone is out of
+    reach."** with the failure buzz and a Retry.
+  - Handed over → the phone then **reads the crew's ping box back from the relay** and looks
+    for its own signed Need-help ping. Found → **"Sent to your crew."** Not found within a few
+    seconds → **"Not confirmed. Your phone may have no signal."** with a Retry.
+  - No answer from the phone in 12 s → treated as not sent.
+  - Not in a crew → "You're not in a crew, so there's no one to tell."
+- A retry reuses the same request number, so a slow first attempt and a retry never send two.
+- After a send, "I'm OK now" tells the crew you're all good. That is part of the safety
+  feature, so it is free too.
+- **Never paywalled:** the phone handles Need help (and its all-clear) before, and without,
+  the Moshpoint+ check; the watch shows the button in every state, including the locked one
+  and the tile.
+
+`sendPing` itself is not changed (the Bluetooth-messaging work is rewriting how pings travel).
+Once that lands, its "Sent / Sent nearby / Waiting for signal" can replace the read-back.
+
+### 9. Moshpoint+ check
+
+- **One check, on the phone:** `Entitlements.plus(context)`. Today it returns a saved value
+  that defaults to `BuildConfig.TEST_BUILD`, so it is **on in test builds** and off in a
+  release build until billing calls `Entitlements.set(…)`. That is the only place billing has
+  to plug in.
+- **Synced to the watch** in the crew-status data item. The watch uses it to choose between
+  the real screens and a "Moshpoint+ · unlock on your phone" screen; the phone enforces it
+  again on every find request and paid ping, so an old or tampered watch gains nothing.
+- **Wrist SOS skips the check** on both sides (problem 8). `core/watch/WatchGate` holds the
+  rule and a test pins it.
+
+### 10. Small round screens in 19 languages
+
+- All watch text is in `wear/src/main/res/values*/strings.xml`; the few new phone-side texts
+  are in `strings_watch.xml`. Both are translated into the same 19 languages as the app, using
+  the terms already chosen in `docs/i18n` and the app's existing wording for the same pings.
+- Strings are written short on purpose (a watch line holds about 14 Latin characters), text
+  sits inside the round screen's safe area with percentage margins, long words shrink a step
+  before they wrap, and lists use the scaling list so rows near the edge stay inside the curve.
+- Right-to-left: text and lists mirror for Arabic. The **arrow does not**: it points at a real
+  place.
+- Numbers and units follow the watch's language and country, with the same rules as the phone
+  (`core/watch/WristDistance`): metres and km, feet and miles in the US, miles in the UK.
+- `tools/check_translation.py` now takes any module's `values-xx` folder and CI runs it over
+  `wear` as well as `app`, plus a check that both have the same set of languages.
+- Screenshot tests render every watch screen on a small (192 dp) and a large (227 dp) round
+  watch in every language, with the round edge drawn in, so clipped text shows up in review.
+
+### 11. Getting it onto a watch
+
+- CI builds `:wear:assembleDebug` and `:wear:assembleRelease` on every push, uploads the watch
+  APK next to the phone APK, and (on the main Moshpoint branch) publishes it in the test
+  release as `moshpoint-watch.apk`.
+- Install steps are below.
+
+## Privacy
+
+- **No new identifiers.** The watch names a mate by the id that mate already has in the
+  phone's own list (a random id that never leaves your devices). Nothing new is minted and
+  nothing about a person can be worked out from it.
+- **Keys stay on the phone.** The watch never sees a crew key, a friend's secret, or anyone's
+  coordinates, and never talks to the relay. It gets what its screen shows: names, colours,
+  small faces, distance, bearing. Crew data stays end-to-end encrypted exactly as now; the
+  phone is still the only thing that can open it.
+- The link is the Wear Data Layer between your own phone and your own watch. Play services
+  only connects apps with the same package name and signing key.
+- If Moshpoint+ is off, the phone sends the watch no crew details at all.
+
+## Install on a Galaxy Watch (wireless debugging)
+
+_To be written once the first watch build exists (see Status)._
