@@ -75,6 +75,22 @@ val MAP_STYLES = listOf(
 val MAP_STYLE_URL = MAP_STYLES[0].second
 
 /**
+ * What the map draws with: a live look fetched from [uri], or a saved venue map's look given
+ * whole as [json] (see VenueMaps), which needs no internet. [key] names it, so the map only
+ * reloads when it changes.
+ */
+class MapStyle(val key: String, val uri: String? = null, val json: String? = null) {
+    /** The font our own labels must ask for: a saved map only has its one font. */
+    internal val labelFont: String get() = if (json != null) nz.waveformlabs.moshpoint.core.VenueMapPlan.FONT else "Noto Sans Regular"
+
+    internal fun builder(): Style.Builder = if (json != null) Style.Builder().fromJson(json) else Style.Builder().fromUri(uri ?: MAP_STYLE_URL)
+
+    companion object {
+        fun live(url: String) = MapStyle(url, uri = url)
+    }
+}
+
+/**
  * The map itself (MapLibre). Friends are drawn as their photo (or initial) in a ring of
  * their colour, Snap Map style; you're the cyan dot. [focus] changes move the camera:
  * a single pin zooms to it, several fit everyone in view.
@@ -94,10 +110,7 @@ fun FriendMap(
     moments: List<MapMoment> = emptyList(),
     onMomentTapped: (String) -> Unit = {},
     trails: List<MapTrail> = emptyList(),
-    /** Bump to save the area on screen for use with no signal; progress goes to [onOffline]. */
-    saveOffline: Int = 0,
-    onOffline: (String) -> Unit = {},
-    styleUrl: String = MAP_STYLE_URL,
+    style: MapStyle = MapStyle.live(MAP_STYLE_URL),
 ) {
     if (!live || LocalInspectionMode.current) {
         // Screenshot tests can't load the native map: a plain stand-in.
@@ -115,7 +128,9 @@ fun FriendMap(
     val styleReady = remember { androidx.compose.runtime.mutableStateOf(false) }
     // Adds our sources/layers to a freshly loaded style (first load, and after switching style).
     val styleSetup = remember { arrayOfNulls<(Style) -> Unit>(1) }
-    val currentStyle = remember { arrayOf(styleUrl) }
+    // The style on the map now (the map is set up once; later changes go through the effect below).
+    val currentStyle = remember { arrayOf(style) }
+    val wantedStyle = androidx.compose.runtime.rememberUpdatedState(style)
     val mapView = remember {
         MapLibre.getInstance(context)
         MapView(context).apply {
@@ -143,7 +158,7 @@ fun FriendMap(
                             PropertyFactory.iconAllowOverlap(true),
                             PropertyFactory.iconIgnorePlacement(true),
                             PropertyFactory.textField(Expression.get("label")),
-                            PropertyFactory.textFont(arrayOf("Noto Sans Regular")),
+                            PropertyFactory.textFont(arrayOf(currentStyle[0].labelFont)),
                             PropertyFactory.textSize(11f),
                             PropertyFactory.textColor(android.graphics.Color.WHITE),
                             PropertyFactory.textHaloColor(android.graphics.Color.BLACK),
@@ -162,7 +177,7 @@ fun FriendMap(
                             PropertyFactory.iconAllowOverlap(true),
                             PropertyFactory.iconIgnorePlacement(true),
                             PropertyFactory.textField(Expression.get("label")),
-                            PropertyFactory.textFont(arrayOf("Noto Sans Regular")),
+                            PropertyFactory.textFont(arrayOf(currentStyle[0].labelFont)),
                             PropertyFactory.textSize(12f),
                             PropertyFactory.textColor(android.graphics.Color.WHITE),
                             PropertyFactory.textHaloColor(android.graphics.Color.BLACK),
@@ -189,7 +204,7 @@ fun FriendMap(
                             PropertyFactory.iconIgnorePlacement(true),
                             PropertyFactory.iconOpacity(Expression.get("op")),
                             PropertyFactory.textField(Expression.get("label")),
-                            PropertyFactory.textFont(arrayOf("Noto Sans Regular")),
+                            PropertyFactory.textFont(arrayOf(currentStyle[0].labelFont)),
                             PropertyFactory.textSize(12f),
                             PropertyFactory.textColor(android.graphics.Color.WHITE),
                             PropertyFactory.textHaloColor(android.graphics.Color.BLACK),
@@ -200,7 +215,8 @@ fun FriendMap(
                     )
                     styleReady.value = true
                 }
-                map.setStyle(Style.Builder().fromUri(currentStyle[0])) { styleSetup[0]?.invoke(it) }
+                currentStyle[0] = wantedStyle.value
+                map.setStyle(currentStyle[0].builder()) { styleSetup[0]?.invoke(it) }
                 map.addOnMapLongClickListener { at ->
                     longPress.value(at.latitude, at.longitude)
                     true
@@ -294,22 +310,16 @@ fun FriendMap(
         )
     }
 
-    // Style switch (Bright / Night / Dark): reload and put our layers back on top.
-    LaunchedEffect(styleUrl) {
+    // Style switch (Bright / Night / Dark, or to and from a saved venue map): reload and put
+    // our layers back on top.
+    LaunchedEffect(style.key) {
+        var tries = 0
+        while (holder[0] == null && tries++ < 50) kotlinx.coroutines.delay(100)
         val map = holder[0] ?: return@LaunchedEffect
-        if (currentStyle[0] == styleUrl) return@LaunchedEffect
-        currentStyle[0] = styleUrl
+        if (currentStyle[0].key == style.key) return@LaunchedEffect
+        currentStyle[0] = style
         styleReady.value = false
-        map.setStyle(Style.Builder().fromUri(styleUrl)) { styleSetup[0]?.invoke(it) }
-    }
-
-    // "Save this area": download the visible area's map (zoom 12-17) for when data dies.
-    val offlineCb = androidx.compose.runtime.rememberUpdatedState(onOffline)
-    LaunchedEffect(saveOffline) {
-        if (saveOffline == 0) return@LaunchedEffect
-        val map = holder[0] ?: return@LaunchedEffect
-        val bounds = map.projection.visibleRegion.latLngBounds
-        saveArea(context, bounds, currentStyle[0]) { offlineCb.value(it) }
+        map.setStyle(style.builder()) { styleSetup[0]?.invoke(it) }
     }
 
     // Camera moves when asked (first open, "Everyone", "Me", or tapping someone in the list).
@@ -415,40 +425,4 @@ private fun momentBitmap(img: androidx.compose.ui.graphics.ImageBitmap): Bitmap 
     paint.xfermode = null
     c.restoreToCount(layer)
     out
-}
-
-/** Downloads the map for [bounds] so it works offline (MapLibre keeps it on the phone). */
-private fun saveArea(context: android.content.Context, bounds: LatLngBounds, styleUrl: String, progress: (String) -> Unit) {
-    val om = org.maplibre.android.offline.OfflineManager.getInstance(context)
-    val def = org.maplibre.android.offline.OfflineTilePyramidRegionDefinition(
-        styleUrl, bounds, 12.0, 17.0, context.resources.displayMetrics.density,
-    )
-    progress(Txt.s(R.string.find_saving_area))
-    om.createOfflineRegion(def, "venue".toByteArray(), object : org.maplibre.android.offline.OfflineManager.CreateOfflineRegionCallback {
-        override fun onCreate(offlineRegion: org.maplibre.android.offline.OfflineRegion) {
-            offlineRegion.setObserver(object : org.maplibre.android.offline.OfflineRegion.OfflineRegionObserver {
-                override fun onStatusChanged(status: org.maplibre.android.offline.OfflineRegionStatus) {
-                    if (status.isComplete) {
-                        progress(Txt.s(R.string.find_area_saved))
-                        offlineRegion.setDownloadState(org.maplibre.android.offline.OfflineRegion.STATE_INACTIVE)
-                    } else if (status.requiredResourceCount > 0) {
-                        progress(Txt.s(R.string.find_saving_area_pct, (100 * status.completedResourceCount / status.requiredResourceCount).toInt()))
-                    }
-                }
-
-                override fun onError(error: org.maplibre.android.offline.OfflineRegionError) {
-                    progress(Txt.s(R.string.find_area_save_failed, error.message.orEmpty()))
-                }
-
-                override fun mapboxTileCountLimitExceeded(limit: Long) {
-                    progress(Txt.s(R.string.find_area_too_big))
-                }
-            })
-            offlineRegion.setDownloadState(org.maplibre.android.offline.OfflineRegion.STATE_ACTIVE)
-        }
-
-        override fun onError(error: String) {
-            progress(Txt.s(R.string.find_area_save_failed, error))
-        }
-    })
 }

@@ -69,14 +69,17 @@ fun MapScreen(
     moments: List<MapMoment> = emptyList(),
     onMomentTapped: (String) -> Unit = {},
     trails: Map<String, List<LocationBook.Seen>> = emptyMap(),
+    /**
+     * The venue map saved on the phone, for map look number [Int] (see VenueMaps), when it
+     * should be used instead of the live map: at the gig, or with no internet. Null = live map.
+     */
+    savedStyle: (Int) -> MapStyle? = { null },
 ) {
     var dropAt by remember { mutableStateOf<Pair<Double, Double>?>(null) }
-    var saveN by remember { mutableIntStateOf(0) }
     val ctx = androidx.compose.ui.platform.LocalContext.current
     var styleIx by remember {
         mutableIntStateOf(runCatching { ctx.getSharedPreferences("map", android.content.Context.MODE_PRIVATE).getInt("style", 0) }.getOrDefault(0).coerceIn(0, MAP_STYLES.size - 1))
     }
-    var offlineStatus by remember { mutableStateOf<String?>(null) }
     val hasBack = androidx.activity.compose.LocalOnBackPressedDispatcherOwner.current != null
     if (hasBack) androidx.activity.compose.BackHandler(onBack = onBack)
 
@@ -114,9 +117,7 @@ fun MapScreen(
             live = liveMap,
             moments = moments,
             onMomentTapped = onMomentTapped,
-            saveOffline = saveN,
-            styleUrl = MAP_STYLES[styleIx].second,
-            onOffline = { offlineStatus = it },
+            style = savedStyle(styleIx) ?: MapStyle.live(MAP_STYLES[styleIx].second),
             trails = located.mapNotNull { f -> trails[f.id]?.let { t -> MapTrail(f.color, t.map { it.lat to it.lon }) } },
         )
 
@@ -133,7 +134,7 @@ fun MapScreen(
             }
             Column(Modifier.weight(1f)) {
                 Text(stringResource(R.string.find_map_title), style = Mosh.Label, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(offlineStatus ?: status, style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 15.sp, color = Mosh.TextFaint), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(status, style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 15.sp, color = Mosh.TextFaint), maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             TextButton(onClick = { me?.let { dropAt = it.lat to it.lon } }, enabled = me != null) {
                 Text(stringResource(R.string.find_map_pin), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink))
@@ -165,9 +166,6 @@ fun MapScreen(
                 .background(Mosh.Deep.copy(alpha = 0.94f), RoundedCornerShape(20.dp))
                 .border(1.dp, Mosh.Line, RoundedCornerShape(20.dp)).padding(vertical = 8.dp),
         ) {
-            TextButton(onClick = { saveN++ }, modifier = Modifier.padding(horizontal = 6.dp)) {
-                Text(stringResource(R.string.find_save_area), style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF)))
-            }
             if (people.isEmpty()) {
                 Text(
                     stringResource(R.string.find_map_no_mates),

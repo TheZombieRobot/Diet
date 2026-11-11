@@ -27,6 +27,8 @@
 
     <!-- Server location sharing -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Knowing when there's a connection: the venue map downloads by itself, and the map uses its saved copy with none. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Sound on crew moment clips (asked the first time you hold to record). -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- "Add your photos from that night": find photos/videos taken during a gig (asked only then). -->

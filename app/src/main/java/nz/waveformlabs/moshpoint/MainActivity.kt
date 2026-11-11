@@ -45,6 +45,8 @@ import nz.waveformlabs.moshpoint.ui.Mosh
 import androidx.compose.animation.togetherWith
 import nz.waveformlabs.moshpoint.ui.FriendsScreen
 import nz.waveformlabs.moshpoint.ui.MyQrDialog
+import nz.waveformlabs.moshpoint.venue.VenueLookup
+import nz.waveformlabs.moshpoint.venue.VenueMaps
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 
@@ -447,6 +449,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         lifecycleScope.launch { GigArchive.refreshList(this@MainActivity) }
+        VenueMaps.sync(this) // carries on a venue map download that was interrupted
         Friendship.load(this)
         missing = missingPermissions()
         refreshSetupIssues()
@@ -479,6 +482,7 @@ class MainActivity : ComponentActivity() {
         DebugStatus.initUi(this)
         if (savedInstanceState == null) intent?.getStringExtra(ShareInviteActivity.EXTRA_TEXT)?.let { handleInvite(it) }
         GroupSync.load(this)
+        VenueMaps.sync(this) // the venue's street map saves itself for every crew we're in
         if (GroupSync.following) FollowCheck.schedule(this)
         GroupSync.group.value?.let { runCatching { GigArchive.remember(this, it) } }
         lifecycleScope.launch {
@@ -861,6 +865,7 @@ class MainActivity : ComponentActivity() {
                             },
                             onOpenMap = { openMap() },
                             meetUp = GroupSync.rally.value?.name,
+                            venueMap = VenueMaps.status.value,
                         )
                     }
                     }
@@ -882,6 +887,10 @@ class MainActivity : ComponentActivity() {
                                 showGroupQr = true
                             },
                             onClose = { planGig = false },
+                            lookupVenue = { text ->
+                                val near = lastKnownLocation()?.let { nz.waveformlabs.moshpoint.core.LatLon(it.latitude, it.longitude) }
+                                (VenueLookup.find(this@MainActivity, text, near) as? VenueLookup.Result.Found)?.at?.let { it.lat to it.lon }
+                            },
                         )
                     }
                     if (bumping) {
@@ -1152,6 +1161,12 @@ class MainActivity : ComponentActivity() {
                                 nz.waveformlabs.moshpoint.ui.MapMoment(m.key, Txt.s(R.string.main_moment_label, if (m.mine) Txt.s(R.string.main_you) else m.from, nz.waveformlabs.moshpoint.ui.ago(now / 1000 - m.timeSec)), lat, lon, m.image)
                             },
                             trails = LocationBook.trails,
+                            // The venue map saved on the phone, when the live one can't be had.
+                            savedStyle = { look ->
+                                VenueMaps.savedChanges.intValue // look again when a saved map appears or goes
+                                if (VenueMaps.online(this@MainActivity)) null
+                                else VenueMaps.saved(this@MainActivity, look)?.let { nz.waveformlabs.moshpoint.ui.MapStyle(it.key, json = it.json) }
+                            },
                             onMomentTapped = { key -> Moments.items.firstOrNull { it.key == key }?.let(momentFlow::view) },
                             onRide = { lat, lon ->
                                 runCatching {

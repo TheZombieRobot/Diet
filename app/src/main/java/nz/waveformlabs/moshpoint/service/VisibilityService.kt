@@ -107,6 +107,7 @@ class VisibilityService : LifecycleService() {
         registerReceiver(batteryReceiver, android.content.IntentFilter(Intent.ACTION_BATTERY_CHANGED))
         GroupSync.load(this)
         GroupSync.acquire(this) // keep introducing ourselves to the gig group while visible
+        nz.waveformlabs.moshpoint.venue.VenueMaps.sync(this) // and keep the venue map download going
         CrowdRelayRadio.startListening(this)
         CrowdRelayRadio.startBroadcasting(this, lifecycleScope)
         if (wifiRttSupported(this)) {
