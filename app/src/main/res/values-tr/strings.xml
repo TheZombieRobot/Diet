@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Turkish -->
+<resources>
+    <string name="app_name">Moshpoint</string>
+    <string name="visibility_channel">Canlı durum</string>
+    <string name="visibility_notification">Canlıdasın: arkadaşların seni bulabilir</string>
+    <string name="widget_title">Ekibin</string>
+    <string name="widget_empty">Moshpoint\'te bir ekip kur, arkadaşların burada görünsün.</string>
+    <string name="widget_find">Ekibi bul</string>
+    <string name="widget_description">Ekibin nerede, tek dokunuşla bul</string>
+</resources>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Swedish: shared formats (times, distances, countdowns). -->
+<resources>
+    <string name="time_just_now">nyss</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">%d min sedan</item>
+        <item quantity="other">%d min sedan</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="one">%d tim sedan</item>
+        <item quantity="other">%d tim sedan</item>
+    </plurals>
+    <plurals name="time_days_ago">
+        <item quantity="one">%d dag sedan</item>
+        <item quantity="other">%d dagar sedan</item>
+    </plurals>
+    <string name="time_live">live</string>
+    <string name="status_battery_died">batteriet dog här · %1$s</string>
+    <string name="status_time_battery">%1$s · %2$d%%</string>
+
+    <string name="dist_m">%1$s m</string>
+    <string name="dist_km">%1$s km</string>
+    <string name="dist_ft">%1$s ft</string>
+    <string name="dist_mi">%1$s mi</string>
+    <string name="unit_m">m</string>
+    <string name="unit_km">km</string>
+    <string name="unit_ft">ft</string>
+    <string name="unit_mi">mi</string>
+    <string name="dist_number_unit">%1$s %2$s</string>
+
+    <string name="countdown_tonight">ikväll</string>
+    <string name="countdown_tomorrow">imorgon</string>
+    <plurals name="countdown_days">
+        <item quantity="one">om %d dag</item>
+        <item quantity="other">om %d dagar</item>
+    </plurals>
+    <plurals name="countdown_weeks">
+        <item quantity="one">om %d vecka</item>
+        <item quantity="other">om %d veckor</item>
+    </plurals>
+    <plurals name="countdown_months">
+        <item quantity="one">om %d månad</item>
+        <item quantity="other">om %d månader</item>
+    </plurals>
+</resources>

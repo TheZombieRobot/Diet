@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Turkish: main screen, invites, sharing and phone setup checks. -->
+<resources>
+    <string name="main_get_the_app">Moshpoint henüz yok mu? Buradan yükle (Android): %1$s\nSonra bu mesajın tamamını kopyala, Moshpoint\'i aç ve Daveti yapıştır\'a dokun.\n\n</string>
+    <string name="main_nudge_text">Selam %1$s, Moshpoint\'i aç ve Canlıya geç\'e dokun (konum ve mobil veri açık olsun) ki seni bulabileyim!</string>
+    <string name="main_nudge_mate">kanka</string>
+    <string name="main_nudge_title">Canlıya geçmelerini iste</string>
+
+    <string name="main_setup_bluetooth_off">Bluetooth kapalı. O olmadan kimse seni bulamaz, sen de onları bulamazsın.</string>
+    <string name="main_setup_location_off">Konum kapalı. GPS ile bulma buna ihtiyaç duyar, birçok telefonda Bluetooth ile bulma da.</string>
+    <string name="main_setup_wifi_off">Wi-Fi kapalı. Daha hassas mesafe için aç (bir ağa bağlanman gerekmiyor).</string>
+    <string name="main_setup_battery">Pil tasarrufu, Moshpoint kapalıyken onu durdurabilir; o zaman arkadaşların seni bulamaz.</string>
+    <string name="main_setup_turn_on">Aç</string>
+    <string name="main_setup_fix">Düzelt</string>
+
+    <string name="main_facebook_failed">Facebook ile giriş başarısız: %1$s</string>
+    <string name="main_facebook_unknown_error">bilinmeyen hata</string>
+    <string name="main_facebook_not_set_up">Bu sürümde Facebook ile giriş ayarlı değil</string>
+
+    <string name="main_my_spot">Benim yerim</string>
+
+    <string name="main_photos_permission_needed">O geceki fotoğrafları bulmak için Moshpoint\'in fotoğraflarına erişmesi gerekiyor</string>
+    <string name="main_you">Sen</string>
+    <plurals name="main_added_to_gig">
+        <item quantity="one">Konsere %d tane eklendi</item>
+        <item quantity="other">Konsere %d tane eklendi</item>
+    </plurals>
+    <string name="main_saving_one">Kaydediliyor…</string>
+    <plurals name="main_saving_many">
+        <item quantity="one">%d fotoğraf veya video kaydediliyor…</item>
+        <item quantity="other">%d fotoğraf ve video kaydediliyor…</item>
+    </plurals>
+    <string name="main_save_failed">Kaydedilemedi. Telefonun dolu mu?</string>
+    <string name="main_saved_all">Galerine kaydedildi: Moshpoint / %1$s</string>
+    <plurals name="main_saved_some">
+        <item quantity="one">%2$d taneden %1$d tanesi galerine kaydedildi</item>
+        <item quantity="other">%2$d taneden %1$d tanesi galerine kaydedildi</item>
+    </plurals>
+    <string name="main_gig_fallback">Konser</string>
+
+    <string name="main_invite_expired">Bu grup davetinin süresi dolmuş. Yenisini iste.</string>
+    <string name="main_joined_up_next">Ekiptesin: %1$s! Sıradakiler\'de duruyor: istediğin kadar sohbet et, konser günü uyanacak.</string>
+    <string name="main_joined_following">Takip ediyorsun: %1$s. Fotoğraflarını ve nerede olduklarını göreceksin; onlar da takip ettiğini görecek.</string>
+    <string name="main_joined_sleeping">Ekiptesin: %1$s! Ekip konser günü uyanacak (%2$s).</string>
+    <string name="main_joined_live">Ekiptesin: %1$s! Ekipteki herkes birbirini bulabilir.</string>
+    <string name="main_the_crew">ekip</string>
+    <string name="main_got_code">Kod tamam. Bir isim ver, sonra Arkadaş ekle\'ye dokun.</string>
+    <string name="main_friend_added">✓ Eklendi: %1$s</string>
+    <string name="main_no_invite_found">Moshpoint daveti bulunamadı. Arkadaşının gönderdiği mesajın tamamını kopyala, sonra Daveti yapıştır\'a dokun.</string>
+
+    <string name="main_perm_location">Konum: GPS oku ve Bluetooth/Wi-Fi ile mesafe</string>
+    <string name="main_perm_nearby">Yakındaki cihazlar: Bluetooth ile arkadaşlarını bulmak ve bulunmak</string>
+    <string name="main_perm_uwb">UWB: hassas ok</string>
+    <string name="main_perm_notifications">Bildirimler: görünür olduğunda gösterir</string>
+
+    <string name="main_phone_summary">Bu telefon: %1$s</string>
+    <string name="main_cap_compass">pusula</string>
+
+    <string name="main_invite_reset">Davet sıfırlandı. Eski QR kodları ve linkler artık çalışmıyor.</string>
+    <string name="main_eyebrow_up_next">SIRADAKİLER</string>
+    <string name="main_eyebrow_up_next_countdown">SIRADAKİLER · %1$s</string>
+    <string name="main_eyebrow_coming_up">EKİBİN · YAKINDA</string>
+    <string name="main_eyebrow_tonight">BU GECEKİ EKİBİN</string>
+    <string name="main_qr_hint_planned">Herkes bunu bir kez tarasın. Şimdiden sohbet edip gazlayın; birbirinizi bulma konser günü açılır.</string>
+    <string name="main_qr_hint_tonight">Herkes bunu bir kez tarasın. Sonra bütün gece birbirinizi bulabilirsiniz.</string>
+    <string name="main_scan_to_add_me">Beni eklemek için tara</string>
+    <string name="main_scan_to_add_name">Tara ve ekle: %1$s</string>
+
+    <string name="main_wants_to_stay_friends">%1$s arkadaş kalmak istiyor</string>
+    <string name="main_stay_friends_text">Tanıştığınız ekip: %1$s. Evet dersen sadece bu konserde değil, her konserde birbirinizi bulabilirsiniz. Bilgilerini sadece %2$s alır, ekipteki başka kimse almaz.</string>
+    <string name="main_friends_now">%1$s ile artık arkadaşsınız</string>
+    <string name="main_yes_stay_friends">Evet, arkadaş kalalım</string>
+    <string name="main_not_now">Şimdi değil</string>
+
+    <string name="main_battery_title">Bütün gece görünür kal</string>
+    <string name="main_battery_text">Bazı telefonlar pil tasarrufu için arka plandaki uygulamaları kapatır, bu da seni görünmez yapar. Sonraki ekranda Moshpoint\'i bul ve \"Optimize etme\" / \"Kısıtlanmamış\" olarak ayarla.</string>
+    <string name="main_open_settings">Ayarları aç</string>
+
+    <plurals name="main_n_mates">
+        <item quantity="one">%d arkadaş</item>
+        <item quantity="other">%d arkadaş</item>
+    </plurals>
+    <string name="main_beacon_colour_name">%1$s (%2$s)</string>
+
+    <string name="main_scan_prompt">Arkadaşının Moshpoint QR\'ını tara</string>
+    <string name="main_out_of_crew">%1$s artık ekipte değil. Diğer herkes yeni bir anahtara geçiyor.</string>
+
+    <string name="main_follow_share_text">Gecemizi Moshpoint\'te takip et (%1$s): fotoğraflarımızı geldikçe gör, iyi olduğumuzu bil.\n%2$s</string>
+    <string name="main_follow_share_title">Ailen de takip etsin</string>
+    <string name="main_when_venue">%1$s · %2$s</string>
+
+    <string name="main_time_passed">O saat çoktan geçti. Konserin başlama saatini seç.</string>
+    <string name="main_added_up_next">Sıradakiler\'e eklendi: %1$s. Arkadaşlarını davet et, gaz başlasın!</string>
+
+    <string name="main_join_name">%1$s · Katılmak ister misin?</string>
+    <string name="main_follow_name">%1$s · Takip etmek ister misin?</string>
+    <string name="main_bumped_text">Tokuşturuldu! Katıl, bu gece hepiniz birbirinizi bulabilirsiniz.</string>
+    <string name="main_join">Katıl</string>
+    <string name="main_no">Hayır</string>
+    <string name="main_clip_follow_text">Bir takip linki kopyaladın. Fotoğraflarını ve iyi olduklarını göreceksin; onlar da takip ettiğini görecek.</string>
+    <string name="main_clip_join_text">Bir Moshpoint daveti kopyaladın. Katıl, bu gece hepiniz birbirinizi bulabilirsiniz.</string>
+
+    <string name="main_your_night">Gecen</string>
+    <string name="main_recap_text">%1$s\n\nGeceyi bitirince ekip kapanır (arkadaşlar kalır). Fotoğraflar ve videolar Konserlerin bölümünde, telefonunda kalır.</string>
+    <string name="main_night_ended">Gece bitti. Fotoğrafların ve videoların Konserlerin bölümünde.</string>
+    <string name="main_end_the_night">Geceyi bitir</string>
+    <string name="main_share_night_text">Moshpoint ile gecem: %1$s 🤘</string>
+    <string name="main_share_night_title">Geceni paylaş</string>
+    <string name="main_share">Paylaş</string>
+
+    <string name="main_now_main_crew">Artık ana ekibin: %1$s. Ekipteki herkes birbirini bulabilir.</string>
+    <string name="main_deleted_gig">Bu telefondan silindi: %1$s</string>
+    <string name="main_meetup_sent">Buluşma noktası ekibe gönderildi</string>
+    <string name="main_moment_label">%1$s · %2$s</string>
+
+    <string name="main_share_app_text">Konserlerde birbirimizi bulalım diye Moshpoint\'i indir: bir arkadaşına dokun, ok onu göstersin.\n\n%1$s</string>
+    <string name="main_share_app_title">Moshpoint\'i paylaş</string>
+    <string name="main_named_crew">%1$s ve ekibi</string>
+    <string name="main_tonights_crew">Bu gecenin ekibi</string>
+    <string name="main_me">Ben</string>
+    <string name="main_group_invite_text">Bu gece Moshpoint\'te \"%1$s\" ekibime katıl!\n%2$s</string>
+    <string name="main_group_invite_title">Grup davetini gönder</string>
+</resources>

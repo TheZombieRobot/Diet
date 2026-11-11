@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Swedish: settings, onboarding, planning, QR, bump, camera-roll picker. -->
+<resources>
+    <string name="setup_settings_title">Inställningar</string>
+    <string name="setup_your_photo">Din bild</string>
+    <string name="setup_your_photo_desc">Syns i kompisarnas pil. Bara dina kompisar kan se den.</string>
+    <string name="setup_take_selfie">Ta en selfie</string>
+    <string name="setup_choose_photo">Välj bild</string>
+    <string name="setup_remove_my_photo">Ta bort min bild</string>
+    <string name="setup_your_name">Ditt namn</string>
+    <string name="setup_stay_live">Förbli live efter omstart</string>
+    <string name="setup_stay_live_desc">Om du var live när mobilen startade om går du live igen automatiskt.</string>
+    <string name="setup_ghost_mode">Spökläge</string>
+    <string name="setup_ghost_mode_desc">Dölj din plats på kartan. Kompisar kan fortfarande hitta dig via Bluetooth när de är nära.</string>
+    <string name="setup_ghost_one_hour">Spöke i 1 timme</string>
+    <string name="setup_data_saver">Datasparläge</string>
+    <string name="setup_data_saver_desc">Dela lättare bilder och klipp (snabbare med svag täckning). Av: hög kvalitet, så allas sparade kopior blir skarpa. Dina egna original sparas alltid i full kvalitet.</string>
+    <string name="setup_emergency_contact">Nödkontakt</string>
+    <string name="setup_emergency_contact_desc">\"Behöver hjälp\" kan skicka din plats till dem som vanligt sms (funkar utan data). Stannar på den här telefonen.</string>
+    <string name="setup_contact_name">Namn</string>
+    <string name="setup_contact_mobile">Mobilnummer</string>
+    <string name="setup_contact_saved">Sparat</string>
+    <string name="setup_contact_need_number">Lägg till ett mobilnummer</string>
+    <string name="setup_contact_removed">Borttaget</string>
+    <string name="setup_save">Spara</string>
+    <string name="setup_remove">Ta bort</string>
+    <string name="setup_about">OM</string>
+    <string name="setup_about_text">Moshpoint %1$s. Inget konto, roterande koder, end-to-end-krypterade platser. Du går bara att hitta när du är live.</string>
+    <string name="setup_hide_licences">Dölj licenser</string>
+    <string name="setup_open_source_licences">Licenser för öppen källkod</string>
+    <string name="setup_licences_fonts">Typsnitt: Unbounded och Inter, under SIL Open Font License 1.1. QR-koder: ZXing (Apache 2.0).</string>
+    <string name="setup_continue_facebook">Fortsätt med Facebook</string>
+
+    <string name="setup_onb_skip">Hoppa över</string>
+    <string name="setup_onb_title_find">Hitta kompisarna\ni vilken publik som helst</string>
+    <string name="setup_onb_body_find">Tryck på en kompis så pekar en pil rakt mot dem. Den lyser i deras färg när du kommer nära.</string>
+    <string name="setup_onb_title_live">Gå live när\ndu går in</string>
+    <string name="setup_onb_body_live">Kompisarna kan bara hitta dig när du är live, och bara du slår på det. Moshpoint behöver:</string>
+    <string name="setup_onb_need_nearby">Enheter i närheten</string>
+    <string name="setup_onb_need_nearby_why">för att hitta kompisar via Bluetooth, Wi-Fi och UWB</string>
+    <string name="setup_onb_need_location">Plats</string>
+    <string name="setup_onb_need_location_why">för pilen när ni är långt ifrån varandra</string>
+    <string name="setup_onb_need_notifications">Aviseringar</string>
+    <string name="setup_onb_need_notifications_why">så du alltid vet när du är live</string>
+    <string name="setup_onb_title_name">Vad ska dina\nkompisar kalla dig?</string>
+    <string name="setup_onb_or_type_it">eller skriv in det</string>
+    <string name="setup_onb_lets_go">Kör!</string>
+    <string name="setup_onb_allow">Tillåt</string>
+    <string name="setup_onb_skip_for_now">Hoppa över tills vidare</string>
+    <string name="setup_onb_im_name">Jag heter %1$s</string>
+    <string name="setup_onb_arrow_demo_desc">En pil som pekar mot en kompis</string>
+
+    <string name="setup_plan_title">Planera en spelning</string>
+    <string name="setup_plan_desc">Starta gänget nu, alla går med när det passar. Det sover (inget batteri) fram till dagen.</string>
+    <string name="setup_plan_search_hint">Sök: band, artist eller ställe</string>
+    <string name="setup_plan_searching">Söker…</string>
+    <string name="setup_plan_search_failed">Kunde inte söka just nu. Skriv in det nedan i stället.</string>
+    <string name="setup_plan_no_results">Inga kommande spelningar hittades. Skriv in det nedan.</string>
+    <string name="setup_plan_when_where">%1$s · %2$s</string>
+    <string name="setup_plan_or_type">ELLER SKRIV IN DET</string>
+    <string name="setup_plan_whos_playing">Vem spelar</string>
+    <string name="setup_plan_where">Var (valfritt)</string>
+    <string name="setup_plan_start_crew">Starta gänget</string>
+    <string name="setup_plan_default_name">Spelningskväll</string>
+
+    <string name="setup_qr_title">Skanna för att lägga till mig</string>
+    <string name="setup_qr_hint">Skanna sen deras, så ni kan hitta varandra.</string>
+    <string name="setup_qr_eyebrow">DIN KOD</string>
+    <string name="setup_qr_done">‹  Klar</string>
+    <string name="setup_qr_code_desc">QR-kod</string>
+    <plurals name="setup_qr_mates_in">
+        <item quantity="one">%d kompis med</item>
+        <item quantity="other">%d kompisar med</item>
+    </plurals>
+    <string name="setup_qr_send_invite">Går det inte att skanna? Skicka en inbjudan i stället</string>
+    <string name="setup_qr_reset_invite">Återställ inbjudan</string>
+    <string name="setup_qr_reset_title">Återställa inbjudan?</string>
+    <string name="setup_qr_reset_text">Om den här QR-koden eller en skärmdump av den har spridits slutar den funka när du återställer. Alla som redan är med i gänget är kvar; nya behöver den nya QR-koden.</string>
+    <string name="setup_qr_reset">Återställ</string>
+    <string name="setup_cancel">Avbryt</string>
+    <string name="setup_qr_end_night">Avsluta kvällen</string>
+
+    <string name="setup_bump_title">Bumpa telefoner</string>
+    <string name="setup_bump_sharing">Håll din telefon rygg mot rygg med din kompis. De får frågan om att gå med i ditt gäng.</string>
+    <string name="setup_bump_joining">Håll din telefon rygg mot rygg med någon i ett gäng (de öppnar Bumpa också). Du får frågan om att gå med.</string>
+    <string name="setup_done">Klar</string>
+
+    <string name="setup_roll_title">Dina bilder från den kvällen</string>
+    <string name="setup_roll_looking">Kollar igenom dina bilder…</string>
+    <string name="setup_roll_nothing">Inget på den här telefonen från de timmarna. Bilder tagna med en annan telefon, eller som redan lagts till, syns inte här.</string>
+    <string name="setup_roll_tap_to_leave_out">Tryck för att hoppa över en. De kopieras till spelningen, så de finns kvar även om du raderar dem från galleriet.</string>
+    <string name="setup_roll_adding">Lägger till…</string>
+    <plurals name="setup_roll_add_n">
+        <item quantity="one">Lägg till %d i spelningen</item>
+        <item quantity="other">Lägg till %d i spelningen</item>
+    </plurals>
+</resources>

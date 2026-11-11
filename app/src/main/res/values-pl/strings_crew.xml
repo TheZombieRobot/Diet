@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Polish: crew chat, notifications, friendship, safety, plan card, night stats, live status. -->
+<resources>
+    <string name="crew_you">Ty</string>
+    <string name="crew_default_name">Znajomy</string>
+    <string name="crew_default_group_name">Ekipa koncertowa</string>
+    <string name="crew_default_gig_name">Koncert</string>
+    <string name="crew_someone">Ktoś</string>
+    <string name="crew_name_numbered">%1$s (%2$d)</string>
+    <string name="crew_cancel">Anuluj</string>
+    <string name="crew_close">Zamknij</string>
+
+    <string name="crew_chat_subtitle">Czat ekipy · czyta go tylko twoja ekipa</string>
+    <string name="crew_chat_invite">＋ Zaproś</string>
+    <string name="crew_chat_on_today">Ten koncert jest dzisiaj. Szukacie się w tej ekipie?</string>
+    <string name="crew_chat_switch">Przełącz</string>
+    <plurals name="crew_chat_send_flare_hint">
+        <item quantity="one">🔥  Odpal racę: pokaż, gdzie jesteś, przez %d min</item>
+        <item quantity="few">🔥  Odpal racę: pokaż, gdzie jesteś, przez %d min</item>
+        <item quantity="many">🔥  Odpal racę: pokaż, gdzie jesteś, przez %d min</item>
+        <item quantity="other">🔥  Odpal racę: pokaż, gdzie jesteś, przez %d min</item>
+    </plurals>
+    <string name="crew_chat_empty">Jeszcze pusto. Wiadomości docierają do całej ekipy w ok. minutę (szybciej przez własny serwer).</string>
+    <string name="crew_chat_night_tools_later">Nakręcajcie się! Race i szybkie pingi włączą się w dniu koncertu.</string>
+    <string name="crew_chat_message_hint">Napisz do ekipy</string>
+    <string name="crew_chat_not_sent">Nie wysłano · Kliknij, żeby ponowić</string>
+    <string name="crew_chat_sending">Wysyłam…</string>
+    <string name="crew_chat_line_with_time">%1$s · %2$s</string>
+
+    <string name="crew_chat_you_joined">Jesteś w ekipie</string>
+    <string name="crew_chat_joined">%1$s dołącza do ekipy</string>
+    <string name="crew_chat_you_pinned">Twój przypięty plan: %1$s</string>
+    <string name="crew_chat_pinned">%1$s przypina: %2$s</string>
+    <string name="crew_chat_you_cleared_plan">Plan usunięty przez ciebie</string>
+    <string name="crew_chat_cleared_plan">%1$s usuwa plan</string>
+    <string name="crew_chat_you_flare">Twoja raca: %1$s</string>
+    <string name="crew_chat_flare">%1$s odpala racę: %2$s</string>
+    <string name="crew_chat_line_other">%1$s %2$s</string>
+
+    <string name="crew_quick_coming">Już idę 🏃</string>
+    <string name="crew_quick_where">Gdzie jesteś? 👀</string>
+    <string name="crew_quick_stay_put">Zostań tam ✋</string>
+    <string name="crew_quick_meet_pin">Widzimy się przy pinezce 📍</string>
+    <string name="crew_quick_all_good">Wszystko OK 👍</string>
+    <string name="crew_quick_going_home">Wracam do domu 🏠</string>
+    <string name="crew_quick_need_help">🚨 Potrzebuję pomocy</string>
+    <plurals name="crew_quick_check_in">
+        <item quantity="one">Wracam do domu 🏠 Dam znać w ciągu %d min</item>
+        <item quantity="few">Wracam do domu 🏠 Dam znać w ciągu %d min</item>
+        <item quantity="many">Wracam do domu 🏠 Dam znać w ciągu %d min</item>
+        <item quantity="other">Wracam do domu 🏠 Dam znać w ciągu %d min</item>
+    </plurals>
+    <string name="crew_quick_home_safe">Jestem w domu ✅</string>
+
+    <string name="crew_plan_eyebrow">📌 PLAN</string>
+    <string name="crew_plan_none">Nie ma jeszcze przypiętego planu.</string>
+    <string name="crew_plan_prompt">Przypnij plan, żeby nikt nie musiał przewijać: „Realizatorka po bisie”.</string>
+    <string name="crew_plan_by">przypina: %1$s</string>
+    <string name="crew_plan_meet_up">★ Zbiórka: %1$s</string>
+    <string name="crew_plan_pin">Przypnij plan</string>
+    <string name="crew_plan_change">Zmień</string>
+    <string name="crew_plan_share">Udostępnij jako kartę</string>
+    <string name="crew_plan_title">Plan</string>
+    <string name="crew_plan_editor_body">Przypięty na górze czatu dla wszystkich, więc nigdy nie zniknie.</string>
+    <string name="crew_plan_idea_sound_desk">Spotykamy się przy realizatorce po bisie</string>
+    <string name="crew_plan_idea_bar">Na lewo od głównego baru w przerwie</string>
+    <string name="crew_plan_idea_car">Przy aucie do 23:30</string>
+    <string name="crew_plan_idea_tent">Namiot, jeśli się zgubimy</string>
+    <string name="crew_plan_pin_it">Przypnij</string>
+    <string name="crew_plan_unpin">Odepnij</string>
+
+    <string name="crew_vibe_lost">Nie wiem, gdzie jestem 😅</string>
+    <string name="crew_vibe_bar">Czas na bar 🍺</string>
+    <string name="crew_vibe_rail">Pod barierkami 🎶</string>
+    <string name="crew_vibe_food">Idę po jedzenie 🍔</string>
+    <string name="crew_vibe_toilets">Toalety 🚻</string>
+    <string name="crew_vibe_air">Na świeżym powietrzu 🌬️</string>
+    <string name="crew_vibe_merch">Stoisko z merchem 👕</string>
+    <string name="crew_vibe_leaving">Zaraz się zbieram 👋</string>
+    <string name="crew_flare_mine">Ty: %1$s</string>
+    <string name="crew_flare_theirs">%1$s: %2$s</string>
+    <plurals name="crew_flare_left">
+        <item quantity="one">zostało %d min</item>
+        <item quantity="few">zostały %d min</item>
+        <item quantity="many">zostało %d min</item>
+        <item quantity="other">zostało %d min</item>
+    </plurals>
+    <plurals name="crew_flare_left_on_map">
+        <item quantity="one">zostało %d min · na mapie</item>
+        <item quantity="few">zostały %d min · na mapie</item>
+        <item quantity="many">zostało %d min · na mapie</item>
+        <item quantity="other">zostało %d min · na mapie</item>
+    </plurals>
+    <string name="crew_flare_end">Zakończ</string>
+    <string name="crew_flare_title">Odpal racę</string>
+    <plurals name="crew_flare_body">
+        <item quantity="one">Twoje miejsce widać na mapie ekipy przez %d minutę, z klimatem.</item>
+        <item quantity="few">Twoje miejsce widać na mapie ekipy przez %d minuty, z klimatem.</item>
+        <item quantity="many">Twoje miejsce widać na mapie ekipy przez %d minut, z klimatem.</item>
+        <item quantity="other">Twoje miejsce widać na mapie ekipy przez %d minuty, z klimatem.</item>
+    </plurals>
+    <string name="crew_flare_own_hint">Albo coś swojego…</string>
+    <string name="crew_flare_send">Wyślij</string>
+
+    <string name="crew_help_title">Wezwij pomoc</string>
+    <string name="crew_help_alerted">Ekipa powiadomiona ✓</string>
+    <string name="crew_help_alert">Zaalarmuj ekipę</string>
+    <string name="crew_help_alert_sub">Pilny alert z twoją lokalizacją</string>
+    <string name="crew_help_text_contact">SMS do: %1$s</string>
+    <string name="crew_help_text_contact_sub">Otworzy się aplikacja SMS z twoją lokalizacją. Działa bez danych.</string>
+    <string name="crew_help_add_contact">Dodaj kontakt alarmowy</string>
+    <string name="crew_help_add_contact_sub">Ktoś spoza ekipy, do kogo napiszesz, gdy będzie trzeba</string>
+    <string name="crew_help_contact_name">Imię (np. Mama)</string>
+    <string name="crew_help_contact_number">Numer komórki</string>
+    <string name="crew_help_save_contact">Zapisz kontakt</string>
+    <string name="crew_help_call">Zadzwoń pod %1$s</string>
+    <string name="crew_help_call_sub">Policja, straż pożarna, pogotowie</string>
+    <string name="crew_help_call_police">Policja</string>
+    <string name="crew_help_call_ambulance">Pogotowie i straż pożarna</string>
+    <string name="crew_help_no_signal">Zero zasięgu? Wiele nowszych telefonów może połączyć się z numerem alarmowym przez satelitę: zadzwoń pod %1$s i postępuj według instrukcji. Na festiwalu ochrona i punkty medyczne pomogą szybko.</string>
+    <string name="crew_help_sms">Potrzebuję pomocy. (wysłane z Moshpoint)</string>
+    <string name="crew_help_sms_where">Potrzebuję pomocy. Jestem tutaj: %1$s (wysłane z Moshpoint)</string>
+
+    <string name="crew_channel_messages">Wiadomości od ekipy</string>
+    <string name="crew_channel_help">Prośby ekipy o pomoc</string>
+    <string name="crew_channel_requests">Znajomi, którzy cię szukają</string>
+    <string name="crew_notif_line">%1$s: %2$s</string>
+    <plurals name="crew_new_messages">
+        <item quantity="one">%d nowa wiadomość</item>
+        <item quantity="few">%d nowe wiadomości</item>
+        <item quantity="many">%d nowych wiadomości</item>
+        <item quantity="other">%d nowej wiadomości</item>
+    </plurals>
+    <string name="crew_notif_joined">jest w ekipie 🎉</string>
+    <plurals name="crew_notif_flare">
+        <item quantity="one">Raca: %1$s · tutaj przez %2$d min</item>
+        <item quantity="few">Raca: %1$s · tutaj przez %2$d min</item>
+        <item quantity="many">Raca: %1$s · tutaj przez %2$d min</item>
+        <item quantity="other">Raca: %1$s · tutaj przez %2$d min</item>
+    </plurals>
+    <string name="crew_notif_new_plan">Nowy plan: %1$s</string>
+    <string name="crew_notif_done_title">Koniec: %1$s</string>
+    <string name="crew_notif_done_saved">Twoje zdjęcia i klipy są zapisane w sekcji Twoje koncerty.</string>
+    <string name="crew_notif_done_text">Mamy nadzieję, że było ekstra. Nową ekipę możesz założyć kiedy chcesz.</string>
+    <string name="crew_notif_overdue_title">%1$s wciąż nie daje znać</string>
+    <string name="crew_notif_overdue_text">Ta osoba wracała do domu i powinna już być na miejscu. Zadzwoń do niej. Kliknij, żeby zobaczyć ostatnie miejsce.</string>
+    <string name="crew_notif_help_where">Wysłano „Potrzebuję pomocy”. Kliknij, żeby zobaczyć gdzie. Sprawdź, co się dzieje.</string>
+    <string name="crew_notif_help">Wysłano „Potrzebuję pomocy”. Sprawdź, co się dzieje.</string>
+    <string name="crew_notif_tap_where">Kliknij, żeby zobaczyć gdzie.</string>
+    <string name="crew_notif_from_crew">Od twojej ekipy</string>
+
+    <string name="crew_ping_coming">jest w drodze</string>
+    <string name="crew_ping_stay_put">mówi: zostań, gdzie jesteś</string>
+    <string name="crew_ping_where">pyta, gdzie jesteś</string>
+    <string name="crew_ping_meet_pin">mówi: widzimy się przy pinezce</string>
+    <string name="crew_ping_all_good">mówi, że wszystko OK</string>
+    <string name="crew_ping_going_home">wraca do domu</string>
+    <string name="crew_ping_need_help">POTRZEBUJE POMOCY</string>
+    <string name="crew_ping_check_in">wraca do domu i da znać</string>
+    <string name="crew_ping_home_safe">jest bezpiecznie w domu</string>
+    <string name="crew_ping_chat">pisze wiadomość</string>
+    <string name="crew_ping_flare">odpala racę</string>
+    <string name="crew_ping_plan">przypina plan</string>
+    <string name="crew_ping_other">pinguje ekipę</string>
+
+    <string name="crew_ping_title_coming">%1$s jest w drodze</string>
+    <string name="crew_ping_title_stay_put">%1$s mówi: zostań, gdzie jesteś</string>
+    <string name="crew_ping_title_where">%1$s pyta, gdzie jesteś</string>
+    <string name="crew_ping_title_meet_pin">%1$s mówi: widzimy się przy pinezce</string>
+    <string name="crew_ping_title_all_good">%1$s mówi, że wszystko OK</string>
+    <string name="crew_ping_title_going_home">%1$s wraca do domu</string>
+    <string name="crew_ping_title_need_help">%1$s POTRZEBUJE POMOCY</string>
+    <string name="crew_ping_title_check_in">%1$s wraca do domu i da znać</string>
+    <string name="crew_ping_title_home_safe">%1$s jest bezpiecznie w domu</string>
+    <string name="crew_ping_title_chat">%1$s pisze wiadomość</string>
+    <string name="crew_ping_title_flare">%1$s odpala racę</string>
+    <string name="crew_ping_title_plan">%1$s przypina plan</string>
+    <string name="crew_ping_title_other">%1$s pinguje ekipę</string>
+
+    <string name="crew_rally_default">Spotkajmy się tu</string>
+
+    <string name="crew_friend_need_crew">Dodawanie do znajomych działa, gdy jesteście razem w ekipie.</string>
+    <string name="crew_friend_gone">Tej osoby nie ma już w ekipie.</string>
+    <string name="crew_friend_unreachable">Nie da się jeszcze prywatnie połączyć z: %1$s. Spróbuj ponownie, gdy ta osoba pojawi się dziś w zasięgu (jeśli to się powtarza, musi zaktualizować aplikację).</string>
+    <string name="crew_friend_ask_failed">Nie udało się wysłać prośby do: %1$s. Spróbuj jeszcze raz.</string>
+    <string name="crew_friend_asked">Wysłano prośbę o znajomość do: %1$s. Gdy się zgodzi, będziecie znajomymi na każdy koncert.</string>
+    <string name="crew_friend_request_title">%1$s chce zostać w znajomych</string>
+    <string name="crew_friend_request_text">Z ekipy %1$s. Kliknij, żeby się zgodzić, a znajdziecie się na każdym koncercie.</string>
+    <string name="crew_friend_accepted_title">%1$s jest teraz w znajomych</string>
+    <string name="crew_friend_accepted_text">Znajdziecie się na każdym koncercie, nie tylko tutaj (%1$s).</string>
+
+    <string name="crew_add_need_name">Nadaj imię</string>
+    <string name="crew_add_bad_code">Ten kod wygląda na błędny</string>
+    <string name="crew_add_own_code">To twój własny kod</string>
+
+    <string name="crew_note_you_removed">Usunięto z ekipy: %1$s. Ekipa ma nowy klucz: od teraz ta osoba nic nie zobaczy.</string>
+    <string name="crew_note_you_reset">Zaproszenie zresetowane. Stare kody QR i linki już nie działają.</string>
+    <string name="crew_note_removed">%1$s usuwa z ekipy: %2$s.</string>
+    <string name="crew_note_reset">%1$s resetuje zaproszenie: stare kody QR już nie działają.</string>
+
+    <string name="crew_wake_title">Dziś wieczorem: %1$s!</string>
+    <string name="crew_wake_text">Start o %1$s. Kliknij, żeby włączyć live, a ekipa cię znajdzie.</string>
+    <string name="crew_wake_text_venue">Start o %1$s, miejsce: %2$s. Kliknij, żeby włączyć live, a ekipa cię znajdzie.</string>
+
+    <plurals name="crew_memory_headline">
+        <item quantity="one">Dokładnie rok temu: %2$s</item>
+        <item quantity="few">Dokładnie %1$d lata temu: %2$s</item>
+        <item quantity="many">Dokładnie %1$d lat temu: %2$s</item>
+        <item quantity="other">Dokładnie %1$d roku temu: %2$s</item>
+    </plurals>
+    <plurals name="crew_memory_headline_with">
+        <item quantity="one">Dokładnie rok temu: %2$s · ekipa: %3$s</item>
+        <item quantity="few">Dokładnie %1$d lata temu: %2$s · ekipa: %3$s</item>
+        <item quantity="many">Dokładnie %1$d lat temu: %2$s · ekipa: %3$s</item>
+        <item quantity="other">Dokładnie %1$d roku temu: %2$s · ekipa: %3$s</item>
+    </plurals>
+    <string name="crew_memory_two_people">%1$s i %2$s</string>
+    <plurals name="crew_memory_text">
+        <item quantity="one">%d zdjęcie lub klip. Kliknij i przeżyj to jeszcze raz.</item>
+        <item quantity="few">%d zdjęcia i klipy. Kliknij i przeżyj to jeszcze raz.</item>
+        <item quantity="many">%d zdjęć i klipów. Kliknij i przeżyj to jeszcze raz.</item>
+        <item quantity="other">%d zdjęcia i klipu. Kliknij i przeżyj to jeszcze raz.</item>
+    </plurals>
+
+    <string name="crew_moment_title">%1$s udostępnia moment</string>
+    <string name="crew_moment_text">Kliknij, żeby zobaczyć gdzie</string>
+
+    <string name="crew_moving_title">%1$s jest w ruchu</string>
+    <string name="crew_moving_text">Przesunięcie o %1$s od poprzedniego miejsca. Kliknij, żeby zobaczyć.</string>
+    <string name="crew_moving_text_away">Przesunięcie o %1$s od poprzedniego miejsca. Teraz %2$s od ciebie. Kliknij, żeby zobaczyć.</string>
+    <string name="crew_at_venue">na miejscu koncertu</string>
+    <string name="crew_from_venue">%1$s od miejsca koncertu</string>
+    <string name="crew_status_phone_died">%1$s · telefon padł</string>
+    <string name="crew_status_distance">%1$s %2$s</string>
+    <plurals name="crew_status_min_ago">
+        <item quantity="one">%1$s %2$d min temu</item>
+        <item quantity="few">%1$s %2$d min temu</item>
+        <item quantity="many">%1$s %2$d min temu</item>
+        <item quantity="other">%1$s %2$d min temu</item>
+    </plurals>
+
+    <string name="crew_stats_walked">%1$s pieszo</string>
+    <plurals name="crew_stats_finds">
+        <item quantity="one">znajomi znalezieni %d raz</item>
+        <item quantity="few">znajomi znalezieni %d razy</item>
+        <item quantity="many">znajomi znalezieni %d razy</item>
+        <item quantity="other">znajomi znalezieni %d razy</item>
+    </plurals>
+    <plurals name="crew_stats_moments">
+        <item quantity="one">%d moment</item>
+        <item quantity="few">%d momenty</item>
+        <item quantity="many">%d momentów</item>
+        <item quantity="other">%d momentu</item>
+    </plurals>
+    <plurals name="crew_stats_pings">
+        <item quantity="one">%d ping</item>
+        <item quantity="few">%d pingi</item>
+        <item quantity="many">%d pingów</item>
+        <item quantity="other">%d pingu</item>
+    </plurals>
+    <string name="crew_stats_out_hours">%1$d h %2$d min na mieście</string>
+    <plurals name="crew_stats_out_mins">
+        <item quantity="one">%d min na mieście</item>
+        <item quantity="few">%d min na mieście</item>
+        <item quantity="many">%d min na mieście</item>
+        <item quantity="other">%d min na mieście</item>
+    </plurals>
+    <string name="crew_stats_quiet">Spokojny wieczór</string>
+
+    <string name="crew_card_eyebrow">MOSHPOINT · PLAN NA DZIŚ</string>
+    <string name="crew_card_plan">PLAN</string>
+    <string name="crew_card_meet_up">★  Zbiórka: %1$s</string>
+    <string name="crew_card_whos_coming">KTO IDZIE</string>
+    <string name="crew_card_footer">Zgubiliście się? Znajdźcie się w Moshpoint.</string>
+    <string name="crew_card_share_meet_up">Zbiórka: %1$s</string>
+    <string name="crew_card_share_title">Udostępnij plan</string>
+
+    <string name="crew_request_title">%1$s jest blisko i cię szuka</string>
+    <string name="crew_request_text">Kliknij, żeby podświetlić ekran i dać się zauważyć</string>
+    <string name="crew_go_hidden">Schowaj się</string>
+    <string name="crew_tile_live">Live</string>
+    <string name="crew_tile_hidden">Ukryty</string>
+</resources>

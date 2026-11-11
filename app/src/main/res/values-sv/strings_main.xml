@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Swedish: main screen, invites, sharing and phone setup checks. -->
+<resources>
+    <string name="main_get_the_app">Har du inte Moshpoint än? Installera här (Android): %1$s\nKopiera sedan hela meddelandet, öppna Moshpoint och tryck på Klistra in inbjudan.\n\n</string>
+    <string name="main_nudge_text">Hej %1$s, öppna Moshpoint och tryck på Gå live (med plats och mobildata på) så jag kan hitta dig!</string>
+    <string name="main_nudge_mate">kompis</string>
+    <string name="main_nudge_title">Be dem gå live</string>
+
+    <string name="main_setup_bluetooth_off">Bluetooth är av. Utan det kan ingen hitta dig, och du kan inte hitta dem.</string>
+    <string name="main_setup_location_off">Plats är av. GPS-sökning behöver det, och många telefoner behöver det för Bluetooth-sökning också.</string>
+    <string name="main_setup_wifi_off">Wi-Fi är av. Slå på det för mer exakt avstånd (du behöver inte ansluta till något nätverk).</string>
+    <string name="main_setup_battery">Batterisparläget kan stoppa Moshpoint när appen är stängd, och då kan kompisarna inte hitta dig.</string>
+    <string name="main_setup_turn_on">Slå på</string>
+    <string name="main_setup_fix">Fixa</string>
+
+    <string name="main_facebook_failed">Facebook-inloggningen misslyckades: %1$s</string>
+    <string name="main_facebook_unknown_error">okänt fel</string>
+    <string name="main_facebook_not_set_up">Facebook-inloggning är inte inställd i den här versionen</string>
+
+    <string name="main_my_spot">Min plats</string>
+
+    <string name="main_photos_permission_needed">Moshpoint behöver åtkomst till dina bilder för att hitta dem från den kvällen</string>
+    <string name="main_you">Du</string>
+    <plurals name="main_added_to_gig">
+        <item quantity="one">La till %d i spelningen</item>
+        <item quantity="other">La till %d i spelningen</item>
+    </plurals>
+    <string name="main_saving_one">Sparar…</string>
+    <plurals name="main_saving_many">
+        <item quantity="one">Sparar %d bild eller klipp…</item>
+        <item quantity="other">Sparar %d bilder och klipp…</item>
+    </plurals>
+    <string name="main_save_failed">Kunde inte spara. Är telefonen full?</string>
+    <string name="main_saved_all">Sparat i galleriet: Moshpoint / %1$s</string>
+    <plurals name="main_saved_some">
+        <item quantity="one">Sparade %1$d av %2$d i galleriet</item>
+        <item quantity="other">Sparade %1$d av %2$d i galleriet</item>
+    </plurals>
+    <string name="main_gig_fallback">Spelning</string>
+
+    <string name="main_invite_expired">Den gruppinbjudan har gått ut. Be om en ny.</string>
+    <string name="main_joined_up_next">Du är med i %1$s! Den ligger under På gång: snacka loss, den vaknar på spelningsdagen.</string>
+    <string name="main_joined_following">Du följer %1$s. Du ser deras bilder och var de är; de ser att du följer.</string>
+    <string name="main_joined_sleeping">Du är med i %1$s! Gänget vaknar på spelningsdagen (%2$s).</string>
+    <string name="main_joined_live">Du är med i %1$s! Alla i gänget kan hitta varandra.</string>
+    <string name="main_the_crew">gänget</string>
+    <string name="main_got_code">Koden är fixad. Ge dem ett namn och tryck på Lägg till kompis.</string>
+    <string name="main_friend_added">✓ %1$s tillagd</string>
+    <string name="main_no_invite_found">Ingen Moshpoint-inbjudan hittades. Kopiera hela meddelandet från din kompis och tryck på Klistra in inbjudan.</string>
+
+    <string name="main_perm_location">Plats: GPS-pilen och avstånd via Bluetooth/Wi-Fi</string>
+    <string name="main_perm_nearby">Enheter i närheten: hitta kompisar och bli hittad via Bluetooth</string>
+    <string name="main_perm_uwb">UWB: den exakta pilen</string>
+    <string name="main_perm_notifications">Aviseringar: visar när du syns</string>
+
+    <string name="main_phone_summary">Den här telefonen: %1$s</string>
+    <string name="main_cap_compass">kompass</string>
+
+    <string name="main_invite_reset">Inbjudan återställd. Gamla QR-koder och länkar funkar inte längre.</string>
+    <string name="main_eyebrow_up_next">PÅ GÅNG</string>
+    <string name="main_eyebrow_up_next_countdown">PÅ GÅNG · %1$s</string>
+    <string name="main_eyebrow_coming_up">DITT GÄNG · SNART</string>
+    <string name="main_eyebrow_tonight">DITT GÄNG IKVÄLL</string>
+    <string name="main_qr_hint_planned">Alla skannar den här en gång. Snacka och peppa redan nu; sökningen slås på på spelningsdagen.</string>
+    <string name="main_qr_hint_tonight">Alla skannar den här en gång. Sen kan ni hitta varandra hela kvällen.</string>
+    <string name="main_scan_to_add_me">Skanna för att lägga till mig</string>
+    <string name="main_scan_to_add_name">Skanna för att lägga till %1$s</string>
+
+    <string name="main_wants_to_stay_friends">%1$s vill fortsätta vara kompisar</string>
+    <string name="main_stay_friends_text">Ni träffades i %1$s. Säg ja så kan ni hitta varandra på alla spelningar, inte bara den här. Bara %2$s får dina uppgifter, ingen annan i gänget.</string>
+    <string name="main_friends_now">Du och %1$s är kompisar nu</string>
+    <string name="main_yes_stay_friends">Ja, vi är kompisar</string>
+    <string name="main_not_now">Inte nu</string>
+
+    <string name="main_battery_title">Syns hela kvällen</string>
+    <string name="main_battery_text">Vissa telefoner stänger appar i bakgrunden för att spara batteri, och då försvinner du. Leta upp Moshpoint på nästa skärm och välj \"Optimera inte\" / \"Obegränsad\".</string>
+    <string name="main_open_settings">Öppna inställningar</string>
+
+    <plurals name="main_n_mates">
+        <item quantity="one">%d kompis</item>
+        <item quantity="other">%d kompisar</item>
+    </plurals>
+    <string name="main_beacon_colour_name">%1$s (%2$s)</string>
+
+    <string name="main_scan_prompt">Skanna din kompis Moshpoint-QR</string>
+    <string name="main_out_of_crew">%1$s är ute ur gänget. Alla andra får en ny nyckel.</string>
+
+    <string name="main_follow_share_text">Följ vår kväll på %1$s i Moshpoint: se våra bilder när de kommer in och att vi är okej.\n%2$s</string>
+    <string name="main_follow_share_title">Låt familjen hänga med</string>
+    <string name="main_when_venue">%1$s · %2$s</string>
+
+    <string name="main_time_passed">Den tiden har redan varit. Välj när spelningen börjar.</string>
+    <string name="main_added_up_next">%1$s ligger nu under På gång. Bjud in kompisarna och börja peppa!</string>
+
+    <string name="main_join_name">Gå med i %1$s?</string>
+    <string name="main_follow_name">Följa %1$s?</string>
+    <string name="main_bumped_text">Bumpat! Gå med så kan ni hitta varandra ikväll.</string>
+    <string name="main_join">Gå med</string>
+    <string name="main_no">Nej</string>
+    <string name="main_clip_follow_text">Du kopierade en följ-länk. Du ser deras bilder och att de är okej; de ser att du följer.</string>
+    <string name="main_clip_join_text">Du kopierade en Moshpoint-inbjudan. Gå med så kan ni hitta varandra ikväll.</string>
+
+    <string name="main_your_night">Din kväll</string>
+    <string name="main_recap_text">%1$s\n\nNär du avslutar kvällen stängs gänget (kompisar finns kvar). Bilderna och klippen ligger kvar på telefonen under Dina spelningar.</string>
+    <string name="main_night_ended">Kvällen är slut. Dina bilder och klipp finns under Dina spelningar.</string>
+    <string name="main_end_the_night">Avsluta kvällen</string>
+    <string name="main_share_night_text">Min kväll med Moshpoint: %1$s 🤘</string>
+    <string name="main_share_night_title">Dela din kväll</string>
+    <string name="main_share">Dela</string>
+
+    <string name="main_now_main_crew">%1$s är ditt huvudgäng nu. Alla i gänget kan hitta varandra.</string>
+    <string name="main_deleted_gig">Raderade %1$s från telefonen</string>
+    <string name="main_meetup_sent">Träffpunkten skickad till gänget</string>
+    <string name="main_moment_label">%1$s · %2$s</string>
+
+    <string name="main_share_app_text">Skaffa Moshpoint så vi kan hitta varandra på spelningar: tryck på en kompis så pekar en pil mot dem.\n\n%1$s</string>
+    <string name="main_share_app_title">Dela Moshpoint</string>
+    <string name="main_named_crew">%1$s och gänget</string>
+    <string name="main_tonights_crew">Kvällens gäng</string>
+    <string name="main_me">Jag</string>
+    <string name="main_group_invite_text">Häng med i mitt gäng \"%1$s\" på Moshpoint ikväll!\n%2$s</string>
+    <string name="main_group_invite_title">Skicka gruppinbjudan</string>
+</resources>

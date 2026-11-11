@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Turkish: crew chat, notifications, friendship, safety, plan card, night stats, live status. -->
+<resources>
+    <string name="crew_you">Sen</string>
+    <string name="crew_default_name">Arkadaş</string>
+    <string name="crew_default_group_name">Konser grubu</string>
+    <string name="crew_default_gig_name">Konser</string>
+    <string name="crew_someone">Biri</string>
+    <string name="crew_name_numbered">%1$s (%2$d)</string>
+    <string name="crew_cancel">İptal</string>
+    <string name="crew_close">Kapat</string>
+
+    <string name="crew_chat_subtitle">Ekip sohbeti · sadece ekibin okuyabilir</string>
+    <string name="crew_chat_invite">＋ Davet et</string>
+    <string name="crew_chat_on_today">Bu konser bugün. Bu ekipte birbirinizi bulalım mı?</string>
+    <string name="crew_chat_switch">Geç</string>
+    <plurals name="crew_chat_send_flare_hint">
+        <item quantity="one">🔥  Meşale yak: %d dk boyunca nerede olduğunu göster</item>
+        <item quantity="other">🔥  Meşale yak: %d dk boyunca nerede olduğunu göster</item>
+    </plurals>
+    <string name="crew_chat_empty">Henüz bir şey yok. Mesajlar ekipteki herkese yaklaşık bir dakikada ulaşır (kendi sunucunla daha hızlı).</string>
+    <string name="crew_chat_night_tools_later">Gazlayın! Meşaleler ve hızlı pingler konser günü açılır.</string>
+    <string name="crew_chat_message_hint">Ekibe yaz</string>
+    <string name="crew_chat_not_sent">Gönderilmedi · Tekrar denemek için dokun</string>
+    <string name="crew_chat_sending">Gönderiliyor…</string>
+    <string name="crew_chat_line_with_time">%1$s · %2$s</string>
+
+    <string name="crew_chat_you_joined">Ekibe katıldın</string>
+    <string name="crew_chat_joined">%1$s ekibe katıldı</string>
+    <string name="crew_chat_you_pinned">Sabitledin: %1$s</string>
+    <string name="crew_chat_pinned">%1$s sabitledi: %2$s</string>
+    <string name="crew_chat_you_cleared_plan">Planı kaldırdın</string>
+    <string name="crew_chat_cleared_plan">%1$s planı kaldırdı</string>
+    <string name="crew_chat_you_flare">Meşale yaktın: %1$s</string>
+    <string name="crew_chat_flare">%1$s meşale yaktı: %2$s</string>
+    <string name="crew_chat_line_other">%1$s %2$s</string>
+
+    <string name="crew_quick_coming">Geliyorum 🏃</string>
+    <string name="crew_quick_where">Neredesin? 👀</string>
+    <string name="crew_quick_stay_put">Olduğun yerde kal ✋</string>
+    <string name="crew_quick_meet_pin">Pinde buluşalım 📍</string>
+    <string name="crew_quick_all_good">Her şey yolunda 👍</string>
+    <string name="crew_quick_going_home">Eve dönüyorum 🏠</string>
+    <string name="crew_quick_need_help">🚨 Yardım lazım</string>
+    <plurals name="crew_quick_check_in">
+        <item quantity="one">Eve dönüyorum 🏠 %d dk içinde haber vereceğim</item>
+        <item quantity="other">Eve dönüyorum 🏠 %d dk içinde haber vereceğim</item>
+    </plurals>
+    <string name="crew_quick_home_safe">Evdeyim, her şey yolunda ✅</string>
+
+    <string name="crew_plan_eyebrow">📌 PLAN</string>
+    <string name="crew_plan_none">Henüz sabitlenmiş plan yok.</string>
+    <string name="crew_plan_prompt">Kimse kaydırmak zorunda kalmasın, planı sabitle: \"Bisten sonra ses masası\".</string>
+    <string name="crew_plan_by">sabitleyen: %1$s</string>
+    <string name="crew_plan_meet_up">★ Buluşma noktası: %1$s</string>
+    <string name="crew_plan_pin">Plan sabitle</string>
+    <string name="crew_plan_change">Değiştir</string>
+    <string name="crew_plan_share">Kart olarak paylaş</string>
+    <string name="crew_plan_title">Plan</string>
+    <string name="crew_plan_editor_body">Herkes için sohbetin en üstünde sabit durur, asla kaybolmaz.</string>
+    <string name="crew_plan_idea_sound_desk">Bisten sonra ses masasında buluşalım</string>
+    <string name="crew_plan_idea_bar">Arada ana barın solunda</string>
+    <string name="crew_plan_idea_car">23.30\'a kadar arabanın yanında</string>
+    <string name="crew_plan_idea_tent">Birbirimizi kaybedersek çadırda</string>
+    <string name="crew_plan_pin_it">Sabitle</string>
+    <string name="crew_plan_unpin">Sabitlemeyi kaldır</string>
+
+    <string name="crew_vibe_lost">Kayboldum 😅</string>
+    <string name="crew_vibe_bar">Bar zamanı 🍺</string>
+    <string name="crew_vibe_rail">En öndeyim 🎶</string>
+    <string name="crew_vibe_food">Yemek molası 🍔</string>
+    <string name="crew_vibe_toilets">Tuvaletler 🚻</string>
+    <string name="crew_vibe_air">Hava almaya çıktım 🌬️</string>
+    <string name="crew_vibe_merch">Merch standı 👕</string>
+    <string name="crew_vibe_leaving">Birazdan çıkıyorum 👋</string>
+    <string name="crew_flare_mine">Sen: %1$s</string>
+    <string name="crew_flare_theirs">%1$s: %2$s</string>
+    <plurals name="crew_flare_left">
+        <item quantity="one">%d dk kaldı</item>
+        <item quantity="other">%d dk kaldı</item>
+    </plurals>
+    <plurals name="crew_flare_left_on_map">
+        <item quantity="one">%d dk kaldı · haritada</item>
+        <item quantity="other">%d dk kaldı · haritada</item>
+    </plurals>
+    <string name="crew_flare_end">Bitir</string>
+    <string name="crew_flare_title">Meşale yak</string>
+    <plurals name="crew_flare_body">
+        <item quantity="one">Yerin ekibin haritasında %d dakika boyunca, bir havayla görünür.</item>
+        <item quantity="other">Yerin ekibin haritasında %d dakika boyunca, bir havayla görünür.</item>
+    </plurals>
+    <string name="crew_flare_own_hint">Ya da kendininkini yaz…</string>
+    <string name="crew_flare_send">Gönder</string>
+
+    <string name="crew_help_title">Yardım al</string>
+    <string name="crew_help_alerted">Ekibe haber verildi ✓</string>
+    <string name="crew_help_alert">Ekibimi uyar</string>
+    <string name="crew_help_alert_sub">Nerede olduğunla birlikte acil uyarı</string>
+    <string name="crew_help_text_contact">SMS gönder: %1$s</string>
+    <string name="crew_help_text_contact_sub">Mesajlar uygulaman konumunla açılır. Veri olmadan çalışır.</string>
+    <string name="crew_help_add_contact">Acil durum kişisi ekle</string>
+    <string name="crew_help_add_contact_sub">Önemli bir anda mesaj atabileceğin, ekip dışından biri</string>
+    <string name="crew_help_contact_name">Ad (ör. Annem)</string>
+    <string name="crew_help_contact_number">Cep numarası</string>
+    <string name="crew_help_save_contact">Kişiyi kaydet</string>
+    <string name="crew_help_call">Ara: %1$s</string>
+    <string name="crew_help_call_sub">Polis, itfaiye, ambulans</string>
+    <string name="crew_help_call_police">Polis</string>
+    <string name="crew_help_call_ambulance">Ambulans ve itfaiye</string>
+    <string name="crew_help_no_signal">Hiç çekmiyor mu? Yeni telefonların çoğu acil servislere uydu üzerinden ulaşabilir: %1$s numarasını ara ve yönergeleri izle. Festivalde güvenlik ve ilk yardım çadırları hızlıca yardım edebilir.</string>
+    <string name="crew_help_sms">Yardıma ihtiyacım var. (Moshpoint ile gönderildi)</string>
+    <string name="crew_help_sms_where">Yardıma ihtiyacım var. Buradayım: %1$s (Moshpoint ile gönderildi)</string>
+
+    <string name="crew_channel_messages">Ekip mesajları</string>
+    <string name="crew_channel_help">Ekip yardım çağrıları</string>
+    <string name="crew_channel_requests">Seni arayan arkadaşlar</string>
+    <string name="crew_notif_line">%1$s: %2$s</string>
+    <plurals name="crew_new_messages">
+        <item quantity="one">%d yeni mesaj</item>
+        <item quantity="other">%d yeni mesaj</item>
+    </plurals>
+    <string name="crew_notif_joined">ekibe katıldı 🎉</string>
+    <plurals name="crew_notif_flare">
+        <item quantity="one">Meşale: %1$s · %2$d dk burada</item>
+        <item quantity="other">Meşale: %1$s · %2$d dk burada</item>
+    </plurals>
+    <string name="crew_notif_new_plan">Yeni plan: %1$s</string>
+    <string name="crew_notif_done_title">Bitti: %1$s</string>
+    <string name="crew_notif_done_saved">Fotoğrafların ve videoların Konserlerin bölümüne kaydedildi.</string>
+    <string name="crew_notif_done_text">Umarız efsane geçmiştir. İstediğin zaman yeni bir ekip kur.</string>
+    <string name="crew_notif_overdue_title">%1$s haber vermedi</string>
+    <string name="crew_notif_overdue_text">Eve dönüyordu, şimdiye varmış olmalıydı. Bir ara. Son konumu için dokun.</string>
+    <string name="crew_notif_help_where">Yardım lazım\'a bastı. Nerede olduğunu görmek için dokun. Bir yokla.</string>
+    <string name="crew_notif_help">Yardım lazım\'a bastı. Bir yokla.</string>
+    <string name="crew_notif_tap_where">Nerede olduğunu görmek için dokun.</string>
+    <string name="crew_notif_from_crew">Ekibinden</string>
+
+    <string name="crew_ping_coming">yolda</string>
+    <string name="crew_ping_stay_put">olduğun yerde kal diyor</string>
+    <string name="crew_ping_where">nerede olduğunu soruyor</string>
+    <string name="crew_ping_meet_pin">pinde buluşalım diyor</string>
+    <string name="crew_ping_all_good">iyi, her şey yolunda</string>
+    <string name="crew_ping_going_home">eve dönüyor</string>
+    <string name="crew_ping_need_help">YARDIM İSTİYOR</string>
+    <string name="crew_ping_check_in">eve dönüyor, varınca haber verecek</string>
+    <string name="crew_ping_home_safe">evde, her şey yolunda</string>
+    <string name="crew_ping_chat">mesaj gönderdi</string>
+    <string name="crew_ping_flare">meşale yaktı</string>
+    <string name="crew_ping_plan">bir plan sabitledi</string>
+    <string name="crew_ping_other">ekibe ping attı</string>
+
+    <string name="crew_ping_title_coming">%1$s yolda</string>
+    <string name="crew_ping_title_stay_put">%1$s olduğun yerde kal diyor</string>
+    <string name="crew_ping_title_where">%1$s nerede olduğunu soruyor</string>
+    <string name="crew_ping_title_meet_pin">%1$s pinde buluşalım diyor</string>
+    <string name="crew_ping_title_all_good">%1$s iyi, her şey yolunda</string>
+    <string name="crew_ping_title_going_home">%1$s eve dönüyor</string>
+    <string name="crew_ping_title_need_help">%1$s YARDIM İSTİYOR</string>
+    <string name="crew_ping_title_check_in">%1$s eve dönüyor, varınca haber verecek</string>
+    <string name="crew_ping_title_home_safe">%1$s evde, her şey yolunda</string>
+    <string name="crew_ping_title_chat">%1$s mesaj gönderdi</string>
+    <string name="crew_ping_title_flare">%1$s meşale yaktı</string>
+    <string name="crew_ping_title_plan">%1$s bir plan sabitledi</string>
+    <string name="crew_ping_title_other">%1$s ekibe ping attı</string>
+
+    <string name="crew_rally_default">Burada buluşalım</string>
+
+    <string name="crew_friend_need_crew">Arkadaş olarak tutma, aynı ekipteyken çalışır.</string>
+    <string name="crew_friend_gone">Artık ekipte değil.</string>
+    <string name="crew_friend_unreachable">Şu an özel olarak ulaşılamıyor: %1$s. Bu gece görüldükten sonra tekrar dene (bu tekrarlanırsa uygulamasının güncellenmesi gerekiyor).</string>
+    <string name="crew_friend_ask_failed">İstek gönderilemedi: %1$s. Tekrar dene.</string>
+    <string name="crew_friend_asked">Arkadaşlık isteği gönderildi: %1$s. Evet derse her konserde arkadaş olacaksınız.</string>
+    <string name="crew_friend_request_title">%1$s arkadaş kalmak istiyor</string>
+    <string name="crew_friend_request_text">Ekip: %1$s. Evet demek için dokun, her konserde birbirinizi bulabilirsiniz.</string>
+    <string name="crew_friend_accepted_title">%1$s artık arkadaşın</string>
+    <string name="crew_friend_accepted_text">Sadece bu konserde (%1$s) değil, her konserde birbirinizi bulabilirsiniz.</string>
+
+    <string name="crew_add_need_name">Bir isim ver</string>
+    <string name="crew_add_bad_code">Bu kod doğru görünmüyor</string>
+    <string name="crew_add_own_code">Bu senin kendi kodun</string>
+
+    <string name="crew_note_you_removed">Ekipten çıkardın: %1$s. Ekibin yeni bir anahtarı var: bundan sonra hiçbir şey göremez.</string>
+    <string name="crew_note_you_reset">Daveti sıfırladın. Eski QR kodları ve linkler artık çalışmıyor.</string>
+    <string name="crew_note_removed">%1$s ekipten çıkardı: %2$s.</string>
+    <string name="crew_note_reset">%1$s daveti sıfırladı: eski QR kodları artık çalışmıyor.</string>
+
+    <string name="crew_wake_title">Bu gece: %1$s!</string>
+    <string name="crew_wake_text">Başlangıç: %1$s. Ekibin seni bulabilsin diye canlıya geçmek için dokun.</string>
+    <string name="crew_wake_text_venue">Başlangıç: %1$s, yer: %2$s. Ekibin seni bulabilsin diye canlıya geçmek için dokun.</string>
+
+    <plurals name="crew_memory_headline">
+        <item quantity="one">Bir yıl önce bugün: %2$s</item>
+        <item quantity="other">%1$d yıl önce bugün: %2$s</item>
+    </plurals>
+    <plurals name="crew_memory_headline_with">
+        <item quantity="one">Bir yıl önce bugün: %2$s · birlikte: %3$s</item>
+        <item quantity="other">%1$d yıl önce bugün: %2$s · birlikte: %3$s</item>
+    </plurals>
+    <string name="crew_memory_two_people">%1$s &amp; %2$s</string>
+    <plurals name="crew_memory_text">
+        <item quantity="one">%d fotoğraf ve video. Dokun, yeniden yaşa.</item>
+        <item quantity="other">%d fotoğraf ve video. Dokun, yeniden yaşa.</item>
+    </plurals>
+
+    <string name="crew_moment_title">%1$s bir an paylaştı</string>
+    <string name="crew_moment_text">Nerede olduğunu görmek için dokun</string>
+
+    <string name="crew_moving_title">%1$s hareket halinde</string>
+    <string name="crew_moving_text">Bulunduğu yerden %1$s uzaklaştı. Görmek için dokun.</string>
+    <string name="crew_moving_text_away">Bulunduğu yerden %1$s uzaklaştı. Şu an senden %2$s uzakta. Görmek için dokun.</string>
+    <string name="crew_at_venue">mekânda</string>
+    <string name="crew_from_venue">mekâna %1$s</string>
+    <string name="crew_status_phone_died">%1$s · telefonu kapandı</string>
+    <string name="crew_status_distance">%1$s %2$s</string>
+    <plurals name="crew_status_min_ago">
+        <item quantity="one">%1$s %2$d dk önce</item>
+        <item quantity="other">%1$s %2$d dk önce</item>
+    </plurals>
+
+    <string name="crew_stats_walked">%1$s yürüdün</string>
+    <plurals name="crew_stats_finds">
+        <item quantity="one">arkadaşlarını %d kez buldun</item>
+        <item quantity="other">arkadaşlarını %d kez buldun</item>
+    </plurals>
+    <plurals name="crew_stats_moments">
+        <item quantity="one">%d an</item>
+        <item quantity="other">%d an</item>
+    </plurals>
+    <plurals name="crew_stats_pings">
+        <item quantity="one">%d ping</item>
+        <item quantity="other">%d ping</item>
+    </plurals>
+    <string name="crew_stats_out_hours">%1$d sa %2$d dk dışarıda</string>
+    <plurals name="crew_stats_out_mins">
+        <item quantity="one">%d dk dışarıda</item>
+        <item quantity="other">%d dk dışarıda</item>
+    </plurals>
+    <string name="crew_stats_quiet">Sakin bir gece</string>
+
+    <string name="crew_card_eyebrow">MOSHPOINT · BU GECENİN PLANI</string>
+    <string name="crew_card_plan">PLAN</string>
+    <string name="crew_card_meet_up">★  Buluşma: %1$s</string>
+    <string name="crew_card_whos_coming">KİMLER GELİYOR</string>
+    <string name="crew_card_footer">Birbirinizi mi kaybettiniz? Moshpoint\'te bulun.</string>
+    <string name="crew_card_share_meet_up">Buluşma: %1$s</string>
+    <string name="crew_card_share_title">Planı paylaş</string>
+
+    <string name="crew_request_title">%1$s yakında ve seni arıyor</string>
+    <string name="crew_request_text">Seni görebilmeleri için ekranını yakmak üzere dokun</string>
+    <string name="crew_go_hidden">Gizlen</string>
+    <string name="crew_tile_live">Canlı</string>
+    <string name="crew_tile_hidden">Gizli</string>
+</resources>

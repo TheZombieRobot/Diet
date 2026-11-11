@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Polish: home screen. -->
+<resources>
+    <string name="home_go_live">Włącz live</string>
+    <string name="home_live_ghost">Live · duch</string>
+    <string name="home_live">Live</string>
+
+    <string name="home_tile_not_sharing">jeszcze nie udostępnia</string>
+    <string name="home_tile_phone_died">telefon padł</string>
+    <string name="home_tile_live">live</string>
+    <string name="home_tile_with_battery">%1$s · %2$d%%</string>
+
+    <string name="home_ping_on_my_way">Już idę</string>
+    <string name="home_ping_where_are_you">Gdzie jesteś?</string>
+    <string name="home_ping_stay_put">Zostań tam</string>
+    <string name="home_ping_meet_at_pin">Widzimy się przy pinezce</string>
+    <string name="home_ping_all_good">Wszystko OK</string>
+    <string name="home_ping_sent">Wysłano ✓</string>
+    <string name="home_ping_heading_home">Wracam do domu</string>
+    <string name="home_ping_need_help">Potrzebuję pomocy</string>
+    <string name="home_heading_home_title">Wracasz do domu?</string>
+    <string name="home_heading_home_text">Daj znać, jak dotrzesz. Jeśli nie dasz, twoja ekipa dostanie alert z twoim ostatnim miejscem (nawet jeśli padnie ci telefon).</string>
+    <plurals name="home_checkin_minutes">
+        <item quantity="one">%d min</item>
+        <item quantity="few">%d min</item>
+        <item quantity="many">%d min</item>
+        <item quantity="other">%d min</item>
+    </plurals>
+    <string name="home_just_tell_them">Tylko daj im znać</string>
+    <string name="home_cancel">Anuluj</string>
+    <string name="home_ping_line">%1$s %2$s</string>
+    <string name="home_ping_default">pinguje ekipę</string>
+
+    <string name="home_bar_crew">Ekipa</string>
+    <string name="home_bar_map">Mapa</string>
+    <string name="home_bar_add">Dodaj</string>
+    <string name="home_bar_story">Relacja</string>
+    <string name="home_bar_me">Ja</string>
+
+    <string name="home_add_mates">Dodaj znajomych</string>
+    <string name="home_add_mates_text">Na koncercie: pokaż QR ekipy, a oni go zeskanują. I tyle: każdy w ekipie znajdzie każdego.</string>
+    <string name="home_show_crew_qr">Pokaż QR ekipy</string>
+    <string name="home_start_crew_show_qr">Załóż ekipę + pokaż QR</string>
+    <string name="home_scan_qr">Zeskanuj QR</string>
+    <string name="home_paste_invite">Wklej zaproszenie</string>
+    <string name="home_bump_phones">Stuknijcie się telefonami</string>
+    <string name="home_plan_gig">Zaplanuj koncert (znajdź go, zaproś już teraz)</string>
+    <string name="home_send_app_invite">Wyślij apkę + zaproszenie (WhatsApp, Messenger…)</string>
+    <string name="home_friends_every_gig">ZNAJOMI NA KAŻDY KONCERT</string>
+    <string name="home_my_friend_qr">Mój QR dla znajomych</string>
+    <string name="home_enter_code">Wpisz kod</string>
+
+    <string name="home_check_in_by">Daj znać do %1$s</string>
+    <string name="home_home_safe">Jestem bezpiecznie w domu</string>
+
+    <string name="home_chat">Czat</string>
+    <string name="home_chat_unread">Czat (%1$d)</string>
+    <string name="home_camera">Aparat</string>
+
+    <string name="home_message_crew">Napisz do ekipy</string>
+    <string name="home_message_crew_text">Jedno kliknięcie: cała ekipa to dostanie, razem z tym, gdzie jesteś.</string>
+
+    <string name="home_crew_qr_desc">QR ekipy</string>
+    <string name="home_inline_qr_text">Znajomi skanują to aparatem albo w Moshpoint. I tyle.</string>
+    <string name="home_no_camera_send_invite">Brak aparatu? Wyślij zaproszenie</string>
+
+    <plurals name="home_gig_photos">
+        <item quantity="one">%d zdjęcie</item>
+        <item quantity="few">%d zdjęcia</item>
+        <item quantity="many">%d zdjęć</item>
+        <item quantity="other">%d zdjęcia</item>
+    </plurals>
+    <plurals name="home_gig_clips">
+        <item quantity="one">%d klip</item>
+        <item quantity="few">%d klipy</item>
+        <item quantity="many">%d klipów</item>
+        <item quantity="other">%d klipu</item>
+    </plurals>
+    <string name="home_people_more">%1$s +%2$d</string>
+
+    <string name="home_crew_chat">Czat ekipy</string>
+    <string name="home_pinned_plan">📌 %1$s</string>
+    <string name="home_chat_subtitle">Wiadomości, plan, race</string>
+    <string name="home_unread_many">9+</string>
+    <plurals name="home_unread_new">
+        <item quantity="one">%d nowa</item>
+        <item quantity="few">%d nowe</item>
+        <item quantity="many">%d nowych</item>
+        <item quantity="other">%d nowych</item>
+    </plurals>
+
+    <string name="home_following_from_home">Śledzisz z domu</string>
+    <string name="home_upnext_invite">💬 Czat · zaproś znajomych</string>
+    <plurals name="home_upnext_mates">
+        <item quantity="one">💬 Czat · %d osoba w ekipie</item>
+        <item quantity="few">💬 Czat · %d osoby w ekipie</item>
+        <item quantity="many">💬 Czat · %d osób w ekipie</item>
+        <item quantity="other">💬 Czat · %d osoby w ekipie</item>
+    </plurals>
+
+    <string name="home_start_gig_group">Załóż ekipę na koncert</string>
+    <string name="home_start_gig_group_text">Nazwij ją (np. jak zespół). Potem pokaż QR znajomym.</string>
+    <string name="home_start">Załóż</string>
+    <string name="home_keep_friend">Dodaj do znajomych: %1$s (zostaje po dzisiejszej nocy)</string>
+    <string name="home_set_photo">Ustaw zdjęcie</string>
+    <string name="home_remove_photo">Usuń zdjęcie</string>
+    <string name="home_remove_name">Usuń: %1$s</string>
+    <string name="home_close">Zamknij</string>
+    <string name="home_remove_from_crew_title">Usunąć z ekipy: %1$s?</string>
+    <string name="home_remove_friend_title">Usunąć: %1$s?</string>
+    <string name="home_remove_from_crew_text">Ekipa przechodzi na nowy klucz, którego %1$s nie dostanie, więc od teraz nie zobaczy, gdzie ktokolwiek jest, ani czatu, ani zdjęć. Wszyscy pozostali zostają.</string>
+    <string name="home_remove_friend_text">Nie znajdziesz tej osoby, dopóki nie dodasz jej ponownie.</string>
+    <string name="home_remove">Usuń</string>
+    <string name="home_find">Szukaj</string>
+    <string name="home_add_with_code">Dodaj kodem</string>
+    <string name="home_their_name">Imię</string>
+    <string name="home_their_code">Kod</string>
+    <string name="home_add_friend">Dodaj znajomego</string>
+    <string name="home_tonight_only">Tylko na dziś</string>
+
+    <string name="home_hidden_hint">Ekipa cię nie widzi. Kliknij Włącz live, kiedy chcesz, żeby cię znaleźli.</string>
+    <string name="home_allow_permission">Pozwól Moshpoint znaleźć twoich znajomych (%1$s)</string>
+    <string name="home_allow">Zezwól</string>
+    <string name="home_one_thing_first">NAJPIERW JEDNA RZECZ</string>
+    <plurals name="home_one_thing_first_more">
+        <item quantity="one">NAJPIERW JEDNA RZECZ · JESZCZE %d</item>
+        <item quantity="few">NAJPIERW JEDNA RZECZ · JESZCZE %d</item>
+        <item quantity="many">NAJPIERW JEDNA RZECZ · JESZCZE %d</item>
+        <item quantity="other">NAJPIERW JEDNA RZECZ · JESZCZE %d</item>
+    </plurals>
+    <string name="home_eyebrow_tonight">DZIŚ WIECZOREM</string>
+    <string name="home_eyebrow_following">OBSERWUJESZ</string>
+    <string name="home_eyebrow_coming_up">JUŻ NIEDŁUGO</string>
+    <string name="home_find_mates_tonight">Znajdź dziś swoich znajomych</string>
+    <string name="home_find_mates_text">Zaproś ich, zeskanują, gotowe. Resztę ogarnia Moshpoint.</string>
+    <string name="home_invite_mates_tonight">Zaproś znajomych na dziś</string>
+    <string name="home_scan_invite">Zeskanuj zaproszenie</string>
+    <string name="home_your_crew">Twoja ekipa</string>
+    <string name="home_invite">＋ Zaproś</string>
+    <string name="home_family_can_follow">Rodzina może śledzić noc z domu</string>
+    <string name="home_following_from_home_names">Śledzą z domu: %1$s</string>
+    <string name="home_share">Udostępnij ›</string>
+    <string name="home_meet_up">★  Zbiórka: %1$s</string>
+    <string name="home_map_link">Mapa ›</string>
+    <string name="home_asleep_text">Śpi do dnia koncertu: bez Bluetooth, bez lokalizacji, bez zużycia baterii. Znajomi mogą dołączyć już teraz, a w dniu koncertu dostaniesz przypomnienie.</string>
+    <string name="home_follower_text">Widzisz, gdzie wszyscy są, i ich zdjęcia na bieżąco. Oni widzą, że obserwujesz.</string>
+    <string name="home_see_story">Zobacz relację</string>
+    <string name="home_crew_chat_unread">Czat ekipy (nowe: %1$d)</string>
+    <string name="home_where_are_they">Gdzie oni są? (mapa)</string>
+    <string name="home_see_them_once_starts">Zobaczysz ich tutaj, gdy zacznie się koncert.</string>
+    <string name="home_tap_mate_hint">Kliknij znajomego, żeby szukać · przytrzymaj, żeby zobaczyć opcje</string>
+    <string name="home_find_name">Znajdź: %1$s</string>
+    <string name="home_find_everyone">Znajdź wszystkich</string>
+    <string name="home_stop_following">Przestań obserwować</string>
+    <string name="home_cancel_crew">Odwołaj tę ekipę</string>
+    <string name="home_end_night">Zakończ noc</string>
+    <string name="home_up_next">WKRÓTCE</string>
+    <string name="home_memories">WSPOMNIENIA</string>
+    <plurals name="home_memories_count">
+        <item quantity="one">%d zdjęcie lub klip. Kliknij i przeżyj to jeszcze raz ›</item>
+        <item quantity="few">%d zdjęcia i klipy. Kliknij i przeżyj to jeszcze raz ›</item>
+        <item quantity="many">%d zdjęć i klipów. Kliknij i przeżyj to jeszcze raz ›</item>
+        <item quantity="other">%d zdjęcia i klipu. Kliknij i przeżyj to jeszcze raz ›</item>
+    </plurals>
+    <string name="home_your_gigs">TWOJE KONCERTY</string>
+    <string name="home_friends">ZNAJOMI</string>
+    <string name="home_friends_empty">Tu pojawią się znajomi, których zatrzymasz na każdy koncert. Kliknij ＋ Dodaj poniżej.</string>
+</resources>

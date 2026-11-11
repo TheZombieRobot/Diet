@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Swedish: crew chat, notifications, friendship, safety, plan card, night stats, live status. -->
+<resources>
+    <string name="crew_you">Du</string>
+    <string name="crew_default_name">Kompis</string>
+    <string name="crew_default_group_name">Spelningsgäng</string>
+    <string name="crew_default_gig_name">Spelning</string>
+    <string name="crew_someone">Någon</string>
+    <string name="crew_name_numbered">%1$s (%2$d)</string>
+    <string name="crew_cancel">Avbryt</string>
+    <string name="crew_close">Stäng</string>
+
+    <string name="crew_chat_subtitle">Gängchatt · bara ditt gäng kan läsa den</string>
+    <string name="crew_chat_invite">＋ Bjud in</string>
+    <string name="crew_chat_on_today">Spelningen är idag. Hitta varandra i det här gänget?</string>
+    <string name="crew_chat_switch">Byt</string>
+    <plurals name="crew_chat_send_flare_hint">
+        <item quantity="one">🔥  Skicka en lysraket: visa var du är i %d min</item>
+        <item quantity="other">🔥  Skicka en lysraket: visa var du är i %d min</item>
+    </plurals>
+    <string name="crew_chat_empty">Inget än. Meddelanden når alla i gänget inom ungefär en minut (snabbare med egen relay).</string>
+    <string name="crew_chat_night_tools_later">Peppa loss! Lysraketer och snabbpingar slås på på spelningsdagen.</string>
+    <string name="crew_chat_message_hint">Skriv till gänget</string>
+    <string name="crew_chat_not_sent">Inte skickat · Tryck för att försöka igen</string>
+    <string name="crew_chat_sending">Skickar…</string>
+    <string name="crew_chat_line_with_time">%1$s · %2$s</string>
+
+    <string name="crew_chat_you_joined">Du gick med i gänget</string>
+    <string name="crew_chat_joined">%1$s gick med i gänget</string>
+    <string name="crew_chat_you_pinned">Du fäste: %1$s</string>
+    <string name="crew_chat_pinned">%1$s fäste: %2$s</string>
+    <string name="crew_chat_you_cleared_plan">Du rensade planen</string>
+    <string name="crew_chat_cleared_plan">%1$s rensade planen</string>
+    <string name="crew_chat_you_flare">Du skickade en lysraket: %1$s</string>
+    <string name="crew_chat_flare">%1$s skickade en lysraket: %2$s</string>
+    <string name="crew_chat_line_other">%1$s %2$s</string>
+
+    <string name="crew_quick_coming">På väg 🏃</string>
+    <string name="crew_quick_where">Var är du? 👀</string>
+    <string name="crew_quick_stay_put">Stanna där ✋</string>
+    <string name="crew_quick_meet_pin">Ses vid nålen 📍</string>
+    <string name="crew_quick_all_good">Allt lugnt 👍</string>
+    <string name="crew_quick_going_home">På väg hem 🏠</string>
+    <string name="crew_quick_need_help">🚨 Jag behöver hjälp</string>
+    <plurals name="crew_quick_check_in">
+        <item quantity="one">På väg hem 🏠 Checkar in inom %d min</item>
+        <item quantity="other">På väg hem 🏠 Checkar in inom %d min</item>
+    </plurals>
+    <string name="crew_quick_home_safe">Hemma ✅</string>
+
+    <string name="crew_plan_eyebrow">📌 PLANEN</string>
+    <string name="crew_plan_none">Ingen plan fäst än.</string>
+    <string name="crew_plan_prompt">Fäst planen så ingen behöver scrolla: \"Ljudbordet efter extranumret\".</string>
+    <string name="crew_plan_by">av %1$s</string>
+    <string name="crew_plan_meet_up">★ Träffpunkt: %1$s</string>
+    <string name="crew_plan_pin">Fäst en plan</string>
+    <string name="crew_plan_change">Ändra</string>
+    <string name="crew_plan_share">Dela som kort</string>
+    <string name="crew_plan_title">Planen</string>
+    <string name="crew_plan_editor_body">Fäst högst upp i chatten för alla, så den aldrig scrollar bort.</string>
+    <string name="crew_plan_idea_sound_desk">Ses vid ljudbordet efter extranumret</string>
+    <string name="crew_plan_idea_bar">Till vänster om stora baren i pausen</string>
+    <string name="crew_plan_idea_car">Tillbaka vid bilen senast 23:30</string>
+    <string name="crew_plan_idea_tent">Tältet om vi tappar bort varandra</string>
+    <string name="crew_plan_pin_it">Fäst den</string>
+    <string name="crew_plan_unpin">Lossa</string>
+
+    <string name="crew_vibe_lost">Vilse 😅</string>
+    <string name="crew_vibe_bar">Bardags 🍺</string>
+    <string name="crew_vibe_rail">Längst fram 🎶</string>
+    <string name="crew_vibe_food">Matrunda 🍔</string>
+    <string name="crew_vibe_toilets">Toaletterna 🚻</string>
+    <string name="crew_vibe_air">Ute och andas 🌬️</string>
+    <string name="crew_vibe_merch">Merchståndet 👕</string>
+    <string name="crew_vibe_leaving">Drar snart 👋</string>
+    <string name="crew_flare_mine">Du: %1$s</string>
+    <string name="crew_flare_theirs">%1$s: %2$s</string>
+    <plurals name="crew_flare_left">
+        <item quantity="one">%d min kvar</item>
+        <item quantity="other">%d min kvar</item>
+    </plurals>
+    <plurals name="crew_flare_left_on_map">
+        <item quantity="one">%d min kvar · på kartan</item>
+        <item quantity="other">%d min kvar · på kartan</item>
+    </plurals>
+    <string name="crew_flare_end">Avsluta</string>
+    <string name="crew_flare_title">Skicka en lysraket</string>
+    <plurals name="crew_flare_body">
+        <item quantity="one">Din plats syns på gängets karta i %d minut, med en vibe.</item>
+        <item quantity="other">Din plats syns på gängets karta i %d minuter, med en vibe.</item>
+    </plurals>
+    <string name="crew_flare_own_hint">Eller din egen…</string>
+    <string name="crew_flare_send">Skicka</string>
+
+    <string name="crew_help_title">Få hjälp</string>
+    <string name="crew_help_alerted">Gänget larmat ✓</string>
+    <string name="crew_help_alert">Larma mitt gäng</string>
+    <string name="crew_help_alert_sub">Brådskande larm med var du är</string>
+    <string name="crew_help_text_contact">Sms:a %1$s</string>
+    <string name="crew_help_text_contact_sub">Meddelandeappen öppnas med din plats. Funkar utan data.</string>
+    <string name="crew_help_add_contact">Lägg till en nödkontakt</string>
+    <string name="crew_help_add_contact_sub">Någon utanför gänget att sms:a när det gäller</string>
+    <string name="crew_help_contact_name">Namn (t.ex. Mamma)</string>
+    <string name="crew_help_contact_number">Mobilnummer</string>
+    <string name="crew_help_save_contact">Spara kontakt</string>
+    <string name="crew_help_call">Ring %1$s</string>
+    <string name="crew_help_call_sub">Polis, brandkår, ambulans</string>
+    <string name="crew_help_call_police">Polis</string>
+    <string name="crew_help_call_ambulance">Ambulans och brandkår</string>
+    <string name="crew_help_no_signal">Ingen täckning alls? Många nyare telefoner kan nå räddningstjänsten via satellit: ring %1$s och följ instruktionerna. På en festival kan vakter och sjukvårdstältet hjälpa snabbt.</string>
+    <string name="crew_help_sms">Jag behöver hjälp. (skickat från Moshpoint)</string>
+    <string name="crew_help_sms_where">Jag behöver hjälp. Jag är här: %1$s (skickat från Moshpoint)</string>
+
+    <string name="crew_channel_messages">Meddelanden från gänget</string>
+    <string name="crew_channel_help">Hjälpförfrågningar från gänget</string>
+    <string name="crew_channel_requests">Kompisar som letar efter dig</string>
+    <string name="crew_notif_line">%1$s: %2$s</string>
+    <plurals name="crew_new_messages">
+        <item quantity="one">%d nytt meddelande</item>
+        <item quantity="other">%d nya meddelanden</item>
+    </plurals>
+    <string name="crew_notif_joined">gick med i gänget 🎉</string>
+    <plurals name="crew_notif_flare">
+        <item quantity="one">Lysraket: %1$s · här i %2$d min</item>
+        <item quantity="other">Lysraket: %1$s · här i %2$d min</item>
+    </plurals>
+    <string name="crew_notif_new_plan">Ny plan: %1$s</string>
+    <string name="crew_notif_done_title">%1$s är över</string>
+    <string name="crew_notif_done_saved">Dina bilder och klipp är sparade under Dina spelningar.</string>
+    <string name="crew_notif_done_text">Hoppas det var grymt. Starta ett nytt gäng när du vill.</string>
+    <string name="crew_notif_overdue_title">%1$s har inte checkat in</string>
+    <string name="crew_notif_overdue_text">De var på väg hem och borde vara framme nu. Ring dem. Tryck för att se deras senaste plats.</string>
+    <string name="crew_notif_help_where">De tryckte på Behöver hjälp. Tryck för att se var. Kolla läget med dem.</string>
+    <string name="crew_notif_help">De tryckte på Behöver hjälp. Kolla läget med dem.</string>
+    <string name="crew_notif_tap_where">Tryck för att se var.</string>
+    <string name="crew_notif_from_crew">Från ditt gäng</string>
+
+    <string name="crew_ping_coming">är på väg</string>
+    <string name="crew_ping_stay_put">säger stanna där du är</string>
+    <string name="crew_ping_where">undrar var du är</string>
+    <string name="crew_ping_meet_pin">säger ses vid nålen</string>
+    <string name="crew_ping_all_good">har det lugnt</string>
+    <string name="crew_ping_going_home">är på väg hem</string>
+    <string name="crew_ping_need_help">BEHÖVER HJÄLP</string>
+    <string name="crew_ping_check_in">är på väg hem och checkar in</string>
+    <string name="crew_ping_home_safe">är hemma</string>
+    <string name="crew_ping_chat">skickade ett meddelande</string>
+    <string name="crew_ping_flare">skickade en lysraket</string>
+    <string name="crew_ping_plan">fäste en plan</string>
+    <string name="crew_ping_other">pingade gänget</string>
+
+    <string name="crew_ping_title_coming">%1$s är på väg</string>
+    <string name="crew_ping_title_stay_put">%1$s säger stanna där du är</string>
+    <string name="crew_ping_title_where">%1$s undrar var du är</string>
+    <string name="crew_ping_title_meet_pin">%1$s säger ses vid nålen</string>
+    <string name="crew_ping_title_all_good">%1$s har det lugnt</string>
+    <string name="crew_ping_title_going_home">%1$s är på väg hem</string>
+    <string name="crew_ping_title_need_help">%1$s BEHÖVER HJÄLP</string>
+    <string name="crew_ping_title_check_in">%1$s är på väg hem och checkar in</string>
+    <string name="crew_ping_title_home_safe">%1$s är hemma</string>
+    <string name="crew_ping_title_chat">%1$s skickade ett meddelande</string>
+    <string name="crew_ping_title_flare">%1$s skickade en lysraket</string>
+    <string name="crew_ping_title_plan">%1$s fäste en plan</string>
+    <string name="crew_ping_title_other">%1$s pingade gänget</string>
+
+    <string name="crew_rally_default">Ses här</string>
+
+    <string name="crew_friend_need_crew">Behåll som kompis funkar när ni är i ett gäng tillsammans.</string>
+    <string name="crew_friend_gone">De är inte med i gänget längre.</string>
+    <string name="crew_friend_unreachable">Kan inte nå %1$s privat än. Försök igen när de har synts ikväll (deras app behöver uppdateras om det här fortsätter).</string>
+    <string name="crew_friend_ask_failed">Kunde inte fråga %1$s. Försök igen.</string>
+    <string name="crew_friend_asked">Frågade %1$s om ni ska fortsätta vara kompisar. Ni blir kompisar för alla spelningar när de säger ja.</string>
+    <string name="crew_friend_request_title">%1$s vill fortsätta vara kompisar</string>
+    <string name="crew_friend_request_text">Från %1$s. Tryck för att säga ja, så kan ni hitta varandra på alla spelningar.</string>
+    <string name="crew_friend_accepted_title">%1$s är din kompis nu</string>
+    <string name="crew_friend_accepted_text">Ni kan hitta varandra på alla spelningar, inte bara %1$s.</string>
+
+    <string name="crew_add_need_name">Ge dem ett namn</string>
+    <string name="crew_add_bad_code">Den koden ser inte rätt ut</string>
+    <string name="crew_add_own_code">Det är din egen kod</string>
+
+    <string name="crew_note_you_removed">Du tog bort %1$s. Gänget har en ny nyckel: de ser ingenting härifrån.</string>
+    <string name="crew_note_you_reset">Du återställde inbjudan. Gamla QR-koder och länkar funkar inte längre.</string>
+    <string name="crew_note_removed">%1$s tog bort %2$s från gänget.</string>
+    <string name="crew_note_reset">%1$s återställde inbjudan: gamla QR-koder funkar inte längre.</string>
+
+    <string name="crew_wake_title">%1$s ikväll!</string>
+    <string name="crew_wake_text">Börjar %1$s. Tryck för att gå live så gänget kan hitta dig.</string>
+    <string name="crew_wake_text_venue">Börjar %1$s på %2$s. Tryck för att gå live så gänget kan hitta dig.</string>
+
+    <plurals name="crew_memory_headline">
+        <item quantity="one">För ett år sedan idag: %2$s</item>
+        <item quantity="other">För %1$d år sedan idag: %2$s</item>
+    </plurals>
+    <plurals name="crew_memory_headline_with">
+        <item quantity="one">För ett år sedan idag: %2$s med %3$s</item>
+        <item quantity="other">För %1$d år sedan idag: %2$s med %3$s</item>
+    </plurals>
+    <string name="crew_memory_two_people">%1$s &amp; %2$s</string>
+    <plurals name="crew_memory_text">
+        <item quantity="one">%d bild eller klipp. Tryck och upplev det igen.</item>
+        <item quantity="other">%d bilder och klipp. Tryck och upplev det igen.</item>
+    </plurals>
+
+    <string name="crew_moment_title">%1$s delade ett ögonblick</string>
+    <string name="crew_moment_text">Tryck för att se var</string>
+
+    <string name="crew_moving_title">%1$s är på väg någonstans</string>
+    <string name="crew_moving_text">Har flyttat sig %1$s. Tryck för att se.</string>
+    <string name="crew_moving_text_away">Har flyttat sig %1$s. Nu %2$s från dig. Tryck för att se.</string>
+    <string name="crew_at_venue">på stället</string>
+    <string name="crew_from_venue">%1$s från stället</string>
+    <string name="crew_status_phone_died">%1$s · mobilen dog</string>
+    <string name="crew_status_distance">%1$s %2$s</string>
+    <plurals name="crew_status_min_ago">
+        <item quantity="one">%1$s för %2$d min sedan</item>
+        <item quantity="other">%1$s för %2$d min sedan</item>
+    </plurals>
+
+    <string name="crew_stats_walked">%1$s gått</string>
+    <plurals name="crew_stats_finds">
+        <item quantity="one">hittade kompisar %d gång</item>
+        <item quantity="other">hittade kompisar %d gånger</item>
+    </plurals>
+    <plurals name="crew_stats_moments">
+        <item quantity="one">%d ögonblick</item>
+        <item quantity="other">%d ögonblick</item>
+    </plurals>
+    <plurals name="crew_stats_pings">
+        <item quantity="one">%d ping</item>
+        <item quantity="other">%d pingar</item>
+    </plurals>
+    <string name="crew_stats_out_hours">%1$d h %2$d min ute</string>
+    <plurals name="crew_stats_out_mins">
+        <item quantity="one">%d min ute</item>
+        <item quantity="other">%d min ute</item>
+    </plurals>
+    <string name="crew_stats_quiet">En lugn kväll</string>
+
+    <string name="crew_card_eyebrow">MOSHPOINT · KVÄLLENS PLAN</string>
+    <string name="crew_card_plan">PLANEN</string>
+    <string name="crew_card_meet_up">★  Träffpunkt: %1$s</string>
+    <string name="crew_card_whos_coming">VILKA KOMMER</string>
+    <string name="crew_card_footer">Tappat bort varandra? Hitta varandra med Moshpoint.</string>
+    <string name="crew_card_share_meet_up">Träffpunkt: %1$s</string>
+    <string name="crew_card_share_title">Dela planen</string>
+
+    <string name="crew_request_title">%1$s är nära och letar efter dig</string>
+    <string name="crew_request_text">Tryck för att lysa upp skärmen så de kan se dig</string>
+    <string name="crew_go_hidden">Göm dig</string>
+    <string name="crew_tile_live">Live</string>
+    <string name="crew_tile_hidden">Dold</string>
+</resources>

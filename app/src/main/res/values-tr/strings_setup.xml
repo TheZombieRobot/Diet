@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Turkish: settings, onboarding, planning, QR, bump, camera-roll picker. -->
+<resources>
+    <string name="setup_settings_title">Ayarlar</string>
+    <string name="setup_your_photo">Fotoğrafın</string>
+    <string name="setup_your_photo_desc">Arkadaşlarının okunda görünür. Sadece arkadaşların görebilir.</string>
+    <string name="setup_take_selfie">Selfie çek</string>
+    <string name="setup_choose_photo">Fotoğraf seç</string>
+    <string name="setup_remove_my_photo">Fotoğrafımı kaldır</string>
+    <string name="setup_your_name">Adın</string>
+    <string name="setup_stay_live">Yeniden başlatınca canlı kal</string>
+    <string name="setup_stay_live_desc">Telefonun yeniden başladığında canlıdaysan otomatik olarak yine canlıya geçersin.</string>
+    <string name="setup_ghost_mode">Hayalet modu</string>
+    <string name="setup_ghost_mode_desc">Haritada yerini gizle. Arkadaşların yakındayken seni Bluetooth ile yine de bulabilir.</string>
+    <string name="setup_ghost_one_hour">1 saat hayalet ol</string>
+    <string name="setup_data_saver">Veri tasarrufu</string>
+    <string name="setup_data_saver_desc">Daha hafif fotoğraf ve video paylaş (zayıf çekimde daha hızlı). Kapalı: yüksek kalite, herkesin kaydettiği kopyalar net olur. Kendi orijinallerin her zaman tam kalitede kalır.</string>
+    <string name="setup_emergency_contact">Acil durum kişisi</string>
+    <string name="setup_emergency_contact_desc">\"Yardım lazım\" konumunu bu kişiye normal SMS ile gönderebilir (veri olmadan çalışır). Sadece bu telefonda kalır.</string>
+    <string name="setup_contact_name">Ad</string>
+    <string name="setup_contact_mobile">Cep telefonu</string>
+    <string name="setup_contact_saved">Kaydedildi</string>
+    <string name="setup_contact_need_number">Cep numarası ekle</string>
+    <string name="setup_contact_removed">Kaldırıldı</string>
+    <string name="setup_save">Kaydet</string>
+    <string name="setup_remove">Kaldır</string>
+    <string name="setup_about">HAKKINDA</string>
+    <string name="setup_about_text">Moshpoint %1$s. Hesap yok, değişen kodlar, uçtan uca şifreli konumlar. Sadece canlıdayken bulunabilirsin.</string>
+    <string name="setup_hide_licences">Lisansları gizle</string>
+    <string name="setup_open_source_licences">Açık kaynak lisansları</string>
+    <string name="setup_licences_fonts">Yazı tipleri: Unbounded ve Inter, SIL Open Font License 1.1 kapsamında. QR kodları: ZXing (Apache 2.0).</string>
+    <string name="setup_continue_facebook">Facebook ile devam et</string>
+
+    <string name="setup_onb_skip">Geç</string>
+    <string name="setup_onb_title_find">Arkadaşlarını\nher kalabalıkta bul</string>
+    <string name="setup_onb_body_find">Bir arkadaşına dokun, ok doğrudan onu göstersin. Yaklaştıkça onun renginde parlar.</string>
+    <string name="setup_onb_title_live">İçeri girerken\ncanlıya geç</string>
+    <string name="setup_onb_body_live">Arkadaşların seni sadece canlıdayken bulabilir ve bunu sadece sen açarsın. Moshpoint\'in ihtiyacı olanlar:</string>
+    <string name="setup_onb_need_nearby">Yakındaki cihazlar</string>
+    <string name="setup_onb_need_nearby_why">Bluetooth, Wi-Fi ve UWB ile arkadaşlarını bulmak için</string>
+    <string name="setup_onb_need_location">Konum</string>
+    <string name="setup_onb_need_location_why">birbirinizden uzaktayken ok için</string>
+    <string name="setup_onb_need_notifications">Bildirimler</string>
+    <string name="setup_onb_need_notifications_why">canlıda olduğunu her zaman bilmen için</string>
+    <string name="setup_onb_title_name">Arkadaşların sana\nne desin?</string>
+    <string name="setup_onb_or_type_it">ya da yaz</string>
+    <string name="setup_onb_lets_go">Hadi başlayalım</string>
+    <string name="setup_onb_allow">İzin ver</string>
+    <string name="setup_onb_skip_for_now">Şimdilik geç</string>
+    <string name="setup_onb_im_name">Ben %1$s</string>
+    <string name="setup_onb_arrow_demo_desc">Bir arkadaşı gösteren ok</string>
+
+    <string name="setup_plan_title">Konser planla</string>
+    <string name="setup_plan_desc">Ekibi şimdi kur, herkes istediği zaman katılsın. O güne kadar uyur (pil harcamaz).</string>
+    <string name="setup_plan_search_hint">Ara: grup, sanatçı ya da mekân</string>
+    <string name="setup_plan_searching">Aranıyor…</string>
+    <string name="setup_plan_search_failed">Şu an aranamıyor. Aşağıya kendin yaz.</string>
+    <string name="setup_plan_no_results">Yaklaşan konser bulunamadı. Aşağıya yaz.</string>
+    <string name="setup_plan_when_where">%1$s · %2$s</string>
+    <string name="setup_plan_or_type">YA DA KENDİN YAZ</string>
+    <string name="setup_plan_whos_playing">Kim çalıyor</string>
+    <string name="setup_plan_where">Nerede (isteğe bağlı)</string>
+    <string name="setup_plan_start_crew">Ekibi kur</string>
+    <string name="setup_plan_default_name">Konser gecesi</string>
+
+    <string name="setup_qr_title">Beni eklemek için tara</string>
+    <string name="setup_qr_hint">Sonra sen de onlarınkini tara, birbirinizi bulabilin.</string>
+    <string name="setup_qr_eyebrow">KODUN</string>
+    <string name="setup_qr_done">‹  Tamam</string>
+    <string name="setup_qr_code_desc">QR kodu</string>
+    <plurals name="setup_qr_mates_in">
+        <item quantity="one">%d arkadaş katıldı</item>
+        <item quantity="other">%d arkadaş katıldı</item>
+    </plurals>
+    <string name="setup_qr_send_invite">Tarayamıyor musun? Davet gönder</string>
+    <string name="setup_qr_reset_invite">Daveti sıfırla</string>
+    <string name="setup_qr_reset_title">Davet sıfırlansın mı?</string>
+    <string name="setup_qr_reset_text">Bu QR ya da ekran görüntüsü yayıldıysa, sıfırlamak onu geçersiz kılar. Ekipte olan herkes kalır; yeni gelenlerin yeni QR\'a ihtiyacı olur.</string>
+    <string name="setup_qr_reset">Sıfırla</string>
+    <string name="setup_cancel">İptal</string>
+    <string name="setup_qr_end_night">Geceyi bitir</string>
+
+    <string name="setup_bump_title">Telefonları tokuştur</string>
+    <string name="setup_bump_sharing">Telefonunu arkadaşınınkiyle sırt sırta tut. Ekibine katılması istenecek.</string>
+    <string name="setup_bump_joining">Telefonunu ekipteki birinin telefonuyla sırt sırta tut (o da Tokuştur\'u açsın). Sana katılmak isteyip istemediğin sorulacak.</string>
+    <string name="setup_done">Tamam</string>
+
+    <string name="setup_roll_title">O geceki fotoğrafların</string>
+    <string name="setup_roll_looking">Fotoğraflarına bakılıyor…</string>
+    <string name="setup_roll_nothing">Bu telefonda o saatlerden bir şey yok. Başka telefonla çekilen ya da zaten eklenmiş fotoğraflar burada görünmez.</string>
+    <string name="setup_roll_tap_to_leave_out">Dışarıda bırakmak istediğine dokun. Konsere kopyalanırlar, galeriden silsen bile kalırlar.</string>
+    <string name="setup_roll_adding">Ekleniyor…</string>
+    <plurals name="setup_roll_add_n">
+        <item quantity="one">%d tanesini bu konsere ekle</item>
+        <item quantity="other">%d tanesini bu konsere ekle</item>
+    </plurals>
+</resources>

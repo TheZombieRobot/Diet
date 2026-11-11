@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Polish: settings, onboarding, planning, QR, bump, camera-roll picker. -->
+<resources>
+    <string name="setup_settings_title">Ustawienia</string>
+    <string name="setup_your_photo">Twoje zdjęcie</string>
+    <string name="setup_your_photo_desc">Widać je w strzałce u znajomych. Widzą je tylko twoi znajomi.</string>
+    <string name="setup_take_selfie">Zrób selfie</string>
+    <string name="setup_choose_photo">Wybierz zdjęcie</string>
+    <string name="setup_remove_my_photo">Usuń moje zdjęcie</string>
+    <string name="setup_your_name">Twoje imię</string>
+    <string name="setup_stay_live">Zostań live po restarcie</string>
+    <string name="setup_stay_live_desc">Jeśli był włączony live, gdy telefon się zrestartował, włączy się znowu automatycznie.</string>
+    <string name="setup_ghost_mode">Tryb ducha</string>
+    <string name="setup_ghost_mode_desc">Ukryj swoje miejsce na mapie. Znajomi wciąż znajdą cię przez Bluetooth, gdy są blisko.</string>
+    <string name="setup_ghost_one_hour">Duch na 1 godzinę</string>
+    <string name="setup_data_saver">Oszczędzanie danych</string>
+    <string name="setup_data_saver_desc">Udostępniaj lżejsze zdjęcia i klipy (szybciej przy słabym zasięgu). Wyłączone: wysoka jakość, więc kopie u wszystkich są ostre. Twoje oryginały zawsze zostają w pełnej jakości.</string>
+    <string name="setup_emergency_contact">Kontakt alarmowy</string>
+    <string name="setup_emergency_contact_desc">„Potrzebuję pomocy” może wysłać tej osobie twoją lokalizację zwykłym SMS-em (działa bez danych). Zostaje tylko na tym telefonie.</string>
+    <string name="setup_contact_name">Imię</string>
+    <string name="setup_contact_mobile">Numer komórki</string>
+    <string name="setup_contact_saved">Zapisano</string>
+    <string name="setup_contact_need_number">Dodaj numer komórki</string>
+    <string name="setup_contact_removed">Usunięto</string>
+    <string name="setup_save">Zapisz</string>
+    <string name="setup_remove">Usuń</string>
+    <string name="setup_about">INFORMACJE</string>
+    <string name="setup_about_text">Moshpoint %1$s. Bez konta, zmienne kody, szyfrowane end-to-end lokalizacje. Da się cię znaleźć tylko wtedy, gdy masz włączony live.</string>
+    <string name="setup_hide_licences">Ukryj licencje</string>
+    <string name="setup_open_source_licences">Licencje open source</string>
+    <string name="setup_licences_fonts">Czcionki: Unbounded i Inter, na licencji SIL Open Font License 1.1. Kody QR: ZXing (Apache 2.0).</string>
+    <string name="setup_continue_facebook">Kontynuuj z Facebookiem</string>
+
+    <string name="setup_onb_skip">Pomiń</string>
+    <string name="setup_onb_title_find">Znajdź znajomych\nw każdym tłumie</string>
+    <string name="setup_onb_body_find">Kliknij znajomego, a strzałka pokaże prosto na niego. Im bliżej, tym mocniej świeci jego kolorem.</string>
+    <string name="setup_onb_title_live">Włącz live,\ngdy wchodzisz</string>
+    <string name="setup_onb_body_live">Znajomi mogą cię znaleźć tylko wtedy, gdy masz włączony live, i tylko ty go włączasz. Moshpoint potrzebuje:</string>
+    <string name="setup_onb_need_nearby">Urządzenia w pobliżu</string>
+    <string name="setup_onb_need_nearby_why">żeby szukać znajomych przez Bluetooth, Wi-Fi i UWB</string>
+    <string name="setup_onb_need_location">Lokalizacja</string>
+    <string name="setup_onb_need_location_why">do strzałki, gdy jesteście daleko od siebie</string>
+    <string name="setup_onb_need_notifications">Powiadomienia</string>
+    <string name="setup_onb_need_notifications_why">żeby zawsze było jasne, kiedy jesteś live</string>
+    <string name="setup_onb_title_name">Jak mają na ciebie\nmówić znajomi?</string>
+    <string name="setup_onb_or_type_it">albo wpisz</string>
+    <string name="setup_onb_lets_go">Lecimy</string>
+    <string name="setup_onb_allow">Zezwól</string>
+    <string name="setup_onb_skip_for_now">Na razie pomiń</string>
+    <string name="setup_onb_im_name">Jestem %1$s</string>
+    <string name="setup_onb_arrow_demo_desc">Strzałka wskazująca znajomego</string>
+
+    <string name="setup_plan_title">Zaplanuj koncert</string>
+    <string name="setup_plan_desc">Załóż ekipę teraz, każdy dołączy, kiedy mu pasuje. Do tego dnia śpi (nie zużywa baterii).</string>
+    <string name="setup_plan_search_hint">Szukaj: zespół, artysta lub miejsce</string>
+    <string name="setup_plan_searching">Szukam…</string>
+    <string name="setup_plan_search_failed">Nie da się teraz wyszukać. Wpisz to niżej.</string>
+    <string name="setup_plan_no_results">Nie znaleziono nadchodzących koncertów. Wpisz to niżej.</string>
+    <string name="setup_plan_when_where">%1$s · %2$s</string>
+    <string name="setup_plan_or_type">ALBO WPISZ RĘCZNIE</string>
+    <string name="setup_plan_whos_playing">Kto gra</string>
+    <string name="setup_plan_where">Gdzie (opcjonalnie)</string>
+    <string name="setup_plan_start_crew">Załóż ekipę</string>
+    <string name="setup_plan_default_name">Koncertowa noc</string>
+
+    <string name="setup_qr_title">Zeskanuj, żeby mnie dodać</string>
+    <string name="setup_qr_hint">Potem zeskanuj ich kod, żebyście mogli się znaleźć.</string>
+    <string name="setup_qr_eyebrow">TWÓJ KOD</string>
+    <string name="setup_qr_done">‹  Gotowe</string>
+    <string name="setup_qr_code_desc">Kod QR</string>
+    <plurals name="setup_qr_mates_in">
+        <item quantity="one">%d osoba w ekipie</item>
+        <item quantity="few">%d osoby w ekipie</item>
+        <item quantity="many">%d osób w ekipie</item>
+        <item quantity="other">%d osoby w ekipie</item>
+    </plurals>
+    <string name="setup_qr_send_invite">Nie da się zeskanować? Wyślij zaproszenie</string>
+    <string name="setup_qr_reset_invite">Zresetuj zaproszenie</string>
+    <string name="setup_qr_reset_title">Zresetować zaproszenie?</string>
+    <string name="setup_qr_reset_text">Jeśli ten QR albo jego zrzut ekranu wyciekł, reset sprawi, że przestanie działać. Wszyscy, którzy już są w ekipie, zostają; nowi będą potrzebować nowego QR.</string>
+    <string name="setup_qr_reset">Resetuj</string>
+    <string name="setup_cancel">Anuluj</string>
+    <string name="setup_qr_end_night">Zakończ noc</string>
+
+    <string name="setup_bump_title">Stuknij telefonami</string>
+    <string name="setup_bump_sharing">Przyłóż telefon plecami do telefonu znajomego. Dostanie propozycję dołączenia do twojej ekipy.</string>
+    <string name="setup_bump_joining">Przyłóż telefon plecami do telefonu kogoś z ekipy (ta osoba też otwiera Stuknij). Dostaniesz propozycję dołączenia.</string>
+    <string name="setup_done">Gotowe</string>
+
+    <string name="setup_roll_title">Twoje zdjęcia z tamtej nocy</string>
+    <string name="setup_roll_looking">Przeglądam twoje zdjęcia…</string>
+    <string name="setup_roll_nothing">Na tym telefonie nie ma nic z tych godzin. Zdjęcia z innego telefonu albo już dodane nie pojawią się tutaj.</string>
+    <string name="setup_roll_tap_to_leave_out">Kliknij, żeby pominąć zdjęcie. Kopiujemy je do koncertu, więc zostaną, nawet jeśli usuniesz je z galerii.</string>
+    <string name="setup_roll_adding">Dodaję…</string>
+    <plurals name="setup_roll_add_n">
+        <item quantity="one">Dodaj %d do tego koncertu</item>
+        <item quantity="few">Dodaj %d do tego koncertu</item>
+        <item quantity="many">Dodaj %d do tego koncertu</item>
+        <item quantity="other">Dodaj %d do tego koncertu</item>
+    </plurals>
+</resources>
