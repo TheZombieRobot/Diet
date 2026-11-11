@@ -305,7 +305,6 @@ internal fun SettingsContent(
                 Text(stringResource(R.string.setup_open_source_licences), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan))
             }
             if (showLicences) AcknowledgementsScreen(onClose = { showLicences = false })
-            }
         }
     }
 }

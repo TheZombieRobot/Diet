@@ -117,7 +117,7 @@ jobs:
         shell: bash
         run: |
           # Every library shipped must come with a licence the app can show; fail otherwise.
-          F=$(find app/build/generated -path '*release*' -name aboutlibraries.json | head -1)
+          F=$(find app/build -path '*release*' -name aboutlibraries.json | head -1)
           [ -n "$F" ] || { echo "::error::licence list (aboutlibraries.json) was not generated"; exit 1; }
           python3 - "$F" <<'PY'
           import json, sys, collections
