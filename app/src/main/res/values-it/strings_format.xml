@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Italian: shared formats (times, distances, countdowns). -->
+<resources>
+    <string name="time_just_now">adesso</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">%d min fa</item>
+        <item quantity="many">%d min fa</item>
+        <item quantity="other">%d min fa</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="one">%d h fa</item>
+        <item quantity="many">%d h fa</item>
+        <item quantity="other">%d h fa</item>
+    </plurals>
+    <plurals name="time_days_ago">
+        <item quantity="one">%d giorno fa</item>
+        <item quantity="many">%d giorni fa</item>
+        <item quantity="other">%d giorni fa</item>
+    </plurals>
+    <string name="time_live">live</string>
+    <string name="status_battery_died">batteria finita qui · %1$s</string>
+    <string name="status_time_battery">%1$s · %2$d%%</string>
+
+    <string name="dist_m">%1$s m</string>
+    <string name="dist_km">%1$s km</string>
+    <string name="dist_ft">%1$s ft</string>
+    <string name="dist_mi">%1$s mi</string>
+    <string name="unit_m">m</string>
+    <string name="unit_km">km</string>
+    <string name="unit_ft">ft</string>
+    <string name="unit_mi">mi</string>
+    <string name="dist_number_unit">%1$s %2$s</string>
+
+    <string name="countdown_tonight">stasera</string>
+    <string name="countdown_tomorrow">domani</string>
+    <plurals name="countdown_days">
+        <item quantity="one">tra %d giorno</item>
+        <item quantity="many">tra %d giorni</item>
+        <item quantity="other">tra %d giorni</item>
+    </plurals>
+    <plurals name="countdown_weeks">
+        <item quantity="one">tra %d settimana</item>
+        <item quantity="many">tra %d settimane</item>
+        <item quantity="other">tra %d settimane</item>
+    </plurals>
+    <plurals name="countdown_months">
+        <item quantity="one">tra %d mese</item>
+        <item quantity="many">tra %d mesi</item>
+        <item quantity="other">tra %d mesi</item>
+    </plurals>
+</resources>

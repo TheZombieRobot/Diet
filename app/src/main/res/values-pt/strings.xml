@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Brazilian Portuguese -->
+<resources>
+    <string name="app_name">Moshpoint</string>
+    <string name="visibility_channel">Status ao vivo</string>
+    <string name="visibility_notification">Você está ao vivo: seus amigos podem te achar</string>
+    <string name="widget_title">Sua galera</string>
+    <string name="widget_empty">Monte uma galera no Moshpoint e seus amigos aparecem aqui.</string>
+    <string name="widget_find">Achar a galera</string>
+    <string name="widget_description">Onde sua galera está, e um toque pra achar todo mundo</string>
+</resources>

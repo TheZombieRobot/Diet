@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Italian -->
+<resources>
+    <string name="app_name">Moshpoint</string>
+    <string name="visibility_channel">Stato live</string>
+    <string name="visibility_notification">Sei live: i tuoi amici possono trovarti</string>
+    <string name="widget_title">Il tuo gruppo</string>
+    <string name="widget_empty">Crea un gruppo su Moshpoint e i tuoi amici compaiono qui.</string>
+    <string name="widget_find">Trova il gruppo</string>
+    <string name="widget_description">Dov\'è il tuo gruppo, e un tocco per trovarli</string>
+</resources>
