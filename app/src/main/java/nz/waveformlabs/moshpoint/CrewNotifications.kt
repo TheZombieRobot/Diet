@@ -12,7 +12,13 @@ import nz.waveformlabs.moshpoint.core.GigGroup
 object CrewNotifications {
     private const val CHANNEL = "crew"
     private const val HELP_CHANNEL = "crew_help"
-    private var nextId = 7000
+    /**
+     * Ids for alerts that each get a notification of their own. They start from the clock (16 a
+     * second), in a range of their own, so an app that Android restarted in the background never
+     * reuses the id of an alert still showing. Before, every start counted from 7000 again, so the
+     * first new alert replaced the first old one, even a Need help nobody had seen yet.
+     */
+    private var nextId = 0x20000000 + ((System.currentTimeMillis() / 1000 * 16) % 0x10000000).toInt()
 
     /** [sentAgo]: set when the ping only just arrived long after it was sent ("40 min ago"), so the alert says so. */
     fun ping(c: Context, p: GigGroup.Ping, sentAgo: String? = null) {

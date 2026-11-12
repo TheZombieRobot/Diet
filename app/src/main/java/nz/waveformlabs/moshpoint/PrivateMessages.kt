@@ -348,10 +348,10 @@ object PrivateMessages {
     private fun threadKey(crewId: String, mate: Long) = "$crewId/$mate"
 
     /**
-     * A range of its own, far above every other notification id in the app (1, 6, 5000–9095 for
-     * requests, 7000 and up for crew alerts, 9000–9899 for crew chat), and wide enough that two
-     * threads practically never share one: a shared id would replace one person's notification
-     * with another's, so a message would go unnoticed.
+     * A range of its own (the others: 1 and 6 for the services, 9000–9899 for crew chat,
+     * 0x20000000 up for crew alerts, 0x40000000 up for "light up" requests), and wide enough that
+     * two threads practically never share one: a shared id would replace one person's
+     * notification with another's, so a message would go unnoticed.
      */
     private fun notificationId(key: String) = 0x50000000 + (key.hashCode() and 0x0FFFFFFF)
 

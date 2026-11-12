@@ -207,7 +207,7 @@ class VisibilityService : LifecycleService() {
             .setContentIntent(tap)
             .setColor(0xFFB6FF3B.toInt())
             .build()
-        runCatching { nm.notify(REQUEST_NOTIFICATION_BASE + (friend.id.hashCode() and 0xFFF), n) }
+        runCatching { nm.notify(REQUEST_NOTIFICATION_BASE + (friend.id.hashCode() and 0x0FFFFFFF), n) }
         DebugStatus.log("${friend.name} asked us to light up")
     }
 
@@ -323,7 +323,8 @@ class VisibilityService : LifecycleService() {
             }
         }
         private const val REQUEST_CHANNEL = "requests"
-        private const val REQUEST_NOTIFICATION_BASE = 5000
+        /** "Light up" requests, one per friend: a range of their own (5000 up used to reach into the crew alerts' ids, Need help among them). */
+        private const val REQUEST_NOTIFICATION_BASE = 0x40000000
         private const val NOTIFICATION_ID = 1
         private const val FAST_FOR_MS = 90_000L
         private const val ACTION_STOP = "nz.waveformlabs.moshpoint.STOP_VISIBLE"
