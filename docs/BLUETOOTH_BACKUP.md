@@ -475,10 +475,23 @@ Every shared file this branch changes, and how much:
 ## Status and next steps
 
 **Handover.** Everything ticked below is committed and pushed on `ccr-89acfff3-nbj8aa`;
-nothing is half-done. To pick this up: core and server tests are `./gradlew :core:test
-:server:test`; the app is built, and its screenshots rendered, by CI on every push
-(`Android build`). The next step is the field test, then tuning the timings from what it
-shows. No decision is waiting to be written down.
+nothing is half-done. CI (`Android build`) is green on the code as it stands: translations,
+core and server tests, debug and release APKs, licences, screenshots in every language. To
+pick this up: core and server tests are `./gradlew :core:test :server:test`; the app is
+built, and its screenshots rendered, by CI on every push. No decision is waiting to be
+written down.
+
+Next steps, in order:
+
+1. **Field test**, section 4b of [FIELD_TEST_PLAN.md](FIELD_TEST_PLAN.md), then tune the
+   timings from what it shows.
+2. **Read the review fixes once more.** The second review's eleven findings were fixed (table
+   above), and the fixes are covered by tests where they are in core and compile in CI. But
+   the follow-up read of the fixes themselves was cut short, so the app-side ones have only
+   been read by their author: `CrewRekey.resend` (rounds and who is left), the pin hand-over
+   in `GroupSync.syncServer`, `RelayClient.waitForRoom`, and the `fresh` flag into
+   `GroupSync.onPing`.
+3. **Merge with the venue map branch** (the shared files are listed above).
 
 - [x] Design note (this file), corrected to match the code.
 - [x] Item 4 first: `RelayBudget` in core with tests; `RelayClient` and `NetState` use it.
