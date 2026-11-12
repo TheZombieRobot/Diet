@@ -280,4 +280,11 @@
     <string name="crew_go_hidden">Schowaj się</string>
     <string name="crew_tile_live">Udostępniasz</string>
     <string name="crew_tile_hidden">Ukryty</string>
+
+    <string name="crew_only_owner_removes">Tylko osoba, która utworzyła tę ekipę, może z niej usuwać ludzi.</string>
+    <string name="crew_handover_title">Kto teraz zajmie się ekipą?</string>
+    <string name="crew_handover_body">To twoja ekipa, więc tylko ty możesz z niej usuwać ludzi. Wybierz, kto to przejmie.</string>
+    <string name="crew_handover_nobody">Nikt</string>
+    <string name="crew_note_handed">%1$s opuszcza ekipę i przekazuje ją: %2$s.</string>
+    <string name="crew_note_handed_you">%1$s opuszcza ekipę i przekazuje ją tobie. Teraz możesz z niej usuwać ludzi.</string>
 </resources>

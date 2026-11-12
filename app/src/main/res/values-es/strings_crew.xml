@@ -266,4 +266,11 @@
     <string name="crew_go_hidden">Ocultarme</string>
     <string name="crew_tile_live">En vivo</string>
     <string name="crew_tile_hidden">Oculto</string>
+
+    <string name="crew_only_owner_removes">Solo quien creó este grupo puede sacar a alguien.</string>
+    <string name="crew_handover_title">¿Quién se encarga del grupo ahora?</string>
+    <string name="crew_handover_body">Creaste este grupo, así que solo tú puedes sacar a alguien. Elige quién se encarga de eso.</string>
+    <string name="crew_handover_nobody">Nadie</string>
+    <string name="crew_note_handed">%1$s se fue y le dejó el grupo a %2$s.</string>
+    <string name="crew_note_handed_you">%1$s se fue y te dejó el grupo a ti. Ahora tú puedes sacar a alguien.</string>
 </resources>

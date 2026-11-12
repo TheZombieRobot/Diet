@@ -235,4 +235,11 @@
     <string name="crew_go_hidden">Ẩn đi</string>
     <string name="crew_tile_live">Đang chia sẻ</string>
     <string name="crew_tile_hidden">Đang ẩn</string>
+
+    <string name="crew_only_owner_removes">Chỉ người tạo nhóm này mới có thể xóa thành viên.</string>
+    <string name="crew_handover_title">Ai sẽ quản lý nhóm bây giờ?</string>
+    <string name="crew_handover_body">Bạn đã tạo nhóm này nên chỉ bạn mới có thể xóa thành viên. Hãy chọn người tiếp quản.</string>
+    <string name="crew_handover_nobody">Không ai</string>
+    <string name="crew_note_handed">%1$s đã rời nhóm và giao nhóm cho %2$s.</string>
+    <string name="crew_note_handed_you">%1$s đã rời nhóm và giao nhóm cho bạn. Giờ bạn có thể xóa thành viên.</string>
 </resources>

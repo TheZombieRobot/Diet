@@ -84,6 +84,8 @@ fun FriendsScreen(
     onRemovePhoto: (String) -> Unit,
     onClearGigGroup: () -> Unit,
     groupName: String?,
+    /** False in a crew with an owner that isn't us: only the owner removes people from it. */
+    canRemoveCrewMates: Boolean = true,
     /** Keys of everyone in tonight's crew, including people already on the friends list. */
     crewKeys: Set<String> = emptySet(),
     onStartGroup: (String) -> Unit,
@@ -218,7 +220,15 @@ fun FriendsScreen(
                     if (PhotoStore.photos.containsKey(f.id)) {
                         TextButton(onClick = { onRemovePhoto(f.id); options = null }) { Text(stringResource(R.string.home_remove_photo)) }
                     }
-                    TextButton(onClick = { confirmRemove = f; options = null }) { Text(stringResource(R.string.home_remove_name, f.name), color = Color(0xFFE53935)) }
+                    if (!f.gigGroupOnly || canRemoveCrewMates) {
+                        TextButton(onClick = { confirmRemove = f; options = null }) { Text(stringResource(R.string.home_remove_name, f.name), color = Color(0xFFE53935)) }
+                    } else {
+                        Text(
+                            stringResource(R.string.crew_only_owner_removes),
+                            style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint),
+                            modifier = androidx.compose.ui.Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        )
+                    }
                 }
             },
             confirmButton = { TextButton(onClick = { options = null }) { Text(stringResource(R.string.home_close)) } },

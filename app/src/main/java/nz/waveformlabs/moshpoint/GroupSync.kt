@@ -140,6 +140,8 @@ object GroupSync {
             Base64.decode(key, Base64.NO_WRAP), p.getString("name", null) ?: Txt.s(R.string.crew_default_group_name), created,
             p.getLong("at", 0L), p.getString("venue", "") ?: "",
             p.getString("vlat", null)?.toDoubleOrNull(), p.getString("vlon", null)?.toDoubleOrNull(),
+            p.getString("owner", null)?.let { runCatching { Base64.decode(it, Base64.NO_WRAP) }.getOrNull() },
+            p.getString("osalt", null)?.let { runCatching { Base64.decode(it, Base64.NO_WRAP) }.getOrNull() },
         )
         followingState.value = p.getBoolean("following", false)
         if (System.currentTimeMillis() > g.expiresAtMs) {
@@ -182,7 +184,10 @@ object GroupSync {
 
     /** Returns the new crew. It only becomes the main crew if it's the soonest (see [set]). */
     fun startNew(c: Context, name: String, startsAtSec: Long = 0L, venue: String = "", venueLat: Double? = null, venueLon: Double? = null): GigGroup {
-        val g = GigGroup.create(name, System.currentTimeMillis(), startsAtSec = startsAtSec, venue = venue, venueLat = venueLat, venueLon = venueLon)
+        // The creator owns the crew: only they can remove people (see RekeyPolicy).
+        val owner = nz.waveformlabs.moshpoint.core.CrewKeys.generate()
+        val g = GigGroup.createOwned(name, System.currentTimeMillis(), owner.pub, startsAtSec = startsAtSec, venue = venue, venueLat = venueLat, venueLon = venueLon)
+        Identity.adopt(c.applicationContext, g, owner)
         set(c.applicationContext, g, following = false)
         return g
     }
@@ -275,6 +280,8 @@ object GroupSync {
             .putString("venue", g.venue)
             .putString("vlat", g.venueLat?.toString())
             .putString("vlon", g.venueLon?.toString())
+            .putString("owner", g.ownerPub?.takeIf { g.owned }?.let { Base64.encodeToString(it, Base64.NO_WRAP) })
+            .putString("osalt", g.ownerSalt?.takeIf { g.owned }?.let { Base64.encodeToString(it, Base64.NO_WRAP) })
             .putBoolean("following", following)
             .remove("members")
             .remove("rally")
@@ -304,6 +311,9 @@ object GroupSync {
             }
         }
         prefs(app).edit().putString("key", Base64.encodeToString(fresh.key, Base64.NO_WRAP))
+            // An owned crew's new key is bound to its owner (who may have just handed it over).
+            .putString("owner", fresh.ownerPub?.takeIf { fresh.owned }?.let { Base64.encodeToString(it, Base64.NO_WRAP) })
+            .putString("osalt", fresh.ownerSalt?.takeIf { fresh.owned }?.let { Base64.encodeToString(it, Base64.NO_WRAP) })
             .putString("pubs", pubs.entries.joinToString(",") { "${it.key}:${Base64.encodeToString(it.value, Base64.NO_WRAP)}" }).commit()
         group.value = fresh
         GigWake.schedule(app, fresh)

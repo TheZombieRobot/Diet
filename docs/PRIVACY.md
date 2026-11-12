@@ -70,6 +70,12 @@ certain size was sent at a certain time, and nothing else. Someone removed from 
 read or send these once the crew has its new key, and phones stop using the old key over
 Bluetooth as soon as they hear it has been replaced.
 
+**Who can remove people:** only the person who made the crew. Anyone can leave. The crew's
+key is a fingerprint of its creator's key, so an invite passed on by someone else can't name a
+different creator, and a removed member can't take the crew over. When the creator leaves,
+they can hand the crew to another member. (Crews made before this rule keep the old one,
+where anyone in them could remove people, until they end.)
+
 **Crew introductions:** phones in a crew also broadcast a short encrypted introduction, so
 crew members' phones recognise each other. Only the crew can open it. Earlier versions left
 4 bytes in it that stayed the same all night. This version has a form with nothing constant

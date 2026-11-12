@@ -235,4 +235,11 @@
     <string name="crew_go_hidden">ซ่อนตัว</string>
     <string name="crew_tile_live">แชร์อยู่</string>
     <string name="crew_tile_hidden">ซ่อนอยู่</string>
+
+    <string name="crew_only_owner_removes">เฉพาะคนที่สร้างแก๊งนี้เท่านั้นที่ลบคนออกได้</string>
+    <string name="crew_handover_title">ใครจะดูแลแก๊งต่อ</string>
+    <string name="crew_handover_body">คุณเป็นคนสร้างแก๊งนี้ เลยมีแค่คุณที่ลบคนออกได้ เลือกคนที่จะดูแลต่อ</string>
+    <string name="crew_handover_nobody">ไม่มีใคร</string>
+    <string name="crew_note_handed">%1$s ออกไปแล้วและยกแก๊งให้ %2$s ดูแล</string>
+    <string name="crew_note_handed_you">%1$s ออกไปแล้วและยกแก๊งให้คุณดูแล ตอนนี้คุณลบคนออกได้แล้ว</string>
 </resources>

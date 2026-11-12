@@ -98,7 +98,7 @@ object Crews {
     /** A waiting crew moved to a new key (see CrewRekey). */
     fun replaceKey(c: Context, oldKey: ByteArray, fresh: GigGroup) {
         val e = find(oldKey) ?: return
-        put(c, Entry(fresh, e.following, JSONObject(e.settings.toString()).put("key", Base64.encodeToString(fresh.key, Base64.NO_WRAP)), e.mates))
+        put(c, Entry(fresh, e.following, ownerFields(JSONObject(e.settings.toString()).put("key", Base64.encodeToString(fresh.key, Base64.NO_WRAP)), fresh), e.mates))
         others.removeAll { it.group.key.contentEquals(oldKey) }
         save(c)
     }
@@ -122,13 +122,29 @@ object Crews {
         .put("venue", g.venue)
         .apply { g.venueLat?.let { put("vlat", it.toString()) } }
         .apply { g.venueLon?.let { put("vlon", it.toString()) } }
+        .apply { ownerFields(this, g) }
         .put("following", following)
+
+    /** An owned crew's owner and salt, or neither (see GigGroup.owned). */
+    private fun ownerFields(o: JSONObject, g: GigGroup): JSONObject {
+        val pub = g.ownerPub
+        val salt = g.ownerSalt
+        if (g.owned && pub != null && salt != null) {
+            o.put("owner", Base64.encodeToString(pub, Base64.NO_WRAP)).put("osalt", Base64.encodeToString(salt, Base64.NO_WRAP))
+        } else {
+            o.remove("owner")
+            o.remove("osalt")
+        }
+        return o
+    }
 
     fun groupFrom(o: JSONObject): GigGroup? = runCatching {
         GigGroup(
             Base64.decode(o.getString("key"), Base64.NO_WRAP), o.optString("name", Txt.s(R.string.crew_default_group_name)), o.optLong("created", 0L),
             o.optLong("at", 0L), o.optString("venue", ""),
             o.optString("vlat", "").toDoubleOrNull(), o.optString("vlon", "").toDoubleOrNull(),
+            o.optString("owner", "").takeIf { it.isNotEmpty() }?.let { runCatching { Base64.decode(it, Base64.NO_WRAP) }.getOrNull() },
+            o.optString("osalt", "").takeIf { it.isNotEmpty() }?.let { runCatching { Base64.decode(it, Base64.NO_WRAP) }.getOrNull() },
         )
     }.getOrNull()
 }

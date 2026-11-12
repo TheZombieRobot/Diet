@@ -250,4 +250,11 @@
     <string name="crew_go_hidden">छिप जाएँ</string>
     <string name="crew_tile_live">लाइव</string>
     <string name="crew_tile_hidden">छिपे हुए</string>
+
+    <string name="crew_only_owner_removes">सिर्फ़ इस ग्रुप को बनाने वाला ही किसी को हटा सकता है।</string>
+    <string name="crew_handover_title">अब ग्रुप कौन संभालेगा?</string>
+    <string name="crew_handover_body">यह ग्रुप आपने बनाया है, इसलिए सिर्फ़ आप ही किसी को हटा सकते हैं। चुनें कि अब यह काम कौन संभालेगा।</string>
+    <string name="crew_handover_nobody">कोई नहीं</string>
+    <string name="crew_note_handed">%1$s ग्रुप छोड़कर चले गए और ग्रुप %2$s को सौंप दिया।</string>
+    <string name="crew_note_handed_you">%1$s ग्रुप छोड़कर चले गए और ग्रुप आपको सौंप दिया। अब आप किसी को हटा सकते हैं।</string>
 </resources>

@@ -266,4 +266,11 @@
     <string name="crew_go_hidden">Nasconditi</string>
     <string name="crew_tile_live">Live</string>
     <string name="crew_tile_hidden">Nascosto</string>
+
+    <string name="crew_only_owner_removes">Solo chi ha creato questo gruppo può togliere qualcuno.</string>
+    <string name="crew_handover_title">Chi si occupa del gruppo adesso?</string>
+    <string name="crew_handover_body">Hai creato tu questo gruppo, quindi solo tu puoi togliere qualcuno. Scegli chi se ne occupa.</string>
+    <string name="crew_handover_nobody">Nessuno</string>
+    <string name="crew_note_handed">%1$s ha lasciato il gruppo e l\'ha affidato a %2$s.</string>
+    <string name="crew_note_handed_you">%1$s ha lasciato il gruppo e l\'ha affidato a te. Ora puoi togliere qualcuno tu.</string>
 </resources>

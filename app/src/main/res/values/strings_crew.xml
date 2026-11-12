@@ -345,4 +345,16 @@
     <!-- Quick-settings tile subtitle -->
     <string name="crew_tile_live">Live</string>
     <string name="crew_tile_hidden">Hidden</string>
+
+    <!-- ===== Crew owner: only the creator removes people ===== -->
+    <!-- Shown instead of "Remove" for a crew mate, when we didn't make the crew: only its creator can remove people -->
+    <string name="crew_only_owner_removes">Only the person who made this crew can remove people.</string>
+    <!-- Dialog when the crew's creator leaves a crew others are still in: they pick who can remove people from now on -->
+    <string name="crew_handover_title">Who looks after the crew now?</string>
+    <string name="crew_handover_body">You made this crew, so only you can remove people. Pick who takes that over.</string>
+    <string name="crew_handover_nobody">No one</string>
+    <!-- Chat note. %1$s = the creator who left, %2$s = who they handed the crew to -->
+    <string name="crew_note_handed">%1$s left and handed the crew to %2$s.</string>
+    <!-- Chat note when the crew was handed to us. %1$s = the creator who left -->
+    <string name="crew_note_handed_you">%1$s left and handed the crew to you. You can remove people now.</string>
 </resources>

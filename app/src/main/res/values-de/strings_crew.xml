@@ -251,4 +251,11 @@
     <string name="crew_go_hidden">Verstecken</string>
     <string name="crew_tile_live">Live</string>
     <string name="crew_tile_hidden">Versteckt</string>
+
+    <string name="crew_only_owner_removes">Nur wer diese Crew erstellt hat, kann Leute entfernen.</string>
+    <string name="crew_handover_title">Wer übernimmt jetzt die Crew?</string>
+    <string name="crew_handover_body">Du hast diese Crew erstellt, deshalb kannst nur du Leute entfernen. Wähle, wer das übernimmt.</string>
+    <string name="crew_handover_nobody">Niemand</string>
+    <string name="crew_note_handed">%1$s ist gegangen und hat die Crew an %2$s übergeben.</string>
+    <string name="crew_note_handed_you">%1$s ist gegangen und hat dir die Crew übergeben. Jetzt kannst du Leute entfernen.</string>
 </resources>

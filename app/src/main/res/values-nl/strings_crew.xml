@@ -251,4 +251,11 @@
     <string name="crew_go_hidden">Verbergen</string>
     <string name="crew_tile_live">Live</string>
     <string name="crew_tile_hidden">Verborgen</string>
+
+    <string name="crew_only_owner_removes">Alleen wie deze crew heeft gemaakt, kan mensen verwijderen.</string>
+    <string name="crew_handover_title">Wie neemt de crew nu over?</string>
+    <string name="crew_handover_body">Jij hebt deze crew gemaakt, dus alleen jij kunt mensen verwijderen. Kies wie dat overneemt.</string>
+    <string name="crew_handover_nobody">Niemand</string>
+    <string name="crew_note_handed">%1$s is weggegaan en heeft de crew aan %2$s overgedragen.</string>
+    <string name="crew_note_handed_you">%1$s is weggegaan en heeft de crew aan jou overgedragen. Nu kun jij mensen verwijderen.</string>
 </resources>

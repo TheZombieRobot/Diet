@@ -42,6 +42,17 @@ object Identity {
     private fun keys(c: Context) = c.applicationContext.getSharedPreferences("crewkeys", Context.MODE_PRIVATE)
     private val cache = HashMap<String, CrewKeys.Signer>()
 
+    /**
+     * A crew we just made with [s] as its owner key: that key is ours in the crew from the
+     * start (the crew's key is bound to it, see GigGroup.owned).
+     */
+    @Synchronized
+    fun adopt(c: Context, g: GigGroup, s: CrewKeys.Signer) {
+        val id = GigArchive.idFor(g)
+        keys(c).edit().putString(id, Base64.encodeToString(s.encodedPrivate(), Base64.NO_WRAP) + ":" + Base64.encodeToString(s.pub, Base64.NO_WRAP)).apply()
+        cache[id] = s
+    }
+
     /** Our signing key for crew [g], made the first time it's needed. */
     @Synchronized
     fun signer(c: Context, g: GigGroup): CrewKeys.Signer {

@@ -310,4 +310,11 @@
     <string name="crew_go_hidden">اختفِ</string>
     <string name="crew_tile_live">ظاهر</string>
     <string name="crew_tile_hidden">مخفي</string>
+
+    <string name="crew_only_owner_removes">فقط من أنشأ هذه الشلة يمكنه إزالة الأعضاء.</string>
+    <string name="crew_handover_title">من يتولى الشلة الآن؟</string>
+    <string name="crew_handover_body">أنشأت هذه الشلة، لذا لا يمكن لغيرك إزالة الأعضاء. اختر من يتولى ذلك.</string>
+    <string name="crew_handover_nobody">لا أحد</string>
+    <string name="crew_note_handed">%1$s: مغادرة الشلة وتسليمها إلى %2$s.</string>
+    <string name="crew_note_handed_you">%1$s: مغادرة الشلة وتسليمها إليك. يمكنك الآن إزالة الأعضاء.</string>
 </resources>

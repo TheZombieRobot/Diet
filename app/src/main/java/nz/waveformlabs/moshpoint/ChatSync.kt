@@ -81,7 +81,7 @@ object ChatSync {
                 }
                 // A private message for us (e.g. "keep as friend"); for anyone else it's unreadable.
                 g.openDirect(blob, Identity.signer(app, g))?.let { d ->
-                    if (d.kind == GigGroup.DIRECT_REKEY || d.kind == GigGroup.DIRECT_REKEY2) rekeys += d else Friendship.onDirect(app, g, d)
+                    if (d.kind == GigGroup.DIRECT_REKEY || d.kind == GigGroup.DIRECT_REKEY2 || d.kind == GigGroup.DIRECT_REKEY3) rekeys += d else Friendship.onDirect(app, g, d)
                 }
             }
             val onScreen = CrewChat.open && CrewChat.viewing.value?.key?.contentEquals(g.key) == true

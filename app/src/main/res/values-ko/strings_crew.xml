@@ -235,4 +235,11 @@
     <string name="crew_go_hidden">내 위치 숨기기</string>
     <string name="crew_tile_live">공유 중</string>
     <string name="crew_tile_hidden">숨김</string>
+
+    <string name="crew_only_owner_removes">이 크루를 만든 사람만 멤버를 내보낼 수 있어요.</string>
+    <string name="crew_handover_title">이제 누가 크루를 맡을까요?</string>
+    <string name="crew_handover_body">크루를 만든 사람만 멤버를 내보낼 수 있어요. 그 역할을 맡길 사람을 골라 주세요.</string>
+    <string name="crew_handover_nobody">아무에게도 안 맡기기</string>
+    <string name="crew_note_handed">%1$s님이 나가면서 %2$s님에게 크루를 맡겼어요.</string>
+    <string name="crew_note_handed_you">%1$s님이 나가면서 크루를 맡겼어요. 이제 멤버를 내보낼 수 있어요.</string>
 </resources>

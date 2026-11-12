@@ -120,6 +120,12 @@ Agreed with the owner; build in this order. Where this differs from [PRODUCT.md]
 - Touches the rekey code from step 1 (`CrewRekey`, `RekeyPolicy`, `GigGroup` invites):
   security-sensitive, so core tests for every case, including a forged "creator" in a
   re-shared invite.
+- **Status: built, not yet tried on real phones.** The crew key is SHA-256 of the creator's
+  public key and a salt (`GigGroup.owned`); invites carry both and a mismatch isn't joined;
+  rekeys of an owned crew use a third notice form and follow `RekeyPolicy` rule 6;
+  `CrewOwnerTest` covers forged and swapped owners, a removed member's takeover, handover.
+  Known limit: an invite with the owner fields cut out by a crew member reads as an old crew
+  for the people they invite with it.
 
 ### Small items
 - UWB places go to the mate you're focused on first, then the nearest.

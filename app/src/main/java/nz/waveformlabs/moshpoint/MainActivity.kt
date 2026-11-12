@@ -22,6 +22,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -342,6 +343,17 @@ class MainActivity : ComponentActivity() {
 
     private var showGroupQr by mutableStateOf(false)
 
+    /** The owner is leaving a crew with others still in it: who takes it over? (crew, its Up next entry if any) */
+    private var handover by mutableStateOf<Pair<GigGroup, Crews.Entry?>?>(null)
+
+    /** Leave [g]: the main crew ends here, an Up next one just goes. */
+    private fun leaveCrew(g: GigGroup, waiting: Crews.Entry?) {
+        if (waiting != null) {
+            closeChat()
+            GroupSync.leave(this, Crews.find(g.key) ?: waiting)
+        } else GroupSync.clear(this)
+    }
+
     private val scanQr = registerForActivityResult(ScanContract()) { result ->
         val text = result.contents ?: return@registerForActivityResult
         // A gig group QR joins the group; a person's QR fills in "Add someone".
@@ -584,11 +596,14 @@ class MainActivity : ComponentActivity() {
                             crewQr(g),
                             onDismiss = { showGroupQr = false; qrCrew = null },
                             onShare = { shareGroup(g) },
-                            onResetInvite = {
-                                val fresh = CrewRekey.rekey(this@MainActivity, g, null, null)
-                                if (qrCrew != null) qrCrew = fresh
-                                toast(Txt.s(R.string.main_invite_reset))
-                            },
+                            // In a crew with an owner, only the owner resets the invite (as with removing people).
+                            onResetInvite = if (CrewRekey.mayRemove(this@MainActivity, g)) {
+                                {
+                                    val fresh = CrewRekey.rekey(this@MainActivity, g, null, null)
+                                    if (qrCrew != null) qrCrew = fresh
+                                    toast(Txt.s(R.string.main_invite_reset))
+                                }
+                            } else null,
                             eyebrow = when {
                                 waiting != null -> nz.waveformlabs.moshpoint.ui.countdown(g.startsAtSec, System.currentTimeMillis() / 1000)
                                     ?.let { stringResource(R.string.main_eyebrow_up_next_countdown, it.uppercase()) }
@@ -606,13 +621,35 @@ class MainActivity : ComponentActivity() {
                             onEndNight = {
                                 showGroupQr = false
                                 qrCrew = null
-                                if (waiting != null) {
-                                    closeChat()
-                                    GroupSync.leave(this@MainActivity, waiting)
-                                } else GroupSync.clear(this@MainActivity)
+                                // The owner leaving a crew others are still in hands it over first, so
+                                // someone can still remove people. Anyone else just leaves.
+                                if (CrewRekey.isOwner(this@MainActivity, g) && CrewRekey.handoverCandidates(this@MainActivity, g).isNotEmpty()) {
+                                    handover = g to waiting
+                                } else leaveCrew(g, waiting)
                             },
                         )
                     }
+                }
+                handover?.let { (g, waiting) ->
+                    val candidates = remember(g) { CrewRekey.handoverCandidates(this@MainActivity, g) }
+                    AlertDialog(
+                        onDismissRequest = { handover = null },
+                        title = { Text(stringResource(R.string.crew_handover_title)) },
+                        text = {
+                            androidx.compose.foundation.layout.Column {
+                                Text(stringResource(R.string.crew_handover_body))
+                                candidates.forEach { (name, pub) ->
+                                    TextButton(onClick = {
+                                        handover = null
+                                        val fresh = CrewRekey.handOver(this@MainActivity, g, pub, myName.ifBlank { null })
+                                        leaveCrew(fresh, waiting)
+                                    }) { Text(name) }
+                                }
+                            }
+                        },
+                        confirmButton = { TextButton(onClick = { handover = null; leaveCrew(g, waiting) }) { Text(stringResource(R.string.crew_handover_nobody)) } },
+                        dismissButton = { TextButton(onClick = { handover = null }) { Text(stringResource(R.string.home_cancel)) } },
+                    )
                 }
                 if (showQr) {
                     MyQrDialog(
@@ -806,10 +843,12 @@ class MainActivity : ComponentActivity() {
                                 val f = FriendsRepository.friends.firstOrNull { it.id == id }
                                 val g = GroupSync.group.value
                                 if (f != null && f.gigGroupOnly && g != null && !GroupSync.following) {
-                                    // Really out: the crew moves to a new key they don't get.
-                                    CrewRekey.rekey(this@MainActivity, g, GroupSync.pubOf(f.secret), f.name)
-                                    FriendsRepository.remove(id)
-                                    toast(Txt.s(R.string.main_out_of_crew, f.name))
+                                    // Really out: the crew moves to a new key they don't get. (Only the owner, in an owned crew.)
+                                    if (CrewRekey.mayRemove(this@MainActivity, g)) {
+                                        CrewRekey.rekey(this@MainActivity, g, GroupSync.pubOf(f.secret), f.name)
+                                        FriendsRepository.remove(id)
+                                        toast(Txt.s(R.string.main_out_of_crew, f.name))
+                                    }
                                 } else {
                                     FriendsRepository.remove(id)
                                 }
@@ -821,6 +860,7 @@ class MainActivity : ComponentActivity() {
                             onRemovePhoto = PhotoStore::remove,
                             onClearGigGroup = { recap = NightStats.get(this@MainActivity) },
                             groupName = GroupSync.group.value?.name,
+                            canRemoveCrewMates = GroupSync.group.value?.let { CrewRekey.mayRemove(this@MainActivity, it) } ?: true,
                             onStartGroup = { name ->
                                 qrCrew = GroupSync.startNew(this@MainActivity, name)
                                 setVisibility(true)

@@ -235,4 +235,11 @@
     <string name="crew_go_hidden">非表示にする</string>
     <string name="crew_tile_live">シェア中</string>
     <string name="crew_tile_hidden">非表示</string>
+
+    <string name="crew_only_owner_removes">このクルーを作った人だけがメンバーを外せます。</string>
+    <string name="crew_handover_title">クルーを誰に任せますか？</string>
+    <string name="crew_handover_body">このクルーを作ったのはあなたなので、メンバーを外せるのはあなただけです。引き継ぐ人を選んでください。</string>
+    <string name="crew_handover_nobody">誰にも任せない</string>
+    <string name="crew_note_handed">%1$sが抜けて、クルーを%2$sに任せました。</string>
+    <string name="crew_note_handed_you">%1$sが抜けて、クルーをあなたに任せました。これからはあなたがメンバーを外せます。</string>
 </resources>

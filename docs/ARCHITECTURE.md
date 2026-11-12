@@ -97,7 +97,7 @@ route works:
 | `core/MessagePacket.kt` | Version 2 of the relay packet (a sealed message instead of a location; older phones drop it), fragments for long chat lines, `MessageRelay` (what a stranger's phone passes on, and its limits), `RelaySchedule` (whose turn it is in the relay's one advertising set). |
 | `core/MessageRules.kt` | Small rules, each tested: `MessageClock` (order), `PinRule`, `PingPolicy` (staleness per kind; Need help is never dropped), `OutboxState` (states only move forward), `IntroForms`. |
 | `core/CheckIns.kt` | Check in / Home safe by the sender's clock, whatever order they arrive in. |
-| `core/RekeyPolicy.kt` | Who may move a crew to a new key, and which notice a phone follows. |
+| `core/RekeyPolicy.kt` | Who may move a crew to a new key, and which notice a phone follows. In a crew with an owner (`GigGroup.owned`: its key is a hash of the creator's key and a salt), only the owner, to a key bound to an owner. |
 | `core/RelayBudget.kt` | The relay's daily and per-minute limits; only charged when the relay answers. |
 | `core/GigGroup.kt` | `messageId` (one id for every copy of a message), the signed pin, the `mp2` envelope for receipts and summaries, the intro form with no constant prefix. |
 | `app/OfflineMessages.kt` | Connects the courier to the phone: uploads through `RelayClient` to the mailbox valid at that moment, packets in and out through `CrowdRelayRadio`, arrivals and states into `CrewChat` and `GroupSync`. Also the test builds' route log. |

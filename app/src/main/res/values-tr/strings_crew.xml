@@ -250,4 +250,11 @@
     <string name="crew_go_hidden">Gizlen</string>
     <string name="crew_tile_live">Paylaşılıyor</string>
     <string name="crew_tile_hidden">Gizli</string>
+
+    <string name="crew_only_owner_removes">Bu ekipten birini yalnızca ekibi kuran kişi çıkarabilir.</string>
+    <string name="crew_handover_title">Ekibe artık kim baksın?</string>
+    <string name="crew_handover_body">Bu ekibi sen kurdun, o yüzden birini yalnızca sen çıkarabilirsin. Bunu kimin devralacağını seç.</string>
+    <string name="crew_handover_nobody">Kimse</string>
+    <string name="crew_note_handed">%1$s ayrıldı ve ekibi %2$s adlı kişiye devretti.</string>
+    <string name="crew_note_handed_you">%1$s ayrıldı ve ekibi sana devretti. Artık birini ekipten sen çıkarabilirsin.</string>
 </resources>

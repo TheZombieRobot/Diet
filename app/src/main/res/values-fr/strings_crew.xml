@@ -266,4 +266,11 @@
     <string name="crew_go_hidden">Se cacher</string>
     <string name="crew_tile_live">Live</string>
     <string name="crew_tile_hidden">Invisible</string>
+
+    <string name="crew_only_owner_removes">Seule la personne qui a créé cette crew peut retirer quelqu\'un.</string>
+    <string name="crew_handover_title">Qui s\'occupe de la crew maintenant ?</string>
+    <string name="crew_handover_body">Tu as créé cette crew : tu es la seule personne qui peut retirer quelqu\'un. Choisis qui prend le relais.</string>
+    <string name="crew_handover_nobody">Personne</string>
+    <string name="crew_note_handed">%1$s a quitté la crew et l\'a confiée à %2$s.</string>
+    <string name="crew_note_handed_you">%1$s a quitté la crew et te l\'a confiée. C\'est toi qui peux retirer quelqu\'un maintenant.</string>
 </resources>

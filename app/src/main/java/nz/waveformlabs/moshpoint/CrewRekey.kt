@@ -26,7 +26,9 @@ import java.io.File
  * Who may do this, and which rekey a phone follows when there are several, is decided by core
  * [RekeyPolicy]. In short: only a rekey that came from the relay (never Bluetooth), from
  * someone already known in the crew, the first one to reach the relay; and the notice now
- * says whose key was removed, so every phone drops it.
+ * says whose key was removed, so every phone drops it. In a crew with an owner (its creator,
+ * see GigGroup.owned) only the owner can do it, and the new key stays bound to the owner, or
+ * to the member they hand the crew to when they leave.
  */
 object CrewRekey {
     const val REKEY = GigGroup.DIRECT_REKEY
@@ -40,16 +42,25 @@ object CrewRekey {
     private fun unb64(s: String) = Base64.decode(s, Base64.NO_WRAP)
     private fun today() = Math.floorDiv(System.currentTimeMillis() / 1000, 86_400L)
 
+    /** Can we remove people from (or reset the invite of) crew [g]? In an owned crew, only its owner can. */
+    fun mayRemove(c: Context, g: GigGroup): Boolean = !g.owned || g.ownerTag == Identity.tag(c.applicationContext, g)
+
+    /** Are we the owner of crew [g]? */
+    fun isOwner(c: Context, g: GigGroup): Boolean = g.owned && g.ownerTag == Identity.tag(c.applicationContext, g)
+
     /**
      * Move crew [g] to a new key, leaving out whoever signs with [removedPub] (null = nobody,
-     * a reset). Returns the crew under its new key.
+     * a reset). [nextOwner]: the owner leaving hands the crew to this member (with
+     * [removedPub] = their own key). Returns the crew under its new key.
      */
-    fun rekey(c: Context, g: GigGroup, removedPub: ByteArray?, removedName: String?): GigGroup {
+    fun rekey(c: Context, g: GigGroup, removedPub: ByteArray?, removedName: String?, nextOwner: ByteArray? = null): GigGroup {
         val app = c.applicationContext
-        val fresh = GigGroup(
-            ByteArray(32).also { java.security.SecureRandom().nextBytes(it) },
-            g.name, g.createdAtMs, g.startsAtSec, g.venue, g.venueLat, g.venueLon,
-        )
+        val random = java.security.SecureRandom()
+        // An owned crew's new key is bound to its owner too, so nobody else can move it later.
+        val owner = if (g.owned) nextOwner ?: g.ownerPub else null
+        val salt = owner?.let { ByteArray(32).also { s -> random.nextBytes(s) } }
+        val fresh = if (owner != null && salt != null) g.moved(GigGroup.ownedKey(owner, salt), owner, salt)
+            else g.moved(ByteArray(32).also { random.nextBytes(it) })
         val removedTag = removedPub?.let { CrewKeys.tagOf(it) }
         val me = Identity.tag(app, g)
         val known = members(app, g)
@@ -60,17 +71,36 @@ object CrewRekey {
             // (The mark is only for a removal: on a reset an older build would show it as a removed person with no name.)
             .put("payload", b64(RekeyPolicy.payloadOld(fresh.key, removedName, twin = removedPub != null && !removedName.isNullOrBlank())))
             .put("payload2", b64(RekeyPolicy.payload(fresh.key, listOfNotNull(removedPub), removedName)))
+            .apply { if (owner != null && salt != null) put("payload3", b64(RekeyPolicy.payload3(fresh.key, salt, owner, listOfNotNull(removedPub), removedName))) }
             .put("to", JSONArray(recipients.map { b64(it) })).put("since", System.currentTimeMillis()).put("sent", 0L)
             .put("signer", GigArchive.idFor(g)).put("now", b64(fresh.key))
         rememberGrace(app, g, fresh, known.keys - setOfNotNull(removedTag) - me)
         migrate(app, g, fresh, removedPub)
         addPending(app, pending)
         resend(app)
-        CrewChat.note(app, fresh, if (removedName != null) Txt.s(R.string.crew_note_you_removed, removedName) else Txt.s(R.string.crew_note_you_reset))
+        // (Handing the crew over is the owner leaving: no note, the crew goes from this phone.)
+        if (nextOwner == null) {
+            CrewChat.note(app, fresh, if (removedName != null) Txt.s(R.string.crew_note_you_removed, removedName) else Txt.s(R.string.crew_note_you_reset))
+        }
         // The new key only travels by the relay, so with no signal the crew can't follow yet.
         if (RelayClient.offline) CrewChat.note(app, fresh, Txt.s(R.string.offline_note_rekey_offline))
         return fresh
     }
+
+    /** Who the owner can hand crew [g] to as they leave: everyone else we know in it, by name. */
+    fun handoverCandidates(c: Context, g: GigGroup): List<Pair<String, ByteArray>> {
+        val app = c.applicationContext
+        val me = Identity.tag(app, g)
+        return members(app, g).filterKeys { it != me }.mapNotNull { (tag, pub) ->
+            val name = CrewChat.nameOf(app, g, tag)
+                ?: FriendsRepository.friends.firstOrNull { f -> GroupSync.pubOf(f.secret)?.let { CrewKeys.tagOf(it) } == tag }?.name
+            name?.takeIf { it.isNotBlank() }?.let { it to pub }
+        }.sortedBy { it.first.lowercase() }
+    }
+
+    /** The owner leaves crew [g], handing it to whoever signs with [to]. Returns the crew under its new key. */
+    fun handOver(c: Context, g: GigGroup, to: ByteArray, myName: String?): GigGroup =
+        rekey(c, g, Identity.signer(c.applicationContext, g).pub, myName, nextOwner = to)
 
     /** Everyone we know in crew [g]: their signing tag -> public key. */
     private fun members(c: Context, g: GigGroup): Map<Long, ByteArray> {
@@ -157,6 +187,7 @@ object CrewRekey {
             val signer = Identity.signerById(app, o.getString("signer")) ?: continue
             val payload = unb64(o.getString("payload"))
             val payload2 = o.optString("payload2").takeIf { it.isNotEmpty() }?.let { unb64(it) }
+            val payload3 = o.optString("payload3").takeIf { it.isNotEmpty() }?.let { unb64(it) }
             val to = left ?: o.getJSONArray("to")
             val recipients = (0 until to.length()).map { to.getString(it) }
             sending += since
@@ -165,8 +196,14 @@ object CrewRekey {
                 for ((j, recipient) in recipients.withIndex()) {
                     val toPub = unb64(recipient)
                     var ok = true
-                    // The fuller form first, so it reaches the relay first.
-                    if (payload2 != null) {
+                    // The fullest form first, so it reaches the relay first. Owned crews only follow the third.
+                    if (payload3 != null) {
+                        old.sealDirect(signer, toPub, GigGroup.DIRECT_REKEY3, payload3, now / 1000)?.let { blob ->
+                            ChatSync.markSeen(blob)
+                            ok = RelayClient.putHeld(old.chatIdForDay(today()), blob)
+                        }
+                    }
+                    if (ok && payload2 != null) {
                         old.sealDirect(signer, toPub, GigGroup.DIRECT_REKEY2, payload2, now / 1000)?.let { blob ->
                             ChatSync.markSeen(blob)
                             ok = RelayClient.putHeld(old.chatIdForDay(today()), blob)
@@ -221,16 +258,27 @@ object CrewRekey {
         val known = members(app, g)
         val me = Identity.tag(app, g)
         val notices = directs.mapNotNull { d ->
-            if (d.kind == GigGroup.DIRECT_REKEY2) RekeyPolicy.parse(d.fromPub, d.payload) else RekeyPolicy.parseOld(d.fromPub, d.payload)
+            when (d.kind) {
+                GigGroup.DIRECT_REKEY3 -> RekeyPolicy.parse3(d.fromPub, d.payload)
+                GigGroup.DIRECT_REKEY2 -> RekeyPolicy.parse(d.fromPub, d.payload)
+                else -> RekeyPolicy.parseOld(d.fromPub, d.payload)
+            }
         }
-        val n = RekeyPolicy.choose(notices, known.keys, me, g.key) ?: return
+        val owner = g.ownerPub?.takeIf { g.owned }
+        val n = RekeyPolicy.choose(notices, known.keys, me, g.key, owner) ?: return
         if (ChatSync.allCrews(app).any { it.key.contentEquals(n.newKey) }) return // already moved
-        val fresh = GigGroup(n.newKey, g.name, g.createdAtMs, g.startsAtSec, g.venue, g.venueLat, g.venueLon)
+        val fresh = if (owner != null) g.moved(n.newKey, n.ownerPub, n.salt) else g.moved(n.newKey)
         val by = CrewChat.nameOf(app, g, n.fromTag) ?: Txt.s(R.string.crew_someone)
         rememberGrace(app, g, fresh, RekeyPolicy.allowlist(known.keys, n) - me)
         migrate(app, g, fresh, n.removedPubs.firstOrNull(), n.removedTags)
         val removed = n.removedName
-        val text = if (removed != null) Txt.s(R.string.crew_note_removed, by, removed) else Txt.s(R.string.crew_note_reset, by)
+        val handedTo = fresh.ownerTag?.takeIf { owner != null && it != CrewKeys.tagOf(owner) }
+        val text = when {
+            handedTo == me -> Txt.s(R.string.crew_note_handed_you, by)
+            handedTo != null -> Txt.s(R.string.crew_note_handed, by, CrewChat.nameOf(app, fresh, handedTo) ?: Txt.s(R.string.crew_someone))
+            removed != null -> Txt.s(R.string.crew_note_removed, by, removed)
+            else -> Txt.s(R.string.crew_note_reset, by)
+        }
         CrewChat.note(app, fresh, text)
         CrewNotifications.post(app, title = g.name, text = text, openMap = false, openChat = true, crewId = GigArchive.idFor(fresh))
     }

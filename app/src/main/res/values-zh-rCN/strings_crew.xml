@@ -235,4 +235,11 @@
     <string name="crew_go_hidden">隐藏</string>
     <string name="crew_tile_live">在线</string>
     <string name="crew_tile_hidden">已隐藏</string>
+
+    <string name="crew_only_owner_removes">只有创建这个小队的人才能移除成员。</string>
+    <string name="crew_handover_title">现在由谁来管理小队？</string>
+    <string name="crew_handover_body">这个小队是你创建的，所以只有你能移除成员。选一个人来接手。</string>
+    <string name="crew_handover_nobody">不交给任何人</string>
+    <string name="crew_note_handed">%1$s 离开了，把小队交给了 %2$s。</string>
+    <string name="crew_note_handed_you">%1$s 离开了，把小队交给了你。现在你可以移除成员了。</string>
 </resources>

@@ -266,4 +266,11 @@
     <string name="crew_go_hidden">Ficar escondido</string>
     <string name="crew_tile_live">Ao vivo</string>
     <string name="crew_tile_hidden">Escondido</string>
+
+    <string name="crew_only_owner_removes">Só quem criou esta galera pode tirar alguém.</string>
+    <string name="crew_handover_title">Quem cuida da galera agora?</string>
+    <string name="crew_handover_body">Você criou esta galera, então só você pode tirar alguém. Escolha quem vai cuidar disso.</string>
+    <string name="crew_handover_nobody">Ninguém</string>
+    <string name="crew_note_handed">%1$s saiu e passou a galera para %2$s.</string>
+    <string name="crew_note_handed_you">%1$s saiu e passou a galera para você. Agora você pode tirar alguém.</string>
 </resources>

@@ -250,4 +250,11 @@
     <string name="crew_go_hidden">Göm dig</string>
     <string name="crew_tile_live">Live</string>
     <string name="crew_tile_hidden">Dold</string>
+
+    <string name="crew_only_owner_removes">Bara den som skapade gruppen kan ta bort folk.</string>
+    <string name="crew_handover_title">Vem tar över gruppen nu?</string>
+    <string name="crew_handover_body">Du skapade gruppen, så bara du kan ta bort folk. Välj vem som tar över det.</string>
+    <string name="crew_handover_nobody">Ingen</string>
+    <string name="crew_note_handed">%1$s gick och lämnade över gruppen till %2$s.</string>
+    <string name="crew_note_handed_you">%1$s gick och lämnade över gruppen till dig. Nu kan du ta bort folk.</string>
 </resources>

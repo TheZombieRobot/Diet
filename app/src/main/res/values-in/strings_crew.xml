@@ -235,4 +235,11 @@
     <string name="crew_go_hidden">Sembunyi</string>
     <string name="crew_tile_live">Live</string>
     <string name="crew_tile_hidden">Tersembunyi</string>
+
+    <string name="crew_only_owner_removes">Cuma yang bikin geng ini yang bisa mengeluarkan orang.</string>
+    <string name="crew_handover_title">Siapa yang pegang geng sekarang?</string>
+    <string name="crew_handover_body">Kamu yang bikin geng ini, jadi cuma kamu yang bisa mengeluarkan orang. Pilih siapa yang lanjut pegang.</string>
+    <string name="crew_handover_nobody">Ngga ada</string>
+    <string name="crew_note_handed">%1$s keluar dan menyerahkan geng ke %2$s.</string>
+    <string name="crew_note_handed_you">%1$s keluar dan menyerahkan geng ke kamu. Sekarang kamu yang bisa mengeluarkan orang.</string>
 </resources>
