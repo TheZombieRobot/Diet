@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Swedish: messages without signal (crew messages passed between phones over Bluetooth). -->
+<resources>
+
+    <string name="offline_state_sent">Skickat</string>
+    <string name="offline_state_nearby">Skickat i närheten</string>
+    <string name="offline_state_waiting">Väntar på täckning</string>
+    <string name="offline_state_not_sent">Inte skickat</string>
+    <string name="offline_hint_bluetooth">Ingen täckning. Meddelanden går via Bluetooth till gruppens telefoner i närheten, och skickas så fort någon av er har täckning.</string>
+    <string name="offline_hint_go_live">Ingen täckning. Tryck på Gå live så går meddelanden via Bluetooth till gruppens telefoner i närheten.</string>
+    <string name="offline_hint_bluetooth_off">Ingen täckning, och Bluetooth är av. Slå på det så går meddelanden till gruppens telefoner i närheten.</string>
+    <string name="offline_hint_unsupported">Ingen täckning. Den här telefonen kan inte skicka meddelanden vidare via Bluetooth, så de skickas när du har täckning.</string>
+    <string name="offline_hint_no_signal">Ingen täckning. Meddelanden skickas när du har täckning igen.</string>
+    <string name="offline_hint_paused">Gruppen får en ny nyckel. Meddelanden skickas när du har täckning.</string>
+    <string name="offline_note_rekey_offline">Gruppen får sin nya nyckel när telefonerna har täckning igen. Tills dess är Bluetooth-meddelanden pausade.</string>
+    <string name="offline_notif_late">Skickat %1$s. Kom fram först nu.</string>
+    <string name="offline_notif_help_late">De tryckte på Behöver hjälp %1$s. Kom fram först nu. Kolla läget med dem.</string>
+    <string name="offline_meet_pin_named">Ses vid nålen 📍 %1$s</string>
+    <string name="offline_need_nearby_why">för att hitta kompisar via Bluetooth, Wi-Fi och UWB, och skicka meddelanden vidare utan täckning</string>
+
+</resources>

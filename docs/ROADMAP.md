@@ -55,6 +55,10 @@ Agreed with the owner; build in this order. Where this differs from [PRODUCT.md]
 - Each message shows how it went: **Sent** / **Sent nearby** / **Waiting for signal**.
 - Text only. Listens only while you're live. End-to-end encrypted and signed with the crew keys.
 - Not doing: venue-wide chat hopping through strangers' phones (unreliable, battery).
+- **Status: built, not yet tried on real phones.** Decisions, tests and what's left:
+  [BLUETOOTH_BACKUP.md](BLUETOOTH_BACKUP.md). One change from the plan above: it doesn't use
+  Google Nearby Connections. Messages ride the Bluetooth adverts the crowd relay already
+  sends, so there's no Google Play services, no new permission and no new advertiser.
 
 ### 2. Venue map: two map systems (about 4–6 days, +2–3 for the second map, +1–2 for on-demand delivery)
 - **Free, everyone:** today's free street map (MapLibre + OpenFreeMap / OpenStreetMap). Costs

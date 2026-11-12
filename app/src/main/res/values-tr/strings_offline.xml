@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Turkish: messages without signal (crew messages passed between phones over Bluetooth). -->
+<resources>
+
+    <string name="offline_state_sent">Gönderildi</string>
+    <string name="offline_state_nearby">Yakındakilere gönderildi</string>
+    <string name="offline_state_waiting">Sinyal bekleniyor</string>
+    <string name="offline_state_not_sent">Gönderilmedi</string>
+    <string name="offline_hint_bluetooth">Sinyal yok. Mesajlar Bluetooth ile yakındaki ekip telefonlarına aktarılır; biriniz sinyal bulur bulmaz gönderilir.</string>
+    <string name="offline_hint_go_live">Sinyal yok. Konumu paylaş\'a dokun, mesajlar Bluetooth ile yakındaki ekip telefonlarına aktarılsın.</string>
+    <string name="offline_hint_bluetooth_off">Sinyal yok, Bluetooth da kapalı. Aç, mesajlar yakındaki ekip telefonlarına aktarılsın.</string>
+    <string name="offline_hint_unsupported">Sinyal yok. Bu telefon mesajları Bluetooth ile aktaramıyor; sinyal gelince gönderilecek.</string>
+    <string name="offline_hint_no_signal">Sinyal yok. Mesajlar sinyal gelince gönderilecek.</string>
+    <string name="offline_hint_paused">Bu ekibin anahtarı yenileniyor. Mesajlar sinyal gelince gönderilecek.</string>
+    <string name="offline_note_rekey_offline">Telefonlar yeniden sinyal bulunca ekip yeni anahtarını alacak. O zamana kadar Bluetooth mesajları beklemede.</string>
+    <string name="offline_notif_late">%1$s gönderildi. Ancak şimdi ulaştı.</string>
+    <string name="offline_notif_help_late">%1$s Yardım lazım\'a bastı. Ancak şimdi ulaştı. Bir yokla.</string>
+    <string name="offline_meet_pin_named">Pinde buluşalım 📍 %1$s</string>
+    <string name="offline_need_nearby_why">Bluetooth, Wi-Fi ve UWB ile arkadaşlarını bulmak ve sinyal yokken mesajları aktarmak için</string>
+
+</resources>

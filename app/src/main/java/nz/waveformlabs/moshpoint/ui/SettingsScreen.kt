@@ -289,6 +289,8 @@ internal fun SettingsContent(
                         }
                         note?.let { Text(it, style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.Lime)) }
                     }
+                    // Messages without signal: a "no internet" switch and which way each message went.
+                    OfflineDebugTools()
                 }
             }
             Box(Modifier.fillMaxWidth().height(1.dp).background(Mosh.Line))

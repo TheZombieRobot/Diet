@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Chinese (Simplified): messages without signal (crew messages passed between phones over Bluetooth). -->
+<resources>
+
+    <string name="offline_state_sent">已发送</string>
+    <string name="offline_state_nearby">已发给附近队友</string>
+    <string name="offline_state_waiting">等待信号</string>
+    <string name="offline_state_not_sent">未发送</string>
+    <string name="offline_hint_bluetooth">没信号。消息会通过 Bluetooth 传给附近的小队手机，只要有人有信号就会发出去。</string>
+    <string name="offline_hint_go_live">没信号。点“上线”，消息就会通过 Bluetooth 传给附近的小队手机。</string>
+    <string name="offline_hint_bluetooth_off">没信号，Bluetooth 也关着。打开后，消息会传给附近的小队手机。</string>
+    <string name="offline_hint_unsupported">没信号。这部手机没法通过 Bluetooth 传消息，等有信号时会发送。</string>
+    <string name="offline_hint_no_signal">没信号。等信号恢复后消息会发送。</string>
+    <string name="offline_hint_paused">这个小队正在换新密钥。等你有信号时消息会发送。</string>
+    <string name="offline_note_rekey_offline">等手机恢复信号后，小队就会拿到新密钥。在那之前，Bluetooth 消息会先暂停。</string>
+    <string name="offline_notif_late">%1$s发送，刚刚才送达。</string>
+    <string name="offline_notif_help_late">对方%1$s按了“需要帮助”，刚刚才送达。去看看情况。</string>
+    <string name="offline_meet_pin_named">集合点见 📍 %1$s</string>
+    <string name="offline_need_nearby_why">通过 Bluetooth、Wi-Fi 和 UWB 找朋友，并在没信号时传递消息</string>
+
+</resources>

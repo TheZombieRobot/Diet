@@ -18,8 +18,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.core.CheckIns
+import nz.waveformlabs.moshpoint.core.Courier
 import nz.waveformlabs.moshpoint.core.EphemeralId
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.core.IntroForms
+import nz.waveformlabs.moshpoint.core.PinRule
+import nz.waveformlabs.moshpoint.core.PingPolicy
 import nz.waveformlabs.moshpoint.core.LocationBox
 import nz.waveformlabs.moshpoint.locate.BleHub
 import nz.waveformlabs.moshpoint.locate.RelayClient
@@ -86,6 +91,10 @@ object GroupSync {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var users = 0
+
+    /** The app is open or we're live: the crew sync is running. */
+    val inUse: Boolean get() = users > 0
+
     private var job: Job? = null
     private var listening = false
     private var postedEpoch = Long.MIN_VALUE
@@ -111,6 +120,7 @@ object GroupSync {
 
     fun load(c: Context) {
         RelayClient.init(c)
+        OfflineMessages.init(c)
         CrewChat.load(c)
         val p = prefs(c)
         Crews.load(c)
@@ -144,11 +154,15 @@ object GroupSync {
         }
         CrewChat.show(c, g)
         GigWake.schedule(c, g)
-        rallyClearedAt = p.getLong("rallyCleared", 0L)
+        // A pin (or a removal) saved with a date far ahead would beat every later one: cut it back.
+        val nowSec = System.currentTimeMillis() / 1000
+        rallyClearedAt = PinRule.capped(p.getLong("rallyCleared", 0L), nowSec)
         rallyMine = p.getBoolean("rallyMine", false)
         rally.value = p.getString("rally", null)?.split(',', limit = 4)?.takeIf { it.size == 4 }?.let {
-            runCatching { GigGroup.Rally(it[0].toDouble(), it[1].toDouble(), it[3], it[2].toLong()) }.getOrNull()
+            runCatching { GigGroup.Rally(it[0].toDouble(), it[1].toDouble(), it[3], PinRule.capped(it[2].toLong(), nowSec)) }.getOrNull()
         }
+        checkInState = CheckIns.restore(p.getString("checkins", null))
+        introForms = IntroForms(p.getString("introForms", null))
         members.clear()
         p.getString("members", null)?.split(',')?.filter { it.length == 64 }?.let { members.addAll(it) }
         loadPubs(c)
@@ -426,23 +440,33 @@ object GroupSync {
             // Sealed intros, re-made once per rotation (the tag must keep changing). Reusing
             // the bytes within a rotation lets the server de-duplicate repeat posts.
             val sealed = HashMap<String, Pair<Long, ByteArray>>()
-            fun introFor(intro: GigGroup.Intro, now: Long): ByteArray {
+            fun introFor(intro: GigGroup.Intro, now: Long, form2: Boolean = false): ByteArray {
                 val epoch = Math.floorDiv(now, EphemeralId.DEFAULT_ROTATION_MS)
-                val k = intro.secret.joinToString("") { "%02x".format(it) }
+                val k = intro.secret.joinToString("") { "%02x".format(it) } + if (form2) "/2" else ""
                 sealed[k]?.let { if (it.first == epoch) return it.second }
-                return g.sealIntro(intro, now).also { sealed[k] = epoch to it }
+                return g.sealIntro(intro, now, form2).also { sealed[k] = epoch to it }
             }
             // Our pass in this crew (never our permanent identity) and our signing key.
             val myIntro = Identity.intro(c, g, myName)
+            // The new intro form is 4 bytes longer: only if this phone's adverts have the room.
+            val roomForNew = runCatching {
+                (c.getSystemService(BluetoothManager::class.java)?.adapter?.leMaximumAdvertisingDataLength ?: 0) >= GigGroup.MAX_INTRO2_BYTES + 8
+            }.getOrDefault(false)
             while (true) {
                 val now = System.currentTimeMillis()
                 val mine = introFor(myIntro, now)
                 // Gossip: every other slot we pass on a crew member we know about, so the
                 // whole crew spreads through the room even if two of them never get close.
                 val members = FriendsRepository.friends.filter { it.gigGroupOnly }
+                // On air, the intro form without the constant prefix takes over once every crew
+                // mate's phone has shown it reads it (core IntroForms). Until then ours takes
+                // turns between the two forms. The relay's copy ([mine]) stays as it was.
+                val passes = members.filter { !FriendsRepository.isSimulated(it.id) }.map { it.secret } + this@GroupSync.members.map { unhex(it) }
                 val out = if (slot % 2 == 1 && members.isNotEmpty()) {
                     val m = members[(slot / 2) % members.size]
-                    introFor(GigGroup.Intro(m.secret, m.name, pubOf(m.secret)), now)
+                    introFor(GigGroup.Intro(m.secret, m.name, pubOf(m.secret)), now, form2 = roomForNew && introForms.newOnly(passes))
+                } else if (roomForNew && introForms.ownForm2(slot / 2, passes)) {
+                    introFor(myIntro, now, form2 = true)
                 } else {
                     mine
                 }
@@ -466,11 +490,9 @@ object GroupSync {
         val frugal = !RelayClient.ownServer && now - startedAtMs > 30 * 60_000L && epoch % 3 != 0L
         if (epoch != postedEpoch && !frugal && RelayClient.put(g.rosterIdForEpoch(epoch), intro)) postedEpoch = epoch
         val day = Math.floorDiv(now / 1000, 86_400L)
-        // Our meet-up pin: post when set, then every 10 min (the public relay only keeps recent posts).
-        val myRally = rally.value?.takeIf { rallyMine }
-        if (myRally != null && now - rallyPostedAt > 10 * 60_000L) {
-            if (RelayClient.put(g.rallyIdForDay(day), g.sealRally(myRally))) rallyPostedAt = now
-        }
+        // Our meet-up pin is kept on the relay by the courier (see OfflineMessages). If it
+        // isn't holding it (a pin from before this version, or one it has since let go), hand it over again.
+        rally.value?.takeIf { rallyMine }?.let { if (!OfflineMessages.holdsPin(g)) postRally(c, it) }
         // One request for everything the crew shares: intros, meet-up pin, pings, and where
         // each crew member is (so the home screen and notification show distances without
         // anyone opening the map).
@@ -491,21 +513,30 @@ object GroupSync {
         ChatSync.pollAll(c, minGapMs = 120_000)
         val found = RelayClient.lookup(ids) ?: return
         found.subList(0, 2).flatten().forEach { received(c, g, it) }
-        found.subList(4, 6).flatten().forEach { blob -> g.openPing(blob)?.let { onPing(c, it, blob) } }
+        // The courier notes what's on the relay, so nothing it carries is uploaded twice, and
+        // says which pings this phone has never had before.
+        val freshPings = OfflineMessages.fetched(c, g, Courier.Box.PING, found.subList(4, 6).flatten())
+        OfflineMessages.fetched(c, g, Courier.Box.PIN, found.subList(2, 4).flatten())
+        found.subList(4, 6).flatten().forEach { blob -> g.openPing(blob)?.let { onPing(c, it, blob, fresh = it.id in freshPings) } }
         crewIds.forEachIndexed { i, (f, id) ->
             found[6 + i].forEach { sealed -> LocationBox.open(f.secret, id, sealed)?.let { LocationBook.update(f.id, it) } }
         }
         CrewStatus.refresh(c)
         val rallyBoxes = found.subList(2, 4)
-        // Newest pin from anyone in the crew wins (including "removed").
-        rallyBoxes.flatten().mapNotNull { g.openRally(it) }.maxByOrNull { it.timeSec }?.let { r ->
-            val latest = maxOf(rally.value?.timeSec ?: 0L, rallyClearedAt)
-            if (r.timeSec > latest) {
-                rallyMine = false
-                saveRally(c, if (r.removed) null else r, r.timeSec)
-                if (!r.removed) DebugStatus.log("Crew meet-up: ${r.name}")
-            }
-        }
+        // Newest pin from anyone in the crew wins (including "removed"), unless it's dated in the future.
+        rallyBoxes.flatten().mapNotNull { g.openRally(it) }.sortedBy { it.timeSec }.forEach { onRally(c, it) }
+    }
+
+    /** A meet-up pin from the crew, by the relay or by Bluetooth. The newest wins (see core PinRule). */
+    internal fun onRally(c: Context, r: GigGroup.Rally) {
+        val latest = maxOf(rally.value?.timeSec ?: 0L, rallyClearedAt)
+        if (!PinRule.accepts(r.timeSec, latest, System.currentTimeMillis() / 1000)) return
+        // If ours was the pin before, it's out of date now: it must stop being put back on the
+        // relay (the courier only notices by itself when the newer pin is a signed one).
+        group.value?.let { OfflineMessages.pinSuperseded(it, r.timeSec) }
+        rallyMine = false
+        saveRally(c, if (r.removed) null else r, r.timeSec)
+        if (!r.removed) DebugStatus.log("Crew meet-up: ${r.name}")
     }
 
     /**
@@ -518,7 +549,8 @@ object GroupSync {
         if (g.dormant(System.currentTimeMillis())) return
         val epoch = Math.floorDiv(System.currentTimeMillis(), EphemeralId.DEFAULT_ROTATION_MS)
         val found = RelayClient.lookup(listOf(g.pingIdForEpoch(epoch), g.pingIdForEpoch(epoch - 1))) ?: return
-        found.flatten().forEach { blob -> g.openPing(blob)?.let { onPing(c, it, blob) } }
+        val freshPings = OfflineMessages.fetched(c, g, Courier.Box.PING, found.flatten())
+        found.flatten().forEach { blob -> g.openPing(blob)?.let { onPing(c, it, blob, fresh = it.id in freshPings) } }
     }
 
     // ---- Crew pings ----
@@ -527,37 +559,51 @@ object GroupSync {
     val pings = androidx.compose.runtime.mutableStateListOf<GigGroup.Ping>()
     private val seenPings = HashSet<String>()
 
-    /** Send a quick message to the whole crew. Arrives within about a minute. */
+    /**
+     * Send a quick message to the whole crew. Sealed once, then the courier gets it there: the
+     * relay with signal (about a minute), crew phones nearby and the crowd relay without.
+     */
     fun sendPing(c: Context, kind: Int, lat: Double? = null, lon: Double? = null, minutes: Int = 0, text: String = "", quiet: Boolean = false) {
         val g = group.value ?: return
         val app = c.applicationContext
+        // "Meet at the pin" says which pin, so it still makes sense if the pin itself arrives later.
+        val words = if (kind == GigGroup.Ping.MEET_AT_PIN && text.isEmpty()) rally.value?.name.orEmpty() else text
         // Pings go to a small mailbox: keep the text short enough that signed ones always fit.
-        val short = text.toByteArray(Charsets.UTF_8).let { b -> if (b.size <= 80) text else String(b, 0, 80, Charsets.UTF_8).trimEnd('\uFFFD') }
-        val p = GigGroup.Ping(kind, VisibilityPrefs.myName(app).ifBlank { Txt.s(R.string.crew_default_name) }, System.currentTimeMillis() / 1000, lat, lon, minutes, short, Identity.tag(app, g))
+        val short = words.toByteArray(Charsets.UTF_8).let { b -> if (b.size <= 80) words else String(b, 0, 80, Charsets.UTF_8).trimEnd('\uFFFD') }
+        val p = GigGroup.Ping(kind, VisibilityPrefs.myName(app).ifBlank { Txt.s(R.string.crew_default_name) }, OfflineMessages.stamp(app, g), lat, lon, minutes, short, Identity.tag(app, g))
         val blob = g.sealPing(p, Identity.signer(app, g))
         seenPings += blob.contentHashCode().toString()
         if (!quiet) NightStats.ping(app)
-        CrewChat.pingLine(app, p, mine = true)
-        scope.launch {
-            val epoch = Math.floorDiv(System.currentTimeMillis(), EphemeralId.DEFAULT_ROTATION_MS)
-            val ok = RelayClient.put(g.pingIdForEpoch(epoch), blob)
-            DebugStatus.log(if (ok) "Ping sent: ${pingText(kind)}" else "Ping not sent (no internet?)")
-        }
+        // The bubble shows how it's going, like a chat message (it used to say "sent" regardless).
+        CrewChat.pingLine(app, g.openPing(blob) ?: p, mine = true, state = OfflineMessages.firstState())
+        if (kind == GigGroup.Ping.MEET_AT_PIN) repostRally(app, g)
+        if (OfflineMessages.post(app, g, blob) == null) DebugStatus.log("Ping not queued: ${pingText(kind)}")
     }
 
-    private fun onPing(c: Context, signed: GigGroup.Ping, blob: ByteArray) {
+    /**
+     * A quick ping that arrived over Bluetooth (or was kept in the chat mailbox): handled like
+     * one from the ping mailbox. [fresh] = this phone has never had this message before.
+     */
+    internal fun arrived(c: Context, p: GigGroup.Ping, blob: ByteArray, fresh: Boolean) = onPing(c, p, blob, fresh)
+
+    private fun onPing(c: Context, signed: GigGroup.Ping, blob: ByteArray, fresh: Boolean) {
         if (!seenPings.add(blob.contentHashCode().toString())) return
         if (signed.sender == 0L) return // unsigned: could be anyone claiming any name
-        if (System.currentTimeMillis() / 1000 - signed.timeSec > 20 * 60) return // stale
+        val nowSec = System.currentTimeMillis() / 1000
+        // What to do with it depends on its kind and age (core PingPolicy). Need help is never
+        // dropped; a kind this build doesn't know is ignored rather than announced.
+        val verdict = PingPolicy.onArrival(signed.kind, signed.timeSec, signed.minutes, nowSec)
+        if (!verdict.show) return
         val g = group.value ?: return
         if (signed.sender == Identity.tag(c, g)) return // our own
         // Two people with one name are shown apart ("Jo", "Jo (2)"): nobody can pass as someone else.
         val p = signed.copy(from = CrewChat.displayName(c, g, signed.sender, signed.from))
-        // Where they were when they sent it: on the map too, but only on the sender's own pin.
+        // Where they were when they sent it: on the map too, but only on the sender's own pin
+        // (and not from a ping that's only just arrived after a long time).
         val lat = p.lat
         val lon = p.lon
         val who = secretOfTag(p.sender)?.let { s -> FriendsRepository.friends.firstOrNull { it.secret.contentEquals(s) } }
-        if (lat != null && lon != null && who != null) {
+        if (lat != null && lon != null && who != null && !verdict.late) {
             LocationBook.update(who.id, nz.waveformlabs.moshpoint.core.SharedLocation(lat, lon, p.timeSec, 30))
         }
         if (p.kind == GigGroup.Ping.CHAT || p.kind == GigGroup.Ping.FLARE || p.kind == GigGroup.Ping.PLAN) {
@@ -567,24 +613,39 @@ object GroupSync {
             }
             return
         }
-        CrewChat.pingLine(c, p, mine = false)
-        pings.add(0, p)
+        if (PingPolicy.group(p.kind) == PingPolicy.Group.CHAT) return // "joined": a chat line, not a ping
+        // Check in and Home safe update the state whatever order they arrive in (core CheckIns).
+        if (checkInState.onPing(p.sender, p.from, p.kind, p.timeSec, p.minutes, nowSec)) saveCheckIns(c)
+        // Already in the chat (the same message by another route, or from before a restart): don't
+        // announce it again. One exception: a Need help, Check in or Home safe this phone has
+        // never had, which the chat is too full of newer lines to show. That still gets its alert.
+        // (Not if it's already a line there: then it has been announced, even if the courier's
+        // own record of that was lost with a restart.)
+        val had = CrewChat.hasPing(c, p)
+        val shown = CrewChat.pingLine(c, p, mine = false)
+        if (!shown && !(fresh && !had && PingPolicy.group(p.kind) == PingPolicy.Group.SAFETY)) return
+        // Announced on the courier's record alone (the chat couldn't take the line): keep that record now.
+        if (!shown) OfflineMessages.rememberNow()
+        // Newest by the sender's time first, so a late arrival slots in where it belongs.
+        val at = pings.indexOfFirst { it.timeSec < p.timeSec }.let { if (it < 0) pings.size else it }
+        pings.add(at, p)
         while (pings.size > 20) pings.removeAt(pings.size - 1)
-        when (p.kind) {
-            GigGroup.Ping.CHECK_IN -> checkIns[p.from] = p.timeSec + p.minutes * 60L
-            GigGroup.Ping.HOME_SAFE -> {
-                checkIns.remove(p.from)
-                overdueAlerted.remove(p.from)
-            }
-        }
-        CrewNotifications.ping(c, p)
+        if (verdict.alert) CrewNotifications.ping(c, p, if (verdict.late) nz.waveformlabs.moshpoint.ui.ago(nowSec - verdict.timeSec) else null)
     }
 
     // ---- Check in ("tell the crew if I'm not home in 45 min") ----
 
-    /** Crew members heading home: name -> when they should have checked in (unix s). */
-    val checkIns = androidx.compose.runtime.mutableStateMapOf<String, Long>()
-    private val overdueAlerted = HashSet<String>()
+    /** Who's heading home and whether they've checked in: kept per person and saved (core CheckIns). */
+    private var checkInState = CheckIns()
+
+    /** Which crew mates' phones read the intro form with no constant prefix (core IntroForms). */
+    private var introForms = IntroForms()
+
+    private fun unhex(s: String): ByteArray = ByteArray(s.length / 2) { s.substring(2 * it, 2 * it + 2).toInt(16).toByte() }
+
+    private fun saveCheckIns(c: Context) {
+        prefs(c.applicationContext).edit().putString("checkins", checkInState.snapshot()).apply()
+    }
 
     /** Our own check-in deadline (unix s), or 0. */
     val myCheckInBy = mutableStateOf(0L)
@@ -602,15 +663,15 @@ object GroupSync {
 
     /** Called from the sync loop: anyone past their check-in time gets flagged to the crew, once. */
     private fun checkOverdue(c: Context) {
-        val now = System.currentTimeMillis() / 1000
-        for ((who, by) in checkIns) {
-            if (now > by + 120 && overdueAlerted.add(who)) {
-                CrewNotifications.post(
-                    c, title = Txt.s(R.string.crew_notif_overdue_title, who),
-                    text = Txt.s(R.string.crew_notif_overdue_text),
-                    urgent = true,
-                )
-            }
+        val due = checkInState.due(System.currentTimeMillis() / 1000)
+        if (due.isEmpty()) return
+        saveCheckIns(c)
+        for (d in due) {
+            CrewNotifications.post(
+                c, title = Txt.s(R.string.crew_notif_overdue_title, d.name),
+                text = Txt.s(R.string.crew_notif_overdue_text),
+                urgent = true,
+            )
         }
     }
 
@@ -658,35 +719,38 @@ object GroupSync {
     /** Where the crew is meeting, if anyone has dropped a pin (Compose state for map + home). */
     val rally = mutableStateOf<GigGroup.Rally?>(null)
     private var rallyMine = false
-    private var rallyPostedAt = 0L
     private var rallyClearedAt = 0L
 
     /** Drop (or move) the crew's meet-up pin. Everyone in the crew gets it within a minute or so. */
     fun setRally(c: Context, name: String, lat: Double, lon: Double) {
-        val r = GigGroup.Rally(lat, lon, name.trim().ifBlank { Txt.s(R.string.crew_rally_default) }.take(24), System.currentTimeMillis() / 1000)
+        // Stamped just after the pin it replaces, so it wins even if this phone's clock runs slow.
+        val t = PinRule.stamp(System.currentTimeMillis() / 1000, maxOf(rally.value?.timeSec ?: 0L, rallyClearedAt))
+        val r = GigGroup.Rally(lat, lon, name.trim().ifBlank { Txt.s(R.string.crew_rally_default) }.take(24), t)
         rallyMine = true
-        rallyPostedAt = 0L
         saveRally(c, r, r.timeSec)
-        postRallyNow(c)
+        postRally(c, r)
     }
 
     /** Remove the pin for everyone. */
     fun clearRally(c: Context) {
-        val r = GigGroup.Rally(0.0, 0.0, "", System.currentTimeMillis() / 1000)
+        val t = PinRule.stamp(System.currentTimeMillis() / 1000, maxOf(rally.value?.timeSec ?: 0L, rallyClearedAt))
+        val r = GigGroup.Rally(0.0, 0.0, "", t)
         rallyMine = false
         saveRally(c, null, r.timeSec)
-        val g = group.value ?: return
-        scope.launch { RelayClient.put(g.rallyIdForDay(Math.floorDiv(r.timeSec, 86_400L)), g.sealRally(r)) }
+        postRally(c, r)
     }
 
-    private fun postRallyNow(c: Context) {
+    /** Signed with our key (a pin used to be something anyone holding the crew key could move as anyone), then over to the courier. */
+    private fun postRally(c: Context, r: GigGroup.Rally) {
         val g = group.value ?: return
-        val r = rally.value ?: return
-        scope.launch {
-            if (RelayClient.put(g.rallyIdForDay(Math.floorDiv(r.timeSec, 86_400L)), g.sealRally(r))) {
-                rallyPostedAt = System.currentTimeMillis()
-            }
-        }
+        val app = c.applicationContext
+        OfflineMessages.post(app, g, g.sealRally(r, Identity.signer(app, g)))
+    }
+
+    /** "Meet at the pin" sends our own pin along again, so nobody gets the ping without the pin. */
+    private fun repostRally(c: Context, g: GigGroup) {
+        val r = rally.value?.takeIf { rallyMine } ?: return
+        OfflineMessages.post(c, g, g.sealRally(r, Identity.signer(c, g)))
     }
 
     private fun saveRally(c: Context, r: GigGroup.Rally?, timeSec: Long) {
@@ -701,6 +765,8 @@ object GroupSync {
     private fun received(c: Context, g: GigGroup, blob: ByteArray) {
         val intro = g.openIntro(blob, System.currentTimeMillis()) ?: return
         if (Identity.isMine(c, intro.secret)) return // our own
+        // Their own intro in the new form: their phone reads it (see core IntroForms).
+        if (introForms.heard(intro)) prefs(c.applicationContext).edit().putString("introForms", introForms.snapshot()).apply()
         // Someone we know (same signing key) with a new crew pass: the crew moved to a new key.
         val pub = intro.pub
         if (pub != null && intro.sig != null && pubOf(intro.secret) == null) {

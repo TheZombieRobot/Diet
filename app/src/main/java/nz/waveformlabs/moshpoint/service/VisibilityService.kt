@@ -109,6 +109,8 @@ class VisibilityService : LifecycleService() {
         GroupSync.acquire(this) // keep introducing ourselves to the gig group while visible
         CrowdRelayRadio.startListening(this)
         CrowdRelayRadio.startBroadcasting(this, lifecycleScope)
+        // Messages without signal ride the relay's adverts: only while live, so only from here.
+        nz.waveformlabs.moshpoint.OfflineMessages.startRadio(this)
         if (wifiRttSupported(this)) {
             wifi = WifiAwarePublisher(this) { ephemeral.currentId(System.currentTimeMillis()) }.also { it.start() }
         }
@@ -230,6 +232,7 @@ class VisibilityService : LifecycleService() {
         runCatching { unregisterReceiver(batteryReceiver) }
         wifi?.stop()
         if (rotateJob != null) {
+            nz.waveformlabs.moshpoint.OfflineMessages.stopRadio()
             GroupSync.release(this)
             CrowdRelayRadio.stopBroadcasting(this)
             CrowdRelayRadio.stopListening(this)

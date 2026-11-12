@@ -92,6 +92,8 @@ internal fun CrewChatScreen(
     photoOf: (name: String, mine: Boolean) -> androidx.compose.ui.graphics.ImageBitmap? = { _, _ -> null },
     /** Each mate's colour, so their name and ring match the map and tiles. */
     colourOf: (String) -> Int? = { null },
+    /** A line for when messages can't go the usual way ("No signal. Messages are passed to crew phones nearby…"). */
+    offlineHint: String? = null,
 ) {
     BackHandler(onBack = onBack)
     var draft by remember { mutableStateOf("") }
@@ -109,6 +111,14 @@ internal fun CrewChatScreen(
             if (onInvite != null && !readOnly) TextButton(onClick = onInvite) { Text(stringResource(R.string.crew_chat_invite), style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan)) }
         }
         Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (offlineHint != null) {
+                Text(
+                    offlineHint,
+                    style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.Text),
+                    modifier = Modifier.fillMaxWidth().background(Mosh.Amber.copy(alpha = 0.12f), RoundedCornerShape(14.dp))
+                        .border(1.dp, Mosh.Amber.copy(alpha = 0.5f), RoundedCornerShape(14.dp)).padding(horizontal = 14.dp, vertical = 10.dp),
+                )
+            }
             if (onMakeMain != null) {
                 Row(
                     Modifier.fillMaxWidth().background(Mosh.Cyan.copy(alpha = 0.12f), RoundedCornerShape(14.dp))
@@ -286,18 +296,35 @@ private fun ChatLine(
                 // A message reads in its own direction, whatever language the app is in.
                 style = Mosh.Body.copy(color = if (l.mine) Color(0xFF0B1200) else Mosh.Text, textDirection = androidx.compose.ui.text.style.TextDirection.Content),
                 modifier = Modifier.widthIn(max = 260.dp)
-                    .background(if (l.mine) Mosh.Lime.copy(alpha = if (l.state == CrewChat.SENT) 1f else 0.55f) else Mosh.Surface, RoundedCornerShape(18.dp))
+                    // Solid once the relay has it; nearly solid when a crew phone nearby does; faint while it waits.
+                    .background(
+                        if (l.mine) Mosh.Lime.copy(alpha = when (l.state) { CrewChat.SENT -> 1f; CrewChat.NEARBY -> 0.8f; else -> 0.55f }) else Mosh.Surface,
+                        RoundedCornerShape(18.dp),
+                    )
                     .border(1.dp, if (l.mine) Color.Transparent else ring.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
                     .padding(horizontal = 14.dp, vertical = 8.dp),
             )
             when {
                 l.mine && l.state == CrewChat.FAILED -> Text(
-                    stringResource(R.string.crew_chat_not_sent),
+                    // A chat line can be sent again from here. A quick message can't (send a new one), so it only says what happened.
+                    stringResource(if (l.kind == GigGroup.Ping.CHAT) R.string.crew_chat_not_sent else R.string.offline_state_not_sent),
                     style = Mosh.Label.copy(fontSize = 12.sp, color = Mosh.Danger),
                     modifier = Modifier.clickable { onRetry(l) }.padding(horizontal = 10.dp, vertical = 2.dp),
                 )
                 l.mine && l.state == CrewChat.SENDING -> Text(stringResource(R.string.crew_chat_sending), style = Mosh.Body.copy(fontSize = 11.sp, color = Mosh.TextFaint), modifier = Modifier.padding(horizontal = 10.dp))
-                last -> Text(stringResource(R.string.crew_chat_line_with_time, if (l.mine) stringResource(R.string.crew_you) else l.from, ago(nowSec - l.timeSec)), style = Mosh.Body.copy(fontSize = 11.sp, color = Mosh.TextFaint), modifier = Modifier.padding(horizontal = 10.dp))
+                // No signal and no crew phone has it yet. It goes by itself; a tap tries now.
+                l.mine && l.state == CrewChat.WAITING -> Text(
+                    stringResource(R.string.offline_state_waiting),
+                    style = Mosh.Label.copy(fontSize = 12.sp, color = Mosh.Amber),
+                    modifier = Modifier.clickable { onRetry(l) }.padding(horizontal = 10.dp, vertical = 2.dp),
+                )
+                // A crew phone nearby has it. Still to reach the relay for everyone else.
+                l.mine && l.state == CrewChat.NEARBY -> Text(
+                    stringResource(R.string.offline_state_nearby),
+                    style = Mosh.Label.copy(fontSize = 12.sp, color = Mosh.Cyan),
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp),
+                )
+                last -> Text(stringResource(R.string.crew_chat_line_with_time, if (l.mine) stringResource(R.string.offline_state_sent) else l.from, ago(nowSec - l.timeSec)), style = Mosh.Body.copy(fontSize = 11.sp, color = Mosh.TextFaint), modifier = Modifier.padding(horizontal = 10.dp))
             }
         }
         if (l.mine) {
@@ -316,7 +343,8 @@ private fun quickLine(l: CrewChat.Line): String = when (l.kind) {
     GigGroup.Ping.COMING -> stringResource(R.string.crew_quick_coming)
     GigGroup.Ping.WHERE_ARE_YOU -> stringResource(R.string.crew_quick_where)
     GigGroup.Ping.STAY_PUT -> stringResource(R.string.crew_quick_stay_put)
-    GigGroup.Ping.MEET_AT_PIN -> stringResource(R.string.crew_quick_meet_pin)
+    // Says which pin, when the sender's phone named it.
+    GigGroup.Ping.MEET_AT_PIN -> if (l.text.isBlank()) stringResource(R.string.crew_quick_meet_pin) else stringResource(R.string.offline_meet_pin_named, l.text)
     GigGroup.Ping.ALL_GOOD -> stringResource(R.string.crew_quick_all_good)
     GigGroup.Ping.GOING_HOME -> stringResource(R.string.crew_quick_going_home)
     GigGroup.Ping.NEED_HELP -> stringResource(R.string.crew_quick_need_help)

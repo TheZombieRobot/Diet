@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thai: messages without signal (crew messages passed between phones over Bluetooth). -->
+<resources>
+
+    <string name="offline_state_sent">ส่งแล้ว</string>
+    <string name="offline_state_nearby">ส่งถึงเพื่อนใกล้ๆ แล้ว</string>
+    <string name="offline_state_waiting">รอสัญญาณ</string>
+    <string name="offline_state_not_sent">ส่งไม่สำเร็จ</string>
+    <string name="offline_hint_bluetooth">ไม่มีสัญญาณ ข้อความจะส่งต่อผ่าน Bluetooth ไปยังมือถือของแก๊งที่อยู่ใกล้ๆ และส่งออกทันทีที่มีใครสักคนมีสัญญาณ</string>
+    <string name="offline_hint_go_live">ไม่มีสัญญาณ แตะ เริ่มแชร์ แล้วข้อความจะส่งต่อผ่าน Bluetooth ไปยังมือถือของแก๊งที่อยู่ใกล้ๆ</string>
+    <string name="offline_hint_bluetooth_off">ไม่มีสัญญาณ และ Bluetooth ปิดอยู่ เปิดแล้วข้อความจะส่งต่อไปยังมือถือของแก๊งที่อยู่ใกล้ๆ</string>
+    <string name="offline_hint_unsupported">ไม่มีสัญญาณ มือถือเครื่องนี้ส่งต่อข้อความผ่าน Bluetooth ไม่ได้ ข้อความจะส่งเมื่อคุณมีสัญญาณ</string>
+    <string name="offline_hint_no_signal">ไม่มีสัญญาณ ข้อความจะส่งเมื่อสัญญาณกลับมา</string>
+    <string name="offline_hint_paused">แก๊งนี้กำลังเปลี่ยนคีย์ใหม่ ข้อความจะส่งเมื่อคุณมีสัญญาณ</string>
+    <string name="offline_note_rekey_offline">แก๊งจะได้คีย์ใหม่เมื่อมือถือมีสัญญาณอีกครั้ง ระหว่างนี้ข้อความผ่าน Bluetooth จะพักไว้ก่อน</string>
+    <string name="offline_notif_late">ส่งเมื่อ %1$s เพิ่งมาถึงตอนนี้</string>
+    <string name="offline_notif_help_late">เขากด ขอความช่วยเหลือ เมื่อ %1$s เพิ่งมาถึงตอนนี้ เช็กว่าเขาโอเคไหม</string>
+    <string name="offline_meet_pin_named">เจอกันที่หมุด 📍 %1$s</string>
+    <string name="offline_need_nearby_why">เพื่อหาเพื่อนผ่าน Bluetooth, Wi-Fi และ UWB และส่งต่อข้อความตอนไม่มีสัญญาณ</string>
+
+</resources>

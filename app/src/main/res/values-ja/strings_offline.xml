@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Japanese: messages without signal (crew messages passed between phones over Bluetooth). -->
+<resources>
+
+    <string name="offline_state_sent">送信済み</string>
+    <string name="offline_state_nearby">近くの仲間に送信済み</string>
+    <string name="offline_state_waiting">電波待ち</string>
+    <string name="offline_state_not_sent">未送信</string>
+    <string name="offline_hint_bluetooth">電波がありません。メッセージはBluetoothで近くのクルーのスマホに渡され、誰かに電波が戻りしだい送信されます。</string>
+    <string name="offline_hint_go_live">電波がありません。「シェア開始」をタップすると、メッセージがBluetoothで近くのクルーのスマホに渡されます。</string>
+    <string name="offline_hint_bluetooth_off">電波がなく、Bluetoothもオフです。オンにすると、メッセージが近くのクルーのスマホに渡されます。</string>
+    <string name="offline_hint_unsupported">電波がありません。このスマホはBluetoothでメッセージを渡せないため、電波が戻ったら送信されます。</string>
+    <string name="offline_hint_no_signal">電波がありません。電波が戻ったらメッセージが送信されます。</string>
+    <string name="offline_hint_paused">このクルーは新しいキーに切り替え中です。電波が戻ったらメッセージが送信されます。</string>
+    <string name="offline_note_rekey_offline">スマホに電波が戻ると、クルーに新しいキーが届きます。それまでBluetoothのメッセージは保留になります。</string>
+    <string name="offline_notif_late">%1$sに送信。たった今届きました。</string>
+    <string name="offline_notif_help_late">%1$sに「助けて」が押されました。たった今届きました。様子を見てあげて。</string>
+    <string name="offline_meet_pin_named">ピンで集合 📍 %1$s</string>
+    <string name="offline_need_nearby_why">Bluetooth、Wi-Fi、UWBで仲間を探し、電波がなくてもメッセージを渡すため</string>
+
+</resources>

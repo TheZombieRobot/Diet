@@ -91,6 +91,75 @@ At a gig, a busy bar, a crowded street, a sports game. Anywhere packed with peop
 - [ ] Try spin-to-scan in the crowd (bodies all around change the signal a lot).
 - [ ] If mobile data drops: does `Crowd relay` in Technology status show packets heard? (It only helps once lots of people use the app, but it shouldn't break anything.)
 
+## 4b. Messages without signal (two phones, 20 min)
+
+Crew messages should still get through with no internet at all, by hopping between crew
+phones over Bluetooth, and go to the rest of the crew as soon as one phone has signal again.
+How it works and why: `docs/BLUETOOTH_BACKUP.md`. This can be done at home or in the park;
+do it again in a real dead spot (a basement bar, a packed venue) when you get the chance.
+
+Set up, on both phones:
+
+- [ ] Same crew, both **Go live**, crew chat open. Both on a test build from the same CI run.
+- [ ] Debug → Technology status shows `Messages (Bluetooth): on`. If it says the phone can't
+  carry messages, that phone has no Bluetooth 5 extended adverts: note the model and stop here.
+- [ ] Settings → TESTING: **Force no internet** is off. Scroll to **Message routes**: this is
+  the log to screenshot at the end. Each line is a message (first six characters of its id,
+  the same on both phones) and what happened to it.
+
+### The two-phone test: airplane mode with Bluetooth on
+
+- [ ] On **both** phones: airplane mode **on**, then turn **Bluetooth back on** (leave Wi-Fi off).
+- [ ] The chat shows an amber note on both: "No signal. Messages are passed to crew phones nearby over Bluetooth…".
+- [ ] A sends a chat message. Under it: **Waiting for signal**, then **Sent nearby** once B has
+  it (expect 5 to 20 seconds). It appears on B. Mark how long it took.
+- [ ] B replies. Same again the other way. The reply sits below the message it answers on both phones.
+- [ ] A long message (fill the box, 140 characters): it arrives whole.
+- [ ] A taps a quick message (**On my way**): it shows the same states, and arrives on B.
+- [ ] B puts the app in the background. A taps **Need help**: B gets the loud alert.
+- [ ] A drops a meet-up pin on the map: it shows on B's map and plan card. A taps **Meet at the pin**: B's chat names the pin.
+- [ ] Send five messages quickly from A. All five arrive on B, once each, in order (about one every 8 seconds).
+- [ ] Walk apart until messages stop arriving. Mark the distance and what's in between. Send two
+  more from A (they stay on **Waiting for signal**), walk back: they arrive by themselves within about a minute.
+- [ ] While messages are going back and forth, B taps A's name: the arrow and distance still
+  update as before (UWB too, if both phones have it). Mark anything that got worse.
+- [ ] A: swipe the app away and open it again, still in airplane mode. Messages are still there
+  with their states; nothing is sent twice.
+
+Back on signal, one phone at a time:
+
+- [ ] **B**: airplane mode **off**. B's own messages turn to **Sent**. Within about two minutes
+  A's messages on A's phone (still in airplane mode, still near B) also turn from **Sent nearby**
+  to **Sent**: B uploaded them and told A. B's Message routes show `uploaded for a crew mate`.
+- [ ] If you have a third phone **C** in the crew, somewhere else and online: A's messages
+  arrive on C now, though A still has no internet.
+- [ ] **A**: airplane mode **off**. Everything says **Sent**. A's Message routes show no second
+  `uploaded` for the messages B already sent.
+- [ ] Screenshot Message routes on both phones.
+
+### Quick version at a desk
+
+- [ ] Instead of airplane mode: Settings → TESTING → **Force no internet** on both phones. The
+  phone behaves as if it had no signal; Bluetooth carries on. Switch it off on one phone to
+  see that phone upload for the other.
+
+### Removing someone with no signal (needs three phones in one crew)
+
+- [ ] All three in airplane mode with Bluetooth on. A removes C from the crew.
+- [ ] A's chat says the crew gets its new key when phones next have signal. Within a couple of
+  minutes B's chat says "This crew is getting a new key…".
+- [ ] C sends a message: it does **not** show on A or B. C can't read what A and B send either.
+- [ ] A and B back on signal: B moves to the new key by itself, and A and B can chat again. C stays out.
+
+### What to send back for this part
+
+- Message routes screenshots from every phone, and the field recording if one was running
+  (message lines are in it, marked `msg`).
+- Phone models, and for each: did it say `Messages (Bluetooth): on`?
+- Time from sending to **Sent nearby**, the distance where it stopped working, and anything
+  that arrived twice, out of order, or not at all.
+- Battery % before and after, if you kept this going for more than half an hour.
+
 ## 5. What to send back
 
 - The CSV recordings (debug panel → **share last**; older ones are in the share list too).
@@ -104,3 +173,7 @@ At a gig, a busy bar, a crowded street, a sports game. Anywhere packed with peop
 - Friend photos are set by you on your phone; they don't sync between phones yet.
 - The crowd relay needs lots of Moshpoint users nearby to help at all.
 - The Bluetooth IDs and all the distance constants are first guesses until this test.
+- Messages without signal need Bluetooth 5 extended adverts on both phones, and both phones
+  live. One phone sends about one message every 8 seconds this way. Chat only hops between
+  crew phones; quick messages and the pin also pass through strangers' Moshpoint phones.
+  None of the timings have been measured on real phones yet: this test is the first.
