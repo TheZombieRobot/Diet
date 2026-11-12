@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
@@ -109,9 +110,13 @@ fun FitText(
     BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
         val measurer = rememberTextMeasurer()
         val width = constraints.maxWidth
-        val chosen = remember(text, style, width, maxLines, sizes) {
+        // Lines of about the same length, so a wrap never leaves one word (or one Japanese
+        // character) alone on the last line; on Wear OS 4 and later Japanese also breaks
+        // between phrases rather than inside a word.
+        val balanced = style.copy(lineBreak = LineBreak.Heading)
+        val chosen = remember(text, balanced, width, maxLines, sizes) {
             sizes.firstOrNull { size ->
-                val sized = style.copy(fontSize = size, lineHeight = size * 1.18f)
+                val sized = balanced.copy(fontSize = size, lineHeight = size * 1.18f)
                 // Fits if it wraps into the lines allowed without any single word being cut.
                 // (Thai, Chinese and Japanese have no spaces and may break anywhere, so they
                 // have no "word" to protect: for them only the wrapping counts.)
@@ -123,7 +128,7 @@ fun FitText(
         }
         Text(
             text,
-            style = style.copy(fontSize = chosen, lineHeight = chosen * 1.18f),
+            style = balanced.copy(fontSize = chosen, lineHeight = chosen * 1.18f),
             textAlign = textAlign,
             maxLines = maxLines,
             overflow = TextOverflow.Ellipsis,

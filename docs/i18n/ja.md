@@ -87,8 +87,8 @@ The Wear OS companion: 62 strings on the watch and 4 on the phone (the notificat
 | Hold (on the round button) / Hold to tell your crew | **長押し** / 長押しでクルーに知らせる | The button is about 8 letters wide, so one short word or two very short ones. |
 | Hold your wrist flat | **手首を水平にしてね** | The arrow only shows with the watch face level, like a compass. |
 | Follow the buzzes | **振動を頼りに進んで** | Shown when there is a distance but no direction. |
-| Not sent yet | **まだ送れていません** | Big, above the phone's own "Waiting for signal": the message is still on the phone. |
+| Not sent yet | **まだ未送信** | Big, above the phone's own "Waiting for signal": the message is still on the phone. |
 | Only crew nearby have it so far | 今は近くの仲間にだけ届いています | Under the phone's own "Sent nearby". |
 | Nearest mate (watch-face complication) / Crew status (tile) | **いちばん近い仲間** / **クルーの状況** | Names in the watch's pickers. |
 
-For a native reviewer: *まだ送れていません* for "Not sent yet". *振動を頼りに進んで* for "Follow the buzzes". Friendly *〜してね* endings as in the phone app. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium**.
+For a native reviewer: *まだ未送信* for "Not sent yet" (short enough for one line; the phone's "Not sent" is 未送信). *振動を頼りに進んで* for "Follow the buzzes". Friendly *〜してね* endings as in the phone app. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium**.

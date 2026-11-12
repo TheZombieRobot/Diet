@@ -93,23 +93,39 @@ internal object WatchPings {
             withContext(Dispatchers.Main) { OfflineMessages.retryNow(app) }
             return note(before, settle(app, before, RETRY_PATIENCE_MS))
         }
+        // The app may not be open: load what the ping path needs, as the live service does.
+        withContext(Dispatchers.Main) {
+            FriendsRepository.init(app)
+            if (GroupSync.group.value == null) GroupSync.load(app)
+        }
+        // Loading the crew also starts the outbox, which finishes starting in a main-thread
+        // task of its own. A ping handed over before that has run would be dropped (the outbox
+        // doesn't know the crew yet), so the hand-over is a second task, queued behind it.
         val now = withContext(Dispatchers.Main) { take(app, crewKind) } ?: return PingOutcome.NO_CREW
         synchronized(recent) { recent[m.requestId] = now }
+        // Not in the outbox after all: nothing will send it. Say so; "Try again" sends a new one.
+        if (now.outcome == PingOutcome.FAILED) return PingOutcome.FAILED
         // With no network the relay is out: wait only long enough for a crew phone beside us to take it.
         return note(now, settle(app, now, if (RelayClient.offline) OFFLINE_PATIENCE_MS else FIRST_PATIENCE_MS))
     }
 
     /** Hand the ping to the phone's ping path. Null when there is no crew to tell. Main thread. */
     private fun take(app: Context, crewKind: Int): Taken? {
-        // The app may not be open: load what the ping path needs, as the live service does.
-        FriendsRepository.init(app)
-        if (GroupSync.group.value == null) GroupSync.load(app)
         val g = GroupSync.group.value ?: return null
         val here = CrewStatus.myLocation(app)
         val had = ownLines(g, crewKind).mapTo(HashSet()) { it.id }
         val sinceSec = System.currentTimeMillis() / 1000
         GroupSync.sendPing(app, crewKind, here?.latitude, here?.longitude)
-        return Taken(crewKind, sinceSec, ownLines(g, crewKind).lastOrNull { it.id !in had }?.id.orEmpty())
+        val taken = Taken(crewKind, sinceSec, ownLines(g, crewKind).lastOrNull { it.id !in had }?.id.orEmpty())
+        // sendPing doesn't say whether the outbox took it. Its line in the chat names the
+        // message, and the outbox can be asked about that: if it isn't holding it now, a
+        // moment after being handed it, it never was.
+        val id = runCatching { java.lang.Long.parseUnsignedLong(taken.lineId, 16) }.getOrDefault(0L)
+        if (id != 0L && !OfflineMessages.holds(id)) {
+            DebugStatus.log("Wrist ping: the outbox didn't take it")
+            taken.outcome = PingOutcome.FAILED
+        }
+        return taken
     }
 
     /**
