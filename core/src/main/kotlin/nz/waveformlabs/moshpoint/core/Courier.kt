@@ -249,16 +249,36 @@ class Courier(
     /** Nothing can be uploaded right now: no network, or the relay asked us to slow down. */
     fun onHold(nowMs: Long): Boolean = !online || nowMs < uploadHoldUntilMs
 
-    /** Ask again now for anything of ours still waiting (the user tapped retry). */
+    /**
+     * Ask again now for anything of ours still waiting (the user tapped retry). A message the
+     * relay refused gets another go. If the relay asked us to slow down, that pause stands:
+     * tapping through it would only make the relay ask for a longer one.
+     */
     fun retryNow(nowMs: Long) {
-        uploadHoldUntilMs = 0L
         parcels.values.forEach {
             if (it.mine) {
                 it.retryAtMs = 0L
-                it.gaveUp = false
+                it.tries = 0
+                it.refusals = 0
+                if (it.gaveUp) {
+                    it.gaveUp = false
+                    tell(it)
+                }
             }
         }
         tick(nowMs)
+    }
+
+    /** Does the courier hold a meet-up pin of ours for [crewId] (and so keeps it on the relay)? */
+    fun holdsOwnPin(crewId: String): Boolean = parcels.values.any { it.crewId == crewId && it.kind == KIND_PIN && it.mine }
+
+    /**
+     * A newer pin (or a removal) for [crewId] arrived in a form the courier doesn't carry: an
+     * unsigned one from an older build. Whatever pin it holds from before [timeSec] is out of
+     * date, and must stop being re-posted.
+     */
+    fun pinSuperseded(crewId: String, timeSec: Long) {
+        if (parcels.values.removeAll { it.crewId == crewId && it.kind == KIND_PIN && it.timeSec < timeSec }) dirty = true
     }
 
     private fun stateOf(p: Parcel): State = when {
@@ -438,10 +458,18 @@ class Courier(
             }
             PutResult.THROTTLED -> {
                 relayAnswered(nowMs)
-                // The relay (or our budget for it) said "too many": everything waits, a little longer each time.
-                val base = minOf(60_000L shl throttleStep.coerceAtMost(4), 15 * 60_000L)
-                uploadHoldUntilMs = nowMs + base + random.nextInt((base / 2).toInt())
-                throttleStep++
+                // The relay (or the app's budget for it) said "too many": everything waits a
+                // little, 30 s then up to 2 min, so the queue doesn't spin. How long the relay
+                // really needs is the budget's business (it answers "too many" for free until
+                // then). Uploads already on their way when the wait began, and a safety ping
+                // sent through it, don't make it longer.
+                if (nowMs >= uploadHoldUntilMs) {
+                    val base = minOf(30_000L shl throttleStep.coerceAtMost(2), 120_000L)
+                    uploadHoldUntilMs = nowMs + base + random.nextInt((base / 2).toInt())
+                    throttleStep++
+                }
+                // Need help keeps trying through the wait, a little apart.
+                if (p != null && rank(p.kind) == 0) p.retryAtMs = nowMs + SAFETY_RETRY_MS
             }
             PutResult.REFUSED -> {
                 relayAnswered(nowMs)
@@ -449,12 +477,17 @@ class Courier(
                     if (job.helper) p.helperStopped = true else {
                         p.refusals++
                         p.retryAtMs = nowMs + 5 * 60_000L
+                        // Refused three times: stop, and say so ("Not sent"). A tap tries again.
+                        if (p.refusals >= MAX_REFUSALS && !p.onServer && !p.durable) {
+                            p.gaveUp = true
+                            tell(p)
+                        }
                     }
                 }
             }
         }
         // It didn't go: say where it stands now (waiting, or already with a crew phone nearby).
-        if (result != PutResult.SENT && p != null && p.mine && !job.helper) host.stateChanged(p.crewId, p.id, stateOf(p))
+        if (result != PutResult.SENT && p != null && p.mine && !job.helper && !p.gaveUp) host.stateChanged(p.crewId, p.id, stateOf(p))
     }
 
     private fun relayAnswered(nowMs: Long) {
@@ -480,7 +513,9 @@ class Courier(
     private fun planUploads(nowMs: Long): Pair<List<Upload>, List<String>> {
         val jobs = ArrayList<Upload>()
         val wantFetch = ArrayList<String>()
-        if (!online || nowMs < uploadHoldUntilMs) return jobs to wantFetch
+        if (!online) return jobs to wantFetch
+        // Asked to slow down: only safety pings still go (the app's budget spaces those out too).
+        val held = nowMs < uploadHoldUntilMs
         var free = MAX_IN_FLIGHT - inFlight
 
         fun start(p: Parcel, box: Box, helper: Boolean) {
@@ -498,6 +533,7 @@ class Courier(
             .sortedWith(compareBy<Parcel>({ rank(it.kind) }, { it.timeSec }))
         for (p in own) {
             if (free <= 0) break
+            if (held && rank(p.kind) != 0) continue
             // A crew phone already has this one and may have uploaded it while we had no signal:
             // look at the mailbox first (for a moment), rather than post a second copy.
             if (p.nearby && !p.onServer && nowMs - onlineSinceMs < LOOK_FIRST_MS &&
@@ -517,7 +553,7 @@ class Courier(
 
         // Then what we carry for crew mates, after a random wait and a fresh look at the mailbox.
         // One small batch at a time, all started together straight after that look.
-        if (helping > 0) return jobs to wantFetch
+        if (held || helping > 0) return jobs to wantFetch
         for (crewId in crews.keys) {
             for (box in Box.values()) {
                 val key = "$crewId/${box.ordinal}"
@@ -597,7 +633,8 @@ class Courier(
         var n = parcels.values.count { it.crewId == crewId }
         if (n <= MAX_PER_CREW) return
         // Other people's oldest go first; our own unsent ones are never pushed out.
-        val victims = parcels.values.filter { it.crewId == crewId && (!it.mine || it.onServer) }.sortedBy { it.timeSec }
+        // (Never the pin: there's only one, and it has to stay on the relay.)
+        val victims = parcels.values.filter { it.crewId == crewId && it.kind != KIND_PIN && (!it.mine || it.onServer) }.sortedBy { it.timeSec }
         for (v in victims) {
             if (n <= MAX_PER_CREW) break
             parcels.remove(v.id)
@@ -892,7 +929,8 @@ class Courier(
      */
     fun rekeyed(oldId: String, fresh: Crew, nowMs: Long) {
         val old = crews[oldId] ?: return
-        val mineUnsent = parcels.values.filter { it.crewId == oldId && it.mine && !it.onServer && !it.durable }
+        // Ours that hadn't reached the relay, and our pin either way: the new key has its own mailboxes, and the pin isn't in them.
+        val mineUnsent = parcels.values.filter { it.crewId == oldId && it.mine && ((!it.onServer && !it.durable) || it.kind == KIND_PIN) }
         parcels.values.removeAll { it.crewId == oldId }
         val list = crews.values.map { if (it.id == oldId) fresh else it }
         setCrews(list, nowMs)
@@ -1034,6 +1072,7 @@ class Courier(
         private const val LOOK_FIRST_MS = 15_000L
         /** How long after a crew phone says "I uploaded yours" before a mailbox without it counts as proof it didn't. */
         private const val TOLD_CHECK_AFTER_MS = 30_000L
+        private const val SAFETY_RETRY_MS = 15_000L
         private const val PIN_REPOST_MS = 10 * 60_000L
         private const val PIN_LAPSE_MS = 60_000L
         private const val PIN_CARRY_MS = 18 * 3600_000L

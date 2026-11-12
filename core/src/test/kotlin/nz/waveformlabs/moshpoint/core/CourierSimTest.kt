@@ -30,8 +30,17 @@ class CourierSimTest {
         /** What's still in yesterday's chat mailbox: a phone reads it, but uploads go to today's. */
         var yesterdayChat: List<ByteArray> = emptyList()
 
+        /** Answers every upload with an error that isn't "too many" (a size it won't take, say). */
+        var refuses = false
+        /** Every upload that reached the relay, whatever it answered. */
+        var attempts = 0
+        /** With [tooMany]: safety pings are let through all the same (the app's budget does this). */
+        var safetyGetsThrough = false
+
         fun put(job: Courier.Upload): PutResult {
-            if (tooMany) return PutResult.THROTTLED
+            attempts++
+            if (tooMany && !(safetyGetsThrough && job.use == RelayUse.SAFETY)) return PutResult.THROTTLED
+            if (refuses) return PutResult.REFUSED
             puts++
             val q = boxes.getOrPut("${job.crewId}/${job.box}") { ArrayDeque() }
             if (dedupes) q.removeAll { it.data.contentEquals(job.sealed) }
@@ -548,6 +557,69 @@ class CourierSimTest {
         assertEquals(whileOpen + 1, w.relay.puts)
     }
 
+    @Test fun aMessageTheRelayRefusesSaysNotSentAndATapTriesAgain() {
+        val w = World()
+        val a = Phone("A", w, group)
+        a.online = true
+        w.relay.refuses = true
+        val id = a.chat("the relay won't take this")
+        w.run(12 * 60)
+        assertEquals(3, w.relay.attempts, "three goes, five minutes apart")
+        assertEquals(Courier.State.GAVE_UP, a.state(id), "then it says so, rather than waiting for ever")
+        w.run(60 * 60)
+        assertEquals(3, w.relay.attempts)
+        // The person taps "Not sent": it goes back in the queue, and this time the relay takes it.
+        w.relay.refuses = false
+        a.courier.retryNow(a.now)
+        w.run(5)
+        assertEquals(Courier.State.SENT, a.state(id))
+        assertEquals(listOf(Courier.State.WAITING, Courier.State.GAVE_UP, Courier.State.WAITING, Courier.State.SENT), a.states[id]?.toList())
+    }
+
+    @Test fun tappingRetryWhileAskedToSlowDownDoesNotMakeTheWaitLonger() {
+        val w = World()
+        val a = Phone("A", w, group)
+        a.online = true
+        w.relay.tooMany = true
+        val id = a.chat("patience")
+        w.run(5)
+        assertEquals(1, w.relay.attempts)
+        // An impatient thumb.
+        repeat(8) {
+            a.courier.retryNow(a.now)
+            w.run(3)
+        }
+        assertEquals(1, w.relay.attempts, "the relay asked for a pause: a tap doesn't break it")
+        w.relay.tooMany = false
+        w.run(90)
+        assertEquals(Courier.State.SENT, a.state(id), "still only the first, short wait")
+    }
+
+    @Test fun needHelpKeepsTryingWhileEverythingElseWaits() {
+        val w = World()
+        val a = Phone("A", w, group)
+        a.online = true
+        w.relay.tooMany = true
+        val chat = a.chat("first")
+        w.run(5)
+        val before = w.relay.attempts
+        a.chat("second")
+        w.run(20)
+        assertEquals(before, w.relay.attempts, "chat waits out the pause")
+        // Need help doesn't wait: it's tried at once and again every few seconds.
+        val help = a.post(GigGroup.Ping.NEED_HELP)
+        w.run(40)
+        assertTrue(w.relay.attempts >= before + 2, "${w.relay.attempts - before} tries in 40 s")
+        w.relay.safetyGetsThrough = true
+        w.run(20)
+        assertEquals(Courier.State.SENT, a.state(help))
+        assertNotEquals(Courier.State.SENT, a.state(chat))
+        // Many uploads refused at once count as one "slow down", so the pause is still the first, short one.
+        w.relay.tooMany = false
+        w.run(90)
+        assertEquals(Courier.State.SENT, a.state(chat))
+    }
+
     // ---- The relay's budget ----
 
     @Test fun whenTheRelaySaysTooManyMessagesWaitThenFlush() {
@@ -871,6 +943,54 @@ class CourierSimTest {
     }
 
     // ---- The meet-up pin ----
+
+    @Test fun ourPinFollowsTheCrewToItsNewKey() {
+        val w = World()
+        val a = Phone("A", w, group)
+        a.online = true
+        val pin = a.courier.post(crewId, group.sealRally(GigGroup.Rally(-36.85, 174.76, "Sound desk", a.now / 1000), a.signer), a.now)!!.id
+        w.run(30)
+        assertTrue(a.courier.holdsOwnPin(crewId))
+        // The crew moves to a new key. Its pin mailbox is a different one: the pin has to be put there too.
+        val fresh = GigGroup(ByteArray(32) { (it + 90).toByte() }, group.name, 0L)
+        a.moveTo(fresh)
+        w.run(30)
+        val freshId = crewIdOf(fresh)
+        assertTrue(a.courier.holdsOwnPin(freshId))
+        assertEquals(listOf(pin), w.relay.get(freshId, Courier.Box.PIN).mapNotNull { fresh.openRally(it)?.id })
+    }
+
+    @Test fun aNewerPinFromAnOlderBuildStopsOursBeingRePosted() {
+        val w = World()
+        val a = Phone("A", w, group)
+        a.online = true
+        val t = a.now / 1000
+        a.courier.post(crewId, group.sealRally(GigGroup.Rally(-36.85, 174.76, "Sound desk", t), a.signer), a.now)
+        w.run(25 * 60)
+        val before = w.relay.puts
+        assertTrue(before >= 2)
+        // Someone on an older build moves or removes the pin: unsigned, so the courier can't carry it, but the app tells it.
+        a.courier.pinSuperseded(crewId, t + 600)
+        assertFalse(a.courier.holdsOwnPin(crewId))
+        w.run(60 * 60)
+        assertEquals(before, w.relay.puts, "our old pin isn't put back")
+    }
+
+    @Test fun aFullQueueNeverPushesOutThePin() {
+        val w = World()
+        val a = Phone("A", w, group)
+        val other = CrewKeys.generate()
+        a.courier.post(crewId, group.sealRally(GigGroup.Rally(-36.85, 174.76, "Sound desk", a.now / 1000 - 3600), a.signer), a.now)
+        a.online = true
+        w.run(30)
+        // A busy crew: more chat than the courier carries (it keeps 200), all newer than the pin.
+        val busy = (1..(Courier.MAX_PER_CREW + 30)).map {
+            group.sealPing(GigGroup.Ping(GigGroup.Ping.CHAT, "Jo", a.now / 1000 - 1800 + it, text = "line $it"), other)
+        }
+        a.courier.fetched(crewId, chatBox, busy, a.now)
+        assertTrue(a.courier.held(crewId) <= Courier.MAX_PER_CREW)
+        assertTrue(a.courier.holdsOwnPin(crewId))
+    }
 
     @Test fun theNewestPinWinsAndAFarFuturePinIsRefused() {
         val w = World()
