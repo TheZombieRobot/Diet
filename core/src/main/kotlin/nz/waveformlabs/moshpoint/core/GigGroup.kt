@@ -27,10 +27,33 @@ class GigGroup(
     /** The venue's position, when known (from gig search), for "at the venue" on followers' screens. */
     val venueLat: Double? = null,
     val venueLon: Double? = null,
+    /**
+     * Who made the crew: the only one who can remove people (see [RekeyPolicy]). Null for a crew
+     * made before crews had owners, where anyone in it still can.
+     */
+    val ownerPub: ByteArray? = null,
+    /** Random salt behind the key: [key] = [ownedKey] (ownerPub, salt), so the owner can't be swapped. */
+    val ownerSalt: ByteArray? = null,
 ) {
     init {
         require(key.size == 32)
     }
+
+    /**
+     * Does this crew have an owner, bound to its key? The key is a commitment to the owner's
+     * public key, so a forwarded invite can't name somebody else: whoever changes the owner
+     * would have to change the key too, and then it's a different crew.
+     */
+    val owned: Boolean
+        get() = ownerPub != null && ownerSalt != null && ownerPub.size == CrewKeys.PUB_BYTES && ownerSalt.size == 32 &&
+            ownedKey(ownerPub, ownerSalt).contentEquals(key)
+
+    /** The owner's signing tag, or null if the crew has no owner. */
+    val ownerTag: Long? get() = if (owned) CrewKeys.tagOf(ownerPub!!) else null
+
+    /** The same crew under a new key, after a removal or a reset (with its owner, if it has one). */
+    fun moved(newKey: ByteArray, ownerPub: ByteArray? = null, ownerSalt: ByteArray? = null): GigGroup =
+        GigGroup(newKey, name, createdAtMs, startsAtSec, venue, venueLat, venueLon, ownerPub, ownerSalt)
 
     /**
      * A crew for a gig that's still days away sleeps: no Bluetooth, no location sharing, no
@@ -607,6 +630,12 @@ class GigGroup(
         const val DIRECT_REKEY = 3
         /** A rekey that also says whose key was removed (see core RekeyPolicy). Older builds ignore it. */
         const val DIRECT_REKEY2 = 4
+        /** A rekey of an owned crew: also carries the salt and owner the new key is bound to (see RekeyPolicy). */
+        const val DIRECT_REKEY3 = 5
+
+        /** The key of an owned crew: a commitment to its owner's public key (see [owned]). */
+        fun ownedKey(ownerPub: ByteArray, salt: ByteArray): ByteArray =
+            java.security.MessageDigest.getInstance("SHA-256").digest("moshpoint-crew-owner-v1".toByteArray() + ownerPub + salt)
 
         private val INTRO_FORM2 = byteArrayOf(2)
 
@@ -666,7 +695,8 @@ class GigGroup(
             }.orEmpty()
             // The invite stops working when the crew ends, so an old screenshot can't get anyone in.
             val life = "&c=${group.createdAtMs / 1000}&exp=${group.expiresAtMs / 1000}"
-            val gig = (if (group.startsAtSec > 0) "&at=${group.startsAtSec}" else "") +
+            val owner = if (group.owned) "&o=${enc.encodeToString(group.ownerPub)}&os=${enc.encodeToString(group.ownerSalt)}" else ""
+            val gig = owner + (if (group.startsAtSec > 0) "&at=${group.startsAtSec}" else "") +
                 (if (group.venue.isNotBlank()) "&v=${java.net.URLEncoder.encode(group.venue.take(60), "UTF-8")}" else "") +
                 (if (group.venueLat != null && group.venueLon != null) "&vl=%.5f,%.5f".format(java.util.Locale.ROOT, group.venueLat, group.venueLon) else "") +
                 (if (follower) "&f=1" else "")
@@ -702,7 +732,14 @@ class GigGroup(
             val at = params["at"]?.toLongOrNull() ?: 0L
             val venue = params["v"]?.let { runCatching { java.net.URLDecoder.decode(it, "UTF-8") }.getOrNull() }.orEmpty()
             val vl = params["vl"]?.split(',')?.mapNotNull { it.toDoubleOrNull() }?.takeIf { it.size == 2 }
-            return GigGroup(key, name.ifBlank { "Gig group" }.take(40), created, at, venue, vl?.get(0), vl?.get(1))
+            // An owned crew's invite names its owner. It must match the key: anything else is a
+            // forged or damaged invite, and isn't joined. (One with no owner at all is a crew made
+            // before crews had owners.)
+            val ownerPub = params["o"]?.let { runCatching { dec.decode(it) }.getOrNull() }
+            val ownerSalt = params["os"]?.let { runCatching { dec.decode(it) }.getOrNull() }
+            val g = GigGroup(key, name.ifBlank { "Gig group" }.take(40), created, at, venue, vl?.get(0), vl?.get(1), ownerPub, ownerSalt)
+            if ((ownerPub != null || ownerSalt != null || params.containsKey("o") || params.containsKey("os")) && !g.owned) return null
+            return g
         }
 
         /** A "follow along" invite: for loved ones at home. They watch; they're never findable. */
@@ -720,6 +757,22 @@ class GigGroup(
             venueLat: Double? = null,
             venueLon: Double? = null,
         ): GigGroup = GigGroup(ByteArray(32).also { random.nextBytes(it) }, name.ifBlank { "Gig group" }.take(40), nowMs, startsAtSec, venue, venueLat, venueLon)
+
+        /** A new crew owned by whoever signs with [ownerPub]: only they will be able to remove people. */
+        fun createOwned(
+            name: String,
+            nowMs: Long,
+            ownerPub: ByteArray,
+            random: java.security.SecureRandom = java.security.SecureRandom(),
+            startsAtSec: Long = 0L,
+            venue: String = "",
+            venueLat: Double? = null,
+            venueLon: Double? = null,
+        ): GigGroup {
+            require(ownerPub.size == CrewKeys.PUB_BYTES)
+            val salt = ByteArray(32).also { random.nextBytes(it) }
+            return GigGroup(ownedKey(ownerPub, salt), name.ifBlank { "Gig group" }.take(40), nowMs, startsAtSec, venue, venueLat, venueLon, ownerPub, salt)
+        }
 
         /** Followers' intros start with this (invisible) mark, so the crew lists them apart and never "finds" them. */
         const val FOLLOWER_MARK = "\u2063"
