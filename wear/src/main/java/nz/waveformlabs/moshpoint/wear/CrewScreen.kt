@@ -86,7 +86,7 @@ fun CrewScreen(
                             sub = when {
                                 glance is CrewGlance.Stale -> agoText(res, mate.lastSeenSec, nowSec)
                                 mate.live(nowSec) -> mate.distanceM?.let {
-                                    stringResource(R.string.mate_live_distance, stringResource(R.string.mate_live), distanceText(res, it))
+                                    stringResource(R.string.mate_live_distance, distanceText(res, it), stringResource(R.string.mate_live))
                                 } ?: stringResource(R.string.mate_live)
                                 else -> agoText(res, mate.lastSeenSec, nowSec)
                             },
@@ -129,7 +129,12 @@ private fun MateChip(mate: WatchMate, face: ImageBitmap?, sub: String, live: Boo
     Chip(
         label = { Text(mate.name, style = Wrist.Label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         secondaryLabel = if (sub.isBlank()) null else ({
-            Text(sub, style = Wrist.Body.copy(fontSize = 12.sp, color = if (live) Wrist.Lime else Wrist.TextFaint), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            // "live" is a long word in some languages ("udostępnia", "đang chia sẻ"): a long line
+            // goes down a size, and the distance comes first so it is never the part cut off.
+            Text(
+                sub, style = Wrist.Body.copy(fontSize = if (sub.length > 17) 10.5.sp else 12.sp, color = if (live) Wrist.Lime else Wrist.TextFaint),
+                maxLines = 1, overflow = TextOverflow.Ellipsis,
+            )
         }),
         icon = { Face(face, mate.name, Color(mate.colour), ChipDefaults.LargeIconSize) },
         onClick = onClick,
