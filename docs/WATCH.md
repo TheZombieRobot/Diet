@@ -12,7 +12,7 @@ app onto a watch. Install steps are at the end.
 ## Status and next steps
 
 _A handover: enough to pick the work up cold. Updated with every push. Last: 12 November
-2026, 09:55 UTC._
+2026, 09:45 UTC._
 
 ### Where things stand
 
@@ -21,11 +21,11 @@ _A handover: enough to pick the work up cold. Updated with every push. Last: 12 
 | Design (this note) | **Done.** All eleven decisions below. |
 | Shared logic, `core/…/core/watch/` | **Done, tested.** 102 unit tests (357 in `core` with the merged branches), green locally. |
 | Watch app, `wear/` | **Builds in CI**: debug and release (R8) APKs, the app-id check, screenshots committed to `docs/screenshots/watch/`. Not yet run on a watch. |
-| Phone side, `app/…/moshpoint/watch/` | **Compiles in CI** (debug build of commit `09927c9`, no warnings in these files). The release (R8) build of the phone app with them in it has not run yet: it was skipped while the translation step was red. Not yet run on a phone. |
+| Phone side, `app/…/moshpoint/watch/` | **Builds in CI**, debug and release (R8), with the merged main branch (`6ac7690`). Not yet run on a phone. |
 | Main branch merged in | **Done** (`62a770a`): Bluetooth backup and the venue map, no conflicts. Wrist pings now report from the outbox (problem 8). |
 | Translations | **Done**, 19 languages: `wear/src/main/res/values-*/strings.xml` and `app/src/main/res/values-*/strings_watch.xml`. Checked by the script; not yet read by native speakers. Notes for them are at the end of each `docs/i18n/*.md` ("Watch app"). |
 | Checker and its CI step | **Done.** `tools/check_translation.py` works on any module and can compare languages between modules. |
-| Screenshots in every language | Tests exist (19 screens, 21 locales, 2 sizes). **To do:** look through the translated ones for clipped text. |
+| Screenshots in every language | 19 screens, 21 locales, 2 sizes, drawn by CI on every push. Five languages looked through by eye; the rest still to skim. |
 | Install steps, field test, release notes | **Written**: the end of this note, section 4c of `docs/FIELD_TEST_PLAN.md`, `.github/testing-release.md`. The install steps have not been followed on a real watch yet. |
 
 Nothing has run on a real watch or phone. Everything marked **verify on a watch** below is a
@@ -33,14 +33,14 @@ first guess until the field test.
 
 ### Next steps, in order
 
-1. **Read both jobs of the latest CI run** and fix what they report. This is the first run with
-   the outbox-aware `WatchPings`, the new watch states, the translations, and the phone app's
-   release (R8) build including the watch files.
-2. **Look at the watch screenshots** in every language (CI pushes all of them to the
-   `ui-screenshots-watch` branch; English plus German, Thai, Arabic and Japanese are in
-   `docs/screenshots/watch/`) and fix anything that runs off the round edge. New screens to
-   check first: `finderCalibrate`, `sosWaiting`, `sosNearby`, and `sosHold` (the button's
-   label may now take two lines).
+1. **Read both jobs of the latest CI run** and fix what they report. The run before it
+   (`6ac7690`) was green in the watch job and green in the phone job through the release (R8)
+   build; its phone screenshots were still running when the next push replaced it.
+2. **Look again at the watch screenshots.** English, German, Thai, Arabic and Japanese were
+   looked through on the small watch after `6ac7690`: everything stayed inside the glass.
+   Since then wrapped lines are balanced (no single word or character left alone on a line)
+   and "Moshpoint+" keeps its plus on the right in Arabic: check those two took effect, and
+   skim the other 14 languages on the `ui-screenshots-watch` branch for anything cut off.
 3. **Finish line:** both CI jobs green; report to the owner's main session.
 
 ### Shared files this branch touches (for merging with the other two branches)
@@ -357,13 +357,21 @@ A small vocabulary told apart by rhythm alone (many watch motors have no strengt
   and the tile.
 - **A limit to know about:** while the phone has no signal and you aren't live, Android may
   put the phone app to sleep once the watch has been answered. The ping stays in the outbox
-  and goes when the app next runs (opening it, or going live). So the wrist says "Not sent
-  yet" and makes no promise about when. **Verify on a watch**; if this turns out to matter, the
-  fix is to hold the phone awake with the watch finder's foreground service until it has gone.
+  and goes when the app next runs: when you open it or go live, or at its hourly chat check.
+  So the wrist says "Not sent yet" and makes no promise about when. **Verify on a watch**; if
+  this turns out to matter, the fix is to hold the phone awake with the watch finder's
+  foreground service until the ping has gone.
 - How the phone knows: the outbox reports on each of your own messages on its line in the crew
   chat. The phone side finds the line `sendPing` just added and reads its state. If the chat
   in memory is another crew's (you were reading it on the phone), it falls back to looking on
   the relay for its own signed ping. Neither `sendPing` nor the outbox is changed.
+- **With the phone app not running** there is one trap, found by reading the outbox's code:
+  loading the crew starts the outbox, and the outbox finishes starting a moment later, in a
+  main-thread task of its own. A ping handed to it before then is dropped without a word. So
+  the phone side loads the crew in one main-thread task and hands the ping over in the next,
+  and afterwards asks the outbox whether it is really holding that message. If it isn't, the
+  wrist is told it failed, and "Try again" sends a fresh one. **Verify on a phone:** swipe
+  Moshpoint away, then send Need help from the wrist (field test, section 4c F).
 
 ### 9. Moshpoint+ check
 

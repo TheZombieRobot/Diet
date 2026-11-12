@@ -112,7 +112,8 @@
     <string name="sos_ok_sent">Told your crew you\'re OK</string>
 
     <!-- ===== Not Moshpoint+ ===== -->
-    <string name="plus_title" translatable="false">Moshpoint+</string>
+    <!-- The mark after the plus keeps it on the right of the name in right-to-left languages -->
+    <string name="plus_title" translatable="false">Moshpoint+\u200E</string>
     <string name="plus_text">Unlock the watch app on your phone</string>
 
     <!-- ===== Tile and watch-face complication ===== -->

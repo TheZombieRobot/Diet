@@ -23,7 +23,7 @@
     <string name="ping_nearby">近くの仲間に送信済み</string>
     <string name="ping_waiting">電波待ち</string>
     <string name="ping_not_sent">未送信</string>
-    <string name="ping_not_yet">まだ送れていません</string>
+    <string name="ping_not_yet">まだ未送信</string>
 
     <string name="find_searching">%1$sを探しています…</string>
     <string name="find_hold_flat">手首を水平にしてね</string>
@@ -58,7 +58,7 @@
     <string name="sos_hold">長押し</string>
     <string name="sos_hint">長押しでクルーに知らせる</string>
     <string name="sos_sending">送信中…</string>
-    <string name="sos_sent">クルーに送信しました</string>
+    <string name="sos_sent">クルーに送信済み</string>
     <string name="sos_not_sent">未送信</string>
     <string name="sos_out_of_reach">スマホとつながりません</string>
     <string name="sos_nearby_detail">今は近くの仲間にだけ届いています</string>
