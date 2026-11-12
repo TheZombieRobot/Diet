@@ -1,6 +1,6 @@
 # Moshpoint privacy policy
 
-_Draft for review before Play Store release. Last updated: 11 November 2026. Contact: [EMAIL]._
+_Draft for review before Play Store release. Last updated: 12 November 2026. Contact: [EMAIL]._
 
 Moshpoint helps you find your friends at gigs and other crowded places. It was built so
 that it can do this **without knowing who you are or where you are**. This page explains
@@ -121,6 +121,18 @@ with no signal, Bluetooth. Your crew's phones show it for 20 minutes at most, or
 away or take it down. People following your crew from home aren't shown it. While your pin
 stands and the app is open or you're live, your phone checks your GPS, footsteps (motion
 sensor) and air pressure, on the phone only, to take it down when you leave.
+
+**Private messages (optional):** a message you send one crew mate with **Message Sam** is
+encrypted on your phone so that only that person's phone can open it: not the rest of your
+crew, not our server, not the public relay and not any phone that passes it on. Your name and
+your signature are inside the encrypted part, so nobody but them can tell who sent it or who it
+is for, and every private message is the same size. It goes through the same relay as crew chat
+(in a mailbox shared by the whole crew, kept for up to 3 days, 12 hours on the public relay)
+and, with no signal, through your crew's phones nearby over Bluetooth, never strangers' phones.
+The relay can see that your crew sent a private message, when, and the internet address it came
+from, but not who it was for. The conversation is kept on your two phones only and is deleted
+when the crew ends. Muting someone happens on your phone only; they aren't told. People
+following your crew from home can't send or receive private messages.
 
 **Your gigs (on your phone only):** photos and clips your crew shares are kept on your
 phone, in the app's private storage, so you can look back at the night. They never leave

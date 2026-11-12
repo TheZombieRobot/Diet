@@ -18,12 +18,12 @@ _Handover, kept current at every push. Branch `claude/private-messages-p7m2xd`, 
 | 1. This note: a decision for each hard problem | **done** (first version; corrected as the code lands) |
 | 2. Core: sealing and opening (`GigGroup.sealPrivate` / `openPrivate`, `ENV_PRIVATE`), the private mailbox id, `PrivateRule`, `PrivateBook` (threads, replays, pending senders, mute, unread), with tests | **done.** `GigGroup` (additions only), `CrewKeys.agree(…, label)`, `core/Private.kt`; `PrivateTest` (20 tests) passes locally |
 | 3. Core: the courier carries it (`KIND_PRIVATE`, `Box.PRIVATE`, receipts, re-seal after a rekey), `CourierSimTest` cases incl. older builds | **done.** `Courier`: `Message.pm`, `KIND_PRIVATE`, `Box.PRIVATE` (held like the chat: 180 for helpers), no crowd hops, `Host.resealPrivate`; 8 new `CourierSimTest` cases; the whole core suite (472) passes locally |
-| 4. App: `PrivateMessages` adapter (store, relay fetch in `ChatSync`, courier hook-up, notifications, mute), screens (options dialog, finder, thread), `strings_private.xml` in 20 folders | **half-done.** Written, not yet compiled by CI: `PrivateMessages.kt`, `ui/PrivateChatUi.kt` (+ `UnreadBadge`), hooks in `OfflineMessages`, `ChatSync.pollAll`, `CrewRekey.migrate`, `GroupSync` (forget, intro), `Crews.dropExpired`, `CrewNotifications` (thread + lock screen), `MainActivity` (overlay, two entry points, notification intent), `FriendsScreen` / `HomeSections` (option + badge), `FinderScreen` (button), `CrewChatUi.ChatLine` now internal. English `strings_private.xml` done; **the 19 translations are not** |
-| 5. Screenshot tests (`PrivateSnapshotTest`, own package, every language) | not started |
-| 6. Field test (two phones), roadmap, architecture and privacy notes | not started |
+| 4. App: `PrivateMessages` adapter (store, relay fetch in `ChatSync`, courier hook-up, notifications, mute), screens (options dialog, finder, thread), `strings_private.xml` in 20 folders | **written, waiting for CI to compile it.** `PrivateMessages.kt`, `ui/PrivateChatUi.kt` (+ `UnreadBadge`), hooks in `OfflineMessages`, `ChatSync.pollAll`, `CrewRekey.migrate`, `GroupSync` (forget, intro), `Crews.dropExpired`, `CrewNotifications` (thread + lock screen), `MainActivity` (overlay, two entry points, notification intent), `FriendsScreen` / `HomeSections` (option + badge), `FinderScreen` (button), `CrewChatUi.ChatLine` now internal. `strings_private.xml` in English and 19 languages (`tools/check_translation.py` OK for every folder) |
+| 5. Screenshot tests (`PrivateSnapshotTest`, own package, every language) | **written**, not yet rendered by CI: `app/src/test/java/nz/waveformlabs/moshpoint/privatemsg/PrivateSnapshotTest.kt` |
+| 6. Field test (two phones), roadmap, architecture and privacy notes | **done.** `FIELD_TEST_PLAN.md` section 4e and a known limit; `ROADMAP.md` step 4 status; `ARCHITECTURE.md` section; `PRIVACY.md` paragraph. Still to add: a "private messages" section at the end of each `docs/i18n/*.md` |
 | 7. CI green, report sent | not started |
 
-**Exact next step:** translate `strings_private.xml` into the 19 `values-*` folders (vocabulary from `docs/i18n` and each folder's `strings_crew.xml`), run `tools/check_translation.py` on each, push, and fix whatever CI's app compile reports.
+**Exact next step:** wait for CI's app compile (run 255 has the app code; the push after it adds the screenshot tests) and fix whatever it reports; then look at the screenshots, add the `docs/i18n` notes, and send the report.
 
 How to work on it: `core` and `server` tests run here with a scratch Gradle settings file that
 includes only `:core` and `:server` and points its version catalogue at
@@ -294,7 +294,19 @@ and ignores types it doesn't know.
 
 ## Tests
 
-_To be filled in as they land._
+In core (these can fail CI):
+
+| File | What it proves |
+|---|---|
+| `PrivateTest` (20) | Only the recipient opens it: not another crew mate, not its sender, not another crew. Every message is 352 bytes whatever it says, two Bluetooth packets; long text cut at 160 bytes on a character boundary. What any crew phone can read (id, time) holds no key or tag of either person; sealed twice, two copies share nothing but the id; a message for Sam and one for Alex look the same. The format built by hand from this note opens. Forged: someone claiming another's key, a message re-sealed to a third mate (the signature names its recipient), signed in another crew, sent to yourself. Altered: re-wrapped with another time, another id or another ephemeral key, any byte of either layer, cut short or lengthened. Replayed: the same bytes, a copy sealed again, after a restart, and anything older than 73 hours. One id for every copy and after a rekey; ids random, never 0. The private mailbox: its own, per day, per crew, per key, pinned to its label. Older builds: not a ping, pin, History, intro, moment, "keep as friend" or "I'm here"; `sealDirect` unchanged. Garbage and other envelopes aren't private messages; a later version is carried but not opened; later fields under the signature are read; an unknown kind isn't shown. The book: one thread per mate in the order every phone shows (a future clock sorts at arrival); unread and read; on screen neither unread nor announced; mute (still kept, never notified, survives a restart, undone); a sender not yet known waits and appears when they are, and someone who never is (following from home) is never shown; someone removed loses their thread and isn't shown again; our own states only move forward; everything survives a restart and garbage loads as nothing; 300 per thread. |
+| `CourierSimTest` (8 new) | Through the relay only the recipient is shown it (the crew's private mailbox, not the chat's, one upload). With no signal it hops along crew phones that can't read it, "Sent nearby" from their receipt, the first back on signal uploads it, and its author doesn't upload it again. The recipient carries and confirms exactly like any other crew phone. It never crosses a stranger's phone (Need help still does). After a rekey our unsent one is sealed again with its id (from the thread), never under the old key, and let go if the app can't. A helper never fills the private mailbox past 180. Ours survive a restart, and the recipient isn't shown it twice after one. A build that doesn't know the type ignores it without errors, carries nothing, and the chat carries on. |
+
+In app (rendered by CI, never gating): `PrivateSnapshotTest` and its `Lang_xx` subclasses draw, in
+every language, the thread with no signal (Sent, Sent nearby, Waiting for signal under the crew
+chat's note: `privateThread`), a new thread (`privateEmpty`), a muted one with "Not sent"
+(`privateMuted`), a crew mate's options with **Message Sam** first and the count on their face
+(`privateOptions`), and the finder's **Message Sam** (`privateFinder`); `Lang_de.privateTranslationsLoad`
+guards that the translations load.
 
 ## Known limits
 

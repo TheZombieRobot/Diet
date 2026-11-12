@@ -114,6 +114,17 @@ Agreed with the owner; build in this order. Where this differs from [PRODUCT.md]
 
 ### 4. Private messages: about 2–3 days
 - Tap a mate → "Message Sam". Internet normally; Bluetooth when nearby with no signal.
+- **Status: built, not yet tried on real phones.** Decisions, tests and what's left:
+  [PRIVATE_MESSAGES.md](PRIVATE_MESSAGES.md). Sealed to the one recipient with a fresh key each
+  time (ephemeral-static ECDH on the crew signing keys), signed inside, so no crew member, the
+  relay or a stranger's phone can see who is writing to whom; every message is the same size.
+  One private mailbox per crew per day, fetched whole by every crew phone with the chat (no extra
+  request, no server change). Over Bluetooth it goes like crew chat: crew phones only, never
+  through strangers, with the same Sent / Sent nearby / Waiting for signal (no "Delivered": it
+  would show the relay who answers whom). **Message Sam** is in a crew mate's options on the
+  home screen and under their name in the finder; mute per person; not for people following
+  from home; threads end with the crew. Two-phone test: section 4e of
+  [FIELD_TEST_PLAN.md](FIELD_TEST_PLAN.md).
 
 ### 5. Who can remove people from a crew: about 1–2 days (decided 12 November 2026)
 - **Only the crew's creator can remove someone. Anyone can remove themselves (leave).**

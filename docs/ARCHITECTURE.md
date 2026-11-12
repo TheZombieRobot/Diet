@@ -183,6 +183,26 @@ reasons: [IM_HERE.md](IM_HERE.md).
 | app `locate/GpsFinder.kt` | Makes the `HERE_PIN` fixes, so the phone's finder and the watch's pocket finder both have them. |
 | app `ui/MapScreen.kt`, `CrewRadar.kt`, `FinderScreen.kt`, `HereUi.kt` | The face on the spot with "pinned 3 min ago", your own pin with ✕, **I'm here** first in the drop-a-pin dialog, the radar pill, the finder chip. |
 
+## Private messages
+
+Tap a crew mate, **Message Sam**: a one-to-one chat only the two of you can read, by the relay
+or, with no signal, by crew phones nearby. Decisions and reasons:
+[PRIVATE_MESSAGES.md](PRIVATE_MESSAGES.md).
+
+| File | Job |
+|---|---|
+| core `GigGroup.kt` | `sealPrivate` / `openPrivate` / `privateOuterOf`: an `mp2` envelope of type `ENV_PRIVATE` holding `[ver][id][ephemeral key][sealed part]`; the sealed part (sender key, signature, text) opens only with the recipient's crew signing key; always 352 bytes. `privateIdForDay`: the crew's private mailbox. |
+| core `CrewKeys.kt` | `agree(…, label)`: the same ECDH, hashed with a label of its own. |
+| core `Private.kt` | `PrivateRule` (ids, the 73-hour limit), `PrivateBook` (one thread per crew mate, replays dropped by id, messages held until their sender turns out to be a crew mate, unread, mute, forward-only states, saving). |
+| core `Courier.kt` | Carries them as `KIND_PRIVATE` to `Box.PRIVATE`, like chat: crew phones only, no crowd hops, receipts, helpers never past 180 records; `Message.pm` is set only on the phone it's for; `Host.resealPrivate` after a rekey. |
+| app `PrivateMessages.kt` | The books on the phone, sending, arrivals (from `ChatSync.pollAll` through the courier, and from `OfflineMessages.deliver`), who counts as a crew mate, notifications, mute, the thread on screen. |
+| app `ui/PrivateChatUi.kt` | The thread (the crew chat's `ChatLine` bubbles) and `UnreadBadge`. Entry points: the crew mate's options (`FriendsScreen`) and the finder (`FinderScreen`). |
+
+Rules to keep: a private message is sealed to its recipient, so not even its sender's courier can
+open it (the app seals it again from its thread when needed); nothing that says who it's from or
+for ever goes outside the sealed part; the recipient's phone carries and confirms it exactly like
+any other crew phone.
+
 ## Watch app (Wear OS companion)
 
 The phone does the finding; the watch does the pointing and the buzzing. The decisions and the

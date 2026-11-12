@@ -488,6 +488,65 @@ calibration happens (as in 3b E).
 - For each "clears itself" test: cleared or not, and when (distance walked, minutes).
 - Whether the floor tag was right for the pinned spot, and how long it lasted.
 
+## 4e. Private messages (two phones, a third for one test, 30 min)
+
+Tap a crew mate, **Message Sam**: a one-to-one chat only the two of you can read, over the
+internet or, with no signal, over Bluetooth through crew phones nearby. How it works and why:
+`docs/PRIVATE_MESSAGES.md`.
+
+Set up: A and B in the same crew, both **Go live**, each in the other's crew tiles on the home
+screen. A third phone C in the same crew for the "nobody else" test. **Settings → TESTING →
+Message routes** open on the phones you're watching.
+
+### With signal
+
+- [ ] On A's home screen, hold B's face (or tap ⋯): **Message B** is first. Tap it: an empty
+  thread with "Private · only you two can read it" and the 🔒 note. Send "hello from A". It shows
+  **Sending…**, then the time (sent).
+- [ ] Within a minute or two B gets a notification, "A · private", with the text. B's tile for A
+  wears a small **1**. Tapping the notification opens the thread; the **1** goes.
+- [ ] B replies from the thread; with both threads open, messages arrive within about 20
+  seconds (8 with our own server). Mark the times.
+- [ ] From the finder: A taps B's tile on the home screen (the finder opens on B): **Message B**
+  is under B's name, with B's unread count. It opens the same thread.
+- [ ] **Nobody else:** C sees nothing at all: no notification, no thread, no count, and C's
+  crew chat has no new line. C's Message routes may list it as `carried for someone else`.
+- [ ] **Lock screen:** lock B, set Android to hide sensitive notification content (Settings →
+  Notifications → on the lock screen), send from A: B's lock screen says only "Moshpoint ·
+  Private message". Unlock: the name and text are there.
+- [ ] **Mute:** B opens A's thread, taps **Mute**: the note "Muted on this phone…" shows. A
+  sends three messages: they appear in B's thread, but B gets no notification and no count. B
+  taps **Unmute**: the next one notifies again. A's phone shows nothing different throughout.
+
+### No signal
+
+- [ ] Both phones: airplane mode **on**, then Bluetooth back **on** (as in 4b). A sends to B:
+  A sees **Waiting for signal**, then **Sent nearby** within about 20 seconds; B is shown it (by
+  Bluetooth). A's routes: `private …: on air`; B's: `in by Bluetooth`.
+- [ ] A sends to B with B out of Bluetooth range: **Waiting for signal**. B walks back into
+  range: it arrives, and A's line turns **Sent nearby**.
+- [ ] **Through a crew phone:** A and B far apart, C between them, all with no signal. A sends
+  to B: C carries it (C is never shown it) and passes it on when it meets B.
+- [ ] **First back on signal:** after the test above, C turns airplane mode off first: C
+  uploads it (`uploaded for a crew mate`). Then A gets signal: A's line turns **Sent**, and A
+  doesn't upload it again (A's routes show no `uploaded` for it).
+- [ ] **Not through strangers:** a phone that is in no crew with A or B, between them: nothing
+  crosses it (B never gets the message until a crew phone or signal brings it).
+
+### Who and when
+
+- [ ] A phone **following from home** in the same crew: no **Message** option anywhere, and it
+  never gets a private message.
+- [ ] B is removed from the crew by its creator (with signal): B's thread on A's phone goes, and
+  B can't send to A any more (nothing arrives). The thread between A and C stays.
+- [ ] **End night** on A: A's private threads go with the crew. They're not in Your gigs.
+
+### What to send back for this part
+
+- Screenshots of a thread on both phones, a notification, the locked-phone notification, and
+  Message routes on all three phones during the no-signal tests.
+- For each test: worked or not, how long each message took, and anything confusing in the words.
+
 ## 5. What to send back
 
 - The CSV recordings (debug panel → **share last**; older ones are in the share list too).
@@ -516,3 +575,5 @@ calibration happens (as in 3b E).
   = 30 m beyond the GPS accuracy after 10 s of footsteps, a floor change = 0.3 hPa, and the
   weather allowance for the pinned spot's floor (3 m an hour). Its walk-away check only runs
   while the app is open or you're live.
+- Private messages have never run on a phone. Each is two Bluetooth packets (about 11 seconds on
+  air), only crew phones carry them, and a crew mate on an older build never sees them.
