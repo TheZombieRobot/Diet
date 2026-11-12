@@ -108,3 +108,23 @@ the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
 | Take your pin down (screen reader, ✕) | ピンを外す |
 
 Uses **クルー** and **ピン** (*ピン留め*). The time phrase follows a middle dot (*ピン留め・3分前*) so it works with *たった今* too. Written without a native reviewer. Confidence: **medium**.
+
+## Private messages (`strings_private.xml`)
+
+Ten strings: **Message Sam** (in a crew mate's options and the finder), the private thread's
+subtitle, empty note, Mute and its note, and the notification (with what a locked phone shows).
+Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
+
+| English | Chosen |
+|---|---|
+| Message %1$s (button and menu item) | **%1$sにメッセージ** |
+| Private · only you two can read it | プライベート · 2人だけが読めます |
+| Only you and %1$s can read what's sent here: not the rest of the crew, and not us. | ここで送ったメッセージは、あなたと%1$sだけが読めます。クルーのほかのメンバーも、私たちも読めません。 |
+| Mute / Unmute | ミュート / ミュート解除 |
+| Muted on this phone. %1$s's messages still arrive here, without a notification. | このスマホでミュート中。%1$sのメッセージは届きますが、通知はしません。 |
+| %1$s · private (notification title) | %1$s · プライベート |
+| Private message (locked phone) | プライベートメッセージ |
+| %d new private messages | 新着プライベートメッセージ%d件 |
+| %d unread private messages (screen reader, the count on a face) | 未読のプライベートメッセージ%d件 |
+
+Uses **クルー**, as elsewhere. *プライベート* rather than *DM*, which reads as Twitter/X. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.

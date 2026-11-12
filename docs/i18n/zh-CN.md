@@ -104,3 +104,23 @@ the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
 | Take your pin down (screen reader, ✕) | 撤掉你的标记 |
 
 Uses **小队** and **标记** (the app's word for a map pin). *3分钟前标记* / *刚刚标记*. Written without a native reviewer. Confidence: **medium**.
+
+## Private messages (`strings_private.xml`)
+
+Ten strings: **Message Sam** (in a crew mate's options and the finder), the private thread's
+subtitle, empty note, Mute and its note, and the notification (with what a locked phone shows).
+Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
+
+| English | Chosen |
+|---|---|
+| Message %1$s (button and menu item) | **私信 %1$s** |
+| Private · only you two can read it | 私密 · 只有你们两人能看 |
+| Only you and %1$s can read what's sent here: not the rest of the crew, and not us. | 这里发的消息只有你和 %1$s 能看：小队其他人看不到，我们也看不到。 |
+| Mute / Unmute | 静音 / 取消静音 |
+| Muted on this phone. %1$s's messages still arrive here, without a notification. | 已在这台手机上静音。%1$s 的消息仍会发到这里，只是不提醒。 |
+| %1$s · private (notification title) | %1$s · 私信 |
+| Private message (locked phone) | 私信 |
+| %d new private messages | %d 条新私信 |
+| %d unread private messages (screen reader, the count on a face) | %d 条未读私信 |
+
+Uses **小队**, as elsewhere. *私信* is the usual word for a direct message. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.

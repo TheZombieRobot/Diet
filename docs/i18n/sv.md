@@ -116,3 +116,23 @@ the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
 | Take your pin down (screen reader, ✕) | Ta bort din nål |
 
 Uses **gruppen** and **nål**; *fäst* ("pinned") for the time line. Floor = *våningen*. Written without a native reviewer. Confidence: **medium**.
+
+## Private messages (`strings_private.xml`)
+
+Ten strings: **Message Sam** (in a crew mate's options and the finder), the private thread's
+subtitle, empty note, Mute and its note, and the notification (with what a locked phone shows).
+Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
+
+| English | Chosen |
+|---|---|
+| Message %1$s (button and menu item) | **Skriv till %1$s** |
+| Private · only you two can read it | Privat · bara ni två kan läsa den |
+| Only you and %1$s can read what's sent here: not the rest of the crew, and not us. | Bara du och %1$s kan läsa det som skickas här: inte resten av gruppen, och inte vi. |
+| Mute / Unmute | Tysta / Slå på igen |
+| Muted on this phone. %1$s's messages still arrive here, without a notification. | Tystad på den här telefonen. Meddelanden från %1$s kommer fortfarande hit, men utan avisering. |
+| %1$s · private (notification title) | %1$s · privat |
+| Private message (locked phone) | Privat meddelande |
+| %d new private messages | %d nya privata meddelanden |
+| %d unread private messages (screen reader, the count on a face) | %d olästa privata meddelanden |
+
+Uses **grupp**, as elsewhere. *Tysta* / *Slå på igen*. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.

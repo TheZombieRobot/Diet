@@ -114,3 +114,23 @@ the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
 | Take your pin down (screen reader, ✕) | Togli il tuo pin |
 
 Uses **gruppo** and **pin** (*pin messo*), as in *Metti un pin*. Floor = *piano*. Written without a native reviewer. Confidence: **medium**.
+
+## Private messages (`strings_private.xml`)
+
+Ten strings: **Message Sam** (in a crew mate's options and the finder), the private thread's
+subtitle, empty note, Mute and its note, and the notification (with what a locked phone shows).
+Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
+
+| English | Chosen |
+|---|---|
+| Message %1$s (button and menu item) | **Scrivi a %1$s** |
+| Private · only you two can read it | Privata · solo voi due potete leggerla |
+| Only you and %1$s can read what's sent here: not the rest of the crew, and not us. | Solo tu e %1$s potete leggere quello che vi mandate qui: non il resto del gruppo, e nemmeno noi. |
+| Mute / Unmute | Silenzia / Riattiva |
+| Muted on this phone. %1$s's messages still arrive here, without a notification. | Silenziato su questo telefono. I messaggi di %1$s arrivano comunque qui, senza notifica. |
+| %1$s · private (notification title) | %1$s · privato |
+| Private message (locked phone) | Messaggio privato |
+| %d new private messages | %d nuovi messaggi privati |
+| %d unread private messages (screen reader, the count on a face) | %d messaggi privati non letti |
+
+Uses **gruppo**, as elsewhere. The subtitle agrees with *la chat* (*Privata… leggerla*). *Silenzia* / *Riattiva*. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.

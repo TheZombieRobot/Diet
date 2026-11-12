@@ -106,3 +106,23 @@ the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
 | Take your pin down (screen reader, ✕) | 내 핀 빼기 |
 
 Uses **크루** and **핀** (*핀 꽂음*), polite *-요* forms as elsewhere. *You're here* became *지금 여기 있어요* so it differs from the button *여기 있어요*. Written without a native reviewer. Confidence: **medium**.
+
+## Private messages (`strings_private.xml`)
+
+Ten strings: **Message Sam** (in a crew mate's options and the finder), the private thread's
+subtitle, empty note, Mute and its note, and the notification (with what a locked phone shows).
+Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
+
+| English | Chosen |
+|---|---|
+| Message %1$s (button and menu item) | **%1$s님에게 메시지** |
+| Private · only you two can read it | 비공개 · 두 사람만 읽을 수 있어요 |
+| Only you and %1$s can read what's sent here: not the rest of the crew, and not us. | 여기서 보낸 메시지는 나와 %1$s님만 읽을 수 있어요. 다른 크루원도, 저희도 못 읽어요. |
+| Mute / Unmute | 알림 끄기 / 알림 켜기 |
+| Muted on this phone. %1$s's messages still arrive here, without a notification. | 이 휴대폰에서 알림을 껐어요. %1$s님의 메시지는 계속 여기로 오지만 알림은 오지 않아요. |
+| %1$s · private (notification title) | %1$s · 비공개 |
+| Private message (locked phone) | 비공개 메시지 |
+| %d new private messages | 새 비공개 메시지 %d개 |
+| %d unread private messages (screen reader, the count on a face) | 읽지 않은 비공개 메시지 %d개 |
+
+Uses **크루**, as elsewhere. *알림 끄기 / 알림 켜기* (as in KakaoTalk) rather than *음소거*, since it is the notifications that stop. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.

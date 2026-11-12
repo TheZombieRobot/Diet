@@ -126,3 +126,23 @@ the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
 | Take your pin down (screen reader, ✕) | Tirar seu pin |
 
 Uses **galera** and **pin** (*pin marcado*), with **você**. Floor = *andar*. Written without a native reviewer. Confidence: **medium**.
+
+## Private messages (`strings_private.xml`)
+
+Ten strings: **Message Sam** (in a crew mate's options and the finder), the private thread's
+subtitle, empty note, Mute and its note, and the notification (with what a locked phone shows).
+Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
+
+| English | Chosen |
+|---|---|
+| Message %1$s (button and menu item) | **Mandar mensagem pra %1$s** |
+| Private · only you two can read it | Privado · só vocês dois podem ler |
+| Only you and %1$s can read what's sent here: not the rest of the crew, and not us. | Só você e %1$s podem ler o que é enviado aqui: nem o resto da galera, nem a gente. |
+| Mute / Unmute | Silenciar / Tirar do silencioso |
+| Muted on this phone. %1$s's messages still arrive here, without a notification. | Silenciado neste celular. As mensagens de %1$s continuam chegando aqui, sem notificação. |
+| %1$s · private (notification title) | %1$s · privado |
+| Private message (locked phone) | Mensagem privada |
+| %d new private messages | %d mensagens privadas novas |
+| %d unread private messages (screen reader, the count on a face) | %d mensagens privadas não lidas |
+
+Uses **galera**, as elsewhere. *Silenciar* / *Tirar do silencioso*. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.

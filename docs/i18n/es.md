@@ -127,3 +127,23 @@ the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
 | Take your pin down (screen reader, ✕) | Quitar tu pin |
 
 Uses **grupo** and **pin** (*pin puesto*), as in the meet-up pin strings. Floor = *piso* (Latin America). Written without a native reviewer. Confidence: **medium**.
+
+## Private messages (`strings_private.xml`)
+
+Ten strings: **Message Sam** (in a crew mate's options and the finder), the private thread's
+subtitle, empty note, Mute and its note, and the notification (with what a locked phone shows).
+Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
+
+| English | Chosen |
+|---|---|
+| Message %1$s (button and menu item) | **Escribir a %1$s** |
+| Private · only you two can read it | Privado · solo ustedes dos lo pueden leer |
+| Only you and %1$s can read what's sent here: not the rest of the crew, and not us. | Solo tú y %1$s pueden leer lo que se envía aquí: ni el resto del grupo, ni nosotros. |
+| Mute / Unmute | Silenciar / Quitar silencio |
+| Muted on this phone. %1$s's messages still arrive here, without a notification. | Silenciado en este teléfono. Los mensajes de %1$s siguen llegando aquí, sin notificación. |
+| %1$s · private (notification title) | %1$s · privado |
+| Private message (locked phone) | Mensaje privado |
+| %d new private messages | %d mensajes privados nuevos |
+| %d unread private messages (screen reader, the count on a face) | %d mensajes privados sin leer |
+
+Uses **grupo**, as elsewhere, and *ustedes* for "you two" (Latin America). *Silenciar* / *Quitar silencio*. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.

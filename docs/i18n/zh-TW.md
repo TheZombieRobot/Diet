@@ -114,3 +114,23 @@ the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
 | Take your pin down (screen reader, ✕) | 移除你的標記 |
 
 Uses **小隊** and **標記**. *3分鐘前標記* / *剛剛標記*. Written without a native reviewer. Confidence: **medium**.
+
+## Private messages (`strings_private.xml`)
+
+Ten strings: **Message Sam** (in a crew mate's options and the finder), the private thread's
+subtitle, empty note, Mute and its note, and the notification (with what a locked phone shows).
+Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
+
+| English | Chosen |
+|---|---|
+| Message %1$s (button and menu item) | **私訊 %1$s** |
+| Private · only you two can read it | 私密 · 只有你們兩人看得到 |
+| Only you and %1$s can read what's sent here: not the rest of the crew, and not us. | 這裡傳的訊息只有你和 %1$s 看得到：小隊其他人看不到，我們也看不到。 |
+| Mute / Unmute | 靜音 / 取消靜音 |
+| Muted on this phone. %1$s's messages still arrive here, without a notification. | 已在這支手機上靜音。%1$s 的訊息還是會傳到這裡，只是不會通知。 |
+| %1$s · private (notification title) | %1$s · 私訊 |
+| Private message (locked phone) | 私訊 |
+| %d new private messages | %d 則新私訊 |
+| %d unread private messages (screen reader, the count on a face) | %d 則未讀私訊 |
+
+Uses **小隊**, as elsewhere. *私訊* is the usual word in Taiwan. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.

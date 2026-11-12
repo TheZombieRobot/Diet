@@ -121,3 +121,23 @@ the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
 | Take your pin down (screen reader, ✕) | Gỡ ghim của bạn |
 
 Uses **nhóm** and **ghim** (*đã ghim*), with **bạn**/**mình** as elsewhere. Written without a native reviewer. Confidence: **medium**.
+
+## Private messages (`strings_private.xml`)
+
+Ten strings: **Message Sam** (in a crew mate's options and the finder), the private thread's
+subtitle, empty note, Mute and its note, and the notification (with what a locked phone shows).
+Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
+
+| English | Chosen |
+|---|---|
+| Message %1$s (button and menu item) | **Nhắn riêng cho %1$s** |
+| Private · only you two can read it | Riêng tư · chỉ hai bạn đọc được |
+| Only you and %1$s can read what's sent here: not the rest of the crew, and not us. | Chỉ bạn và %1$s đọc được tin nhắn ở đây: người khác trong nhóm không đọc được, chúng tôi cũng không. |
+| Mute / Unmute | Tắt thông báo / Bật thông báo |
+| Muted on this phone. %1$s's messages still arrive here, without a notification. | Đã tắt thông báo trên điện thoại này. Tin nhắn của %1$s vẫn đến đây, chỉ không báo. |
+| %1$s · private (notification title) | %1$s · riêng tư |
+| Private message (locked phone) | Tin nhắn riêng |
+| %d new private messages | %d tin nhắn riêng mới |
+| %d unread private messages (screen reader, the count on a face) | %d tin nhắn riêng chưa đọc |
+
+Uses **nhóm**, as elsewhere. *Nhắn riêng* / *tin nhắn riêng* is the everyday word for a private message. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.

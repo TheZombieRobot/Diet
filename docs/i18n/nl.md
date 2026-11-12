@@ -118,3 +118,23 @@ the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
 | Take your pin down (screen reader, ✕) | Je pin weghalen |
 
 Uses **crew** and **pin** (*gepind*), with **je**. Written without a native reviewer. Confidence: **medium**.
+
+## Private messages (`strings_private.xml`)
+
+Ten strings: **Message Sam** (in a crew mate's options and the finder), the private thread's
+subtitle, empty note, Mute and its note, and the notification (with what a locked phone shows).
+Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
+
+| English | Chosen |
+|---|---|
+| Message %1$s (button and menu item) | **Bericht aan %1$s** |
+| Private · only you two can read it | Privé · alleen jullie twee kunnen het lezen |
+| Only you and %1$s can read what's sent here: not the rest of the crew, and not us. | Alleen jij en %1$s kunnen lezen wat hier wordt gestuurd: niet de rest van de crew, en ook wij niet. |
+| Mute / Unmute | Dempen / Dempen opheffen |
+| Muted on this phone. %1$s's messages still arrive here, without a notification. | Gedempt op deze telefoon. Berichten van %1$s komen hier nog steeds binnen, zonder melding. |
+| %1$s · private (notification title) | %1$s · privé |
+| Private message (locked phone) | Privébericht |
+| %d new private messages | %d nieuwe privéberichten |
+| %d unread private messages (screen reader, the count on a face) | %d ongelezen privéberichten |
+
+Uses **crew**, as elsewhere. *Dempen* / *Dempen opheffen*. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.

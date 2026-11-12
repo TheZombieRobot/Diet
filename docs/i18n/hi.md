@@ -129,3 +129,23 @@ the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
 | Take your pin down (screen reader, ✕) | अपना पिन हटाएँ |
 
 Uses **ग्रुप** and **पिन** with the polite **आप**, as elsewhere. *3 मिनट पहले पिन किया*. Written without a native reviewer. Confidence: **medium**.
+
+## Private messages (`strings_private.xml`)
+
+Ten strings: **Message Sam** (in a crew mate's options and the finder), the private thread's
+subtitle, empty note, Mute and its note, and the notification (with what a locked phone shows).
+Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
+
+| English | Chosen |
+|---|---|
+| Message %1$s (button and menu item) | **%1$s को मैसेज करें** |
+| Private · only you two can read it | प्राइवेट · सिर्फ़ आप दोनों पढ़ सकते हैं |
+| Only you and %1$s can read what's sent here: not the rest of the crew, and not us. | यहाँ भेजे गए मैसेज सिर्फ़ आप और %1$s पढ़ सकते हैं: न बाकी ग्रुप, न हम। |
+| Mute / Unmute | म्यूट करें / अनम्यूट करें |
+| Muted on this phone. %1$s's messages still arrive here, without a notification. | इस फ़ोन पर म्यूट है। %1$s के मैसेज यहाँ आते रहेंगे, बस नोटिफ़िकेशन नहीं आएगा। |
+| %1$s · private (notification title) | %1$s · प्राइवेट |
+| Private message (locked phone) | प्राइवेट मैसेज |
+| %d new private messages | %d नए प्राइवेट मैसेज |
+| %d unread private messages (screen reader, the count on a face) | %d अनपढ़े प्राइवेट मैसेज |
+
+Uses **ग्रुप**, as elsewhere, and the English loanwords *प्राइवेट*, *म्यूट* that Indian chat apps use. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.

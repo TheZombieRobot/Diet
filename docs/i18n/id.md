@@ -126,3 +126,23 @@ the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
 | Take your pin down (screen reader, ✕) | Hapus pin-mu |
 
 Uses **geng** and **pin** (*di-pin*), with **kamu**. *Di-pin 3 mnt lalu*. Written without a native reviewer. Confidence: **medium**.
+
+## Private messages (`strings_private.xml`)
+
+Ten strings: **Message Sam** (in a crew mate's options and the finder), the private thread's
+subtitle, empty note, Mute and its note, and the notification (with what a locked phone shows).
+Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
+
+| English | Chosen |
+|---|---|
+| Message %1$s (button and menu item) | **Kirim pesan ke %1$s** |
+| Private · only you two can read it | Pribadi · cuma kalian berdua yang bisa baca |
+| Only you and %1$s can read what's sent here: not the rest of the crew, and not us. | Cuma kamu dan %1$s yang bisa baca pesan di sini: bukan anggota geng lainnya, bukan juga kami. |
+| Mute / Unmute | Bisukan / Bunyikan |
+| Muted on this phone. %1$s's messages still arrive here, without a notification. | Dibisukan di HP ini. Pesan dari %1$s tetap masuk ke sini, tanpa notifikasi. |
+| %1$s · private (notification title) | %1$s · pribadi |
+| Private message (locked phone) | Pesan pribadi |
+| %d new private messages | %d pesan pribadi baru |
+| %d unread private messages (screen reader, the count on a face) | %d pesan pribadi belum dibaca |
+
+Uses **geng**, as elsewhere, and *pribadi* for private. *Bisukan* / *Bunyikan* as in WhatsApp Indonesia. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.

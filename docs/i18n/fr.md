@@ -134,3 +134,23 @@ the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
 | Take your pin down (screen reader, ✕) | Retirer ton repère |
 
 Uses **crew** (la) and **repère** for pin, as in *Poser un repère*. *Repère posé il y a 3 min* / *à l'instant*. Written without a native reviewer. Confidence: **medium**.
+
+## Private messages (`strings_private.xml`)
+
+Ten strings: **Message Sam** (in a crew mate's options and the finder), the private thread's
+subtitle, empty note, Mute and its note, and the notification (with what a locked phone shows).
+Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
+
+| English | Chosen |
+|---|---|
+| Message %1$s (button and menu item) | **Écrire à %1$s** |
+| Private · only you two can read it | Privé · seuls vous deux pouvez le lire |
+| Only you and %1$s can read what's sent here: not the rest of the crew, and not us. | Seuls toi et %1$s pouvez lire ce qui est envoyé ici : ni le reste de la crew, ni nous. |
+| Mute / Unmute | Mettre en sourdine / Réactiver |
+| Muted on this phone. %1$s's messages still arrive here, without a notification. | En sourdine sur ce téléphone. Les messages de %1$s arrivent toujours ici, sans notification. |
+| %1$s · private (notification title) | %1$s · privé |
+| Private message (locked phone) | Message privé |
+| %d new private messages | %d nouveaux messages privés |
+| %d unread private messages (screen reader, the count on a face) | %d messages privés non lus |
+
+Uses **crew**, as elsewhere. *Mettre en sourdine* / *Réactiver*. A space before the colon, as French typography wants. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.

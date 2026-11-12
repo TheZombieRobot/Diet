@@ -124,3 +124,23 @@ the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
 | Take your pin down (screen reader, ✕) | Deinen Pin entfernen |
 
 Uses **Crew** and **Pin** (*gepinnt*), as elsewhere. *gepinnt gerade eben* (with "just now") is colloquial; *gerade gepinnt* would read better but the time phrase is shared with the rest of the app. Written without a native reviewer. Confidence: **medium**.
+
+## Private messages (`strings_private.xml`)
+
+Ten strings: **Message Sam** (in a crew mate's options and the finder), the private thread's
+subtitle, empty note, Mute and its note, and the notification (with what a locked phone shows).
+Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
+
+| English | Chosen |
+|---|---|
+| Message %1$s (button and menu item) | **Nachricht an %1$s** |
+| Private · only you two can read it | Privat · nur ihr zwei könnt das lesen |
+| Only you and %1$s can read what's sent here: not the rest of the crew, and not us. | Nur du und %1$s könnt lesen, was hier geschickt wird: nicht der Rest der Crew und auch nicht wir. |
+| Mute / Unmute | Stummschalten / Stummschaltung aufheben |
+| Muted on this phone. %1$s's messages still arrive here, without a notification. | Auf diesem Handy stummgeschaltet. Nachrichten von %1$s kommen weiter hier an, nur ohne Benachrichtigung. |
+| %1$s · private (notification title) | %1$s · privat |
+| Private message (locked phone) | Private Nachricht |
+| %d new private messages | %d neue private Nachrichten |
+| %d unread private messages (screen reader, the count on a face) | %d ungelesene private Nachrichten |
+
+Uses **Crew**, as elsewhere. *Stummschalten* / *Stummschaltung aufheben* as in WhatsApp; the second is long for a small top-bar button, so check it fits in the screenshot. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.

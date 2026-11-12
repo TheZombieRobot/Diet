@@ -143,3 +143,23 @@ the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
 | Take your pin down (screen reader, ✕) | أزل دبوسك |
 
 Uses the app's **شلة** for crew and **دبوس** for pin. *وُضع الدبوس* ("the pin was placed") is followed by the app's own "3 min ago" phrase. Written without a native reviewer. Confidence: **medium**.
+
+## Private messages (`strings_private.xml`)
+
+Ten strings: **Message Sam** (in a crew mate's options and the finder), the private thread's
+subtitle, empty note, Mute and its note, and the notification (with what a locked phone shows).
+Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
+
+| English | Chosen |
+|---|---|
+| Message %1$s (button and menu item) | **راسل %1$s** |
+| Private · only you two can read it | خاص · لا يقرؤه إلا أنتما |
+| Only you and %1$s can read what's sent here: not the rest of the crew, and not us. | لا يقرأ ما يُرسل هنا إلا أنت و%1$s: لا بقية الشلة، ولا نحن. |
+| Mute / Unmute | كتم / إلغاء الكتم |
+| Muted on this phone. %1$s's messages still arrive here, without a notification. | مكتوم على هذا الهاتف. رسائل %1$s تصل إلى هنا كالمعتاد، لكن دون إشعار. |
+| %1$s · private (notification title) | %1$s · خاص |
+| Private message (locked phone) | رسالة خاصة |
+| %d new private messages | %d رسالة خاصة جديدة |
+| %d unread private messages (screen reader, the count on a face) | %d رسالة خاصة غير مقروءة |
+
+Uses **الشلة** for crew, as elsewhere. *خاص* ("private") is what Arabic messaging apps call a direct message; *كتم* for mute as in WhatsApp. *أنتما* (dual) in the subtitle: exactly two people. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.
