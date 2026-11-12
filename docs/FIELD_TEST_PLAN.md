@@ -270,6 +270,19 @@ Back on signal, one phone at a time:
 - [ ] C sends a message: it does **not** show on A or B. C can't read what A and B send either.
 - [ ] A and B back on signal: B moves to the new key by itself, and A and B can chat again. C stays out.
 
+### Only the creator removes people (three phones, 10 min, with signal)
+
+A makes a **new** crew (crews made before this build keep the old rule); B and C join it.
+
+- [ ] On B, open C's options in the crew: no "Remove", just "Only the person who made this crew
+  can remove people". B's crew QR has no "Reset invite".
+- [ ] On A, both are there. A removes C: C's crew stops working for C, and B's chat says A
+  removed C. B and A can still chat.
+- [ ] A ends the night while B is still in the crew: A is asked "Who looks after the crew now?"
+  and picks B. B's chat says A handed the crew to them; B now sees "Remove" and "Reset invite".
+- [ ] A friend shares B's crew invite onward and it still works; a hand-edited invite with a
+  different creator (ask for a test link) is refused.
+
 ### What to send back for this part
 
 - Message routes screenshots from every phone, and the field recording if one was running
