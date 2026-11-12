@@ -64,6 +64,11 @@ object Floors {
         var uwbM: Double? = null
         var uwbAtMs = 0L
         var lastPairMs = 0L
+
+        /** The calibration as last written down (saved, logged, recorded). */
+        var notedOffsetHpa: Double? = null
+        var notedByUwb = false
+        var notedAtMs = 0L
     }
 
     private val mates = HashMap<String, Mate>()
@@ -119,6 +124,7 @@ object Floors {
         if (live) liveUsers = (liveUsers - 1).coerceAtLeast(0)
         if (watching) watchers = (watchers - 1).coerceAtLeast(0)
         if (users > 0) return
+        saveCalibrations() // the latest, for when we're switched back on
         stopSensor()
         loop?.cancel()
         loop = null
@@ -215,11 +221,22 @@ object Floors {
             }
             // They calibrate against the pressure they hear from us: while side by side, keep it current.
             if (close != Closeness.NOT_CLOSE) advertIfMoved(together = true)
-            if (m.tracker.onPair(mine, their, now, close)) {
-                saveCalibrations()
-                val c = m.tracker.calibration
-                DebugStatus.log("Floors: calibrated with ${nameOf(friendId)} by ${if (close == Closeness.UWB) "UWB" else "Bluetooth"} (offset %.2f hPa)".format(c?.offsetHpa ?: 0.0))
-                record(now, "baro_cal", friendId, if (close == Closeness.UWB) "UWB" else "BLE_RSSI", uwb ?: distanceM, "offset_hPa=%.3f".format(java.util.Locale.ROOT, c?.offsetHpa ?: 0.0))
+            val c = if (m.tracker.onPair(mine, their, now, close)) m.tracker.calibration else null
+            if (c != null) {
+                // Side by side they recalibrate every second. Write it down when it has changed
+                // by a step, and otherwise once a minute (to keep its age right if we're stopped).
+                val noted = m.notedOffsetHpa
+                val changed = noted == null || abs(c.offsetHpa - noted) >= Baro.HPA_PER_UNIT || c.byUwb != m.notedByUwb
+                if (changed || now - m.notedAtMs >= NOTE_GAP_MS) {
+                    m.notedOffsetHpa = c.offsetHpa
+                    m.notedByUwb = c.byUwb
+                    m.notedAtMs = now
+                    saveCalibrations()
+                }
+                if (changed) {
+                    DebugStatus.log("Floors: calibrated with ${nameOf(friendId)} by ${if (c.byUwb) "UWB" else "Bluetooth"} (offset %.2f hPa)".format(c.offsetHpa))
+                    record(now, "baro_cal", friendId, if (c.byUwb) "UWB" else "BLE_RSSI", uwb ?: distanceM, "offset_hPa=%.3f".format(java.util.Locale.ROOT, c.offsetHpa))
+                }
             }
             record(now, "baro_mate", friendId, "BLE_RSSI", uwb ?: distanceM, "hPa=%.2f;mine=%.2f".format(java.util.Locale.ROOT, their, mine))
         }
@@ -353,6 +370,7 @@ object Floors {
 
     private const val K = "Floors"
 
+    private const val NOTE_GAP_MS = 60_000L
     private const val PUBLISH_GAP_MS = 30_000L
     private const val PUBLISH_REFRESH_MS = 120_000L
     private const val FETCH_GAP_MS = 20_000L
