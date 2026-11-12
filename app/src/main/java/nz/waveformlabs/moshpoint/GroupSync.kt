@@ -624,6 +624,8 @@ object GroupSync {
         val had = CrewChat.hasPing(c, p)
         val shown = CrewChat.pingLine(c, p, mine = false)
         if (!shown && !(fresh && !had && PingPolicy.group(p.kind) == PingPolicy.Group.SAFETY)) return
+        // Announced on the courier's record alone (the chat couldn't take the line): keep that record now.
+        if (!shown) OfflineMessages.rememberNow()
         // Newest by the sender's time first, so a late arrival slots in where it belongs.
         val at = pings.indexOfFirst { it.timeSec < p.timeSec }.let { if (it < 0) pings.size else it }
         pings.add(at, p)

@@ -51,13 +51,19 @@ class RelayBudget(
      * squeeze location shares out; everything together still stops at 8.)
      */
     private val requestReserve: Int = 2,
+    /**
+     * Requests a minute kept for look-ups: uploads take at most the rest (of 8, 6). A queue
+     * being flushed waits for room and takes every slot it can, and without this the phone
+     * would see nothing new until it had finished. Safety pings may use these too.
+     */
+    private val lookUpReserve: Int = 2,
     /** After the relay says "too many": the first pause, and the longest. Our own server refills in seconds, so it gets short ones. */
     private val throttleBaseMs: Long = 60_000L,
     private val throttleMaxMs: Long = 15 * 60_000L,
     /** 0.0 ..< 1.0, for jitter (so a crowd regaining signal doesn't retry in step). */
     private val random: () -> Double = Math::random,
 ) {
-    internal class Request(val atMs: Long, val background: Boolean)
+    internal class Request(val atMs: Long, val background: Boolean, val message: Boolean)
 
     /** A request that has been allowed to start. Give it back to [settle] when it ends. */
     class Ticket internal constructor(internal val request: Request, internal val message: Boolean, internal val use: RelayUse, internal val duringPause: Boolean)
@@ -114,6 +120,10 @@ class RelayBudget(
             val oldest = requests.firstOrNull { it.background } ?: return -1
             wait = maxOf(wait, oldest.atMs + MINUTE_MS - nowMs)
         }
+        if (uploadsFull(use, message)) {
+            val oldest = requests.firstOrNull { it.message } ?: return -1
+            wait = maxOf(wait, oldest.atMs + MINUTE_MS - nowMs)
+        }
         return wait.coerceAtLeast(0)
     }
 
@@ -128,7 +138,7 @@ class RelayBudget(
         // Only a safety ping gets here during a pause (see [paused]).
         val duringPause = nowMs < throttledUntilMs
         if (duringPause) safetyInPauseAtMs = nowMs
-        val request = Request(nowMs, use == RelayUse.BACKGROUND)
+        val request = Request(nowMs, use == RelayUse.BACKGROUND, message)
         requests.addLast(request)
         if (message) messages++
         return Ticket(request, message, use, duringPause)
@@ -147,9 +157,14 @@ class RelayBudget(
         prune(nowMs)
         if (requests.size >= requestsPerMinute) return PutResult.THROTTLED
         if (use == RelayUse.BACKGROUND && requests.count { it.background } >= requestsPerMinute - requestReserve) return PutResult.THROTTLED
+        if (uploadsFull(use, message)) return PutResult.THROTTLED
         if (message && messages >= messageCap(use)) return PutResult.THROTTLED
         return null
     }
+
+    /** Have uploads taken their share of this minute (the rest is kept for look-ups)? Call after [prune]. */
+    private fun uploadsFull(use: RelayUse, message: Boolean): Boolean =
+        message && use != RelayUse.SAFETY && requests.count { it.message } >= requestsPerMinute - lookUpReserve
 
     /** In the relay's "too many" pause? A safety ping still tries through it, one every [SAFETY_GAP_MS]. */
     private fun paused(use: RelayUse, nowMs: Long): Boolean =

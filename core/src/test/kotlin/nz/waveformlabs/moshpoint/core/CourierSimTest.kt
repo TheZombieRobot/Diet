@@ -576,6 +576,32 @@ class CourierSimTest {
         assertEquals(listOf(Courier.State.WAITING, Courier.State.GAVE_UP, Courier.State.WAITING, Courier.State.SENT), a.states[id]?.toList())
     }
 
+    @Test fun aMessageThatGaveUpStillSaysSoAfterARestart() {
+        val w = World()
+        val a = Phone("A", w, group)
+        a.online = true
+        w.relay.refuses = true
+        val id = a.chat("to a relay that won't have it")
+        w.run(12 * 60)
+        assertEquals(Courier.State.GAVE_UP, a.state(id))
+        val tries = w.relay.attempts
+        // The app is killed and started again. The line said "Not sent": it still does, and nothing is tried behind its back.
+        a.restart()
+        w.run(30 * 60)
+        assertEquals(tries, w.relay.attempts)
+        assertEquals(Courier.State.GAVE_UP, a.state(id))
+        // A tap: three more goes, and when those are refused too it says "Not sent" again, not "Waiting" for ever.
+        a.courier.retryNow(a.now)
+        w.run(12 * 60)
+        assertEquals(tries + 3, w.relay.attempts)
+        assertEquals(Courier.State.GAVE_UP, a.state(id))
+        // And when the relay does take it, it's sent.
+        w.relay.refuses = false
+        a.courier.retryNow(a.now)
+        w.run(5)
+        assertEquals(Courier.State.SENT, a.state(id))
+    }
+
     @Test fun tappingRetryWhileAskedToSlowDownDoesNotMakeTheWaitLonger() {
         val w = World()
         val a = Phone("A", w, group)

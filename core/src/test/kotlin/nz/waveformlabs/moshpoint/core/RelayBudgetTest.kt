@@ -34,7 +34,7 @@ class RelayBudgetTest {
         assertEquals(190, b.messagesLeft(RelayUse.MESSAGE, now))
         assertEquals(150, b.messagesLeft(RelayUse.BACKGROUND, now))
 
-        // Signal's back: the queue goes out, at the relay's pace (8 requests a minute).
+        // Signal's back: the queue goes out, at the relay's pace (8 requests a minute, 6 of them uploads).
         b.networkBack()
         var sent = 0
         var minutes = 0
@@ -44,7 +44,7 @@ class RelayBudgetTest {
             minutes++
         }
         assertEquals(40, sent)
-        assertTrue(minutes <= 6, "40 messages at 8 a minute took $minutes min")
+        assertTrue(minutes <= 7, "40 messages at 6 a minute took $minutes min")
     }
 
     @Test fun locationSharesCannotUseUpTheMessages() {
@@ -174,6 +174,24 @@ class RelayBudgetTest {
         assertEquals(listOf(5_000L, 10_000L, 20_000L, 30_000L, 30_000L), waits)
     }
 
+    @Test fun aQueueBeingFlushedLeavesRoomToLookAtTheMailboxes() {
+        val b = budget()
+        val now = 3_000_000L
+        // Back on signal with a backlog: uploads take every slot they're allowed, as soon as it frees.
+        repeat(6) { assertTrue(b.go(RelayUse.MESSAGE, now + it * 100, RelayBudget.Outcome.OK)) }
+        assertNull(b.take(RelayUse.MESSAGE, true, now + 1_000), "the seventh upload waits")
+        assertEquals(59_000L, b.roomInMs(RelayUse.MESSAGE, true, now + 1_000))
+        // Two requests a minute are kept for looking: new messages, where the crew is, a Need help coming in.
+        assertTrue(b.go(RelayUse.MESSAGE, now + 2_000, RelayBudget.Outcome.OK, message = false))
+        assertTrue(b.go(RelayUse.MESSAGE, now + 3_000, RelayBudget.Outcome.OK, message = false))
+        assertNull(b.take(RelayUse.MESSAGE, false, now + 4_000))
+        // A Need help going out isn't held to the uploads' share (here the whole minute is simply full).
+        val c = budget()
+        repeat(6) { assertTrue(c.go(RelayUse.MESSAGE, now + it, RelayBudget.Outcome.OK)) }
+        assertTrue(c.go(RelayUse.SAFETY, now + 10, RelayBudget.Outcome.OK))
+        assertTrue(c.go(RelayUse.SAFETY, now + 11, RelayBudget.Outcome.OK))
+    }
+
     @Test fun lookUpsForAnOpenChatDoNotSqueezeOutLocationShares() {
         val b = budget()
         val now = 9_000_000L
@@ -195,7 +213,8 @@ class RelayBudgetTest {
         val b = budget()
         assertTrue(b.go(RelayUse.MESSAGE, 0, RelayBudget.Outcome.REFUSED))
         assertEquals(190, b.messagesLeft(RelayUse.MESSAGE, 0))
-        repeat(7) { assertTrue(b.go(RelayUse.MESSAGE, 1, RelayBudget.Outcome.OK)) }
+        // It took one of this minute's six uploads all the same.
+        repeat(5) { assertTrue(b.go(RelayUse.MESSAGE, 1, RelayBudget.Outcome.OK)) }
         assertNull(b.take(RelayUse.MESSAGE, true, 2))
     }
 }

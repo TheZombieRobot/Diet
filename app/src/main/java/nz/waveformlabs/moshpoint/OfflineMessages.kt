@@ -43,6 +43,7 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val courier = Courier(this, this, this)
     private val uploads = Mutex()
+    private val saving = Mutex()
     private var app: Context? = null
     private var loop: Job? = null
     private var crewSignature = ""
@@ -127,24 +128,35 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
 
     private fun isMain(g: GigGroup) = GroupSync.group.value?.key?.contentEquals(g.key) == true
 
-    private fun save() {
-        if (!courier.dirty || saveQueued) return
+    /** Write the courier's queue and record to disk: a moment after a change, or [atOnce]. */
+    private fun save(atOnce: Boolean = false) {
+        if (!atOnce && (!courier.dirty || saveQueued)) return
         val c = app ?: return
-        saveQueued = true
+        if (!atOnce) saveQueued = true
         scope.launch {
-            delay(1_500)
-            saveQueued = false
-            courier.dirty = false
-            val bytes = courier.save()
-            withContext(Dispatchers.IO) {
-                runCatching {
-                    val tmp = File(c.filesDir, "courier.tmp")
-                    tmp.writeBytes(bytes)
-                    tmp.renameTo(file(c))
+            if (!atOnce) delay(1_500)
+            // One writer at a time, and each takes its copy only once it has the pen, so the
+            // file always ends up with the newest state.
+            saving.withLock {
+                if (!atOnce) saveQueued = false
+                courier.dirty = false
+                val bytes = courier.save()
+                withContext(Dispatchers.IO) {
+                    runCatching {
+                        val tmp = File(c.filesDir, "courier.tmp")
+                        tmp.writeBytes(bytes)
+                        tmp.renameTo(file(c))
+                    }
                 }
             }
         }
     }
+
+    /**
+     * Keep the courier's record of what this phone has had right now, not in a moment. Called
+     * when an alert was just raised on that record alone, so a restart can't raise it again.
+     */
+    fun rememberNow() = save(atOnce = true)
 
     // ---- Sending ----
 
@@ -369,7 +381,8 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
         val g = crewById(c, crewId)
         if (g != null && !isMain(g)) return
         paused.value = on
-        if (on && g != null) CrewChat.note(c, g, Txt.s(R.string.offline_hint_paused))
+        // (With signal the new key is on its way from the relay already, and messages go as usual: nothing to say.)
+        if (on && g != null && RelayClient.offline) CrewChat.note(c, g, Txt.s(R.string.offline_hint_paused))
     }
 
     /**
@@ -397,12 +410,13 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
      */
     fun chatHint(c: Context, g: GigGroup): String? {
         val main = isMain(g)
-        // On hold for a new key: we heard the old one was retired, or we moved the crew
-        // ourselves with no signal and nobody else has the new key yet.
-        if ((main && paused.value) || CrewRekey.awaitingSignal(c, g)) return Txt.s(R.string.offline_hint_paused)
         // Reading the Compose state here redraws the chat when the network comes or goes.
         val noNetwork = !NetState.online.value || RelayClient.offline
         if (!noNetwork) return null
+        // On hold for a new key: we heard the old one was retired, or we moved the crew
+        // ourselves with no signal and nobody else has the new key yet. (With signal there's
+        // nothing to say: the key is on its way through the relay, and so are the messages.)
+        if ((main && paused.value) || CrewRekey.awaitingSignal(c, g)) return Txt.s(R.string.offline_hint_paused)
         if (!main || GroupSync.sleeping || GroupSync.following) return Txt.s(R.string.offline_hint_no_signal)
         return when {
             !liveState.value -> Txt.s(R.string.offline_hint_go_live)

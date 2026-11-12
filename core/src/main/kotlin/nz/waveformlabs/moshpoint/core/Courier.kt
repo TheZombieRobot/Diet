@@ -299,6 +299,20 @@ class Courier(
         host.stateChanged(p.crewId, p.id, s)
     }
 
+    /**
+     * After an upload that didn't go: say where the message stands, even if that is only
+     * "still waiting" (which [tell] keeps quiet about for a brand-new message). What was last
+     * said is kept in step, so a later "gave up" is never mistaken for old news.
+     */
+    private fun tellStanding(p: Parcel) {
+        val s = stateOf(p)
+        val before = p.notified
+        // Never back from "sent" or "sent nearby".
+        if (before != null && before != State.GAVE_UP && before.ordinal > s.ordinal) return
+        p.notified = s
+        host.stateChanged(p.crewId, p.id, s)
+    }
+
     // ---- The relay: what's there, and what to send ----
 
     /**
@@ -487,7 +501,7 @@ class Courier(
             }
         }
         // It didn't go: say where it stands now (waiting, or already with a crew phone nearby).
-        if (result != PutResult.SENT && p != null && p.mine && !job.helper && !p.gaveUp) host.stateChanged(p.crewId, p.id, stateOf(p))
+        if (result != PutResult.SENT && p != null && p.mine && !job.helper && !p.gaveUp) tellStanding(p)
     }
 
     private fun relayAnswered(nowMs: Long) {
@@ -529,7 +543,7 @@ class Courier(
         }
 
         // Our own first: the author is the one who should upload. Safety pings, then oldest first.
-        val own = parcels.values.filter { it.mine && it.crewId in crews && nowMs >= it.retryAtMs && it.refusals < MAX_REFUSALS }
+        val own = parcels.values.filter { it.mine && it.crewId in crews && nowMs >= it.retryAtMs && it.refusals < MAX_REFUSALS && !it.gaveUp }
             .sortedWith(compareBy<Parcel>({ rank(it.kind) }, { it.timeSec }))
         for (p in own) {
             if (free <= 0) break
@@ -971,7 +985,7 @@ class Courier(
                 d.writeLong(p.sender)
                 d.writeLong(p.heldAtMs)
                 d.writeByte(p.route.ordinal)
-                d.writeByte((if (p.mine) 1 else 0) or (if (p.onServer) 2 else 0) or (if (p.durable) 4 else 0) or (if (p.nearby) 8 else 0) or (if (p.toldAtMs != 0L) 16 else 0))
+                d.writeByte((if (p.mine) 1 else 0) or (if (p.onServer) 2 else 0) or (if (p.durable) 4 else 0) or (if (p.nearby) 8 else 0) or (if (p.toldAtMs != 0L) 16 else 0) or (if (p.gaveUp) 32 else 0))
                 d.writeByte(p.notified?.ordinal ?: -1)
                 d.writeShort(p.sealed.size)
                 d.write(p.sealed)
@@ -1010,6 +1024,7 @@ class Courier(
                 p.durable = flags and 4 != 0
                 p.nearby = flags and 8 != 0
                 if (flags and 16 != 0) p.toldAtMs = nowMs
+                p.gaveUp = flags and 32 != 0
                 p.notified = State.values().getOrNull(notified)
                 // Already on air before the restart, as far as anyone waiting is concerned: don't re-send unasked.
                 p.aired = if (p.mine && !p.onServer && !p.nearby) 0 else 1
