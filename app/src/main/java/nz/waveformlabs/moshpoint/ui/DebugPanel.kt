@@ -203,6 +203,7 @@ private fun label(m: Method) = when (m) {
     Method.GPS_SERVER -> "GPS"
     Method.CROWD_RELAY -> "Crowd"
     Method.BLE_RSSI -> "BT"
+    Method.HERE_PIN -> "I'm here"
 }
 
 private fun ageText(ms: Long) = when {

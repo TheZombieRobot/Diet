@@ -31,6 +31,13 @@ enum class Method(val precision: Double, val maxAgeMs: Long, val givesDirection:
 
     /** Bluetooth signal strength: rough "warmer / colder" distance, no direction. */
     BLE_RSSI(precision = 0.3, maxAgeMs = 5_000, givesDirection = false),
+
+    /**
+     * "I'm here": the spot a mate pinned as where they're standing, from our own GPS position
+     * (docs/IM_HERE.md). Only our GPS is unsure, not theirs, so it beats their live GPS for as
+     * long as the pin stands; UWB up close still wins. Re-made every few seconds while it stands.
+     */
+    HERE_PIN(precision = 0.65, maxAgeMs = 40_000, givesDirection = true),
 }
 
 /**

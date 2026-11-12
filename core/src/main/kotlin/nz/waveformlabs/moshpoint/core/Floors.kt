@@ -258,4 +258,44 @@ class FloorTracker(private val cfg: FloorConfig = FloorConfig()) {
     fun clearTag() {
         floor = null
     }
+
+    /**
+     * The floor of a spot this mate pinned ("I'm here", docs/IM_HERE.md), relative to us now.
+     *
+     * The pin carries their pressure at the spot, [pinHpa], taken at [pinAtMs]. It is compared
+     * with **our pressure now** ([myHpa]), so walking up to the spot's floor makes the tag go
+     * away. Nothing at the spot measures the weather after that, so on top of the calibration's
+     * own uncertainty the weather's possible drift grows with the pin's age
+     * ([weatherMPerMin]); past [FloorConfig.maxSigmaM] there's no tag. [was] is the tag shown
+     * last time, for the same stickiness as live tags. Never their later pressure: that is
+     * wherever they went next, not the spot.
+     */
+    fun pinned(myHpa: Double?, pinHpa: Double?, pinAtMs: Long, nowMs: Long, was: Floor?, weatherMPerMin: Double = PIN_WEATHER_M_PER_MIN): Estimate? {
+        val c = calibration ?: return null
+        if (myHpa == null || pinHpa == null || !Baro.plausible(myHpa) || !Baro.plausible(pinHpa)) return null
+        val ageMin = (nowMs - pinAtMs).coerceAtLeast(0L) / 60_000.0
+        val cal = sigmaM(c, nowMs)
+        val weather = weatherMPerMin * ageMin
+        val sigma = sqrt(cal * cal + weather * weather)
+        if (sigma > cfg.maxSigmaM) return null
+        val height = Baro.heightAboveM(myHpa, pinHpa + c.offsetHpa)
+        val enter = thresholdM(sigma)
+        val keep = enter * cfg.keepFraction
+        val f = when {
+            height >= enter -> Floor.UP
+            height <= -enter -> Floor.DOWN
+            was == Floor.UP && height >= keep -> Floor.UP
+            was == Floor.DOWN && height <= -keep -> Floor.DOWN
+            else -> null
+        }
+        return Estimate(height, sigma, f)
+    }
+
+    companion object {
+        /**
+         * How far the weather may have moved a pinned spot's reading, as height, per minute of
+         * the pin's age (3 m an hour, about 0.35 hPa: ordinary weather, with room to spare).
+         */
+        const val PIN_WEATHER_M_PER_MIN = 0.05
+    }
 }

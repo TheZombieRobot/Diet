@@ -51,11 +51,11 @@ class Courier(
     /** A crew this phone is in. Only the [main] one uses Bluetooth; the rest are asleep. */
     class Crew(val id: String, val group: GigGroup, val signer: CrewKeys.Signer, val main: Boolean)
 
-    /** A signed crew message, opened: exactly one of [ping] and [pin] is set. */
-    class Message(val id: Long, val sealed: ByteArray, val ping: GigGroup.Ping?, val pin: GigGroup.Rally?) {
-        val kind: Int get() = ping?.kind ?: KIND_PIN
-        val timeSec: Long get() = ping?.timeSec ?: pin!!.timeSec
-        val sender: Long get() = ping?.sender ?: pin!!.sender
+    /** A signed crew message, opened: exactly one of [ping], [pin] and [here] is set. */
+    class Message(val id: Long, val sealed: ByteArray, val ping: GigGroup.Ping?, val pin: GigGroup.Rally?, val here: GigGroup.Here? = null) {
+        val kind: Int get() = ping?.kind ?: if (here != null) KIND_HERE else KIND_PIN
+        val timeSec: Long get() = ping?.timeSec ?: here?.timeSec ?: pin!!.timeSec
+        val sender: Long get() = ping?.sender ?: here?.sender ?: pin!!.sender
     }
 
     /**
@@ -174,6 +174,8 @@ class Courier(
     private var lastHaveSentMs = 0L
     private var offlinePeerAtMs = Long.MIN_VALUE / 2
     private val retired = ArrayList<Retired>()
+    /** When each "I'm here" message stops counting (unix s), by id. */
+    private val hereEnds = HashMap<Long, Long>()
     private var pausedCrewId: String? = null
     private var pausedUntilMs = 0L
     private var pauseBeaconMs = 0L
@@ -246,6 +248,9 @@ class Courier(
         trimSeen()
         blobIds[blobHash(sealed)] = m.id
         if (m.pin != null) parcels.values.removeAll { it.crewId == crewId && it.kind == KIND_PIN }
+        // "I'm here": only our newest (a pin, or the clear that took it down) is kept going.
+        if (m.here != null) parcels.values.removeAll { it.crewId == crewId && it.kind == KIND_HERE && it.sender == m.sender }
+        m.here?.let { hereEnds[m.id] = HereRule.endSec(it.timeSec, it.minutes) }
         parcels[m.id] = Parcel(crewId, m.id, sealed, m.kind, m.timeSec, m.sender, mine = true, heldAtMs = nowMs, route = Route.OWN)
         capCrew(crewId)
         dirty = true
@@ -278,6 +283,9 @@ class Courier(
         }
         tick(nowMs)
     }
+
+    /** Is the courier keeping our "I'm here" message [id] going (on the relay, and on air when there's no signal)? */
+    fun holdsOwnHere(id: Long): Boolean = parcels[id]?.let { it.mine && it.kind == KIND_HERE } == true
 
     /** Does the courier hold a meet-up pin of ours for [crewId] (and so keeps it on the relay)? */
     fun holdsOwnPin(crewId: String): Boolean = parcels.values.any { it.crewId == crewId && it.kind == KIND_PIN && it.mine }
@@ -356,6 +364,10 @@ class Courier(
             parcels.values.firstOrNull { it.crewId == crewId && it.kind == KIND_PIN }?.let { p ->
                 if (p.id !in here && p.onServer && nowMs - p.confirmedAtMs > PIN_LAPSE_MS) p.onServer = false
             }
+            // So does our "I'm here", while it still stands (only we put ours back).
+            parcels.values.filter { it.crewId == crewId && it.kind == KIND_HERE && it.mine }.forEach { p ->
+                if (p.id !in here && p.onServer && nowMs - p.confirmedAtMs > PIN_LAPSE_MS && hereStands(p, nowMs)) p.onServer = false
+            }
         }
         return out
     }
@@ -413,11 +425,24 @@ class Courier(
             // The newest pin wins; one dated well ahead is refused, or it would win forever.
             if (!PinRule.accepts(m.timeSec, current?.timeSec ?: 0L, nowSec)) return Accepted(m.id, m, false)
         }
+        val here = m.here
+        if (here != null) {
+            hereEnds[m.id] = HereRule.endSec(here.timeSec, here.minutes)
+            // "I'm here": the newest from each sender wins, by the same rule (no far-future lock).
+            val current = parcels.values.firstOrNull { it.crewId == crew.id && it.kind == KIND_HERE && it.sender == m.sender }
+            if (current?.id == m.id) {
+                if (route == Route.INTERNET) onRelay(m.id, box, nowMs)
+                return Accepted(m.id, m, false)
+            }
+            if (!HereRule.accepts(m.timeSec, current?.timeSec ?: 0L, nowSec)) return Accepted(m.id, m, false)
+        }
         val fresh = seen.add(m.id)
         trimSeen()
         val had = parcels[m.id]
-        if (had == null && crew.main && worthCarrying(m.kind, m.timeSec, nowMs)) {
+        val stands = here == null || HereRule.live(here, nowSec)
+        if (had == null && crew.main && stands && worthCarrying(m.kind, m.timeSec, nowMs)) {
             if (m.pin != null) parcels.values.removeAll { it.crewId == crew.id && it.kind == KIND_PIN }
+            if (here != null) parcels.values.removeAll { it.crewId == crew.id && it.kind == KIND_HERE && it.sender == m.sender }
             val p = Parcel(crew.id, m.id, sealed, m.kind, m.timeSec, m.sender, mine = m.sender == crew.signer.tag, heldAtMs = nowMs, route = route)
             p.helperAfterMs = nowMs + HELPER_SETTLE_MS + random.nextInt(HELPER_SETTLE_SPREAD_MS)
             parcels[m.id] = p
@@ -434,8 +459,20 @@ class Courier(
             return if (p.sender != 0L && PingPolicy.group(p.kind) != PingPolicy.Group.UNKNOWN) Message(p.id, sealed, p, null) else null
         }
         crew.group.openRally(sealed)?.let { r -> if (r.sender != 0L) return Message(r.id, sealed, null, r) }
+        crew.group.openHere(sealed)?.let { h -> return Message(h.id, sealed, null, null, h) }
         return null
     }
+
+    /** When an "I'm here" parcel stops counting (worked out again after a restart, which doesn't open what it loads). */
+    private fun hereEnd(p: Parcel): Long {
+        hereEnds[p.id]?.let { return it }
+        // Not known until its crew is (the longest any can last meanwhile; not remembered).
+        val h = crews[p.crewId]?.let { open(it, p.sealed)?.here } ?: return p.timeSec + HereRule.MAX_MIN * 60L
+        return HereRule.endSec(h.timeSec, h.minutes).also { hereEnds[p.id] = it }
+    }
+
+    /** Is this an "I'm here" message still in force (worth uploading, re-posting and putting on air)? */
+    private fun hereStands(p: Parcel, nowMs: Long): Boolean = p.kind != KIND_HERE || nowMs / 1000 < hereEnd(p)
 
     /** Message [id] is on the relay (seen in [box], or uploaded there; a null [box] is a crew phone's word for it). */
     private fun onRelay(id: Long, box: Box?, nowMs: Long) {
@@ -548,12 +585,12 @@ class Courier(
                 inFlight++
                 free--
             }
-            val use = if (p.kind != KIND_PIN) PingPolicy.use(p.kind) else RelayUse.MESSAGE
+            val use = if (p.kind != KIND_PIN && p.kind != KIND_HERE) PingPolicy.use(p.kind) else RelayUse.MESSAGE
             jobs += Upload(p.crewId, p.id, box, p.sealed, use, helper)
         }
 
         // Our own first: the author is the one who should upload. Safety pings, then oldest first.
-        val own = parcels.values.filter { it.mine && it.crewId in crews && nowMs >= it.retryAtMs && it.refusals < MAX_REFUSALS && !it.gaveUp }
+        val own = parcels.values.filter { it.mine && it.crewId in crews && nowMs >= it.retryAtMs && it.refusals < MAX_REFUSALS && !it.gaveUp && hereStands(it, nowMs) }
             .sortedWith(compareBy<Parcel>({ rank(it.kind) }, { it.timeSec }))
         for (p in own) {
             if (free <= 0) break
@@ -570,7 +607,8 @@ class Courier(
                 continue
             }
             // Our own pin is re-posted every ten minutes while the app is in use: the relay's pin box forgets after fifteen.
-            val pinDue = active && p.kind == KIND_PIN && nowMs - p.putAtMs >= PIN_REPOST_MS
+            // So is our "I'm here" (or the clear that took it down), for as long as it lasts.
+            val pinDue = active && (p.kind == KIND_PIN || p.kind == KIND_HERE) && nowMs - p.putAtMs >= PIN_REPOST_MS
             if ((!p.onServer || pinDue) && !p.primaryFlying) start(p, primaryBox(p.kind), false)
             if (free > 0 && wantsDurable(p) && !p.durableFlying) start(p, Box.CHAT, false)
         }
@@ -583,7 +621,7 @@ class Courier(
                 val key = "$crewId/${box.ordinal}"
                 val waiting = parcels.values.filter {
                     !it.mine && it.crewId == crewId && !it.helperStopped && nowMs >= it.retryAtMs && it.route != Route.INTERNET &&
-                        worthCarrying(it.kind, it.timeSec, nowMs) &&
+                        worthCarrying(it.kind, it.timeSec, nowMs) && hereStands(it, nowMs) &&
                         ((primaryBox(it.kind) == box && !it.onServer && !it.primaryFlying) || (box == Box.CHAT && wantsDurable(it) && !it.durableFlying))
                 }
                 if (waiting.isEmpty()) continue
@@ -617,7 +655,7 @@ class Courier(
         return jobs to wantFetch
     }
 
-    private fun wantsDurable(p: Parcel) = p.kind != KIND_PIN && PingPolicy.alsoHeld(p.kind) && !p.durable
+    private fun wantsDurable(p: Parcel) = p.kind != KIND_PIN && p.kind != KIND_HERE && PingPolicy.alsoHeld(p.kind) && !p.durable
 
     private fun expire(nowMs: Long) {
         val it = parcels.values.iterator()
@@ -625,6 +663,13 @@ class Courier(
             val p = it.next()
             // Never from under an upload that's on its way: its answer still has to land somewhere.
             if (p.primaryFlying || p.durableFlying) continue
+            // An "I'm here" that has run out is no use to anyone (every phone drops it by itself).
+            if (p.kind == KIND_HERE && !hereStands(p, nowMs)) {
+                it.remove()
+                hereEnds.remove(p.id)
+                dirty = true
+                continue
+            }
             // One we queued ourselves counts from when it was queued, so an old line the person
             // taps to retry gets a proper go. Anything else counts from when it was written.
             val born = if (p.route == Route.OWN) p.heldAtMs else minOf(p.timeSec * 1000, p.heldAtMs)
@@ -658,7 +703,7 @@ class Courier(
         if (n <= MAX_PER_CREW) return
         // Other people's oldest go first; our own unsent ones are never pushed out.
         // (Never the pin: there's only one, and it has to stay on the relay.)
-        val victims = parcels.values.filter { it.crewId == crewId && it.kind != KIND_PIN && (!it.mine || it.onServer) }.sortedBy { it.timeSec }
+        val victims = parcels.values.filter { it.crewId == crewId && it.kind != KIND_PIN && !(it.kind == KIND_HERE && it.mine) && (!it.mine || it.onServer) }.sortedBy { it.timeSec }
         for (v in victims) {
             if (n <= MAX_PER_CREW) break
             parcels.remove(v.id)
@@ -763,6 +808,8 @@ class Courier(
 
     /** Pings and pins start with 4 or 5 hops (not always the same, so the count doesn't show how far a packet has come). Chat gets none. */
     private fun hopsFor(p: Parcel, nowMs: Long): Int {
+        // "I'm here" crosses strangers' phones for as long as it lasts (it's only aired while it does).
+        if (p.kind == KIND_HERE) return crowdHops()
         if (p.kind != KIND_PIN && PingPolicy.group(p.kind) == PingPolicy.Group.CHAT) return 0
         val age = (nowMs - minOf(p.timeSec * 1000, p.heldAtMs)) / 1000
         val crowdFor = if (p.kind == KIND_PIN) PingPolicy.FRESH_SEC else PingPolicy.crowdSec(p.kind)
@@ -773,7 +820,7 @@ class Courier(
 
     private fun airWorthy(p: Parcel, nowMs: Long): Boolean {
         val crew = main() ?: return false
-        return p.crewId == crew.id && pausedCrewId != crew.id && worthCarrying(p.kind, p.timeSec, nowMs)
+        return p.crewId == crew.id && pausedCrewId != crew.id && worthCarrying(p.kind, p.timeSec, nowMs) && hereStands(p, nowMs)
     }
 
     private fun worthCarrying(kind: Int, timeSec: Long, nowMs: Long): Boolean = nowMs - timeSec * 1000 <= carryMs(kind)
@@ -818,7 +865,8 @@ class Courier(
     private fun handle(sealed: ByteArray, pkt: MessagePacket, first: Boolean, nowMs: Long) {
         val crew = main() ?: return
         val env = crew.group.openEnvelope(sealed)
-        if (env != null) {
+        // An "I'm here" is a message like a ping or a pin (carried, receipted, shown), not a control packet.
+        if (env != null && env.type != GigGroup.ENV_HERE) {
             if (!first) return
             // Nothing sealed long ago, or "in the future", is acted on.
             val age = nowMs / 1000 - env.timeSec
@@ -954,13 +1002,15 @@ class Courier(
     fun rekeyed(oldId: String, fresh: Crew, nowMs: Long) {
         val old = crews[oldId] ?: return
         // Ours that hadn't reached the relay, and our pin either way: the new key has its own mailboxes, and the pin isn't in them.
-        val mineUnsent = parcels.values.filter { it.crewId == oldId && it.mine && ((!it.onServer && !it.durable) || it.kind == KIND_PIN) }
+        val mineUnsent = parcels.values.filter { it.crewId == oldId && it.mine && ((!it.onServer && !it.durable) || it.kind == KIND_PIN || it.kind == KIND_HERE) }
         parcels.values.removeAll { it.crewId == oldId }
         val list = crews.values.map { if (it.id == oldId) fresh else it }
         setCrews(list, nowMs)
         for (p in mineUnsent) {
             val m = open(old, p.sealed) ?: continue
-            val again = m.ping?.let { fresh.group.sealPing(it, fresh.signer, secure) } ?: fresh.group.sealRally(m.pin!!, fresh.signer, secure)
+            val again = m.ping?.let { fresh.group.sealPing(it, fresh.signer, secure) }
+                ?: m.here?.let { fresh.group.sealHere(it, fresh.signer, secure) }
+                ?: fresh.group.sealRally(m.pin!!, fresh.signer, secure)
             val re = open(fresh, again) ?: continue
             if (re.id != p.id) continue
             blobIds[blobHash(again)] = re.id
@@ -1075,6 +1125,9 @@ class Courier(
         /** [Message.kind] for a meet-up pin (ping kinds are 1 and up). */
         const val KIND_PIN = -1
 
+        /** [Message.kind] for an "I'm here" or its clear (docs/IM_HERE.md). */
+        const val KIND_HERE = -2
+
         /** The relay keeps 200 records per chat mailbox; a helper never fills it past this. */
         const val HELD_LIMIT = 180
         /** Uploads for crew mates per look at the mailbox. */
@@ -1122,18 +1175,23 @@ class Courier(
 
         /** Safety pings first, then the pin, then other pings, then chat. */
         private fun rank(kind: Int): Int = when {
-            kind == KIND_PIN -> 1
+            kind == KIND_PIN || kind == KIND_HERE -> 1
             PingPolicy.group(kind) == PingPolicy.Group.SAFETY -> 0
             PingPolicy.group(kind) == PingPolicy.Group.CHAT -> 3
             else -> 2
         }
 
         private fun primaryBox(kind: Int): Box = when {
-            kind == KIND_PIN -> Box.PIN
+            kind == KIND_PIN || kind == KIND_HERE -> Box.PIN
             PingPolicy.group(kind) == PingPolicy.Group.CHAT -> Box.CHAT
             else -> Box.PING
         }
 
-        private fun carryMs(kind: Int): Long = if (kind == KIND_PIN) PIN_CARRY_MS else PingPolicy.carrySec(kind) * 1000
+        private fun carryMs(kind: Int): Long = when (kind) {
+            KIND_PIN -> PIN_CARRY_MS
+            // Never longer than any "I'm here" can last; each one stops at its own end (hereStands).
+            KIND_HERE -> HereRule.MAX_MIN * 60_000L
+            else -> PingPolicy.carrySec(kind) * 1000
+        }
     }
 }

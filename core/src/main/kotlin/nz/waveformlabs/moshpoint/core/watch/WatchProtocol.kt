@@ -235,6 +235,8 @@ object WatchProtocol {
         Method.CROWD_RELAY -> 5
         Method.WIFI_AWARE -> 6
         Method.BLE_RSSI -> 7
+        // An older watch reads this as "no method", which it only uses for display.
+        Method.HERE_PIN -> 8
     }
 
     private fun methodOf(code: Int): Method? = when (code) {
@@ -245,6 +247,7 @@ object WatchProtocol {
         5 -> Method.CROWD_RELAY
         6 -> Method.WIFI_AWARE
         7 -> Method.BLE_RSSI
+        8 -> Method.HERE_PIN
         else -> null
     }
 

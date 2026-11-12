@@ -583,6 +583,92 @@ class GigGroup(
 
     private fun envelopeKey() = SecretKeySpec(hmac(key, "moshpoint-group-mp2".toByteArray()).copyOf(16), "AES")
 
+    // ---- "I'm here" (docs/IM_HERE.md) ----
+
+    /**
+     * "I'm here": the spot a crew mate chose on the map as where they're standing, the pressure
+     * there (for floors), when, and for how long; or [clear], which takes their pin down.
+     *
+     * Travels in the [Envelope] as type [ENV_HERE], so builds from before it can't open it and
+     * builds with the envelope ignore a type they don't know: nobody can misread it as a ping
+     * or as the crew's meet-up point. Body:
+     * `[ver:1][flags:1][minutes:1][lat:4][lon:4][pressure:2]` (lat/lon 1e-7 degrees, pressure in
+     * [Baro] units, 0xFFFF = none; flag 1 = clear), then `[pub:33][sig:64]`. A reader takes the
+     * fields it knows; anything a later version adds before the key is covered by the signature.
+     */
+    data class Here(
+        /** When it was set (or cleared), by the sender's clock (unix s). Newest per sender wins. */
+        val timeSec: Long,
+        /** How long it lasts from [timeSec] (see [HereRule]): a pin's life, or for a clear, what was left of the pin. */
+        val minutes: Int,
+        val lat: Double,
+        val lon: Double,
+        /** Pressure at the spot in [Baro] units when it was pinned; null if the sender's phone has no sensor. */
+        val pressure: Int? = null,
+        /** True: "I'm not there any more" (no spot). */
+        val clear: Boolean = false,
+        /** The tag of the key that signed it. Set by [openHere]. */
+        val sender: Long = 0L,
+        /** The message id (the same for every copy and route, and after a re-sign under a new crew key). Set by [openHere]. */
+        val id: Long = 0L,
+    ) {
+        val spot: LatLon? get() = if (clear) null else LatLon(lat, lon)
+    }
+
+    /** Seal and sign an "I'm here" (or a clear) for this crew. */
+    fun sealHere(h: Here, signer: CrewKeys.Signer, random: java.security.SecureRandom = java.security.SecureRandom()): ByteArray {
+        val fields = hereFields(h)
+        val sig = CrewKeys.sign(signer, hereSigned(h.timeSec, fields))
+        return sealEnvelope(ENV_HERE, fields + signer.pub + sig, h.timeSec, random)
+    }
+
+    /** An "I'm here" for this crew, signed and intact, or null (anything else, or a bad signature). */
+    fun openHere(blob: ByteArray): Here? = openEnvelope(blob)?.let { hereOf(it) }
+
+    /** The "I'm here" inside an opened envelope, checked; null for other types or a bad signature. */
+    fun hereOf(env: Envelope): Here? {
+        if (env.type != ENV_HERE) return null
+        val body = env.body
+        val signedLen = body.size - CrewKeys.PUB_BYTES - CrewKeys.SIG_BYTES
+        if (signedLen < HERE_FIELDS_BYTES) return null
+        return runCatching {
+            val fields = body.copyOfRange(0, signedLen)
+            val pub = body.copyOfRange(signedLen, signedLen + CrewKeys.PUB_BYTES)
+            val sig = body.copyOfRange(signedLen + CrewKeys.PUB_BYTES, body.size)
+            if (!CrewKeys.verify(pub, hereSigned(env.timeSec, fields), sig)) return null
+            val b = ByteBuffer.wrap(fields)
+            b.get() // version: fields this build knows come first in every version
+            val flags = b.get().toInt() and 0xFF
+            val minutes = b.get().toInt() and 0xFF
+            val latE7 = b.int
+            val lonE7 = b.int
+            val p = b.short.toInt() and 0xFFFF
+            val clear = flags and HERE_CLEAR != 0
+            Here(
+                env.timeSec, minutes,
+                if (clear) 0.0 else latE7 / 1e7, if (clear) 0.0 else lonE7 / 1e7,
+                if (clear || p == NO_PRESSURE) null else p,
+                clear, CrewKeys.tagOf(pub), hereId(pub, env.timeSec, fields),
+            )
+        }.getOrNull()
+    }
+
+    private fun hereFields(h: Here): ByteArray {
+        // Rounded, not cut off: opened and sealed again (the crew moved to a new key), it must
+        // come out the same, or it would count as a new message.
+        val latE7 = if (h.clear) 0 else Math.round(h.lat * 1e7).toInt()
+        val lonE7 = if (h.clear) 0 else Math.round(h.lon * 1e7).toInt()
+        val p = h.pressure?.takeIf { !h.clear && it in 0 until NO_PRESSURE } ?: NO_PRESSURE
+        return ByteBuffer.allocate(HERE_FIELDS_BYTES)
+            .put(HERE_VERSION.toByte()).put((if (h.clear) HERE_CLEAR else 0).toByte()).put(h.minutes.coerceIn(1, 255).toByte())
+            .putInt(latE7).putInt(lonE7).putShort(p.toShort()).array()
+    }
+
+    /** What an "I'm here" signature covers: this crew, when, and every field. */
+    private fun hereSigned(timeSec: Long, fields: ByteArray): ByteArray =
+        "mp-here1".toByteArray() + hmac(key, "moshpoint-group-sig".toByteArray()).copyOf(8) +
+            ByteBuffer.allocate(4).putInt(timeSec.toInt()).array() + fields
+
     private fun aesKey() = SecretKeySpec(hmac(key, "moshpoint-group-aes".toByteArray()).copyOf(16), "AES")
 
     // Nonce unique per (member, second): first 4 bytes of their secret + time + tag prefix.
@@ -623,6 +709,12 @@ class GigGroup(
         const val ENV_HAVE = 1
         const val ENV_RECEIPT = 2
         const val ENV_RETIRED = 3
+        /** "I'm here": a crew mate's chosen spot, or its clear (see [Here]). */
+        const val ENV_HERE = 4
+        private const val HERE_VERSION = 1
+        private const val HERE_CLEAR = 1
+        private const val HERE_FIELDS_BYTES = 13
+        private const val NO_PRESSURE = 0xFFFF
         /** Kept for private messages (roadmap step 4): sealed to one person, with no sender or recipient tag here. */
         const val ENV_PRIVATE = 16
 
@@ -665,6 +757,17 @@ class GigGroup(
             md.update(pub)
             md.update(ByteBuffer.allocate(20).putInt(timeSec.toInt()).putDouble(lat).putDouble(lon).array())
             md.update(name)
+            val id = ByteBuffer.wrap(md.digest()).long
+            return if (id == 0L) 1L else id
+        }
+
+        /** The same idea for an "I'm here": the signer's key, when, and the signed fields. */
+        internal fun hereId(pub: ByteArray, timeSec: Long, fields: ByteArray): Long {
+            val md = java.security.MessageDigest.getInstance("SHA-256")
+            md.update("mp-here1".toByteArray())
+            md.update(pub)
+            md.update(ByteBuffer.allocate(4).putInt(timeSec.toInt()).array())
+            md.update(fields)
             val id = ByteBuffer.wrap(md.digest()).long
             return if (id == 0L) 1L else id
         }

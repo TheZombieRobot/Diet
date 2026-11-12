@@ -270,6 +270,7 @@ internal fun methodLabel(m: Method) = when (m) {
     Method.CROWD_RELAY -> "crowd"
     Method.WIFI_AWARE -> "Wi-Fi"
     Method.BLE_RSSI -> "BT"
+    Method.HERE_PIN -> "pin"
 }
 
 /** A distance for screen readers ("12 metres", "1.2 kilometres"), from the same rounding as the on-screen label. */
