@@ -482,6 +482,21 @@ class HereTest {
         assertEquals(Method.GPS_SERVER, (a.arrowFor("jo", 0.0, t1) as ArrowState.Pointing).method)
     }
 
+    // ---- The map ----
+
+    @Test fun onTheMapUwbBeatsThePinWhichBeatsTheirGps() {
+        val me = north(bar, -30.0)
+        val gps = north(bar, 40.0)
+        val t = now * 1000
+        val uwb = VenuePlacement.UwbReading(0.0, 29.0, t)
+        assertIs<VenuePlacement.Spot.Exact>(VenuePlacement.spot(me, uwb, bar, gps, null, t))
+        assertEquals(VenuePlacement.Spot.Pinned(bar), VenuePlacement.spot(me, null, bar, gps, null, t))
+        // UWB gone quiet: the pin again, never their GPS while it stands.
+        assertEquals(VenuePlacement.Spot.Pinned(bar), VenuePlacement.spot(me, uwb, bar, gps, null, t + 11_000))
+        assertEquals(VenuePlacement.Spot.Gps(gps), VenuePlacement.spot(me, null, null, gps, null, t))
+        assertEquals(VenuePlacement.Spot.Pinned(bar), VenuePlacement.spot(null, null, bar, null, null, t))
+    }
+
     @Test fun theWatchCanUseAPinsDirectionFromAPocket() {
         assertTrue(WristDirections.bearingValid(Method.HERE_PIN, phoneHeld = false))
         val f = fixFor(signed(here()), north(bar, -80.0), 8.0, now * 1000)

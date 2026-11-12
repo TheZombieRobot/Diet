@@ -83,6 +83,13 @@ class GpsFinder(
         val list = friends()
         if (list.isEmpty()) return
         val now = System.currentTimeMillis()
+        // "I'm here": a mate's pinned spot, from our own position (core HereRule.fix). Made here so
+        // the watch's pocket finder, which has its own GpsFinder, gets it too. No network needed.
+        list.forEach { f ->
+            nz.waveformlabs.moshpoint.HerePins.pinOf(f.id)?.let { pin ->
+                nz.waveformlabs.moshpoint.core.HereRule.fix(f.id, LatLon(here.latitude, here.longitude), here.accuracy.toDouble(), pin, now)?.let(onFix)
+            }
+        }
         // Current + previous rotation for each friend, so we don't miss the hand-over.
         val asks = list.flatMap { f ->
             val e = f.ephemeralId.epochAt(now)

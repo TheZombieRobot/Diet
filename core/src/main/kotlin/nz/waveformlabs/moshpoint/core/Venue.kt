@@ -84,6 +84,9 @@ object VenuePlacement {
         /** Their own shared location. */
         data class Gps(val at: LatLon) : Spot
 
+        /** The spot they pinned as where they are ("I'm here", docs/IM_HERE.md). */
+        data class Pinned(val at: LatLon) : Spot
+
         /** We don't know where they are: draw nothing. */
         data object Unknown : Spot
     }
@@ -121,6 +124,18 @@ object VenuePlacement {
         ) {
             return Spot.Exact(offset(me, bearing, groundDistanceM(distance, heightM)))
         }
+        return if (gps != null) Spot.Gps(gps) else Spot.Unknown
+    }
+
+    /**
+     * The same with their standing "I'm here" pin, [pinned]: UWB measured this second still
+     * wins (it's where they are now, and the pin will clear if they've left it); then the spot
+     * they told us; then their GPS, which the pin is there to replace.
+     */
+    fun spot(me: LatLon?, uwb: UwbReading?, pinned: LatLon?, gps: LatLon?, heightM: Double?, nowMs: Long): Spot {
+        val measured = spot(me, uwb, null, heightM, nowMs)
+        if (measured is Spot.Exact) return measured
+        if (pinned != null) return Spot.Pinned(pinned)
         return if (gps != null) Spot.Gps(gps) else Spot.Unknown
     }
 }

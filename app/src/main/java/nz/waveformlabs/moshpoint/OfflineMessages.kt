@@ -368,8 +368,10 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
         val g = crew.group
         val pin = message.pin
         val ping = message.ping
+        val here = message.here
         when {
             pin != null -> if (isMain(g)) GroupSync.onRally(c, pin)
+            here != null -> HerePins.arrived(c, g, here)
             ping == null -> Unit
             PingPolicy.group(ping.kind) == PingPolicy.Group.CHAT -> ChatSync.arrived(c, g, ping)
             else -> if (isMain(g)) GroupSync.arrived(c, ping, message.sealed, fresh = true)
@@ -449,6 +451,7 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
         val name = when {
             id == 0L -> "crew"
             kind == Courier.KIND_PIN -> "pin"
+            kind == Courier.KIND_HERE -> "I'm here"
             kind == GigGroup.Ping.CHAT -> "chat"
             kind == GigGroup.Ping.NEED_HELP -> "NEED HELP"
             kind == GigGroup.Ping.PLAN -> "plan"

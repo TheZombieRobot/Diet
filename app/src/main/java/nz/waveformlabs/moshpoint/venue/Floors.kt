@@ -242,6 +242,32 @@ object Floors {
         judge(friendId, m, now)
     }
 
+    // ---- "I'm here" pins (docs/IM_HERE.md) ----
+
+    /** Our pressure now, in [Baro] units, to put in a pin we set; null with no sensor or no recent reading. */
+    fun pressureUnits(): Int? = history.current(System.currentTimeMillis())?.let { Baro.toUnits(it) }
+
+    /** Our pressure now (smoothed), for our own pin's floor watch; null with no sensor or no recent reading. */
+    fun currentHpa(): Double? = history.current(System.currentTimeMillis())
+
+    private val pinnedWas = HashMap<String, Floor>()
+
+    /**
+     * The floor of the spot [friendId] pinned, relative to us now (core `FloorTracker.pinned`):
+     * from the pressure in their pin, never their later readings. Null = no tag.
+     */
+    fun pinnedFloor(friendId: String, pinPressure: Int?, pinTimeSec: Long): Floor? {
+        val m = mates[friendId]
+        if (users == 0 || pinPressure == null || m == null) {
+            pinnedWas.remove(friendId)
+            return null
+        }
+        val now = System.currentTimeMillis()
+        val f = m.tracker.pinned(history.current(now), Baro.toHpa(pinPressure), pinTimeSec * 1000, now, pinnedWas[friendId])?.floor
+        if (f == null) pinnedWas.remove(friendId) else pinnedWas[friendId] = f
+        return f
+    }
+
     /** UWB measured the distance to a mate (it has no pressure of its own). */
     fun onUwb(friendId: String, distanceM: Double?) {
         if (users == 0 || distanceM == null) return

@@ -130,6 +130,7 @@ object GroupSync {
     private fun loadCrews(c: Context) {
         RelayClient.init(c)
         OfflineMessages.init(c)
+        HerePins.init(c)
         CrewChat.load(c)
         val p = prefs(c)
         Crews.load(c)
@@ -544,6 +545,8 @@ object GroupSync {
         val rallyBoxes = found.subList(2, 4)
         // Newest pin from anyone in the crew wins (including "removed"), unless it's dated in the future.
         rallyBoxes.flatten().mapNotNull { g.openRally(it) }.sortedBy { it.timeSec }.forEach { onRally(c, it) }
+        // "I'm here" pins share that mailbox, sealed so older builds skip them (docs/IM_HERE.md).
+        rallyBoxes.flatten().forEach { blob -> g.openHere(blob)?.let { HerePins.arrived(c, g, it) } }
     }
 
     /** A meet-up pin from the crew, by the relay or by Bluetooth. The newest wins (see core PinRule). */
