@@ -211,7 +211,7 @@ That last row is the weak point: before a public launch the relay server must be
 with a handful of users.
 
 To help pick the right "The Forum", the request includes a rough box around the phone (whole
-degrees, about 200 km) as a preference, not a limit.
+degrees, about 300 km across) as a preference, not a limit.
 
 A wrong match is caught by the arrival rule: if at gig time you're settled more than 1.5 km from
 every saved area, the app saves the area around you as well.

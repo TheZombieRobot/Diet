@@ -24,7 +24,7 @@ method runs at once, and a single arbiter decides what to draw.
 | `SpinScan.kt` | Spin to scan. Collects (compass heading, RSSI) while the user turns, then fits `rssi = a + b·cos(h − θ)` by least squares. θ is where the signal peaks, which is the friend's direction. It needs about 300° of the circle, and it reports "inconclusive" if the body shadow is too weak to read. |
 | `RssiRanging.kt` | Log-distance path loss with smoothing. Turns BLE signal strength into a rough distance. The constants **must be tuned in a real crowd**. |
 | `ArrowStyle.kt` | Arrow is red at 150 m or more and fades to the friend's colour by 10 m. Distance label text. |
-| `Advert.kt` | The bytes in every Bluetooth advert: `[flags][rotating id][encrypted UWB block]`. The UWB block is how two phones set up UWB with no connection or server (below). Also `UwbSessionKeys`, which both phones use to derive the same UWB session id and key on their own. |
+| `Advert.kt` | The bytes in every Bluetooth advert: `[flags][rotating id][encrypted UWB block][encrypted pressure, optional]`. The UWB block is how two phones set up UWB with no connection or server (below). Also `UwbSessionKeys`, which both phones use to derive the same UWB session id and key on their own. |
 | `FriendRecord.kt` | Saved-friend format and share codes. Gig group members expire after 18 h. |
 | `LocationBox.kt` | Seals a GPS fix (lat, lon, time, accuracy) with AES-GCM so only the owner's friends can open it. 29 bytes. Bound to the rotating id. |
 | `CrowdRelay.kt` | `RelayPacket` (47-byte relay advert) and `RelayCache` (newest per id, hop limit, age limit, fair airtime). |
@@ -96,6 +96,37 @@ Bluetooth/GPS until the first goes quiet for 20 s). UWB azimuth only covers the 
 phone, so an arrow behind you may need a turn to settle. Check whether the phone allows UWB
 ranging from a background service. The azimuth sign (`UwbFinder.AZIMUTH_SIGN`) needs checking
 on real phones.
+
+## Venue map (saved map, the venue view, upstairs/downstairs)
+
+The decisions and the reasons are in [VENUE_MAP.md](VENUE_MAP.md). Where the code is:
+
+| File | Job |
+|---|---|
+| core `VenueMapPlan.kt` | What a saved venue map is: the 2 km square, tile counts and limits, which font files to fetch, when it is deleted. `ArrivalPlanner`: when to save the area around you instead (no venue position). `VenueQuery`: a typed venue name, tidied for looking up. |
+| core `Venue.kt` | `AtGig`: gig day and this phone at the venue, and what the venue view fits. `VenuePlacement`: where a mate goes on the map (measured by UWB: exactly; sharing GPS: a pin; otherwise nowhere). |
+| core `Floors.kt` | Pressure to height, calibrating a pair of phones while they are side by side, a calibration that ages, what counts as a floor, and when to refresh the pressure in the advert. |
+| core `FloorBox.kt` | The 19-byte sealed pressure record for mates out of Bluetooth range, under its own rotating mailbox id. `LocationBox` and the relay packet are unchanged. |
+| app `venue/VenueMaps.kt` | Saves, uses and deletes venue maps. MapLibre's offline region downloads and keeps the tiles; the map looks and fonts are fetched here and put into MapLibre's store. Also publishes the crew card's line. |
+| app `venue/VenueStyle.kt` | Rewrites OpenFreeMap's map styles to use only what a saved map holds (one week's tiles, one font). Text in, text out, so it is tested on the JVM. |
+| app `venue/VenueLookup.kt` | Finds a typed venue once, through the relay server (`GET /v1/venue`) or, without one, OpenStreetMap's Nominatim within its usage policy. |
+| app `venue/Floors.kt` | Reads the pressure sensor, puts our pressure in the advert (and, with our own relay, the floor box), feeds mates' readings to the core tracker, and holds the tags the screens show. |
+| app `ui/VenueUi.kt` | The crew card's line and the floor tag. |
+| server `VenueLookup.kt` | The lookup endpoint: at most one Nominatim request a second for everyone, cached for a month, switched or turned off with `MOSHPOINT_GEOCODER`. |
+
+Three things worth knowing before changing any of it:
+
+- **The saved map is not MapLibre's stock offline download.** That fetches every font file a
+  style names (18 MB for the Bright look), and a map tile draws nothing until all of its fonts
+  have answered. The app builds a small pack instead: tiles pinned to one week's data, one
+  font, and an answer (real or empty) stored for every font range. While a saved map is
+  showing, the app's own map labels must use that font too (`MapStyle.labelFont`).
+- **Pressure never touches the location box or the relay packet.** It rides in two extra
+  advert bytes (flag `0x80`) and, on our own relay only, in the separate floor box. Older
+  versions ignore both.
+- **Nothing here has run on a phone.** The app can't be built without the Android SDK; CI
+  compiles it, runs the unit tests and draws the screenshots. The field test is section 3b
+  of [FIELD_TEST_PLAN.md](FIELD_TEST_PLAN.md).
 
 ## Privacy (built in from day one)
 
