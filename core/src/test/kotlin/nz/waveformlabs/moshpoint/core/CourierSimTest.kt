@@ -45,12 +45,15 @@ class CourierSimTest {
             val q = boxes.getOrPut("${job.crewId}/${job.box}") { ArrayDeque() }
             if (dedupes) q.removeAll { it.data.contentEquals(job.sealed) }
             q.addFirst(Entry(job.sealed, world.nowMs))
-            while (q.size > (if (job.box == Courier.Box.CHAT) 200 else 64)) q.removeLast()
+            while (q.size > (if (held(job.box)) 200 else 64)) q.removeLast()
             return PutResult.SENT
         }
 
+        /** The chat and private mailboxes are the server's held kind: 200 records each, kept 72 hours. */
+        private fun held(box: Courier.Box) = box == Courier.Box.CHAT || box == Courier.Box.PRIVATE
+
         fun get(crewId: String, box: Courier.Box): List<ByteArray> {
-            val keep = if (box == Courier.Box.CHAT) 72 * 3600_000L else 15 * 60_000L
+            val keep = if (held(box)) 72 * 3600_000L else 15 * 60_000L
             val q = boxes["$crewId/$box"] ?: return emptyList()
             q.removeAll { world.nowMs - it.atMs > keep }
             return q.map { it.data }
@@ -131,6 +134,25 @@ class CourierSimTest {
 
         fun chat(text: String) = post(GigGroup.Ping.CHAT, text)
 
+        /** What we sent privately (to whom, what, when), so it can be sealed again after a rekey, as the app does from its threads. */
+        val sentPrivately = HashMap<Long, Triple<ByteArray, String, Long>>()
+
+        /** A private message to [to]. Returns its id. */
+        fun pm(to: Phone, text: String): Long {
+            val c = crew!!
+            val t = MessageClock.stamp(now / 1000, 0L, lastOwn)
+            lastOwn = t
+            val id = PrivateRule.newId(world.rnd)
+            val sealed = assertNotNull(c.group.sealPrivate(signer, to.signer.pub, text, t, id))
+            sentPrivately[id] = Triple(to.signer.pub, text, t)
+            assertNotNull(courier.post(c.id, sealed, now), "$name couldn't post a private message")
+            courier.tick(now)
+            return id
+        }
+
+        /** Private messages this phone was shown, by id. */
+        fun privately(): Map<Long, GigGroup.Private> = got.mapNotNull { m -> m.pm?.let { m.id to it } }.toMap()
+
         fun state(id: Long): Courier.State? = states[id]?.lastOrNull()
         fun has(id: Long) = got.any { it.id == id }
 
@@ -143,7 +165,8 @@ class CourierSimTest {
                 val today = world.relay.get(c.id, box)
                 val all = if (box == Courier.Box.CHAT) today + world.relay.yesterdayChat else today
                 courier.fetched(c.id, box, all, now, inUploadBox = today.size).forEach { a ->
-                    if (a.fresh) a.message?.let {
+                    // A private message for someone else is carried, never shown.
+                    if (a.fresh) a.message?.takeIf { it.kind != Courier.KIND_PRIVATE || it.pm != null }?.let {
                         got += it
                         routes[it.id] = Courier.Route.INTERNET
                     }
@@ -215,6 +238,9 @@ class CourierSimTest {
         }
 
         override fun ready() = live
+
+        override fun resealPrivate(crew: Courier.Crew, id: Long): ByteArray? =
+            sentPrivately[id]?.let { (to, text, t) -> crew.group.sealPrivate(signer, to, text, t, id) }
     }
 
     private companion object {
@@ -1227,5 +1253,204 @@ class CourierSimTest {
         }
         a.courier.fetched(crewId, chatBox, busy, a.now)
         assertTrue(a.courier.holdsOwnHere(id))
+    }
+
+    // ---- Private messages (docs/PRIVATE_MESSAGES.md) ----
+
+    @Test fun aPrivateMessageGoesThroughTheRelayAndOnlyItsRecipientIsShownIt() {
+        val w = World()
+        val a = Phone("A", w, group)
+        val b = Phone("B", w, group)
+        val c = Phone("C", w, group)
+        listOf(a, b, c).forEach { it.online = true }
+        val id = a.pm(b, "are you near the bar?")
+        w.run(60)
+        assertEquals(Courier.State.SENT, a.state(id))
+        assertEquals(1, a.puts)
+        // In the crew's private mailbox, never the chat's, and the same size as any other.
+        val box = w.relay.get(crewId, Courier.Box.PRIVATE)
+        assertEquals(1, box.size)
+        assertEquals(GigGroup.PRIVATE_BYTES, box.single().size)
+        assertTrue(w.relay.get(crewId, chatBox).isEmpty())
+        val p = assertNotNull(b.privately()[id], "B is shown it")
+        assertEquals("are you near the bar?", p.text)
+        assertEquals(a.signer.tag, p.sender)
+        assertEquals(Courier.Route.INTERNET, b.routes[id])
+        assertFalse(c.has(id), "C fetched it too, and can't open it")
+        assertFalse(a.has(id), "nor is the sender shown their own echo")
+        // Nobody uploaded it a second time.
+        w.run(300)
+        assertEquals(1, w.relay.puts)
+    }
+
+    @Test fun withNoSignalItHopsAlongCrewPhonesAndTheFirstBackOnSignalUploadsIt() {
+        val w = World()
+        val a = Phone("A", w, group)
+        val b = Phone("B", w, group)
+        val c = Phone("C", w, group)
+        w.link(a, b)
+        w.link(b, c) // A can't hear C
+        val id = a.pm(c, "found the car, it's row G")
+        w.run(150)
+        val p = assertNotNull(c.privately()[id], "C has it: ${b.trace} ${c.trace}")
+        assertEquals("found the car, it's row G", p.text)
+        assertEquals(Courier.Route.BLUETOOTH, c.routes[id])
+        // B carried it without being able to read it, and confirmed it: A shows "Sent nearby".
+        assertFalse(b.has(id))
+        assertTrue(b.courier.held(crewId) >= 1)
+        assertEquals(Courier.State.NEARBY, a.state(id))
+        assertEquals(0, w.relay.puts)
+        // B walks out to the street first and uploads it exactly as A sealed it.
+        b.online = true
+        w.run(150)
+        assertEquals(1, b.puts)
+        assertEquals(id, group.privateOuterOf(group.openEnvelope(w.relay.get(crewId, Courier.Box.PRIVATE).single())!!)!!.id)
+        // A gets signal later: finds it there, doesn't post a second copy.
+        a.online = true
+        c.online = true
+        w.run(120)
+        assertEquals(Courier.State.SENT, a.state(id))
+        assertEquals(0, a.puts)
+        assertEquals(1, w.relay.puts)
+        assertEquals(1, c.privately().size, "C was shown it once, whichever way it came")
+        assertEquals(listOf(Courier.State.NEARBY, Courier.State.SENT), a.states[id]!!.toList())
+    }
+
+    @Test fun theRecipientCarriesAndConfirmsLikeAnyOtherCrewPhone() {
+        // Whether the phone that took it was the one it's for can't be told from what it does.
+        val w = World()
+        val a = Phone("A", w, group)
+        val b = Phone("B", w, group)
+        val c = Phone("C", w, group) // out of range
+        w.link(a, b)
+        val toB = a.pm(b, "for B")
+        val toC = a.pm(c, "for C")
+        w.run(180)
+        assertEquals(Courier.State.NEARBY, a.state(toB))
+        assertEquals(Courier.State.NEARBY, a.state(toC))
+        assertTrue(b.has(toB))
+        assertFalse(b.has(toC))
+        assertEquals(2, b.courier.held(crewId), "B carries both, its own included")
+        // And B passes both on when it meets C.
+        w.link(b, c)
+        w.run(240)
+        assertTrue(c.has(toC))
+        assertFalse(c.has(toB))
+    }
+
+    @Test fun aPrivateMessageNeverCrossesAStrangersPhone() {
+        val w = World()
+        val a = Phone("A", w, group)
+        val s1 = Phone("S1", w, null)
+        val s2 = Phone("S2", w, null)
+        val b = Phone("B", w, group)
+        w.link(a, s1)
+        w.link(s1, s2)
+        w.link(s2, b)
+        val pm = a.pm(b, "not through strangers")
+        val help = a.post(GigGroup.Ping.NEED_HELP)
+        w.run(300)
+        assertTrue(b.has(help), "Need help still crosses them")
+        assertFalse(b.has(pm), "a private message is only ever carried by crew phones")
+        assertNotEquals(Courier.State.NEARBY, a.state(pm))
+        assertTrue(s1.got.isEmpty() && s2.got.isEmpty())
+    }
+
+    @Test fun ourUnsentPrivateMessageIsSealedAgainAfterARekeyWithItsId() {
+        val w = World()
+        val a = Phone("A", w, group)
+        val b = Phone("B", w, group)
+        val id = a.pm(b, "did you get the new invite?")
+        w.run(30)
+        val fresh = GigGroup(ByteArray(32) { (it + 110).toByte() }, group.name, 0L)
+        a.moveTo(fresh)
+        b.moveTo(fresh)
+        assertNotNull(a.courier.stateOf(id), "still queued, under the new key")
+        a.restart()
+        a.online = true
+        b.online = true
+        w.run(120)
+        val freshId = crewIdOf(fresh)
+        assertEquals(listOf(id), w.relay.get(freshId, Courier.Box.PRIVATE).mapNotNull { fresh.privateOuterOf(fresh.openEnvelope(it)!!)?.id })
+        assertTrue(w.relay.get(crewId, Courier.Box.PRIVATE).isEmpty(), "never under the old key")
+        assertEquals("did you get the new invite?", b.privately()[id]?.text)
+        assertEquals(Courier.State.SENT, a.state(id))
+        // The app couldn't seal it again (its thread had gone, say): it's let go, not sent under the old key.
+        val c = Phone("C", w, fresh)
+        val gone = c.pm(b, "never mind")
+        c.sentPrivately.clear()
+        val newer = GigGroup(ByteArray(32) { (it + 140).toByte() }, group.name, 0L)
+        c.moveTo(newer)
+        assertNull(c.courier.stateOf(gone))
+    }
+
+    @Test fun aHelperNeverFillsThePrivateMailboxPastItsLimit() {
+        val w = World()
+        val a = Phone("A", w, group)
+        val b = Phone("B", w, group)
+        val c = Phone("C", w, group)
+        w.link(a, b)
+        val ids = (1..6).map { a.pm(c, "message $it") }
+        w.run(400)
+        assertTrue(ids.all { b.courier.held(crewId) >= 6 })
+        // The private mailbox is nearly full when B gets signal: B uploads only what fits under 180.
+        w.relay.fill(crewId, Courier.Box.PRIVATE, 177)
+        b.online = true
+        w.run(400)
+        assertEquals(3, b.puts)
+        // A gets signal and uploads its own, whatever the room (the relay drops the oldest).
+        a.online = true
+        w.run(120)
+        ids.forEach { assertEquals(Courier.State.SENT, a.state(it)) }
+    }
+
+    @Test fun ourPrivateMessagesSurviveARestart() {
+        val w = World()
+        val a = Phone("A", w, group)
+        val b = Phone("B", w, group)
+        val id = a.pm(b, "still there?")
+        w.run(10)
+        a.restart()
+        assertNotNull(a.courier.stateOf(id))
+        a.online = true
+        b.online = true
+        w.run(120)
+        assertEquals(Courier.State.SENT, a.state(id))
+        assertEquals(1, w.relay.get(crewId, Courier.Box.PRIVATE).size)
+        assertTrue(b.has(id))
+        // B restarts too: the same message from the relay isn't shown again.
+        b.restart()
+        w.run(120)
+        assertEquals(1, b.got.count { it.id == id })
+    }
+
+    @Test fun anOlderBuildIgnoresPrivateMessagesAndKeepsCarryingTheChat() {
+        // To a build from before private messages, ENV_PRIVATE is an envelope type it doesn't know.
+        // This build meets one the same way when a later type turns up: shown never, carried never,
+        // no error, and everything else carries on.
+        val w = World()
+        val a = Phone("A", w, group)
+        val b = Phone("B", w, group)
+        w.link(a, b)
+        val real = assertNotNull(group.sealPrivate(a.signer, b.signer.pub, "hello from a newer build", a.now / 1000, 77L))
+        val body = group.openEnvelope(real)!!.body
+        val unknownType = group.sealEnvelope(GigGroup.ENV_PRIVATE + 1, body, a.now / 1000)
+        repeat(3) {
+            MessagePacket.split(unknownType, 0).forEach { w.broadcast(a, it.encode()) }
+            w.run(20)
+        }
+        assertTrue(b.got.isEmpty())
+        assertEquals(0, b.courier.held(crewId), "not carried")
+        // And on the relay, older builds never fetch the private mailbox at all; one that did, as an
+        // unknown blob in the chat mailbox, would ignore it there too.
+        w.relay.put(Courier.Upload(crewId, 0, chatBox, real, RelayUse.MESSAGE, false))
+        val old = Phone("O", w, group)
+        old.online = true
+        old.courier.fetched(crewId, chatBox, w.relay.get(crewId, chatBox), old.now).forEach { assertFalse(it.fresh && it.message?.ping != null) }
+        assertTrue(old.got.isEmpty())
+        // Crew chat goes on as ever.
+        val id = a.chat("still talking")
+        w.run(120)
+        assertTrue(b.has(id))
     }
 }

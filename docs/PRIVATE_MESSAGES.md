@@ -17,13 +17,13 @@ _Handover, kept current at every push. Branch `claude/private-messages-p7m2xd`, 
 |---|---|
 | 1. This note: a decision for each hard problem | **done** (first version; corrected as the code lands) |
 | 2. Core: sealing and opening (`GigGroup.sealPrivate` / `openPrivate`, `ENV_PRIVATE`), the private mailbox id, `PrivateRule`, `PrivateBook` (threads, replays, pending senders, mute, unread), with tests | **done.** `GigGroup` (additions only), `CrewKeys.agree(…, label)`, `core/Private.kt`; `PrivateTest` (20 tests) passes locally |
-| 3. Core: the courier carries it (`KIND_PRIVATE`, `Box.PRIVATE`, receipts, re-seal after a rekey), `CourierSimTest` cases incl. older builds | not started |
+| 3. Core: the courier carries it (`KIND_PRIVATE`, `Box.PRIVATE`, receipts, re-seal after a rekey), `CourierSimTest` cases incl. older builds | **done.** `Courier`: `Message.pm`, `KIND_PRIVATE`, `Box.PRIVATE` (held like the chat: 180 for helpers), no crowd hops, `Host.resealPrivate`; 8 new `CourierSimTest` cases; the whole core suite (472) passes locally |
 | 4. App: `PrivateMessages` adapter (store, relay fetch in `ChatSync`, courier hook-up, notifications, mute), screens (options dialog, finder, thread), `strings_private.xml` in 20 folders | not started |
 | 5. Screenshot tests (`PrivateSnapshotTest`, own package, every language) | not started |
 | 6. Field test (two phones), roadmap, architecture and privacy notes | not started |
 | 7. CI green, report sent | not started |
 
-**Exact next step:** step 3, the courier: `KIND_PRIVATE`, `Box.PRIVATE`, open/accept/handle/hops/receipts/re-seal in `core/Courier.kt`, then `CourierSimTest` cases.
+**Exact next step:** step 4, the app: `PrivateMessages.kt` (store per crew from `PrivateBook`, send, arrivals from `OfflineMessages.deliver` and `ChatSync.pollAll`, re-seal, notifications), then the screens and `strings_private.xml`.
 
 How to work on it: `core` and `server` tests run here with a scratch Gradle settings file that
 includes only `:core` and `:server` and points its version catalogue at
