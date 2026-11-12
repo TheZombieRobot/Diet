@@ -42,6 +42,36 @@ object Baro {
 }
 
 /**
+ * When to put a fresh pressure in our Bluetooth advert. Changing the advert restarts the
+ * broadcast, so it isn't done for every flicker of the sensor.
+ *
+ * What a mate hears from us is therefore a little old: normally within half a metre of where
+ * we are now. That is too loose for the moment two phones calibrate against each other, so
+ * while a mate is side by side the advert follows our pressure as closely as it can carry it.
+ */
+object PressureAdvert {
+    /** Apart: refresh once our pressure has moved this much (about half a metre of height). */
+    const val MOVED_HPA = 0.06
+
+    /** Side by side with a mate: one step of what the advert can carry (about 17 cm). */
+    const val MOVED_TOGETHER_HPA = Baro.HPA_PER_UNIT
+
+    /** Never more often than this. */
+    const val MIN_GAP_MS = 15_000L
+
+    /**
+     * [sentHpa] at [sentAtMs] is what the advert says now (null: nothing yet); [nowHpa] is our
+     * pressure at [nowMs]. [together]: a mate is close enough to be calibrating against us.
+     */
+    fun due(sentHpa: Double?, sentAtMs: Long, nowHpa: Double, nowMs: Long, together: Boolean): Boolean {
+        if (sentHpa == null) return true
+        if (nowMs - sentAtMs < MIN_GAP_MS) return false
+        // Just under a whole step still counts: the sum of two readings is never exact.
+        return abs(nowHpa - sentHpa) >= (if (together) MOVED_TOGETHER_HPA else MOVED_HPA) - 1e-9
+    }
+}
+
+/**
  * This phone's own recent pressure. Smooths out door slams and squeezed pockets (median over
  * a few seconds), and can say what our pressure was at an earlier moment, so a mate's reading
  * from a minute ago is compared with ours from a minute ago: that's what cancels the weather.

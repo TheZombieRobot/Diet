@@ -61,13 +61,9 @@ CI run 195 was building that commit when work stopped.
    over the relay) are reasoned from the code, not measured.
 4. **Notes not started:** a venue-map paragraph in `ARCHITECTURE.md`; pressure, venue lookup
    and map downloads in `PRIVACY.md`; mark the free half of step 2 in `ROADMAP.md`.
-5. **One design point found late, undecided.** The pressure in the Bluetooth advert is only
-   refreshed when it has moved 0.06 hPa (half a metre) and at most every 15 seconds, so the
-   value a mate hears can be up to half a metre stale. That puts up to 0.5 m of error into a
-   calibration, where the maths assumes 0.4 m (UWB). Options: refresh at 0.03 hPa, or refresh
-   whenever a mate is within calibrating distance. Refreshing restarts Bluetooth advertising
-   (`BleBroadcaster.update` stops and starts it), so don't do it much more often than now
-   without a phone to test on.
+5. ~~The stale-advert design point~~ **decided and built:** while a mate is side by side the
+   advert follows your pressure to one step (see "The maths"). Still to check on a phone: that
+   restarting the broadcast about once a minute while together does no harm.
 6. Optional: a floors summary in `tools/analyze_recording.py` (rows `baro`, `baro_mate`,
    `baro_cal` are already in the recordings; the tool ignores them today).
 7. **Done means** (from the task): CI green; the unit tests above; the screenshot tests; the
@@ -328,6 +324,7 @@ What goes wrong, and what is done about it:
 | The offset drifts (phones warm up) | About 1 m over a night, unknown until measured | The calibration **ages**: uncertainty starts at 0.4 m (UWB) or 0.7 m (Bluetooth) and grows 0.3 m an hour. |
 | Doors, air conditioning, squeezing the phone | Spikes of 0.1–1 hPa for a few seconds | Median of the last 8 seconds of readings. |
 | Tiers, ramps, mezzanines | 0.5–2 m | Below the floor threshold: no tag. |
+| What a mate hears is a little old (the advert isn't rebuilt for every flicker) | Up to 0.5 m | Apart: inside the threshold's 1.5 m margin. **Side by side, when calibrating happens, the advert follows your pressure to one step (17 cm)**, so a calibration isn't built on an old number; if the first seconds were, it corrects itself as soon as the fresh advert is heard. |
 
 **Together** (the moment to calibrate): UWB says 2 m or less for 4 seconds, or Bluetooth's
 distance estimate says 1.5 m or less for 20 seconds. During that time the difference between
@@ -358,8 +355,10 @@ The tag is relative to **you**: if you're upstairs and they're on the ground flo
 "↓ Downstairs". Each phone works out its own tags; nothing about floors is sent, only pressure.
 
 The pressure sensor reads once a second, batched so it doesn't wake the phone, while you're
-live or the app is open. The advert is updated when your pressure has moved by 0.5 m, at most
-every 15 seconds.
+live or the app is open. The advert is updated when your pressure has moved by 0.5 m
+(0.06 hPa), or by one step (0.02 hPa) while a mate is side by side, and at most every
+15 seconds: each update restarts the Bluetooth broadcast, so it isn't done for every flicker
+(core `PressureAdvert`).
 
 ## 5. Other apps, older versions, shared files
 

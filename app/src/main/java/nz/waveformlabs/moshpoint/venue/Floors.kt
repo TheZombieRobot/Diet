@@ -25,6 +25,7 @@ import nz.waveformlabs.moshpoint.core.Floor
 import nz.waveformlabs.moshpoint.core.FloorBox
 import nz.waveformlabs.moshpoint.core.FloorConfig
 import nz.waveformlabs.moshpoint.core.FloorTracker
+import nz.waveformlabs.moshpoint.core.PressureAdvert
 import nz.waveformlabs.moshpoint.core.PressureHistory
 import nz.waveformlabs.moshpoint.core.RecordLine
 import nz.waveformlabs.moshpoint.locate.RelayClient
@@ -172,13 +173,16 @@ object Floors {
         return Baro.toUnits(hPa)
     }
 
-    /** Rebuild the advert when our height has changed by half a metre (not more than every 15 s). */
-    private fun advertIfMoved() {
+    /**
+     * Rebuild the advert when our pressure has moved enough (core `PressureAdvert`): half a
+     * metre normally, one step while a mate is [together] with us and calibrating against
+     * what they hear. Never more than every 15 s.
+     */
+    private fun advertIfMoved(together: Boolean = false) {
         if (liveUsers == 0) return
         val now = System.currentTimeMillis()
         val hPa = history.current(now) ?: return
-        val last = advertised
-        if (last == null || (now - advertisedAtMs >= ADVERT_GAP_MS && abs(hPa - last) >= MOVED_HPA)) {
+        if (PressureAdvert.due(advertised, advertisedAtMs, hPa, now, together)) {
             advertised = hPa
             advertisedAtMs = now
             onAdvertChange?.invoke()
@@ -209,6 +213,8 @@ object Floors {
                 distanceM <= cfg.togetherBleM -> Closeness.BLUETOOTH
                 else -> Closeness.NOT_CLOSE
             }
+            // They calibrate against the pressure they hear from us: while side by side, keep it current.
+            if (close != Closeness.NOT_CLOSE) advertIfMoved(together = true)
             if (m.tracker.onPair(mine, their, now, close)) {
                 saveCalibrations()
                 val c = m.tracker.calibration
@@ -270,7 +276,7 @@ object Floors {
 
     private fun publish(c: Context, hPa: Double, now: Long) {
         val last = published
-        val due = last == null || now - publishedAtMs >= PUBLISH_REFRESH_MS || (now - publishedAtMs >= PUBLISH_GAP_MS && abs(hPa - last) >= MOVED_HPA)
+        val due = last == null || now - publishedAtMs >= PUBLISH_REFRESH_MS || (now - publishedAtMs >= PUBLISH_GAP_MS && abs(hPa - last) >= PressureAdvert.MOVED_HPA)
         if (!due) return
         val units = Baro.toUnits(hPa) ?: return
         published = hPa
@@ -347,9 +353,6 @@ object Floors {
 
     private const val K = "Floors"
 
-    /** About half a metre of height. */
-    private const val MOVED_HPA = 0.06
-    private const val ADVERT_GAP_MS = 15_000L
     private const val PUBLISH_GAP_MS = 30_000L
     private const val PUBLISH_REFRESH_MS = 120_000L
     private const val FETCH_GAP_MS = 20_000L

@@ -236,6 +236,47 @@ class FloorsTest {
         assertNull(t.update(1013.0, up(1013.0, 1.6), 6_000, 6_000)!!.floor)
     }
 
+    // ---- What a mate hears from us ----
+
+    @Test fun theAdvertFollowsOurPressureInHalfMetreSteps() {
+        // Nothing sent yet: send.
+        assertTrue(PressureAdvert.due(null, 0, 1013.20, 0, together = false))
+        // A flicker of the sensor isn't worth restarting the broadcast for.
+        assertFalse(PressureAdvert.due(1013.20, 0, 1013.24, 60_000, together = false))
+        // Half a metre up or down (0.06 hPa): yes...
+        assertTrue(PressureAdvert.due(1013.20, 0, 1013.14, 60_000, together = false))
+        assertTrue(PressureAdvert.due(1013.20, 0, 1013.26, 60_000, together = false))
+        // ...but never more often than every 15 seconds, however fast they climb.
+        assertFalse(PressureAdvert.due(1013.20, 0, 1012.80, 14_000, together = false))
+        assertTrue(PressureAdvert.due(1013.20, 0, 1012.80, 15_000, together = false))
+        // So apart, what a mate hears is within half a metre of the truth: inside the floor threshold's margin.
+        assertTrue(Baro.heightAboveM(1013.20, 1013.20 - PressureAdvert.MOVED_HPA) < cfg.floorM - 1.5)
+    }
+
+    @Test fun sideBySideTheAdvertIsKeptCurrentForCalibrating() {
+        // Apart, 0.04 hPa (35 cm) out is left alone. With a mate calibrating against it, it's refreshed.
+        assertFalse(PressureAdvert.due(1013.20, 0, 1013.24, 60_000, together = false))
+        assertTrue(PressureAdvert.due(1013.20, 0, 1013.24, 60_000, together = true))
+        // One step of what the advert carries is the finest it can follow; less changes nothing on air.
+        assertTrue(PressureAdvert.due(1013.20, 0, 1013.22, 60_000, together = true))
+        assertFalse(PressureAdvert.due(1013.20, 0, 1013.21, 60_000, together = true))
+        // Still not more than every 15 seconds.
+        assertFalse(PressureAdvert.due(1013.20, 0, 1013.30, 5_000, together = true))
+    }
+
+    @Test fun aCalibrationAgainstAStaleAdvertIsPutRightOnceAFreshOneIsHeard() {
+        // Their sensor reads 0.50 hPa above ours. Their advert still says what it did before
+        // they walked over, 0.05 hPa (40 cm) out, and that is what we calibrate against first...
+        val t = FloorTracker(cfg)
+        for (i in 0..5) t.onPair(1013.00, 1013.55, i * 1_000L, Closeness.UWB)
+        assertEquals(-0.55, t.calibration!!.offsetHpa, 0.001)
+        // ...then their phone, hearing us side by side, refreshes it, and the calibration follows
+        // (the jump is small enough not to look like someone on the stairs).
+        for (i in 6..20) t.onPair(1013.00, 1013.50, i * 1_000L, Closeness.UWB)
+        assertEquals(-0.50, t.calibration!!.offsetHpa, 0.001)
+        assertEquals(20_000L, t.calibration!!.atMs)
+    }
+
     // ---- Never say what we don't know ----
 
     @Test fun noTagWithoutASensorACalibrationOrAFreshReading() {
