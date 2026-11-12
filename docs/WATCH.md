@@ -12,7 +12,7 @@ app onto a watch. Install steps are at the end.
 ## Status and next steps
 
 _A handover: enough to pick the work up cold. Updated with every push. Last: 12 November
-2026, 09:45 UTC._
+2026, 09:50 UTC._
 
 ### Where things stand
 
@@ -25,7 +25,7 @@ _A handover: enough to pick the work up cold. Updated with every push. Last: 12 
 | Main branch merged in | **Done** (`62a770a`): Bluetooth backup and the venue map, no conflicts. Wrist pings now report from the outbox (problem 8). |
 | Translations | **Done**, 19 languages: `wear/src/main/res/values-*/strings.xml` and `app/src/main/res/values-*/strings_watch.xml`. Checked by the script; not yet read by native speakers. Notes for them are at the end of each `docs/i18n/*.md` ("Watch app"). |
 | Checker and its CI step | **Done.** `tools/check_translation.py` works on any module and can compare languages between modules. |
-| Screenshots in every language | 19 screens, 21 locales, 2 sizes, drawn by CI on every push. Five languages looked through by eye; the rest still to skim. |
+| Screenshots in every language | 19 screens, 21 locales, 2 sizes, drawn by CI on every push. All 21 locales looked through by eye on the small watch; the fixes that came out of it are in. |
 | Install steps, field test, release notes | **Written**: the end of this note, section 4c of `docs/FIELD_TEST_PLAN.md`, `.github/testing-release.md`. The install steps have not been followed on a real watch yet. |
 
 Nothing has run on a real watch or phone. Everything marked **verify on a watch** below is a
@@ -33,15 +33,14 @@ first guess until the field test.
 
 ### Next steps, in order
 
-1. **Read both jobs of the latest CI run** and fix what they report. The run before it
-   (`6ac7690`) was green in the watch job and green in the phone job through the release (R8)
-   build; its phone screenshots were still running when the next push replaced it.
-2. **Look again at the watch screenshots.** English, German, Thai, Arabic and Japanese were
-   looked through on the small watch after `6ac7690`: everything stayed inside the glass.
-   Since then wrapped lines are balanced (no single word or character left alone on a line)
-   and "Moshpoint+" keeps its plus on the right in Arabic: check those two took effect, and
-   skim the other 14 languages on the `ui-screenshots-watch` branch for anything cut off.
-3. **Finish line:** both CI jobs green; report to the owner's main session.
+1. **Read both jobs of the latest CI run** and fix what they report. The last complete run,
+   on `6ac7690` (the merge, the outbox-aware pings, the translations, the checker), was green
+   in both jobs.
+2. **Glance at the newest watch screenshots** for the last round of fixes: balanced lines,
+   Korean words kept whole, "40 m · live" in the crew list, the Polish Need help title, and
+   "Moshpoint+" in Arabic.
+3. **Finish line:** both CI jobs green on the head of the branch; report to the owner's main
+   session.
 
 ### Shared files this branch touches (for merging with the other two branches)
 
@@ -394,8 +393,15 @@ A small vocabulary told apart by rhythm alone (many watch motors have no strengt
   are in `strings_watch.xml`. Both are translated into the same 19 languages as the app, using
   the terms already chosen in `docs/i18n` and the app's existing wording for the same pings.
 - Strings are written short on purpose (a watch line holds about 14 Latin characters), text
-  sits inside the round screen's safe area with percentage margins, long words shrink a step
-  before they wrap, and lists use the scaling list so rows near the edge stay inside the curve.
+  sits inside the round screen's safe area with percentage margins, and lists use the scaling
+  list so rows near the edge stay inside the curve.
+- One text helper (`FitText`) does the fitting everywhere: it tries a size, and steps down
+  (to about two thirds) until the text fits its lines without cutting a word; only then does it
+  end in "…". Wrapped lines are balanced, so one word is never left alone on the last line.
+  Thai, Chinese and Japanese have no spaces and may break anywhere; Korean gets an invisible
+  word joiner inside each word, because Android would otherwise break a line mid-word.
+- Where a line can still be too long (the line under a mate's name in the crew list), the part
+  that matters comes first: "40 m · live", not "live · 40 m", so it is "live" that gets cut.
 - Right-to-left: text and lists mirror for Arabic. The **arrow does not**: it points at a real
   place.
 - Numbers and units follow the watch's language and country, with the same rules as the phone
@@ -404,6 +410,11 @@ A small vocabulary told apart by rhythm alone (many watch motors have no strengt
   `wear` as well as `app`, plus a check that both have the same set of languages.
 - Screenshot tests render every watch screen on a small (192 dp) and a large (227 dp) round
   watch in every language, with the round edge drawn in, so clipped text shows up in review.
+  All 21 locales (the 19 languages, English, and US English for feet and miles) were looked
+  through on the small watch. Nothing ran off the glass; what was cut short or broke badly
+  was fixed (the Polish "Need help" title, the distance in the Polish and Vietnamese crew
+  list, single characters stranded on a line in Japanese, Chinese and Korean, and the plus of
+  "Moshpoint+" changing sides in Arabic).
 
 ### 11. Getting it onto a watch
 
