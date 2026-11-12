@@ -149,6 +149,11 @@ Agreed with the owner; build in this order. Where this differs from [PRODUCT.md]
 
 ### Small items
 - UWB places go to the mate you're focused on first, then the nearest.
+  **Status: built, not yet tried on real phones.** Core `UwbSlots` decides who's in (tested in
+  `UwbSlotsTest`); `UwbFinder` swaps one mate at a time, in order, and only when more mates are
+  ready for UWB than one session takes (4, a first guess). Members stay unless someone is
+  clearly nearer (30% and 3 m), and swaps are spaced 15 s apart except for the focused mate.
+  With two or three UWB phones nothing changes: everyone is in, as before.
 
 ### Moshpoint+ (paid)
 - Satellite venue map, offline.

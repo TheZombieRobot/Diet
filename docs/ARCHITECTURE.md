@@ -25,6 +25,7 @@ method runs at once, and a single arbiter decides what to draw.
 | `RssiRanging.kt` | Log-distance path loss with smoothing. Turns BLE signal strength into a rough distance. The constants **must be tuned in a real crowd**. |
 | `ArrowStyle.kt` | Arrow is red at 150 m or more and fades to the friend's colour by 10 m. Distance label text. |
 | `Advert.kt` | The bytes in every Bluetooth advert: `[flags][rotating id][encrypted UWB block][encrypted pressure, optional]`. The UWB block is how two phones set up UWB with no connection or server (below). Also `UwbSessionKeys`, which both phones use to derive the same UWB session id and key on their own. |
+| `UwbSlots.kt` | Who gets the UWB ranging places when more mates are ready for UWB than one session takes (4): the mate the finder is focused on first, then the nearest (by `MethodArbiter.distanceFor`, which reads the distance without moving the arrow). Members stay unless someone is clearly nearer; the app's `UwbFinder` swaps one at a time, at most every 15 s except for the focused mate. With room for everyone, everyone is in. |
 | `FriendRecord.kt` | Saved-friend format and share codes. Gig group members expire after 18 h. |
 | `LocationBox.kt` | Seals a GPS fix (lat, lon, time, accuracy) with AES-GCM so only the owner's friends can open it. 29 bytes. Bound to the rotating id. |
 | `CrowdRelay.kt` | `RelayPacket` (47-byte relay advert) and `RelayCache` (newest per id, hop limit, age limit, fair airtime). |

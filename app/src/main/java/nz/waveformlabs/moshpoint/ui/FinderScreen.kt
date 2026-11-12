@@ -111,6 +111,8 @@ fun FinderScreen(
      * face wears the spot's floor (not theirs now) and says how long ago it was pinned.
      */
     pinned: Map<String, PinNote> = emptyMap(),
+    /** The crew view is now showing just this mate (null: everyone again). UWB serves them first. */
+    onFocus: (String?) -> Unit = {},
     /** "Message Sam" for the one mate on screen (docs/PRIVATE_MESSAGES.md); null = not offered. */
     onMessage: ((String) -> Unit)? = null,
     /** Unread private messages per mate, on that button. */
@@ -136,6 +138,7 @@ fun FinderScreen(
     // Tapped a stack of mates on the radar: the strip shows just them, to pick who.
     var pickFrom by remember { mutableStateOf<List<String>?>(null) }
     if (focus != null) pickFrom = null
+    LaunchedEffect(focus) { onFocus(focus) }
     @Suppress("NAME_SHADOWING")
     val arrows = focus?.let { f -> everyone.filter { it.friendId == f } } ?: everyone
     val shownTitle = focus?.let { friendOf(it)?.name } ?: title

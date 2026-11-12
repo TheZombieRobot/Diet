@@ -765,6 +765,8 @@ class MainActivity : ComponentActivity() {
                             warning = setupIssues.firstOrNull { it.text != batteryIssue },
                             floors = Floors.tags,
                             // Mates' "I'm here" pins: where the arrow points at one, its floor and how long ago (docs/IM_HERE.md).
+                            // Tapped one mate in the crew view: their UWB place comes first.
+                            onFocus = { id -> engine.focus(id) },
                             pinned = HerePins.pins.mapValues { (id, h) ->
                                 nz.waveformlabs.moshpoint.ui.PinNote(nz.waveformlabs.moshpoint.core.HereRule.ageSec(h, System.currentTimeMillis() / 1000), HerePins.floors[id])
                             },

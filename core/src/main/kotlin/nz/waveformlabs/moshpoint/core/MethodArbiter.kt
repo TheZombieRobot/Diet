@@ -61,6 +61,17 @@ class MethodArbiter(
         return fix.method.precision * fix.confidence.coerceIn(0.0, 1.0) * freshness
     }
 
+    /**
+     * Our best distance to [friendId] now: the one [arrowFor] shows, but read without touching
+     * which method the arrow follows (for sharing out UWB places, see [UwbSlots]).
+     */
+    fun distanceFor(friendId: String, nowMs: Long): Double? = latest.values
+        .filter { it.friendId == friendId && it.method in enabled && it.distanceM != null }
+        .map { it to score(it, nowMs) }
+        .filter { it.second > 0.0 }
+        .maxByOrNull { it.second }
+        ?.first?.distanceM
+
     fun arrowFor(friendId: String, headingDeg: Double, nowMs: Long): ArrowState {
         val live = latest.values
             .filter { it.friendId == friendId && it.method in enabled }

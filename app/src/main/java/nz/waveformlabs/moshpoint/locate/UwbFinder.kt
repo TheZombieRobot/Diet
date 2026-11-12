@@ -12,9 +12,13 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import nz.waveformlabs.moshpoint.DebugStatus
+import nz.waveformlabs.moshpoint.FriendsRepository
 import nz.waveformlabs.moshpoint.core.Advert
 import nz.waveformlabs.moshpoint.core.UwbSessionKeys
+import nz.waveformlabs.moshpoint.core.UwbSlots
 
 /**
  * UWB on the phone that's LOOKING (the UWB "controller").
@@ -26,8 +30,10 @@ import nz.waveformlabs.moshpoint.core.UwbSessionKeys
  *    (they have it, they're our friend) and joins as a controlee. See `UwbResponder`.
  * 4. Their advert carries their UWB address; when [BleRanger] hears it we add them here.
  *
- * One multicast session ranges to every friend at once. Results come out as distance +
- * azimuth, relative to the phone, via [onResult].
+ * One multicast session ranges to several friends at once. Results come out as distance +
+ * azimuth, relative to the phone, via [onResult]. When more friends are ready for UWB than one
+ * session has places ([UwbSlots.CAPACITY]), the one the finder is focused on gets a place
+ * first, then the nearest (core [UwbSlots]); with room for everyone, everyone is in.
  *
  * Only runs on phones with UWB. Needs the UWB_RANGING permission.
  */
@@ -38,14 +44,27 @@ class UwbFinder(
     /** Called when our advertised UWB details change (new scope), so the advert can be updated. */
     private val onAdvertInfo: (Advert.UwbInfo?) -> Unit,
     private val onResult: (friendId: String, distanceM: Double?, azimuthDeg: Double?) -> Unit,
+    /** Our best distance to a friend now, by any method: the nearest get the places when there are too few. */
+    private val distanceOf: (friendId: String) -> Double? = { null },
 ) {
     private val manager = UwbManager.createInstance(context)
     private var session: UwbControllerSessionScope? = null
     private var rangingJob: Job? = null
     private var setupJob: Job? = null
 
-    /** Controlee address (hex) -> friend id. */
+    /** Controlee address (hex) -> friend id: who is in the session. */
     private val peers = mutableMapOf<String, String>()
+
+    /** Friends whose phones told us their controlee address, in the session or not, and when we last heard it. */
+    private class Ready(val address: ByteArray, val heardAtMs: Long)
+    private val ready = mutableMapOf<String, Ready>()
+
+    /** The friend the finder is focused on: always given a place while they're ready. */
+    private var focused: String? = null
+    private var lastSwapMs = 0L
+
+    /** Adds and removes go one at a time, in the order asked (a swap removes before it adds). */
+    private val ops = Mutex()
 
     fun start() {
         if (setupJob != null) return
@@ -59,6 +78,7 @@ class UwbFinder(
         rangingJob = null
         session = null
         peers.clear()
+        ready.clear()
         onAdvertInfo(null)
         DebugStatus.set(K, "off")
     }
@@ -68,6 +88,8 @@ class UwbFinder(
             val s = manager.controllerSessionScope()
             session = s
             peers.clear()
+            // Friends join each new session with a new address: wait to hear them again.
+            ready.clear()
             DebugStatus.set(K, "ready, ch ${s.uwbComplexChannel.channel}, waiting for a visible UWB friend")
             onAdvertInfo(
                 Advert.UwbInfo(
@@ -89,9 +111,55 @@ class UwbFinder(
     /** A friend's advert told us their controlee address. */
     fun onFriendControlee(friendId: String, address: ByteArray) {
         val s = session ?: return
+        ready[friendId] = Ready(address, System.currentTimeMillis())
         val key = address.hex()
         if (peers[key] == friendId) return
         peers.entries.removeAll { it.value == friendId } // their address changed (new scope)
+        rebalance(s)
+    }
+
+    /** The finder is showing [friendId] now (null: the whole crew, or nobody): they get a place first. */
+    fun focus(friendId: String?) {
+        if (focused == friendId) return
+        focused = friendId
+        session?.let { rebalance(it) }
+    }
+
+    /**
+     * Bring the session in line with who should be in it (core [UwbSlots]). With room for
+     * everyone that's simply everyone, added as they're heard. Otherwise one round of swaps at
+     * most every [SWAP_GAP_MS] (each costs a moment of ranging), except to make room for the
+     * focused friend, which happens at once.
+     */
+    private fun rebalance(s: UwbControllerSessionScope) {
+        val now = System.currentTimeMillis()
+        val members = peers.values.toSet()
+        // Ready: heard lately, or in the session now (a member stays until UWB says they've gone).
+        val candidates = ready.filter { (id, r) -> id in members || now - r.heardAtMs <= READY_FOR_MS }
+        val focus = focused
+        val want = UwbSlots.choose(candidates.keys.associateWith { distanceOf(it) }, members, focus)
+        val leaving = peers.filterValues { it !in want }.keys.toList()
+        val joining = want.filter { it !in members }
+        if (leaving.isNotEmpty()) {
+            val forFocus = focus != null && focus in joining
+            if (!forFocus && now - lastSwapMs < SWAP_GAP_MS) return
+            lastSwapMs = now
+            leaving.forEach { leave(s, it) }
+        }
+        joining.forEach { id -> candidates[id]?.let { join(s, id, it.address) } }
+    }
+
+    /** Take [key] (a controlee address, hex) out of the session to make room. */
+    private fun leave(s: UwbControllerSessionScope, key: String) {
+        val friendId = peers.remove(key) ?: return
+        DebugStatus.log("UWB: making room, ${FriendsRepository.byId(friendId)?.name ?: "a friend"} out (${peers.size} peer(s))")
+        val address = key.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+        op("removeControlee") { s.removeControlee(UwbAddress(address)) }
+    }
+
+    /** Add [friendId] at [address]: the first one opens the session, the rest join it. */
+    private fun join(s: UwbControllerSessionScope, friendId: String, address: ByteArray) {
+        val key = address.hex()
         peers[key] = friendId
         DebugStatus.log("UWB: adding friend to session (${peers.size} peer(s))")
 
@@ -120,11 +188,20 @@ class UwbFinder(
                 newScope()
             }
         } else {
-            scope.launch {
+            op("addControlee") { s.addControlee(UwbAddress(address)) }
+        }
+    }
+
+    /** One add or remove, after the ones asked for before it. */
+    private fun op(what: String, block: suspend () -> Unit) {
+        scope.launch {
+            ops.withLock {
                 try {
-                    s.addControlee(UwbAddress(address))
+                    block()
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
-                    Log.w(TAG, "addControlee failed", e)
+                    Log.w(TAG, "$what failed", e)
                 }
             }
         }
@@ -154,6 +231,12 @@ class UwbFinder(
     companion object {
         private const val TAG = "UwbFinder"
         private const val K = "UWB (looking)"
+
+        /** A friend not heard for this long isn't counted as ready (unless they're in the session). */
+        private const val READY_FOR_MS = 30_000L
+
+        /** Swaps when there are too few places: one round at most this often, except for the focused friend. */
+        private const val SWAP_GAP_MS = 15_000L
 
         /**
          * TODO: confirm on a real phone. We want positive = friend is to the RIGHT.

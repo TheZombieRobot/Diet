@@ -112,6 +112,8 @@ class LocatorEngine(
                     ),
                 )
             },
+            // The nearest get the UWB places when there are more mates than places (core UwbSlots).
+            distanceOf = { id -> arbiter.distanceFor(id, System.currentTimeMillis()) },
         )
     } else {
         null
@@ -385,7 +387,20 @@ class LocatorEngine(
             _scan.value = null
         }
         _tracking.value = friendIds
+        uwb?.focus(focusedMate())
     }
+
+    /** The mate the finder's crew view is focused on (null: the whole crew). */
+    private var focusedInFinder: String? = null
+
+    /** The finder is showing just [friendId] in its crew view (null: everyone again). Their UWB place comes first. */
+    fun focus(friendId: String?) {
+        focusedInFinder = friendId
+        uwb?.focus(focusedMate())
+    }
+
+    /** Who UWB serves first: the mate focused in the finder, or the only one being found. */
+    private fun focusedMate(): String? = focusedInFinder?.takeIf { it in _tracking.value } ?: _tracking.value.singleOrNull()
 
     private fun trackedFriends(): List<Friend> = _tracking.value.mapNotNull(FriendsRepository::byId)
 
