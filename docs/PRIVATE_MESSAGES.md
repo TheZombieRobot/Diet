@@ -260,6 +260,9 @@ and ignores types it doesn't know.
   message" (no name, no words), so a phone set to hide sensitive content on the lock screen shows
   nothing else. On a phone set to show everything, it shows like any messaging app (that is the
   phone's own setting for every app). Not while that thread is on screen, never for a muted person.
+  Each thread's notification has an id in a range of its own (`0x50000000` up, 2^28 wide), so
+  it can't replace a crew chat notification or another person's thread (added at merge: the
+  first version used 9600–9899, inside crew chat's 9000–9899, and only 300 ids for every thread).
 - **Unread mark:** a count per person, cleared when you open the thread.
 
 ### 6. Who
