@@ -23,13 +23,6 @@ object PrivateRule {
     /** What can be typed: the crew chat's limit (sealed, it's cut to 160 bytes too). */
     const val MAX_CHARS = 140
 
-    /** The id for a new message: 8 random bytes, never 0 (0 means "none" everywhere). */
-    fun newId(random: java.util.Random = java.security.SecureRandom()): Long {
-        var id: Long
-        do id = random.nextLong() while (id == 0L)
-        return id
-    }
-
     /** Should a message stamped [timeSec] be taken at [nowSec] (this phone's clock)? A future stamp is fine: it sorts at arrival. */
     fun accepts(timeSec: Long, nowSec: Long): Boolean = timeSec >= nowSec - MAX_AGE_SEC
 
@@ -52,9 +45,11 @@ class PrivateBook(
     /**
      * One message in a thread. [sortSec] is where it sorts ([MessageClock.sortTime]: its own time,
      * unless that was in the future when it arrived). [state] is [OutboxState]'s, for our own.
+     * [body]: for our own until the relay has it, the message as sealed (GigGroup.privateBody), so
+     * it can be sent again exactly as it was, with its id.
      */
-    class Line(val id: Long, val timeSec: Long, val sortSec: Long, val text: String, val mine: Boolean, val state: Int) {
-        fun withState(s: Int) = Line(id, timeSec, sortSec, text, mine, s)
+    class Line(val id: Long, val timeSec: Long, val sortSec: Long, val text: String, val mine: Boolean, val state: Int, val body: ByteArray? = null) {
+        fun withState(s: Int) = Line(id, timeSec, sortSec, text, mine, s, if (s == OutboxState.SENT) null else body)
     }
 
     /** What came of a message that arrived: [shown] in a thread; [alert] = notify (not muted, not on screen). */
@@ -118,12 +113,12 @@ class PrivateBook(
     /** Everyone with messages waiting to turn out to be a crew mate (see [known]). */
     fun waitingSenders(): Set<Long> = pending.map { it.first }.toSet()
 
-    /** One of ours to [mate] (signing key [matePub]), as just sent. */
-    fun own(mate: Long, matePub: ByteArray, id: Long, timeSec: Long, text: String, state: Int, nowSec: Long) {
+    /** One of ours to [mate] (signing key [matePub]), as just sent; [body] as sealed (kept until the relay has it). */
+    fun own(mate: Long, matePub: ByteArray, id: Long, timeSec: Long, text: String, state: Int, nowSec: Long, body: ByteArray? = null) {
         remember(id)
         val t = thread(mate, matePub)
         if (t.lines.any { it.id == id }) return
-        insert(t, Line(id, timeSec, MessageClock.sortTime(timeSec, nowSec), text, mine = true, state = state))
+        insert(t, Line(id, timeSec, MessageClock.sortTime(timeSec, nowSec), text, mine = true, state = state, body = body?.takeIf { state != OutboxState.SENT }))
     }
 
     /**
@@ -280,6 +275,9 @@ class PrivateBook(
         d.writeBoolean(l.mine)
         d.writeByte(l.state)
         d.writeUTF(l.text)
+        val body = l.body
+        d.writeShort(body?.size ?: 0)
+        if (body != null) d.write(body)
     }
 
     private fun readLine(d: DataInputStream): Line {
@@ -288,7 +286,10 @@ class PrivateBook(
         val sort = d.readLong()
         val mine = d.readBoolean()
         val state = d.readUnsignedByte()
-        return Line(id, time, sort, d.readUTF(), mine, state)
+        val text = d.readUTF()
+        val n = d.readUnsignedShort()
+        val body = if (n > 0) ByteArray(n).also { d.readFully(it) } else null
+        return Line(id, time, sort, text, mine, state, body)
     }
 
     private companion object {

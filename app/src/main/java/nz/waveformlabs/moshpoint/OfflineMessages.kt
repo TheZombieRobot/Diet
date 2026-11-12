@@ -200,6 +200,14 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
     /** The state to show for a message just handed to [post]: still trying, or already known to be waiting. */
     fun firstState(): Int = if (RelayClient.offline) CrewChat.WAITING else CrewChat.SENDING
 
+    /** Stop sending these messages of ours (private ones to someone just removed from the crew). */
+    fun letGo(c: Context, ids: Collection<Long>) {
+        if (ids.isEmpty()) return
+        init(c)
+        ids.forEach { courier.letGo(it) }
+        save()
+    }
+
     /** Is the courier still looking after the message with this id? */
     fun holds(id: Long): Boolean = id != 0L && courier.stateOf(id) != null
 
@@ -412,12 +420,6 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
         CrewChat.setStateById(c, g, GigGroup.idText(id), s)
         // Or one of our private messages (whichever holds that id).
         PrivateMessages.stateChanged(c, crewId, id, s)
-    }
-
-    /** The crew moved to a new key: our unsent private message [id] is sealed again from its thread, with its id. */
-    override fun resealPrivate(crew: Courier.Crew, id: Long): ByteArray? {
-        val c = app ?: return null
-        return PrivateMessages.reseal(c, crew.id, crew.group, crew.signer, id)
     }
 
     override fun paused(crewId: String, on: Boolean) {

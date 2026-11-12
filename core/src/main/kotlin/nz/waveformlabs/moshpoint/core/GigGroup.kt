@@ -687,9 +687,9 @@ class GigGroup(
      * [fromPub] and [toPub] are the two people's signing keys in this crew.
      */
     class Private(
-        /** The same for every copy and route, and after the crew moves to a new key. */
+        /** The same for every copy and route, and after the crew moves to a new key (see [privateId]). */
         val id: Long,
-        /** By the sender's clock (unix s). */
+        /** By the sender's clock (unix s), as they signed it. */
         val timeSec: Long,
         /** [TEXT]; a reader ignores kinds it doesn't know. */
         val kind: Int,
@@ -711,46 +711,53 @@ class GigGroup(
         }
     }
 
-    /** What any crew phone can read of a private message: its id and time, never who it's from or who it's for. */
-    class PrivateOuter(val id: Long, val timeSec: Long)
+    /** What any crew phone can read of a private message: its id and the time on its envelope, never who it's from or who it's for. */
+    class PrivateOuter(val id: Long, val timeSec: Long, val body: ByteArray)
 
     /**
-     * Seal [text] for the one crew mate whose signing key is [toPub], signed by [from]. Null if
-     * [toPub] isn't a key, or is our own. [id]: see [PrivateRule.newId]; pass the same one again
-     * to seal the same message again (after the crew moves to a new key).
-     *
-     * An [Envelope] of type [ENV_PRIVATE] whose body is `[ver:1][id:8][ephemeral key:33][sealed]`.
-     * The sealed part is AES-GCM under a key from ECDH between a fresh key pair (dropped once
-     * this returns) and [toPub], bound to this crew, the time, the id and the ephemeral key. Inside:
-     * `[sender key:33][signature:64][len:2][kind:1][text length:1][text]`, zero-padded so every
-     * private message is exactly [PRIVATE_BYTES] long, whatever it says. The signature covers this
-     * crew, the time, the id, the recipient's key and the fields. Crew phones see the id and the
-     * time; nobody but the recipient sees who it's from or for.
+     * Seal [text] for the one crew mate whose signing key is [toPub], signed by [from]: the whole
+     * message, in this crew's envelope. Null if [toPub] isn't a key, or is our own.
      */
     fun sealPrivate(
         from: CrewKeys.Signer,
         toPub: ByteArray,
         text: String,
         timeSec: Long,
-        id: Long,
         kind: Int = Private.TEXT,
         random: java.security.SecureRandom = java.security.SecureRandom(),
-    ): ByteArray? {
-        if (id == 0L || toPub.size != CrewKeys.PUB_BYTES || toPub.contentEquals(from.pub) || CrewKeys.publicKey(toPub) == null) return null
+    ): ByteArray? = privateBody(from, toPub, text, timeSec, kind)?.let { wrapPrivate(it, timeSec, random) }
+
+    /**
+     * The part of a private message that doesn't depend on the crew key:
+     * `[ver:1][ephemeral key:33][sealed]`. The sealed part is AES-GCM under a key from ECDH between
+     * a fresh key pair (dropped once this returns) and [toPub]. Inside:
+     * `[sender key:33][signature:64][time:4][len:2][kind:1][text length:1][text]`, zero-padded so
+     * every private message is exactly [PRIVATE_BYTES] long, whatever it says. The signature covers
+     * the time, the recipient's key and the fields. Nobody but the recipient sees who it's from,
+     * who it's for, or when it says it was sent.
+     *
+     * Its id is a hash of these bytes ([privateId]), so nothing else can claim it. After the crew
+     * moves to a new key, the same bytes go in the new key's envelope ([wrapPrivate]): same id.
+     */
+    fun privateBody(from: CrewKeys.Signer, toPub: ByteArray, text: String, timeSec: Long, kind: Int = Private.TEXT): ByteArray? {
+        if (toPub.size != CrewKeys.PUB_BYTES || toPub.contentEquals(from.pub) || CrewKeys.publicKey(toPub) == null) return null
         val t = trimUtf8(text.toByteArray(Charsets.UTF_8), Private.MAX_TEXT_BYTES)
         val fields = byteArrayOf(kind.toByte(), t.size.toByte()) + t
-        val idBytes = ByteBuffer.allocate(8).putLong(id).array()
-        val sig = CrewKeys.sign(from, privateSigned(timeSec, idBytes, toPub, fields))
+        val sig = CrewKeys.sign(from, privateSigned(timeSec, toPub, fields))
         // The rest of the buffer stays zero: the padding.
-        val inner = ByteBuffer.allocate(PRIVATE_INNER_BYTES).put(from.pub).put(sig).putShort(fields.size.toShort()).put(fields).array()
+        val inner = ByteBuffer.allocate(PRIVATE_INNER_BYTES).put(from.pub).put(sig).putInt(timeSec.toInt())
+            .putShort(fields.size.toShort()).put(fields).array()
         val eph = CrewKeys.generate()
         val z = CrewKeys.agree(eph, toPub, PRIVATE_LABEL) ?: return null
         val c = Cipher.getInstance("AES/GCM/NoPadding")
-        c.init(Cipher.ENCRYPT_MODE, privateKey(z, idBytes, eph.pub, toPub), GCMParameterSpec(128, privateNonce(z, idBytes)))
-        c.updateAAD(privateAad(timeSec, idBytes, eph.pub))
-        val body = byteArrayOf(PRIVATE_VERSION.toByte()) + idBytes + eph.pub + c.doFinal(inner)
-        return sealEnvelope(ENV_PRIVATE, body, timeSec, random)
+        c.init(Cipher.ENCRYPT_MODE, privateKey(z, eph.pub, toPub), GCMParameterSpec(128, privateNonce(z)))
+        c.updateAAD(privateAad(PRIVATE_VERSION, eph.pub))
+        return byteArrayOf(PRIVATE_VERSION.toByte()) + eph.pub + c.doFinal(inner)
     }
+
+    /** A private message's [body] in this crew's envelope, stamped [timeSec] on the outside (what crew phones carrying it go by). */
+    fun wrapPrivate(body: ByteArray, timeSec: Long, random: java.security.SecureRandom = java.security.SecureRandom()): ByteArray =
+        sealEnvelope(ENV_PRIVATE, body, timeSec, random)
 
     /**
      * The part of an opened envelope any crew phone can read, if it's a private message: enough to
@@ -761,9 +768,8 @@ class GigGroup(
         val b = env.body
         // Any version from 1 up is carried, so a later build's messages still travel through this one.
         if (b.size < PRIVATE_HEAD_BYTES + 16 + 1 || (b[0].toInt() and 0xFF) < 1) return null
-        val id = ByteBuffer.wrap(b, 1, 8).long
-        if (id == 0L || CrewKeys.publicKey(b.copyOfRange(9, PRIVATE_HEAD_BYTES)) == null) return null
-        return PrivateOuter(id, env.timeSec)
+        if (CrewKeys.publicKey(b.copyOfRange(1, PRIVATE_HEAD_BYTES)) == null) return null
+        return PrivateOuter(privateId(b), env.timeSec, b)
     }
 
     /** The private message inside an opened envelope, if it's for [me] and intact; null for everyone else. */
@@ -772,50 +778,43 @@ class GigGroup(
         val b = env.body
         if (b.size != PRIVATE_BODY_BYTES || (b[0].toInt() and 0xFF) != PRIVATE_VERSION) return null
         return runCatching {
-            val idBytes = b.copyOfRange(1, 9)
-            val id = ByteBuffer.wrap(idBytes).long
-            if (id == 0L) return null
-            val eph = b.copyOfRange(9, PRIVATE_HEAD_BYTES)
+            val eph = b.copyOfRange(1, PRIVATE_HEAD_BYTES)
             val z = CrewKeys.agree(me, eph, PRIVATE_LABEL) ?: return null
             val c = Cipher.getInstance("AES/GCM/NoPadding")
-            c.init(Cipher.DECRYPT_MODE, privateKey(z, idBytes, eph, me.pub), GCMParameterSpec(128, privateNonce(z, idBytes)))
-            c.updateAAD(privateAad(env.timeSec, idBytes, eph))
+            c.init(Cipher.DECRYPT_MODE, privateKey(z, eph, me.pub), GCMParameterSpec(128, privateNonce(z)))
+            c.updateAAD(privateAad(PRIVATE_VERSION, eph))
             // Not for us: this fails here, at the tag, before anything else is looked at.
-            val inner = c.doFinal(b, PRIVATE_HEAD_BYTES, b.size - PRIVATE_HEAD_BYTES)
-            val fromPub = inner.copyOfRange(0, CrewKeys.PUB_BYTES)
-            val sig = inner.copyOfRange(CrewKeys.PUB_BYTES, CrewKeys.PUB_BYTES + CrewKeys.SIG_BYTES)
-            val at = CrewKeys.PUB_BYTES + CrewKeys.SIG_BYTES
-            val n = ((inner[at].toInt() and 0xFF) shl 8) or (inner[at + 1].toInt() and 0xFF)
-            if (n < 2 || at + 2 + n > inner.size) return null
-            val fields = inner.copyOfRange(at + 2, at + 2 + n)
-            // Nobody sends one to themselves; the signature must be the sender's, for us, in this crew.
+            val inner = ByteBuffer.wrap(c.doFinal(b, PRIVATE_HEAD_BYTES, b.size - PRIVATE_HEAD_BYTES))
+            val fromPub = ByteArray(CrewKeys.PUB_BYTES).also { inner.get(it) }
+            val sig = ByteArray(CrewKeys.SIG_BYTES).also { inner.get(it) }
+            val time = inner.int.toLong() and 0xFFFFFFFFL
+            val n = inner.short.toInt() and 0xFFFF
+            if (n < 2 || n > inner.remaining()) return null
+            val fields = ByteArray(n).also { inner.get(it) }
+            // Nobody sends one to themselves; the signature must be the sender's, and name us.
             if (fromPub.contentEquals(me.pub)) return null
-            if (!CrewKeys.verify(fromPub, privateSigned(env.timeSec, idBytes, me.pub, fields), sig)) return null
+            if (!CrewKeys.verify(fromPub, privateSigned(time, me.pub, fields), sig)) return null
             val kind = fields[0].toInt() and 0xFF
             val tn = fields[1].toInt() and 0xFF
             if (2 + tn > fields.size) return null
-            Private(id, env.timeSec, kind, String(fields, 2, tn, Charsets.UTF_8), fromPub, me.pub.copyOf())
+            Private(privateId(b), time, kind, String(fields, 2, tn, Charsets.UTF_8), fromPub, me.pub.copyOf())
         }.getOrNull()
     }
 
     /** A private message for [me] in this crew, or null (for anyone else, or anything else). */
     fun openPrivate(blob: ByteArray, me: CrewKeys.Signer): Private? = openEnvelope(blob)?.let { privateOf(it, me) }
 
-    /** What a private message's signature covers: this crew, when, its id, who it's for, and every field. */
-    private fun privateSigned(timeSec: Long, id: ByteArray, toPub: ByteArray, fields: ByteArray): ByteArray =
-        PRIVATE_LABEL.toByteArray() + sigTag() + ByteBuffer.allocate(4).putInt(timeSec.toInt()).array() + id + toPub + fields
+    /** What a private message's signature covers: when, who it's for, and every field. */
+    private fun privateSigned(timeSec: Long, toPub: ByteArray, fields: ByteArray): ByteArray =
+        PRIVATE_LABEL.toByteArray() + ByteBuffer.allocate(4).putInt(timeSec.toInt()).array() + toPub + fields
 
-    /** What the sealed part is bound to: this crew, when, and everything in front of it. */
-    private fun privateAad(timeSec: Long, id: ByteArray, eph: ByteArray): ByteArray =
-        PRIVATE_LABEL.toByteArray() + sigTag() + ByteBuffer.allocate(4).putInt(timeSec.toInt()).array() + byteArrayOf(PRIVATE_VERSION.toByte()) + id + eph
+    /** What the sealed part is bound to: everything in front of it. */
+    private fun privateAad(ver: Int, eph: ByteArray): ByteArray = PRIVATE_LABEL.toByteArray() + byteArrayOf(ver.toByte()) + eph
 
-    private fun privateKey(z: ByteArray, id: ByteArray, eph: ByteArray, toPub: ByteArray) =
-        SecretKeySpec(hmac(z, "mp-pm1 key".toByteArray() + id + eph + toPub).copyOf(16), "AES")
+    private fun privateKey(z: ByteArray, eph: ByteArray, toPub: ByteArray) =
+        SecretKeySpec(hmac(z, "mp-pm1 key".toByteArray() + eph + toPub).copyOf(16), "AES")
 
-    private fun privateNonce(z: ByteArray, id: ByteArray): ByteArray = hmac(z, "mp-pm1 nonce".toByteArray() + id).copyOf(12)
-
-    /** This crew's signing tag: what every signature names, so nothing signed in one crew counts in another. */
-    private fun sigTag(): ByteArray = hmac(key, "moshpoint-group-sig".toByteArray()).copyOf(8)
+    private fun privateNonce(z: ByteArray): ByteArray = hmac(z, "mp-pm1 nonce".toByteArray()).copyOf(12)
 
     private fun aesKey() = SecretKeySpec(hmac(key, "moshpoint-group-aes".toByteArray()).copyOf(16), "AES")
 
@@ -867,14 +866,27 @@ class GigGroup(
         const val ENV_PRIVATE = 16
         private const val PRIVATE_VERSION = 1
         private const val PRIVATE_LABEL = "mp-pm1"
-        /** `[ver:1][id:8][ephemeral key:33]`, in front of the sealed part. */
-        private const val PRIVATE_HEAD_BYTES = 1 + 8 + CrewKeys.PUB_BYTES
+        /** `[ver:1][ephemeral key:33]`, in front of the sealed part. */
+        private const val PRIVATE_HEAD_BYTES = 1 + CrewKeys.PUB_BYTES
         /** Room for the fields: `[kind:1][text length:1][text]`, the longest text, and a little spare. */
         private const val PRIVATE_FIELDS_BYTES = 168
-        private const val PRIVATE_INNER_BYTES = CrewKeys.PUB_BYTES + CrewKeys.SIG_BYTES + 2 + PRIVATE_FIELDS_BYTES
+        private const val PRIVATE_INNER_BYTES = CrewKeys.PUB_BYTES + CrewKeys.SIG_BYTES + 4 + 2 + PRIVATE_FIELDS_BYTES
         private const val PRIVATE_BODY_BYTES = PRIVATE_HEAD_BYTES + PRIVATE_INNER_BYTES + 16
         /** Every private message, sealed: always this long (two Bluetooth packets), so its size says nothing. */
         const val PRIVATE_BYTES = 352
+
+        /**
+         * A private message's id: a hash of its body (see [privateBody]), so it's the same for every
+         * copy and route and after a rekey (the same body in a new envelope), and nobody can make
+         * something else that claims it.
+         */
+        fun privateId(body: ByteArray): Long {
+            val md = java.security.MessageDigest.getInstance("SHA-256")
+            md.update("mp-pm1 id".toByteArray())
+            md.update(body)
+            val id = ByteBuffer.wrap(md.digest()).long
+            return if (id == 0L) 1L else id
+        }
 
         /** Direct-message kinds 1 and 2 are "keep as friend" (see the app's Friendship). */
         const val DIRECT_REKEY = 3

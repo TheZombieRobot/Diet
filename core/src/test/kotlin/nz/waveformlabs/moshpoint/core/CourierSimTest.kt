@@ -134,20 +134,15 @@ class CourierSimTest {
 
         fun chat(text: String) = post(GigGroup.Ping.CHAT, text)
 
-        /** What we sent privately (to whom, what, when), so it can be sealed again after a rekey, as the app does from its threads. */
-        val sentPrivately = HashMap<Long, Triple<ByteArray, String, Long>>()
-
         /** A private message to [to]. Returns its id. */
         fun pm(to: Phone, text: String): Long {
             val c = crew!!
             val t = MessageClock.stamp(now / 1000, 0L, lastOwn)
             lastOwn = t
-            val id = PrivateRule.newId(world.rnd)
-            val sealed = assertNotNull(c.group.sealPrivate(signer, to.signer.pub, text, t, id))
-            sentPrivately[id] = Triple(to.signer.pub, text, t)
-            assertNotNull(courier.post(c.id, sealed, now), "$name couldn't post a private message")
+            val sealed = assertNotNull(c.group.sealPrivate(signer, to.signer.pub, text, t))
+            val m = assertNotNull(courier.post(c.id, sealed, now), "$name couldn't post a private message")
             courier.tick(now)
-            return id
+            return m.id
         }
 
         /** Private messages this phone was shown, by id. */
@@ -238,9 +233,6 @@ class CourierSimTest {
         }
 
         override fun ready() = live
-
-        override fun resealPrivate(crew: Courier.Crew, id: Long): ByteArray? =
-            sentPrivately[id]?.let { (to, text, t) -> crew.group.sealPrivate(signer, to, text, t, id) }
     }
 
     private companion object {
@@ -1375,13 +1367,37 @@ class CourierSimTest {
         assertTrue(w.relay.get(crewId, Courier.Box.PRIVATE).isEmpty(), "never under the old key")
         assertEquals("did you get the new invite?", b.privately()[id]?.text)
         assertEquals(Courier.State.SENT, a.state(id))
-        // The app couldn't seal it again (its thread had gone, say): it's let go, not sent under the old key.
-        val c = Phone("C", w, fresh)
-        val gone = c.pm(b, "never mind")
-        c.sentPrivately.clear()
-        val newer = GigGroup(ByteArray(32) { (it + 140).toByte() }, group.name, 0L)
-        c.moveTo(newer)
-        assertNull(c.courier.stateOf(gone))
+        assertEquals(1, b.got.count { it.id == id })
+        // One to someone being removed is let go before the move (as the app does): never sent on.
+        val r = Phone("R", w, fresh)
+        a.online = false
+        val toR = a.pm(r, "you there?")
+        a.courier.letGo(toR)
+        assertNull(a.courier.stateOf(toR))
+        a.moveTo(GigGroup(ByteArray(32) { (it + 150).toByte() }, group.name, 0L))
+        assertNull(a.courier.stateOf(toR))
+    }
+
+    @Test fun aHostileCrewPhoneCantHideAPrivateMessageFromItsRecipient() {
+        // H holds the crew key and sees A's message on the relay. It posts altered copies (and the
+        // real one in a newer envelope) to the same mailbox, newer than the real one, hoping B's
+        // phone takes one of those as "already had" and never shows the real one.
+        val w = World()
+        val a = Phone("A", w, group)
+        val b = Phone("B", w, group)
+        a.online = true
+        val id = a.pm(b, "it's me, A")
+        w.run(30)
+        val real = group.openEnvelope(w.relay.get(crewId, Courier.Box.PRIVATE).single())!!
+        repeat(5) { i ->
+            val altered = real.body.copyOf().also { it[40 + i * 50] = (it[40 + i * 50].toInt() xor 1).toByte() }
+            w.relay.put(Courier.Upload(crewId, 0, Courier.Box.PRIVATE, group.wrapPrivate(altered, real.timeSec), RelayUse.MESSAGE, false))
+        }
+        w.relay.put(Courier.Upload(crewId, 0, Courier.Box.PRIVATE, group.wrapPrivate(real.body, real.timeSec + 600), RelayUse.MESSAGE, false))
+        b.online = true
+        w.run(60)
+        assertEquals("it's me, A", b.privately()[id]?.text)
+        assertEquals(1, b.got.size)
     }
 
     @Test fun aHelperNeverFillsThePrivateMailboxPastItsLimit() {
@@ -1432,7 +1448,7 @@ class CourierSimTest {
         val a = Phone("A", w, group)
         val b = Phone("B", w, group)
         w.link(a, b)
-        val real = assertNotNull(group.sealPrivate(a.signer, b.signer.pub, "hello from a newer build", a.now / 1000, 77L))
+        val real = assertNotNull(group.sealPrivate(a.signer, b.signer.pub, "hello from a newer build", a.now / 1000))
         val body = group.openEnvelope(real)!!.body
         val unknownType = group.sealEnvelope(GigGroup.ENV_PRIVATE + 1, body, a.now / 1000)
         repeat(3) {

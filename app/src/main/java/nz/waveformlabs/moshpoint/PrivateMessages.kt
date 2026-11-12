@@ -211,13 +211,13 @@ object PrivateMessages {
         // After the newest message in the thread, so a reply never sorts above what it answers.
         val time = MessageClock.stamp(nowSec, book.newest(o.mate), lastOwnSec[o.crewId] ?: 0L)
         lastOwnSec[o.crewId] = time
-        val id = PrivateRule.newId()
-        val sealed = g.sealPrivate(Identity.signer(app, g), pub, t, time, id) ?: return
-        book.own(o.mate, pub, id, time, t, OfflineMessages.firstState(), nowSec)
+        // Sealed once (kept until the relay has it): these same bytes go by the relay, by Bluetooth, or both.
+        val body = g.privateBody(Identity.signer(app, g), pub, t, time) ?: return
+        val id = GigGroup.privateId(body)
+        book.own(o.mate, pub, id, time, t, OfflineMessages.firstState(), nowSec, body)
         save(app, o.crewId)
         refresh(app)
-        // Sealed once: these same bytes go by the relay, by Bluetooth, or both.
-        if (OfflineMessages.post(app, g, sealed) == null) {
+        if (OfflineMessages.post(app, g, g.wrapPrivate(body, time)) == null) {
             book.setState(id, OutboxState.FAILED)
             save(app, o.crewId)
             refresh(app)
@@ -230,8 +230,8 @@ object PrivateMessages {
         val app = c.applicationContext
         val id = runCatching { java.lang.Long.parseUnsignedLong(line.id, 16) }.getOrNull() ?: return
         val g = crewOf(app, o.crewId) ?: return
-        // The courier let it go (it said "Not sent", or its queue was lost): sealed again, with its id.
-        if (!OfflineMessages.holds(id)) reseal(app, o.crewId, g, Identity.signer(app, g), id)?.let { OfflineMessages.post(app, g, it) }
+        // The courier let it go (it said "Not sent", or its queue was lost): the same message again, with its id.
+        if (!OfflineMessages.holds(id)) rewrap(app, o.crewId, g, id)?.let { OfflineMessages.post(app, g, it) }
         if (line.state == OutboxState.FAILED && book(app, o.crewId).setState(id, OfflineMessages.firstState()) != null) {
             save(app, o.crewId)
             refresh(app)
@@ -240,15 +240,14 @@ object PrivateMessages {
     }
 
     /**
-     * Our private message [id] sealed again for crew [g] (signed by [signer]) with the same id:
-     * after the crew moved to a new key, or to retry one the courier let go. Null if it's no
-     * longer in a thread (its recipient was removed, say): then it isn't sent.
+     * Our private message [id] exactly as it was sealed, in crew [g]'s envelope (same id), to try
+     * again one the courier let go. Null if it's no longer in a thread (its recipient was removed,
+     * say) or the relay already has it: then it isn't sent.
      */
-    fun reseal(c: Context, crewId: String, g: GigGroup, signer: CrewKeys.Signer, id: Long): ByteArray? {
-        val book = book(c.applicationContext, crewId)
-        val (mate, line) = book.ownLine(id) ?: return null
-        val pub = book.pubOf(mate) ?: return null
-        return g.sealPrivate(signer, pub, line.text, line.timeSec, id)
+    private fun rewrap(c: Context, crewId: String, g: GigGroup, id: Long): ByteArray? {
+        val (_, line) = book(c.applicationContext, crewId).ownLine(id) ?: return null
+        val body = line.body ?: return null
+        return g.wrapPrivate(body, line.timeSec)
     }
 
     /** From each chat check: our own that the courier isn't looking after (a lost queue, a restart at the wrong moment) go back in. */
@@ -269,7 +268,7 @@ object PrivateMessages {
                         book.setState(l.id, OutboxState.FAILED)
                     } else {
                         n++
-                        reseal(app, crewId, g, Identity.signer(app, g), l.id)?.let { OfflineMessages.post(app, g, it) }
+                        rewrap(app, crewId, g, l.id)?.let { OfflineMessages.post(app, g, it) }
                     }
                 }
             }
@@ -386,8 +385,8 @@ object PrivateMessages {
 
     /**
      * The crew moved to a new key ([fresh]): the threads move with it (same people, same signing
-     * keys), without [removed]. Called before the courier seals our unsent ones again, so nothing
-     * goes to someone who was removed.
+     * keys), without [removed]. (The courier puts our unsent ones in the new key's envelope itself;
+     * one to someone removed goes nowhere: they can't open the new key's envelope.)
      */
     fun migrate(c: Context, old: GigGroup, fresh: GigGroup, removed: Set<Long>) {
         val app = c.applicationContext
@@ -395,6 +394,8 @@ object PrivateMessages {
         val to = GigArchive.idFor(fresh)
         if (prefs(app).getString(from, null) == null && from !in books) return
         val book = book(app, from)
+        // Ours to them that haven't gone yet stop here (they couldn't open them under the new key anyway).
+        OfflineMessages.letGo(app, removed.flatMap { tag -> book.thread(tag).filter { it.mine && it.state != OutboxState.SENT }.map { it.id } })
         book.drop(removed)
         books.remove(from)
         books[to] = book

@@ -110,13 +110,6 @@ class Courier(
 
         /** For the test builds' route log. */
         fun trace(id: Long, kind: Int, what: String)
-
-        /**
-         * The crew moved to a new key ([crew]): seal our private message [id] again for it, with
-         * the same id (GigGroup.sealPrivate), or null to let it go. Only the app can: a private
-         * message is sealed to its recipient, so the courier can't open the ones it sends.
-         */
-        fun resealPrivate(crew: Crew, id: Long): ByteArray? = null
     }
 
     /** The relay server. */
@@ -318,6 +311,17 @@ class Courier(
             }
         }
         tick(nowMs)
+    }
+
+    /**
+     * Stop sending our message [id] (one to someone who has just been removed from the crew, say):
+     * it's dropped from the queue, whatever state it's in.
+     */
+    fun letGo(id: Long) {
+        if (parcels[id]?.mine != true) return
+        parcels.remove(id)
+        pushes.remove(id)
+        dirty = true
     }
 
     /** Is the courier keeping our "I'm here" message [id] going (on the relay, and on air when there's no signal)? */
@@ -1059,8 +1063,8 @@ class Courier(
         setCrews(list, nowMs)
         for (p in mineUnsent) {
             val again = if (p.kind == KIND_PRIVATE) {
-                // Sealed to its recipient: only the app, which kept what it said and to whom, can seal it again.
-                host.resealPrivate(fresh, p.id)
+                // Sealed to its recipient, not to the crew key: the same body goes in the new key's envelope, so its id stays.
+                old.group.openEnvelope(p.sealed)?.let { env -> old.group.privateOuterOf(env)?.let { fresh.group.wrapPrivate(it.body, env.timeSec, secure) } }
             } else {
                 val m = open(old, p.sealed) ?: continue
                 m.ping?.let { fresh.group.sealPing(it, fresh.signer, secure) }

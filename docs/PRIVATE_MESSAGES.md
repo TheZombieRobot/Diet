@@ -17,7 +17,7 @@ _Handover, kept current at every push. Branch `claude/private-messages-p7m2xd`, 
 |---|---|
 | 1. This note: a decision for each hard problem | **done** (first version; corrected as the code lands) |
 | 2. Core: sealing and opening (`GigGroup.sealPrivate` / `openPrivate`, `ENV_PRIVATE`), the private mailbox id, `PrivateRule`, `PrivateBook` (threads, replays, pending senders, mute, unread), with tests | **done.** `GigGroup` (additions only), `CrewKeys.agree(…, label)`, `core/Private.kt`; `PrivateTest` (20 tests) passes locally |
-| 3. Core: the courier carries it (`KIND_PRIVATE`, `Box.PRIVATE`, receipts, re-seal after a rekey), `CourierSimTest` cases incl. older builds | **done.** `Courier`: `Message.pm`, `KIND_PRIVATE`, `Box.PRIVATE` (held like the chat: 180 for helpers), no crowd hops, `Host.resealPrivate`; 8 new `CourierSimTest` cases; the whole core suite (472) passes locally |
+| 3. Core: the courier carries it (`KIND_PRIVATE`, `Box.PRIVATE`, receipts, re-seal after a rekey), `CourierSimTest` cases incl. older builds | **done.** `Courier`: `Message.pm`, `KIND_PRIVATE`, `Box.PRIVATE` (held like the chat: 180 for helpers), no crowd hops, a rekey re-wraps ours in the new envelope, `letGo`; 9 new `CourierSimTest` cases; the whole core suite passes locally |
 | 4. App: `PrivateMessages` adapter (store, relay fetch in `ChatSync`, courier hook-up, notifications, mute), screens (options dialog, finder, thread), `strings_private.xml` in 20 folders | **written, waiting for CI to compile it.** `PrivateMessages.kt`, `ui/PrivateChatUi.kt` (+ `UnreadBadge`), hooks in `OfflineMessages`, `ChatSync.pollAll`, `CrewRekey.migrate`, `GroupSync` (forget, intro), `Crews.dropExpired`, `CrewNotifications` (thread + lock screen), `MainActivity` (overlay, two entry points, notification intent), `FriendsScreen` / `HomeSections` (option + badge), `FinderScreen` (button), `CrewChatUi.ChatLine` now internal. `strings_private.xml` in English and 19 languages (`tools/check_translation.py` OK for every folder) |
 | 5. Screenshot tests (`PrivateSnapshotTest`, own package, every language) | **written**, not yet rendered by CI: `app/src/test/java/nz/waveformlabs/moshpoint/privatemsg/PrivateSnapshotTest.kt` |
 | 6. Field test (two phones), roadmap, architecture and privacy notes | **done.** `FIELD_TEST_PLAN.md` section 4e and a known limit; `ROADMAP.md` step 4 status; `ARCHITECTURE.md` section; `PRIVACY.md` paragraph. Still to add: a "private messages" section at the end of each `docs/i18n/*.md` |
@@ -61,25 +61,30 @@ an `mp2` envelope of type `ENV_PRIVATE`.** `sealDirect` and its users are untouc
 
 ```
 crew-key layer (mp2 envelope, as every new crew message):  [time:4][nonce:8] AES-GCM(type 16, body)
-body, which any crew phone can read:   [ver:1][id:8][ephemeral key:33][sealed part]
-sealed part, only the recipient opens: AES-GCM( [sender key:33][signature:64][len:2]
+body, which any crew phone can read:   [ver:1][ephemeral key:33][sealed part]
+sealed part, only the recipient opens: AES-GCM( [sender key:33][signature:64][time:4][len:2]
                                                 [kind:1][text length:1][text] [zero padding] )
+message id = the first 8 bytes of SHA-256("mp-pm1 id", body)
 ```
 
 - **Sealing.** A fresh P-256 key pair for every message. The sealed part's key and nonce come from
   ECDH between that ephemeral key and the recipient's crew signing key (`CrewKeys.agree` with its
-  own label, `"mp-pm1"`), run through HMAC-SHA-256 with the id, the ephemeral key and the
-  recipient's key. The ephemeral private key is dropped as soon as the message is sealed.
-- **Bound to its outside.** The sealed part's associated data is the crew's signing tag, the time,
-  the version, the id and the ephemeral key, so nobody can move it under another id, time or crew.
+  own label, `"mp-pm1"`), run through HMAC-SHA-256 with the ephemeral key and the recipient's key.
+  The ephemeral private key is dropped as soon as the message is sealed. The sealed part is bound
+  (associated data) to the version and the ephemeral key in front of it.
 - **Signed.** The sender's key and signature are inside the sealed part only. The signature covers
-  `"mp-pm1"`, the crew's signing tag (so it only counts in this crew), the time, the id, **the
-  recipient's key** (so the recipient can't pass it on to a third mate as if it had been sent to
-  them) and the fields. Readers take the fields they know and ignore anything a later version adds
-  under the signature.
+  `"mp-pm1"`, the time, **the recipient's key** (so the recipient can't pass it on to a third mate
+  as if it had been sent to them) and the fields. Readers take the fields they know and ignore
+  anything a later version adds under the signature.
+- **Not bound to the crew key, on purpose.** Everyone has a different signing key in every crew,
+  so a message sealed to Sam's key in one crew opens nowhere else; across a rekey (same crew, same
+  signing keys) the *same body* goes into the new key's envelope, so it keeps its id. The time the
+  sender signed is inside; the envelope's own time, which anyone with the crew key could change by
+  re-wrapping, is only what carrying phones go by.
 - **Who can open what.** Strangers and the relay: nothing (crew key). Crew members: the envelope
-  (version, id, ephemeral key, time), never who sent it or who it's for. The ephemeral key is
-  random and fresh, so nothing in it points at either person. The recipient: everything.
+  (version, ephemeral key, the envelope's time), never who sent it, who it's for or the time they
+  signed. The ephemeral key is random and fresh, so nothing in it points at either person. The
+  recipient: everything.
 - **Finding your own messages in a crew of up to 30** is one key agreement per new message (well
   under a millisecond on a phone), then an AES-GCM check that fails at once if it isn't for you.
   Each blob is opened once: the courier remembers what it has looked at (by a hash of the bytes).
@@ -88,21 +93,24 @@ sealed part, only the recipient opens: AES-GCM( [sender key:33][signature:64][le
   conversation in both directions; with an ephemeral key, the sender's key can't open what they
   sent. Rejected: a short recipient hint to skip the key agreement. It needs the sender's key ahead
   of time, so a message from a mate whose phone we haven't heard yet couldn't even be recognised.
-- **The message id** is 8 random bytes (never 0) chosen when you send. It's in the crew-readable
-  body so crew phones can carry it, de-duplicate it and confirm it (receipts, "what I have"), and
-  it's under the signature so nobody can change it. It is the same for every copy and route, and
-  after the crew moves to a new key (the author's phone signs it again under the new key with the
-  same id). Random rather than worked out from the contents, as crew messages are, because a crew
-  mate who sees the id could otherwise test guesses ("did Jo send Sam 'meet at the bar' at 9:41?").
+- **The message id is a hash of the body.** Any crew phone can work it out (to carry, de-duplicate,
+  confirm and upload it); it's the same for every copy and route, and after a rekey (the same body
+  in a new envelope); and nothing else can claim it. That last point is why it isn't random, which
+  the first version of this note chose: a random id in the crew-readable part let a hostile crew
+  mate post junk under a real message's id ahead of it, so the recipient's phone took the real one
+  for a copy it already had and never showed it (`CourierSimTest` now tries exactly that). Nor is it
+  worked out from the contents, as crew message ids are: a crew mate who sees the id could then
+  test guesses ("did Jo send Sam 'meet at the bar' at 9:41?"). The sender's phone keeps the body
+  until the relay has it, so a retry sends the same bytes with the same id.
 - **Padding: every private message is exactly 352 bytes**, whatever it says (text up to 160 bytes,
   the same limit as crew chat; up to 140 characters). The size gives nothing away. It's two
   Bluetooth packets, like most crew chat lines. Rejected: a short size for "ok": it would save one
   packet's airtime on tiny messages and tell everyone which messages are tiny.
-- **Replays.** Same bytes again: the same id, dropped (the phone remembers the ids it has had for
-  as long as the crew lasts, and refuses anything older than the relay keeps messages, 73 hours).
-  The same message re-wrapped with a new id or time: the sealed part doesn't open (its associated
-  data names them) and the signature fails. Forged: needs the sender's private key. Altered: AES-GCM
-  on both layers and the signature.
+- **Replays.** The same body again, in any envelope: the same id, dropped (the phone remembers the
+  ids it has had for as long as the crew lasts, and refuses anything signed longer ago than the relay
+  keeps messages, 73 hours, whatever the envelope says). Any change to the body: another id, and the
+  sealed part doesn't open. Forged: needs the sender's private key. Altered: AES-GCM on both layers
+  and the signature.
 - **Forward secrecy, plainly.** Because each message has its own key pair, thrown away once it's
   sealed, someone who later gets the *sender's* phone or keys can't open what they sent (beyond the
   copy shown in the sender's own thread). What you *receive* is opened with your crew signing key,
@@ -196,10 +204,10 @@ and ignores types it doesn't know.
   our next look at the private mailbox.
 - **Priority** on air and for uploads is the chat's: after safety pings, pins and quick pings.
   Carried for 24 hours; our own keeps trying for three days, then says "Not sent".
-- **After a rekey** the author's phone signs its unsent private messages again under the new key,
-  with the same ids (the courier asks the app to re-seal them from the thread, since it can't open
-  them itself: they're sealed to the recipient). Carriers drop other people's old-key copies, as
-  for crew chat.
+- **After a rekey** the author's phone puts its unsent private messages, unchanged, in the new key's
+  envelope: same ids, nothing to sign again (the courier does it itself; it can't open them, since
+  they're sealed to the recipient, and doesn't need to). One to someone who was removed is let go
+  first. Carriers drop other people's old-key copies, as for crew chat.
 - Nothing new on air: the relay's existing advertising set and scan, version 2 packets, no hops. A
   listener who knows the format can tell a private message from other crew messages by its size;
   not who sent it or who it's for.
@@ -298,8 +306,8 @@ In core (these can fail CI):
 
 | File | What it proves |
 |---|---|
-| `PrivateTest` (20) | Only the recipient opens it: not another crew mate, not its sender, not another crew. Every message is 352 bytes whatever it says, two Bluetooth packets; long text cut at 160 bytes on a character boundary. What any crew phone can read (id, time) holds no key or tag of either person; sealed twice, two copies share nothing but the id; a message for Sam and one for Alex look the same. The format built by hand from this note opens. Forged: someone claiming another's key, a message re-sealed to a third mate (the signature names its recipient), signed in another crew, sent to yourself. Altered: re-wrapped with another time, another id or another ephemeral key, any byte of either layer, cut short or lengthened. Replayed: the same bytes, a copy sealed again, after a restart, and anything older than 73 hours. One id for every copy and after a rekey; ids random, never 0. The private mailbox: its own, per day, per crew, per key, pinned to its label. Older builds: not a ping, pin, History, intro, moment, "keep as friend" or "I'm here"; `sealDirect` unchanged. Garbage and other envelopes aren't private messages; a later version is carried but not opened; later fields under the signature are read; an unknown kind isn't shown. The book: one thread per mate in the order every phone shows (a future clock sorts at arrival); unread and read; on screen neither unread nor announced; mute (still kept, never notified, survives a restart, undone); a sender not yet known waits and appears when they are, and someone who never is (following from home) is never shown; someone removed loses their thread and isn't shown again; our own states only move forward; everything survives a restart and garbage loads as nothing; 300 per thread. |
-| `CourierSimTest` (8 new) | Through the relay only the recipient is shown it (the crew's private mailbox, not the chat's, one upload). With no signal it hops along crew phones that can't read it, "Sent nearby" from their receipt, the first back on signal uploads it, and its author doesn't upload it again. The recipient carries and confirms exactly like any other crew phone. It never crosses a stranger's phone (Need help still does). After a rekey our unsent one is sealed again with its id (from the thread), never under the old key, and let go if the app can't. A helper never fills the private mailbox past 180. Ours survive a restart, and the recipient isn't shown it twice after one. A build that doesn't know the type ignores it without errors, carries nothing, and the chat carries on. |
+| `PrivateTest` (21) | Only the recipient opens it: not another crew mate, not its sender, not another crew. Every message is 352 bytes whatever it says, two Bluetooth packets; long text cut at 160 bytes on a character boundary. What any crew phone can read (id, the envelope's time) holds no key or tag of either person, nor the signed time; the same words sealed twice share nothing; a message for Sam and one for Alex look the same. The format built by hand from this note opens. Forged: someone claiming another's key, a message re-sealed to a third mate (the signature names its recipient), a signature for another time, Sam's key in another crew, sent to yourself. Altered: another version or ephemeral key, any byte of either layer, cut short or lengthened; re-wrapped with another envelope time it's the same message with its signed time. Replayed: the same bytes, the same body in a newer envelope, after a restart, and anything signed more than 73 hours ago. One id for every copy and after a rekey (the same body in the new envelope); nothing else can claim a message's id (500 altered copies). The private mailbox: its own, per day, per crew, per key, pinned to its label. Older builds: not a ping, pin, History, intro, moment, "keep as friend" or "I'm here"; `sealDirect` unchanged. Garbage and other envelopes aren't private messages; a later version is carried but not opened; later fields under the signature are read; an unknown kind isn't shown. The book: one thread per mate in the order every phone shows (a future clock sorts at arrival); unread and read; on screen neither unread nor announced; mute (still kept, never notified, survives a restart, undone); a sender not yet known waits and appears when they are, and someone who never is (following from home) is never shown; someone removed loses their thread and isn't shown again; our own states only move forward; everything survives a restart and garbage loads as nothing; 300 per thread. |
+| `CourierSimTest` (9 new) | Through the relay only the recipient is shown it (the crew's private mailbox, not the chat's, one upload). With no signal it hops along crew phones that can't read it, "Sent nearby" from their receipt, the first back on signal uploads it, and its author doesn't upload it again. The recipient carries and confirms exactly like any other crew phone. It never crosses a stranger's phone (Need help still does). After a rekey our unsent one goes in the new key's envelope with its id, never under the old key, and one to someone being removed is let go. A hostile crew phone posting altered copies, and the real one in a newer envelope, ahead of it can't hide it from its recipient. A helper never fills the private mailbox past 180. Ours survive a restart, and the recipient isn't shown it twice after one. A build that doesn't know the type ignores it without errors, carries nothing, and the chat carries on. |
 
 In app (rendered by CI, never gating): `PrivateSnapshotTest` and its `Lang_xx` subclasses draw, in
 every language, the thread with no signal (Sent, Sent nearby, Waiting for signal under the crew
@@ -316,13 +324,13 @@ this note).
 
 | File | Change |
 |---|---|
-| core `GigGroup.kt` | Additions only: `privateIdForDay`, `Private`, `PrivateOuter`, `sealPrivate`, `privateOuterOf`, `privateOf`, `openPrivate`, the constants. `ENV_PRIVATE` keeps its number. |
+| core `GigGroup.kt` | Additions only: `privateIdForDay`, `Private`, `PrivateOuter`, `sealPrivate`, `privateBody`, `wrapPrivate`, `privateOuterOf`, `privateOf`, `openPrivate`, `privateId`, the constants. `ENV_PRIVATE` keeps its number. |
 | core `CrewKeys.kt` | `agree(…, label)`; the old `agree` calls it with its old label, so `sealDirect` is byte-for-byte unchanged. |
-| core `Courier.kt` | `Message.pm` (and `kind`/`timeSec`/`sender` no longer assume a pin when nothing else is set), `KIND_PRIVATE`, `Box.PRIVATE`, `Host.resealPrivate` (default null), the held-mailbox room counted per box, and the private kind in open / post / handle / hops / receipts / rank / carry / rekey. |
-| core `CourierSimTest.kt` | The simulated relay treats the private box as held; a phone can send private messages and seal them again; eight tests appended at the end. |
-| app `OfflineMessages.kt` | `fetchedPrivate`, uploads to `Box.PRIVATE`, deliveries and states to `PrivateMessages`, `resealPrivate`, a name in the route log. |
+| core `Courier.kt` | `Message.pm` (and `kind`/`timeSec`/`sender` no longer assume a pin when nothing else is set), `KIND_PRIVATE`, `Box.PRIVATE`, `letGo`, the held-mailbox room counted per box, and the private kind in open / post / handle / hops / receipts / rank / carry / rekey (re-wrapped, not re-signed). |
+| core `CourierSimTest.kt` | The simulated relay treats the private box as held; a phone can send private messages; nine tests appended at the end. |
+| app `OfflineMessages.kt` | `fetchedPrivate`, `letGo`, uploads to `Box.PRIVATE`, deliveries and states to `PrivateMessages`, a name in the route log. |
 | app `ChatSync.kt` | The private mailboxes (and the old key's, during the day of grace) ride in `pollAll`'s one lookup, after everything else; `PrivateMessages.retryOutbox`. |
-| app `CrewRekey.kt` | One line in `migrate`: the threads move (without the removed) before the courier seals again. |
+| app `CrewRekey.kt` | One line in `migrate`: the threads move (without the removed, whose unsent messages are let go) before the courier re-wraps ours. |
 | app `GroupSync.kt`, `Crews.kt` | Threads are forgotten with the crew (End night, leave, an Up next crew that ended); a new intro shows messages that waited for it. |
 | app `CrewNotifications.kt` | Two optional parameters: the private thread to open, and the lock screen's public version. |
 | app `MainActivity.kt` | The thread overlay, the two entry points (`onMessage`), the notification intent (`EXTRA_OPEN_PRIVATE`). |
