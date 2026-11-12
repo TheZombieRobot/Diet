@@ -79,9 +79,7 @@ object HerePins {
         if (!canSend()) return false
         useCrew(a, g)
         val signer = Identity.signer(a, g)
-        // On the crew's message clock (never behind what we've seen there), and after our last pin.
-        val t = HereRule.stamp(OfflineMessages.stamp(a, g), book.newestFrom(signer.tag))
-        val h = GigGroup.Here(t, HereRule.LIFETIME_MIN, lat, lon, Floors.pressureUnits())
+        val h = GigGroup.Here(stamp(a, g, signer), HereRule.LIFETIME_MIN, lat, lon, Floors.pressureUnits())
         val m = OfflineMessages.post(a, g, g.sealHere(h, signer)) ?: return false
         m.here?.let { book.offer(it, now() / 1000) }
         DebugStatus.log("I'm here: pinned" + (if (h.pressure == null) " (no pressure sensor: no floor)" else ""))
@@ -99,16 +97,31 @@ object HerePins {
         val own = mine.value ?: return
         val nowSec = now() / 1000
         val signer = Identity.signer(a, g)
-        val t = HereRule.stamp(OfflineMessages.stamp(a, g), book.newestFrom(signer.tag))
         // It matters for as long as the pin it clears would have stood.
-        val clear = GigGroup.Here(t, HereRule.clearMinutes(own, nowSec), 0.0, 0.0, null, clear = true)
+        val clear = GigGroup.Here(stamp(a, g, signer), HereRule.clearMinutes(own, nowSec), 0.0, 0.0, null, clear = true)
         OfflineMessages.post(a, g, g.sealHere(clear, signer))?.here?.let { book.offer(it, nowSec) }
         save(a)
         refresh()
     }
 
+    /**
+     * The time for our next pin or clear: on the crew's message clock (so a phone whose clock
+     * runs a little slow isn't seen as already old), never more than two minutes ahead of our
+     * own clock (every phone refuses five), and always after our last one (newest wins).
+     */
+    private fun stamp(c: Context, g: GigGroup, signer: nz.waveformlabs.moshpoint.core.CrewKeys.Signer): Long {
+        val nowSec = now() / 1000
+        val crewClock = minOf(OfflineMessages.stamp(c, g), nowSec + nz.waveformlabs.moshpoint.core.MessageClock.FUTURE_SLACK_SEC)
+        return HereRule.stamp(crewClock, book.newestFrom(signer.tag))
+    }
+
     /** An "I'm here" (or clear) for crew [g], from the relay or by Bluetooth. */
     fun arrived(c: Context, g: GigGroup, h: GigGroup.Here) {
+        // The book is main-thread only (a background sync may hand one over): hop across.
+        if (android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) {
+            scope.launch { arrived(c, g, h) }
+            return
+        }
         val a = c.applicationContext
         init(a)
         val main = GroupSync.group.value ?: return
@@ -119,22 +132,35 @@ object HerePins {
         if (changed) refresh()
     }
 
-    /** The book belongs to the main crew: when that changes, start the new crew's (pins don't follow you between crews). */
+    /**
+     * The book belongs to the main crew: when that changes, start the new crew's (pins don't
+     * follow you between crews). The same crew under a new key (someone was removed) keeps its
+     * book: same people, same signing keys, and the courier signs our pin again for the new key.
+     */
     private fun useCrew(c: Context, g: GigGroup?) {
         val id = g?.let { GigArchive.idFor(it) }
         if (id == bookCrew) return
-        bookCrew = id
         val p = prefs(c)
+        val sameCrew = g != null && bookCrew != null && p.getString("crew", null) == bookCrew &&
+            p.getLong("created", -1L) == g.createdAtMs && p.getString("name", null) == g.name
+        bookCrew = id
+        if (sameCrew) {
+            saved = ""
+            save(c)
+            return
+        }
         if (id != null && p.getString("crew", null) == id) book.restore(p.getString("book", null), now() / 1000) else book.clear()
         saved = ""
     }
 
     private fun save(c: Context) {
         val id = bookCrew ?: return
+        val g = GroupSync.group.value?.takeIf { GigArchive.idFor(it) == id }
         val snap = book.snapshot()
         if (snap == saved) return
         saved = snap
-        prefs(c).edit().putString("crew", id).putString("book", snap).apply()
+        prefs(c).edit().putString("crew", id).putString("book", snap)
+            .putLong("created", g?.createdAtMs ?: -1L).putString("name", g?.name).apply()
     }
 
     private fun prefs(c: Context) = c.getSharedPreferences("here", Context.MODE_PRIVATE)

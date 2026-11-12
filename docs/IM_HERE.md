@@ -178,7 +178,8 @@ through `PhoneFinderBridge.latestFixes`, which lists every `Method`.
   no message lasts more than 30 minutes whatever it says. So a fast clock can stretch a pin by
   at most 5 minutes, and a pin that arrives late (carried by Bluetooth for a while) is shown only
   for what's left of it, or not at all. A slow sender clock is helped by stamping with the
-  crew's message clock (never earlier than the newest message seen).
+  crew's message clock (never earlier than the newest message seen), capped at two minutes
+  ahead of the sender's own clock so no phone ever refuses it as too far ahead.
 - **Newer always wins:** each phone remembers the newest time it has seen from each sender
   (`HereBook`, saved), so an old pin arriving late can't come back after a clear.
 - Pinning again replaces the old pin (newest per sender). Leaving the crew, or the crew ending,
@@ -218,6 +219,10 @@ arbiter) with floor pills; `FinderScreen` shows a chip under a single arrow.
   pin there just runs out (at most 20 minutes; the courier stops re-posting it at its end). The
   walk-away watcher follows the main crew's pin only: switching crews mid-gig is rare, and the
   20-minute limit bounds it.
+- **Ghost mode doesn't stop it.** Ghost mode keeps your live location off the map; "I'm here" is
+  something you choose to send, like a meet-up pin.
+- **The same crew under a new key** (someone was removed) keeps its pins: same people, same
+  signing keys; the courier signs our pin again for the new key.
 - **People following from home don't see it.** Their map keeps showing your usual dot. The pin
   is a finding tool for people at the venue: it says exactly where you're standing, and someone
   at home can't come to that spot. Followers hold the crew key, so this is the app not showing
