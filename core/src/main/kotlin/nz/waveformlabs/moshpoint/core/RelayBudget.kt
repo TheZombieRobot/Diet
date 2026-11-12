@@ -110,7 +110,9 @@ class RelayBudget(
         var wait = 0L
         if (requests.size >= requestsPerMinute) wait = requests.first().atMs + MINUTE_MS - nowMs
         if (use == RelayUse.BACKGROUND && requests.count { it.background } >= requestsPerMinute - requestReserve) {
-            wait = maxOf(wait, requests.first { it.background }.atMs + MINUTE_MS - nowMs)
+            // (No background request to wait out means background has no share at all: waiting won't help.)
+            val oldest = requests.firstOrNull { it.background } ?: return -1
+            wait = maxOf(wait, oldest.atMs + MINUTE_MS - nowMs)
         }
         return wait.coerceAtLeast(0)
     }
