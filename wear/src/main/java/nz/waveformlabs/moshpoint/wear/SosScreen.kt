@@ -3,6 +3,7 @@ package nz.waveformlabs.moshpoint.wear
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -109,8 +110,7 @@ fun SosScreen(
 /** What happened, why, and the one thing to do next. */
 @Composable
 private fun Result(s: androidx.compose.ui.unit.Dp, title: String, colour: Color, detail: String?, action: String?, onAction: () -> Unit) {
-    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Spacer(Modifier.height(s * (if (detail == null) 0.26f else 0.16f)))
+    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         FitText(title, Wrist.Name.copy(fontSize = 17.sp, color = colour), Modifier.width(s * 0.72f), maxLines = 2)
         if (detail != null) {
             Spacer(Modifier.height(s * 0.03f))

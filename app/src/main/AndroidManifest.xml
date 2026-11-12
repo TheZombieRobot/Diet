@@ -172,5 +172,36 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+
+        <!-- ===== Watch app (wear/, docs/WATCH.md) ===== -->
+
+        <!-- Everything the watch asks of the phone arrives here: Need help and the other wrist
+             pings, and "find this mate for me". Play services starts it when a message comes
+             in, app open or not. Only Play services can bind to it. -->
+        <service
+            android:name=".watch.WatchLinkService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <data
+                    android:host="*"
+                    android:pathPrefix="/mosh/"
+                    android:scheme="wear" />
+            </intent-filter>
+        </service>
+
+        <!-- Keeps finding for the watch with the phone's screen off. Runs only while the watch
+             is asking, and stops when it stops. -->
+        <service
+            android:name=".watch.WatchFinderService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice|location" />
+
+        <!-- Starts the crew-status sync to the watch along with the app's process. It serves
+             no data: a provider is just what Android creates at start-up by itself. -->
+        <provider
+            android:name=".watch.WatchSyncStarter"
+            android:authorities="${applicationId}.watchsync"
+            android:exported="false" />
     </application>
 </manifest>

@@ -286,10 +286,10 @@ object FindSession {
         val status = ended ?: when {
             health == LinkHealth.LOST -> FinderStatus.PHONE_LOST
             !everHeard -> FinderStatus.CONNECTING
-            health == LinkHealth.STALE && sinceUpdate > RECONNECTING_AFTER_MS -> FinderStatus.RECONNECTING
             phoneStatus == FindStatus.NEEDS_PHONE -> FinderStatus.NEEDS_PHONE
             phoneStatus == FindStatus.BLUETOOTH_OFF -> FinderStatus.BLUETOOTH_OFF
             phoneStatus == FindStatus.NO_PERMISSION -> FinderStatus.NO_PERMISSION
+            health == LinkHealth.STALE && sinceUpdate > RECONNECTING_AFTER_MS -> FinderStatus.RECONNECTING
             else -> FinderStatus.LIVE
         }
         val view = WristArrow.view(

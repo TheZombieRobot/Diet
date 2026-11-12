@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The phone's side of the watch app (wear/): the notification shown while the phone is
+     finding a mate for your watch. Everything the watch itself shows is in the wear module. -->
+<resources>
+    <!-- Name of the notification's channel in Android's settings -->
+    <string name="watch_channel">Finding for your watch</string>
+    <!-- Notification title. %1$s = mate's name -->
+    <string name="watch_finding_title">Finding %1$s for your watch</string>
+    <string name="watch_finding_text">Stops when your watch stops asking</string>
+    <!-- Button on that notification -->
+    <string name="watch_stop">Stop</string>
+</resources>
