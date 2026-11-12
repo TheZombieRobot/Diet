@@ -456,6 +456,9 @@ These were written without a native reviewer, like the rest of the app's transla
 
 Kept apart on purpose: every new string is in `strings_offline.xml`; the screenshot tests are
 in their own file and classes; `core/Advert.kt` and `ScreensSnapshotTest.kt` are untouched.
+One string is now unused and left in place so the other string files don't change here:
+`setup_onb_need_nearby_why` (the permission's reason; `offline_need_nearby_why` replaces it).
+It can be deleted from the 20 `strings_setup.xml` files once both branches are merged.
 
 Every shared file this branch changes, and how much:
 
