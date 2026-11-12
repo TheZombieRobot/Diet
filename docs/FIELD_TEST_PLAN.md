@@ -370,6 +370,11 @@ Set up:
 - [ ] Tap **I'm OK now**. A sees "All good".
 - [ ] Swipe Moshpoint away on phone B (app closed), then send Need help from the wrist again.
   It must still arrive.
+- [ ] The sleepy phone: phone B not live, Moshpoint closed, screen off and untouched in your
+  pocket for 20 minutes (long enough for Android to start saving battery). Then Need help from
+  the wrist. Did it say "Sent to your crew", or "Not sent yet"? If "Not sent yet", how long
+  until it went, and did the wrist change by itself? Note whether Moshpoint's battery setting
+  on that phone is Unrestricted.
 - [ ] Phone B in airplane mode with Bluetooth turned back on, A standing next to you and
   live: hold Need help. Expected within a few seconds: "Sent nearby", and A's phone alerts.
 - [ ] Same, but A far away: "Not sent yet · Waiting for signal" with the stutter buzz. Now

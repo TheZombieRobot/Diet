@@ -11,36 +11,50 @@ app onto a watch. Install steps are at the end.
 
 ## Status and next steps
 
-_A handover: enough to pick the work up cold. Updated with every push. Last: 12 November
-2026, 09:50 UTC._
+_A handover: enough to pick the work up cold. Last updated 12 November 2026, 09:55 UTC._
 
 ### Where things stand
 
+The base asked for is built. CI was green on the last complete run (`6ac7690`, both jobs:
+phone and watch, debug and release builds, core tests, translation checks, screenshots); the
+run for the commits since then is in progress as this is written. **Nothing has run on a real
+watch or phone yet.** That is the next step, and the field test for it is written.
+
 | Piece | State |
 |---|---|
-| Design (this note) | **Done.** All eleven decisions below. |
-| Shared logic, `core/…/core/watch/` | **Done, tested.** 102 unit tests (357 in `core` with the merged branches), green locally. |
-| Watch app, `wear/` | **Builds in CI**: debug and release (R8) APKs, the app-id check, screenshots committed to `docs/screenshots/watch/`. Not yet run on a watch. |
-| Phone side, `app/…/moshpoint/watch/` | **Builds in CI**, debug and release (R8), with the merged main branch (`6ac7690`). Not yet run on a phone. |
-| Main branch merged in | **Done** (`62a770a`): Bluetooth backup and the venue map, no conflicts. Wrist pings now report from the outbox (problem 8). |
-| Translations | **Done**, 19 languages: `wear/src/main/res/values-*/strings.xml` and `app/src/main/res/values-*/strings_watch.xml`. Checked by the script; not yet read by native speakers. Notes for them are at the end of each `docs/i18n/*.md` ("Watch app"). |
-| Checker and its CI step | **Done.** `tools/check_translation.py` works on any module and can compare languages between modules. |
-| Screenshots in every language | 19 screens, 21 locales, 2 sizes, drawn by CI on every push. All 21 locales looked through by eye on the small watch; the fixes that came out of it are in. |
-| Install steps, field test, release notes | **Written**: the end of this note, section 4c of `docs/FIELD_TEST_PLAN.md`, `.github/testing-release.md`. The install steps have not been followed on a real watch yet. |
+| Design (this note) | Done. All eleven decisions below. |
+| Shared logic, `core/…/core/watch/` | Done. 108 unit tests: the arrow maths (true north, declination, tilt gate, old readings), which directions survive a pocket, the buzz planner, hold-to-send, message encoding and versioning, the lease, the Moshpoint+ rule, how text may wrap. |
+| Watch app, `wear/` | Builds in CI, debug and release (R8). Crew list, finder, Need help, tile, complication, ongoing activity, ambient screen. |
+| Phone side, `app/…/moshpoint/watch/` | Builds in CI, debug and release (R8), on top of the merged main branch (Bluetooth backup and the venue map, merged in `62a770a` with no conflicts). |
+| Translations | 19 languages for the watch (62 strings) and for the phone's watch notification (4). Checked by the script. Not yet read by native speakers; notes for them are at the end of each `docs/i18n/*.md`. |
+| Checker and its CI step | `tools/check_translation.py` works on any module and can compare languages between modules; the CI step runs it over `app` and `wear`. |
+| Screenshots | 19 watch screens, 21 locales, small and large round watch, drawn by CI on every push. All 21 locales were looked through on the small watch and what was cut short was fixed. |
+| Install steps, field test, release notes | Written: the end of this note, section 4c of `docs/FIELD_TEST_PLAN.md`, `.github/testing-release.md`. |
 
-Nothing has run on a real watch or phone. Everything marked **verify on a watch** below is a
-first guess until the field test.
+### What is not proven
 
-### Next steps, in order
+Everything below is reasoned from Android's documentation and source, and from reading this
+app's code. None of it has been seen working. Each has a line in the field test (4c).
 
-1. **Read both jobs of the latest CI run** and fix what they report. The last complete run,
-   on `6ac7690` (the merge, the outbox-aware pings, the translations, the checker), was green
-   in both jobs.
-2. **Glance at the newest watch screenshots** for the last round of fixes: balanced lines,
-   Korean words kept whole, "40 m · live" in the crew list, the Polish Need help title, and
-   "Moshpoint+" in Arabic.
-3. **Finish line:** both CI jobs green on the head of the branch; report to the owner's main
-   session.
+- That the arrow points the right way: the watch's compass, the declination, a flipped watch.
+- The tilt limits (40° and 50°), the buzz timings, the 20 m point where a pocketed phone stops
+  giving an arrow, the 15-minute cap. All first guesses.
+- That Android lets the phone start finding from a pocket (problem 4), on Samsung and Xiaomi
+  phones especially.
+- That a wrist Need help gets out when the phone app is closed, and when the phone has been
+  asleep for a while (problem 8).
+- Battery cost on the watch and the phone.
+- The install steps: written from Google's and Samsung's instructions, not followed on a watch.
+
+### Next steps
+
+1. **The wrist field test**, section 4c of `docs/FIELD_TEST_PLAN.md`, on a Galaxy Watch4 or
+   newer. Then tune the numbers above from what it shows.
+2. **Native speakers** read the watch strings (the "Watch app" notes in `docs/i18n`).
+3. **Billing:** when Moshpoint+ can be bought, call `Entitlements.set(…)`. Nothing else changes.
+4. If the field test shows wrist pings waiting too long on a sleeping phone: hold the phone
+   awake with a foreground service while one is waiting (problem 8, "a limit to know about").
+5. Before the watch app is public: the Play Store items in `docs/PLAY_STORE.md`.
 
 ### Shared files this branch touches (for merging with the other two branches)
 
@@ -293,6 +307,10 @@ whether UWB ranges from a pocket at all.
   push arrives (`onDataChanged` → update requests). No timers, no polling: the tile's refresh
   interval is 0, the complication's update period is 0. A status older than 3 minutes is shown
   without the "live" claim rather than fetched again.
+- The watch face may run a few minutes behind the tile and the app. Watch faces expect to be
+  asked for an update no more than about once every five minutes, so the complication is only
+  asked when what it would say has changed and that long has passed; each update also carries
+  its own end time, so an old one stops claiming anyone is live without anything waking up.
 
 ### 7. Buzz design
 
@@ -357,9 +375,13 @@ A small vocabulary told apart by rhythm alone (many watch motors have no strengt
 - **A limit to know about:** while the phone has no signal and you aren't live, Android may
   put the phone app to sleep once the watch has been answered. The ping stays in the outbox
   and goes when the app next runs: when you open it or go live, or at its hourly chat check.
-  So the wrist says "Not sent yet" and makes no promise about when. **Verify on a watch**; if
-  this turns out to matter, the fix is to hold the phone awake with the watch finder's
-  foreground service until the ping has gone.
+  So the wrist says "Not sent yet" and makes no promise about when. The same can happen with
+  signal, if the phone has been lying untouched long enough for Android to hold back the
+  internet of apps that aren't in use (and Moshpoint's battery setting isn't Unrestricted):
+  whether a wrist ping gets through then depends on how Android treats an app woken by the
+  watch, which only a real phone can answer. **Verify on a watch** (field test 4c F, "the
+  sleepy phone"); if either turns out to matter, the fix is to hold the phone awake with a
+  foreground service from the moment a wrist Need help arrives until it has gone.
 - How the phone knows: the outbox reports on each of your own messages on its line in the crew
   chat. The phone side finds the line `sendPing` just added and reads its state. If the chat
   in memory is another crew's (you were reading it on the phone), it falls back to looking on
@@ -399,7 +421,8 @@ A small vocabulary told apart by rhythm alone (many watch motors have no strengt
   (to about two thirds) until the text fits its lines without cutting a word; only then does it
   end in "…". Wrapped lines are balanced, so one word is never left alone on the last line.
   Thai, Chinese and Japanese have no spaces and may break anywhere; Korean gets an invisible
-  word joiner inside each word, because Android would otherwise break a line mid-word.
+  word joiner inside each word, because Android would otherwise break a line mid-word. Those
+  two rules are in `core/watch/WristText`, unit-tested.
 - Where a line can still be too long (the line under a mate's name in the crew list), the part
   that matters comes first: "40 m · live", not "live · 40 m", so it is "live" that gets cut.
 - Right-to-left: text and lists mirror for Arabic. The **arrow does not**: it points at a real

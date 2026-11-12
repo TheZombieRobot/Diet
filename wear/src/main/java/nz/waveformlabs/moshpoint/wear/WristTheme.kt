@@ -35,6 +35,7 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.Typography
 import nz.waveformlabs.moshpoint.core.watch.WristDistance
+import nz.waveformlabs.moshpoint.core.watch.WristText
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -110,7 +111,7 @@ fun FitText(
     BoxWithConstraints(modifier, contentAlignment = if (textAlign == TextAlign.Start) Alignment.CenterStart else Alignment.Center) {
         val measurer = rememberTextMeasurer()
         val width = constraints.maxWidth
-        val shown = remember(text) { keepKoreanWords(text) }
+        val shown = remember(text) { WristText.keepKoreanWords(text) }
         // Lines of about the same length, so a wrap never leaves one word (or one Japanese
         // character) alone on the last line; on Wear OS 4 and later Japanese also breaks
         // between phrases rather than inside a word.
@@ -122,7 +123,7 @@ fun FitText(
                 // (Thai, Chinese and Japanese have no spaces and may break anywhere, so they
                 // have no "word" to protect: for them only the wrapping counts.)
                 val wrapped = measurer.measure(shown, sized, maxLines = maxLines, constraints = Constraints(maxWidth = width))
-                val longestWord = shown.split(' ', '\n').filterNot { w -> w.any(::breaksAnywhere) }.maxByOrNull { it.length }.orEmpty()
+                val longestWord = WristText.wholeWords(shown).maxByOrNull { it.length }.orEmpty()
                 val word = measurer.measure(longestWord, sized, maxLines = 1, softWrap = false)
                 !wrapped.hasVisualOverflow && word.size.width <= width
             } ?: sizes.last()
@@ -136,27 +137,6 @@ fun FitText(
         )
     }
 }
-
-/**
- * Korean is written with spaces, but Android will still break a line in the middle of a word
- * (one syllable left on a line by itself). An invisible word joiner between the characters of
- * each Korean word keeps the word whole, so lines break at the spaces.
- */
-private fun keepKoreanWords(text: String): String {
-    fun hangul(c: Char) = c in '\uAC00'..'\uD7A3'
-    if (text.none { hangul(it) }) return text
-    val out = StringBuilder(text.length * 2)
-    for (i in text.indices) {
-        out.append(text[i])
-        val next = text.getOrNull(i + 1) ?: break
-        if (!text[i].isWhitespace() && !next.isWhitespace() && (hangul(text[i]) || hangul(next))) out.append('\u2060')
-    }
-    return out.toString()
-}
-
-/** Scripts written without spaces between words: Thai, Chinese, Japanese (kana and kanji) and their full-width forms. */
-private fun breaksAnywhere(c: Char): Boolean =
-    c in '\u0E00'..'\u0E7F' || c in '\u2E80'..'\u9FFF' || c in '\uF900'..'\uFAFF' || c in '\uFF00'..'\uFFEF'
 
 /** A mate's face in a ring of their colour; their initial on that colour until the face has arrived. */
 @Composable
