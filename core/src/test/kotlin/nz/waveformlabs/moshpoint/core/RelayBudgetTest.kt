@@ -91,9 +91,10 @@ class RelayBudgetTest {
         val b = budget()
         var now = 0L
         assertTrue(b.go(RelayUse.MESSAGE, now, RelayBudget.Outcome.THROTTLED))
-        // The message wasn't published, so it isn't counted; but nothing goes for a minute.
+        // The message wasn't published, so it isn't counted; but nothing ordinary goes for a minute.
         assertEquals(190, b.messagesLeft(RelayUse.MESSAGE, now))
-        assertEquals(PutResult.THROTTLED, b.refusal(RelayUse.SAFETY, true, now + 59_000))
+        assertEquals(PutResult.THROTTLED, b.refusal(RelayUse.MESSAGE, true, now + 59_000))
+        assertEquals(PutResult.THROTTLED, b.refusal(RelayUse.BACKGROUND, false, now + 59_000))
         now += 60_000
         assertTrue(b.go(RelayUse.MESSAGE, now, RelayBudget.Outcome.THROTTLED))
         // Second time: two minutes.
@@ -115,24 +116,79 @@ class RelayBudgetTest {
         assertTrue(late.waitingUntil(RelayUse.MESSAGE, 0) in 85_000L..90_000L)
     }
 
-    @Test fun afterNoAnswerItWaitsABitButNeedHelpStillTries() {
+    @Test fun afterNoAnswerBackgroundRequestsWaitABitButMessagesStillTry() {
         val b = budget()
         assertTrue(b.go(RelayUse.MESSAGE, 0, RelayBudget.Outcome.NO_ANSWER))
-        assertEquals(PutResult.NO_NETWORK, b.refusal(RelayUse.MESSAGE, true, 14_000))
+        // Location shares and the like stop spinning on a dead connection...
         assertEquals(PutResult.NO_NETWORK, b.refusal(RelayUse.BACKGROUND, true, 14_000))
-        assertNull(b.refusal(RelayUse.SAFETY, true, 14_000))
-        assertNull(b.refusal(RelayUse.MESSAGE, true, 15_000))
-        // Still nothing: wait longer each time, two minutes at most.
+        assertNull(b.refusal(RelayUse.BACKGROUND, true, 15_000))
+        // ...but a message, a new crew key or a Need help is tried: one timeout on patchy signal mustn't hold those up.
+        assertNull(b.refusal(RelayUse.MESSAGE, true, 1_000))
+        assertNull(b.refusal(RelayUse.SAFETY, true, 1_000))
+        // Still nothing: background waits longer each time, two minutes at most.
         var now = 15_000L
         repeat(6) {
-            assertTrue(b.go(RelayUse.MESSAGE, now, RelayBudget.Outcome.NO_ANSWER))
-            now = b.waitingUntil(RelayUse.MESSAGE, now)
+            assertTrue(b.go(RelayUse.BACKGROUND, now, RelayBudget.Outcome.NO_ANSWER))
+            now = b.waitingUntil(RelayUse.BACKGROUND, now)
         }
-        assertTrue(b.go(RelayUse.MESSAGE, now, RelayBudget.Outcome.NO_ANSWER))
-        assertEquals(120_000L, b.waitingUntil(RelayUse.MESSAGE, now) - now)
+        assertTrue(b.go(RelayUse.BACKGROUND, now, RelayBudget.Outcome.NO_ANSWER))
+        assertEquals(120_000L, b.waitingUntil(RelayUse.BACKGROUND, now) - now)
         // The phone says the network is back: no more waiting.
         b.networkBack()
-        assertNull(b.refusal(RelayUse.MESSAGE, true, now + 1))
+        assertNull(b.refusal(RelayUse.BACKGROUND, true, now + 1))
+    }
+
+    @Test fun aBurstOfTooManyAnswersIsOnePauseNotFive() {
+        val b = budget()
+        // Five requests on their way together, and the relay says "too many" to each.
+        val tickets = (0L..4L).map { assertNotNull(b.take(RelayUse.MESSAGE, true, it)) }
+        tickets.forEach { b.settle(it, RelayBudget.Outcome.THROTTLED, 200) }
+        assertEquals(60_200L, b.waitingUntil(RelayUse.MESSAGE, 200), "one minute, not fifteen")
+        // The next one, made after that pause, does step it up.
+        assertTrue(b.go(RelayUse.MESSAGE, 60_200, RelayBudget.Outcome.THROTTLED))
+        assertEquals(60_200L + 120_000L, b.waitingUntil(RelayUse.MESSAGE, 60_200))
+    }
+
+    @Test fun needHelpStillTriesThroughAPause() {
+        val b = budget()
+        assertTrue(b.go(RelayUse.MESSAGE, 0, RelayBudget.Outcome.THROTTLED))
+        assertNull(b.take(RelayUse.MESSAGE, true, 1_000))
+        // A safety ping goes anyway, but not in a stream: one every ten seconds.
+        assertTrue(b.go(RelayUse.SAFETY, 1_000, RelayBudget.Outcome.THROTTLED))
+        assertNull(b.take(RelayUse.SAFETY, true, 5_000))
+        assertTrue(b.go(RelayUse.SAFETY, 11_000, RelayBudget.Outcome.OK))
+        // Trying through the pause didn't make it longer, and didn't end it for everything else.
+        assertEquals(60_000L, b.waitingUntil(RelayUse.MESSAGE, 12_000))
+        assertNull(b.take(RelayUse.MESSAGE, true, 12_000))
+    }
+
+    @Test fun ourOwnServerOnlyPausesForSeconds() {
+        // Our server's limiter refills every second: a minute's pause there would stop the finder for nothing.
+        val b = RelayBudget(messagesPerDay = 1_000_000, requestsPerMinute = 600, messageReserve = 0, safetyReserve = 0, requestReserve = 0, throttleBaseMs = 5_000, throttleMaxMs = 30_000, random = { 0.0 })
+        var now = 0L
+        val waits = (1..5).map {
+            assertTrue(b.go(RelayUse.BACKGROUND, now, RelayBudget.Outcome.THROTTLED, message = false))
+            val until = b.waitingUntil(RelayUse.MESSAGE, now)
+            (until - now).also { now = until }
+        }
+        assertEquals(listOf(5_000L, 10_000L, 20_000L, 30_000L, 30_000L), waits)
+    }
+
+    @Test fun lookUpsForAnOpenChatDoNotSqueezeOutLocationShares() {
+        val b = budget()
+        val now = 9_000_000L
+        // The open chat looks at its mailboxes six times this minute (not background: someone is watching).
+        repeat(6) { assertTrue(b.go(RelayUse.MESSAGE, now + it * 1_000, RelayBudget.Outcome.OK, message = false)) }
+        // A location share still goes, and so does a message. Then the minute is full for everyone.
+        assertTrue(b.go(RelayUse.BACKGROUND, now + 7_000, RelayBudget.Outcome.OK))
+        assertTrue(b.go(RelayUse.MESSAGE, now + 8_000, RelayBudget.Outcome.OK))
+        assertNull(b.take(RelayUse.MESSAGE, true, now + 9_000))
+        // How long until there's room: when the first look-up is a minute old.
+        assertEquals(51_000L, b.roomInMs(RelayUse.MESSAGE, true, now + 9_000))
+        assertEquals(0L, b.roomInMs(RelayUse.MESSAGE, true, now + 60_000))
+        // During a pause, waiting a few seconds won't help: say so.
+        assertTrue(b.go(RelayUse.MESSAGE, now + 60_000, RelayBudget.Outcome.THROTTLED))
+        assertEquals(-1L, b.roomInMs(RelayUse.MESSAGE, true, now + 61_000))
     }
 
     @Test fun aRefusalCountsTheRequestButNotTheMessage() {
