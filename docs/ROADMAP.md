@@ -106,6 +106,21 @@ Agreed with the owner; build in this order. Where this differs from [PRODUCT.md]
 ### 4. Private messages: about 2–3 days
 - Tap a mate → "Message Sam". Internet normally; Bluetooth when nearby with no signal.
 
+### 5. Who can remove people from a crew: about 1–2 days (decided 12 November 2026)
+- **Only the crew's creator can remove someone. Anyone can remove themselves (leave).**
+  Closes review item 3 (today any member's key can start a rekey, so a removed member could
+  take the crew over, e.g. over Bluetooth with no signal).
+- The creator is recorded when the crew is made, signed by the creator, and carried in the
+  invite, so every member agrees who it is. Removals (internet and Bluetooth) are accepted only
+  from the creator's key.
+- Crew menu: "Remove from crew" only for the creator; everyone else gets "Leave crew".
+- The creator leaving: they hand the role to someone as they leave. Creator's phone off or
+  out of reach: nobody else can remove until they're back.
+- Crews made before this keep today's rule (anyone can remove) until they end.
+- Touches the rekey code from step 1 (`CrewRekey`, `RekeyPolicy`, `GigGroup` invites):
+  security-sensitive, so core tests for every case, including a forged "creator" in a
+  re-shared invite.
+
 ### Small items
 - UWB places go to the mate you're focused on first, then the nearest.
 
