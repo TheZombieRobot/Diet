@@ -107,33 +107,51 @@ fun FitText(
     sizes: List<TextUnit> = listOf(style.fontSize, style.fontSize * 0.88f, style.fontSize * 0.78f, style.fontSize * 0.68f),
     textAlign: TextAlign = TextAlign.Center,
 ) {
-    BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
+    BoxWithConstraints(modifier, contentAlignment = if (textAlign == TextAlign.Start) Alignment.CenterStart else Alignment.Center) {
         val measurer = rememberTextMeasurer()
         val width = constraints.maxWidth
+        val shown = remember(text) { keepKoreanWords(text) }
         // Lines of about the same length, so a wrap never leaves one word (or one Japanese
         // character) alone on the last line; on Wear OS 4 and later Japanese also breaks
         // between phrases rather than inside a word.
         val balanced = style.copy(lineBreak = LineBreak.Heading)
-        val chosen = remember(text, balanced, width, maxLines, sizes) {
+        val chosen = remember(shown, balanced, width, maxLines, sizes) {
             sizes.firstOrNull { size ->
                 val sized = balanced.copy(fontSize = size, lineHeight = size * 1.18f)
                 // Fits if it wraps into the lines allowed without any single word being cut.
                 // (Thai, Chinese and Japanese have no spaces and may break anywhere, so they
                 // have no "word" to protect: for them only the wrapping counts.)
-                val wrapped = measurer.measure(text, sized, maxLines = maxLines, constraints = Constraints(maxWidth = width))
-                val longestWord = text.split(' ', '\n').filterNot { w -> w.any(::breaksAnywhere) }.maxByOrNull { it.length }.orEmpty()
+                val wrapped = measurer.measure(shown, sized, maxLines = maxLines, constraints = Constraints(maxWidth = width))
+                val longestWord = shown.split(' ', '\n').filterNot { w -> w.any(::breaksAnywhere) }.maxByOrNull { it.length }.orEmpty()
                 val word = measurer.measure(longestWord, sized, maxLines = 1, softWrap = false)
                 !wrapped.hasVisualOverflow && word.size.width <= width
             } ?: sizes.last()
         }
         Text(
-            text,
+            shown,
             style = balanced.copy(fontSize = chosen, lineHeight = chosen * 1.18f),
             textAlign = textAlign,
             maxLines = maxLines,
             overflow = TextOverflow.Ellipsis,
         )
     }
+}
+
+/**
+ * Korean is written with spaces, but Android will still break a line in the middle of a word
+ * (one syllable left on a line by itself). An invisible word joiner between the characters of
+ * each Korean word keeps the word whole, so lines break at the spaces.
+ */
+private fun keepKoreanWords(text: String): String {
+    fun hangul(c: Char) = c in '\uAC00'..'\uD7A3'
+    if (text.none { hangul(it) }) return text
+    val out = StringBuilder(text.length * 2)
+    for (i in text.indices) {
+        out.append(text[i])
+        val next = text.getOrNull(i + 1) ?: break
+        if (!text[i].isWhitespace() && !next.isWhitespace() && (hangul(text[i]) || hangul(next))) out.append('\u2060')
+    }
+    return out.toString()
 }
 
 /** Scripts written without spaces between words: Thai, Chinese, Japanese (kana and kanji) and their full-width forms. */

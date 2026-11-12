@@ -82,8 +82,13 @@ class WatchFinderService : LifecycleService() {
          * [WatchFind] decides whether it can find anyway.
          */
         fun start(context: Context, name: String) {
+            val renamed = name != mateName
             mateName = name
-            if (level == Level.WITH_LOCATION) return
+            if (level == Level.WITH_LOCATION) {
+                // Already all the service Android allows. Only the name it shows can be out of date.
+                if (renamed) runCatching { context.getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, buildNotification(context, name)) }
+                return
+            }
             try {
                 ContextCompat.startForegroundService(context, Intent(context, WatchFinderService::class.java))
             } catch (e: Exception) {

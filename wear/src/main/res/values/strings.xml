@@ -19,7 +19,7 @@
     <string name="crew_stale">Phone out of reach</string>
     <!-- Under a mate's name: sharing their spot right now -->
     <string name="mate_live">live</string>
-    <!-- Under a mate's name. %1$s = "live", %2$s = distance ("40 m") -->
+    <!-- Under a mate's name. %1$s = distance ("40 m"), %2$s = "live". Distance first: if the line is ever too long, it is the end that gets cut -->
     <string name="mate_live_distance">%1$s · %2$s</string>
     <!-- Under a mate's name: when they were last seen -->
     <plurals name="time_min_ago">

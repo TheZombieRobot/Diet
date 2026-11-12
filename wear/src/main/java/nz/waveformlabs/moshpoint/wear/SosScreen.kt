@@ -75,7 +75,11 @@ fun SosScreen(
         when (ui.phase) {
             SosPhase.HOLD -> Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                 Spacer(Modifier.height(s * 0.08f))
-                FitText(stringResource(R.string.need_help), Wrist.Name, Modifier.width(s * 0.56f), maxLines = 1)
+                // One line at the narrow top of the glass: long ones ("Potrzebuję pomocy") shrink a long way before they are cut.
+                FitText(
+                    stringResource(R.string.need_help), Wrist.Name, Modifier.width(s * 0.6f), maxLines = 1,
+                    sizes = listOf(15.sp, 13.sp, 11.5.sp, 10.sp, 9.sp),
+                )
                 Spacer(Modifier.height(s * 0.03f))
                 Box(Modifier.size(s * 0.52f), contentAlignment = Alignment.Center) {
                     // The ring that fills while you hold.

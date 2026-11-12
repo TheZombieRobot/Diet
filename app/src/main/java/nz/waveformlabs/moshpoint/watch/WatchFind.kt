@@ -1,6 +1,7 @@
 package nz.waveformlabs.moshpoint.watch
 
 import android.Manifest
+import android.app.ActivityManager
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.pm.PackageManager
@@ -46,6 +47,8 @@ internal object WatchFind {
     private var mateId: String? = null
     private var seq = 0
     private var startedAtMs = 0L
+    private var upgradeCheckedAtMs = 0L
+    private var serviceAskedAtMs = 0L
 
     // The Data Layer calls these from its own thread; everything here lives on the main thread.
 
@@ -107,9 +110,15 @@ internal object WatchFind {
             mateId = m.mateId
             seq = 0
             startedAtMs = now
+            upgradeCheckedAtMs = now
             DebugStatus.log("Watch: finding ${mate.name}")
         }
-        WatchFinderService.start(c, mate.name)
+        // The watch repeats its request every few seconds to keep the lease. The service is
+        // asked for once per find; after that only when there's a reason to (see step()).
+        if (!same) {
+            serviceAskedAtMs = now
+            WatchFinderService.start(c, mate.name)
+        }
         if (loop == null) loop = scope.launch { run(c) }
     }
 
@@ -145,6 +154,19 @@ internal object WatchFind {
             lease.end()
             WatchLink.send(c, w, WatchMessage.FindEnded(find.sessionId, gone ?: EndReason.MATE_GONE))
             return
+        }
+        // The phone app was opened mid-find: Android will now grant the location type it
+        // refused from the background. Take it, so the find keeps working once the phone is
+        // back in a pocket. And if Android refused the service altogether, ask again now and
+        // then: it may only have been the moment. (Looked at every few seconds, and only
+        // while something is still missing.)
+        val level = WatchFinderService.level
+        if (level != WatchFinderService.Level.WITH_LOCATION && now - upgradeCheckedAtMs >= UPGRADE_CHECK_EVERY_MS) {
+            upgradeCheckedAtMs = now
+            if (appOnScreen() || (level == WatchFinderService.Level.NONE && now - serviceAskedAtMs >= ASK_AGAIN_EVERY_MS)) {
+                serviceAskedAtMs = now
+                WatchFinderService.start(c, mate.name)
+            }
         }
         val listener = held ?: PhoneHeld(c).also { held = it }
         val declination: Double
@@ -191,6 +213,13 @@ internal object WatchFind {
         return FindStatus.OK
     }
 
+    /** Is one of the app's own screens in front right now (not merely a service running)? */
+    private fun appOnScreen(): Boolean = runCatching {
+        val info = ActivityManager.RunningAppProcessInfo()
+        ActivityManager.getMyMemoryState(info)
+        info.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+    }.getOrDefault(false)
+
     private fun shutDown() {
         loop?.cancel()
         loop = null
@@ -202,4 +231,6 @@ internal object WatchFind {
     }
 
     private const val NEEDS_PHONE_AFTER_MS = 8_000L
+    private const val UPGRADE_CHECK_EVERY_MS = 3_000L
+    private const val ASK_AGAIN_EVERY_MS = 15_000L
 }
