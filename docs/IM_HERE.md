@@ -279,7 +279,7 @@ Everything else is new (`core/Here.kt`, `HereTest.kt`, `app/HerePins.kt`, `ui/He
 | app `ui/CrewRadar.kt`, `ui/FinderScreen.kt` | One optional parameter each (`notes`, `pinned`). |
 | app `ui/FinderArrows.kt`, `ui/DebugPanel.kt` | A label for `HERE_PIN` in two `when`s. |
 | app `MainActivity.kt` | The map's and the finder's new parameters, from `HerePins`. |
-| docs | `ROADMAP.md` (step 3 status), `FIELD_TEST_PLAN.md` (section 4d, one known limit), `ARCHITECTURE.md` (a section), `PRIVACY.md` (a paragraph). |
+| docs | `ROADMAP.md` (step 3 status), `FIELD_TEST_PLAN.md` (section 4d, one known limit), `ARCHITECTURE.md` (a section), `PRIVACY.md` (a paragraph), `i18n/*.md` (an "I'm here" section at the end of each, for native reviewers). |
 
 ## Known limits
 

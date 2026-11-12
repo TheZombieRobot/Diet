@@ -127,3 +127,19 @@ The Wear OS companion: 62 strings on the watch and 4 on the phone (the notificat
 | Nearest mate (watch-face complication) / Crew status (tile) | **أقرب صاحب** / **حالة الشلة** | Names in the watch's pickers. |
 
 For a native reviewer: *الظاهرون: ٢ من ٥* for "2 of 5 live", so nothing has to agree with the number. *%1$s خارج شلتك الآن* avoids a verb that needs the mate's gender. Feminine *أُرسلت / لم تُرسَل بعد* follows the app's own message states. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium**.
+
+## "I'm here" pin (`strings_here.xml`)
+
+Eight strings: the **I'm here** button in the drop-a-pin dialog and the line under it, the
+"pinned 3 min ago" note on a mate's face (map, list, radar, finder), and your own pin's row in
+the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
+
+| English | Chosen |
+|---|---|
+| I'm here (button) | **أنا هنا** |
+| Your crew sees you on this spot, with the floor, until you walk away (20 min at most). | ترى شلتك مكانك هنا، مع الطابق، حتى تبتعد عنه (20 دقيقة كحد أقصى). |
+| pinned 3 min ago (%1$s = the app's "3 min ago" / "just now") | وُضع الدبوس %1$s |
+| You're here / Pinned 3 min ago · your crew sees you here | أنت هنا / وُضع الدبوس %1$s · شلتك تراك هنا |
+| Take your pin down (screen reader, ✕) | أزل دبوسك |
+
+Uses the app's **شلة** for crew and **دبوس** for pin. *وُضع الدبوس* ("the pin was placed") is followed by the app's own "3 min ago" phrase. Written without a native reviewer. Confidence: **medium**.

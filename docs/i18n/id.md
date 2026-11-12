@@ -110,3 +110,19 @@ The Wear OS companion: 62 strings on the watch and 4 on the phone (the notificat
 | Nearest mate (watch-face complication) / Crew status (tile) | **Teman terdekat** / **Status geng** | Names in the watch's pickers. |
 
 For a native reviewer: *Jam* alone for the watch. *Posisikan jam mendatar* ("hold the watch level") instead of a literal "wrist flat". *Belum terkirim* serves for both "Not sent" (the app's own wording) and "Not sent yet". The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium**.
+
+## "I'm here" pin (`strings_here.xml`)
+
+Eight strings: the **I'm here** button in the drop-a-pin dialog and the line under it, the
+"pinned 3 min ago" note on a mate's face (map, list, radar, finder), and your own pin's row in
+the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
+
+| English | Chosen |
+|---|---|
+| I'm here (button) | **Aku di sini** |
+| Your crew sees you on this spot, with the floor, until you walk away (20 min at most). | Gengmu melihatmu di titik ini, lengkap dengan lantainya, sampai kamu pergi (maks. 20 mnt). |
+| pinned 3 min ago (%1$s = the app's "3 min ago" / "just now") | di-pin %1$s |
+| You're here / Pinned 3 min ago · your crew sees you here | Kamu di sini / Di-pin %1$s · gengmu melihatmu di sini |
+| Take your pin down (screen reader, ✕) | Hapus pin-mu |
+
+Uses **geng** and **pin** (*di-pin*), with **kamu**. *Di-pin 3 mnt lalu*. Written without a native reviewer. Confidence: **medium**.

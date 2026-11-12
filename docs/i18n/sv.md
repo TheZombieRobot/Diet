@@ -100,3 +100,19 @@ The Wear OS companion: 62 strings on the watch and 4 on the phone (the notificat
 | Nearest mate (watch-face complication) / Crew status (tile) | **Närmaste kompis** / **Gruppstatus** | Names in the watch's pickers. |
 
 For a native reviewer: *Håll in* on the round button. *Säga till gruppen* for telling the crew. *Klockappen* for the watch app. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium-high**.
+
+## "I'm here" pin (`strings_here.xml`)
+
+Eight strings: the **I'm here** button in the drop-a-pin dialog and the line under it, the
+"pinned 3 min ago" note on a mate's face (map, list, radar, finder), and your own pin's row in
+the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
+
+| English | Chosen |
+|---|---|
+| I'm here (button) | **Jag är här** |
+| Your crew sees you on this spot, with the floor, until you walk away (20 min at most). | Gruppen ser dig på den här platsen, med våningen, tills du går därifrån (högst 20 min). |
+| pinned 3 min ago (%1$s = the app's "3 min ago" / "just now") | fäst %1$s |
+| You're here / Pinned 3 min ago · your crew sees you here | Du är här / Fäst %1$s · gruppen ser dig här |
+| Take your pin down (screen reader, ✕) | Ta bort din nål |
+
+Uses **gruppen** and **nål**; *fäst* ("pinned") for the time line. Floor = *våningen*. Written without a native reviewer. Confidence: **medium**.

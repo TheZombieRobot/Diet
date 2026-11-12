@@ -92,3 +92,19 @@ The Wear OS companion: 62 strings on the watch and 4 on the phone (the notificat
 | Nearest mate (watch-face complication) / Crew status (tile) | **いちばん近い仲間** / **クルーの状況** | Names in the watch's pickers. |
 
 For a native reviewer: *まだ未送信* for "Not sent yet" (short enough for one line; the phone's "Not sent" is 未送信). *振動を頼りに進んで* for "Follow the buzzes". Friendly *〜してね* endings as in the phone app. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium**.
+
+## "I'm here" pin (`strings_here.xml`)
+
+Eight strings: the **I'm here** button in the drop-a-pin dialog and the line under it, the
+"pinned 3 min ago" note on a mate's face (map, list, radar, finder), and your own pin's row in
+the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
+
+| English | Chosen |
+|---|---|
+| I'm here (button) | **ここにいる** |
+| Your crew sees you on this spot, with the floor, until you walk away (20 min at most). | その場から離れるまで（最長20分）、クルーにはあなたがこの場所に、階の情報付きで表示されます。 |
+| pinned 3 min ago (%1$s = the app's "3 min ago" / "just now") | ピン留め・%1$s |
+| You're here / Pinned 3 min ago · your crew sees you here | ここにいます / ピン留め・%1$s · クルーにはここに表示中 |
+| Take your pin down (screen reader, ✕) | ピンを外す |
+
+Uses **クルー** and **ピン** (*ピン留め*). The time phrase follows a middle dot (*ピン留め・3分前*) so it works with *たった今* too. Written without a native reviewer. Confidence: **medium**.

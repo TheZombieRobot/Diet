@@ -102,3 +102,19 @@ The Wear OS companion: 62 strings on the watch and 4 on the phone (the notificat
 | Nearest mate (watch-face complication) / Crew status (tile) | **Dichtstbijzijnde vriend** / **Crewstatus** | Names in the watch's pickers. |
 
 For a native reviewer: *Hou vast* on the round button, *waarschuwen* for telling the crew. *Dichtstbijzijnde vriend* is long for a complication name; it only shows in the picker. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium-high**.
+
+## "I'm here" pin (`strings_here.xml`)
+
+Eight strings: the **I'm here** button in the drop-a-pin dialog and the line under it, the
+"pinned 3 min ago" note on a mate's face (map, list, radar, finder), and your own pin's row in
+the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
+
+| English | Chosen |
+|---|---|
+| I'm here (button) | **Ik ben hier** |
+| Your crew sees you on this spot, with the floor, until you walk away (20 min at most). | Je crew ziet je op deze plek, met de verdieping, tot je weggaat (max. 20 min). |
+| pinned 3 min ago (%1$s = the app's "3 min ago" / "just now") | gepind %1$s |
+| You're here / Pinned 3 min ago · your crew sees you here | Je bent hier / Gepind %1$s · je crew ziet je hier |
+| Take your pin down (screen reader, ✕) | Je pin weghalen |
+
+Uses **crew** and **pin** (*gepind*), with **je**. Written without a native reviewer. Confidence: **medium**.

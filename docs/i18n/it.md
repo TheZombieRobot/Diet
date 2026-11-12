@@ -98,3 +98,19 @@ The Wear OS companion: 62 strings on the watch and 4 on the phone (the notificat
 | Nearest mate (watch-face complication) / Crew status (tile) | **Amico più vicino** / **Stato del gruppo** | Names in the watch's pickers. |
 
 For a native reviewer: *Tieni premuto* takes two lines on the round button. *Tieni il polso in piano* for holding the wrist level. *App per orologio*. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium-high**.
+
+## "I'm here" pin (`strings_here.xml`)
+
+Eight strings: the **I'm here** button in the drop-a-pin dialog and the line under it, the
+"pinned 3 min ago" note on a mate's face (map, list, radar, finder), and your own pin's row in
+the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
+
+| English | Chosen |
+|---|---|
+| I'm here (button) | **Sono qui** |
+| Your crew sees you on this spot, with the floor, until you walk away (20 min at most). | Il tuo gruppo ti vede in questo punto, con il piano, finché non te ne vai (al massimo 20 min). |
+| pinned 3 min ago (%1$s = the app's "3 min ago" / "just now") | pin messo %1$s |
+| You're here / Pinned 3 min ago · your crew sees you here | Sei qui / Pin messo %1$s · il tuo gruppo ti vede qui |
+| Take your pin down (screen reader, ✕) | Togli il tuo pin |
+
+Uses **gruppo** and **pin** (*pin messo*), as in *Metti un pin*. Floor = *piano*. Written without a native reviewer. Confidence: **medium**.

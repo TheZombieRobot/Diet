@@ -108,3 +108,19 @@ The Wear OS companion: 62 strings on the watch and 4 on the phone (the notificat
 | Nearest mate (watch-face complication) / Crew status (tile) | **Am nächsten dran** / **Crew-Status** | Names in the watch's pickers. |
 
 For a native reviewer: *Am nächsten dran* as the name of the watch-face complication (a literal *Nächster Freund* reads as "next friend"). *Halten* alone on the round button. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium-high**.
+
+## "I'm here" pin (`strings_here.xml`)
+
+Eight strings: the **I'm here** button in the drop-a-pin dialog and the line under it, the
+"pinned 3 min ago" note on a mate's face (map, list, radar, finder), and your own pin's row in
+the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
+
+| English | Chosen |
+|---|---|
+| I'm here (button) | **Ich bin hier** |
+| Your crew sees you on this spot, with the floor, until you walk away (20 min at most). | Deine Crew sieht dich an dieser Stelle, mit dem Stockwerk, bis du weggehst (höchstens 20 Min.). |
+| pinned 3 min ago (%1$s = the app's "3 min ago" / "just now") | gepinnt %1$s |
+| You're here / Pinned 3 min ago · your crew sees you here | Du bist hier / Gepinnt %1$s · deine Crew sieht dich hier |
+| Take your pin down (screen reader, ✕) | Deinen Pin entfernen |
+
+Uses **Crew** and **Pin** (*gepinnt*), as elsewhere. *gepinnt gerade eben* (with "just now") is colloquial; *gerade gepinnt* would read better but the time phrase is shared with the rest of the app. Written without a native reviewer. Confidence: **medium**.

@@ -98,3 +98,19 @@ The Wear OS companion: 62 strings on the watch and 4 on the phone (the notificat
 | Nearest mate (watch-face complication) / Crew status (tile) | **最近的朋友** / **小隊狀態** | Names in the watch's pickers. |
 
 For a native reviewer: *這支手錶* as the measure word. *手錶 App*. *按住* on the button. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium-high**.
+
+## "I'm here" pin (`strings_here.xml`)
+
+Eight strings: the **I'm here** button in the drop-a-pin dialog and the line under it, the
+"pinned 3 min ago" note on a mate's face (map, list, radar, finder), and your own pin's row in
+the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
+
+| English | Chosen |
+|---|---|
+| I'm here (button) | **我在這裡** |
+| Your crew sees you on this spot, with the floor, until you walk away (20 min at most). | 在你離開之前（最多 20 分鐘），小隊會在這個位置看到你，並顯示樓層。 |
+| pinned 3 min ago (%1$s = the app's "3 min ago" / "just now") | %1$s標記 |
+| You're here / Pinned 3 min ago · your crew sees you here | 你在這裡 / %1$s標記 · 小隊在這裡看到你 |
+| Take your pin down (screen reader, ✕) | 移除你的標記 |
+
+Uses **小隊** and **標記**. *3分鐘前標記* / *剛剛標記*. Written without a native reviewer. Confidence: **medium**.

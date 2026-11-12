@@ -106,3 +106,19 @@ The Wear OS companion: 62 strings on the watch and 4 on the phone (the notificat
 | Nearest mate (watch-face complication) / Crew status (tile) | **Amigo más cercano** / **Estado del grupo** | Names in the watch's pickers. |
 
 For a native reviewer: *Mantén* alone on the round button (the line under it says *Mantén pulsado…*). *Se ha parado* (present perfect) for a find that has just stopped. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium-high**.
+
+## "I'm here" pin (`strings_here.xml`)
+
+Eight strings: the **I'm here** button in the drop-a-pin dialog and the line under it, the
+"pinned 3 min ago" note on a mate's face (map, list, radar, finder), and your own pin's row in
+the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
+
+| English | Chosen |
+|---|---|
+| I'm here (button) | **Estoy aquí** |
+| Your crew sees you on this spot, with the floor, until you walk away (20 min at most). | Tu grupo te ve en este sitio, con la planta, hasta que te vayas (20 min como máximo). |
+| pinned 3 min ago (%1$s = the app's "3 min ago" / "just now") | pin puesto %1$s |
+| You're here / Pinned 3 min ago · your crew sees you here | Estás aquí / Pin puesto %1$s · tu grupo te ve aquí |
+| Take your pin down (screen reader, ✕) | Quitar tu pin |
+
+Same as Latin American Spanish except floor = **planta** and spot = **sitio** (Spain). Written without a native reviewer. Confidence: **medium**.

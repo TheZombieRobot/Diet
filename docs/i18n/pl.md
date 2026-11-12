@@ -114,3 +114,19 @@ The Wear OS companion: 62 strings on the watch and 4 on the phone (the notificat
 | Nearest mate (watch-face complication) / Crew status (tile) | **Najbliżej ciebie** / **Status ekipy** | Names in the watch's pickers. |
 
 For a native reviewer: *Najbliżej ciebie* ("closest to you") names the complication without a gendered noun. *Trzymaj* on the button, *Przytrzymaj…* in the line under it. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium**.
+
+## "I'm here" pin (`strings_here.xml`)
+
+Eight strings: the **I'm here** button in the drop-a-pin dialog and the line under it, the
+"pinned 3 min ago" note on a mate's face (map, list, radar, finder), and your own pin's row in
+the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
+
+| English | Chosen |
+|---|---|
+| I'm here (button) | **Jestem tutaj** |
+| Your crew sees you on this spot, with the floor, until you walk away (20 min at most). | Twoja ekipa widzi cię w tym miejscu, z piętrem, dopóki stąd nie odejdziesz (maks. 20 min). |
+| pinned 3 min ago (%1$s = the app's "3 min ago" / "just now") | przypięte %1$s |
+| You're here / Pinned 3 min ago · your crew sees you here | Jesteś tutaj / Przypięte %1$s · ekipa widzi cię tutaj |
+| Take your pin down (screen reader, ✕) | Usuń swoją pinezkę |
+
+Uses **ekipa** and **pinezka**; *przypięte* ("pinned", neuter: the place) for the time line. Written without a native reviewer. Confidence: **medium**.

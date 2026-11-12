@@ -113,3 +113,19 @@ The Wear OS companion: 62 strings on the watch and 4 on the phone (the notificat
 | Nearest mate (watch-face complication) / Crew status (tile) | **सबसे पास का दोस्त** / **ग्रुप स्टेटस** | Names in the watch's pickers. |
 
 For a native reviewer: *घड़ी* rather than *वॉच* for the watch. *कन्फ़र्म नहीं हुआ* for "Not confirmed". *कलाई सपाट रखें* for holding the wrist level. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium**.
+
+## "I'm here" pin (`strings_here.xml`)
+
+Eight strings: the **I'm here** button in the drop-a-pin dialog and the line under it, the
+"pinned 3 min ago" note on a mate's face (map, list, radar, finder), and your own pin's row in
+the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
+
+| English | Chosen |
+|---|---|
+| I'm here (button) | **मैं यहाँ हूँ** |
+| Your crew sees you on this spot, with the floor, until you walk away (20 min at most). | आपका ग्रुप आपको इसी जगह देखेगा, मंज़िल के साथ, जब तक आप यहाँ से चले नहीं जाते (ज़्यादा से ज़्यादा 20 मिनट)। |
+| pinned 3 min ago (%1$s = the app's "3 min ago" / "just now") | %1$s पिन किया |
+| You're here / Pinned 3 min ago · your crew sees you here | आप यहाँ हैं / %1$s पिन किया · आपका ग्रुप आपको यहाँ देखता है |
+| Take your pin down (screen reader, ✕) | अपना पिन हटाएँ |
+
+Uses **ग्रुप** and **पिन** with the polite **आप**, as elsewhere. *3 मिनट पहले पिन किया*. Written without a native reviewer. Confidence: **medium**.

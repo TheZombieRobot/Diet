@@ -95,3 +95,19 @@ The Wear OS companion: 62 strings on the watch and 4 on the phone (the notificat
 | Nearest mate (watch-face complication) / Crew status (tile) | **เพื่อนที่ใกล้ที่สุด** / **สถานะแก๊ง** | Names in the watch's pickers. |
 
 For a native reviewer: *ยกข้อมือให้ขนานกับพื้น* ("raise your wrist level with the ground") for "Hold your wrist flat". *เดินตามแรงสั่น* for "Follow the buzzes". *กดค้าง* on the button. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium**.
+
+## "I'm here" pin (`strings_here.xml`)
+
+Eight strings: the **I'm here** button in the drop-a-pin dialog and the line under it, the
+"pinned 3 min ago" note on a mate's face (map, list, radar, finder), and your own pin's row in
+the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
+
+| English | Chosen |
+|---|---|
+| I'm here (button) | **ฉันอยู่นี่** |
+| Your crew sees you on this spot, with the floor, until you walk away (20 min at most). | แก๊งจะเห็นคุณที่จุดนี้ พร้อมบอกชั้น จนกว่าคุณจะเดินออกไป (นานสุด 20 นาที) |
+| pinned 3 min ago (%1$s = the app's "3 min ago" / "just now") | ปักหมุดไว้ · %1$s |
+| You're here / Pinned 3 min ago · your crew sees you here | คุณอยู่ตรงนี้ / ปักหมุดไว้ %1$s · แก๊งเห็นคุณตรงนี้ |
+| Take your pin down (screen reader, ✕) | เอาหมุดของคุณออก |
+
+Uses **แก๊ง** and **หมุด** (*ปักหมุดไว้*), with **คุณ**. The time phrase follows a middle dot so *เมื่อกี้* reads naturally. Written without a native reviewer. Confidence: **medium**.

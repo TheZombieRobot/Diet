@@ -90,3 +90,19 @@ The Wear OS companion: 62 strings on the watch and 4 on the phone (the notificat
 | Nearest mate (watch-face complication) / Crew status (tile) | **가장 가까운 친구** / **크루 상태** | Names in the watch's pickers. |
 
 For a native reviewer: *길게 누르기* on the round button (two short words). *%1$s님은 이제 크루에 없어요* uses 님 as the chat lines do. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium-high**.
+
+## "I'm here" pin (`strings_here.xml`)
+
+Eight strings: the **I'm here** button in the drop-a-pin dialog and the line under it, the
+"pinned 3 min ago" note on a mate's face (map, list, radar, finder), and your own pin's row in
+the map's list. Validator prints **OK**. See `docs/IM_HERE.md`.
+
+| English | Chosen |
+|---|---|
+| I'm here (button) | **여기 있어요** |
+| Your crew sees you on this spot, with the floor, until you walk away (20 min at most). | 자리를 뜰 때까지(최대 20분) 크루에게 이곳에 층 정보와 함께 표시돼요. |
+| pinned 3 min ago (%1$s = the app's "3 min ago" / "just now") | %1$s 핀 꽂음 |
+| You're here / Pinned 3 min ago · your crew sees you here | 지금 여기 있어요 / %1$s 핀 꽂음 · 크루에게 여기로 보여요 |
+| Take your pin down (screen reader, ✕) | 내 핀 빼기 |
+
+Uses **크루** and **핀** (*핀 꽂음*), polite *-요* forms as elsewhere. *You're here* became *지금 여기 있어요* so it differs from the button *여기 있어요*. Written without a native reviewer. Confidence: **medium**.
