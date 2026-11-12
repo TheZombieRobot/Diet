@@ -323,7 +323,9 @@ class PrivateTest {
         book.mute(jo.tag, true)
         assertTrue(book.isMuted(jo.tag))
         assertEquals(0, book.unread(jo.tag), "muting clears the count")
-        val v = book.offer(from(jo, "two"), mate = true, viewing = false, nowSec = now)
+        // A second later, as a phone stamps its next message (MessageClock): in the same second the
+        // order would be by id, which is a hash of a freshly keyed body, so either way round.
+        val v = book.offer(from(jo, "two", t = now + 1), mate = true, viewing = false, nowSec = now + 1)
         assertTrue(v.shown)
         assertFalse(v.alert)
         assertEquals(0, book.unread(jo.tag))
