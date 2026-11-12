@@ -256,7 +256,9 @@ every saved area, the app saves the area around you as well.
 
 It is about **you**, not the crew: if you're at home and your mates are at the gig, the map
 behaves as it always has. So the map can only go to the venue when you are standing at it, on
-gig day. It is checked when the map opens; an open map never jumps by itself.
+gig day. It is checked when the map opens; an open map never jumps by itself. One allowance:
+if the phone had no fresh position at that moment (you're not live, say), the map's own first
+position counts, for 15 seconds after opening.
 
 **The venue view:** fits the venue, you, and mates within 400 m of the venue, never wider than
 zoom 16 (about 1 km across) and never closer than zoom 18.5.

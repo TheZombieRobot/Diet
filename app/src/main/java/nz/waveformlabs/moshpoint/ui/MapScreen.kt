@@ -127,8 +127,11 @@ fun MapScreen(
     // Camera requests. Starts on the venue when you're at the gig, else by fitting everyone.
     var camera by remember { mutableStateOf(MapFocus(0, emptyList())) }
     var fittedOnce by remember { mutableStateOf(false) }
+    var venueFitted by remember { mutableStateOf(false) }
     val everyone = pins.map { LatLng(it.lat, it.lon) } + listOfNotNull(me?.let { LatLng(it.lat, it.lon) })
-    if (!fittedOnce && venueView != null) {
+    if (venueView != null && !venueFitted) {
+        // Once: when the map opens at the gig, or when its first position a moment later says so.
+        venueFitted = true
         fittedOnce = true
         val there = AtGig.viewPoints(venueView.venue, me ?: venueView.me, pins.map { LatLon(it.lat, it.lon) })
         camera = MapFocus(camera.n + 1, there.map { LatLng(it.lat, it.lon) }, AtGig.VIEW_MIN_ZOOM, AtGig.VIEW_MAX_ZOOM)

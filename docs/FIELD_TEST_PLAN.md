@@ -136,6 +136,9 @@ The rule: it's the gig's day (from 3 hours before the start), and **your** phone
   block across, with you on it. A mate who is still at home is off screen; **All** brings
   everyone back.
 - [ ] Walk 600 m away, close the map and open it again: back to the ordinary view.
+- [ ] Not live, phone in your pocket for ten minutes, at the venue: open **Map**. It may open
+  on the ordinary view and move to the venue a few seconds later, once the phone has found
+  itself. That one move is intended; note how long it took.
 - [ ] Leave the map open and walk around: it must never move by itself.
 - [ ] Mark anything wrong: `map opened on the venue at home`, `venue view too wide`,
   `venue view centred on the wrong building`.

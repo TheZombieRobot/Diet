@@ -255,26 +255,48 @@ class MainActivity : ComponentActivity() {
     /** The finder engine is running just for the map (UWB places mates exactly). */
     private var mapEngine = false
 
+    /** When the map was last opened (time since boot), for [mapFirstFix]. */
+    private var mapOpenedAtMs = 0L
+
     private fun openMap() {
+        mapOpenedAtMs = android.os.SystemClock.elapsedRealtime()
         // At the gig (gig day, and this phone at the venue) the map opens zoomed into the venue.
-        val here = lastKnownLocation()
-        val venue = VenueMaps.venue(this)
-        mapVenue = if (venue != null && VenueMaps.atGig(this, here)) {
-            nz.waveformlabs.moshpoint.ui.VenueView(venue, here?.let { nz.waveformlabs.moshpoint.core.LatLon(it.latitude, it.longitude) })
-        } else null
+        mapVenue = venueViewFor(lastKnownLocation())
         showMap = true
         mapFeed.start()
-        // UWB only measures while someone is looking, so at the gig the map looks for the whole
-        // crew (unless the finder is already looking for someone).
-        if (mapVenue != null && ::engine.isInitialized && !finding) {
-            val ids = FriendsRepository.friends.filter { it.gigGroupOnly || it.key in GroupSync.members }.map { it.id }.toSet()
-            if (ids.isNotEmpty()) {
-                pendingStop?.cancel()
-                engine.track(ids)
-                engine.start()
-                mapEngine = true
-            }
-        }
+        if (mapVenue != null) lookForCrewFromMap()
+    }
+
+    /** The venue to open the map on, if [here] says this phone is at the gig; else null. */
+    private fun venueViewFor(here: android.location.Location?): nz.waveformlabs.moshpoint.ui.VenueView? {
+        val venue = VenueMaps.venue(this) ?: return null
+        if (!VenueMaps.atGig(this, here)) return null
+        return nz.waveformlabs.moshpoint.ui.VenueView(venue, here?.let { nz.waveformlabs.moshpoint.core.LatLon(it.latitude, it.longitude) })
+    }
+
+    /**
+     * The map's own first position after opening. If the phone had no fresh position when the
+     * map opened (not live, say), this one can still say we're at the gig, for a few seconds.
+     * After that an open map never moves by itself.
+     */
+    private fun mapFirstFix(here: android.location.Location) {
+        if (mapVenue != null || !showMap || android.os.SystemClock.elapsedRealtime() - mapOpenedAtMs > MAP_FIRST_FIX_MS) return
+        mapVenue = venueViewFor(here) ?: return
+        lookForCrewFromMap()
+    }
+
+    /**
+     * UWB only measures while someone is looking, so at the gig the map looks for the whole
+     * crew (unless the finder is already looking for someone).
+     */
+    private fun lookForCrewFromMap() {
+        if (!::engine.isInitialized || finding || mapEngine) return
+        val ids = FriendsRepository.friends.filter { it.gigGroupOnly || it.key in GroupSync.members }.map { it.id }.toSet()
+        if (ids.isEmpty()) return
+        pendingStop?.cancel()
+        engine.track(ids)
+        engine.start()
+        mapEngine = true
     }
 
     private fun closeMap() {
@@ -1146,6 +1168,7 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                         val myLoc = mapFeed.me.value
+                        androidx.compose.runtime.LaunchedEffect(myLoc) { myLoc?.let { mapFirstFix(it) } }
                         val mapUwb by engine.uwbSpots.collectAsState()
                         val mapArrows by engine.arrows.collectAsState()
                         nz.waveformlabs.moshpoint.ui.MapScreen(
@@ -1421,5 +1444,8 @@ class MainActivity : ComponentActivity() {
         const val EXTRA_OPEN_MAP = "nz.waveformlabs.moshpoint.OPEN_MAP"
         const val EXTRA_OPEN_CHAT = "nz.waveformlabs.moshpoint.OPEN_CHAT"
         const val EXTRA_CHAT_CREW = "nz.waveformlabs.moshpoint.CHAT_CREW"
+
+        /** How long after the map opens its first position may still open the venue view. */
+        private const val MAP_FIRST_FIX_MS = 15_000L
     }
 }
