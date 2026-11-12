@@ -86,6 +86,17 @@ class MessageRulesTest {
         assertNull(group.openRally(other.sealRally(real, jo)))
     }
 
+    @Test fun aPinOffTheGlobeIsDropped() {
+        // Only a hostile crew mate makes one, and the map throws drawing it: it never gets there.
+        assertNull(group.openRally(group.sealRally(GigGroup.Rally(Double.NaN, 174.7762, "x", now), jo)))
+        assertNull(group.openRally(group.sealRally(GigGroup.Rally(91.0, 174.7762, "x", now), jo)))
+        assertNull(group.openRally(group.sealRally(GigGroup.Rally(-41.2865, 181.0, "x", now), jo)))
+        assertNull(group.openRally(group.sealRally(GigGroup.Rally(-41.2865, Double.POSITIVE_INFINITY, "x", now), jo)))
+        // The edges are real places, and a cleared pin (0, 0) still opens.
+        assertNotNull(group.openRally(group.sealRally(GigGroup.Rally(-90.0, 180.0, "x", now), jo)))
+        assertNotNull(group.openRally(group.sealRally(GigGroup.Rally(0.0, 0.0, "", now), jo)))
+    }
+
     @Test fun aFarFuturePinCannotLockTheCrewsPin() {
         // Was: newest time wins, no cap. One pin dated years ahead won forever.
         assertFalse(PinRule.accepts(incomingSec = now + 10 * 365 * 86_400L, currentSec = now - 60, nowSec = now))

@@ -57,6 +57,15 @@ class HereTest {
         assertNull(signed(here(pressure = null)).pressure)
     }
 
+    @Test fun aSpotOffTheGlobeIsRefused() {
+        // Only a hostile crew mate makes one, and the map throws drawing it: it never gets there.
+        assertNull(group.openHere(group.sealHere(here(at = LatLon(200.0, 10.0)), jo)))
+        assertNull(group.openHere(group.sealHere(here(at = LatLon(10.0, -200.0)), jo)))
+        // The edges are real places, and a clear has no spot to check.
+        assertNotNull(group.openHere(group.sealHere(here(at = LatLon(-90.0, 180.0)), jo)))
+        assertNotNull(group.openHere(group.sealHere(here(clear = true), jo)))
+    }
+
     @Test fun olderBuildsCantMisreadIt() {
         val blob = group.sealHere(here(), jo)
         // Builds from before the envelope try these on everything in the pin and ping mailboxes.

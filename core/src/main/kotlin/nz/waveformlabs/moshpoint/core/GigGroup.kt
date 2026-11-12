@@ -177,6 +177,8 @@ class GigGroup(
             val plain = ByteBuffer.wrap(c.doFinal(blob, 12, blob.size - 12))
             val lat = plain.double
             val lon = plain.double
+            // A spot off the globe (only a hostile crew mate makes one) would crash the map: dropped.
+            if (!onGlobe(lat, lon)) return null
             val n = plain.get().toInt() and 0xFF
             val name = ByteArray(n).also { plain.get(it) }
             val time = ByteBuffer.wrap(blob, 0, 4).int.toLong() and 0xFFFFFFFFL
@@ -644,6 +646,8 @@ class GigGroup(
             val lonE7 = b.int
             val p = b.short.toInt() and 0xFFFF
             val clear = flags and HERE_CLEAR != 0
+            // As for the meet-up pin: a spot off the globe would crash the map, so it's refused.
+            if (!clear && !onGlobe(latE7 / 1e7, lonE7 / 1e7)) return null
             Here(
                 env.timeSec, minutes,
                 if (clear) 0.0 else latE7 / 1e7, if (clear) 0.0 else lonE7 / 1e7,
@@ -771,6 +775,9 @@ class GigGroup(
             val id = ByteBuffer.wrap(md.digest()).long
             return if (id == 0L) 1L else id
         }
+
+        /** A real place: the map can't draw a latitude past ±90 (or NaN) and throws on one. */
+        internal fun onGlobe(lat: Double, lon: Double): Boolean = lat in -90.0..90.0 && lon in -180.0..180.0
 
         /** How ids are written down (chat rows, logs). */
         fun idText(id: Long): String = java.lang.Long.toHexString(id)
