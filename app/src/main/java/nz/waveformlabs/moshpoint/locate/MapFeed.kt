@@ -20,6 +20,7 @@ import nz.waveformlabs.moshpoint.core.LocationBox
  * Crew first, then friends; up to 60 people (two rotating ids each, looked up in chunks).
  */
 class MapFeed(context: Context, private val scope: CoroutineScope) {
+    private val app = context.applicationContext
     private val myLocation = MyLocation(context)
     private var jobs = listOf<Job>()
 
@@ -69,7 +70,15 @@ class MapFeed(context: Context, private val scope: CoroutineScope) {
                 LocationBox.open(f.secret, id, p.sealed)?.let { LocationBook.update(f.id, it) }
             }
         }
-        val results = RelayClient.lookup(asks.map { it.second })
+        // Mates' "I'm here" pins live in the crew's pin mailbox: asked for in the same request, so
+        // a new pin shows on the open map within a poll (docs/IM_HERE.md). Not for followers.
+        val g = GroupSync.group.value?.takeIf { !GroupSync.following && !it.dormant(now) }
+        val day = Math.floorDiv(now / 1000, 86_400L)
+        val pinIds = g?.let { listOf(it.rallyIdForDay(day), it.rallyIdForDay(day - 1)) }.orEmpty()
+        val results = RelayClient.lookup(asks.map { it.second } + pinIds)
+        if (g != null && results != null) {
+            results.drop(asks.size).flatten().forEach { blob -> g.openHere(blob)?.let { nz.waveformlabs.moshpoint.HerePins.arrived(app, g, it) } }
+        }
         if (results == null) {
             status.value = nz.waveformlabs.moshpoint.Txt.s(nz.waveformlabs.moshpoint.R.string.find_map_status_offline)
             return

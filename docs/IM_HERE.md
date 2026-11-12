@@ -273,6 +273,7 @@ Everything else is new (`core/Here.kt`, `HereTest.kt`, `app/HerePins.kt`, `ui/He
 | app `GroupSync.kt` | Two lines: `HerePins.init` beside `OfflineMessages.init`; pins from the pin mailbox to `HerePins.arrived`. |
 | app `OfflineMessages.kt` | Three lines: Bluetooth arrivals to `HerePins`, a name in the route log. |
 | app `locate/GpsFinder.kt` | Six lines: the pin fixes at the start of `poll`. |
+| app `locate/MapFeed.kt` | While the map is open, the crew's two pin mailbox ids ride in the lookup it already makes (no extra request), so a new pin shows within a poll. |
 | app `venue/Floors.kt` | Three small functions for pins (our pressure now, the pinned spot's floor). |
 | app `ui/MapScreen.kt` | Five optional parameters; pinned faces, list rows, our own pin row, **I'm here** in the dialog. |
 | app `ui/CrewRadar.kt`, `ui/FinderScreen.kt` | One optional parameter each (`notes`, `pinned`). |
