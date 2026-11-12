@@ -76,17 +76,11 @@
     <string name="find_map_style_night">Nacht</string>
     <string name="find_map_style_dark">Donker</string>
     <string name="find_meet_label">Pin: %1$s</string>
-    <string name="find_saving_area">Gebied opslaan…</string>
-    <string name="find_saving_area_pct">Gebied opslaan… %1$d%%</string>
-    <string name="find_area_saved">Gebied opgeslagen: de kaart werkt hier zonder bereik</string>
-    <string name="find_area_save_failed">Gebied opslaan lukte niet: %1$s</string>
-    <string name="find_area_too_big">Te groot: zoom in op de locatie en probeer opnieuw</string>
     <string name="find_back">‹ Terug</string>
     <string name="find_map_title">Moshkaart</string>
     <string name="find_map_pin">Pin</string>
     <string name="find_map_all">Alle</string>
     <string name="find_map_me">Ik</string>
-    <string name="find_save_area">⬇  Gebied opslaan voor zonder bereik</string>
     <string name="find_map_no_mates">Nog geen vrienden. Start een crew of voeg een vriend toe, dan verschijnen ze hier zodra ze live gaan.</string>
     <string name="find_place_crew_meetup">verzamelpunt crew</string>
     <string name="find_place_only_you">alleen jij ziet dit</string>

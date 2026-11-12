@@ -85,3 +85,15 @@ Shortened after checking the rendered screens against English (validator: OK).
 | setup_onb_body_find | …strzałka pokaże prosto na niego… | …strzałka pokaże na niego… | Lone word on last line |
 
 Not fixable by wording: the "Udostępnij lokalizację" chip squeezes the moshpoint logo into a broken 3-line wrap on Home (layout bug, the logo must not wrap). The vetted term is kept.
+
+## Venue map (`strings_venue.xml`)
+
+Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a mate's face, and "Finding the venue…". Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| venue map | **mapa miejsca koncertu** | *Miejsce koncertu* as in `crew_at_venue`. First person *Zapisuję… / Szukam…*, like `main_saving_many`. |
+| ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ Na górze / ↓ Na dole** | Short, with the arrow kept. |
+| upstairs / downstairs (screen reader) | piętro wyżej / piętro niżej | Said in full after the mate's direction. |
+
+For a native reviewer: The crew-card lines are long because of *miejsca koncertu*; check they fit (they may wrap to two lines). Confidence in the wording: **high**.

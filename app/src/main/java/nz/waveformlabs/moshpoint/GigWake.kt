@@ -48,6 +48,7 @@ class GigWakeReceiver : BroadcastReceiver() {
             return
         }
         GroupSync.load(context)
+        nz.waveformlabs.moshpoint.venue.VenueMaps.sync(context) // gig day: finish the venue map if it isn't saved yet
         val g = GroupSync.group.value ?: return
         if (System.currentTimeMillis() / 1000 > g.startsAtSec + 2 * 3600) return // too late to say "tonight"
         val time = java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(java.util.Date(g.startsAtSec * 1000))

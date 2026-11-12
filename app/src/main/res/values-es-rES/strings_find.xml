@@ -77,17 +77,11 @@
     <string name="find_map_style_night">Noche</string>
     <string name="find_map_style_dark">Oscuro</string>
     <string name="find_meet_label">Encuentro: %1$s</string>
-    <string name="find_saving_area">Guardando esta zona…</string>
-    <string name="find_saving_area_pct">Guardando esta zona… %1$d%%</string>
-    <string name="find_area_saved">Zona guardada: el mapa funciona aquí sin cobertura</string>
-    <string name="find_area_save_failed">No se pudo guardar la zona: %1$s</string>
-    <string name="find_area_too_big">Demasiado grande: acerca el zoom al recinto y vuelve a probar</string>
     <string name="find_back">‹ Atrás</string>
     <string name="find_map_title">Mapa Mosh</string>
     <string name="find_map_pin">Pin</string>
     <string name="find_map_all">Todos</string>
     <string name="find_map_me">Yo</string>
-    <string name="find_save_area">⬇  Guardar zona para usar sin cobertura</string>
     <string name="find_map_no_mates">Aún no hay amigos. Crea un grupo o añade a un amigo, y saldrán aquí cuando se pongan en directo.</string>
     <string name="find_place_crew_meetup">encuentro del grupo</string>
     <string name="find_place_only_you">solo lo ves tú</string>

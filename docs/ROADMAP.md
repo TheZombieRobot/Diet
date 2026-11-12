@@ -89,6 +89,12 @@ Agreed with the owner; build in this order. Where this differs from [PRODUCT.md]
     arrival.
   - Each phone downloads its own copy (map terms don't allow sharing them between phones).
 - Needs: a Mapbox account and access token.
+- **Status: the free half is built, not yet tried on real phones.** Decisions, tests and
+  what's left: [VENUE_MAP.md](VENUE_MAP.md). Two changes from the plan above. The saved street
+  map is a small pack the app builds itself (about 3–5 MB): MapLibre's own offline download
+  turned out to be 18 MB a venue, nearly all fonts. And a mate heard only by Bluetooth gets no
+  pin, because there's no direction to draw; the list under the map says how close they are.
+  Mapbox, satellite and Moshpoint+ are not started.
 
 ### 3. "I'm here" pin: about 1–2 days
 - Long-press your exact spot → "I'm here". Your face moves there (with the floor) on the crew's

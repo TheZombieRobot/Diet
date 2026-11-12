@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Arabic: the venue map (offline download line, upstairs/downstairs tags, venue lookup). -->
+<resources>
+    <string name="venue_map_saved">حُفظت خريطة المكان للاستخدام بدون إنترنت ✓</string>
+    <string name="venue_map_saving">جارٍ حفظ خريطة المكان… %1$d%%</string>
+    <string name="venue_map_waiting">خريطة المكان: بانتظار الاتصال</string>
+    <string name="venue_map_on_arrival">تُحفظ خريطة المكان عند وصولك</string>
+    <string name="venue_floor_up">↑ الطابق العلوي</string>
+    <string name="venue_floor_down">↓ الطابق السفلي</string>
+    <string name="venue_floor_up_spoken">في الطابق العلوي</string>
+    <string name="venue_floor_down_spoken">في الطابق السفلي</string>
+    <string name="venue_spoken_floor">%1$s، %2$s</string>
+    <string name="venue_finding">جارٍ البحث عن المكان…</string>
+</resources>

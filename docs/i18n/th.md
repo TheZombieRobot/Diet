@@ -66,3 +66,15 @@ Note on sources: web search worked, but direct page fetches were blocked in this
 ## UI review
 
 All screens checked against English: no clipping, wrapping or overlap needing a wording change. No strings changed.
+
+## Venue map (`strings_venue.xml`)
+
+Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a mate's face, and "Finding the venue…". Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| venue map | **แผนที่สถานที่จัดงาน** | Not «แผนที่งาน»: งาน also means "work", so it would read as "work map". สถานที่จัดงาน is the plain word for an event venue. |
+| ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ ชั้นบน / ↓ ชั้นล่าง** | Short, with the arrow kept. |
+| upstairs / downstairs (screen reader) | อยู่ชั้นบน / อยู่ชั้นล่าง | Said in full after the mate's direction. |
+
+For a native reviewer: The crew-card lines are long; check they fit. Confidence in the wording: **high**.

@@ -140,4 +140,6 @@ dependencies {
     implementation(libs.zxing.android.embedded)
     debugImplementation(libs.androidx.compose.ui.tooling)
     testImplementation(kotlin("test"))
+    // The real org.json for tests on the JVM (on a phone it comes with Android): VenueLogicTest.
+    testImplementation(libs.orgjson)
 }

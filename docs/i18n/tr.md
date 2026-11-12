@@ -87,3 +87,15 @@ Shortened after checking the rendered screens against English (validator: OK).
 | setup_stay_live | Yeniden başlatınca paylaşmaya devam et | Yeniden başlayınca paylaş | Setting title wrapped |
 
 Not fixable by wording: the "Konumu paylaş" chip squeezes the moshpoint logo into a broken wrap on Home (layout bug). The vetted term is kept.
+
+## Venue map (`strings_venue.xml`)
+
+Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a mate's face, and "Finding the venue…". Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| venue map | **mekân haritası** | *Mekân* as in `crew_at_venue`. Percent written `%%%1$d`, as in `find_scan_percent`. |
+| ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ Üst katta / ↓ Alt katta** | Short, with the arrow kept. |
+| upstairs / downstairs (screen reader) | üst katta / alt katta | Said in full after the mate's direction. |
+
+For a native reviewer: Nothing doubtful. Confidence: **high**.

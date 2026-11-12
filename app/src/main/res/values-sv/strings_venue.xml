@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Swedish: the venue map (offline download line, upstairs/downstairs tags, venue lookup). -->
+<resources>
+    <string name="venue_map_saved">Karta över stället sparad offline ✓</string>
+    <string name="venue_map_saving">Sparar kartan över stället… %1$d%%</string>
+    <string name="venue_map_waiting">Karta över stället: väntar på uppkoppling</string>
+    <string name="venue_map_on_arrival">Kartan över stället sparas när du är framme</string>
+    <string name="venue_floor_up">↑ Uppe</string>
+    <string name="venue_floor_down">↓ Nere</string>
+    <string name="venue_floor_up_spoken">en trappa upp</string>
+    <string name="venue_floor_down_spoken">en trappa ner</string>
+    <string name="venue_spoken_floor">%1$s, %2$s</string>
+    <string name="venue_finding">Letar upp stället…</string>
+</resources>

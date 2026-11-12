@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.GigSearch
 import nz.waveformlabs.moshpoint.R
 import androidx.compose.ui.res.stringResource
+import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.util.Calendar
 import java.util.Date
@@ -49,6 +50,11 @@ internal fun PlanGigSheet(
     search: (suspend (String) -> List<GigSearch.Gig>?)?,
     onPick: (name: String, startsAtSec: Long, venue: String, lat: Double?, lon: Double?) -> Unit,
     onClose: () -> Unit,
+    /**
+     * Finds where a venue typed by hand is (lat, lon), or null. Asked once, when "Start crew"
+     * is tapped (never while typing), so the crew and its invite carry the venue's position.
+     */
+    lookupVenue: (suspend (String) -> Pair<Double, Double>?)? = null,
 ) {
     androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, containerColor = Mosh.Deep) {
         Column(
@@ -132,7 +138,23 @@ internal fun PlanGigSheet(
                 }
             }
             val defaultGigName = stringResource(R.string.setup_plan_default_name)
-            NeonButton(stringResource(R.string.setup_plan_start_crew)) { onPick(name.ifBlank { defaultGigName }, at, venue.trim(), null, null) }
+            val scope = androidx.compose.runtime.rememberCoroutineScope()
+            var finding by remember { mutableStateOf(false) }
+            NeonButton(if (finding) stringResource(R.string.venue_finding) else stringResource(R.string.setup_plan_start_crew)) {
+                if (finding) return@NeonButton
+                val where = venue.trim()
+                if (lookupVenue == null || where.isBlank()) {
+                    onPick(name.ifBlank { defaultGigName }, at, where, null, null)
+                } else {
+                    // A few seconds at most: not found or no internet just means no position.
+                    finding = true
+                    scope.launch {
+                        val found = kotlinx.coroutines.withTimeoutOrNull(4_000) { runCatching { lookupVenue(where) }.getOrNull() }
+                        finding = false
+                        onPick(name.ifBlank { defaultGigName }, at, where, found?.first, found?.second)
+                    }
+                }
+            }
             Spacer(Modifier.heightIn(min = 4.dp))
         }
     }

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vietnamese: the venue map (offline download line, upstairs/downstairs tags, venue lookup). -->
+<resources>
+    <string name="venue_map_saved">Đã lưu bản đồ địa điểm để dùng khi mất sóng ✓</string>
+    <string name="venue_map_saving">Đang lưu bản đồ địa điểm… %1$d%%</string>
+    <string name="venue_map_waiting">Bản đồ địa điểm: đang chờ kết nối</string>
+    <string name="venue_map_on_arrival">Bản đồ địa điểm sẽ được lưu khi bạn đến nơi</string>
+    <string name="venue_floor_up">↑ Tầng trên</string>
+    <string name="venue_floor_down">↓ Tầng dưới</string>
+    <string name="venue_floor_up_spoken">ở tầng trên</string>
+    <string name="venue_floor_down_spoken">ở tầng dưới</string>
+    <string name="venue_spoken_floor">%1$s, %2$s</string>
+    <string name="venue_finding">Đang tìm địa điểm…</string>
+</resources>

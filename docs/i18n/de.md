@@ -79,3 +79,15 @@ Shortened so the text fits like English does in the rendered screens:
 | `home_tap_mate_hint` | Tippe auf einen Freund, um ihn zu finden · gedrückt halten für Optionen | Antippen zum Finden · halten für Optionen |
 | `home_chat_subtitle` | Nachrichten, der Plan, Leuchtsignale | Chat, Plan, Leuchtsignale |
 | `home_asleep_text` | … und am Tag bekommst du eine Erinnerung. | Ruht bis zum Konzerttag: … am Tag erinnern wir dich. |
+
+## Venue map (`strings_venue.xml`)
+
+Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a mate's face, and "Finding the venue…". Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| venue map | **Karte der Location** | *Location* is the venue word used throughout. *Oben/Unten* keeps the tag short enough to sit on a photo; the screen-reader text says it in full. |
+| ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ Oben / ↓ Unten** | Short, with the arrow kept. |
+| upstairs / downstairs (screen reader) | eine Etage höher / eine Etage tiefer | Said in full after the mate's direction. |
+
+For a native reviewer: *Oben/Unten* versus *Obergeschoss/Untergeschoss*: the short form was chosen for size. Confidence: **high**.

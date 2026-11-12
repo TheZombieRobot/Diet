@@ -59,3 +59,15 @@ Overall: the translation is natural, casual and uses mainland vocabulary through
 ## UI review
 
 All screens checked against English: no clipping, wrapping or overlap needing a wording change. No strings changed.
+
+## Venue map (`strings_venue.xml`)
+
+Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a mate's face, and "Finding the venue…". Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| venue map | **场馆地图** | 场馆 as in `crew_at_venue`. |
+| ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ 楼上 / ↓ 楼下** | Short, with the arrow kept. |
+| upstairs / downstairs (screen reader) | 在楼上 / 在楼下 | Said in full after the mate's direction. |
+
+For a native reviewer: Nothing doubtful. Confidence: **high**.

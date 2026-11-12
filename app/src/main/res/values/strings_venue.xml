@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The venue map: the offline-download line on the crew card, upstairs/downstairs tags, venue lookup. See docs/VENUE_MAP.md. -->
+<resources>
+    <!-- ===== Crew card: one line saying whether the venue's map is on the phone ===== -->
+    <!-- The street map around the venue is saved on this phone and works with no signal. Keep the tick. -->
+    <string name="venue_map_saved">Venue map saved for offline ✓</string>
+    <!-- It is downloading now. %1$d = percent done -->
+    <string name="venue_map_saving">Saving the venue map… %1$d%%</string>
+    <!-- Can't download yet because there is no internet; it carries on by itself when there is -->
+    <string name="venue_map_waiting">Venue map: waiting for a connection</string>
+    <!-- We don't know where the venue is, so the map is saved around you once you're at the gig -->
+    <string name="venue_map_on_arrival">Venue map saves when you get there</string>
+
+    <!-- ===== Upstairs / downstairs tag on a mate's face (map and finder) ===== -->
+    <!-- This mate is on a floor above you. Keep the arrow. Keep it short: it sits on a small photo. -->
+    <string name="venue_floor_up">↑ Upstairs</string>
+    <!-- This mate is on a floor below you. Keep the arrow. -->
+    <string name="venue_floor_down">↓ Downstairs</string>
+    <!-- For screen readers, said after where a mate is: "Sam, 12 metres, at 2 o'clock, upstairs" -->
+    <string name="venue_floor_up_spoken">upstairs</string>
+    <string name="venue_floor_down_spoken">downstairs</string>
+    <!-- Screen reader. %1$s = where a mate is ("Sam, 12 metres, at 2 o'clock"), %2$s = "upstairs" or "downstairs" -->
+    <string name="venue_spoken_floor">%1$s, %2$s</string>
+
+    <!-- ===== Plan a gig ===== -->
+    <!-- Shown on the "Start crew" button for a moment while we look up where the typed venue is -->
+    <string name="venue_finding">Finding the venue…</string>
+
+    <!-- Credit in Acknowledgements (English everywhere, like the map credit) -->
+    <string name="venue_ack_lookup" translatable="false">Venue search: Nominatim, © OpenStreetMap contributors.</string>
+</resources>

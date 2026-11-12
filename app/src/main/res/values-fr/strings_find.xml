@@ -77,17 +77,11 @@
     <string name="find_map_style_night">Nuit</string>
     <string name="find_map_style_dark">Sombre</string>
     <string name="find_meet_label">RDV : %1$s</string>
-    <string name="find_saving_area">Enregistrement de la zone…</string>
-    <string name="find_saving_area_pct">Enregistrement de la zone… %1$d%%</string>
-    <string name="find_area_saved">Zone enregistrée : la carte marche ici sans réseau</string>
-    <string name="find_area_save_failed">Impossible d\'enregistrer la zone : %1$s</string>
-    <string name="find_area_too_big">Trop grand : zoome sur le lieu et réessaie</string>
     <string name="find_back">‹ Retour</string>
     <string name="find_map_title">Mosh map</string>
     <string name="find_map_pin">Repère</string>
     <string name="find_map_all">Tous</string>
     <string name="find_map_me">Moi</string>
-    <string name="find_save_area">⬇  Enregistrer la zone hors réseau</string>
     <string name="find_map_no_mates">Pas encore de potes. Lance une crew ou ajoute un ami, ils apparaîtront ici dès qu\'ils passent en live.</string>
     <string name="find_place_crew_meetup">RDV de la crew</string>
     <string name="find_place_only_you">visible que par toi</string>

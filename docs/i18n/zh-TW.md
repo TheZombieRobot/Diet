@@ -69,3 +69,15 @@ If Hong Kong is a target market, add a `values-zh-rHK` folder rather than changi
 | Key | Old | New | Why |
 |---|---|---|---|
 | find_colour_legend | 亮粉紅代表還很遠。越靠近，箭頭越亮出朋友的顏色。 | 亮粉紅表示還遠。越近，箭頭越亮出朋友的顏色。 | "色。" wrapped alone |
+
+## Venue map (`strings_venue.xml`)
+
+Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a mate's face, and "Finding the venue…". Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| venue map | **場地地圖** | 場地 as in `crew_at_venue`. 儲存 / 連線, Taiwan usage. |
+| ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ 樓上 / ↓ 樓下** | Short, with the arrow kept. |
+| upstairs / downstairs (screen reader) | 在樓上 / 在樓下 | Said in full after the mate's direction. |
+
+For a native reviewer: Nothing doubtful. Confidence: **high**.

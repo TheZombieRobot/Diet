@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Turkish: the venue map (offline download line, upstairs/downstairs tags, venue lookup). -->
+<resources>
+    <string name="venue_map_saved">Mekân haritası çevrimdışı kaydedildi ✓</string>
+    <string name="venue_map_saving">Mekân haritası kaydediliyor… %%%1$d</string>
+    <string name="venue_map_waiting">Mekân haritası: bağlantı bekleniyor</string>
+    <string name="venue_map_on_arrival">Mekân haritası oraya varınca kaydedilir</string>
+    <string name="venue_floor_up">↑ Üst katta</string>
+    <string name="venue_floor_down">↓ Alt katta</string>
+    <string name="venue_floor_up_spoken">üst katta</string>
+    <string name="venue_floor_down_spoken">alt katta</string>
+    <string name="venue_spoken_floor">%1$s, %2$s</string>
+    <string name="venue_finding">Mekân aranıyor…</string>
+</resources>

@@ -61,3 +61,15 @@ Register: UI text uses 해요체 (friendly-polite), the norm for Korean consumer
 ## UI review
 Shortened so the text fits the way English does:
 - `find_last_seen_on_map`: *지도에서 마지막 위치* → *마지막 위치* (the button wrapped and left "치" alone on line 2)
+
+## Venue map (`strings_venue.xml`)
+
+Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a mate's face, and "Finding the venue…". Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| venue map | **공연장 지도** | 공연장 as in `crew_at_venue`. 해요체, as elsewhere. |
+| ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ 위층 / ↓ 아래층** | Short, with the arrow kept. |
+| upstairs / downstairs (screen reader) | 위층 / 아래층 | Said in full after the mate's direction. |
+
+For a native reviewer: Nothing doubtful. Confidence: **high**.

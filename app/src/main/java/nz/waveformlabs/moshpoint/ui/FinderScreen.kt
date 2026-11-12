@@ -9,6 +9,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.spring
@@ -102,11 +104,15 @@ fun FinderScreen(
     onAskLight: () -> Unit = {},
     /** We got within a few metres of [friendId] (the celebration showed). */
     onFound: (String) -> Unit = {},
+    /** Mates on a floor above or below us (see core Floors): tagged on their face. */
+    floors: Map<String, nz.waveformlabs.moshpoint.core.Floor> = emptyMap(),
     onBack: () -> Unit,
     /** Only used in debug builds. Null in release. */
     debug: (@Composable (Modifier) -> Unit)? = null,
 ) {
     var showDebug by remember { mutableStateOf(false) }
+    val floorLabels = floors.mapValues { floorLabel(it.value) }
+    val floorsSpoken = floors.mapValues { floorSpoken(it.value) }
     // Whole crew: every mate's arrow at once. Tap one (their bubble, or in the strip below) to
     // find just them; back, or "‹ Everyone", returns to the whole crew.
     val everyone = arrows
@@ -151,7 +157,8 @@ fun FinderScreen(
     val showingDist = distances.firstOrNull { it.first == showing[0] }?.second
     if (showing[0] != null && (showingDist == null || showingDist > FOUND_HIDE_M || showing[0] in dismissed)) showing[0] = null
     if (showing[0] == null) {
-        showing[0] = distances.filter { it.second < FOUND_M && it.first !in dismissed }.minByOrNull { it.second }?.first
+        // Three metres away but a floor apart isn't found yet: no confetti through the ceiling.
+        showing[0] = distances.filter { it.second < FOUND_M && it.first !in dismissed && it.first !in floors }.minByOrNull { it.second }?.first
     }
     val found = showing[0]
     if (!scanning) FindHaptics(arrows)
@@ -271,11 +278,11 @@ fun FinderScreen(
                                 if (p.isNotEmpty()) Box(Modifier.fillMaxSize(0.92f)) { RadarPulse({ mood.copy(alpha = 0.7f) }) }
                                 if (shown.size > 1) {
                                     // The whole crew as a radar: near mates close in, far ones out, stacks when they overlap.
-                                    CrewRadar(p, friendOf, onTap = { id -> focus = id }, onTapGroup = { ids -> pickFrom = ids })
+                                    CrewRadar(p, friendOf, onTap = { id -> focus = id }, onTapGroup = { ids -> pickFrom = ids }, floors = floorLabels)
                                 } else {
-                                    Arrows(p, friendOf, group = false)
+                                    Arrows(p, friendOf, group = false, floors = floorLabels, floorsSpoken = floorsSpoken)
                                 }
-                                if (p.isEmpty()) DistanceOnly(d, friendOf)
+                                if (p.isEmpty()) DistanceOnly(d, friendOf, floors)
                             }
                         }
                     }
@@ -301,7 +308,7 @@ fun FinderScreen(
             }
             // Everyone in the crew, including mates with no direction or no signal yet: tap to focus.
             if (!scanning && crewView && focus == null) {
-                CrewStrip(pickFrom?.let { ids -> everyone.filter { it.friendId in ids } } ?: everyone, friendOf, onPick = { focus = it })
+                CrewStrip(pickFrom?.let { ids -> everyone.filter { it.friendId in ids } } ?: everyone, friendOf, onPick = { focus = it }, floors = floors)
                 Spacer(Modifier.height(10.dp))
             }
             if (!scanning && arrows.size > 1 && pointing.isNotEmpty()) {
@@ -402,7 +409,12 @@ fun FinderScreen(
  * their own colour up close, grey with no signal) and how far away they are. Tap to find just them.
  */
 @Composable
-internal fun CrewStrip(arrows: List<ArrowState>, friendOf: (String) -> Friend?, onPick: (String) -> Unit) {
+internal fun CrewStrip(
+    arrows: List<ArrowState>,
+    friendOf: (String) -> Friend?,
+    onPick: (String) -> Unit,
+    floors: Map<String, nz.waveformlabs.moshpoint.core.Floor> = emptyMap(),
+) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
         Row(
             Modifier.horizontalScroll(rememberScrollState()),
@@ -433,8 +445,12 @@ internal fun CrewStrip(arrows: List<ArrowState>, friendOf: (String) -> Friend?, 
                     modifier = Modifier.pressScale(sc).clickable(interactionSource = src, indication = null) { onPick(a.friendId) }
                         .padding(4.dp),
                 ) {
-                    Box(Modifier.size(50.dp).border(2.5.dp, ring, CircleShape).padding(4.dp), contentAlignment = Alignment.Center) {
-                        Avatar(f, 42.dp)
+                    Box(contentAlignment = Alignment.BottomCenter) {
+                        Box(Modifier.size(50.dp).border(2.5.dp, ring, CircleShape).padding(4.dp), contentAlignment = Alignment.Center) {
+                            Avatar(f, 42.dp)
+                        }
+                        // On another floor: the tag sits on the bottom of their face (it may be wider than the face).
+                        floors[a.friendId]?.let { FloorTag(it, Modifier.wrapContentWidth(unbounded = true).offset(y = 6.dp)) }
                     }
                     Spacer(Modifier.height(4.dp))
                     Text(

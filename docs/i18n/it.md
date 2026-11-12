@@ -69,3 +69,15 @@ Shortened so the text fits the way English does:
 - `home_tile_not_sharing`: *non condivide ancora* → *non condivide* (the label under the avatar wrapped)
 - `home_family_can_follow`: *La famiglia può seguire la serata da casa* → *La famiglia può seguirti da casa* (wrapped onto 2 lines)
 - `home_tap_mate_hint`: *Tocca un amico per trovarlo · tieni premuto per le opzioni* → *Tocca per trovarlo · tieni premuto per le opzioni* (wrapped onto 2 lines)
+
+## Venue map (`strings_venue.xml`)
+
+Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a mate's face, and "Finding the venue…". Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| venue map | **mappa della location** | *Location* as in `crew_from_venue`. First person *Salvo… / Cerco…*, like `main_saving_many`. |
+| ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ Di sopra / ↓ Di sotto** | Short, with the arrow kept. |
+| upstairs / downstairs (screen reader) | al piano di sopra / al piano di sotto | Said in full after the mate's direction. |
+
+For a native reviewer: Nothing doubtful. Confidence: **high**.

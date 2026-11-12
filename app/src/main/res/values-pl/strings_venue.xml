@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Polish: the venue map (offline download line, upstairs/downstairs tags, venue lookup). -->
+<resources>
+    <string name="venue_map_saved">Mapa miejsca koncertu zapisana offline ✓</string>
+    <string name="venue_map_saving">Zapisuję mapę miejsca koncertu… %1$d%%</string>
+    <string name="venue_map_waiting">Mapa miejsca koncertu: czekam na połączenie</string>
+    <string name="venue_map_on_arrival">Mapa miejsca koncertu zapisze się, gdy tam dotrzesz</string>
+    <string name="venue_floor_up">↑ Na górze</string>
+    <string name="venue_floor_down">↓ Na dole</string>
+    <string name="venue_floor_up_spoken">piętro wyżej</string>
+    <string name="venue_floor_down_spoken">piętro niżej</string>
+    <string name="venue_spoken_floor">%1$s, %2$s</string>
+    <string name="venue_finding">Szukam miejsca koncertu…</string>
+</resources>

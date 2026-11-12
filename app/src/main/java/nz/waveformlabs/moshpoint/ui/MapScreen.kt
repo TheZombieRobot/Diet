@@ -37,8 +37,11 @@ import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.LocationBook
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
+import nz.waveformlabs.moshpoint.core.AtGig
+import nz.waveformlabs.moshpoint.core.Floor
 import nz.waveformlabs.moshpoint.core.Geo
 import nz.waveformlabs.moshpoint.core.LatLon
+import nz.waveformlabs.moshpoint.core.VenuePlacement
 import org.maplibre.android.geometry.LatLng
 
 /**
@@ -69,54 +72,89 @@ fun MapScreen(
     moments: List<MapMoment> = emptyList(),
     onMomentTapped: (String) -> Unit = {},
     trails: Map<String, List<LocationBook.Seen>> = emptyMap(),
+    /**
+     * The venue map saved on the phone, for map look number [Int] (see VenueMaps), when it
+     * should be used instead of the live map: at the gig, or with no internet. Null = live map.
+     */
+    savedStyle: (Int) -> MapStyle? = { null },
+    /** Set when the map is opened at the gig: it opens zoomed into the venue (see core AtGig). */
+    venueView: VenueView? = null,
+    /** What UWB says about mates right now: they're placed exactly, from our own position. */
+    uwb: Map<String, VenuePlacement.UwbReading> = emptyMap(),
+    /** Mates we only know the distance to (Bluetooth, or UWB with no direction), in metres: listed, never drawn. */
+    near: Map<String, Double> = emptyMap(),
+    /** Who is on another floor (see core Floors): shown on their face. */
+    floors: Map<String, Floor> = emptyMap(),
+    /** How far above us each mate is (m), where known: a UWB mate upstairs is drawn closer along the ground. */
+    heights: Map<String, Double> = emptyMap(),
 ) {
     var dropAt by remember { mutableStateOf<Pair<Double, Double>?>(null) }
-    var saveN by remember { mutableIntStateOf(0) }
     val ctx = androidx.compose.ui.platform.LocalContext.current
     var styleIx by remember {
         mutableIntStateOf(runCatching { ctx.getSharedPreferences("map", android.content.Context.MODE_PRIVATE).getInt("style", 0) }.getOrDefault(0).coerceIn(0, MAP_STYLES.size - 1))
     }
-    var offlineStatus by remember { mutableStateOf<String?>(null) }
     val hasBack = androidx.activity.compose.LocalOnBackPressedDispatcherOwner.current != null
     if (hasBack) androidx.activity.compose.BackHandler(onBack = onBack)
 
     val located = people.filter { it.id in seen }
-    val pins = crewBubbles(
-        located.map { f ->
+    // Where each mate goes: exactly (UWB, from our own dot), their shared GPS pin, or nowhere.
+    // UWB readings arrive already fresh, so each is judged at its own time.
+    val spots = people.associate { f ->
+        f.id to VenuePlacement.spot(me, uwb[f.id], seen[f.id]?.let { LatLon(it.lat, it.lon) }, heights[f.id], uwb[f.id]?.atMs ?: 0L)
+    }
+    val floorText = floors.mapValues { (_, fl) -> floorLabel(fl) }
+    val exactPins = people.mapNotNull { f ->
+        val at = (spots[f.id] as? VenuePlacement.Spot.Exact)?.at ?: return@mapNotNull null
+        MapPin(f.id, f.name, at.lat, at.lon, f.color, finderDistanceLabel(uwb[f.id]?.distanceM), stale = false, exact = true, floor = floorText[f.id])
+    }
+    // GPS pins: mates standing together share a bubble. Exact ones never do.
+    val pins = exactPins + crewBubbles(
+        located.filter { spots[it.id] !is VenuePlacement.Spot.Exact }.map { f ->
             val s = seen.getValue(f.id)
             val age = nowMs / 1000 - s.timeSec
-            MapPin(f.id, f.name, s.lat, s.lon, f.color, statusLine(s, age), stale = age > 15 * 60)
+            MapPin(f.id, f.name, s.lat, s.lon, f.color, statusLine(s, age), stale = age > 15 * 60, floor = floorText[f.id])
         },
     )
-    // Camera requests: (counter, points). Starts by fitting everyone.
-    var focusN by remember { mutableIntStateOf(0) }
-    var focusPts by remember { mutableStateOf<List<LatLng>>(emptyList()) }
+    // Placed by UWB: their row says the measured distance, like their pin.
+    val measured = people.mapNotNull { f -> uwb[f.id]?.distanceM?.takeIf { spots[f.id] is VenuePlacement.Spot.Exact }?.let { f.id to it } }.toMap()
+    // Heard close by, but with no direction and no GPS pin: we say how close, and draw nothing.
+    val closeBy = near.filterKeys { it !in measured && it !in seen }
+    // The list: mates measured or heard right now first, nearest first; then by how fresh their GPS is.
+    val listed = people.sortedWith(
+        compareBy<Friend> { f -> measured[f.id] ?: closeBy[f.id] ?: Double.MAX_VALUE }
+            .thenBy { f -> seen[f.id]?.let { nowMs / 1000 - it.timeSec } ?: Long.MAX_VALUE },
+    )
+    // Camera requests. Starts on the venue when you're at the gig, else by fitting everyone.
+    var camera by remember { mutableStateOf(MapFocus(0, emptyList())) }
     var fittedOnce by remember { mutableStateOf(false) }
+    var venueFitted by remember { mutableStateOf(false) }
     val everyone = pins.map { LatLng(it.lat, it.lon) } + listOfNotNull(me?.let { LatLng(it.lat, it.lon) })
-    if (!fittedOnce && everyone.isNotEmpty()) {
+    if (venueView != null && !venueFitted) {
+        // Once: when the map opens at the gig, or when its first position a moment later says so.
+        venueFitted = true
         fittedOnce = true
-        focusPts = everyone
-        focusN++
+        val there = AtGig.viewPoints(venueView.venue, me ?: venueView.me, pins.map { LatLon(it.lat, it.lon) })
+        camera = MapFocus(camera.n + 1, there.map { LatLng(it.lat, it.lon) }, AtGig.VIEW_MIN_ZOOM, AtGig.VIEW_MAX_ZOOM)
+    } else if (!fittedOnce && everyone.isNotEmpty()) {
+        fittedOnce = true
+        camera = MapFocus(camera.n + 1, everyone)
     }
     fun focus(pts: List<LatLng>) {
-        focusPts = pts
-        focusN++
+        camera = MapFocus(camera.n + 1, pts)
     }
 
     Box(Modifier.fillMaxSize().background(Mosh.Ground)) {
         FriendMap(
             pins = pins,
             me = me?.let { LatLng(it.lat, it.lon) },
-            focus = focusN to focusPts,
-            onPinTapped = { id -> seen[id]?.let { focus(listOf(LatLng(it.lat, it.lon))) } },
+            focus = camera,
+            onPinTapped = { id -> pins.firstOrNull { it.id == id }?.let { focus(listOf(LatLng(it.lat, it.lon))) } },
             places = places,
             onLongPress = { lat, lon -> dropAt = lat to lon },
             live = liveMap,
             moments = moments,
             onMomentTapped = onMomentTapped,
-            saveOffline = saveN,
-            styleUrl = MAP_STYLES[styleIx].second,
-            onOffline = { offlineStatus = it },
+            style = savedStyle(styleIx) ?: MapStyle.live(MAP_STYLES[styleIx].second),
             trails = located.mapNotNull { f -> trails[f.id]?.let { t -> MapTrail(f.color, t.map { it.lat to it.lon }) } },
         )
 
@@ -133,7 +171,7 @@ fun MapScreen(
             }
             Column(Modifier.weight(1f)) {
                 Text(stringResource(R.string.find_map_title), style = Mosh.Label, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(offlineStatus ?: status, style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 15.sp, color = Mosh.TextFaint), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(status, style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 15.sp, color = Mosh.TextFaint), maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             TextButton(onClick = { me?.let { dropAt = it.lat to it.lon } }, enabled = me != null) {
                 Text(stringResource(R.string.find_map_pin), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink))
@@ -165,9 +203,6 @@ fun MapScreen(
                 .background(Mosh.Deep.copy(alpha = 0.94f), RoundedCornerShape(20.dp))
                 .border(1.dp, Mosh.Line, RoundedCornerShape(20.dp)).padding(vertical = 8.dp),
         ) {
-            TextButton(onClick = { saveN++ }, modifier = Modifier.padding(horizontal = 6.dp)) {
-                Text(stringResource(R.string.find_save_area), style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF)))
-            }
             if (people.isEmpty()) {
                 Text(
                     stringResource(R.string.find_map_no_mates),
@@ -202,11 +237,16 @@ fun MapScreen(
                         TextButton(onClick = { onRemovePlace(p) }) { Text("✕", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.TextFaint)) }
                     }
                 }
-                items(people.sortedBy { f -> seen[f.id]?.let { nowMs / 1000 - it.timeSec } ?: Long.MAX_VALUE }, key = { it.id }) { f ->
+                items(listed, key = { it.id }) { f ->
                     val s = seen[f.id]
+                    val uwbM = measured[f.id]
+                    val nearM = closeBy[f.id]
+                    val pin = pins.firstOrNull { it.id == f.id }
                     Row(
                         Modifier.fillMaxWidth()
-                            .clickable(enabled = s != null) { s?.let { focus(listOf(LatLng(it.lat, it.lon))) } }
+                            .clickable(enabled = s != null || pin != null) {
+                                (pin?.let { LatLng(it.lat, it.lon) } ?: s?.let { LatLng(it.lat, it.lon) })?.let { focus(listOf(it)) }
+                            }
                             .padding(horizontal = 14.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -214,19 +254,23 @@ fun MapScreen(
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
                             Text(f.name, style = Mosh.Label.copy(fontSize = 15.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            val line = if (s == null) {
+                            val line = if (uwbM != null) {
+                                listOfNotNull(finderDistanceLabel(uwbM), floorText[f.id]).joinToString(" · ")
+                            } else if (nearM != null) {
+                                listOfNotNull(bandLabel(nearM), bandHint(nearM), floorText[f.id]).joinToString(" · ")
+                            } else if (s == null) {
                                 stringResource(R.string.find_not_sharing)
                             } else {
                                 val age = nowMs / 1000 - s.timeSec
                                 val dist = me?.let { distanceLabel(Geo.distanceM(it, LatLon(s.lat, s.lon))) }
-                                listOfNotNull(dist, statusLine(s, age, liveWord = true)).joinToString(" · ")
+                                listOfNotNull(dist, statusLine(s, age, liveWord = true), floorText[f.id]).joinToString(" · ")
                             }
-                            Text(
-                                line,
-                                style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 16.sp, color = if (s != null && nowMs / 1000 - s.timeSec < 120) Mosh.Lime else Mosh.TextFaint),
-                            )
+                            val fresh = uwbM != null || nearM != null || (s != null && nowMs / 1000 - s.timeSec < 120)
+                            Text(line, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 16.sp, color = if (fresh) Mosh.Lime else Mosh.TextFaint))
                         }
-                        if (s != null) {
+                        if ((nearM != null || uwbM != null) && s == null) {
+                            TextButton(onClick = { onFind(f.id) }) { Text(stringResource(R.string.find_find), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink)) }
+                        } else if (s != null) {
                             Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                                 TextButton(onClick = { onDirections(s.lat, s.lon) }) { Text(stringResource(R.string.find_walk), style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
                                 TextButton(onClick = { onFind(f.id) }) { Text(stringResource(R.string.find_find), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink)) }
