@@ -164,7 +164,12 @@ font the pack doesn't have would make the faces vanish.
 - **Resume:** the work is a list of steps that can each be repeated safely. It restarts from the
   first unfinished step when the app opens, when a crew changes, when the connection comes back,
   when you go live, and on the gig-day wake-up. MapLibre continues a half-done tile download
-  where it stopped.
+  where it stopped. One that is picked up again in a later week starts over on that week's map,
+  because the older week's tiles may have gone from the server.
+- **"Saved" means it will draw:** the line only says saved once MapLibre reports the area
+  complete, its tiles have content (a square of "no such tile" answers doesn't count) and the
+  basic font files have all arrived. A font file for another alphabet that the server doesn't
+  have is not a failure: those labels are simply left out.
 - It runs while the app is open or you're live (the existing foreground service). There is no
   separate background downloader: at 3 MB it normally finishes while the QR code is still on
   screen, and adding Android's WorkManager library for this wasn't worth the risk untested.

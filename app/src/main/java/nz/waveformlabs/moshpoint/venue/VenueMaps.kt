@@ -313,15 +313,15 @@ object VenueMaps {
         if (todo.isNotEmpty()) {
             val m = ensureMeta(now) ?: return
             val world = VenueMapPlan.needsWorldFonts(languages(c))
-            if (!ensureFonts(VenueMapPlan.CORE_RANGES, m.glyphs)) return
+            if (!ensureFonts(VenueMapPlan.CORE_RANGES, m.glyphs, mayBeMissing = false)) return
             // Someone who reads Arabic, Thai, Hindi... gets those letters with the first map, not later.
-            if (world && ensureFonts(VenueMapPlan.WORLD_RANGES, m.glyphs)) worldFontsAtMs = now
+            if (world && ensureFonts(VenueMapPlan.WORLD_RANGES, m.glyphs, mayBeMissing = true)) worldFontsAtMs = now
             seedFonts(om)
             for (a in todo) begin(c, om, regions, a, m)
         }
         // Other alphabets for everyone else: when it costs nothing (Wi-Fi), once.
         val m = meta
-        if (worldFontsAtMs == 0L && m != null && areas.isNotEmpty() && unmetered(c) && ensureFonts(VenueMapPlan.WORLD_RANGES, m.glyphs)) {
+        if (worldFontsAtMs == 0L && m != null && areas.isNotEmpty() && unmetered(c) && ensureFonts(VenueMapPlan.WORLD_RANGES, m.glyphs, mayBeMissing = true)) {
             worldFontsAtMs = now
             seedFonts(om)
             styleCache.clear()
@@ -442,13 +442,18 @@ object VenueMaps {
         return File(dir, "pack.json").length() > 0 && MAP_STYLES.indices.all { File(dir, "$it.json").length() > 0 }
     }
 
-    /** The real font files we want, kept in our own folder so later venues need no font download. */
-    private suspend fun ensureFonts(ranges: List<Int>, glyphs: String): Boolean = withContext(Dispatchers.IO) {
+    /**
+     * The real font files we want, kept in our own folder so later venues need no font download.
+     * False if one couldn't be fetched. With [mayBeMissing], a file the server says it doesn't
+     * have isn't a failure (the map gets an empty one for that range); the basic letters must
+     * all be there, or the map isn't called saved.
+     */
+    private suspend fun ensureFonts(ranges: List<Int>, glyphs: String, mayBeMissing: Boolean): Boolean = withContext(Dispatchers.IO) {
         fontDir.mkdirs()
         for (r in ranges) {
             val f = File(fontDir, "$r.pbf")
             if (f.length() > 0) continue
-            val bytes = get(VenueStyle.fontFileUrl(glyphs, r), 1_000_000) ?: return@withContext false
+            val bytes = get(VenueStyle.fontFileUrl(glyphs, r), 1_000_000, missingIsEmpty = mayBeMissing) ?: return@withContext false
             if (bytes.isNotEmpty()) write(f, bytes)
         }
         true
@@ -473,8 +478,9 @@ object VenueMaps {
     /** Start (or carry on) one area's download. MapLibre resumes a half-done region where it stopped. */
     private suspend fun begin(c: Context, om: OfflineManager, regions: List<OfflineRegion>, a: Area, m: Meta) {
         var region = regions.firstOrNull { areaKeyOf(it) == a.key }
-        if (!styleFilesExist(a.version)) {
-            // New, or its week's files have gone: (re)start on this week's map.
+        if (!styleFilesExist(a.version) || a.version != m.tiles.version) {
+            // New; or its week's files have gone; or half done on an older week's map, whose
+            // tiles may no longer be on the server. (Re)start on this week's map.
             region?.let { delete(it) }
             region = null
             a.version = m.tiles.version
@@ -500,8 +506,9 @@ object VenueMaps {
                 if (status.isRequiredResourceCountPrecise && required > 0) {
                     a.percent = (100 * status.completedResourceCount / required).toInt().coerceIn(0, 100)
                 }
-                // Complete, and it really has map tiles in it (not just an unreadable style).
-                if (status.isComplete && status.isRequiredResourceCountPrecise && status.completedTileCount > 0) {
+                // Complete, and it really has map in it: not just an unreadable style, and not a
+                // square of "no such tile" answers (which MapLibre counts as tiles too).
+                if (status.isComplete && status.isRequiredResourceCountPrecise && status.completedTileCount > 0 && status.completedTileSize > 0) {
                     a.done = true
                     a.percent = 100
                     active.remove(a.key)
@@ -623,13 +630,16 @@ object VenueMaps {
         return (0 until locales.size()).map { locales[it].language }
     }
 
-    private fun get(url: String, maxBytes: Int): ByteArray? = runCatching {
+    /** Null if it couldn't be fetched. With [missingIsEmpty], "no such file" (404) is an empty answer, not a failure. */
+    private fun get(url: String, maxBytes: Int, missingIsEmpty: Boolean = false): ByteArray? = runCatching {
         val c = URL(url).openConnection() as HttpURLConnection
         c.connectTimeout = 8_000
         c.readTimeout = 15_000
         c.setRequestProperty("User-Agent", "Moshpoint/${BuildConfig.VERSION_NAME} (${BuildConfig.APPLICATION_ID})")
         try {
-            if (c.responseCode != 200) return@runCatching null
+            val code = c.responseCode
+            if (code == 404 && missingIsEmpty) return@runCatching ByteArray(0)
+            if (code != 200) return@runCatching null
             c.inputStream.use { input ->
                 val out = java.io.ByteArrayOutputStream()
                 val chunk = ByteArray(16 * 1024)
