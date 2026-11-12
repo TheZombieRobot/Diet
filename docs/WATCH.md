@@ -11,14 +11,18 @@ app onto a watch. Install steps are at the end.
 
 ## Status and next steps
 
-_A handover: enough to pick the work up cold. Last updated 12 November 2026, 09:55 UTC._
+_A handover: enough to pick the work up cold. Last updated 12 November 2026, 10:03 UTC._
 
 ### Where things stand
 
-The base asked for is built. CI was green on the last complete run (`6ac7690`, both jobs:
-phone and watch, debug and release builds, core tests, translation checks, screenshots); the
-run for the commits since then is in progress as this is written. **Nothing has run on a real
-watch or phone yet.** That is the next step, and the field test for it is written.
+The base asked for is built. CI: two complete runs were green in both jobs (`6ac7690` and
+`bfb89ec`: phone and watch, debug and release builds, core tests, translation checks,
+screenshots in every language). On the last code commit, `65fff5d`, the watch job is green and
+the phone job is green through its release build; its last steps (the phone's own screenshots
+and lint) were still running when this was written. The only commits after `65fff5d` are CI's
+screenshot update and this note.
+**Nothing has run on a real watch or phone yet.** That is the next step, and the field test
+for it is written.
 
 | Piece | State |
 |---|---|
