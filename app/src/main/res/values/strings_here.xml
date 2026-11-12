@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "I'm here": you pin your exact spot on the map and your crew sees your face there, with the floor, until you walk away (20 minutes at most). See docs/IM_HERE.md. -->
+<resources>
+    <!-- Button in the "Drop a pin" dialog (long-press on the map). Puts your face on this spot on your crew's maps. Keep it short. -->
+    <string name="here_button">I\'m here</string>
+    <!-- Under that button: what it does. 20 min = the longest it lasts. -->
+    <string name="here_button_help">Your crew sees you on this spot, with the floor, until you walk away (20 min at most).</string>
+    <!-- Short message after pinning -->
+    <string name="here_sent">Your crew can see where you are</string>
+    <!-- Under a mate's name on the map, in the map's list and on the crew radar: their face is on the spot they pinned. %1$s = "3 min ago" or "just now". Lower case: it follows a distance ("40 m · pinned 3 min ago"). -->
+    <string name="here_pinned_ago">pinned %1$s</string>
+    <!-- Finder, beside the arrow: the arrow points at the spot they pinned. %1$s = "3 min ago" or "just now". -->
+    <string name="here_finder_chip">Pinned %1$s</string>
+    <!-- The map's list of places: your own pin -->
+    <string name="here_you">You\'re here</string>
+    <!-- The map's list, under "You're here". %1$s = "3 min ago" or "just now". The ✕ beside it takes the pin down. -->
+    <string name="here_you_line">Pinned %1$s · your crew sees you here</string>
+    <!-- Screen reader: the ✕ beside your own pin -->
+    <string name="here_clear">Take your pin down</string>
+</resources>

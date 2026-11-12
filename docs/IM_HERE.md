@@ -17,16 +17,15 @@ _Handover, kept current at every push. Branch `claude/im-here-pin-k3v9tq`, start
 |---|---|
 | 1. This note: a decision for each hard problem | done |
 | 2. Core: the message, `HereRule`, `HereBook`, `HereWatch`, the pinned floor, the courier carrying it, `Method.HERE_PIN` in the arbiter, with tests | **done.** `GigGroup.sealHere/openHere/hereOf` (`ENV_HERE = 4`), `core/Here.kt` (`HereRule`, `HereBook`, `HereWatch`), `FloorTracker.pinned`, `Courier` (`KIND_HERE`), `Method.HERE_PIN` (+ `GPS_LIKE`, `WristDirections.POSE_FREE`, watch code 8). Tests: `HereTest` (38), 8 new cases in `CourierSimTest`; core + server 441 tests, all passing locally |
-| 3. App: sending and clearing, receiving, map / radar / finder, the walk-away watcher | **half done.** Done: `HerePins.kt` (the main crew's book as Compose state, set/clear through the courier, arrivals, the walk-away watcher), `GroupSync.syncServer` + `OfflineMessages.deliver` hand arrivals to it, `GpsFinder.poll` makes `HERE_PIN` fixes, `Floors.pinnedFloor/pressureUnits/currentHpa`, `VenuePlacement.spot` with the pin (core, tested). Not done: the map (`MapScreen`: pinned faces, list rows, our own pin with ✕, the dialog's "I'm here"), the radar pill and finder chip, `MainActivity` wiring |
-| 4. `strings_here.xml` in English and 19 languages | not started |
+| 3. App: sending and clearing, receiving, map / radar / finder, the walk-away watcher | **written, waiting for CI to compile it.** `HerePins.kt` (the main crew's book as Compose state, set/clear through the courier, arrivals, the walk-away watcher); `GroupSync.syncServer` + `OfflineMessages.deliver` hand arrivals to it; `GpsFinder.poll` makes `HERE_PIN` fixes; `Floors.pinnedFloor/pressureUnits/currentHpa`; `MapScreen` (pinned faces, list rows, our own pin with ✕, "I'm here" first in the dialog via `ImHereChoice`); `CrewRadar` pin pill; `FinderScreen` (`pinned`: spot's floor, chip, radar notes); `MainActivity` wiring; `ui/HereUi.kt` |
+| 4. `strings_here.xml` in English and 19 languages | **done**, `tools/check_translation.py` OK for every folder |
 | 5. Screenshot tests (`HereSnapshotTest`, own package) | not started |
 | 6. Field test (two phones), roadmap, architecture and privacy notes | not started |
 | 7. CI green, report sent | not started |
 
-**Exact next step:** finish step 3: `MapScreen` new parameters (`pinned`, `pinnedFloors`, `myPin`,
-`onImHere`, `onClearMyPin`), the dialog's "I'm here" button, `CrewRadar` notes, `FinderScreen`
-`pinned` notes and chip, then wire them in `MainActivity` (map near `GroupSync.setRally`, finder
-near `floors = Floors.tags`). Strings go in `strings_here.xml` (step 4).
+**Exact next step:** check CI's compile of step 3 (job "Build debug APK", then "Compile
+errors" on failure) and fix; then step 5, `app/src/test/java/nz/waveformlabs/moshpoint/here/HereSnapshotTest.kt`
+(own package, `Lang_xx` subclasses like `VenueSnapshotTest`).
 
 How to work on it:
 

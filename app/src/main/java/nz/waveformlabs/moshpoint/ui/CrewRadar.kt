@@ -105,6 +105,8 @@ internal fun CrewRadar(
     onTapGroup: (List<String>) -> Unit,
     /** "↑ Upstairs" / "↓ Downstairs" per mate on another floor, drawn on their face. */
     floors: Map<String, String> = emptyMap(),
+    /** "pinned 3 min ago" per mate whose arrow points at their "I'm here" pin (docs/IM_HERE.md), under their face. */
+    notes: Map<String, String> = emptyMap(),
 ) {
     val maxM = arrows.mapNotNull { it.distanceM }.maxOrNull() ?: 50.0
     val spots = arrows.map { RadarSpot(it.friendId, it.relativeDeg.toFloat(), radarFrac(it.distanceM, maxM)) }
@@ -223,6 +225,11 @@ internal fun CrewRadar(
             // On another floor: say so on their face (last, so no arrow or bubble covers it).
             floors[lead]?.takeIf { arrived.size == 1 }?.let { tag ->
                 labels += { drawFloorPill(tag, Offset(leadAt.x, leadAt.y + avatarR), regularPaint, 10.dp.toPx()) }
+            }
+            // On the spot they pinned: say so, under the floor tag if there is one.
+            notes[lead]?.takeIf { arrived.size == 1 }?.let { note ->
+                val below = if (floors[lead] != null) 19.dp.toPx() else 0f
+                labels += { drawPinPill(note, Offset(leadAt.x, leadAt.y + avatarR + below), regularPaint, 9.5f.dp.toPx()) }
             }
 
             val colour = colours[lead] ?: Mosh.Pink

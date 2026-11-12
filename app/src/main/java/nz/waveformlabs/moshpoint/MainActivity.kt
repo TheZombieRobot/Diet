@@ -759,6 +759,10 @@ class MainActivity : ComponentActivity() {
                             },
                             warning = setupIssues.firstOrNull { it.text != batteryIssue },
                             floors = Floors.tags,
+                            // Mates' "I'm here" pins: where the arrow points at one, its floor and how long ago (docs/IM_HERE.md).
+                            pinned = HerePins.pins.mapValues { (id, h) ->
+                                nz.waveformlabs.moshpoint.ui.PinNote(nz.waveformlabs.moshpoint.core.HereRule.ageSec(h, System.currentTimeMillis() / 1000), HerePins.floors[id])
+                            },
                             debug = if (DebugStatus.enabled) {
                                 { mod ->
                                     val rows by engine.debugRows.collectAsState()
@@ -1264,6 +1268,14 @@ class MainActivity : ComponentActivity() {
                             venueView = mapVenue,
                             floors = Floors.tags,
                             heights = Floors.heights,
+                            // "I'm here" (docs/IM_HERE.md): mates' faces on the spots they pinned, ours with ✕.
+                            pinned = HerePins.pins,
+                            pinnedFloors = HerePins.floors,
+                            myPin = HerePins.mine.value,
+                            onImHere = { lat: Double, lon: Double ->
+                                if (HerePins.setHere(this@MainActivity, lat, lon)) toast(Txt.s(R.string.here_sent))
+                            }.takeIf { HerePins.canSend() },
+                            onClearMyPin = { HerePins.clearHere(this@MainActivity) },
                             uwb = mapUwb,
                             // Only while something is looking: old readings say nothing about now.
                             near = if (mapVenue == null && !finding) emptyMap()

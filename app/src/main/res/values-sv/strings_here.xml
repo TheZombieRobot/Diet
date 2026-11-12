@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "I'm here": pin your exact spot so your crew sees your face there (docs/IM_HERE.md). Translated from values/strings_here.xml, with this language's words for crew and pin. -->
+<resources>
+    <string name="here_button">Jag är här</string>
+    <string name="here_button_help">Gruppen ser dig på den här platsen, med våningen, tills du går därifrån (högst 20 min).</string>
+    <string name="here_sent">Gruppen ser nu var du är</string>
+    <string name="here_pinned_ago">fäst %1$s</string>
+    <string name="here_finder_chip">Fäst %1$s</string>
+    <string name="here_you">Du är här</string>
+    <string name="here_you_line">Fäst %1$s · gruppen ser dig här</string>
+    <string name="here_clear">Ta bort din nål</string>
+</resources>

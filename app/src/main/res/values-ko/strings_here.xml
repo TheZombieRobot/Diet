@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "I'm here": pin your exact spot so your crew sees your face there (docs/IM_HERE.md). Translated from values/strings_here.xml, with this language's words for crew and pin. -->
+<resources>
+    <string name="here_button">여기 있어요</string>
+    <string name="here_button_help">자리를 뜰 때까지(최대 20분) 크루에게 이곳에 층 정보와 함께 표시돼요.</string>
+    <string name="here_sent">크루가 내 위치를 볼 수 있어요</string>
+    <string name="here_pinned_ago">%1$s 핀 꽂음</string>
+    <string name="here_finder_chip">%1$s 핀 꽂음</string>
+    <string name="here_you">지금 여기 있어요</string>
+    <string name="here_you_line">%1$s 핀 꽂음 · 크루에게 여기로 보여요</string>
+    <string name="here_clear">내 핀 빼기</string>
+</resources>

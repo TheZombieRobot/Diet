@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "I'm here": pin your exact spot so your crew sees your face there (docs/IM_HERE.md). Translated from values/strings_here.xml, with this language's words for crew and pin. -->
+<resources>
+    <string name="here_button">Aku di sini</string>
+    <string name="here_button_help">Gengmu melihatmu di titik ini, lengkap dengan lantainya, sampai kamu pergi (maks. 20 mnt).</string>
+    <string name="here_sent">Gengmu bisa lihat posisimu</string>
+    <string name="here_pinned_ago">di-pin %1$s</string>
+    <string name="here_finder_chip">Di-pin %1$s</string>
+    <string name="here_you">Kamu di sini</string>
+    <string name="here_you_line">Di-pin %1$s · gengmu melihatmu di sini</string>
+    <string name="here_clear">Hapus pin-mu</string>
+</resources>

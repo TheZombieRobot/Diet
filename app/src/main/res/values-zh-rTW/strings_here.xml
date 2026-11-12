@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "I'm here": pin your exact spot so your crew sees your face there (docs/IM_HERE.md). Translated from values/strings_here.xml, with this language's words for crew and pin. -->
+<resources>
+    <string name="here_button">我在這裡</string>
+    <string name="here_button_help">在你離開之前（最多 20 分鐘），小隊會在這個位置看到你，並顯示樓層。</string>
+    <string name="here_sent">小隊現在看得到你在哪裡</string>
+    <string name="here_pinned_ago">%1$s標記</string>
+    <string name="here_finder_chip">%1$s標記</string>
+    <string name="here_you">你在這裡</string>
+    <string name="here_you_line">%1$s標記 · 小隊在這裡看到你</string>
+    <string name="here_clear">移除你的標記</string>
+</resources>

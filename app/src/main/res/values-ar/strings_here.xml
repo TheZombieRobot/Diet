@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "I'm here": pin your exact spot so your crew sees your face there (docs/IM_HERE.md). Translated from values/strings_here.xml, with this language's words for crew and pin. -->
+<resources>
+    <string name="here_button">أنا هنا</string>
+    <string name="here_button_help">ترى شلتك مكانك هنا، مع الطابق، حتى تبتعد عنه (20 دقيقة كحد أقصى).</string>
+    <string name="here_sent">صار بإمكان شلتك أن ترى مكانك</string>
+    <string name="here_pinned_ago">وُضع الدبوس %1$s</string>
+    <string name="here_finder_chip">وُضع الدبوس %1$s</string>
+    <string name="here_you">أنت هنا</string>
+    <string name="here_you_line">وُضع الدبوس %1$s · شلتك تراك هنا</string>
+    <string name="here_clear">أزل دبوسك</string>
+</resources>

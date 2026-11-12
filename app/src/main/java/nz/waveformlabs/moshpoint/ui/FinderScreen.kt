@@ -106,11 +106,21 @@ fun FinderScreen(
     onFound: (String) -> Unit = {},
     /** Mates on a floor above or below us (see core Floors): tagged on their face. */
     floors: Map<String, nz.waveformlabs.moshpoint.core.Floor> = emptyMap(),
+    /**
+     * Mates' standing "I'm here" pins (docs/IM_HERE.md). Where the arrow points at the pin, the
+     * face wears the spot's floor (not theirs now) and says how long ago it was pinned.
+     */
+    pinned: Map<String, PinNote> = emptyMap(),
     onBack: () -> Unit,
     /** Only used in debug builds. Null in release. */
     debug: (@Composable (Modifier) -> Unit)? = null,
 ) {
     var showDebug by remember { mutableStateOf(false) }
+    // Arrows pointing at an "I'm here" pin: the floor shown is the pinned spot's.
+    val viaPin = arrows.filter { it is ArrowState.Pointing && it.method == Method.HERE_PIN && it.friendId in pinned }.map { it.friendId }.toSet()
+    @Suppress("NAME_SHADOWING")
+    val floors = floors.filterKeys { it !in viaPin } + viaPin.mapNotNull { id -> pinned[id]?.floor?.let { id to it } }
+    val pinNotes = viaPin.associateWith { id -> pinnedAgo(pinned.getValue(id).ageSec) }
     val floorLabels = floors.mapValues { floorLabel(it.value) }
     val floorsSpoken = floors.mapValues { floorSpoken(it.value) }
     // Whole crew: every mate's arrow at once. Tap one (their bubble, or in the strip below) to
@@ -278,7 +288,7 @@ fun FinderScreen(
                                 if (p.isNotEmpty()) Box(Modifier.fillMaxSize(0.92f)) { RadarPulse({ mood.copy(alpha = 0.7f) }) }
                                 if (shown.size > 1) {
                                     // The whole crew as a radar: near mates close in, far ones out, stacks when they overlap.
-                                    CrewRadar(p, friendOf, onTap = { id -> focus = id }, onTapGroup = { ids -> pickFrom = ids }, floors = floorLabels)
+                                    CrewRadar(p, friendOf, onTap = { id -> focus = id }, onTapGroup = { ids -> pickFrom = ids }, floors = floorLabels, notes = pinNotes)
                                 } else {
                                     Arrows(p, friendOf, group = false, floors = floorLabels, floorsSpoken = floorsSpoken)
                                 }
@@ -298,6 +308,8 @@ fun FinderScreen(
                         if (a.unsure) stringResource(R.string.find_chip_rough) else stringResource(R.string.find_chip_locked),
                         if (a.unsure) Mosh.Amber else Mosh.Lime,
                         when {
+                            // Pointing at the spot they pinned: say so, and how long ago.
+                            a.method == Method.HERE_PIN && a.friendId in pinned -> stringResource(R.string.here_finder_chip, ago(pinned.getValue(a.friendId).ageSec))
                             !a.unsure -> stringResource(R.string.find_head_this_way)
                             a.method == Method.GPS_SERVER || a.method == Method.CROWD_RELAY -> stringResource(R.string.find_from_gps)
                             else -> stringResource(R.string.find_rough_walk)
