@@ -111,6 +111,10 @@ fun FinderScreen(
      * face wears the spot's floor (not theirs now) and says how long ago it was pinned.
      */
     pinned: Map<String, PinNote> = emptyMap(),
+    /** "Message Sam" for the one mate on screen (docs/PRIVATE_MESSAGES.md); null = not offered. */
+    onMessage: ((String) -> Unit)? = null,
+    /** Unread private messages per mate, on that button. */
+    messageUnread: Map<String, Int> = emptyMap(),
     onBack: () -> Unit,
     /** Only used in debug builds. Null in release. */
     debug: (@Composable (Modifier) -> Unit)? = null,
@@ -263,6 +267,21 @@ fun FinderScreen(
                 style = if (shownTitle.length > 12) Mosh.Title.copy(fontSize = 26.sp) else Mosh.Title,
                 maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
             )
+            // Finding one mate: write to them privately from here.
+            val oneMate = focus ?: everyone.singleOrNull()?.friendId
+            val oneName = oneMate?.let { friendOf(it)?.name }
+            if (onMessage != null && oneMate != null && oneName != null && !scanning) {
+                Row(
+                    Modifier.clickable { onMessage(oneMate) }.padding(vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(stringResource(R.string.private_message_name, oneName), style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Violet))
+                    messageUnread[oneMate]?.let { n ->
+                        Spacer(Modifier.width(8.dp))
+                        UnreadBadge(n)
+                    }
+                }
+            }
 
             Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
                 if (scanning) {

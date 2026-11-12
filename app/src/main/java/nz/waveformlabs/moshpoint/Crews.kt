@@ -107,7 +107,12 @@ object Crews {
     fun dropExpired(c: Context) {
         load(c)
         val now = System.currentTimeMillis()
-        if (others.removeAll { now > it.group.expiresAtMs }) save(c)
+        val ended = others.filter { now > it.group.expiresAtMs }
+        if (ended.isEmpty()) return
+        others.removeAll { now > it.group.expiresAtMs }
+        save(c)
+        // Their private threads end with them (docs/PRIVATE_MESSAGES.md).
+        ended.forEach { PrivateMessages.forgetId(c, it.id) }
     }
 
     /** A brand-new crew that isn't the main one yet. */

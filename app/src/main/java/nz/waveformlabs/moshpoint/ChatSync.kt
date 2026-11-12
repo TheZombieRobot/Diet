@@ -47,11 +47,18 @@ object ChatSync {
         val crews = allCrews(app)
         if (crews.isEmpty()) return
         CrewChat.retryOutbox(app, crews)
+        PrivateMessages.retryOutbox(app, crews)
         val day = Math.floorDiv(now / 1000, 86_400L)
         // For a day after a crew moves to a new key, its old mailbox is still read (see CrewRekey.graceCrews).
         val grace = CrewRekey.graceCrews(app)
+        // Each crew's private mailbox (docs/PRIVATE_MESSAGES.md) rides in the same request, after
+        // everything else; not for crews followed from home.
+        val pmCrews = crews.filter { PrivateMessages.takesPart(app, it) }
+        val pmGrace = grace.filter { PrivateMessages.takesPart(app, it.now) }
         val ids = crews.flatMap { listOf(it.chatIdForDay(day), it.chatIdForDay(day - 1)) } +
-            grace.flatMap { listOf(it.old.chatIdForDay(day), it.old.chatIdForDay(day - 1)) }
+            grace.flatMap { listOf(it.old.chatIdForDay(day), it.old.chatIdForDay(day - 1)) } +
+            pmCrews.flatMap { listOf(it.privateIdForDay(day), it.privateIdForDay(day - 1)) } +
+            pmGrace.flatMap { listOf(it.old.privateIdForDay(day), it.old.privateIdForDay(day - 1)) }
         val found = RelayClient.lookupHeld(ids) ?: return
         crews.forEachIndexed { i, g ->
             val fresh = mutableListOf<String>()
@@ -101,6 +108,22 @@ object ChatSync {
                 val note = CrewChat.ingest(app, old.now, p.copy(sig = null)) ?: return@forEach
                 val onScreen = CrewChat.open && CrewChat.viewing.value?.key?.contentEquals(old.now.key) == true
                 if (notify && !onScreen) notifyCrew(app, old.now, listOf(Txt.s(R.string.crew_notif_line, CrewChat.displayName(app, old.now, p.sender, p.from), note)))
+            }
+        }
+        // Private messages: the courier notes what's there and opens what's for us.
+        val pmAt = 2 * (crews.size + grace.size)
+        pmCrews.forEachIndexed { i, g ->
+            val today = found.getOrNull(pmAt + 2 * i).orEmpty()
+            PrivateMessages.fetched(app, g, today + found.getOrNull(pmAt + 2 * i + 1).orEmpty(), inUploadBox = today.size)
+        }
+        // And for a day after a rekey, the old key's: read only, and only from who was allowed then.
+        val pmGraceAt = pmAt + 2 * pmCrews.size
+        pmGrace.forEachIndexed { j, old ->
+            (found.getOrNull(pmGraceAt + 2 * j).orEmpty() + found.getOrNull(pmGraceAt + 2 * j + 1).orEmpty()).forEach { blob ->
+                if (!seen.add(blob.contentHashCode())) return@forEach
+                // Our signing key is the same under both keys.
+                val p = old.old.openPrivate(blob, Identity.signer(app, old.now)) ?: return@forEach
+                if (p.sender in old.allowed) PrivateMessages.arrived(app, old.now, p)
             }
         }
         CrewRekey.resend(app)

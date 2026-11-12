@@ -52,16 +52,28 @@ object CrewNotifications {
         silent: Boolean = false,
         /** Remove it by itself after this long (e.g. "tonight!" once the gig's over). */
         timeoutMs: Long = 0L,
+        /** A private message: open the thread with whoever signs with this tag in [crewId] (docs/PRIVATE_MESSAGES.md). */
+        privateWith: Long? = null,
+        /** On a locked phone that hides sensitive content, show only this (no name, no words). */
+        lockScreenText: String? = null,
     ) {
         val app = c.applicationContext
         val nm = app.getSystemService(NotificationManager::class.java) ?: return
         nm.createNotificationChannel(NotificationChannel(CHANNEL, Txt.s(R.string.crew_channel_messages), NotificationManager.IMPORTANCE_DEFAULT))
         nm.createNotificationChannel(NotificationChannel(HELP_CHANNEL, Txt.s(R.string.crew_channel_help), NotificationManager.IMPORTANCE_HIGH))
+        val thread = privateWith?.let { "$crewId:$it" }
         val open = PendingIntent.getActivity(
-            app, if (openChat) 71 + (crewId?.hashCode()?.and(0xFFFF) ?: 0) else 70,
-            Intent(app, MainActivity::class.java).putExtra(MainActivity.EXTRA_OPEN_MAP, openMap && !openChat)
+            app,
+            when {
+                // One per private thread, so each opens its own.
+                thread != null -> 0x10000 + (thread.hashCode() and 0xFFFF)
+                openChat -> 71 + (crewId?.hashCode()?.and(0xFFFF) ?: 0)
+                else -> 70
+            },
+            Intent(app, MainActivity::class.java).putExtra(MainActivity.EXTRA_OPEN_MAP, openMap && !openChat && thread == null)
                 .putExtra(MainActivity.EXTRA_OPEN_CHAT, openChat)
                 .putExtra(MainActivity.EXTRA_CHAT_CREW, crewId)
+                .putExtra(MainActivity.EXTRA_OPEN_PRIVATE, thread)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
@@ -79,6 +91,20 @@ object CrewNotifications {
                 }
             }
             .apply { if (timeoutMs > 0) setTimeoutAfter(timeoutMs) }
+            .apply {
+                if (lockScreenText != null) {
+                    // A private message: a locked phone that hides sensitive content shows only this.
+                    setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+                    setPublicVersion(
+                        NotificationCompat.Builder(app, channel)
+                            .setContentTitle(Txt.s(R.string.app_name))
+                            .setContentText(lockScreenText)
+                            .setSmallIcon(R.drawable.ic_launcher_monochrome)
+                            .setColor(0xFFB6FF3B.toInt())
+                            .build(),
+                    )
+                }
+            }
             .setContentIntent(open)
             .setColor(if (urgent) 0xFFFF3B5C.toInt() else 0xFFB6FF3B.toInt())
             .build()

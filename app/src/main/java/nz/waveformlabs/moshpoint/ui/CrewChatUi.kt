@@ -251,8 +251,9 @@ private fun FlareRow(f: CrewChat.Flare, nowSec: Long, mine: Boolean, onEnd: () -
     }
 }
 
+/** One message in the chat: a bubble with name, face and how it went. Also draws private threads (see PrivateChatUi). */
 @Composable
-private fun ChatLine(
+internal fun ChatLine(
     l: CrewChat.Line,
     nowSec: Long,
     first: Boolean = true,

@@ -109,6 +109,8 @@ internal fun CrewTiles(
     distances: Map<String, Double> = emptyMap(),
     /** Overrides the status under a tile, e.g. "at the venue" for followers. */
     notes: Map<String, String> = emptyMap(),
+    /** Unread private messages from each mate (docs/PRIVATE_MESSAGES.md), worn on their face. */
+    badges: Map<String, Int> = emptyMap(),
 ) {
     Row(
         Modifier.horizontalScroll(rememberScrollState()).padding(vertical = 10.dp, horizontal = 2.dp),
@@ -124,7 +126,10 @@ internal fun CrewTiles(
                     .combinedClickable(onClick = { onFind(f.id) }, onLongClick = { onOptions(f) }),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Avatar(f, 62.dp)
+                Box {
+                    Avatar(f, 62.dp)
+                    UnreadBadge(badges[f.id] ?: 0, Modifier.align(Alignment.TopEnd))
+                }
                 Spacer(Modifier.height(6.dp))
                 Text(f.name, style = Mosh.Body.copy(fontSize = 14.sp, color = Mosh.Text), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(status, style = Mosh.Body.copy(fontSize = 11.sp, lineHeight = 13.sp, color = colour), maxLines = 2, textAlign = TextAlign.Center)

@@ -380,6 +380,7 @@ object GroupSync {
         val app = c.applicationContext
         group.value?.let {
             CrewChat.forget(app, it)
+            PrivateMessages.forget(app, it)
             Identity.forget(app, it)
         }
         resetActive(app)
@@ -389,6 +390,7 @@ object GroupSync {
     /** Drop a crew waiting in Up next. */
     fun leave(c: Context, e: Crews.Entry) {
         CrewChat.forget(c.applicationContext, e.group)
+        PrivateMessages.forget(c.applicationContext, e.group)
         Identity.forget(c.applicationContext, e.group)
         Crews.remove(c.applicationContext, e.id)
     }
@@ -809,6 +811,8 @@ object GroupSync {
             DebugStatus.log("Gig group: ${intro.name} joined")
         }
         markMember(c, intro.secret)
+        // A private message they sent before their phone introduced itself can be shown now.
+        pub?.let { PrivateMessages.mateSeen(c, g, it) }
     }
 
     /** Listens through the app's one shared scan (see BleHub). Fast while the app is open. */

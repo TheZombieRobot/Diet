@@ -318,6 +318,7 @@ class PrivateTest {
         assertFalse(v.shown)
         assertTrue(book.thread(alex.tag).isEmpty())
         assertTrue(book.waitingFrom(alex.tag))
+        assertEquals(setOf(alex.tag), book.waitingSenders())
         // The same message again while it waits (by another route): still once.
         assertFalse(book.offer(early, mate = false, viewing = false, nowSec = now + 5).shown)
         assertFalse(book.offer(early, mate = true, viewing = false, nowSec = now + 5).shown)

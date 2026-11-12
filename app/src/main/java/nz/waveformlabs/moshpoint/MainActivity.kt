@@ -456,6 +456,7 @@ class MainActivity : ComponentActivity() {
             intent.removeExtra(EXTRA_OPEN_CHAT)
             openChat(intent.getStringExtra(EXTRA_CHAT_CREW))
         }
+        openPrivateFrom(intent)
         handleInvite(intent.getStringExtra(ShareInviteActivity.EXTRA_TEXT) ?: return)
     }
 
@@ -567,6 +568,7 @@ class MainActivity : ComponentActivity() {
             handleFindCrew(intent)
             if (intent?.getBooleanExtra(EXTRA_OPEN_MAP, false) == true) openMap()
             if (intent?.getBooleanExtra(EXTRA_OPEN_CHAT, false) == true) openChat(intent.getStringExtra(EXTRA_CHAT_CREW))
+            openPrivateFrom(intent)
         }
         visibleToMates = VisibilityPrefs.isVisible(this)
         myName = VisibilityPrefs.myName(this)
@@ -745,6 +747,9 @@ class MainActivity : ComponentActivity() {
                             onNudge = { nudge(names) },
                             onOpenMap = { openMap() },
                             onAskLight = { engine.askLight() },
+                            // "Message Sam" for the one mate the finder is showing (docs/PRIVATE_MESSAGES.md).
+                            onMessage = if (GroupSync.group.value != null && !GroupSync.following) ({ id -> messageMate(id) }) else null,
+                            messageUnread = PrivateMessages.unreadByFriend(this@MainActivity),
                             onFound = { NightStats.found(this@MainActivity) },
                             beaconOn = beaconOn,
                             onBeacon = ::setBeacon,
@@ -871,6 +876,9 @@ class MainActivity : ComponentActivity() {
                                 showGroupQr = true
                             },
                             onKeepFriend = { id -> toast(Friendship.request(this@MainActivity, id)) },
+                            // "Message Sam" in a crew mate's options, and a count on their face (docs/PRIVATE_MESSAGES.md).
+                            onMessage = if (GroupSync.group.value != null && !GroupSync.following) ({ id -> messageMate(id) }) else null,
+                            privateUnread = PrivateMessages.unreadByFriend(this@MainActivity),
                             onShowGroupQr = { showGroupQr = true },
                             onShowCrewQr = {
                                 ensureCrew()
@@ -1143,6 +1151,46 @@ class MainActivity : ComponentActivity() {
                             colourOf = { name -> FriendsRepository.friends.firstOrNull { it.name.equals(name, true) }?.color },
                         )
                     }
+                    // A private thread slides in like the crew chat, over whatever was open (docs/PRIVATE_MESSAGES.md).
+                    val pm = PrivateMessages.open.value
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = pm != null,
+                        enter = androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(320)) { it / 3 } +
+                            androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(240)),
+                        exit = androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(240)) { it / 3 } +
+                            androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(200)),
+                    ) {
+                        @Suppress("NAME_SHADOWING")
+                        val pm = pm ?: return@AnimatedVisibility
+                        androidx.compose.runtime.DisposableEffect(Unit) {
+                            PrivateMessages.onScreen = true
+                            onDispose { PrivateMessages.onScreen = false }
+                        }
+                        androidx.compose.runtime.LaunchedEffect(Unit) {
+                            // Fresh messages while you're looking: the private mailbox rides with the chat's.
+                            while (true) {
+                                runCatching { GroupSync.pollPingsNow(this@MainActivity) }
+                                kotlinx.coroutines.delay(if (nz.waveformlabs.moshpoint.locate.RelayClient.ownServer) 8_000 else 20_000)
+                            }
+                        }
+                        val pmCrew = PrivateMessages.crewOf(this@MainActivity, pm.crewId)
+                        val mate = pm.friendId?.let { FriendsRepository.byId(it) }
+                        nz.waveformlabs.moshpoint.ui.PrivateChatScreen(
+                            name = pm.name,
+                            lines = PrivateMessages.lines,
+                            nowSec = homeNow / 1000,
+                            myName = VisibilityPrefs.myName(this@MainActivity).ifBlank { Txt.s(R.string.crew_default_name) },
+                            muted = PrivateMessages.muted.value,
+                            onSend = { PrivateMessages.send(this@MainActivity, it) },
+                            onBack = { PrivateMessages.close() },
+                            onMute = { PrivateMessages.setMuted(this@MainActivity, it) },
+                            onRetry = { PrivateMessages.retry(this@MainActivity, it) },
+                            offlineHint = pmCrew?.let { OfflineMessages.chatHint(this@MainActivity, it) },
+                            face = mate?.let { PhotoStore.photos[it.id] },
+                            myFace = PhotoStore.photos[PhotoStore.ME],
+                            colour = mate?.color,
+                        )
+                    }
                     // The Story rises up from the bottom, like a card stack.
                     androidx.compose.animation.AnimatedVisibility(
                         visible = showStory,
@@ -1367,6 +1415,20 @@ class MainActivity : ComponentActivity() {
         showChat = true
     }
 
+    /** A private message's notification was tapped: open that thread ("crew id:mate tag", docs/PRIVATE_MESSAGES.md). */
+    private fun openPrivateFrom(intent: Intent?) {
+        val thread = intent?.getStringExtra(EXTRA_OPEN_PRIVATE) ?: return
+        intent.removeExtra(EXTRA_OPEN_PRIVATE)
+        val tag = thread.substringAfterLast(':').toLongOrNull() ?: return
+        PrivateMessages.showByTag(this, thread.substringBeforeLast(':'), tag)
+    }
+
+    /** "Message Sam": open the private thread with crew mate [friendId]. */
+    private fun messageMate(friendId: String) {
+        val f = FriendsRepository.byId(friendId) ?: return
+        if (!PrivateMessages.showFriend(this, f)) toast(Txt.s(R.string.crew_friend_unreachable, f.name))
+    }
+
     private fun closeChat() {
         showChat = false
         // After the slide-out, so the closing chat doesn't swap to another crew's messages mid-animation.
@@ -1497,6 +1559,8 @@ class MainActivity : ComponentActivity() {
         const val EXTRA_OPEN_MAP = "nz.waveformlabs.moshpoint.OPEN_MAP"
         const val EXTRA_OPEN_CHAT = "nz.waveformlabs.moshpoint.OPEN_CHAT"
         const val EXTRA_CHAT_CREW = "nz.waveformlabs.moshpoint.CHAT_CREW"
+        /** Notification tap: open a private thread, "crew id:mate tag" (see PrivateMessages). */
+        const val EXTRA_OPEN_PRIVATE = "nz.waveformlabs.moshpoint.OPEN_PRIVATE"
 
         /** How long after the map opens its first position may still open the venue view. */
         private const val MAP_FIRST_FIX_MS = 15_000L

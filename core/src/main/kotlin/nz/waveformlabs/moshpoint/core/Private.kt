@@ -115,6 +115,9 @@ class PrivateBook(
     /** Is anything from [sender] waiting for them to turn out to be a crew mate? */
     fun waitingFrom(sender: Long): Boolean = pending.any { it.first == sender }
 
+    /** Everyone with messages waiting to turn out to be a crew mate (see [known]). */
+    fun waitingSenders(): Set<Long> = pending.map { it.first }.toSet()
+
     /** One of ours to [mate] (signing key [matePub]), as just sent. */
     fun own(mate: Long, matePub: ByteArray, id: Long, timeSec: Long, text: String, state: Int, nowSec: Long) {
         remember(id)

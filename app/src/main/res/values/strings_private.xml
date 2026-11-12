@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Private messages: tap a crew mate, "Message Sam", and only the two of you can read it. See docs/PRIVATE_MESSAGES.md. -->
+<resources>
+    <!-- Button under a crew mate's name in the finder, and the first choice when you hold their face on the home screen: opens a private chat with them. Also the hint in that chat's empty text box. %1$s = their name. -->
+    <string name="private_message_name">Message %1$s</string>
+    <!-- Under the name at the top of a private chat. Same pattern as the crew chat's "Crew chat · only your crew can read it". -->
+    <string name="private_subtitle">Private · only you two can read it</string>
+    <!-- A private chat with no messages yet. %1$s = the crew mate's name. "Not us" = not even Moshpoint's server. -->
+    <string name="private_empty">Only you and %1$s can read what\'s sent here: not the rest of the crew, and not us.</string>
+    <!-- Button at the top of a private chat: this person's private messages stop notifying you (on this phone only; they aren't told). -->
+    <string name="private_mute">Mute</string>
+    <!-- The same button once muted -->
+    <string name="private_unmute">Unmute</string>
+    <!-- Under the top of a muted private chat. %1$s = the crew mate's name. Tapping it unmutes. -->
+    <string name="private_muted_note">Muted on this phone. %1$s\'s messages still arrive here, without a notification.</string>
+    <!-- Notification title for a private message. %1$s = the sender's name. -->
+    <string name="private_notif_title">%1$s · private</string>
+    <!-- What a locked phone shows instead of the message when it hides sensitive content: no name, no words. -->
+    <string name="private_notif_public">Private message</string>
+    <!-- Notification text for several unread private messages from one person. %d = how many. -->
+    <plurals name="private_notif_count">
+        <item quantity="one">%d new private message</item>
+        <item quantity="other">%d new private messages</item>
+    </plurals>
+    <!-- Screen reader: the small number on a crew mate's face. %d = unread private messages from them. -->
+    <plurals name="private_unread_badge">
+        <item quantity="one">%d unread private message</item>
+        <item quantity="other">%d unread private messages</item>
+    </plurals>
+</resources>

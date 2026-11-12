@@ -247,6 +247,24 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
         return fresh
     }
 
+    /**
+     * Everything just fetched from [g]'s private mailbox (docs/PRIVATE_MESSAGES.md). The courier
+     * notes what's there (so nothing is uploaded twice) and keeps the main crew's to pass on by
+     * Bluetooth. Returns the private messages for us that this phone had never met.
+     */
+    fun fetchedPrivate(c: Context, g: GigGroup, blobs: List<ByteArray>, inUploadBox: Int): List<GigGroup.Private> {
+        init(c)
+        val a = c.applicationContext
+        syncCrews(a)
+        val t = now()
+        courier.setOnline(!RelayClient.offline, t)
+        val mine = courier.fetched(GigArchive.idFor(g), Courier.Box.PRIVATE, blobs, t, inUploadBox).filter { it.fresh }.mapNotNull { it.message?.pm }
+        courier.tick(t)
+        save()
+        mine.forEach { traceRelay(it.id, Courier.KIND_PRIVATE) }
+        return mine
+    }
+
     /** Is the courier keeping a meet-up pin of ours for [g] on the relay? */
     fun holdsPin(g: GigGroup): Boolean = courier.holdsOwnPin(GigArchive.idFor(g))
 
@@ -287,6 +305,7 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
                     Courier.Box.CHAT -> RelayClient.send(g.chatIdForDay(day), job.sealed, job.use, held = true)
                     Courier.Box.PING -> RelayClient.send(g.pingIdForEpoch(Math.floorDiv(ms, EphemeralId.DEFAULT_ROTATION_MS)), job.sealed, job.use)
                     Courier.Box.PIN -> RelayClient.send(g.rallyIdForDay(day), job.sealed, job.use)
+                    Courier.Box.PRIVATE -> RelayClient.send(g.privateIdForDay(day), job.sealed, job.use, held = true)
                 }
             }
             val t = now()
@@ -369,9 +388,12 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
         val pin = message.pin
         val ping = message.ping
         val here = message.here
+        val pm = message.pm
         when {
             pin != null -> if (isMain(g)) GroupSync.onRally(c, pin)
             here != null -> HerePins.arrived(c, g, here)
+            // A private message for us (the courier only hands over the ones it could open).
+            pm != null -> PrivateMessages.arrived(c, g, pm)
             ping == null -> Unit
             PingPolicy.group(ping.kind) == PingPolicy.Group.CHAT -> ChatSync.arrived(c, g, ping)
             else -> if (isMain(g)) GroupSync.arrived(c, ping, message.sealed, fresh = true)
@@ -381,15 +403,21 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
     override fun stateChanged(crewId: String, id: Long, state: Courier.State) {
         val c = app ?: return
         val g = crewById(c, crewId) ?: return
-        CrewChat.setStateById(
-            c, g, GigGroup.idText(id),
-            when (state) {
-                Courier.State.WAITING -> OutboxState.WAITING
-                Courier.State.NEARBY -> OutboxState.NEARBY
-                Courier.State.SENT -> OutboxState.SENT
-                Courier.State.GAVE_UP -> OutboxState.FAILED
-            },
-        )
+        val s = when (state) {
+            Courier.State.WAITING -> OutboxState.WAITING
+            Courier.State.NEARBY -> OutboxState.NEARBY
+            Courier.State.SENT -> OutboxState.SENT
+            Courier.State.GAVE_UP -> OutboxState.FAILED
+        }
+        CrewChat.setStateById(c, g, GigGroup.idText(id), s)
+        // Or one of our private messages (whichever holds that id).
+        PrivateMessages.stateChanged(c, crewId, id, s)
+    }
+
+    /** The crew moved to a new key: our unsent private message [id] is sealed again from its thread, with its id. */
+    override fun resealPrivate(crew: Courier.Crew, id: Long): ByteArray? {
+        val c = app ?: return null
+        return PrivateMessages.reseal(c, crew.id, crew.group, crew.signer, id)
     }
 
     override fun paused(crewId: String, on: Boolean) {
@@ -452,6 +480,7 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
             id == 0L -> "crew"
             kind == Courier.KIND_PIN -> "pin"
             kind == Courier.KIND_HERE -> "I'm here"
+            kind == Courier.KIND_PRIVATE -> "private"
             kind == GigGroup.Ping.CHAT -> "chat"
             kind == GigGroup.Ping.NEED_HELP -> "NEED HELP"
             kind == GigGroup.Ping.PLAN -> "plan"

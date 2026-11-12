@@ -91,6 +91,10 @@ fun FriendsScreen(
     onStartGroup: (String) -> Unit,
     onShowGroupQr: () -> Unit,
     onKeepFriend: (String) -> Unit = {},
+    /** "Message Sam": open a private thread with this crew mate (docs/PRIVATE_MESSAGES.md). Null = not offered (following from home). */
+    onMessage: ((String) -> Unit)? = null,
+    /** Unread private messages per friend id, shown on their face. */
+    privateUnread: Map<String, Int> = emptyMap(),
     /** Snap Map style view of where everyone is. */
     onOpenMap: () -> Unit = {},
     /** The crew's meet-up pin, if someone dropped one ("Sound desk"). */
@@ -213,6 +217,13 @@ fun FriendsScreen(
             title = { Text(f.name) },
             text = {
                 androidx.compose.foundation.layout.Column {
+                    // First: write to them privately (crew mates only).
+                    if (onMessage != null && (f.gigGroupOnly || f.key in crewKeys)) {
+                        TextButton(onClick = { onMessage(f.id); options = null }) {
+                            Text(stringResource(R.string.private_message_name, f.name))
+                            privateUnread[f.id]?.let { n -> Spacer(Modifier.width(8.dp)); UnreadBadge(n) }
+                        }
+                    }
                     if (f.gigGroupOnly) {
                         TextButton(onClick = { onKeepFriend(f.id); options = null }) { Text(stringResource(R.string.home_keep_friend, f.name)) }
                     }
@@ -447,12 +458,12 @@ fun FriendsScreen(
                             if (onOpenChat != null) GlassButton(if (chatUnread > 0) stringResource(R.string.home_crew_chat_unread, chatUnread) else stringResource(R.string.home_crew_chat), onClick = onOpenChat)
                             GlassButton(stringResource(R.string.home_where_are_they), onClick = onOpenMap)
                         } else if (gig.isEmpty() || crewSleeping) {
-                            if (gig.isNotEmpty()) CrewTiles(gig, seen, nowSec, onFind = {}, onOptions = { options = it }, distances = emptyMap())
+                            if (gig.isNotEmpty()) CrewTiles(gig, seen, nowSec, onFind = {}, onOptions = { options = it }, distances = emptyMap(), badges = privateUnread)
                             if (following) Text(stringResource(R.string.home_see_them_once_starts), style = Mosh.Body.copy(fontSize = 14.sp))
                             else if (crewQrPayload != null) InlineCrewQr(crewQrPayload, onShareCode)
                             else NeonButton(stringResource(R.string.home_show_crew_qr), onClick = onShowGroupQr)
                         } else {
-                            CrewTiles(gig, seen, nowSec, onFind = { onFind(setOf(it)) }, onOptions = { options = it }, distances = distances, notes = flareNotes)
+                            CrewTiles(gig, seen, nowSec, onFind = { onFind(setOf(it)) }, onOptions = { options = it }, distances = distances, notes = flareNotes, badges = privateUnread)
                             Text(stringResource(R.string.home_tap_mate_hint), style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint))
                             NeonButton(if (gig.size == 1) stringResource(R.string.home_find_name, gig[0].name) else stringResource(R.string.home_find_everyone)) { onFind(gig.map { it.id }.toSet()) }
                             if (checkInBy != null) CheckInBanner(checkInBy, onHomeSafe)
