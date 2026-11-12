@@ -419,6 +419,75 @@ Set up:
 - For F: the times, and a photo of the watch for anything that wasn't the expected screen.
 - Text that runs off the round screen or reads oddly in your language: a photo and the language.
 
+## 4d. "I'm here" (two phones, 30 min)
+
+You long-press your spot on the map and choose **I'm here**: your face moves there on your
+crew's maps, radars and finders, with the floor, until you walk away or 20 minutes pass. How it
+works and why: `docs/IM_HERE.md`. Best done in a building with two floors and a stairwell (a
+mall, a library, the venue itself), with a bit of open ground outside.
+
+Set up: A and B in the same crew, both **Go live**, a field recording running on B. Both
+phones' **Debug → Technology status** should show a `Floors` line with a pressure reading, if
+the phones have the sensor. Stand side by side for half a minute first, so the floor
+calibration happens (as in 3b E).
+
+### With signal
+
+- [ ] A opens the map, long-presses the spot A is standing on, and taps **I'm here** (first in
+  the dialog). A sees "Your crew can see where you are", and **You're here** at the top of the
+  map's list, with ✕.
+- [ ] Within a minute B's map shows A's face on that spot (not on A's GPS dot), with
+  "pinned just now" under A's name, and the same in B's list. Mark how long it took.
+- [ ] B opens the finder for A from 30 m or more away: the arrow points at the spot; with A
+  alone, the chip under it says "Pinned 1 min ago". With the whole crew, A's bubble on the
+  radar has a small pink "pinned … ago" pill.
+- [ ] **Floors:** A pins a spot upstairs and stays there; B stays downstairs. B's map and finder
+  show "↑ Upstairs" on A's face. B walks up to A's floor: the tag goes away. B walks back down:
+  it comes back. Mark when each happened.
+- [ ] B walks to within about 10 m of A: the finder hands over from the pin to Bluetooth (and
+  UWB if both phones have it), as it would for a GPS arrow. With UWB, A's face on B's map moves
+  to where UWB puts A.
+- [ ] A taps ✕ beside **You're here**: within a minute A's face goes back to A's GPS dot on B's
+  map.
+
+### It clears itself
+
+- [ ] **Walking away:** A pins, waits a minute, then walks away briskly. B's map: A's face
+  leaves the spot. Mark how far A had walked when it cleared (expected: 30 m and more beyond
+  the GPS accuracy, about 40 to 60 m outdoors; more indoors).
+- [ ] **Standing still:** A pins indoors and stays put for 20 minutes (chat, dance on the spot).
+  It must not clear early. At 20 minutes it clears on its own on both phones.
+- [ ] **Changing floor:** A pins upstairs, then takes the stairs down and stays near the spot
+  (right under it). It clears within about a minute of reaching the other floor.
+
+### No signal
+
+- [ ] Both phones: airplane mode **on**, then Bluetooth back **on** (as in 4b). A pins:
+  B's map shows it within about 20 seconds (by Bluetooth). Message routes on A show the
+  `I'm here` message going on air; on B, `in by Bluetooth`.
+- [ ] A walks away until it clears: B gets the clear the same way. Then A pins again from
+  out of Bluetooth range, walks back into range: B gets the new pin.
+- [ ] A pins with B out of range and stays out of range for 25 minutes: when they meet, B never
+  shows the pin (it ran out).
+- [ ] B back on signal first: A's pin reaches the relay through B (B's routes: `uploaded for a
+  crew mate`), and a third phone C elsewhere sees it.
+
+### Who sees it
+
+- [ ] A third phone **following from home** (a follow-along invite): it keeps showing A's usual
+  dot, never the pin. It has no **I'm here** in its dialog.
+- [ ] A phone in a different crew (or an older build in the same crew) shows nothing new and
+  nothing odd: no "pinged the crew", no meet-up pin moving.
+- [ ] A watch on B (if you have one, as in 4c), B finding A from a pocket: the wrist arrow
+  points at the pinned spot.
+
+### What to send back for this part
+
+- B's field recording, screenshots of B's map and finder with A pinned, and Message routes on
+  both phones.
+- For each "clears itself" test: cleared or not, and when (distance walked, minutes).
+- Whether the floor tag was right for the pinned spot, and how long it lasted.
+
 ## 5. What to send back
 
 - The CSV recordings (debug panel → **share last**; older ones are in the share list too).
@@ -443,3 +512,7 @@ Set up:
 - The watch app has never run on a real watch. Its tilt limits (40° and 50°), buzz timings,
   the 20 m point where a pocketed phone stops giving an arrow, and the 15-minute cap are first
   guesses. Finding from the pocket needs the phone live (or its app open) on Android 14 and newer.
+- "I'm here" has never run on a phone. Its numbers are first guesses: 20 minutes, walking away
+  = 30 m beyond the GPS accuracy after 10 s of footsteps, a floor change = 0.3 hPa, and the
+  weather allowance for the pinned spot's floor (3 m an hour). Its walk-away check only runs
+  while the app is open or you're live.

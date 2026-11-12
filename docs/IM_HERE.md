@@ -20,7 +20,7 @@ _Handover, kept current at every push. Branch `claude/im-here-pin-k3v9tq`, start
 | 3. App: sending and clearing, receiving, map / radar / finder, the walk-away watcher | **written, waiting for CI to compile it.** `HerePins.kt` (the main crew's book as Compose state, set/clear through the courier, arrivals, the walk-away watcher); `GroupSync.syncServer` + `OfflineMessages.deliver` hand arrivals to it; `GpsFinder.poll` makes `HERE_PIN` fixes; `Floors.pinnedFloor/pressureUnits/currentHpa`; `MapScreen` (pinned faces, list rows, our own pin with ✕, "I'm here" first in the dialog via `ImHereChoice`); `CrewRadar` pin pill; `FinderScreen` (`pinned`: spot's floor, chip, radar notes); `MainActivity` wiring; `ui/HereUi.kt` |
 | 4. `strings_here.xml` in English and 19 languages | **done**, `tools/check_translation.py` OK for every folder |
 | 5. Screenshot tests (`HereSnapshotTest`, own package) | **written, waiting for CI.** `app/src/test/java/nz/waveformlabs/moshpoint/here/HereSnapshotTest.kt`: `hereMapList`, `hereFinder`, `hereDialog` in every language (`Lang_xx`), `hereFinderOne` and `herePins` in English; `Lang_de.hereTranslationsLoad` guards that the translations load |
-| 6. Field test (two phones), roadmap, architecture and privacy notes | not started |
+| 6. Field test (two phones), roadmap, architecture and privacy notes | **done.** `FIELD_TEST_PLAN.md` section 4d and a known limit; `ROADMAP.md` step 3 status; `ARCHITECTURE.md` section; `PRIVACY.md` paragraph |
 | 7. CI green, report sent | not started |
 
 **Exact next step:** check CI (compile of steps 3 and 5: "Build debug APK", "Compile errors",
@@ -214,9 +214,10 @@ arbiter) with floor pills; `FinderScreen` shows a chip under a single arrow.
 - **A pin belongs to one crew:** sealed with that crew's key, posted to that crew's mailbox,
   kept in that crew's book. "I'm here" always goes to the **main crew** (the one the map and the
   finder show). Up next crews are asleep (no Bluetooth, no location) and for another night.
-- When another crew becomes the main one, the old crew's pins aren't shown any more; our own pin
-  there keeps running out on its own (at most 20 minutes) and its watcher still clears it if we
-  walk away.
+- When another crew becomes the main one, the old crew's pins aren't shown any more, and our own
+  pin there just runs out (at most 20 minutes; the courier stops re-posting it at its end). The
+  walk-away watcher follows the main crew's pin only: switching crews mid-gig is rare, and the
+  20-minute limit bounds it.
 - **People following from home don't see it.** Their map keeps showing your usual dot. The pin
   is a finding tool for people at the venue: it says exactly where you're standing, and someone
   at home can't come to that spot. Followers hold the crew key, so this is the app not showing
@@ -236,6 +237,44 @@ arbiter) with floor pills; `FinderScreen` shows a chip under a single arrow.
 - The walk-away watcher reads GPS, the accelerometer and the pressure sensor on the phone only,
   and only while your own pin stands.
 
+## Tests
+
+In core (these can fail CI):
+
+| File | What it proves |
+|---|---|
+| `HereTest` (39) | The message: who sent it and every field; a clear has no spot; no sensor, no pressure; older builds can't open it as a ping, pin, intro or history, and builds with the envelope see a type they don't act on; nobody can move, re-date or replay someone else's (signature covers the crew, time and fields); later versions can add fields; one id across re-seals and rekeys. The rules: newest per sender, far future refused, the end by the sender's clock with the skew limits, the stamp, how long a clear lasts. The book: newest per sender, a clear takes the pin down and an older pin can't come back (also after a restart), a newer one that arrives already run out still replaces the older, pins run out with no clear, a far-future pin can't lock it, garbage is ignored. Walking away: GPS drift without footsteps keeps it, walking away clears it, vague fixes never do, pinning from across the room and walking over doesn't, no motion sensor needs twice the distance, going downstairs clears it and an hour of falling barometer doesn't. The pinned floor: from the pin, not from where they are now, for the pin's 20 minutes; walking up to the spot's floor removes the tag; a passing front can't make a floor; no calibration or no sensor, no tag; no flicker at the edge. The finder: the pin's fix; it beats their live GPS for its whole life; UWB up close wins; its bearing is ignored under 20 m by Bluetooth; it beats spin-to-scan and walk, Wi-Fi Aware gives the distance; when it goes, the arrow falls back to GPS; the watch may use its direction from a pocket. The map: UWB beats the pin, which beats GPS. |
+| `CourierSimTest` (8 new) | It goes to the pin mailbox (where older builds see nothing they can open) and is re-posted only while it lasts (two uploads for 20 minutes); a clear takes over from our pin; Bluetooth delivery with a receipt, newest per sender, an old copy and a far-future one refused, one pin per sender; it crosses two strangers' phones; a crew phone uploads someone else's when it gets signal; a run-out pin is neither handed over nor carried; our pin follows the crew to a new key and survives a restart, and stops at its end; a full queue never pushes ours out. |
+| `WristDirectionsTest`, `WatchProtocolTest` (existing) | `HERE_PIN` is in one of the wrist's lists, and has its own number on the wire. |
+
+In app (rendered by CI, never gating): `HereSnapshotTest` and its `Lang_xx` subclasses draw, in
+every language, the map's list with a pinned mate and our own pin (`hereMapList`), the finder's
+radar with the pin pill and the pinned spot's floor (`hereFinder`), and the drop-a-pin dialog's
+contents with **I'm here** first (`hereDialog`); in English, one mate pinned in the finder
+(`hereFinderOne`) and the map's faces (`herePins`).
+
+## Shared files this branch touches
+
+Everything else is new (`core/Here.kt`, `HereTest.kt`, `app/HerePins.kt`, `ui/HereUi.kt`,
+`strings_here.xml` in 20 folders, `here/HereSnapshotTest.kt`, this note).
+
+| File | Change |
+|---|---|
+| core `GigGroup.kt` | Additions only: `Here`, `sealHere`, `openHere`, `hereOf`, `ENV_HERE`, `hereId`. |
+| core `Courier.kt` | `KIND_HERE` beside `KIND_PIN` in the same places (open, post, accept, uploads, re-post, expiry, air, rekey); `Message` gains an optional `here`. |
+| core `Model.kt`, `MethodArbiter.kt`, `Floors.kt`, `Venue.kt` | One enum value; one set member; one method (`FloorTracker.pinned`); one overload of `spot`. |
+| core `watch/WristDirections.kt`, `watch/WatchProtocol.kt` | `HERE_PIN` in `POSE_FREE`; code 8. |
+| core `CourierSimTest.kt` | Eight tests appended at the end. |
+| app `GroupSync.kt` | Two lines: `HerePins.init` beside `OfflineMessages.init`; pins from the pin mailbox to `HerePins.arrived`. |
+| app `OfflineMessages.kt` | Three lines: Bluetooth arrivals to `HerePins`, a name in the route log. |
+| app `locate/GpsFinder.kt` | Six lines: the pin fixes at the start of `poll`. |
+| app `venue/Floors.kt` | Three small functions for pins (our pressure now, the pinned spot's floor). |
+| app `ui/MapScreen.kt` | Five optional parameters; pinned faces, list rows, our own pin row, **I'm here** in the dialog. |
+| app `ui/CrewRadar.kt`, `ui/FinderScreen.kt` | One optional parameter each (`notes`, `pinned`). |
+| app `ui/FinderArrows.kt`, `ui/DebugPanel.kt` | A label for `HERE_PIN` in two `when`s. |
+| app `MainActivity.kt` | The map's and the finder's new parameters, from `HerePins`. |
+| docs | `ROADMAP.md` (step 3 status), `FIELD_TEST_PLAN.md` (section 4d, one known limit), `ARCHITECTURE.md` (a section), `PRIVACY.md` (a paragraph). |
+
 ## Known limits
 
 - Indoors, the walk-away check depends on GPS, which can be 50 m out: walking 20 m to another
@@ -244,3 +283,10 @@ arbiter) with floor pills; `FinderScreen` shows a chip under a single arrow.
   25 with a fast sender clock).
 - The pinned floor is only as good as tonight's calibration with that mate, as for live tags.
 - The arrow to a pin comes from your own GPS: under 20 m it gives way to Bluetooth and UWB.
+- The floor comes from where your phone is when you tap **I'm here**: pin your spot when you're
+  on it (that's what the words say). Pinning the bar upstairs from the floor below tags it with
+  the floor below, and then climbing the stairs to it clears it as a change of floor.
+- The walk-away check needs the app open or you live (as location sharing does); otherwise the
+  pin simply runs out.
+- Like the rest of the app this was written where the Android SDK can't be downloaded: the app
+  is compiled, and its screens drawn, only by CI; core tests run here and in CI.

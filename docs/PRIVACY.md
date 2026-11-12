@@ -114,6 +114,14 @@ who scanned your crew's QR can open them. They pass through the same relay under
 change daily or every 5 minutes; the public relay deletes them within hours. Nothing is
 shared unless you tap to send it.
 
+**"I'm here" (optional):** when you pin your spot with **I'm here**, the spot you chose, the
+air-pressure reading there (for upstairs/downstairs) and the time go to your crew the same
+way as a meet-up pin: encrypted with your crew's key and signed by you, through the relay and,
+with no signal, Bluetooth. Your crew's phones show it for 20 minutes at most, or until you walk
+away or take it down. People following your crew from home aren't shown it. While your pin
+stands and the app is open or you're live, your phone checks your GPS, footsteps (motion
+sensor) and air pressure, on the phone only, to take it down when you leave.
+
 **Your gigs (on your phone only):** photos and clips your crew shares are kept on your
 phone, in the app's private storage, so you can look back at the night. They never leave
 your phone from there. You can delete a gig any time, uninstalling removes them all, and

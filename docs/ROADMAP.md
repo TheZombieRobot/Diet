@@ -102,6 +102,15 @@ Agreed with the owner; build in this order. Where this differs from [PRODUCT.md]
 - Clears itself when you walk away or after about 20 minutes.
 - Travels over the internet, Bluetooth to crew nearby, and the crowd relay. Meet-up pins get
   the same Bluetooth routes.
+- **Status: built, not yet tried on real phones.** Decisions, tests and what's left:
+  [IM_HERE.md](IM_HERE.md). A signed message in the `mp2` envelope (older builds can't open
+  or misread it), carried by the courier like the meet-up pin and kept in the meet-up pin's
+  mailbox; it carries the pressure at the spot, so each phone shows the spot's own floor; in
+  the finder it outranks GPS, never UWB up close (`HERE_PIN`), and the watch gets it too;
+  it clears when you walk away (GPS plus footsteps) or change floor, and every phone drops it
+  after 20 minutes by the sender's clock. Not shown to people following from home. Meet-up
+  pins already had the same Bluetooth routes (step 1). Two-phone test: section 4d of
+  [FIELD_TEST_PLAN.md](FIELD_TEST_PLAN.md).
 
 ### 4. Private messages: about 2–3 days
 - Tap a mate → "Message Sam". Internet normally; Bluetooth when nearby with no signal.

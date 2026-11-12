@@ -166,6 +166,23 @@ Three things worth knowing before changing any of it:
   compiles it, runs the unit tests and draws the screenshots. The field test is section 3b
   of [FIELD_TEST_PLAN.md](FIELD_TEST_PLAN.md).
 
+## "I'm here" pin
+
+Long-press your spot on the map, **I'm here**: your face moves there on the crew's maps,
+radars and finders, with the floor, until you walk away or 20 minutes pass. Decisions and
+reasons: [IM_HERE.md](IM_HERE.md).
+
+| File | Job |
+|---|---|
+| core `GigGroup.kt` | `Here`, `sealHere` / `openHere`: the signed message in the `mp2` envelope (type `ENV_HERE`), which older builds can't open or misread. |
+| core `Here.kt` | `HereRule` (newest per sender, the future cap, the end judged by the sender's clock, the finder's fix), `HereBook` (each sender's standing pin, and the newest time seen from each so an old pin can't come back), `HereWatch` (walking away: GPS plus footsteps, or a change of floor). |
+| core `Floors.kt` | `FloorTracker.pinned`: the pinned spot's floor from the pressure in the pin, with the weather's possible drift added as it ages. |
+| core `Courier.kt` | Carries it as `KIND_HERE`: newest per sender, in the pin mailbox, re-posted while it lasts, crowd hops while it lasts, re-signed after a rekey. |
+| core `Model.kt`, `MethodArbiter.kt`, `Venue.kt` | `Method.HERE_PIN` (beats GPS, never UWB up close; ignored for direction under 20 m like GPS), `VenuePlacement.spot` with the pin (UWB > pin > GPS). The watch gets it through `WristDirections.POSE_FREE` and watch code 8. |
+| app `HerePins.kt` | The main crew's pins as Compose state; sets and clears ours through `OfflineMessages`; takes arrivals from `GroupSync.syncServer` and `OfflineMessages.deliver`; runs the walk-away watcher while ours stands. |
+| app `locate/GpsFinder.kt` | Makes the `HERE_PIN` fixes, so the phone's finder and the watch's pocket finder both have them. |
+| app `ui/MapScreen.kt`, `CrewRadar.kt`, `FinderScreen.kt`, `HereUi.kt` | The face on the spot with "pinned 3 min ago", your own pin with ✕, **I'm here** first in the drop-a-pin dialog, the radar pill, the finder chip. |
+
 ## Watch app (Wear OS companion)
 
 The phone does the finding; the watch does the pointing and the buzzing. The decisions and the
