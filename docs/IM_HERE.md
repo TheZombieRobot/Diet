@@ -52,8 +52,8 @@ How to work on it:
 
 ### 1. The message
 
-**Checked in the code:** the meet-up pin is a signed `Rally` in the ping key with AAD "rally";
-pings use AAD "ping"; control messages (have, receipt, retired) use the `mp2` envelope, which
+**Checked in the code:** the meet-up pin is a signed `Rally`, sealed with the same crew key as
+pings but AAD "rally"; pings use AAD "ping"; control messages (have, receipt, retired) use the `mp2` envelope, which
 has its own key and AAD, so builds older than it can't open it at all. `Courier.open` tries
 `openPing`, then `openRally`; anything else is remembered as "not a message" and ignored. Over
 Bluetooth, `Courier.handle` opens envelopes first and ignores types it doesn't know.
@@ -102,7 +102,7 @@ calibration (the two sensors' offset, measured while side by side) that ages, an
 old). A tag needs `max(2.5 m, 1.5 m + 2σ)`.
 
 **Decision: the pin carries the sender's pressure at the pinned spot, taken when they pin it.**
-Each receiver works out the spot's floor relative to itself (`PinnedFloor` in core):
+Each receiver works out the spot's floor relative to itself (`FloorTracker.pinned` in core):
 
 - height of the spot above me = `Baro.heightAboveM(my pressure now, pin pressure + our
   calibration offset)`. My pressure **now**, so walking up to the spot's floor makes the tag go
@@ -160,10 +160,12 @@ through `PhoneFinderBridge.latestFixes`, which lists every `Method`.
 **Decision: the sender's phone clears it; every receiver also drops it on its own.**
 
 - **Walking away** (`HereWatch`, core): our pin is cleared when
-  - GPS puts us more than **30 m** from the spot beyond the fix's own accuracy (accuracy counts
-    up to 60 m; worse fixes are ignored), **and** the motion detector (`MotionDetector`, the
-    accelerometer's footstep bounce) has seen at least 10 seconds of walking since the pin was
-    set. GPS drifts 30 m indoors while you stand at a bar; you don't drift footsteps. A phone
+  - GPS puts us **30 m** further from the spot than the closest we've been to it since pinning,
+    giving each fix the benefit of its own accuracy (up to 60 m; fixes vaguer than 100 m are
+    ignored), **and** the motion detector (`MotionDetector`, the accelerometer's footstep bounce)
+    has felt at least 10 seconds of walking since the pin was set. GPS drifts 30 m indoors while
+    you stand at a bar; you don't drift footsteps. "Than the closest we've been" means pinning the
+    bar from across the room and then walking over to it doesn't count as leaving. A phone
     without an accelerometer needs 60 m.
   - or the pressure sensor says we **changed floor**: our pressure moved 0.3 hPa (about 2.5 m)
     from the pin's, measured against a reference that follows slow weather while we stay put
@@ -195,19 +197,22 @@ arbiter) with floor pills; `FinderScreen` shows a chip under a single arrow.
 
 **Decision:**
 
-- **Long-press dialog:** a third button, **I'm here**, first, shown when you're in a crew that's
-  awake and you're not following from home. The name field is for the other two.
+- **Long-press dialog:** a third choice, **I'm here**: a full-width button at the top with one
+  line saying what it does, shown when you're in a crew that's awake and you're not following
+  from home. The name field below it is for the other two.
 - **Placement:** `VenuePlacement.spot` gains the pin: **UWB exact > pin > GPS > nowhere**. UWB
   is a measurement of where they are this second; the pin is where they told you, better than
   any GPS dot. A pinned mate is never merged into a crowd bubble (the spot is exact).
-- **The note:** the pin's caption is "📍 3 min ago" (under the name, on the map and in the
-  list), and the floor tag on the face is the spot's floor (problem 2).
+- **The note:** the pin's caption is "pinned 3 min ago" (under the name on the map, and after
+  the distance in the list), and the floor tag on the face is the spot's floor (problem 2). Plain
+  words, no 📍: the map's labels are drawn with the saved map's one font, which has no emoji.
 - **Radar and finder:** the arrow already follows the arbiter, so it points at the pin. The
-  radar draws a small "📍 3 min" pill under a pinned mate's face (beside the floor pill); the
-  finder's chip says "Pinned 3 min ago" while the pin is driving the arrow, and the crew strip
-  wears the pin's floor tag.
-- **Your own pin:** listed at the top of the map's places, "You're here · 3 min ago", with ✕.
-  That is the only new control. No new modes, screens or buttons elsewhere.
+  radar draws a small pink "pinned 3 min ago" pill under a pinned mate's face (below the floor
+  pill); the finder's chip says "Pinned 3 min ago" while the pin is driving the arrow, and the
+  crew strip wears the pinned spot's floor tag.
+- **Your own pin:** at the top of the map's list ("You're here", "Pinned 3 min ago · your crew
+  sees you here") with ✕, and marked "You're here" on your map. That is the only new control.
+  No new modes, screens or buttons elsewhere.
 - **Notifications:** none. A pin only changes where a face is drawn.
 
 ### 6. Several crews; following from home
