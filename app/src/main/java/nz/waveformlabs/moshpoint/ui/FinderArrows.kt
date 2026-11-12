@@ -76,7 +76,16 @@ internal fun animatedAngle(targetDeg: Double): Float {
 }
 
 @Composable
-internal fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Friend?, group: Boolean, onTap: ((String) -> Unit)? = null) {
+internal fun Arrows(
+    arrows: List<ArrowState.Pointing>,
+    friendOf: (String) -> Friend?,
+    group: Boolean,
+    onTap: ((String) -> Unit)? = null,
+    /** "↑ Upstairs" / "↓ Downstairs" per mate on another floor, drawn on their face. */
+    floors: Map<String, String> = emptyMap(),
+    /** The same for screen readers ("upstairs"). */
+    floorsSpoken: Map<String, String> = emptyMap(),
+) {
     // Where each mate's bubble was drawn, so a tap can pick them (not state: drawing only).
     val tips = remember { HashMap<String, Offset>() }
     // Per-friend animated angle and colour (hot pink sliding into their colour).
@@ -103,12 +112,13 @@ internal fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Fri
         val name = friendOf(a.friendId)?.name ?: Txt.s(R.string.find_friend_fallback)
         val clock = (((a.relativeDeg + 360) % 360) / 30).let { kotlin.math.round(it).toInt() }.let { if (it == 0) 12 else it }
         val dist = a.distanceM?.let { spokenDistance(it) }
-        when {
+        val where = when {
             dist == null && a.unsure -> Txt.s(R.string.find_arrow_spoken_nodist_rough, name, clock)
             dist == null -> Txt.s(R.string.find_arrow_spoken_nodist, name, clock)
             a.unsure -> Txt.s(R.string.find_arrow_spoken_rough, name, dist, clock)
             else -> Txt.s(R.string.find_arrow_spoken, name, dist, clock)
         }
+        floorsSpoken[a.friendId]?.let { Txt.s(R.string.venue_spoken_floor, where, it) } ?: where
     }
     val tapModifier = if (onTap != null) {
         Modifier.pointerInput(onTap) {
@@ -178,6 +188,8 @@ internal fun Arrows(arrows: List<ArrowState.Pointing>, friendOf: (String) -> Fri
                     radius = avatarR, center = tip, style = Stroke(3.5f.dp.toPx()),
                 )
             }
+            // On another floor: say so on their face.
+            floors[a.friendId]?.let { drawFloorPill(it, Offset(tip.x, tip.y + avatarR), regularPaint, 11.dp.toPx()) }
 
             if (group) {
                 // Glass chip with distance + name, placed further out along the arrow's

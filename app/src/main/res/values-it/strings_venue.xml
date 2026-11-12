@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Italian: the venue map (offline download line, upstairs/downstairs tags, venue lookup). -->
+<resources>
+    <string name="venue_map_saved">Mappa della location salvata offline ✓</string>
+    <string name="venue_map_saving">Salvo la mappa della location… %1$d%%</string>
+    <string name="venue_map_waiting">Mappa della location: in attesa di connessione</string>
+    <string name="venue_map_on_arrival">La mappa della location si salva quando arrivi</string>
+    <string name="venue_floor_up">↑ Di sopra</string>
+    <string name="venue_floor_down">↓ Di sotto</string>
+    <string name="venue_floor_up_spoken">al piano di sopra</string>
+    <string name="venue_floor_down_spoken">al piano di sotto</string>
+    <string name="venue_spoken_floor">%1$s, %2$s</string>
+    <string name="venue_finding">Cerco la location…</string>
+</resources>

@@ -81,3 +81,15 @@ Shortened so the text fits the way English does:
 - `find_place_only_you`: *cuma kamu yang lihat* → *khusus kamu* (the map row subtitle took 2 lines)
 - `home_plan_gig`: *Rencanakan konser (cari, undang sekarang)* → *Atur konser (cari, undang)* (the button wrapped)
 - `home_family_can_follow`: *Keluarga bisa ikut memantau dari rumah* → *Keluarga bisa pantau dari rumah* (wrapped onto 2 lines)
+
+## Venue map (`strings_venue.xml`)
+
+Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a mate's face, and "Finding the venue…". Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| venue map | **peta venue** | *Venue* as in `crew_at_venue`. *Kamu*, matching the app's tone. |
+| ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ Lantai atas / ↓ Lantai bawah** | Short, with the arrow kept. |
+| upstairs / downstairs (screen reader) | di lantai atas / di lantai bawah | Said in full after the mate's direction. |
+
+For a native reviewer: Nothing doubtful. Confidence: **high**.

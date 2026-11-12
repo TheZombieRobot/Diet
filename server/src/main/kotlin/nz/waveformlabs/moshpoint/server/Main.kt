@@ -31,6 +31,9 @@ import kotlinx.io.readByteArray
  * - `PUT  /v1/file/{id}`  body = one sealed file (crew photo/clip, profile photo), up to 12 MB.
  * - `GET  /v1/files/{id}?since=<unix s>` -> lines "<time> <name>", newest first.
  * - `GET  /v1/file/{id}/{name}` -> the sealed file.
+ * - `GET  /v1/venue?q=<name>&box=<left,top,right,bottom>` -> `{"lat":..,"lon":..,"name":".."}` for a
+ *                         venue typed in by hand (see VenueLookup). 404 if there's no such place,
+ *                         503 if we can't ask right now.
  * - `GET  /healthz`
  */
 fun Application.moshpoint(
@@ -43,6 +46,7 @@ fun Application.moshpoint(
     // Crew chat: kept for days, so a crew can hype up weeks before the gig.
     held: MailboxStore = MailboxStore(ttlMs = 72 * 3600 * 1000L, maxPerId = 200, maxIds = 200_000),
     gigs: GigSearch = GigSearch(),
+    venues: VenueLookup = VenueLookup(),
 ) {
     launch {
         while (true) {
@@ -170,6 +174,16 @@ fun Application.moshpoint(
             val q = call.request.queryParameters["q"].orEmpty()
             val country = call.request.queryParameters["country"]
             call.respondText(gigs.toJson(gigs.search(q, country)), ContentType.Application.Json)
+        }
+
+        // Where a venue typed in by hand is (see VenueLookup: one question a second, cached).
+        get("/v1/venue") {
+            if (!getLimit.allow(call.client())) return@get call.respondText("slow down", status = HttpStatusCode.TooManyRequests)
+            when (val r = venues.find(call.request.queryParameters["q"].orEmpty(), call.request.queryParameters["box"])) {
+                is VenueLookup.Result.Found -> call.respondText(r.place.toJson().toString(), ContentType.Application.Json)
+                VenueLookup.Result.NotFound -> call.respondText("", status = HttpStatusCode.NotFound)
+                VenueLookup.Result.Unavailable -> call.respondText("try later", status = HttpStatusCode.ServiceUnavailable)
+            }
         }
 
         get("/v1/gigs/sources") {

@@ -75,17 +75,11 @@
     <string name="find_map_style_night">Đêm</string>
     <string name="find_map_style_dark">Tối</string>
     <string name="find_meet_label">Hẹn: %1$s</string>
-    <string name="find_saving_area">Đang lưu khu vực này…</string>
-    <string name="find_saving_area_pct">Đang lưu khu vực này… %1$d%%</string>
-    <string name="find_area_saved">Đã lưu khu vực: bản đồ dùng được ở đây kể cả khi mất sóng</string>
-    <string name="find_area_save_failed">Không lưu được khu vực: %1$s</string>
-    <string name="find_area_too_big">Khu vực quá lớn: phóng to vào địa điểm rồi thử lại</string>
     <string name="find_back">‹ Quay lại</string>
     <string name="find_map_title">Bản đồ Mosh</string>
     <string name="find_map_pin">Ghim</string>
     <string name="find_map_all">Tất cả</string>
     <string name="find_map_me">Tôi</string>
-    <string name="find_save_area">⬇  Lưu khu vực này để dùng khi mất sóng</string>
     <string name="find_map_no_mates">Chưa có ai. Lập nhóm hoặc thêm bạn, họ sẽ hiện ở đây khi bật chia sẻ.</string>
     <string name="find_place_crew_meetup">điểm hẹn của nhóm</string>
     <string name="find_place_only_you">chỉ bạn thấy</string>

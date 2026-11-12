@@ -7,7 +7,7 @@ import javax.crypto.spec.SecretKeySpec
  * The bytes inside every Moshpoint Bluetooth advert (the service data).
  *
  * ```
- * [flags:1][rotating id:16][encrypted UWB block: 0, 2 or 4 bytes]
+ * [flags:1][rotating id:16][encrypted UWB block: 0, 2 or 4 bytes][encrypted pressure: 0 or 2 bytes]
  * ```
  *
  * - `rotating id` is from [EphemeralId]: only friends can recognise it.
@@ -18,8 +18,10 @@ import javax.crypto.spec.SecretKeySpec
  *     UWB channel and preamble index.
  *   It is XOR-encrypted with a keystream derived from our secret and rotating id, so
  *   strangers can't read it or link it across rotations.
+ * - The pressure (see [Baro]) lets friends tell upstairs from downstairs. It is encrypted with
+ *   the same keystream, carried on. Older versions ignore its flag and the two extra bytes.
  *
- * Max size is 21 bytes, which keeps the whole advert under the 31-byte legacy limit.
+ * Max size is 23 bytes, which keeps the whole advert under the 31-byte legacy limit.
  */
 data class Advert(
     val id: ByteArray,
@@ -34,6 +36,8 @@ data class Advert(
     val beacon: Boolean = false,
     /** "Please light up": a friend looking for us asks our phone to offer Light me up. */
     val askLight: Boolean = false,
+    /** Air pressure at their phone in [Baro] units, or null (no sensor, or an older version). */
+    val pressure: Int? = null,
 ) {
 
     enum class UwbRole { CONTROLEE, CONTROLLER }
@@ -51,7 +55,8 @@ data class Advert(
         override fun hashCode() = role.hashCode() * 31 + address.contentHashCode()
     }
 
-    override fun equals(other: Any?) = other is Advert && id.contentEquals(other.id) && uwb == other.uwb && looking == other.looking && beacon == other.beacon && askLight == other.askLight
+    override fun equals(other: Any?) = other is Advert && id.contentEquals(other.id) && uwb == other.uwb && looking == other.looking && beacon == other.beacon && askLight == other.askLight &&
+        pressure == other.pressure
     override fun hashCode() = id.contentHashCode()
 
     companion object {
@@ -60,21 +65,34 @@ data class Advert(
         private const val FLAG_LOOKING = 0x04
         private const val FLAG_BEACON = 0x08
         private const val FLAG_ASK_LIGHT = 0x10
+        /** The top bit, leaving 0x20 and 0x40 for whatever comes next. */
+        private const val FLAG_PRESSURE = 0x80
 
-        /** Builds the service-data bytes. [secret] is the advertiser's own secret. */
-        fun encode(secret: ByteArray, id: ByteArray, uwb: UwbInfo?, looking: Boolean = false, beacon: Boolean = false, askLight: Boolean = false): ByteArray {
+        /** Builds the service-data bytes. [secret] is the advertiser's own secret. [pressure] is in [Baro] units. */
+        fun encode(
+            secret: ByteArray,
+            id: ByteArray,
+            uwb: UwbInfo?,
+            looking: Boolean = false,
+            beacon: Boolean = false,
+            askLight: Boolean = false,
+            pressure: Int? = null,
+        ): ByteArray {
             require(id.size == EphemeralId.ID_BYTES)
-            val plain = when (uwb?.role) {
+            val uwbBytes = when (uwb?.role) {
                 null -> ByteArray(0)
                 UwbRole.CONTROLEE -> uwb.address
                 UwbRole.CONTROLLER -> uwb.address + byteArrayOf(uwb.channel.toByte(), uwb.preamble.toByte())
             }
+            val baro = pressure?.takeIf { it in 0..Baro.MAX_UNITS }?.let { byteArrayOf((it ushr 8).toByte(), it.toByte()) } ?: ByteArray(0)
+            val plain = uwbBytes + baro
             val flags = when (uwb?.role) {
                 null -> 0
                 UwbRole.CONTROLEE -> FLAG_CONTROLEE
                 UwbRole.CONTROLLER -> FLAG_CONTROLLER
             }
-            val allFlags = flags or (if (looking) FLAG_LOOKING else 0) or (if (beacon) FLAG_BEACON else 0) or (if (askLight) FLAG_ASK_LIGHT else 0)
+            val allFlags = flags or (if (looking) FLAG_LOOKING else 0) or (if (beacon) FLAG_BEACON else 0) or (if (askLight) FLAG_ASK_LIGHT else 0) or
+                (if (baro.isNotEmpty()) FLAG_PRESSURE else 0)
             return byteArrayOf(allFlags.toByte()) + id + xor(plain, keystream(secret, id, plain.size))
         }
 
@@ -95,7 +113,19 @@ data class Advert(
                     UwbInfo(UwbRole.CONTROLEE, plain.copyOfRange(0, 2))
                 else -> null
             }
-            return Advert(id, uwb, looking = flags and FLAG_LOOKING != 0, beacon = flags and FLAG_BEACON != 0, askLight = flags and FLAG_ASK_LIGHT != 0)
+            // The pressure follows the UWB block, whose length the role flags give.
+            val at = when {
+                flags and FLAG_CONTROLLER != 0 -> 4
+                flags and FLAG_CONTROLEE != 0 -> 2
+                else -> 0
+            }
+            val pressure = if (flags and FLAG_PRESSURE != 0 && plain.size >= at + 2) {
+                ((plain[at].toInt() and 0xFF) shl 8) or (plain[at + 1].toInt() and 0xFF)
+            } else null
+            return Advert(
+                id, uwb, looking = flags and FLAG_LOOKING != 0, beacon = flags and FLAG_BEACON != 0, askLight = flags and FLAG_ASK_LIGHT != 0,
+                pressure = pressure,
+            )
         }
 
         private fun keystream(secret: ByteArray, id: ByteArray, n: Int): ByteArray {

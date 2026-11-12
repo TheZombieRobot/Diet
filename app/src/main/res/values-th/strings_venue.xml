@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thai: the venue map (offline download line, upstairs/downstairs tags, venue lookup). -->
+<resources>
+    <string name="venue_map_saved">บันทึกแผนที่สถานที่จัดงานไว้ใช้ออฟไลน์แล้ว ✓</string>
+    <string name="venue_map_saving">กำลังบันทึกแผนที่สถานที่จัดงาน… %1$d%%</string>
+    <string name="venue_map_waiting">แผนที่สถานที่จัดงาน: รอการเชื่อมต่อ</string>
+    <string name="venue_map_on_arrival">แผนที่สถานที่จัดงานจะบันทึกเมื่อคุณไปถึง</string>
+    <string name="venue_floor_up">↑ ชั้นบน</string>
+    <string name="venue_floor_down">↓ ชั้นล่าง</string>
+    <string name="venue_floor_up_spoken">อยู่ชั้นบน</string>
+    <string name="venue_floor_down_spoken">อยู่ชั้นล่าง</string>
+    <string name="venue_spoken_floor">%1$s, %2$s</string>
+    <string name="venue_finding">กำลังค้นหาสถานที่จัดงาน…</string>
+</resources>

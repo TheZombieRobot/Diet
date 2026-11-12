@@ -78,6 +78,11 @@ class LocatorEngine(
 
     private val _scan = MutableStateFlow<ScanUi?>(null)
     val scan: StateFlow<ScanUi?> = _scan.asStateFlow()
+
+    private val _uwbSpots = MutableStateFlow<Map<String, nz.waveformlabs.moshpoint.core.VenuePlacement.UwbReading>>(emptyMap())
+    /** What UWB says right now about each tracked mate (true-north bearing, distance): the map places them from it. Fresh readings only. */
+    val uwbSpots: StateFlow<Map<String, nz.waveformlabs.moshpoint.core.VenuePlacement.UwbReading>> = _uwbSpots.asStateFlow()
+    private var lastUwbSpotsAt = 0L
     private var spinScans: Map<String, SpinScan> = emptyMap()
 
     // "I'm looking" advert: tells visible friends to speed up their adverts (battery
@@ -95,6 +100,7 @@ class LocatorEngine(
                 updateLookingAdvert()
             },
             onResult = { friendId, distance, azimuth ->
+                nz.waveformlabs.moshpoint.venue.Floors.onUwb(friendId, distance)
                 submit(
                     Fix(
                         friendId = friendId,
@@ -114,6 +120,7 @@ class LocatorEngine(
     private var bleRef: BleRanger? = null
     private val ble = BleRanger(context, "BT scan (looking)", { trackedFriends() }) { friend, rssi, distance, advert ->
         submit(Fix(friend.id, Method.BLE_RSSI, null, distance, confidence = 0.7, timestampMs = System.currentTimeMillis()))
+        nz.waveformlabs.moshpoint.venue.Floors.onBluetooth(friend.id, distance, advert.pressure)
         // The heading when this reading was received, unsmoothed: otherwise turning while
         // scanning shifts the answer in the direction you're turning.
         val atHeading = headingAt(bleRef?.lastHeardAtElapsedMs ?: 0L)
@@ -431,6 +438,7 @@ class LocatorEngine(
         lookingAdvert?.stop()
         jobs.forEach { it.cancel() }
         jobs = emptyList()
+        _uwbSpots.value = emptyMap()
     }
 
     private fun updateLookingAdvert() {
@@ -510,6 +518,14 @@ class LocatorEngine(
         }
         beaconHeardAt.entries.removeAll { now - it.value > 6_000 }
         if (_beaconing.value != beaconHeardAt.keys) _beaconing.value = beaconHeardAt.keys.toSet()
+        if (now - lastUwbSpotsAt >= 500) {
+            lastUwbSpotsAt = now
+            val spots = _tracking.value.mapNotNull { id ->
+                arbiter.latestFix(id, Method.UWB)?.takeIf { now - it.timestampMs <= nz.waveformlabs.moshpoint.core.VenuePlacement.UWB_MAX_AGE_MS }
+                    ?.let { id to nz.waveformlabs.moshpoint.core.VenuePlacement.UwbReading(it.bearingDeg, it.distanceM, it.timestampMs) }
+            }.toMap()
+            if (spots != _uwbSpots.value) _uwbSpots.value = spots
+        }
         val raw = _tracking.value.map { arbiter.arrowFor(it, heading, now) }
         val arrows = raw.map(::steady)
         _arrows.value = arrows

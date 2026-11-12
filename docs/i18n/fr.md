@@ -89,3 +89,15 @@ Shortened so the text fits like English does in the rendered screens:
 | `setup_take_selfie` | Prendre un selfie | Selfie |
 | `setup_choose_photo` | Choisir une photo | Galerie |
 | `setup_stay_live` | Rester en live après un redémarrage | Live après redémarrage |
+
+## Venue map (`strings_venue.xml`)
+
+Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a mate's face, and "Finding the venue…". Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| venue map | **carte du lieu** | *Lieu* as in `crew_from_venue`. *Hors ligne* for "offline". Space before the colon, as elsewhere. |
+| ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ En haut / ↓ En bas** | Short, with the arrow kept. |
+| upstairs / downstairs (screen reader) | à l'étage au-dessus / à l'étage en dessous | Said in full after the mate's direction. |
+
+For a native reviewer: *En haut/En bas* versus *À l'étage/En bas*: the pair was kept symmetrical and short. Confidence: **high**.

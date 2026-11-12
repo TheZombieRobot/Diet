@@ -24,7 +24,7 @@ method runs at once, and a single arbiter decides what to draw.
 | `SpinScan.kt` | Spin to scan. Collects (compass heading, RSSI) while the user turns, then fits `rssi = a + b·cos(h − θ)` by least squares. θ is where the signal peaks, which is the friend's direction. It needs about 300° of the circle, and it reports "inconclusive" if the body shadow is too weak to read. |
 | `RssiRanging.kt` | Log-distance path loss with smoothing. Turns BLE signal strength into a rough distance. The constants **must be tuned in a real crowd**. |
 | `ArrowStyle.kt` | Arrow is red at 150 m or more and fades to the friend's colour by 10 m. Distance label text. |
-| `Advert.kt` | The bytes in every Bluetooth advert: `[flags][rotating id][encrypted UWB block]`. The UWB block is how two phones set up UWB with no connection or server (below). Also `UwbSessionKeys`, which both phones use to derive the same UWB session id and key on their own. |
+| `Advert.kt` | The bytes in every Bluetooth advert: `[flags][rotating id][encrypted UWB block][encrypted pressure, optional]`. The UWB block is how two phones set up UWB with no connection or server (below). Also `UwbSessionKeys`, which both phones use to derive the same UWB session id and key on their own. |
 | `FriendRecord.kt` | Saved-friend format and share codes. Gig group members expire after 18 h. |
 | `LocationBox.kt` | Seals a GPS fix (lat, lon, time, accuracy) with AES-GCM so only the owner's friends can open it. 29 bytes. Bound to the rotating id. |
 | `CrowdRelay.kt` | `RelayPacket` (47-byte relay advert) and `RelayCache` (newest per id, hop limit, age limit, fair airtime). |
@@ -77,6 +77,44 @@ A dumb mailbox. `PUT /v1/box/{rotating id}` stores a sealed record for 15 minute
 locations, and ids rotate every 5 minutes, so the server can't follow anyone.
 In-memory, single instance: fine for testing and a first launch. See the README for deploying.
 
+## Messages without signal
+
+Crew chat, quick pings and the meet-up pin still get through with no internet. The reasons
+for each choice are in [BLUETOOTH_BACKUP.md](BLUETOOTH_BACKUP.md); this is the map of the code.
+
+A message is sealed and signed once by its author. The same bytes then go by whichever
+route works:
+
+```
+ author ─┬─► relay server (when there's signal) ─────────────► every crew phone
+         ├─► Bluetooth adverts ─► crew phones in range ─► the first one back on signal uploads it
+         └─► pings and pins only: any Moshpoint phone, 4 or 5 hops (the crowd relay)
+```
+
+| File | Job |
+|---|---|
+| `core/Courier.kt` | All the delivery logic: the outbox, messages carried for crew mates, duplicates (by message id), the states Waiting / Sent nearby / Sent, what to upload and when, what to put on air. Plain synchronous code with the clock passed in, so `CourierSimTest` steps several phones through a night. |
+| `core/MessagePacket.kt` | Version 2 of the relay packet (a sealed message instead of a location; older phones drop it), fragments for long chat lines, `MessageRelay` (what a stranger's phone passes on, and its limits), `RelaySchedule` (whose turn it is in the relay's one advertising set). |
+| `core/MessageRules.kt` | Small rules, each tested: `MessageClock` (order), `PinRule`, `PingPolicy` (staleness per kind; Need help is never dropped), `OutboxState` (states only move forward), `IntroForms`. |
+| `core/CheckIns.kt` | Check in / Home safe by the sender's clock, whatever order they arrive in. |
+| `core/RekeyPolicy.kt` | Who may move a crew to a new key, and which notice a phone follows. |
+| `core/RelayBudget.kt` | The relay's daily and per-minute limits; only charged when the relay answers. |
+| `core/GigGroup.kt` | `messageId` (one id for every copy of a message), the signed pin, the `mp2` envelope for receipts and summaries, the intro form with no constant prefix. |
+| `app/OfflineMessages.kt` | Connects the courier to the phone: uploads through `RelayClient` to the mailbox valid at that moment, packets in and out through `CrowdRelayRadio`, arrivals and states into `CrewChat` and `GroupSync`. Also the test builds' route log. |
+| `app/NetState.kt` | Whether the phone has a network at all, so nothing is tried (or charged) without one. |
+| `app/locate/CrowdRelayRadio.kt` | The relay's advertising set now takes turns between locations and message packets. |
+| `app/ui/OfflineDebug.kt` | Test builds: the "Force no internet" switch and the message route list in Settings. |
+
+Rules to keep when changing any of it:
+
+- One id per message (`GigGroup.messageId`), used everywhere. Never match on the sealed bytes.
+- Carriers pass on the bytes as sealed. Only the author signs.
+- The message radio is switched on in `VisibilityService.begin()` and off in `onDestroy()`,
+  nowhere else. No new advertiser, scan or foreground service.
+- `Courier` and `CrewChat` are main-thread only.
+- A new crew key never arrives by Bluetooth, only from the relay.
+- Logic that must not break goes in `core` with a test: only `core` and `server` tests can fail CI.
+
 ## UWB set-up (no connection, no server)
 
 UWB needs both phones to agree on addresses, a channel, a session id and a key before
@@ -96,6 +134,37 @@ Bluetooth/GPS until the first goes quiet for 20 s). UWB azimuth only covers the 
 phone, so an arrow behind you may need a turn to settle. Check whether the phone allows UWB
 ranging from a background service. The azimuth sign (`UwbFinder.AZIMUTH_SIGN`) needs checking
 on real phones.
+
+## Venue map (saved map, the venue view, upstairs/downstairs)
+
+The decisions and the reasons are in [VENUE_MAP.md](VENUE_MAP.md). Where the code is:
+
+| File | Job |
+|---|---|
+| core `VenueMapPlan.kt` | What a saved venue map is: the 2 km square, tile counts and limits, which font files to fetch, when it is deleted. `ArrivalPlanner`: when to save the area around you instead (no venue position). `VenueQuery`: a typed venue name, tidied for looking up. |
+| core `Venue.kt` | `AtGig`: gig day and this phone at the venue, and what the venue view fits. `VenuePlacement`: where a mate goes on the map (measured by UWB: exactly; sharing GPS: a pin; otherwise nowhere). |
+| core `Floors.kt` | Pressure to height, calibrating a pair of phones while they are side by side, a calibration that ages, what counts as a floor, and when to refresh the pressure in the advert. |
+| core `FloorBox.kt` | The 19-byte sealed pressure record for mates out of Bluetooth range, under its own rotating mailbox id. `LocationBox` and the relay packet are unchanged. |
+| app `venue/VenueMaps.kt` | Saves, uses and deletes venue maps. MapLibre's offline region downloads and keeps the tiles; the map looks and fonts are fetched here and put into MapLibre's store. Also publishes the crew card's line. |
+| app `venue/VenueStyle.kt` | Rewrites OpenFreeMap's map styles to use only what a saved map holds (one week's tiles, one font). Text in, text out, so it is tested on the JVM. |
+| app `venue/VenueLookup.kt` | Finds a typed venue once, through the relay server (`GET /v1/venue`) or, without one, OpenStreetMap's Nominatim within its usage policy. |
+| app `venue/Floors.kt` | Reads the pressure sensor, puts our pressure in the advert (and, with our own relay, the floor box), feeds mates' readings to the core tracker, and holds the tags the screens show. |
+| app `ui/VenueUi.kt` | The crew card's line and the floor tag. |
+| server `VenueLookup.kt` | The lookup endpoint: at most one Nominatim request a second for everyone, cached for a month, switched or turned off with `MOSHPOINT_GEOCODER`. |
+
+Three things worth knowing before changing any of it:
+
+- **The saved map is not MapLibre's stock offline download.** That fetches every font file a
+  style names (18 MB for the Bright look), and a map tile draws nothing until all of its fonts
+  have answered. The app builds a small pack instead: tiles pinned to one week's data, one
+  font, and an answer (real or empty) stored for every font range. While a saved map is
+  showing, the app's own map labels must use that font too (`MapStyle.labelFont`).
+- **Pressure never touches the location box or the relay packet.** It rides in two extra
+  advert bytes (flag `0x80`) and, on our own relay only, in the separate floor box. Older
+  versions ignore both.
+- **Nothing here has run on a phone.** The app can't be built without the Android SDK; CI
+  compiles it, runs the unit tests and draws the screenshots. The field test is section 3b
+  of [FIELD_TEST_PLAN.md](FIELD_TEST_PLAN.md).
 
 ## Privacy (built in from day one)
 

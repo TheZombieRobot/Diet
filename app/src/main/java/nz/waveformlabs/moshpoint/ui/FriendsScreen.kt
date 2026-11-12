@@ -155,6 +155,8 @@ fun FriendsScreen(
     /** Other crews you're in, soonest first. */
     upNext: List<UpNextCard> = emptyList(),
     onOpenUpNext: (String) -> Unit = {},
+    /** The crew card's line about the venue's offline map (see VenueMaps); null = no line. */
+    venueMap: nz.waveformlabs.moshpoint.venue.VenueMaps.Status? = null,
 ) {
     var name by remember { mutableStateOf("") }
     var code by remember { mutableStateOf("") }
@@ -394,6 +396,7 @@ fun FriendsScreen(
                                 Text(if (following) stringResource(R.string.home_eyebrow_following) else if (crewSleeping) stringResource(R.string.home_eyebrow_coming_up) else stringResource(R.string.home_eyebrow_tonight), style = Mosh.Eyebrow)
                                 Text(groupName ?: stringResource(R.string.home_your_crew), style = Mosh.Heading, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                                 if (crewWhen != null) Text(crewWhen, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), maxLines = 2)
+                                if (venueMap != null && groupName != null && !following) VenueMapLine(venueMap)
                             }
                             if (!following) TextButton(onClick = onShowGroupQr) { Text(stringResource(R.string.home_invite), style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan)) }
                         }

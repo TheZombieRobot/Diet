@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Chinese (Traditional): the venue map (offline download line, upstairs/downstairs tags, venue lookup). -->
+<resources>
+    <string name="venue_map_saved">場地地圖已儲存，可離線使用 ✓</string>
+    <string name="venue_map_saving">正在儲存場地地圖… %1$d%%</string>
+    <string name="venue_map_waiting">場地地圖：等待連線</string>
+    <string name="venue_map_on_arrival">到場後會儲存場地地圖</string>
+    <string name="venue_floor_up">↑ 樓上</string>
+    <string name="venue_floor_down">↓ 樓下</string>
+    <string name="venue_floor_up_spoken">在樓上</string>
+    <string name="venue_floor_down_spoken">在樓下</string>
+    <string name="venue_spoken_floor">%1$s，%2$s</string>
+    <string name="venue_finding">正在尋找場地…</string>
+</resources>

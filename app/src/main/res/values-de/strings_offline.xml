@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- German: messages without signal (crew messages passed between phones over Bluetooth). -->
+<resources>
+
+    <string name="offline_state_sent">Gesendet</string>
+    <string name="offline_state_nearby">In der Nähe gesendet</string>
+    <string name="offline_state_waiting">Warte auf Empfang</string>
+    <string name="offline_state_not_sent">Nicht gesendet</string>
+    <string name="offline_hint_bluetooth">Kein Empfang. Nachrichten gehen per Bluetooth an Crew-Handys in der Nähe und werden gesendet, sobald jemand von euch Empfang hat.</string>
+    <string name="offline_hint_go_live">Kein Empfang. Tippe auf Live gehen, dann gehen Nachrichten per Bluetooth an Crew-Handys in der Nähe.</string>
+    <string name="offline_hint_bluetooth_off">Kein Empfang, und Bluetooth ist aus. Schalte es ein, dann gehen Nachrichten an Crew-Handys in der Nähe.</string>
+    <string name="offline_hint_unsupported">Kein Empfang. Dieses Handy kann keine Nachrichten per Bluetooth weitergeben. Sie werden gesendet, sobald du Empfang hast.</string>
+    <string name="offline_hint_no_signal">Kein Empfang. Nachrichten werden gesendet, sobald du wieder Empfang hast.</string>
+    <string name="offline_hint_paused">Diese Crew bekommt einen neuen Schlüssel. Nachrichten werden gesendet, sobald du Empfang hast.</string>
+    <string name="offline_note_rekey_offline">Die Crew bekommt ihren neuen Schlüssel, sobald die Handys wieder Empfang haben. Bis dahin pausieren Bluetooth-Nachrichten.</string>
+    <string name="offline_notif_late">Gesendet %1$s. Kam erst jetzt durch.</string>
+    <string name="offline_notif_help_late">Hat %1$s auf Brauche Hilfe getippt. Kam erst jetzt durch. Frag nach, ob alles okay ist.</string>
+    <string name="offline_meet_pin_named">Treffen am Pin 📍 %1$s</string>
+    <string name="offline_need_nearby_why">um Freunde per Bluetooth, WLAN und UWB zu finden und Nachrichten ohne Empfang weiterzugeben</string>
+
+</resources>

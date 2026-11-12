@@ -126,7 +126,7 @@ fun OnboardingScreen(
                             Spacer(Modifier.height(12.dp))
                             Body(stringResource(R.string.setup_onb_body_live))
                             Spacer(Modifier.height(16.dp))
-                            Need(Mosh.Cyan, stringResource(R.string.setup_onb_need_nearby), stringResource(R.string.setup_onb_need_nearby_why))
+                            Need(Mosh.Cyan, stringResource(R.string.setup_onb_need_nearby), stringResource(R.string.offline_need_nearby_why))
                             Need(Mosh.Lime, stringResource(R.string.setup_onb_need_location), stringResource(R.string.setup_onb_need_location_why))
                             Need(Mosh.Pink, stringResource(R.string.setup_onb_need_notifications), stringResource(R.string.setup_onb_need_notifications_why))
                         }

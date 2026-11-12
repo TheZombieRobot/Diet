@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Japanese: the venue map (offline download line, upstairs/downstairs tags, venue lookup). -->
+<resources>
+    <string name="venue_map_saved">会場マップをオフライン用に保存しました ✓</string>
+    <string name="venue_map_saving">会場マップを保存中… %1$d%%</string>
+    <string name="venue_map_waiting">会場マップ：接続待ち</string>
+    <string name="venue_map_on_arrival">会場マップは到着したら保存されます</string>
+    <string name="venue_floor_up">↑ 上の階</string>
+    <string name="venue_floor_down">↓ 下の階</string>
+    <string name="venue_floor_up_spoken">上の階</string>
+    <string name="venue_floor_down_spoken">下の階</string>
+    <string name="venue_spoken_floor">%1$s、%2$s</string>
+    <string name="venue_finding">会場を検索中…</string>
+</resources>

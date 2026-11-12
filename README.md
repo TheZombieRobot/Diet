@@ -10,6 +10,7 @@ Find your mates at a gig. Open the app, tap a friend, and an arrow points you to
 - **Brief:** [`docs/BRIEF.md`](docs/BRIEF.md), the product brief, word for word.
 - **How it works:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 - **What's done / next:** [`docs/ROADMAP.md`](docs/ROADMAP.md)
+- **Venue map** (the map saved for no signal, the venue view, upstairs/downstairs): [`docs/VENUE_MAP.md`](docs/VENUE_MAP.md), the decisions and where it stands.
 - **Design:** neon party, premium finish, drawn on a Claude design canvas (ask Claude for the link). `ui/Theme.kt` holds the colours and type (Unbounded + Inter, bundled), `ui/Neon.kt` the motion kit (glows, radar, running neon border, shimmer, rolling numbers, confetti). In battery saver, or with animations turned off, ambient effects hold still ("calm motion"); the arrow and distance still animate.
 - **Facebook login (optional):** [`docs/FACEBOOK.md`](docs/FACEBOOK.md).
 - **Releasing:** [`docs/PLAY_STORE.md`](docs/PLAY_STORE.md) (checklist, store listing, Data safety answers) and [`docs/PRIVACY.md`](docs/PRIVACY.md) (draft privacy policy).
@@ -83,6 +84,16 @@ docker run -p 8080:8080 moshpoint-server
 Or locally without Docker: `./gradlew :server:run` (port 8080). Two phones on the same
 Wi-Fi as your laptop can use `-Pmoshpoint.server=http://<laptop-ip>:8080` for testing
 (debug builds allow plain http for this; release builds need https).
+
+**Venue lookup.** The server also tells the app where a venue is when someone types a gig in
+by hand (`GET /v1/venue?q=`). It asks OpenStreetMap's search service, Nominatim, and keeps to
+its usage policy: one request a second for everyone, answers kept for a month. Two settings
+(environment variables on the server):
+
+- `MOSHPOINT_CONTACT`: an email address or web page for whoever runs the server. Nominatim
+  asks every app to say who it is; **set this before real users arrive.**
+- `MOSHPOINT_GEOCODER`: another search address that answers like Nominatim's `/search`, or
+  `off` to turn lookups off (the app then saves the map around people when they arrive).
 
 ## Trying it on two phones (current build)
 

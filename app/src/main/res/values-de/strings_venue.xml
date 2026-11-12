@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- German: the venue map (offline download line, upstairs/downstairs tags, venue lookup). -->
+<resources>
+    <string name="venue_map_saved">Karte der Location offline gespeichert ✓</string>
+    <string name="venue_map_saving">Karte der Location wird gespeichert… %1$d %%</string>
+    <string name="venue_map_waiting">Karte der Location: warte auf Verbindung</string>
+    <string name="venue_map_on_arrival">Karte der Location wird vor Ort gespeichert</string>
+    <string name="venue_floor_up">↑ Oben</string>
+    <string name="venue_floor_down">↓ Unten</string>
+    <string name="venue_floor_up_spoken">eine Etage höher</string>
+    <string name="venue_floor_down_spoken">eine Etage tiefer</string>
+    <string name="venue_spoken_floor">%1$s, %2$s</string>
+    <string name="venue_finding">Location wird gesucht…</string>
+</resources>

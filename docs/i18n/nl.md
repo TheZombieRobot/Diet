@@ -73,3 +73,15 @@ Shortened so the text fits the way English does:
 - `home_paste_invite` / `home_scan_invite`: *Uitnodiging plakken / Uitnodiging scannen* → *Plak uitnodiging / Scan uitnodiging* (the link wrapped). The two hints that name the button (`main_get_the_app`, `main_no_invite_found`) were updated to match.
 - `home_chat_subtitle`: *Berichten, het plan, lichtkogels* → *Chat, plan, lichtkogels* (cut off with "…")
 - `home_tap_mate_hint`: *Tik op een vriend om hem te vinden · houd vast voor opties* → *Tik om te zoeken · houd vast voor opties* (wrapped onto 2 lines. This also drops the gendered *hem*)
+
+## Venue map (`strings_venue.xml`)
+
+Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a mate's face, and "Finding the venue…". Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| venue map | **kaart van de locatie** | *Locatie* as in `crew_at_venue`. |
+| ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ Boven / ↓ Beneden** | Short, with the arrow kept. |
+| upstairs / downstairs (screen reader) | een verdieping hoger / een verdieping lager | Said in full after the mate's direction. |
+
+For a native reviewer: Nothing doubtful. Confidence: **high**.

@@ -18,15 +18,22 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.DebugStatus
+import nz.waveformlabs.moshpoint.OfflineMessages
 import nz.waveformlabs.moshpoint.core.RelayCache
 import nz.waveformlabs.moshpoint.core.RelayPacket
+import nz.waveformlabs.moshpoint.core.RelaySchedule
 
 /**
  * The phone-to-phone part of the crowd relay (see core `CrowdRelay.kt`).
  *
- * Relay packets are 47 bytes, too big for a classic advert, so this uses Bluetooth 5
+ * Relay packets are 48 bytes, too big for a classic advert, so this uses Bluetooth 5
  * extended advertising. Phones without it can't take part in the relay; they still get
  * everything else.
+ *
+ * The same advertising set also carries crew messages when there's no signal (version 2
+ * packets, see core MessagePacket and the app's OfflineMessages). They take turns with the
+ * location packets (core RelaySchedule) rather than starting another advertiser: the phone
+ * already runs up to five, and one that fails to start doesn't try again.
  *
  * One [cache] is shared in-process: the visibility service relays, and the finder screen
  * reads it to find friends.
@@ -94,7 +101,12 @@ object CrowdRelayRadio {
 
     private fun handle(result: ScanResult) {
         val bytes = result.scanRecord?.getServiceData(RELAY_UUID) ?: return
-        val packet = RelayPacket.decode(bytes) ?: return
+        val packet = RelayPacket.decode(bytes)
+        if (packet == null) {
+            // Not a location: a crew message packet, if it's anything (ignored unless we're live).
+            OfflineMessages.onPacket(bytes)
+            return
+        }
         val isNew = cache.offer(packet, System.currentTimeMillis() / 1000)
         if (isNew) DebugStatus.set(K, "heard packet (hops left ${packet.ttl}), cache ${cache.size()}")
         // Someone with signal passes it up to the server, so far-away friends get it too.
@@ -139,14 +151,22 @@ object CrowdRelayRadio {
         advertiseCallback = cb
         setLive = false
         setPending = false
+        val schedule = RelaySchedule()
         broadcastJob = scope.launch {
             while (true) {
                 val now = System.currentTimeMillis() / 1000
-                val next = ownPacket?.takeIf { now - it.timeSec < 600 && (now % 3L) == 0L }
-                    ?: cache.nextToBroadcast(1, now).firstOrNull()
-                    ?: ownPacket
+                // Whose turn: a crew message (held on air long enough for a phone scanning at
+                // low power to catch it), our own location, or one heard from the crowd. With
+                // no message waiting this is exactly the old order: ours every third second.
+                val slot = schedule.next(now, OfflineMessages.hasPacket())
+                val next: ByteArray? = when (slot.turn) {
+                    RelaySchedule.Turn.MESSAGE -> OfflineMessages.nextPacket()
+                    RelaySchedule.Turn.OWN_LOCATION ->
+                        (ownPacket?.takeIf { now - it.timeSec < 600 } ?: cache.nextToBroadcast(1, now).firstOrNull() ?: ownPacket)?.encode()
+                    RelaySchedule.Turn.HEARD_LOCATION -> (cache.nextToBroadcast(1, now).firstOrNull() ?: ownPacket)?.encode()
+                }
                 if (next != null) {
-                    val data = AdvertiseData.Builder().addServiceData(RELAY_UUID, next.encode()).build()
+                    val data = AdvertiseData.Builder().addServiceData(RELAY_UUID, next).build()
                     try {
                         val adv = context.getSystemService(BluetoothManager::class.java)?.adapter?.bluetoothLeAdvertiser
                         when {
@@ -158,9 +178,12 @@ object CrowdRelayRadio {
                         }
                     } catch (e: SecurityException) {
                         Log.w(TAG, "no advertise permission", e)
+                    } catch (e: IllegalArgumentException) {
+                        Log.w(TAG, "packet too big for this phone's adverts", e)
                     }
                 }
-                delay(1_000)
+                // A message turn with nothing to send after all gives the air straight back.
+                delay(if (next == null && slot.turn == RelaySchedule.Turn.MESSAGE) 200L else slot.holdMs)
             }
         }
     }

@@ -49,12 +49,16 @@ Agreed with the owner; build in this order. Where this differs from [PRODUCT.md]
 - Crew chat, quick pings ("On my way", "All good", "Need help") and pins send as normal; the
   app picks the route. No separate Bluetooth mode.
 - Routes: the internet first. With no signal, straight to crew phones in Bluetooth range
-  (Google Nearby Connections), hopping through other crew phones; the first phone back on
+  (over the crowd relay's Bluetooth adverts), hopping through other crew phones; the first phone back on
   signal uploads it for everyone else. Duplicates dropped.
 - Pings and pins are tiny, so they also ride the crowd relay through any Moshpoint phone.
 - Each message shows how it went: **Sent** / **Sent nearby** / **Waiting for signal**.
 - Text only. Listens only while you're live. End-to-end encrypted and signed with the crew keys.
 - Not doing: venue-wide chat hopping through strangers' phones (unreliable, battery).
+- **Status: built, not yet tried on real phones.** Decisions, tests and what's left:
+  [BLUETOOTH_BACKUP.md](BLUETOOTH_BACKUP.md). One change from the plan above: it doesn't use
+  Google Nearby Connections. Messages ride the Bluetooth adverts the crowd relay already
+  sends, so there's no Google Play services, no new permission and no new advertiser.
 
 ### 2. Venue map: two map systems (about 4–6 days, +2–3 for the second map, +1–2 for on-demand delivery)
 - **Free, everyone:** today's free street map (MapLibre + OpenFreeMap / OpenStreetMap). Costs
@@ -85,6 +89,12 @@ Agreed with the owner; build in this order. Where this differs from [PRODUCT.md]
     arrival.
   - Each phone downloads its own copy (map terms don't allow sharing them between phones).
 - Needs: a Mapbox account and access token.
+- **Status: the free half is built, not yet tried on real phones.** Decisions, tests and
+  what's left: [VENUE_MAP.md](VENUE_MAP.md). Two changes from the plan above. The saved street
+  map is a small pack the app builds itself (about 3–5 MB): MapLibre's own offline download
+  turned out to be 18 MB a venue, nearly all fonts. And a mate heard only by Bluetooth gets no
+  pin, because there's no direction to draw; the list under the map says how close they are.
+  Mapbox, satellite and Moshpoint+ are not started.
 
 ### 3. "I'm here" pin: about 1–2 days
 - Long-press your exact spot → "I'm here". Your face moves there (with the floor) on the crew's

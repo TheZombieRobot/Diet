@@ -14,13 +14,16 @@ object CrewNotifications {
     private const val HELP_CHANNEL = "crew_help"
     private var nextId = 7000
 
-    fun ping(c: Context, p: GigGroup.Ping) {
+    /** [sentAgo]: set when the ping only just arrived long after it was sent ("40 min ago"), so the alert says so. */
+    fun ping(c: Context, p: GigGroup.Ping, sentAgo: String? = null) {
         val help = p.kind == GigGroup.Ping.NEED_HELP
         val located = p.lat != null
         post(
             c, if (help) HELP_CHANNEL else CHANNEL,
             title = GroupSync.pingTitle(p.kind, p.from),
             text = when {
+                sentAgo != null && help -> Txt.s(R.string.offline_notif_help_late, sentAgo)
+                sentAgo != null -> Txt.s(R.string.offline_notif_late, sentAgo)
                 help && located -> Txt.s(R.string.crew_notif_help_where)
                 help -> Txt.s(R.string.crew_notif_help)
                 located -> Txt.s(R.string.crew_notif_tap_where)

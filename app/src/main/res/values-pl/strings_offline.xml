@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Polish: messages without signal (crew messages passed between phones over Bluetooth). -->
+<resources>
+
+    <string name="offline_state_sent">Wysłano</string>
+    <string name="offline_state_nearby">Wysłano w pobliżu</string>
+    <string name="offline_state_waiting">Czeka na zasięg</string>
+    <string name="offline_state_not_sent">Nie wysłano</string>
+    <string name="offline_hint_bluetooth">Brak zasięgu. Wiadomości idą przez Bluetooth do telefonów ekipy w pobliżu i zostaną wysłane, gdy tylko ktoś z was złapie zasięg.</string>
+    <string name="offline_hint_go_live">Brak zasięgu. Kliknij Udostępnij lokalizację, a wiadomości pójdą przez Bluetooth do telefonów ekipy w pobliżu.</string>
+    <string name="offline_hint_bluetooth_off">Brak zasięgu, a Bluetooth jest wyłączony. Włącz go, a wiadomości pójdą do telefonów ekipy w pobliżu.</string>
+    <string name="offline_hint_unsupported">Brak zasięgu. Ten telefon nie może przekazywać wiadomości przez Bluetooth, więc zostaną wysłane, gdy złapiesz zasięg.</string>
+    <string name="offline_hint_no_signal">Brak zasięgu. Wiadomości zostaną wysłane, gdy znów złapiesz zasięg.</string>
+    <string name="offline_hint_paused">Ta ekipa dostaje nowy klucz. Wiadomości zostaną wysłane, gdy złapiesz zasięg.</string>
+    <string name="offline_note_rekey_offline">Ekipa dostanie nowy klucz, gdy telefony znów złapią zasięg. Do tego czasu wiadomości przez Bluetooth są wstrzymane.</string>
+    <string name="offline_notif_late">Wysłano %1$s. Dotarło dopiero teraz.</string>
+    <string name="offline_notif_help_late">Wysłano „Potrzebuję pomocy” %1$s. Dotarło dopiero teraz. Sprawdź, co się dzieje.</string>
+    <string name="offline_meet_pin_named">Widzimy się przy pinezce 📍 %1$s</string>
+    <string name="offline_need_nearby_why">żeby szukać znajomych przez Bluetooth, Wi-Fi i UWB i przekazywać wiadomości bez zasięgu</string>
+
+</resources>

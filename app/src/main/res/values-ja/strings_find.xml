@@ -75,17 +75,11 @@
     <string name="find_map_style_night">ナイト</string>
     <string name="find_map_style_dark">ダーク</string>
     <string name="find_meet_label">集合：%1$s</string>
-    <string name="find_saving_area">このエリアを保存中…</string>
-    <string name="find_saving_area_pct">このエリアを保存中… %1$d%%</string>
-    <string name="find_area_saved">エリアを保存しました：電波がなくてもここではマップが使えます</string>
-    <string name="find_area_save_failed">エリアを保存できませんでした：%1$s</string>
-    <string name="find_area_too_big">範囲が広すぎます：会場にズームしてもう一度試してね</string>
     <string name="find_back">‹ 戻る</string>
     <string name="find_map_title">Moshマップ</string>
     <string name="find_map_pin">ピン</string>
     <string name="find_map_all">全員</string>
     <string name="find_map_me">自分</string>
-    <string name="find_save_area">⬇  圏外用にこのエリアを保存</string>
     <string name="find_map_no_mates">まだ仲間がいません。クルーを作るか友達を追加すると、相手がシェアを始めたときにここに表示されます。</string>
     <string name="find_place_crew_meetup">クルーの集合場所</string>
     <string name="find_place_only_you">自分だけに表示</string>

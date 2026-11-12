@@ -9,6 +9,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.core.MessageClock
+import nz.waveformlabs.moshpoint.core.OutboxState
+import nz.waveformlabs.moshpoint.core.RelayUse
 import nz.waveformlabs.moshpoint.locate.RelayClient
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 
@@ -21,17 +24,21 @@ import nz.waveformlabs.moshpoint.service.VisibilityPrefs
  *    (12 h public, 3 days on our own server). Every phone keeps its own copy.
  *  - Every few hours each phone shares a sealed copy of the recent chat, so a mate whose
  *    phone was off for a day still catches up from whoever was around.
- *  - Your own messages wait in an outbox ("Sending…", then "Not sent · tap to retry") and
- *    are retried by themselves when there's signal again.
+ *  - Your own messages wait in an outbox and go by themselves when there's signal again; with
+ *    no signal they're passed to crew phones nearby over Bluetooth (see [OfflineMessages]).
+ *    Each shows how it went: "Waiting for signal", "Sent nearby", "Sent".
  * Every message carries a sender tag, so two people both called "Mate" are never mixed up.
  * Sealed with the crew key: the relay never sees a word.
  */
 object CrewChat {
     /** A line from the app itself ("You removed Jo…"), not from anyone in the crew. */
     const val NOTE = 99
-    const val SENT = 0
-    const val SENDING = 1
-    const val FAILED = 2
+    // How one of your own lines is doing (see core OutboxState: it only moves forward).
+    const val SENT = OutboxState.SENT
+    const val SENDING = OutboxState.SENDING
+    const val FAILED = OutboxState.FAILED
+    const val NEARBY = OutboxState.NEARBY
+    const val WAITING = OutboxState.WAITING
 
     /** One line in the chat. [mine] = we sent it. [state] is only used for our own messages. */
     data class Line(
@@ -44,9 +51,22 @@ object CrewChat {
         val state: Int = SENT,
         /** What lets others re-check this line in a history copy (see [proofOf]); blank if none. */
         val proof: String = "",
+        /**
+         * The message's id (core GigGroup.messageId, as hex): the same for every copy, whichever
+         * way it came and however it was sealed. Blank for lines from before ids, and for the
+         * app's own notes.
+         */
+        val id: String = "",
     ) {
+        /**
+         * What lines without an id are matched on: sender, time and text. The text is compared
+         * the way it's saved (a line break or tab becomes a space), so a message with a line
+         * break still matches its own saved row after a restart.
+         */
+        val legacyKey: String get() = "${if (sender != 0L) sender.toString() else from}|$timeSec|${flat(text)}"
+
         /** Same message, however it reached us (live, a re-send, or someone's history copy). */
-        val key: String get() = "${if (sender != 0L) sender.toString() else from}|$timeSec|$text"
+        val key: String get() = id.ifEmpty { legacyKey }
     }
 
     data class Plan(val text: String, val from: String, val setAtSec: Long, val sender: Long = 0L)
@@ -250,13 +270,14 @@ object CrewChat {
             Line(
                 f[0], f[1].toLongOrNull() ?: 0L, f[3], f[2] == "1", f[4].toIntOrNull() ?: GigGroup.Ping.CHAT,
                 f.getOrNull(5)?.toLongOrNull() ?: 0L, f.getOrNull(6)?.toIntOrNull() ?: SENT, f.getOrNull(7).orEmpty(),
+                f.getOrNull(8).orEmpty(),
             )
-        }
+        }.distinctBy { it.key } // two rows with one key would crash the chat list; a twin saved by an earlier build is dropped here
 
     private fun writeLines(c: Context, id: String, list: List<Line>) {
         val rows = list.takeLast(MAX_LINES).joinToString("\n") { l ->
-            listOf(l.from, l.timeSec.toString(), if (l.mine) "1" else "0", l.text, l.kind.toString(), l.sender.toString(), l.state.toString(), l.proof)
-                .joinToString("\t") { it.replace('\t', ' ').replace('\n', ' ') }
+            listOf(l.from, l.timeSec.toString(), if (l.mine) "1" else "0", l.text, l.kind.toString(), l.sender.toString(), l.state.toString(), l.proof, l.id)
+                .joinToString("\t") { flat(it) }
         }
         prefs(c, id).edit().putString("lines", rows).apply()
     }
@@ -295,21 +316,22 @@ object CrewChat {
         return blob to (g.openPing(blob) ?: p)
     }
 
-    /** Post to [g]'s chat mailbox. [onDone] gets whether the relay took it. */
-    private fun put(g: GigGroup, blob: ByteArray, onDone: (Boolean) -> Unit = {}) {
-        scope.launch { onDone(RelayClient.putHeld(g.chatIdForDay(today()), blob)) }
-    }
+    private fun idOf(p: GigGroup.Ping): String = if (p.id != 0L) GigGroup.idText(p.id) else ""
 
-    /** A message to the crew on screen. Shows straight away; "Sending…" until the relay has it. */
+    private fun idNumber(l: Line): Long =
+        if (l.id.isEmpty()) 0L else runCatching { java.lang.Long.parseUnsignedLong(l.id, 16) }.getOrDefault(0L)
+
+    /** A message to the crew on screen. Shows straight away, then says how it went (see [OfflineMessages]). */
     fun send(c: Context, text: String) {
         val g = viewing.value ?: return
         val t = text.trim().take(140)
         if (t.isEmpty()) return
         val app = c.applicationContext
-        val (blob, op) = signed(app, g, GigGroup.Ping(GigGroup.Ping.CHAT, me(c), System.currentTimeMillis() / 1000, text = t))
-        val line = Line(me(c), op.timeSec, op.text, mine = true, sender = op.sender, state = SENDING, proof = proofOf(op))
+        val (blob, op) = signed(app, g, GigGroup.Ping(GigGroup.Ping.CHAT, me(c), OfflineMessages.stamp(app, g), text = t))
+        val line = Line(me(c), op.timeSec, op.text, mine = true, sender = op.sender, state = OfflineMessages.firstState(), proof = proofOf(op), id = idOf(op))
         add(app, g, line)
-        put(g, blob) { ok -> setState(app, g, line, if (ok) SENT else FAILED) }
+        // Sealed once: these same bytes go by the relay, by Bluetooth, or both.
+        OfflineMessages.post(app, g, blob)
     }
 
     /** "I'm in!": tells the crew we've joined (and who we are), once per crew. */
@@ -317,45 +339,113 @@ object CrewChat {
         val p = prefs(c, GigArchive.idFor(g))
         if (p.getBoolean("joinPosted", false)) return
         val (blob, _) = signed(c, g, GigGroup.Ping(GigGroup.Ping.JOIN, me(c), System.currentTimeMillis() / 1000))
-        p.edit().putBoolean("joinPosted", true).apply()
-        put(g, blob) { ok -> if (!ok) p.edit().putBoolean("joinPosted", false).apply() }
+        // Queued is enough: the courier keeps trying until the relay has it.
+        if (OfflineMessages.post(c, g, blob) != null) p.edit().putBoolean("joinPosted", true).apply()
     }
 
-    /** "Not sent · tap to retry". */
+    /** "Waiting for signal" or "Not sent", tapped: try again now. */
     fun retry(c: Context, line: Line) {
         val g = viewing.value ?: return
-        setState(c, g, line, SENDING)
-        deliver(c, g, line.copy(state = SENDING))
-    }
-
-    private fun deliver(c: Context, g: GigGroup, line: Line) {
         val app = c.applicationContext
-        val (blob, _) = signed(app, g, GigGroup.Ping(GigGroup.Ping.CHAT, line.from, line.timeSec, text = line.text))
-        put(g, blob) { ok -> setState(app, g, line, if (ok) SENT else FAILED) }
+        if (line.kind == GigGroup.Ping.CHAT) {
+            resend(app, g, line)
+            // "Not sent" becomes "Sending…" (or "Waiting for signal") again; one that's waiting stays as it is.
+            // (Matched on sender, time and text: resend() may just have given an old line its id.)
+            if (line.state == FAILED) setState(app, g, OfflineMessages.firstState()) { it.legacyKey == line.legacyKey }
+        }
+        // A quick ping can't be put back together from its line (where you were isn't kept). If
+        // the courier still holds it, this tries it again; if not, it stays "Not sent".
+        OfflineMessages.retryNow(c)
     }
 
-    private fun setState(c: Context, g: GigGroup, line: Line, state: Int) {
-        val id = GigArchive.idFor(g)
-        val list = if (id == viewingId) lines.toMutableList() else readLines(c, id).toMutableList()
+    /**
+     * Make sure [line] is in the courier's queue. Normally it already is, and the bytes it was
+     * first sealed as go out again. If not (a line from before this, or a lost queue) it is
+     * sealed again: different bytes, the same message id, so nobody sees it twice.
+     */
+    private fun resend(c: Context, g: GigGroup, line: Line) {
+        if (line.kind != GigGroup.Ping.CHAT || OfflineMessages.holds(idNumber(line))) return
+        val (blob, op) = signed(c, g, GigGroup.Ping(GigGroup.Ping.CHAT, line.from, line.timeSec, text = line.text))
+        // The line takes the id of what is actually being sent. Usually that's the id it had.
+        // Not if the saved text differs from what was typed (a line break is saved as a space):
+        // then the line must follow the new id, or it would be sealed and uploaded again at every check.
+        if (idOf(op) != line.id) relabel(c, g, line, idOf(op))
+        OfflineMessages.post(c, g, blob)
+    }
+
+    /** Give a line its id (one from before ids), or the id it's now being sent under, so the courier's reports find it. */
+    private fun relabel(c: Context, g: GigGroup, line: Line, id: String) {
+        if (id.isEmpty()) return
+        val crew = GigArchive.idFor(g)
+        val list = if (crew == viewingId) lines.toMutableList() else readLines(c, crew).toMutableList()
         val i = list.indexOfFirst { it.key == line.key }
-        if (i < 0 || list[i].state == state) return
-        list[i] = list[i].copy(state = state)
-        if (id == viewingId) {
+        if (i < 0 || list.any { it.id == id }) return
+        list[i] = list[i].copy(id = id)
+        if (crew == viewingId) {
             val j = lines.indexOfFirst { it.key == line.key }
+            if (j >= 0) lines[j] = lines[j].copy(id = id)
+        }
+        writeLines(c, crew, list)
+    }
+
+    /** The courier says how the message with [id] in [g] is doing. A state never goes backwards. */
+    fun setStateById(c: Context, g: GigGroup, id: String, state: Int) {
+        if (id.isEmpty()) return
+        setState(c, g, state) { it.id == id }
+    }
+
+    /** Move our own line picked by [which] to [state], if that's a step the outbox allows (core OutboxState). */
+    private fun setState(c: Context, g: GigGroup, state: Int, which: (Line) -> Boolean) {
+        val crew = GigArchive.idFor(g)
+        val list = if (crew == viewingId) lines.toMutableList() else readLines(c, crew).toMutableList()
+        val i = list.indexOfFirst { it.mine && which(it) }
+        if (i < 0 || !OutboxState.mayMove(list[i].state, state)) return
+        list[i] = list[i].copy(state = state)
+        if (crew == viewingId) {
+            val j = lines.indexOfFirst { it.mine && which(it) }
             if (j >= 0) lines[j] = lines[j].copy(state = state)
         }
-        writeLines(c, id, list)
+        writeLines(c, crew, list)
     }
 
-    /** From each chat check: anything of ours still unsent goes again, by itself. */
+    /** From each chat check: anything of ours the courier isn't already looking after goes back in its queue. */
     fun retryOutbox(c: Context, crews: List<GigGroup>) {
         val now = System.currentTimeMillis() / 1000
         crews.forEach { g ->
             val id = GigArchive.idFor(g)
             val list = if (id == viewingId) lines.toList() else readLines(c, id)
-            list.filter { it.mine && it.kind == GigGroup.Ping.CHAT && (it.state == FAILED || (it.state == SENDING && now - it.timeSec > 60)) }
-                .takeLast(10).forEach { deliver(c, g, it) }
+            // Everything of ours not yet on the relay ("Sent nearby" too: a crew phone having it
+            // never stops our own upload), except one still on its first try.
+            val unsent = list.filter { it.mine && it.kind == GigGroup.Ping.CHAT && it.state != SENT && !(it.state == SENDING && now - it.timeSec <= 60) }
+            val (live, stale) = unsent.partition { now - it.timeSec <= KEEP_TRYING_SEC }
+            // resend() does nothing for a line the courier already holds, which is the usual case.
+            live.takeLast(10).forEach { resend(c, g, it) }
+            // Past three days the relay wouldn't have kept it anyway: "Not sent", until the person taps it.
+            stale.filter { (it.state == SENDING || it.state == WAITING) && !OfflineMessages.holds(idNumber(it)) }
+                .forEach { l -> setState(c, g, FAILED) { it.legacyKey == l.legacyKey } }
         }
+    }
+
+    /** How long an unsent line is retried by itself: as long as the relay would keep it. */
+    private const val KEEP_TRYING_SEC = 72 * 3600L
+
+    /** The newest message time seen in [g] (see core MessageClock: a new message is stamped after it). */
+    fun newestSeen(c: Context, g: GigGroup): Long {
+        val id = GigArchive.idFor(g)
+        return (if (id == viewingId) lines.toList() else readLines(c, id)).filter { it.kind != NOTE }.maxOfOrNull { it.timeSec } ?: 0L
+    }
+
+    /** The crew moved to a new key without these people: forget their keys and names there. */
+    fun dropKeys(c: Context, g: GigGroup, tags: Set<Long>) {
+        if (tags.isEmpty()) return
+        val p = prefs(c, GigArchive.idFor(g))
+        val keys = runCatching { org.json.JSONObject(p.getString("keys", "{}")!!) }.getOrDefault(org.json.JSONObject())
+        val ppl = people(c, GigArchive.idFor(g))
+        tags.forEach {
+            keys.remove(it.toString())
+            ppl.remove(it.toString())
+        }
+        p.edit().putString("keys", keys.toString()).putString("people", ppl.toString()).apply()
     }
 
     /** Pin (or clear, with blank) the plan for the crew on screen. */
@@ -378,9 +468,8 @@ object CrewChat {
         val ageMin = ((now / 1000 - setAt) / 60).toInt().coerceIn(0, 32767)
         val (blob, op) = signed(c, g, GigGroup.Ping(GigGroup.Ping.PLAN, me(c), now / 1000, minutes = ageMin, text = pl?.text.orEmpty()))
         p.edit().putLong("planPosted", now).putString("planProof", proofOf(op)).apply()
-        put(g, blob) { ok ->
-            if (!ok) p.edit().putLong("planPosted", 0L).apply() // try again on the next check
-        }
+        // Queued is enough (the courier keeps trying); only if it couldn't even be queued, try again on the next check.
+        if (OfflineMessages.post(c, g, blob) == null) p.edit().putLong("planPosted", 0L).apply()
     }
 
     /**
@@ -420,7 +509,8 @@ object CrewChat {
             ChatSync.markSeen(sealed)
             p.edit().putLong("histPosted", now).apply()
             scope.launch {
-                if (RelayClient.putHeld(g.chatIdForDay(today()), sealed)) p.edit().putLong("histNewest", newest).apply()
+                // A copy of what's already been said: it never takes budget kept for new messages.
+                if (RelayClient.putHeld(g.chatIdForDay(today()), sealed, RelayUse.BACKGROUND)) p.edit().putLong("histNewest", newest).apply()
                 else p.edit().putLong("histPosted", 0L).apply()
             }
         }
@@ -460,13 +550,15 @@ object CrewChat {
         val mine = signed.sender == myTag(c, g)
         rememberKey(c, g, signed.pub)
         val p = signed.copy(from = displayName(c, g, signed.sender, signed.from))
+        // A time in the future here (their clock is wrong) sorts at when it arrived.
+        val at = MessageClock.sortTime(p.timeSec, System.currentTimeMillis() / 1000)
         return when (p.kind) {
             GigGroup.Ping.CHAT -> {
-                val added = add(c, g, Line(p.from, p.timeSec, p.text, mine, sender = p.sender, proof = proofOf(signed)))
+                val added = add(c, g, Line(p.from, at, p.text, mine, sender = p.sender, proof = proofOf(signed), id = idOf(signed)))
                 if (added && !mine) p.text else null
             }
             GigGroup.Ping.JOIN -> {
-                val added = add(c, g, Line(p.from, p.timeSec, "", mine, GigGroup.Ping.JOIN, p.sender))
+                val added = add(c, g, Line(p.from, at, "", mine, GigGroup.Ping.JOIN, p.sender, id = idOf(signed)))
                 if (added && !mine) Txt.s(R.string.crew_notif_joined) else null
             }
             GigGroup.Ping.FLARE -> {
@@ -474,7 +566,7 @@ object CrewChat {
                 val until = p.timeSec + p.minutes.coerceIn(1, 120) * 60L
                 if (until < System.currentTimeMillis() / 1000) return null
                 flares[p.from] = Flare(p.from, p.text, until, p.lat, p.lon)
-                if (add(c, g, Line(p.from, p.timeSec, p.text, false, GigGroup.Ping.FLARE, p.sender))) {
+                if (add(c, g, Line(p.from, at, p.text, false, GigGroup.Ping.FLARE, p.sender, id = idOf(signed)))) {
                     Txt.p(R.plurals.crew_notif_flare, p.minutes, p.text, p.minutes)
                 } else null
             }
@@ -508,7 +600,10 @@ object CrewChat {
             rememberKey(c, g, hl.pub)
             val mine = hl.sender == me
             val name = displayName(c, g, hl.sender, hl.from)
-            val l = Line(name, hl.timeSec, hl.text, mine, hl.kind, hl.sender, proof = proofOf(hl))
+            val l = Line(
+                name, MessageClock.sortTime(hl.timeSec, System.currentTimeMillis() / 1000), hl.text, mine, hl.kind, hl.sender,
+                proof = proofOf(hl), id = if (hl.id != 0L) GigGroup.idText(hl.id) else "",
+            )
             if (add(c, g, l) && !mine && hl.kind == GigGroup.Ping.CHAT) added += l
         }
         h.plan?.let { pl ->
@@ -522,12 +617,28 @@ object CrewChat {
      * kind (and the minutes, for a check-in) rather than its words, so the chat shows it in
      * whatever language the phone is in (see [quickText]). Older builds stored the English
      * words as a plain chat line; those still show as they are.
+     * [state] is how our own ping is doing (it has the same outbox as a chat message).
      */
-    fun pingLine(c: Context, p: GigGroup.Ping, mine: Boolean) {
-        val g = GroupSync.group.value ?: return
-        if (!isQuick(p.kind)) return
-        val payload = if (p.kind == GigGroup.Ping.CHECK_IN) p.minutes.toString() else ""
-        add(c, g, Line(if (mine) me(c) else p.from, p.timeSec, payload, mine, p.kind, sender = if (mine) myTag(c, g) else p.sender))
+    fun pingLine(c: Context, p: GigGroup.Ping, mine: Boolean, state: Int = SENT): Boolean {
+        val g = GroupSync.group.value ?: return false
+        if (!isQuick(p.kind)) return false
+        val payload = when (p.kind) {
+            GigGroup.Ping.CHECK_IN -> p.minutes.toString()
+            // "Meet at the pin" names the pin it means.
+            GigGroup.Ping.MEET_AT_PIN -> p.text
+            else -> ""
+        }
+        val at = MessageClock.sortTime(p.timeSec, System.currentTimeMillis() / 1000)
+        // False if we already had it (by message id): the caller then doesn't announce it again.
+        return add(c, g, Line(if (mine) me(c) else p.from, at, payload, mine, p.kind, sender = if (mine) myTag(c, g) else p.sender, state = state, id = idOf(p)))
+    }
+
+    /** Is this ping already a line in the main crew's chat (by message id)? */
+    fun hasPing(c: Context, p: GigGroup.Ping): Boolean {
+        val g = GroupSync.group.value ?: return false
+        val id = idOf(p).ifEmpty { return false }
+        val crew = GigArchive.idFor(g)
+        return (if (crew == viewingId) lines.toList() else readLines(c, crew)).any { it.id == id }
     }
 
     /** A one-tap ping's kind (shown as a chat bubble, worded by [quickText]). */
@@ -553,15 +664,29 @@ object CrewChat {
         else -> null
     }
 
-    /** Adds a line to [g]'s chat, in time order. False if it was already there. */
+    /** The same message? By id when both have one; otherwise the way lines were matched before ids. */
+    private fun same(a: Line, b: Line): Boolean =
+        if (a.id.isNotEmpty() && b.id.isNotEmpty()) a.id == b.id
+        else a.legacyKey == b.legacyKey || (a.timeSec == b.timeSec && flat(a.text) == flat(b.text) && a.from == b.from)
+
+    /** Text as [writeLines] saves it: one row per line, so line breaks and tabs become spaces. */
+    private fun flat(text: String) = text.replace('\t', ' ').replace('\n', ' ')
+
+    /**
+     * Adds a line to [g]'s chat, in the order every phone shows (time, then message id).
+     * False if it was already there, or is older than everything the chat still keeps.
+     */
     private fun add(c: Context, g: GigGroup, l: Line): Boolean {
         val id = GigArchive.idFor(g)
         val onScreen = id == viewingId
         val list = if (onScreen) lines.toMutableList() else readLines(c, id).toMutableList()
-        if (list.any { it.key == l.key || (it.timeSec == l.timeSec && it.text == l.text && it.from == l.from) }) return false
-        val at = list.indexOfFirst { it.timeSec > l.timeSec }.let { if (it < 0) list.size else it }
+        if (list.any { same(it, l) }) return false
+        val at = list.indexOfFirst { MessageClock.compare(l.timeSec, idNumber(l), it.timeSec, idNumber(it)) < 0 }.let { if (it < 0) list.size else it }
         list.add(at, l)
         val trimmed = list.takeLast(MAX_LINES)
+        // Older than the oldest line kept: it would be dropped again at once, so it isn't new
+        // (and mustn't buzz or count as unread).
+        if (trimmed.none { it === l }) return false
         if (onScreen) {
             lines.clear()
             lines.addAll(trimmed)

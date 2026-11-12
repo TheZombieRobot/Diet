@@ -112,7 +112,7 @@ jobs:
           # that only the debug panel and simulator use.
           APK=$(ls app/build/outputs/apk/release/*.apk | head -1)
           leaked=0
-          for s in 'solo = only this one' 'Debug: add simulated friend' 'Mark ground truth' 'Hide debug'; do
+          for s in 'solo = only this one' 'Debug: add simulated friend' 'Mark ground truth' 'Hide debug' 'Force no internet'; do
             if unzip -p "$APK" 'classes*.dex' | grep -a -q "$s"; then
               echo "::error::debug-only text '$s' found in release APK"
               leaked=1

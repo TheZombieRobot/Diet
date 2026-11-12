@@ -82,3 +82,15 @@ Shortened so the text fits like English does in the rendered screens:
 | `home_tile_not_sharing` | aún no comparte | sin compartir |
 | `home_asleep_text` | … sin Bluetooth, sin ubicación, sin gastar batería. Tus amigos pueden unirse ya, y ese día te avisaremos. | … sin Bluetooth, ubicación ni gasto de batería. Tus amigos ya pueden unirse; ese día te avisamos. |
 | `setup_take_selfie` | Tomarte una selfie | Tomar selfie |
+
+## Venue map (`strings_venue.xml`)
+
+Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a mate's face, and "Finding the venue…". Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| venue map | **mapa del lugar** | *Lugar* as in `crew_at_venue`. *Piso* is the usual word for a floor in Latin America. |
+| ↑ Upstairs / ↓ Downstairs (on a small photo) | **↑ Arriba / ↓ Abajo** | Short, with the arrow kept. |
+| upstairs / downstairs (screen reader) | en el piso de arriba / en el piso de abajo | Said in full after the mate's direction. |
+
+For a native reviewer: *sin conexión* for "offline" (the other strings say *sin señal* for "no signal"; here the point is that the map is stored). Confidence: **high**.

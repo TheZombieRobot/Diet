@@ -76,17 +76,11 @@
     <string name="find_map_style_night">Natt</string>
     <string name="find_map_style_dark">Mörk</string>
     <string name="find_meet_label">Ses: %1$s</string>
-    <string name="find_saving_area">Sparar området…</string>
-    <string name="find_saving_area_pct">Sparar området… %1$d%%</string>
-    <string name="find_area_saved">Området sparat: kartan funkar här utan täckning</string>
-    <string name="find_area_save_failed">Kunde inte spara området: %1$s</string>
-    <string name="find_area_too_big">För stort för att spara: zooma in på stället och försök igen</string>
     <string name="find_back">‹ Tillbaka</string>
     <string name="find_map_title">Moshkarta</string>
     <string name="find_map_pin">Nål</string>
     <string name="find_map_all">Alla</string>
     <string name="find_map_me">Jag</string>
-    <string name="find_save_area">⬇  Spara området för när täckningen är borta</string>
     <string name="find_map_no_mates">Inga kompisar än. Starta en grupp eller lägg till en kompis, så dyker de upp här när de går live.</string>
     <string name="find_place_crew_meetup">gruppens träffpunkt</string>
     <string name="find_place_only_you">bara du ser den här</string>

@@ -103,6 +103,8 @@ internal fun CrewRadar(
     friendOf: (String) -> Friend?,
     onTap: (String) -> Unit,
     onTapGroup: (List<String>) -> Unit,
+    /** "↑ Upstairs" / "↓ Downstairs" per mate on another floor, drawn on their face. */
+    floors: Map<String, String> = emptyMap(),
 ) {
     val maxM = arrows.mapNotNull { it.distanceM }.maxOrNull() ?: 50.0
     val spots = arrows.map { RadarSpot(it.friendId, it.relativeDeg.toFloat(), radarFrac(it.distanceM, maxM)) }
@@ -218,6 +220,10 @@ internal fun CrewRadar(
             travelling.forEach { id -> bubble(spot(id), avatarR, listOf(id), own, friendOf, spin, breathe, displayPaint) }
             bubble(leadAt, avatarR, arrived, own, friendOf, spin, breathe, displayPaint)
             hit[lead] = leadAt
+            // On another floor: say so on their face (last, so no arrow or bubble covers it).
+            floors[lead]?.takeIf { arrived.size == 1 }?.let { tag ->
+                labels += { drawFloorPill(tag, Offset(leadAt.x, leadAt.y + avatarR), regularPaint, 10.dp.toPx()) }
+            }
 
             val colour = colours[lead] ?: Mosh.Pink
             val name = friendOf(lead)?.name ?: "?"
@@ -226,7 +232,13 @@ internal fun CrewRadar(
             val (ux, uy) = (leadAt - centre).let { v -> val d = v.getDistance().coerceAtLeast(1f); v.x / d to v.y / d }
             if (showChips) labels += {
                 val extent = kotlin.math.abs(ux) * chipW / 2 + kotlin.math.abs(uy) * chipH / 2
-                val cc = Offset(leadAt.x + ux * (avatarR + 6.dp.toPx() + extent), leadAt.y + uy * (avatarR + 6.dp.toPx() + extent))
+                val pad = 2.dp.toPx()
+                // Kept inside the radar: a mate due east or west would otherwise push the box
+                // half off the edge (the radar is sized for boxes above and below).
+                val cc = Offset(
+                    (leadAt.x + ux * (avatarR + 6.dp.toPx() + extent)).coerceIn(chipW / 2 + pad, size.width - chipW / 2 - pad),
+                    (leadAt.y + uy * (avatarR + 6.dp.toPx() + extent)).coerceIn(chipH / 2 + pad, size.height - chipH / 2 - pad),
+                )
                 val top = Offset(cc.x - chipW / 2, cc.y - chipH / 2)
                 drawRoundRect(colour.copy(alpha = 0.12f), top, Size(chipW, chipH), CornerRadius(13.dp.toPx()))
                 drawRoundRect(colour.copy(alpha = 0.40f), top, Size(chipW, chipH), CornerRadius(13.dp.toPx()), style = Stroke(1.dp.toPx()))
@@ -238,8 +250,13 @@ internal fun CrewRadar(
                 // arrow runs (names are in the strip below).
                 val textPx = 10.5f.dp.toPx()
                 displayPaint.textSize = textPx
-                val extent = kotlin.math.abs(ux) * displayPaint.measureText(dist) / 2 + kotlin.math.abs(uy) * textPx * 0.6f
-                val at = Offset(leadAt.x + ux * (avatarR + 5.dp.toPx() + extent), leadAt.y + uy * (avatarR + 5.dp.toPx() + extent))
+                val half = displayPaint.measureText(dist) / 2
+                val extent = kotlin.math.abs(ux) * half + kotlin.math.abs(uy) * textPx * 0.6f
+                val pad = 2.dp.toPx()
+                val at = Offset(
+                    (leadAt.x + ux * (avatarR + 5.dp.toPx() + extent)).coerceIn(half + pad, size.width - half - pad),
+                    (leadAt.y + uy * (avatarR + 5.dp.toPx() + extent)).coerceIn(textPx + pad, size.height - textPx - pad),
+                )
                 drawCentred(dist, at, textPx, colour, displayPaint, chipW)
             }
         }

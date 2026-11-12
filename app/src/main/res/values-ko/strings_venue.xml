@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Korean: the venue map (offline download line, upstairs/downstairs tags, venue lookup). -->
+<resources>
+    <string name="venue_map_saved">공연장 지도 오프라인 저장 완료 ✓</string>
+    <string name="venue_map_saving">공연장 지도 저장 중… %1$d%%</string>
+    <string name="venue_map_waiting">공연장 지도: 연결 대기 중</string>
+    <string name="venue_map_on_arrival">공연장 지도는 도착하면 저장돼요</string>
+    <string name="venue_floor_up">↑ 위층</string>
+    <string name="venue_floor_down">↓ 아래층</string>
+    <string name="venue_floor_up_spoken">위층</string>
+    <string name="venue_floor_down_spoken">아래층</string>
+    <string name="venue_spoken_floor">%1$s, %2$s</string>
+    <string name="venue_finding">공연장 찾는 중…</string>
+</resources>

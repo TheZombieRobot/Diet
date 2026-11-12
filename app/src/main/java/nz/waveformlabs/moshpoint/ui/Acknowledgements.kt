@@ -138,6 +138,7 @@ internal fun AcknowledgementsContent(onClose: () -> Unit) {
                 Text(stringResource(R.string.setup_ack_map), style = Mosh.Eyebrow)
                 Spacer(Modifier.height(6.dp))
                 Text(stringResource(R.string.setup_ack_map_text), style = english(Mosh.Body.copy(fontSize = 14.sp, color = Mosh.TextDim)))
+                Text(stringResource(R.string.venue_ack_lookup), style = english(Mosh.Body.copy(fontSize = 14.sp, color = Mosh.TextDim)))
                 Spacer(Modifier.height(18.dp))
                 Text(stringResource(R.string.setup_ack_fonts), style = Mosh.Eyebrow)
             }
