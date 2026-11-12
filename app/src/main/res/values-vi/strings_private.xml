@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Private messages (docs/PRIVATE_MESSAGES.md). Comments for each string are in values/strings_private.xml. -->
+<resources>
+    <string name="private_message_name">Nhắn riêng cho %1$s</string>
+    <string name="private_subtitle">Riêng tư · chỉ hai bạn đọc được</string>
+    <string name="private_empty">Chỉ bạn và %1$s đọc được tin nhắn ở đây: người khác trong nhóm không đọc được, chúng tôi cũng không.</string>
+    <string name="private_mute">Tắt thông báo</string>
+    <string name="private_unmute">Bật thông báo</string>
+    <string name="private_muted_note">Đã tắt thông báo trên điện thoại này. Tin nhắn của %1$s vẫn đến đây, chỉ không báo.</string>
+    <string name="private_notif_title">%1$s · riêng tư</string>
+    <string name="private_notif_public">Tin nhắn riêng</string>
+    <plurals name="private_notif_count">
+        <item quantity="other">%d tin nhắn riêng mới</item>
+    </plurals>
+    <plurals name="private_unread_badge">
+        <item quantity="other">%d tin nhắn riêng chưa đọc</item>
+    </plurals>
+</resources>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Private messages (docs/PRIVATE_MESSAGES.md). Comments for each string are in values/strings_private.xml. -->
+<resources>
+    <string name="private_message_name">Kirim pesan ke %1$s</string>
+    <string name="private_subtitle">Pribadi · cuma kalian berdua yang bisa baca</string>
+    <string name="private_empty">Cuma kamu dan %1$s yang bisa baca pesan di sini: bukan anggota geng lainnya, bukan juga kami.</string>
+    <string name="private_mute">Bisukan</string>
+    <string name="private_unmute">Bunyikan</string>
+    <string name="private_muted_note">Dibisukan di HP ini. Pesan dari %1$s tetap masuk ke sini, tanpa notifikasi.</string>
+    <string name="private_notif_title">%1$s · pribadi</string>
+    <string name="private_notif_public">Pesan pribadi</string>
+    <plurals name="private_notif_count">
+        <item quantity="other">%d pesan pribadi baru</item>
+    </plurals>
+    <plurals name="private_unread_badge">
+        <item quantity="other">%d pesan pribadi belum dibaca</item>
+    </plurals>
+</resources>

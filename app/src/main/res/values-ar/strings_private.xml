@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Private messages (docs/PRIVATE_MESSAGES.md). Comments for each string are in values/strings_private.xml. -->
+<resources>
+    <string name="private_message_name">راسل %1$s</string>
+    <string name="private_subtitle">خاص · لا يقرؤه إلا أنتما</string>
+    <string name="private_empty">لا يقرأ ما يُرسل هنا إلا أنت و%1$s: لا بقية الشلة، ولا نحن.</string>
+    <string name="private_mute">كتم</string>
+    <string name="private_unmute">إلغاء الكتم</string>
+    <string name="private_muted_note">مكتوم على هذا الهاتف. رسائل %1$s تصل إلى هنا كالمعتاد، لكن دون إشعار.</string>
+    <string name="private_notif_title">%1$s · خاص</string>
+    <string name="private_notif_public">رسالة خاصة</string>
+    <plurals name="private_notif_count">
+        <item quantity="zero">%d رسالة خاصة جديدة</item>
+        <item quantity="one">رسالة خاصة جديدة</item>
+        <item quantity="two">رسالتان خاصتان جديدتان</item>
+        <item quantity="few">%d رسائل خاصة جديدة</item>
+        <item quantity="many">%d رسالة خاصة جديدة</item>
+        <item quantity="other">%d رسالة خاصة جديدة</item>
+    </plurals>
+    <plurals name="private_unread_badge">
+        <item quantity="zero">%d رسالة خاصة غير مقروءة</item>
+        <item quantity="one">رسالة خاصة غير مقروءة</item>
+        <item quantity="two">رسالتان خاصتان غير مقروءتين</item>
+        <item quantity="few">%d رسائل خاصة غير مقروءة</item>
+        <item quantity="many">%d رسالة خاصة غير مقروءة</item>
+        <item quantity="other">%d رسالة خاصة غير مقروءة</item>
+    </plurals>
+</resources>

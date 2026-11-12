@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Private messages (docs/PRIVATE_MESSAGES.md). Comments for each string are in values/strings_private.xml. -->
+<resources>
+    <string name="private_message_name">ส่งข้อความหา %1$s</string>
+    <string name="private_subtitle">ส่วนตัว · อ่านได้แค่สองคน</string>
+    <string name="private_empty">ข้อความที่ส่งตรงนี้ อ่านได้แค่คุณกับ %1$s ไม่ใช่คนอื่นในแก๊ง และไม่ใช่เรา</string>
+    <string name="private_mute">ปิดเสียง</string>
+    <string name="private_unmute">เปิดเสียง</string>
+    <string name="private_muted_note">ปิดเสียงไว้บนมือถือเครื่องนี้ ข้อความจาก %1$s ยังส่งมาที่นี่ แต่จะไม่แจ้งเตือน</string>
+    <string name="private_notif_title">%1$s · ส่วนตัว</string>
+    <string name="private_notif_public">ข้อความส่วนตัว</string>
+    <plurals name="private_notif_count">
+        <item quantity="other">ข้อความส่วนตัวใหม่ %d ข้อความ</item>
+    </plurals>
+    <plurals name="private_unread_badge">
+        <item quantity="other">ข้อความส่วนตัวที่ยังไม่ได้อ่าน %d ข้อความ</item>
+    </plurals>
+</resources>

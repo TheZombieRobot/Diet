@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Private messages (docs/PRIVATE_MESSAGES.md). Comments for each string are in values/strings_private.xml. -->
+<resources>
+    <string name="private_message_name">%1$sにメッセージ</string>
+    <string name="private_subtitle">プライベート · 2人だけが読めます</string>
+    <string name="private_empty">ここで送ったメッセージは、あなたと%1$sだけが読めます。クルーのほかのメンバーも、私たちも読めません。</string>
+    <string name="private_mute">ミュート</string>
+    <string name="private_unmute">ミュート解除</string>
+    <string name="private_muted_note">このスマホでミュート中。%1$sのメッセージは届きますが、通知はしません。</string>
+    <string name="private_notif_title">%1$s · プライベート</string>
+    <string name="private_notif_public">プライベートメッセージ</string>
+    <plurals name="private_notif_count">
+        <item quantity="other">新着プライベートメッセージ%d件</item>
+    </plurals>
+    <plurals name="private_unread_badge">
+        <item quantity="other">未読のプライベートメッセージ%d件</item>
+    </plurals>
+</resources>

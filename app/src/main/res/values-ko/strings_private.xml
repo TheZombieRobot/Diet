@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Private messages (docs/PRIVATE_MESSAGES.md). Comments for each string are in values/strings_private.xml. -->
+<resources>
+    <string name="private_message_name">%1$s님에게 메시지</string>
+    <string name="private_subtitle">비공개 · 두 사람만 읽을 수 있어요</string>
+    <string name="private_empty">여기서 보낸 메시지는 나와 %1$s님만 읽을 수 있어요. 다른 크루원도, 저희도 못 읽어요.</string>
+    <string name="private_mute">알림 끄기</string>
+    <string name="private_unmute">알림 켜기</string>
+    <string name="private_muted_note">이 휴대폰에서 알림을 껐어요. %1$s님의 메시지는 계속 여기로 오지만 알림은 오지 않아요.</string>
+    <string name="private_notif_title">%1$s · 비공개</string>
+    <string name="private_notif_public">비공개 메시지</string>
+    <plurals name="private_notif_count">
+        <item quantity="other">새 비공개 메시지 %d개</item>
+    </plurals>
+    <plurals name="private_unread_badge">
+        <item quantity="other">읽지 않은 비공개 메시지 %d개</item>
+    </plurals>
+</resources>

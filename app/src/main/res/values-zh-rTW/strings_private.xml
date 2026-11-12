@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Private messages (docs/PRIVATE_MESSAGES.md). Comments for each string are in values/strings_private.xml. -->
+<resources>
+    <string name="private_message_name">私訊 %1$s</string>
+    <string name="private_subtitle">私密 · 只有你們兩人看得到</string>
+    <string name="private_empty">這裡傳的訊息只有你和 %1$s 看得到：小隊其他人看不到，我們也看不到。</string>
+    <string name="private_mute">靜音</string>
+    <string name="private_unmute">取消靜音</string>
+    <string name="private_muted_note">已在這支手機上靜音。%1$s 的訊息還是會傳到這裡，只是不會通知。</string>
+    <string name="private_notif_title">%1$s · 私訊</string>
+    <string name="private_notif_public">私訊</string>
+    <plurals name="private_notif_count">
+        <item quantity="other">%d 則新私訊</item>
+    </plurals>
+    <plurals name="private_unread_badge">
+        <item quantity="other">%d 則未讀私訊</item>
+    </plurals>
+</resources>

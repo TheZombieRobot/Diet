@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Private messages (docs/PRIVATE_MESSAGES.md). Comments for each string are in values/strings_private.xml. -->
+<resources>
+    <string name="private_message_name">Nachricht an %1$s</string>
+    <string name="private_subtitle">Privat · nur ihr zwei könnt das lesen</string>
+    <string name="private_empty">Nur du und %1$s könnt lesen, was hier geschickt wird: nicht der Rest der Crew und auch nicht wir.</string>
+    <string name="private_mute">Stummschalten</string>
+    <string name="private_unmute">Stummschaltung aufheben</string>
+    <string name="private_muted_note">Auf diesem Handy stummgeschaltet. Nachrichten von %1$s kommen weiter hier an, nur ohne Benachrichtigung.</string>
+    <string name="private_notif_title">%1$s · privat</string>
+    <string name="private_notif_public">Private Nachricht</string>
+    <plurals name="private_notif_count">
+        <item quantity="one">%d neue private Nachricht</item>
+        <item quantity="other">%d neue private Nachrichten</item>
+    </plurals>
+    <plurals name="private_unread_badge">
+        <item quantity="one">%d ungelesene private Nachricht</item>
+        <item quantity="other">%d ungelesene private Nachrichten</item>
+    </plurals>
+</resources>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Private messages (docs/PRIVATE_MESSAGES.md). Comments for each string are in values/strings_private.xml. -->
+<resources>
+    <string name="private_message_name">私信 %1$s</string>
+    <string name="private_subtitle">私密 · 只有你们两人能看</string>
+    <string name="private_empty">这里发的消息只有你和 %1$s 能看：小队其他人看不到，我们也看不到。</string>
+    <string name="private_mute">静音</string>
+    <string name="private_unmute">取消静音</string>
+    <string name="private_muted_note">已在这台手机上静音。%1$s 的消息仍会发到这里，只是不提醒。</string>
+    <string name="private_notif_title">%1$s · 私信</string>
+    <string name="private_notif_public">私信</string>
+    <plurals name="private_notif_count">
+        <item quantity="other">%d 条新私信</item>
+    </plurals>
+    <plurals name="private_unread_badge">
+        <item quantity="other">%d 条未读私信</item>
+    </plurals>
+</resources>

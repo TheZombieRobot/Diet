@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Private messages (docs/PRIVATE_MESSAGES.md). Comments for each string are in values/strings_private.xml. -->
+<resources>
+    <string name="private_message_name">Écrire à %1$s</string>
+    <string name="private_subtitle">Privé · seuls vous deux pouvez le lire</string>
+    <string name="private_empty">Seuls toi et %1$s pouvez lire ce qui est envoyé ici : ni le reste de la crew, ni nous.</string>
+    <string name="private_mute">Mettre en sourdine</string>
+    <string name="private_unmute">Réactiver</string>
+    <string name="private_muted_note">En sourdine sur ce téléphone. Les messages de %1$s arrivent toujours ici, sans notification.</string>
+    <string name="private_notif_title">%1$s · privé</string>
+    <string name="private_notif_public">Message privé</string>
+    <plurals name="private_notif_count">
+        <item quantity="one">%d nouveau message privé</item>
+        <item quantity="many">%d nouveaux messages privés</item>
+        <item quantity="other">%d nouveaux messages privés</item>
+    </plurals>
+    <plurals name="private_unread_badge">
+        <item quantity="one">%d message privé non lu</item>
+        <item quantity="many">%d messages privés non lus</item>
+        <item quantity="other">%d messages privés non lus</item>
+    </plurals>
+</resources>

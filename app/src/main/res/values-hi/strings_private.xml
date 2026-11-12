@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Private messages (docs/PRIVATE_MESSAGES.md). Comments for each string are in values/strings_private.xml. -->
+<resources>
+    <string name="private_message_name">%1$s को मैसेज करें</string>
+    <string name="private_subtitle">प्राइवेट · सिर्फ़ आप दोनों पढ़ सकते हैं</string>
+    <string name="private_empty">यहाँ भेजे गए मैसेज सिर्फ़ आप और %1$s पढ़ सकते हैं: न बाकी ग्रुप, न हम।</string>
+    <string name="private_mute">म्यूट करें</string>
+    <string name="private_unmute">अनम्यूट करें</string>
+    <string name="private_muted_note">इस फ़ोन पर म्यूट है। %1$s के मैसेज यहाँ आते रहेंगे, बस नोटिफ़िकेशन नहीं आएगा।</string>
+    <string name="private_notif_title">%1$s · प्राइवेट</string>
+    <string name="private_notif_public">प्राइवेट मैसेज</string>
+    <plurals name="private_notif_count">
+        <item quantity="one">%d नया प्राइवेट मैसेज</item>
+        <item quantity="other">%d नए प्राइवेट मैसेज</item>
+    </plurals>
+    <plurals name="private_unread_badge">
+        <item quantity="one">%d अनपढ़ा प्राइवेट मैसेज</item>
+        <item quantity="other">%d अनपढ़े प्राइवेट मैसेज</item>
+    </plurals>
+</resources>
