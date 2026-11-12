@@ -1457,13 +1457,17 @@ class CourierSimTest {
         }
         assertTrue(b.got.isEmpty())
         assertEquals(0, b.courier.held(crewId), "not carried")
-        // And on the relay, older builds never fetch the private mailbox at all; one that did, as an
-        // unknown blob in the chat mailbox, would ignore it there too.
+        // On the relay, older builds never fetch the private mailbox at all. Even found in the chat
+        // mailbox it's no crew message: every reader an older build has returns nothing for it
+        // (PrivateTest.olderBuildsCantMisreadIt), and this build carries it without showing it.
         w.relay.put(Courier.Upload(crewId, 0, chatBox, real, RelayUse.MESSAGE, false))
-        val old = Phone("O", w, group)
-        old.online = true
-        old.courier.fetched(crewId, chatBox, w.relay.get(crewId, chatBox), old.now).forEach { assertFalse(it.fresh && it.message?.ping != null) }
-        assertTrue(old.got.isEmpty())
+        val other = Phone("O", w, group)
+        other.online = true
+        other.courier.fetched(crewId, chatBox, w.relay.get(crewId, chatBox), other.now).forEach { a ->
+            assertNull(a.message?.ping)
+            assertNull(a.message?.pm)
+        }
+        assertTrue(other.got.isEmpty())
         // Crew chat goes on as ever.
         val id = a.chat("still talking")
         w.run(120)
