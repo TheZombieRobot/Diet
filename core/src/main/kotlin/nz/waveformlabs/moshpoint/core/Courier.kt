@@ -427,7 +427,6 @@ class Courier(
         }
         val here = m.here
         if (here != null) {
-            hereEnds[m.id] = HereRule.endSec(here.timeSec, here.minutes)
             // "I'm here": the newest from each sender wins, by the same rule (no far-future lock).
             val current = parcels.values.firstOrNull { it.crewId == crew.id && it.kind == KIND_HERE && it.sender == m.sender }
             if (current?.id == m.id) {
@@ -442,7 +441,10 @@ class Courier(
         val stands = here == null || HereRule.live(here, nowSec)
         if (had == null && crew.main && stands && worthCarrying(m.kind, m.timeSec, nowMs)) {
             if (m.pin != null) parcels.values.removeAll { it.crewId == crew.id && it.kind == KIND_PIN }
-            if (here != null) parcels.values.removeAll { it.crewId == crew.id && it.kind == KIND_HERE && it.sender == m.sender }
+            if (here != null) {
+                parcels.values.removeAll { it.crewId == crew.id && it.kind == KIND_HERE && it.sender == m.sender }
+                hereEnds[m.id] = HereRule.endSec(here.timeSec, here.minutes)
+            }
             val p = Parcel(crew.id, m.id, sealed, m.kind, m.timeSec, m.sender, mine = m.sender == crew.signer.tag, heldAtMs = nowMs, route = route)
             p.helperAfterMs = nowMs + HELPER_SETTLE_MS + random.nextInt(HELPER_SETTLE_SPREAD_MS)
             parcels[m.id] = p
@@ -692,6 +694,7 @@ class Courier(
                 dirty = true
             }
         }
+        hereEnds.keys.retainAll(parcels.keys)
         while (heard.size > 600) heard.remove(heard.keys.first())
         while (acked.size > 600) acked.remove(acked.first())
         retired.removeAll { nowMs > it.untilMs }
