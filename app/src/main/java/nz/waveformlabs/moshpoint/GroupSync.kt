@@ -619,8 +619,11 @@ object GroupSync {
         // Already in the chat (the same message by another route, or from before a restart): don't
         // announce it again. One exception: a Need help, Check in or Home safe this phone has
         // never had, which the chat is too full of newer lines to show. That still gets its alert.
+        // (Not if it's already a line there: then it has been announced, even if the courier's
+        // own record of that was lost with a restart.)
+        val had = CrewChat.hasPing(c, p)
         val shown = CrewChat.pingLine(c, p, mine = false)
-        if (!shown && !(fresh && PingPolicy.group(p.kind) == PingPolicy.Group.SAFETY)) return
+        if (!shown && !(fresh && !had && PingPolicy.group(p.kind) == PingPolicy.Group.SAFETY)) return
         // Newest by the sender's time first, so a late arrival slots in where it belongs.
         val at = pings.indexOfFirst { it.timeSec < p.timeSec }.let { if (it < 0) pings.size else it }
         pings.add(at, p)

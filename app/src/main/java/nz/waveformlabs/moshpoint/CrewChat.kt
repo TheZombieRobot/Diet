@@ -633,6 +633,14 @@ object CrewChat {
         return add(c, g, Line(if (mine) me(c) else p.from, at, payload, mine, p.kind, sender = if (mine) myTag(c, g) else p.sender, state = state, id = idOf(p)))
     }
 
+    /** Is this ping already a line in the main crew's chat (by message id)? */
+    fun hasPing(c: Context, p: GigGroup.Ping): Boolean {
+        val g = GroupSync.group.value ?: return false
+        val id = idOf(p).ifEmpty { return false }
+        val crew = GigArchive.idFor(g)
+        return (if (crew == viewingId) lines.toList() else readLines(c, crew)).any { it.id == id }
+    }
+
     /** A one-tap ping's kind (shown as a chat bubble, worded by [quickText]). */
     fun isQuick(kind: Int): Boolean = when (kind) {
         GigGroup.Ping.COMING, GigGroup.Ping.WHERE_ARE_YOU, GigGroup.Ping.STAY_PUT, GigGroup.Ping.MEET_AT_PIN, GigGroup.Ping.ALL_GOOD,
