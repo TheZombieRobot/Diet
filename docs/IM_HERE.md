@@ -21,11 +21,12 @@ _Handover, kept current at every push. Branch `claude/im-here-pin-k3v9tq`, start
 | 4. `strings_here.xml` in English and 19 languages | **done**, `tools/check_translation.py` OK for every folder |
 | 5. Screenshot tests (`HereSnapshotTest`, own package) | **done, passing in CI, pictures looked at.** `app/src/test/java/nz/waveformlabs/moshpoint/here/HereSnapshotTest.kt`: `hereMapList`, `hereFinder`, `hereDialog` in every language (`Lang_xx`), `hereFinderOne` and `herePins` in English; `Lang_de.hereTranslationsLoad` guards that the translations load. In `docs/screenshots` (`hereMapList.png`, `de-hereMapList.png`, …) and every language on the `ui-screenshots-claude-im-here-pin-k3v9tq` branch |
 | 6. Field test (two phones), roadmap, architecture and privacy notes | **done.** `FIELD_TEST_PLAN.md` section 4d and a known limit; `ROADMAP.md` step 3 status; `ARCHITECTURE.md` section; `PRIVACY.md` paragraph |
-| 7. CI green, report sent | **CI green on `1b07d3e`** (run 245: translations, core + server tests, phone debug and release, licences, screenshots; watch debug, release and screenshots). Waiting for run 249 on `d2f09b2`, the last code commit (three small fixes since: pins kept across a rekey, the stamp cap, `MapFeed`). Report not sent yet |
+| 7. CI green, report sent | **CI green on `cec456c`, the last code commit** (run 250: translations, core + server tests, phone debug and release with the debug-text check, licences, screenshots; watch debug, release, pairing check and screenshots). Report sent to the parent session |
 
-**Exact next step:** check run 249 (on `d2f09b2`) passes every step, including the screenshot
-step's log; then send the report (draft in this session's scratchpad: what's done, what's left,
-the branch) to the parent session. After that, nothing is left but the field test (4d).
+**Exact next step:** none in code. The next step is the two-phone field test, section 4d of
+[FIELD_TEST_PLAN.md](FIELD_TEST_PLAN.md), then tuning the first-guess numbers from it (20 minutes,
+30 m plus 10 s of footsteps, 0.3 hPa for a floor change, 3 m an hour of weather for the pinned
+floor), and a native speaker's read of `strings_here.xml` (notes at the end of each `docs/i18n/*.md`).
 
 How to work on it:
 
