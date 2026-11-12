@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Arabic: the watch app. -->
+<resources>
+    <string name="tile_label">حالة الشلة</string>
+    <string name="complication_label">أقرب صاحب</string>
+
+    <string name="crew_title">شلتك</string>
+    <string name="crew_empty">ابدأ شلة من هاتفك</string>
+    <string name="crew_no_phone">افتح Moshpoint على هاتفك</string>
+    <string name="crew_stale">لا اتصال بالهاتف</string>
+    <string name="mate_live">ظاهر</string>
+    <string name="mate_live_distance">%1$s · %2$s</string>
+    <plurals name="time_min_ago">
+        <item quantity="zero">قبل %d دقيقة</item>
+        <item quantity="one">قبل دقيقة</item>
+        <item quantity="two">قبل دقيقتين</item>
+        <item quantity="few">قبل %d دقائق</item>
+        <item quantity="many">قبل %d دقيقة</item>
+        <item quantity="other">قبل %d دقيقة</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="zero">قبل %d ساعة</item>
+        <item quantity="one">قبل ساعة</item>
+        <item quantity="two">قبل ساعتين</item>
+        <item quantity="few">قبل %d ساعات</item>
+        <item quantity="many">قبل %d ساعة</item>
+        <item quantity="other">قبل %d ساعة</item>
+    </plurals>
+    <string name="ping_on_my_way">في الطريق</string>
+    <string name="ping_all_good">كل شيء تمام</string>
+    <string name="need_help">أحتاج مساعدة</string>
+    <string name="ping_sent">أُرسلت</string>
+    <string name="ping_nearby">أُرسلت لمن حولك</string>
+    <string name="ping_waiting">بانتظار الإشارة</string>
+    <string name="ping_not_sent">لم تُرسَل</string>
+    <string name="ping_not_yet">لم تُرسَل بعد</string>
+
+    <string name="find_searching">نبحث عن %1$s…</string>
+    <string name="find_hold_flat">أبقِ معصمك مستويًا</string>
+    <string name="find_follow_buzz">اتبع الاهتزازات</string>
+    <string name="find_warmer">استمر في هذا الاتجاه</string>
+    <string name="find_colder">استدر للخلف</string>
+    <string name="find_no_compass">لا توجد بوصلة في هذه الساعة</string>
+    <string name="find_calibrate">حرّك معصمك على شكل 8</string>
+    <string name="find_connecting">نبحث عن هاتفك…</string>
+    <string name="find_reconnecting">نعيد الاتصال…</string>
+    <string name="find_phone_lost">لا اتصال بالهاتف</string>
+    <string name="find_needs_phone">افتح Moshpoint على هاتفك</string>
+    <string name="find_bluetooth_off">شغّل Bluetooth على هاتفك</string>
+    <string name="find_no_permission">اسمح بأذونات Moshpoint على هاتفك</string>
+    <string name="find_mate_gone">%1$s خارج شلتك الآن</string>
+    <string name="find_found">وجدت %1$s</string>
+    <string name="find_timed_out">توقف البحث لتوفير البطارية</string>
+    <string name="find_stopped_on_phone">أُوقف من هاتفك</string>
+    <string name="find_again">ابحث مجددًا</string>
+    <string name="find_buzz_off">الاهتزاز متوقف في هذه الساعة</string>
+    <string name="update_phone">حدّث Moshpoint على هاتفك</string>
+    <string name="update_watch">حدّث Moshpoint على هذه الساعة</string>
+    <string name="find_notification">نبحث عن %1$s</string>
+    <string name="find_channel">البحث عن صاحب</string>
+
+    <string name="unit_m">m</string>
+    <string name="unit_km">km</string>
+    <string name="unit_ft">ft</string>
+    <string name="unit_mi">mi</string>
+    <string name="dist_number_unit">%1$s %2$s</string>
+
+    <string name="sos_hold">اضغط مطولًا</string>
+    <string name="sos_hint">اضغط مطولًا لإبلاغ شلتك</string>
+    <string name="sos_sending">جارٍ الإرسال…</string>
+    <string name="sos_sent">أُرسلت إلى شلتك</string>
+    <string name="sos_not_sent">لم تُرسَل</string>
+    <string name="sos_out_of_reach">لا اتصال بهاتفك</string>
+    <string name="sos_nearby_detail">وصلت لمن حولك من الشلة فقط حتى الآن</string>
+    <string name="sos_unconfirmed">غير مؤكدة</string>
+    <string name="sos_no_answer">هاتفك لم يردّ</string>
+    <string name="sos_no_crew">لست في أي شلة، فلا أحد لإبلاغه</string>
+    <string name="sos_retry">حاول مجددًا</string>
+    <string name="sos_im_ok">أنا بخير الآن</string>
+    <string name="sos_ok_sent">علمت شلتك أنك بخير</string>
+
+    <string name="plus_text">فعّل تطبيق الساعة من هاتفك</string>
+
+    <string name="glance_live_count">الظاهرون: %1$d من %2$d</string>
+    <string name="glance_nearest">%1$s · %2$s</string>
+</resources>

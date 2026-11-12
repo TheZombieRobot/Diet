@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- German: the notification shown while the phone finds a mate for your watch. -->
+<resources>
+    <string name="watch_channel">Suche für deine Uhr</string>
+    <string name="watch_finding_title">Suche %1$s für deine Uhr</string>
+    <string name="watch_finding_text">Stoppt, wenn deine Uhr aufhört zu suchen</string>
+    <string name="watch_stop">Stoppen</string>
+</resources>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Arabic: the notification shown while the phone finds a mate for your watch. -->
+<resources>
+    <string name="watch_channel">البحث لساعتك</string>
+    <string name="watch_finding_title">نبحث عن %1$s لساعتك</string>
+    <string name="watch_finding_text">يتوقف حين تتوقف ساعتك عن الطلب</string>
+    <string name="watch_stop">إيقاف</string>
+</resources>

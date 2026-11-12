@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Turkish: the notification shown while the phone finds a mate for your watch. -->
+<resources>
+    <string name="watch_channel">Saatin için arama</string>
+    <string name="watch_finding_title">Saatin için aranıyor: %1$s</string>
+    <string name="watch_finding_text">Saatin sormayı bırakınca durur</string>
+    <string name="watch_stop">Durdur</string>
+</resources>

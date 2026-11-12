@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vietnamese: the watch app. -->
+<resources>
+    <string name="tile_label">Trạng thái nhóm</string>
+    <string name="complication_label">Bạn ở gần nhất</string>
+
+    <string name="crew_title">Nhóm của bạn</string>
+    <string name="crew_empty">Lập nhóm trên điện thoại</string>
+    <string name="crew_no_phone">Mở Moshpoint trên điện thoại</string>
+    <string name="crew_stale">Mất kết nối với điện thoại</string>
+    <string name="mate_live">đang chia sẻ</string>
+    <string name="mate_live_distance">%1$s · %2$s</string>
+    <plurals name="time_min_ago">
+        <item quantity="other">%d phút trước</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="other">%d giờ trước</item>
+    </plurals>
+    <string name="ping_on_my_way">Đang tới</string>
+    <string name="ping_all_good">Ổn cả</string>
+    <string name="need_help">Cần giúp đỡ</string>
+    <string name="ping_sent">Đã gửi</string>
+    <string name="ping_nearby">Đã gửi cho máy ở gần</string>
+    <string name="ping_waiting">Đang chờ có sóng</string>
+    <string name="ping_not_sent">Chưa gửi được</string>
+    <string name="ping_not_yet">Chưa gửi được</string>
+
+    <string name="find_searching">Đang tìm %1$s…</string>
+    <string name="find_hold_flat">Giữ cổ tay nằm ngang</string>
+    <string name="find_follow_buzz">Đi theo nhịp rung</string>
+    <string name="find_warmer">Cứ đi hướng này</string>
+    <string name="find_colder">Quay lại</string>
+    <string name="find_no_compass">Đồng hồ này không có la bàn</string>
+    <string name="find_calibrate">Xoay cổ tay theo hình số 8</string>
+    <string name="find_connecting">Đang tìm điện thoại…</string>
+    <string name="find_reconnecting">Đang kết nối lại…</string>
+    <string name="find_phone_lost">Mất kết nối với điện thoại</string>
+    <string name="find_needs_phone">Mở Moshpoint trên điện thoại</string>
+    <string name="find_bluetooth_off">Bật Bluetooth trên điện thoại</string>
+    <string name="find_no_permission">Cấp quyền cho Moshpoint trên điện thoại</string>
+    <string name="find_mate_gone">%1$s không còn trong nhóm của bạn</string>
+    <string name="find_found">Bạn đã tìm thấy %1$s</string>
+    <string name="find_timed_out">Đã dừng để tiết kiệm pin</string>
+    <string name="find_stopped_on_phone">Đã dừng từ điện thoại</string>
+    <string name="find_again">Tìm lại</string>
+    <string name="find_buzz_off">Đồng hồ này đang tắt rung</string>
+    <string name="update_phone">Cập nhật Moshpoint trên điện thoại</string>
+    <string name="update_watch">Cập nhật Moshpoint trên đồng hồ này</string>
+    <string name="find_notification">Đang tìm %1$s</string>
+    <string name="find_channel">Tìm bạn bè</string>
+
+    <string name="unit_m">m</string>
+    <string name="unit_km">km</string>
+    <string name="unit_ft">ft</string>
+    <string name="unit_mi">mi</string>
+    <string name="dist_number_unit">%1$s %2$s</string>
+
+    <string name="sos_hold">Nhấn giữ</string>
+    <string name="sos_hint">Nhấn giữ để báo cho nhóm</string>
+    <string name="sos_sending">Đang gửi…</string>
+    <string name="sos_sent">Đã gửi cho nhóm</string>
+    <string name="sos_not_sent">Chưa gửi được</string>
+    <string name="sos_out_of_reach">Mất kết nối với điện thoại</string>
+    <string name="sos_nearby_detail">Mới chỉ tới người trong nhóm ở gần</string>
+    <string name="sos_unconfirmed">Chưa xác nhận</string>
+    <string name="sos_no_answer">Điện thoại không phản hồi</string>
+    <string name="sos_no_crew">Bạn chưa ở trong nhóm nào nên không có ai để báo</string>
+    <string name="sos_retry">Thử lại</string>
+    <string name="sos_im_ok">Mình ổn rồi</string>
+    <string name="sos_ok_sent">Đã báo cho nhóm là bạn ổn</string>
+
+    <string name="plus_text">Mở khóa ứng dụng đồng hồ trên điện thoại</string>
+
+    <string name="glance_live_count">%1$d/%2$d đang chia sẻ</string>
+    <string name="glance_nearest">%1$s · %2$s</string>
+</resources>

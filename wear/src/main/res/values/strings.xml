@@ -35,9 +35,17 @@
     <string name="ping_all_good">All good</string>
     <!-- The help button. Always there, free for everyone -->
     <string name="need_help">Need help</string>
-    <!-- After a quick message -->
+    <!-- What became of a quick message. The same four states the phone shows under a message in the crew chat
+         (app: offline_state_sent, offline_state_nearby, offline_state_waiting, offline_state_not_sent): use the same words. -->
+    <!-- The message reached the server, so the whole crew gets it -->
     <string name="ping_sent">Sent</string>
+    <!-- The phone has no internet, but a crew phone close by has received it over Bluetooth -->
+    <string name="ping_nearby">Sent nearby</string>
+    <!-- The phone has no internet and no crew phone nearby has it yet. "Signal" = phone reception -->
+    <string name="ping_waiting">Waiting for signal</string>
     <string name="ping_not_sent">Not sent</string>
+    <!-- Big, above "Waiting for signal": the message is still on the phone. It has not gone to anyone -->
+    <string name="ping_not_yet">Not sent yet</string>
 
     <!-- ===== Finder (the arrow) ===== -->
     <!-- %1$s = mate's name -->
@@ -46,8 +54,9 @@
     <string name="find_hold_flat">Hold your wrist flat</string>
     <!-- Distance but no direction (phone in a pocket, mate close). The buzzes guide instead -->
     <string name="find_follow_buzz">Follow the buzzes</string>
-    <string name="find_warmer">Getting closer</string>
-    <string name="find_colder">Getting further</string>
+    <!-- Under the distance when it is shrinking / growing. Same words as the phone's finder (app: find_trend_warmer_hint, find_trend_colder_hint) -->
+    <string name="find_warmer">Keep going this way</string>
+    <string name="find_colder">Turn around</string>
     <string name="find_no_compass">No compass on this watch</string>
     <!-- The compass needs calibrating -->
     <string name="find_calibrate">Move your wrist in a figure 8</string>
@@ -60,10 +69,10 @@
     <string name="find_no_permission">Allow Moshpoint\'s permissions on your phone</string>
     <!-- %1$s = mate's name -->
     <string name="find_mate_gone">%1$s isn\'t in your crew now</string>
-    <!-- %1$s = mate's name -->
-    <string name="find_found">Found %1$s!</string>
-    <!-- A find stops by itself after 15 minutes -->
-    <string name="find_timed_out">Find timed out</string>
+    <!-- %1$s = mate's name. Same words as the phone (app: find_you_found) -->
+    <string name="find_found">You found %1$s</string>
+    <!-- A find stops by itself after 15 minutes, so a forgotten one can't run the watch and phone flat -->
+    <string name="find_timed_out">Stopped to save battery</string>
     <string name="find_stopped_on_phone">Stopped on your phone</string>
     <string name="find_again">Find again</string>
     <!-- The watch's own settings (silent, Do Not Disturb, battery saver) are muting the buzzes -->
@@ -84,16 +93,18 @@
     <string name="dist_number_unit">%1$s %2$s</string>
 
     <!-- ===== Need help ===== -->
-    <!-- On the big button: keep it to one short word -->
+    <!-- On the big round button: one short word, or two very short ones (it is about 8 letters wide) -->
     <string name="sos_hold">Hold</string>
     <string name="sos_hint">Hold to tell your crew</string>
     <string name="sos_sending">Sending…</string>
     <string name="sos_sent">Sent to your crew</string>
     <string name="sos_not_sent">Not sent</string>
     <string name="sos_out_of_reach">Your phone is out of reach</string>
-    <!-- Handed to the phone, but the phone couldn't confirm it went out -->
+    <!-- Under "Sent nearby": crew members close by have it, the rest of the crew don't yet -->
+    <string name="sos_nearby_detail">Only crew nearby have it so far</string>
+    <!-- Handed to the phone, but the phone never said what became of it -->
     <string name="sos_unconfirmed">Not confirmed</string>
-    <string name="sos_no_signal">Your phone may have no signal</string>
+    <string name="sos_no_answer">Your phone didn\'t answer</string>
     <string name="sos_no_crew">You\'re not in a crew, so there\'s no one to tell</string>
     <string name="sos_retry">Try again</string>
     <!-- Sends "all good" to the crew after a Need help -->
@@ -111,5 +122,4 @@
     <string name="glance_live_short" translatable="false">%1$d/%2$d</string>
     <!-- %1$s = mate's name, %2$s = distance -->
     <string name="glance_nearest">%1$s · %2$s</string>
-    <string name="glance_open">Open</string>
 </resources>

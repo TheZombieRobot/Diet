@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Indonesian: the notification shown while the phone finds a mate for your watch. -->
+<resources>
+    <string name="watch_channel">Pencarian untuk jam tanganmu</string>
+    <string name="watch_finding_title">Mencari %1$s untuk jam tanganmu</string>
+    <string name="watch_finding_text">Berhenti saat jam tanganmu berhenti meminta</string>
+    <string name="watch_stop">Hentikan</string>
+</resources>

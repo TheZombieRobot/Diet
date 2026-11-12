@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Polish: the notification shown while the phone finds a mate for your watch. -->
+<resources>
+    <string name="watch_channel">Szukanie dla zegarka</string>
+    <string name="watch_finding_title">Szukam dla zegarka: %1$s</string>
+    <string name="watch_finding_text">Kończy się, gdy zegarek przestaje pytać</string>
+    <string name="watch_stop">Zatrzymaj</string>
+</resources>

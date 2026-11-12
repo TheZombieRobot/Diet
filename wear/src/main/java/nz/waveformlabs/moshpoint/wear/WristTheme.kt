@@ -113,8 +113,10 @@ fun FitText(
             sizes.firstOrNull { size ->
                 val sized = style.copy(fontSize = size, lineHeight = size * 1.18f)
                 // Fits if it wraps into the lines allowed without any single word being cut.
+                // (Thai, Chinese and Japanese have no spaces and may break anywhere, so they
+                // have no "word" to protect: for them only the wrapping counts.)
                 val wrapped = measurer.measure(text, sized, maxLines = maxLines, constraints = Constraints(maxWidth = width))
-                val longestWord = text.split(' ', '\n').maxByOrNull { it.length }.orEmpty()
+                val longestWord = text.split(' ', '\n').filterNot { w -> w.any(::breaksAnywhere) }.maxByOrNull { it.length }.orEmpty()
                 val word = measurer.measure(longestWord, sized, maxLines = 1, softWrap = false)
                 !wrapped.hasVisualOverflow && word.size.width <= width
             } ?: sizes.last()
@@ -128,6 +130,10 @@ fun FitText(
         )
     }
 }
+
+/** Scripts written without spaces between words: Thai, Chinese, Japanese (kana and kanji) and their full-width forms. */
+private fun breaksAnywhere(c: Char): Boolean =
+    c in '\u0E00'..'\u0E7F' || c in '\u2E80'..'\u9FFF' || c in '\uF900'..'\uFAFF' || c in '\uFF00'..'\uFFEF'
 
 /** A mate's face in a ring of their colour; their initial on that colour until the face has arrived. */
 @Composable

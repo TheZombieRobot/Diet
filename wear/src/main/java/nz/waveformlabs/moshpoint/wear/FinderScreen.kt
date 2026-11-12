@@ -100,18 +100,26 @@ fun FinderScreen(ui: FinderUi, face: ImageBitmap?, onAgain: () -> Unit = {}) {
             ui.status == FinderStatus.LIVE && view is WristView.Arrow -> {
                 // Name on top, arrow ring with the face inside, distance underneath.
                 val tint = Color(ArrowStyle.arrowColor(ui.mateColour, view.distanceM))
+                // A compass that needs calibrating gets two lines under the distance to say so.
+                // The glass is narrow down there, so the ring gives up some room for them.
+                val ring = if (ui.compassRough) 0.5f else 0.6f
                 Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Spacer(Modifier.height(s * 0.07f))
+                    Spacer(Modifier.height(s * (if (ui.compassRough) 0.05f else 0.07f)))
                     Text(
                         ui.mateName, style = Wrist.Name.copy(fontSize = 13.sp), maxLines = 1, overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Center, modifier = Modifier.width(s * 0.5f),
                     )
-                    Box(Modifier.size(s * 0.6f), contentAlignment = Alignment.Center) {
+                    Box(Modifier.size(s * ring), contentAlignment = Alignment.Center) {
                         ArrowRing(view.angleDeg.toFloat(), if (ui.facing) Wrist.Lime else tint, rough = view.rough, facing = ui.facing)
-                        Face(face, ui.mateName, colour, s * 0.27f)
+                        Face(face, ui.mateName, colour, s * ring * 0.45f)
                     }
                     DistanceLine(view.distanceM, big = false)
-                    if (ui.compassRough) Hint(stringResource(R.string.find_calibrate), s * 0.56f, lines = 1)
+                    if (ui.compassRough) {
+                        FitText(
+                            stringResource(R.string.find_calibrate), Wrist.Body.copy(fontSize = 11.sp, color = Wrist.Amber),
+                            Modifier.width(s * 0.5f), maxLines = 2,
+                        )
+                    }
                 }
             }
             ui.status == FinderStatus.LIVE -> {

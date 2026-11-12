@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Chinese (Simplified): the notification shown while the phone finds a mate for your watch. -->
+<resources>
+    <string name="watch_channel">帮手表找人</string>
+    <string name="watch_finding_title">正在帮手表找 %1$s</string>
+    <string name="watch_finding_text">手表不再询问就会停止</string>
+    <string name="watch_stop">停止</string>
+</resources>

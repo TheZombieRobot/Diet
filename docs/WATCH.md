@@ -12,47 +12,46 @@ app onto a watch. Install steps are at the end.
 ## Status and next steps
 
 _A handover: enough to pick the work up cold. Updated with every push. Last: 12 November
-2026, 07:00 UTC._
+2026, 10:45 UTC._
 
 ### Where things stand
 
 | Piece | State |
 |---|---|
 | Design (this note) | **Done.** All eleven decisions below. |
-| Shared logic, `core/…/core/watch/` | **Done, tested, green in CI.** 101 unit tests. |
-| Watch app, `wear/` | **Builds in CI**: debug and release (R8) APKs, the app-id check, and 96 screenshots committed to `docs/screenshots/watch/`. English strings only so far. Not yet run on a watch. |
-| Phone side, `app/…/moshpoint/watch/` | **Written, not yet compiled by CI.** Listener service, wrist pings with read-back, crew status sync, pocket finder, foreground service, read-only finder bridge, manifest and Gradle additions, `strings_watch.xml` in English. The push that carries this note is its first CI compile. |
-| Translations | **Not started.** Until they exist the phone job's "Translations match English" step fails (it wants `strings_watch.xml` in all 19 languages); the build steps after it still run. |
-| Checker change, install steps, field test | **Not started.** |
+| Shared logic, `core/…/core/watch/` | **Done, tested.** 102 unit tests (357 in `core` with the merged branches), green locally. |
+| Watch app, `wear/` | **Builds in CI**: debug and release (R8) APKs, the app-id check, screenshots committed to `docs/screenshots/watch/`. Not yet run on a watch. |
+| Phone side, `app/…/moshpoint/watch/` | **Compiles in CI** (debug build of commit `09927c9`, no warnings in these files). The release (R8) build of the phone app with them in it has not run yet: it was skipped while the translation step was red. Not yet run on a phone. |
+| Main branch merged in | **Done** (`62a770a`): Bluetooth backup and the venue map, no conflicts. Wrist pings now report from the outbox (problem 8). |
+| Translations | **Done**, 19 languages: `wear/src/main/res/values-*/strings.xml` and `app/src/main/res/values-*/strings_watch.xml`. Checked by the script; not yet read by native speakers (notes for them at the end of each `docs/i18n/*.md`: to write). |
+| Checker and its CI step | **Done.** `tools/check_translation.py` works on any module and can compare languages between modules. |
+| Screenshots in every language | Tests exist (19 screens, 21 locales, 2 sizes). **To do:** look through the translated ones for clipped text. |
+| Install steps, field test, release notes | **Not started.** |
 
 Nothing has run on a real watch or phone. Everything marked **verify on a watch** below is a
 first guess until the field test.
 
 ### Next steps, in order
 
-1. **Read both jobs of the latest CI run** and fix what the phone job's compile reports.
-2. **Translate**: `wear/src/main/res/values/strings.xml` (58 entries to translate) and
-   `app/src/main/res/values/strings_watch.xml` (4) into the app's 19 languages, with the terms
-   in `docs/i18n` and the app's own wording for the same phrases (many can be copied key for
-   key: `home_ping_*`, `home_your_crew`, `time_*`, `find_looking_for`,
-   `find_trend_*_hint`, the units).
-3. **Checker**: make `tools/check_translation.py` take any module's `values-xx` folder (its
-   English folder is the sibling `values`), run it over `wear` in the CI step, and fail if
-   `app` and `wear` ship different sets of languages.
-4. **Look at the watch screenshots** in every language (CI pushes all of them to the
-   `ui-screenshots-watch` branch) and fix anything that runs off the round edge.
-5. **Merge the main Moshpoint branch** (`ccr-5839ed7c-1q0ztj`) once the venue-map and
-   Bluetooth-backup branches are in it. Then adapt `WatchPings`: Bluetooth backup sends pings
-   through an outbox (`OfflineMessages`), so the wrist's answer should come from its
-   "Sent / Sent nearby / Waiting for signal" state instead of the relay read-back.
-6. **Docs:** install steps at the end of this note (facts already checked: adb 30 or newer;
+1. **Read both jobs of the latest CI run** and fix what they report. This is the first run with
+   the outbox-aware `WatchPings`, the new watch states, the translations, and the phone app's
+   release (R8) build including the watch files.
+2. **Look at the watch screenshots** in every language (CI pushes all of them to the
+   `ui-screenshots-watch` branch; English plus German, Thai, Arabic and Japanese are in
+   `docs/screenshots/watch/`) and fix anything that runs off the round edge. New screens to
+   check first: `finderCalibrate`, `sosWaiting`, `sosNearby`, and `sosHold` (the button's
+   label may now take two lines).
+3. **Reviewer notes:** append a short "Watch app" section to each `docs/i18n/*.md` with the
+   words chosen for watch, wrist, buzz and "phone out of reach", and the doubts a native
+   speaker should settle.
+4. **Docs:** install steps at the end of this note (facts already checked: adb 30 or newer;
    phone or computer and watch on the same Wi-Fi; on a Galaxy Watch, Settings → About watch →
    Software information → tap Software version seven times, then Developer options → ADB
    debugging and Wireless debugging → Pair new device; `adb pair IP:PORT`, then `adb connect
    IP:PORT` with the *other* port shown, then `adb -s IP:PORT install -r
    moshpoint-watch.apk`); a wrist section in `docs/FIELD_TEST_PLAN.md`; the watch APK link in
    `.github/testing-release.md`; one-line pointers in `ARCHITECTURE.md` and `FEATURES.md`.
-7. **Finish line:** both CI jobs green; report to the owner's main session.
+5. **Finish line:** both CI jobs green; report to the owner's main session.
 
 ### Shared files this branch touches (for merging with the other two branches)
 
@@ -65,19 +64,21 @@ Everything else is new files (`core/…/core/watch/`, `wear/`, `app/…/moshpoin
 | `settings.gradle.kts` | One line at the end: `include(":wear")` | Done |
 | `gradle/libs.versions.toml` | A block of Wear versions at the end of `[versions]`, a block of libraries at the end of `[libraries]`. No existing line changed | Done |
 | `.github/workflows/android.yml` | A new `wear` job appended at the very end. No existing line changed | Done |
-| `.github/workflows/android.yml` | The "Translations match English" step will also loop over `wear/src/main/res` | Planned |
+| `.github/workflows/android.yml` | The "Translations match English" step also loops over `wear/src/main/res/values-*/` and checks both modules have the same languages (three lines added inside the step) | Done |
 | `app/build.gradle.kts` | One dependency line after the UWB one: `implementation(libs.play.services.wearable)` | Done |
 | `app/src/main/AndroidManifest.xml` | Two services and one provider added at the very end of `<application>`, after the boot receiver | Done |
 | `app/…/locate/LocatorEngine.kt` | 17 lines appended as the last thing in the class (after `class ScanUi`): three read-only members and an `init` that registers with the bridge. The venue-map branch edits other places in that file (around lines 78 to 520), not the end | Done |
-| `tools/check_translation.py` | The English folder becomes "the `values` folder next to the one being checked" instead of a fixed `app/…` path; a check that modules ship the same languages | Planned |
+| `tools/check_translation.py` | The English folder is "the `values` folder next to the one being checked" instead of a fixed `app/…` path; `--same-languages` checks that modules ship the same languages. The old command line still works | Done |
 | `.github/testing-release.md`, `docs/FIELD_TEST_PLAN.md`, `docs/ARCHITECTURE.md`, `docs/FEATURES.md` | Added sections or lines only | Planned |
 
 Not touched, and not going to be: `core/Advert.kt`, `service/VisibilityService.kt`,
-`MainActivity.kt`, `MoshpointApp.kt`, `GroupSync.kt`, `CrewStatus.kt`, the server. The phone
-side reads the app's existing state from outside (it is Compose state) and starts itself from
-a manifest-declared provider, so none of those need a hook. The pocket finder calls
-`Advert.encode(…, looking = true)` with named arguments, so new optional parameters there
-won't break it.
+`MainActivity.kt`, `MoshpointApp.kt`, `GroupSync.kt`, `OfflineMessages.kt`, `CrewChat.kt`,
+`CrewStatus.kt`, the server. The phone side reads the app's existing state from outside (it is
+Compose state) and starts itself from a manifest-declared provider, so none of those need a
+hook. It calls four existing functions as they are: `GroupSync.sendPing`, `GroupSync.load`,
+`OfflineMessages.retryNow` and `Advert.encode(…, looking = true)` (named arguments, so new
+optional parameters there won't break it), and reads `CrewChat.lines` to see how the outbox
+says a wrist ping is doing.
 
 ### Working notes
 
@@ -314,8 +315,8 @@ A small vocabulary told apart by rhythm alone (many watch motors have no strengt
 | One long buzz | "Wrong way" | When the distance has clearly grown; ticks pause; repeats every 6 s while it keeps growing |
 | Short, short, long | "Found them" | Once, under 3 m; the find ends |
 | Two long buzzes | "Lost the phone" | Once, when updates stop |
-| One very long buzz | "Need help was sent" | |
-| Four rapid ticks | "That did not send" | Any ping that failed |
+| One very long buzz | "Need help reached someone" | The relay has it, or at least a crew phone nearby does |
+| Four rapid ticks | "That has not gone" | Any ping that failed, or is still waiting for signal |
 
 - **Never constant:** every pattern is under a second, with at least 0.4 s of silence after
   it, and the motor is never on for more than one second in any ten. The planner drops a buzz
@@ -335,24 +336,43 @@ A small vocabulary told apart by rhythm alone (many watch motors have no strengt
   ticks each half second; let go early and nothing is sent.
 - **Same path as the phone:** the phone's `WatchLinkService` calls `GroupSync.sendPing(NEED_HELP)`
   with the phone's last known position, exactly as the button in the app does. It works with
-  the app closed: Play services wakes the listener, which loads the crew first.
-- **It says what happened, and only what it knows:**
-  - No phone in reach, or the message can't be handed over → **"Not sent. Your phone is out of
-    reach."** with the failure buzz and a Retry.
-  - Handed over → the phone then **reads the crew's ping box back from the relay** and looks
-    for its own signed Need-help ping. Found → **"Sent to your crew."** Not found within a few
-    seconds → **"Not confirmed. Your phone may have no signal."** with a Retry.
-  - No answer from the phone in 12 s → treated as not sent.
-  - Not in a crew → "You're not in a crew, so there's no one to tell."
-- A retry reuses the same request number, so a slow first attempt and a retry never send two.
+  the app closed: Play services wakes the listener, which loads the crew first. From there the
+  phone's outbox (Bluetooth backup, `OfflineMessages`) looks after it like any crew message:
+  the relay when there's signal, crew phones nearby over Bluetooth when there isn't.
+- **It says what happened, and only what it knows.** The watch repeats what the outbox says,
+  in the phone's own words, never anything kinder:
+
+  | What happened | The wrist says | Buzz |
+  |---|---|---|
+  | No phone in reach, or the message can't be handed over | **Not sent** · Your phone is out of reach · Try again | Not gone |
+  | The relay has it | **Sent to your crew** · I'm OK now | Long |
+  | No signal, but a crew phone nearby took it over Bluetooth | **Sent nearby** · Only crew nearby have it so far · I'm OK now | Long |
+  | Still in the phone's outbox after about 8 seconds (5 with no network) | **Not sent yet** · Waiting for signal · Try again | Not gone |
+  | The phone took it but never answered (12 s) | **Not confirmed** · Your phone didn't answer · Try again | Not gone |
+  | Not in a crew | **Not sent** · You're not in a crew, so there's no one to tell | Not gone |
+
+- **Later news reaches the wrist.** If the ping gets further after the watch was answered (a
+  crew phone takes it, or signal comes back), the phone tells the watch, and a screen still
+  showing "Not sent yet" changes to "Sent nearby" or "Sent to your crew" with the long buzz.
+  News only moves forward: "sent" is never taken back (`PingOutcome.improvesOn`, unit-tested).
+  The phone doesn't poll for this; the chat line that carries the outbox's state is Compose
+  state, so it wakes only when that changes, for up to 30 minutes.
+- **Never twice.** "Try again" reuses the same request number. If the phone already has that
+  ping in its outbox it does not send another: it asks the outbox to try now and reports again.
 - After a send, "I'm OK now" tells the crew you're all good. That is part of the safety
   feature, so it is free too.
 - **Never paywalled:** the phone handles Need help (and its all-clear) before, and without,
   the Moshpoint+ check; the watch shows the button in every state, including the locked one
   and the tile.
-
-`sendPing` itself is not changed (the Bluetooth-messaging work is rewriting how pings travel).
-Once that lands, its "Sent / Sent nearby / Waiting for signal" can replace the read-back.
+- **A limit to know about:** while the phone has no signal and you aren't live, Android may
+  put the phone app to sleep once the watch has been answered. The ping stays in the outbox
+  and goes when the app next runs (opening it, or going live). So the wrist says "Not sent
+  yet" and makes no promise about when. **Verify on a watch**; if this turns out to matter, the
+  fix is to hold the phone awake with the watch finder's foreground service until it has gone.
+- How the phone knows: the outbox reports on each of your own messages on its line in the crew
+  chat. The phone side finds the line `sendPing` just added and reads its state. If the chat
+  in memory is another crew's (you were reading it on the phone), it falls back to looking on
+  the relay for its own signed ping. Neither `sendPing` nor the outbox is changed.
 
 ### 9. Moshpoint+ check
 

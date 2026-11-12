@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dutch: the watch app. -->
+<resources>
+    <string name="tile_label">Crewstatus</string>
+    <string name="complication_label">Dichtstbijzijnde vriend</string>
+
+    <string name="crew_title">Je crew</string>
+    <string name="crew_empty">Start een crew op je telefoon</string>
+    <string name="crew_no_phone">Open Moshpoint op je telefoon</string>
+    <string name="crew_stale">Geen verbinding met telefoon</string>
+    <string name="mate_live">live</string>
+    <string name="mate_live_distance">%1$s · %2$s</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">%d min geleden</item>
+        <item quantity="other">%d min geleden</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="one">%d uur geleden</item>
+        <item quantity="other">%d uur geleden</item>
+    </plurals>
+    <string name="ping_on_my_way">Ik kom eraan</string>
+    <string name="ping_all_good">Alles goed</string>
+    <string name="need_help">Hulp nodig</string>
+    <string name="ping_sent">Verstuurd</string>
+    <string name="ping_nearby">Verstuurd in de buurt</string>
+    <string name="ping_waiting">Wacht op bereik</string>
+    <string name="ping_not_sent">Niet verstuurd</string>
+    <string name="ping_not_yet">Nog niet verstuurd</string>
+
+    <string name="find_searching">%1$s zoeken…</string>
+    <string name="find_hold_flat">Hou je pols plat</string>
+    <string name="find_follow_buzz">Volg de trillingen</string>
+    <string name="find_warmer">Ga zo door</string>
+    <string name="find_colder">Draai om</string>
+    <string name="find_no_compass">Dit horloge heeft geen kompas</string>
+    <string name="find_calibrate">Beweeg je pols in een 8</string>
+    <string name="find_connecting">Je telefoon zoeken…</string>
+    <string name="find_reconnecting">Opnieuw verbinden…</string>
+    <string name="find_phone_lost">Geen verbinding met telefoon</string>
+    <string name="find_needs_phone">Open Moshpoint op je telefoon</string>
+    <string name="find_bluetooth_off">Zet Bluetooth aan op je telefoon</string>
+    <string name="find_no_permission">Geef Moshpoint toestemming op je telefoon</string>
+    <string name="find_mate_gone">%1$s zit niet meer in je crew</string>
+    <string name="find_found">Je hebt %1$s gevonden</string>
+    <string name="find_timed_out">Gestopt om de batterij te sparen</string>
+    <string name="find_stopped_on_phone">Gestopt op je telefoon</string>
+    <string name="find_again">Opnieuw zoeken</string>
+    <string name="find_buzz_off">Trillen staat uit op dit horloge</string>
+    <string name="update_phone">Update Moshpoint op je telefoon</string>
+    <string name="update_watch">Update Moshpoint op dit horloge</string>
+    <string name="find_notification">%1$s zoeken</string>
+    <string name="find_channel">Een vriend zoeken</string>
+
+    <string name="unit_m">m</string>
+    <string name="unit_km">km</string>
+    <string name="unit_ft">ft</string>
+    <string name="unit_mi">mi</string>
+    <string name="dist_number_unit">%1$s %2$s</string>
+
+    <string name="sos_hold">Hou vast</string>
+    <string name="sos_hint">Hou vast om je crew te waarschuwen</string>
+    <string name="sos_sending">Versturen…</string>
+    <string name="sos_sent">Verstuurd naar je crew</string>
+    <string name="sos_not_sent">Niet verstuurd</string>
+    <string name="sos_out_of_reach">Geen verbinding met je telefoon</string>
+    <string name="sos_nearby_detail">Alleen crew in de buurt heeft het nu</string>
+    <string name="sos_unconfirmed">Niet bevestigd</string>
+    <string name="sos_no_answer">Je telefoon gaf geen antwoord</string>
+    <string name="sos_no_crew">Je zit niet in een crew, dus er is niemand om te waarschuwen</string>
+    <string name="sos_retry">Probeer opnieuw</string>
+    <string name="sos_im_ok">Het gaat weer goed</string>
+    <string name="sos_ok_sent">Je crew weet dat het goed gaat</string>
+
+    <string name="plus_text">Ontgrendel de horloge-app op je telefoon</string>
+
+    <string name="glance_live_count">%1$d van %2$d live</string>
+    <string name="glance_nearest">%1$s · %2$s</string>
+</resources>

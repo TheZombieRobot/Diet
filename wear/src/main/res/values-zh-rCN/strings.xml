@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Chinese (Simplified): the watch app. -->
+<resources>
+    <string name="tile_label">小队状态</string>
+    <string name="complication_label">最近的朋友</string>
+
+    <string name="crew_title">你的小队</string>
+    <string name="crew_empty">在手机上建个小队</string>
+    <string name="crew_no_phone">在手机上打开 Moshpoint</string>
+    <string name="crew_stale">连不上手机</string>
+    <string name="mate_live">在线</string>
+    <string name="mate_live_distance">%1$s · %2$s</string>
+    <plurals name="time_min_ago">
+        <item quantity="other">%d分钟前</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="other">%d小时前</item>
+    </plurals>
+    <string name="ping_on_my_way">马上到</string>
+    <string name="ping_all_good">一切都好</string>
+    <string name="need_help">需要帮助</string>
+    <string name="ping_sent">已发送</string>
+    <string name="ping_nearby">已发给附近队友</string>
+    <string name="ping_waiting">等待信号</string>
+    <string name="ping_not_sent">未发送</string>
+    <string name="ping_not_yet">还没发送</string>
+
+    <string name="find_searching">正在找 %1$s…</string>
+    <string name="find_hold_flat">把手腕放平</string>
+    <string name="find_follow_buzz">跟着振动走</string>
+    <string name="find_warmer">继续往这边走</string>
+    <string name="find_colder">掉头</string>
+    <string name="find_no_compass">这块手表没有指南针</string>
+    <string name="find_calibrate">用手腕画个 8 字</string>
+    <string name="find_connecting">正在找手机…</string>
+    <string name="find_reconnecting">正在重新连接…</string>
+    <string name="find_phone_lost">连不上手机</string>
+    <string name="find_needs_phone">在手机上打开 Moshpoint</string>
+    <string name="find_bluetooth_off">打开手机上的 Bluetooth</string>
+    <string name="find_no_permission">在手机上给 Moshpoint 开权限</string>
+    <string name="find_mate_gone">%1$s 已不在你的小队里</string>
+    <string name="find_found">你找到 %1$s 了</string>
+    <string name="find_timed_out">为了省电已停止</string>
+    <string name="find_stopped_on_phone">已在手机上停止</string>
+    <string name="find_again">再找一次</string>
+    <string name="find_buzz_off">这块手表的振动关着</string>
+    <string name="update_phone">更新手机上的 Moshpoint</string>
+    <string name="update_watch">更新这块手表上的 Moshpoint</string>
+    <string name="find_notification">正在找 %1$s</string>
+    <string name="find_channel">找朋友</string>
+
+    <string name="unit_m">m</string>
+    <string name="unit_km">km</string>
+    <string name="unit_ft">ft</string>
+    <string name="unit_mi">mi</string>
+    <string name="dist_number_unit">%1$s %2$s</string>
+
+    <string name="sos_hold">按住</string>
+    <string name="sos_hint">按住通知小队</string>
+    <string name="sos_sending">发送中…</string>
+    <string name="sos_sent">已发给小队</string>
+    <string name="sos_not_sent">未发送</string>
+    <string name="sos_out_of_reach">连不上你的手机</string>
+    <string name="sos_nearby_detail">目前只有附近的队友收到</string>
+    <string name="sos_unconfirmed">未确认</string>
+    <string name="sos_no_answer">手机没有回应</string>
+    <string name="sos_no_crew">你不在任何小队里，没有人可以通知</string>
+    <string name="sos_retry">再试一次</string>
+    <string name="sos_im_ok">我没事了</string>
+    <string name="sos_ok_sent">已告诉小队你没事了</string>
+
+    <string name="plus_text">在手机上解锁手表应用</string>
+
+    <string name="glance_live_count">%1$d/%2$d 人在线</string>
+    <string name="glance_nearest">%1$s · %2$s</string>
+</resources>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Korean: the notification shown while the phone finds a mate for your watch. -->
+<resources>
+    <string name="watch_channel">워치용 찾기</string>
+    <string name="watch_finding_title">워치에서 %1$s 찾는 중</string>
+    <string name="watch_finding_text">워치가 찾기를 멈추면 같이 멈춰요</string>
+    <string name="watch_stop">중지</string>
+</resources>

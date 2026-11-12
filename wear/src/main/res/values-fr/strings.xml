@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- French: the watch app. -->
+<resources>
+    <string name="tile_label">Statut de la crew</string>
+    <string name="complication_label">Pote le plus proche</string>
+
+    <string name="crew_title">Ta crew</string>
+    <string name="crew_empty">Lance une crew sur ton téléphone</string>
+    <string name="crew_no_phone">Ouvre Moshpoint sur ton téléphone</string>
+    <string name="crew_stale">Téléphone hors de portée</string>
+    <string name="mate_live">live</string>
+    <string name="mate_live_distance">%1$s · %2$s</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">il y a %d min</item>
+        <item quantity="many">il y a %d min</item>
+        <item quantity="other">il y a %d min</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="one">il y a %d h</item>
+        <item quantity="many">il y a %d h</item>
+        <item quantity="other">il y a %d h</item>
+    </plurals>
+    <string name="ping_on_my_way">J\'arrive</string>
+    <string name="ping_all_good">Tout va bien</string>
+    <string name="need_help">Besoin d\'aide</string>
+    <string name="ping_sent">Envoyé</string>
+    <string name="ping_nearby">Envoyé à proximité</string>
+    <string name="ping_waiting">En attente de réseau</string>
+    <string name="ping_not_sent">Pas envoyé</string>
+    <string name="ping_not_yet">Pas encore envoyé</string>
+
+    <string name="find_searching">On cherche %1$s…</string>
+    <string name="find_hold_flat">Garde ton poignet à plat</string>
+    <string name="find_follow_buzz">Suis les vibrations</string>
+    <string name="find_warmer">Continue par là</string>
+    <string name="find_colder">Fais demi-tour</string>
+    <string name="find_no_compass">Pas de boussole sur cette montre</string>
+    <string name="find_calibrate">Fais un 8 avec ton poignet</string>
+    <string name="find_connecting">On cherche ton téléphone…</string>
+    <string name="find_reconnecting">Reconnexion…</string>
+    <string name="find_phone_lost">Téléphone hors de portée</string>
+    <string name="find_needs_phone">Ouvre Moshpoint sur ton téléphone</string>
+    <string name="find_bluetooth_off">Active le Bluetooth sur ton téléphone</string>
+    <string name="find_no_permission">Accorde les autorisations à Moshpoint sur ton téléphone</string>
+    <string name="find_mate_gone">%1$s n\'est plus dans ta crew</string>
+    <string name="find_found">Tu as trouvé %1$s</string>
+    <string name="find_timed_out">Arrêté pour économiser la batterie</string>
+    <string name="find_stopped_on_phone">Arrêté depuis ton téléphone</string>
+    <string name="find_again">Relancer</string>
+    <string name="find_buzz_off">Les vibrations sont coupées sur cette montre</string>
+    <string name="update_phone">Mets à jour Moshpoint sur ton téléphone</string>
+    <string name="update_watch">Mets à jour Moshpoint sur cette montre</string>
+    <string name="find_notification">On cherche %1$s</string>
+    <string name="find_channel">Recherche d\'un pote</string>
+
+    <string name="unit_m">m</string>
+    <string name="unit_km">km</string>
+    <string name="unit_ft">ft</string>
+    <string name="unit_mi">mi</string>
+    <string name="dist_number_unit">%1$s %2$s</string>
+
+    <string name="sos_hold">Appui long</string>
+    <string name="sos_hint">Maintiens pour prévenir ta crew</string>
+    <string name="sos_sending">Envoi…</string>
+    <string name="sos_sent">Envoyé à ta crew</string>
+    <string name="sos_not_sent">Pas envoyé</string>
+    <string name="sos_out_of_reach">Ton téléphone est hors de portée</string>
+    <string name="sos_nearby_detail">Pour l\'instant, seule la crew à proximité l\'a reçu</string>
+    <string name="sos_unconfirmed">Pas confirmé</string>
+    <string name="sos_no_answer">Ton téléphone n\'a pas répondu</string>
+    <string name="sos_no_crew">Tu n\'es dans aucune crew, donc il n\'y a personne à prévenir</string>
+    <string name="sos_retry">Réessayer</string>
+    <string name="sos_im_ok">Ça va maintenant</string>
+    <string name="sos_ok_sent">Ta crew sait que ça va</string>
+
+    <string name="plus_text">Débloque l\'appli montre sur ton téléphone</string>
+
+    <string name="glance_live_count">%1$d sur %2$d live</string>
+    <string name="glance_nearest">%1$s · %2$s</string>
+</resources>

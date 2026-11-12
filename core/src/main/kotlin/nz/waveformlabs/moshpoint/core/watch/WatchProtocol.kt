@@ -418,19 +418,44 @@ enum class EndReason(val code: Int) {
     }
 }
 
-/** What became of a wrist ping, as far as the phone can honestly tell. */
+/**
+ * What became of a wrist ping, as far as the phone can honestly tell. The phone's outbox
+ * (core Courier) looks after every ping: the relay when there's signal, crew phones nearby
+ * over Bluetooth when there isn't. These are its states, plus the ways a ping never got that far.
+ */
 enum class PingOutcome(val code: Int) {
-    /** The phone found its own signed ping back on the relay: it is out there. */
+    /** The relay has it: the whole crew gets it. */
     SENT(1),
 
-    /** Handed to the phone's ping path, but it couldn't be seen on the relay (no signal?). */
+    /** The phone took it but couldn't say where it got to. (The watch also says this when the phone never answers.) */
     UNCONFIRMED(2),
 
     /** Not in a crew: there is no one to tell. */
     NO_CREW(3),
     NOT_ENTITLED(4),
     FAILED(5),
+
+    /** No signal, but a crew phone nearby has it over Bluetooth. The rest of the crew don't yet. */
+    SENT_NEARBY(6),
+
+    /** In the phone's outbox with nowhere to go yet (no signal, no crew phone nearby). It has not been sent. */
+    WAITING(7),
     UNKNOWN(255);
+
+    /** How far along the ping is: only [WAITING], [SENT_NEARBY] and [SENT] are steps on the way. */
+    private val step: Int
+        get() = when (this) {
+            SENT -> 3
+            SENT_NEARBY -> 2
+            WAITING -> 1
+            else -> 0
+        }
+
+    /**
+     * Is this later news better than [before]? A ping only moves forward (waiting, then sent
+     * nearby, then sent), so an answer that arrives late or out of order never takes "sent" back.
+     */
+    fun improvesOn(before: PingOutcome): Boolean = step > before.step
 
     companion object {
         fun of(code: Int) = entries.firstOrNull { it.code == code } ?: UNKNOWN

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hindi: the notification shown while the phone finds a mate for your watch. -->
+<resources>
+    <string name="watch_channel">आपकी घड़ी के लिए खोज</string>
+    <string name="watch_finding_title">आपकी घड़ी के लिए %1$s को ढूँढ रहे हैं</string>
+    <string name="watch_finding_text">घड़ी के पूछना बंद करते ही रुक जाता है</string>
+    <string name="watch_stop">रोकें</string>
+</resources>

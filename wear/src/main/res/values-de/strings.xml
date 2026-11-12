@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- German: the watch app. -->
+<resources>
+    <string name="tile_label">Crew-Status</string>
+    <string name="complication_label">Am nächsten dran</string>
+
+    <string name="crew_title">Deine Crew</string>
+    <string name="crew_empty">Starte eine Crew auf deinem Handy</string>
+    <string name="crew_no_phone">Öffne Moshpoint auf deinem Handy</string>
+    <string name="crew_stale">Handy außer Reichweite</string>
+    <string name="mate_live">live</string>
+    <string name="mate_live_distance">%1$s · %2$s</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">vor %d Min.</item>
+        <item quantity="other">vor %d Min.</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="one">vor %d Std.</item>
+        <item quantity="other">vor %d Std.</item>
+    </plurals>
+    <string name="ping_on_my_way">Bin unterwegs</string>
+    <string name="ping_all_good">Alles gut</string>
+    <string name="need_help">Brauche Hilfe</string>
+    <string name="ping_sent">Gesendet</string>
+    <string name="ping_nearby">In der Nähe gesendet</string>
+    <string name="ping_waiting">Warte auf Empfang</string>
+    <string name="ping_not_sent">Nicht gesendet</string>
+    <string name="ping_not_yet">Noch nicht gesendet</string>
+
+    <string name="find_searching">Suche %1$s…</string>
+    <string name="find_hold_flat">Halt dein Handgelenk flach</string>
+    <string name="find_follow_buzz">Folge den Vibrationen</string>
+    <string name="find_warmer">Weiter so</string>
+    <string name="find_colder">Dreh um</string>
+    <string name="find_no_compass">Diese Uhr hat keinen Kompass</string>
+    <string name="find_calibrate">Beweg dein Handgelenk in einer Acht</string>
+    <string name="find_connecting">Suche dein Handy…</string>
+    <string name="find_reconnecting">Verbinde neu…</string>
+    <string name="find_phone_lost">Handy außer Reichweite</string>
+    <string name="find_needs_phone">Öffne Moshpoint auf deinem Handy</string>
+    <string name="find_bluetooth_off">Schalte Bluetooth auf deinem Handy ein</string>
+    <string name="find_no_permission">Erlaub Moshpoint die Berechtigungen auf deinem Handy</string>
+    <string name="find_mate_gone">%1$s ist nicht mehr in deiner Crew</string>
+    <string name="find_found">Du hast %1$s gefunden</string>
+    <string name="find_timed_out">Gestoppt, um Akku zu sparen</string>
+    <string name="find_stopped_on_phone">Auf deinem Handy gestoppt</string>
+    <string name="find_again">Nochmal suchen</string>
+    <string name="find_buzz_off">Vibration ist auf dieser Uhr aus</string>
+    <string name="update_phone">Aktualisiere Moshpoint auf deinem Handy</string>
+    <string name="update_watch">Aktualisiere Moshpoint auf dieser Uhr</string>
+    <string name="find_notification">Suche %1$s</string>
+    <string name="find_channel">Freunde finden</string>
+
+    <string name="unit_m">m</string>
+    <string name="unit_km">km</string>
+    <string name="unit_ft">ft</string>
+    <string name="unit_mi">mi</string>
+    <string name="dist_number_unit">%1$s %2$s</string>
+
+    <string name="sos_hold">Halten</string>
+    <string name="sos_hint">Halten, um deiner Crew Bescheid zu sagen</string>
+    <string name="sos_sending">Wird gesendet…</string>
+    <string name="sos_sent">An deine Crew gesendet</string>
+    <string name="sos_not_sent">Nicht gesendet</string>
+    <string name="sos_out_of_reach">Dein Handy ist außer Reichweite</string>
+    <string name="sos_nearby_detail">Bisher hat es nur die Crew in der Nähe</string>
+    <string name="sos_unconfirmed">Nicht bestätigt</string>
+    <string name="sos_no_answer">Dein Handy hat nicht geantwortet</string>
+    <string name="sos_no_crew">Du bist in keiner Crew, also kann niemand Bescheid bekommen</string>
+    <string name="sos_retry">Nochmal versuchen</string>
+    <string name="sos_im_ok">Bin wieder okay</string>
+    <string name="sos_ok_sent">Deine Crew weiß, dass es dir gut geht</string>
+
+    <string name="plus_text">Schalte die Uhr-App auf deinem Handy frei</string>
+
+    <string name="glance_live_count">%1$d von %2$d live</string>
+    <string name="glance_nearest">%1$s · %2$s</string>
+</resources>

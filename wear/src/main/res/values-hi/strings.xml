@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hindi: the watch app. -->
+<resources>
+    <string name="tile_label">ग्रुप स्टेटस</string>
+    <string name="complication_label">सबसे पास का दोस्त</string>
+
+    <string name="crew_title">आपका ग्रुप</string>
+    <string name="crew_empty">अपने फ़ोन पर ग्रुप शुरू करें</string>
+    <string name="crew_no_phone">अपने फ़ोन पर Moshpoint खोलें</string>
+    <string name="crew_stale">फ़ोन कनेक्ट नहीं है</string>
+    <string name="mate_live">लाइव</string>
+    <string name="mate_live_distance">%1$s · %2$s</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">%d मिनट पहले</item>
+        <item quantity="other">%d मिनट पहले</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="one">%d घंटा पहले</item>
+        <item quantity="other">%d घंटे पहले</item>
+    </plurals>
+    <string name="ping_on_my_way">रास्ते में हूँ</string>
+    <string name="ping_all_good">सब ठीक है</string>
+    <string name="need_help">मदद चाहिए</string>
+    <string name="ping_sent">भेजा गया</string>
+    <string name="ping_nearby">आस-पास भेजा गया</string>
+    <string name="ping_waiting">सिग्नल का इंतज़ार</string>
+    <string name="ping_not_sent">नहीं भेजा गया</string>
+    <string name="ping_not_yet">अभी नहीं भेजा गया</string>
+
+    <string name="find_searching">%1$s को ढूँढ रहे हैं…</string>
+    <string name="find_hold_flat">कलाई सपाट रखें</string>
+    <string name="find_follow_buzz">वाइब्रेशन के हिसाब से चलें</string>
+    <string name="find_warmer">इसी तरफ़ चलते रहें</string>
+    <string name="find_colder">पीछे मुड़ें</string>
+    <string name="find_no_compass">इस घड़ी में कम्पास नहीं है</string>
+    <string name="find_calibrate">कलाई को 8 के आकार में घुमाएँ</string>
+    <string name="find_connecting">आपका फ़ोन ढूँढ रहे हैं…</string>
+    <string name="find_reconnecting">फिर से जुड़ रहे हैं…</string>
+    <string name="find_phone_lost">फ़ोन कनेक्ट नहीं है</string>
+    <string name="find_needs_phone">अपने फ़ोन पर Moshpoint खोलें</string>
+    <string name="find_bluetooth_off">अपने फ़ोन पर Bluetooth चालू करें</string>
+    <string name="find_no_permission">अपने फ़ोन पर Moshpoint को अनुमतियाँ दें</string>
+    <string name="find_mate_gone">%1$s अब आपके ग्रुप में नहीं हैं</string>
+    <string name="find_found">आपने %1$s को ढूँढ लिया</string>
+    <string name="find_timed_out">बैटरी बचाने के लिए रुक गया</string>
+    <string name="find_stopped_on_phone">आपके फ़ोन से रोका गया</string>
+    <string name="find_again">फिर ढूँढें</string>
+    <string name="find_buzz_off">इस घड़ी पर वाइब्रेशन बंद है</string>
+    <string name="update_phone">अपने फ़ोन पर Moshpoint अपडेट करें</string>
+    <string name="update_watch">इस घड़ी पर Moshpoint अपडेट करें</string>
+    <string name="find_notification">%1$s को ढूँढ रहे हैं</string>
+    <string name="find_channel">दोस्त को ढूँढना</string>
+
+    <string name="unit_m">m</string>
+    <string name="unit_km">km</string>
+    <string name="unit_ft">ft</string>
+    <string name="unit_mi">mi</string>
+    <string name="dist_number_unit">%1$s %2$s</string>
+
+    <string name="sos_hold">दबाए रखें</string>
+    <string name="sos_hint">ग्रुप को बताने के लिए दबाए रखें</string>
+    <string name="sos_sending">भेज रहे हैं…</string>
+    <string name="sos_sent">आपके ग्रुप को भेज दिया</string>
+    <string name="sos_not_sent">नहीं भेजा गया</string>
+    <string name="sos_out_of_reach">आपका फ़ोन कनेक्ट नहीं है</string>
+    <string name="sos_nearby_detail">अभी सिर्फ़ आस-पास के ग्रुप वालों को मिला है</string>
+    <string name="sos_unconfirmed">कन्फ़र्म नहीं हुआ</string>
+    <string name="sos_no_answer">आपके फ़ोन ने जवाब नहीं दिया</string>
+    <string name="sos_no_crew">आप किसी ग्रुप में नहीं हैं, इसलिए बताने के लिए कोई नहीं है</string>
+    <string name="sos_retry">फिर कोशिश करें</string>
+    <string name="sos_im_ok">अब मैं ठीक हूँ</string>
+    <string name="sos_ok_sent">ग्रुप को बता दिया कि आप ठीक हैं</string>
+
+    <string name="plus_text">अपने फ़ोन पर घड़ी का ऐप अनलॉक करें</string>
+
+    <string name="glance_live_count">%2$d में से %1$d लाइव</string>
+    <string name="glance_nearest">%1$s · %2$s</string>
+</resources>

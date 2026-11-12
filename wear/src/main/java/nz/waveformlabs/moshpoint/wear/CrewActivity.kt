@@ -74,7 +74,8 @@ class CrewActivity : ComponentActivity() {
             flash = PingFate.SENDING
             val fate = Pings.send(this@CrewActivity, kind, Random.nextInt())
             flash = fate
-            Buzzer.play(this@CrewActivity, if (fate == PingFate.SENT) Buzz.PING_SENT else Buzz.FAILED)
+            Buzzer.play(this@CrewActivity, if (fate.went) Buzz.PING_SENT else Buzz.FAILED)
+            // "Sent" needs a glance; anything else needs reading.
             delay(if (fate == PingFate.SENT) 1_600 else 3_500)
             flash = null
         }

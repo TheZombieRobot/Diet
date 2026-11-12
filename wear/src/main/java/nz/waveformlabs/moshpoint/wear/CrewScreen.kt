@@ -159,6 +159,8 @@ private fun PingFlashOverlay(fate: PingFate) {
                     when (fate) {
                         PingFate.SENDING -> R.string.sos_sending
                         PingFate.SENT -> R.string.ping_sent
+                        PingFate.NEARBY -> R.string.ping_nearby
+                        PingFate.WAITING -> R.string.ping_not_yet
                         PingFate.UNCONFIRMED -> R.string.sos_unconfirmed
                         PingFate.LOCKED -> R.string.plus_title
                         PingFate.OUT_OF_REACH, PingFate.NO_CREW -> R.string.ping_not_sent
@@ -168,8 +170,8 @@ private fun PingFlashOverlay(fate: PingFate) {
                     fontSize = 18.sp,
                     color = when (fate) {
                         PingFate.SENDING -> Wrist.TextDim
-                        PingFate.SENT -> Wrist.Lime
-                        PingFate.UNCONFIRMED -> Wrist.Amber
+                        PingFate.SENT, PingFate.NEARBY -> Wrist.Lime
+                        PingFate.WAITING, PingFate.UNCONFIRMED -> Wrist.Amber
                         PingFate.LOCKED -> Wrist.Pink
                         PingFate.OUT_OF_REACH, PingFate.NO_CREW -> Wrist.Help
                     },
@@ -178,7 +180,9 @@ private fun PingFlashOverlay(fate: PingFate) {
             )
             val detail = when (fate) {
                 PingFate.OUT_OF_REACH -> R.string.sos_out_of_reach
-                PingFate.UNCONFIRMED -> R.string.sos_no_signal
+                PingFate.NEARBY -> R.string.sos_nearby_detail
+                PingFate.WAITING -> R.string.ping_waiting
+                PingFate.UNCONFIRMED -> R.string.sos_no_answer
                 PingFate.NO_CREW -> R.string.sos_no_crew
                 PingFate.LOCKED -> R.string.plus_text
                 PingFate.SENDING, PingFate.SENT -> null

@@ -33,6 +33,8 @@ class WatchProtocolTest {
             WatchMessage.FindUpdate(7, 3, FindStatus.NEEDS_PHONE, WristReading.NONE),
             WatchMessage.FindEnded(7, EndReason.LEASE_EXPIRED),
             WatchMessage.PingResult(41, PingOutcome.SENT),
+            WatchMessage.PingResult(41, PingOutcome.SENT_NEARBY),
+            WatchMessage.PingResult(42, PingOutcome.WAITING),
             WatchMessage.VersionNotice(1, 3),
         )
         for (m in all) assertEquals(m, roundTrip(m))
@@ -73,7 +75,7 @@ class WatchProtocolTest {
         assertEquals(listOf(1, 2, 3, 4, 0), PingKind.entries.map { it.code })
         assertEquals(listOf(0, 1, 2, 3, 4, 5, 255), FindStatus.entries.map { it.code })
         assertEquals(listOf(1, 2, 3, 4, 5, 255), EndReason.entries.map { it.code })
-        assertEquals(listOf(1, 2, 3, 4, 5, 255), PingOutcome.entries.map { it.code })
+        assertEquals(listOf(1, 2, 3, 4, 5, 6, 7, 255), PingOutcome.entries.map { it.code })
         // Every method has its own number, whatever order the enum is in.
         val codes = Method.entries.map { m ->
             val r = WristReading(WristReading.Kind.DISTANCE_ONLY, distanceM = 1.0, method = m)
@@ -126,6 +128,25 @@ class WatchProtocolTest {
         val u = assertIs<WatchMessage.FindUpdate>(assertIs<Decoded.Ok>(WatchProtocol.decode(odd)).message)
         assertEquals(FindStatus.UNKNOWN, u.status)
         assertNull(u.reading.method)
+    }
+
+    @Test fun aPingOnlyEverMovesForward() {
+        // Waiting, then sent nearby, then sent: later news may only be better news.
+        assertTrue(PingOutcome.SENT_NEARBY.improvesOn(PingOutcome.WAITING))
+        assertTrue(PingOutcome.SENT.improvesOn(PingOutcome.SENT_NEARBY))
+        assertTrue(PingOutcome.SENT.improvesOn(PingOutcome.WAITING))
+        // An answer that never came ("not confirmed") is improved on by any real state.
+        assertTrue(PingOutcome.WAITING.improvesOn(PingOutcome.UNCONFIRMED))
+        assertTrue(PingOutcome.SENT.improvesOn(PingOutcome.UNCONFIRMED))
+        // A late or repeated answer never takes "sent" back, and the same news twice is not news.
+        assertFalse(PingOutcome.WAITING.improvesOn(PingOutcome.SENT))
+        assertFalse(PingOutcome.SENT_NEARBY.improvesOn(PingOutcome.SENT))
+        assertFalse(PingOutcome.WAITING.improvesOn(PingOutcome.SENT_NEARBY))
+        for (o in PingOutcome.entries) assertFalse(o.improvesOn(o))
+        // Failures aren't steps: nothing they say replaces a state the outbox reported.
+        for (bad in listOf(PingOutcome.FAILED, PingOutcome.UNCONFIRMED, PingOutcome.NO_CREW, PingOutcome.NOT_ENTITLED, PingOutcome.UNKNOWN)) {
+            for (o in PingOutcome.entries) assertFalse(bad.improvesOn(o))
+        }
     }
 
     @Test fun rubbishAndCutOffFramesAreRejected() {
