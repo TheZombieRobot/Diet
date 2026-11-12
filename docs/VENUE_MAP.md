@@ -11,65 +11,57 @@ unit-tested here, the app is compiled and screenshot-tested by CI, and the rest 
 
 ## Status and next steps
 
-**Paused on 11 November 2026, part-way through step 6.** Everything written is committed and
-pushed. This section is the handover: what is done, what is only written, and what to do next.
+**Handover, 12 November 2026.** Everything below is committed and pushed on
+`claude/venue-map-offline-placement-l4e5pc`; nothing is half-done.
 
 | Step | State |
 |---|---|
 | 1. This document | done |
-| 2. Core logic + unit tests (floor maths, at-the-gig rule, placement, map plan, floor record, advert pressure) | **done, green in CI.** `Floors.kt`, `FloorBox.kt`, `Venue.kt`, `VenueMapPlan.kt`, `Advert.kt` in `core`; 159 core tests |
+| 2. Core logic + unit tests (floor maths, at-the-gig rule, placement, map plan, floor record, advert pressure) | **done, green in CI.** `Floors.kt`, `FloorBox.kt`, `Venue.kt`, `VenueMapPlan.kt`, `Advert.kt` in `core`; 162 core tests |
 | 3. App: automatic offline venue map, crew card line, "Save this area" removed; server `/v1/venue` | **done, builds in CI** (debug and release). `venue/VenueMaps.kt`, `VenueStyle.kt`, `VenueLookup.kt`, `ui/VenueUi.kt`; server `VenueLookup.kt` with 8 tests |
-| 4. App: map opens on the venue at the gig; UWB mates placed around you | **done, builds in CI** (run 192, commit `74d00fd`). `MapScreen.kt`, `FriendMap.kt`, `LocatorEngine.uwbSpots`, `MainActivity.openMap` |
-| 5. App: upstairs/downstairs tags (barometer, sharing, calibration) | **done, builds in CI** (same run). `venue/Floors.kt`; tags in the finder and on map pins |
-| 6. Strings in 19 languages; app tests in their own classes | strings **done** (CI's translation check passes). Tests **written, not yet seen passing**: see below |
-| 7. Field test section; privacy, architecture and roadmap notes | field test **drafted** (`FIELD_TEST_PLAN.md` section 5); the other notes **not started** |
+| 4. App: map opens on the venue at the gig; UWB mates placed around you | **done, builds in CI.** `MapScreen.kt`, `FriendMap.kt`, `LocatorEngine.uwbSpots`, `MainActivity.openMap` |
+| 5. App: upstairs/downstairs tags (barometer, sharing, calibration) | **done, builds in CI.** `venue/Floors.kt`; tags in the finder and on map pins |
+| 6. Strings in 19 languages; app tests in their own classes | **done, passing in CI.** `strings_venue.xml`; `VenueLogicTest` (6 tests); `VenueSnapshotTest` (screenshots, below) |
+| 7. Field test; privacy, architecture and roadmap notes | **done.** `FIELD_TEST_PLAN.md` section 3b; `ARCHITECTURE.md`, `PRIVACY.md`, `ROADMAP.md` |
 
-Nothing has run on a real phone. The app can't be built where this was written (no Android
-SDK), so the app code has only ever been compiled and tested by CI.
+**Nothing has run on a real phone.** The app can't be built where this was written (no Android
+SDK), so the app code has only ever been compiled and tested by CI. The next step is the
+field test, and the first thing it will show is whether the saved map draws in airplane mode.
 
-### What was in progress when it paused
+### What is checked, and how
 
-Commit `7c86b6a` added two test files under `app/src/test/java/nz/waveformlabs/moshpoint/venue/`:
+- `core` and `server`: unit tests, run locally and by CI on every push.
+- The app's text-in, text-out code (`VenueStyle`, reading Nominatim's answer): `VenueLogicTest`,
+  on the JVM with the real `org.json`. The rewritten styles were also checked against
+  OpenFreeMap's three real style files: every label layer ends up on the one font.
+- Screens: `VenueSnapshotTest` draws, in every language, the crew card with the offline-map
+  line (`venueCard`), the line's four states (`venueLines`) and the finder with floor tags
+  (`venueFinder`); and in English the tagged arrow under 3 m with no "found them"
+  (`venueUpstairs`), the Bluetooth-only view (`venueClose`), the map's pin faces (`venuePins`)
+  and the map's list at the gig (`venueMapList`). The pictures are in `docs/screenshots`
+  (`venueCard.png`, `de-venueCard.png`, ...) and have been looked at.
+- CI's screenshot step may fail without turning the run red (`continue-on-error`). To be sure
+  the app's tests passed, open that step's log: silence means they passed, and failures are
+  listed under `=== failing screenshot tests ===`.
+- Not checkable without a phone: everything MapLibre does with the saved map, the pressure
+  sensor, Bluetooth adverts with pressure in them, UWB placement on the map.
 
-- `VenueLogicTest.kt` (6 tests: style rewriting, the pack style, font addresses, reading
-  Nominatim's answer). These pass in a scratch JVM build with the real `org.json`, the same
-  library version `app/build.gradle.kts` now adds for tests. Not yet seen passing in CI.
-- `VenueSnapshotTest.kt` (screenshots). **Never compiled or run.** In every language:
-  `venueCard` (home with the offline-map line), `venueLines` (the line's four states),
-  `venueFinder` (crew radar and strip with floor tags). English only
-  (`VenueMoreSnapshotTest`): `venueUpstairs`, `venueClose`, `venuePins`, `venueMapList`. The
-  per-language classes are named `Lang_<xx>` in their own package, because CI's file naming
-  looks for `_Lang_<xx>_`; the pictures land in `docs/screenshots` as `venueCard.png`,
-  `de-venueCard.png` and so on.
+### What's left
 
-CI run 195 was building that commit when work stopped.
-
-### Next steps, in order
-
-1. **Read the result of the newest CI run on this branch.** The screenshot step is allowed to
-   fail without turning the run red (`continue-on-error`), so open the log of "Screenshots of
-   every screen" and look for `=== failing screenshot tests ===`, or for `e: ` lines if the
-   test file doesn't compile. Fix what it says. Likely trouble: a wrong parameter name in the
-   `FriendsScreen` / `MapScreen` / `FinderScreen` calls in `VenueSnapshotTest.kt`.
-2. **Look at the pictures** CI commits to `docs/screenshots` (`venue*.png`, and the `de-`,
-   `ar-`, `ja-`, `en-rUS-` copies). Things to check, none seen yet: the tag on a face in the
-   finder's strip (it sits 6 dp over the bottom of the face and may crowd the name under it,
-   and "↓ Downstairs" is wider than the face); the tag on the big arrow and on radar bubbles;
-   the pin faces in `venuePins`; long card lines in German, Polish and Thai.
-3. **Finish the field test section** (`FIELD_TEST_PLAN.md`, section 5). Its button names
-   were checked against the strings; the timings in 5e (half a minute for a tag, a minute
-   over the relay) are reasoned from the code, not measured.
-4. **Notes not started:** a venue-map paragraph in `ARCHITECTURE.md`; pressure, venue lookup
-   and map downloads in `PRIVACY.md`; mark the free half of step 2 in `ROADMAP.md`.
-5. ~~The stale-advert design point~~ **decided and built:** while a mate is side by side the
-   advert follows your pressure to one step (see "The maths"). Still to check on a phone: that
-   restarting the broadcast about once a minute while together does no harm.
-6. Optional: a floors summary in `tools/analyze_recording.py` (rows `baro`, `baro_mate`,
-   `baro_cal` are already in the recordings; the tool ignores them today).
-7. **Done means** (from the task): CI green; the unit tests above; the screenshot tests; the
-   field test. Then report: what was built, that nothing has run on a phone, the 18 MB
-   finding and the pack built instead, and that venue lookups without our own relay server
-   go straight to Nominatim and stop for good if it ever turns the app away.
+1. **Field test**, section 3b of [FIELD_TEST_PLAN.md](FIELD_TEST_PLAN.md). Then tune from the
+   recordings: `python3 tools/analyze_recording.py <file.csv>` now prints a floors summary
+   (each calibration, the height after every mark, the height through the recording).
+2. **Merge with the Bluetooth branch** (see "Other apps, older versions, shared files").
+3. Numbers that are first guesses until then: the size of a saved map (2–4 MB of tiles), the
+   floor threshold (2.5 m), calibration drift (0.3 m an hour), "together" (2 m by UWB, 1.5 m
+   by Bluetooth).
+4. Before a public launch: deploy the relay server, so venue lookups go through it and not
+   straight to Nominatim (section 1, "Venue lookup").
+5. Small things noticed and left alone, because they aren't this work: the crew radar's
+   boxed label runs off the screen for a mate due east or west at the outer ring; and CI's
+   lint report has one old error: `FinderStates.kt` vibrates the phone but the manifest never
+   asks for the `VIBRATE` permission, so the finder's "getting warmer" buzz is probably being
+   refused silently (the error is caught).
 
 ### How to work on it
 
@@ -79,8 +71,6 @@ CI run 195 was building that commit when work stopped.
   changed screenshots back to the branch, so `git pull --rebase` before each push.
 - `core` and `server` tests run anywhere with Gradle and a JDK. The `app` module needs the
   Android SDK.
-- Another session is building Bluetooth messaging: new strings only in `strings_venue.xml`,
-  and keep out of `GroupSync.kt`, `CrowdRelay.kt` and `LocationBox.kt` (untouched so far).
 
 ## What you see
 
@@ -373,8 +363,25 @@ live or the app is open. The advert is updated when your pressure has moved by 0
   to the map), `MainActivity.kt` (wiring).
 - New text only in `strings_venue.xml`. The old "Save this area" strings are removed from
   `strings_find.xml` in every language, in a commit of their own.
-- New screenshot tests are in their own class, `VenueSnapshotTest`.
+- New screenshot tests are in their own classes (`VenueSnapshotTest`, `VenueMoreSnapshotTest`)
+  and their own package, `nz.waveformlabs.moshpoint.venue`.
 - The relay server gains one endpoint, `GET /v1/venue?q=`, used only for the venue lookup.
+
+**Merging with the Bluetooth branch (`ccr-89acfff3-nbj8aa`).** A trial merge on 12 November
+(its commit `36a5ee1`) goes through with no conflicts. That took three adjustments on this
+side, worth knowing if either branch moves again:
+
+- `AndroidManifest.xml`: both branches add `ACCESS_NETWORK_STATE`. This side uses the other
+  branch's comment and line word for word, so git keeps one copy. After merging, the comment
+  could also mention the venue map (it waits for a connection the same way).
+- `VisibilityService.onDestroy`: the floor sensor is released at the end of the
+  `if (rotateJob != null)` block; the other branch adds its line at the start.
+- Docs: this side's additions sit away from the other's (the field test is section 3b, before
+  Crowds; the privacy policy's date line and permissions table are left to the other branch,
+  whose "View network connections" row covers this side's use of the permission too).
+
+After merging: CI redraws every screenshot, and `strings_find.xml` no longer has the six
+"Save this area" strings, in any language.
 
 ## 6. Privacy
 

@@ -11,7 +11,9 @@ Prints:
   * a fit of the Bluetooth path-loss constants (rssiAt1m, exponent) to the marked
     distances, to paste into RssiRanging.kt,
   * the timeline of method hand-overs,
-  * gaps where nothing was heard from a friend for a while.
+  * gaps where nothing was heard from a friend for a while,
+  * upstairs/downstairs: each calibration, how high the app thought each mate was after
+    every mark and through the recording (for tuning the floor threshold and drift).
 
 Standard library only.
 """
@@ -138,6 +140,71 @@ def gaps(rows, out, min_gap_ms=30_000):
         out.append("    none")
 
 
+HPA_RE = re.compile(r"hPa=([0-9.]+);mine=([0-9.]+)")
+OFFSET_RE = re.compile(r"offset_hPa=(-?[0-9.]+)")
+SCALE_HEIGHT_M = 8581.0  # as core Baro.SCALE_HEIGHT_M
+FLOOR_M = 2.5  # as core FloorConfig.floorM: the least height the app ever calls a floor
+
+
+def floors(rows, out):
+    """Upstairs/downstairs: rows baro_cal (a calibration) and baro_mate (a mate's pressure with ours)."""
+    mates = sorted({r["friend"] for r in rows if r["event"] == "baro_mate" and r["friend"]})
+    out.append("\nFloors (pressure):")
+    if not mates:
+        out.append("    no pressure heard from a mate (both phones need the sensor, and to be live)")
+        return
+    marks = [r for r in rows if r["event"] == "mark"]
+    for friend in mates:
+        cals = []  # (time, offset hPa, method)
+        for r in rows:
+            m = OFFSET_RE.search(r["note"] or "") if r["event"] == "baro_cal" and r["friend"] == friend else None
+            if m:
+                cals.append((r["t"], float(m.group(1)), r["method"] or "?"))
+        heights = []  # (time, metres the mate is above this phone)
+        early = 0
+        for r in rows:
+            m = HPA_RE.search(r["note"] or "") if r["event"] == "baro_mate" and r["friend"] == friend else None
+            if not m:
+                continue
+            theirs, mine = float(m.group(1)), float(m.group(2))
+            offset = next((o for t, o, _ in reversed(cals) if t <= r["t"]), None)
+            if offset is None:
+                early += 1
+                continue
+            heights.append((r["t"], SCALE_HEIGHT_M * math.log(mine / (theirs + offset))))
+        out.append(f"  {friend}: {len(heights) + early} readings, {len(cals)} calibration{'' if len(cals) == 1 else 's'}")
+        if not cals:
+            out.append("    never calibrated: the phones weren't side by side for long enough (or at all)")
+            continue
+        first, last = cals[0], cals[-1]
+        out.append(f"    first calibration [{fmt_t(rows, first[0])}] by {first[2]}, offset {first[1]:+.2f} hPa"
+                   + (f"; last [{fmt_t(rows, last[0])}] by {last[2]}, offset {last[1]:+.2f} hPa" if len(cals) > 1 else ""))
+        if len(cals) > 1:
+            offs = [o for _, o, _ in cals]
+            out.append(f"    offsets ranged {min(offs):+.2f} to {max(offs):+.2f} hPa: {(max(offs) - min(offs)) * 100 / 12:.1f} m of drift or error between calibrations")
+        if early:
+            out.append(f"    {early} readings came before the first calibration (no tag possible then)")
+        if not heights:
+            continue
+        # After each mark: what the app thought, for half a minute (a tag takes that long to settle).
+        for mk in marks:
+            hs = [h for t, h in heights if 0 <= t - mk["t"] <= 30_000]
+            if hs:
+                med = statistics.median(hs)
+                tag = "would tag upstairs" if med >= FLOOR_M else "would tag downstairs" if med <= -FLOOR_M else "no tag"
+                out.append(f"    [{fmt_t(rows, mk['t'])}] mark \"{mk['note']}\": {med:+.1f} m  (n={len(hs)}, {tag})")
+        # Through the recording, ten minutes at a time: on the same floor this should stay near 0.
+        out.append("    height, ten minutes at a time (median, lowest to highest):")
+        t0 = rows[0]["t"]
+        buckets = defaultdict(list)
+        for t, h in heights:
+            buckets[(t - t0) // 600_000].append(h)
+        for b in sorted(buckets):
+            hs = buckets[b]
+            out.append(f"      {b * 10:3d}-{b * 10 + 10:<3d} min: {statistics.median(hs):+5.1f} m  ({min(hs):+.1f} to {max(hs):+.1f}, n={len(hs)})")
+    out.append(f"    A tag needs {FLOOR_M} m or more (more as the calibration ages). Tune in core FloorConfig.")
+
+
 def fmt_t(rows, t):
     s = (t - rows[0]["t"]) / 1000
     return f"{int(s // 60):02d}:{int(s % 60):02d}"
@@ -153,6 +220,7 @@ def analyse(path):
     fit_path_loss(pairs, out)
     timeline(rows, out)
     gaps(rows, out)
+    floors(rows, out)
     return out
 
 
