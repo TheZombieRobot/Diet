@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -82,15 +83,19 @@ internal fun PrivateChatScreen(
             TextButton(onClick = onBack) { Text("‹", style = Mosh.Heading.copy(fontSize = 28.sp)) }
             Column(Modifier.weight(1f)) {
                 Text(name, style = Mosh.Heading.copy(fontSize = 20.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                // Wraps rather than being cut short: "only you two can read it" is the point of the line,
+                // and in German, Spanish, French, Dutch, Polish... it doesn't fit beside the button.
                 Text(
                     stringResource(R.string.private_subtitle),
-                    style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint), maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 15.sp, color = Mosh.TextFaint), maxLines = 3, overflow = TextOverflow.Ellipsis,
                 )
             }
-            TextButton(onClick = { onMute(!muted) }) {
+            // A long "Unmute" ("Stummschaltung aufheben") takes two lines rather than the name's room.
+            TextButton(onClick = { onMute(!muted) }, modifier = Modifier.widthIn(max = 160.dp)) {
                 Text(
                     stringResource(if (muted) R.string.private_unmute else R.string.private_mute),
-                    style = Mosh.Label.copy(fontSize = 15.sp, color = if (muted) Mosh.Amber else Mosh.TextDim),
+                    style = Mosh.Label.copy(fontSize = 15.sp, lineHeight = 18.sp, color = if (muted) Mosh.Amber else Mosh.TextDim),
+                    textAlign = TextAlign.End, maxLines = 2, overflow = TextOverflow.Ellipsis,
                 )
             }
         }
