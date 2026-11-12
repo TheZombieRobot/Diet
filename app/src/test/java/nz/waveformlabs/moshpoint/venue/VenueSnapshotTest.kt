@@ -42,7 +42,6 @@ import nz.waveformlabs.moshpoint.core.VenuePlacement
 import nz.waveformlabs.moshpoint.ui.FinderScreen
 import nz.waveformlabs.moshpoint.ui.FriendsScreen
 import nz.waveformlabs.moshpoint.ui.MapPin
-import nz.waveformlabs.moshpoint.ui.MapPlace
 import nz.waveformlabs.moshpoint.ui.MapScreen
 import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.MoshTheme
@@ -165,7 +164,7 @@ open class VenueSnapshotTest : VenueSnapshots() {
         "Iron Maiden",
         listOf(
             ArrowState.Pointing("sam", 20.0, 6.0, Method.UWB, false),
-            ArrowState.Pointing("alex", 95.0, 45.0, Method.GPS_SERVER, false),
+            ArrowState.Pointing("alex", 60.0, 45.0, Method.GPS_SERVER, false),
             ArrowState.Pointing("jo", 215.0, 14.0, Method.UWB, false),
             ArrowState.DistanceOnly("mia", 9.0, Trend.WARMER, Method.BLE_RSSI),
         ),
@@ -213,7 +212,7 @@ class VenueMoreSnapshotTest : VenueSnapshots() {
     /**
      * The map opened at the gig. The map itself can't be drawn here, but its list can: Sam is
      * placed by UWB (measured distance), Mia is heard on Bluetooth only (how close, never a
-     * pin), Alex shares GPS and Jo shares nothing.
+     * pin), Alex shares GPS and Jo shares nothing. Mates measured or heard right now come first.
      */
     @Test fun venueMapList() = snap {
         MoshTheme {
@@ -226,7 +225,6 @@ class VenueMoreSnapshotTest : VenueSnapshots() {
                 status = "Updated just now",
                 nowMs = 1_000_000_000L,
                 onFind = {}, onDirections = { _, _ -> }, onNudge = {}, onBack = {},
-                places = listOf(MapPlace("r", "Sound desk", -36.8469, 174.7764, meetUp = true)),
                 inCrew = true,
                 liveMap = false,
                 venueView = VenueView(venue, me),
