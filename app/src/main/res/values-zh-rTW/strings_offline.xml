@@ -5,6 +5,7 @@
     <string name="offline_state_sent">已傳送</string>
     <string name="offline_state_nearby">已傳給附近隊友</string>
     <string name="offline_state_waiting">等待訊號</string>
+    <string name="offline_state_not_sent">未傳送</string>
     <string name="offline_hint_bluetooth">沒訊號。訊息會透過 Bluetooth 傳給附近的小隊手機，只要有人有訊號就會送出。</string>
     <string name="offline_hint_go_live">沒訊號。點「上線」，訊息就會透過 Bluetooth 傳給附近的小隊手機。</string>
     <string name="offline_hint_bluetooth_off">沒訊號，Bluetooth 也沒開。打開後，訊息會傳給附近的小隊手機。</string>

@@ -57,7 +57,8 @@ object CrewRekey {
         // The same notice in two forms: the fuller one names the removed key; the older one is
         // for phones that haven't updated (with a mark telling newer ones to wait for the fuller).
         val pending = JSONObject().put("old", b64(g.key)).put("name", g.name)
-            .put("payload", b64(RekeyPolicy.payloadOld(fresh.key, removedName, twin = true)))
+            // (The mark is only for a removal: on a reset an older build would show it as a removed person with no name.)
+            .put("payload", b64(RekeyPolicy.payloadOld(fresh.key, removedName, twin = removedPub != null && !removedName.isNullOrBlank())))
             .put("payload2", b64(RekeyPolicy.payload(fresh.key, listOfNotNull(removedPub), removedName)))
             .put("to", JSONArray(recipients.map { b64(it) })).put("since", System.currentTimeMillis()).put("sent", 0L)
             .put("signer", GigArchive.idFor(g)).put("now", b64(fresh.key))
@@ -128,7 +129,16 @@ object CrewRekey {
         return unsent.value.isNotEmpty() && b64(g.key) in unsent.value
     }
 
-    /** From each chat check: send (or re-send) any new keys still within their few days. */
+    /** Rounds of sending under way (by the entry's start time), so two chat checks don't send the same one at once. */
+    private val sending = HashSet<Long>()
+
+    /**
+     * From each chat check: send (or re-send) any new keys still within their few days.
+     *
+     * A round goes to everyone, every six hours. It only counts as sent once the relay has
+     * taken every notice: whoever is left over (the relay asked us to slow down, the signal
+     * dropped) gets theirs at the next chat check, not six hours later.
+     */
     fun resend(c: Context) {
         val app = c.applicationContext
         val arr = pending(app)
@@ -136,35 +146,67 @@ object CrewRekey {
         val now = System.currentTimeMillis()
         for (i in 0 until arr.length()) {
             val o = arr.optJSONObject(i) ?: continue
-            if (now - o.optLong("since") > RESEND_FOR_MS) continue
+            val since = o.optLong("since")
+            if (now - since > RESEND_FOR_MS) continue
             keep.put(o)
-            if (now - o.optLong("sent") < RESEND_EVERY_MS) continue
-            // With no network, leave it marked unsent so it goes as soon as there is one.
-            if (RelayClient.offline) continue
+            val left = o.optJSONArray("left")?.takeIf { it.length() > 0 }
+            if (left == null && now - o.optLong("sent") < RESEND_EVERY_MS) continue
+            // With no network, leave it unsent so it goes as soon as there is one.
+            if (RelayClient.offline || since in sending) continue
             val old = GigGroup(unb64(o.getString("old")), o.optString("name"), 0L)
             val signer = Identity.signerById(app, o.getString("signer")) ?: continue
             val payload = unb64(o.getString("payload"))
             val payload2 = o.optString("payload2").takeIf { it.isNotEmpty() }?.let { unb64(it) }
-            val to = o.getJSONArray("to")
-            o.put("sent", now)
+            val to = left ?: o.getJSONArray("to")
+            val recipients = (0 until to.length()).map { to.getString(it) }
+            sending += since
             scope.launch {
-                for (j in 0 until to.length()) {
-                    val toPub = unb64(to.getString(j))
+                var failedFrom = recipients.size
+                for ((j, recipient) in recipients.withIndex()) {
+                    val toPub = unb64(recipient)
+                    var ok = true
                     // The fuller form first, so it reaches the relay first.
                     if (payload2 != null) {
                         old.sealDirect(signer, toPub, GigGroup.DIRECT_REKEY2, payload2, now / 1000)?.let { blob ->
                             ChatSync.markSeen(blob)
-                            RelayClient.putHeld(old.chatIdForDay(today()), blob)
+                            ok = RelayClient.putHeld(old.chatIdForDay(today()), blob)
                         }
                     }
-                    val blob = old.sealDirect(signer, toPub, REKEY, payload, now / 1000) ?: continue
-                    ChatSync.markSeen(blob)
-                    RelayClient.putHeld(old.chatIdForDay(today()), blob)
+                    if (ok) {
+                        old.sealDirect(signer, toPub, REKEY, payload, now / 1000)?.let { blob ->
+                            ChatSync.markSeen(blob)
+                            ok = RelayClient.putHeld(old.chatIdForDay(today()), blob)
+                        }
+                    }
+                    if (!ok) {
+                        // The relay isn't taking them just now: this one and the rest wait for the next chat check.
+                        failedFrom = j
+                        break
+                    }
                 }
+                roundEnded(app, since, recipients.subList(failedFrom, recipients.size))
+                sending -= since
             }
         }
         prefs(app).edit().putString("pending", keep.toString()).apply()
         noteUnsent(keep)
+    }
+
+    /** A round of sending for the entry begun at [since] ended; [left] still haven't had theirs. */
+    private fun roundEnded(c: Context, since: Long, left: List<String>) {
+        val arr = pending(c)
+        for (i in 0 until arr.length()) {
+            val o = arr.optJSONObject(i) ?: continue
+            if (o.optLong("since") != since) continue
+            if (left.isEmpty()) {
+                o.put("sent", System.currentTimeMillis())
+                o.remove("left")
+            } else {
+                o.put("left", JSONArray(left))
+            }
+        }
+        prefs(c).edit().putString("pending", arr.toString()).apply()
+        noteUnsent(arr)
     }
 
     // ---- Receiving ----

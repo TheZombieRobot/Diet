@@ -5,6 +5,7 @@
     <string name="offline_state_sent">भेजा गया</string>
     <string name="offline_state_nearby">आस-पास भेजा गया</string>
     <string name="offline_state_waiting">सिग्नल का इंतज़ार</string>
+    <string name="offline_state_not_sent">नहीं भेजा गया</string>
     <string name="offline_hint_bluetooth">सिग्नल नहीं है। मैसेज Bluetooth से आस-पास के ग्रुप वालों के फ़ोन तक पहुँचते हैं, और जैसे ही किसी को सिग्नल मिलता है, भेज दिए जाते हैं।</string>
     <string name="offline_hint_go_live">सिग्नल नहीं है। लाइव हों पर टैप करें, फिर मैसेज Bluetooth से आस-पास के ग्रुप वालों के फ़ोन तक पहुँचेंगे।</string>
     <string name="offline_hint_bluetooth_off">सिग्नल नहीं है, और Bluetooth बंद है। इसे चालू करें, फिर मैसेज आस-पास के ग्रुप वालों के फ़ोन तक पहुँचेंगे।</string>

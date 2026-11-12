@@ -204,15 +204,29 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
      * on by Bluetooth. The caller still shows them as it always did.
      * [inUploadBox]: how many of them are in the mailbox an upload would go to now (today's
      * chat mailbox, not yesterday's).
+     *
+     * Returns the ids of the messages this phone had never met before, by any route. That
+     * record outlives the chat's last 150 lines and a restart, so it's what decides whether a
+     * late Need help still raises its alert.
      */
-    fun fetched(c: Context, g: GigGroup, box: Courier.Box, blobs: List<ByteArray>, inUploadBox: Int = blobs.size) {
+    fun fetched(c: Context, g: GigGroup, box: Courier.Box, blobs: List<ByteArray>, inUploadBox: Int = blobs.size): Set<Long> {
         init(c)
         val a = c.applicationContext
         syncCrews(a)
         val t = now()
         courier.setOnline(!RelayClient.offline, t)
-        courier.fetched(GigArchive.idFor(g), box, blobs, t, inUploadBox)
+        val fresh = courier.fetched(GigArchive.idFor(g), box, blobs, t, inUploadBox).filter { it.fresh }.map { it.id }.toSet()
         courier.tick(t)
+        save()
+        return fresh
+    }
+
+    /** Is the courier keeping a meet-up pin of ours for [g] on the relay? */
+    fun holdsPin(g: GigGroup): Boolean = courier.holdsOwnPin(GigArchive.idFor(g))
+
+    /** A newer pin (or a removal) for [g] arrived, possibly unsigned from an older build: an older one mustn't be put back. */
+    fun pinSuperseded(g: GigGroup, timeSec: Long) {
+        courier.pinSuperseded(GigArchive.idFor(g), timeSec)
         save()
     }
 
@@ -312,7 +326,8 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
             scope.launch { onPacket(bytes) }
             return
         }
-        courier.onPacket(bytes, now())
+        // Whatever is on the air, it must never take the scan (or the app) down with it.
+        runCatching { courier.onPacket(bytes, now()) }
         save()
     }
 
@@ -331,7 +346,7 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
             pin != null -> if (isMain(g)) GroupSync.onRally(c, pin)
             ping == null -> Unit
             PingPolicy.group(ping.kind) == PingPolicy.Group.CHAT -> ChatSync.arrived(c, g, ping)
-            else -> if (isMain(g)) GroupSync.arrived(c, ping, message.sealed)
+            else -> if (isMain(g)) GroupSync.arrived(c, ping, message.sealed, fresh = true)
         }
     }
 

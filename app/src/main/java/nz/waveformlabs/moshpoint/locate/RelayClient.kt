@@ -85,6 +85,7 @@ object RelayClient {
      * (kept for days on our own server; the public relay has only one kind of mailbox).
      */
     suspend fun send(id: ByteArray, sealed: ByteArray, use: RelayUse, held: Boolean = false): PutResult = withContext(Dispatchers.IO) {
+        waitForRoom(use)
         if (ownServer) {
             return@withContext ownPut("$base/v1/${if (held) "held" else "box"}/${id.hex()}", sealed, if (held) 6_000 else 5_000, use)
         }
@@ -394,9 +395,13 @@ object RelayClient {
     /** The free public relay's limits (see core [RelayBudget]). */
     private val publicBudget = RelayBudget()
 
-    /** Our own server has no daily limit: this one only keeps the back-off after "too many" or no answer. */
+    /**
+     * Our own server has no daily limit: this one only keeps the back-off after "too many" or
+     * no answer. Its limiter refills every second, so the pause is seconds, not minutes.
+     */
     private val ownBudget = RelayBudget(
         messagesPerDay = 1_000_000, requestsPerMinute = 600, messageReserve = 0, safetyReserve = 0, requestReserve = 0,
+        throttleBaseMs = 5_000L, throttleMaxMs = 30_000L,
     )
     private val budget get() = if (ownServer) ownBudget else publicBudget
 
@@ -405,6 +410,21 @@ object RelayClient {
         publicBudget.networkBack()
         ownBudget.networkBack()
     }
+
+    /**
+     * This minute is full (the public relay takes 8 requests a minute from us): a message waits
+     * a few seconds for room rather than being told "too many", which would park the whole queue.
+     */
+    private suspend fun waitForRoom(use: RelayUse) {
+        if (use == RelayUse.BACKGROUND || offline) return
+        repeat(2) {
+            val wait = budget.roomInMs(use, true, SystemClock.elapsedRealtime())
+            if (wait <= 0L || wait > MAX_ROOM_WAIT_MS) return
+            kotlinx.coroutines.delay(wait + 100)
+        }
+    }
+
+    private const val MAX_ROOM_WAIT_MS = 20_000L
 
     /** Would a message for [use] be let through right now? (Used to say "Waiting for signal" honestly.) */
     fun wouldSend(use: RelayUse): Boolean = !offline && budget.refusal(use, true, SystemClock.elapsedRealtime()) == null
@@ -428,6 +448,12 @@ object RelayClient {
                 code == 429 -> {
                     b.settle(ticket, RelayBudget.Outcome.THROTTLED, SystemClock.elapsedRealtime())
                     PutResult.THROTTLED to null
+                }
+                // The relay's host answered but the relay didn't (a gateway error, a restart, a
+                // timeout upstream). That passes: it's the same as no answer, not a refusal.
+                code >= 500 || code == 408 -> {
+                    b.settle(ticket, RelayBudget.Outcome.NO_ANSWER, SystemClock.elapsedRealtime())
+                    PutResult.NO_NETWORK to null
                 }
                 else -> {
                     b.settle(ticket, RelayBudget.Outcome.REFUSED, SystemClock.elapsedRealtime())

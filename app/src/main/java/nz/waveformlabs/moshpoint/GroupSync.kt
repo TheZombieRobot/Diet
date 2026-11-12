@@ -490,7 +490,9 @@ object GroupSync {
         val frugal = !RelayClient.ownServer && now - startedAtMs > 30 * 60_000L && epoch % 3 != 0L
         if (epoch != postedEpoch && !frugal && RelayClient.put(g.rosterIdForEpoch(epoch), intro)) postedEpoch = epoch
         val day = Math.floorDiv(now / 1000, 86_400L)
-        // (Our meet-up pin is kept on the relay by the courier: see OfflineMessages.)
+        // Our meet-up pin is kept on the relay by the courier (see OfflineMessages). If it
+        // isn't holding it (a pin from before this version, or one it has since let go), hand it over again.
+        rally.value?.takeIf { rallyMine }?.let { if (!OfflineMessages.holdsPin(g)) postRally(c, it) }
         // One request for everything the crew shares: intros, meet-up pin, pings, and where
         // each crew member is (so the home screen and notification show distances without
         // anyone opening the map).
@@ -511,10 +513,11 @@ object GroupSync {
         ChatSync.pollAll(c, minGapMs = 120_000)
         val found = RelayClient.lookup(ids) ?: return
         found.subList(0, 2).flatten().forEach { received(c, g, it) }
-        // The courier notes what's on the relay, so nothing it carries is uploaded twice.
-        OfflineMessages.fetched(c, g, Courier.Box.PING, found.subList(4, 6).flatten())
+        // The courier notes what's on the relay, so nothing it carries is uploaded twice, and
+        // says which pings this phone has never had before.
+        val freshPings = OfflineMessages.fetched(c, g, Courier.Box.PING, found.subList(4, 6).flatten())
         OfflineMessages.fetched(c, g, Courier.Box.PIN, found.subList(2, 4).flatten())
-        found.subList(4, 6).flatten().forEach { blob -> g.openPing(blob)?.let { onPing(c, it, blob) } }
+        found.subList(4, 6).flatten().forEach { blob -> g.openPing(blob)?.let { onPing(c, it, blob, fresh = it.id in freshPings) } }
         crewIds.forEachIndexed { i, (f, id) ->
             found[6 + i].forEach { sealed -> LocationBox.open(f.secret, id, sealed)?.let { LocationBook.update(f.id, it) } }
         }
@@ -528,6 +531,9 @@ object GroupSync {
     internal fun onRally(c: Context, r: GigGroup.Rally) {
         val latest = maxOf(rally.value?.timeSec ?: 0L, rallyClearedAt)
         if (!PinRule.accepts(r.timeSec, latest, System.currentTimeMillis() / 1000)) return
+        // If ours was the pin before, it's out of date now: it must stop being put back on the
+        // relay (the courier only notices by itself when the newer pin is a signed one).
+        group.value?.let { OfflineMessages.pinSuperseded(it, r.timeSec) }
         rallyMine = false
         saveRally(c, if (r.removed) null else r, r.timeSec)
         if (!r.removed) DebugStatus.log("Crew meet-up: ${r.name}")
@@ -543,8 +549,8 @@ object GroupSync {
         if (g.dormant(System.currentTimeMillis())) return
         val epoch = Math.floorDiv(System.currentTimeMillis(), EphemeralId.DEFAULT_ROTATION_MS)
         val found = RelayClient.lookup(listOf(g.pingIdForEpoch(epoch), g.pingIdForEpoch(epoch - 1))) ?: return
-        OfflineMessages.fetched(c, g, Courier.Box.PING, found.flatten())
-        found.flatten().forEach { blob -> g.openPing(blob)?.let { onPing(c, it, blob) } }
+        val freshPings = OfflineMessages.fetched(c, g, Courier.Box.PING, found.flatten())
+        found.flatten().forEach { blob -> g.openPing(blob)?.let { onPing(c, it, blob, fresh = it.id in freshPings) } }
     }
 
     // ---- Crew pings ----
@@ -574,10 +580,13 @@ object GroupSync {
         if (OfflineMessages.post(app, g, blob) == null) DebugStatus.log("Ping not queued: ${pingText(kind)}")
     }
 
-    /** A quick ping that arrived over Bluetooth (or was kept in the chat mailbox): handled like one from the ping mailbox. */
-    internal fun arrived(c: Context, p: GigGroup.Ping, blob: ByteArray) = onPing(c, p, blob)
+    /**
+     * A quick ping that arrived over Bluetooth (or was kept in the chat mailbox): handled like
+     * one from the ping mailbox. [fresh] = this phone has never had this message before.
+     */
+    internal fun arrived(c: Context, p: GigGroup.Ping, blob: ByteArray, fresh: Boolean) = onPing(c, p, blob, fresh)
 
-    private fun onPing(c: Context, signed: GigGroup.Ping, blob: ByteArray) {
+    private fun onPing(c: Context, signed: GigGroup.Ping, blob: ByteArray, fresh: Boolean) {
         if (!seenPings.add(blob.contentHashCode().toString())) return
         if (signed.sender == 0L) return // unsigned: could be anyone claiming any name
         val nowSec = System.currentTimeMillis() / 1000
@@ -607,8 +616,11 @@ object GroupSync {
         if (PingPolicy.group(p.kind) == PingPolicy.Group.CHAT) return // "joined": a chat line, not a ping
         // Check in and Home safe update the state whatever order they arrive in (core CheckIns).
         if (checkInState.onPing(p.sender, p.from, p.kind, p.timeSec, p.minutes, nowSec)) saveCheckIns(c)
-        // Already in the chat (the same message by another route, or from before a restart): don't announce it again.
-        if (!CrewChat.pingLine(c, p, mine = false)) return
+        // Already in the chat (the same message by another route, or from before a restart): don't
+        // announce it again. One exception: a Need help, Check in or Home safe this phone has
+        // never had, which the chat is too full of newer lines to show. That still gets its alert.
+        val shown = CrewChat.pingLine(c, p, mine = false)
+        if (!shown && !(fresh && PingPolicy.group(p.kind) == PingPolicy.Group.SAFETY)) return
         // Newest by the sender's time first, so a late arrival slots in where it belongs.
         val at = pings.indexOfFirst { it.timeSec < p.timeSec }.let { if (it < 0) pings.size else it }
         pings.add(at, p)

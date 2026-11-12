@@ -5,6 +5,7 @@
     <string name="offline_state_sent">已发送</string>
     <string name="offline_state_nearby">已发给附近队友</string>
     <string name="offline_state_waiting">等待信号</string>
+    <string name="offline_state_not_sent">未发送</string>
     <string name="offline_hint_bluetooth">没信号。消息会通过 Bluetooth 传给附近的小队手机，只要有人有信号就会发出去。</string>
     <string name="offline_hint_go_live">没信号。点“上线”，消息就会通过 Bluetooth 传给附近的小队手机。</string>
     <string name="offline_hint_bluetooth_off">没信号，Bluetooth 也关着。打开后，消息会传给附近的小队手机。</string>

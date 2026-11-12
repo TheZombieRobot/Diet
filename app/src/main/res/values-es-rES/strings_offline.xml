@@ -5,6 +5,7 @@
     <string name="offline_state_sent">Enviado</string>
     <string name="offline_state_nearby">Enviado cerca</string>
     <string name="offline_state_waiting">Esperando cobertura</string>
+    <string name="offline_state_not_sent">No enviado</string>
     <string name="offline_hint_bluetooth">Sin cobertura. Los mensajes pasan por Bluetooth a los móviles del grupo que estén cerca, y se envían en cuanto alguno tenga cobertura.</string>
     <string name="offline_hint_go_live">Sin cobertura. Toca Activar en directo y los mensajes pasarán por Bluetooth a los móviles del grupo que estén cerca.</string>
     <string name="offline_hint_bluetooth_off">Sin cobertura, y el Bluetooth está desactivado. Actívalo y los mensajes pasarán a los móviles del grupo que estén cerca.</string>

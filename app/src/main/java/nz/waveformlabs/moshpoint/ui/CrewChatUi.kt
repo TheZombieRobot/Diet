@@ -306,7 +306,8 @@ private fun ChatLine(
             )
             when {
                 l.mine && l.state == CrewChat.FAILED -> Text(
-                    stringResource(R.string.crew_chat_not_sent),
+                    // A chat line can be sent again from here. A quick message can't (send a new one), so it only says what happened.
+                    stringResource(if (l.kind == GigGroup.Ping.CHAT) R.string.crew_chat_not_sent else R.string.offline_state_not_sent),
                     style = Mosh.Label.copy(fontSize = 12.sp, color = Mosh.Danger),
                     modifier = Modifier.clickable { onRetry(l) }.padding(horizontal = 10.dp, vertical = 2.dp),
                 )

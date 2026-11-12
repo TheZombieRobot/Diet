@@ -5,6 +5,7 @@
     <string name="offline_state_sent">Wysłano</string>
     <string name="offline_state_nearby">Wysłano w pobliżu</string>
     <string name="offline_state_waiting">Czeka na zasięg</string>
+    <string name="offline_state_not_sent">Nie wysłano</string>
     <string name="offline_hint_bluetooth">Brak zasięgu. Wiadomości idą przez Bluetooth do telefonów ekipy w pobliżu i zostaną wysłane, gdy tylko ktoś z was złapie zasięg.</string>
     <string name="offline_hint_go_live">Brak zasięgu. Kliknij Udostępnij lokalizację, a wiadomości pójdą przez Bluetooth do telefonów ekipy w pobliżu.</string>
     <string name="offline_hint_bluetooth_off">Brak zasięgu, a Bluetooth jest wyłączony. Włącz go, a wiadomości pójdą do telefonów ekipy w pobliżu.</string>

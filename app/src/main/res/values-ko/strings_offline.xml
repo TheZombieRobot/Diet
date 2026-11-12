@@ -5,6 +5,7 @@
     <string name="offline_state_sent">보냄</string>
     <string name="offline_state_nearby">근처에 보냄</string>
     <string name="offline_state_waiting">신호 기다리는 중</string>
+    <string name="offline_state_not_sent">전송 안 됨</string>
     <string name="offline_hint_bluetooth">신호가 없어요. 메시지는 Bluetooth로 근처 크루 폰에 전달되고, 누구든 신호가 잡히면 바로 전송돼요.</string>
     <string name="offline_hint_go_live">신호가 없어요. ‘위치 공유 켜기’를 탭하면 메시지가 Bluetooth로 근처 크루 폰에 전달돼요.</string>
     <string name="offline_hint_bluetooth_off">신호가 없고 Bluetooth도 꺼져 있어요. 켜면 메시지가 근처 크루 폰에 전달돼요.</string>

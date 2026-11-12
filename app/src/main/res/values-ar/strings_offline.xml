@@ -5,6 +5,7 @@
     <string name="offline_state_sent">أُرسلت</string>
     <string name="offline_state_nearby">أُرسلت لمن حولك</string>
     <string name="offline_state_waiting">بانتظار الإشارة</string>
+    <string name="offline_state_not_sent">لم تُرسَل</string>
     <string name="offline_hint_bluetooth">لا إشارة. تنتقل الرسائل عبر Bluetooth إلى هواتف الشلة القريبة، وتُرسَل فور حصول أي منكم على إشارة.</string>
     <string name="offline_hint_go_live">لا إشارة. اضغط «اظهر» لتنتقل الرسائل عبر Bluetooth إلى هواتف الشلة القريبة.</string>
     <string name="offline_hint_bluetooth_off">لا إشارة، وBluetooth مغلق. شغّله لتنتقل الرسائل إلى هواتف الشلة القريبة.</string>

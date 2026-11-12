@@ -59,7 +59,7 @@ object ChatSync {
             // First the courier notes everything that's on the relay, our own messages included
             // (that's how one of ours becomes "Sent" when a crew mate uploaded it for us).
             // (Uploads go to today's mailbox, so only today's count says how much room it has.)
-            OfflineMessages.fetched(app, g, Courier.Box.CHAT, blobs, inUploadBox = found.getOrNull(2 * i).orEmpty().size)
+            val freshIds = OfflineMessages.fetched(app, g, Courier.Box.CHAT, blobs, inUploadBox = found.getOrNull(2 * i).orEmpty().size)
             val rekeys = mutableListOf<GigGroup.Direct>()
             blobs.forEach { blob ->
                 if (!seen.add(blob.contentHashCode())) return@forEach
@@ -70,7 +70,7 @@ object ChatSync {
                         CrewChat.ingest(app, g, p)?.let { note -> fresh += Txt.s(R.string.crew_notif_line, CrewChat.displayName(app, g, p.sender, p.from), note) }
                     } else if (GroupSync.group.value?.key?.contentEquals(g.key) == true) {
                         // A safety ping, also kept here because this mailbox outlives the ping mailbox's 15 minutes.
-                        GroupSync.arrived(app, p, blob)
+                        GroupSync.arrived(app, p, blob, fresh = p.id in freshIds)
                     }
                     return@forEach
                 }

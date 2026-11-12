@@ -5,6 +5,7 @@
     <string name="offline_state_sent">Đã gửi</string>
     <string name="offline_state_nearby">Đã gửi cho máy ở gần</string>
     <string name="offline_state_waiting">Đang chờ có sóng</string>
+    <string name="offline_state_not_sent">Chưa gửi được</string>
     <string name="offline_hint_bluetooth">Mất sóng. Tin nhắn được chuyển qua Bluetooth tới máy của nhóm ở gần, và sẽ gửi đi ngay khi có ai trong nhóm bắt được sóng.</string>
     <string name="offline_hint_go_live">Mất sóng. Chạm Bật chia sẻ để tin nhắn được chuyển qua Bluetooth tới máy của nhóm ở gần.</string>
     <string name="offline_hint_bluetooth_off">Mất sóng, và Bluetooth đang tắt. Bật lên để tin nhắn được chuyển tới máy của nhóm ở gần.</string>

@@ -10,6 +10,9 @@
     <string name="offline_state_nearby">Sent nearby</string>
     <!-- No internet, and no crew phone nearby has the message yet. It sends by itself later; tapping this tries again now. -->
     <string name="offline_state_waiting">Waiting for signal</string>
+    <!-- A quick message ("On my way") that got too old without reaching anyone. Same words as the start of crew_chat_not_sent,
+         without "Tap to retry": a quick message can't be sent again by a tap, you send a new one. -->
+    <string name="offline_state_not_sent">Not sent</string>
 
     <!-- ===== Banner at the top of the crew chat while this phone has no internet ===== -->
     <!-- Live, Bluetooth on: messages hop between crew phones nearby -->

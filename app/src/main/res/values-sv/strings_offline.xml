@@ -5,6 +5,7 @@
     <string name="offline_state_sent">Skickat</string>
     <string name="offline_state_nearby">Skickat i närheten</string>
     <string name="offline_state_waiting">Väntar på täckning</string>
+    <string name="offline_state_not_sent">Inte skickat</string>
     <string name="offline_hint_bluetooth">Ingen täckning. Meddelanden går via Bluetooth till gruppens telefoner i närheten, och skickas så fort någon av er har täckning.</string>
     <string name="offline_hint_go_live">Ingen täckning. Tryck på Gå live så går meddelanden via Bluetooth till gruppens telefoner i närheten.</string>
     <string name="offline_hint_bluetooth_off">Ingen täckning, och Bluetooth är av. Slå på det så går meddelanden till gruppens telefoner i närheten.</string>

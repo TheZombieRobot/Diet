@@ -5,6 +5,7 @@
     <string name="offline_state_sent">Enviado</string>
     <string name="offline_state_nearby">Enviado cerca</string>
     <string name="offline_state_waiting">Esperando señal</string>
+    <string name="offline_state_not_sent">No enviado</string>
     <string name="offline_hint_bluetooth">Sin señal. Los mensajes pasan por Bluetooth a los celulares del grupo que estén cerca, y se envían en cuanto alguno tenga señal.</string>
     <string name="offline_hint_go_live">Sin señal. Toca Activar en vivo y los mensajes pasarán por Bluetooth a los celulares del grupo que estén cerca.</string>
     <string name="offline_hint_bluetooth_off">Sin señal, y el Bluetooth está desactivado. Actívalo y los mensajes pasarán a los celulares del grupo que estén cerca.</string>

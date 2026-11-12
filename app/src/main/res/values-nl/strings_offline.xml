@@ -5,6 +5,7 @@
     <string name="offline_state_sent">Verstuurd</string>
     <string name="offline_state_nearby">Verstuurd in de buurt</string>
     <string name="offline_state_waiting">Wacht op bereik</string>
+    <string name="offline_state_not_sent">Niet verstuurd</string>
     <string name="offline_hint_bluetooth">Geen bereik. Berichten gaan via Bluetooth naar telefoons van je crew in de buurt, en worden verstuurd zodra iemand van jullie bereik heeft.</string>
     <string name="offline_hint_go_live">Geen bereik. Tik op Ga live en berichten gaan via Bluetooth naar telefoons van je crew in de buurt.</string>
     <string name="offline_hint_bluetooth_off">Geen bereik, en Bluetooth staat uit. Zet het aan en berichten gaan naar telefoons van je crew in de buurt.</string>

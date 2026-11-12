@@ -5,6 +5,7 @@
     <string name="offline_state_sent">Terkirim</string>
     <string name="offline_state_nearby">Terkirim ke HP terdekat</string>
     <string name="offline_state_waiting">Menunggu sinyal</string>
+    <string name="offline_state_not_sent">Belum terkirim</string>
     <string name="offline_hint_bluetooth">Nggak ada sinyal. Pesan diteruskan lewat Bluetooth ke HP geng di sekitar, lalu dikirim begitu salah satu dari kalian dapat sinyal.</string>
     <string name="offline_hint_go_live">Nggak ada sinyal. Ketuk Mulai live supaya pesan diteruskan lewat Bluetooth ke HP geng di sekitar.</string>
     <string name="offline_hint_bluetooth_off">Nggak ada sinyal, dan Bluetooth mati. Nyalakan supaya pesan diteruskan ke HP geng di sekitar.</string>

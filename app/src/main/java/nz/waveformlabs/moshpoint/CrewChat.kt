@@ -343,10 +343,14 @@ object CrewChat {
     fun retry(c: Context, line: Line) {
         val g = viewing.value ?: return
         val app = c.applicationContext
-        resend(app, g, line)
-        // "Not sent" becomes "Sending…" (or "Waiting for signal") again; one that's waiting stays as it is.
-        // (Matched on sender, time and text: resend() may just have given an old line its id.)
-        if (line.state == FAILED) setState(app, g, OfflineMessages.firstState()) { it.legacyKey == line.legacyKey }
+        if (line.kind == GigGroup.Ping.CHAT) {
+            resend(app, g, line)
+            // "Not sent" becomes "Sending…" (or "Waiting for signal") again; one that's waiting stays as it is.
+            // (Matched on sender, time and text: resend() may just have given an old line its id.)
+            if (line.state == FAILED) setState(app, g, OfflineMessages.firstState()) { it.legacyKey == line.legacyKey }
+        }
+        // A quick ping can't be put back together from its line (where you were isn't kept). If
+        // the courier still holds it, this tries it again; if not, it stays "Not sent".
         OfflineMessages.retryNow(c)
     }
 
@@ -358,11 +362,14 @@ object CrewChat {
     private fun resend(c: Context, g: GigGroup, line: Line) {
         if (line.kind != GigGroup.Ping.CHAT || OfflineMessages.holds(idNumber(line))) return
         val (blob, op) = signed(c, g, GigGroup.Ping(GigGroup.Ping.CHAT, line.from, line.timeSec, text = line.text))
-        if (line.id.isEmpty()) relabel(c, g, line, idOf(op))
+        // The line takes the id of what is actually being sent. Usually that's the id it had.
+        // Not if the saved text differs from what was typed (a line break is saved as a space):
+        // then the line must follow the new id, or it would be sealed and uploaded again at every check.
+        if (idOf(op) != line.id) relabel(c, g, line, idOf(op))
         OfflineMessages.post(c, g, blob)
     }
 
-    /** Give a line from before ids its id, so the courier's reports find it. */
+    /** Give a line its id (one from before ids), or the id it's now being sent under, so the courier's reports find it. */
     private fun relabel(c: Context, g: GigGroup, line: Line, id: String) {
         if (id.isEmpty()) return
         val crew = GigArchive.idFor(g)

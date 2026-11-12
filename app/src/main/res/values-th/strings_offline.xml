@@ -5,6 +5,7 @@
     <string name="offline_state_sent">ส่งแล้ว</string>
     <string name="offline_state_nearby">ส่งถึงเพื่อนใกล้ๆ แล้ว</string>
     <string name="offline_state_waiting">รอสัญญาณ</string>
+    <string name="offline_state_not_sent">ส่งไม่สำเร็จ</string>
     <string name="offline_hint_bluetooth">ไม่มีสัญญาณ ข้อความจะส่งต่อผ่าน Bluetooth ไปยังมือถือของแก๊งที่อยู่ใกล้ๆ และส่งออกทันทีที่มีใครสักคนมีสัญญาณ</string>
     <string name="offline_hint_go_live">ไม่มีสัญญาณ แตะ เริ่มแชร์ แล้วข้อความจะส่งต่อผ่าน Bluetooth ไปยังมือถือของแก๊งที่อยู่ใกล้ๆ</string>
     <string name="offline_hint_bluetooth_off">ไม่มีสัญญาณ และ Bluetooth ปิดอยู่ เปิดแล้วข้อความจะส่งต่อไปยังมือถือของแก๊งที่อยู่ใกล้ๆ</string>
