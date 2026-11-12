@@ -813,6 +813,24 @@ class CourierSimTest {
 
     // ---- Surviving a restart ----
 
+    @Test fun aMessageSentWhileTheAppIsStartingIsQueuedNotDropped() {
+        val w = World()
+        val a = Phone("A", w, group)
+        a.online = true
+        // The app has just started: the queue is restored but the crew list isn't known yet.
+        a.courier = Courier(a, a, a, java.util.Random(7))
+        val sealed = a.seal(GigGroup.Ping.NEED_HELP)
+        assertNull(a.courier.post(crewId, sealed, a.now), "without the crew a message can't be taken")
+        // What OfflineMessages.post does at start-up: learn just this crew, without dropping others.
+        a.courier.knowCrew(Courier.Crew(crewId, group, a.signer, main = false))
+        val m = assertNotNull(a.courier.post(crewId, sealed, a.now))
+        // Then the full list arrives (it includes the crew): the message is still there and goes.
+        a.courier.setCrews(listOfNotNull(a.crew), a.now)
+        assertNotNull(a.courier.stateOf(m.id), "kept when the full list arrives")
+        w.run(90)
+        assertEquals(1, w.relay.get(crewId, Courier.Box.PING).size, "${a.trace}")
+    }
+
     @Test fun theQueueAndWhatWasSeenSurviveARestart() {
         val w = World()
         val a = Phone("A", w, group)

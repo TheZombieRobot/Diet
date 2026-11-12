@@ -204,6 +204,16 @@ class Courier(
         pausedCrewId?.let { if (it != main()?.id) unpause(nowMs) }
     }
 
+    /**
+     * Learn one crew without replacing the list. For a message sent while the app is still
+     * starting up, before the full list is known: [setCrews] with a partial list would drop
+     * every other crew's queue, and without the crew [post] can't take the message at all.
+     * The next [setCrews] settles it (a crew we're no longer in loses its queue then).
+     */
+    fun knowCrew(crew: Crew) {
+        if (crew.id !in crews) crews[crew.id] = crew
+    }
+
     private fun main(): Crew? = crews.values.firstOrNull { it.main }
 
     /** Does the phone have a network at all? (Whether the relay answers is learnt from uploads and fetches.) */

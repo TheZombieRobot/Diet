@@ -119,6 +119,15 @@ object GroupSync {
     private fun prefs(c: Context) = c.getSharedPreferences("group", Context.MODE_PRIVATE)
 
     fun load(c: Context) {
+        // However loading ends (an early return included), the courier then gets the full crew list.
+        try {
+            loadCrews(c)
+        } finally {
+            OfflineMessages.crewsLoaded(c)
+        }
+    }
+
+    private fun loadCrews(c: Context) {
         RelayClient.init(c)
         OfflineMessages.init(c)
         CrewChat.load(c)

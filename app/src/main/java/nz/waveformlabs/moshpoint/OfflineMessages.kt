@@ -93,6 +93,17 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
         }
     }
 
+    /**
+     * Called by GroupSync.load when every crew is loaded: start syncing the list straight away
+     * rather than on the next pass of the loop, so anything sent right after loading finds
+     * its crew with the right Bluetooth role.
+     */
+    fun crewsLoaded(c: Context) {
+        if (app == null) return
+        starting = false
+        syncCrews(c.applicationContext)
+    }
+
     private fun file(c: Context) = File(c.filesDir, "courier.bin")
 
     private fun tick() {
@@ -172,6 +183,9 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
         val t = now()
         courier.setOnline(!RelayClient.offline, t)
         val crewId = GigArchive.idFor(g)
+        // Still starting up (the crew list isn't synced yet): teach the courier just this crew,
+        // so the message is queued rather than dropped. The full list follows in crewsLoaded.
+        if (starting) courier.knowCrew(Courier.Crew(crewId, g, Identity.signer(a, g), main = false))
         val m = courier.post(crewId, sealed, t)
         courier.tick(t)
         // Nothing can go just now (no network, or the relay asked us to slow down): say it's
