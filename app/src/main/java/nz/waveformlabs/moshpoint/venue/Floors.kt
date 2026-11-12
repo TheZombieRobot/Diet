@@ -250,6 +250,7 @@ object Floors {
     /** Our pressure now (smoothed), for our own pin's floor watch; null with no sensor or no recent reading. */
     fun currentHpa(): Double? = history.current(System.currentTimeMillis())
 
+    /** The tag last shown for each pin (by mate and pin time), so it doesn't flicker; a new pin starts afresh. */
     private val pinnedWas = HashMap<String, Floor>()
 
     /**
@@ -257,14 +258,16 @@ object Floors {
      * from the pressure in their pin, never their later readings. Null = no tag.
      */
     fun pinnedFloor(friendId: String, pinPressure: Int?, pinTimeSec: Long): Floor? {
+        val key = "$friendId@$pinTimeSec"
         val m = mates[friendId]
         if (users == 0 || pinPressure == null || m == null) {
-            pinnedWas.remove(friendId)
+            pinnedWas.remove(key)
             return null
         }
+        if (pinnedWas.size > 200) pinnedWas.clear()
         val now = System.currentTimeMillis()
-        val f = m.tracker.pinned(history.current(now), Baro.toHpa(pinPressure), pinTimeSec * 1000, now, pinnedWas[friendId])?.floor
-        if (f == null) pinnedWas.remove(friendId) else pinnedWas[friendId] = f
+        val f = m.tracker.pinned(history.current(now), Baro.toHpa(pinPressure), pinTimeSec * 1000, now, pinnedWas[key])?.floor
+        if (f == null) pinnedWas.remove(key) else pinnedWas[key] = f
         return f
     }
 

@@ -172,7 +172,7 @@ object HerePins {
         useCrew(c, g)
         val nowSec = now() / 1000
         if (book.expire(nowSec)) save(c)
-        val myTag = g?.let { Identity.tag(c, it) }
+        val myTag = g?.takeIf { !GroupSync.following }?.let { Identity.tag(c, it) }
         val byFriend = HashMap<String, GigGroup.Here>()
         var own: GigGroup.Here? = null
         if (g != null && !GroupSync.following) {
