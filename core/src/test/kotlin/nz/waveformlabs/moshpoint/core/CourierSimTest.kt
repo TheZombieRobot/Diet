@@ -1061,4 +1061,171 @@ class CourierSimTest {
         // A was shown B's pin and nothing since (its own isn't "received").
         assertEquals(listOf(second), a.got.map { it.id })
     }
+
+    // ---- "I'm here" (docs/IM_HERE.md) ----
+
+    private fun hereFrom(p: Phone, t: Long, lat: Double = -36.8477, minutes: Int = HereRule.LIFETIME_MIN, clear: Boolean = false) =
+        group.sealHere(GigGroup.Here(t, minutes, lat, 174.7633, 50_500, clear), p.signer)
+
+    private fun postHere(p: Phone, t: Long = p.now / 1000, lat: Double = -36.8477, minutes: Int = HereRule.LIFETIME_MIN, clear: Boolean = false): Long {
+        val m = assertNotNull(p.courier.post(crewId, hereFrom(p, t, lat, minutes, clear), p.now))
+        assertNotNull(m.here)
+        assertEquals(Courier.KIND_HERE, m.kind)
+        p.courier.tick(p.now)
+        return m.id
+    }
+
+    @Test fun imHereGoesToThePinMailboxAndIsRePostedOnlyWhileItLasts() {
+        val w = World()
+        val a = Phone("A", w, group)
+        a.online = true
+        val id = postHere(a)
+        w.run(5)
+        assertEquals(Courier.State.SENT, a.state(id))
+        assertEquals(listOf(id), w.relay.get(crewId, Courier.Box.PIN).mapNotNull { group.openHere(it)?.id })
+        assertTrue(w.relay.get(crewId, Courier.Box.PING).isEmpty() && w.relay.get(crewId, chatBox).isEmpty())
+        // Older builds look at every record in that mailbox as a meet-up pin: it isn't one.
+        assertTrue(w.relay.get(crewId, Courier.Box.PIN).all { group.openRally(it) == null && group.openPing(it) == null })
+        // Kept on the relay (which forgets after 15 minutes) for its 20 minutes, then left alone.
+        w.run(40 * 60)
+        assertEquals(2, w.relay.puts, "posted, and once more ten minutes later")
+        assertFalse(a.courier.holdsOwnHere(id))
+        assertEquals(0, a.courier.held(crewId))
+    }
+
+    @Test fun aClearTakesOverFromOurPin() {
+        val w = World()
+        val a = Phone("A", w, group)
+        a.online = true
+        val t = a.now / 1000
+        val pin = postHere(a, t)
+        w.run(3 * 60)
+        val clear = postHere(a, HereRule.stamp(a.now / 1000, t), clear = true, minutes = 17)
+        assertFalse(a.courier.holdsOwnHere(pin), "the pin is no longer kept going")
+        assertTrue(a.courier.holdsOwnHere(clear))
+        w.run(5)
+        val onRelay = w.relay.get(crewId, Courier.Box.PIN).mapNotNull { group.openHere(it) }
+        assertEquals(setOf(pin, clear), onRelay.map { it.id }.toSet())
+        // Whoever looks now sees both, and the clear is the newer.
+        assertTrue(onRelay.first { it.id == clear }.timeSec > onRelay.first { it.id == pin }.timeSec)
+        w.run(30 * 60)
+        assertEquals(3, w.relay.puts, "pin once, clear once, clear again ten minutes on; never the pin again")
+    }
+
+    @Test fun imHereGoesByBluetoothAndTheNewestFromEachSenderWins() {
+        val w = World()
+        val a = Phone("A", w, group)
+        val b = Phone("B", w, group)
+        w.link(a, b)
+        val first = postHere(a)
+        w.run(60)
+        assertTrue(b.has(first), "B got it with no signal anywhere")
+        assertEquals(Courier.Route.BLUETOOTH, b.routes[first])
+        assertNotNull(b.got.first { it.id == first }.here)
+        assertEquals(Courier.State.NEARBY, a.state(first), "B's receipt came back")
+        val moved = postHere(a, a.now / 1000 + 1, lat = -36.8480)
+        w.run(60)
+        assertTrue(b.has(moved))
+        // The first one again, from a phone that was out of range: older than what B has from A, so nothing.
+        MessagePacket.split(hereFrom(a, a.now / 1000 - 600), 5).forEach { w.broadcast(a, it.encode()) }
+        // And a far-future one, to lock A's spot: refused.
+        val locked = hereFrom(a, a.now / 1000 + 10 * 365 * 86_400L)
+        MessagePacket.split(locked, 5).forEach { w.broadcast(a, it.encode()) }
+        w.run(30)
+        assertEquals(listOf(first, moved), b.got.map { it.id })
+        // Sam's pin doesn't replace A's: one per sender.
+        val c = Phone("C", w, group)
+        w.link(c, b)
+        val samPin = postHere(c)
+        w.run(60)
+        assertTrue(b.has(samPin))
+        assertEquals(2, b.got.count { it.here != null && it.id != first }, "A's newest and C's")
+    }
+
+    @Test fun imHereCrossesStrangersPhones() {
+        val w = World()
+        val a = Phone("A", w, group)
+        val s1 = Phone("S1", w, null)
+        val s2 = Phone("S2", w, null)
+        val b = Phone("B", w, group)
+        w.link(a, s1)
+        w.link(s1, s2)
+        w.link(s2, b)
+        val id = postHere(a)
+        w.run(240)
+        assertTrue(b.has(id), "through two strangers' phones")
+        assertEquals(Courier.Route.CROWD, b.routes[id])
+        assertTrue(s1.got.isEmpty() && s2.got.isEmpty(), "they can't read it")
+    }
+
+    @Test fun aCrewPhoneUploadsSomeoneElsesPinWhenItGetsSignal() {
+        val w = World()
+        val a = Phone("A", w, group)
+        val b = Phone("B", w, group)
+        w.link(a, b)
+        val id = postHere(a)
+        w.run(60)
+        assertTrue(b.has(id))
+        assertEquals(0, w.relay.puts)
+        b.online = true
+        w.run(150)
+        assertEquals(listOf(id), w.relay.get(crewId, Courier.Box.PIN).mapNotNull { group.openHere(it)?.id })
+        assertEquals(1, b.puts)
+    }
+
+    @Test fun aPinThatHasRunOutIsNotPassedOn() {
+        val w = World()
+        val a = Phone("A", w, group)
+        val b = Phone("B", w, group)
+        // A pins for a minute, out of everyone's range, with no signal.
+        val id = postHere(a, minutes = 1)
+        w.run(90)
+        assertEquals(0, a.courier.held(crewId), "dropped when it ran out")
+        // Then meets B: nothing to hand over.
+        w.link(a, b)
+        b.online = false
+        w.run(180)
+        assertFalse(b.has(id))
+        // Nor is a run-out pin that arrives over the air carried on.
+        val late = hereFrom(a, a.now / 1000 - 25 * 60)
+        MessagePacket.split(late, 5).forEach { w.broadcast(a, it.encode()) }
+        w.run(10)
+        assertEquals(0, b.courier.held(crewId))
+    }
+
+    @Test fun ourPinFollowsTheCrewToItsNewKeyAndSurvivesARestart() {
+        val w = World()
+        val a = Phone("A", w, group)
+        a.online = true
+        val id = postHere(a)
+        w.run(30)
+        val fresh = GigGroup(ByteArray(32) { (it + 70).toByte() }, group.name, 0L)
+        a.moveTo(fresh)
+        w.run(30)
+        val freshId = crewIdOf(fresh)
+        assertTrue(a.courier.holdsOwnHere(id), "signed again under the new key, same message")
+        assertEquals(listOf(id), w.relay.get(freshId, Courier.Box.PIN).mapNotNull { fresh.openHere(it)?.id })
+        // The app is killed and started again: still kept going, and still stops at its end.
+        a.restart()
+        w.run(12 * 60)
+        assertTrue(a.courier.holdsOwnHere(id))
+        val puts = w.relay.puts
+        w.run(20 * 60)
+        assertFalse(a.courier.holdsOwnHere(id))
+        assertTrue(w.relay.puts - puts <= 1)
+    }
+
+    @Test fun aFullQueueNeverPushesOutOurPin() {
+        val w = World()
+        val a = Phone("A", w, group)
+        val other = CrewKeys.generate()
+        val id = postHere(a)
+        a.online = true
+        w.run(30)
+        val busy = (1..(Courier.MAX_PER_CREW + 30)).map {
+            group.sealPing(GigGroup.Ping(GigGroup.Ping.CHAT, "Jo", a.now / 1000 - 600 + it, text = "line $it"), other)
+        }
+        a.courier.fetched(crewId, chatBox, busy, a.now)
+        assertTrue(a.courier.holdsOwnHere(id))
+    }
 }

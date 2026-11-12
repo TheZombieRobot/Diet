@@ -16,16 +16,18 @@ _Handover, kept current at every push. Branch `claude/im-here-pin-k3v9tq`, start
 | Step | State |
 |---|---|
 | 1. This note: a decision for each hard problem | done |
-| 2. Core: the message, `HereRule`, `HereBook`, `HereWatch`, the pinned floor, the courier carrying it, `Method.HERE_PIN` in the arbiter, with tests | **code written, compiles, the existing 300-odd core tests still pass; new tests not written yet.** `GigGroup.sealHere/openHere/hereOf` (`ENV_HERE = 4`), `core/Here.kt` (`HereRule`, `HereBook`, `HereWatch`), `FloorTracker.pinned`, `Courier` (`KIND_HERE`), `Method.HERE_PIN` (+ `GPS_LIKE`, `WristDirections.POSE_FREE`, watch code 8) |
+| 2. Core: the message, `HereRule`, `HereBook`, `HereWatch`, the pinned floor, the courier carrying it, `Method.HERE_PIN` in the arbiter, with tests | **done.** `GigGroup.sealHere/openHere/hereOf` (`ENV_HERE = 4`), `core/Here.kt` (`HereRule`, `HereBook`, `HereWatch`), `FloorTracker.pinned`, `Courier` (`KIND_HERE`), `Method.HERE_PIN` (+ `GPS_LIKE`, `WristDirections.POSE_FREE`, watch code 8). Tests: `HereTest` (38), 8 new cases in `CourierSimTest`; core + server 441 tests, all passing locally |
 | 3. App: sending and clearing, receiving, map / radar / finder, the walk-away watcher | not started |
 | 4. `strings_here.xml` in English and 19 languages | not started |
 | 5. Screenshot tests (`HereSnapshotTest`, own package) | not started |
 | 6. Field test (two phones), roadmap, architecture and privacy notes | not started |
 | 7. CI green, report sent | not started |
 
-**Exact next step:** step 2's tests: `core/src/test/.../HereTest.kt` (message, rules, book,
-watch, pinned floor, arbiter ranking) and courier cases in `CourierSimTest` (upload to the pin
-mailbox, re-post while it lasts, newest per sender, Bluetooth, rekey). Then step 3.
+**Exact next step:** step 3, the app. Start with a new `app/.../HerePins.kt` (the main crew's
+`HereBook` as Compose state, saved in prefs; `setHere` / `clearHere` sealing through
+`OfflineMessages.post`; `arrived` from `GroupSync.syncServer` (pin mailbox) and
+`OfflineMessages.deliver` (Bluetooth); the walk-away watcher), then `GpsFinder.poll` (pin fixes),
+then the map (`VenuePlacement.spot` + `MapScreen` dialog/list), radar and finder.
 
 How to work on it:
 
