@@ -411,6 +411,18 @@ class HereTest {
         assertNull(HereRule.fix("jo", me, 8.0, signed(here()), (now + 20 * 60) * 1000), "run out")
     }
 
+    @Test fun aPinsConfidenceFallsGentlyAsItAges() {
+        val me = north(bar, -100.0)
+        val pin = signed(here())
+        // Minute 0 to 19 (at 20 it has run out: no fix at all, see aPinPointsFromOurGpsToTheSpot).
+        val conf = (0..19).map { min -> fixFor(pin, me, 8.0, (now + min * 60) * 1000).confidence }
+        assertTrue(conf.zipWithNext().all { (a, b) -> b <= a }, "never rises: $conf")
+        assertTrue(conf.last() < conf.first(), "falls: $conf")
+        assertEquals(HereRule.END_CONFIDENCE, conf.last() / conf.first(), 0.01)
+        // Our GPS as vague as the gap: barely trusted, whatever its age.
+        assertEquals(0.1, fixFor(pin, north(bar, -10.0), 30.0, now * 1000).confidence, 1e-9)
+    }
+
     @Test fun aFreshPinBeatsTheirLiveGpsAndKeepsBeatingItAsItAges() {
         val me = north(bar, -150.0)
         val pin = signed(here())
