@@ -673,6 +673,150 @@ class GigGroup(
         "mp-here1".toByteArray() + hmac(key, "moshpoint-group-sig".toByteArray()).copyOf(8) +
             ByteBuffer.allocate(4).putInt(timeSec.toInt()).array() + fields
 
+    // ---- Private messages (docs/PRIVATE_MESSAGES.md) ----
+
+    /**
+     * Mailbox id for the crew's private messages (daily). Every crew phone fetches all of it: the
+     * relay can't tell who a message is for, and only that person can open it.
+     */
+    fun privateIdForDay(day: Long): ByteArray =
+        hmac(key, "moshpoint-group-private".toByteArray() + ByteBuffer.allocate(8).putLong(day).array()).copyOf(16)
+
+    /**
+     * A private message, as the one crew mate it's for opens it. Only they can: see [sealPrivate].
+     * [fromPub] and [toPub] are the two people's signing keys in this crew.
+     */
+    class Private(
+        /** The same for every copy and route, and after the crew moves to a new key. */
+        val id: Long,
+        /** By the sender's clock (unix s). */
+        val timeSec: Long,
+        /** [TEXT]; a reader ignores kinds it doesn't know. */
+        val kind: Int,
+        val text: String,
+        val fromPub: ByteArray,
+        val toPub: ByteArray,
+    ) {
+        /** Who sent it: the tag of the key that signed it. */
+        val sender: Long get() = CrewKeys.tagOf(fromPub)
+
+        /** Who it's for. */
+        val recipient: Long get() = CrewKeys.tagOf(toPub)
+
+        companion object {
+            /** A message typed by its sender. */
+            const val TEXT = 1
+            /** The same limit as a crew chat line. */
+            const val MAX_TEXT_BYTES = 160
+        }
+    }
+
+    /** What any crew phone can read of a private message: its id and time, never who it's from or who it's for. */
+    class PrivateOuter(val id: Long, val timeSec: Long)
+
+    /**
+     * Seal [text] for the one crew mate whose signing key is [toPub], signed by [from]. Null if
+     * [toPub] isn't a key, or is our own. [id]: see [PrivateRule.newId]; pass the same one again
+     * to seal the same message again (after the crew moves to a new key).
+     *
+     * An [Envelope] of type [ENV_PRIVATE] whose body is `[ver:1][id:8][ephemeral key:33][sealed]`.
+     * The sealed part is AES-GCM under a key from ECDH between a fresh key pair (dropped once
+     * this returns) and [toPub], bound to this crew, the time, the id and the ephemeral key. Inside:
+     * `[sender key:33][signature:64][len:2][kind:1][text length:1][text]`, zero-padded so every
+     * private message is exactly [PRIVATE_BYTES] long, whatever it says. The signature covers this
+     * crew, the time, the id, the recipient's key and the fields. Crew phones see the id and the
+     * time; nobody but the recipient sees who it's from or for.
+     */
+    fun sealPrivate(
+        from: CrewKeys.Signer,
+        toPub: ByteArray,
+        text: String,
+        timeSec: Long,
+        id: Long,
+        kind: Int = Private.TEXT,
+        random: java.security.SecureRandom = java.security.SecureRandom(),
+    ): ByteArray? {
+        if (id == 0L || toPub.size != CrewKeys.PUB_BYTES || toPub.contentEquals(from.pub) || CrewKeys.publicKey(toPub) == null) return null
+        val t = trimUtf8(text.toByteArray(Charsets.UTF_8), Private.MAX_TEXT_BYTES)
+        val fields = byteArrayOf(kind.toByte(), t.size.toByte()) + t
+        val idBytes = ByteBuffer.allocate(8).putLong(id).array()
+        val sig = CrewKeys.sign(from, privateSigned(timeSec, idBytes, toPub, fields))
+        // The rest of the buffer stays zero: the padding.
+        val inner = ByteBuffer.allocate(PRIVATE_INNER_BYTES).put(from.pub).put(sig).putShort(fields.size.toShort()).put(fields).array()
+        val eph = CrewKeys.generate()
+        val z = CrewKeys.agree(eph, toPub, PRIVATE_LABEL) ?: return null
+        val c = Cipher.getInstance("AES/GCM/NoPadding")
+        c.init(Cipher.ENCRYPT_MODE, privateKey(z, idBytes, eph.pub, toPub), GCMParameterSpec(128, privateNonce(z, idBytes)))
+        c.updateAAD(privateAad(timeSec, idBytes, eph.pub))
+        val body = byteArrayOf(PRIVATE_VERSION.toByte()) + idBytes + eph.pub + c.doFinal(inner)
+        return sealEnvelope(ENV_PRIVATE, body, timeSec, random)
+    }
+
+    /**
+     * The part of an opened envelope any crew phone can read, if it's a private message: enough to
+     * carry it, confirm it and upload it. Null for other types and for anything malformed.
+     */
+    fun privateOuterOf(env: Envelope): PrivateOuter? {
+        if (env.type != ENV_PRIVATE) return null
+        val b = env.body
+        // Any version from 1 up is carried, so a later build's messages still travel through this one.
+        if (b.size < PRIVATE_HEAD_BYTES + 16 + 1 || (b[0].toInt() and 0xFF) < 1) return null
+        val id = ByteBuffer.wrap(b, 1, 8).long
+        if (id == 0L || CrewKeys.publicKey(b.copyOfRange(9, PRIVATE_HEAD_BYTES)) == null) return null
+        return PrivateOuter(id, env.timeSec)
+    }
+
+    /** The private message inside an opened envelope, if it's for [me] and intact; null for everyone else. */
+    fun privateOf(env: Envelope, me: CrewKeys.Signer): Private? {
+        if (env.type != ENV_PRIVATE) return null
+        val b = env.body
+        if (b.size != PRIVATE_BODY_BYTES || (b[0].toInt() and 0xFF) != PRIVATE_VERSION) return null
+        return runCatching {
+            val idBytes = b.copyOfRange(1, 9)
+            val id = ByteBuffer.wrap(idBytes).long
+            if (id == 0L) return null
+            val eph = b.copyOfRange(9, PRIVATE_HEAD_BYTES)
+            val z = CrewKeys.agree(me, eph, PRIVATE_LABEL) ?: return null
+            val c = Cipher.getInstance("AES/GCM/NoPadding")
+            c.init(Cipher.DECRYPT_MODE, privateKey(z, idBytes, eph, me.pub), GCMParameterSpec(128, privateNonce(z, idBytes)))
+            c.updateAAD(privateAad(env.timeSec, idBytes, eph))
+            // Not for us: this fails here, at the tag, before anything else is looked at.
+            val inner = c.doFinal(b, PRIVATE_HEAD_BYTES, b.size - PRIVATE_HEAD_BYTES)
+            val fromPub = inner.copyOfRange(0, CrewKeys.PUB_BYTES)
+            val sig = inner.copyOfRange(CrewKeys.PUB_BYTES, CrewKeys.PUB_BYTES + CrewKeys.SIG_BYTES)
+            val at = CrewKeys.PUB_BYTES + CrewKeys.SIG_BYTES
+            val n = ((inner[at].toInt() and 0xFF) shl 8) or (inner[at + 1].toInt() and 0xFF)
+            if (n < 2 || at + 2 + n > inner.size) return null
+            val fields = inner.copyOfRange(at + 2, at + 2 + n)
+            // Nobody sends one to themselves; the signature must be the sender's, for us, in this crew.
+            if (fromPub.contentEquals(me.pub)) return null
+            if (!CrewKeys.verify(fromPub, privateSigned(env.timeSec, idBytes, me.pub, fields), sig)) return null
+            val kind = fields[0].toInt() and 0xFF
+            val tn = fields[1].toInt() and 0xFF
+            if (2 + tn > fields.size) return null
+            Private(id, env.timeSec, kind, String(fields, 2, tn, Charsets.UTF_8), fromPub, me.pub.copyOf())
+        }.getOrNull()
+    }
+
+    /** A private message for [me] in this crew, or null (for anyone else, or anything else). */
+    fun openPrivate(blob: ByteArray, me: CrewKeys.Signer): Private? = openEnvelope(blob)?.let { privateOf(it, me) }
+
+    /** What a private message's signature covers: this crew, when, its id, who it's for, and every field. */
+    private fun privateSigned(timeSec: Long, id: ByteArray, toPub: ByteArray, fields: ByteArray): ByteArray =
+        PRIVATE_LABEL.toByteArray() + sigTag() + ByteBuffer.allocate(4).putInt(timeSec.toInt()).array() + id + toPub + fields
+
+    /** What the sealed part is bound to: this crew, when, and everything in front of it. */
+    private fun privateAad(timeSec: Long, id: ByteArray, eph: ByteArray): ByteArray =
+        PRIVATE_LABEL.toByteArray() + sigTag() + ByteBuffer.allocate(4).putInt(timeSec.toInt()).array() + byteArrayOf(PRIVATE_VERSION.toByte()) + id + eph
+
+    private fun privateKey(z: ByteArray, id: ByteArray, eph: ByteArray, toPub: ByteArray) =
+        SecretKeySpec(hmac(z, "mp-pm1 key".toByteArray() + id + eph + toPub).copyOf(16), "AES")
+
+    private fun privateNonce(z: ByteArray, id: ByteArray): ByteArray = hmac(z, "mp-pm1 nonce".toByteArray() + id).copyOf(12)
+
+    /** This crew's signing tag: what every signature names, so nothing signed in one crew counts in another. */
+    private fun sigTag(): ByteArray = hmac(key, "moshpoint-group-sig".toByteArray()).copyOf(8)
+
     private fun aesKey() = SecretKeySpec(hmac(key, "moshpoint-group-aes".toByteArray()).copyOf(16), "AES")
 
     // Nonce unique per (member, second): first 4 bytes of their secret + time + tag prefix.
@@ -719,8 +863,18 @@ class GigGroup(
         private const val HERE_CLEAR = 1
         private const val HERE_FIELDS_BYTES = 13
         private const val NO_PRESSURE = 0xFFFF
-        /** Kept for private messages (roadmap step 4): sealed to one person, with no sender or recipient tag here. */
+        /** A private message (docs/PRIVATE_MESSAGES.md): sealed to one person, with no sender or recipient anyone else can see. */
         const val ENV_PRIVATE = 16
+        private const val PRIVATE_VERSION = 1
+        private const val PRIVATE_LABEL = "mp-pm1"
+        /** `[ver:1][id:8][ephemeral key:33]`, in front of the sealed part. */
+        private const val PRIVATE_HEAD_BYTES = 1 + 8 + CrewKeys.PUB_BYTES
+        /** Room for the fields: `[kind:1][text length:1][text]`, the longest text, and a little spare. */
+        private const val PRIVATE_FIELDS_BYTES = 168
+        private const val PRIVATE_INNER_BYTES = CrewKeys.PUB_BYTES + CrewKeys.SIG_BYTES + 2 + PRIVATE_FIELDS_BYTES
+        private const val PRIVATE_BODY_BYTES = PRIVATE_HEAD_BYTES + PRIVATE_INNER_BYTES + 16
+        /** Every private message, sealed: always this long (two Bluetooth packets), so its size says nothing. */
+        const val PRIVATE_BYTES = 352
 
         /** Direct-message kinds 1 and 2 are "keep as friend" (see the app's Friendship). */
         const val DIRECT_REKEY = 3

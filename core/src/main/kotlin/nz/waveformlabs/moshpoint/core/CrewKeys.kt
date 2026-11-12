@@ -70,11 +70,17 @@ object CrewKeys {
     }.getOrDefault(false)
 
     /** A secret only we and the owner of [theirPub] can work out (32 bytes, hashed). */
-    fun agree(mine: Signer, theirPub: ByteArray): ByteArray? = runCatching {
+    fun agree(mine: Signer, theirPub: ByteArray): ByteArray? = agree(mine, theirPub, "moshpoint-direct")
+
+    /**
+     * The same, hashed with [label], so secrets made for one purpose are never the ones made for
+     * another (private messages use their own, see GigGroup.sealPrivate).
+     */
+    fun agree(mine: Signer, theirPub: ByteArray, label: String): ByteArray? = runCatching {
         val ka = KeyAgreement.getInstance("ECDH")
         ka.init(mine.private)
         ka.doPhase(publicKey(theirPub) ?: return null, true)
-        MessageDigest.getInstance("SHA-256").digest(ka.generateSecret() + "moshpoint-direct".toByteArray())
+        MessageDigest.getInstance("SHA-256").digest(ka.generateSecret() + label.toByteArray())
     }.getOrNull()
 
     // ---- Encoding ----
