@@ -19,13 +19,13 @@ _Handover, kept current at every push. Branch `claude/im-here-pin-k3v9tq`, start
 | 2. Core: the message, `HereRule`, `HereBook`, `HereWatch`, the pinned floor, the courier carrying it, `Method.HERE_PIN` in the arbiter, with tests | **done.** `GigGroup.sealHere/openHere/hereOf` (`ENV_HERE = 4`), `core/Here.kt` (`HereRule`, `HereBook`, `HereWatch`), `FloorTracker.pinned`, `Courier` (`KIND_HERE`), `Method.HERE_PIN` (+ `GPS_LIKE`, `WristDirections.POSE_FREE`, watch code 8). Tests: `HereTest` (38), 8 new cases in `CourierSimTest`; core + server 441 tests, all passing locally |
 | 3. App: sending and clearing, receiving, map / radar / finder, the walk-away watcher | **written, waiting for CI to compile it.** `HerePins.kt` (the main crew's book as Compose state, set/clear through the courier, arrivals, the walk-away watcher); `GroupSync.syncServer` + `OfflineMessages.deliver` hand arrivals to it; `GpsFinder.poll` makes `HERE_PIN` fixes; `Floors.pinnedFloor/pressureUnits/currentHpa`; `MapScreen` (pinned faces, list rows, our own pin with ✕, "I'm here" first in the dialog via `ImHereChoice`); `CrewRadar` pin pill; `FinderScreen` (`pinned`: spot's floor, chip, radar notes); `MainActivity` wiring; `ui/HereUi.kt` |
 | 4. `strings_here.xml` in English and 19 languages | **done**, `tools/check_translation.py` OK for every folder |
-| 5. Screenshot tests (`HereSnapshotTest`, own package) | not started |
+| 5. Screenshot tests (`HereSnapshotTest`, own package) | **written, waiting for CI.** `app/src/test/java/nz/waveformlabs/moshpoint/here/HereSnapshotTest.kt`: `hereMapList`, `hereFinder`, `hereDialog` in every language (`Lang_xx`), `hereFinderOne` and `herePins` in English; `Lang_de.hereTranslationsLoad` guards that the translations load |
 | 6. Field test (two phones), roadmap, architecture and privacy notes | not started |
 | 7. CI green, report sent | not started |
 
-**Exact next step:** check CI's compile of step 3 (job "Build debug APK", then "Compile
-errors" on failure) and fix; then step 5, `app/src/test/java/nz/waveformlabs/moshpoint/here/HereSnapshotTest.kt`
-(own package, `Lang_xx` subclasses like `VenueSnapshotTest`).
+**Exact next step:** check CI (compile of steps 3 and 5: "Build debug APK", "Compile errors",
+and the screenshot step's log, which can fail without turning the run red); then step 6, the
+docs (field test section, roadmap status, architecture and privacy notes).
 
 How to work on it:
 
