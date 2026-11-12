@@ -58,8 +58,12 @@ object CrewChat {
          */
         val id: String = "",
     ) {
-        /** What lines without an id are matched on: sender, time and text. */
-        val legacyKey: String get() = "${if (sender != 0L) sender.toString() else from}|$timeSec|$text"
+        /**
+         * What lines without an id are matched on: sender, time and text. The text is compared
+         * the way it's saved (a line break or tab becomes a space), so a message with a line
+         * break still matches its own saved row after a restart.
+         */
+        val legacyKey: String get() = "${if (sender != 0L) sender.toString() else from}|$timeSec|${flat(text)}"
 
         /** Same message, however it reached us (live, a re-send, or someone's history copy). */
         val key: String get() = id.ifEmpty { legacyKey }
@@ -268,12 +272,12 @@ object CrewChat {
                 f.getOrNull(5)?.toLongOrNull() ?: 0L, f.getOrNull(6)?.toIntOrNull() ?: SENT, f.getOrNull(7).orEmpty(),
                 f.getOrNull(8).orEmpty(),
             )
-        }
+        }.distinctBy { it.key } // two rows with one key would crash the chat list; a twin saved by an earlier build is dropped here
 
     private fun writeLines(c: Context, id: String, list: List<Line>) {
         val rows = list.takeLast(MAX_LINES).joinToString("\n") { l ->
             listOf(l.from, l.timeSec.toString(), if (l.mine) "1" else "0", l.text, l.kind.toString(), l.sender.toString(), l.state.toString(), l.proof, l.id)
-                .joinToString("\t") { it.replace('\t', ' ').replace('\n', ' ') }
+                .joinToString("\t") { flat(it) }
         }
         prefs(c, id).edit().putString("lines", rows).apply()
     }
@@ -655,7 +659,10 @@ object CrewChat {
     /** The same message? By id when both have one; otherwise the way lines were matched before ids. */
     private fun same(a: Line, b: Line): Boolean =
         if (a.id.isNotEmpty() && b.id.isNotEmpty()) a.id == b.id
-        else a.legacyKey == b.legacyKey || (a.timeSec == b.timeSec && a.text == b.text && a.from == b.from)
+        else a.legacyKey == b.legacyKey || (a.timeSec == b.timeSec && flat(a.text) == flat(b.text) && a.from == b.from)
+
+    /** Text as [writeLines] saves it: one row per line, so line breaks and tabs become spaces. */
+    private fun flat(text: String) = text.replace('\t', ' ').replace('\n', ' ')
 
     /**
      * Adds a line to [g]'s chat, in the order every phone shows (time, then message id).

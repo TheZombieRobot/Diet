@@ -115,8 +115,10 @@ Bluetooth mechanics, all inside the existing relay advertising set:
   chats still load. The allowed steps are one function in core (`OutboxState.mayMove`).
 - A message that can't start uploading (no network, or the relay asked us to slow down) shows
   "Waiting for signal" straight away, not "Sending…" for as long as that lasts.
-- "Not sent · tap to retry" is now rare: only when a message got too old without reaching
-  anyone (three days for chat, two hours for a quick ping). A tap queues it again.
+- "Not sent" is now rare: only when a message got too old without reaching anyone (three days
+  for chat, two hours for a quick ping), or the relay refused it three times. A tap on a chat
+  line queues it again. A quick message that got too old just says "Not sent": it can't be
+  rebuilt from its line (where you were isn't kept), so you send a new one.
 - The sealed bytes are saved with the outbox (in the courier's file, keyed by the message id),
   so a retry sends the same bytes instead of re-sealing. If that file is ever lost, the line is
   sealed again: different bytes, same id, so nobody sees it twice.
@@ -261,7 +263,7 @@ then 2 a second **per IP**; the public relay doesn't de-duplicate at all.
 | 3 | Rekey hijack | See below. |
 | 4 | Relay budget | See below. **Done first.** |
 | 5 | Logic in core | `Courier` is a plain synchronous state machine. The app, the relay and the radio are three small interfaces (`Host`, `Uplink`, `Air`) and the clock is passed in. The simulation steps several real couriers one second at a time. |
-| 6 | Pings | Same outbox and states as chat. Staleness per kind in core (`PingPolicy`): Need help, Check in and Home safe are never dropped; other pings older than 20 minutes still appear in the chat, without a notification. Future times are clamped to arrival. De-duplicated by message id before notifying. Safety pings are also posted to the 72-hour chat mailbox, which older builds ignore silently. |
+| 6 | Pings | Same outbox and states as chat. Staleness per kind in core (`PingPolicy`): Need help, Check in and Home safe are never dropped; other pings older than 20 minutes still appear in the chat, without a notification. Future times are clamped to arrival. De-duplicated by message id before notifying. Safety pings are also posted to the 72-hour chat mailbox, which older builds ignore silently. A safety ping this phone has never had raises its alert even when the chat is too full of newer lines to show it. |
 | 7 | Check-in order | `CheckIns` in core: newest state per sender key by sender time, saved. A Home safe that arrives first beats a late Check in. A Check in that arrives already overdue waits 3 minutes for a Home safe before alarming. Safety pings upload first. |
 | 8 | Transport | As above. |
 | 9 | Crowd relay | As in hard problem 7. |
@@ -285,6 +287,9 @@ the remover's phone.
 - **The removed key is carried and dropped.** A second notice (direct kind 4) carries the
   removed public keys. Phones then forget that key in the new crew. The old kind 3 notice is
   still sent for older builds, with an invisible mark telling new builds to wait for kind 4.
+- **A notice only counts as sent when the relay has taken it.** A round goes to every member,
+  every six hours for three days. Whoever a round didn't reach (signal dropped, the relay asked
+  us to slow down) gets theirs at the next chat check, not six hours later.
 - **Old-key grace, read-only:** for 24 h an updated phone still reads the old chat mailbox
   and shows messages from the allowlist only (members known at rekey time, minus the removed).
   It never writes under the old key.
@@ -305,7 +310,17 @@ location uploader, the outbox, intros and pings all retry with no signal.
   two 6-second timeouts before trying Bluetooth.
 - A reserve: background traffic (location, intros, History) stops at 150 a day; the last 50
   are for messages, and the last 10 of those only for safety pings.
-- After a 429 the phone backs off with jitter. Messages stay queued and go out when it lifts.
+- Per minute: 8 requests, of which background ones take at most 6 by themselves. A message
+  that finds the minute full waits up to 20 seconds for room rather than failing.
+- After a 429 the phone pauses, with jitter: a minute and up on the public relay, 5 to 30
+  seconds on our own server (whose limiter refills every second, and which the old code never
+  paused for at all). Answers to requests that were already on their way don't lengthen the
+  pause. Need help, Check in and Home safe still try through it, one every ten seconds.
+- After a timeout only background requests hold off for a while. A message, a new crew key or
+  a look-up is still tried: one timeout on patchy signal mustn't stop those.
+- A 5xx from the relay's host counts as no answer (tried again, costs nothing). Any other
+  refusal counts, and after three the message says "Not sent".
+- Messages stay queued through all of this and go out when it lifts.
 
 ### Item 11: pins
 
@@ -317,6 +332,11 @@ location uploader, the outbox, intros and pings all retry with no signal.
   capped on load. A new pin is stamped one second after the pin it replaces.
 - **Meet at the pin** now names the pin it means (the pin's name in the ping's text, which
   older builds ignore) and re-sends the pin alongside.
+- **Keeping it on the relay** is the courier's job (the pin mailbox forgets after 15 minutes).
+  At every sync the app checks the courier is holding our pin and hands it over again if not
+  (a pin from before this version; a crew that moved to a new key). A newer pin or removal
+  from an older build is unsigned, so the courier can't carry it; the app tells it ours is out
+  of date so it stops being put back.
 
 ### Item 14: the intro advert
 
@@ -346,14 +366,35 @@ That is worse than "all night": the crew pass is fixed for the life of the crew,
 - The envelope reserves a type for private messages (step 4), sealed to one person with no
   sender or recipient tag in the crew-readable layer.
 
+## The second review, of the app wiring
+
+The delivery logic is tested; the code that connects it to the phone can't be, and has never
+run on one. So that part was read again independently, against the original branch. Nothing
+was found in ordinary sending and receiving. Eleven things were, at the edges, and all are
+fixed:
+
+| Found | Now |
+|---|---|
+| One "too many" from our own server paused every request for a minute or more, Need help included; several arriving together made it fifteen. The old code never paused there. | Seconds on our own server, one pause per burst, safety pings go through it. |
+| A 502 or 503 counted as a refusal; after three the message was never tried again, and tapping didn't help. | A 5xx is "no answer" and is retried. Real refusals show "Not sent" after three; a tap tries again. |
+| Tapping "Not sent" on a quick message queued nothing and showed "Sending…" for good. | A quick message that expired says "Not sent" with no promise; nothing changes state unless something is really queued. |
+| A new crew key was marked sent before its uploads ran, and the budget could skip them. | A notice counts as sent when the relay has taken it; the rest follow at the next chat check. |
+| Our pin stayed on the relay only while the courier held it, and it lost it on a rekey, when its queue was full, or if the pin was older than this version. | The pin follows the crew to its new key, is never pushed out, and is handed over again whenever the courier isn't holding it. |
+| With the chat open on the public relay, its look-ups used up what location shares were allowed. | The per-minute ceiling for background requests counts only background requests. |
+| "Reset invite" from a new phone read as a removal on older builds. | The mark that caused it is only sent with a removal. |
+| A pin removed by an older build (unsigned) didn't stop ours being re-posted. | The app tells the courier ours is out of date. |
+| A late Need help raised no alert if the chat already held 150 newer lines. | It does, decided by the courier's own record of what this phone has had. |
+| A message with a line break, re-sealed after its queue entry was lost, got a new id and was uploaded again at every check. | The line follows the id it is sent under; saved rows are matched the way they are saved. |
+| Tapping retry while asked to slow down doubled the wait each time. | A tap doesn't cut the relay's pause short, so it can't lengthen it. |
+
 ## Tests
 
-In core (these can fail CI). 81 new tests; the whole core suite is 182.
+In core (these can fail CI). 91 new tests; the whole core suite is 192.
 
 | File | What it proves |
 |---|---|
-| `CourierSimTest` (25) | Several real couriers stepped one second at a time, with a lossy radio, each phone's own (possibly wrong) clock, and a relay with the server's rules. A message hops along a line of phones and the first one back on signal uploads it, once. "Sent nearby" needs a receipt and never stops the upload. Every route at once under 35% packet loss still shows each message once. A re-sealed copy is the same message. Out-of-order arrival shows in sent order; a reply stays below its question with skewed clocks. Phones walking in and out of range. Need help crosses strangers' phones and chat doesn't; Need help is carried for hours and uploaded where it lasts. Five helpers regaining signal together upload each message once. A mailbox is never pushed past its limit; yesterday's full mailbox doesn't block today's. The relay saying "too many", and a spent budget (Need help still goes), then the flush. A removed member can't send, read or rekey over Bluetooth; phones on hold together stay on hold, and one on its own lets go after half an hour. A restart keeps the queue. Several crews: only the main one uses Bluetooth, the others wait and upload to their own mailbox, and a crew that becomes the main one starts using Bluetooth. A crew phone's claim that it uploaded our message is checked against the relay. Thousands of garbage packets, and nonsense sealed by someone holding the crew key, are ignored without breaking anything. Pins: newest wins, far-future refused, only kept fresh while the app is in use. Six phones through a random night on six seeds. |
-| `RelayBudgetTest` (7) | Retries with no signal cost nothing. Location shares can't use up the messages. Back-off after "too many", with jitter. Need help still tries. |
+| `CourierSimTest` (31) | Several real couriers stepped one second at a time, with a lossy radio, each phone's own (possibly wrong) clock, and a relay with the server's rules. A message hops along a line of phones and the first one back on signal uploads it, once. "Sent nearby" needs a receipt and never stops the upload. Every route at once under 35% packet loss still shows each message once. A re-sealed copy is the same message. Out-of-order arrival shows in sent order; a reply stays below its question with skewed clocks. Phones walking in and out of range. Need help crosses strangers' phones and chat doesn't; Need help is carried for hours and uploaded where it lasts. Five helpers regaining signal together upload each message once. A mailbox is never pushed past its limit; yesterday's full mailbox doesn't block today's. The relay saying "too many", and a spent budget (Need help still goes), then the flush. A removed member can't send, read or rekey over Bluetooth; phones on hold together stay on hold, and one on its own lets go after half an hour. A restart keeps the queue. Several crews: only the main one uses Bluetooth, the others wait and upload to their own mailbox, and a crew that becomes the main one starts using Bluetooth. A crew phone's claim that it uploaded our message is checked against the relay. Thousands of garbage packets, and nonsense sealed by someone holding the crew key, are ignored without breaking anything. A message the relay refuses says "Not sent" after three goes and a tap tries again; tapping while asked to slow down doesn't make the wait longer; Need help keeps trying while everything else waits. Pins: follow the crew to a new key, are never pushed out of a full queue, stop being re-posted when an older build replaces them, newest wins, far-future refused, only kept fresh while the app is in use. Six phones through a random night on six seeds. |
+| `RelayBudgetTest` (11) | Retries with no signal cost nothing. Location shares can't use up the messages. Back-off after "too many", with jitter, once per burst, short on our own server. Need help still tries through it. After a timeout only background requests wait. An open chat's look-ups don't squeeze out location shares. |
 | `MessageRulesTest` (21) | One id for every copy of a message. Signed pin, readable by older builds. Envelope older builds can't open. Intro form with no constant prefix, and when it may replace the old one. Message clock. Need help never dropped; other late pings shown without a buzz; unknown kinds ignored. Forward-only states. |
 | `CheckInsTest` (10) | Home safe arriving before its Check in still wins; order is by the sender's clock; a Check in that arrives already overdue waits for a Home safe behind it; the alarm fires once; survives a restart. |
 | `RekeyPolicyTest` (6) | A removed member's later rekey isn't followed; a key we never knew can't rekey; the notice carries the removed key; older builds still get a form they understand. |
