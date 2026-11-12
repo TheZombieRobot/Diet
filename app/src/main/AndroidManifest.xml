@@ -5,6 +5,9 @@
     <!-- Bluetooth: broadcasting (visibility), scanning (finding), crowd relay -->
     <!-- No neverForLocation: we do derive location from scans (distance / direction),
          and that flag makes Android filter some scan results and block Wi-Fi ranging. -->
+    <!-- The finder's buzzes (warmer / colder, spin scan). Granted at install: no prompt.
+         Without it every vibrate() call silently does nothing. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />

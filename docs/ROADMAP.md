@@ -49,7 +49,7 @@ Agreed with the owner; build in this order. Where this differs from [PRODUCT.md]
 - Crew chat, quick pings ("On my way", "All good", "Need help") and pins send as normal; the
   app picks the route. No separate Bluetooth mode.
 - Routes: the internet first. With no signal, straight to crew phones in Bluetooth range
-  (Google Nearby Connections), hopping through other crew phones; the first phone back on
+  (over the crowd relay's Bluetooth adverts), hopping through other crew phones; the first phone back on
   signal uploads it for everyone else. Duplicates dropped.
 - Pings and pins are tiny, so they also ride the crowd relay through any Moshpoint phone.
 - Each message shows how it went: **Sent** / **Sent nearby** / **Waiting for signal**.
