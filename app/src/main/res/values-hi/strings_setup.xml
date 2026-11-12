@@ -40,7 +40,6 @@
     <string name="setup_onb_title_live">अंदर जाते समय\nलाइव हों</string>
     <string name="setup_onb_body_live">आपके दोस्त आपको सिर्फ़ तभी ढूँढ सकते हैं जब आप लाइव हों, और इसे सिर्फ़ आप ही ऑन करते हैं। Moshpoint को चाहिए:</string>
     <string name="setup_onb_need_nearby">आस-पास के डिवाइस</string>
-    <string name="setup_onb_need_nearby_why">Bluetooth, Wi-Fi और UWB से दोस्तों को ढूँढने के लिए</string>
     <string name="setup_onb_need_location">लोकेशन</string>
     <string name="setup_onb_need_location_why">जब आप दूर-दूर हों, तब तीर के लिए</string>
     <string name="setup_onb_need_notifications">नोटिफ़िकेशन</string>

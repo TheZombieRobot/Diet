@@ -40,7 +40,6 @@
     <string name="setup_onb_title_live">입장하면\n위치 공유 켜기</string>
     <string name="setup_onb_body_live">친구들은 내가 위치 공유 중일 때만 나를 찾을 수 있고, 켜는 건 나만 할 수 있어요. Moshpoint에 필요한 것:</string>
     <string name="setup_onb_need_nearby">근처 기기</string>
-    <string name="setup_onb_need_nearby_why">Bluetooth, Wi-Fi, UWB로 친구를 찾기 위해</string>
     <string name="setup_onb_need_location">위치</string>
     <string name="setup_onb_need_location_why">멀리 떨어져 있을 때 화살표를 보여 주기 위해</string>
     <string name="setup_onb_need_notifications">알림</string>

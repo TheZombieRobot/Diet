@@ -40,7 +40,6 @@
     <string name="setup_onb_title_live">Mulai live\nbegitu masuk</string>
     <string name="setup_onb_body_live">Teman cuma bisa menemukanmu saat kamu live, dan cuma kamu yang bisa menyalakannya. Moshpoint perlu:</string>
     <string name="setup_onb_need_nearby">Perangkat di sekitar</string>
-    <string name="setup_onb_need_nearby_why">untuk mencari teman lewat Bluetooth, Wi-Fi, dan UWB</string>
     <string name="setup_onb_need_location">Lokasi</string>
     <string name="setup_onb_need_location_why">untuk panah saat kalian berjauhan</string>
     <string name="setup_onb_need_notifications">Notifikasi</string>

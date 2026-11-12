@@ -40,7 +40,6 @@
     <string name="setup_onb_title_live">Udostępnij lokalizację,\ngdy wchodzisz</string>
     <string name="setup_onb_body_live">Znajomi mogą cię znaleźć tylko wtedy, gdy udostępniasz lokalizację, i tylko ty to włączasz. Moshpoint potrzebuje:</string>
     <string name="setup_onb_need_nearby">Urządzenia w pobliżu</string>
-    <string name="setup_onb_need_nearby_why">żeby szukać znajomych przez Bluetooth, Wi-Fi i UWB</string>
     <string name="setup_onb_need_location">Lokalizacja</string>
     <string name="setup_onb_need_location_why">do strzałki, gdy jesteście daleko od siebie</string>
     <string name="setup_onb_need_notifications">Powiadomienia</string>

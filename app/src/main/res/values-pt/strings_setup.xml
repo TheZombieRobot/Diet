@@ -40,7 +40,6 @@
     <string name="setup_onb_title_live">Fique ao vivo\nao chegar</string>
     <string name="setup_onb_body_live">Seus amigos só te acham enquanto você está ao vivo, e só você liga isso. O Moshpoint precisa de:</string>
     <string name="setup_onb_need_nearby">Dispositivos próximos</string>
-    <string name="setup_onb_need_nearby_why">pra achar amigos por Bluetooth, Wi-Fi e UWB</string>
     <string name="setup_onb_need_location">Localização</string>
     <string name="setup_onb_need_location_why">pra seta quando vocês estão longe</string>
     <string name="setup_onb_need_notifications">Notificações</string>

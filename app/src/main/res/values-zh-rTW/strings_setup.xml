@@ -40,7 +40,6 @@
     <string name="setup_onb_title_live">進場時\n記得上線</string>
     <string name="setup_onb_body_live">只有你上線時朋友才找得到你，而且只有你能開啟。Moshpoint 需要：</string>
     <string name="setup_onb_need_nearby">鄰近裝置</string>
-    <string name="setup_onb_need_nearby_why">透過 Bluetooth、Wi-Fi 和 UWB 找朋友</string>
     <string name="setup_onb_need_location">定位</string>
     <string name="setup_onb_need_location_why">離很遠時也能顯示箭頭</string>
     <string name="setup_onb_need_notifications">通知</string>

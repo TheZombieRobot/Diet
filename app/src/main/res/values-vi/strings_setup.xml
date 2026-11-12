@@ -40,7 +40,6 @@
     <string name="setup_onb_title_live">Bật chia sẻ\nkhi vào show</string>
     <string name="setup_onb_body_live">Bạn bè chỉ tìm được bạn khi bạn đang chia sẻ, và chỉ bạn mới bật được. Moshpoint cần:</string>
     <string name="setup_onb_need_nearby">Thiết bị lân cận</string>
-    <string name="setup_onb_need_nearby_why">để tìm bạn bè qua Bluetooth, Wi-Fi và UWB</string>
     <string name="setup_onb_need_location">Vị trí</string>
     <string name="setup_onb_need_location_why">cho mũi tên khi hai người ở xa nhau</string>
     <string name="setup_onb_need_notifications">Thông báo</string>

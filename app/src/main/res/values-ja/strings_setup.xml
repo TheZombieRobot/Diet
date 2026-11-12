@@ -40,7 +40,6 @@
     <string name="setup_onb_title_live">会場に入ったら\nシェア開始</string>
     <string name="setup_onb_body_live">仲間があなたを見つけられるのはシェア中だけ。オンにできるのはあなただけです。Moshpointに必要なのは：</string>
     <string name="setup_onb_need_nearby">付近のデバイス</string>
-    <string name="setup_onb_need_nearby_why">Bluetooth、Wi-Fi、UWBで仲間を探すため</string>
     <string name="setup_onb_need_location">位置情報</string>
     <string name="setup_onb_need_location_why">離れているときに矢印を出すため</string>
     <string name="setup_onb_need_notifications">通知</string>

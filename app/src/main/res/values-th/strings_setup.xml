@@ -40,7 +40,6 @@
     <string name="setup_onb_title_live">เริ่มแชร์\nตอนเข้างาน</string>
     <string name="setup_onb_body_live">เพื่อนจะหาคุณเจอได้เฉพาะตอนที่คุณแชร์อยู่ และมีแค่คุณที่เปิดได้ Moshpoint ต้องใช้:</string>
     <string name="setup_onb_need_nearby">อุปกรณ์ใกล้เคียง</string>
-    <string name="setup_onb_need_nearby_why">เพื่อหาเพื่อนผ่าน Bluetooth, Wi-Fi และ UWB</string>
     <string name="setup_onb_need_location">ตำแหน่ง</string>
     <string name="setup_onb_need_location_why">สำหรับลูกศรตอนอยู่ห่างกัน</string>
     <string name="setup_onb_need_notifications">การแจ้งเตือน</string>

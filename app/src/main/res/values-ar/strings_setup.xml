@@ -40,7 +40,6 @@
     <string name="setup_onb_title_live">اظهر عندما\nتدخل</string>
     <string name="setup_onb_body_live">لا يستطيع أصحابك إيجادك إلا وأنت ظاهر، وأنت وحدك من يشغّل ذلك. يحتاج Moshpoint إلى:</string>
     <string name="setup_onb_need_nearby">الأجهزة القريبة</string>
-    <string name="setup_onb_need_nearby_why">لإيجاد أصحابك عبر Bluetooth وWi-Fi وUWB</string>
     <string name="setup_onb_need_location">الموقع</string>
     <string name="setup_onb_need_location_why">للسهم عندما تكونون متباعدين</string>
     <string name="setup_onb_need_notifications">الإشعارات</string>

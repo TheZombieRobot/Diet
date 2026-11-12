@@ -41,7 +41,7 @@
     <string name="offline_meet_pin_named">Meet at the pin 📍 %1$s</string>
 
     <!-- ===== Permissions (first-run screen) ===== -->
-    <!-- Why the app asks for Nearby devices. Replaces setup_onb_need_nearby_why now that Bluetooth also carries messages. Lower case: it follows the permission's name. -->
+    <!-- Why the app asks for Nearby devices, now that Bluetooth also carries messages. Lower case: it follows the permission's name. -->
     <string name="offline_need_nearby_why">to find mates over Bluetooth, Wi-Fi and UWB, and pass messages on with no signal</string>
 
 </resources>

@@ -40,7 +40,6 @@
     <string name="setup_onb_title_live">Ga live als\nje naar binnen gaat</string>
     <string name="setup_onb_body_live">Je vrienden kunnen je alleen vinden als je live bent, en alleen jij zet dat aan. Moshpoint heeft nodig:</string>
     <string name="setup_onb_need_nearby">Apparaten in de buurt</string>
-    <string name="setup_onb_need_nearby_why">om vrienden te vinden via Bluetooth, Wi-Fi en UWB</string>
     <string name="setup_onb_need_location">Locatie</string>
     <string name="setup_onb_need_location_why">voor de pijl als jullie ver uit elkaar zijn</string>
     <string name="setup_onb_need_notifications">Meldingen</string>

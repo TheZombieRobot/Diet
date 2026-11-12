@@ -40,7 +40,6 @@
     <string name="setup_onb_title_live">Gå live när\ndu går in</string>
     <string name="setup_onb_body_live">Kompisarna kan bara hitta dig när du är live, och bara du slår på det. Moshpoint behöver:</string>
     <string name="setup_onb_need_nearby">Enheter i närheten</string>
-    <string name="setup_onb_need_nearby_why">för att hitta kompisar via Bluetooth, Wi-Fi och UWB</string>
     <string name="setup_onb_need_location">Plats</string>
     <string name="setup_onb_need_location_why">för pilen när ni är långt ifrån varandra</string>
     <string name="setup_onb_need_notifications">Aviseringar</string>

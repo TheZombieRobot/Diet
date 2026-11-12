@@ -215,10 +215,14 @@ jobs:
               de|ar|ja|en-rUS) cp "$f" "docs/screenshots/$lang-$test" ;;
             esac
           done
+          # The main branch owns ui-screenshots; any other branch gets its own copy, so a
+          # feature branch never replaces the main app's set.
+          SHOTS=ui-screenshots
+          [ "$GITHUB_REF_NAME" = "ccr-5839ed7c-1q0ztj" ] || SHOTS="ui-screenshots-${GITHUB_REF_NAME//\//-}"
           (
-            cd "$ALL" && git init -q && git checkout -q -b ui-screenshots && git add . &&
+            cd "$ALL" && git init -q && git checkout -q -b "$SHOTS" && git add . &&
             git -c user.name=moshpoint-ci -c user.email=moshpoint-ci@users.noreply.github.com commit -qm "UI screenshots, every language, for ${GITHUB_SHA::7}" &&
-            git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" ui-screenshots
+            git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$SHOTS"
           ) || echo "Couldn't publish the all-language screenshots"
           git add docs/screenshots
           if git diff --cached --quiet; then echo "Screenshots unchanged"; exit 0; fi
@@ -418,10 +422,13 @@ jobs:
               de|th|ar|ja) [ "$size" = small ] && cp "$f" "docs/screenshots/watch/$lang-$screen.png" ;;
             esac
           done
+          # As for the phone: the main branch owns ui-screenshots-watch, other branches get their own.
+          SHOTS=ui-screenshots-watch
+          [ "$GITHUB_REF_NAME" = "ccr-5839ed7c-1q0ztj" ] || SHOTS="ui-screenshots-watch-${GITHUB_REF_NAME//\//-}"
           (
-            cd "$ALL" && git init -q && git checkout -q -b ui-screenshots-watch && git add . &&
+            cd "$ALL" && git init -q && git checkout -q -b "$SHOTS" && git add . &&
             git -c user.name=moshpoint-ci -c user.email=moshpoint-ci@users.noreply.github.com commit -qm "Watch screenshots, every language, for ${GITHUB_SHA::7}" &&
-            git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" ui-screenshots-watch
+            git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$SHOTS"
           ) || echo "Couldn't publish the all-language watch screenshots"
           git add docs/screenshots/watch
           if git diff --cached --quiet; then echo "Watch screenshots unchanged"; exit 0; fi

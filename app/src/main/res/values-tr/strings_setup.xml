@@ -40,7 +40,6 @@
     <string name="setup_onb_title_live">İçeri girerken\nkonumunu paylaş</string>
     <string name="setup_onb_body_live">Arkadaşların seni sadece konumunu paylaşırken bulabilir ve bunu sadece sen açarsın. Moshpoint\'in ihtiyacı olanlar:</string>
     <string name="setup_onb_need_nearby">Yakındaki cihazlar</string>
-    <string name="setup_onb_need_nearby_why">Bluetooth, Wi-Fi ve UWB ile arkadaşlarını bulmak için</string>
     <string name="setup_onb_need_location">Konum</string>
     <string name="setup_onb_need_location_why">birbirinizden uzaktayken ok için</string>
     <string name="setup_onb_need_notifications">Bildirimler</string>

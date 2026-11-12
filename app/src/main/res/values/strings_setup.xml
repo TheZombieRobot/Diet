@@ -56,7 +56,6 @@
     <string name="setup_onb_body_live">Your mates can only find you while you\'re live, and only you switch it on. Moshpoint needs:</string>
     <!-- Permission name, then why it is needed -->
     <string name="setup_onb_need_nearby">Nearby devices</string>
-    <string name="setup_onb_need_nearby_why">to find mates over Bluetooth, Wi-Fi and UWB</string>
     <string name="setup_onb_need_location">Location</string>
     <string name="setup_onb_need_location_why">for the arrow when you\'re far apart</string>
     <string name="setup_onb_need_notifications">Notifications</string>

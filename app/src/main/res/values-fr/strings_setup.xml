@@ -40,7 +40,6 @@
     <string name="setup_onb_title_live">Passe en live\nen arrivant</string>
     <string name="setup_onb_body_live">Tes potes ne peuvent te trouver que quand tu es en live, et c\'est toi qui l\'actives. Moshpoint a besoin de :</string>
     <string name="setup_onb_need_nearby">Appareils à proximité</string>
-    <string name="setup_onb_need_nearby_why">pour trouver tes potes en Bluetooth, Wi-Fi et UWB</string>
     <string name="setup_onb_need_location">Localisation</string>
     <string name="setup_onb_need_location_why">pour la flèche quand vous êtes loin</string>
     <string name="setup_onb_need_notifications">Notifications</string>
