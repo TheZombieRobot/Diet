@@ -27,7 +27,8 @@
 
     <!-- Server location sharing -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Knowing when there's a connection: the venue map downloads by itself, and the map uses its saved copy with none. -->
+    <!-- Knowing when there's no network at all, so nothing retries (or spends the relay's
+         daily allowance) until there is. Granted at install: no prompt. -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Sound on crew moment clips (asked the first time you hold to record). -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />

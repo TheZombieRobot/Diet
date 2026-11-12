@@ -235,12 +235,12 @@ class VisibilityService : LifecycleService() {
         runCatching { unregisterReceiver(batteryReceiver) }
         wifi?.stop()
         if (rotateJob != null) {
-            nz.waveformlabs.moshpoint.venue.Floors.onAdvertChange = null
-            nz.waveformlabs.moshpoint.venue.Floors.release(live = true)
             GroupSync.release(this)
             CrowdRelayRadio.stopBroadcasting(this)
             CrowdRelayRadio.stopListening(this)
             CrowdRelayRadio.ownPacket = null
+            nz.waveformlabs.moshpoint.venue.Floors.onAdvertChange = null
+            nz.waveformlabs.moshpoint.venue.Floors.release(live = true)
         }
         listener?.stop()
         uwb?.stop()
