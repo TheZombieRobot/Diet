@@ -9,6 +9,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import app.cash.paparazzi.DeviceConfig
@@ -66,7 +67,13 @@ class WatchScreensTest(private val lang: String, private val size: String) {
     }
 
     private fun snap(content: @Composable () -> Unit) = paparazzi.snapshot {
-        CompositionLocalProvider(LocalLayoutDirection provides if (rtl) LayoutDirection.Rtl else LayoutDirection.Ltr) {
+        CompositionLocalProvider(
+            LocalLayoutDirection provides if (rtl) LayoutDirection.Rtl else LayoutDirection.Ltr,
+            // A snapshot is one frame, and the Wear scrolling list keeps itself hidden until its
+            // second (it settles its scroll position first). In inspection mode, the same switch
+            // Android Studio's previews use, it draws straight away.
+            LocalInspectionMode provides true,
+        ) {
             // The round glass, on a grey surround so its edge can be seen.
             Box(Modifier.fillMaxSize().background(Color(0xFF3A3A3A))) {
                 Box(Modifier.fillMaxSize().clip(CircleShape)) { WristTheme { content() } }

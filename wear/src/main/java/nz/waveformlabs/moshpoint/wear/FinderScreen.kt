@@ -129,8 +129,7 @@ fun FinderScreen(ui: FinderUi, face: ImageBitmap?, onAgain: () -> Unit = {}) {
                     else -> null to stringResource(R.string.find_searching, ui.mateName)
                 }
                 val trend = (view as? WristView.DistanceOnly)?.takeIf { it.why == NoArrow.NO_DIRECTION }?.trend
-                Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Spacer(Modifier.height(s * 0.1f))
+                Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                     Row(Modifier.width(s * 0.62f), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                         Face(face, ui.mateName, colour, s * 0.17f)
                         Spacer(Modifier.width(6.dp))
@@ -227,8 +226,7 @@ private fun StatusMessage(ui: FinderUi, face: ImageBitmap?, s: androidx.compose.
     }
     val again = ui.canRestart
     val found = ui.status == FinderStatus.FOUND
-    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Spacer(Modifier.height(s * 0.12f))
+    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         Face(face, ui.mateName, if (found) Wrist.Lime else Color(ui.mateColour), s * (if (found) 0.26f else 0.2f), ring = if (found) 3.dp else 2.dp)
         Spacer(Modifier.height(s * 0.04f))
         if (ui.status == FinderStatus.LOCKED) {

@@ -613,4 +613,21 @@ class LocatorEngine(
         /** Signal readings heard so far (the fewest, if scanning for several). */
         val heard: Int = 0,
     )
+
+    // ---- Watch bridge: read-only (docs/WATCH.md). The wrist does its own pointing with its
+    // own compass, so it needs each fix's bearing from true north rather than the angle from
+    // the top of this phone that [arrows] carries. Nothing here changes what the finder does. ----
+
+    /** True while this finder is running (its screen is open, or was a moment ago). */
+    val isRunning: Boolean get() = jobs.isNotEmpty()
+
+    /** The newest fix each method has for [friendId]. */
+    fun latestFixes(friendId: String): List<Fix> = Method.entries.mapNotNull { arbiter.latestFix(friendId, it) }
+
+    /** The compass correction this finder applies (degrees to add to magnetic; 0 until there's a GPS fix). */
+    val declinationDeg: Double get() = gps.declinationDeg
+
+    init {
+        nz.waveformlabs.moshpoint.watch.PhoneFinderBridge.attach(this)
+    }
 }
