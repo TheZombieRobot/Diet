@@ -16,7 +16,6 @@ import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.FieldRecorder
 import nz.waveformlabs.moshpoint.FriendsRepository
-import nz.waveformlabs.moshpoint.GroupSync
 import nz.waveformlabs.moshpoint.Identity
 import nz.waveformlabs.moshpoint.core.Baro
 import nz.waveformlabs.moshpoint.core.Closeness
@@ -266,17 +265,19 @@ object Floors {
         val now = System.currentTimeMillis()
         for ((id, m) in mates) judge(id, m, now)
         val mine = history.current(now)
-        DebugStatus.set(
-            K,
-            when {
-                noSensor -> "this phone has no pressure sensor"
-                mine == null -> "waiting for a pressure reading"
-                else -> "%.2f hPa, ".format(mine) + mates.entries.joinToString(", ") { (id, m) ->
-                    val e = m.tracker.update(history.at(m.atMs), m.hPa, m.atMs, now)
-                    nameOf(id) + if (e == null) " ?" else " %+.1f m ±%.1f".format(e.heightM, e.sigmaM)
-                }.ifEmpty { "no mates' pressure yet" }
-            },
-        )
+        if (DebugStatus.enabled) {
+            DebugStatus.set(
+                K,
+                when {
+                    noSensor -> "this phone has no pressure sensor"
+                    mine == null -> "waiting for a pressure reading"
+                    else -> "%.2f hPa, ".format(mine) + mates.entries.joinToString(", ") { (id, m) ->
+                        val e = m.tracker.update(history.at(m.atMs), m.hPa, m.atMs, now)
+                        nameOf(id) + if (e == null) " ?" else " %+.1f m ±%.1f".format(e.heightM, e.sigmaM)
+                    }.ifEmpty { "no mates' pressure yet" }
+                },
+            )
+        }
         if (mine != null && FieldRecorder.active && now - lastRecordMs >= 5_000) {
             lastRecordMs = now
             FieldRecorder.line(RecordLine.of(now, "baro", note = "hPa=%.2f".format(java.util.Locale.ROOT, mine)))
@@ -284,10 +285,14 @@ object Floors {
         // Over the internet too, for mates out of Bluetooth range. Our own relay only: the free
         // public one is rationed, and floors must never cost a location update.
         if (!RelayClient.ownServer) return
+        // And only while it can mean something: a tag needs a calibration that hasn't aged out,
+        // and that takes having stood next to someone tonight. No such mate, no traffic.
+        val calibrated = mates.filterValues { m -> m.tracker.calibration?.let { m.tracker.sigmaM(it, now) <= cfg.maxSigmaM } == true }.keys
+        if (calibrated.isEmpty()) return
         if (mine != null && liveUsers > 0 && !VisibilityPrefs.ghost(c)) publish(c, mine, now)
         if (watchers > 0 && !noSensor && now - lastFetchMs >= FETCH_GAP_MS) {
             lastFetchMs = now
-            fetch(now)
+            fetch(now, calibrated)
         }
     }
 
@@ -304,11 +309,9 @@ object Floors {
         scope.launch { RelayClient.put(id, sealed) }
     }
 
-    private fun fetch(now: Long) {
-        // The crew first, then friends: the same people the map shows.
-        val all = FriendsRepository.friends.filterNot { FriendsRepository.isSimulated(it.id) }
-        val crew = all.filter { it.gigGroupOnly || it.key in GroupSync.members }
-        val people = (crew + (all - crew.toSet())).take(60)
+    /** Ask the relay for the pressure of [ids]: the mates a reading could turn into a tag for. */
+    private fun fetch(now: Long, ids: Set<String>) {
+        val people = FriendsRepository.friends.filter { it.id in ids && !FriendsRepository.isSimulated(it.id) }.take(60)
         if (people.isEmpty()) return
         val asks = people.flatMap { f ->
             val e = f.ephemeralId.epochAt(now)

@@ -302,6 +302,9 @@ Formats:
   `HMAC-SHA256(secret, "moshpoint-floor-box")`. Nonce = id[0..8] ‖ time. The id is bound in.
 - Not sent in ghost mode over the relay (ghost mode means nothing goes on the map). The advert
   keeps it, as ghost mode keeps Bluetooth finding.
+- The relay is only used for floors while it can mean something: once this phone holds a
+  calibration with a mate that hasn't aged out. Until then nothing is posted or fetched, and
+  then only those mates' records are asked for.
 - Later, once the crowd-relay work lands, the floor box can ride it as its own packet type.
 
 ### The maths
