@@ -308,6 +308,28 @@ chat's note: `privateThread`), a new thread (`privateEmpty`), a muted one with "
 (`privateOptions`), and the finder's **Message Sam** (`privateFinder`); `Lang_de.privateTranslationsLoad`
 guards that the translations load.
 
+## Shared files this branch touches
+
+Everything else is new (`core/Private.kt`, `PrivateTest.kt`, `app/PrivateMessages.kt`,
+`ui/PrivateChatUi.kt`, `strings_private.xml` in 20 folders, `privatemsg/PrivateSnapshotTest.kt`,
+this note).
+
+| File | Change |
+|---|---|
+| core `GigGroup.kt` | Additions only: `privateIdForDay`, `Private`, `PrivateOuter`, `sealPrivate`, `privateOuterOf`, `privateOf`, `openPrivate`, the constants. `ENV_PRIVATE` keeps its number. |
+| core `CrewKeys.kt` | `agree(…, label)`; the old `agree` calls it with its old label, so `sealDirect` is byte-for-byte unchanged. |
+| core `Courier.kt` | `Message.pm` (and `kind`/`timeSec`/`sender` no longer assume a pin when nothing else is set), `KIND_PRIVATE`, `Box.PRIVATE`, `Host.resealPrivate` (default null), the held-mailbox room counted per box, and the private kind in open / post / handle / hops / receipts / rank / carry / rekey. |
+| core `CourierSimTest.kt` | The simulated relay treats the private box as held; a phone can send private messages and seal them again; eight tests appended at the end. |
+| app `OfflineMessages.kt` | `fetchedPrivate`, uploads to `Box.PRIVATE`, deliveries and states to `PrivateMessages`, `resealPrivate`, a name in the route log. |
+| app `ChatSync.kt` | The private mailboxes (and the old key's, during the day of grace) ride in `pollAll`'s one lookup, after everything else; `PrivateMessages.retryOutbox`. |
+| app `CrewRekey.kt` | One line in `migrate`: the threads move (without the removed) before the courier seals again. |
+| app `GroupSync.kt`, `Crews.kt` | Threads are forgotten with the crew (End night, leave, an Up next crew that ended); a new intro shows messages that waited for it. |
+| app `CrewNotifications.kt` | Two optional parameters: the private thread to open, and the lock screen's public version. |
+| app `MainActivity.kt` | The thread overlay, the two entry points (`onMessage`), the notification intent (`EXTRA_OPEN_PRIVATE`). |
+| app `ui/CrewChatUi.kt` | `ChatLine` is `internal` instead of `private`, so the thread can use it. |
+| app `ui/FriendsScreen.kt`, `ui/HomeSections.kt`, `ui/FinderScreen.kt` | Optional parameters with defaults: **Message Sam** in the options, the count on a face, the finder's button. |
+| docs | `ROADMAP.md` (step 4 status), `FIELD_TEST_PLAN.md` (section 4e, a known limit), `ARCHITECTURE.md` (a section), `PRIVACY.md` (a paragraph, the date), `i18n/*.md` (a section at the end of each, for native reviewers). |
+
 ## Known limits
 
 - A mate on a build from before private messages never sees them (hard problem 7).
