@@ -93,3 +93,20 @@ Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a 
 | upstairs / downstairs (screen reader) | di lantai atas / di lantai bawah | Said in full after the mate's direction. |
 
 For a native reviewer: Nothing doubtful. Confidence: **high**.
+
+## Watch app (`wear/…/strings.xml`, `strings_watch.xml`)
+
+The Wear OS companion: 62 strings on the watch and 4 on the phone (the notification shown while the phone finds a mate for the watch). 22 of the watch strings are copied key for key from the phone app's files (the quick messages, "live", the four message states, the warmer/colder hints, units), so the wrist says things the way the phone does. The rest are new. Validator prints **OK** for both folders.
+
+| English | Chosen | Why |
+|---|---|---|
+| watch / wrist / buzzes | **jam (jam tangan)** / **pergelangan tangan / tangan** / **getaran** | Plain everyday words. "Buzzes" are the watch's vibrations: in a loud venue they do the guiding. |
+| Phone out of reach | **HP tidak terhubung** | The watch has lost its Bluetooth link to the phone. *HP tidak terhubung* (the phone isn't connected). *Di luar jangkauan* was avoided: it is what the phone network says for "no coverage". |
+| Hold (on the round button) / Hold to tell your crew | **Tahan** / Tahan untuk kabari gengmu | The button is about 8 letters wide, so one short word or two very short ones. |
+| Hold your wrist flat | **Posisikan jam mendatar** | The arrow only shows with the watch face level, like a compass. |
+| Follow the buzzes | **Ikuti getarannya** | Shown when there is a distance but no direction. |
+| Not sent yet | **Belum terkirim** | Big, above the phone's own "Waiting for signal": the message is still on the phone. |
+| Only crew nearby have it so far | Baru sampai ke geng yang di dekatmu | Under the phone's own "Sent nearby". |
+| Nearest mate (watch-face complication) / Crew status (tile) | **Teman terdekat** / **Status geng** | Names in the watch's pickers. |
+
+For a native reviewer: *Jam* alone for the watch. *Posisikan jam mendatar* ("hold the watch level") instead of a literal "wrist flat". *Belum terkirim* serves for both "Not sent" (the app's own wording) and "Not sent yet". The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium**.

@@ -89,3 +89,20 @@ Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a 
 | upstairs / downstairs (screen reader) | en la planta de arriba / en la planta de abajo | Said in full after the mate's direction. |
 
 For a native reviewer: Nothing doubtful. Confidence: **high**.
+
+## Watch app (`wear/…/strings.xml`, `strings_watch.xml`)
+
+The Wear OS companion: 62 strings on the watch and 4 on the phone (the notification shown while the phone finds a mate for the watch). 22 of the watch strings are copied key for key from the phone app's files (the quick messages, "live", the four message states, the warmer/colder hints, units), so the wrist says things the way the phone does. The rest are new. Validator prints **OK** for both folders.
+
+| English | Chosen | Why |
+|---|---|---|
+| watch / wrist / buzzes | **reloj** / **muñeca** / **vibraciones** | Plain everyday words. "Buzzes" are the watch's vibrations: in a loud venue they do the guiding. |
+| Phone out of reach | **Móvil fuera de alcance** | The watch has lost its Bluetooth link to the phone. *Fuera de alcance* for Bluetooth range; phone reception is *cobertura*, as in the rest of the app. |
+| Hold (on the round button) / Hold to tell your crew | **Mantén** / Mantén pulsado para avisar a tu grupo | The button is about 8 letters wide, so one short word or two very short ones. |
+| Hold your wrist flat | **Mantén la muñeca plana** | The arrow only shows with the watch face level, like a compass. |
+| Follow the buzzes | **Sigue las vibraciones** | Shown when there is a distance but no direction. |
+| Not sent yet | **Aún no enviado** | Big, above the phone's own "Waiting for signal": the message is still on the phone. |
+| Only crew nearby have it so far | Por ahora solo lo tiene el grupo que está cerca | Under the phone's own "Sent nearby". |
+| Nearest mate (watch-face complication) / Crew status (tile) | **Amigo más cercano** / **Estado del grupo** | Names in the watch's pickers. |
+
+For a native reviewer: *Mantén* alone on the round button (the line under it says *Mantén pulsado…*). *Se ha parado* (present perfect) for a find that has just stopped. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium-high**.

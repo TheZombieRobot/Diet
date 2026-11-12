@@ -117,10 +117,12 @@ Agreed with the owner; build in this order. Where this differs from [PRODUCT.md]
 ### Later
 - **Before launch:** move the finder engine out of the gig code (the watch and any spin-off
   need it).
-- **Watch app (Wear OS):** a `wear` module in this repo (same app ID and signing key), after
-  launch and the field test. Write a spec first; build the base in one long session with the
-  most capable coding model, then iterate. Test on a used Galaxy Watch4–6 (has a compass);
-  Pixel Watch 3/4 only for watch-side UWB / Channel Sounding experiments.
+- **Watch app (Wear OS):** the base is built: a `wear` module in this repo (same app ID and
+  signing key), the phone side, and the shared maths in `core/watch`. Decisions, install steps
+  and what is still unproven: [WATCH.md](WATCH.md). Next: the wrist field test (section 4c of
+  the field test plan) on a used Galaxy Watch4–6 (has a compass), then tune the tilt limits and
+  buzz timings from it, and plug billing into the one Moshpoint+ check. Pixel Watch 3/4 only
+  for watch-side UWB / Channel Sounding experiments.
 - **Bluetooth Channel Sounding** (Android 16 ranging API): precise distance on newer phones,
   after launch.
 - **Construction-site version:** a separate brand on the same core, after launch.

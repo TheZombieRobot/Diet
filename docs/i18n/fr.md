@@ -101,3 +101,20 @@ Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a 
 | upstairs / downstairs (screen reader) | à l'étage au-dessus / à l'étage en dessous | Said in full after the mate's direction. |
 
 For a native reviewer: *En haut/En bas* versus *À l'étage/En bas*: the pair was kept symmetrical and short. Confidence: **high**.
+
+## Watch app (`wear/…/strings.xml`, `strings_watch.xml`)
+
+The Wear OS companion: 62 strings on the watch and 4 on the phone (the notification shown while the phone finds a mate for the watch). 22 of the watch strings are copied key for key from the phone app's files (the quick messages, "live", the four message states, the warmer/colder hints, units), so the wrist says things the way the phone does. The rest are new. Validator prints **OK** for both folders.
+
+| English | Chosen | Why |
+|---|---|---|
+| watch / wrist / buzzes | **montre** / **poignet** / **vibrations** | Plain everyday words. "Buzzes" are the watch's vibrations: in a loud venue they do the guiding. |
+| Phone out of reach | **Téléphone hors de portée** | The watch has lost its Bluetooth link to the phone. *Hors de portée* is the usual phrase for Bluetooth range; phone reception is *réseau* in the app. |
+| Hold (on the round button) / Hold to tell your crew | **Appui long** / Maintiens pour prévenir ta crew | The button is about 8 letters wide, so one short word or two very short ones. |
+| Hold your wrist flat | **Garde ton poignet à plat** | The arrow only shows with the watch face level, like a compass. |
+| Follow the buzzes | **Suis les vibrations** | Shown when there is a distance but no direction. |
+| Not sent yet | **Pas encore envoyé** | Big, above the phone's own "Waiting for signal": the message is still on the phone. |
+| Only crew nearby have it so far | Pour l'instant, seule la crew à proximité l'a reçu | Under the phone's own "Sent nearby". |
+| Nearest mate (watch-face complication) / Crew status (tile) | **Pote le plus proche** / **Statut de la crew** | Names in the watch's pickers. |
+
+For a native reviewer: *Appui long* on the round button while the line under it uses the verb *Maintiens*. *Relancer* for "Find again". *L'appli montre* for the watch app. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium**.

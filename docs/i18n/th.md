@@ -78,3 +78,20 @@ Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a 
 | upstairs / downstairs (screen reader) | อยู่ชั้นบน / อยู่ชั้นล่าง | Said in full after the mate's direction. |
 
 For a native reviewer: The crew-card lines are long; check they fit. Confidence in the wording: **high**.
+
+## Watch app (`wear/…/strings.xml`, `strings_watch.xml`)
+
+The Wear OS companion: 62 strings on the watch and 4 on the phone (the notification shown while the phone finds a mate for the watch). 22 of the watch strings are copied key for key from the phone app's files (the quick messages, "live", the four message states, the warmer/colder hints, units), so the wrist says things the way the phone does. The rest are new. Validator prints **OK** for both folders.
+
+| English | Chosen | Why |
+|---|---|---|
+| watch / wrist / buzzes | **นาฬิกา** / **ข้อมือ** / **การสั่น / แรงสั่น** | Plain everyday words. "Buzzes" are the watch's vibrations: in a loud venue they do the guiding. |
+| Phone out of reach | **เชื่อมต่อมือถือไม่ได้** | The watch has lost its Bluetooth link to the phone. *เชื่อมต่อมือถือไม่ได้* (can't connect to the phone); reception is *สัญญาณ*. |
+| Hold (on the round button) / Hold to tell your crew | **กดค้าง** / กดค้างเพื่อบอกแก๊ง | The button is about 8 letters wide, so one short word or two very short ones. |
+| Hold your wrist flat | **ยกข้อมือให้ขนานกับพื้น** | The arrow only shows with the watch face level, like a compass. |
+| Follow the buzzes | **เดินตามแรงสั่น** | Shown when there is a distance but no direction. |
+| Not sent yet | **ยังไม่ได้ส่ง** | Big, above the phone's own "Waiting for signal": the message is still on the phone. |
+| Only crew nearby have it so far | ตอนนี้ถึงแค่แก๊งที่อยู่ใกล้ๆ | Under the phone's own "Sent nearby". |
+| Nearest mate (watch-face complication) / Crew status (tile) | **เพื่อนที่ใกล้ที่สุด** / **สถานะแก๊ง** | Names in the watch's pickers. |
+
+For a native reviewer: *ยกข้อมือให้ขนานกับพื้น* ("raise your wrist level with the ground") for "Hold your wrist flat". *เดินตามแรงสั่น* for "Follow the buzzes". *กดค้าง* on the button. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium**.

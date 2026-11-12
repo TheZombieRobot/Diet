@@ -83,3 +83,20 @@ Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a 
 | upstairs / downstairs (screen reader) | en trappa upp / en trappa ner | Said in full after the mate's direction. |
 
 For a native reviewer: *Uppe* can also mean "awake"; with the arrow and on a map it reads as upstairs. *En trappa upp* (used for screen readers) is the unambiguous form if it needs changing. Confidence: **medium-high**.
+
+## Watch app (`wear/…/strings.xml`, `strings_watch.xml`)
+
+The Wear OS companion: 62 strings on the watch and 4 on the phone (the notification shown while the phone finds a mate for the watch). 22 of the watch strings are copied key for key from the phone app's files (the quick messages, "live", the four message states, the warmer/colder hints, units), so the wrist says things the way the phone does. The rest are new. Validator prints **OK** for both folders.
+
+| English | Chosen | Why |
+|---|---|---|
+| watch / wrist / buzzes | **klocka** / **handled** / **vibrationer** | Plain everyday words. "Buzzes" are the watch's vibrations: in a loud venue they do the guiding. |
+| Phone out of reach | **Telefonen är utom räckhåll** | The watch has lost its Bluetooth link to the phone. *Utom räckhåll* for Bluetooth range; phone reception is *täckning* in the app. |
+| Hold (on the round button) / Hold to tell your crew | **Håll in** / Håll in för att säga till gruppen | The button is about 8 letters wide, so one short word or two very short ones. |
+| Hold your wrist flat | **Håll handleden plant** | The arrow only shows with the watch face level, like a compass. |
+| Follow the buzzes | **Följ vibrationerna** | Shown when there is a distance but no direction. |
+| Not sent yet | **Inte skickat än** | Big, above the phone's own "Waiting for signal": the message is still on the phone. |
+| Only crew nearby have it so far | Än så länge har bara gruppen i närheten fått det | Under the phone's own "Sent nearby". |
+| Nearest mate (watch-face complication) / Crew status (tile) | **Närmaste kompis** / **Gruppstatus** | Names in the watch's pickers. |
+
+For a native reviewer: *Håll in* on the round button. *Säga till gruppen* for telling the crew. *Klockappen* for the watch app. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium-high**.

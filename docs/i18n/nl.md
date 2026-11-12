@@ -85,3 +85,20 @@ Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a 
 | upstairs / downstairs (screen reader) | een verdieping hoger / een verdieping lager | Said in full after the mate's direction. |
 
 For a native reviewer: Nothing doubtful. Confidence: **high**.
+
+## Watch app (`wear/…/strings.xml`, `strings_watch.xml`)
+
+The Wear OS companion: 62 strings on the watch and 4 on the phone (the notification shown while the phone finds a mate for the watch). 22 of the watch strings are copied key for key from the phone app's files (the quick messages, "live", the four message states, the warmer/colder hints, units), so the wrist says things the way the phone does. The rest are new. Validator prints **OK** for both folders.
+
+| English | Chosen | Why |
+|---|---|---|
+| watch / wrist / buzzes | **horloge** / **pols** / **trillingen** | Plain everyday words. "Buzzes" are the watch's vibrations: in a loud venue they do the guiding. |
+| Phone out of reach | **Geen verbinding met telefoon** | The watch has lost its Bluetooth link to the phone. *Geen verbinding met telefoon* (no connection to the phone). *Buiten bereik* was avoided because *bereik* is the app's word for phone reception. |
+| Hold (on the round button) / Hold to tell your crew | **Hou vast** / Hou vast om je crew te waarschuwen | The button is about 8 letters wide, so one short word or two very short ones. |
+| Hold your wrist flat | **Hou je pols plat** | The arrow only shows with the watch face level, like a compass. |
+| Follow the buzzes | **Volg de trillingen** | Shown when there is a distance but no direction. |
+| Not sent yet | **Nog niet verstuurd** | Big, above the phone's own "Waiting for signal": the message is still on the phone. |
+| Only crew nearby have it so far | Alleen crew in de buurt heeft het nu | Under the phone's own "Sent nearby". |
+| Nearest mate (watch-face complication) / Crew status (tile) | **Dichtstbijzijnde vriend** / **Crewstatus** | Names in the watch's pickers. |
+
+For a native reviewer: *Hou vast* on the round button, *waarschuwen* for telling the crew. *Dichtstbijzijnde vriend* is long for a complication name; it only shows in the picker. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium-high**.

@@ -73,3 +73,20 @@ Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a 
 | upstairs / downstairs (screen reader) | 위층 / 아래층 | Said in full after the mate's direction. |
 
 For a native reviewer: Nothing doubtful. Confidence: **high**.
+
+## Watch app (`wear/…/strings.xml`, `strings_watch.xml`)
+
+The Wear OS companion: 62 strings on the watch and 4 on the phone (the notification shown while the phone finds a mate for the watch). 22 of the watch strings are copied key for key from the phone app's files (the quick messages, "live", the four message states, the warmer/colder hints, units), so the wrist says things the way the phone does. The rest are new. Validator prints **OK** for both folders.
+
+| English | Chosen | Why |
+|---|---|---|
+| watch / wrist / buzzes | **워치** / **손목** / **진동** | Plain everyday words. "Buzzes" are the watch's vibrations: in a loud venue they do the guiding. |
+| Phone out of reach | **폰과 연결이 안 돼요** | The watch has lost its Bluetooth link to the phone. *폰과 연결이 안 돼요* (not connected to the phone); reception is *신호* in the app. |
+| Hold (on the round button) / Hold to tell your crew | **길게 누르기** / 길게 누르면 크루에 알려요 | The button is about 8 letters wide, so one short word or two very short ones. |
+| Hold your wrist flat | **손목을 평평하게 들어요** | The arrow only shows with the watch face level, like a compass. |
+| Follow the buzzes | **진동을 따라가요** | Shown when there is a distance but no direction. |
+| Not sent yet | **아직 전송 안 됨** | Big, above the phone's own "Waiting for signal": the message is still on the phone. |
+| Only crew nearby have it so far | 지금은 근처 크루에게만 전달됐어요 | Under the phone's own "Sent nearby". |
+| Nearest mate (watch-face complication) / Crew status (tile) | **가장 가까운 친구** / **크루 상태** | Names in the watch's pickers. |
+
+For a native reviewer: *길게 누르기* on the round button (two short words). *%1$s님은 이제 크루에 없어요* uses 님 as the chat lines do. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium-high**.

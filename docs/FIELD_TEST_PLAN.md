@@ -279,6 +279,128 @@ Back on signal, one phone at a time:
   that arrived twice, out of order, or not at all.
 - Battery % before and after, if you kept this going for more than half an hour.
 
+## 4c. On the wrist (Wear OS watch, 45 min)
+
+The watch app puts the arrow, the buzzes and Need help on your wrist while the phone stays in
+your pocket. How it works and why: `docs/WATCH.md`. Nothing here has run on a real watch
+before this test, so expect surprises and write them down.
+
+Names: **W** = you, wearing the watch, with phone **B** (the looking phone). **A** = your mate's phone.
+
+Set up:
+
+- [ ] Watch app installed (steps at the end of `docs/WATCH.md`). The watch build and phone B's
+  build must be from the **same test release**.
+- [ ] Phone B: in the same crew as A, **Go live**, battery set to **Unrestricted**. A is live too.
+- [ ] Phone B: Settings → **Show debug info** on (you'll want the TESTING switches later), and
+  start a field recording as usual.
+- [ ] Open Moshpoint on the watch. The crew list should show A with "live" and a distance.
+  How long did that take? Note the watch model and its Wear OS version.
+
+### A. True north (open space, A 50–100 m away, phone B in your pocket)
+
+- [ ] Tap A on the watch and hold your wrist flat. An arrow should appear within a few
+  seconds. Does it point at A? Mark the truth on phone B's recording.
+- [ ] Turn slowly through a full circle. The arrow should stay on A all the way round. (This
+  part is the watch's own compass; the phone isn't involved.)
+- [ ] Take phone B out, open its finder on A and hold it normally. Do the two arrows agree to
+  within about 15°? If they differ by a steady 20° or so, one of them is using magnetic north
+  and the other true north: note which is right.
+- [ ] If your watch can be worn flipped (buttons on the other side), flip it in its settings.
+  If the arrow now points exactly backwards, that's a known risk: note the watch model.
+- [ ] Stand next to something steel or a big speaker. How far does the arrow swing? Does
+  "Move your wrist in a figure 8" show, and does doing it fix the arrow?
+
+### B. Wrist position
+
+- [ ] Tilt the watch towards your face the way you'd normally read it. The arrow should stay.
+- [ ] Keep tilting. Somewhere around 45–50° it should give way to the distance and "Hold your
+  wrist flat", and come back a moment after you level out. Too fussy, too loose, or about right?
+- [ ] Let your arm hang for five seconds, then raise it. How long until the arrow is live again?
+
+### C. Phone in the pocket (walk towards A)
+
+- [ ] Further than about 20 m: an arrow (from GPS). Walk towards A.
+- [ ] Closer than about 20 m the arrow should go, leaving the distance: green and "Keep going
+  this way" while it shrinks, pink and "Turn around" while it grows. At what distance did it switch?
+- [ ] If both phones have UWB: take phone B out, open its finder and hold it normally. The
+  watch arrow should come back and agree with the phone's. Put the phone away: it goes again
+  within a couple of seconds.
+- [ ] Mark any moment the watch showed an arrow that was plainly wrong. The whole design is
+  meant never to do that.
+
+### D. Buzzes (don't look at the watch; somewhere loud is ideal)
+
+- [ ] Walking towards A: single ticks that get quicker. Can you feel the difference between
+  about 100 m, 30 m and 5 m?
+- [ ] Wrist flat, turn to face A: two quick ticks, once. Turn well away and back: again.
+- [ ] Walk away from A: one long buzz, again every six seconds or so while you keep going. The ticks stop.
+- [ ] Reach A (under 3 m): short, short, long. The watch says "You found A" and the finding
+  stops by itself, on the watch and on the phone.
+- [ ] Could you tell the patterns apart without looking? Which ones got confused? Was it ever
+  buzzing so much it was annoying, or so little you thought it had stopped?
+- [ ] Put the watch on silent, then Do Not Disturb, then power saving. The buzzes should stop
+  each time and the finder should say "Buzzes are off on this watch".
+
+### E. The phone's side, and battery
+
+- [ ] While the watch is finding, phone B shows a notification: "Finding A for your watch" with
+  **Stop**. Leave the finder on the watch: the notification should go within about 15 seconds.
+- [ ] Find again, then tap **Stop** on the phone's notification. The watch says "Stopped on
+  your phone" with **Find again**.
+- [ ] Mid-find, turn Bluetooth off on phone B. The watch arrow should dim within a few
+  seconds, then two long buzzes and "Phone out of reach" by about ten seconds. Bluetooth back
+  on: does it pick up again by itself?
+- [ ] Start a find, lower your wrist and leave it. It should end by itself after 15 minutes
+  ("Stopped to save battery"). Check the phone's notification has gone too.
+- [ ] Battery: watch % and phone % before and after 15 minutes of finding with your wrist up
+  about half the time.
+- [ ] Battery when idle: a day with the watch app installed but not opened. Is Moshpoint's
+  share of the phone's battery any different from before? (Phone Settings → Battery.)
+- [ ] The hard case: phone B **not** live, Moshpoint swiped away, phone in your pocket. Tap A
+  on the watch. Expected: "Open Moshpoint on your phone". If it just works instead, good: note
+  the phone model and Android version either way.
+
+### F. Need help and quick messages
+
+- [ ] Crew list → **Need help** → hold. It ticks every half second for two seconds. Let go
+  early once: nothing should be sent.
+- [ ] Hold all the way. A's phone gets the Need help alert; the watch says "Sent to your crew"
+  with one long buzz. How long from letting go to A's alert?
+- [ ] Tap **I'm OK now**. A sees "All good".
+- [ ] Swipe Moshpoint away on phone B (app closed), then send Need help from the wrist again.
+  It must still arrive.
+- [ ] Phone B in airplane mode with Bluetooth turned back on, A standing next to you and
+  live: hold Need help. Expected within a few seconds: "Sent nearby", and A's phone alerts.
+- [ ] Same, but A far away: "Not sent yet · Waiting for signal" with the stutter buzz. Now
+  turn airplane mode off while that screen is still showing. It should change to "Sent to your
+  crew" with the long buzz, by itself. Did it? How long did it take?
+- [ ] Leave phone B behind (out of Bluetooth range) or switch it off: hold Need help → "Not
+  sent · Your phone is out of reach".
+- [ ] **On my way** and **All good** from the crew list: A sees each one; the watch flashes "Sent".
+- [ ] Free means free. On phone B: Settings → TESTING → **Moshpoint+ (watch app)** off. The
+  watch should show its Moshpoint+ screen instead of the crew, and tapping a mate or a quick
+  message should do nothing useful. **Need help must still be there and must still arrive on
+  A's phone.** Turn Moshpoint+ back on afterwards.
+
+### G. Tile and watch face
+
+- [ ] Add the **Crew status** tile and the **Nearest mate** complication (install steps, step 10).
+- [ ] With A live and near: the complication shows A's name and distance, or "1/1"-style
+  counts on a small slot. The tile lists the crew with Need help at the bottom.
+- [ ] A goes hidden. How long until the tile and the watch face catch up? (The watch face may
+  lag a few minutes: it is only redrawn when the phone sends news, and not more than once
+  every five minutes.)
+
+### What to send back for this part
+
+- Watch model and Wear OS version; phone B's model and Android version.
+- For A to D: where the arrow was wrong and by how much, the distance where the arrow gave
+  way to distance-only, and which buzzes you could and couldn't tell apart.
+- For E: the battery numbers, and what happened in the "not live, app closed" case.
+- For F: the times, and a photo of the watch for anything that wasn't the expected screen.
+- Text that runs off the round screen or reads oddly in your language: a photo and the language.
+
 ## 5. What to send back
 
 - The CSV recordings (debug panel → **share last**; older ones are in the share list too).
@@ -300,3 +422,6 @@ Back on signal, one phone at a time:
   live. One phone sends about one message every 8 seconds this way. Chat only hops between
   crew phones; quick messages and the pin also pass through strangers' Moshpoint phones.
   None of the timings have been measured on real phones yet: this test is the first.
+- The watch app has never run on a real watch. Its tilt limits (40° and 50°), buzz timings,
+  the 20 m point where a pocketed phone stops giving an arrow, and the 15-minute cap are first
+  guesses. Finding from the pocket needs the phone live (or its app open) on Android 14 and newer.

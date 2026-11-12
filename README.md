@@ -11,6 +11,7 @@ Find your mates at a gig. Open the app, tap a friend, and an arrow points you to
 - **How it works:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 - **What's done / next:** [`docs/ROADMAP.md`](docs/ROADMAP.md)
 - **Venue map** (the map saved for no signal, the venue view, upstairs/downstairs): [`docs/VENUE_MAP.md`](docs/VENUE_MAP.md), the decisions and where it stands.
+- **Watch app** (Wear OS: the arrow, buzzes and Need help on your wrist): [`docs/WATCH.md`](docs/WATCH.md), the decisions, where it stands, and how to install it on a watch.
 - **Design:** neon party, premium finish, drawn on a Claude design canvas (ask Claude for the link). `ui/Theme.kt` holds the colours and type (Unbounded + Inter, bundled), `ui/Neon.kt` the motion kit (glows, radar, running neon border, shimmer, rolling numbers, confetti). In battery saver, or with animations turned off, ambient effects hold still ("calm motion"); the arrow and distance still animate.
 - **Facebook login (optional):** [`docs/FACEBOOK.md`](docs/FACEBOOK.md).
 - **Releasing:** [`docs/PLAY_STORE.md`](docs/PLAY_STORE.md) (checklist, store listing, Data safety answers) and [`docs/PRIVACY.md`](docs/PRIVACY.md) (draft privacy policy).
@@ -30,6 +31,7 @@ switch it off in Settings → *Show debug info*.
 |---|---|
 | `core/` | Pure Kotlin, no Android. All the "where does the arrow point" logic: picking the best method, spin-to-scan maths, Bluetooth distance, arrow colours, rotating privacy codes. Fully unit-tested. |
 | `app/` | The Android app (Kotlin + Jetpack Compose): screens, UWB, Wi-Fi Aware, Bluetooth, GPS, crowd relay, background visibility service. |
+| `wear/` | The Wear OS watch app (Kotlin + Compose for Wear OS): the arrow, buzzes and Need help on your wrist. A companion to the phone app; its maths is in `core/`. |
 | `server/` | The relay server: a tiny mailbox for sealed locations (Kotlin + Ktor). |
 | `docs/` | Brief, architecture, roadmap. |
 | `archive/diet-app/` | Previous project, kept for reference. |

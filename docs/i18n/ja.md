@@ -75,3 +75,20 @@ Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a 
 | upstairs / downstairs (screen reader) | 上の階 / 下の階 | Said in full after the mate's direction. |
 
 For a native reviewer: Nothing doubtful. Confidence: **high**.
+
+## Watch app (`wear/…/strings.xml`, `strings_watch.xml`)
+
+The Wear OS companion: 62 strings on the watch and 4 on the phone (the notification shown while the phone finds a mate for the watch). 22 of the watch strings are copied key for key from the phone app's files (the quick messages, "live", the four message states, the warmer/colder hints, units), so the wrist says things the way the phone does. The rest are new. Validator prints **OK** for both folders.
+
+| English | Chosen | Why |
+|---|---|---|
+| watch / wrist / buzzes | **ウォッチ** / **手首** / **振動** | Plain everyday words. "Buzzes" are the watch's vibrations: in a loud venue they do the guiding. |
+| Phone out of reach | **スマホとつながりません** | The watch has lost its Bluetooth link to the phone. *スマホとつながりません* (can't connect to the phone). *圏外* was avoided: it means the phone has no reception, which is a different problem. |
+| Hold (on the round button) / Hold to tell your crew | **長押し** / 長押しでクルーに知らせる | The button is about 8 letters wide, so one short word or two very short ones. |
+| Hold your wrist flat | **手首を水平にしてね** | The arrow only shows with the watch face level, like a compass. |
+| Follow the buzzes | **振動を頼りに進んで** | Shown when there is a distance but no direction. |
+| Not sent yet | **まだ送れていません** | Big, above the phone's own "Waiting for signal": the message is still on the phone. |
+| Only crew nearby have it so far | 今は近くの仲間にだけ届いています | Under the phone's own "Sent nearby". |
+| Nearest mate (watch-face complication) / Crew status (tile) | **いちばん近い仲間** / **クルーの状況** | Names in the watch's pickers. |
+
+For a native reviewer: *まだ送れていません* for "Not sent yet". *振動を頼りに進んで* for "Follow the buzzes". Friendly *〜してね* endings as in the phone app. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium**.

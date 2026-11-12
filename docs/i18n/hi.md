@@ -96,3 +96,20 @@ Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a 
 | upstairs / downstairs (screen reader) | ऊपर की मंज़िल पर / नीचे की मंज़िल पर | Said in full after the mate's direction. |
 
 For a native reviewer: Whether ऊपर / नीचे alone reads as "upstairs / downstairs" on a face. Confidence: **medium-high**.
+
+## Watch app (`wear/…/strings.xml`, `strings_watch.xml`)
+
+The Wear OS companion: 62 strings on the watch and 4 on the phone (the notification shown while the phone finds a mate for the watch). 22 of the watch strings are copied key for key from the phone app's files (the quick messages, "live", the four message states, the warmer/colder hints, units), so the wrist says things the way the phone does. The rest are new. Validator prints **OK** for both folders.
+
+| English | Chosen | Why |
+|---|---|---|
+| watch / wrist / buzzes | **घड़ी** / **कलाई** / **वाइब्रेशन** | Plain everyday words. "Buzzes" are the watch's vibrations: in a loud venue they do the guiding. |
+| Phone out of reach | **फ़ोन कनेक्ट नहीं है** | The watch has lost its Bluetooth link to the phone. *फ़ोन कनेक्ट नहीं है* (the phone isn't connected). *पहुँच से बाहर* was avoided: it is the phone network's own "out of coverage" message. |
+| Hold (on the round button) / Hold to tell your crew | **दबाए रखें** / ग्रुप को बताने के लिए दबाए रखें | The button is about 8 letters wide, so one short word or two very short ones. |
+| Hold your wrist flat | **कलाई सपाट रखें** | The arrow only shows with the watch face level, like a compass. |
+| Follow the buzzes | **वाइब्रेशन के हिसाब से चलें** | Shown when there is a distance but no direction. |
+| Not sent yet | **अभी नहीं भेजा गया** | Big, above the phone's own "Waiting for signal": the message is still on the phone. |
+| Only crew nearby have it so far | अभी सिर्फ़ आस-पास के ग्रुप वालों को मिला है | Under the phone's own "Sent nearby". |
+| Nearest mate (watch-face complication) / Crew status (tile) | **सबसे पास का दोस्त** / **ग्रुप स्टेटस** | Names in the watch's pickers. |
+
+For a native reviewer: *घड़ी* rather than *वॉच* for the watch. *कन्फ़र्म नहीं हुआ* for "Not confirmed". *कलाई सपाट रखें* for holding the wrist level. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium**.
