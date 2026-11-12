@@ -26,6 +26,17 @@ Stored only in the app's private storage on your device, never backed up to the 
 
 Deleting the app deletes all of it.
 
+## What goes to your watch (only if you install the watch app)
+
+If you put Moshpoint on a Wear OS watch that is paired with your phone, your phone sends the
+watch what its screen shows and nothing else: your crew's names and colours, small copies of
+their photos, how far away each one is and, while you're finding someone, which way they are.
+
+It travels over Wear OS's own link between your phone and your watch: Bluetooth when they're
+together, and Google's Wear OS sync when they aren't. The watch never gets your crew's keys or
+anyone's map position, and it never talks to our server. Nothing is sent unless a watch with
+Moshpoint on it is paired with your phone. Removing the watch app removes its copy.
+
 ## What goes over the air (Bluetooth, Wi-Fi Aware, UWB)
 
 While you're live, your phone broadcasts a **random code that changes every 5 minutes**.

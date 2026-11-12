@@ -20,6 +20,14 @@ accounts or decisions; the rest can be done in the repo.
 - [x] Launcher icon: neon arrow + radar rings (adaptive, with monochrome for themed icons). Swap for a pro logo later if wanted.
 - [ ] Host `docs/PRIVACY.md` at a public URL (fill in date and contact email).
 - [ ] Real-world test session done and tuned (see `FIELD_TEST_PLAN.md`).
+- [ ] **(you)** Watch app (optional at launch): in Play Console add the **Wear OS** form factor
+      and upload the `wear` build to its own track, with round watch screenshots
+      (`docs/screenshots/watch/` are a start). It has the same application id and must be signed
+      with the same key as the phone app, or the two can't talk. Do the wrist test first
+      (`FIELD_TEST_PLAN.md`, section 4c). See `WATCH.md`.
+- [ ] Before the watch app is public: plug billing into `Entitlements.set(…)` (the one
+      Moshpoint+ check), and confirm what Google states about how the Wear OS link between a
+      phone and its watch is protected, so `PRIVACY.md` can say it in Google's words.
 
 ## Store listing (draft)
 

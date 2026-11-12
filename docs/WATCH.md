@@ -59,7 +59,7 @@ Everything else is new files (`core/…/core/watch/`, `wear/`, `app/…/moshpoin
 | `app/…/locate/LocatorEngine.kt` | 17 lines appended as the last thing in the class (after `class ScanUi`): three read-only members and an `init` that registers with the bridge. The venue-map branch edits other places in that file (around lines 78 to 520), not the end | Done |
 | `app/…/ui/SettingsScreen.kt` | One line in the TESTING block, after the Bluetooth backup's `OfflineDebugTools()`: a call to `WatchDebugTools()` (a new file in `app/…/watch/`) | Done |
 | `tools/check_translation.py` | The English folder is "the `values` folder next to the one being checked" instead of a fixed `app/…` path; `--same-languages` checks that modules ship the same languages. The old command line still works | Done |
-| `.github/testing-release.md`, `docs/FIELD_TEST_PLAN.md` (section 4c and one known limit), `docs/ARCHITECTURE.md`, `docs/FEATURES.md` (section 10; the "No smartwatch support" gap reworded), `docs/ROADMAP.md` (the watch bullet under Later), `README.md` (one link), `docs/i18n/*.md` (a "Watch app" section at the end of each) | Added sections or lines only, except the two reworded lines named here | Done |
+| `.github/testing-release.md`, `docs/FIELD_TEST_PLAN.md` (section 4c and one known limit), `docs/ARCHITECTURE.md`, `docs/FEATURES.md` (section 10; the "No smartwatch support" gap reworded), `docs/ROADMAP.md` (the watch bullet under Later), `README.md` (one link, one table row), `docs/PRIVACY.md` (a "What goes to your watch" section), `docs/PLAY_STORE.md` (two checklist items), `docs/i18n/*.md` (a "Watch app" section at the end of each) | Added sections or lines only, except the two reworded lines named here | Done |
 
 Not touched, and not going to be: `core/Advert.kt`, `service/VisibilityService.kt`,
 `MainActivity.kt`, `MoshpointApp.kt`, `GroupSync.kt`, `OfflineMessages.kt`, `CrewChat.kt`,
@@ -433,7 +433,11 @@ A small vocabulary told apart by rhythm alone (many watch motors have no strengt
   small faces, distance, bearing. Crew data stays end-to-end encrypted exactly as now; the
   phone is still the only thing that can open it.
 - The link is the Wear Data Layer between your own phone and your own watch. Play services
-  only connects apps with the same package name and signing key.
+  only connects apps with the same package name and signing key. Finding only ever uses a
+  watch-to-phone link that is direct (Bluetooth). Crew status and pings may also travel by
+  Google's Wear OS sync when the two are apart. What Google states about how that link is
+  protected should be checked and quoted in `docs/PRIVACY.md` before the watch app is public
+  (it is on the Play Store checklist).
 - If Moshpoint+ is off, the phone sends the watch no crew details at all.
 
 ## Install on a Galaxy Watch (wireless debugging)
