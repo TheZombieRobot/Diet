@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Portuguese (Brazil): the watch app. -->
+<resources>
+    <string name="tile_label">Status da galera</string>
+    <string name="complication_label">Amigo mais perto</string>
+
+    <string name="crew_title">Sua galera</string>
+    <string name="crew_empty">Monte uma galera no celular</string>
+    <string name="crew_no_phone">Abra o Moshpoint no celular</string>
+    <string name="crew_stale">Celular fora de alcance</string>
+    <string name="mate_live">ao vivo</string>
+    <string name="mate_live_distance">%1$s · %2$s</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">há %d min</item>
+        <item quantity="many">há %d min</item>
+        <item quantity="other">há %d min</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="one">há %d h</item>
+        <item quantity="many">há %d h</item>
+        <item quantity="other">há %d h</item>
+    </plurals>
+    <string name="ping_on_my_way">Tô indo</string>
+    <string name="ping_all_good">Tudo certo</string>
+    <string name="need_help">Preciso de ajuda</string>
+    <string name="ping_sent">Enviada</string>
+    <string name="ping_nearby">Enviada por perto</string>
+    <string name="ping_waiting">Esperando sinal</string>
+    <string name="ping_not_sent">Não enviada</string>
+    <string name="ping_not_yet">Ainda não enviada</string>
+
+    <string name="find_searching">Procurando %1$s…</string>
+    <string name="find_hold_flat">Deixe o pulso na horizontal</string>
+    <string name="find_follow_buzz">Siga as vibrações</string>
+    <string name="find_warmer">Continue por aqui</string>
+    <string name="find_colder">Dê meia-volta</string>
+    <string name="find_no_compass">Este relógio não tem bússola</string>
+    <string name="find_calibrate">Mova o pulso fazendo um 8</string>
+    <string name="find_connecting">Procurando seu celular…</string>
+    <string name="find_reconnecting">Reconectando…</string>
+    <string name="find_phone_lost">Celular fora de alcance</string>
+    <string name="find_needs_phone">Abra o Moshpoint no celular</string>
+    <string name="find_bluetooth_off">Ligue o Bluetooth no celular</string>
+    <string name="find_no_permission">Dê as permissões ao Moshpoint no celular</string>
+    <string name="find_mate_gone">%1$s não está mais na sua galera</string>
+    <string name="find_found">Você achou %1$s</string>
+    <string name="find_timed_out">Parou pra poupar bateria</string>
+    <string name="find_stopped_on_phone">Parou pelo celular</string>
+    <string name="find_again">Procurar de novo</string>
+    <string name="find_buzz_off">A vibração está desligada neste relógio</string>
+    <string name="update_phone">Atualize o Moshpoint no celular</string>
+    <string name="update_watch">Atualize o Moshpoint neste relógio</string>
+    <string name="find_notification">Procurando %1$s</string>
+    <string name="find_channel">Procurar um amigo</string>
+
+    <string name="unit_m">m</string>
+    <string name="unit_km">km</string>
+    <string name="unit_ft">ft</string>
+    <string name="unit_mi">mi</string>
+    <string name="dist_number_unit">%1$s %2$s</string>
+
+    <string name="sos_hold">Segure</string>
+    <string name="sos_hint">Segure pra avisar sua galera</string>
+    <string name="sos_sending">Enviando…</string>
+    <string name="sos_sent">Enviada pra sua galera</string>
+    <string name="sos_not_sent">Não enviada</string>
+    <string name="sos_out_of_reach">Seu celular está fora de alcance</string>
+    <string name="sos_nearby_detail">Por enquanto só chegou pra galera por perto</string>
+    <string name="sos_unconfirmed">Sem confirmação</string>
+    <string name="sos_no_answer">Seu celular não respondeu</string>
+    <string name="sos_no_crew">Você não está em uma galera, então não tem quem avisar</string>
+    <string name="sos_retry">Tentar de novo</string>
+    <string name="sos_im_ok">Já estou bem</string>
+    <string name="sos_ok_sent">Sua galera já sabe que você está bem</string>
+
+    <string name="plus_text">Desbloqueie o app do relógio no celular</string>
+
+    <string name="glance_live_count">%1$d de %2$d ao vivo</string>
+    <string name="glance_nearest">%1$s · %2$s</string>
+</resources>

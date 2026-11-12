@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Japanese: the watch app. -->
+<resources>
+    <string name="tile_label">クルーの状況</string>
+    <string name="complication_label">いちばん近い仲間</string>
+
+    <string name="crew_title">あなたのクルー</string>
+    <string name="crew_empty">スマホでクルーを作ってね</string>
+    <string name="crew_no_phone">スマホでMoshpointを開いてね</string>
+    <string name="crew_stale">スマホとつながりません</string>
+    <string name="mate_live">シェア中</string>
+    <string name="mate_live_distance">%1$s · %2$s</string>
+    <plurals name="time_min_ago">
+        <item quantity="other">%d分前</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="other">%d時間前</item>
+    </plurals>
+    <string name="ping_on_my_way">今行く</string>
+    <string name="ping_all_good">大丈夫</string>
+    <string name="need_help">助けて</string>
+    <string name="ping_sent">送信済み</string>
+    <string name="ping_nearby">近くの仲間に送信済み</string>
+    <string name="ping_waiting">電波待ち</string>
+    <string name="ping_not_sent">未送信</string>
+    <string name="ping_not_yet">まだ送れていません</string>
+
+    <string name="find_searching">%1$sを探しています…</string>
+    <string name="find_hold_flat">手首を水平にしてね</string>
+    <string name="find_follow_buzz">振動を頼りに進んで</string>
+    <string name="find_warmer">そのまま進んで</string>
+    <string name="find_colder">引き返して</string>
+    <string name="find_no_compass">このウォッチにはコンパスがありません</string>
+    <string name="find_calibrate">手首を8の字に動かしてね</string>
+    <string name="find_connecting">スマホを探しています…</string>
+    <string name="find_reconnecting">再接続中…</string>
+    <string name="find_phone_lost">スマホとつながりません</string>
+    <string name="find_needs_phone">スマホでMoshpointを開いてね</string>
+    <string name="find_bluetooth_off">スマホのBluetoothをオンにしてね</string>
+    <string name="find_no_permission">スマホでMoshpointの権限を許可してね</string>
+    <string name="find_mate_gone">%1$sはもうクルーにいません</string>
+    <string name="find_found">%1$sを見つけた！</string>
+    <string name="find_timed_out">電池節約のため停止しました</string>
+    <string name="find_stopped_on_phone">スマホで停止しました</string>
+    <string name="find_again">もう一度探す</string>
+    <string name="find_buzz_off">このウォッチの振動はオフです</string>
+    <string name="update_phone">スマホのMoshpointを更新してね</string>
+    <string name="update_watch">このウォッチのMoshpointを更新してね</string>
+    <string name="find_notification">%1$sを探しています</string>
+    <string name="find_channel">仲間を探す</string>
+
+    <string name="unit_m">m</string>
+    <string name="unit_km">km</string>
+    <string name="unit_ft">ft</string>
+    <string name="unit_mi">mi</string>
+    <string name="dist_number_unit">%1$s %2$s</string>
+
+    <string name="sos_hold">長押し</string>
+    <string name="sos_hint">長押しでクルーに知らせる</string>
+    <string name="sos_sending">送信中…</string>
+    <string name="sos_sent">クルーに送信しました</string>
+    <string name="sos_not_sent">未送信</string>
+    <string name="sos_out_of_reach">スマホとつながりません</string>
+    <string name="sos_nearby_detail">今は近くの仲間にだけ届いています</string>
+    <string name="sos_unconfirmed">未確認</string>
+    <string name="sos_no_answer">スマホから応答がありません</string>
+    <string name="sos_no_crew">クルーに入っていないので、知らせる相手がいません</string>
+    <string name="sos_retry">もう一度</string>
+    <string name="sos_im_ok">もう大丈夫</string>
+    <string name="sos_ok_sent">無事だとクルーに伝えました</string>
+
+    <string name="plus_text">スマホでウォッチアプリをアンロックしてね</string>
+
+    <string name="glance_live_count">%2$d人中%1$d人がシェア中</string>
+    <string name="glance_nearest">%1$s · %2$s</string>
+</resources>

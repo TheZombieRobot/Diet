@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Polish: the watch app. -->
+<resources>
+    <string name="tile_label">Status ekipy</string>
+    <string name="complication_label">Najbliżej ciebie</string>
+
+    <string name="crew_title">Twoja ekipa</string>
+    <string name="crew_empty">Załóż ekipę na telefonie</string>
+    <string name="crew_no_phone">Otwórz Moshpoint na telefonie</string>
+    <string name="crew_stale">Brak połączenia z telefonem</string>
+    <string name="mate_live">udostępnia</string>
+    <string name="mate_live_distance">%1$s · %2$s</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">%d min temu</item>
+        <item quantity="few">%d min temu</item>
+        <item quantity="many">%d min temu</item>
+        <item quantity="other">%d min temu</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="one">%d godz. temu</item>
+        <item quantity="few">%d godz. temu</item>
+        <item quantity="many">%d godz. temu</item>
+        <item quantity="other">%d godz. temu</item>
+    </plurals>
+    <string name="ping_on_my_way">Już idę</string>
+    <string name="ping_all_good">Wszystko OK</string>
+    <string name="need_help">Potrzebuję pomocy</string>
+    <string name="ping_sent">Wysłano</string>
+    <string name="ping_nearby">Wysłano w pobliżu</string>
+    <string name="ping_waiting">Czeka na zasięg</string>
+    <string name="ping_not_sent">Nie wysłano</string>
+    <string name="ping_not_yet">Jeszcze nie wysłano</string>
+
+    <string name="find_searching">Szukam: %1$s…</string>
+    <string name="find_hold_flat">Trzymaj nadgarstek płasko</string>
+    <string name="find_follow_buzz">Kieruj się wibracjami</string>
+    <string name="find_warmer">Idź dalej w tę stronę</string>
+    <string name="find_colder">Zawróć</string>
+    <string name="find_no_compass">Ten zegarek nie ma kompasu</string>
+    <string name="find_calibrate">Zakreśl nadgarstkiem ósemkę</string>
+    <string name="find_connecting">Szukam telefonu…</string>
+    <string name="find_reconnecting">Łączę ponownie…</string>
+    <string name="find_phone_lost">Brak połączenia z telefonem</string>
+    <string name="find_needs_phone">Otwórz Moshpoint na telefonie</string>
+    <string name="find_bluetooth_off">Włącz Bluetooth na telefonie</string>
+    <string name="find_no_permission">Nadaj Moshpoint uprawnienia na telefonie</string>
+    <string name="find_mate_gone">%1$s nie jest już w twojej ekipie</string>
+    <string name="find_found">%1$s jest tuż obok!</string>
+    <string name="find_timed_out">Zatrzymano, żeby oszczędzać baterię</string>
+    <string name="find_stopped_on_phone">Zatrzymano na telefonie</string>
+    <string name="find_again">Szukaj ponownie</string>
+    <string name="find_buzz_off">Wibracje na tym zegarku są wyłączone</string>
+    <string name="update_phone">Zaktualizuj Moshpoint na telefonie</string>
+    <string name="update_watch">Zaktualizuj Moshpoint na tym zegarku</string>
+    <string name="find_notification">Szukam: %1$s</string>
+    <string name="find_channel">Szukanie znajomych</string>
+
+    <string name="unit_m">m</string>
+    <string name="unit_km">km</string>
+    <string name="unit_ft">ft</string>
+    <string name="unit_mi">mi</string>
+    <string name="dist_number_unit">%1$s %2$s</string>
+
+    <string name="sos_hold">Trzymaj</string>
+    <string name="sos_hint">Przytrzymaj, żeby dać znać ekipie</string>
+    <string name="sos_sending">Wysyłam…</string>
+    <string name="sos_sent">Wysłano do ekipy</string>
+    <string name="sos_not_sent">Nie wysłano</string>
+    <string name="sos_out_of_reach">Brak połączenia z telefonem</string>
+    <string name="sos_nearby_detail">Na razie ma to tylko ekipa w pobliżu</string>
+    <string name="sos_unconfirmed">Bez potwierdzenia</string>
+    <string name="sos_no_answer">Telefon nie odpowiedział</string>
+    <string name="sos_no_crew">Nie masz ekipy, więc nie ma kogo powiadomić</string>
+    <string name="sos_retry">Spróbuj ponownie</string>
+    <string name="sos_im_ok">Już wszystko OK</string>
+    <string name="sos_ok_sent">Ekipa wie, że wszystko OK</string>
+
+    <string name="plus_text">Odblokuj aplikację zegarka na telefonie</string>
+
+    <string name="glance_live_count">%1$d z %2$d udostępnia</string>
+    <string name="glance_nearest">%1$s · %2$s</string>
+</resources>

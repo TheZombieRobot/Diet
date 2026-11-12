@@ -73,11 +73,14 @@ jobs:
       - name: Translations match English (every language)
         run: |
           # Same strings, placeholders and plurals as English, and valid XML, in every language.
+          # The phone app and the watch app (wear) both, each against its own English files.
           fail=0
-          for d in app/src/main/res/values-*/; do
+          for d in app/src/main/res/values-*/ wear/src/main/res/values-*/; do
             ls "$d"strings*.xml >/dev/null 2>&1 || continue
             out=$(python3 tools/check_translation.py "$d") || { echo "::error::translation problems in $d"; echo "$out"; fail=1; }
           done
+          # And the watch speaks exactly the languages the phone does.
+          out=$(python3 tools/check_translation.py --same-languages app/src/main/res wear/src/main/res) || { echo "::error::the phone and the watch are translated into different languages"; echo "$out"; fail=1; }
           exit $fail
 
       - name: Core + server tests

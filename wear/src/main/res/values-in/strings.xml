@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Indonesian: the watch app. -->
+<resources>
+    <string name="tile_label">Status geng</string>
+    <string name="complication_label">Teman terdekat</string>
+
+    <string name="crew_title">Geng kamu</string>
+    <string name="crew_empty">Bikin geng di HP-mu</string>
+    <string name="crew_no_phone">Buka Moshpoint di HP-mu</string>
+    <string name="crew_stale">HP tidak terhubung</string>
+    <string name="mate_live">live</string>
+    <string name="mate_live_distance">%1$s · %2$s</string>
+    <plurals name="time_min_ago">
+        <item quantity="other">%d mnt lalu</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="other">%d jam lalu</item>
+    </plurals>
+    <string name="ping_on_my_way">OTW</string>
+    <string name="ping_all_good">Aman</string>
+    <string name="need_help">Perlu bantuan</string>
+    <string name="ping_sent">Terkirim</string>
+    <string name="ping_nearby">Terkirim ke HP terdekat</string>
+    <string name="ping_waiting">Menunggu sinyal</string>
+    <string name="ping_not_sent">Belum terkirim</string>
+    <string name="ping_not_yet">Belum terkirim</string>
+
+    <string name="find_searching">Mencari %1$s…</string>
+    <string name="find_hold_flat">Posisikan jam mendatar</string>
+    <string name="find_follow_buzz">Ikuti getarannya</string>
+    <string name="find_warmer">Terus ke arah sini</string>
+    <string name="find_colder">Putar balik</string>
+    <string name="find_no_compass">Jam ini tidak punya kompas</string>
+    <string name="find_calibrate">Gerakkan tanganmu membentuk angka 8</string>
+    <string name="find_connecting">Mencari HP-mu…</string>
+    <string name="find_reconnecting">Menyambung lagi…</string>
+    <string name="find_phone_lost">HP tidak terhubung</string>
+    <string name="find_needs_phone">Buka Moshpoint di HP-mu</string>
+    <string name="find_bluetooth_off">Nyalakan Bluetooth di HP-mu</string>
+    <string name="find_no_permission">Izinkan akses Moshpoint di HP-mu</string>
+    <string name="find_mate_gone">%1$s sudah tidak di gengmu</string>
+    <string name="find_found">Kamu menemukan %1$s</string>
+    <string name="find_timed_out">Berhenti untuk hemat baterai</string>
+    <string name="find_stopped_on_phone">Dihentikan dari HP-mu</string>
+    <string name="find_again">Cari lagi</string>
+    <string name="find_buzz_off">Getaran di jam ini mati</string>
+    <string name="update_phone">Update Moshpoint di HP-mu</string>
+    <string name="update_watch">Update Moshpoint di jam ini</string>
+    <string name="find_notification">Mencari %1$s</string>
+    <string name="find_channel">Mencari teman</string>
+
+    <string name="unit_m">m</string>
+    <string name="unit_km">km</string>
+    <string name="unit_ft">ft</string>
+    <string name="unit_mi">mi</string>
+    <string name="dist_number_unit">%1$s %2$s</string>
+
+    <string name="sos_hold">Tahan</string>
+    <string name="sos_hint">Tahan untuk kabari gengmu</string>
+    <string name="sos_sending">Mengirim…</string>
+    <string name="sos_sent">Terkirim ke gengmu</string>
+    <string name="sos_not_sent">Belum terkirim</string>
+    <string name="sos_out_of_reach">HP-mu tidak terhubung</string>
+    <string name="sos_nearby_detail">Baru sampai ke geng yang di dekatmu</string>
+    <string name="sos_unconfirmed">Belum terkonfirmasi</string>
+    <string name="sos_no_answer">HP-mu tidak merespons</string>
+    <string name="sos_no_crew">Kamu belum punya geng, jadi nggak ada yang bisa dikabari</string>
+    <string name="sos_retry">Coba lagi</string>
+    <string name="sos_im_ok">Aku sudah aman</string>
+    <string name="sos_ok_sent">Gengmu sudah dikabari kamu aman</string>
+
+    <string name="plus_text">Buka kunci aplikasi jam di HP-mu</string>
+
+    <string name="glance_live_count">%1$d dari %2$d live</string>
+    <string name="glance_nearest">%1$s · %2$s</string>
+</resources>

@@ -32,13 +32,19 @@ enum class SosPhase {
     HOLD,
     SENDING,
 
-    /** The phone found its own ping on the relay: it is out there. */
+    /** The relay has it: the whole crew is told. */
     SENT,
+
+    /** No signal on the phone, but a crew phone nearby has it. */
+    NEARBY,
+
+    /** In the phone's outbox with nowhere to go yet: not sent. */
+    WAITING,
 
     /** Never reached the phone. */
     OUT_OF_REACH,
 
-    /** Reached the phone, but the phone couldn't confirm it went out. */
+    /** Reached the phone, but the phone never said where it got to. */
     UNCONFIRMED,
     NO_CREW,
 
@@ -46,7 +52,8 @@ enum class SosPhase {
     OK_SENT,
 }
 
-data class SosUi(val phase: SosPhase = SosPhase.HOLD, val progress: Float = 0f)
+/** [allClear]: the ping this is about was "I'm OK now", not Need help (so it isn't offered again). */
+data class SosUi(val phase: SosPhase = SosPhase.HOLD, val progress: Float = 0f, val allClear: Boolean = false)
 
 /**
  * "Need help": hold the red button for two seconds (a ring fills, the watch ticks) and the
@@ -91,7 +98,7 @@ fun SosScreen(
                             },
                         contentAlignment = Alignment.Center,
                     ) {
-                        FitText(stringResource(R.string.sos_hold), Wrist.Name.copy(color = Color.White), Modifier.width(s * 0.34f), maxLines = 1)
+                        FitText(stringResource(R.string.sos_hold), Wrist.Name.copy(color = Color.White), Modifier.width(s * 0.34f), maxLines = 2)
                     }
                 }
                 Spacer(Modifier.height(s * 0.02f))
@@ -100,8 +107,15 @@ fun SosScreen(
             SosPhase.SENDING -> FitText(stringResource(R.string.sos_sending), Wrist.Name.copy(color = Wrist.TextDim), Modifier.width(s * 0.74f), maxLines = 2)
             SosPhase.SENT -> Result(s, stringResource(R.string.sos_sent), Wrist.Lime, null, stringResource(R.string.sos_im_ok), onImOk)
             SosPhase.OK_SENT -> Result(s, stringResource(R.string.sos_ok_sent), Wrist.Lime, null, null, {})
+            // A crew phone nearby has it: someone knows. Say so, and say who doesn't yet.
+            SosPhase.NEARBY -> Result(
+                s, stringResource(R.string.ping_nearby), Wrist.Lime, stringResource(R.string.sos_nearby_detail),
+                if (ui.allClear) null else stringResource(R.string.sos_im_ok), onImOk,
+            )
+            // Still in the phone's outbox. The plain fact first: it has not gone.
+            SosPhase.WAITING -> Result(s, stringResource(R.string.ping_not_yet), Wrist.Amber, stringResource(R.string.ping_waiting), stringResource(R.string.sos_retry), onRetry)
             SosPhase.OUT_OF_REACH -> Result(s, stringResource(R.string.sos_not_sent), Wrist.Help, stringResource(R.string.sos_out_of_reach), stringResource(R.string.sos_retry), onRetry)
-            SosPhase.UNCONFIRMED -> Result(s, stringResource(R.string.sos_unconfirmed), Wrist.Amber, stringResource(R.string.sos_no_signal), stringResource(R.string.sos_retry), onRetry)
+            SosPhase.UNCONFIRMED -> Result(s, stringResource(R.string.sos_unconfirmed), Wrist.Amber, stringResource(R.string.sos_no_answer), stringResource(R.string.sos_retry), onRetry)
             SosPhase.NO_CREW -> Result(s, stringResource(R.string.sos_not_sent), Wrist.Help, stringResource(R.string.sos_no_crew), null, {})
         }
     }

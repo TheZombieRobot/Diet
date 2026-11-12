@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Portuguese (Brazil): the notification shown while the phone finds a mate for your watch. -->
+<resources>
+    <string name="watch_channel">Busca pro seu relógio</string>
+    <string name="watch_finding_title">Procurando %1$s pro seu relógio</string>
+    <string name="watch_finding_text">Para quando seu relógio para de pedir</string>
+    <string name="watch_stop">Parar</string>
+</resources>

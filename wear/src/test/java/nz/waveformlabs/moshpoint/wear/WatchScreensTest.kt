@@ -108,6 +108,8 @@ class WatchScreensTest(private val lang: String, private val size: String) {
 
     @Test fun finderFacing() = finder(live(WristView.Arrow(4.0, 1_240.0, rough = false), facing = true))
 
+    @Test fun finderCalibrate() = finder(live(WristView.Arrow(310.0, 85.0, rough = true)).copy(compassRough = true))
+
     @Test fun finderHoldFlat() = finder(live(WristView.DistanceOnly(40.0, Trend.STEADY, NoArrow.HOLD_FLAT)))
 
     @Test fun finderCloser() = finder(live(WristView.DistanceOnly(6.5, Trend.WARMER, NoArrow.NO_DIRECTION), buzzOff = true))
@@ -129,4 +131,8 @@ class WatchScreensTest(private val lang: String, private val size: String) {
     @Test fun sosNotSent() = snap { SosScreen(SosUi(SosPhase.OUT_OF_REACH)) }
 
     @Test fun sosUnconfirmed() = snap { SosScreen(SosUi(SosPhase.UNCONFIRMED)) }
+
+    @Test fun sosWaiting() = snap { SosScreen(SosUi(SosPhase.WAITING)) }
+
+    @Test fun sosNearby() = snap { SosScreen(SosUi(SosPhase.NEARBY)) }
 }

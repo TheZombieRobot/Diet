@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Turkish: the watch app. -->
+<resources>
+    <string name="tile_label">Ekip durumu</string>
+    <string name="complication_label">En yakın arkadaş</string>
+
+    <string name="crew_title">Ekibin</string>
+    <string name="crew_empty">Telefonunda bir ekip kur</string>
+    <string name="crew_no_phone">Telefonunda Moshpoint\'i aç</string>
+    <string name="crew_stale">Telefona ulaşılamıyor</string>
+    <string name="mate_live">paylaşıyor</string>
+    <string name="mate_live_distance">%1$s · %2$s</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">%d dk önce</item>
+        <item quantity="other">%d dk önce</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="one">%d sa önce</item>
+        <item quantity="other">%d sa önce</item>
+    </plurals>
+    <string name="ping_on_my_way">Geliyorum</string>
+    <string name="ping_all_good">Her şey yolunda</string>
+    <string name="need_help">Yardım lazım</string>
+    <string name="ping_sent">Gönderildi</string>
+    <string name="ping_nearby">Yakındakilere gönderildi</string>
+    <string name="ping_waiting">Sinyal bekleniyor</string>
+    <string name="ping_not_sent">Gönderilmedi</string>
+    <string name="ping_not_yet">Henüz gönderilmedi</string>
+
+    <string name="find_searching">Aranıyor: %1$s…</string>
+    <string name="find_hold_flat">Bileğini düz tut</string>
+    <string name="find_follow_buzz">Titreşimleri takip et</string>
+    <string name="find_warmer">Bu yönde devam et</string>
+    <string name="find_colder">Geri dön</string>
+    <string name="find_no_compass">Bu saatte pusula yok</string>
+    <string name="find_calibrate">Bileğinle 8 çiz</string>
+    <string name="find_connecting">Telefonun aranıyor…</string>
+    <string name="find_reconnecting">Yeniden bağlanıyor…</string>
+    <string name="find_phone_lost">Telefona ulaşılamıyor</string>
+    <string name="find_needs_phone">Telefonunda Moshpoint\'i aç</string>
+    <string name="find_bluetooth_off">Telefonunda Bluetooth\'u aç</string>
+    <string name="find_no_permission">Telefonunda Moshpoint\'e izin ver</string>
+    <string name="find_mate_gone">%1$s artık ekibinde değil</string>
+    <string name="find_found">Buldun: %1$s</string>
+    <string name="find_timed_out">Pil tasarrufu için durdu</string>
+    <string name="find_stopped_on_phone">Telefonundan durduruldu</string>
+    <string name="find_again">Yeniden ara</string>
+    <string name="find_buzz_off">Bu saatte titreşim kapalı</string>
+    <string name="update_phone">Telefonunda Moshpoint\'i güncelle</string>
+    <string name="update_watch">Bu saatte Moshpoint\'i güncelle</string>
+    <string name="find_notification">Aranıyor: %1$s</string>
+    <string name="find_channel">Arkadaş arama</string>
+
+    <string name="unit_m">m</string>
+    <string name="unit_km">km</string>
+    <string name="unit_ft">ft</string>
+    <string name="unit_mi">mi</string>
+    <string name="dist_number_unit">%1$s %2$s</string>
+
+    <string name="sos_hold">Basılı tut</string>
+    <string name="sos_hint">Ekibine haber vermek için basılı tut</string>
+    <string name="sos_sending">Gönderiliyor…</string>
+    <string name="sos_sent">Ekibine gönderildi</string>
+    <string name="sos_not_sent">Gönderilmedi</string>
+    <string name="sos_out_of_reach">Telefonuna ulaşılamıyor</string>
+    <string name="sos_nearby_detail">Şimdilik yalnızca yakındaki ekip üyelerinde</string>
+    <string name="sos_unconfirmed">Doğrulanamadı</string>
+    <string name="sos_no_answer">Telefonun yanıt vermedi</string>
+    <string name="sos_no_crew">Bir ekipte değilsin, haber verecek kimse yok</string>
+    <string name="sos_retry">Tekrar dene</string>
+    <string name="sos_im_ok">Artık iyiyim</string>
+    <string name="sos_ok_sent">Ekibin iyi olduğunu biliyor</string>
+
+    <string name="plus_text">Saat uygulamasının kilidini telefonundan aç</string>
+
+    <string name="glance_live_count">Paylaşan: %1$d/%2$d</string>
+    <string name="glance_nearest">%1$s · %2$s</string>
+</resources>

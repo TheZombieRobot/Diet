@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Swedish: the watch app. -->
+<resources>
+    <string name="tile_label">Gruppstatus</string>
+    <string name="complication_label">Närmaste kompis</string>
+
+    <string name="crew_title">Din grupp</string>
+    <string name="crew_empty">Starta en grupp på telefonen</string>
+    <string name="crew_no_phone">Öppna Moshpoint på telefonen</string>
+    <string name="crew_stale">Telefonen är utom räckhåll</string>
+    <string name="mate_live">live</string>
+    <string name="mate_live_distance">%1$s · %2$s</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">%d min sedan</item>
+        <item quantity="other">%d min sedan</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="one">%d tim sedan</item>
+        <item quantity="other">%d tim sedan</item>
+    </plurals>
+    <string name="ping_on_my_way">På väg</string>
+    <string name="ping_all_good">Allt lugnt</string>
+    <string name="need_help">Behöver hjälp</string>
+    <string name="ping_sent">Skickat</string>
+    <string name="ping_nearby">Skickat i närheten</string>
+    <string name="ping_waiting">Väntar på täckning</string>
+    <string name="ping_not_sent">Inte skickat</string>
+    <string name="ping_not_yet">Inte skickat än</string>
+
+    <string name="find_searching">Letar efter %1$s…</string>
+    <string name="find_hold_flat">Håll handleden plant</string>
+    <string name="find_follow_buzz">Följ vibrationerna</string>
+    <string name="find_warmer">Fortsätt åt det här hållet</string>
+    <string name="find_colder">Vänd om</string>
+    <string name="find_no_compass">Klockan har ingen kompass</string>
+    <string name="find_calibrate">Rör handleden i en åtta</string>
+    <string name="find_connecting">Letar efter telefonen…</string>
+    <string name="find_reconnecting">Ansluter igen…</string>
+    <string name="find_phone_lost">Telefonen är utom räckhåll</string>
+    <string name="find_needs_phone">Öppna Moshpoint på telefonen</string>
+    <string name="find_bluetooth_off">Slå på Bluetooth på telefonen</string>
+    <string name="find_no_permission">Ge Moshpoint behörigheter på telefonen</string>
+    <string name="find_mate_gone">%1$s är inte kvar i din grupp</string>
+    <string name="find_found">Du hittade %1$s</string>
+    <string name="find_timed_out">Stoppade för att spara batteri</string>
+    <string name="find_stopped_on_phone">Stoppad på telefonen</string>
+    <string name="find_again">Leta igen</string>
+    <string name="find_buzz_off">Vibrationer är av på klockan</string>
+    <string name="update_phone">Uppdatera Moshpoint på telefonen</string>
+    <string name="update_watch">Uppdatera Moshpoint på klockan</string>
+    <string name="find_notification">Letar efter %1$s</string>
+    <string name="find_channel">Letar efter en kompis</string>
+
+    <string name="unit_m">m</string>
+    <string name="unit_km">km</string>
+    <string name="unit_ft">ft</string>
+    <string name="unit_mi">mi</string>
+    <string name="dist_number_unit">%1$s %2$s</string>
+
+    <string name="sos_hold">Håll in</string>
+    <string name="sos_hint">Håll in för att säga till gruppen</string>
+    <string name="sos_sending">Skickar…</string>
+    <string name="sos_sent">Skickat till gruppen</string>
+    <string name="sos_not_sent">Inte skickat</string>
+    <string name="sos_out_of_reach">Telefonen är utom räckhåll</string>
+    <string name="sos_nearby_detail">Än så länge har bara gruppen i närheten fått det</string>
+    <string name="sos_unconfirmed">Inte bekräftat</string>
+    <string name="sos_no_answer">Telefonen svarade inte</string>
+    <string name="sos_no_crew">Du är inte med i någon grupp, så det finns ingen att säga till</string>
+    <string name="sos_retry">Försök igen</string>
+    <string name="sos_im_ok">Jag är okej nu</string>
+    <string name="sos_ok_sent">Gruppen vet att du är okej</string>
+
+    <string name="plus_text">Lås upp klockappen på telefonen</string>
+
+    <string name="glance_live_count">%1$d av %2$d live</string>
+    <string name="glance_nearest">%1$s · %2$s</string>
+</resources>

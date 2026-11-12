@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thai: the watch app. -->
+<resources>
+    <string name="tile_label">สถานะแก๊ง</string>
+    <string name="complication_label">เพื่อนที่ใกล้ที่สุด</string>
+
+    <string name="crew_title">แก๊งของคุณ</string>
+    <string name="crew_empty">ตั้งแก๊งบนมือถือของคุณ</string>
+    <string name="crew_no_phone">เปิด Moshpoint บนมือถือ</string>
+    <string name="crew_stale">เชื่อมต่อมือถือไม่ได้</string>
+    <string name="mate_live">แชร์อยู่</string>
+    <string name="mate_live_distance">%1$s · %2$s</string>
+    <plurals name="time_min_ago">
+        <item quantity="other">%d นาทีที่แล้ว</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="other">%d ชม. ที่แล้ว</item>
+    </plurals>
+    <string name="ping_on_my_way">กำลังไป</string>
+    <string name="ping_all_good">โอเคดี</string>
+    <string name="need_help">ขอความช่วยเหลือ</string>
+    <string name="ping_sent">ส่งแล้ว</string>
+    <string name="ping_nearby">ส่งถึงเพื่อนใกล้ๆ แล้ว</string>
+    <string name="ping_waiting">รอสัญญาณ</string>
+    <string name="ping_not_sent">ส่งไม่สำเร็จ</string>
+    <string name="ping_not_yet">ยังไม่ได้ส่ง</string>
+
+    <string name="find_searching">กำลังหา %1$s…</string>
+    <string name="find_hold_flat">ยกข้อมือให้ขนานกับพื้น</string>
+    <string name="find_follow_buzz">เดินตามแรงสั่น</string>
+    <string name="find_warmer">ไปทางนี้ต่อเลย</string>
+    <string name="find_colder">หันกลับ</string>
+    <string name="find_no_compass">นาฬิกานี้ไม่มีเข็มทิศ</string>
+    <string name="find_calibrate">หมุนข้อมือเป็นเลข 8</string>
+    <string name="find_connecting">กำลังหามือถือ…</string>
+    <string name="find_reconnecting">กำลังเชื่อมต่อใหม่…</string>
+    <string name="find_phone_lost">เชื่อมต่อมือถือไม่ได้</string>
+    <string name="find_needs_phone">เปิด Moshpoint บนมือถือ</string>
+    <string name="find_bluetooth_off">เปิด Bluetooth บนมือถือ</string>
+    <string name="find_no_permission">อนุญาตสิทธิ์ให้ Moshpoint บนมือถือ</string>
+    <string name="find_mate_gone">%1$s ไม่อยู่ในแก๊งแล้ว</string>
+    <string name="find_found">เจอ %1$s แล้ว</string>
+    <string name="find_timed_out">หยุดเพื่อประหยัดแบต</string>
+    <string name="find_stopped_on_phone">หยุดจากมือถือแล้ว</string>
+    <string name="find_again">หาอีกครั้ง</string>
+    <string name="find_buzz_off">นาฬิกานี้ปิดการสั่นอยู่</string>
+    <string name="update_phone">อัปเดต Moshpoint บนมือถือ</string>
+    <string name="update_watch">อัปเดต Moshpoint บนนาฬิกานี้</string>
+    <string name="find_notification">กำลังหา %1$s</string>
+    <string name="find_channel">การหาเพื่อน</string>
+
+    <string name="unit_m">m</string>
+    <string name="unit_km">km</string>
+    <string name="unit_ft">ft</string>
+    <string name="unit_mi">mi</string>
+    <string name="dist_number_unit">%1$s %2$s</string>
+
+    <string name="sos_hold">กดค้าง</string>
+    <string name="sos_hint">กดค้างเพื่อบอกแก๊ง</string>
+    <string name="sos_sending">กำลังส่ง…</string>
+    <string name="sos_sent">ส่งถึงแก๊งแล้ว</string>
+    <string name="sos_not_sent">ส่งไม่สำเร็จ</string>
+    <string name="sos_out_of_reach">เชื่อมต่อมือถือไม่ได้</string>
+    <string name="sos_nearby_detail">ตอนนี้ถึงแค่แก๊งที่อยู่ใกล้ๆ</string>
+    <string name="sos_unconfirmed">ยังไม่ยืนยัน</string>
+    <string name="sos_no_answer">มือถือไม่ตอบกลับ</string>
+    <string name="sos_no_crew">คุณยังไม่มีแก๊ง เลยไม่มีใครให้บอก</string>
+    <string name="sos_retry">ลองใหม่</string>
+    <string name="sos_im_ok">ตอนนี้โอเคแล้ว</string>
+    <string name="sos_ok_sent">บอกแก๊งแล้วว่าคุณโอเค</string>
+
+    <string name="plus_text">ปลดล็อกแอปนาฬิกาบนมือถือ</string>
+
+    <string name="glance_live_count">แชร์อยู่ %1$d จาก %2$d คน</string>
+    <string name="glance_nearest">%1$s · %2$s</string>
+</resources>

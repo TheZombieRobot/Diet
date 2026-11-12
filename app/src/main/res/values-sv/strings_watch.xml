@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Swedish: the notification shown while the phone finds a mate for your watch. -->
+<resources>
+    <string name="watch_channel">Letar åt din klocka</string>
+    <string name="watch_finding_title">Letar efter %1$s åt din klocka</string>
+    <string name="watch_finding_text">Slutar när klockan slutar fråga</string>
+    <string name="watch_stop">Stoppa</string>
+</resources>

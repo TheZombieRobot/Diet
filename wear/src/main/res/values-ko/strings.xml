@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Korean: the watch app. -->
+<resources>
+    <string name="tile_label">크루 상태</string>
+    <string name="complication_label">가장 가까운 친구</string>
+
+    <string name="crew_title">내 크루</string>
+    <string name="crew_empty">폰에서 크루를 만들어요</string>
+    <string name="crew_no_phone">폰에서 Moshpoint를 열어요</string>
+    <string name="crew_stale">폰과 연결이 안 돼요</string>
+    <string name="mate_live">공유 중</string>
+    <string name="mate_live_distance">%1$s · %2$s</string>
+    <plurals name="time_min_ago">
+        <item quantity="other">%d분 전</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="other">%d시간 전</item>
+    </plurals>
+    <string name="ping_on_my_way">가는 중</string>
+    <string name="ping_all_good">괜찮아</string>
+    <string name="need_help">도움 요청</string>
+    <string name="ping_sent">보냄</string>
+    <string name="ping_nearby">근처에 보냄</string>
+    <string name="ping_waiting">신호 기다리는 중</string>
+    <string name="ping_not_sent">전송 안 됨</string>
+    <string name="ping_not_yet">아직 전송 안 됨</string>
+
+    <string name="find_searching">%1$s 찾는 중…</string>
+    <string name="find_hold_flat">손목을 평평하게 들어요</string>
+    <string name="find_follow_buzz">진동을 따라가요</string>
+    <string name="find_warmer">이쪽으로 계속 가요</string>
+    <string name="find_colder">돌아가요</string>
+    <string name="find_no_compass">이 워치에는 나침반이 없어요</string>
+    <string name="find_calibrate">손목으로 8자를 그려요</string>
+    <string name="find_connecting">폰 찾는 중…</string>
+    <string name="find_reconnecting">다시 연결하는 중…</string>
+    <string name="find_phone_lost">폰과 연결이 안 돼요</string>
+    <string name="find_needs_phone">폰에서 Moshpoint를 열어요</string>
+    <string name="find_bluetooth_off">폰에서 Bluetooth를 켜요</string>
+    <string name="find_no_permission">폰에서 Moshpoint 권한을 허용해 주세요</string>
+    <string name="find_mate_gone">%1$s님은 이제 크루에 없어요</string>
+    <string name="find_found">%1$s 찾았어요!</string>
+    <string name="find_timed_out">배터리를 아끼려고 멈췄어요</string>
+    <string name="find_stopped_on_phone">폰에서 멈췄어요</string>
+    <string name="find_again">다시 찾기</string>
+    <string name="find_buzz_off">이 워치의 진동이 꺼져 있어요</string>
+    <string name="update_phone">폰의 Moshpoint를 업데이트해 주세요</string>
+    <string name="update_watch">이 워치의 Moshpoint를 업데이트해 주세요</string>
+    <string name="find_notification">%1$s 찾는 중</string>
+    <string name="find_channel">친구 찾기</string>
+
+    <string name="unit_m">m</string>
+    <string name="unit_km">km</string>
+    <string name="unit_ft">ft</string>
+    <string name="unit_mi">mi</string>
+    <string name="dist_number_unit">%1$s %2$s</string>
+
+    <string name="sos_hold">길게 누르기</string>
+    <string name="sos_hint">길게 누르면 크루에 알려요</string>
+    <string name="sos_sending">보내는 중…</string>
+    <string name="sos_sent">크루에 보냈어요</string>
+    <string name="sos_not_sent">전송 안 됨</string>
+    <string name="sos_out_of_reach">폰과 연결이 안 돼요</string>
+    <string name="sos_nearby_detail">지금은 근처 크루에게만 전달됐어요</string>
+    <string name="sos_unconfirmed">확인 안 됨</string>
+    <string name="sos_no_answer">폰이 응답하지 않았어요</string>
+    <string name="sos_no_crew">크루에 속해 있지 않아서 알릴 사람이 없어요</string>
+    <string name="sos_retry">다시 시도</string>
+    <string name="sos_im_ok">이제 괜찮아요</string>
+    <string name="sos_ok_sent">크루에 괜찮다고 알렸어요</string>
+
+    <string name="plus_text">폰에서 워치 앱 잠금을 풀어요</string>
+
+    <string name="glance_live_count">%2$d명 중 %1$d명 공유 중</string>
+    <string name="glance_nearest">%1$s · %2$s</string>
+</resources>

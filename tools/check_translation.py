@@ -1,11 +1,28 @@
 """Check translated Android string files against the English ones.
 Usage: python3 tools/check_translation.py <values-xx dir>   (run from the repo root)
-CI runs it on every language folder; it exits 1 if anything is wrong.
+       python3 tools/check_translation.py --same-languages <res dir> <res dir> ...
+The English files are the ones in the 'values' folder next to the folder given, so this works
+for any module: app/src/main/res/values-de, wear/src/main/res/values-de.
+CI runs it on every language folder of the phone app and the watch app; it exits 1 if anything is wrong.
 Checks: XML parses; same names as English; same placeholders (%1$s, %d ...) per string;
-plurals have 'other'; apostrophes escaped; no stray unescaped quotes at start."""
+plurals have 'other'; apostrophes escaped; no stray unescaped quotes at start.
+--same-languages: every res dir given (app/src/main/res wear/src/main/res) must be translated
+into the same set of languages, so the watch never speaks a language the phone doesn't, or the
+other way round."""
 import sys, os, re, xml.etree.ElementTree as ET
-EN = 'app/src/main/res/values'
-target = sys.argv[1]
+def languages(res):
+    return {d for d in os.listdir(res) if d.startswith('values-') and any(f.startswith('strings') and f.endswith('.xml') for f in os.listdir(os.path.join(res, d)))}
+if sys.argv[1] == '--same-languages':
+    sets = {res: languages(res) for res in sys.argv[2:]}
+    everywhere = set.union(*sets.values())
+    bad = 0
+    for res, have in sets.items():
+        for d in sorted(everywhere - have):
+            print('MISSING LANGUAGE', os.path.join(res, d)); bad += 1
+    print('OK' if bad == 0 else f'{bad} problem(s)')
+    sys.exit(1 if bad else 0)
+target = sys.argv[1].rstrip('/')
+EN = os.path.join(os.path.dirname(target), 'values')
 ph = re.compile(r'%(\d+\$)?[-#+ 0,(]*\d*(\.\d+)?[sdfx%]')
 def load(path):
     out = {}

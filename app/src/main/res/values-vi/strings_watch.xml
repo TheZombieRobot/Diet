@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vietnamese: the notification shown while the phone finds a mate for your watch. -->
+<resources>
+    <string name="watch_channel">Tìm cho đồng hồ</string>
+    <string name="watch_finding_title">Đang tìm %1$s cho đồng hồ của bạn</string>
+    <string name="watch_finding_text">Tự dừng khi đồng hồ thôi hỏi</string>
+    <string name="watch_stop">Dừng</string>
+</resources>
