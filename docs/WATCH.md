@@ -12,7 +12,7 @@ app onto a watch. Install steps are at the end.
 ## Status and next steps
 
 _A handover: enough to pick the work up cold. Updated with every push. Last: 12 November
-2026, 10:45 UTC._
+2026, 09:55 UTC._
 
 ### Where things stand
 
@@ -23,10 +23,10 @@ _A handover: enough to pick the work up cold. Updated with every push. Last: 12 
 | Watch app, `wear/` | **Builds in CI**: debug and release (R8) APKs, the app-id check, screenshots committed to `docs/screenshots/watch/`. Not yet run on a watch. |
 | Phone side, `app/…/moshpoint/watch/` | **Compiles in CI** (debug build of commit `09927c9`, no warnings in these files). The release (R8) build of the phone app with them in it has not run yet: it was skipped while the translation step was red. Not yet run on a phone. |
 | Main branch merged in | **Done** (`62a770a`): Bluetooth backup and the venue map, no conflicts. Wrist pings now report from the outbox (problem 8). |
-| Translations | **Done**, 19 languages: `wear/src/main/res/values-*/strings.xml` and `app/src/main/res/values-*/strings_watch.xml`. Checked by the script; not yet read by native speakers (notes for them at the end of each `docs/i18n/*.md`: to write). |
+| Translations | **Done**, 19 languages: `wear/src/main/res/values-*/strings.xml` and `app/src/main/res/values-*/strings_watch.xml`. Checked by the script; not yet read by native speakers. Notes for them are at the end of each `docs/i18n/*.md` ("Watch app"). |
 | Checker and its CI step | **Done.** `tools/check_translation.py` works on any module and can compare languages between modules. |
 | Screenshots in every language | Tests exist (19 screens, 21 locales, 2 sizes). **To do:** look through the translated ones for clipped text. |
-| Install steps, field test, release notes | **Not started.** |
+| Install steps, field test, release notes | **Written**: the end of this note, section 4c of `docs/FIELD_TEST_PLAN.md`, `.github/testing-release.md`. The install steps have not been followed on a real watch yet. |
 
 Nothing has run on a real watch or phone. Everything marked **verify on a watch** below is a
 first guess until the field test.
@@ -41,17 +41,7 @@ first guess until the field test.
    `docs/screenshots/watch/`) and fix anything that runs off the round edge. New screens to
    check first: `finderCalibrate`, `sosWaiting`, `sosNearby`, and `sosHold` (the button's
    label may now take two lines).
-3. **Reviewer notes:** append a short "Watch app" section to each `docs/i18n/*.md` with the
-   words chosen for watch, wrist, buzz and "phone out of reach", and the doubts a native
-   speaker should settle.
-4. **Docs:** install steps at the end of this note (facts already checked: adb 30 or newer;
-   phone or computer and watch on the same Wi-Fi; on a Galaxy Watch, Settings → About watch →
-   Software information → tap Software version seven times, then Developer options → ADB
-   debugging and Wireless debugging → Pair new device; `adb pair IP:PORT`, then `adb connect
-   IP:PORT` with the *other* port shown, then `adb -s IP:PORT install -r
-   moshpoint-watch.apk`); a wrist section in `docs/FIELD_TEST_PLAN.md`; the watch APK link in
-   `.github/testing-release.md`; one-line pointers in `ARCHITECTURE.md` and `FEATURES.md`.
-5. **Finish line:** both CI jobs green; report to the owner's main session.
+3. **Finish line:** both CI jobs green; report to the owner's main session.
 
 ### Shared files this branch touches (for merging with the other two branches)
 
@@ -68,14 +58,15 @@ Everything else is new files (`core/…/core/watch/`, `wear/`, `app/…/moshpoin
 | `app/build.gradle.kts` | One dependency line after the UWB one: `implementation(libs.play.services.wearable)` | Done |
 | `app/src/main/AndroidManifest.xml` | Two services and one provider added at the very end of `<application>`, after the boot receiver | Done |
 | `app/…/locate/LocatorEngine.kt` | 17 lines appended as the last thing in the class (after `class ScanUi`): three read-only members and an `init` that registers with the bridge. The venue-map branch edits other places in that file (around lines 78 to 520), not the end | Done |
+| `app/…/ui/SettingsScreen.kt` | One line in the TESTING block, after the Bluetooth backup's `OfflineDebugTools()`: a call to `WatchDebugTools()` (a new file in `app/…/watch/`) | Done |
 | `tools/check_translation.py` | The English folder is "the `values` folder next to the one being checked" instead of a fixed `app/…` path; `--same-languages` checks that modules ship the same languages. The old command line still works | Done |
-| `.github/testing-release.md`, `docs/FIELD_TEST_PLAN.md`, `docs/ARCHITECTURE.md`, `docs/FEATURES.md` | Added sections or lines only | Planned |
+| `.github/testing-release.md`, `docs/FIELD_TEST_PLAN.md` (section 4c and one known limit), `docs/ARCHITECTURE.md`, `docs/FEATURES.md` (section 10; the "No smartwatch support" gap reworded), `docs/ROADMAP.md` (the watch bullet under Later), `README.md` (one link), `docs/i18n/*.md` (a "Watch app" section at the end of each) | Added sections or lines only, except the two reworded lines named here | Done |
 
 Not touched, and not going to be: `core/Advert.kt`, `service/VisibilityService.kt`,
 `MainActivity.kt`, `MoshpointApp.kt`, `GroupSync.kt`, `OfflineMessages.kt`, `CrewChat.kt`,
 `CrewStatus.kt`, the server. The phone side reads the app's existing state from outside (it is
 Compose state) and starts itself from a manifest-declared provider, so none of those need a
-hook. It calls four existing functions as they are: `GroupSync.sendPing`, `GroupSync.load`,
+hook (the one exception is the test-build switch in `SettingsScreen.kt`, in the table above). It calls four existing functions as they are: `GroupSync.sendPing`, `GroupSync.load`,
 `OfflineMessages.retryNow` and `Advert.encode(…, looking = true)` (named arguments, so new
 optional parameters there won't break it), and reads `CrewChat.lines` to see how the outbox
 says a wrist ping is doing.
@@ -385,6 +376,9 @@ A small vocabulary told apart by rhythm alone (many watch motors have no strengt
   again on every find request and paid ping, so an old or tampered watch gains nothing.
 - **Wrist SOS skips the check** on both sides (problem 8). `core/watch/WatchGate` holds the
   rule and a test pins it.
+- **To try it without billing:** test builds have a switch, phone Settings → TESTING →
+  "Moshpoint+ (watch app)". Off shows the watch as a non-member sees it, and is how the field
+  test checks that Need help still goes.
 
 ### 10. Small round screens in 19 languages
 
@@ -425,4 +419,84 @@ A small vocabulary told apart by rhythm alone (many watch motors have no strengt
 
 ## Install on a Galaxy Watch (wireless debugging)
 
-_To be written once the first watch build exists (see Status)._
+The watch app isn't in the Play Store yet, so it goes on over Wi-Fi from a computer. About ten
+minutes the first time. These steps are for a Galaxy Watch4 or newer; a Pixel Watch is the
+same apart from step 4.
+
+**You need**
+
+- The watch, paired with your phone in the usual way (Galaxy Wearable app).
+- The newest Moshpoint test build on that phone, opened once, with its permissions allowed:
+  <https://github.com/TheZombieRobot/Diet/releases/download/testing/moshpoint.apk>
+- The watch build **from the same test release**:
+  <https://github.com/TheZombieRobot/Diet/releases/download/testing/moshpoint-watch.apk>
+  The two are signed with the same key, and the watch and phone only talk to each other when
+  they are. A watch build from somewhere else (a different CI run on another branch, your own
+  Android Studio) will install but never find the phone.
+- A computer with `adb` version 30 or newer. It comes in Google's "SDK Platform-Tools"
+  download (a zip; no Android Studio needed). Check with `adb version`.
+- The watch and the computer on the **same Wi-Fi**. Guest and public Wi-Fi often stop devices
+  seeing each other: if step 6 fails, turn on your phone's hotspot and join both to that.
+
+**Steps**
+
+1. Download `moshpoint-watch.apk` to the computer and open a terminal in that folder.
+2. On the watch, check the Wi-Fi: **Settings → Connections → Wi-Fi**. It must say connected,
+   to the same network as the computer.
+3. Put the watch on its charger or make sure it has plenty of battery. Installing over Wi-Fi
+   is slow and the screen needs to stay awake.
+4. Turn on developer options: **Settings → About watch → Software information**, then tap
+   **Software version** seven times. It says "Developer mode turned on".
+   (Pixel Watch: **Settings → System → About → Versions**, tap **Build number** seven times.)
+5. Go back to **Settings → Developer options** (new, at the bottom). Turn on **ADB debugging**,
+   then **Wireless debugging**, and allow it on this network. Tap **Wireless debugging** to
+   open its screen. It shows an address like `192.168.1.23:37121`. Leave this screen open.
+6. Tap **Pair new device**. The watch shows a six-digit code and an address with a
+   **different** number after the colon, like `192.168.1.23:41235`. On the computer:
+
+   ```
+   adb pair 192.168.1.23:41235
+   ```
+
+   Type the code when asked. It says `Successfully paired`. (The code and that number change
+   every time this screen opens, so type them while it is showing.)
+7. Connect, using the address from step 5 (the Wireless debugging screen, not the pairing one):
+
+   ```
+   adb connect 192.168.1.23:37121
+   ```
+
+   It says `connected to 192.168.1.23:37121`.
+8. Install:
+
+   ```
+   adb -s 192.168.1.23:37121 install -r moshpoint-watch.apk
+   ```
+
+   It takes a minute or two and ends with `Success`.
+9. On the watch, open the app list and tap **Moshpoint**. Allow notifications when it asks
+   (that is the chip on the watch face while you're finding someone). With the phone nearby,
+   your crew appears within a few seconds.
+10. Add the extras if you want them. **Tile:** from the watch face, swipe to the end of the
+    tiles, tap **+**, choose **Moshpoint · Crew status**. **Watch face:** touch and hold the
+    watch face → **Customise** → **Complications**, pick a slot, choose **Moshpoint · Nearest
+    mate**.
+11. Turn **Wireless debugging** off again (it uses battery and leaves a door open).
+
+To update later, repeat steps 5, 7 and 8 with the new file. The pairing in step 6 is
+remembered until developer options are reset.
+
+**If it doesn't work**
+
+| What you see | What to do |
+|---|---|
+| `adb pair` waits, then fails | The watch and computer aren't on the same network, or the network blocks devices from each other (use the phone's hotspot). Or the pairing screen closed: open it again and use the new code and number. |
+| `adb connect` says refused or can't connect | The number after the colon changes whenever Wireless debugging is switched off and on. Read it again from the watch. |
+| `adb: command not found`, or `adb pair` isn't recognised | adb is missing or older than version 30. Download the current SDK Platform-Tools. |
+| `INSTALL_FAILED_UPDATE_INCOMPATIBLE` | An older Moshpoint watch build signed with a different key is on the watch. Remove it with `adb -s 192.168.1.23:37121 uninstall nz.waveformlabs.moshpoint`, then install again. |
+| The watch says "Open Moshpoint on your phone" and stays that way | Open Moshpoint on the phone once. Check both builds came from the same test release, and that this watch is paired with this phone. |
+| Finding starts with the phone in your hand but not from your pocket | On the phone: **Settings → Apps → Moshpoint → Battery → Unrestricted**, and tap **Go live** in Moshpoint before you put the phone away. Android only lets an app start location work from the background if it was already doing it. |
+| No buzzes | Check the watch isn't on silent, Do Not Disturb or power saving, and that **Settings → Sounds and vibration** has vibration on. The finder says "Buzzes are off on this watch" when one of those is the reason. |
+
+No computer to hand? Apps that run adb from an Android phone can do steps 6 to 8 with the same
+three commands. That route hasn't been tried for this note.

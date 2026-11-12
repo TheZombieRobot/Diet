@@ -91,3 +91,20 @@ Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a 
 | upstairs / downstairs (screen reader) | eine Etage höher / eine Etage tiefer | Said in full after the mate's direction. |
 
 For a native reviewer: *Oben/Unten* versus *Obergeschoss/Untergeschoss*: the short form was chosen for size. Confidence: **high**.
+
+## Watch app (`wear/…/strings.xml`, `strings_watch.xml`)
+
+The Wear OS companion: 62 strings on the watch and 4 on the phone (the notification shown while the phone finds a mate for the watch). 22 of the watch strings are copied key for key from the phone app's files (the quick messages, "live", the four message states, the warmer/colder hints, units), so the wrist says things the way the phone does. The rest are new. Validator prints **OK** for both folders.
+
+| English | Chosen | Why |
+|---|---|---|
+| watch / wrist / buzzes | **Uhr** / **Handgelenk** / **Vibrationen** | Plain everyday words. "Buzzes" are the watch's vibrations: in a loud venue they do the guiding. |
+| Phone out of reach | **Handy außer Reichweite** | The watch has lost its Bluetooth link to the phone. *Außer Reichweite* is the usual phrase for a Bluetooth device that is too far away. Phone reception is *Empfang* in the app, so the two can't be confused. |
+| Hold (on the round button) / Hold to tell your crew | **Halten** / Halten, um deiner Crew Bescheid zu sagen | The button is about 8 letters wide, so one short word or two very short ones. |
+| Hold your wrist flat | **Halt dein Handgelenk flach** | The arrow only shows with the watch face level, like a compass. |
+| Follow the buzzes | **Folge den Vibrationen** | Shown when there is a distance but no direction. |
+| Not sent yet | **Noch nicht gesendet** | Big, above the phone's own "Waiting for signal": the message is still on the phone. |
+| Only crew nearby have it so far | Bisher hat es nur die Crew in der Nähe | Under the phone's own "Sent nearby". |
+| Nearest mate (watch-face complication) / Crew status (tile) | **Am nächsten dran** / **Crew-Status** | Names in the watch's pickers. |
+
+For a native reviewer: *Am nächsten dran* as the name of the watch-face complication (a literal *Nächster Freund* reads as "next friend"). *Halten* alone on the round button. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium-high**.

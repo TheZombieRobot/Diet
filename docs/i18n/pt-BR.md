@@ -93,3 +93,20 @@ Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a 
 | upstairs / downstairs (screen reader) | no andar de cima / no andar de baixo | Said in full after the mate's direction. |
 
 For a native reviewer: Nothing doubtful. Confidence: **high**.
+
+## Watch app (`wear/…/strings.xml`, `strings_watch.xml`)
+
+The Wear OS companion: 62 strings on the watch and 4 on the phone (the notification shown while the phone finds a mate for the watch). 22 of the watch strings are copied key for key from the phone app's files (the quick messages, "live", the four message states, the warmer/colder hints, units), so the wrist says things the way the phone does. The rest are new. Validator prints **OK** for both folders.
+
+| English | Chosen | Why |
+|---|---|---|
+| watch / wrist / buzzes | **relógio** / **pulso** / **vibrações** | Plain everyday words. "Buzzes" are the watch's vibrations: in a loud venue they do the guiding. |
+| Phone out of reach | **Celular fora de alcance** | The watch has lost its Bluetooth link to the phone. *Fora de alcance* is the usual phrase for Bluetooth range; phone reception is *sinal*. |
+| Hold (on the round button) / Hold to tell your crew | **Segure** / Segure pra avisar sua galera | The button is about 8 letters wide, so one short word or two very short ones. |
+| Hold your wrist flat | **Deixe o pulso na horizontal** | The arrow only shows with the watch face level, like a compass. |
+| Follow the buzzes | **Siga as vibrações** | Shown when there is a distance but no direction. |
+| Not sent yet | **Ainda não enviada** | Big, above the phone's own "Waiting for signal": the message is still on the phone. |
+| Only crew nearby have it so far | Por enquanto só chegou pra galera por perto | Under the phone's own "Sent nearby". |
+| Nearest mate (watch-face complication) / Crew status (tile) | **Amigo mais perto** / **Status da galera** | Names in the watch's pickers. |
+
+For a native reviewer: Feminine *Enviada / Ainda não enviada* follows the app's own message states. *Deixe o pulso na horizontal* for holding the wrist level. Informal *pra* as elsewhere. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium-high**.

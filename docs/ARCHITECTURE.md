@@ -166,6 +166,30 @@ Three things worth knowing before changing any of it:
   compiles it, runs the unit tests and draws the screenshots. The field test is section 3b
   of [FIELD_TEST_PLAN.md](FIELD_TEST_PLAN.md).
 
+## Watch app (Wear OS companion)
+
+The phone does the finding; the watch does the pointing and the buzzing. The decisions and the
+reasons are in [WATCH.md](WATCH.md). Where the code is:
+
+| File | Job |
+|---|---|
+| `core/watch/WristArrow.kt` | The arrow maths: the watch's own compass plus the declination the phone sends gives true north; the tilt gate (arrow only within 40° of flat, held to 50°); how old a reading is without comparing clocks; when an arrow is only "rough". |
+| `core/watch/WristDirections.kt` | Which methods' directions still mean anything with the phone in a pocket (GPS and crowd relay do; UWB, spin scan and walk don't unless the phone is held as a finder), then the ordinary `MethodArbiter` over what's left. |
+| `core/watch/BuzzPlan.kt` | Which buzz to play and when: ticks that quicken as you close in, "facing them", "wrong way", "found", "lost the phone". Never more than one second of motor in ten. Also the two-second hold for Need help. |
+| `core/watch/WatchProtocol.kt`, `WatchState.kt`, `FindLease.kt`, `WatchGate.kt`, `WristDistance.kt` | The versioned messages between phone and watch, the crew status the watch shows, the lease that keeps the phone finding only while the watch asks, the one rule for what Moshpoint+ covers (never Need help), distances in the watch's units. |
+| `wear/` | The watch app (Compose for Wear OS): crew list, finder, Need help, the tile and the watch-face complication, the compass, the buzzer, the foreground service that holds a find. Same application id and signing key as the phone app. |
+| `app/…/watch/WatchLinkService.kt` | The phone's listener on the Wear Data Layer. Play services starts it when the watch speaks, app open or not. |
+| `app/…/watch/WatchFind.kt`, `PocketFinder.kt`, `WatchFinderService.kt`, `PhoneFinderBridge.kt` | Finding for the watch: a cut-down finder that works with the screen off and the phone in a pocket, inside a foreground service that stops when the watch stops asking. If the phone's own finder is running, the watch is fed from it through a read-only bridge instead. |
+| `app/…/watch/WatchPings.kt` | Quick messages and Need help from the wrist, through `GroupSync.sendPing`. The watch is told what the outbox says: sent, sent nearby, or not sent yet. |
+| `app/…/watch/WatchSync.kt`, `Entitlements.kt` | Pushes crew status and faces to the watch when they change (never polled), and the one Moshpoint+ check. |
+
+- The watch gets only what its screen shows: names, colours, small faces, distances, a
+  bearing. No keys and no coordinates leave the phone, and nothing the watch does adds an
+  identifier to anything on the air.
+- CI builds the watch app (debug and release), draws every watch screen on a small and a large
+  round watch in every language, and publishes `moshpoint-watch.apk` next to the phone build.
+  The field test is section 4c of [FIELD_TEST_PLAN.md](FIELD_TEST_PLAN.md).
+
 ## Privacy (built in from day one)
 
 - Visibility is off by default, only the user turns it on, and a notification shows while it's on.

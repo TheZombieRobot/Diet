@@ -16,5 +16,10 @@ Already have an older Moshpoint test build and it says "App not installed"? Unin
 
 Ask them to tap **Share Moshpoint with a mate** (or **Send invite**) and send it to you. Copy their whole message, open Moshpoint and tap **Paste invite**. Or scan each other's QR codes.
 
+### ⌚ On your wrist (Wear OS watch)
+
+Got a Galaxy Watch4 or newer, or a Pixel Watch? The watch app points at your mate from your wrist and buzzes you towards them.
+**[Download the watch build](https://github.com/TheZombieRobot/Diet/releases/download/testing/moshpoint-watch.apk)** on a computer and follow the [install steps](https://github.com/TheZombieRobot/Diet/blob/ccr-5839ed7c-1q0ztj/docs/WATCH.md#install-on-a-galaxy-watch-wireless-debugging) (about ten minutes, over Wi-Fi). Use it with the phone build from this same page.
+
 ---
 _Test build BUILD_NUMBER (BUILD_SHA). This link always gets the newest test build._

@@ -110,3 +110,20 @@ Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a 
 | upstairs / downstairs (screen reader) | في الطابق العلوي / في الطابق السفلي | Said in full after the mate's direction. |
 
 For a native reviewer: «الطابق العلوي» can also be read as "the top floor". If that confuses in a building with many floors, «طابق أعلى» / «طابق أسفل» ("a floor up / down") is the alternative. Confidence the current wording is understood: **medium-high**.
+
+## Watch app (`wear/…/strings.xml`, `strings_watch.xml`)
+
+The Wear OS companion: 62 strings on the watch and 4 on the phone (the notification shown while the phone finds a mate for the watch). 22 of the watch strings are copied key for key from the phone app's files (the quick messages, "live", the four message states, the warmer/colder hints, units), so the wrist says things the way the phone does. The rest are new. Validator prints **OK** for both folders.
+
+| English | Chosen | Why |
+|---|---|---|
+| watch / wrist / buzzes | **ساعة** / **معصم** / **اهتزاز** | Plain everyday words. "Buzzes" are the watch's vibrations: in a loud venue they do the guiding. |
+| Phone out of reach | **لا اتصال بالهاتف** | The watch has lost its Bluetooth link to the phone. *لا اتصال بالهاتف* (no connection to the phone). *خارج نطاق التغطية* was avoided: it means no phone reception. |
+| Hold (on the round button) / Hold to tell your crew | **اضغط مطولًا** / اضغط مطولًا لإبلاغ شلتك | The button is about 8 letters wide, so one short word or two very short ones. |
+| Hold your wrist flat | **أبقِ معصمك مستويًا** | The arrow only shows with the watch face level, like a compass. |
+| Follow the buzzes | **اتبع الاهتزازات** | Shown when there is a distance but no direction. |
+| Not sent yet | **لم تُرسَل بعد** | Big, above the phone's own "Waiting for signal": the message is still on the phone. |
+| Only crew nearby have it so far | وصلت لمن حولك من الشلة فقط حتى الآن | Under the phone's own "Sent nearby". |
+| Nearest mate (watch-face complication) / Crew status (tile) | **أقرب صاحب** / **حالة الشلة** | Names in the watch's pickers. |
+
+For a native reviewer: *الظاهرون: ٢ من ٥* for "2 of 5 live", so nothing has to agree with the number. *%1$s خارج شلتك الآن* avoids a verb that needs the mate's gender. Feminine *أُرسلت / لم تُرسَل بعد* follows the app's own message states. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium**.

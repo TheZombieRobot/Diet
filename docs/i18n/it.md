@@ -81,3 +81,20 @@ Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a 
 | upstairs / downstairs (screen reader) | al piano di sopra / al piano di sotto | Said in full after the mate's direction. |
 
 For a native reviewer: Nothing doubtful. Confidence: **high**.
+
+## Watch app (`wear/…/strings.xml`, `strings_watch.xml`)
+
+The Wear OS companion: 62 strings on the watch and 4 on the phone (the notification shown while the phone finds a mate for the watch). 22 of the watch strings are copied key for key from the phone app's files (the quick messages, "live", the four message states, the warmer/colder hints, units), so the wrist says things the way the phone does. The rest are new. Validator prints **OK** for both folders.
+
+| English | Chosen | Why |
+|---|---|---|
+| watch / wrist / buzzes | **orologio** / **polso** / **vibrazioni** | Plain everyday words. "Buzzes" are the watch's vibrations: in a loud venue they do the guiding. |
+| Phone out of reach | **Telefono fuori portata** | The watch has lost its Bluetooth link to the phone. *Fuori portata* is the usual phrase for Bluetooth range; phone reception is *segnale*. |
+| Hold (on the round button) / Hold to tell your crew | **Tieni premuto** / Tieni premuto per avvisare il gruppo | The button is about 8 letters wide, so one short word or two very short ones. |
+| Hold your wrist flat | **Tieni il polso in piano** | The arrow only shows with the watch face level, like a compass. |
+| Follow the buzzes | **Segui le vibrazioni** | Shown when there is a distance but no direction. |
+| Not sent yet | **Non ancora inviato** | Big, above the phone's own "Waiting for signal": the message is still on the phone. |
+| Only crew nearby have it so far | Per ora ce l'ha solo chi del gruppo è vicino | Under the phone's own "Sent nearby". |
+| Nearest mate (watch-face complication) / Crew status (tile) | **Amico più vicino** / **Stato del gruppo** | Names in the watch's pickers. |
+
+For a native reviewer: *Tieni premuto* takes two lines on the round button. *Tieni il polso in piano* for holding the wrist level. *App per orologio*. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium-high**.

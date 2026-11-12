@@ -99,3 +99,20 @@ Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a 
 | upstairs / downstairs (screen reader) | üst katta / alt katta | Said in full after the mate's direction. |
 
 For a native reviewer: Nothing doubtful. Confidence: **high**.
+
+## Watch app (`wear/…/strings.xml`, `strings_watch.xml`)
+
+The Wear OS companion: 62 strings on the watch and 4 on the phone (the notification shown while the phone finds a mate for the watch). 22 of the watch strings are copied key for key from the phone app's files (the quick messages, "live", the four message states, the warmer/colder hints, units), so the wrist says things the way the phone does. The rest are new. Validator prints **OK** for both folders.
+
+| English | Chosen | Why |
+|---|---|---|
+| watch / wrist / buzzes | **saat** / **bilek** / **titreşim** | Plain everyday words. "Buzzes" are the watch's vibrations: in a loud venue they do the guiding. |
+| Phone out of reach | **Telefona ulaşılamıyor** | The watch has lost its Bluetooth link to the phone. *Telefona ulaşılamıyor* (the phone can't be reached). *Kapsama alanı dışında* was avoided: it means no phone reception. |
+| Hold (on the round button) / Hold to tell your crew | **Basılı tut** / Ekibine haber vermek için basılı tut | The button is about 8 letters wide, so one short word or two very short ones. |
+| Hold your wrist flat | **Bileğini düz tut** | The arrow only shows with the watch face level, like a compass. |
+| Follow the buzzes | **Titreşimleri takip et** | Shown when there is a distance but no direction. |
+| Not sent yet | **Henüz gönderilmedi** | Big, above the phone's own "Waiting for signal": the message is still on the phone. |
+| Only crew nearby have it so far | Şimdilik yalnızca yakındaki ekip üyelerinde | Under the phone's own "Sent nearby". |
+| Nearest mate (watch-face complication) / Crew status (tile) | **En yakın arkadaş** / **Ekip durumu** | Names in the watch's pickers. |
+
+For a native reviewer: *Paylaşan: 2/5* for "2 of 5 live", so no suffix has to agree with the number. *Doğrulanamadı* for "Not confirmed". *Basılı tut* takes two lines on the button. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium**.

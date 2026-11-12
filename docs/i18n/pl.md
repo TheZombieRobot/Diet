@@ -97,3 +97,20 @@ Ten strings: the crew card's offline-map line, the upstairs/downstairs tag on a 
 | upstairs / downstairs (screen reader) | piętro wyżej / piętro niżej | Said in full after the mate's direction. |
 
 For a native reviewer: The crew-card lines are long because of *miejsca koncertu*; check they fit (they may wrap to two lines). Confidence in the wording: **high**.
+
+## Watch app (`wear/…/strings.xml`, `strings_watch.xml`)
+
+The Wear OS companion: 62 strings on the watch and 4 on the phone (the notification shown while the phone finds a mate for the watch). 22 of the watch strings are copied key for key from the phone app's files (the quick messages, "live", the four message states, the warmer/colder hints, units), so the wrist says things the way the phone does. The rest are new. Validator prints **OK** for both folders.
+
+| English | Chosen | Why |
+|---|---|---|
+| watch / wrist / buzzes | **zegarek** / **nadgarstek** / **wibracje** | Plain everyday words. "Buzzes" are the watch's vibrations: in a loud venue they do the guiding. |
+| Phone out of reach | **Brak połączenia z telefonem** | The watch has lost its Bluetooth link to the phone. *Brak połączenia z telefonem* (no connection to the phone). *Poza zasięgiem* was avoided: *zasięg* is phone reception. |
+| Hold (on the round button) / Hold to tell your crew | **Trzymaj** / Przytrzymaj, żeby dać znać ekipie | The button is about 8 letters wide, so one short word or two very short ones. |
+| Hold your wrist flat | **Trzymaj nadgarstek płasko** | The arrow only shows with the watch face level, like a compass. |
+| Follow the buzzes | **Kieruj się wibracjami** | Shown when there is a distance but no direction. |
+| Not sent yet | **Jeszcze nie wysłano** | Big, above the phone's own "Waiting for signal": the message is still on the phone. |
+| Only crew nearby have it so far | Na razie ma to tylko ekipa w pobliżu | Under the phone's own "Sent nearby". |
+| Nearest mate (watch-face complication) / Crew status (tile) | **Najbliżej ciebie** / **Status ekipy** | Names in the watch's pickers. |
+
+For a native reviewer: *Najbliżej ciebie* ("closest to you") names the complication without a gendered noun. *Trzymaj* on the button, *Przytrzymaj…* in the line under it. The watch screens are in `docs/screenshots/watch/` (English, German, Thai, Arabic, Japanese) and every language is on the `ui-screenshots-watch` branch. Confidence: **medium**.
