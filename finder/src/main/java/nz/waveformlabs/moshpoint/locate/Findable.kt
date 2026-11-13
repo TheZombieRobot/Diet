@@ -147,7 +147,8 @@ class Findable(
         onMateLooking(friend)
         if (broadcaster.mode != AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY) {
             broadcaster.mode = AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY
-            FinderLog.log("${friend.name} is looking: advert to fast")
+            // Test builds only, checked here so release builds don't build the text (see BleRanger).
+            if (FinderLog.enabled) FinderLog.log("${friend.name} is looking: advert to fast")
         }
     }
 

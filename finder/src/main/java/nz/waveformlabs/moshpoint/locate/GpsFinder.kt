@@ -109,14 +109,18 @@ class GpsFinder(
         // Relay server: needs mobile data.
         val mailbox = FinderPlugins.mailbox
         val results = mailbox?.lookup(asks.map { it.second })
-        FinderLog.set(
-            "Server",
-            when {
-                false -> ""
-                results == null -> "lookup FAILED (no data?)"
-                else -> "${mailbox?.label}: ${results.sumOf { it.size }} box(es) for ${list.size} friend(s)"
-            },
-        )
+        // Test builds only, checked here so release builds don't build the text (the label comes
+        // through an interface; see BleRanger).
+        if (FinderLog.enabled) {
+            FinderLog.set(
+                "Server",
+                when {
+                    false -> ""
+                    results == null -> "lookup FAILED (no data?)"
+                    else -> "${mailbox?.label}: ${results.sumOf { it.size }} box(es) for ${list.size} friend(s)"
+                },
+            )
+        }
         results?.let { results ->
             asks.forEachIndexed { i, (friend, id) -> results[i].forEach { consider(friend, id, it, Method.GPS_SERVER) } }
         }

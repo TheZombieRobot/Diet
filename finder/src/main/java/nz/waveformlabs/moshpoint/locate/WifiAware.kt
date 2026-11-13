@@ -165,7 +165,8 @@ class WifiAwareFinder(
                                 if (info == null) return
                                 val now = System.currentTimeMillis()
                                 val friend = friends().firstOrNull { it.ephemeralId.matches(info, now) } ?: return
-                                if (peers.put(friend.id, peer) == null) FinderLog.log("Wi-Fi Aware: found ${friend.name}")
+                                // The log line is checked here so release builds don't build its text (see BleRanger).
+                                if (peers.put(friend.id, peer) == null && FinderLog.enabled) FinderLog.log("Wi-Fi Aware: found ${friend.name}")
                                 FinderLog.set(K, "subscribed, ${peers.size} friend(s) found")
                             }
                         },

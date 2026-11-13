@@ -42,7 +42,9 @@ class BleRanger(
         val advert = Advert.decode(friend.secret, data) ?: return
         val ranger = rangers.getOrPut(friend.id) { RssiRanging() }
         heard++
-        FinderLog.set(debugName, "on, heard ${friend.name} ${result.rssi} dBm (#$heard)")
+        // Built only in test builds: the name comes through an interface (FinderMate), which R8
+        // can't prove harmless, so the text would otherwise stay in (and run in) release builds.
+        if (FinderLog.enabled) FinderLog.set(debugName, "on, heard ${friend.name} ${result.rssi} dBm (#$heard)")
         lastHeardAtElapsedMs = result.timestampNanos / 1_000_000
         lastHeardAt = android.os.SystemClock.elapsedRealtime()
         onAdvert(friend, result.rssi, ranger.add(result.rssi), advert)

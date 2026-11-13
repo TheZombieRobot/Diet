@@ -96,8 +96,11 @@ class UwbResponder(
         )
         currentController = friend.id
         lastResultAt = SystemClock.elapsedRealtime()
-        FinderLog.set(K, "in session with ${friend.name}")
-        FinderLog.log("UWB: joining ${friend.name}'s session")
+        // Test builds only, checked here so release builds don't build the text (see BleRanger).
+        if (FinderLog.enabled) {
+            FinderLog.set(K, "in session with ${friend.name}")
+            FinderLog.log("UWB: joining ${friend.name}'s session")
+        }
         rangingJob = scope.launch {
             try {
                 s.prepareSession(params).collect { r ->

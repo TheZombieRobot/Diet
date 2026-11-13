@@ -336,7 +336,7 @@ jobs:
           # like the app's, should be stripped from the release APK.
           REL=$(ls app/build/outputs/apk/release/*.apk 2>/dev/null | head -1)
           if [ -n "$REL" ]; then
-            for t in 'BT scan refreshed' 'Spin scan started' 'Simulator: walk restarted' 'is looking: advert to fast' 'No one looking: advert back to medium' 'Watch: pocket finder on'; do
+            for t in 'BT scan refreshed' 'Spin scan started' 'Simulator: walk restarted' 'is looking: advert to fast' 'No one looking: advert back to medium' 'Watch: pocket finder on' 'asked us to light up' 'Wi-Fi Aware: found' 'in session with' 'box(es) for' 'dBm (#'; do
               if unzip -p "$REL" 'classes*.dex' | grep -a -q "$t"; then echo "finder debug text '$t': IN the release APK"; else echo "finder debug text '$t': not in the release APK"; fi
             done
           fi

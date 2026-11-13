@@ -137,7 +137,9 @@ class VisibilityService : LifecycleService() {
             .setColor(0xFFB6FF3B.toInt())
             .build()
         runCatching { nm.notify(REQUEST_NOTIFICATION_BASE + (friend.id.hashCode() and 0x0FFFFFFF), n) }
-        DebugStatus.log("${friend.name} asked us to light up")
+        // Test builds only, checked here so release builds don't build the text: the name now
+        // comes through the finder's FinderMate interface, which R8 can't prove harmless.
+        if (DebugStatus.enabled) DebugStatus.log("${friend.name} asked us to light up")
     }
 
     override fun onDestroy() {
