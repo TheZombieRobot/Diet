@@ -196,14 +196,14 @@ fun FinderScreen(
         onDispose { view.keepScreenOn = false }
     }
 
-    // A light buzz each time you cross 50 / 20 / 10 / 5 m towards someone: feel it closing in.
+    // A light buzz each time you cross 20 / 10 / 5 m towards someone: nothing further out, so the
+    // phone only vibrates once you're within 20 m (with the ticks as you close in, FindHaptics).
     val nearest = distances.minOfOrNull { it.second }
     val bucket = when {
         nearest == null -> 0
-        nearest < 5 -> 4
-        nearest < 10 -> 3
-        nearest < 20 -> 2
-        nearest < 50 -> 1
+        nearest < 5 -> 3
+        nearest < 10 -> 2
+        nearest < 20 -> 1
         else -> 0
     }
     val lastBucket = remember { intArrayOf(bucket) }

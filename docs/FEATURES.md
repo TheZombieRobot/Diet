@@ -43,7 +43,7 @@ Android app for finding your mates at gigs and festivals. No accounts.
   (ntfy.sh), and the phone shows an arrow plus distance using the compass. (untested end to end)
 - **Bluetooth up close:** warmer/colder from signal strength, shown as bands (Right here,
   Close, Nearby, In range) instead of fake-precise metres.
-  - The phone ticks faster as you get closer.
+  - Within 20 m the phone ticks each time you get closer; standing still or walking away, it's quiet.
   - A walk-to-find arrow learns the direction from which way you walked when the signal
     got stronger.
 - **Spin scan:** turn on the spot and your body blocks the signal to give a rough direction.

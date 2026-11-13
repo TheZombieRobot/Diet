@@ -410,8 +410,10 @@ internal fun BeaconOverlay(colour: Color, colourName: String, onStop: () -> Unit
 }
 
 /**
- * Feel the find (like Precision Finding): a soft tick that speeds up as you close in, and a
- * click each time the signal says "warmer". Silent when far away or once found.
+ * Feel the find: a soft tick each time you've got closer to the nearest mate, within 20 m (core
+ * [nz.waveformlabs.moshpoint.core.ClosingIn]), and a click each time the signal says "warmer".
+ * Silent when you stand still, walk away, are further than 20 m, or have found them. (It used to
+ * tick like a metronome out to 60 m, every half second at 8 m, even standing still.)
  */
 @Composable
 internal fun FindHaptics(arrows: List<ArrowState>) {
@@ -426,36 +428,21 @@ internal fun FindHaptics(arrows: List<ArrowState>) {
             }
         }.getOrNull()
     }
-    val closest = arrows.mapNotNull {
+    val nearest = arrows.mapNotNull {
         when (it) {
-            is ArrowState.DistanceOnly -> it.distanceM
-            is ArrowState.Pointing -> it.distanceM
+            is ArrowState.DistanceOnly -> it.friendId to it.distanceM
+            is ArrowState.Pointing -> it.distanceM?.let { m -> it.friendId to m }
             else -> null
         }
-    }.minOrNull()
+    }.minByOrNull { it.second }
     val warmer = arrows.any { it is ArrowState.DistanceOnly && it.trend == Trend.WARMER }
-    val d = androidx.compose.runtime.rememberUpdatedState(closest)
     fun buzz(effect: Int) {
         runCatching { vibrator?.vibrate(android.os.VibrationEffect.createPredefined(effect)) }
     }
     LaunchedEffect(warmer) { if (warmer) buzz(android.os.VibrationEffect.EFFECT_CLICK) }
-    LaunchedEffect(vibrator) {
-        if (vibrator == null) return@LaunchedEffect
-        while (true) {
-            val m = d.value
-            val gap = when {
-                m == null || m < 3.0 || m > 60.0 -> null
-                m < 10.0 -> 500L
-                m < 25.0 -> 1_100L
-                else -> 2_400L
-            }
-            if (gap == null) {
-                kotlinx.coroutines.delay(1_000)
-            } else {
-                buzz(android.os.VibrationEffect.EFFECT_TICK)
-                kotlinx.coroutines.delay(gap)
-            }
-        }
+    val closing = remember { nz.waveformlabs.moshpoint.core.ClosingIn() }
+    LaunchedEffect(nearest) {
+        if (closing.update(nearest?.first, nearest?.second)) buzz(android.os.VibrationEffect.EFFECT_TICK)
     }
 }
 
