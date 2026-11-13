@@ -10,11 +10,11 @@ import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.core.RecordLine
 import nz.waveformlabs.moshpoint.core.Fix
 import nz.waveformlabs.moshpoint.core.Geo
+import nz.waveformlabs.moshpoint.core.GpsFixRule
 import nz.waveformlabs.moshpoint.core.LatLon
 import nz.waveformlabs.moshpoint.core.LocationBox
 import nz.waveformlabs.moshpoint.core.Method
 import nz.waveformlabs.moshpoint.core.SharedLocation
-import kotlin.math.max
 
 /**
  * GPS + compass mode, for when you're far apart.
@@ -130,12 +130,10 @@ class GpsFinder(
                 ),
             )
             val ageMs = now - loc.timeSec * 1000
-            if (ageMs > MAX_AGE_MS) continue
+            if (ageMs > GpsFixRule.MAX_AGE_MS) continue
             val distance = Geo.distanceM(myLatLon, loc.latLon)
-            val uncertainty = here.accuracy + loc.accuracyM
             // GPS is useless for direction when the error circle is as big as the gap.
-            val confidence = (1.0 - uncertainty / max(distance, 1.0)).coerceIn(0.1, 1.0) *
-                (1.0 - ageMs.toDouble() / MAX_AGE_MS).coerceIn(0.2, 1.0)
+            val confidence = GpsFixRule.confidence(here.accuracy, loc.accuracyM, distance, ageMs)
             onFix(
                 Fix(
                     friendId = friendId,
@@ -150,9 +148,6 @@ class GpsFinder(
     }
 
     private companion object {
-        // Public relay posts every ~75 s (more when moving), so allow a few minutes.
-        const val MAX_AGE_MS = 240_000L
-
         /** With no mailbox plugged in, only the crowd relay's cache is read, this often. */
         const val NO_MAILBOX_POLL_MS = 4_000L
     }

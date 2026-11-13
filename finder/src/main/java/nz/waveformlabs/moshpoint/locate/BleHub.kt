@@ -12,6 +12,7 @@ import android.os.Looper
 import android.os.ParcelUuid
 import android.os.SystemClock
 import android.util.Log
+import nz.waveformlabs.moshpoint.core.ScanStarts
 
 /**
  * The app's ONE Bluetooth scan, shared by everything that listens (finder, visibility,
@@ -40,13 +41,11 @@ object BleHub {
 
     private const val TAG = "BleHub"
     private const val K = "BT scan (shared)"
-    private const val WINDOW_MS = 30_000L
-    /** Android allows 5 starts per 30 s; keep one spare for safety. */
-    private const val MAX_STARTS = 4
 
     private val main = Handler(Looper.getMainLooper())
     private val subs = LinkedHashMap<Any, Sub>()
-    private val starts = ArrayDeque<Long>()
+    /** Android allows 5 starts per 30 s; at most 4 here (core ScanStarts). */
+    private val starts = ScanStarts()
     private var app: Context? = null
     private var running: Config? = null
     private var pending = false
@@ -68,7 +67,7 @@ object BleHub {
             running = null
             // Code 1 = already started (harmless), 2 = registration failed (often the 5-in-30s
             // limit), 6 = scanning too frequently. Try again once the window has room.
-            schedule(delayToNextStart().coerceAtLeast(3_000))
+            schedule(starts.delayToNext(SystemClock.elapsedRealtime()).coerceAtLeast(3_000))
         }
     }
 
@@ -106,9 +105,8 @@ object BleHub {
     @Synchronized
     fun refresh(minGapMs: Long = 6_000): Boolean {
         val now = SystemClock.elapsedRealtime()
-        prune(now)
-        val last = starts.lastOrNull() ?: 0L
-        if (running == null || now - last < minGapMs || starts.size >= MAX_STARTS) return false
+        starts.prune(now)
+        if (running == null || !starts.mayRestart(now, minGapMs)) return false
         stopScan()
         startScan(now)
         FinderLog.log("BT scan refreshed (fresh readings)")
@@ -151,11 +149,10 @@ object BleHub {
             return
         }
         val now = SystemClock.elapsedRealtime()
-        prune(now)
-        if (starts.size >= MAX_STARTS) {
+        if (starts.full(now)) {
             // No room: keep the current scan (if any) and try again when there is.
-            FinderLog.set(K, "waiting ${delayToNextStart() / 1000}s (Android scan limit)")
-            schedule(delayToNextStart())
+            FinderLog.set(K, "waiting ${starts.delayToNext(SystemClock.elapsedRealtime()) / 1000}s (Android scan limit)")
+            schedule(starts.delayToNext(SystemClock.elapsedRealtime()))
             return
         }
         stopScan()
@@ -190,8 +187,8 @@ object BleHub {
         try {
             scanner.startScan(filters, settings, callback)
             running = cfg
-            starts.addLast(now)
-            FinderLog.set(K, "on (${if (cfg.fast) "fast" else "low power"}${if (cfg.unfiltered) ", every repeat" else ""}), ${subs.size} users, ${starts.size}/5 starts in 30s")
+            starts.started(now)
+            FinderLog.set(K, "on (${if (cfg.fast) "fast" else "low power"}${if (cfg.unfiltered) ", every repeat" else ""}), ${subs.size} users, ${starts.count}/5 starts in 30s")
         } catch (e: SecurityException) {
             running = null
             Log.w(TAG, "no scan permission", e)
@@ -211,16 +208,5 @@ object BleHub {
         } catch (_: Exception) {
         }
         running = null
-    }
-
-    private fun prune(now: Long) {
-        while (starts.isNotEmpty() && now - starts.first() > WINDOW_MS) starts.removeFirst()
-    }
-
-    private fun delayToNextStart(): Long {
-        val now = SystemClock.elapsedRealtime()
-        prune(now)
-        if (starts.size < MAX_STARTS) return 0
-        return (starts.first() + WINDOW_MS - now + 200).coerceAtLeast(200)
     }
 }

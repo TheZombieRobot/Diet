@@ -15,20 +15,22 @@ something awkward, the behaviour was kept and the awkwardness is listed under
 _Handover, kept current at every push. Branch: `claude/finder-module-h6t4wn`, from
 `ccr-5839ed7c-1q0ztj` at `121f057`._
 
-**Where things stand:** stages 1 to 3 written and pushed (the whole move), waiting for CI. Stage 4
-(pure logic into `core`) next.
+**Where things stand:** stages 1 to 4 written and pushed. Stage 1 is green in CI (run 264: builds,
+release check, merged manifest the same as the published main build, screenshots unchanged).
+Stages 2 to 4 waiting for CI. `ARCHITECTURE.md` and `ROADMAP.md` updated.
 
 | Stage | What | State |
 |---|---|---|
-| 1 | `:finder` library module in the build (`com.android.library`, namespace `nz.waveformlabs.moshpoint.finder`, its own `BuildConfig.TEST_BUILD`); the app depends on it. The plug-in API (`FinderMate`, `FinderPlugins`, `FinderLog`) and the app's side of it (`FinderSetup`, installed first in `MoshpointApp.onCreate`; `Friend` implements `FinderMate`). The five files with no app dependencies moved: `Ble`, `Capabilities`, `Compass`, `MotionDetector`, `MyLocation`. CI: the finder's own lint report; a report-only step that compares the merged manifest with the published main build | pushed, CI pending |
+| 1 | `:finder` library module in the build (`com.android.library`, namespace `nz.waveformlabs.moshpoint.finder`, its own `BuildConfig.TEST_BUILD`); the app depends on it. The plug-in API (`FinderMate`, `FinderPlugins`, `FinderLog`) and the app's side of it (`FinderSetup`, installed first in `MoshpointApp.onCreate`; `Friend` implements `FinderMate`). The five files with no app dependencies moved: `Ble`, `Capabilities`, `Compass`, `MotionDetector`, `MyLocation`. CI: the finder's own lint report; a report-only step that compares the merged manifest (and, from stage 4, the licence list) with the published main build | **green** (run 264) |
 | 2 | The radios: `BleHub`, `BleBroadcaster`, `BleRanger`, `RadioWatcher`, `WifiAware`, `UwbFinder`, `UwbResponder` (from `service/`). `DebugStatus` calls become `FinderLog`; `Friend` parameters become `FinderMate`; `UwbFinder` gets a name lookup for its one log line (`nameOf`, the app passes `FriendsRepository.byId(id)?.name`); `RelayClient` gets its own copy of the `hex()` helper it used from `UwbFinder.kt` | pushed, CI pending |
 | 3 | `CrowdRelayRadio`, `GpsFinder`, `LocatorEngine`, `PocketFinder` (from `watch/`) and the new `Findable` (the being-findable work out of `VisibilityService`, line for line). The app passes its parts in: `MainActivity` (engine; registers it with `PhoneFinderBridge`), `VisibilityService` (drives `Findable`), `WatchFind` (pocket finder) | pushed, CI pending |
-| 4 | Pure logic that can live in `core` moves there, with tests (candidates below) | not started |
-| 5 | `ARCHITECTURE.md` and `ROADMAP.md`; this note's file list and review list completed | not started |
+| 4 | Pure logic that can live in `core` moves there, with tests: core `FinderRules.kt` (`ScanStarts`, `WalkingTest`, `CompassHeading`, `LocationPick`, `GpsFixRule`, `HeadingLog`), `FinderRulesTest` (20 tests; core + server 505 tests pass locally). `BleHub`, `MotionDetector`, `Compass`, `MyLocation`, `GpsFinder` and `LocatorEngine` call them. The CI report step moves to the end of the job and also compares the licence list | pushed, CI pending |
+| 5 | `ARCHITECTURE.md` (modules, the finder's files, the boundary) and `ROADMAP.md` (status); this note's file list and review list | done, kept current |
 
-**Exact next step:** read the CI runs for stages 1, 2 and 3 (builds, release check, licences
-count, merged manifest "same as the published main build", screenshots unchanged, finder lint) and
-fix anything red; then stage 4.
+**Exact next step:** read the CI runs for stages 2, 3 and 4 (builds, release check, "merged
+manifest: same as the published main build", "licence list: same as the published main build",
+screenshots unchanged, finder lint) and fix anything red. When the last code commit is green:
+rebase onto the latest `ccr-5839ed7c-1q0ztj` if it has moved, and send the report.
 
 How to work on it: `core` and `server` tests run in the cloud container with a scratch Gradle
 settings file that includes only `:core` and `:server` and points its version catalogue at
@@ -135,12 +137,20 @@ app's merged manifest is exactly what it was): `BLUETOOTH_SCAN`, `BLUETOOTH_ADVE
 `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_CONNECTED_DEVICE`, `FOREGROUND_SERVICE_LOCATION`.
 The watch (`wear`, minSdk 30) can depend on `:finder` (minSdk 29) for watch-side UWB.
 
-## Pure logic for `core` (stage 4 candidates)
+## Pure logic moved to `core` (stage 4)
 
-Only where the arithmetic can be moved exactly, with a test: `BleHub`'s scan-start budget (4 starts
-in any 30 s, the refresh gap), `MotionDetector`'s walking test, `Compass`'s heading from the
-rotation matrix, `MyLocation`'s "better fix" rule, `GpsFinder`'s confidence and age rules, the
-engine's heading log (nearest heading within a second).
+Only where the arithmetic could be moved exactly, with tests (`FinderRulesTest`). Each is the same
+code in the same order with the same number types; some of it is Float on purpose, because that is
+what the sensors and `Location` give, and a test pins that down.
+
+| core `FinderRules.kt` | Was | The rule |
+|---|---|---|
+| `ScanStarts` | `BleHub`'s `starts`, `prune`, `delayToNextStart`, the refresh check | At most 4 scan starts in any 30 s (Android allows 5); a restart needs the gap asked for and room; how long to wait (until the oldest start leaves the window, plus 200 ms, at least 200 ms) |
+| `WalkingTest` | `MotionDetector.onSensorChanged` | Size of the acceleration over the last 1.5 s; walking when its spread is over 0.9 m/s²; fewer than 10 readings: keep the last answer |
+| `CompassHeading` | `Compass` | Heading from the rotation matrix: top edge plus back of the phone, horizontal part; none when that is under 0.01 |
+| `LocationPick` | `MyLocation.isBetter` | A fix over 30 s newer wins, one over 30 s older loses, otherwise no more than 1.5 times vaguer |
+| `GpsFixRule` | `GpsFinder.poll`'s age limit and confidence | Shared positions older than 4 minutes are dropped; confidence from both error circles against the gap (0.1 to 1) times freshness (0.2 to 1) |
+| `HeadingLog` | `LocatorEngine.headingLog` and `headingAt` | The last 200 compass headings; a reading gets the one nearest its own time if within a second, else the current heading |
 
 ## Places where behaviour could conceivably differ (review these first)
 
@@ -151,7 +161,8 @@ Filled in as the stages land; each says why it is believed identical.
    the main thread and touches no finder code), so no line is lost.
 2. **Release builds strip the finder's debug text through the module's own constant**
    (`TEST_BUILD`, false for release) rather than the app's; the app's release check (five UI
-   strings) is unchanged and still runs.
+   strings) is unchanged and still runs, and the report step also looks for six of the finder's
+   own debug lines in the release APK.
 3. **Lint:** `:app:lintDebug` no longer sees the moved files (`checkDependencies = false`); CI now
    runs `:finder:lintDebug` too and prints its summary under "finder lint summary". Report only.
 4. **The watch bridge registration** (`MainActivity`): the engine used to call
@@ -174,6 +185,17 @@ Filled in as the stages land; each says why it is believed identical.
    neutral sentence nobody in the phone app sees.
 8. **GPS finding without a mailbox** (not the phone app): polls the crowd-relay cache every 4 s.
    The phone app always has one, so its polling gap is `RelayClient.pollMs` as before.
+9. **The six rules moved to `core`** (stage 4, table above): copied expression for expression,
+   including where the old code mixed Float and Double. `BleHub` still prunes before checking
+   `running` in `refresh`, and still reads the clock twice when it has to wait (once for the status
+   line, once for the timer), as before.
+10. **App lint report:** besides the moved files' warnings now appearing in the finder's report,
+   `AndroidGradlePluginVersion` notices went from 3 to 6 (the library plugin's entries in the build
+   files). Report only; everything else in the app's lint summary is the same as before.
+11. **Small copies:** `RelayClient` has its own `hex()`, character for character the helper it
+   used to borrow from `UwbFinder.kt`. `Friend` implements `FinderMate` with the same getters, and
+   the finder gets the same `Friend` objects (their cached rotating codes included) back in every
+   callback.
 
 ## Awkward on purpose (for later)
 
@@ -190,33 +212,45 @@ Filled in as the stages land; each says why it is believed identical.
 
 ## Files moved or changed
 
-Kept current with each stage.
+Every file this work touched, against `121f057`.
 
-- Moved to `finder/src/main/java/nz/waveformlabs/moshpoint/locate/`: `Ble.kt`, `Capabilities.kt`,
-  `Compass.kt`, `MotionDetector.kt`, `MyLocation.kt` (unchanged); `BleHub.kt`, `BleBroadcaster.kt`,
-  `BleRanger.kt`, `RadioWatcher.kt`, `WifiAware.kt`, `UwbFinder.kt` and, from app `service/`,
-  `UwbResponder.kt` (now package `locate`): `DebugStatus.set/log` → `FinderLog.set/log`,
-  `Friend` → `FinderMate`, `UwbFinder(nameOf)`.
-- App changes for stage 2: `LocatorEngine.kt` and `watch/PocketFinder.kt` pass `nameOf` to
-  `UwbFinder`; `service/VisibilityService.kt` imports `UwbResponder`, and its "light up"
-  notification takes a `FinderMate`; `locate/RelayClient.kt` has its own private `hex()`.
-- Moved in stage 3: `CrowdRelayRadio.kt` (`OfflineMessages` → `FinderPlugins.relayLane`,
-  `RelayClient.ownServer/put` → `FinderPlugins.mailbox`), `GpsFinder.kt` (`RelayClient` →
-  `mailbox`, `LocationBook.update` → `sharedLocations`, the "I'm here" pin fix → `extraFixes`,
-  `FieldRecorder` → `FinderLog.record`), `LocatorEngine.kt` (constructor parameters `mateById`,
-  `isSimulated`, `onBluetoothReading`, `onUwbReading`, `onBluetoothToggled`, `cantHear`; no longer
-  registers itself with `PhoneFinderBridge`), and from app `watch/`, `PocketFinder.kt` (now public,
-  package `locate`; constructor parameters `identity`, `mateById`, `isSimulated`).
-- New in stage 3: `Findable.kt`, the being-findable radio work taken line for line out of
-  `VisibilityService` (advert and its rotation, Wi-Fi Aware publish, radio watcher, UWB responder,
-  listen for lookers, fast advert for 90 s).
-- App changes for stage 3: `MainActivity.kt` (builds the engine with the app's parts and attaches it
-  to `PhoneFinderBridge`), `service/VisibilityService.kt` (drives `Findable` in the same order),
-  `watch/WatchFind.kt` (builds `PocketFinder` with the app's parts), `watch/PhoneFinderBridge.kt`
-  (comments).
-- New: `finder/build.gradle.kts`, `finder/src/main/AndroidManifest.xml`, `FinderMate.kt`,
-  `FinderPlugins.kt`, `FinderLog.kt`; app `FinderSetup.kt`; this note.
-- Changed: `settings.gradle.kts`, `build.gradle.kts`, `gradle/libs.versions.toml` (the library
-  plugin), `app/build.gradle.kts` (depends on `:finder`), `MoshpointApp.kt` (installs the
-  plug-ins), `Friends.kt` (`Friend` implements `FinderMate`), `.github/workflows/android.yml`
-  (finder lint; merged-manifest comparison, report only).
+**Moved into `finder/src/main/java/nz/waveformlabs/moshpoint/locate/`** (package unchanged unless
+said):
+
+| File | From | Changes besides the move |
+|---|---|---|
+| `Ble.kt`, `Capabilities.kt` | app `locate/` | none |
+| `Compass.kt` | app `locate/` | heading maths → core `CompassHeading` |
+| `MotionDetector.kt` | app `locate/` | walking test → core `WalkingTest` |
+| `MyLocation.kt` | app `locate/` | "better fix" → core `LocationPick` |
+| `BleHub.kt` | app `locate/` | `DebugStatus` → `FinderLog`; start budget → core `ScanStarts` |
+| `BleBroadcaster.kt`, `RadioWatcher.kt` | app `locate/` | `DebugStatus` → `FinderLog` |
+| `BleRanger.kt`, `WifiAware.kt` | app `locate/` | `DebugStatus` → `FinderLog`; `Friend` → `FinderMate` |
+| `UwbFinder.kt` | app `locate/` | `DebugStatus` → `FinderLog`; `nameOf` for its one log line with a name |
+| `UwbResponder.kt` | app `service/` (package `service` → `locate`) | `DebugStatus` → `FinderLog`; `Friend` → `FinderMate` |
+| `CrowdRelayRadio.kt` | app `locate/` | `DebugStatus` → `FinderLog`; `OfflineMessages` → `FinderPlugins.relayLane`; `RelayClient` → `FinderPlugins.mailbox` |
+| `GpsFinder.kt` | app `locate/` | `DebugStatus`/`FieldRecorder` → `FinderLog`; `Friend` → `FinderMate`; `RelayClient` → `mailbox`; `LocationBook` → `sharedLocations`; the pin fix → `extraFixes`; age and confidence → core `GpsFixRule` |
+| `LocatorEngine.kt` | app `locate/` | `DebugStatus`/`FieldRecorder` → `FinderLog`; constructor parameters `mateById`, `isSimulated`, `onBluetoothReading`, `onUwbReading`, `onBluetoothToggled`, `cantHear`; no `PhoneFinderBridge` registration; heading log → core `HeadingLog` |
+| `PocketFinder.kt` | app `watch/` (package `watch` → `locate`, `internal` → public) | `DebugStatus` → `FinderLog`; constructor parameters `identity`, `mateById`, `isSimulated` |
+
+**New:** `finder/build.gradle.kts`, `finder/src/main/AndroidManifest.xml` (empty), finder
+`FinderMate.kt`, `FinderPlugins.kt`, `FinderLog.kt`, `Findable.kt`; app `FinderSetup.kt`; core
+`FinderRules.kt` and its test `FinderRulesTest.kt`; this note.
+
+**Changed in the app:** `MoshpointApp.kt` (installs the plug-ins first), `Friends.kt` (`Friend`
+implements `FinderMate`), `MainActivity.kt` (makes the engine with the app's parts; registers it
+with `PhoneFinderBridge`), `service/VisibilityService.kt` (drives `Findable`, same order),
+`watch/WatchFind.kt` (makes `PocketFinder` with the app's parts), `watch/PhoneFinderBridge.kt`
+(comments only), `locate/RelayClient.kt` (its own private `hex()`).
+
+**Build and CI:** `settings.gradle.kts` (`:finder`), `build.gradle.kts` and
+`gradle/libs.versions.toml` (the library plugin, same AGP version), `app/build.gradle.kts` (depends
+on `:finder`), `.github/workflows/android.yml` (the finder's lint report after the app's; a
+report-only step after "Upload APK" comparing the merged manifest and the licence list with the
+published main build, and checking a few of the finder's debug lines are not in the release APK;
+`finder/build/reports` in the uploaded reports).
+
+**Docs:** `docs/ARCHITECTURE.md` (modules, the finder's files, `FinderRules.kt`, debug builds),
+`docs/ROADMAP.md` (the item's status), this note.
+
+Not touched: `wear/`, every screen (`ui/`), the server, every string resource.

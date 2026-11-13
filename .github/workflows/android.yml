@@ -148,57 +148,6 @@ jobs:
           for b in bare: print(f"::warning::no licence found for {b}")
           PY
 
-      - name: Merged manifest, compared with the published main build (report only)
-        # Permissions, features and components (with foreground service types) of this test
-        # build, sorted, next to the same list from the test APK last published from the main
-        # branch. Added with the finder module (docs/FINDER_MODULE.md) to show the move left the
-        # manifest alone; on the main branch it compares with the build before.
-        if: success()
-        continue-on-error: true
-        shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.RELEASES_TOKEN || github.token }}
-          TARGET: ${{ secrets.RELEASES_TOKEN != '' && 'TheZombieRobot/moshpoint-builds' || github.repository }}
-        run: |
-          AAPT=$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)
-          digest() {
-            "$AAPT" dump xmltree --file AndroidManifest.xml "$1" | python3 -c '
-          import re, sys
-          keep = {"uses-permission": ("name", "maxSdkVersion"), "uses-feature": ("name", "required"),
-                  "activity": ("name", "exported"), "service": ("name", "exported", "foregroundServiceType", "permission"),
-                  "receiver": ("name", "exported", "permission"), "provider": ("name", "exported", "authorities")}
-          stack, rows = [], []
-          def done(e):
-              if e[1] in keep: rows.append(e[1] + " " + " ".join(k + "=" + e[2][k] for k in keep[e[1]] if k in e[2]))
-          for line in sys.stdin:
-              m = re.match(r"^(\s*)E: (\S+)", line)
-              if m:
-                  while stack and stack[-1][0] >= len(m.group(1)): done(stack.pop())
-                  stack.append([len(m.group(1)), m.group(2), {}]); continue
-              m = re.match(r"^\s*A: (?:http://schemas.android.com/apk/res/android:)?([A-Za-z]+)(?:\(0x[0-9a-f]+\))?=(.*)$", line)
-              if m and stack:
-                  v = m.group(2); q = re.match(r"\"(.*?)\"", v)
-                  stack[-1][2][m.group(1)] = q.group(1) if q else re.sub(r"^\(type 0x[0-9a-f]+\)", "", v).strip()
-          while stack: done(stack.pop())
-          print("\n".join(sorted(rows)))
-          '
-          }
-          APK=$(ls app/build/outputs/apk/debug/*.apk | head -1)
-          digest "$APK" > manifest-now.txt
-          echo "=== this build: $(wc -l < manifest-now.txt) entries ==="
-          cat manifest-now.txt
-          if gh release download testing --repo "$TARGET" -p moshpoint.apk -O main-build.apk 2>/dev/null; then
-            digest main-build.apk > manifest-main.txt
-            if diff manifest-main.txt manifest-now.txt > manifest-diff.txt; then
-              echo "=== merged manifest: same as the published main build ==="
-            else
-              echo "::warning::merged manifest differs from the published main build"
-              cat manifest-diff.txt
-            fi
-          else
-            echo "No published main build to compare with"
-          fi
-
       - name: Signed Play Store bundle (only when signing secrets are set)
         if: success() && env.HAS_KEYSTORE == 'true'
         shell: bash
@@ -315,6 +264,82 @@ jobs:
           name: moshpoint-debug-apk
           path: app/build/outputs/apk/debug/*.apk
           retention-days: 14
+
+      - name: Merged manifest and licence list, compared with the published main build (report only)
+        # Permissions, features and components (with foreground service types) of this test
+        # build, and the libraries in its licence list, each compared with the test APK last
+        # published from the main branch. Added with the finder module (docs/FINDER_MODULE.md)
+        # to show the move left both alone; on the main branch it compares with the build before
+        # (it runs before this build is published).
+        if: success()
+        continue-on-error: true
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN || github.token }}
+          TARGET: ${{ secrets.RELEASES_TOKEN != '' && 'TheZombieRobot/moshpoint-builds' || github.repository }}
+        run: |
+          AAPT=$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)
+          manifest() {
+            "$AAPT" dump xmltree --file AndroidManifest.xml "$1" | python3 -c '
+          import re, sys
+          keep = {"uses-permission": ("name", "maxSdkVersion"), "uses-feature": ("name", "required"),
+                  "activity": ("name", "exported"), "service": ("name", "exported", "foregroundServiceType", "permission"),
+                  "receiver": ("name", "exported", "permission"), "provider": ("name", "exported", "authorities")}
+          stack, rows = [], []
+          def done(e):
+              if e[1] in keep: rows.append(e[1] + " " + " ".join(k + "=" + e[2][k] for k in keep[e[1]] if k in e[2]))
+          for line in sys.stdin:
+              m = re.match(r"^(\s*)E: (\S+)", line)
+              if m:
+                  while stack and stack[-1][0] >= len(m.group(1)): done(stack.pop())
+                  stack.append([len(m.group(1)), m.group(2), {}]); continue
+              m = re.match(r"^\s*A: (?:http://schemas.android.com/apk/res/android:)?([A-Za-z]+)(?:\(0x[0-9a-f]+\))?=(.*)$", line)
+              if m and stack:
+                  v = m.group(2); q = re.match(r"\"(.*?)\"", v)
+                  stack[-1][2][m.group(1)] = q.group(1) if q else re.sub(r"^\(type 0x[0-9a-f]+\)", "", v).strip()
+          while stack: done(stack.pop())
+          print("\n".join(sorted(rows)))
+          '
+          }
+          licences() {
+            F=$("$AAPT" dump resources "$1" | grep -A2 -E 'raw/aboutlibraries( |$)' | grep -o 'res/[^ ]*' | head -1)
+            unzip -p "$1" "$F" | python3 -c '
+          import json, sys
+          d = json.load(sys.stdin)
+          print("\n".join(sorted(str(l.get("uniqueId")) + " " + str(l.get("artifactVersion")) for l in d.get("libraries", []))))
+          '
+          }
+          APK=$(ls app/build/outputs/apk/debug/*.apk | head -1)
+          manifest "$APK" > manifest-now.txt
+          licences "$APK" > licences-now.txt || true
+          echo "This build: $(wc -l < manifest-now.txt) manifest entries, $(wc -l < licences-now.txt) libraries in the licence list"
+          if gh release download testing --repo "$TARGET" -p moshpoint.apk -O main-build.apk 2>/dev/null; then
+            manifest main-build.apk > manifest-main.txt
+            licences main-build.apk > licences-main.txt || true
+            if diff manifest-main.txt manifest-now.txt > manifest-diff.txt; then
+              echo "=== merged manifest: same as the published main build ==="
+            else
+              echo "::warning::merged manifest differs from the published main build"
+              cat manifest-diff.txt
+            fi
+            if diff licences-main.txt licences-now.txt > licences-diff.txt; then
+              echo "=== licence list: same as the published main build ($(wc -l < licences-now.txt) libraries) ==="
+            else
+              echo "::warning::licence list differs from the published main build"
+              cat licences-diff.txt
+            fi
+          else
+            echo "No published main build to compare with"
+            cat manifest-now.txt licences-now.txt
+          fi
+          # The finder module's own debug lines (its BuildConfig.TEST_BUILD is false in release),
+          # like the app's, should be stripped from the release APK.
+          REL=$(ls app/build/outputs/apk/release/*.apk 2>/dev/null | head -1)
+          if [ -n "$REL" ]; then
+            for t in 'BT scan refreshed' 'Spin scan started' 'Simulator: walk restarted' 'is looking: advert to fast' 'No one looking: advert back to medium' 'Watch: pocket finder on'; do
+              if unzip -p "$REL" 'classes*.dex' | grep -a -q "$t"; then echo "finder debug text '$t': IN the release APK"; else echo "finder debug text '$t': not in the release APK"; fi
+            done
+          fi
 
       - name: Publish test APK to a public link
         # Fixed URL anyone can open on their phone, no GitHub login.

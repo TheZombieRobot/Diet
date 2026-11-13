@@ -6,16 +6,16 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.SystemClock
-import kotlin.math.sqrt
+import nz.waveformlabs.moshpoint.core.WalkingTest
 
 /**
  * "Is the person walking?" from the accelerometer: footsteps make the phone bounce, so the
- * spread of acceleration over the last second or so jumps up. No permission needed
- * (unlike the step counter). Used by walk-and-watch finding.
+ * spread of acceleration over the last second or so jumps up (core [WalkingTest]). No
+ * permission needed (unlike the step counter). Used by walk-and-watch finding.
  */
 class MotionDetector(context: Context) : SensorEventListener {
     private val sm = context.getSystemService(SensorManager::class.java)
-    private val samples = ArrayDeque<Pair<Long, Double>>()
+    private val walking = WalkingTest()
 
     @Volatile var moving = false
         private set
@@ -27,20 +27,14 @@ class MotionDetector(context: Context) : SensorEventListener {
 
     fun stop() {
         sm?.unregisterListener(this)
-        samples.clear()
+        walking.clear()
         moving = false
     }
 
     override fun onSensorChanged(e: SensorEvent) {
-        val now = SystemClock.elapsedRealtime()
-        val m = sqrt(e.values[0] * e.values[0] + e.values[1] * e.values[1] + e.values[2] * e.values[2].toDouble())
-        samples.addLast(now to m)
-        while (samples.isNotEmpty() && now - samples.first().first > 1_500) samples.removeFirst()
-        if (samples.size < 10) return
-        val mean = samples.sumOf { it.second } / samples.size
-        val sd = sqrt(samples.sumOf { (it.second - mean) * (it.second - mean) } / samples.size)
-        // Standing (even dancing on the spot gives bursts) vs a steady walking bounce.
-        moving = sd > 0.9
+        // Standing (even dancing on the spot gives bursts) vs a steady walking bounce. Too few
+        // readings yet: keep the last answer.
+        walking.add(SystemClock.elapsedRealtime(), e.values[0], e.values[1], e.values[2])?.let { moving = it }
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit

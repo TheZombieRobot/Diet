@@ -162,7 +162,12 @@ Agreed with the owner; build in this order. Where this differs from [PRODUCT.md]
 
 ### Later
 - **Before launch:** move the finder engine out of the gig code (the watch and any spin-off
-  need it).
+  need it). **Status: done, builds in CI; a pure refactor, nothing on a phone should change.** The
+  `finder` module (Android library) holds everything that finds a person or makes a phone
+  findable, with no gig code in it; the app plugs its parts in. Decisions, the interfaces, how
+  another app would use it, every file moved and the places to review first:
+  [FINDER_MODULE.md](FINDER_MODULE.md). Not moved yet: GPS sharing (`LocationUploader`, tied to
+  the relay's budget, ghost mode and the night recap).
 - **Watch app (Wear OS):** the base is built: a `wear` module in this repo (same app ID and
   signing key), the phone side, and the shared maths in `core/watch`. Decisions, install steps
   and what is still unproven: [WATCH.md](WATCH.md). Next: the wrist field test (section 4c of

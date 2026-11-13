@@ -10,6 +10,7 @@ import android.util.Log
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import nz.waveformlabs.moshpoint.core.LocationPick
 
 /**
  * This phone's GPS position. Uses the plain framework LocationManager so there's no
@@ -41,10 +42,6 @@ class MyLocation(context: Context) {
         awaitClose { lm.removeUpdates(listener) }
     }
 
-    private fun isBetter(new: Location, old: Location): Boolean {
-        val newer = new.elapsedRealtimeNanos - old.elapsedRealtimeNanos
-        if (newer > 30_000_000_000L) return true // old fix is >30 s older
-        if (newer < -30_000_000_000L) return false
-        return new.accuracy <= old.accuracy * 1.5f
-    }
+    private fun isBetter(new: Location, old: Location): Boolean =
+        LocationPick.isBetter(new.elapsedRealtimeNanos, new.accuracy, old.elapsedRealtimeNanos, old.accuracy)
 }

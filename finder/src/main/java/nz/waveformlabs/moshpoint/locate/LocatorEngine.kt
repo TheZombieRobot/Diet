@@ -18,6 +18,7 @@ import nz.waveformlabs.moshpoint.core.FriendSimulator
 import nz.waveformlabs.moshpoint.core.Geo
 import nz.waveformlabs.moshpoint.core.LatLon
 import nz.waveformlabs.moshpoint.core.HeadingFilter
+import nz.waveformlabs.moshpoint.core.HeadingLog
 import nz.waveformlabs.moshpoint.core.Method
 import nz.waveformlabs.moshpoint.core.MethodArbiter
 import nz.waveformlabs.moshpoint.core.MethodDebug
@@ -70,15 +71,10 @@ class LocatorEngine(
     // Snappier than the defaults: the arrow should feel glued to the phone.
     private val headingFilter = HeadingFilter(slowAlpha = 0.18, fastAlpha = 0.75, fastAboveDeg = 15.0)
 
-    /** Recent raw (unsmoothed) headings by elapsedRealtime, so spin-scan readings get the heading at the moment they were received. */
-    private val headingLog = ArrayDeque<Pair<Long, Double>>()
+    /** Recent raw (unsmoothed) headings by elapsedRealtime, so spin-scan readings get the heading at the moment they were received (core HeadingLog). */
+    private val headingLog = HeadingLog()
 
-    private fun headingAt(elapsedMs: Long): Double {
-        if (elapsedMs <= 0 || headingLog.isEmpty()) return heading
-        var best = headingLog.last()
-        for (e in headingLog) if (kotlin.math.abs(e.first - elapsedMs) < kotlin.math.abs(best.first - elapsedMs)) best = e
-        return if (kotlin.math.abs(best.first - elapsedMs) < 1_000) best.second else heading
-    }
+    private fun headingAt(elapsedMs: Long): Double = headingLog.at(elapsedMs, heading)
 
     private val _arrows = MutableStateFlow<List<ArrowState>>(emptyList())
     val arrows: StateFlow<List<ArrowState>> = _arrows.asStateFlow()
@@ -430,8 +426,7 @@ class LocatorEngine(
             scope.launch {
                 compass.headings().collect {
                     val raw = Geo.normalize360(it + gps.declinationDeg)
-                    headingLog.addLast(android.os.SystemClock.elapsedRealtime() to raw)
-                    while (headingLog.size > 200) headingLog.removeFirst() // a few seconds at SENSOR_DELAY_GAME
+                    headingLog.add(android.os.SystemClock.elapsedRealtime(), raw) // keeps a few seconds at SENSOR_DELAY_GAME
                     heading = headingFilter.add(raw)
                 }
             },

@@ -15,6 +15,35 @@ method runs at once, and a single arbiter decides what to draw.
                                          compass heading
 ```
 
+## Modules
+
+```
+ app (the gig app: crews, chat, pins, venue maps, relay mailboxes, screens) ──┐
+   │ plugs its parts in (FinderPlugins, constructor parameters)               │
+   ▼                                                                          │
+ finder (Android library: finding a person and being findable, no gig code) │
+   │                                                                          │
+   ▼                                                                          ▼
+ core (pure Kotlin: every rule, tested)  ◄──────────────────────────────────────┘
+ wear (the watch app) ──► core        server (relay) : its own JVM module
+```
+
+- **`core`**: plain Kotlin, no Android. Every rule that must not break, with tests (only `core`
+  and `server` tests can fail CI).
+- **`finder`** (since November 2026): an Android library holding everything that finds a person
+  (Bluetooth ranging and adverts, UWB on both sides, Wi-Fi Aware, GPS bearings, compass, motion, the
+  engine that feeds `MethodArbiter`, the watch's pocket finder) and everything that makes this
+  phone findable (`Findable`). It depends on `core` and AndroidX only, **never on `app`**, and
+  nothing in it knows about crews, chat, pins, venue maps or relay mailboxes. The gig app plugs
+  its parts in: process-wide through `FinderPlugins` (status panel, recorder, relay mailbox, where
+  mates were last seen, "I'm here" pin fixes, the message lane in the crowd relay's adverts), and
+  per finder through constructor parameters (who we are, who to find, readings for floors,
+  Bluetooth toggles). The watch and a construction-site spin-off can use it without the gig code.
+  Decisions, interfaces and how another app would use it: [FINDER_MODULE.md](FINDER_MODULE.md).
+- **`app`**: the phone app. Depends on `finder` and `core`.
+- **`wear`**: the watch app. Depends on `core` (could use `finder` for watch-side UWB).
+- **`server`**: the relay server.
+
 ## core (pure Kotlin, unit-tested)
 
 | File | Job |
@@ -25,7 +54,7 @@ method runs at once, and a single arbiter decides what to draw.
 | `RssiRanging.kt` | Log-distance path loss with smoothing. Turns BLE signal strength into a rough distance. The constants **must be tuned in a real crowd**. |
 | `ArrowStyle.kt` | Arrow is red at 150 m or more and fades to the friend's colour by 10 m. Distance label text. |
 | `Advert.kt` | The bytes in every Bluetooth advert: `[flags][rotating id][encrypted UWB block][encrypted pressure, optional]`. The UWB block is how two phones set up UWB with no connection or server (below). Also `UwbSessionKeys`, which both phones use to derive the same UWB session id and key on their own. |
-| `UwbSlots.kt` | Who gets the UWB ranging places when more mates are ready for UWB than one session takes (4): the mate the finder is focused on first, then the nearest (by `MethodArbiter.distanceFor`, which reads the distance without moving the arrow). Members stay unless someone is clearly nearer; the app's `UwbFinder` swaps one at a time, at most every 15 s except for the focused mate. With room for everyone, everyone is in. |
+| `UwbSlots.kt` | Who gets the UWB ranging places when more mates are ready for UWB than one session takes (4): the mate the finder is focused on first, then the nearest (by `MethodArbiter.distanceFor`, which reads the distance without moving the arrow). Members stay unless someone is clearly nearer; the finder's `UwbFinder` swaps one at a time, at most every 15 s except for the focused mate. With room for everyone, everyone is in. |
 | `FriendRecord.kt` | Saved-friend format and share codes. Gig group members expire after 18 h. |
 | `LocationBox.kt` | Seals a GPS fix (lat, lon, time, accuracy) with AES-GCM so only the owner's friends can open it. 29 bytes. Bound to the rotating id. |
 | `CrowdRelay.kt` | `RelayPacket` (47-byte relay advert) and `RelayCache` (newest per id, hop limit, age limit, fair airtime). |
@@ -35,24 +64,36 @@ method runs at once, and a single arbiter decides what to draw.
 | `RecordLine.kt` | Debug: CSV format for field recordings (`tools/analyze_recording.py` reads it). |
 | `QrPayload.kt` | What's in a Moshpoint QR code. |
 | `Geo.kt` | Distance and bearing between GPS points. Absolute bearing → arrow angle using the compass. |
+| `FinderRules.kt` | The finder module's small rules, moved out of its Android code to be tested: `ScanStarts` (Android's 5 scan starts in 30 s, one spare), `WalkingTest` (walking or not from the accelerometer), `CompassHeading` (heading from the rotation matrix, flat or upright), `LocationPick` (which of this phone's GPS fixes to keep), `GpsFixRule` (GPS bearing confidence and age limit), `HeadingLog` (the heading at the moment a reading arrived). |
+
+## finder (Android library, package `locate`)
+
+| File | Job |
+|---|---|
+| `LocatorEngine.kt` | Owns the arbiter, compass and providers; exposes `arrows` and spin-scan progress to the UI. New providers plug in by calling `arbiter.submit(fix)`. |
+| `BleHub.kt` | The app's one Bluetooth scan, shared by everything that listens (finder, visibility, crew intros, crowd relay, bump), within Android's scan-start limit. |
+| `BleRanger.kt` | Scans for Moshpoint adverts, matches the rotating code against friends, decodes the UWB block, and reports RSSI. |
+| `BleBroadcaster.kt` | One BLE advert; used by visibility and by the finder's "I'm looking" advert. |
+| `UwbFinder.kt` | UWB on the looking phone (controller). One multicast session to every friend. |
+| `UwbResponder.kt` | UWB on the visible phone (controlee). Joins a looking friend's session from the background service. |
+| `GpsFinder.kt` | GPS mode: fetches friends' sealed boxes from the server (through the app's mailbox) and the crowd-relay cache, then works out bearing and distance. |
+| `CrowdRelayRadio.kt` | Extended-advert broadcast and scan for crowd relay; the app's message packets take turns in its advertising set. |
+| `WifiAware.kt` | Wi-Fi Aware publish/subscribe + RTT ranging. |
+| `Compass.kt`, `MotionDetector.kt`, `MyLocation.kt`, `RadioWatcher.kt` | Heading, walking or not, this phone's GPS, Bluetooth / Wi-Fi Aware switched back on. |
+| `Capabilities.kt` | Detects BLE / UWB / Wi-Fi Aware / compass / GPS. Phones will exchange this so both sides use a method they share. |
+| `Findable.kt` | Being findable: the advert with our rotating code (swapped every rotation, fast while someone looks), Wi-Fi Aware publish, the UWB responder, the low-power listen for lookers. Run from a foreground service. |
+| `PocketFinder.kt` | The watch's finder with the phone in a pocket (docs/WATCH.md). |
+| `FinderMate.kt`, `FinderPlugins.kt`, `FinderLog.kt` | What the app plugs in; the test-build gate for status lines and recordings. |
 
 ## app (Android)
 
 | File | Job |
 |---|---|
-| `locate/LocatorEngine.kt` | Owns the arbiter, compass and providers; exposes `arrows` and spin-scan progress to the UI. New providers plug in by calling `arbiter.submit(fix)`. |
-| `locate/BleRanger.kt` | Scans for Moshpoint adverts, matches the rotating code against friends, decodes the UWB block, and reports RSSI. |
-| `locate/BleBroadcaster.kt` | One BLE advert; used by visibility and by the finder's "I'm looking" advert. |
-| `locate/UwbFinder.kt` | UWB on the looking phone (controller). One multicast session to every friend. |
-| `service/UwbResponder.kt` | UWB on the visible phone (controlee). Joins a looking friend's session from the background service. |
-| `locate/GpsFinder.kt` | GPS mode: fetches friends' sealed boxes from the server and the crowd-relay cache, then works out bearing and distance. |
+| `FinderSetup.kt` | Plugs the gig app's parts into the finder at start-up (`DebugStatus`, `FieldRecorder`, `RelayClient`, `LocationBook`, "I'm here" pins, `OfflineMessages`). |
 | `locate/RelayClient.kt` | HTTP client for the relay server. |
-| `locate/CrowdRelayRadio.kt` | Extended-advert broadcast and scan for crowd relay. |
-| `locate/WifiAware.kt` | Wi-Fi Aware publish/subscribe + RTT ranging. |
+| `locate/MapFeed.kt` | Feeds the map while it's open: our position and everyone's shared locations. |
 | `service/LocationUploader.kt` | While visible: seals our GPS for the crowd relay and the server. |
-| `locate/Compass.kt` | Rotation-vector sensor → heading. |
-| `locate/Capabilities.kt` | Detects BLE / UWB / Wi-Fi Aware / compass / GPS. Phones will exchange this so both sides use a method they share. |
-| `service/VisibilityService.kt` | Foreground service (type `connectedDevice`) that keeps the BLE advert going with the app closed and swaps the code every rotation. On UWB phones it also listens for lookers and runs `UwbResponder`. |
+| `service/VisibilityService.kt` | Foreground service (type `connectedDevice`) that keeps us findable with the app closed: runs the finder's `Findable` (the advert, swapped every rotation; on UWB phones the listen for lookers and `UwbResponder`) and the gig work around it. |
 | `service/BootReceiver.kt` | Turns visibility back on after a reboot, only if the user chose "always on". |
 | `ui/FinderScreen.kt` | No-signal state, one arrow per friend with avatar and distance, Scan flow. |
 | `ui/FriendsScreen.kt` | Friends list, gig group ("End night" clears it), visibility switches, share-your-code pairing, long-press to remove. |
@@ -103,7 +144,7 @@ route works:
 | `core/GigGroup.kt` | `messageId` (one id for every copy of a message), the signed pin, the `mp2` envelope for receipts and summaries, the intro form with no constant prefix. |
 | `app/OfflineMessages.kt` | Connects the courier to the phone: uploads through `RelayClient` to the mailbox valid at that moment, packets in and out through `CrowdRelayRadio`, arrivals and states into `CrewChat` and `GroupSync`. Also the test builds' route log. |
 | `app/NetState.kt` | Whether the phone has a network at all, so nothing is tried (or charged) without one. |
-| `app/locate/CrowdRelayRadio.kt` | The relay's advertising set now takes turns between locations and message packets. |
+| `finder/…/locate/CrowdRelayRadio.kt` | The relay's advertising set now takes turns between locations and message packets (the app plugs `OfflineMessages` in as the finder's `relayLane`). |
 | `app/ui/OfflineDebug.kt` | Test builds: the "Force no internet" switch and the message route list in Settings. |
 
 Rules to keep when changing any of it:
@@ -181,7 +222,7 @@ reasons: [IM_HERE.md](IM_HERE.md).
 | core `Courier.kt` | Carries it as `KIND_HERE`: newest per sender, in the pin mailbox, re-posted while it lasts, crowd hops while it lasts, re-signed after a rekey. |
 | core `Model.kt`, `MethodArbiter.kt`, `Venue.kt` | `Method.HERE_PIN` (beats GPS, never UWB up close; ignored for direction under 20 m like GPS), `VenuePlacement.spot` with the pin (UWB > pin > GPS). The watch gets it through `WristDirections.POSE_FREE` and watch code 8. |
 | app `HerePins.kt` | The main crew's pins as Compose state; sets and clears ours through `OfflineMessages`; takes arrivals from `GroupSync.syncServer` and `OfflineMessages.deliver`; runs the walk-away watcher while ours stands. |
-| app `locate/GpsFinder.kt` | Makes the `HERE_PIN` fixes, so the phone's finder and the watch's pocket finder both have them. |
+| finder `GpsFinder.kt` | Makes the `HERE_PIN` fixes (through `FinderPlugins.extraFixes`, which the app's `FinderSetup` points at `HerePins`), so the phone's finder and the watch's pocket finder both have them. |
 | app `ui/MapScreen.kt`, `CrewRadar.kt`, `FinderScreen.kt`, `HereUi.kt` | The face on the spot with "pinned 3 min ago", your own pin with ✕, **I'm here** first in the drop-a-pin dialog, the radar pill, the finder chip. |
 
 ## Private messages
@@ -217,7 +258,7 @@ reasons are in [WATCH.md](WATCH.md). Where the code is:
 | `core/watch/WatchProtocol.kt`, `WatchState.kt`, `FindLease.kt`, `WatchGate.kt`, `WristDistance.kt`, `WristText.kt` | The versioned messages between phone and watch, the crew status the watch shows, the lease that keeps the phone finding only while the watch asks, the one rule for what Moshpoint+ covers (never Need help), distances in the watch's units, how text may wrap on a small round screen. |
 | `wear/` | The watch app (Compose for Wear OS): crew list, finder, Need help, the tile and the watch-face complication, the compass, the buzzer, the foreground service that holds a find. Same application id and signing key as the phone app. |
 | `app/…/watch/WatchLinkService.kt` | The phone's listener on the Wear Data Layer. Play services starts it when the watch speaks, app open or not. |
-| `app/…/watch/WatchFind.kt`, `PocketFinder.kt`, `WatchFinderService.kt`, `PhoneFinderBridge.kt` | Finding for the watch: a cut-down finder that works with the screen off and the phone in a pocket, inside a foreground service that stops when the watch stops asking. If the phone's own finder is running, the watch is fed from it through a read-only bridge instead. |
+| `app/…/watch/WatchFind.kt`, `WatchFinderService.kt`, `PhoneFinderBridge.kt`, finder `PocketFinder.kt` | Finding for the watch: a cut-down finder that works with the screen off and the phone in a pocket, inside a foreground service that stops when the watch stops asking. If the phone's own finder is running, the watch is fed from it through a read-only bridge instead (`MainActivity` registers the finder with it). |
 | `app/…/watch/WatchPings.kt` | Quick messages and Need help from the wrist, through `GroupSync.sendPing`. The watch is told what the outbox says: sent, sent nearby, or not sent yet. |
 | `app/…/watch/WatchSync.kt`, `Entitlements.kt` | Pushes crew status and faces to the watch when they change (never polled), and the one Moshpoint+ check. |
 
@@ -245,7 +286,10 @@ reasons are in [WATCH.md](WATCH.md). Where the code is:
 
 Everything below is behind `BuildConfig.DEBUG` and stripped from release builds (CI checks):
 `DebugStatus` (live status hub), `DebugPanel` (method on/off/solo, readings, tech status,
-switch log), `FieldRecorder` (CSV recordings + ground-truth marks), simulated friends.
+switch log), `FieldRecorder` (CSV recordings + ground-truth marks), simulated friends. The finder
+module has its own `BuildConfig.TEST_BUILD` (debug true, release false): its status lines and
+recordings reach `DebugStatus` and `FieldRecorder` through `FinderLog`, and are stripped the same
+way.
 
 ## Things to watch (from the brief)
 
