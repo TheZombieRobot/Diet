@@ -7,7 +7,6 @@ import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
 import android.util.Log
-import nz.waveformlabs.moshpoint.DebugStatus
 
 /**
  * One Bluetooth LE advert carrying Moshpoint service data. Call [update] to change the
@@ -38,7 +37,7 @@ class BleBroadcaster(
         override fun onStartFailure(errorCode: Int) {
             Log.w(TAG, "advertise failed: $errorCode")
             running = false
-            DebugStatus.set(debugName, "FAILED code $errorCode")
+            FinderLog.set(debugName, "FAILED code $errorCode")
         }
     }
 
@@ -47,7 +46,7 @@ class BleBroadcaster(
         lastData = serviceData
         val adv = advertiser ?: run {
             running = false
-            DebugStatus.set(debugName, "waiting for Bluetooth")
+            FinderLog.set(debugName, "waiting for Bluetooth")
             return
         }
         try {
@@ -69,13 +68,13 @@ class BleBroadcaster(
                 AdvertiseSettings.ADVERTISE_MODE_LOW_POWER -> "slow, saving battery"
                 else -> "medium"
             }
-            DebugStatus.set(debugName, "on ($speed), ${serviceData.size} bytes" + if (serviceData.size > 17) " +UWB" else "")
+            FinderLog.set(debugName, "on ($speed), ${serviceData.size} bytes" + if (serviceData.size > 17) " +UWB" else "")
         } catch (e: IllegalStateException) {
             Log.w(TAG, "Bluetooth not ready", e) // turned off mid-call
             running = false
         } catch (e: SecurityException) {
             Log.w(TAG, "no BLUETOOTH_ADVERTISE permission", e)
-            DebugStatus.set(debugName, "NO PERMISSION")
+            FinderLog.set(debugName, "NO PERMISSION")
         }
     }
 
@@ -92,7 +91,7 @@ class BleBroadcaster(
         } catch (_: Exception) {
         }
         running = false
-        DebugStatus.set(debugName, "off")
+        FinderLog.set(debugName, "off")
     }
 
     private companion object {

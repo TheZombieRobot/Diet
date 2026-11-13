@@ -81,6 +81,7 @@ internal class PocketFinder(
             onResult = { friendId, distance, _ ->
                 if (distance != null) onFix(Fix(friendId, Method.UWB, bearingDeg = null, distanceM = distance, confidence = 0.8, timestampMs = System.currentTimeMillis()))
             },
+            nameOf = { id -> FriendsRepository.byId(id)?.name },
         )
     } else {
         null

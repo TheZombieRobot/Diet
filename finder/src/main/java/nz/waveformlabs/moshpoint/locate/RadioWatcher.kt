@@ -7,7 +7,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.wifi.aware.WifiAwareManager
 import androidx.core.content.ContextCompat
-import nz.waveformlabs.moshpoint.DebugStatus
 
 /**
  * Tells us when Bluetooth or Wi-Fi Aware comes back after being switched off (airplane
@@ -26,17 +25,17 @@ class RadioWatcher(
             when (intent.action) {
                 BluetoothAdapter.ACTION_STATE_CHANGED -> when (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1)) {
                     BluetoothAdapter.STATE_ON -> {
-                        DebugStatus.log("Bluetooth on: restarting")
+                        FinderLog.log("Bluetooth on: restarting")
                         onBluetooth(true)
                     }
                     BluetoothAdapter.STATE_OFF -> {
-                        DebugStatus.log("Bluetooth OFF")
+                        FinderLog.log("Bluetooth OFF")
                         onBluetooth(false)
                     }
                 }
                 WifiAwareManager.ACTION_WIFI_AWARE_STATE_CHANGED -> {
                     val available = c.getSystemService(WifiAwareManager::class.java)?.isAvailable == true
-                    DebugStatus.log("Wi-Fi Aware ${if (available) "available" else "UNAVAILABLE"}")
+                    FinderLog.log("Wi-Fi Aware ${if (available) "available" else "UNAVAILABLE"}")
                     onWifiAware(available)
                 }
             }

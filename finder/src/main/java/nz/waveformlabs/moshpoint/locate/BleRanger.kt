@@ -2,8 +2,6 @@ package nz.waveformlabs.moshpoint.locate
 
 import android.bluetooth.le.ScanResult
 import android.content.Context
-import nz.waveformlabs.moshpoint.DebugStatus
-import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.core.Advert
 import nz.waveformlabs.moshpoint.core.RssiRanging
 
@@ -11,7 +9,7 @@ import nz.waveformlabs.moshpoint.core.RssiRanging
  * Listens for friends' Moshpoint adverts over Bluetooth LE.
  *
  * Every advert carries a rotating 16-byte code (see [Advert]). We check it against each
- * friend's [Friend.ephemeralId]; on a match we decode the rest (UWB set-up details, if
+ * friend's [FinderMate.ephemeralId]; on a match we decode the rest (UWB set-up details, if
  * any) and report it with the signal strength. Strangers' codes are ignored (later
  * they'll be relayed for the crowd network instead).
  */
@@ -19,8 +17,8 @@ class BleRanger(
     context: Context,
     /** Name shown in the debug panel, e.g. "BT scan (finder)". */
     private val debugName: String,
-    private val friends: () -> List<Friend>,
-    private val onAdvert: (friend: Friend, rssiDbm: Int, distanceM: Double, advert: Advert) -> Unit,
+    private val friends: () -> List<FinderMate>,
+    private val onAdvert: (friend: FinderMate, rssiDbm: Int, distanceM: Double, advert: Advert) -> Unit,
 ) {
     private val app = context.applicationContext
     private var lowLatency = true
@@ -44,7 +42,7 @@ class BleRanger(
         val advert = Advert.decode(friend.secret, data) ?: return
         val ranger = rangers.getOrPut(friend.id) { RssiRanging() }
         heard++
-        DebugStatus.set(debugName, "on, heard ${friend.name} ${result.rssi} dBm (#$heard)")
+        FinderLog.set(debugName, "on, heard ${friend.name} ${result.rssi} dBm (#$heard)")
         lastHeardAtElapsedMs = result.timestampNanos / 1_000_000
         lastHeardAt = android.os.SystemClock.elapsedRealtime()
         onAdvert(friend, result.rssi, ranger.add(result.rssi), advert)
@@ -60,7 +58,7 @@ class BleRanger(
         this.lowLatency = lowLatency
         running = true
         BleHub.subscribe(app, this, BleHub.Sub(listOf(Ble.SERVICE_UUID), fast = lowLatency, unfiltered = lowLatency) { handle(it) })
-        DebugStatus.set(debugName, "on (${if (lowLatency) "fast" else "low power"}), nothing heard yet")
+        FinderLog.set(debugName, "on (${if (lowLatency) "fast" else "low power"}), nothing heard yet")
     }
 
     /**
@@ -80,6 +78,6 @@ class BleRanger(
         if (!running) return
         BleHub.unsubscribe(app, this)
         running = false
-        DebugStatus.set(debugName, "off")
+        FinderLog.set(debugName, "off")
     }
 }

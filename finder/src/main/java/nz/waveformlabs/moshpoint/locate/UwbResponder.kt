@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.service
+package nz.waveformlabs.moshpoint.locate
 
 import android.content.Context
 import android.os.SystemClock
@@ -15,8 +15,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import nz.waveformlabs.moshpoint.DebugStatus
-import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.core.Advert
 import nz.waveformlabs.moshpoint.core.UwbSessionKeys
 
@@ -72,17 +70,17 @@ class UwbResponder(
             val s = manager.controleeSessionScope()
             session = s
             onAdvertInfo(Advert.UwbInfo(Advert.UwbRole.CONTROLEE, s.localAddress.address))
-            DebugStatus.set(K, "ready, waiting for a friend who's looking")
+            FinderLog.set(K, "ready, waiting for a friend who's looking")
         } catch (e: Exception) {
             Log.w(TAG, "UWB controlee unavailable", e)
-            DebugStatus.set(K, "UNAVAILABLE: ${e.javaClass.simpleName}")
+            FinderLog.set(K, "UNAVAILABLE: ${e.javaClass.simpleName}")
             session = null
             onAdvertInfo(null)
         }
     }
 
     /** A friend's advert says they're looking and gives their UWB controller details. */
-    fun onFriendController(friend: Friend, info: Advert.UwbInfo) {
+    fun onFriendController(friend: FinderMate, info: Advert.UwbInfo) {
         val s = session ?: return
         if (rangingJob != null) return
         val controllerAddress = info.address
@@ -98,8 +96,8 @@ class UwbResponder(
         )
         currentController = friend.id
         lastResultAt = SystemClock.elapsedRealtime()
-        DebugStatus.set(K, "in session with ${friend.name}")
-        DebugStatus.log("UWB: joining ${friend.name}'s session")
+        FinderLog.set(K, "in session with ${friend.name}")
+        FinderLog.log("UWB: joining ${friend.name}'s session")
         rangingJob = scope.launch {
             try {
                 s.prepareSession(params).collect { r ->

@@ -29,7 +29,9 @@ import nz.waveformlabs.moshpoint.locate.BleBroadcaster
 import nz.waveformlabs.moshpoint.locate.BleRanger
 import nz.waveformlabs.moshpoint.locate.Capabilities
 import nz.waveformlabs.moshpoint.locate.CrowdRelayRadio
+import nz.waveformlabs.moshpoint.locate.FinderMate
 import nz.waveformlabs.moshpoint.locate.RadioWatcher
+import nz.waveformlabs.moshpoint.locate.UwbResponder
 import nz.waveformlabs.moshpoint.locate.WifiAwarePublisher
 import nz.waveformlabs.moshpoint.locate.wifiRttSupported
 
@@ -183,7 +185,7 @@ class VisibilityService : LifecycleService() {
     private val askedAt = mutableMapOf<String, Long>()
 
     /** A mate close by tapped "Ask them to light up": offer it with a tap (never automatic). */
-    private fun onAskedToLight(friend: nz.waveformlabs.moshpoint.Friend) {
+    private fun onAskedToLight(friend: FinderMate) {
         val now = System.currentTimeMillis()
         if (now - (askedAt[friend.id] ?: 0L) < 90_000) return
         askedAt[friend.id] = now

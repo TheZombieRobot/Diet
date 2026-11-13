@@ -12,7 +12,6 @@ import android.os.Looper
 import android.os.ParcelUuid
 import android.os.SystemClock
 import android.util.Log
-import nz.waveformlabs.moshpoint.DebugStatus
 
 /**
  * The app's ONE Bluetooth scan, shared by everything that listens (finder, visibility,
@@ -65,7 +64,7 @@ object BleHub {
         override fun onScanFailed(errorCode: Int) {
             Log.w(TAG, "scan failed: $errorCode")
             if (errorCode == SCAN_FAILED_ALREADY_STARTED) return // it's running: nothing to fix
-            DebugStatus.set(K, "FAILED code $errorCode (retrying)")
+            FinderLog.set(K, "FAILED code $errorCode (retrying)")
             running = null
             // Code 1 = already started (harmless), 2 = registration failed (often the 5-in-30s
             // limit), 6 = scanning too frequently. Try again once the window has room.
@@ -112,7 +111,7 @@ object BleHub {
         if (running == null || now - last < minGapMs || starts.size >= MAX_STARTS) return false
         stopScan()
         startScan(now)
-        DebugStatus.log("BT scan refreshed (fresh readings)")
+        FinderLog.log("BT scan refreshed (fresh readings)")
         return true
     }
 
@@ -148,14 +147,14 @@ object BleHub {
         if (want == running) return
         if (want == null) {
             stopScan()
-            DebugStatus.set(K, "off")
+            FinderLog.set(K, "off")
             return
         }
         val now = SystemClock.elapsedRealtime()
         prune(now)
         if (starts.size >= MAX_STARTS) {
             // No room: keep the current scan (if any) and try again when there is.
-            DebugStatus.set(K, "waiting ${delayToNextStart() / 1000}s (Android scan limit)")
+            FinderLog.set(K, "waiting ${delayToNextStart() / 1000}s (Android scan limit)")
             schedule(delayToNextStart())
             return
         }
@@ -171,7 +170,7 @@ object BleHub {
         val scanner = adapter?.takeIf { it.isEnabled }?.bluetoothLeScanner
         if (scanner == null) {
             running = null
-            DebugStatus.set(K, "waiting for Bluetooth")
+            FinderLog.set(K, "waiting for Bluetooth")
             return
         }
         val settings = ScanSettings.Builder()
@@ -192,11 +191,11 @@ object BleHub {
             scanner.startScan(filters, settings, callback)
             running = cfg
             starts.addLast(now)
-            DebugStatus.set(K, "on (${if (cfg.fast) "fast" else "low power"}${if (cfg.unfiltered) ", every repeat" else ""}), ${subs.size} users, ${starts.size}/5 starts in 30s")
+            FinderLog.set(K, "on (${if (cfg.fast) "fast" else "low power"}${if (cfg.unfiltered) ", every repeat" else ""}), ${subs.size} users, ${starts.size}/5 starts in 30s")
         } catch (e: SecurityException) {
             running = null
             Log.w(TAG, "no scan permission", e)
-            DebugStatus.set(K, "NO PERMISSION")
+            FinderLog.set(K, "NO PERMISSION")
         } catch (e: IllegalStateException) {
             running = null
             Log.w(TAG, "Bluetooth not ready", e)

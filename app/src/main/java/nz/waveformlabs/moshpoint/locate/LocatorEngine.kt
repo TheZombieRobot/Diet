@@ -114,6 +114,7 @@ class LocatorEngine(
             },
             // The nearest get the UWB places when there are more mates than places (core UwbSlots).
             distanceOf = { id -> arbiter.distanceFor(id, System.currentTimeMillis()) },
+            nameOf = { id -> FriendsRepository.byId(id)?.name },
         )
     } else {
         null

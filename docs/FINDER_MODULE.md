@@ -15,19 +15,20 @@ something awkward, the behaviour was kept and the awkwardness is listed under
 _Handover, kept current at every push. Branch: `claude/finder-module-h6t4wn`, from
 `ccr-5839ed7c-1q0ztj` at `121f057`._
 
-**Where things stand:** stage 1 written and pushed, waiting for CI. Stages 2 and 3 designed (below),
-not started.
+**Where things stand:** stages 1 and 2 written and pushed, waiting for CI. Stage 3 designed (below),
+being written.
 
 | Stage | What | State |
 |---|---|---|
 | 1 | `:finder` library module in the build (`com.android.library`, namespace `nz.waveformlabs.moshpoint.finder`, its own `BuildConfig.TEST_BUILD`); the app depends on it. The plug-in API (`FinderMate`, `FinderPlugins`, `FinderLog`) and the app's side of it (`FinderSetup`, installed first in `MoshpointApp.onCreate`; `Friend` implements `FinderMate`). The five files with no app dependencies moved: `Ble`, `Capabilities`, `Compass`, `MotionDetector`, `MyLocation`. CI: the finder's own lint report; a report-only step that compares the merged manifest with the published main build | pushed, CI pending |
-| 2 | The radios: `BleHub`, `BleBroadcaster`, `BleRanger`, `RadioWatcher`, `WifiAware`, `UwbFinder`, `UwbResponder` (from `service/`). `DebugStatus` calls become `FinderLog`; `Friend` parameters become `FinderMate`; `UwbFinder` gets a name lookup for its one log line | not started |
+| 2 | The radios: `BleHub`, `BleBroadcaster`, `BleRanger`, `RadioWatcher`, `WifiAware`, `UwbFinder`, `UwbResponder` (from `service/`). `DebugStatus` calls become `FinderLog`; `Friend` parameters become `FinderMate`; `UwbFinder` gets a name lookup for its one log line (`nameOf`, the app passes `FriendsRepository.byId(id)?.name`); `RelayClient` gets its own copy of the `hex()` helper it used from `UwbFinder.kt` | pushed, CI pending |
 | 3 | `CrowdRelayRadio`, `GpsFinder`, `LocatorEngine`, `PocketFinder` (from `watch/`) and the new `Findable` (the being-findable work out of `VisibilityService`). The app passes its parts in: `MainActivity`, `VisibilityService`, `WatchFind` | not started |
 | 4 | Pure logic that can live in `core` moves there, with tests (candidates below) | not started |
 | 5 | `ARCHITECTURE.md` and `ROADMAP.md`; this note's file list and review list completed | not started |
 
-**Exact next step:** read the stage-1 CI run (builds, release check, licences count, merged
-manifest "same as the published main build", screenshots unchanged, finder lint), then stage 2.
+**Exact next step:** read the stage-1 and stage-2 CI runs (builds, release check, licences count,
+merged manifest "same as the published main build", screenshots unchanged, finder lint); write
+stage 3.
 
 How to work on it: `core` and `server` tests run in the cloud container with a scratch Gradle
 settings file that includes only `:core` and `:server` and points its version catalogue at
@@ -164,7 +165,13 @@ Filled in as the stages land; each says why it is believed identical.
 Kept current with each stage.
 
 - Moved to `finder/src/main/java/nz/waveformlabs/moshpoint/locate/`: `Ble.kt`, `Capabilities.kt`,
-  `Compass.kt`, `MotionDetector.kt`, `MyLocation.kt` (unchanged).
+  `Compass.kt`, `MotionDetector.kt`, `MyLocation.kt` (unchanged); `BleHub.kt`, `BleBroadcaster.kt`,
+  `BleRanger.kt`, `RadioWatcher.kt`, `WifiAware.kt`, `UwbFinder.kt` and, from app `service/`,
+  `UwbResponder.kt` (now package `locate`): `DebugStatus.set/log` → `FinderLog.set/log`,
+  `Friend` → `FinderMate`, `UwbFinder(nameOf)`.
+- App changes for stage 2: `LocatorEngine.kt` and `watch/PocketFinder.kt` pass `nameOf` to
+  `UwbFinder`; `service/VisibilityService.kt` imports `UwbResponder`, and its "light up"
+  notification takes a `FinderMate`; `locate/RelayClient.kt` has its own private `hex()`.
 - New: `finder/build.gradle.kts`, `finder/src/main/AndroidManifest.xml`, `FinderMate.kt`,
   `FinderPlugins.kt`, `FinderLog.kt`; app `FinderSetup.kt`; this note.
 - Changed: `settings.gradle.kts`, `build.gradle.kts`, `gradle/libs.versions.toml` (the library

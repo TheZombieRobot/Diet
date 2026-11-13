@@ -14,8 +14,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import nz.waveformlabs.moshpoint.DebugStatus
-import nz.waveformlabs.moshpoint.FriendsRepository
 import nz.waveformlabs.moshpoint.core.Advert
 import nz.waveformlabs.moshpoint.core.UwbSessionKeys
 import nz.waveformlabs.moshpoint.core.UwbSlots
@@ -46,6 +44,8 @@ class UwbFinder(
     private val onResult: (friendId: String, distanceM: Double?, azimuthDeg: Double?) -> Unit,
     /** Our best distance to a friend now, by any method: the nearest get the places when there are too few. */
     private val distanceOf: (friendId: String) -> Double? = { null },
+    /** A friend's name, for the status log only (null: "a friend"). */
+    private val nameOf: (friendId: String) -> String? = { null },
 ) {
     private val manager = UwbManager.createInstance(context)
     private var session: UwbControllerSessionScope? = null
@@ -80,7 +80,7 @@ class UwbFinder(
         peers.clear()
         ready.clear()
         onAdvertInfo(null)
-        DebugStatus.set(K, "off")
+        FinderLog.set(K, "off")
     }
 
     private suspend fun newScope() {
@@ -90,7 +90,7 @@ class UwbFinder(
             peers.clear()
             // Friends join each new session with a new address: wait to hear them again.
             ready.clear()
-            DebugStatus.set(K, "ready, ch ${s.uwbComplexChannel.channel}, waiting for a visible UWB friend")
+            FinderLog.set(K, "ready, ch ${s.uwbComplexChannel.channel}, waiting for a visible UWB friend")
             onAdvertInfo(
                 Advert.UwbInfo(
                     role = Advert.UwbRole.CONTROLLER,
@@ -102,7 +102,7 @@ class UwbFinder(
         } catch (e: Exception) {
             // No UWB, UWB switched off (e.g. airplane mode), or permission missing.
             Log.w(TAG, "UWB controller unavailable", e)
-            DebugStatus.set(K, "UNAVAILABLE: ${e.javaClass.simpleName} ${e.message ?: ""}".trim())
+            FinderLog.set(K, "UNAVAILABLE: ${e.javaClass.simpleName} ${e.message ?: ""}".trim())
             session = null
             onAdvertInfo(null)
         }
@@ -152,7 +152,7 @@ class UwbFinder(
     /** Take [key] (a controlee address, hex) out of the session to make room. */
     private fun leave(s: UwbControllerSessionScope, key: String) {
         val friendId = peers.remove(key) ?: return
-        DebugStatus.log("UWB: making room, ${FriendsRepository.byId(friendId)?.name ?: "a friend"} out (${peers.size} peer(s))")
+        FinderLog.log("UWB: making room, ${nameOf(friendId) ?: "a friend"} out (${peers.size} peer(s))")
         val address = key.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
         op("removeControlee") { s.removeControlee(UwbAddress(address)) }
     }
@@ -161,7 +161,7 @@ class UwbFinder(
     private fun join(s: UwbControllerSessionScope, friendId: String, address: ByteArray) {
         val key = address.hex()
         peers[key] = friendId
-        DebugStatus.log("UWB: adding friend to session (${peers.size} peer(s))")
+        FinderLog.log("UWB: adding friend to session (${peers.size} peer(s))")
 
         if (rangingJob == null) {
             val params = RangingParameters(
@@ -181,7 +181,7 @@ class UwbFinder(
                     throw e // stop() was called: don't reopen
                 } catch (e: Exception) {
                     Log.w(TAG, "UWB ranging ended", e)
-                    DebugStatus.log("UWB: session ended (${e.javaClass.simpleName})")
+                    FinderLog.log("UWB: session ended (${e.javaClass.simpleName})")
                 }
                 // A session scope is single-use: open a fresh one and re-advertise.
                 rangingJob = null
@@ -211,7 +211,7 @@ class UwbFinder(
         val friendId = peers[result.device.address.address.hex()] ?: return
         when (result) {
             is RangingResult.RangingResultPosition -> {
-                DebugStatus.set(
+                FinderLog.set(
                     K,
                     "ranging ${peers.size} peer(s): " +
                         "${result.position.distance?.value?.let { "%.2f m".format(it) } ?: "no dist"}, " +

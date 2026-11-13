@@ -23,8 +23,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import nz.waveformlabs.moshpoint.DebugStatus
-import nz.waveformlabs.moshpoint.Friend
 
 /**
  * Wi-Fi Aware (Neighbour Awareness Networking) + Wi-Fi RTT: a good close-range distance
@@ -67,7 +65,7 @@ class WifiAwarePublisher(context: Context, private val idNow: () -> ByteArray) {
     @SuppressLint("MissingPermission")
     fun start() {
         if (aware == null || !aware.isAvailable) {
-            DebugStatus.set("Wi-Fi Aware (visible)", "unavailable (Wi-Fi or location off?)")
+            FinderLog.set("Wi-Fi Aware (visible)", "unavailable (Wi-Fi or location off?)")
             return
         }
         stopped = false
@@ -79,7 +77,7 @@ class WifiAwarePublisher(context: Context, private val idNow: () -> ByteArray) {
                         return
                     }
                     session = s
-                    DebugStatus.set("Wi-Fi Aware (visible)", "publishing")
+                    FinderLog.set("Wi-Fi Aware (visible)", "publishing")
                     s.publish(config(), object : DiscoverySessionCallback() {
                         override fun onPublishStarted(p: PublishDiscoverySession) {
                             if (stopped) p.close() else publish = p
@@ -87,14 +85,14 @@ class WifiAwarePublisher(context: Context, private val idNow: () -> ByteArray) {
 
                         override fun onSessionTerminated() {
                             publish = null
-                            DebugStatus.set("Wi-Fi Aware (visible)", "session ended")
+                            FinderLog.set("Wi-Fi Aware (visible)", "session ended")
                         }
                     }, handler)
                 }
 
                 override fun onAttachFailed() {
                     Log.w(TAG, "attach failed")
-                    DebugStatus.log("Wi-Fi Aware: attach FAILED")
+                    FinderLog.log("Wi-Fi Aware: attach FAILED")
                 }
             }, handler)
         } catch (e: SecurityException) {
@@ -119,7 +117,7 @@ class WifiAwarePublisher(context: Context, private val idNow: () -> ByteArray) {
 class WifiAwareFinder(
     context: Context,
     private val scope: CoroutineScope,
-    private val friends: () -> List<Friend>,
+    private val friends: () -> List<FinderMate>,
     private val onDistance: (friendId: String, distanceM: Double) -> Unit,
 ) {
     private val aware = context.getSystemService(WifiAwareManager::class.java)
@@ -137,10 +135,10 @@ class WifiAwareFinder(
     @SuppressLint("MissingPermission")
     fun start() {
         if (aware == null || rtt == null || !aware.isAvailable) {
-            DebugStatus.set(K, "unavailable (Wi-Fi or location off?)")
+            FinderLog.set(K, "unavailable (Wi-Fi or location off?)")
             return
         }
-        DebugStatus.set(K, "attaching")
+        FinderLog.set(K, "attaching")
         stopped = false
         try {
             aware.attach(object : AttachCallback() {
@@ -160,15 +158,15 @@ class WifiAwareFinder(
                             override fun onSessionTerminated() {
                                 subscribe = null
                                 peers.clear()
-                                DebugStatus.set(K, "session ended")
+                                FinderLog.set(K, "session ended")
                             }
 
                             override fun onServiceDiscovered(peer: PeerHandle, info: ByteArray?, filter: MutableList<ByteArray>?) {
                                 if (info == null) return
                                 val now = System.currentTimeMillis()
                                 val friend = friends().firstOrNull { it.ephemeralId.matches(info, now) } ?: return
-                                if (peers.put(friend.id, peer) == null) DebugStatus.log("Wi-Fi Aware: found ${friend.name}")
-                                DebugStatus.set(K, "subscribed, ${peers.size} friend(s) found")
+                                if (peers.put(friend.id, peer) == null) FinderLog.log("Wi-Fi Aware: found ${friend.name}")
+                                FinderLog.set(K, "subscribed, ${peers.size} friend(s) found")
                             }
                         },
                         handler,
@@ -177,7 +175,7 @@ class WifiAwareFinder(
 
                 override fun onAttachFailed() {
                     Log.w(TAG, "attach failed")
-                    DebugStatus.log("Wi-Fi Aware: attach FAILED")
+                    FinderLog.log("Wi-Fi Aware: attach FAILED")
                 }
             }, handler)
         } catch (e: SecurityException) {
@@ -207,13 +205,13 @@ class WifiAwareFinder(
                         if (res.status != RangingResult.STATUS_SUCCESS) return@forEach
                         val friendId = byHandle[res.peerHandle] ?: return@forEach
                         onDistance(friendId, res.distanceMm / 1000.0)
-                        DebugStatus.set(K, "RTT ok: %.1f m ±%.1f".format(res.distanceMm / 1000.0, res.distanceStdDevMm / 1000.0))
+                        FinderLog.set(K, "RTT ok: %.1f m ±%.1f".format(res.distanceMm / 1000.0, res.distanceStdDevMm / 1000.0))
                     }
                 }
 
                 override fun onRangingFailure(code: Int) {
                     Log.w(TAG, "ranging failed: $code")
-                    DebugStatus.set(K, "RTT FAILED code $code")
+                    FinderLog.set(K, "RTT FAILED code $code")
                 }
             })
         } catch (e: SecurityException) {
@@ -230,7 +228,7 @@ class WifiAwareFinder(
         subscribe = null
         session = null
         peers.clear()
-        DebugStatus.set(K, "off")
+        FinderLog.set(K, "off")
     }
 
     private companion object {

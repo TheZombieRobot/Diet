@@ -303,6 +303,9 @@ object RelayClient {
 
     private fun topic(id: ByteArray) = "mp" + id.hex()
 
+    /** Lower-case hex, as box ids appear in URLs and topic names. */
+    private fun ByteArray.hex() = joinToString("") { "%02x".format(it) }
+
     /** Own server: (time, download URL) of files under [id] since [sinceSec]. */
     private fun ownList(id: ByteArray, sinceSec: Long): List<Pair<Long, String>>? =
         exchange(RelayUse.BACKGROUND, message = false) {
