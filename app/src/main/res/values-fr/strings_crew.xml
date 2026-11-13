@@ -263,6 +263,8 @@
 
     <string name="crew_request_title">%1$s est tout près et te cherche</string>
     <string name="crew_request_text">Touche pour faire clignoter ton écran et qu\'on te repère</string>
+    <string name="crew_beacon_title">%1$s est tout près et fait clignoter son écran</string>
+    <string name="crew_beacon_text">Regarde autour de toi, cherche un écran qui clignote</string>
     <string name="crew_go_hidden">Se cacher</string>
     <string name="crew_tile_live">Live</string>
     <string name="crew_tile_hidden">Invisible</string>

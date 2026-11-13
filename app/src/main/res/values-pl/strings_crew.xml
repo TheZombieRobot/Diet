@@ -277,6 +277,8 @@
 
     <string name="crew_request_title">%1$s jest blisko i cię szuka</string>
     <string name="crew_request_text">Kliknij, żeby podświetlić ekran i dać się zauważyć</string>
+    <string name="crew_beacon_title">%1$s jest blisko i podświetla ekran</string>
+    <string name="crew_beacon_text">Rozejrzyj się za migającym ekranem</string>
     <string name="crew_go_hidden">Schowaj się</string>
     <string name="crew_tile_live">Udostępniasz</string>
     <string name="crew_tile_hidden">Ukryty</string>

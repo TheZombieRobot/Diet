@@ -232,6 +232,8 @@
 
     <string name="crew_request_title">%1$sが近くであなたを探しています</string>
     <string name="crew_request_text">タップして画面を光らせると、相手があなたを見つけやすくなります</string>
+    <string name="crew_beacon_title">%1$sが近くで画面を光らせています</string>
+    <string name="crew_beacon_text">周りを見て、光っている画面を探してください</string>
     <string name="crew_go_hidden">非表示にする</string>
     <string name="crew_tile_live">シェア中</string>
     <string name="crew_tile_hidden">非表示</string>

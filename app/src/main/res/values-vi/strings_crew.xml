@@ -232,6 +232,8 @@
 
     <string name="crew_request_title">%1$s đang ở gần và tìm bạn</string>
     <string name="crew_request_text">Chạm để nháy màn hình cho họ thấy bạn</string>
+    <string name="crew_beacon_title">%1$s đang ở gần và nháy màn hình</string>
+    <string name="crew_beacon_text">Nhìn quanh tìm một màn hình đang nháy</string>
     <string name="crew_go_hidden">Ẩn đi</string>
     <string name="crew_tile_live">Đang chia sẻ</string>
     <string name="crew_tile_hidden">Đang ẩn</string>

@@ -44,6 +44,8 @@ class Findable(
     private val onMateLooking: (FinderMate) -> Unit = {},
     /** A mate asked us to light up: every advert that asks. */
     private val onAskedToLight: (FinderMate) -> Unit = {},
+    /** A mate in range is lighting up their own screen ("Light me up") so we can spot them: every advert that says so. */
+    private val onMateLightingUp: (FinderMate) -> Unit = {},
     /** Bluetooth was switched off or on: after the shared scan hears of it, before our own radios restart. */
     private val onBluetoothToggled: (on: Boolean) -> Unit = {},
 ) {
@@ -126,6 +128,7 @@ class Findable(
             onMateHeard(friend, distanceM, advert)
             if (advert.looking) onFriendLooking(friend)
             if (advert.askLight) onAskedToLight(friend)
+            if (advert.beacon) onMateLightingUp(friend)
             val info = advert.uwb
             if (info?.role == Advert.UwbRole.CONTROLLER) responder?.onFriendController(friend, info)
         }.also { it.start(lowLatency = false) }

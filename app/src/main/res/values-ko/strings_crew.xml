@@ -232,6 +232,8 @@
 
     <string name="crew_request_title">%1$s님이 가까이에서 나를 찾고 있어요</string>
     <string name="crew_request_text">탭해서 화면을 밝히면 친구가 나를 쉽게 찾을 수 있어요</string>
+    <string name="crew_beacon_title">%1$s님이 가까이에서 화면을 밝히고 있어요</string>
+    <string name="crew_beacon_text">주위를 둘러보고 깜빡이는 화면을 찾아보세요</string>
     <string name="crew_go_hidden">내 위치 숨기기</string>
     <string name="crew_tile_live">공유 중</string>
     <string name="crew_tile_hidden">숨김</string>

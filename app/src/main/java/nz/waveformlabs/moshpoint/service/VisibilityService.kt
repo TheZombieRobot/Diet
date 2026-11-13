@@ -75,6 +75,7 @@ class VisibilityService : LifecycleService() {
             onMateHeard = { friend, distanceM, advert -> nz.waveformlabs.moshpoint.venue.Floors.onBluetooth(friend.id, distanceM, advert.pressure) },
             onMateLooking = { uploader?.boost() },
             onAskedToLight = ::onAskedToLight,
+            onMateLightingUp = ::onMateLightingUp,
             onBluetoothToggled = { on -> GroupSync.onBluetooth(this, on) },
         )
         findable = f
@@ -116,19 +117,52 @@ class VisibilityService : LifecycleService() {
         val now = System.currentTimeMillis()
         if (now - (askedAt[friend.id] ?: 0L) < 90_000) return
         askedAt[friend.id] = now
+        notifyMate(
+            friend,
+            getString(R.string.crew_request_title, friend.name),
+            getString(R.string.crew_request_text),
+            Intent(this, MainActivity::class.java).putExtra(MainActivity.EXTRA_LIGHT_FOR, friend.id),
+        )
+        // Test builds only, checked here so release builds don't build the text: the name now
+        // comes through the finder's FinderMate interface, which R8 can't prove harmless.
+        if (DebugStatus.enabled) DebugStatus.log("${friend.name} asked us to light up")
+    }
+
+    private val lightingAt = mutableMapOf<String, Long>()
+
+    /**
+     * A mate in Bluetooth range turned on "Light me up": their screen is flashing so we can spot
+     * them. A buzz in the pocket says to look up, once every few minutes per mate while they keep
+     * it on. It's something they chose to do, so nobody is buzzed just because a mate opened the
+     * finder. Tapping it opens the finder on them.
+     */
+    private fun onMateLightingUp(friend: FinderMate) {
+        val now = System.currentTimeMillis()
+        if (now - (lightingAt[friend.id] ?: 0L) < LIGHTING_EVERY_MS) return
+        lightingAt[friend.id] = now
+        notifyMate(
+            friend,
+            getString(R.string.crew_beacon_title, friend.name),
+            getString(R.string.crew_beacon_text),
+            Intent(this, MainActivity::class.java).putExtra(MainActivity.EXTRA_FIND_MATE, friend.id),
+        )
+        if (DebugStatus.enabled) DebugStatus.log("${friend.name} is lighting up their screen")
+    }
+
+    /** One notification per mate in "Mates looking for you": a newer one replaces theirs. */
+    private fun notifyMate(friend: FinderMate, title: String, text: String, open: Intent) {
         val nm = getSystemService(NotificationManager::class.java)
         nm.createNotificationChannel(
             NotificationChannel(REQUEST_CHANNEL, getString(R.string.crew_channel_requests), NotificationManager.IMPORTANCE_HIGH),
         )
         val tap = PendingIntent.getActivity(
             this, friend.id.hashCode(),
-            Intent(this, MainActivity::class.java).putExtra(MainActivity.EXTRA_LIGHT_FOR, friend.id)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
         val n = NotificationCompat.Builder(this, REQUEST_CHANNEL)
-            .setContentTitle(getString(R.string.crew_request_title, friend.name))
-            .setContentText(getString(R.string.crew_request_text))
+            .setContentTitle(title)
+            .setContentText(text)
             .setSmallIcon(R.drawable.ic_launcher_monochrome)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
@@ -137,9 +171,6 @@ class VisibilityService : LifecycleService() {
             .setColor(0xFFB6FF3B.toInt())
             .build()
         runCatching { nm.notify(REQUEST_NOTIFICATION_BASE + (friend.id.hashCode() and 0x0FFFFFFF), n) }
-        // Test builds only, checked here so release builds don't build the text: the name now
-        // comes through the finder's FinderMate interface, which R8 can't prove harmless.
-        if (DebugStatus.enabled) DebugStatus.log("${friend.name} asked us to light up")
     }
 
     override fun onDestroy() {
@@ -237,6 +268,8 @@ class VisibilityService : LifecycleService() {
         /** "Light up" requests, one per friend: a range of their own (5000 up used to reach into the crew alerts' ids, Need help among them). */
         private const val REQUEST_NOTIFICATION_BASE = 0x40000000
         private const val NOTIFICATION_ID = 1
+        /** A mate lighting up their screen: a buzz at most this often per mate. */
+        private const val LIGHTING_EVERY_MS = 180_000L
         private const val ACTION_STOP = "nz.waveformlabs.moshpoint.STOP_VISIBLE"
 
         fun start(context: Context) {

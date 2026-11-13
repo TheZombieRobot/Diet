@@ -232,6 +232,8 @@
 
     <string name="crew_request_title">%1$s อยู่ใกล้ๆ และกำลังหาคุณ</string>
     <string name="crew_request_text">แตะเพื่อเปิดไฟจอ ให้เพื่อนมองเห็นคุณ</string>
+    <string name="crew_beacon_title">%1$s อยู่ใกล้ๆ และกำลังเปิดไฟจอ</string>
+    <string name="crew_beacon_text">มองไปรอบๆ หาจอที่กะพริบอยู่</string>
     <string name="crew_go_hidden">ซ่อนตัว</string>
     <string name="crew_tile_live">แชร์อยู่</string>
     <string name="crew_tile_hidden">ซ่อนอยู่</string>

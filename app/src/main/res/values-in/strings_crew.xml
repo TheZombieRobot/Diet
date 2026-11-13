@@ -232,6 +232,8 @@
 
     <string name="crew_request_title">%1$s sudah dekat dan lagi mencarimu</string>
     <string name="crew_request_text">Ketuk untuk menyalakan layarmu biar dia bisa melihatmu</string>
+    <string name="crew_beacon_title">%1$s sudah dekat dan menyalakan layarnya</string>
+    <string name="crew_beacon_text">Lihat sekeliling, cari layar yang berkedip</string>
     <string name="crew_go_hidden">Sembunyi</string>
     <string name="crew_tile_live">Live</string>
     <string name="crew_tile_hidden">Tersembunyi</string>

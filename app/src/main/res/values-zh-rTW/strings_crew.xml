@@ -232,6 +232,8 @@
 
     <string name="crew_request_title">%1$s 就在附近，正在找你</string>
     <string name="crew_request_text">點一下點亮螢幕，讓對方看到你</string>
+    <string name="crew_beacon_title">%1$s 就在附近，正在點亮螢幕</string>
+    <string name="crew_beacon_text">看看四周，找一塊閃爍的螢幕</string>
     <string name="crew_go_hidden">隱藏</string>
     <string name="crew_tile_live">上線中</string>
     <string name="crew_tile_hidden">已隱藏</string>

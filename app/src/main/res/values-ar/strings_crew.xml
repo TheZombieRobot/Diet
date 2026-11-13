@@ -307,6 +307,8 @@
 
     <string name="crew_request_title">%1$s على مقربة منك، في محاولة لإيجادك</string>
     <string name="crew_request_text">اضغط لتنوير شاشتك حتى تسهل رؤيتك</string>
+    <string name="crew_beacon_title">%1$s على مقربة منك ويُضيء شاشته</string>
+    <string name="crew_beacon_text">انظر حولك وابحث عن شاشة تومض</string>
     <string name="crew_go_hidden">اختفِ</string>
     <string name="crew_tile_live">ظاهر</string>
     <string name="crew_tile_hidden">مخفي</string>

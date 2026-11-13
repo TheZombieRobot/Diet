@@ -248,6 +248,8 @@
 
     <string name="crew_request_title">%1$s ist in der Nähe und sucht dich</string>
     <string name="crew_request_text">Tippe, damit dein Bildschirm leuchtet und sie dich sehen</string>
+    <string name="crew_beacon_title">%1$s ist in der Nähe und lässt den Bildschirm leuchten</string>
+    <string name="crew_beacon_text">Schau dich nach einem blinkenden Bildschirm um</string>
     <string name="crew_go_hidden">Verstecken</string>
     <string name="crew_tile_live">Live</string>
     <string name="crew_tile_hidden">Versteckt</string>

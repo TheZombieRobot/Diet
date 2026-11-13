@@ -247,6 +247,8 @@
 
     <string name="crew_request_title">%1$s är nära och letar efter dig</string>
     <string name="crew_request_text">Tryck för att lysa upp skärmen så de kan se dig</string>
+    <string name="crew_beacon_title">%1$s är nära och lyser upp skärmen</string>
+    <string name="crew_beacon_text">Titta dig omkring efter en blinkande skärm</string>
     <string name="crew_go_hidden">Göm dig</string>
     <string name="crew_tile_live">Live</string>
     <string name="crew_tile_hidden">Dold</string>

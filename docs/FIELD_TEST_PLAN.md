@@ -74,6 +74,18 @@ Somewhere open: a park or field. On **B**: Debug → **● record**.
 
 On **B**: **■ stop**, then **share last** and send me the CSV.
 
+### 2f. Buzzes and lighting up (5 min)
+
+- [ ] B: walk towards A from about 30 m. Nothing until 20 m (one buzz as you pass it), then a
+  soft tick each time you've got a metre or so closer, a buzz at 10 m and 5 m, and a long one when
+  found. Stand still: quiet. Walk away: quiet. Turn back: ticks again.
+- [ ] A live, phone in a pocket, 10 to 20 m away. B: open A in the finder and tap **Light me up**.
+  Within a few seconds A's phone buzzes: "B is close and lighting up their screen". Tapping it
+  opens the finder on B. While B keeps it on, A isn't buzzed again for 3 minutes.
+- [ ] B only opens the finder (no Light me up): A's phone stays quiet.
+- [ ] B: **Ask them to light up**. A gets "B is close and looking for you"; tapping it lights up
+  A's screen.
+
 ## 3. Background and battery (1 hour, can overlap with 4)
 
 - [ ] A: live, then **close the app** (swipe away) and **lock the screen**. Put it in a pocket.

@@ -248,6 +248,8 @@
 
     <string name="crew_request_title">%1$s is dichtbij en zoekt je</string>
     <string name="crew_request_text">Tik om je scherm te laten knipperen, zodat ze je zien</string>
+    <string name="crew_beacon_title">%1$s is dichtbij en laat het scherm knipperen</string>
+    <string name="crew_beacon_text">Kijk om je heen naar een knipperend scherm</string>
     <string name="crew_go_hidden">Verbergen</string>
     <string name="crew_tile_live">Live</string>
     <string name="crew_tile_hidden">Verborgen</string>

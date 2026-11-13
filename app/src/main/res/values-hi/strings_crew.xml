@@ -247,6 +247,8 @@
 
     <string name="crew_request_title">%1$s पास हैं और आपको ढूँढ रहे हैं</string>
     <string name="crew_request_text">स्क्रीन चमकाने के लिए टैप करें ताकि वे आपको देख सकें</string>
+    <string name="crew_beacon_title">%1$s पास हैं और अपनी स्क्रीन चमका रहे हैं</string>
+    <string name="crew_beacon_text">आसपास देखें और चमकती स्क्रीन ढूँढें</string>
     <string name="crew_go_hidden">छिप जाएँ</string>
     <string name="crew_tile_live">लाइव</string>
     <string name="crew_tile_hidden">छिपे हुए</string>

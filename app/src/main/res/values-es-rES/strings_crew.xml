@@ -263,6 +263,8 @@
 
     <string name="crew_request_title">%1$s está cerca y te busca</string>
     <string name="crew_request_text">Toca para iluminar tu pantalla y que te vea</string>
+    <string name="crew_beacon_title">%1$s está cerca e ilumina su pantalla</string>
+    <string name="crew_beacon_text">Busca a tu alrededor una pantalla que parpadea</string>
     <string name="crew_go_hidden">Ocultarme</string>
     <string name="crew_tile_live">En directo</string>
     <string name="crew_tile_hidden">Oculto</string>
