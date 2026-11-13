@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Deliberately empty: the app that uses the finder declares the permissions and features
+     (docs/FINDER_MODULE.md lists them), so the phone app's merged manifest stays its own. -->
+<manifest />

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.mutableStateListOf
 import nz.waveformlabs.moshpoint.core.EphemeralId
 import nz.waveformlabs.moshpoint.core.FriendRecord
+import nz.waveformlabs.moshpoint.locate.FinderMate
 import java.io.File
 import java.util.UUID
 
@@ -11,15 +12,15 @@ import java.util.UUID
  * A friend we can find. [secret] is the shared key that lets us recognise their rotating
  * broadcast code (see [EphemeralId]); it's exchanged when you add them.
  */
-data class Friend(val record: FriendRecord) {
-    val id get() = record.id
-    val name get() = record.name
+data class Friend(val record: FriendRecord) : FinderMate {
+    override val id get() = record.id
+    override val name get() = record.name
     /** ARGB colour their arrow fades into as you get close. */
     val color get() = record.color
-    val secret: ByteArray get() = record.secret
+    override val secret: ByteArray get() = record.secret
     /** True for a one-night gig group member, false for the permanent friends list. */
     val gigGroupOnly get() = record.gigGroupOnly
-    val ephemeralId by lazy { EphemeralId(record.secret) }
+    override val ephemeralId by lazy { EphemeralId(record.secret) }
     /** Their finding key as hex: how the crew list refers to them. */
     val key: String get() = record.secret.joinToString("") { "%02x".format(it) }
 }

@@ -117,6 +117,8 @@ android {
 
 dependencies {
     implementation(project(":core"))
+    // Finding a person and being findable, with no gig code in it (docs/FINDER_MODULE.md).
+    implementation(project(":finder"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

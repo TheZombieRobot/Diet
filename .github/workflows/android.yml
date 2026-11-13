@@ -148,6 +148,57 @@ jobs:
           for b in bare: print(f"::warning::no licence found for {b}")
           PY
 
+      - name: Merged manifest, compared with the published main build (report only)
+        # Permissions, features and components (with foreground service types) of this test
+        # build, sorted, next to the same list from the test APK last published from the main
+        # branch. Added with the finder module (docs/FINDER_MODULE.md) to show the move left the
+        # manifest alone; on the main branch it compares with the build before.
+        if: success()
+        continue-on-error: true
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN || github.token }}
+          TARGET: ${{ secrets.RELEASES_TOKEN != '' && 'TheZombieRobot/moshpoint-builds' || github.repository }}
+        run: |
+          AAPT=$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)
+          digest() {
+            "$AAPT" dump xmltree --file AndroidManifest.xml "$1" | python3 -c '
+          import re, sys
+          keep = {"uses-permission": ("name", "maxSdkVersion"), "uses-feature": ("name", "required"),
+                  "activity": ("name", "exported"), "service": ("name", "exported", "foregroundServiceType", "permission"),
+                  "receiver": ("name", "exported", "permission"), "provider": ("name", "exported", "authorities")}
+          stack, rows = [], []
+          def done(e):
+              if e[1] in keep: rows.append(e[1] + " " + " ".join(k + "=" + e[2][k] for k in keep[e[1]] if k in e[2]))
+          for line in sys.stdin:
+              m = re.match(r"^(\s*)E: (\S+)", line)
+              if m:
+                  while stack and stack[-1][0] >= len(m.group(1)): done(stack.pop())
+                  stack.append([len(m.group(1)), m.group(2), {}]); continue
+              m = re.match(r"^\s*A: (?:http://schemas.android.com/apk/res/android:)?([A-Za-z]+)(?:\(0x[0-9a-f]+\))?=(.*)$", line)
+              if m and stack:
+                  v = m.group(2); q = re.match(r"\"(.*?)\"", v)
+                  stack[-1][2][m.group(1)] = q.group(1) if q else re.sub(r"^\(type 0x[0-9a-f]+\)", "", v).strip()
+          while stack: done(stack.pop())
+          print("\n".join(sorted(rows)))
+          '
+          }
+          APK=$(ls app/build/outputs/apk/debug/*.apk | head -1)
+          digest "$APK" > manifest-now.txt
+          echo "=== this build: $(wc -l < manifest-now.txt) entries ==="
+          cat manifest-now.txt
+          if gh release download testing --repo "$TARGET" -p moshpoint.apk -O main-build.apk 2>/dev/null; then
+            digest main-build.apk > manifest-main.txt
+            if diff manifest-main.txt manifest-now.txt > manifest-diff.txt; then
+              echo "=== merged manifest: same as the published main build ==="
+            else
+              echo "::warning::merged manifest differs from the published main build"
+              cat manifest-diff.txt
+            fi
+          else
+            echo "No published main build to compare with"
+          fi
+
       - name: Signed Play Store bundle (only when signing secrets are set)
         if: success() && env.HAS_KEYSTORE == 'true'
         shell: bash
@@ -250,6 +301,13 @@ jobs:
           grep -E '^[^ ].*: (Error|Warning): ' app/build/reports/lint.txt | sed -E 's/.*: (Error|Warning): .*\[([A-Za-z]+)\]$/\1 \2/' | sort | uniq -c | sort -rn || true
           echo "=== errors and key warnings ==="
           grep -E ': Error: |\[(NewApi|MissingPermission|InlinedApi|UnspecifiedRegisterReceiverFlag|WrongConstant|ForegroundServiceType|MissingSuperCall)\]' app/build/reports/lint.txt | head -80 || true
+          # The finder module (finder/, docs/FINDER_MODULE.md): the same report for the code that
+          # moved out of the app, so it is still linted.
+          ./gradlew :finder:lintDebug -q || true
+          echo "=== finder lint summary ==="
+          grep -E '^[^ ].*: (Error|Warning): ' finder/build/reports/lint.txt | sed -E 's/.*: (Error|Warning): .*\[([A-Za-z]+)\]$/\1 \2/' | sort | uniq -c | sort -rn || true
+          echo "=== finder errors and key warnings ==="
+          grep -E ': Error: |\[(NewApi|MissingPermission|InlinedApi|UnspecifiedRegisterReceiverFlag|WrongConstant|ForegroundServiceType|MissingSuperCall)\]' finder/build/reports/lint.txt | head -80 || true
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -285,6 +343,7 @@ jobs:
             core/build/reports
             server/build/reports
             app/build/reports
+            finder/build/reports
 
   # ---- The Wear OS companion (wear/, docs/WATCH.md). Its own job, on its own runner, so the
   # phone build above is neither slowed down nor changed. ----

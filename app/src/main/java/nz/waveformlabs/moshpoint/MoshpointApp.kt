@@ -9,6 +9,9 @@ import androidx.annotation.StringRes
 class MoshpointApp : Application() {
     override fun onCreate() {
         super.onCreate()
+        // Before anything can start a finder (activity, live service, watch): the finder module's
+        // plug-ins (docs/FINDER_MODULE.md).
+        FinderSetup.install()
         Txt.init(this)
         NetState.init(this)
         nz.waveformlabs.moshpoint.ui.DefaultAvatars.init(this)

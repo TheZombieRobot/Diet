@@ -21,6 +21,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "moshpoint"
 include(":core")
+include(":finder")
 include(":app")
 include(":server")
 include(":wear")
