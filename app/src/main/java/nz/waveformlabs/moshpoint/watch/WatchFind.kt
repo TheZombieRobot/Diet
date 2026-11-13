@@ -17,12 +17,14 @@ import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.FriendsRepository
 import nz.waveformlabs.moshpoint.GroupSync
+import nz.waveformlabs.moshpoint.Identity
 import nz.waveformlabs.moshpoint.core.watch.EndReason
 import nz.waveformlabs.moshpoint.core.watch.FindLease
 import nz.waveformlabs.moshpoint.core.watch.FindStatus
 import nz.waveformlabs.moshpoint.core.watch.WatchMessage
 import nz.waveformlabs.moshpoint.core.watch.WristArbiter
 import nz.waveformlabs.moshpoint.core.watch.WristReading
+import nz.waveformlabs.moshpoint.locate.PocketFinder
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 
 /**
@@ -180,7 +182,13 @@ internal object WatchFind {
             declination = PhoneFinderBridge.declinationDeg
         } else {
             listener.listen(false)
-            val finder = pocket ?: PocketFinder(c, scope, mate = { mateId?.let(FriendsRepository::byId) }) { fix ->
+            val finder = pocket ?: PocketFinder(
+                c, scope,
+                identity = { Identity.current(c) },
+                mate = { mateId?.let(FriendsRepository::byId) },
+                mateById = FriendsRepository::byId,
+                isSimulated = FriendsRepository::isSimulated,
+            ) { fix ->
                 arbiter.submit(fix, phoneHeld = false)
             }.also { pocket = it }
             finder.start()

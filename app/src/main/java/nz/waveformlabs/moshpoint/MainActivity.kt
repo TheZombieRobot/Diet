@@ -553,7 +553,21 @@ class MainActivity : ComponentActivity() {
             Memories.schedule(this@MainActivity, GigArchive.gigs)
         }
         val mySecret = VisibilityPrefs.mySecret(this)
-        engine = LocatorEngine(applicationContext, lifecycleScope) { Identity.current(applicationContext) }
+        // The finder (finder module, docs/FINDER_MODULE.md), with the gig app's parts plugged in.
+        engine = LocatorEngine(
+            applicationContext, lifecycleScope,
+            identity = { Identity.current(applicationContext) },
+            mateById = FriendsRepository::byId,
+            isSimulated = FriendsRepository::isSimulated,
+            // Upstairs/downstairs: Bluetooth and UWB readings calibrate the pressure sensors.
+            onBluetoothReading = { id, distance, advert -> Floors.onBluetooth(id, distance, advert.pressure) },
+            onUwbReading = Floors::onUwb,
+            // The crew intro advert died with Bluetooth too.
+            onBluetoothToggled = { on -> GroupSync.onBluetooth(applicationContext, on) },
+            cantHear = { who -> "Can't hear $who's phone at all. Scan needs them nearby (about 30 m) with Go live on, in your crew." },
+        )
+        // The watch reads the phone's own finder through this read-only bridge (docs/WATCH.md).
+        nz.waveformlabs.moshpoint.watch.PhoneFinderBridge.attach(engine)
         lifecycleScope.launch {
             while (true) {
                 delay(20_000)

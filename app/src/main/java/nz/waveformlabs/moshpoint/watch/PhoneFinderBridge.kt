@@ -13,9 +13,9 @@ import nz.waveformlabs.moshpoint.locate.LocatorEngine
 import java.lang.ref.WeakReference
 
 /**
- * A read-only window onto the phone's own finder ([LocatorEngine]) for the watch
- * (docs/WATCH.md, problem 4). The finder registers itself here; nothing here can start it,
- * stop it or change who it is looking for.
+ * A read-only window onto the phone's own finder ([LocatorEngine], in the finder module) for the
+ * watch (docs/WATCH.md, problem 4). `MainActivity` registers the finder here as soon as it makes
+ * it; nothing here can start it, stop it or change who it is looking for.
  *
  * While the phone's finder is running (its screen is open), the watch is fed from it and the
  * pocket finder stands down, so there are never two UWB sessions or two "looking" adverts.
@@ -23,7 +23,7 @@ import java.lang.ref.WeakReference
 object PhoneFinderBridge {
     private var finder = WeakReference<LocatorEngine>(null)
 
-    /** Called by [LocatorEngine] as it is created. Weak: the finder belongs to its screen. */
+    /** Called by `MainActivity` right after it makes the finder. Weak: the finder belongs to its screen. */
     fun attach(engine: LocatorEngine) {
         finder = WeakReference(engine)
     }

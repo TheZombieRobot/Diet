@@ -9,10 +9,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import nz.waveformlabs.moshpoint.DebugStatus
-import nz.waveformlabs.moshpoint.FieldRecorder
-import nz.waveformlabs.moshpoint.Friend
-import nz.waveformlabs.moshpoint.FriendsRepository
 import nz.waveformlabs.moshpoint.core.Advert
 import nz.waveformlabs.moshpoint.core.ArrowState
 import nz.waveformlabs.moshpoint.core.DistanceSmoother
@@ -40,13 +36,28 @@ import nz.waveformlabs.moshpoint.core.WalkDirection
  * strength, spin-to-scan, compass.
  *                Each one only needs to call [arbiter].submit(...) with its fixes.
  *
+ * Knows nothing about gigs: the app says who we are, who an id is and what to do with the
+ * readings it wants (docs/FINDER_MODULE.md); process-wide plug-ins are in [FinderPlugins].
+ *
  * [scope] must run on the main thread: BLE callbacks and the arbiter share it.
  */
 class LocatorEngine(
     private val context: Context,
     private val scope: CoroutineScope,
-    /** Who we are right now (crew pass at a gig, see Identity). */
+    /** Who we are right now (the phone app: the crew pass at a gig, see its Identity). */
     private val identity: () -> ByteArray,
+    /** Who an id passed to [track] is (null: nobody we know, left out). */
+    private val mateById: (String) -> FinderMate?,
+    /** Test builds: pretend mates, driven by core FriendSimulator instead of radios. */
+    private val isSimulated: (String) -> Boolean = { false },
+    /** Each Bluetooth reading of a mate being found, after its fix is in (the phone app: floors). */
+    private val onBluetoothReading: (friendId: String, distanceM: Double, advert: Advert) -> Unit = { _, _, _ -> },
+    /** Each UWB reading, before its fix goes in (the phone app: floors). */
+    private val onUwbReading: (friendId: String, distanceM: Double?) -> Unit = { _, _ -> },
+    /** Bluetooth was switched off or on: after the shared scan hears of it, before our own radios restart. */
+    private val onBluetoothToggled: (on: Boolean) -> Unit = {},
+    /** The spin scan's answer when nobody being scanned for is heard at all ([who]: their names). */
+    private val cantHear: (who: String) -> String = { who -> "Can't hear $who's phone at all. Scan needs them nearby (about 30 m) and findable." },
 ) {
     val capabilities = Capabilities.detect(context)
 
@@ -100,7 +111,7 @@ class LocatorEngine(
                 updateLookingAdvert()
             },
             onResult = { friendId, distance, azimuth ->
-                nz.waveformlabs.moshpoint.venue.Floors.onUwb(friendId, distance)
+                onUwbReading(friendId, distance)
                 submit(
                     Fix(
                         friendId = friendId,
@@ -114,7 +125,7 @@ class LocatorEngine(
             },
             // The nearest get the UWB places when there are more mates than places (core UwbSlots).
             distanceOf = { id -> arbiter.distanceFor(id, System.currentTimeMillis()) },
-            nameOf = { id -> FriendsRepository.byId(id)?.name },
+            nameOf = { id -> mateById(id)?.name },
         )
     } else {
         null
@@ -123,7 +134,7 @@ class LocatorEngine(
     private var bleRef: BleRanger? = null
     private val ble = BleRanger(context, "BT scan (looking)", { trackedFriends() }) { friend, rssi, distance, advert ->
         submit(Fix(friend.id, Method.BLE_RSSI, null, distance, confidence = 0.7, timestampMs = System.currentTimeMillis()))
-        nz.waveformlabs.moshpoint.venue.Floors.onBluetooth(friend.id, distance, advert.pressure)
+        onBluetoothReading(friend.id, distance, advert)
         // The heading when this reading was received, unsmoothed: otherwise turning while
         // scanning shifts the answer in the direction you're turning.
         val atHeading = headingAt(bleRef?.lastHeardAtElapsedMs ?: 0L)
@@ -135,8 +146,8 @@ class LocatorEngine(
             // Walk-and-watch: every reading while you move about helps work out the direction.
             walks.getOrPut(friend.id) { WalkDirection() }.add(System.currentTimeMillis(), atHeading, rssi.toDouble(), motion.moving)
         }
-        if (FieldRecorder.active) {
-            FieldRecorder.line(
+        if (FinderLog.recording) {
+            FinderLog.record(
                 RecordLine.of(
                     System.currentTimeMillis(), if (spinScans.isNotEmpty()) "rssi_scan" else "rssi", friend.name, "BLE_RSSI",
                     distanceM = distance, rssiDbm = rssi, headingDeg = heading,
@@ -163,8 +174,8 @@ class LocatorEngine(
     /** Every fix goes through here: into the arbiter, and into a field recording if one is running. */
     private fun submit(fix: Fix) {
         arbiter.submit(fix)
-        if (FieldRecorder.active) {
-            FieldRecorder.line(
+        if (FinderLog.recording) {
+            FinderLog.record(
                 RecordLine.of(
                     fix.timestampMs, "fix", nameOf(fix.friendId), fix.method.name,
                     distanceM = fix.distanceM, bearingDeg = fix.bearingDeg, headingDeg = heading, confidence = fix.confidence,
@@ -188,7 +199,7 @@ class LocatorEngine(
     fun setSim(settings: SimSettings) {
         _sim.value = settings
         sims.values.forEach { it.configure(settings) }
-        DebugStatus.log("Simulator: UWB ${settings.uwb}, Wi-Fi ${settings.wifiAware}, data ${settings.data}")
+        FinderLog.log("Simulator: UWB ${settings.uwb}, Wi-Fi ${settings.wifiAware}, data ${settings.data}")
     }
 
     // Pinned simulated friends: a real spot, so walking towards it gets you closer.
@@ -201,7 +212,7 @@ class LocatorEngine(
     /** Pin the simulated friends [metres] ahead of where the phone is pointing. False = no GPS fix yet. */
     fun pinSimsAhead(metres: Double): Boolean {
         val me = gps.myFix ?: run {
-            DebugStatus.log("Simulator: no GPS fix yet, try again outside")
+            FinderLog.log("Simulator: no GPS fix yet, try again outside")
             return false
         }
         val b = Math.toRadians(heading)
@@ -210,7 +221,7 @@ class LocatorEngine(
         _simPin.value = LatLon(lat, lon)
         simPrefs.edit().putString("pin", "$lat,$lon").apply()
         sims.clear()
-        DebugStatus.log("Simulator: pinned %.0f m ahead (%.0f°)".format(metres, heading))
+        FinderLog.log("Simulator: pinned %.0f m ahead (%.0f°)".format(metres, heading))
         return true
     }
 
@@ -218,7 +229,7 @@ class LocatorEngine(
         _simPin.value = null
         simPrefs.edit().remove("pin").apply()
         sims.clear()
-        DebugStatus.log("Simulator: unpinned, walking in again")
+        FinderLog.log("Simulator: unpinned, walking in again")
     }
 
     /** Where a pinned sim is from us now (east, north metres); each sim a few metres apart. */
@@ -234,7 +245,7 @@ class LocatorEngine(
     /** Start the simulated friends' walk again from far away. */
     fun restartSims() {
         sims.clear()
-        DebugStatus.log("Simulator: walk restarted")
+        FinderLog.log("Simulator: walk restarted")
     }
 
     private fun FriendSimulator.configure(s: SimSettings) {
@@ -244,9 +255,9 @@ class LocatorEngine(
     }
 
     private fun tickSims(now: Long) {
-        if (!DebugStatus.enabled) return
+        if (!FinderLog.enabled) return
         for (id in _tracking.value) {
-            if (!FriendsRepository.isSimulated(id)) continue
+            if (!isSimulated(id)) continue
             val sim = sims.getOrPut(id) {
                 FriendSimulator(id, startBearingDeg = (id.hashCode() and 0xFF) * 360.0 / 256, seed = id.hashCode()).also {
                     it.configure(_sim.value)
@@ -262,7 +273,7 @@ class LocatorEngine(
                     val (pe, pn) = pinnedOffsetFor(id) ?: (0.0 to 0.0)
                     val lat = me.latitude + pn / 111_320.0
                     val lon = me.longitude + pe / (111_320.0 * kotlin.math.cos(Math.toRadians(me.latitude)))
-                    nz.waveformlabs.moshpoint.LocationBook.update(id, nz.waveformlabs.moshpoint.core.SharedLocation(lat, lon, now / 1000, 5, batteryPct = 80))
+                    FinderPlugins.sharedLocations?.update(id, nz.waveformlabs.moshpoint.core.SharedLocation(lat, lon, now / 1000, 5, batteryPct = 80))
                 }
                 if (spinScans.isEmpty() && now - (lastSimWalkAt[id] ?: 0L) >= 250) {
                     lastSimWalkAt[id] = now
@@ -277,19 +288,19 @@ class LocatorEngine(
                 spinScans[id]?.add(heading, sim.rssiNow(now, heading))
             }
             val (e, n) = sim.position(now)
-            DebugStatus.set("Simulator", "${nameOf(id)} %.0f m away".format(kotlin.math.hypot(e, n)))
+            FinderLog.set("Simulator", "${nameOf(id)} %.0f m away".format(kotlin.math.hypot(e, n)))
         }
     }
 
-    private fun nameOf(friendId: String) = FriendsRepository.byId(friendId)?.name ?: friendId
+    private fun nameOf(friendId: String) = mateById(friendId)?.name ?: friendId
     private var lastRecordAt = 0L
 
     private fun recordTick(now: Long, arrows: List<ArrowState>) {
-        if (!FieldRecorder.active || now - lastRecordAt < 500) return
+        if (!FinderLog.recording || now - lastRecordAt < 500) return
         lastRecordAt = now
-        FieldRecorder.line(RecordLine.of(now, "heading", headingDeg = heading))
+        FinderLog.record(RecordLine.of(now, "heading", headingDeg = heading))
         for (a in arrows) {
-            FieldRecorder.line(
+            FinderLog.record(
                 when (a) {
                     is ArrowState.NoSignal -> RecordLine.of(now, "arrow", nameOf(a.friendId), note = "no signal")
                     is ArrowState.DistanceOnly -> RecordLine.of(
@@ -309,7 +320,7 @@ class LocatorEngine(
         context,
         onBluetooth = { on ->
             BleHub.onBluetooth(on)
-            nz.waveformlabs.moshpoint.GroupSync.onBluetooth(context, on)
+            onBluetoothToggled(on)
             if (on) {
                 ble.restart()
                 CrowdRelayRadio.restartAfterBluetooth(context)
@@ -343,20 +354,20 @@ class LocatorEngine(
         val next = if (on) _enabledMethods.value + method else _enabledMethods.value - method
         _enabledMethods.value = next
         arbiter.enabled = next
-        DebugStatus.log("${if (on) "Enabled" else "Disabled"} $method")
+        FinderLog.log("${if (on) "Enabled" else "Disabled"} $method")
     }
 
     fun enableOnly(method: Method?) {
         val next = if (method == null) Method.entries.toSet() else setOf(method)
         _enabledMethods.value = next
         arbiter.enabled = next
-        DebugStatus.log(if (method == null) "All methods enabled" else "Only $method enabled")
+        FinderLog.log(if (method == null) "All methods enabled" else "Only $method enabled")
     }
 
     private fun updateDebug(now: Long, arrows: List<ArrowState>) {
         // Log every hand-over between methods, e.g. "Sam: BT -> UWB (12 m)".
         for (a in arrows) {
-            val name = FriendsRepository.byId(a.friendId)?.name ?: a.friendId
+            val name = mateById(a.friendId)?.name ?: a.friendId
             val state = when (a) {
                 is ArrowState.NoSignal -> "no signal"
                 is ArrowState.DistanceOnly -> "${a.method} distance only"
@@ -369,7 +380,7 @@ class LocatorEngine(
                     is ArrowState.Pointing -> a.distanceM
                     else -> null
                 }
-                DebugStatus.log("$name: $before -> $state" + (d?.let { " (%.1f m)".format(it) } ?: ""))
+                FinderLog.log("$name: $before -> $state" + (d?.let { " (%.1f m)".format(it) } ?: ""))
             }
         }
         if (now - lastDebugAt < 250) return
@@ -377,7 +388,7 @@ class LocatorEngine(
         _debugRows.value = arrows.associate { a ->
             a.friendId to arbiter.debug(a.friendId, now, (a as? ArrowState.Pointing)?.method)
         }
-        DebugStatus.set("Compass", "%.0f° true (declination %.1f°)".format(heading, gps.declinationDeg))
+        FinderLog.set("Compass", "%.0f° true (declination %.1f°)".format(heading, gps.declinationDeg))
     }
 
     fun track(friendIds: Set<String>) {
@@ -403,7 +414,7 @@ class LocatorEngine(
     /** Who UWB serves first: the mate focused in the finder, or the only one being found. */
     private fun focusedMate(): String? = focusedInFinder?.takeIf { it in _tracking.value } ?: _tracking.value.singleOrNull()
 
-    private fun trackedFriends(): List<Friend> = _tracking.value.mapNotNull(FriendsRepository::byId)
+    private fun trackedFriends(): List<FinderMate> = _tracking.value.mapNotNull(mateById)
 
     fun start() {
         if (jobs.isNotEmpty()) return
@@ -478,7 +489,7 @@ class LocatorEngine(
             kotlinx.coroutines.delay(61_000)
             updateLookingAdvert()
         }
-        DebugStatus.log("Asked mates to light up")
+        FinderLog.log("Asked mates to light up")
     }
 
     private var beaconOn = false
@@ -492,7 +503,7 @@ class LocatorEngine(
         if (beaconOn == on) return
         beaconOn = on
         updateLookingAdvert()
-        DebugStatus.log(if (on) "Light me up: on" else "Light me up: off")
+        FinderLog.log(if (on) "Light me up: on" else "Light me up: off")
     }
 
     /** The Scan button: start collecting (heading, signal) pairs while the user turns. */
@@ -503,7 +514,7 @@ class LocatorEngine(
         turned.fill(false)
         ble.refresh()
         _scan.value = ScanUi(coverageDeg = 0.0, done = false, sectors = BooleanArray(36), headingDeg = heading)
-        DebugStatus.log("Spin scan started")
+        FinderLog.log("Spin scan started")
     }
 
     private var scanStartedAt = 0L
@@ -545,7 +556,7 @@ class LocatorEngine(
         val raw = _tracking.value.map { arbiter.arrowFor(it, heading, now) }
         val arrows = raw.map(::steady)
         _arrows.value = arrows
-        if (DebugStatus.enabled) updateDebug(now, arrows)
+        if (FinderLog.enabled) updateDebug(now, arrows)
         recordTick(now, raw) // recordings keep the raw distances
     }
 
@@ -578,8 +589,8 @@ class LocatorEngine(
         // quickly instead of leaving an empty progress ring.
         if (now - scanStartedAt > 6_000 && spinScans.values.all { it.sampleCount == 0 }) {
             val who = spinScans.keys.joinToString(", ") { nameOf(it) }
-            finishScan("Can't hear $who's phone at all. Scan needs them nearby (about 30 m) with Go live on, in your crew.")
-            DebugStatus.log("Spin scan: no signal from $who")
+            finishScan(cantHear(who))
+            FinderLog.log("Spin scan: no signal from $who")
             return
         }
 
@@ -605,7 +616,7 @@ class LocatorEngine(
         if (allDone || timedOut) {
             if (timedOut && !allDone) outcomes += "Not enough signal while turning. Try again a bit slower."
             finishScan(outcomes.joinToString("\n"))
-            DebugStatus.log("Spin scan done: " + outcomes.joinToString("; "))
+            FinderLog.log("Spin scan done: " + outcomes.joinToString("; "))
         } else {
             // The ring follows how far YOU have turned, so it never looks frozen.
             val heard = spinScans.values.minOfOrNull { it.sampleCount } ?: 0
@@ -632,7 +643,9 @@ class LocatorEngine(
 
     // ---- Watch bridge: read-only (docs/WATCH.md). The wrist does its own pointing with its
     // own compass, so it needs each fix's bearing from true north rather than the angle from
-    // the top of this phone that [arrows] carries. Nothing here changes what the finder does. ----
+    // the top of this phone that [arrows] carries. Nothing here changes what the finder does.
+    // (The phone app's PhoneFinderBridge reads these; the app registers the engine with it as
+    // soon as it has made it.) ----
 
     /** True while this finder is running (its screen is open, or was a moment ago). */
     val isRunning: Boolean get() = jobs.isNotEmpty()
@@ -642,8 +655,4 @@ class LocatorEngine(
 
     /** The compass correction this finder applies (degrees to add to magnetic; 0 until there's a GPS fix). */
     val declinationDeg: Double get() = gps.declinationDeg
-
-    init {
-        nz.waveformlabs.moshpoint.watch.PhoneFinderBridge.attach(this)
-    }
 }

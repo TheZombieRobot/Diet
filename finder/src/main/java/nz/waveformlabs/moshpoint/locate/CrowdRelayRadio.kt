@@ -17,8 +17,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import nz.waveformlabs.moshpoint.DebugStatus
-import nz.waveformlabs.moshpoint.OfflineMessages
 import nz.waveformlabs.moshpoint.core.RelayCache
 import nz.waveformlabs.moshpoint.core.RelayPacket
 import nz.waveformlabs.moshpoint.core.RelaySchedule
@@ -30,10 +28,11 @@ import nz.waveformlabs.moshpoint.core.RelaySchedule
  * extended advertising. Phones without it can't take part in the relay; they still get
  * everything else.
  *
- * The same advertising set also carries crew messages when there's no signal (version 2
- * packets, see core MessagePacket and the app's OfflineMessages). They take turns with the
- * location packets (core RelaySchedule) rather than starting another advertiser: the phone
- * already runs up to five, and one that fails to start doesn't try again.
+ * The same advertising set also carries the app's other packets: in the phone app, crew messages
+ * when there's no signal (version 2 packets, see core MessagePacket and the app's OfflineMessages),
+ * plugged in as [FinderPlugins.relayLane]. They take turns with the location packets (core
+ * RelaySchedule) rather than starting another advertiser: the phone already runs up to five, and
+ * one that fails to start doesn't try again.
  *
  * One [cache] is shared in-process: the visibility service relays, and the finder screen
  * reads it to find friends.
@@ -73,13 +72,13 @@ object CrowdRelayRadio {
     fun startListening(context: Context) {
         listeners++
         if (!supported(context)) {
-            DebugStatus.set(K, "unsupported (no Bluetooth 5 extended adverts)")
+            FinderLog.set(K, "unsupported (no Bluetooth 5 extended adverts)")
             return
         }
         if (subscribed) return
         BleHub.subscribe(context, this, BleHub.Sub(listOf(RELAY_UUID), fast = false, unfiltered = false) { handle(it) })
         subscribed = true
-        DebugStatus.set(K, "listening, cache ${cache.size()}")
+        FinderLog.set(K, "listening, cache ${cache.size()}")
     }
 
     /** Bluetooth came back: the scan died with it, and the advert set needs restarting. */
@@ -103,14 +102,15 @@ object CrowdRelayRadio {
         val bytes = result.scanRecord?.getServiceData(RELAY_UUID) ?: return
         val packet = RelayPacket.decode(bytes)
         if (packet == null) {
-            // Not a location: a crew message packet, if it's anything (ignored unless we're live).
-            OfflineMessages.onPacket(bytes)
+            // Not a location: one of the app's packets (a crew message), if it's anything.
+            FinderPlugins.relayLane?.onPacket(bytes)
             return
         }
         val isNew = cache.offer(packet, System.currentTimeMillis() / 1000)
-        if (isNew) DebugStatus.set(K, "heard packet (hops left ${packet.ttl}), cache ${cache.size()}")
+        if (isNew) FinderLog.set(K, "heard packet (hops left ${packet.ttl}), cache ${cache.size()}")
         // Someone with signal passes it up to the server, so far-away friends get it too.
-        if (isNew && RelayClient.ownServer) ioScope.launch { RelayClient.put(packet.id, packet.sealed) }
+        val mailbox = FinderPlugins.mailbox
+        if (isNew && mailbox != null && mailbox.relayUpload) ioScope.launch { mailbox.put(packet.id, packet.sealed) }
     }
 
     /**
@@ -136,11 +136,11 @@ object CrowdRelayRadio {
                 if (status == AdvertisingSetCallback.ADVERTISE_SUCCESS) {
                     advertisingSet = set
                     setLive = true
-                    DebugStatus.set("$K send", "broadcasting")
+                    FinderLog.set("$K send", "broadcasting")
                 } else {
                     Log.w(TAG, "relay advert failed: $status")
                     setLive = false
-                    DebugStatus.set("$K send", "FAILED code $status")
+                    FinderLog.set("$K send", "FAILED code $status")
                 }
             }
 
@@ -158,9 +158,10 @@ object CrowdRelayRadio {
                 // Whose turn: a crew message (held on air long enough for a phone scanning at
                 // low power to catch it), our own location, or one heard from the crowd. With
                 // no message waiting this is exactly the old order: ours every third second.
-                val slot = schedule.next(now, OfflineMessages.hasPacket())
+                val lane = FinderPlugins.relayLane
+                val slot = schedule.next(now, lane?.hasPacket() == true)
                 val next: ByteArray? = when (slot.turn) {
-                    RelaySchedule.Turn.MESSAGE -> OfflineMessages.nextPacket()
+                    RelaySchedule.Turn.MESSAGE -> lane?.nextPacket()
                     RelaySchedule.Turn.OWN_LOCATION ->
                         (ownPacket?.takeIf { now - it.timeSec < 600 } ?: cache.nextToBroadcast(1, now).firstOrNull() ?: ownPacket)?.encode()
                     RelaySchedule.Turn.HEARD_LOCATION -> (cache.nextToBroadcast(1, now).firstOrNull() ?: ownPacket)?.encode()

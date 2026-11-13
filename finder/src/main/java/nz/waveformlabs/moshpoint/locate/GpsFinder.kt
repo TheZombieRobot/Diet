@@ -7,10 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import nz.waveformlabs.moshpoint.DebugStatus
-import nz.waveformlabs.moshpoint.FieldRecorder
 import nz.waveformlabs.moshpoint.core.RecordLine
-import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.core.Fix
 import nz.waveformlabs.moshpoint.core.Geo
 import nz.waveformlabs.moshpoint.core.LatLon
@@ -23,15 +20,17 @@ import kotlin.math.max
  * GPS + compass mode, for when you're far apart.
  *
  * Every few seconds, for each tracked friend (current and previous rotating id):
- *  - fetch their sealed boxes from the relay server, if we have data, and
+ *  - fetch their sealed boxes from the relay server ([FinderPlugins.mailbox]), if we have data, and
  *  - check what the crowd relay has heard over Bluetooth,
  * open them with the friend's secret, and turn "their GPS vs my GPS" into a bearing and
- * distance.
+ * distance. Every box opened also goes to [FinderPlugins.sharedLocations], and
+ * [FinderPlugins.extraFixes] can add fixes made from our own position (the phone app's
+ * "I'm here" pins).
  */
 class GpsFinder(
     context: Context,
     private val scope: CoroutineScope,
-    private val friends: () -> List<Friend>,
+    private val friends: () -> List<FinderMate>,
     private val onFix: (Fix) -> Unit,
 ) {
     private val myLocation = MyLocation(context)
@@ -49,11 +48,11 @@ class GpsFinder(
         if (jobs.isNotEmpty()) return
         jobs = listOf(
             scope.launch {
-                DebugStatus.set("GPS", "waiting for a fix")
+                FinderLog.set("GPS", "waiting for a fix")
                 myLocation.updates(intervalMs = 3_000, minDistanceM = 0f).collect {
                     me = it
-                    DebugStatus.set("GPS", "±%.0f m via %s".format(it.accuracy, it.provider))
-                    FieldRecorder.line(
+                    FinderLog.set("GPS", "±%.0f m via %s".format(it.accuracy, it.provider))
+                    FinderLog.record(
                         RecordLine.of(
                             System.currentTimeMillis(), "my_gps", lat = it.latitude, lon = it.longitude,
                             accuracyM = it.accuracy.toDouble(), note = it.provider,
@@ -67,7 +66,7 @@ class GpsFinder(
             scope.launch {
                 while (true) {
                     poll()
-                    delay(RelayClient.pollMs)
+                    delay(FinderPlugins.mailbox?.pollMs ?: NO_MAILBOX_POLL_MS)
                 }
             },
         )
@@ -83,11 +82,12 @@ class GpsFinder(
         val list = friends()
         if (list.isEmpty()) return
         val now = System.currentTimeMillis()
-        // "I'm here": a mate's pinned spot, from our own position (core HereRule.fix). Made here so
-        // the watch's pocket finder, which has its own GpsFinder, gets it too. No network needed.
-        list.forEach { f ->
-            nz.waveformlabs.moshpoint.HerePins.pinOf(f.id)?.let { pin ->
-                nz.waveformlabs.moshpoint.core.HereRule.fix(f.id, LatLon(here.latitude, here.longitude), here.accuracy.toDouble(), pin, now)?.let(onFix)
+        // Fixes made from our own position (the phone app: a mate's "I'm here" pin, core
+        // HereRule.fix). Made here so the watch's pocket finder, which has its own GpsFinder, gets
+        // them too. No network needed.
+        FinderPlugins.extraFixes?.let { extra ->
+            list.forEach { f ->
+                extra.fixFor(f.id, LatLon(here.latitude, here.longitude), here.accuracy.toDouble(), now)?.let(onFix)
             }
         }
         // Current + previous rotation for each friend, so we don't miss the hand-over.
@@ -96,9 +96,9 @@ class GpsFinder(
             listOf(f to f.ephemeralId.idForEpoch(e), f to f.ephemeralId.idForEpoch(e - 1))
         }
         val best = mutableMapOf<String, Pair<SharedLocation, Method>>()
-        fun consider(friend: Friend, id: ByteArray, sealed: ByteArray, method: Method) {
+        fun consider(friend: FinderMate, id: ByteArray, sealed: ByteArray, method: Method) {
             val loc = LocationBox.open(friend.secret, id, sealed) ?: return
-            nz.waveformlabs.moshpoint.LocationBook.update(friend.id, loc)
+            FinderPlugins.sharedLocations?.update(friend.id, loc)
             val prev = best[friend.id]
             if (prev == null || loc.timeSec > prev.first.timeSec) best[friend.id] = loc to method
         }
@@ -107,13 +107,14 @@ class GpsFinder(
             CrowdRelayRadio.cache.lookup(id, now / 1000)?.let { consider(friend, id, it.sealed, Method.CROWD_RELAY) }
         }
         // Relay server: needs mobile data.
-        val results = RelayClient.lookup(asks.map { it.second })
-        DebugStatus.set(
+        val mailbox = FinderPlugins.mailbox
+        val results = mailbox?.lookup(asks.map { it.second })
+        FinderLog.set(
             "Server",
             when {
                 false -> ""
                 results == null -> "lookup FAILED (no data?)"
-                else -> "${RelayClient.label}: ${results.sumOf { it.size }} box(es) for ${list.size} friend(s)"
+                else -> "${mailbox?.label}: ${results.sumOf { it.size }} box(es) for ${list.size} friend(s)"
             },
         )
         results?.let { results ->
@@ -122,7 +123,7 @@ class GpsFinder(
         val myLatLon = LatLon(here.latitude, here.longitude)
         for ((friendId, pair) in best) {
             val (loc, method) = pair
-            FieldRecorder.line(
+            FinderLog.record(
                 RecordLine.of(
                     now, "friend_gps", list.firstOrNull { it.id == friendId }?.name, method.name,
                     lat = loc.lat, lon = loc.lon, accuracyM = loc.accuracyM.toDouble(), note = "age ${(now / 1000 - loc.timeSec)}s",
@@ -151,5 +152,8 @@ class GpsFinder(
     private companion object {
         // Public relay posts every ~75 s (more when moving), so allow a few minutes.
         const val MAX_AGE_MS = 240_000L
+
+        /** With no mailbox plugged in, only the crowd relay's cache is read, this often. */
+        const val NO_MAILBOX_POLL_MS = 4_000L
     }
 }

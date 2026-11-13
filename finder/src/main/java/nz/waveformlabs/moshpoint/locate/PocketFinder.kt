@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.watch
+package nz.waveformlabs.moshpoint.locate
 
 import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
@@ -7,32 +7,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import nz.waveformlabs.moshpoint.DebugStatus
-import nz.waveformlabs.moshpoint.Friend
-import nz.waveformlabs.moshpoint.FriendsRepository
-import nz.waveformlabs.moshpoint.Identity
 import nz.waveformlabs.moshpoint.core.Advert
 import nz.waveformlabs.moshpoint.core.EphemeralId
 import nz.waveformlabs.moshpoint.core.Fix
 import nz.waveformlabs.moshpoint.core.FriendSimulator
 import nz.waveformlabs.moshpoint.core.Method
-import nz.waveformlabs.moshpoint.locate.Ble
-import nz.waveformlabs.moshpoint.locate.BleBroadcaster
-import nz.waveformlabs.moshpoint.locate.BleHub
-import nz.waveformlabs.moshpoint.locate.BleRanger
-import nz.waveformlabs.moshpoint.locate.Capabilities
-import nz.waveformlabs.moshpoint.locate.CrowdRelayRadio
-import nz.waveformlabs.moshpoint.locate.GpsFinder
-import nz.waveformlabs.moshpoint.locate.RadioWatcher
-import nz.waveformlabs.moshpoint.locate.UwbFinder
-import nz.waveformlabs.moshpoint.locate.WifiAwareFinder
-import nz.waveformlabs.moshpoint.locate.wifiRttSupported
 
 /**
  * Finding for the watch with the phone in a pocket and its screen off (docs/WATCH.md,
- * problems 3 and 4). Built from the same parts as the phone's own finder ([nz.waveformlabs.
- * moshpoint.locate.LocatorEngine]), which is left alone, with three differences that a pocket
- * forces:
+ * problems 3 and 4). Built from the same parts as the phone's own finder ([LocatorEngine]),
+ * which is left alone, with three differences that a pocket forces:
  *
  * - **A filtered scan.** The phone's finder scans unfiltered, which Android suspends the
  *   moment the screen goes off. This one asks for a fast *filtered* scan, which keeps going.
@@ -46,17 +30,21 @@ import nz.waveformlabs.moshpoint.locate.wifiRttSupported
  *
  * [scope] must run on the main thread, like the finder's.
  */
-internal class PocketFinder(
+class PocketFinder(
     private val context: Context,
     private val scope: CoroutineScope,
+    /** Who we are right now (the phone app: the crew pass at a gig, see its Identity). */
+    private val identity: () -> ByteArray,
     /** The one mate being found (null = nobody). */
-    private val mate: () -> Friend?,
+    private val mate: () -> FinderMate?,
+    /** Any mate by id: only for the UWB status log. */
+    private val mateById: (String) -> FinderMate? = { null },
+    /** Test builds: pretend mates, driven by core FriendSimulator instead of radios. */
+    private val isSimulated: (String) -> Boolean = { false },
     private val onFix: (Fix) -> Unit,
 ) {
-    private fun identity(): ByteArray = Identity.current(context)
-
     /** Real mates only: a simulated one has no radio to listen for. */
-    private fun friends(): List<Friend> = listOfNotNull(mate()?.takeIf { !FriendsRepository.isSimulated(it.id) })
+    private fun friends(): List<FinderMate> = listOfNotNull(mate()?.takeIf { !isSimulated(it.id) })
 
     private var jobs = listOf<Job>()
     private var lookingAdvert: BleBroadcaster? = null
@@ -72,7 +60,7 @@ internal class PocketFinder(
 
     private val uwb: UwbFinder? = if (Capabilities.detect(context).uwb) {
         UwbFinder(
-            context, scope, ::identity,
+            context, scope, identity,
             onAdvertInfo = { info ->
                 uwbInfo = info
                 updateLookingAdvert()
@@ -81,7 +69,7 @@ internal class PocketFinder(
             onResult = { friendId, distance, _ ->
                 if (distance != null) onFix(Fix(friendId, Method.UWB, bearingDeg = null, distanceM = distance, confidence = 0.8, timestampMs = System.currentTimeMillis()))
             },
-            nameOf = { id -> FriendsRepository.byId(id)?.name },
+            nameOf = { id -> mateById(id)?.name },
         )
     } else {
         null
@@ -151,7 +139,7 @@ internal class PocketFinder(
             },
         )
         updateLookingAdvert()
-        DebugStatus.log("Watch: pocket finder on")
+        FinderLog.log("Watch: pocket finder on")
     }
 
     fun stop() {
@@ -167,7 +155,7 @@ internal class PocketFinder(
         jobs.forEach { it.cancel() }
         jobs = emptyList()
         sim = null
-        DebugStatus.log("Watch: pocket finder off")
+        FinderLog.log("Watch: pocket finder off")
     }
 
     private fun tick() {
@@ -177,7 +165,7 @@ internal class PocketFinder(
         // Test builds: a simulated friend walks in from far away, so the wrist can be tried
         // with one phone and no second person.
         val m = mate() ?: return
-        if (!DebugStatus.enabled || !FriendsRepository.isSimulated(m.id)) return
+        if (!FinderLog.enabled || !isSimulated(m.id)) return
         val s = sim?.takeIf { simFor == m.id }
             ?: FriendSimulator(m.id, startBearingDeg = (m.id.hashCode() and 0xFF) * 360.0 / 256, seed = m.id.hashCode()).also {
                 sim = it

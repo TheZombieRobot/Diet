@@ -5,7 +5,6 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -15,55 +14,37 @@ import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.FriendsRepository
 import nz.waveformlabs.moshpoint.GroupSync
 import nz.waveformlabs.moshpoint.MainActivity
 import nz.waveformlabs.moshpoint.R
-import nz.waveformlabs.moshpoint.core.Advert
-import nz.waveformlabs.moshpoint.core.EphemeralId
-import nz.waveformlabs.moshpoint.locate.BleBroadcaster
-import nz.waveformlabs.moshpoint.locate.BleRanger
-import nz.waveformlabs.moshpoint.locate.Capabilities
 import nz.waveformlabs.moshpoint.locate.CrowdRelayRadio
+import nz.waveformlabs.moshpoint.locate.Findable
 import nz.waveformlabs.moshpoint.locate.FinderMate
-import nz.waveformlabs.moshpoint.locate.RadioWatcher
-import nz.waveformlabs.moshpoint.locate.UwbResponder
-import nz.waveformlabs.moshpoint.locate.WifiAwarePublisher
-import nz.waveformlabs.moshpoint.locate.wifiRttSupported
 
 /**
  * Keeps you visible to your mates, even with the app closed.
  *
- * Runs as a foreground service (Android requires a visible notification for this) and
- * broadcasts a Bluetooth LE advert with your current rotating code, swapping it each
- * time the code rotates. Only ever started when the user turns visibility on.
+ * Runs as a foreground service (Android requires a visible notification for this). The radio
+ * work of being findable is the finder module's [Findable] (docs/FINDER_MODULE.md): a Bluetooth
+ * LE advert with your current rotating code, swapped each time the code rotates; on UWB phones
+ * our UWB controlee address in it, and a low-power listen for friends who are looking (their UWB
+ * session is joined); Wi-Fi Aware. Only ever started when the user turns visibility on.
  *
- * On UWB phones it also:
- * - puts our UWB controlee address in the advert, and
- * - listens (low-power scan) for friends who are looking, and joins their UWB session.
- *
- * It also shares our sealed GPS position via the relay server (LocationUploader).
+ * Around it, the gig work: it shares our sealed GPS position via the relay server
+ * (LocationUploader), the crowd relay, crew intros, the venue map download, our pressure for
+ * upstairs/downstairs, and messages without signal.
  *
  * Battery: advert is BALANCED (~250 ms) at medium power; the UWB listen scan is LOW_POWER;
  * GPS every 15 s. TODO: adaptive intervals; crowd relay.
  */
 class VisibilityService : LifecycleService() {
-    private lateinit var broadcaster: BleBroadcaster
     /** Who we are right now: our crew pass while a crew is on, else our permanent identity. */
     private val mySecret: ByteArray get() = nz.waveformlabs.moshpoint.Identity.current(this)
-    private val ephemeral: EphemeralId get() = EphemeralId(mySecret)
-    private var advertisedAs: String? = null
-    private var uwbInfo: Advert.UwbInfo? = null
-    private var uwb: UwbResponder? = null
-    private var listener: BleRanger? = null
-    private var rotateJob: Job? = null
+    /** The being-findable radios; set once [begin] has run. */
+    private var findable: Findable? = null
     private var uploader: LocationUploader? = null
-    private var wifi: WifiAwarePublisher? = null
-    private var radios: RadioWatcher? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
@@ -79,97 +60,43 @@ class VisibilityService : LifecycleService() {
             stopSelf()
             return START_NOT_STICKY
         }
-        if (rotateJob == null) begin()
+        if (findable == null) begin()
         return START_STICKY
     }
 
     private fun begin() {
         FriendsRepository.init(this)
-        // Medium advert (~4 a second) by default: enough readings for spin-to-scan even before
-        // we notice a friend looking (background listening is slow). Fast while one is looking.
-        broadcaster = BleBroadcaster(this, AdvertiseSettings.ADVERTISE_MODE_BALANCED, "BT advert (visible)")
-
-        rotateJob = lifecycleScope.launch {
-            while (true) {
-                readvertise()
-                wifi?.refresh()
-                val now = System.currentTimeMillis()
-                val nextRotation = (ephemeral.epochAt(now) + 1) * EphemeralId.DEFAULT_ROTATION_MS
-                // Wake at the next rotation, or sooner if we become someone else (a crew
-                // starting or ending) so crew mates can find us straight away.
-                val until = nextRotation + 50
-                while (System.currentTimeMillis() < until) {
-                    delay(minOf(30_000L, until - System.currentTimeMillis()).coerceAtLeast(1L))
-                    if (identityKey() != advertisedAs) break
-                }
-            }
-        }
+        val f = Findable(
+            this, lifecycleScope,
+            identity = { mySecret },
+            mates = { FriendsRepository.friends.toList() },
+            // Upstairs/downstairs: our pressure rides in the advert (phones without the sensor send none).
+            advertPressure = { nz.waveformlabs.moshpoint.venue.Floors.advertPressure() },
+            onMateHeard = { friend, distanceM, advert -> nz.waveformlabs.moshpoint.venue.Floors.onBluetooth(friend.id, distanceM, advert.pressure) },
+            onMateLooking = { uploader?.boost() },
+            onAskedToLight = ::onAskedToLight,
+            onBluetoothToggled = { on -> GroupSync.onBluetooth(this, on) },
+        )
+        findable = f
+        // First, as always: the advert, rotating with our code (and following a change of crew).
+        f.startAdvertising()
 
         uploader = LocationUploader(this, lifecycleScope) { mySecret }.also { it.start() }
         registerReceiver(batteryReceiver, android.content.IntentFilter(Intent.ACTION_BATTERY_CHANGED))
         GroupSync.load(this)
         GroupSync.acquire(this) // keep introducing ourselves to the gig group while visible
         nz.waveformlabs.moshpoint.venue.VenueMaps.sync(this) // and keep the venue map download going
-        // Upstairs/downstairs: our pressure rides in the advert (phones without the sensor send none).
-        nz.waveformlabs.moshpoint.venue.Floors.onAdvertChange = { readvertise() }
+        // Upstairs/downstairs: our pressure rides in the advert, rebuilt when it moves.
+        nz.waveformlabs.moshpoint.venue.Floors.onAdvertChange = { f.readvertise() }
         nz.waveformlabs.moshpoint.venue.Floors.acquire(this, live = true)
         CrowdRelayRadio.startListening(this)
         CrowdRelayRadio.startBroadcasting(this, lifecycleScope)
         // Messages without signal ride the relay's adverts: only while live, so only from here.
         nz.waveformlabs.moshpoint.OfflineMessages.startRadio(this)
-        if (wifiRttSupported(this)) {
-            wifi = WifiAwarePublisher(this) { ephemeral.currentId(System.currentTimeMillis()) }.also { it.start() }
-        }
-        radios = RadioWatcher(
-            this,
-            onBluetooth = { on ->
-                nz.waveformlabs.moshpoint.locate.BleHub.onBluetooth(on)
-                GroupSync.onBluetooth(this, on)
-                if (on) {
-                    readvertise()
-                    listener?.restart()
-                    CrowdRelayRadio.restartAfterBluetooth(this)
-                } else {
-                    broadcaster.onBluetoothOff()
-                }
-            },
-            onWifiAware = { available -> if (available) wifi?.restart() },
-        ).also { it.start() }
-
-        val responder = if (Capabilities.detect(this).uwb) {
-            UwbResponder(this, lifecycleScope) { info ->
-                uwbInfo = info
-                readvertise()
-            }.also {
-                uwb = it
-                it.start()
-            }
-        } else {
-            null
-        }
-        // Low-power listen for friends who are looking: speeds our advert up, and on UWB
-        // phones joins their UWB session.
-        listener = BleRanger(this, "BT scan (visible, listening for lookers)", { FriendsRepository.friends.toList() }) { friend, _, distanceM, advert ->
-            nz.waveformlabs.moshpoint.venue.Floors.onBluetooth(friend.id, distanceM, advert.pressure)
-            if (advert.looking) onFriendLooking(friend.name)
-            if (advert.askLight) onAskedToLight(friend)
-            val info = advert.uwb
-            if (info?.role == Advert.UwbRole.CONTROLLER) responder?.onFriendController(friend, info)
-        }.also { it.start(lowLatency = false) }
-        lifecycleScope.launch {
-            while (true) {
-                delay(10_000)
-                if (broadcaster.mode == AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY &&
-                    System.currentTimeMillis() - lastLookedAt > FAST_FOR_MS
-                ) {
-                    broadcaster.mode = AdvertiseSettings.ADVERTISE_MODE_BALANCED
-                    DebugStatus.log("No one looking: advert back to medium")
-                }
-            }
-        }
+        // Then, as always: Wi-Fi Aware, Bluetooth/Wi-Fi coming back, UWB, and the low-power listen
+        // for friends who are looking (speeds our advert up, joins their UWB session).
+        f.startListening()
     }
-
-    private var lastLookedAt = 0L
 
     /** Battery level, for the last-known-location-before-it-dies update. */
     private val batteryReceiver = object : android.content.BroadcastReceiver() {
@@ -213,32 +140,11 @@ class VisibilityService : LifecycleService() {
         DebugStatus.log("${friend.name} asked us to light up")
     }
 
-    private fun onFriendLooking(name: String) {
-        lastLookedAt = System.currentTimeMillis()
-        uploader?.boost()
-        if (broadcaster.mode != AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY) {
-            broadcaster.mode = AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY
-            DebugStatus.log("$name is looking: advert to fast")
-        }
-    }
-
-    private fun identityKey() = mySecret.copyOf(4).joinToString("") { "%02x".format(it) }
-
-    private fun readvertise() {
-        val me = mySecret
-        advertisedAs = identityKey()
-        val id = EphemeralId(me).currentId(System.currentTimeMillis())
-        broadcaster.update(Advert.encode(me, id, uwbInfo, pressure = nz.waveformlabs.moshpoint.venue.Floors.advertPressure()))
-    }
-
     override fun onDestroy() {
         running = false
-        rotateJob?.cancel()
-        radios?.stop()
         uploader?.stop()
         runCatching { unregisterReceiver(batteryReceiver) }
-        wifi?.stop()
-        if (rotateJob != null) {
+        if (findable != null) {
             nz.waveformlabs.moshpoint.OfflineMessages.stopRadio()
             GroupSync.release(this)
             CrowdRelayRadio.stopBroadcasting(this)
@@ -247,9 +153,10 @@ class VisibilityService : LifecycleService() {
             nz.waveformlabs.moshpoint.venue.Floors.onAdvertChange = null
             nz.waveformlabs.moshpoint.venue.Floors.release(live = true)
         }
-        listener?.stop()
-        uwb?.stop()
-        if (::broadcaster.isInitialized) broadcaster.stop()
+        // Last, so the UWB responder's final re-advert (without its UWB block) is built after
+        // floors are released, as before. Its rotation, radio watcher and Wi-Fi Aware stop here
+        // too, a moment later than they did: nothing above can reach them in between.
+        findable?.stop()
         super.onDestroy()
     }
 
@@ -328,7 +235,6 @@ class VisibilityService : LifecycleService() {
         /** "Light up" requests, one per friend: a range of their own (5000 up used to reach into the crew alerts' ids, Need help among them). */
         private const val REQUEST_NOTIFICATION_BASE = 0x40000000
         private const val NOTIFICATION_ID = 1
-        private const val FAST_FOR_MS = 90_000L
         private const val ACTION_STOP = "nz.waveformlabs.moshpoint.STOP_VISIBLE"
 
         fun start(context: Context) {

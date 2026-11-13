@@ -15,20 +15,20 @@ something awkward, the behaviour was kept and the awkwardness is listed under
 _Handover, kept current at every push. Branch: `claude/finder-module-h6t4wn`, from
 `ccr-5839ed7c-1q0ztj` at `121f057`._
 
-**Where things stand:** stages 1 and 2 written and pushed, waiting for CI. Stage 3 designed (below),
-being written.
+**Where things stand:** stages 1 to 3 written and pushed (the whole move), waiting for CI. Stage 4
+(pure logic into `core`) next.
 
 | Stage | What | State |
 |---|---|---|
 | 1 | `:finder` library module in the build (`com.android.library`, namespace `nz.waveformlabs.moshpoint.finder`, its own `BuildConfig.TEST_BUILD`); the app depends on it. The plug-in API (`FinderMate`, `FinderPlugins`, `FinderLog`) and the app's side of it (`FinderSetup`, installed first in `MoshpointApp.onCreate`; `Friend` implements `FinderMate`). The five files with no app dependencies moved: `Ble`, `Capabilities`, `Compass`, `MotionDetector`, `MyLocation`. CI: the finder's own lint report; a report-only step that compares the merged manifest with the published main build | pushed, CI pending |
 | 2 | The radios: `BleHub`, `BleBroadcaster`, `BleRanger`, `RadioWatcher`, `WifiAware`, `UwbFinder`, `UwbResponder` (from `service/`). `DebugStatus` calls become `FinderLog`; `Friend` parameters become `FinderMate`; `UwbFinder` gets a name lookup for its one log line (`nameOf`, the app passes `FriendsRepository.byId(id)?.name`); `RelayClient` gets its own copy of the `hex()` helper it used from `UwbFinder.kt` | pushed, CI pending |
-| 3 | `CrowdRelayRadio`, `GpsFinder`, `LocatorEngine`, `PocketFinder` (from `watch/`) and the new `Findable` (the being-findable work out of `VisibilityService`). The app passes its parts in: `MainActivity`, `VisibilityService`, `WatchFind` | not started |
+| 3 | `CrowdRelayRadio`, `GpsFinder`, `LocatorEngine`, `PocketFinder` (from `watch/`) and the new `Findable` (the being-findable work out of `VisibilityService`, line for line). The app passes its parts in: `MainActivity` (engine; registers it with `PhoneFinderBridge`), `VisibilityService` (drives `Findable`), `WatchFind` (pocket finder) | pushed, CI pending |
 | 4 | Pure logic that can live in `core` moves there, with tests (candidates below) | not started |
 | 5 | `ARCHITECTURE.md` and `ROADMAP.md`; this note's file list and review list completed | not started |
 
-**Exact next step:** read the stage-1 and stage-2 CI runs (builds, release check, licences count,
-merged manifest "same as the published main build", screenshots unchanged, finder lint); write
-stage 3.
+**Exact next step:** read the CI runs for stages 1, 2 and 3 (builds, release check, licences
+count, merged manifest "same as the published main build", screenshots unchanged, finder lint) and
+fix anything red; then stage 4.
 
 How to work on it: `core` and `server` tests run in the cloud container with a scratch Gradle
 settings file that includes only `:core` and `:server` and points its version catalogue at
@@ -154,11 +154,39 @@ Filled in as the stages land; each says why it is believed identical.
    strings) is unchanged and still runs.
 3. **Lint:** `:app:lintDebug` no longer sees the moved files (`checkDependencies = false`); CI now
    runs `:finder:lintDebug` too and prints its summary under "finder lint summary". Report only.
+4. **The watch bridge registration** (`MainActivity`): the engine used to call
+   `PhoneFinderBridge.attach(this)` as the last thing in its constructor; now `MainActivity` calls
+   `PhoneFinderBridge.attach(engine)` on the next line. Nothing can run in between (same thread,
+   no suspension), and `MainActivity` is the only place an engine is made.
+5. **`VisibilityService` start order** is unchanged: `Findable.startAdvertising()` where the
+   advert and its rotation started, the gig work (location sharing, battery, crew intros, venue
+   map, floors, crowd relay, messages) where it was, `Findable.startListening()` where Wi-Fi Aware,
+   the radio watcher, UWB and the listen scan started. Advertisers therefore start in the same
+   order (the visible advert, then the crew intro set, then the crowd relay set).
+6. **`VisibilityService` stop order:** `Findable.stop()` runs at the end of `onDestroy`, where the
+   listen scan, UWB responder and advert stopped before, so the UWB responder's last re-advert is
+   still built after floors are released. The rotation coroutine, the radio watcher and the Wi-Fi
+   Aware publisher now stop at that point too, a few statements later than before: all of it runs
+   in one go on the main thread, nothing in between calls into them, and none of them can run
+   (coroutine, broadcast receiver, Wi-Fi Aware callbacks are all posted to the main thread).
+7. **The spin scan's "can't hear" sentence** mentions crews, so the app passes it in
+   (`cantHear`); the text is character for character the old one. The module's default is a
+   neutral sentence nobody in the phone app sees.
+8. **GPS finding without a mailbox** (not the phone app): polls the crowd-relay cache every 4 s.
+   The phone app always has one, so its polling gap is `RelayClient.pollMs` as before.
 
 ## Awkward on purpose (for later)
 
 - The app keeps `implementation(libs.androidx.core.uwb)` although its UWB code moves out (the
   finder brings it): removing it changes nothing at runtime but was not needed for the move.
+- The scan's other outcome lines ("found", "couldn't tell…", "Not enough signal…") are English
+  text inside the engine, as before. They should become the app's words (translated) one day.
+- `LocatorEngine.uwbSpots` uses core's `VenuePlacement.UwbReading` (bearing, distance, time):
+  plain data, but named after the venue map that reads it.
+- `VisibilityService` calls `Findable` in two steps (`startAdvertising`, `startListening`) only so
+  its own gig work keeps its place between them; `Findable.start()` does both for anyone else.
+- `RelayClient` and `MapFeed` stay in the app in a package called `locate`, the finder's package:
+  moving them would only rename them.
 
 ## Files moved or changed
 
@@ -172,6 +200,20 @@ Kept current with each stage.
 - App changes for stage 2: `LocatorEngine.kt` and `watch/PocketFinder.kt` pass `nameOf` to
   `UwbFinder`; `service/VisibilityService.kt` imports `UwbResponder`, and its "light up"
   notification takes a `FinderMate`; `locate/RelayClient.kt` has its own private `hex()`.
+- Moved in stage 3: `CrowdRelayRadio.kt` (`OfflineMessages` → `FinderPlugins.relayLane`,
+  `RelayClient.ownServer/put` → `FinderPlugins.mailbox`), `GpsFinder.kt` (`RelayClient` →
+  `mailbox`, `LocationBook.update` → `sharedLocations`, the "I'm here" pin fix → `extraFixes`,
+  `FieldRecorder` → `FinderLog.record`), `LocatorEngine.kt` (constructor parameters `mateById`,
+  `isSimulated`, `onBluetoothReading`, `onUwbReading`, `onBluetoothToggled`, `cantHear`; no longer
+  registers itself with `PhoneFinderBridge`), and from app `watch/`, `PocketFinder.kt` (now public,
+  package `locate`; constructor parameters `identity`, `mateById`, `isSimulated`).
+- New in stage 3: `Findable.kt`, the being-findable radio work taken line for line out of
+  `VisibilityService` (advert and its rotation, Wi-Fi Aware publish, radio watcher, UWB responder,
+  listen for lookers, fast advert for 90 s).
+- App changes for stage 3: `MainActivity.kt` (builds the engine with the app's parts and attaches it
+  to `PhoneFinderBridge`), `service/VisibilityService.kt` (drives `Findable` in the same order),
+  `watch/WatchFind.kt` (builds `PocketFinder` with the app's parts), `watch/PhoneFinderBridge.kt`
+  (comments).
 - New: `finder/build.gradle.kts`, `finder/src/main/AndroidManifest.xml`, `FinderMate.kt`,
   `FinderPlugins.kt`, `FinderLog.kt`; app `FinderSetup.kt`; this note.
 - Changed: `settings.gradle.kts`, `build.gradle.kts`, `gradle/libs.versions.toml` (the library
