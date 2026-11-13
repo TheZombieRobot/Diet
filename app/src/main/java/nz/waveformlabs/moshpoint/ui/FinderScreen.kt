@@ -115,6 +115,8 @@ fun FinderScreen(
     onFocus: (String?) -> Unit = {},
     /** "Message Sam" for the one mate on screen (docs/PRIVATE_MESSAGES.md); null = not offered. */
     onMessage: ((String) -> Unit)? = null,
+    /** Can a private message reach this mate yet (their phone has checked in tonight; never a simulated mate)? Only then is "Message …" offered. */
+    canMessage: (String) -> Boolean = { true },
     /** Unread private messages per mate, on that button. */
     messageUnread: Map<String, Int> = emptyMap(),
     onBack: () -> Unit,
@@ -273,7 +275,7 @@ fun FinderScreen(
             // Finding one mate: write to them privately from here.
             val oneMate = focus ?: everyone.singleOrNull()?.friendId
             val oneName = oneMate?.let { friendOf(it)?.name }
-            if (onMessage != null && oneMate != null && oneName != null && !scanning) {
+            if (onMessage != null && oneMate != null && oneName != null && !scanning && canMessage(oneMate)) {
                 Row(
                     Modifier.clickable { onMessage(oneMate) }.padding(vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -306,15 +308,20 @@ fun FinderScreen(
                             if (p.isEmpty() && d.isEmpty()) {
                                 Searching(f?.let { friendOf(it)?.name } ?: title)
                             } else {
-                                // Radar rings around arrows only: behind a big distance number they'd cut through it.
-                                if (p.isNotEmpty()) Box(Modifier.fillMaxSize(0.92f)) { RadarPulse({ mood.copy(alpha = 0.7f) }) }
-                                if (shown.size > 1) {
-                                    // The whole crew as a radar: near mates close in, far ones out, stacks when they overlap.
-                                    CrewRadar(p, friendOf, onTap = { id -> focus = id }, onTapGroup = { ids -> pickFrom = ids }, floors = floorLabels, notes = pinNotes)
+                                if (p.isNotEmpty()) {
+                                    // Radar rings around arrows only: behind a big distance number they'd cut through it.
+                                    Box(Modifier.fillMaxSize(0.92f)) { RadarPulse({ mood.copy(alpha = 0.7f) }) }
+                                    if (shown.size > 1) {
+                                        // The whole crew as a radar: near mates close in, far ones out, stacks when they overlap.
+                                        CrewRadar(p, friendOf, onTap = { id -> focus = id }, onTapGroup = { ids -> pickFrom = ids }, floors = floorLabels, notes = pinNotes)
+                                    } else {
+                                        Arrows(p, friendOf, group = false, floors = floorLabels, floorsSpoken = floorsSpoken)
+                                    }
                                 } else {
-                                    Arrows(p, friendOf, group = false, floors = floorLabels, floorsSpoken = floorsSpoken)
+                                    // Nobody to point at yet: how far, and how it's going. No radar behind it: its
+                                    // "you" dot used to sit on top of the middle mate's line.
+                                    DistanceOnly(d, friendOf, floors)
                                 }
-                                if (p.isEmpty()) DistanceOnly(d, friendOf, floors)
                             }
                         }
                     }

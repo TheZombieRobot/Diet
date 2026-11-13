@@ -93,6 +93,8 @@ fun FriendsScreen(
     onKeepFriend: (String) -> Unit = {},
     /** "Message Sam": open a private thread with this crew mate (docs/PRIVATE_MESSAGES.md). Null = not offered (following from home). */
     onMessage: ((String) -> Unit)? = null,
+    /** Can a private message reach this mate yet (their phone has checked in tonight; never a simulated mate)? Only then is "Message …" offered. */
+    canMessage: (String) -> Boolean = { true },
     /** Unread private messages per friend id, shown on their face. */
     privateUnread: Map<String, Int> = emptyMap(),
     /** Snap Map style view of where everyone is. */
@@ -218,7 +220,7 @@ fun FriendsScreen(
             text = {
                 androidx.compose.foundation.layout.Column {
                     // First: write to them privately (crew mates only).
-                    if (onMessage != null && (f.gigGroupOnly || f.key in crewKeys)) {
+                    if (onMessage != null && (f.gigGroupOnly || f.key in crewKeys) && canMessage(f.id)) {
                         TextButton(onClick = { onMessage(f.id); options = null }) {
                             Text(stringResource(R.string.private_message_name, f.name))
                             privateUnread[f.id]?.let { n -> Spacer(Modifier.width(8.dp)); UnreadBadge(n) }

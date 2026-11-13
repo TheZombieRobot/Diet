@@ -116,6 +116,17 @@ open class ScreensSnapshotTest {
 
     @Test fun finderDistanceOnly() = finder("Sam", listOf(ArrowState.DistanceOnly("sam", 12.0, Trend.WARMER, Method.BLE_RSSI)))
 
+    // A crew nobody can be pointed at yet: a compact line each, no radar dot on top, nothing cut
+    // off behind the strip (seen on a phone with three simulated mates).
+    @Test fun finderCrewDistanceOnly() = finder(
+        "Laneway crew",
+        listOf(
+            ArrowState.DistanceOnly("sam", 8.0, Trend.STEADY, Method.UWB),
+            ArrowState.DistanceOnly("alex", 14.0, Trend.WARMER, Method.UWB),
+            ArrowState.DistanceOnly("jo", 9.0, Trend.COLDER, Method.BLE_RSSI),
+        ),
+    )
+
     @Test fun finderScanning() = finder(
         "Jo", listOf(ArrowState.DistanceOnly("jo", 9.0, Trend.STEADY, Method.BLE_RSSI)),
         LocatorEngine.ScanUi(250.0, done = false, sectors = BooleanArray(36) { it < 25 }, headingDeg = 0.0),

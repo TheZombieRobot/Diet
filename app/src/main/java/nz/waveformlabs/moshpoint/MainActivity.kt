@@ -763,6 +763,7 @@ class MainActivity : ComponentActivity() {
                             onAskLight = { engine.askLight() },
                             // "Message Sam" for the one mate the finder is showing (docs/PRIVATE_MESSAGES.md).
                             onMessage = if (GroupSync.group.value != null && !GroupSync.following) ({ id -> messageMate(id) }) else null,
+                            canMessage = ::canMessageMate,
                             messageUnread = PrivateMessages.unreadByFriend(this@MainActivity),
                             onFound = { NightStats.found(this@MainActivity) },
                             beaconOn = beaconOn,
@@ -894,6 +895,7 @@ class MainActivity : ComponentActivity() {
                             onKeepFriend = { id -> toast(Friendship.request(this@MainActivity, id)) },
                             // "Message Sam" in a crew mate's options, and a count on their face (docs/PRIVATE_MESSAGES.md).
                             onMessage = if (GroupSync.group.value != null && !GroupSync.following) ({ id -> messageMate(id) }) else null,
+                            canMessage = ::canMessageMate,
                             privateUnread = PrivateMessages.unreadByFriend(this@MainActivity),
                             onShowGroupQr = { showGroupQr = true },
                             onShowCrewQr = {
@@ -1444,6 +1446,14 @@ class MainActivity : ComponentActivity() {
         val f = FriendsRepository.byId(friendId) ?: return
         if (!PrivateMessages.showFriend(this, f)) toast(Txt.s(R.string.crew_friend_unreachable, f.name))
     }
+
+    /**
+     * "Message Sam" is offered only once a private message can reach them: their phone has
+     * checked in tonight, so we have its key. Never a simulated mate (no phone to check in);
+     * before, tapping it only brought up a "can't reach them" toast.
+     */
+    private fun canMessageMate(friendId: String): Boolean =
+        FriendsRepository.byId(friendId)?.let { f -> !FriendsRepository.isSimulated(f.id) && PrivateMessages.mateFor(this, f) != null } == true
 
     private fun closeChat() {
         showChat = false

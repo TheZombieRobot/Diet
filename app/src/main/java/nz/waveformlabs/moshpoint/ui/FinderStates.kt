@@ -12,6 +12,8 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -54,6 +56,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.BuildConfig
@@ -151,35 +154,53 @@ internal fun DistanceOnly(
     /** Who is on another floor: the best clue there is when Bluetooth says "close" and you can't see them. */
     floors: Map<String, nz.waveformlabs.moshpoint.core.Floor> = emptyMap(),
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    val crew = list.size > 1
+    // Scrolls when it can't all fit (a crew, a small phone, large text), so nothing is cut off
+    // behind the crew strip below; when it fits, the box around it keeps it centred.
+    Column(
+        Modifier.verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(if (crew) 18.dp else 10.dp),
+    ) {
         list.forEach { d ->
             val f = friendOf(d.friendId)
             val colour by animateColorAsState(Color(ArrowStyle.arrowColor(f?.color ?: ArrowStyle.RED, d.distanceM)), tween(700), label = "c")
-            Box(Modifier.size(if (list.size > 1) 12.dp else 18.dp).drawBehind {
-                glow(colour, 12.dp.toPx(), 0.9f) { p -> drawContext.canvas.drawCircle(center, size.minDimension / 2, p) }
-                drawCircle(colour)
-            })
-            if (d.method == nz.waveformlabs.moshpoint.core.Method.BLE_RSSI) {
-                // Signal strength in a crowd can't honestly say "7 m": show a band instead.
-                FitText(
-                    bandLabel(d.distanceM),
-                    style = Mosh.Distance.copy(fontSize = if (list.size > 1) 32.sp else 52.sp, lineHeight = if (list.size > 1) 34.sp else 56.sp),
-                )
-                Text(bandHint(d.distanceM), style = Mosh.Body.copy(color = Mosh.TextFaint))
-            } else if (list.size > 1) {
-                RollingText(finderDistanceLabel(d.distanceM), Mosh.Distance.copy(fontSize = 32.sp, lineHeight = 34.sp))
-            } else {
-                DistanceReadout(d.distanceM)
-            }
-            floors[d.friendId]?.let { FloorTag(it) }
+            // Signal strength in a crowd can't honestly say "7 m": show a band instead.
+            val band = d.method == nz.waveformlabs.moshpoint.core.Method.BLE_RSSI
             val (label, c, hint) = when (d.trend) {
                 Trend.WARMER -> Triple(stringResource(R.string.find_trend_warmer), Mosh.Lime, stringResource(R.string.find_trend_warmer_hint))
                 Trend.COLDER -> Triple(stringResource(R.string.find_trend_colder), Mosh.Pink, stringResource(R.string.find_trend_colder_hint))
                 Trend.STEADY -> Triple(stringResource(R.string.find_trend_steady), Mosh.Cyan, stringResource(R.string.find_trend_steady_hint))
             }
-            val whoHint = if (list.size > 1) stringResource(R.string.find_trend_hint_who, f?.name ?: "?", hint) else hint
+            val whoHint = if (crew) stringResource(R.string.find_trend_hint_who, f?.name ?: "?", hint) else hint
             val via = if ((BuildConfig.TEST_BUILD && DebugStatus.showUi)) "  (${methodLabel(d.method)})" else ""
-            Chip(label, c, "$whoHint$via")
+            if (crew) {
+                // One mate of a crew: their colour beside the distance, then how it's going. About
+                // half the height of one mate on their own, so a crew fits above the strip.
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        MateDot(colour, 12.dp)
+                        if (band) {
+                            FitText(bandLabel(d.distanceM), style = Mosh.Distance.copy(fontSize = 32.sp, lineHeight = 34.sp))
+                        } else {
+                            RollingText(finderDistanceLabel(d.distanceM), Mosh.Distance.copy(fontSize = 32.sp, lineHeight = 34.sp))
+                        }
+                    }
+                    if (band) Text(bandHint(d.distanceM), style = Mosh.Body.copy(color = Mosh.TextFaint))
+                    floors[d.friendId]?.let { FloorTag(it) }
+                    Chip(label, c, "$whoHint$via")
+                }
+            } else {
+                MateDot(colour, 18.dp)
+                if (band) {
+                    FitText(bandLabel(d.distanceM), style = Mosh.Distance.copy(fontSize = 52.sp, lineHeight = 56.sp))
+                    Text(bandHint(d.distanceM), style = Mosh.Body.copy(color = Mosh.TextFaint))
+                } else {
+                    DistanceReadout(d.distanceM)
+                }
+                floors[d.friendId]?.let { FloorTag(it) }
+                Chip(label, c, "$whoHint$via")
+            }
         }
         Spacer(Modifier.height(4.dp))
         Text(
@@ -187,6 +208,15 @@ internal fun DistanceOnly(
             style = Mosh.Body, textAlign = TextAlign.Center,
         )
     }
+}
+
+/** A mate's colour as a glowing dot ([diameter] across). */
+@Composable
+private fun MateDot(colour: Color, diameter: Dp) {
+    Box(Modifier.size(diameter).drawBehind {
+        glow(colour, 12.dp.toPx(), 0.9f) { p -> drawContext.canvas.drawCircle(center, size.minDimension / 2, p) }
+        drawCircle(colour)
+    })
 }
 
 /** App-side, translated twin of ArrowStyle.bandLabel (same thresholds). */
