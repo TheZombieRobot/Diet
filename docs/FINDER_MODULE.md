@@ -15,15 +15,17 @@ something awkward, the behaviour was kept and the awkwardness is listed under
 _Handover, kept current at every push. Branch: `claude/finder-module-h6t4wn`, from
 `ccr-5839ed7c-1q0ztj` at `121f057`._
 
-**Where things stand:** stages 1 to 4 written and pushed. Stage 1 is green in CI (run 264: builds,
-release check, merged manifest the same as the published main build, screenshots unchanged).
-Stages 2 to 4 waiting for CI. `ARCHITECTURE.md` and `ROADMAP.md` updated.
+**Where things stand:** stages 1 to 4 written and pushed (all the code). Stage 1 is green in CI (run
+264: builds, release check, merged manifest the same as the published main build, screenshots
+unchanged). Stage 2 (run 265): debug APK built green, the rest running. Stage 3's own run (266) was
+replaced, while still queued, by stage 4's (run 267), which builds both. `ARCHITECTURE.md` and
+`ROADMAP.md` updated.
 
 | Stage | What | State |
 |---|---|---|
 | 1 | `:finder` library module in the build (`com.android.library`, namespace `nz.waveformlabs.moshpoint.finder`, its own `BuildConfig.TEST_BUILD`); the app depends on it. The plug-in API (`FinderMate`, `FinderPlugins`, `FinderLog`) and the app's side of it (`FinderSetup`, installed first in `MoshpointApp.onCreate`; `Friend` implements `FinderMate`). The five files with no app dependencies moved: `Ble`, `Capabilities`, `Compass`, `MotionDetector`, `MyLocation`. CI: the finder's own lint report; a report-only step that compares the merged manifest (and, from stage 4, the licence list) with the published main build | **green** (run 264) |
 | 2 | The radios: `BleHub`, `BleBroadcaster`, `BleRanger`, `RadioWatcher`, `WifiAware`, `UwbFinder`, `UwbResponder` (from `service/`). `DebugStatus` calls become `FinderLog`; `Friend` parameters become `FinderMate`; `UwbFinder` gets a name lookup for its one log line (`nameOf`, the app passes `FriendsRepository.byId(id)?.name`); `RelayClient` gets its own copy of the `hex()` helper it used from `UwbFinder.kt` | pushed, CI pending |
-| 3 | `CrowdRelayRadio`, `GpsFinder`, `LocatorEngine`, `PocketFinder` (from `watch/`) and the new `Findable` (the being-findable work out of `VisibilityService`, line for line). The app passes its parts in: `MainActivity` (engine; registers it with `PhoneFinderBridge`), `VisibilityService` (drives `Findable`), `WatchFind` (pocket finder) | pushed, CI pending |
+| 3 | `CrowdRelayRadio`, `GpsFinder`, `LocatorEngine`, `PocketFinder` (from `watch/`) and the new `Findable` (the being-findable work out of `VisibilityService`, line for line). The app passes its parts in: `MainActivity` (engine; registers it with `PhoneFinderBridge`), `VisibilityService` (drives `Findable`), `WatchFind` (pocket finder) | pushed; built by stage 4's run |
 | 4 | Pure logic that can live in `core` moves there, with tests: core `FinderRules.kt` (`ScanStarts`, `WalkingTest`, `CompassHeading`, `LocationPick`, `GpsFixRule`, `HeadingLog`), `FinderRulesTest` (20 tests; core + server 505 tests pass locally). `BleHub`, `MotionDetector`, `Compass`, `MyLocation`, `GpsFinder` and `LocatorEngine` call them. The CI report step moves to the end of the job and also compares the licence list | pushed, CI pending |
 | 5 | `ARCHITECTURE.md` (modules, the finder's files, the boundary) and `ROADMAP.md` (status); this note's file list and review list | done, kept current |
 
