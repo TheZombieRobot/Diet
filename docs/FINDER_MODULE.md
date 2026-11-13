@@ -15,12 +15,14 @@ something awkward, the behaviour was kept and the awkwardness is listed under
 _Handover, kept current at every push. Branch: `claude/finder-module-h6t4wn`, from
 `ccr-5839ed7c-1q0ztj` at `121f057`._
 
-**Where things stand:** all the code is written and pushed. CI is green for stage 1 (run 264),
-stage 2 (run 265) and stages 3 + 4 together (run 267: stage 3's own run was replaced while still
-queued). Run 267: merged manifest and licence list (126 libraries) the same as the published main
-build, screenshots unchanged, release check passed, watch job green. It also showed one finder debug
-line in the release APK (review item 3); the fix is pushed as stage 4b, CI pending.
-`ARCHITECTURE.md` and `ROADMAP.md` updated.
+**Where things stand: done.** CI is green on the last code commit, `c0a199f` (run 268), and on every
+stage before it: stage 1 (run 264), stage 2 (run 265), stages 3 + 4 together (run 267; stage 3's own
+run was replaced while still queued). Run 268: core + server tests, debug and release builds, the
+release check, licences, screenshots (no screenshot commit came back, phone or watch: no screen
+changed), lint (report only) and the watch job all pass; the merged manifest (69 entries) and the
+licence list (126 libraries) are the same as the published main build's; none of the eleven finder
+debug lines checked is in the release APK. `ccr-5839ed7c-1q0ztj` has not moved since `121f057`, so
+no rebase was needed. `ARCHITECTURE.md` and `ROADMAP.md` updated.
 
 | Stage | What | State |
 |---|---|---|
@@ -28,13 +30,13 @@ line in the release APK (review item 3); the fix is pushed as stage 4b, CI pendi
 | 2 | The radios: `BleHub`, `BleBroadcaster`, `BleRanger`, `RadioWatcher`, `WifiAware`, `UwbFinder`, `UwbResponder` (from `service/`). `DebugStatus` calls become `FinderLog`; `Friend` parameters become `FinderMate`; `UwbFinder` gets a name lookup for its one log line (`nameOf`, the app passes `FriendsRepository.byId(id)?.name`); `RelayClient` gets its own copy of the `hex()` helper it used from `UwbFinder.kt` | **green** (run 265) |
 | 3 | `CrowdRelayRadio`, `GpsFinder`, `LocatorEngine`, `PocketFinder` (from `watch/`) and the new `Findable` (the being-findable work out of `VisibilityService`, line for line). The app passes its parts in: `MainActivity` (engine; registers it with `PhoneFinderBridge`), `VisibilityService` (drives `Findable`), `WatchFind` (pocket finder) | **green** (run 267, with stage 4) |
 | 4 | Pure logic that can live in `core` moves there, with tests: core `FinderRules.kt` (`ScanStarts`, `WalkingTest`, `CompassHeading`, `LocationPick`, `GpsFixRule`, `HeadingLog`), `FinderRulesTest` (20 tests; core + server 505 tests pass locally). `BleHub`, `MotionDetector`, `Compass`, `MyLocation`, `GpsFinder` and `LocatorEngine` call them. The CI report step moves to the end of the job and also compares the licence list | **green** (run 267) |
-| 4b | The six debug lines that build text from an interface call are built only in test builds (review item 3); the report step checks eleven finder lines in the release APK | pushed, CI pending |
+| 4b | The six debug lines that build text from an interface call are built only in test builds (review item 3); the report step checks eleven finder lines in the release APK | **green** (run 268) |
 | 5 | `ARCHITECTURE.md` (modules, the finder's files, the boundary) and `ROADMAP.md` (status); this note's file list and review list | done, kept current |
 
-**Exact next step:** read the stage-4b CI run's last ~60 log lines (the report step: "merged
-manifest: same…", "licence list: same…", and every "finder debug text …: not in the release
-APK"); confirm the run is green and no screenshot commit came back. Then rebase onto the latest
-`ccr-5839ed7c-1q0ztj` if it has moved, and send the report.
+**Exact next step:** none in code. Review the places below (item 1 onwards), merge, and field-test
+as planned: nothing a phone does should differ. Later, not started: move GPS sharing
+(`LocationUploader`) behind `FinderMailbox`; let the app word the scan's outcome lines; the watch
+(watch-side UWB) can depend on `:finder`.
 
 How to work on it: `core` and `server` tests run in the cloud container with a scratch Gradle
 settings file that includes only `:core` and `:server` and points its version catalogue at
@@ -178,6 +180,11 @@ Filled in as the stages land; each says why it is believed identical.
    same pattern the engine already used for its debug rows). Test builds log exactly as before.
 4. **Lint:** `:app:lintDebug` no longer sees the moved files (`checkDependencies = false`); CI now
    runs `:finder:lintDebug` too and prints its summary under "finder lint summary". Report only.
+   Run 268: the app's `StaticFieldLeak` count went from 23 to 21 and the finder's report has those
+   2, plus 1 `MissingPermission` error (`ACCESS_WIFI_STATE` for `WifiAwareManager.isAvailable` in
+   `RadioWatcher`): the module's manifest declares no permissions on purpose, and the app declares
+   that one, so nothing changed for the app. The `LogNotTimber` notices for the moved files are
+   gone: that check comes from the map library's Timber lint, which the finder doesn't have.
 5. **The watch bridge registration** (`MainActivity`): the engine used to call
    `PhoneFinderBridge.attach(this)` as the last thing in its constructor; now `MainActivity` calls
    `PhoneFinderBridge.attach(engine)` on the next line. Nothing can run in between (same thread,
