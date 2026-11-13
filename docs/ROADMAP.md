@@ -45,6 +45,14 @@
 Agreed with the owner; build in this order. Where this differs from [PRODUCT.md](PRODUCT.md)
 (e.g. the venue map), this section wins.
 
+**Where it stands (13 November 2026):** steps 1 to 5, the small item and the before-launch
+finder module are built and merged (step 2's free half; Mapbox and Moshpoint+ not started).
+**None of it has run on a real phone yet.** Next: the field tests in
+[FIELD_TEST_PLAN.md](FIELD_TEST_PLAN.md) (3b venue map, 4b messages without signal, 4c the
+watch, 4d "I'm here", 4e private messages), then fixes from what they find. Still open before
+launch: saved keys under an Android Keystore key (milestone 1), the relay server deployed,
+Moshpoint+ (a Mapbox account for satellite, Play billing), the Play Store listing.
+
 ### 1. Messages without signal (Bluetooth backup): about 3–5 days
 - Crew chat, quick pings ("On my way", "All good", "Need help") and pins send as normal; the
   app picks the route. No separate Bluetooth mode.
@@ -162,7 +170,8 @@ Agreed with the owner; build in this order. Where this differs from [PRODUCT.md]
 
 ### Later
 - **Before launch:** move the finder engine out of the gig code (the watch and any spin-off
-  need it). **Status: done, builds in CI; a pure refactor, nothing on a phone should change.** The
+  need it). **Status: done, reviewed and merged (13 November 2026); a pure refactor, nothing on a
+  phone should change.** The
   `finder` module (Android library) holds everything that finds a person or makes a phone
   findable, with no gig code in it; the app plugs its parts in. Decisions, the interfaces, how
   another app would use it, every file moved and the places to review first:
