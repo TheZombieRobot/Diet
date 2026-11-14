@@ -56,7 +56,12 @@ internal fun PlanGigSheet(
      */
     lookupVenue: (suspend (String) -> Pair<Double, Double>?)? = null,
 ) {
-    androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, containerColor = Mosh.Deep) {
+    androidx.compose.material3.ModalBottomSheet(
+        onDismissRequest = onClose,
+        containerColor = Mosh.Deep,
+        // Open all the way: half-open hid options below the fold with nothing saying they're there.
+        sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    ) {
         Column(
             Modifier.fillMaxWidth().navigationBarsPadding().imePadding().verticalScroll(rememberScrollState())
                 .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
