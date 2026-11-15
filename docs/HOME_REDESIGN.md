@@ -159,6 +159,12 @@ sheets). Strings: `res/values*/strings_home_redesign.xml`.
   menu's End the night stays pink as designed; Need help offers the crew alert only when
   someone is in the crew or following; the recap's End the night resets the night's stats and
   says so only once you've actually left (a cancelled handover keeps them).
+- **Very large fonts (200%)**: small labels in tight places (a face's name and caption, the
+  bottom-bar tabs) grow with the font setting up to 1.5 times (`capScale`), like Android's own
+  non-linear scaling of large text, so they never break inside a word; everything else grows
+  fully. The distance under a live face is fitted in one measured pass (the finder's `FitText`
+  shrinks frame by frame, which a screenshot catches half way). The Live row's line goes under
+  the switch when there's no room beside it for its longest word.
 - **Shared pieces fixed on the way**: `FitText` (finder) no longer multiplies an unspecified line
   height (it threw); the violet unread badge on faces (private messages) shows the phone's
   digits; a story Polaroid's caption keeps its own direction (Unicode isolate), so "Front row!!"
