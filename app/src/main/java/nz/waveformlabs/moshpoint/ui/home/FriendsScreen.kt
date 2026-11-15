@@ -43,10 +43,10 @@ import nz.waveformlabs.moshpoint.profile.PhotoStore
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.GigGroup
-import nz.waveformlabs.moshpoint.ui.HelpDialog
+import nz.waveformlabs.moshpoint.ui.chat.HelpDialog
 import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.SettingsSheet
-import nz.waveformlabs.moshpoint.ui.UnreadBadge
+import nz.waveformlabs.moshpoint.ui.chat.UnreadBadge
 
 /**
  * The home screen (docs/design/home-redesign, docs/HOME_REDESIGN.md). Who's here and how far

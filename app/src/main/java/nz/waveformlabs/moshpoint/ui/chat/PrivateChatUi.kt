@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.chat
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.chat.CrewChat
 import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.ui.Mosh
 
 /**
  * A private thread with one crew mate (docs/PRIVATE_MESSAGES.md): the crew chat's bubbles, faces

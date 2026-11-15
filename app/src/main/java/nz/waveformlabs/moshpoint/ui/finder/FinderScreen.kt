@@ -66,7 +66,7 @@ import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.NeonButton
 import nz.waveformlabs.moshpoint.ui.map.PinNote
 import nz.waveformlabs.moshpoint.ui.RadarPulse
-import nz.waveformlabs.moshpoint.ui.UnreadBadge
+import nz.waveformlabs.moshpoint.ui.chat.UnreadBadge
 import nz.waveformlabs.moshpoint.ui.ago
 import nz.waveformlabs.moshpoint.ui.beaconColourName
 import nz.waveformlabs.moshpoint.ui.finderDistanceLabel

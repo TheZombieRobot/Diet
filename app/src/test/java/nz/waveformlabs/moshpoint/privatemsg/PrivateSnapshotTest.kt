@@ -32,8 +32,8 @@ import nz.waveformlabs.moshpoint.ui.home.CrewTiles
 import nz.waveformlabs.moshpoint.ui.finder.FinderScreen
 import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.MoshTheme
-import nz.waveformlabs.moshpoint.ui.PrivateChatScreen
-import nz.waveformlabs.moshpoint.ui.UnreadBadge
+import nz.waveformlabs.moshpoint.ui.chat.PrivateChatScreen
+import nz.waveformlabs.moshpoint.ui.chat.UnreadBadge
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

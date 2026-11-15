@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.chat
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -54,6 +54,9 @@ import nz.waveformlabs.moshpoint.chat.CrewChat
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.safety.Safety
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.ui.DefaultAvatar
+import nz.waveformlabs.moshpoint.ui.Mosh
+import nz.waveformlabs.moshpoint.ui.ago
 import nz.waveformlabs.moshpoint.ui.home.PingBar
 
 /**

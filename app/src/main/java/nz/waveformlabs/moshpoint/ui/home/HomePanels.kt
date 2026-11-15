@@ -50,7 +50,7 @@ import nz.waveformlabs.moshpoint.friends.Friend
 import nz.waveformlabs.moshpoint.map.LocationBook
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.core.GigGroup
-import nz.waveformlabs.moshpoint.ui.HelpDialog
+import nz.waveformlabs.moshpoint.ui.chat.HelpDialog
 import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.glow
 import nz.waveformlabs.moshpoint.ui.pressScale

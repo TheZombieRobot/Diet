@@ -55,7 +55,7 @@ import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.ui.Faces
 import nz.waveformlabs.moshpoint.ui.InitialsAvatar
 import nz.waveformlabs.moshpoint.ui.Mosh
-import nz.waveformlabs.moshpoint.ui.UnreadBadge
+import nz.waveformlabs.moshpoint.ui.chat.UnreadBadge
 import nz.waveformlabs.moshpoint.ui.ago
 import nz.waveformlabs.moshpoint.ui.finderDistanceLabel
 import nz.waveformlabs.moshpoint.ui.glow

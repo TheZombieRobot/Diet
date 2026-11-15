@@ -14,6 +14,7 @@ import nz.waveformlabs.moshpoint.core.FriendRecord
 import nz.waveformlabs.moshpoint.core.Method
 import nz.waveformlabs.moshpoint.core.Trend
 import nz.waveformlabs.moshpoint.locate.LocatorEngine
+import nz.waveformlabs.moshpoint.ui.chat.CrewChatScreen
 import nz.waveformlabs.moshpoint.ui.finder.FinderScreen
 import nz.waveformlabs.moshpoint.ui.home.AddSheetContent
 import nz.waveformlabs.moshpoint.ui.home.CrewMenuContent

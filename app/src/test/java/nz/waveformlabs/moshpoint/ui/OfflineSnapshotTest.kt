@@ -7,6 +7,7 @@ import androidx.compose.ui.res.stringResource
 import nz.waveformlabs.moshpoint.chat.CrewChat
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.ui.chat.CrewChatScreen
 import org.junit.Rule
 import org.junit.Test
 

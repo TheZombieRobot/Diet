@@ -45,7 +45,7 @@ internal fun ChatOverlays(a: MainActivity) {
                 kotlinx.coroutines.delay(if (nz.waveformlabs.moshpoint.locate.RelayClient.ownServer) 8_000 else 20_000)
             }
         }
-        nz.waveformlabs.moshpoint.ui.CrewChatScreen(
+        nz.waveformlabs.moshpoint.ui.chat.CrewChatScreen(
             crewName = chatCrew.name,
             lines = CrewChat.lines,
             plan = CrewChat.plan.value,
@@ -119,7 +119,7 @@ internal fun ChatOverlays(a: MainActivity) {
         }
         val pmCrew = PrivateMessages.crewOf(a, pm.crewId)
         val mate = pm.friendId?.let { FriendsRepository.byId(it) }
-        nz.waveformlabs.moshpoint.ui.PrivateChatScreen(
+        nz.waveformlabs.moshpoint.ui.chat.PrivateChatScreen(
             name = pm.name,
             lines = PrivateMessages.lines,
             nowSec = a.home.homeNow / 1000,
