@@ -214,19 +214,11 @@ still has a middle dot beside a number ("٤ · …").
 
 Handover (kept current; newest first):
 
-- **Now:** audit round 2. Round 1 (four agents over every language, plus English against the
-  design) found and fixed: German/Japanese button labels breaking mid-word (pairs now stack),
-  Korean/Japanese/Chinese line breaks (the home's text now uses phrase breaking, strict
-  kinsoku and the high-quality breaker: `HomeType` styles in `HomeKit.kt`), parts of a "·"
-  line splitting ("Dock / 4") or a line starting with "·" (`dotLine`), a face caption losing a
-  word (three lines now), captions running together, See all beside a wrapped title, the
-  Arabic radar picture off screen, Arabic "·" reading as a zero (bullet in Arabic), the
-  memories chevron in Arabic, "!!Front row", the check-in time splitting, plus the English
-  ones (distance "0 m", "1 years", uneven faces and Polaroids). CI run 280 (commit `4778b54`)
-  renders all of it; next: round 2 on its pictures (each group checks its round-1 findings and
-  looks again for anything new), then the results table below and the contact sheets.
-  es-rES can't be rendered (see section 3). Test failures fixed in the same run: the
-  distance's no-break space in `HomeLogicTest`, and the es-rES guard removed.
+- **Now:** final checks. Audit round 2's findings are fixed and were checked on run 281's
+  pictures; run 282 (commit `ad9a3e9`) renders the last one (the tap hint in Italian). Next:
+  confirm run 282 has no failing test and every picture rendered, then commit the results
+  table (section 3) and one contact sheet per state to `docs/design/home-redesign/audit/`,
+  and report to the owner.
 - **Done:** Step 1 (inventory, above). Step 2 code, compiling in CI: `Theme.kt` tokens,
   `HomeKit.kt` (new), `HomeSections.kt` and `FriendsScreen.kt` (rewritten),
   `HelpDialog(onAlertCrew = null)` in `CrewChatUi.kt`, `MomentStrip` removed (`MomentsUi.kt`),
@@ -240,8 +232,9 @@ Handover (kept current; newest first):
   homeAddSheet, upNext, smallPhoneHomeMain/NoCrew, largeFontHomeMain/NoCrew),
   `home/HomeTallSnapshotTest.kt` (homeWhole, full resolution, every language) and unit tests
   in `HomeLogicTest`. Venue and private-message tests updated for the new crew header and faces.
-- **Next:** Step 3, the audit: every state in every language, small phone and large font;
-  fix, re-render, repeat until clean; then fill in section 3 (one row per state, one column
-  per language) and commit one contact sheet per state to `docs/design/home-redesign/audit/`
-  (`python3 tools/contact_sheet.py <screenshots dir> docs/design/home-redesign/audit <test>...`).
-  Last: a green CI run and the report to the owner's session.
+- **Next:** nothing on the redesign itself. Worth a look on a phone (screenshots can't show
+  it): Japanese phrase breaking (Android 13+), Spain's Spanish strings (see section 3), the
+  status bar padding on Android 15. Out of scope, noticed on the way: the Story screen's
+  header in Arabic has a middle dot beside a number ("٤ · …"); Swedish `main_eyebrow` strings
+  still say "DITT GÄNG"; `docs/i18n/vi.md` says "kèo" where the files say "kế hoạch"; other
+  screens still say "Go live".
