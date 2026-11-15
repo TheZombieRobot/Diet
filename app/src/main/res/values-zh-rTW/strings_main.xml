@@ -2,7 +2,7 @@
 <!-- Traditional Chinese, Taiwan (zh-TW): main screen, invites, sharing, phone setup checks. -->
 <resources>
     <string name="main_get_the_app">還沒裝 Moshpoint？從這裡安裝（Android）：%1$s\n接著複製這整則訊息，打開 Moshpoint，點「貼上邀請」。\n\n</string>
-    <string name="main_nudge_text">嘿 %1$s，打開 Moshpoint 打開「在線」（定位和行動數據要開），我才找得到你！</string>
+    <string name="main_nudge_text">嘿 %1$s，打開 Moshpoint，開啟「在線」（定位和行動數據要開），我才找得到你！</string>
     <string name="main_nudge_mate">朋友</string>
     <string name="main_nudge_title">叫他們上線</string>
 

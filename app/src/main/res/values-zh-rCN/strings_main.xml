@@ -2,7 +2,7 @@
 <!-- Simplified Chinese (zh-CN): main screen, invites, sharing, phone setup checks. -->
 <resources>
     <string name="main_get_the_app">还没装 Moshpoint？从这里安装（Android）：%1$s\n然后复制这整条消息，打开 Moshpoint，点“粘贴邀请”。\n\n</string>
-    <string name="main_nudge_text">嘿 %1$s，打开 Moshpoint 打开“在线”（记得开定位和流量），我好找到你！</string>
+    <string name="main_nudge_text">嘿 %1$s，打开 Moshpoint，开启“在线”（记得开定位和流量），我好找到你！</string>
     <string name="main_nudge_mate">朋友</string>
     <string name="main_nudge_title">叫他们上线</string>
 

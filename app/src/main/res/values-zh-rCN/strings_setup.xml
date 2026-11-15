@@ -37,7 +37,7 @@
     <string name="setup_onb_skip">跳过</string>
     <string name="setup_onb_title_find">人再多\n也能找到朋友</string>
     <string name="setup_onb_body_find">点一下朋友，箭头直接指向他。越靠近，箭头越亮出他的颜色。</string>
-    <string name="setup_onb_title_live">进场时\n点上线</string>
+    <string name="setup_onb_title_live">进场时\n记得上线</string>
     <string name="setup_onb_body_live">只有你在线时朋友才能找到你，而且只有你能打开。Moshpoint 需要：</string>
     <string name="setup_onb_need_nearby">附近的设备</string>
     <string name="setup_onb_need_location">定位</string>
