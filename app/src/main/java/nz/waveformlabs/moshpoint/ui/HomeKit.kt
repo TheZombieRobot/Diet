@@ -242,43 +242,59 @@ internal fun HelpPill(onClick: () -> Unit, modifier: Modifier = Modifier) {
     }
 }
 
-/** The big action on the home: pink → violet → cyan, with a soft pink glow under it. Two lines when one won't fit. */
+/**
+ * The big action on the home: pink → violet → cyan, with a soft pink glow under it. A long
+ * label first shrinks a little (up to 3 sp) to stay on one line, then wraps.
+ */
 @Composable
 internal fun HeroButton(text: String, icon: ImageVector, modifier: Modifier = Modifier, textSize: TextUnit = 18.sp, onClick: () -> Unit) {
     val (source, scale) = rememberPress()
     val shine = rememberShimmer()
     val shape = RoundedCornerShape(20.dp)
-    Box(
-        modifier
-            .fillMaxWidth()
-            .pressScale(scale)
-            .drawBehind {
-                // The design's shadow: 0 16px 40px -14px, pink at 65%.
-                val inset = 14.dp.toPx()
-                val drop = 16.dp.toPx()
-                val r = 20.dp.toPx()
-                glow(Mosh.Pink, 18.dp.toPx(), 0.65f) { p ->
-                    drawContext.canvas.drawRoundRect(inset, drop + inset, size.width - inset, size.height + drop - inset, r, r, p)
-                }
+    BoxWithConstraints(modifier.fillMaxWidth()) {
+        val measurer = rememberTextMeasurer()
+        val density = LocalDensity.current
+        val room = with(density) { (maxWidth - 20.dp * 2 - 22.dp - 12.dp).roundToPx() }
+        val base = Mosh.Button.copy(fontSize = textSize, color = Color.White)
+        val fits = remember(text, room, density, textSize) {
+            (0..3).map { textSize.value - it }.firstOrNull { s ->
+                measurer.measure(text, base.copy(fontSize = s.sp), maxLines = 1, softWrap = false).size.width <= room
             }
-            .clip(shape)
-            .background(Brush.horizontalGradient(0f to Mosh.Pink, 0.55f to Mosh.Violet, 1f to Mosh.Cyan))
-            .graphicsLayer()
-            .shimmer { shine.value }
-            .clickable(interactionSource = source, indication = LocalIndication.current, role = Role.Button, onClick = onClick)
-            .heightIn(min = 64.dp)
-            .padding(horizontal = 20.dp, vertical = 12.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-            HomeIcon(icon, Color.White, 22.dp)
-            Spacer(Modifier.width(12.dp))
-            Text(
-                text,
-                style = Mosh.Button.copy(fontSize = textSize, color = Color.White),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.weight(1f, fill = false),
-            )
+        }
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .pressScale(scale)
+                .drawBehind {
+                    // The design's shadow: 0 16px 40px -14px, pink at 65%.
+                    val inset = 14.dp.toPx()
+                    val drop = 16.dp.toPx()
+                    val r = 20.dp.toPx()
+                    glow(Mosh.Pink, 18.dp.toPx(), 0.65f) { p ->
+                        drawContext.canvas.drawRoundRect(inset, drop + inset, size.width - inset, size.height + drop - inset, r, r, p)
+                    }
+                }
+                .clip(shape)
+                .background(Brush.horizontalGradient(0f to Mosh.Pink, 0.55f to Mosh.Violet, 1f to Mosh.Cyan))
+                .graphicsLayer()
+                .shimmer { shine.value }
+                .clickable(interactionSource = source, indication = LocalIndication.current, role = Role.Button, onClick = onClick)
+                .heightIn(min = 64.dp)
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                HomeIcon(icon, Color.White, 22.dp)
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    text,
+                    style = base.copy(fontSize = (fits ?: (textSize.value - 2)).sp),
+                    textAlign = TextAlign.Center,
+                    maxLines = if (fits != null) 1 else Int.MAX_VALUE,
+                    softWrap = fits == null,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+            }
         }
     }
 }
