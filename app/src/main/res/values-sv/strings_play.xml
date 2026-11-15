@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Swedish: Play Store readiness (docs/WAVE2_PLAY.md): confirming an invite from another app, the location
+     disclosure, the privacy policy link, adding photos with the photo picker. -->
+<resources>
+    <string name="play_invite_join_text">Inbjudan kommer från en annan app. Gå bara med om du vet vem som skickade den: när du är live ser alla i gruppen var du är.</string>
+    <string name="play_invite_follow_text">Följ-länken kommer från en annan app. Du ser gruppens bilder och att de är okej; de ser att du följer.</string>
+    <string name="play_invite_friend_title">Lägga till %1$s?</string>
+    <string name="play_invite_friend_text">Kompiskoden kommer från en annan app. Lägg bara till om du vet vem som skickade den: du kan hitta personen när hen är live.</string>
+    <string name="play_invite_add">Lägg till</string>
+    <string name="play_disclosure_title">Så använder Moshpoint din plats</string>
+    <string name="play_disclosure_live">När du är live delas din plats med din grupp och dina kompisar, så att de kan hitta dig.</string>
+    <string name="play_disclosure_relay">Den krypteras på din mobil och skickas via Moshpoints reläserver, som inte kan läsa den.</string>
+    <string name="play_disclosure_background">Live fortsätter när appen är stängd, med en avisering, tills du stänger av det.</string>
+    <string name="play_disclosure_bluetooth">När du är live skickar din mobil också vidare andra Moshpoint-användares krypterade meddelanden via Bluetooth. Den kan inte läsa dem.</string>
+    <string name="play_disclosure_continue">Fortsätt</string>
+    <string name="play_privacy_policy">Integritetspolicy</string>
+    <string name="play_roll_pick_text">Välj bilderna och videorna du tog den kvällen. De kopieras till spelningen, så de finns kvar även om du raderar dem från galleriet.</string>
+    <string name="play_roll_choose">Välj bilder</string>
+</resources>

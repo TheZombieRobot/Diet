@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Indonesian: Play Store readiness (docs/WAVE2_PLAY.md): confirming an invite from another app, the location
+     disclosure, the privacy policy link, adding photos with the photo picker. -->
+<resources>
+    <string name="play_invite_join_text">Undangan ini datang dari aplikasi lain. Gabung cuma kalau kamu tahu siapa yang mengirimnya: selama kamu live, semua orang di geng bisa lihat kamu di mana.</string>
+    <string name="play_invite_follow_text">Link untuk mengikuti ini datang dari aplikasi lain. Kamu bisa lihat foto geng dan bahwa mereka aman; mereka juga tahu kamu mengikuti.</string>
+    <string name="play_invite_friend_title">Tambahkan %1$s?</string>
+    <string name="play_invite_friend_text">Kode teman ini datang dari aplikasi lain. Tambahkan cuma kalau kamu tahu siapa yang mengirimnya: kamu bisa menemukan dia saat dia live.</string>
+    <string name="play_invite_add">Tambah</string>
+    <string name="play_disclosure_title">Cara Moshpoint memakai lokasimu</string>
+    <string name="play_disclosure_live">Selama kamu live, lokasimu dibagikan ke geng dan teman-temanmu, supaya mereka bisa menemukanmu.</string>
+    <string name="play_disclosure_relay">Lokasimu dienkripsi di HP-mu dan dikirim lewat server relay Moshpoint, yang nggak bisa membacanya.</string>
+    <string name="play_disclosure_background">Live tetap jalan saat aplikasi ditutup, dengan notifikasi, sampai kamu mematikannya.</string>
+    <string name="play_disclosure_bluetooth">Selama kamu live, HP-mu juga meneruskan pesan terenkripsi pengguna Moshpoint lain lewat Bluetooth. HP-mu nggak bisa membacanya.</string>
+    <string name="play_disclosure_continue">Lanjut</string>
+    <string name="play_privacy_policy">Kebijakan privasi</string>
+    <string name="play_roll_pick_text">Pilih foto dan video yang kamu ambil malam itu. Semuanya disalin ke konser, jadi tetap ada meski kamu hapus dari galeri.</string>
+    <string name="play_roll_choose">Pilih foto</string>
+</resources>

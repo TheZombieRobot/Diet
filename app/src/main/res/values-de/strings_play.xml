@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- German: Play Store readiness (docs/WAVE2_PLAY.md): confirming an invite from another app, the location
+     disclosure, the privacy policy link, adding photos with the photo picker. -->
+<resources>
+    <string name="play_invite_join_text">Diese Einladung kommt aus einer anderen App. Tritt nur bei, wenn du weißt, wer sie geschickt hat: Solange du live bist, sieht jeder in der Crew, wo du bist.</string>
+    <string name="play_invite_follow_text">Dieser Link zum Mitverfolgen kommt aus einer anderen App. Du siehst die Fotos der Crew und dass es ihnen gut geht; sie sehen, dass du folgst.</string>
+    <string name="play_invite_friend_title">%1$s hinzufügen?</string>
+    <string name="play_invite_friend_text">Dieser Freundescode kommt aus einer anderen App. Füge die Person nur hinzu, wenn du weißt, wer ihn geschickt hat: Du kannst sie dann finden, wenn sie live ist.</string>
+    <string name="play_invite_add">Hinzufügen</string>
+    <string name="play_disclosure_title">So nutzt Moshpoint deinen Standort</string>
+    <string name="play_disclosure_live">Solange du live bist, wird dein Standort mit deiner Crew und deinen Freunden geteilt, damit sie dich finden.</string>
+    <string name="play_disclosure_relay">Er wird auf deinem Handy verschlüsselt und über den Relay-Server von Moshpoint gesendet, der ihn nicht lesen kann.</string>
+    <string name="play_disclosure_background">Live läuft weiter, wenn die App geschlossen ist, mit einer Benachrichtigung, bis du es ausschaltest.</string>
+    <string name="play_disclosure_bluetooth">Solange du live bist, leitet dein Handy auch verschlüsselte Nachrichten anderer Moshpoint-Nutzer per Bluetooth weiter. Lesen kann es sie nicht.</string>
+    <string name="play_disclosure_continue">Weiter</string>
+    <string name="play_privacy_policy">Datenschutzerklärung</string>
+    <string name="play_roll_pick_text">Wähle die Fotos und Videos aus, die du an dem Abend gemacht hast. Sie werden ins Konzert kopiert und bleiben, auch wenn du sie aus deiner Galerie löschst.</string>
+    <string name="play_roll_choose">Fotos auswählen</string>
+</resources>

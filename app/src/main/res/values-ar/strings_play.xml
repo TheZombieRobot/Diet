@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Arabic: Play Store readiness (docs/WAVE2_PLAY.md): confirming an invite from another app, the location
+     disclosure, the privacy policy link, adding photos with the photo picker. -->
+<resources>
+    <string name="play_invite_join_text">وصلت هذه الدعوة من تطبيق آخر. لا تنضم إلا إذا كنت تعرف من أرسلها: ما دمت ظاهرًا، يرى كل من في الشلة مكانك.</string>
+    <string name="play_invite_follow_text">وصل رابط المتابعة هذا من تطبيق آخر. سترى صور الشلة وأنهم بخير، وسيرون أنك تتابعهم.</string>
+    <string name="play_invite_friend_title">إضافة %1$s؟</string>
+    <string name="play_invite_friend_text">وصل رمز الصديق هذا من تطبيق آخر. لا تضفه إلا إذا كنت تعرف من أرسله: ستتمكن من إيجاده عندما يكون ظاهرًا.</string>
+    <string name="play_invite_add">إضافة</string>
+    <string name="play_disclosure_title">كيف يستخدم Moshpoint موقعك</string>
+    <string name="play_disclosure_live">ما دمت ظاهرًا، يُشارَك موقعك مع شلتك وأصدقائك ليتمكنوا من إيجادك.</string>
+    <string name="play_disclosure_relay">يُشفَّر على هاتفك ويُرسَل عبر خادم الترحيل الخاص بـ Moshpoint، الذي لا يستطيع قراءته.</string>
+    <string name="play_disclosure_background">يبقى الظهور مفعّلًا حتى بعد إغلاق التطبيق، مع إشعار، إلى أن توقفه.</string>
+    <string name="play_disclosure_bluetooth">ما دمت ظاهرًا، ينقل هاتفك أيضًا رسائل مشفّرة لمستخدمي Moshpoint الآخرين عبر البلوتوث، دون أن يستطيع قراءتها.</string>
+    <string name="play_disclosure_continue">متابعة</string>
+    <string name="play_privacy_policy">سياسة الخصوصية</string>
+    <string name="play_roll_pick_text">اختر الصور والفيديوهات التي التقطتها في تلك الليلة. تُنسخ إلى الحفلة، فتبقى حتى لو حذفتها من معرض صورك.</string>
+    <string name="play_roll_choose">اختر الصور</string>
+</resources>

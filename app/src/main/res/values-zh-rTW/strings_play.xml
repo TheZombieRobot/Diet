@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Chinese (Traditional, Taiwan): Play Store readiness (docs/WAVE2_PLAY.md): confirming an invite from another app, the location
+     disclosure, the privacy policy link, adding photos with the photo picker. -->
+<resources>
+    <string name="play_invite_join_text">這個邀請來自其他 App。只有知道是誰傳的才加入：你上線時，小隊裡的每個人都看得到你在哪裡。</string>
+    <string name="play_invite_follow_text">這個追蹤連結來自其他 App。你看得到小隊的相片和是否平安；他們也會知道你在追蹤。</string>
+    <string name="play_invite_friend_title">要新增 %1$s 嗎？</string>
+    <string name="play_invite_friend_text">這個好友代碼來自其他 App。只有知道是誰傳的才新增：對方上線時，你就找得到對方。</string>
+    <string name="play_invite_add">新增</string>
+    <string name="play_disclosure_title">Moshpoint 如何使用你的位置</string>
+    <string name="play_disclosure_live">你上線時，你的位置會分享給你的小隊和朋友，讓他們找得到你。</string>
+    <string name="play_disclosure_relay">位置會在你的手機上加密，再透過 Moshpoint 的中繼伺服器傳送，伺服器無法讀取。</string>
+    <string name="play_disclosure_background">關閉 App 後，上線狀態仍會持續並顯示一則通知，直到你關掉為止。</string>
+    <string name="play_disclosure_bluetooth">你上線時，你的手機也會透過藍牙轉送其他 Moshpoint 使用者的加密訊息，但無法讀取。</string>
+    <string name="play_disclosure_continue">繼續</string>
+    <string name="play_privacy_policy">隱私權政策</string>
+    <string name="play_roll_pick_text">選擇那晚拍的相片和影片。它們會複製到這場演出裡，就算從相簿刪掉也還在。</string>
+    <string name="play_roll_choose">選擇相片</string>
+</resources>

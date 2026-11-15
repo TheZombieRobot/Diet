@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thai: Play Store readiness (docs/WAVE2_PLAY.md): confirming an invite from another app, the location
+     disclosure, the privacy policy link, adding photos with the photo picker. -->
+<resources>
+    <string name="play_invite_join_text">คำชวนนี้มาจากแอปอื่น เข้าแก๊งเฉพาะเมื่อรู้ว่าใครส่งมา ระหว่างที่คุณแชร์อยู่ ทุกคนในแก๊งจะเห็นว่าคุณอยู่ที่ไหน</string>
+    <string name="play_invite_follow_text">ลิงก์ติดตามนี้มาจากแอปอื่น คุณจะได้เห็นรูปของแก๊งและรู้ว่าพวกเขาปลอดภัย และพวกเขาจะเห็นว่าคุณติดตามอยู่</string>
+    <string name="play_invite_friend_title">เพิ่ม %1$s ไหม?</string>
+    <string name="play_invite_friend_text">โค้ดเพื่อนนี้มาจากแอปอื่น เพิ่มเฉพาะเมื่อรู้ว่าใครส่งมา คุณจะหาเขาเจอได้ตอนที่เขาแชร์อยู่</string>
+    <string name="play_invite_add">เพิ่ม</string>
+    <string name="play_disclosure_title">Moshpoint ใช้ตำแหน่งของคุณอย่างไร</string>
+    <string name="play_disclosure_live">ระหว่างที่คุณแชร์อยู่ ตำแหน่งของคุณจะถูกแชร์ให้แก๊งและเพื่อน เพื่อให้หาคุณเจอ</string>
+    <string name="play_disclosure_relay">ตำแหน่งจะถูกเข้ารหัสบนมือถือของคุณ แล้วส่งผ่านเซิร์ฟเวอร์รีเลย์ของ Moshpoint ซึ่งอ่านข้อมูลนี้ไม่ได้</string>
+    <string name="play_disclosure_background">การแชร์ยังทำงานต่อแม้ปิดแอป พร้อมการแจ้งเตือน จนกว่าคุณจะปิดเอง</string>
+    <string name="play_disclosure_bluetooth">ระหว่างที่คุณแชร์อยู่ มือถือของคุณจะช่วยส่งต่อข้อความที่เข้ารหัสของผู้ใช้ Moshpoint คนอื่นผ่านบลูทูธด้วย โดยอ่านข้อความเหล่านั้นไม่ได้</string>
+    <string name="play_disclosure_continue">ต่อไป</string>
+    <string name="play_privacy_policy">นโยบายความเป็นส่วนตัว</string>
+    <string name="play_roll_pick_text">เลือกรูปและวิดีโอที่คุณถ่ายคืนนั้น รูปจะถูกก๊อปไว้ในคอน เลยยังอยู่แม้จะลบจากแกลเลอรีแล้ว</string>
+    <string name="play_roll_choose">เลือกรูป</string>
+</resources>

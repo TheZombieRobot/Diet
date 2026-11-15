@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dutch: Play Store readiness (docs/WAVE2_PLAY.md): confirming an invite from another app, the location
+     disclosure, the privacy policy link, adding photos with the photo picker. -->
+<resources>
+    <string name="play_invite_join_text">Deze uitnodiging komt uit een andere app. Doe alleen mee als je weet wie hem stuurde: zolang je live bent, ziet iedereen in de crew waar je bent.</string>
+    <string name="play_invite_follow_text">Deze meekijklink komt uit een andere app. Je ziet de foto\'s van de crew en dat ze veilig zijn; zij zien dat je volgt.</string>
+    <string name="play_invite_friend_title">%1$s toevoegen?</string>
+    <string name="play_invite_friend_text">Deze vriendcode komt uit een andere app. Voeg alleen toe als je weet wie hem stuurde: je kunt die persoon dan vinden als die live is.</string>
+    <string name="play_invite_add">Toevoegen</string>
+    <string name="play_disclosure_title">Zo gebruikt Moshpoint je locatie</string>
+    <string name="play_disclosure_live">Zolang je live bent, wordt je locatie gedeeld met je crew en vrienden, zodat ze je kunnen vinden.</string>
+    <string name="play_disclosure_relay">Hij wordt op je telefoon versleuteld en via de relayserver van Moshpoint verstuurd, die hem niet kan lezen.</string>
+    <string name="play_disclosure_background">Live blijft doorgaan als de app dicht is, met een melding, tot je het uitzet.</string>
+    <string name="play_disclosure_bluetooth">Zolang je live bent, stuurt je telefoon ook versleutelde berichten van andere Moshpoint-gebruikers door via Bluetooth. Lezen kan hij ze niet.</string>
+    <string name="play_disclosure_continue">Doorgaan</string>
+    <string name="play_privacy_policy">Privacybeleid</string>
+    <string name="play_roll_pick_text">Kies de foto\'s en video\'s die je die avond maakte. Ze worden naar het concert gekopieerd, dus ze blijven ook als je ze uit je galerij verwijdert.</string>
+    <string name="play_roll_choose">Foto\'s kiezen</string>
+</resources>
