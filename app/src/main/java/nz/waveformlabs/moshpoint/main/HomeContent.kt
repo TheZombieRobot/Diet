@@ -31,14 +31,14 @@ import nz.waveformlabs.moshpoint.profile.PhotoStore
 import nz.waveformlabs.moshpoint.safety.GhostMode
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 import nz.waveformlabs.moshpoint.sharing.Sharing
-import nz.waveformlabs.moshpoint.ui.FriendsScreen
-import nz.waveformlabs.moshpoint.ui.HomeCrew
-import nz.waveformlabs.moshpoint.ui.HomeCrewActions
-import nz.waveformlabs.moshpoint.ui.HomeGigActions
-import nz.waveformlabs.moshpoint.ui.HomeGigs
-import nz.waveformlabs.moshpoint.ui.HomeInviteActions
-import nz.waveformlabs.moshpoint.ui.HomeMe
-import nz.waveformlabs.moshpoint.ui.HomeMeActions
+import nz.waveformlabs.moshpoint.ui.home.FriendsScreen
+import nz.waveformlabs.moshpoint.ui.home.HomeCrew
+import nz.waveformlabs.moshpoint.ui.home.HomeCrewActions
+import nz.waveformlabs.moshpoint.ui.home.HomeGigActions
+import nz.waveformlabs.moshpoint.ui.home.HomeGigs
+import nz.waveformlabs.moshpoint.ui.home.HomeInviteActions
+import nz.waveformlabs.moshpoint.ui.home.HomeMe
+import nz.waveformlabs.moshpoint.ui.home.HomeMeActions
 import nz.waveformlabs.moshpoint.venue.VenueMaps
 
 /** The home screen, wired to the app. @NonRestartableComposable: see [MainScreen]. */
@@ -87,7 +87,7 @@ internal fun HomeContent(a: MainActivity) {
         ),
         gigs = HomeGigs(
             upNext = Crews.others.map { e ->
-                nz.waveformlabs.moshpoint.ui.UpNextCard(
+                nz.waveformlabs.moshpoint.ui.home.UpNextCard(
                     id = e.id, name = e.group.name,
                     whenText = e.group.startsAtSec.takeIf { it > 0 }?.let { nz.waveformlabs.moshpoint.ui.gigWhen(it) },
                     countdown = nz.waveformlabs.moshpoint.ui.countdown(e.group.startsAtSec, a.home.homeNow / 1000),

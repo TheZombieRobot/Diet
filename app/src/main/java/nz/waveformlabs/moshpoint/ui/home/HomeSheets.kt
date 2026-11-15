@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import nz.waveformlabs.moshpoint.ui.Mosh
 
 // Rows and the pop-up panel the home's panels are built from, and the background glow
 // (docs/design/home-redesign).

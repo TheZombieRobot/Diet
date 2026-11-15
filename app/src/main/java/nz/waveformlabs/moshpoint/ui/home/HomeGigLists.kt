@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.LocalIndication
@@ -58,6 +58,10 @@ import nz.waveformlabs.moshpoint.R
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import nz.waveformlabs.moshpoint.ui.Mosh
+import nz.waveformlabs.moshpoint.ui.countdown
+import nz.waveformlabs.moshpoint.ui.pressScale
+import nz.waveformlabs.moshpoint.ui.rememberPress
 
 // Other nights on the home (docs/design/home-redesign): Up next, "Remember last year?" and
 // past gigs as Polaroids, with the panel that lists them all.

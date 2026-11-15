@@ -16,6 +16,17 @@ import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.FriendRecord
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.ui.home.FriendsScreen
+import nz.waveformlabs.moshpoint.ui.home.HomeCrew
+import nz.waveformlabs.moshpoint.ui.home.HomeCrewActions
+import nz.waveformlabs.moshpoint.ui.home.HomeGigActions
+import nz.waveformlabs.moshpoint.ui.home.HomeGigs
+import nz.waveformlabs.moshpoint.ui.home.HomeInviteActions
+import nz.waveformlabs.moshpoint.ui.home.HomeMe
+import nz.waveformlabs.moshpoint.ui.home.HomeMeActions
+import nz.waveformlabs.moshpoint.ui.home.SetupIssue
+import nz.waveformlabs.moshpoint.ui.home.SheetFrame
+import nz.waveformlabs.moshpoint.ui.home.UpNextCard
 import nz.waveformlabs.moshpoint.venue.VenueMaps
 
 /**

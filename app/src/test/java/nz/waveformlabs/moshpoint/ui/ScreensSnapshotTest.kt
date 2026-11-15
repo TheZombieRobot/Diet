@@ -14,6 +14,14 @@ import nz.waveformlabs.moshpoint.core.FriendRecord
 import nz.waveformlabs.moshpoint.core.Method
 import nz.waveformlabs.moshpoint.core.Trend
 import nz.waveformlabs.moshpoint.locate.LocatorEngine
+import nz.waveformlabs.moshpoint.ui.home.AddSheetContent
+import nz.waveformlabs.moshpoint.ui.home.CrewMenuContent
+import nz.waveformlabs.moshpoint.ui.home.FriendsListContent
+import nz.waveformlabs.moshpoint.ui.home.HomeDivider
+import nz.waveformlabs.moshpoint.ui.home.SectionTitle
+import nz.waveformlabs.moshpoint.ui.home.UpNextCard
+import nz.waveformlabs.moshpoint.ui.home.UpNextRow
+import nz.waveformlabs.moshpoint.ui.home.dotLine
 import org.junit.Rule
 import org.junit.Test
 

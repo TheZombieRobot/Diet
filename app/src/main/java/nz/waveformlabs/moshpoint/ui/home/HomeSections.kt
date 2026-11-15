@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -47,6 +47,11 @@ import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.moments.Moments
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.ui.Mosh
+import nz.waveformlabs.moshpoint.ui.Polaroid
+import nz.waveformlabs.moshpoint.ui.VenueMapLine
+import nz.waveformlabs.moshpoint.ui.ago
+import nz.waveformlabs.moshpoint.ui.qrBitmap
 import nz.waveformlabs.moshpoint.venue.VenueMaps
 
 // The home screen's crew sections, top to bottom (docs/design/home-redesign): the header, the

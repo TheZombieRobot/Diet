@@ -58,6 +58,7 @@ import nz.waveformlabs.moshpoint.core.ArrowState
 import nz.waveformlabs.moshpoint.core.ArrowStyle
 import nz.waveformlabs.moshpoint.core.Method
 import nz.waveformlabs.moshpoint.locate.LocatorEngine
+import nz.waveformlabs.moshpoint.ui.home.SetupIssue
 
 /** Closer than this counts as "found": confetti time. */
 private const val FOUND_M = 3.0

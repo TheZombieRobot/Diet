@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.home
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -52,6 +52,13 @@ import nz.waveformlabs.moshpoint.friends.Friend
 import nz.waveformlabs.moshpoint.map.LocationBook
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
+import nz.waveformlabs.moshpoint.ui.Faces
+import nz.waveformlabs.moshpoint.ui.InitialsAvatar
+import nz.waveformlabs.moshpoint.ui.Mosh
+import nz.waveformlabs.moshpoint.ui.UnreadBadge
+import nz.waveformlabs.moshpoint.ui.ago
+import nz.waveformlabs.moshpoint.ui.finderDistanceLabel
+import nz.waveformlabs.moshpoint.ui.glow
 
 // Faces on the home (docs/design/home-redesign): who's live, what to say under each face, the
 // order they sit in, the crew's tiles and the friends strip.

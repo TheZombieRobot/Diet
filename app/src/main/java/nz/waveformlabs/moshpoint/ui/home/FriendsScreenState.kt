@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.home
 
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt

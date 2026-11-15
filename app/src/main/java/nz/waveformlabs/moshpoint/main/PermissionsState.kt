@@ -11,7 +11,7 @@ import androidx.compose.runtime.setValue
 import nz.waveformlabs.moshpoint.MainActivity
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.setup.SetupChecks
-import nz.waveformlabs.moshpoint.ui.SetupIssue
+import nz.waveformlabs.moshpoint.ui.home.SetupIssue
 
 /**
  * Permissions and the phone's own switches: what's still not allowed, what's switched off that

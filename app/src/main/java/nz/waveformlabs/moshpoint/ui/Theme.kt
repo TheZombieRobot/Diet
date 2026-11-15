@@ -11,6 +11,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.ui.home.Kicker
 
 /**
  * Moshpoint's look (see the design canvas): neon party, premium finish. Inky

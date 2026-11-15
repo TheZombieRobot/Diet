@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.home
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.LocalIndication
@@ -50,6 +50,11 @@ import nz.waveformlabs.moshpoint.friends.Friend
 import nz.waveformlabs.moshpoint.map.LocationBook
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.ui.HelpDialog
+import nz.waveformlabs.moshpoint.ui.Mosh
+import nz.waveformlabs.moshpoint.ui.glow
+import nz.waveformlabs.moshpoint.ui.pressScale
+import nz.waveformlabs.moshpoint.ui.rememberPress
 
 // The home's pop-up panels (docs/design/home-redesign): friends, the crew menu, Add, and the
 // message panel with its one-tap pings.

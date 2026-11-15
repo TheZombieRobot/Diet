@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.home
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -72,6 +72,12 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.ui.Mosh
+import nz.waveformlabs.moshpoint.ui.glow
+import nz.waveformlabs.moshpoint.ui.pressScale
+import nz.waveformlabs.moshpoint.ui.rememberPress
+import nz.waveformlabs.moshpoint.ui.rememberShimmer
+import nz.waveformlabs.moshpoint.ui.shimmer
 
 // The home's buttons (docs/design/home-redesign): the wordmark and Need help, the big gradient
 // button, glass buttons and the pair they sit in, counts, the Live switch and section titles.

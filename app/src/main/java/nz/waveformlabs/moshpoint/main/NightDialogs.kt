@@ -28,7 +28,7 @@ import nz.waveformlabs.moshpoint.venue.VenueLookup
 @NonRestartableComposable
 internal fun NightDialogs(a: MainActivity) {
     if (a.home.planGig) {
-        nz.waveformlabs.moshpoint.ui.PlanGigSheet(
+        nz.waveformlabs.moshpoint.ui.home.PlanGigSheet(
             search = if (GigSearch.available) ({ q -> GigSearch.search(q) }) else null,
             onPick = { name, at, venue, lat, lon ->
                 if (at < System.currentTimeMillis() / 1000 - 3600) {
@@ -51,7 +51,7 @@ internal fun NightDialogs(a: MainActivity) {
         )
     }
     if (a.invites.bumping) {
-        nz.waveformlabs.moshpoint.ui.BumpDialog(sharing = GroupSync.group.value != null) {
+        nz.waveformlabs.moshpoint.ui.home.BumpDialog(sharing = GroupSync.group.value != null) {
             a.invites.bumping = false
             Bump.stop(a)
         }

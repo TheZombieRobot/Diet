@@ -54,6 +54,7 @@ import nz.waveformlabs.moshpoint.chat.CrewChat
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.safety.Safety
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.ui.home.PingBar
 
 /**
  * The crew's chat: the pinned plan on top (Muse-style), short messages, flares with a vibe,

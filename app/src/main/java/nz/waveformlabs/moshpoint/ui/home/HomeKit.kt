@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.home
 
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.size
@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.sp
+import nz.waveformlabs.moshpoint.ui.MapPin
+import nz.waveformlabs.moshpoint.ui.Mosh
 
 /*
  * The home's building blocks (docs/design/home-redesign), in four files: here the side margin,

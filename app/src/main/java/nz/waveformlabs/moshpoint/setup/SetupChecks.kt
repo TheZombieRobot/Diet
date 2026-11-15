@@ -6,7 +6,7 @@ import android.os.PowerManager
 import android.provider.Settings
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
-import nz.waveformlabs.moshpoint.ui.SetupIssue
+import nz.waveformlabs.moshpoint.ui.home.SetupIssue
 
 /**
  * Phone switches that are off but needed to find each other (Bluetooth, Location, Wi-Fi,
