@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.safety
 
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager

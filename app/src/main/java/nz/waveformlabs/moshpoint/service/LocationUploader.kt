@@ -73,7 +73,7 @@ class LocationUploader(private val context: Context, private val scope: Coroutin
     }
 
     private suspend fun publish(loc: Location, force: Boolean, lastGasp: Boolean = false) {
-        nz.waveformlabs.moshpoint.GhostMode.expireIfDue(context)
+        nz.waveformlabs.moshpoint.safety.GhostMode.expireIfDue(context)
         if (VisibilityPrefs.ghost(context)) {
             CrowdRelayRadio.ownPacket = null
             DebugStatus.set("Location", "ghost mode: not shared")

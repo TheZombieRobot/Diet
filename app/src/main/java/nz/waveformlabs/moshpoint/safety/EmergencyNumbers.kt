@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.safety
 
 import android.content.Context
 import android.telephony.TelephonyManager

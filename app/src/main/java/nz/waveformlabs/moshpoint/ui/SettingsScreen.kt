@@ -137,7 +137,7 @@ internal fun SettingsContent(
             }
             run {
                 val context = androidx.compose.ui.platform.LocalContext.current
-                val ghost = nz.waveformlabs.moshpoint.GhostMode.on.value
+                val ghost = nz.waveformlabs.moshpoint.safety.GhostMode.on.value
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(stringResource(R.string.setup_ghost_mode), style = Mosh.Label)
@@ -147,10 +147,10 @@ internal fun SettingsContent(
                         )
                     }
                     Spacer(Modifier.width(12.dp))
-                    Switch(ghost, { nz.waveformlabs.moshpoint.GhostMode.set(context, it) }, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Violet, checkedThumbColor = Color.White, uncheckedTrackColor = Color(0xFF1C1630)))
+                    Switch(ghost, { nz.waveformlabs.moshpoint.safety.GhostMode.set(context, it) }, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Violet, checkedThumbColor = Color.White, uncheckedTrackColor = Color(0xFF1C1630)))
                 }
                 if (!ghost) {
-                    TextButton(onClick = { nz.waveformlabs.moshpoint.GhostMode.set(context, true, 3_600_000L) }) {
+                    TextButton(onClick = { nz.waveformlabs.moshpoint.safety.GhostMode.set(context, true, 3_600_000L) }) {
                         Text(stringResource(R.string.setup_ghost_one_hour), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Violet))
                     }
                 }
@@ -172,7 +172,7 @@ internal fun SettingsContent(
             run {
                 // Who "Need help" can text, outside the crew.
                 val context = androidx.compose.ui.platform.LocalContext.current
-                val saved = remember { nz.waveformlabs.moshpoint.Safety.contact(context) }
+                val saved = remember { nz.waveformlabs.moshpoint.safety.Safety.contact(context) }
                 var name by remember { mutableStateOf(saved?.name.orEmpty()) }
                 var number by remember { mutableStateOf(saved?.number.orEmpty()) }
                 var note by remember { mutableStateOf<String?>(null) }
@@ -195,11 +195,11 @@ internal fun SettingsContent(
                     Row {
                         TextButton(onClick = {
                             note = if (number.count { it.isDigit() } >= 6) {
-                                nz.waveformlabs.moshpoint.Safety.setContact(context, name, number); savedText
+                                nz.waveformlabs.moshpoint.safety.Safety.setContact(context, name, number); savedText
                             } else needNumberText
                         }) { Text(stringResource(R.string.setup_save), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
                         if (saved != null || number.isNotEmpty()) TextButton(onClick = {
-                            nz.waveformlabs.moshpoint.Safety.clearContact(context); name = ""; number = ""; note = removedText
+                            nz.waveformlabs.moshpoint.safety.Safety.clearContact(context); name = ""; number = ""; note = removedText
                         }) { Text(stringResource(R.string.setup_remove), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.TextDim)) }
                     }
                     note?.let { Text(it, style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.Lime)) }

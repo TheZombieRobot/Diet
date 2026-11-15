@@ -52,7 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.chat.CrewChat
 import nz.waveformlabs.moshpoint.R
-import nz.waveformlabs.moshpoint.Safety
+import nz.waveformlabs.moshpoint.safety.Safety
 import nz.waveformlabs.moshpoint.core.GigGroup
 
 /**
@@ -509,12 +509,12 @@ internal fun HelpDialog(onAlertCrew: (() -> Unit)?, onClose: () -> Unit) {
                     }) { Text(stringResource(R.string.crew_help_save_contact), style = Mosh.Label.copy(color = Mosh.Amber)) }
                 }
                 // The emergency number(s) where you are now (abroad at a festival too).
-                val numbers = remember { nz.waveformlabs.moshpoint.EmergencyNumbers.here(c) }
+                val numbers = remember { nz.waveformlabs.moshpoint.safety.EmergencyNumbers.here(c) }
                 numbers.forEach { n ->
                     val sub = when (n.kind) {
-                        nz.waveformlabs.moshpoint.EmergencyNumbers.Kind.ALL -> stringResource(R.string.crew_help_call_sub)
-                        nz.waveformlabs.moshpoint.EmergencyNumbers.Kind.POLICE -> stringResource(R.string.crew_help_call_police)
-                        nz.waveformlabs.moshpoint.EmergencyNumbers.Kind.AMBULANCE -> stringResource(R.string.crew_help_call_ambulance)
+                        nz.waveformlabs.moshpoint.safety.EmergencyNumbers.Kind.ALL -> stringResource(R.string.crew_help_call_sub)
+                        nz.waveformlabs.moshpoint.safety.EmergencyNumbers.Kind.POLICE -> stringResource(R.string.crew_help_call_police)
+                        nz.waveformlabs.moshpoint.safety.EmergencyNumbers.Kind.AMBULANCE -> stringResource(R.string.crew_help_call_ambulance)
                     }
                     HelpAction(stringResource(R.string.crew_help_call, n.digits), sub, Mosh.Alarm) { Safety.callEmergency(c, n.digits) }
                 }
