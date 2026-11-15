@@ -8,36 +8,39 @@ and Live) runs in parallel; wave 2c (battery) and 2d (Report and Block) come lat
 ## Status and next steps (handover)
 
 _Keep this section current: whoever picks this up next starts here. Last updated 15 November
-2026, 23:40 UTC._
+2026, 23:45 UTC._
 
-- **Done (code):** items 1–4 and 6–12 below; item 5 was dropped by the owner (the refusal was
-  built, then removed again). **Done (docs):** ANDROID_16.md, BLUETOOTH_UUIDS.md, PLAY_STORE.md
-  (Data safety corrected, Play Console answers), PRIVACY.md, FIELD_TEST_PLAN.md section 4g,
-  this note.
+- **Done.** Code: items 1–4 and 6–12 below; item 5 was dropped by the owner (the refusal was
+  built, then removed again). Docs: ANDROID_16.md, BLUETOOTH_UUIDS.md, PLAY_STORE.md (Data
+  safety corrected, Play Console answers), PRIVACY.md, FIELD_TEST_PLAN.md section 4g,
+  SERVER_PRODUCTION.md's app follow-ups, this note.
+- **Final CI: run 306 (d58062f), green**
+  (https://github.com/TheZombieRobot/Diet/actions/runs/43772437390): translations, core and
+  server tests, debug and release builds, the 16 KB check (phone and watch), screenshots, the
+  watch. Against `origin/ui-screenshots`: 252 added (the 12 new screens × 21 languages), none
+  modified or deleted. Manifest: exactly the six intended removals (below). Licences: only
+  MapLibre 11.5.2 → 11.8.1. `origin/ccr-5839ed7c-1q0ztj` is merged in (e3d1b49; nothing newer).
 - **Course change (15 November, from the coordinating session):** item 5 dropped; item 4's relay
-  rule is now "release builds follow an invite only to one of their own relays"
+  rule is "release builds follow an invite only to one of their own relays"
   (`RelayClient.ownRelays`); Settings' relay example is `https://<app>.fly.dev`; PRIVACY.md has
-  Fly's one-day snapshots. `origin/ccr-5839ed7c-1q0ztj` is merged in (e3d1b49).
-- **CI so far:** run 300 (toolchain) green with every build, the 16 KB check and the manifest
-  diff as intended, but every screenshot test failed on API 36 (Paparazzi). Run 302 fixed the
-  start-up (a test-only `android.os.Build`, ANDROID_16.md) but drew blank screens; df41ff3 drew
-  them all: 252 added (12 new screens × 21 languages), 0 modified, 0 deleted against
-  `origin/ui-screenshots`.
-- **Screens reviewed (df41ff3's run, every new screen in every language):** two problems, both
-  fixed after it: on a small phone with a large font the French "Rejoindre" and "Continuer" broke
-  mid-word (the two dialog buttons now stack, the confirming one on top, when both don't fit:
-  `PlayDialogs.Buttons`), and `settingsAbout` showed CI's build number, which changes every run
-  (the test now passes a fixed version). Fine as they are: on a small phone with a large font
-  the welcome's second step and the disclosure's points scroll (by design), so the privacy link
-  is below the fold there; tablets in landscape show the phone layout full width, nothing cut.
-- **Next steps, in order:**
-  1. The final run: green; the comparison in "Checking" still only 252 `A` lines; the disclosure
-     screens redrawn with the new relay line, and French stacked buttons on the small phone with
-     a large font (look at every language, small phone and large font, tablet).
-  2. Report to the coordinating session (session_01Sw3Y2WCFVzhNwUVdFGVbRq) with send_message.
-- **If CI's screenshot step fails again:** it's `continue-on-error`, so the run stays green;
-  look at the size of the files on the `ui-screenshots-…` branch, and at the job log's
-  "=== failing screenshot tests ===" lines.
+  Fly's one-day snapshots.
+- **Screens reviewed, every new screen in every language** (normal phone, small phone with a
+  large font, tablet): two problems found in run 303 and fixed: the French "Rejoindre" and
+  "Continuer" broke mid-word on a small phone with a large font (the dialog buttons now stack,
+  the confirming one on top, when both don't fit: `PlayDialogs.Buttons`), and `settingsAbout`
+  showed CI's build number, which changes every run (the test passes a fixed version). Fine as
+  they are: on a small phone with a large font the welcome's second step and the disclosure's
+  points scroll, so the privacy link is below the fold there; tablets in landscape show the
+  phone layout full width, nothing cut off.
+- **CI quirk, for whoever owns android.yml:** when two queued runs on one branch both change the
+  same image in `docs/screenshots`, the second run's commit can't rebase (a binary conflict) and
+  the step's `continue-on-error` hides it. It happened to run 306 (`settingsAbout`, whose build
+  number changed between runs 303 and 304); its five images were copied by hand from its own
+  `ui-screenshots-claude-play-store-security` set. The all-language branch is force-pushed, so
+  it's always right.
+- **Next:** merge into `ccr-5839ed7c-1q0ztj` (the coordinating session decides when; see
+  "Merging with wave 2a"), then the field tests in FIELD_TEST_PLAN.md section 4g and the owner
+  to-dos at the end of this note.
 
 ## What changed, item by item
 
@@ -184,7 +187,8 @@ hours" for moments is "within 24 hours" in every language.
 
 ## Intended manifest changes
 
-From CI's "Merged manifest and licence list, compared with the published main build" (run 302):
+From CI's "Merged manifest and licence list, compared with the published main build" (runs 302,
+304 and 306, the same each time):
 
 ```
 < provider name=com.facebook.internal.FacebookInitProvider exported=false authorities=nz.waveformlabs.moshpoint.FacebookInitProvider
@@ -195,7 +199,7 @@ From CI's "Merged manifest and licence list, compared with the published main bu
 < uses-permission name=com.google.android.gms.permission.AD_ID
 ```
 
-Only removals, nothing added. Licence list: `org.maplibre.gl:android-sdk`
+Only removals, nothing added: 69 → 63 entries. Licence list: `org.maplibre.gl:android-sdk`
 11.5.2 → 11.8.1, nothing else. (Target SDK isn't in that report; `aapt2 dump badging` shows it.)
 
 ## Intended screenshot changes
