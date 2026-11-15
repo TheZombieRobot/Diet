@@ -26,7 +26,7 @@ enum class Outcome { OK, MAILBOX, BYTES, FULL }
 /** All the relay's limits (see [LimitConfig]). In memory only. */
 class Limits(c: LimitConfig, private val clock: () -> Long) {
     private fun rl(b: Bucket) = RateLimiter(b.burst, b.perSec, clock)
-    private fun perHour(bytes: Long) = RateLimiter(bytes.toDouble(), bytes / 3600.0, clock)
+    private fun perHour(amount: Long) = RateLimiter(amount.toDouble(), amount / 3600.0, clock)
 
     private val anonWrites = rl(c.anonWrites)
     private val anonReads = rl(c.anonReads)
@@ -35,51 +35,101 @@ class Limits(c: LimitConfig, private val clock: () -> Long) {
     private val tokenAddress = rl(c.tokenAddress)
     private val mailboxes = mapOf(Kind.BOX to rl(c.boxWrites), Kind.HELD to rl(c.heldWrites), Kind.FILE to rl(c.fileWrites), Kind.AVATAR to rl(c.avatarWrites))
     private val registrations = rl(c.registrations)
-    private val anonRecordBytes = perHour(c.anonRecordBytesPerHour)
-    private val tokenRecordBytes = perHour(c.tokenRecordBytesPerHour)
-    private val anonUpload = perHour(c.anonUploadBytesPerHour)
-    private val tokenUpload = perHour(c.tokenUploadBytesPerHour)
-    private val addressDownload = perHour(c.addressDownloadBytesPerHour)
-    private val tokenDownload = perHour(c.tokenDownloadBytesPerHour)
+
+    /** A budget per address that every client there shares, and a smaller one per install. */
+    private class Budget(val address: RateLimiter, val install: RateLimiter)
+
+    private val recordBytes = Budget(perHour(c.anonRecordBytesPerHour), perHour(c.tokenRecordBytesPerHour))
+    private val uploadBytes = Budget(perHour(c.anonUploadBytesPerHour), perHour(c.tokenUploadBytesPerHour))
+    private val uploadCount = Budget(rl(c.anonUploads), rl(c.tokenUploads))
+    private val downloadBytes = Budget(perHour(c.addressDownloadBytesPerHour), perHour(c.tokenDownloadBytesPerHour))
 
     /** A request from [client]: null if it may go ahead, else the limit it hit. */
     fun request(client: Client, write: Boolean, cost: Double = 1.0): Limit? {
         val install = client.install ?: return if ((if (write) anonWrites else anonReads).allow(client.address, cost)) null else Limit.CLIENT
-        if (!tokenAddress.allow(client.address, cost)) return Limit.ADDRESS
-        return if ((if (write) tokenWrites else tokenReads).allow(install, cost)) null else Limit.CLIENT
+        // The install's own limit first: a client over it never touches what its address shares.
+        val own = if (write) tokenWrites else tokenReads
+        if (!own.allow(install, cost)) return Limit.CLIENT
+        if (!tokenAddress.allow(client.address, cost)) {
+            own.refund(install, cost)
+            return Limit.ADDRESS
+        }
+        return null
     }
 
     fun refund(client: Client, write: Boolean, cost: Double) {
         val install = client.install
-        if (install == null) (if (write) anonWrites else anonReads).refund(client.address, cost)
-        else (if (write) tokenWrites else tokenReads).refund(install, cost)
+        if (install == null) {
+            (if (write) anonWrites else anonReads).refund(client.address, cost)
+        } else {
+            (if (write) tokenWrites else tokenReads).refund(install, cost)
+            tokenAddress.refund(client.address, cost)
+        }
     }
 
     /** One write to the mailbox [id] of [kind], whoever sends it. */
     fun mailbox(kind: Kind, id: String): Boolean = mailboxes.getValue(kind).allow(id)
 
-    fun recordBytes(client: Client, n: Int): Boolean = bytes(client, anonRecordBytes, tokenRecordBytes, n.toLong())
+    fun refundMailbox(kind: Kind, id: String) = mailboxes.getValue(kind).refund(id, 1.0)
 
-    fun uploadBytes(client: Client, n: Long): Boolean = bytes(client, anonUpload, tokenUpload, n)
+    fun recordBytes(client: Client, n: Int): Boolean = take(recordBytes, client, n.toDouble())
 
-    /** Every download counts against its address; with a token, against the install as well. */
-    fun downloadBytes(client: Client, n: Long): Boolean {
-        if (!addressDownload.allow(client.address, n.toDouble())) return false
-        val install = client.install ?: return true
-        if (tokenDownload.allow(install, n.toDouble())) return true
-        addressDownload.refund(client.address, n.toDouble())
+    /** One upload (a moment or a photo) of [n] bytes: counts against both the bytes and the number of uploads. */
+    fun upload(client: Client, n: Long): Boolean {
+        if (!take(uploadCount, client, 1.0)) return false
+        if (take(uploadBytes, client, n.toDouble())) return true
+        give(uploadCount, client, 1.0)
         return false
     }
 
+    fun refundUpload(client: Client, n: Long) {
+        give(uploadCount, client, 1.0)
+        give(uploadBytes, client, n.toDouble())
+    }
+
+    fun downloadBytes(client: Client, n: Long): Boolean = take(downloadBytes, client, n.toDouble())
+
     fun registration(client: Client): Boolean = registrations.allow(client.address)
 
-    private fun bytes(client: Client, anon: RateLimiter, token: RateLimiter, n: Long): Boolean =
-        client.install?.let { token.allow(it, n.toDouble()) } ?: anon.allow(client.address, n.toDouble())
+    /** Every client counts against its address; one with a token against its install as well. */
+    private fun take(b: Budget, client: Client, n: Double): Boolean {
+        val install = client.install
+        if (install != null && !b.install.allow(install, n)) return false
+        if (b.address.allow(client.address, n)) return true
+        if (install != null) b.install.refund(install, n)
+        return false
+    }
+
+    private fun give(b: Budget, client: Client, n: Double) {
+        b.address.refund(client.address, n)
+        client.install?.let { b.install.refund(it, n) }
+    }
 
     fun sweep() {
-        (listOf(anonWrites, anonReads, tokenWrites, tokenReads, tokenAddress, registrations, anonRecordBytes, tokenRecordBytes, anonUpload, tokenUpload, addressDownload, tokenDownload) +
-            mailboxes.values).forEach { it.sweep() }
+        (listOf(anonWrites, anonReads, tokenWrites, tokenReads, tokenAddress, registrations) + mailboxes.values +
+            listOf(recordBytes, uploadBytes, uploadCount, downloadBytes).flatMap { listOf(it.address, it.install) }).forEach { it.sweep() }
     }
+}
+
+/** How many of something each key (an address) has going at once, at most [max]. */
+class PerKey(private val max: Int) {
+    private val counts = java.util.concurrent.ConcurrentHashMap<String, Int>()
+
+    fun enter(key: String): Boolean {
+        var ok = false
+        counts.compute(key) { _, n ->
+            val now = n ?: 0
+            ok = now < max
+            if (ok) now + 1 else now.takeIf { it > 0 }
+        }
+        return ok
+    }
+
+    fun exit(key: String) {
+        counts.computeIfPresent(key) { _, n -> (n - 1).takeIf { it > 0 } }
+    }
+
+    fun count(key: String): Int = counts[key] ?: 0
 }
 
 /**
@@ -92,11 +142,17 @@ class Relay(val config: RelayConfig) : AutoCloseable {
     val db = Db.open(File(config.dataDir, "relay.db"), config.sqliteSync)
     val box = MailboxStore(db, "box", config.boxTtlMs, config.boxMaxPerId, config.boxMaxBytes, clock)
     val held = MailboxStore(db, "held", config.heldTtlMs, config.heldMaxPerId, config.heldMaxBytes, clock)
-    val files = FileStore(File(config.dataDir, "files"), config.fileTtlMs, config.fileMaxBytes, config.filesPerId, config.downloadsPerFile, clock)
-    val avatars = AvatarStore(File(config.dataDir, "avatars"), config.avatarTtlMs, config.avatarMaxBytes, clock)
+    val files = FileStore(File(config.dataDir, "files"), config.fileTtlMs, config.fileMaxBytes, config.filesPerId, config.downloadsPerFile, config.fileMaxCount, clock)
+    val avatars = AvatarStore(File(config.dataDir, "avatars"), config.avatarTtlMs, config.avatarMaxBytes, config.avatarMaxCount, clock)
     val limits = Limits(config.limits, clock)
     val tokens = InstallTokens(config.tokenSecret ?: InstallTokens.secret({ null }, config.dataDir), clock)
+    /** Uploads being received, everyone together and per address. */
     val uploads = Semaphore(config.maxUploads)
+    val uploaders = PerKey(config.maxUploadsPerAddress)
+
+    /** Requests in progress per address, and big answers being built and sent, everyone together. */
+    val inFlight = PerKey(config.maxInFlightPerAddress)
+    val answers = Semaphore(config.maxAnswers)
     private val closed = AtomicBoolean(false)
 
     fun store(kind: Kind): MailboxStore = if (kind == Kind.HELD) held else box

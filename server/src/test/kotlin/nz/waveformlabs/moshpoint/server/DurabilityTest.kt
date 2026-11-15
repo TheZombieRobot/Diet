@@ -70,6 +70,31 @@ class DurabilityTest {
         b.close()
     }
 
+    @Test fun cursorsSkipNothingAfterARestoreFromAnOlderSnapshot() = runBlocking<Unit> {
+        var now = 1_700_000_000_000L
+        val dir = tempDataDir()
+        val a = testRelay(dir, clock = { now })
+        a.held.put(idRaw, ByteArray(20) { 1 })
+        a.close()
+        // Fly's daily snapshot of the volume.
+        val snapshot = File(dir, "relay.db").readBytes()
+        now += 3_600_000L
+        val b = testRelay(dir, clock = { now })
+        repeat(5) { b.held.put(idRaw, ByteArray(20) { n -> (n + it + 2).toByte() }) }
+        val cursor = b.held.since(listOf(idRaw to 0L), 1 shl 20).single().next // a phone saw all of that
+        b.close()
+        // The volume is lost and the snapshot restored; the relay starts again.
+        File(dir, "relay.db").writeBytes(snapshot)
+        File(dir, "relay.db-wal").delete()
+        now += 3_600_000L
+        val c = testRelay(dir, clock = { now })
+        val fresh = ByteArray(20) { 9 }
+        c.held.put(idRaw, fresh)
+        // The phone asks from its cursor and gets the new record (not skipped as "already seen").
+        assertContentEquals(fresh, c.held.since(listOf(idRaw to cursor), 1 shl 20).single().records.single())
+        c.close()
+    }
+
     @Test fun anUploadCutOffByACrashIsNeverServed() {
         val dir = tempDataDir()
         testRelay(dir).close()

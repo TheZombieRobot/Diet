@@ -32,15 +32,7 @@ class Db private constructor(private val url: String, private val sync: String) 
     @Volatile private var closed = false
 
     init {
-        blocking {
-            conn = DriverManager.getConnection(url)
-            exec("PRAGMA journal_mode=WAL")
-            exec("PRAGMA synchronous=$sync")
-            exec("PRAGMA busy_timeout=5000")
-            // 32 MB of page cache, outside the Java heap.
-            exec("PRAGMA cache_size=-32000")
-            exec("PRAGMA temp_store=MEMORY")
-        }
+        blocking { connect() }
     }
 
     /** Run [block] on the database thread. */
@@ -82,16 +74,38 @@ class Db private constructor(private val url: String, private val sync: String) 
     /** One transaction around [block]; rolled back if it throws. */
     fun <T> tx(block: () -> T): T {
         conn.autoCommit = false
-        try {
-            val r = block()
-            conn.commit()
-            return r
+        val r = try {
+            block().also { conn.commit() }
         } catch (e: Throwable) {
-            runCatching { conn.rollback() }
-            throw e
-        } finally {
+            try {
+                conn.rollback()
+            } catch (r: Throwable) {
+                // Can't roll back: closing the connection discards the transaction; start afresh.
+                reopen()
+                throw e
+            }
             conn.autoCommit = true
+            throw e
         }
+        conn.autoCommit = true
+        return r
+    }
+
+    private fun reopen() {
+        statements.values.forEach { runCatching { it.close() } }
+        statements.clear()
+        runCatching { conn.close() }
+        connect()
+    }
+
+    private fun connect() {
+        conn = DriverManager.getConnection(url)
+        exec("PRAGMA journal_mode=WAL")
+        exec("PRAGMA synchronous=$sync")
+        exec("PRAGMA busy_timeout=5000")
+        // 32 MB of page cache, outside the Java heap.
+        exec("PRAGMA cache_size=-32000")
+        exec("PRAGMA temp_store=MEMORY")
     }
 
     /** Write everything out (WAL checkpoint) and close. Safe to call twice. */

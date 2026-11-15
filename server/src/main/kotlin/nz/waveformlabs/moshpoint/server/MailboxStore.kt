@@ -14,9 +14,9 @@ package nz.waveformlabs.moshpoint.server
  *  - lookups return the newest first.
  *
  * Every record gets a sequence number, `seq`, that only ever grows. It is the cursor for
- * "what's new since I last looked" ([since]). Sequence numbers start from the clock (in
- * microseconds) when a store is created, so a store recreated empty never hands out a cursor
- * below one a phone kept from before.
+ * "what's new since I last looked" ([since]). At every start the next number is raised to at
+ * least the clock in microseconds, so a store recreated empty or restored from an older
+ * snapshot never hands out a number below a cursor a phone kept from before.
  *
  * Besides the count per id, the whole store is capped at [maxBytes] (payload plus [ROW_OVERHEAD]
  * per record). A full store refuses new records ([Put.FULL], "try later") rather than dropping
@@ -51,10 +51,19 @@ class MailboxStore(
             exec("CREATE TABLE IF NOT EXISTS $table (seq INTEGER PRIMARY KEY AUTOINCREMENT, id BLOB NOT NULL, at INTEGER NOT NULL, data BLOB NOT NULL)")
             exec("CREATE INDEX IF NOT EXISTS ${table}_id ON $table(id, seq)")
             exec("CREATE INDEX IF NOT EXISTS ${table}_at ON $table(at)")
+            // At every start, not just the first: a store restored from an older snapshot must not
+            // hand out numbers below cursors phones kept from after it.
+            val floor = clock() * 1000
             if (longQuery("SELECT seq FROM sqlite_sequence WHERE name = ?", table) == null) {
                 stmt("INSERT INTO sqlite_sequence(name, seq) VALUES (?, ?)").apply {
                     setString(1, table)
-                    setLong(2, clock() * 1000)
+                    setLong(2, floor)
+                }.executeUpdate()
+            } else {
+                stmt("UPDATE sqlite_sequence SET seq = ? WHERE name = ? AND seq < ?").apply {
+                    setLong(1, floor)
+                    setString(2, table)
+                    setLong(3, floor)
                 }.executeUpdate()
             }
             recount()

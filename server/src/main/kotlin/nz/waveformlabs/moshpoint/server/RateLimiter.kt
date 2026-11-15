@@ -20,10 +20,16 @@ class RateLimiter(
 
     private val buckets = ConcurrentHashMap<String, Bucket>()
 
+    @Volatile private var fullSweepAt = 0L
+
     /** Take [cost] from [key]'s bucket if it has that much. */
     fun allow(key: String, cost: Double = 1.0): Boolean {
         val now = clock()
         if (buckets.size >= maxKeys && !buckets.containsKey(key)) {
+            // Full: sweep at most once a second (a sweep walks every key), and meanwhile let new
+            // keys through untracked rather than turn everyone new away.
+            if (now - fullSweepAt < 1_000) return true
+            fullSweepAt = now
             sweep()
             if (buckets.size >= maxKeys) return true
         }

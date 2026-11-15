@@ -36,6 +36,9 @@ data class LimitConfig(
     val tokenRecordBytesPerHour: Long = 8L shl 20,
     val anonUploadBytesPerHour: Long = 2L shl 30,
     val tokenUploadBytesPerHour: Long = 300L shl 20,
+    // Uploads (moments and photos) by number too, so tiny files can't use up the volume's inodes.
+    val anonUploads: Bucket = Bucket(600.0, 2_000.0 / 3600),
+    val tokenUploads: Bucket = Bucket(100.0, 200.0 / 3600),
     // Downloads cost money (egress), so every download counts against its address, token or not
     // (a venue's phones together need 1-2 GB an hour at most), and a token's own share is smaller.
     val addressDownloadBytesPerHour: Long = 4L shl 30,
@@ -47,6 +50,7 @@ data class LimitConfig(
         tokenWrites = tokenWrites.scaled(f), tokenReads = tokenReads.scaled(f), tokenAddress = tokenAddress.scaled(f),
         anonRecordBytesPerHour = (anonRecordBytesPerHour * f).toLong(), tokenRecordBytesPerHour = (tokenRecordBytesPerHour * f).toLong(),
         anonUploadBytesPerHour = (anonUploadBytesPerHour * f).toLong(), tokenUploadBytesPerHour = (tokenUploadBytesPerHour * f).toLong(),
+        anonUploads = anonUploads.scaled(f), tokenUploads = tokenUploads.scaled(f),
         addressDownloadBytesPerHour = (addressDownloadBytesPerHour * f).toLong(), tokenDownloadBytesPerHour = (tokenDownloadBytesPerHour * f).toLong(),
     )
 }
@@ -79,8 +83,16 @@ data class RelayConfig(
     /** Secret for install tokens; null = made once and kept in [dataDir]. */
     val tokenSecret: ByteArray? = null,
     val sqliteSync: String = "NORMAL",
-    /** Uploads received at the same time (each holds a temp file and a little memory). */
-    val maxUploads: Int = 48,
+    /** Uploads received at the same time, everyone together and per address. */
+    val maxUploads: Int = 64,
+    val maxUploadsPerAddress: Int = 16,
+    /** Requests in progress at once per address (a client that stops reading holds its answer). */
+    val maxInFlightPerAddress: Int = 64,
+    /** Big answers (lookups, batches) being built and sent at once, everyone together. */
+    val maxAnswers: Int = 128,
+    /** Files on the volume (each takes an inode and at least a 4 KB block). */
+    val fileMaxCount: Int = 300_000,
+    val avatarMaxCount: Int = 300_000,
 ) {
     companion object {
         fun fromEnv(env: (String) -> String? = System::getenv): RelayConfig {
@@ -96,6 +108,9 @@ data class RelayConfig(
                 heldMaxBytes = mb("HELD_MAX_MB", 0.12),
                 fileMaxBytes = mb("FILES_MAX_MB", 0.45),
                 avatarMaxBytes = mb("AVATARS_MAX_MB", 0.15),
+                // ext4 has an inode per 16 KB by default: files and photos together get at most half.
+                fileMaxCount = (disk / 16384 * 0.3).toInt().coerceAtLeast(10_000),
+                avatarMaxCount = (disk / 16384 * 0.2).toInt().coerceAtLeast(10_000),
                 minFreeBytes = (disk * 0.03).toLong().coerceIn(256L shl 20, 1L shl 30),
                 proxyTrust = ProxyTrust.from(env),
                 limits = LimitConfig().scaled(env("LIMIT_SCALE")?.toDoubleOrNull()?.takeIf { it > 0 } ?: 1.0),

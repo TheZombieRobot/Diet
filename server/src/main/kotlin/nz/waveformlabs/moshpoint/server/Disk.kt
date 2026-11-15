@@ -8,6 +8,7 @@ import io.ktor.utils.io.readAvailable
 import io.ktor.utils.io.writeFully
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -19,6 +20,15 @@ import java.nio.file.StandardOpenOption
 /** Files on the volume: written to a temp file, flushed to disk, then renamed into place. */
 object Disk {
     private const val CHUNK = 64 * 1024
+
+    /** An upload that stalled, or crawled, past what any phone with signal needs. */
+    class TooSlow : java.io.IOException("upload too slow")
+
+    /** No bytes at all for this long ends an upload. */
+    const val STALL_MS = 30_000L
+
+    /** After the first minute an upload must average at least this (a 12 MB clip: under 50 min). */
+    const val MIN_BYTES_PER_SEC = 4_096L
 
     /** Make a rename in [dir] durable. */
     fun syncDir(dir: File) {
@@ -44,39 +54,54 @@ object Disk {
     /**
      * Copy a request body to [file] as it arrives, never holding more than one 64 KB chunk.
      * The first bytes go into [head] (to check what kind of file it is). Returns the size, or
-     * -1 as soon as it goes past [max]. The file is flushed to disk before returning.
+     * -1 as soon as it goes past [max]. The file is flushed to disk before returning. Throws
+     * [TooSlow] if nothing arrives for [STALL_MS], or the average rate after a minute is under
+     * [MIN_BYTES_PER_SEC], so a trickle can't hold an upload slot for ever.
      */
-    suspend fun receive(body: ByteReadChannel, file: File, max: Long, head: ByteArray): Long = withContext(Dispatchers.IO) {
+    suspend fun receive(body: ByteReadChannel, file: File, max: Long, head: ByteArray, clock: () -> Long = System::currentTimeMillis): Long = withContext(Dispatchers.IO) {
         FileOutputStream(file).use { out ->
             val buf = ByteArray(CHUNK)
             var total = 0L
+            val started = clock()
             while (true) {
-                val n = body.readAvailable(buf, 0, buf.size)
+                val n = withTimeoutOrNull(STALL_MS) { body.readAvailable(buf, 0, buf.size) } ?: throw TooSlow()
                 if (n < 0) break
                 if (n == 0) continue
                 if (total < head.size) System.arraycopy(buf, 0, head, total.toInt(), minOf(n, head.size - total.toInt()))
                 total += n
                 if (total > max) return@withContext -1L
                 out.write(buf, 0, n)
+                val elapsed = clock() - started
+                if (elapsed > 60_000 && total * 1000 / elapsed < MIN_BYTES_PER_SEC) throw TooSlow()
             }
             out.fd.sync()
             total
         }
     }
 
-    /** A response that streams an already opened file in 64 KB chunks (opened first, so a sweep can't pull it away mid-answer). */
-    class Body(private val input: FileInputStream, private val length: Long) : OutgoingContent.WriteChannelContent() {
+    /**
+     * A response that streams an already opened file in 64 KB chunks (opened first, so a sweep
+     * can't pull it away mid-answer). [onComplete] runs once the whole file has been handed on.
+     */
+    class Body(
+        private val input: FileInputStream,
+        private val length: Long,
+        private val onComplete: () -> Unit = {},
+    ) : OutgoingContent.WriteChannelContent() {
         override val contentLength: Long get() = length
         override val contentType: ContentType get() = ContentType.Application.OctetStream
 
         override suspend fun writeTo(channel: ByteWriteChannel) {
             input.use { s ->
                 val buf = ByteArray(CHUNK)
-                while (true) {
-                    val n = withContext(Dispatchers.IO) { s.read(buf) }
+                var left = length
+                while (left > 0) {
+                    val n = withContext(Dispatchers.IO) { s.read(buf, 0, minOf(buf.size.toLong(), left).toInt()) }
                     if (n < 0) break
                     channel.writeFully(buf, 0, n)
+                    left -= n
                 }
+                if (left == 0L) onComplete()
             }
         }
     }

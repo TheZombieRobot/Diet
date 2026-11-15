@@ -43,7 +43,7 @@ class BatchTest {
         assertEquals(isGet.size, b.get().toInt() and 0xFF)
         return isGet.map { get ->
             val status = b.get().toInt()
-            if (!get || status == Batch.UNKNOWN || status == Batch.BAD) status
+            if (!get || status == Batch.UNKNOWN) status
             else {
                 val next = b.long
                 val n = b.short.toInt() and 0xFFFF
@@ -135,14 +135,25 @@ class BatchTest {
         assertEquals(List(ids.size) { 200 }, received.toList())
     }
 
-    @Test fun eachPutSaysHowItWent() = testApplication {
+    @Test fun eachOpSaysHowItWent() = testApplication {
         application { moshpoint(testRelay(limits = LimitConfig(boxWrites = Bucket(1.0, 0.0001)))) }
         val out = client.batch(
             Req().put(Batch.PUT_BOX, id(1), rec(1)).put(Batch.PUT_BOX, id(1), rec(2)).put(Batch.PUT_BOX, id(2), ByteArray(3))
-                .raw(99, ByteArray(5)).put(Batch.PUT_HELD, id(3), rec(4)),
-            listOf(false, false, false, false, false),
+                .raw(99, ByteArray(5)).put(Batch.PUT_HELD, id(3), rec(4)).raw(Batch.GET_HELD, ByteArray(10)).get(Batch.GET_HELD, id(3), 0),
+            listOf(false, false, false, false, false, true, true),
         )
-        assertEquals(listOf<Any>(Batch.OK, Batch.MAILBOX, Batch.BAD, Batch.UNKNOWN, Batch.OK), out)
+        assertEquals(listOf<Any>(Batch.OK, Batch.MAILBOX, Batch.BAD, Batch.UNKNOWN, Batch.OK), out.take(5))
+        // A GET of the wrong size still gets a whole (empty) get block, so the rest reads right.
+        val bad = out[5] as Got
+        assertEquals(Batch.BAD, bad.status)
+        assertEquals(0, bad.records.size)
+        assertContentEquals(rec(4), (out[6] as Got).records.single())
+    }
+
+    @Test fun aBatchIsChargedBeforeItsBodyIsRead() = testApplication {
+        application { moshpoint(testRelay(limits = LimitConfig(anonReads = Bucket(2.0, 0.0001)))) }
+        repeat(2) { assertEquals(HttpStatusCode.BadRequest, client.post("/v1/batch") { setBody(byteArrayOf(7, 7, 7)) }.status) }
+        assertEquals(HttpStatusCode.TooManyRequests, client.post("/v1/batch") { setBody(byteArrayOf(7, 7, 7)) }.status)
     }
 
     @Test fun malformedBatchesAreRefusedWhole() = testApplication {

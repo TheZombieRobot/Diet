@@ -8,6 +8,7 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
+import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -146,6 +147,63 @@ class LimitsTest {
         val forged = put("A".repeat(44))
         assertEquals(HttpStatusCode.TooManyRequests, forged.status) // the address's two are used up
         assertEquals("invalid", forged.headers["X-Moshpoint-Token"])
+    }
+
+    @Test fun aTokenOverItsOwnLimitDoesNotUseUpItsAddress() = testApplication {
+        val limits = LimitConfig(tokenWrites = Bucket(2.0, 0.0001), tokenAddress = Bucket(5.0, 0.0001))
+        val relay = testRelay(limits = limits, trust = ProxyTrust.FLY)
+        application { moshpoint(relay) }
+        val a = relay.tokens.issue()
+        val b = relay.tokens.issue()
+        suspend fun put(t: String) = client.put("/v1/box/$id") { header("Fly-Client-IP", "100.64.0.1"); header("X-Moshpoint-Token", t); setBody(record) }
+        repeat(2) { assertEquals(HttpStatusCode.NoContent, put(a).status) }
+        repeat(20) { assertEquals("client", put(a).headers["X-Moshpoint-Limit"]) }
+        // The address's shared 5 still has 3 left for everyone else there.
+        repeat(2) { assertEquals(HttpStatusCode.NoContent, put(b).status) }
+        val c = relay.tokens.issue()
+        assertEquals(HttpStatusCode.NoContent, put(c).status)
+        assertEquals("address", put(c).headers["X-Moshpoint-Limit"])
+    }
+
+    @Test fun refusedDownloadsDontUseUpAFile() = testApplication {
+        var now = 1_700_000_000_000L
+        // A budget of one 1,000-byte download an hour per address; each file can be fetched twice.
+        val relay = Relay(testConfig(clock = { now }, limits = LimitConfig(addressDownloadBytesPerHour = 1_500)).copy(downloadsPerFile = 2))
+        application { moshpoint(relay) }
+        val name = client.put("/v1/file/$id") { setBody(ByteArray(1_000) { (it * 31 + 17).toByte() }) }.bodyAsText()
+        assertEquals(HttpStatusCode.OK, client.get("/v1/file/$id/$name").status)
+        repeat(5) { assertEquals(HttpStatusCode.TooManyRequests, client.get("/v1/file/$id/$name").status) }
+        now += 3_600_000L
+        // The refused tries didn't count: the second full download still works, then it's used up.
+        assertEquals(HttpStatusCode.OK, client.get("/v1/file/$id/$name").status)
+        now += 3_600_000L
+        assertEquals(HttpStatusCode.NotFound, client.get("/v1/file/$id/$name").status)
+    }
+
+    @Test fun aFailedUploadGivesBackItsSlot() = testApplication {
+        val dir = tempDataDir()
+        val relay = Relay(testConfig(dir).copy(maxUploads = 1))
+        application { moshpoint(relay) }
+        val sealed = ByteArray(1_000) { (it * 31 + 17).toByte() }
+        // The temp folder vanishes (a full disk, a mistake): uploads fail...
+        File(dir, "files/.tmp").deleteRecursively()
+        repeat(3) { assertEquals(HttpStatusCode.ServiceUnavailable, client.put("/v1/file/$id") { setBody(sealed) }.status) }
+        // ...and once it's back, the one upload slot is free again.
+        File(dir, "files/.tmp").mkdirs()
+        assertEquals(HttpStatusCode.OK, client.put("/v1/file/$id") { setBody(sealed) }.status)
+    }
+
+    @Test fun perKeyCounts() {
+        val p = PerKey(2)
+        assertTrue(p.enter("a"))
+        assertTrue(p.enter("a"))
+        assertEquals(false, p.enter("a"))
+        assertTrue(p.enter("b"))
+        p.exit("a")
+        assertTrue(p.enter("a"))
+        p.exit("a"); p.exit("a"); p.exit("b")
+        assertEquals(0, p.count("a"))
+        assertEquals(0, p.count("b"))
     }
 
     @Test fun tokensAreCheckedWithoutStorage() {

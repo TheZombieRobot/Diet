@@ -94,6 +94,17 @@ class LargeFileTest {
             )
             assertEquals(400, tooBig.statusCode())
 
+            // An upload cut off part way (the phone lost signal) is not stored as if it were whole.
+            java.net.Socket("127.0.0.1", port).use { sock ->
+                val out = sock.getOutputStream()
+                out.write("PUT /v1/file/$id HTTP/1.1\r\nHost: relay\r\nContent-Length: 100000\r\n\r\n".toByteArray())
+                out.write(ByteArray(50_000) { (it % 251 + 1).toByte() })
+                out.flush()
+            }
+            Thread.sleep(1_000)
+            val afterCut = http.send(HttpRequest.newBuilder(URI("http://127.0.0.1:$port/v1/files/$id?since=0")).build(), HttpResponse.BodyHandlers.ofString()).body()
+            assertEquals(names.toSet(), afterCut.lines().map { it.substringAfter(' ') }.toSet())
+
             // kill -9, then start again on the same volume.
             p.destroyForcibly().waitFor()
             p = start(dir, port)

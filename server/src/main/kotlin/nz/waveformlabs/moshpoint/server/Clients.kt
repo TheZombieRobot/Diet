@@ -18,9 +18,10 @@ import javax.crypto.spec.SecretKeySpec
 /**
  * Which proxy, if any, says who the client is.
  *
- * - [FLY]: Fly's proxy sets `Fly-Client-IP` itself, and the app's port can only be reached through
- *   it (the server listens on IPv4 only, so not even other apps on Fly's private network get to
- *   it directly). The default whenever the server runs on Fly (`FLY_APP_NAME` is set).
+ * - [FLY]: Fly's proxy sets `Fly-Client-IP` itself, and from the internet the app's port can only
+ *   be reached through it. (Fly's private network can reach it too, but only the owner's own
+ *   Machines and WireGuard peers are on it.) The default whenever the server runs on Fly
+ *   (`FLY_APP_NAME` is set).
  * - [LAST_FORWARDED]: one trusted proxy that appends the client's address to `X-Forwarded-For`
  *   (the last entry is the one it added; anything before it came from the client).
  * - [NONE]: the address the connection came from. Headers are ignored. The default elsewhere.

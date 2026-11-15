@@ -81,16 +81,19 @@ class AvatarTest {
     @Test fun storeExpiresAndCaps() {
         var now = 0L
         val dir = tempDataDir()
-        val s = AvatarStore(dir, ttlMs = 1000, maxBytes = 2500, clock = { now })
+        // Room for two photos: each takes a 4 KB block on disk, whatever its size.
+        val s = AvatarStore(dir, ttlMs = 1000, maxBytes = 10_000, clock = { now })
         assertTrue(s.put("a", ByteArray(1000))); now = 1; assertTrue(s.put("b", ByteArray(1000)))
         now = 2
         assertEquals(false, s.put("c", ByteArray(1000))) // full: "try later", and nothing accepted is dropped
         assertTrue(s.put("a", ByteArray(900))) // replacing a photo frees its old room
+        assertEquals(900L, s.open("a")!!.size)
         assertTrue(s.open("b") != null)
         now = 5000
         assertEquals(null, s.open("b"))
         assertEquals(2, s.sweep())
         assertEquals(0, dir.listFiles()!!.count { it.isFile })
+        assertEquals(0L, s.bytes)
     }
 }
 

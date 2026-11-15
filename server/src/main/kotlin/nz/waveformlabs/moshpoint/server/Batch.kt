@@ -16,7 +16,8 @@ import java.nio.ByteBuffer
  *   4 GET_HELD  payload = [id:16][since:8]
  * answer:   [version = 1][op count]  then per op, in order:
  *   PUT  [status:1]
- *   GET  [status:1][next:8][count:2] then count x [length:2][record], oldest first
+ *   GET  [status:1][next:8][count:2] then count x [length:2][record], oldest first (always the
+ *        whole block, even for BAD)
  *   an op type this server doesn't know: [status = 6] only
  * ```
  *
@@ -43,7 +44,7 @@ object Batch {
     const val MAX_BODY = 512 * 1024
 
     /** Records in one answer at most (the rest come with MORE). */
-    const val MAX_ANSWER = 1 shl 20
+    const val MAX_ANSWER = 512 * 1024
 
     const val MIN_RECORD = 16
     const val MAX_RECORD = 255
@@ -52,7 +53,8 @@ object Batch {
     sealed class Op {
         class Put(val kind: Kind, val id: ByteArray, val data: ByteArray) : Op()
         class Get(val kind: Kind, val id: ByteArray, val since: Long) : Op()
-        object Bad : Op()
+        /** The right type but the wrong size: answered BAD (a GET with a whole, empty get block). */
+        class Bad(val get: Boolean) : Op()
         object Unknown : Op()
     }
 
@@ -73,10 +75,10 @@ object Batch {
                 PUT_BOX, PUT_HELD -> {
                     val held = type == PUT_HELD
                     val size = len - 16
-                    if (len < 16 || size < MIN_RECORD || size > (if (held) MAX_HELD else MAX_RECORD)) Op.Bad
+                    if (len < 16 || size < MIN_RECORD || size > (if (held) MAX_HELD else MAX_RECORD)) Op.Bad(get = false)
                     else Op.Put(if (held) Kind.HELD else Kind.BOX, p.copyOfRange(0, 16), p.copyOfRange(16, len))
                 }
-                GET_BOX, GET_HELD -> if (len != 24) Op.Bad
+                GET_BOX, GET_HELD -> if (len != 24) Op.Bad(get = true)
                 else Op.Get(if (type == GET_HELD) Kind.HELD else Kind.BOX, p.copyOfRange(0, 16), ByteBuffer.wrap(p, 16, 8).long)
                 else -> Op.Unknown
             }
@@ -130,7 +132,7 @@ object Batch {
             when (op) {
                 is Op.Put -> out.write(status[i])
                 is Op.Get -> writeGet(out, answers[i]!!)
-                Op.Bad -> out.write(BAD)
+                is Op.Bad -> if (op.get) writeGet(out, MailboxStore.Since(emptyList(), 0L, false), BAD) else out.write(BAD)
                 Op.Unknown -> out.write(UNKNOWN)
             }
         }
@@ -147,8 +149,8 @@ object Batch {
         return out.toByteArray()
     }
 
-    private fun writeGet(out: ByteArrayOutputStream, s: MailboxStore.Since) {
-        out.write(if (s.more) MORE else OK)
+    private fun writeGet(out: ByteArrayOutputStream, s: MailboxStore.Since, status: Int = if (s.more) MORE else OK) {
+        out.write(status)
         out.write(ByteBuffer.allocate(10).putLong(s.next).putShort(s.records.size.toShort()).array())
         s.records.forEach {
             out.write(it.size shr 8)
@@ -157,10 +159,14 @@ object Batch {
         }
     }
 
-    /** What a batch costs against the client's request limits: one, plus one per eight ops of each kind. */
+    /**
+     * What a batch costs against the client's request limits, on top of the one read charged
+     * when it arrives: a write per eight puts (at least one if there are any) and a read per
+     * eight gets.
+     */
     fun costs(ops: List<Op>): Pair<Double, Double> {
         val puts = ops.count { it is Op.Put }
         val gets = ops.count { it is Op.Get }
-        return (if (puts > 0) maxOf(1.0, puts / 8.0) else 0.0) to (if (gets > 0) maxOf(1.0, gets / 8.0) else 0.0)
+        return (if (puts > 0) maxOf(1.0, puts / 8.0) else 0.0) to gets / 8.0
     }
 }

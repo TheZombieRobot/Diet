@@ -4,7 +4,10 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.ApplicationStopped
+import io.ktor.server.application.ApplicationStopping
+import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
@@ -21,8 +24,11 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.routing
 import io.ktor.utils.io.readRemaining
+import io.ktor.utils.io.writeByte
 import io.ktor.utils.io.writeFully
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.io.readByteArray
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
@@ -66,12 +72,14 @@ fun Application.moshpoint(
             when (cause) {
                 is CancellationException, is IOException -> {} // the phone went away mid-request
                 is Db.ClosedException -> {}
+                is Disk.TooSlow -> return@exception runCatching { call.respondText("too slow", status = HttpStatusCode.RequestTimeout) }.let {}
                 else -> log.warn("Request failed: {}", cause::class.java.simpleName)
             }
             runCatching { call.respondText("try later", status = HttpStatusCode.ServiceUnavailable) }
         }
     }
     val sweeps = relay.startSweeps(this)
+    monitor.subscribe(ApplicationStopping) { log.info("Stopping: finishing requests in flight") }
     monitor.subscribe(ApplicationStopped) {
         sweeps.cancel()
         relay.close()
@@ -85,6 +93,21 @@ fun Application.moshpoint(
         response.headers.append("Retry-After", limit.retryAfterSec.toString())
         response.headers.append("X-Moshpoint-Limit", limit.header)
         respondText("slow down", status = HttpStatusCode.TooManyRequests)
+    }
+
+    // One address can't pile up requests (a client that stops reading holds its answer in memory).
+    intercept(ApplicationCallPipeline.Plugins) {
+        val address = call.client().address
+        if (!relay.inFlight.enter(address)) {
+            call.limited(Limit.CLIENT)
+            finish()
+            return@intercept
+        }
+        try {
+            proceed()
+        } finally {
+            relay.inFlight.exit(address)
+        }
     }
 
     /** Charge [cost] to the client's request limit. False (and answered 429) if it's used up. */
@@ -103,7 +126,26 @@ fun Application.moshpoint(
         Outcome.FULL -> respondText("full", status = HttpStatusCode.ServiceUnavailable)
     }
 
-    suspend fun ApplicationCall.small(max: Int): ByteArray = receiveChannel().readRemaining(max + 1L).readByteArray()
+    /**
+     * A small body (at most [max] bytes are read; more means "too big"). Null if it was cut off:
+     * fewer bytes arrived than its Content-Length said (the connection dropped mid-request).
+     */
+    suspend fun ApplicationCall.small(max: Int): ByteArray? {
+        val declared = request.contentLength()
+        val body = receiveChannel().readRemaining(max + 1L).readByteArray()
+        if (declared != null && body.size.toLong() != minOf(declared, max + 1L)) return null
+        return body
+    }
+
+    /** Answers that can be big (lookups, batches) are built a limited number at a time. */
+    suspend fun ApplicationCall.bigAnswer(block: suspend () -> Unit) {
+        if (!relay.answers.tryAcquire()) return respondText("busy", status = HttpStatusCode.ServiceUnavailable)
+        try {
+            block()
+        } finally {
+            relay.answers.release()
+        }
+    }
 
     routing {
         get("/healthz") { call.respondText("ok") }
@@ -112,7 +154,7 @@ fun Application.moshpoint(
             if (!call.charge(write = true)) return@put
             val id = idBytes(call.parameters["id"]) ?: return@put call.respondText("bad id", status = HttpStatusCode.BadRequest)
             val body = call.small(MAX_RECORD)
-            if (body.size < MIN_RECORD || body.size > MAX_RECORD) return@put call.respondText("bad size", status = HttpStatusCode.BadRequest)
+            if (body == null || body.size < MIN_RECORD || body.size > MAX_RECORD) return@put call.respondText("bad size", status = HttpStatusCode.BadRequest)
             call.answer(relay.putRecord(call.client(), Kind.BOX, id, body))
         }
 
@@ -126,34 +168,41 @@ fun Application.moshpoint(
 
         post("/v1/lookup") {
             if (!call.charge(write = false)) return@post
-            val ids = parseIds(call.small(MAX_LOOKUP * 16)) ?: return@post call.respondText("bad body", status = HttpStatusCode.BadRequest)
-            val out = ByteArrayOutputStream()
-            relay.box.getMany(ids).forEach {
-                out.write(it.size)
-                out.write(encode(it, wide = false))
+            val ids = call.small(MAX_LOOKUP * 16)?.let { parseIds(it) } ?: return@post call.respondText("bad body", status = HttpStatusCode.BadRequest)
+            call.bigAnswer {
+                val out = ByteArrayOutputStream()
+                relay.box.getMany(ids).forEach {
+                    out.write(it.size)
+                    out.write(encode(it, wide = false))
+                }
+                call.respondBytes(out.toByteArray(), ContentType.Application.OctetStream)
             }
-            call.respondBytes(out.toByteArray(), ContentType.Application.OctetStream)
         }
 
         put("/v1/held/{id}") {
             if (!call.charge(write = true)) return@put
             val id = idBytes(call.parameters["id"]) ?: return@put call.respondText("bad id", status = HttpStatusCode.BadRequest)
             val body = call.small(MAX_HELD)
-            if (body.size < MIN_RECORD || body.size > MAX_HELD) return@put call.respondText("bad size", status = HttpStatusCode.BadRequest)
+            if (body == null || body.size < MIN_RECORD || body.size > MAX_HELD) return@put call.respondText("bad size", status = HttpStatusCode.BadRequest)
             call.answer(relay.putRecord(call.client(), Kind.HELD, id, body))
         }
 
         post("/v1/heldlookup") {
             if (!call.charge(write = false)) return@post
-            val ids = parseIds(call.small(MAX_LOOKUP * 16)) ?: return@post call.respondText("bad body", status = HttpStatusCode.BadRequest)
-            // Newest first, 2-byte lengths. Built one id at a time, so a big answer never sits in memory all at once.
-            call.respondBytesWriter(ContentType.Application.OctetStream) {
-                ids.forEach { id ->
-                    val records = relay.held.get(id, 255)
-                    val out = ByteArrayOutputStream()
-                    out.write(records.size)
-                    out.write(encode(records, wide = true))
-                    writeFully(out.toByteArray())
+            val ids = call.small(MAX_LOOKUP * 16)?.let { parseIds(it) } ?: return@post call.respondText("bad body", status = HttpStatusCode.BadRequest)
+            // Newest first, 2-byte lengths. Written one id at a time, record by record, so at most
+            // one mailbox's records are in memory while the phone reads.
+            call.bigAnswer {
+                call.respondBytesWriter(ContentType.Application.OctetStream) {
+                    ids.forEach { id ->
+                        val records = relay.held.get(id, 255)
+                        writeByte(records.size.toByte())
+                        records.forEach {
+                            writeByte((it.size shr 8).toByte())
+                            writeByte(it.size.toByte())
+                            writeFully(it)
+                        }
+                    }
                 }
             }
         }
@@ -163,13 +212,22 @@ fun Application.moshpoint(
             if (!call.charge(write = true)) return@put
             val id = idBytes(call.parameters["id"])?.hex() ?: return@put call.respondText("bad id", status = HttpStatusCode.BadRequest)
             val body = call.small(MAX_AVATAR)
-            if (body.size < MIN_FILE || body.size > MAX_AVATAR || PlainFile.looksPlain(body, minOf(body.size, PlainFile.HEAD))) {
+            if (body == null || body.size < MIN_FILE || body.size > MAX_AVATAR || PlainFile.looksPlain(body, minOf(body.size, PlainFile.HEAD))) {
                 return@put call.respondText("bad size", status = HttpStatusCode.BadRequest)
             }
+            if (relay.lowOnDisk() || !relay.avatars.roomFor(id, body.size.toLong())) return@put call.respondText("full", status = HttpStatusCode.ServiceUnavailable)
             val c = call.client()
             if (!limits.mailbox(Kind.AVATAR, id)) return@put call.limited(Limit.MAILBOX)
-            if (!limits.uploadBytes(c, body.size.toLong())) return@put call.limited(Limit.BYTES)
-            if (relay.lowOnDisk() || !relay.avatars.put(id, body)) return@put call.respondText("full", status = HttpStatusCode.ServiceUnavailable)
+            if (!limits.upload(c, body.size.toLong())) {
+                limits.refundMailbox(Kind.AVATAR, id)
+                return@put call.limited(Limit.BYTES)
+            }
+            val stored = withContext(Dispatchers.IO) { relay.avatars.put(id, body) }
+            if (!stored) {
+                limits.refundMailbox(Kind.AVATAR, id)
+                limits.refundUpload(c, body.size.toLong())
+                return@put call.respondText("full", status = HttpStatusCode.ServiceUnavailable)
+            }
             call.respondText("", status = HttpStatusCode.NoContent)
         }
 
@@ -190,28 +248,51 @@ fun Application.moshpoint(
             val id = idBytes(call.parameters["id"])?.hex() ?: return@put call.respondText("bad id", status = HttpStatusCode.BadRequest)
             val declared = call.request.contentLength()
             if (declared != null && (declared < MIN_FILE || declared > MAX_FILE)) return@put call.respondText("bad size", status = HttpStatusCode.BadRequest)
-            val c = call.client()
-            if (!limits.mailbox(Kind.FILE, id)) return@put call.limited(Limit.MAILBOX)
             when (relay.files.roomFor(id, declared ?: 0L)) {
                 FileStore.Room.MAILBOX_FULL -> return@put call.limited(Limit.MAILBOX)
                 FileStore.Room.STORE_FULL -> return@put call.respondText("full", status = HttpStatusCode.ServiceUnavailable)
                 FileStore.Room.OK -> {}
             }
             if (relay.lowOnDisk()) return@put call.respondText("full", status = HttpStatusCode.ServiceUnavailable)
-            if (declared != null && !limits.uploadBytes(c, declared)) return@put call.limited(Limit.BYTES)
-            if (!relay.uploads.tryAcquire()) return@put call.respondText("busy", status = HttpStatusCode.ServiceUnavailable)
-            val temp = relay.files.tempFile()
+            val c = call.client()
+            // A slot first (nothing is charged for a request turned away busy), then the limits.
+            if (!relay.uploaders.enter(c.address)) return@put call.respondText("busy", status = HttpStatusCode.ServiceUnavailable)
+            if (!relay.uploads.tryAcquire()) {
+                relay.uploaders.exit(c.address)
+                return@put call.respondText("busy", status = HttpStatusCode.ServiceUnavailable)
+            }
+            var temp: File? = null
+            var charged = 0L
+            var mailbox = false
             try {
+                if (!limits.mailbox(Kind.FILE, id)) return@put call.limited(Limit.MAILBOX)
+                mailbox = true
+                if (declared != null) {
+                    if (!limits.upload(c, declared)) return@put call.limited(Limit.BYTES)
+                    charged = declared
+                }
+                temp = withContext(Dispatchers.IO) { relay.files.tempFile() }
                 val head = ByteArray(PlainFile.HEAD)
                 val size = Disk.receive(call.receiveChannel(), temp, MAX_FILE.toLong(), head)
-                if (size < MIN_FILE || PlainFile.looksPlain(head, minOf(size, PlainFile.HEAD.toLong()).toInt())) {
-                    return@put call.respondText("bad size", status = HttpStatusCode.BadRequest)
+                // Cut off (fewer bytes than announced), too big, too small, or not sealed.
+                val bad = size < MIN_FILE || (declared != null && size != declared) ||
+                    PlainFile.looksPlain(head, minOf(size, PlainFile.HEAD.toLong()).toInt())
+                if (bad) return@put call.respondText("bad size", status = HttpStatusCode.BadRequest)
+                if (declared == null) {
+                    if (!limits.upload(c, size)) return@put call.limited(Limit.BYTES)
+                    charged = size
                 }
-                if (declared == null && !limits.uploadBytes(c, size)) return@put call.limited(Limit.BYTES)
-                call.respondText(relay.files.commit(id, temp, size))
+                val name = withContext(Dispatchers.IO) { relay.files.commit(id, temp, size) }
+                charged = 0L
+                mailbox = false
+                call.respondText(name)
             } finally {
+                // Anything that didn't end in a stored file gives back what it was charged.
+                if (mailbox) limits.refundMailbox(Kind.FILE, id)
+                if (charged > 0) limits.refundUpload(c, charged)
                 relay.uploads.release()
-                temp.delete()
+                relay.uploaders.exit(c.address)
+                temp?.delete()
             }
         }
 
@@ -230,7 +311,8 @@ fun Application.moshpoint(
                 f.input.close()
                 return@get call.limited(Limit.BYTES)
             }
-            call.respond(Disk.Body(f.input, f.size))
+            // Counted towards the file's downloads only once it has been sent in full.
+            call.respond(Disk.Body(f.input, f.size, onComplete = f.completed))
         }
 
         // "Find a gig" in any country (see GigSearch). Keys stay on the server.
@@ -264,9 +346,11 @@ fun Application.moshpoint(
         }
 
         post("/v1/batch") {
+            // One read is charged before the body is even read, so junk costs something too.
+            if (!call.charge(write = false)) return@post
             val declared = call.request.contentLength()
             if (declared != null && declared > Batch.MAX_BODY) return@post call.respondText("too big", status = HttpStatusCode.PayloadTooLarge)
-            val body = call.small(Batch.MAX_BODY)
+            val body = call.small(Batch.MAX_BODY) ?: return@post call.respondText("bad body", status = HttpStatusCode.BadRequest)
             if (body.size > Batch.MAX_BODY) return@post call.respondText("too big", status = HttpStatusCode.PayloadTooLarge)
             val ops = Batch.parse(body) ?: return@post call.respondText("bad body", status = HttpStatusCode.BadRequest)
             val (writeCost, readCost) = Batch.costs(ops)
@@ -275,13 +359,13 @@ fun Application.moshpoint(
                 if (writeCost > 0) limits.refund(call.client(), true, writeCost)
                 return@post
             }
-            call.respondBytes(Batch.run(relay, call.client(), ops), ContentType.Application.OctetStream)
+            call.bigAnswer { call.respondBytes(Batch.run(relay, call.client(), ops), ContentType.Application.OctetStream) }
         }
 
         post("/v1/heldsince") {
             if (!call.charge(write = false)) return@post
-            val ops = Batch.parseHeldSince(call.small(MAX_LOOKUP * 24)) ?: return@post call.respondText("bad body", status = HttpStatusCode.BadRequest)
-            call.respondBytes(Batch.heldSince(relay, ops), ContentType.Application.OctetStream)
+            val ops = call.small(MAX_LOOKUP * 24)?.let { Batch.parseHeldSince(it) } ?: return@post call.respondText("bad body", status = HttpStatusCode.BadRequest)
+            call.bigAnswer { call.respondBytes(Batch.heldSince(relay, ops), ContentType.Application.OctetStream) }
         }
     }
 }
@@ -334,19 +418,17 @@ fun main() {
                 this.port = port
                 host = "0.0.0.0"
             }
-            // Drop connections that stop sending or reading for a while (a phone that walked out of signal).
-            requestReadTimeoutSeconds = 30
-            responseWriteTimeoutSeconds = 60
+            // No idle-read timeout: during a download the phone sends nothing, and a slow phone
+            // must still get a 12 MB clip. Uploads time out by themselves (Disk.receive).
+            // A phone that stops reading an answer for 30 s is dropped.
+            responseWriteTimeoutSeconds = 30
+            // A stop (deploy, resize, fly machine stop) sends SIGTERM. Ktor's own shutdown hook then
+            // stops taking requests, gives those in flight up to 20 s, and the relay flushes and
+            // closes its database (ApplicationStopped). fly.toml's kill_timeout (30 s) leaves room.
+            shutdownGracePeriod = 3_000
+            shutdownTimeout = 20_000
         },
     ) { moshpoint(relay) }
-    // A stop (deploy, scale, fly machine stop) sends SIGTERM: finish what's in flight, then flush and close.
-    Runtime.getRuntime().addShutdownHook(
-        Thread {
-            log.info("Stopping: finishing requests in flight")
-            server.stop(gracePeriodMillis = 3_000, timeoutMillis = 20_000)
-            relay.close()
-        },
-    )
     log.info("Moshpoint relay listening on port {}. {}", port, relay.stats())
     server.start(wait = true)
 }
