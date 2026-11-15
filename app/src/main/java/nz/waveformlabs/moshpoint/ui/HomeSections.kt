@@ -111,14 +111,14 @@ internal fun SetupCard(eyebrow: String, text: String, button: String, onFix: () 
     ) {
         Kicker(eyebrow, colour = Mosh.Amber)
         Spacer(Modifier.height(6.dp))
-        Text(text, style = Mosh.Body.copy(fontSize = 14.sp, lineHeight = 20.sp, color = Mosh.Text))
+        Text(text, style = HomeType.Body.copy(fontSize = 14.sp, lineHeight = 20.sp, color = Mosh.Text))
         Spacer(Modifier.height(12.dp))
         Button(
             onClick = onFix,
             shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Mosh.Amber, contentColor = Mosh.Ground),
             modifier = Modifier.heightIn(min = 48.dp),
-        ) { Text(button, style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Ground), textAlign = TextAlign.Center) }
+        ) { Text(button, style = HomeType.Label.copy(fontSize = 14.sp, color = Mosh.Ground), textAlign = TextAlign.Center) }
     }
 }
 
@@ -141,24 +141,24 @@ internal fun CrewHeader(
         Spacer(Modifier.height(2.dp))
         Row(verticalAlignment = Alignment.Top) {
             Text(
-                name, style = Mosh.Hero, maxLines = 3, overflow = TextOverflow.Ellipsis,
+                name, style = HomeType.Hero, maxLines = 3, overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f).padding(top = 6.dp).semantics { heading() },
             )
             Spacer(Modifier.width(12.dp))
             RoundIconButton(HomeIcons.More, stringResource(R.string.home_crew_options), onMenu)
         }
-        if (count != null) Text(count, style = Mosh.Small)
+        if (count != null) Text(dotLine(count), style = HomeType.Small)
         if (followers.isNotEmpty()) {
             Spacer(Modifier.height(6.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 HomeIcon(HomeIcons.House, Mosh.Lilac, 16.dp)
                 Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.home_following_from_home_names, followers.joinToString(", ")), style = Mosh.Small.copy(color = Mosh.Lilac))
+                Text(stringResource(R.string.home_following_from_home_names, followers.joinToString(", ")), style = HomeType.Small.copy(color = Mosh.Lilac))
             }
         }
         if (whenText != null) {
             Spacer(Modifier.height(4.dp))
-            Text(whenText, style = Mosh.Small.copy(color = Mosh.TextDim))
+            Text(dotLine(whenText), style = HomeType.Small.copy(color = Mosh.TextDim))
         }
         if (venueMap != null) VenueMapLine(venueMap)
     }
@@ -227,9 +227,9 @@ private fun ActivityRow(
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(
                 title,
-                style = if (strong) Mosh.RowTitle.copy(color = titleColour) else Mosh.Body.copy(fontSize = 14.sp, lineHeight = 20.sp, color = titleColour),
+                style = if (strong) HomeType.RowTitle.copy(color = titleColour) else HomeType.Body.copy(fontSize = 14.sp, lineHeight = 20.sp, color = titleColour),
             )
-            if (sub != null) Text(sub, style = Mosh.Small.copy(color = subColour))
+            if (sub != null) Text(sub, style = HomeType.Small.copy(color = subColour))
         }
     }
 }
@@ -254,7 +254,7 @@ internal fun DateTile(startsAtSec: Long) {
         Modifier.widthIn(min = 46.dp).heightIn(min = 50.dp)
             .background(Mosh.Violet.copy(alpha = 0.16f), shape)
             .border(1.dp, Mosh.Violet.copy(alpha = 0.35f), shape)
-            .padding(horizontal = 5.dp, vertical = 4.dp),
+            .padding(horizontal = 7.dp, vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -267,9 +267,9 @@ internal fun DateTile(startsAtSec: Long) {
             val day = SimpleDateFormat("d", locale).format(d)
             Text(
                 weekday, maxLines = 1, softWrap = false,
-                style = Mosh.Label.copy(fontSize = 10.sp, letterSpacing = tracked(weekday, 1.sp), color = Mosh.Lilac),
+                style = HomeType.Label.copy(fontSize = 10.sp, letterSpacing = tracked(weekday, 1.sp), color = Mosh.Lilac),
             )
-            Text(day, style = Mosh.Hero.copy(fontSize = 17.sp, letterSpacing = 0.sp), maxLines = 1, softWrap = false)
+            Text(day, style = HomeType.Hero.copy(fontSize = 17.sp, letterSpacing = 0.sp), maxLines = 1, softWrap = false)
         } else {
             HomeIcon(HomeIcons.Calendar, Mosh.Lilac, 20.dp)
         }
@@ -313,13 +313,13 @@ internal fun UpNextRow(card: UpNextCard, onClick: () -> Unit) {
         DateTile(card.startsAtSec)
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(card.name, style = Mosh.RowTitle, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(card.name, style = HomeType.RowTitle, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Text(
-                listOfNotNull(who, card.countdown, card.venue.takeIf { it.isNotBlank() }).joinToString(" · "),
-                style = Mosh.Small, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                dotLine(listOfNotNull(who, card.countdown, card.venue.takeIf { it.isNotBlank() })),
+                style = HomeType.Small, maxLines = 2, overflow = TextOverflow.Ellipsis,
             )
             if (card.plan != null) {
-                Text(stringResource(R.string.home_pinned_plan, card.plan), style = Mosh.Small.copy(color = Mosh.TextDim), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(stringResource(R.string.home_pinned_plan, card.plan), style = HomeType.Small.copy(color = Mosh.TextDim), maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
         }
         if (card.unread > 0) {
@@ -350,9 +350,9 @@ internal fun MemoryCard(g: GigArchive.Summary, years: Int, onOpen: () -> Unit) {
         Column(Modifier.weight(1f)) {
             Kicker(stringResource(R.string.home_memories), colour = Mosh.Amber)
             Spacer(Modifier.height(4.dp))
-            Text(nz.waveformlabs.moshpoint.Memories.headline(g, years, LocalContext.current.resources), style = Mosh.RowTitle)
+            Text(nz.waveformlabs.moshpoint.Memories.headline(g, years, LocalContext.current.resources), style = HomeType.RowTitle)
             Spacer(Modifier.height(2.dp))
-            Text(pluralStringResource(R.plurals.home_memories_count, n, n), style = Mosh.Small.copy(color = Mosh.TextDim))
+            Text(pluralStringResource(R.plurals.home_memories_count, n, n), style = HomeType.Small.copy(color = Mosh.TextDim))
         }
     }
 }
@@ -410,7 +410,7 @@ private fun GigPolaroid(g: GigArchive.Summary, tilt: Float, onClick: () -> Unit)
     val cover = remember(g.cover) { g.cover?.let { GigArchive.thumbnail(it) }?.asImageBitmap() }
     val photos = pluralStringResource(R.plurals.home_gig_photos, g.photos, g.photos)
     val clips = pluralStringResource(R.plurals.home_gig_clips, g.clips, g.clips)
-    val sub = listOfNotNull(shortDay(g.whenSec), photos.takeIf { g.photos > 0 }, clips.takeIf { g.clips > 0 }).joinToString(" · ")
+    val sub = dotLine(listOfNotNull(shortDay(g.whenSec), photos.takeIf { g.photos > 0 }, clips.takeIf { g.clips > 0 }))
     Column(
         Modifier.width(150.dp)
             .fillMaxHeight()
@@ -422,9 +422,9 @@ private fun GigPolaroid(g: GigArchive.Summary, tilt: Float, onClick: () -> Unit)
     ) {
         CoverArt(g.id, cover, Modifier.fillMaxWidth().height(118.dp))
         Spacer(Modifier.height(8.dp))
-        Text(g.name, style = TextStyle(fontFamily = Mosh.Marker, fontSize = 16.sp, color = Mosh.Ink), maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Text(g.name, style = TextStyle(fontFamily = Mosh.Marker, fontSize = 16.sp, color = Mosh.Ink, lineBreak = HomeBreak), maxLines = 2, overflow = TextOverflow.Ellipsis)
         Spacer(Modifier.height(2.dp))
-        Text(sub, style = TextStyle(fontFamily = Mosh.Inter, fontSize = 11.sp, lineHeight = 15.sp, color = Mosh.InkSoft), maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Text(sub, style = TextStyle(fontFamily = Mosh.Inter, fontSize = 11.sp, lineHeight = 15.sp, color = Mosh.InkSoft, lineBreak = HomeBreak), maxLines = 2, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -476,9 +476,9 @@ private fun PastGigRow(g: GigArchive.Summary, onClick: () -> Unit) {
         MiniPolaroid(g.id, cover)
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(g.name, style = Mosh.RowTitle, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Text(listOf(shortDay(g.whenSec, year = true), g.venue).filter { it.isNotBlank() }.joinToString(" · "), style = Mosh.Small.copy(color = Mosh.TextDim), maxLines = 2, overflow = TextOverflow.Ellipsis)
-            if (counts.isNotEmpty()) Text(counts.joinToString(" · "), style = Mosh.Small, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(g.name, style = HomeType.RowTitle, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(dotLine(listOf(shortDay(g.whenSec, year = true), g.venue).filter { it.isNotBlank() }), style = HomeType.Small.copy(color = Mosh.TextDim), maxLines = 2, overflow = TextOverflow.Ellipsis)
+            if (counts.isNotEmpty()) Text(dotLine(counts), style = HomeType.Small, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
         Spacer(Modifier.width(8.dp))
         HomeIcon(HomeIcons.Chevron, Mosh.TextFaint, 18.dp)
@@ -489,7 +489,7 @@ private fun PastGigRow(g: GigArchive.Summary, onClick: () -> Unit) {
 @Composable
 private fun PanelTitle(text: String) {
     Text(
-        text, style = Mosh.Heading.copy(fontSize = 22.sp),
+        text, style = HomeType.Heading.copy(fontSize = 22.sp),
         modifier = Modifier.padding(start = HomeSide, end = HomeSide, top = 4.dp, bottom = 8.dp).semantics { heading() },
     )
 }
@@ -529,8 +529,8 @@ internal fun FriendsListContent(
                 FaceImage(f, 46.dp, status.live, dim = false, glow = 10.dp)
                 Spacer(Modifier.width(14.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(f.name, style = Mosh.RowTitle.copy(fontSize = 16.sp), maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    Text(status.text, style = Mosh.Small.copy(color = status.colour), maxLines = 2)
+                    Text(f.name, style = HomeType.RowTitle.copy(fontSize = 16.sp), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text(status.text, style = HomeType.Small.copy(color = status.colour), maxLines = 2)
                 }
                 Spacer(Modifier.width(4.dp))
                 Box(
@@ -565,9 +565,9 @@ internal fun CrewMenuContent(
         Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding()
             .padding(start = HomeSide, end = HomeSide, top = 4.dp, bottom = 28.dp),
     ) {
-        Text(name, style = Mosh.Heading.copy(fontSize = 22.sp), maxLines = 3, overflow = TextOverflow.Ellipsis, modifier = Modifier.semantics { heading() })
+        Text(name, style = HomeType.Heading.copy(fontSize = 22.sp), maxLines = 3, overflow = TextOverflow.Ellipsis, modifier = Modifier.semantics { heading() })
         Spacer(Modifier.height(4.dp))
-        Text(subtitle, style = Mosh.Small)
+        Text(subtitle, style = HomeType.Small)
         Spacer(Modifier.height(12.dp))
         if (onInvite != null) {
             MenuRow(
@@ -596,10 +596,10 @@ internal fun CrewMenuContent(
         AlertDialog(
             onDismissRequest = { confirmReset = false },
             containerColor = Mosh.Deep,
-            title = { Text(stringResource(R.string.setup_qr_reset_title), style = Mosh.Heading) },
-            text = { Text(stringResource(R.string.setup_qr_reset_text), style = Mosh.Body) },
-            confirmButton = { TextButton(onClick = { confirmReset = false; onReset() }) { Text(stringResource(R.string.setup_qr_reset), style = Mosh.Label.copy(color = Mosh.Cyan)) } },
-            dismissButton = { TextButton(onClick = { confirmReset = false }) { Text(stringResource(R.string.setup_cancel), style = Mosh.Label) } },
+            title = { Text(stringResource(R.string.setup_qr_reset_title), style = HomeType.Heading) },
+            text = { Text(stringResource(R.string.setup_qr_reset_text), style = HomeType.Body) },
+            confirmButton = { TextButton(onClick = { confirmReset = false; onReset() }) { Text(stringResource(R.string.setup_qr_reset), style = HomeType.Label.copy(color = Mosh.Cyan)) } },
+            dismissButton = { TextButton(onClick = { confirmReset = false }) { Text(stringResource(R.string.setup_cancel), style = HomeType.Label) } },
         )
     }
 }
@@ -631,8 +631,8 @@ private fun PlanGigRow(onClick: () -> Unit) {
         HomeIcon(HomeIcons.Calendar, Mosh.Lilac, 22.dp)
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(stringResource(R.string.home_plan_title), style = Mosh.RowTitle)
-            Text(stringResource(R.string.home_plan_sub), style = Mosh.Small)
+            Text(stringResource(R.string.home_plan_title), style = HomeType.RowTitle)
+            Text(stringResource(R.string.home_plan_sub), style = HomeType.Small)
         }
         Spacer(Modifier.width(8.dp))
         HomeIcon(HomeIcons.Chevron, Mosh.TextFaint, 18.dp)
@@ -643,9 +643,9 @@ private fun PlanGigRow(onClick: () -> Unit) {
 @Composable
 internal fun NoCrewHero(onStart: () -> Unit, onPlan: () -> Unit, onScan: () -> Unit, onPaste: () -> Unit) {
     Column(Modifier.fillMaxWidth().padding(horizontal = HomeSide)) {
-        Text(stringResource(R.string.home_no_crew_title), style = Mosh.Hero.copy(fontSize = 30.sp), modifier = Modifier.semantics { heading() })
+        Text(stringResource(R.string.home_no_crew_title), style = HomeType.Hero.copy(fontSize = 30.sp), modifier = Modifier.semantics { heading() })
         Spacer(Modifier.height(10.dp))
-        Text(stringResource(R.string.home_no_crew_text), style = Mosh.Body.copy(lineHeight = 23.sp))
+        Text(stringResource(R.string.home_no_crew_text), style = HomeType.Body.copy(lineHeight = 23.sp))
         Spacer(Modifier.height(24.dp))
         HeroButton(stringResource(R.string.home_start_crew), HomeIcons.UserPlus, textSize = 17.sp, onClick = onStart)
         Spacer(Modifier.height(12.dp))
@@ -664,11 +664,11 @@ internal fun FirstTimeHero(onStart: () -> Unit, onScan: () -> Unit, onPaste: () 
         RadarArt()
         Spacer(Modifier.height(14.dp))
         Text(
-            stringResource(R.string.home_first_title), style = Mosh.Hero.copy(fontSize = 27.sp), textAlign = TextAlign.Center,
+            stringResource(R.string.home_first_title), style = HomeType.Hero.copy(fontSize = 27.sp), textAlign = TextAlign.Center,
             modifier = Modifier.semantics { heading() },
         )
         Spacer(Modifier.height(10.dp))
-        Text(stringResource(R.string.home_first_text), style = Mosh.Body.copy(lineHeight = 23.sp), textAlign = TextAlign.Center)
+        Text(stringResource(R.string.home_first_text), style = HomeType.Body.copy(lineHeight = 23.sp), textAlign = TextAlign.Center)
         Spacer(Modifier.height(22.dp))
         HeroButton(stringResource(R.string.home_start_crew), HomeIcons.UserPlus, textSize = 17.sp, onClick = onStart)
         Spacer(Modifier.height(12.dp))
@@ -678,7 +678,7 @@ internal fun FirstTimeHero(onStart: () -> Unit, onScan: () -> Unit, onPaste: () 
             Modifier.heightIn(min = 48.dp).clip(RoundedCornerShape(12.dp)).clickable(role = Role.Button, onClick = onPlan).padding(horizontal = 12.dp),
             contentAlignment = Alignment.Center,
         ) {
-            Text(stringResource(R.string.home_plan_another_night), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lilac), textAlign = TextAlign.Center)
+            Text(stringResource(R.string.home_plan_another_night), style = HomeType.Label.copy(fontSize = 14.sp, color = Mosh.Lilac), textAlign = TextAlign.Center)
         }
     }
 }
@@ -714,7 +714,7 @@ private fun RadarArt(modifier: Modifier = Modifier) {
         ) { DefaultAvatar("Sam", 46.dp) }
         Text(
             distance, maxLines = 1, softWrap = false,
-            style = Mosh.Button.copy(fontSize = 11.sp, color = Mosh.Lime),
+            style = HomeType.Button.copy(fontSize = 11.sp, color = Mosh.Lime),
             modifier = Modifier.absoluteOffset(x = 132.dp, y = 60.dp)
                 .background(Mosh.Lime.copy(alpha = 0.14f), RoundedCornerShape(10.dp))
                 .padding(horizontal = 8.dp, vertical = 2.dp),
@@ -750,10 +750,10 @@ internal fun PingBar(onPing: (Int) -> Unit, onCheckIn: (Int) -> Unit = {}) {
         AlertDialog(
             onDismissRequest = { goingHome = false },
             containerColor = Mosh.Deep,
-            title = { Text(stringResource(R.string.home_heading_home_title), style = Mosh.Heading) },
+            title = { Text(stringResource(R.string.home_heading_home_title), style = HomeType.Heading) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(stringResource(R.string.home_heading_home_text), style = Mosh.Body)
+                    Text(stringResource(R.string.home_heading_home_text), style = HomeType.Body)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf(30, 45, 60, 90).forEach { m ->
                             PingChip(pluralStringResource(R.plurals.home_checkin_minutes, m, m), Mosh.Violet) { onCheckIn(m); sent = GigGroup.Ping.CHECK_IN; goingHome = false }
@@ -763,10 +763,10 @@ internal fun PingBar(onPing: (Int) -> Unit, onCheckIn: (Int) -> Unit = {}) {
             },
             confirmButton = {
                 TextButton(onClick = { onPing(GigGroup.Ping.GOING_HOME); sent = GigGroup.Ping.GOING_HOME; goingHome = false }) {
-                    Text(stringResource(R.string.home_just_tell_them), style = Mosh.Label.copy(color = Mosh.Cyan))
+                    Text(stringResource(R.string.home_just_tell_them), style = HomeType.Label.copy(color = Mosh.Cyan))
                 }
             },
-            dismissButton = { TextButton(onClick = { goingHome = false }) { Text(stringResource(R.string.home_cancel), style = Mosh.Label) } },
+            dismissButton = { TextButton(onClick = { goingHome = false }) { Text(stringResource(R.string.home_cancel), style = HomeType.Label) } },
         )
     }
     if (confirmHelp) {
@@ -784,7 +784,7 @@ private fun PingChip(text: String, colour: Color, onClick: () -> Unit) {
             .clickable(interactionSource = src, indication = LocalIndication.current, onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 9.dp),
         contentAlignment = Alignment.Center,
-    ) { Text(text, style = Mosh.Label.copy(fontSize = 14.sp, color = colour)) }
+    ) { Text(text, style = HomeType.Label.copy(fontSize = 14.sp, color = colour)) }
 }
 
 /** Bottom bar: the places you go (Crew, Map, Add, Story, Me). Opaque: the list ends above it. */
@@ -827,7 +827,7 @@ private fun BarItem(label: String, selected: Boolean, modifier: Modifier, icon: 
         Spacer(Modifier.height(4.dp))
         Text(
             label, maxLines = 1, softWrap = false, textAlign = TextAlign.Center,
-            style = Mosh.Body.copy(fontSize = 11.5.sp, lineHeight = 15.sp, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium, color = colour),
+            style = HomeType.Body.copy(fontSize = 11.5.sp, lineHeight = 15.sp, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium, color = colour),
         )
     }
 }
@@ -902,9 +902,9 @@ internal fun AddSheetContent(
         Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding()
             .padding(start = HomeSide, end = HomeSide, top = 4.dp, bottom = 28.dp),
     ) {
-        Text(stringResource(R.string.home_add_mates), style = Mosh.Heading.copy(fontSize = 22.sp), modifier = Modifier.semantics { heading() })
+        Text(stringResource(R.string.home_add_mates), style = HomeType.Heading.copy(fontSize = 22.sp), modifier = Modifier.semantics { heading() })
         Spacer(Modifier.height(6.dp))
-        Text(stringResource(R.string.home_add_mates_text), style = Mosh.Body.copy(fontSize = 14.sp, lineHeight = 21.sp))
+        Text(stringResource(R.string.home_add_mates_text), style = HomeType.Body.copy(fontSize = 14.sp, lineHeight = 21.sp))
         Spacer(Modifier.height(20.dp))
         HeroButton(
             if (inCrew) stringResource(R.string.home_show_crew_qr) else stringResource(R.string.home_start_crew_show_qr),
@@ -940,9 +940,9 @@ internal fun CheckInBanner(byClock: String, onHomeSafe: () -> Unit, modifier: Mo
             .padding(start = 16.dp, end = 6.dp, top = 4.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(stringResource(R.string.home_check_in_by, byClock), style = Mosh.RowTitle.copy(color = Mosh.Lilac), modifier = Modifier.weight(1f))
+        Text(stringResource(R.string.home_check_in_by, byClock), style = HomeType.RowTitle.copy(color = Mosh.Lilac), modifier = Modifier.weight(1f))
         TextButton(onClick = onHomeSafe) {
-            Text(stringResource(R.string.home_home_safe), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lime), textAlign = TextAlign.Center)
+            Text(stringResource(R.string.home_home_safe), style = HomeType.Label.copy(fontSize = 14.sp, color = Mosh.Lime), textAlign = TextAlign.Center)
         }
     }
 }
@@ -955,8 +955,8 @@ internal fun MessageSheet(onPing: (Int) -> Unit, onCheckIn: (Int) -> Unit, onClo
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(start = HomeSide, end = HomeSide, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text(stringResource(R.string.home_message_crew), style = Mosh.Heading.copy(fontSize = 22.sp), modifier = Modifier.semantics { heading() })
-            Text(stringResource(R.string.home_message_crew_text), style = Mosh.Body)
+            Text(stringResource(R.string.home_message_crew), style = HomeType.Heading.copy(fontSize = 22.sp), modifier = Modifier.semantics { heading() })
+            Text(stringResource(R.string.home_message_crew_text), style = HomeType.Body)
             PingBar(onPing = { onPing(it) }, onCheckIn = { onCheckIn(it) })
         }
     }
@@ -972,13 +972,13 @@ internal fun InlineCrewQr(payload: String, onShare: () -> Unit, modifier: Modifi
             modifier = Modifier.size(208.dp).background(Color.White, RoundedCornerShape(20.dp)).padding(12.dp),
         )
         Spacer(Modifier.height(14.dp))
-        Text(stringResource(R.string.home_inline_qr_text), style = Mosh.Body.copy(fontSize = 14.sp, lineHeight = 20.sp), textAlign = TextAlign.Center)
+        Text(stringResource(R.string.home_inline_qr_text), style = HomeType.Body.copy(fontSize = 14.sp, lineHeight = 20.sp), textAlign = TextAlign.Center)
         Spacer(Modifier.height(2.dp))
         Box(
             Modifier.heightIn(min = 48.dp).clip(RoundedCornerShape(12.dp)).clickable(role = Role.Button, onClick = onShare).padding(horizontal = 12.dp),
             contentAlignment = Alignment.Center,
         ) {
-            Text(stringResource(R.string.home_no_camera_send_invite), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan), textAlign = TextAlign.Center)
+            Text(stringResource(R.string.home_no_camera_send_invite), style = HomeType.Label.copy(fontSize = 14.sp, color = Mosh.Cyan), textAlign = TextAlign.Center)
         }
     }
 }

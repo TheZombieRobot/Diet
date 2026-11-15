@@ -107,6 +107,39 @@ import nz.waveformlabs.moshpoint.Txt
 /** The home's side margin. */
 internal val HomeSide = 24.dp
 
+/**
+ * Line breaks for the home's text in every script: Korean wraps at spaces and Japanese between
+ * phrases (Android 13 and later), a line never starts with a small kana or a closing mark, and
+ * the high-quality breaker avoids leaving one word or character alone on the last line.
+ */
+internal val HomeBreak = LineBreak(LineBreak.Strategy.HighQuality, LineBreak.Strictness.Strict, LineBreak.WordBreak.Phrase)
+
+/** The same with lines of even length, for short captions and centred text. */
+internal val HomeBreakEven = LineBreak(LineBreak.Strategy.Balanced, LineBreak.Strictness.Strict, LineBreak.WordBreak.Phrase)
+
+/** Mosh's text styles with [HomeBreak]: everything on the home uses these. */
+internal object HomeType {
+    val Body = Mosh.Body.copy(lineBreak = HomeBreak)
+    val Label = Mosh.Label.copy(lineBreak = HomeBreak)
+    val Small = Mosh.Small.copy(lineBreak = HomeBreak)
+    val RowTitle = Mosh.RowTitle.copy(lineBreak = HomeBreak)
+    val Heading = Mosh.Heading.copy(lineBreak = HomeBreak)
+    val Hero = Mosh.Hero.copy(lineBreak = HomeBreak)
+    val Button = Mosh.Button.copy(lineBreak = HomeBreak)
+    val Section = Mosh.Section.copy(lineBreak = HomeBreak)
+    val Kicker = Mosh.Kicker.copy(lineBreak = HomeBreak)
+}
+
+/**
+ * Parts joined with " · ", the dot kept at the end of a line and each short part kept whole
+ * (no-break spaces inside): "in 7 days · Dock 4" never breaks as "Dock / 4" or "· Dock 4".
+ */
+internal fun dotLine(parts: List<String>): String =
+    parts.joinToString("\u00A0· ") { p -> if (p.length <= 24) p.replace(' ', '\u00A0') else p }
+
+/** [dotLine] for text already joined with " · ". */
+internal fun dotLine(text: String): String = dotLine(text.split(" · "))
+
 /** Line icons from the design, on a 24-unit grid with round caps and joins (tinted when drawn). */
 internal object HomeIcons {
     private fun build(name: String, width: Float, fill: Boolean, mirror: Boolean, paths: Array<out String>): ImageVector {
@@ -218,7 +251,7 @@ internal fun HelpPill(onClick: () -> Unit, modifier: Modifier = Modifier) {
         val measurer = rememberTextMeasurer()
         val density = LocalDensity.current
         val room = with(density) { (maxWidth - 14.dp * 2 - 18.dp - 6.dp - 6.dp).roundToPx() }
-        val base = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Danger)
+        val base = HomeType.Label.copy(fontSize = 14.sp, color = Mosh.Danger)
         val fits = remember(label, room, density) {
             listOf(14f, 13f, 12f).firstOrNull { s ->
                 measurer.measure(label, base.copy(fontSize = s.sp), maxLines = 1, softWrap = false).size.width <= room
@@ -262,7 +295,7 @@ internal fun HeroButton(text: String, icon: ImageVector, modifier: Modifier = Mo
         val measurer = rememberTextMeasurer()
         val density = LocalDensity.current
         val room = with(density) { (maxWidth - 20.dp * 2 - 22.dp - 12.dp).roundToPx() }
-        val base = Mosh.Button.copy(fontSize = textSize, color = Color.White)
+        val base = HomeType.Button.copy(fontSize = textSize, color = Color.White)
         val fits = remember(text, room, density, textSize) {
             (0..3).map { textSize.value - it }.firstOrNull { s ->
                 measurer.measure(text, base.copy(fontSize = s.sp), maxLines = 1, softWrap = false).size.width <= room
@@ -336,7 +369,7 @@ internal fun GlassAction(
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
             HomeIcon(icon, content, 20.dp)
             Spacer(Modifier.width(if (accent != null) 8.dp else 10.dp))
-            WholeWordsText(text, Mosh.RowTitle.copy(color = content), Modifier.weight(1f, fill = false))
+            WholeWordsText(text, HomeType.RowTitle.copy(color = content), Modifier.weight(1f, fill = false))
             if (badge > 0) {
                 Spacer(Modifier.width(8.dp))
                 CountBadge(badge)
@@ -426,7 +459,7 @@ internal fun CountBadge(count: Int, modifier: Modifier = Modifier, colour: Color
     ) {
         Text(
             if (count > 9) stringResource(R.string.home_unread_many) else "%d".format(count),
-            style = Mosh.Label.copy(fontSize = 12.sp, color = Color.White),
+            style = HomeType.Label.copy(fontSize = 12.sp, color = Color.White),
             maxLines = 1,
         )
     }
@@ -494,13 +527,13 @@ internal fun LiveRow(live: Boolean, ghost: Boolean, onChange: (Boolean) -> Unit,
             .toggleable(value = live, interactionSource = source, indication = null, role = Role.Switch, onValueChange = onChange),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(stringResource(R.string.home_live_switch), style = Mosh.Button.copy(fontSize = 15.sp, color = colour), maxLines = 1)
+        Text(stringResource(R.string.home_live_switch), style = HomeType.Button.copy(fontSize = 15.sp, color = colour), maxLines = 1)
         Spacer(Modifier.width(10.dp))
         SwitchTrack(live, colour)
         Spacer(Modifier.width(12.dp))
         Text(
             explain,
-            style = Mosh.Body.copy(fontSize = 13.5.sp, lineHeight = 19.sp, color = if (live) Mosh.TextDim else Mosh.TextFaint),
+            style = HomeType.Body.copy(fontSize = 13.5.sp, lineHeight = 19.sp, color = if (live) Mosh.TextDim else Mosh.TextFaint),
             modifier = Modifier.weight(1f).padding(vertical = 4.dp),
         )
     }
@@ -510,15 +543,17 @@ internal fun LiveRow(live: Boolean, ghost: Boolean, onChange: (Boolean) -> Unit,
 @Composable
 internal fun SectionTitle(title: String, modifier: Modifier = Modifier, onSeeAll: (() -> Unit)? = null) {
     Row(modifier.fillMaxWidth().padding(horizontal = HomeSide).heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(title, style = Mosh.Section, modifier = Modifier.weight(1f).padding(vertical = 4.dp).semantics { heading() })
+        // See all sits on the title's first line, also when a long title wraps.
+        val onLine = if (onSeeAll != null) Modifier.alignByBaseline() else Modifier
+        Text(title, style = HomeType.Section, modifier = Modifier.weight(1f).then(onLine).padding(vertical = 4.dp).semantics { heading() })
         if (onSeeAll != null) {
             Spacer(Modifier.width(12.dp))
             Box(
                 // At least 48 dp both ways, however short "See all" is ("全部").
-                Modifier.heightIn(min = 48.dp).widthIn(min = 48.dp).clip(RoundedCornerShape(8.dp)).clickable(role = Role.Button, onClick = onSeeAll).padding(horizontal = 4.dp),
+                Modifier.alignByBaseline().heightIn(min = 48.dp).widthIn(min = 48.dp).clip(RoundedCornerShape(8.dp)).clickable(role = Role.Button, onClick = onSeeAll).padding(horizontal = 4.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(stringResource(R.string.home_see_all), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan), maxLines = 1)
+                Text(stringResource(R.string.home_see_all), style = HomeType.Label.copy(fontSize = 14.sp, color = Mosh.Cyan), maxLines = 1)
             }
         }
     }
@@ -527,7 +562,7 @@ internal fun SectionTitle(title: String, modifier: Modifier = Modifier, onSeeAll
 /** Small capitals over a group: TONIGHT, JOIN A CREW. */
 @Composable
 internal fun Kicker(text: String, modifier: Modifier = Modifier, colour: Color = Mosh.TextFaint) =
-    Text(text, style = Mosh.Kicker.copy(letterSpacing = tracked(text, 2.5.sp), color = colour), modifier = modifier.semantics { heading() })
+    Text(text, style = HomeType.Kicker.copy(letterSpacing = tracked(text, 2.5.sp), color = colour), modifier = modifier.semantics { heading() })
 
 /** A hairline across the page, inside the side margins. */
 @Composable
@@ -653,25 +688,33 @@ private fun FaceTile(f: Friend, status: FaceStatus, note: String?, badge: Int, o
         Spacer(Modifier.height(8.dp))
         Text(
             f.name,
-            style = Mosh.Label.copy(fontSize = 14.sp, color = if (status.live) Mosh.Text else Mosh.TextDim),
+            style = HomeType.Label.copy(fontSize = 14.sp, color = if (status.live) Mosh.Text else Mosh.TextDim),
             maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(2.dp))
+        // Captions as wide as the face (the design's 70 dp), so neighbours never run together.
+        val caption = Modifier.padding(horizontal = 3.dp)
         if (status.distance) {
-            FitText(status.text, Mosh.Button.copy(fontSize = 15.sp, color = Mosh.Lime))
+            FitText(status.text, HomeType.Button.copy(fontSize = 15.sp, color = Mosh.Lime), caption)
         } else {
             Text(
                 status.text,
-                style = Mosh.Body.copy(fontSize = 12.5.sp, lineHeight = 16.sp, color = status.colour, lineBreak = LineBreak.Heading),
-                maxLines = 2, textAlign = TextAlign.Center,
+                style = HomeType.Body.copy(fontSize = 12.5.sp, lineHeight = 16.sp, color = status.colour, lineBreak = HomeBreakEven),
+                maxLines = 3, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center, modifier = caption,
             )
         }
         if (battery != null) {
-            Text(battery, style = Mosh.Body.copy(fontSize = 11.5.sp, lineHeight = 15.sp, color = Mosh.Danger, lineBreak = LineBreak.Heading), maxLines = 2, textAlign = TextAlign.Center)
+            Text(
+                battery, style = HomeType.Body.copy(fontSize = 11.5.sp, lineHeight = 15.sp, color = Mosh.Danger, lineBreak = HomeBreakEven),
+                maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center, modifier = caption,
+            )
         }
         if (note != null) {
             // Balanced lines: "🔥 Bar / time 🍺", not a lone emoji on the second line.
-            Text(note, style = Mosh.Body.copy(fontSize = 11.5.sp, lineHeight = 15.sp, color = Mosh.Amber, lineBreak = LineBreak.Heading), maxLines = 2, textAlign = TextAlign.Center)
+            Text(
+                note, style = HomeType.Body.copy(fontSize = 11.5.sp, lineHeight = 15.sp, color = Mosh.Amber, lineBreak = HomeBreakEven),
+                maxLines = 3, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center, modifier = caption,
+            )
         }
     }
 }
@@ -743,7 +786,7 @@ internal fun FriendsStrip(friends: List<Friend>, seen: Map<String, LocationBook.
             ) {
                 FaceImage(f, 60.dp, isLive(seen[f.id], nowSec), dim = false, glow = 12.dp)
                 Spacer(Modifier.height(8.dp))
-                Text(f.name, style = Mosh.Label.copy(fontSize = 13.sp), maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
+                Text(f.name, style = HomeType.Label.copy(fontSize = 13.sp), maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
             }
         }
     }
@@ -775,8 +818,8 @@ internal fun MenuRow(
         }
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(title, style = Mosh.RowTitle.copy(fontSize = 16.sp, color = if (danger) Mosh.Danger else Mosh.Text))
-            if (sub != null) Text(sub, style = Mosh.Small)
+            Text(title, style = HomeType.RowTitle.copy(fontSize = 16.sp, color = if (danger) Mosh.Danger else Mosh.Text))
+            if (sub != null) Text(sub, style = HomeType.Small)
         }
         if (!danger) {
             Spacer(Modifier.width(8.dp))

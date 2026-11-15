@@ -249,7 +249,7 @@ fun FriendsScreen(
                     } else {
                         Text(
                             stringResource(R.string.crew_only_owner_removes),
-                            style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint),
+                            style = HomeType.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint),
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                         )
                     }
@@ -300,16 +300,16 @@ fun FriendsScreen(
         AlertDialog(
             onDismissRequest = { manualCode = false; code = ""; name = "" },
             containerColor = Mosh.Deep,
-            title = { Text(stringResource(R.string.home_add_with_code), style = Mosh.Heading) },
+            title = { Text(stringResource(R.string.home_add_with_code), style = HomeType.Heading) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(name, { name = it }, label = { Text(stringResource(R.string.home_their_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                     OutlinedTextField(code, { code = it }, label = { Text(stringResource(R.string.home_their_code)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                    error?.let { Text(it, style = Mosh.Body.copy(color = Mosh.Danger)) }
+                    error?.let { Text(it, style = HomeType.Body.copy(color = Mosh.Danger)) }
                 }
             },
-            confirmButton = { TextButton(onClick = { add(false); if (error == null) manualCode = false }) { Text(stringResource(R.string.home_add_friend), style = Mosh.Label.copy(color = Mosh.Cyan)) } },
-            dismissButton = { TextButton(onClick = { add(true); if (error == null) manualCode = false }) { Text(stringResource(R.string.home_tonight_only), style = Mosh.Label) } },
+            confirmButton = { TextButton(onClick = { add(false); if (error == null) manualCode = false }) { Text(stringResource(R.string.home_add_friend), style = HomeType.Label.copy(color = Mosh.Cyan)) } },
+            dismissButton = { TextButton(onClick = { add(true); if (error == null) manualCode = false }) { Text(stringResource(R.string.home_tonight_only), style = HomeType.Label) } },
         )
     }
     if (helpOpen) {
@@ -327,7 +327,7 @@ fun FriendsScreen(
                         else -> stringResource(R.string.home_menu_tonight)
                     },
                     crewCount.takeIf { gig.isNotEmpty() },
-                ).joinToString(" · "),
+                ).let { dotLine(it) },
                 onInvite = if (following) null else ({ menuOpen = false; onShowGroupQr() }),
                 onFamily = if (following) null else ({ menuOpen = false; onLetFamilyFollow() }),
                 onReset = if (following || groupName == null) null else onResetInvite?.let { reset -> { menuOpen = false; reset() } },
@@ -407,7 +407,7 @@ fun FriendsScreen(
                         when {
                             following && !crewSleeping -> {
                                 Spacer(Modifier.height(10.dp))
-                                Text(stringResource(R.string.home_follower_text), style = Mosh.Body.copy(fontSize = 14.sp, lineHeight = 21.sp), modifier = Modifier.padding(horizontal = HomeSide))
+                                Text(stringResource(R.string.home_follower_text), style = HomeType.Body.copy(fontSize = 14.sp, lineHeight = 21.sp), modifier = Modifier.padding(horizontal = HomeSide))
                                 if (gig.isNotEmpty()) CrewTiles(gig, seen, nowSec, onFind = null, onOptions = null, notes = tileNotes)
                                 if (checkInBy != null) CheckInBanner(checkInBy, onHomeSafe, Modifier.padding(start = HomeSide, end = HomeSide, top = 14.dp))
                                 ActivityBlock(meetUp, pings.take(3), nowSec, describePing, pinnedPlan, onOpenMap, onOpenChat, Modifier.padding(top = 16.dp))
@@ -431,12 +431,12 @@ fun FriendsScreen(
                                 // Nobody in yet, or a crew asleep until gig day.
                                 if (crewSleeping) {
                                     Spacer(Modifier.height(10.dp))
-                                    Text(stringResource(R.string.home_asleep_text), style = Mosh.Body.copy(fontSize = 14.sp, lineHeight = 21.sp, color = Mosh.Lilac), modifier = Modifier.padding(horizontal = HomeSide))
+                                    Text(stringResource(R.string.home_asleep_text), style = HomeType.Body.copy(fontSize = 14.sp, lineHeight = 21.sp, color = Mosh.Lilac), modifier = Modifier.padding(horizontal = HomeSide))
                                 }
                                 if (gig.isNotEmpty()) CrewTiles(gig, seen, nowSec, onFind = null, onOptions = { options = it }, badges = privateUnread)
                                 Spacer(Modifier.height(20.dp))
                                 when {
-                                    following -> Text(stringResource(R.string.home_see_them_once_starts), style = Mosh.Body.copy(fontSize = 14.sp, lineHeight = 21.sp), modifier = Modifier.padding(horizontal = HomeSide))
+                                    following -> Text(stringResource(R.string.home_see_them_once_starts), style = HomeType.Body.copy(fontSize = 14.sp, lineHeight = 21.sp), modifier = Modifier.padding(horizontal = HomeSide))
                                     crewQrPayload != null -> InlineCrewQr(crewQrPayload, onShareCode, Modifier.padding(horizontal = HomeSide))
                                     else -> HeroButton(stringResource(R.string.home_show_crew_qr), HomeIcons.Qr, Modifier.padding(horizontal = HomeSide), onClick = onShowGroupQr)
                                 }
@@ -458,7 +458,7 @@ fun FriendsScreen(
                                 )
                                 Text(
                                     stringResource(R.string.home_tap_mate_hint),
-                                    style = Mosh.Body.copy(fontSize = 12.5.sp, lineHeight = 17.sp, color = Mosh.TextFaint),
+                                    style = HomeType.Body.copy(fontSize = 12.5.sp, lineHeight = 17.sp, color = Mosh.TextFaint),
                                     modifier = Modifier.padding(start = HomeSide, end = HomeSide, top = 4.dp),
                                 )
                                 Spacer(Modifier.height(18.dp))
@@ -513,14 +513,14 @@ fun FriendsScreen(
                     if (permanent.isEmpty()) {
                         Text(
                             stringResource(R.string.home_friends_empty),
-                            style = Mosh.Body.copy(fontSize = 14.sp, lineHeight = 21.sp, color = Mosh.TextDim),
+                            style = HomeType.Body.copy(fontSize = 14.sp, lineHeight = 21.sp, color = Mosh.TextDim),
                             modifier = Modifier.padding(start = HomeSide, end = HomeSide, top = 6.dp),
                         )
                     } else {
                         FriendsStrip(permanent, seen, nowSec, onFind = { onFind(setOf(it)) }, onOptions = { options = it })
                         Text(
                             stringResource(R.string.home_tap_mate_hint),
-                            style = Mosh.Body.copy(fontSize = 12.5.sp, lineHeight = 17.sp, color = Mosh.TextFaint),
+                            style = HomeType.Body.copy(fontSize = 12.5.sp, lineHeight = 17.sp, color = Mosh.TextFaint),
                             modifier = Modifier.padding(start = HomeSide, end = HomeSide, top = 8.dp),
                         )
                     }
@@ -528,7 +528,7 @@ fun FriendsScreen(
                 // Always false in release builds (BuildConfig.TEST_BUILD is a compile-time constant).
                 if ((BuildConfig.TEST_BUILD && DebugStatus.showUi) && onAddSimulated != null) {
                     TextButton(onClick = onAddSimulated, modifier = Modifier.padding(start = HomeSide - 12.dp, top = 12.dp)) {
-                        Text("Debug: add simulated friend", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber))
+                        Text("Debug: add simulated friend", style = HomeType.Label.copy(fontSize = 14.sp, color = Mosh.Amber))
                     }
                 }
             }
