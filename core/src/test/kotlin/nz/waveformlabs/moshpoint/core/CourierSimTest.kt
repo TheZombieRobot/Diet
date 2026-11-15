@@ -180,9 +180,9 @@ class CourierSimTest {
             if (live && (sec + slot) % 6 == 0L) courier.nextPacket(now)?.let { world.broadcast(this, it) }
         }
 
-        /** Kill the app and start it again from what it saved. */
-        fun restart() {
-            val saved = courier.save()
+        /** Kill the app and start it again from what it saved ([saved]: as another version would have saved it). */
+        fun restart(saved: (ByteArray) -> ByteArray = { it }) {
+            val saved = saved(courier.save())
             courier = Courier(this, this, this, java.util.Random(99))
             courier.restore(saved, now)
             courier.setCrews(listOfNotNull(crew), now)
@@ -869,6 +869,26 @@ class CourierSimTest {
         b.online = true
         w.run(60)
         assertEquals(1, b.got.count { it.id == id })
+    }
+
+    /** An update never throws the outbox away: what version 1 saved, and what a later version saves, both load (reliability P2). */
+    @Test fun theQueueSurvivesAnUpdateEitherWay() {
+        val versions = listOf<Pair<String, (ByteArray) -> ByteArray>>(
+            "version 1" to { SaveFormats.courierAs(it, 1, extra = false) },
+            "a later version" to { SaveFormats.courierAs(it, 3, extra = true) },
+        )
+        for ((name, saved) in versions) {
+            val w = World()
+            val a = Phone("A", w, group)
+            val id = a.chat("before the update")
+            w.run(30)
+            a.restart(saved)
+            assertNotNull(a.courier.stateOf(id), "$name: still queued")
+            a.online = true
+            w.run(90)
+            assertEquals(1, w.relay.get(crewId, chatBox).size, name)
+            assertEquals(Courier.State.SENT, a.state(id), name)
+        }
     }
 
     @Test fun aCrewPhonesWordThatItUploadedIsCheckedAgainstTheRelay() {

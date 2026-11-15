@@ -407,6 +407,22 @@ class PrivateTest {
         assertNull(book.pubOf(alex.tag))
     }
 
+    /** An update never throws the threads away: what version 1 saved, and what a later version saves, both load (reliability P2). */
+    @Test fun threadsSurviveAnUpdateEitherWay() {
+        val book = PrivateBook()
+        book.offer(from(jo, "one"), mate = true, viewing = false, nowSec = now)
+        book.offer(from(alex, "pending"), mate = false, viewing = false, nowSec = now)
+        book.own(jo.tag, jo.pub, 80L, now + 1, "two", OutboxState.NEARBY, now + 1)
+        for (bytes in listOf(SaveFormats.privateAs(book.save(), 1, extra = false), SaveFormats.privateAs(book.save(), 3, extra = true))) {
+            val restored = PrivateBook().also { it.restore(bytes) }
+            assertEquals(listOf("one", "two"), restored.thread(jo.tag).map { it.text })
+            assertEquals(OutboxState.NEARBY, restored.thread(jo.tag).last().state)
+            assertEquals(1, restored.unread(jo.tag))
+            assertContentEquals(jo.pub, restored.pubOf(jo.tag))
+            assertTrue(restored.waitingFrom(alex.tag))
+        }
+    }
+
     @Test fun everythingSurvivesARestartAndGarbageLoadsAsNothing() {
         val book = PrivateBook()
         book.offer(from(jo, "one"), mate = true, viewing = false, nowSec = now)
