@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.settings
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.chat.OfflineMessages
 import nz.waveformlabs.moshpoint.locate.RelayClient
+import nz.waveformlabs.moshpoint.ui.Mosh
 
 /**
  * Test builds only (Settings, under TESTING): tools for trying "messages without signal".

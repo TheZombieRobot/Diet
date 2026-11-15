@@ -13,7 +13,7 @@ import nz.waveformlabs.moshpoint.profile.FacebookLogin
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.MoshTheme
-import nz.waveformlabs.moshpoint.ui.OnboardingScreen
+import nz.waveformlabs.moshpoint.ui.settings.OnboardingScreen
 
 /**
  * Everything MainActivity shows, in drawing order (later = on top): the crew dialogs; then the

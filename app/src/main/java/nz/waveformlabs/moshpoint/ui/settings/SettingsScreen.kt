@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.settings
 
 import kotlinx.coroutines.launch
 
@@ -46,6 +46,11 @@ import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.debug.DebugStatus
 import nz.waveformlabs.moshpoint.R
 import androidx.compose.ui.res.stringResource
+import nz.waveformlabs.moshpoint.ui.DefaultAvatar
+import nz.waveformlabs.moshpoint.ui.GlassButton
+import nz.waveformlabs.moshpoint.ui.Mosh
+import nz.waveformlabs.moshpoint.ui.pressScale
+import nz.waveformlabs.moshpoint.ui.rememberPress
 
 // Settings (the Me tab): your photo and name, ghost mode, staying live, debug, about.
 

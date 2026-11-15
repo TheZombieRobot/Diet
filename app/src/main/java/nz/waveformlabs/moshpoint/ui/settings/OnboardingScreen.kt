@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.settings
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
@@ -65,6 +65,14 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.sin
+import nz.waveformlabs.moshpoint.ui.GlowBackground
+import nz.waveformlabs.moshpoint.ui.Mosh
+import nz.waveformlabs.moshpoint.ui.NeonButton
+import nz.waveformlabs.moshpoint.ui.RadarPulse
+import nz.waveformlabs.moshpoint.ui.ambient
+import nz.waveformlabs.moshpoint.ui.glow
+import nz.waveformlabs.moshpoint.ui.haloGlow
+import nz.waveformlabs.moshpoint.ui.softGlow
 
 /**
  * First run: three short, animated steps. Permissions are asked on step 2, right after

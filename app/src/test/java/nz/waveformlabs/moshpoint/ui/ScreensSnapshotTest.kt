@@ -27,6 +27,9 @@ import nz.waveformlabs.moshpoint.ui.home.dotLine
 import nz.waveformlabs.moshpoint.ui.map.MapPlace
 import nz.waveformlabs.moshpoint.ui.map.MapScreen
 import nz.waveformlabs.moshpoint.ui.moments.StoryScreen
+import nz.waveformlabs.moshpoint.ui.settings.AcknowledgementsContent
+import nz.waveformlabs.moshpoint.ui.settings.OnboardingScreen
+import nz.waveformlabs.moshpoint.ui.settings.SettingsContent
 import org.junit.Rule
 import org.junit.Test
 

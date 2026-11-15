@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.settings
 
 import android.content.Context
 import androidx.compose.animation.animateContentSize
@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.ui.Mosh
 import org.json.JSONObject
 
 /** One credit: a font or library, its version, and the licence(s) it comes under. */

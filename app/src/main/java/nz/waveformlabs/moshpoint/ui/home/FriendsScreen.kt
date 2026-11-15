@@ -45,7 +45,7 @@ import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.ui.chat.HelpDialog
 import nz.waveformlabs.moshpoint.ui.Mosh
-import nz.waveformlabs.moshpoint.ui.SettingsSheet
+import nz.waveformlabs.moshpoint.ui.settings.SettingsSheet
 import nz.waveformlabs.moshpoint.ui.chat.UnreadBadge
 
 /**
