@@ -4,6 +4,11 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Put the build on the testing page (untick to only build and check)
+        type: boolean
+        default: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -346,8 +351,9 @@ jobs:
         # If the RELEASES_TOKEN secret is set, builds go to the separate public repo
         # TheZombieRobot/moshpoint-builds (code can then stay private); otherwise to this repo.
         # Pushes publish, and so does a manual run (Actions → Run workflow on this branch): that's
-        # how a test build is made on request after commits saved with [skip ci].
-        if: github.event_name != 'pull_request' && github.ref_name == 'ccr-5839ed7c-1q0ztj'
+        # how a test build is made on request after commits saved with [skip ci]. A manual run
+        # with "publish" unticked only builds, tests and renders the screenshots (a check).
+        if: github.ref_name == 'ccr-5839ed7c-1q0ztj' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish))
         env:
           GH_TOKEN: ${{ secrets.RELEASES_TOKEN || github.token }}
           TARGET: ${{ secrets.RELEASES_TOKEN != '' && 'TheZombieRobot/moshpoint-builds' || github.repository }}
@@ -556,7 +562,7 @@ jobs:
 
       - name: Publish watch test APK next to the phone one
         # Same rule and same place as "Publish test APK to a public link" above.
-        if: github.event_name != 'pull_request' && github.ref_name == 'ccr-5839ed7c-1q0ztj'
+        if: github.ref_name == 'ccr-5839ed7c-1q0ztj' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish))
         env:
           GH_TOKEN: ${{ secrets.RELEASES_TOKEN || github.token }}
           TARGET: ${{ secrets.RELEASES_TOKEN != '' && 'TheZombieRobot/moshpoint-builds' || github.repository }}

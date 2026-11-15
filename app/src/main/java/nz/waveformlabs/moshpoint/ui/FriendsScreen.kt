@@ -1,5 +1,6 @@
 package nz.waveformlabs.moshpoint.ui
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,8 +25,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.BuildConfig
@@ -375,7 +383,8 @@ fun FriendsScreen(
         HomeGlow(Modifier.fillMaxSize())
         // Below the status bar when the app draws edge to edge (Android 15); nothing otherwise.
         Column(Modifier.fillMaxSize().statusBarsPadding()) {
-            Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(top = 16.dp, bottom = 28.dp)) {
+            val scroll = rememberScrollState()
+            Column(Modifier.weight(1f).fillMaxWidth().fadeTopWhenScrolled(scroll, 16.dp).verticalScroll(scroll).padding(top = 16.dp, bottom = 28.dp)) {
                 HomeHeader(onHelp = { helpOpen = true })
                 // Followers at home never broadcast, so there's nothing to switch.
                 if (!following) LiveRow(visible, ghost, onChange = onVisible, modifier = Modifier.padding(horizontal = HomeSide))
@@ -539,6 +548,26 @@ fun FriendsScreen(
         }
     }
 }
+
+/**
+ * Scrolled content fades out over the top [height] of the page instead of being cut along a
+ * hard line under the clock (seen on a phone: scrolled a little, Need help lost its top edge).
+ * The fade grows with the first [height] of scrolling, so the page at rest looks exactly as
+ * designed. Applied before verticalScroll, so it stays at the top of the visible area.
+ */
+private fun Modifier.fadeTopWhenScrolled(scroll: ScrollState, height: Dp): Modifier = this
+    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+    .drawWithContent {
+        drawContent()
+        val edge = height.toPx()
+        val t = (scroll.value / edge).coerceIn(0f, 1f)
+        if (t > 0f) {
+            drawRect(
+                brush = Brush.verticalGradient(0f to Color.Black.copy(alpha = 1f - t), 1f to Color.Black, startY = 0f, endY = edge),
+                blendMode = BlendMode.DstIn,
+            )
+        }
+    }
 
 /** Something switched off on this phone that stops mates finding each other, with a one-tap fix. */
 class SetupIssue(val text: String, val button: String, val onFix: () -> Unit)

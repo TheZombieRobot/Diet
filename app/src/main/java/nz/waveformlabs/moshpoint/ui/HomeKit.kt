@@ -978,8 +978,9 @@ internal fun MenuRow(
         }
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(title, style = HomeType.RowTitle.copy(fontSize = 16.sp, color = if (danger) Mosh.Danger else Mosh.Text))
-            if (sub != null) Text(sub, style = HomeType.Small)
+            // Even lines: no single word left on a line of its own ("be found", "working").
+            Text(title, style = HomeType.RowTitle.copy(fontSize = 16.sp, color = if (danger) Mosh.Danger else Mosh.Text, lineBreak = HomeBreakEven))
+            if (sub != null) Text(sub, style = HomeType.Small.copy(lineBreak = HomeBreakEven))
         }
         if (!danger) {
             Spacer(Modifier.width(8.dp))
