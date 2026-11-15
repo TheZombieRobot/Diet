@@ -153,6 +153,19 @@ class Relay(val config: RelayConfig) : AutoCloseable {
     /** Requests in progress per address, and big answers being built and sent, everyone together. */
     val inFlight = PerKey(config.maxInFlightPerAddress)
     val answers = Semaphore(config.maxAnswers)
+
+    /** Requests in progress, everyone together, and whether the relay is stopping (see [drain]). */
+    val active = java.util.concurrent.atomic.AtomicInteger()
+
+    @Volatile var draining = false
+        private set
+
+    /** Stop taking requests and wait (up to [maxMs]) for those in progress to finish. */
+    fun drain(maxMs: Long) {
+        draining = true
+        val until = System.currentTimeMillis() + maxMs
+        while (active.get() > 0 && System.currentTimeMillis() < until) Thread.sleep(50)
+    }
     private val closed = AtomicBoolean(false)
 
     fun store(kind: Kind): MailboxStore = if (kind == Kind.HELD) held else box

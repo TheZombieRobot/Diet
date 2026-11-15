@@ -6,7 +6,7 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.ApplicationStopped
-import io.ktor.server.application.ApplicationStopping
+import io.ktor.server.application.ApplicationStopPreparing
 import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.engine.connector
@@ -79,7 +79,13 @@ fun Application.moshpoint(
         }
     }
     val sweeps = relay.startSweeps(this)
-    monitor.subscribe(ApplicationStopping) { log.info("Stopping: finishing requests in flight") }
+    // A stop (SIGTERM: deploy, resize, fly machine stop) first drains: new requests are told
+    // "try later" while those in flight (an upload, a download) get up to 20 s to finish. Only
+    // then does Netty stop (its own graceful stop waits for quiet, not for requests).
+    monitor.subscribe(ApplicationStopPreparing) {
+        log.info("Stopping: {} requests in flight", relay.active.get())
+        relay.drain(20_000)
+    }
     monitor.subscribe(ApplicationStopped) {
         sweeps.cancel()
         relay.close()
@@ -95,17 +101,25 @@ fun Application.moshpoint(
         respondText("slow down", status = HttpStatusCode.TooManyRequests)
     }
 
-    // One address can't pile up requests (a client that stops reading holds its answer in memory).
+    // One address can't pile up requests (a client that stops reading holds its answer in memory),
+    // and while the relay is stopping, new requests are told to come back.
     intercept(ApplicationCallPipeline.Plugins) {
+        if (relay.draining) {
+            call.respondText("try later", status = HttpStatusCode.ServiceUnavailable)
+            finish()
+            return@intercept
+        }
         val address = call.client().address
         if (!relay.inFlight.enter(address)) {
             call.limited(Limit.CLIENT)
             finish()
             return@intercept
         }
+        relay.active.incrementAndGet()
         try {
             proceed()
         } finally {
+            relay.active.decrementAndGet()
             relay.inFlight.exit(address)
         }
     }
@@ -422,11 +436,12 @@ fun main() {
             // must still get a 12 MB clip. Uploads time out by themselves (Disk.receive).
             // A phone that stops reading an answer for 30 s is dropped.
             responseWriteTimeoutSeconds = 30
-            // A stop (deploy, resize, fly machine stop) sends SIGTERM. Ktor's own shutdown hook then
-            // stops taking requests, gives those in flight up to 20 s, and the relay flushes and
-            // closes its database (ApplicationStopped). fly.toml's kill_timeout (30 s) leaves room.
-            shutdownGracePeriod = 3_000
-            shutdownTimeout = 20_000
+            // A stop sends SIGTERM. Ktor's own shutdown hook stops the engine: the relay first drains
+            // (ApplicationStopPreparing, up to 20 s), then Netty stops (these two), then the relay
+            // flushes and closes its database (ApplicationStopped). fly.toml's kill_timeout (30 s)
+            // leaves room for all of it.
+            shutdownGracePeriod = 1_000
+            shutdownTimeout = 5_000
         },
     ) { moshpoint(relay) }
     log.info("Moshpoint relay listening on port {}. {}", port, relay.stats())

@@ -9,7 +9,7 @@ P1-11, P1-12 and the server P2s, performance P0-2 and P1-8 (server side).
 
 _Handover, kept current. Last updated: 15 Nov 2026._
 
-**Done** (all on the branch, server tests passing locally: 54 tests):
+**Done** (all on the branch, server tests passing locally and in CI):
 
 - Durable storage on a Fly volume: SQLite (WAL) for location boxes and chat, files with atomic
   writes for moments and profile photos, retention sweeps, flush on shutdown. Survives restarts
@@ -70,9 +70,12 @@ Now:
   all there or not there. Half-received uploads are deleted at start.
 - **Retention sweeps** every minute: boxes 15 min, chat 72 h, moments 24 h, photos 8 days, deleted
   from disk. Totals (counts and sizes only) are logged every 10 minutes.
-- **Shutdown**: Fly sends SIGTERM (`kill_signal`). Ktor's own shutdown hook stops taking
-  requests and gives those in flight up to 20 s (`shutdownGracePeriod`/`shutdownTimeout` in
-  `main()`; `kill_timeout = 30s` leaves room), then the relay checkpoints and closes the database.
+- **Shutdown**: Fly sends SIGTERM (`kill_signal`). The relay drains first: new requests are
+  answered `503` ("try later", which the app retries) while those in flight, an upload or a
+  download, get up to 20 s to finish. Then Netty stops and the relay checkpoints and closes the
+  database. `kill_timeout = 30s` leaves room. (Netty's own graceful stop waits for quiet, not for
+  requests: without the drain, an upload in progress was cut off.) Checked by hand: SIGTERM
+  2 s into a 10 s upload; the upload finished and was stored, and the process exited 11 s later.
 - **Cursors**: every record has a sequence number. At every start the next one is raised to at
   least the clock in microseconds, so a store recreated empty or restored from an older snapshot
   never hands out a number below a cursor a phone kept (tested).
@@ -184,7 +187,7 @@ and ran experiments on the built server. What it found, and what changed:
 | A cut-off upload was stored and served as if whole | Refused when fewer bytes arrive than `Content-Length` says; tested against the real server |
 | Refused and cut-off downloads used up a file's 500 downloads | Counted only when sent in full; tested |
 | Tokens multiplied an address's byte budgets; no per-address upload concurrency or minimum rate; tiny files could use up inodes | Address ceilings for every budget, upload counts, 16 uploads per address, stall and rate limits, files counted in 4 KB blocks, file-count caps |
-| Ktor's own shutdown hook cut the grace period to 1 s / 5 s | The grace period is set where that hook reads it |
+| Ktor's own shutdown hook cut the grace period to 1 s / 5 s | The relay drains requests in flight itself (up to 20 s) before Netty stops; checked by hand with SIGTERM mid-upload |
 | A tokened client over its limit drained its address's shared bucket | The install's limit is checked first; tested |
 | A photo's length could come from the index while a new photo replaced it | Length from the opened file; writes and deletes per id serialised |
 | Cursors could skip records after a restore from an older snapshot | Sequence raised at every start; tested |
