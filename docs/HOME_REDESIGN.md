@@ -188,7 +188,9 @@ button labels that wrap badly or spill (the two side-by-side buttons must both f
 to two lines or stack); right-to-left (ar): mirrored layout, faces running off the left edge,
 chevrons flipped, the wordmark still "moshpoint"; rings and glows never cut off; spacing as in
 the HTML (24 dp side margins, the section gaps), even rhythm; touch targets of at least 48 dp.
-Small phone = `DeviceConfig.NEXUS_5` (360 dp); large font = font size 130%.
+Small phone = `DeviceConfig.NEXUS_5` (360 dp); large font = font size 130%. Added after the
+owner's review: the small phone at 130% (every language) and the font at 200% on the
+standard phone (`hugeFontHomeMain`: en, de, pl, ja).
 
 Contact sheets (every language of one state on one picture) are in
 `docs/design/home-redesign/audit/`, made with `tools/contact_sheet.py`.
@@ -200,6 +202,9 @@ text was tight, and the tall `homeWhole` read in slices. Findings were checked o
 fixed, re-rendered, and looked at again until nothing was left. A blank (one flat colour) or
 missing picture means a crash and is checked for on every run: an exception inside a lazy
 row's item is thrown during layout, which Paparazzi saves as a blank frame instead of failing.
+Round 3 followed the owner's review of `ad9a3e9`: every state the fixes touch, in every
+language, and the three new tests, re-rendered and looked at again until clean (runs
+285 to 287; what that round found is in the table, and its fixes in section 2).
 
 **Spain's Spanish (es-rES)** can't be rendered by Paparazzi: given `es-rES` (or `b+es+ES`) it
 takes `values-es`, so the es-rES pictures are the plain Spanish ones (the same on the main
@@ -220,35 +225,38 @@ the high-quality breaker; balanced for captions and button labels), parts of a "
 whole with the dot at a line's end (`dotLine`), a number keeps its unit, and two buttons side
 by side stack rather than break a label inside a word.
 
-**Results** (after round 2, checked again on the final renders; one row per state, one column
+**Results** (after round 3, checked again on the final renders; one row per state, one column
 per language: "OK" or what was fixed in that state and language; contact sheets of every row
 in `docs/design/home-redesign/audit/<state>.png`):
 
 | State | en | en-rUS | de | fr | es | es-rES | it | pt | nl | sv | pl | tr | in | vi | th | hi | ar | ja | ko | zh-rCN | zh-rTW |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| `homeMain` | OK | OK | fixed: Crew-Chat broke mid-word | OK | OK | as es ¹ | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK | fixed: · read as 0 | fixed: クルーチャット split | OK | OK | OK |
-| `homeNotLive` | OK | OK | fixed: Crew-Chat broke mid-word | OK | OK | as es ¹ | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK | fixed: · read as 0 | fixed: クルーチャット split | OK | OK | OK |
-| `homeGhost` | OK | OK | fixed: Crew-Chat broke mid-word | OK | OK | as es ¹ | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK | fixed: · read as 0 | fixed: クルーチャット split; line breaks | fixed: line breaks | fixed: line breaks | fixed: line breaks |
+| `homeMain` | OK | OK | fixed: Crew-Chat broke mid-word | OK | OK | as es ¹ | OK | OK | OK | OK | switch renamed | switch renamed | OK | switch renamed; kicker spaced | switch renamed | OK | fixed: · read as 0 | fixed: クルーチャット split; チャット: pair side by side | OK | switch renamed | switch renamed |
+| `homeNotLive` | OK | OK | fixed: Crew-Chat broke mid-word | OK | OK | as es ¹ | OK | OK | OK | OK | switch renamed | switch renamed | OK | switch renamed; kicker spaced | switch renamed | OK | fixed: · read as 0 | fixed: クルーチャット split; チャット: pair side by side | OK | switch renamed | switch renamed |
+| `homeGhost` | OK | OK | fixed: Crew-Chat broke mid-word | OK | OK | as es ¹ | OK | OK | OK | OK | switch renamed | switch renamed | OK | switch renamed; kicker spaced | switch renamed | balanced line | fixed: · read as 0; balanced line | fixed: クルーチャット split; line breaks; チャット: pair side by side | fixed: line breaks | fixed: line breaks; switch renamed; balanced line; 显示 split | fixed: line breaks; switch renamed; 显示 split |
 | `homeCrewMenu` | OK | OK | OK | OK | OK | as es ¹ | OK | OK | OK | OK | fixed: one-letter word ending a line | OK | OK | OK | OK | OK | fixed: · read as 0 | fixed: line breaks | fixed: line breaks | OK | OK |
 | `homeNoCrew` | OK | OK | fixed: line began with · | OK | OK | as es ¹ | OK | OK | fixed: "2 / maanden" split | OK | OK | OK | fixed: "Riverside / Park" split | OK | OK | OK | OK | OK | fixed: line breaks | fixed: line breaks; 了。 alone | fixed: line breaks; 了。 alone |
 | `homeFirstTime` | OK | OK | OK | OK | OK | as es ¹ | OK | OK | OK | OK | fixed: one-letter word ending a line | OK | OK | OK | OK | OK | fixed: picture off screen | OK | fixed: line breaks | OK | OK |
-| `homeComingUp` | OK | OK | OK | OK | OK | as es ¹ | OK | OK | OK | fixed: captions ran together | fixed: one-letter word ending a line | fixed: caption broke mid-word | OK | OK | OK | OK | OK | OK | fixed: line breaks | OK | OK |
-| `homeFollowing` | OK | OK | fixed: Crew-Chat broke mid-word | OK | OK | as es ¹ | fixed: caption lost a word | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK | fixed: クルーチャット split; line breaks | fixed: line breaks | fixed: line breaks; quoted ＋ button split | fixed: line breaks; quoted ＋ button split |
-| `homeNobodyYet` | OK | OK | OK | OK | OK | as es ¹ | OK | OK | OK | OK | fixed: one-letter word ending a line | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK |
-| `homeLongName` | OK | OK | fixed: Crew-Chat broke mid-word | OK | OK | as es ¹ | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK | fixed: · read as 0 | fixed: クルーチャット split | OK | OK | OK |
-| `homeOneMate` | OK | OK | fixed: Crew-Chat broke mid-word | OK | OK | as es ¹ | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK | fixed: クルーチャット split | OK | OK | OK |
-| `homeBigCrew` | OK | OK | fixed: Crew-Chat broke mid-word | OK | OK | as es ¹ | OK | OK | OK | fixed: emoji alone | OK | OK | OK | OK | OK | OK | fixed: · read as 0; face badge in Latin digits | fixed: クルーチャット split; line breaks | OK | OK | OK |
+| `homeComingUp` | OK | OK | OK | OK | OK | as es ¹ | OK | OK | OK | fixed: captions ran together | fixed: one-letter word ending a line | fixed: caption broke mid-word | OK | kicker spaced | OK | OK | OK | OK | fixed: line breaks | OK | OK |
+| `homeFollowing` | OK | OK | fixed: Crew-Chat broke mid-word | OK | OK | as es ¹ | fixed: caption lost a word | OK | OK | OK | OK | OK | OK | kicker spaced | OK | OK | OK | fixed: クルーチャット split; line breaks; チャット: pair side by side | fixed: line breaks | fixed: line breaks; quoted ＋ button split | fixed: line breaks; quoted ＋ button split |
+| `homeNobodyYet` | OK | OK | OK | OK | OK | as es ¹ | OK | OK | OK | OK | fixed: one-letter word ending a line | OK | OK | kicker spaced | OK | OK | OK | OK | OK | OK | OK |
+| `homeLongName` | OK | OK | fixed: Crew-Chat broke mid-word | OK | OK | as es ¹ | OK | OK | OK | OK | switch renamed | switch renamed | OK | switch renamed; kicker spaced | switch renamed | OK | fixed: · read as 0 | fixed: クルーチャット split; チャット: pair side by side | OK | switch renamed | switch renamed |
+| `homeOneMate` | OK | OK | fixed: Crew-Chat broke mid-word | OK | OK | as es ¹ | OK | OK | OK | OK | switch renamed | switch renamed | OK | switch renamed; kicker spaced | switch renamed | OK | OK | fixed: クルーチャット split; チャット: pair side by side | OK | switch renamed | switch renamed |
+| `homeBigCrew` | OK | OK | fixed: Crew-Chat broke mid-word | OK | OK | as es ¹ | OK | OK | OK | fixed: emoji alone | switch renamed | switch renamed | OK | switch renamed; kicker spaced | switch renamed | OK | fixed: · read as 0; face badge in Latin digits | fixed: クルーチャット split; line breaks; チャット: pair side by side | OK | switch renamed | switch renamed |
 | `homeFriendsList` | OK | OK | OK | OK | OK | as es ¹ | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK | fixed: 了。 alone | fixed: 了。 alone |
-| `homeAddSheet` | OK | OK | OK | OK | OK | as es ¹ | OK | OK | OK | OK | fixed: one-letter word ending a line | OK | OK | fixed: button label uneven | OK | OK | fixed: · read as 0; button label uneven | fixed: line breaks | OK | fixed: line breaks; 邀请 split | OK |
+| `homeAddSheet` | OK | OK | OK | OK | OK | as es ¹ | OK | OK | OK | OK | fixed: one-letter word ending a line | OK | OK | fixed: button label uneven | OK | OK | fixed: · read as 0; button label uneven; app names in order | fixed: line breaks | OK | fixed: line breaks; 邀请 split | OK |
 | `upNext` | OK | OK | fixed: line began with · | OK | OK | as es ¹ | OK | fixed: "Dock / 4" split | fixed: "2 / maanden" split | OK | OK | OK | fixed: "Riverside / Park" split | OK | OK | OK | fixed: 9+ in Latin digits | OK | OK | OK | OK |
 | `smallPhoneHomeMain` | OK | OK | fixed: Crew-Chat broke mid-word | OK | OK | as es ¹ | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK | fixed: · read as 0 | fixed: クルーチャット split | OK | OK | OK |
 | `smallPhoneHomeNoCrew` | OK | OK | OK | OK | OK | as es ¹ | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK | fixed: line breaks | OK | OK | OK |
 | `largeFontHomeMain` | OK | OK | fixed: Crew-Chat broke mid-word; number apart from unit | OK | OK | as es ¹ | fixed: hint split inside a part | fixed: number apart from unit; hint split inside a part | OK | fixed: hint split inside a part | fixed: hint split inside a part | OK | fixed: hint split inside a part | OK | OK | OK | fixed: · read as 0 | fixed: クルーチャット split; line breaks | fixed: line breaks | OK | OK |
 | `largeFontHomeNoCrew` | fixed: venue split | OK | OK | fixed: date tile tight; button label uneven | fixed: venue split | as es ¹ | OK | fixed: venue split | OK | OK | fixed: Up next line cut short; one-letter word ending a line | fixed: venue split | fixed: venue split | OK | OK | OK | OK | fixed: line breaks | fixed: line breaks | fixed: line breaks | fixed: line breaks |
+| `smallPhoneLargeFontHomeMain` (new) | OK | OK | OK | OK | OK | as es ¹ | OK | OK | OK | OK | fixed: Need help broke mid-word | OK | OK | OK | Need help on its own row | OK | fixed: number apart from unit | fixed: ストーリー split | OK | OK | OK |
+| `smallPhoneLargeFontHomeNoCrew` (new) | OK | OK | OK | OK | OK | as es ¹ | OK | OK | OK | OK | fixed: Need help broke mid-word | OK | OK | OK | Need help on its own row | OK | OK | fixed: ストーリー split | OK | fixed: 朋友 split | OK |
+| `hugeFontHomeMain` (new) | fixed: distances overlapped; caption broke mid-word | — | fixed: distances overlapped | — | — | — | — | — | — | — | fixed: distances overlapped; Live line squeezed (now under the switch); caption, tab label and tap hint broke mid-word | — | — | — | — | — | — | fixed: distances overlapped; Live line split (now under the switch); ストーリー split | — | — | — |
 | `homeWhole` | fixed: "1 years ago" | OK | fixed: line began with ·; memories card wrapping | fixed: memories card wrapping | OK | as es ¹ | OK | OK | fixed: "2 / maanden" split; memories card wrapping | fixed: memories card wrapping; emoji alone | OK | OK | fixed: See all beside wrapped title; "Riverside / Park" split; wrapped title cramped | fixed: time split; memories card wrapping | OK | fixed: memories card wrapping | fixed: chevron, caption order, · read as 0; face badge in Latin digits; memories card wrapping | fixed: クルーチャット split; line breaks | OK | OK | OK |
 | `venueCard` | OK | OK | OK | OK | OK | as es ¹ | OK | OK | OK | fixed: captions ran together | OK | fixed: caption broke mid-word | OK | OK | OK | OK | OK | OK | fixed: line breaks | fixed: line breaks; quoted ＋ button split | fixed: line breaks; quoted ＋ button split |
 | `venueLines` | OK | OK | OK | OK | OK | as es ¹ | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK | OK |
-| `privateOptions` | OK | OK | OK | OK | OK | as es ¹ | OK | OK | OK | fixed: captions ran together | OK | fixed: caption broke mid-word | OK | OK | OK | OK | fixed: face badge in Latin digits | OK | fixed: line breaks | OK | OK |
+| `privateOptions` | Remove in red | Remove in red | Remove in red | Remove in red | Remove in red | Remove in red | Remove in red | Remove in red | Remove in red | fixed: captions ran together; Remove in red | Remove in red | fixed: caption broke mid-word; Remove in red | Remove in red | Remove in red | Remove in red | Remove in red | fixed: face badge in Latin digits; Remove in red | Remove in red | fixed: line breaks; Remove in red | Remove in red | Remove in red |
 
 ¹ es-rES: Paparazzi renders Spain's Spanish as plain Spanish (see above); checked by comparing
 its strings with es.

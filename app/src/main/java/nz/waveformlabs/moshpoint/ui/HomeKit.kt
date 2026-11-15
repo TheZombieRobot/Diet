@@ -622,9 +622,9 @@ internal fun LiveRow(live: Boolean, ghost: Boolean, onChange: (Boolean) -> Unit,
         val room = with(density) { maxWidth.roundToPx() - (10.dp + 46.dp + 12.dp).roundToPx() } -
             measurer.measure(label, labelStyle, maxLines = 1, softWrap = false).size.width
         // Text without spaces (Chinese, Japanese) breaks between characters, but a phrase should
-        // fit on a line: six characters stand in for one ("見えています"), so Japanese at 200%
-        // goes under the switch rather than split it.
-        val chunks = if (explain.trim().contains(' ')) explain.split(' ') else listOf(explain.take(6))
+        // fit on a line: six characters (word joiners aside) stand in for one ("見えています"),
+        // so Japanese at 200% goes under the switch rather than split it.
+        val chunks = if (explain.trim().contains(' ')) explain.split(' ') else listOf(explain.replace("\u2060", "").take(6))
         val longest = chunks.maxOf { measurer.measure(it, explainStyle, maxLines = 1, softWrap = false).size.width }
         val beside = longest <= room && room >= with(density) { 96.dp.roundToPx() }
         val switch: @Composable () -> Unit = {
