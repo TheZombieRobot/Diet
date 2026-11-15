@@ -1,6 +1,6 @@
 # Production audit (15 November 2026)
 
-Three independent audits of ccr-5839ed7c-1q0ztj at 792cd68 (test build 289): performance and battery, reliability, and release / security / Play Store readiness. The full findings, with classes, lines and fixes, are in [audit/performance.md](audit/performance.md), [audit/reliability.md](audit/reliability.md) and [audit/release.md](audit/release.md). A separate code tidy-up with no behaviour change is in progress ([CODE_STRUCTURE.md](CODE_STRUCTURE.md) on its branch).
+Three independent audits of ccr-5839ed7c-1q0ztj at 792cd68 (test build 289): performance and battery, reliability, and release / security / Play Store readiness. The full findings, with classes, lines and fixes, are in [audit/performance.md](audit/performance.md), [audit/reliability.md](audit/reliability.md) and [audit/release.md](audit/release.md). The code tidy-up (no behaviour change) is merged: see [CODE_STRUCTURE.md](CODE_STRUCTURE.md).
 
 Two findings were checked again by hand:
 - **Signing:** the signing secrets are not set; run 289 skipped "Signed Play Store bundle".
@@ -68,9 +68,18 @@ Two findings were checked again by hand:
 ## Later
 See the P2 sections of the three reports: Keystore encryption at rest, the old intro form, a log line with a name in release, file:// shares, resource shrinking and a .test suffix for test builds, clock edge cases, cleaning old files, and privacy-safe error counts.
 
+## Found during the tidy-up (15 November)
+- **Cold-start invite crash (already on the main branch before the tidy-up).**
+  - **Where:** MainActivity.onCreate handles a shared invite before the finder engine exists and before GroupSync.load.
+  - **What:** a tonight-crew invite then goes live, refreshSetupIssues reads the uninitialised engine, and the app crashes whenever MainActivity is created fresh. Android 10–11 always crash; Android 12+ escapes only when Bluetooth advertise permission is missing.
+  - **Related:** because the join runs before GroupSync.load, it replaces the current main crew instead of moving it to Up next, and re-opening your own crew's invite wipes its members and meet-up pin.
+  - **Fix:** handle the shared invite at the end of the savedInstanceState == null block (after the engine and GroupSync.load, as onNewIntent does); guard refreshSetupIssues and missingPermissions until the engine is ready; add a Robolectric start-up test. (Goes with launch blocker 11.)
+- **Home redraw efficiency.** After FriendsScreen's parameters were grouped, lambdas that capture a group object are re-created on every home redraw (ui/home/FriendsScreen.kt around lines 262, 369, 409 and 434). The face tiles, friends strip, Up next rows, memory card and sheets therefore can't skip recomposition. Users won't notice. Fix: stable (data) action classes, or remembered lambdas. (Performance list.)
+- **Where things moved:** see the table in CODE_STRUCTURE.md. The audits' line numbers refer to the code before the tidy-up.
+
 ## Plan
 
-**Wave 1 (running)**
+**Wave 1 (tidy-up merged 15 November; server running)**
 - **Code tidy-up (app module, no behaviour change):** MainActivity split into per-area pieces, feature folders, the home's 76 inputs grouped. Proof: screenshots pixel-identical in every language, and the manifest and licences unchanged.
 - **Server hardening (server/ and deployment files only):** item 12 and the server parts of "Before launch", plus batch and cursor endpoints for wave 2. Backward compatible, so test builds keep working.
 
