@@ -154,3 +154,22 @@ Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
 | %d unread private messages (screen reader, the count on a face) | %d messages privés non lus |
 
 Uses **crew**, as elsewhere. *Mettre en sourdine* / *Réactiver*. A space before the colon, as French typography wants. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.
+
+## Home redesign (`strings_home_redesign.xml`)
+
+The new home screen: the Live row, the crew header and the ⋯ crew menu, the no-crew and first-time screens, and the section titles (Up next, Past gigs, Friends). Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| Live (the switch's name, on or off) | **Live** | The name the old pill already had (`home_live`), so it reads right next to a switch that is off. |
+| You're visible to your mates / Off: mates can't see you yet | **Tu es visible pour tes potes** / **Désactivé : tes potes ne te voient pas encore** | *Visible* has one form for everyone. *Désactivé :* as in the data-saver text. The off line takes two lines; the row is 48 dp tall either way. |
+| Ghost mode: off the map, findable up close | **Mode fantôme : invisible sur la carte, repérable de près** | *Invisible* (the app's word for hidden) and *repérable* don't change with gender. |
+| Crew menu: Invite more mates / Share the night with family / They follow along from home and can't be found | **Inviter d'autres potes** / **Partager la soirée avec ta famille** / Ils suivent depuis la maison et restent invisibles | Infinitives, like *Terminer la soirée*. Generic *ils*, as in *Ils sont où ?*. |
+| Under Cancel this crew: Leave it before gig day. Mates who joined stay in | Tu quittes la crew avant le jour J. Tes potes, eux, y restent | *Le jour J* as elsewhere; no gendered *ceux qui* needed. |
+| Past gigs | **Concerts passés** | Short and usual. The End the night line and the older messages that point there use the same name. |
+| Up next | **À venir** | As in Key terms. |
+| Share photos | **Partager des photos** | Two lines in the half-width button, like its neighbour *Chat de la crew*; *Partager photos* would read clipped. |
+
+Also: a mate's low battery under their face is **Batterie 15%** (*15% de batterie* wraps under the 76 dp face), and *Pas de crew ce soir* has a no-break space in *ce soir*, so the big title breaks as *Pas de crew / ce soir*.
+
+For a native reviewer: *Partager des photos* versus a one-line *Photos*; *restent invisibles* for "can't be found". Written without a native reviewer. Confidence: **medium-high**.

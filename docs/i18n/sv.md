@@ -136,3 +136,20 @@ Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
 | %d unread private messages (screen reader, the count on a face) | %d olästa privata meddelanden |
 
 Uses **grupp**, as elsewhere. *Tysta* / *Slå på igen*. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.
+
+## Home redesign (`strings_home_redesign.xml`)
+
+The new home screen: the Live row, the crew header and the ⋯ crew menu, the no-crew and first-time screens, and the section titles (Up next, Past gigs, Friends). Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| Live (the switch's name, on or off) | **Live** | The name the old pill already had (`home_live`), so it reads right next to a switch that is off. |
+| You're visible to your mates / Off: mates can't see you yet | **Du syns för kompisarna** / **Av: kompisarna ser dig inte än** | *Syns* as in *Syns hela kvällen*; *Av:* as in the data-saver text. |
+| Ghost mode: off the map, findable up close | **Spökläge: dold på kartan, går att hitta på nära håll** | *Dold* is the app's word for hidden; *går att hitta* as in the About text. |
+| Crew menu: Invite more mates / Share the night with family / They follow along from home and can't be found | **Bjud in fler kompisar** / **Dela kvällen med familjen** / De hänger med hemifrån och syns inte själva | *Hänga med* as in *Låt familjen hänga med*. |
+| Under Cancel this crew: Leave it before gig day. Mates who joined stay in | Du hoppar av före spelningsdagen. Kompisar som gått med stannar kvar | Says that only you leave. Uses **grupp** throughout. |
+| Past gigs | **Tidigare spelningar** | The plain word. The End the night line and the older messages that point there use the same name. |
+| Up next | **På gång** | As in Key terms. |
+| Share photos | **Dela bilder** | *Bilder*, as everywhere in the app (*%d bilder*). |
+
+For a native reviewer: *Tidigare spelningar* fits on a 390 dp phone but wraps on a 360 dp one; *Hitta kompisarna i publiken* for "in the crowd". Written without a native reviewer. Confidence: **medium-high**.

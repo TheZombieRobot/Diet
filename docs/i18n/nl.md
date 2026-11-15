@@ -138,3 +138,20 @@ Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
 | %d unread private messages (screen reader, the count on a face) | %d ongelezen privéberichten |
 
 Uses **crew**, as elsewhere. *Dempen* / *Dempen opheffen*. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.
+
+## Home redesign (`strings_home_redesign.xml`)
+
+The new home screen: the Live row, the crew header and the ⋯ crew menu, the no-crew and first-time screens, and the section titles (Up next, Past gigs, Friends). Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| Live (the switch's name, on or off) | **Live** | The name the old pill already had (`home_live`), so it reads right next to a switch that is off. |
+| You're visible to your mates / Off: mates can't see you yet | **Zichtbaar voor je vrienden** / **Uit: vrienden zien je nog niet** | *Uit:* as in the data-saver text. Each fits on one line beside the switch. |
+| Ghost mode: off the map, findable up close | **Spookmodus: niet op de kaart, van dichtbij wel te vinden** | Not *van de kaart*: *van de kaart zijn* means "upset". |
+| Crew menu: Invite more mates / Share the night with family / They follow along from home and can't be found | **Meer vrienden uitnodigen** / **De avond met familie delen** / Ze kijken mee vanuit huis en zijn zelf niet te vinden | Infinitives, like *Avond afsluiten*. *Meekijken* as in *Laat familie meekijken*. |
+| Start a crew for tonight | **Start je crew vanavond** | *Start vanavond een crew* is wider than the big button and left *crew* alone on a second line. |
+| Past gigs | **Eerdere concerten** | *Afgelopen concerten* is too wide for the heading font. The End the night line and the older messages that point there use the same name. |
+| Up next | **Binnenkort** | As in Key terms. |
+| Share photos | **Foto's delen** | One line in the half-width button. |
+
+For a native reviewer: *LID WORDEN VAN EEN CREW* over the Scan / Paste buttons matches the join dialog (*Lid worden van %1$s?*); *DOE MEE MET EEN CREW* is the more casual option. *Eerdere* versus *Vorige concerten*. Written without a native reviewer. Confidence: **medium-high**.
