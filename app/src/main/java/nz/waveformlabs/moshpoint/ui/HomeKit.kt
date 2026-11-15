@@ -366,7 +366,8 @@ internal fun GlassAction(
             .border(1.dp, accent?.copy(alpha = 0.30f) ?: Mosh.GlassLine, shape)
             .clickable(interactionSource = source, indication = LocalIndication.current, role = Role.Button, onClick = onClick)
             .heightIn(min = if (accent != null) 52.dp else 56.dp)
-            .padding(horizontal = 14.dp, vertical = 8.dp),
+            // Little side padding, as in the design: the label gets the room ("Crew-Chat" fits beside its badge).
+            .padding(horizontal = 10.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
