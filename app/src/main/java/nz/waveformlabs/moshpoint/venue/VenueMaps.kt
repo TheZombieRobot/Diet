@@ -28,7 +28,7 @@ import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.core.LatLon
 import nz.waveformlabs.moshpoint.core.VenueMapPlan
 import nz.waveformlabs.moshpoint.core.VenueQuery
-import nz.waveformlabs.moshpoint.ui.MAP_STYLES
+import nz.waveformlabs.moshpoint.ui.map.MAP_STYLES
 import org.json.JSONArray
 import org.json.JSONObject
 import org.maplibre.android.MapLibre

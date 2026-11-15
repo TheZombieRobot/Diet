@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.map
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.core.Floor
 import nz.waveformlabs.moshpoint.core.LatLon
+import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.finder.drawCentred
 import nz.waveformlabs.moshpoint.venue.VenueMaps
 

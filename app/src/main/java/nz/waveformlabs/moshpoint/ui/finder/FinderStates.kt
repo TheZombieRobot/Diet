@@ -71,7 +71,7 @@ import nz.waveformlabs.moshpoint.core.Trend
 import nz.waveformlabs.moshpoint.locate.LocatorEngine
 import nz.waveformlabs.moshpoint.ui.Confetti
 import nz.waveformlabs.moshpoint.ui.Faces
-import nz.waveformlabs.moshpoint.ui.FloorTag
+import nz.waveformlabs.moshpoint.ui.map.FloorTag
 import nz.waveformlabs.moshpoint.ui.GlassButton
 import nz.waveformlabs.moshpoint.ui.GlowBackground
 import nz.waveformlabs.moshpoint.ui.Mosh

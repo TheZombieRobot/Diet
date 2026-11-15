@@ -40,7 +40,7 @@ internal fun MapOverlay(a: MainActivity) {
         androidx.compose.runtime.LaunchedEffect(myLoc) { myLoc?.let { a.map.mapFirstFix(it) } }
         val mapUwb by a.finder.engine.uwbSpots.collectAsState()
         val mapArrows by a.finder.engine.arrows.collectAsState()
-        nz.waveformlabs.moshpoint.ui.MapScreen(
+        nz.waveformlabs.moshpoint.ui.map.MapScreen(
             people = FriendsRepository.friends.filterNot { FriendsRepository.isSimulated(it.id) },
             seen = LocationBook.seen,
             me = myLoc?.let { nz.waveformlabs.moshpoint.core.LatLon(it.latitude, it.longitude) },
@@ -66,8 +66,8 @@ internal fun MapOverlay(a: MainActivity) {
             onNudge = { f -> a.finder.nudge(listOf(f.name)) },
             onBack = { a.map.closeMap() },
             places = listOfNotNull(
-                GroupSync.rally.value?.let { nz.waveformlabs.moshpoint.ui.MapPlace("rally", it.name, it.lat, it.lon, meetUp = true) },
-            ) + Spots.spots.map { nz.waveformlabs.moshpoint.ui.MapPlace(it.id, it.name, it.lat, it.lon, meetUp = false) },
+                GroupSync.rally.value?.let { nz.waveformlabs.moshpoint.ui.map.MapPlace("rally", it.name, it.lat, it.lon, meetUp = true) },
+            ) + Spots.spots.map { nz.waveformlabs.moshpoint.ui.map.MapPlace(it.id, it.name, it.lat, it.lon, meetUp = false) },
             inCrew = GroupSync.group.value != null,
             onDropPin = { name, lat, lon, meetUp ->
                 if (meetUp) {
@@ -80,14 +80,14 @@ internal fun MapOverlay(a: MainActivity) {
             moments = Moments.items.mapNotNull { m ->
                 val lat = m.lat ?: return@mapNotNull null
                 val lon = m.lon ?: return@mapNotNull null
-                nz.waveformlabs.moshpoint.ui.MapMoment(m.key, Txt.s(R.string.main_moment_label, if (m.mine) Txt.s(R.string.main_you) else m.from, nz.waveformlabs.moshpoint.ui.ago(now / 1000 - m.timeSec)), lat, lon, m.image)
+                nz.waveformlabs.moshpoint.ui.map.MapMoment(m.key, Txt.s(R.string.main_moment_label, if (m.mine) Txt.s(R.string.main_you) else m.from, nz.waveformlabs.moshpoint.ui.ago(now / 1000 - m.timeSec)), lat, lon, m.image)
             },
             trails = LocationBook.trails,
             // The venue map saved on the phone: at the gig, or when there's no internet.
             savedStyle = { look ->
                 VenueMaps.savedChanges.intValue // look again when a saved map appears or goes
                 if (a.map.mapVenue == null && VenueMaps.online(a)) null
-                else VenueMaps.saved(a, look)?.let { nz.waveformlabs.moshpoint.ui.MapStyle(it.key, json = it.json) }
+                else VenueMaps.saved(a, look)?.let { nz.waveformlabs.moshpoint.ui.map.MapStyle(it.key, json = it.json) }
             },
             venueView = a.map.mapVenue,
             floors = Floors.tags,

@@ -57,7 +57,7 @@ import kotlin.math.sin
 import nz.waveformlabs.moshpoint.ui.Faces
 import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.ambient
-import nz.waveformlabs.moshpoint.ui.drawFloorPill
+import nz.waveformlabs.moshpoint.ui.map.drawFloorPill
 import nz.waveformlabs.moshpoint.ui.finderDistance
 import nz.waveformlabs.moshpoint.ui.finderDistanceLabel
 import nz.waveformlabs.moshpoint.ui.haloGlow

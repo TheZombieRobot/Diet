@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.sp
-import nz.waveformlabs.moshpoint.ui.MapPin
+import nz.waveformlabs.moshpoint.ui.map.MapPin
 import nz.waveformlabs.moshpoint.ui.Mosh
 
 /*

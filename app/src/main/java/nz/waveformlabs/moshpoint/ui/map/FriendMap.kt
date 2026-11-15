@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.map
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -26,6 +26,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
+import nz.waveformlabs.moshpoint.ui.Faces
+import nz.waveformlabs.moshpoint.ui.Mosh
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory

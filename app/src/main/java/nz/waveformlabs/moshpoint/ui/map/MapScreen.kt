@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.map
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -44,8 +44,14 @@ import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.core.HereRule
 import nz.waveformlabs.moshpoint.core.LatLon
 import nz.waveformlabs.moshpoint.core.VenuePlacement
+import nz.waveformlabs.moshpoint.ui.Avatar
+import nz.waveformlabs.moshpoint.ui.Mosh
+import nz.waveformlabs.moshpoint.ui.ago
+import nz.waveformlabs.moshpoint.ui.distanceLabel
 import nz.waveformlabs.moshpoint.ui.finder.bandHint
 import nz.waveformlabs.moshpoint.ui.finder.bandLabel
+import nz.waveformlabs.moshpoint.ui.finderDistanceLabel
+import nz.waveformlabs.moshpoint.ui.statusLine
 import org.maplibre.android.geometry.LatLng
 
 /**

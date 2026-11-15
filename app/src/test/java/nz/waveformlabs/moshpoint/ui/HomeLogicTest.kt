@@ -11,6 +11,8 @@ import nz.waveformlabs.moshpoint.ui.home.faceStatus
 import nz.waveformlabs.moshpoint.ui.home.keepNumbers
 import nz.waveformlabs.moshpoint.ui.home.liveFirst
 import nz.waveformlabs.moshpoint.ui.home.tracked
+import nz.waveformlabs.moshpoint.ui.map.MapPin
+import nz.waveformlabs.moshpoint.ui.map.crewBubbles
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

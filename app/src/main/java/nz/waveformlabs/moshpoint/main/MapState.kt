@@ -18,7 +18,7 @@ internal class MapState(private val a: MainActivity) {
     val mapFeed by lazy { nz.waveformlabs.moshpoint.locate.MapFeed(a, a.lifecycleScope) }
 
     /** Set while the map is open at the gig: the venue it opened on. Null = the ordinary map. */
-    var mapVenue by mutableStateOf<nz.waveformlabs.moshpoint.ui.VenueView?>(null)
+    var mapVenue by mutableStateOf<nz.waveformlabs.moshpoint.ui.map.VenueView?>(null)
     /** The finder engine is running just for the map (UWB places mates exactly). */
     var mapEngine = false
 
@@ -35,10 +35,10 @@ internal class MapState(private val a: MainActivity) {
     }
 
     /** The venue to open the map on, if [here] says this phone is at the gig; else null. */
-    private fun venueViewFor(here: android.location.Location?): nz.waveformlabs.moshpoint.ui.VenueView? {
+    private fun venueViewFor(here: android.location.Location?): nz.waveformlabs.moshpoint.ui.map.VenueView? {
         val venue = VenueMaps.venue(a) ?: return null
         if (!VenueMaps.atGig(a, here)) return null
-        return nz.waveformlabs.moshpoint.ui.VenueView(venue, here?.let { nz.waveformlabs.moshpoint.core.LatLon(it.latitude, it.longitude) })
+        return nz.waveformlabs.moshpoint.ui.map.VenueView(venue, here?.let { nz.waveformlabs.moshpoint.core.LatLon(it.latitude, it.longitude) })
     }
 
     /**

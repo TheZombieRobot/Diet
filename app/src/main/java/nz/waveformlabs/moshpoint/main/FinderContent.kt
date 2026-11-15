@@ -71,7 +71,7 @@ internal fun FinderContent(a: MainActivity) {
         // Tapped one mate in the crew view: their UWB place comes first.
         onFocus = { id -> engine.focus(id) },
         pinned = HerePins.pins.mapValues { (id, h) ->
-            nz.waveformlabs.moshpoint.ui.PinNote(nz.waveformlabs.moshpoint.core.HereRule.ageSec(h, System.currentTimeMillis() / 1000), HerePins.floors[id])
+            nz.waveformlabs.moshpoint.ui.map.PinNote(nz.waveformlabs.moshpoint.core.HereRule.ageSec(h, System.currentTimeMillis() / 1000), HerePins.floors[id])
         },
         debug = if (DebugStatus.enabled) {
             { mod ->

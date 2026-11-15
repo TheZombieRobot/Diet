@@ -23,6 +23,8 @@ import nz.waveformlabs.moshpoint.ui.home.SectionTitle
 import nz.waveformlabs.moshpoint.ui.home.UpNextCard
 import nz.waveformlabs.moshpoint.ui.home.UpNextRow
 import nz.waveformlabs.moshpoint.ui.home.dotLine
+import nz.waveformlabs.moshpoint.ui.map.MapPlace
+import nz.waveformlabs.moshpoint.ui.map.MapScreen
 import org.junit.Rule
 import org.junit.Test
 
