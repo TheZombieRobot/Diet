@@ -2,12 +2,8 @@ package nz.waveformlabs.moshpoint
 
 import android.app.AlarmManager
 import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.util.Calendar
 
 /**
@@ -65,23 +61,5 @@ object Memories {
         val am = app.getSystemService(AlarmManager::class.java) ?: return
         val pi = PendingIntent.getBroadcast(app, 43, Intent(app, MemoryReceiver::class.java), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         if (next == null) am.cancel(pi) else runCatching { am.set(AlarmManager.RTC_WAKEUP, next, pi) }
-    }
-}
-
-class MemoryReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent) {
-        val app = context.applicationContext
-        val done = goAsync()
-        CoroutineScope(Dispatchers.Main).launch {
-            try {
-                GigArchive.refreshList(app)
-                Memories.today(GigArchive.gigs).firstOrNull()?.let { (g, years) ->
-                    CrewNotifications.post(app, title = Memories.headline(g, years), text = Txt.p(R.plurals.crew_memory_text, g.photos + g.clips), openMap = false)
-                }
-                Memories.schedule(app, GigArchive.gigs) // the next one
-            } finally {
-                done.finish()
-            }
-        }
     }
 }

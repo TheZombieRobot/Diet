@@ -2,7 +2,6 @@ package nz.waveformlabs.moshpoint
 
 import android.app.AlarmManager
 import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
@@ -237,12 +236,5 @@ object ChatSync {
                 done()
             }
         }
-    }
-}
-
-class ChatCheckReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent) {
-        val pending = goAsync()
-        ChatSync.runInBackground(context) { pending.finish() }
     }
 }

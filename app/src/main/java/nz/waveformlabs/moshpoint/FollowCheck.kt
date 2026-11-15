@@ -2,14 +2,9 @@ package nz.waveformlabs.moshpoint
 
 import android.app.AlarmManager
 import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * For loved ones following a crew from home: about every 15 minutes, with the app closed,
@@ -35,24 +30,4 @@ object FollowCheck {
     private fun pending(c: Context) = PendingIntent.getBroadcast(
         c, 42, Intent(c, FollowCheckReceiver::class.java), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
     )
-}
-
-class FollowCheckReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent) {
-        val app = context.applicationContext
-        GroupSync.load(app)
-        if (GroupSync.group.value == null || !GroupSync.following) {
-            FollowCheck.cancel(app)
-            return
-        }
-        FriendsRepository.init(app)
-        val done = goAsync()
-        CoroutineScope(Dispatchers.Main).launch {
-            try {
-                withTimeoutOrNull(25_000) { GroupSync.syncOnce(app) }
-            } finally {
-                done.finish()
-            }
-        }
-    }
 }
