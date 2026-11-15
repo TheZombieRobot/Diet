@@ -11,7 +11,13 @@ import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
-import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * "Find a gig", for any country. The app asks us; we ask whichever listing services cover that
@@ -25,11 +31,18 @@ import java.util.concurrent.ConcurrentHashMap
  *   worldwide fallback when the search looks like an artist name.
  * - SeatGeek (SEATGEEK_CLIENT_ID): US and Canada.
  * Anywhere none of them covers, people type the gig in by hand (the app always offers that).
+ *
+ * Nothing here blocks a request thread: the sources are asked at the same time, without
+ * blocking (the JDK client's async calls), each within [SOURCE_TIMEOUT_MS], the whole search
+ * within [SEARCH_TIMEOUT_MS] (the app waits 12 s), and at most [MAX_SEARCHES] searches go out at
+ * once. Answers are cached for 10 minutes in a cache of at most [MAX_CACHE] searches.
  */
 class GigSearch(
     private val env: (String) -> String? = System::getenv,
-    private val fetch: (String) -> String? = ::httpGet,
+    private val fetch: suspend (String) -> String? = ::httpGet,
     private val clock: () -> Long = System::currentTimeMillis,
+    private val sourceTimeoutMs: Long = SOURCE_TIMEOUT_MS,
+    private val searchTimeoutMs: Long = SEARCH_TIMEOUT_MS,
 ) {
     data class Gig(
         val name: String,
@@ -47,7 +60,11 @@ class GigSearch(
             .apply { if (lat != null && lon != null) put("lat", lat).put("lon", lon) }
     }
 
-    private val cache = ConcurrentHashMap<String, Pair<Long, List<Gig>>>()
+    /** Least recently used first; at most [MAX_CACHE] searches. */
+    private val cache = object : LinkedHashMap<String, Pair<Long, List<Gig>>>(256, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Pair<Long, List<Gig>>>?) = size > MAX_CACHE
+    }
+    private val outgoing = Semaphore(MAX_SEARCHES)
 
     /** Which sources are on (for /healthz-style checks and tests). */
     val sources: List<String> get() = listOfNotNull(
@@ -57,22 +74,29 @@ class GigSearch(
     )
 
     /** Upcoming music gigs matching [query], in [country] (ISO code) when given; soonest first. */
-    fun search(query: String, country: String?): List<Gig> {
+    suspend fun search(query: String, country: String?): List<Gig> {
         val q = query.trim().take(80)
         if (q.length < 2) return emptyList()
         val cc = country?.uppercase()?.takeIf { it.matches(Regex("[A-Z]{2}")) }
         val key = "${q.lowercase()}|$cc"
         val now = clock()
-        cache[key]?.let { (at, list) -> if (now - at < CACHE_MS) return list }
-        val results = buildList {
-            env("TICKETMASTER_KEY")?.takeIf { it.isNotBlank() }?.let { k -> runCatching { addAll(ticketmaster(q, cc, k)) } }
-            env("SEATGEEK_CLIENT_ID")?.takeIf { it.isNotBlank() && (cc == null || cc == "US" || cc == "CA") }?.let { k ->
-                runCatching { addAll(seatgeek(q, k)) }
-            }
+        synchronized(cache) { cache[key] }?.let { (at, list) -> if (now - at < CACHE_MS) return list }
+        val asks = buildList<suspend () -> List<Gig>> {
+            env("TICKETMASTER_KEY")?.takeIf { it.isNotBlank() }?.let { k -> add { ticketmaster(q, cc, k) } }
+            env("SEATGEEK_CLIENT_ID")?.takeIf { it.isNotBlank() && (cc == null || cc == "US" || cc == "CA") }?.let { k -> add { seatgeek(q, k) } }
             env("BANDSINTOWN_APP_ID")?.takeIf { it.isNotBlank() }?.let { k ->
-                runCatching { addAll(bandsintown(q, k).filter { cc == null || it.country.equals(cc, true) || it.country.isBlank() }) }
+                add { bandsintown(q, k).filter { cc == null || it.country.equals(cc, true) || it.country.isBlank() } }
             }
         }
+        if (asks.isEmpty()) return emptyList()
+        // Every source at once; a slow or failing one is left out rather than holding up the rest.
+        val results = withTimeoutOrNull(searchTimeoutMs) {
+            outgoing.withPermit {
+                coroutineScope {
+                    asks.map { ask -> async { withTimeoutOrNull(sourceTimeoutMs) { runCatching { ask() }.getOrNull() }.orEmpty() } }.awaitAll().flatten()
+                }
+            }
+        } ?: return emptyList()
         val nowSec = now / 1000
         val merged = results
             .filter { it.startsAtSec > nowSec - 6 * 3600 }
@@ -80,8 +104,7 @@ class GigSearch(
             .distinctBy { "${it.name.lowercase().filter(Char::isLetterOrDigit).take(24)}|${it.localWhen.take(10)}|${it.city.lowercase()}" }
             .sortedBy { it.startsAtSec }
             .take(30)
-        if (cache.size > 5_000) cache.clear()
-        cache[key] = now to merged
+        synchronized(cache) { cache[key] = now to merged }
         return merged
     }
 
@@ -91,7 +114,7 @@ class GigSearch(
 
     private fun enc(s: String) = URLEncoder.encode(s, "UTF-8")
 
-    internal fun ticketmaster(q: String, cc: String?, key: String): List<Gig> {
+    internal suspend fun ticketmaster(q: String, cc: String?, key: String): List<Gig> {
         val url = "https://app.ticketmaster.com/discovery/v2/events.json?apikey=${enc(key)}&keyword=${enc(q)}" +
             "&classificationName=music&sort=date,asc&size=20" + (cc?.let { "&countryCode=$it" } ?: "")
         val events = JSONObject(fetch(url) ?: return emptyList()).optJSONObject("_embedded")?.optJSONArray("events") ?: return emptyList()
@@ -111,7 +134,7 @@ class GigSearch(
         }
     }
 
-    internal fun seatgeek(q: String, clientId: String): List<Gig> {
+    internal suspend fun seatgeek(q: String, clientId: String): List<Gig> {
         val url = "https://api.seatgeek.com/2/events?client_id=${enc(clientId)}&q=${enc(q)}&taxonomies.name=concert&sort=datetime_utc.asc&per_page=20"
         val events = JSONObject(fetch(url) ?: return emptyList()).optJSONArray("events") ?: return emptyList()
         return (0 until events.length()).mapNotNull { i ->
@@ -129,7 +152,7 @@ class GigSearch(
     }
 
     /** Bandsintown is artist-based: [q] is treated as an artist name. */
-    internal fun bandsintown(q: String, appId: String): List<Gig> {
+    internal suspend fun bandsintown(q: String, appId: String): List<Gig> {
         val url = "https://rest.bandsintown.com/artists/${enc(q).replace("+", "%20")}/events?app_id=${enc(appId)}&date=upcoming"
         val body = fetch(url) ?: return emptyList()
         if (!body.trimStart().startsWith("[")) return emptyList() // "not found" comes back as an object
@@ -160,11 +183,23 @@ class GigSearch(
 
     companion object {
         private const val CACHE_MS = 10 * 60_000L
+        const val MAX_CACHE = 2_000
+        const val MAX_SEARCHES = 8
+        const val SOURCE_TIMEOUT_MS = 8_000L
+        const val SEARCH_TIMEOUT_MS = 10_000L
         private val http: HttpClient by lazy { HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(6)).build() }
 
-        fun httpGet(url: String): String? = runCatching {
-            val r = http.send(HttpRequest.newBuilder(URI(url)).timeout(Duration.ofSeconds(8)).header("Accept", "application/json").GET().build(), HttpResponse.BodyHandlers.ofString())
+        /** GET [url] without blocking a thread; the body of a 200, else null. */
+        suspend fun httpGet(url: String): String? = try {
+            val r = http.sendAsync(
+                HttpRequest.newBuilder(URI(url)).timeout(Duration.ofSeconds(8)).header("Accept", "application/json").GET().build(),
+                HttpResponse.BodyHandlers.ofString(),
+            ).await()
             if (r.statusCode() == 200) r.body() else null
-        }.getOrNull()
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            null
+        }
     }
 }
