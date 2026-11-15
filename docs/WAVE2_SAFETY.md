@@ -9,12 +9,19 @@ Branch: `claude/wave2-safety-k7m3p9` (from `ccr-5839ed7c-1q0ztj`).
 _Keep this section current: whoever picks this up next starts here._
 
 - **Done (code):** items 1–8 below, and all eight P2 items (see "P2").
-- **Core tests:** `SafetyRulesTest` (28 tests) plus `CheckIns.nextCheckSec`; all core tests pass
-  locally (scratch Gradle build that includes only `:core`, as docs/WATCH.md describes).
+- **Core tests:** `SafetyRulesTest` (33 tests: Need help status, Live rules, alarm plan, storage
+  notice, check-in alarm and reminder times, clock check), the save-format migrations in
+  `CourierSimTest` and `PrivateTest`, `FriendRecordTest` updated; all core tests pass locally
+  (scratch Gradle build that includes only `:core`, as docs/WATCH.md describes).
 - **App tests:** `RadarLogicTest` (the radar crash); screenshot tests for every new UI state in
   `ScreensSnapshotTest` (so in all 21 language folders).
-- **Translations:** `strings_safety.xml` in all 20 values folders; `crew_help_alerted`
-  ("Crew alerted ✓", the misleading label) removed from every language.
+- **Translations:** `strings_safety.xml` (30 strings) in all 20 values folders, each checked
+  against the app's and the watch's existing words (Sent, Sent nearby, Not sent yet, I'm home
+  safe, the word for "signal"); a "Safety and Live" section in each docs/i18n guide with the
+  choices and doubts. `crew_help_alerted` ("Crew alerted ✓", the misleading label) removed from
+  every language.
+- **Merged:** origin/ccr-5839ed7c-1q0ztj at 0a9ba4a (the production relay; server and docs only,
+  no conflicts).
 - **CI:** see "CI runs" at the end.
 - **Next:** if CI is red, fix what it lists (the "Compile errors" step greps `^e: `). Check the
   new screenshots in every language (ui-screenshots-claude-wave2-safety-k7m3p9) and that every
