@@ -8,6 +8,11 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.writeFully
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -251,5 +256,25 @@ class LimitsTest {
         assertTrue("00112233" !in masked && "203.0.113.7" !in masked && "2001:db8" !in masked && "0a1b2c3d" !in masked, masked)
         assertTrue("12:30:05" in masked, masked)
         assertTrue("[id]" in masked && "[address]" in masked && "[token]" in masked, masked)
+    }
+}
+
+/** An upload that crawls is dropped (408, which the app retries), so a trickle can't hold a slot. */
+class SlowUploadTest {
+    @Test fun aCrawlingUploadIsDropped() = runBlocking<Unit> {
+        val body = ByteChannel()
+        val f = File.createTempFile("crawl", ".part").apply { deleteOnExit() }
+        var now = 0L
+        val writer = launch {
+            body.writeFully(ByteArray(100) { 7 })
+            body.flush()
+            delay(100)
+            now = 120_000 // two minutes pass with 110 bytes in all: far under 4 KB/s
+            body.writeFully(ByteArray(10) { 1 })
+            body.flush()
+        }
+        val r = runCatching { Disk.receive(body, f, 1_000_000, ByteArray(16)) { now } }
+        writer.cancel()
+        assertTrue(r.exceptionOrNull() is Disk.TooSlow, r.toString())
     }
 }

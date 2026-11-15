@@ -70,9 +70,10 @@ fun Application.moshpoint(
         exception<Throwable> { call, cause ->
             // Only the kind of failure is logged: never the URL (it holds a mailbox id) or the client.
             when (cause) {
+                // Before IOException, which it is: an upload that stalled or crawled.
+                is Disk.TooSlow -> return@exception runCatching { call.respondText("too slow", status = HttpStatusCode.RequestTimeout) }.let {}
                 is CancellationException, is IOException -> {} // the phone went away mid-request
                 is Db.ClosedException -> {}
-                is Disk.TooSlow -> return@exception runCatching { call.respondText("too slow", status = HttpStatusCode.RequestTimeout) }.let {}
                 else -> log.warn("Request failed: {}", cause::class.java.simpleName)
             }
             runCatching { call.respondText("try later", status = HttpStatusCode.ServiceUnavailable) }
