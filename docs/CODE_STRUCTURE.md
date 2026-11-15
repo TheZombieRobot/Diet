@@ -11,7 +11,8 @@ _Keep this section current: whoever picks this up next starts here._
 - **Done (all six steps):** feature packages; MainActivity split into state holders, one
   launcher helper and screen composables; FriendsScreen's 76 parameters grouped into 8; the two
   1,000-line home files split by section; `ui/` split into feature folders; dead code removed
-  (imports, declarations, parameters). ccr merged up to 604ced4 (the production audit, docs
+  (imports, declarations, parameters); the code that came out of MainActivity uses imports
+  instead of fully qualified names. ccr merged up to 604ced4 (the production audit, docs
   only).
 - **Proof so far:** CI run 291 (the moves and the MainActivity split, at edfc6cf) is green, with
   every screenshot (1,165 phone, 798 watch, all 21 language folders) byte-identical to ccr's and
@@ -26,7 +27,7 @@ _Keep this section current: whoever picks this up next starts here._
 
 | | ccr (792cd68) | this branch |
 |---|---|---|
-| `MainActivity.kt` | 1,647 lines; 30 `mutableStateOf` fields, 6 launchers, 41 functions | 293 lines; 0 state fields, 0 launchers, 10 functions (the lifecycle) |
+| `MainActivity.kt` | 1,647 lines; 30 `mutableStateOf` fields, 6 launchers, 41 functions | 302 lines; 0 state fields, 0 launchers, 10 functions (the lifecycle) |
 | `FriendsScreen` | 76 parameters | 8 (`me`, `crew`, `gigs`, `scanned` and four action holders) |
 | Files loose in `nz.waveformlabs.moshpoint` | 45 | 10, all named in the manifest |
 | Five biggest files | MainActivity 1,647; HomeSections 1,062; HomeKit 1,045; GroupSync 888; VenueMaps 734 | GroupSync 905; VenueMaps 734; CrewChat 707; CrewChatUi 545; FinderScreen 526 |
