@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- French: home screen redesign (docs/design/home-redesign, docs/HOME_REDESIGN.md): the Live row, the
+     crew header and menu, no crew / first time, and the section titles. Keep labels short: the
+     screen is about 340 dp wide, and two buttons share a row. Comments for each string are in
+     values/strings_home_redesign.xml. Crew = la crew; gender-neutral wording (docs/i18n/fr.md). -->
+<resources>
+    <!-- Live row: the switch's name (on or off), then one line beside it -->
+    <string name="home_live_switch">Live</string>
+    <string name="home_live_on">Tu es visible pour tes potes</string>
+    <string name="home_live_ghost_on">Mode fantôme : invisible sur la carte, repérable de près</string>
+    <string name="home_live_off">Désactivé : tes potes ne te voient pas encore</string>
+
+    <!-- Crew header -->
+    <string name="home_crew_options">Options de la crew</string>
+    <plurals name="home_crew_count">
+        <item quantity="one">%d dans la crew</item>
+        <item quantity="many">%d dans la crew</item>
+        <item quantity="other">%d dans la crew</item>
+    </plurals>
+    <plurals name="home_live_count">
+        <item quantity="one">%d en live</item>
+        <item quantity="many">%d en live</item>
+        <item quantity="other">%d en live</item>
+    </plurals>
+    <string name="home_face_options">Options</string>
+    <string name="home_friend_options">Options pour %1$s</string>
+    <string name="home_face_battery">Batterie %1$d%%</string>
+
+    <!-- Crew buttons and activity -->
+    <string name="home_share_photos">Partager des photos</string>
+    <string name="home_meetup">RDV : %1$s</string>
+    <string name="home_plan_pinned">Épinglé dans le chat de la crew</string>
+    <string name="home_where_are_they_short">Ils sont où ?</string>
+
+    <!-- Crew menu (⋯) -->
+    <string name="home_menu_tonight">Ce soir</string>
+    <string name="home_menu_coming_up">Bientôt</string>
+    <string name="home_menu_invite">Inviter d\'autres potes</string>
+    <string name="home_menu_invite_sub">Montre le QR de la crew ou envoie un lien</string>
+    <string name="home_menu_family">Partager la soirée avec ta famille</string>
+    <string name="home_menu_family_sub">Ils suivent depuis la maison et restent invisibles</string>
+    <string name="home_menu_reset_sub">Nouveau QR, nouveau lien. Les anciens ne marchent plus</string>
+    <string name="home_menu_end_sub">Tu quittes la crew de ce soir. Tes photos restent dans Concerts passés</string>
+    <string name="home_menu_cancel_sub">Tu quittes la crew avant le jour J. Tes potes, eux, y restent</string>
+    <string name="home_menu_stop_sub">Tu ne verras plus où ils sont</string>
+
+    <!-- No crew tonight -->
+    <string name="home_no_crew_title">Pas de crew ce soir</string>
+    <string name="home_no_crew_text">Lance une crew, montre le QR code à tes potes, et c\'est fait.</string>
+    <string name="home_start_crew">Lancer une crew ce soir</string>
+    <string name="home_plan_title">Prévoir un concert</string>
+    <string name="home_plan_sub">Trouve-le maintenant et invite tes potes</string>
+    <string name="home_join_crew">REJOINDRE UNE CREW</string>
+
+    <!-- First time -->
+    <string name="home_first_title">Retrouve tes potes dans la foule</string>
+    <string name="home_first_text">Lance une crew et tes potes scannent le QR code. Une flèche lumineuse pointe vers chaque pote, même sans réseau.</string>
+    <string name="home_plan_another_night">Prévoir un concert un autre soir</string>
+
+    <!-- Section titles -->
+    <string name="home_section_up_next">À venir</string>
+    <string name="home_section_past_gigs">Concerts passés</string>
+    <string name="home_section_friends">Amis</string>
+    <string name="home_see_all">Tout voir</string>
+    <plurals name="home_mates">
+        <item quantity="one">%d pote</item>
+        <item quantity="many">%d potes</item>
+        <item quantity="other">%d potes</item>
+    </plurals>
+    <string name="home_upnext_no_mates">Invite tes potes</string>
+</resources>

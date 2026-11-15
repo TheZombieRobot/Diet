@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Vietnamese: home screen (crew card, friends list, bottom bar, add sheet, pings). -->
 <resources>
-    <string name="home_go_live">Bật chia sẻ</string>
-    <string name="home_live_ghost">Đang chia sẻ · tàng hình</string>
-    <string name="home_live">Đang chia sẻ</string>
-
     <string name="home_tile_not_sharing">chưa chia sẻ</string>
     <string name="home_tile_phone_died">máy hết pin</string>
     <string name="home_tile_live">đang chia sẻ</string>
-    <string name="home_tile_with_battery">%1$s · %2$d%%</string>
 
     <string name="home_ping_on_my_way">Đang tới</string>
     <string name="home_ping_where_are_you">Đâu rồi?</string>
@@ -50,10 +45,6 @@
     <string name="home_check_in_by">Check-in trước %1$s</string>
     <string name="home_home_safe">Mình về tới nhà an toàn</string>
 
-    <string name="home_chat">Chat</string>
-    <string name="home_chat_unread">Chat (%1$d)</string>
-    <string name="home_camera">Camera</string>
-
     <string name="home_message_crew">Nhắn cả nhóm</string>
     <string name="home_message_crew_text">Chạm một cái: cả nhóm nhận được, kèm vị trí của bạn.</string>
 
@@ -71,17 +62,12 @@
 
     <string name="home_crew_chat">Chat nhóm</string>
     <string name="home_pinned_plan">📌 %1$s</string>
-    <string name="home_chat_subtitle">Tin nhắn, kế hoạch, tín hiệu</string>
     <string name="home_unread_many">9+</string>
     <plurals name="home_unread_new">
         <item quantity="other">%d mới</item>
     </plurals>
 
     <string name="home_following_from_home">Theo dõi từ nhà</string>
-    <string name="home_upnext_invite">💬 Chat · rủ bạn bè</string>
-    <plurals name="home_upnext_mates">
-        <item quantity="other">💬 Chat · %d người đã vào</item>
-    </plurals>
 
     <string name="home_start_gig_group">Lập nhóm đi show</string>
     <string name="home_start_gig_group_text">Đặt tên (vd: tên ban nhạc). Rồi mở QR cho bạn bè quét.</string>
@@ -96,14 +82,12 @@
     <string name="home_remove_from_crew_text">Nhóm sẽ chuyển sang khóa mới mà %1$s không có, nên từ giờ họ không thấy vị trí của ai, không thấy chat hay ảnh nữa. Những người khác vẫn ở lại.</string>
     <string name="home_remove_friend_text">Bạn sẽ không tìm được họ cho tới khi thêm lại.</string>
     <string name="home_remove">Xóa</string>
-    <string name="home_find">Tìm</string>
     <string name="home_add_with_code">Thêm bằng mã</string>
     <string name="home_their_name">Tên bạn ấy</string>
     <string name="home_their_code">Mã của bạn ấy</string>
     <string name="home_add_friend">Thêm bạn</string>
     <string name="home_tonight_only">Chỉ tối nay</string>
 
-    <string name="home_hidden_hint">Bạn đang ẩn với nhóm. Chạm Bật chia sẻ khi muốn được tìm thấy.</string>
     <string name="home_allow_permission">Cho phép Moshpoint tìm bạn bè (%1$s)</string>
     <string name="home_allow">Cho phép</string>
     <string name="home_one_thing_first">MỘT VIỆC TRƯỚC ĐÃ</string>
@@ -113,22 +97,11 @@
     <string name="home_eyebrow_tonight">TỐI NAY</string>
     <string name="home_eyebrow_following">ĐANG THEO DÕI</string>
     <string name="home_eyebrow_coming_up">SẮP TỚI</string>
-    <string name="home_find_mates_tonight">Tìm bạn bè tối nay</string>
-    <string name="home_find_mates_text">Mời, quét, xong. Còn lại để Moshpoint lo.</string>
-    <string name="home_invite_mates_tonight">Rủ bạn bè tối nay</string>
-    <string name="home_scan_invite">Quét lời mời</string>
     <string name="home_your_crew">Nhóm của bạn</string>
-    <string name="home_invite">＋ Mời</string>
-    <string name="home_family_can_follow">Gia đình theo dõi đêm nay từ nhà</string>
     <string name="home_following_from_home_names">Theo dõi từ nhà: %1$s</string>
-    <string name="home_share">Chia sẻ ›</string>
-    <string name="home_meet_up">★  Điểm hẹn: %1$s</string>
-    <string name="home_map_link">Bản đồ ›</string>
     <string name="home_asleep_text">Ngủ tới ngày diễn: không Bluetooth, không vị trí, không tốn pin. Bạn bè vào nhóm được ngay, và đến ngày bạn sẽ được nhắc.</string>
     <string name="home_follower_text">Bạn thấy được mọi người đang ở đâu và ảnh ngay khi họ đăng. Họ cũng thấy bạn đang theo dõi.</string>
     <string name="home_see_story">Xem story</string>
-    <string name="home_crew_chat_unread">Chat nhóm (%1$d mới)</string>
-    <string name="home_where_are_they">Mọi người đâu rồi? (bản đồ)</string>
     <string name="home_see_them_once_starts">Show bắt đầu là bạn sẽ thấy họ ở đây.</string>
     <string name="home_tap_mate_hint">Chạm vào bạn để tìm · giữ để xem thêm</string>
     <string name="home_find_name">Tìm %1$s</string>
@@ -136,12 +109,9 @@
     <string name="home_stop_following">Bỏ theo dõi</string>
     <string name="home_cancel_crew">Hủy nhóm này</string>
     <string name="home_end_night">Kết thúc đêm</string>
-    <string name="home_up_next">SẮP TỚI</string>
     <string name="home_memories">KỶ NIỆM</string>
     <plurals name="home_memories_count">
         <item quantity="other">%d ảnh và clip. Chạm để xem lại ›</item>
     </plurals>
-    <string name="home_your_gigs">SHOW CỦA BẠN</string>
-    <string name="home_friends">BẠN BÈ</string>
     <string name="home_friends_empty">Bạn bè bạn giữ cho mọi show sẽ hiện ở đây. Chạm ＋ Thêm bên dưới.</string>
 </resources>

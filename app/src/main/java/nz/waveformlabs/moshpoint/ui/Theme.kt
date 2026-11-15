@@ -44,6 +44,22 @@ object Mosh {
     val VisibleText = Color(0xFFCFE9B0)
     val Danger = Color(0xFFFF6FB3)
 
+    // Home (docs/design/home-redesign): glass, hairlines and surfaces.
+    val GlassFill = Color(0x0FFFFFFF)    // white at 6%: glass buttons and rows
+    val GlassLine = Color(0x1AFFFFFF)    // white at 10%: glass button border
+    val GlassLineStrong = Color(0x1FFFFFFF) // white at 12%: round icon button, a face that isn't live
+    val Hairline = Color(0x14FFFFFF)     // white at 8%: dividers, the bottom bar's top edge
+    val SwitchOff = Color(0x29FFFFFF)    // white at 16%: switch track when off
+    val Handle = Color(0x40FFFFFF)       // white at 25%: a sheet's drag handle
+    val Sheet = Color(0xFF120E22)        // crew menu and the other pop-up panels
+    val Bar = Color(0xFF090712)          // bottom bar (opaque: nothing shows through)
+    val Scrim = Color(0xA8030208)        // behind a pop-up panel
+    val Lilac = Color(0xFFC9A8FF)        // violet text and icons on the dark ground
+    val Alarm = Color(0xFFFF4D4D)        // can't-undo actions (Remove someone) and the emergency call: clearly red, not pink
+    val Paper = Color(0xFFF5F1E8)        // a Polaroid's frame
+    val Ink = Color(0xFF1A1622)          // handwriting on a Polaroid
+    val InkSoft = Color(0xFF514A63)      // the small print under it
+
     /** The live/neon spectrum used for running borders and confetti. */
     val Spectrum = listOf(Lime, Cyan, Violet, Pink, Lime)
 
@@ -76,6 +92,19 @@ object Mosh {
     val Body = TextStyle(fontFamily = Inter, fontSize = 15.sp, lineHeight = 22.sp, color = TextDim)
     val Label = TextStyle(fontFamily = Inter, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = Text)
     val Button = TextStyle(fontFamily = Display, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Text)
+
+    // Home (docs/design/home-redesign). Titles keep the font's own line height, so tall scripts
+    // (Thai, Devanagari, Vietnamese) never lose their marks when a line wraps.
+    /** Small capitals over a section: TONIGHT, JOIN A CREW. */
+    val Kicker = TextStyle(fontFamily = Inter, fontWeight = FontWeight.SemiBold, fontSize = 11.5.sp, letterSpacing = 2.5.sp, color = TextFaint)
+    /** A section's title: Up next, Past gigs, Friends. */
+    val Section = TextStyle(fontFamily = Display, fontWeight = FontWeight.ExtraBold, fontSize = 20.sp, color = Text)
+    /** The big title on the home: the crew's name, "No crew tonight". */
+    val Hero = TextStyle(fontFamily = Display, fontWeight = FontWeight.ExtraBold, fontSize = 28.sp, letterSpacing = (-0.5).sp, color = Text)
+    /** Text on a glass button or a row. */
+    val RowTitle = TextStyle(fontFamily = Inter, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = Text)
+    /** The line under a row's title. */
+    val Small = TextStyle(fontFamily = Inter, fontSize = 13.sp, lineHeight = 18.sp, color = TextFaint)
 }
 
 /**

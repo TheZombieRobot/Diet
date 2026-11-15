@@ -126,7 +126,7 @@
     </plurals>
     <string name="crew_notif_new_plan">Yeni plan: %1$s</string>
     <string name="crew_notif_done_title">Bitti: %1$s</string>
-    <string name="crew_notif_done_saved">Fotoğrafların ve videoların Konserlerin bölümüne kaydedildi.</string>
+    <string name="crew_notif_done_saved">Fotoğrafların ve videoların Geçmiş konserler bölümüne kaydedildi.</string>
     <string name="crew_notif_done_text">Umarız efsane geçmiştir. İstediğin zaman yeni bir ekip kur.</string>
     <string name="crew_notif_overdue_title">%1$s haber vermedi</string>
     <string name="crew_notif_overdue_text">Eve dönüyordu, şimdiye varmış olmalıydı. Onu ara. Son konumu için dokun.</string>

@@ -126,7 +126,7 @@
     </plurals>
     <string name="crew_notif_new_plan">नया प्लान: %1$s</string>
     <string name="crew_notif_done_title">%1$s खत्म हुआ</string>
-    <string name="crew_notif_done_saved">आपकी फ़ोटो और क्लिप \"आपके शो\" में सेव हैं।</string>
+    <string name="crew_notif_done_saved">आपकी फ़ोटो और क्लिप \"पिछले शो\" में सेव हैं।</string>
     <string name="crew_notif_done_text">उम्मीद है मज़ा आया। जब चाहें नया ग्रुप शुरू करें।</string>
     <string name="crew_notif_overdue_title">%1$s ने चेक-इन नहीं किया</string>
     <string name="crew_notif_overdue_text">वे घर जा रहे थे और अब तक पहुँच जाने चाहिए थे। उन्हें कॉल करें। उनकी आखिरी जगह देखने के लिए टैप करें।</string>

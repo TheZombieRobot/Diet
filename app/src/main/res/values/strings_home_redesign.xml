@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Home screen redesign (docs/design/home-redesign, docs/HOME_REDESIGN.md): the Live row, the
+     crew header and menu, no crew / first time, and the section titles. Keep labels short: the
+     screen is about 340 dp wide, and two buttons share a row. -->
+<resources>
+    <!-- The Live switch's name, next to the switch whether it's on or off: a name, not "you're sharing" -->
+    <string name="home_live_switch">Live</string>
+    <!-- Next to the Live switch when it's on -->
+    <string name="home_live_on">You\'re visible to your mates</string>
+    <!-- Next to the Live switch when it's on in ghost mode: your spot is hidden from the map, but mates close by can still find you over Bluetooth -->
+    <string name="home_live_ghost_on">Ghost mode: off the map, findable up close</string>
+    <!-- Next to the Live switch when it's off -->
+    <string name="home_live_off">Off: mates can\'t see you yet</string>
+
+    <!-- Screen reader name of the ⋯ button next to the crew's name -->
+    <string name="home_crew_options">Crew options</string>
+    <!-- Under the crew's name. %d = how many mates are in the crew -->
+    <plurals name="home_crew_count">
+        <item quantity="one">%d in the crew</item>
+        <item quantity="other">%d in the crew</item>
+    </plurals>
+    <!-- After that count: how many are sharing where they are right now ("5 in the crew · 3 live") -->
+    <plurals name="home_live_count">
+        <item quantity="one">%d live</item>
+        <item quantity="other">%d live</item>
+    </plurals>
+    <!-- Screen reader: what holding a mate's face does -->
+    <string name="home_face_options">Options</string>
+    <!-- Screen reader name of the ⋯ button on a friend's row. %1$s = their name -->
+    <string name="home_friend_options">Options for %1$s</string>
+    <!-- Small line under a mate's face when their battery is low. %1$d = percent -->
+    <string name="home_face_battery">%1$d%% battery</string>
+
+    <!-- Button next to Crew chat: take or pick a photo for the crew's story -->
+    <string name="home_share_photos">Share photos</string>
+    <!-- The crew's meet-up spot. %1$s = its name, e.g. "Sound desk" -->
+    <string name="home_meetup">Meet-up: %1$s</string>
+    <!-- Under the crew's pinned plan -->
+    <string name="home_plan_pinned">Pinned in the crew chat</string>
+    <!-- Following from home: the button that opens the map -->
+    <string name="home_where_are_they_short">Where are they?</string>
+
+    <!-- Crew menu (the ⋯ next to the crew's name). Under its title: "Tonight · 5 in the crew" -->
+    <string name="home_menu_tonight">Tonight</string>
+    <string name="home_menu_coming_up">Coming up</string>
+    <string name="home_menu_invite">Invite more mates</string>
+    <string name="home_menu_invite_sub">Show the crew QR, or send a link</string>
+    <string name="home_menu_family">Share the night with family</string>
+    <string name="home_menu_family_sub">They follow along from home and can\'t be found</string>
+    <!-- Under "Reset invite" -->
+    <string name="home_menu_reset_sub">A new QR and link. The old ones stop working</string>
+    <!-- Under "End the night" -->
+    <string name="home_menu_end_sub">Leave tonight\'s crew. Your photos stay in Past gigs</string>
+    <!-- Under "Cancel this crew" (a crew for a later date): only you leave it -->
+    <string name="home_menu_cancel_sub">Leave it before gig day. Mates who joined stay in</string>
+    <!-- Under "Stop following" -->
+    <string name="home_menu_stop_sub">You won\'t see where they are any more</string>
+
+    <!-- No crew tonight (someone who has used the app before) -->
+    <string name="home_no_crew_title">No crew tonight</string>
+    <string name="home_no_crew_text">Start one, show your mates the QR code, and you\'re a crew.</string>
+    <!-- The big button -->
+    <string name="home_start_crew">Start a crew for tonight</string>
+    <string name="home_plan_title">Plan a gig</string>
+    <string name="home_plan_sub">Find it now and invite your mates</string>
+    <!-- Small capitals over Scan a QR / Paste invite -->
+    <string name="home_join_crew">JOIN A CREW</string>
+
+    <!-- Someone brand new: no crew, friends or past gigs yet -->
+    <string name="home_first_title">Find your mates in the crowd</string>
+    <string name="home_first_text">Start a crew and your mates scan the QR code. A glowing arrow points to each of them, even with no signal.</string>
+    <string name="home_plan_another_night">Plan a gig for another night</string>
+
+    <!-- Section titles -->
+    <string name="home_section_up_next">Up next</string>
+    <string name="home_section_past_gigs">Past gigs</string>
+    <string name="home_section_friends">Friends</string>
+    <string name="home_see_all">See all</string>
+    <!-- Up next: who's in a crew that's coming up. %d = mates who joined -->
+    <plurals name="home_mates">
+        <item quantity="one">%d mate</item>
+        <item quantity="other">%d mates</item>
+    </plurals>
+    <!-- Up next: nobody has joined that crew yet -->
+    <string name="home_upnext_no_mates">Invite your mates</string>
+</resources>

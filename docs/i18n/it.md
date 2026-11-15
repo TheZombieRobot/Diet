@@ -134,3 +134,23 @@ Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
 | %d unread private messages (screen reader, the count on a face) | %d messaggi privati non letti |
 
 Uses **gruppo**, as elsewhere. The subtitle agrees with *la chat* (*Privata… leggerla*). *Silenzia* / *Riattiva*. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.
+
+## Home redesign (`strings_home_redesign.xml`)
+
+The new home screen: the Live row, the crew header and the ⋯ crew menu, the no-crew and first-time screens, and the section titles (Up next, Past gigs, Friends). Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| Live (the switch's name, on or off) | **Live** | The name the old pill already had (`home_live`), so it reads right next to a switch that is off. |
+| You're visible to your mates / Off: mates can't see you yet | **Sei visibile ai tuoi amici** / **Disattivato: gli amici non ti vedono ancora** | *Visibile* has one form for everyone. *Disattivato:* as in the data-saver text. |
+| Ghost mode: off the map, findable up close | **Modalità fantasma: fuori dalla mappa, ma ti trovano da vicino** | Avoids *nascosto/nascosta*. |
+| Crew menu: Invite more mates / Share the night with family / They follow along from home and can't be found | **Invita altri amici** / **Condividi la serata in famiglia** / Ti seguono da casa e restano invisibili | *In famiglia* echoes the usual family-sharing wording; *con la famiglia* was just too wide and left *famiglia* alone on a second line. |
+| Start a crew for tonight | **Crea un gruppo stasera** | *Crea un gruppo per stasera* is wider than the big button and left *stasera* alone on a second line. |
+| Past gigs | **Concerti passati** | The usual term. The End the night line and the older messages that point there use the same name. |
+| Up next | **Prossimi** | As in Key terms. |
+| Share photos | **Condividi foto** | One line in the half-width button. |
+
+Also: a mate's low battery under their face is **Batteria 15%** (*15% di batteria* wraps under the 76 dp face).
+
+For a native reviewer: *Condividi la serata in famiglia* could read as "share the night as a family"; *Crea un gruppo stasera* is as wide as the English button text, so it may wrap on some phones. Written without a native reviewer. Confidence: **medium-high**.
+- **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it Live ("attiva Live"); "Vai live" stays as a verb in the onboarding title.

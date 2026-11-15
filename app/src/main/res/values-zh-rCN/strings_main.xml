@@ -2,7 +2,7 @@
 <!-- Simplified Chinese (zh-CN): main screen, invites, sharing, phone setup checks. -->
 <resources>
     <string name="main_get_the_app">还没装 Moshpoint？从这里安装（Android）：%1$s\n然后复制这整条消息，打开 Moshpoint，点“粘贴邀请”。\n\n</string>
-    <string name="main_nudge_text">嘿 %1$s，打开 Moshpoint 点“上线”（记得开定位和流量），我好找到你！</string>
+    <string name="main_nudge_text">嘿 %1$s，打开 Moshpoint 打开“在线”（记得开定位和流量），我好找到你！</string>
     <string name="main_nudge_mate">朋友</string>
     <string name="main_nudge_title">叫他们上线</string>
 
@@ -97,8 +97,8 @@
     <string name="main_clip_join_text">你复制了一个 Moshpoint 邀请。加入后今晚大家都能互相找到。</string>
 
     <string name="main_your_night">你的这一晚</string>
-    <string name="main_recap_text">%1$s\n\n结束这一晚会关闭小队（好友会保留）。照片和视频都留在你手机的“我的演出”里。</string>
-    <string name="main_night_ended">这一晚结束啦。照片和视频都在“我的演出”里。</string>
+    <string name="main_recap_text">%1$s\n\n结束这一晚会关闭小队（好友会保留）。照片和视频都留在你手机的“看过的演出”里。</string>
+    <string name="main_night_ended">这一晚结束啦。照片和视频都在“看过的演出”里。</string>
     <string name="main_end_the_night">结束这一晚</string>
     <string name="main_share_night_text">我用 Moshpoint 的这一晚：%1$s 🤘</string>
     <string name="main_share_night_title">分享你的这一晚</string>

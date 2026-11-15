@@ -2,7 +2,7 @@
 <!-- Hindi: main screen, invites, sharing and phone setup checks. -->
 <resources>
     <string name="main_get_the_app">अभी तक Moshpoint नहीं है? यहाँ से इंस्टॉल करें (Android): %1$s\nफिर यह पूरा मैसेज कॉपी करें, Moshpoint खोलें और इनवाइट पेस्ट करें पर टैप करें।\n\n</string>
-    <string name="main_nudge_text">अरे %1$s, Moshpoint खोलो और लाइव हों पर टैप करो (लोकेशन और डेटा ऑन रखकर), ताकि मैं तुम्हें ढूँढ सकूँ!</string>
+    <string name="main_nudge_text">अरे %1$s, Moshpoint खोलो और लाइव ऑन करो (लोकेशन और डेटा ऑन रखकर), ताकि मैं तुम्हें ढूँढ सकूँ!</string>
     <string name="main_nudge_mate">दोस्त</string>
     <string name="main_nudge_title">उनसे लाइव होने को कहें</string>
 
@@ -101,8 +101,8 @@
     <string name="main_clip_join_text">आपने Moshpoint इनवाइट कॉपी किया है। शामिल हों और आज रात सब एक-दूसरे को ढूँढ पाएँगे।</string>
 
     <string name="main_your_night">आपकी रात</string>
-    <string name="main_recap_text">%1$s\n\nरात खत्म करने से ग्रुप बंद हो जाता है (दोस्त बने रहते हैं)। फ़ोटो और क्लिप आपके फ़ोन में \"आपके शो\" में रहती हैं।</string>
-    <string name="main_night_ended">रात खत्म। आपकी फ़ोटो और क्लिप \"आपके शो\" में हैं।</string>
+    <string name="main_recap_text">%1$s\n\nरात खत्म करने से ग्रुप बंद हो जाता है (दोस्त बने रहते हैं)। फ़ोटो और क्लिप आपके फ़ोन में \"पिछले शो\" में रहती हैं।</string>
+    <string name="main_night_ended">रात खत्म। आपकी फ़ोटो और क्लिप \"पिछले शो\" में हैं।</string>
     <string name="main_end_the_night">रात खत्म करें</string>
     <string name="main_share_night_text">Moshpoint के साथ मेरी रात: %1$s 🤘</string>
     <string name="main_share_night_title">अपनी रात शेयर करें</string>

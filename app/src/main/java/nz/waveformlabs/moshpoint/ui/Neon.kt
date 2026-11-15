@@ -203,18 +203,6 @@ fun rememberShimmer(periodMs: Int = 3200): State<Float> {
     )
 }
 
-/** Gentle bob for floating avatars. [phase] staggers neighbours. */
-@Composable
-fun rememberFloat(phase: Int = 0): State<Float> {
-    val t = rememberInfiniteTransition(label = "float")
-    return t.ambient(
-        0f, 1f,
-        infiniteRepeatable(tween(3000, delayMillis = 0, easing = FastOutSlowInEasing), RepeatMode.Reverse,
-            initialStartOffset = androidx.compose.animation.core.StartOffset(phase * 400)),
-        label = "y",
-    )
-}
-
 /** Bouncy press: buttons squish a little under your thumb. Pass the source to the clickable. */
 @Composable
 fun rememberPress(): Pair<MutableInteractionSource, Float> {

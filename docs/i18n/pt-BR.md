@@ -146,3 +146,20 @@ Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
 | %d unread private messages (screen reader, the count on a face) | %d mensagens privadas não lidas |
 
 Uses **galera**, as elsewhere. *Silenciar* / *Tirar do silencioso*. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.
+
+## Home redesign (`strings_home_redesign.xml`)
+
+The redesigned home: the Live row (the switch's name and the line beside it), the crew header, faces and ⋯ crew menu, the no-crew and first-time screens, and the section titles (36 strings, 3 plurals). Validator prints **OK** for this file.
+
+| English | Chosen | Why |
+|---|---|---|
+| Live (the switch's name, on or off) | **Ao vivo** | The app's name for live (`home_live`, `crew_tile_live`). It names the mode, so it reads right next to a switch that is off. |
+| You're visible to your mates / Off: mates can't see you yet | Seus amigos te veem / Desligado: seus amigos ainda não te veem | *Desligado:* as in `setup_data_saver_desc`. |
+| Ghost mode: off the map, findable up close | Modo fantasma: fora do mapa, mas te acham de perto | The setting's own name; *te acham* as `setup_ghost_mode_desc` says it. Two lines, like English. |
+| Crew menu: Invite more mates / Share the night with family | Convidar mais amigos / Compartilhar a noite com a família | Infinitives, like *Resetar convite* and *Encerrar a noite*. The lines under them in plain *você* (*Você sai da galera de hoje…*, *Quem já entrou continua na galera*). |
+| Up next / Past gigs | **Próximos** / **Shows passados** | *Próximos* is the existing name; *Shows passados* pairs with it and fits next to *Ver todos*. `main_recap_text`, `main_night_ended` and `crew_notif_done_saved` now say it too. |
+| Share photos | **Postar fotos** | What people say for putting photos on a story. *Compartilhar fotos* is too wide for the half-width button and wraps. |
+| Start a crew for tonight / No crew tonight | **Montar galera pra hoje** / **Sem galera hoje** | *Montar* as in every start-a-crew string; *hoje* for tonight, as in `main_tonights_crew`. Both fit one line. |
+
+For a native reviewer: (1) *Postar fotos* vs *Compartilhar fotos* (two lines). (2) *Bateria: 8%* under a face, as a label: *8% de bateria* wraps in the 76 dp column. (3) Portugal reads *galera*, *postar* and *pra* as Brazilian, as elsewhere. Written without a native reviewer. Confidence: **medium-high**.
+- **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it Ao vivo ("ligue o Ao vivo"); "ficar ao vivo" stays as a verb where it reads naturally.

@@ -154,7 +154,7 @@
     </plurals>
     <string name="crew_notif_new_plan">خطة جديدة: %1$s</string>
     <string name="crew_notif_done_title">انتهت %1$s</string>
-    <string name="crew_notif_done_saved">صورك ومقاطعك محفوظة في «حفلاتك».</string>
+    <string name="crew_notif_done_saved">صورك ومقاطعك محفوظة في «الحفلات السابقة».</string>
     <string name="crew_notif_done_text">نتمنى أنها كانت ليلة رائعة. ابدأ شلة جديدة متى شئت.</string>
     <string name="crew_notif_overdue_title">%1$s: لم يُسجَّل الوصول بعد</string>
     <string name="crew_notif_overdue_text">كانت الوجهة البيت، ويُفترض أن الوصول قد تم الآن. اتصل للاطمئنان. اضغط لترى آخر مكان معروف.</string>

@@ -45,6 +45,7 @@ import nz.waveformlabs.moshpoint.ui.MapPin
 import nz.waveformlabs.moshpoint.ui.MapScreen
 import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.MoshTheme
+import nz.waveformlabs.moshpoint.ui.CrewHeader
 import nz.waveformlabs.moshpoint.ui.VenueMapLine
 import nz.waveformlabs.moshpoint.ui.VenueView
 import nz.waveformlabs.moshpoint.ui.pinBitmap
@@ -119,19 +120,20 @@ open class VenueSnapshotTest : VenueSnapshots() {
                 onVisible = {}, onAlwaysOn = {}, onFind = {}, onShareCode = {}, onShowQr = {}, onScanQr = {},
                 scanned = null, onScannedUsed = {}, onAdd = { _, _, _ -> null }, onRemove = {},
                 onSetPhoto = {}, onRemovePhoto = {}, onClearGigGroup = {},
-                groupName = "Iron Maiden", onStartGroup = {}, onShowGroupQr = {},
-                crewWhen = "Sat 14 Dec, 8:00 pm · Spark Arena, Auckland",
+                groupName = "Neon Paddock", onStartGroup = {}, onShowGroupQr = {},
+                crewWhen = "Sat 14 Dec, 8:00 pm · Kauri Fields",
                 venueMap = VenueMaps.Status(VenueMaps.Line.SAVED),
             )
         }
     }
 
-    /** The line in each of its four states, beside the card's Invite button so the width is the real one. */
+    /** The line in each of its four states, under the crew's name and its ⋯ button, so the width is the real one. */
     @Test fun venueLines() = snap {
         MoshTheme {
             Column(
-                Modifier.fillMaxSize().background(Mosh.Ground).padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                // The crew header pads its own sides, as on the home.
+                Modifier.fillMaxSize().background(Mosh.Ground).padding(vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(28.dp),
             ) {
                 listOf(
                     VenueMaps.Status(VenueMaps.Line.SAVING, 40),
@@ -139,18 +141,15 @@ open class VenueSnapshotTest : VenueSnapshots() {
                     VenueMaps.Status(VenueMaps.Line.WAITING),
                     VenueMaps.Status(VenueMaps.Line.ON_ARRIVAL),
                 ).forEach { status ->
-                    Row(
-                        Modifier.fillMaxWidth().background(Mosh.Deep, RoundedCornerShape(24.dp)).padding(horizontal = 18.dp, vertical = 14.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(Modifier.weight(1f)) {
-                            Text(stringResource(R.string.home_eyebrow_tonight), style = Mosh.Eyebrow)
-                            Text("Iron Maiden", style = Mosh.Heading, maxLines = 1)
-                            Text("Sat 14 Dec, 8:00 pm · Spark Arena", style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), maxLines = 2)
-                            VenueMapLine(status)
-                        }
-                        TextButton(onClick = {}) { Text(stringResource(R.string.home_invite), style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan)) }
-                    }
+                    CrewHeader(
+                        eyebrow = stringResource(R.string.home_eyebrow_tonight),
+                        name = "Neon Paddock",
+                        count = null,
+                        followers = emptyList(),
+                        whenText = "Sat 14 Dec, 8:00 pm · Kauri Fields",
+                        venueMap = status,
+                        onMenu = {},
+                    )
                 }
             }
         }

@@ -2,7 +2,7 @@
 <!-- Indonesian (in): main screen, invites, sharing, phone setup checks. -->
 <resources>
     <string name="main_get_the_app">Belum punya Moshpoint? Install dari sini (Android): %1$s\nLalu salin seluruh pesan ini, buka Moshpoint, dan ketuk Tempel undangan.\n\n</string>
-    <string name="main_nudge_text">Hai %1$s, buka Moshpoint dan ketuk Mulai live (lokasi dan data nyala ya) biar aku bisa menemukanmu!</string>
+    <string name="main_nudge_text">Hai %1$s, buka Moshpoint dan nyalakan Live (lokasi dan data nyala ya) biar aku bisa menemukanmu!</string>
     <string name="main_nudge_mate">teman</string>
     <string name="main_nudge_title">Minta mereka live</string>
 
@@ -97,8 +97,8 @@
     <string name="main_clip_join_text">Kamu menyalin undangan Moshpoint. Gabung dan kalian semua bisa saling menemukan malam ini.</string>
 
     <string name="main_your_night">Malammu</string>
-    <string name="main_recap_text">%1$s\n\nMengakhiri malam akan menutup geng (teman tetap tersimpan). Foto dan video tetap ada di HP-mu di Konser kamu.</string>
-    <string name="main_night_ended">Malam selesai. Foto dan videomu ada di Konser kamu.</string>
+    <string name="main_recap_text">%1$s\n\nMengakhiri malam akan menutup geng (teman tetap tersimpan). Foto dan video tetap ada di HP-mu di Konser sebelumnya.</string>
+    <string name="main_night_ended">Malam selesai. Foto dan videomu ada di Konser sebelumnya.</string>
     <string name="main_end_the_night">Akhiri malam</string>
     <string name="main_share_night_text">Malamku bareng Moshpoint: %1$s 🤘</string>
     <string name="main_share_night_title">Bagikan malammu</string>

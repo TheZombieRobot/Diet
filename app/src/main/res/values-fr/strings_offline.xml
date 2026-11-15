@@ -7,7 +7,7 @@
     <string name="offline_state_waiting">En attente de réseau</string>
     <string name="offline_state_not_sent">Pas envoyé</string>
     <string name="offline_hint_bluetooth">Pas de réseau. Les messages passent en Bluetooth par les téléphones de la crew à proximité, et sont envoyés dès que l\'un de vous a du réseau.</string>
-    <string name="offline_hint_go_live">Pas de réseau. Appuie sur Passer en live et les messages passeront en Bluetooth par les téléphones de la crew à proximité.</string>
+    <string name="offline_hint_go_live">Pas de réseau. Active Live et les messages passeront en Bluetooth par les téléphones de la crew à proximité.</string>
     <string name="offline_hint_bluetooth_off">Pas de réseau, et le Bluetooth est coupé. Active-le et les messages passeront par les téléphones de la crew à proximité.</string>
     <string name="offline_hint_unsupported">Pas de réseau. Ce téléphone ne peut pas faire passer les messages en Bluetooth : ils partiront quand tu auras du réseau.</string>
     <string name="offline_hint_no_signal">Pas de réseau. Les messages partiront quand tu en auras de nouveau.</string>

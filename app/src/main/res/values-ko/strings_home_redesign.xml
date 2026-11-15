@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Korean: home screen redesign (docs/design/home-redesign, docs/HOME_REDESIGN.md): the Live row, the
+     crew header and menu, no crew / first time, and the section titles. Keep labels short: the
+     screen is about 340 dp wide, and two buttons share a row. -->
+<resources>
+    <!-- The Live switch's name, on or off (a name, not 공유 중), then the one line beside it -->
+    <string name="home_live_switch">위치 공유</string>
+    <string name="home_live_on">친구들에게 내 위치가 보여요</string>
+    <string name="home_live_ghost_on">고스트 모드: 지도에는 안 보이지만 가까이에선 찾을 수 있어요</string>
+    <string name="home_live_off">꺼짐: 아직 친구들에게 안 보여요</string>
+
+    <!-- Crew header and faces. Count line: "크루 5명 · 3명 공유 중" -->
+    <string name="home_crew_options">크루 옵션</string>
+    <plurals name="home_crew_count">
+        <item quantity="other">크루 %d명</item>
+    </plurals>
+    <plurals name="home_live_count">
+        <item quantity="other">%d명 공유 중</item>
+    </plurals>
+    <!-- Screen reader: same word as home_tap_mate_hint (길게 눌러 옵션) -->
+    <string name="home_face_options">옵션</string>
+    <string name="home_friend_options">%1$s 옵션</string>
+    <string name="home_face_battery">배터리 %1$d%%</string>
+
+    <!-- Half-width button next to 크루 채팅; activity block -->
+    <string name="home_share_photos">사진 공유</string>
+    <string name="home_meetup">만남 장소: %1$s</string>
+    <string name="home_plan_pinned">크루 채팅에 고정됨</string>
+    <string name="home_where_are_they_short">다들 어디 있어?</string>
+
+    <!-- Crew menu (⋯) -->
+    <string name="home_menu_tonight">오늘 밤</string>
+    <string name="home_menu_coming_up">곧 시작</string>
+    <string name="home_menu_invite">친구 더 초대하기</string>
+    <string name="home_menu_invite_sub">크루 QR을 보여 주거나 링크를 보내요</string>
+    <string name="home_menu_family">가족도 함께 지켜보게 하기</string>
+    <string name="home_menu_family_sub">집에서 지켜보기만 하고, 가족의 위치는 공유되지 않아요</string>
+    <string name="home_menu_reset_sub">새 QR과 링크로 바뀌고, 이전 것은 더 이상 작동하지 않아요</string>
+    <string name="home_menu_end_sub">오늘 밤 크루에서 나가요. 사진은 ‘지난 공연’에 남아요</string>
+    <string name="home_menu_cancel_sub">공연 당일 전에 나가요. 참여한 친구들은 그대로 남아요</string>
+    <string name="home_menu_stop_sub">더 이상 모두의 위치를 볼 수 없어요</string>
+
+    <!-- No crew tonight -->
+    <string name="home_no_crew_title">오늘 밤은 크루가 없어요</string>
+    <string name="home_no_crew_text">하나 만들고 친구들에게 QR 코드를 보여 주면 크루 완성이에요.</string>
+    <string name="home_start_crew">오늘 밤 크루 만들기</string>
+    <string name="home_plan_title">공연 계획하기</string>
+    <string name="home_plan_sub">지금 찾아서 친구들을 초대해요</string>
+    <string name="home_join_crew">크루 참여</string>
+
+    <!-- First time (the title breaks where onboarding's does) -->
+    <string name="home_first_title">인파 속에서도\n친구를 찾아요</string>
+    <string name="home_first_text">크루를 만들고 친구들이 QR 코드를 스캔하면 끝. 신호가 없어도 빛나는 화살표가 친구 한 명 한 명을 가리켜요.</string>
+    <string name="home_plan_another_night">다른 날 공연 계획하기</string>
+
+    <!-- Section titles; Up next rows -->
+    <string name="home_section_up_next">다가오는 공연</string>
+    <string name="home_section_past_gigs">지난 공연</string>
+    <string name="home_section_friends">친구</string>
+    <string name="home_see_all">전체 보기</string>
+    <plurals name="home_mates">
+        <item quantity="other">친구 %d명</item>
+    </plurals>
+    <string name="home_upnext_no_mates">친구 초대하기</string>
+</resources>

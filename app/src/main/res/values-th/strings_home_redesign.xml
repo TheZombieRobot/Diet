@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thai: home screen redesign (docs/HOME_REDESIGN.md): the Live row, the crew header and menu,
+     no crew / first time, and the section titles. Keep labels short: the screen is about 340 dp wide. -->
+<resources>
+    <!-- The Live row: the switch's name (a name, not "sharing now"), then one line beside it -->
+    <string name="home_live_switch">มองเห็นได้</string>
+    <string name="home_live_on">เพื่อนๆ เห็นคุณอยู่</string>
+    <string name="home_live_ghost_on">โหมดล่องหน: ไม่ขึ้นบนแผนที่ แต่ใกล้ๆ ยังหาเจอ</string>
+    <string name="home_live_off">ปิดอยู่: เพื่อนยังไม่เห็นคุณ</string>
+
+    <!-- Crew header and faces -->
+    <string name="home_crew_options">ตัวเลือกแก๊ง</string>
+    <plurals name="home_crew_count">
+        <item quantity="other">ในแก๊ง %d คน</item>
+    </plurals>
+    <plurals name="home_live_count">
+        <item quantity="other">แชร์อยู่ %d คน</item>
+    </plurals>
+    <string name="home_face_options">ดูตัวเลือก</string>
+    <string name="home_friend_options">ตัวเลือกของ %1$s</string>
+    <string name="home_face_battery">แบต %1$d%%</string>
+
+    <string name="home_share_photos">แชร์รูป</string>
+    <string name="home_meetup">จุดนัดเจอ: %1$s</string>
+    <string name="home_plan_pinned">ปักหมุดไว้ในแชทแก๊ง</string>
+    <string name="home_where_are_they_short">อยู่ไหนกัน?</string>
+
+    <!-- Crew menu (⋯) -->
+    <string name="home_menu_tonight">คืนนี้</string>
+    <string name="home_menu_coming_up">เร็วๆ นี้</string>
+    <string name="home_menu_invite">ชวนเพื่อนเพิ่ม</string>
+    <string name="home_menu_invite_sub">โชว์ QR แก๊ง หรือส่งลิงก์</string>
+    <string name="home_menu_family">แชร์คืนนี้ให้ครอบครัว</string>
+    <string name="home_menu_family_sub">ครอบครัวติดตามจากบ้านได้ แต่ไม่มีใครหาเขาเจอ</string>
+    <string name="home_menu_reset_sub">QR และลิงก์ใหม่ อันเก่าจะใช้ไม่ได้</string>
+    <string name="home_menu_end_sub">ออกจากแก๊งคืนนี้ รูปของคุณยังอยู่ใน คอนที่ผ่านมา</string>
+    <string name="home_menu_cancel_sub">ออกจากแก๊งก่อนวันคอน เพื่อนที่เข้าแล้วยังอยู่ต่อ</string>
+    <string name="home_menu_stop_sub">คุณจะไม่เห็นแล้วว่าพวกเขาอยู่ไหน</string>
+
+    <!-- No crew tonight -->
+    <string name="home_no_crew_title">คืนนี้ยังไม่มีแก๊ง</string>
+    <string name="home_no_crew_text">ตั้งแก๊งเลย โชว์ QR ให้เพื่อนสแกน แค่นี้ก็เป็นแก๊งแล้ว</string>
+    <string name="home_start_crew">ตั้งแก๊งคืนนี้</string>
+    <string name="home_plan_title">วางแผนไปคอน</string>
+    <string name="home_plan_sub">หาคอนตอนนี้ แล้วชวนเพื่อนเลย</string>
+    <string name="home_join_crew">เข้าแก๊ง</string>
+
+    <!-- First time -->
+    <string name="home_first_title">หาเพื่อนเจอ แม้คนแน่นแค่ไหน</string>
+    <string name="home_first_text">ตั้งแก๊ง แล้วให้เพื่อนสแกน QR ลูกศรเรืองแสงจะชี้ไปหาเพื่อนแต่ละคน แม้ไม่มีสัญญาณ</string>
+    <string name="home_plan_another_night">วางแผนไปคอนคืนอื่น</string>
+
+    <!-- Section titles -->
+    <string name="home_section_up_next">เร็วๆ นี้</string>
+    <string name="home_section_past_gigs">คอนที่ผ่านมา</string>
+    <string name="home_section_friends">เพื่อน</string>
+    <string name="home_see_all">ดูทั้งหมด</string>
+    <plurals name="home_mates">
+        <item quantity="other">เพื่อน %d คน</item>
+    </plurals>
+    <string name="home_upnext_no_mates">ชวนเพื่อน</string>
+</resources>

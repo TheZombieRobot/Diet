@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Swedish: home screen. -->
 <resources>
-    <string name="home_go_live">Gå live</string>
-    <string name="home_live_ghost">Live · spöke</string>
-    <string name="home_live">Live</string>
-
     <string name="home_tile_not_sharing">delar inte än</string>
     <string name="home_tile_phone_died">mobilen dog</string>
     <string name="home_tile_live">live</string>
-    <string name="home_tile_with_battery">%1$s · %2$d%%</string>
 
     <string name="home_ping_on_my_way">På väg</string>
     <string name="home_ping_where_are_you">Var är du?</string>
@@ -51,10 +46,6 @@
     <string name="home_check_in_by">Checka in senast %1$s</string>
     <string name="home_home_safe">Jag är hemma</string>
 
-    <string name="home_chat">Chatt</string>
-    <string name="home_chat_unread">Chatt (%1$d)</string>
-    <string name="home_camera">Kamera</string>
-
     <string name="home_message_crew">Skriv till gruppen</string>
     <string name="home_message_crew_text">Ett tryck: alla i gruppen får det, med var du är.</string>
 
@@ -74,7 +65,6 @@
 
     <string name="home_crew_chat">Gruppens chatt</string>
     <string name="home_pinned_plan">📌 %1$s</string>
-    <string name="home_chat_subtitle">Chatt, planen, lysraketer</string>
     <string name="home_unread_many">9+</string>
     <plurals name="home_unread_new">
         <item quantity="one">%d ny</item>
@@ -82,11 +72,6 @@
     </plurals>
 
     <string name="home_following_from_home">Följer hemifrån</string>
-    <string name="home_upnext_invite">💬 Chatt · bjud in kompisarna</string>
-    <plurals name="home_upnext_mates">
-        <item quantity="one">💬 Chatt · %d kompis med</item>
-        <item quantity="other">💬 Chatt · %d kompisar med</item>
-    </plurals>
 
     <string name="home_start_gig_group">Starta en spelningsgrupp</string>
     <string name="home_start_gig_group_text">Döp den (t.ex. efter bandet). Visa sen QR-koden för kompisarna.</string>
@@ -101,14 +86,12 @@
     <string name="home_remove_from_crew_text">Gruppen byter till en ny nyckel som %1$s inte får, så de ser inte längre var någon är, chatten eller bilderna. Alla andra är kvar.</string>
     <string name="home_remove_friend_text">Du kan inte hitta dem förrän du lägger till dem igen.</string>
     <string name="home_remove">Ta bort</string>
-    <string name="home_find">Hitta</string>
     <string name="home_add_with_code">Lägg till med kod</string>
     <string name="home_their_name">Deras namn</string>
     <string name="home_their_code">Deras kod</string>
     <string name="home_add_friend">Lägg till kompis</string>
     <string name="home_tonight_only">Bara ikväll</string>
 
-    <string name="home_hidden_hint">Du är dold för gruppen. Tryck på Gå live när du vill bli hittad.</string>
     <string name="home_allow_permission">Låt Moshpoint hitta dina kompisar (%1$s)</string>
     <string name="home_allow">Tillåt</string>
     <string name="home_one_thing_first">EN GREJ FÖRST</string>
@@ -119,22 +102,11 @@
     <string name="home_eyebrow_tonight">IKVÄLL</string>
     <string name="home_eyebrow_following">FÖLJER</string>
     <string name="home_eyebrow_coming_up">SNART</string>
-    <string name="home_find_mates_tonight">Hitta kompisarna ikväll</string>
-    <string name="home_find_mates_text">Bjud in dem, de skannar, klart. Moshpoint fixar resten.</string>
-    <string name="home_invite_mates_tonight">Bjud in kompisar till ikväll</string>
-    <string name="home_scan_invite">Skanna en inbjudan</string>
     <string name="home_your_crew">Din grupp</string>
-    <string name="home_invite">＋ Bjud in</string>
-    <string name="home_family_can_follow">Familjen kan följa kvällen hemifrån</string>
     <string name="home_following_from_home_names">Följer hemifrån: %1$s</string>
-    <string name="home_share">Dela ›</string>
-    <string name="home_meet_up">★  Träffpunkt: %1$s</string>
-    <string name="home_map_link">Karta ›</string>
     <string name="home_asleep_text">Sover till spelningsdagen: ingen Bluetooth, ingen plats, inget batteri. Kompisar kan gå med nu, och du får en påminnelse på dagen.</string>
     <string name="home_follower_text">Du ser var alla är och deras bilder när de trillar in. De ser att du följer.</string>
     <string name="home_see_story">Se storyn</string>
-    <string name="home_crew_chat_unread">Gruppens chatt (%1$d nya)</string>
-    <string name="home_where_are_they">Var är de? (karta)</string>
     <string name="home_see_them_once_starts">Du ser dem här när spelningen börjar.</string>
     <string name="home_tap_mate_hint">Tryck på en kompis för att hitta dem · håll för fler val</string>
     <string name="home_find_name">Hitta %1$s</string>
@@ -142,13 +114,10 @@
     <string name="home_stop_following">Sluta följa</string>
     <string name="home_cancel_crew">Ställ in den här gruppen</string>
     <string name="home_end_night">Avsluta kvällen</string>
-    <string name="home_up_next">PÅ GÅNG</string>
     <string name="home_memories">MINNEN</string>
     <plurals name="home_memories_count">
         <item quantity="one">%d bild eller klipp. Tryck och upplev det igen ›</item>
         <item quantity="other">%d bilder och klipp. Tryck och upplev det igen ›</item>
     </plurals>
-    <string name="home_your_gigs">DINA SPELNINGAR</string>
-    <string name="home_friends">KOMPISAR</string>
     <string name="home_friends_empty">Kompisar du behåller för alla spelningar syns här. Tryck på ＋ Lägg till nedan.</string>
 </resources>

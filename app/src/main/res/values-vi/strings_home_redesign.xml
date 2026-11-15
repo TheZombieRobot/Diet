@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vietnamese: home screen redesign (docs/HOME_REDESIGN.md): the Live row, the crew header and menu,
+     no crew / first time, and the section titles. Keep labels short: the screen is about 340 dp wide. -->
+<resources>
+    <!-- The Live row: the switch's name (a name, not "sharing now"), then one line beside it -->
+    <string name="home_live_switch">Hiển thị</string>
+    <string name="home_live_on">Bạn bè thấy được bạn</string>
+    <string name="home_live_ghost_on">Chế độ tàng hình: ẩn khỏi bản đồ, ở gần vẫn tìm được bạn</string>
+    <string name="home_live_off">Tắt: bạn bè chưa thấy bạn</string>
+
+    <!-- Crew header and faces -->
+    <string name="home_crew_options">Tùy chọn nhóm</string>
+    <plurals name="home_crew_count">
+        <item quantity="other">%d người trong nhóm</item>
+    </plurals>
+    <plurals name="home_live_count">
+        <item quantity="other">%d đang chia sẻ</item>
+    </plurals>
+    <string name="home_face_options">Xem tùy chọn</string>
+    <string name="home_friend_options">Tùy chọn cho %1$s</string>
+    <string name="home_face_battery">pin %1$d%%</string>
+
+    <string name="home_share_photos">Chia sẻ ảnh</string>
+    <string name="home_meetup">Điểm hẹn: %1$s</string>
+    <string name="home_plan_pinned">Đã ghim trong chat nhóm</string>
+    <string name="home_where_are_they_short">Mọi người đâu rồi?</string>
+
+    <!-- Crew menu (⋯) -->
+    <string name="home_menu_tonight">Tối nay</string>
+    <string name="home_menu_coming_up">Sắp tới</string>
+    <string name="home_menu_invite">Rủ thêm bạn bè</string>
+    <string name="home_menu_invite_sub">Mở QR nhóm, hoặc gửi link</string>
+    <string name="home_menu_family">Chia sẻ đêm nay với gia đình</string>
+    <string name="home_menu_family_sub">Họ theo dõi từ nhà, và không ai tìm được họ</string>
+    <string name="home_menu_reset_sub">Mã QR và link mới. Cái cũ sẽ không dùng được nữa</string>
+    <string name="home_menu_end_sub">Rời nhóm tối nay. Ảnh của bạn vẫn nằm trong Show đã qua</string>
+    <string name="home_menu_cancel_sub">Rời nhóm trước ngày diễn. Bạn bè đã vào vẫn ở lại</string>
+    <string name="home_menu_stop_sub">Bạn sẽ không còn thấy họ ở đâu nữa</string>
+
+    <!-- No crew tonight -->
+    <string name="home_no_crew_title">Tối nay chưa có nhóm</string>
+    <string name="home_no_crew_text">Lập nhóm, mở mã QR cho bạn bè quét, vậy là thành nhóm rồi.</string>
+    <string name="home_start_crew">Lập nhóm tối nay</string>
+    <string name="home_plan_title">Lên lịch đi show</string>
+    <string name="home_plan_sub">Tìm show ngay và rủ bạn bè</string>
+    <string name="home_join_crew">VÀO NHÓM</string>
+
+    <!-- First time -->
+    <string name="home_first_title">Tìm bạn bè giữa biển người</string>
+    <string name="home_first_text">Lập nhóm rồi cho bạn bè quét mã QR. Mũi tên phát sáng sẽ chỉ tới từng người, kể cả khi mất sóng.</string>
+    <string name="home_plan_another_night">Lên lịch đi show vào tối khác</string>
+
+    <!-- Section titles -->
+    <string name="home_section_up_next">Sắp tới</string>
+    <string name="home_section_past_gigs">Show đã qua</string>
+    <string name="home_section_friends">Bạn bè</string>
+    <string name="home_see_all">Xem tất cả</string>
+    <plurals name="home_mates">
+        <item quantity="other">%d người bạn</item>
+    </plurals>
+    <string name="home_upnext_no_mates">Rủ bạn bè</string>
+</resources>

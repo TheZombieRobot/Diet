@@ -357,13 +357,25 @@ class MainActivity : ComponentActivity() {
 
     /** The owner is leaving a crew with others still in it: who takes it over? (crew, its Up next entry if any) */
     private var handover by mutableStateOf<Pair<GigGroup, Crews.Entry?>?>(null)
+    /** The handover was asked from the recap's End the night: the night ends only if you really leave. */
+    private var handoverEndsNight by mutableStateOf(false)
+
+    /** The night is over: its stats go, and you're told it's saved. Only once you've actually left. */
+    private fun nightEnded() {
+        NightStats.reset(this)
+        toast(Txt.s(R.string.main_night_ended))
+    }
 
     /** Leave [g]: the main crew ends here, an Up next one just goes. */
     private fun leaveCrew(g: GigGroup, waiting: Crews.Entry?) {
         if (waiting != null) {
             closeChat()
             GroupSync.leave(this, Crews.find(g.key) ?: waiting)
-        } else GroupSync.clear(this)
+        } else {
+            GroupSync.clear(this)
+            // Tonight's gig moves to Past gigs.
+            lifecycleScope.launch { GigArchive.refreshList(this@MainActivity) }
+        }
     }
 
     private val scanQr = registerForActivityResult(ScanContract()) { result ->
@@ -663,7 +675,7 @@ class MainActivity : ComponentActivity() {
                 handover?.let { (g, waiting) ->
                     val candidates = remember(g) { CrewRekey.handoverCandidates(this@MainActivity, g) }
                     AlertDialog(
-                        onDismissRequest = { handover = null },
+                        onDismissRequest = { handover = null; handoverEndsNight = false },
                         title = { Text(stringResource(R.string.crew_handover_title)) },
                         text = {
                             androidx.compose.foundation.layout.Column {
@@ -673,12 +685,22 @@ class MainActivity : ComponentActivity() {
                                         handover = null
                                         val fresh = CrewRekey.handOver(this@MainActivity, g, pub, myName.ifBlank { null })
                                         leaveCrew(fresh, waiting)
+                                        if (handoverEndsNight) nightEnded()
+                                        handoverEndsNight = false
                                     }) { Text(name) }
                                 }
                             }
                         },
-                        confirmButton = { TextButton(onClick = { handover = null; leaveCrew(g, waiting) }) { Text(stringResource(R.string.crew_handover_nobody)) } },
-                        dismissButton = { TextButton(onClick = { handover = null }) { Text(stringResource(R.string.home_cancel)) } },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                handover = null
+                                leaveCrew(g, waiting)
+                                if (handoverEndsNight) nightEnded()
+                                handoverEndsNight = false
+                            }) { Text(stringResource(R.string.crew_handover_nobody)) }
+                        },
+                        // Cancel: still in the crew, and the night's stats are kept.
+                        dismissButton = { TextButton(onClick = { handover = null; handoverEndsNight = false }) { Text(stringResource(R.string.home_cancel)) } },
                     )
                 }
                 if (showQr) {
@@ -951,6 +973,7 @@ class MainActivity : ComponentActivity() {
                                     unread = CrewChat.unreadFor(this@MainActivity, e.group),
                                     plan = CrewChat.planFor(this@MainActivity, e.group)?.text,
                                     following = e.following,
+                                    startsAtSec = e.group.startsAtSec,
                                 )
                             },
                             onOpenUpNext = { id -> openChat(id) },
@@ -1000,6 +1023,13 @@ class MainActivity : ComponentActivity() {
                             onOpenMap = { openMap() },
                             meetUp = GroupSync.rally.value?.name,
                             venueMap = VenueMaps.status.value,
+                            // The crew menu's "Reset the invite": as on the QR screen, only the owner resets an owned crew.
+                            onResetInvite = GroupSync.group.value?.takeIf { !GroupSync.following && CrewRekey.mayRemove(this@MainActivity, it) }?.let { g ->
+                                {
+                                    CrewRekey.rekey(this@MainActivity, g, null, null)
+                                    toast(Txt.s(R.string.main_invite_reset))
+                                }
+                            },
                         )
                     }
                     }
@@ -1096,10 +1126,17 @@ class MainActivity : ComponentActivity() {
                             confirmButton = {
                                 androidx.compose.material3.TextButton(onClick = {
                                     recap = null
-                                    GroupSync.clear(this@MainActivity)
-                                    NightStats.reset(this@MainActivity)
-                                    lifecycleScope.launch { GigArchive.refreshList(this@MainActivity) }
-                                    toast(Txt.s(R.string.main_night_ended))
+                                    val g = GroupSync.group.value
+                                    if (g != null && !GroupSync.following && CrewRekey.isOwner(this@MainActivity, g) && CrewRekey.handoverCandidates(this@MainActivity, g).isNotEmpty()) {
+                                        // As on the QR screen: an owner leaving a crew others are still in hands it
+                                        // over first. The night ends (stats, toast) only if they then leave.
+                                        handoverEndsNight = true
+                                        handover = g to null
+                                    } else {
+                                        GroupSync.clear(this@MainActivity)
+                                        lifecycleScope.launch { GigArchive.refreshList(this@MainActivity) }
+                                        nightEnded()
+                                    }
                                 }) { androidx.compose.material3.Text(stringResource(R.string.main_end_the_night), style = Mosh.Label.copy(color = Mosh.Danger)) }
                             },
                             dismissButton = {

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dutch: home screen redesign (docs/design/home-redesign, docs/HOME_REDESIGN.md): the Live row, the
+     crew header and menu, no crew / first time, and the section titles. Keep labels short: the
+     screen is about 340 dp wide, and two buttons share a row. Comments for each string are in
+     values/strings_home_redesign.xml. -->
+<resources>
+    <!-- Live row: the switch's name (on or off), then one line beside it -->
+    <string name="home_live_switch">Live</string>
+    <string name="home_live_on">Zichtbaar voor je vrienden</string>
+    <string name="home_live_ghost_on">Spookmodus: niet op de kaart, van dichtbij wel te vinden</string>
+    <string name="home_live_off">Uit: vrienden zien je nog niet</string>
+
+    <!-- Crew header -->
+    <string name="home_crew_options">Crewopties</string>
+    <plurals name="home_crew_count">
+        <item quantity="one">%d in de crew</item>
+        <item quantity="other">%d in de crew</item>
+    </plurals>
+    <plurals name="home_live_count">
+        <item quantity="one">%d live</item>
+        <item quantity="other">%d live</item>
+    </plurals>
+    <string name="home_face_options">Opties</string>
+    <string name="home_friend_options">Opties voor %1$s</string>
+    <string name="home_face_battery">%1$d%% batterij</string>
+
+    <!-- Crew buttons and activity -->
+    <string name="home_share_photos">Foto\'s delen</string>
+    <string name="home_meetup">Verzamelpunt: %1$s</string>
+    <string name="home_plan_pinned">Gepind in de crewchat</string>
+    <string name="home_where_are_they_short">Waar zijn ze?</string>
+
+    <!-- Crew menu (⋯) -->
+    <string name="home_menu_tonight">Vanavond</string>
+    <string name="home_menu_coming_up">Komt eraan</string>
+    <string name="home_menu_invite">Meer vrienden uitnodigen</string>
+    <string name="home_menu_invite_sub">Laat de crew-QR zien of stuur een link</string>
+    <string name="home_menu_family">De avond met familie delen</string>
+    <string name="home_menu_family_sub">Ze kijken mee vanuit huis en zijn zelf niet te vinden</string>
+    <string name="home_menu_reset_sub">Nieuwe QR en link. De oude werken niet meer</string>
+    <string name="home_menu_end_sub">Je verlaat de crew van vanavond. Je foto\'s blijven bij Eerdere concerten</string>
+    <string name="home_menu_cancel_sub">Je stapt eruit vóór de concertdag. Wie al meedoet, blijft erin</string>
+    <string name="home_menu_stop_sub">Je ziet niet meer waar ze zijn</string>
+
+    <!-- No crew tonight -->
+    <string name="home_no_crew_title">Geen crew vanavond</string>
+    <string name="home_no_crew_text">Start er een, laat je vrienden de QR-code zien, en jullie zijn een crew.</string>
+    <string name="home_start_crew">Start je crew vanavond</string>
+    <string name="home_plan_title">Plan een concert</string>
+    <string name="home_plan_sub">Zoek het nu en nodig je vrienden uit</string>
+    <string name="home_join_crew">LID WORDEN VAN EEN CREW</string>
+
+    <!-- First time -->
+    <string name="home_first_title">Vind je vrienden in de menigte</string>
+    <string name="home_first_text">Start een crew en je vrienden scannen de QR-code. Een gloeiende pijl wijst naar ieder van hen, zelfs zonder bereik.</string>
+    <string name="home_plan_another_night">Plan een concert voor een andere avond</string>
+
+    <!-- Section titles -->
+    <string name="home_section_up_next">Binnenkort</string>
+    <string name="home_section_past_gigs">Eerdere concerten</string>
+    <string name="home_section_friends">Vrienden</string>
+    <string name="home_see_all">Bekijk alles</string>
+    <plurals name="home_mates">
+        <item quantity="one">%d vriend</item>
+        <item quantity="other">%d vrienden</item>
+    </plurals>
+    <string name="home_upnext_no_mates">Nodig je vrienden uit</string>
+</resources>

@@ -7,7 +7,7 @@
     <string name="offline_state_waiting">Warte auf Empfang</string>
     <string name="offline_state_not_sent">Nicht gesendet</string>
     <string name="offline_hint_bluetooth">Kein Empfang. Nachrichten gehen per Bluetooth an Crew-Handys in der Nähe und werden gesendet, sobald jemand von euch Empfang hat.</string>
-    <string name="offline_hint_go_live">Kein Empfang. Tippe auf Live gehen, dann gehen Nachrichten per Bluetooth an Crew-Handys in der Nähe.</string>
+    <string name="offline_hint_go_live">Kein Empfang. Schalte Live ein, dann gehen Nachrichten per Bluetooth an Crew-Handys in der Nähe.</string>
     <string name="offline_hint_bluetooth_off">Kein Empfang, und Bluetooth ist aus. Schalte es ein, dann gehen Nachrichten an Crew-Handys in der Nähe.</string>
     <string name="offline_hint_unsupported">Kein Empfang. Dieses Handy kann keine Nachrichten per Bluetooth weitergeben. Sie werden gesendet, sobald du Empfang hast.</string>
     <string name="offline_hint_no_signal">Kein Empfang. Nachrichten werden gesendet, sobald du wieder Empfang hast.</string>

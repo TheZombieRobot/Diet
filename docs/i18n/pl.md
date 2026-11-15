@@ -150,3 +150,20 @@ Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
 | %d unread private messages (screen reader, the count on a face) | %d nieprzeczytanych wiadomości prywatnych |
 
 Uses **ekipa**, as elsewhere. Names go after a colon (*Napisz do: %1$s*), as in the other strings, so no case ending is needed. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.
+
+## Home redesign (`strings_home_redesign.xml`)
+
+The redesigned home: the Live row (the switch's name and the line beside it), the crew header, faces and ⋯ crew menu, the no-crew and first-time screens, and the section titles (36 strings, 3 plurals). Validator prints **OK** for this file. "Live" stays location sharing, never *live*.
+
+| English | Chosen | Why |
+|---|---|---|
+| Live (the switch's name, on or off) | **Widoczność** | Visibility: what the switch controls (the line beside it says *Znajomi cię widzą*). *Lokalizacja* was the first choice, but the setup card uses it for the phone's own location setting. |
+| You're visible to your mates / Off: mates can't see you yet | Znajomi cię widzą / Wyłączone: znajomi jeszcze cię nie widzą | Mates are the subject, so nothing agrees with the user's gender. *Wyłączone:* as in `setup_data_saver_desc`. |
+| Ghost mode: off the map, findable up close | Tryb ducha: nie ma cię na mapie, z bliska cię znajdą | The setting's own name; *nie ma cię* avoids *ukryty/ukryta*. Two lines, like English. |
+| 5 in the crew · 3 live | 5 osób w ekipie · 3 udostępniają | *osoba/osoby/osób w ekipie* as in `setup_qr_mates_in`. *Udostępnia* is the faces' own status (`home_tile_live`), with the verb agreeing with the number (1 and 5+ *udostępnia*, 2–4 *udostępniają*). |
+| Crew menu: Invite more mates / Share the night with family | Zaproś więcej znajomych / Podziel się nocą z rodziną | Imperatives, like the other rows (*Zresetuj zaproszenie*, *Zakończ noc*). The lines under them describe (*Opuszczasz dzisiejszą ekipę…*). |
+| Up next / Past gigs / See all | **Wkrótce** / **Minione koncerty** / **Więcej** | *Wkrótce* is the existing name; *minione* is the usual word for past events. With *Zobacz wszystko*, *Minione koncerty* wrapped to two lines; *Więcej* fits and needs no agreement (*wszystkie* would not suit *Znajomi*). `main_recap_text`, `main_night_ended` and `crew_notif_done_saved` now say *w sekcji Minione koncerty*. |
+| Share photos | **Dodaj zdjęcia** | Like the story's own *＋ Dodaj swoje zdjęcia* and Instagram's *Dodaj do relacji*. *Udostępnij zdjęcia* wraps in the half-width button. |
+
+For a native reviewer: (1) *Widoczność* for the switch (it was *Lokalizacja*, the phone setting's word). (2) *3 udostępniają* with no noun. (3) *Więcej* for "See all". Written without a native reviewer. Confidence: **medium**.
+- **The Live switch's name in other texts** (review of the redesign): The switch is now Widoczność (it was Lokalizacja, but that is the word the setup card uses for the phone's location setting, so "Lokalizacja wyłączona" could sit under a switch called Lokalizacja). Texts that name it say "włącz Widoczność"; "Udostępnij lokalizację" stays as a verb phrase in the onboarding title.

@@ -29,7 +29,7 @@
     <string name="find_pill_hidden">숨김</string>
     <string name="find_searching_cd">찾는 중</string>
     <string name="find_looking_for">%1$s 찾는 중…</string>
-    <string name="find_searching_help">아직 신호도, 공유된 위치도 없어요. 친구가 Moshpoint를 열고 ‘위치 공유 켜기’를 해야 하고, 휴대폰 위치와 모바일 데이터도 켜져 있어야 해요. 그러면 도시 반대편에 있어도 화살표가 나타나요.</string>
+    <string name="find_searching_help">아직 신호도, 공유된 위치도 없어요. 친구가 Moshpoint를 열고 ‘위치 공유’를 켜야 하고, 휴대폰 위치와 모바일 데이터도 켜져 있어야 해요. 그러면 도시 반대편에 있어도 화살표가 나타나요.</string>
     <string name="find_band_right_here">바로 여기</string>
     <string name="find_band_close">가까움</string>
     <string name="find_band_nearby">근처</string>
@@ -127,8 +127,6 @@
     <string name="find_live_tag">LIVE</string>
     <string name="find_camera">카메라</string>
 
-    <string name="find_the_story_eyebrow">스토리</string>
-    <string name="find_see_it_all">전체 보기 ›</string>
     <string name="find_your_moment">나의 순간</string>
     <string name="find_distance_away">%1$s 거리</string>
     <string name="find_on_map">지도</string>

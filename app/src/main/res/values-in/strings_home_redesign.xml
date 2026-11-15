@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Indonesian (in): home screen redesign (docs/HOME_REDESIGN.md): the Live row, the crew header and
+     menu, no crew / first time, and the section titles. Keep labels short: the screen is about 340 dp wide. -->
+<resources>
+    <!-- The Live row: the switch's name, then one line beside it -->
+    <string name="home_live_switch">Live</string>
+    <string name="home_live_on">Temanmu bisa melihatmu</string>
+    <string name="home_live_ghost_on">Mode hantu: nggak muncul di peta, tapi bisa ditemukan dari dekat</string>
+    <string name="home_live_off">Nonaktif: teman belum bisa melihatmu</string>
+
+    <!-- Crew header and faces -->
+    <string name="home_crew_options">Opsi geng</string>
+    <plurals name="home_crew_count">
+        <item quantity="other">%d orang di geng</item>
+    </plurals>
+    <plurals name="home_live_count">
+        <item quantity="other">%d live</item>
+    </plurals>
+    <string name="home_face_options">Opsi</string>
+    <string name="home_friend_options">Opsi untuk %1$s</string>
+    <string name="home_face_battery">baterai %1$d%%</string>
+
+    <string name="home_share_photos">Bagikan foto</string>
+    <string name="home_meetup">Titik kumpul: %1$s</string>
+    <string name="home_plan_pinned">Disematkan di chat geng</string>
+    <string name="home_where_are_they_short">Mereka di mana?</string>
+
+    <!-- Crew menu (⋯) -->
+    <string name="home_menu_tonight">Malam ini</string>
+    <string name="home_menu_coming_up">Segera</string>
+    <string name="home_menu_invite">Ajak teman lagi</string>
+    <string name="home_menu_invite_sub">Tunjukkan QR geng, atau kirim link</string>
+    <string name="home_menu_family">Bagikan malam ini ke keluarga</string>
+    <string name="home_menu_family_sub">Mereka ikut memantau dari rumah dan nggak bisa ditemukan</string>
+    <string name="home_menu_reset_sub">QR dan link baru. Yang lama nggak berlaku lagi</string>
+    <string name="home_menu_end_sub">Keluar dari geng malam ini. Fotomu tetap ada di Konser sebelumnya</string>
+    <string name="home_menu_cancel_sub">Keluar sebelum hari konser. Teman yang sudah gabung tetap di geng</string>
+    <string name="home_menu_stop_sub">Kamu nggak bakal lihat posisi mereka lagi</string>
+
+    <!-- No crew tonight -->
+    <string name="home_no_crew_title">Belum ada geng malam ini</string>
+    <string name="home_no_crew_text">Bikin satu, tunjukkan QR-nya ke teman-temanmu, dan kalian udah jadi geng.</string>
+    <string name="home_start_crew">Bikin geng malam ini</string>
+    <string name="home_plan_title">Rencanakan konser</string>
+    <string name="home_plan_sub">Cari konsernya sekarang, lalu ajak temanmu</string>
+    <string name="home_join_crew">GABUNG KE GENG</string>
+
+    <!-- First time -->
+    <string name="home_first_title">Temukan temanmu di keramaian</string>
+    <string name="home_first_text">Bikin geng, lalu temanmu scan QR-nya. Panah yang menyala menunjuk ke tiap teman, bahkan tanpa sinyal.</string>
+    <string name="home_plan_another_night">Rencanakan konser untuk malam lain</string>
+
+    <!-- Section titles -->
+    <string name="home_section_up_next">Berikutnya</string>
+    <string name="home_section_past_gigs">Konser sebelumnya</string>
+    <string name="home_section_friends">Teman</string>
+    <string name="home_see_all">Lihat semua</string>
+    <plurals name="home_mates">
+        <item quantity="other">%d teman</item>
+    </plurals>
+    <string name="home_upnext_no_mates">Ajak teman</string>
+</resources>

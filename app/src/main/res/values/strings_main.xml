@@ -4,7 +4,7 @@
     <!-- Sharing: install instructions put in front of every invite. %1$s = download link -->
     <string name="main_get_the_app">No Moshpoint yet? Install it from here (Android): %1$s\nThen copy this whole message, open Moshpoint and tap Paste invite.\n\n</string>
     <!-- %1$s = mate names joined with " & ", or main_nudge_mate if none -->
-    <string name="main_nudge_text">Hey %1$s, open Moshpoint and tap Go live (with location and data on) so I can find you!</string>
+    <string name="main_nudge_text">Hey %1$s, open Moshpoint and turn on Live (with location and data on) so I can find you!</string>
     <!-- Used in main_nudge_text when we don't know their names -->
     <string name="main_nudge_mate">mate</string>
     <!-- Share sheet title -->
@@ -145,8 +145,8 @@
     <!-- End of night recap -->
     <string name="main_your_night">Your night</string>
     <!-- %1$s = summary of the night (several sentences) -->
-    <string name="main_recap_text">%1$s\n\nEnding the night closes the crew (friends stay). The photos and clips stay on your phone in Your gigs.</string>
-    <string name="main_night_ended">Night ended. Your photos and clips are in Your gigs.</string>
+    <string name="main_recap_text">%1$s\n\nEnding the night closes the crew (friends stay). The photos and clips stay on your phone in Past gigs.</string>
+    <string name="main_night_ended">Night ended. Your photos and clips are in Past gigs.</string>
     <string name="main_end_the_night">End the night</string>
     <!-- %1$s = summary of the night -->
     <string name="main_share_night_text">My night with Moshpoint: %1$s 🤘</string>

@@ -7,7 +7,7 @@
     <string name="offline_state_waiting">Esperando sinal</string>
     <string name="offline_state_not_sent">Não enviada</string>
     <string name="offline_hint_bluetooth">Sem sinal. As mensagens passam por Bluetooth pros celulares da galera que estiverem por perto, e são enviadas assim que alguém tiver sinal.</string>
-    <string name="offline_hint_go_live">Sem sinal. Toque em Ficar ao vivo e as mensagens passam por Bluetooth pros celulares da galera que estiverem por perto.</string>
+    <string name="offline_hint_go_live">Sem sinal. Ligue o Ao vivo e as mensagens passam por Bluetooth pros celulares da galera que estiverem por perto.</string>
     <string name="offline_hint_bluetooth_off">Sem sinal, e o Bluetooth está desligado. Ligue e as mensagens passam pros celulares da galera que estiverem por perto.</string>
     <string name="offline_hint_unsupported">Sem sinal. Este celular não consegue passar mensagens por Bluetooth, então elas serão enviadas quando você tiver sinal.</string>
     <string name="offline_hint_no_signal">Sem sinal. As mensagens serão enviadas quando o sinal voltar.</string>

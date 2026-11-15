@@ -131,3 +131,20 @@ Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
 | %d unread private messages (screen reader, the count on a face) | ข้อความส่วนตัวที่ยังไม่ได้อ่าน %d ข้อความ |
 
 Uses **แก๊ง**, as elsewhere. *ส่วนตัว* for private, *ปิดเสียง/เปิดเสียง* for mute. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.
+
+## Home redesign (`strings_home_redesign.xml`)
+
+The redesigned home: the Live row (the switch's name and the line beside it), the crew header, faces and ⋯ crew menu, the no-crew and first-time screens, and the section titles (36 strings, 3 plurals). Validator prints **OK** for this file.
+
+| English | Chosen | Why |
+|---|---|---|
+| Live (the switch's name, on or off) | **มองเห็นได้** | "Visible": what the switch controls (the line beside it says เพื่อนๆ เห็นคุณ). การแชร์ was the first choice but is vague. |
+| You're visible to your mates / Off: mates can't see you yet | เพื่อนๆ เห็นคุณอยู่ / ปิดอยู่: เพื่อนยังไม่เห็นคุณ | ปิดอยู่ as in «Bluetooth ปิดอยู่». |
+| Ghost mode: off the map, findable up close | โหมดล่องหน: ไม่ขึ้นบนแผนที่ แต่ใกล้ๆ ยังหาเจอ | The setting's name; a space between phrases so the line breaks between them. |
+| 5 in the crew · 3 live | ในแก๊ง 5 คน · แชร์อยู่ 3 คน | Here "sharing now" is right: it counts who is sharing. Matches the watch tile. |
+| Crew menu: Invite more mates / Share the night with family | ชวนเพื่อนเพิ่ม / แชร์คืนนี้ให้ครอบครัว | ชวน as in `home_invite`; ครอบครัว…ติดตาม as in `home_family_can_follow`. |
+| Up next / Past gigs | **เร็วๆ นี้** / **คอนที่ผ่านมา** | เร็วๆ นี้ is the existing section name other messages quote. คอนที่ผ่านมา ("concerts gone by") is quoted with spaces around it in the End-the-night line, like «คอนของคุณ». |
+| Share photos / Start a crew for tonight | **แชร์รูป** / **ตั้งแก๊งคืนนี้** | Short, one line each. ตั้งแก๊ง as in `home_start_crew_show_qr`. |
+
+For a native reviewer: มองเห็นได้ for the switch (it was การแชร์, too vague). Up next and Coming up are both เร็วๆ นี้, as before. `main_recap_text`, `main_night_ended` and `crew_notif_done_saved` now say «คอนที่ผ่านมา» (the English now says "Past gigs" there). Written without a native reviewer. Confidence: **medium**.
+- **The Live switch's name in other texts** (review of the redesign): The switch is now มองเห็นได้ ("visible"; การแชร์ was vague). Texts that name it say เปิด “มองเห็นได้”; เริ่มแชร์ stays as a verb where it reads naturally.

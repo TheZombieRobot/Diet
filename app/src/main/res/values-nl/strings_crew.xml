@@ -127,7 +127,7 @@
     </plurals>
     <string name="crew_notif_new_plan">Nieuw plan: %1$s</string>
     <string name="crew_notif_done_title">%1$s is voorbij</string>
-    <string name="crew_notif_done_saved">Je foto\'s en clips staan opgeslagen bij Jouw concerten.</string>
+    <string name="crew_notif_done_saved">Je foto\'s en clips staan opgeslagen bij Eerdere concerten.</string>
     <string name="crew_notif_done_text">Hopelijk was het een goeie. Start wanneer je wilt een nieuwe crew.</string>
     <string name="crew_notif_overdue_title">%1$s heeft niet ingecheckt</string>
     <string name="crew_notif_overdue_text">Was op weg naar huis en zou er nu moeten zijn. Bel even. Tik voor de laatste plek.</string>

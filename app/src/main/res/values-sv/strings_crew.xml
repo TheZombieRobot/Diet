@@ -126,7 +126,7 @@
     </plurals>
     <string name="crew_notif_new_plan">Ny plan: %1$s</string>
     <string name="crew_notif_done_title">%1$s är över</string>
-    <string name="crew_notif_done_saved">Dina bilder och klipp är sparade under Dina spelningar.</string>
+    <string name="crew_notif_done_saved">Dina bilder och klipp är sparade under Tidigare spelningar.</string>
     <string name="crew_notif_done_text">Hoppas det var grymt. Starta en ny grupp när du vill.</string>
     <string name="crew_notif_overdue_title">%1$s har inte checkat in</string>
     <string name="crew_notif_overdue_text">De var på väg hem och borde vara framme nu. Ring dem. Tryck för att se deras senaste plats.</string>

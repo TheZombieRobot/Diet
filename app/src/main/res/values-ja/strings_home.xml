@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Japanese: home screen (crew card, friends list, bottom bar, add sheet, pings). -->
 <resources>
-    <string name="home_go_live">シェア開始</string>
-    <string name="home_live_ghost">シェア中 · ゴースト</string>
-    <string name="home_live">シェア中</string>
-
     <string name="home_tile_not_sharing">未シェア</string>
     <string name="home_tile_phone_died">電池切れ</string>
     <string name="home_tile_live">シェア中</string>
-    <string name="home_tile_with_battery">%1$s · %2$d%%</string>
 
     <string name="home_ping_on_my_way">今行く</string>
     <string name="home_ping_where_are_you">どこにいる？</string>
@@ -50,10 +45,6 @@
     <string name="home_check_in_by">%1$sまでに到着確認</string>
     <string name="home_home_safe">無事に帰ったよ</string>
 
-    <string name="home_chat">チャット</string>
-    <string name="home_chat_unread">チャット（%1$d）</string>
-    <string name="home_camera">カメラ</string>
-
     <string name="home_message_crew">クルーにメッセージ</string>
     <string name="home_message_crew_text">ワンタップでクルー全員に届きます。あなたの居場所付きで。</string>
 
@@ -69,19 +60,14 @@
     </plurals>
     <string name="home_people_more">%1$s +%2$d</string>
 
-    <string name="home_crew_chat">クルーチャット</string>
+    <string name="home_crew_chat">チャット</string>
     <string name="home_pinned_plan">📌 %1$s</string>
-    <string name="home_chat_subtitle">メッセージ、予定、フレア</string>
     <string name="home_unread_many">9+</string>
     <plurals name="home_unread_new">
         <item quantity="other">%d件の新着</item>
     </plurals>
 
     <string name="home_following_from_home">家から見守り中</string>
-    <string name="home_upnext_invite">💬 チャット · 仲間を招待しよう</string>
-    <plurals name="home_upnext_mates">
-        <item quantity="other">💬 チャット · 仲間%d人が参加中</item>
-    </plurals>
 
     <string name="home_start_gig_group">ライブグループを作る</string>
     <string name="home_start_gig_group_text">名前をつけて（例：バンド名）、仲間にQRを見せよう。</string>
@@ -96,14 +82,12 @@
     <string name="home_remove_from_crew_text">クルーは%1$sが持っていない新しいキーに切り替わるので、今後はみんなの居場所、チャット、写真が見られなくなります。他のメンバーはそのまま残ります。</string>
     <string name="home_remove_friend_text">もう一度追加するまで、この人を探せなくなります。</string>
     <string name="home_remove">削除</string>
-    <string name="home_find">探す</string>
     <string name="home_add_with_code">コードで追加</string>
     <string name="home_their_name">相手の名前</string>
     <string name="home_their_code">相手のコード</string>
     <string name="home_add_friend">友達を追加</string>
     <string name="home_tonight_only">今夜だけ</string>
 
-    <string name="home_hidden_hint">今はクルーから見えない状態です。見つけてほしいときは「シェア開始」をタップしてね。</string>
     <string name="home_allow_permission">Moshpointで仲間を探せるように許可してください（%1$s）</string>
     <string name="home_allow">許可</string>
     <string name="home_one_thing_first">まずはこれだけ</string>
@@ -113,22 +97,11 @@
     <string name="home_eyebrow_tonight">今夜</string>
     <string name="home_eyebrow_following">フォロー中</string>
     <string name="home_eyebrow_coming_up">もうすぐ</string>
-    <string name="home_find_mates_tonight">今夜、仲間を見つけよう</string>
-    <string name="home_find_mates_text">招待して、スキャンしてもらえば完了。あとはMoshpointにおまかせ。</string>
-    <string name="home_invite_mates_tonight">今夜の仲間を招待</string>
-    <string name="home_scan_invite">招待をスキャン</string>
     <string name="home_your_crew">あなたのクルー</string>
-    <string name="home_invite">＋ 招待</string>
-    <string name="home_family_can_follow">家族も家から今夜を見守れます</string>
     <string name="home_following_from_home_names">家から見守り中：%1$s</string>
-    <string name="home_share">シェア ›</string>
-    <string name="home_meet_up">★  集合場所：%1$s</string>
-    <string name="home_map_link">マップ ›</string>
     <string name="home_asleep_text">ライブ当日までスリープ中：Bluetoothも位置情報も使わず、電池も消費しません。仲間は今から参加できて、当日にお知らせが届きます。</string>
     <string name="home_follower_text">みんなの居場所と、届いたばかりの写真が見られます。あなたがフォローしていることは相手にも表示されます。</string>
     <string name="home_see_story">ストーリーを見る</string>
-    <string name="home_crew_chat_unread">クルーチャット（新着%1$d件）</string>
-    <string name="home_where_are_they">みんなどこ？（マップ）</string>
     <string name="home_see_them_once_starts">ライブが始まると、ここに表示されます。</string>
     <string name="home_tap_mate_hint">仲間をタップして探す · 長押しでその他の操作</string>
     <string name="home_find_name">%1$sを探す</string>
@@ -136,12 +109,9 @@
     <string name="home_stop_following">フォローをやめる</string>
     <string name="home_cancel_crew">このクルーを取り消す</string>
     <string name="home_end_night">今夜は解散</string>
-    <string name="home_up_next">次の予定</string>
     <string name="home_memories">思い出</string>
     <plurals name="home_memories_count">
         <item quantity="other">写真・動画%d件。タップして振り返ろう ›</item>
     </plurals>
-    <string name="home_your_gigs">あなたのライブ</string>
-    <string name="home_friends">友達</string>
     <string name="home_friends_empty">どのライブでも会える友達がここに表示されます。下の「＋ 追加」をタップしてね。</string>
 </resources>

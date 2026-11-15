@@ -17,7 +17,7 @@
     <!-- ===== Banner at the top of the crew chat while this phone has no internet ===== -->
     <!-- Live, Bluetooth on: messages hop between crew phones nearby -->
     <string name="offline_hint_bluetooth">No signal. Messages are passed to crew phones nearby over Bluetooth, and sent on as soon as any of you has signal.</string>
-    <!-- Not live. "Go live" is the button on the home screen (home_go_live) -->
+    <!-- Not live. "Go live" = turning on the Live switch on the home screen (home_live_switch) -->
     <string name="offline_hint_go_live">No signal. Go live and messages are passed to crew phones nearby over Bluetooth.</string>
     <string name="offline_hint_bluetooth_off">No signal, and Bluetooth is off. Turn it on and messages are passed to crew phones nearby.</string>
     <!-- An older phone whose Bluetooth can't carry a whole message -->

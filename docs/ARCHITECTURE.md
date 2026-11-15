@@ -96,7 +96,7 @@ method runs at once, and a single arbiter decides what to draw.
 | `service/VisibilityService.kt` | Foreground service (type `connectedDevice`) that keeps us findable with the app closed: runs the finder's `Findable` (the advert, swapped every rotation; on UWB phones the listen for lookers and `UwbResponder`) and the gig work around it. |
 | `service/BootReceiver.kt` | Turns visibility back on after a reboot, only if the user chose "always on". |
 | `ui/FinderScreen.kt` | No-signal state, one arrow per friend with avatar and distance, Scan flow. |
-| `ui/FriendsScreen.kt` | Friends list, gig group ("End night" clears it), visibility switches, share-your-code pairing, long-press to remove. |
+| `ui/FriendsScreen.kt` | The home screen (docs/HOME_REDESIGN.md): header with Need help, the Live switch, tonight's crew (faces, Find everyone, crew chat, photos, meet-up), the crew menu (invite, family, reset, end the night), Up next, memories, past gigs, friends. Its sections are in `ui/HomeSections.kt`, the building blocks in `ui/HomeKit.kt`. |
 | `Friends.kt` | `FriendsRepository`: saved to `friends.tsv` in app-private storage. |
 
 ## Methods: status and plan

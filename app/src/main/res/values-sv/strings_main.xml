@@ -2,7 +2,7 @@
 <!-- Swedish: main screen, invites, sharing and phone setup checks. -->
 <resources>
     <string name="main_get_the_app">Har du inte Moshpoint än? Installera här (Android): %1$s\nKopiera sedan hela meddelandet, öppna Moshpoint och tryck på Klistra in inbjudan.\n\n</string>
-    <string name="main_nudge_text">Hej %1$s, öppna Moshpoint och tryck på Gå live (med plats och mobildata på) så jag kan hitta dig!</string>
+    <string name="main_nudge_text">Hej %1$s, öppna Moshpoint och slå på Live (med plats och mobildata på) så jag kan hitta dig!</string>
     <string name="main_nudge_mate">kompis</string>
     <string name="main_nudge_title">Be dem gå live</string>
 
@@ -101,8 +101,8 @@
     <string name="main_clip_join_text">Du kopierade en Moshpoint-inbjudan. Gå med så kan ni hitta varandra ikväll.</string>
 
     <string name="main_your_night">Din kväll</string>
-    <string name="main_recap_text">%1$s\n\nNär du avslutar kvällen stängs gruppen (kompisar finns kvar). Bilderna och klippen ligger kvar på telefonen under Dina spelningar.</string>
-    <string name="main_night_ended">Kvällen är slut. Dina bilder och klipp finns under Dina spelningar.</string>
+    <string name="main_recap_text">%1$s\n\nNär du avslutar kvällen stängs gruppen (kompisar finns kvar). Bilderna och klippen ligger kvar på telefonen under Tidigare spelningar.</string>
+    <string name="main_night_ended">Kvällen är slut. Dina bilder och klipp finns under Tidigare spelningar.</string>
     <string name="main_end_the_night">Avsluta kvällen</string>
     <string name="main_share_night_text">Min kväll med Moshpoint: %1$s 🤘</string>
     <string name="main_share_night_title">Dela din kväll</string>

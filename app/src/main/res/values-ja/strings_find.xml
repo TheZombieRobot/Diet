@@ -29,7 +29,7 @@
     <string name="find_pill_hidden">非表示</string>
     <string name="find_searching_cd">検索中</string>
     <string name="find_looking_for">%1$sを探しています…</string>
-    <string name="find_searching_help">相手からの信号も、共有された位置情報もまだありません。相手がMoshpointを開いて「シェア開始」をオンにし、位置情報とモバイルデータもオンにする必要があります。そうすれば、街の反対側にいても矢印が表示されます。</string>
+    <string name="find_searching_help">相手からの信号も、共有された位置情報もまだありません。相手がMoshpointを開いて「位置シェア」をオンにし、位置情報とモバイルデータもオンにする必要があります。そうすれば、街の反対側にいても矢印が表示されます。</string>
     <string name="find_band_right_here">すぐそこ</string>
     <string name="find_band_close">近い</string>
     <string name="find_band_nearby">付近</string>
@@ -127,8 +127,6 @@
     <string name="find_live_tag">LIVE</string>
     <string name="find_camera">カメラ</string>
 
-    <string name="find_the_story_eyebrow">ストーリー</string>
-    <string name="find_see_it_all">全部見る ›</string>
     <string name="find_your_moment">あなたのモーメント</string>
     <string name="find_distance_away">%1$s先</string>
     <string name="find_on_map">マップ</string>

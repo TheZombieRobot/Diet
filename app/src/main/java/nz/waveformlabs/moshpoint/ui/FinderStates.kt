@@ -58,6 +58,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.DebugStatus
@@ -456,7 +457,8 @@ internal fun FitText(text: String, style: androidx.compose.ui.text.TextStyle, mo
     var scale by remember(text) { mutableStateOf(1f) }
     Text(
         text,
-        style = style.copy(fontSize = style.fontSize * scale, lineHeight = style.lineHeight * scale),
+        // An unspecified line height stays unspecified (multiplying it throws).
+        style = style.copy(fontSize = style.fontSize * scale, lineHeight = if (style.lineHeight.isSpecified) style.lineHeight * scale else style.lineHeight),
         maxLines = 1,
         softWrap = false,
         modifier = modifier,

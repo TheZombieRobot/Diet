@@ -144,3 +144,21 @@ Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
 | %d unread private messages (screen reader, the count on a face) | %d ungelesene private Nachrichten |
 
 Uses **Crew**, as elsewhere. *Stummschalten* / *Stummschaltung aufheben* as in WhatsApp; the second is long for a small top-bar button, so check it fits in the screenshot. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.
+
+## Home redesign (`strings_home_redesign.xml`)
+
+The new home screen: the Live row, the crew header and the ⋯ crew menu, the no-crew and first-time screens, and the section titles (Up next, Past gigs, Friends). Validator prints **OK**.
+
+| English | Chosen | Why |
+|---|---|---|
+| Live (the switch's name, on or off) | **Live** | The name the old pill already had (`home_live`), so it reads right next to a switch that is off. |
+| You're visible to your mates / Off: mates can't see you yet | **Deine Freunde sehen dich** / **Aus: Freunde sehen dich noch nicht** | The same verb on and off. *Aus:* as in the data-saver text. Each fits on one line beside the switch. |
+| Ghost mode: off the map, findable up close | **Geistmodus: nicht auf der Karte, aus der Nähe auffindbar** | The feature's name, then *auffindbar* as in the About text (*nur auffindbar, solange du live bist*). |
+| Crew menu: Invite more mates / Share the night with family | **Mehr Freunde einladen** / **Abend mit der Familie teilen** | Infinitives, like the menu's other rows (*Einladung zurücksetzen*, *Abend beenden*). The line under the family row starts *Deine Familie folgt…*: a sentence starting *Sie folgen…* could read as formal "you". |
+| Under Cancel this crew: Leave it before gig day. Mates who joined stay in | Du steigst vor dem Konzerttag aus. Wer schon dabei ist, bleibt drin | Says that only you leave. *Wer schon … bleibt drin* as in the reset-invite text. |
+| Past gigs | **Frühere Konzerte** | *Vergangene Konzerte* is the usual term but wraps in the wide heading font next to *Alle ansehen*. The End the night line uses the same name (*Deine Fotos bleiben unter Frühere Konzerte*), as do the older messages that point there (`main_night_ended`, `main_recap_text`, `crew_notif_done_saved`). |
+| Up next | **Demnächst** | As in Key terms. |
+| Share photos | **Fotos teilen** | One line in the half-width button. |
+
+For a native reviewer: *Frühere Konzerte* versus *Vergangene Konzerte* (fit versus the more usual word). *Find deine Freunde in der Menge* is safe: only *jede Menge* is the idiom. Written without a native reviewer. Confidence: **medium-high**.
+- **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it Live ("mit Live an", "schalte Live ein"); verb phrases such as "live gehen" stay where they read naturally.

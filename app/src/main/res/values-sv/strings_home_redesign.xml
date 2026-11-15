@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Swedish: home screen redesign (docs/design/home-redesign, docs/HOME_REDESIGN.md): the Live row, the
+     crew header and menu, no crew / first time, and the section titles. Keep labels short: the
+     screen is about 340 dp wide, and two buttons share a row. Comments for each string are in
+     values/strings_home_redesign.xml. Crew = grupp. -->
+<resources>
+    <!-- Live row: the switch's name (on or off), then one line beside it -->
+    <string name="home_live_switch">Live</string>
+    <string name="home_live_on">Du syns för kompisarna</string>
+    <string name="home_live_ghost_on">Spökläge: dold på kartan, går att hitta på nära håll</string>
+    <string name="home_live_off">Av: kompisarna ser dig inte än</string>
+
+    <!-- Crew header -->
+    <string name="home_crew_options">Alternativ för gruppen</string>
+    <plurals name="home_crew_count">
+        <item quantity="one">%d i gruppen</item>
+        <item quantity="other">%d i gruppen</item>
+    </plurals>
+    <plurals name="home_live_count">
+        <item quantity="one">%d live</item>
+        <item quantity="other">%d live</item>
+    </plurals>
+    <string name="home_face_options">Alternativ</string>
+    <string name="home_friend_options">Alternativ för %1$s</string>
+    <string name="home_face_battery">%1$d%% batteri</string>
+
+    <!-- Crew buttons and activity -->
+    <string name="home_share_photos">Dela bilder</string>
+    <string name="home_meetup">Träffpunkt: %1$s</string>
+    <string name="home_plan_pinned">Fäst i gruppens chatt</string>
+    <string name="home_where_are_they_short">Var är de?</string>
+
+    <!-- Crew menu (⋯) -->
+    <string name="home_menu_tonight">Ikväll</string>
+    <string name="home_menu_coming_up">Snart</string>
+    <string name="home_menu_invite">Bjud in fler kompisar</string>
+    <string name="home_menu_invite_sub">Visa gruppens QR eller skicka en länk</string>
+    <string name="home_menu_family">Dela kvällen med familjen</string>
+    <string name="home_menu_family_sub">De hänger med hemifrån och syns inte själva</string>
+    <string name="home_menu_reset_sub">Ny QR-kod och länk. De gamla slutar funka</string>
+    <string name="home_menu_end_sub">Du lämnar kvällens grupp. Dina bilder finns kvar under Tidigare spelningar</string>
+    <string name="home_menu_cancel_sub">Du hoppar av före spelningsdagen. Kompisar som gått med stannar kvar</string>
+    <string name="home_menu_stop_sub">Du ser inte längre var de är</string>
+
+    <!-- No crew tonight -->
+    <string name="home_no_crew_title">Ingen grupp ikväll</string>
+    <string name="home_no_crew_text">Starta en, visa kompisarna QR-koden, så är ni en grupp.</string>
+    <string name="home_start_crew">Starta en grupp ikväll</string>
+    <string name="home_plan_title">Planera en spelning</string>
+    <string name="home_plan_sub">Hitta den nu och bjud in kompisarna</string>
+    <string name="home_join_crew">GÅ MED I EN GRUPP</string>
+
+    <!-- First time -->
+    <string name="home_first_title">Hitta kompisarna i publiken</string>
+    <string name="home_first_text">Starta en grupp så skannar kompisarna QR-koden. En lysande pil pekar mot var och en av dem, även utan täckning.</string>
+    <string name="home_plan_another_night">Planera en spelning en annan kväll</string>
+
+    <!-- Section titles -->
+    <string name="home_section_up_next">På gång</string>
+    <string name="home_section_past_gigs">Tidigare spelningar</string>
+    <string name="home_section_friends">Kompisar</string>
+    <string name="home_see_all">Visa alla</string>
+    <plurals name="home_mates">
+        <item quantity="one">%d kompis</item>
+        <item quantity="other">%d kompisar</item>
+    </plurals>
+    <string name="home_upnext_no_mates">Bjud in kompisarna</string>
+</resources>

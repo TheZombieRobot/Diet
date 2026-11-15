@@ -29,7 +29,7 @@
     <string name="find_pill_hidden">ซ่อนอยู่</string>
     <string name="find_searching_cd">กำลังค้นหา</string>
     <string name="find_looking_for">กำลังหา %1$s…</string>
-    <string name="find_searching_help">ยังไม่มีสัญญาณหรือตำแหน่งที่แชร์จากเพื่อน เพื่อนต้องเปิด Moshpoint และ เริ่มแชร์ ไว้ พร้อมเปิดตำแหน่งและเน็ตมือถือ แล้วลูกศรจะโผล่มา ถึงจะอยู่คนละฝั่งเมืองก็ตาม</string>
+    <string name="find_searching_help">ยังไม่มีสัญญาณหรือตำแหน่งที่แชร์จากเพื่อน เพื่อนต้องเปิด Moshpoint และเปิด “มองเห็นได้” ไว้ พร้อมเปิดตำแหน่งและเน็ตมือถือ แล้วลูกศรจะโผล่มา ถึงจะอยู่คนละฝั่งเมืองก็ตาม</string>
     <string name="find_band_right_here">ตรงนี้เลย</string>
     <string name="find_band_close">ใกล้มาก</string>
     <string name="find_band_nearby">แถวนี้</string>
@@ -127,8 +127,6 @@
     <string name="find_live_tag">สด</string>
     <string name="find_camera">กล้อง</string>
 
-    <string name="find_the_story_eyebrow">สตอรี่</string>
-    <string name="find_see_it_all">ดูทั้งหมด ›</string>
     <string name="find_your_moment">โมเมนต์ของคุณ</string>
     <string name="find_distance_away">ห่างไป %1$s</string>
     <string name="find_on_map">บนแผนที่</string>

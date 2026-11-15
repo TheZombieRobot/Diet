@@ -42,7 +42,7 @@
     <string name="find_searching_cd">Searching</string>
     <!-- %1$s = friend's (or crew's) name -->
     <string name="find_looking_for">Looking for %1$s…</string>
-    <string name="find_searching_help">No signal from them and no shared location yet. They need Moshpoint open with Go live on, plus location and mobile data. Then their arrow appears, even if they\'re across town.</string>
+    <string name="find_searching_help">No signal from them and no shared location yet. They need Moshpoint open with Live on, plus location and mobile data. Then their arrow appears, even if they\'re across town.</string>
     <!-- Bluetooth distance bands: signal strength can only say roughly how close -->
     <string name="find_band_right_here">Right here</string>
     <string name="find_band_close">Close</string>
@@ -185,8 +185,6 @@
     <string name="find_camera">Camera</string>
 
     <!-- ===== Moments ===== -->
-    <string name="find_the_story_eyebrow">THE STORY</string>
-    <string name="find_see_it_all">See it all ›</string>
     <string name="find_your_moment">Your moment</string>
     <!-- %1$s = distance, e.g. "40 m" -->
     <string name="find_distance_away">%1$s away</string>

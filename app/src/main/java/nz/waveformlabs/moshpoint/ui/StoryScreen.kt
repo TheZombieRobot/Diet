@@ -90,7 +90,8 @@ internal fun Polaroid(m: Moments.Item, width: Dp, modifier: Modifier = Modifier,
         }
         Spacer(Modifier.height(pad * 0.8f))
         Text(
-            m.caption.ifBlank { clockTime(m.timeSec) },
+            // Isolated, so a caption keeps its own direction: "Front row!!", not "!!Front row" in Arabic.
+            m.caption.ifBlank { clockTime(m.timeSec) }.let { "\u2068$it\u2069" },
             style = TextStyle(fontFamily = Mosh.Marker, fontSize = (width.value * 0.085f).coerceAtMost(20f).sp, color = Color(0xFF1C1A2E)),
             maxLines = 2, overflow = TextOverflow.Ellipsis,
         )

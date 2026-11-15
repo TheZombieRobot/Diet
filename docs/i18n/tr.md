@@ -152,3 +152,22 @@ Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
 | %d unread private messages (screen reader, the count on a face) | %d okunmamış özel mesaj |
 
 Uses **ekip**, as elsewhere. The name goes after a colon or stands alone (*%1$s yazarsa…*), so no suffix has to follow vowel harmony. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.
+
+## Home redesign (`strings_home_redesign.xml`)
+
+The redesigned home: the Live row (the switch's name and the line beside it), the crew header, faces and ⋯ crew menu, the no-crew and first-time screens, and the section titles (36 strings, 3 plurals). Validator prints **OK** for this file. "Live" stays location sharing, never *canlı*.
+
+| English | Chosen | Why |
+|---|---|---|
+| Live (the switch's name, on or off) | **Görünürlük** | Visibility: what the switch controls (the line beside it says *Arkadaşların seni görüyor*). *Konum* was the first choice, but the setup card uses it for the phone's own location setting. |
+| You're visible to your mates / Off: mates can't see you yet | Arkadaşların seni görüyor / Kapalı: arkadaşların seni henüz göremiyor | *Kapalı:* as in `setup_data_saver_desc`. |
+| Ghost mode: off the map, findable up close | Hayalet modu: haritada yoksun, yakından bulunabilirsin | The setting's own name. Two lines, like English. |
+| 5 in the crew · 3 live | Ekipte 5 kişi · 3 kişi paylaşıyor | No suffix follows a number; *paylaşıyor* is the faces' own status (`home_tile_live`). |
+| Crew menu: Invite more mates / Share the night with family | Daha fazla arkadaş davet et / Geceyi ailenle paylaş | Imperatives, like the other rows (*Daveti sıfırla*, *Geceyi bitir*). The lines under them describe (*Bu geceki ekipten ayrılırsın…*). |
+| Up next / Past gigs | **Sıradakiler** / **Geçmiş konserler** | *Sıradakiler* is the existing name. *Geçmiş konserler* is quoted with *bölümünde*, like the old *Konserlerin bölümünde*; `main_recap_text`, `main_night_ended` and `crew_notif_done_saved` now say it too. |
+| Share photos | **Fotoğraf ekle** | Like the story's own *＋ Fotoğraflarını ekle*. *Fotoğraf paylaş* is a few dp too wide for the half-width button and wraps. |
+
+Battery under a face: *Pil %8* (percent sign first, as in `home_tile_with_battery`).
+
+For a native reviewer: (1) *Görünürlük* for the switch (it was *Konum*, the phone setting's word). (2) *Fotoğraf ekle* ("add photos"); *Foto paylaş* also fits, but *foto* is more colloquial than the rest of the app. (3) *Ekip sohbetinde sabitlendi* under the pinned plan. Written without a native reviewer. Confidence: **medium-high**.
+- **The Live switch's name in other texts** (review of the redesign): The switch is now Görünürlük (it was Konum, the word the setup card uses for the phone's location setting). Texts that name it say "Görünürlük'ü aç".

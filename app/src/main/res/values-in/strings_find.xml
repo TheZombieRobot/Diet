@@ -29,7 +29,7 @@
     <string name="find_pill_hidden">Tersembunyi</string>
     <string name="find_searching_cd">Mencari</string>
     <string name="find_looking_for">Mencari %1$s…</string>
-    <string name="find_searching_help">Belum ada sinyal dari mereka dan belum ada lokasi yang dibagikan. Mereka perlu buka Moshpoint dengan Mulai live aktif, plus lokasi dan data seluler. Setelah itu panahnya muncul, meski mereka di ujung kota.</string>
+    <string name="find_searching_help">Belum ada sinyal dari mereka dan belum ada lokasi yang dibagikan. Mereka perlu buka Moshpoint dengan Live aktif, plus lokasi dan data seluler. Setelah itu panahnya muncul, meski mereka di ujung kota.</string>
     <string name="find_band_right_here">Di sini banget</string>
     <string name="find_band_close">Dekat</string>
     <string name="find_band_nearby">Dekat</string>
@@ -127,8 +127,6 @@
     <string name="find_live_tag">LIVE</string>
     <string name="find_camera">Kamera</string>
 
-    <string name="find_the_story_eyebrow">CERITA</string>
-    <string name="find_see_it_all">Lihat semua ›</string>
     <string name="find_your_moment">Momenmu</string>
     <string name="find_distance_away">%1$s lagi</string>
     <string name="find_on_map">Di peta</string>

@@ -127,7 +127,7 @@
     </plurals>
     <string name="crew_notif_new_plan">Neuer Plan: %1$s</string>
     <string name="crew_notif_done_title">%1$s ist vorbei</string>
-    <string name="crew_notif_done_saved">Deine Fotos und Clips sind unter Deine Konzerte gespeichert.</string>
+    <string name="crew_notif_done_saved">Deine Fotos und Clips sind unter Frühere Konzerte gespeichert.</string>
     <string name="crew_notif_done_text">Hoffentlich war\'s gut. Starte jederzeit eine neue Crew.</string>
     <string name="crew_notif_overdue_title">%1$s hat sich nicht gemeldet</string>
     <string name="crew_notif_overdue_text">War auf dem Heimweg und sollte längst da sein. Ruf an. Tippen für den letzten Standort.</string>

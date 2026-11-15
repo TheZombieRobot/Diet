@@ -1,42 +1,29 @@
 package nz.waveformlabs.moshpoint.ui
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.ui.draw.clip
-import nz.waveformlabs.moshpoint.PhotoStore
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -44,17 +31,19 @@ import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.Friend
+import nz.waveformlabs.moshpoint.PhotoStore
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
+import nz.waveformlabs.moshpoint.core.GigGroup
 
 /**
- * Friends list (permanent) and gig group (one night), plus the visibility switch.
- * Tap a friend to go straight to their arrow; long-press for photo / remove.
+ * The home screen (docs/design/home-redesign, docs/HOME_REDESIGN.md). Who's here and how far
+ * away, and Find everyone, come first; tonight's two everyday actions (crew chat, photos) are
+ * quieter; once-a-night crew actions live in the crew menu (⋯). Below: Up next, memories, past
+ * gigs and friends. A brand-new user sees one thing to do. Need help is always in the header.
  *
- * Adding people is a stopgap: share your code, paste theirs. Enough to test with two
- * phones. TODO: accounts, usernames, QR codes, gig group create/join via the server.
+ * Tap a face to find that mate; long-press for their options (message, photo, keep, remove).
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FriendsScreen(
     friends: List<Friend>,
@@ -101,10 +90,10 @@ fun FriendsScreen(
     onOpenMap: () -> Unit = {},
     /** The crew's meet-up pin, if someone dropped one ("Sound desk"). */
     meetUp: String? = null,
-    /** Last shared spot per friend (for live / battery under each crew tile). */
+    /** Last shared spot per friend (live or last seen, under each face). */
     seen: Map<String, nz.waveformlabs.moshpoint.LocationBook.Seen> = emptyMap(),
     nowSec: Long = 0L,
-    pings: List<nz.waveformlabs.moshpoint.core.GigGroup.Ping> = emptyList(),
+    pings: List<GigGroup.Ping> = emptyList(),
     onPing: (Int) -> Unit = {},
     describePing: (Int) -> String = { Txt.s(R.string.home_ping_default) },
     ghost: Boolean = false,
@@ -119,9 +108,9 @@ fun FriendsScreen(
     onHomeSafe: () -> Unit = {},
     /** Metres to each crew member, worked out in the background. */
     distances: Map<String, Double> = emptyMap(),
-    /** The crew QR's contents, shown right on the card while no one has joined. */
+    /** The crew QR's contents, shown right on the home while no one has joined. */
     crewQrPayload: String? = null,
-    /** "Invite mates": start a crew named after you, no questions. Null = ask for a name. */
+    /** "Start a crew for tonight": start a crew named after you, no questions. Null = ask for a name. */
     onQuickCrew: (() -> Unit)? = null,
     /** Bump phones together to share / receive a crew invite. */
     onBump: () -> Unit = {},
@@ -139,7 +128,7 @@ fun FriendsScreen(
     onLetFamilyFollow: () -> Unit = {},
     /** Past gigs kept on this phone. */
     pastGigs: List<nz.waveformlabs.moshpoint.GigArchive.Summary> = emptyList(),
-    /** Tonight's gig (shown in the crew card, not in the list). */
+    /** Tonight's gig (it's the crew, not a past gig). */
     currentGigId: String? = null,
     onOpenGig: (nz.waveformlabs.moshpoint.GigArchive.Summary) -> Unit = {},
     /** "Sat 14 Dec, 8:00 pm · Spark Arena" for a planned gig's crew, else null. */
@@ -156,15 +145,17 @@ fun FriendsScreen(
     /** Opens the crew chat (pinned plan, messages, flares). */
     onOpenChat: (() -> Unit)? = null,
     chatUnread: Int = 0,
-    /** The crew's pinned plan, shown on the card. */
+    /** The crew's pinned plan, shown on the home. */
     pinnedPlan: String? = null,
-    /** "🔥 Bar time 🍺" under a mate's tile while their flare is up. */
+    /** "🔥 Bar time 🍺" under a mate's face while their flare is up. */
     flareNotes: Map<String, String> = emptyMap(),
     /** Other crews you're in, soonest first. */
     upNext: List<UpNextCard> = emptyList(),
     onOpenUpNext: (String) -> Unit = {},
-    /** The crew card's line about the venue's offline map (see VenueMaps); null = no line. */
+    /** The line about the venue's offline map (see VenueMaps); null = no line. */
     venueMap: nz.waveformlabs.moshpoint.venue.VenueMaps.Status? = null,
+    /** "Reset the invite" in the crew menu: a new crew key, so a leaked QR stops working. Null = not offered (only the owner resets an owned crew). */
+    onResetInvite: (() -> Unit)? = null,
 ) {
     var name by remember { mutableStateOf("") }
     var code by remember { mutableStateOf("") }
@@ -179,9 +170,32 @@ fun FriendsScreen(
     }
     var confirmRemove by remember { mutableStateOf<Friend?>(null) }
     var manualCode by remember { mutableStateOf(false) }
-
     var options by remember { mutableStateOf<Friend?>(null) }
     var settingsOpen by remember { mutableStateOf(false) }
+    var naming by remember { mutableStateOf(false) }
+    var groupNameText by remember { mutableStateOf("") }
+    var addOpen by remember { mutableStateOf(false) }
+    var messageOpen by remember { mutableStateOf(false) }
+    var menuOpen by remember { mutableStateOf(false) }
+    var helpOpen by remember { mutableStateOf(false) }
+    var friendsOpen by remember { mutableStateOf(false) }
+    var gigsOpen by remember { mutableStateOf(false) }
+
+    val gig = friends.filter { it.gigGroupOnly || it.key in crewKeys }
+    val permanent = friends.filterNot { it.gigGroupOnly }
+    val past = pastGigs.filter { it.id != currentGigId }
+    val inCrew = groupName != null || gig.isNotEmpty()
+    // A brand-new user: nothing to show but the one thing to do.
+    val firstTime = !inCrew && permanent.isEmpty() && past.isEmpty() && upNext.isEmpty()
+    // Need help offers the crew alert only when there's a crew on tonight with someone in it
+    // to alert: a safety feature must never say "alerted" to nobody.
+    val canAlertCrew = groupName != null && !following && !crewSleeping && (gig.isNotEmpty() || followers.isNotEmpty())
+    val startCrew: () -> Unit = onQuickCrew ?: { naming = true }
+    val crewName = groupName ?: stringResource(R.string.home_your_crew)
+    val crewCount = pluralStringResource(R.plurals.home_crew_count, gig.size, gig.size)
+    val liveCount = if (following || crewSleeping) 0 else gig.count { isLive(seen[it.id], nowSec) }
+    val liveText = pluralStringResource(R.plurals.home_live_count, liveCount, liveCount)
+
     if (settingsOpen) {
         SettingsSheet(
             myName = myName, onMyName = onMyName,
@@ -191,14 +205,12 @@ fun FriendsScreen(
             onClose = { settingsOpen = false },
         )
     }
-    var naming by remember { mutableStateOf(false) }
-    var groupNameText by remember { mutableStateOf("") }
     if (naming) {
         AlertDialog(
             onDismissRequest = { naming = false },
             title = { Text(stringResource(R.string.home_start_gig_group)) },
             text = {
-                androidx.compose.foundation.layout.Column {
+                Column {
                     Text(stringResource(R.string.home_start_gig_group_text))
                     OutlinedTextField(groupNameText, { groupNameText = it }, singleLine = true)
                 }
@@ -218,7 +230,7 @@ fun FriendsScreen(
             onDismissRequest = { options = null },
             title = { Text(f.name) },
             text = {
-                androidx.compose.foundation.layout.Column {
+                Column {
                     // First: write to them privately (crew mates only).
                     if (onMessage != null && (f.gigGroupOnly || f.key in crewKeys) && canMessage(f.id)) {
                         TextButton(onClick = { onMessage(f.id); options = null }) {
@@ -234,12 +246,12 @@ fun FriendsScreen(
                         TextButton(onClick = { onRemovePhoto(f.id); options = null }) { Text(stringResource(R.string.home_remove_photo)) }
                     }
                     if (!f.gigGroupOnly || canRemoveCrewMates) {
-                        TextButton(onClick = { confirmRemove = f; options = null }) { Text(stringResource(R.string.home_remove_name, f.name), color = Color(0xFFE53935)) }
+                        TextButton(onClick = { confirmRemove = f; options = null }) { Text(stringResource(R.string.home_remove_name, f.name), color = Mosh.Alarm) }
                     } else {
                         Text(
                             stringResource(R.string.crew_only_owner_removes),
-                            style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint),
-                            modifier = androidx.compose.ui.Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            style = HomeType.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint),
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                         )
                     }
                 }
@@ -262,44 +274,14 @@ fun FriendsScreen(
         )
     }
 
-    fun add(gig: Boolean) {
-        error = onAdd(name, code, gig)
+    fun add(gigGroup: Boolean) {
+        error = onAdd(name, code, gigGroup)
         if (error == null) {
             name = ""
             code = ""
         }
     }
 
-    @Composable
-    fun row(f: Friend) {
-        val (source, scale) = rememberPress()
-        Row(
-            Modifier.fillMaxWidth()
-                .pressScale(scale)
-                .heightIn(min = 66.dp)
-                .clip(RoundedCornerShape(18.dp))
-                .background(Mosh.SurfaceLow)
-                .border(1.dp, Color(0x12FFFFFF), RoundedCornerShape(18.dp))
-                .combinedClickable(interactionSource = source, indication = androidx.compose.foundation.LocalIndication.current, onClick = { onFind(setOf(f.id)) }, onLongClick = { options = f })
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Avatar(f, 44.dp)
-            Spacer(Modifier.width(14.dp))
-            Text(f.name, style = Mosh.Label, modifier = Modifier.weight(1f))
-            Text(
-                stringResource(R.string.home_find), style = Mosh.Label.copy(fontSize = 12.sp, color = Color(f.color)),
-                modifier = Modifier.background(Color(f.color).copy(alpha = 0.12f), CircleShape).padding(horizontal = 10.dp, vertical = 4.dp),
-            )
-            // Options (remove, photo, keep) without having to know about long-press.
-            TextButton(onClick = { options = f }) { Text("⋯", style = Mosh.Heading.copy(fontSize = 20.sp, color = Mosh.TextDim)) }
-        }
-    }
-
-    val gig = friends.filter { it.gigGroupOnly || it.key in crewKeys }
-    val permanent = friends.filterNot { it.gigGroupOnly }
-    var addOpen by remember { mutableStateOf(false) }
-    var messageOpen by remember { mutableStateOf(false) }
     if (messageOpen) MessageSheet(onPing = { onPing(it) }, onCheckIn = { onCheckIn(it) }, onClose = { messageOpen = false })
     if (addOpen) {
         AddSheet(
@@ -319,221 +301,242 @@ fun FriendsScreen(
         AlertDialog(
             onDismissRequest = { manualCode = false; code = ""; name = "" },
             containerColor = Mosh.Deep,
-            title = { Text(stringResource(R.string.home_add_with_code), style = Mosh.Heading) },
+            title = { Text(stringResource(R.string.home_add_with_code), style = HomeType.Heading) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(name, { name = it }, label = { Text(stringResource(R.string.home_their_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                     OutlinedTextField(code, { code = it }, label = { Text(stringResource(R.string.home_their_code)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                    error?.let { Text(it, style = Mosh.Body.copy(color = Mosh.Danger)) }
+                    error?.let { Text(it, style = HomeType.Body.copy(color = Mosh.Danger)) }
                 }
             },
-            confirmButton = { TextButton(onClick = { add(false); if (error == null) manualCode = false }) { Text(stringResource(R.string.home_add_friend), style = Mosh.Label.copy(color = Mosh.Cyan)) } },
-            dismissButton = { TextButton(onClick = { add(true); if (error == null) manualCode = false }) { Text(stringResource(R.string.home_tonight_only), style = Mosh.Label) } },
+            confirmButton = { TextButton(onClick = { add(false); if (error == null) manualCode = false }) { Text(stringResource(R.string.home_add_friend), style = HomeType.Label.copy(color = Mosh.Cyan)) } },
+            dismissButton = { TextButton(onClick = { add(true); if (error == null) manualCode = false }) { Text(stringResource(R.string.home_tonight_only), style = HomeType.Label) } },
         )
     }
+    if (helpOpen) {
+        // Nothing is sent from the home: the dialog asks first, as it always has.
+        HelpDialog(onAlertCrew = if (canAlertCrew) ({ onPing(GigGroup.Ping.NEED_HELP) }) else null, onClose = { helpOpen = false })
+    }
+    if (menuOpen && inCrew) {
+        MoshSheet(onClose = { menuOpen = false }) {
+            CrewMenuContent(
+                name = crewName,
+                subtitle = listOfNotNull(
+                    when {
+                        following -> stringResource(R.string.home_following_from_home)
+                        crewSleeping -> stringResource(R.string.home_menu_coming_up)
+                        else -> stringResource(R.string.home_menu_tonight)
+                    },
+                    crewCount.takeIf { gig.isNotEmpty() },
+                ).let { dotLine(it) },
+                onInvite = if (following) null else ({ menuOpen = false; onShowGroupQr() }),
+                onFamily = if (following) null else ({ menuOpen = false; onLetFamilyFollow() }),
+                onReset = if (following || groupName == null) null else onResetInvite?.let { reset -> { menuOpen = false; reset() } },
+                endTitle = when {
+                    following -> stringResource(R.string.home_stop_following)
+                    crewSleeping -> stringResource(R.string.home_cancel_crew)
+                    else -> stringResource(R.string.home_end_night)
+                },
+                endSub = when {
+                    following -> stringResource(R.string.home_menu_stop_sub)
+                    crewSleeping -> stringResource(R.string.home_menu_cancel_sub)
+                    else -> stringResource(R.string.home_menu_end_sub)
+                },
+                onEnd = { menuOpen = false; onClearGigGroup() },
+            )
+        }
+    }
+    if (friendsOpen) {
+        MoshSheet(onClose = { friendsOpen = false }) {
+            FriendsListContent(permanent, seen, nowSec, onFind = { friendsOpen = false; onFind(setOf(it)) }, onOptions = { options = it })
+        }
+    }
+    if (gigsOpen) {
+        MoshSheet(onClose = { gigsOpen = false }) {
+            PastGigsContent(past) { g -> gigsOpen = false; onOpenGig(g) }
+        }
+    }
+
+    // One calm card with the one thing to fix next (permission, then each switch), instead
+    // of a wall of warnings. It disappears once everything's ready.
+    val todo: Triple<String, String, () -> Unit>? = when {
+        missingPermissions.isNotEmpty() -> Triple(
+            // The name before the colon (full-width in CJK); not lower-cased (German nouns are capitalised).
+            Txt.s(R.string.home_allow_permission, missingPermissions.first().substringBefore(':').substringBefore('：').trim()),
+            Txt.s(R.string.home_allow), onFixPermissions,
+        )
+        setupIssues.isNotEmpty() -> setupIssues.first().let { Triple(it.text, it.button, it.onFix) }
+        else -> null
+    }
+    val more = missingPermissions.size.coerceAtMost(1) + setupIssues.size - 1
+    val todoEyebrow = if (more > 0) pluralStringResource(R.plurals.home_one_thing_first_more, more, more) else stringResource(R.string.home_one_thing_first)
 
     Box(Modifier.fillMaxSize().background(Mosh.Ground)) {
-    GlowBackground(colours = listOf(Mosh.Pink, Mosh.Violet, Mosh.Cyan))
-    Column(Modifier.fillMaxSize()) {
-    LazyColumn(
-        Modifier.weight(1f).fillMaxWidth(),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-    ) {
-        item {
-            Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                // The wordmark never shrinks or wraps; the live pill gives way instead (see LivePill).
-                Row(verticalAlignment = Alignment.Bottom) {
-                    // The wordmark reads "moshpoint" in every language, right-to-left ones too.
-                    androidx.compose.runtime.CompositionLocalProvider(androidx.compose.ui.platform.LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Ltr) {
-                        Row(verticalAlignment = Alignment.Bottom) {
-                            Text("mosh", style = Mosh.Title.copy(fontSize = 28.sp))
-                            Text(
-                                "point",
-                                style = Mosh.Title.copy(fontSize = 28.sp, color = Mosh.Pink, shadow = androidx.compose.ui.graphics.Shadow(Mosh.Pink.copy(alpha = 0.8f), blurRadius = 28f)),
-                            )
-                        }
-                    }
-                }
-                Spacer(Modifier.weight(1f))
-                if (!following) LivePill(visible, ghost, Modifier.padding(start = 12.dp)) { onVisible(!visible) }
-            }
-            if (!visible && groupName != null && !crewSleeping && !following) {
-                Spacer(Modifier.height(8.dp))
-                Text(stringResource(R.string.home_hidden_hint), style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
-            }
-        }
-        // One calm card with the one thing to fix next (permission, then each switch), instead
-        // of a wall of warnings. It disappears once everything's ready.
-        val todo: Triple<String, String, () -> Unit>? = when {
-            missingPermissions.isNotEmpty() -> Triple(
-                // The name before the colon (full-width in CJK); not lower-cased (German nouns are capitalised).
-                Txt.s(R.string.home_allow_permission, missingPermissions.first().substringBefore(':').substringBefore('：').trim()),
-                Txt.s(R.string.home_allow), onFixPermissions,
-            )
-            setupIssues.isNotEmpty() -> setupIssues.first().let { Triple(it.text, it.button, it.onFix) }
-            else -> null
-        }
-        if (todo != null) {
-            item {
-                val more = missingPermissions.size.coerceAtMost(1) + setupIssues.size - 1
-                Row(
-                    Modifier.fillMaxWidth().background(Color(0xFF2A2140), RoundedCornerShape(18.dp))
-                        .border(1.dp, Mosh.Amber.copy(alpha = 0.45f), RoundedCornerShape(18.dp)).padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(Modifier.weight(1f)) {
-                        Text(if (more > 0) pluralStringResource(R.plurals.home_one_thing_first_more, more, more) else stringResource(R.string.home_one_thing_first), style = Mosh.Eyebrow.copy(color = Mosh.Amber))
-                        Spacer(Modifier.height(4.dp))
-                        Text(todo.first, style = Mosh.Body.copy(fontSize = 14.sp, lineHeight = 19.sp, color = Mosh.Text))
-                    }
-                    Spacer(Modifier.width(12.dp))
-                    Button(
-                        onClick = todo.third, shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Mosh.Amber, contentColor = Color(0xFF1A1000)),
-                    ) { Text(todo.second, style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF1A1000))) }
-                }
-            }
-        }
+        HomeGlow(Modifier.fillMaxSize())
+        // Below the status bar when the app draws edge to edge (Android 15); nothing otherwise.
+        Column(Modifier.fillMaxSize().statusBarsPadding()) {
+            Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(top = 16.dp, bottom = 28.dp)) {
+                HomeHeader(onHelp = { helpOpen = true })
+                // Followers at home never broadcast, so there's nothing to switch.
+                if (!following) LiveRow(visible, ghost, onChange = onVisible, modifier = Modifier.padding(horizontal = HomeSide))
+                if (todo != null) SetupCard(todoEyebrow, todo.first, todo.second, todo.third, Modifier.padding(top = 14.dp))
 
-        // Tonight's crew: the heart of the app.
-        item {
-            NeonFrame(RoundedCornerShape(24.dp), Modifier.fillMaxWidth(), lit = groupName != null && visible) {
-                Column(
-                    Modifier.fillMaxWidth().background(Mosh.Deep, RoundedCornerShape(22.dp)).padding(18.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    if (groupName == null && gig.isEmpty()) {
-                        Text(stringResource(R.string.home_eyebrow_tonight), style = Mosh.Eyebrow)
-                        Text(stringResource(R.string.home_find_mates_tonight), style = Mosh.Heading)
-                        Text(stringResource(R.string.home_find_mates_text), style = Mosh.Body)
-                        NeonButton(stringResource(R.string.home_invite_mates_tonight)) { (onQuickCrew ?: { naming = true })() }
-                        GlassButton(stringResource(R.string.home_plan_gig), onClick = onPlanGig)
-                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            TextButton(onClick = onScanQr) { Text(stringResource(R.string.home_scan_invite), style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
-                            TextButton(onClick = onPasteInvite) { Text(stringResource(R.string.home_paste_invite), style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
-                        }
-                    } else {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f)) {
-                                Text(if (following) stringResource(R.string.home_eyebrow_following) else if (crewSleeping) stringResource(R.string.home_eyebrow_coming_up) else stringResource(R.string.home_eyebrow_tonight), style = Mosh.Eyebrow)
-                                Text(groupName ?: stringResource(R.string.home_your_crew), style = Mosh.Heading, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                                if (crewWhen != null) Text(crewWhen, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), maxLines = 2)
-                                if (venueMap != null && groupName != null && !following) VenueMapLine(venueMap)
+                when {
+                    firstTime -> {
+                        Spacer(Modifier.height(8.dp))
+                        FirstTimeHero(onStart = startCrew, onScan = onScanQr, onPaste = onPasteInvite, onPlan = onPlanGig)
+                    }
+                    !inCrew -> {
+                        Spacer(Modifier.height(24.dp))
+                        NoCrewHero(onStart = startCrew, onPlan = onPlanGig, onScan = onScanQr, onPaste = onPasteInvite)
+                    }
+                    else -> {
+                        Spacer(Modifier.height(20.dp))
+                        CrewHeader(
+                            eyebrow = when {
+                                following -> stringResource(R.string.home_eyebrow_following)
+                                crewSleeping -> stringResource(R.string.home_eyebrow_coming_up)
+                                else -> stringResource(R.string.home_eyebrow_tonight)
+                            },
+                            name = crewName,
+                            count = if (gig.isEmpty()) null else if (liveCount > 0) "$crewCount · $liveText" else crewCount,
+                            followers = if (following) emptyList() else followers,
+                            whenText = crewWhen,
+                            venueMap = if (groupName != null && !following) venueMap else null,
+                            onMenu = { menuOpen = true },
+                        )
+                        when {
+                            following && !crewSleeping -> {
+                                Spacer(Modifier.height(10.dp))
+                                Text(stringResource(R.string.home_follower_text), style = HomeType.Body.copy(fontSize = 14.sp, lineHeight = 21.sp), modifier = Modifier.padding(horizontal = HomeSide))
+                                if (gig.isNotEmpty()) CrewTiles(gig, seen, nowSec, onFind = null, onOptions = null, notes = tileNotes)
+                                if (checkInBy != null) CheckInBanner(checkInBy, onHomeSafe, Modifier.padding(start = HomeSide, end = HomeSide, top = 14.dp))
+                                ActivityBlock(meetUp, pings.take(3), nowSec, describePing, pinnedPlan, onOpenMap, onOpenChat, Modifier.padding(top = 16.dp))
+                                Spacer(Modifier.height(18.dp))
+                                HeroButton(stringResource(R.string.home_see_story), HomeIcons.Story, Modifier.padding(horizontal = HomeSide), onClick = onOpenStory)
+                                Spacer(Modifier.height(14.dp))
+                                if (onOpenChat != null) {
+                                    ButtonPair(
+                                        Modifier.padding(horizontal = HomeSide),
+                                        first = { GlassAction(stringResource(R.string.home_crew_chat), HomeIcons.Chat, badge = chatUnread, onClick = onOpenChat) },
+                                        second = { GlassAction(stringResource(R.string.home_where_are_they_short), HomeIcons.MapPin, onClick = onOpenMap) },
+                                    )
+                                } else {
+                                    GlassAction(
+                                        stringResource(R.string.home_where_are_they_short), HomeIcons.MapPin,
+                                        Modifier.padding(horizontal = HomeSide).fillMaxWidth(), onClick = onOpenMap,
+                                    )
+                                }
                             }
-                            if (!following) TextButton(onClick = onShowGroupQr) { Text(stringResource(R.string.home_invite), style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Cyan)) }
-                        }
-                        if (onOpenChat != null && groupName != null) ChatPill(chatUnread, pinnedPlan, onOpenChat)
-                        if (!following) {
-                            // Who can see the crew from home, so nobody is followed without knowing.
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    if (followers.isEmpty()) stringResource(R.string.home_family_can_follow) else stringResource(R.string.home_following_from_home_names, followers.joinToString(", ")),
-                                    style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), modifier = Modifier.weight(1f),
-                                )
-                                TextButton(onClick = onLetFamilyFollow) { Text(stringResource(R.string.home_share), style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
-                            }
-                        }
-                        if (meetUp != null) {
-                            Row(
-                                Modifier.fillMaxWidth().background(Mosh.Pink.copy(alpha = 0.14f), RoundedCornerShape(14.dp))
-                                    .border(1.dp, Mosh.Pink.copy(alpha = 0.5f), RoundedCornerShape(14.dp)).clickable(onClick = onOpenMap)
-                                    .padding(horizontal = 14.dp, vertical = 10.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Text(stringResource(R.string.home_meet_up, meetUp), style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Pink), modifier = Modifier.weight(1f))
-                                Text(stringResource(R.string.home_map_link), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Pink))
-                            }
-                        }
-                        if (crewSleeping) {
-                            Text(
-                                stringResource(R.string.home_asleep_text),
-                                style = Mosh.Body.copy(fontSize = 14.sp, color = Mosh.Violet),
-                            )
-                        }
-                        if (following && !crewSleeping) {
-                            Text(stringResource(R.string.home_follower_text), style = Mosh.Body.copy(fontSize = 14.sp))
-                            CrewTiles(gig, seen, nowSec, onFind = {}, onOptions = {}, distances = emptyMap(), notes = tileNotes)
-                            if (checkInBy != null) CheckInBanner(checkInBy, onHomeSafe)
-                            PingFeed(pings.take(3), nowSec, describePing)
-                            NeonButton(stringResource(R.string.home_see_story)) { onOpenStory() }
-                            if (onOpenChat != null) GlassButton(if (chatUnread > 0) stringResource(R.string.home_crew_chat_unread, chatUnread) else stringResource(R.string.home_crew_chat), onClick = onOpenChat)
-                            GlassButton(stringResource(R.string.home_where_are_they), onClick = onOpenMap)
-                        } else if (gig.isEmpty() || crewSleeping) {
-                            if (gig.isNotEmpty()) CrewTiles(gig, seen, nowSec, onFind = {}, onOptions = { options = it }, distances = emptyMap(), badges = privateUnread)
-                            if (following) Text(stringResource(R.string.home_see_them_once_starts), style = Mosh.Body.copy(fontSize = 14.sp))
-                            else if (crewQrPayload != null) InlineCrewQr(crewQrPayload, onShareCode)
-                            else NeonButton(stringResource(R.string.home_show_crew_qr), onClick = onShowGroupQr)
-                        } else {
-                            CrewTiles(gig, seen, nowSec, onFind = { onFind(setOf(it)) }, onOptions = { options = it }, distances = distances, notes = flareNotes, badges = privateUnread)
-                            Text(stringResource(R.string.home_tap_mate_hint), style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint))
-                            NeonButton(if (gig.size == 1) stringResource(R.string.home_find_name, gig[0].name) else stringResource(R.string.home_find_everyone)) { onFind(gig.map { it.id }.toSet()) }
-                            if (checkInBy != null) CheckInBanner(checkInBy, onHomeSafe)
-                            CrewActions(onMessage = { if (onOpenChat != null) onOpenChat() else messageOpen = true }, onMoment = onShareMoment, unread = chatUnread)
-                            PingFeed(pings.take(1), nowSec, describePing)
-                            if (moments.isNotEmpty()) MomentStrip(moments, nowSec, { onOpenStory() }, onShareMoment)
-                        }
-                        TextButton(onClick = onClearGigGroup) {
-                            Text(
+                            gig.isEmpty() || crewSleeping -> {
+                                // Nobody in yet, or a crew asleep until gig day.
+                                if (crewSleeping) {
+                                    Spacer(Modifier.height(10.dp))
+                                    Text(stringResource(R.string.home_asleep_text), style = HomeType.Body.copy(fontSize = 14.sp, lineHeight = 21.sp, color = Mosh.Lilac), modifier = Modifier.padding(horizontal = HomeSide))
+                                }
+                                if (gig.isNotEmpty()) CrewTiles(gig, seen, nowSec, onFind = null, onOptions = { options = it }, badges = privateUnread)
+                                Spacer(Modifier.height(20.dp))
                                 when {
-                                    following -> stringResource(R.string.home_stop_following)
-                                    crewSleeping -> stringResource(R.string.home_cancel_crew)
-                                    else -> stringResource(R.string.home_end_night)
-                                },
-                                style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Danger),
-                            )
+                                    following -> Text(stringResource(R.string.home_see_them_once_starts), style = HomeType.Body.copy(fontSize = 14.sp, lineHeight = 21.sp), modifier = Modifier.padding(horizontal = HomeSide))
+                                    crewQrPayload != null -> InlineCrewQr(crewQrPayload, onShareCode, Modifier.padding(horizontal = HomeSide))
+                                    else -> HeroButton(stringResource(R.string.home_show_crew_qr), HomeIcons.Qr, Modifier.padding(horizontal = HomeSide), onClick = onShowGroupQr)
+                                }
+                                if (onOpenChat != null && groupName != null) {
+                                    Spacer(Modifier.height(14.dp))
+                                    GlassAction(
+                                        stringResource(R.string.home_crew_chat), HomeIcons.Chat,
+                                        Modifier.padding(horizontal = HomeSide).fillMaxWidth(), badge = chatUnread, onClick = onOpenChat,
+                                    )
+                                }
+                                ActivityBlock(meetUp, emptyList(), nowSec, describePing, pinnedPlan, onOpenMap, onOpenChat, Modifier.padding(top = 18.dp))
+                            }
+                            else -> {
+                                // Tonight, with mates in: the faces and Find everyone are the loudest things here.
+                                CrewTiles(
+                                    gig, seen, nowSec,
+                                    onFind = { onFind(setOf(it)) }, onOptions = { options = it },
+                                    distances = distances, badges = privateUnread, flares = flareNotes,
+                                )
+                                DotLineText(
+                                    stringResource(R.string.home_tap_mate_hint),
+                                    style = HomeType.Body.copy(fontSize = 12.5.sp, lineHeight = 17.sp, color = Mosh.TextFaint),
+                                    modifier = Modifier.padding(start = HomeSide, end = HomeSide, top = 4.dp),
+                                    keep = 40,
+                                )
+                                Spacer(Modifier.height(18.dp))
+                                HeroButton(
+                                    if (gig.size == 1) stringResource(R.string.home_find_name, gig[0].name) else stringResource(R.string.home_find_everyone),
+                                    HomeIcons.Navigate, Modifier.padding(horizontal = HomeSide),
+                                ) { onFind(gig.map { it.id }.toSet()) }
+                                if (checkInBy != null) CheckInBanner(checkInBy, onHomeSafe, Modifier.padding(start = HomeSide, end = HomeSide, top = 14.dp))
+                                Spacer(Modifier.height(14.dp))
+                                ButtonPair(
+                                    Modifier.padding(horizontal = HomeSide),
+                                    first = {
+                                        GlassAction(stringResource(R.string.home_crew_chat), HomeIcons.Chat, badge = chatUnread) {
+                                            if (onOpenChat != null) onOpenChat() else messageOpen = true
+                                        }
+                                    },
+                                    second = { GlassAction(stringResource(R.string.home_share_photos), HomeIcons.Camera, onClick = onShareMoment) },
+                                )
+                                ActivityBlock(meetUp, pings.take(1), nowSec, describePing, pinnedPlan, onOpenMap, onOpenChat, Modifier.padding(top = 20.dp))
+                                if (moments.isNotEmpty()) {
+                                    SectionTitle(stringResource(R.string.find_story_title), Modifier.padding(top = 8.dp), onSeeAll = onOpenStory)
+                                    StoryStrip(moments, onOpenStory)
+                                }
+                            }
                         }
                     }
                 }
-            }
-        }
 
-        if (upNext.isNotEmpty()) {
-            item { Text(stringResource(R.string.home_up_next), style = Mosh.Eyebrow, modifier = Modifier.padding(top = 4.dp, start = 4.dp)) }
-            items(upNext, key = { "next-" + it.id }) { card -> Box(Modifier.animateItem()) { UpNextRow(card) { onOpenUpNext(card.id) } } }
-        }
-
-        // "Remember last year?": a gig on this day in an earlier year.
-        nz.waveformlabs.moshpoint.Memories.today(pastGigs, if (nowSec > 0) nowSec * 1000 else System.currentTimeMillis()).firstOrNull()?.let { (g, years) ->
-            item {
-                Column(
-                    Modifier.fillMaxWidth().background(Mosh.Amber.copy(alpha = 0.12f), RoundedCornerShape(18.dp))
-                        .border(1.dp, Mosh.Amber.copy(alpha = 0.5f), RoundedCornerShape(18.dp))
-                        .clickable { onOpenGig(g) }.padding(16.dp),
-                ) {
-                    Text(stringResource(R.string.home_memories), style = Mosh.Eyebrow.copy(color = Mosh.Amber))
-                    Spacer(Modifier.height(4.dp))
-                    Text(nz.waveformlabs.moshpoint.Memories.headline(g, years), style = Mosh.Label)
-                    Text(pluralStringResource(R.plurals.home_memories_count, g.photos + g.clips, g.photos + g.clips), style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextDim))
+                if (!firstTime) {
+                    if (upNext.isNotEmpty()) {
+                        SectionTitle(stringResource(R.string.home_section_up_next), Modifier.padding(top = 18.dp))
+                        HomeDivider()
+                        upNext.forEach { card ->
+                            UpNextRow(card) { onOpenUpNext(card.id) }
+                            HomeDivider()
+                        }
+                    }
+                    // "Remember last year?": a gig on this day in an earlier year.
+                    nz.waveformlabs.moshpoint.Memories.today(pastGigs, if (nowSec > 0) nowSec * 1000 else System.currentTimeMillis()).firstOrNull()?.let { (g, years) ->
+                        Spacer(Modifier.height(28.dp))
+                        MemoryCard(g, years) { onOpenGig(g) }
+                    }
+                    if (past.isNotEmpty()) {
+                        SectionTitle(stringResource(R.string.home_section_past_gigs), Modifier.padding(top = 18.dp), onSeeAll = { gigsOpen = true })
+                        PastGigsStrip(past, onOpenGig)
+                    }
+                    SectionTitle(
+                        stringResource(R.string.home_section_friends),
+                        Modifier.padding(top = if (past.isNotEmpty()) 0.dp else 18.dp),
+                        onSeeAll = if (permanent.isNotEmpty()) ({ friendsOpen = true }) else null,
+                    )
+                    if (permanent.isEmpty()) {
+                        Text(
+                            stringResource(R.string.home_friends_empty),
+                            style = HomeType.Body.copy(fontSize = 14.sp, lineHeight = 21.sp, color = Mosh.TextDim),
+                            modifier = Modifier.padding(start = HomeSide, end = HomeSide, top = 6.dp),
+                        )
+                    } else {
+                        FriendsStrip(permanent, seen, nowSec, onFind = { onFind(setOf(it)) }, onOptions = { options = it })
+                        DotLineText(
+                            stringResource(R.string.home_tap_mate_hint),
+                            style = HomeType.Body.copy(fontSize = 12.5.sp, lineHeight = 17.sp, color = Mosh.TextFaint),
+                            modifier = Modifier.padding(start = HomeSide, end = HomeSide, top = 8.dp),
+                            keep = 40,
+                        )
+                    }
+                }
+                // Always false in release builds (BuildConfig.TEST_BUILD is a compile-time constant).
+                if ((BuildConfig.TEST_BUILD && DebugStatus.showUi) && onAddSimulated != null) {
+                    TextButton(onClick = onAddSimulated, modifier = Modifier.padding(start = HomeSide - 12.dp, top = 12.dp)) {
+                        Text("Debug: add simulated friend", style = HomeType.Label.copy(fontSize = 14.sp, color = Mosh.Amber))
+                    }
                 }
             }
+            HomeBar(onMap = onOpenMap, onAdd = { addOpen = true }, onMe = { settingsOpen = true }, myName = myName, onStory = onOpenStory)
         }
-
-        // Past nights, to relive and save.
-        val past = pastGigs.filter { it.id != currentGigId }
-        if (past.isNotEmpty()) {
-            item {
-                Spacer(Modifier.height(4.dp))
-                Text(stringResource(R.string.home_your_gigs), style = Mosh.Eyebrow)
-                Spacer(Modifier.height(10.dp))
-                PastGigs(past, onOpenGig)
-            }
-        }
-
-        // Permanent friends.
-        item {
-            Spacer(Modifier.height(4.dp))
-            Text(stringResource(R.string.home_friends), style = Mosh.Eyebrow)
-        }
-        if (permanent.isEmpty()) item { Text(stringResource(R.string.home_friends_empty), style = Mosh.Body) }
-        items(permanent, key = { it.id }) { row(it) }
-        // Always false in release builds (BuildConfig.TEST_BUILD is a compile-time constant).
-        if ((BuildConfig.TEST_BUILD && DebugStatus.showUi) && onAddSimulated != null) {
-            item { TextButton(onClick = onAddSimulated) { Text("Debug: add simulated friend", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber)) } }
-        }
-    }
-    HomeBar(onMap = onOpenMap, onAdd = { addOpen = true }, onMe = { settingsOpen = true }, myName = myName, onStory = onOpenStory)
-    }
     }
 }
 

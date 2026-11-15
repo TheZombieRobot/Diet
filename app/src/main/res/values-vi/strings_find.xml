@@ -29,7 +29,7 @@
     <string name="find_pill_hidden">Đang ẩn</string>
     <string name="find_searching_cd">Đang tìm</string>
     <string name="find_looking_for">Đang tìm %1$s…</string>
-    <string name="find_searching_help">Chưa bắt được sóng hay vị trí nào từ họ. Họ cần mở Moshpoint, Bật chia sẻ, kèm vị trí và dữ liệu di động. Rồi mũi tên sẽ hiện ra, kể cả khi họ ở tận đầu kia thành phố.</string>
+    <string name="find_searching_help">Chưa bắt được sóng hay vị trí nào từ họ. Họ cần mở Moshpoint, bật Hiển thị, kèm vị trí và dữ liệu di động. Rồi mũi tên sẽ hiện ra, kể cả khi họ ở tận đầu kia thành phố.</string>
     <string name="find_band_right_here">Ngay đây</string>
     <string name="find_band_close">Rất gần</string>
     <string name="find_band_nearby">Gần đây</string>
@@ -127,8 +127,6 @@
     <string name="find_live_tag">TRỰC TIẾP</string>
     <string name="find_camera">Camera</string>
 
-    <string name="find_the_story_eyebrow">STORY</string>
-    <string name="find_see_it_all">Xem hết ›</string>
     <string name="find_your_moment">Khoảnh khắc của bạn</string>
     <string name="find_distance_away">Cách %1$s</string>
     <string name="find_on_map">Trên bản đồ</string>

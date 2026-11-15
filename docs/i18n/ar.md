@@ -163,3 +163,22 @@ Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
 | %d unread private messages (screen reader, the count on a face) | %d رسالة خاصة غير مقروءة |
 
 Uses **الشلة** for crew, as elsewhere. *خاص* ("private") is what Arabic messaging apps call a direct message; *كتم* for mute as in WhatsApp. *أنتما* (dual) in the subtitle: exactly two people. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.
+
+## Home redesign (`strings_home_redesign.xml`)
+
+The redesigned home: the Live row (the switch's name and the line beside it), the crew header, faces and ⋯ crew menu, the no-crew and first-time screens, and the section titles (36 strings, 3 plurals). Validator prints **OK** for this file.
+
+| English | Chosen | Why |
+|---|---|---|
+| Live (the switch's name, on or off) | **ظاهر** | The app's word for live everywhere (`home_live`, `crew_tile_live`, «اظهر»). Like English "Live", an adjective that names the switch. |
+| You're visible to your mates / Off: mates can't see you yet | أصحابك يرونك / مغلق: أصحابك لا يرونك بعد | The mates are the subject, so nothing is conjugated for the user's gender. «مغلق» as in «Bluetooth مغلق». |
+| Ghost mode: off the map, findable up close | وضع الشبح: خارج الخريطة، ويمكن إيجادك عن قرب | The setting's own name; «يمكن إيجادك» fits either gender. |
+| 5 in the crew · 3 live | 5 أصحاب في الشلة · 3 منهم ظاهرون | Full Arabic plural forms with أصحاب (as `main_n_mates`); "3 of them visible" follows the crew count naturally. |
+| Crew menu: Invite more mates / Share the night with family | ادعُ المزيد من أصحابك / شارك الليلة مع العائلة | Imperatives, like the app's other buttons. |
+| Reset invite: A new QR and link. The old ones stop working | رمز QR ورابط جديدان. الدعوة القديمة تتوقف عن العمل | "The old invite" avoids an awkward dual («القديمان»). |
+| Stop following: You won't see where they are any more | لن تظهر لك أماكنهم بعد الآن | "Their spots won't show for you": no verb for the user's gender. |
+| Up next / Past gigs | **القادم** / **الحفلات السابقة** | القادم is the existing section name that other messages quote. Past gigs is new (the old section was «حفلاتك»); the End-the-night line quotes it as «الحفلات السابقة». |
+| Share photos | **شارك صورًا** | Like «شارك لحظة» (`find_share_a_moment`); fits half the width. |
+
+For a native reviewer: (1) «ظاهر» is masculine; the noun «الظهور» (as in `visibility_channel`, «حالة الظهور») is the alternative if an adjective reads oddly next to a switch that is off. (2) «منهم ظاهرون» uses the masculine plural for a mixed group. (3) `main_recap_text`, `main_night_ended` and `crew_notif_done_saved` now say «الحفلات السابقة» too (the English now says "Past gigs" there). Written without a native reviewer. Confidence: **medium-high**.
+- **The Live switch's name in other texts** (review of the redesign): The switch is «ظاهر»; texts that tell people to turn it on name it so (find_searching_help, find_map_no_mates, main_nudge_text, offline_hint_go_live: «فعّل «ظاهر»»). The onboarding title keeps the verb «اظهر».
