@@ -187,7 +187,7 @@ jobs:
           }
 
       - name: Commit screenshots to docs/screenshots (only when they change)
-        if: success() && github.event_name == 'push'
+        if: success() && github.event_name != 'pull_request'
         continue-on-error: true
         shell: bash
         env:
@@ -345,7 +345,9 @@ jobs:
         # Fixed URL anyone can open on their phone, no GitHub login.
         # If the RELEASES_TOKEN secret is set, builds go to the separate public repo
         # TheZombieRobot/moshpoint-builds (code can then stay private); otherwise to this repo.
-        if: github.event_name == 'push' && github.ref_name == 'ccr-5839ed7c-1q0ztj'
+        # Pushes publish, and so does a manual run (Actions → Run workflow on this branch): that's
+        # how a test build is made on request after commits saved with [skip ci].
+        if: github.event_name != 'pull_request' && github.ref_name == 'ccr-5839ed7c-1q0ztj'
         env:
           GH_TOKEN: ${{ secrets.RELEASES_TOKEN || github.token }}
           TARGET: ${{ secrets.RELEASES_TOKEN != '' && 'TheZombieRobot/moshpoint-builds' || github.repository }}
@@ -482,7 +484,7 @@ jobs:
           echo "$(ls wear/src/test/snapshots/images/*.png | wc -l) watch screenshots"
 
       - name: Commit watch screenshots to docs/screenshots/watch (only when they change)
-        if: success() && github.event_name == 'push'
+        if: success() && github.event_name != 'pull_request'
         continue-on-error: true
         shell: bash
         env:
@@ -554,7 +556,7 @@ jobs:
 
       - name: Publish watch test APK next to the phone one
         # Same rule and same place as "Publish test APK to a public link" above.
-        if: github.event_name == 'push' && github.ref_name == 'ccr-5839ed7c-1q0ztj'
+        if: github.event_name != 'pull_request' && github.ref_name == 'ccr-5839ed7c-1q0ztj'
         env:
           GH_TOKEN: ${{ secrets.RELEASES_TOKEN || github.token }}
           TARGET: ${{ secrets.RELEASES_TOKEN != '' && 'TheZombieRobot/moshpoint-builds' || github.repository }}
