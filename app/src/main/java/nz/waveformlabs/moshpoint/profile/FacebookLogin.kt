@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.profile
 
 import android.content.Context
 import android.graphics.BitmapFactory
@@ -19,6 +19,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
+import nz.waveformlabs.moshpoint.BuildConfig
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
 
 /**
  * "Continue with Facebook": fills in your name and profile photo (public_profile only).

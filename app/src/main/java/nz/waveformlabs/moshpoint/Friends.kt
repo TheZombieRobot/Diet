@@ -7,6 +7,7 @@ import nz.waveformlabs.moshpoint.core.FriendRecord
 import nz.waveformlabs.moshpoint.locate.FinderMate
 import java.io.File
 import java.util.UUID
+import nz.waveformlabs.moshpoint.profile.PhotoStore
 
 /**
  * A friend we can find. [secret] is the shared key that lets us recognise their rotating

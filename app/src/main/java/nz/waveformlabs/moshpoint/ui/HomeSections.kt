@@ -846,7 +846,7 @@ internal fun HomeBar(onMap: () -> Unit, onAdd: () -> Unit, onMe: () -> Unit, myN
                 AddButton(onAdd, Modifier.weight(1f))
                 BarItem(story, labelSize, selected = false, Modifier.weight(1f), icon = { c -> HomeIcon(HomeIcons.Story, c, 26.dp) }, onClick = onStory)
                 BarItem(me, labelSize, selected = false, Modifier.weight(1f), icon = { _ ->
-                    val mine = nz.waveformlabs.moshpoint.PhotoStore.photos[nz.waveformlabs.moshpoint.PhotoStore.ME]
+                    val mine = nz.waveformlabs.moshpoint.profile.PhotoStore.photos[nz.waveformlabs.moshpoint.profile.PhotoStore.ME]
                     if (mine != null) {
                         Image(mine, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.size(26.dp).clip(CircleShape))
                     } else {

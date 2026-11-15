@@ -1,10 +1,13 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.profile
 
 import android.content.Context
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.DebugStatus
+import nz.waveformlabs.moshpoint.Friend
+import nz.waveformlabs.moshpoint.FriendsRepository
 import nz.waveformlabs.moshpoint.chat.ChatSync
 import nz.waveformlabs.moshpoint.core.AvatarBox
 import nz.waveformlabs.moshpoint.locate.RelayClient

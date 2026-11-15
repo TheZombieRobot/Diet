@@ -53,6 +53,10 @@ import nz.waveformlabs.moshpoint.moments.MomentFlow
 import nz.waveformlabs.moshpoint.moments.Moments
 import nz.waveformlabs.moshpoint.moments.ShareQuality
 import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages
+import nz.waveformlabs.moshpoint.profile.AvatarSync
+import nz.waveformlabs.moshpoint.profile.FacebookLogin
+import nz.waveformlabs.moshpoint.profile.Identity
+import nz.waveformlabs.moshpoint.profile.PhotoStore
 import nz.waveformlabs.moshpoint.safety.GhostMode
 import nz.waveformlabs.moshpoint.safety.TorchStrobe
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs

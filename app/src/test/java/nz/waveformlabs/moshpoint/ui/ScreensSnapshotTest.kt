@@ -152,9 +152,9 @@ open class ScreensSnapshotTest {
     }
 
     @Test fun finderGroupWithPhotos() {
-        nz.waveformlabs.moshpoint.PhotoStore.photos["sam"] = fakePhoto(0xFF1E3A8A.toInt(), 0xFF22E4FF.toInt())
-        nz.waveformlabs.moshpoint.PhotoStore.photos["alex"] = fakePhoto(0xFF4C1D95.toInt(), 0xFFC86BFF.toInt())
-        nz.waveformlabs.moshpoint.PhotoStore.photos["jo"] = fakePhoto(0xFF7C2D12.toInt(), 0xFFFFB020.toInt())
+        nz.waveformlabs.moshpoint.profile.PhotoStore.photos["sam"] = fakePhoto(0xFF1E3A8A.toInt(), 0xFF22E4FF.toInt())
+        nz.waveformlabs.moshpoint.profile.PhotoStore.photos["alex"] = fakePhoto(0xFF4C1D95.toInt(), 0xFFC86BFF.toInt())
+        nz.waveformlabs.moshpoint.profile.PhotoStore.photos["jo"] = fakePhoto(0xFF7C2D12.toInt(), 0xFFFFB020.toInt())
         try {
             finder(
                 "Foo Fighters night",
@@ -165,7 +165,7 @@ open class ScreensSnapshotTest {
                 ),
             )
         } finally {
-            nz.waveformlabs.moshpoint.PhotoStore.photos.clear()
+            nz.waveformlabs.moshpoint.profile.PhotoStore.photos.clear()
         }
     }
 

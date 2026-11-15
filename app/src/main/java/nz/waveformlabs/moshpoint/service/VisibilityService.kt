@@ -41,7 +41,7 @@ import nz.waveformlabs.moshpoint.locate.FinderMate
  */
 class VisibilityService : LifecycleService() {
     /** Who we are right now: our crew pass while a crew is on, else our permanent identity. */
-    private val mySecret: ByteArray get() = nz.waveformlabs.moshpoint.Identity.current(this)
+    private val mySecret: ByteArray get() = nz.waveformlabs.moshpoint.profile.Identity.current(this)
     /** The being-findable radios; set once [begin] has run. */
     private var findable: Findable? = null
     private var uploader: LocationUploader? = null

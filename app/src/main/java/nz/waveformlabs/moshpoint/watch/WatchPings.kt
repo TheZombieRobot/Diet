@@ -17,7 +17,7 @@ import nz.waveformlabs.moshpoint.crew.CrewStatus
 import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.FriendsRepository
 import nz.waveformlabs.moshpoint.crew.GroupSync
-import nz.waveformlabs.moshpoint.Identity
+import nz.waveformlabs.moshpoint.profile.Identity
 import nz.waveformlabs.moshpoint.chat.OfflineMessages
 import nz.waveformlabs.moshpoint.core.EphemeralId
 import nz.waveformlabs.moshpoint.core.GigGroup

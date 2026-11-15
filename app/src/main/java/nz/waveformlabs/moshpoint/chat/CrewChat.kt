@@ -9,7 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.gigs.GigArchive
-import nz.waveformlabs.moshpoint.Identity
+import nz.waveformlabs.moshpoint.profile.Identity
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.GigGroup

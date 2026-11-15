@@ -18,7 +18,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import nz.waveformlabs.moshpoint.AvatarSync
+import nz.waveformlabs.moshpoint.profile.AvatarSync
 import nz.waveformlabs.moshpoint.chat.ChatSync
 import nz.waveformlabs.moshpoint.chat.CrewChat
 import nz.waveformlabs.moshpoint.CrewWidget
@@ -27,7 +27,7 @@ import nz.waveformlabs.moshpoint.FriendsRepository
 import nz.waveformlabs.moshpoint.gigs.GigArchive
 import nz.waveformlabs.moshpoint.gigs.GigWake
 import nz.waveformlabs.moshpoint.HerePins
-import nz.waveformlabs.moshpoint.Identity
+import nz.waveformlabs.moshpoint.profile.Identity
 import nz.waveformlabs.moshpoint.LocationBook
 import nz.waveformlabs.moshpoint.moments.Moments
 import nz.waveformlabs.moshpoint.gigs.NightStats

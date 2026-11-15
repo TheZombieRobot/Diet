@@ -22,6 +22,7 @@ import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.gigs.GigArchive
 import nz.waveformlabs.moshpoint.locate.MotionDetector
 import nz.waveformlabs.moshpoint.locate.MyLocation
+import nz.waveformlabs.moshpoint.profile.Identity
 import nz.waveformlabs.moshpoint.venue.Floors
 
 /**

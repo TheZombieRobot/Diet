@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.Friend
-import nz.waveformlabs.moshpoint.PhotoStore
+import nz.waveformlabs.moshpoint.profile.PhotoStore
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.GigGroup

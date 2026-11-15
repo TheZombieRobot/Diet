@@ -32,7 +32,7 @@ import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.FriendsRepository
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.LocationBook
-import nz.waveformlabs.moshpoint.PhotoStore
+import nz.waveformlabs.moshpoint.profile.PhotoStore
 import nz.waveformlabs.moshpoint.core.watch.WatchMate
 import nz.waveformlabs.moshpoint.core.watch.WatchProtocol
 import nz.waveformlabs.moshpoint.core.watch.WatchState

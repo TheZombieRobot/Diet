@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.profile
 
 import android.content.Context
 import android.graphics.Bitmap
