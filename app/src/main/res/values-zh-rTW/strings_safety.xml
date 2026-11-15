@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Chinese (Traditional): safety and the Live state (what Need help says about the crew alert, Live going off by itself, a full phone, the check-in reminder). -->
+<resources>
+
+    <string name="safety_help_sending">傳送中…</string>
+    <string name="safety_help_sent">已傳給小隊</string>
+    <string name="safety_help_sent_sub">整個小隊都會收到你的緊急通知，附上你的位置。</string>
+    <string name="safety_help_nearby">已傳給附近隊友</string>
+    <string name="safety_help_nearby_sub">附近的小隊手機已經收到了。等你們當中有人有訊號，小隊其他人就會收到。</string>
+    <string name="safety_help_not_yet">還沒傳送</string>
+    <string name="safety_help_wait_go_live">沒訊號。打開「在線」，附近的小隊手機就能透過 Bluetooth 幫你傳遞。</string>
+    <string name="safety_help_wait_bluetooth">沒訊號，Bluetooth 也沒開。打開後，附近的小隊手機就能幫你傳遞。</string>
+    <string name="safety_help_wait_cant_carry">沒訊號。這支手機無法透過 Bluetooth 傳遞，等有訊號時會傳送。</string>
+    <string name="safety_help_wait_nearby">沒訊號。會先傳給第一支靠近的小隊手機，等有訊號時再傳給所有人。</string>
+    <string name="safety_help_wait_retrying">還沒傳到伺服器。會一直自動重試。</string>
+    <string name="safety_go_live">上線</string>
+    <string name="safety_help_not_sent">未傳送</string>
+    <string name="safety_help_not_sent_sub">沒有人收到你的緊急通知。點一下重試。</string>
+    <string name="safety_help_text_or_call">用下面的簡訊或電話聯絡：兩種方式都不需要行動數據。</string>
+    <string name="safety_help_no_sms">這支手機沒有能傳簡訊的 App。改打電話，或請身邊的人幫忙。</string>
+    <string name="safety_help_no_dialler">這支手機不能打電話。請身邊的人幫你撥打 %1$s。</string>
+
+    <string name="safety_channel_notices">上線狀態和儲存空間通知</string>
+    <string name="safety_live_off_title">你已經下線了</string>
+    <string name="safety_live_off_text">Android 在背景關掉了 Moshpoint，所以朋友找不到你了。點一下重新上線。</string>
+    <string name="safety_live_cant_start_text">Android 沒讓 Moshpoint 保持上線，所以朋友找不到你了。檢查一下權限有沒有開啟，再重新上線。</string>
+    <string name="safety_live_long_title">還在演出現場嗎？</string>
+    <string name="safety_live_long_text">你上線了 12 小時，為了省電，「在線」已自動關閉。</string>
+    <string name="safety_live_long_notif">你上線了 12 小時，為了省電，「在線」已自動關閉。還在現場的話，點一下。</string>
+    <string name="safety_live_bluetooth_off">Bluetooth 沒開：靠近時朋友找不到你</string>
+
+    <string name="safety_storage_full_title">手機儲存空間滿了</string>
+    <string name="safety_storage_full_text">清出一些空間之前，Moshpoint 無法儲存新的訊息、相片或報平安紀錄。</string>
+
+    <string name="safety_checkin_reminder_title">到家了嗎？</string>
+    <string name="safety_checkin_reminder_text">如果不點「我平安到家了」，小隊會收到你還沒報平安的通知。</string>
+    <string name="safety_home_safe_waiting">還沒傳送。一有訊號就會自動傳送。</string>
+
+</resources>
