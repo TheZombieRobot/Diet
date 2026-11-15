@@ -152,17 +152,17 @@ Results: not recorded yet (see Status).
 
 Handover (kept current; newest first):
 
-- **Now:** CI run 276 (commit `fc1981d`) rendering the screenshots. Run 274 built everything
-  (translations, core and server tests, debug and release app) but its screenshots showed two
-  bugs, both fixed: the Up next date tile built its weekday from the locale's best pattern,
-  which for a lone weekday is the stand-alone `ccc` that `java.text.SimpleDateFormat` rejects
-  off the phone (every home with an Up next row failed to render, except in French); and
-  `FitText` multiplied an unspecified line height, which throws, so every crew-tonight home
-  crashed while laying out the faces strip (a blank grey frame in the screenshots: an
-  exception inside a lazy row's item is thrown during layout, which Paparazzi doesn't report
-  as a failure; on the phone it would have crashed). Next: when run 276's screenshots land,
-  fetch `ui-screenshots-claude-home-redesign`, check none is blank or missing, then audit
-  (English first against the design, then every language).
+- **Now:** Step 3, the audit. Run 276 rendered every test in every language (none blank or
+  missing). English checked against the design (Main, CrewMenu, NoCrew, FirstTime, Scrolled):
+  the rhythm matches to a few pixels. Fixed from it: a face's distance ("0 m" for 8 m), the
+  memories plural in the tall test, live faces sitting 2 dp lower than the rest, uneven
+  Polaroids, a lone emoji on a caption's second line, the big button's long labels, See all's
+  touch width, the status bar on Android 15, and a pair of buttons that broke a label
+  mid-word (German "Crew-Cha|t", Japanese "クルーチャ|ット"). Four audit agents are going
+  through every language (de/nl/sv/fr/it, es/es-rES/pt/pl/tr/in, ar/hi/th/vi,
+  ja/ko/zh-rCN/zh-rTW/en-rUS) with the brief kept in the scratchpad (summarised in section 3).
+  CI run 278 (commit `500308a`) renders the fixes. Next: verify the agents' findings on the
+  pictures, fix, re-render, then fill in section 3 and the contact sheets.
 - **Done:** Step 1 (inventory, above). Step 2 code, compiling in CI: `Theme.kt` tokens,
   `HomeKit.kt` (new), `HomeSections.kt` and `FriendsScreen.kt` (rewritten),
   `HelpDialog(onAlertCrew = null)` in `CrewChatUi.kt`, `MomentStrip` removed (`MomentsUi.kt`),
