@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.sharing
 
 import android.content.Context
 import android.content.Intent
@@ -14,6 +14,8 @@ import android.text.StaticLayout
 import android.text.TextPaint
 import androidx.core.content.FileProvider
 import java.io.File
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
 
 /**
  * The night's plan as a picture (4:5, Instagram/WhatsApp friendly): gig, when and where,

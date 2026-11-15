@@ -1,7 +1,10 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.sharing
 
 import android.content.Context
 import android.content.Intent
+import nz.waveformlabs.moshpoint.BuildConfig
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
 
 /** The messages Moshpoint asks you to send (install link, crew invite, "go live" nudge). */
 object Sharing {
