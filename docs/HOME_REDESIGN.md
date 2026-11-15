@@ -239,11 +239,12 @@ still has a middle dot beside a number ("٤ · …").
 
 Handover (kept current; newest first):
 
-- **Now:** final checks. Audit round 2's findings are fixed and were checked on run 281's
-  pictures; run 282 (commit `ad9a3e9`) renders the last one (the tap hint in Italian). Next:
-  confirm run 282 has no failing test and every picture rendered, then commit the results
-  table (section 3) and one contact sheet per state to `docs/design/home-redesign/audit/`,
-  and report to the owner.
+- **Now:** finished. CI run 282 (commit `ad9a3e9`,
+  https://github.com/TheZombieRobot/Diet/actions/runs/43668760375) is green: translations,
+  core and server tests, debug and release builds of the app and the watch, licences, and
+  every screenshot test passing (59 tests in each of the 21 language sets, none blank). The
+  commits after it only add docs (this file, the contact sheets) and CI's screenshots. The
+  owner has the report.
 - **Done:** Step 1 (inventory, above). Step 2 code, compiling in CI: `Theme.kt` tokens,
   `HomeKit.kt` (new), `HomeSections.kt` and `FriendsScreen.kt` (rewritten),
   `HelpDialog(onAlertCrew = null)` in `CrewChatUi.kt`, `MomentStrip` removed (`MomentsUi.kt`),
