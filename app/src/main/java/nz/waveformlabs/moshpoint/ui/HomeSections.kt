@@ -1,28 +1,40 @@
 package nz.waveformlabs.moshpoint.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,110 +44,668 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.Friend
+import nz.waveformlabs.moshpoint.GigArchive
 import nz.waveformlabs.moshpoint.LocationBook
+import nz.waveformlabs.moshpoint.Moments
 import nz.waveformlabs.moshpoint.R
-import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.venue.VenueMaps
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-// The home screen's building blocks (people first, like Snap Map / Life360 / Find My:
-// your crew and what they're up to at the top, setup tucked away).
+// The home screen's sections, top to bottom (docs/design/home-redesign), plus the pieces other
+// screens share: the one-tap pings, the message panel, the bottom bar and the Add panel.
 
-/** Compact "you're live" switch for the header: the one thing that must be on at a gig. */
+/** The header: the wordmark, and Need help (which only opens the help dialog). */
 @Composable
-internal fun LivePill(live: Boolean, ghost: Boolean, modifier: Modifier = Modifier, onToggle: () -> Unit) {
+internal fun HomeHeader(onHelp: () -> Unit, modifier: Modifier = Modifier) {
+    Row(modifier.fillMaxWidth().padding(horizontal = HomeSide), verticalAlignment = Alignment.CenterVertically) {
+        Wordmark()
+        Spacer(Modifier.width(12.dp))
+        Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) { HelpPill(onHelp) }
+    }
+}
+
+/** "One thing first": the one thing to fix next (a permission, then each switch), with its fix. */
+@Composable
+internal fun SetupCard(eyebrow: String, text: String, button: String, onFix: () -> Unit, modifier: Modifier = Modifier) {
+    val shape = RoundedCornerShape(18.dp)
+    Column(
+        modifier.padding(horizontal = HomeSide).fillMaxWidth().clip(shape)
+            .background(Mosh.Amber.copy(alpha = 0.10f))
+            .border(1.dp, Mosh.Amber.copy(alpha = 0.45f), shape)
+            .padding(16.dp),
+    ) {
+        Kicker(eyebrow, colour = Mosh.Amber)
+        Spacer(Modifier.height(6.dp))
+        Text(text, style = Mosh.Body.copy(fontSize = 14.sp, lineHeight = 20.sp, color = Mosh.Text))
+        Spacer(Modifier.height(12.dp))
+        Button(
+            onClick = onFix,
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Mosh.Amber, contentColor = Mosh.Ground),
+            modifier = Modifier.heightIn(min = 48.dp),
+        ) { Text(button, style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Ground), textAlign = TextAlign.Center) }
+    }
+}
+
+/**
+ * The crew's name and the ⋯ crew menu, then what's known about it: how many are in and live,
+ * who follows from home (nobody is followed without knowing), when, and the venue map.
+ */
+@Composable
+internal fun CrewHeader(
+    eyebrow: String,
+    name: String,
+    count: String?,
+    followers: List<String>,
+    whenText: String?,
+    venueMap: VenueMaps.Status?,
+    onMenu: () -> Unit,
+) {
+    Column(Modifier.fillMaxWidth().padding(horizontal = HomeSide)) {
+        Kicker(eyebrow)
+        Spacer(Modifier.height(2.dp))
+        Row(verticalAlignment = Alignment.Top) {
+            Text(
+                name, style = Mosh.Hero, maxLines = 3, overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f).padding(top = 6.dp).semantics { heading() },
+            )
+            Spacer(Modifier.width(12.dp))
+            RoundIconButton(HomeIcons.More, stringResource(R.string.home_crew_options), onMenu)
+        }
+        if (count != null) Text(count, style = Mosh.Small)
+        if (followers.isNotEmpty()) {
+            Spacer(Modifier.height(6.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                HomeIcon(HomeIcons.House, Mosh.Lilac, 16.dp)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.home_following_from_home_names, followers.joinToString(", ")), style = Mosh.Small.copy(color = Mosh.Lilac))
+            }
+        }
+        if (whenText != null) {
+            Spacer(Modifier.height(4.dp))
+            Text(whenText, style = Mosh.Small.copy(color = Mosh.TextDim))
+        }
+        if (venueMap != null) VenueMapLine(venueMap)
+    }
+}
+
+/**
+ * Under the crew's buttons: the meet-up with the latest crew alert under it (tap = the map),
+ * more alerts for followers, and the pinned plan (tap = the crew chat).
+ */
+@Composable
+internal fun ActivityBlock(
+    meetUp: String?,
+    pings: List<GigGroup.Ping>,
+    nowSec: Long,
+    describe: (Int) -> String,
+    plan: String?,
+    onMap: () -> Unit,
+    onPlan: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    val lines = pings.map { p ->
+        Pair(stringResource(R.string.home_ping_line, p.from, describe(p.kind)) + " · " + ago(nowSec - p.timeSec), p.kind == GigGroup.Ping.NEED_HELP)
+    }
+    if (meetUp == null && lines.isEmpty() && plan == null) return
+    Column(modifier.fillMaxWidth().padding(horizontal = HomeSide)) {
+        Box(Modifier.fillMaxWidth().height(1.dp).background(Mosh.Hairline))
+        Spacer(Modifier.height(6.dp))
+        val rest = if (meetUp != null) {
+            val first = lines.firstOrNull()
+            ActivityRow(
+                HomeIcons.Pin, Mosh.Pink, stringResource(R.string.home_meetup, meetUp), first?.first, onMap,
+                subColour = if (first?.second == true) Mosh.Danger else Mosh.TextDim,
+            )
+            lines.drop(1)
+        } else {
+            lines
+        }
+        rest.forEach { (text, help) ->
+            ActivityRow(HomeIcons.Pulse, if (help) Mosh.Danger else Mosh.Cyan, text, null, onMap, titleColour = if (help) Mosh.Danger else Mosh.Text, strong = false)
+        }
+        if (plan != null) ActivityRow(HomeIcons.Plan, Mosh.Lime, plan, stringResource(R.string.home_plan_pinned), onPlan)
+    }
+}
+
+@Composable
+private fun ActivityRow(
+    icon: ImageVector,
+    tint: Color,
+    title: String,
+    sub: String?,
+    onClick: (() -> Unit)?,
+    titleColour: Color = Mosh.Text,
+    subColour: Color = Mosh.TextDim,
+    strong: Boolean = true,
+) {
+    Row(
+        Modifier.fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
+            .padding(vertical = 10.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        HomeIcon(icon, tint, 22.dp, Modifier.padding(top = 1.dp))
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(
+                title,
+                style = if (strong) Mosh.RowTitle.copy(color = titleColour) else Mosh.Body.copy(fontSize = 14.sp, lineHeight = 20.sp, color = titleColour),
+            )
+            if (sub != null) Text(sub, style = Mosh.Small.copy(color = subColour))
+        }
+    }
+}
+
+/** Tonight's photos as Polaroids (tap = the story). */
+@Composable
+internal fun StoryStrip(items: List<Moments.Item>, onOpen: () -> Unit) {
+    LazyRow(
+        Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(start = HomeSide, end = HomeSide, top = 12.dp, bottom = 20.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        items(items.take(8), key = { it.key }) { m -> Polaroid(m, 112.dp, Modifier.clickable(role = Role.Button, onClick = onOpen)) }
+    }
+}
+
+/** A day in the date tile: weekday over the day of the month, in the phone's language. A calendar when there's no date. */
+@Composable
+internal fun DateTile(startsAtSec: Long) {
+    val shape = RoundedCornerShape(12.dp)
+    Column(
+        Modifier.widthIn(min = 46.dp).heightIn(min = 50.dp)
+            .background(Mosh.Violet.copy(alpha = 0.16f), shape)
+            .border(1.dp, Mosh.Violet.copy(alpha = 0.35f), shape)
+            .padding(horizontal = 5.dp, vertical = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        if (startsAtSec > 0) {
+            val locale = Locale.getDefault()
+            val d = Date(startsAtSec * 1000)
+            val weekday = SimpleDateFormat(android.text.format.DateFormat.getBestDateTimePattern(locale, "EEE"), locale).format(d).uppercase(locale)
+            val day = SimpleDateFormat(android.text.format.DateFormat.getBestDateTimePattern(locale, "d"), locale).format(d)
+            Text(
+                weekday, maxLines = 1, softWrap = false,
+                style = Mosh.Label.copy(fontSize = 10.sp, letterSpacing = tracked(weekday, 1.sp), color = Mosh.Lilac),
+            )
+            Text(day, style = Mosh.Hero.copy(fontSize = 17.sp, letterSpacing = 0.sp), maxLines = 1, softWrap = false)
+        } else {
+            HomeIcon(HomeIcons.Calendar, Mosh.Lilac, 20.dp)
+        }
+    }
+}
+
+/** A crew that's coming up, for the "Up next" rows. */
+data class UpNextCard(
+    val id: String,
+    val name: String,
+    /** "Sat 6 Dec, 8:00 pm" */
+    val whenText: String?,
+    /** "in 3 weeks", "tomorrow" */
+    val countdown: String?,
+    val venue: String,
+    val mates: Int,
+    val unread: Int,
+    val plan: String?,
+    val following: Boolean,
+    /** When the gig starts (for the date tile), or 0 if it has no date. */
+    val startsAtSec: Long = 0L,
+)
+
+/** "Up next": a date tile, the crew, who's in and how long to go, its plan. Tap = its chat (hype it up, invite, plan). */
+@Composable
+internal fun UpNextRow(card: UpNextCard, onClick: () -> Unit) {
     val (src, sc) = rememberPress()
-    val colour = when {
-        !live -> Mosh.TextFaint
-        ghost -> Mosh.Violet
-        else -> Mosh.Lime
+    val who = when {
+        card.following -> stringResource(R.string.home_following_from_home)
+        card.mates == 0 -> stringResource(R.string.home_upnext_no_mates)
+        else -> pluralStringResource(R.plurals.home_mates, card.mates, card.mates)
     }
     Row(
-        modifier.pressScale(sc).heightIn(min = 40.dp)
-            .background(if (live) colour.copy(alpha = 0.16f) else Mosh.Surface, RoundedCornerShape(22.dp))
-            .border(1.dp, if (live) colour.copy(alpha = 0.7f) else Mosh.Line, RoundedCornerShape(22.dp))
-            .clickable(interactionSource = src, indication = androidx.compose.foundation.LocalIndication.current, onClick = onToggle)
-            .padding(horizontal = 14.dp, vertical = 9.dp),
+        Modifier.fillMaxWidth()
+            .pressScale(sc)
+            .clickable(interactionSource = src, indication = LocalIndication.current, role = Role.Button, onClick = onClick)
+            .heightIn(min = 72.dp)
+            .padding(horizontal = HomeSide, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.size(10.dp).background(colour, CircleShape))
+        DateTile(card.startsAtSec)
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(card.name, style = Mosh.RowTitle, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(
+                listOfNotNull(who, card.countdown, card.venue.takeIf { it.isNotBlank() }).joinToString(" · "),
+                style = Mosh.Small, maxLines = 2, overflow = TextOverflow.Ellipsis,
+            )
+            if (card.plan != null) {
+                Text(stringResource(R.string.home_pinned_plan, card.plan), style = Mosh.Small.copy(color = Mosh.TextDim), maxLines = 2, overflow = TextOverflow.Ellipsis)
+            }
+        }
+        if (card.unread > 0) {
+            Spacer(Modifier.width(10.dp))
+            CountBadge(card.unread)
+        }
         Spacer(Modifier.width(8.dp))
-        Text(
-            when {
-                !live -> stringResource(R.string.home_go_live)
-                ghost -> stringResource(R.string.home_live_ghost)
-                else -> stringResource(R.string.home_live)
-            },
-            style = Mosh.Label.copy(fontSize = 15.sp, color = if (live) colour else Mosh.Text),
-            // Long in some languages ("Udostępnij lokalizację"): shorten with … rather than push the logo.
-            maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis,
-        )
+        HomeIcon(HomeIcons.Chevron, Mosh.TextFaint, 18.dp)
     }
 }
 
-/** "live · 40 m" / "12 min ago · 8%" under a crew member, from their last shared spot. */
-private fun tileStatus(s: LocationBook.Seen?, nowSec: Long, distanceM: Double?): Pair<String, Color> {
-    if (s == null) return Txt.s(R.string.home_tile_not_sharing) to Mosh.TextFaint
-    val age = nowSec - s.timeSec
-    val lowBattery = s.batteryPct?.takeIf { it <= 20 } // only worth saying when low
-    fun withBattery(text: String) = if (lowBattery != null) Txt.s(R.string.home_tile_with_battery, text, lowBattery) else text
-    return when {
-        s.lastGasp -> Txt.s(R.string.home_tile_phone_died) to Mosh.Danger
-        distanceM != null -> withBattery(distanceLabel(distanceM)) to (if (age < 180) Mosh.Lime else Mosh.TextDim)
-        age < 120 -> withBattery(Txt.s(R.string.home_tile_live)) to Mosh.Lime
-        else -> withBattery(ago(age)) to Mosh.TextFaint
+/** "Remember last year?": a gig on this day in an earlier year. Tap = relive it. */
+@Composable
+internal fun MemoryCard(g: GigArchive.Summary, years: Int, onOpen: () -> Unit) {
+    val shape = RoundedCornerShape(18.dp)
+    val cover = remember(g.cover) { g.cover?.let { GigArchive.thumbnail(it) }?.asImageBitmap() }
+    val n = g.photos + g.clips
+    Row(
+        Modifier.padding(horizontal = HomeSide).fillMaxWidth().clip(shape)
+            .background(Mosh.Amber.copy(alpha = 0.10f))
+            .border(1.dp, Mosh.Amber.copy(alpha = 0.45f), shape)
+            .clickable(role = Role.Button, onClick = onOpen)
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        MiniPolaroid(g.id, cover)
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Kicker(stringResource(R.string.home_memories), colour = Mosh.Amber)
+            Spacer(Modifier.height(4.dp))
+            Text(nz.waveformlabs.moshpoint.Memories.headline(g, years), style = Mosh.RowTitle)
+            Spacer(Modifier.height(2.dp))
+            Text(pluralStringResource(R.plurals.home_memories_count, n, n), style = Mosh.Small.copy(color = Mosh.TextDim))
+        }
     }
 }
 
-/** The crew as big tappable tiles, each with how they're doing. Tap = find them. */
+/** A small tilted Polaroid of a gig's cover. */
+@Composable
+private fun MiniPolaroid(id: String, cover: ImageBitmap?) {
+    Box(
+        Modifier.size(56.dp).rotate(-4f)
+            .background(Mosh.Paper, RoundedCornerShape(3.dp))
+            .padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 11.dp),
+    ) { CoverArt(id, cover, Modifier.fillMaxWidth().height(41.dp)) }
+}
+
+/** A gig's cover photo, or neon stage lights when it has none (picked from the gig, so it stays the same). */
+@Composable
+private fun CoverArt(id: String, cover: ImageBitmap?, modifier: Modifier) {
+    Box(modifier.drawBehind { stageLights(id) }) {
+        if (cover != null) Image(cover, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.matchParentSize())
+    }
+}
+
+private fun DrawScope.stageLights(id: String) {
+    val w = size.width
+    val h = size.height
+    fun spot(x: Float, y: Float, r: Float, colour: Color, alpha: Float) = drawCircle(
+        Brush.radialGradient(listOf(colour.copy(alpha = alpha), colour.copy(alpha = 0f)), center = Offset(x, y), radius = r),
+        radius = r, center = Offset(x, y),
+    )
+    when (Math.floorMod(id.hashCode(), 3)) {
+        0 -> {
+            drawRect(Brush.verticalGradient(listOf(Mosh.Avatar, Mosh.Ground)))
+            spot(w * 0.28f, h * 0.18f, w * 0.42f, Mosh.Pink, 0.95f)
+            spot(w * 0.76f, h * 0.12f, w * 0.36f, Mosh.Cyan, 0.85f)
+        }
+        1 -> drawRect(Brush.verticalGradient(0f to Mosh.Amber, 0.52f to Mosh.Pink, 1f to Mosh.Deep))
+        else -> {
+            drawRect(Brush.verticalGradient(listOf(Mosh.Deep, Mosh.Ground)))
+            spot(w * 0.5f, h * 0.08f, w * 0.48f, Color(Mosh.FriendColours[6]), 0.95f)
+        }
+    }
+}
+
+/** "Sat 7 Nov" in the phone's language and order. */
+internal fun shortDay(sec: Long, year: Boolean = false): String {
+    val l = Locale.getDefault()
+    return SimpleDateFormat(android.text.format.DateFormat.getBestDateTimePattern(l, if (year) "EEEdMMMyyyy" else "EEEdMMM"), l).format(Date(sec * 1000))
+}
+
+private val PolaroidTilts = floatArrayOf(-2f, 1.5f, -1f)
+
+/** One past gig as a Polaroid: the cover, its name in marker, the day and how many photos. */
+@Composable
+private fun GigPolaroid(g: GigArchive.Summary, tilt: Float, onClick: () -> Unit) {
+    val cover = remember(g.cover) { g.cover?.let { GigArchive.thumbnail(it) }?.asImageBitmap() }
+    val photos = pluralStringResource(R.plurals.home_gig_photos, g.photos, g.photos)
+    val clips = pluralStringResource(R.plurals.home_gig_clips, g.clips, g.clips)
+    val sub = listOfNotNull(shortDay(g.whenSec), photos.takeIf { g.photos > 0 }, clips.takeIf { g.clips > 0 }).joinToString(" · ")
+    Column(
+        Modifier.width(150.dp)
+            .rotate(tilt)
+            .shadow(10.dp, RoundedCornerShape(3.dp), clip = false)
+            .background(Mosh.Paper, RoundedCornerShape(3.dp))
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(start = 9.dp, end = 9.dp, top = 9.dp, bottom = 10.dp),
+    ) {
+        CoverArt(g.id, cover, Modifier.fillMaxWidth().height(118.dp))
+        Spacer(Modifier.height(8.dp))
+        Text(g.name, style = TextStyle(fontFamily = Mosh.Marker, fontSize = 16.sp, color = Mosh.Ink), maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Spacer(Modifier.height(2.dp))
+        Text(sub, style = TextStyle(fontFamily = Mosh.Inter, fontSize = 11.sp, lineHeight = 15.sp, color = Mosh.InkSoft), maxLines = 2, overflow = TextOverflow.Ellipsis)
+    }
+}
+
+/** Past gigs as a strip of Polaroids that runs off the screen's edge. */
+@Composable
+internal fun PastGigsStrip(gigs: List<GigArchive.Summary>, onOpen: (GigArchive.Summary) -> Unit) {
+    LazyRow(
+        Modifier.fillMaxWidth(),
+        // Room for the tilt and the drop shadow.
+        contentPadding = PaddingValues(start = HomeSide, end = HomeSide, top = 14.dp, bottom = 24.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        itemsIndexed(gigs, key = { _, g -> g.id }) { i, g -> GigPolaroid(g, PolaroidTilts[i % PolaroidTilts.size]) { onOpen(g) } }
+    }
+}
+
+/** "See all" past gigs: every one as a row, to relive and save. */
+@Composable
+internal fun PastGigsContent(gigs: List<GigArchive.Summary>, onOpen: (GigArchive.Summary) -> Unit) {
+    Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(bottom = 24.dp)) {
+        PanelTitle(stringResource(R.string.home_section_past_gigs))
+        gigs.forEach { g -> PastGigRow(g) { onOpen(g) } }
+    }
+}
+
+@Composable
+private fun PastGigRow(g: GigArchive.Summary, onClick: () -> Unit) {
+    val cover = remember(g.cover) { g.cover?.let { GigArchive.thumbnail(it) }?.asImageBitmap() }
+    val names = g.people.take(3).joinToString(", ")
+    val counts = listOfNotNull(
+        pluralStringResource(R.plurals.home_gig_photos, g.photos, g.photos).takeIf { g.photos > 0 },
+        pluralStringResource(R.plurals.home_gig_clips, g.clips, g.clips).takeIf { g.clips > 0 },
+        if (g.people.size > 3) stringResource(R.string.home_people_more, names, g.people.size - 3) else names.takeIf { it.isNotBlank() },
+    )
+    Row(
+        Modifier.fillMaxWidth()
+            .heightIn(min = 72.dp)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = HomeSide, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        MiniPolaroid(g.id, cover)
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(g.name, style = Mosh.RowTitle, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(listOf(shortDay(g.whenSec, year = true), g.venue).filter { it.isNotBlank() }.joinToString(" · "), style = Mosh.Small.copy(color = Mosh.TextDim), maxLines = 2, overflow = TextOverflow.Ellipsis)
+            if (counts.isNotEmpty()) Text(counts.joinToString(" · "), style = Mosh.Small, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
+        Spacer(Modifier.width(8.dp))
+        HomeIcon(HomeIcons.Chevron, Mosh.TextFaint, 18.dp)
+    }
+}
+
+/** A panel's title. */
+@Composable
+private fun PanelTitle(text: String) {
+    Text(
+        text, style = Mosh.Heading.copy(fontSize = 22.sp),
+        modifier = Modifier.padding(start = HomeSide, end = HomeSide, top = 4.dp, bottom = 8.dp).semantics { heading() },
+    )
+}
+
+/**
+ * "See all" friends: everyone kept for every gig, each with a ⋯ that's always there (photo,
+ * remove…), as asked: removing a friend shouldn't depend on knowing about long-press.
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-internal fun CrewTiles(
-    crew: List<Friend>,
+internal fun FriendsListContent(
+    friends: List<Friend>,
     seen: Map<String, LocationBook.Seen>,
     nowSec: Long,
     onFind: (String) -> Unit,
     onOptions: (Friend) -> Unit,
-    distances: Map<String, Double> = emptyMap(),
-    /** Overrides the status under a tile, e.g. "at the venue" for followers. */
-    notes: Map<String, String> = emptyMap(),
-    /** Unread private messages from each mate (docs/PRIVATE_MESSAGES.md), worn on their face. */
-    badges: Map<String, Int> = emptyMap(),
 ) {
-    Row(
-        Modifier.horizontalScroll(rememberScrollState()).padding(vertical = 10.dp, horizontal = 2.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        crew.forEachIndexed { i, f ->
-            val bob = rememberFloat(i)
-            val (status, colour) = notes[f.id]?.let { it to (if (it == nz.waveformlabs.moshpoint.Txt.s(R.string.crew_at_venue)) Mosh.Lime else Mosh.TextDim) }
-                ?: tileStatus(seen[f.id], nowSec, distances[f.id])
-            Column(
-                Modifier.width(78.dp)
-                    .graphicsLayer { translationY = -3.dp.toPx() * bob.value }
-                    .combinedClickable(onClick = { onFind(f.id) }, onLongClick = { onOptions(f) }),
-                horizontalAlignment = Alignment.CenterHorizontally,
+    val optionsLabel = stringResource(R.string.home_face_options)
+    Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(bottom = 24.dp)) {
+        PanelTitle(stringResource(R.string.home_section_friends))
+        friends.forEach { f ->
+            val status = faceStatus(seen[f.id], nowSec, null)
+            val optionsFor = stringResource(R.string.home_friend_options, f.name)
+            Row(
+                Modifier.fillMaxWidth()
+                    .heightIn(min = 72.dp)
+                    .combinedClickable(
+                        onClickLabel = stringResource(R.string.home_find_name, f.name),
+                        role = Role.Button,
+                        onLongClickLabel = optionsLabel,
+                        onLongClick = { onOptions(f) },
+                        onClick = { onFind(f.id) },
+                    )
+                    .padding(start = HomeSide, end = 12.dp, top = 8.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Box {
-                    Avatar(f, 62.dp)
-                    UnreadBadge(badges[f.id] ?: 0, Modifier.align(Alignment.TopEnd))
+                FaceImage(f, 46.dp, status.live, dim = false, glow = 10.dp)
+                Spacer(Modifier.width(14.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(f.name, style = Mosh.RowTitle.copy(fontSize = 16.sp), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text(status.text, style = Mosh.Small.copy(color = status.colour), maxLines = 2)
                 }
-                Spacer(Modifier.height(6.dp))
-                Text(f.name, style = Mosh.Body.copy(fontSize = 14.sp, color = Mosh.Text), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(status, style = Mosh.Body.copy(fontSize = 11.sp, lineHeight = 13.sp, color = colour), maxLines = 2, textAlign = TextAlign.Center)
+                Spacer(Modifier.width(4.dp))
+                Box(
+                    Modifier.size(48.dp).clip(CircleShape)
+                        .clickable(role = Role.Button, onClick = { onOptions(f) })
+                        .semantics { contentDescription = optionsFor },
+                    contentAlignment = Alignment.Center,
+                ) { HomeIcon(HomeIcons.More, Mosh.TextDim, 20.dp) }
             }
         }
+    }
+}
+
+/**
+ * The crew menu (⋯): once-a-night crew actions. Invite more mates (the crew QR, or a link),
+ * share the night with family, reset the invite (owner only), then end the night, cancel a
+ * crew that's coming up, or stop following.
+ */
+@Composable
+internal fun CrewMenuContent(
+    name: String,
+    subtitle: String,
+    onInvite: (() -> Unit)?,
+    onFamily: (() -> Unit)?,
+    onReset: (() -> Unit)?,
+    endTitle: String,
+    endSub: String,
+    onEnd: () -> Unit,
+) {
+    var confirmReset by remember { mutableStateOf(false) }
+    Column(
+        Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding()
+            .padding(start = HomeSide, end = HomeSide, top = 4.dp, bottom = 28.dp),
+    ) {
+        Text(name, style = Mosh.Heading.copy(fontSize = 22.sp), maxLines = 3, overflow = TextOverflow.Ellipsis, modifier = Modifier.semantics { heading() })
+        Spacer(Modifier.height(4.dp))
+        Text(subtitle, style = Mosh.Small)
+        Spacer(Modifier.height(12.dp))
+        if (onInvite != null) {
+            MenuRow(
+                HomeIcons.UserPlus, Mosh.Cyan.copy(alpha = 0.13f), Mosh.Cyan,
+                stringResource(R.string.home_menu_invite), stringResource(R.string.home_menu_invite_sub), onInvite,
+            )
+        }
+        if (onFamily != null) {
+            MenuRow(
+                HomeIcons.House, Mosh.Violet.copy(alpha = 0.16f), Mosh.Lilac,
+                stringResource(R.string.home_menu_family), stringResource(R.string.home_menu_family_sub), onFamily,
+            )
+        }
+        if (onReset != null) {
+            MenuRow(
+                HomeIcons.Reset, Mosh.GlassFill, Mosh.TextDim,
+                stringResource(R.string.setup_qr_reset_invite), stringResource(R.string.home_menu_reset_sub), { confirmReset = true },
+            )
+        }
+        if (onInvite != null || onFamily != null || onReset != null) {
+            Box(Modifier.padding(vertical = 8.dp).fillMaxWidth().height(1.dp).background(Mosh.Hairline))
+        }
+        MenuRow(HomeIcons.Power, Mosh.Pink.copy(alpha = 0.12f), Mosh.Danger, endTitle, endSub, onEnd, danger = true)
+    }
+    if (confirmReset && onReset != null) {
+        AlertDialog(
+            onDismissRequest = { confirmReset = false },
+            containerColor = Mosh.Deep,
+            title = { Text(stringResource(R.string.setup_qr_reset_title), style = Mosh.Heading) },
+            text = { Text(stringResource(R.string.setup_qr_reset_text), style = Mosh.Body) },
+            confirmButton = { TextButton(onClick = { confirmReset = false; onReset() }) { Text(stringResource(R.string.setup_qr_reset), style = Mosh.Label.copy(color = Mosh.Cyan)) } },
+            dismissButton = { TextButton(onClick = { confirmReset = false }) { Text(stringResource(R.string.setup_cancel), style = Mosh.Label) } },
+        )
+    }
+}
+
+/** Scan a QR / Paste invite: the two ways to join a crew. */
+@Composable
+internal fun JoinButtons(onScan: () -> Unit, onPaste: () -> Unit, modifier: Modifier = Modifier) = ButtonPair(
+    modifier,
+    first = { GlassAction(stringResource(R.string.home_scan_qr), HomeIcons.Scan, accent = Mosh.Cyan, onClick = onScan) },
+    second = { GlassAction(stringResource(R.string.home_paste_invite), HomeIcons.Link, accent = Mosh.Cyan, onClick = onPaste) },
+)
+
+/** Plan a gig for another night: find it now and invite your mates. */
+@Composable
+private fun PlanGigRow(onClick: () -> Unit) {
+    val (src, sc) = rememberPress()
+    val shape = RoundedCornerShape(18.dp)
+    Row(
+        Modifier.fillMaxWidth()
+            .pressScale(sc)
+            .clip(shape)
+            .background(Mosh.GlassFill)
+            .border(1.dp, Mosh.GlassLine, shape)
+            .clickable(interactionSource = src, indication = LocalIndication.current, role = Role.Button, onClick = onClick)
+            .heightIn(min = 64.dp)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        HomeIcon(HomeIcons.Calendar, Mosh.Lilac, 22.dp)
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(stringResource(R.string.home_plan_title), style = Mosh.RowTitle)
+            Text(stringResource(R.string.home_plan_sub), style = Mosh.Small)
+        }
+        Spacer(Modifier.width(8.dp))
+        HomeIcon(HomeIcons.Chevron, Mosh.TextFaint, 18.dp)
+    }
+}
+
+/** No crew tonight (a returning user): start one, plan a gig, or join one. */
+@Composable
+internal fun NoCrewHero(onStart: () -> Unit, onPlan: () -> Unit, onScan: () -> Unit, onPaste: () -> Unit) {
+    Column(Modifier.fillMaxWidth().padding(horizontal = HomeSide)) {
+        Text(stringResource(R.string.home_no_crew_title), style = Mosh.Hero.copy(fontSize = 30.sp), modifier = Modifier.semantics { heading() })
+        Spacer(Modifier.height(10.dp))
+        Text(stringResource(R.string.home_no_crew_text), style = Mosh.Body.copy(lineHeight = 23.sp))
+        Spacer(Modifier.height(24.dp))
+        HeroButton(stringResource(R.string.home_start_crew), HomeIcons.UserPlus, onClick = onStart)
+        Spacer(Modifier.height(12.dp))
+        PlanGigRow(onPlan)
+        Spacer(Modifier.height(28.dp))
+        Kicker(stringResource(R.string.home_join_crew))
+        Spacer(Modifier.height(10.dp))
+        JoinButtons(onScan, onPaste)
+    }
+}
+
+/** A brand-new user: what Moshpoint does, in one picture and two lines, and one thing to do. */
+@Composable
+internal fun FirstTimeHero(onStart: () -> Unit, onScan: () -> Unit, onPaste: () -> Unit, onPlan: () -> Unit) {
+    Column(Modifier.fillMaxWidth().padding(horizontal = HomeSide), horizontalAlignment = Alignment.CenterHorizontally) {
+        RadarArt()
+        Spacer(Modifier.height(14.dp))
+        Text(
+            stringResource(R.string.home_first_title), style = Mosh.Hero.copy(fontSize = 27.sp), textAlign = TextAlign.Center,
+            modifier = Modifier.semantics { heading() },
+        )
+        Spacer(Modifier.height(10.dp))
+        Text(stringResource(R.string.home_first_text), style = Mosh.Body.copy(lineHeight = 23.sp), textAlign = TextAlign.Center)
+        Spacer(Modifier.height(22.dp))
+        HeroButton(stringResource(R.string.home_start_crew), HomeIcons.UserPlus, onClick = onStart)
+        Spacer(Modifier.height(12.dp))
+        JoinButtons(onScan, onPaste)
+        Spacer(Modifier.height(6.dp))
+        Box(
+            Modifier.heightIn(min = 48.dp).clip(RoundedCornerShape(12.dp)).clickable(role = Role.Button, onClick = onPlan).padding(horizontal = 12.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(stringResource(R.string.home_plan_another_night), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lilac), textAlign = TextAlign.Center)
+        }
+    }
+}
+
+/** The first-time picture: radar rings, the glowing arrow, and a mate 12 m away where it points. Decorative. */
+@Composable
+private fun RadarArt(modifier: Modifier = Modifier) {
+    val distance = finderDistanceLabel(12.0)
+    Box(modifier.size(200.dp).clearAndSetSemantics { }) {
+        androidx.compose.foundation.Canvas(Modifier.size(200.dp)) {
+            val s = size.minDimension / 240f // the design's drawing is 240 units across
+            val c = Offset(size.width / 2, size.height / 2)
+            drawCircle(Mosh.Cyan.copy(alpha = 0.12f), radius = 112f * s, center = c, style = Stroke(1.5f * s))
+            drawCircle(Mosh.Cyan.copy(alpha = 0.22f), radius = 78f * s, center = c, style = Stroke(1.5f * s))
+            drawCircle(Mosh.Cyan.copy(alpha = 0.38f), radius = 44f * s, center = c, style = Stroke(1.5f * s))
+            drawCircle(Mosh.Text, radius = 7f * s, center = c)
+            val arrow = Path().apply {
+                moveTo(120f * s, 52f * s); lineTo(140f * s, 80f * s); lineTo(126f * s, 80f * s); lineTo(126f * s, 120f * s)
+                lineTo(114f * s, 120f * s); lineTo(114f * s, 80f * s); lineTo(100f * s, 80f * s); close()
+            }
+            rotate(40f, pivot = c) {
+                drawPath(arrow, Brush.verticalGradient(0f to Color.White, 0.22f to Mosh.Cyan, 1f to Mosh.Violet, startY = 52f * s, endY = 120f * s))
+            }
+        }
+        // Where the arrow points (not mirrored right to left: the arrow isn't either).
+        Box(
+            Modifier.absoluteOffset(x = 127.dp, y = 3.dp).size(52.dp).drawBehind {
+                val r = size.minDimension / 2
+                ringGlow(r, 16.dp.toPx(), Mosh.Lime)
+                drawCircle(Mosh.Lime, radius = r)
+            },
+            contentAlignment = Alignment.Center,
+        ) { DefaultAvatar("Sam", 46.dp) }
+        Text(
+            distance, maxLines = 1, softWrap = false,
+            style = Mosh.Button.copy(fontSize = 11.sp, color = Mosh.Lime),
+            modifier = Modifier.absoluteOffset(x = 132.dp, y = 60.dp)
+                .background(Mosh.Lime.copy(alpha = 0.14f), RoundedCornerShape(10.dp))
+                .padding(horizontal = 8.dp, vertical = 2.dp),
+        )
     }
 }
 
@@ -198,87 +768,82 @@ private fun PingChip(text: String, colour: Color, onClick: () -> Unit) {
         Modifier.pressScale(sc).heightIn(min = 40.dp)
             .background(colour.copy(alpha = 0.12f), RoundedCornerShape(20.dp))
             .border(1.dp, colour.copy(alpha = 0.5f), RoundedCornerShape(20.dp))
-            .clickable(interactionSource = src, indication = androidx.compose.foundation.LocalIndication.current, onClick = onClick)
+            .clickable(interactionSource = src, indication = LocalIndication.current, onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 9.dp),
         contentAlignment = Alignment.Center,
     ) { Text(text, style = Mosh.Label.copy(fontSize = 14.sp, color = colour)) }
 }
 
-/** The last few crew pings ("Bevan is on their way · 2 min ago"). */
+/** Bottom bar: the places you go (Crew, Map, Add, Story, Me). Opaque: the list ends above it. */
 @Composable
-internal fun PingFeed(pings: List<GigGroup.Ping>, nowSec: Long, describe: (Int) -> String) {
-    if (pings.isEmpty()) return
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        pings.take(3).forEach { p ->
-            val help = p.kind == GigGroup.Ping.NEED_HELP
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(8.dp).background(if (help) Mosh.Danger else Mosh.Cyan, CircleShape))
-                Spacer(Modifier.width(10.dp))
-                Text(
-                    stringResource(R.string.home_ping_line, p.from, describe(p.kind)),
-                    style = Mosh.Body.copy(fontSize = 14.sp, color = if (help) Mosh.Danger else Mosh.Text),
-                    modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis,
-                )
-                Text(ago(nowSec - p.timeSec), style = Mosh.Body.copy(fontSize = 12.sp, color = Mosh.TextFaint))
-            }
+internal fun HomeBar(onMap: () -> Unit, onAdd: () -> Unit, onMe: () -> Unit, myName: String = "", onStory: () -> Unit = {}) {
+    Column(Modifier.fillMaxWidth().background(Mosh.Bar)) {
+        Box(Modifier.fillMaxWidth().height(1.dp).background(Mosh.Hairline))
+        Row(
+            Modifier.fillMaxWidth().navigationBarsPadding().padding(start = 10.dp, end = 10.dp, top = 8.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            BarItem(stringResource(R.string.home_bar_crew), selected = true, Modifier.weight(1f), icon = { c -> HomeIcon(HomeIcons.Crew, c, 26.dp) }) {}
+            BarItem(stringResource(R.string.home_bar_map), selected = false, Modifier.weight(1f), icon = { c -> HomeIcon(HomeIcons.MapPin, c, 26.dp) }, onClick = onMap)
+            AddButton(onAdd, Modifier.weight(1f))
+            BarItem(stringResource(R.string.home_bar_story), selected = false, Modifier.weight(1f), icon = { c -> HomeIcon(HomeIcons.Story, c, 26.dp) }, onClick = onStory)
+            BarItem(stringResource(R.string.home_bar_me), selected = false, Modifier.weight(1f), icon = { _ ->
+                val mine = nz.waveformlabs.moshpoint.PhotoStore.photos[nz.waveformlabs.moshpoint.PhotoStore.ME]
+                if (mine != null) {
+                    Image(mine, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.size(26.dp).clip(CircleShape))
+                } else {
+                    DefaultAvatar(myName, 26.dp)
+                }
+            }, onClick = onMe)
         }
     }
 }
 
-/** Bottom bar: the four places you go. */
 @Composable
-internal fun HomeBar(onMap: () -> Unit, onAdd: () -> Unit, onMe: () -> Unit, myName: String = "", onStory: () -> Unit = {}) {
-    Row(
-        Modifier.fillMaxWidth().background(Mosh.Deep.copy(alpha = 0.96f))
-            .border(1.dp, Mosh.Line, RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp))
-            .navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        BarItem(stringResource(R.string.home_bar_crew), selected = true, icon = { c -> CrewIcon(c) }) {}
-        BarItem(stringResource(R.string.home_bar_map), selected = false, icon = { c -> PinIcon(c) }, onClick = onMap)
-        BarItem(stringResource(R.string.home_bar_add), selected = false, accent = true, icon = { c -> PlusIcon(c) }, onClick = onAdd)
-        BarItem(stringResource(R.string.home_bar_story), selected = false, icon = { c -> PolaroidIcon(c) }, onClick = onStory)
-        BarItem(stringResource(R.string.home_bar_me), selected = false, icon = { _ ->
-            val mine = nz.waveformlabs.moshpoint.PhotoStore.photos[nz.waveformlabs.moshpoint.PhotoStore.ME]
-            if (mine != null) {
-                androidx.compose.foundation.Image(
-                    mine, contentDescription = null, contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                    modifier = Modifier.size(28.dp).clip(CircleShape).border(1.5.dp, Mosh.TextDim, CircleShape),
-                )
-            } else {
-                DefaultAvatar(myName, 28.dp)
-            }
-        }, onClick = onMe)
-    }
-}
-
-@Composable
-private fun BarItem(label: String, selected: Boolean, accent: Boolean = false, icon: @Composable (Color) -> Unit, onClick: () -> Unit) {
+private fun BarItem(label: String, selected: Boolean, modifier: Modifier, icon: @Composable (Color) -> Unit, onClick: () -> Unit) {
     val (src, sc) = rememberPress()
-    val colour = when {
-        accent -> Mosh.Pink
-        selected -> Mosh.Lime
-        else -> Mosh.TextDim
-    }
+    val colour = if (selected) Mosh.Lime else Mosh.TextDim
     Column(
-        Modifier.pressScale(sc).width(64.dp)
-            .clickable(interactionSource = src, indication = null, onClickLabel = label, role = androidx.compose.ui.semantics.Role.Tab, onClick = onClick)
-            .padding(vertical = 4.dp),
+        modifier.pressScale(sc)
+            .heightIn(min = 56.dp)
+            .selectable(selected = selected, interactionSource = src, indication = null, role = Role.Tab, onClick = onClick)
+            .padding(top = 2.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Box(
-            Modifier.size(if (accent) 40.dp else 30.dp)
-                .background(if (accent) Mosh.Pink.copy(alpha = 0.18f) else Color.Transparent, CircleShape)
-                .border(if (accent) 1.dp else 0.dp, if (accent) Mosh.Pink else Color.Transparent, CircleShape),
-            contentAlignment = Alignment.Center,
-        ) { icon(colour) }
-        Text(label, style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 14.sp, color = colour))
+        icon(colour)
+        Spacer(Modifier.height(4.dp))
+        Text(
+            label, maxLines = 1, softWrap = false, textAlign = TextAlign.Center,
+            style = Mosh.Body.copy(fontSize = 11.5.sp, lineHeight = 15.sp, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium, color = colour),
+        )
     }
 }
 
-/** Every way to add someone, in one sheet instead of always on screen. */
-@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+/** The bar's raised "+" (Add): a gradient circle with a pink glow under it. */
+@Composable
+private fun AddButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val label = stringResource(R.string.home_bar_add)
+    val (src, sc) = rememberPress()
+    Box(modifier.heightIn(min = 56.dp), contentAlignment = Alignment.TopCenter) {
+        Box(
+            Modifier.offset(y = (-6).dp)
+                .pressScale(sc)
+                .size(52.dp)
+                .drawBehind {
+                    glow(Mosh.Pink, 12.dp.toPx(), 0.7f) { p ->
+                        drawContext.canvas.drawCircle(Offset(size.width / 2, size.height / 2 + 8.dp.toPx()), size.minDimension / 2 - 6.dp.toPx(), p)
+                    }
+                }
+                .clip(CircleShape)
+                .background(Brush.linearGradient(0f to Mosh.Pink, 0.6f to Mosh.Violet, 1f to Mosh.Cyan))
+                .clickable(interactionSource = src, indication = LocalIndication.current, role = Role.Button, onClick = onClick)
+                .semantics { contentDescription = label },
+            contentAlignment = Alignment.Center,
+        ) { HomeIcon(HomeIcons.Plus, Color.White, 26.dp) }
+    }
+}
+
+/** Every way to add someone, in one panel instead of always on screen. */
 @Composable
 internal fun AddSheet(
     inCrew: Boolean,
@@ -292,76 +857,92 @@ internal fun AddSheet(
     onBump: () -> Unit = {},
     onPlanGig: (() -> Unit)? = null,
 ) {
-    androidx.compose.material3.ModalBottomSheet(
-        onDismissRequest = onClose,
-        containerColor = Mosh.Deep,
-        // Open all the way: half-open hid options below the fold with nothing saying they're there.
-        sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    MoshSheet(onClose = onClose) {
+        AddSheetContent(
+            inCrew = inCrew,
+            onShowCrewQr = { onClose(); onShowCrewQr() },
+            onScanQr = { onClose(); onScanQr() },
+            onShareApp = { onClose(); onShareApp() },
+            onPasteInvite = { onClose(); onPasteInvite() },
+            onShowMyQr = { onClose(); onShowMyQr() },
+            onEnterCode = { onClose(); onEnterCode() },
+            onBump = { onClose(); onBump() },
+            onPlanGig = onPlanGig?.let { plan -> { onClose(); plan() } },
+        )
+    }
+}
+
+/** The Add panel's contents (separate so it can be screenshot-tested). */
+@Composable
+internal fun AddSheetContent(
+    inCrew: Boolean,
+    onShowCrewQr: () -> Unit,
+    onScanQr: () -> Unit,
+    onShareApp: () -> Unit,
+    onPasteInvite: () -> Unit,
+    onShowMyQr: () -> Unit,
+    onEnterCode: () -> Unit,
+    onBump: () -> Unit,
+    onPlanGig: (() -> Unit)?,
+) {
+    Column(
+        Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding()
+            .padding(start = HomeSide, end = HomeSide, top = 4.dp, bottom = 28.dp),
     ) {
-        Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(stringResource(R.string.home_add_mates), style = Mosh.Heading)
-            Text(
-                stringResource(R.string.home_add_mates_text),
-                style = Mosh.Body,
-            )
-            NeonButton(if (inCrew) stringResource(R.string.home_show_crew_qr) else stringResource(R.string.home_start_crew_show_qr)) { onClose(); onShowCrewQr() }
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                GlassButton(stringResource(R.string.home_scan_qr), Modifier.weight(1f)) { onClose(); onScanQr() }
-                GlassButton(stringResource(R.string.home_paste_invite), Modifier.weight(1f)) { onClose(); onPasteInvite() }
-            }
-            GlassButton(stringResource(R.string.home_bump_phones)) { onClose(); onBump() }
-            if (onPlanGig != null) GlassButton(stringResource(R.string.home_plan_gig)) { onClose(); onPlanGig() }
-            GlassButton(stringResource(R.string.home_send_app_invite)) { onClose(); onShareApp() }
-            Spacer(Modifier.height(4.dp))
-            Text(stringResource(R.string.home_friends_every_gig), style = Mosh.Eyebrow)
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                TextButton(onClick = { onClose(); onShowMyQr() }) { Text(stringResource(R.string.home_my_friend_qr), style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
-                TextButton(onClick = { onClose(); onEnterCode() }) { Text(stringResource(R.string.home_enter_code), style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
-            }
+        Text(stringResource(R.string.home_add_mates), style = Mosh.Heading.copy(fontSize = 22.sp), modifier = Modifier.semantics { heading() })
+        Spacer(Modifier.height(6.dp))
+        Text(stringResource(R.string.home_add_mates_text), style = Mosh.Body.copy(fontSize = 14.sp, lineHeight = 21.sp))
+        Spacer(Modifier.height(20.dp))
+        HeroButton(
+            if (inCrew) stringResource(R.string.home_show_crew_qr) else stringResource(R.string.home_start_crew_show_qr),
+            HomeIcons.Qr, onClick = onShowCrewQr,
+        )
+        Spacer(Modifier.height(12.dp))
+        JoinButtons(onScanQr, onPasteInvite)
+        Spacer(Modifier.height(8.dp))
+        MenuRow(HomeIcons.Bump, Mosh.Cyan.copy(alpha = 0.13f), Mosh.Cyan, stringResource(R.string.home_bump_phones), null, onBump)
+        if (onPlanGig != null) {
+            MenuRow(HomeIcons.Calendar, Mosh.Violet.copy(alpha = 0.16f), Mosh.Lilac, stringResource(R.string.home_plan_gig), null, onPlanGig)
+        }
+        MenuRow(HomeIcons.Share, Mosh.Pink.copy(alpha = 0.12f), Mosh.Danger, stringResource(R.string.home_send_app_invite), null, onShareApp)
+        Spacer(Modifier.height(18.dp))
+        Kicker(stringResource(R.string.home_friends_every_gig))
+        Spacer(Modifier.height(10.dp))
+        ButtonPair(
+            first = { GlassAction(stringResource(R.string.home_my_friend_qr), HomeIcons.Qr, onClick = onShowMyQr) },
+            second = { GlassAction(stringResource(R.string.home_enter_code), HomeIcons.Keypad, onClick = onEnterCode) },
+        )
+    }
+}
+
+/** While you're checking in: when you're due, and the "I'm home safe" button. */
+@Composable
+internal fun CheckInBanner(byClock: String, onHomeSafe: () -> Unit, modifier: Modifier = Modifier) {
+    val shape = RoundedCornerShape(16.dp)
+    Row(
+        modifier.fillMaxWidth().clip(shape)
+            .background(Mosh.Violet.copy(alpha = 0.14f))
+            .border(1.dp, Mosh.Violet.copy(alpha = 0.5f), shape)
+            .heightIn(min = 56.dp)
+            .padding(start = 16.dp, end = 6.dp, top = 4.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(stringResource(R.string.home_check_in_by, byClock), style = Mosh.RowTitle.copy(color = Mosh.Lilac), modifier = Modifier.weight(1f))
+        TextButton(onClick = onHomeSafe) {
+            Text(stringResource(R.string.home_home_safe), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lime), textAlign = TextAlign.Center)
         }
     }
 }
 
-/** While you're checking in: when you're due, and the "Home safe" button. */
-@Composable
-internal fun CheckInBanner(byClock: String, onHomeSafe: () -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().background(Mosh.Violet.copy(alpha = 0.16f), RoundedCornerShape(14.dp))
-            .border(1.dp, Mosh.Violet.copy(alpha = 0.6f), RoundedCornerShape(14.dp)).padding(start = 14.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(stringResource(R.string.home_check_in_by, byClock), style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Violet), modifier = Modifier.weight(1f))
-        TextButton(onClick = onHomeSafe) { Text(stringResource(R.string.home_home_safe), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Lime)) }
-    }
-}
-
-/** Two calm secondary actions under "Find everyone". */
-@Composable
-internal fun CrewActions(onMessage: () -> Unit, onMoment: () -> Unit, unread: Int = 0) {
-    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        GlassButton(if (unread > 0) stringResource(R.string.home_chat_unread, unread) else stringResource(R.string.home_chat), Modifier.weight(1f), onClick = onMessage)
-        GlassButton(stringResource(R.string.home_camera), Modifier.weight(1f), onClick = onMoment)
-    }
-}
-
-/** Everything you can tell the crew, in one sheet: pings, heading home, need help. */
-@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+/** Everything you can tell the crew, in one panel: pings, heading home, need help. */
 @Composable
 internal fun MessageSheet(onPing: (Int) -> Unit, onCheckIn: (Int) -> Unit, onClose: () -> Unit) {
-    androidx.compose.material3.ModalBottomSheet(
-        onDismissRequest = onClose,
-        containerColor = Mosh.Deep,
-        // Open all the way: half-open hid options below the fold with nothing saying they're there.
-        sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true),
-    ) {
+    MoshSheet(onClose = onClose) {
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(start = HomeSide, end = HomeSide, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text(stringResource(R.string.home_message_crew), style = Mosh.Heading)
+            Text(stringResource(R.string.home_message_crew), style = Mosh.Heading.copy(fontSize = 22.sp), modifier = Modifier.semantics { heading() })
             Text(stringResource(R.string.home_message_crew_text), style = Mosh.Body)
             PingBar(onPing = { onPing(it) }, onCheckIn = { onCheckIn(it) })
         }
@@ -370,200 +951,21 @@ internal fun MessageSheet(onPing: (Int) -> Unit, onCheckIn: (Int) -> Unit, onClo
 
 /** No one's in the crew yet: the QR right here, no extra taps. */
 @Composable
-internal fun InlineCrewQr(payload: String, onShare: () -> Unit) {
+internal fun InlineCrewQr(payload: String, onShare: () -> Unit, modifier: Modifier = Modifier) {
     val bmp = remember(payload) { qrBitmap(payload, 480).asImageBitmap() }
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-        androidx.compose.foundation.Image(
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier.fillMaxWidth()) {
+        Image(
             bmp, contentDescription = stringResource(R.string.home_crew_qr_desc),
-            modifier = Modifier.size(200.dp).background(Color.White, RoundedCornerShape(18.dp)).padding(10.dp),
+            modifier = Modifier.size(208.dp).background(Color.White, RoundedCornerShape(20.dp)).padding(12.dp),
         )
-        Spacer(Modifier.height(10.dp))
-        Text(stringResource(R.string.home_inline_qr_text), style = Mosh.Body.copy(fontSize = 14.sp), textAlign = TextAlign.Center)
-        TextButton(onClick = onShare) { Text(stringResource(R.string.home_no_camera_send_invite), style = Mosh.Label.copy(fontSize = 14.sp, color = Color(0xFF9DB8FF))) }
-    }
-}
-
-// Bottom-bar icons, drawn (no emoji) so they match the neon line style.
-
-@Composable
-private fun CrewIcon(c: Color) = androidx.compose.foundation.Canvas(Modifier.size(24.dp)) {
-    val w = size.width
-    val stroke = androidx.compose.ui.graphics.drawscope.Stroke(width = w * 0.09f, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-    drawCircle(c, radius = w * 0.15f, center = androidx.compose.ui.geometry.Offset(w * 0.36f, w * 0.33f), style = stroke)
-    drawCircle(c.copy(alpha = 0.7f), radius = w * 0.12f, center = androidx.compose.ui.geometry.Offset(w * 0.7f, w * 0.38f), style = stroke)
-    drawArc(c, 200f, 140f, false, topLeft = androidx.compose.ui.geometry.Offset(w * 0.08f, w * 0.55f), size = androidx.compose.ui.geometry.Size(w * 0.56f, w * 0.5f), style = stroke)
-    drawArc(c.copy(alpha = 0.7f), 210f, 120f, false, topLeft = androidx.compose.ui.geometry.Offset(w * 0.5f, w * 0.6f), size = androidx.compose.ui.geometry.Size(w * 0.42f, w * 0.4f), style = stroke)
-}
-
-@Composable
-private fun PinIcon(c: Color) = androidx.compose.foundation.Canvas(Modifier.size(24.dp)) {
-    val w = size.width
-    val path = androidx.compose.ui.graphics.Path().apply {
-        moveTo(w * 0.5f, w * 0.94f)
-        cubicTo(w * 0.2f, w * 0.6f, w * 0.16f, w * 0.48f, w * 0.16f, w * 0.38f)
-        cubicTo(w * 0.16f, w * 0.18f, w * 0.32f, w * 0.05f, w * 0.5f, w * 0.05f)
-        cubicTo(w * 0.68f, w * 0.05f, w * 0.84f, w * 0.18f, w * 0.84f, w * 0.38f)
-        cubicTo(w * 0.84f, w * 0.48f, w * 0.8f, w * 0.6f, w * 0.5f, w * 0.94f)
-        close()
-    }
-    drawPath(path, c, style = androidx.compose.ui.graphics.drawscope.Stroke(width = w * 0.09f, join = androidx.compose.ui.graphics.StrokeJoin.Round))
-    drawCircle(c, radius = w * 0.1f, center = androidx.compose.ui.geometry.Offset(w * 0.5f, w * 0.38f))
-}
-
-@Composable
-private fun PlusIcon(c: Color) = androidx.compose.foundation.Canvas(Modifier.size(20.dp)) {
-    val w = size.width
-    val sw = w * 0.13f
-    drawLine(c, androidx.compose.ui.geometry.Offset(w / 2, w * 0.12f), androidx.compose.ui.geometry.Offset(w / 2, w * 0.88f), sw, androidx.compose.ui.graphics.StrokeCap.Round)
-    drawLine(c, androidx.compose.ui.geometry.Offset(w * 0.12f, w / 2), androidx.compose.ui.geometry.Offset(w * 0.88f, w / 2), sw, androidx.compose.ui.graphics.StrokeCap.Round)
-}
-
-@Composable
-private fun PolaroidIcon(c: Color) = androidx.compose.foundation.Canvas(Modifier.size(24.dp)) {
-    val w = size.width
-    val stroke = androidx.compose.ui.graphics.drawscope.Stroke(width = w * 0.09f, join = androidx.compose.ui.graphics.StrokeJoin.Round)
-    rotate(-8f) {
-        drawRoundRect(c, androidx.compose.ui.geometry.Offset(w * 0.16f, w * 0.1f), androidx.compose.ui.geometry.Size(w * 0.68f, w * 0.8f), androidx.compose.ui.geometry.CornerRadius(w * 0.06f), style = stroke)
-        drawRect(c.copy(alpha = 0.45f), androidx.compose.ui.geometry.Offset(w * 0.27f, w * 0.21f), androidx.compose.ui.geometry.Size(w * 0.46f, w * 0.42f))
-    }
-}
-
-/** "Your gigs": past nights kept on this phone, to relive and save. */
-@Composable
-internal fun PastGigs(gigs: List<nz.waveformlabs.moshpoint.GigArchive.Summary>, onOpen: (nz.waveformlabs.moshpoint.GigArchive.Summary) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        gigs.forEach { g ->
-            val cover = remember(g.cover) { g.cover?.let { nz.waveformlabs.moshpoint.GigArchive.thumbnail(it) }?.asImageBitmap() }
-            Row(
-                Modifier.fillMaxWidth().background(Mosh.SurfaceLow, RoundedCornerShape(18.dp))
-                    .border(1.dp, Color(0x12FFFFFF), RoundedCornerShape(18.dp))
-                    .clickable { onOpen(g) }.padding(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
-                    Modifier.size(64.dp).graphicsLayer { rotationZ = -4f }
-                        .background(Color(0xFFF7F4EC), RoundedCornerShape(3.dp)).padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 10.dp),
-                ) {
-                    if (cover != null) {
-                        androidx.compose.foundation.Image(cover, null, contentScale = androidx.compose.ui.layout.ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(50.dp))
-                    }
-                }
-                Spacer(Modifier.width(14.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(g.name, style = Mosh.Label, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    val day = java.text.SimpleDateFormat(
-                        android.text.format.DateFormat.getBestDateTimePattern(java.util.Locale.getDefault(), "EEEdMMMyyyy"), java.util.Locale.getDefault(),
-                    ).format(java.util.Date(g.whenSec * 1000))
-                    Text(listOf(day, g.venue).filter { it.isNotBlank() }.joinToString(" · "), style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    val names = g.people.take(3).joinToString(", ")
-                    val counts = listOfNotNull(
-                        pluralStringResource(R.plurals.home_gig_photos, g.photos, g.photos).takeIf { g.photos > 0 },
-                        pluralStringResource(R.plurals.home_gig_clips, g.clips, g.clips).takeIf { g.clips > 0 },
-                        if (g.people.size > 3) stringResource(R.string.home_people_more, names, g.people.size - 3) else names,
-                    )
-                    Text(counts.joinToString(" · "), style = Mosh.Body.copy(fontSize = 12.sp, lineHeight = 15.sp, color = Mosh.TextFaint), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
-                Text("›", style = Mosh.Heading.copy(color = Mosh.TextFaint))
-            }
-        }
-    }
-}
-
-
-/** The crew chat bar on the crew card, always there while you're in a crew: the pinned plan (if any) and new messages. */
-@Composable
-internal fun ChatPill(unread: Int, plan: String?, onClick: () -> Unit) {
-    val (src, sc) = rememberPress()
-    Row(
-        Modifier.fillMaxWidth().pressScale(sc).background(Mosh.Lime.copy(alpha = 0.12f), RoundedCornerShape(14.dp))
-            .border(1.dp, Mosh.Lime.copy(alpha = 0.5f), RoundedCornerShape(14.dp))
-            .clickable(interactionSource = src, indication = androidx.compose.foundation.LocalIndication.current, onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 11.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text("💬", fontSize = 18.sp)
-        Spacer(Modifier.width(10.dp))
-        Column(Modifier.weight(1f)) {
-            Text(stringResource(R.string.home_crew_chat), style = Mosh.Label.copy(fontSize = 15.sp, color = Mosh.Lime))
-            Text(
-                if (plan != null) stringResource(R.string.home_pinned_plan, plan) else stringResource(R.string.home_chat_subtitle),
-                style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), maxLines = 1, overflow = TextOverflow.Ellipsis,
-            )
-        }
-        // New messages: the badge pops in with a little bounce.
-        androidx.compose.animation.AnimatedVisibility(
-            visible = unread > 0,
-            enter = androidx.compose.animation.scaleIn(androidx.compose.animation.core.spring(dampingRatio = 0.45f, stiffness = 500f)) + androidx.compose.animation.fadeIn(),
-            exit = androidx.compose.animation.scaleOut() + androidx.compose.animation.fadeOut(),
+        Spacer(Modifier.height(14.dp))
+        Text(stringResource(R.string.home_inline_qr_text), style = Mosh.Body.copy(fontSize = 14.sp, lineHeight = 20.sp), textAlign = TextAlign.Center)
+        Spacer(Modifier.height(2.dp))
+        Box(
+            Modifier.heightIn(min = 48.dp).clip(RoundedCornerShape(12.dp)).clickable(role = Role.Button, onClick = onShare).padding(horizontal = 12.dp),
+            contentAlignment = Alignment.Center,
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.background(Mosh.Pink, CircleShape).padding(horizontal = 8.dp, vertical = 2.dp)) {
-                Text(if (unread > 9) stringResource(R.string.home_unread_many) else pluralStringResource(R.plurals.home_unread_new, unread, unread), style = Mosh.Label.copy(fontSize = 12.sp, color = Color.White))
-            }
-            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.home_no_camera_send_invite), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan), textAlign = TextAlign.Center)
         }
-        }
-        Text("›", style = Mosh.Label.copy(fontSize = 20.sp, color = Mosh.Lime))
     }
 }
-
-/** A crew that's coming up, for the "Up next" list under the main crew card. */
-data class UpNextCard(
-    val id: String,
-    val name: String,
-    /** "Sat 6 Dec, 8:00 pm" */
-    val whenText: String?,
-    /** "in 3 weeks", "tomorrow" */
-    val countdown: String?,
-    val venue: String,
-    val mates: Int,
-    val unread: Int,
-    val plan: String?,
-    val following: Boolean,
-)
-
-/** "Up next": tap for its chat (hype it up), invite and plan. */
-@Composable
-internal fun UpNextRow(card: UpNextCard, onClick: () -> Unit) {
-    val (src, sc) = rememberPress()
-    Row(
-        Modifier.fillMaxWidth().pressScale(sc).background(Mosh.Surface, RoundedCornerShape(18.dp))
-            .border(1.dp, Mosh.Line, RoundedCornerShape(18.dp))
-            .clickable(interactionSource = src, indication = androidx.compose.foundation.LocalIndication.current, onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(card.name, style = Mosh.Label.copy(fontSize = 17.sp), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-                if (card.countdown != null) {
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        card.countdown, style = Mosh.Label.copy(fontSize = 12.sp, color = Mosh.Violet),
-                        modifier = Modifier.background(Mosh.Violet.copy(alpha = 0.16f), RoundedCornerShape(10.dp)).padding(horizontal = 8.dp, vertical = 2.dp),
-                    )
-                }
-            }
-            val sub = listOfNotNull(card.whenText, card.venue.takeIf { it.isNotBlank() }).joinToString(" · ")
-            if (sub.isNotEmpty()) Text(sub, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.TextDim), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(
-                when {
-                    card.plan != null -> stringResource(R.string.home_pinned_plan, card.plan)
-                    card.following -> stringResource(R.string.home_following_from_home)
-                    card.mates == 0 -> stringResource(R.string.home_upnext_invite)
-                    else -> pluralStringResource(R.plurals.home_upnext_mates, card.mates, card.mates)
-                },
-                style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 17.sp, color = Mosh.Lime), maxLines = 1, overflow = TextOverflow.Ellipsis,
-            )
-        }
-        if (card.unread > 0) {
-            Spacer(Modifier.width(8.dp))
-            Box(Modifier.background(Mosh.Pink, CircleShape).padding(horizontal = 8.dp, vertical = 2.dp)) {
-                Text(if (card.unread > 9) stringResource(R.string.home_unread_many) else "${card.unread}", style = Mosh.Label.copy(fontSize = 12.sp, color = Color.White))
-            }
-        }
-        Spacer(Modifier.width(6.dp))
-        Text("›", style = Mosh.Label.copy(fontSize = 22.sp, color = Mosh.TextFaint))
-    }
-}
-

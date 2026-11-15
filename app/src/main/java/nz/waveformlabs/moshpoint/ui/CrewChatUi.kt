@@ -463,10 +463,12 @@ private fun FlarePicker(onPick: (String) -> Unit, onClose: () -> Unit) {
 
 /**
  * "Need help": the crew alert, plus help beyond the crew: a text to your emergency contact
- * with where you are (plain SMS, works without data), and 111.
+ * with where you are (plain SMS, works without data), and 111. Nothing is sent until a
+ * choice here is tapped. [onAlertCrew] null = no crew to alert (no crew tonight, a crew
+ * asleep until gig day, or following from home): the rest is still offered.
  */
 @Composable
-internal fun HelpDialog(onAlertCrew: () -> Unit, onClose: () -> Unit) {
+internal fun HelpDialog(onAlertCrew: (() -> Unit)?, onClose: () -> Unit) {
     val c = LocalContext.current
     var contact by remember { mutableStateOf(Safety.contact(c)) }
     var adding by remember { mutableStateOf(false) }
@@ -479,11 +481,13 @@ internal fun HelpDialog(onAlertCrew: () -> Unit, onClose: () -> Unit) {
         title = { Text(stringResource(R.string.crew_help_title), style = Mosh.Heading) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                HelpAction(
-                    if (crewSent) stringResource(R.string.crew_help_alerted) else stringResource(R.string.crew_help_alert),
-                    stringResource(R.string.crew_help_alert_sub), Mosh.Danger,
-                ) {
-                    if (!crewSent) { onAlertCrew(); crewSent = true }
+                if (onAlertCrew != null) {
+                    HelpAction(
+                        if (crewSent) stringResource(R.string.crew_help_alerted) else stringResource(R.string.crew_help_alert),
+                        stringResource(R.string.crew_help_alert_sub), Mosh.Danger,
+                    ) {
+                        if (!crewSent) { onAlertCrew(); crewSent = true }
+                    }
                 }
                 val who = contact
                 if (who != null) {

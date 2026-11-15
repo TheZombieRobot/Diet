@@ -363,7 +363,11 @@ class MainActivity : ComponentActivity() {
         if (waiting != null) {
             closeChat()
             GroupSync.leave(this, Crews.find(g.key) ?: waiting)
-        } else GroupSync.clear(this)
+        } else {
+            GroupSync.clear(this)
+            // Tonight's gig moves to Past gigs.
+            lifecycleScope.launch { GigArchive.refreshList(this@MainActivity) }
+        }
     }
 
     private val scanQr = registerForActivityResult(ScanContract()) { result ->
@@ -951,6 +955,7 @@ class MainActivity : ComponentActivity() {
                                     unread = CrewChat.unreadFor(this@MainActivity, e.group),
                                     plan = CrewChat.planFor(this@MainActivity, e.group)?.text,
                                     following = e.following,
+                                    startsAtSec = e.group.startsAtSec,
                                 )
                             },
                             onOpenUpNext = { id -> openChat(id) },
@@ -1000,6 +1005,13 @@ class MainActivity : ComponentActivity() {
                             onOpenMap = { openMap() },
                             meetUp = GroupSync.rally.value?.name,
                             venueMap = VenueMaps.status.value,
+                            // The crew menu's "Reset the invite": as on the QR screen, only the owner resets an owned crew.
+                            onResetInvite = GroupSync.group.value?.takeIf { !GroupSync.following && CrewRekey.mayRemove(this@MainActivity, it) }?.let { g ->
+                                {
+                                    CrewRekey.rekey(this@MainActivity, g, null, null)
+                                    toast(Txt.s(R.string.main_invite_reset))
+                                }
+                            },
                         )
                     }
                     }
@@ -1096,10 +1108,16 @@ class MainActivity : ComponentActivity() {
                             confirmButton = {
                                 androidx.compose.material3.TextButton(onClick = {
                                     recap = null
-                                    GroupSync.clear(this@MainActivity)
                                     NightStats.reset(this@MainActivity)
-                                    lifecycleScope.launch { GigArchive.refreshList(this@MainActivity) }
-                                    toast(Txt.s(R.string.main_night_ended))
+                                    val g = GroupSync.group.value
+                                    if (g != null && !GroupSync.following && CrewRekey.isOwner(this@MainActivity, g) && CrewRekey.handoverCandidates(this@MainActivity, g).isNotEmpty()) {
+                                        // As on the QR screen: an owner leaving a crew others are still in hands it over first.
+                                        handover = g to null
+                                    } else {
+                                        GroupSync.clear(this@MainActivity)
+                                        lifecycleScope.launch { GigArchive.refreshList(this@MainActivity) }
+                                        toast(Txt.s(R.string.main_night_ended))
+                                    }
                                 }) { androidx.compose.material3.Text(stringResource(R.string.main_end_the_night), style = Mosh.Label.copy(color = Mosh.Danger)) }
                             },
                             dismissButton = {
