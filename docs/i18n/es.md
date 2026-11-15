@@ -164,3 +164,19 @@ The redesigned home: the Live row (the switch's name and the line beside it), th
 
 For a native reviewer: (1) *Tus conciertos* for Past gigs is deliberate (see above); *Conciertos pasados* is the literal alternative if a wrap on small phones is acceptable. (2) *Batería: 8%* under a face, as a label: *8% de batería* wraps in the 76 dp column. (3) *Encuentra a tus amigos en la multitud* takes three lines on the first-time screen. Written without a native reviewer. Confidence: **medium-high**.
 - **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it En vivo ("activa En vivo"); "Activar en vivo" was the old button.
+
+## Safety and Live (`strings_safety.xml`)
+
+Thirty strings: what Need help says about the crew alert once it's tapped (sending, sent, sent nearby, not sent yet and why), the **Go live** button, Live turning itself off, a full phone, and the check-in reminder. Someone reading these may be in trouble, so each says exactly what the English says, never more. Validator prints **OK**. See `docs/WAVE2_SAFETY.md`.
+
+| English | Chosen | Why |
+|---|---|---|
+| Sending… / Sent to your crew / Not sent yet | **Enviando…** / **Enviado a tu grupo** / **Aún no enviado** | Word for word the watch (`sos_sending`, `sos_sent`, `ping_not_yet`). |
+| Sent nearby / Not sent | **Enviado cerca** / **No enviado** | The chat's own states (`offline_state_nearby`, `offline_state_not_sent`). The line under *Enviado cerca* says only the crew phones close by have it. |
+| Go live (button) | **Activar En vivo** | It turns the switch on, so it names it (`home_live_switch`), like the line above it (*Activa En vivo…*, as in `offline_hint_go_live`). |
+| You're no longer live | **Ya no estás en vivo** | As `visibility_notification` (*Estás en vivo*). |
+| Still at the gig? | **¿Sigues en el concierto?** | — |
+| Home yet? | **¿Ya en casa?** | Short, like English. The text under it quotes the button *Ya estoy en casa* (`home_home_safe`) word for word. |
+| Your phone's storage is full / check-ins | **El almacenamiento de tu celular está lleno** / *avisos de llegada* | Check in is *avisar* in this app, and *aviso* alone is a ping. |
+
+*Señal* for signal and *datos móviles* for mobile data, as elsewhere. For a native reviewer: (1) the status titles keep the watch's masculine *Enviado / Aún no enviado* while the lines under them say *tu alerta*. (2) *avisos de llegada* for check-ins. (3) *Activar En vivo* capitalises the switch's name; the key terms table above has the older *Activar en vivo*. Written without a native reviewer. Confidence: **medium-high**.

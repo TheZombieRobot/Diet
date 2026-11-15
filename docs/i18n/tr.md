@@ -171,3 +171,20 @@ Battery under a face: *Pil %8* (percent sign first, as in `home_tile_with_batter
 
 For a native reviewer: (1) *Görünürlük* for the switch (it was *Konum*, the phone setting's word). (2) *Fotoğraf ekle* ("add photos"); *Foto paylaş* also fits, but *foto* is more colloquial than the rest of the app. (3) *Ekip sohbetinde sabitlendi* under the pinned plan. Written without a native reviewer. Confidence: **medium-high**.
 - **The Live switch's name in other texts** (review of the redesign): The switch is now Görünürlük (it was Konum, the word the setup card uses for the phone's location setting). Texts that name it say "Görünürlük'ü aç".
+
+## Safety and Live (`strings_safety.xml`)
+
+Thirty strings: what Need help says about the crew alert once it's tapped (sending, sent, sent nearby, not sent yet and why), the **Go live** button, Live turning itself off, a full phone, and the check-in reminder. Someone reading these may be in trouble, so each says exactly what the English says, never more. Validator prints **OK**. See `docs/WAVE2_SAFETY.md`.
+
+| English | Chosen | Why |
+|---|---|---|
+| Sending… / Sent to your crew / Not sent yet | **Gönderiliyor…** / **Ekibine gönderildi** / **Henüz gönderilmedi** | Word for word the watch (`sos_sending`, `sos_sent`, `ping_not_yet`). |
+| Sent nearby / Not sent | **Yakındakilere gönderildi** / **Gönderilmedi** | The chat's own states (`offline_state_nearby`, `offline_state_not_sent`). |
+| Go live (button) | **Görünürlük'ü aç** | It turns the switch on, so it says its name (`home_live_switch`), like the line above it and `offline_hint_go_live`. The old button's *Konumu paylaş* would not match that line. |
+| You're no longer live | **Konumun artık paylaşılmıyor** | As `visibility_notification` (*Konumun paylaşılıyor*). |
+| Still at the gig? | **Hâlâ konserde misin?** | *Hâlâ* with circumflexes (*hala* is "aunt"). |
+| Home yet? | **Eve vardın mı?** | The text under it quotes "Evdeyim, her şey yolunda" (`home_home_safe`) exactly, in quotes because the label has a comma, with the suffix after the closing quote. |
+| Your phone's storage is full / check-ins | **Telefonunun depolama alanı dolu** / *eve dönüş bilgileri* | There is no noun for *haber vermek*. |
+| your alert | *uyarını* (object) | As `crew_help_alert_sub` (*uyarı*). Never sentence-first as *Uyarın*, which can read as the imperative "warn!". |
+
+*Sinyal* for signal and *pil tasarrufu için* as in `main_battery_text`. For a native reviewer: (1) *Görünürlük'ü aç* on the button. (2) *eve dönüş bilgileri* for check-ins. (3) the quoted label with *-ya* after it. Written without a native reviewer. Confidence: **medium**.

@@ -167,3 +167,20 @@ The redesigned home: the Live row (the switch's name and the line beside it), th
 
 For a native reviewer: (1) *Widoczność* for the switch (it was *Lokalizacja*, the phone setting's word). (2) *3 udostępniają* with no noun. (3) *Więcej* for "See all". Written without a native reviewer. Confidence: **medium**.
 - **The Live switch's name in other texts** (review of the redesign): The switch is now Widoczność (it was Lokalizacja, but that is the word the setup card uses for the phone's location setting, so "Lokalizacja wyłączona" could sit under a switch called Lokalizacja). Texts that name it say "włącz Widoczność"; "Udostępnij lokalizację" stays as a verb phrase in the onboarding title.
+
+## Safety and Live (`strings_safety.xml`)
+
+Thirty strings: what Need help says about the crew alert once it's tapped (sending, sent, sent nearby, not sent yet and why), the **Go live** button, Live turning itself off, a full phone, and the check-in reminder. Someone reading these may be in trouble, so each says exactly what the English says, never more. Validator prints **OK**. See `docs/WAVE2_SAFETY.md`.
+
+| English | Chosen | Why |
+|---|---|---|
+| Sending… / Sent to your crew / Not sent yet | **Wysyłam…** / **Wysłano do ekipy** / **Jeszcze nie wysłano** | Word for word the watch (`sos_sending`, `sos_sent`, `ping_not_yet`). |
+| Sent nearby / Not sent | **Wysłano w pobliżu** / **Nie wysłano** | The chat's own states (`offline_state_nearby`, `offline_state_not_sent`), byte for byte. |
+| Go live (button) | **Włącz Widoczność** | It turns the switch on, so it says its name (`home_live_switch`), like the line above it and `offline_hint_go_live`. The old button's *Udostępnij lokalizację* would not match that line. |
+| You're no longer live | **Już nie udostępniasz lokalizacji** | As `visibility_notification` (*Udostępniasz lokalizację*). |
+| Still at the gig? | **Wciąż na koncercie?** | — |
+| Home yet? | **Już w domu?** | The text under it quotes „Jestem bezpiecznie w domu” (`home_home_safe`) exactly, no-break space included. |
+| Your phone's storage is full / check-ins | **Pamięć telefonu jest pełna** / *informacje o powrocie do domu* | There is no noun for *dać znać*. |
+| You were live for 12 hours | *Po 12 godzinach udostępniania lokalizacji* | Gender-neutral: *udostępniałeś/udostępniałaś* would need the user's gender. Likewise *wciąż nie dajesz znać*, as in `crew_notif_overdue_title`. |
+
+No-break spaces after one-letter words (*w pobliżu*, *z bliska*), as in `strings_home*.xml`, except in *Wysłano w pobliżu*, which matches the chat state. For a native reviewer: (1) *Włącz Widoczność* on the button. (2) *informacje o powrocie do domu* for check-ins. (3) *Wyśle się samo* ("it sends by itself"), casual. Written without a native reviewer. Confidence: **medium**.

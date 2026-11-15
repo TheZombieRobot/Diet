@@ -158,3 +158,19 @@ The redesigned home: the Live row (the switch's name and the line beside it), th
 
 For a native reviewer: (1) *localizable de cerca* in the ghost line. (2) *encontrarles* follows the folder's leísmo (see "Checked and safe"); *encontrarlos* if preferred. (3) *Tus conciertos* for Past gigs, as in `values-es`. Written without a native reviewer. Confidence: **medium-high**.
 - **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it En directo ("activa En directo"); "Activar en directo" was the old button.
+
+## Safety and Live (`strings_safety.xml`)
+
+Thirty strings: what Need help says about the crew alert once it's tapped (sending, sent, sent nearby, not sent yet and why), the **Go live** button, Live turning itself off, a full phone, and the check-in reminder. Someone reading these may be in trouble, so each says exactly what the English says, never more. Validator prints **OK**. See `docs/WAVE2_SAFETY.md`.
+
+| English | Chosen | Why |
+|---|---|---|
+| Sending… / Sent to your crew / Not sent yet | **Enviando…** / **Enviado a tu grupo** / **Aún no enviado** | Word for word the watch (`sos_sending`, `sos_sent`, `ping_not_yet`). |
+| Sent nearby / Not sent | **Enviado cerca** / **No enviado** | The chat's own states (`offline_state_nearby`, `offline_state_not_sent`). |
+| Go live (button) | **Activar En directo** | It turns the switch on, so it names it (`home_live_switch`), like the line above it (*Activa En directo…*, as in `offline_hint_go_live`). |
+| You're no longer live | **Ya no estás en directo** | As `visibility_notification`. |
+| Still at the gig? | **¿Sigues en el concierto?** | — |
+| Home yet? | **¿Ya en casa?** | The text under it quotes *Ya estoy en casa* (`home_home_safe`) word for word. |
+| Your phone's storage is full / check-ins | **El almacenamiento de tu móvil está lleno** / *avisos de llegada* | *Aviso* alone is a ping. |
+
+The same as Latin American Spanish except in Spain forms: *móvil*, *cobertura* for signal (*Sin cobertura*, *cuando tengas cobertura*), *En directo*, and the present perfect for what has just happened (*Android ha parado Moshpoint*, *Has estado en directo 12 horas*, *no has avisado*). For a native reviewer: (1) *ha parado* follows the folder's *parar* for "stop" (*ha cerrado* would say "closed"). (2) *avisos de llegada* for check-ins. (3) the masculine status titles above *tu alerta*. Written without a native reviewer. Confidence: **medium-high**.

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hindi: safety and the Live state (what Need help says about the crew alert, Live going off by itself, a full phone, the check-in reminder). -->
+<resources>
+
+    <string name="safety_help_sending">भेज रहे हैं…</string>
+    <string name="safety_help_sent">आपके ग्रुप को भेज दिया</string>
+    <string name="safety_help_sent_sub">पूरे ग्रुप को आपकी जगह के साथ आपका अलर्ट मिलता है।</string>
+    <string name="safety_help_nearby">आस-पास भेजा गया</string>
+    <string name="safety_help_nearby_sub">आस-पास के ग्रुप वालों के फ़ोन तक अलर्ट पहुँच गया है। बाकी ग्रुप को यह तब मिलेगा, जब आप में से किसी को सिग्नल मिलेगा।</string>
+    <string name="safety_help_not_yet">अभी नहीं भेजा गया</string>
+    <string name="safety_help_wait_go_live">सिग्नल नहीं है। लाइव ऑन करें, फिर आस-पास के ग्रुप वालों के फ़ोन Bluetooth से अलर्ट आगे पहुँचा सकते हैं।</string>
+    <string name="safety_help_wait_bluetooth">सिग्नल नहीं है, और Bluetooth बंद है। इसे चालू करें, फिर आस-पास के ग्रुप वालों के फ़ोन अलर्ट आगे पहुँचा सकते हैं।</string>
+    <string name="safety_help_wait_cant_carry">सिग्नल नहीं है। यह फ़ोन Bluetooth से अलर्ट आगे नहीं पहुँचा सकता, इसलिए सिग्नल मिलने पर भेजा जाएगा।</string>
+    <string name="safety_help_wait_nearby">सिग्नल नहीं है। अलर्ट ग्रुप के उस फ़ोन तक जाएगा जो सबसे पहले पास आएगा, और आपको सिग्नल मिलने पर सबको।</string>
+    <string name="safety_help_wait_retrying">अलर्ट अभी सर्वर तक नहीं पहुँचा है। यह अपने-आप कोशिश करता रहेगा।</string>
+    <string name="safety_go_live">लाइव हों</string>
+    <string name="safety_help_not_sent">नहीं भेजा गया</string>
+    <string name="safety_help_not_sent_sub">आपका अलर्ट किसी को नहीं मिला। फिर कोशिश के लिए टैप करें।</string>
+    <string name="safety_help_text_or_call">नीचे से मैसेज या कॉल करें: दोनों बिना मोबाइल डेटा के चलते हैं।</string>
+    <string name="safety_help_no_sms">इस फ़ोन में SMS भेजने वाला कोई मैसेज ऐप नहीं है। इसकी जगह कॉल करें, या आस-पास किसी से मदद माँगें।</string>
+    <string name="safety_help_no_dialler">इस फ़ोन से कॉल नहीं हो सकती। आस-पास किसी से %1$s पर कॉल करने को कहें।</string>
+
+    <string name="safety_channel_notices">लाइव और स्टोरेज की सूचनाएँ</string>
+    <string name="safety_live_off_title">आप अब लाइव नहीं हैं</string>
+    <string name="safety_live_off_text">Android ने बैकग्राउंड में Moshpoint को रोक दिया, इसलिए दोस्त आपको नहीं ढूँढ सकते। फिर से लाइव होने के लिए टैप करें।</string>
+    <string name="safety_live_cant_start_text">Android ने Moshpoint को लाइव नहीं रहने दिया, इसलिए दोस्त आपको नहीं ढूँढ सकते। देख लें कि इसकी अनुमतियाँ ऑन हैं, फिर दोबारा लाइव हों।</string>
+    <string name="safety_live_long_title">अभी भी शो में हैं?</string>
+    <string name="safety_live_long_text">आप 12 घंटे लाइव रहे, इसलिए आपकी बैटरी बचाने के लिए लाइव बंद हो गया।</string>
+    <string name="safety_live_long_notif">आप 12 घंटे लाइव रहे, इसलिए आपकी बैटरी बचाने के लिए लाइव बंद हो गया। अगर आप अभी भी वहीं हैं, तो टैप करें।</string>
+    <string name="safety_live_bluetooth_off">Bluetooth बंद है: दोस्त आपको पास से नहीं ढूँढ सकते</string>
+
+    <string name="safety_storage_full_title">आपके फ़ोन का स्टोरेज भर गया है</string>
+    <string name="safety_storage_full_text">Moshpoint तब तक नए मैसेज, फ़ोटो या चेक-इन सेव नहीं कर सकता, जब तक आप थोड़ी जगह खाली नहीं करते।</string>
+
+    <string name="safety_checkin_reminder_title">घर पहुँच गए?</string>
+    <string name="safety_checkin_reminder_text">अगर आप \"घर पहुँचकर सुरक्षित हूँ\" पर टैप नहीं करते, तो आपके ग्रुप को बताया जाएगा कि आपने चेक-इन नहीं किया।</string>
+    <string name="safety_home_safe_waiting">अभी नहीं भेजा गया। सिग्नल मिलते ही अपने-आप भेज दिया जाएगा।</string>
+
+</resources>

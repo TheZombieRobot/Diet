@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Arabic: safety and the Live state (what Need help says about the crew alert, Live going off by itself, a full phone, the check-in reminder). -->
+<resources>
+
+    <string name="safety_help_sending">جارٍ الإرسال…</string>
+    <string name="safety_help_sent">أُرسلت إلى شلتك</string>
+    <string name="safety_help_sent_sub">يصل تنبيهك إلى الشلة كلها، مع مكانك.</string>
+    <string name="safety_help_nearby">أُرسلت لمن حولك</string>
+    <string name="safety_help_nearby_sub">وصل التنبيه إلى هواتف الشلة القريبة، ويصل إلى بقية شلتك عند حصول أي منكم على إشارة.</string>
+    <string name="safety_help_not_yet">لم تُرسَل بعد</string>
+    <string name="safety_help_wait_go_live">لا إشارة. فعّل «ظاهر» لتتمكن هواتف الشلة القريبة من تمرير التنبيه عبر Bluetooth.</string>
+    <string name="safety_help_wait_bluetooth">لا إشارة، وBluetooth مغلق. شغّله لتتمكن هواتف الشلة القريبة من تمرير التنبيه.</string>
+    <string name="safety_help_wait_cant_carry">لا إشارة. هذا الهاتف لا يستطيع تمرير التنبيه عبر Bluetooth، لذا سيُرسَل عند توفر الإشارة.</string>
+    <string name="safety_help_wait_nearby">لا إشارة. ينتقل التنبيه إلى أول هاتف من الشلة يقترب منك، وإلى الجميع عند توفر الإشارة.</string>
+    <string name="safety_help_wait_retrying">لم يصل التنبيه إلى الخادم بعد. تستمر المحاولة تلقائيًا.</string>
+    <string name="safety_go_live">اظهر</string>
+    <string name="safety_help_not_sent">لم تُرسَل</string>
+    <string name="safety_help_not_sent_sub">لم يصل تنبيهك إلى أحد. اضغط لإعادة المحاولة.</string>
+    <string name="safety_help_text_or_call">راسل أو اتصل من الأزرار أدناه: كلاهما يعمل بدون بيانات الجوال.</string>
+    <string name="safety_help_no_sms">لا يوجد على هذا الهاتف تطبيق رسائل يستطيع إرسال رسالة نصية. اتصل بدلًا من ذلك، أو استعن بشخص قريب منك.</string>
+    <string name="safety_help_no_dialler">هذا الهاتف لا يستطيع إجراء مكالمات. اطلب من شخص قريب منك أن يتصل بـ %1$s.</string>
+
+    <string name="safety_channel_notices">إشعارات الظهور والتخزين</string>
+    <string name="safety_live_off_title">لم تعد ظاهرًا</string>
+    <string name="safety_live_off_text">أوقف Android تطبيق Moshpoint في الخلفية، فلا يستطيع أصحابك إيجادك. اضغط لتظهر من جديد.</string>
+    <string name="safety_live_cant_start_text">لم يسمح Android لـ Moshpoint بأن يبقيك ظاهرًا، فلا يستطيع أصحابك إيجادك. تأكد من أن أذوناته مفعّلة، ثم اظهر من جديد.</string>
+    <string name="safety_live_long_title">ما زلت في الحفلة؟</string>
+    <string name="safety_live_long_text">كنت ظاهرًا لمدة 12 ساعة، لذا توقف «ظاهر» لتوفير بطاريتك.</string>
+    <string name="safety_live_long_notif">كنت ظاهرًا لمدة 12 ساعة، لذا توقف «ظاهر» لتوفير بطاريتك. اضغط إذا كنت ما زلت هناك.</string>
+    <string name="safety_live_bluetooth_off">‏Bluetooth مغلق: أصحابك لا يمكنهم إيجادك عن قرب</string>
+
+    <string name="safety_storage_full_title">مساحة التخزين في هاتفك ممتلئة</string>
+    <string name="safety_storage_full_text">لا يستطيع Moshpoint حفظ رسائل أو صور أو تسجيلات وصول جديدة حتى تُخلي بعض المساحة.</string>
+
+    <string name="safety_checkin_reminder_title">وصلت البيت؟</string>
+    <string name="safety_checkin_reminder_text">ستُبلَّغ شلتك بأن وصولك لم يُسجَّل، إلا إذا ضغطت «وصلت البيت بأمان».</string>
+    <string name="safety_home_safe_waiting">لم تُرسَل بعد. ستُرسَل تلقائيًا فور توفر الإشارة.</string>
+
+</resources>
