@@ -44,25 +44,6 @@ import nz.waveformlabs.moshpoint.R
 
 // Crew moments: photos the crew snapped, shown where and when they were taken.
 
-/** A row of the crew's latest photos, plus a button to share your own. */
-@Composable
-internal fun MomentStrip(items: List<Moments.Item>, nowSec: Long, onOpen: (Moments.Item) -> Unit, onShare: () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.find_the_story_eyebrow), style = Mosh.Eyebrow, modifier = Modifier.weight(1f))
-            if (items.isNotEmpty()) TextButton(onClick = { onOpen(items.first()) }) { Text(stringResource(R.string.find_see_it_all), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan)) }
-        }
-        Row(
-            Modifier.horizontalScroll(rememberScrollState()).padding(vertical = 8.dp, horizontal = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            items.take(8).forEach { m -> Polaroid(m, 92.dp, Modifier.clickable { onOpen(m) }) }
-            CameraFab(onShare, size = 56.dp)
-        }
-    }
-}
-
 /** One moment, big: who, when, how far, and jump to the map or the finder. */
 @Composable
 internal fun MomentViewer(

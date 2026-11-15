@@ -111,12 +111,22 @@ Not started yet: see Status.
 
 ## 4. Status and next steps
 
-- [x] Step 1: inventory (this file).
-- [ ] Step 2: build. Next: tokens in `Theme.kt`, `HomeKit.kt`, new `FriendsScreen.kt` /
-  `HomeSections.kt`, `HelpDialog(onAlertCrew = null)`, MainActivity wiring (reset invite,
-  handover after the recap, `startsAtSec` for Up next).
-- [ ] Strings: `strings_home_redesign.xml` in `values` + 19 languages; delete unused strings.
-- [ ] Tests: every state in `ScreensSnapshotTest`, the tall test, small phone and large font.
-- [ ] CI green, screenshots fetched from `ui-screenshots-claude-home-redesign`.
-- [ ] Audit every state in every language; fix; record here; contact sheets in
-  `docs/design/home-redesign/audit/`.
+Handover (kept current; newest first):
+
+- **Done:** Step 1 (inventory, above). Step 2 code written but not yet compiled (Google Maven is
+  blocked in the container, so only CI can build): `Theme.kt` tokens, `HomeKit.kt` (new),
+  `HomeSections.kt` and `FriendsScreen.kt` (rewritten), `HelpDialog(onAlertCrew = null)` in
+  `CrewChatUi.kt`, `MomentStrip` removed (`MomentsUi.kt`), MainActivity: `onResetInvite`,
+  `startsAtSec` for Up next, the recap's End the night goes through the owner handover, and
+  leaving the main crew refreshes Past gigs. English strings: `values/strings_home_redesign.xml`.
+  Tests: `ui/HomeFixtures.kt` (made-up data), the home tests in `ScreensSnapshotTest`
+  (homeMain, homeNotLive, homeGhost, homeCrewMenu, homeNoCrew, homeFirstTime, homeComingUp,
+  homeFollowing, homeNobodyYet, homeLongName, homeOneMate, homeBigCrew, homeFriendsList,
+  homeAddSheet, upNext, smallPhoneHomeMain/NoCrew, largeFontHomeMain/NoCrew) and
+  `home/HomeTallSnapshotTest.kt` (homeWhole, full resolution, every language). Venue and
+  private-message tests updated for the new crew header and faces.
+- **In progress:** translations of `strings_home_redesign.xml` into the 19 languages.
+- **Next:** delete the strings the redesign leaves unused, in every folder (list: run the unused
+  scan in this file's history, or grep `R.string.<name>`); run the translation checks; push
+  without `[skip ci]`; fix compile errors from the "Compile errors" step; then fetch
+  `ui-screenshots-claude-home-redesign` and audit.

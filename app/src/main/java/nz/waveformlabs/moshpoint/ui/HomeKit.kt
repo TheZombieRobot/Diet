@@ -581,8 +581,8 @@ private fun FaceTile(f: Friend, status: FaceStatus, note: String?, badge: Int, o
     val optionsLabel = stringResource(R.string.home_face_options)
     val battery = status.battery?.let { stringResource(R.string.home_face_battery, it) }
     Column(
+        // No clip here: it would cut off the glow.
         Modifier.width(76.dp)
-            .clip(RoundedCornerShape(16.dp))
             .combinedClickable(
                 enabled = onFind != null || onOptions != null,
                 onClickLabel = if (onFind != null) findLabel else null,
@@ -678,7 +678,6 @@ internal fun FriendsStrip(friends: List<Friend>, seen: Map<String, LocationBook.
         items(friends, key = { it.id }) { f ->
             Column(
                 Modifier.width(68.dp)
-                    .clip(RoundedCornerShape(14.dp))
                     .combinedClickable(
                         onClickLabel = stringResource(R.string.home_find_name, f.name),
                         role = Role.Button,

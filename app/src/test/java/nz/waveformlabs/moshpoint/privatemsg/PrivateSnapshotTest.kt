@@ -164,7 +164,7 @@ open class PrivateSnapshotTest : PrivateSnapshots() {
                         }
                         TextButton(onClick = {}) { Text(stringResource(R.string.home_keep_friend, "Sam")) }
                         TextButton(onClick = {}) { Text(stringResource(R.string.home_set_photo)) }
-                        TextButton(onClick = {}) { Text(stringResource(R.string.home_remove_name, "Sam"), color = Color(0xFFE53935)) }
+                        TextButton(onClick = {}) { Text(stringResource(R.string.home_remove_name, "Sam"), color = Mosh.Danger) }
                     }
                 }
             }
