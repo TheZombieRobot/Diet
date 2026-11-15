@@ -24,7 +24,7 @@ enum class Limit(val header: String, val retryAfterSec: Long) {
 enum class Outcome { OK, MAILBOX, BYTES, FULL }
 
 /** All the relay's limits (see [LimitConfig]). In memory only. */
-class Limits(c: LimitConfig, clock: () -> Long) {
+class Limits(c: LimitConfig, private val clock: () -> Long) {
     private fun rl(b: Bucket) = RateLimiter(b.burst, b.perSec, clock)
     private fun perHour(bytes: Long) = RateLimiter(bytes.toDouble(), bytes / 3600.0, clock)
 

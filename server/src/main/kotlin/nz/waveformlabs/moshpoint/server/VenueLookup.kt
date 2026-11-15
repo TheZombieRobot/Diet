@@ -8,6 +8,8 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.future.await
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -23,12 +25,15 @@ import java.util.concurrent.ConcurrentHashMap
  * - **Be able to switch service without an app update:** MOSHPOINT_GEOCODER names the search
  *   address (anything that speaks Nominatim's `/search`), and MOSHPOINT_GEOCODER=off turns
  *   lookups off; the app then saves the map around people when they arrive instead.
+ *
+ * Waiting for our turn is a coroutine delay and the request itself is the JDK client's async
+ * call, so a queue of venue lookups never holds a request thread.
  */
 class VenueLookup(
     private val env: (String) -> String? = System::getenv,
-    private val fetch: (url: String, userAgent: String) -> Fetched = ::httpGetAs,
+    private val fetch: suspend (url: String, userAgent: String) -> Fetched = ::httpGetAs,
     private val clock: () -> Long = System::currentTimeMillis,
-    private val sleep: (Long) -> Unit = { Thread.sleep(it) },
+    private val sleep: suspend (Long) -> Unit = { delay(it) },
 ) {
     data class Place(val lat: Double, val lon: Double, val name: String) {
         fun toJson(): JSONObject = JSONObject().put("lat", lat).put("lon", lon).put("name", name)
@@ -51,7 +56,7 @@ class VenueLookup(
 
     @Volatile private var turnedAwayUntil = 0L
 
-    fun find(query: String, box: String?): Result {
+    suspend fun find(query: String, box: String?): Result {
         val q = query.trim().replace(Regex("\\s+"), " ").take(80)
         if (q.length < 3) return Result.NotFound
         val base = env("MOSHPOINT_GEOCODER")?.trim().orEmpty().ifBlank { DEFAULT }
@@ -110,12 +115,16 @@ class VenueLookup(
 
         private val http: HttpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build()
 
-        fun httpGetAs(url: String, userAgent: String): Fetched = runCatching {
-            val r = http.send(
+        suspend fun httpGetAs(url: String, userAgent: String): Fetched = try {
+            val r = http.sendAsync(
                 HttpRequest.newBuilder(URI(url)).timeout(Duration.ofSeconds(8)).header("Accept", "application/json").header("User-Agent", userAgent).GET().build(),
                 HttpResponse.BodyHandlers.ofString(),
-            )
+            ).await()
             Fetched(r.statusCode(), r.body())
-        }.getOrDefault(Fetched(0, null))
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Fetched(0, null)
+        }
     }
 }
