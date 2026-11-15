@@ -720,9 +720,9 @@ private fun FaceTile(f: Friend, status: FaceStatus, note: String?, badge: Int, o
             )
         }
         if (note != null) {
-            // Balanced lines: "🔥 Bar / time 🍺", not a lone emoji on the second line.
+            // Balanced lines, a closing emoji kept with its word: "🔥 Bar / time 🍺", "🔥 / Bardags 🍺".
             Text(
-                note, style = HomeType.Body.copy(fontSize = 11.5.sp, lineHeight = 15.sp, color = Mosh.Amber, lineBreak = HomeBreakEven),
+                note.replace(Regex(" ([\\p{So}\\uFE0F\\u200D]+)$"), "\u00A0$1"), style = HomeType.Body.copy(fontSize = 11.5.sp, lineHeight = 15.sp, color = Mosh.Amber, lineBreak = HomeBreakEven),
                 maxLines = 3, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center, modifier = caption(note),
             )
         }

@@ -35,7 +35,8 @@ object Memories {
         return when (with.size) {
             0 -> p(R.plurals.crew_memory_headline, years, g.name)
             1 -> p(R.plurals.crew_memory_headline_with, years, g.name, with[0])
-            else -> p(R.plurals.crew_memory_headline_with, years, g.name, s(R.string.crew_memory_two_people, with[0], with[1]))
+            // On the home the two names stay together on one line ("Rae & Jo").
+            else -> p(R.plurals.crew_memory_headline_with, years, g.name, s(R.string.crew_memory_two_people, with[0], with[1]).let { if (res != null) it.replace(' ', '\u00A0') else it })
         }
     }
 
