@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.moments
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -41,6 +41,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.moments.Moments
 import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.ui.Mosh
+import nz.waveformlabs.moshpoint.ui.ago
 
 // Crew moments: photos the crew snapped, shown where and when they were taken.
 

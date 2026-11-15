@@ -28,7 +28,7 @@ internal fun StoryOverlays(a: MainActivity) {
         exit = androidx.compose.animation.slideOutVertically(androidx.compose.animation.core.tween(240)) { it / 4 } +
             androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(200)),
     ) {
-        nz.waveformlabs.moshpoint.ui.StoryScreen(
+        nz.waveformlabs.moshpoint.ui.moments.StoryScreen(
             items = Moments.items,
             nowSec = a.home.homeNow / 1000,
             colourOf = { name -> FriendsRepository.friends.firstOrNull { it.name.equals(name, true) }?.color },
@@ -49,7 +49,7 @@ internal fun StoryOverlays(a: MainActivity) {
         )
     }
     a.story.archiveGig?.let { g ->
-        nz.waveformlabs.moshpoint.ui.StoryScreen(
+        nz.waveformlabs.moshpoint.ui.moments.StoryScreen(
             items = a.story.archiveItems,
             nowSec = a.home.homeNow / 1000,
             colourOf = { name -> FriendsRepository.friends.firstOrNull { it.name.equals(name, true) }?.color },

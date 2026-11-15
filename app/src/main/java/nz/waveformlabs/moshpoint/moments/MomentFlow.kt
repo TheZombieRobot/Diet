@@ -214,7 +214,7 @@ class MomentFlow(
     fun CameraOverlay() {
         if (!capturing) return
         androidx.activity.compose.BackHandler { capturing = false }
-        nz.waveformlabs.moshpoint.ui.CaptureScreen(
+        nz.waveformlabs.moshpoint.ui.moments.CaptureScreen(
             withAudio = withAudio,
             hq = !ShareQuality.dataSaver.value,
             newClipFile = ::newClipFile,
@@ -265,16 +265,16 @@ class MomentFlow(
                 }.getOrNull()?.asImageBitmap()
                     ?: android.graphics.Bitmap.createBitmap(320, 240, android.graphics.Bitmap.Config.ARGB_8888).asImageBitmap()
             }
-            nz.waveformlabs.moshpoint.ui.MomentComposer(thumb, sendingMoment, onSend = ::sendClip, onCancel = { momentClip = null; f.delete() })
+            nz.waveformlabs.moshpoint.ui.moments.MomentComposer(thumb, sendingMoment, onSend = ::sendClip, onCancel = { momentClip = null; f.delete() })
         }
         momentPhoto?.let { bmp ->
             val img = androidx.compose.runtime.remember(bmp) { bmp.asImageBitmap() }
-            nz.waveformlabs.moshpoint.ui.MomentComposer(img, sendingMoment, onSend = ::sendMoment, onCancel = { momentPhoto = null })
+            nz.waveformlabs.moshpoint.ui.moments.MomentComposer(img, sendingMoment, onSend = ::sendMoment, onCancel = { momentPhoto = null })
         }
         viewingMoment?.let { m ->
             val me = lastLocation()
             val friend = FriendsRepository.friends.firstOrNull { it.name.equals(m.from, true) }
-            nz.waveformlabs.moshpoint.ui.MomentViewer(
+            nz.waveformlabs.moshpoint.ui.moments.MomentViewer(
                 m, System.currentTimeMillis() / 1000,
                 distanceText = if (me != null && m.lat != null && m.lon != null) {
                     nz.waveformlabs.moshpoint.ui.distanceLabel(

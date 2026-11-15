@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.moments
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -40,6 +40,8 @@ import nz.waveformlabs.moshpoint.gigs.GigArchive
 import nz.waveformlabs.moshpoint.R
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import nz.waveformlabs.moshpoint.ui.Mosh
+import nz.waveformlabs.moshpoint.ui.NeonButton
 
 /**
  * "Add your photos from that night": what's on this phone from the gig's hours, all

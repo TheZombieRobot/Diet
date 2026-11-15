@@ -26,6 +26,7 @@ import nz.waveformlabs.moshpoint.ui.home.UpNextRow
 import nz.waveformlabs.moshpoint.ui.home.dotLine
 import nz.waveformlabs.moshpoint.ui.map.MapPlace
 import nz.waveformlabs.moshpoint.ui.map.MapScreen
+import nz.waveformlabs.moshpoint.ui.moments.StoryScreen
 import org.junit.Rule
 import org.junit.Test
 

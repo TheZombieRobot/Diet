@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.moments
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
@@ -73,6 +73,7 @@ import androidx.core.content.ContextCompat
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.R
 import java.io.File
+import nz.waveformlabs.moshpoint.ui.Mosh
 
 /** Longest clip: short enough to share over the relay quickly, long enough for a chorus. */
 private const val CLIP_MS = 10_000L

@@ -48,7 +48,7 @@ import nz.waveformlabs.moshpoint.moments.Moments
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.ui.Mosh
-import nz.waveformlabs.moshpoint.ui.Polaroid
+import nz.waveformlabs.moshpoint.ui.moments.Polaroid
 import nz.waveformlabs.moshpoint.ui.map.VenueMapLine
 import nz.waveformlabs.moshpoint.ui.ago
 import nz.waveformlabs.moshpoint.ui.qrBitmap

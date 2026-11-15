@@ -71,7 +71,7 @@ internal fun MainScreen(a: MainActivity) {
             MapOverlay(a)
             a.momentFlow.CameraOverlay()
             a.story.rollGig?.let { (_, name) ->
-                nz.waveformlabs.moshpoint.ui.CameraRollPicker(name, a.story.rollFound, a.story.rollAdding, onAdd = a.story::addFromPhone, onClose = { a.story.rollGig = null })
+                nz.waveformlabs.moshpoint.ui.moments.CameraRollPicker(name, a.story.rollFound, a.story.rollAdding, onAdd = a.story::addFromPhone, onClose = { a.story.rollGig = null })
             }
         }
     }

@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.moments
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -56,6 +56,11 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import nz.waveformlabs.moshpoint.moments.Moments
 import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.ui.DefaultAvatar
+import nz.waveformlabs.moshpoint.ui.Mosh
+import nz.waveformlabs.moshpoint.ui.ago
+import nz.waveformlabs.moshpoint.ui.pressScale
+import nz.waveformlabs.moshpoint.ui.rememberPress
 
 // The Story: everyone's photos (and clips) from the night as Polaroids, a row per person.
 
