@@ -98,6 +98,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.LocationBook
@@ -152,6 +153,17 @@ internal fun dotLine(parts: List<String>, keep: Int = 24): String =
  * narrow column (a longer part, like a long venue name, may still wrap), more for a full line.
  */
 internal fun dotLine(text: String, keep: Int = 24): String = dotLine(text.split(" · "), keep)
+
+/**
+ * A small label in a tight place (a face's caption, a bottom-bar tab) grows with the font
+ * size setting up to [max] times, like Android's own non-linear scaling of large text: at
+ * 200% the rest of the home is twice the size, these 1.5 times, so they never break words.
+ */
+@Composable
+internal fun TextUnit.capScale(max: Float = 1.5f): TextUnit {
+    val fs = LocalDensity.current.fontScale
+    return if (fs > max && isSpecified) this * (max / fs) else this
+}
 
 /** A number keeps the word after it on its line: "15 min", not "15 / min". */
 internal fun keepNumbers(text: String): String = text.replace(NumberThenSpace, "$1\u00A0")
@@ -549,22 +561,45 @@ internal fun LiveRow(live: Boolean, ghost: Boolean, onChange: (Boolean) -> Unit,
         else -> stringResource(R.string.home_live_on)
     }
     val source = remember { MutableInteractionSource() }
-    Row(
+    val label = stringResource(R.string.home_live_switch)
+    val labelStyle = HomeType.Button.copy(fontSize = 15.sp, color = colour)
+    // Balanced, so a wrapped line never leaves one word alone (Hindi, Arabic, Chinese).
+    val explainStyle = HomeType.Body.copy(fontSize = 13.5.sp, lineHeight = 19.sp, color = if (live) Mosh.TextDim else Mosh.TextFaint, lineBreak = HomeBreakEven)
+    val measurer = rememberTextMeasurer()
+    BoxWithConstraints(
         modifier.fillMaxWidth()
             .heightIn(min = 48.dp)
             .toggleable(value = live, interactionSource = source, indication = null, role = Role.Switch, onValueChange = onChange),
-        verticalAlignment = Alignment.CenterVertically,
+        contentAlignment = Alignment.CenterStart,
     ) {
-        Text(stringResource(R.string.home_live_switch), style = HomeType.Button.copy(fontSize = 15.sp, color = colour), maxLines = 1)
-        Spacer(Modifier.width(10.dp))
-        SwitchTrack(live, colour)
-        Spacer(Modifier.width(12.dp))
-        Text(
-            explain,
-            // Balanced, so a wrapped line never leaves one word alone (Hindi, Arabic, Chinese).
-            style = HomeType.Body.copy(fontSize = 13.5.sp, lineHeight = 19.sp, color = if (live) Mosh.TextDim else Mosh.TextFaint, lineBreak = HomeBreakEven),
-            modifier = Modifier.weight(1f).padding(vertical = 4.dp),
-        )
+        // The line goes under the switch when the room beside it can't hold its longest word
+        // (a long switch name at a large font: "Widoczność" at 200%).
+        val density = LocalDensity.current
+        val room = with(density) { maxWidth.roundToPx() - (10.dp + 46.dp + 12.dp).roundToPx() } -
+            measurer.measure(label, labelStyle, maxLines = 1, softWrap = false).size.width
+        // Text without spaces (Chinese, Japanese, Thai) can break between characters: a few will do.
+        val chunks = if (explain.trim().contains(' ')) explain.split(' ') else listOf(explain.take(4))
+        val longest = chunks.maxOf { measurer.measure(it, explainStyle, maxLines = 1, softWrap = false).size.width }
+        val beside = longest <= room && room >= with(density) { 96.dp.roundToPx() }
+        val switch: @Composable () -> Unit = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(label, style = labelStyle, maxLines = 1)
+                Spacer(Modifier.width(10.dp))
+                SwitchTrack(live, colour)
+            }
+        }
+        if (beside) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                switch()
+                Spacer(Modifier.width(12.dp))
+                Text(explain, style = explainStyle, modifier = Modifier.weight(1f).padding(vertical = 4.dp))
+            }
+        } else {
+            Column {
+                switch()
+                Text(explain, style = explainStyle, modifier = Modifier.padding(top = 4.dp, bottom = 4.dp))
+            }
+        }
     }
 }
 
@@ -736,7 +771,7 @@ private fun FaceTile(f: Friend, status: FaceStatus, note: String?, badge: Int, o
         Spacer(Modifier.height(8.dp))
         Text(
             f.name,
-            style = HomeType.Label.copy(fontSize = 14.sp, color = if (status.live) Mosh.Text else Mosh.TextDim),
+            style = HomeType.Label.copy(fontSize = 14.sp.capScale(), color = if (status.live) Mosh.Text else Mosh.TextDim),
             maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(2.dp))
@@ -744,24 +779,34 @@ private fun FaceTile(f: Friend, status: FaceStatus, note: String?, badge: Int, o
         // run together; one long word ("paylaşmıyor") may use the tile's width rather than break.
         fun caption(t: String) = if (t.trim().contains(' ')) Modifier.padding(horizontal = 3.dp) else Modifier
         if (status.distance) {
-            FitText(status.text, HomeType.Button.copy(fontSize = 15.sp, color = Mosh.Lime))
+            // Fitted in one pass (measured, not shrunk frame by frame): "120 m" in the tile.
+            val measurer = rememberTextMeasurer()
+            val density = LocalDensity.current
+            val base = HomeType.Button.copy(fontSize = 15.sp.capScale(), color = Mosh.Lime)
+            val fitted = remember(status.text, density, base.fontSize) {
+                val room = with(density) { 74.dp.roundToPx() }
+                var size = base.fontSize.value
+                while (size > 9f && measurer.measure(status.text, base.copy(fontSize = size.sp), maxLines = 1, softWrap = false).size.width > room) size -= 0.5f
+                size
+            }
+            Text(status.text, style = base.copy(fontSize = fitted.sp), maxLines = 1, softWrap = false)
         } else {
             Text(
                 keepNumbers(status.text),
-                style = HomeType.Body.copy(fontSize = 12.5.sp, lineHeight = 16.sp, color = status.colour, lineBreak = HomeBreakEven),
+                style = HomeType.Body.copy(fontSize = 12.5.sp.capScale(), lineHeight = 16.sp.capScale(), color = status.colour, lineBreak = HomeBreakEven),
                 maxLines = 3, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center, modifier = caption(status.text),
             )
         }
         if (battery != null) {
             Text(
-                battery, style = HomeType.Body.copy(fontSize = 11.5.sp, lineHeight = 15.sp, color = Mosh.Danger, lineBreak = HomeBreakEven),
+                battery, style = HomeType.Body.copy(fontSize = 11.5.sp.capScale(), lineHeight = 15.sp.capScale(), color = Mosh.Danger, lineBreak = HomeBreakEven),
                 maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center, modifier = caption(battery),
             )
         }
         if (note != null) {
             // Balanced lines, a closing emoji kept with its word: "🔥 Bar / time 🍺", "🔥 / Bardags 🍺".
             Text(
-                note.replace(ClosingEmoji, "\u00A0$1"), style = HomeType.Body.copy(fontSize = 11.5.sp, lineHeight = 15.sp, color = Mosh.Amber, lineBreak = HomeBreakEven),
+                note.replace(ClosingEmoji, "\u00A0$1"), style = HomeType.Body.copy(fontSize = 11.5.sp.capScale(), lineHeight = 15.sp.capScale(), color = Mosh.Amber, lineBreak = HomeBreakEven),
                 maxLines = 3, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center, modifier = caption(note),
             )
         }

@@ -860,7 +860,7 @@ private fun BarItem(label: String, selected: Boolean, modifier: Modifier, icon: 
         // Two lines when a large font needs them (ストーリー at 130% on a small phone), never clipped.
         Text(
             label, maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
-            style = HomeType.Body.copy(fontSize = 11.5.sp, lineHeight = 15.sp, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium, color = colour, lineBreak = HomeBreakEven),
+            style = HomeType.Body.copy(fontSize = 11.5.sp.capScale(), lineHeight = 15.sp.capScale(), fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium, color = colour, lineBreak = HomeBreakEven),
             modifier = Modifier.padding(horizontal = 2.dp),
         )
     }
