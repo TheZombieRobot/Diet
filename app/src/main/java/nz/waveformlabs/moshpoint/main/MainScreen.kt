@@ -36,11 +36,11 @@ import nz.waveformlabs.moshpoint.ui.settings.rememberOpenPrivacyPolicy
 @NonRestartableComposable
 internal fun MainScreen(a: MainActivity) {
     MoshTheme(calm = a.home.calmMotion) {
-        CrewDialogs(a)
         // Play's prominent disclosure, before Android asks for location: over the welcome too.
         if (a.permissions.disclosure) {
             LocationDisclosureDialog(onContinue = { a.permissions.onDisclosure(true) }, onNotNow = { a.permissions.onDisclosure(false) })
         }
+        CrewDialogs(a)
         if (!a.home.onboarded) {
             Box(Modifier.fillMaxSize().background(Mosh.Ground).safeDrawingPadding()) {
                 OnboardingScreen(

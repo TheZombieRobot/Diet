@@ -52,7 +52,7 @@ therefore no longer holds there: the app fills the whole window, in landscape to
      unfolded foldable or a tablet held in landscape the flat-phone arrow now points 90° off. (A
      tablet whose natural orientation is landscape was already off under the old lock.) Fix:
      remap by the activity's display rotation while the finder is on screen; leave the pocket and
-     watch paths in the device frame. Field test 4f-F.
+     watch paths in the device frame. Field test 4g-F.
   2. **Rotation now recreates MainActivity on large screens** (no `configChanges`), which closes
      the finder and drops dialogs. Wave 2a owns `configChanges` (PRODUCTION_AUDIT, reliability);
      until then, a confirmation waiting for an invite and the gig a photo pick is for are saved
@@ -130,6 +130,6 @@ bundle or the watch's release APK isn't 16 KB aligned (run 300: `libmaplibre.so`
 32-bit copies don't need it (16 KB-page phones are 64-bit), as in Google's own check.
 
 ## Field test
-Section 4f of docs/FIELD_TEST_PLAN.md: a shared invite with the app closed, the photo picker, the
+Section 4g of docs/FIELD_TEST_PLAN.md: a shared invite with the app closed, the photo picker, the
 disclosure before the prompt, predictive back in every overlay, and the home, finder and arrow on
 a tablet or unfolded foldable in landscape.

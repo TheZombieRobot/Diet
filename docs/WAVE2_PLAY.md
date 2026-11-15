@@ -8,11 +8,11 @@ and Live) runs in parallel; wave 2c (battery) and 2d (Report and Block) come lat
 ## Status and next steps (handover)
 
 _Keep this section current: whoever picks this up next starts here. Last updated 15 November
-2026, 23:25 UTC._
+2026, 23:40 UTC._
 
 - **Done (code):** items 1–4 and 6–12 below; item 5 was dropped by the owner (the refusal was
   built, then removed again). **Done (docs):** ANDROID_16.md, BLUETOOTH_UUIDS.md, PLAY_STORE.md
-  (Data safety corrected, Play Console answers), PRIVACY.md, FIELD_TEST_PLAN.md section 4f,
+  (Data safety corrected, Play Console answers), PRIVACY.md, FIELD_TEST_PLAN.md section 4g,
   this note.
 - **Course change (15 November, from the coordinating session):** item 5 dropped; item 4's relay
   rule is now "release builds follow an invite only to one of their own relays"
@@ -100,7 +100,7 @@ added it). Play Console: Advertising ID = No.
   with the engine until it exists. A waiting confirmation survives Android closing the app.
 - Not done: a Robolectric start-up test (the audit's suggestion). Adding Robolectric next to
   Paparazzi in the app's unit tests risks the screenshot pipeline; the pure rules are tested in
-  core, and the cold start is field test 4f-A.
+  core, and the cold start is field test 4g-A.
 
 ### 5. ~~No Play bundle without our own server~~: dropped
 Owner's decision (15 November, relayed by the coordinating session): the production relay is a
@@ -234,6 +234,17 @@ Small, local edits only:
   disclosure), HomeState (one line), MainScreen (the disclosure dialog, onboarding's two
   arguments, the roll dialog's arguments), NightDialogs (the confirmation), StoryState (the
   picker), MainLaunchers (the picker launcher in the old one's place).
+
+## Merging with wave 2a (`claude/wave2-safety-k7m3p9`, tried at ce1363e)
+
+A trial merge (local only, nothing pushed) is clean except `docs/FIELD_TEST_PLAN.md`, where both
+waves add a section after 4e: keep both, 2a's "4f. Safety and the Live state" first, then this
+wave's "4g. Play Store readiness". Three other conflicts were avoided on this side: the Play
+screenshot tests sit after `smallPhoneSettings` (2a appends at the end of the class), the
+disclosure is composed just above `CrewDialogs(a)` (2a adds `AppNotices(a)` below it), and one
+doc comment in GigArchive is back as it was. Checked on the merged tree: every location and
+nearby-devices prompt still goes through the disclosure (2a's Live restart and auto-start ask
+for nothing), and a shared invite is still only offered, never joined or live by itself.
 
 ## For the billing session (wave 2e): what assumes a relay
 

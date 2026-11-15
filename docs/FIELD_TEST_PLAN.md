@@ -559,7 +559,7 @@ Message routes** open on the phones you're watching.
   Message routes on all three phones during the no-signal tests.
 - For each test: worked or not, how long each message took, and anything confusing in the words.
 
-## 4f. Play Store readiness and Android 16 (wave 2b, two phones, 40 min)
+## 4g. Play Store readiness and Android 16 (wave 2b, two phones, 40 min)
 
 What only a phone can prove about docs/WAVE2_PLAY.md. Both phones on the same new test build
 (the Bluetooth UUIDs changed: an older build can't hear crew intros, bumps, the crowd relay or

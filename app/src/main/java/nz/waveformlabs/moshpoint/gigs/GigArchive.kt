@@ -82,7 +82,7 @@ object GigArchive {
         return photo to video
     }
 
-    /** A photo or video from the phone's own camera roll, picked to add to a gig. */
+    /** A photo or video from the phone's own camera roll, taken during a gig. */
     data class Found(val uri: android.net.Uri, val video: Boolean, val takenSec: Long, val thumb: android.graphics.Bitmap?)
 
     /**
