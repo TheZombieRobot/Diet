@@ -54,7 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import nz.waveformlabs.moshpoint.Moments
+import nz.waveformlabs.moshpoint.moments.Moments
 import nz.waveformlabs.moshpoint.R
 
 // The Story: everyone's photos (and clips) from the night as Polaroids, a row per person.

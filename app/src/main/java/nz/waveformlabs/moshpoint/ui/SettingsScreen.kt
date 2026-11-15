@@ -166,7 +166,7 @@ internal fun SettingsContent(
                         )
                     }
                     Spacer(Modifier.width(12.dp))
-                    Switch(nz.waveformlabs.moshpoint.ShareQuality.dataSaver.value, { nz.waveformlabs.moshpoint.ShareQuality.setDataSaver(context, it) }, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Cyan, checkedThumbColor = Color(0xFF07050F), uncheckedTrackColor = Color(0xFF1C1630)))
+                    Switch(nz.waveformlabs.moshpoint.moments.ShareQuality.dataSaver.value, { nz.waveformlabs.moshpoint.moments.ShareQuality.setDataSaver(context, it) }, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Cyan, checkedThumbColor = Color(0xFF07050F), uncheckedTrackColor = Color(0xFF1C1630)))
                 }
             }
             run {

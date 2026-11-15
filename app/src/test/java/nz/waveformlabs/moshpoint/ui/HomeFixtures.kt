@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.GigArchive
 import nz.waveformlabs.moshpoint.LocationBook
-import nz.waveformlabs.moshpoint.Moments
+import nz.waveformlabs.moshpoint.moments.Moments
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.FriendRecord

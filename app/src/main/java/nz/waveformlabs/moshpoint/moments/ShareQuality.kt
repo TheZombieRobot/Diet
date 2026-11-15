@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.moments
 
 import android.content.Context
 import androidx.compose.runtime.mutableStateOf

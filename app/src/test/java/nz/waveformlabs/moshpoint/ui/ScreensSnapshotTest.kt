@@ -218,7 +218,7 @@ open class ScreensSnapshotTest {
     }
 
     private fun moment(key: String, from: String, t: Long, caption: String, top: Int, bottom: Int, mine: Boolean = false) =
-        nz.waveformlabs.moshpoint.Moments.Item(key, from, t, -36.85, 174.77, caption, fakePhoto(top, bottom), mine)
+        nz.waveformlabs.moshpoint.moments.Moments.Item(key, from, t, -36.85, 174.77, caption, fakePhoto(top, bottom), mine)
 
     @Test fun crewChat() = snap {
         MoshTheme {

@@ -107,9 +107,9 @@ fun FriendsScreen(
     ghost: Boolean = false,
     /** "Show crew QR" from the Add sheet: starts a crew first if needed. */
     onShowCrewQr: (() -> Unit)? = null,
-    moments: List<nz.waveformlabs.moshpoint.Moments.Item> = emptyList(),
+    moments: List<nz.waveformlabs.moshpoint.moments.Moments.Item> = emptyList(),
     onShareMoment: () -> Unit = {},
-    onOpenMoment: (nz.waveformlabs.moshpoint.Moments.Item) -> Unit = {},
+    onOpenMoment: (nz.waveformlabs.moshpoint.moments.Moments.Item) -> Unit = {},
     onCheckIn: (Int) -> Unit = {},
     /** "2:15 am" while we're checking in, else null. */
     checkInBy: String? = null,

@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.moments.Moments
 import org.json.JSONObject
 import java.io.File
 import java.security.MessageDigest

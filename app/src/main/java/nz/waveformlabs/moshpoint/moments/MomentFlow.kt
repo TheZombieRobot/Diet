@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.moments
 
 import android.Manifest
 import android.content.Intent
@@ -13,6 +13,10 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.FriendsRepository
+import nz.waveformlabs.moshpoint.MainActivity
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.ui.Mosh
 

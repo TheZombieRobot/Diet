@@ -39,7 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import nz.waveformlabs.moshpoint.Moments
+import nz.waveformlabs.moshpoint.moments.Moments
 import nz.waveformlabs.moshpoint.R
 
 // Crew moments: photos the crew snapped, shown where and when they were taken.

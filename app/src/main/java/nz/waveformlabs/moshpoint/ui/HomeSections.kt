@@ -87,7 +87,7 @@ import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.GigArchive
 import nz.waveformlabs.moshpoint.LocationBook
-import nz.waveformlabs.moshpoint.Moments
+import nz.waveformlabs.moshpoint.moments.Moments
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.venue.VenueMaps

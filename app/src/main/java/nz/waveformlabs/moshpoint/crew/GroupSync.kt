@@ -29,7 +29,7 @@ import nz.waveformlabs.moshpoint.GigWake
 import nz.waveformlabs.moshpoint.HerePins
 import nz.waveformlabs.moshpoint.Identity
 import nz.waveformlabs.moshpoint.LocationBook
-import nz.waveformlabs.moshpoint.Moments
+import nz.waveformlabs.moshpoint.moments.Moments
 import nz.waveformlabs.moshpoint.NightStats
 import nz.waveformlabs.moshpoint.chat.OfflineMessages
 import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages
