@@ -280,7 +280,7 @@ internal fun SettingsContent(
                             note = "Messages arrive in ${g.name} in 10 s. Leave the app to see the notification."
                             scope.launch {
                                 kotlinx.coroutines.delay(10_000)
-                                nz.waveformlabs.moshpoint.ChatSync.debugFakeChat(context, g, missed)
+                                nz.waveformlabs.moshpoint.chat.ChatSync.debugFakeChat(context, g, missed)
                             }
                         }
                         TextButton(onClick = { fake(next = false, missed = false) }) {

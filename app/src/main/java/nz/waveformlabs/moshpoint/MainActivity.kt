@@ -31,6 +31,9 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.chat.ChatSync
+import nz.waveformlabs.moshpoint.chat.CrewChat
+import nz.waveformlabs.moshpoint.chat.OfflineMessages
 import nz.waveformlabs.moshpoint.core.FriendRecord
 import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.crew.Bump

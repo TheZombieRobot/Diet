@@ -2,6 +2,7 @@ package nz.waveformlabs.moshpoint
 
 import android.content.Context
 import android.util.Base64
+import nz.waveformlabs.moshpoint.chat.ChatSync
 import nz.waveformlabs.moshpoint.core.CrewKeys
 import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.crew.GroupSync

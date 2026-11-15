@@ -93,7 +93,7 @@ class VisibilityService : LifecycleService() {
         CrowdRelayRadio.startListening(this)
         CrowdRelayRadio.startBroadcasting(this, lifecycleScope)
         // Messages without signal ride the relay's adverts: only while live, so only from here.
-        nz.waveformlabs.moshpoint.OfflineMessages.startRadio(this)
+        nz.waveformlabs.moshpoint.chat.OfflineMessages.startRadio(this)
         // Then, as always: Wi-Fi Aware, Bluetooth/Wi-Fi coming back, UWB, and the low-power listen
         // for friends who are looking (speeds our advert up, joins their UWB session).
         f.startListening()
@@ -178,7 +178,7 @@ class VisibilityService : LifecycleService() {
         uploader?.stop()
         runCatching { unregisterReceiver(batteryReceiver) }
         if (findable != null) {
-            nz.waveformlabs.moshpoint.OfflineMessages.stopRadio()
+            nz.waveformlabs.moshpoint.chat.OfflineMessages.stopRadio()
             GroupSync.release(this)
             CrowdRelayRadio.stopBroadcasting(this)
             CrowdRelayRadio.stopListening(this)

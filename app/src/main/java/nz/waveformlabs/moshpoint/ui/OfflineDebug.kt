@@ -21,7 +21,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.BuildConfig
-import nz.waveformlabs.moshpoint.OfflineMessages
+import nz.waveformlabs.moshpoint.chat.OfflineMessages
 import nz.waveformlabs.moshpoint.locate.RelayClient
 
 /**

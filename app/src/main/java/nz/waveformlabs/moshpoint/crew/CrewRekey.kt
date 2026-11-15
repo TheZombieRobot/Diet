@@ -6,12 +6,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import nz.waveformlabs.moshpoint.ChatSync
-import nz.waveformlabs.moshpoint.CrewChat
+import nz.waveformlabs.moshpoint.chat.ChatSync
+import nz.waveformlabs.moshpoint.chat.CrewChat
 import nz.waveformlabs.moshpoint.FriendsRepository
 import nz.waveformlabs.moshpoint.GigArchive
 import nz.waveformlabs.moshpoint.Identity
-import nz.waveformlabs.moshpoint.OfflineMessages
+import nz.waveformlabs.moshpoint.chat.OfflineMessages
 import nz.waveformlabs.moshpoint.PrivateMessages
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt

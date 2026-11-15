@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.chat
 
 import android.bluetooth.BluetoothManager
 import android.content.Context
@@ -15,6 +15,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import nz.waveformlabs.moshpoint.DebugStatus
+import nz.waveformlabs.moshpoint.GigArchive
+import nz.waveformlabs.moshpoint.HerePins
+import nz.waveformlabs.moshpoint.Identity
+import nz.waveformlabs.moshpoint.NetState
+import nz.waveformlabs.moshpoint.PrivateMessages
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.Courier
 import nz.waveformlabs.moshpoint.core.EphemeralId
 import nz.waveformlabs.moshpoint.core.GigGroup

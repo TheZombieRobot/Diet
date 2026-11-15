@@ -50,7 +50,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import nz.waveformlabs.moshpoint.CrewChat
+import nz.waveformlabs.moshpoint.chat.CrewChat
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Safety
 import nz.waveformlabs.moshpoint.core.GigGroup

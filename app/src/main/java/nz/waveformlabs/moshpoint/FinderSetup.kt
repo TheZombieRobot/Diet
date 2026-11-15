@@ -1,5 +1,6 @@
 package nz.waveformlabs.moshpoint
 
+import nz.waveformlabs.moshpoint.chat.OfflineMessages
 import nz.waveformlabs.moshpoint.core.HereRule
 import nz.waveformlabs.moshpoint.locate.ExtraFixSource
 import nz.waveformlabs.moshpoint.locate.FinderMailbox

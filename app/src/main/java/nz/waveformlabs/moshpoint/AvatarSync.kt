@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.chat.ChatSync
 import nz.waveformlabs.moshpoint.core.AvatarBox
 import nz.waveformlabs.moshpoint.locate.RelayClient
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs

@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.chat
 
 import android.app.AlarmManager
 import android.app.PendingIntent
@@ -9,6 +9,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.ChatCheckReceiver
+import nz.waveformlabs.moshpoint.Friendship
+import nz.waveformlabs.moshpoint.GigArchive
+import nz.waveformlabs.moshpoint.Identity
+import nz.waveformlabs.moshpoint.PrivateMessages
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.Courier
 import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.core.PingPolicy

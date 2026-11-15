@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.chat
 
 import android.content.Context
 import androidx.compose.runtime.mutableStateListOf
@@ -8,6 +8,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.GigArchive
+import nz.waveformlabs.moshpoint.Identity
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.core.MessageClock
 import nz.waveformlabs.moshpoint.core.OutboxState
