@@ -5,6 +5,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import org.json.JSONObject
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -34,7 +35,7 @@ class VenueLookupTest {
 
     private fun ok(body: String) = VenueLookup.Fetched(200, body)
 
-    @Test fun findsAVenueAndSaysWhoIsAsking() {
+    @Test fun findsAVenueAndSaysWhoIsAsking() = runBlocking<Unit> {
         val w = World { ok(spark) }
         val r = assertIs<VenueLookup.Result.Found>(w.lookup.find("  Spark   Arena ", "173,-35,176,-38"))
         assertEquals(-36.8468, r.place.lat, 1e-9)
@@ -50,7 +51,7 @@ class VenueLookupTest {
         assertTrue("ops@example.org" in w.agents.last())
     }
 
-    @Test fun neverAsksTwiceForTheSameVenue() {
+    @Test fun neverAsksTwiceForTheSameVenue() = runBlocking<Unit> {
         val w = World { ok(spark) }
         repeat(5) { assertIs<VenueLookup.Result.Found>(w.lookup.find("Spark Arena", null)) }
         assertIs<VenueLookup.Result.Found>(w.lookup.find("spark arena", null)) // same venue, typed differently
@@ -64,7 +65,7 @@ class VenueLookupTest {
         assertEquals(2, none.asked.size)
     }
 
-    @Test fun atMostOneQuestionASecondForEveryoneTogether() {
+    @Test fun atMostOneQuestionASecondForEveryoneTogether() = runBlocking<Unit> {
         val w = World { ok(spark) }
         // Four phones ask about four venues in the same instant.
         val results = listOf("Venue one", "Venue two", "Venue three", "Venue four").map { w.lookup.find(it, null) }
@@ -74,7 +75,7 @@ class VenueLookupTest {
         assertTrue(times.zipWithNext().all { (a, b) -> b - a >= 1_000 }, "asked at $times")
     }
 
-    @Test fun aLongQueueIsToldToComeBackRatherThanHurried() {
+    @Test fun aLongQueueIsToldToComeBackRatherThanHurried() = runBlocking<Unit> {
         // Phones arrive faster than one a second (the pretend clock doesn't move while "waiting").
         val now = 5_000_000L
         var asked = 0
@@ -86,7 +87,7 @@ class VenueLookupTest {
         assertTrue(results.drop(served).all { it == VenueLookup.Result.Unavailable })
     }
 
-    @Test fun aFailureIsNotRememberedAndBeingTurnedAwayIsRespected() {
+    @Test fun aFailureIsNotRememberedAndBeingTurnedAwayIsRespected() = runBlocking<Unit> {
         var fail = true
         val w = World { if (fail) VenueLookup.Fetched(0, null) else ok(spark) }
         assertEquals(VenueLookup.Result.Unavailable, w.lookup.find("Spark Arena", null))
@@ -104,7 +105,7 @@ class VenueLookupTest {
         assertIs<VenueLookup.Result.Found>(blocked.lookup.find("Venue two", null))
     }
 
-    @Test fun theServiceCanBeSwitchedOrTurnedOffWithoutAnAppUpdate() {
+    @Test fun theServiceCanBeSwitchedOrTurnedOffWithoutAnAppUpdate() = runBlocking<Unit> {
         val w = World { ok(spark) }
         w.env["MOSHPOINT_GEOCODER"] = "https://geocoder.example.org/search"
         w.lookup.find("Spark Arena", null)
@@ -115,7 +116,7 @@ class VenueLookupTest {
         assertTrue(off.asked.isEmpty())
     }
 
-    @Test fun rubbishInIsNotPassedOn() {
+    @Test fun rubbishInIsNotPassedOn() = runBlocking<Unit> {
         val w = World { ok(spark) }
         assertEquals(VenueLookup.Result.NotFound, w.lookup.find(" a ", null)) // too short to mean anywhere
         assertTrue(w.asked.isEmpty())
@@ -129,7 +130,7 @@ class VenueLookupTest {
 
     @Test fun endpoint() = testApplication {
         val w = World { url -> if ("Nowhere" in url) ok("[]") else ok(spark) }
-        application { moshpoint(MailboxStore(), venues = w.lookup) }
+        application { moshpoint(testRelay(), venues = w.lookup) }
         val found = client.get("/v1/venue?q=Spark%20Arena&box=173,-35,176,-38")
         assertEquals(HttpStatusCode.OK, found.status)
         val o = JSONObject(found.bodyAsText())

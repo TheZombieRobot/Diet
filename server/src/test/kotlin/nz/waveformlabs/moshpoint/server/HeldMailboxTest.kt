@@ -41,8 +41,10 @@ class HeldMailboxTest {
     }
 
     @Test fun keeps200PerIdNewestFirstAndTheSameBytesTakeOneSlot() = testApplication {
-        // The default stores, as deployed; only the rate limit is opened up so the test can post freely.
-        application { moshpoint(MailboxStore(), putLimit = RateLimiter(capacity = 5_000.0, refillPerSec = 1_000.0)) }
+        // The default stores, as deployed; only the rate limits (the client's and this mailbox's)
+        // are opened up so the test can post freely.
+        val open = Bucket(5_000.0, 1_000.0)
+        application { moshpoint(testRelay(limits = LimitConfig(anonWrites = open, heldWrites = open))) }
         suspend fun put(i: Int) = assertEquals(HttpStatusCode.NoContent, client.put("/v1/held/$id") { setBody(record(i)) }.status)
         suspend fun records() = parse(client.post("/v1/heldlookup") { setBody(idBytes) }.bodyAsBytes())
 

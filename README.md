@@ -68,19 +68,22 @@ For the automatic GitHub builds, set a repository **variable** (not a secret) ca
 `MOSHPOINT_SERVER` to the server's address (Settings → Secrets and variables → Actions →
 Variables). Every build after that has GPS mode on.
 
-**Quickest: Fly.io** (free allowance covers testing), from the repo root:
+**Fly.io** (one always-on Machine with a volume, about US$10 a month; full steps, sizes and
+costs in [docs/SERVER_PRODUCTION.md](docs/SERVER_PRODUCTION.md), the API in
+[docs/RELAY_API.md](docs/RELAY_API.md)), from the repo root:
 
 ```sh
-fly launch --copy-config --no-deploy   # first time; choose a name
-fly deploy
+fly apps create moshpoint-relay
+fly secrets set --stage MOSHPOINT_TOKEN_SECRET=$(openssl rand -hex 32) MOSHPOINT_CONTACT=you@example.org
+fly deploy --ha=false     # ONE Machine: a second would get its own, empty volume
 curl https://<your-app>.fly.dev/healthz                          # -> ok
 ```
 
-Running the server elsewhere (any host that runs Docker, e.g. Render, Railway):
+Running the server elsewhere (any host that runs Docker and keeps a disk):
 
 ```sh
 docker build -f server/Dockerfile -t moshpoint-server .
-docker run -p 8080:8080 moshpoint-server
+docker run -p 8080:8080 -v moshpoint-data:/data moshpoint-server
 ```
 
 Or locally without Docker: `./gradlew :server:run` (port 8080). Two phones on the same
