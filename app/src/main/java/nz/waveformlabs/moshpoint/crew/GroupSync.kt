@@ -231,7 +231,7 @@ object GroupSync {
         if (g.dormant(System.currentTimeMillis())) return
         val now = System.currentTimeMillis()
         val name = (if (following) GigGroup.FOLLOWER_MARK else "") + VisibilityPrefs.myName(app).ifBlank { Txt.s(R.string.crew_default_name) }
-        syncServer(app, g, g.sealIntro(Identity.intro(app, g, name), now), now)
+        syncServer(app, g, g.sealIntro(Identity.intro(app, g, name), now, form2 = true), now)
     }
 
     /** Loved ones following this crew from home (names), so everyone knows who can see. */
@@ -487,30 +487,28 @@ object GroupSync {
             }
             // Our pass in this crew (never our permanent identity) and our signing key.
             val myIntro = Identity.intro(c, g, myName)
-            // The new intro form is 4 bytes longer: only if this phone's adverts have the room.
-            val roomForNew = runCatching {
-                (c.getSystemService(BluetoothManager::class.java)?.adapter?.leMaximumAdvertisingDataLength ?: 0) >= GigGroup.MAX_INTRO2_BYTES + 8
+            // Only the second intro form goes out now, on air and to the relay: the first had 4
+            // bytes that stayed the same all night and a nonce that could repeat (audit/release.md,
+            // P2). Both forms are still read. On air it needs the room for itself plus the
+            // advert's 128-bit UUID header (docs/BLUETOOTH_UUIDS.md); a phone without it (none
+            // known) leaves its intro to the relay.
+            val roomOnAir = runCatching {
+                (c.getSystemService(BluetoothManager::class.java)?.adapter?.leMaximumAdvertisingDataLength ?: 0) >= GigGroup.MAX_INTRO2_BYTES + 22
             }.getOrDefault(false)
             while (true) {
                 val now = System.currentTimeMillis()
-                val mine = introFor(myIntro, now)
+                val mine = introFor(myIntro, now, form2 = true)
                 // Gossip: every other slot we pass on a crew member we know about, so the
                 // whole crew spreads through the room even if two of them never get close.
                 val members = FriendsRepository.friends.filter { it.gigGroupOnly }
-                // On air, the intro form without the constant prefix takes over once every crew
-                // mate's phone has shown it reads it (core IntroForms). Until then ours takes
-                // turns between the two forms. The relay's copy ([mine]) stays as it was.
-                val passes = members.filter { !FriendsRepository.isSimulated(it.id) }.map { it.secret } + this@GroupSync.members.map { unhex(it) }
                 val out = if (slot % 2 == 1 && members.isNotEmpty()) {
                     val m = members[(slot / 2) % members.size]
-                    introFor(GigGroup.Intro(m.secret, m.name, pubOf(m.secret)), now, form2 = roomForNew && introForms.newOnly(passes))
-                } else if (roomForNew && introForms.ownForm2(slot / 2, passes)) {
-                    introFor(myIntro, now, form2 = true)
+                    introFor(GigGroup.Intro(m.secret, m.name, pubOf(m.secret)), now, form2 = true)
                 } else {
                     mine
                 }
                 slot++
-                if (!follower) advertise(c, out)
+                if (!follower && roomOnAir) advertise(c, out)
                 if (now - lastServer > (if (RelayClient.ownServer) 30_000L else 55_000L)) {
                     lastServer = now
                     syncServer(c, g, mine, now)

@@ -95,8 +95,20 @@ android {
             buildConfigField("boolean", "TEST_BUILD", "false")
             if (keystorePath != null) signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            // Unused resources (from the libraries, mostly) left out of the Play build.
+            isShrinkResources = true
+            // proguard-release.pro: no verbose, debug or info logs in release (one names a friend).
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-release.pro")
         }
+    }
+    androidResources {
+        // The app's own 20 languages (res/values*, xml/locales_config.xml): the libraries' other
+        // translations are left out. The two pseudo-locales keep test builds' layout checks
+        // (debug { isPseudoLocalesEnabled }).
+        localeFilters += listOf(
+            "en", "ar", "de", "es", "es-rES", "fr", "hi", "in", "it", "ja", "ko", "nl", "pl", "pt", "sv", "th", "tr", "vi",
+            "zh-rCN", "zh-rTW", "en-rXA", "ar-rXB",
+        )
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
