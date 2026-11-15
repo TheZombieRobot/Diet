@@ -3,6 +3,9 @@ package nz.waveformlabs.moshpoint.ui
 import app.cash.paparazzi.DeviceConfig
 import app.cash.paparazzi.Paparazzi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.asImageBitmap
@@ -487,6 +490,114 @@ open class ScreensSnapshotTest {
         org.junit.Assume.assumeTrue(lang == null || lang in listOf("de", "pl", "ja"))
         paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.PIXEL_5).copy(fontScale = 2.0f))
         snap { MoshTheme { HomeUnderTest() } }
+    }
+
+    // ---- Need help: the crew alert says what the outbox knows (docs/WAVE2_SAFETY.md) ----
+    // The dialog's contents, drawn in a frame like the dialog's (a dialog window can't be drawn here).
+
+    private val mum = nz.waveformlabs.moshpoint.safety.Safety.Contact("Mum", "+64211234567")
+    private val nz111 = listOf(nz.waveformlabs.moshpoint.safety.EmergencyNumbers.Number("111", nz.waveformlabs.moshpoint.safety.EmergencyNumbers.Kind.ALL))
+
+    private fun help(
+        outcome: nz.waveformlabs.moshpoint.core.watch.PingOutcome?,
+        wait: nz.waveformlabs.moshpoint.core.HelpRules.Wait? = null,
+        textFailed: Boolean = false,
+        callFailed: String? = null,
+    ) = snap {
+        MoshTheme {
+            DialogFrame(stringResource(nz.waveformlabs.moshpoint.R.string.crew_help_title), stringResource(nz.waveformlabs.moshpoint.R.string.crew_close)) {
+                nz.waveformlabs.moshpoint.ui.chat.HelpBody(
+                    crewAlert = nz.waveformlabs.moshpoint.ui.chat.CrewAlertUi(outcome, wait),
+                    onAlertCrew = {}, onGoLive = {}, contact = mum, onText = {}, textFailed = textFailed,
+                    onSaveContact = { _, _ -> }, numbers = nz111, onCall = {}, callFailed = callFailed,
+                )
+            }
+        }
+    }
+
+    /** Before the tap: "Alert my crew", the contact to text, and the local emergency number. */
+    @Test fun helpBeforeAlert() = help(null)
+
+    /** First try under way (there's signal). */
+    @Test fun helpSending() = help(nz.waveformlabs.moshpoint.core.watch.PingOutcome.UNCONFIRMED)
+
+    /** No signal and not live: "Not sent yet", Go live, and texting or calling pointed at. */
+    @Test fun helpNotSentYet() = help(nz.waveformlabs.moshpoint.core.watch.PingOutcome.WAITING, nz.waveformlabs.moshpoint.core.HelpRules.Wait.GO_LIVE)
+
+    @Test fun helpSentNearby() = help(nz.waveformlabs.moshpoint.core.watch.PingOutcome.SENT_NEARBY)
+
+    @Test fun helpSent() = help(nz.waveformlabs.moshpoint.core.watch.PingOutcome.SENT)
+
+    /** Nobody has it (the outbox refused it), and this phone can neither text nor call: each says so where its button is. */
+    @Test fun helpNotSent() = help(nz.waveformlabs.moshpoint.core.watch.PingOutcome.FAILED, textFailed = true, callFailed = "111")
+
+    /** Every reason "Not sent yet" can give, one under another. */
+    @Test fun helpWaitReasons() = snap {
+        MoshTheme {
+            androidx.compose.foundation.layout.Column(
+                androidx.compose.ui.Modifier.background(Mosh.Ground).padding(16.dp),
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp),
+            ) {
+                nz.waveformlabs.moshpoint.core.HelpRules.Wait.entries.forEach { w ->
+                    nz.waveformlabs.moshpoint.ui.chat.CrewAlertRow(
+                        nz.waveformlabs.moshpoint.ui.chat.CrewAlertUi(nz.waveformlabs.moshpoint.core.watch.PingOutcome.WAITING, w), {}, {},
+                    )
+                }
+            }
+        }
+    }
+
+    /** A small phone with a large font: the longest state still fits, nothing clipped. */
+    @Test fun smallPhoneLargeFontHelpNotSentYet() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
+        help(nz.waveformlabs.moshpoint.core.watch.PingOutcome.WAITING, nz.waveformlabs.moshpoint.core.HelpRules.Wait.GO_LIVE)
+    }
+
+    // ---- The app's own notices: Live stopped, "Still at the gig?", storage full ----
+
+    private fun notice(kind: nz.waveformlabs.moshpoint.safety.Notices.Kind) = snap {
+        MoshTheme {
+            androidx.compose.foundation.layout.Box(
+                androidx.compose.ui.Modifier.fillMaxSize().background(Mosh.Ground).padding(24.dp),
+                contentAlignment = androidx.compose.ui.Alignment.Center,
+            ) { nz.waveformlabs.moshpoint.ui.settings.NoticeCard(kind) }
+        }
+    }
+
+    @Test fun noticeNoLongerLive() = notice(nz.waveformlabs.moshpoint.safety.Notices.Kind.LIVE_CANT_START)
+
+    @Test fun noticeStillAtTheGig() = notice(nz.waveformlabs.moshpoint.safety.Notices.Kind.LIVE_TOO_LONG)
+
+    @Test fun noticeStorageFull() = notice(nz.waveformlabs.moshpoint.safety.Notices.Kind.STORAGE_FULL)
+
+    @Test fun smallPhoneLargeFontNoticeNoLongerLive() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
+        notice(nz.waveformlabs.moshpoint.safety.Notices.Kind.LIVE_CANT_START)
+    }
+
+    /** A dialog's frame (as the dialog draws it): title, contents, and its Close button. */
+    @androidx.compose.runtime.Composable
+    private fun DialogFrame(title: String, close: String, content: @androidx.compose.runtime.Composable () -> Unit) {
+        androidx.compose.foundation.layout.Box(
+            androidx.compose.ui.Modifier.fillMaxSize().background(Mosh.Ground).padding(horizontal = 24.dp, vertical = 16.dp),
+            contentAlignment = androidx.compose.ui.Alignment.Center,
+        ) {
+            androidx.compose.foundation.layout.Column(
+                androidx.compose.ui.Modifier.fillMaxWidth().background(Mosh.Deep, androidx.compose.foundation.shape.RoundedCornerShape(28.dp))
+                    .padding(24.dp),
+            ) {
+                androidx.compose.material3.Text(title, style = Mosh.Heading)
+                androidx.compose.foundation.layout.Spacer(androidx.compose.ui.Modifier.height(16.dp))
+                content()
+                androidx.compose.foundation.layout.Spacer(androidx.compose.ui.Modifier.height(12.dp))
+                androidx.compose.foundation.layout.Row(
+                    androidx.compose.ui.Modifier.fillMaxWidth(),
+                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.End,
+                ) {
+                    androidx.compose.material3.TextButton(onClick = {}) { androidx.compose.material3.Text(close, style = Mosh.Label) }
+                }
+            }
+        }
     }
 
     /** Right-to-left set on Compose itself: the renderer's own setting doesn't reach every screen. */

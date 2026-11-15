@@ -175,7 +175,7 @@ internal fun HelpBody(
 
 /** "Alert my crew", then what the outbox says about the alert. Read out when it changes. */
 @Composable
-private fun CrewAlertRow(a: CrewAlertUi, onAlertCrew: () -> Unit, onGoLive: (() -> Unit)?) {
+internal fun CrewAlertRow(a: CrewAlertUi, onAlertCrew: () -> Unit, onGoLive: (() -> Unit)?) {
     val (title, sub, colour) = when (a.outcome) {
         null -> Triple(stringResource(R.string.crew_help_alert), stringResource(R.string.crew_help_alert_sub), Mosh.Danger)
         PingOutcome.UNCONFIRMED -> Triple(stringResource(R.string.safety_help_sending), stringResource(R.string.crew_help_alert_sub), Mosh.Danger)
