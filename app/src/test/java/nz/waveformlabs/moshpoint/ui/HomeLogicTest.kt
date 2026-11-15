@@ -68,7 +68,8 @@ class HomeLogicTest {
         val now = 1_000_000L
         val live = faceStatus(LocationBook.Seen(0.0, 0.0, now - 30, 10, batteryPct = 64), now, 40.0)
         assertTrue(live.live && live.distance)
-        assertEquals(distanceLabel(40.0), live.text)
+        assertEquals(finderDistanceLabel(40.0), live.text)
+        assertEquals("8 m", faceStatus(LocationBook.Seen(0.0, 0.0, now - 30, 10), now, 8.0).text) // not "0 m"
         assertEquals(null, live.battery) // only said when low
         assertEquals(8, faceStatus(LocationBook.Seen(0.0, 0.0, now - 30, 10, batteryPct = 8), now, 40.0).battery)
         assertEquals("live", faceStatus(LocationBook.Seen(0.0, 0.0, now - 30, 10), now, null).text)

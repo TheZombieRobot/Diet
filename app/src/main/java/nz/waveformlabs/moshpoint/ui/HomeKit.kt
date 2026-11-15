@@ -76,6 +76,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
@@ -516,7 +517,8 @@ internal fun faceStatus(s: LocationBook.Seen?, nowSec: Long, distanceM: Double?)
     val battery = s.batteryPct?.takeIf { it <= 20 } // only worth saying when low
     return when {
         s.lastGasp -> FaceStatus(false, Txt.s(R.string.home_tile_phone_died), Mosh.Danger, false, null)
-        age < LIVE_SEC && distanceM != null -> FaceStatus(true, distanceLabel(distanceM), Mosh.Lime, true, battery)
+        // The finder's own label: "8 m", not the map's tens ("0 m"), and the same number the finder shows.
+        age < LIVE_SEC && distanceM != null -> FaceStatus(true, finderDistanceLabel(distanceM), Mosh.Lime, true, battery)
         age < LIVE_SEC -> FaceStatus(true, Txt.s(R.string.home_tile_live), Mosh.Lime, false, battery)
         else -> FaceStatus(false, ago(age), Mosh.TextFaint, false, battery)
     }
@@ -566,9 +568,11 @@ internal fun DrawScope.ringGlow(r: Float, spread: Float, colour: Color) {
 @Composable
 internal fun FaceImage(f: Friend, size: Dp, live: Boolean, dim: Boolean = !live, glow: Dp = 18.dp, ringColour: Color = Mosh.Lime) {
     val ring = if (live) 3.dp else 2.dp
+    val radius = size / 2 + ring
     Box(
-        Modifier.size(size + ring * 2).drawBehind {
-            val r = this.size.minDimension / 2
+        // Always room for the thicker ring, so live and other faces (and their names) line up.
+        Modifier.size(size + 3.dp * 2).drawBehind {
+            val r = radius.toPx()
             if (live) ringGlow(r, glow.toPx(), ringColour)
             drawCircle(if (live) ringColour else Mosh.GlassLineStrong, radius = r)
         },
@@ -625,15 +629,16 @@ private fun FaceTile(f: Friend, status: FaceStatus, note: String?, badge: Int, o
         } else {
             Text(
                 status.text,
-                style = Mosh.Body.copy(fontSize = 12.5.sp, lineHeight = 16.sp, color = status.colour),
+                style = Mosh.Body.copy(fontSize = 12.5.sp, lineHeight = 16.sp, color = status.colour, lineBreak = LineBreak.Heading),
                 maxLines = 2, textAlign = TextAlign.Center,
             )
         }
         if (battery != null) {
-            Text(battery, style = Mosh.Body.copy(fontSize = 11.5.sp, lineHeight = 15.sp, color = Mosh.Danger), maxLines = 2, textAlign = TextAlign.Center)
+            Text(battery, style = Mosh.Body.copy(fontSize = 11.5.sp, lineHeight = 15.sp, color = Mosh.Danger, lineBreak = LineBreak.Heading), maxLines = 2, textAlign = TextAlign.Center)
         }
         if (note != null) {
-            Text(note, style = Mosh.Body.copy(fontSize = 11.5.sp, lineHeight = 15.sp, color = Mosh.Amber), maxLines = 2, textAlign = TextAlign.Center)
+            // Balanced lines: "🔥 Bar / time 🍺", not a lone emoji on the second line.
+            Text(note, style = Mosh.Body.copy(fontSize = 11.5.sp, lineHeight = 15.sp, color = Mosh.Amber, lineBreak = LineBreak.Heading), maxLines = 2, textAlign = TextAlign.Center)
         }
     }
 }

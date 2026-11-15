@@ -26,13 +26,16 @@ object Memories {
         }
     }
 
-    fun headline(g: GigArchive.Summary, years: Int): String {
-        val you = Txt.s(R.string.crew_you)
+    /** [res]: the screen's resources when drawn on the home (null: the app's, for notifications). */
+    fun headline(g: GigArchive.Summary, years: Int, res: android.content.res.Resources? = null): String {
+        fun s(id: Int, vararg a: Any) = res?.getString(id, *a) ?: Txt.s(id, *a)
+        fun p(id: Int, vararg a: Any) = res?.getQuantityString(id, years, *a) ?: Txt.p(id, years, *a)
+        val you = s(R.string.crew_you)
         val with = g.people.filter { it != you }.take(2)
         return when (with.size) {
-            0 -> Txt.p(R.plurals.crew_memory_headline, years, years, g.name)
-            1 -> Txt.p(R.plurals.crew_memory_headline_with, years, years, g.name, with[0])
-            else -> Txt.p(R.plurals.crew_memory_headline_with, years, years, g.name, Txt.s(R.string.crew_memory_two_people, with[0], with[1]))
+            0 -> p(R.plurals.crew_memory_headline, years, g.name)
+            1 -> p(R.plurals.crew_memory_headline_with, years, g.name, with[0])
+            else -> p(R.plurals.crew_memory_headline_with, years, g.name, s(R.string.crew_memory_two_people, with[0], with[1]))
         }
     }
 

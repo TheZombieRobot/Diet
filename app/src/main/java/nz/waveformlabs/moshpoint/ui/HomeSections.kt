@@ -12,10 +12,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -26,7 +28,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
@@ -39,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -59,6 +61,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -347,7 +350,7 @@ internal fun MemoryCard(g: GigArchive.Summary, years: Int, onOpen: () -> Unit) {
         Column(Modifier.weight(1f)) {
             Kicker(stringResource(R.string.home_memories), colour = Mosh.Amber)
             Spacer(Modifier.height(4.dp))
-            Text(nz.waveformlabs.moshpoint.Memories.headline(g, years), style = Mosh.RowTitle)
+            Text(nz.waveformlabs.moshpoint.Memories.headline(g, years, LocalContext.current.resources), style = Mosh.RowTitle)
             Spacer(Modifier.height(2.dp))
             Text(pluralStringResource(R.plurals.home_memories_count, n, n), style = Mosh.Small.copy(color = Mosh.TextDim))
         }
@@ -410,6 +413,7 @@ private fun GigPolaroid(g: GigArchive.Summary, tilt: Float, onClick: () -> Unit)
     val sub = listOfNotNull(shortDay(g.whenSec), photos.takeIf { g.photos > 0 }, clips.takeIf { g.clips > 0 }).joinToString(" · ")
     Column(
         Modifier.width(150.dp)
+            .fillMaxHeight()
             .rotate(tilt)
             .shadow(10.dp, RoundedCornerShape(3.dp), clip = false)
             .background(Mosh.Paper, RoundedCornerShape(3.dp))
@@ -424,16 +428,23 @@ private fun GigPolaroid(g: GigArchive.Summary, tilt: Float, onClick: () -> Unit)
     }
 }
 
-/** Past gigs as a strip of Polaroids that runs off the screen's edge. */
+/**
+ * Past gigs as a strip of Polaroids that runs off the screen's edge: the latest eight (See all
+ * has every one), all as tall as the tallest, so a two-line caption doesn't make one stick out.
+ */
 @Composable
 internal fun PastGigsStrip(gigs: List<GigArchive.Summary>, onOpen: (GigArchive.Summary) -> Unit) {
-    LazyRow(
-        Modifier.fillMaxWidth(),
-        // Room for the tilt and the drop shadow.
-        contentPadding = PaddingValues(start = HomeSide, end = HomeSide, top = 6.dp, bottom = 24.dp),
+    Row(
+        Modifier.fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            // Room for the tilt and the drop shadow.
+            .padding(start = HomeSide, end = HomeSide, top = 6.dp, bottom = 24.dp)
+            .height(IntrinsicSize.Max),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        itemsIndexed(gigs, key = { _, g -> g.id }) { i, g -> GigPolaroid(g, PolaroidTilts[i % PolaroidTilts.size]) { onOpen(g) } }
+        gigs.take(8).forEachIndexed { i, g ->
+            key(g.id) { GigPolaroid(g, PolaroidTilts[i % PolaroidTilts.size]) { onOpen(g) } }
+        }
     }
 }
 
