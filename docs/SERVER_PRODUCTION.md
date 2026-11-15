@@ -9,7 +9,7 @@ P1-11, P1-12 and the server P2s, performance P0-2 and P1-8 (server side).
 
 _Handover, kept current. Last updated: 15 Nov 2026._
 
-**Done** (all on the branch, server tests passing locally: 48 tests):
+**Done** (all on the branch, server tests passing locally: 54 tests):
 
 - Durable storage on a Fly volume: SQLite (WAL) for location boxes and chat, files with atomic
   writes for moments and profile photos, retention sweeps, flush on shutdown. Survives restarts
@@ -23,6 +23,8 @@ _Handover, kept current. Last updated: 15 Nov 2026._
 - Non-root container, `fly.toml` for one always-on Machine with a volume, Render dropped,
   masked logs.
 - Docs: this file and [RELAY_API.md](RELAY_API.md).
+- An independent review of the server code found 13 problems; all are fixed and tested except one
+  that needed only a correction here (see "Review" below).
 
 **Next:**
 
@@ -68,10 +70,12 @@ Now:
   all there or not there. Half-received uploads are deleted at start.
 - **Retention sweeps** every minute: boxes 15 min, chat 72 h, moments 24 h, photos 8 days, deleted
   from disk. Totals (counts and sizes only) are logged every 10 minutes.
-- **Shutdown**: Fly sends SIGTERM (`kill_signal`), the relay stops taking requests, finishes the
-  ones in flight (up to 20 s, `kill_timeout = 30s`), then checkpoints and closes the database.
-- **Cursors**: every record has a sequence number, starting from the clock when the store is
-  created, so a replaced store never hands out a cursor below one a phone kept.
+- **Shutdown**: Fly sends SIGTERM (`kill_signal`). Ktor's own shutdown hook stops taking
+  requests and gives those in flight up to 20 s (`shutdownGracePeriod`/`shutdownTimeout` in
+  `main()`; `kill_timeout = 30s` leaves room), then the relay checkpoints and closes the database.
+- **Cursors**: every record has a sequence number. At every start the next one is raised to at
+  least the clock in microseconds, so a store recreated empty or restored from an older snapshot
+  never hands out a number below a cursor a phone kept (tested).
 
 ### Memory
 
@@ -81,8 +85,16 @@ Now:
   lists (ids, names, sizes, times), the rate-limit buckets and SQLite's 32 MB page cache.
 - Byte caps per store, as shares of the volume (read at start, so extending the volume raises
   them): boxes 3%, chat 12% (both counted with 64 bytes' overhead per record), moments 45%,
-  photos 15%, the rest headroom for SQLite and the WAL. On a 20 GB volume: 0.6 / 2.4 / 9 / 3 GB.
-  Writes are also refused while the volume has under 3% free (at least 256 MB, at most 1 GB).
+  photos 15% (files counted in whole 4 KB blocks, as the disk stores them), the rest headroom for
+  SQLite and the WAL. On a 20 GB volume: 0.6 / 2.4 / 9 / 3 GB. File counts are capped too
+  (moments 30%, photos 20% of the volume's likely inodes, one per 16 KB), so tiny files can't use
+  up the inodes. Writes are also refused while the volume has under 3% free (at least 256 MB, at
+  most 1 GB).
+- Big answers are bounded: at most 128 lookups or batches are being built and sent at once (then
+  `503` "busy"), chat lookups are written a mailbox at a time, batch answers stop at 512 KB, and
+  one address can have at most 64 requests in progress. A client that stops reading is dropped
+  after 30 s (`responseWriteTimeoutSeconds`). Without these, a few hundred stalled lookups could
+  exhaust the heap (the review reproduced it on a small heap).
 - A full store answers `503` ("try later") and **keeps what it accepted**; nothing is dropped
   before its time. (The old file and photo stores dropped the oldest, which let anyone push out a
   crew's moments.)
@@ -93,11 +105,13 @@ Now:
 
 ### Limits and abuse
 
-- **Who the client is**: `Fly-Client-IP`, which Fly's proxy sets; the app's port is only reachable
-  through that proxy (the relay listens on IPv4 only, so not even Fly's private network reaches it
-  directly). Proxy headers are believed only on Fly (`TRUST_PROXY=fly`, the default when
-  `FLY_APP_NAME` is set); elsewhere the connection's own address is used. The old code trusted the
-  first `X-Forwarded-For` entry, which the client writes. IPv6 addresses count by their /64.
+- **Who the client is**: `Fly-Client-IP`, which Fly's proxy sets; from the internet the app's
+  port is only reachable through that proxy. (Fly's private network can reach it too, since the
+  JVM's `0.0.0.0` listens on IPv6 as well, but only the owner's own Machines and WireGuard peers
+  are on that network.) Proxy headers are believed only on Fly (`TRUST_PROXY=fly`, the default
+  when `FLY_APP_NAME` is set); elsewhere the connection's own address is used. The old code
+  trusted the first `X-Forwarded-For` entry, which the client writes. IPv6 addresses count by
+  their /64.
 - **A venue behind one carrier address works**: per-address limits are now 1,000 requests at
   once, then 50 a second for writes and 50 for reads (the old ones were 2 and 1 a second), which
   covers a few hundred phones of the current version behind one address (tested: 300 such phones
@@ -105,20 +119,31 @@ Now:
 - **Per mailbox**, whoever writes: box 600 then 10/s, chat 120 then 2/s, moments 100 then one per
   5 s and 500 files a day, photos 20 then one a minute. This is what stops one mailbox from being
   flooded, whatever the addresses.
-- **Byte budgets per hour**: records 64 MB per address (8 MB per install with a token), uploads
-  2 GB per address (300 MB per install). Downloads count against the address whoever asks
-  (4 GB/h) and also the install (512 MB/h).
+- **Budgets per hour**, charged to the address for every client and, with a token, to the
+  install as well (so tokens can't multiply what one address gets): record bytes 64 MB per
+  address / 8 MB per install; upload bytes 2 GB / 300 MB; uploads by number 2,000 / 200 (bursts
+  of 600 / 100); download bytes 4 GB / 512 MB. Anything refused or cut off gives back what it was
+  charged.
+- **Uploads**: 16 at once per address, 64 in all; one that sends nothing for 30 s, or averages
+  under 4 KB/s after its first minute, is dropped (`408`, which the app retries), so a trickle
+  can't hold the slots. A body shorter than its `Content-Length` is refused, never stored.
 - **Install tokens (optional)**: `POST /v1/install` gives a token signed with
   `MOSHPOINT_TOKEN_SECRET` (12 random bytes and a time; nothing about the person). With it, an
   install gets limits of its own (120 then 2/s) instead of sharing its address's, under a ceiling
-  per address (20,000 then 500/s). Without it, everything works as before at the per-address
+  per address (20,000 then 500/s); the install's own limit is checked first, so one client over
+  it can't use up what its address shares. Without it, everything works as before at the per-address
   limits. Asking for tokens is limited per address (60, then one every 30 s), so an address can't
   mint thousands. A bad or old token is ignored (address limits) and the answer says
   `X-Moshpoint-Token: invalid`. Rotating the secret invalidates every token at once (abuse plan).
 - **Not free file hosting**: uploads must look sealed. A file that starts like a JPEG, PNG, GIF,
   WebP, MP4/MOV/HEIC, WebM/MKV, MP3, Ogg, PDF, zip, 7z, rar or plain text is refused. Each moment
-  can be downloaded 500 times, then answers `404`. Files go after 24 h. Together that leaves
-  nothing worth sharing a link to.
+  can be downloaded in full 500 times, then answers `404` (refused or cut-off downloads don't
+  count). Files go after 24 h. Together that leaves nothing worth sharing a link to.
+- **What's left**: many addresses together can still fill the moments store (then new moments
+  wait until old ones expire, at most 24 h) or the photo store (8 days). The caps keep the disk
+  safe and nothing accepted is lost; watch the totals in `fly logs`, and if it happens, raise the
+  volume or lower `LIMIT_SCALE`, and rotate the token secret if tokens are being abused. The
+  limiters track at most 200,000 keys each; past that (only under attack) new keys go untracked.
 - **Answers**: `429` carries `X-Moshpoint-Limit` (client, address, mailbox, bytes) and
   `Retry-After`; current builds only read the status, the next version can pause just what's hit.
 - **Knob**: `LIMIT_SCALE=2` doubles every per-client limit (e.g. for a festival weekend).
@@ -145,6 +170,27 @@ request threads (up to 3 × 8 s), stalling everything on one CPU. Now:
   IP address (`LogPrivacy`, tested). Netty's connection errors (which name addresses) are off.
   Request failures log only the kind of exception.
 - Render: dropped (decision below).
+
+## Review
+
+After the first version, an independent review read the code against the app's `RelayClient`
+and ran experiments on the built server. What it found, and what changed:
+
+| Finding | Fix |
+|---|---|
+| A 30 s idle-read timeout cut off any download taking over 30 s (a regression: slow phones never got clips) | Removed; uploads have their own stall and rate limits instead |
+| Stalled `/v1/heldlookup` requests could exhaust the heap | Per-address in-flight cap, a global cap on big answers, chat answers written record by record, a 30 s write timeout |
+| A failure creating an upload's temp file leaked an upload slot | Created inside the `try`; tested |
+| A cut-off upload was stored and served as if whole | Refused when fewer bytes arrive than `Content-Length` says; tested against the real server |
+| Refused and cut-off downloads used up a file's 500 downloads | Counted only when sent in full; tested |
+| Tokens multiplied an address's byte budgets; no per-address upload concurrency or minimum rate; tiny files could use up inodes | Address ceilings for every budget, upload counts, 16 uploads per address, stall and rate limits, files counted in 4 KB blocks, file-count caps |
+| Ktor's own shutdown hook cut the grace period to 1 s / 5 s | The grace period is set where that hook reads it |
+| A tokened client over its limit drained its address's shared bucket | The install's limit is checked first; tested |
+| A photo's length could come from the index while a new photo replaced it | Length from the opened file; writes and deletes per id serialised |
+| Cursors could skip records after a restore from an older snapshot | Sequence raised at every start; tested |
+| "Listens on IPv4 only" was wrong (the JVM's `0.0.0.0` is dual-stack) | Corrected above; only the owner's own private network can reach it that way |
+| Disk flushes ran on Ktor's request threads (one on a 1-CPU Machine) | Moved to `Dispatchers.IO`; sweeps delete files outside the index lock |
+| Malformed batches cost nothing; a BAD GET's answer was one byte; a failed rollback could commit | Charged before the body is read; a BAD GET gets a whole block; the connection is reopened instead |
 
 ## Decisions
 
@@ -281,6 +327,9 @@ Server support is in place for all of these; the app changes are for later sessi
 - Release builds must fail when `MOSHPOINT_SERVER` is empty (release P1-8, android.yml).
 - `GigSearch.viaServer` should use `RelayClient.shareableServer` (release P1-9).
 - In release, ignore an invite's `r=` unless it is our own relay (release P0-5).
+- Settings' relay field still shows `https://moshpoint-relay.onrender.com` as its example
+  (`SettingsScreen`); Render is gone, so use the fly.dev address.
+- Treat `408` from an upload as "try later" (it already does: `RelayClient` counts 408 as no answer).
 
 Outside this scope, noted for later (CI, android.yml): signing secrets reach every branch;
 actions are pinned by tag, not SHA; the finder check only reports. A CI step that builds the

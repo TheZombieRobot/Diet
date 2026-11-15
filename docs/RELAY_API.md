@@ -18,21 +18,23 @@ All numbers on the wire are big-endian. An **id** is 16 bytes: in a URL, 32 hex 
 | Status | Meaning | What the app should do |
 |---|---|---|
 | 200 / 204 | Done. | |
-| 400 | This request can never work (bad id, bad size, a file that isn't sealed, a malformed batch). | Don't retry the same bytes. |
+| 400 | This request can never work (bad id, bad size, a file that isn't sealed, a malformed batch), or its body was cut off (fewer bytes than its `Content-Length`). | Don't retry the same bytes (a cut-off body never reaches the phone anyway). |
 | 404 | Nothing there. | |
+| 408 | An upload stalled for 30 s, or averaged under 4 KB/s after its first minute. | Retry later (the app counts 408 as "no answer"). |
 | 413 | Batch body over 512 KB. | Split it. |
 | 429 | A limit. `X-Moshpoint-Limit` says which, `Retry-After` when to come back (seconds). | See below. |
-| 503 | Try later: the relay is full, low on disk, shutting down, busy with uploads, or an outside service is unavailable. | Retry later; it's "no answer", not "refused". |
+| 503 | Try later: the relay is full, low on disk, shutting down, busy (too many uploads or big answers at once), or an outside service is unavailable. | Retry later; it's "no answer", not "refused". |
 
 `X-Moshpoint-Limit` values:
 
-- `client`: this install's (or, without a token, this address's) requests per second. Back off
-  the whole client for `Retry-After` seconds.
+- `client`: this install's (or, without a token, this address's) requests per second, or more
+  than 64 requests in progress at once from one address. Back off the whole client for
+  `Retry-After` seconds.
 - `address`: all tokened installs behind one address together (a very large venue). Same.
 - `mailbox`: that one mailbox has been written too often, or a moments mailbox is full for the
   day. **Back off that mailbox only**; everything else carries on.
-- `bytes`: this client's byte budget for the hour (records, uploads or downloads). Hold that kind
-  of traffic for `Retry-After` seconds; messages and lookups can carry on.
+- `bytes`: a byte or upload budget for the hour (records, uploads or downloads; see section 10).
+  Hold that kind of traffic for `Retry-After` seconds; messages and lookups can carry on.
 
 Current builds only look at the status (any 429 pauses all their traffic for 5 to 30 s); the
 header lets the next version pause only what's affected.
@@ -43,8 +45,10 @@ Request headers:
   as before. With a token we didn't issue (or after the secret was changed), the request still
   works, at the address's limits, and the answer carries `X-Moshpoint-Token: invalid`: ask for a
   new one.
-- `Content-Length` on uploads. Files without one are still received, but the length lets the
-  relay refuse an oversized or over-budget upload before it's sent.
+- `Content-Length` on every body (the current app always sends it). A body that ends before its
+  `Content-Length` (the connection dropped) is refused, never stored. Moments without one are
+  still received, but then a cut-off upload can't be told from a whole one, and the length lets
+  the relay refuse an oversized or over-budget upload before it's sent.
 
 ## 2. Location boxes (15 minutes)
 
@@ -85,14 +89,16 @@ million; publishing it again (new nonce) goes through.
 
 `PUT /v1/file/{id}`, body = one sealed file, 28 bytes to 12,000,000 bytes → `200` with the file's
 name as text (`<unix seconds>-<hex>`). Streamed to disk: the relay never holds the file in memory.
-Refused with `400` if the size is wrong or it isn't sealed (as photos). At most 500 files per id
-(then `429 mailbox`).
+Refused with `400` if the size is wrong, it was cut off, or it isn't sealed (as photos). At most
+500 files per id (then `429 mailbox`). An upload that sends nothing for 30 s, or averages under
+4 KB/s after its first minute, is dropped (`408`).
 
 `GET /v1/files/{id}?since=<unix seconds>` → `200` with one line per file, `<time> <name>`, newest
 first (empty body if none).
 
 `GET /v1/file/{id}/{name}` → `200` with the file (streamed, with `Content-Length`), or `404`.
-Each file can be downloaded 500 times; after that it answers `404`.
+Each file can be downloaded in full 500 times; after that it answers `404`. Refused or cut-off
+downloads don't count. There is no time limit on a download: a slow phone gets its clip.
 
 ## 6. Gigs and venues
 
@@ -132,10 +138,11 @@ arrived after it, **oldest first**, and a new cursor to keep.
   last time too: the `next` returned is valid for every id in the answer).
 - A record posted again (the same bytes) counts as arriving again, so it comes back once more.
   The app already drops duplicates by message id.
-- A cursor larger than anything the relay has handed out (it was replaced or restored) counts as
-  `0`: you get everything again, and a new cursor.
-- Cursors start from the time the store was created (about 1.8 × 10^15), so they are always
-  bigger than zero; they fit in a signed 64-bit integer, and in a JSON number.
+- A cursor larger than anything the relay has handed out counts as `0`: you get everything
+  again, and a new cursor.
+- At every start the relay raises its next number to at least the clock in microseconds (about
+  1.8 × 10^15), so after a restore from an older snapshot new records still sort after every
+  cursor a phone holds. Cursors fit in a signed 64-bit integer, and in a JSON number.
 
 `POST /v1/heldsince`, body = 1 to 64 × `[id:16][since:8]` → `200` with
 `[version = 1][count:1]` then, per id in order, a **get block**:
@@ -145,8 +152,7 @@ arrived after it, **oldest first**, and a new cursor to keep.
 ```
 
 `status` is `0` (all new records are here; `next` is your new cursor) or `1` (MORE: the answer
-filled up at 1 MB; `next` is the last record sent; ask again from it soon). Total answer at most
-about 1 MB.
+filled up at 512 KB of records; `next` is the last record sent; ask again from it soon).
 
 This replaces `/v1/heldlookup` for polling: a poll with nothing new costs 14 bytes per mailbox
 instead of up to 200 messages.
@@ -175,6 +181,7 @@ Answer `200`:
 then per op, in the order sent:
   PUT_*         [status:1]
   GET_*         a get block (section 8): [status:1][next:8][count:2] + records oldest first
+                (always the whole block, even with status BAD: next 0, count 0)
   unknown type  [status = 6] only
 ```
 
@@ -188,9 +195,10 @@ doesn't know that op type; ops carry their length so newer types can be skipped)
 - Each put is limited like the single request (mailbox write limit, byte budget). A refused put
   doesn't fail the batch.
 - The whole batch is refused only by the client's request limit (`429`), a malformed body
-  (`400`) or size (`413`). It costs `1 + puts/8` against the write limit and `1 + gets/8`
-  against the read limit (so one batch a minute is far inside any limit).
-- Answers carry at most about 1 MB of records; gets past that say MORE.
+  (`400`) or size (`413`). It costs one read as it arrives (before its body is read, so junk
+  costs too), then one write per 8 puts (at least one if there are any) and one more read per
+  8 gets. One batch a minute is far inside any limit.
+- Answers carry at most 512 KB of records; gets past that say MORE.
 
 Example: put a 29-byte location record under id `A` and read box `B` from the start.
 
@@ -219,13 +227,21 @@ Requests (token bucket: burst, then per second):
 Per mailbox, whoever writes: box 600 then 10/s · chat 120 then 2/s · moments 100 then one per 5 s ·
 photos 20 then one a minute. Moments: 500 files per id.
 
-Bytes per hour, per client (without a token: per address; with one: per install): records 64 MB /
-8 MB · uploads (moments and photos) 2 GB / 300 MB. Downloads (moments and photos) count against
-the address whoever asks, 4 GB an hour, and with a token also against the install, 512 MB.
+Budgets per hour. Every request counts against its address's budget, token or not (so tokens
+can't multiply what one address gets), and one with a token against its install's as well:
 
-Whole relay: byte caps per store (shares of the volume, see "Storage" in
-[SERVER_PRODUCTION.md](SERVER_PRODUCTION.md)); 48 uploads received at once; each moment downloaded
-at most 500 times.
+| Budget | Per address | Per install (with a token) |
+|---|---|---|
+| Record bytes (box and chat puts) | 64 MB | 8 MB |
+| Upload bytes (moments and photos) | 2 GB | 300 MB |
+| Uploads (moments and photos), by number | 600 at once, then 2,000 an hour | 100, then 200 an hour |
+| Download bytes (moments and photos) | 4 GB | 512 MB |
+
+At once: 64 requests in progress per address; 16 uploads per address and 64 in all; 128 big
+answers (lookups, batches) being built and sent in all.
+
+Whole relay: byte and file-count caps per store (shares of the volume, see "Memory" in
+[SERVER_PRODUCTION.md](SERVER_PRODUCTION.md)); each moment downloaded in full at most 500 times.
 
 The operator can scale every per-client limit with `LIMIT_SCALE` (e.g. `2` during a festival).
 
