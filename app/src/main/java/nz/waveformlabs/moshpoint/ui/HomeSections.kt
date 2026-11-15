@@ -258,8 +258,10 @@ internal fun DateTile(startsAtSec: Long) {
         if (startsAtSec > 0) {
             val locale = Locale.getDefault()
             val d = Date(startsAtSec * 1000)
-            val weekday = SimpleDateFormat(android.text.format.DateFormat.getBestDateTimePattern(locale, "EEE"), locale).format(d).uppercase(locale)
-            val day = SimpleDateFormat(android.text.format.DateFormat.getBestDateTimePattern(locale, "d"), locale).format(d)
+            // Plain "EEE" and "d", not the locale's best pattern: for a lone weekday that is the
+            // stand-alone "ccc", which java.text.SimpleDateFormat rejects off the phone.
+            val weekday = SimpleDateFormat("EEE", locale).format(d).uppercase(locale)
+            val day = SimpleDateFormat("d", locale).format(d)
             Text(
                 weekday, maxLines = 1, softWrap = false,
                 style = Mosh.Label.copy(fontSize = 10.sp, letterSpacing = tracked(weekday, 1.sp), color = Mosh.Lilac),
