@@ -429,9 +429,6 @@ object RelayClient {
 
     private const val MAX_ROOM_WAIT_MS = 20_000L
 
-    /** Would a message for [use] be let through right now? (Used to say "Waiting for signal" honestly.) */
-    fun wouldSend(use: RelayUse): Boolean = !offline && budget.refusal(use, true, SystemClock.elapsedRealtime()) == null
-
     /**
      * One HTTP exchange, inside the budget. [call] returns the HTTP status and the parsed
      * answer, and throws if the relay never answered. The budget is only charged when it did.

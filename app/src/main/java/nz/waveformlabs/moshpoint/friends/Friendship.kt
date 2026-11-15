@@ -70,8 +70,6 @@ object Friendship {
     /** People we've asked: their signing tag -> our entry for them. */
     private fun asked(c: Context) = prefs(c).getStringSet("asked", emptySet())!!.associate { it.substringBefore('=') to it.substringAfter('=') }
 
-    fun hasAsked(c: Context, friendId: String) = friendId in asked(c).values
-
     private fun payload(c: Context): ByteArray =
         Identity.permanent(c) + VisibilityPrefs.myName(c.applicationContext).ifBlank { Txt.s(R.string.crew_default_name) }.take(40).toByteArray(Charsets.UTF_8)
 

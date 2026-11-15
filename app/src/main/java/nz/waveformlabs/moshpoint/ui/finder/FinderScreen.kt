@@ -170,7 +170,6 @@ fun FinderScreen(
         if (scan?.done == true) haptics.performHapticFeedback(HapticFeedbackType.LongPress)
     }
     val pointing = arrows.filterIsInstance<ArrowState.Pointing>()
-    val distanceOnly = arrows.filterIsInstance<ArrowState.DistanceOnly>()
     val scanning = scan != null && !scan.done
 
     // Found-them celebration: the closest friend under 3 m, unless you chose to keep the arrow.

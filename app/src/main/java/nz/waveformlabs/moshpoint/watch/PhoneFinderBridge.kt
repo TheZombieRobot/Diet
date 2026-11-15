@@ -33,9 +33,6 @@ object PhoneFinderBridge {
     /** The phone's own finder is doing the finding right now. */
     val phoneFinderRunning: Boolean get() = running() != null
 
-    /** Is it looking for [friendId] (so its readings can be passed on)? */
-    fun tracks(friendId: String): Boolean = running()?.tracking?.value?.contains(friendId) == true
-
     /** Every method's latest fix for [friendId] from the phone's finder (empty if it isn't running). */
     fun fixes(friendId: String): List<Fix> = running()?.latestFixes(friendId).orEmpty()
 

@@ -38,11 +38,6 @@ object Mosh {
     val Lime = Color(0xFFB6FF3B)   // live / found
     val Violet = Color(0xFF9D5CFF)
     val Amber = Color(0xFFFFB020)
-    val Red = Pink // older name: "far" colour
-    val Green = Lime
-    val VisibleBg = Deep
-    val VisibleLine = Lime
-    val VisibleText = Color(0xFFCFE9B0)
     val Danger = Color(0xFFFF6FB3)
 
     // Home (docs/design/home-redesign): glass, hairlines and surfaces.

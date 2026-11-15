@@ -1,6 +1,5 @@
 package nz.waveformlabs.moshpoint.profile
 
-import android.content.Context
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -83,10 +82,5 @@ class FacebookLogin(
 
     companion object {
         val available get() = BuildConfig.FACEBOOK_ENABLED
-
-        /** Log out of Facebook in the app (doesn't remove your photo). */
-        fun logout(context: Context) {
-            if (available && FacebookSdk.isInitialized()) LoginManager.getInstance().logOut()
-        }
     }
 }

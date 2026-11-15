@@ -24,11 +24,6 @@ internal object WatchLink {
         runCatching { Wearable.getMessageClient(c.applicationContext).sendMessage(node, WatchProtocol.PATH_TO_WATCH, WatchProtocol.encode(message)) }
     }
 
-    /** True once it has been handed to the watch's node. */
-    suspend fun sendNow(c: Context, node: String, message: WatchMessage): Boolean = runCatching {
-        Wearable.getMessageClient(c.applicationContext).sendMessage(node, WatchProtocol.PATH_TO_WATCH, WatchProtocol.encode(message)).await()
-    }.isSuccess
-
     @Volatile private var watchKnown = false
     @Volatile private var checkedAtMs = 0L
 
