@@ -146,23 +146,40 @@ Small phone = `DeviceConfig.NEXUS_5` (360 dp); large font = font size 130%.
 Contact sheets (every language of one state on one picture) are in
 `docs/design/home-redesign/audit/`, made with `tools/contact_sheet.py`.
 
-Results: not recorded yet (see Status).
+Rounds: English was compared with the five artboards first (side by side, same scale). Then
+every language was looked at in four groups (de nl sv fr it; es es-rES pt pl tr in; ar hi th
+vi; ja ko zh-rCN zh-rTW en-rUS), each picture checked against the English one, zoomed where
+text was tight, and the tall `homeWhole` read in slices. Findings were checked on the pictures,
+fixed, re-rendered, and looked at again until nothing was left. A blank (one flat colour) or
+missing picture means a crash and is checked for on every run: an exception inside a lazy
+row's item is thrown during layout, which Paparazzi saves as a blank frame instead of failing.
+
+**Spain's Spanish (es-rES)** can't be rendered by Paparazzi: given `es-rES` (or `b+es+ES`) it
+takes `values-es`, so the es-rES pictures are the plain Spanish ones (the same on the main
+branch's screenshots; a phone does pick `values-es-rES`). It was checked by comparing every
+home string with Spanish: 26 differ, none by more than 5 characters, and each longer one sits
+where text wraps or has room ("En directo" by the switch, "Introducir un código" in a button
+that wraps between words).
+
+Results: being filled in (see Status).
 
 ## 4. Status and next steps
 
 Handover (kept current; newest first):
 
-- **Now:** Step 3, the audit. Run 276 rendered every test in every language (none blank or
-  missing). English checked against the design (Main, CrewMenu, NoCrew, FirstTime, Scrolled):
-  the rhythm matches to a few pixels. Fixed from it: a face's distance ("0 m" for 8 m), the
-  memories plural in the tall test, live faces sitting 2 dp lower than the rest, uneven
-  Polaroids, a lone emoji on a caption's second line, the big button's long labels, See all's
-  touch width, the status bar on Android 15, and a pair of buttons that broke a label
-  mid-word (German "Crew-Cha|t", Japanese "クルーチャ|ット"). Four audit agents are going
-  through every language (de/nl/sv/fr/it, es/es-rES/pt/pl/tr/in, ar/hi/th/vi,
-  ja/ko/zh-rCN/zh-rTW/en-rUS) with the brief kept in the scratchpad (summarised in section 3).
-  CI run 278 (commit `500308a`) renders the fixes. Next: verify the agents' findings on the
-  pictures, fix, re-render, then fill in section 3 and the contact sheets.
+- **Now:** audit round 2. Round 1 (four agents over every language, plus English against the
+  design) found and fixed: German/Japanese button labels breaking mid-word (pairs now stack),
+  Korean/Japanese/Chinese line breaks (the home's text now uses phrase breaking, strict
+  kinsoku and the high-quality breaker: `HomeType` styles in `HomeKit.kt`), parts of a "·"
+  line splitting ("Dock / 4") or a line starting with "·" (`dotLine`), a face caption losing a
+  word (three lines now), captions running together, See all beside a wrapped title, the
+  Arabic radar picture off screen, Arabic "·" reading as a zero (bullet in Arabic), the
+  memories chevron in Arabic, "!!Front row", the check-in time splitting, plus the English
+  ones (distance "0 m", "1 years", uneven faces and Polaroids). CI run 280 (commit `4778b54`)
+  renders all of it; next: round 2 on its pictures (each group checks its round-1 findings and
+  looks again for anything new), then the results table below and the contact sheets.
+  es-rES can't be rendered (see section 3). Test failures fixed in the same run: the
+  distance's no-break space in `HomeLogicTest`, and the es-rES guard removed.
 - **Done:** Step 1 (inventory, above). Step 2 code, compiling in CI: `Theme.kt` tokens,
   `HomeKit.kt` (new), `HomeSections.kt` and `FriendsScreen.kt` (rewritten),
   `HelpDialog(onAlertCrew = null)` in `CrewChatUi.kt`, `MomentStrip` removed (`MomentsUi.kt`),
