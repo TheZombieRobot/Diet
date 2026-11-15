@@ -301,7 +301,7 @@ internal fun HeroButton(text: String, icon: ImageVector, modifier: Modifier = Mo
         val measurer = rememberTextMeasurer()
         val density = LocalDensity.current
         val room = with(density) { (maxWidth - 20.dp * 2 - 22.dp - 12.dp).roundToPx() }
-        val base = HomeType.Button.copy(fontSize = textSize, color = Color.White)
+        val base = HomeType.Button.copy(fontSize = textSize, color = Color.White, lineBreak = HomeBreakEven)
         val fits = remember(text, room, density, textSize) {
             (0..3).map { textSize.value - it }.firstOrNull { s ->
                 measurer.measure(text, base.copy(fontSize = s.sp), maxLines = 1, softWrap = false).size.width <= room
@@ -376,7 +376,8 @@ internal fun GlassAction(
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
             HomeIcon(icon, content, 20.dp)
             Spacer(Modifier.width(if (accent != null) 8.dp else 10.dp))
-            WholeWordsText(text, HomeType.RowTitle.copy(color = content), Modifier.weight(1f, fill = false))
+            // Balanced: a label on two lines splits evenly ("QR kết bạn / của mình", not "… của / mình").
+            WholeWordsText(text, HomeType.RowTitle.copy(color = content, lineBreak = HomeBreakEven), Modifier.weight(1f, fill = false))
             if (badge > 0) {
                 Spacer(Modifier.width(8.dp))
                 CountBadge(badge)

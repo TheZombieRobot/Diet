@@ -187,6 +187,7 @@ internal fun UnreadBadge(count: Int, modifier: Modifier = Modifier) {
             .semantics { contentDescription = label },
         contentAlignment = Alignment.Center,
     ) {
-        Text(if (count > 9) "9+" else count.toString(), style = Mosh.Label.copy(fontSize = 11.sp, color = Color.White))
+        // In the phone's digits, like the crew chat's badge (Arabic ٢, not 2).
+        Text(if (count > 9) androidx.compose.ui.res.stringResource(R.string.home_unread_many) else "%d".format(count), style = Mosh.Label.copy(fontSize = 11.sp, color = Color.White))
     }
 }

@@ -279,8 +279,11 @@ open class ScreensSnapshotTest {
             OverHome({ HomeUnderTest() }) {
                 CrewMenuContent(
                     name = "Sam's crew",
-                    subtitle = stringResource(nz.waveformlabs.moshpoint.R.string.home_menu_tonight) + " · " +
+                    // Joined as the app joins it (FriendsScreen).
+                    subtitle = dotLine(listOf(
+                        stringResource(nz.waveformlabs.moshpoint.R.string.home_menu_tonight),
                         pluralStringResource(nz.waveformlabs.moshpoint.R.plurals.home_crew_count, 5, 5),
+                    )),
                     onInvite = {}, onFamily = {}, onReset = {},
                     endTitle = stringResource(nz.waveformlabs.moshpoint.R.string.home_end_night),
                     endSub = stringResource(nz.waveformlabs.moshpoint.R.string.home_menu_end_sub),
