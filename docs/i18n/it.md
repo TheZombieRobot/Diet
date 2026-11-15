@@ -153,3 +153,4 @@ The new home screen: the Live row, the crew header and the ⋯ crew menu, the no
 Also: a mate's low battery under their face is **Batteria 15%** (*15% di batteria* wraps under the 76 dp face).
 
 For a native reviewer: *Condividi la serata in famiglia* could read as "share the night as a family"; *Crea un gruppo stasera* is as wide as the English button text, so it may wrap on some phones. Written without a native reviewer. Confidence: **medium-high**.
+- **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it Live ("attiva Live"); "Vai live" stays as a verb in the onboarding title.

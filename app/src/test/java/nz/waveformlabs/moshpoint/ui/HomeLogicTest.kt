@@ -84,6 +84,7 @@ class HomeLogicTest {
         val wide = 2.5.sp
         assertEquals(wide, tracked("TONIGHT", wide))
         assertEquals(wide, tracked("HEUTE ABEND", wide))
+        assertEquals(wide, tracked("TỐI NAY", wide)) // Vietnamese: Latin Extended Additional
         assertEquals(0f, tracked("الليلة", wide).value)
         assertEquals(0f, tracked("คืนนี้", wide).value)
         assertEquals(0f, tracked("आज रात", wide).value)

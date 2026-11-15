@@ -3,7 +3,7 @@
      no crew / first time, and the section titles. Keep labels short: the screen is about 340 dp wide. -->
 <resources>
     <!-- The Live row: the switch's name (a name, not "sharing now"), then one line beside it -->
-    <string name="home_live_switch">การแชร์</string>
+    <string name="home_live_switch">มองเห็นได้</string>
     <string name="home_live_on">เพื่อนๆ เห็นคุณอยู่</string>
     <string name="home_live_ghost_on">โหมดล่องหน: ไม่ขึ้นบนแผนที่ แต่ใกล้ๆ ยังหาเจอ</string>
     <string name="home_live_off">ปิดอยู่: เพื่อนยังไม่เห็นคุณ</string>

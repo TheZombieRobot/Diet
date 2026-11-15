@@ -29,7 +29,7 @@
     <string name="find_pill_hidden">已隱藏</string>
     <string name="find_searching_cd">搜尋中</string>
     <string name="find_looking_for">正在找 %1$s…</string>
-    <string name="find_searching_help">還沒收到對方的訊號，也沒有分享的位置。對方要打開 Moshpoint 並點「上線」，同時開啟定位和行動數據。之後箭頭就會出現，就算隔了半個城市也行。</string>
+    <string name="find_searching_help">還沒收到對方的訊號，也沒有分享的位置。對方要打開 Moshpoint 並打開「在線」，同時開啟定位和行動數據。之後箭頭就會出現，就算隔了半個城市也行。</string>
     <string name="find_band_right_here">就在這裡</string>
     <string name="find_band_close">很近</string>
     <string name="find_band_nearby">附近</string>

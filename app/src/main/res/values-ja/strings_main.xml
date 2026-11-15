@@ -2,9 +2,9 @@
 <!-- Japanese: main screen, invites, sharing and phone setup checks. -->
 <resources>
     <string name="main_get_the_app">Moshpointをまだ入れてない？ここからインストール（Android）：%1$s\nそのあとこのメッセージを全部コピーして、Moshpointを開いて「招待を貼り付け」をタップしてね。\n\n</string>
-    <string name="main_nudge_text">%1$s、Moshpointを開いて「シェア開始」をタップしてね（位置情報とデータはオンで）。そしたら見つけられるから！</string>
+    <string name="main_nudge_text">%1$s、Moshpointを開いて「位置シェア」をオンにしてね（位置情報とデータはオンで）。そしたら見つけられるから！</string>
     <string name="main_nudge_mate">みんな</string>
-    <string name="main_nudge_title">シェア開始をお願いする</string>
+    <string name="main_nudge_title">位置シェアをお願いする</string>
 
     <string name="main_setup_bluetooth_off">Bluetoothがオフです。オフのままだと、誰もあなたを見つけられず、あなたも仲間を見つけられません。</string>
     <string name="main_setup_location_off">位置情報がオフです。GPSで探すのに必要で、多くのスマホではBluetoothで探すのにも必要です。</string>

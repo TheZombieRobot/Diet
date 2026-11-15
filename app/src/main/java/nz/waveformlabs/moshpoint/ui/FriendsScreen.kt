@@ -187,8 +187,9 @@ fun FriendsScreen(
     val inCrew = groupName != null || gig.isNotEmpty()
     // A brand-new user: nothing to show but the one thing to do.
     val firstTime = !inCrew && permanent.isEmpty() && past.isEmpty() && upNext.isEmpty()
-    // Need help offers the crew alert only when there's a crew on tonight to alert.
-    val canAlertCrew = groupName != null && !following && !crewSleeping
+    // Need help offers the crew alert only when there's a crew on tonight with someone in it
+    // to alert: a safety feature must never say "alerted" to nobody.
+    val canAlertCrew = groupName != null && !following && !crewSleeping && (gig.isNotEmpty() || followers.isNotEmpty())
     val startCrew: () -> Unit = onQuickCrew ?: { naming = true }
     val crewName = groupName ?: stringResource(R.string.home_your_crew)
     val crewCount = pluralStringResource(R.plurals.home_crew_count, gig.size, gig.size)
@@ -245,7 +246,7 @@ fun FriendsScreen(
                         TextButton(onClick = { onRemovePhoto(f.id); options = null }) { Text(stringResource(R.string.home_remove_photo)) }
                     }
                     if (!f.gigGroupOnly || canRemoveCrewMates) {
-                        TextButton(onClick = { confirmRemove = f; options = null }) { Text(stringResource(R.string.home_remove_name, f.name), color = Mosh.Danger) }
+                        TextButton(onClick = { confirmRemove = f; options = null }) { Text(stringResource(R.string.home_remove_name, f.name), color = Mosh.Red) }
                     } else {
                         Text(
                             stringResource(R.string.crew_only_owner_removes),

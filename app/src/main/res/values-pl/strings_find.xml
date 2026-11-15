@@ -29,7 +29,7 @@
     <string name="find_pill_hidden">Ukryty</string>
     <string name="find_searching_cd">Szukam</string>
     <string name="find_looking_for">Szukam: %1$s…</string>
-    <string name="find_searching_help">Brak sygnału i brak udostępnionej lokalizacji. Ta osoba musi otworzyć Moshpoint i kliknąć Udostępnij lokalizację, a do tego mieć włączoną lokalizację i dane komórkowe. Wtedy pojawi się strzałka, nawet jeśli jest na drugim końcu miasta.</string>
+    <string name="find_searching_help">Brak sygnału i brak udostępnionej lokalizacji. Ta osoba musi otworzyć Moshpoint i włączyć Widoczność, a do tego mieć włączoną lokalizację i dane komórkowe. Wtedy pojawi się strzałka, nawet jeśli jest na drugim końcu miasta.</string>
     <string name="find_band_right_here">Tuż obok</string>
     <string name="find_band_close">Blisko</string>
     <string name="find_band_nearby">W pobliżu</string>

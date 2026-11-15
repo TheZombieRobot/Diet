@@ -3,7 +3,7 @@
      no crew / first time, and the section titles. Keep labels short: the screen is about 340 dp wide. -->
 <resources>
     <!-- The Live row: the switch's name (a name, not "sharing now"), then one line beside it -->
-    <string name="home_live_switch">Chia sẻ</string>
+    <string name="home_live_switch">Hiển thị</string>
     <string name="home_live_on">Bạn bè thấy được bạn</string>
     <string name="home_live_ghost_on">Chế độ tàng hình: ẩn khỏi bản đồ, ở gần vẫn tìm được bạn</string>
     <string name="home_live_off">Tắt: bạn bè chưa thấy bạn</string>

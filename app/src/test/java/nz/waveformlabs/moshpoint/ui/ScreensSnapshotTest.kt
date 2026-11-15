@@ -455,6 +455,24 @@ open class ScreensSnapshotTest {
         snapNoCrew()
     }
 
+    /** A small phone with a large font: Need help takes its own row when it must, bar labels wrap. */
+    @Test fun smallPhoneLargeFontHomeMain() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
+        snap { MoshTheme { HomeUnderTest() } }
+    }
+
+    @Test fun smallPhoneLargeFontHomeNoCrew() {
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.NEXUS_5).copy(fontScale = 1.3f))
+        snapNoCrew()
+    }
+
+    /** The largest font setting (200%), in English, German, Polish and Japanese only. */
+    @Test fun hugeFontHomeMain() {
+        org.junit.Assume.assumeTrue(lang == null || lang in listOf("de", "pl", "ja"))
+        paparazzi.unsafeUpdateConfig(deviceConfig = device(DeviceConfig.PIXEL_5).copy(fontScale = 2.0f))
+        snap { MoshTheme { HomeUnderTest() } }
+    }
+
     /** Right-to-left set on Compose itself: the renderer's own setting doesn't reach every screen. */
     private fun snap(content: @androidx.compose.runtime.Composable () -> Unit) = paparazzi.snapshot {
         androidx.compose.runtime.CompositionLocalProvider(

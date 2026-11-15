@@ -4,7 +4,7 @@
      short: the screen is about 340 dp wide, and two buttons share a row. No spaces between Chinese words. -->
 <resources>
     <!-- The Live switch's name, on or off (a name, not 上線中), then the one line beside it -->
-    <string name="home_live_switch">上線</string>
+    <string name="home_live_switch">在線</string>
     <string name="home_live_on">朋友看得到你</string>
     <string name="home_live_ghost_on">幽靈模式：地圖上不顯示，靠近時還是找得到你</string>
     <string name="home_live_off">已關閉：朋友還看不到你</string>

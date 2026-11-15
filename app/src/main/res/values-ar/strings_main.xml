@@ -2,7 +2,7 @@
 <!-- Arabic: main screen, invites, sharing and phone setup checks. -->
 <resources>
     <string name="main_get_the_app">ليس لديك Moshpoint بعد؟ ثبّته من هنا (Android): %1$s\nثم انسخ هذه الرسالة كاملة، وافتح Moshpoint واضغط «لصق الدعوة».\n\n</string>
-    <string name="main_nudge_text">مرحبًا %1$s، افتح Moshpoint واضغط «اظهر» (مع تشغيل الموقع والبيانات) حتى أجدك!</string>
+    <string name="main_nudge_text">مرحبًا %1$s، افتح Moshpoint وفعّل «ظاهر» (مع تشغيل الموقع والبيانات) حتى أجدك!</string>
     <string name="main_nudge_mate">صاحبي</string>
     <string name="main_nudge_title">اطلب منهم الظهور</string>
 

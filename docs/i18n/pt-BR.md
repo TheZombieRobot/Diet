@@ -162,3 +162,4 @@ The redesigned home: the Live row (the switch's name and the line beside it), th
 | Start a crew for tonight / No crew tonight | **Montar galera pra hoje** / **Sem galera hoje** | *Montar* as in every start-a-crew string; *hoje* for tonight, as in `main_tonights_crew`. Both fit one line. |
 
 For a native reviewer: (1) *Postar fotos* vs *Compartilhar fotos* (two lines). (2) *Bateria: 8%* under a face, as a label: *8% de bateria* wraps in the 76 dp column. (3) Portugal reads *galera*, *postar* and *pra* as Brazilian, as elsewhere. Written without a native reviewer. Confidence: **medium-high**.
+- **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it Ao vivo ("ligue o Ao vivo"); "ficar ao vivo" stays as a verb where it reads naturally.

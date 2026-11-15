@@ -2,7 +2,7 @@
 <!-- Turkish: main screen, invites, sharing and phone setup checks. -->
 <resources>
     <string name="main_get_the_app">Moshpoint henüz yok mu? Buradan yükle (Android): %1$s\nSonra bu mesajın tamamını kopyala, Moshpoint\'i aç ve Daveti yapıştır\'a dokun.\n\n</string>
-    <string name="main_nudge_text">Selam %1$s, Moshpoint\'i aç ve Konumu paylaş\'a dokun (konum ve mobil veri açık olsun) ki seni bulabileyim!</string>
+    <string name="main_nudge_text">Selam %1$s, Moshpoint\'i aç ve Görünürlük\'ü aç (konum ve mobil veri açık olsun) ki seni bulabileyim!</string>
     <string name="main_nudge_mate">kanka</string>
     <string name="main_nudge_title">Konumlarını paylaşmalarını iste</string>
 

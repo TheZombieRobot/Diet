@@ -165,3 +165,4 @@ The redesigned home: the Live row (the switch's name and the line beside it), th
 | Share photos / Start a crew for tonight | **फ़ोटो शेयर करें** / **आज रात का ग्रुप शुरू करें** | Polite आप form like the other buttons; "ग्रुप शुरू करें" as in every start-a-crew string. |
 
 For a native reviewer: फ़ोटो शेयर करें may take two lines in its half-width button (allowed); "फ़ोटो भेजें" would be shorter. `main_recap_text`, `main_night_ended` and `crew_notif_done_saved` now quote "पिछले शो" (the English now says "Past gigs" there). Written without a native reviewer. Confidence: **medium-high**.
+- **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it लाइव ("लाइव ऑन करें"); "लाइव हों" stays as a verb where it reads naturally.

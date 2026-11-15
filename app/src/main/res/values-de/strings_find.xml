@@ -29,7 +29,7 @@
     <string name="find_pill_hidden">Versteckt</string>
     <string name="find_searching_cd">Suche läuft</string>
     <string name="find_looking_for">Suche %1$s…</string>
-    <string name="find_searching_help">Noch kein Signal und kein geteilter Standort. Sie brauchen Moshpoint offen mit Live gehen an, dazu Standort und mobile Daten. Dann erscheint ihr Pfeil, selbst wenn sie am anderen Ende der Stadt sind.</string>
+    <string name="find_searching_help">Noch kein Signal und kein geteilter Standort. Sie brauchen Moshpoint offen mit Live an, dazu Standort und mobile Daten. Dann erscheint ihr Pfeil, selbst wenn sie am anderen Ende der Stadt sind.</string>
     <string name="find_band_right_here">Genau hier</string>
     <string name="find_band_close">Nah</string>
     <string name="find_band_nearby">Nah dran</string>

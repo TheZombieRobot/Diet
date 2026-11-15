@@ -153,3 +153,4 @@ The new home screen: the Live row, the crew header and the ⋯ crew menu, the no
 | Share photos | **Dela bilder** | *Bilder*, as everywhere in the app (*%d bilder*). |
 
 For a native reviewer: *Tidigare spelningar* fits on a 390 dp phone but wraps on a 360 dp one; *Hitta kompisarna i publiken* for "in the crowd". Written without a native reviewer. Confidence: **medium-high**.
+- **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it Live ("slå på Live"); "gå live" stays as a verb where it reads naturally.

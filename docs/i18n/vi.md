@@ -148,7 +148,7 @@ The redesigned home: the Live row (the switch's name and the line beside it), th
 
 | English | Chosen | Why |
 |---|---|---|
-| Live (the switch's name, on or off) | **Chia sẻ** | The old «Đang chia sẻ» is a status ("sharing now") and reads wrong next to a switch that is off. Chia sẻ is the feature itself (Go live = Bật chia sẻ). No "live" (livestream). |
+| Live (the switch's name, on or off) | **Hiển thị** | "Visible": what the switch controls (the line beside it says *Bạn bè thấy được bạn*). *Chia sẻ* was the first choice but clashed with *Chia sẻ ảnh* (Share photos) right below it. |
 | You're visible to your mates / Off: mates can't see you yet | Bạn bè thấy được bạn / Tắt: bạn bè chưa thấy bạn | Tắt is the usual word on a switch. |
 | Ghost mode: off the map, findable up close | Chế độ tàng hình: ẩn khỏi bản đồ, ở gần vẫn tìm được bạn | The setting's name and the words of `setup_ghost_mode_desc`. |
 | 5 in the crew · 3 live | 5 người trong nhóm · 3 đang chia sẻ | Like the watch tile («đang chia sẻ»). |
@@ -156,4 +156,5 @@ The redesigned home: the Live row (the switch's name and the line beside it), th
 | Up next / Past gigs | **Sắp tới** / **Show đã qua** | Sắp tới is the existing section name. Show đã qua ("past shows") keeps show for gig. Titles are now sentence case, as in English. |
 | Share photos / Start a crew for tonight | **Chia sẻ ảnh** / **Lập nhóm tối nay** | Like «Chia sẻ khoảnh khắc»; Lập nhóm as elsewhere. Both fit on one line. |
 
-For a native reviewer: the switch (Chia sẻ) and the button (Chia sẻ ảnh) share a verb; «Đăng ảnh» ("post photos") would keep them apart. `main_recap_text`, `main_night_ended` and `crew_notif_done_saved` now say «Show đã qua» (the English now says "Past gigs" there). Written without a native reviewer. Confidence: **medium-high**.
+For a native reviewer: the switch is Hiển thị, so it no longer shares a word with the button Chia sẻ ảnh. `main_recap_text`, `main_night_ended` and `crew_notif_done_saved` now say «Show đã qua» (the English now says "Past gigs" there). Written without a native reviewer. Confidence: **medium-high**.
+- **The Live switch's name in other texts** (review of the redesign): The switch is now Hiển thị (it was Chia sẻ, which clashed with "Chia sẻ ảnh", Share photos). Texts that name it say "bật Hiển thị"; "bật chia sẻ" stays as a verb where it reads naturally.

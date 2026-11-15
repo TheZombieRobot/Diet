@@ -161,3 +161,4 @@ The redesigned home: the Live row (the switch's name and the line beside it), th
 | Share photos / Start a crew for tonight | **Bagikan foto** / **Bikin geng malam ini** | Bikin geng as in `home_start_gig_group`. |
 
 None of these strings says "need", so the perlu/butuh rule did not come up. For a native reviewer: «Konser sebelumnya» vs the shorter «Konser lalu». `main_recap_text`, `main_night_ended` and `crew_notif_done_saved` now say «Konser sebelumnya» (the English now says "Past gigs" there). Written without a native reviewer. Confidence: **medium-high**.
+- **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it Live ("nyalakan Live"); "Mulai live" stays as a verb in the onboarding title.

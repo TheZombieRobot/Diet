@@ -181,3 +181,4 @@ The redesigned home: the Live row (the switch's name and the line beside it), th
 | Share photos | **شارك صورًا** | Like «شارك لحظة» (`find_share_a_moment`); fits half the width. |
 
 For a native reviewer: (1) «ظاهر» is masculine; the noun «الظهور» (as in `visibility_channel`, «حالة الظهور») is the alternative if an adjective reads oddly next to a switch that is off. (2) «منهم ظاهرون» uses the masculine plural for a mixed group. (3) `main_recap_text`, `main_night_ended` and `crew_notif_done_saved` now say «الحفلات السابقة» too (the English now says "Past gigs" there). Written without a native reviewer. Confidence: **medium-high**.
+- **The Live switch's name in other texts** (review of the redesign): The switch is «ظاهر»; texts that tell people to turn it on name it so (find_searching_help, find_map_no_mates, main_nudge_text, offline_hint_go_live: «فعّل «ظاهر»»). The onboarding title keeps the verb «اظهر».

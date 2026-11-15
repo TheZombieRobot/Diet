@@ -29,7 +29,7 @@
     <string name="find_pill_hidden">छिपे हुए</string>
     <string name="find_searching_cd">खोज रहे हैं</string>
     <string name="find_looking_for">%1$s को ढूँढ रहे हैं…</string>
-    <string name="find_searching_help">उनकी तरफ़ से न कोई सिग्नल है, न शेयर की गई लोकेशन। उन्हें Moshpoint खुला रखना होगा, लाइव हों ऑन करके, साथ में लोकेशन और मोबाइल डेटा भी। फिर उनका तीर दिखेगा, चाहे वे शहर के दूसरे छोर पर हों।</string>
+    <string name="find_searching_help">उनकी तरफ़ से न कोई सिग्नल है, न शेयर की गई लोकेशन। उन्हें Moshpoint खुला रखना होगा, लाइव ऑन करके, साथ में लोकेशन और मोबाइल डेटा भी। फिर उनका तीर दिखेगा, चाहे वे शहर के दूसरे छोर पर हों।</string>
     <string name="find_band_right_here">बिल्कुल यहीं</string>
     <string name="find_band_close">पास</string>
     <string name="find_band_nearby">आस-पास</string>

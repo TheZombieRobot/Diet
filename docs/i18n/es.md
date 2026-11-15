@@ -163,3 +163,4 @@ The redesigned home: the Live row (the switch's name and the line beside it), th
 | Start a crew for tonight | **Crear grupo esta noche** | One line, like English (*para esta noche* takes two). |
 
 For a native reviewer: (1) *Tus conciertos* for Past gigs is deliberate (see above); *Conciertos pasados* is the literal alternative if a wrap on small phones is acceptable. (2) *Batería: 8%* under a face, as a label: *8% de batería* wraps in the 76 dp column. (3) *Encuentra a tus amigos en la multitud* takes three lines on the first-time screen. Written without a native reviewer. Confidence: **medium-high**.
+- **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it En vivo ("activa En vivo"); "Activar en vivo" was the old button.

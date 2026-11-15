@@ -157,3 +157,4 @@ The redesigned home: the Live row (the switch's name and the line beside it), th
 | Share photos | **Subir fotos** | The everyday phrase for posting photos. *Compartir fotos* wraps in the half-width button. |
 
 For a native reviewer: (1) *localizable de cerca* in the ghost line. (2) *encontrarles* follows the folder's leísmo (see "Checked and safe"); *encontrarlos* if preferred. (3) *Tus conciertos* for Past gigs, as in `values-es`. Written without a native reviewer. Confidence: **medium-high**.
+- **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it En directo ("activa En directo"); "Activar en directo" was the old button.

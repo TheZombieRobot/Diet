@@ -2,7 +2,7 @@
 <!-- Italian: main screen, invites, sharing and phone setup checks. -->
 <resources>
     <string name="main_get_the_app">Non hai ancora Moshpoint? Installala da qui (Android): %1$s\nPoi copia tutto questo messaggio, apri Moshpoint e tocca Incolla invito.\n\n</string>
-    <string name="main_nudge_text">Ehi %1$s, apri Moshpoint e tocca Vai live (con posizione e dati attivi) così ti trovo!</string>
+    <string name="main_nudge_text">Ehi %1$s, apri Moshpoint e attiva Live (con posizione e dati attivi) così ti trovo!</string>
     <string name="main_nudge_mate">amico</string>
     <string name="main_nudge_title">Chiedi loro di andare live</string>
 

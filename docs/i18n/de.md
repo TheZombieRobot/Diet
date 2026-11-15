@@ -161,3 +161,4 @@ The new home screen: the Live row, the crew header and the ⋯ crew menu, the no
 | Share photos | **Fotos teilen** | One line in the half-width button. |
 
 For a native reviewer: *Frühere Konzerte* versus *Vergangene Konzerte* (fit versus the more usual word). *Find deine Freunde in der Menge* is safe: only *jede Menge* is the idiom. Written without a native reviewer. Confidence: **medium-high**.
+- **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it Live ("mit Live an", "schalte Live ein"); verb phrases such as "live gehen" stay where they read naturally.

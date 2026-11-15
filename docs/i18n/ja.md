@@ -146,3 +146,4 @@ The redesigned home screen: the Live switch and the line beside it, the crew hea
 The first-time title (人混みでも\n仲間が見つかる) breaks where onboarding's title does, so a narrow phone never leaves one kana alone on line 2. The long-press label その他の操作 matches `home_tap_mate_hint`.
 
 For a native reviewer: 位置シェア vs plain シェア for the switch (シェア alone can look like a share button); 過去のライブ vs the warmer これまでのライブ; これでクルー結成！ in the no-crew text. Written without a native reviewer. Confidence: **medium-high**.
+- **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it 「位置シェア」 (「位置シェア」をオンに); 「シェア開始」 was the old button. The onboarding title keeps シェア開始 as a phrase.

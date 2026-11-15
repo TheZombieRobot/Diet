@@ -141,7 +141,7 @@ The redesigned home screen: the Live switch and the line beside it, the crew hea
 
 | English | Chosen | Why |
 |---|---|---|
-| Live (the switch's name, on or off) | **上線** | The app's "go live" word, used as the switch's name. 上線中 is a state and reads wrong next to a switch that is off. The nudge, offline hint and finder help say 點「上線」, which now names this switch exactly. |
+| Live (the switch's name, on or off) | **在線** | A name, not a verb (上線 is "go online"); a state word is how a switch is labelled, and it matches the app's 上線中. Texts that tell people to turn it on say 打開「在線」; 上線 stays as a verb. |
 | You're visible to your mates / Off: mates can't see you yet | 朋友看得到你 / 已關閉：朋友還看不到你 | The two lines mirror each other. |
 | Ghost mode: off the map, findable up close | 幽靈模式：地圖上不顯示，靠近時還是找得到你 | As `setup_ghost_mode_desc`. |
 | Crew menu: Invite more mates / Share the night with family | **揪更多朋友** / **讓家人一起追蹤** | 揪 as in 揪朋友 (`home_upnext_invite`). The family row opens the same share as `main_follow_share_title`, so it reuses those words. |
@@ -149,4 +149,5 @@ The redesigned home screen: the Live switch and the line beside it, the crew hea
 | Up next | 下一場 | As `home_up_next`. |
 | Share photos (half-width button) | 分享相片 | 相片, as everywhere in this folder. |
 
-For a native reviewer: 上線 as the switch's name (分享位置 is more literal but would no longer match 點「上線」 elsewhere); 看過的演出 vs 過去的演出; 揪更多朋友 in the menu (邀請更多朋友 if a plainer tone is wanted). Written without a native reviewer. Confidence: **medium-high**.
+For a native reviewer: 在線 as the switch's name (分享位置 is more literal); 看過的演出 vs 過去的演出; 揪更多朋友 in the menu (邀請更多朋友 if a plainer tone is wanted). Written without a native reviewer. Confidence: **medium-high**.
+- **The Live switch's name in other texts** (review of the redesign): The switch is now 在線 (上線 is a verb, not a name; 在線 matches the app's 上線中 elsewhere). Texts that name it say 打開「在線」; 上線 stays as a verb.

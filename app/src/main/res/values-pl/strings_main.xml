@@ -2,7 +2,7 @@
 <!-- Polish: main screen, invites, sharing and phone setup checks. -->
 <resources>
     <string name="main_get_the_app">Nie masz jeszcze Moshpoint? Zainstaluj stąd (Android): %1$s\nPotem skopiuj całą tę wiadomość, otwórz Moshpoint i kliknij Wklej zaproszenie.\n\n</string>
-    <string name="main_nudge_text">Hej %1$s, otwórz Moshpoint i kliknij Udostępnij lokalizację (z włączonym GPS i danymi), to cię znajdę!</string>
+    <string name="main_nudge_text">Hej %1$s, otwórz Moshpoint i włącz Widoczność (z włączonym GPS i danymi), to cię znajdę!</string>
     <string name="main_nudge_mate">ekipo</string>
     <string name="main_nudge_title">Poproś o udostępnienie lokalizacji</string>
 

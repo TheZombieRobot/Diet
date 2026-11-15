@@ -2,7 +2,7 @@
 <!-- Swedish: main screen, invites, sharing and phone setup checks. -->
 <resources>
     <string name="main_get_the_app">Har du inte Moshpoint än? Installera här (Android): %1$s\nKopiera sedan hela meddelandet, öppna Moshpoint och tryck på Klistra in inbjudan.\n\n</string>
-    <string name="main_nudge_text">Hej %1$s, öppna Moshpoint och tryck på Gå live (med plats och mobildata på) så jag kan hitta dig!</string>
+    <string name="main_nudge_text">Hej %1$s, öppna Moshpoint och slå på Live (med plats och mobildata på) så jag kan hitta dig!</string>
     <string name="main_nudge_mate">kompis</string>
     <string name="main_nudge_title">Be dem gå live</string>
 

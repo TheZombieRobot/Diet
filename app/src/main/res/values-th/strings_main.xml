@@ -2,7 +2,7 @@
 <!-- Thai: main screen, invites, sharing and phone setup checks. -->
 <resources>
     <string name="main_get_the_app">ยังไม่มี Moshpoint? โหลดได้ที่นี่ (Android): %1$s\nแล้วก๊อปข้อความนี้ทั้งหมด เปิด Moshpoint แล้วแตะ วางคำชวน\n\n</string>
-    <string name="main_nudge_text">เฮ้ %1$s เปิด Moshpoint แล้วแตะ เริ่มแชร์ หน่อย (เปิดตำแหน่งกับเน็ตไว้ด้วย) เราจะได้หาเจอ!</string>
+    <string name="main_nudge_text">เฮ้ %1$s เปิด Moshpoint แล้วเปิด “มองเห็นได้” หน่อย (เปิดตำแหน่งกับเน็ตไว้ด้วย) เราจะได้หาเจอ!</string>
     <string name="main_nudge_mate">เพื่อน</string>
     <string name="main_nudge_title">ชวนเพื่อนเริ่มแชร์</string>
 

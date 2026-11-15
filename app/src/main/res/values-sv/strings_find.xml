@@ -29,7 +29,7 @@
     <string name="find_pill_hidden">Dold</string>
     <string name="find_searching_cd">Söker</string>
     <string name="find_looking_for">Letar efter %1$s…</string>
-    <string name="find_searching_help">Ingen signal från dem och ingen delad plats än. De behöver ha Moshpoint öppen med Gå live på, plus plats och mobildata. Då dyker deras pil upp, även om de är på andra sidan stan.</string>
+    <string name="find_searching_help">Ingen signal från dem och ingen delad plats än. De behöver ha Moshpoint öppen med Live på, plus plats och mobildata. Då dyker deras pil upp, även om de är på andra sidan stan.</string>
     <string name="find_band_right_here">Precis här</string>
     <string name="find_band_close">Nära</string>
     <string name="find_band_nearby">I närheten</string>

@@ -29,7 +29,7 @@
     <string name="find_pill_hidden">مخفي</string>
     <string name="find_searching_cd">جارٍ البحث</string>
     <string name="find_looking_for">نبحث عن %1$s…</string>
-    <string name="find_searching_help">لا إشارة منهم ولا موقع مُشارَك بعد. يحتاجون Moshpoint مفتوحًا مع تفعيل «اظهر»، إضافة إلى الموقع وبيانات الجوال. بعدها يظهر سهمهم، حتى لو كانوا في الطرف الآخر من المدينة.</string>
+    <string name="find_searching_help">لا إشارة منهم ولا موقع مُشارَك بعد. يحتاجون Moshpoint مفتوحًا مع تفعيل «ظاهر»، إضافة إلى الموقع وبيانات الجوال. بعدها يظهر سهمهم، حتى لو كانوا في الطرف الآخر من المدينة.</string>
     <string name="find_band_right_here">هنا تمامًا</string>
     <string name="find_band_close">قريب</string>
     <string name="find_band_nearby">بالجوار</string>
@@ -85,7 +85,7 @@
     <string name="find_map_pin">دبوس</string>
     <string name="find_map_all">الكل</string>
     <string name="find_map_me">أنا</string>
-    <string name="find_map_no_mates">لا أصحاب بعد. ابدأ شلة أو أضف صديقًا، وسيظهرون هنا بمجرد أن يضغطوا «اظهر».</string>
+    <string name="find_map_no_mates">لا أصحاب بعد. ابدأ شلة أو أضف صديقًا، وسيظهرون هنا بمجرد أن يفعّلوا «ظاهر».</string>
     <string name="find_place_crew_meetup">نقطة لقاء الشلة</string>
     <string name="find_place_only_you">أنت فقط ترى هذا</string>
     <string name="find_walk">مشي</string>

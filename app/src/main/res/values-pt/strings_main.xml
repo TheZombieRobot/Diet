@@ -2,7 +2,7 @@
 <!-- Brazilian Portuguese: main screen, invites, sharing and phone setup checks. -->
 <resources>
     <string name="main_get_the_app">Ainda não tem o Moshpoint? Instale por aqui (Android): %1$s\nDepois copie esta mensagem inteira, abra o Moshpoint e toque em Colar convite.\n\n</string>
-    <string name="main_nudge_text">Ei %1$s, abre o Moshpoint e toca em Ficar ao vivo (com localização e dados ligados) pra eu te achar!</string>
+    <string name="main_nudge_text">Ei %1$s, abre o Moshpoint e liga o Ao vivo (com localização e dados ligados) pra eu te achar!</string>
     <string name="main_nudge_mate">amigo</string>
     <string name="main_nudge_title">Peça pra ficarem ao vivo</string>
 

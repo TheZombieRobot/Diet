@@ -29,7 +29,7 @@
     <string name="find_pill_hidden">Verborgen</string>
     <string name="find_searching_cd">Zoeken</string>
     <string name="find_looking_for">%1$s zoeken…</string>
-    <string name="find_searching_help">Nog geen signaal en geen gedeelde locatie. Ze moeten Moshpoint open hebben met Ga live aan, plus locatie en mobiele data. Dan verschijnt hun pijl, ook als ze aan de andere kant van de stad zijn.</string>
+    <string name="find_searching_help">Nog geen signaal en geen gedeelde locatie. Ze moeten Moshpoint open hebben met Live aan, plus locatie en mobiele data. Dan verschijnt hun pijl, ook als ze aan de andere kant van de stad zijn.</string>
     <string name="find_band_right_here">Hier</string>
     <string name="find_band_close">Dichtbij</string>
     <string name="find_band_nearby">In de buurt</string>

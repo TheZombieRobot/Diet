@@ -29,7 +29,7 @@
     <string name="find_pill_hidden">Nascosto</string>
     <string name="find_searching_cd">Ricerca in corso</string>
     <string name="find_looking_for">Cerco %1$s…</string>
-    <string name="find_searching_help">Ancora nessun segnale e nessuna posizione condivisa. Deve avere Moshpoint aperta con Vai live attivo, più posizione e dati mobili. Allora compare la sua freccia, anche se è dall\'altra parte della città.</string>
+    <string name="find_searching_help">Ancora nessun segnale e nessuna posizione condivisa. Deve avere Moshpoint aperta con Live attivo, più posizione e dati mobili. Allora compare la sua freccia, anche se è dall\'altra parte della città.</string>
     <string name="find_band_right_here">Proprio qui</string>
     <string name="find_band_close">Vicino</string>
     <string name="find_band_nearby">Vicino</string>

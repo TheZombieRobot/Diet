@@ -2,7 +2,7 @@
 <!-- Hindi: main screen, invites, sharing and phone setup checks. -->
 <resources>
     <string name="main_get_the_app">अभी तक Moshpoint नहीं है? यहाँ से इंस्टॉल करें (Android): %1$s\nफिर यह पूरा मैसेज कॉपी करें, Moshpoint खोलें और इनवाइट पेस्ट करें पर टैप करें।\n\n</string>
-    <string name="main_nudge_text">अरे %1$s, Moshpoint खोलो और लाइव हों पर टैप करो (लोकेशन और डेटा ऑन रखकर), ताकि मैं तुम्हें ढूँढ सकूँ!</string>
+    <string name="main_nudge_text">अरे %1$s, Moshpoint खोलो और लाइव ऑन करो (लोकेशन और डेटा ऑन रखकर), ताकि मैं तुम्हें ढूँढ सकूँ!</string>
     <string name="main_nudge_mate">दोस्त</string>
     <string name="main_nudge_title">उनसे लाइव होने को कहें</string>
 

@@ -159,7 +159,7 @@ The redesigned home: the Live row (the switch's name and the line beside it), th
 
 | English | Chosen | Why |
 |---|---|---|
-| Live (the switch's name, on or off) | **Konum** | The noun behind the app's wording (*Konumu paylaş*, *Konum paylaşımı*). The old *Paylaşılıyor* is a status and reads wrong next to a switch that is off. |
+| Live (the switch's name, on or off) | **Görünürlük** | Visibility: what the switch controls (the line beside it says *Arkadaşların seni görüyor*). *Konum* was the first choice, but the setup card uses it for the phone's own location setting. |
 | You're visible to your mates / Off: mates can't see you yet | Arkadaşların seni görüyor / Kapalı: arkadaşların seni henüz göremiyor | *Kapalı:* as in `setup_data_saver_desc`. |
 | Ghost mode: off the map, findable up close | Hayalet modu: haritada yoksun, yakından bulunabilirsin | The setting's own name. Two lines, like English. |
 | 5 in the crew · 3 live | Ekipte 5 kişi · 3 kişi paylaşıyor | No suffix follows a number; *paylaşıyor* is the faces' own status (`home_tile_live`). |
@@ -169,4 +169,5 @@ The redesigned home: the Live row (the switch's name and the line beside it), th
 
 Battery under a face: *Pil %8* (percent sign first, as in `home_tile_with_battery`).
 
-For a native reviewer: (1) *Konum* could be read as the phone's own location setting; the line beside it says what it does. (2) *Fotoğraf ekle* ("add photos"); *Foto paylaş* also fits, but *foto* is more colloquial than the rest of the app. (3) *Ekip sohbetinde sabitlendi* under the pinned plan. Written without a native reviewer. Confidence: **medium-high**.
+For a native reviewer: (1) *Görünürlük* for the switch (it was *Konum*, the phone setting's word). (2) *Fotoğraf ekle* ("add photos"); *Foto paylaş* also fits, but *foto* is more colloquial than the rest of the app. (3) *Ekip sohbetinde sabitlendi* under the pinned plan. Written without a native reviewer. Confidence: **medium-high**.
+- **The Live switch's name in other texts** (review of the redesign): The switch is now Görünürlük (it was Konum, the word the setup card uses for the phone's location setting). Texts that name it say "Görünürlük'ü aç".

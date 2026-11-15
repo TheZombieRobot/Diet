@@ -144,3 +144,4 @@ The redesigned home screen: the Live switch and the line beside it, the crew hea
 The first-time title (인파 속에서도\n친구를 찾아요) breaks where onboarding's title does. QR takes 과/을 (큐알), as in the existing strings.
 
 For a native reviewer: 친구들에게 내 위치가 보여요 for "You're visible to your mates" (or 친구들이 나를 찾을 수 있어요); the count line 크루 5명 · 3명 공유 중; 하나 만들고 … 크루 완성이에요 in the no-crew text. Written without a native reviewer. Confidence: **medium-high**.
+- **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it ‘위치 공유’ (‘위치 공유’를 켜면); ‘위치 공유 켜기’ was the old button and stays only as a verb phrase in the onboarding title.

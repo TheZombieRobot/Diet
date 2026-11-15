@@ -2,7 +2,7 @@
 <!-- German: main screen, invites, sharing and phone setup checks. -->
 <resources>
     <string name="main_get_the_app">Noch kein Moshpoint? Hier installieren (Android): %1$s\nDann kopier diese ganze Nachricht, öffne Moshpoint und tippe auf Einladung einfügen.\n\n</string>
-    <string name="main_nudge_text">Hey %1$s, öffne Moshpoint und tippe auf Live gehen (mit Standort und mobilen Daten an), damit ich dich finde!</string>
+    <string name="main_nudge_text">Hey %1$s, öffne Moshpoint und schalte Live ein (mit Standort und mobilen Daten an), damit ich dich finde!</string>
     <string name="main_nudge_mate">du</string>
     <string name="main_nudge_title">Bitte sie, live zu gehen</string>
 

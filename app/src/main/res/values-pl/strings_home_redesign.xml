@@ -4,7 +4,7 @@
      "Live" is location sharing here, as in the rest of the app (never "live", which reads as a livestream). -->
 <resources>
     <!-- Live row: the switch's name, then one line beside it -->
-    <string name="home_live_switch">Lokalizacja</string>
+    <string name="home_live_switch">Widoczność</string>
     <string name="home_live_on">Znajomi cię widzą</string>
     <string name="home_live_ghost_on">Tryb ducha: nie ma cię na mapie, z bliska cię znajdą</string>
     <string name="home_live_off">Wyłączone: znajomi jeszcze cię nie widzą</string>

@@ -7,7 +7,7 @@
     <string name="offline_state_waiting">بانتظار الإشارة</string>
     <string name="offline_state_not_sent">لم تُرسَل</string>
     <string name="offline_hint_bluetooth">لا إشارة. تنتقل الرسائل عبر Bluetooth إلى هواتف الشلة القريبة، وتُرسَل فور حصول أي منكم على إشارة.</string>
-    <string name="offline_hint_go_live">لا إشارة. اضغط «اظهر» لتنتقل الرسائل عبر Bluetooth إلى هواتف الشلة القريبة.</string>
+    <string name="offline_hint_go_live">لا إشارة. فعّل «ظاهر» لتنتقل الرسائل عبر Bluetooth إلى هواتف الشلة القريبة.</string>
     <string name="offline_hint_bluetooth_off">لا إشارة، وBluetooth مغلق. شغّله لتنتقل الرسائل إلى هواتف الشلة القريبة.</string>
     <string name="offline_hint_unsupported">لا إشارة. هذا الهاتف لا يستطيع نقل الرسائل عبر Bluetooth، لذا ستُرسَل عند توفر الإشارة.</string>
     <string name="offline_hint_no_signal">لا إشارة. ستُرسَل الرسائل عند عودة الإشارة.</string>

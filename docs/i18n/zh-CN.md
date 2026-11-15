@@ -131,7 +131,7 @@ The redesigned home screen: the Live switch and the line beside it, the crew hea
 
 | English | Chosen | Why |
 |---|---|---|
-| Live (the switch's name, on or off) | **上线** | The app's "go live" word, used as the switch's name. 在线 is a state and reads wrong next to a switch that is off. The nudge, offline hint and finder help say 点"上线", which now names this switch exactly. |
+| Live (the switch's name, on or off) | **在线** | A name, not a verb (上线 is "go online"); a state word is how a switch is labelled (在线 on or off), and it matches the app's 在线 / 上线中. Texts that tell people to turn it on say 打开“在线”; 上线 stays as a verb. |
 | You're visible to your mates / Off: mates can't see you yet | 朋友们能看到你 / 已关闭：朋友们还看不到你 | The two lines mirror each other. |
 | Ghost mode: off the map, findable up close | 幽灵模式：地图上不显示，靠近时仍能找到你 | As `setup_ghost_mode_desc`. |
 | Crew menu: Invite more mates / Share the night with family | 邀请更多朋友 / **让家人一起关注** | The family row opens the same share as `main_follow_share_title`, so it reuses those words. 分享这一晚 is already the night recap's share (`main_share_night_title`). |
@@ -139,4 +139,5 @@ The redesigned home screen: the Live switch and the line beside it, the crew hea
 | Up next | 下一场 | As `home_up_next`. |
 | Share photos (half-width button) | 分享照片 | Four characters, one line in half the row. |
 
-For a native reviewer: 上线 as the switch's name (位置共享 is more literal but would no longer match 点"上线" elsewhere; see 上线 / 在线 above); 看过的演出 vs 过去的演出; 小队共 5 人 · 3 人在线 for the count line. Written without a native reviewer. Confidence: **medium-high**.
+For a native reviewer: 在线 as the switch's name (位置共享 is more literal); 看过的演出 vs 过去的演出; 小队共 5 人 · 3 人在线 for the count line. Written without a native reviewer. Confidence: **medium-high**.
+- **The Live switch's name in other texts** (review of the redesign): The switch is now 在线 (上线 is a verb, not a name; 在线 matches the app's 上线中 / 在线 elsewhere). Texts that name it say 打开“在线”; 上线 stays as a verb ("点一下上线", "他们上线后").

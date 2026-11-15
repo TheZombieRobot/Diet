@@ -55,6 +55,7 @@ object Mosh {
     val Bar = Color(0xFF090712)          // bottom bar (opaque: nothing shows through)
     val Scrim = Color(0xA8030208)        // behind a pop-up panel
     val Lilac = Color(0xFFC9A8FF)        // violet text and icons on the dark ground
+    val Red = Color(0xFFFF4D4D)          // can't-undo actions (Remove someone) and the emergency call: clearly not pink
     val Paper = Color(0xFFF5F1E8)        // a Polaroid's frame
     val Ink = Color(0xFF1A1622)          // handwriting on a Polaroid
     val InkSoft = Color(0xFF514A63)      // the small print under it

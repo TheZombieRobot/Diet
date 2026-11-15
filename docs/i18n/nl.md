@@ -155,3 +155,4 @@ The new home screen: the Live row, the crew header and the ⋯ crew menu, the no
 | Share photos | **Foto's delen** | One line in the half-width button. |
 
 For a native reviewer: *LID WORDEN VAN EEN CREW* over the Scan / Paste buttons matches the join dialog (*Lid worden van %1$s?*); *DOE MEE MET EEN CREW* is the more casual option. *Eerdere* versus *Vorige concerten*. Written without a native reviewer. Confidence: **medium-high**.
+- **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it Live ("zet Live aan"); "Ga live" stays as a verb in the onboarding title.

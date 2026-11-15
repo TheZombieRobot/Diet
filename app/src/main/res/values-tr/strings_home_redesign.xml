@@ -4,7 +4,7 @@
      "Live" is location sharing here, as in the rest of the app (never "canlı", which reads as a livestream). -->
 <resources>
     <!-- Live row: the switch's name, then one line beside it -->
-    <string name="home_live_switch">Konum</string>
+    <string name="home_live_switch">Görünürlük</string>
     <string name="home_live_on">Arkadaşların seni görüyor</string>
     <string name="home_live_ghost_on">Hayalet modu: haritada yoksun, yakından bulunabilirsin</string>
     <string name="home_live_off">Kapalı: arkadaşların seni henüz göremiyor</string>

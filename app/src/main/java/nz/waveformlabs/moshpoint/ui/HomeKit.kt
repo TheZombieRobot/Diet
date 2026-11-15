@@ -147,7 +147,12 @@ internal fun dotLine(parts: List<String>, keep: Int = 24): String =
 internal fun dotLine(text: String, keep: Int = 24): String = dotLine(text.split(" · "), keep)
 
 /** A number keeps the word after it on its line: "15 min", not "15 / min". */
-internal fun keepNumbers(text: String): String = text.replace(Regex("(\\d) "), "$1\u00A0")
+internal fun keepNumbers(text: String): String = text.replace(NumberThenSpace, "$1\u00A0")
+
+private val NumberThenSpace = Regex("(\\d) ")
+
+/** A closing emoji (with its variation selector or joiner), kept with the word before it. */
+private val ClosingEmoji = Regex(" ([\\p{So}\\uFE0F\\u200D]+)$")
 
 /** Line icons from the design, on a 24-unit grid with round caps and joins (tinted when drawn). */
 internal object HomeIcons {
@@ -223,7 +228,8 @@ internal fun HomeIcon(icon: ImageVector, tint: Color, size: Dp = 20.dp, modifier
 
 /** Letter spacing only for scripts that take it (Latin, Greek, Cyrillic); joined and stacked scripts stay as they are. */
 internal fun tracked(text: String, spacing: TextUnit): TextUnit =
-    if (text.all { it.code < 0x0530 || !it.isLetter() }) spacing else 0.sp
+    // Latin, Greek and Cyrillic, with their extended letters (Vietnamese "TỐI NAY" is U+1E00–1EFF).
+    if (text.all { it.code < 0x0530 || it.code in 0x1E00..0x1FFF || !it.isLetter() }) spacing else 0.sp
 
 /** "moshpoint": a logo, so the same size whatever the font size setting, and always left to right. */
 @Composable
@@ -247,9 +253,13 @@ internal fun Wordmark(modifier: Modifier = Modifier) {
     }
 }
 
+/** Need help's padding, icon and gap: what the pill needs besides its words. */
+internal val HelpPillChrome = 14.dp * 2 + 18.dp + 6.dp + 6.dp
+
 /**
  * "Need help" in the header: opens the help dialog (nothing is sent on this tap). It gets a
- * little smaller to stay on one line, and wraps before it would ever push the wordmark.
+ * little smaller to stay on one line, and wraps before it would ever push the wordmark (the
+ * header moves it to its own row when even its longest word wouldn't fit beside it).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -259,7 +269,7 @@ internal fun HelpPill(onClick: () -> Unit, modifier: Modifier = Modifier) {
     BoxWithConstraints(modifier) {
         val measurer = rememberTextMeasurer()
         val density = LocalDensity.current
-        val room = with(density) { (maxWidth - 14.dp * 2 - 18.dp - 6.dp - 6.dp).roundToPx() }
+        val room = with(density) { (maxWidth - HelpPillChrome).roundToPx() }
         val base = HomeType.Label.copy(fontSize = 14.sp, color = Mosh.Danger)
         val fits = remember(label, room, density) {
             listOf(14f, 13f, 12f).firstOrNull { s ->
@@ -283,7 +293,7 @@ internal fun HelpPill(onClick: () -> Unit, modifier: Modifier = Modifier) {
             Text(
                 label,
                 style = base.copy(fontSize = (fits ?: 12f).sp),
-                maxLines = if (fits != null) 1 else 2,
+                maxLines = if (fits != null) 1 else 3,
                 softWrap = fits == null,
                 textAlign = TextAlign.Center,
             )
@@ -544,7 +554,8 @@ internal fun LiveRow(live: Boolean, ghost: Boolean, onChange: (Boolean) -> Unit,
         Spacer(Modifier.width(12.dp))
         Text(
             explain,
-            style = HomeType.Body.copy(fontSize = 13.5.sp, lineHeight = 19.sp, color = if (live) Mosh.TextDim else Mosh.TextFaint),
+            // Balanced, so a wrapped line never leaves one word alone (Hindi, Arabic, Chinese).
+            style = HomeType.Body.copy(fontSize = 13.5.sp, lineHeight = 19.sp, color = if (live) Mosh.TextDim else Mosh.TextFaint, lineBreak = HomeBreakEven),
             modifier = Modifier.weight(1f).padding(vertical = 4.dp),
         )
     }
@@ -725,7 +736,7 @@ private fun FaceTile(f: Friend, status: FaceStatus, note: String?, badge: Int, o
         if (note != null) {
             // Balanced lines, a closing emoji kept with its word: "🔥 Bar / time 🍺", "🔥 / Bardags 🍺".
             Text(
-                note.replace(Regex(" ([\\p{So}\\uFE0F\\u200D]+)$"), "\u00A0$1"), style = HomeType.Body.copy(fontSize = 11.5.sp, lineHeight = 15.sp, color = Mosh.Amber, lineBreak = HomeBreakEven),
+                note.replace(ClosingEmoji, "\u00A0$1"), style = HomeType.Body.copy(fontSize = 11.5.sp, lineHeight = 15.sp, color = Mosh.Amber, lineBreak = HomeBreakEven),
                 maxLines = 3, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center, modifier = caption(note),
             )
         }

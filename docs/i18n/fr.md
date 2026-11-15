@@ -173,3 +173,4 @@ The new home screen: the Live row, the crew header and the ⋯ crew menu, the no
 Also: a mate's low battery under their face is **Batterie 15%** (*15% de batterie* wraps under the 76 dp face), and *Pas de crew ce soir* has a no-break space in *ce soir*, so the big title breaks as *Pas de crew / ce soir*.
 
 For a native reviewer: *Partager des photos* versus a one-line *Photos*; *restent invisibles* for "can't be found". Written without a native reviewer. Confidence: **medium-high**.
+- **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it Live ("avec Live activé", "active Live"); "passer en live" stays as a verb where it reads naturally.

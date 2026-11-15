@@ -62,6 +62,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.pluralStringResource
@@ -73,8 +74,10 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -95,10 +98,30 @@ import java.util.Locale
 /** The header: the wordmark, and Need help (which only opens the help dialog). */
 @Composable
 internal fun HomeHeader(onHelp: () -> Unit, modifier: Modifier = Modifier) {
-    Row(modifier.fillMaxWidth().padding(horizontal = HomeSide), verticalAlignment = Alignment.CenterVertically) {
-        Wordmark()
-        Spacer(Modifier.width(12.dp))
-        Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) { HelpPill(onHelp) }
+    val label = stringResource(R.string.home_ping_need_help)
+    val measurer = rememberTextMeasurer()
+    // Need help sits beside the wordmark when its longest word fits there at its smallest size;
+    // otherwise (a small phone with a large font) it gets a row of its own, at the end.
+    Layout(contents = listOf({ Wordmark() }, { HelpPill(onHelp) }), modifier = modifier.fillMaxWidth().padding(horizontal = HomeSide)) { m, constraints ->
+        val width = constraints.maxWidth
+        val mark = m[0].first().measure(Constraints())
+        val room = width - mark.width - 12.dp.roundToPx()
+        val longest = label.split(' ').maxOf { w -> measurer.measure(w, HomeType.Label.copy(fontSize = 12.sp), softWrap = false, maxLines = 1).size.width }
+        if (longest + HelpPillChrome.roundToPx() + 2 <= room) {
+            val pill = m[1].first().measure(Constraints(maxWidth = room))
+            val h = maxOf(mark.height, pill.height)
+            layout(width, h) {
+                mark.placeRelative(0, (h - mark.height) / 2)
+                pill.placeRelative(width - pill.width, (h - pill.height) / 2)
+            }
+        } else {
+            val pill = m[1].first().measure(Constraints(maxWidth = width))
+            val gap = 4.dp.roundToPx()
+            layout(width, mark.height + gap + pill.height) {
+                mark.placeRelative(0, 0)
+                pill.placeRelative(width - pill.width, mark.height + gap)
+            }
+        }
     }
 }
 
@@ -832,9 +855,11 @@ private fun BarItem(label: String, selected: Boolean, modifier: Modifier, icon: 
     ) {
         icon(colour)
         Spacer(Modifier.height(4.dp))
+        // Two lines when a large font needs them (ストーリー at 130% on a small phone), never clipped.
         Text(
-            label, maxLines = 1, softWrap = false, textAlign = TextAlign.Center,
-            style = HomeType.Body.copy(fontSize = 11.5.sp, lineHeight = 15.sp, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium, color = colour),
+            label, maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
+            style = HomeType.Body.copy(fontSize = 11.5.sp, lineHeight = 15.sp, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium, color = colour, lineBreak = HomeBreakEven),
+            modifier = Modifier.padding(horizontal = 2.dp),
         )
     }
 }

@@ -29,7 +29,7 @@
     <string name="find_pill_hidden">Invisible</string>
     <string name="find_searching_cd">Recherche</string>
     <string name="find_looking_for">On cherche %1$s…</string>
-    <string name="find_searching_help">Aucun signal et aucune position partagée pour l\'instant. Il faut que Moshpoint soit ouvert chez eux avec Passer en live activé, plus la localisation et les données mobiles. Ensuite leur flèche apparaît, même s\'ils sont à l\'autre bout de la ville.</string>
+    <string name="find_searching_help">Aucun signal et aucune position partagée pour l\'instant. Il faut que Moshpoint soit ouvert chez eux avec Live activé, plus la localisation et les données mobiles. Ensuite leur flèche apparaît, même s\'ils sont à l\'autre bout de la ville.</string>
     <string name="find_band_right_here">Juste là</string>
     <string name="find_band_close">Tout près</string>
     <string name="find_band_nearby">Pas loin</string>
