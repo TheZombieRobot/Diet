@@ -19,7 +19,7 @@ import kotlinx.coroutines.withContext
 import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.crew.CrewStatus
 import nz.waveformlabs.moshpoint.crew.Crews
-import nz.waveformlabs.moshpoint.DebugStatus
+import nz.waveformlabs.moshpoint.debug.DebugStatus
 import nz.waveformlabs.moshpoint.gigs.GigArchive
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.core.ArrivalPlanner

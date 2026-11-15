@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.debug
 
 import android.content.Context
 import kotlinx.coroutines.CoroutineScope

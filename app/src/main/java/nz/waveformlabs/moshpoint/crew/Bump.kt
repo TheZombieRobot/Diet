@@ -10,7 +10,7 @@ import android.bluetooth.le.AdvertisingSetParameters
 import android.content.Context
 import android.os.ParcelUuid
 import androidx.compose.runtime.mutableStateOf
-import nz.waveformlabs.moshpoint.DebugStatus
+import nz.waveformlabs.moshpoint.debug.DebugStatus
 import nz.waveformlabs.moshpoint.locate.BleHub
 
 /**

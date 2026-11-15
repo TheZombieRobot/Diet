@@ -42,6 +42,8 @@ import nz.waveformlabs.moshpoint.crew.CrewStatus
 import nz.waveformlabs.moshpoint.crew.Crews
 import nz.waveformlabs.moshpoint.crew.FollowCheck
 import nz.waveformlabs.moshpoint.crew.GroupSync
+import nz.waveformlabs.moshpoint.debug.DebugStatus
+import nz.waveformlabs.moshpoint.debug.FieldRecorder
 import nz.waveformlabs.moshpoint.friends.Friend
 import nz.waveformlabs.moshpoint.friends.FriendsRepository
 import nz.waveformlabs.moshpoint.friends.Friendship

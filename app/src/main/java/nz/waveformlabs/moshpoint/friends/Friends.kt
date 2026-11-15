@@ -2,7 +2,7 @@ package nz.waveformlabs.moshpoint.friends
 
 import android.content.Context
 import androidx.compose.runtime.mutableStateListOf
-import nz.waveformlabs.moshpoint.DebugStatus
+import nz.waveformlabs.moshpoint.debug.DebugStatus
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.EphemeralId

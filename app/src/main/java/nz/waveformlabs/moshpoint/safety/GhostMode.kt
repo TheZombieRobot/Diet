@@ -2,7 +2,7 @@ package nz.waveformlabs.moshpoint.safety
 
 import android.content.Context
 import androidx.compose.runtime.mutableStateOf
-import nz.waveformlabs.moshpoint.DebugStatus
+import nz.waveformlabs.moshpoint.debug.DebugStatus
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 
 /**

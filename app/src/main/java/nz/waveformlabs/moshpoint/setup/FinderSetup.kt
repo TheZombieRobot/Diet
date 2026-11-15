@@ -1,7 +1,7 @@
 package nz.waveformlabs.moshpoint.setup
 
-import nz.waveformlabs.moshpoint.DebugStatus
-import nz.waveformlabs.moshpoint.FieldRecorder
+import nz.waveformlabs.moshpoint.debug.DebugStatus
+import nz.waveformlabs.moshpoint.debug.FieldRecorder
 import nz.waveformlabs.moshpoint.chat.OfflineMessages
 import nz.waveformlabs.moshpoint.core.HereRule
 import nz.waveformlabs.moshpoint.locate.ExtraFixSource

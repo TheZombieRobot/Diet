@@ -43,7 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.BuildConfig
-import nz.waveformlabs.moshpoint.DebugStatus
+import nz.waveformlabs.moshpoint.debug.DebugStatus
 import nz.waveformlabs.moshpoint.R
 import androidx.compose.ui.res.stringResource
 
@@ -246,7 +246,7 @@ internal fun SettingsContent(
                     Spacer(Modifier.width(12.dp))
                     Switch((BuildConfig.TEST_BUILD && DebugStatus.showUi), { DebugStatus.setShowUi(context, it) }, colors = SwitchDefaults.colors(checkedTrackColor = Mosh.Amber, checkedThumbColor = Color(0xFF1A1000), uncheckedTrackColor = Color(0xFF1C1630)))
                 }
-                if (BuildConfig.TEST_BUILD && nz.waveformlabs.moshpoint.DebugStatus.showUi) {
+                if (BuildConfig.TEST_BUILD && nz.waveformlabs.moshpoint.debug.DebugStatus.showUi) {
                     val scope = androidx.compose.runtime.rememberCoroutineScope()
                     Text("TESTING", style = Mosh.Eyebrow)
                     Column {

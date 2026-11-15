@@ -45,7 +45,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.core.content.res.ResourcesCompat
 import nz.waveformlabs.moshpoint.BuildConfig
-import nz.waveformlabs.moshpoint.DebugStatus
+import nz.waveformlabs.moshpoint.debug.DebugStatus
 import nz.waveformlabs.moshpoint.friends.Friend
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
