@@ -163,6 +163,13 @@ jobs:
           KEYSTORE_B64: ${{ secrets.MOSHPOINT_KEYSTORE }}
           SERVER_URL: ${{ vars.MOSHPOINT_SERVER }}
         run: |
+          # A Play bundle with no relay server of our own would send everyone's traffic to the
+          # public ntfy.sh, so the build refuses (app/build.gradle.kts). Until the server is set
+          # up, skip it here with a warning rather than turn every run red.
+          if [ -z "$SERVER_URL" ]; then
+            echo "::warning::No Play Store bundle: set the MOSHPOINT_SERVER variable to the relay's https address first (docs/PLAY_STORE.md)"
+            exit 0
+          fi
           printf '%s' "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
           MOSHPOINT_KEYSTORE_FILE="$RUNNER_TEMP/upload.jks" ./gradlew :app:bundleRelease -Pmoshpoint.server="$SERVER_URL" -Pmoshpoint.facebookAppId="${{ vars.MOSHPOINT_FACEBOOK_APP_ID }}" -Pmoshpoint.facebookClientToken="${{ vars.MOSHPOINT_FACEBOOK_CLIENT_TOKEN }}"
           rm -f "$RUNNER_TEMP/upload.jks"
@@ -174,6 +181,14 @@ jobs:
           name: moshpoint-release-aab
           path: app/build/outputs/bundle/release/*.aab
           retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Native libraries are 16 KB aligned (release APK and Play bundle)
+        # Play rejects apps whose 64-bit native libraries (the map's libmaplibre.so) don't work on
+        # phones with 16 KB memory pages. Fails the build if any doesn't (tools/check_16kb.py).
+        if: success()
+        shell: bash
+        run: python3 tools/check_16kb.py app/build/outputs/apk/release/*.apk $(ls app/build/outputs/bundle/release/*.aab 2>/dev/null)
 
       - name: Compile errors
         if: failure()
@@ -385,6 +400,8 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: write # to commit updated watch screenshots back to this branch
+    env:
+      HAS_KEYSTORE: ${{ secrets.MOSHPOINT_KEYSTORE != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -460,6 +477,35 @@ jobs:
         run: |
           set -o pipefail
           ./gradlew :wear:assembleRelease --continue 2>&1 | tee -a wear-build.log
+
+      - name: Watch native libraries are 16 KB aligned (release APK)
+        if: success()
+        shell: bash
+        run: python3 tools/check_16kb.py wear/build/outputs/apk/release/*.apk
+
+      - name: Signed watch Play Store bundle (only when signing secrets are set)
+        # The watch app goes on the phone app's Play listing (Wear OS form factor), signed with the
+        # same upload key: the Wear Data Layer only links a phone app and a watch app that share it.
+        if: success() && env.HAS_KEYSTORE == 'true'
+        shell: bash
+        env:
+          MOSHPOINT_KEYSTORE_PASSWORD: ${{ secrets.MOSHPOINT_KEYSTORE_PASSWORD }}
+          MOSHPOINT_KEY_ALIAS: ${{ secrets.MOSHPOINT_KEY_ALIAS }}
+          MOSHPOINT_KEY_PASSWORD: ${{ secrets.MOSHPOINT_KEY_PASSWORD }}
+          KEYSTORE_B64: ${{ secrets.MOSHPOINT_KEYSTORE }}
+        run: |
+          printf '%s' "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          MOSHPOINT_KEYSTORE_FILE="$RUNNER_TEMP/upload.jks" ./gradlew :wear:bundleRelease
+          rm -f "$RUNNER_TEMP/upload.jks"
+          python3 tools/check_16kb.py wear/build/outputs/bundle/release/*.aab
+
+      - name: Upload watch Play Store bundle
+        if: success() && env.HAS_KEYSTORE == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: moshpoint-watch-release-aab
+          path: wear/build/outputs/bundle/release/*.aab
+          retention-days: 30
 
       - name: Watch APK pairs with the phone app (same app id, watch-only)
         if: success()
