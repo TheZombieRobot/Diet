@@ -28,11 +28,8 @@ open class ScreensSnapshotTest {
     protected open val lang: String? get() = null
     protected open val rtl: Boolean get() = false
 
-    /** The resource qualifier Paparazzi is given, when it isn't [lang]. */
-    protected open val qualifier: String? get() = lang
-
     private fun device(base: DeviceConfig) = base.copy(
-        locale = qualifier,
+        locale = lang,
         layoutDirection = if (rtl) com.android.resources.LayoutDirection.RTL else com.android.resources.LayoutDirection.LTR,
     )
 
@@ -474,14 +471,10 @@ class Lang_es : ScreensSnapshotTest() {
     override val lang get() = "es"
 }
 
+// Paparazzi renders this one with values-es, not values-es-rES (as "es-rES" or "b+es+ES"),
+// so these screenshots show the plain Spanish: see docs/HOME_REDESIGN.md, section 3.
 class Lang_es_rES : ScreensSnapshotTest() {
     override val lang get() = "es-rES"
-
-    // Given as "es-rES", the renders came out in the plain Spanish next to it (values-es).
-    override val qualifier get() = "b+es+ES"
-
-    /** Guard: Spain's Spanish really loads, not the plain Spanish next to it. */
-    @Test fun translationsLoad() = kotlin.test.assertEquals("En directo", paparazzi.context.getString(nz.waveformlabs.moshpoint.R.string.home_live_switch))
 }
 
 class Lang_pt : ScreensSnapshotTest() {

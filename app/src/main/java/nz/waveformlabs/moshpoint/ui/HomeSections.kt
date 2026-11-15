@@ -39,6 +39,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -62,6 +63,7 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -73,6 +75,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.Friend
@@ -180,7 +183,7 @@ internal fun ActivityBlock(
     modifier: Modifier = Modifier,
 ) {
     val lines = pings.map { p ->
-        Pair(stringResource(R.string.home_ping_line, p.from, describe(p.kind)) + " · " + ago(nowSec - p.timeSec), p.kind == GigGroup.Ping.NEED_HELP)
+        Pair(dotLine(listOf(stringResource(R.string.home_ping_line, p.from, describe(p.kind)), ago(nowSec - p.timeSec))), p.kind == GigGroup.Ping.NEED_HELP)
     }
     if (meetUp == null && lines.isEmpty() && plan == null) return
     Column(modifier.fillMaxWidth().padding(horizontal = HomeSide)) {
@@ -352,8 +355,11 @@ internal fun MemoryCard(g: GigArchive.Summary, years: Int, onOpen: () -> Unit) {
             Spacer(Modifier.height(4.dp))
             Text(nz.waveformlabs.moshpoint.Memories.headline(g, years, LocalContext.current.resources), style = HomeType.RowTitle)
             Spacer(Modifier.height(2.dp))
-            Text(pluralStringResource(R.plurals.home_memories_count, n, n), style = HomeType.Small.copy(color = Mosh.TextDim))
+            // The text's own "›" becomes the chevron after the card, which mirrors right to left.
+            Text(pluralStringResource(R.plurals.home_memories_count, n, n).trimEnd().removeSuffix("›").trimEnd(), style = HomeType.Small.copy(color = Mosh.TextDim))
         }
+        Spacer(Modifier.width(8.dp))
+        HomeIcon(HomeIcons.Chevron, Mosh.TextFaint, 18.dp)
     }
 }
 
@@ -661,7 +667,8 @@ internal fun NoCrewHero(onStart: () -> Unit, onPlan: () -> Unit, onScan: () -> U
 @Composable
 internal fun FirstTimeHero(onStart: () -> Unit, onScan: () -> Unit, onPaste: () -> Unit, onPlan: () -> Unit) {
     Column(Modifier.fillMaxWidth().padding(horizontal = HomeSide), horizontalAlignment = Alignment.CenterHorizontally) {
-        RadarArt()
+        // A picture, not a layout: drawn the same way round in right-to-left languages.
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) { RadarArt() }
         Spacer(Modifier.height(14.dp))
         Text(
             stringResource(R.string.home_first_title), style = HomeType.Hero.copy(fontSize = 27.sp), textAlign = TextAlign.Center,
@@ -940,7 +947,8 @@ internal fun CheckInBanner(byClock: String, onHomeSafe: () -> Unit, modifier: Mo
             .padding(start = 16.dp, end = 6.dp, top = 4.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(stringResource(R.string.home_check_in_by, byClock), style = HomeType.RowTitle.copy(color = Mosh.Lilac), modifier = Modifier.weight(1f))
+        // The time stays on one line ("2:15 am", "02:15 SA").
+        Text(stringResource(R.string.home_check_in_by, byClock.replace(' ', '\u00A0')), style = HomeType.RowTitle.copy(color = Mosh.Lilac), modifier = Modifier.weight(1f))
         TextButton(onClick = onHomeSafe) {
             Text(stringResource(R.string.home_home_safe), style = HomeType.Label.copy(fontSize = 14.sp, color = Mosh.Lime), textAlign = TextAlign.Center)
         }

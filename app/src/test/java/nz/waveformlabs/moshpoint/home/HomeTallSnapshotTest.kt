@@ -28,16 +28,13 @@ open class HomeTallSnapshotTest {
     protected open val lang: String? get() = null
     protected open val rtl: Boolean get() = false
 
-    /** The resource qualifier Paparazzi is given, when it isn't [lang]. */
-    protected open val qualifier: String? get() = lang
-
     @get:Rule
     val paparazzi = Paparazzi(
         deviceConfig = DeviceConfig.PIXEL_5.copy(
             screenWidth = 491, screenHeight = 4300, xdpi = 200, ydpi = 200, density = Density.create(200),
             // English needs saying here: with no locale this render falls back to the root
             // plural rules ("1 years ago").
-            locale = qualifier ?: "en",
+            locale = lang ?: "en",
             layoutDirection = if (rtl) com.android.resources.LayoutDirection.RTL else com.android.resources.LayoutDirection.LTR,
         ),
         theme = "android:Theme.Material.NoActionBar",
@@ -76,10 +73,7 @@ open class HomeTallSnapshotTest {
 
 // Every language the app ships (as in ScreensSnapshotTest). CI files them by language.
 class Lang_es : HomeTallSnapshotTest() { override val lang get() = "es" }
-class Lang_es_rES : HomeTallSnapshotTest() {
-    override val lang get() = "es-rES"
-    override val qualifier get() = "b+es+ES" // as in ScreensSnapshotTest
-}
+class Lang_es_rES : HomeTallSnapshotTest() { override val lang get() = "es-rES" } // renders values-es: see ScreensSnapshotTest
 class Lang_pt : HomeTallSnapshotTest() { override val lang get() = "pt-rBR" }
 class Lang_fr : HomeTallSnapshotTest() { override val lang get() = "fr" }
 class Lang_de : HomeTallSnapshotTest() { override val lang get() = "de" }

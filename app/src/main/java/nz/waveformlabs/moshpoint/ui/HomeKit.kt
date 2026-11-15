@@ -133,9 +133,12 @@ internal object HomeType {
 /**
  * Parts joined with " · ", the dot kept at the end of a line and each short part kept whole
  * (no-break spaces inside): "in 7 days · Dock 4" never breaks as "Dock / 4" or "· Dock 4".
+ * Arabic gets a bullet: a middle dot beside Arabic digits reads as a zero ("٣ ·" as ٣٠).
  */
 internal fun dotLine(parts: List<String>): String =
-    parts.joinToString("\u00A0· ") { p -> if (p.length <= 24) p.replace(' ', '\u00A0') else p }
+    parts.joinToString(if (java.util.Locale.getDefault().language == "ar") "\u00A0• " else "\u00A0· ") { p ->
+        if (p.length <= 24) p.replace(' ', '\u00A0') else p
+    }
 
 /** [dotLine] for text already joined with " · ". */
 internal fun dotLine(text: String): String = dotLine(text.split(" · "))
