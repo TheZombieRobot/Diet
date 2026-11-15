@@ -7,7 +7,7 @@ P1-11, P1-12 and the server P2s, performance P0-2 and P1-8 (server side).
 
 ## Status and next steps
 
-_Handover, kept current. Last updated: 15 Nov 2026._
+_Handover, kept current. Last updated: 15 Nov 2026, work complete on this branch._
 
 **Done** (all on the branch, server tests passing locally and in CI):
 
@@ -23,15 +23,21 @@ _Handover, kept current. Last updated: 15 Nov 2026._
 - Non-root container, `fly.toml` for one always-on Machine with a volume, Render dropped,
   masked logs.
 - Docs: this file and [RELAY_API.md](RELAY_API.md).
-- An independent review of the server code found 13 problems; all are fixed and tested except one
-  that needed only a correction here (see "Review" below).
+- An independent review of the server code found 13 problems. All are fixed (most with a test;
+  the shutdown drain checked by hand) except one that needed only a correction in this doc
+  (see "Review" below).
+
+**CI:** "Core + server tests" (which runs `:server:test`) passed on GitHub in run 295 (the
+first full version); the branch's latest run checks the review fixes on top.
 
 **Next:**
 
-1. CI on the branch (the "Core + server tests" step runs `:server:test`).
-2. Owner: deploy with the steps below once this branch is merged.
+1. Merge this branch (it touches only `server/`, `fly.toml`, `render.yaml` (deleted), server
+   docs, and a few lines of README and ARCHITECTURE pointing here).
+2. Owner: deploy with the steps under "Deploy (owner)" below, then set `MOSHPOINT_SERVER`.
 3. Wave 2 (app): adopt the token, batch and cursors (RELAY_API.md section 11) and the app-side
-   items at the end of this file.
+   items at the end of this file. Nothing in the app has to change for the hardened relay to
+   work with today's test builds.
 
 **Checked by hand here:** the installed server (`installDist`) started through
 `docker-entrypoint.sh` as root drops to uid 10001, takes the volume over, runs with the heap flags,
