@@ -250,4 +250,50 @@ class SafetyRulesTest {
         val short = CheckInReminder.atSec(sent, sent + 4 * 60)
         assertEquals(sent + 2 * 60, short)
     }
+
+    // ---- A clock jumping forward doesn't end the crew ----
+
+    private val day = 24 * hour
+
+    @Test fun aClockInStepIsTrusted() {
+        val a = ClockCheck.check(null, t0, 1_000L, 5)
+        assertEquals(t0, a.trustedNowMs)
+        val b = ClockCheck.check(a.anchor, t0 + hour, 1_000L + hour, 5)
+        assertEquals(t0 + hour, b.trustedNowMs)
+    }
+
+    @Test fun aJumpForwardIsNotBelievedAtOnce() {
+        val a = ClockCheck.check(null, t0, 1_000L, 5).anchor
+        // Ten seconds of real time later, the clock says two days later.
+        val jumped = ClockCheck.check(a, t0 + 2 * day, 11_000L, 5)
+        assertEquals(t0 + 10_000L, jumped.trustedNowMs)
+        // An hour on, still counted from before the jump.
+        val later = ClockCheck.check(jumped.anchor, t0 + 2 * day + hour, 11_000L + hour, 5)
+        assertEquals(t0 + 10_000L + hour, later.trustedNowMs)
+        // Set right again: trusted at once.
+        val fixed = ClockCheck.check(later.anchor, t0 + 10_000L + 2 * hour, 11_000L + 2 * hour, 5)
+        assertEquals(t0 + 10_000L + 2 * hour, fixed.trustedNowMs)
+    }
+
+    @Test fun aJumpThatStandsIsAcceptedInTheEnd() {
+        val a = ClockCheck.check(null, t0, 0L, 5).anchor
+        var r = ClockCheck.check(a, t0 + day, 60_000L, 5)
+        assertEquals(t0 + 60_000L, r.trustedNowMs)
+        r = ClockCheck.check(r.anchor, t0 + day + ClockCheck.ACCEPT_AFTER_MS, 60_000L + ClockCheck.ACCEPT_AFTER_MS, 5)
+        assertEquals(t0 + day + ClockCheck.ACCEPT_AFTER_MS, r.trustedNowMs)
+    }
+
+    @Test fun smallDriftAGoingBackOrARebootAreTakenAsTheyAre() {
+        val a = ClockCheck.check(null, t0, 50_000L, 5).anchor
+        assertEquals(t0 + 5 * 60_000L, ClockCheck.check(a, t0 + 5 * 60_000L, 50_000L, 5).trustedNowMs)
+        assertEquals(t0 - day, ClockCheck.check(a, t0 - day, 60_000L, 5).trustedNowMs)
+        assertEquals(t0 + 3 * day, ClockCheck.check(a, t0 + 3 * day, 10L, 6).trustedNowMs)
+    }
+
+    @Test fun anchorsSurviveARestart() {
+        val a = ClockCheck.Anchor(t0, 123L, 7, 99L)
+        assertEquals(a, ClockCheck.Anchor.parse(a.save()))
+        assertNull(ClockCheck.Anchor.parse("1,2,3"))
+        assertNull(ClockCheck.Anchor.parse(null))
+    }
 }

@@ -14,10 +14,11 @@ class FriendRecordTest {
         assertEquals(listOf(sam, jo), FriendRecord.parse(FriendRecord.serialize(listOf(sam, jo)), now))
     }
 
-    @Test fun oldGigGroupMembersExpire() {
-        val old = jo.copy(addedAtMs = now - FriendRecord.GIG_GROUP_TTL_MS - 1)
+    /** A crew planned weeks ahead keeps its faces across restarts (it used to lose them after a cut-off). */
+    @Test fun crewMatesAreKeptHoweverLongAgoTheyJoined() {
+        val weeksAgo = jo.copy(addedAtMs = now - 40L * 24 * 3600 * 1000)
         val oldFriend = sam.copy(addedAtMs = 0)
-        assertEquals(listOf(oldFriend), FriendRecord.parse(FriendRecord.serialize(listOf(oldFriend, old)), now))
+        assertEquals(listOf(oldFriend, weeksAgo), FriendRecord.parse(FriendRecord.serialize(listOf(oldFriend, weeksAgo)), now))
     }
 
     @Test fun badLinesSkipped() {

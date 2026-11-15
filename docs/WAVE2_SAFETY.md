@@ -8,7 +8,7 @@ Branch: `claude/wave2-safety-k7m3p9` (from `ccr-5839ed7c-1q0ztj`).
 
 _Keep this section current: whoever picks this up next starts here._
 
-- **Done (code):** items 1–8 below, and P2 items 1–3 and part of 8 (see "P2").
+- **Done (code):** items 1–8 below, and all eight P2 items (see "P2").
 - **Core tests:** `SafetyRulesTest` (28 tests) plus `CheckIns.nextCheckSec`; all core tests pass
   locally (scratch Gradle build that includes only `:core`, as docs/WATCH.md describes).
 - **App tests:** `RadarLogicTest` (the radar crash); screenshot tests for every new UI state in
@@ -16,8 +16,10 @@ _Keep this section current: whoever picks this up next starts here._
 - **Translations:** `strings_safety.xml` in all 20 values folders; `crew_help_alerted`
   ("Crew alerted ✓", the misleading label) removed from every language.
 - **CI:** see "CI runs" at the end.
-- **Next:** if CI is red, fix the compile errors it lists (`grep '^e: ' build.log` step). Then the
-  P2 items still open (below), in order. Before the final run, merge `origin/ccr-5839ed7c-1q0ztj`.
+- **Next:** if CI is red, fix what it lists (the "Compile errors" step greps `^e: `). Check the
+  new screenshots in every language (ui-screenshots-claude-wave2-safety-k7m3p9) and that every
+  other screen is byte-identical to origin/ui-screenshots. Before the final run, merge
+  `origin/ccr-5839ed7c-1q0ztj`.
 - **If ccr moves on:** the shared files touched here are small, local edits: `AndroidManifest.xml`
   (configChanges, one receiver, MY_PACKAGE_REPLACED), `GroupSync` (sendPing's result, check-in
   alarms, Live on crew change), `MainActivity` (onResume reconcile, BackgroundChecks at start),
@@ -145,12 +147,27 @@ _Keep this section current: whoever picks this up next starts here._
 2. **Done:** ChatCheckReceiver's work has a 45 s limit.
 3. **Done:** `GigArchive.keep` writes the photo whole (tmp + rename) and indexes a kept photo
    whose line is missing, so a crash in between no longer leaves it out of the Story.
-4. Open: Courier.restore and PrivateBook.restore should migrate instead of dropping everything
-   when SAVE_VERSION changes.
-5. Open: FriendRecord.parse drops crew mates added more than 18 h ago.
-6. Open: a forward clock jump makes loadCrews end the crew.
-7. Open: LocationBook accepts timestamps from the future.
-8. Open: nothing cleans up gigs/, cache/clips or expired chat files.
+4. **Done:** `Courier` and `PrivateBook` save format version 2: each record (parcel; thread
+   header, line, pending message) is a length-prefixed block, so a later version only adds at
+   the end of a block or the file, and readers skip what they don't know. Version 1 files are
+   still read. Tests: `CourierSimTest.theQueueSurvivesAnUpdateEitherWay`,
+   `PrivateTest.threadsSurviveAnUpdateEitherWay` (v1, and a "v3" with extra fields and a
+   section; test helper `SaveFormats`). **Rule for later changes:** never reorder or change a
+   field; add at the end.
+5. **Done:** `FriendRecord.parse` keeps crew mates however long ago they joined (the 8-day
+   cut-off dropped a crew planned weeks ahead on a restart). Leftovers with no crew at all are
+   cleared when the crews load (`FriendsRepository.clearLeftoverCrewMates`; simulated mates stay).
+6. **Done:** crews end by core `ClockCheck` (`crew/CrewClock`): within one boot, a wall clock
+   more than 10 min ahead of elapsed real time isn't believed for ending crews until it has
+   stood for 6 hours (a reboot, or a clock going back, is taken as it is). Used by
+   `GroupSync.loadCrews` and `Crews.dropExpired`. Live's own night-over check still uses the
+   wall clock (switching Live off is harmless and undone with a tap).
+7. **Done:** `LocationBook.update` counts a stamp from the future as now (core
+   `MessageClock.sortTime`, already tested).
+8. **Done:** `safety/Housekeeping` (once a day from app start, off the main thread): cached clips
+   older than 3 days, `*.tmp` files and empty folders in `gigs/` older than a day. Expired Up
+   next crews now forget their chat and crew pass too (only private threads were forgotten), and
+   a forgotten chat's prefs file is deleted. Kept photos, clips and gigs are never touched.
 
 ## New UI (screens changed on purpose)
 All new; no existing screen should change by a pixel.

@@ -31,7 +31,8 @@ data class Friend(val record: FriendRecord) : FinderMate {
 
 /**
  * Friends + gig group, saved to app-private storage so they survive restarts.
- * Gig group members expire after [FriendRecord.GIG_GROUP_TTL_MS] (one night).
+ * Gig group members go when their crew ends, or as leftovers when no crew is loaded at all
+ * ([clearLeftoverCrewMates]).
  *
  * Shared by the UI and the background visibility service (same process).
  * TODO: wrap the file with a Keystore key; sync with the server once accounts exist.
@@ -191,6 +192,15 @@ object FriendsRepository {
         removedGig.clear()
         friends.removeAll { it.gigGroupOnly }
         save()
+    }
+
+    /**
+     * No crew at all, yet crew-only mates are saved: leftovers of a crew that ended (say the app
+     * was closed between the two saves). They go. Simulated test mates stay.
+     */
+    fun clearLeftoverCrewMates() {
+        if (file == null) return
+        if (friends.removeAll { it.gigGroupOnly && !isSimulated(it.id) }) save()
     }
 
     private fun ByteArray.toHexKey() = joinToString("") { "%02x".format(it) }

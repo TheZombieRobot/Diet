@@ -306,6 +306,8 @@ object CrewChat {
     fun forget(c: Context, g: GigGroup) {
         val id = GigArchive.idFor(g)
         prefs(c, id).edit().clear().apply()
+        // The file itself goes too, not just what's in it.
+        runCatching { c.applicationContext.deleteSharedPreferences("crewchat_$id") }
         unread.remove(id)
         ChatSync.clearNotification(c, id)
         if (id == viewingId) show(c, null)

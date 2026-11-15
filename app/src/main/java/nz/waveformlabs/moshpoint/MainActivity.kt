@@ -49,6 +49,7 @@ import nz.waveformlabs.moshpoint.profile.AvatarSync
 import nz.waveformlabs.moshpoint.profile.Identity
 import nz.waveformlabs.moshpoint.profile.PhotoStore
 import nz.waveformlabs.moshpoint.safety.GhostMode
+import nz.waveformlabs.moshpoint.safety.Housekeeping
 import nz.waveformlabs.moshpoint.safety.Notices
 import nz.waveformlabs.moshpoint.service.LiveControl
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
@@ -163,6 +164,7 @@ class MainActivity : ComponentActivity() {
             Moments.loadCurrent(this@MainActivity) // tonight's Story survives restarts
             GigArchive.refreshList(this@MainActivity)
             Memories.schedule(this@MainActivity, GigArchive.gigs)
+            Housekeeping.run(this@MainActivity) // old cached clips and half-written files, once a day
         }
         home.mySecret = VisibilityPrefs.mySecret(this)
         // The finder (finder module, docs/FINDER_MODULE.md), with the gig app's parts plugged in.

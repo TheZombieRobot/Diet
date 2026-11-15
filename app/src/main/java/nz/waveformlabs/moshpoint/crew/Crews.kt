@@ -111,13 +111,19 @@ object Crews {
     /** Finished gigs drop off (their photos stay in Your gigs). */
     fun dropExpired(c: Context) {
         load(c)
-        val now = System.currentTimeMillis()
+        // A clock that has just jumped forward doesn't end crews (and delete their chat): see CrewClock.
+        val now = CrewClock.now(c)
         val ended = others.filter { now > it.group.expiresAtMs }
         if (ended.isEmpty()) return
         others.removeAll { now > it.group.expiresAtMs }
         save(c)
-        // Their private threads end with them (docs/PRIVATE_MESSAGES.md).
-        ended.forEach { PrivateMessages.forgetId(c, it.id) }
+        // Their private threads end with them (docs/PRIVATE_MESSAGES.md), and so do their chat
+        // and crew pass, as the main crew's do (they used to stay on the phone for good).
+        ended.forEach {
+            PrivateMessages.forgetId(c, it.id)
+            nz.waveformlabs.moshpoint.chat.CrewChat.forget(c, it.group)
+            nz.waveformlabs.moshpoint.profile.Identity.forget(c, it.group)
+        }
     }
 
     /** A brand-new crew that isn't the main one yet. */

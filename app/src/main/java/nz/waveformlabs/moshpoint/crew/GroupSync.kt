@@ -146,6 +146,8 @@ object GroupSync {
         } finally {
             OfflineMessages.crewsLoaded(c)
         }
+        // No crew at all: crew-only mates still saved are leftovers of one that ended.
+        if (group.value == null) FriendsRepository.clearLeftoverCrewMates()
     }
 
     private fun loadCrews(c: Context) {
@@ -166,8 +168,9 @@ object GroupSync {
             p.getString("osalt", null)?.let { runCatching { Base64.decode(it, Base64.NO_WRAP) }.getOrNull() },
         )
         followingState.value = p.getBoolean("following", false)
-        if (System.currentTimeMillis() > g.expiresAtMs) {
+        if (CrewClock.now(c) > g.expiresAtMs) {
             // The night's over: close the crew. The photos and clips stay in Your gigs.
+            // (By a clock that hasn't just jumped forward: that used to end the crew and delete its chat.)
             val hadMoments = runCatching { java.io.File(java.io.File(c.filesDir, "gigs"), GigArchive.idFor(g)).list()?.isNotEmpty() == true }.getOrDefault(false)
             clear(c)
             CrewNotifications.post(
