@@ -246,7 +246,7 @@ fun FriendsScreen(
                         TextButton(onClick = { onRemovePhoto(f.id); options = null }) { Text(stringResource(R.string.home_remove_photo)) }
                     }
                     if (!f.gigGroupOnly || canRemoveCrewMates) {
-                        TextButton(onClick = { confirmRemove = f; options = null }) { Text(stringResource(R.string.home_remove_name, f.name), color = Mosh.Red) }
+                        TextButton(onClick = { confirmRemove = f; options = null }) { Text(stringResource(R.string.home_remove_name, f.name), color = Mosh.Alarm) }
                     } else {
                         Text(
                             stringResource(R.string.crew_only_owner_removes),

@@ -516,7 +516,7 @@ internal fun HelpDialog(onAlertCrew: (() -> Unit)?, onClose: () -> Unit) {
                         nz.waveformlabs.moshpoint.EmergencyNumbers.Kind.POLICE -> stringResource(R.string.crew_help_call_police)
                         nz.waveformlabs.moshpoint.EmergencyNumbers.Kind.AMBULANCE -> stringResource(R.string.crew_help_call_ambulance)
                     }
-                    HelpAction(stringResource(R.string.crew_help_call, n.digits), sub, Mosh.Red) { Safety.callEmergency(c, n.digits) }
+                    HelpAction(stringResource(R.string.crew_help_call, n.digits), sub, Mosh.Alarm) { Safety.callEmergency(c, n.digits) }
                 }
                 Text(
                     stringResource(R.string.crew_help_no_signal, numbers.first().digits),

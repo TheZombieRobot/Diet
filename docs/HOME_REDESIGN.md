@@ -155,7 +155,7 @@ sheets). Strings: `res/values*/strings_home_redesign.xml`.
   joins or leaves, goes live or not, or moves to another distance band; never while a finger
   is on the strip); Need help moves to its own row when even its longest word can't fit beside
   the wordmark (a small phone with a large font), and bottom-bar labels may take two lines;
-  "Remove someone" is a clear red (`Mosh.Red`, also the emergency call's), while the crew
+  "Remove someone" is a clear red (`Mosh.Alarm`, also the emergency call's), while the crew
   menu's End the night stays pink as designed; Need help offers the crew alert only when
   someone is in the crew or following; the recap's End the night resets the night's stats and
   says so only once you've actually left (a cancelled handover keeps them).
