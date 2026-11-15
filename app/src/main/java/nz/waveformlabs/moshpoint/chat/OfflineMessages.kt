@@ -20,7 +20,7 @@ import nz.waveformlabs.moshpoint.GigArchive
 import nz.waveformlabs.moshpoint.HerePins
 import nz.waveformlabs.moshpoint.Identity
 import nz.waveformlabs.moshpoint.NetState
-import nz.waveformlabs.moshpoint.PrivateMessages
+import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.Courier

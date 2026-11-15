@@ -32,7 +32,7 @@ import nz.waveformlabs.moshpoint.LocationBook
 import nz.waveformlabs.moshpoint.Moments
 import nz.waveformlabs.moshpoint.NightStats
 import nz.waveformlabs.moshpoint.chat.OfflineMessages
-import nz.waveformlabs.moshpoint.PrivateMessages
+import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.CheckIns

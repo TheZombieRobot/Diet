@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.privatemsg
 
 import android.content.Context
 import android.os.Looper
@@ -9,6 +9,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.Friend
+import nz.waveformlabs.moshpoint.FriendsRepository
+import nz.waveformlabs.moshpoint.GigArchive
+import nz.waveformlabs.moshpoint.Identity
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.chat.ChatSync
 import nz.waveformlabs.moshpoint.chat.CrewChat
 import nz.waveformlabs.moshpoint.chat.OfflineMessages

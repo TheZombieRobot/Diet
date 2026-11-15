@@ -13,7 +13,7 @@ import nz.waveformlabs.moshpoint.ChatCheckReceiver
 import nz.waveformlabs.moshpoint.Friendship
 import nz.waveformlabs.moshpoint.GigArchive
 import nz.waveformlabs.moshpoint.Identity
-import nz.waveformlabs.moshpoint.PrivateMessages
+import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.Courier
