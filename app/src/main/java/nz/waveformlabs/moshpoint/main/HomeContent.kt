@@ -189,9 +189,9 @@ internal fun HomeContent(a: MainActivity) {
             },
         ),
         inviteActions = HomeInviteActions(
-            onShareCode = { a.invites.shareCode(a.home.myCode) },
+            onShareCode = { a.invites.shareCode() },
             onPasteInvite = a.invites::pasteInvite,
-            onShareApp = { a.invites.shareApp(a.home.myCode) },
+            onShareApp = { a.invites.shareApp() },
             onShowQr = { a.invites.ensureCrew(); a.invites.showGroupQr = true },
             onScanQr = {
                 a.launchers.scanQr.launch(

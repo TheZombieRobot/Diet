@@ -63,8 +63,8 @@ object ChatSync {
         val grace = CrewRekey.graceCrews(app)
         // Each crew's private mailbox (docs/PRIVATE_MESSAGES.md) rides in the same request, after
         // everything else; not for crews followed from home.
-        val pmCrews = crews.filter { PrivateMessages.takesPart(app, it) }
-        val pmGrace = grace.filter { PrivateMessages.takesPart(app, it.now) }
+        val pmCrews = crews.filter { PrivateMessages.takesPart(it) }
+        val pmGrace = grace.filter { PrivateMessages.takesPart(it.now) }
         val ids = crews.flatMap { listOf(it.chatIdForDay(day), it.chatIdForDay(day - 1)) } +
             grace.flatMap { listOf(it.old.chatIdForDay(day), it.old.chatIdForDay(day - 1)) } +
             pmCrews.flatMap { listOf(it.privateIdForDay(day), it.privateIdForDay(day - 1)) } +

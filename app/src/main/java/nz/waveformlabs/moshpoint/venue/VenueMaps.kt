@@ -298,7 +298,7 @@ object VenueMaps {
             OfflineManager.getInstance(c)
         }.getOrNull() ?: return
         val regions = list(om) ?: return
-        cleanUp(om, regions, now)
+        cleanUp(regions, now)
         // A saved area whose files have gone (storage cleared, database rebuilt) is not saved.
         for (a in areas) {
             if (a.done && (regions.none { areaKeyOf(it) == a.key } || !styleFilesExist(a.version))) {
@@ -372,7 +372,7 @@ object VenueMaps {
         }
     }
 
-    private suspend fun cleanUp(om: OfflineManager, regions: List<OfflineRegion>, now: Long) {
+    private suspend fun cleanUp(regions: List<OfflineRegion>, now: Long) {
         val expired = areas.filter { now > it.deleteAfterMs }
         // Too many: gigs that are over go first (oldest first), then the ones furthest ahead.
         val kept = areas - expired.toSet()

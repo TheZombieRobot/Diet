@@ -101,7 +101,7 @@ object Friendship {
     fun accept(c: Context, p: Pending) {
         val app = c.applicationContext
         val g = ChatSync.allCrews(app).firstOrNull { GigArchive.idFor(it) == p.crewId }
-        FriendsRepository.makePermanent(crewEntryFor(app, p.fromPub), p.secret, p.name)
+        FriendsRepository.makePermanent(crewEntryFor(p.fromPub), p.secret, p.name)
         if (g != null) send(app, g, p.fromPub, ACCEPT)
         incoming.remove(p)
         save(app)
@@ -113,7 +113,7 @@ object Friendship {
     }
 
     /** Our crew entry for whoever signs with [pub], if we have one. */
-    private fun crewEntryFor(c: Context, pub: ByteArray): String? {
+    private fun crewEntryFor(pub: ByteArray): String? {
         val secret = GroupSync.secretOfTag(CrewKeys.tagOf(pub)) ?: return null
         return FriendsRepository.friends.firstOrNull { it.secret.contentEquals(secret) }?.id
     }
@@ -132,7 +132,7 @@ object Friendship {
                 if (FriendsRepository.friends.any { !it.gigGroupOnly && it.secret.contentEquals(secret) } ||
                     asked(app).containsKey(CrewKeys.tagOf(d.fromPub).toString())
                 ) {
-                    FriendsRepository.makePermanent(crewEntryFor(app, d.fromPub), secret, name)
+                    FriendsRepository.makePermanent(crewEntryFor(d.fromPub), secret, name)
                     send(app, g, d.fromPub, ACCEPT)
                     return
                 }

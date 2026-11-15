@@ -112,7 +112,7 @@ internal class InviteState(private val a: MainActivity) {
     val getTheApp get() = Sharing.getTheApp(a)
 
     /** One message that does everything: download link + your invite. */
-    fun shareApp(code: String) {
+    fun shareApp() {
         Sharing.send(
             a,
             a.getString(R.string.main_share_app_text, getTheApp + crewQr(ensureCrew())),
@@ -129,7 +129,7 @@ internal class InviteState(private val a: MainActivity) {
         return GroupSync.group.value!!
     }
 
-    fun shareCode(@Suppress("UNUSED_PARAMETER") code: String) = shareGroup(ensureCrew())
+    fun shareCode() = shareGroup(ensureCrew())
 
     /** The crew QR / invite text, with us inside it so whoever joins can find us at once. */
     fun crewQr(g: GigGroup) =

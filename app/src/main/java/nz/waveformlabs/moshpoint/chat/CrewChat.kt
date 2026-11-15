@@ -535,7 +535,7 @@ object CrewChat {
     }
 
     /** Old flares go out. */
-    fun tick(@Suppress("UNUSED_PARAMETER") c: Context) {
+    fun tick() {
         val now = System.currentTimeMillis() / 1000
         flares.entries.removeAll { it.value.untilSec < now }
     }

@@ -548,7 +548,7 @@ object GroupSync {
         AvatarSync.publishMine(c) // our face on the crew's tiles (re-shared every couple of hours)
         AvatarSync.fetchFriends(c)
         checkOverdue(c)
-        CrewChat.tick(c)
+        CrewChat.tick()
         ChatSync.pollAll(c, minGapMs = 120_000)
         val found = RelayClient.lookup(ids) ?: return
         found.subList(0, 2).flatten().forEach { received(c, g, it) }

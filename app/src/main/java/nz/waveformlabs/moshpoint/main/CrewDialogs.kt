@@ -105,7 +105,7 @@ internal fun CrewDialogs(a: MainActivity) {
         MyQrDialog(
             QrPayload.of(a.home.myCode, a.home.myName),
             onDismiss = { a.invites.showQr = false },
-            onShare = { a.invites.shareCode(a.home.myCode) },
+            onShare = { a.invites.shareCode() },
             title = if (a.home.myName.isBlank()) stringResource(R.string.main_scan_to_add_me) else stringResource(R.string.main_scan_to_add_name, a.home.myName),
         )
     }

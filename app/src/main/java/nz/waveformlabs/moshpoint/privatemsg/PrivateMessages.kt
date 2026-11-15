@@ -99,7 +99,7 @@ object PrivateMessages {
     private fun isMain(g: GigGroup) = GroupSync.group.value?.key?.contentEquals(g.key) == true
 
     /** Do we take part in [g]'s private messages? Not while following it from home. */
-    fun takesPart(c: Context, g: GigGroup): Boolean =
+    fun takesPart(g: GigGroup): Boolean =
         if (isMain(g)) !GroupSync.following else Crews.find(g.key)?.following != true
 
     // ---- Who ----
@@ -111,7 +111,7 @@ object PrivateMessages {
      */
     fun mateOf(c: Context, g: GigGroup, tag: Long): Mate? {
         val app = c.applicationContext
-        if (!takesPart(app, g)) return null
+        if (!takesPart(g)) return null
         if (isMain(g)) {
             val f = FriendsRepository.friends.firstOrNull { f ->
                 (f.gigGroupOnly || f.key in GroupSync.members) && !FriendsRepository.isSimulated(f.id) &&
@@ -267,7 +267,7 @@ object PrivateMessages {
         val app = c.applicationContext
         val nowSec = now() / 1000
         crews.forEach { g ->
-            if (!takesPart(app, g)) return@forEach
+            if (!takesPart(g)) return@forEach
             val crewId = GigArchive.idFor(g)
             if (prefs(app).getString(crewId, null) == null && crewId !in books) return@forEach
             val book = book(app, crewId)
@@ -307,7 +307,7 @@ object PrivateMessages {
             return
         }
         val app = c.applicationContext
-        if (!takesPart(app, g)) return
+        if (!takesPart(g)) return
         val crewId = GigArchive.idFor(g)
         val book = book(app, crewId)
         val mate = mateOf(app, g, p.sender)
@@ -323,7 +323,7 @@ object PrivateMessages {
      */
     fun fetched(c: Context, g: GigGroup, blobs: List<ByteArray>, inUploadBox: Int) {
         val app = c.applicationContext
-        if (!takesPart(app, g)) return
+        if (!takesPart(g)) return
         OfflineMessages.fetchedPrivate(app, g, blobs, inUploadBox).forEach { arrived(app, g, it) }
         promoteKnown(app, g)
     }
