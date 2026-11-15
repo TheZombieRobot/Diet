@@ -2,7 +2,7 @@
     <!-- Quiet by default. The server never logs request bodies, URLs, ids, tokens or client
          addresses. As a second line of defence every line, exceptions included, is masked
          (LogPrivacy): anything that looks like an id, a token or an IP address is hidden. -->
-    <conversionRule conversionWord="masked" converterClass="nz.waveformlabs.moshpoint.server.MaskedConverter" />
+    <conversionRule conversionWord="masked" class="nz.waveformlabs.moshpoint.server.MaskedConverter" />
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} %-5level %logger{20} - %masked%n</pattern>

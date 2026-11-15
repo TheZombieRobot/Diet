@@ -31,11 +31,16 @@ _Handover, kept current. Last updated: 15 Nov 2026._
 3. Wave 2 (app): adopt the token, batch and cursors (RELAY_API.md section 11) and the app-side
    items at the end of this file.
 
-**Not verified here:** the Docker image wasn't built in this session (no Docker daemon); the
-entrypoint was checked with `sh -n` and uses only `stat`, `chown` and `setpriv`, which the
-`eclipse-temurin:17-jre` (Ubuntu) image has. Fly facts and prices were checked by web search on
-15 Nov 2026 (fly.io itself couldn't be reached from this session): confirm prices on
-fly.io/docs/about/pricing before budgeting.
+**Checked by hand here:** the installed server (`installDist`) started through
+`docker-entrypoint.sh` as root drops to uid 10001, takes the volume over, runs with the heap flags,
+answers, refuses a plain JPEG, and on SIGTERM finishes, checkpoints and closes the database; a
+record put before the stop was there after the restart.
+
+**Not verified here:** the Docker image itself wasn't built in this session (no Docker daemon);
+the entrypoint uses only `stat`, `chown` and `setpriv`, which the `eclipse-temurin:17-jre` (Ubuntu)
+image has. Fly facts and prices were checked by web search on 15 Nov 2026 (fly.io itself couldn't
+be reached from this session): confirm prices on fly.io/docs/about/pricing before budgeting, and
+watch the first `fly deploy` for warnings about `fly.toml` keys.
 
 ## What changed, and why
 
