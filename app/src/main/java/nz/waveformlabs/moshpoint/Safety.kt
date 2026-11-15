@@ -3,6 +3,7 @@ package nz.waveformlabs.moshpoint
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import nz.waveformlabs.moshpoint.crew.CrewStatus
 
 /**
  * Help that reaches beyond the crew: a text to your emergency contact with where you are

@@ -17,11 +17,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import nz.waveformlabs.moshpoint.BuildConfig
-import nz.waveformlabs.moshpoint.CrewStatus
-import nz.waveformlabs.moshpoint.Crews
+import nz.waveformlabs.moshpoint.crew.CrewStatus
+import nz.waveformlabs.moshpoint.crew.Crews
 import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.GigArchive
-import nz.waveformlabs.moshpoint.GroupSync
+import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.core.ArrivalPlanner
 import nz.waveformlabs.moshpoint.core.AtGig
 import nz.waveformlabs.moshpoint.core.GigGroup

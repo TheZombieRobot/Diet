@@ -23,6 +23,8 @@ import nz.waveformlabs.moshpoint.core.MessagePacket
 import nz.waveformlabs.moshpoint.core.OutboxState
 import nz.waveformlabs.moshpoint.core.PingPolicy
 import nz.waveformlabs.moshpoint.core.PutResult
+import nz.waveformlabs.moshpoint.crew.CrewRekey
+import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.locate.CrowdRelayRadio
 import nz.waveformlabs.moshpoint.locate.RelayClient
 import java.io.File

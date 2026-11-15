@@ -26,11 +26,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import nz.waveformlabs.moshpoint.CrewStatus
+import nz.waveformlabs.moshpoint.crew.CrewStatus
 import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.FriendsRepository
-import nz.waveformlabs.moshpoint.GroupSync
+import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.LocationBook
 import nz.waveformlabs.moshpoint.PhotoStore
 import nz.waveformlabs.moshpoint.core.watch.WatchMate

@@ -16,7 +16,7 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.FriendsRepository
-import nz.waveformlabs.moshpoint.GroupSync
+import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.MainActivity
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.locate.CrowdRelayRadio

@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.ui.Mosh
 
 /**

@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Base64
 import nz.waveformlabs.moshpoint.core.CrewKeys
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec

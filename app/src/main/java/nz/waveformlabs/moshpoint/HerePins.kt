@@ -17,6 +17,7 @@ import nz.waveformlabs.moshpoint.core.HereBook
 import nz.waveformlabs.moshpoint.core.HereRule
 import nz.waveformlabs.moshpoint.core.HereWatch
 import nz.waveformlabs.moshpoint.core.LatLon
+import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.locate.MotionDetector
 import nz.waveformlabs.moshpoint.locate.MyLocation
 import nz.waveformlabs.moshpoint.venue.Floors

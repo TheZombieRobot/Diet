@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.crew
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
@@ -18,6 +18,23 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.AvatarSync
+import nz.waveformlabs.moshpoint.ChatSync
+import nz.waveformlabs.moshpoint.CrewChat
+import nz.waveformlabs.moshpoint.CrewWidget
+import nz.waveformlabs.moshpoint.DebugStatus
+import nz.waveformlabs.moshpoint.FriendsRepository
+import nz.waveformlabs.moshpoint.GigArchive
+import nz.waveformlabs.moshpoint.GigWake
+import nz.waveformlabs.moshpoint.HerePins
+import nz.waveformlabs.moshpoint.Identity
+import nz.waveformlabs.moshpoint.LocationBook
+import nz.waveformlabs.moshpoint.Moments
+import nz.waveformlabs.moshpoint.NightStats
+import nz.waveformlabs.moshpoint.OfflineMessages
+import nz.waveformlabs.moshpoint.PrivateMessages
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.CheckIns
 import nz.waveformlabs.moshpoint.core.Courier
 import nz.waveformlabs.moshpoint.core.EphemeralId

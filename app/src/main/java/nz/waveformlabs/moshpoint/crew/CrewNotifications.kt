@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.crew
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -6,6 +6,9 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
+import nz.waveformlabs.moshpoint.MainActivity
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.GigGroup
 
 /** Notifications for things the crew sends: pings, help requests, meet-up pins, photos. */

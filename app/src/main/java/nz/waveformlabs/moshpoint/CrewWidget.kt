@@ -7,6 +7,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
+import nz.waveformlabs.moshpoint.crew.GroupSync
 
 /**
  * Home-screen widget: "Bevan 40 m · Jo 1.2 km" and a Find crew button. Updated quietly

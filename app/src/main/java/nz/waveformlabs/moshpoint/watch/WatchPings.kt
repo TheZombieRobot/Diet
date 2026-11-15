@@ -13,10 +13,10 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import nz.waveformlabs.moshpoint.CrewChat
-import nz.waveformlabs.moshpoint.CrewStatus
+import nz.waveformlabs.moshpoint.crew.CrewStatus
 import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.FriendsRepository
-import nz.waveformlabs.moshpoint.GroupSync
+import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.Identity
 import nz.waveformlabs.moshpoint.OfflineMessages
 import nz.waveformlabs.moshpoint.core.EphemeralId

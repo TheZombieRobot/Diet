@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.crew
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
@@ -10,6 +10,7 @@ import android.bluetooth.le.AdvertisingSetParameters
 import android.content.Context
 import android.os.ParcelUuid
 import androidx.compose.runtime.mutableStateOf
+import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.locate.BleHub
 
 /**

@@ -33,6 +33,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.core.FriendRecord
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.crew.Bump
+import nz.waveformlabs.moshpoint.crew.CrewRekey
+import nz.waveformlabs.moshpoint.crew.CrewStatus
+import nz.waveformlabs.moshpoint.crew.Crews
+import nz.waveformlabs.moshpoint.crew.FollowCheck
+import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.locate.RelayClient
 import nz.waveformlabs.moshpoint.core.QrPayload
 import nz.waveformlabs.moshpoint.locate.LocatorEngine

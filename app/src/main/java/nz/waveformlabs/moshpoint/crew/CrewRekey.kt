@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.crew
 
 import android.content.Context
 import android.util.Base64
@@ -6,6 +6,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.ChatSync
+import nz.waveformlabs.moshpoint.CrewChat
+import nz.waveformlabs.moshpoint.FriendsRepository
+import nz.waveformlabs.moshpoint.GigArchive
+import nz.waveformlabs.moshpoint.Identity
+import nz.waveformlabs.moshpoint.OfflineMessages
+import nz.waveformlabs.moshpoint.PrivateMessages
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.CrewKeys
 import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.core.RekeyPolicy

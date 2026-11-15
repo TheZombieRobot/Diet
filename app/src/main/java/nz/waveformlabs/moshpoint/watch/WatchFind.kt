@@ -16,7 +16,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.FriendsRepository
-import nz.waveformlabs.moshpoint.GroupSync
+import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.Identity
 import nz.waveformlabs.moshpoint.core.watch.EndReason
 import nz.waveformlabs.moshpoint.core.watch.FindLease

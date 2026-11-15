@@ -9,7 +9,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.Friend
 import nz.waveformlabs.moshpoint.FriendsRepository
-import nz.waveformlabs.moshpoint.GroupSync
+import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.LocationBook
 import nz.waveformlabs.moshpoint.core.LocationBox
 

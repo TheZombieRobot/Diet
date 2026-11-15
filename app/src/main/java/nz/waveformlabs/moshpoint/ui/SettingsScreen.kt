@@ -252,7 +252,7 @@ internal fun SettingsContent(
                     Column {
                         // The crew finder with several mates at once (arrows, strip, tap to focus) on one phone.
                         TextButton(onClick = {
-                            if (nz.waveformlabs.moshpoint.GroupSync.group.value == null) nz.waveformlabs.moshpoint.GroupSync.startNew(context, "Test crew")
+                            if (nz.waveformlabs.moshpoint.crew.GroupSync.group.value == null) nz.waveformlabs.moshpoint.crew.GroupSync.startNew(context, "Test crew")
                             repeat(3) { nz.waveformlabs.moshpoint.FriendsRepository.addSimulated(toCrew = true) }
                         }) {
                             Text("Add 3 simulated mates to the crew", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber))
@@ -272,7 +272,7 @@ internal fun SettingsContent(
                         // Chat on your own: fake mates write in, 10 s later so you can leave the app and see the notification.
                         var note by remember { mutableStateOf<String?>(null) }
                         fun fake(next: Boolean, missed: Boolean) {
-                            val g = if (next) nz.waveformlabs.moshpoint.Crews.others.firstOrNull()?.group else nz.waveformlabs.moshpoint.GroupSync.group.value
+                            val g = if (next) nz.waveformlabs.moshpoint.crew.Crews.others.firstOrNull()?.group else nz.waveformlabs.moshpoint.crew.GroupSync.group.value
                             if (g == null) {
                                 note = if (next) "Plan a second gig first (it goes in Up next)" else "Start or plan a crew first"
                                 return

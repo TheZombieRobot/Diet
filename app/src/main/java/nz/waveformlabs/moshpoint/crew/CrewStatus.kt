@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.crew
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -6,6 +6,12 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import androidx.compose.runtime.mutableStateMapOf
+import nz.waveformlabs.moshpoint.CrewWidget
+import nz.waveformlabs.moshpoint.Friend
+import nz.waveformlabs.moshpoint.FriendsRepository
+import nz.waveformlabs.moshpoint.LocationBook
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.Geo
 import nz.waveformlabs.moshpoint.core.LatLon
 import nz.waveformlabs.moshpoint.service.VisibilityService

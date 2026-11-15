@@ -1,10 +1,11 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.crew
 
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
+import nz.waveformlabs.moshpoint.FollowCheckReceiver
 
 /**
  * For loved ones following a crew from home: about every 15 minutes, with the app closed,
