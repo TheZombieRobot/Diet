@@ -97,8 +97,8 @@
     <string name="main_clip_join_text">你复制了一个 Moshpoint 邀请。加入后今晚大家都能互相找到。</string>
 
     <string name="main_your_night">你的这一晚</string>
-    <string name="main_recap_text">%1$s\n\n结束这一晚会关闭小队（好友会保留）。照片和视频都留在你手机的“我的演出”里。</string>
-    <string name="main_night_ended">这一晚结束啦。照片和视频都在“我的演出”里。</string>
+    <string name="main_recap_text">%1$s\n\n结束这一晚会关闭小队（好友会保留）。照片和视频都留在你手机的“看过的演出”里。</string>
+    <string name="main_night_ended">这一晚结束啦。照片和视频都在“看过的演出”里。</string>
     <string name="main_end_the_night">结束这一晚</string>
     <string name="main_share_night_text">我用 Moshpoint 的这一晚：%1$s 🤘</string>
     <string name="main_share_night_title">分享你的这一晚</string>

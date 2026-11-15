@@ -175,7 +175,7 @@
     <string name="crew_notif_new_plan">New plan: %1$s</string>
     <!-- %1$s = crew name -->
     <string name="crew_notif_done_title">%1$s is done</string>
-    <string name="crew_notif_done_saved">Your photos and clips are saved in Your gigs.</string>
+    <string name="crew_notif_done_saved">Your photos and clips are saved in Past gigs.</string>
     <string name="crew_notif_done_text">Hope it was a good one. Start a new crew any time.</string>
     <!-- %1$s = person's name -->
     <string name="crew_notif_overdue_title">%1$s hasn\'t checked in</string>

@@ -146,3 +146,18 @@ Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
 | %d unread private messages (screen reader, the count on a face) | %d pesan pribadi belum dibaca |
 
 Uses **geng**, as elsewhere, and *pribadi* for private. *Bisukan* / *Bunyikan* as in WhatsApp Indonesia. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.
+
+## Home redesign (`strings_home_redesign.xml`)
+
+The redesigned home: the Live row (the switch's name and the line beside it), the crew header, faces and ⋯ crew menu, the no-crew and first-time screens, and the section titles (36 strings, 3 plurals). Validator prints **OK** for this file.
+
+| English | Chosen | Why |
+|---|---|---|
+| Live (the switch's name, on or off) | **Live** | The app's word (Mulai live / live); a name, so it reads right next to a switch that is off. |
+| You're visible to your mates / Off: mates can't see you yet | Temanmu bisa melihatmu / Nonaktif: teman belum bisa melihatmu | Nonaktif, not «Mati»: on the same screen «HP mati» means a dead phone. |
+| Ghost mode: off the map, findable up close | Mode hantu: nggak muncul di peta, tapi bisa ditemukan dari dekat | The setting's name. |
+| Crew menu: Invite more mates / Share the night with family | Ajak teman lagi / Bagikan malam ini ke keluarga | ajak as in `home_upnext_invite`; Bagikan as in «Bagikan ke geng». |
+| Up next / Past gigs | **Berikutnya** / **Konser sebelumnya** | Berikutnya is the existing section name; titles are now sentence case, as in English. |
+| Share photos / Start a crew for tonight | **Bagikan foto** / **Bikin geng malam ini** | Bikin geng as in `home_start_gig_group`. |
+
+None of these strings says "need", so the perlu/butuh rule did not come up. For a native reviewer: «Konser sebelumnya» vs the shorter «Konser lalu». `main_recap_text`, `main_night_ended` and `crew_notif_done_saved` still say «Konser kamu», because the English there still says "Your gigs". Written without a native reviewer. Confidence: **medium-high**.

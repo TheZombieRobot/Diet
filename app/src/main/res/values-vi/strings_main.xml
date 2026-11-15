@@ -97,8 +97,8 @@
     <string name="main_clip_join_text">Bạn vừa copy lời mời Moshpoint. Vào nhóm là tối nay cả bọn tìm được nhau.</string>
 
     <string name="main_your_night">Đêm của bạn</string>
-    <string name="main_recap_text">%1$s\n\nKết thúc đêm sẽ đóng nhóm (bạn bè vẫn giữ). Ảnh và clip vẫn nằm trong máy, ở mục Show của bạn.</string>
-    <string name="main_night_ended">Đêm đã kết thúc. Ảnh và clip nằm trong Show của bạn.</string>
+    <string name="main_recap_text">%1$s\n\nKết thúc đêm sẽ đóng nhóm (bạn bè vẫn giữ). Ảnh và clip vẫn nằm trong máy, ở mục Show đã qua.</string>
+    <string name="main_night_ended">Đêm đã kết thúc. Ảnh và clip nằm trong Show đã qua.</string>
     <string name="main_end_the_night">Kết thúc đêm</string>
     <string name="main_share_night_text">Đêm của mình với Moshpoint: %1$s 🤘</string>
     <string name="main_share_night_title">Chia sẻ đêm của bạn</string>

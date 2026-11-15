@@ -124,3 +124,19 @@ Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
 | %d unread private messages (screen reader, the count on a face) | %d 条未读私信 |
 
 Uses **小队**, as elsewhere. *私信* is the usual word for a direct message. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.
+
+## Home redesign (`strings_home_redesign.xml`)
+
+The redesigned home screen: the Live switch and the line beside it, the crew header and ⋯ crew menu, the no-crew and first-time screens, the section titles and the Up next rows. Validator prints **OK** for this file. No spaces between Chinese words; spaces only around numbers and "QR", as in the existing plurals.
+
+| English | Chosen | Why |
+|---|---|---|
+| Live (the switch's name, on or off) | **上线** | The app's "go live" word, used as the switch's name. 在线 is a state and reads wrong next to a switch that is off. The nudge, offline hint and finder help say 点"上线", which now names this switch exactly. |
+| You're visible to your mates / Off: mates can't see you yet | 朋友们能看到你 / 已关闭：朋友们还看不到你 | The two lines mirror each other. |
+| Ghost mode: off the map, findable up close | 幽灵模式：地图上不显示，靠近时仍能找到你 | As `setup_ghost_mode_desc`. |
+| Crew menu: Invite more mates / Share the night with family | 邀请更多朋友 / **让家人一起关注** | The family row opens the same share as `main_follow_share_title`, so it reuses those words. 分享这一晚 is already the night recap's share (`main_share_night_title`). |
+| Past gigs (section, and "Your photos stay in Past gigs") | **看过的演出** | The everyday way to say gigs you've been to (看过, as for films). Pairs with 下一场. Older strings still say "我的演出", as the English there still says "Your gigs". |
+| Up next | 下一场 | As `home_up_next`. |
+| Share photos (half-width button) | 分享照片 | Four characters, one line in half the row. |
+
+For a native reviewer: 上线 as the switch's name (位置共享 is more literal but would no longer match 点"上线" elsewhere; see 上线 / 在线 above); 看过的演出 vs 过去的演出; 小队共 5 人 · 3 人在线 for the count line. Written without a native reviewer. Confidence: **medium-high**.

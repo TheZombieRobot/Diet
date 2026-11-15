@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Turkish: home screen. -->
 <resources>
-    <string name="home_go_live">Konumu paylaş</string>
-    <string name="home_live_ghost">Paylaşılıyor · hayalet</string>
-    <string name="home_live">Paylaşılıyor</string>
-
     <string name="home_tile_not_sharing">paylaşmıyor</string>
     <string name="home_tile_phone_died">telefonu kapandı</string>
     <string name="home_tile_live">paylaşıyor</string>
-    <string name="home_tile_with_battery">%1$s · %%%2$d</string>
 
     <string name="home_ping_on_my_way">Geliyorum</string>
     <string name="home_ping_where_are_you">Neredesin?</string>
@@ -51,10 +46,6 @@
     <string name="home_check_in_by">Haber verme saati: %1$s</string>
     <string name="home_home_safe">Evdeyim, her şey yolunda</string>
 
-    <string name="home_chat">Sohbet</string>
-    <string name="home_chat_unread">Sohbet (%1$d)</string>
-    <string name="home_camera">Kamera</string>
-
     <string name="home_message_crew">Ekibe yaz</string>
     <string name="home_message_crew_text">Tek dokunuş: ekipteki herkese, nerede olduğunla birlikte gider.</string>
 
@@ -74,7 +65,6 @@
 
     <string name="home_crew_chat">Ekip sohbeti</string>
     <string name="home_pinned_plan">📌 %1$s</string>
-    <string name="home_chat_subtitle">Mesajlar, plan, işaretler</string>
     <string name="home_unread_many">9+</string>
     <plurals name="home_unread_new">
         <item quantity="one">%d yeni</item>
@@ -82,11 +72,6 @@
     </plurals>
 
     <string name="home_following_from_home">Evden takip ediliyor</string>
-    <string name="home_upnext_invite">💬 Sohbet · arkadaşlarını davet et</string>
-    <plurals name="home_upnext_mates">
-        <item quantity="one">💬 Sohbet · %d arkadaş katıldı</item>
-        <item quantity="other">💬 Sohbet · %d arkadaş katıldı</item>
-    </plurals>
 
     <string name="home_start_gig_group">Konser grubu kur</string>
     <string name="home_start_gig_group_text">Bir isim ver (ör. grubun adı). Sonra QR\'ı arkadaşlarına göster.</string>
@@ -101,14 +86,12 @@
     <string name="home_remove_from_crew_text">Ekip yeni bir anahtara geçer ve %1$s bu anahtarı almaz; yani bundan sonra kimsenin nerede olduğunu, sohbeti ya da fotoğrafları göremez. Diğer herkes ekipte kalır.</string>
     <string name="home_remove_friend_text">Tekrar ekleyene kadar onu bulamazsın.</string>
     <string name="home_remove">Kaldır</string>
-    <string name="home_find">Bul</string>
     <string name="home_add_with_code">Kodla ekle</string>
     <string name="home_their_name">Adı</string>
     <string name="home_their_code">Kodu</string>
     <string name="home_add_friend">Arkadaş ekle</string>
     <string name="home_tonight_only">Sadece bu gece</string>
 
-    <string name="home_hidden_hint">Ekibinden gizlisin. Bulunmak istediğinde Konumu paylaş\'a dokun.</string>
     <string name="home_allow_permission">Moshpoint arkadaşlarını bulabilsin (%1$s)</string>
     <string name="home_allow">İzin ver</string>
     <string name="home_one_thing_first">ÖNCE BİR ŞEY</string>
@@ -119,22 +102,11 @@
     <string name="home_eyebrow_tonight">BU GECE</string>
     <string name="home_eyebrow_following">TAKİPTE</string>
     <string name="home_eyebrow_coming_up">YAKINDA</string>
-    <string name="home_find_mates_tonight">Bu gece arkadaşlarını bul</string>
-    <string name="home_find_mates_text">Davet et, tarasınlar, tamam. Gerisini Moshpoint halleder.</string>
-    <string name="home_invite_mates_tonight">Arkadaşlarını davet et</string>
-    <string name="home_scan_invite">Davet tara</string>
     <string name="home_your_crew">Ekibin</string>
-    <string name="home_invite">＋ Davet et</string>
-    <string name="home_family_can_follow">Ailen geceyi evden takip edebilir</string>
     <string name="home_following_from_home_names">Evden takip edenler: %1$s</string>
-    <string name="home_share">Paylaş ›</string>
-    <string name="home_meet_up">★  Buluşma: %1$s</string>
-    <string name="home_map_link">Harita ›</string>
     <string name="home_asleep_text">Konser gününe kadar uykuda: Bluetooth yok, konum yok, pil harcamaz. Arkadaşların şimdiden katılabilir, o gün de sana hatırlatma gelir.</string>
     <string name="home_follower_text">Herkesin nerede olduğunu ve fotoğraflarını geldikçe görürsün. Onlar da takip ettiğini görür.</string>
     <string name="home_see_story">Hikâyeyi gör</string>
-    <string name="home_crew_chat_unread">Ekip sohbeti (%1$d yeni)</string>
-    <string name="home_where_are_they">Neredeler? (harita)</string>
     <string name="home_see_them_once_starts">Konser başlayınca onları burada göreceksin.</string>
     <string name="home_tap_mate_hint">Bulmak için dokun · seçenekler için basılı tut</string>
     <string name="home_find_name">Bul: %1$s</string>
@@ -142,13 +114,10 @@
     <string name="home_stop_following">Takibi bırak</string>
     <string name="home_cancel_crew">Bu ekibi iptal et</string>
     <string name="home_end_night">Geceyi bitir</string>
-    <string name="home_up_next">SIRADAKİLER</string>
     <string name="home_memories">ANILAR</string>
     <plurals name="home_memories_count">
         <item quantity="one">%d fotoğraf ve video. Dokun, yeniden yaşa ›</item>
         <item quantity="other">%d fotoğraf ve video. Dokun, yeniden yaşa ›</item>
     </plurals>
-    <string name="home_your_gigs">KONSERLERİN</string>
-    <string name="home_friends">ARKADAŞLAR</string>
     <string name="home_friends_empty">Her konser için tuttuğun arkadaşlar burada görünür. Aşağıdan ＋ Ekle\'ye dokun.</string>
 </resources>

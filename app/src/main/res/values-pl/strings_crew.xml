@@ -140,7 +140,7 @@
     </plurals>
     <string name="crew_notif_new_plan">Nowy plan: %1$s</string>
     <string name="crew_notif_done_title">Koniec: %1$s</string>
-    <string name="crew_notif_done_saved">Twoje zdjęcia i klipy są zapisane w sekcji Twoje koncerty.</string>
+    <string name="crew_notif_done_saved">Twoje zdjęcia i klipy są zapisane w sekcji Minione koncerty.</string>
     <string name="crew_notif_done_text">Mamy nadzieję, że było ekstra. Nową ekipę możesz założyć kiedy chcesz.</string>
     <string name="crew_notif_overdue_title">%1$s wciąż nie daje znać</string>
     <string name="crew_notif_overdue_text">Ta osoba wracała do domu i powinna już być na miejscu. Zadzwoń do niej. Kliknij, żeby zobaczyć ostatnie miejsce.</string>

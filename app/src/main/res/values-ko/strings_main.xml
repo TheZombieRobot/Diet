@@ -97,8 +97,8 @@
     <string name="main_clip_join_text">Moshpoint 초대를 복사했어요. 참여하면 오늘 밤 모두 서로를 찾을 수 있어요.</string>
 
     <string name="main_your_night">나의 밤</string>
-    <string name="main_recap_text">%1$s\n\n오늘 밤을 마무리하면 크루가 종료돼요(친구는 그대로). 사진과 영상은 ‘내 공연’에 남아 있어요.</string>
-    <string name="main_night_ended">오늘 밤을 마무리했어요. 사진과 영상은 ‘내 공연’에 있어요.</string>
+    <string name="main_recap_text">%1$s\n\n오늘 밤을 마무리하면 크루가 종료돼요(친구는 그대로). 사진과 영상은 ‘지난 공연’에 남아 있어요.</string>
+    <string name="main_night_ended">오늘 밤을 마무리했어요. 사진과 영상은 ‘지난 공연’에 있어요.</string>
     <string name="main_end_the_night">오늘 밤 마무리</string>
     <string name="main_share_night_text">Moshpoint와 함께한 나의 밤: %1$s 🤘</string>
     <string name="main_share_night_title">나의 밤 공유하기</string>

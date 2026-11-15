@@ -185,8 +185,6 @@
     <string name="find_camera">Camera</string>
 
     <!-- ===== Moments ===== -->
-    <string name="find_the_story_eyebrow">THE STORY</string>
-    <string name="find_see_it_all">See it all ›</string>
     <string name="find_your_moment">Your moment</string>
     <!-- %1$s = distance, e.g. "40 m" -->
     <string name="find_distance_away">%1$s away</string>

@@ -149,3 +149,19 @@ Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
 | %d unread private messages (screen reader, the count on a face) | %d अनपढ़े प्राइवेट मैसेज |
 
 Uses **ग्रुप**, as elsewhere, and the English loanwords *प्राइवेट*, *म्यूट* that Indian chat apps use. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.
+
+## Home redesign (`strings_home_redesign.xml`)
+
+The redesigned home: the Live row (the switch's name and the line beside it), the crew header, faces and ⋯ crew menu, the no-crew and first-time screens, and the section titles (36 strings, 3 plurals). Validator prints **OK** for this file.
+
+| English | Chosen | Why |
+|---|---|---|
+| Live (the switch's name, on or off) | **लाइव** | The app's word for live (`home_live`, WhatsApp's "लाइव लोकेशन"). A name, so it reads right next to a switch that is off. |
+| You're visible to your mates / Off: mates can't see you yet | दोस्त आपको देख सकते हैं / बंद: दोस्त अभी आपको नहीं देख सकते | Friends are the subject, so no verb has to agree with the user's gender. |
+| Ghost mode: off the map, findable up close | घोस्ट मोड: मैप पर नहीं, पर पास से दोस्त ढूँढ सकते हैं | The setting's name; the same idea as `setup_ghost_mode_desc`. |
+| Crew menu: Invite more mates / Share the night with family | और दोस्तों को बुलाएँ / परिवार के साथ रात शेयर करें | बुलाएँ as in `home_invite`; शेयर as elsewhere. |
+| End the night: …Your photos stay in Past gigs | आज रात का ग्रुप छोड़ें। आपकी फ़ोटो "पिछले शो" में रहेंगी | The section name in quotes, the way the app quotes "आपके शो". |
+| Up next / Past gigs | **आगे के शो** / **पिछले शो** | आगे के शो is the existing section name; पिछले शो ("earlier shows") pairs with it. |
+| Share photos / Start a crew for tonight | **फ़ोटो शेयर करें** / **आज रात का ग्रुप शुरू करें** | Polite आप form like the other buttons; "ग्रुप शुरू करें" as in every start-a-crew string. |
+
+For a native reviewer: फ़ोटो शेयर करें may take two lines in its half-width button (allowed); "फ़ोटो भेजें" would be shorter. `main_recap_text`, `main_night_ended` and `crew_notif_done_saved` still quote "आपके शो", because the English there still says "Your gigs". Written without a native reviewer. Confidence: **medium-high**.

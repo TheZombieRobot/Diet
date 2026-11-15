@@ -119,7 +119,7 @@
     </plurals>
     <string name="crew_notif_new_plan">新しい予定：%1$s</string>
     <string name="crew_notif_done_title">%1$sが終了しました</string>
-    <string name="crew_notif_done_saved">写真と動画は「あなたのライブ」に保存されています。</string>
+    <string name="crew_notif_done_saved">写真と動画は「過去のライブ」に保存されています。</string>
     <string name="crew_notif_done_text">いい夜だったかな？新しいクルーはいつでも作れます。</string>
     <string name="crew_notif_overdue_title">%1$sから到着確認がありません</string>
     <string name="crew_notif_overdue_text">帰宅中で、もう着いているはずです。電話してみて。タップで最後にいた場所を表示。</string>

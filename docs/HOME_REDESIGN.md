@@ -102,12 +102,38 @@ sheets). Strings: `res/values*/strings_home_redesign.xml`.
 - **The tall "whole home" test** uses its own test class (`HomeTallSnapshotTest`, with every
   language) so it can be saved at full resolution: Paparazzi otherwise shrinks every picture to
   1000 px, which would make a tall screen unreadable.
+- **Translations**: `strings_home_redesign.xml` in every folder, from each language's
+  vocabulary in `docs/i18n/<lang>.md` (each doc has a new "Home redesign" section with the
+  choices and doubts). The Live switch's name is a noun in every language: where "live" reads as
+  a livestream the location-sharing word is used (ja 位置シェア, ko 위치 공유, pl Lokalizacja,
+  tr Konum, th การแชร์, vi Chia sẻ, zh 上线 / 上線).
+- **Strings deleted** (no longer used anywhere, removed from every folder): `home_go_live`,
+  `home_live`, `home_live_ghost`, `home_hidden_hint`, `home_tile_with_battery`, `home_chat`,
+  `home_chat_unread`, `home_camera`, `home_chat_subtitle`, `home_crew_chat_unread`,
+  `home_upnext_invite`, `home_upnext_mates`, `home_find`, `home_find_mates_tonight`,
+  `home_find_mates_text`, `home_invite_mates_tonight`, `home_scan_invite`, `home_invite`,
+  `home_family_can_follow`, `home_share`, `home_meet_up`, `home_map_link`,
+  `home_where_are_they`, `home_up_next`, `home_your_gigs`, `home_friends`, and the old moment
+  strip's `find_the_story_eyebrow`, `find_see_it_all`.
 - **New colours** are Mosh tokens in `Theme.kt` (glass fill and line, hairline, sheet, bar,
   lilac, scrim, Polaroid paper and ink), not literals.
 
 ## 3. Audit
 
-Not started yet: see Status.
+How: CI renders every test in every language and pushes the set to the branch
+`ui-screenshots-claude-home-redesign` (one folder per language). Each picture was looked at
+for: text cut off at an edge or vertically (th, hi, vi, ar especially); text shortened with "…"
+where the whole text matters; overlaps (text over faces, icons, the ⋯ button, other text);
+button labels that wrap badly or spill (the two side-by-side buttons must both fit, else wrap
+to two lines or stack); right-to-left (ar): mirrored layout, faces running off the left edge,
+chevrons flipped, the wordmark still "moshpoint"; rings and glows never cut off; spacing as in
+the HTML (24 dp side margins, the section gaps), even rhythm; touch targets of at least 48 dp.
+Small phone = `DeviceConfig.NEXUS_5` (360 dp); large font = font size 130%.
+
+Contact sheets (every language of one state on one picture) are in
+`docs/design/home-redesign/audit/`, made with `tools/contact_sheet.py`.
+
+Results: not recorded yet (see Status).
 
 ## 4. Status and next steps
 

@@ -97,8 +97,8 @@
     <string name="main_clip_join_text">Kamu menyalin undangan Moshpoint. Gabung dan kalian semua bisa saling menemukan malam ini.</string>
 
     <string name="main_your_night">Malammu</string>
-    <string name="main_recap_text">%1$s\n\nMengakhiri malam akan menutup geng (teman tetap tersimpan). Foto dan video tetap ada di HP-mu di Konser kamu.</string>
-    <string name="main_night_ended">Malam selesai. Foto dan videomu ada di Konser kamu.</string>
+    <string name="main_recap_text">%1$s\n\nMengakhiri malam akan menutup geng (teman tetap tersimpan). Foto dan video tetap ada di HP-mu di Konser sebelumnya.</string>
+    <string name="main_night_ended">Malam selesai. Foto dan videomu ada di Konser sebelumnya.</string>
     <string name="main_end_the_night">Akhiri malam</string>
     <string name="main_share_night_text">Malamku bareng Moshpoint: %1$s 🤘</string>
     <string name="main_share_night_title">Bagikan malammu</string>

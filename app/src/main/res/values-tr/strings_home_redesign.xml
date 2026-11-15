@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Turkish: home screen redesign (docs/design/home-redesign, docs/HOME_REDESIGN.md): the Live row, the crew header and
+     menu, no crew / first time, and the section titles. Comments for each string are in values/strings_home_redesign.xml.
+     "Live" is location sharing here, as in the rest of the app (never "canlı", which reads as a livestream). -->
+<resources>
+    <!-- Live row: the switch's name, then one line beside it -->
+    <string name="home_live_switch">Konum</string>
+    <string name="home_live_on">Arkadaşların seni görüyor</string>
+    <string name="home_live_ghost_on">Hayalet modu: haritada yoksun, yakından bulunabilirsin</string>
+    <string name="home_live_off">Kapalı: arkadaşların seni henüz göremiyor</string>
+
+    <!-- Crew header and faces -->
+    <string name="home_crew_options">Ekip seçenekleri</string>
+    <plurals name="home_crew_count">
+        <item quantity="one">Ekipte %d kişi</item>
+        <item quantity="other">Ekipte %d kişi</item>
+    </plurals>
+    <plurals name="home_live_count">
+        <item quantity="one">%d kişi paylaşıyor</item>
+        <item quantity="other">%d kişi paylaşıyor</item>
+    </plurals>
+    <string name="home_face_options">Seçenekler</string>
+    <string name="home_friend_options">Seçenekler: %1$s</string>
+    <string name="home_face_battery">Pil %%%1$d</string>
+
+    <string name="home_share_photos">Fotoğraf paylaş</string>
+    <string name="home_meetup">Buluşma: %1$s</string>
+    <string name="home_plan_pinned">Ekip sohbetinde sabitlendi</string>
+    <string name="home_where_are_they_short">Neredeler?</string>
+
+    <!-- Crew menu (⋯) -->
+    <string name="home_menu_tonight">Bu gece</string>
+    <string name="home_menu_coming_up">Yakında</string>
+    <string name="home_menu_invite">Daha fazla arkadaş davet et</string>
+    <string name="home_menu_invite_sub">Ekip QR\'ını göster ya da link gönder</string>
+    <string name="home_menu_family">Geceyi ailenle paylaş</string>
+    <string name="home_menu_family_sub">Evden takip ederler, onları kimse bulamaz</string>
+    <string name="home_menu_reset_sub">Yeni bir QR ve link. Eskiler artık çalışmaz</string>
+    <string name="home_menu_end_sub">Bu geceki ekipten ayrılırsın. Fotoğrafların Geçmiş konserler bölümünde kalır</string>
+    <string name="home_menu_cancel_sub">Konser gününden önce ayrılırsın. Katılan arkadaşlar ekipte kalır</string>
+    <string name="home_menu_stop_sub">Artık nerede olduklarını görmeyeceksin</string>
+
+    <!-- No crew tonight -->
+    <string name="home_no_crew_title">Bu gece ekip yok</string>
+    <string name="home_no_crew_text">Bir tane kur, arkadaşlarına QR kodunu göster, artık bir ekipsiniz.</string>
+    <string name="home_start_crew">Bu gece için ekip kur</string>
+    <string name="home_plan_title">Konser planla</string>
+    <string name="home_plan_sub">Şimdi bul ve arkadaşlarını davet et</string>
+    <string name="home_join_crew">BİR EKİBE KATIL</string>
+
+    <!-- First time -->
+    <string name="home_first_title">Arkadaşlarını kalabalıkta bul</string>
+    <string name="home_first_text">Bir ekip kur, arkadaşların QR kodunu tarasın. Parlayan bir ok her birini gösterir, sinyal olmasa bile.</string>
+    <string name="home_plan_another_night">Başka bir gece için konser planla</string>
+
+    <!-- Section titles -->
+    <string name="home_section_up_next">Sıradakiler</string>
+    <string name="home_section_past_gigs">Geçmiş konserler</string>
+    <string name="home_section_friends">Arkadaşlar</string>
+    <string name="home_see_all">Tümünü gör</string>
+    <plurals name="home_mates">
+        <item quantity="one">%d arkadaş</item>
+        <item quantity="other">%d arkadaş</item>
+    </plurals>
+    <string name="home_upnext_no_mates">Arkadaşlarını davet et</string>
+</resources>

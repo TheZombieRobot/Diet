@@ -101,8 +101,8 @@
     <string name="main_clip_join_text">Je hebt een Moshpoint-uitnodiging gekopieerd. Doe mee en jullie kunnen elkaar vanavond allemaal vinden.</string>
 
     <string name="main_your_night">Jouw avond</string>
-    <string name="main_recap_text">%1$s\n\nAls je de avond afsluit, gaat de crew dicht (vrienden blijven). De foto\'s en clips blijven op je telefoon bij Jouw concerten.</string>
-    <string name="main_night_ended">Avond afgesloten. Je foto\'s en clips staan bij Jouw concerten.</string>
+    <string name="main_recap_text">%1$s\n\nAls je de avond afsluit, gaat de crew dicht (vrienden blijven). De foto\'s en clips blijven op je telefoon bij Eerdere concerten.</string>
+    <string name="main_night_ended">Avond afgesloten. Je foto\'s en clips staan bij Eerdere concerten.</string>
     <string name="main_end_the_night">Avond afsluiten</string>
     <string name="main_share_night_text">Mijn avond met Moshpoint: %1$s 🤘</string>
     <string name="main_share_night_title">Deel je avond</string>

@@ -126,3 +126,21 @@ Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
 | %d unread private messages (screen reader, the count on a face) | 읽지 않은 비공개 메시지 %d개 |
 
 Uses **크루**, as elsewhere. *알림 끄기 / 알림 켜기* (as in KakaoTalk) rather than *음소거*, since it is the notifications that stop. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.
+
+## Home redesign (`strings_home_redesign.xml`)
+
+The redesigned home screen: the Live switch and the line beside it, the crew header and ⋯ crew menu, the no-crew and first-time screens, the section titles and the Up next rows. Validator prints **OK** for this file.
+
+| English | Chosen | Why |
+|---|---|---|
+| Live (the switch's name, on or off) | **위치 공유** | A name, not a state: 공유 중 reads wrong next to a switch that is off. The same words as 위치 공유 켜기 (Go live), so the nudge and hints still match. Never 라이브 (a broadcast). |
+| You're visible to your mates / Off: mates can't see you yet | 친구들에게 내 위치가 보여요 / 꺼짐: 아직 친구들에게 안 보여요 | Says plainly that it is your location that shows (see the KakaoMap note above). |
+| Ghost mode: off the map, findable up close | 고스트 모드: 지도에는 안 보이지만 가까이에선 찾을 수 있어요 | As `setup_ghost_mode_desc`. |
+| Crew menu: Invite more mates / Share the night with family | 친구 더 초대하기 / **가족도 함께 지켜보게 하기** | The family row opens the same share as `main_follow_share_title`, so it reuses those words. 공유 stays the word for location sharing. |
+| Past gigs (section, and "Your photos stay in Past gigs") | **지난 공연** | Pairs with 다가오는 공연. Older strings (recap, "night ended") still say ‘내 공연’, as the English there still says "Your gigs". |
+| Up next | 다가오는 공연 | As `home_up_next`. |
+| Share photos (half-width button) | 사진 공유 | Short noun form, like 크루 채팅 beside it. |
+
+The first-time title (인파 속에서도\n친구를 찾아요) breaks where onboarding's title does. QR takes 과/을 (큐알), as in the existing strings.
+
+For a native reviewer: 친구들에게 내 위치가 보여요 for "You're visible to your mates" (or 친구들이 나를 찾을 수 있어요); the count line 크루 5명 · 3명 공유 중; 하나 만들고 … 크루 완성이에요 in the no-crew text. Written without a native reviewer. Confidence: **medium-high**.

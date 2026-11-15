@@ -244,7 +244,7 @@ internal fun HelpPill(onClick: () -> Unit, modifier: Modifier = Modifier) {
 
 /** The big action on the home: pink → violet → cyan, with a soft pink glow under it. Two lines when one won't fit. */
 @Composable
-internal fun HeroButton(text: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
+internal fun HeroButton(text: String, icon: ImageVector, modifier: Modifier = Modifier, textSize: TextUnit = 18.sp, onClick: () -> Unit) {
     val (source, scale) = rememberPress()
     val shine = rememberShimmer()
     val shape = RoundedCornerShape(20.dp)
@@ -275,7 +275,7 @@ internal fun HeroButton(text: String, icon: ImageVector, modifier: Modifier = Mo
             Spacer(Modifier.width(12.dp))
             Text(
                 text,
-                style = Mosh.Button.copy(fontSize = 18.sp, color = Color.White),
+                style = Mosh.Button.copy(fontSize = textSize, color = Color.White),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.weight(1f, fill = false),
             )

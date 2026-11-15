@@ -109,8 +109,8 @@
     <string name="main_clip_join_text">Skopiowano zaproszenie do Moshpoint. Dołącz, a znajdziecie się nawzajem dziś wieczorem.</string>
 
     <string name="main_your_night">Twoja noc</string>
-    <string name="main_recap_text">%1$s\n\nZakończenie nocy zamyka ekipę (znajomi zostają). Zdjęcia i klipy zostają na telefonie w sekcji Twoje koncerty.</string>
-    <string name="main_night_ended">Noc zakończona. Twoje zdjęcia i klipy są w sekcji Twoje koncerty.</string>
+    <string name="main_recap_text">%1$s\n\nZakończenie nocy zamyka ekipę (znajomi zostają). Zdjęcia i klipy zostają na telefonie w sekcji Minione koncerty.</string>
+    <string name="main_night_ended">Noc zakończona. Twoje zdjęcia i klipy są w sekcji Minione koncerty.</string>
     <string name="main_end_the_night">Zakończ noc</string>
     <string name="main_share_night_text">Moja noc z Moshpoint: %1$s 🤘</string>
     <string name="main_share_night_title">Udostępnij swoją noc</string>

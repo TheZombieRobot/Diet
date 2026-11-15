@@ -101,8 +101,8 @@
     <string name="main_clip_join_text">Du hast eine Moshpoint-Einladung kopiert. Tritt bei, dann könnt ihr euch heute Abend alle finden.</string>
 
     <string name="main_your_night">Dein Abend</string>
-    <string name="main_recap_text">%1$s\n\nWenn du den Abend beendest, wird die Crew geschlossen (Freunde bleiben). Fotos und Clips bleiben auf deinem Handy unter Deine Konzerte.</string>
-    <string name="main_night_ended">Abend beendet. Deine Fotos und Clips sind unter Deine Konzerte.</string>
+    <string name="main_recap_text">%1$s\n\nWenn du den Abend beendest, wird die Crew geschlossen (Freunde bleiben). Fotos und Clips bleiben auf deinem Handy unter Frühere Konzerte.</string>
+    <string name="main_night_ended">Abend beendet. Deine Fotos und Clips sind unter Frühere Konzerte.</string>
     <string name="main_end_the_night">Abend beenden</string>
     <string name="main_share_night_text">Mein Abend mit Moshpoint: %1$s 🤘</string>
     <string name="main_share_night_title">Teil deinen Abend</string>

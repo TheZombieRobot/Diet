@@ -105,8 +105,8 @@
     <string name="main_clip_join_text">Tu as copié une invitation Moshpoint. Rejoins-la et vous pourrez tous vous retrouver ce soir.</string>
 
     <string name="main_your_night">Ta soirée</string>
-    <string name="main_recap_text">%1$s\n\nTerminer la soirée ferme la crew (les amis restent). Les photos et vidéos restent sur ton téléphone, dans Tes concerts.</string>
-    <string name="main_night_ended">Soirée terminée. Tes photos et vidéos sont dans Tes concerts.</string>
+    <string name="main_recap_text">%1$s\n\nTerminer la soirée ferme la crew (les amis restent). Les photos et vidéos restent sur ton téléphone, dans Concerts passés.</string>
+    <string name="main_night_ended">Soirée terminée. Tes photos et vidéos sont dans Concerts passés.</string>
     <string name="main_end_the_night">Terminer la soirée</string>
     <string name="main_share_night_text">Ma soirée avec Moshpoint : %1$s 🤘</string>
     <string name="main_share_night_title">Partage ta soirée</string>

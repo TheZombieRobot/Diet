@@ -127,8 +127,6 @@
     <string name="find_live_tag">LIVE</string>
     <string name="find_camera">카메라</string>
 
-    <string name="find_the_story_eyebrow">스토리</string>
-    <string name="find_see_it_all">전체 보기 ›</string>
     <string name="find_your_moment">나의 순간</string>
     <string name="find_distance_away">%1$s 거리</string>
     <string name="find_on_map">지도</string>

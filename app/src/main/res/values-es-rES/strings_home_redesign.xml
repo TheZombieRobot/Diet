@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Spanish (Spain): home screen redesign (docs/design/home-redesign, docs/HOME_REDESIGN.md): the Live row, the crew
+     header and menu, no crew / first time, and the section titles. Comments for each string are in
+     values/strings_home_redesign.xml. Keep labels short: the screen is about 340 dp wide. -->
+<resources>
+    <!-- Live row -->
+    <string name="home_live_switch">En directo</string>
+    <string name="home_live_on">Tus amigos te ven</string>
+    <string name="home_live_ghost_on">Modo fantasma: fuera del mapa, te encuentran de cerca</string>
+    <string name="home_live_off">Desactivado: tus amigos aún no te ven</string>
+
+    <!-- Crew header and faces -->
+    <string name="home_crew_options">Opciones del grupo</string>
+    <plurals name="home_crew_count">
+        <item quantity="one">%d en el grupo</item>
+        <item quantity="many">%d en el grupo</item>
+        <item quantity="other">%d en el grupo</item>
+    </plurals>
+    <plurals name="home_live_count">
+        <item quantity="one">%d en directo</item>
+        <item quantity="many">%d en directo</item>
+        <item quantity="other">%d en directo</item>
+    </plurals>
+    <string name="home_face_options">Opciones</string>
+    <string name="home_friend_options">Opciones de %1$s</string>
+    <string name="home_face_battery">Batería: %1$d%%</string>
+
+    <string name="home_share_photos">Subir fotos</string>
+    <string name="home_meetup">Encuentro: %1$s</string>
+    <string name="home_plan_pinned">Fijado en el chat del grupo</string>
+    <string name="home_where_are_they_short">¿Dónde están?</string>
+
+    <!-- Crew menu (⋯) -->
+    <string name="home_menu_tonight">Esta noche</string>
+    <string name="home_menu_coming_up">Próximamente</string>
+    <string name="home_menu_invite">Invitar a más amigos</string>
+    <string name="home_menu_invite_sub">Enseña el QR del grupo o envía un enlace</string>
+    <string name="home_menu_family">Compartir la noche con tu familia</string>
+    <string name="home_menu_family_sub">Siguen la noche desde casa y nadie puede encontrarles</string>
+    <string name="home_menu_reset_sub">Un QR y un enlace nuevos. Los antiguos dejan de funcionar</string>
+    <string name="home_menu_end_sub">Sales del grupo de esta noche. Tus fotos se quedan en Tus conciertos</string>
+    <string name="home_menu_cancel_sub">Sales antes del día del concierto. Los amigos que se han unido siguen dentro</string>
+    <string name="home_menu_stop_sub">Ya no verás dónde están</string>
+
+    <!-- No crew tonight -->
+    <string name="home_no_crew_title">Sin grupo esta noche</string>
+    <string name="home_no_crew_text">Crea uno, enséñales el QR a tus amigos y listo: ya sois un grupo.</string>
+    <string name="home_start_crew">Crear grupo esta noche</string>
+    <string name="home_plan_title">Planear un concierto</string>
+    <string name="home_plan_sub">Búscalo ya e invita a tus amigos</string>
+    <string name="home_join_crew">ÚNETE A UN GRUPO</string>
+
+    <!-- First time -->
+    <string name="home_first_title">Encuentra a tus amigos en la multitud</string>
+    <string name="home_first_text">Crea un grupo y tus amigos escanean el QR. Una flecha luminosa apunta a cada uno, incluso sin cobertura.</string>
+    <string name="home_plan_another_night">Planear un concierto para otra noche</string>
+
+    <!-- Section titles -->
+    <string name="home_section_up_next">Próximos</string>
+    <string name="home_section_past_gigs">Tus conciertos</string>
+    <string name="home_section_friends">Amigos</string>
+    <string name="home_see_all">Ver todos</string>
+    <plurals name="home_mates">
+        <item quantity="one">%d amigo</item>
+        <item quantity="many">%d amigos</item>
+        <item quantity="other">%d amigos</item>
+    </plurals>
+    <string name="home_upnext_no_mates">Invita a tus amigos</string>
+</resources>

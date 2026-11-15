@@ -97,8 +97,8 @@
     <string name="main_clip_join_text">คุณก๊อปคำชวน Moshpoint ไว้ เข้าแก๊งแล้วคืนนี้หากันเจอได้ทุกคน</string>
 
     <string name="main_your_night">คืนของคุณ</string>
-    <string name="main_recap_text">%1$s\n\nจบคืนนี้แล้วแก๊งจะปิด (เพื่อนยังอยู่) รูปและคลิปยังอยู่ในมือถือที่ คอนของคุณ</string>
-    <string name="main_night_ended">จบคืนนี้แล้ว รูปและคลิปอยู่ใน คอนของคุณ</string>
+    <string name="main_recap_text">%1$s\n\nจบคืนนี้แล้วแก๊งจะปิด (เพื่อนยังอยู่) รูปและคลิปยังอยู่ในมือถือที่ คอนที่ผ่านมา</string>
+    <string name="main_night_ended">จบคืนนี้แล้ว รูปและคลิปอยู่ใน คอนที่ผ่านมา</string>
     <string name="main_end_the_night">จบคืนนี้</string>
     <string name="main_share_night_text">คืนของเรากับ Moshpoint: %1$s 🤘</string>
     <string name="main_share_night_title">แชร์คืนของคุณ</string>

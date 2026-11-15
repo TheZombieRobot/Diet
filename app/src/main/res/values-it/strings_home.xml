@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Italian: home screen (crew card, friends list, bottom bar, add sheet, pings). -->
 <resources>
-    <string name="home_go_live">Vai live</string>
-    <string name="home_live_ghost">Live · fantasma</string>
-    <string name="home_live">Live</string>
-
     <string name="home_tile_not_sharing">non condivide</string>
     <string name="home_tile_phone_died">telefono scarico</string>
     <string name="home_tile_live">live</string>
-    <string name="home_tile_with_battery">%1$s · %2$d%%</string>
 
     <string name="home_ping_on_my_way">Sto arrivando</string>
     <string name="home_ping_where_are_you">Dove sei?</string>
@@ -52,10 +47,6 @@
     <string name="home_check_in_by">Check-in entro le %1$s</string>
     <string name="home_home_safe">Sono a casa</string>
 
-    <string name="home_chat">Chat</string>
-    <string name="home_chat_unread">Chat (%1$d)</string>
-    <string name="home_camera">Fotocamera</string>
-
     <string name="home_message_crew">Scrivi al gruppo</string>
     <string name="home_message_crew_text">Un tocco: arriva a tutto il gruppo, con la tua posizione.</string>
 
@@ -77,7 +68,6 @@
 
     <string name="home_crew_chat">Chat del gruppo</string>
     <string name="home_pinned_plan">📌 %1$s</string>
-    <string name="home_chat_subtitle">Messaggi, il piano, segnali</string>
     <string name="home_unread_many">9+</string>
     <plurals name="home_unread_new">
         <item quantity="one">%d nuovo</item>
@@ -86,12 +76,6 @@
     </plurals>
 
     <string name="home_following_from_home">Segui da casa</string>
-    <string name="home_upnext_invite">💬 Chat · invita i tuoi amici</string>
-    <plurals name="home_upnext_mates">
-        <item quantity="one">💬 Chat · %d amico dentro</item>
-        <item quantity="many">💬 Chat · %d amici dentro</item>
-        <item quantity="other">💬 Chat · %d amici dentro</item>
-    </plurals>
 
     <string name="home_start_gig_group">Crea un gruppo per il concerto</string>
     <string name="home_start_gig_group_text">Dagli un nome (es. la band). Poi mostra il QR ai tuoi amici.</string>
@@ -106,14 +90,12 @@
     <string name="home_remove_from_crew_text">Il gruppo passa a una nuova chiave che %1$s non riceve, quindi da ora non vedrà dove sono gli altri, né la chat né le foto. Tutti gli altri restano dentro.</string>
     <string name="home_remove_friend_text">Non potrai trovarlo finché non lo aggiungi di nuovo.</string>
     <string name="home_remove">Rimuovi</string>
-    <string name="home_find">Trova</string>
     <string name="home_add_with_code">Aggiungi con un codice</string>
     <string name="home_their_name">Il suo nome</string>
     <string name="home_their_code">Il suo codice</string>
     <string name="home_add_friend">Aggiungi amico</string>
     <string name="home_tonight_only">Solo stasera</string>
 
-    <string name="home_hidden_hint">Sei nascosto al tuo gruppo. Tocca Vai live quando vuoi farti trovare.</string>
     <string name="home_allow_permission">Consenti a Moshpoint di trovare i tuoi amici (%1$s)</string>
     <string name="home_allow">Consenti</string>
     <string name="home_one_thing_first">PRIMA UNA COSA</string>
@@ -125,22 +107,11 @@
     <string name="home_eyebrow_tonight">STASERA</string>
     <string name="home_eyebrow_following">SEGUITI</string>
     <string name="home_eyebrow_coming_up">IN ARRIVO</string>
-    <string name="home_find_mates_tonight">Trova i tuoi amici stasera</string>
-    <string name="home_find_mates_text">Invitali, scansionano, fatto. Al resto pensa Moshpoint.</string>
-    <string name="home_invite_mates_tonight">Invita gli amici per stasera</string>
-    <string name="home_scan_invite">Scansiona un invito</string>
     <string name="home_your_crew">Il tuo gruppo</string>
-    <string name="home_invite">＋ Invita</string>
-    <string name="home_family_can_follow">La famiglia può seguirti da casa</string>
     <string name="home_following_from_home_names">Seguono da casa: %1$s</string>
-    <string name="home_share">Condividi ›</string>
-    <string name="home_meet_up">★  Ritrovo: %1$s</string>
-    <string name="home_map_link">Mappa ›</string>
     <string name="home_asleep_text">In pausa fino al giorno del concerto: niente Bluetooth, niente posizione, zero consumo di batteria. Gli amici possono entrare già ora, e quel giorno ti avviseremo.</string>
     <string name="home_follower_text">Vedi dove sono tutti e le loro foto appena arrivano. Loro vedono che li segui.</string>
     <string name="home_see_story">Guarda la storia</string>
-    <string name="home_crew_chat_unread">Chat del gruppo (%1$d nuovi)</string>
-    <string name="home_where_are_they">Dove sono? (mappa)</string>
     <string name="home_see_them_once_starts">Li vedrai qui quando inizia il concerto.</string>
     <string name="home_tap_mate_hint">Tocca per trovarlo · tieni premuto per le opzioni</string>
     <string name="home_find_name">Trova %1$s</string>
@@ -148,14 +119,11 @@
     <string name="home_stop_following">Smetti di seguire</string>
     <string name="home_cancel_crew">Annulla questo gruppo</string>
     <string name="home_end_night">Chiudi la serata</string>
-    <string name="home_up_next">PROSSIMI</string>
     <string name="home_memories">RICORDI</string>
     <plurals name="home_memories_count">
         <item quantity="one">%d foto e clip. Tocca per riviverla ›</item>
         <item quantity="many">%d foto e clip. Tocca per riviverla ›</item>
         <item quantity="other">%d foto e clip. Tocca per riviverla ›</item>
     </plurals>
-    <string name="home_your_gigs">I TUOI CONCERTI</string>
-    <string name="home_friends">AMICI</string>
     <string name="home_friends_empty">Qui compaiono gli amici che tieni per ogni concerto. Tocca ＋ Aggiungi qui sotto.</string>
 </resources>

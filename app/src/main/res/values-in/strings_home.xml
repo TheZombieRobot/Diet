@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Indonesian (in): home screen. -->
 <resources>
-    <string name="home_go_live">Mulai live</string>
-    <string name="home_live_ghost">Live · hantu</string>
-    <string name="home_live">Live</string>
-
     <string name="home_tile_not_sharing">belum berbagi</string>
     <string name="home_tile_phone_died">HP mati</string>
     <string name="home_tile_live">live</string>
-    <string name="home_tile_with_battery">%1$s · %2$d%%</string>
 
     <string name="home_ping_on_my_way">OTW</string>
     <string name="home_ping_where_are_you">Kamu di mana?</string>
@@ -50,10 +45,6 @@
     <string name="home_check_in_by">Kabari sebelum %1$s</string>
     <string name="home_home_safe">Aku sudah sampai rumah</string>
 
-    <string name="home_chat">Chat</string>
-    <string name="home_chat_unread">Chat (%1$d)</string>
-    <string name="home_camera">Kamera</string>
-
     <string name="home_message_crew">Kirim pesan ke geng</string>
     <string name="home_message_crew_text">Sekali ketuk: semua di geng dapat, lengkap dengan lokasimu.</string>
 
@@ -71,17 +62,12 @@
 
     <string name="home_crew_chat">Chat geng</string>
     <string name="home_pinned_plan">📌 %1$s</string>
-    <string name="home_chat_subtitle">Pesan, rencana, suar</string>
     <string name="home_unread_many">9+</string>
     <plurals name="home_unread_new">
         <item quantity="other">%d baru</item>
     </plurals>
 
     <string name="home_following_from_home">Mengikuti dari rumah</string>
-    <string name="home_upnext_invite">💬 Chat · ajak teman</string>
-    <plurals name="home_upnext_mates">
-        <item quantity="other">💬 Chat · %d teman sudah masuk</item>
-    </plurals>
 
     <string name="home_start_gig_group">Bikin geng konser</string>
     <string name="home_start_gig_group_text">Kasih nama (misalnya nama band). Lalu tunjukkan QR ke teman-temanmu.</string>
@@ -96,14 +82,12 @@
     <string name="home_remove_from_crew_text">Geng pindah ke kunci baru yang nggak didapat %1$s, jadi mulai sekarang dia nggak bisa lihat lokasi siapa pun, chat, atau foto. Yang lain tetap di geng.</string>
     <string name="home_remove_friend_text">Kamu nggak bisa menemukan dia sampai kamu menambahkannya lagi.</string>
     <string name="home_remove">Hapus</string>
-    <string name="home_find">Cari</string>
     <string name="home_add_with_code">Tambah pakai kode</string>
     <string name="home_their_name">Nama dia</string>
     <string name="home_their_code">Kode dia</string>
     <string name="home_add_friend">Tambah teman</string>
     <string name="home_tonight_only">Malam ini saja</string>
 
-    <string name="home_hidden_hint">Kamu tersembunyi dari gengmu. Ketuk Mulai live kalau mau ditemukan.</string>
     <string name="home_allow_permission">Izinkan Moshpoint mencari temanmu (%1$s)</string>
     <string name="home_allow">Izinkan</string>
     <string name="home_one_thing_first">SATU HAL DULU</string>
@@ -113,22 +97,11 @@
     <string name="home_eyebrow_tonight">MALAM INI</string>
     <string name="home_eyebrow_following">MENGIKUTI</string>
     <string name="home_eyebrow_coming_up">SEGERA</string>
-    <string name="home_find_mates_tonight">Temukan temanmu malam ini</string>
-    <string name="home_find_mates_text">Undang mereka, mereka scan, beres. Sisanya urusan Moshpoint.</string>
-    <string name="home_invite_mates_tonight">Ajak teman malam ini</string>
-    <string name="home_scan_invite">Scan undangan</string>
     <string name="home_your_crew">Geng kamu</string>
-    <string name="home_invite">＋ Undang</string>
-    <string name="home_family_can_follow">Keluarga bisa pantau dari rumah</string>
     <string name="home_following_from_home_names">Mengikuti dari rumah: %1$s</string>
-    <string name="home_share">Bagikan ›</string>
-    <string name="home_meet_up">★  Titik kumpul: %1$s</string>
-    <string name="home_map_link">Peta ›</string>
     <string name="home_asleep_text">Tidur sampai hari konser: tanpa Bluetooth, tanpa lokasi, nggak makan baterai. Teman bisa gabung sekarang, dan kamu dapat pengingat di hari H.</string>
     <string name="home_follower_text">Kamu bisa lihat posisi semua orang dan foto mereka begitu masuk. Mereka juga tahu kamu mengikuti.</string>
     <string name="home_see_story">Lihat cerita</string>
-    <string name="home_crew_chat_unread">Chat geng (%1$d baru)</string>
-    <string name="home_where_are_they">Mereka di mana? (peta)</string>
     <string name="home_see_them_once_starts">Mereka bakal muncul di sini begitu konser mulai.</string>
     <string name="home_tap_mate_hint">Ketuk teman untuk mencari · tahan untuk opsi</string>
     <string name="home_find_name">Cari %1$s</string>
@@ -136,12 +109,9 @@
     <string name="home_stop_following">Berhenti mengikuti</string>
     <string name="home_cancel_crew">Batalkan geng ini</string>
     <string name="home_end_night">Akhiri malam</string>
-    <string name="home_up_next">BERIKUTNYA</string>
     <string name="home_memories">KENANGAN</string>
     <plurals name="home_memories_count">
         <item quantity="other">%d foto dan video. Ketuk untuk mengenang ›</item>
     </plurals>
-    <string name="home_your_gigs">KONSER KAMU</string>
-    <string name="home_friends">TEMAN</string>
     <string name="home_friends_empty">Teman yang kamu simpan untuk setiap konser muncul di sini. Ketuk ＋ Tambah di bawah.</string>
 </resources>

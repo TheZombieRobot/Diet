@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Italian: home screen redesign (docs/design/home-redesign, docs/HOME_REDESIGN.md): the Live row, the
+     crew header and menu, no crew / first time, and the section titles. Keep labels short: the
+     screen is about 340 dp wide, and two buttons share a row. Comments for each string are in
+     values/strings_home_redesign.xml. Crew = gruppo. -->
+<resources>
+    <!-- Live row: the switch's name (on or off), then one line beside it -->
+    <string name="home_live_switch">Live</string>
+    <string name="home_live_on">Sei visibile ai tuoi amici</string>
+    <string name="home_live_ghost_on">Modalità fantasma: fuori dalla mappa, ma ti trovano da vicino</string>
+    <string name="home_live_off">Disattivato: gli amici non ti vedono ancora</string>
+
+    <!-- Crew header -->
+    <string name="home_crew_options">Opzioni del gruppo</string>
+    <plurals name="home_crew_count">
+        <item quantity="one">%d nel gruppo</item>
+        <item quantity="many">%d nel gruppo</item>
+        <item quantity="other">%d nel gruppo</item>
+    </plurals>
+    <plurals name="home_live_count">
+        <item quantity="one">%d live</item>
+        <item quantity="many">%d live</item>
+        <item quantity="other">%d live</item>
+    </plurals>
+    <string name="home_face_options">Opzioni</string>
+    <string name="home_friend_options">Opzioni per %1$s</string>
+    <string name="home_face_battery">%1$d%% di batteria</string>
+
+    <!-- Crew buttons and activity -->
+    <string name="home_share_photos">Condividi foto</string>
+    <string name="home_meetup">Ritrovo: %1$s</string>
+    <string name="home_plan_pinned">Fissato nella chat del gruppo</string>
+    <string name="home_where_are_they_short">Dove sono?</string>
+
+    <!-- Crew menu (⋯) -->
+    <string name="home_menu_tonight">Stasera</string>
+    <string name="home_menu_coming_up">In arrivo</string>
+    <string name="home_menu_invite">Invita altri amici</string>
+    <string name="home_menu_invite_sub">Mostra il QR del gruppo o invia un link</string>
+    <string name="home_menu_family">Condividi la serata con la famiglia</string>
+    <string name="home_menu_family_sub">Ti seguono da casa e restano invisibili</string>
+    <string name="home_menu_reset_sub">Nuovo QR e nuovo link. I vecchi non funzionano più</string>
+    <string name="home_menu_end_sub">Esci dal gruppo di stasera. Le tue foto restano in Concerti passati</string>
+    <string name="home_menu_cancel_sub">Esci prima del giorno del concerto. Chi è già dentro ci resta</string>
+    <string name="home_menu_stop_sub">Non vedrai più dove sono</string>
+
+    <!-- No crew tonight -->
+    <string name="home_no_crew_title">Nessun gruppo stasera</string>
+    <string name="home_no_crew_text">Creane uno, mostra il codice QR ai tuoi amici e siete un gruppo.</string>
+    <string name="home_start_crew">Crea un gruppo per stasera</string>
+    <string name="home_plan_title">Pianifica un concerto</string>
+    <string name="home_plan_sub">Trovalo ora e invita i tuoi amici</string>
+    <string name="home_join_crew">ENTRA IN UN GRUPPO</string>
+
+    <!-- First time -->
+    <string name="home_first_title">Trova i tuoi amici tra la folla</string>
+    <string name="home_first_text">Crea un gruppo e i tuoi amici scansionano il codice QR. Una freccia luminosa punta verso ognuno di loro, anche senza segnale.</string>
+    <string name="home_plan_another_night">Pianifica un concerto per un\'altra sera</string>
+
+    <!-- Section titles -->
+    <string name="home_section_up_next">Prossimi</string>
+    <string name="home_section_past_gigs">Concerti passati</string>
+    <string name="home_section_friends">Amici</string>
+    <string name="home_see_all">Vedi tutti</string>
+    <plurals name="home_mates">
+        <item quantity="one">%d amico</item>
+        <item quantity="many">%d amici</item>
+        <item quantity="other">%d amici</item>
+    </plurals>
+    <string name="home_upnext_no_mates">Invita i tuoi amici</string>
+</resources>

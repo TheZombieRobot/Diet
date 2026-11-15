@@ -119,7 +119,7 @@
     </plurals>
     <string name="crew_notif_new_plan">新計畫：%1$s</string>
     <string name="crew_notif_done_title">%1$s 結束了</string>
-    <string name="crew_notif_done_saved">你的相片和影片都存在「我的演出」裡。</string>
+    <string name="crew_notif_done_saved">你的相片和影片都存在「看過的演出」裡。</string>
     <string name="crew_notif_done_text">希望你玩得開心。隨時可以開新小隊。</string>
     <string name="crew_notif_overdue_title">%1$s 還沒報平安</string>
     <string name="crew_notif_overdue_text">對方說要回家，現在應該到了。打個電話問問吧。點一下看最後位置。</string>

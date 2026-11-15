@@ -128,3 +128,21 @@ Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
 | %d unread private messages (screen reader, the count on a face) | 未読のプライベートメッセージ%d件 |
 
 Uses **クルー**, as elsewhere. *プライベート* rather than *DM*, which reads as Twitter/X. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.
+
+## Home redesign (`strings_home_redesign.xml`)
+
+The redesigned home screen: the Live switch and the line beside it, the crew header and ⋯ crew menu, the no-crew and first-time screens, the section titles and the Up next rows. Validator prints **OK** for this file.
+
+| English | Chosen | Why |
+|---|---|---|
+| Live (the switch's name, on or off) | **位置シェア** | A name, not a state: the old シェア中 reads wrong next to a switch that is off. Keeps シェア (ライブ is a concert) and says what is shared. 「シェア開始」 in the nudge and hints still reads as switching it on. |
+| You're visible to your mates / Off: mates can't see you yet | 仲間から見えています / オフ：まだ仲間から見えません | The two lines mirror each other, in です/ます. |
+| Ghost mode: off the map, findable up close | ゴーストモード：マップでは非表示、近くなら見つけてもらえます | 見つけてもらえる as in `setup_ghost_mode_desc`. |
+| Crew menu: Invite more mates / Share the night with family | もっと仲間を招待 / **家族にも見守ってもらう** | The family row opens the same share as `main_follow_share_title`, so it reuses those words. 今夜をシェア is already the night recap's share (`main_share_night_title`). |
+| Past gigs (section, and "Your photos stay in Past gigs") | **過去のライブ** | Pairs with 次の予定. Older strings (recap, "night ended") still say 「あなたのライブ」, as the English there still says "Your gigs". |
+| Up next | 次の予定 | As `home_up_next`. |
+| Share photos (half-width button) | 写真をシェア | One line in half the row, next to クルーチャット. |
+
+The first-time title (人混みでも\n仲間が見つかる) breaks where onboarding's title does, so a narrow phone never leaves one kana alone on line 2. The long-press label その他の操作 matches `home_tap_mate_hint`.
+
+For a native reviewer: 位置シェア vs plain シェア for the switch (シェア alone can look like a share button); 過去のライブ vs the warmer これまでのライブ; これでクルー結成！ in the no-crew text. Written without a native reviewer. Confidence: **medium-high**.

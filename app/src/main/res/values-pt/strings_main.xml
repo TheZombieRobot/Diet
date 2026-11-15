@@ -105,8 +105,8 @@
     <string name="main_clip_join_text">Você copiou um convite do Moshpoint. Entre e vocês se acham hoje à noite.</string>
 
     <string name="main_your_night">Sua noite</string>
-    <string name="main_recap_text">%1$s\n\nEncerrar a noite fecha a galera (os amigos ficam). As fotos e clipes continuam no seu celular, em Seus shows.</string>
-    <string name="main_night_ended">Noite encerrada. Suas fotos e clipes estão em Seus shows.</string>
+    <string name="main_recap_text">%1$s\n\nEncerrar a noite fecha a galera (os amigos ficam). As fotos e clipes continuam no seu celular, em Shows passados.</string>
+    <string name="main_night_ended">Noite encerrada. Suas fotos e clipes estão em Shows passados.</string>
     <string name="main_end_the_night">Encerrar a noite</string>
     <string name="main_share_night_text">Minha noite com o Moshpoint: %1$s 🤘</string>
     <string name="main_share_night_title">Compartilhe sua noite</string>

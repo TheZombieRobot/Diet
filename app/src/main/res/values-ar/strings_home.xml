@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Arabic: home screen (crew card, friends list, bottom bar, add sheet, pings). -->
 <resources>
-    <string name="home_go_live">اظهر</string>
-    <string name="home_live_ghost">ظاهر · شبح</string>
-    <string name="home_live">ظاهر</string>
-
     <string name="home_tile_not_sharing">لا مشاركة بعد</string>
     <string name="home_tile_phone_died">نفد شحن الهاتف</string>
     <string name="home_tile_live">ظاهر</string>
-    <string name="home_tile_with_battery">%1$s · %2$d%%</string>
 
     <string name="home_ping_on_my_way">في الطريق</string>
     <string name="home_ping_where_are_you">أين أنت؟</string>
@@ -55,10 +50,6 @@
     <string name="home_check_in_by">سجّل وصولك قبل %1$s</string>
     <string name="home_home_safe">وصلت البيت بأمان</string>
 
-    <string name="home_chat">دردشة</string>
-    <string name="home_chat_unread">دردشة (%1$d)</string>
-    <string name="home_camera">الكاميرا</string>
-
     <string name="home_message_crew">راسل الشلة</string>
     <string name="home_message_crew_text">نقرة واحدة: تصل الرسالة لكل الشلة، مع مكانك.</string>
 
@@ -86,7 +77,6 @@
 
     <string name="home_crew_chat">دردشة الشلة</string>
     <string name="home_pinned_plan">📌 %1$s</string>
-    <string name="home_chat_subtitle">الرسائل، الخطة، الشعلات</string>
     <string name="home_unread_many">9+</string>
     <plurals name="home_unread_new">
         <item quantity="zero">%d جديدة</item>
@@ -98,15 +88,6 @@
     </plurals>
 
     <string name="home_following_from_home">متابعة من البيت</string>
-    <string name="home_upnext_invite">💬 دردشة · ادعُ أصحابك</string>
-    <plurals name="home_upnext_mates">
-        <item quantity="zero">💬 دردشة · لم ينضم أحد بعد</item>
-        <item quantity="one">💬 دردشة · انضم صاحب واحد</item>
-        <item quantity="two">💬 دردشة · انضم صاحبان</item>
-        <item quantity="few">💬 دردشة · انضم %d أصحاب</item>
-        <item quantity="many">💬 دردشة · انضم %d صاحبًا</item>
-        <item quantity="other">💬 دردشة · انضم %d صاحب</item>
-    </plurals>
 
     <string name="home_start_gig_group">ابدأ شلة للحفلة</string>
     <string name="home_start_gig_group_text">سمّها (مثلًا باسم الفرقة). ثم اعرض رمز QR لأصحابك.</string>
@@ -121,14 +102,12 @@
     <string name="home_remove_from_crew_text">تنتقل الشلة إلى مفتاح جديد لا يحصل عليه %1$s، فلا وصول بعد الآن إلى أماكن أحد ولا الدردشة ولا الصور. الباقون يبقون.</string>
     <string name="home_remove_friend_text">لن تستطيع إيجادهم حتى تضيفهم من جديد.</string>
     <string name="home_remove">إزالة</string>
-    <string name="home_find">جِده</string>
     <string name="home_add_with_code">أضف برمز</string>
     <string name="home_their_name">الاسم</string>
     <string name="home_their_code">الرمز</string>
     <string name="home_add_friend">إضافة صديق</string>
     <string name="home_tonight_only">الليلة فقط</string>
 
-    <string name="home_hidden_hint">أنت مخفي عن شلتك. اضغط «اظهر» عندما تريد أن يجدوك.</string>
     <string name="home_allow_permission">اسمح لـ Moshpoint بإيجاد أصحابك (%1$s)</string>
     <string name="home_allow">سماح</string>
     <string name="home_one_thing_first">شيء واحد أولًا</string>
@@ -143,22 +122,11 @@
     <string name="home_eyebrow_tonight">الليلة</string>
     <string name="home_eyebrow_following">تتابعها</string>
     <string name="home_eyebrow_coming_up">قريبًا</string>
-    <string name="home_find_mates_tonight">جد أصحابك الليلة</string>
-    <string name="home_find_mates_text">ادعُهم، يمسحون الرمز، وانتهى. Moshpoint يتكفل بالباقي.</string>
-    <string name="home_invite_mates_tonight">ادعُ أصحابك لليلة</string>
-    <string name="home_scan_invite">امسح دعوة</string>
     <string name="home_your_crew">شلتك</string>
-    <string name="home_invite">＋ دعوة</string>
-    <string name="home_family_can_follow">يمكن للعائلة متابعة الليلة من البيت</string>
     <string name="home_following_from_home_names">يتابعون من البيت: %1$s</string>
-    <string name="home_share">مشاركة ›</string>
-    <string name="home_meet_up">★  نقطة اللقاء: %1$s</string>
-    <string name="home_map_link">الخريطة ›</string>
     <string name="home_asleep_text">نائمة حتى يوم الحفلة: لا Bluetooth، لا موقع، لا استهلاك للبطارية. يمكن لأصحابك الانضمام الآن، وسننبهك في ذلك اليوم.</string>
     <string name="home_follower_text">ترى أماكن الجميع وصورهم فور وصولها. وهم يرون أنك تتابعهم.</string>
     <string name="home_see_story">شاهد القصة</string>
-    <string name="home_crew_chat_unread">دردشة الشلة (%1$d جديدة)</string>
-    <string name="home_where_are_they">أين هم؟ (الخريطة)</string>
     <string name="home_see_them_once_starts">ستراهم هنا عندما تبدأ الحفلة.</string>
     <string name="home_tap_mate_hint">اضغط على صاحب لتجده · اضغط مطولًا للخيارات</string>
     <string name="home_find_name">جد %1$s</string>
@@ -166,7 +134,6 @@
     <string name="home_stop_following">إيقاف المتابعة</string>
     <string name="home_cancel_crew">إلغاء هذه الشلة</string>
     <string name="home_end_night">إنهاء الليلة</string>
-    <string name="home_up_next">القادم</string>
     <string name="home_memories">ذكريات</string>
     <plurals name="home_memories_count">
         <item quantity="zero">%d من الصور والمقاطع. اضغط لتعيشها من جديد ›</item>
@@ -176,7 +143,5 @@
         <item quantity="many">%d من الصور والمقاطع. اضغط لتعيشها من جديد ›</item>
         <item quantity="other">%d من الصور والمقاطع. اضغط لتعيشها من جديد ›</item>
     </plurals>
-    <string name="home_your_gigs">حفلاتك</string>
-    <string name="home_friends">الأصدقاء</string>
     <string name="home_friends_empty">الأصدقاء الذين تحتفظ بهم لكل حفلة يظهرون هنا. اضغط ＋ إضافة بالأسفل.</string>
 </resources>

@@ -1,17 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Home screen (crew card, friends list, bottom bar, add sheet, pings). -->
 <resources>
-    <!-- Live switch in the header -->
-    <string name="home_go_live">Go live</string>
-    <string name="home_live_ghost">Live · ghost</string>
-    <string name="home_live">Live</string>
-
     <!-- Status under a crew member's tile -->
     <string name="home_tile_not_sharing">not sharing yet</string>
     <string name="home_tile_phone_died">phone died</string>
     <string name="home_tile_live">live</string>
-    <!-- Shown only when battery is low. %1$s = status ("live", "40 m", "12 min ago"), %2$d = battery percent -->
-    <string name="home_tile_with_battery">%1$s · %2$d%%</string>
 
     <!-- One-tap pings to the crew -->
     <string name="home_ping_on_my_way">On my way</string>
@@ -61,12 +54,6 @@
     <string name="home_check_in_by">Check in by %1$s</string>
     <string name="home_home_safe">I\'m home safe</string>
 
-    <!-- Crew actions -->
-    <string name="home_chat">Chat</string>
-    <!-- %1$d = unread message count -->
-    <string name="home_chat_unread">Chat (%1$d)</string>
-    <string name="home_camera">Camera</string>
-
     <!-- Message sheet -->
     <string name="home_message_crew">Message the crew</string>
     <string name="home_message_crew_text">One tap: everyone in the crew gets it, with where you are.</string>
@@ -92,7 +79,6 @@
     <string name="home_crew_chat">Crew chat</string>
     <!-- %1$s = the crew's pinned plan -->
     <string name="home_pinned_plan">📌 %1$s</string>
-    <string name="home_chat_subtitle">Messages, the plan, flares</string>
     <!-- Badge when there are more than 9 unread messages -->
     <string name="home_unread_many">9+</string>
     <plurals name="home_unread_new">
@@ -102,12 +88,6 @@
 
     <!-- Up next rows -->
     <string name="home_following_from_home">Following from home</string>
-    <string name="home_upnext_invite">💬 Chat · invite your mates</string>
-    <!-- %d = number of mates who have joined that crew -->
-    <plurals name="home_upnext_mates">
-        <item quantity="one">💬 Chat · %d mate in</item>
-        <item quantity="other">💬 Chat · %d mates in</item>
-    </plurals>
 
     <!-- Friends screen: dialogs -->
     <string name="home_start_gig_group">Start a gig group</string>
@@ -128,8 +108,6 @@
     <string name="home_remove_from_crew_text">The crew moves to a new key that %1$s doesn\'t get, so they can\'t see where anyone is, the chat or photos from now on. Everyone else stays in.</string>
     <string name="home_remove_friend_text">You won\'t be able to find them until you add them again.</string>
     <string name="home_remove">Remove</string>
-    <!-- Small tag on a friend row -->
-    <string name="home_find">Find</string>
     <string name="home_add_with_code">Add with a code</string>
     <string name="home_their_name">Their name</string>
     <string name="home_their_code">Their code</string>
@@ -137,7 +115,6 @@
     <string name="home_tonight_only">Tonight only</string>
 
     <!-- Friends screen: main list -->
-    <string name="home_hidden_hint">You\'re hidden from your crew. Tap Go live when you want to be found.</string>
     <!-- %1$s = the missing permission, e.g. "location" -->
     <string name="home_allow_permission">Allow Moshpoint to find your mates (%1$s)</string>
     <string name="home_allow">Allow</string>
@@ -150,25 +127,12 @@
     <string name="home_eyebrow_tonight">TONIGHT</string>
     <string name="home_eyebrow_following">FOLLOWING</string>
     <string name="home_eyebrow_coming_up">COMING UP</string>
-    <string name="home_find_mates_tonight">Find your mates tonight</string>
-    <string name="home_find_mates_text">Invite them, they scan, done. Moshpoint does the rest.</string>
-    <string name="home_invite_mates_tonight">Invite mates for tonight</string>
-    <string name="home_scan_invite">Scan an invite</string>
     <string name="home_your_crew">Your crew</string>
-    <string name="home_invite">＋ Invite</string>
-    <string name="home_family_can_follow">Family can follow the night from home</string>
     <!-- %1$s = comma-separated names of people following -->
     <string name="home_following_from_home_names">Following from home: %1$s</string>
-    <string name="home_share">Share ›</string>
-    <!-- %1$s = meet-up pin name, e.g. "Sound desk" -->
-    <string name="home_meet_up">★  Meet-up: %1$s</string>
-    <string name="home_map_link">Map ›</string>
     <string name="home_asleep_text">Asleep until gig day: no Bluetooth, no location, no battery. Mates can join now, and you\'ll get a nudge on the day.</string>
     <string name="home_follower_text">You can see where everyone is and their photos as they roll in. They can see you\'re following.</string>
     <string name="home_see_story">See the story</string>
-    <!-- %1$d = unread message count -->
-    <string name="home_crew_chat_unread">Crew chat (%1$d new)</string>
-    <string name="home_where_are_they">Where are they? (map)</string>
     <string name="home_see_them_once_starts">You\'ll see them here once the gig starts.</string>
     <string name="home_tap_mate_hint">Tap a mate to find them · hold for options</string>
     <!-- %1$s = mate's name -->
@@ -177,14 +141,11 @@
     <string name="home_stop_following">Stop following</string>
     <string name="home_cancel_crew">Cancel this crew</string>
     <string name="home_end_night">End the night</string>
-    <string name="home_up_next">UP NEXT</string>
     <string name="home_memories">MEMORIES</string>
     <!-- %d = number of photos and clips together -->
     <plurals name="home_memories_count">
         <item quantity="one">%d photos and clips. Tap to relive it ›</item>
         <item quantity="other">%d photos and clips. Tap to relive it ›</item>
     </plurals>
-    <string name="home_your_gigs">YOUR GIGS</string>
-    <string name="home_friends">FRIENDS</string>
     <string name="home_friends_empty">Friends you keep for every gig show here. Tap ＋ Add below.</string>
 </resources>

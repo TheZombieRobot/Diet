@@ -119,7 +119,7 @@
     </plurals>
     <string name="crew_notif_new_plan">Kế hoạch mới: %1$s</string>
     <string name="crew_notif_done_title">%1$s đã kết thúc</string>
-    <string name="crew_notif_done_saved">Ảnh và clip của bạn đã lưu trong Show của bạn.</string>
+    <string name="crew_notif_done_saved">Ảnh và clip của bạn đã lưu trong Show đã qua.</string>
     <string name="crew_notif_done_text">Mong là đêm nay vui hết nấc. Lập nhóm mới lúc nào cũng được.</string>
     <string name="crew_notif_overdue_title">%1$s chưa check-in</string>
     <string name="crew_notif_overdue_text">Họ đang về nhà và lẽ ra đã tới nơi. Gọi cho họ thử. Chạm để xem vị trí cuối cùng.</string>

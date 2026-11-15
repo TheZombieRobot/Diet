@@ -134,7 +134,7 @@
     </plurals>
     <string name="crew_notif_new_plan">Nuovo piano: %1$s</string>
     <string name="crew_notif_done_title">%1$s è finito</string>
-    <string name="crew_notif_done_saved">Le tue foto e clip sono salvate in I tuoi concerti.</string>
+    <string name="crew_notif_done_saved">Le tue foto e clip sono salvate in Concerti passati.</string>
     <string name="crew_notif_done_text">Speriamo sia stata una gran serata. Crea un nuovo gruppo quando vuoi.</string>
     <string name="crew_notif_overdue_title">%1$s non ha fatto check-in</string>
     <string name="crew_notif_overdue_text">Stava tornando a casa e ormai dovrebbe essere arrivato. Chiamalo. Tocca per vedere la sua ultima posizione.</string>
