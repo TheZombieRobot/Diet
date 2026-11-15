@@ -8,10 +8,12 @@ layout and order of events. Branch: `claude/tidy-app-structure` (from `ccr-5839e
 
 _Keep this section current: whoever picks this up next starts here._
 
-- **Done:** the plan (this file).
-- **In progress:** nothing yet.
-- **Next step:** step 1 below (feature packages), one `git mv` commit per package, then one
-  commit that fixes the `package` lines and imports.
+- **Done:** the plan (this file). Step 1, feature packages: the four manifest receivers have
+  their own files in the root package; the other 39 loose files are in `crew/`, `chat/`,
+  `privatemsg/`, `moments/`, `gigs/`, `safety/`, `profile/`, `friends/`, `map/`, `setup/`,
+  `sharing/` and `debug/` (one `git mv` commit and one package/imports commit each).
+- **In progress:** step 2, the thin MainActivity.
+- **Next step:** CI on the moves (the first push without `[skip ci]`), then step 2.
 - **Local check (the app can't build in the container):** `docs/CODE_STRUCTURE.md` → "How each
   step is checked".
 
