@@ -482,7 +482,8 @@ internal fun SectionTitle(title: String, modifier: Modifier = Modifier, onSeeAll
         if (onSeeAll != null) {
             Spacer(Modifier.width(12.dp))
             Box(
-                Modifier.heightIn(min = 48.dp).clip(RoundedCornerShape(8.dp)).clickable(role = Role.Button, onClick = onSeeAll).padding(horizontal = 4.dp),
+                // At least 48 dp both ways, however short "See all" is ("全部").
+                Modifier.heightIn(min = 48.dp).widthIn(min = 48.dp).clip(RoundedCornerShape(8.dp)).clickable(role = Role.Button, onClick = onSeeAll).padding(horizontal = 4.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(stringResource(R.string.home_see_all), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan), maxLines = 1)

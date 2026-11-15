@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -371,7 +372,8 @@ fun FriendsScreen(
 
     Box(Modifier.fillMaxSize().background(Mosh.Ground)) {
         HomeGlow(Modifier.fillMaxSize())
-        Column(Modifier.fillMaxSize()) {
+        // Below the status bar when the app draws edge to edge (Android 15); nothing otherwise.
+        Column(Modifier.fillMaxSize().statusBarsPadding()) {
             Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(top = 16.dp, bottom = 28.dp)) {
                 HomeHeader(onHelp = { helpOpen = true })
                 // Followers at home never broadcast, so there's nothing to switch.

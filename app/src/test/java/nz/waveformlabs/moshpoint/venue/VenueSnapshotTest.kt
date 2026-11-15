@@ -131,8 +131,9 @@ open class VenueSnapshotTest : VenueSnapshots() {
     @Test fun venueLines() = snap {
         MoshTheme {
             Column(
-                Modifier.fillMaxSize().background(Mosh.Ground).padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                // The crew header pads its own sides, as on the home.
+                Modifier.fillMaxSize().background(Mosh.Ground).padding(vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(28.dp),
             ) {
                 listOf(
                     VenueMaps.Status(VenueMaps.Line.SAVING, 40),
