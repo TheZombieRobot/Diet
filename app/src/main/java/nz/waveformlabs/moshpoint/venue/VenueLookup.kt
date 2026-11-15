@@ -70,7 +70,7 @@ object VenueLookup {
             if (lastAskedAt != 0L && wait > 0) delay(wait)
             lastAskedAt = SystemClock.elapsedRealtime()
             withContext(Dispatchers.IO) {
-                if (RelayClient.ownServer) viaServer(VenueQuery.normalise(text), near) else direct(c, VenueQuery.normalise(text), near)
+                if (RelayClient.shareableServer.isNotBlank()) viaServer(VenueQuery.normalise(text), near) else direct(c, VenueQuery.normalise(text), near)
             }
         }
         when (result) {

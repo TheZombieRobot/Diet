@@ -110,7 +110,7 @@ internal class HomeState(private val a: MainActivity) {
         if (on && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
             a.checkSelfPermission(Manifest.permission.BLUETOOTH_ADVERTISE) != PackageManager.PERMISSION_GRANTED
         ) {
-            a.launchers.askPermissions.launch(a.permissions.requested)
+            a.permissions.askWithDisclosure()
             return
         }
         visibleToMates = on

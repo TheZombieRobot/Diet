@@ -19,7 +19,6 @@
 
     <string name="main_my_spot">Min plats</string>
 
-    <string name="main_photos_permission_needed">Moshpoint behöver åtkomst till dina bilder för att hitta dem från den kvällen</string>
     <string name="main_you">Du</string>
     <plurals name="main_added_to_gig">
         <item quantity="one">La till %d i spelningen</item>

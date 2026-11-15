@@ -87,11 +87,5 @@
     <string name="setup_done">완료</string>
 
     <string name="setup_roll_title">그날 밤 내 사진</string>
-    <string name="setup_roll_looking">사진을 살펴보는 중…</string>
-    <string name="setup_roll_nothing">그 시간대에 이 폰으로 찍은 게 없어요. 다른 폰으로 찍었거나 이미 추가한 사진은 여기에 안 보여요.</string>
-    <string name="setup_roll_tap_to_leave_out">탭하면 빼낼 수 있어요. 공연에 복사되니까 갤러리에서 지워도 남아 있어요.</string>
     <string name="setup_roll_adding">추가 중…</string>
-    <plurals name="setup_roll_add_n">
-        <item quantity="other">이 공연에 %d개 추가</item>
-    </plurals>
 </resources>

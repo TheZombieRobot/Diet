@@ -36,7 +36,9 @@ internal class MainLaunchers(a: MainActivity) {
         },
     )
 
-    val mediaPerms = a.registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { r -> a.story.onMediaPermissions(r) }
+    // "Add your photos from that night": Android's photo picker (no photo permission needed). In
+    // the place the photo-permission request had, so every launcher after it keeps its position.
+    val pickRoll = a.registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { uris -> a.story.onPicked(uris) }
 
     val scanQr = a.registerForActivityResult(ScanContract()) { result ->
         val text = result.contents ?: return@registerForActivityResult

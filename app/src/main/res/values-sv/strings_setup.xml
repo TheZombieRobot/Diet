@@ -88,12 +88,5 @@
     <string name="setup_done">Klar</string>
 
     <string name="setup_roll_title">Dina bilder från den kvällen</string>
-    <string name="setup_roll_looking">Kollar igenom dina bilder…</string>
-    <string name="setup_roll_nothing">Inget på den här telefonen från de timmarna. Bilder tagna med en annan telefon, eller som redan lagts till, syns inte här.</string>
-    <string name="setup_roll_tap_to_leave_out">Tryck för att hoppa över en. De kopieras till spelningen, så de finns kvar även om du raderar dem från galleriet.</string>
     <string name="setup_roll_adding">Lägger till…</string>
-    <plurals name="setup_roll_add_n">
-        <item quantity="one">Lägg till %d i spelningen</item>
-        <item quantity="other">Lägg till %d i spelningen</item>
-    </plurals>
 </resources>

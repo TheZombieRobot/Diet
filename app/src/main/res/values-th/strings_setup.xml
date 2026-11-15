@@ -87,11 +87,5 @@
     <string name="setup_done">เสร็จ</string>
 
     <string name="setup_roll_title">รูปของคุณจากคืนนั้น</string>
-    <string name="setup_roll_looking">กำลังหารูปของคุณ…</string>
-    <string name="setup_roll_nothing">ไม่มีรูปจากช่วงเวลานั้นในมือถือนี้ รูปที่ถ่ายจากมือถือเครื่องอื่นหรือเพิ่มไปแล้วจะไม่แสดงตรงนี้</string>
-    <string name="setup_roll_tap_to_leave_out">แตะเพื่อเอาออก รูปจะถูกก๊อปไว้ในคอน เลยยังอยู่แม้จะลบจากแกลเลอรีแล้ว</string>
     <string name="setup_roll_adding">กำลังเพิ่ม…</string>
-    <plurals name="setup_roll_add_n">
-        <item quantity="other">เพิ่ม %d รายการลงคอนนี้</item>
-    </plurals>
 </resources>

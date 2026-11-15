@@ -88,12 +88,5 @@
     <string name="setup_done">Fertig</string>
 
     <string name="setup_roll_title">Deine Fotos von dem Abend</string>
-    <string name="setup_roll_looking">Durchsuche deine Fotos…</string>
-    <string name="setup_roll_nothing">Nichts auf diesem Handy aus diesen Stunden. Fotos von einem anderen Handy oder schon hinzugefügte erscheinen hier nicht.</string>
-    <string name="setup_roll_tap_to_leave_out">Tippe auf ein Foto, um es wegzulassen. Sie werden ins Konzert kopiert und bleiben, auch wenn du sie aus deiner Galerie löschst.</string>
     <string name="setup_roll_adding">Wird hinzugefügt…</string>
-    <plurals name="setup_roll_add_n">
-        <item quantity="one">%d zum Konzert hinzufügen</item>
-        <item quantity="other">%d zum Konzert hinzufügen</item>
-    </plurals>
 </resources>

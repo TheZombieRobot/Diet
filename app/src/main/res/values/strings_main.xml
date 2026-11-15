@@ -29,7 +29,6 @@
     <string name="main_my_spot">My spot</string>
 
     <!-- Camera roll -->
-    <string name="main_photos_permission_needed">Moshpoint needs access to your photos to find the ones from that night</string>
     <!-- Name shown on photos you add from your camera roll when you haven't set a name -->
     <string name="main_you">You</string>
     <!-- %d = number of photos/clips added -->

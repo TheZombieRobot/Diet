@@ -19,7 +19,6 @@
 
     <string name="main_my_spot">मेरी जगह</string>
 
-    <string name="main_photos_permission_needed">उस रात की फ़ोटो ढूँढने के लिए Moshpoint को आपकी फ़ोटो का एक्सेस चाहिए</string>
     <string name="main_you">आप</string>
     <plurals name="main_added_to_gig">
         <item quantity="one">शो में %d जोड़ा गया</item>

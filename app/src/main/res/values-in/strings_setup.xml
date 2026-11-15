@@ -87,11 +87,5 @@
     <string name="setup_done">Selesai</string>
 
     <string name="setup_roll_title">Fotomu dari malam itu</string>
-    <string name="setup_roll_looking">Lagi cek foto-fotomu…</string>
-    <string name="setup_roll_nothing">Nggak ada foto dari jam-jam itu di HP ini. Foto dari HP lain, atau yang sudah ditambahkan, nggak muncul di sini.</string>
-    <string name="setup_roll_tap_to_leave_out">Ketuk untuk melewatkan foto. Foto disalin ke konser, jadi tetap ada meski kamu hapus dari galeri.</string>
     <string name="setup_roll_adding">Menambahkan…</string>
-    <plurals name="setup_roll_add_n">
-        <item quantity="other">Tambah %d ke konser ini</item>
-    </plurals>
 </resources>

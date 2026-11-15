@@ -35,11 +35,9 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Sound on crew moment clips (asked the first time you hold to record). -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <!-- "Add your photos from that night": find photos/videos taken during a gig (asked only then). -->
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <!-- No photo or storage permission: "Add your photos from that night" uses Android's photo
+         picker, which hands over only what the person picks (Play's Photo and Video Permissions
+         policy). docs/WAVE2_PLAY.md -->
 
     <!-- Keep broadcasting with the app closed -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />

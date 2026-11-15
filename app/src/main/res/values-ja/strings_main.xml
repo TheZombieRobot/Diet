@@ -19,7 +19,6 @@
 
     <string name="main_my_spot">自分のスポット</string>
 
-    <string name="main_photos_permission_needed">あの夜の写真を見つけるために、Moshpointに写真へのアクセスを許可してください</string>
     <string name="main_you">自分</string>
     <plurals name="main_added_to_gig">
         <item quantity="other">%d件をライブに追加しました</item>

@@ -89,13 +89,5 @@
     <string name="setup_done">OK</string>
 
     <string name="setup_roll_title">Tes photos de ce soir-là</string>
-    <string name="setup_roll_looking">On parcourt tes photos…</string>
-    <string name="setup_roll_nothing">Rien sur ce téléphone pendant ces heures-là. Les photos prises avec un autre téléphone, ou déjà ajoutées, n\'apparaissent pas ici.</string>
-    <string name="setup_roll_tap_to_leave_out">Touche une photo pour l\'exclure. Elles sont copiées dans le concert, donc elles restent même si tu les supprimes de ta galerie.</string>
     <string name="setup_roll_adding">Ajout…</string>
-    <plurals name="setup_roll_add_n">
-        <item quantity="one">Ajouter %d à ce concert</item>
-        <item quantity="many">Ajouter %d à ce concert</item>
-        <item quantity="other">Ajouter %d à ce concert</item>
-    </plurals>
 </resources>

@@ -19,7 +19,9 @@ import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.MoshTheme
 import nz.waveformlabs.moshpoint.ui.moments.CameraRollPicker
+import nz.waveformlabs.moshpoint.ui.settings.LocationDisclosureDialog
 import nz.waveformlabs.moshpoint.ui.settings.OnboardingScreen
+import nz.waveformlabs.moshpoint.ui.settings.rememberOpenPrivacyPolicy
 
 /**
  * Everything MainActivity shows, in drawing order (later = on top): the crew dialogs; then the
@@ -35,6 +37,10 @@ import nz.waveformlabs.moshpoint.ui.settings.OnboardingScreen
 internal fun MainScreen(a: MainActivity) {
     MoshTheme(calm = a.home.calmMotion) {
         CrewDialogs(a)
+        // Play's prominent disclosure, before Android asks for location: over the welcome too.
+        if (a.permissions.disclosure) {
+            LocationDisclosureDialog(onContinue = { a.permissions.onDisclosure(true) }, onNotNow = { a.permissions.onDisclosure(false) })
+        }
         if (!a.home.onboarded) {
             Box(Modifier.fillMaxSize().background(Mosh.Ground).safeDrawingPadding()) {
                 OnboardingScreen(
@@ -43,7 +49,8 @@ internal fun MainScreen(a: MainActivity) {
                         a.home.myName = it
                         VisibilityPrefs.setMyName(a, it)
                     },
-                    onAskPermissions = { a.launchers.askPermissions.launch(a.permissions.requested) },
+                    onAskPermissions = { a.permissions.askWithDisclosure() },
+                    onPrivacy = rememberOpenPrivacyPolicy(),
                     onFacebook = if (FacebookLogin.available) a.home.facebook::login else null,
                     onDone = {
                         VisibilityPrefs.setOnboarded(a)
@@ -77,7 +84,7 @@ internal fun MainScreen(a: MainActivity) {
             MapOverlay(a)
             a.momentFlow.CameraOverlay()
             a.story.rollGig?.let { (_, name) ->
-                CameraRollPicker(name, a.story.rollFound, a.story.rollAdding, onAdd = a.story::addFromPhone, onClose = { a.story.rollGig = null })
+                CameraRollPicker(name, a.story.rollAdding, onChoose = a.story::chooseFromPhone, onClose = { a.story.rollGig = null })
             }
         }
     }

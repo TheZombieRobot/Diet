@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
@@ -219,7 +220,8 @@ internal fun SettingsContent(
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text("Relay server", style = Mosh.Label)
                     Text(
-                        if (nz.waveformlabs.moshpoint.locate.RelayClient.ownServer) "Using your own server. Crews you invite use it too."
+                        if (nz.waveformlabs.moshpoint.locate.RelayClient.serverFromCrew) "Using a crew's relay server, from their invite. Crews you invite get this build's own."
+                        else if (nz.waveformlabs.moshpoint.locate.RelayClient.ownServer) "Using your own server. Crews you invite use it too."
                         else "Using the free public relay (fine for testing; it can run out late in a big night). Paste your own server's address to switch.",
                         style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint),
                     )
@@ -305,22 +307,30 @@ internal fun SettingsContent(
                     nz.waveformlabs.moshpoint.watch.WatchDebugTools()
                 }
             }
-            Box(Modifier.fillMaxWidth().height(1.dp).background(Mosh.Line))
-            Text(stringResource(R.string.setup_about), style = Mosh.Eyebrow)
-            Text(
-                stringResource(R.string.setup_about_text, nz.waveformlabs.moshpoint.BuildConfig.VERSION_NAME),
-                style = Mosh.Body,
-            )
-            Text(phoneSummary, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint))
-            // Credits and licences for the third-party parts (fonts, libraries, map data).
-            // Moshpoint itself is proprietary; this is what those parts' licences ask us to show.
-            Text(stringResource(R.string.setup_copyright, "2026"), style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
-            TextButton(onClick = { showLicences = true }) {
-                Text(stringResource(R.string.setup_open_source_licences), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan))
-            }
+            AboutSection(phoneSummary, onLicences = { showLicences = true }, onPrivacy = rememberOpenPrivacyPolicy())
             if (showLicences) AcknowledgementsScreen(onClose = { showLicences = false })
         }
     }
+}
+
+/** The bottom of Settings: the version, this phone, credits and licences, the privacy policy. */
+@Composable
+internal fun ColumnScope.AboutSection(phoneSummary: String, onLicences: () -> Unit, onPrivacy: () -> Unit) {
+    Box(Modifier.fillMaxWidth().height(1.dp).background(Mosh.Line))
+    Text(stringResource(R.string.setup_about), style = Mosh.Eyebrow)
+    Text(
+        stringResource(R.string.setup_about_text, nz.waveformlabs.moshpoint.BuildConfig.VERSION_NAME),
+        style = Mosh.Body,
+    )
+    Text(phoneSummary, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint))
+    // Credits and licences for the third-party parts (fonts, libraries, map data).
+    // Moshpoint itself is proprietary; this is what those parts' licences ask us to show.
+    Text(stringResource(R.string.setup_copyright, "2026"), style = Mosh.Body.copy(fontSize = 13.sp, color = Mosh.TextFaint))
+    TextButton(onClick = onLicences) {
+        Text(stringResource(R.string.setup_open_source_licences), style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Cyan))
+    }
+    // Play's User Data policy: the privacy policy is reachable from inside the app.
+    PrivacyPolicyLink(onPrivacy)
 }
 
 /** Facebook's own blue, per their brand guidelines. */

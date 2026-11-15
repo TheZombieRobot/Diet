@@ -110,7 +110,8 @@ class MainActivity : ComponentActivity() {
             chat.openChat(intent.getStringExtra(EXTRA_CHAT_CREW))
         }
         chat.openPrivateFrom(intent)
-        invites.handleInvite(intent.getStringExtra(ShareInviteActivity.EXTRA_TEXT) ?: return)
+        // An invite from another app is only offered: nothing happens until it's confirmed.
+        intent.getStringExtra(ShareInviteActivity.EXTRA_TEXT)?.let { invites.offerSharedInvite(it) }
     }
 
     override fun onResume() {
@@ -147,7 +148,6 @@ class MainActivity : ComponentActivity() {
         GhostMode.init(this)
         ShareQuality.init(this)
         DebugStatus.initUi(this)
-        if (savedInstanceState == null) intent?.getStringExtra(ShareInviteActivity.EXTRA_TEXT)?.let { invites.handleInvite(it) }
         GroupSync.load(this)
         VenueMaps.sync(this) // the venue's street map saves itself for every crew we're in
         if (GroupSync.following) FollowCheck.schedule(this)
@@ -189,13 +189,19 @@ class MainActivity : ComponentActivity() {
             if (intent?.getBooleanExtra(EXTRA_OPEN_MAP, false) == true) map.openMap()
             if (intent?.getBooleanExtra(EXTRA_OPEN_CHAT, false) == true) chat.openChat(intent.getStringExtra(EXTRA_CHAT_CREW))
             chat.openPrivateFrom(intent)
+            // An invite shared from another app, as in onNewIntent: after the finder engine and
+            // the crews exist, and only offered (it joins once confirmed). docs/WAVE2_PLAY.md, item 4.
+            intent?.getStringExtra(ShareInviteActivity.EXTRA_TEXT)?.let { invites.offerSharedInvite(it) }
+        } else {
+            invites.restore(savedInstanceState)
+            story.restore(savedInstanceState)
         }
         home.visibleToMates = VisibilityPrefs.isVisible(this)
         home.myName = VisibilityPrefs.myName(this)
         home.alwaysOn = VisibilityPrefs.alwaysOn(this)
         home.onboarded = VisibilityPrefs.onboarded(this)
         // New users get asked during the welcome, right after hearing why.
-        if (home.onboarded) launchers.askPermissions.launch(permissions.requested)
+        if (home.onboarded) permissions.askWithDisclosure()
         home.myCode = FriendRecord.shareCode(home.mySecret)
         val caps = finder.engine.capabilities
         home.phoneSummary = getString(
@@ -240,6 +246,8 @@ class MainActivity : ComponentActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         camera.photoFor?.let { outState.putString("photoFor", it) }
+        invites.save(outState)
+        story.save(outState)
     }
 
     // Gig-group radio: held while the app is open, released 20 s after it goes to the
