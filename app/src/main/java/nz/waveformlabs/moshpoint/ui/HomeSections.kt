@@ -319,7 +319,7 @@ internal fun UpNextRow(card: UpNextCard, onClick: () -> Unit) {
             Text(card.name, style = HomeType.RowTitle, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Text(
                 dotLine(listOfNotNull(who, card.countdown, card.venue.takeIf { it.isNotBlank() })),
-                style = HomeType.Small, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                style = HomeType.Small, maxLines = 3, overflow = TextOverflow.Ellipsis,
             )
             if (card.plan != null) {
                 Text(stringResource(R.string.home_pinned_plan, card.plan), style = HomeType.Small.copy(color = Mosh.TextDim), maxLines = 2, overflow = TextOverflow.Ellipsis)

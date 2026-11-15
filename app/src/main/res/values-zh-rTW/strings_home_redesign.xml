@@ -42,7 +42,7 @@
 
     <!-- No crew tonight -->
     <string name="home_no_crew_title">今晚還沒有小隊</string>
-    <string name="home_no_crew_text">開一個小隊，秀出 QR 碼給朋友看，你們就是一隊了。</string>
+    <string name="home_no_crew_text">開一個小隊，秀出 QR 碼給朋友看，你們就是一⁠隊⁠了。</string>
     <string name="home_start_crew">開一個今晚的小隊</string>
     <string name="home_plan_title">規劃一場演出</string>
     <string name="home_plan_sub">先找好演出，現在就揪朋友</string>

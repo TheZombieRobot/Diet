@@ -113,5 +113,5 @@
     <plurals name="home_memories_count">
         <item quantity="other">%d 張相片和影片，點開重溫 ›</item>
     </plurals>
-    <string name="home_friends_empty">每場演出都在的好友會顯示在這裡。點下方的「＋ 新增」。</string>
+    <string name="home_friends_empty">每場演出都在的好友會顯示在這裡。點下方的「＋ 新⁠增」。</string>
 </resources>

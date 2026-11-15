@@ -6,16 +6,16 @@
     <!-- Live row: the switch's name, then one line beside it -->
     <string name="home_live_switch">Lokalizacja</string>
     <string name="home_live_on">Znajomi cię widzą</string>
-    <string name="home_live_ghost_on">Tryb ducha: nie ma cię na mapie, z bliska cię znajdą</string>
+    <string name="home_live_ghost_on">Tryb ducha: nie ma cię na mapie, z bliska cię znajdą</string>
     <string name="home_live_off">Wyłączone: znajomi jeszcze cię nie widzą</string>
 
     <!-- Crew header and faces -->
     <string name="home_crew_options">Opcje ekipy</string>
     <plurals name="home_crew_count">
-        <item quantity="one">%d osoba w ekipie</item>
-        <item quantity="few">%d osoby w ekipie</item>
-        <item quantity="many">%d osób w ekipie</item>
-        <item quantity="other">%d osoby w ekipie</item>
+        <item quantity="one">%d osoba w ekipie</item>
+        <item quantity="few">%d osoby w ekipie</item>
+        <item quantity="many">%d osób w ekipie</item>
+        <item quantity="other">%d osoby w ekipie</item>
     </plurals>
     <plurals name="home_live_count">
         <item quantity="one">%d udostępnia</item>
@@ -37,24 +37,24 @@
     <string name="home_menu_coming_up">Już niedługo</string>
     <string name="home_menu_invite">Zaproś więcej znajomych</string>
     <string name="home_menu_invite_sub">Pokaż QR ekipy albo wyślij link</string>
-    <string name="home_menu_family">Podziel się nocą z rodziną</string>
-    <string name="home_menu_family_sub">Śledzą z domu i nie da się ich znaleźć</string>
-    <string name="home_menu_reset_sub">Nowy QR i link. Stare przestają działać</string>
-    <string name="home_menu_end_sub">Opuszczasz dzisiejszą ekipę. Zdjęcia zostają w sekcji Minione koncerty</string>
+    <string name="home_menu_family">Podziel się nocą z rodziną</string>
+    <string name="home_menu_family_sub">Śledzą z domu i nie da się ich znaleźć</string>
+    <string name="home_menu_reset_sub">Nowy QR i link. Stare przestają działać</string>
+    <string name="home_menu_end_sub">Opuszczasz dzisiejszą ekipę. Zdjęcia zostają w sekcji Minione koncerty</string>
     <string name="home_menu_cancel_sub">Opuszczasz ekipę przed dniem koncertu. Znajomi, którzy dołączyli, zostają</string>
     <string name="home_menu_stop_sub">Nie zobaczysz już, gdzie są</string>
 
     <!-- No crew tonight -->
     <string name="home_no_crew_title">Dziś bez ekipy</string>
-    <string name="home_no_crew_text">Załóż ją, pokaż znajomym kod QR i gotowe: jesteście ekipą.</string>
+    <string name="home_no_crew_text">Załóż ją, pokaż znajomym kod QR i gotowe: jesteście ekipą.</string>
     <string name="home_start_crew">Załóż ekipę na dziś</string>
     <string name="home_plan_title">Zaplanuj koncert</string>
-    <string name="home_plan_sub">Znajdź go teraz i zaproś znajomych</string>
+    <string name="home_plan_sub">Znajdź go teraz i zaproś znajomych</string>
     <string name="home_join_crew">DOŁĄCZ DO EKIPY</string>
 
     <!-- First time -->
-    <string name="home_first_title">Znajdź znajomych w tłumie</string>
-    <string name="home_first_text">Załóż ekipę, a znajomi zeskanują kod QR. Świecąca strzałka pokaże na każdego z nich, nawet bez zasięgu.</string>
+    <string name="home_first_title">Znajdź znajomych w tłumie</string>
+    <string name="home_first_text">Załóż ekipę, a znajomi zeskanują kod QR. Świecąca strzałka pokaże na każdego z nich, nawet bez zasięgu.</string>
     <string name="home_plan_another_night">Zaplanuj koncert na inny wieczór</string>
 
     <!-- Section titles -->

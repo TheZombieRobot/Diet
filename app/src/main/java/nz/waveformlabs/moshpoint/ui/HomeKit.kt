@@ -143,6 +143,9 @@ internal fun dotLine(parts: List<String>): String =
 /** [dotLine] for text already joined with " · ". */
 internal fun dotLine(text: String): String = dotLine(text.split(" · "))
 
+/** A number keeps the word after it on its line: "15 min", not "15 / min". */
+internal fun keepNumbers(text: String): String = text.replace(Regex("(\\d) "), "$1\u00A0")
+
 /** Line icons from the design, on a 24-unit grid with round caps and joins (tinted when drawn). */
 internal object HomeIcons {
     private fun build(name: String, width: Float, fill: Boolean, mirror: Boolean, paths: Array<out String>): ImageVector {
@@ -549,7 +552,8 @@ internal fun SectionTitle(title: String, modifier: Modifier = Modifier, onSeeAll
     Row(modifier.fillMaxWidth().padding(horizontal = HomeSide).heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
         // See all sits on the title's first line, also when a long title wraps.
         val onLine = if (onSeeAll != null) Modifier.alignByBaseline() else Modifier
-        Text(title, style = HomeType.Section, modifier = Modifier.weight(1f).then(onLine).padding(vertical = 4.dp).semantics { heading() })
+        // The room above and below is the title's own, so a title that wraps keeps it too.
+        Text(title, style = HomeType.Section, modifier = Modifier.weight(1f).then(onLine).padding(vertical = 11.dp).semantics { heading() })
         if (onSeeAll != null) {
             Spacer(Modifier.width(12.dp))
             Box(
@@ -696,28 +700,29 @@ private fun FaceTile(f: Friend, status: FaceStatus, note: String?, badge: Int, o
             maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(2.dp))
-        // Captions as wide as the face (the design's 70 dp), so neighbours never run together.
-        val caption = Modifier.padding(horizontal = 3.dp)
+        // Captions of several words as wide as the face (the design's 70 dp), so neighbours never
+        // run together; one long word ("paylaşmıyor") may use the tile's width rather than break.
+        fun caption(t: String) = if (t.trim().contains(' ')) Modifier.padding(horizontal = 3.dp) else Modifier
         if (status.distance) {
-            FitText(status.text, HomeType.Button.copy(fontSize = 15.sp, color = Mosh.Lime), caption)
+            FitText(status.text, HomeType.Button.copy(fontSize = 15.sp, color = Mosh.Lime))
         } else {
             Text(
-                status.text,
+                keepNumbers(status.text),
                 style = HomeType.Body.copy(fontSize = 12.5.sp, lineHeight = 16.sp, color = status.colour, lineBreak = HomeBreakEven),
-                maxLines = 3, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center, modifier = caption,
+                maxLines = 3, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center, modifier = caption(status.text),
             )
         }
         if (battery != null) {
             Text(
                 battery, style = HomeType.Body.copy(fontSize = 11.5.sp, lineHeight = 15.sp, color = Mosh.Danger, lineBreak = HomeBreakEven),
-                maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center, modifier = caption,
+                maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center, modifier = caption(battery),
             )
         }
         if (note != null) {
             // Balanced lines: "🔥 Bar / time 🍺", not a lone emoji on the second line.
             Text(
                 note, style = HomeType.Body.copy(fontSize = 11.5.sp, lineHeight = 15.sp, color = Mosh.Amber, lineBreak = HomeBreakEven),
-                maxLines = 3, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center, modifier = caption,
+                maxLines = 3, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center, modifier = caption(note),
             )
         }
     }

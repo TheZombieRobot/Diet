@@ -36,7 +36,7 @@
     <string name="home_scan_qr">扫二维码</string>
     <string name="home_paste_invite">粘贴邀请</string>
     <string name="home_bump_phones">两部手机碰一碰</string>
-    <string name="home_plan_gig">计划一场演出（先找好，现在就邀请）</string>
+    <string name="home_plan_gig">计划一场演出（先找好，现在就邀⁠请）</string>
     <string name="home_send_app_invite">发送应用 + 邀请（微信、WhatsApp…）</string>
     <string name="home_friends_every_gig">每场演出都在的好友</string>
     <string name="home_my_friend_qr">我的好友二维码</string>
@@ -113,5 +113,5 @@
     <plurals name="home_memories_count">
         <item quantity="other">%d 张照片和视频，点开重温 ›</item>
     </plurals>
-    <string name="home_friends_empty">每场演出都在的好友会显示在这里。点下方的“＋ 添加”。</string>
+    <string name="home_friends_empty">每场演出都在的好友会显示在这里。点下方的“＋ 添⁠加”。</string>
 </resources>

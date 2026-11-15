@@ -457,7 +457,7 @@ fun FriendsScreen(
                                     distances = distances, badges = privateUnread, flares = flareNotes,
                                 )
                                 Text(
-                                    stringResource(R.string.home_tap_mate_hint),
+                                    dotLine(stringResource(R.string.home_tap_mate_hint)),
                                     style = HomeType.Body.copy(fontSize = 12.5.sp, lineHeight = 17.sp, color = Mosh.TextFaint),
                                     modifier = Modifier.padding(start = HomeSide, end = HomeSide, top = 4.dp),
                                 )
@@ -519,7 +519,7 @@ fun FriendsScreen(
                     } else {
                         FriendsStrip(permanent, seen, nowSec, onFind = { onFind(setOf(it)) }, onOptions = { options = it })
                         Text(
-                            stringResource(R.string.home_tap_mate_hint),
+                            dotLine(stringResource(R.string.home_tap_mate_hint)),
                             style = HomeType.Body.copy(fontSize = 12.5.sp, lineHeight = 17.sp, color = Mosh.TextFaint),
                             modifier = Modifier.padding(start = HomeSide, end = HomeSide, top = 8.dp),
                         )
