@@ -57,8 +57,8 @@ import nz.waveformlabs.moshpoint.service.VisibilityPrefs
  *    members whose phones can't do extended adverts still get the list.
  */
 object GroupSync {
-    /** PLACEHOLDER 16-bit UUID for group intros; register with the Bluetooth SIG before release. */
-    private val INTRO_UUID: ParcelUuid = ParcelUuid.fromString("0000FFA9-0000-1000-8000-00805F9B34FB")
+    /** Crew intros: an extended advert, so Moshpoint's own 128-bit UUID (was 0xFFA9; docs/BLUETOOTH_UUIDS.md). */
+    private val INTRO_UUID: ParcelUuid = ParcelUuid.fromString("E181BEB0-719E-4505-9666-DE4DF5920EA9")
     private const val TAG = "GroupSync"
 
     /** The active group, if any (Compose state for the friends screen). */
