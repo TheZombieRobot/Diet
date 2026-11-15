@@ -24,7 +24,7 @@
     </plurals>
     <string name="home_face_options">Opzioni</string>
     <string name="home_friend_options">Opzioni per %1$s</string>
-    <string name="home_face_battery">%1$d%% di batteria</string>
+    <string name="home_face_battery">Batteria %1$d%%</string>
 
     <!-- Crew buttons and activity -->
     <string name="home_share_photos">Condividi foto</string>
@@ -37,7 +37,7 @@
     <string name="home_menu_coming_up">In arrivo</string>
     <string name="home_menu_invite">Invita altri amici</string>
     <string name="home_menu_invite_sub">Mostra il QR del gruppo o invia un link</string>
-    <string name="home_menu_family">Condividi la serata con la famiglia</string>
+    <string name="home_menu_family">Condividi la serata in famiglia</string>
     <string name="home_menu_family_sub">Ti seguono da casa e restano invisibili</string>
     <string name="home_menu_reset_sub">Nuovo QR e nuovo link. I vecchi non funzionano più</string>
     <string name="home_menu_end_sub">Esci dal gruppo di stasera. Le tue foto restano in Concerti passati</string>
@@ -46,8 +46,8 @@
 
     <!-- No crew tonight -->
     <string name="home_no_crew_title">Nessun gruppo stasera</string>
-    <string name="home_no_crew_text">Creane uno, mostra il codice QR ai tuoi amici e siete un gruppo.</string>
-    <string name="home_start_crew">Crea un gruppo per stasera</string>
+    <string name="home_no_crew_text">Creane uno, mostra il codice QR ai tuoi amici e il gruppo è fatto.</string>
+    <string name="home_start_crew">Crea un gruppo stasera</string>
     <string name="home_plan_title">Pianifica un concerto</string>
     <string name="home_plan_sub">Trovalo ora e invita i tuoi amici</string>
     <string name="home_join_crew">ENTRA IN UN GRUPPO</string>

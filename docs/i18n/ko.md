@@ -137,7 +137,7 @@ The redesigned home screen: the Live switch and the line beside it, the crew hea
 | You're visible to your mates / Off: mates can't see you yet | 친구들에게 내 위치가 보여요 / 꺼짐: 아직 친구들에게 안 보여요 | Says plainly that it is your location that shows (see the KakaoMap note above). |
 | Ghost mode: off the map, findable up close | 고스트 모드: 지도에는 안 보이지만 가까이에선 찾을 수 있어요 | As `setup_ghost_mode_desc`. |
 | Crew menu: Invite more mates / Share the night with family | 친구 더 초대하기 / **가족도 함께 지켜보게 하기** | The family row opens the same share as `main_follow_share_title`, so it reuses those words. 공유 stays the word for location sharing. |
-| Past gigs (section, and "Your photos stay in Past gigs") | **지난 공연** | Pairs with 다가오는 공연. Older strings (recap, "night ended") still say ‘내 공연’, as the English there still says "Your gigs". |
+| Past gigs (section, and "Your photos stay in Past gigs") | **지난 공연** | Pairs with 다가오는 공연. The recap, "night ended" and the saved-photos notification now say ‘지난 공연’ too (the English now says "Past gigs" there). |
 | Up next | 다가오는 공연 | As `home_up_next`. |
 | Share photos (half-width button) | 사진 공유 | Short noun form, like 크루 채팅 beside it. |
 

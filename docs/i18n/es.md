@@ -147,3 +147,19 @@ Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
 | %d unread private messages (screen reader, the count on a face) | %d mensajes privados sin leer |
 
 Uses **grupo**, as elsewhere, and *ustedes* for "you two" (Latin America). *Silenciar* / *Quitar silencio*. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.
+
+## Home redesign (`strings_home_redesign.xml`)
+
+The redesigned home: the Live row (the switch's name and the line beside it), the crew header, faces and ⋯ crew menu, the no-crew and first-time screens, and the section titles (36 strings, 3 plurals). Validator prints **OK** for this file.
+
+| English | Chosen | Why |
+|---|---|---|
+| Live (the switch's name, on or off) | **En vivo** | The app's name for live everywhere (`home_live`, `crew_tile_live`). It names the mode, so it reads right next to a switch that is off. |
+| You're visible to your mates / Off: mates can't see you yet | Tus amigos te ven / Desactivado: tus amigos aún no te ven | *Desactivado:* as in `setup_data_saver_desc`. |
+| Ghost mode: off the map, findable up close | Modo fantasma: fuera del mapa, te encuentran de cerca | The setting's own name; *te encuentran* as `setup_ghost_mode_desc` says it. Two lines, like English. |
+| Crew menu: Invite more mates / Share the night with family | Invitar a más amigos / Compartir la noche con tu familia | Infinitives, like the other rows (*Reiniciar invitación*, *Terminar la noche*). The lines under them say what happens (*Sales del grupo de esta noche…*). |
+| Up next / Past gigs | **Próximos** / **Tus conciertos** | *Próximos* is the existing name. *Conciertos pasados* wraps to two lines next to *Ver todos* in the display font on both test phones; *Tus conciertos* fits, and `main_recap_text`, `main_night_ended` and `crew_notif_done_saved` already send people there by that name. |
+| Share photos | **Subir fotos** | What people say for posting photos (*subir historias*). *Compartir fotos* is about 6 dp too wide for the half-width button and would wrap. |
+| Start a crew for tonight | **Crear grupo esta noche** | One line, like English (*para esta noche* takes two). |
+
+For a native reviewer: (1) *Tus conciertos* for Past gigs is deliberate (see above); *Conciertos pasados* is the literal alternative if a wrap on small phones is acceptable. (2) *Batería: 8%* under a face, as a label: *8% de batería* wraps in the 76 dp column. (3) *Encuentra a tus amigos en la multitud* takes three lines on the first-time screen. Written without a native reviewer. Confidence: **medium-high**.

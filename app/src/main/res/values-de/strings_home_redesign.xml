@@ -36,7 +36,7 @@
     <string name="home_menu_invite">Mehr Freunde einladen</string>
     <string name="home_menu_invite_sub">Zeig den Crew-QR oder schick einen Link</string>
     <string name="home_menu_family">Abend mit der Familie teilen</string>
-    <string name="home_menu_family_sub">Sie folgen von zu Hause, ohne selbst gefunden zu werden</string>
+    <string name="home_menu_family_sub">Deine Familie folgt von zu Hause, ohne selbst gefunden zu werden</string>
     <string name="home_menu_reset_sub">Neuer QR und Link. Die alten funktionieren nicht mehr</string>
     <string name="home_menu_end_sub">Du verlässt die heutige Crew. Deine Fotos bleiben unter Frühere Konzerte</string>
     <string name="home_menu_cancel_sub">Du steigst vor dem Konzerttag aus. Wer schon dabei ist, bleibt drin</string>

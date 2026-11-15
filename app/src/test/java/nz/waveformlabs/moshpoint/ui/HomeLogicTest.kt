@@ -1,5 +1,6 @@
 package nz.waveformlabs.moshpoint.ui
 
+import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.LocationBook
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -43,6 +44,48 @@ class HomeLogicTest {
     @Test fun stalePinsNeverMerge() {
         val out = crewBubbles(listOf(pin("alex", -41.2865, 174.7762), pin("jo", -41.2865, 174.7762, stale = true)))
         assertEquals(2, out.size)
+    }
+
+    // The home's faces (docs/HOME_REDESIGN.md): live first and nearest first, then the most recently seen.
+    private fun mate(id: String) = nz.waveformlabs.moshpoint.Friend(nz.waveformlabs.moshpoint.core.FriendRecord(id, id, 0, ByteArray(32), true, 0L))
+
+    @Test fun facesLiveFirstThenNearestThenLastSeen() {
+        val now = 1_000_000L
+        val seen = mapOf(
+            "near" to LocationBook.Seen(0.0, 0.0, now - 30, 10),
+            "far" to LocationBook.Seen(0.0, 0.0, now - 60, 10),
+            "nowhere" to LocationBook.Seen(0.0, 0.0, now - 20, 10), // live, but no distance yet
+            "dead" to LocationBook.Seen(0.0, 0.0, now - 10, 10, lastGasp = true),
+            "old" to LocationBook.Seen(0.0, 0.0, now - 900, 10),
+            "older" to LocationBook.Seen(0.0, 0.0, now - 3600, 10),
+        )
+        val crew = listOf("never", "older", "far", "dead", "nowhere", "old", "near").map(::mate)
+        val order = liveFirst(crew, seen, now, mapOf("near" to 8.0, "far" to 120.0)).map { it.id }
+        assertEquals(listOf("near", "far", "nowhere", "dead", "old", "older", "never"), order)
+    }
+
+    @Test fun faceStatusSaysLiveOrWhenLastSeen() = inLocale(java.util.Locale("en", "NZ")) {
+        val now = 1_000_000L
+        val live = faceStatus(LocationBook.Seen(0.0, 0.0, now - 30, 10, batteryPct = 64), now, 40.0)
+        assertTrue(live.live && live.distance)
+        assertEquals(distanceLabel(40.0), live.text)
+        assertEquals(null, live.battery) // only said when low
+        assertEquals(8, faceStatus(LocationBook.Seen(0.0, 0.0, now - 30, 10, batteryPct = 8), now, 40.0).battery)
+        assertEquals("live", faceStatus(LocationBook.Seen(0.0, 0.0, now - 30, 10), now, null).text)
+        val gone = faceStatus(LocationBook.Seen(0.0, 0.0, now - 900, 10), now, 40.0)
+        assertTrue(!gone.live && !gone.distance)
+        assertEquals("15 min ago", gone.text)
+        assertEquals("phone died", faceStatus(LocationBook.Seen(0.0, 0.0, now - 10, 10, lastGasp = true), now, 5.0).text)
+        assertEquals("not sharing yet", faceStatus(null, now, null).text)
+    }
+
+    @Test fun eyebrowsAreTrackedOnlyInScriptsThatTakeIt() {
+        val wide = 2.5.sp
+        assertEquals(wide, tracked("TONIGHT", wide))
+        assertEquals(wide, tracked("HEUTE ABEND", wide))
+        assertEquals(0f, tracked("الليلة", wide).value)
+        assertEquals(0f, tracked("คืนนี้", wide).value)
+        assertEquals(0f, tracked("आज रात", wide).value)
     }
 
     @Test fun statusLineSaysWhatMatters() = inLocale(java.util.Locale("en", "NZ")) {

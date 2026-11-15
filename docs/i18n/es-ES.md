@@ -142,3 +142,18 @@ Validator prints **OK**. See `docs/PRIVATE_MESSAGES.md`.
 | %d unread private messages (screen reader, the count on a face) | %d mensajes privados sin leer |
 
 Uses **grupo** and *vosotros* (Spain), and *móvil* for the phone. Reuses the existing words for "Sent", "Sent nearby", "Waiting for signal" and the no-signal notes. Written without a native reviewer. Confidence: **medium**.
+
+## Home redesign (`strings_home_redesign.xml`)
+
+The redesigned home: the Live row (the switch's name and the line beside it), the crew header, faces and ⋯ crew menu, the no-crew and first-time screens, and the section titles (36 strings, 3 plurals). Validator prints **OK** for this file.
+
+| English | Chosen | Why |
+|---|---|---|
+| Live (the switch's name, on or off) | **En directo** | Spain's word, as in `home_live` and every other live string here. It names the mode, so it reads right next to a switch that is off. |
+| You're visible to your mates / Off: mates can't see you yet | Tus amigos te ven / Desactivado: tus amigos aún no te ven | *Desactivado:* as in `setup_data_saver_desc`. |
+| Ghost mode: off the map, findable up close | Modo fantasma: fuera del mapa, localizable de cerca | *En directo* is wider than *En vivo*, so the line beside the switch is narrower: *te encuentran de cerca* took three lines. *Localizable* (as in *estar localizable*) keeps it to two, like English. |
+| Crew menu: Invite more mates / Share the night with family | Invitar a más amigos / Compartir la noche con tu familia | Infinitives, like the other rows. The lines under them in Spain forms: *Enseña el QR del grupo…*, *nadie puede encontrarles* (the folder's leísmo), *los amigos que se han unido*. |
+| Up next / Past gigs | **Próximos** / **Tus conciertos** | As in `values-es`: *Conciertos pasados* wraps next to *Ver todos* on both test phones; *Tus conciertos* fits and is what `main_recap_text`, `main_night_ended` and `crew_notif_done_saved` already say. |
+| Share photos | **Subir fotos** | The everyday phrase for posting photos. *Compartir fotos* wraps in the half-width button. |
+
+For a native reviewer: (1) *localizable de cerca* in the ghost line. (2) *encontrarles* follows the folder's leísmo (see "Checked and safe"); *encontrarlos* if preferred. (3) *Tus conciertos* for Past gigs, as in `values-es`. Written without a native reviewer. Confidence: **medium-high**.

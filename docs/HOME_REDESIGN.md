@@ -139,6 +139,10 @@ Results: not recorded yet (see Status).
 
 Handover (kept current; newest first):
 
+- **Now:** first full CI run (run 274, commit `7e105d1`) building; next: read its "Compile
+  errors" step if it fails, else fetch `ui-screenshots-claude-home-redesign` and audit.
+  Helper scripts used for strings (delete unused, rename the section in three texts) were
+  one-offs; the contact sheets come from `tools/contact_sheet.py`.
 - **Done:** Step 1 (inventory, above). Step 2 code written but not yet compiled (Google Maven is
   blocked in the container, so only CI can build): `Theme.kt` tokens, `HomeKit.kt` (new),
   `HomeSections.kt` and `FriendsScreen.kt` (rewritten), `HelpDialog(onAlertCrew = null)` in

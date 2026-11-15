@@ -156,4 +156,4 @@ The redesigned home: the Live row (the switch's name and the line beside it), th
 | Up next / Past gigs | **Sắp tới** / **Show đã qua** | Sắp tới is the existing section name. Show đã qua ("past shows") keeps show for gig. Titles are now sentence case, as in English. |
 | Share photos / Start a crew for tonight | **Chia sẻ ảnh** / **Lập nhóm tối nay** | Like «Chia sẻ khoảnh khắc»; Lập nhóm as elsewhere. Both fit on one line. |
 
-For a native reviewer: the switch (Chia sẻ) and the button (Chia sẻ ảnh) share a verb; «Đăng ảnh» ("post photos") would keep them apart. `main_recap_text`, `main_night_ended` and `crew_notif_done_saved` still say «Show của bạn», because the English there still says "Your gigs". Written without a native reviewer. Confidence: **medium-high**.
+For a native reviewer: the switch (Chia sẻ) and the button (Chia sẻ ảnh) share a verb; «Đăng ảnh» ("post photos") would keep them apart. `main_recap_text`, `main_night_ended` and `crew_notif_done_saved` now say «Show đã qua» (the English now says "Past gigs" there). Written without a native reviewer. Confidence: **medium-high**.

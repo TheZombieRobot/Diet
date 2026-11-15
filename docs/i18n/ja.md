@@ -139,7 +139,7 @@ The redesigned home screen: the Live switch and the line beside it, the crew hea
 | You're visible to your mates / Off: mates can't see you yet | 仲間から見えています / オフ：まだ仲間から見えません | The two lines mirror each other, in です/ます. |
 | Ghost mode: off the map, findable up close | ゴーストモード：マップでは非表示、近くなら見つけてもらえます | 見つけてもらえる as in `setup_ghost_mode_desc`. |
 | Crew menu: Invite more mates / Share the night with family | もっと仲間を招待 / **家族にも見守ってもらう** | The family row opens the same share as `main_follow_share_title`, so it reuses those words. 今夜をシェア is already the night recap's share (`main_share_night_title`). |
-| Past gigs (section, and "Your photos stay in Past gigs") | **過去のライブ** | Pairs with 次の予定. Older strings (recap, "night ended") still say 「あなたのライブ」, as the English there still says "Your gigs". |
+| Past gigs (section, and "Your photos stay in Past gigs") | **過去のライブ** | Pairs with 次の予定. The recap, "night ended" and the saved-photos notification now say 「過去のライブ」 too (the English now says "Past gigs" there). |
 | Up next | 次の予定 | As `home_up_next`. |
 | Share photos (half-width button) | 写真をシェア | One line in half the row, next to クルーチャット. |
 

@@ -6,7 +6,7 @@
     <!-- Live row: the switch's name, then one line beside it -->
     <string name="home_live_switch">Lokalizacja</string>
     <string name="home_live_on">Znajomi cię widzą</string>
-    <string name="home_live_ghost_on">Tryb ducha: nie ma cię na mapie, ale z bliska cię znajdą</string>
+    <string name="home_live_ghost_on">Tryb ducha: nie ma cię na mapie, z bliska cię znajdą</string>
     <string name="home_live_off">Wyłączone: znajomi jeszcze cię nie widzą</string>
 
     <!-- Crew header and faces -->
@@ -25,7 +25,7 @@
     </plurals>
     <string name="home_face_options">Opcje</string>
     <string name="home_friend_options">Opcje: %1$s</string>
-    <string name="home_face_battery">Bateria: %1$d%%</string>
+    <string name="home_face_battery">%1$d%% baterii</string>
 
     <string name="home_share_photos">Dodaj zdjęcia</string>
     <string name="home_meetup">Zbiórka: %1$s</string>
@@ -61,7 +61,7 @@
     <string name="home_section_up_next">Wkrótce</string>
     <string name="home_section_past_gigs">Minione koncerty</string>
     <string name="home_section_friends">Znajomi</string>
-    <string name="home_see_all">Zobacz wszystko</string>
+    <string name="home_see_all">Więcej</string>
     <plurals name="home_mates">
         <item quantity="one">%d osoba</item>
         <item quantity="few">%d osoby</item>

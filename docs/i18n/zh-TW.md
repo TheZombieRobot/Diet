@@ -145,7 +145,7 @@ The redesigned home screen: the Live switch and the line beside it, the crew hea
 | You're visible to your mates / Off: mates can't see you yet | 朋友看得到你 / 已關閉：朋友還看不到你 | The two lines mirror each other. |
 | Ghost mode: off the map, findable up close | 幽靈模式：地圖上不顯示，靠近時還是找得到你 | As `setup_ghost_mode_desc`. |
 | Crew menu: Invite more mates / Share the night with family | **揪更多朋友** / **讓家人一起追蹤** | 揪 as in 揪朋友 (`home_upnext_invite`). The family row opens the same share as `main_follow_share_title`, so it reuses those words. |
-| Past gigs (section, and "Your photos stay in Past gigs") | **看過的演出** | The everyday way to say gigs you've been to (看過, as for films). Pairs with 下一場. Older strings still say 「我的演出」, as the English there still says "Your gigs". |
+| Past gigs (section, and "Your photos stay in Past gigs") | **看過的演出** | The everyday way to say gigs you've been to (看過, as for films). Pairs with 下一場. The recap, "night ended" and the saved-photos notification now say 「看過的演出」 too (the English now says "Past gigs" there). |
 | Up next | 下一場 | As `home_up_next`. |
 | Share photos (half-width button) | 分享相片 | 相片, as everywhere in this folder. |
 

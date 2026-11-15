@@ -6,7 +6,7 @@
     <!-- Live row -->
     <string name="home_live_switch">En directo</string>
     <string name="home_live_on">Tus amigos te ven</string>
-    <string name="home_live_ghost_on">Modo fantasma: fuera del mapa, te encuentran de cerca</string>
+    <string name="home_live_ghost_on">Modo fantasma: fuera del mapa, localizable de cerca</string>
     <string name="home_live_off">Desactivado: tus amigos aún no te ven</string>
 
     <!-- Crew header and faces -->
