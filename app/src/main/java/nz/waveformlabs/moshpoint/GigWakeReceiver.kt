@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import nz.waveformlabs.moshpoint.crew.CrewNotifications
 import nz.waveformlabs.moshpoint.crew.GroupSync
+import nz.waveformlabs.moshpoint.gigs.GigWake
 
 class GigWakeReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {

@@ -53,7 +53,7 @@ class LocationUploader(private val context: Context, private val scope: Coroutin
                 // Night recap: count real movement only (not GPS jitter).
                 lastLoc?.let { prev ->
                     val d = prev.distanceTo(loc)
-                    if (loc.accuracy < 30 && d > maxOf(10f, loc.accuracy)) nz.waveformlabs.moshpoint.NightStats.addMetres(context, d.toDouble())
+                    if (loc.accuracy < 30 && d > maxOf(10f, loc.accuracy)) nz.waveformlabs.moshpoint.gigs.NightStats.addMetres(context, d.toDouble())
                 }
                 lastLoc = loc
                 publish(loc, force = false)

@@ -9,8 +9,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import nz.waveformlabs.moshpoint.DebugStatus
-import nz.waveformlabs.moshpoint.GigArchive
-import nz.waveformlabs.moshpoint.NightStats
+import nz.waveformlabs.moshpoint.gigs.GigArchive
+import nz.waveformlabs.moshpoint.gigs.NightStats
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.GigGroup

@@ -42,6 +42,10 @@ import nz.waveformlabs.moshpoint.crew.CrewStatus
 import nz.waveformlabs.moshpoint.crew.Crews
 import nz.waveformlabs.moshpoint.crew.FollowCheck
 import nz.waveformlabs.moshpoint.crew.GroupSync
+import nz.waveformlabs.moshpoint.gigs.GigArchive
+import nz.waveformlabs.moshpoint.gigs.GigSearch
+import nz.waveformlabs.moshpoint.gigs.Memories
+import nz.waveformlabs.moshpoint.gigs.NightStats
 import nz.waveformlabs.moshpoint.locate.RelayClient
 import nz.waveformlabs.moshpoint.core.QrPayload
 import nz.waveformlabs.moshpoint.locate.LocatorEngine

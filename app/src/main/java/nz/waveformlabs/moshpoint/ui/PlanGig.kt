@@ -29,7 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import nz.waveformlabs.moshpoint.GigSearch
+import nz.waveformlabs.moshpoint.gigs.GigSearch
 import nz.waveformlabs.moshpoint.R
 import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.launch

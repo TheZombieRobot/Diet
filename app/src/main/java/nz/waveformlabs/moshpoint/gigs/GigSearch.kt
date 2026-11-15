@@ -1,7 +1,8 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.gigs
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import nz.waveformlabs.moshpoint.BuildConfig
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL

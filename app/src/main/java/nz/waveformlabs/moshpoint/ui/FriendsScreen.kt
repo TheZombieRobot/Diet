@@ -135,10 +135,10 @@ fun FriendsScreen(
     /** Share the follow-along invite with family. */
     onLetFamilyFollow: () -> Unit = {},
     /** Past gigs kept on this phone. */
-    pastGigs: List<nz.waveformlabs.moshpoint.GigArchive.Summary> = emptyList(),
+    pastGigs: List<nz.waveformlabs.moshpoint.gigs.GigArchive.Summary> = emptyList(),
     /** Tonight's gig (it's the crew, not a past gig). */
     currentGigId: String? = null,
-    onOpenGig: (nz.waveformlabs.moshpoint.GigArchive.Summary) -> Unit = {},
+    onOpenGig: (nz.waveformlabs.moshpoint.gigs.GigArchive.Summary) -> Unit = {},
     /** "Sat 14 Dec, 8:00 pm · Spark Arena" for a planned gig's crew, else null. */
     crewWhen: String? = null,
     /** The crew is for a later day and is asleep (nothing running) until then. */
@@ -508,7 +508,7 @@ fun FriendsScreen(
                         }
                     }
                     // "Remember last year?": a gig on this day in an earlier year.
-                    nz.waveformlabs.moshpoint.Memories.today(pastGigs, if (nowSec > 0) nowSec * 1000 else System.currentTimeMillis()).firstOrNull()?.let { (g, years) ->
+                    nz.waveformlabs.moshpoint.gigs.Memories.today(pastGigs, if (nowSec > 0) nowSec * 1000 else System.currentTimeMillis()).firstOrNull()?.let { (g, years) ->
                         Spacer(Modifier.height(28.dp))
                         MemoryCard(g, years) { onOpenGig(g) }
                     }

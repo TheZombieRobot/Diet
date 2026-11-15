@@ -260,13 +260,13 @@ internal fun SettingsContent(
                         TextButton(onClick = { nz.waveformlabs.moshpoint.FriendsRepository.removeSimulated() }) {
                             Text("Remove simulated friends", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber))
                         }
-                        TextButton(onClick = { scope.launch { nz.waveformlabs.moshpoint.GigArchive.addSample(context) } }) {
+                        TextButton(onClick = { scope.launch { nz.waveformlabs.moshpoint.gigs.GigArchive.addSample(context) } }) {
                             Text("Add a sample past gig (memories)", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber))
                         }
-                        TextButton(onClick = { nz.waveformlabs.moshpoint.Memories.notifyNow(context) }) {
+                        TextButton(onClick = { nz.waveformlabs.moshpoint.gigs.Memories.notifyNow(context) }) {
                             Text("Show memory notification", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber))
                         }
-                        TextButton(onClick = { scope.launch { nz.waveformlabs.moshpoint.GigArchive.removeSamples(context) } }) {
+                        TextButton(onClick = { scope.launch { nz.waveformlabs.moshpoint.gigs.GigArchive.removeSamples(context) } }) {
                             Text("Remove sample gigs", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber))
                         }
                         // Chat on your own: fake mates write in, 10 s later so you can leave the app and see the notification.

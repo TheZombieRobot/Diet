@@ -85,7 +85,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.Friend
-import nz.waveformlabs.moshpoint.GigArchive
+import nz.waveformlabs.moshpoint.gigs.GigArchive
 import nz.waveformlabs.moshpoint.LocationBook
 import nz.waveformlabs.moshpoint.moments.Moments
 import nz.waveformlabs.moshpoint.R
@@ -381,7 +381,7 @@ internal fun MemoryCard(g: GigArchive.Summary, years: Int, onOpen: () -> Unit) {
         Column(Modifier.weight(1f)) {
             Kicker(stringResource(R.string.home_memories), colour = Mosh.Amber)
             Spacer(Modifier.height(4.dp))
-            Text(nz.waveformlabs.moshpoint.Memories.headline(g, years, LocalContext.current.resources), style = HomeType.RowTitle.copy(lineBreak = HomeBreakEven))
+            Text(nz.waveformlabs.moshpoint.gigs.Memories.headline(g, years, LocalContext.current.resources), style = HomeType.RowTitle.copy(lineBreak = HomeBreakEven))
             Spacer(Modifier.height(2.dp))
             // The text's own "›" becomes the chevron after the card, which mirrors right to left.
             Text(pluralStringResource(R.plurals.home_memories_count, n, n).trimEnd().removeSuffix("›").trimEnd(), style = HomeType.Small.copy(color = Mosh.TextDim, lineBreak = HomeBreakEven))

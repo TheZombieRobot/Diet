@@ -1,10 +1,13 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.gigs
 
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import java.util.Calendar
+import nz.waveformlabs.moshpoint.MemoryReceiver
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.crew.CrewNotifications
 
 /**

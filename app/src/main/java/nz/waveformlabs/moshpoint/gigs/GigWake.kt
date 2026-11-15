@@ -1,9 +1,10 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.gigs
 
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import nz.waveformlabs.moshpoint.GigWakeReceiver
 import nz.waveformlabs.moshpoint.core.GigGroup
 
 /**

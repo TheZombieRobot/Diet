@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import nz.waveformlabs.moshpoint.GigArchive
+import nz.waveformlabs.moshpoint.gigs.GigArchive
 import nz.waveformlabs.moshpoint.R
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource

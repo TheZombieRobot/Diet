@@ -1,6 +1,8 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.gigs
 
 import android.content.Context
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.ui.distanceLabel
 
 /**

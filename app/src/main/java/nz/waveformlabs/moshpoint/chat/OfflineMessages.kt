@@ -16,7 +16,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import nz.waveformlabs.moshpoint.DebugStatus
-import nz.waveformlabs.moshpoint.GigArchive
+import nz.waveformlabs.moshpoint.gigs.GigArchive
 import nz.waveformlabs.moshpoint.HerePins
 import nz.waveformlabs.moshpoint.Identity
 import nz.waveformlabs.moshpoint.NetState

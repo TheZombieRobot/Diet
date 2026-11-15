@@ -24,13 +24,13 @@ import nz.waveformlabs.moshpoint.chat.CrewChat
 import nz.waveformlabs.moshpoint.CrewWidget
 import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.FriendsRepository
-import nz.waveformlabs.moshpoint.GigArchive
-import nz.waveformlabs.moshpoint.GigWake
+import nz.waveformlabs.moshpoint.gigs.GigArchive
+import nz.waveformlabs.moshpoint.gigs.GigWake
 import nz.waveformlabs.moshpoint.HerePins
 import nz.waveformlabs.moshpoint.Identity
 import nz.waveformlabs.moshpoint.LocationBook
 import nz.waveformlabs.moshpoint.moments.Moments
-import nz.waveformlabs.moshpoint.NightStats
+import nz.waveformlabs.moshpoint.gigs.NightStats
 import nz.waveformlabs.moshpoint.chat.OfflineMessages
 import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages
 import nz.waveformlabs.moshpoint.R
