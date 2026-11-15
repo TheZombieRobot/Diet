@@ -147,3 +147,4 @@ The first-time title (人混みでも\n仲間が見つかる) breaks where onboa
 
 For a native reviewer: 位置シェア vs plain シェア for the switch (シェア alone can look like a share button); 過去のライブ vs the warmer これまでのライブ; これでクルー結成！ in the no-crew text. Written without a native reviewer. Confidence: **medium-high**.
 - **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it 「位置シェア」 (「位置シェア」をオンに); 「シェア開始」 was the old button. The onboarding title keeps シェア開始 as a phrase.
+- **Crew chat on the home** (review of the redesign): `home_crew_chat` is チャット (it was クルーチャット), only used on the home, so the button fits beside 写真をシェア as in the design instead of the pair stacking; the chat bubble icon and the crew around it say whose chat it is.

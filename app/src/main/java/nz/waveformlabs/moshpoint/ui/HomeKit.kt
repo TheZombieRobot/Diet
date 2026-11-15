@@ -9,6 +9,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,8 +40,11 @@ import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
@@ -60,6 +65,8 @@ import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.PathParser
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.IntrinsicMeasurable
 import androidx.compose.ui.layout.IntrinsicMeasureScope
@@ -625,6 +632,24 @@ internal fun liveFirst(crew: List<Friend>, seen: Map<String, LocationBook.Seen>,
         ),
     )
 
+/** A distance's band: the faces re-sort only when someone moves to another band. */
+internal fun distanceBand(m: Double): Int = when {
+    m < 10 -> 0
+    m < 25 -> 1
+    m < 50 -> 2
+    m < 100 -> 3
+    m < 250 -> 4
+    m < 500 -> 5
+    m < 1000 -> 6
+    else -> 7
+}
+
+/** What the faces' order depends on: who's in, who's live, and each live face's distance band. */
+internal fun faceOrderKey(crew: List<Friend>, seen: Map<String, LocationBook.Seen>, nowSec: Long, distances: Map<String, Double>): Triple<Set<String>, Set<String>, Map<String, Int>> {
+    val live = crew.filter { isLive(seen[it.id], nowSec) }.map { it.id }.toSet()
+    return Triple(crew.map { it.id }.toSet(), live, distances.filterKeys { it in live }.mapValues { (_, d) -> distanceBand(d) })
+}
+
 /** Saturation 50%, brightness 75%: a face that isn't live. */
 private val Dimmed = ColorFilter.colorMatrix(
     ColorMatrix(
@@ -763,9 +788,29 @@ internal fun CrewTiles(
     modifier: Modifier = Modifier,
 ) {
     val atVenue = stringResource(R.string.crew_at_venue)
-    val sorted = liveFirst(crew, seen, nowSec, distances)
+    // A steady order: re-sorted when someone joins or leaves, goes live or not, or moves to
+    // another distance band, never on every sync, and never while a finger is on the strip
+    // (a face mustn't jump away as it's tapped). Newcomers wait at the end until then.
+    var fingerDown by remember { mutableStateOf(false) }
+    val wanted = faceOrderKey(crew, seen, nowSec, distances)
+    var key by remember { mutableStateOf(wanted) }
+    LaunchedEffect(wanted, fingerDown) { if (!fingerDown) key = wanted }
+    val order = remember(key) { liveFirst(crew, seen, nowSec, distances).map { it.id } }
+    val byId = crew.associateBy { it.id }
+    val sorted = order.mapNotNull { byId[it] } + crew.filter { it.id !in order }
     LazyRow(
-        modifier.fillMaxWidth(),
+        modifier.fillMaxWidth()
+            .pointerInput(Unit) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                    fingerDown = true
+                    try {
+                        do { val e = awaitPointerEvent(PointerEventPass.Initial) } while (e.changes.any { it.pressed })
+                    } finally {
+                        fingerDown = false
+                    }
+                }
+            },
         // Room above and to the side for the glow: rings and glows are never cut off.
         contentPadding = PaddingValues(start = HomeSide, end = HomeSide, top = 20.dp, bottom = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),

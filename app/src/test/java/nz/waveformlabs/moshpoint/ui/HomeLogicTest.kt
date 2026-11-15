@@ -80,6 +80,19 @@ class HomeLogicTest {
         assertEquals("not sharing yet", faceStatus(null, now, null).text)
     }
 
+    @Test fun facesKeepTheirOrderUntilSomethingClearlyChanges() {
+        val now = 1_000_000L
+        val crew = listOf(HomeFixtures.rae, HomeFixtures.sam, HomeFixtures.alex)
+        val seen = mapOf("rae" to LocationBook.Seen(0.0, 0.0, now - 20, 10), "sam" to LocationBook.Seen(0.0, 0.0, now - 40, 10), "alex" to LocationBook.Seen(0.0, 0.0, now - 900, 10))
+        val key = faceOrderKey(crew, seen, now, mapOf("rae" to 30.0, "sam" to 60.0))
+        // A few metres either way (GPS jitter) keeps the order...
+        assertEquals(key, faceOrderKey(crew, seen, now + 30, mapOf("rae" to 34.0, "sam" to 57.0)))
+        // ...a clear move, someone going live or not, or someone joining re-sorts it.
+        assertTrue(key != faceOrderKey(crew, seen, now, mapOf("rae" to 30.0, "sam" to 140.0)))
+        assertTrue(key != faceOrderKey(crew, seen, now + 200, mapOf("rae" to 30.0, "sam" to 60.0)))
+        assertTrue(key != faceOrderKey(crew + HomeFixtures.jo, seen, now, mapOf("rae" to 30.0, "sam" to 60.0)))
+    }
+
     @Test fun eyebrowsAreTrackedOnlyInScriptsThatTakeIt() {
         val wide = 2.5.sp
         assertEquals(wide, tracked("TONIGHT", wide))

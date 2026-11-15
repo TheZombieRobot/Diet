@@ -104,9 +104,14 @@ sheets). Strings: `res/values*/strings_home_redesign.xml`.
   1000 px, which would make a tall screen unreadable.
 - **Translations**: `strings_home_redesign.xml` in every folder, from each language's
   vocabulary in `docs/i18n/<lang>.md` (each doc has a new "Home redesign" section with the
-  choices and doubts). The Live switch's name is a noun in every language: where "live" reads as
-  a livestream the location-sharing word is used (ja 位置シェア, ko 위치 공유, pl Lokalizacja,
-  tr Konum, th การแชร์, vi Chia sẻ, zh 上线 / 上線).
+  choices and doubts). The Live switch's name is a noun (a name, not a verb) in every language:
+  where "live" reads as a livestream another word is used: ja 位置シェア, ko 위치 공유,
+  pl Widoczność, tr Görünürlük (not the word the setup card uses for the phone's Location
+  setting, which was the first choice), th มองเห็นได้, vi Hiển thị (not Chia sẻ, as in
+  Share photos), zh 在线 / 在線 (the first choice, 上线 / 上線, is a verb). Every text that names
+  the switch uses that name, English included ("with Live on", "turn on Live"); verb phrases
+  such as "go live" stay where they read naturally. Japanese crew chat on the home is チャット,
+  so its pair fits side by side.
 - **Strings deleted** (no longer used anywhere, removed from every folder): `home_go_live`,
   `home_live`, `home_live_ghost`, `home_hidden_hint`, `home_tile_with_battery`, `home_chat`,
   `home_chat_unread`, `home_camera`, `home_chat_subtitle`, `home_crew_chat_unread`,
@@ -134,8 +139,8 @@ sheets). Strings: `res/values*/strings_home_redesign.xml`.
   `HomeBreak`): phrase-based breaking (Korean wraps at spaces, Japanese between phrases, on
   Android 13+), strict kinsoku (no small kana or closing mark at a line's start), and the
   high-quality breaker (no single word or character alone on a last line where it can help);
-  face captions and button labels use the balanced variant. Only the home's files use it; the
-  other screens keep Mosh's styles.
+  face captions and button labels use the balanced variant. The home's files use it, which
+  includes the ping bar the crew chat also shows; the other screens keep Mosh's styles.
 - **Two buttons side by side** stack when a label's longest word can't fit in half the width
   (`WholeWordsText`), instead of breaking inside a word ("Crew-Cha|t", "クルーチャ|ット").
 - **" · " lines** (`dotLine`): each short part stays whole and the dot ends a line; Arabic uses
@@ -146,6 +151,14 @@ sheets). Strings: `res/values*/strings_home_redesign.xml`.
 - **Translations touched for typesetting only**: Polish home strings have a no-break space after
   one-letter words (a, i, o, u, w, z), Chinese ones have word joiners in three places (了。,
   邀请, the quoted ＋ button), and Arabic's "9+" badge is "٩+". No wording changed.
+- **From the review of `ad9a3e9`**: the faces keep a steady order (re-sorted when someone
+  joins or leaves, goes live or not, or moves to another distance band; never while a finger
+  is on the strip); Need help moves to its own row when even its longest word can't fit beside
+  the wordmark (a small phone with a large font), and bottom-bar labels may take two lines;
+  "Remove someone" is a clear red (`Mosh.Red`, also the emergency call's), while the crew
+  menu's End the night stays pink as designed; Need help offers the crew alert only when
+  someone is in the crew or following; the recap's End the night resets the night's stats and
+  says so only once you've actually left (a cancelled handover keeps them).
 - **Shared pieces fixed on the way**: `FitText` (finder) no longer multiplies an unspecified line
   height (it threw); the violet unread badge on faces (private messages) shows the phone's
   digits; a story Polaroid's caption keeps its own direction (Unicode isolate), so "Front row!!"
