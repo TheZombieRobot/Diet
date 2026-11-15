@@ -204,7 +204,7 @@ missing picture means a crash and is checked for on every run: an exception insi
 row's item is thrown during layout, which Paparazzi saves as a blank frame instead of failing.
 Round 3 followed the owner's review of `ad9a3e9`: every state the fixes touch, in every
 language, and the three new tests, re-rendered and looked at again until clean (runs
-285 to 287; what that round found is in the table, and its fixes in section 2).
+285 to 288; what that round found is in the table, and its fixes in section 2).
 
 **Spain's Spanish (es-rES)** can't be rendered by Paparazzi: given `es-rES` (or `b+es+ES`) it
 takes `values-es`, so the es-rES pictures are the plain Spanish ones (the same on the main
@@ -275,7 +275,7 @@ still has a middle dot beside a number ("٤ · …").
 Handover (kept current; newest first):
 
 - **Now:** the owner's review of `ad9a3e9` (items 1–13) is done in code; this commit adds the
-  fixes from checking run 286's screenshots (200% and the small phone at 130%): width-aware
+  fixes from checking runs 286 and 287 (200% and the small phone at 130%): width-aware
   " · " lines, one fitted size for the tab labels, digits in every script keep their word,
   word joiners for 朋友/显示/見えています, Japanese Live line under the switch at 200%. Next:
   let CI render; check hugeFontHomeMain (en, de, pl, ja), smallPhoneLargeFont* (every
