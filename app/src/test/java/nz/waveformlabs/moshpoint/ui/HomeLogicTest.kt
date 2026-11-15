@@ -47,7 +47,7 @@ class HomeLogicTest {
     }
 
     // The home's faces (docs/HOME_REDESIGN.md): live first and nearest first, then the most recently seen.
-    private fun mate(id: String) = nz.waveformlabs.moshpoint.Friend(nz.waveformlabs.moshpoint.core.FriendRecord(id, id, 0, ByteArray(32), true, 0L))
+    private fun mate(id: String) = nz.waveformlabs.moshpoint.friends.Friend(nz.waveformlabs.moshpoint.core.FriendRecord(id, id, 0, ByteArray(32), true, 0L))
 
     @Test fun facesLiveFirstThenNearestThenLastSeen() {
         val now = 1_000_000L

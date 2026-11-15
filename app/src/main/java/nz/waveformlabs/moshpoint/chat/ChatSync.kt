@@ -10,7 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.ChatCheckReceiver
-import nz.waveformlabs.moshpoint.Friendship
+import nz.waveformlabs.moshpoint.friends.Friendship
 import nz.waveformlabs.moshpoint.gigs.GigArchive
 import nz.waveformlabs.moshpoint.profile.Identity
 import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages

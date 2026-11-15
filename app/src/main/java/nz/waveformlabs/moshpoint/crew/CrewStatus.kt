@@ -7,8 +7,8 @@ import android.content.pm.PackageManager
 import android.location.LocationManager
 import androidx.compose.runtime.mutableStateMapOf
 import nz.waveformlabs.moshpoint.CrewWidget
-import nz.waveformlabs.moshpoint.Friend
-import nz.waveformlabs.moshpoint.FriendsRepository
+import nz.waveformlabs.moshpoint.friends.Friend
+import nz.waveformlabs.moshpoint.friends.FriendsRepository
 import nz.waveformlabs.moshpoint.LocationBook
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt

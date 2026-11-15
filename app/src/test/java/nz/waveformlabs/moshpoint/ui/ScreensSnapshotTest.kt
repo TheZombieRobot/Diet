@@ -8,7 +8,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import nz.waveformlabs.moshpoint.Friend
+import nz.waveformlabs.moshpoint.friends.Friend
 import nz.waveformlabs.moshpoint.core.ArrowState
 import nz.waveformlabs.moshpoint.core.FriendRecord
 import nz.waveformlabs.moshpoint.core.Method

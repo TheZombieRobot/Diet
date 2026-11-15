@@ -19,6 +19,7 @@ import nz.waveformlabs.moshpoint.core.HereRule
 import nz.waveformlabs.moshpoint.core.HereWatch
 import nz.waveformlabs.moshpoint.core.LatLon
 import nz.waveformlabs.moshpoint.crew.GroupSync
+import nz.waveformlabs.moshpoint.friends.FriendsRepository
 import nz.waveformlabs.moshpoint.gigs.GigArchive
 import nz.waveformlabs.moshpoint.locate.MotionDetector
 import nz.waveformlabs.moshpoint.locate.MyLocation

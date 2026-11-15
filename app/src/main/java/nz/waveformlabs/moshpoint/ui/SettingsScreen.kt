@@ -253,11 +253,11 @@ internal fun SettingsContent(
                         // The crew finder with several mates at once (arrows, strip, tap to focus) on one phone.
                         TextButton(onClick = {
                             if (nz.waveformlabs.moshpoint.crew.GroupSync.group.value == null) nz.waveformlabs.moshpoint.crew.GroupSync.startNew(context, "Test crew")
-                            repeat(3) { nz.waveformlabs.moshpoint.FriendsRepository.addSimulated(toCrew = true) }
+                            repeat(3) { nz.waveformlabs.moshpoint.friends.FriendsRepository.addSimulated(toCrew = true) }
                         }) {
                             Text("Add 3 simulated mates to the crew", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber))
                         }
-                        TextButton(onClick = { nz.waveformlabs.moshpoint.FriendsRepository.removeSimulated() }) {
+                        TextButton(onClick = { nz.waveformlabs.moshpoint.friends.FriendsRepository.removeSimulated() }) {
                             Text("Remove simulated friends", style = Mosh.Label.copy(fontSize = 14.sp, color = Mosh.Amber))
                         }
                         TextButton(onClick = { scope.launch { nz.waveformlabs.moshpoint.gigs.GigArchive.addSample(context) } }) {

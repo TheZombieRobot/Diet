@@ -84,7 +84,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import nz.waveformlabs.moshpoint.Friend
+import nz.waveformlabs.moshpoint.friends.Friend
 import nz.waveformlabs.moshpoint.gigs.GigArchive
 import nz.waveformlabs.moshpoint.LocationBook
 import nz.waveformlabs.moshpoint.moments.Moments

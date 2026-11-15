@@ -15,7 +15,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import nz.waveformlabs.moshpoint.chat.CrewChat
 import nz.waveformlabs.moshpoint.crew.CrewStatus
 import nz.waveformlabs.moshpoint.DebugStatus
-import nz.waveformlabs.moshpoint.FriendsRepository
+import nz.waveformlabs.moshpoint.friends.FriendsRepository
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.profile.Identity
 import nz.waveformlabs.moshpoint.chat.OfflineMessages

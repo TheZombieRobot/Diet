@@ -28,8 +28,8 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import nz.waveformlabs.moshpoint.crew.CrewStatus
 import nz.waveformlabs.moshpoint.DebugStatus
-import nz.waveformlabs.moshpoint.Friend
-import nz.waveformlabs.moshpoint.FriendsRepository
+import nz.waveformlabs.moshpoint.friends.Friend
+import nz.waveformlabs.moshpoint.friends.FriendsRepository
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.LocationBook
 import nz.waveformlabs.moshpoint.profile.PhotoStore

@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import nz.waveformlabs.moshpoint.Friend
+import nz.waveformlabs.moshpoint.friends.Friend
 
 // Faces, in layers: their photo, else their default avatar, else their initials (see Faces).
 

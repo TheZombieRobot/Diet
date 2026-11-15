@@ -28,7 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import nz.waveformlabs.moshpoint.Friend
+import nz.waveformlabs.moshpoint.friends.Friend
 import nz.waveformlabs.moshpoint.core.Method
 import nz.waveformlabs.moshpoint.locate.LocatorEngine
 import nz.waveformlabs.moshpoint.core.MethodDebug

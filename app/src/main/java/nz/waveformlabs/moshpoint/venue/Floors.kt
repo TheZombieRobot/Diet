@@ -15,7 +15,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.FieldRecorder
-import nz.waveformlabs.moshpoint.FriendsRepository
+import nz.waveformlabs.moshpoint.friends.FriendsRepository
 import nz.waveformlabs.moshpoint.profile.Identity
 import nz.waveformlabs.moshpoint.core.Baro
 import nz.waveformlabs.moshpoint.core.Closeness

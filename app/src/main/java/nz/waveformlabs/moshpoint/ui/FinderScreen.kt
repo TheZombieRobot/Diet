@@ -52,7 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.BuildConfig
 import nz.waveformlabs.moshpoint.DebugStatus
-import nz.waveformlabs.moshpoint.Friend
+import nz.waveformlabs.moshpoint.friends.Friend
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.core.ArrowState
 import nz.waveformlabs.moshpoint.core.ArrowStyle

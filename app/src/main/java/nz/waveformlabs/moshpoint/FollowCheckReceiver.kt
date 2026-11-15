@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import nz.waveformlabs.moshpoint.crew.FollowCheck
 import nz.waveformlabs.moshpoint.crew.GroupSync
+import nz.waveformlabs.moshpoint.friends.FriendsRepository
 
 class FollowCheckReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
