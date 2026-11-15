@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Japanese: safety and the Live state (what Need help says about the crew alert, Live going off by itself, a full phone, the check-in reminder). -->
+<resources>
+
+    <string name="safety_help_sending">送信中…</string>
+    <string name="safety_help_sent">クルーに送信済み</string>
+    <string name="safety_help_sent_sub">クルー全員に、居場所付きで緊急通知が届きます。</string>
+    <string name="safety_help_nearby">近くの仲間に送信済み</string>
+    <string name="safety_help_nearby_sub">近くのクルーのスマホには届いています。クルーのほかのメンバーには、誰かに電波が戻ったら届きます。</string>
+    <string name="safety_help_not_yet">まだ未送信</string>
+    <string name="safety_help_wait_go_live">電波がありません。「位置シェア」をオンにすると、近くのクルーのスマホがBluetoothで中継できます。</string>
+    <string name="safety_help_wait_bluetooth">電波がなく、Bluetoothもオフです。オンにすると、近くのクルーのスマホが中継できます。</string>
+    <string name="safety_help_wait_cant_carry">電波がありません。このスマホはBluetoothで渡せないため、電波が戻ったら送信されます。</string>
+    <string name="safety_help_wait_nearby">電波がありません。最初に近づいたクルーのスマホに渡され、電波が戻ったら全員に届きます。</string>
+    <string name="safety_help_wait_retrying">まだサーバーに届いていません。自動で再送し続けています。</string>
+    <string name="safety_go_live">シェア開始</string>
+    <string name="safety_help_not_sent">未送信</string>
+    <string name="safety_help_not_sent_sub">緊急通知は誰にも届いていません。タップしてもう一度試してください。</string>
+    <string name="safety_help_text_or_call">下のSMSか電話で連絡してください。どちらもデータ通信なしで使えます。</string>
+    <string name="safety_help_no_sms">このスマホにはSMSを送れるメッセージアプリがありません。代わりに電話するか、近くの人に頼んでください。</string>
+    <string name="safety_help_no_dialler">このスマホでは電話をかけられません。近くの人に%1$sへ電話してもらってください。</string>
+
+    <string name="safety_channel_notices">位置シェアとストレージのお知らせ</string>
+    <string name="safety_live_off_title">位置シェアが止まりました</string>
+    <string name="safety_live_off_text">AndroidがバックグラウンドのMoshpointを止めたため、仲間があなたを見つけられません。タップしてシェアを再開してね。</string>
+    <string name="safety_live_cant_start_text">AndroidがMoshpointの位置シェアを続けさせなかったため、仲間があなたを見つけられません。権限が許可されているか確認して、もう一度シェアを始めてね。</string>
+    <string name="safety_live_long_title">まだライブ会場にいる？</string>
+    <string name="safety_live_long_text">12時間シェアしていたので、バッテリー節約のため「位置シェア」がオフになりました。</string>
+    <string name="safety_live_long_notif">12時間シェアしていたので、バッテリー節約のため「位置シェア」がオフになりました。まだ会場にいるならタップしてね。</string>
+    <string name="safety_live_bluetooth_off">Bluetoothがオフ：近くでは仲間があなたを見つけられません</string>
+
+    <string name="safety_storage_full_title">スマホのストレージがいっぱいです</string>
+    <string name="safety_storage_full_text">空き容量を増やすまで、Moshpointは新しいメッセージ、写真、到着確認を保存できません。</string>
+
+    <string name="safety_checkin_reminder_title">もう家に着いた？</string>
+    <string name="safety_checkin_reminder_text">「無事に帰ったよ」をタップしないと、到着確認がないことがクルーに通知されます。</string>
+    <string name="safety_home_safe_waiting">まだ未送信。電波が戻りしだい自動で送信されます。</string>
+
+</resources>
