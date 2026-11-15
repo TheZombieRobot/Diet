@@ -5,7 +5,7 @@
     <conversionRule conversionWord="masked" converterClass="nz.waveformlabs.moshpoint.server.MaskedConverter" />
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{20} - %masked(%msg%n%ex)%nopex</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{20} - %masked%n</pattern>
         </encoder>
     </appender>
     <root level="WARN">

@@ -143,7 +143,7 @@ class MailboxStore(
         val now = clock()
         val cost = data.size.toLong() + ROW_OVERHEAD
         if (bytes + cost > maxBytes) {
-            sweepChunk(now, SWEEP_CHUNK)
+            sweepHere(now, SWEEP_CHUNK) // already inside the put's transaction
             if (bytes + cost > maxBytes) return Put.FULL
         }
         // The same bytes again take one slot: the old copy goes and the new one is newest.
@@ -193,7 +193,10 @@ class MailboxStore(
         return s.executeQuery().use { rs -> buildList { while (rs.next()) add(rs.getBytes(1)) } }
     }
 
-    private fun Db.sweepChunk(now: Long, limit: Int): Int = tx {
+    private fun Db.sweepChunk(now: Long, limit: Int): Int = tx { sweepHere(now, limit) }
+
+    /** Delete up to [limit] expired records, inside the caller's transaction. */
+    private fun Db.sweepHere(now: Long, limit: Int): Int {
         val found = ArrayList<Long>()
         var gone = 0L
         stmt("SELECT seq, length(data) FROM $table WHERE at < ? ORDER BY at LIMIT ?").run {
@@ -216,7 +219,7 @@ class MailboxStore(
             records -= found.size
             bytes -= gone
         }
-        found.size
+        return found.size
     }
 
     companion object {

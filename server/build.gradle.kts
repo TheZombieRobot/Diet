@@ -42,4 +42,5 @@ tasks.test {
     useJUnitPlatform()
     // One test starts the real server in a separate JVM with a small heap (LargeFileTest).
     maxHeapSize = "512m"
+    systemProperty("relay.classpath", sourceSets.main.get().runtimeClasspath.asPath)
 }

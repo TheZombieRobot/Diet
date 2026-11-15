@@ -14,9 +14,11 @@ data class Bucket(val burst: Double, val perSec: Double) {
  * every client has byte budgets per hour. All of it in memory, never stored.
  */
 data class LimitConfig(
-    // Without a token, per address (today's test builds): 5 to 10 times what the old server allowed.
-    val anonWrites: Bucket = Bucket(600.0, 20.0),
-    val anonReads: Bucket = Bucket(600.0, 10.0),
+    // Without a token, per address (today's test builds): 25 to 50 times what the old server
+    // allowed, so a few hundred phones of the current version behind one carrier address still
+    // get through. Storage is bounded by the byte budgets and caps, not by these.
+    val anonWrites: Bucket = Bucket(1_000.0, 50.0),
+    val anonReads: Bucket = Bucket(1_000.0, 50.0),
     // With a valid token, per install: about one request every 4 s sustained, bursts for catching up.
     val tokenWrites: Bucket = Bucket(120.0, 2.0),
     val tokenReads: Bucket = Bucket(120.0, 2.0),
