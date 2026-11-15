@@ -52,6 +52,9 @@ import nz.waveformlabs.moshpoint.gigs.NightStats
 import nz.waveformlabs.moshpoint.locate.RelayClient
 import nz.waveformlabs.moshpoint.core.QrPayload
 import nz.waveformlabs.moshpoint.locate.LocatorEngine
+import nz.waveformlabs.moshpoint.map.HerePins
+import nz.waveformlabs.moshpoint.map.LocationBook
+import nz.waveformlabs.moshpoint.map.Spots
 import nz.waveformlabs.moshpoint.moments.MomentFlow
 import nz.waveformlabs.moshpoint.moments.Moments
 import nz.waveformlabs.moshpoint.moments.ShareQuality

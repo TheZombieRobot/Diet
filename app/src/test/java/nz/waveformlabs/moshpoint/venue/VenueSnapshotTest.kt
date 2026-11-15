@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.sp
 import app.cash.paparazzi.DeviceConfig
 import app.cash.paparazzi.Paparazzi
 import nz.waveformlabs.moshpoint.friends.Friend
-import nz.waveformlabs.moshpoint.LocationBook
+import nz.waveformlabs.moshpoint.map.LocationBook
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.core.ArrowState
 import nz.waveformlabs.moshpoint.core.Floor

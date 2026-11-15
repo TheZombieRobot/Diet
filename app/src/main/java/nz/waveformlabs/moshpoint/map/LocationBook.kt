@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.map
 
 import android.content.Context
 import androidx.compose.runtime.mutableStateMapOf

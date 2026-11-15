@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import nz.waveformlabs.moshpoint.friends.Friend
 import nz.waveformlabs.moshpoint.gigs.GigArchive
-import nz.waveformlabs.moshpoint.LocationBook
+import nz.waveformlabs.moshpoint.map.LocationBook
 import nz.waveformlabs.moshpoint.moments.Moments
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt

@@ -31,7 +31,7 @@ import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.friends.Friend
 import nz.waveformlabs.moshpoint.friends.FriendsRepository
 import nz.waveformlabs.moshpoint.crew.GroupSync
-import nz.waveformlabs.moshpoint.LocationBook
+import nz.waveformlabs.moshpoint.map.LocationBook
 import nz.waveformlabs.moshpoint.profile.PhotoStore
 import nz.waveformlabs.moshpoint.core.watch.WatchMate
 import nz.waveformlabs.moshpoint.core.watch.WatchProtocol

@@ -1,7 +1,9 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.map
 
 import android.content.Context
 import androidx.compose.runtime.mutableStateListOf
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
 import org.json.JSONArray
 import org.json.JSONObject
 

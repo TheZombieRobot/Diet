@@ -1,7 +1,7 @@
 package nz.waveformlabs.moshpoint.ui
 
 import androidx.compose.ui.unit.sp
-import nz.waveformlabs.moshpoint.LocationBook
+import nz.waveformlabs.moshpoint.map.LocationBook
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

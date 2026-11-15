@@ -99,7 +99,7 @@ fun FriendsScreen(
     /** The crew's meet-up pin, if someone dropped one ("Sound desk"). */
     meetUp: String? = null,
     /** Last shared spot per friend (live or last seen, under each face). */
-    seen: Map<String, nz.waveformlabs.moshpoint.LocationBook.Seen> = emptyMap(),
+    seen: Map<String, nz.waveformlabs.moshpoint.map.LocationBook.Seen> = emptyMap(),
     nowSec: Long = 0L,
     pings: List<GigGroup.Ping> = emptyList(),
     onPing: (Int) -> Unit = {},

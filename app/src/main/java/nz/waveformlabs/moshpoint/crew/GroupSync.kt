@@ -26,9 +26,9 @@ import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.friends.FriendsRepository
 import nz.waveformlabs.moshpoint.gigs.GigArchive
 import nz.waveformlabs.moshpoint.gigs.GigWake
-import nz.waveformlabs.moshpoint.HerePins
+import nz.waveformlabs.moshpoint.map.HerePins
 import nz.waveformlabs.moshpoint.profile.Identity
-import nz.waveformlabs.moshpoint.LocationBook
+import nz.waveformlabs.moshpoint.map.LocationBook
 import nz.waveformlabs.moshpoint.moments.Moments
 import nz.waveformlabs.moshpoint.gigs.NightStats
 import nz.waveformlabs.moshpoint.chat.OfflineMessages

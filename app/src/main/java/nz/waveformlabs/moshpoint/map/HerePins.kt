@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.map
 
 import android.content.Context
 import android.hardware.Sensor
@@ -11,6 +11,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.chat.OfflineMessages
 import nz.waveformlabs.moshpoint.core.Floor
 import nz.waveformlabs.moshpoint.core.GigGroup

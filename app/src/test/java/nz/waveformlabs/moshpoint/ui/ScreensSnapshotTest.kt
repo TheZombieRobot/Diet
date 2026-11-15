@@ -203,8 +203,8 @@ open class ScreensSnapshotTest {
             MapScreen(
                 people = listOf(sam, alex, jo, mia),
                 seen = mapOf(
-                    "sam" to nz.waveformlabs.moshpoint.LocationBook.Seen(-41.29, 174.78, 1_000_000L - 30, 10),
-                    "alex" to nz.waveformlabs.moshpoint.LocationBook.Seen(-41.30, 174.80, 1_000_000L - 1_500, 20),
+                    "sam" to nz.waveformlabs.moshpoint.map.LocationBook.Seen(-41.29, 174.78, 1_000_000L - 30, 10),
+                    "alex" to nz.waveformlabs.moshpoint.map.LocationBook.Seen(-41.30, 174.80, 1_000_000L - 1_500, 20),
                 ),
                 me = nz.waveformlabs.moshpoint.core.LatLon(-41.285, 174.776),
                 status = "Updated just now",
@@ -383,7 +383,7 @@ open class ScreensSnapshotTest {
                 seen = mapOf(
                     "b0" to HomeFixtures.seen(10), "b1" to HomeFixtures.seen(30, battery = 9), "b2" to HomeFixtures.seen(60),
                     "b3" to HomeFixtures.seen(90), "b4" to HomeFixtures.seen(400),
-                    "b5" to nz.waveformlabs.moshpoint.LocationBook.Seen(-36.85, 174.76, HomeFixtures.NOW - 1200, 10, batteryPct = 4, lastGasp = true),
+                    "b5" to nz.waveformlabs.moshpoint.map.LocationBook.Seen(-36.85, 174.76, HomeFixtures.NOW - 1200, 10, batteryPct = 4, lastGasp = true),
                 ),
                 distances = mapOf("b0" to 6.0, "b1" to 35.0, "b2" to 85.0, "b3" to 1450.0),
                 flareNotes = mapOf("b1" to "🔥 " + stringResource(nz.waveformlabs.moshpoint.R.string.crew_vibe_bar)),

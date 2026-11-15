@@ -10,6 +10,8 @@ import nz.waveformlabs.moshpoint.locate.FinderStatus
 import nz.waveformlabs.moshpoint.locate.RelayClient
 import nz.waveformlabs.moshpoint.locate.RelayLane
 import nz.waveformlabs.moshpoint.locate.SharedLocationSink
+import nz.waveformlabs.moshpoint.map.HerePins
+import nz.waveformlabs.moshpoint.map.LocationBook
 
 /**
  * Plugs the gig app's own things into the finder module (finder/, docs/FINDER_MODULE.md), once,

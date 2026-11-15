@@ -1,6 +1,6 @@
 package nz.waveformlabs.moshpoint.ui
 
-import nz.waveformlabs.moshpoint.LocationBook
+import nz.waveformlabs.moshpoint.map.LocationBook
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import java.text.DateFormat
