@@ -195,13 +195,15 @@ class MainActivity : ComponentActivity() {
         } else {
             invites.restore(savedInstanceState)
             story.restore(savedInstanceState)
+            permissions.restore(savedInstanceState)
         }
         home.visibleToMates = VisibilityPrefs.isVisible(this)
         home.myName = VisibilityPrefs.myName(this)
         home.alwaysOn = VisibilityPrefs.alwaysOn(this)
         home.onboarded = VisibilityPrefs.onboarded(this)
-        // New users get asked during the welcome, right after hearing why.
-        if (home.onboarded) permissions.askWithDisclosure()
+        // New users get asked during the welcome, right after hearing why; everyone else at a
+        // fresh start, unless that would nag (PermissionsState.atLaunch).
+        permissions.atLaunch(fresh = savedInstanceState == null)
         home.myCode = FriendRecord.shareCode(home.mySecret)
         val caps = finder.engine.capabilities
         home.phoneSummary = getString(
@@ -248,6 +250,7 @@ class MainActivity : ComponentActivity() {
         camera.photoFor?.let { outState.putString("photoFor", it) }
         invites.save(outState)
         story.save(outState)
+        permissions.save(outState)
     }
 
     // Gig-group radio: held while the app is open, released 20 s after it goes to the

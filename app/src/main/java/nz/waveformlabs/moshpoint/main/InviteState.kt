@@ -43,14 +43,16 @@ internal class InviteState(private val a: MainActivity) {
     fun handleInvite(text: String?, quietIfNone: Boolean = false): Boolean {
         when (val inv = text?.let { Invite.find(it) }) {
             is Invite.Group -> {
-                // A relay the invite names: release builds follow it only to one of their own
-                // relays, test builds to any (core InviteRelay, docs/WAVE2_PLAY.md item 4).
-                InviteRelay.switchTo(InviteRelay.named(inv.qrText), BuildConfig.TEST_BUILD, RelayClient.serverInUse, RelayClient.ownRelays)
-                    ?.let { if (RelayClient.setServer(a, it, fromInvite = true)) DebugStatus.log("Using the crew's relay server") }
                 if (!GroupSync.join(a, inv.qrText)) {
                     a.toast(Txt.s(R.string.main_invite_expired))
                     return false
                 }
+                // A relay the invite names, once it has proved a good invite (an expired or made-up
+                // one moves nothing): release builds follow it only to one of their own relays,
+                // test builds to any (core InviteRelay, docs/WAVE2_PLAY.md item 4). Still before
+                // the crew's first request: its sync starts on the main thread after this returns.
+                InviteRelay.switchTo(InviteRelay.named(inv.qrText), BuildConfig.TEST_BUILD, RelayClient.serverInUse, RelayClient.ownRelays)
+                    ?.let { if (RelayClient.setServer(a, it, fromInvite = true)) DebugStatus.log("Using the crew's relay server") }
                 val joined = GroupSync.newest.value
                 if (joined != null && GroupSync.group.value?.key?.contentEquals(joined.key) != true) {
                     a.toast(Txt.s(R.string.main_joined_up_next, joined.name))

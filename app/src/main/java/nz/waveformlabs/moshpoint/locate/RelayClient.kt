@@ -62,7 +62,10 @@ object RelayClient {
     fun init(c: android.content.Context) {
         val p = c.applicationContext.getSharedPreferences("relay", android.content.Context.MODE_PRIVATE)
         serverUrl = p.getString("url", null).orEmpty()
-        serverFromInvite = p.getBoolean("fromInvite", false)
+        // Saved by a version that didn't record where it came from: treat it as from an invite,
+        // so it's never passed on in ours (it may be a stranger's). Retyping it in Settings
+        // makes it this phone's own again.
+        serverFromInvite = p.getBoolean("fromInvite", true)
     }
 
     /**

@@ -35,6 +35,7 @@ import nz.waveformlabs.moshpoint.chat.OfflineMessages
 import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
+import nz.waveformlabs.moshpoint.core.IntroRadio
 import nz.waveformlabs.moshpoint.core.CheckIns
 import nz.waveformlabs.moshpoint.core.Courier
 import nz.waveformlabs.moshpoint.core.EphemeralId
@@ -491,10 +492,9 @@ object GroupSync {
             // bytes that stayed the same all night and a nonce that could repeat (audit/release.md,
             // P2). Both forms are still read. On air it needs the room for itself plus the
             // advert's 128-bit UUID header (docs/BLUETOOTH_UUIDS.md); a phone without it (none
-            // known) leaves its intro to the relay.
-            val roomOnAir = runCatching {
-                (c.getSystemService(BluetoothManager::class.java)?.adapter?.leMaximumAdvertisingDataLength ?: 0) >= GigGroup.MAX_INTRO2_BYTES + 22
-            }.getOrDefault(false)
+            // known) leaves its intro to the relay. Asked again every round (core IntroRadio):
+            // Bluetooth may be off now and on later, with nobody to tell us.
+            val radio = IntroRadio(follower)
             while (true) {
                 val now = System.currentTimeMillis()
                 val mine = introFor(myIntro, now, form2 = true)
@@ -508,7 +508,18 @@ object GroupSync {
                     mine
                 }
                 slot++
-                if (!follower && roomOnAir) advertise(c, out)
+                val r = runCatching {
+                    val adapter = c.getSystemService(BluetoothManager::class.java)?.adapter
+                    radio.round(adapter?.isEnabled == true, adapter?.isLeExtendedAdvertisingSupported == true, adapter?.leMaximumAdvertisingDataLength ?: 0)
+                }.getOrDefault(IntroRadio.QUIET)
+                if (r.revive) {
+                    // Bluetooth came (back) on: our advert set and the shared scan died with it.
+                    advertSet = null
+                    advertCallback = null
+                    BleHub.onBluetooth(true)
+                }
+                if (r.listen && !listening) startListening(c, g)
+                if (r.advertise) advertise(c, out)
                 if (now - lastServer > (if (RelayClient.ownServer) 30_000L else 55_000L)) {
                     lastServer = now
                     syncServer(c, g, mine, now)
@@ -833,6 +844,12 @@ object GroupSync {
     /** Listens through the app's one shared scan (see BleHub). Fast while the app is open. */
     private fun startListening(c: Context, g: GigGroup) {
         val adapter = c.getSystemService(BluetoothManager::class.java)?.adapter ?: return
+        if (!adapter.isEnabled) {
+            // Android says "no extended adverts" while Bluetooth is off; the intro loop tries
+            // again once it's on.
+            DebugStatus.set("Gig group", "${g.name}: Bluetooth off (intros by the relay)")
+            return
+        }
         if (!adapter.isLeExtendedAdvertisingSupported) {
             DebugStatus.set("Gig group", "Bluetooth intros unavailable on this phone (internet only)")
             return
