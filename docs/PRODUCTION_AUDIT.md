@@ -53,7 +53,9 @@ Two findings were checked again by hand:
 
 **Release**
 - MapLibre 11.8 or later for 16 KB pages (Play deadline 1 Feb 2027).
-- Fail release builds that have no server set: they otherwise fall back to the public ntfy.sh, about 250 messages a day per IP.
+- ~~Fail release builds that have no server set~~ **Dropped (owner's decision, 15 November):** free users run on a
+  different, limited relay and the production relay is a Moshpoint+ feature (ROADMAP.md, Moshpoint+). The
+  free/premium routing comes with billing. Safety messages must never be limited on the free tier.
 - Gig search is broken in release builds (GigSearch.viaServer).
 - The Facebook SDK contacts Meta at every launch: start it only when someone logs in.
 - Add a prominent disclosure and a privacy policy link before the location prompt.
@@ -88,11 +90,13 @@ See the P2 sections of the three reports: Keystore encryption at rest, the old i
 - **2b Play and security:**
   - items 6, 8, 10 and 11;
   - the disclosure and privacy link, the Facebook SDK starting at login;
-  - failing release builds with no server, the gig search fix;
+  - the gig search fix (failing release builds with no server was dropped: see above);
   - MapLibre, the watch bundle, 128-bit UUIDs;
   - fixing PLAY_STORE.md's Data safety draft.
 - **2c Battery and performance:** items 4 and 5 and the performance list (uses wave 1's batch and cursor endpoints).
 - **2d Report and Block (item 9):** app and server.
+- **2e Moshpoint+ and billing:** Play Billing into `Entitlements`; free users on a separate limited relay,
+  members on the production relay; safety messages never limited (ROADMAP.md, Moshpoint+).
 
 Then a test build, the field tests in FIELD_TEST_PLAN.md, and the bug-fixing phase.
 

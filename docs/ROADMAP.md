@@ -166,7 +166,17 @@ Moshpoint+ (a Mapbox account for satellite, Play billing), the Play Store listin
 ### Moshpoint+ (paid)
 - Satellite venue map, offline.
 - Watch app: arrow on the wrist, buzzes for warmer/colder, watch-face and tile info, wrist pings.
-- One purchase covers phone and watch. Never paywall safety: "Need help" (phone or wrist) is free.
+- **The production relay (owner's decision, 15 November 2026).** Free users run on a different,
+  limited relay whose allowance runs out. Moshpoint+ members use the production relay
+  (`MOSHPOINT_SERVER`: always on, durable, generous limits). Billing decides which relay a phone
+  uses, through the one Moshpoint+ check (`Entitlements`). Don't remove the free path, and don't
+  make builds require `MOSHPOINT_SERVER`. Still to decide, with the billing work:
+  - whether the free relay is the public ntfy.sh, or a second small relay we run (recommended:
+    per-person limits instead of per-venue-IP, no third-party terms, one privacy policy);
+  - what the free allowance is.
+- One purchase covers phone and watch. Never paywall safety: "Need help" (phone or wrist) is free,
+  and so are check-ins and their overdue alerts. On the free tier, safety messages never count
+  against the allowance and always get through by the best path available.
 
 ### Later
 - **Before launch:** move the finder engine out of the gig code (the watch and any spin-off

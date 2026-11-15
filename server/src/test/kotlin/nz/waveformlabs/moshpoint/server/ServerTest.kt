@@ -8,6 +8,7 @@ import io.ktor.client.statement.bodyAsBytes
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -20,7 +21,7 @@ class ServerTest {
     private val rec2 = ByteArray(29) { 2 }
 
     @Test fun putThenGet() = testApplication {
-        application { moshpoint(MailboxStore()) }
+        application { moshpoint(testRelay()) }
         assertEquals(HttpStatusCode.NotFound, client.get("/v1/box/$idHex").status)
         assertEquals(HttpStatusCode.NoContent, client.put("/v1/box/$idHex") { setBody(rec1) }.status)
         assertEquals(HttpStatusCode.NoContent, client.put("/v1/box/$idHex") { setBody(rec2) }.status)
@@ -30,7 +31,7 @@ class ServerTest {
     }
 
     @Test fun rejectsBadInput() = testApplication {
-        application { moshpoint(MailboxStore()) }
+        application { moshpoint(testRelay()) }
         assertEquals(HttpStatusCode.BadRequest, client.put("/v1/box/nothex") { setBody(rec1) }.status)
         assertEquals(HttpStatusCode.BadRequest, client.put("/v1/box/$idHex") { setBody(ByteArray(3)) }.status)
         assertEquals(HttpStatusCode.BadRequest, client.put("/v1/box/$idHex") { setBody(ByteArray(500)) }.status)
@@ -38,7 +39,7 @@ class ServerTest {
     }
 
     @Test fun lookupMany() = testApplication {
-        application { moshpoint(MailboxStore()) }
+        application { moshpoint(testRelay()) }
         client.put("/v1/box/$idHex") { setBody(rec1) }
         val unknown = ByteArray(16) { 7 }
         val body = client.post("/v1/lookup") { setBody(idRaw + unknown) }.bodyAsBytes()
@@ -59,7 +60,7 @@ class RateLimitTest {
     }
 
     @Test fun serverReturns429() = testApplication {
-        application { moshpoint(MailboxStore(), putLimit = RateLimiter(1.0, 0.0001)) }
+        application { moshpoint(testRelay(limits = LimitConfig(anonWrites = Bucket(1.0, 0.0001)))) }
         val id = "00112233445566778899aabbccddeeff"
         assertEquals(HttpStatusCode.NoContent, client.put("/v1/box/$id") { setBody(ByteArray(29)) }.status)
         assertEquals(HttpStatusCode.TooManyRequests, client.put("/v1/box/$id") { setBody(ByteArray(29)) }.status)
@@ -68,7 +69,7 @@ class RateLimitTest {
 
 class AvatarTest {
     @Test fun putGetAvatar() = testApplication {
-        application { moshpoint(MailboxStore()) }
+        application { moshpoint(testRelay()) }
         val id = "aabbccddeeff00112233445566778899"
         val photo = ByteArray(9000) { 5 }
         assertEquals(HttpStatusCode.NotFound, client.get("/v1/avatar/$id").status)
@@ -79,35 +80,49 @@ class AvatarTest {
 
     @Test fun storeExpiresAndCaps() {
         var now = 0L
-        val s = AvatarStore(ttlMs = 1000, maxTotalBytes = 2500, clock = { now })
-        s.put("a", ByteArray(1000)); now = 1; s.put("b", ByteArray(1000)); now = 2; s.put("c", ByteArray(1000))
-        assertEquals(null, s.get("a")) // oldest dropped to fit the cap
+        val dir = tempDataDir()
+        // Room for two photos: each takes a 4 KB block on disk, whatever its size.
+        val s = AvatarStore(dir, ttlMs = 1000, maxBytes = 10_000, clock = { now })
+        assertTrue(s.put("a", ByteArray(1000))); now = 1; assertTrue(s.put("b", ByteArray(1000)))
+        now = 2
+        assertEquals(false, s.put("c", ByteArray(1000))) // full: "try later", and nothing accepted is dropped
+        assertTrue(s.put("a", ByteArray(900))) // replacing a photo frees its old room
+        assertEquals(900L, s.open("a")!!.size)
+        assertTrue(s.open("b") != null)
         now = 5000
-        assertEquals(null, s.get("c"))
+        assertEquals(null, s.open("b"))
+        assertEquals(2, s.sweep())
+        assertEquals(0, dir.listFiles()!!.count { it.isFile })
+        assertEquals(0L, s.bytes)
     }
 }
 
 class MailboxStoreTest {
-    @Test fun expiresAndCaps() {
+    private fun id(s: String) = s.toByteArray().copyOf(16)
+
+    @Test fun expiresAndCaps() = runBlocking<Unit> {
         var now = 0L
-        val s = MailboxStore(ttlMs = 1000, maxPerId = 2, clock = { now })
-        s.put("a", byteArrayOf(1)); s.put("a", byteArrayOf(2)); s.put("a", byteArrayOf(3))
-        assertEquals(listOf(3, 2), s.get("a").map { it[0].toInt() })
+        val s = MailboxStore(Db.memory(), "box", ttlMs = 1000, maxPerId = 2, maxBytes = 1L shl 20, clock = { now })
+        s.put(id("a"), byteArrayOf(1)); s.put(id("a"), byteArrayOf(2)); s.put(id("a"), byteArrayOf(3))
+        assertEquals(listOf(3, 2), s.get(id("a")).map { it[0].toInt() })
         now = 2000
-        assertEquals(0, s.get("a").size)
-        assertEquals(0, s.size())
+        assertEquals(0, s.get(id("a")).size)
+        s.sweep()
+        assertEquals(0L, s.records)
+        assertEquals(0L, s.bytes)
     }
 
-    @Test fun duplicateMovesToFront() {
-        val s = MailboxStore()
-        s.put("a", byteArrayOf(1)); s.put("a", byteArrayOf(2)); s.put("a", byteArrayOf(1))
-        assertEquals(listOf(1, 2), s.get("a").map { it[0].toInt() })
+    @Test fun duplicateMovesToFront() = runBlocking<Unit> {
+        val s = MailboxStore(Db.memory(), "box", ttlMs = 60_000, maxPerId = 64, maxBytes = 1L shl 20)
+        s.put(id("a"), byteArrayOf(1)); s.put(id("a"), byteArrayOf(2)); s.put(id("a"), byteArrayOf(1))
+        assertEquals(listOf(1, 2), s.get(id("a")).map { it[0].toInt() })
+        assertEquals(2L, s.records)
     }
 
     @Test fun filesPutListGet() = testApplication {
         val idHex = "00112233445566778899aabbccddeeff"
-        val dir = kotlin.io.path.createTempDirectory("mp-files").toFile()
-        application { moshpoint(MailboxStore(), files = FileStore(dir)) }
+        val dir = tempDataDir()
+        application { moshpoint(testRelay(dir)) }
         val photo = ByteArray(5_000) { (it % 251).toByte() }
         val name = client.put("/v1/file/$idHex") { setBody(photo) }.bodyAsText()
         val listing = client.get("/v1/files/$idHex?since=0").bodyAsText()
@@ -119,7 +134,7 @@ class MailboxStoreTest {
     }
 
     @Test fun heldChatTakesBiggerRecords() = testApplication {
-        application { moshpoint(MailboxStore()) }
+        application { moshpoint(testRelay()) }
         val id = "00112233445566778899aabbccddeeff"
         val chat = ByteArray(2_900) { 7 }
         assertEquals(HttpStatusCode.NoContent, client.put("/v1/held/$id") { setBody(chat) }.status)
@@ -131,7 +146,7 @@ class MailboxStoreTest {
         assertContentEquals(chat, body.copyOfRange(3, 2_903))
     }
 
-    @Test fun gigSearchMergesSourcesAndKeepsKeysServerSide() {
+    @Test fun gigSearchMergesSourcesAndKeepsKeysServerSide() = runBlocking<Unit> {
         val tm = """{"_embedded":{"events":[{"name":"Iron Maiden","dates":{"start":{"dateTime":"2099-03-01T08:00:00Z","localDate":"2099-03-01","localTime":"20:00:00"}},
             "_embedded":{"venues":[{"name":"Spark Arena","city":{"name":"Auckland"},"country":{"countryCode":"NZ"},"location":{"latitude":"-36.85","longitude":"174.77"}}]}}]}}"""
         val bit = """[{"datetime":"2099-03-01T20:00:00","title":"","artist":{"name":"Iron Maiden"},"venue":{"name":"Spark Arena","city":"Auckland","country":"New Zealand","latitude":"-36.85","longitude":"174.77"}},
