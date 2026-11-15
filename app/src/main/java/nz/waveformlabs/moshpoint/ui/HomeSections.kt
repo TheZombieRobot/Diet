@@ -527,7 +527,7 @@ private fun PastGigRow(g: GigArchive.Summary, onClick: () -> Unit) {
 
 /** A panel's title. */
 @Composable
-private fun PanelTitle(text: String) {
+internal fun PanelTitle(text: String) {
     Text(
         text, style = HomeType.Heading.copy(fontSize = 22.sp),
         modifier = Modifier.padding(start = HomeSide, end = HomeSide, top = 4.dp, bottom = 8.dp).semantics { heading() },
