@@ -162,3 +162,19 @@ The new home screen: the Live row, the crew header and the ⋯ crew menu, the no
 
 For a native reviewer: *Frühere Konzerte* versus *Vergangene Konzerte* (fit versus the more usual word). *Find deine Freunde in der Menge* is safe: only *jede Menge* is the idiom. Written without a native reviewer. Confidence: **medium-high**.
 - **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it Live ("mit Live an", "schalte Live ein"); verb phrases such as "live gehen" stay where they read naturally.
+
+## Safety and Live (`strings_safety.xml`)
+
+Thirty strings: the crew alert in Need help after it's tapped, Live going off by itself (stopped by Android, or after 12 hours), a full phone, and the reminder before your own check-in is due. Kept exactly as true as the English: nothing reads as sent before it is. Validator prints **OK**. See `docs/WAVE2_SAFETY.md`.
+
+| English | Chosen | Why |
+|---|---|---|
+| Sending… / Sent to your crew | **Wird gesendet…** / **An deine Crew gesendet** | The watch's words (`sos_sending`, `sos_sent`). |
+| Sent nearby | **In der Nähe gesendet** | As `offline_state_nearby`. The line under it says only crew phones close by have it. |
+| Not sent yet / Not sent | **Noch nicht gesendet** / **Nicht gesendet** | As the watch (`ping_not_yet`) and the chat (`offline_state_not_sent`). |
+| Go live (button) | **Live gehen** | Key terms. The hint above it says *Schalte Live ein*, as `offline_hint_go_live`. |
+| Still at the gig? | **Noch auf dem Konzert?** | Short. |
+| Home yet? | **Schon zu Hause?** | *Zu Hause*, as in *Bin gut zu Hause*, which the reminder quotes word for word. |
+| Your phone's storage is full | **Dein Handyspeicher ist voll** | *Speicherplatz freigeben* in the text is Android's own wording. |
+
+The alert is *deine Warnung* (as `crew_help_alert_sub`), and *es* where English says "it", as on the watch. For a native reviewer: *Check-ins* as a plural noun (the app otherwise says *sich melden*). Written without a native reviewer. Confidence: **medium-high**.
