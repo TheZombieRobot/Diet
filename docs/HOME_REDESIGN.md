@@ -139,24 +139,27 @@ Results: not recorded yet (see Status).
 
 Handover (kept current; newest first):
 
-- **Now:** first full CI run (run 274, commit `7e105d1`) building; next: read its "Compile
-  errors" step if it fails, else fetch `ui-screenshots-claude-home-redesign` and audit.
-  Helper scripts used for strings (delete unused, rename the section in three texts) were
-  one-offs; the contact sheets come from `tools/contact_sheet.py`.
-- **Done:** Step 1 (inventory, above). Step 2 code written but not yet compiled (Google Maven is
-  blocked in the container, so only CI can build): `Theme.kt` tokens, `HomeKit.kt` (new),
-  `HomeSections.kt` and `FriendsScreen.kt` (rewritten), `HelpDialog(onAlertCrew = null)` in
-  `CrewChatUi.kt`, `MomentStrip` removed (`MomentsUi.kt`), MainActivity: `onResetInvite`,
-  `startsAtSec` for Up next, the recap's End the night goes through the owner handover, and
-  leaving the main crew refreshes Past gigs. English strings: `values/strings_home_redesign.xml`.
+- **Now:** first full CI run (run 274, commit `7e105d1`): translations, core and server tests,
+  the debug and release builds of the app all passed; the screenshots (Paparazzi) are
+  rendering. Next: read that step's log to make sure every test rendered, fetch
+  `ui-screenshots-claude-home-redesign` and audit (English first, then every language).
+  Commits `2114855` and `60cf602` (translation polish, unit tests for the faces' order, i18n
+  notes) were pushed with `[skip ci]`, so the next push without it builds them too.
+- **Done:** Step 1 (inventory, above). Step 2 code, compiling in CI: `Theme.kt` tokens,
+  `HomeKit.kt` (new), `HomeSections.kt` and `FriendsScreen.kt` (rewritten),
+  `HelpDialog(onAlertCrew = null)` in `CrewChatUi.kt`, `MomentStrip` removed (`MomentsUi.kt`),
+  MainActivity: `onResetInvite`, `startsAtSec` for Up next, the recap's End the night goes
+  through the owner handover, and leaving the main crew refreshes Past gigs. Strings:
+  `strings_home_redesign.xml` in all 20 folders (translated, checker clean), 28 old home
+  strings deleted from every folder, three texts that named "Your gigs" now name Past gigs.
   Tests: `ui/HomeFixtures.kt` (made-up data), the home tests in `ScreensSnapshotTest`
   (homeMain, homeNotLive, homeGhost, homeCrewMenu, homeNoCrew, homeFirstTime, homeComingUp,
   homeFollowing, homeNobodyYet, homeLongName, homeOneMate, homeBigCrew, homeFriendsList,
-  homeAddSheet, upNext, smallPhoneHomeMain/NoCrew, largeFontHomeMain/NoCrew) and
-  `home/HomeTallSnapshotTest.kt` (homeWhole, full resolution, every language). Venue and
-  private-message tests updated for the new crew header and faces.
-- **In progress:** translations of `strings_home_redesign.xml` into the 19 languages.
-- **Next:** delete the strings the redesign leaves unused, in every folder (list: run the unused
-  scan in this file's history, or grep `R.string.<name>`); run the translation checks; push
-  without `[skip ci]`; fix compile errors from the "Compile errors" step; then fetch
-  `ui-screenshots-claude-home-redesign` and audit.
+  homeAddSheet, upNext, smallPhoneHomeMain/NoCrew, largeFontHomeMain/NoCrew),
+  `home/HomeTallSnapshotTest.kt` (homeWhole, full resolution, every language) and unit tests
+  in `HomeLogicTest`. Venue and private-message tests updated for the new crew header and faces.
+- **Next:** Step 3, the audit: every state in every language, small phone and large font;
+  fix, re-render, repeat until clean; then fill in section 3 (one row per state, one column
+  per language) and commit one contact sheet per state to `docs/design/home-redesign/audit/`
+  (`python3 tools/contact_sheet.py <screenshots dir> docs/design/home-redesign/audit <test>...`).
+  Last: a green CI run and the report to the owner's session.
