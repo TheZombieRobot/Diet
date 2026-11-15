@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.finder
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -69,6 +69,21 @@ import nz.waveformlabs.moshpoint.core.ArrowState
 import nz.waveformlabs.moshpoint.core.ArrowStyle
 import nz.waveformlabs.moshpoint.core.Trend
 import nz.waveformlabs.moshpoint.locate.LocatorEngine
+import nz.waveformlabs.moshpoint.ui.Confetti
+import nz.waveformlabs.moshpoint.ui.Faces
+import nz.waveformlabs.moshpoint.ui.FloorTag
+import nz.waveformlabs.moshpoint.ui.GlassButton
+import nz.waveformlabs.moshpoint.ui.GlowBackground
+import nz.waveformlabs.moshpoint.ui.Mosh
+import nz.waveformlabs.moshpoint.ui.NeonButton
+import nz.waveformlabs.moshpoint.ui.RadarPulse
+import nz.waveformlabs.moshpoint.ui.RadarSweep
+import nz.waveformlabs.moshpoint.ui.RollingText
+import nz.waveformlabs.moshpoint.ui.ambient
+import nz.waveformlabs.moshpoint.ui.finderDistance
+import nz.waveformlabs.moshpoint.ui.finderDistanceLabel
+import nz.waveformlabs.moshpoint.ui.glow
+import nz.waveformlabs.moshpoint.ui.haloGlow
 
 // The finder's other states: searching, warmer/colder, spin-scan progress, found, Light me up.
 

@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.core.Floor
+import nz.waveformlabs.moshpoint.ui.finder.drawCentred
 
 /*
  * "I'm here" (docs/IM_HERE.md): the few bits of screen it adds. A pinned mate's face sits on

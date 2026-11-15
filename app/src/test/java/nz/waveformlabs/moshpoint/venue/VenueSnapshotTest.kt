@@ -39,7 +39,7 @@ import nz.waveformlabs.moshpoint.core.LatLon
 import nz.waveformlabs.moshpoint.core.Method
 import nz.waveformlabs.moshpoint.core.Trend
 import nz.waveformlabs.moshpoint.core.VenuePlacement
-import nz.waveformlabs.moshpoint.ui.FinderScreen
+import nz.waveformlabs.moshpoint.ui.finder.FinderScreen
 import nz.waveformlabs.moshpoint.ui.home.FriendsScreen
 import nz.waveformlabs.moshpoint.ui.home.HomeCrew
 import nz.waveformlabs.moshpoint.ui.home.HomeCrewActions

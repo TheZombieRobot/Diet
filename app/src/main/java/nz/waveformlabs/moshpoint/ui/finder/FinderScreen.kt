@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.finder
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.togetherWith
@@ -58,7 +58,24 @@ import nz.waveformlabs.moshpoint.core.ArrowState
 import nz.waveformlabs.moshpoint.core.ArrowStyle
 import nz.waveformlabs.moshpoint.core.Method
 import nz.waveformlabs.moshpoint.locate.LocatorEngine
+import nz.waveformlabs.moshpoint.ui.Avatar
+import nz.waveformlabs.moshpoint.ui.FloorTag
+import nz.waveformlabs.moshpoint.ui.GlassButton
+import nz.waveformlabs.moshpoint.ui.GlowBackground
+import nz.waveformlabs.moshpoint.ui.Mosh
+import nz.waveformlabs.moshpoint.ui.NeonButton
+import nz.waveformlabs.moshpoint.ui.PinNote
+import nz.waveformlabs.moshpoint.ui.RadarPulse
+import nz.waveformlabs.moshpoint.ui.UnreadBadge
+import nz.waveformlabs.moshpoint.ui.ago
+import nz.waveformlabs.moshpoint.ui.beaconColourName
+import nz.waveformlabs.moshpoint.ui.finderDistanceLabel
+import nz.waveformlabs.moshpoint.ui.floorLabel
+import nz.waveformlabs.moshpoint.ui.floorSpoken
 import nz.waveformlabs.moshpoint.ui.home.SetupIssue
+import nz.waveformlabs.moshpoint.ui.pinnedAgo
+import nz.waveformlabs.moshpoint.ui.pressScale
+import nz.waveformlabs.moshpoint.ui.rememberPress
 
 /** Closer than this counts as "found": confetti time. */
 private const val FOUND_M = 3.0

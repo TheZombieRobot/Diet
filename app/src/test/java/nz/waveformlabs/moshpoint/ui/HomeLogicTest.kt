@@ -2,6 +2,9 @@ package nz.waveformlabs.moshpoint.ui
 
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.map.LocationBook
+import nz.waveformlabs.moshpoint.ui.finder.RadarSpot
+import nz.waveformlabs.moshpoint.ui.finder.clusterSpots
+import nz.waveformlabs.moshpoint.ui.finder.radarFrac
 import nz.waveformlabs.moshpoint.ui.home.dotLine
 import nz.waveformlabs.moshpoint.ui.home.faceOrderKey
 import nz.waveformlabs.moshpoint.ui.home.faceStatus

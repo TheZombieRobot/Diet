@@ -29,7 +29,7 @@ import nz.waveformlabs.moshpoint.core.ArrowState
 import nz.waveformlabs.moshpoint.core.FriendRecord
 import nz.waveformlabs.moshpoint.core.Method
 import nz.waveformlabs.moshpoint.ui.home.CrewTiles
-import nz.waveformlabs.moshpoint.ui.FinderScreen
+import nz.waveformlabs.moshpoint.ui.finder.FinderScreen
 import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.MoshTheme
 import nz.waveformlabs.moshpoint.ui.PrivateChatScreen

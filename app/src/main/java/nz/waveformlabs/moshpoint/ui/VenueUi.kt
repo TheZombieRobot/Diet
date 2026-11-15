@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.core.Floor
 import nz.waveformlabs.moshpoint.core.LatLon
+import nz.waveformlabs.moshpoint.ui.finder.drawCentred
 import nz.waveformlabs.moshpoint.venue.VenueMaps
 
 // The venue map's bits of screen (docs/VENUE_MAP.md): the crew card's one line about the

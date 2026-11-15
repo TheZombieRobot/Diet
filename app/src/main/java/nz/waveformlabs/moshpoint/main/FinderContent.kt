@@ -17,8 +17,8 @@ import nz.waveformlabs.moshpoint.gigs.NightStats
 import nz.waveformlabs.moshpoint.map.HerePins
 import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages
 import nz.waveformlabs.moshpoint.profile.Identity
-import nz.waveformlabs.moshpoint.ui.DebugPanel
-import nz.waveformlabs.moshpoint.ui.FinderScreen
+import nz.waveformlabs.moshpoint.ui.finder.DebugPanel
+import nz.waveformlabs.moshpoint.ui.finder.FinderScreen
 import nz.waveformlabs.moshpoint.venue.Floors
 
 /** The finder screen, wired to the finder engine. @NonRestartableComposable: see [MainScreen]. */

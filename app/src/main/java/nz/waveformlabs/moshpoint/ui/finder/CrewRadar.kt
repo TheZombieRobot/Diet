@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.finder
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -45,6 +45,14 @@ import kotlin.math.cos
 import kotlin.math.ln
 import kotlin.math.sin
 import kotlin.math.sqrt
+import nz.waveformlabs.moshpoint.ui.Faces
+import nz.waveformlabs.moshpoint.ui.Mosh
+import nz.waveformlabs.moshpoint.ui.ambient
+import nz.waveformlabs.moshpoint.ui.drawFloorPill
+import nz.waveformlabs.moshpoint.ui.drawPinPill
+import nz.waveformlabs.moshpoint.ui.finderDistanceLabel
+import nz.waveformlabs.moshpoint.ui.haloGlow
+import nz.waveformlabs.moshpoint.ui.softGlow
 
 /*
  * The whole crew at once, like a little radar centred on you.

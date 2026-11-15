@@ -41,7 +41,7 @@ import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.core.LatLon
 import nz.waveformlabs.moshpoint.core.Method
 import nz.waveformlabs.moshpoint.core.Trend
-import nz.waveformlabs.moshpoint.ui.FinderScreen
+import nz.waveformlabs.moshpoint.ui.finder.FinderScreen
 import nz.waveformlabs.moshpoint.ui.ImHereChoice
 import nz.waveformlabs.moshpoint.ui.MapPin
 import nz.waveformlabs.moshpoint.ui.MapScreen

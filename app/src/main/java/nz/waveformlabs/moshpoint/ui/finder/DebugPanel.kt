@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.finder
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

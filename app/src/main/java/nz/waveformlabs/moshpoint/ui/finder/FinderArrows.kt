@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint.ui
+package nz.waveformlabs.moshpoint.ui.finder
 
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -54,6 +54,14 @@ import nz.waveformlabs.moshpoint.core.ArrowStyle
 import nz.waveformlabs.moshpoint.core.Method
 import kotlin.math.cos
 import kotlin.math.sin
+import nz.waveformlabs.moshpoint.ui.Faces
+import nz.waveformlabs.moshpoint.ui.Mosh
+import nz.waveformlabs.moshpoint.ui.ambient
+import nz.waveformlabs.moshpoint.ui.drawFloorPill
+import nz.waveformlabs.moshpoint.ui.finderDistance
+import nz.waveformlabs.moshpoint.ui.finderDistanceLabel
+import nz.waveformlabs.moshpoint.ui.haloGlow
+import nz.waveformlabs.moshpoint.ui.softGlow
 
 // The finder's arrows: swivel animation, neon arrow drawing, photo tips and labels.
 

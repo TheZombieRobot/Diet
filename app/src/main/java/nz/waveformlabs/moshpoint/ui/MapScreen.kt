@@ -44,6 +44,8 @@ import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.core.HereRule
 import nz.waveformlabs.moshpoint.core.LatLon
 import nz.waveformlabs.moshpoint.core.VenuePlacement
+import nz.waveformlabs.moshpoint.ui.finder.bandHint
+import nz.waveformlabs.moshpoint.ui.finder.bandLabel
 import org.maplibre.android.geometry.LatLng
 
 /**
