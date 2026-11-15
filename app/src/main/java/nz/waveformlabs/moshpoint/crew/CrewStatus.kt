@@ -1,0 +1,103 @@
+package nz.waveformlabs.moshpoint.crew
+
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.pm.PackageManager
+import android.location.LocationManager
+import androidx.compose.runtime.mutableStateMapOf
+import nz.waveformlabs.moshpoint.CrewWidget
+import nz.waveformlabs.moshpoint.friends.Friend
+import nz.waveformlabs.moshpoint.friends.FriendsRepository
+import nz.waveformlabs.moshpoint.map.LocationBook
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
+import nz.waveformlabs.moshpoint.core.Geo
+import nz.waveformlabs.moshpoint.core.LatLon
+import nz.waveformlabs.moshpoint.service.VisibilityService
+import nz.waveformlabs.moshpoint.ui.distanceLabel
+
+/**
+ * How far away each crew member is right now, worked out quietly in the background from
+ * their shared spots and ours. Feeds the crew tiles ("40 m") and the ongoing notification
+ * ("Bevan 40 m · Jo 1.2 km"), so you can glance instead of opening anything.
+ */
+object CrewStatus {
+    /** Friend id -> metres from us (only when both spots are recent). */
+    val distances = mutableStateMapOf<String, Double>()
+
+    /** Friend id -> "at the venue" / "1.2 km from the venue" (when the gig's venue is known). */
+    val venueNotes = mutableStateMapOf<String, String>()
+
+    // "On the move": where each mate was settled, and when we last told you about them.
+    private val anchors = HashMap<String, LatLon>()
+    private val lastMoveAlert = HashMap<String, Long>()
+    private const val MOVE_M = 200.0
+    private const val MOVE_QUIET_MS = 20 * 60_000L
+
+    /**
+     * A mate has headed well away from where they were (200 m+, not just to the bar): one
+     * quiet heads-up, at most every 20 minutes per person.
+     */
+    private fun checkMoving(c: Context, f: Friend, s: LocationBook.Seen, me: LatLon?) {
+        val here = LatLon(s.lat, s.lon)
+        val anchor = anchors[f.id] ?: run {
+            anchors[f.id] = here
+            return
+        }
+        val moved = Geo.distanceM(anchor, here)
+        if (moved < MOVE_M) return
+        anchors[f.id] = here
+        val now = System.currentTimeMillis()
+        if (now - (lastMoveAlert[f.id] ?: 0L) < MOVE_QUIET_MS) return
+        lastMoveAlert[f.id] = now
+        val text = if (me != null) Txt.s(R.string.crew_moving_text_away, distanceLabel(moved), distanceLabel(Geo.distanceM(me, here)))
+        else Txt.s(R.string.crew_moving_text, distanceLabel(moved))
+        CrewNotifications.post(c, title = Txt.s(R.string.crew_moving_title, f.name), text = text)
+    }
+
+    fun refresh(c: Context) {
+        val me = myLocation(c)
+        val now = System.currentTimeMillis() / 1000
+        val crew = FriendsRepository.friends.filter { it.gigGroupOnly || it.key in GroupSync.members }
+        distances.clear()
+        venueNotes.clear()
+        val g = GroupSync.group.value
+        val vLat = g?.venueLat
+        val vLon = g?.venueLon
+        val venue = if (vLat != null && vLon != null) LatLon(vLat, vLon) else null
+        val parts = mutableListOf<Pair<Double, String>>()
+        for (f in crew) {
+            val s = LocationBook.seen[f.id] ?: continue
+            val age = now - s.timeSec
+            if (age > 3 * 3600) continue
+            val d = me?.let { Geo.distanceM(LatLon(it.latitude, it.longitude), LatLon(s.lat, s.lon)) }
+            if (d != null && age < 10 * 60) distances[f.id] = d
+            if (venue != null && age < 30 * 60) {
+                val dv = Geo.distanceM(venue, LatLon(s.lat, s.lon))
+                venueNotes[f.id] = if (dv < 400) Txt.s(R.string.crew_at_venue) else Txt.s(R.string.crew_from_venue, distanceLabel(dv))
+            }
+            if (age < 5 * 60 && !s.lastGasp) checkMoving(c, f, s, me?.let { LatLon(it.latitude, it.longitude) })
+            parts += (d ?: Double.MAX_VALUE) to when {
+                s.lastGasp -> Txt.s(R.string.crew_status_phone_died, f.name)
+                d != null && age < 10 * 60 -> Txt.s(R.string.crew_status_distance, f.name, distanceLabel(d))
+                else -> Txt.p(R.plurals.crew_status_min_ago, (age / 60).toInt(), f.name, (age / 60).toInt())
+            }
+        }
+        val sorted = parts.sortedBy { it.first }.map { it.second }
+        val line = sorted.take(4).joinToString(" · ")
+        VisibilityService.showCrew(c, line.ifBlank { null })
+        runCatching { CrewWidget.update(c, sorted.take(4)) }
+    }
+
+    @SuppressLint("MissingPermission")
+    internal fun myLocation(c: Context): android.location.Location? {
+        if (c.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+            c.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+        ) return null
+        val lm = c.getSystemService(LocationManager::class.java) ?: return null
+        return lm.getProviders(true).mapNotNull { runCatching { lm.getLastKnownLocation(it) }.getOrNull() }
+            .filter { System.currentTimeMillis() - it.time < 10 * 60_000 }
+            .minByOrNull { it.accuracy }
+    }
+}

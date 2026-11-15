@@ -50,7 +50,7 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
 import kotlinx.coroutines.delay
-import nz.waveformlabs.moshpoint.Friend
+import nz.waveformlabs.moshpoint.friends.Friend
 import nz.waveformlabs.moshpoint.R
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource

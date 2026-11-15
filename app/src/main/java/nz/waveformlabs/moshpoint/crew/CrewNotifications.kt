@@ -1,0 +1,122 @@
+package nz.waveformlabs.moshpoint.crew
+
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import androidx.core.app.NotificationCompat
+import nz.waveformlabs.moshpoint.MainActivity
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
+import nz.waveformlabs.moshpoint.core.GigGroup
+
+/** Notifications for things the crew sends: pings, help requests, meet-up pins, photos. */
+object CrewNotifications {
+    private const val CHANNEL = "crew"
+    private const val HELP_CHANNEL = "crew_help"
+    /**
+     * Ids for alerts that each get a notification of their own. They start from the clock (16 a
+     * second), in a range of their own, so an app that Android restarted in the background never
+     * reuses the id of an alert still showing. Before, every start counted from 7000 again, so the
+     * first new alert replaced the first old one, even a Need help nobody had seen yet.
+     */
+    private var nextId = 0x20000000 + ((System.currentTimeMillis() / 1000 * 16) % 0x10000000).toInt()
+
+    /** [sentAgo]: set when the ping only just arrived long after it was sent ("40 min ago"), so the alert says so. */
+    fun ping(c: Context, p: GigGroup.Ping, sentAgo: String? = null) {
+        val help = p.kind == GigGroup.Ping.NEED_HELP
+        val located = p.lat != null
+        post(
+            c, if (help) HELP_CHANNEL else CHANNEL,
+            title = GroupSync.pingTitle(p.kind, p.from),
+            text = when {
+                sentAgo != null && help -> Txt.s(R.string.offline_notif_help_late, sentAgo)
+                sentAgo != null -> Txt.s(R.string.offline_notif_late, sentAgo)
+                help && located -> Txt.s(R.string.crew_notif_help_where)
+                help -> Txt.s(R.string.crew_notif_help)
+                located -> Txt.s(R.string.crew_notif_tap_where)
+                else -> Txt.s(R.string.crew_notif_from_crew)
+            },
+            urgent = help,
+        )
+    }
+
+    fun post(
+        c: Context,
+        channel: String = CHANNEL,
+        title: String,
+        text: String,
+        urgent: Boolean = false,
+        openMap: Boolean = true,
+        /** Open the crew chat instead. */
+        openChat: Boolean = false,
+        /** Which crew's chat (main crew if null). */
+        crewId: String? = null,
+        /** Update this notification in place instead of adding another. */
+        notificationId: Int? = null,
+        /** Shown expanded under the text (latest messages). */
+        lines: List<String> = emptyList(),
+        /** Update without buzzing again. */
+        silent: Boolean = false,
+        /** Remove it by itself after this long (e.g. "tonight!" once the gig's over). */
+        timeoutMs: Long = 0L,
+        /** A private message: open the thread with whoever signs with this tag in [crewId] (docs/PRIVATE_MESSAGES.md). */
+        privateWith: Long? = null,
+        /** On a locked phone that hides sensitive content, show only this (no name, no words). */
+        lockScreenText: String? = null,
+    ) {
+        val app = c.applicationContext
+        val nm = app.getSystemService(NotificationManager::class.java) ?: return
+        nm.createNotificationChannel(NotificationChannel(CHANNEL, Txt.s(R.string.crew_channel_messages), NotificationManager.IMPORTANCE_DEFAULT))
+        nm.createNotificationChannel(NotificationChannel(HELP_CHANNEL, Txt.s(R.string.crew_channel_help), NotificationManager.IMPORTANCE_HIGH))
+        val thread = privateWith?.let { "$crewId:$it" }
+        val open = PendingIntent.getActivity(
+            app,
+            when {
+                // One per private thread, so each opens its own.
+                thread != null -> 0x10000 + (thread.hashCode() and 0xFFFF)
+                openChat -> 71 + (crewId?.hashCode()?.and(0xFFFF) ?: 0)
+                else -> 70
+            },
+            Intent(app, MainActivity::class.java).putExtra(MainActivity.EXTRA_OPEN_MAP, openMap && !openChat && thread == null)
+                .putExtra(MainActivity.EXTRA_OPEN_CHAT, openChat)
+                .putExtra(MainActivity.EXTRA_CHAT_CREW, crewId)
+                .putExtra(MainActivity.EXTRA_OPEN_PRIVATE, thread)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+        val n = NotificationCompat.Builder(app, channel)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setSmallIcon(R.drawable.ic_launcher_monochrome)
+            .setPriority(if (urgent) NotificationCompat.PRIORITY_MAX else NotificationCompat.PRIORITY_DEFAULT)
+            .setCategory(if (urgent) NotificationCompat.CATEGORY_ALARM else NotificationCompat.CATEGORY_MESSAGE)
+            .setAutoCancel(true)
+            .setOnlyAlertOnce(silent)
+            .apply {
+                if (lines.isNotEmpty()) {
+                    setStyle(NotificationCompat.InboxStyle().also { st -> lines.forEach { st.addLine(it) } }.setSummaryText(text))
+                }
+            }
+            .apply { if (timeoutMs > 0) setTimeoutAfter(timeoutMs) }
+            .apply {
+                if (lockScreenText != null) {
+                    // A private message: a locked phone that hides sensitive content shows only this.
+                    setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+                    setPublicVersion(
+                        NotificationCompat.Builder(app, channel)
+                            .setContentTitle(Txt.s(R.string.app_name))
+                            .setContentText(lockScreenText)
+                            .setSmallIcon(R.drawable.ic_launcher_monochrome)
+                            .setColor(0xFFB6FF3B.toInt())
+                            .build(),
+                    )
+                }
+            }
+            .setContentIntent(open)
+            .setColor(if (urgent) 0xFFFF3B5C.toInt() else 0xFFB6FF3B.toInt())
+            .build()
+        runCatching { nm.notify(notificationId ?: nextId++, n) }
+    }
+}

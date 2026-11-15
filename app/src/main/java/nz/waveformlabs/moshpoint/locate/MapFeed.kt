@@ -7,10 +7,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import nz.waveformlabs.moshpoint.Friend
-import nz.waveformlabs.moshpoint.FriendsRepository
-import nz.waveformlabs.moshpoint.GroupSync
-import nz.waveformlabs.moshpoint.LocationBook
+import nz.waveformlabs.moshpoint.friends.Friend
+import nz.waveformlabs.moshpoint.friends.FriendsRepository
+import nz.waveformlabs.moshpoint.crew.GroupSync
+import nz.waveformlabs.moshpoint.map.LocationBook
 import nz.waveformlabs.moshpoint.core.LocationBox
 
 /**
@@ -77,7 +77,7 @@ class MapFeed(context: Context, private val scope: CoroutineScope) {
         val pinIds = g?.let { listOf(it.rallyIdForDay(day), it.rallyIdForDay(day - 1)) }.orEmpty()
         val results = RelayClient.lookup(asks.map { it.second } + pinIds)
         if (g != null && results != null) {
-            results.drop(asks.size).flatten().forEach { blob -> g.openHere(blob)?.let { nz.waveformlabs.moshpoint.HerePins.arrived(app, g, it) } }
+            results.drop(asks.size).flatten().forEach { blob -> g.openHere(blob)?.let { nz.waveformlabs.moshpoint.map.HerePins.arrived(app, g, it) } }
         }
         if (results == null) {
             status.value = nz.waveformlabs.moshpoint.Txt.s(nz.waveformlabs.moshpoint.R.string.find_map_status_offline)

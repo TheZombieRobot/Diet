@@ -8,12 +8,28 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import nz.waveformlabs.moshpoint.Friend
+import nz.waveformlabs.moshpoint.friends.Friend
 import nz.waveformlabs.moshpoint.core.ArrowState
 import nz.waveformlabs.moshpoint.core.FriendRecord
 import nz.waveformlabs.moshpoint.core.Method
 import nz.waveformlabs.moshpoint.core.Trend
 import nz.waveformlabs.moshpoint.locate.LocatorEngine
+import nz.waveformlabs.moshpoint.ui.chat.CrewChatScreen
+import nz.waveformlabs.moshpoint.ui.finder.FinderScreen
+import nz.waveformlabs.moshpoint.ui.home.AddSheetContent
+import nz.waveformlabs.moshpoint.ui.home.CrewMenuContent
+import nz.waveformlabs.moshpoint.ui.home.FriendsListContent
+import nz.waveformlabs.moshpoint.ui.home.HomeDivider
+import nz.waveformlabs.moshpoint.ui.home.SectionTitle
+import nz.waveformlabs.moshpoint.ui.home.UpNextCard
+import nz.waveformlabs.moshpoint.ui.home.UpNextRow
+import nz.waveformlabs.moshpoint.ui.home.dotLine
+import nz.waveformlabs.moshpoint.ui.map.MapPlace
+import nz.waveformlabs.moshpoint.ui.map.MapScreen
+import nz.waveformlabs.moshpoint.ui.moments.StoryScreen
+import nz.waveformlabs.moshpoint.ui.settings.AcknowledgementsContent
+import nz.waveformlabs.moshpoint.ui.settings.OnboardingScreen
+import nz.waveformlabs.moshpoint.ui.settings.SettingsContent
 import org.junit.Rule
 import org.junit.Test
 
@@ -152,9 +168,9 @@ open class ScreensSnapshotTest {
     }
 
     @Test fun finderGroupWithPhotos() {
-        nz.waveformlabs.moshpoint.PhotoStore.photos["sam"] = fakePhoto(0xFF1E3A8A.toInt(), 0xFF22E4FF.toInt())
-        nz.waveformlabs.moshpoint.PhotoStore.photos["alex"] = fakePhoto(0xFF4C1D95.toInt(), 0xFFC86BFF.toInt())
-        nz.waveformlabs.moshpoint.PhotoStore.photos["jo"] = fakePhoto(0xFF7C2D12.toInt(), 0xFFFFB020.toInt())
+        nz.waveformlabs.moshpoint.profile.PhotoStore.photos["sam"] = fakePhoto(0xFF1E3A8A.toInt(), 0xFF22E4FF.toInt())
+        nz.waveformlabs.moshpoint.profile.PhotoStore.photos["alex"] = fakePhoto(0xFF4C1D95.toInt(), 0xFFC86BFF.toInt())
+        nz.waveformlabs.moshpoint.profile.PhotoStore.photos["jo"] = fakePhoto(0xFF7C2D12.toInt(), 0xFFFFB020.toInt())
         try {
             finder(
                 "Foo Fighters night",
@@ -165,7 +181,7 @@ open class ScreensSnapshotTest {
                 ),
             )
         } finally {
-            nz.waveformlabs.moshpoint.PhotoStore.photos.clear()
+            nz.waveformlabs.moshpoint.profile.PhotoStore.photos.clear()
         }
     }
 
@@ -203,8 +219,8 @@ open class ScreensSnapshotTest {
             MapScreen(
                 people = listOf(sam, alex, jo, mia),
                 seen = mapOf(
-                    "sam" to nz.waveformlabs.moshpoint.LocationBook.Seen(-41.29, 174.78, 1_000_000L - 30, 10),
-                    "alex" to nz.waveformlabs.moshpoint.LocationBook.Seen(-41.30, 174.80, 1_000_000L - 1_500, 20),
+                    "sam" to nz.waveformlabs.moshpoint.map.LocationBook.Seen(-41.29, 174.78, 1_000_000L - 30, 10),
+                    "alex" to nz.waveformlabs.moshpoint.map.LocationBook.Seen(-41.30, 174.80, 1_000_000L - 1_500, 20),
                 ),
                 me = nz.waveformlabs.moshpoint.core.LatLon(-41.285, 174.776),
                 status = "Updated just now",
@@ -218,7 +234,7 @@ open class ScreensSnapshotTest {
     }
 
     private fun moment(key: String, from: String, t: Long, caption: String, top: Int, bottom: Int, mine: Boolean = false) =
-        nz.waveformlabs.moshpoint.Moments.Item(key, from, t, -36.85, 174.77, caption, fakePhoto(top, bottom), mine)
+        nz.waveformlabs.moshpoint.moments.Moments.Item(key, from, t, -36.85, 174.77, caption, fakePhoto(top, bottom), mine)
 
     @Test fun crewChat() = snap {
         MoshTheme {
@@ -226,15 +242,15 @@ open class ScreensSnapshotTest {
             CrewChatScreen(
                 crewName = "Iron Maiden",
                 lines = listOf(
-                    nz.waveformlabs.moshpoint.CrewChat.Line("Jo", t - 900, "pinned: Sound desk after the encore", false, 12),
-                    nz.waveformlabs.moshpoint.CrewChat.Line("Jo", t - 610, "Anyone want a drink?", false),
-                    nz.waveformlabs.moshpoint.CrewChat.Line("Jo", t - 600, "Bar's quiet right now", false),
-                    nz.waveformlabs.moshpoint.CrewChat.Line("Me", t - 540, "Yes! Cider pls 🙏", true),
-                    nz.waveformlabs.moshpoint.CrewChat.Line("Alex", t - 300, "sent a flare: At the rail 🎶", false, 11),
-                    nz.waveformlabs.moshpoint.CrewChat.Line("Alex", t - 240, "Left side, by the big speaker", false),
+                    nz.waveformlabs.moshpoint.chat.CrewChat.Line("Jo", t - 900, "pinned: Sound desk after the encore", false, 12),
+                    nz.waveformlabs.moshpoint.chat.CrewChat.Line("Jo", t - 610, "Anyone want a drink?", false),
+                    nz.waveformlabs.moshpoint.chat.CrewChat.Line("Jo", t - 600, "Bar's quiet right now", false),
+                    nz.waveformlabs.moshpoint.chat.CrewChat.Line("Me", t - 540, "Yes! Cider pls 🙏", true),
+                    nz.waveformlabs.moshpoint.chat.CrewChat.Line("Alex", t - 300, "sent a flare: At the rail 🎶", false, 11),
+                    nz.waveformlabs.moshpoint.chat.CrewChat.Line("Alex", t - 240, "Left side, by the big speaker", false),
                 ),
-                plan = nz.waveformlabs.moshpoint.CrewChat.Plan("Sound desk after the encore", "Jo", t - 900),
-                flares = listOf(nz.waveformlabs.moshpoint.CrewChat.Flare("Alex", "At the rail 🎶", t + 1560, -36.85, 174.77)),
+                plan = nz.waveformlabs.moshpoint.chat.CrewChat.Plan("Sound desk after the encore", "Jo", t - 900),
+                flares = listOf(nz.waveformlabs.moshpoint.chat.CrewChat.Flare("Alex", "At the rail 🎶", t + 1560, -36.85, 174.77)),
                 myName = "Me",
                 nowSec = t,
                 meetUp = "Gate C",
@@ -383,7 +399,7 @@ open class ScreensSnapshotTest {
                 seen = mapOf(
                     "b0" to HomeFixtures.seen(10), "b1" to HomeFixtures.seen(30, battery = 9), "b2" to HomeFixtures.seen(60),
                     "b3" to HomeFixtures.seen(90), "b4" to HomeFixtures.seen(400),
-                    "b5" to nz.waveformlabs.moshpoint.LocationBook.Seen(-36.85, 174.76, HomeFixtures.NOW - 1200, 10, batteryPct = 4, lastGasp = true),
+                    "b5" to nz.waveformlabs.moshpoint.map.LocationBook.Seen(-36.85, 174.76, HomeFixtures.NOW - 1200, 10, batteryPct = 4, lastGasp = true),
                 ),
                 distances = mapOf("b0" to 6.0, "b1" to 35.0, "b2" to 85.0, "b3" to 1450.0),
                 flareNotes = mapOf("b1" to "🔥 " + stringResource(nz.waveformlabs.moshpoint.R.string.crew_vibe_bar)),

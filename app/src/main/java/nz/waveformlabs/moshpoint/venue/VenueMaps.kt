@@ -17,18 +17,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import nz.waveformlabs.moshpoint.BuildConfig
-import nz.waveformlabs.moshpoint.CrewStatus
-import nz.waveformlabs.moshpoint.Crews
-import nz.waveformlabs.moshpoint.DebugStatus
-import nz.waveformlabs.moshpoint.GigArchive
-import nz.waveformlabs.moshpoint.GroupSync
+import nz.waveformlabs.moshpoint.crew.CrewStatus
+import nz.waveformlabs.moshpoint.crew.Crews
+import nz.waveformlabs.moshpoint.debug.DebugStatus
+import nz.waveformlabs.moshpoint.gigs.GigArchive
+import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.core.ArrivalPlanner
 import nz.waveformlabs.moshpoint.core.AtGig
 import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.core.LatLon
 import nz.waveformlabs.moshpoint.core.VenueMapPlan
 import nz.waveformlabs.moshpoint.core.VenueQuery
-import nz.waveformlabs.moshpoint.ui.MAP_STYLES
+import nz.waveformlabs.moshpoint.ui.map.MAP_STYLES
 import org.json.JSONArray
 import org.json.JSONObject
 import org.maplibre.android.MapLibre
@@ -298,7 +298,7 @@ object VenueMaps {
             OfflineManager.getInstance(c)
         }.getOrNull() ?: return
         val regions = list(om) ?: return
-        cleanUp(om, regions, now)
+        cleanUp(regions, now)
         // A saved area whose files have gone (storage cleared, database rebuilt) is not saved.
         for (a in areas) {
             if (a.done && (regions.none { areaKeyOf(it) == a.key } || !styleFilesExist(a.version))) {
@@ -372,7 +372,7 @@ object VenueMaps {
         }
     }
 
-    private suspend fun cleanUp(om: OfflineManager, regions: List<OfflineRegion>, now: Long) {
+    private suspend fun cleanUp(regions: List<OfflineRegion>, now: Long) {
         val expired = areas.filter { now > it.deleteAfterMs }
         // Too many: gigs that are over go first (oldest first), then the ones furthest ahead.
         val kept = areas - expired.toSet()

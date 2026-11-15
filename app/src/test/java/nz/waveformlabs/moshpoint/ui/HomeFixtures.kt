@@ -8,14 +8,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import nz.waveformlabs.moshpoint.Friend
-import nz.waveformlabs.moshpoint.GigArchive
-import nz.waveformlabs.moshpoint.LocationBook
-import nz.waveformlabs.moshpoint.Moments
+import nz.waveformlabs.moshpoint.friends.Friend
+import nz.waveformlabs.moshpoint.gigs.GigArchive
+import nz.waveformlabs.moshpoint.map.LocationBook
+import nz.waveformlabs.moshpoint.moments.Moments
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.FriendRecord
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.ui.home.FriendsScreen
+import nz.waveformlabs.moshpoint.ui.home.HomeCrew
+import nz.waveformlabs.moshpoint.ui.home.HomeCrewActions
+import nz.waveformlabs.moshpoint.ui.home.HomeGigActions
+import nz.waveformlabs.moshpoint.ui.home.HomeGigs
+import nz.waveformlabs.moshpoint.ui.home.HomeInviteActions
+import nz.waveformlabs.moshpoint.ui.home.HomeMe
+import nz.waveformlabs.moshpoint.ui.home.HomeMeActions
+import nz.waveformlabs.moshpoint.ui.home.SetupIssue
+import nz.waveformlabs.moshpoint.ui.home.SheetFrame
+import nz.waveformlabs.moshpoint.ui.home.UpNextCard
 import nz.waveformlabs.moshpoint.venue.VenueMaps
 
 /**
@@ -140,19 +151,30 @@ internal fun HomeUnderTest(
     venueMap: VenueMaps.Status? = null,
     myName: String = "Josh",
 ) = FriendsScreen(
-    friends = friends, visible = visible, alwaysOn = false, phoneSummary = "",
-    myName = myName, onMyName = {}, missingPermissions = missingPermissions, setupIssues = setupIssues, onFixPermissions = {},
-    onVisible = {}, onAlwaysOn = {}, onFind = {}, onShareCode = {}, onShowQr = {}, onScanQr = {},
-    scanned = null, onScannedUsed = {}, onAdd = { _, _, _ -> null }, onRemove = {},
-    onSetPhoto = {}, onRemovePhoto = {}, onClearGigGroup = {},
-    groupName = groupName, crewKeys = crewKeys, onStartGroup = {}, onShowGroupQr = {},
-    onMessage = {}, privateUnread = privateUnread,
-    meetUp = meetUp, seen = seen, nowSec = HomeFixtures.NOW, pings = pings, describePing = { HomeFixtures.pingWords(it) },
-    ghost = ghost, moments = moments, checkInBy = checkInBy, distances = distances, crewQrPayload = crewQrPayload, onQuickCrew = {},
-    following = following, tileNotes = tileNotes, followers = followers,
-    pastGigs = pastGigs, crewWhen = crewWhen, crewSleeping = crewSleeping,
-    onOpenChat = {}, chatUnread = chatUnread, pinnedPlan = pinnedPlan, flareNotes = flareNotes,
-    upNext = upNext, venueMap = venueMap, onResetInvite = {},
+    me = HomeMe(
+        myName = myName, visible = visible, alwaysOn = false, phoneSummary = "",
+        missingPermissions = missingPermissions, setupIssues = setupIssues, ghost = ghost,
+    ),
+    crew = HomeCrew(
+        friends = friends, groupName = groupName, crewKeys = crewKeys, privateUnread = privateUnread,
+        meetUp = meetUp, seen = seen, nowSec = HomeFixtures.NOW, pings = pings,
+        moments = moments, checkInBy = checkInBy, distances = distances, crewQrPayload = crewQrPayload,
+        following = following, tileNotes = tileNotes, followers = followers,
+        crewWhen = crewWhen, crewSleeping = crewSleeping,
+        chatUnread = chatUnread, pinnedPlan = pinnedPlan, flareNotes = flareNotes, venueMap = venueMap,
+    ),
+    gigs = HomeGigs(upNext = upNext, pastGigs = pastGigs),
+    scanned = null,
+    meActions = HomeMeActions(onMyName = {}, onFixPermissions = {}, onVisible = {}, onAlwaysOn = {}),
+    crewActions = HomeCrewActions(
+        onFind = {}, onRemove = {}, onSetPhoto = {}, onRemovePhoto = {}, onClearGigGroup = {},
+        onMessage = {}, describePing = { HomeFixtures.pingWords(it) }, onOpenChat = {}, onResetInvite = {},
+    ),
+    inviteActions = HomeInviteActions(
+        onShareCode = {}, onShowQr = {}, onScanQr = {}, onScannedUsed = {}, onAdd = { _, _, _ -> null },
+        onStartGroup = {}, onShowGroupQr = {}, onQuickCrew = {},
+    ),
+    gigActions = HomeGigActions(),
 )
 
 /** A pop-up panel's contents drawn over the home, dimmed, the way the phone shows it. */

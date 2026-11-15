@@ -11,7 +11,7 @@ import android.graphics.RectF
 import android.graphics.Shader
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import nz.waveformlabs.moshpoint.PhotoStore
+import nz.waveformlabs.moshpoint.profile.PhotoStore
 import nz.waveformlabs.moshpoint.R
 import java.util.Locale
 

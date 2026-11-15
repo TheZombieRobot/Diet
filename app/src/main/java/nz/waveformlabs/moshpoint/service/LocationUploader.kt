@@ -6,7 +6,7 @@ import android.os.BatteryManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import nz.waveformlabs.moshpoint.DebugStatus
+import nz.waveformlabs.moshpoint.debug.DebugStatus
 import nz.waveformlabs.moshpoint.core.EphemeralId
 import nz.waveformlabs.moshpoint.core.LocationBox
 import nz.waveformlabs.moshpoint.core.RelayPacket
@@ -53,7 +53,7 @@ class LocationUploader(private val context: Context, private val scope: Coroutin
                 // Night recap: count real movement only (not GPS jitter).
                 lastLoc?.let { prev ->
                     val d = prev.distanceTo(loc)
-                    if (loc.accuracy < 30 && d > maxOf(10f, loc.accuracy)) nz.waveformlabs.moshpoint.NightStats.addMetres(context, d.toDouble())
+                    if (loc.accuracy < 30 && d > maxOf(10f, loc.accuracy)) nz.waveformlabs.moshpoint.gigs.NightStats.addMetres(context, d.toDouble())
                 }
                 lastLoc = loc
                 publish(loc, force = false)
@@ -73,7 +73,7 @@ class LocationUploader(private val context: Context, private val scope: Coroutin
     }
 
     private suspend fun publish(loc: Location, force: Boolean, lastGasp: Boolean = false) {
-        nz.waveformlabs.moshpoint.GhostMode.expireIfDue(context)
+        nz.waveformlabs.moshpoint.safety.GhostMode.expireIfDue(context)
         if (VisibilityPrefs.ghost(context)) {
             CrowdRelayRadio.ownPacket = null
             DebugStatus.set("Location", "ghost mode: not shared")

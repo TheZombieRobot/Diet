@@ -4,9 +4,10 @@ import app.cash.paparazzi.DeviceConfig
 import app.cash.paparazzi.Paparazzi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import nz.waveformlabs.moshpoint.CrewChat
+import nz.waveformlabs.moshpoint.chat.CrewChat
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.ui.chat.CrewChatScreen
 import org.junit.Rule
 import org.junit.Test
 

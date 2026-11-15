@@ -4,6 +4,8 @@ import android.app.Application
 import android.content.Context
 import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
+import nz.waveformlabs.moshpoint.setup.FinderSetup
+import nz.waveformlabs.moshpoint.setup.NetState
 
 /** Starts first in every process (app, service, alarms), so [Txt] always has a Context. */
 class MoshpointApp : Application() {

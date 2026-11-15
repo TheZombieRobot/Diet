@@ -7,12 +7,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
@@ -26,11 +24,10 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import app.cash.paparazzi.DeviceConfig
 import app.cash.paparazzi.Paparazzi
-import nz.waveformlabs.moshpoint.Friend
-import nz.waveformlabs.moshpoint.LocationBook
+import nz.waveformlabs.moshpoint.friends.Friend
+import nz.waveformlabs.moshpoint.map.LocationBook
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.core.ArrowState
 import nz.waveformlabs.moshpoint.core.Floor
@@ -39,16 +36,22 @@ import nz.waveformlabs.moshpoint.core.LatLon
 import nz.waveformlabs.moshpoint.core.Method
 import nz.waveformlabs.moshpoint.core.Trend
 import nz.waveformlabs.moshpoint.core.VenuePlacement
-import nz.waveformlabs.moshpoint.ui.FinderScreen
-import nz.waveformlabs.moshpoint.ui.FriendsScreen
-import nz.waveformlabs.moshpoint.ui.MapPin
-import nz.waveformlabs.moshpoint.ui.MapScreen
+import nz.waveformlabs.moshpoint.ui.finder.FinderScreen
+import nz.waveformlabs.moshpoint.ui.home.FriendsScreen
+import nz.waveformlabs.moshpoint.ui.home.HomeCrew
+import nz.waveformlabs.moshpoint.ui.home.HomeCrewActions
+import nz.waveformlabs.moshpoint.ui.home.HomeGigActions
+import nz.waveformlabs.moshpoint.ui.home.HomeGigs
+import nz.waveformlabs.moshpoint.ui.home.HomeInviteActions
+import nz.waveformlabs.moshpoint.ui.home.HomeMe
+import nz.waveformlabs.moshpoint.ui.home.HomeMeActions
+import nz.waveformlabs.moshpoint.ui.map.MapPin
+import nz.waveformlabs.moshpoint.ui.map.MapScreen
 import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.MoshTheme
-import nz.waveformlabs.moshpoint.ui.CrewHeader
-import nz.waveformlabs.moshpoint.ui.VenueMapLine
-import nz.waveformlabs.moshpoint.ui.VenueView
-import nz.waveformlabs.moshpoint.ui.pinBitmap
+import nz.waveformlabs.moshpoint.ui.home.CrewHeader
+import nz.waveformlabs.moshpoint.ui.map.VenueView
+import nz.waveformlabs.moshpoint.ui.map.pinBitmap
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -114,15 +117,25 @@ open class VenueSnapshotTest : VenueSnapshots() {
     @Test fun venueCard() = snap {
         MoshTheme {
             FriendsScreen(
-                friends = listOf(alex, jo, sam, mia), visible = true, alwaysOn = false,
-                phoneSummary = "This phone: UWB, Wi-Fi Aware, Bluetooth, compass, GPS",
-                myName = "Josh", onMyName = {}, missingPermissions = emptyList(), onFixPermissions = {},
-                onVisible = {}, onAlwaysOn = {}, onFind = {}, onShareCode = {}, onShowQr = {}, onScanQr = {},
-                scanned = null, onScannedUsed = {}, onAdd = { _, _, _ -> null }, onRemove = {},
-                onSetPhoto = {}, onRemovePhoto = {}, onClearGigGroup = {},
-                groupName = "Neon Paddock", onStartGroup = {}, onShowGroupQr = {},
-                crewWhen = "Sat 14 Dec, 8:00 pm · Kauri Fields",
-                venueMap = VenueMaps.Status(VenueMaps.Line.SAVED),
+                me = HomeMe(
+                    myName = "Josh", visible = true, alwaysOn = false,
+                    phoneSummary = "This phone: UWB, Wi-Fi Aware, Bluetooth, compass, GPS",
+                    missingPermissions = emptyList(),
+                ),
+                crew = HomeCrew(
+                    friends = listOf(alex, jo, sam, mia), groupName = "Neon Paddock",
+                    crewWhen = "Sat 14 Dec, 8:00 pm · Kauri Fields",
+                    venueMap = VenueMaps.Status(VenueMaps.Line.SAVED),
+                ),
+                gigs = HomeGigs(),
+                scanned = null,
+                meActions = HomeMeActions(onMyName = {}, onFixPermissions = {}, onVisible = {}, onAlwaysOn = {}),
+                crewActions = HomeCrewActions(onFind = {}, onRemove = {}, onSetPhoto = {}, onRemovePhoto = {}, onClearGigGroup = {}),
+                inviteActions = HomeInviteActions(
+                    onShareCode = {}, onShowQr = {}, onScanQr = {}, onScannedUsed = {}, onAdd = { _, _, _ -> null },
+                    onStartGroup = {}, onShowGroupQr = {},
+                ),
+                gigActions = HomeGigActions(),
             )
         }
     }

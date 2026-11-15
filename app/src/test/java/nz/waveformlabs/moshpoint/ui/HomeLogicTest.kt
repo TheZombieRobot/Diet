@@ -1,7 +1,18 @@
 package nz.waveformlabs.moshpoint.ui
 
 import androidx.compose.ui.unit.sp
-import nz.waveformlabs.moshpoint.LocationBook
+import nz.waveformlabs.moshpoint.map.LocationBook
+import nz.waveformlabs.moshpoint.ui.finder.RadarSpot
+import nz.waveformlabs.moshpoint.ui.finder.clusterSpots
+import nz.waveformlabs.moshpoint.ui.finder.radarFrac
+import nz.waveformlabs.moshpoint.ui.home.dotLine
+import nz.waveformlabs.moshpoint.ui.home.faceOrderKey
+import nz.waveformlabs.moshpoint.ui.home.faceStatus
+import nz.waveformlabs.moshpoint.ui.home.keepNumbers
+import nz.waveformlabs.moshpoint.ui.home.liveFirst
+import nz.waveformlabs.moshpoint.ui.home.tracked
+import nz.waveformlabs.moshpoint.ui.map.MapPin
+import nz.waveformlabs.moshpoint.ui.map.crewBubbles
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -47,7 +58,7 @@ class HomeLogicTest {
     }
 
     // The home's faces (docs/HOME_REDESIGN.md): live first and nearest first, then the most recently seen.
-    private fun mate(id: String) = nz.waveformlabs.moshpoint.Friend(nz.waveformlabs.moshpoint.core.FriendRecord(id, id, 0, ByteArray(32), true, 0L))
+    private fun mate(id: String) = nz.waveformlabs.moshpoint.friends.Friend(nz.waveformlabs.moshpoint.core.FriendRecord(id, id, 0, ByteArray(32), true, 0L))
 
     @Test fun facesLiveFirstThenNearestThenLastSeen() {
         val now = 1_000_000L

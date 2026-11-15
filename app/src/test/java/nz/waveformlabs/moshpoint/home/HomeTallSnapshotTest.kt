@@ -13,7 +13,7 @@ import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.ui.HomeFixtures
 import nz.waveformlabs.moshpoint.ui.HomeUnderTest
 import nz.waveformlabs.moshpoint.ui.MoshTheme
-import nz.waveformlabs.moshpoint.ui.SetupIssue
+import nz.waveformlabs.moshpoint.ui.home.SetupIssue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

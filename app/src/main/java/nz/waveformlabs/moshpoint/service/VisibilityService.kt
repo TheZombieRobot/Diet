@@ -14,9 +14,9 @@ import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
-import nz.waveformlabs.moshpoint.DebugStatus
-import nz.waveformlabs.moshpoint.FriendsRepository
-import nz.waveformlabs.moshpoint.GroupSync
+import nz.waveformlabs.moshpoint.debug.DebugStatus
+import nz.waveformlabs.moshpoint.friends.FriendsRepository
+import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.MainActivity
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.locate.CrowdRelayRadio
@@ -41,7 +41,7 @@ import nz.waveformlabs.moshpoint.locate.FinderMate
  */
 class VisibilityService : LifecycleService() {
     /** Who we are right now: our crew pass while a crew is on, else our permanent identity. */
-    private val mySecret: ByteArray get() = nz.waveformlabs.moshpoint.Identity.current(this)
+    private val mySecret: ByteArray get() = nz.waveformlabs.moshpoint.profile.Identity.current(this)
     /** The being-findable radios; set once [begin] has run. */
     private var findable: Findable? = null
     private var uploader: LocationUploader? = null
@@ -93,7 +93,7 @@ class VisibilityService : LifecycleService() {
         CrowdRelayRadio.startListening(this)
         CrowdRelayRadio.startBroadcasting(this, lifecycleScope)
         // Messages without signal ride the relay's adverts: only while live, so only from here.
-        nz.waveformlabs.moshpoint.OfflineMessages.startRadio(this)
+        nz.waveformlabs.moshpoint.chat.OfflineMessages.startRadio(this)
         // Then, as always: Wi-Fi Aware, Bluetooth/Wi-Fi coming back, UWB, and the low-power listen
         // for friends who are looking (speeds our advert up, joins their UWB session).
         f.startListening()
@@ -178,7 +178,7 @@ class VisibilityService : LifecycleService() {
         uploader?.stop()
         runCatching { unregisterReceiver(batteryReceiver) }
         if (findable != null) {
-            nz.waveformlabs.moshpoint.OfflineMessages.stopRadio()
+            nz.waveformlabs.moshpoint.chat.OfflineMessages.stopRadio()
             GroupSync.release(this)
             CrowdRelayRadio.stopBroadcasting(this)
             CrowdRelayRadio.stopListening(this)

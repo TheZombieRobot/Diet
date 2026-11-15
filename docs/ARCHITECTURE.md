@@ -87,17 +87,22 @@ method runs at once, and a single arbiter decides what to draw.
 
 ## app (Android)
 
+The app's code is grouped by feature (crew, chat, moments, gigs, safety, profile, ...), with
+`MainActivity` reduced to its lifecycle and its screen state in `main/`. The full layout, and
+where everything moved in the tidy-up, is in docs/CODE_STRUCTURE.md.
+
 | File | Job |
 |---|---|
-| `FinderSetup.kt` | Plugs the gig app's parts into the finder at start-up (`DebugStatus`, `FieldRecorder`, `RelayClient`, `LocationBook`, "I'm here" pins, `OfflineMessages`). |
+| `MainActivity.kt` + `main/` | The one screen: its lifecycle, one state holder per area (home, finder, map, Story, chat, camera, invites, permissions), its activity results, and the composables that draw it. |
+| `setup/FinderSetup.kt` | Plugs the gig app's parts into the finder at start-up (`DebugStatus`, `FieldRecorder`, `RelayClient`, `LocationBook`, "I'm here" pins, `OfflineMessages`). |
 | `locate/RelayClient.kt` | HTTP client for the relay server. |
 | `locate/MapFeed.kt` | Feeds the map while it's open: our position and everyone's shared locations. |
 | `service/LocationUploader.kt` | While visible: seals our GPS for the crowd relay and the server. |
 | `service/VisibilityService.kt` | Foreground service (type `connectedDevice`) that keeps us findable with the app closed: runs the finder's `Findable` (the advert, swapped every rotation; on UWB phones the listen for lookers and `UwbResponder`) and the gig work around it. |
 | `service/BootReceiver.kt` | Turns visibility back on after a reboot, only if the user chose "always on". |
-| `ui/FinderScreen.kt` | No-signal state, one arrow per friend with avatar and distance, Scan flow. |
-| `ui/FriendsScreen.kt` | The home screen (docs/HOME_REDESIGN.md): header with Need help, the Live switch, tonight's crew (faces, Find everyone, crew chat, photos, meet-up), the crew menu (invite, family, reset, end the night), Up next, memories, past gigs, friends. Its sections are in `ui/HomeSections.kt`, the building blocks in `ui/HomeKit.kt`. |
-| `Friends.kt` | `FriendsRepository`: saved to `friends.tsv` in app-private storage. |
+| `ui/finder/FinderScreen.kt` | No-signal state, one arrow per friend with avatar and distance, Scan flow. |
+| `ui/home/FriendsScreen.kt` | The home screen (docs/HOME_REDESIGN.md): header with Need help, the Live switch, tonight's crew (faces, Find everyone, crew chat, photos, meet-up), the crew menu (invite, family, reset, end the night), Up next, memories, past gigs, friends. Its inputs are grouped in `FriendsScreenState.kt`; its sections are in `HomeSections.kt`, `HomeHeroes.kt`, `HomeGigLists.kt`, `HomePanels.kt` and `HomeBar.kt`, the building blocks in `HomeKit.kt`, `HomeButtons.kt`, `HomeFaces.kt` and `HomeSheets.kt` (all in `ui/home/`). |
+| `friends/Friends.kt` | `FriendsRepository`: saved to `friends.tsv` in app-private storage. |
 
 ## Methods: status and plan
 
