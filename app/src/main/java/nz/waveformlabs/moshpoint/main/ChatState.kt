@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.MainActivity
 import nz.waveformlabs.moshpoint.R
@@ -16,6 +17,7 @@ import nz.waveformlabs.moshpoint.friends.FriendsRepository
 import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 import nz.waveformlabs.moshpoint.sharing.PlanCardImage
+import nz.waveformlabs.moshpoint.ui.gigWhen
 
 /**
  * The crew chat and private messages: opening and closing them, "Message Sam", and the plan as
@@ -58,7 +60,7 @@ internal class ChatState(private val a: MainActivity) {
         showChat = false
         // After the slide-out, so the closing chat doesn't swap to another crew's messages mid-animation.
         a.lifecycleScope.launch {
-            kotlinx.coroutines.delay(300)
+            delay(300)
             if (!showChat) CrewChat.show(a, GroupSync.group.value)
         }
     }
@@ -71,7 +73,7 @@ internal class ChatState(private val a: MainActivity) {
             FriendsRepository.friends.filter { (it.gigGroupOnly || it.key in GroupSync.members) && !FriendsRepository.isSimulated(it.id) }.map { it.name }
         } else Crews.find(g.key)?.mates?.map { it.second }.orEmpty()
         val whenWhere = listOfNotNull(
-            g.startsAtSec.takeIf { it > 0 }?.let { nz.waveformlabs.moshpoint.ui.gigWhen(it) },
+            g.startsAtSec.takeIf { it > 0 }?.let { gigWhen(it) },
             g.venue.takeIf { it.isNotBlank() },
         ).joinToString(" · ").ifBlank { null }
         PlanCardImage.share(a, PlanCardImage.Card(g.name, whenWhere, CrewChat.planFor(a, g)?.text, if (isMain) GroupSync.rally.value?.name else null, crew.distinct()))

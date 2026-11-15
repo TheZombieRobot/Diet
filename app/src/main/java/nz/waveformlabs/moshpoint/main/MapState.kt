@@ -1,12 +1,17 @@
 package nz.waveformlabs.moshpoint.main
 
+import android.location.Location
+import android.os.SystemClock
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import nz.waveformlabs.moshpoint.MainActivity
+import nz.waveformlabs.moshpoint.core.LatLon
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.friends.FriendsRepository
+import nz.waveformlabs.moshpoint.locate.MapFeed
+import nz.waveformlabs.moshpoint.ui.map.VenueView
 import nz.waveformlabs.moshpoint.venue.VenueMaps
 
 /**
@@ -15,10 +20,10 @@ import nz.waveformlabs.moshpoint.venue.VenueMaps
  */
 internal class MapState(private val a: MainActivity) {
     var showMap by mutableStateOf(false)
-    val mapFeed by lazy { nz.waveformlabs.moshpoint.locate.MapFeed(a, a.lifecycleScope) }
+    val mapFeed by lazy { MapFeed(a, a.lifecycleScope) }
 
     /** Set while the map is open at the gig: the venue it opened on. Null = the ordinary map. */
-    var mapVenue by mutableStateOf<nz.waveformlabs.moshpoint.ui.map.VenueView?>(null)
+    var mapVenue by mutableStateOf<VenueView?>(null)
     /** The finder engine is running just for the map (UWB places mates exactly). */
     var mapEngine = false
 
@@ -26,7 +31,7 @@ internal class MapState(private val a: MainActivity) {
     private var mapOpenedAtMs = 0L
 
     fun openMap() {
-        mapOpenedAtMs = android.os.SystemClock.elapsedRealtime()
+        mapOpenedAtMs = SystemClock.elapsedRealtime()
         // At the gig (gig day, and this phone at the venue) the map opens zoomed into the venue.
         mapVenue = venueViewFor(a.lastKnownLocation())
         showMap = true
@@ -35,10 +40,10 @@ internal class MapState(private val a: MainActivity) {
     }
 
     /** The venue to open the map on, if [here] says this phone is at the gig; else null. */
-    private fun venueViewFor(here: android.location.Location?): nz.waveformlabs.moshpoint.ui.map.VenueView? {
+    private fun venueViewFor(here: Location?): VenueView? {
         val venue = VenueMaps.venue(a) ?: return null
         if (!VenueMaps.atGig(a, here)) return null
-        return nz.waveformlabs.moshpoint.ui.map.VenueView(venue, here?.let { nz.waveformlabs.moshpoint.core.LatLon(it.latitude, it.longitude) })
+        return VenueView(venue, here?.let { LatLon(it.latitude, it.longitude) })
     }
 
     /**
@@ -46,8 +51,8 @@ internal class MapState(private val a: MainActivity) {
      * map opened (not live, say), this one can still say we're at the gig, for a few seconds.
      * After that an open map never moves by itself.
      */
-    fun mapFirstFix(here: android.location.Location) {
-        if (mapVenue != null || !showMap || android.os.SystemClock.elapsedRealtime() - mapOpenedAtMs > MAP_FIRST_FIX_MS) return
+    fun mapFirstFix(here: Location) {
+        if (mapVenue != null || !showMap || SystemClock.elapsedRealtime() - mapOpenedAtMs > MAP_FIRST_FIX_MS) return
         mapVenue = venueViewFor(here) ?: return
         lookForCrewFromMap()
     }

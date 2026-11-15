@@ -6,6 +6,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.NonRestartableComposable
 import androidx.lifecycle.lifecycleScope
 import com.journeyapps.barcodescanner.ScanOptions
+import java.text.DateFormat
+import java.util.Date
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.MainActivity
 import nz.waveformlabs.moshpoint.R
@@ -31,6 +33,8 @@ import nz.waveformlabs.moshpoint.profile.PhotoStore
 import nz.waveformlabs.moshpoint.safety.GhostMode
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 import nz.waveformlabs.moshpoint.sharing.Sharing
+import nz.waveformlabs.moshpoint.ui.countdown
+import nz.waveformlabs.moshpoint.ui.gigWhen
 import nz.waveformlabs.moshpoint.ui.home.FriendsScreen
 import nz.waveformlabs.moshpoint.ui.home.HomeCrew
 import nz.waveformlabs.moshpoint.ui.home.HomeCrewActions
@@ -39,6 +43,7 @@ import nz.waveformlabs.moshpoint.ui.home.HomeGigs
 import nz.waveformlabs.moshpoint.ui.home.HomeInviteActions
 import nz.waveformlabs.moshpoint.ui.home.HomeMe
 import nz.waveformlabs.moshpoint.ui.home.HomeMeActions
+import nz.waveformlabs.moshpoint.ui.home.UpNextCard
 import nz.waveformlabs.moshpoint.venue.VenueMaps
 
 /** The home screen, wired to the app. @NonRestartableComposable: see [MainScreen]. */
@@ -66,7 +71,7 @@ internal fun HomeContent(a: MainActivity) {
             pings = GroupSync.pings,
             moments = Moments.items,
             checkInBy = GroupSync.myCheckInBy.value.takeIf { it > 0 }?.let {
-                java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(java.util.Date(it * 1000))
+                DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(it * 1000))
             },
             distances = CrewStatus.distances,
             crewQrPayload = GroupSync.group.value?.let { a.invites.crewQr(it) },
@@ -79,7 +84,7 @@ internal fun HomeContent(a: MainActivity) {
             tileNotes = CrewStatus.venueNotes,
             followers = GroupSync.followers,
             crewWhen = GroupSync.group.value?.takeIf { it.startsAtSec > 0 }?.let { g ->
-                nz.waveformlabs.moshpoint.ui.gigWhen(g.startsAtSec).let { w -> if (g.venue.isNotBlank()) Txt.s(R.string.main_when_venue, w, g.venue) else w }
+                gigWhen(g.startsAtSec).let { w -> if (g.venue.isNotBlank()) Txt.s(R.string.main_when_venue, w, g.venue) else w }
             },
             crewSleeping = a.home.homeNow > 0 && GroupSync.sleeping,
             meetUp = GroupSync.rally.value?.name,
@@ -87,10 +92,10 @@ internal fun HomeContent(a: MainActivity) {
         ),
         gigs = HomeGigs(
             upNext = Crews.others.map { e ->
-                nz.waveformlabs.moshpoint.ui.home.UpNextCard(
+                UpNextCard(
                     id = e.id, name = e.group.name,
-                    whenText = e.group.startsAtSec.takeIf { it > 0 }?.let { nz.waveformlabs.moshpoint.ui.gigWhen(it) },
-                    countdown = nz.waveformlabs.moshpoint.ui.countdown(e.group.startsAtSec, a.home.homeNow / 1000),
+                    whenText = e.group.startsAtSec.takeIf { it > 0 }?.let { gigWhen(it) },
+                    countdown = countdown(e.group.startsAtSec, a.home.homeNow / 1000),
                     venue = e.group.venue, mates = maxOf(e.mates.size, CrewChat.peopleCount(a, e.group)),
                     unread = CrewChat.unreadFor(a, e.group),
                     plan = CrewChat.planFor(a, e.group)?.text,

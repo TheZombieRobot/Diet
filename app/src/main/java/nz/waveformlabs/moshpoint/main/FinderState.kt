@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -88,7 +89,7 @@ internal class FinderState(private val a: MainActivity) {
             DebugStatus.log("No recording to share yet")
             return
         }
-        val uri = androidx.core.content.FileProvider.getUriForFile(a, "${a.packageName}.recordings", file)
+        val uri = FileProvider.getUriForFile(a, "${a.packageName}.recordings", file)
         val send = Intent(Intent.ACTION_SEND).apply {
             type = "text/csv"
             putExtra(Intent.EXTRA_STREAM, uri)

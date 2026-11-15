@@ -2,6 +2,7 @@ package nz.waveformlabs.moshpoint.main
 
 import android.content.Intent
 import android.provider.Settings
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -12,6 +13,7 @@ import androidx.compose.ui.res.stringResource
 import nz.waveformlabs.moshpoint.MainActivity
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
+import nz.waveformlabs.moshpoint.core.FriendRecord
 import nz.waveformlabs.moshpoint.core.QrPayload
 import nz.waveformlabs.moshpoint.crew.CrewRekey
 import nz.waveformlabs.moshpoint.crew.Crews
@@ -20,6 +22,7 @@ import nz.waveformlabs.moshpoint.friends.Friend
 import nz.waveformlabs.moshpoint.friends.FriendsRepository
 import nz.waveformlabs.moshpoint.friends.Friendship
 import nz.waveformlabs.moshpoint.ui.MyQrDialog
+import nz.waveformlabs.moshpoint.ui.countdown
 
 /**
  * The dialogs over everything, welcome included: the crew's invite QR, handing the crew over,
@@ -45,7 +48,7 @@ internal fun CrewDialogs(a: MainActivity) {
                     }
                 } else null,
                 eyebrow = when {
-                    waiting != null -> nz.waveformlabs.moshpoint.ui.countdown(g.startsAtSec, System.currentTimeMillis() / 1000)
+                    waiting != null -> countdown(g.startsAtSec, System.currentTimeMillis() / 1000)
                         ?.let { stringResource(R.string.main_eyebrow_up_next_countdown, it.uppercase()) }
                         ?: stringResource(R.string.main_eyebrow_up_next)
                     g.dormant(System.currentTimeMillis()) -> stringResource(R.string.main_eyebrow_coming_up)
@@ -56,7 +59,7 @@ internal fun CrewDialogs(a: MainActivity) {
                     stringResource(R.string.main_qr_hint_planned)
                 } else stringResource(R.string.main_qr_hint_tonight),
                 members = if (waiting != null) {
-                    waiting.mates.map { (secret, name) -> Friend(nz.waveformlabs.moshpoint.core.FriendRecord("next-" + secret.take(6).joinToString("") { "%02x".format(it) }, name, 0xFF9D5CFF.toInt(), secret, true, 0L)) }
+                    waiting.mates.map { (secret, name) -> Friend(FriendRecord("next-" + secret.take(6).joinToString("") { "%02x".format(it) }, name, 0xFF9D5CFF.toInt(), secret, true, 0L)) }
                 } else FriendsRepository.friends.filter { it.gigGroupOnly || it.key in GroupSync.members },
                 onEndNight = {
                     a.invites.showGroupQr = false
@@ -76,7 +79,7 @@ internal fun CrewDialogs(a: MainActivity) {
             onDismissRequest = { a.home.handover = null; a.home.handoverEndsNight = false },
             title = { Text(stringResource(R.string.crew_handover_title)) },
             text = {
-                androidx.compose.foundation.layout.Column {
+                Column {
                     Text(stringResource(R.string.crew_handover_body))
                     candidates.forEach { (name, pub) ->
                         TextButton(onClick = {

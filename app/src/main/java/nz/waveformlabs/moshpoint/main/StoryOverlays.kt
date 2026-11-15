@@ -1,5 +1,11 @@
 package nz.waveformlabs.moshpoint.main
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.NonRestartableComposable
 import androidx.lifecycle.lifecycleScope
@@ -12,6 +18,7 @@ import nz.waveformlabs.moshpoint.friends.FriendsRepository
 import nz.waveformlabs.moshpoint.gigs.GigArchive
 import nz.waveformlabs.moshpoint.moments.Moments
 import nz.waveformlabs.moshpoint.profile.PhotoStore
+import nz.waveformlabs.moshpoint.ui.moments.StoryScreen
 
 /**
  * Tonight's Story (rising from the bottom) and a past gig's.
@@ -21,14 +28,14 @@ import nz.waveformlabs.moshpoint.profile.PhotoStore
 @NonRestartableComposable
 internal fun StoryOverlays(a: MainActivity) {
     // The Story rises up from the bottom, like a card stack.
-    androidx.compose.animation.AnimatedVisibility(
+    AnimatedVisibility(
         visible = a.story.showStory,
-        enter = androidx.compose.animation.slideInVertically(androidx.compose.animation.core.tween(340)) { it / 4 } +
-            androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(260)),
-        exit = androidx.compose.animation.slideOutVertically(androidx.compose.animation.core.tween(240)) { it / 4 } +
-            androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(200)),
+        enter = slideInVertically(tween(340)) { it / 4 } +
+            fadeIn(tween(260)),
+        exit = slideOutVertically(tween(240)) { it / 4 } +
+            fadeOut(tween(200)),
     ) {
-        nz.waveformlabs.moshpoint.ui.moments.StoryScreen(
+        StoryScreen(
             items = Moments.items,
             nowSec = a.home.homeNow / 1000,
             colourOf = { name -> FriendsRepository.friends.firstOrNull { it.name.equals(name, true) }?.color },
@@ -49,7 +56,7 @@ internal fun StoryOverlays(a: MainActivity) {
         )
     }
     a.story.archiveGig?.let { g ->
-        nz.waveformlabs.moshpoint.ui.moments.StoryScreen(
+        StoryScreen(
             items = a.story.archiveItems,
             nowSec = a.home.homeNow / 1000,
             colourOf = { name -> FriendsRepository.friends.firstOrNull { it.name.equals(name, true) }?.color },

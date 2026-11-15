@@ -1,13 +1,16 @@
 package nz.waveformlabs.moshpoint.main
 
+import android.content.ClipboardManager
 import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import java.net.URLDecoder
 import nz.waveformlabs.moshpoint.MainActivity
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.core.Invite
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.debug.DebugStatus
 import nz.waveformlabs.moshpoint.friends.FriendsRepository
@@ -15,6 +18,7 @@ import nz.waveformlabs.moshpoint.locate.RelayClient
 import nz.waveformlabs.moshpoint.profile.Identity
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 import nz.waveformlabs.moshpoint.sharing.Sharing
+import nz.waveformlabs.moshpoint.ui.gigWhen
 
 /**
  * Invites and QR codes: your QR and the crew's, joining from a scan, a paste, the clipboard or a
@@ -34,11 +38,11 @@ internal class InviteState(private val a: MainActivity) {
      * Messenger/SMS, or scanned. Groups join straight away; a friend fills in "Add someone".
      */
     fun handleInvite(text: String?, quietIfNone: Boolean = false): Boolean {
-        when (val inv = text?.let { nz.waveformlabs.moshpoint.core.Invite.find(it) }) {
-            is nz.waveformlabs.moshpoint.core.Invite.Group -> {
+        when (val inv = text?.let { Invite.find(it) }) {
+            is Invite.Group -> {
                 // Use the crew's relay server if the invite names one.
                 inv.qrText.substringBefore("&name=").split('&').firstOrNull { it.startsWith("r=") }?.removePrefix("r=")
-                    ?.let { runCatching { java.net.URLDecoder.decode(it, "UTF-8") }.getOrNull() }
+                    ?.let { runCatching { URLDecoder.decode(it, "UTF-8") }.getOrNull() }
                     ?.takeIf { it != RelayClient.shareableServer }
                     ?.let { if (RelayClient.setServer(a, it)) DebugStatus.log("Using the crew's relay server") }
                 if (!GroupSync.join(a, inv.qrText)) {
@@ -55,14 +59,14 @@ internal class InviteState(private val a: MainActivity) {
                     a.toast(Txt.s(R.string.main_joined_following, g.name))
                 } else if (GroupSync.sleeping && g != null) {
                     // A planned gig: nothing runs until the day.
-                    a.toast(Txt.s(R.string.main_joined_sleeping, g.name, nz.waveformlabs.moshpoint.ui.gigWhen(g.startsAtSec)))
+                    a.toast(Txt.s(R.string.main_joined_sleeping, g.name, gigWhen(g.startsAtSec)))
                 } else {
                     // Scanning the crew QR is the choice to be found tonight: go live straight away.
                     a.home.setVisibility(true)
                     a.toast(Txt.s(R.string.main_joined_live, g?.name ?: Txt.s(R.string.main_the_crew)))
                 }
             }
-            is nz.waveformlabs.moshpoint.core.Invite.Friend -> {
+            is Invite.Friend -> {
                 if (inv.name.isBlank()) {
                     // No name in it (a bare code): fill in "Add someone" so they can name them.
                     scanned = inv.code to ""
@@ -90,10 +94,10 @@ internal class InviteState(private val a: MainActivity) {
      */
     fun offerClipboardInvite(hasFocus: Boolean) {
         if (!hasFocus || !a.home.onboarded || clipInvite != null) return
-        val cm = a.getSystemService(android.content.ClipboardManager::class.java) ?: return
+        val cm = a.getSystemService(ClipboardManager::class.java) ?: return
         if (cm.primaryClipDescription?.hasMimeType("text/*") != true) return
         val text = runCatching { cm.primaryClip?.getItemAt(0)?.coerceToText(a)?.toString() }.getOrNull() ?: return
-        val inv = nz.waveformlabs.moshpoint.core.Invite.find(text) as? nz.waveformlabs.moshpoint.core.Invite.Group ?: return
+        val inv = Invite.find(text) as? Invite.Group ?: return
         val g = GigGroup.parseQr(inv.qrText, System.currentTimeMillis()) ?: return
         if (GroupSync.group.value?.key?.contentEquals(g.key) == true) return // already in it
         val seenKey = inv.qrText.hashCode().toString()
@@ -104,7 +108,7 @@ internal class InviteState(private val a: MainActivity) {
     }
 
     fun pasteInvite() {
-        val cm = a.getSystemService(android.content.ClipboardManager::class.java)
+        val cm = a.getSystemService(ClipboardManager::class.java)
         val text = cm?.primaryClip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(a)?.toString()
         handleInvite(text)
     }

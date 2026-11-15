@@ -1,12 +1,20 @@
 package nz.waveformlabs.moshpoint
 
 import android.Manifest
+import android.annotation.SuppressLint
+import android.bluetooth.BluetoothAdapter
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
+import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.os.PowerManager
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -43,6 +51,7 @@ import nz.waveformlabs.moshpoint.safety.GhostMode
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 import nz.waveformlabs.moshpoint.venue.Floors
 import nz.waveformlabs.moshpoint.venue.VenueMaps
+import nz.waveformlabs.moshpoint.watch.PhoneFinderBridge
 
 /**
  * The app's one screen. Its state lives in plain holders it owns, one per area (created with it
@@ -64,12 +73,12 @@ class MainActivity : ComponentActivity() {
     internal val momentFlow get() = launchers.momentFlow
 
     /** Best recent position from Android (for pings and pins), or null. */
-    @android.annotation.SuppressLint("MissingPermission")
-    internal fun lastKnownLocation(): android.location.Location? {
+    @SuppressLint("MissingPermission")
+    internal fun lastKnownLocation(): Location? {
         if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
             checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
         ) return null
-        val lm = getSystemService(android.location.LocationManager::class.java) ?: return null
+        val lm = getSystemService(LocationManager::class.java) ?: return null
         return lm.getProviders(true).mapNotNull { runCatching { lm.getLastKnownLocation(it) }.getOrNull() }
             .filter { System.currentTimeMillis() - it.time < 10 * 60_000 }
             .minByOrNull { it.accuracy }
@@ -84,7 +93,7 @@ class MainActivity : ComponentActivity() {
         invites.offerClipboardInvite(hasFocus)
     }
 
-    internal fun toast(msg: String) = android.widget.Toast.makeText(this, msg, android.widget.Toast.LENGTH_LONG).show()
+    internal fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -163,7 +172,7 @@ class MainActivity : ComponentActivity() {
             cantHear = { who -> "Can't hear $who's phone at all. Scan needs them nearby (about 30 m) with Go live on, in your crew." },
         )
         // The watch reads the phone's own finder through this read-only bridge (docs/WATCH.md).
-        nz.waveformlabs.moshpoint.watch.PhoneFinderBridge.attach(finder.engine)
+        PhoneFinderBridge.attach(finder.engine)
         lifecycleScope.launch {
             while (true) {
                 delay(20_000)
@@ -240,18 +249,18 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        androidx.core.content.ContextCompat.registerReceiver(
-            this, home.powerSaveReceiver, android.content.IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED),
-            androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED,
+        ContextCompat.registerReceiver(
+            this, home.powerSaveReceiver, IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED),
+            ContextCompat.RECEIVER_NOT_EXPORTED,
         )
-        androidx.core.content.ContextCompat.registerReceiver(
+        ContextCompat.registerReceiver(
             this, permissions.radioReceiver,
-            android.content.IntentFilter().apply {
-                addAction(android.bluetooth.BluetoothAdapter.ACTION_STATE_CHANGED)
-                addAction(android.location.LocationManager.MODE_CHANGED_ACTION)
-                addAction(android.net.wifi.WifiManager.WIFI_STATE_CHANGED_ACTION)
+            IntentFilter().apply {
+                addAction(BluetoothAdapter.ACTION_STATE_CHANGED)
+                addAction(LocationManager.MODE_CHANGED_ACTION)
+                addAction(WifiManager.WIFI_STATE_CHANGED_ACTION)
             },
-            androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED,
+            ContextCompat.RECEIVER_NOT_EXPORTED,
         )
         pendingGroupRelease?.cancel()
         GroupSync.setAppOpen(this, true)

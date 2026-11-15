@@ -9,6 +9,8 @@ import androidx.compose.ui.res.stringResource
 import nz.waveformlabs.moshpoint.MainActivity
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
+import nz.waveformlabs.moshpoint.core.BeaconColour
+import nz.waveformlabs.moshpoint.core.HereRule
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.debug.DebugStatus
 import nz.waveformlabs.moshpoint.debug.FieldRecorder
@@ -17,8 +19,10 @@ import nz.waveformlabs.moshpoint.gigs.NightStats
 import nz.waveformlabs.moshpoint.map.HerePins
 import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages
 import nz.waveformlabs.moshpoint.profile.Identity
+import nz.waveformlabs.moshpoint.ui.beaconColourName
 import nz.waveformlabs.moshpoint.ui.finder.DebugPanel
 import nz.waveformlabs.moshpoint.ui.finder.FinderScreen
+import nz.waveformlabs.moshpoint.ui.map.PinNote
 import nz.waveformlabs.moshpoint.venue.Floors
 
 /** The finder screen, wired to the finder engine. @NonRestartableComposable: see [MainScreen]. */
@@ -57,9 +61,9 @@ internal fun FinderContent(a: MainActivity) {
         beaconOn = a.finder.beaconOn,
         onBeacon = a.finder::setBeacon,
         beaconing = beaconing.mapNotNull { id ->
-            FriendsRepository.byId(id)?.let { Txt.s(R.string.main_beacon_colour_name, nz.waveformlabs.moshpoint.ui.beaconColourName(nz.waveformlabs.moshpoint.core.BeaconColour.forSecret(it.secret)), it.name) }
+            FriendsRepository.byId(id)?.let { Txt.s(R.string.main_beacon_colour_name, beaconColourName(BeaconColour.forSecret(it.secret)), it.name) }
         },
-        myBeacon = nz.waveformlabs.moshpoint.core.BeaconColour.forSecret(Identity.current(a)),
+        myBeacon = BeaconColour.forSecret(Identity.current(a)),
         onBack = {
             a.finder.setBeacon(false)
             a.finder.finding = false
@@ -71,7 +75,7 @@ internal fun FinderContent(a: MainActivity) {
         // Tapped one mate in the crew view: their UWB place comes first.
         onFocus = { id -> engine.focus(id) },
         pinned = HerePins.pins.mapValues { (id, h) ->
-            nz.waveformlabs.moshpoint.ui.map.PinNote(nz.waveformlabs.moshpoint.core.HereRule.ageSec(h, System.currentTimeMillis() / 1000), HerePins.floors[id])
+            PinNote(HereRule.ageSec(h, System.currentTimeMillis() / 1000), HerePins.floors[id])
         },
         debug = if (DebugStatus.enabled) {
             { mod ->

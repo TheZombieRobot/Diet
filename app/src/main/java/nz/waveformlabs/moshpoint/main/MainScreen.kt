@@ -1,5 +1,10 @@
 package nz.waveformlabs.moshpoint.main
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -13,6 +18,7 @@ import nz.waveformlabs.moshpoint.profile.FacebookLogin
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 import nz.waveformlabs.moshpoint.ui.Mosh
 import nz.waveformlabs.moshpoint.ui.MoshTheme
+import nz.waveformlabs.moshpoint.ui.moments.CameraRollPicker
 import nz.waveformlabs.moshpoint.ui.settings.OnboardingScreen
 
 /**
@@ -49,12 +55,12 @@ internal fun MainScreen(a: MainActivity) {
         }
         Box(Modifier.fillMaxSize().background(Mosh.Ground).safeDrawingPadding()) {
             // Home <-> finder: a quick zoom-and-fade, like stepping into the crowd.
-            androidx.compose.animation.AnimatedContent(
+            AnimatedContent(
                 targetState = a.finder.finding,
                 transitionSpec = {
-                    (androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(320)) +
-                        androidx.compose.animation.scaleIn(androidx.compose.animation.core.tween(320), initialScale = if (targetState) 1.06f else 0.94f))
-                        .togetherWith(androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(220)))
+                    (fadeIn(tween(320)) +
+                        scaleIn(tween(320), initialScale = if (targetState) 1.06f else 0.94f))
+                        .togetherWith(fadeOut(tween(220)))
                 },
                 label = "screen",
             ) { showFinder ->
@@ -71,7 +77,7 @@ internal fun MainScreen(a: MainActivity) {
             MapOverlay(a)
             a.momentFlow.CameraOverlay()
             a.story.rollGig?.let { (_, name) ->
-                nz.waveformlabs.moshpoint.ui.moments.CameraRollPicker(name, a.story.rollFound, a.story.rollAdding, onAdd = a.story::addFromPhone, onClose = { a.story.rollGig = null })
+                CameraRollPicker(name, a.story.rollFound, a.story.rollAdding, onAdd = a.story::addFromPhone, onClose = { a.story.rollGig = null })
             }
         }
     }

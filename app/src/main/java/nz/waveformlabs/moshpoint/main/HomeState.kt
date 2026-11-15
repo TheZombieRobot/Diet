@@ -1,6 +1,8 @@
 package nz.waveformlabs.moshpoint.main
 
 import android.Manifest
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -61,8 +63,8 @@ internal class HomeState(private val a: MainActivity) {
         return power?.isPowerSaveMode == true || scale == 0f
     }
 
-    val powerSaveReceiver = object : android.content.BroadcastReceiver() {
-        override fun onReceive(c: android.content.Context, i: Intent) {
+    val powerSaveReceiver = object : BroadcastReceiver() {
+        override fun onReceive(c: Context, i: Intent) {
             calmMotion = shouldCalm()
         }
     }

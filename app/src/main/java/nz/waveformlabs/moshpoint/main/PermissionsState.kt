@@ -1,8 +1,11 @@
 package nz.waveformlabs.moshpoint.main
 
 import android.Manifest
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.compose.runtime.getValue
@@ -27,8 +30,8 @@ internal class PermissionsState(private val a: MainActivity) {
         setupIssues = SetupChecks.issues(a, a.finder.engine.capabilities.wifiAware, a.home.visibleToMates) { askBattery = true }
     }
 
-    val radioReceiver = object : android.content.BroadcastReceiver() {
-        override fun onReceive(c: android.content.Context, i: Intent) = refreshSetupIssues()
+    val radioReceiver = object : BroadcastReceiver() {
+        override fun onReceive(c: Context, i: Intent) = refreshSetupIssues()
     }
     var missing by mutableStateOf<List<String>>(emptyList())
 
@@ -78,7 +81,7 @@ internal class PermissionsState(private val a: MainActivity) {
         if (canAsk || missing.isEmpty()) {
             a.launchers.askPermissions.launch(requested)
         } else {
-            a.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.fromParts("package", a.packageName, null)))
+            a.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", a.packageName, null)))
         }
     }
 }

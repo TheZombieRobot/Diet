@@ -2,6 +2,8 @@ package nz.waveformlabs.moshpoint.main
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.net.Uri
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.MainActivity
@@ -18,7 +20,7 @@ internal class CameraState(private val a: MainActivity) {
     var photoFor: String? = null
 
     /** The photo picker answered. */
-    fun onPhotoPicked(uri: android.net.Uri?) {
+    fun onPhotoPicked(uri: Uri?) {
         val id = photoFor
         if (uri != null && id != null) {
             a.lifecycleScope.launch {
@@ -32,7 +34,7 @@ internal class CameraState(private val a: MainActivity) {
     }
 
     /** The camera's quick selfie preview came back (or not). */
-    fun onSelfie(bmp: android.graphics.Bitmap?) {
+    fun onSelfie(bmp: Bitmap?) {
         if (bmp != null) {
             a.lifecycleScope.launch {
                 if (PhotoStore.set(PhotoStore.ME, bmp)) AvatarSync.publishMine(a, force = true)

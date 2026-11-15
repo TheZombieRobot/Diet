@@ -1,7 +1,16 @@
 package nz.waveformlabs.moshpoint.main
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.NonRestartableComposable
+import kotlinx.coroutines.delay
 import nz.waveformlabs.moshpoint.MainActivity
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
@@ -10,9 +19,14 @@ import nz.waveformlabs.moshpoint.chat.OfflineMessages
 import nz.waveformlabs.moshpoint.crew.Crews
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.friends.FriendsRepository
+import nz.waveformlabs.moshpoint.locate.RelayClient
 import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages
 import nz.waveformlabs.moshpoint.profile.PhotoStore
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
+import nz.waveformlabs.moshpoint.ui.chat.CrewChatScreen
+import nz.waveformlabs.moshpoint.ui.chat.PrivateChatScreen
+import nz.waveformlabs.moshpoint.ui.countdown
+import nz.waveformlabs.moshpoint.ui.gigWhen
 
 /**
  * The crew chat and a private thread, each sliding in from the side over whatever is open.
@@ -23,29 +37,29 @@ import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 internal fun ChatOverlays(a: MainActivity) {
     val chatCrew = CrewChat.viewing.value
     // Chat slides in from the side (and back out), like opening a conversation.
-    androidx.compose.animation.AnimatedVisibility(
+    AnimatedVisibility(
         visible = a.chat.showChat && chatCrew != null,
-        enter = androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(320)) { it / 3 } +
-            androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(240)),
-        exit = androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(240)) { it / 3 } +
-            androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(200)),
+        enter = slideInHorizontally(tween(320)) { it / 3 } +
+            fadeIn(tween(240)),
+        exit = slideOutHorizontally(tween(240)) { it / 3 } +
+            fadeOut(tween(200)),
     ) {
         @Suppress("NAME_SHADOWING")
         val chatCrew = chatCrew ?: return@AnimatedVisibility
         val isMain = GroupSync.group.value?.key?.contentEquals(chatCrew.key) == true
         val waiting = if (isMain) null else Crews.find(chatCrew.key)
-        androidx.compose.runtime.DisposableEffect(Unit) {
+        DisposableEffect(Unit) {
             CrewChat.open = true
             onDispose { CrewChat.open = false }
         }
-        androidx.compose.runtime.LaunchedEffect(Unit) {
+        LaunchedEffect(Unit) {
             // Fresh messages while you're looking (and for crews asleep until gig day).
             while (true) {
                 runCatching { GroupSync.pollPingsNow(a) }
-                kotlinx.coroutines.delay(if (nz.waveformlabs.moshpoint.locate.RelayClient.ownServer) 8_000 else 20_000)
+                delay(if (RelayClient.ownServer) 8_000 else 20_000)
             }
         }
-        nz.waveformlabs.moshpoint.ui.chat.CrewChatScreen(
+        CrewChatScreen(
             crewName = chatCrew.name,
             lines = CrewChat.lines,
             plan = CrewChat.plan.value,
@@ -57,8 +71,8 @@ internal fun ChatOverlays(a: MainActivity) {
             nightTools = isMain && !GroupSync.sleeping && !GroupSync.following,
             subtitle = if (chatCrew.startsAtSec > 0) {
                 listOfNotNull(
-                    nz.waveformlabs.moshpoint.ui.gigWhen(chatCrew.startsAtSec),
-                    nz.waveformlabs.moshpoint.ui.countdown(chatCrew.startsAtSec, a.home.homeNow / 1000),
+                    gigWhen(chatCrew.startsAtSec),
+                    countdown(chatCrew.startsAtSec, a.home.homeNow / 1000),
                 ).joinToString(" · ")
             } else null,
             onInvite = { a.invites.qrCrew = chatCrew; a.invites.showGroupQr = true },
@@ -97,29 +111,29 @@ internal fun ChatOverlays(a: MainActivity) {
     }
     // A private thread slides in like the crew chat, over whatever was open (docs/PRIVATE_MESSAGES.md).
     val pm = PrivateMessages.open.value
-    androidx.compose.animation.AnimatedVisibility(
+    AnimatedVisibility(
         visible = pm != null,
-        enter = androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(320)) { it / 3 } +
-            androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(240)),
-        exit = androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(240)) { it / 3 } +
-            androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(200)),
+        enter = slideInHorizontally(tween(320)) { it / 3 } +
+            fadeIn(tween(240)),
+        exit = slideOutHorizontally(tween(240)) { it / 3 } +
+            fadeOut(tween(200)),
     ) {
         @Suppress("NAME_SHADOWING")
         val pm = pm ?: return@AnimatedVisibility
-        androidx.compose.runtime.DisposableEffect(Unit) {
+        DisposableEffect(Unit) {
             PrivateMessages.onScreen = true
             onDispose { PrivateMessages.onScreen = false }
         }
-        androidx.compose.runtime.LaunchedEffect(Unit) {
+        LaunchedEffect(Unit) {
             // Fresh messages while you're looking: the private mailbox rides with the chat's.
             while (true) {
                 runCatching { GroupSync.pollPingsNow(a) }
-                kotlinx.coroutines.delay(if (nz.waveformlabs.moshpoint.locate.RelayClient.ownServer) 8_000 else 20_000)
+                delay(if (RelayClient.ownServer) 8_000 else 20_000)
             }
         }
         val pmCrew = PrivateMessages.crewOf(a, pm.crewId)
         val mate = pm.friendId?.let { FriendsRepository.byId(it) }
-        nz.waveformlabs.moshpoint.ui.chat.PrivateChatScreen(
+        PrivateChatScreen(
             name = pm.name,
             lines = PrivateMessages.lines,
             nowSec = a.home.homeNow / 1000,
