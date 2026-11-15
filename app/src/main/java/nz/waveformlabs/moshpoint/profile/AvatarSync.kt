@@ -11,7 +11,6 @@ import nz.waveformlabs.moshpoint.friends.FriendsRepository
 import nz.waveformlabs.moshpoint.chat.ChatSync
 import nz.waveformlabs.moshpoint.core.AvatarBox
 import nz.waveformlabs.moshpoint.locate.RelayClient
-import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 
 /**
  * Shares your photo with your friends and fetches theirs (see core [AvatarBox]): sealed

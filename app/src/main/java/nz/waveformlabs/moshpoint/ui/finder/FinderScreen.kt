@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
