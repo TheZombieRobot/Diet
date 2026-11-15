@@ -1,0 +1,11 @@
+# Used by BuildKit for server/Dockerfile: keep build output and the Android modules out of the context.
+**/build
+**/.gradle
+**/.kotlin
+app
+wear
+finder
+core
+docs
+archive
+tools
