@@ -61,6 +61,12 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.IntrinsicMeasurable
+import androidx.compose.ui.layout.IntrinsicMeasureScope
+import androidx.compose.ui.layout.Measurable
+import androidx.compose.ui.layout.MeasurePolicy
+import androidx.compose.ui.layout.MeasureResult
+import androidx.compose.ui.layout.MeasureScope
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -330,18 +336,44 @@ internal fun GlassAction(
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
             HomeIcon(icon, content, 20.dp)
             Spacer(Modifier.width(if (accent != null) 8.dp else 10.dp))
-            Text(
-                text,
-                style = Mosh.RowTitle.copy(color = content),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.weight(1f, fill = false),
-            )
+            WholeWordsText(text, Mosh.RowTitle.copy(color = content), Modifier.weight(1f, fill = false))
             if (badge > 0) {
                 Spacer(Modifier.width(8.dp))
                 CountBadge(badge)
             }
         }
     }
+}
+
+/**
+ * A centred label whose narrowest width is its longest run without a space, so [ButtonPair]
+ * stacks the buttons rather than let a label break inside a word: a plain Text would report
+ * "Crew-Cha|t" or "クルーチャ|ット" as fitting, since a hyphen or kana allows a break there.
+ */
+@Composable
+private fun WholeWordsText(text: String, style: TextStyle, modifier: Modifier = Modifier) {
+    val measurer = rememberTextMeasurer()
+    val longest = remember(text, style, measurer) {
+        text.split(' ', '\n').filter { it.isNotEmpty() }
+            .maxOfOrNull { measurer.measure(it, style, softWrap = false, maxLines = 1).size.width + 1 } ?: 0
+    }
+    Layout(
+        content = { Text(text, style = style, textAlign = TextAlign.Center) },
+        modifier = modifier,
+        measurePolicy = object : MeasurePolicy {
+            override fun MeasureScope.measure(measurables: List<Measurable>, constraints: Constraints): MeasureResult {
+                val p = measurables.first().measure(constraints)
+                return layout(p.width, p.height) { p.placeRelative(0, 0) }
+            }
+            override fun IntrinsicMeasureScope.minIntrinsicWidth(measurables: List<IntrinsicMeasurable>, height: Int): Int = longest
+            override fun IntrinsicMeasureScope.maxIntrinsicWidth(measurables: List<IntrinsicMeasurable>, height: Int): Int =
+                maxOf(longest, measurables.first().maxIntrinsicWidth(height))
+            override fun IntrinsicMeasureScope.minIntrinsicHeight(measurables: List<IntrinsicMeasurable>, width: Int): Int =
+                measurables.first().minIntrinsicHeight(width)
+            override fun IntrinsicMeasureScope.maxIntrinsicHeight(measurables: List<IntrinsicMeasurable>, width: Int): Int =
+                measurables.first().maxIntrinsicHeight(width)
+        },
+    )
 }
 
 /**

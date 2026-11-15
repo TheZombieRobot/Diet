@@ -117,6 +117,19 @@ sheets). Strings: `res/values*/strings_home_redesign.xml`.
   strip's `find_the_story_eyebrow`, `find_see_it_all`.
 - **New colours** are Mosh tokens in `Theme.kt` (glass fill and line, hairline, sheet, bar,
   lilac, scrim, Polaroid paper and ink), not literals.
+- **A face's distance** uses the finder's label ("8 m", "4.5 m", "25 ft"): the map's label
+  rounds down to tens, so a mate 8 m away read "0 m"; this is also the number the finder shows
+  when the face is tapped.
+- **Past gigs strip** shows the latest eight Polaroids (See all has every one), all as tall as
+  the tallest, so a two-line caption doesn't make one stick out.
+- **Long labels on the big gradient button** shrink by up to 3 sp to stay on one line, then
+  wrap. Other buttons wrap to two lines (or the pair stacks) rather than shrink, so a large
+  font setting is respected.
+- **Status bar**: the home pads itself below the status bar (`statusBarsPadding`), which only
+  does anything when the app draws edge to edge (Android 15 with target SDK 35). The old home
+  had no padding there.
+- **Scan a QR** keeps the existing `home_scan_qr` wording ("Scan a QR") rather than the
+  mock-up's "Scan QR code", so the add sheet and the home say the same thing.
 
 ## 3. Audit
 
