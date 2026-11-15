@@ -103,7 +103,6 @@ object CheckInAlarm {
     private suspend fun homeSafe(app: Context) {
         val sent = GroupSync.homeSafe(app)
         if (sent.id == 0L) return
-        OfflineMessages.follow(sent.id, OfflineMessages.firstState())
         val until = System.currentTimeMillis() + HOME_SAFE_WAIT_MS
         while (System.currentTimeMillis() < until) {
             val s = OfflineMessages.followedState(sent.id)

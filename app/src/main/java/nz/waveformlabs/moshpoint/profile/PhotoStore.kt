@@ -59,7 +59,7 @@ object PhotoStore {
         val d = dir ?: return false
         if (File(d, "$id.jpg").exists() && !File(d, "$id.auto").exists()) return false // your pick wins
         val bmp = withContext(Dispatchers.IO) {
-            BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size)?.let { save(id, it, auto = true) }
+            decodeSmall(jpeg)?.let { save(id, it, auto = true) }
         } ?: return false
         photos[id] = bmp.asImageBitmap()
         return true
@@ -91,15 +91,37 @@ object PhotoStore {
         }
     }.getOrNull()
 
+    /**
+     * A mate's shared photo, decoded only as big as it's shown (reliability P2): it's someone
+     * else's file, and a huge one decoded at full size could take the app's memory with it.
+     */
+    private fun decodeSmall(jpeg: ByteArray): Bitmap? = runCatching {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size, bounds)
+        val w = bounds.outWidth
+        val h = bounds.outHeight
+        if (w <= 0 || h <= 0) return@runCatching null
+        var sample = 1
+        // Never more than MAX_DECODE_PX on the long side, and no bigger than needed for SIZE on the short one.
+        while (maxOf(w, h) / sample > MAX_DECODE_PX || minOf(w, h) / (sample * 2) >= SIZE) sample *= 2
+        BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size, BitmapFactory.Options().apply { inSampleSize = sample })
+    }.getOrNull()
+
     private fun save(id: String, src: Bitmap, auto: Boolean): Bitmap? {
         val d = dir ?: return null
         val square = centreSquare(src, SIZE)
-        val bytes = ByteArrayOutputStream().also { square.compress(Bitmap.CompressFormat.JPEG, 82, it) }.toByteArray()
-        File(d, "$id.jpg").writeBytes(bytes)
-        val marker = File(d, "$id.auto")
-        if (auto) marker.writeText("") else marker.delete()
+        // A full phone must not crash the app: the photo still shows now, it just isn't kept.
+        nz.waveformlabs.moshpoint.safety.AppErrors.guard("Saving a photo") {
+            val bytes = ByteArrayOutputStream().also { square.compress(Bitmap.CompressFormat.JPEG, 82, it) }.toByteArray()
+            File(d, "$id.jpg").writeBytes(bytes)
+            val marker = File(d, "$id.auto")
+            if (auto) marker.writeText("") else marker.delete()
+        }
         return square
     }
+
+    /** The longest side a mate's photo is ever decoded at. */
+    private const val MAX_DECODE_PX = 2048
 
     private fun centreSquare(b: Bitmap, size: Int): Bitmap {
         val side = minOf(b.width, b.height)

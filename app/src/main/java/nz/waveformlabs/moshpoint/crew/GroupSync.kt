@@ -643,13 +643,15 @@ object GroupSync {
         val first = OfflineMessages.firstState()
         CrewChat.pingLine(app, opened ?: p, mine = true, state = first)
         if (kind == GigGroup.Ping.MEET_AT_PIN) repostRally(app, g)
-        // Need help is followed from before it's handed over, so no word from the outbox is missed.
+        // Safety pings (Need help, Check in, Home safe) are followed from before they're handed
+        // over, so no word from the outbox is missed (Need help and the check-in reminder show it).
         val id = opened?.id ?: 0L
-        if (kind == GigGroup.Ping.NEED_HELP) OfflineMessages.follow(id, first)
+        val safety = PingPolicy.group(kind) == PingPolicy.Group.SAFETY
+        if (safety) OfflineMessages.follow(id, first)
         val queued = OfflineMessages.post(app, g, blob) != null
         if (!queued) {
             DebugStatus.log("Ping not queued: ${pingText(kind)}")
-            if (kind == GigGroup.Ping.NEED_HELP) OfflineMessages.follow(id, OutboxState.FAILED)
+            if (safety) OfflineMessages.follow(id, OutboxState.FAILED)
         }
         if (kind == GigGroup.Ping.NEED_HELP) lastHelp.value = HelpSent(if (queued) id else 0L, System.currentTimeMillis())
         return PingResult(id, if (queued) HelpRules.outcomeOf(first) else PingOutcome.FAILED)

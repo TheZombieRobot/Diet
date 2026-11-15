@@ -154,6 +154,8 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
     /** Write the courier's queue and record to disk: a moment after a change, or [atOnce]. */
     private fun save(atOnce: Boolean = false) {
         if (!atOnce && (!courier.dirty || saveQueued)) return
+        // After a failed write (a full phone), try again only every so often, not on every tick.
+        if (!atOnce && SystemClock.elapsedRealtime() - saveFailedAt < SAVE_RETRY_MS) return
         val c = app ?: return
         if (!atOnce) saveQueued = true
         scope.launch {
@@ -164,16 +166,26 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
                 if (!atOnce) saveQueued = false
                 courier.dirty = false
                 val bytes = courier.save()
-                withContext(Dispatchers.IO) {
+                val failure = withContext(Dispatchers.IO) {
                     runCatching {
                         val tmp = File(c.filesDir, "courier.tmp")
                         tmp.writeBytes(bytes)
-                        tmp.renameTo(file(c))
-                    }
+                        if (!tmp.renameTo(file(c))) throw java.io.IOException("rename failed")
+                    }.exceptionOrNull()
+                }
+                if (failure != null) {
+                    // It used to fail silently and stop trying, so the outbox quietly stopped
+                    // surviving restarts. Now it's still to be saved, and a full phone is told once.
+                    courier.dirty = true
+                    saveFailedAt = SystemClock.elapsedRealtime()
+                    nz.waveformlabs.moshpoint.safety.AppErrors.failed("Saving the outbox", failure)
                 }
             }
         }
     }
+
+    private var saveFailedAt = Long.MIN_VALUE / 2
+    private const val SAVE_RETRY_MS = 30_000L
 
     /**
      * Keep the courier's record of what this phone has had right now, not in a moment. Called
@@ -231,13 +243,15 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
      * only the chat on screen is held in memory, and that may be another crew's.
      */
     private val followed = mutableStateMapOf<Long, Int>()
+    private val followOrder = ArrayDeque<Long>()
 
-    /** Start following our message [id], just handed to [post], from [first] ([firstState]). */
+    /** Start following our message [id], about to be handed to [post], from [first] ([firstState]). */
     fun follow(id: Long, first: Int) {
         if (id == 0L) return
+        if (id !in followed) followOrder.addLast(id)
         followed[id] = first
-        // Only the last few are ever looked at.
-        while (followed.size > 8) followed.remove(followed.keys.minOrNull() ?: break)
+        // Only the last few are ever looked at: the oldest go first.
+        while (followOrder.size > 16) followed.remove(followOrder.removeFirst())
     }
 
     /** Where our followed message [id] has got to (OutboxState), or null if it isn't one. Compose state. */

@@ -65,7 +65,8 @@ object GigArchive {
         val name = safeName(key)
         val photo = File(d, "$name.jpg")
         val alreadyKept = photo.exists()
-        if (!alreadyKept) photo.writeBytes(jpeg)
+        // Written whole or not at all (a crash mid-write left a broken photo that looked kept).
+        if (!alreadyKept) File(d, "$name.jpg.tmp").let { tmp -> tmp.writeBytes(jpeg); if (!tmp.renameTo(photo)) throw java.io.IOException("rename failed") }
         if (original != null) File(d, "$name.orig.jpg").let { if (!it.exists()) it.writeBytes(original) }
         val video = clip?.let { src ->
             File(d, "$name.mp4").also { if (!it.exists()) runCatching { src.copyTo(it) } }
@@ -77,10 +78,18 @@ object GigArchive {
                 m.lat?.let { put("lat", it) }
                 m.lon?.let { put("lon", it) }
             }
-        if (!alreadyKept) File(d, "items.jsonl").appendText(line.toString() + "\n")
+        // The photo is written before it's indexed, so a crash in between used to leave it out of
+        // the Story for good (it looked kept). A kept photo is indexed now if its line is missing.
+        val index = File(d, "items.jsonl")
+        if (!alreadyKept || !indexed(index, key)) index.appendText(line.toString() + "\n")
         if (!File(d, "meta.json").exists()) remember(c, g)
         return photo to video
     }
+
+    /** Is there a line for [key] in this gig's index? */
+    private fun indexed(index: File, key: String): Boolean = index.exists() && runCatching {
+        index.useLines { lines -> lines.any { l -> runCatching { JSONObject(l).optString("key") == key }.getOrDefault(false) } }
+    }.getOrDefault(false)
 
     /** A photo or video from the phone's own camera roll, taken during a gig. */
     data class Found(val uri: android.net.Uri, val video: Boolean, val takenSec: Long, val thumb: android.graphics.Bitmap?)

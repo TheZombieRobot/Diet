@@ -70,6 +70,13 @@ import nz.waveformlabs.moshpoint.ui.softGlow
 internal data class RadarSpot(val id: String, val angleDeg: Float, val frac: Float)
 
 /** Radar distance: log scale, so 5 m and 50 m are both readable with someone 2 km away. */
+/**
+ * [v] kept between [lo] and [hi], or the middle when there's no room at all ([lo] > [hi]: a radar
+ * smaller than the label, on a small phone with a large font while banners show). coerceIn
+ * threw there and took the finder down with it (reliability P1-8).
+ */
+internal fun clampOrCentre(v: Float, lo: Float, hi: Float): Float = if (lo <= hi) v.coerceIn(lo, hi) else (lo + hi) / 2
+
 internal fun radarFrac(distanceM: Double?, maxM: Double): Float {
     val d = distanceM ?: return 1f
     val t = ln(1 + d) / ln(1 + maxM.coerceAtLeast(30.0))
@@ -251,8 +258,8 @@ internal fun CrewRadar(
                 // Kept inside the radar: a mate due east or west would otherwise push the box
                 // half off the edge (the radar is sized for boxes above and below).
                 val cc = Offset(
-                    (leadAt.x + ux * (avatarR + 6.dp.toPx() + extent)).coerceIn(chipW / 2 + pad, size.width - chipW / 2 - pad),
-                    (leadAt.y + uy * (avatarR + 6.dp.toPx() + extent)).coerceIn(chipH / 2 + pad, size.height - chipH / 2 - pad),
+                    (leadAt.x + ux * (avatarR + 6.dp.toPx() + extent)).let { clampOrCentre(it, chipW / 2 + pad, size.width - chipW / 2 - pad) },
+                    (leadAt.y + uy * (avatarR + 6.dp.toPx() + extent)).let { clampOrCentre(it, chipH / 2 + pad, size.height - chipH / 2 - pad) },
                 )
                 val top = Offset(cc.x - chipW / 2, cc.y - chipH / 2)
                 drawRoundRect(colour.copy(alpha = 0.12f), top, Size(chipW, chipH), CornerRadius(13.dp.toPx()))
@@ -269,8 +276,8 @@ internal fun CrewRadar(
                 val extent = kotlin.math.abs(ux) * half + kotlin.math.abs(uy) * textPx * 0.6f
                 val pad = 2.dp.toPx()
                 val at = Offset(
-                    (leadAt.x + ux * (avatarR + 5.dp.toPx() + extent)).coerceIn(half + pad, size.width - half - pad),
-                    (leadAt.y + uy * (avatarR + 5.dp.toPx() + extent)).coerceIn(textPx + pad, size.height - textPx - pad),
+                    (leadAt.x + ux * (avatarR + 5.dp.toPx() + extent)).let { clampOrCentre(it, half + pad, size.width - half - pad) },
+                    (leadAt.y + uy * (avatarR + 5.dp.toPx() + extent)).let { clampOrCentre(it, textPx + pad, size.height - textPx - pad) },
                 )
                 drawCentred(dist, at, textPx, colour, displayPaint, chipW)
             }

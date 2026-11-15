@@ -198,7 +198,10 @@ object FriendsRepository {
     private fun save() {
         val f = file ?: return
         val tmp = File(f.parentFile, f.name + ".tmp")
-        tmp.writeText(FriendRecord.serialize(friends.map { it.record }))
-        tmp.renameTo(f)
+        // A full phone must not crash the app (reliability P1-6): the list stays as it was on disk, and you're told once.
+        nz.waveformlabs.moshpoint.safety.AppErrors.guard("Saving friends") {
+            tmp.writeText(FriendRecord.serialize(friends.map { it.record }))
+            if (!tmp.renameTo(f)) throw java.io.IOException("rename failed")
+        }
     }
 }

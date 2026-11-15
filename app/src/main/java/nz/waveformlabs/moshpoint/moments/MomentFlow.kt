@@ -67,7 +67,18 @@ class MomentFlow(
                 .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
 
         override fun parseResult(resultCode: Int, intent: Intent?) = resultCode == android.app.Activity.RESULT_OK
-    }) { ok -> if (ok) useClip(clipFile) }
+    }) { ok ->
+        // The camera app can outlive us: if Android closed the app while it recorded, this is a
+        // new MomentFlow and only the saved path knows where the clip went (reliability P1-7).
+        val f = clipFile ?: pendingClip()
+        clipFile = null
+        setPendingClip(null)
+        if (ok) useClip(f)
+    }
+
+    private fun clipPrefs() = activity.getSharedPreferences("moments", android.content.Context.MODE_PRIVATE)
+    private fun pendingClip(): java.io.File? = clipPrefs().getString("pending_clip", null)?.let { java.io.File(it) }
+    private fun setPendingClip(f: java.io.File?) = clipPrefs().edit().apply { if (f == null) remove("pending_clip") else putString("pending_clip", f.path) }.apply()
 
     private val cameraForClip = activity.registerForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
         if (ok) recordClip()
@@ -80,6 +91,7 @@ class MomentFlow(
         }
         val f = newClipFile()
         clipFile = f
+        setPendingClip(f)
         val uri = androidx.core.content.FileProvider.getUriForFile(activity, "${activity.packageName}.media", f)
         runCatching { takeClip.launch(uri) }.onFailure { toast(Txt.s(R.string.find_no_video_app)) }
     }
