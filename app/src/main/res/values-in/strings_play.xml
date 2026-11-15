@@ -9,7 +9,7 @@
     <string name="play_invite_add">Tambah</string>
     <string name="play_disclosure_title">Cara Moshpoint memakai lokasimu</string>
     <string name="play_disclosure_live">Selama kamu live, lokasimu dibagikan ke geng dan teman-temanmu, supaya mereka bisa menemukanmu.</string>
-    <string name="play_disclosure_relay">Lokasimu dienkripsi di HP-mu dan dikirim lewat server relay Moshpoint, yang nggak bisa membacanya.</string>
+    <string name="play_disclosure_relay">Lokasimu dienkripsi di HP-mu dan dikirim lewat server relay, yang nggak bisa membacanya.</string>
     <string name="play_disclosure_background">Live tetap jalan saat aplikasi ditutup, dengan notifikasi, sampai kamu mematikannya.</string>
     <string name="play_disclosure_bluetooth">Selama kamu live, HP-mu juga meneruskan pesan terenkripsi pengguna Moshpoint lain lewat Bluetooth. HP-mu nggak bisa membacanya.</string>
     <string name="play_disclosure_continue">Lanjut</string>

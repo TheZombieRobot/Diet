@@ -161,23 +161,3 @@ dependencies {
     // The real org.json for tests on the JVM (on a phone it comes with Android): VenueLogicTest.
     testImplementation(libs.orgjson)
 }
-
-// The Play bundle must use our own relay server. Without one built in, a release build sends all
-// its relay traffic to the public ntfy.sh (about 250 messages a day per internet address, which a
-// venue full of phones behind one carrier address runs out of, and not in the privacy policy).
-// So bundleRelease refuses to run with no https server set. Test builds and assembleRelease (CI's
-// R8 check) still build without one. docs/WAVE2_PLAY.md, item 5.
-val playServer = ((findProperty("moshpoint.server") as String?)?.takeIf { it.isNotBlank() }
-    ?: (findProperty("moshpoint.serverUrl") as String?).orEmpty()).trim()
-tasks.configureEach {
-    if (name == "bundleRelease" || name == "packageReleaseBundle" || name == "signReleaseBundle") {
-        doFirst {
-            if (!playServer.startsWith("https://")) {
-                throw GradleException(
-                    "No Play bundle without our own relay server: set -Pmoshpoint.server=https://… " +
-                        "(the MOSHPOINT_SERVER Actions variable) or moshpoint.serverUrl in gradle.properties.",
-                )
-            }
-        }
-    }
-}

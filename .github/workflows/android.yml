@@ -163,13 +163,6 @@ jobs:
           KEYSTORE_B64: ${{ secrets.MOSHPOINT_KEYSTORE }}
           SERVER_URL: ${{ vars.MOSHPOINT_SERVER }}
         run: |
-          # A Play bundle with no relay server of our own would send everyone's traffic to the
-          # public ntfy.sh, so the build refuses (app/build.gradle.kts). Until the server is set
-          # up, skip it here with a warning rather than turn every run red.
-          if [ -z "$SERVER_URL" ]; then
-            echo "::warning::No Play Store bundle: set the MOSHPOINT_SERVER variable to the relay's https address first (docs/PLAY_STORE.md)"
-            exit 0
-          fi
           printf '%s' "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
           MOSHPOINT_KEYSTORE_FILE="$RUNNER_TEMP/upload.jks" ./gradlew :app:bundleRelease -Pmoshpoint.server="$SERVER_URL" -Pmoshpoint.facebookAppId="${{ vars.MOSHPOINT_FACEBOOK_APP_ID }}" -Pmoshpoint.facebookClientToken="${{ vars.MOSHPOINT_FACEBOOK_CLIENT_TOKEN }}"
           rm -f "$RUNNER_TEMP/upload.jks"
@@ -181,7 +174,6 @@ jobs:
           name: moshpoint-release-aab
           path: app/build/outputs/bundle/release/*.aab
           retention-days: 30
-          if-no-files-found: ignore
 
       - name: Native libraries are 16 KB aligned (release APK and Play bundle)
         # Play rejects apps whose 64-bit native libraries (the map's libmaplibre.so) don't work on

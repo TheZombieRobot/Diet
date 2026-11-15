@@ -18,7 +18,7 @@
     <string name="play_disclosure_title">How Moshpoint uses your location</string>
     <!-- Four points, each its own line. "Live" = the app's Go live switch: you're findable by your crew. -->
     <string name="play_disclosure_live">While you\'re live, your location is shared with your crew and friends, so they can find you.</string>
-    <string name="play_disclosure_relay">It\'s encrypted on your phone and sent through Moshpoint\'s relay server, which can\'t read it.</string>
+    <string name="play_disclosure_relay">It\'s encrypted on your phone and sent through a relay server, which can\'t read it.</string>
     <string name="play_disclosure_background">Live keeps running when the app is closed, with a notification, until you turn it off.</string>
     <string name="play_disclosure_bluetooth">While you\'re live, your phone also passes on other Moshpoint users\' encrypted messages over Bluetooth. It can\'t read them.</string>
     <!-- Button: go on to Android's permission prompt -->

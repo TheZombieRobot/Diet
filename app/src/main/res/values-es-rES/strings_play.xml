@@ -9,7 +9,7 @@
     <string name="play_invite_add">Añadir</string>
     <string name="play_disclosure_title">Cómo usa Moshpoint tu ubicación</string>
     <string name="play_disclosure_live">Mientras estés en directo, tu ubicación se comparte con tu grupo y tus amigos para que puedan encontrarte.</string>
-    <string name="play_disclosure_relay">Se cifra en tu móvil y se envía a través del servidor de retransmisión de Moshpoint, que no puede leerla.</string>
+    <string name="play_disclosure_relay">Se cifra en tu móvil y se envía a través de un servidor de retransmisión, que no puede leerla.</string>
     <string name="play_disclosure_background">En directo sigue funcionando con la app cerrada, con una notificación, hasta que lo desactives.</string>
     <string name="play_disclosure_bluetooth">Mientras estés en directo, tu móvil también reenvía por Bluetooth mensajes cifrados de otros usuarios de Moshpoint. No puede leerlos.</string>
     <string name="play_disclosure_continue">Continuar</string>

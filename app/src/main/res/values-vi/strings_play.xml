@@ -9,7 +9,7 @@
     <string name="play_invite_add">Thêm</string>
     <string name="play_disclosure_title">Cách Moshpoint dùng vị trí của bạn</string>
     <string name="play_disclosure_live">Khi bạn đang chia sẻ, vị trí của bạn được chia sẻ với nhóm và bạn bè để họ tìm được bạn.</string>
-    <string name="play_disclosure_relay">Vị trí được mã hóa trên điện thoại của bạn và gửi qua máy chủ chuyển tiếp của Moshpoint, nơi không thể đọc được nó.</string>
+    <string name="play_disclosure_relay">Vị trí được mã hóa trên điện thoại của bạn và gửi qua một máy chủ chuyển tiếp, nơi không thể đọc được nó.</string>
     <string name="play_disclosure_background">Chia sẻ vẫn chạy khi đã đóng ứng dụng, kèm một thông báo, cho đến khi bạn tắt.</string>
     <string name="play_disclosure_bluetooth">Khi bạn đang chia sẻ, điện thoại của bạn cũng chuyển tiếp tin nhắn đã mã hóa của người dùng Moshpoint khác qua Bluetooth. Điện thoại không đọc được chúng.</string>
     <string name="play_disclosure_continue">Tiếp tục</string>

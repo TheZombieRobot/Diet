@@ -41,9 +41,17 @@ object RelayClient {
     val ownServer get() = base.isNotBlank()
 
     /**
-     * A relay server chosen on this phone: test builds only (Settings > Relay server, or a crew's
-     * invite the person confirmed). Blank = the one built in, else the free public relay.
-     * Release builds ignore it: they only ever use the one built in (core [InviteRelay]).
+     * The build's own relays, in one place: the only relays a release build uses, or follows an
+     * invite to (core [InviteRelay]). Today the production relay (`MOSHPOINT_SERVER`, a
+     * Moshpoint+ feature); the free tier's relay joins this list with billing. Blank ones don't
+     * count: with none, release builds use the public relay.
+     */
+    val ownRelays: List<String> get() = listOf(BuildConfig.MOSHPOINT_SERVER).filter { it.isNotBlank() }
+
+    /**
+     * A relay server chosen on this phone: in a test build from Settings > Relay server or a crew's
+     * invite the person confirmed; in a release build only ever one of [ownRelays], from an
+     * invite. Blank = the one built in, else the free public relay.
      */
     @Volatile var serverUrl: String = ""
         private set
@@ -83,8 +91,11 @@ object RelayClient {
     /** Minimum gap between our own location posts. */
     val uploadGapMs get() = if (ownServer) 15_000L else 75_000L
 
-    /** The relay in use: release builds always the one built in; test builds may choose another. */
-    private val base get() = (if (BuildConfig.TEST_BUILD) serverUrl.ifBlank { BuildConfig.MOSHPOINT_SERVER } else BuildConfig.MOSHPOINT_SERVER).trimEnd('/')
+    /**
+     * The relay in use: the one chosen on this phone, else the one built in, else (blank) the
+     * public relay, as before. A release build ignores a chosen relay that isn't one of its own.
+     */
+    private val base get() = InviteRelay.inUse(BuildConfig.MOSHPOINT_SERVER, serverUrl, BuildConfig.TEST_BUILD, ownRelays)
 
     /** The relay this phone uses now (blank = the public relay). */
     val serverInUse get() = base
@@ -93,11 +104,12 @@ object RelayClient {
     val serverFromCrew get() = BuildConfig.TEST_BUILD && serverFromInvite && serverUrl.isNotBlank()
 
     /**
-     * The build's own relay (blank = public relay): what crew invites carry, and what gig search
-     * and venue lookups ask. In a test build, one typed into Settings counts as its own; one that
-     * came in someone else's invite never does, so it can't spread from phone to phone.
+     * The relay crew invites carry, and what gig search and venue lookups ask (blank = the public
+     * relay). Release: the one in use, always one of [ownRelays]. In a test build, one typed into
+     * Settings counts as its own; one that came in someone else's invite never does, so it can't
+     * spread from phone to phone.
      */
-    val shareableServer get() = InviteRelay.forInvites(BuildConfig.MOSHPOINT_SERVER, serverUrl, serverFromInvite, BuildConfig.TEST_BUILD)
+    val shareableServer get() = InviteRelay.forInvites(BuildConfig.MOSHPOINT_SERVER, serverUrl, serverFromInvite, BuildConfig.TEST_BUILD, ownRelays)
     private const val NTFY = "https://ntfy.sh"
 
     /** Location shares, intros and the like: [RelayUse.BACKGROUND] unless the caller says otherwise. */

@@ -9,7 +9,7 @@
     <string name="play_invite_add">Ajouter</string>
     <string name="play_disclosure_title">Comment Moshpoint utilise ta position</string>
     <string name="play_disclosure_live">Quand tu es en live, ta position est partagée avec ta crew et tes amis, pour qu\'ils puissent te trouver.</string>
-    <string name="play_disclosure_relay">Elle est chiffrée sur ton téléphone et envoyée via le serveur relais de Moshpoint, qui ne peut pas la lire.</string>
+    <string name="play_disclosure_relay">Elle est chiffrée sur ton téléphone et envoyée via un serveur relais, qui ne peut pas la lire.</string>
     <string name="play_disclosure_background">Le live continue quand l\'app est fermée, avec une notification, jusqu\'à ce que tu l\'arrêtes.</string>
     <string name="play_disclosure_bluetooth">Quand tu es en live, ton téléphone transmet aussi par Bluetooth les messages chiffrés d\'autres utilisateurs de Moshpoint. Il ne peut pas les lire.</string>
     <string name="play_disclosure_continue">Continuer</string>

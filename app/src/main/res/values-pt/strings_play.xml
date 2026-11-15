@@ -9,7 +9,7 @@
     <string name="play_invite_add">Adicionar</string>
     <string name="play_disclosure_title">Como o Moshpoint usa sua localização</string>
     <string name="play_disclosure_live">Enquanto você estiver ao vivo, sua localização é compartilhada com sua galera e seus amigos, pra eles te acharem.</string>
-    <string name="play_disclosure_relay">Ela é criptografada no seu celular e enviada pelo servidor de retransmissão do Moshpoint, que não consegue ler.</string>
+    <string name="play_disclosure_relay">Ela é criptografada no seu celular e enviada por um servidor de retransmissão, que não consegue ler.</string>
     <string name="play_disclosure_background">O ao vivo continua com o app fechado, com uma notificação, até você desligar.</string>
     <string name="play_disclosure_bluetooth">Enquanto você estiver ao vivo, seu celular também repassa por Bluetooth mensagens criptografadas de outros usuários do Moshpoint. Ele não consegue ler.</string>
     <string name="play_disclosure_continue">Continuar</string>

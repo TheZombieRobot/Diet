@@ -9,7 +9,7 @@
     <string name="play_invite_add">Lägg till</string>
     <string name="play_disclosure_title">Så använder Moshpoint din plats</string>
     <string name="play_disclosure_live">När du är live delas din plats med din grupp och dina kompisar, så att de kan hitta dig.</string>
-    <string name="play_disclosure_relay">Den krypteras på din mobil och skickas via Moshpoints reläserver, som inte kan läsa den.</string>
+    <string name="play_disclosure_relay">Den krypteras på din mobil och skickas via en reläserver, som inte kan läsa den.</string>
     <string name="play_disclosure_background">Live fortsätter när appen är stängd, med en avisering, tills du stänger av det.</string>
     <string name="play_disclosure_bluetooth">När du är live skickar din mobil också vidare andra Moshpoint-användares krypterade meddelanden via Bluetooth. Den kan inte läsa dem.</string>
     <string name="play_disclosure_continue">Fortsätt</string>

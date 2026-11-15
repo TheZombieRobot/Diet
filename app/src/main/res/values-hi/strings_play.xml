@@ -9,7 +9,7 @@
     <string name="play_invite_add">जोड़ें</string>
     <string name="play_disclosure_title">Moshpoint आपकी लोकेशन का इस्तेमाल कैसे करता है</string>
     <string name="play_disclosure_live">जब तक आप लाइव हैं, आपकी लोकेशन आपके ग्रुप और दोस्तों के साथ शेयर होती है, ताकि वे आपको ढूँढ सकें।</string>
-    <string name="play_disclosure_relay">यह आपके फ़ोन पर एन्क्रिप्ट होती है और Moshpoint के रिले सर्वर से भेजी जाती है, जो इसे पढ़ नहीं सकता।</string>
+    <string name="play_disclosure_relay">यह आपके फ़ोन पर एन्क्रिप्ट होती है और एक रिले सर्वर से भेजी जाती है, जो इसे पढ़ नहीं सकता।</string>
     <string name="play_disclosure_background">ऐप बंद होने पर भी लाइव चलता रहता है, एक नोटिफ़िकेशन के साथ, जब तक आप इसे बंद न करें।</string>
     <string name="play_disclosure_bluetooth">जब तक आप लाइव हैं, आपका फ़ोन दूसरे Moshpoint यूज़र्स के एन्क्रिप्टेड मैसेज भी ब्लूटूथ से आगे भेजता है। वह उन्हें पढ़ नहीं सकता।</string>
     <string name="play_disclosure_continue">आगे बढ़ें</string>

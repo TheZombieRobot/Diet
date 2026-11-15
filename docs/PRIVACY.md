@@ -103,8 +103,8 @@ location (encrypted on your phone for your friends only, filed under a rotating 
 after 15 minutes), so friends out of Bluetooth range can see whether you're upstairs. Only
 builds with our own server do this, and not while you're in ghost mode.
 
-**Which relay:** test builds without their own server use the free public relay
-[ntfy.sh](https://ntfy.sh) for this. It gets exactly the same thing: encrypted bytes filed
+**Which relay:** a build without our own server (such as a test build) uses the free
+public relay [ntfy.sh](https://ntfy.sh) for this. It gets exactly the same thing: encrypted bytes filed
 under a code that changes every 5 minutes. It can't read them or tell who you are, but like
 any website it sees your phone's internet address when it connects. ntfy.sh keeps messages
 for up to 12 hours (see its own privacy policy).
@@ -148,7 +148,7 @@ to the rest of your photos and never looks through them.
 
 **Gig search (optional):** when you search for a gig, the words you type (and your phone's
 country, for nearby shows) go to our server, which asks Ticketmaster, Bandsintown and SeatGeek
-for matching shows. Test builds without their own server ask Ticketmaster directly. Nothing
+for matching shows. Builds without our server ask Ticketmaster directly. Nothing
 about you or your crew is sent with it. Typing a gig in by hand sends nothing.
 
 **Finding a venue you typed (optional):** if you type a gig in with a venue, the venue's name
@@ -184,10 +184,14 @@ it any time; it doesn't post anything on your behalf.
 
 ## Where our server is
 
-Our relay server runs in Sydney, Australia (on Fly.io). Map tiles come from OpenFreeMap, venue
+Our relay server runs in Sydney, Australia (on Fly.io). What it holds is encrypted on your phone
+before it's sent: locations for 15 minutes, moments for 24 hours, crew chat, pings and pins for
+up to 3 days, profile photos for up to 8 days, each deleted when it expires. Fly keeps one daily
+snapshot of the server's storage for one day, so a copy of that encrypted data can outlive its
+deletion by up to a day; it's as unreadable there as on the server. Map tiles come from OpenFreeMap, venue
 lookups from OpenStreetMap's Nominatim, and gig searches from Ticketmaster, Bandsintown and
-SeatGeek (asked by our server), each under its own privacy policy. Test builds without our
-server use the public relay ntfy.sh. If you have a Wear OS watch, the phone-to-watch link is
+SeatGeek (asked by our server), each under its own privacy policy. Builds without our server
+(such as test builds) use the public relay ntfy.sh instead. If you have a Wear OS watch, the phone-to-watch link is
 Google's (see "What goes to your watch").
 
 ## Deleting your data

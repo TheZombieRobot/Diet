@@ -9,7 +9,7 @@
     <string name="play_invite_add">إضافة</string>
     <string name="play_disclosure_title">كيف يستخدم Moshpoint موقعك</string>
     <string name="play_disclosure_live">ما دمت ظاهرًا، يُشارَك موقعك مع شلتك وأصدقائك ليتمكنوا من إيجادك.</string>
-    <string name="play_disclosure_relay">يُشفَّر على هاتفك ويُرسَل عبر خادم الترحيل الخاص بـ Moshpoint، الذي لا يستطيع قراءته.</string>
+    <string name="play_disclosure_relay">يُشفَّر على هاتفك ويُرسَل عبر خادم ترحيل لا يستطيع قراءته.</string>
     <string name="play_disclosure_background">يبقى الظهور مفعّلًا حتى بعد إغلاق التطبيق، مع إشعار، إلى أن توقفه.</string>
     <string name="play_disclosure_bluetooth">ما دمت ظاهرًا، ينقل هاتفك أيضًا رسائل مشفّرة لمستخدمي Moshpoint الآخرين عبر البلوتوث، دون أن يستطيع قراءتها.</string>
     <string name="play_disclosure_continue">متابعة</string>

@@ -9,7 +9,7 @@
     <string name="play_invite_add">新增</string>
     <string name="play_disclosure_title">Moshpoint 如何使用你的位置</string>
     <string name="play_disclosure_live">你上線時，你的位置會分享給你的小隊和朋友，讓他們找得到你。</string>
-    <string name="play_disclosure_relay">位置會在你的手機上加密，再透過 Moshpoint 的中繼伺服器傳送，伺服器無法讀取。</string>
+    <string name="play_disclosure_relay">位置會在你的手機上加密，再透過中繼伺服器傳送，伺服器無法讀取。</string>
     <string name="play_disclosure_background">關閉 App 後，上線狀態仍會持續並顯示一則通知，直到你關掉為止。</string>
     <string name="play_disclosure_bluetooth">你上線時，你的手機也會透過藍牙轉送其他 Moshpoint 使用者的加密訊息，但無法讀取。</string>
     <string name="play_disclosure_continue">繼續</string>

@@ -43,9 +43,9 @@ internal class InviteState(private val a: MainActivity) {
     fun handleInvite(text: String?, quietIfNone: Boolean = false): Boolean {
         when (val inv = text?.let { Invite.find(it) }) {
             is Invite.Group -> {
-                // A relay the invite names: test builds switch to it, release builds never
-                // (core InviteRelay, docs/WAVE2_PLAY.md item 4).
-                InviteRelay.switchTo(InviteRelay.named(inv.qrText), BuildConfig.TEST_BUILD, RelayClient.serverInUse)
+                // A relay the invite names: release builds follow it only to one of their own
+                // relays, test builds to any (core InviteRelay, docs/WAVE2_PLAY.md item 4).
+                InviteRelay.switchTo(InviteRelay.named(inv.qrText), BuildConfig.TEST_BUILD, RelayClient.serverInUse, RelayClient.ownRelays)
                     ?.let { if (RelayClient.setServer(a, it, fromInvite = true)) DebugStatus.log("Using the crew's relay server") }
                 if (!GroupSync.join(a, inv.qrText)) {
                     a.toast(Txt.s(R.string.main_invite_expired))

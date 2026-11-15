@@ -9,7 +9,7 @@
     <string name="play_invite_add">เพิ่ม</string>
     <string name="play_disclosure_title">Moshpoint ใช้ตำแหน่งของคุณอย่างไร</string>
     <string name="play_disclosure_live">ระหว่างที่คุณแชร์อยู่ ตำแหน่งของคุณจะถูกแชร์ให้แก๊งและเพื่อน เพื่อให้หาคุณเจอ</string>
-    <string name="play_disclosure_relay">ตำแหน่งจะถูกเข้ารหัสบนมือถือของคุณ แล้วส่งผ่านเซิร์ฟเวอร์รีเลย์ของ Moshpoint ซึ่งอ่านข้อมูลนี้ไม่ได้</string>
+    <string name="play_disclosure_relay">ตำแหน่งจะถูกเข้ารหัสบนมือถือของคุณ แล้วส่งผ่านเซิร์ฟเวอร์รีเลย์ ซึ่งอ่านข้อมูลนี้ไม่ได้</string>
     <string name="play_disclosure_background">การแชร์ยังทำงานต่อแม้ปิดแอป พร้อมการแจ้งเตือน จนกว่าคุณจะปิดเอง</string>
     <string name="play_disclosure_bluetooth">ระหว่างที่คุณแชร์อยู่ มือถือของคุณจะช่วยส่งต่อข้อความที่เข้ารหัสของผู้ใช้ Moshpoint คนอื่นผ่านบลูทูธด้วย โดยอ่านข้อความเหล่านั้นไม่ได้</string>
     <string name="play_disclosure_continue">ต่อไป</string>

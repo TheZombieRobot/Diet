@@ -9,7 +9,7 @@
     <string name="play_invite_add">Dodaj</string>
     <string name="play_disclosure_title">Jak Moshpoint używa twojej lokalizacji</string>
     <string name="play_disclosure_live">Gdy udostępniasz lokalizację, widzą ją twoja ekipa i znajomi, żeby mogli cię znaleźć.</string>
-    <string name="play_disclosure_relay">Jest szyfrowana na twoim telefonie i wysyłana przez serwer pośredniczący Moshpoint, który nie może jej odczytać.</string>
+    <string name="play_disclosure_relay">Jest szyfrowana na twoim telefonie i wysyłana przez serwer pośredniczący, który nie może jej odczytać.</string>
     <string name="play_disclosure_background">Udostępnianie działa dalej po zamknięciu aplikacji, z powiadomieniem, dopóki go nie wyłączysz.</string>
     <string name="play_disclosure_bluetooth">Gdy udostępniasz lokalizację, twój telefon przekazuje też przez Bluetooth zaszyfrowane wiadomości innych użytkowników Moshpoint. Nie może ich odczytać.</string>
     <string name="play_disclosure_continue">Dalej</string>

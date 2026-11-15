@@ -173,7 +173,7 @@ private fun SharedInviteDialog(a: MainActivity, text: String) {
             val name = GigGroup.parseQr(inv.qrText, System.currentTimeMillis())?.name ?: stringResource(R.string.main_the_crew)
             val follow = GigGroup.isFollowInvite(inv.qrText)
             // Test builds only (release builds never switch relays, so they never say so).
-            val relay = if (BuildConfig.TEST_BUILD) InviteRelay.switchTo(InviteRelay.named(inv.qrText), true, RelayClient.serverInUse) else null
+            val relay = if (BuildConfig.TEST_BUILD) InviteRelay.switchTo(InviteRelay.named(inv.qrText), true, RelayClient.serverInUse, RelayClient.ownRelays) else null
             InviteConfirmDialog(
                 title = if (follow) stringResource(R.string.main_follow_name, name) else stringResource(R.string.main_join_name, name),
                 body = if (follow) stringResource(R.string.play_invite_follow_text) else stringResource(R.string.play_invite_join_text),

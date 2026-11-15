@@ -25,8 +25,9 @@ accounts or decisions; the rest can be done in the repo.
       when someone taps "Continue with Facebook", invites from other apps wait for a tap, a
       location disclosure before the permission prompt, a privacy policy link in the welcome,
       the disclosure and Settings (wave 2b, `docs/WAVE2_PLAY.md`).
-- [ ] **(you)** Set the `MOSHPOINT_SERVER` Actions variable: the Play bundle refuses to build
-      without our own relay (otherwise release traffic would go to the public ntfy.sh).
+- [ ] **(you)** Set the `MOSHPOINT_SERVER` Actions variable to the production relay (a
+      Moshpoint+ feature, owner's decision of 15 November). Without it a build uses the public
+      ntfy.sh; the free tier's relay and the routing between them come with billing (wave 2e).
 - [x] Launcher icon: neon arrow + radar rings (adaptive, with monochrome for themed icons). Swap for a pro logo later if wanted.
 - [ ] **(you)** Host `docs/PRIVACY.md` at a stable public URL (fill in the date, contact email
       and legal entity), then set `moshpoint.privacyUrl` in `gradle.properties` to it: the app's
@@ -87,9 +88,9 @@ collected; it still goes in the privacy policy.
 | Does the app collect or share any of the required user data types? | **Yes** |
 | Is all of the user data encrypted in transit? | **Yes** (HTTPS everywhere; locations, messages and photos are also end-to-end encrypted) |
 | Do you provide a way for users to request that their data is deleted? | **Yes**: there is no account; deleting the app deletes everything on the phone, and the relay's copies expire on their own (locations 15 min, moments 24 h, crew chat 3 days, profile photos 8 days). Facebook login can be removed at facebook.com |
-| **Location → Approximate location** | **Shared** (not collected): when the person types a venue, its name and a box about 300 km across go to OpenStreetMap's Nominatim (through our relay); the map area being viewed goes to OpenFreeMap for map tiles. Optional, App functionality. Not used for ads or analytics |
+| **Location → Approximate location** | **Shared** (not collected): when the person types a venue, its name and a box about 300 km across go to OpenStreetMap's Nominatim (through our relay, or directly from a build without it); the map area being viewed goes to OpenFreeMap for map tiles. Optional, App functionality. Not used for ads or analytics |
 | Location → Precise location | **Not collected or shared** (only ever sent end-to-end encrypted to the user's own crew and friends) |
-| **App activity → Other actions / In-app search history** | **Shared**: the words typed into gig search go (through our relay) to Ticketmaster, Bandsintown and SeatGeek. Optional, App functionality. Nothing about the person goes with them |
+| **App activity → Other actions / In-app search history** | **Shared**: the words typed into gig search go (through our relay) to Ticketmaster, Bandsintown and SeatGeek, or straight to Ticketmaster from a build without our relay. Optional, App functionality. Nothing about the person goes with them |
 | **Personal info → Name; Photos → profile photo** (only if "Continue with Facebook" is used) | **Collected** by Meta's SDK when the person chooses Facebook login: Meta receives what its login needs (see Meta's own Data safety guidance for the Facebook Login SDK), and the app receives the name and profile photo, which stay on the phone or go end-to-end encrypted to friends. Optional, App functionality |
 | Messages, photos and videos, audio | **Not collected** (end-to-end encrypted: crew chat, private messages, moments, clips with sound) |
 | Contacts, calendar, app info and performance, device or other IDs, financial, health | **Not collected** (no analytics, crash reporting or advertising ID; the Facebook SDK's analytics and ad ID are off and the AD_ID permission is removed) |
@@ -158,6 +159,6 @@ apply.
 
 **Prominent disclosure (User Data policy):** shown in the app before Android's location and
 nearby-devices prompt (the welcome's Allow, and every later prompt): location shared with the
-crew and friends while live, encrypted through the relay, Live keeps running with the app
-closed, and the phone relays other people's encrypted messages over Bluetooth, with a link to
-the privacy policy. Screenshot: `docs/screenshots/locationDisclosure.png`.
+crew and friends while live, encrypted and sent through a relay server that can't read it, Live
+keeps running with the app closed, and the phone relays other people's encrypted messages over
+Bluetooth, with a link to the privacy policy. Screenshot: `docs/screenshots/locationDisclosure.png`.

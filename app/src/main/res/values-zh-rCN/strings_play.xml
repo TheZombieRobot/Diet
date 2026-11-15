@@ -9,7 +9,7 @@
     <string name="play_invite_add">添加</string>
     <string name="play_disclosure_title">Moshpoint 如何使用你的位置</string>
     <string name="play_disclosure_live">你在线时，你的位置会分享给你的小队和朋友，方便他们找到你。</string>
-    <string name="play_disclosure_relay">位置在你的手机上加密，再经由 Moshpoint 的中转服务器发送，服务器无法读取。</string>
+    <string name="play_disclosure_relay">位置在你的手机上加密，再经由中转服务器发送，服务器无法读取。</string>
     <string name="play_disclosure_background">关闭应用后，在线状态仍会继续并显示一条通知，直到你关掉它。</string>
     <string name="play_disclosure_bluetooth">你在线时，你的手机还会通过蓝牙转发其他 Moshpoint 用户的加密消息，但无法读取。</string>
     <string name="play_disclosure_continue">继续</string>

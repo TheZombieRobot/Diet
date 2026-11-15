@@ -9,7 +9,7 @@
     <string name="play_invite_add">追加</string>
     <string name="play_disclosure_title">Moshpointでの位置情報の使い方</string>
     <string name="play_disclosure_live">シェア中は、あなたの位置情報がクルーや友達と共有され、あなたを見つけられるようになります。</string>
-    <string name="play_disclosure_relay">位置情報はスマホ上で暗号化され、Moshpointの中継サーバーを経由して送られます。サーバーは中身を読めません。</string>
+    <string name="play_disclosure_relay">位置情報はスマホ上で暗号化され、中継サーバーを経由して送られます。サーバーは中身を読めません。</string>
     <string name="play_disclosure_background">アプリを閉じても、オフにするまで通知を表示したまま位置シェアが続きます。</string>
     <string name="play_disclosure_bluetooth">シェア中は、ほかのMoshpointユーザーの暗号化されたメッセージもBluetoothで中継します。あなたのスマホには中身は読めません。</string>
     <string name="play_disclosure_continue">続ける</string>
