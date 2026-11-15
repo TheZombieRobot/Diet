@@ -457,10 +457,11 @@ fun FriendsScreen(
                                     onFind = { onFind(setOf(it)) }, onOptions = { options = it },
                                     distances = distances, badges = privateUnread, flares = flareNotes,
                                 )
-                                Text(
-                                    dotLine(stringResource(R.string.home_tap_mate_hint), keep = 40),
+                                DotLineText(
+                                    stringResource(R.string.home_tap_mate_hint),
                                     style = HomeType.Body.copy(fontSize = 12.5.sp, lineHeight = 17.sp, color = Mosh.TextFaint),
                                     modifier = Modifier.padding(start = HomeSide, end = HomeSide, top = 4.dp),
+                                    keep = 40,
                                 )
                                 Spacer(Modifier.height(18.dp))
                                 HeroButton(
@@ -519,10 +520,11 @@ fun FriendsScreen(
                         )
                     } else {
                         FriendsStrip(permanent, seen, nowSec, onFind = { onFind(setOf(it)) }, onOptions = { options = it })
-                        Text(
-                            dotLine(stringResource(R.string.home_tap_mate_hint), keep = 40),
+                        DotLineText(
+                            stringResource(R.string.home_tap_mate_hint),
                             style = HomeType.Body.copy(fontSize = 12.5.sp, lineHeight = 17.sp, color = Mosh.TextFaint),
                             modifier = Modifier.padding(start = HomeSide, end = HomeSide, top = 8.dp),
+                            keep = 40,
                         )
                     }
                 }

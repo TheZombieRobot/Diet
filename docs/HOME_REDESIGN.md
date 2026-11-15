@@ -145,12 +145,16 @@ sheets). Strings: `res/values*/strings_home_redesign.xml`.
   (`WholeWordsText`), instead of breaking inside a word ("Crew-Cha|t", "クルーチャ|ット").
 - **" · " lines** (`dotLine`): each short part stays whole and the dot ends a line; Arabic uses
   a bullet " • ", because a middle dot beside Arabic digits reads as a zero ("٣ ·" as ٣٠).
+  A part stays whole only while it fits on one line of the width it gets (`DotLineText`,
+  measured): at 200% "Kliknij znajomego, by szukać" wraps between words, not "znajome / go".
 - **Face captions** of several words are as wide as the face (70 dp) so neighbours don't run
   together; a single long word may use the tile's 76 dp; up to three lines, with "…" as a last
   resort.
 - **Translations touched for typesetting only**: Polish home strings have a no-break space after
-  one-letter words (a, i, o, u, w, z), Chinese ones have word joiners in three places (了。,
-  邀请, the quoted ＋ button), and Arabic's "9+" badge is "٩+". No wording changed.
+  one-letter words (a, i, o, u, w, z), Chinese ones have word joiners in a few places (了。,
+  邀请, 朋友, 显示, the quoted ＋ button), Japanese keeps 見えています whole the same way, and
+  Arabic's "9+" badge is "٩+". No wording changed. Word joiners matter where Android has no
+  phrase breaking: before Android 13, and in the screenshot renderer.
 - **From the review of `ad9a3e9`**: the faces keep a steady order (re-sorted when someone
   joins or leaves, goes live or not, or moves to another distance band; never while a finger
   is on the strip); Need help moves to its own row when even its longest word can't fit beside
@@ -164,7 +168,11 @@ sheets). Strings: `res/values*/strings_home_redesign.xml`.
   non-linear scaling of large text, so they never break inside a word; everything else grows
   fully. The distance under a live face is fitted in one measured pass (the finder's `FitText`
   shrinks frame by frame, which a screenshot catches half way). The Live row's line goes under
-  the switch when there's no room beside it for its longest word.
+  the switch when there's no room beside it for its longest word (for Chinese and Japanese, six
+  characters stand in for a phrase). The four tab labels share one size: the font setting's,
+  made smaller (down to the normal size, never below) while a word doesn't fit its tab, so
+  ストーリー stays whole at 130% on a small phone; a number keeps its word in every script
+  (`\p{Nd}`, so Arabic-Indic digits too).
 - **Shared pieces fixed on the way**: `FitText` (finder) no longer multiplies an unspecified line
   height (it threw); the violet unread badge on faces (private messages) shows the phone's
   digits; a story Polaroid's caption keeps its own direction (Unicode isolate), so "Front row!!"
@@ -258,12 +266,15 @@ still has a middle dot beside a number ("٤ · …").
 
 Handover (kept current; newest first):
 
-- **Now:** finished. CI run 282 (commit `ad9a3e9`,
-  https://github.com/TheZombieRobot/Diet/actions/runs/43668760375) is green: translations,
-  core and server tests, debug and release builds of the app and the watch, licences, and
-  every screenshot test passing (59 tests in each of the 21 language sets, none blank). The
-  commits after it only add docs (this file, the contact sheets) and CI's screenshots. The
-  owner has the report.
+- **Now:** the owner's review of `ad9a3e9` (items 1–13) is done in code; this commit adds the
+  fixes from checking run 286's screenshots (200% and the small phone at 130%): width-aware
+  " · " lines, one fitted size for the tab labels, digits in every script keep their word,
+  word joiners for 朋友/显示/見えています, Japanese Live line under the switch at 200%. Next:
+  let CI render; check hugeFontHomeMain (en, de, pl, ja), smallPhoneLargeFont* (every
+  language), homeMain/homeGhost/homeNoCrew/upNext (every language); then regenerate the
+  contact sheets (`tools/contact_sheet.py`, one per state incl. the three new tests) and the
+  results table in section 3, set this entry to finished with the green run, and send the
+  owner's session the short report (branch, green run, what changed).
 - **Done:** Step 1 (inventory, above). Step 2 code, compiling in CI: `Theme.kt` tokens,
   `HomeKit.kt` (new), `HomeSections.kt` and `FriendsScreen.kt` (rewritten),
   `HelpDialog(onAlertCrew = null)` in `CrewChatUi.kt`, `MomentStrip` removed (`MomentsUi.kt`),

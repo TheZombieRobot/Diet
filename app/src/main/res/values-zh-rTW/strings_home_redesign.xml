@@ -6,7 +6,7 @@
     <!-- The Live switch's name, on or off (a name, not 上線中), then the one line beside it -->
     <string name="home_live_switch">在線</string>
     <string name="home_live_on">朋友看得到你</string>
-    <string name="home_live_ghost_on">幽靈模式：地圖上不顯示，靠近時還是找得到你</string>
+    <string name="home_live_ghost_on">幽靈模式：地圖上不顯⁠示，靠近時還是找得到你</string>
     <string name="home_live_off">已關閉：朋友還看不到你</string>
 
     <!-- Crew header and faces. Count line: "小隊共 5 人 · 3 人上線中" -->
@@ -45,7 +45,7 @@
     <string name="home_no_crew_text">開一個小隊，秀出 QR 碼給朋友看，你們就是一⁠隊⁠了。</string>
     <string name="home_start_crew">開一個今晚的小隊</string>
     <string name="home_plan_title">規劃一場演出</string>
-    <string name="home_plan_sub">先找好演出，現在就揪朋友</string>
+    <string name="home_plan_sub">先找好演出，現在就揪朋⁠友</string>
     <string name="home_join_crew">加入小隊</string>
 
     <!-- First time (the title breaks where onboarding's does) -->

@@ -10,6 +10,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -64,6 +65,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -79,6 +81,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nz.waveformlabs.moshpoint.Friend
@@ -175,7 +178,7 @@ internal fun CrewHeader(
             Spacer(Modifier.width(12.dp))
             RoundIconButton(HomeIcons.More, stringResource(R.string.home_crew_options), onMenu)
         }
-        if (count != null) Text(dotLine(count), style = HomeType.Small)
+        if (count != null) DotLineText(count, HomeType.Small)
         if (followers.isNotEmpty()) {
             Spacer(Modifier.height(6.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -186,7 +189,7 @@ internal fun CrewHeader(
         }
         if (whenText != null) {
             Spacer(Modifier.height(4.dp))
-            Text(dotLine(whenText), style = HomeType.Small.copy(color = Mosh.TextDim))
+            DotLineText(whenText, HomeType.Small.copy(color = Mosh.TextDim))
         }
         if (venueMap != null) VenueMapLine(venueMap)
     }
@@ -342,9 +345,9 @@ internal fun UpNextRow(card: UpNextCard, onClick: () -> Unit) {
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(card.name, style = HomeType.RowTitle, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Text(
-                dotLine(listOfNotNull(who, card.countdown, card.venue.takeIf { it.isNotBlank() })),
-                style = HomeType.Small, maxLines = 3, overflow = TextOverflow.Ellipsis,
+            DotLineText(
+                listOfNotNull(who, card.countdown, card.venue.takeIf { it.isNotBlank() }),
+                HomeType.Small, maxLines = 3, overflow = TextOverflow.Ellipsis,
             )
             if (card.plan != null) {
                 Text(stringResource(R.string.home_pinned_plan, card.plan), style = HomeType.Small.copy(color = Mosh.TextDim), maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -441,7 +444,13 @@ private fun GigPolaroid(g: GigArchive.Summary, tilt: Float, onClick: () -> Unit)
     val cover = remember(g.cover) { g.cover?.let { GigArchive.thumbnail(it) }?.asImageBitmap() }
     val photos = pluralStringResource(R.plurals.home_gig_photos, g.photos, g.photos)
     val clips = pluralStringResource(R.plurals.home_gig_clips, g.clips, g.clips)
-    val sub = dotLine(listOfNotNull(shortDay(g.whenSec), photos.takeIf { g.photos > 0 }, clips.takeIf { g.clips > 0 }))
+    val subStyle = TextStyle(fontFamily = Mosh.Inter, fontSize = 11.sp, lineHeight = 15.sp, color = Mosh.InkSoft, lineBreak = HomeBreak)
+    // Measured against the caption's fixed width (150 dp less the padding), not with
+    // BoxWithConstraints: the strip sizes the Polaroids by their intrinsic height.
+    val sub = rememberDotLine(
+        listOfNotNull(shortDay(g.whenSec), photos.takeIf { g.photos > 0 }, clips.takeIf { g.clips > 0 }),
+        subStyle, with(LocalDensity.current) { 132.dp.roundToPx() },
+    )
     Column(
         Modifier.width(150.dp)
             .fillMaxHeight()
@@ -455,7 +464,7 @@ private fun GigPolaroid(g: GigArchive.Summary, tilt: Float, onClick: () -> Unit)
         Spacer(Modifier.height(8.dp))
         Text(g.name, style = TextStyle(fontFamily = Mosh.Marker, fontSize = 16.sp, color = Mosh.Ink, lineBreak = HomeBreak), maxLines = 2, overflow = TextOverflow.Ellipsis)
         Spacer(Modifier.height(2.dp))
-        Text(sub, style = TextStyle(fontFamily = Mosh.Inter, fontSize = 11.sp, lineHeight = 15.sp, color = Mosh.InkSoft, lineBreak = HomeBreak), maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Text(sub, style = subStyle, maxLines = 2, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -508,8 +517,8 @@ private fun PastGigRow(g: GigArchive.Summary, onClick: () -> Unit) {
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(g.name, style = HomeType.RowTitle, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Text(dotLine(listOf(shortDay(g.whenSec, year = true), g.venue).filter { it.isNotBlank() }), style = HomeType.Small.copy(color = Mosh.TextDim), maxLines = 2, overflow = TextOverflow.Ellipsis)
-            if (counts.isNotEmpty()) Text(dotLine(counts), style = HomeType.Small, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            DotLineText(listOf(shortDay(g.whenSec, year = true), g.venue).filter { it.isNotBlank() }, HomeType.Small.copy(color = Mosh.TextDim), maxLines = 2, overflow = TextOverflow.Ellipsis)
+            if (counts.isNotEmpty()) DotLineText(counts, HomeType.Small, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
         Spacer(Modifier.width(8.dp))
         HomeIcon(HomeIcons.Chevron, Mosh.TextFaint, 18.dp)
@@ -822,30 +831,61 @@ private fun PingChip(text: String, colour: Color, onClick: () -> Unit) {
 /** Bottom bar: the places you go (Crew, Map, Add, Story, Me). Opaque: the list ends above it. */
 @Composable
 internal fun HomeBar(onMap: () -> Unit, onAdd: () -> Unit, onMe: () -> Unit, myName: String = "", onStory: () -> Unit = {}) {
+    val crew = stringResource(R.string.home_bar_crew)
+    val map = stringResource(R.string.home_bar_map)
+    val story = stringResource(R.string.home_bar_story)
+    val me = stringResource(R.string.home_bar_me)
     Column(Modifier.fillMaxWidth().background(Mosh.Bar)) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(Mosh.Hairline))
-        Row(
-            Modifier.fillMaxWidth().navigationBarsPadding().padding(start = 10.dp, end = 10.dp, top = 8.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.Top,
-        ) {
-            BarItem(stringResource(R.string.home_bar_crew), selected = true, Modifier.weight(1f), icon = { c -> HomeIcon(HomeIcons.Crew, c, 26.dp) }) {}
-            BarItem(stringResource(R.string.home_bar_map), selected = false, Modifier.weight(1f), icon = { c -> HomeIcon(HomeIcons.MapPin, c, 26.dp) }, onClick = onMap)
-            AddButton(onAdd, Modifier.weight(1f))
-            BarItem(stringResource(R.string.home_bar_story), selected = false, Modifier.weight(1f), icon = { c -> HomeIcon(HomeIcons.Story, c, 26.dp) }, onClick = onStory)
-            BarItem(stringResource(R.string.home_bar_me), selected = false, Modifier.weight(1f), icon = { _ ->
-                val mine = nz.waveformlabs.moshpoint.PhotoStore.photos[nz.waveformlabs.moshpoint.PhotoStore.ME]
-                if (mine != null) {
-                    Image(mine, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.size(26.dp).clip(CircleShape))
-                } else {
-                    DefaultAvatar(myName, 26.dp)
-                }
-            }, onClick = onMe)
+        BoxWithConstraints(Modifier.fillMaxWidth().navigationBarsPadding().padding(start = 10.dp, end = 10.dp, top = 8.dp, bottom = 8.dp)) {
+            // Five equal places, each label with 2 dp either side.
+            val labelSize = rememberBarLabelSize(listOf(crew, map, story, me), constraints.maxWidth / 5 - with(LocalDensity.current) { 4.dp.roundToPx() })
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+                BarItem(crew, labelSize, selected = true, Modifier.weight(1f), icon = { c -> HomeIcon(HomeIcons.Crew, c, 26.dp) }) {}
+                BarItem(map, labelSize, selected = false, Modifier.weight(1f), icon = { c -> HomeIcon(HomeIcons.MapPin, c, 26.dp) }, onClick = onMap)
+                AddButton(onAdd, Modifier.weight(1f))
+                BarItem(story, labelSize, selected = false, Modifier.weight(1f), icon = { c -> HomeIcon(HomeIcons.Story, c, 26.dp) }, onClick = onStory)
+                BarItem(me, labelSize, selected = false, Modifier.weight(1f), icon = { _ ->
+                    val mine = nz.waveformlabs.moshpoint.PhotoStore.photos[nz.waveformlabs.moshpoint.PhotoStore.ME]
+                    if (mine != null) {
+                        Image(mine, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.size(26.dp).clip(CircleShape))
+                    } else {
+                        DefaultAvatar(myName, 26.dp)
+                    }
+                }, onClick = onMe)
+            }
         }
     }
 }
 
+private val BarLabelStyle = HomeType.Body.copy(lineBreak = HomeBreakEven)
+
+/**
+ * The tabs' label size: the font size setting's (up to 1.5 times, [capScale]), made smaller,
+ * down to the normal size, while a word doesn't fit its tab, so it never breaks inside:
+ * ストーリー at 130% on a small phone, not "ストー / リー". One size for all four labels.
+ * Words still too wide at the normal size, and labels of several words, take two lines.
+ */
 @Composable
-private fun BarItem(label: String, selected: Boolean, modifier: Modifier, icon: @Composable (Color) -> Unit, onClick: () -> Unit) {
+private fun rememberBarLabelSize(labels: List<String>, room: Int): TextUnit {
+    val measurer = rememberTextMeasurer()
+    val fontScale = LocalDensity.current.fontScale
+    val largest = 11.5.sp.capScale().value
+    return remember(labels, room, largest, fontScale, measurer) {
+        val words = labels.flatMap { it.split(' ') }.filter { it.isNotEmpty() }
+        // Measured in the selected tab's weight, the wider one.
+        val style = BarLabelStyle.copy(fontWeight = FontWeight.SemiBold)
+        fun widest(sp: Float) = words.maxOfOrNull { measurer.measure(it, style.copy(fontSize = sp.sp), maxLines = 1, softWrap = false).size.width } ?: 0
+        // The normal size, 11.5 at 100%, in this font scale's sp.
+        val smallest = minOf(largest, 11.5f / fontScale)
+        var sp = largest
+        while (sp - 0.25f >= smallest && widest(sp) > room) sp -= 0.25f
+        sp.sp
+    }
+}
+
+@Composable
+private fun BarItem(label: String, labelSize: TextUnit, selected: Boolean, modifier: Modifier, icon: @Composable (Color) -> Unit, onClick: () -> Unit) {
     val (src, sc) = rememberPress()
     val colour = if (selected) Mosh.Lime else Mosh.TextDim
     Column(
@@ -857,10 +897,13 @@ private fun BarItem(label: String, selected: Boolean, modifier: Modifier, icon: 
     ) {
         icon(colour)
         Spacer(Modifier.height(4.dp))
-        // Two lines when a large font needs them (ストーリー at 130% on a small phone), never clipped.
+        // Two lines when a large font needs them ("Berättelse" at 200%), never clipped.
         Text(
             label, maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
-            style = HomeType.Body.copy(fontSize = 11.5.sp.capScale(), lineHeight = 15.sp.capScale(), fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium, color = colour, lineBreak = HomeBreakEven),
+            style = BarLabelStyle.copy(
+                fontSize = labelSize, lineHeight = labelSize * (15f / 11.5f),
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium, color = colour,
+            ),
             modifier = Modifier.padding(horizontal = 2.dp),
         )
     }

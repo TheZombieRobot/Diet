@@ -103,6 +103,22 @@ class HomeLogicTest {
         assertEquals(0f, tracked("आज रात", wide).value)
     }
 
+    @Test fun dotLinesKeepShortPartsWholeOnlyWhileTheyFit() = inLocale(java.util.Locale("pl")) {
+        val parts = listOf("Kliknij znajomego, by szukać", "przytrzymaj: opcje")
+        assertEquals("Kliknij\u00A0znajomego,\u00A0by\u00A0szukać\u00A0· przytrzymaj:\u00A0opcje", dotLine(parts, keep = 40))
+        // Too wide for one line (200%): its spaces stay breakable, so it wraps between words.
+        val seen = mutableListOf<String>()
+        val narrow = dotLine(parts, keep = 40) { seen += it; it.length < 25 }
+        assertEquals("Kliknij znajomego, by szukać\u00A0· przytrzymaj:\u00A0opcje", narrow)
+        assertEquals("Kliknij\u00A0znajomego,\u00A0by\u00A0szukać\u00A0·", seen.first()) // measured with its dot
+    }
+
+    @Test fun numbersKeepTheirWordInEveryScript() {
+        assertEquals("15\u00A0min ago", keepNumbers("15 min ago"))
+        assertEquals("قبل ١٥\u00A0دقيقة", keepNumbers("قبل ١٥ دقيقة")) // Arabic-Indic digits
+        assertEquals("15\u00A0मिनट पहले", keepNumbers("15 मिनट पहले"))
+    }
+
     @Test fun statusLineSaysWhatMatters() = inLocale(java.util.Locale("en", "NZ")) {
         val live = LocationBook.Seen(0.0, 0.0, 0, 10, batteryPct = 64)
         assertEquals("live · 64%", statusLine(live, 30, liveWord = true))

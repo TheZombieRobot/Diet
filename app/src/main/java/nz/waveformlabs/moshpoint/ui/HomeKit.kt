@@ -143,16 +143,59 @@ internal object HomeType {
  * (no-break spaces inside): "in 7 days · Dock 4" never breaks as "Dock / 4" or "· Dock 4".
  * Arabic gets a bullet: a middle dot beside Arabic digits reads as a zero ("٣ ·" as ٣٠).
  */
-internal fun dotLine(parts: List<String>, keep: Int = 24): String =
-    parts.joinToString(if (java.util.Locale.getDefault().language == "ar") "\u00A0• " else "\u00A0· ") { p ->
-        if (p.length <= keep) p.replace(' ', '\u00A0') else p
+internal fun dotLine(parts: List<String>, keep: Int = 24, fits: (String) -> Boolean = { true }): String {
+    val sep = if (java.util.Locale.getDefault().language == "ar") "\u00A0• " else "\u00A0· "
+    return parts.withIndex().joinToString(sep) { (i, p) ->
+        val whole = p.replace(' ', '\u00A0')
+        // [fits] gets the part as it would sit on a line: with its dot, unless it's the last.
+        if (p.length <= keep && fits(if (i < parts.lastIndex) whole + sep.dropLast(1) else whole)) whole else p
     }
+}
 
 /**
  * [dotLine] for text already joined with " · ". [keep]: the longest part kept whole, 24 for a
  * narrow column (a longer part, like a long venue name, may still wrap), more for a full line.
  */
 internal fun dotLine(text: String, keep: Int = 24): String = dotLine(text.split(" · "), keep)
+
+/**
+ * [dotLine] for [maxWidth] pixels of [style]: a part is kept whole only while it fits on one
+ * line, so at a very large font size a long part wraps between its words, never inside one
+ * ("Kliknij znajomego, by szukać" at 200%, not "Kliknij znajome / go").
+ */
+@Composable
+internal fun rememberDotLine(parts: List<String>, style: TextStyle, maxWidth: Int, keep: Int = 24): String {
+    val measurer = rememberTextMeasurer()
+    return remember(parts, style, maxWidth, keep, measurer) {
+        dotLine(parts, keep) { measurer.measure(it, style, maxLines = 1, softWrap = false).size.width <= maxWidth }
+    }
+}
+
+/** A [dotLine] text whose parts are kept whole only while they fit the width it gets ([rememberDotLine]). */
+@Composable
+internal fun DotLineText(
+    parts: List<String>,
+    style: TextStyle,
+    modifier: Modifier = Modifier,
+    keep: Int = 24,
+    maxLines: Int = Int.MAX_VALUE,
+    overflow: TextOverflow = TextOverflow.Clip,
+) {
+    BoxWithConstraints(modifier) {
+        Text(rememberDotLine(parts, style, constraints.maxWidth, keep), style = style, maxLines = maxLines, overflow = overflow)
+    }
+}
+
+/** [DotLineText] for text already joined with " · ". */
+@Composable
+internal fun DotLineText(
+    text: String,
+    style: TextStyle,
+    modifier: Modifier = Modifier,
+    keep: Int = 24,
+    maxLines: Int = Int.MAX_VALUE,
+    overflow: TextOverflow = TextOverflow.Clip,
+) = DotLineText(text.split(" · "), style, modifier, keep, maxLines, overflow)
 
 /**
  * A small label in a tight place (a face's caption, a bottom-bar tab) grows with the font
@@ -165,10 +208,11 @@ internal fun TextUnit.capScale(max: Float = 1.5f): TextUnit {
     return if (fs > max && isSpecified) this * (max / fs) else this
 }
 
-/** A number keeps the word after it on its line: "15 min", not "15 / min". */
+/** A number keeps the word after it on its line: "15 min", not "15 / min" (Arabic "١٥ دقيقة" too). */
 internal fun keepNumbers(text: String): String = text.replace(NumberThenSpace, "$1\u00A0")
 
-private val NumberThenSpace = Regex("(\\d) ")
+// \p{Nd}, not \d: on the JVM (the screenshot tests) \d is only 0-9, on Android any digit.
+private val NumberThenSpace = Regex("(\\p{Nd}) ")
 
 /** A closing emoji (with its variation selector or joiner), kept with the word before it. */
 private val ClosingEmoji = Regex(" ([\\p{So}\\uFE0F\\u200D]+)$")
@@ -577,8 +621,10 @@ internal fun LiveRow(live: Boolean, ghost: Boolean, onChange: (Boolean) -> Unit,
         val density = LocalDensity.current
         val room = with(density) { maxWidth.roundToPx() - (10.dp + 46.dp + 12.dp).roundToPx() } -
             measurer.measure(label, labelStyle, maxLines = 1, softWrap = false).size.width
-        // Text without spaces (Chinese, Japanese, Thai) can break between characters: a few will do.
-        val chunks = if (explain.trim().contains(' ')) explain.split(' ') else listOf(explain.take(4))
+        // Text without spaces (Chinese, Japanese) breaks between characters, but a phrase should
+        // fit on a line: six characters stand in for one ("見えています"), so Japanese at 200%
+        // goes under the switch rather than split it.
+        val chunks = if (explain.trim().contains(' ')) explain.split(' ') else listOf(explain.take(6))
         val longest = chunks.maxOf { measurer.measure(it, explainStyle, maxLines = 1, softWrap = false).size.width }
         val beside = longest <= room && room >= with(density) { 96.dp.roundToPx() }
         val switch: @Composable () -> Unit = {
