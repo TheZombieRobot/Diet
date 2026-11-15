@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Arabic: home screen redesign (docs/HOME_REDESIGN.md): the Live row, the crew header and menu,
+     no crew / first time, and the section titles. Keep labels short: the screen is about 340 dp wide. -->
+<resources>
+    <!-- The Live row: the switch's name, then one line beside it -->
+    <string name="home_live_switch">ظاهر</string>
+    <string name="home_live_on">أصحابك يرونك</string>
+    <string name="home_live_ghost_on">وضع الشبح: خارج الخريطة، ويمكن إيجادك عن قرب</string>
+    <string name="home_live_off">مغلق: أصحابك لا يرونك بعد</string>
+
+    <!-- Crew header and faces -->
+    <string name="home_crew_options">خيارات الشلة</string>
+    <plurals name="home_crew_count">
+        <item quantity="zero">لا أحد في الشلة بعد</item>
+        <item quantity="one">صاحب واحد في الشلة</item>
+        <item quantity="two">صاحبان في الشلة</item>
+        <item quantity="few">%d أصحاب في الشلة</item>
+        <item quantity="many">%d صاحبًا في الشلة</item>
+        <item quantity="other">%d صاحب في الشلة</item>
+    </plurals>
+    <plurals name="home_live_count">
+        <item quantity="zero">لا أحد منهم ظاهر</item>
+        <item quantity="one">واحد منهم ظاهر</item>
+        <item quantity="two">اثنان منهم ظاهران</item>
+        <item quantity="few">%d منهم ظاهرون</item>
+        <item quantity="many">%d منهم ظاهرون</item>
+        <item quantity="other">%d منهم ظاهرون</item>
+    </plurals>
+    <string name="home_face_options">الخيارات</string>
+    <string name="home_friend_options">خيارات %1$s</string>
+    <string name="home_face_battery">البطارية %1$d%%</string>
+
+    <string name="home_share_photos">شارك صورًا</string>
+    <string name="home_meetup">نقطة اللقاء: %1$s</string>
+    <string name="home_plan_pinned">مثبّتة في دردشة الشلة</string>
+    <string name="home_where_are_they_short">أين هم؟</string>
+
+    <!-- Crew menu (⋯) -->
+    <string name="home_menu_tonight">الليلة</string>
+    <string name="home_menu_coming_up">قريبًا</string>
+    <string name="home_menu_invite">ادعُ المزيد من أصحابك</string>
+    <string name="home_menu_invite_sub">اعرض QR الشلة، أو أرسل رابطًا</string>
+    <string name="home_menu_family">شارك الليلة مع العائلة</string>
+    <string name="home_menu_family_sub">يتابعون من البيت، ولا يمكن إيجادهم</string>
+    <string name="home_menu_reset_sub">رمز QR ورابط جديدان. الدعوة القديمة تتوقف عن العمل</string>
+    <string name="home_menu_end_sub">غادر شلة الليلة. صورك تبقى في «الحفلات السابقة»</string>
+    <string name="home_menu_cancel_sub">غادرها قبل يوم الحفلة. من انضم من أصحابك يبقى فيها</string>
+    <string name="home_menu_stop_sub">لن تظهر لك أماكنهم بعد الآن</string>
+
+    <!-- No crew tonight -->
+    <string name="home_no_crew_title">لا شلة الليلة</string>
+    <string name="home_no_crew_text">ابدأ واحدة، واعرض رمز QR لأصحابك، وصرتم شلة.</string>
+    <string name="home_start_crew">ابدأ شلة الليلة</string>
+    <string name="home_plan_title">خطّط لحفلة</string>
+    <string name="home_plan_sub">ابحث عنها الآن وادعُ أصحابك</string>
+    <string name="home_join_crew">انضم إلى شلة</string>
+
+    <!-- First time -->
+    <string name="home_first_title">جد أصحابك في الزحمة</string>
+    <string name="home_first_text">ابدأ شلة ويمسح أصحابك رمز QR. سهم متوهج يشير إلى كل واحد منهم، حتى بدون إشارة.</string>
+    <string name="home_plan_another_night">خطّط لحفلة في ليلة أخرى</string>
+
+    <!-- Section titles -->
+    <string name="home_section_up_next">القادم</string>
+    <string name="home_section_past_gigs">الحفلات السابقة</string>
+    <string name="home_section_friends">الأصدقاء</string>
+    <string name="home_see_all">عرض الكل</string>
+    <plurals name="home_mates">
+        <item quantity="zero">%d صاحب</item>
+        <item quantity="one">صاحب واحد</item>
+        <item quantity="two">صاحبان</item>
+        <item quantity="few">%d أصحاب</item>
+        <item quantity="many">%d صاحبًا</item>
+        <item quantity="other">%d صاحب</item>
+    </plurals>
+    <string name="home_upnext_no_mates">ادعُ أصحابك</string>
+</resources>

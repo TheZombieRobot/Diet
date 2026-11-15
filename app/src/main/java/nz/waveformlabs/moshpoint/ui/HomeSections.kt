@@ -233,13 +233,13 @@ private fun ActivityRow(
 
 /** Tonight's photos as Polaroids (tap = the story). */
 @Composable
-internal fun StoryStrip(items: List<Moments.Item>, onOpen: () -> Unit) {
+internal fun StoryStrip(photos: List<Moments.Item>, onOpen: () -> Unit) {
     LazyRow(
         Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(start = HomeSide, end = HomeSide, top = 12.dp, bottom = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        items(items.take(8), key = { it.key }) { m -> Polaroid(m, 112.dp, Modifier.clickable(role = Role.Button, onClick = onOpen)) }
+        items(photos.take(8), key = { it.key }) { m -> Polaroid(m, 112.dp, Modifier.clickable(role = Role.Button, onClick = onOpen)) }
     }
 }
 
@@ -428,7 +428,7 @@ internal fun PastGigsStrip(gigs: List<GigArchive.Summary>, onOpen: (GigArchive.S
     LazyRow(
         Modifier.fillMaxWidth(),
         // Room for the tilt and the drop shadow.
-        contentPadding = PaddingValues(start = HomeSide, end = HomeSide, top = 14.dp, bottom = 24.dp),
+        contentPadding = PaddingValues(start = HomeSide, end = HomeSide, top = 6.dp, bottom = 24.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         itemsIndexed(gigs, key = { _, g -> g.id }) { i, g -> GigPolaroid(g, PolaroidTilts[i % PolaroidTilts.size]) { onOpen(g) } }

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Japanese: home screen redesign (docs/design/home-redesign, docs/HOME_REDESIGN.md): the Live row, the
+     crew header and menu, no crew / first time, and the section titles. Keep labels short: the
+     screen is about 340 dp wide, and two buttons share a row. -->
+<resources>
+    <!-- The Live switch's name, on or off (a name, not シェア中), then the one line beside it -->
+    <string name="home_live_switch">位置シェア</string>
+    <string name="home_live_on">仲間から見えています</string>
+    <string name="home_live_ghost_on">ゴーストモード：マップでは非表示、近くなら見つけてもらえます</string>
+    <string name="home_live_off">オフ：まだ仲間から見えません</string>
+
+    <!-- Crew header and faces. Count line: "クルー5人 · 3人がシェア中" -->
+    <string name="home_crew_options">クルーのオプション</string>
+    <plurals name="home_crew_count">
+        <item quantity="other">クルー%d人</item>
+    </plurals>
+    <plurals name="home_live_count">
+        <item quantity="other">%d人がシェア中</item>
+    </plurals>
+    <!-- Screen reader: same words as home_tap_mate_hint (長押しでその他の操作) -->
+    <string name="home_face_options">その他の操作</string>
+    <string name="home_friend_options">%1$sのオプション</string>
+    <string name="home_face_battery">電池残り%1$d%%</string>
+
+    <!-- Half-width button next to クルーチャット; activity block -->
+    <string name="home_share_photos">写真をシェア</string>
+    <string name="home_meetup">集合場所：%1$s</string>
+    <string name="home_plan_pinned">クルーチャットにピン留め中</string>
+    <string name="home_where_are_they_short">みんなどこ？</string>
+
+    <!-- Crew menu (⋯) -->
+    <string name="home_menu_tonight">今夜</string>
+    <string name="home_menu_coming_up">もうすぐ</string>
+    <string name="home_menu_invite">もっと仲間を招待</string>
+    <string name="home_menu_invite_sub">クルーQRを見せるか、リンクを送れます</string>
+    <string name="home_menu_family">家族にも見守ってもらう</string>
+    <string name="home_menu_family_sub">家から見守るだけで、家族の居場所は表示されません</string>
+    <string name="home_menu_reset_sub">新しいQRとリンクに変わり、古いものは使えなくなります</string>
+    <string name="home_menu_end_sub">今夜のクルーから抜けます。写真は「過去のライブ」に残ります</string>
+    <string name="home_menu_cancel_sub">当日を待たずに抜けます。参加した仲間はそのまま残ります</string>
+    <string name="home_menu_stop_sub">みんなの居場所が見られなくなります</string>
+
+    <!-- No crew tonight -->
+    <string name="home_no_crew_title">今夜はクルーなし</string>
+    <string name="home_no_crew_text">クルーを作って、仲間にQRコードを見せるだけ。これでクルー結成！</string>
+    <string name="home_start_crew">今夜のクルーを作る</string>
+    <string name="home_plan_title">ライブを計画</string>
+    <string name="home_plan_sub">今すぐ探して、仲間を招待しよう</string>
+    <string name="home_join_crew">クルーに参加</string>
+
+    <!-- First time (the title breaks where onboarding's does, so no kana is left alone) -->
+    <string name="home_first_title">人混みでも\n仲間が見つかる</string>
+    <string name="home_first_text">クルーを作って、仲間にQRコードをスキャンしてもらおう。電波がなくても、光る矢印が一人ひとりを指します。</string>
+    <string name="home_plan_another_night">別の日のライブを計画</string>
+
+    <!-- Section titles; Up next rows -->
+    <string name="home_section_up_next">次の予定</string>
+    <string name="home_section_past_gigs">過去のライブ</string>
+    <string name="home_section_friends">友達</string>
+    <string name="home_see_all">全部見る</string>
+    <plurals name="home_mates">
+        <item quantity="other">仲間%d人</item>
+    </plurals>
+    <string name="home_upnext_no_mates">仲間を招待しよう</string>
+</resources>

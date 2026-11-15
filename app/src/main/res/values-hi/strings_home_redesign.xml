@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hindi: home screen redesign (docs/HOME_REDESIGN.md): the Live row, the crew header and menu,
+     no crew / first time, and the section titles. Keep labels short: the screen is about 340 dp wide. -->
+<resources>
+    <!-- The Live row: the switch's name, then one line beside it -->
+    <string name="home_live_switch">लाइव</string>
+    <string name="home_live_on">दोस्त आपको देख सकते हैं</string>
+    <string name="home_live_ghost_on">घोस्ट मोड: मैप पर नहीं, पर पास से दोस्त ढूँढ सकते हैं</string>
+    <string name="home_live_off">बंद: दोस्त अभी आपको नहीं देख सकते</string>
+
+    <!-- Crew header and faces -->
+    <string name="home_crew_options">ग्रुप के विकल्प</string>
+    <plurals name="home_crew_count">
+        <item quantity="one">ग्रुप में %d दोस्त</item>
+        <item quantity="other">ग्रुप में %d दोस्त</item>
+    </plurals>
+    <plurals name="home_live_count">
+        <item quantity="one">%d लाइव</item>
+        <item quantity="other">%d लाइव</item>
+    </plurals>
+    <string name="home_face_options">विकल्प</string>
+    <string name="home_friend_options">%1$s के विकल्प</string>
+    <string name="home_face_battery">%1$d%% बैटरी</string>
+
+    <string name="home_share_photos">फ़ोटो शेयर करें</string>
+    <string name="home_meetup">मिलने की जगह: %1$s</string>
+    <string name="home_plan_pinned">ग्रुप चैट में पिन है</string>
+    <string name="home_where_are_they_short">वे कहाँ हैं?</string>
+
+    <!-- Crew menu (⋯) -->
+    <string name="home_menu_tonight">आज रात</string>
+    <string name="home_menu_coming_up">जल्द ही</string>
+    <string name="home_menu_invite">और दोस्तों को बुलाएँ</string>
+    <string name="home_menu_invite_sub">ग्रुप का QR दिखाएँ, या लिंक भेजें</string>
+    <string name="home_menu_family">परिवार के साथ रात शेयर करें</string>
+    <string name="home_menu_family_sub">वे घर से फ़ॉलो करते हैं, और उन्हें कोई ढूँढ नहीं सकता</string>
+    <string name="home_menu_reset_sub">नया QR और लिंक। पुराने अब काम नहीं करेंगे</string>
+    <string name="home_menu_end_sub">आज रात का ग्रुप छोड़ें। आपकी फ़ोटो \"पिछले शो\" में रहेंगी</string>
+    <string name="home_menu_cancel_sub">शो वाले दिन से पहले इसे छोड़ें। जो दोस्त जुड़ चुके हैं, वे बने रहेंगे</string>
+    <string name="home_menu_stop_sub">अब आप नहीं देख पाएँगे कि वे कहाँ हैं</string>
+
+    <!-- No crew tonight -->
+    <string name="home_no_crew_title">आज रात कोई ग्रुप नहीं</string>
+    <string name="home_no_crew_text">ग्रुप शुरू करें, दोस्तों को QR कोड दिखाएँ, और आपका ग्रुप तैयार।</string>
+    <string name="home_start_crew">आज रात का ग्रुप शुरू करें</string>
+    <string name="home_plan_title">शो प्लान करें</string>
+    <string name="home_plan_sub">अभी ढूँढें और दोस्तों को बुलाएँ</string>
+    <string name="home_join_crew">ग्रुप में जुड़ें</string>
+
+    <!-- First time -->
+    <string name="home_first_title">भीड़ में अपने दोस्त ढूँढें</string>
+    <string name="home_first_text">ग्रुप शुरू करें और दोस्त QR कोड स्कैन करें। एक चमकता तीर हर दोस्त की ओर इशारा करता है, सिग्नल न हो तब भी।</string>
+    <string name="home_plan_another_night">किसी और रात के लिए शो प्लान करें</string>
+
+    <!-- Section titles -->
+    <string name="home_section_up_next">आगे के शो</string>
+    <string name="home_section_past_gigs">पिछले शो</string>
+    <string name="home_section_friends">दोस्त</string>
+    <string name="home_see_all">सभी देखें</string>
+    <plurals name="home_mates">
+        <item quantity="one">%d दोस्त</item>
+        <item quantity="other">%d दोस्त</item>
+    </plurals>
+    <string name="home_upnext_no_mates">दोस्तों को बुलाएँ</string>
+</resources>

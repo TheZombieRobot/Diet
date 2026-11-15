@@ -375,17 +375,20 @@ fun FriendsScreen(
             Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(top = 16.dp, bottom = 28.dp)) {
                 HomeHeader(onHelp = { helpOpen = true })
                 // Followers at home never broadcast, so there's nothing to switch.
-                if (!following) LiveRow(visible, ghost, onChange = onVisible, modifier = Modifier.padding(start = HomeSide, end = HomeSide, top = 6.dp))
+                if (!following) LiveRow(visible, ghost, onChange = onVisible, modifier = Modifier.padding(horizontal = HomeSide))
                 if (todo != null) SetupCard(todoEyebrow, todo.first, todo.second, todo.third, Modifier.padding(top = 14.dp))
 
                 when {
-                    firstTime -> FirstTimeHero(onStart = startCrew, onScan = onScanQr, onPaste = onPasteInvite, onPlan = onPlanGig)
+                    firstTime -> {
+                        Spacer(Modifier.height(8.dp))
+                        FirstTimeHero(onStart = startCrew, onScan = onScanQr, onPaste = onPasteInvite, onPlan = onPlanGig)
+                    }
                     !inCrew -> {
-                        Spacer(Modifier.height(26.dp))
+                        Spacer(Modifier.height(24.dp))
                         NoCrewHero(onStart = startCrew, onPlan = onPlanGig, onScan = onScanQr, onPaste = onPasteInvite)
                     }
                     else -> {
-                        Spacer(Modifier.height(26.dp))
+                        Spacer(Modifier.height(20.dp))
                         CrewHeader(
                             eyebrow = when {
                                 following -> stringResource(R.string.home_eyebrow_following)
@@ -454,9 +457,9 @@ fun FriendsScreen(
                                 Text(
                                     stringResource(R.string.home_tap_mate_hint),
                                     style = Mosh.Body.copy(fontSize = 12.5.sp, lineHeight = 17.sp, color = Mosh.TextFaint),
-                                    modifier = Modifier.padding(start = HomeSide, end = HomeSide, top = 6.dp),
+                                    modifier = Modifier.padding(start = HomeSide, end = HomeSide, top = 4.dp),
                                 )
-                                Spacer(Modifier.height(20.dp))
+                                Spacer(Modifier.height(18.dp))
                                 HeroButton(
                                     if (gig.size == 1) stringResource(R.string.home_find_name, gig[0].name) else stringResource(R.string.home_find_everyone),
                                     HomeIcons.Navigate, Modifier.padding(horizontal = HomeSide),
@@ -474,7 +477,7 @@ fun FriendsScreen(
                                 )
                                 ActivityBlock(meetUp, pings.take(1), nowSec, describePing, pinnedPlan, onOpenMap, onOpenChat, Modifier.padding(top = 20.dp))
                                 if (moments.isNotEmpty()) {
-                                    SectionTitle(stringResource(R.string.find_story_title), Modifier.padding(top = 22.dp), onSeeAll = onOpenStory)
+                                    SectionTitle(stringResource(R.string.find_story_title), Modifier.padding(top = 8.dp), onSeeAll = onOpenStory)
                                     StoryStrip(moments, onOpenStory)
                                 }
                             }
@@ -484,8 +487,7 @@ fun FriendsScreen(
 
                 if (!firstTime) {
                     if (upNext.isNotEmpty()) {
-                        SectionTitle(stringResource(R.string.home_section_up_next), Modifier.padding(top = 30.dp))
-                        Spacer(Modifier.height(8.dp))
+                        SectionTitle(stringResource(R.string.home_section_up_next), Modifier.padding(top = 18.dp))
                         HomeDivider()
                         upNext.forEach { card ->
                             UpNextRow(card) { onOpenUpNext(card.id) }
@@ -498,12 +500,12 @@ fun FriendsScreen(
                         MemoryCard(g, years) { onOpenGig(g) }
                     }
                     if (past.isNotEmpty()) {
-                        SectionTitle(stringResource(R.string.home_section_past_gigs), Modifier.padding(top = 24.dp), onSeeAll = { gigsOpen = true })
+                        SectionTitle(stringResource(R.string.home_section_past_gigs), Modifier.padding(top = 18.dp), onSeeAll = { gigsOpen = true })
                         PastGigsStrip(past, onOpenGig)
                     }
                     SectionTitle(
                         stringResource(R.string.home_section_friends),
-                        Modifier.padding(top = if (past.isNotEmpty()) 2.dp else 26.dp),
+                        Modifier.padding(top = if (past.isNotEmpty()) 0.dp else 18.dp),
                         onSeeAll = if (permanent.isNotEmpty()) ({ friendsOpen = true }) else null,
                     )
                     if (permanent.isEmpty()) {

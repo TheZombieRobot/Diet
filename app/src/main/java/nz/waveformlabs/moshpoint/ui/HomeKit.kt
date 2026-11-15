@@ -460,8 +460,8 @@ internal fun LiveRow(live: Boolean, ghost: Boolean, onChange: (Boolean) -> Unit,
 /** A section's title with an optional "See all". */
 @Composable
 internal fun SectionTitle(title: String, modifier: Modifier = Modifier, onSeeAll: (() -> Unit)? = null) {
-    Row(modifier.fillMaxWidth().padding(horizontal = HomeSide), verticalAlignment = Alignment.CenterVertically) {
-        Text(title, style = Mosh.Section, modifier = Modifier.weight(1f).padding(vertical = 6.dp).semantics { heading() })
+    Row(modifier.fillMaxWidth().padding(horizontal = HomeSide).heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(title, style = Mosh.Section, modifier = Modifier.weight(1f).padding(vertical = 4.dp).semantics { heading() })
         if (onSeeAll != null) {
             Spacer(Modifier.width(12.dp))
             Box(
@@ -672,7 +672,7 @@ internal fun FriendsStrip(friends: List<Friend>, seen: Map<String, LocationBook.
     val optionsLabel = stringResource(R.string.home_face_options)
     LazyRow(
         Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(start = HomeSide, end = HomeSide, top = 18.dp, bottom = 4.dp),
+        contentPadding = PaddingValues(start = HomeSide, end = HomeSide, top = 12.dp, bottom = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         items(friends, key = { it.id }) { f ->
@@ -687,7 +687,7 @@ internal fun FriendsStrip(friends: List<Friend>, seen: Map<String, LocationBook.
                     ),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                FaceImage(f, 60.dp, isLive(seen[f.id], nowSec), dim = false, glow = 14.dp)
+                FaceImage(f, 60.dp, isLive(seen[f.id], nowSec), dim = false, glow = 12.dp)
                 Spacer(Modifier.height(8.dp))
                 Text(f.name, style = Mosh.Label.copy(fontSize = 13.sp), maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
             }

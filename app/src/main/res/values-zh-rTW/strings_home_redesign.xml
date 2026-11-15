@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Traditional Chinese, Taiwan (zh-TW): home screen redesign (docs/design/home-redesign, docs/HOME_REDESIGN.md):
+     the Live row, the crew header and menu, no crew / first time, and the section titles. Keep labels
+     short: the screen is about 340 dp wide, and two buttons share a row. No spaces between Chinese words. -->
+<resources>
+    <!-- The Live switch's name, on or off (a name, not 上線中), then the one line beside it -->
+    <string name="home_live_switch">上線</string>
+    <string name="home_live_on">朋友看得到你</string>
+    <string name="home_live_ghost_on">幽靈模式：地圖上不顯示，靠近時還是找得到你</string>
+    <string name="home_live_off">已關閉：朋友還看不到你</string>
+
+    <!-- Crew header and faces. Count line: "小隊共 5 人 · 3 人上線中" -->
+    <string name="home_crew_options">小隊選項</string>
+    <plurals name="home_crew_count">
+        <item quantity="other">小隊共 %d 人</item>
+    </plurals>
+    <plurals name="home_live_count">
+        <item quantity="other">%d 人上線中</item>
+    </plurals>
+    <!-- Screen reader: same word as home_tap_mate_hint (長按看選項) -->
+    <string name="home_face_options">選項</string>
+    <string name="home_friend_options">%1$s的選項</string>
+    <string name="home_face_battery">電量 %1$d%%</string>
+
+    <!-- Half-width button next to 小隊聊天; activity block -->
+    <string name="home_share_photos">分享相片</string>
+    <string name="home_meetup">集合點：%1$s</string>
+    <string name="home_plan_pinned">已置頂在小隊聊天裡</string>
+    <string name="home_where_are_they_short">他們在哪？</string>
+
+    <!-- Crew menu (⋯) -->
+    <string name="home_menu_tonight">今晚</string>
+    <string name="home_menu_coming_up">即將開始</string>
+    <string name="home_menu_invite">揪更多朋友</string>
+    <string name="home_menu_invite_sub">秀出小隊 QR 碼，或傳個連結</string>
+    <string name="home_menu_family">讓家人一起追蹤</string>
+    <string name="home_menu_family_sub">他們在家追蹤，自己不會被找到</string>
+    <string name="home_menu_reset_sub">換成新的 QR 碼和連結，舊的會失效</string>
+    <string name="home_menu_end_sub">離開今晚的小隊。相片會留在「看過的演出」裡</string>
+    <string name="home_menu_cancel_sub">在演出前離開。已加入的朋友會留在小隊裡</string>
+    <string name="home_menu_stop_sub">之後就看不到他們在哪了</string>
+
+    <!-- No crew tonight -->
+    <string name="home_no_crew_title">今晚還沒有小隊</string>
+    <string name="home_no_crew_text">開一個小隊，秀出 QR 碼給朋友看，你們就是一隊了。</string>
+    <string name="home_start_crew">開一個今晚的小隊</string>
+    <string name="home_plan_title">規劃一場演出</string>
+    <string name="home_plan_sub">先找好演出，現在就揪朋友</string>
+    <string name="home_join_crew">加入小隊</string>
+
+    <!-- First time (the title breaks where onboarding's does) -->
+    <string name="home_first_title">人再多\n也找得到朋友</string>
+    <string name="home_first_text">開一個小隊，讓朋友掃 QR 碼。就算沒訊號，發光的箭頭也會指向每一個人。</string>
+    <string name="home_plan_another_night">規劃另一晚的演出</string>
+
+    <!-- Section titles; Up next rows -->
+    <string name="home_section_up_next">下一場</string>
+    <string name="home_section_past_gigs">看過的演出</string>
+    <string name="home_section_friends">好友</string>
+    <string name="home_see_all">看全部</string>
+    <plurals name="home_mates">
+        <item quantity="other">%d 個朋友</item>
+    </plurals>
+    <string name="home_upnext_no_mates">揪朋友</string>
+</resources>
