@@ -6,6 +6,8 @@ import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsBytes
+import io.ktor.client.statement.bodyAsText
+import kotlinx.coroutines.async
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import java.io.ByteArrayOutputStream
@@ -223,6 +225,43 @@ class OldClientsTest {
                 recs.reversed().forEach { write(0); write(it.size); write(it) }
             }.toByteArray()
             assertContentEquals(out, client.post("/v1/heldlookup") { setBody(idRaw) }.bodyAsBytes())
+        }
+    }
+}
+
+/** Outside services can be slow or hang; the relay answers anyway, in time, without holding threads. */
+class SlowServicesTest {
+    @Test fun aHangingGigSourceIsLeftOutAndTheSearchStillAnswersInTime() = kotlinx.coroutines.runBlocking<Unit> {
+        val tm = """{"_embedded":{"events":[{"name":"Iron Maiden","dates":{"start":{"dateTime":"2099-03-01T08:00:00Z","localDate":"2099-03-01","localTime":"20:00:00"}},
+            "_embedded":{"venues":[{"name":"Spark Arena","city":{"name":"Auckland"},"country":{"countryCode":"NZ"}}]}}]}}"""
+        val s = GigSearch(
+            env = { mapOf("TICKETMASTER_KEY" to "k", "BANDSINTOWN_APP_ID" to "b")[it] },
+            fetch = { url -> if ("ticketmaster" in url) tm else kotlinx.coroutines.awaitCancellation() },
+            clock = { 1_700_000_000_000L },
+            sourceTimeoutMs = 300,
+            searchTimeoutMs = 1_000,
+        )
+        val started = System.currentTimeMillis()
+        val found = s.search("Iron Maiden", "NZ")
+        assertEquals(listOf("Spark Arena"), found.map { it.venue })
+        assertTrue(System.currentTimeMillis() - started < 900)
+    }
+
+    @Test fun manyVenueLookupsWaitTheirTurnWithoutHoldingThreads() = testApplication {
+        // Nominatim allows one request a second for everyone: a dozen phones asking at once
+        // wait in turn (or are told "try later"), while everything else is answered at once.
+        val gate = kotlinx.coroutines.CompletableDeferred<Unit>()
+        val venues = VenueLookup(env = { null }, fetch = { _, _ -> gate.await(); VenueLookup.Fetched(200, "[]") })
+        application { moshpoint(testRelay(), venues = venues) }
+        kotlinx.coroutines.coroutineScope {
+            val waiting = (1..12).map { n -> async { client.get("/v1/venue?q=Venue%20number%20$n").status } }
+            kotlinx.coroutines.delay(200)
+            // The relay still answers the rest of the world straight away.
+            repeat(20) { assertEquals(HttpStatusCode.NoContent, client.put("/v1/box/00112233445566778899aabbccddeeff") { setBody(ByteArray(30) { 1 }) }.status) }
+            assertEquals("ok", client.get("/healthz").bodyAsText())
+            gate.complete(Unit)
+            val statuses = waiting.map { it.await() }
+            assertTrue(statuses.all { it == HttpStatusCode.NotFound || it == HttpStatusCode.ServiceUnavailable }, statuses.toString())
         }
     }
 }

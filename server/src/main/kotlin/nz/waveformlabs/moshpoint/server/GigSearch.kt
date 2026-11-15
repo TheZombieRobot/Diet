@@ -41,6 +41,8 @@ class GigSearch(
     private val env: (String) -> String? = System::getenv,
     private val fetch: suspend (String) -> String? = ::httpGet,
     private val clock: () -> Long = System::currentTimeMillis,
+    private val sourceTimeoutMs: Long = SOURCE_TIMEOUT_MS,
+    private val searchTimeoutMs: Long = SEARCH_TIMEOUT_MS,
 ) {
     data class Gig(
         val name: String,
@@ -88,10 +90,10 @@ class GigSearch(
         }
         if (asks.isEmpty()) return emptyList()
         // Every source at once; a slow or failing one is left out rather than holding up the rest.
-        val results = withTimeoutOrNull(SEARCH_TIMEOUT_MS) {
+        val results = withTimeoutOrNull(searchTimeoutMs) {
             outgoing.withPermit {
                 coroutineScope {
-                    asks.map { ask -> async { withTimeoutOrNull(SOURCE_TIMEOUT_MS) { runCatching { ask() }.getOrNull() }.orEmpty() } }.awaitAll().flatten()
+                    asks.map { ask -> async { withTimeoutOrNull(sourceTimeoutMs) { runCatching { ask() }.getOrNull() }.orEmpty() } }.awaitAll().flatten()
                 }
             }
         } ?: return emptyList()

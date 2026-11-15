@@ -39,7 +39,7 @@ class Limits(c: LimitConfig, private val clock: () -> Long) {
     private val tokenRecordBytes = perHour(c.tokenRecordBytesPerHour)
     private val anonUpload = perHour(c.anonUploadBytesPerHour)
     private val tokenUpload = perHour(c.tokenUploadBytesPerHour)
-    private val anonDownload = perHour(c.anonDownloadBytesPerHour)
+    private val addressDownload = perHour(c.addressDownloadBytesPerHour)
     private val tokenDownload = perHour(c.tokenDownloadBytesPerHour)
 
     /** A request from [client]: null if it may go ahead, else the limit it hit. */
@@ -62,7 +62,14 @@ class Limits(c: LimitConfig, private val clock: () -> Long) {
 
     fun uploadBytes(client: Client, n: Long): Boolean = bytes(client, anonUpload, tokenUpload, n)
 
-    fun downloadBytes(client: Client, n: Long): Boolean = bytes(client, anonDownload, tokenDownload, n)
+    /** Every download counts against its address; with a token, against the install as well. */
+    fun downloadBytes(client: Client, n: Long): Boolean {
+        if (!addressDownload.allow(client.address, n.toDouble())) return false
+        val install = client.install ?: return true
+        if (tokenDownload.allow(install, n.toDouble())) return true
+        addressDownload.refund(client.address, n.toDouble())
+        return false
+    }
 
     fun registration(client: Client): Boolean = registrations.allow(client.address)
 
@@ -70,7 +77,7 @@ class Limits(c: LimitConfig, private val clock: () -> Long) {
         client.install?.let { token.allow(it, n.toDouble()) } ?: anon.allow(client.address, n.toDouble())
 
     fun sweep() {
-        (listOf(anonWrites, anonReads, tokenWrites, tokenReads, tokenAddress, registrations, anonRecordBytes, tokenRecordBytes, anonUpload, tokenUpload, anonDownload, tokenDownload) +
+        (listOf(anonWrites, anonReads, tokenWrites, tokenReads, tokenAddress, registrations, anonRecordBytes, tokenRecordBytes, anonUpload, tokenUpload, addressDownload, tokenDownload) +
             mailboxes.values).forEach { it.sweep() }
     }
 }

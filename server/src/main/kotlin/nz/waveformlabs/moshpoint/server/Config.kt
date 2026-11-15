@@ -36,8 +36,10 @@ data class LimitConfig(
     val tokenRecordBytesPerHour: Long = 8L shl 20,
     val anonUploadBytesPerHour: Long = 2L shl 30,
     val tokenUploadBytesPerHour: Long = 300L shl 20,
-    val anonDownloadBytesPerHour: Long = 10L shl 30,
-    val tokenDownloadBytesPerHour: Long = 2L shl 30,
+    // Downloads cost money (egress), so every download counts against its address, token or not
+    // (a venue's phones together need 1-2 GB an hour at most), and a token's own share is smaller.
+    val addressDownloadBytesPerHour: Long = 4L shl 30,
+    val tokenDownloadBytesPerHour: Long = 512L shl 20,
 ) {
     /** Every per-client limit times [f] (mailbox limits stay as they are). */
     fun scaled(f: Double): LimitConfig = if (f == 1.0) this else copy(
@@ -45,7 +47,7 @@ data class LimitConfig(
         tokenWrites = tokenWrites.scaled(f), tokenReads = tokenReads.scaled(f), tokenAddress = tokenAddress.scaled(f),
         anonRecordBytesPerHour = (anonRecordBytesPerHour * f).toLong(), tokenRecordBytesPerHour = (tokenRecordBytesPerHour * f).toLong(),
         anonUploadBytesPerHour = (anonUploadBytesPerHour * f).toLong(), tokenUploadBytesPerHour = (tokenUploadBytesPerHour * f).toLong(),
-        anonDownloadBytesPerHour = (anonDownloadBytesPerHour * f).toLong(), tokenDownloadBytesPerHour = (tokenDownloadBytesPerHour * f).toLong(),
+        addressDownloadBytesPerHour = (addressDownloadBytesPerHour * f).toLong(), tokenDownloadBytesPerHour = (tokenDownloadBytesPerHour * f).toLong(),
     )
 }
 
