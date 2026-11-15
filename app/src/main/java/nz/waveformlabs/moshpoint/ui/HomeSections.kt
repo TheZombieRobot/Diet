@@ -102,24 +102,26 @@ internal fun HomeHeader(onHelp: () -> Unit, modifier: Modifier = Modifier) {
     val measurer = rememberTextMeasurer()
     // Need help sits beside the wordmark when its longest word fits there at its smallest size;
     // otherwise (a small phone with a large font) it gets a row of its own, at the end.
-    Layout(contents = listOf({ Wordmark() }, { HelpPill(onHelp) }), modifier = modifier.fillMaxWidth().padding(horizontal = HomeSide)) { m, constraints ->
+    val mark: @Composable () -> Unit = { Wordmark() }
+    val pill: @Composable () -> Unit = { HelpPill(onHelp) }
+    Layout(contents = listOf(mark, pill), modifier = modifier.fillMaxWidth().padding(horizontal = HomeSide)) { m, constraints ->
         val width = constraints.maxWidth
-        val mark = m[0].first().measure(Constraints())
-        val room = width - mark.width - 12.dp.roundToPx()
+        val markP = m[0].first().measure(Constraints())
+        val room = width - markP.width - 12.dp.roundToPx()
         val longest = label.split(' ').maxOf { w -> measurer.measure(w, HomeType.Label.copy(fontSize = 12.sp), softWrap = false, maxLines = 1).size.width }
         if (longest + HelpPillChrome.roundToPx() + 2 <= room) {
-            val pill = m[1].first().measure(Constraints(maxWidth = room))
-            val h = maxOf(mark.height, pill.height)
+            val pillP = m[1].first().measure(Constraints(maxWidth = room))
+            val h = maxOf(markP.height, pillP.height)
             layout(width, h) {
-                mark.placeRelative(0, (h - mark.height) / 2)
-                pill.placeRelative(width - pill.width, (h - pill.height) / 2)
+                markP.placeRelative(0, (h - markP.height) / 2)
+                pillP.placeRelative(width - pillP.width, (h - pillP.height) / 2)
             }
         } else {
-            val pill = m[1].first().measure(Constraints(maxWidth = width))
+            val pillP = m[1].first().measure(Constraints(maxWidth = width))
             val gap = 4.dp.roundToPx()
-            layout(width, mark.height + gap + pill.height) {
-                mark.placeRelative(0, 0)
-                pill.placeRelative(width - pill.width, mark.height + gap)
+            layout(width, markP.height + gap + pillP.height) {
+                markP.placeRelative(0, 0)
+                pillP.placeRelative(width - pillP.width, markP.height + gap)
             }
         }
     }
