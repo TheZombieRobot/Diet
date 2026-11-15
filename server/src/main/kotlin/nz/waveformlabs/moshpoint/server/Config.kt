@@ -96,7 +96,7 @@ data class RelayConfig(
                 heldMaxBytes = mb("HELD_MAX_MB", 0.12),
                 fileMaxBytes = mb("FILES_MAX_MB", 0.45),
                 avatarMaxBytes = mb("AVATARS_MAX_MB", 0.15),
-                minFreeBytes = maxOf(256L shl 20, (disk * 0.03).toLong()),
+                minFreeBytes = (disk * 0.03).toLong().coerceIn(256L shl 20, 1L shl 30),
                 proxyTrust = ProxyTrust.from(env),
                 limits = LimitConfig().scaled(env("LIMIT_SCALE")?.toDoubleOrNull()?.takeIf { it > 0 } ?: 1.0),
                 tokenSecret = InstallTokens.secret(env, dir),

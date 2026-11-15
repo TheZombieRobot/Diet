@@ -77,7 +77,7 @@ Now:
 - Byte caps per store, as shares of the volume (read at start, so extending the volume raises
   them): boxes 3%, chat 12% (both counted with 64 bytes' overhead per record), moments 45%,
   photos 15%, the rest headroom for SQLite and the WAL. On a 20 GB volume: 0.6 / 2.4 / 9 / 3 GB.
-  Writes are also refused while the volume has under 3% (at least 256 MB) free.
+  Writes are also refused while the volume has under 3% free (at least 256 MB, at most 1 GB).
 - A full store answers `503` ("try later") and **keeps what it accepted**; nothing is dropped
   before its time. (The old file and photo stores dropped the oldest, which let anyone push out a
   crew's moments.)

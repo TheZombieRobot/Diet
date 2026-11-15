@@ -117,7 +117,9 @@ method runs at once, and a single arbiter decides what to draw.
 A dumb mailbox. `PUT /v1/box/{rotating id}` stores a sealed record for 15 minutes;
 `POST /v1/lookup` fetches several ids in one go. No accounts, no names, no plain
 locations, and ids rotate every 5 minutes, so the server can't follow anyone.
-In-memory, single instance: fine for testing and a first launch. See the README for deploying.
+One always-on Machine keeps everything it accepts on a volume (SQLite for mailboxes, files for
+moments and photos) until it expires. The API, including the batch and cursor endpoints:
+[RELAY_API.md](RELAY_API.md). Running it: [SERVER_PRODUCTION.md](SERVER_PRODUCTION.md).
 
 ## Messages without signal
 
