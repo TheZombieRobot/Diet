@@ -73,6 +73,24 @@ class CheckIns {
         return out
     }
 
+    /**
+     * When [due] can next have someone to raise the alarm about: just after the earliest
+     * deadline still ahead, or when a late check-in's wait for a Home safe is up ([nowSec] if
+     * one is due already). Null when nobody is on their way home. The phone sets a
+     * Doze-capable alarm for it, so the crew is told on time with every app closed.
+     */
+    fun nextCheckSec(nowSec: Long): Long? {
+        forget(nowSec)
+        var next: Long? = null
+        for (e in bySender.values) {
+            if (!e.waiting || e.alerted) continue
+            val deadline = e.timeSec + e.minutes * 60L + GRACE_SEC
+            val at = maxOf(if (e.arrivedSec > deadline) e.arrivedSec + SETTLE_SEC else deadline + 1, nowSec)
+            if (next == null || at < next) next = at
+        }
+        return next
+    }
+
     /** Who's on their way home: signing tag -> when they should be home (their clock, unix s). */
     fun waiting(): Map<Long, Long> = bySender.filterValues { it.waiting }.mapValues { it.value.timeSec + it.value.minutes * 60L }
 
