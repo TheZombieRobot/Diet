@@ -25,6 +25,7 @@ import nz.waveformlabs.moshpoint.gigs.NightStats
 import nz.waveformlabs.moshpoint.profile.AvatarSync
 import nz.waveformlabs.moshpoint.profile.FacebookLogin
 import nz.waveformlabs.moshpoint.profile.PhotoStore
+import nz.waveformlabs.moshpoint.safety.Notices
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 import nz.waveformlabs.moshpoint.service.VisibilityService
 
@@ -115,7 +116,18 @@ internal class HomeState(private val a: MainActivity) {
         }
         visibleToMates = on
         a.permissions.refreshSetupIssues()
-        if (on) VisibilityService.start(a) else VisibilityService.stop(a)
+        if (on) {
+            if (!VisibilityService.start(a)) {
+                // Android wouldn't start it: off in the app, and you're told (never a switch that lies).
+                visibleToMates = false
+                VisibilityPrefs.markStopped(a)
+                Notices.show(a, Notices.Kind.LIVE_CANT_START)
+                return
+            }
+            Notices.liveBack(a)
+        } else {
+            VisibilityService.stop(a)
+        }
         val power = a.getSystemService(PowerManager::class.java)
         if (on && power != null && !power.isIgnoringBatteryOptimizations(a.packageName)) a.permissions.askBattery = true
     }

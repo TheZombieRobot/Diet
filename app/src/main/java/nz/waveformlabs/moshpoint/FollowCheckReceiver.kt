@@ -20,8 +20,10 @@ class FollowCheckReceiver : BroadcastReceiver() {
             return
         }
         FriendsRepository.init(app)
+        // A one-off alarm now (it wakes the phone in Doze): the next one is set before this one's work.
+        FollowCheck.ranNow(app)
         val done = goAsync()
-        CoroutineScope(Dispatchers.Main).launch {
+        CoroutineScope(Dispatchers.Main + nz.waveformlabs.moshpoint.safety.AppErrors.handler("FollowCheck")).launch {
             try {
                 withTimeoutOrNull(25_000) { GroupSync.syncOnce(app) }
             } finally {

@@ -67,7 +67,7 @@ object PrivateMessages {
     /** Bumped whenever a thread changes, so screens reading unread counts redraw. */
     private val version = mutableStateOf(0)
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main + nz.waveformlabs.moshpoint.safety.AppErrors.handler("PrivateMessages"))
     private val books = HashMap<String, PrivateBook>()
     private val lastOwnSec = HashMap<String, Long>()
     /** Recent lines per thread for its notification, until it's opened. */

@@ -178,9 +178,9 @@ internal fun CrewMenuContent(
     }
 }
 
-/** One-tap messages to the whole crew. "Need help" asks first. */
+/** One-tap messages to the whole crew. "Need help" asks first. [onGoLive]: Need help's "Go live" (see HelpDialog). */
 @Composable
-internal fun PingBar(onPing: (Int) -> Unit, onCheckIn: (Int) -> Unit = {}) {
+internal fun PingBar(onPing: (Int) -> Unit, onCheckIn: (Int) -> Unit = {}, onGoLive: (() -> Unit)? = null) {
     var confirmHelp by remember { mutableStateOf(false) }
     var goingHome by remember { mutableStateOf(false) }
     var sent by remember { mutableStateOf<Int?>(null) }
@@ -226,7 +226,7 @@ internal fun PingBar(onPing: (Int) -> Unit, onCheckIn: (Int) -> Unit = {}) {
         )
     }
     if (confirmHelp) {
-        HelpDialog(onAlertCrew = { onPing(GigGroup.Ping.NEED_HELP); sent = GigGroup.Ping.NEED_HELP }, onClose = { confirmHelp = false })
+        HelpDialog(onAlertCrew = { onPing(GigGroup.Ping.NEED_HELP); sent = GigGroup.Ping.NEED_HELP }, onGoLive = onGoLive, onClose = { confirmHelp = false })
     }
 }
 
@@ -317,7 +317,7 @@ internal fun AddSheetContent(
 
 /** Everything you can tell the crew, in one panel: pings, heading home, need help. */
 @Composable
-internal fun MessageSheet(onPing: (Int) -> Unit, onCheckIn: (Int) -> Unit, onClose: () -> Unit) {
+internal fun MessageSheet(onPing: (Int) -> Unit, onCheckIn: (Int) -> Unit, onClose: () -> Unit, onGoLive: (() -> Unit)? = null) {
     MoshSheet(onClose = onClose) {
         Column(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(start = HomeSide, end = HomeSide, bottom = 24.dp),
@@ -325,7 +325,7 @@ internal fun MessageSheet(onPing: (Int) -> Unit, onCheckIn: (Int) -> Unit, onClo
         ) {
             Text(stringResource(R.string.home_message_crew), style = HomeType.Heading.copy(fontSize = 22.sp), modifier = Modifier.semantics { heading() })
             Text(stringResource(R.string.home_message_crew_text), style = HomeType.Body)
-            PingBar(onPing = { onPing(it) }, onCheckIn = { onCheckIn(it) })
+            PingBar(onPing = { onPing(it) }, onCheckIn = { onCheckIn(it) }, onGoLive = onGoLive)
         }
     }
 }

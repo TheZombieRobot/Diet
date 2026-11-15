@@ -193,7 +193,7 @@ fun FriendsScreen(
         }
     }
 
-    if (messageOpen) MessageSheet(onPing = { crewActions.onPing(it) }, onCheckIn = { crewActions.onCheckIn(it) }, onClose = { messageOpen = false })
+    if (messageOpen) MessageSheet(onPing = { crewActions.onPing(it) }, onCheckIn = { crewActions.onCheckIn(it) }, onClose = { messageOpen = false }, onGoLive = { meActions.onVisible(true) })
     if (addOpen) {
         AddSheet(
             inCrew = crew.groupName != null,
@@ -226,7 +226,7 @@ fun FriendsScreen(
     }
     if (helpOpen) {
         // Nothing is sent from the home: the dialog asks first, as it always has.
-        HelpDialog(onAlertCrew = if (canAlertCrew) ({ crewActions.onPing(GigGroup.Ping.NEED_HELP) }) else null, onClose = { helpOpen = false })
+        HelpDialog(onAlertCrew = if (canAlertCrew) ({ crewActions.onPing(GigGroup.Ping.NEED_HELP) }) else null, onGoLive = { meActions.onVisible(true) }, onClose = { helpOpen = false })
     }
     if (menuOpen && inCrew) {
         MoshSheet(onClose = { menuOpen = false }) {

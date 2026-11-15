@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 object FieldRecorder {
     /** Each recording gets its own queue, so a quick stop/start never mixes two files. */
     @Volatile private var queue = ConcurrentLinkedQueue<String>()
-    private val io = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val io = CoroutineScope(SupervisorJob() + Dispatchers.IO + nz.waveformlabs.moshpoint.safety.AppErrors.handler("FieldRecorder"))
     private var writerJob: Job? = null
     @Volatile private var current: Any? = null
     private var file: File? = null

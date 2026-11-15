@@ -88,7 +88,6 @@
     <string name="crew_flare_send">Kirim</string>
 
     <string name="crew_help_title">Minta bantuan</string>
-    <string name="crew_help_alerted">Geng sudah diberi tahu ✓</string>
     <string name="crew_help_alert">Kabari gengku</string>
     <string name="crew_help_alert_sub">Peringatan darurat dengan lokasimu</string>
     <string name="crew_help_text_contact">SMS %1$s</string>

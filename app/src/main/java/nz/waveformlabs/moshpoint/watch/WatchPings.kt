@@ -50,7 +50,7 @@ internal object WatchPings {
         var following = false
     }
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main + nz.waveformlabs.moshpoint.safety.AppErrors.handler("WatchPings"))
 
     /** Recent requests by number, so a retry of one the phone already has is never sent twice. */
     private val recent = object : LinkedHashMap<Int, Taken>() {

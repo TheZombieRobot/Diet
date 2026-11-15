@@ -21,8 +21,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nz.waveformlabs.moshpoint.chat.ChatSync
 import nz.waveformlabs.moshpoint.core.FriendRecord
+import nz.waveformlabs.moshpoint.core.LiveRules
+import nz.waveformlabs.moshpoint.crew.BackgroundChecks
 import nz.waveformlabs.moshpoint.crew.Bump
-import nz.waveformlabs.moshpoint.crew.FollowCheck
 import nz.waveformlabs.moshpoint.crew.GroupSync
 import nz.waveformlabs.moshpoint.debug.DebugStatus
 import nz.waveformlabs.moshpoint.friends.FriendsRepository
@@ -48,6 +49,8 @@ import nz.waveformlabs.moshpoint.profile.AvatarSync
 import nz.waveformlabs.moshpoint.profile.Identity
 import nz.waveformlabs.moshpoint.profile.PhotoStore
 import nz.waveformlabs.moshpoint.safety.GhostMode
+import nz.waveformlabs.moshpoint.safety.Notices
+import nz.waveformlabs.moshpoint.service.LiveControl
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 import nz.waveformlabs.moshpoint.venue.Floors
 import nz.waveformlabs.moshpoint.venue.VenueMaps
@@ -120,12 +123,15 @@ class MainActivity : ComponentActivity() {
         Friendship.load(this)
         permissions.missing = permissions.missingPermissions()
         permissions.refreshSetupIssues()
-        // May have changed from the notification's Stop button or the Quick Settings tile.
-        home.visibleToMates = VisibilityPrefs.isVisible(this)
+        // May have changed from the notification's Stop button or the Quick Settings tile. Live on
+        // with nothing running (an update, a force-stop, a background kill) starts again here, or
+        // goes off with a notice if it can't (docs/WAVE2_SAFETY.md).
+        home.visibleToMates = LiveControl.reconcile(this)
         // In a crew tonight? Then you're findable, without having to remember a switch,
-        // unless you've chosen to hide.
+        // unless you've chosen to hide (or haven't answered "Still at the gig?" for this crew).
         if (!home.visibleToMates && home.onboarded && GroupSync.group.value != null && !GroupSync.sleeping && !GroupSync.following &&
-            !VisibilityPrefs.userHid(this) && permissions.missing.isEmpty()
+            !VisibilityPrefs.userHid(this) && permissions.missing.isEmpty() &&
+            LiveRules.mayAutoStart(LiveControl.crewOnNow(), VisibilityPrefs.cappedCrew(this))
         ) {
             home.setVisibility(true)
         }
@@ -150,7 +156,8 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null) intent?.getStringExtra(ShareInviteActivity.EXTRA_TEXT)?.let { invites.handleInvite(it) }
         GroupSync.load(this)
         VenueMaps.sync(this) // the venue's street map saves itself for every crew we're in
-        if (GroupSync.following) FollowCheck.schedule(this)
+        BackgroundChecks.rearm(this) // the hourly chat check and followers' check, never pushed back
+        Notices.restore(this) // "Still at the gig?" saved while the app was closed
         GroupSync.group.value?.let { runCatching { GigArchive.remember(this, it) } }
         lifecycleScope.launch {
             Moments.loadCurrent(this@MainActivity) // tonight's Story survives restarts

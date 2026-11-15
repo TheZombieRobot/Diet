@@ -103,7 +103,6 @@
     <string name="crew_flare_send">Wyślij</string>
 
     <string name="crew_help_title">Wezwij pomoc</string>
-    <string name="crew_help_alerted">Ekipa powiadomiona ✓</string>
     <string name="crew_help_alert">Zaalarmuj ekipę</string>
     <string name="crew_help_alert_sub">Pilny alert z twoją lokalizacją</string>
     <string name="crew_help_text_contact">SMS do: %1$s</string>

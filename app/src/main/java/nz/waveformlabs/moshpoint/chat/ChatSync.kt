@@ -4,11 +4,11 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.SystemClock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import nz.waveformlabs.moshpoint.ChatCheckReceiver
 import nz.waveformlabs.moshpoint.friends.Friendship
 import nz.waveformlabs.moshpoint.gigs.GigArchive
@@ -16,6 +16,7 @@ import nz.waveformlabs.moshpoint.profile.Identity
 import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt
+import nz.waveformlabs.moshpoint.core.AlarmPlan
 import nz.waveformlabs.moshpoint.core.Courier
 import nz.waveformlabs.moshpoint.core.GigGroup
 import nz.waveformlabs.moshpoint.core.PingPolicy
@@ -33,7 +34,7 @@ import nz.waveformlabs.moshpoint.locate.RelayClient
 object ChatSync {
     private val seen = java.util.Collections.synchronizedSet(HashSet<Int>())
     private var lastPollMs = 0L
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main + nz.waveformlabs.moshpoint.safety.AppErrors.handler("ChatSync"))
 
     fun markSeen(blob: ByteArray) {
         seen += blob.contentHashCode()
@@ -217,35 +218,57 @@ object ChatSync {
         runCatching { nm.cancel(notificationId(crewId)) }
     }
 
-    /** An inexact hourly check with the app closed (no wake-ups, no special permission). */
+    /**
+     * An inexact hourly check with the app closed (no wake-ups, no special permission). Set
+     * again at app start, after a reboot and after an update (BackgroundChecks), without ever
+     * moving a planned check later (core AlarmPlan): an app opened every half hour used to push
+     * it back each time.
+     */
     fun schedule(c: Context) {
         val app = c.applicationContext
         val am = app.getSystemService(AlarmManager::class.java) ?: return
+        val now = System.currentTimeMillis()
+        val at = AlarmPlan.next(alarms(app).getLong("chatAt", 0L), now, AlarmManager.INTERVAL_HOUR, LOST_CHECK_DELAY_MS)
         runCatching {
-            am.setInexactRepeating(
-                AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + AlarmManager.INTERVAL_HOUR,
-                AlarmManager.INTERVAL_HOUR, pending(app),
-            )
+            am.setInexactRepeating(AlarmManager.RTC, at, AlarmManager.INTERVAL_HOUR, pending(app))
+            alarms(app).edit().putLong("chatAt", at).apply()
         }
     }
 
     fun cancel(c: Context) {
         val am = c.applicationContext.getSystemService(AlarmManager::class.java) ?: return
         runCatching { am.cancel(pending(c.applicationContext)) }
+        alarms(c).edit().remove("chatAt").apply()
     }
+
+    private fun alarms(c: Context) = c.applicationContext.getSharedPreferences("alarms", Context.MODE_PRIVATE)
+
+    /** A check that was lost (reboot, update) runs this soon. */
+    private const val LOST_CHECK_DELAY_MS = 2 * 60_000L
 
     private fun pending(c: Context) = PendingIntent.getBroadcast(
         c, 43, Intent(c, ChatCheckReceiver::class.java), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
     )
 
     internal fun runInBackground(c: Context, done: () -> Unit) {
+        val app = c.applicationContext
+        // The repeating alarm carries on by itself: note when it's next due (see schedule).
+        alarms(app).edit().putLong("chatAt", System.currentTimeMillis() + AlarmManager.INTERVAL_HOUR).apply()
         scope.launch {
             try {
-                if (GroupSync.group.value == null) GroupSync.load(c.applicationContext)
-                if (allCrews(c).isEmpty()) cancel(c) else pollAll(c)
+                // Never longer than a background broadcast may run (it had no limit: an ANR on a slow network).
+                withTimeoutOrNull(BACKGROUND_BUDGET_MS) {
+                    if (GroupSync.group.value == null) GroupSync.load(app)
+                    if (allCrews(app).isEmpty()) cancel(app) else pollAll(app)
+                }
+                // A mate overdue home is flagged now, not only when a phone has the app open (reliability P0-4).
+                GroupSync.checkOverdue(app)
             } finally {
                 done()
             }
         }
     }
+
+    /** Under the 60 s Android gives a background broadcast. */
+    private const val BACKGROUND_BUDGET_MS = 45_000L
 }

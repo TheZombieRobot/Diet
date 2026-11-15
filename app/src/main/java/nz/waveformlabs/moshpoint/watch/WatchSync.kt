@@ -54,7 +54,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * knowing: they are Compose state, so a change to any of them is seen here.
  */
 object WatchSync {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main + nz.waveformlabs.moshpoint.safety.AppErrors.handler("WatchSync"))
     private val main = Handler(Looper.getMainLooper())
     private val started = AtomicBoolean(false)
     private val publishing = Mutex()

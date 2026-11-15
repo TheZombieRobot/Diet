@@ -42,6 +42,36 @@ object CrewNotifications {
         )
     }
 
+    /**
+     * A crew mate is overdue home (reliability P0-4). On the help channel: urgent, and set apart
+     * from chat, so muting the chat never mutes this. Tap for their last spot on the map.
+     */
+    fun overdue(c: Context, name: String) = post(
+        c, HELP_CHANNEL,
+        title = Txt.s(R.string.crew_notif_overdue_title, name),
+        text = Txt.s(R.string.crew_notif_overdue_text),
+        urgent = true,
+    )
+
+    /** Our own check-in is nearly due: "Home yet?", with "I'm home safe" right on it. */
+    fun checkInReminder(c: Context) = post(
+        c, HELP_CHANNEL,
+        title = Txt.s(R.string.safety_checkin_reminder_title),
+        text = Txt.s(R.string.safety_checkin_reminder_text),
+        urgent = true, openMap = false,
+        notificationId = CheckInAlarm.REMINDER_NOTIFICATION,
+        action = NotificationCompat.Action(0, Txt.s(R.string.home_home_safe), CheckInAlarm.homeSafeIntent(c)),
+    )
+
+    /** "I'm home safe" was tapped on the reminder but hasn't gone yet: the reminder says so, quietly. */
+    fun homeSafeWaiting(c: Context) = post(
+        c, HELP_CHANNEL,
+        title = Txt.s(R.string.home_home_safe),
+        text = Txt.s(R.string.safety_home_safe_waiting),
+        openMap = false, silent = true,
+        notificationId = CheckInAlarm.REMINDER_NOTIFICATION,
+    )
+
     fun post(
         c: Context,
         channel: String = CHANNEL,
@@ -65,6 +95,8 @@ object CrewNotifications {
         privateWith: Long? = null,
         /** On a locked phone that hides sensitive content, show only this (no name, no words). */
         lockScreenText: String? = null,
+        /** A button on the notification itself. */
+        action: NotificationCompat.Action? = null,
     ) {
         val app = c.applicationContext
         val nm = app.getSystemService(NotificationManager::class.java) ?: return
@@ -115,6 +147,7 @@ object CrewNotifications {
                 }
             }
             .setContentIntent(open)
+            .apply { if (action != null) addAction(action) }
             .setColor(if (urgent) 0xFFFF3B5C.toInt() else 0xFFB6FF3B.toInt())
             .build()
         runCatching { nm.notify(notificationId ?: nextId++, n) }

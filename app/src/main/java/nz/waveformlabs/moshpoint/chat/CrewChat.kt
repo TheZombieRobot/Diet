@@ -98,7 +98,7 @@ object CrewChat {
         }
 
     private var appCtx: Context? = null
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main + nz.waveformlabs.moshpoint.safety.AppErrors.handler("CrewChat"))
     const val FLARE_MIN = 30
     private const val MAX_LINES = 150
     private const val PLAN_REPOST_MS = 6 * 3600_000L

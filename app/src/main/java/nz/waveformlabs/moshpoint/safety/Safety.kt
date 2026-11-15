@@ -38,7 +38,7 @@ object Safety {
         return Txt.s(R.string.crew_help_sms_where, link)
     }
 
-    /** Opens the messages app with the help text ready; you press Send. */
+    /** Opens the messages app with the help text ready; you press Send. False when no app here can send a text. */
     fun textContact(c: Context): Boolean {
         val who = contact(c) ?: return false
         val loc = CrewStatus.myLocation(c)
@@ -48,10 +48,11 @@ object Safety {
         return runCatching { c.startActivity(i) }.isSuccess
     }
 
-    /** Opens the dialler with [number] ready (the local emergency number; you press Call). */
-    fun callEmergency(c: Context, number: String) {
-        runCatching {
-            c.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$number")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-        }
-    }
+    /**
+     * Opens the dialler with [number] ready (the local emergency number; you press Call).
+     * False when nothing on this phone can (a tablet, no dialler app): Need help says so.
+     */
+    fun callEmergency(c: Context, number: String): Boolean = runCatching {
+        c.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$number")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    }.isSuccess
 }

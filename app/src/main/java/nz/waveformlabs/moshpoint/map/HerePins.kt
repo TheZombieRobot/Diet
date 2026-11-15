@@ -48,7 +48,7 @@ object HerePins {
     /** Our own standing pin, or null. */
     val mine = mutableStateOf<GigGroup.Here?>(null)
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main + nz.waveformlabs.moshpoint.safety.AppErrors.handler("HerePins"))
     private val book = HereBook()
     private var bookCrew: String? = null
     private var saved = ""

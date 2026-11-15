@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Looper
 import android.os.SystemClock
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,6 +27,7 @@ import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.core.Courier
 import nz.waveformlabs.moshpoint.core.EphemeralId
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.core.HelpRules
 import nz.waveformlabs.moshpoint.core.MessageClock
 import nz.waveformlabs.moshpoint.core.MessagePacket
 import nz.waveformlabs.moshpoint.core.OutboxState
@@ -50,7 +52,7 @@ import java.io.File
  * Everything here runs on the main thread: the courier isn't thread-safe and neither is CrewChat.
  */
 object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main + nz.waveformlabs.moshpoint.safety.AppErrors.handler("OfflineMessages"))
     private val courier = Courier(this, this, this)
     private val uploads = Mutex()
     private val saving = Mutex()
@@ -220,6 +222,37 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
 
     /** Is the courier still looking after the message with this id? */
     fun holds(id: Long): Boolean = id != 0L && courier.stateOf(id) != null
+
+    // ---- Need help: the dialog follows its alert here ----
+
+    /**
+     * Our own alerts that Need help is showing, by message id: their outbox state
+     * ([OutboxState], Compose state). Kept here rather than read off the chat's lines, because
+     * only the chat on screen is held in memory, and that may be another crew's.
+     */
+    private val followed = mutableStateMapOf<Long, Int>()
+
+    /** Start following our message [id], just handed to [post], from [first] ([firstState]). */
+    fun follow(id: Long, first: Int) {
+        if (id == 0L) return
+        followed[id] = first
+        // Only the last few are ever looked at.
+        while (followed.size > 8) followed.remove(followed.keys.minOrNull() ?: break)
+    }
+
+    /** Where our followed message [id] has got to (OutboxState), or null if it isn't one. Compose state. */
+    fun followedState(id: Long): Int? = followed[id]
+
+    /**
+     * Why our messages are waiting rather than going, for Need help's "Not sent yet" (core
+     * [HelpRules.waitReason]). Read while drawing, so it only looks at Compose state.
+     */
+    fun waitReason(): HelpRules.Wait = HelpRules.waitReason(
+        online = NetState.online.value && !RelayClient.offline,
+        live = liveState.value,
+        bluetoothOn = bluetoothOn.value,
+        canCarry = canCarry.value,
+    )
 
     /** The user tapped "tap to retry": try everything waiting again now. */
     fun retryNow(c: Context) {
@@ -430,6 +463,8 @@ object OfflineMessages : Courier.Host, Courier.Uplink, Courier.Air {
         CrewChat.setStateById(c, g, GigGroup.idText(id), s)
         // Or one of our private messages (whichever holds that id).
         PrivateMessages.stateChanged(c, crewId, id, s)
+        // And Need help, if it's following this one: forward only, as the outbox itself moves.
+        followed[id]?.let { before -> followed[id] = HelpRules.next(before, s) }
     }
 
     override fun paused(crewId: String, on: Boolean) {

@@ -98,6 +98,11 @@
             android:name=".FollowCheckReceiver"
             android:exported="false" />
 
+        <!-- Overdue check-ins on time with the app closed (docs/WAVE2_SAFETY.md) -->
+        <receiver
+            android:name=".CheckInAlarmReceiver"
+            android:exported="false" />
+
         <receiver
             android:name=".MemoryReceiver"
             android:exported="false" />
@@ -176,6 +181,8 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <!-- After an app update: Live and the background checks come back (docs/WAVE2_SAFETY.md) -->
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
 

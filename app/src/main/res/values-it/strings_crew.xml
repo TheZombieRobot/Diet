@@ -99,7 +99,6 @@
     <string name="crew_flare_send">Manda</string>
 
     <string name="crew_help_title">Chiedi aiuto</string>
-    <string name="crew_help_alerted">Gruppo avvisato ✓</string>
     <string name="crew_help_alert">Avvisa il mio gruppo</string>
     <string name="crew_help_alert_sub">Avviso urgente con la tua posizione</string>
     <string name="crew_help_text_contact">Scrivi a %1$s</string>

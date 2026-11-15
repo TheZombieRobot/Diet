@@ -93,7 +93,6 @@
     <string name="crew_flare_send">भेजें</string>
 
     <string name="crew_help_title">मदद लें</string>
-    <string name="crew_help_alerted">ग्रुप को अलर्ट भेजा ✓</string>
     <string name="crew_help_alert">मेरे ग्रुप को अलर्ट करें</string>
     <string name="crew_help_alert_sub">आपकी जगह के साथ ज़रूरी अलर्ट</string>
     <string name="crew_help_text_contact">%1$s को मैसेज करें</string>

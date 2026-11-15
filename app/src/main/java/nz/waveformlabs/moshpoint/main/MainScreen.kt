@@ -35,6 +35,7 @@ import nz.waveformlabs.moshpoint.ui.settings.OnboardingScreen
 internal fun MainScreen(a: MainActivity) {
     MoshTheme(calm = a.home.calmMotion) {
         CrewDialogs(a)
+        AppNotices(a)
         if (!a.home.onboarded) {
             Box(Modifier.fillMaxSize().background(Mosh.Ground).safeDrawingPadding()) {
                 OnboardingScreen(

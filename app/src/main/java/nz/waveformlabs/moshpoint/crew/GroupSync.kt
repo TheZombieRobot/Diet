@@ -18,6 +18,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import nz.waveformlabs.moshpoint.profile.AvatarSync
 import nz.waveformlabs.moshpoint.chat.ChatSync
 import nz.waveformlabs.moshpoint.chat.CrewChat
@@ -39,10 +40,13 @@ import nz.waveformlabs.moshpoint.core.CheckIns
 import nz.waveformlabs.moshpoint.core.Courier
 import nz.waveformlabs.moshpoint.core.EphemeralId
 import nz.waveformlabs.moshpoint.core.GigGroup
+import nz.waveformlabs.moshpoint.core.HelpRules
 import nz.waveformlabs.moshpoint.core.IntroForms
+import nz.waveformlabs.moshpoint.core.OutboxState
 import nz.waveformlabs.moshpoint.core.PinRule
 import nz.waveformlabs.moshpoint.core.PingPolicy
 import nz.waveformlabs.moshpoint.core.LocationBox
+import nz.waveformlabs.moshpoint.core.watch.PingOutcome
 import nz.waveformlabs.moshpoint.locate.BleHub
 import nz.waveformlabs.moshpoint.locate.RelayClient
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
@@ -106,7 +110,7 @@ object GroupSync {
         prefs(c.applicationContext).edit().putString("members", members.joinToString(",")).apply()
     }
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main + nz.waveformlabs.moshpoint.safety.AppErrors.handler("GroupSync"))
     private var users = 0
 
     /** The app is open or we're live: the crew sync is running. */
@@ -191,6 +195,9 @@ object GroupSync {
             runCatching { GigGroup.Rally(it[0].toDouble(), it[1].toDouble(), it[3], PinRule.capped(it[2].toLong(), nowSec)) }.getOrNull()
         }
         checkInState = CheckIns.restore(p.getString("checkins", null))
+        // Our own check-in survives a restart too, so "I'm home safe" is still offered.
+        myCheckInBy.value = p.getLong("myCheckIn", 0L).takeIf { it > nowSec - 6 * 3600 } ?: 0L
+        planCheckInAlarms(c)
         introForms = IntroForms(p.getString("introForms", null))
         members.clear()
         p.getString("members", null)?.split(',')?.filter { it.length == 64 }?.let { members.addAll(it) }
@@ -341,7 +348,7 @@ object GroupSync {
 
     // ---- Several crews (see Crews) ----
 
-    private val longKeys = setOf("created", "at", "rallyCleared")
+    private val longKeys = setOf("created", "at", "rallyCleared", "myCheckIn")
     private val boolKeys = setOf("following", "rallyMine")
 
     /** Put the main crew aside in Up next, keeping its settings and crew-only mates. */
@@ -402,6 +409,8 @@ object GroupSync {
         }
         resetActive(app)
         promoteNext(app)
+        // Live was on for this crew's night: it ends with it (unless another crew is on now).
+        nz.waveformlabs.moshpoint.service.LiveControl.crewChanged(app)
     }
 
     /** Drop a crew waiting in Up next. */
@@ -420,6 +429,10 @@ object GroupSync {
         followers.clear()
         FollowCheck.cancel(app)
         GigWake.cancel(app)
+        checkInState = CheckIns()
+        myCheckInBy.value = 0L
+        CheckInAlarm.planDue(app, null)
+        CheckInAlarm.planReminder(app, null)
         Moments.clear()
         runCatching { CrewWidget.update(app, emptyList()) }
         members.clear()
@@ -600,12 +613,22 @@ object GroupSync {
     val pings = androidx.compose.runtime.mutableStateListOf<GigGroup.Ping>()
     private val seenPings = HashSet<String>()
 
+    /** What became of a ping handed to [sendPing]: its message id (0 = none) and how it starts out (the watch's model). */
+    class PingResult(val id: Long, val outcome: PingOutcome)
+
+    /** A Need help this phone sent: its message id (0 = the outbox refused it) and when. */
+    class HelpSent(val id: Long, val atMs: Long)
+
+    /** The last Need help sent from this phone (Compose state): the Need help dialog follows it. */
+    val lastHelp = mutableStateOf<HelpSent?>(null)
+
     /**
      * Send a quick message to the whole crew. Sealed once, then the courier gets it there: the
      * relay with signal (about a minute), crew phones nearby and the crowd relay without.
+     * Returns what became of it: NO_CREW, FAILED (the outbox refused it), or where it starts.
      */
-    fun sendPing(c: Context, kind: Int, lat: Double? = null, lon: Double? = null, minutes: Int = 0, text: String = "", quiet: Boolean = false) {
-        val g = group.value ?: return
+    fun sendPing(c: Context, kind: Int, lat: Double? = null, lon: Double? = null, minutes: Int = 0, text: String = "", quiet: Boolean = false): PingResult {
+        val g = group.value ?: return PingResult(0L, PingOutcome.NO_CREW)
         val app = c.applicationContext
         // "Meet at the pin" says which pin, so it still makes sense if the pin itself arrives later.
         val words = if (kind == GigGroup.Ping.MEET_AT_PIN && text.isEmpty()) rally.value?.name.orEmpty() else text
@@ -616,9 +639,20 @@ object GroupSync {
         seenPings += blob.contentHashCode().toString()
         if (!quiet) NightStats.ping(app)
         // The bubble shows how it's going, like a chat message (it used to say "sent" regardless).
-        CrewChat.pingLine(app, g.openPing(blob) ?: p, mine = true, state = OfflineMessages.firstState())
+        val opened = g.openPing(blob)
+        val first = OfflineMessages.firstState()
+        CrewChat.pingLine(app, opened ?: p, mine = true, state = first)
         if (kind == GigGroup.Ping.MEET_AT_PIN) repostRally(app, g)
-        if (OfflineMessages.post(app, g, blob) == null) DebugStatus.log("Ping not queued: ${pingText(kind)}")
+        // Need help is followed from before it's handed over, so no word from the outbox is missed.
+        val id = opened?.id ?: 0L
+        if (kind == GigGroup.Ping.NEED_HELP) OfflineMessages.follow(id, first)
+        val queued = OfflineMessages.post(app, g, blob) != null
+        if (!queued) {
+            DebugStatus.log("Ping not queued: ${pingText(kind)}")
+            if (kind == GigGroup.Ping.NEED_HELP) OfflineMessages.follow(id, OutboxState.FAILED)
+        }
+        if (kind == GigGroup.Ping.NEED_HELP) lastHelp.value = HelpSent(if (queued) id else 0L, System.currentTimeMillis())
+        return PingResult(id, if (queued) HelpRules.outcomeOf(first) else PingOutcome.FAILED)
     }
 
     /**
@@ -686,6 +720,21 @@ object GroupSync {
 
     private fun saveCheckIns(c: Context) {
         prefs(c.applicationContext).edit().putString("checkins", checkInState.snapshot()).apply()
+        planCheckInAlarms(c)
+    }
+
+    /**
+     * Doze-capable alarms (reliability P0-4): one for the next moment a mate on their way home
+     * can be overdue, one to remind us about our own check-in. Set again whenever either changes.
+     */
+    private fun planCheckInAlarms(c: Context) {
+        val app = c.applicationContext
+        CheckInAlarm.planDue(app, checkInState.nextCheckSec(System.currentTimeMillis() / 1000))
+        val mine = myCheckInBy.value
+        CheckInAlarm.planReminder(
+            app,
+            if (mine > 0) nz.waveformlabs.moshpoint.core.CheckInReminder.atSec(prefs(app).getLong("myCheckInSent", mine), mine) else null,
+        )
     }
 
     /** Our own check-in deadline (unix s), or 0. */
@@ -693,27 +742,44 @@ object GroupSync {
 
     /** Heading home: the crew's phones raise the alarm if we don't tap "Home safe" in time. */
     fun startCheckIn(c: Context, minutes: Int, lat: Double?, lon: Double?) {
-        myCheckInBy.value = System.currentTimeMillis() / 1000 + minutes * 60L
+        val nowSec = System.currentTimeMillis() / 1000
+        myCheckInBy.value = nowSec + minutes * 60L
+        prefs(c.applicationContext).edit().putLong("myCheckIn", myCheckInBy.value).putLong("myCheckInSent", nowSec).apply()
         sendPing(c, GigGroup.Ping.CHECK_IN, lat, lon, minutes)
+        planCheckInAlarms(c)
     }
 
-    fun homeSafe(c: Context) {
+    fun homeSafe(c: Context): PingResult {
         myCheckInBy.value = 0L
-        sendPing(c, GigGroup.Ping.HOME_SAFE)
+        prefs(c.applicationContext).edit().remove("myCheckIn").remove("myCheckInSent").apply()
+        planCheckInAlarms(c)
+        return sendPing(c, GigGroup.Ping.HOME_SAFE)
     }
 
-    /** Called from the sync loop: anyone past their check-in time gets flagged to the crew, once. */
-    private fun checkOverdue(c: Context) {
+    /**
+     * Anyone past their check-in time is flagged to the crew, once: from the sync loops, the
+     * hourly background check and the check-in alarm. On the help channel, which is urgent and
+     * set apart from chat, so muting the chat never mutes this.
+     */
+    internal fun checkOverdue(c: Context) {
         val due = checkInState.due(System.currentTimeMillis() / 1000)
         if (due.isEmpty()) return
         saveCheckIns(c)
-        for (d in due) {
-            CrewNotifications.post(
-                c, title = Txt.s(R.string.crew_notif_overdue_title, d.name),
-                text = Txt.s(R.string.crew_notif_overdue_text),
-                urgent = true,
-            )
-        }
+        for (d in due) CrewNotifications.overdue(c, d.name)
+    }
+
+    /** The check-in alarm went off: look for a Home safe on the relay first (any signal at all), then check. */
+    internal suspend fun checkInsDue(c: Context) {
+        withTimeoutOrNull(20_000) { runCatching { pollPingsNow(c) } }
+        checkOverdue(c)
+        planCheckInAlarms(c)
+    }
+
+    /** Our own check-in is nearly due and we haven't said Home safe: remind us, before the crew is alerted. */
+    internal fun remindCheckIn(c: Context) {
+        val by = myCheckInBy.value
+        if (by <= 0L || group.value == null) return
+        CrewNotifications.checkInReminder(c)
     }
 
     /** What a ping says, e.g. "is coming to you" (shown after the sender's name). */

@@ -25,7 +25,6 @@ import nz.waveformlabs.moshpoint.core.watch.WatchMessage
 import nz.waveformlabs.moshpoint.core.watch.WristArbiter
 import nz.waveformlabs.moshpoint.core.watch.WristReading
 import nz.waveformlabs.moshpoint.locate.PocketFinder
-import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 
 /**
  * Finding a mate for the watch, on the phone (docs/WATCH.md, problems 3 to 5).
@@ -37,7 +36,7 @@ import nz.waveformlabs.moshpoint.service.VisibilityPrefs
  * asking, says stop, or disappears, everything here stops within the lease.
  */
 internal object WatchFind {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main + nz.waveformlabs.moshpoint.safety.AppErrors.handler("WatchFind"))
     private val main = Handler(Looper.getMainLooper())
     private val lease = FindLease()
     private var arbiter = WristArbiter()
@@ -216,7 +215,7 @@ internal object WatchFind {
         // finder is on screen, or when you're live (the live service holds it). With none of
         // those and nothing heard after a few seconds, the fix is to open the app once.
         val canLocate = WatchFinderService.level == WatchFinderService.Level.WITH_LOCATION ||
-            PhoneFinderBridge.phoneFinderRunning || VisibilityPrefs.isVisible(c)
+            PhoneFinderBridge.phoneFinderRunning || nz.waveformlabs.moshpoint.service.VisibilityService.isRunning
         if (!canLocate && reading.kind == WristReading.Kind.NO_SIGNAL && now - startedAtMs > NEEDS_PHONE_AFTER_MS) return FindStatus.NEEDS_PHONE
         return FindStatus.OK
     }
