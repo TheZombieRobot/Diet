@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
@@ -99,12 +100,36 @@ private fun Point(colour: Color, text: String) {
     }
 }
 
+/**
+ * "Not now" and the confirming button, side by side at the end; stacked, the confirming one on
+ * top (as Android stacks dialog buttons), when a long translation or a large font doesn't leave
+ * room for both. A plain Row would squeeze the second one until its word broke in two.
+ */
 @Composable
 private fun ColumnScope.Buttons(confirm: String, confirmColour: Color, onConfirm: () -> Unit, dismiss: String, onDismiss: () -> Unit) {
     Spacer(Modifier.height(8.dp))
-    Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        TextButton(onClick = onDismiss) { Text(dismiss, style = Mosh.Label) }
-        TextButton(onClick = onConfirm) { Text(confirm, style = Mosh.Label.copy(color = confirmColour)) }
+    Layout(
+        content = {
+            TextButton(onClick = onDismiss) { Text(dismiss, style = Mosh.Label) }
+            TextButton(onClick = onConfirm) { Text(confirm, style = Mosh.Label.copy(color = confirmColour)) }
+        },
+        modifier = Modifier.align(Alignment.End),
+    ) { measurables, constraints ->
+        val gap = 8.dp.roundToPx()
+        val loose = constraints.copy(minWidth = 0, minHeight = 0)
+        val (no, yes) = measurables.map { it.measure(loose) }
+        if (no.width + gap + yes.width <= constraints.maxWidth) {
+            layout(no.width + gap + yes.width, maxOf(no.height, yes.height)) {
+                no.placeRelative(0, 0)
+                yes.placeRelative(no.width + gap, 0)
+            }
+        } else {
+            val width = maxOf(no.width, yes.width)
+            layout(width, yes.height + no.height) {
+                yes.placeRelative(width - yes.width, 0)
+                no.placeRelative(width - no.width, yes.height)
+            }
+        }
     }
 }
 

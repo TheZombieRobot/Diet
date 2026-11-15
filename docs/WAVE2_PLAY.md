@@ -8,7 +8,7 @@ and Live) runs in parallel; wave 2c (battery) and 2d (Report and Block) come lat
 ## Status and next steps (handover)
 
 _Keep this section current: whoever picks this up next starts here. Last updated 15 November
-2026, 23:10 UTC._
+2026, 23:25 UTC._
 
 - **Done (code):** items 1–4 and 6–12 below; item 5 was dropped by the owner (the refusal was
   built, then removed again). **Done (docs):** ANDROID_16.md, BLUETOOTH_UUIDS.md, PLAY_STORE.md
@@ -23,10 +23,17 @@ _Keep this section current: whoever picks this up next starts here. Last updated
   start-up (a test-only `android.os.Build`, ANDROID_16.md) but drew blank screens; df41ff3 drew
   them all: 252 added (12 new screens × 21 languages), 0 modified, 0 deleted against
   `origin/ui-screenshots`.
+- **Screens reviewed (df41ff3's run, every new screen in every language):** two problems, both
+  fixed after it: on a small phone with a large font the French "Rejoindre" and "Continuer" broke
+  mid-word (the two dialog buttons now stack, the confirming one on top, when both don't fit:
+  `PlayDialogs.Buttons`), and `settingsAbout` showed CI's build number, which changes every run
+  (the test now passes a fixed version). Fine as they are: on a small phone with a large font
+  the welcome's second step and the disclosure's points scroll (by design), so the privacy link
+  is below the fold there; tablets in landscape show the phone layout full width, nothing cut.
 - **Next steps, in order:**
-  1. The final run (the commit after e3d1b49): green; the comparison in "Checking" still only
-     252 `A` lines; the disclosure screens redrawn with the new relay line (look at every
-     language, small phone and large font, tablet).
+  1. The final run: green; the comparison in "Checking" still only 252 `A` lines; the disclosure
+     screens redrawn with the new relay line, and French stacked buttons on the small phone with
+     a large font (look at every language, small phone and large font, tablet).
   2. Report to the coordinating session (session_01Sw3Y2WCFVzhNwUVdFGVbRq) with send_message.
 - **If CI's screenshot step fails again:** it's `continue-on-error`, so the run stays green;
   look at the size of the files on the `ui-screenshots-…` branch, and at the job log's
@@ -199,8 +206,9 @@ New screens (every language): `sharedInvite`, `sharedFriendInvite`, `smallPhoneL
 `tabletFinderGroup`. Changed on purpose: none of the existing screens (the moment caption
 line with "within 24 hours" isn't in a screenshot test, and Settings' relay example is below
 the fold of both Settings screenshots). Everything else must be byte-identical to
-`origin/ui-screenshots`. Against this branch's own df41ff3 run, the three disclosure screens
-change (the relay line), in every language.
+`origin/ui-screenshots`. Against this branch's own df41ff3 run: the three disclosure screens
+change (the relay line) in every language, `settingsAbout` (a fixed version instead of CI's
+build number), and the small-phone, large-font French dialogs (stacked buttons).
 
 ## Checking
 

@@ -315,11 +315,17 @@ internal fun SettingsContent(
 
 /** The bottom of Settings: the version, this phone, credits and licences, the privacy policy. */
 @Composable
-internal fun ColumnScope.AboutSection(phoneSummary: String, onLicences: () -> Unit, onPrivacy: () -> Unit) {
+internal fun ColumnScope.AboutSection(
+    phoneSummary: String,
+    onLicences: () -> Unit,
+    onPrivacy: () -> Unit,
+    // The version name carries CI's build number; screenshot tests pass a fixed one.
+    version: String = nz.waveformlabs.moshpoint.BuildConfig.VERSION_NAME,
+) {
     Box(Modifier.fillMaxWidth().height(1.dp).background(Mosh.Line))
     Text(stringResource(R.string.setup_about), style = Mosh.Eyebrow)
     Text(
-        stringResource(R.string.setup_about_text, nz.waveformlabs.moshpoint.BuildConfig.VERSION_NAME),
+        stringResource(R.string.setup_about_text, version),
         style = Mosh.Body,
     )
     Text(phoneSummary, style = Mosh.Body.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Mosh.TextFaint))

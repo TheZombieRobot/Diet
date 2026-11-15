@@ -595,6 +595,7 @@ open class ScreensSnapshotTest {
             ) {
                 AboutSection(
                     phoneSummary = "This phone: UWB, Wi-Fi Aware, Bluetooth, compass, GPS", onLicences = {}, onPrivacy = {},
+                    version = "0.1.0 (1)", // not CI's build number, which changes every run
                 )
             }
         }
