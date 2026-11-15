@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dutch: safety and the Live state (the Need help crew alert, Live going off by itself, a full phone, the check-in reminder). -->
+<resources>
+
+    <string name="safety_help_sending">Versturen…</string>
+    <string name="safety_help_sent">Verstuurd naar je crew</string>
+    <string name="safety_help_sent_sub">De hele crew krijgt je melding, met waar je bent.</string>
+    <string name="safety_help_nearby">Verstuurd in de buurt</string>
+    <string name="safety_help_nearby_sub">Telefoons van je crew in de buurt hebben het. De rest van je crew krijgt het zodra iemand van jullie bereik heeft.</string>
+    <string name="safety_help_not_yet">Nog niet verstuurd</string>
+    <string name="safety_help_wait_go_live">Geen bereik. Zet Live aan en telefoons van je crew in de buurt kunnen het via Bluetooth doorgeven.</string>
+    <string name="safety_help_wait_bluetooth">Geen bereik, en Bluetooth staat uit. Zet het aan en telefoons van je crew in de buurt kunnen het doorgeven.</string>
+    <string name="safety_help_wait_cant_carry">Geen bereik. Deze telefoon kan het niet doorgeven via Bluetooth. Het wordt verstuurd zodra je bereik hebt.</string>
+    <string name="safety_help_wait_nearby">Geen bereik. Het gaat naar de eerste telefoon van je crew die in de buurt komt, en naar iedereen zodra je bereik hebt.</string>
+    <string name="safety_help_wait_retrying">Het is nog niet bij de server aangekomen. Moshpoint blijft het vanzelf proberen.</string>
+    <string name="safety_go_live">Ga live</string>
+    <string name="safety_help_not_sent">Niet verstuurd</string>
+    <string name="safety_help_not_sent_sub">Niemand heeft je melding gekregen. Tik om opnieuw te proberen.</string>
+    <string name="safety_help_text_or_call">Sms of bel hieronder: beide werken zonder mobiele data.</string>
+    <string name="safety_help_no_sms">Deze telefoon heeft geen berichtenapp die een sms kan sturen. Bel dan, of vraag iemand in de buurt.</string>
+    <string name="safety_help_no_dialler">Deze telefoon kan niet bellen. Vraag iemand in de buurt om %1$s te bellen.</string>
+
+    <string name="safety_channel_notices">Meldingen over Live en opslag</string>
+    <string name="safety_live_off_title">Je bent niet meer live</string>
+    <string name="safety_live_off_text">Android heeft Moshpoint op de achtergrond gestopt, dus je vrienden kunnen je niet vinden. Tik om weer live te gaan.</string>
+    <string name="safety_live_cant_start_text">Android liet Moshpoint niet live blijven, dus je vrienden kunnen je niet vinden. Check of de rechten van Moshpoint aanstaan en ga dan weer live.</string>
+    <string name="safety_live_long_title">Nog op het concert?</string>
+    <string name="safety_live_long_text">Je was 12 uur live, dus Live is uitgegaan om batterij te sparen.</string>
+    <string name="safety_live_long_notif">Je was 12 uur live, dus Live is uitgegaan om batterij te sparen. Tik als je er nog bent.</string>
+    <string name="safety_live_bluetooth_off">Bluetooth staat uit: je vrienden kunnen je niet van dichtbij vinden</string>
+
+    <string name="safety_storage_full_title">De opslag van je telefoon is vol</string>
+    <string name="safety_storage_full_text">Moshpoint kan geen nieuwe berichten, foto\'s of check-ins opslaan tot je wat ruimte vrijmaakt.</string>
+
+    <string name="safety_checkin_reminder_title">Al thuis?</string>
+    <string name="safety_checkin_reminder_text">Je crew krijgt te horen dat je niet hebt ingecheckt, tenzij je op Veilig thuis tikt.</string>
+    <string name="safety_home_safe_waiting">Nog niet verstuurd. Het wordt vanzelf verstuurd zodra je bereik hebt.</string>
+
+</resources>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- French: safety and the Live state (the Need help crew alert, Live going off by itself, a full phone, the check-in reminder). -->
+<resources>
+
+    <string name="safety_help_sending">Envoi…</string>
+    <string name="safety_help_sent">Envoyé à ta crew</string>
+    <string name="safety_help_sent_sub">Toute la crew reçoit ton alerte, avec ta position.</string>
+    <string name="safety_help_nearby">Envoyé à proximité</string>
+    <string name="safety_help_nearby_sub">Les téléphones de la crew à proximité ont ton alerte. Le reste de ta crew la recevra dès que l\'un de vous aura du réseau.</string>
+    <string name="safety_help_not_yet">Pas encore envoyé</string>
+    <string name="safety_help_wait_go_live">Pas de réseau. Active Live et les téléphones de la crew à proximité pourront faire passer ton alerte en Bluetooth.</string>
+    <string name="safety_help_wait_bluetooth">Pas de réseau, et le Bluetooth est coupé. Active-le et les téléphones de la crew à proximité pourront faire passer ton alerte.</string>
+    <string name="safety_help_wait_cant_carry">Pas de réseau. Ce téléphone ne peut pas faire passer ton alerte en Bluetooth : elle partira quand tu auras du réseau.</string>
+    <string name="safety_help_wait_nearby">Pas de réseau. Ton alerte ira au premier téléphone de la crew qui s\'approche, et à tout le monde quand tu auras du réseau.</string>
+    <string name="safety_help_wait_retrying">Ton alerte n\'a pas encore atteint le serveur. L\'appli continue d\'essayer toute seule.</string>
+    <string name="safety_go_live">Passer en live</string>
+    <string name="safety_help_not_sent">Pas envoyé</string>
+    <string name="safety_help_not_sent_sub">Personne n\'a reçu ton alerte. Touche pour réessayer.</string>
+    <string name="safety_help_text_or_call">Écris ou appelle ci-dessous : les deux marchent sans données mobiles.</string>
+    <string name="safety_help_no_sms">Ce téléphone n\'a aucune appli capable d\'envoyer un SMS. Appelle plutôt, ou demande à quelqu\'un près de toi.</string>
+    <string name="safety_help_no_dialler">Ce téléphone ne peut pas passer d\'appels. Demande à quelqu\'un près de toi d\'appeler le %1$s.</string>
+
+    <string name="safety_channel_notices">Infos Live et stockage</string>
+    <string name="safety_live_off_title">Tu n\'es plus en live</string>
+    <string name="safety_live_off_text">Android a arrêté Moshpoint en arrière-plan, donc tes potes ne peuvent pas te trouver. Touche pour repasser en live.</string>
+    <string name="safety_live_cant_start_text">Android n\'a pas laissé Moshpoint rester en live, donc tes potes ne peuvent pas te trouver. Vérifie que les autorisations de Moshpoint sont activées, puis repasse en live.</string>
+    <string name="safety_live_long_title">Toujours au concert ?</string>
+    <string name="safety_live_long_text">Tu étais en live depuis 12 heures, donc Live s\'est désactivé pour économiser ta batterie.</string>
+    <string name="safety_live_long_notif">Tu étais en live depuis 12 heures, donc Live s\'est désactivé pour économiser ta batterie. Touche si tu y es encore.</string>
+    <string name="safety_live_bluetooth_off">Le Bluetooth est coupé : tes potes ne peuvent pas te trouver de près</string>
+
+    <string name="safety_storage_full_title">Le stockage de ton téléphone est plein</string>
+    <string name="safety_storage_full_text">Moshpoint ne peut pas enregistrer de nouveaux messages, photos ou check-ins tant que tu n\'as pas libéré de l\'espace.</string>
+
+    <string name="safety_checkin_reminder_title">Déjà à la maison ?</string>
+    <string name="safety_checkin_reminder_text">Ta crew sera prévenue que tu n\'as pas fait ton check-in, sauf si tu appuies sur Je suis à la maison.</string>
+    <string name="safety_home_safe_waiting">Pas encore envoyé. Ça partira tout seul dès que tu auras du réseau.</string>
+
+</resources>
