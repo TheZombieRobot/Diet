@@ -145,3 +145,21 @@ The first-time title (인파 속에서도\n친구를 찾아요) breaks where onb
 
 For a native reviewer: 친구들에게 내 위치가 보여요 for "You're visible to your mates" (or 친구들이 나를 찾을 수 있어요); the count line 크루 5명 · 3명 공유 중; 하나 만들고 … 크루 완성이에요 in the no-crew text. Written without a native reviewer. Confidence: **medium-high**.
 - **The Live switch's name in other texts** (review of the redesign): Texts that name the switch call it ‘위치 공유’ (‘위치 공유’를 켜면); ‘위치 공유 켜기’ was the old button and stays only as a verb phrase in the onboarding title.
+
+## Safety and Live (`strings_safety.xml`)
+
+Thirty strings: what Need help shows after **Alert my crew** is tapped (sending, sent, sent nearby, not sent yet and why, not sent), Live switching off by itself, a full phone, and the reminder before your crew is told you haven't checked in. Validator prints **OK**. See `docs/WAVE2_SAFETY.md`.
+
+| English | Chosen | Why |
+|---|---|---|
+| Sending… / Sent to your crew | 보내는 중… / 크루에 보냈어요 | The watch's words (`sos_sending`, `sos_sent`). |
+| Sent nearby | 근처에 보냄 | As `offline_state_nearby`. The line under it says only nearby crew phones have it (근처 크루 폰에는 전달됐어요). |
+| Not sent yet / Not sent | **아직 전송 안 됨** / 전송 안 됨 | The watch's `ping_not_yet` and `offline_state_not_sent`. "Nobody has your alert" has no 아직: it is no longer being tried. |
+| Go live (button) | **위치 공유 켜기** | Go live as in the key terms, never 라이브. Texts that name the switch say ‘위치 공유’를 켜면, as the offline hints do. |
+| You're no longer live | 위치 공유가 꺼졌어요 | The switch's own 켜기 / 꺼짐 words. |
+| Still at the gig? | **아직 공연장에 있어요?** | 공연장 as in `crew_at_venue`. |
+| Home yet? | **집에 도착했어요?** | The reminder quotes ‘집에 잘 도착했어요’ exactly. Check-ins are 체크인. |
+| Your phone's storage is full | 폰 저장 공간이 꽉 찼어요 | As `main_save_failed`. |
+| someone nearby (a person) | 주변 사람 | 근처 stays for crew phones nearby. |
+
+For a native reviewer: *아직 전송 안 됨.* at the start of a 해요체 note (`safety_home_safe_waiting`); *배터리를 아끼기 위해 꺼졌어요* for "Live turned off to save your battery". Written without a native reviewer. Confidence: **medium-high**.

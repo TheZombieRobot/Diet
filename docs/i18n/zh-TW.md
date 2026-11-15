@@ -151,3 +151,21 @@ The redesigned home screen: the Live switch and the line beside it, the crew hea
 
 For a native reviewer: 在線 as the switch's name (分享位置 is more literal); 看過的演出 vs 過去的演出; 揪更多朋友 in the menu (邀請更多朋友 if a plainer tone is wanted). Written without a native reviewer. Confidence: **medium-high**.
 - **The Live switch's name in other texts** (review of the redesign): The switch is now 在線 (上線 is a verb, not a name; 在線 matches the app's 上線中 elsewhere). Texts that name it say 打開「在線」; 上線 stays as a verb.
+
+## Safety and Live (`strings_safety.xml`)
+
+Thirty strings: what Need help shows after **Alert my crew** is tapped (sending, sent, sent nearby, not sent yet and why, not sent), Live switching off by itself, a full phone, and the reminder before your crew is told you haven't checked in. Validator prints **OK**. See `docs/WAVE2_SAFETY.md`. Spaces only around Moshpoint, Bluetooth, Android, App, numbers and %1$s, as elsewhere.
+
+| English | Chosen | Why |
+|---|---|---|
+| Sending… / Sent to your crew | 傳送中… / 已傳給小隊 | The watch's words (`sos_sending`, `sos_sent`). |
+| Sent nearby | 已傳給附近隊友 | As `offline_state_nearby`. The line under it says only nearby crew phones have it. |
+| Not sent yet / Not sent | **還沒傳送** / 未傳送 | The watch's `ping_not_yet` and `offline_state_not_sent`. "Nobody has your alert" (沒有人收到) has no 還: it is no longer being tried. |
+| Go live (button) | **上線** | 上線 stays the verb; texts that name the switch say 打開「在線」, as the offline hints do. |
+| You're no longer live | **你已經下線了** | The mirror of `visibility_notification` (你上線了). |
+| Still at the gig? | **還在演出現場嗎？** | 演出現場 as in `home_add_mates_text`. |
+| Home yet? | **到家了嗎？** | The reminder quotes 「我平安到家了」 exactly. Check-ins are 報平安. |
+| Your phone's storage is full | 手機儲存空間滿了 | 儲存空間, Taiwan usage. |
+| mobile data | 行動數據 | As in `find_searching_help`. |
+
+For a native reviewer: *下線* is new in this folder (*你不在線上了* is the alternative); *傳遞* for crew phones that "pass it on" over Bluetooth. Written without a native reviewer. Confidence: **medium-high**.
