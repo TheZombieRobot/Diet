@@ -5,7 +5,7 @@ import android.util.Base64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import nz.waveformlabs.moshpoint.BuildConfig
-import nz.waveformlabs.moshpoint.NetState
+import nz.waveformlabs.moshpoint.setup.NetState
 import nz.waveformlabs.moshpoint.core.PutResult
 import nz.waveformlabs.moshpoint.core.RelayBudget
 import nz.waveformlabs.moshpoint.core.RelayUse

@@ -1,4 +1,4 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.setup
 
 import android.content.Context
 import android.net.ConnectivityManager

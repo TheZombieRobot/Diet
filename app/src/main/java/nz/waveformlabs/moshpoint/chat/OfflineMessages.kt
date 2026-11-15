@@ -19,7 +19,7 @@ import nz.waveformlabs.moshpoint.DebugStatus
 import nz.waveformlabs.moshpoint.gigs.GigArchive
 import nz.waveformlabs.moshpoint.map.HerePins
 import nz.waveformlabs.moshpoint.profile.Identity
-import nz.waveformlabs.moshpoint.NetState
+import nz.waveformlabs.moshpoint.setup.NetState
 import nz.waveformlabs.moshpoint.privatemsg.PrivateMessages
 import nz.waveformlabs.moshpoint.R
 import nz.waveformlabs.moshpoint.Txt

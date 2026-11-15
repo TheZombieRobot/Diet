@@ -1,9 +1,11 @@
-package nz.waveformlabs.moshpoint
+package nz.waveformlabs.moshpoint.setup
 
 import android.app.Activity
 import android.content.Intent
 import android.os.PowerManager
 import android.provider.Settings
+import nz.waveformlabs.moshpoint.R
+import nz.waveformlabs.moshpoint.Txt
 import nz.waveformlabs.moshpoint.ui.SetupIssue
 
 /**

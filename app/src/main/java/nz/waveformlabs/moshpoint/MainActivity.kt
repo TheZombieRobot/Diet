@@ -67,6 +67,7 @@ import nz.waveformlabs.moshpoint.safety.GhostMode
 import nz.waveformlabs.moshpoint.safety.TorchStrobe
 import nz.waveformlabs.moshpoint.service.VisibilityPrefs
 import nz.waveformlabs.moshpoint.service.VisibilityService
+import nz.waveformlabs.moshpoint.setup.SetupChecks
 import nz.waveformlabs.moshpoint.ui.DebugPanel
 import nz.waveformlabs.moshpoint.ui.FinderScreen
 import nz.waveformlabs.moshpoint.ui.MoshTheme
