@@ -135,13 +135,16 @@ internal object HomeType {
  * (no-break spaces inside): "in 7 days · Dock 4" never breaks as "Dock / 4" or "· Dock 4".
  * Arabic gets a bullet: a middle dot beside Arabic digits reads as a zero ("٣ ·" as ٣٠).
  */
-internal fun dotLine(parts: List<String>): String =
+internal fun dotLine(parts: List<String>, keep: Int = 24): String =
     parts.joinToString(if (java.util.Locale.getDefault().language == "ar") "\u00A0• " else "\u00A0· ") { p ->
-        if (p.length <= 24) p.replace(' ', '\u00A0') else p
+        if (p.length <= keep) p.replace(' ', '\u00A0') else p
     }
 
-/** [dotLine] for text already joined with " · ". */
-internal fun dotLine(text: String): String = dotLine(text.split(" · "))
+/**
+ * [dotLine] for text already joined with " · ". [keep]: the longest part kept whole, 24 for a
+ * narrow column (a longer part, like a long venue name, may still wrap), more for a full line.
+ */
+internal fun dotLine(text: String, keep: Int = 24): String = dotLine(text.split(" · "), keep)
 
 /** A number keeps the word after it on its line: "15 min", not "15 / min". */
 internal fun keepNumbers(text: String): String = text.replace(Regex("(\\d) "), "$1\u00A0")

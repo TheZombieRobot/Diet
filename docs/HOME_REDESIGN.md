@@ -130,6 +130,26 @@ sheets). Strings: `res/values*/strings_home_redesign.xml`.
   had no padding there.
 - **Scan a QR** keeps the existing `home_scan_qr` wording ("Scan a QR") rather than the
   mock-up's "Scan QR code", so the add sheet and the home say the same thing.
+- **Line breaking** on the home goes through `HomeType` (Mosh's text styles with
+  `HomeBreak`): phrase-based breaking (Korean wraps at spaces, Japanese between phrases, on
+  Android 13+), strict kinsoku (no small kana or closing mark at a line's start), and the
+  high-quality breaker (no single word or character alone on a last line where it can help);
+  face captions and button labels use the balanced variant. Only the home's files use it; the
+  other screens keep Mosh's styles.
+- **Two buttons side by side** stack when a label's longest word can't fit in half the width
+  (`WholeWordsText`), instead of breaking inside a word ("Crew-Cha|t", "クルーチャ|ット").
+- **" · " lines** (`dotLine`): each short part stays whole and the dot ends a line; Arabic uses
+  a bullet " • ", because a middle dot beside Arabic digits reads as a zero ("٣ ·" as ٣٠).
+- **Face captions** of several words are as wide as the face (70 dp) so neighbours don't run
+  together; a single long word may use the tile's 76 dp; up to three lines, with "…" as a last
+  resort.
+- **Translations touched for typesetting only**: Polish home strings have a no-break space after
+  one-letter words (a, i, o, u, w, z), Chinese ones have word joiners in three places (了。,
+  邀请, the quoted ＋ button), and Arabic's "9+" badge is "٩+". No wording changed.
+- **Shared pieces fixed on the way**: `FitText` (finder) no longer multiplies an unspecified line
+  height (it threw); the violet unread badge on faces (private messages) shows the phone's
+  digits; a story Polaroid's caption keeps its own direction (Unicode isolate), so "Front row!!"
+  doesn't become "!!Front row" in Arabic.
 
 ## 3. Audit
 
@@ -161,7 +181,34 @@ home string with Spanish: 26 differ, none by more than 5 characters, and each lo
 where text wraps or has room ("En directo" by the switch, "Introducir un código" in a button
 that wraps between words).
 
-Results: being filled in (see Status).
+**Fixed for every language** (found in English or in several languages at once): two crashes
+that left most home states unrendered (the Up next date tile's weekday pattern; `FitText` and a
+style without a line height, which on a phone would have crashed every crew-tonight home);
+a face 8 m away said "0 m"; live faces sat 2 dp lower than the rest; Past gigs Polaroids had
+uneven heights; a flare caption left its emoji alone on a line; See all could be narrower than
+48 dp; the home didn't pad itself below the status bar on Android 15; the big gradient button
+wrapped long labels at full size; the tall test's English used the wrong plural ("1 years ago").
+Line breaking on the home now suits every script (`HomeType`: phrase breaking, strict kinsoku,
+the high-quality breaker; balanced for captions and button labels), parts of a "·" line stay
+whole with the dot at a line's end (`dotLine`), a number keeps its unit, and two buttons side
+by side stack rather than break a label inside a word.
+
+**Results** (after round 2; one row per state, one column per language: "OK" or what was
+fixed in that state and language):
+
+TABLE_HERE
+
+¹ es-rES: Paparazzi renders Spain's Spanish as plain Spanish (see above); checked by comparing
+its strings with es.
+
+Left as they are, on purpose: Japanese and Chinese body text breaks between two characters
+inside a sentence (normal typesetting there; on Android 13 and later Japanese also breaks
+between phrases, which the screenshot tool doesn't do); a Japanese flare caption longer than its
+face ("🔥 バーカウンター 🍺") wraps inside the word; Thai "ขอความช่วย / เหลือ" wraps the Need
+help pill at a word boundary on the 360 dp phone; a heading half under the bottom bar at the end
+of a short phone's screen is just where the scroll stops; test data typed in English ("2:15 am",
+"Sat 14 Dec, 8:00 pm") stays English. Out of scope: the Story screen's own header in Arabic
+still has a middle dot beside a number ("٤ · …").
 
 ## 4. Status and next steps
 
