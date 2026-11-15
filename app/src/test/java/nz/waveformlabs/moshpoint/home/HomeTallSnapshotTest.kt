@@ -32,7 +32,9 @@ open class HomeTallSnapshotTest {
     val paparazzi = Paparazzi(
         deviceConfig = DeviceConfig.PIXEL_5.copy(
             screenWidth = 491, screenHeight = 4300, xdpi = 200, ydpi = 200, density = Density.create(200),
-            locale = lang,
+            // English needs saying here: with no locale this render falls back to the root
+            // plural rules ("1 years ago").
+            locale = lang ?: "en",
             layoutDirection = if (rtl) com.android.resources.LayoutDirection.RTL else com.android.resources.LayoutDirection.LTR,
         ),
         theme = "android:Theme.Material.NoActionBar",
