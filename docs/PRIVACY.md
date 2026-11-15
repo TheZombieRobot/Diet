@@ -1,6 +1,7 @@
 # Moshpoint privacy policy
 
-_Draft for review before Play Store release. Last updated: 12 November 2026. Contact: [EMAIL]._
+_Draft for review before Play Store release. Last updated: 15 November 2026. Contact: [EMAIL].
+Moshpoint is provided by [LEGAL ENTITY]._
 
 Moshpoint helps you find your friends at gigs and other crowded places. It was built so
 that it can do this **without knowing who you are or where you are**. This page explains
@@ -14,7 +15,8 @@ exactly what happens to your information.
 - Your location never leaves your phone in a form anyone else can read except the friends
   you've added.
 - We don't sell, share or use your data for advertising. There are no ads, trackers or
-  analytics in the app.
+  analytics in the app, and it doesn't use your phone's advertising ID.
+- Moshpoint is for people aged 18 and over.
 
 ## What's on your phone
 
@@ -78,8 +80,8 @@ where anyone in them could remove people, until they end.)
 
 **Crew introductions:** phones in a crew also broadcast a short encrypted introduction, so
 crew members' phones recognise each other. Only the crew can open it. Earlier versions left
-4 bytes in it that stayed the same all night. This version has a form with nothing constant
-in it, and sends only that form once everyone in the crew has updated.
+4 bytes in it that stayed the same all night. This version only sends a form with nothing
+constant in it.
 
 ## What goes to our server (only if GPS sharing is enabled)
 
@@ -108,11 +110,12 @@ any website it sees your phone's internet address when it connects. ntfy.sh keep
 for up to 12 hours (see its own privacy policy).
 
 **Crew pings, meet-up pins and moments (optional):** messages you send your crew ("On my
-way", "Need help"), a meet-up pin you drop, and photos you choose to share as moments
-(with where you took them) are encrypted on your phone with your crew's key, so only people
-who scanned your crew's QR can open them. They pass through the same relay under codes that
-change daily or every 5 minutes; the public relay deletes them within hours. Nothing is
-shared unless you tap to send it.
+way", "Need help"), a meet-up pin you drop, and photos and short clips (with their sound) you
+choose to share as moments (with where you took them) are encrypted on your phone with your
+crew's key, so only people who scanned your crew's QR can open them. They pass through the same
+relay under codes that change daily or every 5 minutes. Our relay deletes moments within 24
+hours, and crew chat, pings and pins within 3 days; the public relay deletes everything within
+12 hours. Nothing is shared unless you tap to send it.
 
 **"I'm here" (optional):** when you pin your spot with **I'm here**, the spot you chose, the
 air-pressure reading there (for upstairs/downstairs) and the time go to your crew the same
@@ -139,9 +142,14 @@ phone, in the app's private storage, so you can look back at the night. They nev
 your phone from there. You can delete a gig any time, uninstalling removes them all, and
 "Save to phone" copies them into your own gallery only when you ask.
 
-**Gig search (optional):** when you search for a gig, the words you type are sent to
-Ticketmaster's public event search so it can list matching shows. Nothing about you or
-your crew is sent with it. Typing a gig in by hand sends nothing.
+**Adding your own photos from that night (optional):** Android's photo picker shows your
+photos; only the ones you pick are copied into the gig, on your phone. Moshpoint has no access
+to the rest of your photos and never looks through them.
+
+**Gig search (optional):** when you search for a gig, the words you type (and your phone's
+country, for nearby shows) go to our server, which asks Ticketmaster, Bandsintown and SeatGeek
+for matching shows. Test builds without their own server ask Ticketmaster directly. Nothing
+about you or your crew is sent with it. Typing a gig in by hand sends nothing.
 
 **Finding a venue you typed (optional):** if you type a gig in with a venue, the venue's name
 is looked up once, when you start the crew, so the crew's map knows where it is. (Joining a
@@ -165,11 +173,22 @@ so friends' copies are cleared the next time they refresh.
 
 ## Continue with Facebook (optional)
 
-If you choose "Continue with Facebook", Facebook tells the app your name and profile
-photo (nothing else: no friends list, email or posts). Your first name fills in your
-Moshpoint name and the photo becomes your Moshpoint photo, shared with your friends as
-described above. Facebook's analytics and advertising features in the login library are
-switched off. You can stop using it any time; it doesn't post anything on your behalf.
+Nothing reaches Meta unless you tap "Continue with Facebook": Facebook's login library in the
+app only starts then. When you do, Meta's library talks to Meta to log you in (Meta's own
+privacy policy covers what it receives, such as your Facebook session and basic information
+about the app and your phone), and Facebook tells the app your name and profile photo (nothing
+else: no friends list, email or posts). Your first name fills in your Moshpoint name and the
+photo becomes your Moshpoint photo, shared with your friends as described above. The library's
+analytics, advertising-ID collection and automatic start are switched off. You can stop using
+it any time; it doesn't post anything on your behalf.
+
+## Where our server is
+
+Our relay server runs in Sydney, Australia (on Fly.io). Map tiles come from OpenFreeMap, venue
+lookups from OpenStreetMap's Nominatim, and gig searches from Ticketmaster, Bandsintown and
+SeatGeek (asked by our server), each under its own privacy policy. Test builds without our
+server use the public relay ntfy.sh. If you have a Wear OS watch, the phone-to-watch link is
+Google's (see "What goes to your watch").
 
 ## Deleting your data
 
@@ -185,13 +204,16 @@ login you can also remove Moshpoint at facebook.com → Settings → Apps and we
 | Location | GPS arrow when you're far apart; Android requires it for Bluetooth/Wi-Fi distance on some versions. Used only while finding or while you're live. |
 | UWB | The precise arrow on phones that support it. |
 | Notifications | Shows when you're live, so it's never on without you knowing. |
-| Camera | Scanning a friend's or group's QR code. Images aren't stored or sent. |
+| Camera | Scanning a friend's or group's QR code (those images aren't stored or sent); taking your own photo; taking the photos and clips you choose to share with your crew as moments (encrypted, see above). |
+| Microphone | Sound on the short clips you record for your crew (asked the first time you hold to record). |
+| Photos and videos | No permission: "Add your photos from that night" uses Android's photo picker, which hands the app only what you pick. |
 | Run in background / start at boot | Keep you findable with the app closed, only while you're live (and after a restart only if you chose "always on"). |
 | View network connections | Know when the phone has no signal, so messages wait (or go by Bluetooth) instead of failing. Android grants this without asking; nothing about your network is sent anywhere. |
 
 ## Children
 
-Moshpoint isn't directed at children under 13.
+Moshpoint is for people aged 18 and over. It isn't directed at children, and we don't knowingly
+let anyone under 18 use it.
 
 ## Changes
 

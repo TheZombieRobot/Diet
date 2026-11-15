@@ -135,7 +135,7 @@
     <string name="find_share_with_crew">Bagikan ke geng</string>
     <string name="find_pinned_where_you_are">Dipin di lokasimu sekarang</string>
     <string name="find_caption_hint">Bilang di mana (opsional): kiri FOH</string>
-    <string name="find_moment_privacy">Cuma gengmu yang bisa lihat. Hilang dari server relay setelah beberapa jam.</string>
+    <string name="find_moment_privacy">Cuma gengmu yang bisa lihat. Terhapus dari server relay dalam 24 jam.</string>
     <string name="find_sending">Mengirim…</string>
     <string name="find_send">Kirim</string>
 

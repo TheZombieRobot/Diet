@@ -150,7 +150,7 @@
     <string name="find_share_with_crew">شارك مع الشلة</string>
     <string name="find_pinned_where_you_are">مثبّتة حيث أنت الآن</string>
     <string name="find_caption_hint">قل أين (اختياري): يسار طاولة الصوت</string>
-    <string name="find_moment_privacy">لا يراها إلا شلتك. تختفي من الخادم بعد بضع ساعات.</string>
+    <string name="find_moment_privacy">لا يراها إلا شلتك. تُحذف من الخادم خلال 24 ساعة.</string>
     <string name="find_sending">جارٍ الإرسال…</string>
     <string name="find_send">إرسال</string>
 

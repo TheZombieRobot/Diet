@@ -559,6 +559,85 @@ Message routes** open on the phones you're watching.
   Message routes on all three phones during the no-signal tests.
 - For each test: worked or not, how long each message took, and anything confusing in the words.
 
+## 4f. Play Store readiness and Android 16 (wave 2b, two phones, 40 min)
+
+What only a phone can prove about docs/WAVE2_PLAY.md. Both phones on the same new test build
+(the Bluetooth UUIDs changed: an older build can't hear crew intros, bumps, the crowd relay or
+messages without signal from this one; docs/BLUETOOTH_UUIDS.md). Note each phone's model and
+Android version.
+
+### A. An invite shared from another app, with the app closed
+1. Phone A: open a crew and share its invite as text (QR screen → Share, to WhatsApp, Messages
+   or Notes). Phone B: force-stop Moshpoint (Settings → Apps → Moshpoint → Force stop).
+2. On B, select the whole invite message → Share → **Moshpoint invite**.
+3. ✅ The app opens on its home with **"Join A's crew?"** and a line saying the invite came from
+   another app. It doesn't crash, and B is **not** in the crew and **not** live yet (look at the
+   Live switch and the notification shade). Android 10 and 11 phones matter most: they crashed
+   here before.
+4. **Not now** → nothing changes. Share it again → **Join** → B is in the crew; if the crew is
+   tonight's, B goes live then (and only then).
+5. B already in a crew planned for a later date, then joins A's crew for tonight: ✅ tonight's
+   crew becomes the main one and the planned one moves to **Up next**, with its chat and mates.
+6. B shares its *own* crew's invite to itself: ✅ the crew keeps its members and meet-up pin.
+
+### B. The same with the app open, and a friend's code
+1. With Moshpoint open in the background, share an invite to it again: ✅ the same confirmation.
+2. Share a friend's code message (Add someone → Share my code): ✅ **"Add Sam?"**; **Add** adds them,
+   **Not now** doesn't.
+3. Test builds only: an invite from a phone set to its own relay server (Settings → Relay
+   server) shows an amber line naming that relay; after joining, B's own invites don't carry it.
+
+### C. Adding photos from that night (the photo picker)
+1. A past gig (or the sample gig: Settings → TESTING → Add a sample past gig) → its Story →
+   **＋ Add your photos** → ✅ "Your photos from that night" with **Choose photos**.
+2. **Choose photos**: ✅ Android's photo picker opens (on Android 10–12 without Google Play's
+   picker update, the Files picker), showing photos *and* videos. Pick two photos and a video.
+3. ✅ "Adding…", then a toast with the number added, and they're in the Story at about the right
+   time of night. **Save to phone** on one of your photos gives the full-size original.
+4. Add the same photo again: ✅ it isn't added twice.
+5. ✅ Moshpoint never asked for a photos permission: Settings → Apps → Moshpoint → Permissions has
+   no "Photos and videos" entry.
+
+### D. The location disclosure before Android asks
+1. Fresh install (or clear the app's storage). Welcome → **Let's go** → the permissions step:
+   ✅ a **Privacy policy** link under the three reasons; it opens in the browser.
+2. **Allow** → ✅ "How Moshpoint uses your location" appears **before** Android's prompt, with the
+   four points and the link. **Not now** → no Android prompt. Back to that step (or the home's
+   "allow" banner) → **Continue** → Android's prompts.
+3. Deny Nearby devices, then tap **Go live**: ✅ the disclosure again, then Android's prompt.
+4. Large text (Settings → Display → Font size, largest) on a small phone: ✅ the disclosure
+   scrolls and its buttons stay visible.
+5. Settings (the sheet) → scroll to the bottom: ✅ **Privacy policy** next to the licences.
+
+### E. Predictive back (an Android 16 phone)
+In the finder, map, crew chat, private chat, the Story, the camera and every dialog: swipe back
+(or the back button). ✅ Each closes what's on top, as before; from the home, the system's
+back-to-home animation. With the QR scanner open: back closes it.
+
+### F. A large screen (a tablet or an unfolded foldable on Android 16)
+Android 16 ignores the app's portrait lock on screens 600 dp and wider (docs/ANDROID_16.md).
+1. Open the app in landscape: ✅ the home and the finder fill the screen and nothing overlaps
+   (compare `tabletHomeMain` and `tabletFinderGroup` in docs/screenshots).
+2. Rotate while the finder is open: the activity restarts (no `configChanges` yet, wave 2a).
+   Note what's lost.
+3. **Known issue to confirm:** with the device flat in landscape, the finder's GPS/compass
+   arrow points 90° off (the compass isn't remapped to the screen's rotation). Note the error.
+
+### G. Facebook (only if the build has a Meta app configured)
+1. First launch after install, before tapping anything Facebook: ✅ no traffic to
+   `graph.facebook.com` (a network log such as PCAPdroid shows it).
+2. **Continue with Facebook** → log in → ✅ your name (if empty) and Facebook photo fill in.
+   This never worked before wave 2b (the SDK wasn't fully started); if it fails, send the
+   debug panel's last lines.
+
+### H. The watch, release build (when a signed bundle exists)
+Install the watch release build next to the phone release build: ✅ the crew list and the arrow
+work, and nothing says "Unlock" (Moshpoint+ is on for everyone until billing exists).
+
+### What to send back for this part
+Phone models and Android versions; A3 on Android 10/11 (crash or not); C2 (which picker
+appeared); D2's order of screens; F3's error in degrees; anything lost in F2.
+
 ## 5. What to send back
 
 - The CSV recordings (debug panel → **share last**; older ones are in the share list too).
@@ -575,7 +654,9 @@ Message routes** open on the phones you're watching.
 - Upstairs/downstairs between phones out of Bluetooth range needs our own relay server.
 - Friend photos are set by you on your phone; they don't sync between phones yet.
 - The crowd relay needs lots of Moshpoint users nearby to help at all.
-- The Bluetooth IDs and all the distance constants are first guesses until this test.
+- All the distance constants are first guesses until this test. The finder's Bluetooth ID
+  (`0xFFA7`) is still a placeholder until the owner registers one; the other three adverts use
+  Moshpoint's own 128-bit IDs since wave 2b (docs/BLUETOOTH_UUIDS.md).
 - Messages without signal need Bluetooth 5 extended adverts on both phones, and both phones
   live. One phone sends about one message every 8 seconds this way. Chat only hops between
   crew phones; quick messages and the pin also pass through strangers' Moshpoint phones.

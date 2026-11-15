@@ -141,7 +141,7 @@
     <string name="find_share_with_crew">Compartir con el grupo</string>
     <string name="find_pinned_where_you_are">Fijado donde estás ahora</string>
     <string name="find_caption_hint">Di dónde (opcional): a la izquierda de la mesa de sonido</string>
-    <string name="find_moment_privacy">Solo lo ve tu grupo. Desaparece del servidor a las pocas horas.</string>
+    <string name="find_moment_privacy">Solo lo ve tu grupo. Se borra del servidor en menos de 24 horas.</string>
     <string name="find_sending">Enviando…</string>
     <string name="find_send">Enviar</string>
 

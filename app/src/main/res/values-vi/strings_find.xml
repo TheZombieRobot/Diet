@@ -135,7 +135,7 @@
     <string name="find_share_with_crew">Chia sẻ với nhóm</string>
     <string name="find_pinned_where_you_are">Ghim ở chỗ bạn đang đứng</string>
     <string name="find_caption_hint">Ở đâu (không bắt buộc): bên trái bàn âm thanh</string>
-    <string name="find_moment_privacy">Chỉ nhóm của bạn thấy được. Sẽ biến mất khỏi relay sau vài giờ.</string>
+    <string name="find_moment_privacy">Chỉ nhóm của bạn thấy được. Sẽ biến mất khỏi relay trong vòng 24 giờ.</string>
     <string name="find_sending">Đang gửi…</string>
     <string name="find_send">Gửi</string>
 

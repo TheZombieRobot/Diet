@@ -135,7 +135,7 @@
     <string name="find_share_with_crew">クルーにシェア</string>
     <string name="find_pinned_where_you_are">今いる場所にピン留め</string>
     <string name="find_caption_hint">場所をひとこと（任意）：PA卓の左</string>
-    <string name="find_moment_privacy">見られるのはクルーだけ。数時間後にリレーから消えます。</string>
+    <string name="find_moment_privacy">見られるのはクルーだけ。24時間以内にリレーから消えます。</string>
     <string name="find_sending">送信中…</string>
     <string name="find_send">送信</string>
 

@@ -138,7 +138,7 @@
     <string name="find_share_with_crew">Delen met de crew</string>
     <string name="find_pinned_where_you_are">Gepind waar je nu bent</string>
     <string name="find_caption_hint">Zeg waar (optioneel): links van de mengtafel</string>
-    <string name="find_moment_privacy">Alleen je crew ziet het. Na een paar uur verdwijnt het van de relay.</string>
+    <string name="find_moment_privacy">Alleen je crew ziet het. Binnen 24 uur verdwijnt het van de relay.</string>
     <string name="find_sending">Versturen…</string>
     <string name="find_send">Versturen</string>
 

@@ -141,7 +141,7 @@
     <string name="find_share_with_crew">Condividi con il gruppo</string>
     <string name="find_pinned_where_you_are">Fissato dove sei ora</string>
     <string name="find_caption_hint">Di\' dove (facoltativo): a sinistra del mixer</string>
-    <string name="find_moment_privacy">Lo vede solo il tuo gruppo. Sparisce dal server dopo qualche ora.</string>
+    <string name="find_moment_privacy">Lo vede solo il tuo gruppo. Sparisce dal server entro 24 ore.</string>
     <string name="find_sending">Invio…</string>
     <string name="find_send">Invia</string>
 

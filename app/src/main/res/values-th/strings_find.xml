@@ -135,7 +135,7 @@
     <string name="find_share_with_crew">แชร์ให้แก๊ง</string>
     <string name="find_pinned_where_you_are">ปักไว้ตรงที่คุณอยู่ตอนนี้</string>
     <string name="find_caption_hint">บอกว่าอยู่ตรงไหน (ไม่ใส่ก็ได้): ซ้ายบูธเสียง</string>
-    <string name="find_moment_privacy">เห็นได้แค่แก๊งของคุณ และจะหายไปจากรีเลย์ในไม่กี่ชั่วโมง</string>
+    <string name="find_moment_privacy">เห็นได้แค่แก๊งของคุณ และจะหายไปจากรีเลย์ภายใน 24 ชั่วโมง</string>
     <string name="find_sending">กำลังส่ง…</string>
     <string name="find_send">ส่ง</string>
 

@@ -16,44 +16,46 @@ import java.util.List;
  * in tests: the same public fields as the SDK's, filled in by Paparazzi exactly as before, so the
  * screenshots don't change.
  *
+ * <p>The fields are plain statics with no initial value, on purpose. Paparazzi writes the
+ * values into {@code static final} fields with {@code Unsafe} before this class is initialised,
+ * so a static initialiser would then put them back to null and 0 (no field would say Android 14,
+ * and Compose would draw nothing). The SDK's own stub has no initialiser either. Constants
+ * ({@code UNKNOWN}, the version codes) stay constants, as in the SDK.
+ *
  * <p>Delete this file when Paparazzi is upgraded to a version whose layoutlib knows Android 16
  * (2.0.0-alpha02 or later; docs/ANDROID_16.md).
  */
 public class Build {
     public Build() {}
 
-    private static String s() { return null; }
-    private static String[] a() { return new String[0]; }
-    private static long l() { return 0L; }
-
     public static final String UNKNOWN = "unknown";
-    public static final String BOARD = s();
-    public static final String BOOTLOADER = s();
-    public static final String BRAND = s();
-    @Deprecated public static final String CPU_ABI = s();
-    @Deprecated public static final String CPU_ABI2 = s();
-    public static final String DEVICE = s();
-    public static final String DISPLAY = s();
-    public static final String FINGERPRINT = s();
-    public static final String HARDWARE = s();
-    public static final String HOST = s();
-    public static final String ID = s();
-    public static final String MANUFACTURER = s();
-    public static final String MODEL = s();
-    public static final String ODM_SKU = s();
-    public static final String PRODUCT = s();
-    @Deprecated public static final String RADIO = s();
-    @Deprecated public static final String SERIAL = s();
-    public static final String SKU = s();
-    public static final String SOC_MANUFACTURER = s();
-    public static final String SOC_MODEL = s();
-    public static final String[] SUPPORTED_32_BIT_ABIS = a();
-    public static final String[] SUPPORTED_64_BIT_ABIS = a();
-    public static final String[] SUPPORTED_ABIS = a();
-    public static final String TAGS = s();
-    public static final long TIME = l();
-    public static final String TYPE = s();
-    public static final String USER = s();
+    public static String BOARD;
+    public static String BOOTLOADER;
+    public static String BRAND;
+    @Deprecated public static String CPU_ABI;
+    @Deprecated public static String CPU_ABI2;
+    public static String DEVICE;
+    public static String DISPLAY;
+    public static String FINGERPRINT;
+    public static String HARDWARE;
+    public static String HOST;
+    public static String ID;
+    public static String MANUFACTURER;
+    public static String MODEL;
+    public static String ODM_SKU;
+    public static String PRODUCT;
+    @Deprecated public static String RADIO;
+    @Deprecated public static String SERIAL;
+    public static String SKU;
+    public static String SOC_MANUFACTURER;
+    public static String SOC_MODEL;
+    public static String[] SUPPORTED_32_BIT_ABIS;
+    public static String[] SUPPORTED_64_BIT_ABIS;
+    public static String[] SUPPORTED_ABIS;
+    public static String TAGS;
+    public static long TIME;
+    public static String TYPE;
+    public static String USER;
 
     public static List<Partition> getFingerprintedPartitions() { return Collections.emptyList(); }
     public static int getMajorSdkVersion(int sdkIntFull) { return sdkIntFull / 100000; }
@@ -72,20 +74,18 @@ public class Build {
     public static class VERSION {
         public VERSION() {}
 
-        private static int i() { return 0; }
-
-        public static final String BASE_OS = s();
-        public static final String CODENAME = s();
-        public static final String INCREMENTAL = s();
-        public static final int MEDIA_PERFORMANCE_CLASS = i();
-        public static final int PREVIEW_SDK_INT = i();
-        public static final String RELEASE = s();
-        public static final String RELEASE_OR_CODENAME = s();
-        public static final String RELEASE_OR_PREVIEW_DISPLAY = s();
-        @Deprecated public static final String SDK = s();
-        public static final int SDK_INT = i();
-        public static final int SDK_INT_FULL = i();
-        public static final String SECURITY_PATCH = s();
+        public static String BASE_OS;
+        public static String CODENAME;
+        public static String INCREMENTAL;
+        public static int MEDIA_PERFORMANCE_CLASS;
+        public static int PREVIEW_SDK_INT;
+        public static String RELEASE;
+        public static String RELEASE_OR_CODENAME;
+        public static String RELEASE_OR_PREVIEW_DISPLAY;
+        @Deprecated public static String SDK;
+        public static int SDK_INT;
+        public static int SDK_INT_FULL;
+        public static String SECURITY_PATCH;
     }
 
     public static class VERSION_CODES {

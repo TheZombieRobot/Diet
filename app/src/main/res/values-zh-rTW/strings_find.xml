@@ -135,7 +135,7 @@
     <string name="find_share_with_crew">分享給小隊</string>
     <string name="find_pinned_where_you_are">標記在你現在的位置</string>
     <string name="find_caption_hint">說說在哪（選填）：控台左邊</string>
-    <string name="find_moment_privacy">只有你的小隊看得到。幾小時後會從中繼伺服器上消失。</string>
+    <string name="find_moment_privacy">只有你的小隊看得到。24 小時內會從中繼伺服器上消失。</string>
     <string name="find_sending">傳送中…</string>
     <string name="find_send">傳送</string>
 
