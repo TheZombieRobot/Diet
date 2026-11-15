@@ -41,6 +41,13 @@ import nz.waveformlabs.moshpoint.core.Trend
 import nz.waveformlabs.moshpoint.core.VenuePlacement
 import nz.waveformlabs.moshpoint.ui.FinderScreen
 import nz.waveformlabs.moshpoint.ui.FriendsScreen
+import nz.waveformlabs.moshpoint.ui.HomeCrew
+import nz.waveformlabs.moshpoint.ui.HomeCrewActions
+import nz.waveformlabs.moshpoint.ui.HomeGigActions
+import nz.waveformlabs.moshpoint.ui.HomeGigs
+import nz.waveformlabs.moshpoint.ui.HomeInviteActions
+import nz.waveformlabs.moshpoint.ui.HomeMe
+import nz.waveformlabs.moshpoint.ui.HomeMeActions
 import nz.waveformlabs.moshpoint.ui.MapPin
 import nz.waveformlabs.moshpoint.ui.MapScreen
 import nz.waveformlabs.moshpoint.ui.Mosh
@@ -114,15 +121,25 @@ open class VenueSnapshotTest : VenueSnapshots() {
     @Test fun venueCard() = snap {
         MoshTheme {
             FriendsScreen(
-                friends = listOf(alex, jo, sam, mia), visible = true, alwaysOn = false,
-                phoneSummary = "This phone: UWB, Wi-Fi Aware, Bluetooth, compass, GPS",
-                myName = "Josh", onMyName = {}, missingPermissions = emptyList(), onFixPermissions = {},
-                onVisible = {}, onAlwaysOn = {}, onFind = {}, onShareCode = {}, onShowQr = {}, onScanQr = {},
-                scanned = null, onScannedUsed = {}, onAdd = { _, _, _ -> null }, onRemove = {},
-                onSetPhoto = {}, onRemovePhoto = {}, onClearGigGroup = {},
-                groupName = "Neon Paddock", onStartGroup = {}, onShowGroupQr = {},
-                crewWhen = "Sat 14 Dec, 8:00 pm · Kauri Fields",
-                venueMap = VenueMaps.Status(VenueMaps.Line.SAVED),
+                me = HomeMe(
+                    myName = "Josh", visible = true, alwaysOn = false,
+                    phoneSummary = "This phone: UWB, Wi-Fi Aware, Bluetooth, compass, GPS",
+                    missingPermissions = emptyList(),
+                ),
+                crew = HomeCrew(
+                    friends = listOf(alex, jo, sam, mia), groupName = "Neon Paddock",
+                    crewWhen = "Sat 14 Dec, 8:00 pm · Kauri Fields",
+                    venueMap = VenueMaps.Status(VenueMaps.Line.SAVED),
+                ),
+                gigs = HomeGigs(),
+                scanned = null,
+                meActions = HomeMeActions(onMyName = {}, onFixPermissions = {}, onVisible = {}, onAlwaysOn = {}),
+                crewActions = HomeCrewActions(onFind = {}, onRemove = {}, onSetPhoto = {}, onRemovePhoto = {}, onClearGigGroup = {}),
+                inviteActions = HomeInviteActions(
+                    onShareCode = {}, onShowQr = {}, onScanQr = {}, onScannedUsed = {}, onAdd = { _, _, _ -> null },
+                    onStartGroup = {}, onShowGroupQr = {},
+                ),
+                gigActions = HomeGigActions(),
             )
         }
     }

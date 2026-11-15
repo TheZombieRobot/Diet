@@ -54,116 +54,15 @@ import nz.waveformlabs.moshpoint.core.GigGroup
  */
 @Composable
 fun FriendsScreen(
-    friends: List<Friend>,
-    visible: Boolean,
-    alwaysOn: Boolean,
-    phoneSummary: String,
-    myName: String,
-    onMyName: (String) -> Unit,
-    missingPermissions: List<String>,
-    setupIssues: List<SetupIssue> = emptyList(),
-    onFixPermissions: () -> Unit,
-    onVisible: (Boolean) -> Unit,
-    onAlwaysOn: (Boolean) -> Unit,
-    onFind: (Set<String>) -> Unit,
-    onShareCode: () -> Unit,
-    onPasteInvite: () -> Unit = {},
-    onShareApp: () -> Unit = {},
-    onShowQr: () -> Unit,
-    onScanQr: () -> Unit,
+    me: HomeMe,
+    crew: HomeCrew,
+    gigs: HomeGigs,
     /** Filled in after a QR scan so the user only has to confirm. */
     scanned: Pair<String, String>?,
-    onScannedUsed: () -> Unit,
-    /** Returns an error message to show, or null if added. */
-    onAdd: (name: String, code: String, gigGroup: Boolean) -> String?,
-    onRemove: (String) -> Unit,
-    onSetPhoto: (String) -> Unit,
-    onRemovePhoto: (String) -> Unit,
-    onClearGigGroup: () -> Unit,
-    groupName: String?,
-    /** False in a crew with an owner that isn't us: only the owner removes people from it. */
-    canRemoveCrewMates: Boolean = true,
-    /** Keys of everyone in tonight's crew, including people already on the friends list. */
-    crewKeys: Set<String> = emptySet(),
-    onStartGroup: (String) -> Unit,
-    onShowGroupQr: () -> Unit,
-    onKeepFriend: (String) -> Unit = {},
-    /** "Message Sam": open a private thread with this crew mate (docs/PRIVATE_MESSAGES.md). Null = not offered (following from home). */
-    onMessage: ((String) -> Unit)? = null,
-    /** Can a private message reach this mate yet (their phone has checked in tonight; never a simulated mate)? Only then is "Message …" offered. */
-    canMessage: (String) -> Boolean = { true },
-    /** Unread private messages per friend id, shown on their face. */
-    privateUnread: Map<String, Int> = emptyMap(),
-    /** Snap Map style view of where everyone is. */
-    onOpenMap: () -> Unit = {},
-    /** The crew's meet-up pin, if someone dropped one ("Sound desk"). */
-    meetUp: String? = null,
-    /** Last shared spot per friend (live or last seen, under each face). */
-    seen: Map<String, nz.waveformlabs.moshpoint.map.LocationBook.Seen> = emptyMap(),
-    nowSec: Long = 0L,
-    pings: List<GigGroup.Ping> = emptyList(),
-    onPing: (Int) -> Unit = {},
-    describePing: (Int) -> String = { Txt.s(R.string.home_ping_default) },
-    ghost: Boolean = false,
-    /** "Show crew QR" from the Add sheet: starts a crew first if needed. */
-    onShowCrewQr: (() -> Unit)? = null,
-    moments: List<nz.waveformlabs.moshpoint.moments.Moments.Item> = emptyList(),
-    onShareMoment: () -> Unit = {},
-    onOpenMoment: (nz.waveformlabs.moshpoint.moments.Moments.Item) -> Unit = {},
-    onCheckIn: (Int) -> Unit = {},
-    /** "2:15 am" while we're checking in, else null. */
-    checkInBy: String? = null,
-    onHomeSafe: () -> Unit = {},
-    /** Metres to each crew member, worked out in the background. */
-    distances: Map<String, Double> = emptyMap(),
-    /** The crew QR's contents, shown right on the home while no one has joined. */
-    crewQrPayload: String? = null,
-    /** "Start a crew for tonight": start a crew named after you, no questions. Null = ask for a name. */
-    onQuickCrew: (() -> Unit)? = null,
-    /** Bump phones together to share / receive a crew invite. */
-    onBump: () -> Unit = {},
-    /** "Plan a gig": find it (or type it in) and start its crew ahead of time. */
-    onPlanGig: () -> Unit = {},
-    /** The night's photos and clips as Polaroids. */
-    onOpenStory: () -> Unit = {},
-    /** We follow this crew from home (watch only). */
-    following: Boolean = false,
-    /** "at the venue" etc. per crew member, shown to followers. */
-    tileNotes: Map<String, String> = emptyMap(),
-    /** Names of people following this crew from home. */
-    followers: List<String> = emptyList(),
-    /** Share the follow-along invite with family. */
-    onLetFamilyFollow: () -> Unit = {},
-    /** Past gigs kept on this phone. */
-    pastGigs: List<nz.waveformlabs.moshpoint.gigs.GigArchive.Summary> = emptyList(),
-    /** Tonight's gig (it's the crew, not a past gig). */
-    currentGigId: String? = null,
-    onOpenGig: (nz.waveformlabs.moshpoint.gigs.GigArchive.Summary) -> Unit = {},
-    /** "Sat 14 Dec, 8:00 pm · Spark Arena" for a planned gig's crew, else null. */
-    crewWhen: String? = null,
-    /** The crew is for a later day and is asleep (nothing running) until then. */
-    crewSleeping: Boolean = false,
-    /** Debug builds only; null in release. */
-    onAddSimulated: (() -> Unit)? = null,
-    onSelfie: () -> Unit = {},
-    onPickMyPhoto: () -> Unit = {},
-    onRemoveMyPhoto: () -> Unit = {},
-    /** Null when the build has no Meta app configured. */
-    onFacebook: (() -> Unit)? = null,
-    /** Opens the crew chat (pinned plan, messages, flares). */
-    onOpenChat: (() -> Unit)? = null,
-    chatUnread: Int = 0,
-    /** The crew's pinned plan, shown on the home. */
-    pinnedPlan: String? = null,
-    /** "🔥 Bar time 🍺" under a mate's face while their flare is up. */
-    flareNotes: Map<String, String> = emptyMap(),
-    /** Other crews you're in, soonest first. */
-    upNext: List<UpNextCard> = emptyList(),
-    onOpenUpNext: (String) -> Unit = {},
-    /** The line about the venue's offline map (see VenueMaps); null = no line. */
-    venueMap: nz.waveformlabs.moshpoint.venue.VenueMaps.Status? = null,
-    /** "Reset the invite" in the crew menu: a new crew key, so a leaked QR stops working. Null = not offered (only the owner resets an owned crew). */
-    onResetInvite: (() -> Unit)? = null,
+    meActions: HomeMeActions,
+    crewActions: HomeCrewActions,
+    inviteActions: HomeInviteActions,
+    gigActions: HomeGigActions,
 ) {
     var name by remember { mutableStateOf("") }
     var code by remember { mutableStateOf("") }
@@ -173,7 +72,7 @@ fun FriendsScreen(
             code = scanned.first
             if (name.isBlank()) name = scanned.second
             error = null
-            onScannedUsed()
+            inviteActions.onScannedUsed()
         }
     }
     var confirmRemove by remember { mutableStateOf<Friend?>(null) }
@@ -189,27 +88,27 @@ fun FriendsScreen(
     var friendsOpen by remember { mutableStateOf(false) }
     var gigsOpen by remember { mutableStateOf(false) }
 
-    val gig = friends.filter { it.gigGroupOnly || it.key in crewKeys }
-    val permanent = friends.filterNot { it.gigGroupOnly }
-    val past = pastGigs.filter { it.id != currentGigId }
-    val inCrew = groupName != null || gig.isNotEmpty()
+    val gig = crew.friends.filter { it.gigGroupOnly || it.key in crew.crewKeys }
+    val permanent = crew.friends.filterNot { it.gigGroupOnly }
+    val past = gigs.pastGigs.filter { it.id != gigs.currentGigId }
+    val inCrew = crew.groupName != null || gig.isNotEmpty()
     // A brand-new user: nothing to show but the one thing to do.
-    val firstTime = !inCrew && permanent.isEmpty() && past.isEmpty() && upNext.isEmpty()
+    val firstTime = !inCrew && permanent.isEmpty() && past.isEmpty() && gigs.upNext.isEmpty()
     // Need help offers the crew alert only when there's a crew on tonight with someone in it
     // to alert: a safety feature must never say "alerted" to nobody.
-    val canAlertCrew = groupName != null && !following && !crewSleeping && (gig.isNotEmpty() || followers.isNotEmpty())
-    val startCrew: () -> Unit = onQuickCrew ?: { naming = true }
-    val crewName = groupName ?: stringResource(R.string.home_your_crew)
+    val canAlertCrew = crew.groupName != null && !crew.following && !crew.crewSleeping && (gig.isNotEmpty() || crew.followers.isNotEmpty())
+    val startCrew: () -> Unit = inviteActions.onQuickCrew ?: { naming = true }
+    val crewName = crew.groupName ?: stringResource(R.string.home_your_crew)
     val crewCount = pluralStringResource(R.plurals.home_crew_count, gig.size, gig.size)
-    val liveCount = if (following || crewSleeping) 0 else gig.count { isLive(seen[it.id], nowSec) }
+    val liveCount = if (crew.following || crew.crewSleeping) 0 else gig.count { isLive(crew.seen[it.id], crew.nowSec) }
     val liveText = pluralStringResource(R.plurals.home_live_count, liveCount, liveCount)
 
     if (settingsOpen) {
         SettingsSheet(
-            myName = myName, onMyName = onMyName,
-            onSelfie = onSelfie, onPickMyPhoto = onPickMyPhoto, onRemoveMyPhoto = onRemoveMyPhoto, onFacebook = onFacebook,
-            alwaysOn = alwaysOn, onAlwaysOn = onAlwaysOn,
-            phoneSummary = phoneSummary,
+            myName = me.myName, onMyName = meActions.onMyName,
+            onSelfie = meActions.onSelfie, onPickMyPhoto = meActions.onPickMyPhoto, onRemoveMyPhoto = meActions.onRemoveMyPhoto, onFacebook = meActions.onFacebook,
+            alwaysOn = me.alwaysOn, onAlwaysOn = meActions.onAlwaysOn,
+            phoneSummary = me.phoneSummary,
             onClose = { settingsOpen = false },
         )
     }
@@ -225,7 +124,7 @@ fun FriendsScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    onStartGroup(groupNameText)
+                    inviteActions.onStartGroup(groupNameText)
                     groupNameText = ""
                     naming = false
                 }) { Text(stringResource(R.string.home_start)) }
@@ -240,20 +139,20 @@ fun FriendsScreen(
             text = {
                 Column {
                     // First: write to them privately (crew mates only).
-                    if (onMessage != null && (f.gigGroupOnly || f.key in crewKeys) && canMessage(f.id)) {
-                        TextButton(onClick = { onMessage(f.id); options = null }) {
+                    if (crewActions.onMessage != null && (f.gigGroupOnly || f.key in crew.crewKeys) && crewActions.canMessage(f.id)) {
+                        TextButton(onClick = { crewActions.onMessage(f.id); options = null }) {
                             Text(stringResource(R.string.private_message_name, f.name))
-                            privateUnread[f.id]?.let { n -> Spacer(Modifier.width(8.dp)); UnreadBadge(n) }
+                            crew.privateUnread[f.id]?.let { n -> Spacer(Modifier.width(8.dp)); UnreadBadge(n) }
                         }
                     }
                     if (f.gigGroupOnly) {
-                        TextButton(onClick = { onKeepFriend(f.id); options = null }) { Text(stringResource(R.string.home_keep_friend, f.name)) }
+                        TextButton(onClick = { crewActions.onKeepFriend(f.id); options = null }) { Text(stringResource(R.string.home_keep_friend, f.name)) }
                     }
-                    TextButton(onClick = { onSetPhoto(f.id); options = null }) { Text(stringResource(R.string.home_set_photo)) }
+                    TextButton(onClick = { crewActions.onSetPhoto(f.id); options = null }) { Text(stringResource(R.string.home_set_photo)) }
                     if (PhotoStore.photos.containsKey(f.id)) {
-                        TextButton(onClick = { onRemovePhoto(f.id); options = null }) { Text(stringResource(R.string.home_remove_photo)) }
+                        TextButton(onClick = { crewActions.onRemovePhoto(f.id); options = null }) { Text(stringResource(R.string.home_remove_photo)) }
                     }
-                    if (!f.gigGroupOnly || canRemoveCrewMates) {
+                    if (!f.gigGroupOnly || crew.canRemoveCrewMates) {
                         TextButton(onClick = { confirmRemove = f; options = null }) { Text(stringResource(R.string.home_remove_name, f.name), color = Mosh.Alarm) }
                     } else {
                         Text(
@@ -277,32 +176,32 @@ fun FriendsScreen(
                     else stringResource(R.string.home_remove_friend_text),
                 )
             },
-            confirmButton = { TextButton(onClick = { onRemove(f.id); confirmRemove = null }) { Text(stringResource(R.string.home_remove)) } },
+            confirmButton = { TextButton(onClick = { crewActions.onRemove(f.id); confirmRemove = null }) { Text(stringResource(R.string.home_remove)) } },
             dismissButton = { TextButton(onClick = { confirmRemove = null }) { Text(stringResource(R.string.home_cancel)) } },
         )
     }
 
     fun add(gigGroup: Boolean) {
-        error = onAdd(name, code, gigGroup)
+        error = inviteActions.onAdd(name, code, gigGroup)
         if (error == null) {
             name = ""
             code = ""
         }
     }
 
-    if (messageOpen) MessageSheet(onPing = { onPing(it) }, onCheckIn = { onCheckIn(it) }, onClose = { messageOpen = false })
+    if (messageOpen) MessageSheet(onPing = { crewActions.onPing(it) }, onCheckIn = { crewActions.onCheckIn(it) }, onClose = { messageOpen = false })
     if (addOpen) {
         AddSheet(
-            inCrew = groupName != null,
-            onShowCrewQr = onShowCrewQr ?: onShowGroupQr,
-            onScanQr = onScanQr,
-            onShareApp = onShareApp,
-            onPasteInvite = onPasteInvite,
-            onShowMyQr = onShowQr,
+            inCrew = crew.groupName != null,
+            onShowCrewQr = inviteActions.onShowCrewQr ?: inviteActions.onShowGroupQr,
+            onScanQr = inviteActions.onScanQr,
+            onShareApp = inviteActions.onShareApp,
+            onPasteInvite = inviteActions.onPasteInvite,
+            onShowMyQr = inviteActions.onShowQr,
             onEnterCode = { manualCode = true },
             onClose = { addOpen = false },
-            onBump = onBump,
-            onPlanGig = if (groupName == null) onPlanGig else null,
+            onBump = inviteActions.onBump,
+            onPlanGig = if (crew.groupName == null) inviteActions.onPlanGig else null,
         )
     }
     if (manualCode || code.isNotBlank()) {
@@ -323,7 +222,7 @@ fun FriendsScreen(
     }
     if (helpOpen) {
         // Nothing is sent from the home: the dialog asks first, as it always has.
-        HelpDialog(onAlertCrew = if (canAlertCrew) ({ onPing(GigGroup.Ping.NEED_HELP) }) else null, onClose = { helpOpen = false })
+        HelpDialog(onAlertCrew = if (canAlertCrew) ({ crewActions.onPing(GigGroup.Ping.NEED_HELP) }) else null, onClose = { helpOpen = false })
     }
     if (menuOpen && inCrew) {
         MoshSheet(onClose = { menuOpen = false }) {
@@ -331,52 +230,52 @@ fun FriendsScreen(
                 name = crewName,
                 subtitle = listOfNotNull(
                     when {
-                        following -> stringResource(R.string.home_following_from_home)
-                        crewSleeping -> stringResource(R.string.home_menu_coming_up)
+                        crew.following -> stringResource(R.string.home_following_from_home)
+                        crew.crewSleeping -> stringResource(R.string.home_menu_coming_up)
                         else -> stringResource(R.string.home_menu_tonight)
                     },
                     crewCount.takeIf { gig.isNotEmpty() },
                 ).let { dotLine(it) },
-                onInvite = if (following) null else ({ menuOpen = false; onShowGroupQr() }),
-                onFamily = if (following) null else ({ menuOpen = false; onLetFamilyFollow() }),
-                onReset = if (following || groupName == null) null else onResetInvite?.let { reset -> { menuOpen = false; reset() } },
+                onInvite = if (crew.following) null else ({ menuOpen = false; inviteActions.onShowGroupQr() }),
+                onFamily = if (crew.following) null else ({ menuOpen = false; crewActions.onLetFamilyFollow() }),
+                onReset = if (crew.following || crew.groupName == null) null else crewActions.onResetInvite?.let { reset -> { menuOpen = false; reset() } },
                 endTitle = when {
-                    following -> stringResource(R.string.home_stop_following)
-                    crewSleeping -> stringResource(R.string.home_cancel_crew)
+                    crew.following -> stringResource(R.string.home_stop_following)
+                    crew.crewSleeping -> stringResource(R.string.home_cancel_crew)
                     else -> stringResource(R.string.home_end_night)
                 },
                 endSub = when {
-                    following -> stringResource(R.string.home_menu_stop_sub)
-                    crewSleeping -> stringResource(R.string.home_menu_cancel_sub)
+                    crew.following -> stringResource(R.string.home_menu_stop_sub)
+                    crew.crewSleeping -> stringResource(R.string.home_menu_cancel_sub)
                     else -> stringResource(R.string.home_menu_end_sub)
                 },
-                onEnd = { menuOpen = false; onClearGigGroup() },
+                onEnd = { menuOpen = false; crewActions.onClearGigGroup() },
             )
         }
     }
     if (friendsOpen) {
         MoshSheet(onClose = { friendsOpen = false }) {
-            FriendsListContent(permanent, seen, nowSec, onFind = { friendsOpen = false; onFind(setOf(it)) }, onOptions = { options = it })
+            FriendsListContent(permanent, crew.seen, crew.nowSec, onFind = { friendsOpen = false; crewActions.onFind(setOf(it)) }, onOptions = { options = it })
         }
     }
     if (gigsOpen) {
         MoshSheet(onClose = { gigsOpen = false }) {
-            PastGigsContent(past) { g -> gigsOpen = false; onOpenGig(g) }
+            PastGigsContent(past) { g -> gigsOpen = false; gigActions.onOpenGig(g) }
         }
     }
 
     // One calm card with the one thing to fix next (permission, then each switch), instead
     // of a wall of warnings. It disappears once everything's ready.
     val todo: Triple<String, String, () -> Unit>? = when {
-        missingPermissions.isNotEmpty() -> Triple(
+        me.missingPermissions.isNotEmpty() -> Triple(
             // The name before the colon (full-width in CJK); not lower-cased (German nouns are capitalised).
-            Txt.s(R.string.home_allow_permission, missingPermissions.first().substringBefore(':').substringBefore('：').trim()),
-            Txt.s(R.string.home_allow), onFixPermissions,
+            Txt.s(R.string.home_allow_permission, me.missingPermissions.first().substringBefore(':').substringBefore('：').trim()),
+            Txt.s(R.string.home_allow), meActions.onFixPermissions,
         )
-        setupIssues.isNotEmpty() -> setupIssues.first().let { Triple(it.text, it.button, it.onFix) }
+        me.setupIssues.isNotEmpty() -> me.setupIssues.first().let { Triple(it.text, it.button, it.onFix) }
         else -> null
     }
-    val more = missingPermissions.size.coerceAtMost(1) + setupIssues.size - 1
+    val more = me.missingPermissions.size.coerceAtMost(1) + me.setupIssues.size - 1
     val todoEyebrow = if (more > 0) pluralStringResource(R.plurals.home_one_thing_first_more, more, more) else stringResource(R.string.home_one_thing_first)
 
     Box(Modifier.fillMaxSize().background(Mosh.Ground)) {
@@ -387,84 +286,84 @@ fun FriendsScreen(
             Column(Modifier.weight(1f).fillMaxWidth().fadeTopWhenScrolled(scroll, 16.dp).verticalScroll(scroll).padding(top = 16.dp, bottom = 28.dp)) {
                 HomeHeader(onHelp = { helpOpen = true })
                 // Followers at home never broadcast, so there's nothing to switch.
-                if (!following) LiveRow(visible, ghost, onChange = onVisible, modifier = Modifier.padding(horizontal = HomeSide))
+                if (!crew.following) LiveRow(me.visible, me.ghost, onChange = meActions.onVisible, modifier = Modifier.padding(horizontal = HomeSide))
                 if (todo != null) SetupCard(todoEyebrow, todo.first, todo.second, todo.third, Modifier.padding(top = 14.dp))
 
                 when {
                     firstTime -> {
                         Spacer(Modifier.height(8.dp))
-                        FirstTimeHero(onStart = startCrew, onScan = onScanQr, onPaste = onPasteInvite, onPlan = onPlanGig)
+                        FirstTimeHero(onStart = startCrew, onScan = inviteActions.onScanQr, onPaste = inviteActions.onPasteInvite, onPlan = inviteActions.onPlanGig)
                     }
                     !inCrew -> {
                         Spacer(Modifier.height(24.dp))
-                        NoCrewHero(onStart = startCrew, onPlan = onPlanGig, onScan = onScanQr, onPaste = onPasteInvite)
+                        NoCrewHero(onStart = startCrew, onPlan = inviteActions.onPlanGig, onScan = inviteActions.onScanQr, onPaste = inviteActions.onPasteInvite)
                     }
                     else -> {
                         Spacer(Modifier.height(20.dp))
                         CrewHeader(
                             eyebrow = when {
-                                following -> stringResource(R.string.home_eyebrow_following)
-                                crewSleeping -> stringResource(R.string.home_eyebrow_coming_up)
+                                crew.following -> stringResource(R.string.home_eyebrow_following)
+                                crew.crewSleeping -> stringResource(R.string.home_eyebrow_coming_up)
                                 else -> stringResource(R.string.home_eyebrow_tonight)
                             },
                             name = crewName,
                             count = if (gig.isEmpty()) null else if (liveCount > 0) "$crewCount · $liveText" else crewCount,
-                            followers = if (following) emptyList() else followers,
-                            whenText = crewWhen,
-                            venueMap = if (groupName != null && !following) venueMap else null,
+                            followers = if (crew.following) emptyList() else crew.followers,
+                            whenText = crew.crewWhen,
+                            venueMap = if (crew.groupName != null && !crew.following) crew.venueMap else null,
                             onMenu = { menuOpen = true },
                         )
                         when {
-                            following && !crewSleeping -> {
+                            crew.following && !crew.crewSleeping -> {
                                 Spacer(Modifier.height(10.dp))
                                 Text(stringResource(R.string.home_follower_text), style = HomeType.Body.copy(fontSize = 14.sp, lineHeight = 21.sp), modifier = Modifier.padding(horizontal = HomeSide))
-                                if (gig.isNotEmpty()) CrewTiles(gig, seen, nowSec, onFind = null, onOptions = null, notes = tileNotes)
-                                if (checkInBy != null) CheckInBanner(checkInBy, onHomeSafe, Modifier.padding(start = HomeSide, end = HomeSide, top = 14.dp))
-                                ActivityBlock(meetUp, pings.take(3), nowSec, describePing, pinnedPlan, onOpenMap, onOpenChat, Modifier.padding(top = 16.dp))
+                                if (gig.isNotEmpty()) CrewTiles(gig, crew.seen, crew.nowSec, onFind = null, onOptions = null, notes = crew.tileNotes)
+                                if (crew.checkInBy != null) CheckInBanner(crew.checkInBy, crewActions.onHomeSafe, Modifier.padding(start = HomeSide, end = HomeSide, top = 14.dp))
+                                ActivityBlock(crew.meetUp, crew.pings.take(3), crew.nowSec, crewActions.describePing, crew.pinnedPlan, crewActions.onOpenMap, crewActions.onOpenChat, Modifier.padding(top = 16.dp))
                                 Spacer(Modifier.height(18.dp))
-                                HeroButton(stringResource(R.string.home_see_story), HomeIcons.Story, Modifier.padding(horizontal = HomeSide), onClick = onOpenStory)
+                                HeroButton(stringResource(R.string.home_see_story), HomeIcons.Story, Modifier.padding(horizontal = HomeSide), onClick = crewActions.onOpenStory)
                                 Spacer(Modifier.height(14.dp))
-                                if (onOpenChat != null) {
+                                if (crewActions.onOpenChat != null) {
                                     ButtonPair(
                                         Modifier.padding(horizontal = HomeSide),
-                                        first = { GlassAction(stringResource(R.string.home_crew_chat), HomeIcons.Chat, badge = chatUnread, onClick = onOpenChat) },
-                                        second = { GlassAction(stringResource(R.string.home_where_are_they_short), HomeIcons.MapPin, onClick = onOpenMap) },
+                                        first = { GlassAction(stringResource(R.string.home_crew_chat), HomeIcons.Chat, badge = crew.chatUnread, onClick = crewActions.onOpenChat) },
+                                        second = { GlassAction(stringResource(R.string.home_where_are_they_short), HomeIcons.MapPin, onClick = crewActions.onOpenMap) },
                                     )
                                 } else {
                                     GlassAction(
                                         stringResource(R.string.home_where_are_they_short), HomeIcons.MapPin,
-                                        Modifier.padding(horizontal = HomeSide).fillMaxWidth(), onClick = onOpenMap,
+                                        Modifier.padding(horizontal = HomeSide).fillMaxWidth(), onClick = crewActions.onOpenMap,
                                     )
                                 }
                             }
-                            gig.isEmpty() || crewSleeping -> {
+                            gig.isEmpty() || crew.crewSleeping -> {
                                 // Nobody in yet, or a crew asleep until gig day.
-                                if (crewSleeping) {
+                                if (crew.crewSleeping) {
                                     Spacer(Modifier.height(10.dp))
                                     Text(stringResource(R.string.home_asleep_text), style = HomeType.Body.copy(fontSize = 14.sp, lineHeight = 21.sp, color = Mosh.Lilac), modifier = Modifier.padding(horizontal = HomeSide))
                                 }
-                                if (gig.isNotEmpty()) CrewTiles(gig, seen, nowSec, onFind = null, onOptions = { options = it }, badges = privateUnread)
+                                if (gig.isNotEmpty()) CrewTiles(gig, crew.seen, crew.nowSec, onFind = null, onOptions = { options = it }, badges = crew.privateUnread)
                                 Spacer(Modifier.height(20.dp))
                                 when {
-                                    following -> Text(stringResource(R.string.home_see_them_once_starts), style = HomeType.Body.copy(fontSize = 14.sp, lineHeight = 21.sp), modifier = Modifier.padding(horizontal = HomeSide))
-                                    crewQrPayload != null -> InlineCrewQr(crewQrPayload, onShareCode, Modifier.padding(horizontal = HomeSide))
-                                    else -> HeroButton(stringResource(R.string.home_show_crew_qr), HomeIcons.Qr, Modifier.padding(horizontal = HomeSide), onClick = onShowGroupQr)
+                                    crew.following -> Text(stringResource(R.string.home_see_them_once_starts), style = HomeType.Body.copy(fontSize = 14.sp, lineHeight = 21.sp), modifier = Modifier.padding(horizontal = HomeSide))
+                                    crew.crewQrPayload != null -> InlineCrewQr(crew.crewQrPayload, inviteActions.onShareCode, Modifier.padding(horizontal = HomeSide))
+                                    else -> HeroButton(stringResource(R.string.home_show_crew_qr), HomeIcons.Qr, Modifier.padding(horizontal = HomeSide), onClick = inviteActions.onShowGroupQr)
                                 }
-                                if (onOpenChat != null && groupName != null) {
+                                if (crewActions.onOpenChat != null && crew.groupName != null) {
                                     Spacer(Modifier.height(14.dp))
                                     GlassAction(
                                         stringResource(R.string.home_crew_chat), HomeIcons.Chat,
-                                        Modifier.padding(horizontal = HomeSide).fillMaxWidth(), badge = chatUnread, onClick = onOpenChat,
+                                        Modifier.padding(horizontal = HomeSide).fillMaxWidth(), badge = crew.chatUnread, onClick = crewActions.onOpenChat,
                                     )
                                 }
-                                ActivityBlock(meetUp, emptyList(), nowSec, describePing, pinnedPlan, onOpenMap, onOpenChat, Modifier.padding(top = 18.dp))
+                                ActivityBlock(crew.meetUp, emptyList(), crew.nowSec, crewActions.describePing, crew.pinnedPlan, crewActions.onOpenMap, crewActions.onOpenChat, Modifier.padding(top = 18.dp))
                             }
                             else -> {
                                 // Tonight, with mates in: the faces and Find everyone are the loudest things here.
                                 CrewTiles(
-                                    gig, seen, nowSec,
-                                    onFind = { onFind(setOf(it)) }, onOptions = { options = it },
-                                    distances = distances, badges = privateUnread, flares = flareNotes,
+                                    gig, crew.seen, crew.nowSec,
+                                    onFind = { crewActions.onFind(setOf(it)) }, onOptions = { options = it },
+                                    distances = crew.distances, badges = crew.privateUnread, flares = crew.flareNotes,
                                 )
                                 DotLineText(
                                     stringResource(R.string.home_tap_mate_hint),
@@ -476,22 +375,22 @@ fun FriendsScreen(
                                 HeroButton(
                                     if (gig.size == 1) stringResource(R.string.home_find_name, gig[0].name) else stringResource(R.string.home_find_everyone),
                                     HomeIcons.Navigate, Modifier.padding(horizontal = HomeSide),
-                                ) { onFind(gig.map { it.id }.toSet()) }
-                                if (checkInBy != null) CheckInBanner(checkInBy, onHomeSafe, Modifier.padding(start = HomeSide, end = HomeSide, top = 14.dp))
+                                ) { crewActions.onFind(gig.map { it.id }.toSet()) }
+                                if (crew.checkInBy != null) CheckInBanner(crew.checkInBy, crewActions.onHomeSafe, Modifier.padding(start = HomeSide, end = HomeSide, top = 14.dp))
                                 Spacer(Modifier.height(14.dp))
                                 ButtonPair(
                                     Modifier.padding(horizontal = HomeSide),
                                     first = {
-                                        GlassAction(stringResource(R.string.home_crew_chat), HomeIcons.Chat, badge = chatUnread) {
-                                            if (onOpenChat != null) onOpenChat() else messageOpen = true
+                                        GlassAction(stringResource(R.string.home_crew_chat), HomeIcons.Chat, badge = crew.chatUnread) {
+                                            if (crewActions.onOpenChat != null) crewActions.onOpenChat() else messageOpen = true
                                         }
                                     },
-                                    second = { GlassAction(stringResource(R.string.home_share_photos), HomeIcons.Camera, onClick = onShareMoment) },
+                                    second = { GlassAction(stringResource(R.string.home_share_photos), HomeIcons.Camera, onClick = crewActions.onShareMoment) },
                                 )
-                                ActivityBlock(meetUp, pings.take(1), nowSec, describePing, pinnedPlan, onOpenMap, onOpenChat, Modifier.padding(top = 20.dp))
-                                if (moments.isNotEmpty()) {
-                                    SectionTitle(stringResource(R.string.find_story_title), Modifier.padding(top = 8.dp), onSeeAll = onOpenStory)
-                                    StoryStrip(moments, onOpenStory)
+                                ActivityBlock(crew.meetUp, crew.pings.take(1), crew.nowSec, crewActions.describePing, crew.pinnedPlan, crewActions.onOpenMap, crewActions.onOpenChat, Modifier.padding(top = 20.dp))
+                                if (crew.moments.isNotEmpty()) {
+                                    SectionTitle(stringResource(R.string.find_story_title), Modifier.padding(top = 8.dp), onSeeAll = crewActions.onOpenStory)
+                                    StoryStrip(crew.moments, crewActions.onOpenStory)
                                 }
                             }
                         }
@@ -499,22 +398,22 @@ fun FriendsScreen(
                 }
 
                 if (!firstTime) {
-                    if (upNext.isNotEmpty()) {
+                    if (gigs.upNext.isNotEmpty()) {
                         SectionTitle(stringResource(R.string.home_section_up_next), Modifier.padding(top = 18.dp))
                         HomeDivider()
-                        upNext.forEach { card ->
-                            UpNextRow(card) { onOpenUpNext(card.id) }
+                        gigs.upNext.forEach { card ->
+                            UpNextRow(card) { gigActions.onOpenUpNext(card.id) }
                             HomeDivider()
                         }
                     }
                     // "Remember last year?": a gig on this day in an earlier year.
-                    nz.waveformlabs.moshpoint.gigs.Memories.today(pastGigs, if (nowSec > 0) nowSec * 1000 else System.currentTimeMillis()).firstOrNull()?.let { (g, years) ->
+                    nz.waveformlabs.moshpoint.gigs.Memories.today(gigs.pastGigs, if (crew.nowSec > 0) crew.nowSec * 1000 else System.currentTimeMillis()).firstOrNull()?.let { (g, years) ->
                         Spacer(Modifier.height(28.dp))
-                        MemoryCard(g, years) { onOpenGig(g) }
+                        MemoryCard(g, years) { gigActions.onOpenGig(g) }
                     }
                     if (past.isNotEmpty()) {
                         SectionTitle(stringResource(R.string.home_section_past_gigs), Modifier.padding(top = 18.dp), onSeeAll = { gigsOpen = true })
-                        PastGigsStrip(past, onOpenGig)
+                        PastGigsStrip(past, gigActions.onOpenGig)
                     }
                     SectionTitle(
                         stringResource(R.string.home_section_friends),
@@ -528,7 +427,7 @@ fun FriendsScreen(
                             modifier = Modifier.padding(start = HomeSide, end = HomeSide, top = 6.dp),
                         )
                     } else {
-                        FriendsStrip(permanent, seen, nowSec, onFind = { onFind(setOf(it)) }, onOptions = { options = it })
+                        FriendsStrip(permanent, crew.seen, crew.nowSec, onFind = { crewActions.onFind(setOf(it)) }, onOptions = { options = it })
                         DotLineText(
                             stringResource(R.string.home_tap_mate_hint),
                             style = HomeType.Body.copy(fontSize = 12.5.sp, lineHeight = 17.sp, color = Mosh.TextFaint),
@@ -538,13 +437,13 @@ fun FriendsScreen(
                     }
                 }
                 // Always false in release builds (BuildConfig.TEST_BUILD is a compile-time constant).
-                if ((BuildConfig.TEST_BUILD && DebugStatus.showUi) && onAddSimulated != null) {
-                    TextButton(onClick = onAddSimulated, modifier = Modifier.padding(start = HomeSide - 12.dp, top = 12.dp)) {
+                if ((BuildConfig.TEST_BUILD && DebugStatus.showUi) && meActions.onAddSimulated != null) {
+                    TextButton(onClick = meActions.onAddSimulated, modifier = Modifier.padding(start = HomeSide - 12.dp, top = 12.dp)) {
                         Text("Debug: add simulated friend", style = HomeType.Label.copy(fontSize = 14.sp, color = Mosh.Amber))
                     }
                 }
             }
-            HomeBar(onMap = onOpenMap, onAdd = { addOpen = true }, onMe = { settingsOpen = true }, myName = myName, onStory = onOpenStory)
+            HomeBar(onMap = crewActions.onOpenMap, onAdd = { addOpen = true }, onMe = { settingsOpen = true }, myName = me.myName, onStory = crewActions.onOpenStory)
         }
     }
 }
