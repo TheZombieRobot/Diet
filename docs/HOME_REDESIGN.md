@@ -274,15 +274,14 @@ still has a middle dot beside a number ("٤ · …").
 
 Handover (kept current; newest first):
 
-- **Now:** the owner's review of `ad9a3e9` (items 1–13) is done in code; this commit adds the
-  fixes from checking runs 286 and 287 (200% and the small phone at 130%): width-aware
-  " · " lines, one fitted size for the tab labels, digits in every script keep their word,
-  word joiners for 朋友/显示/見えています, Japanese Live line under the switch at 200%. Next:
-  let CI render; check hugeFontHomeMain (en, de, pl, ja), smallPhoneLargeFont* (every
-  language), homeMain/homeGhost/homeNoCrew/upNext (every language); then regenerate the
-  contact sheets (`tools/contact_sheet.py`, one per state incl. the three new tests) and the
-  results table in section 3, set this entry to finished with the green run, and send the
-  owner's session the short report (branch, green run, what changed).
+- **Now:** finished, including the owner's review of `ad9a3e9` (items 1–13) and what checking
+  its new tests turned up. CI run 288 (commit `a23186e`,
+  https://github.com/TheZombieRobot/Diet/actions/runs/43679596355) is green: translations,
+  core and server tests, debug and release builds of the app and the watch, licences, and
+  every screenshot test passing (62 tests for English, 56 for German, Polish and Japanese, which
+  also get the 200% test, 55 for the other language sets; none blank). The commits after it
+  only add docs (this file, the contact sheets) and CI's screenshots. The owner's session has
+  the report.
 - **Done:** Step 1 (inventory, above). Step 2 code, compiling in CI: `Theme.kt` tokens,
   `HomeKit.kt` (new), `HomeSections.kt` and `FriendsScreen.kt` (rewritten),
   `HelpDialog(onAlertCrew = null)` in `CrewChatUi.kt`, `MomentStrip` removed (`MomentsUi.kt`),
@@ -293,14 +292,15 @@ Handover (kept current; newest first):
   Tests: `ui/HomeFixtures.kt` (made-up data), the home tests in `ScreensSnapshotTest`
   (homeMain, homeNotLive, homeGhost, homeCrewMenu, homeNoCrew, homeFirstTime, homeComingUp,
   homeFollowing, homeNobodyYet, homeLongName, homeOneMate, homeBigCrew, homeFriendsList,
-  homeAddSheet, upNext, smallPhoneHomeMain/NoCrew, largeFontHomeMain/NoCrew),
+  homeAddSheet, upNext, smallPhoneHomeMain/NoCrew, largeFontHomeMain/NoCrew,
+  smallPhoneLargeFontHomeMain/NoCrew, hugeFontHomeMain),
   `home/HomeTallSnapshotTest.kt` (homeWhole, full resolution, every language) and unit tests
   in `HomeLogicTest`. Venue and private-message tests updated for the new crew header and faces.
-  Step 3: the audit, two rounds over every state in every language plus the small phone and the
-  large font (section 3: what was fixed, the results table, the contact sheets).
+  Step 3: the audit, three rounds over every state in every language plus the small phone and
+  the large fonts, the third after the owner's review (section 3: what was fixed, the results
+  table, the contact sheets).
 - **Next:** nothing on the redesign itself. Worth a look on a phone (screenshots can't show
   it): Japanese phrase breaking (Android 13+), Spain's Spanish strings (see section 3), the
   status bar padding on Android 15. Out of scope, noticed on the way: the Story screen's
   header in Arabic has a middle dot beside a number ("٤ · …"); Swedish `main_eyebrow` strings
-  still say "DITT GÄNG"; `docs/i18n/vi.md` says "kèo" where the files say "kế hoạch"; other
-  screens still say "Go live".
+  still say "DITT GÄNG"; `docs/i18n/vi.md` says "kèo" where the files say "kế hoạch".
