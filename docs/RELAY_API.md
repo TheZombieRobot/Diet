@@ -250,6 +250,9 @@ The operator can scale every per-client limit with `LIMIT_SCALE` (e.g. `2` durin
 
 ## 11. Adopting the new endpoints (wave 2, app side)
 
+Done in wave 2c part 3: how each step was adopted, and the decisions made, are in
+[WAVE2C_ENDPOINTS.md](WAVE2C_ENDPOINTS.md).
+
 In `RelayClient` and the courier, in this order (each step works on its own):
 
 1. **Token.** At first start `POST /v1/install`, keep the token in prefs, send

@@ -41,8 +41,8 @@ Two findings were checked again by hand:
 - The finder recomposes and rebuilds its drawing every frame.
 - Photo decode, clip decryption and full-size Story images run on the main thread.
 - The Story decodes a whole gig at once (about 300 MB for 200 photos).
-- Every chat poll re-downloads up to 200 messages: add a cursor.
-- Crew clips download over mobile data in the background.
+- ~~Every chat poll re-downloads up to 200 messages: add a cursor.~~ Done: chat polls ask only for what's new (wave 2c part 3, [WAVE2C_ENDPOINTS.md](WAVE2C_ENDPOINTS.md)).
+- ~~Crew clips download over mobile data in the background.~~ Done: clips wait for Wi-Fi or the Story (wave 2c part 3).
 - GPS runs every 15 s while you stand still.
 
 **Reliability**
