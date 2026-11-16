@@ -138,6 +138,44 @@ class RelayBudgetTest {
         assertNull(b.refusal(RelayUse.BACKGROUND, true, now + 1))
     }
 
+    /** A venue network that Android vouches for but that doesn't reach the relay (or a relay that's down). */
+    @Test fun lookUpsBackOffWithJitterAfterRepeatedNoAnswers() {
+        val b = budget()
+        fun lookUp(now: Long, outcome: RelayBudget.Outcome) = b.go(RelayUse.MESSAGE, now, outcome, message = false)
+        // One timeout on patchy signal holds nothing up.
+        assertTrue(lookUp(0, RelayBudget.Outcome.NO_ANSWER))
+        assertNull(b.refusal(RelayUse.MESSAGE, false, 1))
+        // The second in a row: 5 s, then 10, 20, and 30 s at most.
+        var now = 1L
+        for (wait in listOf(5_000L, 10_000L, 20_000L, 30_000L, 30_000L)) {
+            assertTrue(lookUp(now, RelayBudget.Outcome.NO_ANSWER))
+            assertEquals(PutResult.NO_NETWORK, b.refusal(RelayUse.MESSAGE, false, now + wait - 1))
+            assertEquals(-1L, b.roomInMs(RelayUse.MESSAGE, false, now + wait - 1))
+            now += wait
+            assertNull(b.refusal(RelayUse.MESSAGE, false, now))
+        }
+        // Uploads and safety pings keep their own pace meanwhile.
+        assertTrue(lookUp(now, RelayBudget.Outcome.NO_ANSWER))
+        assertNull(b.refusal(RelayUse.MESSAGE, true, now + 1))
+        assertNull(b.refusal(RelayUse.SAFETY, true, now + 1))
+        // Any answer from the relay: look-ups go at their own pace again (two more misses before a wait).
+        assertTrue(b.go(RelayUse.SAFETY, now + 1, RelayBudget.Outcome.OK))
+        assertTrue(lookUp(now + 2, RelayBudget.Outcome.NO_ANSWER))
+        assertNull(b.refusal(RelayUse.MESSAGE, false, now + 3))
+        // The network coming back clears the wait too.
+        assertTrue(lookUp(now + 3, RelayBudget.Outcome.NO_ANSWER))
+        assertEquals(PutResult.NO_NETWORK, b.refusal(RelayUse.MESSAGE, false, now + 4))
+        b.networkBack()
+        assertNull(b.refusal(RelayUse.MESSAGE, false, now + 4))
+    }
+
+    @Test fun lookUpWaitsAreJittered() {
+        val late = RelayBudget(random = { 0.999 })
+        repeat(2) { late.go(RelayUse.MESSAGE, 0, RelayBudget.Outcome.NO_ANSWER, message = false) }
+        assertEquals(PutResult.NO_NETWORK, late.refusal(RelayUse.MESSAGE, false, 6_000))
+        assertNull(late.refusal(RelayUse.MESSAGE, false, 6_250))
+    }
+
     @Test fun aBurstOfTooManyAnswersIsOnePauseNotFive() {
         val b = budget()
         // Five requests on their way together, and the relay says "too many" to each.

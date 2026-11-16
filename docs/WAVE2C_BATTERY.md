@@ -11,8 +11,9 @@ rendering performance, Report/Block, billing and the server.
 
 _Keep this section current: whoever picks this up next starts here._
 
-- **Done:** item 1 (the finder's screen), item 2 (GPS cadence).
-- **Next:** item 3 (network hygiene), then 4 (small radio wins), in that order. Each is one commit with its core rule and tests; this note and
+- **Done:** item 1 (the finder's screen), item 2 (GPS cadence), item 3 (network hygiene).
+- **Next:** item 4 (small radio wins), in the list's order: the intro advert, the crowd relay
+  advert, the scan PHY, Wi-Fi Aware, Light me up's time limit. Each is one commit with its core rule and tests; this note and
   docs/FIELD_TEST_PLAN.md section 4h are updated with each.
 - **Checked locally:** core tests (`gradle -q --offline :core:test` in a scratch build that
   includes only `:core`, as docs/WATCH.md describes). The app can't be built here (Google Maven
@@ -105,3 +106,31 @@ Trade-offs:
   a few seconds for its first fix after that. Walking away from a pin clears it within about a
   minute (the test: about 30 s of walking after GPS is back).
 - **Dancing may count as walking** on some phones: GPS on more often, never less.
+
+## 3. Network hygiene (the server-independent part of performance P0-2)
+
+The protocol and the endpoints are unchanged; batching and cursors need wave 1's endpoints and
+are not part of this wave.
+
+- **Online means validated** (`setup/NetState`): a network counts only when Android says it
+  reaches the internet *and* has validated it (`NET_CAPABILITY_VALIDATED`). Before, any network
+  that claimed the internet counted, so a venue Wi-Fi behind a sign-in page, or one with nothing
+  behind it, was tried on every lookup and upload, each waiting out a 5–8 s timeout with the
+  radio on. Now nothing is tried there (`RelayClient.offline`), the courier treats the phone as
+  without signal (messages go by Bluetooth, as with no network at all), and the moment Android
+  validates a network the queue is flushed (`networkBack`, unchanged).
+- **Lookups back off with jitter** (core `RelayBudget`): reading mailboxes (chat, pings, crew
+  sync, the finder's relay polls) used to retry at its own pace however often the relay didn't
+  answer; only background uploads held off. Now, after the **second** no-answer in a row, lookups
+  wait 5 s, then 10, 20, and 30 s at most, each stretched by up to a quarter so a crowd doesn't
+  retry in step. Any answer from the relay (to anything) or the network coming back clears it.
+  Uploads, messages and safety pings keep their own pace (unchanged).
+
+Trade-offs:
+- **A network Android can't validate is never tried**, even if the relay would have answered
+  there (a firewall that blocks only Android's check, a sign-in page not yet accepted). Messages
+  wait for Bluetooth or a validated network instead. VPNs count: Android marks them validated.
+- **After a relay outage, lookups can lag up to about 37 s** behind the relay coming back (a
+  30 s wait plus jitter) unless the phone's network changes. The finder, with GPS mates far away,
+  may show their positions that much later after an outage; one timeout on patchy signal holds
+  nothing up.
